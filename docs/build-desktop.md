@@ -100,7 +100,7 @@ npx @tauri-apps/cli icon path/to/icon-1024.png
 That writes every required size and format (`32x32.png`, `128x128.png`, `128x128@2x.png`, `icon.icns`, `icon.ico` and the rest) to `src-tauri/icons/`. The macOS bundle also carries a branded asset catalog and document icon; keep them consistent with any replacement artwork.
 
 ::: details What the desktop app guards at runtime
-These are behaviours of the built app rather than build steps, kept here until the threat model carries them.
+These are behaviours of the built app rather than build steps.
 
 - **Website reads.** The Website source reads public HTTP and HTTPS pages anonymously. It resolves and pins public addresses for each page, redirect, stylesheet and image read, and refuses local and private addresses. A page redirect stays with the same party. A missing resource can leave a partial import, while a refused network address stops the import. Signed-in screen capture is a separate feature.
 - **Hot folders.** File events keep an open descriptor until the client consumes the file. Files must be regular, direct children of the selected folder; links and files outside it are refused. Custody and event queues hold at most 256 entries, and each file has a 256 MiB read limit. Replacing a folder with invalid settings keeps the previous watcher running.

@@ -208,7 +208,7 @@ soon as the fast checks pass.
 ### The docs-and-tests lane
 
 A pull request whose every change is under `docs/` (pages, translations, shots,
-figures and the `/info` builder), a test or fixture, or one of the reviewed
+figures and the `/info` builder), a test, a fixture or one of the reviewed
 ratchet baselines skips the heavy tier: the four WebGPU browser partitions and
 their execution gate, Tauri, conformance (qpdf and c2patool) and regression
 fuzzing. Everything else still runs: secret history, custom static security
@@ -270,6 +270,15 @@ which tests run, and the coverage gate uses the same assignment function, so a
 stale estimate can reduce balance but never coverage. Refresh the profile from
 complete successful `browser-coverage.json` artifact sets, taking the median
 `summaries[].durationMs` per file and recording the contributing runs.
+
+The coverage gate still requires every discovered file to finish exactly once at the
+checked-out source, all four complete reports and the exact reviewed skips, so a
+timing estimate cannot excuse a missing, failed or cancelled test. Each runner warms
+the source and production Design shells and checks its WebGPU adapter. Within a
+partition the entry checks listed in `scripts/browser-partitions.ts` (the theme,
+motion-sample export and open-route files) run first and the rest follow
+alphabetically, one isolated process per file. A failure is reported from the
+required shard while its remaining files keep running.
 
 ### The qualification artifact
 

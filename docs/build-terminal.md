@@ -1,6 +1,6 @@
 # Build the CLI and TUI
 
-This page is for a developer who wants to run Lolly from a terminal, straight from a checkout, or package the command-line app for other machines. Running from source needs no build step: after [Get the source](/info/contributing-setup.html), both terminal apps work at once.
+This page is for a developer who wants to run Lolly from a terminal straight from a checkout, or package the command-line app for other machines. Running from source needs no build step: after [Get the source](/info/contributing-setup.html), both terminal apps work at once.
 
 ## Run them from the checkout
 
@@ -19,7 +19,9 @@ The TUI is the same engine and render path under an interactive, keyboard-first 
 pnpm run tui
 ```
 
-Both keep saved sessions, project folders and your profile on disk, in the directory all three local apps share: `$LOLLY_STATE_DIR`, else the desktop app's data directory when the app is installed on the machine, else `~/.lolly`. The TUI saves exports to `~/Desktop` by default. The [TUI guide](/info/tui.html) has the full key map and views.
+The TUI keeps saved sessions, project folders and your profile on disk, in the directory all three local apps share: `$LOLLY_STATE_DIR`, else the desktop app's data directory when the app is installed on the machine, else `~/.lolly`. It saves exports to `~/Desktop` by default. The [TUI guide](/info/tui.html) has the full key map and views.
+
+The CLI reads saved sessions from that same directory, so a session saved in the desktop app or the TUI loads there too. It writes there only when you set `$LOLLY_STATE_DIR`; otherwise a save lasts for that one run, so a plain render leaves no files behind.
 
 ## What renders without a browser
 

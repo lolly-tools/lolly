@@ -64,7 +64,7 @@ An organisation that wants to be its own root of trust has three supported route
 - **Your own instance of the Lolly CA.** `services/ca` is a small Node service you can run yourself. The root private key is a deployment secret you hold, and the chart takes an existing Kubernetes Secret, so the chart never has to manage the key.
 - **Self-signed,** for closed loops where you distribute your own root.
 
-Verification is pinned the same way. `--trust-anchor=./corp-root.pem` and `$LOLLY_TRUST_ANCHOR` pin your roots, `--no-default-anchors` drops the built-in sets so only your pins count, and every verdict prints the anchor set behind the verdict. [Content Credentials engineering](/info/content-credentials-engineering.html) has the detail.
+Verification is pinned the same way. `--trust-anchor=./corp-root.pem` and `$LOLLY_TRUST_ANCHOR` pin your roots, and `--no-default-anchors` drops the built-in sets so only your pins count. Every verdict prints the anchor set behind the verdict. [Content Credentials engineering](/info/content-credentials-engineering.html) has the detail.
 
 Server renders in Lolly Work use the service's configured signing identity when one is available, not the person's on-device key. Its operator owns that key and certificate chain, and verification must trust the relevant root. See Lolly Work's [Content Credentials guide](/info/work-c2pa.html).
 

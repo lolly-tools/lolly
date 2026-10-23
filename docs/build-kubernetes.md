@@ -56,7 +56,7 @@ helm upgrade --install lolly ./deploy/helm -n lolly \
 
 ### What the chart deploys
 
-`web` is on by default: two stateless replicas behind a ClusterIP service, a TLS-ready ingress you turn on with a hostname, and `/healthz` liveness and readiness probes. The web app holds no state on the server (everything lives in each browser's IndexedDB), so replicas are interchangeable and you can raise the count freely. `mcp` and `ca` stay off until you turn them on.
+`web` is on by default: two stateless replicas behind a ClusterIP service, a TLS-ready ingress you turn on with a hostname and `/healthz` liveness and readiness probes. The web app holds no state on the server (everything lives in each browser's IndexedDB), so replicas are interchangeable and you can raise the count freely. `mcp` and `ca` stay off until you turn them on.
 
 Every pod gets the same secure defaults:
 
@@ -126,7 +126,7 @@ Both stay off until you ask for them, and both are stateless by default.
 **CA** (`--set ca.enabled=true`) issues short-lived certificates for on-device C2PA signing on port 8787, under `/api/ca`. Set `ca.config.allowedOrigins` to your web host, or enrolment tokens are rejected. It has two issuer modes:
 
 - **The default, `ca.config.issuerMode: legacy-root`,** needs a root key and certificate, made once with `node services/ca/scripts/gen-root.mjs`, plus a service secret (`openssl rand -hex 32`). Fill in `ca.secrets` and let the chart create the Secret, or, the production choice, set `ca.existingSecret` to one your platform's secret store manages and leave `ca.secrets` empty. The chart refuses to render a CA with a missing root.
-- **The managed mode, `ca.config.issuerMode: vault-pki`,** issues from a Vault PKI mount configured under `ca.config.managed`. The root key stays in Vault, the chart refuses root key or certificate values, and a NetworkPolicy limits the CA's egress to the peers you list. With Vault's Kubernetes sign-in, the CA pod is the one exception to the no-token rule: it gets a ten-minute service-account token whose audience is Vault, not the Kubernetes API.
+- **The managed mode, `ca.config.issuerMode: vault-pki`,** issues from a Vault PKI mount configured under `ca.config.managed`. The root key stays in Vault, the chart refuses root key or certificate values and a NetworkPolicy limits the CA's egress to the peers you list. With Vault's Kubernetes sign-in, the CA pod is the one exception to the no-token rule: it gets a ten-minute service-account token whose audience is Vault, not the Kubernetes API.
 
 ## Build your own image
 
@@ -136,7 +136,7 @@ Both stay off until you ask for them, and both are stateless by default.
 From a reviewed commit to running pods. Signing happens before the image build, and the image build only checks and packages.
 :::
 
-The signed frontend comes from the reusable `release-frontend.yml` workflow, or your own equivalent: a protected job signs the source catalog, a separate job compiles with only the public pin, and a second protected job signs the output catalog and a receipt binding the source commit, content profile, public key and every file. The [signed image guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md) covers key custody, the jobs and the release gate. Never put a private key in an image build argument, context or BuildKit mount.
+The signed frontend comes from the reusable `release-frontend.yml` workflow, or your own equivalent: a protected job signs the source catalog, a separate job compiles with only the public pin and a second protected job signs the output catalog and a receipt binding the source commit, content profile, public key and every file. The [signed image guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md) covers key custody, the jobs and the release gate. Never put a private key in an image build argument, context or BuildKit mount.
 
 Package an approved frontend directory with its reviewed source commit and public pin. The **build context must be the repository root**:
 
@@ -200,7 +200,7 @@ kubectl create secret docker-registry application-collection \
   -n lolly
 ```
 
-The Collection carries charts for stateful services such as redis, postgresql, prometheus and cert-manager, but no generic static web server chart, and no Lolly chart: nginx is there as an image only. For the current registry paths, tags, chart versions and value keys, see the [Application Collection docs](https://docs.apps.rancher.io) and run `helm show values oci://dp.apps.rancher.io/charts/<chart>` before relying on any default.
+The Collection carries charts for stateful services such as redis, postgresql, prometheus and cert-manager, but neither a generic static web server chart nor a Lolly chart: nginx is there as an image only. For the current registry paths, tags, chart versions and value keys, see the [Application Collection docs](https://docs.apps.rancher.io) and run `helm show values oci://dp.apps.rancher.io/charts/<chart>` before relying on any default.
 :::
 
 ## TLS with cert-manager
@@ -257,7 +257,7 @@ The original chart and this chart keep separate defaults. The sovereign profile 
 
 ## Browser exports and the Chromium sandbox
 
-For browser-only public exports, the optional `mcp-browser.Dockerfile` and `browser.values.yaml` add Chromium with a bounded queue and larger resource budgets. The ordinary image stays browser-free. Set the exact public HTTPS web base, qualify sandbox startup and real exports, and keep the deployment's reviewed anonymous or bearer policy. Turning the browser on never grants access to private Lolly Work files or workspace documents.
+For browser-only public exports, the optional `mcp-browser.Dockerfile` and `browser.values.yaml` add Chromium with a bounded queue and larger resource budgets. The ordinary image stays browser-free. Set the exact public HTTPS web base and qualify sandbox startup and real exports. Keep the deployment's reviewed anonymous or bearer policy. Turning the browser on never grants access to private Lolly Work files or workspace documents.
 
 The optional [namespace sandbox profile](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/seccomp/README.md) keeps Chromium's own sandbox on under the container's dropped capabilities. Install and verify its exact hash on the chosen node first, then opt MCP into its Localhost seccomp profile; the other services keep `RuntimeDefault`. Qualify the namespace and seccomp diagnostics and real SVG, PNG and PDF exports after each browser or runtime change. The chart neither installs a host profile nor substitutes a sandbox bypass.
 

@@ -85,13 +85,14 @@ Two things never download with a clone, whichever command you use:
 To bundle the models into your own build instead, run `pnpm run models:vendor` first. It is opt-in and never run by install or CI. It downloads about 1.2 GB from each model family's pinned upstream, checks every file's hash before writing and skips files already present, so a second run fetches only what is missing. The singing models (about 2.8 GB more) come only when you ask for them with `--only=sing`. `--only=kokoro,matte` fetches a subset and `--list` shows the families. The files stay gitignored.
 
 ::: details Why the repository is large
-Most of the weight is history, not the working tree: catalog images such as tool previews and share cards re-rendered over time, the docs screenshots re-shot whenever the interface changes, and the web app's fonts and binary assets. In October 2026, budget roughly 1.2 GB of download and 2.6 GB on disk once `node_modules` is installed. Both grow with the history, which is why the partial clone saves the most.
+Most of the weight is history, not the working tree: catalog images such as tool previews and share cards re-rendered over time, the docs screenshots re-shot whenever the interface changes and the web app's fonts and binary assets. In October 2026, budget roughly 1.2 GB of download and 2.6 GB on disk once `node_modules` is installed. Both grow with the history, which is why the partial clone saves the most.
 :::
 
 ## If something fails
 
 - **`pnpm install` stops with a syntax error in a `.ts` file.** Your Node is too old for type stripping. Check `node -v` against 22.18 or 24. With Homebrew, `node@22` is keg-only: add `export PATH="$(brew --prefix node@22)/bin:$PATH"` to your shell profile.
 - **`brands/suse` will not clone.** The pack is private. Drop `--suse`; you land on `lolly-start` and everything still builds and runs.
+- **A SUSE tool edit does not show up.** `brands/suse` is a separate repository, so the edit needs a commit inside it and a pointer commit here (see [the private pack](#the-private-suse-pack)). A community tool is a plain directory in this repository and needs one commit.
 - **Anything else.** Run `pnpm run doctor`. It checks the checkout without changing it and prints the exact command for each repair.
 
 After you edit a community tool's `tool.json`, rebuild every profile's catalog with the `:all` commands in [Publish and localize a tool](/info/tool-publishing.html).

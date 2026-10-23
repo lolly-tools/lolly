@@ -6813,13 +6813,16 @@ async function build() {
   for (const lang of LANGS) for (const original of stubs) {
     const s = lang === 'en' ? original : { slug: `${lang}/${original.slug}`, target: original.target.replace('/info/', `/info/${lang}/`) };
     const dest = esc(s.target);
+    // A stub can point off-site (a runbook that moved to the repository's own guides):
+    // its canonical is that address as written, not one prefixed with this site.
+    const canonical = /^https?:\/\//.test(s.target) ? dest : `${SITE_URL}${dest}`;
     const stub = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Moved - Lolly</title>
-<link rel="canonical" href="${SITE_URL}${dest}">
+<link rel="canonical" href="${canonical}">
 <meta http-equiv="refresh" content="0; url=${dest}">
 <meta name="robots" content="noindex">
 <script>var target=new URL(${JSON.stringify(s.target)},location.href);if(!target.hash)target.hash=location.hash;if(!target.search)target.search=location.search;location.replace(target.href);</script>

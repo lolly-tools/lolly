@@ -20,7 +20,7 @@ The desktop app's own build already writes a `.deb`, an `.rpm` and an `.AppImage
 A Linux package holds one of two artifacts:
 
 - **The desktop app**, the `tauri build` output, as an RPM, deb, Flatpak or AppImage. It already carries the CLI sidecar (installed as `lolly-cli` by the RPM recipe) and its own embedded content.
-- **The standalone CLI**, from `pnpm run pack:cli` (an npm-compatible package) or `pnpm run build:cli-sidecar` (a small Node launcher in `dist/cli-sidecar/bin/` plus its ESM resources in `dist/cli-sidecar/cli-lib/`, which must stay together). See [Build the CLI and TUI](/info/build-terminal.html#standalone-binary). Neither form contains tools or a catalog, so a CLI package also installs a content root, a materialised public content bundle, and points `LOLLY_ROOT` at that directory.
+- **The standalone CLI**, from `pnpm run pack:cli` (an npm-compatible package) or `pnpm run build:cli-sidecar` (a small Node launcher in `dist/cli-sidecar/bin/` plus its ESM resources in `dist/cli-sidecar/cli-lib/`, which must stay together). See [Build the CLI and TUI](/info/build-terminal.html#standalone-binary). Neither form contains tools or a catalog, so a CLI package also installs a content root (a materialised public content bundle) and points `LOLLY_ROOT` at that directory.
 
 ## Build with no network
 

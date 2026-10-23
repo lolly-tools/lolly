@@ -1,6 +1,6 @@
 # Delivery deployment
 
-This page is for an operator who puts a proxy, CDN or object store in front of Lolly. Done right, signatures still verify, caches serve the right bytes to the right people, and nothing private ends up in a shared cache. Lolly needs no third-party CDN; a same-origin web server is enough, on premises or on a sovereign or public cloud, and K3s, RKE2 and a standalone server follow the same rules.
+This page is for an operator who puts a proxy, CDN or object store in front of Lolly. Done right, signatures still verify, caches serve the right bytes to the right people and nothing private ends up in a shared cache. Lolly needs no third-party CDN; a same-origin web server is enough, on premises or on a sovereign or public cloud, and K3s, RKE2 and a standalone server follow the same rules.
 
 Read it beside [Choose a deployment](/info/deployment.html), [Run on Kubernetes](/info/build-kubernetes.html) and your instance's privacy policy. Source tests and reference configuration do not establish that a particular deployment has passed the checks below.
 
@@ -72,7 +72,7 @@ For a managed CDN, purge the affected release, engine and catalog tags (`r_`, `e
 
 Turn off edge resizing, transcoding, metadata stripping and re-signing. Also turn off script injection, analytics, tag managers, script deferral, email obfuscation, bot challenges that replace app responses, crawler hinting and cached-copy fallback when the origin is down. Compression must decode to the original signed bytes. Compare HTML and images through the edge with their origin copies.
 
-Display renditions are generated and signed once, keep their credits and an original parent or source hash, and have their own catalog checksums. Selection, placement and export use the original formats. See [Authoring assets](/info/authoring-assets.html#delivery-addresses-and-display-renditions).
+Display renditions are generated and signed once. Each keeps its credits and an original parent or source hash, and has its own catalog checksums. Selection, placement and export use the original formats. See [Authoring assets](/info/authoring-assets.html#delivery-addresses-and-display-renditions).
 
 Model manifests carry every file's full SHA-256 and a directory hash. Install a model only after all decoded bytes match the expected length and full hash. An interrupted download can keep a partial copy, but resuming must check its range and the final whole-file hash before the model is available offline. A 16-character address suffix, a response header or a finished progress bar cannot replace that check.
 
@@ -112,7 +112,7 @@ Without `--samples`, the probe also checks its built-in shell samples for lolly.
 
 The probe verifies the signature first and takes every expected hash from the signed index. It checks the hashed indexes, a daily rotation of hashed tool, preview and asset files with the legacy names they replace, a warm 304 for each and one missing address per hashed family, which must answer 404 without being stored. Requests carry no cookies or bearer tokens. A derived sample replaces one from your list at the same address only when it checks everything that sample does, so a reviewed credential, range, C2PA, CORS or age check still runs. A catalog that refuses anonymous readers or carries an instance scope yields no samples, so private catalogs still need a reviewed sample list.
 
-Include identity and compressed bytes, cold 200 and warm 304 requests, ranges, model hashes, signed images, anonymous refusals and two different authorised readers of private resources. A failed check blocks qualification, and `--observe` records gaps without qualifying the deployment. Repeat after every release and proxy configuration change, and keep a working rollback release.
+Include identity and compressed bytes, cold 200 and warm 304 requests, ranges, model hashes, signed images, anonymous refusals and two different authorised readers of private resources. A failed check blocks qualification, and `--observe` records gaps without qualifying the deployment. Repeat after every release and proxy configuration change, and keep a working rollback release. Follow your own production handoff and identity checks before any change to a live deployment.
 
 ::: note The reference instance
 The maintained lolly.tools and lolly.ing apps run on UpCloud in Frankfurt, on K3s; the [sovereign profile](/info/build-kubernetes.html#one-node-public-and-private-routes-the-sovereign-profile) is the recipe for that kind of deployment. The separate lolli.li release and model host uses UpCloud Managed Object Storage in europe-2, also Frankfurt, and that inventory is verified independently of the app's host. The [reference privacy policy](/info/privacy.html#delivery-hosts-and-processors) lists these hosts without claiming an unverified log-retention period. No new CDN is turned on by the delivery rules on this page.
