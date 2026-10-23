@@ -83,7 +83,7 @@ export function rememberOverlayUrlState(): void {
 }
 
 /** The route part of an address: the path, plus the hash route without its query. */
-function routeBase(href: string): string {
+export function routeBase(href: string): string {
   const url = new URL(href);
   return url.pathname + (url.hash.startsWith('#/') ? url.hash.split('?')[0] : '');
 }
