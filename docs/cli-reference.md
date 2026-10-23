@@ -20,7 +20,7 @@ Every command answers with one code per outcome, so a pipeline can branch on the
 ::: details Everything that exits 4
 - the bytes were not the format claimed, or a credential is present but broken;
 - `--strict` promoted a gate-class warning, or `--depth=float` was asked of an 8-bit render;
-- `lolly check` found an error (or any warning under `--strict`);
+- `lolly check` found an error, or any warning under `--strict` (the writing score, `verify.writing-score`, never counts);
 - `lolly package` met a Design document whose pictures have no bytes or are not catalog ids, or an output that already exists;
 - `lolly compose` refused a spec (with the JSON pointer of the key) or met an output that already exists;
 - a Design document's authoring keys could not be lowered (`AUTHORING_INVALID`);
