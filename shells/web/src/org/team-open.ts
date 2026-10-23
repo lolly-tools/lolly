@@ -40,6 +40,7 @@ import { tRaw } from '../i18n.ts';
 import { fetchTeamSession } from './session-source.ts';
 import { noteProjectOpened } from './opened-projects.ts';
 import { refreshToolReady } from '../lib/tool-ready.ts';
+import { flushAddressWrites } from '../lib/url-state.ts';
 import { setReviewTarget } from '../lib/review-target.ts';
 import { adoptTeamSessionOrigin, prepareTeamScope, rememberTeamSessionOrigin, teamAddressKey } from './team-session-origin.ts';
 import { prepareTeamOpenCollab } from './team-open-collab.ts';
@@ -199,6 +200,8 @@ export async function openTeamSession(sessionId: string, opts: TeamOpenOptions =
   }
   // Join before the first editor mount; joining from tool-ready would rebuild
   // the entire editor and repeat layout after the document had already appeared.
+  // A settling address write goes out now, so it is not mistaken for the person leaving.
+  flushAddressWrites();
   const from = window.location.href;
   const current = opts.stillWanted ?? (() => window.location.href === from);
   const collab = await prepareTeamOpenCollab(origin, current).catch(() => null);
