@@ -153,6 +153,8 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'token-resolution', lang: 'dot', title: 'From token sources to tool values', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'one-render-path', lang: 'dot', title: 'Two transports, one render path', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
+  { set: 'concepts', name: 'tool-to-file', lang: 'dot', title: 'Three things make a file', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
+  { set: 'concepts', name: 'asset-relay', lang: 'dot', title: 'One tool, many hands', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=24'] },
 ];
 
 /** Every figure the script renders, in set order. */

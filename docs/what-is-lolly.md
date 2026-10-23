@@ -1,23 +1,49 @@
 # What is Lolly?
 
-Lolly is an open-source creative platform. Choose a tool, add your words, images or data, and make a file. Your design system supplies the colours, fonts and assets. You can also build tools that let other people change the inputs you choose.
+Lolly makes finished files from a few answers. Pick a tool, such as a QR code, a chart or a social card. Add your words, pictures or data, and download a PNG, PDF, SVG, video or slide deck that is ready to send.
 
-Start with [Make your first file](/info/make-something.html), [use Lolly in your browser](/), or [install the app](/info/install.html). The app does not require a Lolly Work account.
+![A design system, a tool and your input go in; a finished file comes out](/info/diagrams/concepts/tool-to-file.svg)
 
-## Use it on your device
+## What you can make
 
-The engine and app render on your device. Keep the app, tools and required assets available before relying on an offline workflow. Optional online features have their own connections and limits. [Create](/info/creators.html) covers making, finding, sharing and exporting work.
+Each of these was made by filling in a tool's fields, or by typing them into a link. Nobody laid them out by hand.
 
-## Add organisation services when you need them
+::: cols
+## A city map
 
-Lolly Work is the optional organisation service. An organisation can use it for sign-in, group permissions, shared projects and assets, policies, approvals, server render jobs and delivery records. Those services use the organisation's server and storage.
+![Amsterdam's canal rings and road network as clean vector streets, from a dropdown and two colour fields](/info/shots/ov2-street-map-poster.svg)
 
-[Use Lolly at your organisation](/info/organisation.html) explains the member experience. [Manage](/info/operators.html) covers administration. [Deploy](/info/operate.html) covers hosting, configuration, updates and recovery.
+## A chart
 
-## Build and automate
+![An area chart of monthly signups whose every value arrived in the link](/info/shots/vt-d3-url-chart.svg)
+:::
 
-The creative `lolly` CLI, URLs and public rendering MCP drive tools and make files. The `lw` CLI administers a Work instance. Document agent invitations delegate access to a specific shared document; they do not grant infrastructure access. [Automate](/info/builders.html) links to the interfaces and their limits.
+The gallery holds many more: QR codes, certificates, diagrams, decks, audiograms, motion and the utilities that clean or convert a file you already have. [Make your first file](/info/make-something.html) walks you through a QR code.
 
-## Understand the boundaries
+![Every tool in the library as a card, grouped by category, so you pick one and start](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=aud-gallery-landscape)
 
-[Trust & security](/info/trust.html) explains data handling and verification. Read [where work happens](/info/work-security-platform.html) for the differences between local creation, optional connections and Work services.
+## Where the look comes from
+
+The colours, fonts and logos come from a **design system**, set once. lolly.tools starts in **Lolly Demo**, Lolly's own sample design system, which is why everything is green at first. [Meet Lolly Demo](/info/lolly-demo.html) shows what it contains. **Design System Setup** (`#/start`) is where you make your own, and [Start](/info/quickstart.html) walks you through the choices.
+
+Because the rules live in the tool, the tenth file looks as right as the first, and so does the file a colleague makes from the same tool.
+
+## Where it runs
+
+Lolly makes the file on your device. You need no account. Once the tools and fonts you use are saved under [Available offline](/#/settings?focus=offline-section), it keeps working with the network unplugged. Apart from fetching its own tool list, Lolly connects only when you use a feature that needs to, such as sending a file to Google Drive or turning on Sync. [Privacy](/info/privacy.html) lists every one.
+
+Use it in a browser at [lolly.tools](/), or [install the app](/info/install.html) on your computer or phone. It is the same app either way.
+
+## When a team needs more
+
+An organisation can add **Lolly Work**, an open-source server it runs itself, for sign-in, shared projects, approvals and server jobs. [Use Lolly at your organisation](/info/organisation.html) explains what changes for you. Everyday use never needs Lolly Work.
+
+## Find your way
+
+- **[Start](/info/quickstart.html)**: put your own brand in and bring the work you already have.
+- **[How Lolly works](/info/how-lolly-works.html)**: one tool, your rules, many files, and who does what.
+- **[Create](/info/creators.html)**: making, animating, recording, sharing and exporting.
+- **[Automate](/info/builders.html)**: the command line, links, agents and building your own tools.
+- **[Manage](/info/operators.html)**: running Lolly for a team.
+- **[Deploy](/info/operate.html)**: hosting Lolly and Lolly Work.
+- **[Trust](/info/trust.html)**: privacy, security and checking a file yourself.

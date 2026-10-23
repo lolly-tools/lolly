@@ -1,98 +1,88 @@
 # Start
 
-Lolly turns your rules - colours, type, layouts, logic - into tools anyone can use to make finished files: images, PDFs, social cards, video, by filling in a few fields. There's little to learn and nothing to upload: making and exporting runs on your device, online or off.
+By the end of this page your tools will wear your own colours and fonts, and the work you already have will be ready to reuse. You need no account, and making and exporting run on your device.
 
-For the complete product introduction, read [What is Lolly?](/info/what-is-lolly.html). This quickstart covers local creation; [organisation use](/info/organisation.html) and [Work server installation](/info/work-install.html) have separate guides.
+::: timeline
+- <!--i:sparkle--> **Make one file.** [Make your first file](/info/make-something.html) walks you through a QR code in a few minutes.
+- <!--i:palette--> **Put your brand in.** Start from one colour, a tokens file or a finished design.
+- <!--i:layers--> **Make more of the same.** Share a link, fill a spreadsheet, or run the tool from a script.
+:::
 
-This is the one page to read first. Two things get you productive: **make Lolly yours** and **bring in what you already have** (your design files and tokens). Everything else is a link away.
+New to the idea itself? [What is Lolly?](/info/what-is-lolly.html) is the five-minute introduction, and [How Lolly works](/info/how-lolly-works.html) shows who does what.
 
-> New to Lolly and just want to make something? [Make your first file](/info/make-something.html) walks you through a QR code, or [open the app](/#/), pick any tool from the gallery, fill in the blanks and hit **Export**. Come back here when you want it wearing *your* brand.
+## Put your brand in
 
-![The Utilities view - the on-device workhorses like Strip Hidden Data, Compress PDF and Convert Image, all in one place](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+lolly.tools opens in **Lolly Demo**, Lolly's own sample design system; [Meet Lolly Demo](/info/lolly-demo.html) shows what you are looking at. Your design system replaces it: a small set of design tokens, meaning colours, fonts and a few rules, that every tool draws with. Set it once, and everything you make starts on-brand.
 
-## 1. Make it yours - configure your Design System
+Choose the route that matches what you have:
 
-> lolly.tools opens with Lolly Demo, Lolly's own design system. [Meet Lolly Demo](/info/lolly-demo.html) shows what you are looking at.
+- <!--i:palette--> **One colour.** Open **Design System Setup** (`#/start`), give your design system a name and pick a primary colour. Lolly derives a complete, accessible palette from it, with light and dark surfaces, text and accents. Pick a font and you have a working brand.
+- <!--i:upload--> **A tokens file.** **Add from…**, at the foot of the room rail in Design System Setup, takes a DTCG, Tokens Studio or Penpot tokens file, an SVG or a `LollyBrand` pack. Drop it in and the palette fills.
+- <!--i:pentool--> **A finished design.** In Design, choose **Import a design** and drop a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file. See [Bring in what you already have](#bring-in-what-you-already-have) below.
 
-Your brand in Lolly is a small **design-tokens** document - colours, fonts and a few rules - that every tool renders against. Set it once and everything you make is on-brand by construction, not by review. There are three ways in; pick the one that matches where your brand already lives.
+On a blank install, the first run opens a short welcome with the same choices: **Make it yours** opens Design System Setup, **Bring your design** opens a file picker for a design, and **Explore the community tools** closes the welcome.
 
-### Start from scratch (the design system builder)
+![The Colours room of Design System Setup on a fresh install: one live chip, one field, and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-First run drops you on the **gallery**, with a short welcome dialog over it offering three ways in - **Make it yours** (the Brand Studio at `#/start`), **Bring your design** (drop a Figma, Penpot, InDesign or PDF file and it opens as an editable layout - the fastest route to [Bring in what you already have](#2-bring-in-what-you-already-have) below) and **Explore the community tools** - plus a row of languages if English isn't yours. Take the first card and you land in the [**Brand Studio**](/info/brand-studio.html). Give it a name and a primary colour and Lolly *derives* a complete, accessible palette from it - light/dark surfaces, text, accents - using the same colour maths the engine uses everywhere else.
+From there, seven rooms take it as far as you like, in any order: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** and **Usage & rules**. Every preview in the app updates as you type. [Design System Setup](/info/brand-studio.html) covers each room.
 
-![The Brand Studio's Colours room on a fresh install - one live chip, one field, and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Pick a font, and you have a working brand in under a minute. From there the studio's six rooms - Overview, Colours, Type, Logos, Tokens, Files - let you take it as far as you like, in any order, refining any of it whenever you come back. The dashboard's **Design system** tab (`#/d`) shows the result read-only and points back at `#/start`, which is where the editing happens (a locked design system stays read-only, while your own local systems remain editable).
+Fonts are kept on your device. Pick a Google Font and Lolly stores the file as a brand asset, so your type travels offline and nothing is fetched when a tool draws.
 
-### Import a brand you already have
+### See, switch and share a design system
 
-If your brand is already captured as design tokens - from **Penpot**, **Tokens Studio** (Figma) or any plain **DTCG** file - bring it in wholesale rather than retyping it. Two routes:
+- **See the active one.** **Settings → Design system** shows the active design system as a cover and pages, read-only.
+- **Switch between them.** **Settings → Preferences → Design systems** lists every design system on this device. One organisation can run several design systems, or one with several colourways; [Brand architectures](/info/brand-architectures.html) maps the arrangements.
+- **Share one.** Export the design system as a `LollyBrand` pack: one file a colleague imports to get the same palette, fonts and rules.
 
-- <!--i:palette--> **In the app:** the [design system builder: Brand Studio](/info/brand-studio.html) (`#/start`) takes it through **Add from…** at the foot of its room rail - a token file, a Penpot export, an SVG or a `LollyBrand` pack. Drop it in and the palette lights up.
-- <!--i:code--> **From the command line**, to stand up a reusable brand pack:
+A design system your build or organisation supplies is **managed**: it shows a lock and stays read-only. To change one, make an editable copy from **Settings → Preferences → Design systems**.
+
+![The Design system tab in Settings: the active design system as a cover and pages](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
+
+Your design system is DTCG tokens, the format Penpot reads and writes and Tokens Studio brings to Figma, so the palette you design with and the palette Lolly applies are one document. [Design Tokens](/info/design-tokens.html) has the details.
+
+::: details For developers: build a brand pack from the command line
+To stand up a reusable brand pack in a checkout, `ingest:brand` accepts the three containers Penpot and Tokens Studio export: a single `tokens.json`, a directory of per-set files with `$metadata.json`, or a `project.penpot` archive.
 
 ```bash
-# a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`ingest:brand` accepts all three containers Penpot / Tokens Studio export the same document in - a single `tokens.json`, a directory (`$metadata.json` + per-set files) or a `project.penpot` archive. With `--activate` it registers the brand as a profile, switches to it and rebuilds the catalog. See [Configuration](/info/configuration.html) for how brand packs and profiles fit together.
+`--activate` registers the brand as a profile and builds and validates its catalog. It never changes the default profile: run with `LOLLY_PROFILE=acme` to use the new pack. [Configuration](/info/configuration.html) explains how brand packs and profiles fit together.
+:::
 
-### Tune it in the app
+## Bring in what you already have
 
-Once a brand is active, keep shaping it in the [**Brand Studio**](/info/brand-studio.html) (`#/start`) - change a colour or a role and every preview across the app updates as you type. (Settings → **Design system** at `#/settings?tab=brand` shows the active design system and switches between design systems; the Studio is where you edit one.)
+You do not start from a blank page.
 
-![The Design system tab in Settings: the active design system as a cover and pages](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Each design system in this browser also has a row under **Settings → Preferences → Design systems**. Fonts are real: pick from Google Fonts and Lolly stores the file **on your device** as a brand asset, so your typography travels offline and nothing is fetched at render time.
+**Design files.** Finished work from Figma, Penpot, Illustrator, InDesign or any SVG app opens in Design as a living layout: text stays retypable, shapes stay shapes and images land in your library. The file is read in your browser and nothing is uploaded. [Import a design](/info/design-import.html) lists each format and what carries over.
 
-When you're happy, **export the brand as a `LollyBrand` pack** - a single file a colleague can import to get the exact same palette, fonts and rules. That's how a brand moves between people and machines without a server in the middle.
+**Decks.** Drop a PowerPoint `.pptx` on Lolly to file its slides as assets, write a new deck from Markdown in **Markdown Slides**, or use [Rebrand a deck](/info/rebrand.html) to move the whole deck onto your design system.
 
-> **Brand tokens round-trip both ways.** Because Lolly's brand *is* DTCG tokens - the format Penpot reads and writes natively and Tokens Studio brings to Figma - the palette you design *with* and the palette Lolly *enforces* are one document, not two lists you keep in sync by hand. See [Design Tokens](/info/design-tokens.html).
-
-## 2. Bring in what you already have
-
-You don't start from a blank page. Lolly opens the design work and the open formats you already own.
-
-### Open-source design files
-
-Finished work in **Figma, Penpot, Illustrator, InDesign or any SVG app** doesn't have to stay locked in the app you drew it in. Open **Design**, click **Import a design**, and the file opens as a *living layout* - not a flattened picture. Every layer becomes an editable box: text stays retypable, shapes stay shapes, images land in your library and complex vector art is preserved faithfully. It arrives already conformed to your brand faces and colour rules.
-
-| You have | Bring it in as |
-|---|---|
-| A Figma frame | Native `.fig` (File → Save local copy), or an SVG export |
-| A Penpot design | Its `.penpot` export, or any SVG |
-| An Illustrator file | Native `.ai` (PDF-compatible) or `.pdf` - opens directly |
-| An InDesign layout | `.idml` (File → Export → InDesign Markup) |
-| Anything else | **Any SVG** - the universal door in |
-
-The whole import happens **on your device** - the file is parsed in your browser and nothing is uploaded. Full details, and exactly what carries over, are in [Import a design](/info/design-import.html).
-
-Got a **PowerPoint deck** instead? Drop the `.pptx` on any upload surface to file its slides as assets, write a new deck from Markdown in **Markdown Slides**, or run **Rebrand** to get the same deck back re-themed, charts and animations intact.
+**Data.** Paste or drop a CSV or JSON table and a tool's repeating fields fill from it, or [Batch](/info/using.html#batch-pro-mode) makes one finished file per row.
 
 ### From a one-off to a template
 
-Here's the payoff: an imported layout is an ordinary Design session, so once you **save** it, it lives at a URL. Anyone with Lolly can open that URL, change the words, swap an image and render their own version - no design app, and the locked parts stay locked. A once-off design becomes a reusable tool. That's the whole idea, reached without writing a line of configuration.
+An imported layout is an ordinary Design session. **Share with rules** turns it into a tool: you choose which parts other people may change, and they fill in only those.
 
-### Open data and open tools
+![Keep the Design master, choose inputs and limits in an authoring copy, then share a reusable .lolly tool that recipients fill in](/info/diagrams/concepts/share-with-rules.svg)
 
-The [community tool set](/info/builders.html) is open source and brand-agnostic - QR codes, street maps, filters, privacy utilities - and it renders against *your* brand the moment you activate it.
+[Share a design with rules](/info/create-a-tool.html) walks through each step.
 
-Feed tools your own open data too: paste or drop a **CSV** or **JSON** table and a tool's repeating fields fill from it, one finished asset per row.
+## Make many, share and automate
 
-## 3. Make something, then share or automate the result
+- <!--i:download--> **Export.** Any tool makes SVG, PDF, PNG, JPG, WebP, video and more, at true print sizes when you need them. See [Exporting & Formats](/info/exporting.html).
+- <!--i:link--> **Share a link.** A tool's settings travel in its link, so the link reopens the same file anywhere.
+- <!--i:layers--> **Make one per row.** Drive a tool from a spreadsheet in [Batch](/info/using.html#batch-pro-mode).
+- <!--i:cpu--> **Automate.** The same render runs from the [CLI](/info/cli.html) and from an [AI agent](/info/ai-agents.html).
 
-With a brand active and your material in hand, every tool produces a finished file:
-
-- <!--i:download--> **Render** any tool to **SVG, PDF, PNG, JPG, WebP, video** and more - at true print sizes and physical units when you need them. See [Exporting & formats](/info/exporting.html).
-- <!--i:link--> **Share a link.** Every tool state is a URL, so a finished asset is reproducible and parameter-addressable - commit the link, regenerate on demand.
-- <!--i:layers--> **Do it in bulk.** Drive a template from a spreadsheet in the [batch grid](/info/exporting.html): one finished asset per row.
-- <!--i:cpu--> **Automate it.** The same render runs from the [CLI](/info/cli.html) and from an [AI agent](/info/ai-agents.html) - a URL is the API.
-
-"A URL is the API" is literal. The chart below was not drawn by anyone: its type, its heading and its whole data table were typed into the address bar, and the same link renders the same chart on any device.
+A link is a complete request. Nobody drew the chart below: its type, its heading and its whole data table were typed into the address bar, and the same link draws the same chart on any device.
 
 ![An area chart of monthly signups, every value of which arrived as a query parameter rather than a click](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 ## Where to go next
 
-Three pathways, depending on what you're here to do:
-
-- <!--i:people--> **[Lolly for Creators](/info/creators.html)** - you make things. The advantages, and how to get the most out of the app.
-- <!--i:code--> **[Lolly for Builders](/info/builders.html)** - you author tools, integrate and deploy. The technical documentation.
-- <!--i:shieldcheck--> **[Lolly for Operators](/info/operators.html)** - you're responsible for brand, security and rollout across an organisation.
+- <!--i:people--> **[Create](/info/creators.html)**: making, animating, recording, sharing and exporting.
+- <!--i:code--> **[Automate](/info/builders.html)**: design systems, tool authoring, the command line, links and agents.
+- <!--i:usercheck--> **[Manage](/info/operators.html)**: running Lolly for a team with Lolly Work.
+- <!--i:server--> **[Deploy](/info/operate.html)**: hosting Lolly and Lolly Work.
+- <!--i:shieldcheck--> **[Trust](/info/trust.html)**: privacy, security and checking a file yourself.

@@ -224,17 +224,19 @@ const stubs: Stub[] = [
 const pages: Page[] = [
   { slug: 'index', title: 'Lolly: information and documentation', src: 'site.md', canonicalPath: 'index', contentLicense: 'CC-BY-SA-4.0', isLanding: true },
   { slug: 'quickstart', title: 'Start', src: 'quickstart.md', pathway: 'quickstart', canonicalPath: 'start/quickstart', contentLicense: 'CC-BY-SA-4.0', headingId: 'quickstart', isHub: true },
+  { slug: 'what-is-lolly', title: 'What is Lolly?', src: 'what-is-lolly.md', pathway: 'quickstart', canonicalPath: 'start/what-is-lolly', contentLicense: 'CC-BY-SA-4.0', description: 'What Lolly makes, where it runs and who it is for, in five minutes: the place to begin.' },
+  { slug: 'how-lolly-works', title: 'How Lolly works', src: 'how-lolly-works.md', pathway: 'quickstart', canonicalPath: 'start/how-lolly-works', contentLicense: 'CC-BY-SA-4.0', description: 'One tool, your rules, many files: who sets a tool up, the four routes from a tool to a finished file, and what runs on your device or on your organisation\'s server.' },
   { slug: 'make-something', title: 'Make your first file', src: 'make-something.md', pathway: 'quickstart', canonicalPath: 'start/make-something', contentLicense: 'CC-BY-SA-4.0', description: 'Make a QR code for a web address, download it, check that it scans, and save an editable copy you can reopen from Projects. No account needed.', render: renderMakeSomethingPage },
   { slug: 'lolly-demo', title: 'Meet Lolly Demo', src: 'lolly-demo.md', pathway: 'quickstart', canonicalPath: 'start/lolly-demo', contentLicense: 'CC-BY-SA-4.0', description: 'Lolly Demo is the look lolly.tools opens with. See the Lolly mark, the Opal colours and six colourways, Crossland type, Etiquette icons and the Fauna cast.' },
   { slug: 'lolly-demo-in-use', title: 'Lolly Demo in use', src: 'lolly-demo-in-use.md', pathway: 'quickstart', canonicalPath: 'start/lolly-demo-in-use', contentLicense: 'CC-BY-SA-4.0', description: 'Where Lolly Demo shows up in the app and in the files you export, how to pick a colourway, Clinic\'s do and don\'t, and how to switch to your own design system.' },
-  { slug: 'faq', title: 'Questions & answers', src: 'faq.md', pathway: 'quickstart', canonicalPath: 'start/faq', contentLicense: 'CC-BY-SA-4.0', description: 'The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.', render: renderFaqPage },
+  { slug: 'faq', title: 'Questions & answers', src: 'faq.md', pathway: 'quickstart', canonicalPath: 'start/faq', contentLicense: 'CC-BY-SA-4.0', description: 'The things people ask most: why it is free, where your files go, why everything is green, how to get the apps, what to do about WebGPU, and who made Lolly.', render: renderFaqPage },
   { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'creators', canonicalPath: 'create/project-asset-transfers', contentLicense: 'CC-BY-SA-4.0', description: 'Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.' },
-  { slug: 'organisation', title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', canonicalPath: 'start/organisation', contentLicense: 'CC-BY-SA-4.0', description: 'Use your organisation\'s Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave.' },
-  { slug: 'install', title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', canonicalPath: 'start/install', contentLicense: 'CC-BY-SA-4.0', description: 'Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made.' },
-  { slug: 'supported-environments', title: 'Supported environments', src: 'supported-environments.md', pathway: 'quickstart', canonicalPath: 'start/supported-environments', contentLicense: 'CC-BY-SA-4.0', description: 'Tested browser and app environments, the WebGPU startup requirement, and the separate web and native release scopes.' },
+  { slug: 'organisation', title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', canonicalPath: 'start/organisation', contentLicense: 'CC-BY-SA-4.0', description: 'Reach your organisation\'s Lolly, sign in, and see what changes with Lolly Work: managed settings, locked design systems, team projects and approvals. What stays on your device, and how to leave.' },
+  { slug: 'install', title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', canonicalPath: 'start/install', contentLicense: 'CC-BY-SA-4.0', description: 'Every way to get Lolly: the Mac and Windows apps, Lolly Tools on the App Store, the Android APK, Linux packages (Flatpak, RPM, deb, Arch, AppImage), YunoHost and the container image, with versions and how to check a download.' },
+  { slug: 'supported-environments', title: 'Supported environments', src: 'supported-environments.md', pathway: 'quickstart', canonicalPath: 'start/supported-environments', contentLicense: 'CC-BY-SA-4.0', description: 'Where the web app\'s WebGPU check has been tested, what to try when your browser is refused, and the qualification evidence behind each result.' },
   { slug: 'creators', title: 'Create', src: 'creators.md', pathway: 'creators', canonicalPath: 'create/creators', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-creators', isHub: true },
   { slug: 'builders', title: 'Automate', src: 'builders.md', pathway: 'builders', canonicalPath: 'build/builders', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-builders', isHub: true },
-  { slug: 'operators', title: 'Manage', src: 'operators.md', pathway: 'managers', canonicalPath: 'manage/organisation-management', contentLicense: 'CC-BY-SA-4.0', description: 'Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about.', headingId: 'lolly-for-operators', isHub: true },
+  { slug: 'operators', title: 'Manage', src: 'operators.md', pathway: 'managers', canonicalPath: 'manage/organisation-management', contentLicense: 'CC-BY-SA-4.0', description: 'Run Lolly for a team with Lolly Work: access, roles and policy, shared assets, approvals and the data each part keeps.', headingId: 'lolly-for-operators', isHub: true },
   { slug: 'trust', title: 'Trust', src: 'trust.md', pathway: 'trust', canonicalPath: 'trust/trust', contentLicense: 'CC-BY-SA-4.0', description: 'Where your content comes from, how to check it yourself, and what happens to your data. The claims on this site with the mechanism that enforces each one.', headingId: 'trust', isHub: true },
   { slug: 'status-quo', title: 'The trade we never agreed to', src: 'status-quo.md', pathway: 'trust', canonicalPath: 'trust/status-quo', contentLicense: 'CC-BY-SA-4.0', description: 'Uploading a logo to a stranger for a resize. Artwork locked behind a lapsed plan. The frictions we all learned to accept, and what replaces them.', register: 'stage' },
   { slug: 'tenets', title: 'Tenets', src: 'tenets.md', pathway: 'trust', canonicalPath: 'trust/tenets', contentLicense: 'CC-BY-SA-4.0', author: 'Andy Fitzsimon', description: 'Our vision, values and mission: all potential to all mediums.', register: 'stage', immersive: true, render: renderTenetsPage },
@@ -271,7 +273,7 @@ const pages: Page[] = [
   { slug: 'favourites', title: 'Your favourites', src: 'favourites.md', pathway: 'creators', canonicalPath: 'create/favourites', contentLicense: 'CC-BY-SA-4.0' },
   { slug: 'exporting', title: 'Exporting & Formats', src: 'exporting.md', pathway: 'creators', canonicalPath: 'create/exporting', contentLicense: 'CC-BY-SA-4.0' },
   { slug: 'positioning', title: 'How Lolly compares', src: 'positioning.md', pathway: 'creators', canonicalPath: 'create/positioning', contentLicense: 'CC-BY-SA-4.0' },
-  { slug: 'compare', title: 'Lolly compared, tool by tool', src: 'compare.md', pathway: 'creators', canonicalPath: 'create/compare', contentLicense: 'CC-BY-SA-4.0', description: 'Where Lolly overlaps with Canva, Adobe, Figma, rendering APIs and online converters, and what each of those does better. Dated, concession first, no superlatives.' },
+  { slug: 'compare', title: 'Lolly compared, tool by tool', src: 'compare.md', pathway: 'creators', canonicalPath: 'create/compare', contentLicense: 'CC-BY-SA-4.0', description: 'What runs on your device and what runs on a Lolly Work server, the limits every comparison shares, and one page per product: Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and converters.' },
   { slug: 'compare-canva', title: 'Lolly and Canva', src: 'compare-canva.md', pathway: 'creators', canonicalPath: 'create/compare-canva', contentLicense: 'CC-BY-SA-4.0', description: 'Making an on-brand graphic without a subscription: where Lolly and Canva overlap, and what Canva does better today.' },
   { slug: 'compare-adobe', title: 'Lolly and Adobe', src: 'compare-adobe.md', pathway: 'creators', canonicalPath: 'create/compare-adobe', contentLicense: 'CC-BY-SA-4.0', description: 'Converting, exporting and signing files without a Creative Cloud account: where Lolly and Adobe overlap.' },
   { slug: 'compare-figma', title: 'Lolly and Figma', src: 'compare-figma.md', pathway: 'creators', canonicalPath: 'create/compare-figma', contentLicense: 'CC-BY-SA-4.0', description: 'Laying out a design and turning it into a reusable output: where Lolly and Figma overlap, and what Figma does better.' },
@@ -279,10 +281,10 @@ const pages: Page[] = [
   { slug: 'compare-converters', title: 'Lolly and online file converters', src: 'compare-converters.md', pathway: 'creators', canonicalPath: 'create/compare-converters', contentLicense: 'CC-BY-SA-4.0', description: 'Turning one file format into another on your own device, without uploading it to a stranger\'s server.' },
   { slug: 'compare-penpot', title: 'Lolly and Penpot', src: 'compare-penpot.md', pathway: 'creators', canonicalPath: 'create/compare-penpot', contentLicense: 'CC-BY-SA-4.0', description: 'Two open-source answers to design work: where Lolly and Penpot overlap, what Penpot does better today, and how the two projects work together.' },
   { slug: 'compare-brand-portals', title: 'Lolly and brand portals', src: 'compare-brand-portals.md', pathway: 'creators', canonicalPath: 'create/compare-brand-portals', contentLicense: 'CC-BY-SA-4.0', description: 'Locked templates without the portal: where Lolly overlaps with brand platforms like Bynder, Frontify and Marq, and what a portal still does better.' },
-  { slug: 'overview', title: 'Lolly architecture', src: 'overview.md', pathway: 'builders', canonicalPath: 'build/overview', contentLicense: 'CC-BY-SA-4.0', description: 'How the Lolly platform is put together: the engine, the shells, the capability bridge, and why tools are data rather than bundled code.' },
+  { slug: 'overview', title: 'Lolly architecture', src: 'overview.md', pathway: 'builders', canonicalPath: 'build/overview', contentLicense: 'CC-BY-SA-4.0', description: 'For contributors: how the engine, shells and tool packs fit, the repository layout, the ten architectural commitments and the lifecycle of one render.' },
   { slug: 'design-tokens', title: 'Design Tokens', src: 'design-tokens.md', pathway: 'builders', canonicalPath: 'build/design-tokens', contentLicense: 'CC-BY-SA-4.0' },
   { slug: 'token-workflows', title: 'Token workflows', src: 'token-workflows.md', pathway: 'builders', canonicalPath: 'build/token-workflows', contentLicense: 'CC-BY-SA-4.0' },
-  { slug: 'glossary', title: 'Glossary', src: 'glossary.md', pathway: 'quickstart', canonicalPath: 'start/glossary', contentLicense: 'CC-BY-SA-4.0', description: 'The words Lolly uses with exact meanings: engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab, and what each is not.' },
+  { slug: 'glossary', title: 'Glossary', src: 'glossary.md', pathway: 'quickstart', canonicalPath: 'start/glossary', contentLicense: 'CC-BY-SA-4.0', description: 'The words you meet in the app, such as design system, colourway, saved session and Lolly Work, then the builder words: engine, shell, bridge, tool, brand pack, profile and catalog, and what each is not.' },
   { slug: 'document-model', title: 'Document model draft', src: 'document-model.md', pathway: 'builders', canonicalPath: 'build/document-model', contentLicense: 'CC-BY-SA-4.0', description: 'A draft specification of the Lolly document model: the records, operations, values, evaluation, policy, conformance and packaging rules that make a complete tool portable, and what is decided, open and not yet built.' },
   { slug: 'constraints', title: 'Constraints', src: 'constraints.md', pathway: 'builders', canonicalPath: 'build/constraints', contentLicense: 'CC-BY-SA-4.0', description: 'Why output comes out right by construction: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each.' },
   { slug: 'determinism', title: 'Determinism', src: 'determinism.md', pathway: 'builders', canonicalPath: 'build/determinism', contentLicense: 'CC-BY-SA-4.0', description: 'Same inputs, same file: one render path behind every shell, what is byte-reproducible and what is not, and the receipts for both.' },
@@ -333,11 +335,10 @@ const pages: Page[] = [
   { slug: 'content-credentials-identity', title: 'Content Credentials Identity', src: 'content-credentials-identity.md', pathway: 'trust', canonicalPath: 'trust/content-credentials-identity', contentLicense: 'CC-BY-SA-4.0' },
   { slug: 'content-credentials-engineering', title: 'Content Credentials - Engineering', src: 'content-credentials-engineering.md', pathway: 'trust', canonicalPath: 'trust/content-credentials-engineering', contentLicense: 'CC-BY-SA-4.0' },
   { slug: 'data-transfer', title: 'Data Transfer', src: 'data-transfer.md', pathway: 'builders', canonicalPath: 'build/data-transfer', contentLicense: 'CC-BY-SA-4.0' },
-  { slug: 'about', title: 'About', src: '../README.md', pathway: 'quickstart', canonicalPath: 'start/about', contentLicense: 'CC-BY-SA-4.0', description: 'What Lolly is, who builds it, and how the pieces fit together. The project\'s own README.' },
-  { slug: 'sales', title: 'Lolly for sales teams', src: 'sales.md', pathway: 'creators', canonicalPath: 'create/sales', contentLicense: 'CC-BY-SA-4.0', description: 'Walk into every meeting with exactly the file you need: fix the deck you already have, rebuild it as a native deck file, and make the asset on the way there.' },
-  { slug: 'press', title: 'Lolly for the newsroom', src: 'press.md', pathway: 'creators', canonicalPath: 'create/press', contentLicense: 'CC-BY-SA-4.0', description: 'Build the info-editorial style once, then generate publication-quality charts, maps and tables from live data, in the house style, for print and screen.' },
-  { slug: 'marketing', title: 'Lolly for marketing teams', src: 'marketing.md', pathway: 'creators', canonicalPath: 'create/marketing', contentLicense: 'CC-BY-SA-4.0', description: 'Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with no agency bottleneck for routine files.' },
-  { slug: 'legal', title: 'Lolly for legal teams', src: 'legal.md', pathway: 'creators', canonicalPath: 'create/legal', contentLicense: 'CC-BY-SA-4.0', description: 'Redact, anonymise, verify and compress on the device the file already lives on, so nothing leaves the building to be cleaned, with the licence and the EU AI Act position stated plainly.' },
+  { slug: 'sales', title: 'Lolly for sales teams', src: 'sales.md', pathway: 'creators', canonicalPath: 'create/sales', contentLicense: 'CC-BY-SA-4.0', description: 'Walk into every meeting with exactly the file you need: move the old deck onto your design system, write a new one fast and make the one-pager on the way there.' },
+  { slug: 'press', title: 'Lolly for the newsroom', src: 'press.md', pathway: 'creators', canonicalPath: 'create/press', contentLicense: 'CC-BY-SA-4.0', description: 'Build each graphic format once, then fill charts, diagrams and maps with live data in the house style, for print and screen.' },
+  { slug: 'marketing', title: 'Lolly for marketing teams', src: 'marketing.md', pathway: 'creators', canonicalPath: 'create/marketing', contentLicense: 'CC-BY-SA-4.0', description: 'Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with routine files made by the people who need them.' },
+  { slug: 'legal', title: 'Lolly for legal teams', src: 'legal.md', pathway: 'creators', canonicalPath: 'create/legal', contentLicense: 'CC-BY-SA-4.0', description: 'Redact, anonymise, strip and compress on the device the file already lives on, check what you were sent, and read the licence, creative-rights and AI-marking positions stated plainly.' },
   { slug: 'adoption-governance', title: 'Adoption & Governance', src: 'adoption-governance.md', pathway: 'managers', canonicalPath: 'manage/adoption-governance', contentLicense: 'CC-BY-SA-4.0', description: 'Adopting Lolly across a team: who approves tools, how brand rules become enforceable, and what changes in a creative workflow.' },
   { slug: 'sovereign-production', title: 'Sovereign creative production', src: 'sovereign-production.md', pathway: 'operators', canonicalPath: 'operate/sovereign-production', contentLicense: 'CC-BY-SA-4.0', description: 'Creative production with no server in the render path: air-gapped deployment, consent-gated networking, on-device signing and the tools as files you hold.', register: 'stage' },
   { slug: 'security', title: 'Security & Verification', src: 'security-verification.md', pathway: 'trust', canonicalPath: 'trust/security', contentLicense: 'CC-BY-SA-4.0', description: 'The cryptography behind Lolly\'s Content Credentials, verification and encryption, summarised for a security reviewer with the limits stated as clearly as the guarantees.' },
@@ -353,7 +354,6 @@ const pages: Page[] = [
   { slug: 'eu-ai-act', title: 'AI marking and the EU AI Act', src: 'eu-ai-act.md', pathway: 'trust', canonicalPath: 'trust/eu-ai-act', contentLicense: 'CC-BY-SA-4.0', description: 'Article 50 has applied since 2 August 2026, and its Code of Practice points at C2PA. Lolly\'s honest fit: it preserves arriving AI marks, declares its own AI operations and verifies files on-device.' },
   { slug: 'beatrice-warde', title: 'Beatrice Warde', src: 'beatrice-warde.md', pathway: 'trust', canonicalPath: 'trust/beatrice-warde', contentLicense: 'CC-BY-SA-4.0', description: 'The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely.', register: 'stage' },
   { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', canonicalPath: 'trust/shoulders-of-giants', contentLicense: 'CC-BY-SA-4.0', description: 'The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.', pdf: 'shoulders-of-giants.pdf', register: 'stage' },
-  { slug: 'what-is-lolly', title: 'What is Lolly?', src: 'what-is-lolly.md', pathway: 'quickstart', canonicalPath: 'start/what-is-lolly', contentLicense: 'CC-BY-SA-4.0' },
   { slug: 'operate', title: 'Deploy', src: 'operate.md', pathway: 'operators', canonicalPath: 'operate/index', contentLicense: 'CC-BY-SA-4.0', headingId: 'deploy-operate', isHub: true },
   { slug: 'work-self-host', title: 'Run your own server', src: 'work/self-host.md', pathway: 'operators', canonicalPath: 'operate/run-your-own-server', contentLicense: 'MPL-2.0', description: 'Release downloads and installation paths for YunoHost, Linux, macOS, Windows and Kubernetes.' },
   { slug: 'work-release-1-1-2', title: 'Release 1.1.2', src: 'work/release-1-1-2.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-2', contentLicense: 'MPL-2.0', description: 'Work 1.1.2 paired with Lolly 1.1.2: matched components, what Lolly 1.1.2 needs from Work, changes since 1.1.1, migrations and qualification.' },
@@ -422,6 +422,7 @@ const pages: Page[] = [
   { slug: 'work-api', title: 'Lolly Work API', src: 'work/api.md', pathway: 'builders', canonicalPath: 'build/work-api', contentLicense: 'MPL-2.0', description: 'Every route the console and CLI use, with the action each one requires.' },
   { slug: 'work-cli', title: 'lw CLI: administer an instance', src: 'work/cli.md', pathway: 'builders', canonicalPath: 'build/lw-cli', contentLicense: 'MPL-2.0', description: 'Command reference for the admin CLI.' },
   { slug: 'work-status', title: 'Work status and roadmap', src: 'work/status.md', pathway: 'quickstart', canonicalPath: 'start/status', contentLicense: 'MPL-2.0', description: 'What is built, what is pending, and the honest gaps before go-live.' },
+  { slug: 'about', title: 'About', src: '../README.md', pathway: 'quickstart', canonicalPath: 'start/about', contentLicense: 'CC-BY-SA-4.0', description: 'What Lolly is, who builds it, and how the pieces fit together. The project\'s own README.' },
   { slug: 'work-resumable-uploads', title: 'Resumable uploads', src: 'work/resumable-uploads.md', pathway: 'builders', canonicalPath: 'build/resumable-uploads', contentLicense: 'MPL-2.0', description: 'Decision record: the parts protocol over tus, its resume report, and the scopes that share it.' },
 ];
 // END GENERATED DOCS pages
@@ -610,8 +611,10 @@ interface SideGroup { label: string; items: SideItem[]; }
 // BEGIN GENERATED DOCS SIDEBARS
 const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
   quickstart: { title: 'Start', groups: [
-    { label: 'First file and installation', items: [
+    { label: 'First steps', items: [
       { slug: 'quickstart', label: 'Start' },
+      { slug: 'what-is-lolly', label: 'What is Lolly?' },
+      { slug: 'how-lolly-works', label: 'How Lolly works' },
       { slug: 'make-something', label: 'Make your first file' },
       { slug: 'install', label: 'Install Lolly' },
       { slug: 'supported-environments', label: 'Supported environments' },
@@ -624,9 +627,8 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'faq', label: 'Questions & answers' },
       { slug: 'organisation', label: 'Use Lolly at your organisation' },
       { slug: 'glossary', label: 'Glossary' },
-      { slug: 'about', label: 'About' },
-      { slug: 'what-is-lolly', label: 'What is Lolly?' },
       { slug: 'work-status', label: 'Work status and roadmap' },
+      { slug: 'about', label: 'About' },
     ] },
   ] },
   creators: { title: 'Create', groups: [
@@ -2613,14 +2615,15 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
 </section>`;
 
   // ── beat 4: the persona device ─────────────────────────────────────────────
-  // Top tabs (Creators / Builders / Operators) with SIDE TABS for the
-  // sub-sections (Andy, 2026-09-02): detail without leaving the door. CSS-ONLY,
+  // Top tabs, one per documentation pathway (Start, Create, Automate, Manage,
+  // Deploy, Trust; Andy, 2026-10-23), with SIDE TABS for the sub-sections
+  // (Andy, 2026-09-02): detail without leaving the door. CSS-ONLY,
   // the audience-strip precedent: hidden radios + labels + nth-matched pairing
   // rules in docs-landing.css, so the in-app reader (which strips scripts)
   // rehosts a fully working device. Keyboard is the native radio group. Each
   // pane's primary call to action jumps into the APP; the docs page is the
   // compromise (plans/177 CTA policy - the URLs are pinned in docs-claims).
-  // The door tabs wear the quokka / koala / echidna. A lane with `mascot` (the
+  // Each door tab wears the mascot persona.json names. A lane with `mascot` (the
   // magpie guards Security) shows it figure-sized beside its pane's copy, at the
   // inline end, through the same credentialed wrapper as the import band's
   // kookaburra - not on the side tab, where a 24px glyph read as an icon (Andy,
@@ -5594,8 +5597,8 @@ const PATHWAY_HUB: Record<Pathway, string> = {
 interface SitemapSection { hub: Pathway; label: string; slugs: string[] }
 // BEGIN GENERATED DOCS FOOTER_SECTIONS
 const FOOTER_SECTIONS: SitemapSection[] = [
-  { hub: 'quickstart', label: 'Product, organisation and vocabulary', slugs: ['index', 'faq', 'organisation', 'glossary', 'about', 'what-is-lolly', 'work-status'] },
-  { hub: 'quickstart', label: 'First file and installation', slugs: ['make-something', 'install', 'supported-environments'] },
+  { hub: 'quickstart', label: 'Product, organisation and vocabulary', slugs: ['index', 'faq', 'organisation', 'glossary', 'work-status', 'about'] },
+  { hub: 'quickstart', label: 'First steps', slugs: ['what-is-lolly', 'how-lolly-works', 'make-something', 'install', 'supported-environments'] },
   { hub: 'quickstart', label: 'The Lolly Demo brand', slugs: ['lolly-demo', 'lolly-demo-in-use'] },
   { hub: 'creators', label: 'Design and templates', slugs: ['project-asset-transfers', 'create-a-tool', 'training-creators', 'using', 'templates', 'brand-studio', 'brand-architectures', '3d-studio', 'design-import', 'rebrand', 'text-composition', 'utilities', 'extension'] },
   { hub: 'creators', label: 'Find and keep your work', slugs: ['profile', 'find-your-work', 'sync', 'search', 'ask', 'dashboard', 'favourites'] },
@@ -5716,6 +5719,8 @@ const FOOTER = (lang: Lang, page?: Page) => `<footer>${footerSitemap(lang)}<p>Lo
 const SIDEBAR_ICON: Record<string, string> = {
   'index': 'home',
   'quickstart': 'star',
+  'what-is-lolly': 'layers',
+  'how-lolly-works': 'cpu',
   'make-something': 'pentool',
   'lolly-demo': 'palette',
   'lolly-demo-in-use': 'photos',
@@ -5825,7 +5830,6 @@ const SIDEBAR_ICON: Record<string, string> = {
   'content-credentials-identity': 'seal',
   'content-credentials-engineering': 'cpu',
   'data-transfer': 'convert',
-  'about': 'document',
   'sales': 'people',
   'press': 'document',
   'marketing': 'photos',
@@ -5845,7 +5849,6 @@ const SIDEBAR_ICON: Record<string, string> = {
   'eu-ai-act': 'document',
   'beatrice-warde': 'font',
   'shoulders-of-giants': 'people',
-  'what-is-lolly': 'layers',
   'operate': 'server',
   'work-self-host': 'server',
   'work-release-1-1-2': 'document',
@@ -5914,6 +5917,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'work-api': 'document',
   'work-cli': 'document',
   'work-status': 'document',
+  'about': 'document',
   'work-resumable-uploads': 'upload',
 };
 // END GENERATED DOCS SIDEBAR_ICON

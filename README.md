@@ -16,12 +16,12 @@ Start with a focused tool, or arrange your own text, images and shapes on the De
 
 | I need to... | Try... |
 | --- | --- |
-| Make a QR code for a link | [QR Code](https://lolly.tools/#/tool/qr-code) |
-| Frame a screenshot for a post or presentation | [Frame](https://lolly.tools/#/tool/frame) |
-| Turn a recording into a video with a moving waveform | [Audiogram](https://lolly.tools/#/tool/audiogram) |
-| Turn data into a chart or diagram | [Chart](https://lolly.tools/#/tool/chart) or [Diagrams](https://lolly.tools/#/tool/diagram-builder) |
-| Build a layout I can reuse | [Design](https://lolly.tools/#/tool/design) |
-| Remove hidden metadata or shrink a PDF locally | [Strip Hidden Data](https://lolly.tools/#/tool/strip-data) or [Compress](https://lolly.tools/#/tool/compress-pdf) |
+| Make a QR code for a link | [QR Code](https://lolly.tools/t/qr-code) |
+| Frame a screenshot for a post or presentation | [Frame](https://lolly.tools/t/frame) |
+| Turn a recording into a video with a moving waveform | [Audiogram](https://lolly.tools/t/audiogram) |
+| Turn data into a chart or diagram | [Chart](https://lolly.tools/t/chart) or [Diagrams](https://lolly.tools/t/diagram-builder) |
+| Build a layout I can reuse | [Design](https://lolly.tools/t/design) |
+| Remove hidden metadata or shrink a PDF locally | [Strip Hidden Data](https://lolly.tools/t/strip-data) or [Compress](https://lolly.tools/t/compress-pdf) |
 
 Choose a tool, change its inputs, then use **Export** to download. The public app needs no account. [Make your first file](docs/make-something.md) walks you through a QR code.
 
@@ -37,11 +37,11 @@ Optional network features, sharing, Sync and organisation services have their ow
 
 ## Bring your own design system
 
-Add colours, fonts and logos in **Brand Studio**, or import design tokens from DTCG, Tokens Studio or Penpot. Community tools use your active design system.
+Add colours, fonts and logos in **Design System Setup**, or import design tokens from DTCG, Tokens Studio or Penpot. Community tools use your active design system. lolly.tools starts in **Lolly Demo**, Lolly's own sample design system.
 
 Import supported Figma, Penpot, Illustrator, InDesign or PDF designs into the canvas. Check the converted layout and fonts, then use **Share with rules** to choose editable inputs and package a reusable tool.
 
-[Set up your design system](docs/quickstart.md) · [Import a design](docs/design-import.md) · [Share a design with rules](docs/create-a-tool.md)
+[Put your brand in](docs/quickstart.md) · [Import a design](docs/design-import.md) · [Share a design with rules](docs/create-a-tool.md)
 
 ## Get the file you need
 
@@ -83,9 +83,7 @@ Use tool inputs in scripts, URLs and batch jobs, or let AI agents call tools thr
 
 ## Use Lolly with a team
 
-Lolly began at SUSE, where people needed to make on-brand files without sending their work to outside services. It is maintained as open source and can run independently of SUSE.
-
-For organisation sign-in, shared assets and projects, approvals, work collaboration, audit records or server rendering, add [lolly.work](https://github.com/lolly-tools/lolly-work). This optional service is maintained separately. Hosting and operations have their own costs.
+For organisation sign-in, shared assets and projects, approvals, work collaboration, audit records or server rendering, add [Lolly Work](https://github.com/lolly-tools/lolly-work), the organisation server of the same project. It is optional and maintained in its own repository, and hosting and operations have their own costs. [Why Lolly is free](docs/faq.md) tells the story of who builds it and why.
 
 [Organisation guide](docs/organisation.md) · [Self-hosting and deployment](docs/deployment.md) · [Current status and adoption](docs/adoption-governance.md)
 
@@ -108,7 +106,7 @@ The **engine** loads tools and drives rendering. Each **shell** supplies the pla
 | [`services/`](services/) | Optional MCP, certificate and Penpot services, and the server code they share |
 | [`docs/`](docs/) | Guides, architecture and the documentation site |
 
-Start with the [tool-authoring guide](docs/authoring-tools.md), [architecture overview](docs/overview.md) or [glossary](docs/glossary.md).
+Start with the [tool-authoring guide](docs/authoring-tools.md), the [architecture page](docs/overview.md) or the [glossary](docs/glossary.md).
 
 ### Contributing
 
