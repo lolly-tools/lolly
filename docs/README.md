@@ -33,7 +33,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
 | Create | [creators.md](creators.md) |
 | Share a design with rules | [create-a-tool.md](create-a-tool.md) |
-| Training courses | [training-creators.md](training-creators.md) |
+| Build a course | [training-creators.md](training-creators.md) |
+| Deliver and update a course | [training-delivery.md](training-delivery.md) |
 | Using Lolly | [using.md](using.md) |
 | Templates | [templates.md](templates.md) |
 | The Brand Studio | [brand-studio.md](brand-studio.md) |
@@ -89,8 +90,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Constraints | [constraints.md](constraints.md) |
 | Determinism | [determinism.md](determinism.md) |
 | Reproducibility | [reproducibility.md](reproducibility.md) |
-| Authoring Tools | [authoring-tools.md](authoring-tools.md) |
-| Tool Skills | [tool-skills.md](tool-skills.md) |
+| Build a tool | [authoring-tools.md](authoring-tools.md) |
+| Tool skills | [tool-skills.md](tool-skills.md) |
 | Tool manifests | [tool-manifest.md](tool-manifest.md) |
 | Tool inputs | [tool-inputs.md](tool-inputs.md) |
 | Structured inputs and canvas controls | [tool-structured-inputs.md](tool-structured-inputs.md) |
@@ -100,7 +101,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Tool hooks and host capabilities | [tool-hooks.md](tool-hooks.md) |
 | Composition and brand overlays | [tool-composition.md](tool-composition.md) |
 | Publish and localize a tool | [tool-publishing.md](tool-publishing.md) |
-| Authoring Assets | [authoring-assets.md](authoring-assets.md) |
+| Authoring assets | [authoring-assets.md](authoring-assets.md) |
 | Host API | [host-api.md](host-api.md) |
 | URL Mode | [url-mode.md](url-mode.md) |
 | Inputs in URLs | [url-inputs.md](url-inputs.md) |
@@ -125,7 +126,6 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Build with Open Build Service | [build-obs.md](build-obs.md) |
 | Build the web container and Helm chart | [build-kubernetes.md](build-kubernetes.md) |
 | Building for iOS | [ios-build.md](ios-build.md) |
-| Read verified catalog resources | [catalog-resource-reading.md](catalog-resource-reading.md) |
 | Data Transfer | [data-transfer.md](data-transfer.md) |
 | Invite an agent to a document | [work/document-agents.md](work/document-agents.md) |
 | Lolly Work API | [work/api.md](work/api.md) |
@@ -174,6 +174,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 
 | Guide | Source |
 | --- | --- |
+| Read verified catalog resources | [catalog-resource-reading.md](catalog-resource-reading.md) |
 | Configure connector origins | [connector-origins.md](connector-origins.md) |
 | Choose a deployment | [deployment.md](deployment.md) |
 | CI qualification | [ci-qualification.md](ci-qualification.md) |

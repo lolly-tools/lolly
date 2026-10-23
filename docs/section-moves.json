@@ -127,8 +127,8 @@
     },
     "hooks-hooks-js": {
       "slug": "tool-hooks",
-      "anchor": "hooks-hooks-js",
-      "label": "Hooks (hooks.js)"
+      "anchor": "how-a-hook-works",
+      "label": "How a hook works"
     },
     "shared-helper-regions-community-shared": {
       "slug": "tool-hooks",
@@ -182,8 +182,8 @@
     },
     "publishing": {
       "slug": "tool-publishing",
-      "anchor": "publishing",
-      "label": "Publishing"
+      "anchor": "publish-to-a-catalog",
+      "label": "Publish to a catalog"
     },
     "try-it-without-the-monorepo": {
       "slug": "tool-publishing",
@@ -204,6 +204,36 @@
       "slug": "tool-publishing",
       "anchor": "example-tools",
       "label": "Example tools"
+    },
+    "design-system-colours-in-templates-and-styles": {
+      "slug": "tool-rendering",
+      "anchor": "design-system-colours-in-templates-and-styles",
+      "label": "Design system colours in templates and styles"
+    },
+    "opening-catalog-assets": {
+      "slug": "tool-manifest",
+      "anchor": "opening-catalog-assets-openwith",
+      "label": "Opening catalog assets (openWith)"
+    },
+    "personal-values-in-links": {
+      "slug": "tool-inputs",
+      "anchor": "personal-values-in-links",
+      "label": "Personal values in links"
+    },
+    "colours-that-are-the-content": {
+      "slug": "tool-manifest",
+      "anchor": "colours-that-are-the-content",
+      "label": "Colours that are the content"
+    },
+    "start-from-a-design-you-already-have": {
+      "slug": "create-a-tool",
+      "anchor": "share-a-design-with-rules",
+      "label": "Share a design with rules"
+    },
+    "generate-a-tool-from-design": {
+      "slug": "create-a-tool",
+      "anchor": "share-a-design-with-rules",
+      "label": "Share a design with rules (generate a tool from Design)"
     }
   },
   "url-mode": {
@@ -700,6 +730,48 @@
       "slug": "build-kubernetes",
       "anchor": "tls-the-suse-curated-way-optional",
       "label": "TLS, the SUSE-curated way (optional)"
+    }
+  },
+  "training-creators": {
+    "publish-on-your-own-website": {
+      "slug": "training-delivery",
+      "anchor": "publish-on-your-own-website",
+      "label": "Publish on your own website"
+    },
+    "choose-a-format-for-each-customer": {
+      "slug": "training-delivery",
+      "anchor": "choose-a-format-for-each-customer",
+      "label": "Choose a format for each customer"
+    },
+    "lms-presets-and-the-tested-label": {
+      "slug": "training-delivery",
+      "anchor": "choose-a-format-for-each-customer",
+      "label": "LMS presets and the Tested label"
+    },
+    "test-in-litmos-or-a-partner-lms": {
+      "slug": "training-delivery",
+      "anchor": "test-in-your-lms",
+      "label": "Test in your LMS"
+    },
+    "update-a-course-without-changing-an-existing-release": {
+      "slug": "training-delivery",
+      "anchor": "update-a-course-without-changing-an-existing-release",
+      "label": "Update a course without changing an existing release"
+    },
+    "when-something-goes-wrong": {
+      "slug": "training-delivery",
+      "anchor": "when-something-goes-wrong",
+      "label": "When something goes wrong"
+    },
+    "for-a-creator-working-with-the-cli": {
+      "slug": "learning-integration",
+      "anchor": "build-courses-from-the-command-line",
+      "label": "Build courses from the command line"
+    },
+    "give-teams-reusable-material-tools": {
+      "slug": "create-a-tool",
+      "anchor": "use-it-for-training-materials",
+      "label": "Use it for training materials"
     }
   }
 }
