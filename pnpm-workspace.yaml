@@ -11,6 +11,16 @@ packages:
   - services/ca
   - services/mcp
 
+# Supply-chain cooldown: pnpm resolves only versions published at least three
+# days (4320 minutes) ago, and pnpm 11 also refuses any lockfile entry younger
+# than that on every install, --frozen-lockfile included, so every install in CI
+# checks it. To take an urgent fix that is newer, allow that exact version with
+# minimumReleaseAgeExclude (for example 'some-package@1.2.3') and remove the
+# entry once it is three days old. Dependabot waits the same three days
+# (cooldown in .github/dependabot.yml). The two Tauri shells' workspace files
+# carry the same setting.
+minimumReleaseAge: 4320
+
 # Keep the module layout used by the renderer, native sidecar and packaging scripts.
 nodeLinker: hoisted
 engineStrict: true
