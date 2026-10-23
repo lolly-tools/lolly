@@ -45,7 +45,7 @@ lolly prepare report.docx --strip-hidden-data --output=report-clean.docx
 lolly files convert photo.png --to=webp --output=photo.webp
 ```
 
-`lolly prepare` inspects files for private values and hidden data, then writes cleaned copies; with no change flag it prints a report that leaves the private values themselves out. `lolly files inspect`, `files convert` and `files schema` read, convert and describe images, fonts, spreadsheets and PDFs. Neither ever overwrites an existing file. [Utilities](/info/utilities.html#prepare-for-sharing-prepare) explains both, with the same choices the app's **Prepare for sharing** and **Convert** views offer.
+`lolly prepare` inspects files for private values and hidden data, then writes cleaned copies; with no change flag it prints a report that leaves the private values themselves out. `lolly files inspect`, `files convert` and `files schema` read, convert and describe images, fonts, spreadsheets and PDFs. Neither ever overwrites an existing file. [Utilities](/info/utilities.html#prepare-for-sharing) explains both, with the same choices the app's **Prepare for sharing** and **Convert** views offer.
 
 ## Redact many copies with one link
 

@@ -234,9 +234,9 @@ Never edit inside the markers. Edit the shared file and run `pnpm run sync:share
 
 The bridge grows by addition: new `host.*` APIs arrive in minor engine versions, are never removed and are optional, so an older shell may not have them yet. Check for an API, and keep the tool working when the API is missing. If your tool cannot work without one, list it in `requires` ([Tool manifests](/info/tool-manifest.html#what-the-tool-needs-from-the-host)) or raise the manifest's `engineVersion` floor, so the engine refuses the tool clearly instead of a method being missing. Three recent additions tools reach for:
 
-- [`host.images`](/info/host-api.html#host-images-image-convert-optional-v1-60) - decode, resize and re-encode images on the device. Read the result's `mime`, `width` and `height` rather than assuming the request was honoured exactly.
-- [`host.geom`](/info/host-api.html#host-geom-exact-vector-geometry-optional-v1-64) - exact vector geometry on SVG path strings: booleans, offset, stroke, simplify and measurement. Failures are returned, never thrown.
-- [`host.text.fontUrl`](/info/host-api.html#host-text-text-to-path) - resolve a font family the host knows to a file for `host.text.toPath()`, with the `variations` a variable face needs. It resolves `null` when no file is found, so keep your `<text>` fallback.
+- [`host.images`](/info/host-api.html#host-images) - decode, resize and re-encode images on the device. Read the result's `mime`, `width` and `height` rather than assuming the request was honoured exactly.
+- [`host.geom`](/info/host-api.html#host-geom) - exact vector geometry on SVG path strings: booleans, offset, stroke, simplify and measurement. Failures are returned, never thrown.
+- [`host.text.fontUrl`](/info/host-api.html#host-text) - resolve a font family the host knows to a file for `host.text.toPath()`, with the `variations` a variable face needs. It resolves `null` when no file is found, so keep your `<text>` fallback.
 
 The pattern for any of them is to check, try and render something sensible either way. With `host.geom`:
 
