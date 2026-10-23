@@ -11,7 +11,7 @@ shared files work, and what happens when two people save at once.
 ## Who sees a project
 
 Each project is either **private** (its owner and the people added to it) or shared with one
-or more **groups**. A member sees a project they own, one they were added to, or one shared
+or more **groups**. A member sees a project they own, one they were added to or one shared
 with any group they belong to. Admins and owners see every project. Group membership is the
 member's effective set: groups from the identity provider plus local groups added in the
 console.
@@ -34,7 +34,7 @@ manager of the project.
 
 **Handing a project on.** Changing the owner (`ownerId`) needs the current owner or
 `project.manage`. The previous owner stays on the project as a manager, audited as
-`project.member.add` with `via: 'transfer'`, so they can still work there, leave, or be
+`project.member.add` with `via: 'transfer'`, so they can still work there, leave or be
 removed. A previous owner whose account is disabled is not kept, so offboarding (disable, then
 transfer) leaves no row that re-enabling the account would bring back.
 
@@ -52,7 +52,7 @@ Each project role adds to the one below it; the workspace role and deny grants s
 | manager | added as manager; or anyone holding `project.manage` (admins and owners by default) on a project they can see | rename, change visibility, archive, delete anyone's session, add, change and remove people, invite |
 | editor | added as editor; a member of one of the project's groups; any admin or owner | create sessions, save changes, delete their own sessions |
 | commenter | added as commenter; a group, or everyone signed in to the workspace, given Commenter | everything a viewer may, and comment even where viewers may not; never changes artwork |
-| viewer | added as viewer | open the project and its sessions, read revisions, and comment unless the project turns off viewer comments |
+| viewer | added as viewer | open the project and its sessions, read revisions and comment unless the project turns off viewer comments |
 
 A member of a project's group acts as an editor. Adding someone gives them a role even on a
 private project. The workspace role still applies on top: an account with the workspace
@@ -113,7 +113,7 @@ visibility and share settings or in the directory, not in the members list.
   out, and the list stops at 200 people (`effectiveTruncated: true`).
 - Instance-wide access appears as `instanceAudience: { role }`, capped by
   `policy.sharing.instance.maxRole` and Editor, without listing the directory. It is absent
-  when instance sharing is off, and only managers receive it.
+  when instance sharing is off, and only managers receive the summary.
 
 The list also says whether the caller may hand the project on (`canTransfer`), by the same test
 the transfer applies: the project's owner, or a holder of `project.manage`. Lolly offers
@@ -140,7 +140,7 @@ those images, and Lolly warns about that when you save.
 |---|---|
 | Create a session | editor on the project and `session.create` |
 | Save changes | editor on the project and `session.edit` |
-| Delete a session | `session.delete`, editor on the project, and either to be the person who created it or a manager of the project |
+| Delete a session | `session.delete`, editor on the project and either to be the person who created it or a manager of the project |
 
 Admins and owners hold `project.manage` by default, so a deny grant on it also stops them
 deleting a colleague's session. Being able to see and edit a team project is not enough on its
@@ -209,7 +209,7 @@ in the [API reference](api.md#project-files).
 ### Shared subfolders
 
 Subfolders belong to their project and take its membership. Viewers can browse folders and
-their contents; editors can create folders, rename them, and move sessions or finished files
+their contents; editors can create folders, rename them and move sessions or finished files
 between them. A move changes only the folder listing, so open documents, their links and the
 assets they use keep working. Personal folders stay on the person's device until they choose
 to share them.

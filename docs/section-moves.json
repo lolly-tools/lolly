@@ -701,5 +701,166 @@
       "anchor": "tls-the-suse-curated-way-optional",
       "label": "TLS, the SUSE-curated way (optional)"
     }
+  },
+  "work-identity": {
+    "oidc-sso": {
+      "slug": "work-identity-providers",
+      "anchor": "openid-connect-sign-in",
+      "label": "OpenID Connect sign-in"
+    },
+    "more-than-one-idp": {
+      "slug": "work-identity-providers",
+      "anchor": "more-than-one-idp",
+      "label": "More than one IdP"
+    },
+    "planned-sign-ins": {
+      "slug": "work-identity-providers",
+      "anchor": "planned-sign-ins",
+      "label": "Planned sign-ins"
+    },
+    "provider-recipes": {
+      "slug": "work-identity-providers",
+      "anchor": "provider-recipes",
+      "label": "Provider recipes"
+    },
+    "reverse-proxy-sign-in": {
+      "slug": "work-identity-providers",
+      "anchor": "reverse-proxy-sign-in",
+      "label": "Reverse-proxy sign-in"
+    },
+    "the-dev-provider": {
+      "slug": "work-identity-providers",
+      "anchor": "the-dev-provider",
+      "label": "The dev provider"
+    },
+    "invite-links": {
+      "slug": "work-invitations",
+      "anchor": "invite-links",
+      "label": "Invite links"
+    },
+    "setting-a-password-from-the-link": {
+      "slug": "work-invitations",
+      "anchor": "setting-a-password-from-the-link",
+      "label": "Setting a password from the link"
+    },
+    "new-link-and-invite-again": {
+      "slug": "work-invitations",
+      "anchor": "new-link-and-invite-again",
+      "label": "New link and Invite again"
+    },
+    "github-addresses": {
+      "slug": "work-invitations",
+      "anchor": "github-addresses",
+      "label": "GitHub addresses"
+    },
+    "asking-to-join": {
+      "slug": "work-invitations",
+      "anchor": "asking-to-join",
+      "label": "Asking to join"
+    },
+    "using-another-account": {
+      "slug": "work-invitations",
+      "anchor": "using-another-account",
+      "label": "Using another account"
+    },
+    "scim-provisioning": {
+      "slug": "work-enterprise-identity",
+      "anchor": "scim-provisioning",
+      "label": "SCIM provisioning"
+    },
+    "service-tokens": {
+      "slug": "work-enterprise-identity",
+      "anchor": "service-tokens",
+      "label": "Service tokens"
+    },
+    "what-a-shell-sees": {
+      "slug": "work-permissions",
+      "anchor": "checking-your-work",
+      "label": "Checking your work"
+    }
+  },
+  "work-sharing": {
+    "team-projects-and-sessions": {
+      "slug": "work-team-projects",
+      "anchor": "team-projects",
+      "label": "Team projects"
+    },
+    "who-sees-a-project": {
+      "slug": "work-team-projects",
+      "anchor": "who-sees-a-project",
+      "label": "Who sees a project"
+    },
+    "people-and-roles": {
+      "slug": "work-team-projects",
+      "anchor": "people-and-roles",
+      "label": "People and roles"
+    },
+    "inviting-people": {
+      "slug": "work-invitations",
+      "anchor": "invite-people-to-a-project",
+      "label": "Invite people to a project"
+    },
+    "invite-policy": {
+      "slug": "work-invitations",
+      "anchor": "invite-policy",
+      "label": "Invite policy"
+    },
+    "asking-for-access": {
+      "slug": "work-invitations",
+      "anchor": "asking-for-access",
+      "label": "Asking for access"
+    },
+    "notices": {
+      "slug": "work-invitations",
+      "anchor": "notices",
+      "label": "Notices"
+    },
+    "saving-from-lolly": {
+      "slug": "work-team-projects",
+      "anchor": "saving-from-lolly",
+      "label": "Saving from Lolly"
+    },
+    "shared-files": {
+      "slug": "work-team-projects",
+      "anchor": "shared-files",
+      "label": "Shared files"
+    },
+    "who-changed-what": {
+      "slug": "work-team-projects",
+      "anchor": "who-changed-what",
+      "label": "Who changed what"
+    },
+    "team-links": {
+      "slug": "work-team-projects",
+      "anchor": "team-links",
+      "label": "Team links"
+    },
+    "when-two-people-save-the-same-session": {
+      "slug": "work-team-projects",
+      "anchor": "when-two-people-save-the-same-session",
+      "label": "When two people save the same session"
+    },
+    "shared-subfolders": {
+      "slug": "work-team-projects",
+      "anchor": "shared-subfolders",
+      "label": "Shared subfolders"
+    }
+  },
+  "work-permissions": {
+    "who-can-see-who-has-access": {
+      "slug": "work-team-projects",
+      "anchor": "who-can-see-who-has-access",
+      "label": "Who can see who has access"
+    },
+    "sign-out-on-all-devices": {
+      "slug": "work-identity",
+      "anchor": "offboarding-disable-and-revocation",
+      "label": "Offboarding, disable and revocation"
+    },
+    "sending-organization-output-deliverycreate": {
+      "slug": "work-delivery",
+      "anchor": "who-may-send",
+      "label": "Who may send"
+    }
   }
 }

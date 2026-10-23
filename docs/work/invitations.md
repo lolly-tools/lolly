@@ -23,6 +23,13 @@ you a personal link and a ready-to-send message, and you send them yourself by c
 Both write one invitation per address. An address has at most one active invitation, and
 every project that invites it is added to that same invitation.
 
+**Which account holds an address.** Work treats an address as an account's only when the
+account has shown it holds the address: a sign-in whose provider verified it, a source the operator
+vouches for (the reverse proxy, or a provider set to `emailVerification: "trusted"`), or an
+accepted invitation for that address. A project invite also counts an account provisioned with no
+sign-in yet. An account whose sign-in only claimed the address is treated as if the address
+had no account: it gets an invitation, which a verified sign-in has to accept.
+
 ## Invite people to the workspace
 
 An invitation identifies one address, stored lowercased, plus optional local groups and an
@@ -42,9 +49,9 @@ active invitation for the email:
 - Groups go only to an account the invitation came before. An account that already existed
   when the invitation was written keeps its groups, and the acceptance records
   `groupsNotApplied: "existing-account"`.
-- An accepted invitation keeps admitting that email until someone revokes it. Revoking blocks
+- An accepted invitation keeps admitting that email until someone revokes the invitation. Revoking blocks
   the person's next sign-in unless `emails` or `domains` admit them. A session already open
-  stays open; disable the person to end it.
+  stays open; disable the person to end that session.
 - An unverified email never takes an invitation.
 - With no `idp.admission` block everyone is admitted anyway, and a verified invited email
   still gets its invitation's groups at the first sign-in.
@@ -59,9 +66,6 @@ a person's local groups:
 - An address that already belongs to an account joins the groups at once, under the same
   controls. That is refused for your own account, a disabled one, and an owner's unless an
   owner is inviting.
-- Only an account that has shown it holds the address counts: a verified or trusted sign-in,
-  or an accepted invitation for it. An account whose sign-in only claimed the address gets an
-  invitation, which a verified sign-in has to accept.
 - Only an owner may name a provider group or role group that is not in the registry. That is
   how a second owner joins an instance whose provider sends no groups: an owner invites them
   into the owner group, which the console offers to owners.
@@ -83,12 +87,6 @@ project. Each address gets one result:
 | `invited` | The address has no account yet. An invitation carrying the project is created, or the address's open invitation gains the project. The result carries `invitationId`, the address's own invite link for this project (`link`) and the end date (`expiresAt`). |
 | `already` | Nothing to do: the person already has this role or a higher one, or owns the project. |
 | `refused` | With a `reason`, listed below. |
-
-For `added`, only an account that has shown it holds the address counts: one whose provider
-verified the address, one from a source the operator vouches for (the reverse proxy, a
-provider set to `emailVerification: "trusted"`), the account that accepted the address's
-invitation, or one provisioned with no sign-in yet. An account whose sign-in only claimed the
-address is treated as if the address had no account.
 
 For `invited`, at their first sign-in the person joins every project the invitation carries,
 each only while the person who added it is still an enabled account that manages that project
@@ -140,7 +138,7 @@ the last 30 days stays listed as Expired with **Invite again**.
 **Withdrawing.** `DELETE /api/v1/projects/:id/invitations/:invitationId` takes the project off
 the invitation. When a project invite created the invitation (`createdVia: "project"`) and no
 project is left on it, the invitation is revoked too, so the address can no longer sign in
-through it. An invitation made in the console only loses the project: whether it still admits
+through that invitation. An invitation made in the console only loses the project: whether it still admits
 the person is an admin's decision in People. An invitation accepted in the meantime is never
 revoked by this route.
 
@@ -276,8 +274,8 @@ invite new people (`POST /api/v1/projects/:id/invitations/:invitationId/reinvite
 
 ### GitHub addresses
 
-GitHub accounts often carry several verified addresses, such as a personal primary and a work
-address beside it. For invitations, and only for invitations, a GitHub sign-in counts every
+GitHub accounts often carry several verified addresses, such as a personal primary address and a
+work address. For invitations, and only for invitations, a GitHub sign-in counts every
 verified address on the account (up to 10, never the `users.noreply.github.com` commit
 address). A person invited at their work address can therefore sign in with a personal GitHub
 account that has the work address verified on it, and the console shows "Accepted as" the
@@ -335,7 +333,7 @@ of Example Studio to let sam.k@example.net in.", with an optional note of up to 
 characters. The request carries the address the sign-in just verified, never a typed one.
 With it off, the page says to ask the person who invited them to invite this address. Other
 refusals (a disabled account, an unverified email, a `hostedDomain` or `tenantId` mismatch)
-never offer it.
+never offer the request.
 
 - **Who answers.** Every enabled account that may invite new people (`policy.invites.allow`;
   by default, admins and owners). They see the request in the Requests card on the console's

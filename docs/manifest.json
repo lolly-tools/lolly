@@ -1776,7 +1776,7 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The control plane in one page: what it serves, the two-repo shape, and the trust model.",
+      "description": "Lolly Work in one page: what stays on the device, what the server holds and serves, the two codebases and the trust model.",
       "work": {
         "slug": "overview",
         "path": "overview.md",
@@ -1827,12 +1827,32 @@
       "icon": "usercheck",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Managed SSO registration, admission, optional MFA, SCIM offboarding, logout, upgrades and credential rotation.",
+      "description": "Connect an enterprise identity provider with logout and optional assurance, qualify it, operate it, and mint SCIM and service tokens.",
       "work": {
         "slug": "enterprise-identity",
         "path": "enterprise-identity.md",
         "icon": "overview"
       }
+    },
+    {
+      "slug": "work-identity-providers",
+      "title": "Sign-in provider recipes",
+      "src": "work/identity-providers.md",
+      "section": "operate",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/sign-in-provider-recipes",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Configure Google, Entra ID, Okta, Keycloak, Auth0, GitHub or a SAML broker, several providers at once, and reverse-proxy sign-in.",
+      "work": {
+        "slug": "identity-providers",
+        "path": "identity-providers.md",
+        "icon": "instance"
+      },
+      "secondarySections": [
+        "manage"
+      ]
     },
     {
       "slug": "work-customer-setup",
@@ -1955,15 +1975,17 @@
     },
     {
       "slug": "work-identity",
-      "title": "Identity and sessions",
+      "title": "Sign-in and sessions",
       "src": "work/identity.md",
       "section": "manage",
       "group": "People and access",
-      "path": "manage/identity-and-sessions",
+      "path": "manage/sign-in-and-sessions",
       "icon": "usercheck",
-      "aliases": [],
+      "aliases": [
+        "manage/identity-and-sessions"
+      ],
       "contentLicense": "MPL-2.0",
-      "description": "OIDC SSO, group mapping, member and guest sessions, the dev provider.",
+      "description": "Choose how colleagues sign in, decide who gets in, set session length and renewal, link several sign-ins to one person, and end access.",
       "work": {
         "slug": "identity",
         "path": "identity.md",
@@ -1992,6 +2014,23 @@
       "secondarySections": [
         "trust"
       ]
+    },
+    {
+      "slug": "work-invitations",
+      "title": "Invite people and handle requests",
+      "src": "work/invitations.md",
+      "section": "manage",
+      "group": "People and access",
+      "path": "manage/invite-people",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Invite people to the workspace or a project, send invite links, set passwords from a link, and answer requests to join and for access.",
+      "work": {
+        "slug": "invitations",
+        "path": "invitations.md",
+        "icon": "instance"
+      }
     },
     {
       "slug": "work-document-agents",
@@ -2023,7 +2062,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Inspect sources, review replacements and retirement, and manage durable connect downloads.",
+      "description": "Choose which design system a deployment serves, preview and apply a switch or retirement, manage connect downloads and connect brand rules to tools.",
       "work": {
         "slug": "design-system-administration",
         "path": "design-system-administration.md",
@@ -2040,7 +2079,7 @@
       "icon": "usercheck",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The seven roles, every action they carry, and deny-wins fine-grained grants.",
+      "description": "The seven roles, every action they carry and the deny-wins grants that adjust them, with owner-only powers and guests.",
       "work": {
         "slug": "permissions",
         "path": "permissions.md",
@@ -2074,7 +2113,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Brand packs, catalog providers, exposure slices, expiry and stop-sharing.",
+      "description": "Brand packs, member submissions, metadata fields, collections, versions, expiry and holds, and read-only DAM providers.",
       "work": {
         "slug": "catalog",
         "path": "catalog.md",
@@ -2091,7 +2130,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Supported formats, preview conversion and render-worker configuration.",
+      "description": "Disposable PDF previews of EPS, EMF and WMF files in the asset viewer, and how the render worker converts them safely.",
       "work": {
         "slug": "file-preview",
         "path": "file-preview.md",
@@ -2100,15 +2139,17 @@
     },
     {
       "slug": "work-offboarding",
-      "title": "Off-boarding a DAM",
+      "title": "Leave a DAM",
       "src": "work/offboarding.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
-      "path": "manage/offboarding",
+      "path": "manage/leave-a-dam",
       "icon": "document",
-      "aliases": [],
+      "aliases": [
+        "manage/offboarding"
+      ],
       "contentLicense": "MPL-2.0",
-      "description": "Leaving a DAM: pin early, the Canto/Image Relay fork, and per-vendor exit readiness.",
+      "description": "Leave a DAM vendor without losing assets or links: pin early, pick the Canto or Image Relay driver, check readiness by kind, then cut over.",
       "work": {
         "slug": "offboarding",
         "path": "offboarding.md",
@@ -2125,7 +2166,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Chains, separation of duties, and what an approval can gate.",
+      "description": "Approval chains, separation of duties and what an approval can gate, including review of a frozen set of source files.",
       "work": {
         "slug": "approvals",
         "path": "approvals.md",
@@ -2134,15 +2175,17 @@
     },
     {
       "slug": "work-sharing",
-      "title": "Rendering and sharing",
+      "title": "Share renders and links",
       "src": "work/sharing.md",
       "section": "manage",
       "group": "Jobs, sharing and delivery",
-      "path": "manage/sharing",
+      "path": "manage/share-renders-and-links",
       "icon": "document",
-      "aliases": [],
+      "aliases": [
+        "manage/sharing"
+      ],
       "contentLicense": "MPL-2.0",
-      "description": "Server renders, signed links, guest sessions, watermarks, provenance.",
+      "description": "Signed links that expire and can be turned off, guest and password links, links to library assets and collections, server renders and provenance.",
       "work": {
         "slug": "sharing",
         "path": "sharing.md",
@@ -2150,8 +2193,25 @@
       }
     },
     {
+      "slug": "work-team-projects",
+      "title": "Team projects",
+      "src": "work/team-projects.md",
+      "section": "manage",
+      "group": "Jobs, sharing and delivery",
+      "path": "manage/team-projects",
+      "icon": "folder",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Who sees a team project, what each project role allows, saving from Lolly, shared files and subfolders, and saving conflicts.",
+      "work": {
+        "slug": "team-projects",
+        "path": "team-projects.md",
+        "icon": "grants"
+      }
+    },
+    {
       "slug": "work-renders",
-      "title": "Recover and inspect render jobs",
+      "title": "Render jobs and batches",
       "src": "work/renders.md",
       "section": "manage",
       "group": "Jobs, sharing and delivery",
@@ -2159,7 +2219,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Persistent renders and batches, individual row recovery, output manifests, partial execution evidence, and API/CLI access.",
+      "description": "Durable render jobs and batches that recover after a restart, file checks, execution evidence and render identity, and production still checks.",
       "work": {
         "slug": "renders",
         "path": "renders.md",
@@ -2179,7 +2239,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Fixed organization destinations, durable receipts, S3/WebDAV/signed-HTTPS adapters, automation output references, retries, and the personal/organization boundary.",
+      "description": "Send finished exports to fixed organisation destinations: S3, WebDAV, signed HTTPS, Brandfolder or Cloudinary, with receipts, retries and optional approval.",
       "work": {
         "slug": "delivery",
         "path": "delivery.md",
@@ -2851,15 +2911,17 @@
     },
     {
       "slug": "work-status",
-      "title": "Work status and roadmap",
+      "title": "What Lolly Work does today",
       "src": "work/status.md",
       "section": "start",
       "group": "Product, organisation and vocabulary",
-      "path": "start/status",
+      "path": "start/what-lolly-work-does-today",
       "icon": "document",
-      "aliases": [],
+      "aliases": [
+        "start/status"
+      ],
       "contentLicense": "MPL-2.0",
-      "description": "What is built, what is pending, and the honest gaps before go-live.",
+      "description": "What Lolly Work 1.1.2 does today, what to check on your own systems before relying on it, and what is not built yet.",
       "work": {
         "slug": "status",
         "path": "status.md",

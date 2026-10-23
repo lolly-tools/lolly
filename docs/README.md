@@ -24,7 +24,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Glossary | [glossary.md](glossary.md) |
 | About | [../README.md](../README.md) |
 | What is Lolly? | [what-is-lolly.md](what-is-lolly.md) |
-| Work status and roadmap | [work/status.md](work/status.md) |
+| What Lolly Work does today | [work/status.md](work/status.md) |
 
 ## Create
 
@@ -139,17 +139,19 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Manage | [operators.md](operators.md) |
 | Profiles, brands and tool configuration | [configuration.md](configuration.md) |
 | Adoption & Governance | [adoption-governance.md](adoption-governance.md) |
-| Identity and sessions | [work/identity.md](work/identity.md) |
+| Sign-in and sessions | [work/identity.md](work/identity.md) |
 | Account data controls | [work/account-lifecycle.md](work/account-lifecycle.md) |
+| Invite people and handle requests | [work/invitations.md](work/invitations.md) |
 | Design-system administration | [work/design-system-administration.md](work/design-system-administration.md) |
 | Roles and grants | [work/permissions.md](work/permissions.md) |
 | Policy and governance | [work/governance.md](work/governance.md) |
 | Catalog and content | [work/catalog.md](work/catalog.md) |
 | Asset previews | [work/file-preview.md](work/file-preview.md) |
-| Off-boarding a DAM | [work/offboarding.md](work/offboarding.md) |
+| Leave a DAM | [work/offboarding.md](work/offboarding.md) |
 | Approvals | [work/approvals.md](work/approvals.md) |
-| Rendering and sharing | [work/sharing.md](work/sharing.md) |
-| Recover and inspect render jobs | [work/renders.md](work/renders.md) |
+| Share renders and links | [work/sharing.md](work/sharing.md) |
+| Team projects | [work/team-projects.md](work/team-projects.md) |
+| Render jobs and batches | [work/renders.md](work/renders.md) |
 | Organisation delivery destinations | [work/delivery.md](work/delivery.md) |
 | Manage organisation AI policy | [work/ai-policy.md](work/ai-policy.md) |
 | Provider guides | [work/providers/README.md](work/providers/README.md) |
@@ -188,6 +190,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Install Lolly Work | [work/install.md](work/install.md) |
 | Official installation routes | [work/official-installations.md](work/official-installations.md) |
 | Set up enterprise identity | [work/enterprise-identity.md](work/enterprise-identity.md) |
+| Sign-in provider recipes | [work/identity-providers.md](work/identity-providers.md) |
 | Configure your first Work instance | [work/customer-setup.md](work/customer-setup.md) |
 | Lolly Work deployment options | [work/deployment.md](work/deployment.md) |
 | UpCloud, Evroc and fewer hosting services | [work/cloud-deployment.md](work/cloud-deployment.md) |

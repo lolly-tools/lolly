@@ -1,7 +1,7 @@
 # Sign-in provider recipes
 
 This page is for the operator connecting a sign-in provider to Lolly Work: the configuration
-for each provider, how several providers share one instance, and how a reverse proxy can sign
+for each provider, how several providers share one instance and how a reverse proxy can sign
 people in. Who gets in and how sessions behave are on [Sign-in and sessions](identity.md).
 The full rollout, with logout and optional assurance, is [Set up enterprise
 identity](enterprise-identity.md).
@@ -200,7 +200,7 @@ device flow off.
 - The email is the primary address when GitHub has verified it, otherwise the first verified
   address. The `@users.noreply.github.com` commit address is used only when nothing else is
   verified.
-- GitHub lets anyone add any address to an account without proving it. An account with no
+- GitHub lets anyone add any address to an account without proving ownership. An account with no
   verified address is therefore refused on every instance, open or not, with a page asking
   the person to add and confirm one (`auth.failed`, reason `no-email`). For the same reason a
   GitHub entry accepts only `emailVerification: "claim"`, the default.
@@ -213,7 +213,7 @@ device flow off.
 
 A failed exchange (a stale code, GitHub unreachable, a missing or wrong client secret) shows
 a phone-friendly page with a **Try again** link and writes an `auth.failed` audit row (actor
-`anonymous`; payload `provider: "github"`, `idp`, and `reason`: `token`, `profile` or
+`anonymous`; payload `provider: "github"`, `idp` and `reason`: `token`, `profile` or
 `no-email`). GitHub's own error text and the access token never reach the page or the audit
 log. The token is used for two API reads and then dropped.
 
@@ -273,7 +273,7 @@ A request without it, or with the wrong value, is refused with `403 PROXY_SECRET
 and an `auth.proxy.rejected` audit row; the presented value is never recorded. This stops a
 process on the same host from reaching the instance port directly and claiming to be an
 owner. In production the variable is required whenever the provider is enabled, and the
-server refuses to boot without it.
+server refuses to boot without the secret.
 
 **Static grants.** `groups` maps a login to groups that are added at every sign-in. This is
 how a deployment gives its first owner the `owner` group before any directory or group header
