@@ -859,6 +859,37 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   color: hsl(var(--muted-foreground));
 }
 
+/* Creation feedback rows (lib/creation-feedback.ts): the flagged phrases under the
+   writing line, then one plain link to read the text in Verify. Supporting lines are
+   the muted tier, smaller than the message; the link is the card's only accent. */
+.preflight-finding-details {
+  list-style: none;
+  margin: var(--sp-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-1);
+  font-size: var(--fs-xs);
+  color: var(--ui-color-text-muted);
+}
+.preflight-finding-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin-block-start: var(--sp-2);
+  color: var(--ui-color-action-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: text-decoration-thickness var(--dur-1) var(--ease-out);
+}
+.preflight-finding-link:hover { text-decoration-thickness: 2px; }
+.preflight-finding-link:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
 /* The details modal (opened by .preflight-open via mountModal). A centred dialog;
    its body reuses .preflight-fact / .preflight-finding from above verbatim. */
 .preflight-modal {

@@ -60,6 +60,13 @@ export interface PreflightRow {
   readonly id: string;
   readonly text: string;
   readonly action?: { label: string; run: () => Promise<void> };
+  /** Short supporting lines under the text (a flagged phrase and its layer), escaped. */
+  readonly details?: readonly string[];
+  /**
+   * A place to read more, as an ordinary link. `prepare` runs on activation before
+   * the browser follows `href`, and the dialog closes, so the page it opens is in view.
+   */
+  readonly link?: { label: string; href: string; prepare?: () => void };
 }
 
 /** One label/value line. Same anatomy as the /valid view's `fact()`. */
@@ -313,8 +320,10 @@ const METAPHOR_BY_ID: Record<string, IconName> = {
   'design.text.contrast-low': 'palette',
   'design.text.contrast-review': 'palette',
   'design.font.unembeddable': 'keyboard',
+  'writing.score': 'transcript',
 };
 const METAPHOR_BY_PREFIX: ReadonlyArray<readonly [string, IconName]> = [
+  ['house-rule', 'shapes'],
   ['count.pages.', 'document'],
   ['plates.', 'layers'],
   ['input.', 'keyboard'],
@@ -346,7 +355,10 @@ export function preflightBodyHtml(view: PreflightView): string {
         + icon(metaphorIcon(r.id), { className: 'preflight-finding-metaphor' })
         + `<span class="preflight-finding-badge">${icon(statusIcon(r.tone), { className: 'preflight-finding-badge-icon' })}</span>`
         + `</span>`
-        + `<span class="preflight-finding-text">${escape(r.text)}${r.action ? `<button type="button" class="btn preflight-fix" data-preflight-fix="${escape(r.id)}">${escape(r.action.label)}</button>` : ''}</span>`
+        + `<span class="preflight-finding-text">${escape(r.text)}`
+        + (r.details?.length ? `<ul class="preflight-finding-details">${r.details.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>` : '')
+        + (r.link ? `<a class="preflight-finding-link" href="${escape(r.link.href)}" data-preflight-link="${escape(r.id)}">${escape(r.link.label)}</a>` : '')
+        + `${r.action ? `<button type="button" class="btn preflight-fix" data-preflight-fix="${escape(r.id)}">${escape(r.action.label)}</button>` : ''}</span>`
         + `</li>`).join('')}</ul>`
     : '';
   return facts + rows;
@@ -380,6 +392,16 @@ export function openPreflightModal(): void {
   });
   handle.el.querySelector('[data-preflight-close]')?.addEventListener('click', () => handle.close());
   handle.el.addEventListener('click', async event => {
+    // A link reads more somewhere else: get the page ready, close the dialog, let the browser follow the link.
+    const anchor = (event.target as Element).closest<HTMLAnchorElement>('[data-preflight-link]');
+    // A modified click opens a new tab, which an in-memory handoff cannot reach: leave it to the browser.
+    if (anchor && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)) return;
+    if (anchor) {
+      const link = currentView?.rows.find(row => row.id === anchor.dataset.preflightLink)?.link;
+      try { link?.prepare?.(); } catch { /* the link still opens the page */ }
+      handle.close();
+      return;
+    }
     const button = (event.target as Element).closest<HTMLButtonElement>('[data-preflight-fix]');
     const action = currentView?.rows.find(row => row.id === button?.dataset.preflightFix)?.action;
     if (!button || button.disabled || !action) return;

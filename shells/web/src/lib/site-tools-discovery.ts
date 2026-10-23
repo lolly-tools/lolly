@@ -11,6 +11,7 @@ import { siteToolSources } from './site-tools-context.ts';
 import { readSiteProject, type SiteProject } from './site-tools-projects.ts';
 import { siteAsset, siteCatalogAssets, siteData, siteInputs, siteMatches, sitePage } from './site-tools-data.ts';
 import { registerSiteTools, type SiteToolCall } from './site-tools.ts';
+import { siteCreationFeedback, withApplyFeedback } from './site-tools-feedback.ts';
 
 const documentMethods: Record<string, string> = {
   lolly_read_document: 'document.get', lolly_find_layers: 'document.find',
@@ -44,7 +45,21 @@ export function createSiteToolCall(host: HostV1): SiteToolCall {
     let result: unknown;
     if (documentMethods[name]) {
       if (!sources.editor) throw new Error('Open a Design document to use document actions.');
+      // An applied change answers with creation feedback for the layers it touched: guidance, never a refusal.
+      const applying = name === 'lolly_apply_document_changes';
+      const before = applying ? await siteCreationFeedback(sources.tool).catch(() => null) : null;
       result = await sources.editor.request(documentMethods[name], args);
+      if (applying) {
+        const after = await siteCreationFeedback(sources.tool).catch(() => null); current();
+        result = withApplyFeedback(result, before, after);
+      }
+    } else if (name === 'lolly_check_document') {
+      if (!sources.editor || sources.tool?.tool.manifest.id !== 'design') throw new Error('Open a Design document to check it.');
+      // Reading through the editor checks the document id, as every document action does.
+      const read = await sources.editor.request('document.get', { ...(args.documentId ? { documentId: args.documentId } : {}), limit: 1 }) as { documentId?: unknown; revision?: unknown };
+      current();
+      const report = await siteCreationFeedback(sources.tool); current();
+      result = { documentId: read?.documentId ?? null, revision: read?.revision ?? null, ...report };
     } else if (name === 'lolly_read_context') {
       const snapshot = await (sources.tool?.host ?? host).tokens?.snapshot?.(); current();
       const data = await project(); current();
