@@ -4,7 +4,7 @@
  * lolly CLI - the entry point.
  *
  * The usage text below is the REAL one: USAGE is printed by `lolly --help`, exit codes
- * and all (they used to live only in docs/cli.md, where a script author never sees them).
+ * and all (docs/cli-reference.md lists them too, but a script author reads --help, not the docs).
  *
  * Architectural note: this CLI is URL mode under a different transport. --foo=bar argv
  * pairs become the same input values the web shell would parse from ?foo=bar in the URL
