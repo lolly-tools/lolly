@@ -15,6 +15,7 @@ import type { prepareDesignRaster } from '../engine/src/design-draw-raster.ts';
 import { DESIGN_RASTER_RECIPE } from '../engine/src/design-draw-raster.ts';
 import { compareInBrowser, type FidelityStats } from './helpers/design-fidelity.ts';
 import { createDesignGpuFixture, designGpuCases, primitiveDrawing } from './helpers/design-webgpu-fixture.ts';
+import { settledScreenshot } from './helpers/settled-screenshot.ts';
 
 interface WorkerResult extends DesignRasterResult { ok: true; png: Uint8Array }
 interface RasterProbe {
@@ -123,9 +124,11 @@ test('opt-in static Design GPU pages preserve real renderer regions and reject c
     Object.assign(receipt, { currentPage: key, completedPages: report.length, stage: 'page references' }); await record();
     const width = 320 * scaleX, height = 240 * scaleY, output = { width, height, dpi: 96 * scaleX };
     const design = await context.newPage(); await design.setViewportSize({ width, height }); await design.goto(fixture.origin + '/design/' + key);
-    const ground = await design.screenshot({ clip: { x: 0, y: 0, width, height }, omitBackground: true }); await design.close();
+    // Each capture waits for a presented frame; only Chromium's empty-surface refusal is retried (helpers/settled-screenshot.ts).
+    const retried = (url: string) => ({ onRetry: (attempt: number, error: Error) => t.diagnostic(`${url}: capture ${attempt} refused (${error.message.split('\n')[0]}); retrying after the next frame`) });
+    const ground = await settledScreenshot(design, { clip: { x: 0, y: 0, width, height }, omitBackground: true }, retried(`/design/${key}`)); await design.close();
     const svg = await context.newPage(); await svg.setViewportSize({ width, height }); await svg.goto(fixture.origin + '/svg/' + key);
-    const vector = await svg.screenshot({ clip: { x: 0, y: 0, width, height }, omitBackground: true }); await svg.close();
+    const vector = await settledScreenshot(svg, { clip: { x: 0, y: 0, width, height }, omitBackground: true }, retried(`/svg/${key}`)); await svg.close();
     receipt.stage = 'worker raster and PNG encode'; await record();
     const result = await probe.evaluate(async ({ page, output }) => {
       const started = performance.now(), value = await window.designRasterProbe.render(page, output);
