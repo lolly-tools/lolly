@@ -1,0 +1,74 @@
+<!--
+  Concept: Three ways to deploy Lolly: hand out the app, host the web app, add Lolly Work. Each card says what people install, what you run and whether it works offline.
+  Band Contract: static fragment scoped under .dtw, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network, so the complete figure renders with JS disabled and in both themes.
+  Sources: docs/deployment.md (the three ways), Settings Available offline, the Lolly Work install pages for the database and blob storage.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by
+  Andy Fitzsimon on 2026-10-23. The C2PA signature added at bank time is the first provenance record
+  of this file.
+-->
+<style>
+.dtw{--dtw-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--dtw-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --dtw-ground:hsl(var(--secondary,84.5 55% 92.2%));--dtw-paper:hsl(var(--card,0 0% 100%));
+ --dtw-accent:hsl(var(--primary,176.5 89.5% 11.2%));--dtw-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --dtw-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--dtw-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --dtw-wash:color-mix(in oklab,var(--dtw-accent) 12%,var(--dtw-paper));
+ --dtw-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--dtw-ink);background:var(--dtw-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.dtw *{box-sizing:border-box}
+.dtw ul,.dtw ol{list-style:none;margin:0;padding:0}
+.dtw li{list-style:none;margin:0;font-size:inherit}
+.dtw p{margin:0}
+.dtw code{font:500 .8em/1.3 var(--dtw-mono);background:var(--dtw-soft);border-radius:5px;padding:.08em .32em;white-space:nowrap}
+.dtw b{font-weight:600}
+.dtw .dtw-cap{font:600 11px/1.3 var(--dtw-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dtw-muted)}
+.dtw .dtw-card{background:var(--dtw-paper);border-radius:16px;box-shadow:0 0 0 1px var(--dtw-line);padding:14px}
+.dtw .dtw-title{font-weight:600;font-size:1.02rem;line-height:1.2}
+.dtw .dtw-note{font-size:.84rem;color:var(--dtw-muted)}
+.dtw .dtw-tag{display:inline-block;font:600 11px/1.2 var(--dtw-mono);letter-spacing:.03em;padding:3px 8px;border-radius:999px;background:var(--dtw-wash);color:var(--dtw-ink)}
+.dtw .dtw-tag.dtw-solid{background:var(--dtw-accent);color:var(--dtw-on-accent)}
+.dtw .dtw-down{display:flex;justify-content:center;padding:6px 0}
+.dtw .dtw-down i{display:block;width:2px;height:18px;background:var(--dtw-line);position:relative}
+.dtw .dtw-down i::after{content:"";position:absolute;left:-5px;bottom:-6px;border:6px solid transparent;border-top-color:var(--dtw-muted);border-bottom:0}
+.dtw .dtw-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.dtw .dtw-cols>li{display:grid;gap:8px;align-content:start}
+.dtw .dtw-cols>li>.dtw-cap{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--dtw-wash);color:var(--dtw-ink);letter-spacing:0}
+.dtw dl{margin:0;display:grid;gap:8px}
+.dtw dt{font:600 11px/1.3 var(--dtw-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--dtw-muted)}
+.dtw dd{margin:2px 0 0;font-size:.9rem;line-height:1.35}
+.dtw dd .dtw-tag{margin-right:4px}
+@container (max-width:620px){.dtw .dtw-cols{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="dtw">
+<ul class="dtw-cols">
+<li class="dtw-card">
+<p class="dtw-cap">1</p>
+<p class="dtw-title">Hand out the app</p>
+<dl>
+<dt>People install</dt><dd>The desktop or mobile app, or the web app for offline use</dd>
+<dt>You run</dt><dd>No server. Your device management delivers the app</dd>
+<dt>Works offline</dt><dd><span class="dtw-tag dtw-solid">Yes</span> Air-gapped too</dd>
+</dl>
+</li>
+<li class="dtw-card">
+<p class="dtw-cap">2</p>
+<p class="dtw-title">Host the web app</p>
+<dl>
+<dt>People install</dt><dd>Nothing. They open a link</dd>
+<dt>You run</dt><dd>Any static web server, or the container image and Helm chart</dd>
+<dt>Works offline</dt><dd><span class="dtw-tag dtw-solid">Yes</span> After <b>Available offline</b></dd>
+</dl>
+</li>
+<li class="dtw-card">
+<p class="dtw-cap">3</p>
+<p class="dtw-title">Add Lolly Work</p>
+<dl>
+<dt>People install</dt><dd>Nothing more. They sign in with the organisation</dd>
+<dt>You run</dt><dd>The Lolly Work service, a database and blob storage</dd>
+<dt>Works offline</dt><dd><span class="dtw-tag">Partly</span> Local tools do; shared work needs the service</dd>
+</dl>
+</li>
+</ul>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ52p1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnBanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo1NGEzZjgwNC1lYmY1LTRlNjktYjM3YS00OWI0YTg0NTk4YzMAAAAEP2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjoyNzozOFoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRGeZmxlbmd0aBkNlmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggkjBZQ0+QdcAdr04p62CZ25BlSBVdPuEt5gLSjFSPxqZjcGFkSAAAAAAAAAAAAAAA1Wp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAKFjYm9yp2dzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHVkZXBsb3ltZW50LXRocmVlLXdheXNkZGF0ZXgYMjAyNi0xMC0yM1QwNjoyNzozOC4wMjFaaGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAtNqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACpGNib3KmaGRjOnRpdGxldWRlcGxveW1lbnQtdGhyZWUtd2F5c2ppbnN0YW5jZUlEeC11cm46dXVpZDo4ZjQwZjQxZi0xNDhhLTRkYzItOGU4Zi1kYmVjNDAxZmI1Y2R0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIMmNpvlvwC62x5kmqjnPT6ISEDjc8Tc5wQjBc/s8RVmoomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIPaSzJORF+UJ8Ldhi32Gshu2DB6OjmrTp5M2lQjoXghromN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCDDS3R9Ti7WuArSrTwGAqLF4CQaK7vdgStVo3QNe4WDcKJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmBqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjBjYm9y0oRZAd+iASYYIYFZAdYwggHSMIIBeaADAgECAglRIh29MVqX1yUwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA2MjYzOFoXDTM2MTAyMDA2MjczOFowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEp1E1f3EbLi6Ce98f/2rARNfTorncpgJiXZB3g/TL0O9Lraf2aZZcrts94nnC4x+9pkMCtOSVHE+sro6PBUsD9qNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFLl6vhieeif6EwcfzyLW9jrXIbztMB8GA1UdIwQYMBaAFLl6vhieeif6EwcfzyLW9jrXIbztMAoGCCqGSM49BAMCA0cAMEQCIDpUhuzxwzVa0f24oUQEoRdA8w3g/uAlo8t5DiJvaarjAiBPe6E67QJoz7gporgAXtoywLykJAVUgHP0KCBgnnB9VaD2WEDtZTp1vW2eRANt4Gdd5bVljJKc85e+fW0gqAxDHcp+jeC3BGE/UTwkdlJzUlJpjad2jFWGzJ4PrtZvSFkAfJDs -----END C2PA MANIFEST----- -->

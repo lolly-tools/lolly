@@ -14,6 +14,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | --- | --- |
 | Lolly: information and documentation | [site.md](site.md) |
 | Start | [quickstart.md](quickstart.md) |
+| What is Lolly? | [what-is-lolly.md](what-is-lolly.md) |
+| How Lolly works | [how-lolly-works.md](how-lolly-works.md) |
 | Make your first file | [make-something.md](make-something.md) |
 | Meet Lolly Demo | [lolly-demo.md](lolly-demo.md) |
 | Lolly Demo in use | [lolly-demo-in-use.md](lolly-demo-in-use.md) |
@@ -22,43 +24,49 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Install Lolly | [install.md](install.md) |
 | Supported environments | [supported-environments.md](supported-environments.md) |
 | Glossary | [glossary.md](glossary.md) |
-| About | [../README.md](../README.md) |
-| What is Lolly? | [what-is-lolly.md](what-is-lolly.md) |
 | Work status and roadmap | [work/status.md](work/status.md) |
+| About | [../README.md](../README.md) |
 
 ## Create
 
 | Guide | Source |
 | --- | --- |
-| Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
 | Create | [creators.md](creators.md) |
-| Share a design with rules | [create-a-tool.md](create-a-tool.md) |
-| Training courses | [training-creators.md](training-creators.md) |
 | Using Lolly | [using.md](using.md) |
+| Design: the free canvas | [design.md](design.md) |
+| Share a design with rules | [create-a-tool.md](create-a-tool.md) |
+| Build a course | [training-creators.md](training-creators.md) |
+| Deliver and update a course | [training-delivery.md](training-delivery.md) |
 | Templates | [templates.md](templates.md) |
-| The Brand Studio | [brand-studio.md](brand-studio.md) |
+| Batch and Multi-edit | [batch.md](batch.md) |
+| Design System Setup | [brand-studio.md](brand-studio.md) |
 | Brand architectures | [brand-architectures.md](brand-architectures.md) |
+| Colourways | [colourways.md](colourways.md) |
 | 3D Studio | [3d-studio.md](3d-studio.md) |
-| Profiles | [profile.md](profile.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
 | Sync your devices | [sync.md](sync.md) |
-| Import a design (Figma, Penpot, Illustrator, InDesign) | [design-import.md](design-import.md) |
+| Search | [search.md](search.md) |
+| Settings | [dashboard.md](dashboard.md) |
+| Profiles | [profile.md](profile.md) |
+| Ask Lolly | [ask.md](ask.md) |
+| Your favourites | [favourites.md](favourites.md) |
+| Import a design | [design-import.md](design-import.md) |
+| Layout in Design | [design-layout.md](design-layout.md) |
+| Darkroom | [darkroom.md](darkroom.md) |
 | Rebrand a deck | [rebrand.md](rebrand.md) |
-| Every format Lolly can open and make | [formats.md](formats.md) |
+| Formats | [formats.md](formats.md) |
 | Text in Design | [text-composition.md](text-composition.md) |
-| Wide Colour and HDR | [hdr-editing.md](hdr-editing.md) |
+| Wide colour and HDR editing | [hdr-editing.md](hdr-editing.md) |
 | The sequence editor | [sequence-editor.md](sequence-editor.md) |
 | Presenting with camera | [presenting.md](presenting.md) |
 | Live pages that take the clicker | [interactive-pages.md](interactive-pages.md) |
 | Agenda screens and programmes | [agenda.md](agenda.md) |
 | Animating: keyframes, depth and a camera | [animating.md](animating.md) |
+| Rondocode songs | [rondocode.md](rondocode.md) |
 | Working together | [collaborate.md](collaborate.md) |
-| Search | [search.md](search.md) |
-| Ask Lolly | [ask.md](ask.md) |
-| The Dashboard | [dashboard.md](dashboard.md) |
-| Utility views | [utilities.md](utilities.md) |
-| Your favourites | [favourites.md](favourites.md) |
-| Exporting & Formats | [exporting.md](exporting.md) |
+| Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
+| Utilities | [utilities.md](utilities.md) |
+| Export a file | [exporting.md](exporting.md) |
 | How Lolly compares | [positioning.md](positioning.md) |
 | Lolly compared, tool by tool | [compare.md](compare.md) |
 | Lolly and Canva | [compare-canva.md](compare-canva.md) |
@@ -68,7 +76,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Lolly and online file converters | [compare-converters.md](compare-converters.md) |
 | Lolly and Penpot | [compare-penpot.md](compare-penpot.md) |
 | Lolly and brand portals | [compare-brand-portals.md](compare-brand-portals.md) |
-| Browser Extension | [extension.md](extension.md) |
+| Browser extension | [extension.md](extension.md) |
 | Lolly for sales teams | [sales.md](sales.md) |
 | Lolly for the newsroom | [press.md](press.md) |
 | Lolly for marketing teams | [marketing.md](marketing.md) |
@@ -80,8 +88,10 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | --- | --- |
 | Automate | [builders.md](builders.md) |
 | Design tool contract | [design-tool-contract.md](design-tool-contract.md) |
+| AI Agents | [ai-agents.md](ai-agents.md) |
 | Learning integration | [learning-integration.md](learning-integration.md) |
 | Authored text composition | [../engine/text-composition.md](../engine/text-composition.md) |
+| Colour in the engine | [colour-engine.md](colour-engine.md) |
 | Lolly architecture | [overview.md](overview.md) |
 | Design Tokens | [design-tokens.md](design-tokens.md) |
 | Token workflows | [token-workflows.md](token-workflows.md) |
@@ -89,8 +99,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Constraints | [constraints.md](constraints.md) |
 | Determinism | [determinism.md](determinism.md) |
 | Reproducibility | [reproducibility.md](reproducibility.md) |
-| Authoring Tools | [authoring-tools.md](authoring-tools.md) |
-| Tool Skills | [tool-skills.md](tool-skills.md) |
+| Build a tool | [authoring-tools.md](authoring-tools.md) |
+| Tool skills | [tool-skills.md](tool-skills.md) |
 | Tool manifests | [tool-manifest.md](tool-manifest.md) |
 | Tool inputs | [tool-inputs.md](tool-inputs.md) |
 | Structured inputs and canvas controls | [tool-structured-inputs.md](tool-structured-inputs.md) |
@@ -100,33 +110,32 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Tool hooks and host capabilities | [tool-hooks.md](tool-hooks.md) |
 | Composition and brand overlays | [tool-composition.md](tool-composition.md) |
 | Publish and localize a tool | [tool-publishing.md](tool-publishing.md) |
-| Authoring Assets | [authoring-assets.md](authoring-assets.md) |
+| Authoring assets | [authoring-assets.md](authoring-assets.md) |
 | Host API | [host-api.md](host-api.md) |
 | URL Mode | [url-mode.md](url-mode.md) |
 | Inputs in URLs | [url-inputs.md](url-inputs.md) |
 | Reserved URL parameters | [url-parameters.md](url-parameters.md) |
-| Export and presentation URLs | [url-export.md](url-export.md) |
+| Links that do something on open | [url-export.md](url-export.md) |
 | App links and deep links | [url-app-links.md](url-app-links.md) |
 | lolly CLI: create and process files | [cli.md](cli.md) |
 | Render with the CLI | [cli-rendering.md](cli-rendering.md) |
 | CLI file and media utilities | [cli-files.md](cli-files.md) |
+| Rebuild a deck from the terminal | [cli-decks.md](cli-decks.md) |
 | Production checks | [production-checks.md](production-checks.md) |
 | CLI batch and automation | [cli-automation.md](cli-automation.md) |
-| CLI verification and configuration | [cli-reference.md](cli-reference.md) |
+| CLI reference | [cli-reference.md](cli-reference.md) |
 | Signing from the terminal | [cli-signing.md](cli-signing.md) |
 | TUI | [tui.md](tui.md) |
 | MCP Server | [mcp.md](mcp.md) |
-| AI Agents | [ai-agents.md](ai-agents.md) |
-| Contributing Setup | [contributing-setup.md](contributing-setup.md) |
+| Agents in an open document | [open-document-agents.md](open-document-agents.md) |
+| Get the source | [contributing-setup.md](contributing-setup.md) |
 | Build Guide | [build-guide.md](build-guide.md) |
 | Build the CLI and TUI | [build-terminal.md](build-terminal.md) |
 | Build the desktop app | [build-desktop.md](build-desktop.md) |
 | Build the mobile apps | [build-mobile.md](build-mobile.md) |
-| Build with Open Build Service | [build-obs.md](build-obs.md) |
-| Build the web container and Helm chart | [build-kubernetes.md](build-kubernetes.md) |
+| Linux packages | [build-obs.md](build-obs.md) |
 | Building for iOS | [ios-build.md](ios-build.md) |
-| Read verified catalog resources | [catalog-resource-reading.md](catalog-resource-reading.md) |
-| Data Transfer | [data-transfer.md](data-transfer.md) |
+| Data transfer | [data-transfer.md](data-transfer.md) |
 | Invite an agent to a document | [work/document-agents.md](work/document-agents.md) |
 | Lolly Work API | [work/api.md](work/api.md) |
 | lw CLI: administer an instance | [work/cli.md](work/cli.md) |
@@ -174,9 +183,10 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 
 | Guide | Source |
 | --- | --- |
+| Read verified catalog resources | [catalog-resource-reading.md](catalog-resource-reading.md) |
 | Configure connector origins | [connector-origins.md](connector-origins.md) |
 | Choose a deployment | [deployment.md](deployment.md) |
-| CI qualification | [ci-qualification.md](ci-qualification.md) |
+| Run on Kubernetes | [build-kubernetes.md](build-kubernetes.md) |
 | Delivery deployment | [deploy-delivery.md](deploy-delivery.md) |
 | Sovereign creative production | [sovereign-production.md](sovereign-production.md) |
 | Deploy | [operate.md](operate.md) |
@@ -221,15 +231,16 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Tenets | [tenets.md](tenets.md) |
 | Input, not impersonation | [input-not-impersonation.md](input-not-impersonation.md) |
 | Creative rights and credits | [creative-rights.md](creative-rights.md) |
-| Content Credentials Identity | [content-credentials-identity.md](content-credentials-identity.md) |
-| Content Credentials - Engineering | [content-credentials-engineering.md](content-credentials-engineering.md) |
+| Content Credentials | [content-credentials-identity.md](content-credentials-identity.md) |
+| What Verify checks | [what-verify-checks.md](what-verify-checks.md) |
+| AI evidence in Verify | [verify-ai-evidence.md](verify-ai-evidence.md) |
+| Content Credentials engineering | [content-credentials-engineering.md](content-credentials-engineering.md) |
 | Security & Verification | [security-verification.md](security-verification.md) |
 | Threat Model & Trust Boundaries | [threat-model.md](threat-model.md) |
 | How Lolly Reads Files | [reading-files.md](reading-files.md) |
 | Parser Inventory | [parser-inventory.md](parser-inventory.md) |
 | Server Surface | [server-surface.md](server-surface.md) |
 | Verify It Yourself | [verify-yourself.md](verify-yourself.md) |
-| AI evidence in Verify | [verify-ai-evidence.md](verify-ai-evidence.md) |
 | Privacy Policy | [privacy.md](privacy.md) |
 | Inclusive Design | [inclusive-design.md](inclusive-design.md) |
 | Our AI Stance | [ai-stance.md](ai-stance.md) |

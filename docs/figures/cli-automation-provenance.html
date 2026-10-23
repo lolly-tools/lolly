@@ -1,0 +1,56 @@
+<!--
+  Concept: what each provenance mark adds to a QR code file, as a share of the bare render's size.
+  A credential adds a small, fixed block; the Imprint grows a lossless PNG, more so at 2000 px.
+  Band Contract: static fragment scoped under .cap, reads the docs theme tokens with fallbacks, no
+  script, no motion, no links out. One series in one hue, a recessive grid, a value at each bar's
+  end and the full table on the page next to the figure. Labels move above the bars in a narrow container.
+  Sources: the measured table in docs/cli-automation.md (August 2026, Apple silicon, Node tier, five
+  runs per case): SVG defaults +16%, PNG 600 px credential only +14%, Imprint only +147%, both +161%,
+  PNG 2000 px both +267%. Bars are drawn on a 0 to 300% scale.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.cap{--cap-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--cap-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --cap-ground:hsl(var(--secondary,84.5 55% 92.2%));--cap-paper:hsl(var(--card,0 0% 100%));
+ --cap-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);--cap-grid:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .08);
+ --cap-head:#033633;--cap-bar:#008657;
+ --cap-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--cap-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--cap-ink);background:var(--cap-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .cap{--cap-head:#ffffff;--cap-bar:#50c369}
+.cap *{box-sizing:border-box}
+.cap ul{list-style:none;margin:0;padding:0}
+.cap li{list-style:none;margin:0;font-size:inherit}
+.cap p{margin:0}
+.cap .cap-card{background:var(--cap-paper);border-radius:18px;padding:16px;box-shadow:0 0 0 1px var(--cap-line);display:grid;gap:12px}
+.cap .cap-title{font:500 18px/1.2 var(--cap-display);color:var(--cap-head)}
+.cap .cap-title span{display:block;font:400 13px/1.3 var(--cap-mono);color:var(--cap-muted);margin-top:4px}
+.cap .cap-rows{display:grid;gap:10px}
+.cap .cap-row{display:grid;grid-template-columns:minmax(0,13em) minmax(0,1fr);gap:12px;align-items:center}
+.cap .cap-label{font-size:14px;line-height:1.25}
+.cap .cap-label small{display:block;font:400 12px/1.3 var(--cap-mono);color:var(--cap-muted)}
+.cap .cap-track{position:relative;height:22px;background:repeating-linear-gradient(to right,var(--cap-grid) 0 1px,transparent 1px 33.333%);background-size:100% 100%;border-inline-start:1px solid var(--cap-line)}
+.cap .cap-bar{position:absolute;inset-block:3px;inset-inline-start:0;width:var(--v);min-width:3px;background:var(--cap-bar);border-start-end-radius:4px;border-end-end-radius:4px}
+.cap .cap-val{position:absolute;top:50%;transform:translateY(-50%);inset-inline-start:calc(var(--v) + 8px);font:600 13px/1 var(--cap-mono);color:var(--cap-ink);white-space:nowrap}
+.cap .cap-axis{display:grid;grid-template-columns:minmax(0,13em) minmax(0,1fr);gap:12px}
+.cap .cap-ticks{display:flex;justify-content:space-between;font:400 11px/1 var(--cap-mono);color:var(--cap-muted)}
+@container (max-width:520px){
+ .cap .cap-row,.cap .cap-axis{grid-template-columns:minmax(0,1fr);gap:4px}
+ .cap .cap-axis>span{display:none}
+}
+</style>
+<div class="cap">
+<div class="cap-card">
+<p class="cap-title">Added size over the bare render<span>qr-code, measured August 2026</span></p>
+<ul class="cap-rows">
+<li class="cap-row"><p class="cap-label">SVG, defaults<small>credential only; no pixels to mark</small></p><div class="cap-track" style="--v:5.33%"><span class="cap-bar"></span><span class="cap-val">+16%</span></div></li>
+<li class="cap-row"><p class="cap-label">PNG 600 px<small>credential only</small></p><div class="cap-track" style="--v:4.67%"><span class="cap-bar"></span><span class="cap-val">+14%</span></div></li>
+<li class="cap-row"><p class="cap-label">PNG 600 px<small>Imprint only</small></p><div class="cap-track" style="--v:49%"><span class="cap-bar"></span><span class="cap-val">+147%</span></div></li>
+<li class="cap-row"><p class="cap-label">PNG 600 px, defaults<small>credential and Imprint</small></p><div class="cap-track" style="--v:53.67%"><span class="cap-bar"></span><span class="cap-val">+161%</span></div></li>
+<li class="cap-row"><p class="cap-label">PNG 2000 px, defaults<small>credential and Imprint</small></p><div class="cap-track" style="--v:89%"><span class="cap-bar"></span><span class="cap-val">+267%</span></div></li>
+</ul>
+<div class="cap-axis" aria-hidden="true"><span></span><p class="cap-ticks"><span>0%</span><span>+100%</span><span>+200%</span><span>+300%</span></p></div>
+</div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ/2p1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnZanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpiYTdjNGI1NS04N2NkLTQyOGQtOTBjNy04NmQ3ZTk5ODVkOTgAAAAEUWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NDY6NTBaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkS02ZsZW5ndGgZDbZkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIDpLeT5eojiUdfdX925gS6+lKSjliDlh+D+G2ahV0BXkY3BhZEgAAAAAAAAAAAAAANpqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACmY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x4GWNsaS1hdXRvbWF0aW9uLXByb3ZlbmFuY2VkZGF0ZXgYMjAyNi0xMC0yM1QwNTo0Njo1MC4zOTRaaGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAthqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACqWNib3KmaGRjOnRpdGxleBljbGktYXV0b21hdGlvbi1wcm92ZW5hbmNlamluc3RhbmNlSUR4LXVybjp1dWlkOjBmNjc0MzA0LWFmMzAtNDI2ZC05NzFlLWYwYjAyOGFiZmRkYXRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg7dDy7j1ssmz1FhloWGlJdpHkMK6whw2qE8pPIHyZOISiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggeOqo7gb2A5Ad0k5ycUzFFGBi9zydwOiXsWf9TEoJNgSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIAHHI5fE9W5S3bSesGodLTY5PZtniWuaHJAhD6TZbY76omN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYWp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMWNib3LShFkB4KIBJhghgVkB1zCCAdMwggF5oAMCAQICCUfHC3elMmkDKTAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDU0NTUwWhcNMzYxMDIwMDU0NjUwWjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQXa5GVhw7E/8IRJigvJmCdX6hiJMYQ6q1DlTR0/TmdUn6haqSzLEy9g7DKiFDNm7TSlb7IWEPeZNMow88jyrMVo3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQULYkgn0KfX77YFG7dcZDEW2DwdVUwHwYDVR0jBBgwFoAULYkgn0KfX77YFG7dcZDEW2DwdVUwCgYIKoZIzj0EAwIDSAAwRQIhAM4TyCF5fH+RTI0K2iAqbL/5ZXvKEm32gMcn8IPh1rNgAiBGuwNgb4hEq2nLQ/AsSwGYFHDz9o3GnV7L/1PvH848k6D2WEDkdha74NMi0eYfOjWUbIk8iY1e75krGlu+Vu0x1RO7kTcPvtZsZxG0ftBJgvbGRo9IBMYebwq6WLvs0I1XAX2G -----END C2PA MANIFEST----- -->
