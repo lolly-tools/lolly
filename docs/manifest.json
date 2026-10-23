@@ -429,15 +429,39 @@
     },
     {
       "slug": "design-import",
-      "title": "Import a design (Figma, Penpot, Illustrator, InDesign)",
+      "title": "Import a design",
       "src": "design-import.md",
-      "description": "Bring a finished design out of Figma, Penpot, Illustrator or InDesign and into Lolly as an editable, re-renderable tool rather than a flat picture.",
+      "description": "Open a Figma, Penpot, Illustrator, InDesign, Photoshop or SVG file in Design as editable layers, on your device, on your design system.",
       "section": "create",
       "path": "create/design-import",
       "icon": "upload",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "renderer": "renderDesignImportPage",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "design-layout",
+      "title": "Layout in Design",
+      "src": "design-layout.md",
+      "description": "Flex and grid layouts, groups, pages and precise number fields in Design.",
+      "section": "create",
+      "path": "create/design-layout",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "darkroom",
+      "title": "Darkroom",
+      "src": "darkroom.md",
+      "description": "Grade photos and video with film looks, LUTs, Adobe presets and your design system colours, then reuse the look.",
+      "section": "create",
+      "path": "create/darkroom",
+      "icon": "photos",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
     {
@@ -454,9 +478,9 @@
     },
     {
       "slug": "formats",
-      "title": "Every format Lolly can open and make",
+      "title": "Formats",
       "src": "formats.md",
-      "description": "Every file format Lolly reads, every format it writes, and the ones it does both ways - grouped by what each one is, with a plain-language card behind every chip.",
+      "description": "Every file format Lolly reads, every format it writes and the ones it does both ways, with a plain-language card behind every chip and what happens when a file comes in.",
       "section": "create",
       "path": "create/formats",
       "icon": "convert",
@@ -490,8 +514,20 @@
       "group": "Architecture and contracts"
     },
     {
+      "slug": "colour-engine",
+      "title": "Colour in the engine",
+      "src": "colour-engine.md",
+      "description": "How Lolly reads every CSS colour, does its maths in OKLab and writes sRGB, CMYK or Rec.2100 PQ.",
+      "section": "build",
+      "path": "build/colour-engine",
+      "icon": "palette",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
       "slug": "hdr-editing",
-      "title": "Wide Colour and HDR",
+      "title": "Wide colour and HDR editing",
       "src": "hdr-editing.md",
       "description": "Keep original image and video precision, use authored P3 brand swatches, and choose HDR or SDR output.",
       "section": "create",
@@ -510,7 +546,8 @@
       "icon": "clock",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Motion and presenting"
+      "group": "Motion and presenting",
+      "description": "Cut a video in Design's timeline: split, trim, cross-fade, mix sound, mark a range, edit Lottie animations and hand off to Premiere."
     },
     {
       "slug": "presenting",
@@ -556,6 +593,18 @@
       "section": "create",
       "path": "create/animating",
       "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Motion and presenting"
+    },
+    {
+      "slug": "rondocode",
+      "title": "Rondocode songs",
+      "src": "rondocode.md",
+      "description": "Play music written as code under a video, write and export a song, and see what its Content Credentials record.",
+      "section": "create",
+      "path": "create/rondocode",
+      "icon": "clock",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting"
@@ -630,14 +679,15 @@
     },
     {
       "slug": "exporting",
-      "title": "Exporting & Formats",
+      "title": "Export a file",
       "src": "exporting.md",
       "section": "create",
       "path": "create/exporting",
       "icon": "download",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Collaborate and export"
+      "group": "Collaborate and export",
+      "description": "Pick the right format for a screen, a printer or another app, set its size and print marks, export many files at once, and see what travels with each file."
     },
     {
       "slug": "positioning",

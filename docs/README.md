@@ -42,23 +42,26 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Profiles | [profile.md](profile.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
 | Sync your devices | [sync.md](sync.md) |
-| Import a design (Figma, Penpot, Illustrator, InDesign) | [design-import.md](design-import.md) |
+| Import a design | [design-import.md](design-import.md) |
+| Layout in Design | [design-layout.md](design-layout.md) |
+| Darkroom | [darkroom.md](darkroom.md) |
 | Rebrand a deck | [rebrand.md](rebrand.md) |
-| Every format Lolly can open and make | [formats.md](formats.md) |
+| Formats | [formats.md](formats.md) |
 | Text in Design | [text-composition.md](text-composition.md) |
-| Wide Colour and HDR | [hdr-editing.md](hdr-editing.md) |
+| Wide colour and HDR editing | [hdr-editing.md](hdr-editing.md) |
 | The sequence editor | [sequence-editor.md](sequence-editor.md) |
 | Presenting with camera | [presenting.md](presenting.md) |
 | Live pages that take the clicker | [interactive-pages.md](interactive-pages.md) |
 | Agenda screens and programmes | [agenda.md](agenda.md) |
 | Animating: keyframes, depth and a camera | [animating.md](animating.md) |
+| Rondocode songs | [rondocode.md](rondocode.md) |
 | Working together | [collaborate.md](collaborate.md) |
 | Search | [search.md](search.md) |
 | Ask Lolly | [ask.md](ask.md) |
 | The Dashboard | [dashboard.md](dashboard.md) |
 | Utility views | [utilities.md](utilities.md) |
 | Your favourites | [favourites.md](favourites.md) |
-| Exporting & Formats | [exporting.md](exporting.md) |
+| Export a file | [exporting.md](exporting.md) |
 | How Lolly compares | [positioning.md](positioning.md) |
 | Lolly compared, tool by tool | [compare.md](compare.md) |
 | Lolly and Canva | [compare-canva.md](compare-canva.md) |
@@ -82,6 +85,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Design tool contract | [design-tool-contract.md](design-tool-contract.md) |
 | Learning integration | [learning-integration.md](learning-integration.md) |
 | Authored text composition | [../engine/text-composition.md](../engine/text-composition.md) |
+| Colour in the engine | [colour-engine.md](colour-engine.md) |
 | Lolly architecture | [overview.md](overview.md) |
 | Design Tokens | [design-tokens.md](design-tokens.md) |
 | Token workflows | [token-workflows.md](token-workflows.md) |
