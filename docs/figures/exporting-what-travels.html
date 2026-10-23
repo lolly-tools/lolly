@@ -1,0 +1,68 @@
+<!--
+  Concept: what travels with an exported file, in three layers. Signed with the file, Content Credentials
+  and the source credits inside them. Beside the pixels, provenance metadata, the design-system record and
+  the licence. In the pixels, the Lolly Imprint, the Durable credential and the experimental watermark.
+  Each item shows its default and the link parameter that controls each one.
+  Contract: static fragment scoped under .ewt, reads the docs theme tokens with fallbacks, no script, no
+  motion, no network.
+  Sources: docs/exporting.md "What travels with your file"; defaults from the export panel cards
+  (views/tool-actions/markup.ts) and engine/src/provenance-defaults.ts; parameters from RESERVED in
+  engine/src/url-mode.ts.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ewt{--ewt-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ewt-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ewt-ground:hsl(var(--secondary,84.5 55% 92.2%));--ewt-paper:hsl(var(--card,0 0% 100%));
+ --ewt-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ewt-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);
+ --ewt-on:#0b6b45;--ewt-off:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ewt-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--ewt-ink);background:var(--ewt-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .ewt{--ewt-on:#7ddc97}
+.ewt *{box-sizing:border-box}
+.ewt ul{list-style:none;margin:0;padding:0}
+.ewt li{list-style:none;margin:0;font-size:inherit}
+.ewt p{margin:0}
+.ewt .ewt-file{display:flex;flex-direction:column;gap:10px}
+.ewt .ewt-layer{display:grid;grid-template-columns:minmax(0,13em) minmax(0,1fr);gap:12px;background:var(--ewt-paper);border-radius:16px;box-shadow:0 0 0 1px var(--ewt-line);padding:14px}
+.ewt .ewt-layer.ewt-pixels{background:color-mix(in oklab,var(--ewt-accent) 9%,var(--ewt-paper))}
+.ewt .ewt-name{font-weight:600}
+.ewt .ewt-note{font-size:.82em;color:var(--ewt-muted);margin-top:3px}
+.ewt .ewt-items{display:flex;flex-direction:column;gap:7px}
+.ewt .ewt-item{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.ewt .ewt-what{font-weight:500;min-width:11em}
+.ewt .ewt-state{font-size:.78em;font-weight:600;border-radius:999px;padding:1px 8px;box-shadow:0 0 0 1px currentColor}
+.ewt .ewt-state.ewt-is-on{color:var(--ewt-on)}
+.ewt .ewt-state.ewt-is-off{color:var(--ewt-off)}
+.ewt code{font-family:var(--ewt-mono);font-size:.8em;color:var(--ewt-muted)}
+@container (max-width:520px){.ewt .ewt-layer{grid-template-columns:minmax(0,1fr)}.ewt .ewt-what{min-width:0}}
+</style>
+<div class="ewt" role="group" aria-label="What travels with an exported file">
+  <div class="ewt-file">
+    <div class="ewt-layer">
+      <div><p class="ewt-name">Signed with the file</p><p class="ewt-note">Tamper-evident. Lost when the file is re-saved or stripped.</p></div>
+      <ul class="ewt-items">
+        <li class="ewt-item"><span class="ewt-what">Content Credentials</span><span class="ewt-state ewt-is-on">On</span><code>c2pa=off</code></li>
+        <li class="ewt-item"><span class="ewt-what">Source credits</span><span class="ewt-state ewt-is-on">With the credential</span></li>
+      </ul>
+    </div>
+    <div class="ewt-layer">
+      <div><p class="ewt-name">Beside the pixels</p><p class="ewt-note">Written into the file's metadata fields. Lost when the file is re-saved or stripped.</p></div>
+      <ul class="ewt-items">
+        <li class="ewt-item"><span class="ewt-what">Provenance metadata</span><span class="ewt-state ewt-is-on">Where the format has fields</span></li>
+        <li class="ewt-item"><span class="ewt-what">Design-system record</span><span class="ewt-state ewt-is-on">On</span><code>_madewith=0</code></li>
+        <li class="ewt-item"><span class="ewt-what">Licence</span><span class="ewt-state ewt-is-off">All rights reserved</span><code>licence=</code></li>
+      </ul>
+    </div>
+    <div class="ewt-layer ewt-pixels">
+      <div><p class="ewt-name">In the pixels</p><p class="ewt-note">Raster formats only. Built to outlast recompression; a hint, not proof.</p></div>
+      <ul class="ewt-items">
+        <li class="ewt-item"><span class="ewt-what">Lolly Imprint</span><span class="ewt-state ewt-is-on">On</span><code>imprint=0</code></li>
+        <li class="ewt-item"><span class="ewt-what">Durable credential</span><span class="ewt-state ewt-is-off">Off</span><code>durable=1</code></li>
+        <li class="ewt-item"><span class="ewt-what">Visible watermark</span><span class="ewt-state ewt-is-off">Experimental tools only</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ+Gp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnSanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpkMWNhOTgxNS04MmIyLTQwNTctOTBlNS00ZDhhOGFmZmFkYTYAAAAETWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTE6MTdaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkTC2ZsZW5ndGgZDa5kbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYICp3XXxlbUj46bc8d8Lk2/KT9Lq8Sza4nCnnHIQpUTjiY3BhZEgAAAAAAAAAAAAAANZqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACiY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x2ZXhwb3J0aW5nLXdoYXQtdHJhdmVsc2RkYXRleBgyMDI2LTEwLTIzVDA1OjUxOjE3Ljc1NFpoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAAC1Gp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKlY2JvcqZoZGM6dGl0bGV2ZXhwb3J0aW5nLXdoYXQtdHJhdmVsc2ppbnN0YW5jZUlEeC11cm46dXVpZDpiMDRlZGRjMi1jNTk3LTQxMGEtYmNiOC1lN2FjMjQzZjU1YzZ0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIBeyq+dZNTrw73PfegPDFmCJqMjD1YETPxua1YHpyxnEomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYILbMsVF2++PH9wUjLajncj34GYd+uGrGTCkx6ZqbSPnZomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCBXvQeUjgGh2S5LVcF/bRuLxtTdgpbjXn7Csn9w/Sz/SaJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmJqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjJjYm9y0oRZAeGiASYYIYFZAdgwggHUMIIBeaADAgECAgl0eml20xsRuFYwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA1NTAxN1oXDTM2MTAyMDA1NTExN1owNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEscPIRFQ+2wGVlo0YiTNYApHulKtt/v1qq1BYb4QALW927J8ihxVyrfagBTTz8xtz6/AVV4tni9HFvWsAVRWrzqNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFBHWijqVCySKKDaC+tnbHpc4BEXjMB8GA1UdIwQYMBaAFBHWijqVCySKKDaC+tnbHpc4BEXjMAoGCCqGSM49BAMCA0kAMEYCIQC8iQYvByOGVwY6lMNjEjcplrWIjEK32NxkV7kgwe+zbgIhAKYcoJFEdliqhdR8hOPabZrhqfCi/P1SBGldS+Q/BdY7oPZYQFHslW9M/epq5MF26ficgaMbmXbIkROSd1/NDpRQqD9m8bjZbLcmxkxDNWTLiJMjW+RevhOaOc+kRXgskFM4UPY= -----END C2PA MANIFEST----- -->
