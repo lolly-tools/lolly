@@ -160,8 +160,12 @@ export interface WorkCollabOptions {
   setTimer?: (fn: () => void, ms: number) => unknown;
   clearTimer?: (handle: unknown) => void;
   store?: CollabOutboxStore;
-  /** Soft operation cap. Preserve the gesture that crosses it and pause further edits. */
+  /** Soft cap on local transactions held, where one transaction is every op that
+   *  shares one origin stamp (see `transactionOf`). Preserve the gesture that
+   *  crosses it and pause further edits. */
   outboxLimit?: number;
+  /** Soft cap on ops held, whatever their transactions. Same behaviour. */
+  outboxOpLimit?: number;
   /** Reconnect automatically after a non-terminal drop. Default true. */
   reconnect?: boolean;
   /**
@@ -289,7 +293,16 @@ export type WorkCollabFactory = (sessionId: string, opts?: WorkCollabOptions) =>
 
 // ── Tunables ──────────────────────────────────────────────────────────────────
 
+/** Local transactions the outbox holds before it pauses further edits. Counted in
+ *  transactions, not ops: one insert into a large collection restates every row's
+ *  order key under one origin stamp, and that burst must not cost its author the
+ *  seat. A run of single-op edits meets this cap at the same count as before. */
 const OUTBOX_LIMIT = 500;
+/** Ops the outbox holds before it pauses further edits, however few transactions
+ *  carry them: the bound a run of large transactions meets. Five whole-collection
+ *  restatements at the gateway's 2,000-row collection cap, or about 50 s of
+ *  sending at MAX_OPS_PER_FRAME per paced window. */
+const OUTBOX_OP_LIMIT = 10_000;
 const RECONNECT_MIN_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
 /** Fraction of each step the jitter may subtract. Downward, so the schedule stays
@@ -345,6 +358,17 @@ export const CROSS_ORIGIN_REASON = 'cross-origin-instance';
  * clock zero and do not replace the document's original register origins.
  */
 const SEED_CLIENT = 'lw:seed';
+
+/**
+ * The local transaction an op belongs to, as the outbox counts them. A gesture is
+ * stamped with one origin: `onLocalChange` mints one for every op it returns, and
+ * the shell's own order rewrite (lib/collab-plumbing.ts) shares one across the ops
+ * it hands over one at a time. The clock is an integer and comes first, so the key
+ * cannot be read two ways.
+ */
+function transactionOf(op: CanvasOp): string {
+  return `${op.origin.clock}:${op.origin.client}`;
+}
 
 /**
  * Backoff for attempt `n` (1-based): 1s, 2s, 4s, … capped at 30s, with up to 25%
@@ -417,6 +441,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
   const clientId = opts.clientId ?? `${getCollabClientId()}:${globalThis.crypto.randomUUID()}`;
   const store = opts.store ?? defaultOutboxStore();
   const limit = Math.max(1, opts.outboxLimit ?? OUTBOX_LIMIT);
+  const opLimit = Math.max(1, opts.outboxOpLimit ?? OUTBOX_OP_LIMIT);
   const random = opts.random ?? Math.random;
   const setTimer = opts.setTimer ?? ((fn, ms) => setTimeout(fn, ms));
   const clearTimer = opts.clearTimer ?? ((h) => clearTimeout(h as ReturnType<typeof setTimeout>));
@@ -450,6 +475,9 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
   let dead = false;
 
   const outbox: Queued[] = [];
+  /** Entries held per local transaction (`transactionOf`). Its size is what
+   *  `limit` caps; kept as entries arrive and retire, so no edit rescans the outbox. */
+  const transactions = new Map<string, number>();
   const listeners = new Set<(event: WorkCollabEvent) => void>();
   const reviewListeners = new Set<(event: WorkCollabReviewEvent) => void>();
 
@@ -554,9 +582,32 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     }).catch(() => { localSaveFailed = true; emitState(); emit({ kind: 'error', code: 'local-save-failed', message: 'Pending edits could not be saved on this device. Keep the session open or save a copy.' }); });
   }
 
-  /** Preserve queued work at capacity and stop admitting further local writes. */
+  /** Queue one entry and count it against its transaction. */
+  function hold(entry: Queued): void {
+    outbox.push(entry);
+    const key = transactionOf(entry.op);
+    transactions.set(key, (transactions.get(key) ?? 0) + 1);
+  }
+
+  /** Drop the entries a receipt named. Returns whether any were held. */
+  function retire(ids: ReadonlySet<string>): boolean {
+    const keep: Queued[] = [];
+    for (const entry of outbox) {
+      if (!ids.has(entry.op.deliveryId!)) { keep.push(entry); continue; }
+      const key = transactionOf(entry.op);
+      const left = (transactions.get(key) ?? 1) - 1;
+      if (left > 0) transactions.set(key, left); else transactions.delete(key);
+    }
+    if (keep.length === outbox.length) return false;
+    outbox.splice(0, outbox.length, ...keep);
+    return true;
+  }
+
+  /** Preserve queued work at capacity and stop admitting further local writes.
+   *  Capacity is counted in transactions, so one large gesture never trips it on
+   *  its own, and in ops, so a run of large gestures still does. */
   function trim(): void {
-    if (outbox.length <= limit) return;
+    if (transactions.size <= limit && outbox.length <= opLimit) return;
     role = 'observer'; reason = 'outbox-full';
     emit({ kind: 'warning', code: 'outbox-overflow', dropped: 0 });
     emitState();
@@ -569,7 +620,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     if (role === 'observer' || dead || !ops.length) return;
     for (const op of ops) {
       const claim = claims.list().find(c => c.owner === self?.id && claimCoversOp(c.target, op));
-      outbox.push({ op: { ...op, deliveryId: (op as Queued['op']).deliveryId ?? globalThis.crypto.randomUUID(),
+      hold({ op: { ...op, deliveryId: (op as Queued['op']).deliveryId ?? globalThis.crypto.randomUUID(),
         ...(claim ? { claimId: claim.id } : {}) }, sent: false, saved: false });
     }
     trim();
@@ -826,10 +877,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
           return;
         }
         inflight.delete(frame.batchId);
-        const keep = outbox.filter(e => !ids.has(e.op.deliveryId!));
-        if (keep.length !== outbox.length) {
-          outbox.splice(0, outbox.length, ...keep); persist(); emitState();
-        }
+        if (retire(ids)) { persist(); emitState(); }
         if (frame.rejectedIds.length) {
           emit({ kind: 'error', code: 'edits-rejected', message: 'Some edits were rejected by room policy.' });
         }
@@ -1203,7 +1251,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
           // `sent: false` - a stored entry was written by a previous run whose
           // delivery nothing here witnessed, so it counts as pending and survives
           // its first replay (the header's rule (b)).
-          outbox.push({ op: { ...op, deliveryId: (op as Queued['op']).deliveryId ?? globalThis.crypto.randomUUID() }, sent: false, saved: false });
+          hold({ op: { ...op, deliveryId: (op as Queued['op']).deliveryId ?? globalThis.crypto.randomUUID() }, sent: false, saved: false });
           observe(op.origin.clock);
           // Applied so `state()` is honest before the first join; the join-ack
           // rebuild re-applies them over the snapshot anyway.
