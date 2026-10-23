@@ -19,7 +19,21 @@
  *   node scripts/webgpu-release-gate.ts --scope web  # web artifacts only
  *   node scripts/webgpu-release-gate.ts --scope macos  # one packaged app: macos, ios, android, linux or windows
  *
- * and so do the release tools that publish: scripts/build-release-web.ts (signed web,
+ * A web artifact runs the web scope, then the checklist and the signed build:
+ *
+ *   node scripts/webgpu-release-gate.ts --scope web
+ *   pnpm run check:release-checklist
+ *   pnpm run build:web:release
+ *
+ * The signed build still needs the matching catalog signing key and public pin, and
+ * qualification alone neither publishes a build nor deploys an instance. A package
+ * build states its platform: Tauri reports it when it runs the frontend build, and
+ * each package workflow passes it to the signed frontend workflow. A packaged build
+ * that states no platform keeps the full hold. The YunoHost release uses the web scope.
+ * (This usage moved here from docs/supported-environments.md, which keeps only the
+ * table and what a reader can try.)
+ *
+ * The release tools that publish run it too: scripts/build-release-web.ts (signed web,
  * desktop and mobile frontends, including the web container), scripts/yunohost-release.ts
  * (the YunoHost tarball), shells/tauri-desktop/release/build-latest-json.ts --out (the desktop updater
  * manifests), scripts/ship.ts (every ship driver publishes the web shell) and the package

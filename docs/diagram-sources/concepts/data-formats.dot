@@ -1,0 +1,11 @@
+digraph data_formats {
+  rankdir=TB
+  node [shape=box]
+  model [label="Input model\nvalues and extras"]
+  html [label="template.html\nthe picture"]
+  text [label="template.ics, .csv\ntext formats"]
+  json [label="JSON export\nno template"]
+  model -> html
+  model -> text
+  model -> json
+}
