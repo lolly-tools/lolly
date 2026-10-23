@@ -30,7 +30,7 @@ application menu and a copy that keeps working with the network unplugged.
 
 **Apple silicon (M1 and later) and Intel, `.dmg`.**
 
-The current downloads are version 1.1.1 for Apple silicon and 1.1.0 for Intel. Both need macOS 13.5 or later, and so do their bundled terminal tools.
+The current downloads are version %download{macos} for Apple silicon and %download{macos-intel} for Intel. Both need macOS 13.5 or later, and so do their bundled terminal tools.
 
 Download the disk image, open it, and drag Lolly to Applications. Nothing else
 is needed - the app carries its own engine and tool catalogue.

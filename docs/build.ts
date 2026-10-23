@@ -8,6 +8,7 @@ import { movedSectionLinks } from './section-moves.ts';
 import { readRegistry } from './navigation.ts';
 import { syncDocsNavigation } from '../scripts/sync-docs-navigation.ts';
 import { publicWorkMarkdown, workApplicability } from './work-pages.ts';
+import { expandVersionTokens, readVersionFacts } from './version-tokens.ts';
 import { createIconSprite } from './icon-sprite.ts';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, cpSync, existsSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
@@ -148,6 +149,9 @@ const TOOL_COUNT = JSON.parse(
 
 type Pathway = 'quickstart' | 'builders' | 'creators' | 'managers' | 'operators' | 'trust';
 const DOCS_REGISTRY = readRegistry();
+// The versions %work{…} and %download{…} expand to (docs/version-tokens.ts): read once,
+// so a bad value in the manifest or downloads.json stops the build before any page.
+const VERSION_FACTS = readVersionFacts();
 syncDocsNavigation(undefined, true);
 
 interface Page {
@@ -1357,7 +1361,8 @@ function mdToHtml(md: string): string {
 // uses. Everything before the first `##` (title + maintainer notes) is ignored.
 function loadFaqs(lang: Lang = 'en') {
   const localized = lang !== 'en' ? resolve(__dirname, 'i18n', lang, 'faq.md') : null;
-  const md = readFileSync(localized && existsSync(localized) ? localized : resolve(__dirname, 'faq.md'), 'utf8');
+  const faqPath = localized && existsSync(localized) ? localized : resolve(__dirname, 'faq.md');
+  const md = expandVersionTokens(readFileSync(faqPath, 'utf8'), VERSION_FACTS, relative(repoRoot, faqPath));
   const faqs: { q: string; a: string }[] = [];
   let cur: { q: string; a: string[] } | null = null;
   for (const line of md.split('\n')) {
@@ -1680,11 +1685,16 @@ function englishAudienceH2s(): string[] {
  * The link fields (`file`, `slug`, `hash`) are read from the ENGLISH
  * docs/site/downloads.json by tile `id`, never from a translated copy, so a
  * translation can change what a tile says but never where it points.
+ *
+ * `version` is the one place a download's version is written: the tile's
+ * accessible name and `data-version` read it here, and install.md reads the
+ * same field through `%download{<id>}` (docs/version-tokens.ts). It joins the
+ * name ("Apple silicon 1.1.1") so the translated label strings stay as they are.
  */
 type DownloadTile = {
   id: string; logo?: string; icon?: string;
   os: string; name: string; ext: string; note: string;
-  file?: string; slug?: string; hash?: string;
+  file?: string; slug?: string; hash?: string; version?: string;
 };
 type DownloadsContent = {
   label: string; lead: string;
@@ -1704,11 +1714,12 @@ function downloadsRail(lang: Lang): string {
     const link = links.get(it.id) ?? it;
     if (!link.file && !link.hash) throw new Error(`downloads.json tile "${it.id}" has neither a file nor an install-page anchor`);
     const href = link.file ? `${RELEASE}/${link.file}` : `${localeHref(lang, link.slug ?? 'install')}#${link.hash}`;
+    const named = link.version ? `${it.name} ${link.version}` : it.name;
     const label = link.file
-      ? t('Install for {os}: {name}, {ext} file').replace('{os}', it.os).replace('{name}', it.name).replace('{ext}', it.ext)
-      : t('{os}: {name}. Opens the install guide').replace('{os}', it.os).replace('{name}', it.name);
+      ? t('Install for {os}: {name}, {ext} file').replace('{os}', it.os).replace('{name}', named).replace('{ext}', it.ext)
+      : t('{os}: {name}. Opens the install guide').replace('{os}', it.os).replace('{name}', named);
     const mark = it.logo ? docLogo(it.logo) : docIcon(it.icon ?? 'download');
-    return `<a class="dl-tile" data-dl="${esc(it.logo ?? it.id)}" href="${esc(href)}"${link.file ? ' download' : ''} aria-label="${esc(label)}">
+    return `<a class="dl-tile" data-dl="${esc(it.logo ?? it.id)}"${link.version ? ` data-version="${esc(link.version)}"` : ''} href="${esc(href)}"${link.file ? ' download' : ''} aria-label="${esc(label)}">
           <span class="dl-top" aria-hidden="true">
             <span class="dl-mark">${mark}</span>
             <span class="dl-go">${docIcon(link.file ? 'download' : 'chrome-arrow')}</span>
@@ -6636,6 +6647,9 @@ async function build() {
         if (lang === 'en') console.warn(`⚠  Skipping ${page.slug}: ${srcPath} not found`);
         continue;
       }
+      // Outside the try above: an unknown version token must fail the build, not read
+      // as a missing page.
+      md = expandVersionTokens(md, VERSION_FACTS, relative(repoRoot, srcPath));
 
       let content = page.isLanding ? buildLandingContent(md, lang)
         : page.render ? page.render(md, lang)

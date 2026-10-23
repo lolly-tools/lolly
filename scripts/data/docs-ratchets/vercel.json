@@ -1,0 +1,20 @@
+{
+  "$comment": "How many times each English docs page names Vercel, recorded 2026-10-23 with the docs PRs open then. Lolly no longer runs on Vercel. tests/docs-platform-neutral.test.ts fails when a page goes above its count here. Describe hosting neutrally; do not raise a count. Regenerate with node scripts/docs-ratchets.ts --write.",
+  "pages": {
+    "docs/connector-origins.md": 4,
+    "docs/deployment.md": 5,
+    "docs/mcp.md": 5,
+    "docs/privacy.md": 3,
+    "docs/sovereign-production.md": 2,
+    "docs/threat-model.md": 5,
+    "docs/url-mode.md": 1,
+    "docs/verify-yourself.md": 1,
+    "docs/work/api.md": 1,
+    "docs/work/configuration.md": 2,
+    "docs/work/deployment.md": 18,
+    "docs/work/operations.md": 1,
+    "docs/work/release-1-1-2.md": 1,
+    "docs/work/resumable-uploads.md": 2,
+    "docs/work/status.md": 3
+  }
+}

@@ -28,6 +28,9 @@ const BUILT = join(REPO, 'shells/web/public/info');
 
 /** The kinds inline() in docs/build.ts knows how to render. */
 const KINDS = ['entity', 'sig', 'act', 'file', 'detail'];
+/** Not pills: version tokens, expanded before rendering (docs/version-tokens.ts,
+ *  tests/docs-version-tokens.test.ts). */
+const VERSION_TOKEN_KINDS = ['work', 'download'];
 
 const mdFiles = readdirSync(DOCS).filter((f) => f.endsWith('.md'));
 
@@ -37,7 +40,7 @@ test('every provenance marker in docs/*.md uses a supported kind', () => {
     const src = readFileSync(join(DOCS, f), 'utf-8');
     // Any `%word{` that isn't a known kind - the shape an author typo takes.
     for (const m of src.matchAll(/%([a-zA-Z][a-zA-Z0-9_-]*)\{/g)) {
-      if (!KINDS.includes(m[1]!)) bad.push(`${f}: %${m[1]}{`);
+      if (!KINDS.includes(m[1]!) && !VERSION_TOKEN_KINDS.includes(m[1]!)) bad.push(`${f}: %${m[1]}{`);
     }
   }
   assert.deepEqual(bad, [], 'unknown pill kind - it would render as literal text');
