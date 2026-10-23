@@ -274,83 +274,73 @@
     },
     "reserved-parameters": {
       "slug": "url-parameters",
-      "anchor": "reserved-parameters",
+      "anchor": "what-happens-on-open",
       "label": "Reserved parameters"
     },
-    "packed-links-z": {
-      "slug": "url-parameters",
-      "anchor": "packed-links-z",
-      "label": "Packed links (z)"
-    },
-    "encrypted-links-zx": {
-      "slug": "url-parameters",
-      "anchor": "encrypted-links-zx",
-      "label": "Encrypted links (zx)"
-    },
     "physical-units-unit-dpi": {
-      "slug": "url-parameters",
+      "slug": "url-export",
       "anchor": "physical-units-unit-dpi",
       "label": "Physical units (unit= + dpi=)"
     },
     "print-marks-bleed-bleed-marks": {
-      "slug": "url-parameters",
-      "anchor": "print-marks-bleed-bleed-marks",
-      "label": "Print marks & bleed (bleed= + marks=)"
+      "slug": "url-export",
+      "anchor": "print-ready-output",
+      "label": "Print-ready output"
     },
     "contact-sheets-cuts": {
-      "slug": "url-parameters",
-      "anchor": "contact-sheets-cuts",
-      "label": "Contact sheets (cuts=)"
+      "slug": "url-export",
+      "anchor": "contact-sheets",
+      "label": "Contact sheets"
     },
     "format-with-format": {
       "slug": "url-export",
-      "anchor": "format-with-format",
-      "label": "Format with format="
+      "anchor": "download-a-file",
+      "label": "Download a file"
     },
     "download-with-export": {
       "slug": "url-export",
-      "anchor": "download-with-export",
-      "label": "Download with export"
+      "anchor": "download-a-file",
+      "label": "Download a file"
     },
     "download-filename-with-filename": {
       "slug": "url-export",
-      "anchor": "download-filename-with-filename",
-      "label": "Download filename with filename="
+      "anchor": "download-a-file",
+      "label": "Download a file"
     },
     "copy-to-clipboard-with-copy": {
       "slug": "url-export",
-      "anchor": "copy-to-clipboard-with-copy",
-      "label": "Copy to clipboard with copy"
+      "anchor": "copy-to-the-clipboard",
+      "label": "Copy to the clipboard"
     },
     "canvas-dimensions-with-width-height": {
       "slug": "url-export",
-      "anchor": "canvas-dimensions-with-width-height",
-      "label": "Canvas dimensions with width= / height="
+      "anchor": "set-the-size",
+      "label": "Set the size"
     },
     "fullscreen-with-full": {
       "slug": "url-export",
-      "anchor": "fullscreen-with-full",
-      "label": "Fullscreen with full"
+      "anchor": "open-clean-embed-or-publish",
+      "label": "Open clean, embed or publish"
     },
     "land-on-the-export-panel-with-options": {
       "slug": "url-export",
-      "anchor": "land-on-the-export-panel-with-options",
-      "label": "Land on the export panel with options"
+      "anchor": "open-clean-embed-or-publish",
+      "label": "Open clean, embed or publish"
     },
     "transparent-background": {
       "slug": "url-export",
-      "anchor": "transparent-background",
-      "label": "Transparent background"
+      "anchor": "transparency-and-outlined-text",
+      "label": "Transparency and outlined text"
     },
     "loading-saved-state-with-slot": {
       "slug": "url-export",
-      "anchor": "loading-saved-state-with-slot",
-      "label": "Loading saved state with slot="
+      "anchor": "resume-a-saved-session",
+      "label": "Resume a saved session"
     },
     "app-links": {
       "slug": "url-app-links",
-      "anchor": "app-links",
-      "label": "App links"
+      "anchor": "app-views",
+      "label": "App views"
     },
     "the-lolly-scheme": {
       "slug": "url-app-links",
@@ -379,28 +369,28 @@
     },
     "batch-batch": {
       "slug": "url-app-links",
-      "anchor": "batch-batch",
-      "label": "Batch (#/batch)"
+      "anchor": "batch-and-multi-edit",
+      "label": "Batch and Multi-edit"
     },
     "multi-edit-multi": {
       "slug": "url-app-links",
-      "anchor": "multi-edit-multi",
-      "label": "Multi-edit (#/multi)"
+      "anchor": "batch-and-multi-edit",
+      "label": "Batch and Multi-edit"
     },
     "design-system-studio-start": {
       "slug": "url-app-links",
-      "anchor": "design-system-studio-start",
-      "label": "Design system studio (#/start)"
+      "anchor": "design-system-setup-start",
+      "label": "Design System Setup (#/start)"
     },
     "dashboard-d": {
       "slug": "url-app-links",
-      "anchor": "dashboard-d",
-      "label": "Dashboard (#/d)"
+      "anchor": "settings-settings",
+      "label": "Settings (#/settings)"
     },
     "profile-profile": {
       "slug": "url-app-links",
-      "anchor": "profile-profile",
-      "label": "Profile (#/profile)"
+      "anchor": "settings-settings",
+      "label": "Settings (#/settings)"
     },
     "the-remaining-views": {
       "slug": "url-app-links",
@@ -411,6 +401,46 @@
       "slug": "url-app-links",
       "anchor": "on-a-tool-route",
       "label": "On a tool route"
+    },
+    "url-structure": {
+      "slug": "url-mode",
+      "anchor": "read-a-link",
+      "label": "Read a link"
+    },
+    "clean-url-redirect": {
+      "slug": "url-mode",
+      "anchor": "read-a-link",
+      "label": "Read a link"
+    },
+    "combining-parameters": {
+      "slug": "url-mode",
+      "anchor": "read-a-link",
+      "label": "Read a link"
+    },
+    "cli-usage": {
+      "slug": "url-mode",
+      "anchor": "the-same-link-on-the-command-line",
+      "label": "The same link on the command line"
+    },
+    "shareable-link": {
+      "slug": "url-mode",
+      "anchor": "share-a-link",
+      "label": "Share a link"
+    },
+    "pre-filled-embed": {
+      "slug": "url-mode",
+      "anchor": "embed-a-tool-in-a-page",
+      "label": "Embed a tool in a page"
+    },
+    "automation-ci": {
+      "slug": "url-mode",
+      "anchor": "automate-in-a-build-step",
+      "label": "Automate in a build step"
+    },
+    "reviewing-personal-values-in-generated-links": {
+      "slug": "url-app-links",
+      "anchor": "what-a-link-carries",
+      "label": "What a link carries"
     }
   },
   "cli": {
@@ -700,6 +730,181 @@
       "slug": "build-kubernetes",
       "anchor": "tls-the-suse-curated-way-optional",
       "label": "TLS, the SUSE-curated way (optional)"
+    }
+  },
+  "url-parameters": {
+    "reserved-parameters": {
+      "slug": "url-parameters",
+      "anchor": "what-happens-on-open",
+      "label": "What happens on open"
+    },
+    "packed-links-z": {
+      "slug": "url-mode",
+      "anchor": "packed-links-z",
+      "label": "Packed links (z)"
+    },
+    "encrypted-links-zx": {
+      "slug": "url-mode",
+      "anchor": "encrypted-links-zx",
+      "label": "Encrypted links (zx)"
+    },
+    "physical-units-unit-dpi": {
+      "slug": "url-export",
+      "anchor": "physical-units-unit-dpi",
+      "label": "Physical units (unit= + dpi=)"
+    },
+    "print-marks-bleed-bleed-marks": {
+      "slug": "url-export",
+      "anchor": "print-ready-output",
+      "label": "Print-ready output"
+    },
+    "contact-sheets-cuts": {
+      "slug": "url-export",
+      "anchor": "contact-sheets",
+      "label": "Contact sheets"
+    }
+  },
+  "url-export": {
+    "format-with-format": {
+      "slug": "url-export",
+      "anchor": "download-a-file",
+      "label": "Download a file"
+    },
+    "download-with-export": {
+      "slug": "url-export",
+      "anchor": "download-a-file",
+      "label": "Download a file"
+    },
+    "download-filename-with-filename": {
+      "slug": "url-export",
+      "anchor": "download-a-file",
+      "label": "Download a file"
+    },
+    "copy-to-clipboard-with-copy": {
+      "slug": "url-export",
+      "anchor": "copy-to-the-clipboard",
+      "label": "Copy to the clipboard"
+    },
+    "canvas-dimensions-with-width-height": {
+      "slug": "url-export",
+      "anchor": "set-the-size",
+      "label": "Set the size"
+    },
+    "fullscreen-with-full": {
+      "slug": "url-export",
+      "anchor": "open-clean-embed-or-publish",
+      "label": "Open clean, embed or publish"
+    },
+    "land-on-the-export-panel-with-options": {
+      "slug": "url-export",
+      "anchor": "open-clean-embed-or-publish",
+      "label": "Open clean, embed or publish"
+    },
+    "transparent-background": {
+      "slug": "url-export",
+      "anchor": "transparency-and-outlined-text",
+      "label": "Transparency and outlined text"
+    },
+    "loading-saved-state-with-slot": {
+      "slug": "url-export",
+      "anchor": "resume-a-saved-session",
+      "label": "Resume a saved session"
+    }
+  },
+  "url-app-links": {
+    "app-links": {
+      "slug": "url-app-links",
+      "anchor": "app-views",
+      "label": "App views"
+    },
+    "batch-batch": {
+      "slug": "url-app-links",
+      "anchor": "batch-and-multi-edit",
+      "label": "Batch and Multi-edit"
+    },
+    "multi-edit-multi": {
+      "slug": "url-app-links",
+      "anchor": "batch-and-multi-edit",
+      "label": "Batch and Multi-edit"
+    },
+    "design-system-studio-start": {
+      "slug": "url-app-links",
+      "anchor": "design-system-setup-start",
+      "label": "Design System Setup (#/start)"
+    },
+    "dashboard-d": {
+      "slug": "url-app-links",
+      "anchor": "settings-settings",
+      "label": "Settings (#/settings)"
+    },
+    "profile-profile": {
+      "slug": "url-app-links",
+      "anchor": "settings-settings",
+      "label": "Settings (#/settings)"
+    }
+  },
+  "token-workflows": {
+    "colourways": {
+      "slug": "colourways",
+      "anchor": "colourways",
+      "label": "Colourways"
+    },
+    "what-a-theme-group-means": {
+      "slug": "design-tokens",
+      "anchor": "what-a-theme-group-means",
+      "label": "What a theme group means"
+    },
+    "design-system-context": {
+      "slug": "token-workflows",
+      "anchor": "in-design",
+      "label": "In Design"
+    },
+    "theme-choices": {
+      "slug": "token-workflows",
+      "anchor": "choose-themes-for-one-document",
+      "label": "Choose themes for one document"
+    },
+    "linked-values": {
+      "slug": "token-workflows",
+      "anchor": "link-a-field-to-a-token",
+      "label": "Link a field to a token"
+    },
+    "reviewing-changes": {
+      "slug": "token-workflows",
+      "anchor": "review-a-change",
+      "label": "Review a change"
+    },
+    "saved-work-and-tools-that-use-a-token": {
+      "slug": "token-workflows",
+      "anchor": "find-what-uses-a-token",
+      "label": "Find what uses a token"
+    },
+    "published-fonts": {
+      "slug": "token-workflows",
+      "anchor": "review-a-change",
+      "label": "Review a change"
+    }
+  },
+  "design-tokens": {
+    "penpot-interop": {
+      "slug": "design-tokens",
+      "anchor": "round-trip-with-penpot",
+      "label": "Round-trip with Penpot"
+    },
+    "take-your-tokens-to-penpot": {
+      "slug": "design-tokens",
+      "anchor": "round-trip-with-penpot",
+      "label": "Round-trip with Penpot"
+    },
+    "how-tools-consume-tokens": {
+      "slug": "design-tokens",
+      "anchor": "how-tools-use-tokens",
+      "label": "How tools use tokens"
+    },
+    "the-four-layers": {
+      "slug": "design-tokens",
+      "anchor": "how-the-token-engine-is-built",
+      "label": "How the token engine is built"
     }
   }
 }

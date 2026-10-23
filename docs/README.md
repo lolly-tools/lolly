@@ -38,6 +38,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Templates | [templates.md](templates.md) |
 | The Brand Studio | [brand-studio.md](brand-studio.md) |
 | Brand architectures | [brand-architectures.md](brand-architectures.md) |
+| Colourways | [colourways.md](colourways.md) |
 | 3D Studio | [3d-studio.md](3d-studio.md) |
 | Profiles | [profile.md](profile.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
@@ -105,7 +106,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | URL Mode | [url-mode.md](url-mode.md) |
 | Inputs in URLs | [url-inputs.md](url-inputs.md) |
 | Reserved URL parameters | [url-parameters.md](url-parameters.md) |
-| Export and presentation URLs | [url-export.md](url-export.md) |
+| Links that do something on open | [url-export.md](url-export.md) |
 | App links and deep links | [url-app-links.md](url-app-links.md) |
 | lolly CLI: create and process files | [cli.md](cli.md) |
 | Render with the CLI | [cli-rendering.md](cli-rendering.md) |
