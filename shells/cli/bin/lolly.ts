@@ -339,7 +339,7 @@ Export options:
                            ($LOLLY_SIGN_KEY/$LOLLY_SIGN_CERT are the same two paths;
                            $LOLLY_SIGN_KEY_PEM/$LOLLY_SIGN_CERT_PEM carry the PEM text
                            itself, for CI secret stores with no filesystem.)
-                           See /info/cli-signing.html
+                           See /info/build/cli-signing.html
   --durable=1              embed the durable Content Credential (neural TrustMark).
                            Off by default (a neural encode, and a model download)
   --password=<pw>          PDF open-password (visible in \`ps\`; see --password-stdin)

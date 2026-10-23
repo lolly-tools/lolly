@@ -132,7 +132,7 @@ export async function rebuildSession(artifactPath: string, lollyPath: string): P
       `--rebuild can only compare the byte-stable formats: ${REBUILDABLE_FORMATS.join(', ')}. ` +
       `"${basename(artifactPath)}" is ${format || 'unrecognised'}. Raster and PDF output is laid out and ` +
       'rasterised by a browser engine, so identical inputs do not give identical bytes across versions ' +
-      '(see /info/determinism.html). Nothing was compared.',
+      '(see /info/build/determinism.html). Nothing was compared.',
       'FORMAT_NOT_REBUILDABLE',
     );
   }

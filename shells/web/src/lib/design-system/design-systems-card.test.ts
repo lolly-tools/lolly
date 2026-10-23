@@ -252,7 +252,7 @@ test('removing an imported catalogue copy explains the fallback and retains its 
   assert.match(supplied.textContent ?? '', /acme\/tokens\/brand/);
   assert.match(supplied.textContent ?? '', /Asset namespace\s*acme\//);
   assert.equal(supplied.querySelector('[data-ds-act="remove"]'), null);
-  assert.equal(supplied.querySelector('.ds-row-origin a')?.getAttribute('href'), '/info/operate/deployment.html#removing-a-catalogue-design-system');
+  assert.equal(supplied.querySelector('.ds-row-origin a')?.getAttribute('href'), '/info/manage/profiles-and-brands.html#removing-a-catalogue-design-system');
   assert.match(await designSystemRemovalMessage(reopened, 'another'), /“Acme” will stay active/);
 });
 
