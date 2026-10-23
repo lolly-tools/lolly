@@ -211,7 +211,15 @@ export async function exportProfileBrandSkill(name: string, opts: BrandSkillExpo
   const heldBack: Array<{ asset: string; reason: string }> = [];
   const extras: Record<string, string | Uint8Array> = {};
   let budget = opts.budget ?? 4 * 1024 * 1024;
+  // Each asset is copied once and held back once, however many times the skill names it.
+  const taken = new Map<string, { file: string; bytes: Uint8Array } | null>();
   const take = (asset: CatalogAsset): { file: string; bytes: Uint8Array } | null => {
+    if (taken.has(asset.id)) return taken.get(asset.id)!;
+    const got = copy(asset);
+    taken.set(asset.id, got);
+    return got;
+  };
+  const copy = (asset: CatalogAsset): { file: string; bytes: Uint8Array } | null => {
     const url = asset.formats?.find((f) => f.url)?.url;
     const path = url ? contentUrlFile(url, roots) : null;
     if (!url || !path) { heldBack.push({ asset: asset.id, reason: 'no file in this catalog' }); return null; }
@@ -224,9 +232,9 @@ export async function exportProfileBrandSkill(name: string, opts: BrandSkillExpo
   };
   if (mode === 'bundled') {
     for (const link of links) {
-      if (link.kind !== 'asset' || !link.asset || bundle[link.asset] || heldBack.some((h) => h.asset === link.asset)) continue;
+      if (link.kind !== 'asset' || !link.asset || bundle[link.asset]) continue;
       const asset = byId.get(link.asset);
-      if (!asset) { heldBack.push({ asset: link.asset, reason: 'not in this catalog' }); continue; }
+      if (!asset) { if (!heldBack.some((h) => h.asset === link.asset)) heldBack.push({ asset: link.asset, reason: 'not in this catalog' }); continue; }
       const got = take(asset);
       if (got) bundle[link.asset] = got;
     }
@@ -240,6 +248,8 @@ export async function exportProfileBrandSkill(name: string, opts: BrandSkillExpo
       const asset = byId.get(id)!;
       const url = asset.formats?.find((f) => f.url)?.url;
       if (mode === 'bundled') {
+        const linked = bundle[id];
+        if (linked) { listed.push({ id, ...(asset.name ? { name: asset.name } : {}), file: `assets/${linked.file}` }); continue; }
         const got = take(asset);
         if (got) { extras[`assets/exemplars/${got.file}`] = got.bytes; listed.push({ id, ...(asset.name ? { name: asset.name } : {}), file: `assets/exemplars/${got.file}` }); continue; }
       }

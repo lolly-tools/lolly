@@ -438,7 +438,8 @@ export function brandSkillCoverage(body: string, facts: BrandSkillCoverageFactsV
         : { status: 'guidance-only', kind: 'rule', section, line: row.line, text: text.slice(0, 160), ruleKind: p.kind, detail: `Not checked: the design system has no ${p.kind} rule. One could be drafted in Usage & rules.` });
     }
     for (const p of UNCHECKED_PATTERNS) {
-      if (!p.test(text)) continue;
+      // A section named for the topic ("Orphans and widows") counts for its lines.
+      if (!p.test(text) && !p.test(section)) continue;
       push(`gap:${section}:${p.topic}`, { status: 'guidance-only', kind: 'rule', section, line: row.line, text: text.slice(0, 160), detail: `Not checked: Lolly has no rule for ${p.topic} yet.` });
     }
   }

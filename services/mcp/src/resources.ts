@@ -9,6 +9,8 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { designBrief } from '../../../engine/src/design-brief.ts';
 import { briefCatalogSummary, readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
+import { exportProfileBrandSkill, listProfileBrandSkills, profileBrandSkillCoverage, readProfileBrandSkill } from '@lolly-tools/node-shell/brand-skills';
+import { isHostedServer } from './rebrand.ts';
 import { createTokenSet, pickHeadAssetId } from '@lolly/engine';
 import { assetIndex, contentUrl, previewsDir, REPO_ROOT } from './paths.ts';
 import { loadIndex, loadToolCached } from './catalog.ts';
@@ -27,12 +29,15 @@ export const RESOURCES = [
   { uri: 'lolly://catalog', name: 'Tool catalog', description: 'The full generated Lolly tool index.', mimeType: 'application/json' },
   { uri: 'lolly://assets', name: 'Brand asset listing', description: 'Every catalog asset id with its type, name, tags and formats - the ids lolly://asset/{id} resolves.', mimeType: 'application/json' },
   { uri: 'lolly://design-context', name: 'Design context', description: 'The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.', mimeType: 'application/json' },
+  { uri: 'lolly://design-system/skills', name: 'Brand skills', description: "The brand's own guidance per discipline (overall brand, photography, motion, iconography and more) as Agent Skills: the index without bodies, plus the baseline Lolly generates from the design brief. Read the overall brand skill before composing. Skills are guidance for brand intent only; house rules are what Lolly checks.", mimeType: 'application/json' },
   { uri: 'lolly://tokens', name: 'Brand design tokens', description: "On-brand colour swatches (DTCG) with names and CMYK, from the design system's edit head - never one of its published versions.", mimeType: 'application/json' },
 ];
 
 export const RESOURCE_TEMPLATES = [
   { uriTemplate: 'lolly://skill/{path}', name: 'Shared skill reference', description: 'A Markdown or JSON reference from the overall Lolly skill.', mimeType: 'text/markdown' },
   { uriTemplate: 'lolly://tool/{id}/skill', name: 'Tool skill', description: 'Compatible guidance for the actual tool revision in this server profile, including references and version metadata.', mimeType: 'application/json' },
+  { uriTemplate: 'lolly://design-system/skill/{name}', name: 'Brand skill', description: "One brand skill as SKILL.md. The brand's body is unchanged; frontmatter metadata says which asset, revision and checksum it is.", mimeType: 'text/markdown' },
+  { uriTemplate: 'lolly://design-system/skill/{name}/{path}', name: 'Brand skill file', description: 'A reference of one brand skill, its lolly.json companion, or coverage.json: what the skill says against what Lolly checks.', mimeType: 'application/json' },
   { uriTemplate: 'lolly://tool/{id}', name: 'Tool details', description: 'A tool manifest summary + input JSON Schema + examples.', mimeType: 'application/json' },
   { uriTemplate: 'lolly://tool/{id}/preview', name: 'Tool preview', description: "The tool's committed catalog preview (SVG), where one exists.", mimeType: 'image/svg+xml' },
   { uriTemplate: 'lolly://asset/{id}', name: 'Brand asset', description: 'A catalog asset (logo, palette, font) resolved to bytes.', mimeType: 'application/octet-stream' },
@@ -134,7 +139,40 @@ export function designContextResource(uri = 'lolly://design-context'): ResourceC
   return { uri, mimeType: 'application/json', text: JSON.stringify(result, null, 2) };
 }
 
+/**
+ * Brand skills (plan 323) from the content profile. A hosted server serves public skills
+ * only; a server on the person's own machine reads their pack on disk and serves all of
+ * them. Links point at LOLLY_MCP_PUBLIC_ORIGIN when it is set.
+ */
+async function brandSkillResource(uri: string): Promise<ResourceContent | null> {
+  const audience = isHostedServer() ? 'public' as const : 'all' as const;
+  if (uri === 'lolly://design-system/skills') {
+    const list = listProfileBrandSkills({ audience });
+    return { uri, mimeType: 'application/json', text: JSON.stringify(list ?? { skills: [], note: 'No content profile answers.' }, null, 2) };
+  }
+  const m = /^lolly:\/\/design-system\/skill\/([a-z0-9]+(?:-[a-z0-9]+)*)(?:\/(lolly\.json|coverage\.json|references\/[A-Za-z0-9_.-]+))?$/.exec(uri);
+  if (!m) return null;
+  const name = m[1]!;
+  const file = m[2];
+  if (file === 'coverage.json') {
+    const skill = await readProfileBrandSkill(name, { audience });
+    if (!skill) throw new Error(`No brand skill named ${name}.`);
+    return { uri, mimeType: 'application/json', text: JSON.stringify({ skill: skill.entry, coverage: profileBrandSkillCoverage(skill), findings: skill.skill.parsed.findings }, null, 2) };
+  }
+  const origin = process.env.LOLLY_MCP_PUBLIC_ORIGIN?.trim();
+  const exported = await exportProfileBrandSkill(name, { audience, mode: 'linked', ...(origin ? { origin } : {}) });
+  if (!exported) throw new Error(`No brand skill named ${name}.`);
+  const path = file ?? 'SKILL.md';
+  const contents = exported.files[path];
+  if (typeof contents !== 'string') throw new Error(`The brand skill ${name} has no ${path}.`);
+  return { uri, mimeType: path.endsWith('.md') ? 'text/markdown' : path.endsWith('.json') ? 'application/json' : 'text/plain', text: contents };
+}
+
 export async function readResource(uri: string): Promise<ResourceContent> {
+  if (uri.startsWith('lolly://design-system/')) {
+    const skill = await brandSkillResource(uri);
+    if (skill) return skill;
+  }
   if (uri === 'lolly://skill') return { uri, mimeType: 'text/markdown', text: await readFile(join(REPO_ROOT, 'skills/lolly/SKILL.md'), 'utf8') };
   const sharedSkillMatch = /^lolly:\/\/skill\/((?:reference|examples)\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:md|json))$/.exec(uri);
   if (sharedSkillMatch) return { uri, mimeType: uri.endsWith('.json') ? 'application/json' : 'text/markdown',

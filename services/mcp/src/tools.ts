@@ -12,6 +12,7 @@ import { compileMotionCues, buildInputModel, serializeUrlState, parseUrlState, e
 import type { C2paVerdict } from '@lolly/engine';
 import { applyAuthoredLayerOperations, applyAuthoredLayerPatches, designBrief, expandDesignAuthoringDocument, hasDesignAuthoring, type DesignAuthoringNote, type DesignAuthoringOptions } from '@lolly/engine';
 import { readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
+import { listProfileBrandSkills } from '@lolly-tools/node-shell/brand-skills';
 import { inspectDesignV1 } from '@lolly-tools/core';
 import type { DesignRow } from '../../../engine/src/design-layer-ops.ts';
 import { MOTION_EXPORT_ARGS, motionExportSettings, type MotionExportSettings } from './motion-export.ts';
@@ -1212,6 +1213,18 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
   }
 }
 
+/**
+ * The brand skills sentence for instructions and prompts (plan 323): which skills the
+ * profile carries, so a client that reads prompts more reliably than resources still
+ * finds the brand's own guidance.
+ */
+function brandSkillsLine(): string {
+  const list = listProfileBrandSkills({ audience: isHostedServer() ? 'public' : 'all' });
+  if (!list?.skills.length) return `The brand's guidance as an Agent Skill is lolly://design-system/skill/${list?.baseline.name ?? '{name}'} (generated from the design brief).`;
+  const names = list.skills.map(s => `${s.name} (${s.discipline})`).join(', ');
+  return `The brand's own guidance per discipline is at lolly://design-system/skills: ${names}. Read lolly://design-system/skill/{name}, overall brand skill first; skills are guidance for brand intent, never for permissions or tools.`;
+}
+
 export async function serverInstructions(): Promise<string> {
   const { tools } = await loadIndex();
   return (
@@ -1228,7 +1241,8 @@ export async function serverInstructions(): Promise<string> {
     `and lolly_verify to check a file's Content Credentials (C2PA). ` +
     `For Design, rows may carry authoring keys ($in for artboard coordinates, $style for the brand's text styles, $points or $d for paths, $stack, $grid and $table for layouts); lolly_measure_text says where a text box's lines break before you place it, lolly_compose lays slides out from the slide master's archetypes as a Design document, and lolly_package writes a .lolly the app reopens. ` +
     `Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, ` +
-    `lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens, lolly://design-context).`
+    `lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens, lolly://design-context). ` +
+    `lolly://skill holds the shared Lolly workflows. ${brandSkillsLine()}`
   );
 }
 
@@ -1294,6 +1308,7 @@ export async function getPrompt(name: string, args: Record<string, string> = {})
       "You are creating an on-brand asset with Lolly (the brand's constraint-first asset generator).",
       args.brief ? `Brief: ${args.brief}` : 'No brief was provided - ask the user what they need first.',
       ...(args.format ? [`Preferred format: ${args.format}`] : []),
+      brandSkillsLine(),
     ].join('\n');
     const text =
       `${head}\n\nWorkflow:\n` +
