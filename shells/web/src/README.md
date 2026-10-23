@@ -9,8 +9,8 @@ Roughly 809,000 lines of TypeScript, tests included, and 62,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 561 files, 212,511 lines | 292 files, 94,840 lines | 10 files, 1,599 lines |
-| `lib/` | 839 files, 174,779 lines | 499 files, 98,317 lines | 13 files, 1,820 lines |
+| `views/` | 561 files, 212,512 lines | 292 files, 94,840 lines | 10 files, 1,599 lines |
+| `lib/` | 840 files, 174,789 lines | 499 files, 98,317 lines | 13 files, 1,820 lines |
 | `bridge/` | 224 files, 55,282 lines | 136 files, 28,591 lines | none |
 | `components/` | 128 files, 29,212 lines | 59 files, 15,149 lines | 24 files, 1,579 lines |
 | `org/` | 80 files, 20,267 lines | 56 files, 16,766 lines | none |
