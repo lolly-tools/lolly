@@ -13,14 +13,12 @@
   "docs/cli-rendering.md": 2,
   "docs/cli-signing.md": 7,
   "docs/cli.md": 1,
-  "docs/collaborate.md": 8,
   "docs/content-credentials-engineering.md": 5,
   "docs/content-credentials-identity.md": 6,
   "docs/create-a-tool.md": 4,
   "docs/creative-rights.md": 12,
   "docs/creators.md": 1,
   "docs/dashboard.md": 2,
-  "docs/data-transfer.md": 5,
   "docs/design-import.md": 3,
   "docs/exporting.md": 7,
   "docs/faq.md": 2,
@@ -66,6 +64,5 @@
   "docs/url-inputs.md": 2,
   "docs/url-parameters.md": 5,
   "docs/using.md": 17,
-  "docs/utilities.md": 4,
   "docs/verify-yourself.md": 2
 }

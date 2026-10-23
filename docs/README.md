@@ -56,7 +56,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Search | [search.md](search.md) |
 | Ask Lolly | [ask.md](ask.md) |
 | The Dashboard | [dashboard.md](dashboard.md) |
-| Utility views | [utilities.md](utilities.md) |
+| Utilities | [utilities.md](utilities.md) |
 | Your favourites | [favourites.md](favourites.md) |
 | Exporting & Formats | [exporting.md](exporting.md) |
 | How Lolly compares | [positioning.md](positioning.md) |
@@ -68,7 +68,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Lolly and online file converters | [compare-converters.md](compare-converters.md) |
 | Lolly and Penpot | [compare-penpot.md](compare-penpot.md) |
 | Lolly and brand portals | [compare-brand-portals.md](compare-brand-portals.md) |
-| Browser Extension | [extension.md](extension.md) |
+| Browser extension | [extension.md](extension.md) |
 | Lolly for sales teams | [sales.md](sales.md) |
 | Lolly for the newsroom | [press.md](press.md) |
 | Lolly for marketing teams | [marketing.md](marketing.md) |
@@ -126,7 +126,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Build the web container and Helm chart | [build-kubernetes.md](build-kubernetes.md) |
 | Building for iOS | [ios-build.md](ios-build.md) |
 | Read verified catalog resources | [catalog-resource-reading.md](catalog-resource-reading.md) |
-| Data Transfer | [data-transfer.md](data-transfer.md) |
+| Data transfer | [data-transfer.md](data-transfer.md) |
 | Invite an agent to a document | [work/document-agents.md](work/document-agents.md) |
 | Lolly Work API | [work/api.md](work/api.md) |
 | lw CLI: administer an instance | [work/cli.md](work/cli.md) |
