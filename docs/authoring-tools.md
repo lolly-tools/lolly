@@ -95,16 +95,16 @@ Each guide below has a public reference tool in `community/` that you can open i
 
 | When you want to | Guide | Reference tools |
 | --- | --- | --- |
-| Declare identity, export formats, examples and a walkthrough | [Tool manifests](/info/tool-manifest.html) | `chart`, `qr-code` |
-| Choose input types, show inputs conditionally, prefill from the profile | [Tool inputs](/info/tool-inputs.html) | `qr-code`, `color-palette` |
+| Declare identity, export formats, examples and a walkthrough | [Tool manifests](/info/tool-manifest.html) | `chart`, `qr-code`, `certificate` |
+| Choose input types, show inputs conditionally, prefill from the profile | [Tool inputs](/info/tool-inputs.html) | `qr-code`, `color-palette`, `stationery` |
 | Repeat rows, edit on the canvas or frame an image | [Structured inputs and canvas controls](/info/tool-structured-inputs.html) | `meeting-planner`, `deck-studio`, `diagram-builder`, `org-chart`, `frame` |
 | Accept a library asset or the person's own file | [Assets and file utilities](/info/tool-files.html) | `strip-data`, `filter` |
 | Write the template, the styles and data formats | [Templates and rendering](/info/tool-rendering.html) | `wordmark`, `meeting-planner`, `snippet` |
 | Ship starting points and presets | [Tool templates and presets](/info/tool-starters.html) | `design`, `qr-code` |
 | Add logic, live media, recording or network access | [Tool hooks and host capabilities](/info/tool-hooks.html) | `qr-code`, `filter`, `voice-recorder`, `record` |
-| Embed one tool in another, or adjust a community tool for a brand | [Composition and brand overlays](/info/tool-composition.html) | `certificate`, `link-card` |
+| Embed one tool in another, pick the design system's logo or adjust a community tool for a brand | [Composition and brand overlays](/info/tool-composition.html) | `link-card`, `certificate` |
 | Test, share, publish and translate | [Publish and localize a tool](/info/tool-publishing.html) | `qr-code` |
-| Help agents use the tool | [Tool skills](/info/tool-skills.html) | |
+| Help agents use the tool | [Tool skills](/info/tool-skills.html) | `design`, `diagram-builder` |
 
 ## Build with an agent
 

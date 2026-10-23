@@ -16,7 +16,7 @@ skill.json
 skill/workflow.md
 ```
 
-`SKILL.md` uses standard skill frontmatter with `name` and `description`. `skill.json` declares compatibility and the reference files:
+`SKILL.md` uses standard skill frontmatter with `name` and `description`, and the `name` starts with `lolly-`. `skill.json` declares compatibility and the reference files:
 
 ```json
 {
@@ -34,7 +34,7 @@ References must be Markdown or JSON paths inside `skill/`, with no path traversa
 | --- | --- |
 | `SKILL.md` | 64 KiB |
 | `skill.json` | 4 KiB |
-| Authored references | At most 16 files, 512 KiB in total |
+| Authored references | At most 16 files; with `SKILL.md`, 512 KiB in total |
 
 An incompatible or malformed authored skill falls back to the manifest baseline, with the reason recorded, so unverified bytes never become trusted guidance. The loader reads the skill through the same source reader and signature checks it uses for the tool revision, rather than loading another catalog's skill by id alone.
 

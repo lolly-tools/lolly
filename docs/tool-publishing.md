@@ -9,7 +9,7 @@ Once a tool works on your machine, the next job is getting it to other people. T
 
 ## An editable starting point
 
-In a [Design](/info/using.html) document, choose **Save**, then **Save as a template**. It joins that tool's **New from template** chooser on your device, with no `tool.json`, catalog build or Git. A template holds starting values for a tool people already have, and recipients can edit the whole design.
+In a [Design](/info/using.html) document, choose **Save**, then **Save as a template**. It joins that tool's **New from template** chooser on your device, with no `tool.json`, catalog build or Git. A template holds starting values for a tool people already have, and recipients can edit the whole design. Share it as a `.lolly` file, or ship it with the tool as [Templates people save](/info/tool-starters.html#templates-people-save) describes.
 
 ## Your own tool, as a file
 

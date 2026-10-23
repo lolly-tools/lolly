@@ -1,6 +1,6 @@
 # Learning integration
 
-This page is for developers who host Lolly courses, connect them to another platform or build course packages from a script. It sets out what a course package contains, how website progress is stored and reported, the versioned browser event a host page can listen for, and the command-line build. Course creators start with [Build a course](/info/training-creators.html) and [Deliver and update a course](/info/training-delivery.html).
+This page is for developers who host Lolly courses, connect them to another platform or build course packages from a script. It sets out what a course package contains, how website progress is stored and reported, the versioned browser event a host page can listen for and the command-line build. Course creators start with [Build a course](/info/training-creators.html) and [Deliver and update a course](/info/training-delivery.html).
 
 A learning module is a versioned course document. The engine validates it and compiles finished content through renderers and asset resolution the shell supplies. The player runs that compiled content in the preview, in static website packages, in SCORM 1.2 and SCORM 2004 4th Edition packages and in the experimental Tin Can and cmi5 packages.
 

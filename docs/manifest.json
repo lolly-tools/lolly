@@ -1333,7 +1333,7 @@
       "description": "How a client verifies signed catalog resources before use, the read limits, and how exact source reads stay fixed in History.",
       "section": "operate",
       "path": "operate/catalog-resource-reading",
-      "icon": "shield",
+      "icon": "shieldcheck",
       "aliases": [
         "build/catalog-resource-reading"
       ],

@@ -1,6 +1,6 @@
 # Structured inputs and canvas controls
 
-Some tools need more than a list of fields: a guest list with a row per person, an org chart people drag around, a photo they zoom and straighten in place. Three input patterns cover those jobs. `blocks` repeats a group of fields, a `canvas` object on a `blocks` input turns its rows into boxes on an editor canvas, and `vector` groups a few numbers into one control, which is how image framing works.
+Some tools need more than a list of fields: a guest list with a row per person, an org chart people drag around, a photo they zoom and straighten in place. Three input patterns cover those jobs. `blocks` repeats a group of fields, a `canvas` object on a `blocks` input turns its rows into boxes on an editor canvas and `vector` groups a few numbers into one control, which is how image framing works.
 
 ## `blocks` - repeating groups
 
@@ -180,7 +180,7 @@ Three declarations make an image slot framable:
   ] }
 ```
 
-Every field is optional: declare `x` and `y` alone for a pan-only slot, add `rotate` to straighten, and add `pitch` and `yaw` for perspective correction, like the Geometry panel in Lightroom or Adjust in Instagram. `framingFor` points at the asset input the vector frames, and turns the sidebar numbers into a control on the canvas.
+Every field is optional: declare `x` and `y` alone for a pan-only slot, add `rotate` to straighten and add `pitch` and `yaw` for perspective correction, like the Geometry panel in Lightroom or Adjust in Instagram. `framingFor` points at the asset input the vector frames, and turns the sidebar numbers into a control on the canvas.
 
 Render it with the **`{{framing}}` helper**, which writes the placement CSS and the marker the shell binds to in one call:
 

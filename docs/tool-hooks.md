@@ -42,7 +42,7 @@ Async results are time-boxed. The budget in each step below is how long the runt
 - <!--i:check--> **The export ends: `afterExport`, 5 seconds.** Runs after the file is made, for cleanup and chaining. Receives `{ node, format, blob, host }`.
 :::
 
-When a hook overruns, the runtime applies nothing at first, but the hook keeps running. A late `onInit` or `onInput` result **still applies when it arrives**, unless a newer `onInit` or `onInput` run has started since. Export hooks never apply late: a `beforeExport`, `exportFile` or `exportStill` overrun or error fails that export where people can see the failure, while `afterExport` is always awaited and its overruns and errors are only logged. Errors in `onInit` and `onInput` are logged, never fatal. A synchronous overrun cannot be interrupted in the page, so it is measured and logged as a warning; in a strict Worker, an overrunning hook is stopped.
+When a hook overruns, the runtime applies nothing at first, but the hook keeps running. A late `onInit` or `onInput` result **still applies when it arrives**, unless a newer `onInit` or `onInput` run has started since. Export hooks never apply late: a `beforeExport`, `exportFile` or `exportStill` overrun or error fails that export where people can see the failure. `afterExport` runs even when the render fails, so cleanup always happens; its overruns and errors are only logged. Errors in `onInit` and `onInput` are logged, never fatal. A synchronous overrun cannot be interrupted in the page, so it is measured and logged as a warning; in a Worker, an overrunning hook is stopped.
 
 `onFrame` and `onLevel` run once per camera frame or audio sample, are **not** time-boxed and drop a sample while the previous one is still rendering. They are under [Live input](#live-input) below.
 
@@ -167,7 +167,7 @@ Everything runs locally: the clip is decoded and read on the device, and nothing
 
 ## Network access (`host.net`)
 
-Tools work offline first. By default a tool gets no `host.net`, so it has no supported way to reach the network. A live-data tool, such as weather, status, a news ticker or a calendar feed, opts in with two manifest declarations: the capability, and an explicit list of what it may fetch.
+Tools work offline first. By default a tool gets no `host.net`, so it has no supported way to reach the network. That is a contract checked in review, not isolation: [Portability and isolation](#portability-and-isolation) explains why. A live-data tool, such as weather, status, a news ticker or a calendar feed, opts in with two manifest declarations: the capability, and an explicit list of what it may fetch.
 
 ```jsonc
 "capabilities": ["network"],

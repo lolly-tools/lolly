@@ -234,6 +234,21 @@
       "slug": "create-a-tool",
       "anchor": "share-a-design-with-rules",
       "label": "Share a design with rules (generate a tool from Design)"
+    },
+    "choose-a-guide": {
+      "slug": "authoring-tools",
+      "anchor": "find-the-part-you-need",
+      "label": "Find the part you need"
+    },
+    "authoring-with-ai-agents": {
+      "slug": "authoring-tools",
+      "anchor": "build-with-an-agent",
+      "label": "Build with an agent"
+    },
+    "anatomy": {
+      "slug": "authoring-tools",
+      "anchor": "what-each-file-does",
+      "label": "What each file does"
     }
   },
   "url-mode": {

@@ -144,7 +144,7 @@ This needs Lolly's browser renderer and a current web build. `--trust-tool` acce
 
 ## Other starting points
 
-**From a saved session or template.** In **Projects**, open a saved tool session's menu and choose **Share with rules**; the **Templates** collection and the template chooser offer the same action. Lolly opens a separate authoring copy and leaves the saved source as it was. An open tool also offers **Save as → Share with rules → Choose inputs**, the Share dialog offers **Share as a reusable tool**, and a single setting's **Input actions** menu offers **Use as a tool input**. Save the authoring session to keep its rules for later revisions.
+**From a saved session or template.** In **Projects**, open a saved tool session's menu and choose **Share with rules**; the **Templates** collection and the template chooser offer the same action. Lolly opens a separate authoring copy and leaves the saved source as it was. An open tool also offers **Save as → Share with rules → Choose inputs**, the Share dialog offers **Share as a reusable tool** and a single setting's **Input actions** menu offers **Use as a tool input**. Save the authoring session to keep its rules for later revisions.
 
 A Design session opens the object-based Rules workspace described above. Other supported still tools open an input list over their existing renderer:
 

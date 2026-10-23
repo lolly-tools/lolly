@@ -5819,7 +5819,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'build-obs': 'box',
   'build-kubernetes': 'box',
   'ios-build': 'box',
-  'catalog-resource-reading': 'shield',
+  'catalog-resource-reading': 'shieldcheck',
   'connector-origins': 'globe',
   'deployment': 'upload',
   'ci-qualification': 'checklist',
