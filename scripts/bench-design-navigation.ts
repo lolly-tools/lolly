@@ -36,7 +36,8 @@
  *   pnpm --dir shells/web exec vite preview --host 127.0.0.1 --port 5188 --strictPort
  *   node scripts/bench-design-navigation.ts --url=http://127.0.0.1:5188 --fixture=D1 --cpu=1,4 --json=/abs/report.json
  * Without --url the build in LOLLY_WEB_DIST (or shells/web/dist) is served on a loopback port.
- * Other options: --phases=open,idle,... --repeat=N --headed --screenshots=/abs/dir.
+ * Other options: --phases=open,idle,... --repeat=N --headed --screenshots=/abs/dir,
+ * --profile=/abs/dir with --profile-phases=idle,... for a CPU profile of each named phase.
  *
  * The rAF sampler keeps a frame loop running, so idle numbers are frames the page was
  * asked for, not frames it would draw on its own. CPU throttling is a lab multiplier,
@@ -68,6 +69,8 @@ const rates = (list(option('cpu')).length ? list(option('cpu')) : ['1', '4']).ma
 const phases = (list(option('phases')).length ? list(option('phases')) : [...PHASES]) as PhaseName[];
 const repeat = Number(option('repeat') ?? 1);
 const output = option('json'), screenshots = option('screenshots');
+// --profile=/abs/dir records a CDP CPU profile of each phase named in --profile-phases (default idle).
+const profileDir = option('profile'), profilePhases = list(option('profile-phases') ?? 'idle');
 const headed = process.argv.includes('--headed');
 if (screenshots) mkdirSync(screenshots, { recursive: true });
 assert.ok(fixtures.every(name => DESIGN_FIXTURES.includes(name)), `--fixture takes ${DESIGN_FIXTURES.join(', ')}`);
@@ -363,12 +366,19 @@ async function measure(ctx: RunContext, name: PhaseName, act: () => Promise<Phas
   const { page, cdp } = ctx;
   const loadBefore = loadavg()[0]!;
   const before = await cdpMetrics(cdp);
+  const profiling = !!profileDir && profilePhases.includes(name);
+  if (profiling) { await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 500 }); await cdp.send('Profiler.start'); }
   const since = await openWindow(page);
   let extra: PhaseResult = {}, error: string | null = null;
   try { extra = await act(); } catch (caught) {
     error = caught instanceof Error ? caught.message.split('\n')[0]! : String(caught);
   }
   const sampled = await closeWindow(page, since);
+  if (profiling) {
+    const { profile } = await cdp.send('Profiler.stop');
+    mkdirSync(profileDir!, { recursive: true });
+    writeFileSync(join(profileDir!, `${ctx.fixture.name}-cpu${ctx.cpu}-${name}.cpuprofile`), JSON.stringify(profile));
+  }
   const after = await cdpMetrics(cdp);
   // Outside the measured window: a screenshot is work the page did not ask for.
   if (screenshots) await page.screenshot({ path: join(screenshots, `${ctx.fixture.name}-cpu${ctx.cpu}-${name}${error ? '-failed' : ''}.png`) }).catch(() => {});
