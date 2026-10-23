@@ -1555,10 +1555,6 @@ const DOC_ICONS: Record<string, string> = {
   sliders: '', lock: '', layers: '', globe: '', people: '', shieldcheck: '', check: '', code: '',
   download: '', database: '', server: '', monitor: '',
 };
-// `shield` is what docs/profile.md (and its 26 twins) name the Verify glyph;
-// the drawn glyph is `shieldcheck`. An alias here keeps the marker valid without
-// editing a translated block in 27 files.
-DOC_ICONS.shield = DOC_ICONS.shieldcheck!;
 DOC_ICONS.eyeoff = SITE_ICONS.assureEyeOff!;
 DOC_ICONS.sliders = BICONS.sliders;
 DOC_ICONS.lock = BICONS.lock;
@@ -1566,12 +1562,30 @@ DOC_ICONS.layers = BICONS.layers;
 DOC_ICONS.globe = SITE_ICONS.surfaceWeb!;
 DOC_ICONS.people = SITE_ICONS.toolFeaturePeople!;
 DOC_ICONS.shieldcheck = SITE_ICONS.importPointShield!;
+// `shield` is what docs/profile.md (and its 26 twins) name the Verify glyph;
+// the drawn glyph is `shieldcheck`. An alias here keeps the marker valid without
+// editing a translated block in 27 files. It must follow the `shieldcheck`
+// assignment above: copied any earlier, it copies the empty placeholder.
+DOC_ICONS.shield = DOC_ICONS.shieldcheck!;
 DOC_ICONS.check = SITE_ICONS.assureCheck!;
 DOC_ICONS.code = SITE_ICONS.toolFeatureCode!;
 DOC_ICONS.download = BICONS.download;
 DOC_ICONS.database = BICONS.database;
 DOC_ICONS.server = BICONS.server;
 DOC_ICONS.monitor = SITE_ICONS.toolFeatureMonitor!;
+// Markers that translated pages still carry from earlier English bullets
+// (profile.md's offline list, exporting.md's Penpot and course steps). The app
+// registry draws each one, so a translation that has not caught up shows the
+// app's glyph instead of an empty slot.
+DOC_ICONS.layout = appIcon('dashboard');
+DOC_ICONS.image = appIcon('image');
+DOC_ICONS.zap = appIcon('zap');
+DOC_ICONS.play = appIcon('play');
+DOC_ICONS.film = appIcon('filmStrip');
+DOC_ICONS.file = DOC_ICONS.document!;
+// The app registry has no book glyph, so this is drawn here in the same 24px
+// stroke style: an open book, for the guides and documentation bullet.
+DOC_ICONS.book = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>`;
 // The AI mark. Mirrors the spark the web shell's /verify view uses for
 // AI-generated content, so the same idea wears the same glyph in both places.
 DOC_ICONS.sparkle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg>`;
