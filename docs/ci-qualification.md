@@ -1,15 +1,17 @@
 # CI qualification and rapid UI updates
 
-One CI run produces two levels of evidence. The complete suite continues for
-every change. The `qualification` check chooses the required level from a
-conservative source classification. Deployment still requires an independent
-source compatibility check and fresh provider evidence.
+One CI run produces up to three levels of evidence. Every main push runs the
+complete suite, and so does every pull request outside the docs-and-tests lane
+below. The `qualification` check chooses the required level from a conservative
+source classification. Deployment still requires an independent source
+compatibility check and fresh provider evidence.
 
 | Check | Scope | Required results |
 |---|---|---|
 | `public-ready` | Eligible web UI source and canonical UI token changes | Secret history, typecheck, production build and bundle budget, contracts, security, catalog validation, all-tool render smoke, custom static security rules, deployment scope and focused UI tests |
-| `release-ready` | Every change | All public-ready checks plus engine/web/tool units, all four browser shards and their execution gate, Tauri, conformance, regression fuzzing, API bundle drift, rendering action and dependency audit |
-| `qualification` | Every change | The selected successful aggregate and a fresh scan of every job in the same attempt |
+| `release-ready` | Every change except a docs-and-tests pull request | All public-ready checks plus engine/web/tool units, all four browser shards and their execution gate, Tauri, conformance, regression fuzzing, API bundle drift, rendering action and dependency audit |
+| docs-and-tests (tier of `qualification`, no job of its own) | A pull request whose every change is under `docs/`, a test or a reviewed baseline | All release-ready checks except the four browser shards, their execution gate, Tauri, conformance and regression fuzzing |
+| `qualification` | Every change | Needs every other CI job, then requires the selected tier and a fresh scan of every job in the same attempt |
 
 `test (public-ready UI)` always runs. It executes the five files in
 `scripts/run-public-ready-ui.ts`, including canonical token generation drift,
@@ -33,9 +35,61 @@ description never grants additional scope.
 Scope and the focused UI job start ahead of the long matrix. Contracts and
 security have their own fast matrix, sharing the exact installation, test and
 skip-report steps with the exhaustive matrix. The long matrix waits for the
-initial scope/UI jobs but still runs when they fail. Qualification jobs allocate
-a runner only after fast checks finish. Full-tier qualification then waits for
-release-ready; the full suite and its required checks are preserved.
+initial scope/UI jobs but still runs when they fail. Every aggregator lists the
+jobs it requires in `needs:`, so it starts only after they finish and no runner
+waits on the matrix: `public-ready` after the fast checks, `release-ready` after
+the whole suite, and `qualification` after every other job, including the two
+tier jobs. Each reads the provider's record of its run attempt once, with a
+retry window of a few minutes while the API catches up, and refuses any failed,
+cancelled or unreviewed skipped job. An eligible UI pull request therefore
+waits for the whole run before `qualification` passes; `public-ready` still
+reports as soon as the fast checks pass.
+
+### Docs-and-tests lane
+
+A pull request whose every change is under `docs/` (pages, translations, shots,
+figures and the `/info` builder), a test or fixture, or one of the reviewed
+ratchet baselines skips the heavy tier: the four WebGPU browser partitions and
+their execution gate, Tauri, conformance (qpdf and c2patool) and regression
+fuzzing. Secret history, custom static security rules, workflow pins, typecheck
+and its ratchets, catalog validation, render smoke, the production build,
+contracts, security, the engine, web and tool unit shards, API bundle drift,
+the rendering action and the dependency audit job all still run. A test that
+the heavy shards run, recognised by name or by the runtime markers that
+`scripts/run-test-suite.ts` uses, keeps the full suite, as do
+`tests/expected-skips.json`, any manifest or lockfile, executable files and
+symlinks. The lane comes from the same trusted base classifier, so a pull
+request cannot change its own lane, and an unknown or missing lane runs every
+shard. The main push after the merge always runs the complete suite. The scope
+job leaves the heavy entries out of the test matrix rather than skipping a
+matrix job, so every reported job name stays exact; `test (browser)` and
+`release-ready` report as skipped.
+
+### Dependency advisories and cooldown
+
+The `npm audit (high+critical)` job inventories every lockfile and checks the
+SBOM, third-party notices and Cargo licence map on every run. Its npm, pnpm and
+RustSec advisory lookup runs on every main push and on a pull request whose
+trusted scope changes a manifest, lockfile, resolver setting or the audit
+policy. Other pull requests skip only that lookup, so an advisory published
+upstream does not turn unrelated pull requests red.
+`.github/workflows/dependency-audit.yml` runs the same lookup nightly, on every
+release tag and on demand; a red result there blocks the next release.
+`cargo-audit` is a checksum-pinned release binary rather than a source build.
+
+New dependency versions wait three days after publication:
+`minimumReleaseAge: 4320` in the three pnpm workspace files, and `cooldown` in
+`.github/dependabot.yml`. pnpm 11 enforces the age on every install, including
+`pnpm install --frozen-lockfile`, so a lockfile entry younger than three days
+fails CI. To take an urgent fix sooner, allow that exact version with
+`minimumReleaseAgeExclude`.
+
+### Concurrency
+
+A newer push to a pull request cancels its run in progress. A main push is
+never cancelled once it has started, so every started main run reports a
+complete result for its exact commit. A queued main run that has not started is
+replaced by the newer one.
 
 For PRs the checked source can be GitHub's merge commit; `headSha` separately
 records the provider's PR head. Scope and qualification policy are executed from
@@ -47,8 +101,12 @@ workflow edit also requires release-ready.
 
 Successful tier jobs upload `public-ready-<runId>-<runAttempt>` or
 `release-ready-<runId>-<runAttempt>`. The stable aggregate uploads
-`qualification-<runId>-<runAttempt>`. Each contains `qualification.json`,
-`scope.json`, unchanged `run.original.json` and all
+`qualification-<runId>-<runAttempt>`. Inputs that jobs pass to each other inside
+a run are named by run only (`ci-scope-<runId>`, `test-skips-<shard>-<runId>`),
+and a download takes the newest upload of each name. After "Re-run failed jobs"
+the new attempt therefore finds the files that carried-over jobs uploaded
+earlier, and a re-run shard replaces its own report. Each receipt contains
+`qualification.json`, `scope.json`, unchanged `run.original.json` and all
 `jobs-<page>.original.json` provider pages. Poll snapshots preserve the original
 observations. Artifacts remain available for 14 days; the private operator must
 retain the evidence required by its release record before expiry.
@@ -58,7 +116,10 @@ The version 1 qualification record contains:
 - `status: CI_QUALIFIED`, `qualificationTier` and `fullSuiteQualified`.
 - Exact `source`, `tree`, `base`, provider `headSha`, repository name and numeric
   ID, head repository and branch, event, run ID, attempt and workflow path.
-- `scope.publicReadyEligible`, `policyCommit`, `policySha256` and
+- `scope.runAttempt` (the attempt whose scope job classified the change, which
+  is earlier than `runAttempt` after a failed-only rerun),
+  `scope.publicReadyEligible`, `lane` (`public-ready`, `docs-and-tests` or
+  `full`), `dependencyChange`, `policyCommit`, `policySha256` and
   `changedPathsSha256`. The policy digest is null only for full-only bootstrap.
 - `requiredJobs`, each with provider job ID, exact name and success conclusion.
 - `provider.run` and `provider.jobs`, each with a relative path and SHA-256 of
@@ -70,8 +131,9 @@ Only a same-repository main push with `source === headSha` is publication
 eligible. PR artifacts cannot authorize publication. A complete, unambiguous
 job inventory is required. Failed, cancelled, timed out or unexpectedly skipped
 jobs prevent qualification, including jobs outside the selected tier. The only
-expected skips are `verified instance shell`, and `public-ready` when the
-trusted scope requires release-ready.
+expected skips are `verified instance shell`, `public-ready` when the trusted
+scope requires release-ready, and `test (browser)` and `release-ready` on a
+docs-and-tests pull request.
 
 An early green result cannot predict later failures. Before publication the
 consumer must fetch the same run and attempt again, inspect every current job,
@@ -191,8 +253,19 @@ with Node 26.11.1 on the development Mac. These are local measurements, not
 hosted CI duration claims.
 
 Failed-job reruns of `38602962399` and `38602986096` lacked scope artifacts
-for their new attempt. The current exact-attempt policy requires a complete
-rerun; a future retry workflow must reconstruct that provenance explicitly.
+for their new attempt, because those inputs were named by attempt. They are now
+named by run. The rerun of `39906275080` then found the scope receipt, but the
+scope job had been carried over, so the receipt named attempt 1 and the
+aggregators of attempt 2 refused it ("Scope runAttempt differs"). The policy now
+accepts a scope receipt from an earlier attempt of the same run: the run ID,
+repository, branch, event and every commit (base, source, tree and head) must
+still match exactly, the attempt may be earlier but never later, and the scope
+is still derived again from Git. The provider lists every job of the new
+attempt, carried-over jobs included, with that attempt number, so the
+exact-attempt receipts are unchanged; each one records the attempt that
+classified its scope as `scope.runAttempt`. The aggregators run the base
+commit's copy of the policy, so a pull request benefits once its base includes
+this rule.
 
 On the 2026-10-14 main run `38553705860`, the original eight fast checks passed
 in 8 minutes 57 seconds; the complete suite took 38 minutes 43 seconds. The

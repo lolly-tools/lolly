@@ -59,4 +59,14 @@ test('downloaded CI executables are verified before execution and caches bind th
   const c2paDigest = ci.match(/C2PATOOL_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
   assert.ok(c2paDigest);
   assert.match(ci, new RegExp(`key: c2patool-[^\\n]*-${c2paDigest}`));
+
+  // cargo-audit is a verified release binary in CI and in the nightly and release-tag audit, never a build.
+  const advisories = readFileSync(path.join(workflowDir, 'dependency-audit.yml'), 'utf8');
+  const cargoAuditDigests = [ci, advisories].map((text) => {
+    assert.match(text, /echo "\$CARGO_AUDIT_LINUX_X64_SHA256 {2}[^\n]+" \| sha256sum --check/, 'cargo-audit is not checked before execution');
+    assert.doesNotMatch(text, /cargo install cargo-audit/);
+    return text.match(/CARGO_AUDIT_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
+  });
+  assert.ok(cargoAuditDigests[0], 'cargo-audit digest is not pinned');
+  assert.equal(cargoAuditDigests[1], cargoAuditDigests[0], 'both workflows pin the same cargo-audit release');
 });
