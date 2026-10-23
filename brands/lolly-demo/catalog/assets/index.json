@@ -1432,8 +1432,8 @@
         {
           "format": "md",
           "url": "/catalog/assets/lolly/skills/brand/SKILL.md",
-          "checksum": "sha256-PLACEHOLDER",
-          "size": 0
+          "checksum": "sha256-YCF0MtBHA/Pn/b76mKrtpfa4JOmvoqPsDaZXDfUkGjc=",
+          "size": 2740
         }
       ],
       "license": "CC0-1.0",
@@ -1447,7 +1447,8 @@
           "skillRevision": "1.0",
           "maintainer": "lolly"
         }
-      }
+      },
+      "added": "2026-10-23"
     },
     {
       "id": "lolly/skill/photography",
@@ -1465,8 +1466,8 @@
         {
           "format": "md",
           "url": "/catalog/assets/lolly/skills/photography/SKILL.md",
-          "checksum": "sha256-PLACEHOLDER",
-          "size": 0
+          "checksum": "sha256-dSST55LmnWfyTNrmek/yTqOBJcllNn+X/KhQgSz38r4=",
+          "size": 1947
         }
       ],
       "license": "CC0-1.0",
@@ -1490,7 +1491,8 @@
             ]
           }
         }
-      }
+      },
+      "added": "2026-10-23"
     },
     {
       "id": "lolly/skill/motion",
@@ -1508,8 +1510,8 @@
         {
           "format": "md",
           "url": "/catalog/assets/lolly/skills/motion/SKILL.md",
-          "checksum": "sha256-PLACEHOLDER",
-          "size": 0
+          "checksum": "sha256-JHz6nSvvq+5l1kQKRXI4/yiu7Ind1egOUinmktFNNrs=",
+          "size": 1775
         }
       ],
       "license": "CC0-1.0",
@@ -1543,7 +1545,8 @@
             ]
           }
         }
-      }
+      },
+      "added": "2026-10-23"
     }
   ]
 }

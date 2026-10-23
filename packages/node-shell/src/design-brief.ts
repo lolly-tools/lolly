@@ -22,6 +22,7 @@ import { readFileSync } from 'node:fs';
 import { canonicalJson, pickHeadAssetId } from '@lolly/engine';
 import type { DesignBriefAssetV1, DesignBriefCatalogV1 } from '@lolly/engine';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
+import { brandSkillIndexEntry } from '@lolly-tools/core/brand-skill-v1';
 
 import { contentRoots, type ContentRoots } from './content-roots.ts';
 import { assetsOf, fileOf, isUsableMaster, query, resolveLogos, tagsOf, type IndexAsset } from './rebrand/design-system.ts';
@@ -112,6 +113,10 @@ export function readProfileBriefCatalog(opts: ProfileSourceOptsV1 = {}): (Design
       ...(typeof raw.license === 'string' ? { license: raw.license } : {}),
       ...(a.deprecated === true ? { deprecated: true } : {}),
     };
+  }).map((row, i) => {
+    // A brand skill carries its index row (plan 323), so the brief lists it without bodies.
+    const skill = row.type === 'skill' ? brandSkillIndexEntry(assets[i]) : null;
+    return skill ? { ...row, skill } : row;
   });
   const iconThemes = palette('icon-themes');
   const photoTreatments = palette('photo-treatments');

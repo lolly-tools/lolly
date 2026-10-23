@@ -348,11 +348,14 @@ function familiesOf(stacks: readonly string[]): string[] {
   return [...out];
 }
 
-/** Line patterns that point at a house rule kind. A type word is required for weight, which is a common word. */
+/** Words that say a line is about type, so a brand name or a placement word is not read as a type rule. */
+const TYPE_WORDS = /\b(fonts?|typefaces?|type|typography|headlines?|headings?|sub ?heads?|sub ?headlines?|body|titles?|quotes?|text|weights?|captions?|labels?)\b/i;
+
+/** Line patterns that point at a house rule kind. Weight and alignment words need a type word too. */
 const RULE_PATTERNS: Array<{ kind: string; test: (line: string) => boolean }> = [
   { kind: 'text-case', test: (l) => /\b(all caps|uppercase|upper case|sentence case|title case|capitali[sz]ation)\b/i.test(l) },
-  { kind: 'text-weight', test: (l) => /\b(semi ?bold|bold|medium|regular|light|weight)\b/i.test(l) && /\b(headline|heading|sub ?head|body|title|quote|text|type)s?\b/i.test(l) },
-  { kind: 'text-align', test: (l) => /\b(align(ed|ment)?|centred|centered|justif(y|ied))\b/i.test(l) && !/\blogo\b/i.test(l) },
+  { kind: 'text-weight', test: (l) => /\b(semi ?bold|bold|medium|regular|light|weight)\b/i.test(l) && TYPE_WORDS.test(l) },
+  { kind: 'text-align', test: (l) => /\b(align(ed|ment)?|centred|centered|justif(y|ied))\b/i.test(l) && TYPE_WORDS.test(l) && !/\blogo\b/i.test(l) },
   { kind: 'color-pairing', test: (l) => /\b(colou?r combinations?|backgrounds? and foregrounds?|\w+ backgrounds?\s*:)/i.test(l) },
   { kind: 'logo-surface', test: (l) => /\blogo\b/i.test(l) && /\b(background|surface|luminance)\b/i.test(l) },
   { kind: 'stroke-on-rounded', test: (l) => /\bstrokes?\b/i.test(l) && /\b(round(ed)?|corners?)\b/i.test(l) },
@@ -411,7 +414,8 @@ export function brandSkillCoverage(body: string, facts: BrandSkillCoverageFactsV
       }, h6);
     }
     for (const family of families) {
-      if (new RegExp(`(^|[^\\w])${family.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^\\w]|$)`).test(text)) {
+      // A family named like the brand ("SUSE") counts only on a line about type.
+      if (TYPE_WORDS.test(text) && !/\blogo\b/i.test(text) && new RegExp(`(^|[^\\w])${family.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^\\w]|$)`).test(text)) {
         push(`font:${family}`, { status: 'agree', kind: 'font', section, line: row.line, text: text.slice(0, 160), detail: `${family} is a declared font family.` });
       }
     }
