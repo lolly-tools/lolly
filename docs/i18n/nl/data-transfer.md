@@ -1,45 +1,49 @@
-# Gegevensoverdracht - de bundel `lolly-backup`
+# Gegevensoverdracht: de bundel `lolly-backup`
 
-Alles wat een Lolly-gebruiker opbouwt, staat **op zijn apparaat** - geen account, geen cloud. De gegevensoverdrachtbundel is hoe die waarde verplaatst: exporteer hem op de ene installatie, draag het bestand op elke manier over (USB, AirDrop, e-mail naar jezelf, een netwerkschijf) en importeer hem op een andere. Het bestand *is* het transport. Het doel kan offline of online zijn. Het maakt geen verschil, want er wordt nooit met een server gepraat.
+Lolly bewaart je persoonlijke bibliotheek op het apparaat. Een back-upbundel is hoe die bibliotheek verhuist: exporteer hem op de ene installatie, neem het bestand mee op elke manier (USB, AirDrop, e-mail aan jezelf of een netwerkshare) en importeer hem op een andere. Exporteren en importeren hebben geen server nodig, en het doel kan offline zijn.
 
-![De twee knoppen die een hele installatie verplaatsen: Mijn gegevens exporteren schrijft één zip, Gegevens importeren leest hem weer in](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
+Deze pagina is de formaatspecificatie, voor mensen die shells, tools of scripts rond back-ups bouwen: wat er in de zip zit, hoe versies worden afgeschermd, hoe een import samenvoegt en wat wordt gecontroleerd. De handleiding voor mensen die hun eigen werk verplaatsen is [Je werk naar een ander apparaat verplaatsen](/info/find-your-work.html#move-your-work-to-another-device).
 
-Deze pagina is de formaatspecificatie. Voor de doorloop voor de eindgebruiker, zie [Vind en herstel je werk → Verhuis je werk naar een ander apparaat](/info/find-your-work.html#move-your-work-to-another-device). De implementatie is [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), en [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) legt het retourcontract vast.
+![De twee knoppen die een hele installatie verplaatsen: Export my data schrijft één zip, Import data leest hem terug](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-> **Bereik.** Een bundel draagt *gebruikersgegevens*, geen catalogustools. Catalogustools en catalogusassets worden apart gesynchroniseerd en er wordt aangenomen dat ze al op het doel aanwezig zijn (in het slechtste geval in een hogere versie); tools die een gebruiker zelf maakte, reizen mee binnen `profile.json`. Importeren installeert of upgradet nooit een catalogustool.
+> **Reikwijdte.** Een bundel draagt *gebruikersgegevens*, geen catalogustools. Catalogustools en catalogusassets worden apart gesynchroniseerd en worden verondersteld al op het doel aanwezig te zijn, hooguit in een hogere versie. Tools die een gebruiker zelf maakte reizen mee in `profile.json`. Importeren installeert of upgradet nooit een catalogustool.
 
 ## Doelen
 
-- <!--i:box--> **Eén formaat, elke shell.** De web-PWA, Tauri-desktop/mobiele apps en toekomstige shells delen dezelfde envelop en ondersteunde onderdeelschema's. Optionele onderdelen hangen af van de mogelijkheden van elke shell; niet-ondersteunde onderdelen worden gemeld. Elke capability bridge levert zijn eigen opslagadapter.
-- <!--i:shieldcheck--> **Overleeft de reis.** Een bundel die onderweg beschadigd of afgekapt raakt, faalt luid bij import, herstelt nooit half.
-- <!--i:clock--> **Overleeft deze versie.** Een oudere app kan nog steeds de herkende onderdelen van een nieuwere bundel importeren. Een echt incompatibel formaat wordt netjes geweigerd.
-- <!--i:check--> **Veilig om te mergen.** Importeren op een installatie die al in gebruik is, wist nooit iets dat niet in de bundel zat.
+- <!--i:box--> **Eén formaat, elke shell.** De webapp, de desktop- en mobiele apps en toekomstige shells delen dezelfde envelop en onderdeelschema's. Optionele onderdelen hangen af van de capabilities van elke shell, en niet-ondersteunde onderdelen worden gemeld. Elke capabilitybrug levert zijn opslagadapter.
+- <!--i:shieldcheck--> **Overleeft de reis.** Een bundel die onderweg is beschadigd of afgekapt, faalt hoorbaar bij het importeren en wordt nooit half hersteld.
+- <!--i:clock--> **Overleeft deze versie.** Een oudere app kan nog steeds de onderdelen van een nieuwere bundel importeren die ze herkent. Een echt brekend formaat wordt netjes geweigerd.
+- <!--i:check--> **Veilig om samen te voegen.** Importeren op een installatie die al in gebruik is wist nooit iets wat niet in de bundel zat.
 
 ## De envelop
 
-Een bundel is een gewone `.zip`. De download wordt genoemd naar de persoon aan wie hij toebehoort - `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (bijvoorbeeld `LollyTools-Ada-Lovelace-2026-06-26-1.zip`) - zodat een Downloads-map vol back-ups leesbaar blijft. De voor- en achternaamdelen komen uit het profiel en worden weggelaten wanneer ze niet zijn ingesteld. Geen profiel geeft `LollyTools-2026-06-26-1.zip`, en alleen een voornaam geeft `LollyTools-Ada-2026-06-26-1.zip`. Elk deel wordt gesaneerd tot een bestandsnaamveilig token (Unicode-letters/cijfers blijven behouden, spaties/leestekens worden verwijderd, gelimiteerd tot 32 tekens). `<n>` is een volgnummer per dag, per apparaat, zodat herhaalde exports op dezelfde dag niet botsen en in volgorde blijven. `backupFilename()` in [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) bouwt de naam. De inhoud van de zip is identiek, ongeacht de naam. Binnenin:
+Een bundel is een gewone `.zip`, dus hij overleeft elk transport intact en elk unzip-programma kan de inhoud inspecteren.
 
-| Pad | Verplicht | Inhoud |
+De download is genoemd naar de persoon van wie hij is: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, bijvoorbeeld `LollyTools-Ada-Lovelace-2026-06-26-1.zip`, zodat een map Downloads vol back-ups leesbaar blijft. De voor- en achternaam komen uit het profiel en worden weggelaten wanneer niet ingesteld: zonder profiel geeft dat `LollyTools-2026-06-26-1.zip`, en alleen een voornaam geeft `LollyTools-Ada-2026-06-26-1.zip`. Elke naam wordt teruggebracht tot een bestandsnaamveilig token (Unicode-letters en cijfers blijven, spaties en leestekens worden verwijderd, hoogstens 32 tekens). `<n>` is een volgorde per dag en per apparaat, zodat herhaalde exports op één dag niet botsen en in volgorde blijven. `backupFilename()` in `data-transfer.ts` bouwt de naam, en de inhoud van de zip is dezelfde, hoe hij ook heet.
+
+| Pad | Vereist | Inhoud |
 |---|---|---|
-| `manifest.json` | ja | Format-id, versies, aantallen en integriteit per onderdeel. Het eerste waar een lezer naar kijkt. |
-| `profile.json` | indien ingesteld | Het hele `me`-record van de gebruiker: naam, contactgegevens, profielfotoreferentie en vlaggen, plus mappen, Prullenbak, projectblauwdrukken, gebruikerssjablonen en door de gebruiker gemaakte tools, favorieten, verborgen tools, taal- en emojikeuze. Gelezen via `host.profile`. |
-| `sessions.json` | ja | Elke opgeslagen sessie: slot, tool-id/versie, label, miniatuur (data-URL) en alle invoergegevens. Gelezen via `host.state`. |
-| `assets.json` | ja | Metadata voor elk geüpload asset (afbeeldingen, lettertypen, merktokens, logo's, opgeslagen kopieën van downloads), elk wijzend naar zijn bytes onder `assets/blobs/`. |
-| `assets/blobs/<n>.<ext>` | per asset | De ruwe assetbytes (afbeeldings- en lettertypebestanden). Onbewerkt (ongecomprimeerd) opgeslagen (al-gecomprimeerde formaten). De extensie is cosmetisch. De MIME in `assets.json` is leidend. |
-| `assets/blobs/<n>.c2pa` | indien aanwezig | Geëxtraheerde Content Credentials als exacte binaire bytes, waarnaar wordt verwezen via `_credentialFile` in het assetrecord. Dit zijn geen ondertekeningssleutels van het apparaat. |
-| `design-systems.json` | indien aanwezig | De design systems die op deze installatie zijn gemaakt of toegevoegd, als `{ active, records }`. Gemerged op id bij import; de actieve keuze van de bundel geldt alleen wanneer het doel geen eigen design system heeft. |
-| `file-history.json` | optioneel | Versiegebonden assetsnapshots, terminale bestandsoperatierapporten en complete batchmanifesten. Het geschiedenisonderdeel heeft een eigen versie; geleverd door de interne back-upadapter `fileHistory` van de shell. |
-| `revision-history.json` | optioneel, handmatige back-ups | Stabiele creatie-ID's, bewaarde checkpoints, miniaturen en doorlopende herstelconcepten. Geleverd door `host.state.history.backup` waar ondersteund. |
-| `file-history/versions/` | per snapshot | Eerdere assetbytes en geëxtraheerde credentials, ongeacht of het huidige asset nog bestaat. |
-| `file-history/results/` | per voltooide bewerking | Exacte uitvoerbytes. Geen origineel, voor conversie geselecteerd bestand wordt bewaard of meegenomen. |
-| `prefs.json` | ja | Lokale voorkeuren van de gebruiker zelf: `theme`, `sidebarWidth` en de activiteitsteller `ct-metrics`. |
-| `lolly.txt` | ja | Een leesbare samenvatting van de bundel (aantallen, profiel, bestandsnaam) voor wie de zip zonder Lolly opent. Opnieuw gegenereerd bij elke export en herkend bij import, dus telt nooit als een overgeslagen onderdeel. Hij wordt *na* de integriteitskaart geschreven, dus blijft erbuiten. |
+| `manifest.json` | ja | Formaat-id, versies, aantallen en integriteit per onderdeel. Het eerste waar een lezer naar kijkt. |
+| `profile.json` | indien ingesteld | Het hele `me`-record van de gebruiker: naam, contactgegevens, pasfoto-verwijzing en vlaggen, plus mappen, Prullenbak, projectblauwdrukken, gebruikerssjablonen en door gebruikers gemaakte tools, favorieten, verborgen tools, taal en emojikeuze. Gelezen via `host.profile`. |
+| `sessions.json` | ja | Elke opgeslagen sessie: slot, tool-id en -versie, label, miniatuur (data-URL) en volledige invoergegevens. Gelezen via `host.state`. |
+| `assets.json` | ja | Metadata voor elke geüploade asset (afbeeldingen, lettertypen, merktokens, logo's, opgeslagen kopieën van downloads), elk wijzend naar zijn bytes onder `assets/blobs/`. |
+| `assets/blobs/<n>.<ext>` | per asset | De ruwe assetbytes, ongecomprimeerd opgeslagen omdat de meeste al gecomprimeerde formaten zijn. De extensie is cosmetisch; het MIME-type in `assets.json` is bepalend. |
+| `assets/blobs/<n>.c2pa` | indien aanwezig | Geëxtraheerde Content Credentials als exacte binaire bytes, waarnaar `_credentialFile` in het assetrecord verwijst. Dit zijn geen ondertekeningssleutels van het apparaat. |
+| `design-systems.json` | indien aanwezig | De design systems die op deze installatie zijn gemaakt of toegevoegd, als `{ active, records }`. Zie [Importregels](#import-rules). |
+| `file-history.json` | optioneel | Versiebeheerde assetmomentopnamen, afgeronde bestandsbewerkingsrapporten en volledige batchmanifesten, met een eigen versie. Geleverd door de interne back-upadapter `fileHistory` van de shell. |
+| `revision-history.json` | optioneel, handmatige back-ups | Stabiele creatie-id's, bewaarde checkpoints, miniaturen en doorlopende herstelconcepten. Geleverd door `host.state.history.backup` waar ondersteund. |
+| `file-history/versions/` | per momentopname | Vorige assetbytes en geëxtraheerde credentials, of de huidige asset nog bestaat of niet. |
+| `file-history/results/` | per afgeronde bewerking | Exacte uitvoerbytes. Er wordt geen origineel bestand dat voor conversie is gekozen bewaard of opgenomen. |
+| `prefs.json` | ja | Lokale voorkeuren van de gebruiker: `theme`, `sidebarWidth` en de activiteitenteller `ct-metrics`. |
+| `lolly.txt` | ja | Een leesbare samenvatting van de bundel (aantallen, profiel, bestandsnaam) voor iedereen die de zip zonder Lolly opent. Bij elke export opnieuw gegenereerd en bij import herkend, dus het telt nooit als overgeslagen onderdeel. Het wordt na de integriteitstabel geschreven, dus de tabel dekt dit bestand niet. |
 
-De bundel is bewust een gewone zip: hij overleeft elk transport intact, en elke unzip-tool kan hem inspecteren.
+::: details Hoe export de zip schrijft
+Export schrijft de zip onderdeel voor onderdeel (`shells/web/src/lib/zip-stream.ts`). Uploads, opgeslagen resultaten en opgeslagen assetversies worden in stukken van 4 MiB gelezen, nooit in één keer, en opgeslagen resultaten en versies worden eerst gecontroleerd tegen hun vastgelegde SHA-256. Elk bestand wordt daarna gelezen voor zijn checksum en integriteitsdigest, en de zip verwijst ernaar waar het staat.
 
-`profile.json` is het kleinste onderdeel en het onderdeel dat een lezer in de app als eerste ziet: de gegevens die een producent één keer invult, plus de opt-in die tools toestaat ze te gebruiken.
+Er wordt niets opnieuw gecodeerd, dus een bestand met Content Credentials behoudt de exacte bytes die zijn handtekening dekt, en elk onderdeel behoudt zijn exacte bytes en digest. Voor dezelfde onderdelen en tijd is de zip identiek aan die van de eerdere in-memoryschrijver, behalve dat een geschiedenisbestand boven 16 MiB in stukken wordt gecomprimeerd. `tests/backup-streaming.test.ts` controleert dit tegen vastgelegde referentiedigests.
 
-![Het formulier met profielgegevens dat profile.json wordt: naam, contactgegevens en profielfoto](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+Op een synthetische bibliotheek van 192 MiB, gemeten in Node, kostte het afronden van de back-up ongeveer 125 tot 150 MiB bovenop de bibliotheek, tegen ongeveer 850 MiB voor de in-memoryschrijver (`node scripts/bench-backup-finalise.ts`). Importeren leest nog steeds de hele zip in het geheugen.
+:::
 
 ## `manifest.json`
 
@@ -66,116 +70,149 @@ De bundel is bewust een gewone zip: hij overleeft elk transport intact, en elke 
 
 | Veld | Betekenis |
 |---|---|
-| `format` | Altijd `lolly-backup`. Een bestand zonder dit wordt afgewezen als "geen Lolly-back-up". |
-| `formatVersion` | De lay-out waarmee deze bundel is **geschreven**. Verhoogd bij elke wijziging in de onderdelenset of vormen. Lezers gebruiken dit **niet** als grendel. |
-| `minReader` | De minimale lezerversie die nodig is om deze bundel **veilig** te importeren. Dit is het veld waarop lezers grendelen. |
-| `app` | Producerende app-id, voor diagnostiek. |
-| `exportedAt` | ISO-tijdstempel waarop de bundel is aangemaakt. |
-| `counts` | Wat de schrijver erin heeft gestopt, voor weergave en sanity-check. |
-| `integrity` | Optioneel. Koppelt elk onderdeel behalve `manifest.json` aan een SRI-achtige `sha256-<base64>`-digest van de **ongecomprimeerde** bytes. |
+| `format` | Altijd `lolly-backup`. Een bestand zonder dit veld wordt geweigerd als "not a Lolly backup". |
+| `formatVersion` | De indeling waarmee deze bundel is **geschreven**. Verhoogd bij elke wijziging in de set onderdelen of vormen. Lezers poorten **niet** op dit veld. |
+| `minReader` | De minimale lezersversie die deze bundel **veilig** kan importeren. Dit is het veld waarop lezers poorten. |
+| `app` | Id van de producerende app, voor diagnostiek. |
+| `exportedAt` | ISO-tijdstempel waarop de bundel is gemaakt. |
+| `counts` | Wat de schrijver erin zette, voor weergave en controles. |
+| `integrity` | Optioneel. Koppelt elk onderdeel behalve `manifest.json` aan een `sha256-<base64>`-digest in SRI-stijl van zijn **ongecomprimeerde** bytes. |
 
-## Versiebeleid (achterwaartse compatibiliteit)
+## Versiebeleid
 
-De scheiding tussen `formatVersion` en `minReader` is wat het formaat laat groeien zonder oudere installaties te wezen:
+Twee versienummers laten het formaat groeien zonder oudere installaties te laten stranden.
 
-- Een lezer importeert een bundel wanneer `manifest.minReader ≤` de eigen lezerversie is. Hij weigert (met "vereist een nieuwere versie van de app") alleen wanneer de bundel expliciet een nieuwere lezer eist.
-- Een **additieve** wijziging - een nieuw *optioneel* onderdeel, of een nieuw optioneel manifestveld - verhoogt `formatVersion` maar laat `minReader` ongewijzigd. Oudere apps importeren nog steeds elk onderdeel dat ze herkennen. Onderdelen die ze niet herkennen worden overgeslagen (zie hieronder), niet stilzwijgend verwijderd.
-- Een **breekende** wijziging - een waarbij een verkeerde import van een onderdeel gegevens beschadigt, of waarbij een voorheen optioneel onderdeel verplicht wordt - verhoogt `minReader`. Oudere apps weigeren dan netjes in plaats van iets te importeren dat ze niet aankunnen.
-- Als een toekomstige bundel `formatVersion` instelt maar `minReader` weglaat, vallen lezers voorzichtig terug op grendelen op `formatVersion` (behandel de wijziging als breekend).
+![Een wijziging in het bundelformaat is additief, wat oude lezers kunnen negeren, of brekend, waarbij een verkeerde import corrumpeert. Additief verhoogt formatVersion en behoudt minReader; brekend verhoogt formatVersion en verhoogt minReader. Een lezer importeert wanneer minReader hoogstens zijn eigen versie is.](/info/diagrams/concepts/backup-version-gate.svg)
 
-> **Vuistregel voor auteurs:** als elke bestaande lezer nog steeds het juiste zou doen door je toevoeging te negeren, is het additief - verhoog `formatVersion`, laat `minReader` staan. Verhoog anders `minReader`.
+- Een lezer importeert een bundel wanneer `manifest.minReader` hoogstens zijn eigen lezersversie is. Hij weigert, met "needs a newer version of the app", alleen wanneer de bundel een nieuwere lezer vereist.
+- Een **additieve** wijziging, zoals een nieuw optioneel onderdeel of een nieuw optioneel manifestveld, verhoogt `formatVersion` en laat `minReader` met rust. Oudere apps importeren nog steeds elk onderdeel dat ze herkennen, en onderdelen die ze niet herkennen worden als overgeslagen gemeld, niet stilzwijgend weggelaten.
+- Een **brekende** wijziging, waarbij een verkeerde import van een onderdeel gegevens corrumpeert of een optioneel onderdeel verplicht wordt, verhoogt `minReader`. Oudere apps weigeren dan netjes in plaats van iets te importeren dat ze niet aankunnen.
+- Als een toekomstige bundel `formatVersion` zet maar `minReader` weglaat, vallen lezers terug op poorten op `formatVersion` en behandelen ze de wijziging als brekend.
+
+> **Vuistregel voor makers:** als elke bestaande lezer nog het juiste zou doen door je toevoeging te negeren, is de wijziging additief: verhoog `formatVersion` en laat `minReader`. Verhoog anders `minReader`.
 
 ## Integriteit
 
-Wanneer `manifest.integrity` aanwezig is, verifieert een lezer de SHA-256 van elk vermeld onderdeel **voordat er iets wordt geschreven**. Een mismatch ("heeft de integriteitscontrole niet doorstaan") of een ontbrekend onderdeel ("onvolledig") breekt de hele import af - er is geen gedeeltelijk herstel. Dit vangt de corruptie op die een bestandstransport kan veroorzaken (een afgekapte AirDrop, een e-mailgateway die de bijlage opnieuw heeft gecodeerd, een slechte USB-sector).
+Wanneer `manifest.integrity` aanwezig is, controleert een lezer de SHA-256 van elk vermeld onderdeel **voordat er iets wordt geschreven**. Een afwijking ("failed its integrity check") of een ontbrekend onderdeel ("incomplete") stopt de hele import, dus er is geen gedeeltelijk herstel. Dit vangt de schade op die een bestandstransport kan aanrichten: een afgekapte AirDrop, een e-mailgateway die de bijlage opnieuw codeerde, een slechte USB-sector.
 
-Integriteit is bewust best-effort: hij wordt alleen geschreven waar Web Crypto beschikbaar is (elke veilige browsercontext en moderne Node), en alleen geverifieerd wanneer zowel de kaart als Web Crypto aanwezig zijn. Een bundel zonder de kaart - bijvoorbeeld een van vóór het bestaan van integriteit - importeert ongewijzigd. "Kan niet verifiëren" wordt nooit behandeld als "corrupt".
+Integriteit is best effort. Ze wordt alleen geschreven waar Web Crypto beschikbaar is (elke beveiligde browsercontext en moderne Node), en alleen gecontroleerd wanneer zowel de tabel als Web Crypto aanwezig zijn. Een bundel zonder de tabel, zoals een van vóór integriteit bestond, importeert ongewijzigd: "cannot verify" telt nooit als "corrupt".
 
-Het manifest vermeldt zichzelf niet en ook niet de opnieuw gegenereerde `lolly.txt`-README. De digests dekken de onderdelen waarvoor het manifest instaat.
+Het manifest vermeldt noch zichzelf noch het opnieuw gegenereerde `lolly.txt`. De digests dekken de onderdelen waarvoor het manifest instaat.
 
-## Importsemantiek
+## Importregels
 
-Importeren is een **samenvoeging**, nooit alles vervangen:
+Een import draait in een van twee modi.
 
-- Bestaande gegevens op het doel blijven staan.
-- Wanneer een sessieslot of een geüpload-afbeeldings-id op beide voorkomt, wordt de meest recent opgeslagen kopie bewaard, zodat een oudere back-up nooit nieuwer werk op het doel overschrijft. Gelijke of onbekende tijden houden de kopie van het doel aan. Op een web-installatie met creatiegeschiedenis beslist dezelfde regel welke kopie van een creatie de huidige blijft, en de andere kopie wordt bewaard als een beschermd concept (zie hieronder).
-- Het profielrecord wordt samengevoegd, niet vervangen. Elke map op het doel blijft met zijn inhoud; een map uit de bundel die het doel mist wordt toegevoegd, en een map die op beide voorkomt behoudt de naam en ouder van het doel en krijgt de leden van de bundel die het mist erbij. Een sessie die in een map op het doel is opgeslagen, blijft daar opgeslagen.
-- Favorieten (tools, catalogusassets en Projecten-items) worden samengevoegd. Sjablonen, Projecten-sjablonen en gebruikerstools uit de bundel worden toegevoegd wanneer het doel geen record met dat id heeft. Prullenbak-items van beide worden bewaard, zodat een item dat op een van beide installaties kon worden hersteld dat nog steeds kan.
-- Elk ander profielveld (naam, contactgegevens, taal, feature flags, verborgen tools en de overige instellingen) behoudt de waarde van het doel. Een veld dat leeg is op het doel neemt de waarde van de bundel over. Hetzelfde geldt voor `prefs.json`: een voorkeur wordt alleen geschreven waar het doel er geen heeft.
-- De gewone toepassing van apparaatsynchronisatie is de uitzondering: om apparaten gelijk te houden, neemt hij het profielrecord, de voorkeuren, de sessies en de afbeeldingen van de gesynchroniseerde kopie over. Een eerdere kopie herstellen doet hetzelfde, omdat dat doelbewust teruggaat in de tijd. De eerste koppeling, **Naar dit apparaat brengen**, voegt samen als een import.
-- Historische assetversies en bewerkings-ID's zijn onveranderlijke uitzonderingen: een herhaalde import is idempotent, en een ID die al andere bytes/geschiedenis noemt, wordt geweigerd, niet overschreven. Een identiek huidig asset opnieuw importeren behoudt zijn versie. Een gewijzigd huidig asset moet een andere versie dragen.
-- Creatiegeschiedenis wordt ook samengevoegd. Een creatie die aan beide kanten bestaat, houdt de meest recent opgeslagen kopie als huidige aan en de andere kopie als een beschermd concept; een creatie waarvan het doel de slot voor een andere creatie gebruikt, wordt ernaast toegevoegd; een creatie in de Prullenbak van het doel blijft daar. Een checkpoint-ID dat andere inhoud op het doel noemt, behoudt die van het doel. Een archief dat zijn eigen controles niet doorstaat, stopt de import vóór elke wijziging aan profiel, sessie, asset of voorkeur. Een identieke herhaalde import voegt geen opslag toe.
-- Niets dat niet in de bundel zat, wordt aangeraakt. Een sessie die het doel had maar de bundel niet, overleeft de import.
+- **Merge** is wat **Import data…** doet, en wat de eerste aansluiting van sync, **Bring it to this device**, doet. Gegevens op het doel blijven, en niets wat niet in de bundel zat wordt aangeraakt: een sessie die het doel had en de bundel niet, overleeft de import.
+- **Replace** is wat apparaatsync gebruikt om apparaten gelijk te houden: het neemt het profielrecord, de voorkeuren, sessies, afbeeldingen en de keuze van actief design system van de gesynchroniseerde kopie, en verwijdert alleen items die een ander apparaat sinds de laatste sync verwijderde. Een eerdere kopie herstellen gaat verder en laat het apparaat overeenkomen met die kopie, waarbij alles wordt verwijderd wat de kopie niet bevat, nadat het apparaat eerst is opgeslagen. [Je apparaten synchroniseren](/info/sync.html) behandelt wat een persoon ziet.
 
-Opgeslagen sessies koppelen automatisch opnieuw aan hun afbeeldingen: assetreferenties worden bijgehouden op id, en de bridge lost ze opnieuw op nadat de geüploade afbeeldingen zijn hersteld (dat moet toch al, omdat `blob:`-URL's een herlaad niet overleven).
+Bij een merge blijft alles wat alleen op het doel staat behouden, en elke soort gegevens in de bundel ontmoet het doel als volgt:
 
-De importsamenvatting rapporteert `{ profile, sessions, userAssets, prefs, skipped, failedAssets }`. `failedAssets` telt geüploade assets die niet konden worden hersteld (bijvoorbeeld apparaatopslag vol). Dit staat los van `skipped`, dat onderdelen telt van een achterwaarts-compatibele nieuwere schrijver die deze build niet herkende. De UI toont `skipped` ("… · N nieuwere items overgeslagen"), zodat het herstel eerlijk is over wat er is achtergelaten.
+| Gegevens | Staat al op het doel | Alleen in de bundel |
+|---|---|---|
+| Sessies (op slot) en geüploade afbeeldingen (op id) | De recentst opgeslagen kopie blijft, dus een oudere back-up overschrijft nooit nieuwer werk. Gelijke of onbekende tijden behouden de kopie van het doel. | Toegevoegd |
+| Mappen | De naam en ouder van het doel blijven, en de map krijgt de leden van de bundel die ze mist. Een sessie die op het doel in een map is ingedeeld, blijft daar ingedeeld. | Toegevoegd |
+| Favorieten (tools, catalogusassets en Projects-items) | Gecombineerd | Toegevoegd |
+| Sjablonen, Projects-sjablonen en gebruikerstools (op id) | Het record van het doel blijft. | Toegevoegd |
+| Prullenbakvermeldingen | De vermelding van het doel blijft. | Toegevoegd, zodat een item dat op beide installaties kon worden hersteld dat nog steeds kan. Een vermelding waarvan de map op het doel weer in gebruik is, of waarvan het Prullenbakslot het doel al gebruikt, wordt weggelaten. |
+| Andere profielvelden (naam, contactgegevens, taal, feature flags, verborgen tools en andere instellingen) | De waarde van het doel blijft. | Overgenomen waar het veld van het doel leeg is |
+| Voorkeuren (`prefs.json`) | De waarde van het doel blijft. | Geschreven waar het doel er geen heeft |
+| Design systems (op id) | Het record van de bundel vervangt dat van het doel. | Toegevoegd. De actieve keuze van de bundel geldt alleen wanneer het doel geen eigen design system heeft. |
+| Creatiegeschiedenis | De recentst opgeslagen kopie blijft actueel, en de andere wordt bewaard als beschermd concept. | Toegevoegd |
 
-Wanneer bestandsgeschiedenis aanwezig is, draagt de samenvatting ook `assetVersions`, `fileOperations` en `failedHistory`. Opslag-uitputting of conflicten met onveranderlijke ID's kunnen een gedeeltelijk herstel veroorzaken; de UI vertelt de gebruiker de bron-back-up te bewaren. Cloudsynchronisatie zet zijn toegepaste revisie **niet** verder na een gedeeltelijk of niet-ondersteund herstel, zodat de snapshot beschikbaar blijft om opnieuw te proberen. Herstellen is geen enkele transactie over alle profiel-/sessie-/asset-/geschiedenisopslagen heen.
+**Opgeslagen sessies koppelen automatisch opnieuw aan hun afbeeldingen.** Assetverwijzingen worden op id bewaard, en de brug lost ze opnieuw op nadat de afbeeldingen zijn hersteld, wat hij sowieso moet doen omdat `blob:`-URL's een herlaad niet overleven.
 
-## Creatiegeschiedenis (v3)
+**Geschiedenisrecords veranderen nooit nadat ze zijn geschreven.** Een herhaalde import van assetversies en bewerkings-id's voegt niets toe, en een id die al andere bytes of geschiedenis benoemt wordt geweigerd, niet overschreven. Een identieke huidige asset opnieuw importeren behoudt haar versie, en een gewijzigde huidige asset moet een andere versie dragen.
 
-Handmatige back-ups van een web-host met geschiedeniscapaciteit bevatten `revision-history.json` met zijn eigen schema `{ version: 1, documents, revisions, recoveries }`. Het draagt de bewaarde ID's, canonieke invoersnapshots, versiestempels, rasterpreviews en aparte schrijversconcepten. De geschiedenisadapter legt huidige sessies en hun koppen vast in één leestransactie; `sessions.json` gebruikt diezelfde huidige snapshots voor oudere lezers.
+**Creatiegeschiedenis heeft nog een paar regels.** Een creatie waarvan het slot op het doel voor een andere creatie wordt gebruikt, wordt als aparte creatie toegevoegd, en een creatie in de Prullenbak van het doel blijft daar. Een checkpoint-id die op het doel andere inhoud benoemt, behoudt dat van het doel. Een archief dat zijn eigen controles niet doorstaat, stopt de import voordat een profiel, sessie, asset of voorkeur verandert, en een identieke herhaalde import voegt geen opslag toe.
 
-Herstel controleert de SHA-256 en bytetellingen van de payload, unieke identiteiten, document/head-relaties, afstamming, tijdstempels, previewtypen en limieten voordat het archief in één transactie wordt vastgelegd. Gecomprimeerde parent-referenties kunnen ontbreken. Bestaand huidig werk wordt nooit stilzwijgend vervangen: wanneer een creatie aan beide kanten bestaat, wordt de kant die niet als huidige wordt aangehouden een beschermd concept. De transferlimiet van 384 MiB van het archief wordt expliciet gecontroleerd, en opslaglimieten worden afgedwongen zonder bewaarde checkpoints af te knippen. De algehele back-up gebruikt nog steeds een in-memory ZIP-implementatie en is geen streamend archief.
+**De samenvatting meldt wat er gebeurde.** Elke import geeft `profile`, `sessions`, `userAssets`, `prefs`, `skipped` en `failedAssets` terug.
 
-De samenvatting voegt `revisions` en `recoveryDrafts` toe, waarbij alleen wordt geteld wat deze import heeft toegevoegd, en `added`, `kept`, `replaced`, `copies` en `hidden` voor hoe elke creatie is samengevoegd. Een shell zonder deze capaciteit herstelt gewone sessies en meldt het geschiedenisonderdeel als overgeslagen. Native bestandssysteemgeschiedenis blijft niet-ondersteund tot zijn adapter duurzame geschiedenistransacties levert. P2P-gaststatus heeft geen duurzame geschiedenis of herstelarchief.
+- `failedAssets` telt geüploade assets die niet konden worden hersteld, bijvoorbeeld omdat de opslag van het apparaat vol is.
+- `skipped` telt onderdelen van een nieuwere schrijver die deze build niet herkende. De app toont het ("… · N newer items skipped"), zodat een herstel zegt wat het achterliet.
+- Met bestandsgeschiedenis voegt de samenvatting `assetVersions`, `fileOperations`, `fileBatches` en `failedHistory` toe. Uitputting van opslag of een conflict met een onveranderlijke id kan een gedeeltelijk herstel veroorzaken, en de app zegt de persoon dan de bronback-up te bewaren.
+- Met creatiegeschiedenis voegt ze `revisions` en `recoveryDrafts` toe, die alleen tellen wat deze import toevoegde, en `added`, `kept`, `replaced`, `copies` en `hidden` voor hoe elke creatie is samengevoegd. `skippedCheckpoints` telt checkpoints waarvan de id op het doel andere inhoud benoemt, en `historyLeftOut` telt oudere checkpoints en concepten die niet in de geschiedenisruimte van het apparaat pasten.
+- Een replace-import voegt `removed` en `failedRemovals` toe.
 
-Persoonlijke snapshotsynchronisatie sluit creatiegeschiedenis expliciet uit. Een snapshot toepassen op een lokaal document met geschiedenis bewaart zijn vorige werktoestand als een apart herstelconcept en maakt het schrijftoken van elke open editor ongeldig. Zijn onveranderlijke checkpoints blijven op het apparaat. Dit beschermt lokale geschiedenis tijdens snapshotvervanging; het merget geen gelijktijdige apparaatgeschiedenissen.
-
-Historische assetverwijzingen worden bewaard, terwijl renderen assets nog steeds oplost via de bestaande bibliotheek van de bestemming. Dit archief garandeert nog geen exacte oude assetbytes of oude tool-renders. Assetversie- en bestandsresultaatbytes blijven reizen via hun eigen bestaande, aparte back-uponderdeel.
-
-## Opgeslagen versies en bestandsresultaten (v2)
-
-Het optionele geschiedenisonderdeel bevat `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`; lezers accepteren ook de eerdere history-v1-vorm zonder batches. Elke snapshot identificeert het stabiele asset-ID en de exacte versie, zijn opslagtijd, bytelengte en hex-SHA-256, plus een assetrecord waarvan `_file` en optioneel `_credentialFile` naar binaire onderdelen wijzen. Bewerkingen dragen de oorspronkelijke bestandsfeiten, het verzoek, het rapport, tijdstempels en optioneel resultaat-`_file`; namen van opslagbackends, OPFS-handles en uitvoeringsleases reizen niet mee. Oudere, alleen-history-v1-lezers weigeren de nieuwe geschiedenisversie vóór import, in plaats van batchlidmaatschap stilzwijgend te laten vallen.
-
-Batchmanifesten leggen elke geselecteerde bron vast vóór verwerking, inclusief nooit gelezen bestanden, geannuleerde leden, mislukte reserveringen van resultaatruimte en onderbroken werk. Elk lid heeft een stabiel bewerkings-ID, bronreferentie/-feiten, gevraagde uitvoernaam en terminaal rapport. Een ongelezen bron heeft verklaarde feiten, geen verzonnen digest. Import valideert lididentiteit en consistentie met elk meegedragen bewerkingsrapport. Batchrapporten blijven beschikbaar wanneer individuele resultaten expliciet zijn verwijderd, maar een ontvangstbewijs impliceert niet dat de uitvoerbytes nog worden opgeslagen.
-
-- Elk bekend geschiedenisrecord, rapport en verwezen bestand wordt gevalideerd vóór elke profiel- of assetimportschrijving. Ontbrekende bytes en niet-overeenkomende SHA-256 falen zelfs als de envelop geen integriteitskaart heeft. Geëxtraheerde credentials blijven bytearrays, ook bij imports van oudere schrijvers die ze als JSON serialiseerden als objecten met numerieke sleutels.
-- Lopende bewerkingen worden onderbroken records in de back-up, met een verklarend foutrapport en geen resultaat. Herstellen herstart nooit achtergrondwerk en importeert nooit een actieve lease. Opnieuw proberen vereist het selecteren van het originele bestand, gecontroleerd tegen zijn geregistreerde SHA-256 indien beschikbaar.
-- Herstelde resultaten leggen hun bytes en metadata samen vast in IndexedDB. Gewone nieuwe resultaten gebruiken OPFS waar beschikbaar, met een IndexedDB-terugval. Een bestaande actieve bewerking wordt nooit vervangen door een import.
-- De ZIP-samenstelling van geschiedenis is nog steeds in het geheugen: de huidige limiet is **256 MiB geschiedenispayload**, **4 MiB geschiedenismetadata**, hoogstens **100 bewerkingen**, **100 batches** en **2.000 snapshots**. Export weigert expliciet te grote of onvolledige geschiedenis; laat het nooit stilzwijgend weg. Download belangrijke versies/resultaten afzonderlijk voordat je oudere lokale kopieën verwijdert. Deze limieten zijn geen gemeten piekgeheugengarantie voor telefoons.
-- Lokale resultaatgeschiedenis heeft een budget van 512 MiB en een maximum van 100 records. Assetsnapshots hebben een apart budget van 512 MiB en hoogstens 20 historische versies per asset; geëxtraheerde credentialbytes tellen mee voor dat snapshotbudget. Herstel respecteert deze limieten en verdringt nooit stilzwijgend bestaande gebruikersgegevens.
-- Lokale batchmetadata heeft een apart budget van 4 MiB, hoogstens 100 manifesten en 20 leden per batch. Openstaande leden reserveren metadatacapaciteit, met een plafond van 32 KiB per rapport per lid. Dit is een logisch budget, geen garantie van browserschijfruimte; een echte quotafout wordt getoond en het in-memory-rapport blijft downloadbaar. Een batchlid opnieuw proberen maakt een nieuwe batch aan zonder het oude rapport te overschrijven. Een batchrecord verwijderen verwijdert geen individuele resultaatbytes of bibliotheekassets.
-- Geconverteerde resultaten kunnen expliciet aan de bibliotheek worden toegevoegd zonder normalisatie of hercodering. Bron-/uitvoerhashes en de bewerkingsrelatie vergezellen het asset. Herhaalde toevoegingen hergebruiken een ongewijzigde kopie; een bewerkte kopie wordt nooit overschreven. Rasterafbeeldingen kunnen een nieuw Design-document starten. Dat document gebruikt het huidige bibliotheek-asset-ID: exacte versiefixaties afdwingen door de hele Design-runtime en het URL-pad heen is nog apart werk. SVG/HTML/PDF/ZIP-resultaten worden door deze overdracht bewaard als ondoorzichtige bestandsassets, niet gepromoveerd tot vertrouwde interactieve/vectorinhoud.
-- **Convert → Recente bestandsoperaties** toont geschiedenisgebruik, rapporten, downloads en de versiebeheerder. De beheerder vindt ook eerdere versies van verwijderde bibliotheekassets. Een snapshot herstellen maakt een nieuwe huidige versie aan terwijl de geselecteerde snapshot intact blijft. **Instellingen → Opslag** boekt resultaten en versies apart van wegwerpbare caches.
-- Expliciete opruiming van tijdelijke bestanden verwijdert alleen bytes die van een bewerking zijn en niet worden verwezen. Huidige records beschermen hun bestanden; recente OPFS-bestanden hebben een respijtperiode van een uur. Opgeslagen resultaten en assetsnapshots worden niet automatisch gewist.
-
-Oudere lezers accepteren nog steeds de v2-envelop (`minReader: 1`) en herstellen bekende onderdelen, waarbij niet-ondersteunde geschiedenisonderdelen als overgeslagen worden geteld. Volledig geschiedenisherstel vereist een shell met de `fileHistory`-adapter; dit is een interne naad van de shell, geen nieuwe, tool-gerichte `HostV1`-capaciteit. Echt herstel tussen twee apparaten wordt gedekt door de lokale Chromium-poort; geïnstalleerde Tauri-/iOS-/Android-hersteltests blijven apart.
+Herstel is geen enkele transactie over de profiel-, sessie-, asset- en geschiedenisopslag. Cloudsync laat zijn toegepaste revisie **niet** vorderen na een gedeeltelijk of niet-ondersteund herstel, dus de kopie blijft beschikbaar om het opnieuw te proberen.
 
 ## Wat niet meereist
 
-- **Catalogus-caches** (gedownloade assetmetadata en blobs, de toolindex) - gratis opnieuw gesynchroniseerd op het doel.
-- **Catalogustools en catalogusassets** - buiten bereik, en verondersteld al aanwezig te zijn op het doel. Merktokens, lettertypen en logo's die de gebruiker toevoegde zijn gebruikersassets, dus die reizen wel mee.
-- **`blob:`- / object-URL's** - opnieuw gegenereerd door de bridge bij het laden.
-- **Conversieoriginelen, live uitvoeringsleases en machinelokale toegangs-/ondertekeningsgeheimen** - geen draagbare geschiedenispayload. Een opgeslagen resultaat is een kopie, geen belofte dat de originele bron is geback-upt.
-- **De exportvolgnummerteller** - de teller per dag voor downloadnamen (`localStorage`-sleutel `lolly-export-seq`) is een lokaal naamgevingsgemak. Hij blijft buiten `PREF_KEYS`, dus reist nooit mee in een bundel.
+- **Catalogusbuffers** (gedownloade assetmetadata en blobs, de toolindex), die het doel gratis opnieuw synchroniseert.
+- **Catalogustools en catalogusassets**, die buiten bereik vallen en op het doel als aanwezig worden verondersteld. Merktokens, lettertypen en logo's die de gebruiker toevoegde zijn gebruikersassets, dus die reizen wel mee.
+- **`blob:`- en object-URL's**, die de brug bij het laden opnieuw genereert.
+- **Conversie-originelen, live uitvoeringslease en machinelokale toegangs- of ondertekeningsgeheimen.** Deze zijn geen draagbare geschiedenis. Een opgeslagen resultaat is een kopie, geen belofte dat de oorspronkelijke bron is geback-upt.
+- **De exportvolgteller**, de teller per dag voor de naamgeving van downloads in `localStorage` (`lolly-export-seq`). Hij blijft buiten `PREF_KEYS`, dus hij reist nooit in een bundel mee.
 
-De opslagmeter splitst hetzelfde uit. Opgeslagen sessies, My images en File results & versions reizen mee in een bundel. De asset-cache, toolpreviews en offline pins daaronder zijn allemaal opnieuw af te leiden, dus blijven achter.
+De opslagmeter toont dezelfde verdeling. Opgeslagen sessies, My images en File results & versions gaan in een bundel. De assetbuffer, toolvoorbeelden en offline pins eronder kunnen allemaal worden herbouwd, dus ze blijven achter.
 
-![De opslagmeter die de gegevens van dit apparaat onderverdeelt in benoemde categorieën, met Opgeslagen sessies en Mijn afbeeldingen apart bijgehouden van de Assetcache, hier op een verse installatie waar elke categorie nog leeg is](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
+![De opslagmeter die de gegevens van dit apparaat in benoemde categorieën verdeelt, met Saved sessions en My images apart bijgehouden van de Asset cache, hier op een verse installatie waar elke categorie nog leeg is](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
-## Garantie over shells heen
+## Organisatiegegevens met Lolly Work
 
-`data-transfer.ts` leest en schrijft uitsluitend via de capability bridge (`host.profile`, `host.state`, `host.assets`) en de gedeelde `localStorage`-voorkeuren. Dezelfde module leest en schrijft de gemeenschappelijke envelop op web en Tauri, via IndexedDB- of bestandssysteemopslag. Optionele geschiedenisonderdelen verschijnen alleen waar de bijbehorende adapter beschikbaar is; een niet-ondersteund onderdeel wordt bij import als overgeslagen gemeld. De headless suite oefent de gemeenschappelijke onderdelen uit tegen een in-memory bridge, terwijl geschiedenistransacties ook echte browsertests hebben.
+Deze bundel maakt een back-up van de persoonlijke bibliotheek van het apparaat. Het is geen back-up van een **Lolly Work**-instantie: organisatieaccounts, toegangsbeleid, gedeelde projecten, catalogusversies, goedkeuringen, renderjobs en auditrecords worden door die dienst bewaard. Verbind opnieuw en meld je aan om weer toegang tot gedeeld werk te krijgen; een persoonlijke bundel importeren verleent die toegang niet.
+
+Beheerders maken back-ups van serverdata, bewaren en wissen ze met de eigen gidsen van Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) en [Work storage and data lifecycle](/info/work-data-lifecycle.html). Een apparaat wissen of exporteren doet geen van die serverbewerkingen.
+
+## Over shells heen
+
+`data-transfer.ts` leest en schrijft alleen via de capabilitybrug (`host.profile`, `host.state`, `host.assets`) en de gedeelde `localStorage`-voorkeuren. Dezelfde module leest en schrijft de gemeenschappelijke envelop op het web en in de desktop- en mobiele apps, over IndexedDB of bestandssysteemopslag. Optionele geschiedenisonderdelen verschijnen alleen waar hun adapter beschikbaar is, en een niet-ondersteund onderdeel wordt bij import als overgeslagen gemeld. De headless suite oefent de gemeenschappelijke onderdelen tegen een in-memorybrug, en geschiedenistransacties hebben ook tests in een echte browser.
 
 Twee shells vallen buiten die garantie, om verschillende redenen:
 
-- De **eenmalige CLI** heeft niets om mee te dragen - zijn status is in-memory en kortstondig per aanroep.
-- De **TUI** bewaart wel status (`~/.lolly`: sessies, mappen, profiel) en zijn Profielweergave kan er een back-up van maken, maar hij schrijft een eigen, *eenvoudiger* archief: `saved-state/<slot>.json` per sessie plus `profile.json` en `folders.json`, zonder manifest, zonder `formatVersion`/`minReader` en zonder integriteitskaart. Het is **niet** importeerbaar met dit formaat - een lezer wijst het af als "not a Lolly backup" - en verwarrend genoeg gebruikt het een vergelijkbare naam (`lolly-backup-<stamp>.zip`). De twee verenigen is een bekend gat.
+- De **one-shot CLI** heeft niets mee te nemen: zijn status staat in het geheugen en duurt één aanroep.
+- De **TUI** bewaart status in `~/.lolly` (sessies, mappen, profiel), en zijn Profile-weergave kan er een back-up van maken, maar schrijft een eenvoudiger eigen archief: `saved-state/<slot>.json` per sessie plus `profile.json` en `folders.json`, zonder manifest, zonder `formatVersion` of `minReader` en zonder integriteitstabel. Dit formaat kan het niet importeren (een lezer weigert het als "not a Lolly backup"), en de naam lijkt er verwarrend op (`lolly-backup-<stamp>.zip`). Beide verenigen is een bekende leemte.
 
-## Gereserveerde uitbreidingspunten
+## Nog niet draagbaar
 
-De envelop is door ontwerp een manifest plus een set genoemde onderdelen, zodat nieuwe soorten draagbare gegevens er later **zonder een breking wijziging** in mee kunnen rijden. Ze passen erin als additieve onderdelen (nieuwe `formatVersion`, dezelfde `minReader`), en de lezer van vandaag slaat over wat hij niet herkent. Deze zijn nog niet gebouwd. De namen zijn hier gereserveerd zodat het formaat coherent blijft wanneer ze er komen.
+De envelop is een manifest plus benoemde onderdelen, dus nieuwe soorten draagbare gegevens kunnen later als additieve onderdelen toetreden (een nieuwe `formatVersion`, dezelfde `minReader`), en de huidige lezers slaan over wat ze niet herkennen. Design systems reizen al op deze manier, als `design-systems.json` plus hun gebruikersassets.
 
-- **`tokens.json` - designtokens.** Een [W3C DTCG](https://tr.designtokens.org/format/)-designtokendocument (het formaat dat [Penpot importeert en exporteert](https://help.penpot.app/user-guide/design-systems/design-tokens/) - tokens met `$value`/`$type`/`$description`, georganiseerd in groepen, sets en thema's). Een tokenset in de bundel laat een gebruiker zijn merkprimitieven tussen installaties verplaatsen, samen met zijn sessies. (De eigen merktokens van een gebruiker reizen vandaag al mee als het asset `user/tokens/brand` in `assets.json`; dit onderdeel zou een heel DTCG-document dragen, met zijn sets en thema's.) Op langere termijn wordt een geïngesteerde tokenset een eersteklas bron waartegen tools en paletassets zich oplossen.
-- **`penpot/` - geïngesteerde Penpot-bestanden.** Een gereserveerde map voor een Penpot-bestand (of zijn geëxtraheerde, voor Lolly relevante subset) dat is geïmporteerd en getoond *als een tool*. De bundel zal de geïngesteerde definitie dragen, zodat die meereist met de rest van de gegevens van de gebruiker.
+Twee namen zijn gereserveerd voor gegevens die nog niet meereizen:
 
-Alles buiten deze gereserveerde namen en de bovenstaande onderdelen is voor een lezer een onbekend onderdeel: ongemoeid gelaten en meegeteld in `skipped`.
+- **`tokens.json`** zou een heel [W3C DTCG](https://tr.designtokens.org/format/)-designtokensdocument dragen met zijn groepen, sets en thema's, het formaat dat [Penpot importeert en exporteert](https://help.penpot.app/user-guide/design-systems/design-tokens/). De eigen merktokens van een gebruiker reizen al mee als de asset `user/tokens/brand` in `assets.json`, en de tokens van een design system reizen mee met zijn record.
+- **`penpot/`** is gereserveerd voor een ingelezen Penpot-bestand, of de voor Lolly relevante subset ervan, aangeboden als tool.
+
+De huidige lezers kennen geen van beide namen. Zoals al het andere buiten de bovenstaande onderdelen zijn ze voor hen een onbekend onderdeel: onaangeroerd gelaten en geteld in `skipped`.
+
+## Geschiedenisonderdelen
+
+De twee geschiedenisonderdelen zijn optioneel en hebben hun eigen versies. De meeste lezers kunnen dit gedeelte overslaan.
+
+::: details Creatiegeschiedenis (v3)
+Handmatige back-ups van een webinstallatie met creatiegeschiedenis bevatten `revision-history.json`, met een eigen schema `{ version: 1, documents, revisions, recoveries }`. Het draagt de bewaarde id's, canonieke invoermomentopnamen, versiestempels, rastervoorbeelden en afzonderlijke schrijversconcepten. De geschiedenisadapter legt huidige sessies en hun koppen vast in één leestransactie, en `sessions.json` gebruikt dezelfde huidige momentopnamen voor oudere lezers.
+
+Herstel controleert de payload-SHA-256 en bytetellingen, unieke identiteiten, document- en kopverhoudingen, afstamming, tijdstempels, voorbeeldtypen en limieten voordat het archief in één transactie wordt vastgelegd. Gecompacteerde ouderverwijzingen mogen ontbreken. Bestaand huidig werk wordt nooit stilzwijgend vervangen: wanneer een creatie aan beide kanten bestaat, wordt de kant die niet actueel blijft een beschermd concept.
+
+De overdrachtslimiet van 384 MiB van het archief wordt expliciet gecontroleerd, en opslaglimieten worden afgedwongen zonder bewaarde checkpoints af te kappen. Export schrijft `revision-history.json` en `sessions.json` in stukken, met dezelfde bytes als één enkele `JSON.stringify` geeft, zodat de bestandstekst nooit als geheel wordt vastgehouden. Een geschiedenisbestand dat de limiet zou passeren wordt weggelaten op het moment dat het dat doet en vanaf daar alleen geteld. Het archief wordt dan opnieuw gemaakt zonder zijn oudste automatische checkpoints, en de exportsamenvatting telt die als `checkpointsLeftOut`, of het archief wordt als geheel geweigerd.
+
+Een shell zonder deze capability herstelt gewone sessies en meldt het geschiedenisonderdeel als overgeslagen. Native bestandssysteemgeschiedenis blijft niet ondersteund totdat zijn adapter duurzame geschiedenistransacties levert. Gasten in een privécollab hebben geen duurzame geschiedenis of herstelarchief.
+
+Persoonlijke momentopnamesync laat creatiegeschiedenis weg. Een momentopname toepassen op een lokaal document met geschiedenis bewaart zijn vorige werkstatus als apart herstelconcept en maakt het schrijftoken van elke open editor ongeldig. De onveranderlijke checkpoints blijven op het apparaat. Dit beschermt lokale geschiedenis tijdens het vervangen van een momentopname; het voegt gelijktijdige apparaatgeschiedenissen niet samen.
+
+Historische assetverwijzingen blijven behouden, terwijl rendering assets nog steeds oplost via de bestaande bibliotheek van de bestemming. Dit archief garandeert nog niet de exacte oude assetbytes of oude toolrenders. Bytes van assetversies en bestandsresultaten reizen in hun eigen back-uponderdeel.
+:::
+
+::: details Opgeslagen versies en bestandsresultaten (v2)
+Het optionele geschiedenisonderdeel bevat `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`, en lezers accepteren ook de eerdere vorm history-v1 zonder batches. Elke momentopname geeft de stabiele asset-id en exacte versie, het opslagtijdstip, de bytelengte en hex-SHA-256, plus een assetrecord waarvan `_file` en optioneel `_credentialFile` naar binaire onderdelen wijzen. Bewerkingen dragen de oorspronkelijke bestandsfeiten, het verzoek, het rapport, tijdstempels en optioneel een resultaat-`_file`. Namen van opslagbackends, OPFS-handles en uitvoeringsleases reizen niet mee. Lezers die alleen history v1 kennen weigeren de nieuwe geschiedenisversie voordat ze importeren, in plaats van het batchlidmaatschap stilzwijgend te laten vallen.
+
+Batchmanifesten leggen elke geselecteerde bron vast vóór de verwerking, inclusief bestanden die nooit zijn gelezen, geannuleerde leden, mislukkingen bij het reserveren van resultaatruimte en onderbroken werk. Elk lid heeft een stabiele bewerkings-id, bronverwijzing en feiten, gevraagde uitvoernaam en eindrapport. Een ongelezen bron heeft aangegeven feiten, geen verzonnen digest. Import valideert lididentiteit en consistentie met een meegedragen bewerkingsrapport. Batchrapporten blijven beschikbaar wanneer afzonderlijke resultaten zijn verwijderd, maar een bon betekent niet dat de uitvoerbytes nog zijn opgeslagen.
+
+- **Eerst valideren.** Elk bekend geschiedenisrecord, rapport en verwezen bestand wordt gevalideerd voordat een profiel- of assetimport schrijft. Ontbrekende bytes en afwijkende SHA-256 falen zelfs wanneer de envelop geen integriteitstabel heeft. Geëxtraheerde credentials blijven bytearrays, ook bij imports van oudere schrijvers die ze als objecten met numerieke sleutels serialiseerden.
+- **Lopend werk.** Lopende bewerkingen worden onderbroken records in de back-up, met een verklarend foutrapport en zonder resultaat. Herstellen start nooit achtergrondwerk opnieuw of importeert een actieve lease. Opnieuw proberen betekent het oorspronkelijke bestand opnieuw kiezen, gecontroleerd tegen zijn vastgelegde SHA-256 wanneer beschikbaar.
+- **Opslag.** Herstelde resultaten leggen hun bytes en metadata samen vast in IndexedDB. Gewone nieuwe resultaten gebruiken OPFS waar beschikbaar, met een IndexedDB-terugval. Een bestaande live bewerking wordt nooit door een import vervangen.
+- **Back-uplimieten.** Export streamt deze bytes naar het archief, maar herstel pakt nog steeds een hele back-up in het geheugen uit, dus de limieten blijven: **256 MiB aan geschiedenispayload**, **4 MiB aan geschiedenismetadata**, hoogstens **100 bewerkingen**, **100 batches** en **2.000 momentopnamen**. Export weigert te grote of onvolledige geschiedenis expliciet en laat die nooit stilzwijgend weg. Download belangrijke versies en resultaten een voor een voordat je oudere lokale kopieën verwijdert. Deze limieten zijn geen gemeten garantie voor piekgeheugen op telefoons.
+- **Lokale budgetten.** Lokale resultaatgeschiedenis heeft een budget van 512 MiB en een plafond van 100 records. Assetmomentopnamen hebben een apart budget van 512 MiB en hoogstens 20 historische versies per asset, en geëxtraheerde credentialbytes tellen mee voor dat budget. Herstel respecteert deze limieten en verdringt nooit stilzwijgend bestaande gebruikersgegevens.
+- **Batchmetadata.** Lokale batchmetadata heeft een apart budget van 4 MiB, hoogstens 100 manifesten en 20 leden per batch. Wachtende leden reserveren metadatacapaciteit, met een rapportplafond van 32 KiB per lid. Dit is een logisch budget, geen garantie voor browserschijfruimte: een echte quotumfout wordt getoond, en het rapport in het geheugen blijft downloadbaar. Een batchlid opnieuw proberen maakt een nieuwe batch zonder het oude rapport te overschrijven. Een batchrecord verwijderen verwijdert geen afzonderlijke resultaatbytes of bibliotheekassets.
+- **Resultaten in de bibliotheek.** Geconverteerde resultaten kunnen aan de bibliotheek worden toegevoegd zonder normalisatie of hercodering, met de bron- en uitvoerhashes en de bewerkingsrelatie erbij. Herhaald toevoegen hergebruikt een ongewijzigde kopie, en een bewerkte kopie wordt nooit overschreven. Rasterafbeeldingen kunnen een nieuw Design-document starten, dat de huidige asset-id van de bibliotheek gebruikt; exacte versiepins afdwingen in het hele runtime- en URL-pad van Design is apart werk. SVG-, HTML-, PDF- en ZIP-resultaten worden bewaard als ondoorzichtige bestandsassets, niet gepromoveerd tot vertrouwde interactieve of vectorinhoud.
+- **Waar mensen dit zien.** **Convert → Recent file operations** toont geschiedenisgebruik, rapporten, downloads en het versiebeheer, dat ook eerdere versies van verwijderde bibliotheekassets vindt. Een momentopname herstellen maakt een nieuwe huidige versie en behoudt de geselecteerde momentopname. **Settings → Preferences → Storage** telt resultaten en versies apart van wegwerpbuffers.
+- **Opschonen.** Expliciet opschonen van tijdelijke bestanden verwijdert alleen bytes die eigendom zijn van de bewerking en niet worden verwezen. Huidige records beschermen hun bestanden, en recente OPFS-bestanden hebben een uur respijt. Opgeslagen resultaten en assetmomentopnamen worden niet automatisch gewist.
+
+Oudere lezers accepteren de v2-envelop nog steeds (`minReader: 1`) en herstellen de onderdelen die ze kennen, waarbij niet-ondersteunde geschiedenisonderdelen als overgeslagen worden geteld. Volledig geschiedenisherstel vereist een shell met de adapter `fileHistory`, een naad binnen de shell in plaats van een nieuwe capability `HostV1` voor tools. Echt herstel tussen twee apparaten wordt gedekt door de lokale Chromium-gate; herstel op geïnstalleerde desktop-, iOS- en Android-apps moet nog apart worden geaccepteerd.
+:::
 
 ## Referentie
 
-- Module: [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION` - de naamgever `backupFilename()` is intern).
-- Contracttest: [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) - retour-, merge-, integriteits-, voorwaartse-compatibiliteits- en lezerpoort-gevallen.
-- Geschiedeniscontracttests: [`tests/file-history-backup.test.ts`](../tests/file-history-backup.test.ts), [`tests/file-batch-history.test.ts`](../tests/file-batch-history.test.ts) en [`tests/file-result-library.test.ts`](../tests/file-result-library.test.ts). Browseracceptatie: [`tests/file-history.browser.test.ts`](../tests/file-history.browser.test.ts), [`tests/file-batch-history.browser.test.ts`](../tests/file-batch-history.browser.test.ts) en [`tests/file-result-reuse.browser.test.ts`](../tests/file-result-reuse.browser.test.ts).
-- Gebruikt bridge-oppervlak: `host.profile`, `host.state`, `host.assets` - zie [Host API](/info/host-api.html).
+- Module: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; de namer `backupFilename()` is intern).
+- Contracttest: `tests/data-transfer.test.ts`, die round trip, merge, integriteit, voorwaartse compatibiliteit en de lezerspoort dekt.
+- Contracttests voor geschiedenis: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` en `tests/file-result-library.test.ts`. Browseracceptatie: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` en `tests/file-result-reuse.browser.test.ts`.
+- Gebruikt bruggenoppervlak: `host.profile`, `host.state` en `host.assets`; zie [Host API](/info/host-api.html).

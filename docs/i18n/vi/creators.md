@@ -1,60 +1,75 @@
-# Lolly cho Người sáng tạo
+# Tạo
 
-Bạn điền vào vài trường và một tệp hoàn chỉnh ra đời, với phông chữ, màu sắc và bố cục đã được quyết định sẵn ngay trên thiết bị của bạn. Bạn hoàn thành trong vài phút mà trông như đã bỏ ra hàng giờ, và vì các quy tắc thương hiệu đã được tích hợp sẵn trong công cụ, tên bạn sẽ không bao giờ gắn với một tệp lệch thương hiệu. Hãy chọn lối đi bên dưới phù hợp với việc bạn đang làm hôm nay.
+Bạn điền vài trường và một tệp hoàn chỉnh hiện ra, với phông chữ, màu sắc và bố cục đã được quyết định, ngay trên thiết bị của bạn. Vì quy tắc thương hiệu nằm trong công cụ, tên bạn không bao giờ nằm trên tệp lệch thương hiệu. Hãy chọn lối đi khớp với việc bạn đang làm hôm nay.
 
-Bạn là một mắt xích trong một cuộc chạy tiếp sức: một nhà phát triển có thể mở rộng công cụ bạn dùng thành một pipeline, và một đồng nghiệp có thể tự dùng nó mà không cần ai hỗ trợ, nên [Vòng đời của một chiến dịch](/info/overview.html#the-lifecycle-of-a-campaign) theo dõi một tài sản đi qua cả ba đôi bàn tay đó.
-
-Mới đến đây? Hãy bắt đầu với **[Tạo tệp đầu tiên của bạn](/info/make-something.html)** rồi quay lại khi bạn đã biết mình muốn tìm hiểu sâu hơn phần nào. [Câu hỏi & giải đáp](/info/faq.html) trình bày những gì mọi người thắc mắc trước khi tin tưởng một công cụ miễn phí. [So sánh Lolly với các lựa chọn khác](/info/positioning.html) là lời kể thẳng thắn về những trường hợp nên tìm đến thứ khác.
+Mới đến? Hãy bắt đầu với **[Make your first file](/info/make-something.html)**. [How Lolly works](/info/how-lolly-works.html) cho thấy một công cụ bạn dùng cũng có thể chạy từ một tập lệnh hoặc điện thoại của đồng nghiệp, và [Questions & answers](/info/faq.html) trả lời những gì mọi người hỏi trước khi tin một công cụ miễn phí.
 
 ## Tạo
 
-Chọn một công cụ, điền vào vài trường và tải về tệp hoàn chỉnh. Hoặc mở canvas Design và tự dàn trang theo ý mình: dù theo cách nào, màu sắc, kiểu chữ và khoảng cách đều lấy từ thương hiệu của bạn chứ không phải từ trí nhớ, và không gì cần đến tài khoản.
+Chọn một công cụ và điền vào, hoặc dàn trang tự do trên canvas Design.
 
-- **[Tạo tệp đầu tiên của bạn](/info/make-something.html)** - một bài học ngắn không cần thiết lập gì: tạo mã QR, tải xuống và lưu một bản có thể chỉnh sửa. Hãy bắt đầu từ đây nếu bạn chưa từng mở Lolly.
-- **[Sử dụng Lolly](/info/using.html)** - canvas, các điều khiển, lưu, Projects và dùng trên điện thoại: cách bản thân ứng dụng vận hành.
-- **[Brand Studio](/info/brand-studio.html)** - khi logo, màu sắc và kiểu chữ cần là của riêng bạn thay vì mặc định.
-- **[Nhập một thiết kế](/info/design-import.html)** - khi tác phẩm đã tồn tại dưới dạng tệp `.fig`, `.penpot`, `.ai`, `.idml` hoặc SVG và bạn muốn nó có thể chỉnh sửa thay vì bị làm phẳng.
-- **[Các khung nhìn tiện ích](/info/utilities.html)** - bảng tính, bộ chuyển đổi, Colour Lab, bộ trích xuất PDF và Script audio, dành cho các tác vụ không phải là kết xuất công cụ.
-- **[Tiện ích trình duyệt](/info/extension.html)** - chụp lại một trang web trực tiếp và tái sử dụng nó làm tài sản trong các thiết kế của riêng bạn.
-- **[Tìm kiếm](/info/search.html)** - một ô duy nhất chạm đến công cụ của bạn, công việc đã lưu, danh mục và cài đặt của bạn.
-- **[Hỏi Lolly](/info/ask.html)** - gõ một câu hỏi và nhận lại phần tương ứng trong các hướng dẫn này, kèm liên kết dẫn thẳng vào đó.
-- **[Dashboard](/info/dashboard.html)** - thiết bị này có thể làm gì, hệ thống thiết kế của bạn ở chế độ chỉ xem và cái nhìn nhanh về dung lượng lưu trữ.
-- **[Mục yêu thích của bạn](/info/favourites.html)** - gắn sao cho những gì bạn dùng thường xuyên để nó có ô riêng phía trên lưới.
-- **[Profiles](/info/profile.html)** - các chi tiết mà công cụ dùng để tự điền sẵn, và bốn công tắc trợ năng giúp ứng dụng dịu mắt hơn mà không làm xê dịch một pixel nào trong những gì bạn xuất ra.
+- **[Make your first file](/info/make-something.html)** - một bài học ngắn không cần thiết lập gì: một mã QR, tải xuống và lưu thành bản sao chỉnh sửa được.
+- **[Using Lolly](/info/using.html)** - canvas, các điều khiển, lưu, Projects và dùng trên điện thoại: bản thân ứng dụng hoạt động ra sao.
+- **[Templates](/info/templates.html)** - bắt đầu từ một bố cục đã lưu thay vì công cụ trống.
+- **[Text in Design](/info/text-composition.html)** - tiêu đề, văn bản chảy và kiểu chữ vừa khít khung của nó.
+- **[3D Studio](/info/3d-studio.html)** - tác phẩm SVG và mô hình 3D được sắp xếp, chiếu sáng và kết xuất thành một cảnh.
+- **[Utilities](/info/utilities.html)** - sửa một tệp trên thiết bị: chia sẻ an toàn, so sánh hai phiên bản, đổi định dạng, lấy chữ ra hoặc kiểm tra một màu.
+- **[Browser extension](/info/extension.html)** - chụp một trang web trực tiếp từ ứng dụng web, hoặc đọc một trang để bắt đầu hệ thống thiết kế.
+
+## Biến nó thành của bạn
+
+Hệ thống thiết kế của bạn quyết định mọi công cụ trông ra sao.
+
+- **[Design System Setup](/info/brand-studio.html)** - logo, màu sắc, kiểu chữ và phần còn lại, thiết lập một lần tại `#/start`.
+- **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourway trên công việc thật, và chuyển sang hệ thống thiết kế của riêng bạn.
+- **[Brand architectures](/info/brand-architectures.html)** - nhiều hệ thống thiết kế, hoặc một hệ thống với nhiều colourway, cho một tổ chức.
+- **[Import a design](/info/design-import.html)** - tệp `.fig`, `.penpot`, `.ai`, `.idml` hoặc SVG được mở như bố cục chỉnh sửa được thay vì một bức ảnh phẳng.
+- **[Rebrand a deck](/info/rebrand.html)** - bộ trình chiếu PowerPoint chuyển sang hệ thống thiết kế của bạn, giữ nguyên biểu đồ và hoạt ảnh.
+- **[Share a design with rules](/info/create-a-tool.html)** - biến một bố cục thành công cụ để người khác điền vào.
+
+## Tìm và giữ công việc của bạn
+
+- **[Find and recover your work](/info/find-your-work.html)** - một tệp đã lưu, đã tải xuống hoặc chưa lưu đã đi đâu.
+- **[Search](/info/search.html)** và **[Ask Lolly](/info/ask.html)** - một ô cho công cụ, công việc đã lưu, tài nguyên và cài đặt của bạn, cùng câu trả lời từ các hướng dẫn này.
+- **[Settings](/info/dashboard.html)** - thiết bị này làm được gì, hệ thống thiết kế của bạn ở chế độ chỉ đọc và dung lượng lưu trữ.
+- **[Your favourites](/info/favourites.html)** và **[Profiles](/info/profile.html)** - công cụ gắn sao, các chi tiết mà công cụ điền sẵn và các công tắc trợ năng.
+- **[Sync your devices](/info/sync.html)** - cùng công việc trên máy tính và điện thoại, qua nơi lưu trữ bạn chọn.
 
 ## Hoạt ảnh
 
-Chữ chuyển động, các cảnh trên một dòng thời gian và chuyển động luôn bám sát thương hiệu. Một bản xuất chuyển động được ghép từng khung hình theo một đồng hồ điều khiển thay vì được ghi lại từ màn hình, nên thời gian không bao giờ trôi lệch và cùng một liên kết sẽ dựng ra cùng một đoạn clip ở bất kỳ độ dài nào.
+Chữ chuyển động, cảnh trên dòng thời gian và chuyển động giữ đúng thương hiệu. Một bản xuất chuyển động được vẽ từng khung hình từ đồng hồ điều khiển thay vì quay lại từ màn hình, nên cùng một liên kết tạo ra cùng một clip.
 
-- **[Tạo hoạt ảnh](/info/animating.html)** - keyframe, chiều sâu thực và một camera cảnh để lướt qua kết quả.
-- **[Trình chỉnh sửa chuỗi cảnh](/info/sequence-editor.html)** - chính dòng thời gian: clip, các làn phủ, cắt và tách, chuyển cảnh và trộn âm thanh.
-- **[Xuất & Định dạng](/info/exporting.html)** - phần video, GIF và PNG hoạt ảnh trong bảng xuất, khi chuyển động đã ổn.
+- **[Animating](/info/animating.html)** - khung khóa, chiều sâu thật và camera cảnh.
+- **[The sequence editor](/info/sequence-editor.html)** - clip, các làn lớp phủ, cắt và tách, chuyển cảnh và bộ trộn âm thanh.
+- **[Wide Colour and HDR](/info/hdr-editing.html)** - màu vượt dải thông thường, trên màn hình và định dạng có thể hiển thị dải mở rộng.
 
-## Ghi âm
+## Ghi âm và trình chiếu
 
-Ghi một bản thu sạch với đếm nhịp mở đầu, đồng hồ đo mức và những gợi ý nhẹ nhàng, hoặc biến một ghi chú giọng nói thành một video hoàn chỉnh chuyển động theo âm thanh. Hiện chưa có trang Record riêng: Sử dụng Lolly đảm nhận việc này, trong phần dòng thời gian.
+Ghi một đoạn sạch với đếm ngược và đồng hồ đo mức, hoặc đặt mình trước các trang chiếu.
 
-- **[Sử dụng Lolly](/info/using.html#timeline-sequence)** - ghi lời thoại trực tiếp lên dòng thời gian, bản thu được lưu ở đâu và nó đi vào bản trộn âm thanh như thế nào.
-- **[Tạo tệp đầu tiên của bạn](/info/make-something.html#other-first-projects)** - audiogram, cho khi bạn muốn được nghe thấy hơn là được nhìn thấy.
-- **[Các khung nhìn tiện ích](/info/utilities.html)** - Script audio, khi lời văn có trước và giọng nói có sau.
-
-## Trình chiếu
-
-Đặt camera, logo và tên của bạn lên trên một bản trình chiếu Design hoặc Countdown, với các điều khiển riêng tư trong một cửa sổ riêng.
-
-- **[Presenting with camera](/info/presenting.html)** - canh khung hình, các cảnh đã lưu, chia sẻ với khán giả, ghi hình cục bộ và những giới hạn hiện tại của bản dùng thử.
+- **[The Design timeline](/info/design.html#timeline-sequence)** - ghi lời thuyết minh thẳng lên dòng thời gian.
+- **[Make your first file](/info/make-something.html#other-first-projects)** - audiogram, khi bạn muốn được nghe hơn là được thấy.
+- **[Presenting with camera](/info/presenting.html)** - camera, logo và tên của bạn phủ lên bộ trình chiếu hoặc Countdown, với các điều khiển riêng tư trong cửa sổ tách biệt.
+- **[Live pages that take the clicker](/info/interactive-pages.html)** và **[Agenda screens](/info/agenda.html)** - trang và chương trình cho căn phòng.
 
 ## Cộng tác
 
-Hai người, hai thiết bị, một phiên làm việc, chỉnh sửa trực tiếp. Quét một mã qua bàn và cả hai màn hình đều giữ cùng một công việc, không cần tài khoản và không có máy chủ nào ở giữa - và hoàn toàn không cần internet khi cả hai thiết bị cùng một mạng.
+Hai người, hai thiết bị, một thiết kế, chỉnh sửa trực tiếp, không tài khoản và không máy chủ ở giữa.
 
-- **[Làm việc cùng nhau](/info/collaborate.html)** - bắt đầu một phiên, những gì di chuyển giữa các thiết bị và điều gì xảy ra khi mạng bị mất.
-- **[Sử dụng Lolly](/info/using.html#sharing-your-work)** - những cách lặng lẽ hơn để bàn giao công việc: một liên kết chia sẻ mang theo toàn bộ trạng thái, hoặc một tệp `.lolly` duy nhất.
+- **[Working together](/info/collaborate.html)** - collab riêng tư giữa các thiết bị, và work collab qua Lolly Work của tổ chức bạn.
+- **[Using Lolly](/info/using.html#sharing-your-work)** - một liên kết chia sẻ mang toàn bộ trạng thái, hoặc một tệp `.lolly`.
+- **[Use Lolly at your organisation](/info/organisation.html)** - đăng nhập, dự án nhóm và cài đặt được quản lý, khi tổ chức bạn chạy Lolly Work.
 
 ## Đăng tải
 
-Gửi nó đến đúng nơi được yêu cầu: một liên kết mang theo thiết kế, một PDF chuẩn in, một video, một bộ slide hay một thư mục các biến thể. Cùng một nguồn tạo ra tất cả những thứ đó, nên bạn chỉ cần dựng một lần.
+Gửi nó đến nơi được yêu cầu: một liên kết, một PDF đúng chuẩn in, một video, một bộ trình chiếu hoặc một thư mục các biến thể, tất cả từ cùng một nguồn.
 
-- **[Xuất & Định dạng](/info/exporting.html)** - đơn vị in, DPI, bleed và dấu cắt, video, chạy hàng loạt và chính bảng xuất.
-- **[Mọi định dạng Lolly có thể mở và tạo](/info/formats.html)** - danh sách đầy đủ vào-ra, với một thẻ giải thích bằng ngôn ngữ đơn giản đứng sau mỗi chip.
-- **[Chuyển dữ liệu](/info/data-transfer.html)** - gói sao lưu, để chuyển mọi thứ bạn đã tạo sang một thiết bị khác.
+- **[Export a file](/info/exporting.html)** - đơn vị in, vùng tràn lề và dấu cắt, video, chạy hàng loạt và bảng xuất.
+- **[Every format Lolly can open and make](/info/formats.html)** - danh sách đầy đủ định dạng vào và ra.
+- **[Creative rights and credits](/info/creative-rights.html)** - giấy phép của những gì bạn đã dùng, và phần ghi công đi cùng tệp.
+
+## Sổ tay đội nhóm và so sánh
+
+- **Cho đội của bạn:** [sales](/info/sales.html), [marketing](/info/marketing.html), [the newsroom](/info/press.html) và [legal](/info/legal.html).
+- **[How Lolly compares](/info/positioning.html)** - Lolly giỏi việc gì, và khi nào nên tìm đến thứ khác.
+- **[Lolly compared, tool by tool](/info/compare.html)** - Canva, Adobe, Figma, Penpot, cổng thương hiệu, API kết xuất và trình chuyển đổi trực tuyến.

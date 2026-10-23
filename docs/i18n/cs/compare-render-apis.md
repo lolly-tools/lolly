@@ -2,24 +2,28 @@
 
 _Naposledy ověřeno: 28. září 2026._
 
-Lolly generuje materiály ze šablon a dat na tvém zařízení, v CI nebo přes serverové API [lolly.work](https://lolly.work). Kombinované řešení pokrývá automatizované renderování i identitu, zásady a doručení kolem produkčních úloh organizace.
+Pokud dnes generuješ obrázky ze šablon přes API, tato stránka říká, jak Lolly dělá stejnou práci na tvém vlastním zařízení, v CI nebo na tvém vlastním serveru.
+
+## Co hostovaná vykreslovací API dělají lépe
+
+[Bannerbear](https://www.bannerbear.com/) a [Placid](https://placid.app/) balí vykreslování jako spravované služby, s vlastní infrastrukturou, integracemi a podporou. Pošleš požadavek a servery provozuje někdo jiný.
 
 ## Kde se překrývají
 
-[Bannerbear](https://www.bannerbear.com/) a [Placid](https://placid.app/) generují obrázky a další média ze šablon přes API a integrace. Lolly používá stejný přístup šablony a vstupů, přičemž úlohy lze zadávat přes [režim URL](/info/url-mode.html), [CLI](/info/cli.html), dávkovou mřížku a serverové endpointy.
+Obojí změní šablonu plus vstupy na média. Lolly bere vstupy z [odkazu](/info/url-mode.html), [CLI](/info/cli.html), dávkové mřížky nebo serverového endpointu.
 
-## Co lolly.work poskytuje
+## Jak Lolly dělá překrývající se úlohu
 
-lolly.work je samostatně nasazovaná organizační služba v projektu Lolly. Spouští engine Lolly za API, uplatňuje viditelnost nástrojů a zásady vstupů a poskytuje renderované soubory a podepsané sdílené odkazy. Její [obnovitelná služba renderování](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md) podporuje jednotlivé úlohy i dávky, idempotentní odesílání, stav, omezený počet opakování, zrušení a uchované výstupy. Přerušená práce může po restartu serveru pokračovat, pokud je nakonfigurováno perzistentní úložiště.
+Tentýž nástroj se vykresluje na notebooku, v úloze CI nebo na serveru, ze stejných vstupů. Místní vykreslování a vykreslování v CI nepotřebují vůbec žádnou službu.
 
-Server používá rychlou cestu renderování SVG/PNG a volitelný worker s Chromiem pro nástroje, které potřebují prohlížeč. Automatizace se ověřuje servisními tokeny a hotový výstup lze přes [řízené doručení](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) odeslat do cílů organizace. Nakonfigurovaná podepisovací identita umožňuje podepisování C2PA u podporovaného serverového výstupu.
+![Nastavení exportu Batch: název souboru, výchozí formát, jednotky, DPI a počet řádků k vykreslení](/info/shots/use-batch-toolbar.svg)
+
+Na serveru [Lolly Work](/info/compare.html#what-runs-where) provozuje engine Lolly za API a uplatňuje viditelnost nástrojů a politiky vstupů. Jeho [obnovitelná služba vykreslování](/info/work-renders.html) podporuje jednotlivé úlohy a dávky, idempotentní odeslání, stav, omezené opakování, zrušení a uchované výstupy a přerušená práce po restartu pokračuje, je-li nakonfigurováno trvalé úložiště.
+
+Server má rychlou cestu SVG a PNG a volitelného pracovníka Chromium pro nástroje, které potřebují prohlížeč. Automatizace se přihlašuje servisními tokeny, hotový výstup může jít přes [schválené doručení](/info/work-delivery.html) do cílů organizace a nakonfigurovaná podpisová identita přidává Content Credentials k podporovanému výstupu.
 
 ## Kdo službu provozuje
 
-Bannerbear a Placid nabízejí renderování jako spravované služby s vlastní infrastrukturou a integracemi. S Lolly může jednotlivec renderovat lokálně nebo může tým provozovat lolly.work na vlastní infrastruktuře. Oba repozitáře Lolly jsou open source pod MPL-2.0; vlastní hosting nemá softwarový licenční poplatek za render, zatímco výpočetní výkon, úložiště a provoz zůstávají náklady, s nimiž je třeba počítat.
+S Lolly jednotlivec vykresluje lokálně, nebo tým provozuje Lolly Work na vlastní infrastruktuře. Odeslání serverové úlohy posílá její vstupy a potřebné assety té instanci, což je jiné než cesta na zařízení. Trvalá služba potřebuje trvalou databázi a úložiště výstupů a nástroje závislé na prohlížeči potřebují pracovníka Chromium; obojí popisuje [Instalace Lolly Work](/info/work-install.html).
 
-Veřejný web lolly.work je evaluační sandbox, nikoli závazek produkčního hostingu. Trvalá služba vyžaduje perzistentní databázi a úložiště výstupů; nástroje závislé na prohlížeči vyžadují worker s Chromiem. [Průvodce instalací](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) a [stavová stránka](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) tyto požadavky a aktuální omezení popisují.
-
-Lokální renderování a renderování v CI zůstávají dostupné bez organizační služby. Odeslání serverové úlohy předá její vstupy a potřebné materiály dané instanci; to se liší od cesty na zařízení. Viz [přehled kombinovaného řešení](/info/compare.html).
-
-Bannerbear a Placid jsou ochranné známky svých vlastníků. Tato stránka popisuje, kde se řešení překrývají, a není nijak spojena ani s jedním z nich.
+Bannerbear a Placid jsou ochranné známky svých vlastníků. Tato stránka popisuje, kde se produkty překrývají, a není s žádným z nich nijak spojena.

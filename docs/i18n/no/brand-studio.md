@@ -1,346 +1,363 @@
-# Brand Studio
+# Design System Setup
 
-**Brand Studio** på `#/start` er det ene stedet du former merkevaren din - logoene, fargene, typografien, resten av tokenene og filene den holder på. Sett det opp her én gang, så følger hvert verktøy, hver side og hver eksport det *ved konstruksjon*, ikke ved gjennomgang.
+Logoen, fargene og skriftene dine hører hjemme på ett sted, så hvert verktøy, hver side og hver eksport tegner med dem. Det stedet er **Design System Setup**, på `#/start`, og slagordet sier hva det er for: *Make it yours*.
 
-Endringer forhåndsvises **live i hele appen** mens du gjør dem, slik at du kan se en farge eller en font slå inn overalt før du bekrefter den. Alt skjer på enheten: merkevarefilene og tokenene dine forlater aldri maskinen din (å velge en Google-font henter den ene familien fra Google, én gang, etter en samtykkedialog), og merkevaren reiser i én enkelt [merkevarepakke](#move-a-brand-between-devices)-fil.
+Start med det du har. Slipp inn en logo, så leser Lolly fargene dens. Velg en skrift, eller slipp inn skriftfilen bedriften din har lisens på. Hver endring vises over hele appen med en gang. Logoen, skriftene og tokenene dine blir på denne enheten. Å velge en Google Font er det ene trinnet som rekker ut: Lolly spør først, og henter deretter familien én gang.
 
-> **Dette er redigeringsverktøyet. Dashbordet er speilet.** Fanen **Designsystem** på dashbordet (`#/d`) *viser* merkevaren din skrivebeskyttet; du *redigerer* den her på `#/start`. Vil du endre en farge senere, kom tilbake til Brand Studio.
+Når det ser riktig ut, gi designsystemet et navn og trykk **Export**. Du får én `.lolly`-fil å beholde, åpne på en annen enhet eller gi til en kollega. [Settings](/info/dashboard.html#design-system) viser det aktive systemet skrivebeskyttet, og omslaget lenker tilbake hit for redigering.
+
+## Gjør det til ditt på fem minutter
+
+::: timeline
+- <!--i:upload--> **Slipp logoen din** på slippsonen i **Logos**. Lolly leser formen og fargene dens.
+- <!--i:palette--> **Bruk disse fargene.** Logoens hovedfarge blir primærfargen din, og en mørk nøytral fra logoen blir tekstfargen din.
+- <!--i:font--> **Velg en skrift** i **Type**: en Google Font, eller en skriftfil du eier.
+- <!--i:pentool--> **Gi systemet et navn.** Den første redigeringen din lager et eget designsystem, og Lolly spør én gang om navnet.
+- <!--i:download--> **Export** skriver hele systemet som én `LollyBrand-….lolly`-fil.
+:::
+
+Toppen viser hvilket designsystem du **Editing**, og navnet er et felt du kan endre når som helst. Når den første redigeringen din spør **What is this design system called?**, fylles ordene fra logoen din inn hvis logoen staver dem ut. **Save name** beholder navnet; **Not now** beholder en plassholder til du skriver inn et i toppen. Navnet merker systemet i Settings og når du bytter, og det blir navnet på filen **Export** skriver.
 
 ## Rommene
 
-Studioet er et sett med **rom** listet i en skinne nedover siden - ikke trinn. Ingenting er nummerert, ingenting er sperret av noe annet, og å komme til hvilket som helst av dem er like legitimt:
+Studioet er et sett rom i en liste nedover siden, uten fast rekkefølge: ingenting er nummerert og ingenting venter på noe annet. På en telefon blir listen en stripe av brikker under toppen.
 
-- **Oversikt** - navet. Det som finnes akkurat nå, med et blikk, med en dør inn til hvert rom.
-- **Farger** - legg til farger én om gangen, tildel roller eller generer en hel palett fra én.
-- **Typografi** - de fire skriftene appen, verktøyene og hver eksport leser.
-- **Logoer** - merkene dine, i hver retning og variant.
-- **Tokens** - hjørneradius, spacing, shadows og resten av systemet.
-- **Filer** - bilde-, lyd- og bevegelsesfilene merkevaren din har.
+![Romlisten i studioet: Overview, Colours, Type, Logos, Tokens, Files og Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
-På en telefon blir den samme listen en horisontal chip-stripe festet under toppteksten. Å bytte rom laster aldri noe på nytt - redigeringsverktøyet holder alle panelene sine montert og viser rett og slett bare det du ba om.
+| Rom | Hva du gjør der | Lenkenøkkel |
+|---|---|---|
+| **Overview** | Se hva systemet holder, med en dør inn til hvert rom | `overview` |
+| **Colours** | Legg til farger, gi dem roller, bygg nyanser og en palett | `color` |
+| **Type** | Velg de fire skriftene appen, verktøyene og hver eksport leser | `type` |
+| **Logos** | Plasser merkene dine i hver retning og behandling | `logos` |
+| **Tokens** | Hjørner, avstand, skygger og alle andre navngitte verdier | `tokens` |
+| **Files** | Bilde-, lyd- og bevegelsesfilene merkevaren din beholder | `catalogue` |
+| **Usage & rules** | Reglene merkevaren din bruker, kontrollert på ekte eksempler | `usage` |
 
-**Dyplenk til et rom** med `#/start?area=<key>`. Nøklene er `overview`, `color` *(merk den amerikanske stavemåten i URL-en)*, `type`, `logos`, `tokens`, `catalogue` (rommet Filer - panelnøkkelen er en permanent kontrakt, så URL-en beholder det gamle navnet) og `versions`. `?tab=` er det etablerte aliaset for det samme og løses fortsatt opp, så gamle lenker og bokmerker fortsetter å virke; alt ukjent åpner Oversikt i stedet for å ende blindt.
+Lenk til et rom med `#/start?area=<key>`. Rommet Files beholder nøkkelen `catalogue`, fordi en romnøkkel er en permanent kontrakt, og `?tab=` fungerer fortsatt som et eldre alias. En ukjent nøkkel åpner Overview.
 
-Festet til **bunnen av skinnen** er handlingene som hører til hele designsystemet, ikke ett rom:
-
-- **Legg til fra…** - kildevelgeren, for å hente inn en merkevare fra en fil, en PDF, et bilde, en skrift eller et nettsted. Se [Hent inn en merkevare](#bring-a-brand-in) under.
-- **Skuff** - kandidatene et søk har funnet, men ikke tatt i bruk ennå. Den er skjult til et søk faktisk beholder noe, og bærer da et antall; ingenting i den endrer merkevaren din før du trykker Add på den raden.
-- **Eksporter** - skriver hele designsystemet som én `LollyBrand-….lolly`.
-- **Tokens (.json)** - det rene design-tokens-dokumentet for seg selv, for et repo, et byggetrinn eller et annet tokens-verktøy.
-- **Restore brand settings** - gå tilbake til et kontrollpunkt lagret før en import eller en erstatning av merkevareinnstillinger.
-- **Versjoner** - publiser, aktiver og gjenopprett navngitte kopier av designsystemet. Skjult til det finnes noe eget å publisere (eller en `?area=versions`-lenke ber om det ved navn).
-
-![Studioets romrekke - Oversikt, Farger, Typografi, Logoer, Tokens og Filer](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+**Bunnen av listen** holder handlingene for hele systemet i stedet for ett rom. **Add from…** henter inn en merkevare ([Bring a brand in](#bring-a-brand-in)), og **Tray** holder det en skanning fant som du ikke har lagt til ennå. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** og **Restore brand settings** beholder og flytter systemet ([Keep and move your design system](#keep-and-move-your-design-system)). Hver vises når det er noe for den å virke på.
 
 ## Oversikt
 
-Oversikt er det første rommet, og det har to ansikter.
+Når ingenting er valgt ennå, tilbyr Overview fire måter å starte på. **Start from a reference** åpner kildevelgeren for en logo, et skjermbilde, en nettside eller en designfil, og **Pick a colour**, **Choose a face** og **Add a logo** åpner disse kontrollene direkte. Å åpne en skriver ingenting, og **Explore the tools** er der fra starten.
 
-Med **ingenting valgt ennå** sier det **Gjør den til din**. **Start from a reference** åpner kildevelgeren for en logo, et skjermbilde, en nettside eller en designfil. **Velg en farge**, **Velg en skrifttype** og **Legg til en logo** åpner sine eksisterende kontroller direkte. Hver vei starter med et valg; å åpne én skriver ingenting. **Utforsk verktøyene** er tilgjengelig med én gang.
+Når noe er ditt eget, viser Overview hva du har, med dine egne tall først. Colours oppgir antall farger, med en dempet `· N starter` der arvede farger vises; stripen setter fargene dine først, deretter en hårstrek, deretter de bleke starterfargene. Type leses etter rolle (*Inter for headings*, med *Starter for the rest* på linjen under). Logos sier hvor mange plasser som er fylt (eller **Not set**), Tokens viser hjørneradiusen og Files sier **Nothing yet** mens biblioteket er tomt. Hver blokk åpner rommet sitt.
 
-Så snart noe er ditt eget, viser det samme rommet **hva du har**, med antallene du har laget i front. Farger leser av antall farger designsystemet bærer, og legger til et dempet `· N starter` bare der det finnes arvede farger å vise; stripen ved siden av setter dine egne valgte farger først, så en hårlinje og de falmede startfargene. Typografi leser etter rolle (*Inter for overskrifter*, med *Start for resten · SUSE, SUSE Mono* under). Logoer leser av hvor mange plasser som er fylt, eller **Ikke angitt**. Tokens bærer hjørneradiusen, tagget *start* til du flytter den. Filer sier **Ingenting ennå** mens biblioteket er tomt. Hver blokk er en dør inn til rommet sitt. Det finnes antall her, aldri en fremdriftsindikator og aldri et sluttkort - ingenting i dette studioet skylder noen noe.
+### Starter og ditt eget
+
+**Starter** er ordet for alt som fulgte med appen i stedet for å være valgt. En ny installasjon bærer ingen farge i det hele tatt, bare én nøytral ramp fra blekk til papir, slik at flater, tekst og hårstreker kan gjengis før noen har bestemt noe. Det samme ordet markerer arvet materiale i hvert rom.
+
+::: cols
+## Starter
+
+- Fulgte med appen: nøytralene fra blekk til papir, starterskriftene, standard hjørneradius.
+- Dempet, med et **Starter**-merke og uten tone.
+- Ikke regnet som fargene dine. Nøytralene ligger i **Tokens** som **Neutrals · starter · 9**, og **Open** viser dem i Colours som én foldet gruppe (`#/start?area=color&group=neutral`).
+- En rolle som står på en starterfarge, leses *"Starter Paper stands in"*, med **Choose…** på velgeren sin.
+
+## Ditt eget
+
+- Valgt eller installert av deg.
+- Full styrke, og et tonet kort der du installerte en skrift.
+- Regnet med på Overview og i Tokens.
+- En rolle som følger en annen, leses **↳ follows Primary** i stedet for å gjenta primærfargens navn.
+:::
+
+Arvet materiale tegnes aldri med en stiplet kant, fordi en stiplet kant her betyr et slippmål.
 
 ## Logoer
 
-Start med å tømme mappen din av merker inn i slippsonen øverst: **«Slipp merker her, eller velg flere samtidig»** tar imot så mange filer du har, i én omgang. Hver fil leses for form og farge, og settes deretter i kø under **Venter på plass** som en chip som sier hva den tror - *«Ser ut som Horisontal primær»*, med målet den bygger på, og en **Plasser**-knapp (**Erstatt**, der plassen allerede er fylt). Der den ikke er sikker sier chipen det tydelig og tilbyr **Bytt plass** i stedet, som lister alle åtte. Ingenting plasseres før du trykker på noe.
+Tøm mappen med merker i slippsonen øverst: **"Drop marks here, or choose several at once"** tar så mange filer du har. Hver fil leses for formen og blekket sitt, og venter deretter under **Waiting for a slot** som en brikke som sier hva den ligner, som *"Looks like the Horizontal primary"*, med målingen den brukte og en **Place**-knapp (**Replace** der plassen er fylt). Der den er usikker, sier brikken det og tilbyr **Change slot**, som lister alle åtte. Ingenting plasseres før du trykker på noe.
 
-To ting skjer rundt den køen. Et merke med overflødig tom marg får et **beskjæringstilbud** først - svar på det eller trykk Escape, så går originalfilen inn urørt. Og der et merke kan fylle en tom søsterplass, tilbyr rommet den avledede **mono**- eller **omvendt**-versjonen som sin egen chip, merket *Generert*, som forsvinner igjen hvis du fyller den plassen på en annen måte.
+Et merke med overskytende tom marg får først et tilbud om beskjæring; svar på det eller trykk Escape, så går originalen inn urørt. Der et merke kan fylle en tom søskenplass, tilbyr rommet den utledede **mono**- eller **reverse**-versjonen som en brikke merket *Generated*.
 
-Under det ligger rutenettet hvert merke ender opp i - **orientering × behandling**-plasser:
+Hvert merke havner i et rutenett med åtte valgfrie plasser, én per **orientation** og **treatment**:
 
-- **Orienteringer:** Horisontal (ordmerke + symbol på rad) og Vertikal (stablet, for kvadratiske og høye rom).
-- **Behandlinger:** Primær, Primær omvendt (for mørke bakgrunner), Mono (én farge) og Mono omvendt.
+- **Orienteringer:** Horizontal (ordmerke og symbol på en rad) og Vertical (stablet, for kvadratiske og høye flater).
+- **Behandlinger:** Primary, Primary reverse (for mørke bakgrunner), Mono (én farge) og Mono reverse.
 
-Det er åtte valgfrie plasser. Klikk en plass for å legge til en PNG, SVG, JPEG eller WebP; klikk en fylt plass for å erstatte den. Hver plass er valgfri, og alt forblir på denne enheten.
+En gruppe uten merker ennå folder seg til én linje; åpne den for å se plassene. Klikk på en plass for å legge til en PNG, SVG, JPEG eller WebP, eller klikk på en fylt plass for å erstatte merket. Alt blir på denne enheten.
 
-![Logomatrisen - hver orientering på tvers øverst, hver behandling som sin egen stiplede plass, alle valgfrie](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Logoplassene med Horizontal og Vertical åpnet: hver behandling er en egen plass, og hver plass er valgfri](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
-- **Tilpassede merker** - legg til merker merkevaren din kaller ved sitt eget navn (et ikon, et emblem, en favicon) under **Tilpassede merker**; gi det navn og velg en fil.
-- **Flere identiteter** - en undermerkevare, et produkt eller et event kan ha sitt eget fullstendige sett med logoer. Bruk **+ Add another logo** og gi den navn; hovedsettet ditt heter rett og slett «Your logo».
-- **Last opp en SVG, så leser Lolly fargene dens.** På en helt ny installasjon setter den stille primærfargen din fra logoen og sier det. På en eksisterende merkevare tilbyr den i stedet fargen som et forslag - *«Funnet i logoen: #…»* med en **Bruk som primær**-knapp ved siden av - borte i Farger-rommet, der du kan ta den eller avvise den.
+- **Custom marks** er merker merkevaren din kaller ved eget navn, som et ikon, et våpenskjold eller et favicon.
+- **Flere identiteter.** En underbrand, et produkt eller et arrangement kan ha sitt eget fulle sett: **+ Add another logo** og gi settet et navn. Hovedsettet ditt er "Your logo". [Brand architectures](/info/brand-architectures.html) viser når en logoidentitet er den riktige blokken.
+- **Lolly leser logoens farger.** Et kort under slippsonen, og igjen øverst i Colours, lister logoens farger og spør **Which is the main colour?**, med den sterkeste fargen allerede valgt (aldri det hvite den ble eksportert på). **Use these colours** legger dem til i paletten din, gjør hovedfargen til primærfargen din og, når logoen har en mørk nøytral som leses på papir, gjør den til tekstfargen. **Not now** lar dem ligge i Tray. På en splitt ny installasjon brukes det mest sannsynlige svaret med en gang, og kortet tilbyr **Undo** eller en annen hovedfarge. En SVG gir eksakte farger; en PNG, JPEG eller WebP gir fargene som dekker en reell andel av merket.
 
 ## Farger
 
-Rommet vokser med designsystemet. Ingenting du ikke har trengt ennå, er på siden, så et første besøk er ett valg, og resten kommer i takt med paletten.
+Rommet vokser med designsystemet: et første besøk er én beslutning, og resten kommer etter hvert som paletten gjør det.
 
 ### Den første fargen
 
-Et designsystem uten egne farger åpnes i én sentrert kolonne: **Start with one colour**, en stor levende fargeprøve, et felt, og en stille linje som sier at roller, nyanser og trykkinnstillinger kommer etter hvert som systemet vokser.
+Et system uten egne farger åpner på én stor brikke og ett felt, med en linje som sier at roller, nyanser og trykkinnstillinger kommer etter hvert som systemet vokser.
 
-- **Fargeprøven er velgeren.** Trykk på den, så åpnes studioets eget OKLCH-kort på fargeprøven, forhåndsutfylt med det feltet inneholder: et navn, hjulet, de fire skivene, alfa og **Lagret som**, med **Avbryt** og **Legg til farge** nederst. Å dra en skive maler fargeprøven og skriver om feltet mens du gjør det, og ingenting når designsystemet før du trykker **Legg til farge**.
-- **Feltet tar imot enhver notasjon** - `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` eller et vanlig fargenavn - og en hel *liste* med farger blir en rad fargeprøver du legger til én om gangen.
-- **To dører til ligger ved siden av.** Fargeplukkeren (i en nettleser som har en) henter en farge fra skjermen, og **Fra et bilde** leser et skjermbilde eller et foto på denne enheten og tilbyr fargene den finner.
-- **Legg til er aldri deaktivert.** Med ingenting lesbart i feltet åpner den velgeren, som er det et tomt trykk vanligvis betyr; tekst den ikke kan tolke, får en linje under feltet som sier det, i stedet for en død knapp.
+- **Brikken er velgeren.** Trykk **Pick a colour**, så åpnes studioets OKLCH-kort, forhåndsutfylt med det feltet holder: et navn, hjulet, de fire skalaene, alfa og **Stored as**, med **Cancel** og **Add colour** nederst. Ingenting når systemet før du trykker **Add colour**.
+- **Feltet tar hvilken som helst notasjon**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` eller et fargenavn. Lim inn en liste, så blir den en rad med brikker å legge til én om gangen eller med **Add all**.
+- **To veier til.** **Pick a colour from the screen** bruker pipetten der nettleseren har en, og **Take colours from an image** leser et skjermbilde eller et bilde på denne enheten.
+- **Add er aldri deaktivert.** Med ingenting i feltet åpner den velgeren; tekst den ikke kan lese, får en linje under feltet som sier det.
 
-Den første fargen blir **primærfargen**, og fargeprøven som svarer på tilføyelsen sier det - *«Primærfargen er nå Vivid Violet»* - med **Finjuster** ved siden av.
+Den første fargen din blir **primary**, og en brikke bekrefter det, som *"Primary is now Vivid Violet"*, med **Fine-tune** for å justere fargen.
 
-![Farger-rommet med ingenting valgt ennå - én stor levende fargeprøve, ett felt og én linje om hva som kommer senere](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
-
-### Start
-
-**Start** er ordet for alt som fulgte med appen i stedet for å bli valgt. En helt ny installasjon bærer ingen farge i det hele tatt: det den har, er én nøytral rampe, blekk gjennom papir, slik at flater, tekst og hårlinjer rendres før noen har bestemt noe. De nøytrale fargene er stillas, så de telles ikke som farger og tegnes ikke i palettpanelet. De bor i [Tokens](#tokens)-rommet som **Neutrals · starter · 9**, med en **Åpne** som viser dem i Farger-panelet som én sammenslått, tagget gruppe (`#/start?area=color&group=neutral`).
-
-Det samme ordet går igjen i hvert rom: en rolle som hviler på en startfarge, leser *«Start-Paper står inn»*, og velgeren dens tilbyr **Velg…**; en startskrift bærer en **Start**-tagg og ingen toning; en start-hjørneradius er tagget på Oversikt. Arvet materiale tegnes aldri med en stiplet kant, for en stiplet kant betyr et slippmål her.
 
 ### Etter hvert som paletten vokser
 
-Fargene dine ligger ved siden av en **In context**-forhåndsvisning på en bred skjerm og stables over den på mindre skjermer. Forhåndsvisningen kan vise en plakat, et diagram eller et grensesnittkort som bruker paletten din. Startfarger blir i sin egen sammenleggbare gruppe, atskilt fra farger du legger til.
+Fargene dine ligger ved siden av en **In context**-forhåndsvisning på en bred skjerm, og over den på en mindre. Forhåndsvisningen viser en plakat, et diagram eller et grensesnittkort i paletten din. Starterfargene blir i sin egen sammenfoldbare gruppe.
 
-Legg til enkeltfarger eller et sett med nyanser, tildel rollene deres, og åpne de avanserte avsnittene når du trenger dem. Fargediagrammet, gradientene og nedlastingskontrollene blir værende med paletten.
+![Rommet Colours på Lolly Demo: paletten i sammenfoldbare grupper, hver farge med navn og hex, og nedlastingspillen nederst](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Farger-rommet etter at én farge er lagt til, med paletten sin og en levende komposisjonsforhåndsvisning](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
-### Roller - det verktøyene leser
+### Roller: det verktøy leser
 
-**Roller** er laget over fargeprøvene: hvilken farge som spiller hver del i hvert verktøy og hver eksport. Roller er valgfrie (et designsystem med tre løse farger og ingen roller er fullt godtakbart), enhver fargeprøve kan ta en, og kontrastavlesningen måles mot flaten, APCA først.
+**Roles** sier hvilken farge som spiller hver del i hvert verktøy og hver eksport. De er valgfrie (tre løse farger og ingen roller er et helt utmerket system), enhver farge kan ta en, og kontrastavlesningen måles mot flaten, APCA først. Hver rolle-rad viser en egen farge i full styrke, en starterfarge som står inne, eller **↳ follows Primary**.
 
-En rad leses i ett av tre registre, så stripen aldri påstår et valg ingen har tatt:
+Når paletten har nyanser, viser stripen alle de sju rollene et verktøy kan lese: Primary, Secondary, Surface, Text, Muted, Edge og On primary. On primary utledes fra primærfargen, leses **Derived** og har ingen velger.
 
-- en egen farge som fyller rollen, i full styrke;
-- **Start-*Paper* fyller inn** - dempet, med **Velg…** i velgeren sin;
-- **↳ følger Primær** - rollen løses gjennom primærfargen i stedet for til en egen farge.
+Appens egen aksent følger designsystemet som standard. Det er innstillingen **Interface follows the design system** i **Settings → Appearance**; å slå innstillingen av lar appens ramme være nøytral, mens verktøy, lerreter og eksporter følger designsystemet uansett.
 
-Så snart paletten har nyanser, vokser stripen til alle sju plassene et verktøy kan lese: Primær, Sekundær, Overflate, Tekst, Dempet, Kant og På primærfargen. På primærfargen avledes fra primærfargen, leses som **Avledet** og har ingen velger.
+**Colourways.** Et designsystem kan holde flere hovedfarger, hver valgt per arbeid. Lolly beholder hver fargevariant, men dette rommet kan ikke forfatte en ennå: en fargevariant skrives i tokenfilen. På et system med fargevarianter trenger hver fargevariant sin egen primær- og sekundærfarge, og sin egen flate når fargevariantene tonet bakgrunnen, så disse rollene forblir satt i fargeprøveredigeringsprogrammet. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) viser fargevarianter på ekte arbeid, og [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) har formatet.
 
-**Appens egen aksentfarge er en preferanse, ikke en token.** Som standard følger grensesnittet designsystemet, og chrome-aksenten tar primærfargen. Det er en Utseende-innstilling på [profilen din](/info/profile.html) - **Grensesnittet følger designsystemet** - og å slå den av lar chrome være nøytralt. Verktøy, arbeidsflater og eksporter påvirkes ikke uansett, og fontene og hjørneradiusen følger designsystemet enten innstillingen er på eller av.
+### Finn flere farger
 
-### Ekspertfløyene
+Tre verktøy bygger på primærfargen din. De to første foreslår bare, og det tredje erstatter paletten etter at du har gjennomgått endringen.
 
-Fire sammenleggbare avsnitt ligger under komposisjonsforhåndsvisningen og fargerollene. Åpne det du vil; hvert av dem er dyplenkbart som `#/start?area=color&focus=<wing>`, som åpner det uansett hva rommet ellers viser:
+::: cols
+## Explore shades & harmonies
 
-- **Explore shades & harmonies** (`focus=generate`) - én farge til et helt sett med nyanser. Beskrevet under.
-- **Nyansekurver** (`focus=curves`) - form om en rampe punkt for punkt. Lyshet, kroma og valør får hver sin kurve, byttes med L / C / H, og nyansene under bakes om live mens du drar.
-- **Kontrast** (`focus=contrast`) - **Kontrastlås** tonar om en rampe for å treffe APCA-mål mot en bakgrunn du velger, hvert trinn beholder sin egen valør og kroma; **Drei valør** dreier hele rampen rundt hjulet, hver nyanse beholder lysheten og kromaen sin.
-- **Print** (`focus=print`) - hva primærfargen blir i trykk: den automatiske skjermverdien, eller et fastsatt CMYK-bygg eller en navngitt spotfarge i stedet.
+Velg en **Starting colour**, et **Scheme** (Mono, Complement, Analogous eller Triad) og hvor mange **Shades** (3 til 20, standard 5). **Fine-tune** setter UI-intensitet, kontrast og tekst på merkevare. Klikk på en nyanse for å legge den til, eller **Add 5 shades** for en gruppe. Fargene og rollene dine blir.
 
-### Én farge, en hel palett
+## Find matching colours
 
-Inni **Explore shades & harmonies**, velg en **Startfarge**. Lolly foreslår matchende nyanser med den samme perseptuelle fargematematikken (OKLCH) motoren bruker andre steder. Finjuster forslagene:
+Velg en **Harmony**: Complementary, Adjacent, Triad, Tetrad eller Analogous (med **Accents** fra 2 til 5 og en **Angle** fra 10° til 45°). Hver kandidat har et generert navn og **+ Add**, ett trykk per farge.
 
-- **Skjema** - Mono, Komplement, Analog eller Triade - bestemmer hvordan sekundærfargen forholder seg til primærfargen.
-- **Nyanser** - en glidebryter fra 3 til 20 (standard 5) styrer hvor mange trinn hver rampe genererer.
-- **Finjuster** (sammenslått) - **UI-intensitet** (Dempet / Dyp), **Kontrast** (Komfort / Høy) og **Tekst på merkevare** (Auto / Lys / Mørk).
+## Rebuild the whole palette
 
-Å endre startfargen og kontrollene endrer bare forslagene. Klikk på en nyanse for å legge til den fargen, eller **Add 5 shades** for å legge til en gruppe (antallet følger Nyanser-innstillingen din). Eksisterende farger og roller blir liggende. Angre fjerner tilføyelsen.
+Erstatter paletten fra én startfarge, etter en gjennomgang av hva som endres og hva som blir. Et sjekkpunkt tas først, og **Undo** tilbys etterpå.
+:::
 
-Radene **Primær**, **Neutral** og **Sekundær** viser de foreslåtte nyansene. Åpne **Theme preview** for å inspisere lyse og mørke eksempler og kontrastverdiene deres. Velg et Neutral- eller Sekundær-trinn der for å justere de foreslåtte temaankrene. Å bygge om hele paletten forblir en egen, gjennomgått handling under.
+Alle tre bruker den samme perseptuelle fargematematikken (OKLCH) som motoren. I **Explore shades & harmonies** viser radene **Primary**, **Neutral** og **Secondary** de foreslåtte nyansene, og **Theme preview** viser lyse og mørke eksempler med kontrastavlesningene sine.
 
 ![Tre foreslåtte nyansegrupper, med individuelle legg-til-kontroller og en egen Theme preview](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1400&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-preview&format=svg&walker=1&dark=1&filename=bs-colour-ramps)
-
-### Bygg paletten (harmonigenerator)
-
-I **Find matching colours** foreslår harmonigeneratoren matchende aksentfarger ut fra primærfargen. Velg en **Harmoni** - **Komplementær**, **Tilstøtende**, **Triade**, **Tetrade** eller **Analog** (som har sitt eget **Aksenter**-antall, 2 til 5, og en valør-**Vinkel** fra 10° til 45°) - og hver kandidat kommer med et automatgenerert, lesbart navn og en **+ Add**-knapp. Å legge til én setter den fargen i paletten med én gang, ett trykk til én token. **In context** forhåndsviser de tilføyde fargene dine på eksempelkomposisjoner.
 
 ![Genererte aksenter, hver med en fargeprøve, et automatgenerert navn, heksfargekoden sin og en Add-knapp](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### Å ta i bruk en generert palett
 
-Å legge til en foreslått farge eller nyansegruppe beholder resten av paletten din. For en fullstendig utskifting, åpne **Rebuild the whole palette…** og trykk **Preview full rebuild**. Gjennomgangen forklarer endringene: hvor mange roller som blir som du tildelte dem, hvor mange farger du selv la til som beholdes, hvor mange nyansekurver som forankres på nytt, hvor mange trykklåser som festes på nytt, hvor mange skjulte nyanser som forblir skjult, hvor mange gradientstopp som beholder fargen sin.
+Åpne **Rebuild the whole palette…** og trykk **Preview full rebuild**. Gjennomgangen teller hvor mange roller som blir som du tildelte dem, hvor mange av dine egne farger som beholdes og hvor mange nyansekurver, trykklåser, skjulte nyanser og gradientstopp som forankres på nytt eller beholdes. **Apply rebuilt palette** bekrefter; **Cancel** endrer ingenting. Etterpå tilbyr kortet **Undo** med fokus på det, og sjekkpunktet tatt før byttet gjenoppretter hele systemet.
 
-**Apply rebuilt palette** på det kortet fullfører den; **Avbryt** går bort og endrer ingenting. Når den har kjørt, tilbyr kortet **Angre** med fokus allerede på den - og et kontrollpunkt av hele designsystemet tas *før* byttet, så «sett det tilbake slik det var» blir en gjenoppretting i stedet for en tapt ettermiddag.
+Et system med fargevarianter beholder hver fargevariant gjennom en gjenoppbygging. Den kanoniske fargevarianten følger den nye startfargen, og hver annen fargevariant beholder sine egne farger, sitt navn, sin rekkefølge og sine innstillinger. Gjennomgangen lister hvilken fargevariant som følger og hvilke som beholder fargene sine. Lolly bygger ikke om et system som koder fargevariantene sine på en måte det ikke kan redigere; kortet sier hvorfor, og ingenting endres.
 
-### Paletten, diagrammet og hver fargeprøve
+### Ekspertdelene
 
-Paletten lister designsystemets farger i sammenleggbare grupper, hver med sin egen **+ Add**-kontroll. Opprett og gi grupper nytt navn for å organisere arbeidet ditt. En rolle lager aldri en ekstra flis: én token er én flis, og en flis en rolle peker på, bærer i stedet et lite hjørnemerke (**P**, **S**, **Su**, **T**). Under flisene slår **Fargediagram** opp to visninger av de samme fargeprøvene: **Hjul** (OKLCH-hjulet - dra en prikk for å omfarge den, klikk en prikk for å redigere den, eller klikk tomt rom for å slippe en ny fargeprøve) og **Fargeomfang**-diagrammet, som viser hvor det viselige området faktisk slutter. `#/start?area=color&focus=chart` åpner kortet direkte, slik `?wheel` alltid har gjort.
+Fire sammenfoldede deler ligger under forhåndsvisningen og rollene. Hver åpnes direkte med `#/start?area=color&focus=<name>`:
+
+- **Explore shades & harmonies** (`focus=generate`), beskrevet ovenfor.
+- **Shade curves** (`focus=curves`) former en ramp punkt for punkt, med separate kurver for lyshet, kromatisk intensitet og fargetone (L / C / H) og nyansene tegnes om mens du drar.
+- **Contrast** (`focus=contrast`): **Contrast-lock** toner en ramp om for å treffe APCA-mål mot en bakgrunn du velger, og **Rotate hue** dreier hele rampen rundt hjulet.
+- **Print** (`focus=print`) setter hva primærfargen blir på trykk: dens automatiske verdi, en festet CMYK-oppskrift eller en navngitt spotfarge.
+
+### Paletten og hver fargeprøve
+
+Paletten lister fargene dine i sammenfoldbare grupper, hver med sin egen **+ Add**. Lag og gi nytt navn til grupper som du vil. En rolle lager aldri en ny flis: en flis en rolle peker på, bærer et lite merke i stedet (**P**, **S**, **Su**, **T**). **Colour chart** under flisene viser de samme fargene på OKLCH-**Wheel** (dra en prikk for å farge på nytt, klikk på tomt område for å legge til en fargeprøve) og **Gamut**-diagrammet, som viser hvor det visbare området slutter. `#/start?area=color&focus=chart` åpner diagrammet direkte.
 
 ![Palettpanelet, hver gruppe sammenleggbar, med nedlastingspillen parkert langs nedre kant](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH-hjulet - vinkelen er valør, avstanden ut er kroma, og gråtonene følger en lyshetsskinne nedover siden](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
-Klikk på en fargeprøve for å åpne redigeringsverktøyet:
+Klikk på en fargeprøve for å åpne redigeringsprogrammet:
 
-- **Gi den nytt navn**.
-- **Sett fargen** - velgeren åpnes med perseptuelle **OKLCH**-glidebrytere, med moduser for **Hex**, **HSL**, **RGB** og **CMYK**; verdifeltet leser *og* skriver i det aktive fargerommet, så du kan lime inn en hex-verdi eller skrive inn blekkprosenter. Merk at å angi CMYK setter *skjerm*fargen ved konvertering - for å feste eksakte blekk, bruk trykklåsen nedenfor.
-- **Lagres som** - velg hvordan fargeprøven lagres: **LCH** (standard - perseptuell, vidt fargerom, det beste valget for redigering), Hex, RGB eller HSL. Overstyr dette når du trenger å feste en eksakt eldre hex-verdi eller matche en sRGB-verdi.
-- **Bruk som** - gi denne fargeprøven en av merkevarens roller direkte, uten å gå tilbake til Roller-panelet. (En rolles eget kort tilbyr det ikke - en rolle kan ikke ta en rolle.)
-- **Trykksubstitutter** (foldet) - lås fargens trykkoppførsel:
-  - **CMYK** - bytt fra **Auto** til **Låst** for å overstyre den automatiske sRGB→CMYK-konverteringen med eksakte blekkverdier (C/M/Y/K, 0-100).
-  - **Flerfarge (spot)** - bytt fra **Ingen** til **Angitt** for å låse fargeprøven til en spotfarge; gi den et **Navn** (f.eks. `PANTONE 186 C`), en valgfri **Bok** og en valgfri **Finish** (Vanlig blekk som standard) for når blekket ikke er blekk i det hele tatt - en folie, en preging opphøyd eller nedsenket, en spotlakk, en myk overflate eller et stansesnitt, en falselinje eller perforering.
-- **I andre fargerom** (foldet) - samme idé utvidet: hver rad er et fargerom denne fargeprøven kan uttrykkes i, enten avledet fra den kanoniske verdien eller angitt av deg, og en angitt verdi vinner ved eksport.
+- **Rename** fargeprøven.
+- **Set the colour** på OKLCH-glidere, eller i **Hex**, **HSL**, **RGB** eller **CMYK**. Verdifeltet leser og skriver i det aktive rommet. CMYK her setter skjermfargen ved konvertering; for å feste eksakte blekkfarger, bruk **Print substitutes**.
+- **Stored as** velger hvordan fargeprøven lagres: **LCH** (standarden, perseptuell og bredt fargerom), Hex, RGB eller HSL.
+- **Use as** gir fargeprøven en rolle direkte. Trykk på en uthevet rolle igjen for å fjerne rollen.
+- **Print substitutes** (sammenfoldet): lås **CMYK** fra **Auto** til eksakte blekkverdier, eller sett en **Spot colour** med et **Name** (som `PANTONE 186 C`), en valgfri **Book** og en **Finish** for folie, preging, blindpreging, spotlakk, soft touch eller en stans, falsing eller perforering. Et trykkeri bruker disse låsene når du eksporterer en CMYK-PDF eller TIFF; se [Colour profiles](/info/exporting.html#colour-profiles).
+- **In other spaces** (sammenfoldet): en verdi per fargerom, utledet eller skrevet av deg, og en skrevet vinner ved eksport.
 
-Disse trykklåsene er det et trykkeri bruker når du eksporterer en CMYK-PDF eller -TIFF - se [Eksportering](/info/exporting.html#colour-profiles).
+**Å slette en fargeprøve** er trygt. Utledede nyanser og temaroller skjules, så ingenting som leser dem, går i stykker, mens farger du la til, fjernes.
 
-**Å slette en fargeprøve** er trygt: avledede trinn i fargeskalaen og temaroller blir *skjult* (det underliggende tokenet fortsetter å løses opp, så ingenting lenger nede går i stykker), mens farger du selv har lagt til fjernes helt.
+::: details Å arbeide med mange fargeprøver
+Hver fargeprøve har et dragehåndtak. Dra for å omorganisere innenfor en gruppe, eller sett fokus på håndtaket, trykk Space, bruk piltastene og trykk Space igjen for å slippe; Escape avbryter. For å flytte farger mellom grupper, bruk redigeringsprogrammets **Group**-kontroll eller velg flere og bruk **Move to**.
 
-### Å jobbe med mange fargeprøver
+Utvalg trenger ingen modus. Linjen vises med den første valgte flisen og forsvinner med den siste.
 
-Hver fargeprøve har et eget draghåndtak. Dra det for å endre rekkefølgen på farger innenfor gruppen, eller fokuser det, trykk Mellomrom, bruk piltastene, og trykk Mellomrom igjen for å slippe. Escape avbryter. Rekkefølgen overlever at studioet åpnes på nytt, og kan angres. For å flytte farger mellom grupper, bruk fargeprøve-redigeringens **Group**-kontroll, eller merk flere farger og bruk **Flytt**. Tokennavn og rollereferanser forblir intakte.
+- **Dra på tomt område** for å tegne et rektangel; hver flis det berører, blir med i utvalget, på tvers av grupper. En sammenfoldet del legger ikke til noe.
+- **Shift-klikk** tar et område i leserekkefølge, **Cmd/Ctrl-klikk** veksler én flis, og et vanlig klikk åpner redigeringsprogrammet.
+- Hver gruppeoverskrift har **Select all**, og **Cmd-A** med en flis i fokus tar hver farge du eier, aldri en starterfarge.
+- Rutenettet har ett tabulatorstopp: piler flytter, Shift-piler utvider, Space veksler, Delete fjerner og Escape tømmer. For å dytte en kanal, trykk `l`, `c` eller `h` først.
+- På en berøringsskjerm trykker og holder du en flis for å starte et utvalg, og trykker deretter for å legge til.
 
-Utvalg i palettpanelet er en bevegelse, ikke en modus. Det finnes ingen knapp å trykke på først, og linjen dukker opp med den første merkede flisen og forsvinner med den siste.
-
-- **Dra på panelets tomme flate** for å tegne et rektangel: hver flis det berører, blir med i utvalget, på tvers av gruppegrenser. Et sammenslått avsnitt bidrar med ingenting, og en dragning som aldri beveger seg, tømmer utvalget.
-- **Shift-klikk** tar området i leserekkefølge; **Cmd/Ctrl-klikk** slår av og på én flis; et vanlig klikk åpner fortsatt den flisens redigering.
-- Hver gruppeoverskrift bærer **Velg alle**, og **Cmd-A** med en flis i fokus tar hver farge designsystemet eier - aldri en startfarge.
-- Rutenettet har ett tabbstopp. Piler beveger seg gjennom det, Shift-piler utvider utvalget, Mellomrom slår av og på en flis, Delete fjerner utvalget, og Escape tømmer det. (Piler flytter bare fokus: for å dytte en kanal, trykk `l`, `c` eller `h` først, slik avlesningen sier.)
-- På en berøringsskjerm finnes det ikke noe rektangel. Trykk og hold en flis for å starte et utvalg, trykk så for å legge til; **Velg alle** per gruppe tar resten.
-
-Selve linjen leser **{n} selected**, deretter **Flytt til** (en eksisterende gruppe, eller en ny du gir navn i menyen), **Gi en rolle** (hver merkede farge tar neste rolle etter tur, så fire fliser fyller alle fire rollene i ett trykk), **Last ned** (utvalget i hvilket som helst av de seks palettformatene), **Kopier verdier** (én linje per farge i sin lagrede notasjon) og **Slett**. Flytt til og Gi en rolle dukker opp så snart paletten har nyanser å flytte rundt på. Én Ctrl/Cmd-Z angrer en hel masseoperasjon - en flytting av førti, en rollerunde, en sletting - og en sletting sier hva den beholdt, fordi et utvalg når fliser dette rommet ikke fjerner.
+Linjen leses **{n} selected**, deretter **Move to**, **Give a role** (hver farge tar neste rolle i tur), **Download** (utvalget i et av de seks palettformatene), **Duplicate** (en kopi av hver, plassert etter originalen), **Copy values** og **Delete**. Én kopi åpnes rett i redigeringsprogrammet; flere forblir valgt. Ett Cmd/Ctrl-Z angrer en hel massehandling.
+:::
 
 ### Gradienter
 
-Et valgfritt **Gradienter**-panel bygger blandingstokens fra paletten for bakgrunner og aksenter. Hopp helt over det hvis designsystemet ikke bruker gradienter. Hver gradient har en forhåndsvisning, navngitte stopp (2–8) og en vinkel. Nøkkelatferden: **et stopp refererer til en fargeprøve**, så omfarg den fargeprøven, og gradienten følger med. Interpoleringen kjører i OKLCH for rene overganger. Slett et stopp for å korte ned forløpet.
+Det valgfrie panelet **Gradients** bygger blandingstokener fra paletten. Hver gradient har en forhåndsvisning, 2 til 8 navngitte stopp og en vinkel. Et stopp peker på en fargeprøve, så farg fargeprøven på nytt, og gradienten følger. Blandinger kjører i OKLCH.
 
-### Ta paletten med deg
-
-Den flytende pillen parkert langs nedre kant av palettpanelet laster ned hele paletten som **Designtokens (JSON)**, **CSS-variabler**, **CSS-klasser**, **SCSS-variabler**, en **GIMP-palett (.gpl)** eller en **Adobe Swatch Exchange (.ase)** - slik at designsystemet går rett inn i Illustrator, Figma, GIMP eller et stilark. Den sitter utenfor panelets rullefelt, så den beholder plassen sin uansett hvor langt paletten rulles, og den dukker opp så snart paletten har nyanser. (Du kan også laste ned paletten fra [Ressurser](/info/using.html#assets-your-library).)
+Palettnedlastingene (designtokens, CSS, SCSS, GIMP og Adobe Swatch Exchange) ligger i en pille nederst i paletten når det finnes nyanser. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) beskriver hvert format.
 
 ## Skrift
 
-Dette rommet vokser på samme måte. Uten en egen skrift er det ett kort og ett valg: **Primary**, satt i lesestørrelse i skriften som betjener det i dag, en **Start**-tagg ved siden av navnet, en fylt **Velg en skrifttype** og linjen *«Ingenting installeres før du velger en.»* Under kortet ligger *«Overskrifter, kode og kursiv følger primærfargen til du velger dem»*, med **Choose them separately** som avdekker de tre andre kortene for resten av besøket.
+Uten en egen skrift er rommet ett kort: **Primary**, satt i lesestørrelse i skriften som tjener det i dag, med et **Starter**-merke, en **Choose a face**-knapp og linjen *"Nothing installs until you choose one."* Headings, code og italic følger primærskriften til du velger dem; **Choose them separately** viser kortene deres.
 
 ![Typografi-rommet med ingen skrift valgt ennå - ett kort i lesestørrelse, en Start-tagg på det og en fylt Velg en skrifttype](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
-Velg én skrift, så åpner rommet seg til **fire rollekort**, Fonts-listen og det levende eksemplet. De fire skriftene er de appen, verktøyene og hver eksport faktisk leser:
+Velg én skrift, så åpner rommet seg til fire rollekort, Fonts-listen og et levende prøveeksempel:
 
-- **Primær** - brødtekst, knapper og alle verktøy.
-- **Overskrifter** - visningsskriften for `h1`/`h2`.
-- **Kode** - en fastbreddeskrift for kode og data.
-- **Kursiv** - en ekte kursiv følgesvenn for uthevelse, sitater og sidebemerkninger.
+- **Primary**: brødtekst, knapper og hvert verktøy.
+- **Headings**: visningsskriften for `h1` og `h2`.
+- **Code**: en skrift med fast bredde for kode og data.
+- **Italic**: en ekte kursiv for utheving, sitater og sidebemerkninger.
 
-Overskrifter, kode og kursiv faller alle tilbake på primærfargen til du tildeler dem, så et designsystem med én skrift trenger ingen valg her i det hele tatt.
-
-**En toning betyr at du valgte den.** Et kort er tonet bare der du installerte den skriften. En startskrift bærer den samme **Start**-taggen som palettens arvede grupper bærer, i det dempede registeret og uten toning, og en rolle ingen har valgt, leser **↳ follows Primary** i stedet for å gjenta primærfargens navn som om den var valgt. Knappen sier **Endre** på en egen skrift og **Velg en skrifttype** ellers overalt. Ingenting på et kort forplikter noe: knappen åpner **sammenligningsflaten** avgrenset til den rollen.
+Et kort er bare tonet der du installerte den skriften, og knappen sier **Change** på en skrift du eier selv og **Choose a face** overalt ellers. Ingenting på et kort bekrefter noe: knappen åpner sammenligningsscenen for den rollen.
 
 ![De fire rollekortene avdekket - hvert satt i skriften som betjener det, med en Start-tagg der ingen har valgt en, og Italic som følger primærfargen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Sammenligningsstadiet
 
+Scenen åpnes inne i rommet, under kortet du trykket på, og kortene folder seg til en enlinjes stripe slik at scenen vises på en telefons første skjerm. Escape avbryter og returnerer fokus til kortet.
+
+1. Trykk **Choose a face** på kortet.
+2. Skriv et familienavn og trykk **Preview**, eller trykk på en av de seks **Pinned**-familiene under feltet.
+3. Trykk **Use this face**.
+
 ![Sammenligningsflaten åpen under kortet sitt, med søkeraden, de festede familiene og kortene sammenslått til en enlinjes stripe](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dtype%26focus%3Dstage&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-type-stage)
 
-Flaten åpnes **innebygd i rommet**, ikke i en dialog, og rett under kortet du trykte på. Mens den er oppe, slås kortene sammen til en enlinjes stripe med rolle og skrift, slik at flaten er på første skjerm selv på en telefon. Escape avbryter og gir tastaturet tilbake til kortet du åpnet den fra.
+**Samtykke spørres om én gang.** Første gang en forhåndsvisning når Google Fonts, forklarer en dialog: *Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.* **Fetch from Google** går videre og huskes. **Cancel** lar kortet lese *"Not fetched. Nothing was sent to Google."*, med sin egen **Fetch from Google**.
 
-Å velge en skrift er tre trykk:
-
-1. **Choose a face** på kortet.
-2. Skriv et familienavn og trykk **Forhåndsvisning** - eller trykk på en av de seks **Festet**-familiene under feltet, ett trykk hver. Kortet vises allerede under lasting, med en skjelettlinje der eksemplet vil være, i stedet for at grensesnittskriften står inn for en skrift du ikke har sett ennå.
-3. **Bruk denne snittet**.
-
-**Samtykke spørres én gang, ved trykket du gjorde.** Første gang en forhåndsvisning når Google Fonts, sier en dialog hva som skjer: *Google lærer familienavnet og IP-adressen din. Filen holdes deretter på denne enheten og brukes offline. Dette er det ene trinnet i studioet som når en tredjepart.* **Hent fra Google** går videre og huskes. **Avbryt** lar kortet stå med *«Ikke hentet. Ingenting ble sendt til Google.»* med sin egen levende **Hent fra Google**, så å ombestemme seg er ett trykk på selve kortet. Ingen kort viser noensinne en død knapp: uansett hvilken tilstand det er i, sier den ene primærknappen dens hva neste steg er.
-
-**Slipp en skriftfil på flaten**, så forhåndsvises den med én gang - **TTF**, **OTF** eller **WOFF** fra din egen maskin, som er veien for en lisensiert bedriftsskrift du allerede eier. Den slippsonen er den eneste fildøren i rommet.
-
-Uansett vei blir skriften på denne enheten, rendres i appen, i verktøyene og i hver eksport, offline for alltid, og følger med i designsystemfilen - ingenting hentes ved rendring. Alt på Google Fonts leveres under en åpen lisens (OFL/Apache/UFL).
+**Slipp en skriftfil på scenen** (TTF, OTF eller WOFF) for å forhåndsvise en lisensiert skrift du allerede eier. Uansett blir skriften på denne enheten, gjengis uten nett i appen, verktøyene og hver eksport, og følger med i designsystemfilen. Alt på Google Fonts leveres under en åpen lisens (OFL, Apache eller UFL).
 
 ### Skrifter på denne enheten
 
-Panelet **Fonts** lister hver skrift denne enheten har, og rollen den betjener. Skrifter du har lagt til, ligger øverst under **In the design system**, hver med rollene sine og en slett, og den som betjener Primary bærer merket. Startskriftene følger i én sammenslått rad - *Start · SUSE, SUSE Mono · betjener Primary og Code til du velger* - dempet, uten slett og ingenting å forfremme, fordi ingen av delene er et valg noen har tatt. **Legg til en skrift** åpner den samme sammenligningsflaten uten avgrensning.
-
-Panelet **Type roles** nederst viser et levende eksempel på hver rolle - brødtekst og UI i primærfargen, en valgfri display-skrift for de øverste overskriftene, en kursiv for utheving, en mono for kode og data - med familien og tilstanden dens ved siden av hver (*Inter*, *SUSE · starter*, *SUSE · follows Primary*), slik at hele settet kan leses på én gang.
+Panelet **Fonts** lister hver skrift på denne enheten og rollen den tjener. Skrifter du la til, leder under **In the design system**, hver med sine roller og en sletting. Starterskriftene følger i én dempet, sammenfoldet rad. **Add a face** åpner sammenligningsscenen for en hvilken som helst rolle. Panelet **Type roles** viser et levende prøveeksempel av hver rolle med familie og tilstand, som *Inter* eller *Inter · follows Primary*.
 
 ## Tokens
 
-Resten av designsystemet, redigerbart uten å røre kode:
+Tokens er de navngitte verdiene bak designsystemet: farger, skrifter, logoer, hjørner og avstand. Verktøy leser dem ved navn, så en endring her når hvert verktøy samtidig.
 
-![Tokens-rommet - en glidebryter for hjørneradius pluss spacing, sizing, shadows og resten av systemet](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
+![Rommet Tokens: toppen med et eksempel fra systemet og filhandlingene, fliser som teller hver type token, deretter fargeparene med kontrastavlesningene sine](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
-- **Runde hjørner** - én enkelt radiusglidebryter (0–1,5rem) som kort, knapper og paneler i hele appen følger.
-- **Neutrals** - blekk-gjennom-papir-rampen en ny installasjon leveres med, listet som **Neutrals · starter · 9** med sine ni trinn og en **Åpne** inn i Farger-panelet. Det er det ene stedet startnøytralene forvaltes, og *starter*-taggen forsvinner i det øyeblikket rampen genereres i stedet for arves.
-- **Flere token** - legg til og rediger **spacing**, **sizing**, **stroke width**, **opacity**, **rotation**, vanlige **numbers** og **shadows**. Velg en type, gi den navn (*Gutter, Card shadow…*) og angi verdien. Disse lagres som vanlige [designtokens](/info/design-tokens.html) (DTCG) og følger med designsystemet.
+- **The head** gir et eksempel fra ditt eget system (*Primary is Spearmint, #033633*) og filhandlingene: **Download** (hele systemet som designtokens, eller paletten i fem andre formater), **Copy CSS** og **Add from…** for å lese en JSON-fil inn igjen.
+- **Tiles** teller hver type token og hopper til delen: Colours, Type, Logos, Shape and spacing, More og All tokens. De teller det som er ditt eget, slik Overview gjør. På en telefon ruller flisene sideveis.
+- **Colours** starter med parene verktøy setter sammen (tekst på flate, på primær, dempet på flate) med en APCA-avlesning i lys og mørk, og flagger **Weak contrast** der et par kommer til kort. Deretter hver fargegruppe: en ramp som én rad med brikker, andre farger med verdien sin og referansen verktøy bruker, som `{color.brand.spearmint}`. Trykk på en referanse for å kopiere referansen. **Edit in Colours** åpner en gruppe i rommet Colours.
+- **Type** og **Logos** lister skriften for hver rolle og hver logoplass, med **Edit in Type** og **Edit in Logos** når du har dine egne.
+- **Shape and spacing** har **Rounded corners** (`shape.radius`) og **Spacing rhythm** (`space.base`). Hver leses *Lolly default* til du flytter glideren og *Yours* etterpå, lagrer med en gang og kan angres.
+- **More tokens** legger til avstand, størrelse, strektykkelse, opasitet, rotasjon, rene tall og skygger, lagret som standard [designtokens](/info/design-tokens.html).
+- **App appearance (advanced)** lister fargene, størrelsene og skyggene Lollys egne skjermer bruker, og **Inspect every token (advanced)** søker i og redigerer hvilken som helst lagret verdi, og viser hver endring til gjennomgang først.
+
+En del uten innhold tilbyr veien for å fylle hullet: **Pick a colour**, **Choose a face** eller **Add a logo**.
 
 ## Filer
 
-Slipp filene merkevaren din har - bortsett fra logoer - her: **vektor-**, **bilde-**, **lyd-** og **bevegelses**-ressurser (video, Lottie, animert). De havner i [Ressurser](/info/using.html#assets-your-library), sortert i seksjoner og klare i hvert verktøys ressursvelger. Alt blir på denne enheten. (Raden merker rommet **Filer**; URL-nøkkelen forblir `catalogue`, fordi en panelnøkkel er en permanent kontrakt.)
+Slipp filene merkevaren din beholder, bortsett fra logoer: **vector**-, **image**-, **audio**- og **motion**-filer (video, Lottie og animasjoner). De vises i [Assets](/info/using.html#assets-your-library), sortert i deler og klare i hvert verktøys ressursvelger, og de blir på denne enheten.
+
+## Usage & rules
+
+**Usage & rules** setter merkevarens valg i arbeid: hva folk kan endre, hva som er fast og hva Lolly kan sjekke.
+
+![Usage & rules på Lolly Demo: et tomt kort Brand rules med Add your first rule, deretter Try your brand in use med eksemplene klare til å gjengis](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+
+**Brand rules** lister reglene dine. **Add rule** (eller **Add your first rule**) åpner et kort skjema:
+
+- et **Rule name** med dine egne ord, som *Beacon accents*;
+- **Check**: **Colour choices**, **Font choices**, **Fixed artwork** eller **Text length**, med merkevarerollen den bruker, under ditt eget navn for rollen;
+- **Example** den gjelder for (Poster, Title slide, Content slide eller Chart), **Mode** og om den er **Required** eller **Advisory**;
+- **Reviewed by**, deretter **Save draft** eller **Approve & save**.
+
+Godkjenning registrerer din egen avgjørelse på denne enheten. Godkjente påkrevde regler begrenser den gjenbrukbare plakaten, og kontrollene dekker bare eksempel-PNG-ene; de endrer ingen andre verktøy.
+
+Regler et designsystem har med seg i tokenfilen sin, som godkjente fargepar, tekstvekt og justering eller en logo per flate, listes her som **Checked in Design**. Design sjekker dem lag for lag i kortet **Before you export** i eksportpanelet, og `lolly check` gjør det samme for et lagret Design-dokument ([Before you export](/info/design.html#before-you-export)). En regel dette bygget ikke har noen kontroll for, beholdes som levert og merkes **Unchecked**.
+
+**Try your brand in use** gjengir fire eksempler fra gjeldende revisjon med **Render & check examples**. Velg en **Brand mode** og **Try your own text** for overskriften, støtteteksten og lysbildeteksten. Hvert eksempel rapporterer hva som ble målt, med **See checks & sources** og **Download check report**, og **Make reusable poster** laster ned en `.lolly` der den faste layouten og de godkjente inndatavalgene følger med filen. Eksemplene er lokale: ingenting publiseres eller godkjennes ved å kjøre en kontroll.
+
+Et bygg som leveres med en fast merkevare, viser de samme reglene og eksemplene skrivebeskyttet, under *This brand is set*.
 
 ## Ta inn en merkevare
 
-**Legg til fra…** nederst i menyen åpner en velger i to trinn. Det første trinnet spør hva du *har*, ikke hvilket format det er:
+**Add from…** nederst i listen åpner en velger som spør hva du har, ikke hvilket format det er:
 
-- **Designtokens eller en designfil** - DTCG- eller Tokens Studio-JSON, et Penpot-prosjekt, en **zip med tokensett**, en Lolly-designsystempakke eller en SVG.
-- **PDF** - et sett eller en retningslinjefil, lest på denne enheten for fargene, merkene og de innebygde skriftene.
-- **Logo eller skjermbilde** - et bilde blir en foreslått palett, lest på denne enheten. Ingenting lastes opp. Dette leser farger, ikke skriften eller layouten i bildet.
-- **Lagret nettside** - velg én HTML-fil og CSS-filene dens, eller lim inn HTML eller CSS. Opptil 20 filer og 2 MB totalt. Bare den oppgitte teksten leses; lenkede ressurser hentes ikke, og skript kjøres ikke. Denne veien fungerer også uten utvidelsen eller skrivebordsappen.
-- **Skriftfil** - TTF, OTF eller WOFF. Åpner Typografi-rommet, der skriften installeres.
-- **Nettsted** - én side, lest for fargene og typografien. Denne flisen vises bare på en enhet som faktisk kan lese en side, fordi en deaktivert flis som annonserer noe ingen kan trykke på, er verre enn ingen flis i det hele tatt. Der den vises, sier den tydelig hvilken leser som brukes: hentet av appen på denne enheten, eller lest gjennom nettleserutvidelsen i en bakgrunnsfane, innlogget som deg. Å oppgi en URL bare *forhåndsutfyller* feltet - hente-knappen er samtykket, så en lenke noen sender deg, kan aldri starte en lesing.
+- **Design tokens or a design file**: DTCG- eller Tokens Studio-JSON, et Penpot-prosjekt, en zip med tokensett, en Lolly-designsystempakke eller en SVG.
+- **PDF**: en presentasjon eller en retningslinjefil, lest på denne enheten for farger, merker og innebygde skrifter.
+- **Logo or screenshot**: et bilde blir en foreslått palett, lest på denne enheten. Den leser farger, ikke skriften eller layouten.
+- **Saved web page**: én HTML-fil og dens CSS-filer, eller innlimt HTML eller CSS, opptil 20 filer og 2 MB. Bare teksten du oppgir, leses: lenkede ressurser hentes ikke og skript kjører ikke.
+- **Font file**: TTF, OTF eller WOFF. Åpner rommet Type, der skriften installeres.
+- **Website**: én side, lest for farger og skrift. Denne flisen vises bare på en enhet som kan lese en side, og sier hvilken leser den bruker: appen på denne enheten, eller nettleserutvidelsen i en bakgrunnsfane, pålogget som deg. Å oppgi en URL fyller bare ut feltet; å trykke hent er samtykket.
 
-Velg designfil-kilden, og andre trinn er kortet nedenfor: de aksepterte formatene ledes an som ikonfliser i foretrukket rekkefølge, og hele kortet er ett sleppmål - klikk hvor som helst på det, eller dra en fil på det. Du kan også slippe en fil rett på studioet.
+Velg designfilkilden, så lister neste kort de godkjente formatene som ikonfliser, med hele kortet som ett slippmål. Du kan også slippe en fil rett på studioet.
 
 ![Importkortet - de aksepterte formatene ledes an som ikonfliser, og hele kortet er ett sleppmål](/t/url-shot?url=%2F%23%2Fstart%3Fsource%3Dfile&width=1440&height=900&dpi=192&waitMs=1600&css=.start-import-modal%20.modal-msg%2C.start-import-modal%20.modal-title%7Bdisplay%3Anone%7D&cropSelector=.start-import-drop&walker=1&format=svg&dark=1&filename=bs-brand-import-formats)
 
-Hva hver designfil gir deg:
+- En **Lolly design-system pack** (`.lolly`, eller en eldre `.zip`) installeres i ett trinn.
+- En **Penpot**-eksport (`.penpot`) tar med designtokenene sine.
+- En **Design Tokens**- (W3C DTCG) eller **Tokens Studio**-fil (`.json`) tar med tokenene sine.
+- En **plain SVG** skannes for farger du velger blant, og den første blir primærfargen din.
 
-- en **Lolly-designsystempakke** (`.lolly`; eldre `.zip` godtas fortsatt) - installeres i ett trinn;
-- en **Penpot**-eksport (`.penpot`) - henter inn designtokens sine;
-- en **Design Tokens**-fil (`.json`) - W3C DTCG;
-- en **Tokens Studio**-fil (`.json`) - Tokens Studio;
-- en **ren SVG** (`.svg`) - Lolly skanner fargene dens og lar deg velge hvilke som skal beholdes, den første blir primærfargen din.
+### Gjennomgå en referanse
 
-En logo/et skjermbilde, nettsted eller lagret side åpner **Your suggested design system**. Se et eksempel med de foreslåtte fargene, velg en annen **Main colour** om nødvendig, og gi systemet navn. **Use this design system** tar i bruk de genererte lyse og mørke palettene og går tilbake til Oversikt. Eksisterende skrifter blir som de er. Dette erstatter fargene og andre tokeninnstillinger til det aktive systemet. Et kontrollpunkt må lykkes først; **Restore brand settings** gjenoppretter de tidligere innstillingene.
+En logo, et skjermbilde, et nettsted eller en lagret side åpner **Try these colours**: et eksempel i de foreslåtte fargene, en **Main colour** du kan endre og et navn for et nytt system. En boks staver ut hva bruk innebærer: den **replaces** de aktive tokeninnstillingene med den genererte paletten og standardstilene, **keeps** skriftene og bibliotekfilene dine og det forrige systemet kan **recovered**. **Apply suggested settings** bruker de lyse og mørke palettene, etter et sjekkpunkt, og **Restore brand settings** kan hente de gamle innstillingene tilbake. **Change reference** velger en annen kilde.
 
-**Source details and individual choices** viser hva som ble lest, oppdagede skriftnavn og forhåndsvisningens tekst-/handlingskontrast. Den tilbyr også **Choose individual items in the tray** og **Download design context**. JSON-rapporten bærer observasjoner, foreslåtte tokens og kildeinformasjon; lagret HTML/CSS inkluderer en SHA-256 av den oppgitte teksten. Den inneholder ingen rå sidetekst og er ikke en signert Content Credential. Skriftnavn er forslag: Typografi forblir stedet for å velge og installere skrifter.
+**Palette, source details and individual choices** viser hva som ble lest, eventuelle skriftnavn som ble funnet og forhåndsvisningens kontrast. Skriftnavn er bare forslag; Type er fortsatt der du installerer en skrift. Kildedetaljene kan omfatte typografi, mellomrom, utfylling og hjørneverdier der de ble observert, merket **Not observed** ellers. En lagret side eller en innebygd nettstedsavlesning rapporterer deklarerte stiler, som siden kanskje ikke bruker, og nettleserutvidelsen kan rapportere målte stiler fra et utvalg synlige elementer. Dette er observasjoner: ingenting installeres, og kildens avstander erstatter aldri dine egne. **Choose individual items in the tray** beholder enkeltelementer, og **Download design context** lagrer en JSON-rapport over observasjoner, foreslåtte tokener og kildeinformasjon (med en SHA-256 av eventuell oppgitt HTML eller CSS). Rapporten har ingen rå sidetekst og er ikke en signert Content Credential.
 
-PDF- og andre designfilimporter beholder sine eksisterende gjennomgangskontroller. Elementer lagret i **Skuff** endrer ingenting før de legges til gjennom rommet som eier den typen materiale.
+PDF- og designfilimporter beholder sine egne gjennomgangskontroller. Elementer i **Tray** endrer ingenting før du legger dem til i rommet som eier den typen materiale. `#/start?source=<kind>` åpner velgeren på en kilde (`file`, `pdf`, `image`, `font`, `url`, `page`), og `?import` åpner den rene listen.
 
-`#/start?source=<kind>` åpner velgeren på en gitt kilde (`file`, `pdf`, `image`, `font`, `url`, `page`), og `?import` åpner den på den vanlige listen.
+### Finn og sammenlign et utseende
 
-## Flytt en merkevare mellom enheter
+Åpne **Find a look** fra Overview eller fra designsystemlisten i Settings. Bla gjennom systemer lagret på denne enheten og noen få gjenbrukbare Lolly-eksempler, og søk på navn, fargemerke eller deklarert skrift. **Closest to my current palette** sorterer etter målt fargelikhet, med samsvarende skrifter som avgjør uavgjort; det er ikke en kvalitetsscore.
 
-**Eksporter** nederst på raden skriver én enkelt **`LollyBrand-….lolly`** - tokensene, skriftene, logoene og temapreferansen din, med et integritetsmanifest den verifiserer på veien tilbake inn. Nettversjoner før 1.0.7 kalte den samme nyttelasten `.zip`; den eldre stavemåten godtas fortsatt. Ved siden av, **Tokens (.json)** skriver det rene design-tokens-dokumentet for seg selv: ingen skrifter, ingen logoer, bare tokens, som er det et repo, et CI-trinn eller et annet tokens-verktøy faktisk leser.
-
-Å ta en tilbake inn er **Legg til fra… → Designtokens eller en designfil** (over), eller dra-og-slipp på studioet. Slik gir en kollega deg en merkevare, eller slik tar du en med til en annen installasjon - ingen konto, ingen sky. For å ta inn en merkevare fra kommandolinjen i stedet, se [`ingest:brand`](/info/configuration.html#brand-packs).
-
-## Gjenopprett tidligere innstillinger
-
-Velg **Restore brand settings** nederst på raden, velg et datert kontrollpunkt, og trykk deretter **Gjenopprett**. Det gjenoppretter farger, skriftinnstillinger og andre merkevaretokens for den aktive merkevaren. Skrift- og bildefiler blir som de er.
-
-Lolly lagrer de gjeldende innstillingene dine som **Before restore** før kontrollpunktet tas i bruk. Velg det kontrollpunktet for å reversere gjenopprettingen, også etter at nettleseren er lukket og åpnet igjen. De siste 20 kontrollpunktene beholdes på denne enheten. Hvis lagringen ikke kan leses eller de gjeldende innstillingene ikke kan lagres, rapporterer dialogen problemet slik at du kan prøve igjen.
-
-## Versjoner
-
-**Versjoner** nederst på skinnen er der et designsystem slutter å være et bevegelig mål. Publiser én, og du får en **permanent, navngitt kopi** oppbevart på denne enheten: den endres aldri etterpå, så et verktøy som fester seg til den, fortsetter å tegne det samme. Panelet forblir skjult til det finnes noe eget å publisere, slik at et studio som aldri publiserer, aldri ser kontrollene.
-
-Tre ting å vite før du trykker på noe, og panelet sier alle tre før trykket i stedet for etterpå:
-
-- **En versjon er permanent.** Det finnes ingen slettefunksjon ennå, så panelet forteller hva som er beholdt og at det forblir beholdt, i stedet for å tilby en knapp som lyver.
-- **Fjerninger leder kompatibilitetskortet.** Lagt til og endrede tokens er nyheter; en *fjernet* en er det som ødelegger et verktøy, så den nevnes først og kalles det den er.
-- **Publisering kan ikke angres; gjenoppretting kan.** *Gjenopprett nyeste fra denne versjonen* er en ordinær redigering av hodet, så den havner på studioets angre-stabel, og panelet tilbyr deg **Angre** med det samme.
-
-Du kan **Bare publisere**, eller **Publiser og gjør aktiv** - forskjellen er om verktøyene og appen følger den versjonen fra nå av eller fortsetter å følge din siste redigering. **Følg det siste igjen** setter hver redigering live i det den gjøres. `#/start?area=versions` åpner panelet direkte.
-
-## Når merkevaren er fast
-
-Enkelte bygg leveres med et **låst designsystem**, som SUSE Brand. Å åpne det viser en skrivebeskyttet merknad med **Make an editable copy** og **Switch**. De opprinnelige fargene, skriftene og tokensene dets forblir intakte. Dine egne lokale systemer forblir redigerbare, selv når det låste systemet var det første på enheten. I Profile velger **Åpne** et system og åpner studioet dets; **Make a new one** lager et lokalt system og åpner det på `#/start` med navnefeltet i fokus.
-
-## Hvor du går videre
-
-- **[Bruke Lolly](/info/using.html)** - lerretet, lagring, prosjekter og Ressurser.
-- **[Designtokens](/info/design-tokens.html)** - tokenmodellen merkevaren din uttrykkes i.
-- **[Eksport og formater](/info/exporting.html)** - trykkeenheter, CMYK og formatene merkevaren din gjengis til.
-
-
-## Finn og sammenlign en stil
-
-Åpne **Find a look** fra Oversikt eller listen over designsystemer på Profile. Bla gjennom systemer lagret på denne enheten og noen gjenbrukbare Lolly-eksempler. Søk etter navn, fargetagg eller angitt skrift. **Closest to my current palette** sorterer etter målt fargelikhet, med matchende skriftfamilier som avgjør uavgjort; det er ingen kvalitetsvurdering.
-
-Velg én stil for å gjennomgå den, eller to for å sammenligne. Gjennomgangsknappen forblir tilgjengelig på en liten skjerm. Å velge en stil endrer ingenting. **Use this saved system** bytter gjennom det eksisterende designsystemregisteret. **Use these colours** tar i bruk et eksempel gjennom den vanlige kontrollpunkt- og installasjonsflyten, og beholder de gjeldende skriftene. **Restore brand settings** kan gjenopprette den forrige stilen.
-
-Under **Details and design context** har lagrede systemer redigerbare **Search tags** og en konteksnedlasting. Eksemplene bruker Lollys egne fargeoppskrifter; det finnes ingen eksternt skrapet inspirasjonssamling eller noe krav om konto.
+Velg ett utseende for å gjennomgå det, eller to for å sammenligne side om side. Å velge endrer ingenting. **Use this saved system** bytter til det, og **Use these colours** bruker et eksempels farger gjennom det vanlige sjekkpunktet, og beholder skriftene dine. **Restore brand settings** henter det forrige utseendet tilbake. Lagrede systemer har redigerbare **Search tags** under **Details and design context**. Eksemplene er originale Lolly-fargeoppskrifter, uten noen skrapt samling og uten konto.
 
 ![Sammenlign Sunroom og Orchard side om side før du tar i bruk noen av fargesystemene.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
-Sammenligningen holder begge palettene synlige sammen. Å gjennomgå en stil endrer ingenting før du velger **Use these colours** eller **Use this saved system**.
+## Behold og flytt designsystemet ditt
 
-## Les kildebevis
+### Flytt en merkevare mellom enheter
 
-Kildegjennomgangens valgfrie detaljer viser typografi, mellomrom, polstring og hjørneverdier der de er observert. Lagret HTML/CSS og native nettstedslesinger rapporterer deklarasjoner, som kanskje ikke brukes av den rendrede siden. Nettleserutvidelsen kan rapportere målte stiler fra et avgrenset utvalg av synlige elementer, med visningsvinduet og nettleserens fargepreferanse. Eldre utvidelser fungerer fortsatt med deklarerte stiler. Manglende felt sier **Not observed**.
+**Export** skriver én **`LollyBrand-….lolly`**-fil: tokenene, skriftene, logoene og temainnstillingen din, med et integritetsmanifest som kontrolleres på vei inn igjen. Nettutgivelser før 1.0.7 ga den samme filen navnet `.zip`, og den skrivemåten godtas fortsatt. **Tokens (.json)** skriver det rene designtoken-dokumentet alene, uten skrifter eller logoer, for et repositorium, et byggetrinn eller et annet tokenverktøy.
 
-Dette er observasjoner, ikke automatiske stilinnstillinger. Skriftfiler hentes eller installeres ikke av et referansesøk, og kildens mellomrom erstatter aldri dine egne i stillhet. Antallene beskriver forekomster i utvalget, ikke pålitelighet eller kvalitet.
+For å hente en tilbake, bruk **Add from… → Design tokens or a design file**, eller slipp filen på studioet. Slik gir en kollega deg en merkevare, eller slik tar du en med til en andre installasjon, uten konto og uten sky. For å hente inn en merkevare fra kommandolinjen, se [`ingest:brand`](/info/configuration.html#brand-packs).
 
-## Kontroller en komposisjon mot designsystemet
+**Fonts for Linux (.rpm)** pakker skriftene du la til i en installerbar RPM. Hvis du lastet opp noen av dem selv, ber Lolly deg først bekrefte at du har lov til å videredistribuere dem.
 
-I Design, åpne **Eksporter**, deretter **Before you export**. Kontrollen bruker den samme effektive designsystemversjonen som gjengivelsen. Den sammenligner angitte farger, tokenalias, skriftvalg og bilderessurs-ID-er. Egendefinerte verdier kan være tilsiktet; et bilde utenfor de angitte merkevareressursene er et gjennomgangspunkt, ikke et forbudt bilde.
+### Gjenopprett tidligere innstillinger
 
-Der et konkret farge- eller skriftforslag er tilgjengelig, endrer knappen bare det ene laget. Vanlig **Angre** gjenoppretter den opprinnelige verdien. Låste eller endrede lag overskrives ikke av et gammelt forslag. Manglende kildebevis holdes atskilt fra et treff. Rendret kontrast og tekstlayout kontrolleres av de eksisterende innebygde kontrollene. Gradienter, effekter, innebygd verktøyinnhold, rettigheter og subjektiv kvalitet vurderes ikke av merkevaresammenligningen. Kontrollene blokkerer ikke Last ned.
+Velg **Restore brand settings**, velg et datert sjekkpunkt og trykk **Restore**. Det gjenoppretter farger, skriftinnstillinger og andre tokener for den aktive merkevaren; skrift- og bildefiler blir som de er. Lolly lagrer de gjeldende innstillingene dine som **Before restore** først, så du kan reversere en gjenoppretting selv etter at du har lukket nettleseren. De siste 20 sjekkpunktene beholdes på denne enheten.
 
-## Bruk designkontekst lokalt
+### Versjoner
 
-**Download design context** inkluderer tokendokumentet, oppløste farger, angitte skriftfamilier, ressurs-ID-er, kildebevis der registrert, dekning og eksplisitte regler. Den inkluderer ikke skriftfiler eller eierskapsbevis. Referansegjennomgangen inkluderer også sine foreslåtte tokens og observasjoner.
+En publisert versjon er en **permanent, navngitt kopi** beholdt på denne enheten. Den endres aldri, så et verktøy eller en lenke som fester den (med `designv`) fortsetter å tegne det samme. Et system med noe av ditt eget viser en stille lenke **Versions & publishing** nederst i listen; etter den første publiseringen blir den oppføringen **Versions**. `#/start?area=versions` åpner den direkte.
 
-CLI-et kan lese begge nedlastingene uten en server:
+- **En versjon er permanent.** Det finnes ingen sletting ennå, og panelet sier det.
+- **Fjerninger leder kompatibilitetskortet**, fordi et fjernet token er det som ødelegger et verktøy.
+- **Publisering kan ikke angres; gjenoppretting kan.** *Restore latest from this version* er en vanlig redigering, med **Undo** tilbudt med en gang.
 
-```bash
-lolly system import ./lolly-design-context.json
-lolly system context --output=design-context.json
-lolly system check ./design-inputs.json --file=design-context.json
-```
+**Publish only** beholder en versjon uten å endre hva verktøy følger; **Publish and make active** får verktøy og appen til å følge den versjonen. **Follow the latest again** setter hver redigering live i det øyeblikket du gjør den.
 
-`system check` godtar Design-inndata med et `boxes`-array eller et kompilert Design-dokument. Den rapporterer foreslåtte fikser uten å endre komposisjonen. Den kan ikke måle nettleserlayout eller rendret kontrast. Den eksisterende MCP-ressursen **lolly://design-context** eksponerer det effektive systemets kontekst gjennom den konfigurerte lokale MCP-prosessen; ingen ny vertstjeneste eller API-nøkkel trengs.
+## Administrer designsystemene dine
+
+Åpne **Settings → Preferences → Design systems** for å bytte, legge til eller fjerne systemer. **Open** velger et system og åpner det her; **Make a new one** oppretter et lokalt system og åpner det med navnefeltet klart. Ett system er aktivt om gangen, for hele enheten. [Brand architectures](/info/brand-architectures.html) hjelper deg å avgjøre når en merkevare trenger et eget designsystem.
+
+**Hvor et system kommer fra.** Systemet en installasjons katalog leverer, leses **Came with this app**, eller **From this instance** i en app koblet til en. Utvid **Catalogue source** for å se hvem som leverer det, tokenressursen og navneområdet og den kjente versjonen eller sjekksummen; hvis en oppdatering svikter, er bufret materiale merket.
+
+**Administrerte systemer er skrivebeskyttet.** Et system leses **Managed by this instance** (eller **Managed by this app** i skrivebordsappen uten instans) når katalogen låser systemet. Du kan bruke og laste det ned, og å åpne det her viser en skrivebeskyttet merknad med **Make an editable copy** og **Switch**. Dine egne lokale systemer forblir redigerbare, selv når det administrerte kom først. Et bygg med én fast merkevare åpner Design System Setup på *This brand is set*, med merkevarens tokener og bruksregler å lese.
+
+**Hvert annet levert system er ditt** å skjule, redigere og tilbakestille, inkludert Lolly Demo og Lolly Starter på lolly.tools. Å redigere ett beholder navnet og merker raden **Edited here**, og **Reset to original** i menyen forkaster endringene gjort på denne enheten. Det blanke utgangspunktet er unntaket: en første endring der starter et eget designsystem, så Lolly spør én gang hva det nye systemet skal hete. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) viser hva ditt eget system erstatter.
+
+### Å fjerne et designsystem
+
+Velg **Remove** fra et systems meny; bekreftelsen sier hvilket system som blir aktivt etterpå. Lagrede økter, opplastinger og materiale delt med et annet system blir.
+
+Å fjerne et levert system skjuler det bare: katalogressursene blir, **Bring back** viser det igjen, og det kommer tilbake av seg selv hvis du fjerner alt annet. Å fjerne en importert eller redigert kopi fjerner ikke det leverte systemet, logoene eller skriftene dets, og hvis kopien var aktiv, blir det leverte systemet aktivt igjen. Å fjerne en aktiv vertsbasert kopi tømmer bare den kopiens tilkobling; en separat valgt instans forblir valgt.
+
+Å endre hva en server leverer er en administratoroppgave: driftsansvarlig endrer kildekatalogen og ruller ut på nytt, eller en Lolly Work-administrator gjennomgår og bruker en serverendring. Redigeringer her blir lokale. Se [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) og [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+
+## Bruk designkontekst utenfor appen
+
+**Download design context** lagrer tokendokumentet, løste farger, deklarerte skriftfamilier, ressurs-ID-er, kildebevis der det er registrert, dekning og eksplisitte regler, uten skriftfiler og uten bevis på eierskap. Kommandolinjen leser filen uten server: `lolly system import` gjør den til terminalens designsystem og `lolly system check` sjekker Design-inndata mot den lagrede konteksten. [Bring your design system](/info/cli.html#bring-your-design-system) dekker importen og [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) dekker sjekken, og en MCP-klient leser den samme oppsummeringen fra `lolly://design-context` ([MCP Server](/info/mcp.html)).
+
+## Hvor du går videre
+
+- **[Using Lolly](/info/using.html)**: verktøyene, lagring, deling og Assets.
+- **[Brand architectures](/info/brand-architectures.html)**: hvordan divisjoner, produkter, støttede merkevarer, kunder og sesonger tilordnes designsystemer, fargevarianter og logoidentiteter.
+- **[Design Tokens](/info/design-tokens.html)**: tokenmodellen merkevaren din er skrevet i.
+- **[Export a file](/info/exporting.html)**: trykkenheter, CMYK og formatene merkevaren din gjengis til.

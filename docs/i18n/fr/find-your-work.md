@@ -1,6 +1,8 @@
 # Retrouver et récupérer ton travail
 
-Tout ce que tu crées dans Lolly reste dans le navigateur ou l'application où tu l'as créé, sur cet appareil, sauf si tu actives la [synchronisation](/info/sync.html). Le travail enregistré est dans **Projets**. Un fichier téléchargé se trouve là où ton navigateur ou ton système l'a placé, et une copie attend généralement dans **Éléments**. Dans la plupart des outils, le travail jamais enregistré est conservé aussi. Cette page couvre chacun de ces cas, plus un onglet fermé, des données de navigateur effacées, des versions antérieures, des éléments supprimés et le transfert vers un autre appareil.
+Quelque chose manque : un design que tu n'as jamais enregistré, un fichier que tu as téléchargé, la version de la semaine dernière, ou tout après l'effacement du navigateur. Commence par le tableau, puis suis la section vers laquelle il renvoie.
+
+Le travail personnel reste dans le navigateur ou l'application où tu l'as créé, sur cet appareil, sauf si tu actives [Sync](/info/sync.html). Une organisation qui utilise Lolly Work, facultatif, conserve aussi des **Team projects** sur son serveur, traités plus bas.
 
 | Ce que tu as fait | Où regarder |
 |---|---|
@@ -10,13 +12,23 @@ Tout ce que tu crées dans Lolly reste dans le navigateur ou l'application où t
 | Ni l'un ni l'autre, dans un outil qui ne le fait pas | Seulement l'onglet où tu as travaillé, jusqu'à ce que tu le fermes |
 | Supprimé dans l'application | **Corbeille**, dans **Projets**, **Éléments** ou **Paramètres → Stockage**, pendant 30 jours |
 
+::: figure find-your-work-places
+Où vit ton travail : le stockage propre du navigateur contient Projects, History et Trash ; les téléchargements vont dans les dossiers de ton appareil ; Sync et un fichier de sauvegarde sont les copies hors du navigateur.
+:::
+
+::: details Retrouver le travail partagé dans Lolly Work (facultatif)
+Ouvre le Lolly de ton organisation et connecte-toi, puis regarde dans **Projects → Team projects**. Les sessions partagées sont détenues par cette instance et apparaissent selon ton accès. Se connecter peut rétablir l'accès à ces sessions sur un autre appareil ; cela ne restaure ni ta bibliothèque personnelle ni la sauvegarde de l'appareil.
+
+Dans une [collab de travail](/info/collaborate.html#work-collabs-with-lolly-work-optional), attends **Saved to work** avant de partir. Si un projet partagé manque, vérifie que tu es connecté à la bonne instance et demande à son opérateur au sujet de l'accès ou de la conservation. Effacer les données du navigateur supprime les copies locales, pas la copie du serveur de l'organisation. Voir [Use Lolly at your organisation](/info/organisation.html).
+:::
+
 ## Retrouver quelque chose que tu as enregistré
 
 1. Appuie sur **Accueil** en haut à gauche de l'outil.
 2. Ouvre l'onglet **Projets** en haut de l'écran d'accueil (l'icône de dossier sur un téléphone).
 3. Regarde le premier écran. Le travail enregistré dans **Ma bibliothèque** s'y trouve, et chaque projet est un dossier. Pour rechercher dans tous les dossiers à la fois, tape dans **Rechercher dans tous les projets…** au bas de l'écran.
 
-Un élément porte le nom du fichier que tu as saisi dans le panneau d'export, ou celui de son outil, comme **QR Code**, si tu n'en as saisi aucun. Ouvre l'élément et chaque réglage est de retour, prêt à être modifié et exporté à nouveau. Pour conserver un nouveau travail de cette façon, voir [Enregistrer et reprendre](/info/using.html#saving-continuing).
+Un élément porte le nom de fichier que tu as saisi dans le panneau d'export, ou le nom de son outil, comme **QR Code**, si tu n'en as saisi aucun. Ouvre l'élément et tous les réglages sont de retour, prêts à être modifiés et exportés à nouveau. Pour conserver ainsi du nouveau travail, voir [Saving & continuing](/info/using.html#saving-continuing).
 
 ::: note Pas dans Projets ?
 - Il se peut qu'il soit dans la **Corbeille** : voir [Récupérer quelque chose que tu as supprimé](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Des dossiers imbriqués.** Regroupe les sessions enregistrées dans des dossiers, et des dossiers dans d'autres dossiers, aussi profondément que tu veux. Crée un dossier, renomme-le ou fais glisser une tuile sur un autre dossier pour la déplacer ; un fil d'Ariane te permet de remonter. Les sessions enregistrées sans dossier apparaissent directement à la racine de **Projets**.
-- <!--i:clock--> **Trie à ta façon.** **Options d'affichage**, le bouton à curseurs en haut à droite, propose **Grille** ou **Liste** et trie par **Nom**, **Date d'ajout**, **Dernière modification** (le tri par défaut), **Taille** et, dans un dossier, **Par outil**. Les dossiers viennent toujours en premier, quel que soit le tri actif - le tri n'ordonne que les sessions et les dossiers au sein de leur propre groupe.
-- <!--i:document--> **Range directement le nouveau travail.** **Nouvel asset** ouvre le sélecteur commun. Choisis **Modèles** pour partir d'un modèle enregistré : ouvre-le pour le modifier, ou utilise **+ Ajouter** pour enregistrer immédiatement une nouvelle création.
-- <!--i:checklist--> **Sélection multiple (ordinateur).** Coche la case d'une tuile, fais glisser un rectangle de sélection sur une zone vide ou fais **Maj/Cmd-clic** ; **clic droit** sur une tuile pour son menu contextuel. La barre de sélection propose alors **Rendre la sélection**, **Déplacer vers…**, **Nouveau dossier**, **Supprimer** (qui déplace vers la Corbeille), **Modifier ensemble** pour deux à huit sessions d'un seul outil, côte à côte sous une même barre latérale, et **Modifier en feuille**, qui ouvre une sélection de taille ou de mélange quelconque comme des lignes dans la grille de lot.
-- <!--i:download--> **Rends tout un dossier ou toute une sélection.** **Rendre le dossier** exporte chaque session enregistrée d'un dossier - y compris ses sous-dossiers - dans un seul `.zip` imbriqué. **Rendre la sélection** fait de même pour n'importe quelle sélection multiple, et une session unique se rend directement dans son propre fichier. Pas besoin de Batch/Pro.
-- <!--i:link--> **Va droit au travail enregistré d'un outil.** Coche un ou plusieurs outils dans la galerie Outils et choisis **Voir les sessions** dans la barre de sélection - Projets s'ouvre en n'affichant que les sessions faites avec ces outils, avec un **Effacer** pour revenir à la vue complète.
-- <!--i:link--> **Partage une session enregistrée.** Clic droit sur une session (sur un téléphone, appuie sur **•••** sur sa tuile) → **Partager le lien** pour copier un lien qui la rouvre avec les mêmes réglages ; les images de ton appareil ne voyagent pas avec un lien (la boîte de dialogue de partage complète : voir [Partager ton travail](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Renomme ou duplique-en une.** Clic droit sur une session (sur un téléphone, appuie sur **•••** sur sa tuile) pour **Renommer**, **Dupliquer** (une copie dans le même dossier) et **Déplacer vers…**.
+- <!--i:folder--> **Des dossiers imbriqués.** Regroupe les sessions enregistrées dans des dossiers, et des dossiers dans des dossiers, aussi profond que tu veux. Crée un dossier, renomme-le ou fais glisser une tuile sur un autre dossier pour la déplacer ; un fil d'Ariane te ramène vers le haut. Les sessions enregistrées sans dossier apparaissent directement à la racine de **Projects**.
+- <!--i:clock--> **Trie à ta façon.** **View options**, le bouton à curseurs en haut à droite, propose **Grid** ou **List** et trie par **Name**, **Date added**, **Last modified** (le défaut), **Size** et, dans un dossier, **By tool**. Les dossiers passent toujours en premier quel que soit le tri actif - le tri n'ordonne que les sessions et les dossiers au sein de leur propre groupe.
+- <!--i:document--> **Range du nouveau travail directement.** **New asset** ouvre le sélecteur partagé. Choisis **Templates** pour partir d'un modèle enregistré : ouvre-le pour le modifier, ou utilise **+ Add** pour enregistrer aussitôt une nouvelle création.
+- <!--i:checklist--> **Sélection multiple (bureau).** Coche la case d'une tuile, fais glisser un cadre de sélection sur un espace vide ou **Shift/Cmd-clic** ; fais un **clic droit** sur une tuile pour son menu contextuel. La barre de sélection propose alors **Render selection**, **Move to…**, **New folder**, **Delete** (qui déplace dans la Corbeille), **Edit together** pour deux à huit sessions d'un seul outil, côte à côte sous une même barre latérale, et **Edit as sheet**, qui ouvre une sélection de n'importe quelle taille ou composition sous forme de lignes dans la grille de Batch.
+- <!--i:download--> **Rendre un dossier ou une sélection entière.** **Render folder** exporte chaque session enregistrée d'un dossier - sous-dossiers compris - dans un seul `.zip` imbriqué. **Render selection** fait de même pour toute sélection multiple, et une session seule se rend directement dans son propre fichier.
+- <!--i:link--> **Aller droit au travail enregistré d'un outil.** Coche un ou plusieurs outils dans la galerie Tools et choisis **View sessions** dans la barre de sélection - Projects s'ouvre en n'affichant que les sessions créées avec ces outils, avec un **Clear** pour revenir à la vue complète.
+- <!--i:link--> **Partager une session enregistrée.** Fais un clic droit sur une session (sur un téléphone, appuie sur **•••** sur sa tuile) → **Share link** pour copier un lien qui la rouvre avec les mêmes réglages ; les images de ton appareil ne voyagent pas avec un lien (la boîte de dialogue Share complète : voir [Sharing your work](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Renommer ou copier une session.** Fais un clic droit sur une session (sur un téléphone, appuie sur **•••** sur sa tuile) pour **Rename**, **Duplicate** (une copie dans le même dossier) et **Move to…**.
 
 ![Le popover Options d'affichage dans Projets : Disposition avec Grille et Liste, et Trier par réglé sur Dernière modification, à côté d'un bouton qui inverse l'ordre](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 Ce qui revient dépend de la façon dont tu es parti et de l'outil que tu as utilisé :
 
-- **Tu as fermé l'onglet, ou tu reviens une autre fois.** Le travail non enregistré a disparu, sauf dans les [outils qui enregistrent au fil du travail](#which-tools-save-as-you-work) : ouvre ce travail depuis **Projets**.
-- **Tu as rechargé la page dans le même onglet.** Tes réglages reviennent depuis l'adresse de la page. Dans les outils qui n'enregistrent pas au fil du travail, les images et fichiers que tu as ajoutés depuis ton appareil, et le texte sur une ligne de plus de 150 caractères, ne reviennent pas, parce que l'adresse ne les contient pas.
-- **Tu as appuyé sur Accueil, ou le bouton retour en haut à gauche.** Si tu as changé quelque chose depuis ton dernier enregistrement, téléchargement ou copie, une boîte de dialogue **Modifications non enregistrées** demande s'il faut d'abord enregistrer. **Enregistrer et quitter** enregistre le travail et t'emmène vers **Projets**, ou vers le dossier de projet depuis lequel tu as ouvert le travail. **Quitter quand même** annule tes modifications : un élément enregistré revient à l'état de son dernier enregistrement, et une création que tu n'as jamais enregistrée quitte **Projets**. **Annuler** te garde dans l'outil.
+- **Tu as fermé l'onglet, ou tu es revenu une autre fois.** Le travail non enregistré est perdu, sauf dans les [outils qui enregistrent pendant que tu travailles](#which-tools-save-as-you-work) : ouvre ce travail depuis **Projects**.
+- **Tu as rechargé la page dans le même onglet.** Tes réglages reviennent depuis l'adresse de la page. Dans les outils qui n'enregistrent pas pendant que tu travailles, les images et fichiers ajoutés depuis ton appareil, et le texte d'une seule ligne de plus de 150 caractères, ne reviennent pas, car l'adresse ne les contient pas.
+- **Tu as appuyé sur Home, ou sur le bouton retour en haut à gauche.** Si tu as modifié quelque chose depuis ton dernier enregistrement, téléchargement ou copie, une boîte de dialogue **Unsaved edits** demande s'il faut d'abord enregistrer. **Save & leave** enregistre le travail et t'emmène dans **Projects**, ou de retour dans le dossier de projet d'où tu as ouvert le travail. **Leave anyway** abandonne tes modifications : un élément enregistré revient à son dernier état enregistré, et une création jamais enregistrée quitte **Projects**. **Cancel** te garde dans l'outil.
 
 Lolly ne demande que lorsque tu appuies sur **Accueil** ou le bouton retour dans un outil. Fermer l'onglet, recharger et le propre bouton retour de ton navigateur ne demandent jamais. Pour être sûr, appuie sur **Enregistrer sous**, ou **Enregistrer** dans le panneau d'export, avant de quitter un outil.
+
+Quand la récupération automatique n'est pas disponible, une note à côté des contrôles d'édition dit quoi conserver :
+
+- Dans un outil qui travaille sur un fichier que tu apportes, enregistre tes réglages et garde aussi les fichiers d'origine.
+- Dans un outil d'enregistrement, ou un utilitaire sans action Save, enregistre ou télécharge le résultat avant de partir.
+- Les applications de bureau et mobiles disent quand tu dois enregistrer à la main.
+- Dans une collaboration privée, la personne qui a invité conserve le document et son historique, y compris les modifications de l'autre personne. La personne qui a rejoint travaille sur une copie temporaire et doit enregistrer une copie séparée avant la fin de la session.
 
 ::: note Parti sans enregistrer par erreur ?
 Dans les outils qui enregistrent au fil du travail, l'historique conserve une copie des modifications abandonnées. Ouvre la page **Historique**, trouve-les sous **Changes** et appuie sur **Ouvrir comme copie**. Dans les autres outils, les modifications ont disparu.
@@ -84,12 +103,15 @@ Dans les outils qui enregistrent au fil du travail, l'historique conserve une co
 ::: details Quels outils enregistrent au fil du travail
 Dans l'application web, chaque outil qui crée un document enregistre au fil du travail : Design, Chart, QR Code, Text, Sandbox et les autres. Ces outils ne le font pas :
 
-- les outils qui travaillent sur un fichier que tu apportes, comme Redact, Sign ou Convert Image, parce que Lolly ne garde jamais de copie de ce fichier ;
-- les outils qui enregistrent depuis ta caméra, ton micro ou ton écran, comme Record, Screen Capture et Voice Recorder ;
-- 3D et Darkroom, qui prennent leur propre fichier ;
-- un outil sans rien à changer, comme Countdown.
+- les outils qui travaillent sur un fichier que tu apportes, comme Redact, Sign ou Convert Image, car Lolly ne garde jamais de copie de ce fichier ;
+- les outils qui enregistrent depuis ta caméra, ton microphone ou ton écran, comme Record, Screen Capture et Voice Recorder ;
+- un outil sans rien à modifier, comme Countdown.
 
-Dans les autres outils, ta première modification classe le travail dans **Projets** comme si tu avais enregistré, et les modifications suivantes sont conservées au fil du travail, une fois que l'outil a fini de dessiner. Une création non enregistrée reste donc dans Projets après la fermeture de l'onglet et se rouvre avec ses modifications marquées comme non enregistrées. **Quitter quand même** les rejette malgré tout, et l'historique conserve une copie des modifications abandonnées pendant 30 jours. Rouvrir l'outil depuis l'écran d'accueil démarre une nouvelle création ; ouvre l'ancienne depuis Projets.
+Dans les autres outils, ta première modification range le travail dans **Projects** comme si tu l'avais enregistré, et les modifications suivantes sont conservées au fil du travail une fois que l'outil a fini de dessiner. Une création non enregistrée est toujours dans Projects après que tu fermes l'onglet, et se rouvre avec ses modifications marquées comme non enregistrées.
+
+**Leave anyway** abandonne quand même ces modifications, et History conserve une copie des modifications abandonnées pendant 30 jours. Rouvrir l'outil depuis l'écran d'accueil démarre une nouvelle création ; ouvre la précédente depuis Projects.
+
+3D et Darkroom enregistrent au fil du travail, mais ils ne conservent pas un fichier que tu y charges, comme un modèle 3D ou une LUT. History et **Save** gardent le nom, le type et la taille du fichier, pas le fichier. Quand tu rouvres le travail, une note dit de quel fichier il s'agissait, et l'outil fonctionne sans lui jusqu'à ce que tu le charges de nouveau. Garde tes fichiers d'origine.
 
 Avec la [synchronisation](/info/sync.html) activée, une création classée de cette façon rejoint tes autres appareils comme tout le reste dans Projets. Ses versions restent sur l'appareil où elles ont été créées.
 
@@ -138,7 +160,7 @@ Les points de contrôle automatiques s'éclaircissent avec le temps : un par min
 
 Quand le stockage de l'historique se remplit, les checkpoints automatiques les plus anciens des créations que tu n'as pas ouvertes depuis 30 jours sont retirés en premier. Un enregistrement est toujours conservé, même alors : il est écrit comme le travail actuel, et l'historique indique que cet enregistrement n'est pas conservé comme version. **Paramètres → Stockage** montre combien l'historique utilise.
 
-La page **History** (`#/history`, ou **Open app history** dans le panneau) couvre chaque création dans ce navigateur. Sur un ordinateur, ouvre la page depuis le bouton horloge en haut à droite de l'écran d'accueil ou de **Projets**. Sur un téléphone, va dans la galerie d'outils sur l'écran d'accueil, appuie sur le bouton logo rond en haut à droite et choisis **Sessions enregistrées**, ce qui ouvre History. Depuis **Projets**, cet élément ne fait encore rien.
+La page **History** (`#/history`) couvre chaque création de ce navigateur. Pour l'ouvrir, appuie sur le bouton horloge en haut à droite de l'écran d'accueil ou de **Projects**, choisis **Saved sessions** dans le menu du profil (sur un téléphone, le bouton rond du logo en haut à droite), ou appuie sur **Open app history** dans le panneau History d'un outil. Les applications de bureau et mobiles n'ont pas de page History ; là, le bouton horloge de l'écran d'accueil et **Saved sessions** ouvrent donc **Your recent work** : tes dernières sessions enregistrées et tes derniers exports, avec un lien vers Projects.
 
 - **Récents** liste tes créations, les plus récentes en premier, avec **Reprendre**.
 - **Changes** regroupe les points de contrôle, les téléchargements et les résultats de Convert sur une même chronologie. Un téléchargement a **Reopen settings**.
@@ -174,7 +196,7 @@ Les connexions, les clés et la phrase secrète de synchronisation restent sur c
 ::: details Ce que contient le fichier de sauvegarde
 Le fichier s'appelle `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (les parties du nom viennent de ton profil et sont omises si non définies ; `<n>` est un compteur par jour pour que des exports le même jour n'entrent pas en collision). Il contient ton profil, avec tes dossiers, la Corbeille, les modèles et favoris ; chaque session enregistrée avec sa vignette ; tes images importées, polices, logos et les copies de tes téléchargements ; tes systèmes de design ; tes préférences (thème, largeur de la barre latérale, statistiques d'activité locales) ; les versions enregistrées et les résultats de Convert ; et, depuis l'application web, l'historique des versions de tes créations.
 
-Le cache du catalogue n'est pas inclus - il se retélécharge tout seul sur le nouvel appareil. Chaque partie est checksumée, donc un fichier endommagé en transit est détecté à l'import plutôt que restauré à moitié cassé. Les sessions enregistrées se relient automatiquement à tes images importées. Les applications web, de bureau et mobiles lisent le même fichier ; l'application terminal écrit sa propre sauvegarde plus simple, que ce format ne lit pas. **📦 Exporter mes données et tout générer** crée le même fichier plus un second zip avec chaque session enregistrée rendue vers sa sortie. (Spécification complète du format : [Transfert de données](/info/data-transfer.html).)
+Le cache du catalogue n'est pas inclus : il se retélécharge tout seul sur le nouvel appareil. Chaque partie a une somme de contrôle, donc un fichier endommagé en transit est repéré à l'import plutôt que restauré à moitié cassé. Les sessions enregistrées se relient automatiquement à tes images importées. Les applications web, de bureau et mobiles lisent le même fichier ; l'application de terminal écrit une sauvegarde plus simple qui lui est propre, que ce format ne lit pas. **Export my data & render everything** produit le même fichier plus un second zip avec chaque session enregistrée rendue dans sa sortie. (Spécification complète du format : [Data transfer](/info/data-transfer.html).)
 :::
 
 ## Si tu effaces les données de ton navigateur
@@ -185,11 +207,13 @@ Dans l'application web, Lolly conserve tout dans le stockage de ton navigateur p
 Appuie sur **Exporter mes données** sous **Paramètres → Stockage**, et conserve le fichier ailleurs.
 :::
 
-Au démarrage de l'application, Lolly demande au navigateur de ne pas effacer son stockage quand l'appareil manque d'espace. C'est le navigateur qui décide. Sous **Paramètres → Disponible hors ligne**, une ligne commençant par **Protected** signifie que le navigateur a accepté ; "The browser may clear downloads if the device runs low on space" signifie qu'il n'a pas accepté, et **Protect downloads** redemande. Si le navigateur n'a pas accepté, il peut effacer le travail enregistré autant que les téléchargements quand l'espace manque, garde donc un fichier récent **Exporter mes données**.
+Au démarrage de l'application, Lolly demande au navigateur de ne pas effacer son stockage quand l'appareil manque d'espace, et le navigateur décide. Sous **Settings → Available offline**, une ligne commençant par **Protected** signifie que le navigateur a accepté. « The browser may clear downloads if the device runs low on space » signifie qu'il n'a pas accepté, et **Protect downloads** redemande.
+
+Si le navigateur n'a pas accepté, il peut effacer le travail enregistré en plus des téléchargements quand l'espace manque ; garde donc un fichier **Export my data** récent.
 
 **Paramètres → Stockage** montre combien d'espace utilise chaque type de données. Sa ligne **Historique** compte les checkpoints automatiques, leurs aperçus et les brouillons de récupération ; **Supprimer les checkpoints automatiques de plus de 30 jours** libère cet espace et garde les versions enregistrées et nommées. **Vider le cache** abandonne les fichiers de catalogue téléchargés, qui se retéléchargent en cas de besoin. **Effacer toutes mes données** te demande de taper un mot, désactive Sync, puis supprime tout ce que Lolly conserve dans ce navigateur : ton profil et tes réglages, les sessions enregistrées avec leur historique et la Corbeille, les imports, les polices et les design systems, le journal de téléchargement, les résultats de Convert, les modèles d'IA téléchargés et les copies hors ligne. Les fichiers que tu as téléchargés restent où tu les as enregistrés. L'application redémarre alors comme lors d'une première visite.
 
-![La carte de stockage sur un écran de largeur téléphone : chaque catégorie de données présentes sur l'appareil est nommée, avec le bouton Effacer toutes mes données en bas](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![La carte de stockage sur un écran de la largeur d'un téléphone : chaque catégorie de données sur l'appareil est nommée, avec le bouton Clear all my data en bas](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Dans les applications de bureau et mobiles, les sessions enregistrées sont des fichiers dans le propre dossier de données de l'application, et le reste se trouve dans le stockage propre de l'application, donc effacer un navigateur web ne les touche pas.
 

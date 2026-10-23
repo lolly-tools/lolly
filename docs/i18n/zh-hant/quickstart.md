@@ -1,94 +1,88 @@
-# 快速上手
+# 開始
 
-Lolly 把你的規範（色彩、字體、版面、邏輯）變成任何人都能使用的工具，只要填幾個欄位就能做出成品檔案：圖片、PDF、社群圖卡、影片。幾乎沒什麼要學，也不必上傳任何東西：製作與匯出都在你的裝置上執行，連線或離線都一樣。
+讀完這一頁，你的工具就會穿上你自己的色彩與字型，你現有的作品也能準備好重複使用。你不需要帳號，製作與匯出都在你的裝置上執行。
 
-這是最該先讀的一頁。兩件事能讓你真正上手：**讓 Lolly 成為你的**，以及**把你既有的資產帶進來**（你的設計檔與 tokens）。其餘一切都只隔著一個連結。
+::: timeline
+- <!--i:sparkle--> **做出一個檔案。** [製作你的第一個檔案](/info/make-something.html)會帶你在幾分鐘內做出一個 QR 碼。
+- <!--i:palette--> **放入你的品牌。** 從一種顏色、一個 tokens 檔案或一份完成的設計開始。
+- <!--i:layers--> **做出更多同類作品。** 分享連結、填寫試算表，或從指令碼執行工具。
+:::
 
-> 剛接觸 Lolly，只想先做點東西？[製作你的第一個檔案](/info/make-something.html) 會帶你做一個 QR code；或是[開啟應用程式](/#/)，從工具庫挑一個工具，把空格填一填，然後按 **Export**。等你想讓成品換上*你自己的*品牌時，再回到這一頁。
+想法本身對你還很陌生嗎？[Lolly 是什麼？](/info/what-is-lolly.html)是五分鐘的簡介，[Lolly 如何運作](/info/how-lolly-works.html)則說明誰負責什麼。
 
-![Utilities 檢視畫面：Strip Hidden Data、Compress PDF、Convert Image 這些在裝置上完成工作的實用工具，全都集中在一處](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+## 放入你的品牌
 
-## 1. 讓它成為你的：設定你的設計系統
+lolly.tools 會在 **Lolly Demo** 中開啟，這是 Lolly 自己的範例設計系統；[認識 Lolly Demo](/info/lolly-demo.html)說明你看到的是什麼。你的設計系統會取代它：一小組設計 token，也就是色彩、字型與少數規則，每個工具都以它來繪製。設定一次，你製作的一切從一開始就符合品牌。
 
-你的品牌在 Lolly 裡就是一份小小的 **design-tokens** 文件（色彩、字型和少數幾條規則），每個工具都依它算圖。設定一次，之後做出來的東西就是從結構上符合品牌，而不是靠事後審查。有三條路可以進來；挑一條符合你品牌目前所在位置的。
+選擇與你手上現有內容相符的路線：
 
-### 從零開始（設計系統建構器）
+- <!--i:palette--> **一種顏色。** 開啟 **Design System Setup**（`#/start`），為你的設計系統命名並選擇主色。Lolly 會由此衍生出完整且可存取的調色盤，包含淺色與深色表面、文字與強調色。再選一種字型，你就有一個可用的品牌。
+- <!--i:upload--> **一個 tokens 檔案。** Design System Setup 房間列底部的 **Add from…** 接受 DTCG、Tokens Studio 或 Penpot 的 tokens 檔案、SVG，或 `LollyBrand` 套件。放進去，調色盤就會填入。在設計系統仍為空時，Overview 房間中的 **Start from a reference** 會開啟相同的選擇器。
+- <!--i:pentool--> **一份完成的設計。** 在 Design 中選擇 **Import a design**，然後放入 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 檔案。請見下方的[帶入你已有的東西](#bring-in-what-you-already-have)。
 
-首次啟動會直接把你帶到**工具庫**，上面疊著一個簡短的歡迎對話框，提供三條入口：**Make it yours**（位於 `#/start` 的 Brand Studio）、**Bring your design**（丟進 Figma、Penpot、InDesign 或 PDF 檔案，它會以可編輯的版面打開，這是通往下方[把你既有的資產帶進來](#2-bring-in-what-you-already-have)最快的路徑），以及 **Explore the community tools**；如果英文不是你的語言，還有一排語言可選。選第一張卡，你會來到 [**Brand Studio**](/info/brand-studio.html)。給它一個名字和一個主色，Lolly 就會從中*推導*出一整套無障礙色盤（淺色／深色底、文字、強調色），用的是引擎在其他地方所用的同一套色彩運算。
+你第一次開啟圖庫時，簡短的歡迎畫面會提供相同的選項：**Make it yours** 開啟 Design System Setup，**Bring your design** 開啟設計的檔案選擇器，**Explore the community tools** 則關閉歡迎畫面。
 
-![全新安裝狀態下的品牌工作室『色彩』房間 - 一個即時色塊、一個欄位，以及第一個決定的全部內容](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) 挑一款字體，不到一分鐘你就有了一套可用的品牌。接下來工作室的六個房間 - 總覽、色彩、字體、標誌、權杖、檔案 - 讓你依任何順序做到你想要的程度，之後隨時回來都能繼續調整。儀表板的**設計系統**分頁(`#/d`)以唯讀方式顯示結果，並指回 `#/start`，編輯就在那裡進行(鎖定的設計系統會保持唯讀，而你自己的本機系統仍可編輯)。
+![全新安裝的 Design System Setup 中的 Colours 房間：一個即時色塊、一個欄位，以及第一個決定的全部](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-### 匯入你已經有的品牌
+從這裡開始，七個房間可依任意順序帶你走到你想要的程度：**Overview**、**Colours**、**Type**、**Logos**、**Tokens**、**Files** 與 **Usage & rules**。你輸入時，應用程式中的每個預覽都會更新。[Design System Setup](/info/brand-studio.html) 涵蓋每個房間。
 
-如果你的品牌已經以 design tokens 的形式存在，來自 **Penpot**、**Tokens Studio**（Figma）或任何一般的 **DTCG** 檔案，那就整包帶進來，不必重打一次。有兩條路：
+字型保存在你的裝置上。選擇 Google Font 後，Lolly 會將檔案存為品牌素材，因此你的字型可以離線攜帶，工具繪製時也不會擷取任何內容。
 
-- <!--i:palette--> **在應用程式裡：**[設計系統建構器：Brand Studio](/info/brand-studio.html)（`#/start`）透過區域導覽列底部的 **Add from…** 接收它：一份 token 檔案、一份 Penpot 匯出檔、一個 SVG，或一個 `LollyBrand` 套件。丟進去，色盤就會亮起來。
-- <!--i:code--> **從命令列**，建立一個可重複使用的品牌套件：
+### 檢視、切換與分享設計系統
+
+- **檢視目前使用的。** **Settings → Design system** 以封面與頁面的形式顯示目前使用的設計系統，唯讀。
+- **在它們之間切換。** **Settings → Preferences → Design systems** 列出這部裝置上的每個設計系統。一個組織可以運行多個設計系統，或一個帶有多種配色方案的設計系統；[品牌架構](/info/brand-architectures.html)對應了這些安排。
+- **分享一個。** 將設計系統匯出為 `LollyBrand` 套件：一個檔案，同事匯入後即可得到相同的調色盤、字型與規則。
+
+由你的建置或組織提供的設計系統是**受管理**的：它會顯示鎖頭並保持唯讀。若要變更，請從 **Settings → Preferences → Design systems** 建立一份可編輯的副本。
+
+![Settings 中的 Design system 分頁：目前使用的設計系統，以封面與頁面呈現](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
+
+你的設計系統就是 DTCG token，這是 Penpot 讀寫、Tokens Studio 帶進 Figma 的格式，因此你用來設計的調色盤與 Lolly 套用的調色盤是同一份文件。[設計 Token](/info/design-tokens.html) 有詳細說明。
+
+::: details 給開發者：從命令列建立品牌套件
+若要在 checkout 中建立可重複使用的品牌套件，`ingest:brand` 接受 Penpot 與 Tokens Studio 匯出的三種容器：單一的 `tokens.json`、含有 `$metadata.json` 的各集合檔案目錄，或 `project.penpot` 封存檔。
 
 ```bash
-# a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`ingest:brand` 接受 Penpot／Tokens Studio 匯出同一份文件時所用的三種容器：單一 `tokens.json`、一個目錄（`$metadata.json` 加上各集合檔案），或一個 `project.penpot` 壓縮檔。加上 `--activate`，它會把該品牌註冊為一個 profile、切換過去，並重建目錄。品牌套件與 profile 如何搭配，請見[設定](/info/configuration.html)。
+`--activate` 會將品牌註冊為設定檔，並建置與驗證其目錄。它絕不更動預設設定檔：請以 `LOLLY_PROFILE=acme` 執行來使用新套件。[設定](/info/configuration.html)說明品牌套件與設定檔如何搭配。
+:::
 
-### 在應用程式裡微調
+## 帶入你已有的東西
 
-品牌啟用之後，就在 [**Brand Studio**](/info/brand-studio.html)（`#/start`）裡繼續形塑它：改一個顏色或一個角色，全應用程式的每個預覽都會隨你輸入即時更新。（儀表板位於 `#/d` 的 **Design system** 分頁只是以唯讀方式*呈現*品牌；編輯是在 Studio 裡進行。）
+你不必從空白頁開始。
 
-![儀表板的設計系統分頁：以唯讀方式呈現目前啟用的品牌](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) 同一個品牌也摘要在 **Profile → Your brand** 卡片上。字型是真的字型：從 Google Fonts 挑一個，Lolly 會把檔案當作品牌資產存**在你的裝置上**，所以你的排版可以離線帶著走，算圖時不會再去抓任何東西。
+**設計檔案。** 來自 Figma、Penpot、Illustrator、InDesign 或任何 SVG 應用程式的完成作品，會在 Design 中以活的版面開啟：文字仍可重新輸入，圖形仍是圖形，圖片會進入你的資料庫。檔案在你的瀏覽器中讀取，不會上傳任何內容。[匯入設計](/info/design-import.html)列出每種格式以及會帶過來的內容。
 
-滿意之後，**把品牌匯出成 `LollyBrand` 套件**：一個檔案，同事匯入就能拿到完全相同的色盤、字型與規則。品牌就是這樣在人與機器之間流動，中間不需要任何伺服器。
+**簡報。** 將 PowerPoint `.pptx` 拖放到 Lolly，即可把它的投影片歸檔為素材；也可以在 **Markdown Slides** 中以 Markdown 撰寫新簡報，或用[重塑簡報品牌](/info/rebrand.html)，把整份簡報移到你的設計系統上。
 
-> **品牌 tokens 可以雙向來回。**因為 Lolly 的品牌*就是* DTCG tokens，也就是 Penpot 原生讀寫、Tokens Studio 帶進 Figma 的那個格式，所以你用來設計的色盤和 Lolly 實際強制執行的色盤是同一份文件，不是兩份要你手動同步的清單。請見 [Design Tokens](/info/design-tokens.html)。
-
-## 2. 把你既有的資產帶進來
-
-你不必從一張白紙開始。Lolly 打得開你已經擁有的設計成果與開放格式。
-
-### 開源設計檔案
-
-在 **Figma、Penpot、Illustrator、InDesign 或任何 SVG 應用程式**裡完成的作品，不必被鎖在你當初繪製它的那個軟體裡。打開 **Design**，點 **Import a design**，檔案就會以*活的版面*打開，而不是一張壓平的圖。每個圖層都成為可編輯的方塊：文字仍可重新輸入、形狀仍是形狀、圖片進到你的素材庫，複雜的向量圖也會忠實保留。它一進來就已經套上你的品牌字體與色彩規則。
-
-| 你手上有 | 這樣帶進來 |
-|---|---|
-| 一個 Figma frame | 原生 `.fig`（File → Save local copy），或 SVG 匯出檔 |
-| 一份 Penpot 設計 | 它的 `.penpot` 匯出檔，或任何 SVG |
-| 一個 Illustrator 檔案 | 原生 `.ai`（相容 PDF）或 `.pdf`，可直接開啟 |
-| 一份 InDesign 版面 | `.idml`（File → Export → InDesign Markup） |
-| 其他任何東西 | **任何 SVG**，通用的入口 |
-
-整個匯入過程都發生**在你的裝置上**：檔案在你的瀏覽器裡解析，不會上傳任何東西。完整細節，以及究竟有哪些內容會被帶過來，請見[匯入設計](/info/design-import.html)。
-
-手上有一份 **PowerPoint 簡報**？把 `.pptx` 拖放到任何上傳區域，把它的投影片存成素材；在 **Markdown Slides** 中用 Markdown 撰寫一份新簡報；或是執行 **Rebrand**，換個主題拿回同一份簡報，圖表與動畫完好無缺。
+**資料。** 貼上或放入 CSV 或 JSON 表格，工具的重複欄位就會由它填入，或用 [Batch](/info/batch.html#make-many-versions-of-one-design) 為每一列產生一個完成的檔案。
 
 ### 從一次性作品變成範本
 
-這就是回報：匯入的版面就是一個普通的 Design 工作階段，所以只要你**儲存**它，它就存在於一個 URL 上。任何有 Lolly 的人都能打開那個 URL，改文字、換圖片，算出自己的版本，不需要設計軟體，而鎖定的部分依然鎖著。一次性的設計就此變成可重複使用的工具。整個構想就是這樣，而且不用寫一行設定。
+匯入的版面就是一般的 Design 工作階段。**Share with rules** 會把它變成工具：由你選擇其他人可以更改的部分，他們只填寫那些部分。
 
-### 開放資料與開放工具
+![保留 Design 母版，在製作副本中選擇輸入與限制，然後分享可重複使用的 .lolly 工具，由收件者填寫](/info/diagrams/concepts/share-with-rules.svg)
 
-[社群工具集](/info/builders.html)是開源且與品牌無關的，包含 QR code、街道地圖、濾鏡、隱私工具，而且只要你啟用品牌，它們就會依*你的*品牌算圖。
+[分享附規則的設計](/info/create-a-tool.html)會逐步帶你操作。
 
-也可以餵給工具你自己的開放資料：貼上或拖進一份 **CSV** 或 **JSON** 表格，工具的重複欄位就會依它填入，一列產出一份成品。
+## 大量製作、分享與自動化
 
-## 3. 做出東西，然後分享或自動化
+- <!--i:download--> **匯出。** 工具可製作 SVG、PDF、PNG、JPG、WebP、影片等，依各工具提供的格式，並在你需要時採用真實的列印尺寸。請見[匯出檔案](/info/exporting.html)。
+- <!--i:link--> **分享連結。** 工具的設定隨連結傳遞，因此連結在任何地方都會重新開啟同一個檔案。
+- <!--i:layers--> **每列做一個。** 在 [Batch](/info/batch.html#make-many-versions-of-one-design) 中以試算表驅動工具。
+- <!--i:cpu--> **自動化。** 相同的渲染可從 [CLI](/info/cli.html) 與 [AI 代理](/info/ai-agents.html)執行。
 
-品牌已啟用、素材也在手上之後，每個工具都能產出成品檔案：
-
-- <!--i:download--> 把任何工具**算圖**成 **SVG、PDF、PNG、JPG、WebP、影片**等格式，需要時還能用真實的印刷尺寸與物理單位。請見[匯出與格式](/info/exporting.html)。
-- <!--i:link--> **分享一個連結。**每一個工具狀態都是一個 URL，所以成品是可重現、可用參數定址的：把連結存進版控，需要時再重新產生。
-- <!--i:layers--> **批次處理。**在[批次表格](/info/exporting.html)裡用一份試算表驅動範本：一列產出一份成品。
-- <!--i:cpu--> **自動化。**同一套算圖也能從 [CLI](/info/cli.html) 和 [AI 代理程式](/info/ai-agents.html)執行，URL 就是 API。
-
-「URL 就是 API」是字面意思。下面這張圖表不是任何人畫出來的：它的類型、標題和整份資料表都是打進網址列的，而同一個連結在任何裝置上都會算出同一張圖表。
+連結就是一份完整的請求。下方的圖表不是任何人畫的：它的類型、標題與整個資料表都是輸入在網址列中，同一個連結在任何裝置上都會畫出相同的圖表。
 
 ![月度註冊人數的區域圖,其中每個數值都是以查詢參數傳入,而非透過點擊產生](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 ## 接下來往哪裡走
 
-三條路徑，看你來這裡是要做什麼：
-
-- <!--i:people--> **[Lolly 給創作者](/info/creators.html)**：你負責做東西。這裡談它的優勢，以及如何把這個應用程式用到最好。
-- <!--i:code--> **[Lolly 給建構者](/info/builders.html)**：你負責撰寫工具、整合與部署。這裡是技術文件。
-- <!--i:shieldcheck--> **[Lolly 給維運者](/info/operators.html)**：你負責整個組織的品牌、安全與推行。
+- <!--i:people--> **[創作](/info/creators.html)**：製作、動畫、錄製、分享與匯出。
+- <!--i:code--> **[自動化](/info/builders.html)**：設計系統、工具撰寫、命令列、連結與代理。
+- <!--i:usercheck--> **[管理](/info/operators.html)**：以 Lolly Work 為團隊運行 Lolly。
+- <!--i:server--> **[部署](/info/operate.html)**：託管 Lolly 與 Lolly Work。
+- <!--i:shieldcheck--> **[信任](/info/trust.html)**：隱私、安全，以及自行檢查檔案。

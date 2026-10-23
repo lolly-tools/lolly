@@ -27,3 +27,7 @@ Attribuzione, provenienza, privacy & consenso
 creatività & fiducia in mezzo all'infinito
 
 chiunque può creare, a qualsiasi scala, ovunque
+
+## Perché
+
+### [Perché stiamo sulle spalle dei giganti](/info/trust/shoulders-of-giants.html)

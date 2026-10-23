@@ -1,6 +1,6 @@
-# FAQ
+# Preguntas y respuestas
 
-Preguntas frecuentes que se muestran en el acordeón de la página de inicio `/info`.
+Preguntas frecuentes, presentadas como el acordeón de `/info/start/faq.html`.
 
 **Cómo mantenerlo:** cada encabezado `##` de abajo es una pregunta; todo lo que hay debajo
 (hasta el siguiente `##`) es la respuesta. Las respuestas usan el mismo markdown ligero que
@@ -8,53 +8,24 @@ el resto del sitio - separa los párrafos con una línea en blanco. Añade, quit
 reordena preguntas aquí y vuelve a ejecutar `pnpm run build:info` (o `pnpm run dev:web`).
 Todo lo que está por encima del primer `##` (este título y estas notas) lo ignora la compilación.
 
-## ¿Qué pasa cuando activo la opción en la página /profile?
+El orden es el de quien llega por primera vez: primero la trampa, luego tus archivos,
+luego conseguir y ejecutar Lolly, luego las organizaciones, luego cómo se hizo. El ancla de cada pregunta
+se construye a partir de la pregunta en inglés en la misma posición, así que una traducción conserva el
+orden en inglés.
 
-Cuando usas Lolly por primera vez, todo lo que escribes en cualquier sitio es totalmente privado hasta que decides deliberadamente sacar esa información al exterior mediante un medio o un enlace para compartir (si estás en línea).
+## ¿Por qué es gratis? ¿Dónde está la trampa?
 
-Con la opción activada, los datos de perfil que elijas quedan sellados dentro de lo que creas, señalándote como la fuente. No se incluye nada que no hayas elegido tú.
+**Creamos Lolly para nosotros mismos.** SUSE necesitaba miles de archivos fieles a la marca, creados sin entregar nada a servicios externos. Así que creamos una herramienta que lo hace todo en el dispositivo, y la publicamos como código abierto, como todo lo demás que hacemos. Seguimos manteniéndola porque la usamos cada día. **No hay obligación:** todo lo de aquí funciona con nosotros o sin nosotros.
 
-Lolly produce un gran volumen de contenido. Aplicamos un enfoque estricto de minimización de datos para evitar riesgos.
+Esa línea se traza en la licencia, no en una promesa: todo lo que se ejecuta en local es gratuito, para siempre. Una versión publicada se licencia de modo que no se pueda retirar, y no existe ningún acuerdo de contribuidores que pudiera relicenciar el trabajo de nadie.
 
-## ¿Lolly fue "vibe coded"?
+## ¿Cuánto se guarda SUSE en privado? (o sea, ¿cuándo llega el cambiazo?)
 
-Lolly se desarrolló con programación asistida por IA, descubrimiento asistido por IA y, en muchos lugares, contenido asistido por IA, usando una combinación de modelos y proveedores, incluidos los de empresas punteras de la nube pública.
+El motor, los shells, los esquemas y las herramientas independientes de marca son de código abierto. Las marcas registradas de SUSE y las herramientas con su marca son la parte que sigue siendo privada, y ya están separadas. La instancia pública en [lolly.tools](https://lolly.tools) ejecuta [Lolly Demo](/info/lolly-demo.html), el design system del propio Lolly.
 
-Un aviso de gravedad alta o crítica en las dependencias de Lolly bloquea la CI. Un aviso que todavía no se puede corregir solo se mantiene como excepción aprobada, con una razón escrita. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) lista cada excepción vigente hoy, y las [notas de la versión](https://github.com/lolly-tools/lolly/releases) listan las que lleva cada versión. SECURITY.md también explica cómo informar de una vulnerabilidad.
+Nada de esto descansa en una promesa: cada versión publicada sigue siendo de código abierto, y lo único que se reserva es la marca registrada. Cuando otra empresa cerró en 2023 sus fuentes de Linux empresarial, SUSE cofundó [OpenELA](https://openela.org) para mantener abierto ese código, la misma postura que hereda este proyecto.
 
-Una persona creó la arquitectura, curó el código con intención y dirigió artísticamente la experiencia.
-
-Y lo más importante, Lolly se apoya en los hombros de décadas de innovación de código abierto de verdaderos expertos de todo el mundo.
-
-En el código base de Lolly existe una compuerta de compilación determinista que mantiene el código y la documentación coherentes para el lector medio y "desengrasa" la experiencia. Esto puede dificultar la enumeración sintética propietaria del origen. Eso no es intencionado.
-
-**Divulgación sobre IA generativa:**
-
-- **Código escrito por LLM:** Opus 4.8, Gemini 3.1, Qwen3-Coder-Next (esta lista puede ampliarse)
-- **Descubrimiento por LLM:** Gemini 3.1, Fable
-- **Documentación:** Sonnet 5
-- **Bibliotecas de código abierto:** sus respectivos autores, indicados en el SBOM, los comentarios y las cabeceras de archivo
-
-Esta lista no incluye los modelos integrados en Lolly.
-
-**Contribución humana:**
-
-- **Arquitectura:** Andy Fitzsimon
-- **Dirección de arte:** Andy Fitzsimon
-- **Código escrito por humanos:** Andy Fitzsimon
-- **Ideación, revisión y comentarios:** Ravan Naidoo, Matthias Eckermann, Kelly Andrews, Ryan Kleeman, Peter Chamalian, la comunidad de Penpot (lista no exhaustiva)
-
-## ¿Qué son los feature flags?
-
-Los feature flags activan o desactivan partes de Lolly. Normalmente los controla un administrador - con Lolly, el control lo tienes tú.
-
-![Cada feature flag es un interruptor tuyo, que vive en tu propio perfil y no en la consola de un administrador](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
-
-## ¿Cómo consigo las apps de móvil o de escritorio?
-
-Descárgalas desde [Instalar Lolly](/info/install.html). La página lista cada compilación para macOS, Windows, Linux y Android, y muestra cómo comprobar el archivo que descargaste. iPhone y iPad todavía no tienen descarga pública; [la sección de iPhone y iPad](/info/install.html#iphone-and-ipad) explica qué usar en su lugar.
-
-Cualquiera puede además compilar y repartir su propia copia de la app, con las herramientas y los ajustes que necesita su público. La [Guía de compilación](/info/build-guide.html) muestra cómo.
+Transparencia total: SUSE *sí* está creando herramientas internas para conectar Lolly con sus propios sistemas de TI. Es la configuración interna de SUSE, no una división entre desarrollo público y privado. Lolly también aspira a compilarse mediante [Open Build Service](https://openbuildservice.org/), con artefactos seguros de cadena de suministro entregados por la [SUSE Application Collection](https://apps.rancher.io/applications).
 
 ## ¿Por qué el nombre «Lolly Tools»?
 
@@ -62,74 +33,19 @@ Cualquiera puede además compilar y repartir su propia copia de la app, con las 
 
 **Tools** porque una herramienta está quieta hasta que la coges. No se ejecuta cuando no la usas y no te vigila mientras la usas.
 
-## ¿Con qué obstáculos me puedo encontrar al adoptar Lolly?
+## ¿Por qué todo es verde?
 
-Lolly encaja allí donde ya generas archivos - la CLI es el mismo motor
-que la App, así que un pipeline lanzado a las 2 de la madrugada no puede desviarse de lo que una
-persona previsualiza en un navegador. La fricción para adoptarlo rara vez es técnica; es organizativa. Cuenta con esto:
+lolly.tools se abre en [Lolly Demo](/info/lolly-demo.html), el design system de muestra del propio Lolly, y su color principal es el verde. Es una muestra, no una regla. Cambia a **Lolly Starter**, un design system en blanco, o al tuyo en [Settings → Design systems](/#/settings?focus=design-systems-section).
 
-**Hay que crear un catálogo de marca curado.** Lolly es una plataforma, no un
-paquete terminado con tus plantillas. Para un *despliegue gobernado*, alguien define el catálogo
-compartido de recursos (logotipos, paletas, tipografías como IDs permanentes) y escribe el manifiesto +
-la plantilla de cada tipo de salida. Aun así, nadie tiene que esperar a eso - en
-la app abierta cualquiera puede incorporar sus propios archivos a Recursos y crear herramientas en
-Design desde el primer día.
+## ¿Puedo usar mi propia marca?
 
-**No hace falta git para contribuir.** Los diseñadores crean sus propias herramientas y plantillas
-en la app y luego las comparten con sus compañeros o las envían a quien gestione el
-despliegue para que se incluyan por defecto.
+Sí. **Design System Setup** (`#/start`) crea un design system a partir de un color, un archivo de design tokens o un diseño terminado, y entonces cada herramienta dibuja con tu design system. [Start](/info/quickstart.html#put-your-brand-in) recorre las tres rutas.
 
-**Es deliberadamente acotado - preséntalo así.** Lolly no sirve para contenido a medida ni
-para piezas estrella. *Sí* es tu DAM personal - alimentado y potenciado por tu sistema
-de diseño, tus herramientas y tu catálogo - y *sí* tiene un lienzo abierto (Design), pero
-incluso ahí los colores, la tipografía y los recursos se ajustan a los globales de diseño activos, así que la
-composición libre no se sale del sistema. Comparado con Figma o Canva parecerá
-limitado. Visto por lo que es - generación de recursos operativa, recurrente y a gran escala -
-no tiene competencia. Enmarcarlo mal es el tropiezo más habitual.
-
-**Gestión del cambio en el lado de producción.** Los procesos actuales funcionan hoy, aunque
-el resultado se salga de la marca. Reorientarlos hacia el motor implica volver a probar y volver a aprender,
-y «ya sabemos hacer archivos» se convierte en la excusa para no migrar. Empieza por convertir
-una salida de calidad de producción muy visible y enseña el antes y el después uno al lado del otro.
-
-Lolly lo eleva todo.
-
-
-## ¿En qué se diferencian las utilidades de las herramientas?
-
-**Respuesta básica →** Las utilidades no siempre necesitan renderizar y por eso pueden tener otra UX. 
-
-**Respuesta real →** Las utilidades se pueden alojar dentro de Lolly Tools para añadir una «capa de comodidad» más de defensa que desincentive la exfiltración de datos. 
-
-¿Por qué? Porque se sabe que, cada día, la gente coge **contenido confidencial que ya tiene** y se lo entrega a una
-página web cualquiera para hacer una pequeña operación mecánica:
-
-- «**Comprime este PDF**» → sube un contrato / una nómina / una presentación de dirección a entidades desconocidas.
-- «**convierte HEIC a JPG**» → sube fotos personales (con EXIF de GPS) a un servidor financiado con publicidad
-- «**recorta / redimensiona esta imagen**» → sube una captura de un producto o un recurso sin publicar
-- «**formatea este JSON**» / «descodifica este JWT» → pega respuestas de API, tokens y secretos en un formateador
-- «**une estos PDF**» → sube **dos documentos que nunca deberían compartir servidor**
-
-Estos sitios y su enorme cola de clones **no son de fiar por defecto**, con
-retención desconocida, jurisdicciones desconocidas, subencargados desconocidos y un modelo de negocio
-de publicidad y afiliación con todos los incentivos para quedarse con lo que les das. La operación es
-trivial; el **coste es el contenido.** 
-
-La guerra de la gobernanza se gana con una comodidad y un servicio excelentes. 
-
-![La vista de utilidades reúne las tareas mecánicas que la gente suele encargar a una web cualquiera, ejecutándolas dentro de Lolly](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
-
-## ¿Puede Lolly editar y renderizar mis archivos de Figma, Penpot, Illustrator o InDesign?
-
-Sí. Abre **Design** y haz clic en **Import a design** (Importar un diseño): acepta un **.fig** nativo de Figma (Save local copy), una exportación **.penpot** de Penpot, un **.ai** o un **.pdf** de Illustrator, un **.idml** de InDesign (File → Export → InDesign Markup) o **cualquier SVG** (la puerta ancha - casi todas las apps de diseño lo exportan). No hace falta cuenta, ni plugin, ni licencia de una app de diseño.
-
-![El lienzo abierto de Design - Importar un diseño está en el menú Lolly de la barra de herramientas](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
-
-Las capas llegan como cajas editables al lienzo abierto: el texto se sigue pudiendo reescribir, las formas siguen siendo formas, las imágenes pasan a tu propia biblioteca de imágenes y la tipografía y los colores se ajustan a los globales de la marca. Guárdalo y la maquetación se convierte en una plantilla reutilizable y direccionable por URL que cualquiera con Lolly puede volver a rellenar - y puedes mezclar herramientas vivas (un código QR, un gráfico) que se vuelven a renderizar al cargar. A partir de ahí se renderiza como todo lo demás en Lolly - SVG, PDF, PNG y el resto, reproducible desde su URL. Consulta [Importar un diseño](/info/design-import.html).
+Un design system que aporta tu organización o tu compilación está gestionado: muestra un candado y es de solo lectura, y puedes crear una copia editable para cambiarlo.
 
 ## ¿Dónde está lo que hice ayer?
 
-Si pulsaste **Guardar como** o **Guardar**, está en **Proyectos**, en la pantalla de inicio, en el navegador o la app desde la que guardaste. Si solo pulsaste **Descargar**, el archivo está donde tu navegador o sistema guarda las descargas, y normalmente hay una copia en **Recursos**. Las herramientas que [guardan mientras trabajas](/info/find-your-work.html#which-tools-save-as-you-work) también guardan el trabajo sin guardar en **Proyectos**. [Encuentra y recupera tu trabajo](/info/find-your-work.html) cubre todos los casos.
+Si pulsaste **Save as** o **Save**, está en **Projects**, en la pantalla de inicio, en el navegador o la aplicación desde la que guardaste. Si solo pulsaste **Download**, el archivo está donde tu navegador o sistema guarda las descargas, y normalmente hay una copia en **Assets**. Las herramientas que [guardan mientras trabajas](/info/find-your-work.html#which-tools-save-as-you-work) también conservan el trabajo sin guardar en **Projects**. [Find and recover your work](/info/find-your-work.html) cubre todos los casos.
 
 ## Cerré la pestaña. ¿Se ha perdido mi trabajo?
 
@@ -137,29 +53,93 @@ El trabajo guardado sigue en **Proyectos**. El trabajo sin guardar se pierde, ex
 
 ## ¿Puedo compartir mi trabajo como archivo en vez de como enlace?
 
-Sí. Cuando un enlace no puede llevarlo todo (tus propias fotos, textos largos), el diálogo de compartir te dice exactamente qué se quedaría fuera y te ofrece un archivo **.lolly** en su lugar: un solo archivo con el diseño, las imágenes que usa y, si quieres, la propia herramienta. Tú decides cuánto viaja - tu nombre y tus datos solo se incluyen si tu perfil lo activa, el material con licencia se queda fuera salvo que lo incluyas, y a quien abra un archivo que lleva una herramienta se le pregunta si confía en ella antes de poder ejecutarla. Consulta [Compartir tu trabajo](/info/using.html#sharing-your-work).
+Sí. Cuando un enlace no puede llevarlo todo, como tus propias fotos o un texto largo, el diálogo Share indica qué se perdería y ofrece en su lugar un archivo **.lolly**: un archivo que contiene el diseño, las imágenes que usa y, si lo eliges, la propia herramienta.
+
+Tú decides cuánto viaja. Tu nombre y tus datos entran solo si tu perfil lo permite, y el arte con licencia se retiene a menos que elijas incluirlo. A quien abra un archivo que lleva una herramienta se le pregunta si confía en la herramienta antes de que pueda ejecutarse. Consulta [Sharing your work](/info/using.html#sharing-your-work).
+
+## ¿Para qué sirven los datos de mi perfil?
+
+Tus datos en **Settings** rellenan previamente las herramientas que los piden, como un nombre en una credencial. Se quedan en este dispositivo. Si además activas la opción, los datos que elijas se sellan en lo que creas, nombrándote como fuente. No se incluye nada a menos que elijas incluir tus datos.
+
+Compartir y Sync envían solo el contenido que eliges. En la instancia de Lolly Work de una organización, las sesiones compartidas y el trabajo gobernado también van a ese servidor. Consulta [Privacy](/info/privacy.html).
+
+## ¿Cómo consigo las apps de móvil o de escritorio?
+
+Descárgalas desde [Install Lolly](/info/install.html). La página enumera cada compilación para macOS, Windows, Linux y Android, y muestra cómo comprobar el archivo que descargaste. iPhone y iPad obtienen **Lolly Tools** desde la App Store; [la sección de iPhone y iPad](/info/install.html#iphone-and-ipad) tiene el enlace.
+
+Cualquiera también puede compilar y repartir su propia copia de la aplicación, con las herramientas y los ajustes que necesite su público. La [Build Guide](/info/build-guide.html) muestra cómo.
+
+## Lolly dice que requiere WebGPU. ¿Qué puedo hacer?
+
+La aplicación web dibuja con WebGPU, una función gráfica de los navegadores actuales, y la comprueba antes de abrir una herramienta. Prueba esto en orden:
+
+1. Actualiza tu navegador a su versión actual.
+2. Activa la aceleración gráfica o por hardware en los ajustes del navegador y reinícialo.
+3. Prueba un navegador que se haya probado: [Supported environments](/info/supported-environments.html) los enumera.
+4. En un Mac, iPhone o iPad, [instala la aplicación](/info/install.html) en su lugar.
+
+## ¿Puede Lolly editar y renderizar mis archivos de Figma, Penpot, Illustrator o InDesign?
+
+Sí. Abre **Design** y haz clic en **Import a design**: acepta un **.fig** nativo de Figma (Save local copy), una exportación **.penpot** de Penpot, un **.ai** o **.pdf** de Illustrator, un **.idml** de InDesign (File → Export → InDesign Markup) o **cualquier SVG**. No necesitas cuenta, ni plugin, ni licencia de una aplicación de diseño.
+
+![El lienzo abierto de Design - Importar un diseño está en el menú Lolly de la barra de herramientas](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+
+Las capas llegan como cuadros editables: el texto sigue siendo editable, las formas siguen siendo formas y las imágenes se unen a tu propia biblioteca. Guárdalo, y **Share with rules** puede convertir el diseño en una herramienta que cualquiera con Lolly puede volver a rellenar. Consulta [Import a design](/info/design-import.html).
 
 ## ¿Pueden dos personas trabajar en el mismo diseño sin internet?
 
-Sí. Una persona comparte una invitación (un enlace, un código QR o un código corto), la otra la acepta y ambos dispositivos mantienen la misma sesión en vivo - con presencia, anillos de foco y todo. Funciona en cualquier red compartida, incluido el punto de acceso de un móvil en un sótano, porque no hay ningún servidor de por medio. Consulta [Trabajar juntos](/info/collaborate.html).
+Sí. Una persona comparte una invitación, como enlace, código QR o código corto, y la otra la acepta. Entonces ambos dispositivos mantienen la misma sesión en vivo, con presencia y anillos de foco incluidos. Funciona en cualquier red compartida, incluida la conexión compartida de un teléfono en un sótano, porque no hay ningún servidor en medio. Consulta [Working together](/info/collaborate.html). Para colegas en redes distintas, la instancia de Lolly Work de una organización ofrece collabs de trabajo autenticadas.
+
+## ¿Qué son los feature flags?
+
+Los feature flags activan o desactivan partes de Lolly. En uso independiente, eliges tus ajustes personales. Una organización que use Lolly Work puede definir valores predeterminados u ocultar interruptores seleccionados según su política, y los controles gestionados se etiquetan. Consulta [Use Lolly at your organisation](/info/organisation.html).
+
+![Feature flags personales en la aplicación independiente; la política de la organización puede gobernar interruptores seleccionados](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
+
+## ¿En qué se diferencian las utilidades de las herramientas?
+
+Una utilidad hace un trabajo rápido sobre un archivo que ya tienes, como comprimir un PDF, convertir una foto o eliminar datos ocultos, y muchas se ejecutan en tu dispositivo sin subir nada. Existen para que los trabajos que la gente suele entregar a un sitio web cualquiera se queden dentro de Lolly. Comprimir un contrato, convertir fotos de vacaciones con su ubicación todavía dentro o pegar un token en un formateador en línea no debería significar entregar el archivo a un sitio de conservación, jurisdicción y modelo de negocio desconocidos. [Utilities](/info/utilities.html) las enumera, y [The trade we never agreed to](/info/status-quo.html) cuenta la historia que hay detrás.
+
+![La vista Utilities: Strip Hidden Data, Compress PDF, Convert Image y los demás trabajos en el dispositivo, todo en un solo lugar](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+
+## ¿Puede nuestra organización usar SSO, proyectos compartidos y aprobaciones?
+
+Sí, con **Lolly Work**, el servidor de organización del mismo proyecto de código abierto. Se ejecuta por separado y añade inicio de sesión único mediante tu proveedor de identidad, aprovisionamiento SCIM, permisos de grupo, proyectos y recursos compartidos, collabs de trabajo en vivo, aprobaciones y registros de auditoría. La aplicación de uso diario sigue funcionando por sí sola.
+
+[Use Lolly at your organisation](/info/organisation.html) cubre cómo iniciar sesión y encontrar el trabajo compartido, y [Deployment](/info/deployment.html#organisation-services-with-lolly-work) cubre cómo configurarlo. El contenido compartido y los registros de la organización siguen las políticas de privacidad y conservación de esa instancia.
+
+## ¿Con qué obstáculos me puedo encontrar al adoptar Lolly?
+
+Sobre todo cambia el lado de la producción más que la tecnología. Un equipo que quiere un conjunto gobernado de herramientas necesita a alguien que redacte su design system y las primeras plantillas, aunque cualquiera puede empezar a crear sus propias herramientas en Design desde el primer día, sin necesidad de git. Y los procesos existentes siguen funcionando aunque su resultado no sea fiel a la marca, así que convertir bien un resultado visible, con el antes y el después lado a lado, convence más rápido que un plan.
+
+[Adoption & Governance](/info/adoption-governance.html) cubre la incorporación por rol, cómo medir un piloto y cómo puede ser un proceso de gobernanza.
+
+## ¿Lolly fue "vibe coded"?
+
+Lolly se desarrolló con programación asistida por IA, descubrimiento asistido por IA y, en muchos lugares, contenido asistido por IA, con una mezcla de modelos y proveedores, entre ellos los de empresas punteras de nube pública. Una persona creó la arquitectura, cuidó el código con intención y dirigió artísticamente la experiencia.
+
+Un aviso de gravedad alta o crítica en las dependencias de Lolly bloquea la CI. Un aviso que todavía no se puede corregir solo se mantiene como excepción aprobada con un motivo por escrito. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) enumera cada excepción vigente hoy, y las [notas de la versión](https://github.com/lolly-tools/lolly/releases) enumeran las que lleva cada versión. SECURITY.md también explica cómo informar de una vulnerabilidad.
+
+Las comprobaciones de la compilación también rechazan redacciones que parecen hechas por una máquina en los comentarios del código, la aplicación y esta documentación, para mantener el texto claro para cualquier lector. Un efecto secundario es que a un detector le resulte más difícil saber qué texto escribió un modelo. No nos propusimos causarlo.
+
+Lo más importante: Lolly se apoya en los hombros de décadas de trabajo de código abierto de expertos de todo el mundo.
+
+**Divulgación sobre IA generativa:**
+
+- **Código escrito por LLM:** Opus 4.8, Gemini 3.1, Qwen3-Coder-Next, Codex Sol (esta lista puede ampliarse)
+- **Descubrimiento con LLM:** Gemini 3.1, Fable, Codex Astra
+- **Documentación:** Sonnet 5
+- **Bibliotecas de código abierto:** Sus respectivos autores, expresados en el SBOM, los comentarios y las cabeceras de archivo
+
+Esta lista no incluye los modelos integrados en Lolly.
+
+**Aportaciones humanas:**
+- **Ideación, revisión y comentarios:** Ravan Naidoo, Matthias Eckermann, Kelly Andrews, Ryan Kleeman, Peter Chamalian, la comunidad de Penpot, Tim Hildred (lista no exhaustiva)
+- **Arquitectura, dirección de arte y encargado de limpiar el desorden:** Andy Fitzsimon
 
 ## ¿Dónde han quedado las herramientas con la marca SUSE?
 
-Ya viven en un repositorio privado aparte. Un clon público no descarga el paquete de marca de SUSE, así que una compilación hecha a partir de él usa el perfil neutro `lolly-start`, salvo que elijas otro - las herramientas comunitarias sin marca más una marca en blanco que rellenas con la tuya. [lolly.tools](https://lolly.tools) se compila con el perfil `lolly-demo` y se abre en [Lolly Demo](/info/lolly-demo.html), el propio sistema de diseño de Lolly. SUSE opera su propia instancia para proteger sus marcas registradas.
-
-## ¿Por qué es gratis? ¿Dónde está la trampa?
-
-**Construimos Lolly para nosotros.** SUSE necesitaba miles de archivos acordes con la marca, cada uno con su nombre sellado dentro, hechos sin entregar nada a servicios externos. Así que construimos una herramienta que lo hace todo en el dispositivo y la publicamos como código abierto, igual que todo lo demás que hacemos. La seguimos manteniendo porque la usamos a diario. **No hay ninguna obligación:** todo esto funciona con nosotros o sin nosotros.
-
-Esa línea está trazada en la licencia, no en una promesa: todo lo que se ejecuta en local es gratis, para siempre. Una versión ya publicada está licenciada de forma que no se puede retirar, y no existe ningún acuerdo de colaborador que pudiera relicenciar el trabajo de nadie. Consulta [posicionamiento](/info/positioning.html) para leer la declaración completa.
-
-## ¿Cuánto se guarda SUSE en privado? (o sea, ¿cuándo llega el cambiazo?)
-
-El motor, los shells, los esquemas y las herramientas sin marca son de código abierto; las marcas registradas de SUSE y sus herramientas de marca son la parte que se mantiene privada, y ya están separadas. La instancia pública en [lolly.tools](https://lolly.tools) funciona con [Lolly Demo](/info/lolly-demo.html), el propio sistema de diseño de Lolly.
-
-El límite es estructural, no prometido. Cada versión publicada es de código abierto y no se puede despublicar, no existe ningún acuerdo de colaborador que pudiera relicenciar el trabajo de nadie y lo único que se reserva es la marca registrada. Cuando otra empresa cerró las fuentes de su Linux empresarial en 2023, SUSE cofundó [OpenELA](https://openela.org) para mantener ese código abierto - la misma postura que hereda este proyecto.
-
-Con total transparencia: SUSE *sí* está desarrollando herramientas internas para integrar Lolly en sus sistemas de TI - eso va de la infraestructura interna de SUSE, no de desarrollo público frente a privado. Lolly también aspira a compilarse mediante [Open Build Service](https://openbuildservice.org/), con artefactos de cadena de suministro seguros entregados por la [SUSE Application Collection](https://apps.rancher.io/applications).
+Viven en un repositorio privado aparte. Un clon público no descarga en absoluto el paquete de marca de SUSE, así que una compilación a partir de él usa el perfil neutro `lolly-start` a menos que elijas otro: las herramientas comunitarias independientes de marca más una marca en blanco que rellenas con la tuya. [lolly.tools](https://lolly.tools) se compila con el perfil `lolly-demo` y se abre en [Lolly Demo](/info/lolly-demo.html), el design system del propio Lolly. SUSE opera su propia instancia para proteger sus marcas registradas.
 
 ## ¿De qué sabor es ese logotipo de Lolly?
 

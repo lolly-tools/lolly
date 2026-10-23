@@ -2,16 +2,20 @@
 
 _Última verificação: 28 de setembro de 2026._
 
-O Lolly converte arquivos no navegador, no seu próprio dispositivo: HEIC para JPG, PNG para SVG, PDF para imagens e muitas outras combinações. Consulte [todos os formatos que o Lolly pode abrir e gerar](/info/formats.html) para ver as conversões compatíveis e seus limites.
+Se você costuma procurar "HEIC to JPG" ou "compress PDF" e envia o arquivo para o site que aparecer, o Lolly faz a mesma conversão no seu navegador, no seu próprio dispositivo.
+
+## O que um site conversor pode fazer melhor
+
+Alguns sites conversores lidam com formatos que o Lolly não trata e não precisam de nenhuma configuração antes. Escolha um conversor pelos formatos e pela fidelidade de que precisa, além de onde ele processa o arquivo: algumas conversões mantêm a estrutura editável e outras achatam o resultado.
 
 ## Onde a conversão acontece
 
-Um conversor baseado em navegador pode enviar um arquivo por upload para processamento ou converter localmente. Os utilitários do Lolly no dispositivo processam o arquivo localmente, sem conta, anúncios ou rastreadores. Eles não adicionam marca d'água do Lolly nem metadados de proveniência. Quando os ativos de conversão necessários estão disponíveis, eles podem funcionar offline; o tamanho do arquivo é limitado pela memória do dispositivo e pelo leitor do formato em questão.
+Um conversor baseado em navegador pode enviar um arquivo para processamento ou converter localmente. Os utilitários de conversão do Lolly processam o arquivo localmente, sem conta, anúncios nem rastreadores, e não adicionam marca d'água do Lolly nem Content Credentials. Depois que os recursos de que uma conversão precisa são salvos, eles funcionam offline. O tamanho do arquivo é limitado pela memória do dispositivo e pelo leitor do formato em questão.
 
-Escolha um conversor pelos formatos e pela fidelidade de que você precisa, além de onde ele processa o arquivo. Algumas conversões preservam a estrutura editável, enquanto outras achatam o resultado; as páginas de formatos do Lolly descrevem essas diferenças.
+![A tela Utilities: Strip Hidden Data, Compress PDF, Convert Image e os outros trabalhos no dispositivo em um só lugar](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+
+[Every format Lolly can open and make](/info/formats.html) lista as conversões compatíveis e seus limites, incluindo HEIC para JPG, PNG para SVG e PDF para imagens.
 
 ## Quando uma equipe precisa de mais
 
-O [lolly.work](https://lolly.work) é o serviço de organização do projeto Lolly, implantado separadamente. Ele acrescenta SSO, SCIM, catálogos compartilhados, aprovações, relatórios e renderização no servidor para fluxos de produção compatíveis. As duas partes são de código aberto sob MPL-2.0. Uma organização pode usá-las em conjunto, enquanto seus membros continuam usando os utilitários no dispositivo para conversões locais.
-
-A diferença importa para o tratamento de dados: uma conversão local mantém o arquivo no dispositivo, enquanto escolher um upload compartilhado, uma renderização no servidor ou uma entrega envia os dados relevantes aos serviços configurados. A [visão geral da solução combinada](/info/compare.html) explica a separação.
+Os membros de uma organização continuam usando os utilitários no dispositivo para conversões locais mesmo quando a organização executa o Lolly Work. Um envio compartilhado, uma renderização no servidor ou uma entrega é o ponto em que os dados vão para o servidor dela; [What runs where](/info/compare.html#what-runs-where) explica a separação.

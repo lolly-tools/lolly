@@ -2,16 +2,20 @@
 
 _Kiểm tra lần cuối: 28 tháng 9 năm 2026._
 
-Lolly chuyển đổi tệp trong trình duyệt ngay trên thiết bị của bạn: HEIC sang JPG, PNG sang SVG, PDF sang ảnh và nhiều tổ hợp khác. Xem [mọi định dạng Lolly có thể mở và tạo](/info/formats.html) để biết các chuyển đổi được hỗ trợ và giới hạn của chúng.
+Nếu bạn thường tìm "HEIC to JPG" hay "compress PDF" rồi tải tệp lên bất kỳ trang nào hiện ra, Lolly làm cùng việc chuyển đổi đó trong trình duyệt của bạn, trên chính thiết bị của bạn.
+
+## Một trang chuyển đổi làm tốt hơn điều gì
+
+Một số trang chuyển đổi xử lý các định dạng mà Lolly không có, và không cần thiết lập gì trước. Hãy chọn trình chuyển đổi theo định dạng và độ trung thực bạn cần cũng như nơi nó xử lý tệp: một số phép chuyển đổi giữ cấu trúc chỉnh sửa được và số khác làm phẳng kết quả.
 
 ## Việc chuyển đổi diễn ra ở đâu
 
-Một trình chuyển đổi trên trình duyệt có thể tải tệp lên để xử lý hoặc chuyển đổi cục bộ. Các tiện ích trên thiết bị của Lolly xử lý tệp cục bộ, không cần tài khoản, không có quảng cáo hay trình theo dõi. Chúng không thêm hình mờ Lolly hay siêu dữ liệu nguồn gốc. Khi đã có sẵn các tài sản chuyển đổi cần thiết, chúng có thể hoạt động ngoại tuyến; kích thước tệp bị giới hạn bởi bộ nhớ của thiết bị và trình đọc của từng định dạng.
+Một trình chuyển đổi trên trình duyệt có thể tải tệp lên để xử lý hoặc chuyển đổi cục bộ. Các tiện ích chuyển đổi của Lolly xử lý tệp cục bộ, không tài khoản, quảng cáo hay trình theo dõi, và không thêm hình mờ Lolly hay Content Credentials. Khi tài nguyên mà một phép chuyển đổi cần đã được lưu, chúng hoạt động ngoại tuyến. Kích thước tệp bị giới hạn bởi bộ nhớ của thiết bị và trình đọc định dạng cụ thể.
 
-Hãy chọn trình chuyển đổi theo các định dạng và độ trung thực bạn cần, cũng như nơi tệp được xử lý. Một số chuyển đổi giữ được cấu trúc có thể chỉnh sửa, trong khi số khác làm phẳng kết quả; các trang định dạng của Lolly mô tả những khác biệt đó.
+![Màn hình Utilities: Strip Hidden Data, Compress PDF, Convert Image và các việc chạy trên thiết bị khác ở một nơi](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+
+[Every format Lolly can open and make](/info/formats.html) liệt kê các phép chuyển đổi được hỗ trợ và giới hạn của chúng, kể cả HEIC sang JPG, PNG sang SVG và PDF sang ảnh.
 
 ## Khi một nhóm cần nhiều hơn
 
-[lolly.work](https://lolly.work) là dịch vụ tổ chức được triển khai riêng của dự án Lolly. Dịch vụ này bổ sung SSO, SCIM, danh mục dùng chung, phê duyệt, báo cáo và kết xuất phía máy chủ cho các quy trình sản xuất được hỗ trợ. Cả hai phần đều là mã nguồn mở theo MPL-2.0. Một tổ chức có thể dùng chúng cùng nhau trong khi các thành viên vẫn dùng tiện ích trên thiết bị cho các chuyển đổi cục bộ.
-
-Sự khác biệt này quan trọng đối với việc xử lý dữ liệu: chuyển đổi cục bộ giữ tệp trên thiết bị, còn việc chọn tải lên dùng chung, kết xuất phía máy chủ hoặc phân phối sẽ gửi dữ liệu liên quan đến các dịch vụ đã cấu hình. [Tổng quan giải pháp kết hợp](/info/compare.html) giải thích sự tách biệt này.
+Thành viên của một tổ chức vẫn dùng các tiện ích trên thiết bị cho chuyển đổi cục bộ ngay cả khi tổ chức chạy Lolly Work. Một lần tải lên chung, kết xuất trên máy chủ hoặc bàn giao là điểm mà dữ liệu đi tới máy chủ của nó; [What runs where](/info/compare.html#what-runs-where) giải thích sự phân tách.

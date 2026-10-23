@@ -1,80 +1,78 @@
-# Ekstensi Browser
+# Ekstensi browser
 
-Ekstensi **Lolly URL Screenshot** memungkinkan aplikasi web mengambil tangkapan layar halaman web mana pun dari dalam browser Anda. Tanpanya, menangkap URL memerlukan aplikasi desktop - halaman browser tidak bisa membaca piksel dari situs lain dengan sendirinya. Ekstensi ini bisa, menggunakan mekanisme tangkap yang sama dengan yang dipakai aplikasi desktop.
+Halaman web tidak dapat membaca piksel situs lain, jadi aplikasi web Lolly membutuhkan bantuan untuk menangkap layar halaman. Di browser berbasis Chromium (Chrome, Edge, Brave, Arc, atau Opera, dari Chrome 111), ekstensi gratis **Lolly URL Screenshot** memberi bantuan itu, memakai penangkapan yang sama dengan aplikasi desktop. Dengan ekstensi terpasang:
 
-Ia melakukan dua tugas lain dengan cara yang sama. Alamat web yang ditempel ke slot gambar bisa menjadi tangkapan layar halaman itu (**Tangkap layar halaman ini**), dan ekstensi bisa membaca satu halaman yang Anda sebutkan sehingga Brand Studio bisa menarik sebuah brand dari sebuah website live. Setiap permintaan menunggu persetujuan Anda di ekstensi.
+- **[URL Screenshot](/t/url-shot)** menyimpan halaman yang Anda susun sebagai file;
+- alamat web yang ditempel ke slot gambar dapat menjadi tangkapan layar halaman itu, dengan **Screenshot this page**;
+- sumber **Website** di [Design System Setup](/info/brand-studio.html) dapat membaca satu halaman untuk memulai design system.
 
-Berjalan di browser berbasis Chromium: **Chrome, Edge, Brave, Arc, Opera** - Chrome 111 atau lebih baru.
+Anda menyetujui setiap permintaan, dan aplikasi desktop mengerjakan pekerjaan yang sama tanpa ekstensi.
 
-Sampai terpasang, **URL Screenshot** tetap terbuka sehingga Anda bisa menyusun bidikan, dan catatan di bagian atas kontrol tool memberi tahu apa yang belum ada.
+## Sebelum Anda memasang
+
+Sebelum ekstensi dipasang, **URL Screenshot** tetap terbuka, sehingga Anda dapat menyusun tangkapan. Catatan di atas kontrol alat menyatakan apa yang kurang.
 
 ![Catatan tool URL Screenshot menawarkan ekstensi, ditampilkan saat capture ke berkas tidak memiliki host untuk dijalankan](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
-Setiap kontrol tetap aktif sementara Anda menunggu: URL target, kedalaman gulir, jeda penetapan, inset crop dan pewarnaan ulang. Hanya proses capture itu sendiri yang membutuhkan host.
+Setiap kontrol berfungsi selagi Anda menunggu: URL target, kedalaman gulir, jeda stabil, inset pangkas, dan pewarnaan ulang. Hanya penangkapan itu sendiri yang membutuhkan ekstensi.
 
 ![Kontrol URL Screenshot dengan URL target, kedalaman gulir, jeda penetapan dan inset crop, semuanya bisa digunakan sebelum ekstensi ada](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Pasang
 
-### Dari Chrome Web Store
+**Dari Chrome Web Store:** segera hadir. Setelah ekstensi diterbitkan, Anda memasangnya dengan satu klik.
 
-*Segera hadir.* Setelah diterbitkan Anda akan memasangnya dengan satu klik, lalu memuat ulang Lolly.
-
-### Muat sendiri (pengembang)
-
-Ekstensi ini berada di repo pada `shells/chrome-extension/`. Folder itu adalah build produksi, yang hanya berfungsi dengan Lolly di `https://lolly.tools`.
+**Muat sendiri (pengembang).** Ekstensi berada di repositori pada `shells/chrome-extension/`. Folder itu adalah build produksi, yang hanya bekerja dengan Lolly di `https://lolly.tools`.
 
 1. Buka `chrome://extensions`.
 2. Aktifkan **Developer mode** (kanan atas).
 3. Klik **Load unpacked** dan pilih folder `shells/chrome-extension/`.
-4. Muat ulang Lolly - **URL Screenshot** kini berfungsi di browser.
+4. Muat ulang tab Lolly. Deteksi terjadi saat halaman dimuat, jadi permintaan "Get the extension" hilang. **URL Screenshot** (di bawah Utilities) kemudian dapat menyimpan tangkapan ke file dan tersedia dalam mode Batch.
 
 Untuk server pengembangan lokal, jalankan `pnpm run pack:chrome-extension:dev` dan muat `dist/chrome-extension-dev` sebagai gantinya. Paket itu juga menerima `http://localhost:5173` dan memiliki **Development** pada namanya.
 
-## Cara kerjanya
+## Apa yang terjadi saat Lolly meminta
 
-- Skrip kecil memberi tahu Lolly bahwa ekstensi ada, sehingga **URL Screenshot** bisa menyimpan capture tanpa pengaturan lebih lanjut.
-- Anda menyetujui setiap permintaan. Saat Lolly meminta, ekstensi membuka jendela **Approve page request** miliknya sendiri, yang menampilkan situs yang meminta, apakah ia menginginkan tangkapan layar atau isi halaman, dan alamat halamannya. Tidak ada yang dibaca sampai Anda menekan **Approve once**. **Cancel**, atau menutup jendela itu, mengakhiri permintaan.
-- Saat pertama kali Anda menyetujui permintaan untuk suatu situs, Chrome juga menanyakan apakah ekstensi boleh mengakses situs itu. Chrome mempertahankan akses itu setelah Anda mengizinkannya, tetapi setiap permintaan berikutnya tetap memerlukan **Approve once** tersendiri.
-- Persetujuan hanya berlaku untuk satu permintaan dan kedaluwarsa setelah 30 detik. Hanya satu permintaan yang bisa menunggu atau berjalan pada satu waktu, dan permintaan yang sudah disetujui berhenti setelah 55 detik. Jika halaman Lolly ditutup atau berubah, atau halaman target berpindah ke situs lain, permintaan dibatalkan.
-- Setelah Anda menyetujui, ekstensi membuka halaman target di tab latar belakang, menangkapnya melalui DevTools Protocol (`Page.captureScreenshot` yang sama dengan yang dipakai aplikasi desktop), lalu menutup tab dan mengembalikan gambar tersebut ke tab Lolly yang memintanya.
-- Ekstensi berjalan sepenuhnya di browser Anda, di jaringan Anda - jadi menangkap `localhost` atau situs internal tetap berfungsi. Halaman dimuat dengan sesi browser Anda, jadi halaman tempat Anda masuk bisa menampilkan informasi pribadi pada hasilnya. Hasil capture itu sendiri tidak pernah diunggah ke mana pun; satu-satunya lalu lintas jaringan adalah browser Anda sendiri memuat halaman yang Anda minta untuk dibidik.
+![Tab Lolly meminta satu halaman dan Anda menekan Approve once di jendela persetujuan ekstensi. Tab latar belakang terbuka, membaca halaman, dan menutup. Lalu tab Lolly mendapat hasilnya.](/info/diagrams/concepts/extension-request.svg)
 
-Selama capture berjalan, Anda mungkin sekilas melihat banner *"…started debugging this browser"* di tab sementara tersebut. Itu adalah DevTools Protocol yang sedang bekerja; banner itu hilang sendiri saat bidikan selesai.
+1. **Lolly meminta.** Skrip kecil memberi tahu Lolly bahwa ekstensi ada, sehingga penangkapan atau pembacaan halaman dapat dimulai tanpa penyiapan lebih lanjut.
+2. **Anda menyetujui.** Ekstensi membuka jendela **Approve page request** miliknya sendiri. Jendela itu menampilkan situs peminta, apakah ia menginginkan tangkapan layar atau isi halaman, dan alamat halaman. Tidak ada yang dibaca sampai Anda menekan **Approve once**. **Cancel**, atau menutup jendela, mengakhiri permintaan.
+3. **Chrome bertanya sekali per situs.** Pertama kali Anda menyetujui permintaan untuk suatu situs, Chrome juga menanyakan apakah ekstensi boleh mengakses situs itu. Chrome mempertahankan akses itu setelah Anda mengizinkan, tetapi setiap permintaan berikutnya tetap memerlukan **Approve once** sendiri.
+4. **Halaman dibaca di tab latar belakang.** Ekstensi membuka halaman target di tab latar belakang, menangkapnya melalui DevTools Protocol (`Page.captureScreenshot` yang sama dengan yang dipakai aplikasi desktop), menutup tab, dan menyerahkan hasilnya ke tab Lolly yang meminta.
 
-## Membaca situs untuk Brand Studio
+Persetujuan mencakup satu permintaan dan kedaluwarsa setelah 30 detik. Hanya satu permintaan yang dapat menunggu atau berjalan pada satu waktu, dan permintaan yang disetujui berhenti setelah 55 detik. Bila halaman Lolly tertutup atau berubah, atau halaman target berpindah ke situs lain, permintaan dibatalkan.
 
-Sumber **Website** di Brand Studio memulai sebuah brand dari situs yang sudah Anda miliki. Di Chromium, ekstensilah yang membacanya; di aplikasi desktop, fetch native melakukan tugas yang sama, dan di browser biasa tanpa ekstensi, ubin ini sama sekali tidak ditawarkan.
+Penangkapan berjalan di browser Anda, di jaringan Anda, sehingga `localhost` dan situs internal berfungsi. Halaman dimuat dengan sesi browser Anda, jadi halaman tempat Anda login dapat menampilkan informasi pribadi di hasilnya. Penangkapan tidak diunggah: satu-satunya lalu lintas jaringan adalah browser Anda sendiri memuat halaman yang Anda minta.
 
-Yang terjadi saat Anda menekannya:
+Selama penangkapan berjalan Anda mungkin sebentar melihat banner *"…started debugging this browser"* pada tab sementara. Itu DevTools Protocol yang bekerja, dan banner hilang saat tangkapan selesai.
 
-- Satu alamat, satu halaman. Setelah Anda menyetujui, ekstensi membukanya di jenis tab latar belakang yang sama, membaca markup yang dirender, teks stylesheet dan beberapa gambar ikon serta logo, lalu menutup tab. Ekstensi tidak mengikuti tautan dan tidak melakukan crawling.
-- Stylesheet yang dihosting di tempat lain (CDN, layanan font) juga diambil, karena warna dan tipografi halaman berada di dalamnya. Permintaan lintas asal berjalan tanpa cookie Anda; permintaan asal-sama menggunakannya, persis seperti yang dilakukan halaman itu sendiri.
-- Semuanya dibatasi - jumlah sheet, gambar dan byte yang terbatas - sehingga halaman yang jahat atau setengah rusak mengembalikan materi parsial alih-alih macet.
-- Byte langsung dikembalikan ke tab Lolly yang memintanya. Penguraian menjadi warna, tipografi dan logo terjadi di perangkat Anda; tidak ada yang diunggah.
+## Membaca situs untuk Design System Setup
 
-Menempelkan alamat hanya mengisi kolomnya. Tidak ada yang dibaca sampai Anda memulai pembacaan dan menekan **Approve once**.
+Sumber **Website** di Design System Setup memulai design system dari situs yang sudah Anda miliki. Di browser Chromium ekstensi membaca halaman. Di aplikasi desktop, aplikasi mengambil halaman sendiri. Di browser tanpa ekstensi, ubin Website tidak ditawarkan.
 
-## Setelah memasang
+- **Satu alamat, satu halaman.** Setelah Anda menyetujui, ekstensi membuka halaman di tab latar belakang yang sama, membaca markup yang dirender, teks stylesheet, dan segelintir gambar ikon dan logo, lalu menutup tab. Ia tidak mengikuti tautan atau merayap.
+- **Stylesheet yang dihosting di tempat lain** (CDN atau layanan font) juga diambil, karena warna dan huruf halaman berada di dalamnya. Permintaan lintas origin berjalan tanpa cookie Anda; permintaan same-origin memakainya, seperti halaman itu sendiri.
+- **Semuanya dibatasi**, dengan batas jumlah stylesheet dan gambar serta byte, sehingga halaman yang memusuhi atau setengah rusak mengembalikan materi parsial alih-alih menggantung.
+- **Penguraian terjadi di perangkat Anda.** Byte langsung kembali ke tab Lolly yang meminta, yang mengubahnya menjadi warna, huruf, dan logo.
 
-Muat ulang tab Lolly. Prompt "Get the extension" akan hilang, **URL Screenshot** (di bawah Utilitas) bisa menyimpan capture ke berkas, dan tool itu menjadi tersedia di mode Batch.
+Menempel alamat hanya mengisi field. Tidak ada yang dibaca sampai Anda memulai pembacaan dan menekan **Approve once**.
 
 ## Izin
 
-`manifest.json`-nya mendeklarasikan empat izin, plus akses situs yang diminta satu situs per satu kali:
+`manifest.json` ekstensi mendeklarasikan empat izin, ditambah akses situs yang diminta satu situs per satu waktu. Ia menetapkan `minimum_chrome_version: 111`, dan versi saat ini adalah 0.4.0.
 
-- `debugger` - mengendalikan tab latar belakang melalui DevTools Protocol. Inilah yang mengambil tangkapan layar.
-- `tabs` - membuka tab latar belakang sementara dan menutupnya kembali setelahnya, serta memeriksa bahwa halaman Lolly maupun halaman target tidak berpindah sejak Anda menyetujui permintaan.
-- `scripting` - menjalankan pembaca satu-halaman di dalam situs yang Anda tentukan, untuk sumber Website Brand Studio.
-- `storage` - mencatat id tab yang dibukanya, hanya di session storage, sehingga tab tetap ditutup jika browser menangguhkan ekstensi di tengah pembacaan. Dihapus pada permulaan berikutnya; tidak ada apa pun tentang Anda yang disimpan.
-- `optional_host_permissions: ["http://*/*", "https://*/*"]` - akses situs, yang tidak diberikan saat instalasi. Saat Anda menekan **Approve once**, ekstensi meminta Chrome memberi akses ke satu situs dalam permintaan itu, dan Chrome menanyakannya kepada Anda saat pertama kali untuk setiap situs.
+| Izin | Fungsinya | Kapan diberikan |
+|---|---|---|
+| `debugger` | Menggerakkan tab latar belakang melalui DevTools Protocol, yang mengambil tangkapan layar. | Saat pemasangan |
+| `tabs` | Membuka tab latar belakang sementara dan menutupnya sesudahnya, dan memeriksa bahwa baik halaman Lolly maupun halaman target belum berpindah sejak Anda menyetujui. | Saat pemasangan |
+| `scripting` | Menjalankan pembaca satu halaman di dalam situs yang Anda sebut, untuk sumber Website. | Saat pemasangan |
+| `storage` | Mencatat id tab yang dibukanya, hanya di session storage, agar tab tetap tertutup bila browser menangguhkan ekstensi di tengah pembacaan. Dibersihkan pada awal berikutnya; tidak ada tentang Anda yang disimpan. | Saat pemasangan |
+| `optional_host_permissions: ["http://*/*", "https://*/*"]` | Akses situs, tidak diberikan saat pemasangan. Saat Anda menekan **Approve once**, ekstensi meminta Chrome akses ke satu situs dalam permintaan itu. | Pertama kali Anda menyetujui permintaan untuk situs itu, setelah Chrome menanyakan Anda |
 
-Ekstensi hanya membaca satu halaman yang Anda setujui, dan tidak membaca atau mengirimkan data penjelajahan Anda - tidak ada yang diunggah ke mana pun.
-
-Manifes juga menetapkan `minimum_chrome_version: 111`. Versi saat ini adalah 0.4.0.
+Ekstensi hanya membaca satu halaman yang Anda setujui. Ia tidak membaca atau mengirim data penjelajahan Anda, dan tidak ada yang diunggah.
 
 ## Pemecahan masalah
 
-- **Masih melihat "Get the extension"?** Muat ulang tab Lolly - deteksi terjadi saat halaman dimuat.
-- **Tidak ada yang terjadi di situs ini?** Ekstensi hanya berfungsi di `https://lolly.tools`, ditambah `http://localhost:5173` pada paket pengembangan. Origin lain, seperti salinan Lolly yang dihosting sendiri, memerlukan build ekstensi tersendiri yang mencantumkan origin itu di `manifest.json` maupun `policy.js`. Mengedit manifes saja tidak lagi berhasil.
-- **Capture gagal?** Periksa apakah URL dapat dijangkau dan diawali dengan `http://` atau `https://`. Beberapa halaman secara aktif memblokir capture otomatis. Jika Anda menekan **Cancel**, menutup jendela persetujuan atau menunggu lebih dari 30 detik, mulai capture lagi.
+- **Masih melihat "Get the extension"?** Muat ulang tab Lolly.
+- **Tidak ada yang terjadi di situs ini?** Ekstensi hanya bekerja di `https://lolly.tools`, ditambah `http://localhost:5173` dalam paket pengembangan. Origin lain, seperti salinan Lolly yang di-host sendiri, memerlukan build ekstensi sendiri yang mencantumkan origin itu di `manifest.json` dan `policy.js`. Menyunting manifes saja tidak berhasil.
+- **Penangkapan gagal?** Periksa bahwa URL dapat dijangkau dan diawali `http://` atau `https://`. Beberapa halaman memblokir penangkapan otomatis. Bila Anda menekan **Cancel**, menutup jendela persetujuan, atau menunggu lebih dari 30 detik, mulai penangkapan lagi.

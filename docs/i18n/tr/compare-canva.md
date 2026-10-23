@@ -2,26 +2,26 @@
 
 _Son kontrol: 28 Eylül 2026._
 
-Lolly tarayıcıda markaya uygun grafikler, sosyal medya gönderileri, sunumlar ve yerleşimler üretir. [lolly.work](https://lolly.work) ile birlikte paylaşılan projeleri, canlı work iş birliğini, onaylı varlıkları ve kurum ilkelerini de destekler.
+Ekibin sosyal medya gönderilerini, slaytları ve broşürleri bugün Canva'da yapıyorsa bu sayfa Lolly'nin aynı işi nerede yaptığını ve Canva'nın nerede daha uygun kaldığını söyler.
+
+## Canva'nın daha iyi yaptığı
+
+Canva geniş bir şablon ve stok kitaplığını, uygulamaları ve barındırılan ekip iş akışlarını tek bir yönetilen hizmette birleştirir. Bugün bir başlangıç noktasına ihtiyaç duyduğunda hazır içerik ve deneyim yardımcı olur. Bkz. [Canva's templates](https://www.canva.com/templates/) ve [apps marketplace](https://www.canva.com/apps/). Canlı düzenlemesinin ayrıca Lolly'nin work collab'larının ulaşmadığı ölçekte uzun bir işletim geçmişi vardır.
 
 ## Örtüştükleri alanlar
 
-İkisi de bir kişinin tasarımcı olmadan şablondan başlayıp bitmiş bir grafik üretmesine olanak tanır. İkisi de ekip iş akışlarını ve marka denetimlerini destekler: [Canva bunları iş planlarında paketler](https://www.canva.com/canva-business/); Lolly ise yaratıcı uygulamaları kurumsal hizmetten ayırır.
+İkisi de birinin bir şablondan başlayıp tasarımcı olmadan bitmiş bir grafik üretmesine izin verir. İkisi de ekip çalışmasını ve marka denetimlerini destekler: [Canva bunları iş planlarında paketler](https://www.canva.com/canva-business/), Lolly ise yaratıcı uygulamayı ve kuruluş sunucusunu ayrı tutar.
 
-Lolly cihazınızda hesapsız, bağımsız çalışır. lolly.work, kurumunuzun ihtiyaç duyduğunda SSO, SCIM ile kullanıcı sağlama, roller, paylaşılan kataloglar, onaylar ve kullanım raporlaması ekler. Lolly projesinin bir parçasıdır, ayrı dağıtılır ve Lolly'nin kendisi gibi MPL-2.0 ile açık kaynaklıdır.
+## Lolly örtüşen işi nasıl yapar
 
-## Şablonlar ve ekip çalışması
+Bir Lolly aracı insanların yapabileceği değişiklikleri kodlar ve aynı araç tarayıcıda, masaüstü uygulamasında veya CLI'de çalışır. Design tuvalinde yapılan bir düzen [kurallı bir araca](/info/create-a-tool.html) dönüşebilir ve bir araç bir değer tablosundan birçok dosya yapabilir.
 
-Canva; geniş bir şablon ve stok kütüphanesini, uygulamaları ve barındırılan ekip iş akışlarını tek bir hizmette birleştirir. Bu hazır içerik ve yönetilen deneyim, bir başlangıç noktası seçerken işe yarayabilir. [Canva'nın şablonlarına](https://www.canva.com/templates/) ve [uygulama pazarına](https://www.canva.com/apps/) bakın.
+![Design'ın serbest tuvali; sunulan renkler, yazı tipleri ve varlıklar tasarım sisteminin kendisine aittir](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Lolly'nin araçları izin verilen değişiklikleri kodlar ve tarayıcıda, masaüstü uygulamasında veya CLI'da yeniden kullanılabilir. Bir tasarım [kurallı bir araca](/info/create-a-tool.html) dönüşebilir ve aynı araç bir değer tablosundan çok sayıda çıktı üretebilir. lolly.work bu araçların etrafındaki erişimi, paylaşılan işi ve ilkeyi yönetir.
+Bağımsız Lolly yapmayı ve dışa aktarmayı hesap olmadan cihazda sürdürür ve varlıkları kaydedildikten sonra çevrimdışı çalışır. İki kişi cihazdan cihaza bir [özel collab](/info/collaborate.html) içinde canlı düzenleyebilir. Content Credentials desteklenen dışa aktarmalarda varsayılan olarak açıktır ve kapatabilirsin.
 
-Canlı düzenleme, iki cihazı doğrudan bağlayan [özel collab'lar](/info/collaborate.html) ve bir kurumun lolly.work örneği üzerinden çalışan work collab'lar ile mümkündür. Work collab'lar paylaşılan düzenlemeleri, imleçleri ve kaydedilmiş ekip oturumlarını içerir. Mevcut sunucu dağıtımı tek bir iş birliği düğümü kullanır; ölçeği ve işletim geçmişi Canva'nın köklü hizmetinden farklıdır.
+## Bir kuruluşla
 
-## İşin yaşadığı yer
+Kuruluşunun kendi sunucusunda çalışan Lolly Work giriş, paylaşılan projeler, canlı work collab'lar, onaylı varlıklar ve politikalar ekler. [What runs where](/info/compare.html#what-runs-where) iki parçayı, her karşılaştırmanın paylaştığı sınırlarla birlikte yan yana koyar.
 
-Bağımsız Lolly, oluşturmayı ve dışa aktarmayı cihazda tutar ve varlıkları kullanıma hazır olduktan sonra çevrimdışı çalışabilir. Work iş birliği, ekip depolaması ve sunucu tarafı işleme, kurumun yapılandırdığı hizmetleri kullanır. Fark tam olarak bu dağıtım tercihindedir: bir kurum Lolly'nin her iki parçasını da kendisi çalıştırabilir, koltuk başına yazılım lisans ücreti ödemez, ancak kendi barındırma ve yönetim maliyetini karşılar.
-
-Content Credentials, desteklenen dışa aktarmalar için isteğe bağlıdır. lolly.work, sunucu çıktısını yapılandırılmış bir kurum kimliğiyle imzalayabilir; bir doğrulayıcı, imzalayanı güvenilir olarak göstermeden önce bu kimliğe güvenmelidir. [Content Credentials Kimliği](/info/content-credentials-identity.html) ve [birleşik çözüme genel bakış](/info/compare.html) sayfalarına bakın.
-
-Canva, sahibinin ticari markasıdır. Bu sayfa iki çözümün nerede örtüştüğünü anlatır ve Canva ile bağlantılı değildir.
+Canva, sahibinin ticari markasıdır. Bu sayfa iki ürünün nerede örtüştüğünü anlatır ve Canva ile bağlantılı değildir.

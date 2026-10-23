@@ -1,6 +1,8 @@
 # Hitta och återfå ditt arbete
 
-Allt du skapar i Lolly stannar i webbläsaren eller appen du skapade det i, på den enheten, om du inte slår på [Synk](/info/sync.html). Sparat arbete finns i **Projekt**. En nedladdad fil ligger där din webbläsare eller ditt system placerade den, och en kopia väntar oftast i **Tillgångar**. I de flesta verktyg sparas även arbete du aldrig sparade själv. Den här sidan tar upp vart och ett av dessa, plus en stängd flik, rensad webbläsardata, tidigare versioner, raderade objekt och att flytta till en annan enhet.
+Något saknas: en design du aldrig sparade, en fil du laddade ner, förra veckans version, eller allt efter att webbläsaren rensades. Börja med tabellen och följ sedan avsnittet den pekar på.
+
+Personligt arbete stannar i webbläsaren eller appen du gjorde det i, på den enheten, om du inte slår på [Sync](/info/sync.html). En organisation som använder valfria Lolly Work håller också **Team projects** på sin server, beskrivet nedan.
 
 | Vad du gjorde | Var du ska titta |
 |---|---|
@@ -10,13 +12,23 @@ Allt du skapar i Lolly stannar i webbläsaren eller appen du skapade det i, på 
 | Inget av detta, i något annat verktyg | Bara fliken du arbetade i, tills du stänger den |
 | Raderade det i appen | **Papperskorgen**, i **Projekt**, **Tillgångar** eller **Inställningar → Lagring**, i 30 dagar |
 
+::: figure find-your-work-places
+Var ditt arbete finns: webbläsarens egen lagring håller Projects, History och Trash; nedladdningar går till enhetens mappar; Sync och en säkerhetskopia är kopiorna utanför webbläsaren.
+:::
+
+::: details Hitta delat arbete i Lolly Work (valfritt)
+Öppna din organisations Lolly och logga in, titta sedan i **Projects → Team projects**. Delade sessioner hålls av den instansen och visas enligt din åtkomst. Att logga in kan återställa åtkomsten till de sessionerna på en annan enhet; det återställer inte ditt personliga bibliotek eller din enhetssäkerhetskopia.
+
+I en [arbetscollab](/info/collaborate.html#work-collabs-with-lolly-work-optional), vänta på **Saved to work** innan du lämnar. Om ett delat projekt saknas, kontrollera att du är ansluten till rätt instans och fråga dess operatör om åtkomst eller lagring. Att rensa webbläsardata tar bort lokala kopior, inte organisationens kopia på servern. Se [Använd Lolly i din organisation](/info/organisation.html).
+:::
+
 ## Hitta något du sparat
 
 1. Tryck på **Hem** längst upp till vänster i verktyget.
 2. Öppna fliken **Projekt** högst upp på startskärmen (mappikonen på en telefon).
 3. Titta på den första skärmen. Arbete sparat i **Mitt bibliotek** finns där, och varje projekt är en mapp. För att söka i alla mappar samtidigt, skriv i **Sök i alla projekt…** längst ner på skärmen.
 
-Ett objekt döps efter filnamnet du skrev i exportpanelen, eller efter sitt verktyg, till exempel **QR Code**, om du inte skrev något. Öppna objektet så finns varje inställning tillbaka, redo att ändras och exporteras igen. För att spara nytt arbete på det här sättet, se [Spara och fortsätta](/info/using.html#saving-continuing).
+Ett objekt får namn efter filnamnet du skrev i exportpanelen, eller efter sitt verktyg, som **QR Code**, om du inte skrev något. Öppna objektet så är varje inställning tillbaka, redo att ändras och exporteras igen. För att behålla nytt arbete på det här sättet, se [Spara och fortsätta](/info/using.html#saving-continuing).
 
 ::: note Inte i Projekt?
 - Det kan ligga i **Papperskorg**: se [Få tillbaka något du raderat](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Mappar som kan nästlas.** Gruppera sparade sessioner i mappar, och mappar inuti mappar, så djupt du vill. Skapa en mapp, byt namn på den eller dra en ruta till en annan mapp för att flytta den; en brödsmulsstig leder dig tillbaka upp. Sessioner som sparas utan mapp visas direkt på översta nivån i **Projekt**.
-- <!--i:clock--> **Sortera på ditt eget sätt.** **Visningsalternativ**, reglageknappen uppe till höger, erbjuder **Rutnät** eller **Lista** och sorterar efter **Namn**, **Datum tillagt**, **Senast ändrad** (standard), **Storlek** och, inuti en mapp, **Efter verktyg**. Mappar kommer alltid först oavsett vilken sortering som är aktiv - sorteringen ordnar bara sessionerna och mapparna inom sin egen grupp.
-- <!--i:document--> **Arkivera nytt arbete direkt.** **Ny resurs** öppnar den gemensamma väljaren. Välj **Mallar** för att börja med en sparad mall: öppna den för att redigera, eller använd **+ Lägg till** för att spara en ny skapelse direkt.
-- <!--i:checklist--> **Flerval (dator).** Kryssa i en rutas kryssruta, dra en markeringsruta över tom yta eller **Shift/Cmd-klicka**; **högerklicka** på en ruta för dess snabbmeny. Markeringsfältet erbjuder då **Rendera markering**, **Flytta till…**, **Ny mapp**, **Radera** (vilket flyttar till papperskorgen), **Redigera tillsammans** för två till åtta enverktygssessioner sida vid sida under en enda sidopanel, och **Redigera som kalkylblad**, som öppnar en markering av valfri storlek eller blandning som rader i batchrutnätet.
-- <!--i:download--> **Rendera en hel mapp eller markering.** **Rendera mapp** exporterar varje sparad session i en mapp - inklusive dess undermappar - som en enda nästlad `.zip`. **Rendera markering** gör samma sak för valfri flermarkering, och en enskild session renderas direkt till sin egen fil. Ingen Batch- eller Pro-funktion behövs.
-- <!--i:link--> **Hoppa direkt till ett verktygs sparade arbete.** Kryssa i ett eller flera verktyg i verktygsgalleriet och välj **Visa sessioner** i markeringsfältet - Projekt öppnas och visar bara de sessioner som gjorts med de verktygen, med en **Rensa** för att komma tillbaka till hela vyn.
-- <!--i:link--> **Dela en sparad session.** Högerklicka på en session (på en telefon, tryck på **•••** på dess ruta) → **Dela länk** för att kopiera en länk som öppnar den igen med samma inställningar; bilder från din enhet följer inte med länken (hela dialogrutan Dela: se [Dela ditt arbete](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Byt namn på eller kopiera en.** Högerklicka på en session (på en telefon, tryck på **•••** på dess ruta) för **Byt namn**, **Duplicera** (en kopia i samma mapp) och **Flytta till…**.
+- <!--i:folder--> **Mappar som nästlas.** Gruppera sparade sessioner i mappar, och mappar inuti mappar, så djupt du vill. Skapa en mapp, döp om den eller dra en ruta till en annan mapp för att flytta den; en brödsmula tar dig tillbaka upp. Sessioner som sparats utan mapp visas direkt i roten av **Projects**.
+- <!--i:clock--> **Sortera på ditt sätt.** **View options**, reglageknappen uppe till höger, erbjuder **Grid** eller **List** och sorterar efter **Name**, **Date added**, **Last modified** (standard), **Size** och, inne i en mapp, **By tool**. Mappar kommer alltid först oavsett vilken sortering som är aktiv - sorteringen ordnar bara sessionerna och mapparna inom sin egen grupp.
+- <!--i:document--> **Arkivera nytt arbete direkt.** **New asset** öppnar den delade väljaren. Välj **Templates** för att börja från en sparad mall: öppna den för att redigera, eller använd **+ Add** för att spara en ny skapelse direkt.
+- <!--i:checklist--> **Flerval (dator).** Kryssa i en rutas kryssruta, dra en markeringsruta över tom yta eller **Shift/Cmd-klicka**; **högerklicka** på en ruta för dess snabbmeny. Urvalsfältet erbjuder då **Render selection**, **Move to…**, **New folder**, **Delete** (som flyttar till Trash), **Edit together** för två till åtta sessioner med ett verktyg, sida vid sida under ett sidofält, och **Edit as sheet**, som öppnar ett urval av valfri storlek eller blandning som rader i batchrutnätet.
+- <!--i:download--> **Rendera en hel mapp eller ett urval.** **Render folder** exporterar varje sparad session i en mapp - inklusive dess undermappar - som en nästlad `.zip`. **Render selection** gör detsamma för vilket flerval som helst, och en enda session renderas direkt till sin egen fil.
+- <!--i:link--> **Hoppa direkt till ett verktygs sparade arbete.** Kryssa i ett eller flera verktyg i verktygsgalleriet och välj **View sessions** i urvalsfältet - Projects öppnas och visar bara sessionerna gjorda med de verktygen, med en **Clear** för att komma tillbaka till hela vyn.
+- <!--i:link--> **Dela en sparad session.** Högerklicka på en session (på en telefon, tryck på **•••** på dess ruta) → **Share link** för att kopiera en länk som öppnar den igen med samma inställningar; bilder från din enhet följer inte med en länk (hela dialogen Share: se [Dela ditt arbete](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Döp om eller kopiera en.** Högerklicka på en session (på en telefon, tryck på **•••** på dess ruta) för **Rename**, **Duplicate** (en kopia i samma mapp) och **Move to…**.
 
 ![Popovern Visningsalternativ i Projekt: Layout med Rutnät och Lista, och Sortera efter satt till Senast ändrad, bredvid en knapp som vänder ordningen](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 Vad som kommer tillbaka beror på hur du lämnade och vilket verktyg du använde:
 
-- **Du stängde fliken, eller kom tillbaka en annan gång.** Osparat arbete är borta, förutom i [de verktyg som sparar medan du arbetar](#which-tools-save-as-you-work): öppna det arbetet från **Projekt**.
-- **Du laddade om sidan i samma flik.** Dina inställningar kommer tillbaka från sidans adress. I verktyg som inte sparar medan du arbetar kommer bilder och filer du lagt till från din enhet, samt enradig text längre än 150 tecken, inte tillbaka, eftersom adressen inte rymmer dem.
-- **Du tryckte på Hem, eller bakåtknappen längst upp till vänster.** Om du ändrat något sedan du senast sparade, laddade ner eller kopierade, frågar dialogen **Osparade redigeringar** om du vill spara först. **Spara & lämna** sparar arbetet och tar dig till **Projekt**, eller tillbaka till den projektmapp du öppnade arbetet från. **Lämna ändå** kastar dina ändringar: ett sparat objekt återgår till hur du senast sparade det, och en skapelse du aldrig sparade lämnar **Projekt**. **Avbryt** håller dig kvar i verktyget.
+- **Du stängde fliken, eller kom tillbaka en annan gång.** Osparat arbete är borta, utom i [verktygen som sparar medan du arbetar](#which-tools-save-as-you-work): öppna det arbetet från **Projects**.
+- **Du laddade om sidan i samma flik.** Dina inställningar kommer tillbaka från sidadressen. I verktyg som inte sparar medan du arbetar kommer bilder och filer som du lade till från din enhet, och enradig text längre än 150 tecken, inte tillbaka, eftersom adressen inte håller dem.
+- **Du tryckte på Home, eller bakåtknappen uppe till vänster.** Om du ändrat något sedan du senast sparade, laddade ner eller kopierade frågar en dialog **Unsaved edits** om du ska spara först. **Save & leave** sparar arbetet och tar dig till **Projects**, eller tillbaka till projektmappen du öppnade arbetet från. **Leave anyway** kastar dina ändringar: ett sparat objekt går tillbaka till hur du senast sparade det, och en skapelse du aldrig sparade lämnar **Projects**. **Cancel** håller dig kvar i verktyget.
 
 Lolly frågar bara när du trycker på **Hem** eller bakåtknappen i ett verktyg. Att stänga fliken, ladda om eller använda webbläsarens egen bakåtknapp frågar aldrig. För att vara säker, tryck på **Spara som**, eller **Spara** i exportpanelen, innan du lämnar ett verktyg.
+
+När automatisk återställning inte är tillgänglig säger en notis bredvid redigeringskontrollerna vad du ska behålla:
+
+- I ett verktyg som arbetar på en fil du tar med, spara dina inställningar och behåll även originalfilerna.
+- I ett inspelningsverktyg, eller ett hjälpverktyg utan Save-åtgärd, spara eller ladda ner resultatet innan du lämnar.
+- Dator- och mobilapparna säger till när du behöver spara för hand.
+- I en privat collab behåller personen som bjöd in dokumentet och dess historik, inklusive den andra personens ändringar. Personen som gick med arbetar på en tillfällig kopia och bör spara en separat kopia innan sessionen tar slut.
 
 ::: note Lämnade utan att spara av misstag?
 I verktyg som sparar medan du arbetar håller Historik kvar en kopia av de kastade ändringarna. Öppna sidan **Historik**, hitta dem under **Changes** och tryck på **Öppna som en kopia**. I andra verktyg är ändringarna borta.
@@ -86,10 +105,13 @@ I webbappen sparar varje verktyg som skapar ett dokument medan du arbetar: Desig
 
 - verktyg som arbetar på en fil du tar med, som Redact, Sign eller Convert Image, eftersom Lolly aldrig behåller en kopia av den filen;
 - verktyg som spelar in från din kamera, mikrofon eller skärm, som Record, Screen Capture och Voice Recorder;
-- 3D och Darkroom, som tar en egen fil;
 - ett verktyg utan något att ändra, som Countdown.
 
-I de andra verktygen arkiverar din första ändring arbetet i **Projekt** som om du hade sparat, och senare ändringar sparas medan du arbetar, när verktyget har ritat klart. Så en osparad skapelse finns kvar i Projekt efter att du stängt fliken och öppnas igen med sina ändringar markerade som osparade. **Lämna ändå** kastar dem fortfarande, och Historik behåller en kopia av de kastade ändringarna i 30 dagar. Att öppna verktyget igen från startskärmen påbörjar en ny skapelse; öppna den tidigare från Projekt.
+I de andra verktygen arkiverar din första ändring arbetet i **Projects** som om du hade sparat, och senare ändringar behålls medan du arbetar när verktyget ritat klart. En osparad skapelse finns kvar i Projects efter att du stängt fliken, och öppnas igen med sina ändringar markerade som osparade.
+
+**Leave anyway** kastar fortfarande de ändringarna, och History behåller en kopia av de kastade redigeringarna i 30 dagar. Att öppna verktyget igen från startskärmen startar en ny skapelse; öppna den tidigare från Projects.
+
+3D och Darkroom sparar medan du arbetar, men de behåller inte en fil du läser in i dem, som en 3D-modell eller en LUT. History och **Save** behåller filens namn, typ och storlek, inte filen. När du öppnar arbetet igen säger en notis vilken fil det var, och verktyget fungerar utan den tills du läser in den igen. Behåll dina originalfiler.
 
 Med [Synk](/info/sync.html) på går en skapelse som arkiverats på det här sättet till dina andra enheter som allt annat i Projekt. Dess versioner stannar på enheten där de gjordes.
 
@@ -138,7 +160,7 @@ Automatiska kontrollpunkter glesas ut med åldern: en i minuten den senaste timm
 
 När Historik-lagringen blir full tas de äldsta automatiska kontrollpunkterna bort först, för skapelser du inte öppnat på 30 dagar. Ett sparande behålls alltid, även då: det skrivs som det aktuella arbetet, och Historik säger att det här sparandet inte behålls som en version. **Inställningar → Lagring** visar hur mycket Historik använder.
 
-Sidan **History** (`#/history`, eller **Open app history** i panelen) täcker varje skapelse i den här webbläsaren. På en dator, öppna sidan från klockknappen uppe till höger på startskärmen eller i **Projekt**. På en telefon, gå till verktygsgalleriet på startskärmen, tryck på den runda logotypknappen uppe till höger och välj **Sparade sessioner**, som öppnar History. Från **Projekt** gör det objektet ännu ingenting.
+Sidan **History** (`#/history`) täcker varje skapelse i den här webbläsaren. För att öppna den trycker du på klockknappen uppe till höger på startskärmen eller i **Projects**, väljer **Saved sessions** i profilmenyn (på en telefon, den runda logoknappen uppe till höger), eller trycker på **Open app history** i ett verktygs History-panel. Dator- och mobilapparna har ingen History-sida, så där öppnar startskärmens klockknapp och **Saved sessions** **Your recent work** i stället: dina senaste sparade sessioner och exporter, med en länk till Projects.
 
 - **Senaste** listar dina skapelser, nyast först, med **Återuppta**.
 - **Changes** lägger checkpoints, nedladdningar och Convert-resultat på en gemensam tidslinje. En nedladdning har **Reopen settings**.
@@ -174,7 +196,7 @@ Inloggningar, nycklar och synk-lösenfrasen stannar på varje enhet. Listan öve
 ::: details Vad säkerhetskopian innehåller
 Filen heter `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (namndelarna kommer från din profil och utelämnas om de inte är satta; `<n>` är en räknare per dag så att export samma dag inte krockar). Den innehåller din profil, med dina mappar, Papperskorg, mallar och favoriter; varje sparad session med sin miniatyr; dina uppladdade bilder, typsnitt, logotyper och kopiorna av dina nedladdningar; dina designsystem; dina inställningar (tema, sidopanelens bredd, lokal aktivitetsstatistik); sparade versioner och resultat från Convert; och, från webbappen, versionshistoriken för dina skapelser.
 
-Katalogcachen ingår inte - den laddas ner igen av sig själv på den nya enheten. Varje del är checksummerad, så en fil som skadats under överföringen upptäcks vid import i stället för att återställas halvtrasig. Sparade sessioner länkas automatiskt om till dina importerade bilder. Webb-, skrivbords- och mobilapparna läser samma fil; terminalappen skriver en egen enklare säkerhetskopia, som det här formatet inte läser. **📦 Export my data & render everything** skapar samma fil plus en andra zip med varje sparad session renderad till sin utdata. (Fullständig formatspecifikation: [Dataöverföring](/info/data-transfer.html).)
+Katalogcachen ingår inte - den laddas ner igen av sig själv på den nya enheten. Varje del har en kontrollsumma, så en fil som skadats under överföringen upptäcks vid import i stället för att återställas halvtrasig. Sparade sessioner länkas automatiskt om till dina importerade bilder. Webb-, dator- och mobilapparna läser samma fil; terminalappen skriver en enklare säkerhetskopia av eget slag, som det här formatet inte läser. **Export my data & render everything** gör samma fil plus en andra zip med varje sparad session renderad till sin utdata. (Fullständig formatspecifikation: [Dataöverföring](/info/data-transfer.html).)
 :::
 
 ## Om du rensar din webbläsardata
@@ -185,11 +207,13 @@ I webbappen håller Lolly allt i webbläsarens lagring för den här sajten: spa
 Tryck på **Exportera mina data** under **Inställningar → Lagring**, och spara filen någon annanstans.
 :::
 
-När appen startar ber Lolly webbläsaren att inte rensa dess lagring när enheten får ont om utrymme. Webbläsaren bestämmer. Under **Inställningar → Tillgänglig offline** betyder en rad som börjar med **Protected** att webbläsaren gick med på det; "The browser may clear downloads if the device runs low on space" betyder att den inte gjorde det, och **Skydda nedladdningar** frågar igen. Om webbläsaren inte gick med på det kan den rensa både sparat arbete och nedladdningar när utrymmet tar slut, så håll en färsk fil från **Exportera mina data**.
+När appen startar ber Lolly webbläsaren att inte rensa sin lagring när enheten börjar få ont om utrymme, och webbläsaren avgör. Under **Settings → Available offline** betyder en rad som börjar med **Protected** att webbläsaren gick med på det. "The browser may clear downloads if the device runs low on space" betyder att den inte gjorde det, och **Protect downloads** frågar igen.
+
+Om webbläsaren inte gick med på det kan den rensa sparat arbete såväl som nedladdningar när utrymmet tryter, så behåll en färsk fil från **Export my data**.
 
 **Inställningar → Lagring** visar hur mycket utrymme varje typ av data använder. Dess **Historik**-rad räknar automatiska kontrollpunkter, deras förhandsvisningar och återställningsutkast; **Remove automatic checkpoints older than 30 days** frigör det utrymmet och behåller sparade och namngivna versioner. **Rensa cache** släpper nedladdade katalogfiler, som laddas ner igen vid behov. **Rensa all min data** ber dig skriva ett ord, stänger av Synk, och tar sedan bort allt Lolly sparar i den här webbläsaren: din profil och dina inställningar, sparade sessioner med sin historik och Papperskorgen, uppladdningar, typsnitt och designsystem, nedladdningsloggen, Convert-resultat, nedladdade AI-modeller och offlinekopior. Filer du laddat ner ligger kvar där du sparade dem. Appen startar sedan som vid ett första besök.
 
-![Lagringskortet på en telefonbred skärm: varje kategori av data på enheten namngiven, med knappen Rensa all min data längst ner](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Lagringskortet på en skärm i telefonbredd: varje kategori av data på enheten är namngiven, med knappen Clear all my data längst ner](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 I skrivbords- och mobilapparna är sparade sessioner filer i appens egen datamapp och resten finns i appens egen lagring, så att rensa en webbläsare påverkar dem inte.
 

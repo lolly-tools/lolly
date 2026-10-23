@@ -1,6 +1,8 @@
 # Finn og gjenopprett arbeidet ditt
 
-Alt du lager i Lolly, blir værende i nettleseren eller appen du laget det i, på den enheten, med mindre du slår på [Synk](/info/sync.html). Lagret arbeid ligger i **Prosjekter**. En nedlastet fil ligger der nettleseren eller systemet ditt la den, og en kopi venter som regel i **Ressurser**. I de fleste verktøy blir også arbeid du aldri lagret selv, tatt vare på. Denne siden dekker hver av disse, pluss en lukket fane, slettet nettleserdata, tidligere versjoner, slettede elementer og det å flytte til en annen enhet.
+Noe mangler: et design du aldri lagret, en fil du lastet ned, forrige ukes versjon, eller alt etter at nettleseren ble tømt. Start med tabellen, og følg deretter delen den peker til.
+
+Personlig arbeid blir i nettleseren eller appen du laget det i, på den enheten, med mindre du slår på [Sync](/info/sync.html). En organisasjon som bruker valgfri Lolly Work holder også **Team projects** på serveren sin, dekket nedenfor.
 
 | Hva du gjorde | Hvor du skal se |
 |---|---|
@@ -10,13 +12,23 @@ Alt du lager i Lolly, blir værende i nettleseren eller appen du laget det i, p�
 | Ingen av delene, i et annet verktøy | Bare fanen du jobbet i, til du lukker den |
 | Slettet det i appen | **Papirkurv**, i **Prosjekter**, **Ressurser** eller **Innstillinger → Lagring**, i 30 dager |
 
+::: figure find-your-work-places
+Hvor arbeidet ditt ligger: nettleserens egen lagring holder Projects, History og Trash; nedlastinger går til enhetens mapper; Sync og en sikkerhetskopifil er kopiene utenfor nettleseren.
+:::
+
+::: details Finn delt arbeid i Lolly Work (valgfritt)
+Åpne organisasjonens Lolly og logg på, og se deretter i **Projects → Team projects**. Delte økter holdes av den instansen og vises etter tilgangen din. Å logge på kan gjenopprette tilgang til de øktene på en annen enhet; det gjenoppretter ikke ditt personlige bibliotek eller enhetens sikkerhetskopi.
+
+I en [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), vent på **Saved to work** før du forlater den. Hvis et delt prosjekt mangler, sjekk at du er koblet til riktig instans og spør driftsansvarlig om tilgang eller oppbevaring. Å tømme nettleserdata fjerner lokale kopier, ikke organisasjonens serverkopi. Se [Use Lolly at your organisation](/info/organisation.html).
+:::
+
 ## Finn noe du har lagret
 
 1. Trykk på **Hjem** øverst til venstre i verktøyet.
 2. Åpne fanen **Prosjekter** øverst på hjemskjermen (mappeikonet på en telefon).
 3. Se på den første skjermen. Arbeid lagret i **Biblioteket mitt** ligger der, og hvert prosjekt er en mappe. For å søke i alle mapper samtidig, skriv i **Søk i alle prosjekter…** nederst på skjermen.
 
-Et element navngis etter filnavnet du skrev i eksportpanelet, eller etter verktøyet sitt, som **QR Code**, hvis du ikke skrev noe. Åpne elementet, så er hver innstilling tilbake, klar til å endres og eksporteres på nytt. For å lagre nytt arbeid på denne måten, se [Lagre og fortsette](/info/using.html#saving-continuing).
+Et element får navn etter filnavnet du skrev i eksportpanelet, eller etter verktøyet, som **QR Code**, hvis du ikke skrev noe. Åpne elementet, så er hver innstilling tilbake, klar til å endres og eksporteres på nytt. For å beholde nytt arbeid på denne måten, se [Saving & continuing](/info/using.html#saving-continuing).
 
 ::: note Ikke i Prosjekter?
 - Den kan ligge i **Papirkurv**: se [Få tilbake noe du har slettet](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Mapper som kan nøstes.** Grupper lagrede økter i mapper, og mapper inni mapper, så dypt du vil. Opprett en mappe, gi den nytt navn eller dra en flis over på en annen mappe for å flytte den; en brødsmulesti fører deg tilbake opp. Økter som lagres uten mappe, vises direkte på øverste nivå i **Prosjekter**.
-- <!--i:clock--> **Sorter på din egen måte.** **Visningsalternativer**, glidebryterknappen øverst til høyre, tilbyr **Rutenett** eller **Liste** og sorterer etter **Navn**, **Dato lagt til**, **Sist endret** (standardvalget) og, inne i en mappe, **Etter verktøy**. Mapper kommer alltid først uansett hvilken sortering som er aktiv - sorteringen ordner bare øktene og mappene innenfor sin egen gruppe.
-- <!--i:document--> **Legg nytt arbeid rett inn.** **Ny ressurs** åpner den felles velgeren. Velg **Maler** for å starte fra en lagret mal: åpne den for å redigere, eller bruk **+ Legg til** for å lagre en ny kreasjon med én gang.
-- <!--i:checklist--> **Flervalg (skrivebord).** Kryss av en flis' avkrysningsboks, dra en markeringsramme over tomt område eller **Shift/Cmd-klikk**; **høyreklikk** en flis for kontekstmenyen. Utvalgslinjen tilbyr da **Rendre utvalg**, **Flytt til…**, **Ny mappe**, **Slett** (som flytter til papirkurven), **Rediger sammen** for to til åtte enkeltverktøyøkter side ved side under én sidepanel, og **Rediger som ark**, som åpner et utvalg av hvilken som helst størrelse eller blanding som rader i batch-rutenettet.
-- <!--i:download--> **Rendre en hel mappe eller et utvalg.** **Rendre mappe** eksporterer hver lagrede økt i en mappe - inkludert undermappene - som én nøstet `.zip`. **Rendre utvalg** gjør det samme for et hvilket som helst flervalg, og en enkelt økt rendres rett til sin egen fil. Du trenger ikke Batch/Pro.
-- <!--i:link--> **Hopp rett til et verktøys lagrede arbeid.** Kryss av ett eller flere verktøy i verktøygalleriet og velg **Vis økter** fra utvalgslinjen - Prosjekter åpnes og viser bare øktene som er laget med de verktøyene, med en **Fjern** for å komme tilbake til full visning.
-- <!--i:link--> **Del en lagret økt.** Høyreklikk en økt (på en telefon, trykk **•••** på flisen) → **Del lenke** for å kopiere en lenke som åpner den igjen med de samme innstillingene; bilder fra enheten din følger ikke med en lenke (hele Del-dialogen: se [Deling av arbeidet ditt](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Gi nytt navn til eller kopier en.** Høyreklikk en økt (på en telefon, trykk **•••** på flisen) for **Gi nytt navn**, **Duplikat** (en kopi i samme mappe) og **Flytt til…**.
+- <!--i:folder--> **Mapper som nester.** Grupper lagrede økter i mapper, og mapper inni mapper, så dypt du vil. Lag en mappe, gi den nytt navn eller dra en flis på en annen mappe for å flytte den; en brødsmulesti tar deg tilbake opp. Økter lagret uten mappe vises direkte i roten av **Projects**.
+- <!--i:clock--> **Sorter på din måte.** **View options**, glidereknappen øverst til høyre, tilbyr **Grid** eller **List** og sorterer etter **Name**, **Date added**, **Last modified** (standarden), **Size** og, inne i en mappe, **By tool**. Mapper kommer alltid først uansett hvilken sortering som er aktiv - sorteringen ordner bare øktene og mappene innenfor sin egen gruppe.
+- <!--i:document--> **Arkiver nytt arbeid rett inn.** **New asset** åpner den delte velgeren. Velg **Templates** for å starte fra en lagret mal: åpne den for å redigere, eller bruk **+ Add** for å lagre en ny skapelse med en gang.
+- <!--i:checklist--> **Flervalg (skrivebord).** Kryss av for en flis, dra en markeringsboks over tomt område eller **Shift/Cmd-klikk**; **høyreklikk** en flis for kontekstmenyen. Markeringslinjen tilbyr da **Render selection**, **Move to…**, **New folder**, **Delete** (som flytter til papirkurven), **Edit together** for to til åtte enkeltverktøyøkter, side om side under ett sidefelt, og **Edit as sheet**, som åpner et utvalg av hvilken som helst størrelse eller blanding som rader i batch-rutenettet.
+- <!--i:download--> **Gjengi en hel mappe eller et utvalg.** **Render folder** eksporterer hver lagrede økt i en mappe - inkludert undermappene - som én nestet `.zip`. **Render selection** gjør det samme for ethvert flervalg, og en enkelt økt gjengis rett til sin egen fil.
+- <!--i:link--> **Hopp rett til et verktøys lagrede arbeid.** Kryss av for ett eller flere verktøy i Tools-galleriet og velg **View sessions** fra markeringslinjen - Projects åpnes og viser bare øktene laget med de verktøyene, med en **Clear** for å komme tilbake til hele visningen.
+- <!--i:link--> **Del en lagret økt.** Høyreklikk en økt (på en telefon, trykk **•••** på flisen) → **Share link** for å kopiere en lenke som åpner den igjen med de samme innstillingene; bilder fra enheten din følger ikke med en lenke (hele Share-dialogen: se [Sharing your work](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Gi nytt navn til eller kopier en.** Høyreklikk en økt (på en telefon, trykk **•••** på flisen) for **Rename**, **Duplicate** (en kopi i samme mappe) og **Move to…**.
 
 ![Visningsalternativer-popoveren i Prosjekter: Layout med Rutenett og Liste, og Sorter etter satt til Sist endret, ved siden av en knapp som snur rekkefølgen](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 Hva som kommer tilbake, avhenger av hvordan du forlot og hvilket verktøy du brukte:
 
-- **Du lukket fanen, eller kom tilbake en annen gang.** Ulagret arbeid er borte, unntatt i [verktøyene som lagrer mens du jobber](#which-tools-save-as-you-work): åpne det arbeidet fra **Prosjekter**.
-- **Du lastet siden på nytt i samme fane.** Innstillingene dine kommer tilbake fra sideadressen. I verktøy som ikke lagrer mens du jobber, kommer bilder og filer du har lagt til fra enheten din, og enkeltlinjetekst lengre enn 150 tegn, ikke tilbake, fordi adressen ikke inneholder dem.
-- **Du trykte Hjem, eller tilbakeknappen øverst til venstre.** Hvis du har endret noe siden du sist lagret, lastet ned eller kopierte, spør dialogen **Ulagrede redigeringer** om du vil lagre først. **Lagre & forlat** lagrer arbeidet og tar deg til **Prosjekter**, eller tilbake til prosjektmappen du åpnet arbeidet fra. **Forlat likevel** forkaster endringene dine: et lagret element går tilbake til slik du sist lagret det, og en kreasjon du aldri lagret, forlater **Prosjekter**. **Avbryt** holder deg igjen i verktøyet.
+- **Du lukket fanen, eller kom tilbake en annen gang.** Ulagret arbeid er borte, bortsett fra i [verktøyene som lagrer mens du arbeider](#which-tools-save-as-you-work): åpne det arbeidet fra **Projects**.
+- **Du lastet siden på nytt i samme fane.** Innstillingene dine kommer tilbake fra sideadressen. I verktøy som ikke lagrer mens du arbeider, kommer bilder og filer du la til fra enheten din, og enkeltlinjetekst lengre enn 150 tegn, ikke tilbake, fordi adressen ikke holder dem.
+- **Du trykket Home, eller tilbakeknappen øverst til venstre.** Hvis du har endret noe siden du sist lagret, lastet ned eller kopierte, spør en dialog **Unsaved edits** om du vil lagre først. **Save & leave** lagrer arbeidet og tar deg til **Projects**, eller tilbake til prosjektmappen du åpnet arbeidet fra. **Leave anyway** forkaster endringene dine: et lagret element går tilbake til slik du sist lagret det, og en skapelse du aldri lagret, forlater **Projects**. **Cancel** beholder deg i verktøyet.
 
 Lolly spør bare når du trykker **Hjem** eller tilbakeknappen i et verktøy. Å lukke fanen, laste på nytt og nettleserens egen tilbakeknapp spør aldri. For å være sikker, trykk **Lagre som**, eller **Lagre** i eksportpanelet, før du forlater et verktøy.
+
+Når automatisk gjenoppretting ikke er tilgjengelig, sier en merknad ved siden av redigeringskontrollene hva du bør beholde:
+
+- I et verktøy som arbeider på en fil du tar med, lagre innstillingene dine og behold også originalfilene.
+- I et opptaksverktøy, eller en utility uten Save-handling, lagre eller last ned resultatet før du forlater det.
+- Skrivebords- og mobilappene sier fra når du må lagre for hånd.
+- I et privat samarbeid beholder personen som inviterte dokumentet og historikken, inkludert den andre personens endringer. Personen som ble med, arbeider på en midlertidig kopi og bør lagre en egen kopi før økten tar slutt.
 
 ::: note Forlot uten å lagre ved en feil?
 I verktøy som lagrer mens du jobber, holder Historikk på en kopi av de forkastede endringene. Åpne siden **Historikk**, finn dem under **Changes** og trykk **Åpne som en kopi**. I andre verktøy er endringene borte.
@@ -84,12 +103,15 @@ I verktøy som lagrer mens du jobber, holder Historikk på en kopi av de forkast
 ::: details Hvilke verktøy som lagrer mens du jobber
 I nettappen lagrer hvert verktøy som lager et dokument, mens du jobber: Design, Chart, QR Code, Text, Sandbox og resten. Disse verktøyene gjør det ikke:
 
-- verktøy som jobber på en fil du tar med, som Redact, Sign eller Convert Image, fordi Lolly aldri beholder en kopi av den filen;
+- verktøy som arbeider på en fil du tar med, som Redact, Sign eller Convert Image, fordi Lolly aldri beholder en kopi av den filen;
 - verktøy som tar opp fra kameraet, mikrofonen eller skjermen din, som Record, Screen Capture og Voice Recorder;
-- 3D og Darkroom, som tar sin egen fil;
 - et verktøy uten noe å endre, som Countdown.
 
-I de andre verktøyene arkiverer den første endringen din arbeidet i **Prosjekter** som om du hadde lagret, og senere endringer lagres mens du jobber, når verktøyet er ferdig med å tegne. Så en ulagret kreasjon blir værende i Prosjekter etter at du har lukket fanen, og åpnes igjen med endringene markert som ulagret. **Forlat likevel** forkaster dem fortsatt, og Historikk beholder en kopi av de forkastede endringene i 30 dager. Å åpne verktøyet igjen fra hjemskjermen starter en ny kreasjon; åpne den tidligere fra Prosjekter.
+I de andre verktøyene arkiverer den første endringen din arbeidet i **Projects** som om du hadde lagret, og senere endringer beholdes mens du arbeider når verktøyet er ferdig med å tegne. En ulagret skapelse ligger fortsatt i Projects etter at du lukker fanen, og åpnes igjen med endringene markert som ulagret.
+
+**Leave anyway** forkaster likevel disse endringene, og History beholder en kopi av de forkastede redigeringene i 30 dager. Å åpne verktøyet igjen fra startskjermen starter en ny skapelse; åpne den tidligere fra Projects.
+
+3D og Darkroom lagrer mens du arbeider, men de beholder ikke en fil du laster inn i dem, som en 3D-modell eller en LUT. History og **Save** beholder filens navn, type og størrelse, ikke filen. Når du åpner arbeidet igjen, sier en merknad hvilken fil det var, og verktøyet fungerer uten den til du laster den inn igjen. Behold originalfilene dine.
 
 Med [Synk](/info/sync.html) på går en kreasjon som er arkivert på denne måten, til dine andre enheter som alt annet i Prosjekter. Versjonene dens blir på enheten der de ble laget.
 
@@ -138,7 +160,7 @@ Automatiske kontrollpunkter tynnes ut med alderen: ett i minuttet den siste time
 
 Når Historikk-lagringen blir full, fjernes de eldste automatiske kontrollpunktene først, for kreasjoner du ikke har åpnet på 30 dager. Et lagringspunkt beholdes alltid, selv da: det skrives som det gjeldende arbeidet, og Historikk sier at dette lagringspunktet ikke beholdes som en versjon. **Innstillinger → Lagring** viser hvor mye Historikk bruker.
 
-Siden **History** (`#/history`, eller **Open app history** i panelet) dekker hver kreasjon i denne nettleseren. På en datamaskin, åpne siden fra klokkeknappen øverst til høyre på hjemskjermen eller i **Prosjekter**. På en telefon, gå til verktøygalleriet på hjemskjermen, trykk på den runde logoknappen øverst til høyre og velg **Lagrede økter**, som åpner History. Fra **Prosjekter** gjør det elementet ingenting ennå.
+Siden **History** (`#/history`) dekker hver skapelse i denne nettleseren. For å åpne den trykker du på klokkeknappen øverst til høyre på startskjermen eller i **Projects**, velger **Saved sessions** i profilmenyen (på en telefon, den runde logoknappen øverst til høyre), eller trykker **Open app history** i et verktøys History-panel. Skrivebords- og mobilappene har ingen History-side, så der åpner klokkeknappen på startskjermen og **Saved sessions** **Your recent work** i stedet: de siste lagrede øktene og eksportene dine, med en lenke til Projects.
 
 - **Nylig** lister kreasjonene dine, nyeste først, med **Gjenoppta**.
 - **Changes** legger sjekkpunkter, nedlastinger og Convert-resultater på én tidslinje. En nedlasting har **Reopen settings**.
@@ -174,7 +196,7 @@ Innlogginger, nøkler og synk-passordfrasen blir på hver enhet. Listen over nyl
 ::: details Hva sikkerhetskopifilen inneholder
 Filen heter `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (navnedelene kommer fra profilen din og utelates hvis de ikke er satt; `<n>` er en teller per dag slik at eksporter samme dag ikke kolliderer). Den inneholder profilen din, med mappene, Papirkurv, malene og favorittene dine; hver lagrede økt med miniatyrbildet sitt; opplastede bilder, fonter, logoer og kopiene av nedlastingene dine; designsystemene dine; innstillingene dine (tema, sidefeltbredde, lokal aktivitetsstatistikk); lagrede versjoner og resultater fra Convert; og, fra nettappen, versjonshistorikken til kreasjonene dine.
 
-Katalog-cachen er ikke inkludert - den laster seg ned på nytt på den nye enheten. Hver del har sjekksum, så en fil som er skadet under overføringen, fanges opp ved import i stedet for å bli gjenopprettet halvveis ødelagt. Lagrede økter lenkes automatisk på nytt til de importerte bildene dine. Nett-, skrivebords- og mobilappene leser samme fil; terminalappen skriver sin egen enklere sikkerhetskopi, som dette formatet ikke leser. **📦 Export my data & render everything** lager samme fil pluss en ekstra zip med hver lagrede økt rendret til sin utdata. (Full formatspesifikasjon: [Dataoverføring](/info/data-transfer.html).)
+Katalogbufferen er ikke med - den lastes ned igjen av seg selv på den nye enheten. Hver del har sjekksum, så en fil som er skadet underveis, oppdages ved import i stedet for å gjenopprettes halvødelagt. Lagrede økter kobles automatisk til de importerte bildene dine igjen. Nett-, skrivebords- og mobilappene leser den samme filen; terminalappen skriver en enklere sikkerhetskopi av sitt eget slag, som dette formatet ikke leser. **Export my data & render everything** lager den samme filen pluss en andre zip med hver lagrede økt gjengitt til sin utdata. (Full formatspesifikasjon: [Data transfer](/info/data-transfer.html).)
 :::
 
 ## Hvis du sletter nettleserdataene dine
@@ -185,11 +207,13 @@ I nettappen holder Lolly alt i nettleserens lagring for dette nettstedet: lagret
 Trykk **Eksporter dataene mine** under **Innstillinger → Lagring**, og oppbevar filen et annet sted.
 :::
 
-Når appen starter, ber Lolly nettleseren om ikke å slette lagringen sin når enheten går tom for plass. Nettleseren avgjør. Under **Innstillinger → Tilgjengelig offline** betyr en linje som starter med **Protected** at nettleseren sa seg enig; "The browser may clear downloads if the device runs low on space" betyr at den ikke gjorde det, og **Beskytt nedlastinger** spør på nytt. Hvis nettleseren ikke sa seg enig, kan den slette både lagret arbeid og nedlastinger når plassen tar slutt, så ta vare på en fersk fil fra **Eksporter dataene mine**.
+Når appen starter, ber Lolly nettleseren om å ikke tømme lagringen sin når enheten går tom for plass, og nettleseren avgjør. Under **Settings → Available offline** betyr en linje som starter med **Protected** at nettleseren sa ja. "The browser may clear downloads if the device runs low on space" betyr at den ikke gjorde det, og **Protect downloads** spør igjen.
+
+Hvis nettleseren ikke sa ja, kan den tømme lagret arbeid så vel som nedlastinger når plassen blir knapp, så behold en nylig **Export my data**-fil.
 
 **Innstillinger → Lagring** viser hvor mye plass hver type data bruker. **Historikk**-raden dens teller automatiske kontrollpunkter, forhåndsvisningene deres og gjenopprettingsutkast; **Remove automatic checkpoints older than 30 days** frigjør den plassen og beholder lagrede og navngitte versjoner. **Tøm cache** dropper nedlastede katalogfiler, som lastes ned på nytt ved behov. **Slett alle mine data** ber deg skrive et ord, slår av Synk, og fjerner deretter alt Lolly lagrer i denne nettleseren: profilen og innstillingene dine, lagrede økter med historikken og Papirkurven deres, opplastinger, fonter og designsystemer, nedlastingsloggen, Convert-resultater, nedlastede AI-modeller og offlinekopier. Filer du har lastet ned, blir liggende der du lagret dem. Appen starter deretter som ved et første besøk.
 
-![Lagringskortet på en telefonbred skjerm: hver kategori av data på enheten navngitt, med knappen Slett alle mine data nederst](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Lagringskortet på en telefonskjerm: hver kategori av data på enheten er navngitt, med knappen Clear all my data nederst](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 I skrivebords- og mobilappene er lagrede økter filer i appens egen datamappe, og resten ligger i appens egen lagring, så det å slette en nettleser rører dem ikke.
 

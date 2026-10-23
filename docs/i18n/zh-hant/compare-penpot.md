@@ -2,24 +2,24 @@
 
 _最後核查：2026 年 9 月 28 日。_
 
-Lolly 與 Penpot 都提供開源設計工具、共享設計令牌和實時協作。Lolly 將裝置端創作與獨立部署的組織服務 [lolly.work](https://lolly.work) 結合在一起。
+如果你的團隊在 Penpot 中設計，Lolly 與 Penpot 並肩運作：兩者都是開源的，也都讀取相同的設計 token。本頁說明各自適合哪項工作。
 
-## 共同的設計基礎
+## Penpot 做得更好的地方
 
-[Penpot 的設計令牌](https://help.penpot.app/user-guide/design-systems/design-tokens/)使用 DTCG 格式，Lolly 同樣可以讀取。顏色、字型和其他令牌值可以在兩種工作流之間共享。Lolly 的[匯入設計](/info/design-import.html)可將 `.penpot` 匯出檔案開啟為可編輯的版面。
+[Penpot](https://penpot.app/) 提供介面設計、元件、彈性版面、互動原型與開發者檢視，並具備即時編輯與即時游標。它提供託管與自行託管的部署，附有 [Docker 與 Kubernetes 安裝選項](https://help.penpot.app/technical-guide/getting-started/)。設計應用程式時，Penpot 就是那個工具。
 
-適用於 Penpot 的 Lolly Export 外掛由 Lolly 維護。它使用 Lolly 的引擎在裝置上提供需主動啟用的 C2PA Content Credentials。簽名完整性與對簽名者的信任是兩回事：驗證方需要一個自己信任的身份，詳見 [Content Credentials 身份](/info/content-credentials-identity.html)。
+## 重疊之處
 
-## 設計與團隊工作流
+[Penpot 的設計 token](https://help.penpot.app/user-guide/design-systems/design-tokens/) 使用 DTCG 格式，Lolly 也能讀取，所以色彩、字型與其他 token 值可以在兩者之間移動。Lolly 的[匯入設計](/info/design-import.html)會將 `.penpot` 匯出開啟為可編輯的版面，而 Lolly 中的 **Send to Penpot** 會把設計以 `.penpot` 封存檔送回。Lolly 也維護 [Penpot 的 Lolly Export 外掛程式](https://github.com/lolly-tools/lolly-plugins-penpot-export)，它使用 Lolly 的引擎在裝置上加入選擇加入的 Content Credentials。
 
-[Penpot](https://penpot.app/) 提供介面設計、元件、靈活的佈局、互動原型和開發者檢查。它提供託管和自託管兩種部署，並有 [Docker 和 Kubernetes 安裝選項](https://help.penpot.app/technical-guide/getting-started/)。
+## Lolly 如何完成重疊的工作
 
-Lolly 的設計畫布可建立可編輯的資產，並能將版面變成[帶規則的工具](/info/create-a-tool.html)。同一個工具可在瀏覽器、桌面應用或 CLI 中渲染，並能根據資料生成變體。在團隊協作方面，Lolly 既有直接連線兩臺裝置的[私有協作](/info/collaborate.html)，也有透過 lolly.work 進行的工作協作，支援共享編輯、游標和已儲存的團隊會話。
+Lolly 的 Design 畫布製作可編輯的素材，並可以把版面變成[附規則的工具](/info/create-a-tool.html)。同一個工具在瀏覽器、桌面應用程式或 CLI 中渲染，並根據資料製作變體。單機版 Lolly 在裝置上渲染並簽署，不需要帳號或伺服器。[私人協作](/info/collaborate.html)直接配對兩部裝置。
 
-## 部署方式有何不同
+## 搭配組織
 
-獨立使用的 Lolly 在裝置上渲染和簽名，無需賬號或伺服器。lolly.work 增加了 SSO、SCIM 預配、共享目錄與專案、角色、審批、審計記錄和伺服器端渲染。兩個倉庫均以 MPL-2.0 開源，均可由組織自行運營。共享工作使用已配置的例項；本地創作仍可獨立使用。
+Lolly Work 加入單一登入、SCIM 佈建、共用目錄與專案、角色、核准、稽核記錄、工作協作與伺服器渲染。兩個儲存庫都採用 MPL-2.0，組織可以同時運行兩者。[什麼在哪裡執行](/info/compare.html#what-runs-where)把這兩部分並排比較。
 
-如何選擇取決於工作內容：Penpot 的介面設計與原型工作流、Lolly 的可重複資產製作，或是利用共享令牌和匯入設計的組合方式。Lolly 的工作協作目前執行在單個伺服器節點上，其[部署狀態](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md)應納入組織的評估。
+你可以兩者並用：Penpot 用於介面設計與原型，Lolly 用於可重複的檔案，並由共用的 token 與匯入的設計串接。
 
-Penpot 是其所有者的商標。上文的外掛屬於 Lolly。更廣泛的對比請參閱[Lolly 如何對比](/info/positioning.html)和[組合方案概覽](/info/compare.html)。
+Penpot 是其擁有者的商標。本頁描述這兩項產品重疊之處，與 Penpot 無關聯。
