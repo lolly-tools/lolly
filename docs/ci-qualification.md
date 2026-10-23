@@ -116,7 +116,9 @@ The version 1 qualification record contains:
 - `status: CI_QUALIFIED`, `qualificationTier` and `fullSuiteQualified`.
 - Exact `source`, `tree`, `base`, provider `headSha`, repository name and numeric
   ID, head repository and branch, event, run ID, attempt and workflow path.
-- `scope.publicReadyEligible`, `lane` (`public-ready`, `docs-and-tests` or
+- `scope.runAttempt` (the attempt whose scope job classified the change, which
+  is earlier than `runAttempt` after a failed-only rerun),
+  `scope.publicReadyEligible`, `lane` (`public-ready`, `docs-and-tests` or
   `full`), `dependencyChange`, `policyCommit`, `policySha256` and
   `changedPathsSha256`. The policy digest is null only for full-only bootstrap.
 - `requiredJobs`, each with provider job ID, exact name and success conclusion.
@@ -252,9 +254,18 @@ hosted CI duration claims.
 
 Failed-job reruns of `38602962399` and `38602986096` lacked scope artifacts
 for their new attempt, because those inputs were named by attempt. They are now
-named by run, so "Re-run failed jobs" can qualify. The provider lists every job
-of the new attempt, carried-over jobs included, with that attempt number, so
-the exact-attempt receipts are unchanged.
+named by run. The rerun of `39906275080` then found the scope receipt, but the
+scope job had been carried over, so the receipt named attempt 1 and the
+aggregators of attempt 2 refused it ("Scope runAttempt differs"). The policy now
+accepts a scope receipt from an earlier attempt of the same run: the run ID,
+repository, branch, event and every commit (base, source, tree and head) must
+still match exactly, the attempt may be earlier but never later, and the scope
+is still derived again from Git. The provider lists every job of the new
+attempt, carried-over jobs included, with that attempt number, so the
+exact-attempt receipts are unchanged; each one records the attempt that
+classified its scope as `scope.runAttempt`. The aggregators run the base
+commit's copy of the policy, so a pull request benefits once its base includes
+this rule.
 
 On the 2026-10-14 main run `38553705860`, the original eight fast checks passed
 in 8 minutes 57 seconds; the complete suite took 38 minutes 43 seconds. The
