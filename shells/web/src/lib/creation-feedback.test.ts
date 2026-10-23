@@ -35,7 +35,8 @@ test('house-rule findings are warnings that name the layer, under one checked li
   assert.ok(findings.length > 0);
   for (const f of findings) {
     assert.equal(f.tone, 'warn');
-    assert.match(f.text, /^“Headline”: /, 'the layer is named by its name');
+    assert.equal(f.title, '“Headline”', 'the layer is named by its name');
+    assert.ok(read.report.houseRules.findings.some((h) => h.message === f.text), 'the message is the engine finding verbatim');
     assert.equal(f.action, undefined, 'no ignore or exception control');
   }
   // Unknown rule kinds are said, never passed.
@@ -48,7 +49,8 @@ test('the writing line carries the band, the engine summary and a link into Veri
   const rows = creationFeedbackRows(read, { openVerify: (text) => { handed = text; } });
   const writing = rows.find((r) => r.id === 'writing.score')!;
   assert.equal(writing.tone, 'warn', 'strong reads as a warning, as Verify tones it');
-  assert.equal(writing.text, `Writing signal: Strong. ${read.report.writing.summary}`);
+  assert.equal(writing.title, 'Writing signal: Strong');
+  assert.equal(writing.text, read.report.writing.summary, 'the engine sentence, verbatim');
   assert.match(writing.text, /Signal score \d+\/100/);
   assert.ok(writing.details!.length > 0 && writing.details!.length <= 3);
   assert.ok(writing.details!.every((d) => d.endsWith('in “Body copy”')));

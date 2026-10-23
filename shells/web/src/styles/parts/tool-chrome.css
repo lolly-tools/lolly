@@ -859,9 +859,15 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   color: hsl(var(--muted-foreground));
 }
 
-/* Creation feedback rows (lib/creation-feedback.ts): the flagged phrases under the
-   writing line, then one plain link to read the text in Verify. Supporting lines are
-   the muted tier, smaller than the message; the link is the card's only accent. */
+/* Creation feedback rows (lib/creation-feedback.ts): a lead line naming the layer
+   or the band, the message, the flagged phrases under the writing line, then one
+   plain link to read the text in Verify. Lead, message and supporting lines are
+   three tiers told apart by weight and colour; the link is the card's only accent. */
+.preflight-finding-title {
+  display: block;
+  font-weight: 600;
+  color: var(--ui-color-text-default);
+}
 .preflight-finding-details {
   list-style: none;
   margin: var(--sp-2) 0 0;

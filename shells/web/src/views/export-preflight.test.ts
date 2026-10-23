@@ -294,10 +294,11 @@ test('body text is escaped, so a hostile brand ink name cannot inject markup', (
 
 test('a row can carry escaped supporting lines and a plain link, and the link is only a link', () => {
   const html = preflightBodyHtml(preflightView(null, { ...CTX, additionalRows: [{
-    id: 'writing.score', tone: 'note', text: 'Writing signal: Weak.',
+    id: 'writing.score', tone: 'note', title: 'Writing signal: <Weak>', text: 'A few weak signals were found.',
     details: ['“<img src=x>” in “Body”'],
     link: { label: 'Open the text in Verify', href: '#/verify', prepare: () => {} },
   }] }));
+  assert.match(html, /<span class="preflight-finding-title">Writing signal: &lt;Weak&gt;<\/span>A few weak signals were found\./);
   assert.match(html, /<ul class="preflight-finding-details"><li>“&lt;img src=x&gt;” in “Body”<\/li><\/ul>/);
   assert.match(html, /<a class="preflight-finding-link" href="#\/verify" data-preflight-link="writing.score">Open the text in Verify<\/a>/);
   assert.doesNotMatch(html, /<img/);

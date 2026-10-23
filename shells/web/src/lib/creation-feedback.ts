@@ -79,7 +79,8 @@ export function handTextToVerify(text: string): void {
 /**
  * The card rows for one report: a house-rules line, one warning per finding with its
  * layer named, the writing line and a note for hidden layers. Pure apart from the
- * Verify handoff the link prepares.
+ * Verify handoff the link prepares. A finding's layer and the writing band ride the
+ * row's title, so the text below is the message or the engine's sentence verbatim.
  */
 export function creationFeedbackRows(read: CreationFeedbackRead, opts: { openVerify?: (text: string) => void } = {}): PreflightRow[] {
   const { report, text, names } = read;
@@ -97,7 +98,7 @@ export function creationFeedbackRows(read: CreationFeedbackRead, opts: { openVer
         : tRaw('House rules checked ({n}): nothing to note.', { n: String(rules.checked) }),
     });
     for (const [i, f] of rules.findings.slice(0, FINDING_ROWS).entries()) {
-      rows.push({ id: `house-rule.${i}.${f.ruleId}`, tone: 'warn', text: tRaw('“{layer}”: {message}', { layer: layer(f.layerId), message: f.message }) });
+      rows.push({ id: `house-rule.${i}.${f.ruleId}`, tone: 'warn', title: tRaw('“{layer}”', { layer: layer(f.layerId) }), text: f.message });
     }
     if (rules.findings.length > FINDING_ROWS) rows.push({ id: 'house-rules.limit', tone: 'gap', text: t('Some items are not shown. Review the rest after these items.') });
     if (rules.unknown.length) rows.push({ id: 'house-rules.unknown', tone: 'gap', text: tRaw('Not checked in this build: {rules}.', { rules: rules.unknown.join(', ') }) });
@@ -111,11 +112,12 @@ export function creationFeedbackRows(read: CreationFeedbackRead, opts: { openVer
     rows.push({
       id: 'writing.score',
       tone: w.band === 'strong' ? 'warn' : 'note',
-      text: tRaw('Writing signal: {band}. {summary}', { band: bandLabel(w.band), summary: w.summary }),
+      title: tRaw('Writing signal: {band}', { band: bandLabel(w.band) }),
+      text: w.summary,
       ...(details.length ? { details } : {}),
       link: { label: t('Open the text in Verify'), href: '#/verify', prepare: () => open(text) },
     });
   }
-  if (report.hidden.layers) rows.push({ id: 'creation.hidden', tone: 'gap', text: tRaw('Hidden layers with text left out of these checks: {n}.', { n: String(report.hidden.layers) }) });
+  if (report.hidden.layers) rows.push({ id: 'creation.hidden', tone: 'gap', text: tRaw('Hidden layers are left out of these checks ({n} with text).', { n: String(report.hidden.layers) }) });
   return rows;
 }

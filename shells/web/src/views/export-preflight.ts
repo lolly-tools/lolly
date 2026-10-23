@@ -60,6 +60,8 @@ export interface PreflightRow {
   readonly id: string;
   readonly text: string;
   readonly action?: { label: string; run: () => Promise<void> };
+  /** A short lead line above the text (a layer name, a band), escaped. */
+  readonly title?: string;
   /** Short supporting lines under the text (a flagged phrase and its layer), escaped. */
   readonly details?: readonly string[];
   /**
@@ -321,6 +323,7 @@ const METAPHOR_BY_ID: Record<string, IconName> = {
   'design.text.contrast-review': 'palette',
   'design.font.unembeddable': 'keyboard',
   'writing.score': 'transcript',
+  'creation.hidden': 'eyeOff',
 };
 const METAPHOR_BY_PREFIX: ReadonlyArray<readonly [string, IconName]> = [
   ['house-rule', 'shapes'],
@@ -355,7 +358,7 @@ export function preflightBodyHtml(view: PreflightView): string {
         + icon(metaphorIcon(r.id), { className: 'preflight-finding-metaphor' })
         + `<span class="preflight-finding-badge">${icon(statusIcon(r.tone), { className: 'preflight-finding-badge-icon' })}</span>`
         + `</span>`
-        + `<span class="preflight-finding-text">${escape(r.text)}`
+        + `<span class="preflight-finding-text">${r.title ? `<span class="preflight-finding-title">${escape(r.title)}</span>` : ''}${escape(r.text)}`
         + (r.details?.length ? `<ul class="preflight-finding-details">${r.details.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>` : '')
         + (r.link ? `<a class="preflight-finding-link" href="${escape(r.link.href)}" data-preflight-link="${escape(r.id)}">${escape(r.link.label)}</a>` : '')
         + `${r.action ? `<button type="button" class="btn preflight-fix" data-preflight-fix="${escape(r.id)}">${escape(r.action.label)}</button>` : ''}</span>`
