@@ -1388,8 +1388,9 @@
     },
     {
       "slug": "content-credentials-identity",
-      "title": "Content Credentials Identity",
+      "title": "Content Credentials",
       "src": "content-credentials-identity.md",
+      "description": "What a Content Credential tells you, what each Verify verdict means, and how to put your verified name on the files you export.",
       "section": "trust",
       "path": "trust/content-credentials-identity",
       "icon": "seal",
@@ -1398,9 +1399,34 @@
       "group": "Credentials and verification"
     },
     {
+      "slug": "what-verify-checks",
+      "title": "What Verify checks",
+      "src": "what-verify-checks.md",
+      "description": "Beyond the credential: the Lolly Imprint, AI declarations, makers' watermarks, the deep scan, SEAL signatures and hidden data, and where each check runs.",
+      "section": "trust",
+      "path": "trust/what-verify-checks",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Credentials and verification"
+    },
+    {
+      "slug": "verify-ai-evidence",
+      "title": "AI evidence in Verify",
+      "src": "verify-ai-evidence.md",
+      "description": "Located text and visual clues, coverage, review notes and the limits of authorship probability.",
+      "section": "trust",
+      "path": "trust/verify-ai-evidence",
+      "icon": "check",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Credentials and verification"
+    },
+    {
       "slug": "content-credentials-engineering",
-      "title": "Content Credentials - Engineering",
+      "title": "Content Credentials engineering",
       "src": "content-credentials-engineering.md",
+      "description": "How a device key becomes a verified signer: the engine contracts for signing and verifying, the CA service and its protocol and the threat model.",
       "section": "trust",
       "path": "trust/content-credentials-engineering",
       "icon": "cpu",
@@ -1576,18 +1602,6 @@
       "group": "Credentials and verification"
     },
     {
-      "slug": "verify-ai-evidence",
-      "title": "AI evidence in Verify",
-      "src": "verify-ai-evidence.md",
-      "description": "Located text and visual clues, coverage, review notes and the limits of authorship probability.",
-      "section": "trust",
-      "path": "trust/verify-ai-evidence",
-      "icon": "check",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Credentials and verification"
-    },
-    {
       "slug": "privacy",
       "title": "Privacy Policy",
       "src": "privacy.md",
@@ -1608,7 +1622,7 @@
       "icon": "people",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Accessibility and input boundaries"
+      "group": "Principles, rights and AI"
     },
     {
       "slug": "ai-stance",
@@ -1639,7 +1653,7 @@
       "slug": "eu-ai-act",
       "title": "AI marking and the EU AI Act",
       "src": "eu-ai-act.md",
-      "description": "Article 50 has applied since 2 August 2026, and its Code of Practice points at C2PA. Lolly's honest fit: it preserves arriving AI marks, declares its own AI operations and verifies files on-device.",
+      "description": "Article 50's transparency duties and the Commission's Code of Practice ask for signed, tamper-evident marks. How Lolly preserves arriving AI marks, declares its own AI operations and verifies files on-device.",
       "section": "trust",
       "path": "trust/eu-ai-act",
       "icon": "document",

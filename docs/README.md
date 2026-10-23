@@ -221,14 +221,15 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Tenets | [tenets.md](tenets.md) |
 | Input, not impersonation | [input-not-impersonation.md](input-not-impersonation.md) |
 | Creative rights and credits | [creative-rights.md](creative-rights.md) |
-| Content Credentials Identity | [content-credentials-identity.md](content-credentials-identity.md) |
-| Content Credentials - Engineering | [content-credentials-engineering.md](content-credentials-engineering.md) |
+| Content Credentials | [content-credentials-identity.md](content-credentials-identity.md) |
+| What Verify checks | [what-verify-checks.md](what-verify-checks.md) |
+| AI evidence in Verify | [verify-ai-evidence.md](verify-ai-evidence.md) |
+| Content Credentials engineering | [content-credentials-engineering.md](content-credentials-engineering.md) |
 | Security & Verification | [security-verification.md](security-verification.md) |
 | Threat Model & Trust Boundaries | [threat-model.md](threat-model.md) |
 | Parser Inventory | [parser-inventory.md](parser-inventory.md) |
 | Server Surface | [server-surface.md](server-surface.md) |
 | Verify It Yourself | [verify-yourself.md](verify-yourself.md) |
-| AI evidence in Verify | [verify-ai-evidence.md](verify-ai-evidence.md) |
 | Privacy Policy | [privacy.md](privacy.md) |
 | Inclusive Design | [inclusive-design.md](inclusive-design.md) |
 | Our AI Stance | [ai-stance.md](ai-stance.md) |

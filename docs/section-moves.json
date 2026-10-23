@@ -701,5 +701,72 @@
       "anchor": "tls-the-suse-curated-way-optional",
       "label": "TLS, the SUSE-curated way (optional)"
     }
+  },
+  "content-credentials-identity": {
+    "what-you-get": {
+      "slug": "content-credentials-identity",
+      "anchor": "put-your-name-on-your-files",
+      "label": "Put your name on your files"
+    },
+    "verifying-a-file": {
+      "slug": "content-credentials-identity",
+      "anchor": "check-a-file",
+      "label": "Check a file"
+    },
+    "beyond-the-credential-what-else-verify-shows": {
+      "slug": "what-verify-checks",
+      "anchor": "what-verify-checks",
+      "label": "What Verify checks"
+    },
+    "the-lolly-imprint": {
+      "slug": "what-verify-checks",
+      "anchor": "the-lolly-imprint",
+      "label": "The Lolly Imprint"
+    },
+    "ai-generated-content": {
+      "slug": "what-verify-checks",
+      "anchor": "ai-generated-content",
+      "label": "AI-generated content"
+    },
+    "likely-carries-a-maker-s-own-watermark": {
+      "slug": "what-verify-checks",
+      "anchor": "a-maker-s-own-watermark-likely-present",
+      "label": "A maker's own watermark, likely present"
+    },
+    "deep-scan-opt-in-trustmark-content-seal": {
+      "slug": "what-verify-checks",
+      "anchor": "deep-scan-trustmark-and-content-seal",
+      "label": "Deep scan: TrustMark and Content Seal"
+    },
+    "seal-signatures-a-cryptographic-signature-not-a-pixel-watermark": {
+      "slug": "what-verify-checks",
+      "anchor": "seal-signatures",
+      "label": "SEAL signatures"
+    },
+    "hidden-data-appended-payloads-steganalysis": {
+      "slug": "what-verify-checks",
+      "anchor": "hidden-data",
+      "label": "Hidden data"
+    },
+    "where-each-check-runs": {
+      "slug": "what-verify-checks",
+      "anchor": "where-each-check-runs",
+      "label": "Where each check runs"
+    },
+    "why-identity-not-app-identity": {
+      "slug": "content-credentials-engineering",
+      "anchor": "why-the-certificate-identifies-a-person-not-the-app",
+      "label": "Why the certificate identifies a person, not the app"
+    },
+    "trust-tiers-what-a-verifier-can-conclude": {
+      "slug": "content-credentials-identity",
+      "anchor": "what-a-verifier-can-conclude",
+      "label": "What a verifier can conclude"
+    },
+    "credential-lifetime": {
+      "slug": "content-credentials-identity",
+      "anchor": "how-long-a-credential-stays-valid",
+      "label": "How long a credential stays valid"
+    }
   }
 }
