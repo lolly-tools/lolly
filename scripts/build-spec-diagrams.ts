@@ -153,6 +153,10 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'token-resolution', lang: 'dot', title: 'From token sources to tool values', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'one-render-path', lang: 'dot', title: 'Two transports, one render path', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
+  { set: 'concepts', name: 'collab-ways', lang: 'dot', title: 'Which way to work together', flags: ['--look=minimal', '--cardWidth=168', '--siblingGap=16'] },
+  { set: 'concepts', name: 'sync-conflict', lang: 'dot', title: 'When two devices disagree', flags: ['--look=minimal', '--cardWidth=184'] },
+  { set: 'concepts', name: 'extension-request', lang: 'dot', title: 'One request, one approval', flags: ['--look=minimal', '--cardWidth=200', '--rowGap=36'] },
+  { set: 'concepts', name: 'backup-version-gate', lang: 'dot', title: 'Two version numbers, one gate', flags: ['--look=minimal', '--cardWidth=196'] },
 ];
 
 /** Every figure the script renders, in set order. */
