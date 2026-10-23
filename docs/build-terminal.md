@@ -1,81 +1,75 @@
 # Build the CLI and TUI
 
-Run the terminal shells from source or package the CLI binary.
+This page is for a developer who wants to run Lolly from a terminal, straight from a checkout, or package the command-line app for other machines. Running from source needs no build step: after [Get the source](/info/contributing-setup.html), both terminal apps work at once.
 
-Part of [Build Guide](/info/build-guide.html).
+## Run them from the checkout
 
-## CLI
-
-### Development use (no build needed)
-
-The CLI shell runs directly from the repo with Node.js:
+The CLI renders a tool from flags, the same way a share link sets a tool's inputs:
 
 ```bash
-# List available tools
-pnpm run cli
-
-# Show inputs for a tool
-pnpm run cli qr-code
-
-# Run a tool and write output
+pnpm run cli                                   # list the tools this profile can see
+pnpm run cli qr-code                           # show one tool's inputs
 pnpm run cli qr-code --url=https://example.com --color=#0c322c --output=./qr.svg
-
-# Explicit format
 pnpm run cli qr-code --url=https://example.com --export=png --output=./qr.png
 ```
 
-The CLI supports **SVG (and SVGZ), EMF, WMF, EPS, DXF, HTML and the text/data formats** (JSON, CSV, ICS, VCF, MD) natively - hydrated by the engine with no browser engine needed (the vector formats only for tools with an `<svg>`-based template, since the lean CLI has no layout engine). A `.penpot` file from an `<svg>`-based tool is browser-free too, and so are the formats only some tools offer, such as dotLottie, IDML, Premiere XML and JPEG XL. **PNG** from an `<svg>`-based tool is also browser-free: resvg rasterises the engine's own SVG (Tier A). Outlined static Design PDFs also render without a browser with `--export=pdf --text=outline`, using the shared print/metadata finishing pass; unsupported documents retain the browser route. [CLI rendering](/info/cli-rendering.html) has the full list. The remaining paint formats - **JPG, WebP, other PDF, PPTX and video (GIF, APNG, WebM, MP4)**, plus HTML-layout PNG - need a paint tier: a Lolly desktop app on the same machine when one is available, otherwise the CLI's own scoped headless Chromium (Tier B). Install Chromium once with `lolly install-browser`; from a checkout, the Chromium route also needs a built web shell (`pnpm run build:web`, or `LOLLY_WEB_DIST` pointing at one). (ZIP is the one format the lean CLI leaves out - no zip dependency - so its batch writes a folder instead.)
-
-### Standalone binary
-
-Run these commands from the repository root after `pnpm install`:
-
-```bash
-# An npm-compatible package containing both CLI and TUI
-pnpm run pack:cli
-
-# A native executable with its own Node runtime and companion resources
-pnpm run build:cli-sidecar
-
-# Install those resources into the desktop shell for Tauri packaging
-node scripts/build-cli-sidecar.ts --install
-```
-
-The package is written to `dist/cli-pack/`, with a tarball and a manifest recording its source commit and checksum. Packaging also installs it into a temporary consumer and checks version reporting, tool listing, SVG rendering, the missing-content error and the TUI entry.
-
-The native build is written to `dist/cli-sidecar/bin/` and `dist/cli-sidecar/cli-lib/`. Keep both directories together. It uses Node's single executable application support for a small launcher; the CLI and TUI remain ESM resources. A single CommonJS bundle cannot replace that layout.
-
-Native builds include the matching resvg library. Build on the target platform, or provide a matching Node runtime and native binding using the options in `scripts/build-cli-sidecar.ts`. The desktop release build runs this installer automatically.
-
-Both forms need a content root. Set `LOLLY_ROOT` to a Lolly checkout or a materialised public content bundle; packaged desktop apps extract their embedded content for the CLI. The terminal package itself contains no brand pack or tool catalog. Its package version is independent of the desktop app version.
-
----
-
-## TUI
-
-### TUI development use (no build needed)
-
-The interactive terminal shell runs straight from the repo - it needs a real TTY, so run it in your terminal rather than a captured pipe:
+The TUI is the same engine and render path under an interactive, keyboard-first interface built on Ink. It needs a real terminal, not a captured pipe:
 
 ```bash
 pnpm run tui
 ```
 
-It's the CLI's engine and render path under an interactive, keyboard-first UI (built on Ink, run through `tsx`). The DOM-free formats - **SVG, EMF, EPS, HTML and the text/data formats** - render with nothing extra. State (saved sessions, project folders, profile) persists on disk in the directory all three local shells share - `$LOLLY_STATE_DIR`, else the desktop app's data directory when the app is installed here, else `~/.lolly`; exports default to `~/Desktop`. See the [TUI guide](/info/tui.html) for the full key map and views.
+Both keep saved sessions, project folders and your profile on disk, in the directory all three local apps share: `$LOLLY_STATE_DIR`, else the desktop app's data directory when the app is installed on the machine, else `~/.lolly`. The TUI saves exports to `~/Desktop` by default. The [TUI guide](/info/tui.html) has the full key map and views.
 
-### Browser render tier (raster / PDF / video / URL capture)
+## What renders without a browser
 
-Like the CLI, the TUI produces browser-bound formats through the same scoped headless Chromium launcher. Set it up once:
+Most formats come straight from the engine. The rest need a paint tier: a Lolly desktop app on the same machine when one is running, otherwise a scoped headless Chromium that both terminal apps share.
+
+::: cols
+## Works with nothing extra
+
+- SVG and SVGZ, EMF, WMF, EPS and DXF, for tools whose template is an `<svg>`
+- PNG from those same tools, rasterised by resvg
+- HTML and the text and data formats: JSON, CSV, ICS, VCF and Markdown
+- `.penpot`, dotLottie, IDML, Premiere XML and JPEG XL, where a tool offers them
+- Outlined static Design PDFs, with `--export=pdf --text=outline`
+
+## Needs Chromium or the desktop app
+
+- JPG and WebP
+- Other PDFs and PPTX
+- Video: GIF, APNG, WebM and MP4
+- PNG of an HTML layout
+- `url-shot` captures of a live web page
+:::
+
+[CLI rendering](/info/cli-rendering.html) holds the complete, current list per tier. ZIP is the one format the lean CLI leaves out, so a batch writes a folder instead.
+
+To turn the browser tier on from a checkout, install Chromium once and build the web app the browser drives:
 
 ```bash
-pnpm run install:browser   # Chromium → .browsers at the repository root (a copy under services/mcp/.browsers is reused if present)
-pnpm run build:web         # a built web shell the TUI drives for pixel-identical raster/pdf/video
+pnpm run install:browser   # Chromium into .browsers at the repository root
+pnpm run build:web         # the web app the browser drives for pixel-identical output
 ```
 
-With those present, raster (PNG/JPG), PDF, video and the `url-shot` live-URL capture all export from the terminal; without them, those formats fail with a clear setup message and the TUI writes HTML instead. The browser is lazy - it launches only on the first such export, never at startup. Override the browser with `LOLLY_BROWSER_CHANNEL` / `LOLLY_BROWSER_PATH`, or point at a running/prebuilt web shell with `LOLLY_WEB_BASE` / `LOLLY_WEB_DIST`.
+An existing Chromium under `services/mcp/.browsers` is reused read-only if present, so a machine set up for the MCP render tier needs no second download. The browser starts only on the first export that needs it, never at startup. Without it, those formats fail with a setup message and the TUI writes HTML instead.
 
-The packaged CLI and native sidecar both include the TUI. Start it with `lolly tui` in a real terminal.
+To point elsewhere, set `LOLLY_BROWSER_CHANNEL` or `LOLLY_BROWSER_PATH` for a browser you already have, or `LOLLY_WEB_BASE` or `LOLLY_WEB_DIST` for a running or prebuilt web app.
 
----
+## Standalone binary
 
-[Back to Build Guide](/info/build-guide.html).
+Package the terminal apps for machines that have no checkout. Run these from the repository root after `pnpm install`:
+
+```bash
+pnpm run pack:cli                          # an npm-compatible package with the CLI and TUI
+pnpm run build:cli-sidecar                 # a native executable with its own Node runtime
+node scripts/build-cli-sidecar.ts --install   # put those resources into the desktop app for packaging
+```
+
+**The npm package** is written to `dist/cli-pack/`, with a tarball and a manifest that records its source commit and checksum. Packaging installs it into a temporary project and checks version reporting, tool listing, SVG rendering, the missing-content error and the TUI entry.
+
+**The native build** is written to `dist/cli-sidecar/bin/` and `dist/cli-sidecar/cli-lib/`. Keep both directories together. It uses Node's single executable application support for a small launcher, and the CLI and TUI stay as ESM resources beside it, so a single CommonJS bundle cannot replace that layout. It includes the matching resvg library. Build it on the target platform, or supply a matching Node runtime and native binding with the options in `scripts/build-cli-sidecar.ts`. The desktop release build runs the installer step for you.
+
+Both forms need content. Set `LOLLY_ROOT` to a Lolly checkout or a materialised public content bundle; the package itself carries no brand pack or tool catalog. A packaged desktop app extracts its embedded content for its CLI. The package's version is independent of the desktop app's version.
+
+Both forms include the TUI. Start it with `lolly tui` in a real terminal.
