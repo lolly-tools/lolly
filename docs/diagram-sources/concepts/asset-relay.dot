@@ -1,0 +1,14 @@
+digraph asset_relay {
+  rankdir=TB
+  node [shape=box]
+  designer [label="Designer\nsets the rules once"]
+  tool [label="The tool\nlayout, inputs, limits"]
+  developer [label="Developer\nruns it from a script"]
+  anyone [label="Anyone\nfills in the fields"]
+  files [label="Finished files\none or thousands"]
+  designer -> tool
+  tool -> developer
+  tool -> anyone
+  developer -> files
+  anyone -> files
+}

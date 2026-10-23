@@ -69,8 +69,32 @@
       "icon": "star",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "First file and installation",
+      "group": "First steps",
       "headingId": "quickstart"
+    },
+    {
+      "slug": "what-is-lolly",
+      "title": "What is Lolly?",
+      "src": "what-is-lolly.md",
+      "section": "start",
+      "group": "First steps",
+      "path": "start/what-is-lolly",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "description": "What Lolly makes, where it runs and who it is for, in five minutes: the place to begin."
+    },
+    {
+      "slug": "how-lolly-works",
+      "title": "How Lolly works",
+      "src": "how-lolly-works.md",
+      "description": "One tool, your rules, many files: who sets a tool up, the four routes from a tool to a finished file and what runs on your device or on your organisation's server.",
+      "section": "start",
+      "path": "start/how-lolly-works",
+      "icon": "cpu",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "First steps"
     },
     {
       "slug": "make-something",
@@ -83,7 +107,7 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "renderer": "renderMakeSomethingPage",
-      "group": "First file and installation"
+      "group": "First steps"
     },
     {
       "slug": "lolly-demo",
@@ -113,7 +137,7 @@
       "slug": "faq",
       "title": "Questions & answers",
       "src": "faq.md",
-      "description": "The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.",
+      "description": "The things people ask most: why it is free, where your files go, why everything is green, how to get the apps, what to do about WebGPU and who made Lolly.",
       "section": "start",
       "path": "start/faq",
       "icon": "document",
@@ -123,24 +147,10 @@
       "group": "Product, organisation and vocabulary"
     },
     {
-      "slug": "project-asset-transfers",
-      "title": "Shared project assets",
-      "src": "project-asset-transfers.md",
-      "description": "Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.",
-      "section": "create",
-      "path": "create/project-asset-transfers",
-      "icon": "folder",
-      "aliases": [
-        "start/project-asset-transfers"
-      ],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Design and templates"
-    },
-    {
       "slug": "organisation",
       "title": "Use Lolly at your organisation",
       "src": "organisation.md",
-      "description": "Use your organisation's Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave.",
+      "description": "Reach your organisation's Lolly, sign in and see what changes with Lolly Work: managed settings, locked design systems, team projects and approvals. What stays on your device, and how to leave.",
       "section": "start",
       "path": "start/organisation",
       "icon": "people",
@@ -155,25 +165,25 @@
       "slug": "install",
       "title": "Install Lolly",
       "src": "install.md",
-      "description": "Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made.",
+      "description": "Every way to get Lolly: the Mac and Windows apps, Lolly Tools on the App Store, the Android APK, Linux packages (Flatpak, RPM, deb, Arch, AppImage), YunoHost and the container image, with versions and how to check a download.",
       "section": "start",
       "path": "start/install",
       "icon": "download",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "First file and installation"
+      "group": "First steps"
     },
     {
       "slug": "supported-environments",
       "title": "Supported environments",
       "src": "supported-environments.md",
-      "description": "Tested browser and app environments, the WebGPU startup requirement, and the separate web and native release scopes.",
+      "description": "Where the web app's WebGPU check has been tested, what to try when your browser is refused and the qualification evidence behind each result.",
       "section": "start",
       "path": "start/supported-environments",
       "icon": "check",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "First file and installation"
+      "group": "First steps"
     },
     {
       "slug": "creators",
@@ -187,6 +197,30 @@
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates",
       "headingId": "lolly-for-creators"
+    },
+    {
+      "slug": "using",
+      "title": "Using Lolly",
+      "src": "using.md",
+      "section": "create",
+      "path": "create/using",
+      "icon": "pentool",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates",
+      "description": "Open a tool, change what it lets you change, save the result and share it as a link or a .lolly file, then make the home screen and your library your own."
+    },
+    {
+      "slug": "design",
+      "title": "Design: the free canvas",
+      "src": "design.md",
+      "description": "Build layouts, decks and motion on Design's free canvas: shape boxes, draw paths, place 3D scenes and tools, add a timeline, check the result and present it.",
+      "section": "create",
+      "path": "create/design",
+      "icon": "pentool",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
     },
     {
       "slug": "builders",
@@ -206,7 +240,7 @@
       "title": "Manage",
       "src": "operators.md",
       "isHub": true,
-      "description": "Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about.",
+      "description": "Run Lolly for a team with Lolly Work: access, roles and policy, shared assets, approvals and the data each part keeps.",
       "section": "manage",
       "path": "manage/organisation-management",
       "icon": "checklist",
@@ -347,17 +381,6 @@
       "group": "Agents, APIs and integrations"
     },
     {
-      "slug": "using",
-      "title": "Using Lolly",
-      "src": "using.md",
-      "section": "create",
-      "path": "create/using",
-      "icon": "pentool",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Design and templates"
-    },
-    {
       "slug": "templates",
       "title": "Templates",
       "src": "templates.md",
@@ -370,15 +393,28 @@
       "group": "Design and templates"
     },
     {
+      "slug": "batch",
+      "title": "Batch and Multi-edit",
+      "src": "batch.md",
+      "description": "Make many versions of one design from rows or a spreadsheet with Batch, or edit up to eight saved designs side by side with Multi-edit.",
+      "section": "create",
+      "path": "create/batch",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
       "slug": "brand-studio",
-      "title": "The Brand Studio",
+      "title": "Design System Setup",
       "src": "brand-studio.md",
       "section": "create",
       "path": "create/brand-studio",
       "icon": "palette",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Design and templates"
+      "group": "Design and templates",
+      "description": "Make the design system yours at #/start: logo, colours, type, tokens, files and usage rules, then export it, move it between devices and manage the systems you keep."
     },
     {
       "slug": "brand-architectures",
@@ -389,7 +425,8 @@
       "icon": "layers",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Design and templates"
+      "group": "Design and templates",
+      "description": "How masterbrands, divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities in Lolly."
     },
     {
       "slug": "3d-studio",
@@ -402,18 +439,6 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
-    },
-    {
-      "slug": "profile",
-      "title": "Profiles",
-      "src": "profile.md",
-      "description": "The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device.",
-      "section": "create",
-      "path": "create/profile",
-      "icon": "usercheck",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
     },
     {
       "slug": "find-your-work",
@@ -440,16 +465,100 @@
       "group": "Find and keep your work"
     },
     {
+      "slug": "search",
+      "title": "Search",
+      "src": "search.md",
+      "section": "create",
+      "path": "create/search",
+      "icon": "search",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work",
+      "description": "Press Ctrl-Space and type to reach tools, saved work, assets, settings and the guides from the bar at the foot of the screen."
+    },
+    {
+      "slug": "dashboard",
+      "title": "Settings",
+      "src": "dashboard.md",
+      "section": "create",
+      "path": "create/dashboard",
+      "icon": "monitor",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work",
+      "description": "Every tab of Settings in one map: your details, design systems, accessibility, sound, storage, offline downloads, this device, capabilities and activity."
+    },
+    {
+      "slug": "profile",
+      "title": "Profiles",
+      "src": "profile.md",
+      "description": "The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device.",
+      "section": "create",
+      "path": "create/profile",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work"
+    },
+    {
+      "slug": "ask",
+      "title": "Ask Lolly",
+      "src": "ask.md",
+      "section": "create",
+      "path": "create/ask",
+      "icon": "sparkle",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work",
+      "description": "Type a question and get the matching section of these guides, quoted and cited, with the places in the app that match. Runs on your device."
+    },
+    {
+      "slug": "favourites",
+      "title": "Your favourites",
+      "src": "favourites.md",
+      "section": "create",
+      "path": "create/favourites",
+      "icon": "star",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work",
+      "description": "Star the tools you use so they lead the gallery, and choose between the drifting strip and Cover Flow."
+    },
+    {
       "slug": "design-import",
-      "title": "Import a design (Figma, Penpot, Illustrator, InDesign)",
+      "title": "Import a design",
       "src": "design-import.md",
-      "description": "Bring a finished design out of Figma, Penpot, Illustrator or InDesign and into Lolly as an editable, re-renderable tool rather than a flat picture.",
+      "description": "Open a Figma, Penpot, Illustrator, InDesign, Photoshop or SVG file in Design as editable layers, on your device, on your design system.",
       "section": "create",
       "path": "create/design-import",
       "icon": "upload",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "renderer": "renderDesignImportPage",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "design-layout",
+      "title": "Layout in Design",
+      "src": "design-layout.md",
+      "description": "Flex and grid layouts, groups, pages and precise number fields in Design.",
+      "section": "create",
+      "path": "create/design-layout",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "darkroom",
+      "title": "Darkroom",
+      "src": "darkroom.md",
+      "description": "Grade photos and video with film looks, LUTs, Adobe presets and your design system colours, then reuse the look.",
+      "section": "create",
+      "path": "create/darkroom",
+      "icon": "photos",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
     {
@@ -466,9 +575,9 @@
     },
     {
       "slug": "formats",
-      "title": "Every format Lolly can open and make",
+      "title": "Formats",
       "src": "formats.md",
-      "description": "Every file format Lolly reads, every format it writes, and the ones it does both ways - grouped by what each one is, with a plain-language card behind every chip.",
+      "description": "Every file format Lolly reads, every format it writes and the ones it does both ways, with a plain-language card behind every chip and what happens when a file comes in.",
       "section": "create",
       "path": "create/formats",
       "icon": "convert",
@@ -502,8 +611,20 @@
       "group": "Architecture and contracts"
     },
     {
+      "slug": "colour-engine",
+      "title": "Colour in the engine",
+      "src": "colour-engine.md",
+      "description": "How Lolly reads every CSS colour, does its maths in OKLab and writes sRGB, CMYK or Rec.2100 PQ.",
+      "section": "build",
+      "path": "build/colour-engine",
+      "icon": "palette",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Architecture and contracts"
+    },
+    {
       "slug": "hdr-editing",
-      "title": "Wide Colour and HDR",
+      "title": "Wide colour and HDR editing",
       "src": "hdr-editing.md",
       "description": "Keep original image and video precision, use authored P3 brand swatches, and choose HDR or SDR output.",
       "section": "create",
@@ -522,7 +643,8 @@
       "icon": "clock",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Motion and presenting"
+      "group": "Motion and presenting",
+      "description": "Cut a video in Design's timeline: split, trim, cross-fade, mix sound, mark a range, edit Lottie animations and hand off to Premiere."
     },
     {
       "slug": "presenting",
@@ -573,10 +695,22 @@
       "group": "Motion and presenting"
     },
     {
+      "slug": "rondocode",
+      "title": "Rondocode songs",
+      "src": "rondocode.md",
+      "description": "Play music written as code under a video, write and export a song, and see what its Content Credentials record.",
+      "section": "create",
+      "path": "create/rondocode",
+      "icon": "clock",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Motion and presenting"
+    },
+    {
       "slug": "collaborate",
       "title": "Working together",
       "src": "collaborate.md",
-      "description": "Edit a tool session together in a private collab between two devices, or use optional work collabs through your organisation's lolly.work instance.",
+      "description": "Edit a tool session with someone else: a private collab between two devices with no account or server, or a work collab through your organisation's Lolly Work.",
       "section": "create",
       "path": "create/collaborate",
       "icon": "people",
@@ -585,43 +719,24 @@
       "group": "Collaborate and export"
     },
     {
-      "slug": "search",
-      "title": "Search",
-      "src": "search.md",
+      "slug": "project-asset-transfers",
+      "title": "Shared project assets",
+      "src": "project-asset-transfers.md",
+      "description": "With Lolly Work, browse shared project folders, copy files between projects, offer originals to the organisation library and send files to connected services.",
       "section": "create",
-      "path": "create/search",
-      "icon": "search",
-      "aliases": [],
+      "path": "create/project-asset-transfers",
+      "icon": "folder",
+      "aliases": [
+        "start/project-asset-transfers"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
-    },
-    {
-      "slug": "ask",
-      "title": "Ask Lolly",
-      "src": "ask.md",
-      "section": "create",
-      "path": "create/ask",
-      "icon": "sparkle",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
-    },
-    {
-      "slug": "dashboard",
-      "title": "The Dashboard",
-      "src": "dashboard.md",
-      "section": "create",
-      "path": "create/dashboard",
-      "icon": "monitor",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
+      "group": "Collaborate and export"
     },
     {
       "slug": "utilities",
-      "title": "Utility views",
+      "title": "Utilities",
       "src": "utilities.md",
-      "description": "The five workbenches built into the app - spreadsheet, converter, Colour Lab, PDF extractor and Script audio - what each one does, and where it stops.",
+      "description": "Fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour, with every utility in the Utilities tab.",
       "section": "create",
       "path": "create/utilities",
       "icon": "wrench",
@@ -630,26 +745,16 @@
       "group": "Design and templates"
     },
     {
-      "slug": "favourites",
-      "title": "Your favourites",
-      "src": "favourites.md",
-      "section": "create",
-      "path": "create/favourites",
-      "icon": "star",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
-    },
-    {
       "slug": "exporting",
-      "title": "Exporting & Formats",
+      "title": "Export a file",
       "src": "exporting.md",
       "section": "create",
       "path": "create/exporting",
       "icon": "download",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Collaborate and export"
+      "group": "Collaborate and export",
+      "description": "Pick the right format for a screen, a printer or another app, set its size and print marks, export many files at once, and see what travels with each file."
     },
     {
       "slug": "positioning",
@@ -666,7 +771,7 @@
       "slug": "compare",
       "title": "Lolly compared, tool by tool",
       "src": "compare.md",
-      "description": "Where Lolly overlaps with Canva, Adobe, Figma, rendering APIs and online converters, and what each of those does better. Dated, concession first, no superlatives.",
+      "description": "What runs on your device and what runs on a Lolly Work server, the limits every comparison shares and one page per product: Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and converters.",
       "section": "create",
       "path": "create/compare",
       "icon": "checklist",
@@ -762,7 +867,7 @@
       "slug": "overview",
       "title": "Lolly architecture",
       "src": "overview.md",
-      "description": "How the Lolly platform is put together: the engine, the shells, the capability bridge, and why tools are data rather than bundled code.",
+      "description": "For contributors: how the engine, shells and tool packs fit, the repository layout, the ten architectural commitments and the lifecycle of one render.",
       "section": "build",
       "path": "build/overview",
       "icon": "layers",
@@ -796,7 +901,7 @@
       "slug": "glossary",
       "title": "Glossary",
       "src": "glossary.md",
-      "description": "The words Lolly uses with exact meanings: engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab, and what each is not.",
+      "description": "The words you meet in the app, such as design system, colourway, saved session and Lolly Work, then the builder words (engine, shell, bridge, tool, brand pack, profile and catalog) and what each is not.",
       "section": "start",
       "path": "start/glossary",
       "icon": "document",
@@ -1192,8 +1297,9 @@
     },
     {
       "slug": "extension",
-      "title": "Browser Extension",
+      "title": "Browser extension",
       "src": "extension.md",
+      "description": "Screenshot web pages and read a site for Design System Setup from the Lolly web app in a Chromium-based browser, approving every request in the extension.",
       "section": "create",
       "path": "create/extension",
       "icon": "globe",
@@ -1425,8 +1531,9 @@
     },
     {
       "slug": "data-transfer",
-      "title": "Data Transfer",
+      "title": "Data transfer",
       "src": "data-transfer.md",
+      "description": "The lolly-backup bundle format: what the zip holds, how versions are gated, how an import merges with existing work and what is checked.",
       "section": "build",
       "path": "build/data-transfer",
       "icon": "convert",
@@ -1435,24 +1542,10 @@
       "group": "Architecture and contracts"
     },
     {
-      "slug": "about",
-      "title": "About",
-      "src": "../README.md",
-      "description": "What Lolly is, who builds it, and how the pieces fit together. The project's own README.",
-      "section": "start",
-      "path": "start/about",
-      "icon": "document",
-      "aliases": [
-        "build/about"
-      ],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Product, organisation and vocabulary"
-    },
-    {
       "slug": "sales",
       "title": "Lolly for sales teams",
       "src": "sales.md",
-      "description": "Walk into every meeting with exactly the file you need: fix the deck you already have, rebuild it as a native deck file, and make the asset on the way there.",
+      "description": "Walk into every meeting with exactly the file you need: move the old deck onto your design system, write a new one fast and make the one-pager on the way there.",
       "section": "create",
       "path": "create/sales",
       "icon": "people",
@@ -1466,7 +1559,7 @@
       "slug": "press",
       "title": "Lolly for the newsroom",
       "src": "press.md",
-      "description": "Build the info-editorial style once, then generate publication-quality charts, maps and tables from live data, in the house style, for print and screen.",
+      "description": "Build each graphic format once, then fill charts, diagrams and maps with live data in the house style, for print and screen.",
       "section": "create",
       "path": "create/press",
       "icon": "document",
@@ -1480,7 +1573,7 @@
       "slug": "marketing",
       "title": "Lolly for marketing teams",
       "src": "marketing.md",
-      "description": "Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with no agency bottleneck for routine files.",
+      "description": "Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with routine files made by the people who need them.",
       "section": "create",
       "path": "create/marketing",
       "icon": "photos",
@@ -1494,7 +1587,7 @@
       "slug": "legal",
       "title": "Lolly for legal teams",
       "src": "legal.md",
-      "description": "Redact, anonymise, verify and compress on the device the file already lives on, so nothing leaves the building to be cleaned, with the licence and the EU AI Act position stated plainly.",
+      "description": "Redact, anonymise, strip and compress on the device the file already lives on, check what you were sent and read the licence, creative-rights and AI-marking positions stated plainly.",
       "section": "create",
       "path": "create/legal",
       "icon": "lock",
@@ -1688,17 +1781,6 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Principles, rights and AI"
-    },
-    {
-      "slug": "what-is-lolly",
-      "title": "What is Lolly?",
-      "src": "what-is-lolly.md",
-      "section": "start",
-      "group": "Product, organisation and vocabulary",
-      "path": "start/what-is-lolly",
-      "icon": "layers",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0"
     },
     {
       "slug": "operate",
@@ -2880,6 +2962,20 @@
         "path": "status.md",
         "icon": "docs"
       }
+    },
+    {
+      "slug": "about",
+      "title": "About",
+      "src": "../README.md",
+      "description": "What Lolly is, who builds it and how the pieces fit together. The project's own README.",
+      "section": "start",
+      "path": "start/about",
+      "icon": "document",
+      "aliases": [
+        "build/about"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Product, organisation and vocabulary"
     },
     {
       "slug": "work-resumable-uploads",

@@ -1,0 +1,17 @@
+digraph collab_ways {
+  rankdir=TB
+  node [shape=box]
+  pair [label="Two people\none session"]
+  network [label="Same network\nor same room"]
+  cloud [label="Same storage\nconnected"]
+  org [label="Organisation\nruns Lolly Work"]
+  private [label="Private collab\ninvite and reply"]
+  shared [label="Private collab\nover shared cloud"]
+  work [label="Work collab\nthrough the instance"]
+  pair -> network
+  pair -> cloud
+  pair -> org
+  network -> private
+  cloud -> shared
+  org -> work
+}

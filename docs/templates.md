@@ -1,5 +1,4 @@
 <!--
-Written from plans/226 (the model in section 3, the surfaces in section 4).
 Two facts on this page are separate and must not be merged into one sentence.
 (1) A SESSION is one document you come back to; a TEMPLATE starts new ones.
 (2) OWNERSHIP decides hide-versus-delete, not whether a design system is locked.
@@ -13,32 +12,41 @@ export and sharing routes described below.
 
 # Templates
 
-A template is a saved starting point for a tool. Open the tool on one and every control arrives already filled in, ready for you to change a few words. Some templates ship with the tool. The rest are ones you saved yourself, out of a design you had already got right.
+A template is a saved starting point for a tool. Open the tool on one and every control arrives already filled in, ready for you to change a few words. Some templates ship with the tool; the rest are ones you saved yourself, out of a design you had already got right.
 
-Two things a template is not:
+::: cols
+## A saved session
 
-- **Not a saved session.** A session, in [Projects](/info/using.html#projects), is one document you come back to: reopen it, change the date, save it again. A template starts *new* documents instead, as many as you want, and stays as it was while each of those goes its own way.
-- **Not a `.lolly` file.** A `.lolly` is a file you hand to someone else ([Sharing your work](/info/using.html#sharing-your-work)). A template stays on this device and appears inside the app, in the tool it belongs to. You can turn one into the other, but they do different jobs.
+One document you come back to: reopen it, change the date, save it again. It lives in [Projects](/info/find-your-work.html#find-something-you-saved).
 
-Your saved templates and your choices about shipped templates are kept on your [profile](/info/profile.html), the same on-device record as your name and your starred tools. A profile backup carries them to another device. You can also export or share an individual template as described under [Passing one on](#passing-one-on).
+## A template
+
+Starts new documents, as many as you want, and stays as it was while each of them goes its own way. It appears inside the tool it belongs to.
+
+## A .lolly file
+
+A file you hand to someone else ([Sharing your work](/info/using.html#sharing-your-work)). A template can become one, and one can carry a template.
+:::
+
+Your saved templates, and your choices about shipped ones, are kept on your [profile](/info/profile.html), the same on-device record as your name and your starred tools. A profile backup carries them to another device, and [Passing one on](#passing-one-on) covers sharing a single template.
 
 ## Save one from a tool
 
-1. Press **Save as** on the render pill, beside **Export**.
-2. Two cards open. **Save to a project** keeps this one document. **Save as a template** keeps it as a starting point for new ones.
-3. Name it, add one line of description if that helps you recognise it in six months, and save.
+::: timeline
+- <!--i:check--> Press **Save as**, beside **Download** in the export panel. In **Design**, **Save as a template…** in the Lolly menu opens the dialog with the template card ready.
+- <!--i:document--> Of the two cards, **Save to a project** keeps this one document and **Save as a template** keeps a starting point for new ones.
+- <!--i:pentool--> Name it, add a line of description if that will help you recognise it in six months and save.
+:::
 
-The template card also carries a checkbox. In Chart it reads **Start new Chart documents with this**, in Design **Start new Design documents with this**: the tool you are in names itself. Tick it and every blank open of that tool begins here instead of asking. There is more on that below.
+The template card also carries a checkbox labelled with the tool you are in, such as **Start new Chart documents with this**. Tick it and every blank open of that tool begins from this template instead of asking; [Start with](#start-with) has the details.
 
-In **Design**, the **Lolly** menu has both doors: **Save as** opens the dialog, and **Save as a template…** opens it with the template card ready to type into.
+The quick **Save**, the tick beside **Export** on the render pill, stores the session you are working in with one click and no dialog. **Save as** is the one that asks which kind of save you meant.
 
-The quick **Save** in the export panel is unchanged: one click, no dialog, it stores the session you are working in. **Save as** is the one that asks which kind of save you meant.
+**What a template keeps:** every setting you touched, plus the export size and format you chose, so a poster template opens back at A4 and 300 dpi rather than at the tool's default size. Pictures are kept as references to the asset in your library, not as copies.
 
-**What a template keeps:** every setting you touched, plus the export size and format you chose, so a poster template opens back at A4 and 300 dpi rather than at the tool's own default size. Pictures are kept as references to the asset in your library, not as copies.
+**What it never keeps:** a file you dropped into a **file** input, which you handed the tool for one job; and the document's own name, because each new document gets its own.
 
-**What it never keeps:** a file you dropped into a **file** input, which is bytes you handed the tool for one job and not a starting point for anything; and the document's own name, because each new document gets its own.
-
-A tool with nothing to fill in, like a file converter, shows no template card. There would be nothing to put in it.
+A tool with nothing to fill in, such as a file converter, shows no template card.
 
 ## Save one from Projects
 
@@ -50,7 +58,7 @@ The sessions themselves are untouched, and stay where they were.
 
 Each tool remembers one of three answers for a blank open:
 
-- **Ask me every time** - the chooser opens with every template that tool has. This is the answer until you change it.
+- **Ask me every time** - the chooser opens with every template that tool has. This is the answer until you choose another.
 - **Blank canvas** (**Blank** in Projects) - the tool opens on its own defaults, no chooser.
 - **A template** - the tool opens on that one, no chooser.
 
@@ -104,7 +112,7 @@ Template cards load previews as they come into view, using your current brand. A
 
 What you made, you **delete**, and it is gone from this device.
 
-What shipped with a tool, you **hide**. A shipped template is a file that comes down with the tool and arrives again on the next sync, so hiding it puts a cover over it for your profile rather than pretending to erase it. That is the better bargain: a starter can never be lost by accident. A **Hidden (N)** entry counts what you have put away and restores any of it.
+What shipped with a tool, you **hide**. A shipped template is a file that comes down with the tool and arrives again on the next sync, so hiding it puts a cover over it for your profile rather than pretending to erase the file. That is the better bargain: a starter can never be lost by accident. A **Hidden (N)** entry counts what you have put away, and restores any template from that list.
 
 To change a shipped starter rather than lose it, use **Make a copy**. The copy is yours to rename, edit and delete, and you can hide the original afterwards so only your version shows.
 
@@ -121,10 +129,10 @@ A template that shipped with a tool can carry **presets**: named variants inside
 
 You cannot make a preset in the app. A saved template is how you keep a variant of your own: save the second layout as its own template, name it for what it is, and it appears in the chooser beside the first.
 
+## Share a constrained tool
+
+A saved template is a starting point in its original tool. To give recipients only selected inputs, choose **Share with rules** from a template's menu, or from a saved tool session in Projects. This opens a separate authoring copy and leaves the source intact. Design offers object rules; other supported still tools offer an ordered list of editable inputs over their existing renderer. The resulting `.lolly` installs a separate tool with fixed settings and explicit controls. [Share a design with rules](/info/create-a-tool.html) covers the supported inputs and the preview and checking steps.
+
 ---
 
 **Related:** [Using Lolly](/info/using.html) for sessions, Projects and sharing. [Your favourites](/info/favourites.html) for the other way of keeping something to hand. [Profiles](/info/profile.html) for the on-device record all of this is written onto.
-
-## Share a constrained tool
-
-A saved template is a starting point in its original tool. To give recipients only selected inputs, choose **Share with rules** from a template’s menu, or from a saved tool session in Projects. This opens a separate authoring copy and leaves the source intact. Design offers object rules; other supported still tools offer an ordered list of editable inputs over their existing renderer. The resulting `.lolly` installs a separate tool with fixed settings and explicit controls. See [Share with rules](create-a-tool.md) for supported inputs and the preview and checking steps.
