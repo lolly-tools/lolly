@@ -1,8 +1,8 @@
 # Keep Lolly Work running
 
 Once people rely on your instance, four jobs come round again and again: upgrading to
-a new release, proving that a backup restores, rotating secrets, and watching health
-and storage. This page takes them in that order, then covers the settings you tune
+a new release, proving that a backup restores, rotating secrets and keeping an eye on
+health and storage. This page takes them in that order, then covers the settings you tune
 less often.
 
 The short version: check pending migrations and take a backup before every upgrade.
@@ -113,11 +113,11 @@ bytes. It is one part of a complete restore:
 
 | Recovery input | Keep and check |
 |---|---|
-| PostgreSQL | A consistent dump or tested point-in-time recovery, a checksum, the schema and release identity, and an independent restore |
+| PostgreSQL | A consistent dump or tested point-in-time recovery with its checksum and its schema and release identity, then an independent restore |
 | S3-compatible asset bytes | The bucket's referenced bytes and versions, with separately tested recovery; a database dump does not include them |
 | Configuration and governance | The current `instance.json` and `lw export`, with the destination address, identity and source settings and permission mappings reviewed |
 | Keys and credentials | Protected recovery copies of the signing, source-sealing and other keys you need, kept apart from non-secret configuration |
-| Pack, web app and engine | Exact release manifests and digests, the engine contract, the configured private pack, and any files needed to reproduce the signed release |
+| Pack, web app and engine | Exact release manifests and digests, the engine contract, the configured private pack and any files needed to reproduce the signed release |
 | Outside sources | Permission to reconnect, and any originals the source holds; references are not copies of outside bytes |
 
 Keep off-host copies, and the keys to decrypt them, recoverable on their own. A
@@ -140,13 +140,14 @@ snapshot beside the backup too ([audit](audit.md)).
 **To restore:**
 
 1. Restore into a separate, empty target and check the database and asset bytes.
-2. Apply the reviewed schema and release, restore the configuration and keys, and
+2. Apply the reviewed schema and release. Restore the configuration and keys, then
    mount the matching pack and web app.
 3. Keep identity callbacks and source access, or rebind them as a reviewed step.
    Stored source credentials need their original `LW_CREDENTIAL_SECRET`; without that
    secret, re-enter them.
-4. Check owner and viewer or editor sign-in, shared uploaded assets, document and agent
-   permissions, live editing and reconnecting, and a few representative exports.
+4. Check sign-in for the owner and for a viewer or editor, shared uploaded assets,
+   document and agent permissions, live editing with a reconnect and a few
+   representative exports.
 5. Record what the restore covered and how long it took.
 
 A drill on a new host, and high-availability testing, are separate from recovering a
@@ -283,7 +284,7 @@ is built. The alert needs no monitoring stack:
   replica does not send it again.
 
 The monthly read figure lives in the same table. Each server writes the bytes it has
-read there about once a minute while reads continue, whenever the figures are read,
+read there about once a minute while reads continue, whenever the figures are read
 and when it shuts down, so the month's total survives restarts and adds up across
 replicas. A crash loses only the reads not yet written. `lw_blob_read_bytes_total`
 counts from process start, like any Prometheus counter; compare
@@ -315,7 +316,7 @@ up, and keeping it current, is yours.
 
 Wire one in `instance.json` under `submit.scanHook`. It is **instance configuration,
 not organisation policy**: it never appears in the policy-as-code document, in
-`org-config`, or anywhere an app can read. The fields are listed in
+`org-config` or anywhere an app can read. The fields are listed in
 [configuration](configuration.md#submit).
 
 ```json
@@ -351,9 +352,12 @@ only if you would rather take the bytes than block contributions during an outag
 
 The verdict is audited under `catalog.submit` either way. A refusal carries the code and
 the scanner's reason. An accepted submission records what the hook did as `scan`:
-`clean` when it answered and passed the bytes, `unavailable` when it could not answer
-and `allow` let them through, and `absent` when no hook is configured. An outage you
-chose to ride out never reads as a clean scan, so "which files went in unscanned last
+
+- `clean`: the hook answered and passed the bytes.
+- `unavailable`: the hook could not answer and `onError: "allow"` let the bytes through.
+- `absent`: no hook is configured.
+
+An outage you chose to ride out never reads as a clean scan, so "which files went in unscanned last
 Tuesday" stays a question you can answer.
 
 ## Notifications
@@ -384,7 +388,7 @@ by `LW_WEBHOOK_SECRET`. Check both and refuse old timestamps, and forgeries and 
 fail on arrival. Delivery tries once more, then counts the failure
 (`lw_notify_total{outcome="failed"}`) and logs it; it never blocks or fails the request
 that triggered the delivery. Neither channel reports home: both targets are your own, named in
-your configuration, and reached only when your members act.
+your configuration and reached only when your members act.
 
 ## SIEM forwarding
 
@@ -442,12 +446,14 @@ rollback.
 
 A Lolly app arrives as a neutral download (the store app, a desktop build or the public
 web app), and everything about your organisation reaches it once the person points it at
-this instance. Three routes, easiest first:
+this instance. The steps a person follows are in
+[Use Lolly at your organisation](/info/start/organisation.html); this section covers the
+administrator's side. Three routes, easiest first:
 
 1. **A signed `.lolly` instance pack.** Importing it sets the app's instance address once
    the signature checks out, and installs your brand as well. The pack is cut by the
    open-source repository's `build-instance-pack.ts`, with this deployment as its instance
-   address, then hosted here: `lw instance pack <file.lolly>` (owner), or the Connect card
+   address, then hosted here: `lw instance pack <file.lolly>` (owner) or the Connect card
    in the console's Fleet view.
    - The instance serves it at `/connect/pack.lolly` (public on an `open` instance,
      members only otherwise) and advertises it in the manifest's `connect.packUrl`.

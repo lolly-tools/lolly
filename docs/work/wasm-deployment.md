@@ -70,7 +70,8 @@ density or remove capacity from an existing deployment.
 Standards and runtimes move quickly, so pin versions and write them down. As of
 2026-10-07, [WASI 0.3 is stable](https://wasi.dev/releases), with async support described
 in the [0.3 release guide](https://wasi.dev/releases/wasi-p3). Keep WASI 0.2 compatibility
-where your toolchain needs it: a stable 0.x release is not a finished WASI 1.0. Do not
+where your toolchain still uses that version: a stable 0.x release is not a finished
+WASI 1.0. Do not
 assume SQL, key-value, TLS or telemetry interfaces exist on every component host.
 
 Record the runtime inside the shim you choose, too. The released

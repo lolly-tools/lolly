@@ -2,8 +2,8 @@
 
 These are the packages the [Lolly project](https://github.com/lolly-tools) maintains
 upstream, with what each one has passed so far. Use this page to check a route before
-you rely on it, to verify what you downloaded, and to mirror every download for a
-restricted network. To choose a route, start at [Run Lolly Work](self-host.md).
+you rely on it and to verify what you downloaded. It also shows how to mirror every
+download for a restricted network. To choose a route, start at [Run Lolly Work](self-host.md).
 
 Lolly Work is free open-source software under MPL-2.0. The project takes no hosting
 commission or usage payment. You provide and run the hosting, domains, identity and
@@ -51,7 +51,8 @@ Before claiming a qualified YunoHost release:
    static packaging checks.
 2. Run [package_check](https://github.com/YunoHost/package_check) on a throwaway Linux
    host with Incus or LXD. That run covers real installation, several instances,
-   upgrade, backup and restore, and URL changes, which the repository tests do not.
+   upgrade, URL changes and a backup with its restore, which the repository tests do
+   not.
 3. Keep the real test logs and archive checksums.
 
 The repository workflow blocks static code errors and reports catalogue registration
@@ -149,7 +150,7 @@ worker on, `workerImage`. `SHELL_URL` and `SHELL_SHA256` are `shell.url` and
    change the digest. If no connected machine can reach your registry, carry the images
    across as an OCI layout folder written and read with the same skopeo flags, then
    repeat the digest check inside.
-3. Download the web app archive and check it:
+3. Download the web app archive and check its checksum:
 
    ```bash
    curl --fail --output shell.tar.gz SHELL_URL
@@ -260,7 +261,7 @@ built.
 
 A fully disconnected installation needs a web app built with its own model address
 (`VITE_MODELS_BASE`, see Lolly's
-[delivery guide](https://github.com/lolly-tools/lolly/blob/main/docs/deploy-delivery.md))
+[delivery guide](/info/operate/deploy-delivery.html))
 and the model files on that host. An empty base serves them from the instance's own
 address; a separate model host must also be allowed by the browser policy. Such a web
 app is a different release, with its own checksum, catalogue key pins and acceptance.
@@ -281,8 +282,8 @@ application high availability ([why](deployment.md#one-process-owns-live-collabo
 The default package has no Chromium worker, so advertise only the formats the configured
 instance can actually make.
 
-Keep the instance environment and signing keys stable, keep the PostgreSQL data, and
-check an independent restore before an upgrade. Follow
+Keep the instance environment, signing keys and PostgreSQL data, and check an
+independent restore before an upgrade. Follow
 [keep Lolly Work running](operations.md) and keep the previous server, content and
 configuration together. Recovering from a migration may need a restored database or a
 forward repair; an image downgrade alone is not a recovery procedure.

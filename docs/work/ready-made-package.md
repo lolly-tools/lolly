@@ -2,7 +2,7 @@
 
 The ready-made package is the shortest route to a shared Lolly Work instance on one
 Linux server. One command on your workstation writes a private installation
-folder. Copy it to the server, run `docker compose up`, and you have Work,
+folder. Copy it to the server and run `docker compose up`. You then have Work,
 PostgreSQL, the matching Lolly web app and automatic HTTPS, with email and password
 sign-in for the first owner.
 
@@ -18,19 +18,19 @@ Which upstream sources the package uses, and which architectures have passed, is
 
 ## Prepare the server
 
-You need a Linux host that runs Docker Compose, a domain that points to it, and TCP
-80 and TCP and UDP 443 open. Keep the Work, PostgreSQL and worker ports private.
+You need a Linux host that runs Docker Compose and a domain that points to it, with
+TCP 80 and TCP and UDP 443 open. Keep the Work, PostgreSQL and worker ports private.
 No existing Lolly production instance is a qualification target.
 
 For UpCloud, use the [infrastructure module](../deploy/upcloud/README.md) with your
-reviewed image, region, administrator keys and address ranges, and measured network
+reviewed image, region, administrator keys, address ranges and measured network
 settings. Check the plan before applying it through your own infrastructure process.
 On an openSUSE host, follow the [openSUSE host preparation](../deploy/vm/README.md)
 for Docker and host security.
 
 The [reference qualification](../deploy/marketplaces/QUALIFICATION.md) also covers
-UpCloud's public Ubuntu 24.04 amd64 image. On that image, install Docker and start
-it:
+UpCloud's public Ubuntu 24.04 amd64 image. On that image, install and start
+Docker:
 
 ```bash
 sudo apt-get update

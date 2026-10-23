@@ -620,7 +620,8 @@ original commands, altered validators, a failed fresh check, or an attempt alrea
 or rolled back all refuse the continuation. A failed continuation keeps its own uncertain
 journal and never erases or retries the original attempt, and normal publication acceptance
 validates both journals and the exact proof links. This recovery path keeps full physical
-scans and applies only to its original owner; no production speedup is claimed for it.
+scans and applies only to its original owner; no production speedup is claimed for this
+path.
 
 ### Model proof reuse and release measurements
 

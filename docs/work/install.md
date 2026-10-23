@@ -24,12 +24,13 @@ Which tools you need depends on the path you pick:
 | Path | Needs | Check it with |
 |---|---|---|
 | Sections 1, 2 and 6 (from source) | **Node 24 or later**, Git, curl | `node --version` |
-| Section 3 and every shared install | **PostgreSQL**, run by you or brought by Compose | `psql --version` |
+| Section 3 and every shared install | **PostgreSQL**, run by you or brought by Compose or YunoHost | `psql --version` |
 | Section 5 (Compose) | Docker with the **Compose v2** plugin | `docker compose version` prints a version |
 | Section 7 (YunoHost) | A YunoHost server; it supplies its own runtime | - |
 
-Work's server runs its TypeScript directly on Node, so a container or YunoHost
-install needs no Node on the host. The older standalone `docker-compose` is not
+Work's server runs its TypeScript directly on Node, with no build step. Only a
+source install needs Node on the host: the container image brings its own, and the
+YunoHost package installs it for you. The older standalone `docker-compose` is not
 the Compose v2 plugin: without the plugin, `docker compose up --build` fails with
 `unknown flag: --build`.
 
@@ -228,7 +229,7 @@ what connecting a real DAM needs.
 |---|---|
 | Local (section 2) | `instance.example.json` lists `owner@example.test` in group `owner`. Sign in as that person |
 | Kubernetes evaluation | `deploy/helm/values-eval.yaml` lists `owner@eval.example` in group `owner`. The section 2 addresses get `403` there |
-| Single sign-on | Create a group named exactly `owner` in your identity provider, add the person deploying, and make sure the group arrives in the claim named by `idp.groupsClaim` (default `groups`) |
+| Single sign-on | Create a group named exactly `owner` in your identity provider and add the person deploying. Make sure the group arrives in the claim named by `idp.groupsClaim` (default `groups`) |
 | Named OIDC bootstrap | Set `idp.bootstrapOwners` to the intended verified email and include it in admission; use an explicit owner role-group mapping |
 | Single sign-on where you cannot add that group | Any admin can create one: `POST /api/v1/groups {"name":"owner"}` then `PUT /api/v1/users/<id>/local-groups {"groups":["owner"]}`. Both need `grant.edit`, which admin holds, and both are audited |
 | GitOps or air-gapped | A `LW_SEED_CONFIG` document is trusted, and may grant owner-only actions to a group before anyone signs in (section 8, [governance](governance.md)) |
@@ -413,7 +414,11 @@ docker compose -f docker-compose.yml -f release-images.yaml up -d --no-build
 Use the same two `-f` arguments for later `logs`, `stop` and `up` commands. For
 production, check the release's verified image digest and put that digest in
 `release-images.yaml` in place of the version tag. To build from your own source
-instead, leave out the override and run `docker compose up --build`.
+instead, leave out the override and run:
+
+```bash
+docker compose up --build
+```
 
 All three lines of `.env` matter. The Compose file refuses to start without the two
 `LW_` secrets. `PG_PASSWORD` sets both the server's `DATABASE_URL` and the PostgreSQL
@@ -525,8 +530,9 @@ from a terminal, with the tag in place of the placeholder:
 sudo yunohost app install https://github.com/lolly-tools/lolly-work_ynh/tree/<published-package-revision>
 ```
 
-The installer asks three questions: a whole domain, the **first owner** (an existing
-YunoHost user) and the instance name. It fetches the matching Work and web archives
+The installer asks four questions: a whole domain, the **first owner** (an existing
+YunoHost user), who may open the app (all YunoHost users by default) and the
+instance name. It fetches the matching Work and web archives
 and checks both hashes. What you get is section 2's real instance with every setting
 already made:
 
@@ -536,12 +542,12 @@ already made:
   it with your own pack.
 - Sign-in is the [reverse-proxy provider](identity.md#reverse-proxy-sign-in): the
   YunoHost portal authenticates, SSOwat attaches the identity headers, nginx adds
-  the shared secret, and the server reads each member's groups and this app's role
+  the shared secret and the server reads each member's groups and this app's role
   permissions from the host's LDAP. Development sign-in is off.
 - Roles are the app's YunoHost permissions (`owner`, `admin`, `approver`, `author`),
-  managed in Users › Groups and permissions. The first owner holds `owner`, YunoHost
-  admins start as admins, and every YunoHost group becomes a Work group, so overlays and
-  approval chains can target them straight away.
+  managed in Users › Groups and permissions. The first owner holds `owner` and
+  YunoHost admins start as admins. Every YunoHost group becomes a Work group, so
+  overlays and approval chains can target them straight away.
 - Secrets are generated at install and kept in the app's `.env`. `NODE_ENV` is
   production and `rateLimit.trustedProxyHops` is 1.
 

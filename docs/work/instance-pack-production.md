@@ -61,9 +61,9 @@ receives this explicit pin, overriding any ambient public-pin setting.
 The complete manifest is `{ "version": 1, "files": [...], "totalBytes": N }`.
 Every row has `path`, `size` and full `sha256`; rows are sorted by relative path.
 It inventories every file in the final extracted tree, including compression
-siblings and retained immutable content. The producer checks every file, rejects
-extra or missing entries, links, special files and inputs writable by others,
-and rechecks the tree while copying. Review binds this release to its clean
+siblings and retained immutable content. The producer checks every file and rejects
+extra or missing entries, links, special files and inputs writable by others.
+It rechecks the tree while copying. Review binds this release to its clean
 source and profile; the manifest alone does not prove how the build was made.
 Keep the original build, CI and qualification evidence with the pack.
 

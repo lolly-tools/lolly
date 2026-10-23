@@ -82,9 +82,9 @@ before you create one. On Evroc, use a reviewed outside service or the local opt
 no managed PostgreSQL product is assumed.
 
 **The local option** is `deploy/vm/postgres.compose.yml`. It keeps PostgreSQL inside the
-Compose network, in a named volume, publishes no port, and waits for readiness before
+Compose network in a named volume, publishes no port and waits for readiness before
 the server starts. It is not part of the default deployment. Its password must be safe
-in a URL, because the connection URL is built from it: generate a random hexadecimal
+in a URL, because the connection URL is built from the password. Generate a random hexadecimal
 password and store it as `LW_LOCAL_PG_PASSWORD` in the existing private `.env`, keeping
 every other secret.
 
@@ -193,7 +193,7 @@ boundary.
 At the candidate address, check unauthenticated GET and HEAD. Confirm that `/info/` and
 `/docs/operate/deployment` return the documentation, with titles and canonical links,
 rather than the app. Check the root robots file, the sitemap redirect and its XML content
-type, empty HEAD bodies, 404 answers for missing documents, and refusals for private API
+type, empty HEAD bodies, 404 answers for missing documents and refusals for private API
 and catalog routes. The server's own HTTP tests exercise these boundaries.
 :::
 
@@ -205,8 +205,8 @@ only generated releases that are neither active nor needed for rollback. Keep mo
 and backups off the root disk where you can. Measure memory while the render worker and
 live editing run before you add a local database or a public gateway to a small VM.
 
-Use TCP liveness for frequent checks, signed-in HTTP readiness for meaningful service
-checks, and bounded container logs. Collect `/metrics` with its token, along with
+Use TCP liveness for frequent checks and signed-in HTTP readiness for meaningful
+service checks, and keep container logs bounded. Collect `/metrics` with its token, along with
 database and disk pressure, render queue failures, source sync health and agent
 activity, without recording access tokens or document bodies. A deploy counts as
 successful only after a restore and rollback rehearsal, not just healthy processes.

@@ -1,8 +1,8 @@
 # How a Lolly Work deployment fits together
 
 This page is for whoever runs Lolly Work once it is installed. It explains the
-parts, which ones you can leave out, and what changes between Compose, systemd,
-YunoHost and Kubernetes. The commands are in the install guides; start at
+parts and which ones you can leave out. It also shows what changes between Compose,
+systemd, YunoHost and Kubernetes. The commands are in the install guides; start at
 [Run Lolly Work](self-host.md).
 
 Every deployment runs the same server. It answers the console at `/admin`, the API
@@ -17,14 +17,14 @@ the console into a full workspace; leave them out for an instance that serves on
 the console and API.
 
 ::: figure work-deployment-parts
-One server, one database, and optional parts around them. Every install shape below arranges the same pieces.
+One server and one database, with optional parts around them. Every install shape below arranges the same pieces.
 :::
 
 ## The install shapes
 
-The shapes run the same application code. They differ in how configuration and
-secrets arrive, who applies database migrations, and whether the pack, web app,
-collaboration gateway and render worker are present.
+The shapes run the same application code. They differ in three ways: how
+configuration and secrets arrive, who applies database migrations and whether the
+pack, web app, collaboration gateway and render worker are present.
 
 | Shape | Use it for | Who applies migrations | Pack and web app |
 |---|---|---|---|
@@ -159,8 +159,8 @@ checks on and renew certificates at the edge.
 For a public HTTPS origin, allow DNS and public TCP 443 egress. A private HTTPS edge
 needs a declared origin and a narrow egress rule for its real address and port.
 
-To prove it, run a complete signed-in Work render, follow its durable status, and
-compare the downloaded output's size and SHA-256. A direct raster request or a
+To prove it, run a complete signed-in Work render and follow its durable status.
+Then compare the downloaded output's size and SHA-256. A direct raster request or a
 healthy worker probe does not exercise the web app's export or read tickets.
 :::
 
@@ -204,8 +204,8 @@ and logs. Image cache, database growth and rollback releases need separate node 
 space. Pack and web app copies can be reproduced; durable records and uploaded asset
 bytes belong in PostgreSQL or the configured object store.
 
-For browser exports, enable the worker, supply its matching secret and web app
-address, and point `config.render.worker.url` at its Service. The small profile
+For browser exports, enable the worker and supply its matching secret and web app
+address. Then point `config.render.worker.url` at its Service. The small profile
 starts with one worker and one render at a time, and its autoscaler is off. Turning
 the autoscaler on needs spare node capacity and metrics. Measure shared editing,
 renders and recovery on the chosen host before you switch over.
@@ -226,9 +226,9 @@ where you can.
 | S3-compatible object store | optional | only for the S3 catalog provider |
 | Chromium worker image | optional | built in the repository from `workers/render` |
 
-Everything else ships inside the server: no CDN assets (the console works air-gapped,
-with its fonts included), no Redis, queue or cache tier, and no outside service in
-the serving path.
+Everything else ships inside the server. There are no CDN assets (the console works
+air-gapped, with its fonts included) and no Redis, queue or cache tier. No outside
+service sits in the serving path.
 :::
 
 The [SUSE deployment runbook](../deploy/suse/README.md) covers cluster and storage
@@ -260,7 +260,8 @@ workload. Its limits are operational:
 
 ## Hosting and operating-system choices
 
-Lolly Work runs on SLES with Rancher Prime, or openSUSE Leap with Rancher Community.
+On a SUSE stack, Lolly Work runs on SLES with Rancher Prime or on openSUSE Leap with
+Rancher Community. Any conformant cluster works too.
 Helm keeps the application and render worker in your chosen cluster; Compose and
 systemd are the smaller shapes. UpCloud and Evroc are supported foundations for these
 operator-managed releases, and

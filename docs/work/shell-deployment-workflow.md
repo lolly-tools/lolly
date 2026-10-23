@@ -53,7 +53,7 @@ python3 -B scripts/verify-shell-qualification.py \
 ## Prepare and deploy
 
 Build once with `prepare-shell-update.ts`, assemble with
-`assemble-private-shell-input.py`, and qualify with `prepare-private-shell.py`.
+`assemble-private-shell-input.py` and qualify with `prepare-private-shell.py`.
 These maintained commands retain the accepted image, engine pin, pack and public
 key. Their output remains bound to the complete manifest and source custody.
 If the source is unchanged, an already prepared artifact can be reused after a

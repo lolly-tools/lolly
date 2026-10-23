@@ -78,7 +78,7 @@ button's name and the groups claim. More issuers, custom profile claims and prox
 are in the [identity reference](identity.md); the assistant keeps those advanced settings.
 
 Map your groups to roles, with **one exact group name per line**: a comma is part of the
-name. The role order is owner, admin, approver, author, member, viewer, and the highest
+name. The role order is owner, admin, approver, author, member and viewer; the highest
 matching role wins. Accounts that match nothing stay members. An empty role mapping turns
 off that role's literal legacy group; roles left out of a hand-written configuration keep
 the documented legacy defaults.
@@ -94,8 +94,8 @@ This example prepares OIDC settings while keeping development sign-in and its st
 draft.
 
 Enter the exact groups the first real owner will have. Generation refuses a preview that
-produces no owner, assigns a group twice, or removes every existing development owner while
-development sign-in stays on. A preview tests the strings you typed; it cannot prove the
+produces no owner or assigns a group twice. It also refuses one that removes every existing
+development owner while development sign-in stays on. A preview tests the strings you typed; it cannot prove the
 provider will send them.
 
 Keep development sign-in during restricted evaluation. Generate and apply the OIDC

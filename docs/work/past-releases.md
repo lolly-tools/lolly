@@ -188,8 +188,8 @@ ghcr.io/lolly-tools/lolly-work-server@sha256:db96f0d0f84b81ec609a3816031bd7f78bb
 ghcr.io/lolly-tools/lolly-work-render-worker@sha256:8dbe45a9586f426c72cb87eb121da393e18c1074ff3ea5d886a39dceefdfbd5f
 ```
 
-Anonymous access to the manifests, configuration and layer metadata, and both keyless
-signatures, were checked independently. The certificate issuer is
+Anonymous access to the manifests, configuration and layer metadata was checked
+independently, as were both keyless signatures. The certificate issuer is
 `https://token.actions.githubusercontent.com` and the identity is
 `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/heads/main`.
 The release's source and image record lists the platform digests. Linux amd64 and arm64
@@ -271,8 +271,8 @@ After both archives were published and the package folder mirrored,
 `.github/workflows/yunohost-runtime.yml` ran with the reviewed full 40-character mirror
 commit and exact version `1.1.0~ynh3`, as the
 [package README](../deploy/yunohost/README.md) documents. It uses a fresh Ubuntu runner
-and the official Incus checker on amd64 Debian Bookworm, and requires root and
-multiple-instance installation, upgrade, backup and restore, and URL-change results. The
+and the official Incus checker on amd64 Debian Bookworm. It requires results for root
+and multiple-instance installation, upgrade, URL changes and a backup with its restore. The
 package also tests upgrading from mirror commit
 `db60f651fbeb561e4b330a1dd44bd4aaf463e635` (`0.2.0~ynh1`).
 

@@ -2,21 +2,21 @@
 
 Lolly works on its own, on each person's device. Lolly Work is the server you add
 when a team needs to share: one sign-in, shared projects with live editing, a
-governed asset library, approvals, and exports made on the server. You run it on
+governed asset library, approvals and exports made on the server. You run it on
 infrastructure you control.
 
 Pick the path that matches what you have today. Each card opens the page with the
 commands.
 
 ::: figure work-self-host-chooser
-One question decides most of it: will other people use this instance? Trials need no database. Team installs all finish with the same three steps.
+One question decides most of the choice: will other people use this instance? Trials need no database. Team installs all finish with the same three steps.
 :::
 
 ## The paths in brief
 
 - **Just looking?** Open the public demo at [lolly.work](https://lolly.work). Sign
-  in with one click as a sample admin, brand lead, marketer or contractor, browse
-  the console at `/admin`, or render a tool from a plain link such as
+  in with one click as a sample admin, brand lead, marketer or contractor. Browse
+  the console at `/admin` or render a tool from a plain link such as
   `/render/qr-code.svg?url=https://example.com`. It keeps everything in memory and
   forgets it when it restarts. The demo runs on UpCloud in Frankfurt, on openSUSE
   Leap and K3s, in an isolated namespace; its people, assets and room activity are
@@ -41,7 +41,7 @@ One question decides most of it: will other people use this instance? Trials nee
   server paths above.
 
 Every team install ends the same way. The first owner signs in,
-[Customer setup](customer-setup.md) checks the configuration, and you download a
+[Customer setup](customer-setup.md) checks the configuration and you download a
 checked sample. After that, connect your
 [identity provider](enterprise-identity.md) if you use one, and read
 [Keep Lolly Work running](operations.md) before you invite people.
@@ -65,7 +65,7 @@ The Lolly web app that Work can serve at `/` needs a secure address (HTTPS, or
 
 ## YunoHost: choose Lolly Work
 
-YunoHost lists two Lolly packages, and they are not interchangeable.
+There are two Lolly packages for YunoHost, and they are not interchangeable.
 
 - **`lolly-tools/lolly-work_ynh`** is Lolly Work. It includes the Lolly web app, a
   PostgreSQL database, shared projects, sign-in with your host accounts, roles and
@@ -75,8 +75,8 @@ YunoHost lists two Lolly packages, and they are not interchangeable.
   does not install Work.
 
 There is no in-place upgrade from `lolly_ynh` to `lolly-work_ynh`. If you already
-run static Lolly, install Work on another domain, check sign-in and moving your
-projects across, and keep the original app until you are satisfied.
+run static Lolly, install Work on another domain and check sign-in and moving your
+projects across. Keep the original app until you are satisfied.
 
 Which package versions have passed their checks is recorded in
 [official installation routes](official-installations.md).
