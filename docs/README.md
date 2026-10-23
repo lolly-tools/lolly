@@ -14,6 +14,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | --- | --- |
 | Lolly: information and documentation | [site.md](site.md) |
 | Start | [quickstart.md](quickstart.md) |
+| What is Lolly? | [what-is-lolly.md](what-is-lolly.md) |
+| How Lolly works | [how-lolly-works.md](how-lolly-works.md) |
 | Make your first file | [make-something.md](make-something.md) |
 | Meet Lolly Demo | [lolly-demo.md](lolly-demo.md) |
 | Lolly Demo in use | [lolly-demo-in-use.md](lolly-demo-in-use.md) |
@@ -22,26 +24,30 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Install Lolly | [install.md](install.md) |
 | Supported environments | [supported-environments.md](supported-environments.md) |
 | Glossary | [glossary.md](glossary.md) |
-| About | [../README.md](../README.md) |
-| What is Lolly? | [what-is-lolly.md](what-is-lolly.md) |
 | Work status and roadmap | [work/status.md](work/status.md) |
+| About | [../README.md](../README.md) |
 
 ## Create
 
 | Guide | Source |
 | --- | --- |
-| Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
 | Create | [creators.md](creators.md) |
+| Using Lolly | [using.md](using.md) |
+| Design: the free canvas | [design.md](design.md) |
 | Share a design with rules | [create-a-tool.md](create-a-tool.md) |
 | Training courses | [training-creators.md](training-creators.md) |
-| Using Lolly | [using.md](using.md) |
 | Templates | [templates.md](templates.md) |
-| The Brand Studio | [brand-studio.md](brand-studio.md) |
+| Batch and Multi-edit | [batch.md](batch.md) |
+| Design System Setup | [brand-studio.md](brand-studio.md) |
 | Brand architectures | [brand-architectures.md](brand-architectures.md) |
 | 3D Studio | [3d-studio.md](3d-studio.md) |
-| Profiles | [profile.md](profile.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
 | Sync your devices | [sync.md](sync.md) |
+| Search | [search.md](search.md) |
+| Settings | [dashboard.md](dashboard.md) |
+| Profiles | [profile.md](profile.md) |
+| Ask Lolly | [ask.md](ask.md) |
+| Your favourites | [favourites.md](favourites.md) |
 | Import a design | [design-import.md](design-import.md) |
 | Layout in Design | [design-layout.md](design-layout.md) |
 | Darkroom | [darkroom.md](darkroom.md) |
@@ -56,11 +62,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Animating: keyframes, depth and a camera | [animating.md](animating.md) |
 | Rondocode songs | [rondocode.md](rondocode.md) |
 | Working together | [collaborate.md](collaborate.md) |
-| Search | [search.md](search.md) |
-| Ask Lolly | [ask.md](ask.md) |
-| The Dashboard | [dashboard.md](dashboard.md) |
+| Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
 | Utility views | [utilities.md](utilities.md) |
-| Your favourites | [favourites.md](favourites.md) |
 | Export a file | [exporting.md](exporting.md) |
 | How Lolly compares | [positioning.md](positioning.md) |
 | Lolly compared, tool by tool | [compare.md](compare.md) |

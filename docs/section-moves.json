@@ -1074,5 +1074,267 @@
       "anchor": "expert-controls",
       "label": "Expert controls"
     }
+  },
+  "using": {
+    "opening-a-tool": {
+      "slug": "using",
+      "anchor": "find-your-way-around",
+      "label": "Opening a tool"
+    },
+    "ask-lolly": {
+      "slug": "ask",
+      "anchor": "asking-a-question",
+      "label": "Ask Lolly"
+    },
+    "the-canvas-preview": {
+      "slug": "using",
+      "anchor": "zoom-and-pan-the-preview",
+      "label": "The canvas (preview)"
+    },
+    "the-free-canvas-design": {
+      "slug": "design",
+      "anchor": "the-design-window",
+      "label": "The free canvas (Design)"
+    },
+    "resize-scale-and-rotate": {
+      "slug": "design",
+      "anchor": "resize-scale-and-rotate",
+      "label": "Resize, scale and rotate"
+    },
+    "layers-and-inspector": {
+      "slug": "design",
+      "anchor": "the-navigator-and-the-inspector",
+      "label": "Layers and Inspector"
+    },
+    "drawing-your-own-shapes-the-pen": {
+      "slug": "design",
+      "anchor": "draw-your-own-shapes",
+      "label": "Drawing your own shapes (the pen)"
+    },
+    "combining-shapes-path-operations": {
+      "slug": "design",
+      "anchor": "combine-shapes",
+      "label": "Combining shapes (path operations)"
+    },
+    "3d-scenes": {
+      "slug": "design",
+      "anchor": "3d-scenes",
+      "label": "3D scenes"
+    },
+    "tools-inside-a-design": {
+      "slug": "design",
+      "anchor": "tools-inside-a-design",
+      "label": "Tools inside a design"
+    },
+    "timeline-sequence": {
+      "slug": "design",
+      "anchor": "timeline-sequence",
+      "label": "Timeline (Sequence)"
+    },
+    "presenting": {
+      "slug": "design",
+      "anchor": "presenting",
+      "label": "Presenting"
+    },
+    "live-pages-that-take-the-clicker": {
+      "slug": "design",
+      "anchor": "presenting",
+      "label": "Live pages that take the clicker"
+    },
+    "controls-inputs": {
+      "slug": "using",
+      "anchor": "change-what-the-tool-lets-you-change",
+      "label": "Controls (inputs)"
+    },
+    "your-details-headshot": {
+      "slug": "profile",
+      "anchor": "what-s-in-a-profile",
+      "label": "Your details & headshot"
+    },
+    "projects": {
+      "slug": "find-your-work",
+      "anchor": "find-something-you-saved",
+      "label": "Projects"
+    },
+    "live-camera-motion-reactive-tools": {
+      "slug": "using",
+      "anchor": "live-camera",
+      "label": "Live camera (motion-reactive tools)"
+    },
+    "my-images": {
+      "slug": "using",
+      "anchor": "assets-your-library",
+      "label": "My images"
+    },
+    "sound-accessibility": {
+      "slug": "using",
+      "anchor": "settings-sound-and-comfort",
+      "label": "Sound & accessibility"
+    },
+    "storage-privacy": {
+      "slug": "find-your-work",
+      "anchor": "if-you-clear-your-browser-data",
+      "label": "Storage & privacy"
+    },
+    "moving-to-another-device": {
+      "slug": "find-your-work",
+      "anchor": "move-your-work-to-another-device",
+      "label": "Moving to another device"
+    },
+    "batch-pro-mode": {
+      "slug": "batch",
+      "anchor": "make-many-versions-of-one-design",
+      "label": "Batch (Pro) mode"
+    },
+    "editing-side-by-side-multi-edit": {
+      "slug": "batch",
+      "anchor": "edit-several-saved-designs-together",
+      "label": "Editing side by side (Multi-edit)"
+    },
+    "offline-install": {
+      "slug": "dashboard",
+      "anchor": "available-offline",
+      "label": "Offline & install"
+    },
+    "importing-a-design-figma-penpot-illustrator-indesign": {
+      "slug": "design-import",
+      "anchor": "import-a-design-figma-penpot-illustrator-indesign",
+      "label": "Importing a design (Figma, Penpot, Illustrator, InDesign)"
+    },
+    "exporting": {
+      "slug": "exporting",
+      "anchor": "exporting-formats",
+      "label": "Exporting"
+    }
+  },
+  "profile": {
+    "a-profile-is-a-context-not-just-a-person": {
+      "slug": "profile",
+      "anchor": "you-a-team-or-a-role",
+      "label": "A profile is a context"
+    },
+    "as-an-individual": {
+      "slug": "profile",
+      "anchor": "you-a-team-or-a-role",
+      "label": "As an individual"
+    },
+    "as-a-function-a-role-you-wear-sometimes": {
+      "slug": "profile",
+      "anchor": "you-a-team-or-a-role",
+      "label": "As a function"
+    },
+    "one-install-one-active-profile-many-you-can-keep": {
+      "slug": "profile",
+      "anchor": "keep-several-use-one",
+      "label": "One install, one active profile"
+    },
+    "accessibility": {
+      "slug": "dashboard",
+      "anchor": "accessibility",
+      "label": "Accessibility"
+    },
+    "your-lolly-instance": {
+      "slug": "dashboard",
+      "anchor": "lolly-instance",
+      "label": "Your Lolly instance"
+    },
+    "available-offline": {
+      "slug": "dashboard",
+      "anchor": "available-offline",
+      "label": "Available offline"
+    },
+    "moving-a-profile-to-a-new-device": {
+      "slug": "find-your-work",
+      "anchor": "move-your-work-to-another-device",
+      "label": "Moving a profile to a new device"
+    },
+    "profile-vs-platform-vs-capabilities": {
+      "slug": "profile",
+      "anchor": "profile-design-system-and-capabilities",
+      "label": "Profile vs Platform vs Capabilities"
+    },
+    "profile-means-two-other-things-elsewhere-not-this-one": {
+      "slug": "profile",
+      "anchor": "profile-design-system-and-capabilities",
+      "label": "Profile means two other things"
+    }
+  },
+  "brand-studio": {
+    "the-expert-wings": {
+      "slug": "brand-studio",
+      "anchor": "the-expert-sections",
+      "label": "The expert wings"
+    },
+    "one-colour-a-whole-palette": {
+      "slug": "brand-studio",
+      "anchor": "find-more-colours",
+      "label": "One colour, a whole palette"
+    },
+    "build-the-palette-harmony-generator": {
+      "slug": "brand-studio",
+      "anchor": "find-more-colours",
+      "label": "Build the palette (harmony generator)"
+    },
+    "the-palette-the-chart-and-each-swatch": {
+      "slug": "brand-studio",
+      "anchor": "the-palette-and-each-swatch",
+      "label": "The palette, the chart and each swatch"
+    },
+    "take-the-palette-elsewhere": {
+      "slug": "using",
+      "anchor": "take-your-palette-and-fonts-anywhere",
+      "label": "Take the palette elsewhere"
+    },
+    "read-source-evidence": {
+      "slug": "brand-studio",
+      "anchor": "review-a-reference",
+      "label": "Read source evidence"
+    },
+    "when-the-brand-is-fixed": {
+      "slug": "brand-studio",
+      "anchor": "manage-your-design-systems",
+      "label": "When the brand is fixed"
+    },
+    "remove-a-local-design-system": {
+      "slug": "brand-studio",
+      "anchor": "removing-a-design-system",
+      "label": "Remove a local design system"
+    },
+    "check-a-composition-against-the-design-system": {
+      "slug": "design",
+      "anchor": "check-a-composition-against-the-design-system",
+      "label": "Check a composition against the design system"
+    },
+    "use-design-context-locally": {
+      "slug": "brand-studio",
+      "anchor": "use-design-context-outside-the-app",
+      "label": "Use design context locally"
+    }
+  },
+  "search": {
+    "where-it-lives": {
+      "slug": "search",
+      "anchor": "open-search",
+      "label": "Where it lives"
+    },
+    "what-it-doesn-t-do": {
+      "slug": "search",
+      "anchor": "limits",
+      "label": "What it doesn't do"
+    }
+  },
+  "ask": {
+    "what-it-is": {
+      "slug": "ask",
+      "anchor": "asking-a-question",
+      "label": "What it is"
+    }
+  },
+  "favourites": {
+    "this-is-local-not-part-of-the-design-system": {
+      "slug": "favourites",
+      "anchor": "your-favourites-stay-on-your-device",
+      "label": "This is local, not part of the design system"
+    }
   }
 }
