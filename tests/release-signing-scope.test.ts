@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import fs from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -116,6 +116,61 @@ test('native packaging jobs receive signed artifacts and signing jobs run no com
       assert.deepEqual(workflow.jobs.sign.needs, ['frontend', 'build']);
     }
   }
+});
+
+// The release signing secrets are environment secrets, never repository secrets. A job
+// can read one only by naming its gated environment, so no caller may pass one through
+// (a passed value would reach jobs the reviewer never sees) and no job may read the
+// whole secrets context. A new reader has to be added here on purpose.
+const SIGNING_SECRETS: Record<string, string> = {
+  LOLLY_CATALOG_SIGNING_KEY: 'release-catalog-signing',
+  IOS_DIST_CERT_P12: 'release-native-signing',
+  IOS_DIST_CERT_PASSWORD: 'release-native-signing',
+  IOS_APP_STORE_PROFILE: 'release-native-signing',
+  ASC_KEY_P8: 'release-native-signing',
+  ASC_KEY_ID: 'release-native-signing',
+  ASC_ISSUER_ID: 'release-native-signing',
+};
+
+test('release signing secrets reach only the jobs that name their gated environment', () => {
+  const directory = new URL('../.github/workflows/', import.meta.url);
+  const readers: string[] = [];
+  for (const file of readdirSync(directory).filter(name => /\.ya?ml$/.test(name)).sort()) {
+    const workflow = parse(readFileSync(new URL(file, directory), 'utf8'));
+    assert.doesNotMatch(JSON.stringify(workflow), /toJSON\(\s*secrets\s*\)|secrets\s*\[/, `${file} reads the secrets context dynamically`);
+    for (const name of Object.keys(SIGNING_SECRETS)) {
+      assert.doesNotMatch(JSON.stringify(workflow.env ?? {}), new RegExp(`\\bsecrets\\.${name}\\b`), `${file} sets ${name} for every job`);
+    }
+    for (const [id, job] of Object.entries<any>(workflow.jobs ?? {})) {
+      if (job.uses) {
+        assert.notEqual(job.secrets, 'inherit', `${file} ${id} passes every secret to ${job.uses}`);
+        for (const name of Object.keys(SIGNING_SECRETS)) {
+          assert.equal(job.secrets?.[name], undefined, `${file} ${id} passes ${name} to ${job.uses}`);
+        }
+      }
+      const environment = typeof job.environment === 'string' ? job.environment : job.environment?.name;
+      const text = JSON.stringify(job);
+      for (const [name, owner] of Object.entries(SIGNING_SECRETS)) {
+        if (!new RegExp(`\\bsecrets\\.${name}\\b`).test(text)) continue;
+        assert.equal(environment, owner, `${file} ${id} reads ${name} outside ${owner}`);
+        readers.push(`${file} ${id} ${name}`);
+      }
+    }
+  }
+  assert.deepEqual(readers, [
+    'ios-release.yml sign IOS_DIST_CERT_P12',
+    'ios-release.yml sign IOS_DIST_CERT_PASSWORD',
+    'ios-release.yml sign IOS_APP_STORE_PROFILE',
+    'ios-release.yml sign ASC_KEY_P8',
+    'ios-release.yml sign ASC_KEY_ID',
+    'ios-release.yml sign ASC_ISSUER_ID',
+    'release-frontend.yml source-catalog LOLLY_CATALOG_SIGNING_KEY',
+    'release-frontend.yml sign-artifact LOLLY_CATALOG_SIGNING_KEY',
+  ]);
+  // The reusable workflow keeps its declaration for compatibility, but a caller has
+  // nothing to provide: the environment secret is what the signing jobs read.
+  const reusable = parse(readFileSync(new URL('release-frontend.yml', directory), 'utf8'));
+  assert.equal(reusable.on.workflow_call.secrets.LOLLY_CATALOG_SIGNING_KEY.required, false);
 });
 
 // Virtual retained files exercise the real signer/reader without allocating a

@@ -33,7 +33,10 @@ Prepare release artifacts in separate jobs using `release-frontend.yml`:
 Configure `release-catalog-signing` with the approved reviewer list and source
 restrictions, disable bypass, and move the catalog key into that environment.
 Workflow declarations alone do not configure GitHub environment protection or
-remove existing repository secrets. A single approved reviewer from the list
+remove existing repository secrets. Callers of `release-frontend.yml` pass no
+secret: its two signing jobs name that environment and read the key from there.
+Keep no repository-level copy, because any workflow on any pushed branch can read
+a repository secret. A single approved reviewer from the list
 can approve each signing job. Signing jobs receive `LOLLY_CATALOG_SIGNING_KEY`
 (PKCS8 PEM or private JWK); other jobs receive only the matching public
 `VITE_CATALOG_PUBLIC_KEY_JWK`. Never put a private key in an image build argument,
