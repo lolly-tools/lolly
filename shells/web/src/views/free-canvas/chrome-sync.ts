@@ -13,16 +13,45 @@ import { ROTATE_STEM, anchorPoint, handleOutset, resizeCursorFor, smallObjectHan
 import { announce } from '../../a11y.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { HANDLES } from './shared.ts';
-import type { Bounds, HandleName, Metrics, Point, Rect } from './shared.ts';
+import type { Bounds, CanvasIndex, HandleName, Metrics, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 import { fieldFocusToken } from '../../lib/collab-field-focus.ts';
 
+/** How long the view rests after a pan or zoom before the full sync it put off. */
+export const VIEW_SETTLE_MS = 150;
+/** Above this many selected rows the per-row outlines are one path, not a div per row. */
+export const OUTLINE_CAP = 64;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+/** Ask for the full sync on the next frame. */
 export function scheduleSync(fc: FcCtx): void {
+  fc.syncFull = true;
+  requestSync(fc);
+}
+/**
+ * The view moved (a pan, a zoom, the stage resized) and nothing else did. The next frame
+ * then only follows the view (renderChromeView), unless something else asked for the
+ * full sync in the meantime. Once the view has rested for VIEW_SETTLE_MS, one full sync
+ * catches up on what the view-only frames left alone.
+ */
+export function scheduleViewSync(fc: FcCtx): void {
+  if (fc.disposed) return;
+  if (fc.viewSettleTimer) clearTimeout(fc.viewSettleTimer);
+  fc.viewSettleTimer = setTimeout(() => {
+    fc.viewSettleTimer = 0;
+    scheduleSync(fc);
+  }, VIEW_SETTLE_MS);
+  requestSync(fc);
+}
+function requestSync(fc: FcCtx): void {
   if (fc.syncScheduled || fc.disposed) return;
   fc.syncScheduled = true;
   requestAnimationFrame(() => {
     fc.syncScheduled = false;
-    if (!fc.gesture || fc.gesture.type === 'tap') renderChrome(fc);
+    const full = fc.syncFull;
+    fc.syncFull = false;
+    if (fc.gesture && fc.gesture.type !== 'tap') return;
+    if (full) renderChrome(fc);
+    else renderChromeView(fc);
   });
 }
 // During a gesture, reposition chrome from the live rects the gesture just wrote: the
@@ -79,6 +108,23 @@ export function renderChrome(fc: FcCtx): void {
   // pan/zoom, or edit (drops the selection if its edge/box has gone).
   if (fc.selectedEdges.size) fc.edges.refreshEdgeChrome();
   emitActiveArtboard(fc);
+}
+/**
+ * The sync for a view that moved while nothing else changed: what is drawn in stage
+ * pixels follows the view (outlines, handles, artboard titles, the scrim, rulers and
+ * guides, the context bar, text ports, a connector's highlight), and nothing that answers
+ * to the model or the selection runs. The accessibility stamps, the active artboard, the
+ * selection notice, the context bar's contents and the layout overlay's rebuild wait for
+ * the full sync `scheduleViewSync` queues once the view rests.
+ */
+export function renderChromeView(fc: FcCtx): void {
+  const boxes = fc.select.getBoxes();
+  if (fc.selection.size) fc.authoringGuides?.select(null);
+  fc.authoringGuides?.sync();
+  paintChrome(fc, boxes, null, true);
+  fc.storyFlowUi?.paint(true);
+  fc.layout?.follow();
+  if (fc.selectedEdges.size) fc.edges.refreshEdgeChrome();
 }
 export function notifyActiveArtboard(fc: FcCtx, id: string): void {
   const { artboardListeners } = fc;
@@ -162,7 +208,12 @@ export function positionFrameScrim(fc: FcCtx): void {
   frameScrim.style.width = wh.w * m.scale + 'px';
   frameScrim.style.height = wh.h * m.scale + 'px';
 }
-export function syncFrameLabels(fc: FcCtx, boxes: Box[]): void {
+/**
+ * The artboard title tabs. `boxes` is the active page's rows and `source` the whole
+ * array they came from. A `view` sync (the view moved, nothing else) reuses the frames
+ * the last full sync laid out for that same array, and only moves the tabs.
+ */
+export function syncFrameLabels(fc: FcCtx, boxes: Box[], source: Box[] = boxes, view = false): void {
   const { cfg, frameCfg, frameLabels, nameField } = fc;
   if (!frameCfg) return;
   if (fc.editing || fc.penDraft || fc.penEdit) {
@@ -170,17 +221,23 @@ export function syncFrameLabels(fc: FcCtx, boxes: Box[]): void {
     fc.frameLabelKey = '';
     return;
   }
+  const held = view && fc.frameLabelFrames?.source === source ? fc.frameLabelFrames.frames : null;
   const fk = frameCfg.frameKind;
   const of = frameCfg.orderField ?? '';
-  const frames = boxes
+  const frames = held ?? boxes
     .map((b, i) => ({ b, i }))
     .filter(({ b }) => String(b?.[cfg.kindField]) === fk)
     .sort(
       (a, c) => num(a.b?.[of]) - num(c.b?.[of]) || num(a.b?.[cfg.xField]) - num(c.b?.[cfg.xField])
     );
+  if (!held) fc.frameLabelFrames = { source, frames };
   if (!frames.length) {
     if (frameLabels.childElementCount) frameLabels.replaceChildren();
     fc.frameLabelKey = '';
+    return;
+  }
+  if (held) {
+    placeFrameLabels(fc, frames);
     return;
   }
   // The NAME is part of the key: a rename has to repaint the tab (plans/179 A10).
@@ -210,15 +267,25 @@ export function syncFrameLabels(fc: FcCtx, boxes: Box[]): void {
       })
     );
   }
+  placeFrameLabels(fc, frames);
+}
+/** Put each tab over its artboard's live rect (the model's when it has none). Every
+ *  rect is read before any tab moves, so the tabs cost one layout, not one each. */
+function placeFrameLabels(fc: FcCtx, frames: Array<{ b: Box; i: number }>): void {
+  const { cfg, frameLabels } = fc;
   const m = fc.stage.metrics();
   const kids = frameLabels.children;
+  const at = frames.map(({ b, i }, n): Point | null => {
+    if (!kids[n]) return null;
+    const live = fc.stage.liveBoxEl(fc.select.idOf(b, i))?.getBoundingClientRect();
+    return live?.width ? { x: live.left - m.sr.left, y: live.top - m.sr.top }
+      : fc.stage.nativeToStage(num(b[cfg.xField]), num(b[cfg.yField]), m);
+  });
   for (let n = 0; n < frames.length; n++) {
     const el = kids[n] as HTMLElement | undefined;
-    if (!el) continue;
+    const tl = at[n];
+    if (!el || !tl) continue;
     const fb = frames[n]!.b;
-    const live = fc.stage.liveBoxEl(fc.select.idOf(fb, frames[n]!.i))?.getBoundingClientRect();
-    const tl = live?.width ? { x: live.left - m.sr.left, y: live.top - m.sr.top }
-      : fc.stage.nativeToStage(num(fb[cfg.xField]), num(fb[cfg.yField]), m);
     const left = `${Math.round(tl.x)}px`;
     const top = `${Math.round(tl.y - 20)}px`;
     el.style.left = left;
@@ -377,15 +444,23 @@ export function chromeSet(fc: FcCtx, boxes: Box[]): ChromeSet {
   const proportional = handles && idx.length > 1 && !fc.scaleContent && fc.selectionTransform.proportional(boxes, idx);
   return { selected, shown, idx, handles, rotate, proportional };
 }
-export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect> | null): void {
+/**
+ * Draw the selection chrome. `view` is a sync for a view that moved and nothing else
+ * (renderChromeView): it moves what is drawn and skips what answers to the model or the
+ * selection, neither of which can have changed since the last full sync.
+ */
+export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect> | null, view = false): void {
   const { cfg, ctxbar, emptyHint, frameCfg, timeCfg, toolbar } = fc;
   // The one place a selection change is announced (see selListeners) - BEFORE the
   // text-edit / pen early returns, so a listener never misses a change made in
   // those modes. Inert (returns immediately) when nothing is listening.
-  fc.hierarchy?.retainSelection(boxes);
-  fc.select.notifySelection();
+  if (!view) {
+    fc.hierarchy?.retainSelection(boxes);
+    fc.select.notifySelection();
+  }
   fc.zones?.refresh(); // the grab zones measure the chrome afresh, and their cursor follows
-  syncFrameLabels(fc, fc.document?.pageBoxes?.(boxes) || boxes);
+  if (view && fc.frameLabelFrames?.source === boxes) syncFrameLabels(fc, boxes, boxes, true);
+  else syncFrameLabels(fc, fc.document?.pageBoxes?.(boxes) || boxes, boxes);
   // M2 - reposition the frame scrim only when the artboard geometry changed (pan/
   // zoom/resize set scrimDirty); a box drag/hover/selection change never moves it.
   const movedStage = fc.scrimDirty;
@@ -459,8 +534,8 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
       fc.penTool.paintPen();
       fc.penTool.syncPenChrome();
       fc.penTool.penCtxBar();
-      fc.keys.updateToolbarState(0);
-      syncBoxA11y(fc);
+      if (!view) fc.keys.updateToolbarState(0);
+      syncBoxA11y(fc, view);
       emptyHint.hidden = true;
       return;
     }
@@ -468,21 +543,27 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   if (fc.penChromeKey) fc.rail.clearPenChrome();
   fc.penTool.paintPen();
   // The readout still describes the selection (`shown`): one artboard reads as its place
-  // and size, not as the count of what Scale mode widened it to.
-  const { selected: selectedIndices, shown, idx, handles, rotate, proportional } = chromeSet(fc, boxes);
+  // and size, not as the count of what Scale mode widened it to. A view-only sync takes
+  // the set the full sync before it drew, for the same rows and the same selection.
+  const held = fc.chromeSetHeld;
+  const same = view && fc.chromeKey != null && held?.boxes === boxes && held.size === fc.selection.size && held.scale === fc.scaleContent;
+  const set = same ? held.set : chromeSet(fc, boxes);
+  if (!same) fc.chromeSetHeld = { boxes, size: fc.selection.size, scale: fc.scaleContent, set };
+  const { selected: selectedIndices, shown, idx, handles, rotate, proportional } = set;
   const m = fc.stage.metrics();
   // Gradient handles sit UNDER the selection chrome in z-order but are painted here
   // so they track the same pan/zoom sync (and self-exit if their box went away).
   // Gradient mode belongs to ONE box. If the selection moved on, leave the mode -
   // otherwise the ctx bar rebuilds for the new box while the Fill field and Delete
   // still write to the old one, which is silent, wrong, and very hard to spot.
-  if (fc.gradEdit != null && !(idx.length === 1 && fc.select.idOf(boxes[idx[0]!], idx[0]!) === fc.gradEdit)) {
+  if (!same && fc.gradEdit != null && !(idx.length === 1 && fc.select.idOf(boxes[idx[0]!], idx[0]!) === fc.gradEdit)) {
     fc.gradient.exitGradEdit();
     fc.ctxSelKey = '';
   }
   fc.gradient.paintGradChrome(boxes, m);
   // M1 - build the outline(s) + handles ONCE per selection set, then only reposition.
-  const key = idx.length
+  // A held set is the one the chrome was built for, so it skips the key as well.
+  const key = !same && idx.length
     ? idx
         .map((i) => fc.select.idOf(boxes[i], i))
         .sort()
@@ -492,7 +573,7 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   // unchanged set (the navigator's lock toggle), and Scale mode restyles the handles, so
   // all of them are part of the build key.
   const buildKey = key && `${key}|${handles ? 'h' : ''}${rotate ? 'r' : ''}${fc.scaleContent ? 's' : ''}${proportional ? 'p' : ''}`;
-  if (buildKey !== fc.chromeKey) {
+  if (!same && buildKey !== fc.chromeKey) {
     fc.chromeKey = buildKey;
     fc.chrome.toggleAttribute('data-scale', fc.scaleContent);
     fc.chrome.toggleAttribute('data-proportional', proportional);
@@ -504,8 +585,9 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
   // the model and left the swatch showing the colour that had just been undone, which is
   // the one state a colour control must never be in. The signature is the handful of
   // fields the bar actually paints, so an opacity drag or a text edit still costs nothing.
-  const ctxKey = idx.length ? `${key}|${fc.contextBar.ctxValueSig(boxes, selectedIndices)}` : '';
-  if (ctxKey !== fc.ctxSelKey) {
+  // Neither can change while only the view moves.
+  const ctxKey = !same && idx.length ? `${key}|${fc.contextBar.ctxValueSig(boxes, selectedIndices)}` : '';
+  if (!same && ctxKey !== fc.ctxSelKey) {
     fc.ctxSelKey = ctxKey;
     if (idx.length) fc.contextBar.rebuildCtxBar(boxes, selectedIndices);
     else {
@@ -521,9 +603,12 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
     const btn = ctxbar.querySelector<HTMLElement>('[data-cx="grad"]');
     if (btn) fc.gradient.openGradPanel(btn);
   }
-  if (idx.length) fc.keys.positionCtxBar(boxes, shown, liveRects, m);
+  // A view-only sync that found the held set stale has just done the full work above,
+  // and finishes it as a full sync would.
+  if (idx.length) fc.keys.positionCtxBar(boxes, shown, liveRects, m, same);
+  syncBoxA11y(fc, same);
+  if (same) return;
   fc.keys.updateToolbarState(selectedIndices.length);
-  syncBoxA11y(fc);
   // A doc holding only empty ARTBOARDS is still content-empty - keep inviting the
   // first card until a non-frame box exists (a blank Design now seeds Artboard 1).
   const hasContentBox = frameCfg
@@ -534,21 +619,50 @@ export function paintChrome(fc: FcCtx, boxes: Box[], liveRects: Map<number, Rect
 // Make each rendered card keyboard-focusable + labelled, and reflect selection state, so
 // keyboard users can Tab to a card (which selects it → every onKey action applies) and
 // screen readers announce it. The tool template owns the .lolly-box elements; we annotate
-// them here after each sync (fresh elements after a re-render arrive without the attrs).
-export function syncBoxA11y(fc: FcCtx): void {
-  const { canvasEl } = fc;
-  canvasEl.querySelectorAll<HTMLElement>('.lolly-box[data-box-id]').forEach((el) => {
-    const id = el.getAttribute('data-box-id') || '';
-    if (!el.hasAttribute('tabindex')) {
-      el.tabIndex = 0;
-      el.setAttribute('role', 'button');
-      const txt = (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 60);
-      el.setAttribute('aria-label', txt ? tRaw('Card: {text}', { text: txt }) : t('Card'));
-    }
-    const on = fc.selection.has(id);
+// them here (fresh elements after a re-render arrive without the attrs).
+//
+// The walk over every card runs once per PAINT: the first sync after one, whichever kind,
+// finds a new canvas index and stamps every card in the index. A paint that patches a card
+// in place drops the card's stamps with its other attributes, so the next walk labels the
+// card from its new text.
+// Between paints the cards cannot change, so a full sync only moves `aria-pressed` from
+// the cards that left the selection to the ones that joined it, and a view-only sync
+// does nothing. The attribute values are the ones the walk on every sync used to write:
+// exports read them (Penpot layer names, the HTML player).
+export function syncBoxA11y(fc: FcCtx, view = false): void {
+  const ix = fc.stage.canvasIndex();
+  if (ix !== fc.a11yIndex) {
+    fc.a11yIndex = ix;
+    fc.a11yPressed = new Set(fc.selection);
+    for (const el of ix.list) stampBoxA11y(fc, el);
+    return;
+  }
+  if (view) return;
+  const was = fc.a11yPressed;
+  let moved = false;
+  for (const id of was) if (!fc.selection.has(id)) { pressBoxA11y(ix, id, false); moved = true; }
+  for (const id of fc.selection) if (!was.has(id)) { pressBoxA11y(ix, id, true); moved = true; }
+  if (moved) fc.a11yPressed = new Set(fc.selection);
+}
+function stampBoxA11y(fc: FcCtx, el: HTMLElement): void {
+  const id = el.getAttribute('data-box-id') || '';
+  if (!el.hasAttribute('tabindex')) {
+    el.tabIndex = 0;
+    el.setAttribute('role', 'button');
+    const txt = (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+    el.setAttribute('aria-label', txt ? tRaw('Card: {text}', { text: txt }) : t('Card'));
+  }
+  const on = fc.selection.has(id);
+  if ((el.getAttribute('aria-pressed') === 'true') !== on)
+    el.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+/** Every card carrying `id` (an id can repeat), as the walk over all of them would. */
+function pressBoxA11y(ix: CanvasIndex, id: string, on: boolean): void {
+  const first = ix.boxes.get(id);
+  for (const el of first ? [first, ...(ix.repeats.get(id) ?? [])] : []) {
     if ((el.getAttribute('aria-pressed') === 'true') !== on)
       el.setAttribute('aria-pressed', on ? 'true' : 'false');
-  });
+  }
 }
 /** The order a set's handles are built in: the corners after the edges, so where the hit
  *  areas of a small set's handles overlap, the corner is on top and takes the press, and
@@ -559,13 +673,16 @@ const GROUP_HANDLES: readonly HandleName[] = ['n', 'e', 's', 'w', 'nw', 'ne', 's
 // are stored in chromeNodes so subsequent syncs reposition them without recreating
 // (or re-binding pointerdown). positionChrome fills in geometry. `allow.handles` false
 // (a locked row in the set) leaves outlines only; `allow.rotate` false (artboards
-// only) drops the rotate stem and handle.
+// only) drops the rotate stem and handle. Past OUTLINE_CAP rows (Select all on a large
+// document) the rows' outlines are one SVG path instead of a div each: the same line,
+// without thousands of nodes to build and five style writes each to move per frame.
 export function buildChrome(fc: FcCtx, count: number, allow = { handles: true, rotate: true }): void {
   const { chrome } = fc;
   chrome.innerHTML = '';
   const outlines: HTMLElement[] = [];
   const handles: HTMLElement[] = [];
   let groupOutline: HTMLElement | null = null;
+  let outlinePath: SVGPathElement | null = null;
   let stem: HTMLElement | null = null;
   let rot: HTMLElement | null = null;
   if (count === 1) {
@@ -590,6 +707,13 @@ export function buildChrome(fc: FcCtx, count: number, allow = { handles: true, r
       rot.addEventListener('pointerdown', (e) => fc.gestures.onHandlePointerDown(e, 'rotate'));
       chrome.appendChild(rot);
     }
+  } else if (count > OUTLINE_CAP) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'fc-outlines');
+    svg.setAttribute('aria-hidden', 'true');
+    outlinePath = document.createElementNS(SVG_NS, 'path');
+    svg.appendChild(outlinePath);
+    chrome.appendChild(svg);
   } else if (count > 1) {
     for (let k = 0; k < count; k++) {
       const o = document.createElement('div');
@@ -597,6 +721,8 @@ export function buildChrome(fc: FcCtx, count: number, allow = { handles: true, r
       outlines.push(o);
       chrome.appendChild(o);
     }
+  }
+  if (count > 1) {
     groupOutline = document.createElement('div');
     groupOutline.className = 'fc-outline fc-group-outline';
     chrome.appendChild(groupOutline);
@@ -618,7 +744,7 @@ export function buildChrome(fc: FcCtx, count: number, allow = { handles: true, r
       chrome.appendChild(rot);
     }
   }
-  fc.chromeNodes = { outlines, groupOutline, handles, stem, rot };
+  fc.chromeNodes = { outlines, outlinePath, groupOutline, handles, stem, rot };
 }
 /**
  * The rect the chrome for box `i` is drawn on: the live DOM rect mid-gesture (else
@@ -669,10 +795,12 @@ export function positionChrome(fc: FcCtx,
     ? aabbOfRects(fc, rects)
     : null;
   fc.authoringGuides?.setSelectionBounds(bounds);
-  for (let k = 0; k < idx.length; k++) {
+  if (nodes.outlinePath) nodes.outlinePath.setAttribute('d', outlinesPath(fc, rects, m));
+  else for (let k = 0; k < idx.length; k++) {
     const r = rects[k]!;
     const tl = fc.stage.nativeToStage(r.x, r.y, m);
-    const o = nodes.outlines[k]!;
+    const o = nodes.outlines[k];
+    if (!o) continue;
     o.style.left = tl.x + 'px';
     o.style.top = tl.y + 'px';
     o.style.width = r.w * m.scale + 'px';
@@ -684,6 +812,18 @@ export function positionChrome(fc: FcCtx,
   } else if (idx.length > 1) {
     positionGroupHandles(fc, bounds!, m);
   }
+}
+/** Every rect's outline as one path in stage px: its four corners, turned with the row. */
+function outlinesPath(fc: FcCtx, rects: Rect[], m: Metrics): string {
+  const { cfg } = fc;
+  const px = (v: number): number => Math.round(v * 100) / 100;
+  let d = '';
+  for (const r of rects) {
+    const [a, b, c, e] = boxCorners(fc.keys.rectAsBox(r), cfg).map((p: Point) => fc.stage.nativeToStage(p.x, p.y, m));
+    if (!a || !b || !c || !e) continue;
+    d += `M${px(a.x)} ${px(a.y)}L${px(b.x)} ${px(b.y)}L${px(c.x)} ${px(c.y)}L${px(e.x)} ${px(e.y)}Z`;
+  }
+  return d;
 }
 export function positionHandles(fc: FcCtx, r: Rect, m: Metrics): void {
   const { cfg } = fc;
@@ -874,8 +1014,10 @@ export function onGroupHandleDown(fc: FcCtx, e: PointerEvent, name: HandleName |
 export function chromeSyncOps(fc: FcCtx) {
   return {
     scheduleSync: bindOp(fc, scheduleSync),
+    scheduleViewSync: bindOp(fc, scheduleViewSync),
     renderChromeLive: bindOp(fc, renderChromeLive),
     renderChrome: bindOp(fc, renderChrome),
+    renderChromeView: bindOp(fc, renderChromeView),
     notifyActiveArtboard: bindOp(fc, notifyActiveArtboard),
     emitActiveArtboard: bindOp(fc, emitActiveArtboard),
     positionFrameScrim: bindOp(fc, positionFrameScrim),
