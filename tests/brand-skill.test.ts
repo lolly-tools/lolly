@@ -27,7 +27,7 @@ import {
   exportProfileBrandSkill, listProfileBrandSkills, profileBrandSkillFreshness, readProfileBrandSkill,
 } from '../packages/node-shell/src/brand-skills.ts';
 import { readProfileBriefCatalog, readProfileTokenDocument } from '../packages/node-shell/src/design-brief.ts';
-import { contentRoots, materializeInto } from '../packages/node-shell/src/content-roots.ts';
+import { contentRoots, isPublicSkillRow, materializeInto } from '../packages/node-shell/src/content-roots.ts';
 import { existsSync, readFileSync } from 'node:fs';
 
 const enc = (s: string): Uint8Array => new TextEncoder().encode(s);
@@ -111,6 +111,9 @@ test('the catalog record: valid, every field checked, index row and audience', (
   assert.ok(isPublicBrandSkillAsset(asset));
   assert.ok(!isPublicBrandSkillAsset({ ...asset, meta: { skill: { ...META, audience: 'internal' } } }));
   assert.ok(isPublicBrandSkillAsset({ id: 'acme/logo/a', type: 'vector' }));
+  // content-roots.ts keeps its own copy of the check (it imports no package), so the two agree here.
+  const rows: unknown[] = [asset, { ...asset, meta: { skill: { ...META, audience: 'internal' } } }, { ...asset, meta: {} }, { ...asset, meta: { skill: 'public' } }, { ...asset, meta: null }, { id: 'acme/logo/a', type: 'vector' }, null, 'skill'];
+  for (const row of rows) assert.equal(isPublicSkillRow(row), isPublicBrandSkillAsset(row), JSON.stringify(row));
 });
 
 test('which skills apply: the overall brand skill always, others by appliesTo', () => {
