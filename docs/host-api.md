@@ -1,4 +1,4 @@
-# Host API (HostV1)
+# Host API
 
 You are writing a tool's `hooks.js` and need something the template cannot do alone: read the person's profile, place a brand asset, shape a headline into outlines or hand back a finished file. Every hook receives one object, `host`, that does those jobs for you.
 
@@ -132,7 +132,7 @@ The host owns the renderer, so tools do not bundle their own. `render` turns the
 | `watermark` | On by default for experimental tools (never for on-device utilities); an explicit `false` turns it off |
 | `meta` / `embedMeta` | Provenance metadata (assembled for you; set `embedMeta:false` to skip; on-device utilities skip it automatically). An assembled `ExportMeta` can also carry `designSystem` (`{ id, label }`), `designVersion` and `themes` (`{ group, kind?, id, name }[]`), each present only when known; see the design-system record below |
 | `madeWith` | Whether the assembled `meta` records the design system and colourway that drew the export. Unset follows the runtime's switch (`runtime.setMadeWith()`, on by default; the export panel's **Design system** card, `_madewith=0` and `--no-madewith` set it); `false` leaves the record out of this one export. Ignored when the caller supplies its own `meta` |
-| `colorProfile` | ICC handling: `'srgb'` (default raster), `'none'` to skip embedding, or a CMYK press condition for `pdf-cmyk` |
+| `colorProfile` | ICC handling: `'srgb'` (default raster), `'none'` to skip embedding or a CMYK press condition for `pdf-cmyk` |
 | `filename` | Suggested output filename |
 | `thumbnail` | A hint that this is a low-fidelity preview, not the deliverable (skips provenance) |
 | `depth` | Requested bits per channel: `8`, `16`, `'float'` or `'auto'` (the default). A **request, not a promise**: depth follows provenance, so a deep container is never padded over an 8-bit render, and an unsupported request falls back to what the source really carries |
@@ -197,7 +197,7 @@ const leads = family.length >= 2 ? family.map((m) => m.value) : [];
 
 Put the leads ahead of the colours you would otherwise draw, never in their place. A design system with two colourways and no spectrum of its own still needs a full categorical palette, and two leads alone would repeat from the third series on. For chart series, prefer the brand's own `color.spectrum.*` tokens from `host.tokens.colors()` (they carry measured print inks), top up with [`host.color.distinct()`](#host-color) anchored on `{color.semantic.primary}` and keep your shipped palette as the fallback; `chart` is the reference.
 
-The web shell, the CLI and the hook Worker answer `family()` and `axes()` with the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A colourway or look switch re-points the slots without running `onInit`, so a hook that keeps colours it read there must read them again; [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) describes how.
+The web shell, the CLI and the hook Worker answer `family()` and `axes()` with the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A colourway or look switch re-points the slots without running `onInit`, so a hook that keeps colours it read there reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) describes. A hook can also compare `{color.semantic.primary}`, and any other slot it depends on, on each `onInput` and read again when the value changed, which catches an edit to the design system too. Chart, Mesh Gradient and Filter do both.
 
 ### `host.text`
 
@@ -237,7 +237,7 @@ Shape a text run and outline it into an SVG path with HarfBuzz, with correct ker
 | `inspect(bytes)` | `Promise<FontInspectionV1>` | TTF, OTF or WOFF. `container`, `outlines` (`truetype`, `cff`, `cff2`, `bitmap`, `none`), `family`, `style`, `fullName`, `version`, `postScriptName`, `glyphs`, `unitsPerEm`, `weight` (`value`, with `min`/`max` from a `wght` axis), `width`, `italic`, `axes`, named `instances`, `coverage` (`characters`, inclusive code point `ranges`, per-Unicode-block counts), `embedding` (the decoded `OS/2.fsType` and its raw value) and `subsetRefusal`. Rejects WOFF2, collections and anything unreadable |
 | `subset(bytes, { text })` | `Promise<{ bytes, report }>` | Keeps the glyphs `text` needs plus what they depend on, with glyph ids kept. Returns a TrueType sfnt (a WOFF source is unwrapped; deliver it as `.woff` to rewrap). `report` gives `characters`, `kept`, `missing`, `inputBytes`, `outputBytes`, `policy` and `fsType` |
 
-`subset` refuses before any work when the outlines are not TrueType (the pinned Skera build would drop a CFF table), when the font's own fsType says restricted licence embedding, no subsetting or bitmap embedding only, or when there is no OS/2 table to say anything. The rejection's `code` is the `subsetRefusal` value. Those flags are honoured, never bypassed, and the Skera runtime enforces the same rule for every caller. After subsetting, the output bytes are checked: TrueType outlines, every kept character still mapped to its original glyph with its outline present, and an unchanged fsType. Output that fails is refused. fsType is the only licence signal a font file carries and is not the licence, so a subset is not a rights grant.
+`subset` refuses before any work in three cases: the outlines are not TrueType (the pinned Skera build would drop a CFF table); the font's own fsType says restricted licence embedding, no subsetting or bitmap embedding only; or there is no OS/2 table to say anything. The rejection's `code` is the `subsetRefusal` value. Those flags are honoured, never bypassed, and the Skera runtime enforces the same rule for every caller. After subsetting, the output bytes are checked: TrueType outlines, every kept character still mapped to its original glyph with its outline present and an unchanged fsType. Output that fails is refused. fsType is the only licence signal a font file carries and is not the licence, so a subset is not a rights grant.
 :::
 
 ### `host.emoji`

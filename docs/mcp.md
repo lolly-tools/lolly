@@ -1,4 +1,4 @@
-# The Lolly MCP server
+# MCP Server
 
 Connect an AI assistant or an agent runtime to Lolly and it can make finished, on-brand files for you: a QR code, a badge, a chart or a slide deck, as SVG, PNG, PDF and more. Every answer comes with an editable link, so you can open the result in Lolly and adjust it by hand.
 
@@ -18,7 +18,7 @@ Each server draws with the design system of its own content profile. The public 
 
 ## Choose an endpoint
 
-Every endpoint offers the same tools. They differ in who can connect and which formats they can make, because only some run a headless browser.
+Every endpoint offers the same twenty-two tools. They differ in who can connect and which formats they can make, because only some run a headless browser.
 
 | Endpoint | Who can connect | What it makes |
 |---|---|---|
@@ -264,6 +264,8 @@ Use `layerOperations` to change the layer set itself. It supports strict stable-
 - **`{stage: 'inspect', plan}`** pages through a large plan's queue and slides without pulling the whole plan back.
 :::
 
+The agent skill's [Rebrand reference](/info/skills/lolly/reference/rebrand.md) walks an agent through the stages and the plan's fields.
+
 ### Read a deck, check a recreation
 
 When an agent rebuilds a deck in Design rather than renovating it with `lolly_rebrand`, three calls carry the work:
@@ -423,7 +425,7 @@ Held results are limited to 64 MiB per bearer, 256 MiB across the gateway and 20
 ### Budgets and rate limits
 
 ::: details The settings
-- **Daily budget.** `LOLLY_BUDGET_CPU_SECONDS_PER_DAY` and `LOLLY_BUDGET_EGRESS_MB_PER_DAY` set the ceilings. On a hosted server they default to 240 seconds of CPU and 1,024 MB of data sent per UTC day; `0` turns a ceiling off.
+- **Daily budget.** `LOLLY_BUDGET_CPU_SECONDS_PER_DAY` and `LOLLY_BUDGET_EGRESS_MB_PER_DAY` set the ceilings. On a hosted server (`NODE_ENV=production` or `LOLLY_MCP_HOSTED=1`) they default to 240 seconds of CPU and 1,024 MB of data sent per UTC day. Elsewhere they are off until you set them, and `0` turns a ceiling off.
 - **Rate.** `LOLLY_MCP_RPM` sets the calls a minute per caller: 60 on an open endpoint and 120 with a token, by default.
 - **PNG area.** `LOLLY_MCP_MAX_RASTER_PIXELS` sets the PNG area cap.
 - **Store.** The budget and the rate limits share one store: any Redis-compatible HTTPS REST store, set with `LOLLY_RATE_LIMIT_REST_URL` and `LOLLY_RATE_LIMIT_REST_TOKEN`.

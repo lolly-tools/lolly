@@ -3,7 +3,7 @@
 An AI agent can work inside a document you already have open. It reads the document, makes alternatives and edits alongside you and any other collaborators. You watch each change as it happens, the agent appears in People with its own name, and every edit it makes is one step in your history.
 
 ::: note Lolly Work has its own agent invitations
-This page covers Lolly's open-source agent relay, which any Lolly deployment can run. A Lolly Work instance invites agents under your Work identity instead, with its own expiry, audit and revocation; see [Invite an agent to a document](/info/work-document-agents.html).
+This page covers Lolly's open-source agent relay, which any Lolly deployment can run. A Lolly Work instance invites agents under your Work identity instead, with its own access level, expiry and revocation; see [Invite an agent to a document](/info/work-document-agents.html).
 :::
 
 There are four ways in:

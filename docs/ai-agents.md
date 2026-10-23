@@ -1,4 +1,4 @@
-# AI agents
+# AI Agents
 
 An AI agent is good at deciding what a file should say. Lolly is good at making that file look right, in your design system, the same way every time. The agent fills in a tool's inputs and Lolly draws the result, so layout, type and colour come from the tool and never drift.
 
@@ -9,7 +9,7 @@ There are four ways to connect an agent to Lolly, and you can mix them:
 ::: cols
 ## A link
 
-Every tool's settings fit in a URL. The agent writes the link and a person opens it to see the finished design, ready to export or edit. Nothing needs installing. See [URL Mode](/info/url-mode.html).
+A tool's settings fit in a URL. The agent writes the link and a person opens it to see the finished design, ready to export or edit. Nothing needs installing. See [URL Mode](/info/url-mode.html).
 
 ## The CLI
 
@@ -17,7 +17,7 @@ The same settings as `--name=value` flags, with the file written to disk. It run
 
 ## The MCP server
 
-The agent calls Lolly's tools itself and gets the file back with an editable link: from the open endpoint on lolly.tools, from a full endpoint with a token, or from a server on your own machine. See [MCP Server](/info/mcp.html).
+The agent calls Lolly's tools itself and gets the file back with an editable link: from the open endpoint on lolly.tools, from a full endpoint with a token or from a server on your own machine. See [MCP Server](/info/mcp.html).
 
 ## An open document
 
@@ -68,7 +68,7 @@ pnpm run cli qr-code   # prints inputs, defaults and supported formats
 pnpm run cli           # lists every available tool
 ```
 
-Feed that schema to the model so it only writes valid inputs. Anything that is not an input is a reserved parameter, such as `format`, `width` and `height`, or `export`. [Reserved URL parameters](/info/url-parameters.html) lists them all. Any name that starts with `_` is reserved too.
+Feed that schema to the model so it only writes valid inputs. Anything that is not an input is a reserved parameter, such as `format`, `export`, `width` and `height`. [Reserved URL parameters](/info/url-parameters.html) lists them all. Any name that starts with `_` is reserved too.
 
 ## Rules that save a round trip
 
@@ -92,7 +92,7 @@ A few more habits help:
 - **Use catalog assets, not uploads.** A picture someone uploaded lives on their device and cannot travel in a link. Reference catalog assets by id; the MCP resource `lolly://assets` lists them.
 - **One design, many outputs.** Change `format`, `unit` or `width` to get the same design as an SVG, a print PDF and a social MP4.
 - **Short links.** Some tools define short `urlKey` aliases and tilde-separated lists; see [Inputs in URLs](/info/url-inputs.html).
-- **Embed a render as an image.** `https://lolly.tools/tool/<id>.<ext>?<inputs>` with an image extension (`png`, `jpg`, `jpeg`, `webp`, `svg`, or animated `gif` and `apng`) drops into HTML as an `<img src>`. Inside the web app it renders on the device. On the open web, deployments that leave [hot-link render URLs](/info/mcp.html#hot-link-render-urls) switched on serve the browser-free formats for real, so the link works in a README or a wiki.
+- **Embed a render as an image.** `https://lolly.tools/tool/<id>.<ext>?<inputs>` with an image extension (`png`, `jpg`, `jpeg`, `webp` and `svg`, plus animated `gif` and `apng`) drops into HTML as an `<img src>`. Inside the web app it renders on the device. On the open web, deployments that leave [hot-link render URLs](/info/mcp.html#hot-link-render-urls) switched on serve the browser-free formats for real, so the link works in a README or a wiki.
 
 ## When a tool will not hand back a file
 
@@ -107,7 +107,7 @@ A few more habits help:
 | Quality | Layout, type and colour change from one attempt to the next | Fixed by the tool's author; a careless prompt cannot degrade them |
 | Cost | A brief and a generation run to thousands of tokens | A tool call or a link is a handful of tokens |
 | Repeatable | No two runs match | The same inputs give the same design; how far bytes match depends on the format ([byte-identical output](/info/cli-automation.html#how-far-byte-identical-output-goes)) |
-| Privacy | The brief goes to the model's provider | A link or the CLI runs on the device; a hosted MCP endpoint receives what you send it |
+| Privacy | The brief goes to the model's provider | A link or the CLI runs on the device; a hosted MCP endpoint receives what you send it ([Server Surface](/info/server-surface.html) lists each server and what it holds) |
 
 ## For machine readers
 
