@@ -306,3 +306,13 @@ test('a row can carry escaped supporting lines and a plain link, and the link is
   assert.equal(metaphorIcon('writing.score'), 'transcript');
   assert.equal(metaphorIcon('house-rule.0.align-left'), 'shapes');
 });
+
+test('a row link with a script or data scheme is left out', () => {
+  for (const href of ['javascript:alert(1)', 'data:text/html,x', '//evil.test/']) {
+    const html = preflightBodyHtml(preflightView(null, { ...CTX, additionalRows: [{
+      id: 'writing.score', tone: 'note', title: 'Writing signal', text: 'Signals were found.',
+      link: { label: 'Open', href, prepare: () => {} },
+    }] }));
+    assert.doesNotMatch(html, /preflight-finding-link/, href);
+  }
+});

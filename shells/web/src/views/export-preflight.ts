@@ -36,7 +36,7 @@
  * There is no currency, rate or price in this module, and none may be added.
  */
 import { t, tRaw } from '../i18n.ts';
-import { escape } from '../utils.ts';
+import { escape, safeHref } from '../utils.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { PREFLIGHT_FLAG, isFlagOnSync } from '../feature-flags.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
@@ -360,7 +360,8 @@ export function preflightBodyHtml(view: PreflightView): string {
         + `</span>`
         + `<span class="preflight-finding-text">${r.title ? `<span class="preflight-finding-title">${escape(r.title)}</span>` : ''}${escape(r.text)}`
         + (r.details?.length ? `<ul class="preflight-finding-details">${r.details.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>` : '')
-        + (r.link ? `<a class="preflight-finding-link" href="${escape(r.link.href)}" data-preflight-link="${escape(r.id)}">${escape(r.link.label)}</a>` : '')
+        // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated on the next line
+        + (r.link && safeHref(r.link.href) ? `<a class="preflight-finding-link" href="${escape(r.link.href)}" data-preflight-link="${escape(r.id)}">${escape(r.link.label)}</a>` : '')
         + `${r.action ? `<button type="button" class="btn preflight-fix" data-preflight-fix="${escape(r.id)}">${escape(r.action.label)}</button>` : ''}</span>`
         + `</li>`).join('')}</ul>`
     : '';
