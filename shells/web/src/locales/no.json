@@ -8034,5 +8034,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Ingen farger er låst til en eksakt trykkfarge ennå. Lås én fra en fargens trykkinnstilling i {start}.",
   "Ink and paper": "Blekk og papir",
   "Named colours": "Navngitte farger",
-  "Emphasis": "Utheving"
+  "Emphasis": "Utheving",
+  "Zoom to selection": "Zoom til utvalg"
 }

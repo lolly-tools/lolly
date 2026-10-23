@@ -11,11 +11,12 @@
  * per-canvas behaviour, not accidental duplication.
  *
  * Fit is content-aware (plan 179 C5). The mounting view may hand this controller two
- * rect providers - the union of the document's artboards, and the current selection's
- * AABB - and Fit then frames the WORK rather than the export box, while Shift+2 frames
- * the selection. Both providers are optional and may answer null, and in that state
- * every fit is byte-for-byte what it was before: a tool with no artboards cannot tell
- * the difference.
+ * rect providers - the union of the document's artboards and loose layers, and the
+ * current selection's AABB - and Fit then frames the WORK rather than the export box,
+ * while Shift+2 frames the selection. Both providers are optional and may answer null,
+ * and in that state every fit is byte-for-byte what it was before: a tool with no
+ * artboards cannot tell the difference. The content answer may also carry the page's
+ * whole extent, which lets a hand zoom out far enough to see all of a large page.
  */
 import { mountZoomHud } from '../components/zoom-hud.ts';
 import { stageBottomReserve, stageSideReserve } from '../lib/design-panel-layout.ts';
@@ -108,14 +109,23 @@ export interface Point { x: number; y: number; }
 /** A client-space rect, the shape both fit targets answer in. */
 export interface StageRect { x: number; y: number; w: number; h: number }
 /**
+ * The Fit-all target, which may also carry the page's whole extent: every visible layer on
+ * the current page, read from the model, artboard children included. That extent sets how
+ * far a hand may zoom out (see pageFloor). Absent, the floor is what it always was.
+ */
+export interface ContentRect extends StageRect { extent?: StageRect }
+/**
  * The two rects the stage can zoom to, supplied by whoever mounted the canvas (tool.ts
  * asks the free-canvas overlay for both). CLIENT coords, deliberately - see focusRect.
  * Absent, or answering null, means "this document has no such thing", and every fit
  * behaves exactly as it did before plan 179.
  */
 export interface StageNavOpts {
-  /** Union of every artboard page in the document; null when it has no artboards. */
-  contentRect?: () => StageRect | null;
+  /**
+   * What Fit all frames: every artboard page plus the loose layers on the pasteboard;
+   * null when there is nothing beyond the plain Fit to frame. May carry `extent`.
+   */
+  contentRect?: () => ContentRect | null;
   /** The current artboard. On compact touch screens Fit favours this over the
    * unreadably small union of every page. */
   activeRect?: () => StageRect | null;
@@ -178,7 +188,7 @@ export interface StageNav {
    */
   isUserZoomed(): boolean;
   sync(): void;
-  /** Fit: the canvas, then the artboard union on top of it when the document has one. */
+  /** Fit: the canvas, then the content union on top of it when the document has one. */
   fit(): void;
   /** Zoom to the current selection's AABB (Shift+2). No-op when nothing is selected. */
   fitSelection(): void;
@@ -186,8 +196,9 @@ export interface StageNav {
   /** Pan just enough to expose a native caret, preserving the person's zoom. */
   revealRect?(rect: StageRect, viewport: StageRect): void;
   /**
-   * Multiply the current zoom about the stage centre - the keyboard's `+`/`-` verb, so a
-   * button can spend it too. A MULTIPLIER (1.25 in, 0.8 out), not an absolute.
+   * Multiply the current zoom about the stage centre - the zoom buttons' verb (the `+`/`-`
+   * keys spend the same step about the pointer). A MULTIPLIER (1.25 in, 0.8 out), not an
+   * absolute.
    */
   zoomBy(factor: number): void;
   /**
@@ -248,7 +259,11 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   // then differs from the canvas only by fitCanvas's gutter), and a transform for a <5%
   // move would make isZoomed() true for nothing.
   const FIT_SNAP = 0.05;
-  const FIT_FLOOR = 0.05;         // hard stop on how far a computed fit may widen the zoom-out floor
+  const FIT_FLOOR = 0.05;         // a fit-multiplier: 5% of the plain Fit scale, not of native pixels
+  const ABS_FLOOR = 0.02;         // 2% of native pixels, the far end of the zoom-out range
+  // How far out the whole page may go before the floor stops it: until its model extent
+  // fills half of the visible band, so a large document is seen whole with room to spare.
+  const PAGE_MARGIN = 0.5;
   let scale = 1, tx = 0, ty = 0;
   let suspensions = 0, pendingFit = false, pendingApply = false, destroyed = false;
   let originX = 0, originY = 0;   // outer's natural (untransformed) top-left, client coords
@@ -264,6 +279,12 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   let contentFit = false;
   // Zoom-out floor widened by the last Fit-all, as a fit-multiplier. 1 = no widening.
   let contentFloor = 1;
+  // The page floor (see pageFloor) held for one wheel burst or one touch pinch, so a
+  // gesture asks the overlay for the page extent once rather than on every event.
+  let heldPageFloor: number | null = null;
+  // Where a mouse or pen last rested over the stage itself (not over a floating panel),
+  // in client coords; null once it leaves. The + and - keys zoom about this point.
+  let hoverPt: Point | null = null;
 
   // transform-origin must be the top-left for the focal-point math below to hold
   // (CSS defaults to centre). fitCanvas never sets a transform on the outer wrapper.
@@ -402,6 +423,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     burstBox = null;
     burstOuter = null;
     burstFitW = 0;
+    heldPageFloor = null;
     if (burstTimer !== null) { clearTimeout(burstTimer); burstTimer = null; }
   }
   // Wheel events carry no "end": hold for the burst and release once it goes quiet.
@@ -444,11 +466,48 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   // deck's Fit-all would clamp at 20% of native and cut the last slide in half - i.e. the
   // rule would forbid the view it just calculated. Read from a cached value, not by
   // re-measuring the artboards, so a wheel tick stays free of DOM work.
+  //
+  // `pageFloor` is the third carve-out: a large document may be zoomed out by hand until
+  // its whole page is in view, however far below MIN_ABS that is, down to the hard stop.
   function minScale(): number {
     const fw = fitWidth();
     if (!(fw > 0)) return 1;
     const fitAbs = fw / nativeW;   // absolute zoom the Fit view shows
-    return Math.min(1, contentFloor, MIN_ABS / fitAbs);
+    return Math.min(1, contentFloor, MIN_ABS / fitAbs, pageFloor());
+  }
+
+  // The hard stop, as a fit-multiplier: the lower of FIT_FLOOR (5% of the plain Fit) and
+  // ABS_FLOOR (2% of native pixels). Taking the lower keeps every view the old stop allowed.
+  function hardFloor(): number {
+    const fw = fitWidth();
+    return fw > 0 ? Math.min(FIT_FLOOR, ABS_FLOOR / (fw / nativeW)) : FIT_FLOOR;
+  }
+
+  /**
+   * The zoom at which the page's whole model extent fills PAGE_MARGIN of the visible
+   * band, as a fit-multiplier, never below the hard stop. Infinity (no carve-out) when the
+   * mounting view reports no extent: every tool but the Design editor, and a Design
+   * document with no artboards and nothing outside its export box. Those keep exactly the
+   * floor they always had. On a small page MIN_ABS is usually the lower of the two.
+   *
+   * The extent rides on the content answer (`ContentRect.extent`) in client coords at the
+   * current transform, so its size at Fit is that size over `scale`. A wheel burst or a
+   * touch pinch asks once and holds the answer until the gesture ends.
+   */
+  function pageFloor(): number {
+    const held = burstHeld || pts.size >= 2;
+    if (!held) heldPageFloor = null;
+    else if (heldPageFloor !== null) return heldPageFloor;
+    let floor = Number.POSITIVE_INFINITY;
+    const e = opts?.contentRect?.()?.extent;
+    if (e && e.w > 0 && e.h > 0) {
+      const sr = burstBox ?? stageBox();
+      if (sr.width > 0 && sr.height > 0) {
+        floor = Math.max(hardFloor(), PAGE_MARGIN * Math.min(sr.width / (e.w / scale), sr.height / (e.h / scale)));
+      }
+    }
+    if (held) heldPageFloor = floor;
+    return floor;
   }
 
   // Zoom-IN ceiling as a fit-multiplier - the `scale` that renders at MAX_ABS× native
@@ -469,13 +528,13 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   /**
    * Fit the WORK, not the canvas (plan 179 C5).
    *
-   * `r` is the union of the document's artboard pages in CLIENT coords, measured at the
-   * plain fit that has just been applied. A slide deck lays its artboards out side by
-   * side on the pasteboard, so that union is several times the 1920×1080 export box: Fit
-   * used to frame the box and leave slides 2 and 3 off-screen with nothing saying they
-   * existed. Framing the union instead makes "every artboard is visible" the thing Fit
-   * guarantees, and it cuts both ways - a document whose artboards are SMALLER than the
-   * canvas zooms in on them rather than showing acres of empty pasteboard.
+   * `r` is the union of the document's artboard pages and loose layers in CLIENT coords,
+   * measured at the plain fit that has just been applied. A slide deck lays its artboards
+   * out side by side on the pasteboard, so that union is several times the 1920×1080
+   * export box: Fit used to frame the box and leave slides 2 and 3 off-screen with nothing
+   * saying they existed. Framing the union instead makes "every artboard is visible" the
+   * thing Fit guarantees, and it cuts both ways - a document whose artboards are SMALLER
+   * than the canvas zooms in on them rather than showing acres of empty pasteboard.
    *
    * Not applied when the answer is within FIT_SNAP of the plain fit: the overwhelmingly
    * common single-artboard-is-the-export-frame document keeps exactly the fit it had.
@@ -486,7 +545,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     const want = FIT_MARGIN * Math.min(sr.width / r.w, sr.height / r.h);
     if (!(want > 0) || Math.abs(want - 1) <= FIT_SNAP) return;
     // Widen the zoom-out floor BEFORE focusRect clamps against it (see minScale).
-    contentFloor = Math.min(1, Math.max(scale * want, FIT_FLOOR));
+    contentFloor = Math.min(1, Math.max(scale * want, hardFloor()));
     focusRect(r.x, r.y, r.w, r.h, FIT_MARGIN);
     contentFit = true;             // focusRect cleared it; this framing is a fit, not a gesture
   }
@@ -536,8 +595,20 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     return { x: (sr.left + sr.right) / 2, y: (sr.top + sr.bottom) / 2 };
   }
 
-  // Multiply the current zoom about the stage centre - the `+`/`-` keys' verb, exported so
-  // a button (the Design top bar's ± pair) spends the same one.
+  // The point the `+` and `-` keys zoom about: the pointer while it rests over the visible
+  // band of the stage, as a wheel zoom does, and the band's centre otherwise (no pointer,
+  // a pointer over a docked column or the top bar, or a keyboard-only session).
+  function keyZoomPoint(): Point {
+    if (hoverPt) {
+      const sr = stageBox();
+      if (hoverPt.x >= sr.left && hoverPt.x <= sr.right && hoverPt.y >= sr.top && hoverPt.y <= sr.bottom) return hoverPt;
+    }
+    return stageCentre();
+  }
+
+  // Multiply the current zoom about the stage centre - the zoom buttons' verb, exported so
+  // a button (the Design top bar's ± pair) zooms about the centre rather than the pointer
+  // resting on the button.
   function zoomBy(factor: number): void {
     const c = stageCentre();
     zoomAbout(factor, c.x, c.y);
@@ -602,6 +673,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       pinchDist = dist(a!, b!);
       lastMid   = mid(a!, b!);
       panPt     = null;
+      heldPageFloor = null;        // a new pinch measures the page afresh
     } else if (pts.size === 1) {
       panPt = { x, y };
       if (tapAt !== null) tapAtTime(tapAt);
@@ -737,12 +809,15 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // '@' on a US layout and something else on every other, while Digit1/Digit2 name the
     // physical key on all of them. The bare keys above stay on `key` - they are unshifted,
     // so the two readings agree there, and the existing bindings are not worth churning.
+    // Shift+0 is 100% on the same terms (Figma's chord). On a layout where Shift+0 types
+    // '0' or '=' this takes precedence over those bare readings, exactly as Shift+1 does.
     if (e.shiftKey && e.code === 'Digit1')   fit();                                              // Fit all
     else if (e.shiftKey && e.code === 'Digit2') fitSelection();                                  // Zoom to selection
+    else if (e.shiftKey && e.code === 'Digit0') zoomActual();                                    // 100%
     else if (e.key === '0')                  fit();                                              // Fit
     else if (e.key === '1')                  zoomActual();                                       // 100%
-    else if (e.key === '+' || e.key === '=') { const c = stageCentre(); zoomAbout(1.25, c.x, c.y); }
-    else if (e.key === '-' || e.key === '_') { const c = stageCentre(); zoomAbout(0.8,  c.x, c.y); }
+    else if (e.key === '+' || e.key === '=') { const c = keyZoomPoint(); zoomAbout(1.25, c.x, c.y); }
+    else if (e.key === '-' || e.key === '_') { const c = keyZoomPoint(); zoomAbout(0.8,  c.x, c.y); }
     else return;
     e.preventDefault();
   };
@@ -1107,6 +1182,14 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     };
     stageEl.addEventListener('pointerup', endMouse);
     stageEl.addEventListener('pointercancel', endMouse);
+
+    // Remember where the pointer rests for the + and - keys (keyZoomPoint). A pointer over
+    // a menu or panel that floats on the stage is not pointing at the artwork.
+    stageEl.addEventListener('pointermove', e => {
+      if (e.pointerType === 'touch') return;
+      hoverPt = (e.target as Element | null)?.closest?.(STAGE_FLOATING_SURFACES) ? null : { x: e.clientX, y: e.clientY };
+    });
+    stageEl.addEventListener('pointerleave', () => { hoverPt = null; });
 
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);

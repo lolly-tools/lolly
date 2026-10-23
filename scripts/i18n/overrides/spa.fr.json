@@ -1689,5 +1689,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Aucune couleur n’est encore verrouillée sur une encre exacte. Verrouille-en une depuis le réglage d’impression d’une couleur dans {start}.",
   "Ink and paper": "Encre et papier",
   "Named colours": "Couleurs nommées",
-  "Emphasis": "Accentuation"
+  "Emphasis": "Accentuation",
+  "Zoom to selection": "Zoomer sur la sélection"
 }
