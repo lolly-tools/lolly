@@ -309,6 +309,7 @@ const BRIDGE_WRITTEN: Record<string, string> = {
   'CMYK TIFF:exif': 'encodeCmykTiff writes the CMYK TIFF tags in shells/web/src/bridge/export.ts, not the engine packTiff',
   'Animated SVG:dc': 'the animated writer builds its own Dublin Core block in shells/web/src/lib/svg-anim-core.ts',
   'ICS:prodid': 'PRODID comes from the calendar tools own template and hooks (meeting-planner, calendar-ics), not an engine writer',
+  'AAC:id3': 'mediabunny\'s ADTS muxer writes the ID3v2 tag from buildAudioTags (shells/web/src/lib/audio-tags.ts), driven by shells/web/src/lib/audio-encode.ts',
 };
 
 /** Register token → the format string embedC2pa takes. Checked against the
@@ -320,6 +321,7 @@ const C2PA_FORMAT_OF: Record<string, string> = {
   WEBP: 'webp', 'Animated WebP': 'webp',
   GIF: 'gif', TIFF: 'tiff', 'CMYK TIFF': 'cmyk-tiff', AVIF: 'avif',
   MP4: 'mp4', WEBM: 'webm', M4A: 'm4a', MP3: 'mp3', WAV: 'wav', Opus: 'opus',
+  OGG: 'ogg', FLAC: 'flac',
   HTML: 'html', MD: 'md',
 };
 

@@ -6,7 +6,7 @@ window.__lollyChipField=function(canvas,opt){
   // every format the catalog says Lolly can WRITE. Not a hand list: the last one was
   // written when Lolly exported 27 formats and was still claiming 27 long after the
   // real answer had passed 40, because nothing failed when it fell behind.
-  var exts=[".SVG",".PDF",".PNG",".JPG",".WEBP",".GIF",".TIFF",".AVIF",".JXL",".PSD",".MP4",".WEBM",".MP3",".M4A",".PPTX",".SCORM",".CSV",".JSON",".PENPOT",".INDESIGN",".LOTTIE",".WAV",".OPUS",".EPS",".EMF",".DXF",".EXR",".ICO",".APNG",".HTML",".MD",".TXT",".ICS",".VCF",".SRT",".VTT",".DTCG",".ASE",".GPL",".SCSS",".ZIP",".SVGZ",".BMP",".WMF",".WOFF",".TTF",".OTF",".DOCX",".ODT",".GZ",".TAR"];
+  var exts=[".SVG",".PDF",".PNG",".JPG",".WEBP",".GIF",".TIFF",".AVIF",".JXL",".PSD",".MP4",".WEBM",".MP3",".M4A",".AAC",".PPTX",".SCORM",".CSV",".JSON",".PENPOT",".INDESIGN",".LOTTIE",".WAV",".OPUS",".OGG",".FLAC",".EPS",".EMF",".DXF",".EXR",".ICO",".APNG",".HTML",".MD",".TXT",".ICS",".VCF",".SRT",".VTT",".DTCG",".ASE",".GPL",".SCSS",".ZIP",".SVGZ",".BMP",".WMF",".WOFF",".TTF",".OTF",".DOCX",".ODT",".GZ",".TAR",".RPM"];
   // Headline formats appear ~2x as often as the rest: listing them again weights
   // them double in the pick pool (each favored ext is in the pool twice).
   var extPool=exts.concat(['.PDF','.SVG','.PNG','.MP4','.PPTX']);

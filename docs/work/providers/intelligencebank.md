@@ -58,7 +58,7 @@ A `login <status>` error means the platform URL or the API key is wrong.
   link come from IntelligenceBank's documentation.
   [Check a source on your own tenant](tenant-check.md#intelligencebank) lists what to look at.
   Contributors changing the driver follow its
-  [maintainer runbook](intelligencebank-live-verify.md) in the Lolly Work repository.
+  [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/intelligencebank.md) in the Lolly Work repository.
 - **v3 Graph API only.** Nothing uses the deprecated v2 resource endpoints. The one v2-named call
   is the login, which IntelligenceBank defines as the way to sign in to v3.
 - **Pinned hosts.** The discovered v3 address and every download are pinned to the

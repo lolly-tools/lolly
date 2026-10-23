@@ -244,5 +244,6 @@ contract, so a driver change that outruns its guide fails CI there. It checks th
 - every DAM kind has an `## Off-boarding` section and a row in [Leave a DAM](../offboarding.md);
 - every `lw` command on any page exists in `cli/lw.ts`, with `lw providers auth <id>` allowed
   only for a kind `oauthFlowFor` registers a consent flow for;
-- every driver hardened for a tenant check has the maintainer runbook its error messages name.
+- every driver hardened for a tenant check has the maintainer runbook its error messages name,
+  kept beside the drivers in `server/src/catalog/providers/live-verify/`.
 :::

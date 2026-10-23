@@ -173,7 +173,7 @@ lw providers preview --kind webdav --shape --options '{"baseUrl":"https://cloud.
   response layout come from RFC 4918 and Nextcloud's documentation, so treat the first sync as
   the check. [Check a source on your own tenant](tenant-check.md#webdav-nextcloud) lists what to
   look at. Contributors changing the driver follow its
-  [maintainer runbook](webdav-live-verify.md) in the Lolly Work repository.
+  [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/webdav.md) in the Lolly Work repository.
 - **No search, thumbnails or expiring links.** Nextcloud's SEARCH method is not used and there
   is no rendition endpoint. Files stream through Work on each request.
 - **A rename arrives as a new file.** The catalog id is the file's path under the root, so

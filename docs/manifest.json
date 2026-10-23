@@ -2775,6 +2775,22 @@
         "work-provider-intelligencebank-live-verify",
         "work-provider-acquia-dam-live-verify"
       ],
+      "aliasAnchors": {
+        "operate/provider-cloudinary-live-verify": "cloudinary",
+        "operate/provider-orange-logic-live-verify": "orange-logic",
+        "operate/provider-webdav-live-verify": "webdav-nextcloud",
+        "operate/provider-canto-live-verify": "canto",
+        "operate/provider-imagerelay-live-verify": "image-relay",
+        "operate/provider-intelligencebank-live-verify": "intelligencebank",
+        "operate/provider-acquia-dam-live-verify": "acquia-dam-widen",
+        "work-provider-cloudinary-live-verify": "cloudinary",
+        "work-provider-orange-logic-live-verify": "orange-logic",
+        "work-provider-webdav-live-verify": "webdav-nextcloud",
+        "work-provider-canto-live-verify": "canto",
+        "work-provider-imagerelay-live-verify": "image-relay",
+        "work-provider-intelligencebank-live-verify": "intelligencebank",
+        "work-provider-acquia-dam-live-verify": "acquia-dam-widen"
+      },
       "contentLicense": "MPL-2.0",
       "description": "Before you rely on a source built from vendor documentation, confirm its fields, its original files and who sees them on your own tenant.",
       "work": {
@@ -3204,11 +3220,6 @@
         "sha256": "37ce446c9a757a267b330db6b884d3b3a0d3c8f6c8691ab42164a0a2e6602a06",
         "originalPath": "docs/providers/README.md"
       },
-      "providers/acquia-dam-live-verify.md": {
-        "source": "work/providers/acquia-dam-live-verify.md",
-        "sha256": "68d6c2921fbcfdcc5bea5b9738b5171c059362cd3bd2f42634b8a0d8b6f3ffd9",
-        "originalPath": "docs/providers/acquia-dam-live-verify.md"
-      },
       "providers/acquia-dam.md": {
         "source": "work/providers/acquia-dam.md",
         "sha256": "eda5242559259b0f0488c361f579fd04aecf9279bc91365c7a35a01828b8d5e3",
@@ -3219,20 +3230,10 @@
         "sha256": "42abeca57e9bf11d6607655275be8d3cc2aab6ae6f07f220ef5163edfab34097",
         "originalPath": "docs/providers/brandfolder.md"
       },
-      "providers/canto-live-verify.md": {
-        "source": "work/providers/canto-live-verify.md",
-        "sha256": "3d1d3cc84198bfc5b80b8e11136737028a8039e6d5e530f09131c6dceb0fa23e",
-        "originalPath": "docs/providers/canto-live-verify.md"
-      },
       "providers/canto.md": {
         "source": "work/providers/canto.md",
         "sha256": "5b8faecc177df8aca574b94a13b6242010c6b767fefe2f1de2a40955916318ad",
         "originalPath": "docs/providers/canto.md"
-      },
-      "providers/cloudinary-live-verify.md": {
-        "source": "work/providers/cloudinary-live-verify.md",
-        "sha256": "bdd17dc27815c596b55a57a526f58590125a3450d4a246262652c6060e7116ef",
-        "originalPath": "docs/providers/cloudinary-live-verify.md"
       },
       "providers/cloudinary.md": {
         "source": "work/providers/cloudinary.md",
@@ -3254,20 +3255,10 @@
         "sha256": "432e9e4fe90ca9a03d5ee6e681285ffd13a9ff7841cf5009d90100d17d61f70d",
         "originalPath": "docs/providers/git.md"
       },
-      "providers/imagerelay-live-verify.md": {
-        "source": "work/providers/imagerelay-live-verify.md",
-        "sha256": "ded0ed96fdcd38578cd4a21ff357d55d5b19cdfecbab167158450c28f204ae4b",
-        "originalPath": "docs/providers/imagerelay-live-verify.md"
-      },
       "providers/imagerelay.md": {
         "source": "work/providers/imagerelay.md",
         "sha256": "b0a94fe19246897dcca87c3e030dba925732e0b54f1c0d630d77b8bc718164cd",
         "originalPath": "docs/providers/imagerelay.md"
-      },
-      "providers/intelligencebank-live-verify.md": {
-        "source": "work/providers/intelligencebank-live-verify.md",
-        "sha256": "69b9d1e04250e0afbbd5e5dfdb1e8b3946d1fd7cc874d6051069e4e0e287dc45",
-        "originalPath": "docs/providers/intelligencebank-live-verify.md"
       },
       "providers/intelligencebank.md": {
         "source": "work/providers/intelligencebank.md",
@@ -3284,11 +3275,6 @@
         "sha256": "79fe39cc2d7a36a547702375d74a10e2a031ea8c0c4e4089e4da000d2feb7d65",
         "originalPath": "docs/providers/optimizely-cmp.md"
       },
-      "providers/orange-logic-live-verify.md": {
-        "source": "work/providers/orange-logic-live-verify.md",
-        "sha256": "4bf86957169acccbeffbda717a8c9152c72a56eb544bdb5924721e638df5ead9",
-        "originalPath": "docs/providers/orange-logic-live-verify.md"
-      },
       "providers/orange-logic.md": {
         "source": "work/providers/orange-logic.md",
         "sha256": "01dedad80d599dd08cb6babec5f96dbf69904377f9fa5a6cc9de0fd43767c22c",
@@ -3303,11 +3289,6 @@
         "source": "work/providers/s3.md",
         "sha256": "25dd8bcd8b8cfdeddebbd86341aa9932d88465df561ae849778e6226ba8ca17e",
         "originalPath": "docs/providers/s3.md"
-      },
-      "providers/webdav-live-verify.md": {
-        "source": "work/providers/webdav-live-verify.md",
-        "sha256": "1576186a34f028e9e74727394d09320eb8197cdd4cbbcb2474666d1f9cf3a037",
-        "originalPath": "docs/providers/webdav-live-verify.md"
       },
       "providers/webdav.md": {
         "source": "work/providers/webdav.md",

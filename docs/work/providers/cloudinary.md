@@ -92,7 +92,7 @@ lw providers enable cloud-media
 The credential prompt is hidden. Shape reports hold field names and types, never values. Check
 the mapped sample, groups and source scope before enabling, then run the
 [Cloudinary check](tenant-check.md#cloudinary), including original checksums and private files.
-Contributors changing the driver follow its [maintainer runbook](cloudinary-live-verify.md) in
+Contributors changing the driver follow its [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/cloudinary.md) in
 the Lolly Work repository.
 
 ## Notes / limits

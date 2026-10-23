@@ -364,6 +364,27 @@
       }
     },
     {
+      "token": "AAC",
+      "name": "AAC",
+      "category": "Audio",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "audio",
+        "lossy"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "id3"
+        ],
+        "preserves": "none",
+        "note": "When export metadata is on, title, artist and comment travel in an ID3v2 tag at the head of the stream. No Content Credential: ADTS has no container to hold one."
+      }
+    },
+    {
       "token": "PPTX",
       "name": "PPTX",
       "category": "Document",
@@ -694,36 +715,44 @@
       "token": "OGG",
       "name": "OGG",
       "category": "Audio",
-      "dir": "in",
+      "dir": "both",
       "reads": true,
-      "writes": false,
-      "roundTrips": false,
+      "writes": true,
+      "roundTrips": true,
       "features": [
         "audio",
-        "lossy"
+        "lossy",
+        "provenance"
       ],
       "metadata": {
         "reads": [],
-        "writes": [],
-        "preserves": "n/a"
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Title, artist and comment are written as Vorbis comments. The credential travels in the OpusTags comment header, which Lolly's own verifier reads."
       }
     },
     {
       "token": "FLAC",
       "name": "FLAC",
       "category": "Audio",
-      "dir": "in",
+      "dir": "both",
       "reads": true,
-      "writes": false,
-      "roundTrips": false,
+      "writes": true,
+      "roundTrips": true,
       "features": [
         "audio",
-        "lossless"
+        "lossless",
+        "provenance"
       ],
       "metadata": {
         "reads": [],
-        "writes": [],
-        "preserves": "n/a"
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Title, artist and comment are written as a Vorbis comment block. The credential rides in an APPLICATION metadata block, which Lolly's own verifier reads."
       }
     },
     {
@@ -1577,6 +1606,25 @@
         "writes": [],
         "preserves": "none",
         "note": "USTAR headers keep each member name, mode and timestamp; the archive holds no descriptive metadata."
+      }
+    },
+    {
+      "token": "RPM",
+      "name": "RPM",
+      "category": "Bundle",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "multi-file-bundle",
+        "compression"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The package header carries the name, version, summary, licence, vendor and URL you enter. That is package metadata, not a document metadata standard, so no field above is claimed."
       }
     }
   ]
