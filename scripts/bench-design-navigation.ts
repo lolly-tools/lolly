@@ -93,6 +93,8 @@ function instrument(): void {
   for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) {
     try { localStorage.setItem(key, '1'); } catch { /* storage refused */ }
   }
+  // Titles show for the selection and the hovered artboard by default; the bench selects by title.
+  try { localStorage.setItem('lolly-design-artboard-titles', 'always'); } catch { /* storage refused */ }
   window.__lollyCanvasFeedback = { enabled: true, samples: [], costs: [] };
   const bench = { replaceState: 0, replaceStateChars: 0, querySelector: 0, querySelectorAll: 0, frames: [] as number[], loaf: [] as unknown[], events: [] as unknown[], paints: 0 };
   (window as unknown as { __bench: typeof bench }).__bench = bench;

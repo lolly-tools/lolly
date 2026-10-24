@@ -10312,5 +10312,12 @@
   "Ink and paper": "इंक और काग़ज़",
   "Named colours": "नामित रंग",
   "Emphasis": "ज़ोर",
-  "Zoom to selection": "चयन पर ज़ूम करें"
+  "Zoom to selection": "चयन पर ज़ूम करें",
+  "Artboard titles": "आर्टबोर्ड के शीर्षक",
+  "Always": "हमेशा",
+  "Selected and hovered": "चुने हुए और पॉइंटर के नीचे वाले",
+  "Next / previous artboard": "अगला / पिछला आर्टबोर्ड",
+  "First / last artboard": "पहला / आख़िरी आर्टबोर्ड",
+  "Zoom to the dragged area": "खींचे गए क्षेत्र पर ज़ूम करें",
+  "Zoom in / out at the pointer": "पॉइंटर पर ज़ूम इन / आउट"
 }

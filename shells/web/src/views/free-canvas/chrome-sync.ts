@@ -216,97 +216,12 @@ export function positionFrameScrim(fc: FcCtx): void {
   frameScrim.style.height = wh.h * m.scale + 'px';
 }
 /**
- * The artboard title tabs. `boxes` is the active page's rows and `source` the whole
- * array they came from. A `view` sync (the view moved, nothing else) reuses the frames
- * the last full sync laid out for that same array, and only moves the tabs.
+ * The artboard title tabs (frame-titles.ts decides which show and where). `boxes` is the
+ * active page's rows and `source` the whole array they came from; a `view` sync reuses
+ * what the last full sync worked out for that same array.
  */
 export function syncFrameLabels(fc: FcCtx, boxes: Box[], source: Box[] = boxes, view = false): void {
-  const { cfg, frameCfg, frameLabels, nameField } = fc;
-  if (!frameCfg) return;
-  if (fc.editing || fc.penDraft || fc.penEdit) {
-    if (frameLabels.childElementCount) frameLabels.replaceChildren();
-    fc.frameLabelKey = '';
-    return;
-  }
-  const held = view && fc.frameLabelFrames?.source === source ? fc.frameLabelFrames.frames : null;
-  const fk = frameCfg.frameKind;
-  const of = frameCfg.orderField ?? '';
-  const frames = held ?? boxes
-    .map((b, i) => ({ b, i }))
-    .filter(({ b }) => String(b?.[cfg.kindField]) === fk)
-    .sort(
-      (a, c) => num(a.b?.[of]) - num(c.b?.[of]) || num(a.b?.[cfg.xField]) - num(c.b?.[cfg.xField])
-    );
-  if (!held) fc.frameLabelFrames = { source, frames };
-  if (!frames.length) {
-    if (frameLabels.childElementCount) frameLabels.replaceChildren();
-    fc.frameLabelKey = '';
-    return;
-  }
-  if (held) {
-    placeFrameLabels(fc, frames);
-    return;
-  }
-  // The NAME is part of the key: a rename has to repaint the tab (plans/179 A10).
-  const key = frames
-    .map(
-      ({ b, i }, n) =>
-        `${fc.select.idOf(b, i)}:${n}:${fc.selection.has(fc.select.idOf(b, i)) ? 1 : 0}:${frameLabelText(fc, b, n)}`
-    )
-    .join('|');
-  // Never rebuild under an open rename - the input lives in this container and a
-  // replaceChildren would delete it mid-word.
-  if (key !== fc.frameLabelKey && !fc.renamingFrameId) {
-    fc.frameLabelKey = key;
-    frameLabels.replaceChildren(
-      ...frames.map(({ b, i }, n) => {
-        const id = fc.select.idOf(b, i);
-        const el = document.createElement('button');
-        el.type = 'button';
-        el.className = 'fc-frame-label' + (fc.selection.has(id) ? ' is-active' : '');
-        el.dataset.frameId = id;
-        el.textContent = frameLabelText(fc, b, n);
-        if (nameField) {
-          el.title = t('Double-click to rename');
-          el.setAttribute('aria-keyshortcuts', 'F2 Enter');
-        }
-        return el;
-      })
-    );
-  }
-  placeFrameLabels(fc, frames);
-}
-/** Put each tab over its artboard's live rect (the model's when it has none). Every
- *  rect is read before any tab moves, so the tabs cost one layout, not one each. */
-function placeFrameLabels(fc: FcCtx, frames: Array<{ b: Box; i: number }>): void {
-  const { cfg, frameLabels } = fc;
-  const m = fc.stage.metrics();
-  const kids = frameLabels.children;
-  const at = frames.map(({ b, i }, n): Point | null => {
-    if (!kids[n]) return null;
-    const live = fc.stage.liveBoxEl(fc.select.idOf(b, i))?.getBoundingClientRect();
-    return live?.width ? { x: live.left - m.sr.left, y: live.top - m.sr.top }
-      : fc.stage.nativeToStage(num(b[cfg.xField]), num(b[cfg.yField]), m);
-  });
-  for (let n = 0; n < frames.length; n++) {
-    const el = kids[n] as HTMLElement | undefined;
-    const tl = at[n];
-    if (!el || !tl) continue;
-    const fb = frames[n]!.b;
-    const left = `${Math.round(tl.x)}px`;
-    const top = `${Math.round(tl.y - 20)}px`;
-    el.style.left = left;
-    el.style.top = top;
-    // The rename input rides on the same rect as the tab it replaces, so a pan or zoom
-    // mid-rename does not leave it behind.
-    if (fc.renamingFrameId && fc.select.idOf(fb, frames[n]!.i) === fc.renamingFrameId) {
-      const inp = frameLabels.querySelector<HTMLElement>('.fc-frame-rename');
-      if (inp) {
-        inp.style.left = left;
-        inp.style.top = top;
-      }
-    }
-  }
+  fc.frameTitles.sync(boxes, source, view);
 }
 /** The tab text for a frame: its own name, else its 1-based place in the PAGE order.
  *  `Artboard` is the key every one of the 26 catalogues already carries; an
@@ -381,9 +296,9 @@ export function startFrameRename(fc: FcCtx, el: HTMLElement, fid: string): void 
         fc.select.commit(bs.map((b, n) => (n === j ? { ...b, [nameField]: v } : b)));
       }
     }
-    fc.frameLabelKey = ''; // force the tab to repaint with the new name
     renderChrome(fc);
-    // The repaint replaced the tab, so `el` is detached - find the new one by id.
+    // The repaint patches the tab in place, but find it by id all the same: a tab that
+    // stopped showing has gone.
     if (refocus) {
       const back = [...frameLabels.querySelectorAll<HTMLElement>('.fc-frame-label')].find(
         (l) => (l.dataset.frameId || '') === fid

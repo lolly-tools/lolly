@@ -10312,5 +10312,12 @@
   "Ink and paper": "Blekk og papir",
   "Named colours": "Navngitte farger",
   "Emphasis": "Utheving",
-  "Zoom to selection": "Zoom til utvalg"
+  "Zoom to selection": "Zoom til utvalg",
+  "Artboard titles": "Tittel på tegnebrett",
+  "Always": "Alltid",
+  "Selected and hovered": "Valgt og under pekeren",
+  "Next / previous artboard": "Neste / forrige tegnebrett",
+  "First / last artboard": "Første / siste tegnebrett",
+  "Zoom to the dragged area": "Zoom til det dratte området",
+  "Zoom in / out at the pointer": "Zoom inn / ut ved pekeren"
 }

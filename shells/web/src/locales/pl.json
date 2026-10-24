@@ -10312,5 +10312,12 @@
   "Ink and paper": "Tusz i papier",
   "Named colours": "Nazwane kolory",
   "Emphasis": "Wyróżnienie",
-  "Zoom to selection": "Powiększ do wyboru"
+  "Zoom to selection": "Powiększ do wyboru",
+  "Artboard titles": "Tytuły obszarów roboczych",
+  "Always": "Zawsze",
+  "Selected and hovered": "Zaznaczone i pod wskaźnikiem",
+  "Next / previous artboard": "Następny / poprzedni obszar roboczy",
+  "First / last artboard": "Pierwszy / ostatni obszar roboczy",
+  "Zoom to the dragged area": "Powiększ do przeciągniętego obszaru",
+  "Zoom in / out at the pointer": "Powiększ / pomniejsz przy wskaźniku"
 }

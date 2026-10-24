@@ -378,6 +378,11 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
     fc.stage.setGuidesVisible(!fc.authoringGuides.isVisible());
     return;
   }
+  // PageDown / PageUp / Home / End go to the next, previous, first and last artboard, and
+  // a held Z zooms to an area (frame-step.ts, zoom-marquee.ts). Neither changes the
+  // document, so both stay live off the playhead.
+  if (fc.frameStep.stepKey(e)) return;
+  if (fc.zoomMarquee.zoomKeyDown(e)) return;
   // ── THE ONE RULE, enforcement point 3 of 3: KEYBOARD ────────────────────────
   // Chrome suppression closes every POINTER path onto an off-playhead box; a nudge,
   // a Delete or a duplicate needs no chrome at all. Navigation stays live on purpose
@@ -608,6 +613,7 @@ export const onStageMove = (fc: FcCtx, e: any): void => {
 // stay: a pan or zoom never moves that chrome, and a resize drops them itself.
 function markStageMoved(fc: FcCtx, e: unknown): void {
   fc.gestureMetrics = null;
+  fc.titleMetrics = null;
   fc.scrimDirty = true;
   if (e && typeof e === 'object' && 'clientX' in e && 'clientY' in e && typeof e.clientX === 'number' && typeof e.clientY === 'number') {
     fc.lastPointer = { x: e.clientX, y: e.clientY };
@@ -671,6 +677,8 @@ export const onStagePointerMove = (fc: FcCtx, e: any): void => {
     if (!fc.hoverRaf) fc.hoverRaf = requestAnimationFrame(fc.edges.updateHover);
   }
   if (e?.buttons) fc.chromeSync.scheduleViewSync();
+  // The artboard under the pointer shows its title (frame-titles.ts), picked from the model.
+  else if (!fc.gesture && e && typeof e.clientX === 'number') fc.frameTitles.hover(e);
 };
 // A CSS transition that finishes inside the stage - the rail docking or undocking is the
 // one that matters (plans/179 A10) - changes the layout with no resize, no wheel and no

@@ -10312,5 +10312,12 @@
   "Ink and paper": "Tinta e papel",
   "Named colours": "Cores nomeadas",
   "Emphasis": "Ênfase",
-  "Zoom to selection": "Zoom na seleção"
+  "Zoom to selection": "Zoom na seleção",
+  "Artboard titles": "Títulos das pranchetas",
+  "Always": "Sempre",
+  "Selected and hovered": "Selecionadas e sob o ponteiro",
+  "Next / previous artboard": "Prancheta seguinte / anterior",
+  "First / last artboard": "Primeira / última prancheta",
+  "Zoom to the dragged area": "Ampliar para a área arrastada",
+  "Zoom in / out at the pointer": "Ampliar / reduzir no ponteiro"
 }

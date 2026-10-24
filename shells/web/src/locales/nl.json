@@ -10312,5 +10312,12 @@
   "Ink and paper": "Inkt en papier",
   "Named colours": "Benoemde kleuren",
   "Emphasis": "Nadruk",
-  "Zoom to selection": "Inzoomen op selectie"
+  "Zoom to selection": "Inzoomen op selectie",
+  "Artboard titles": "Titels van tekenborden",
+  "Always": "Altijd",
+  "Selected and hovered": "Geselecteerd en onder de aanwijzer",
+  "Next / previous artboard": "Volgend / vorig tekenbord",
+  "First / last artboard": "Eerste / laatste tekenbord",
+  "Zoom to the dragged area": "Inzoomen op het gesleepte gebied",
+  "Zoom in / out at the pointer": "In- / uitzoomen bij de aanwijzer"
 }

@@ -10312,5 +10312,12 @@
   "Ink and paper": "Tinte und Papier",
   "Named colours": "Benannte Farben",
   "Emphasis": "Betonung",
-  "Zoom to selection": "Auf Auswahl zoomen"
+  "Zoom to selection": "Auf Auswahl zoomen",
+  "Artboard titles": "Zeichenflächen-Titel",
+  "Always": "Immer",
+  "Selected and hovered": "Ausgewählt und unter dem Zeiger",
+  "Next / previous artboard": "Nächste / vorherige Zeichenfläche",
+  "First / last artboard": "Erste / letzte Zeichenfläche",
+  "Zoom to the dragged area": "Auf gezogenen Bereich zoomen",
+  "Zoom in / out at the pointer": "Am Zeiger vergrößern / verkleinern"
 }

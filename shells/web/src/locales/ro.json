@@ -10312,5 +10312,12 @@
   "Ink and paper": "Cerneală și hârtie",
   "Named colours": "Culori denumite",
   "Emphasis": "Accent",
-  "Zoom to selection": "Zoom la selecție"
+  "Zoom to selection": "Zoom la selecție",
+  "Artboard titles": "Titlurile planșelor",
+  "Always": "Întotdeauna",
+  "Selected and hovered": "Selectate și sub cursor",
+  "Next / previous artboard": "Planșa următoare / anterioară",
+  "First / last artboard": "Prima / ultima planșă",
+  "Zoom to the dragged area": "Mărește la zona trasă",
+  "Zoom in / out at the pointer": "Mărește / micșorează la cursor"
 }

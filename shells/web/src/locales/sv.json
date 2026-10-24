@@ -10312,5 +10312,12 @@
   "Ink and paper": "Bläck och papper",
   "Named colours": "Namngivna färger",
   "Emphasis": "Betoning",
-  "Zoom to selection": "Zooma till markering"
+  "Zoom to selection": "Zooma till markering",
+  "Artboard titles": "Rubriker för ritytor",
+  "Always": "Alltid",
+  "Selected and hovered": "Markerade och under pekaren",
+  "Next / previous artboard": "Nästa / föregående rityta",
+  "First / last artboard": "Första / sista ritytan",
+  "Zoom to the dragged area": "Zooma till det dragna området",
+  "Zoom in / out at the pointer": "Zooma in / ut vid pekaren"
 }

@@ -216,9 +216,9 @@ test('a pan burst with nothing selected reads nothing from the canvas on any fra
 test('a pan burst reads nothing from the canvas and walks no cards, and the chrome still follows the view', async () => {
   const f = mount(ROWS());
   try {
-    f.select(['b1', 'b2']);
+    f.select(['b1', 'b3']);
     assert.equal(outlines(f).length, 2, 'precondition: both rows are outlined');
-    assert.equal(titles(f).length, 2, 'precondition: one title per artboard');
+    assert.equal(titles(f).length, 2, 'precondition: each artboard holding the selection shows its title');
     const outlineAt = outlines(f).map((o) => o.style.left);
     const titleAt = titles(f).map((t) => t.style.left);
     const STEPS = 12;

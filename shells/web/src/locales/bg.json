@@ -10312,5 +10312,12 @@
   "Ink and paper": "Мастило и хартия",
   "Named colours": "Именувани цветове",
   "Emphasis": "Акцент",
-  "Zoom to selection": "Мащабиране до селекцията"
+  "Zoom to selection": "Мащабиране до селекцията",
+  "Artboard titles": "Заглавия на артбордовете",
+  "Always": "Винаги",
+  "Selected and hovered": "Избрани и под курсора",
+  "Next / previous artboard": "Следващ / предишен артборд",
+  "First / last artboard": "Първи / последен артборд",
+  "Zoom to the dragged area": "Мащабиране до очертаната област",
+  "Zoom in / out at the pointer": "Увеличаване / намаляване при курсора"
 }

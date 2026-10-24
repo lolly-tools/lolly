@@ -10312,5 +10312,12 @@
   "Ink and paper": "インクと紙",
   "Named colours": "名前付きカラー",
   "Emphasis": "強調",
-  "Zoom to selection": "選択範囲にズーム"
+  "Zoom to selection": "選択範囲にズーム",
+  "Artboard titles": "アートボードのタイトル",
+  "Always": "常に表示",
+  "Selected and hovered": "選択中とポインター下のみ",
+  "Next / previous artboard": "次 / 前のアートボード",
+  "First / last artboard": "最初 / 最後のアートボード",
+  "Zoom to the dragged area": "ドラッグした範囲にズーム",
+  "Zoom in / out at the pointer": "ポインター位置でズームイン / アウト"
 }

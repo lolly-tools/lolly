@@ -10312,5 +10312,12 @@
   "Ink and paper": "Mürekkep ve kâğıt",
   "Named colours": "Adlandırılmış renkler",
   "Emphasis": "Vurgu",
-  "Zoom to selection": "Seçime yakınlaştır"
+  "Zoom to selection": "Seçime yakınlaştır",
+  "Artboard titles": "Çalışma alanı başlıkları",
+  "Always": "Her zaman",
+  "Selected and hovered": "Seçili ve imlecin altındaki",
+  "Next / previous artboard": "Sonraki / önceki çalışma alanı",
+  "First / last artboard": "İlk / son çalışma alanı",
+  "Zoom to the dragged area": "Sürüklenen alana yakınlaştır",
+  "Zoom in / out at the pointer": "İmleçte yakınlaştır / uzaklaştır"
 }

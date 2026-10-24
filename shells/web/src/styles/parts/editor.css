@@ -1217,10 +1217,11 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
    selects the FRAME on click. Container is click-through (so canvas clicks fall through the
    gaps); only the tabs take a hit. Fixed-size chrome, positioned in stage px by the view. */
 .fc-frame-labels { position: absolute; inset: 0; pointer-events: none; z-index: 15; }
+/* A title shows for the selection, the hovered artboard, focus and rename by default
+   (frame-titles.ts), and is capped inline to its artboard's width on screen. */
 .fc-frame-label {
   position: absolute;
   pointer-events: auto;
-  max-width: 240px;
   padding: 0 6px;
   border: 0; border-radius: 5px 5px 0 0;
   background: transparent;
@@ -1736,6 +1737,9 @@ button.fc-readout:empty { display: none; }
    canvas click-to-focus behaviour, so the grab cursor only shows on Space-hold. */
 .tool-stage.is-grabbable { cursor: grab; }
 .tool-stage.is-grabbing  { cursor: grabbing; }
+/* Z held: a drag zooms to an area, a click zooms in (zoom-marquee.ts). */
+.tool-stage.fc-zoom-armed,
+.tool-stage.fc-zoom-armed .tool-canvas * { cursor: zoom-in; }
 
 /* Zoom HUD - a small TOP-RIGHT pill: −  [NN%]  +  Fit. Dimmed until the stage
    is hovered or the canvas is zoomed, so it stays out of the way at rest.
