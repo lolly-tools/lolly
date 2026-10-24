@@ -138,10 +138,10 @@ test('an inventory over the inline limit travels as an embedded JSON resource', 
 
 test('hosted caps: the request, the response and the slides are refused with their codes', async () => {
   const file = { base64: b64(notes), name: 'notes.pptx' };
-  const hosted = { VERCEL: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' };
+  const hosted = { LOLLY_MCP_HOSTED: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' };
   // A request too small for the file: refused before decoding.
   refusedWith((await callRead({ file }, hosted, { ...READ_LIMITS, bodyMaxBytes: 20_000 })) as Result, 'source.too-large');
-  // A response too large for the platform: refused in words, not cut off.
+  // A response over the hosted limit: refused in words, not cut off.
   refusedWith((await callRead({ file, media: 'inline' }, hosted, { ...READ_LIMITS, responseMaxBytes: 2_000 })) as Result, 'output.too-large');
   // More slides than a hosted call reads, counted from the zip directory before the read.
   const slides = (await read({ file })).structuredContent.counts as { slides: number };
@@ -173,7 +173,7 @@ test('a deck sent without a name is named for what its bytes are', async () => {
 });
 
 test('a hosted server counts a PDF\'s pages before reading it', async () => {
-  const hosted = { VERCEL: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' };
+  const hosted = { LOLLY_MCP_HOSTED: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' };
   const refused = (await callRead({ file: { base64: b64(EDITABLE_PDF), name: 'editable.pdf' } }, hosted, { ...READ_LIMITS, hostedMaxSlides: 2 })) as Result;
   refusedWith(refused, 'source.too-large');
   assert.match(refused.content[0]?.text ?? '', /3 slides/);

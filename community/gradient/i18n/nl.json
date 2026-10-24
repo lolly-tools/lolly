@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Zachte mesh-verlopen uit je merkkleuren. Sleep de kleurpunten direct op het canvas, of zet een langzame zwevende beweging aan en exporteer de loop als WebM, MP4 of GIF.",
+  "description": "Vijf manieren om een verloop te maken met de kleurstalen van het designsysteem: zachte radiale Blend, een echt Coons-patchraster als scherpe SVG (Subdivide) of vloeiend raster (Mesh), vrije Warp-punten en de geanimeerde Flow-golven. Sleep alles direct op het canvas; exporteer stilstaande beelden of naadloze videolussen.",
   "a11yLabel": "Meshverloop met menging van {{count}} kleuren",
   "inputs.count.label": "Kleurpunten",
   "inputs.color1.label": "Kleur 1 (basis)",

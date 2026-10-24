@@ -47,3 +47,10 @@ test('a person can move an asset only among groups of its own kind', () => {
   assert.equal(groupsFor(picture).length + groupsFor(audio).length, LIB_GROUPS.length + 1, 'More appears in both lists');
   assert.equal(libCategory(audio, { 'x/y': 'voice' }), 'voice', 'an override wins');
 });
+
+test('a brand skill files under Guidelines by its type, whatever its tags say (plan 323)', () => {
+  assert.equal(libCategory(ref('skill', 'md', ['skill', 'brand', 'guidelines'], 'lolly/skill/brand')), 'guidelines');
+  assert.equal(libCategory(ref('skill', 'md', ['logo', 'background'], 'suse/skill/brand')), 'guidelines', 'a picture tag does not move it');
+  assert.ok(LIB_GROUPS.some((g) => g.key === 'guidelines' && g.label === 'Guidelines' && !g.audio));
+  assert.equal(libCategory(ref('skill', 'md', [], 'lolly/skill/brand'), { 'lolly/skill/brand': 'other' }), 'other', 'an override still wins');
+});

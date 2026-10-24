@@ -18,6 +18,7 @@
 import { STARTER_TOKENS_ID, starterSeed, type StarterHost } from './starter.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
 import type { DesignSystemRecord } from './registry.ts';
+import { DESIGN_SYSTEMS_LISTED_EVENT } from './list-event.ts';
 
 /** One `companionDesignSystems` entry of a catalog's assets index. */
 export interface CompanionDesignSystem {
@@ -63,10 +64,18 @@ async function exclusively<T>(fn: () => Promise<T>): Promise<T> {
 
 /**
  * Give this device each companion it has not had yet. Returns the records made.
- * Never switches: the active system stays what it was.
+ * Never switches: the active system stays what it was. A view already showing
+ * the list hears of the new records through DESIGN_SYSTEMS_LISTED_EVENT, since
+ * on a first visit the seeding finishes after that view has read the list.
  */
 export async function seedCompanionDesignSystems(host: CompanionHost, companions: CompanionDesignSystem[]): Promise<DesignSystemRecord[]> {
   if (!companions.length) return [];
+  const made = await seedEach(host, companions);
+  if (made.length && typeof window !== 'undefined') window.dispatchEvent(new Event(DESIGN_SYSTEMS_LISTED_EVENT));
+  return made;
+}
+
+function seedEach(host: CompanionHost, companions: CompanionDesignSystem[]): Promise<DesignSystemRecord[]> {
   return exclusively(async () => {
     const registry = host.designSystems;
     registry.bust();

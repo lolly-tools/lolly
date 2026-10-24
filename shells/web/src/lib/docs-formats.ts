@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The formats table's click-to-open detail dialog, for the in-app docs reader
- * (views/docs.ts) - the /info/formats.html page brought to parity in the app.
+ * (views/docs.ts) - the /info/create/formats.html page brought to parity in the app.
  *
  * The static build ships this behaviour as an inline <script> appended OUTSIDE
  * `.docs-content` (docs/build.ts FORMATS_DIALOG_SCRIPT); the reader strips every

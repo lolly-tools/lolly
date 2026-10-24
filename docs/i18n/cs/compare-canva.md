@@ -2,26 +2,26 @@
 
 _Naposledy ověřeno: 28. září 2026._
 
-Lolly vytváří grafiku v souladu s brandem, příspěvky na sociální sítě, prezentace a layouty v prohlížeči. Spolu s [lolly.work](https://lolly.work) podporuje také sdílené projekty, živou spolupráci v rámci práce, schválené materiály a zásady organizace.
+Pokud tvůj tým dnes vytváří příspěvky na sociální sítě, snímky a letáky v Canvě, tato stránka říká, kde Lolly dělá stejnou práci a kde Canva zůstává lepší volbou.
+
+## Co Canva dělá lépe
+
+Canva spojuje velkou knihovnu šablon a fotek, aplikace a hostované týmové pracovní postupy v jedné spravované službě. Ten hotový obsah a zkušenost pomáhají, když potřebuješ výchozí bod ještě dnes. Viz [šablony Canvy](https://www.canva.com/templates/) a [tržiště aplikací](https://www.canva.com/apps/). Její živé úpravy mají také dlouhou provozní historii v měřítku, kterého pracovní kolaborace Lolly nedosáhly.
 
 ## Kde se překrývají
 
-Obě řešení umožňují začít šablonou a vytvořit hotovou grafiku, aniž bys byl designér. Obě podporují týmová workflow a brandové kontroly: [Canva je zabalila do svých business plánů](https://www.canva.com/canva-business/); Lolly odděluje kreativní aplikace od organizační služby.
+Obojí umožňuje někomu začít od šablony a vytvořit hotovou grafiku, aniž by byl designér. Obojí podporuje týmovou práci a ovládání značky: [Canva je balí do svých obchodních plánů](https://www.canva.com/canva-business/), zatímco Lolly drží tvůrčí aplikaci a organizační server odděleně.
 
-Lolly běží samostatně na tvém zařízení bez účtu. lolly.work přidává SSO, provisioning přes SCIM, role, sdílené katalogy, schvalování a reporting využití, když to tvá organizace potřebuje. Je součástí projektu Lolly, nasazuje se samostatně a je open source pod MPL-2.0, stejně jako samotná Lolly.
+## Jak Lolly dělá překrývající se úlohu
 
-## Šablony a týmová práce
+Nástroj Lolly kóduje změny, které lidé smějí dělat, a tentýž nástroj běží v prohlížeči, v desktopové aplikaci nebo v CLI. Rozvržení vytvořené na plátně Design se může stát [nástrojem s pravidly](/info/create-a-tool.html) a jeden nástroj může vytvořit mnoho souborů z tabulky hodnot.
 
-Canva spojuje v jedné službě rozsáhlou knihovnu šablon a stockových materiálů, aplikace a hostovaná týmová workflow. Tento hotový obsah a spravované prostředí mohou být užitečné při volbě výchozího bodu. Viz [šablony Canva](https://www.canva.com/templates/) a [marketplace aplikací](https://www.canva.com/apps/).
+![Volné plátno Design, kde jsou nabízené barvy, písma a assety vlastní designovému systému](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Nástroje Lolly kódují povolené změny a lze je opakovaně používat v prohlížeči, desktopové aplikaci nebo CLI. Design se může stát [nástrojem s pravidly](/info/create-a-tool.html) a tentýž nástroj dokáže z tabulky hodnot vytvořit mnoho výstupů. lolly.work kolem těchto nástrojů spravuje přístup, sdílenou práci a zásady.
+Samostatná Lolly drží tvorbu a export na zařízení, bez účtu, a funguje offline, jakmile jsou její assety uloženy. Dva lidé mohou upravovat živě v [soukromé kolaboraci](/info/collaborate.html), zařízení se zařízením. Content Credentials jsou u podporovaných exportů ve výchozím stavu zapnuté a můžeš je vypnout.
 
-Živé úpravy jsou dostupné jak v [soukromých collabech](/info/collaborate.html), které přímo propojují dvě zařízení, tak v pracovních collabech přes instanci lolly.work organizace. Pracovní collaby zahrnují sdílené úpravy, kurzory a uložené týmové relace. Současné serverové nasazení používá jediný kolaborační uzel; jeho škálování a provozní historie se liší od zavedené služby Canva.
+## S organizací
 
-## Kde práce žije
+Lolly Work, provozovaná na vlastním serveru tvé organizace, přidává přihlášení, sdílené projekty, živé pracovní kolaborace, schválené assety a politiky. [Co běží kde](/info/compare.html#what-runs-where) staví obě části vedle sebe, s limity, které sdílí každé srovnání.
 
-Samostatná Lolly ponechává tvorbu a export na zařízení a po zpřístupnění svých prostředků funguje offline. Spolupráce v rámci práce, týmové úložiště a serverové renderování využívají nakonfigurované služby organizace. Právě tato volba nasazení je rozdílem: organizace může obě části Lolly provozovat sama bez softwarové licence za uživatele, přičemž platí za vlastní hosting a administraci.
-
-Content Credentials jsou u podporovaných exportů volitelné. lolly.work může serverový výstup podepsat nakonfigurovanou identitou organizace; ověřovatel musí této identitě důvěřovat, než podepisujícího zobrazí jako důvěryhodného. Viz [Content Credentials Identity](/info/content-credentials-identity.html) a [přehled kombinovaného řešení](/info/compare.html).
-
-Canva je ochranná známka svého vlastníka. Tato stránka popisuje, kde se obě řešení překrývají, a není nijak spojena se společností Canva.
+Canva je ochranná známka svého vlastníka. Tato stránka popisuje, kde se oba produkty překrývají, a není s Canvou nijak spojena.

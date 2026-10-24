@@ -1,162 +1,97 @@
-# Profiller - üretirken kim olduğun
+# Profiller
 
-Bir **profil**, Lolly'nin *olarak* oluşturduğu çalışma kimliğidir. Bir aracın, her seferinde yeniden yazmaman için başvurabileceği küçük bir detay kümesidir - adın, iletişim bilgilerin, isteğe bağlı bir vesikalık, birkaç tercih - artı çalışırken biriktirdiğin her şey: kaydedilmiş oturumlar, yüklenen görseller ve yerel etkinlik sayacı.
+Adını, iletişim bilgilerini ve profil fotoğrafını bir kez ayarla; onları kullanmak için yapılmış her araç bunları senin için doldurur: bir e-posta imzası, bir rozet, bir konuşmacı kartı. Bu küçük kayıt senin **profilindir** ve cihazında yaşar.
 
-Bir profildeki her şey, tarayıcının yerel veritabanında **cihazda** yaşar (web PWA'da IndexedDB, Tauri uygulamalarında dosya sistemi). Hesap yoktur ve hiçbir şey yüklenmez. Onu **Ayarlar → Preferences** altından (altbilgide veya avatar menüsünde) yönetirsin; araçlar onu yalnızca *okur* ve yalnızca önceden doldurmak üzere yapıldıkları belirli alanları.
-
-> Ayarlar, profilini ve eski Kontrol Paneli'ni tek bir hedefte birleştirir. **Preferences**, bilgilerini ve kişisel tercihlerini tutar; **Bu cihaz**, **Tasarım sistemi**, **Yetenekler** ve **Etkinlik & istatistikler** onun yanında durur. Tam haritası için [Ayarlar](/info/dashboard.html)'a bak.
+Profilin ayrıca çalışırken biriktirdiklerini de tutar: kayıtlı oturumlar, yüklenen görseller ve yerel etkinlik sayacın. Onu **Settings → Preferences** altında yönetirsin; araçlar yalnızca önceden doldurmak için yapıldıkları alanları okur. Bağımsız kullanım hesap gerektirmez; isteğe bağlı Sync, paylaşım ve kuruluş hizmetlerinin her birinin aşağıda anlatılan kendi veri akışları vardır.
 
 ## Bir profilde neler var
 
-| Bölüm | Ne olduğu |
+| Parça | Nedir |
 |---|---|
-| **Ad** | Ad ve soyad. |
-| **İletişim** | E-posta ve telefon. |
-| **Konum** | Şehir ve ülke. |
-| **Vesikalık** | Kareye kırpılmış ve yerel bir görsel olarak tutulan isteğe bağlı bir fotoğraf. E-posta imzaları, alıntı kartları, organizasyon şemaları ve dinamik düzenler gibi araçlar tarafından kullanılır. |
-| **Use my details to create** (Bilgilerimi oluşturmak için kullan) | Tek bir opt-in anahtarı (açıldığında **Using my details** yazar). Kişisel bilgilerinin dışa aktarılan dosyalara gömülü **köken** - yazar/kredi satırı - olarak ve **/pro** toplu çalıştırmalarında yazar olarak eşlik edip etmeyeceğini kontrol eder. (Ön doldurmayı kapılamaz: bkz. [How tools use your profile](#how-tools-use-your-profile).) |
-| **Tercihler** | Temanız (Light, Dark veya Brand - marka teması uygulamayı kendi paletinle boyar) ve **Feature flags** aracılığıyla uygulamanın hangi bölümlerini etkinleştirdiğin. |
-| **Erişilebilirlik** | Profil kaydında tutulan dört konfor anahtarı - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - böylece bir profil dışa aktarımında da eşlik ederler. Bkz. [Erişilebilirlik](#accessibility). |
-| **Çalışman** | **[Projects](/info/using.html)** içinde iç içe klasörlere düzenlenmiş kaydedilmiş oturumlar (küçük resimlerle) - **My images** kütüphanen (Görsellerim) ve bu profile bağlı yerel etkinlik istatistikleri. |
+| **Name** | Ad ve soyad. |
+| **Contact** | E-posta ve telefon. |
+| **Location** | Şehir ve ülke. |
+| **Headshot** | E-posta imzaları, alıntı kartları ve organizasyon şemaları gibi araçlar için kareye kırpılmış ve yerel görsel olarak tutulan isteğe bağlı bir fotoğraf. |
+| **Use my details to create** | Tek bir isteğe bağlı anahtar (açıldığında **Using my details** yazar). Ayrıntılarının dışa aktarılan dosyalarda ve Batch çalıştırmalarında yazar atfı olarak gidip gitmeyeceğine karar verir. Önceden doldurmayı etkilemez; bkz. [Araçlar profilini nasıl kullanır](#how-tools-use-your-profile). |
+| **Preferences** | Temanın, erişilebilirlik ayarların ve **Feature flags** içinde açtığın uygulama bölümleri. |
+| **Your work** | Küçük resimleriyle kayıtlı oturumlar, [Projects](/info/find-your-work.html) içinde düzenlenmiş, yüklenen görsellerin ve yerel etkinlik istatistiklerin. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Hiçbiri zorunlu değildir. Boş bir profil çalışır; yalnızca yazmaktan seni kurtaranı doldur.
 
-![Profil ekranı - ad, iletişim, isteğe bağlı bir vesikalık ve tercihlerin](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Preferences sekmesinde Settings: ayarlar rayı ve Use my details to create anahtarı ile ad, iletişim ve konum alanlarının bulunduğu Your details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-| Bölüm | Nedir |
-|---|---|
-| **Ad** | Ad ve soyad. |
-| **İletişim** | E-posta ve telefon. |
-| **Konum** | Şehir ve ülke. |
-| **Vesikalık fotoğraf** | İsteğe bağlı bir fotoğraf, kareye kırpılır ve yerel bir görsel olarak tutulur. E-posta imzaları, alıntı kartları, renk blokları ve dinamik düzenler gibi araçlar tarafından kullanılır. |
-| **Bilgilerimi kullan** | Tek bir isteğe bağlı anahtar. Kişisel bilgilerinin dışa aktarılan dosyalara gömülen yazar/künye satırı olan **köken** olarak ve **/pro** toplu çalıştırmalarında yazar olarak eşlik edip etmeyeceğini denetler. (Önceden doldurmayı kapatmaz: bkz. [Araçlar profilini nasıl kullanır](#araclar-profilini-nasil-kullanir).) |
-| **Tercihler** | Temandır (açık, koyu veya SUSE) ve uygulamanın **Özellik bayrakları** ile hangi bölümlerini etkinleştirdiğin. |
-| **Çalışmaların** | Kayıtlı oturumlar (küçük resimlerle) - **[Projeler](/info/using.html)** içinde iç içe klasörlere düzenlenmiş - **Görsellerim** kitaplığın ve yerel etkinlik istatistikleri, hepsi bu profile bağlı. |
+[Settings](/info/dashboard.html), Preferences altındaki diğer her şeyi, görünümden ve emojiden depolamaya ve çevrimdışı indirmelere kadar haritalar.
 
-Sayfa uzun olduğundan, yanında kendi **ayarlar şeridini** taşır - Bilgilerin, Görünüm, Erişilebilirlik, Lolly örneği, Aktiviten, Depolama, Çevrimdışı kullanılabilir, Özellik bayrakları, Content Credentials - üstünde de yazdıkça listeyi filtreleyen bir **Ayarlarda ara** alanı bulunur. Her bölüm `#/settings?focus=<section-id>` şeklinde derin bağlantı verilebilir durumdadır; bu da bölümü açar ve görünüme kaydırır (`#/settings?focus=storage-section`, `?focus=feature-flags-section` vb.), böylece bir bağlantı sayfanın en üstüne değil tek bir ayara işaret edebilir.
+## Sen, bir ekip veya bir rol
 
-![Her biri kendi tipografisini ve rengini önizleyen üç tema kartı, etkin olan işaretlenmiş](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+"Profil" sözcüğü tek bir sabit kişiyi çağrıştırır. Lolly'de bu daha çok bir yaratım bağlamıdır: bu şeyi yaparken kim olduğun. Üç biçim alabilir ve Lolly her birini aynı şekilde ele alır.
 
-## Bir profil, yalnızca bir kişi değil, bir bağlamdır
+::: cols
+## Kendin olarak
 
-"Profil" kelimesi tek, sabit bir kişiyi çağrıştırır ama Lolly'de aslında bir **üretim bağlamıdır** - *bu şeyi yaparken kim olduğun*. O bağlam üç farklı biçimde olabilir ve Lolly hepsini aynı şekilde ele alır.
+Varsayılan. Adın, e-postan, profil fotoğrafın. Bir kez ayarla; imzan, rozetin ve konferans lockup'ın kendiliğinden dolar.
 
-### Bir birey olarak
+## Bir ekip olarak
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+Bir ekibin ortak adı, `events@…` gibi bir grup gelen kutusu, bir departman ve ekibin işareti. Bir kişi kurar ve dışa aktarır, herkes aynı profili yükler; böylece ekibin dosyaları tutarlı ayrıntılar taşır. Paylaşılan bir kiosk veya bir demo dizüstü bilgisayarı tek bir ekip profili çalıştırabilir.
+
+## Bir rol olarak
+
+Yılda üç gün görev yapan bir etkinlik yöneticisi rozetlerde ve tabelalarda etkinlik gelen kutusunu ve etkinlik alt markasını ister, sonra olağan kimliğine döner. O rolü kayıtlı bir profil dosyası olarak sakla, etkinlik için yükle ve sonra kenara koy.
+:::
 
 ![Bir fotoğraf yükleyene kadar boş kalan, yüklendikten sonra bu cihazda kalan vesikalık kontrolü](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-### Bir ekip olarak
+::: details Lolly Work kullanan bir kuruluşta profiller
+Bir [kuruluşun Lolly](/info/organisation.html)'sinde oturum açtığında Lolly Work, kimlik sağlayıcısından doğrulanmış profil alanları sağlayabilir ve kuruluş politikası altında alanları veya tercihleri sabitleyebilir. Yönetilen bir alan uygulamada etiketlenir.
 
-Bir profilin tek bir insan olması gerekmez. Bir kuruluş içindeki **bir ekip veya işlevin** yerine geçebilir: ekibin ortak adı, bir grup gelen kutusu adresi (`events@…`), bir departman, ekibin vesikalığı veya birim işareti. Bir kişi bunu kurar, dışa aktarır (aşağıya bak) ve ekibin geri kalanı aynı profili yükler - böylece ekibin ürettiği her şey, kimse yeniden girmeden tutarlı detaylar taşır. Paylaşılan bir kiosk veya ödünç verilen bir demo dizüstü bilgisayar, arkasındaki herkesin olarak oluşturduğu tek bir ekip profili çalıştırabilir.
+Bu giriş ayrıca paylaşılan projelere ve varlıklara erişimi denetler. Bir ekip profili dosyası yine yerel bir dosyadır: kuruluş üyeliği vermez veya bir iş hesabının yerini almaz. **Use my details to create** dışa aktarmalarındaki atfı denetler, kuruluşun girişini veya denetim kayıtlarını değil. Bkz. [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+:::
 
-### Bir işlev olarak - bazen giydiğin bir rol
+## Birkaçını sakla, birini kullan
 
-Katı "tek kişi, tek profil" modelinin kaçırdığı durum budur. **Yılda üç gün etkinlik yöneticisi** ve zamanın geri kalanında tamamen başka bir şey olabilirsin. O üç gün etkinlik ayrıntılarını, etkinlik gelen kutusunu, belki rozetlerini ve tabelalarını dolduracak bir etkinlik alt markası istersin; diğer 362 gün normal kimliğini geri istersin.
+Bir kurulumun aynı anda bir etkin profili vardır ve uygulama içinde bir geçiş aracı yoktur. Bunun yerine her profil taşınabilir bir dosyadır; yeni bir cihaza geçmek için kullanacağın aynı yedek dosyası. Başka bir bağlama geçmek için:
 
-Lolly'de o rol yalnızca **el altında tuttuğun bir başka profildir** - etkinlik için yükleyip sonrasında bir kenara koyduğun kayıtlı bir paket (sonraki bölüm). Rol bir şapkadır, yeni bir hesap değil. İhtiyacın olduğunda giy, işin bittiğinde çıkar.
+::: timeline
+- <!--i:download--> **Settings → Storage → Move to another device** altındaki **Export my data** mevcut profili tek bir `.zip` olarak kaydeder.
+- <!--i:trash--> **Clear all my data** bu kurulumu boşaltır.
+- <!--i:upload--> **Import data…** geçtiğin bağlam için profil dosyasını yükler.
+:::
 
-## Tek kurulum, tek etkin profil - el altında tutabileceğin birçok profil
+Önce temizlemeden içe aktarmak bunun yerine **birleştirir**. İçe aktarılan oturumlar ve görseller eklenir; iki kopya da varsa daha yakın zamanda kaydedileni tutulur. Klasörler, favoriler ve şablonlar seninkilerin yanına eklenir ve kendi ayrıntıların kalır; dosyanın değerlerini alan boş alanlar hariç. Bu, bir ekibin oturumlarını kendi düzenine çekmek için uygundur ama roller arasında temiz bir kopuş için değil.
 
-Herhangi bir anda bir kurulumun **tek bir etkin profili** vardır - bir aracın şu anda gördüğü detaylar. Uygulama içinde bir profil değiştirici yoktur; bunun yerine her profil **taşınabilir bir paket**tir (tek bir `.zip`, bkz. [aşağı](#moving-a-profile-to-a-new-device)). Bu, kasıtlı olarak yeni bir cihaza taşınmakla aynı mekanizmadır - bir profil, kaydedebileceğin, kopyalayabileceğin ve yükleyebileceğin bir dosyadır.
-
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-- <!--i:trash--> **En temiz geçiş:** **Ayarlar → Preferences → Depolama → Tüm verilerimi temizle**, ardından geçtiğin bağlam için paketi **İçe aktar**. Artık yalnızca o profil olarak oluşturuyorsun.
-- <!--i:layers--> **Katmanlama:** önce temizlemeden içe aktarmak **birleştirir** - içe aktarılan oturumlar ve görseller zaten orada olanın üstüne iner; ikisinde de aynısı varsa, daha yakın zamanda kaydedilen kopya tutulur, geri kalanına dokunulmaz. Klasörler, favoriler ve şablonlar seninkilere eklenir, ve kendi bilgilerin ve ayarların kalır. Bir ekibin kaydedilmiş oturumlarını kendi kurulumuna çekmek için kullanışlıdır; net bir rol sınırına ihtiyacın varsa istediğin şey bu değildir.
-- <!--i:monitor--> **Yan yana:** her şey cihaza özgü olduğundan, ayrı bir tarayıcı profili, ayrı bir kullanıcı hesabı veya ikinci bir kurulu PWA, her biri kendi bağımsız Lolly profilini taşır. Kişisel kurulumunu ve etkinlik kiosku kurulumunu aynı anda, geçiş yapmadan çalıştır.
-
-Yani gerçekten birkaç bağlamı bir arada yürütüyorsan (sen, ekibin, etkinlik yöneticisi şapkası) birkaç paket tutar ve ihtiyaç duyduğunu yüklersin:
-
-![Kaydedilmiş oturumları, görselleri ve önbelleği tarayıcının gerçekte bildirdiğine karşı ayrıştıran depolama göstergesi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-> Bağlam başına bir paket tut ve dosyaları ne olduklarına göre yeniden adlandır (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Dosya, profilin *ta kendisidir*.
-
-## Erişilebilirlik
-
-**Ayarlar → Preferences → Erişilebilirlik**, çalışman *etrafındaki* uygulama için dört konfor ayarı barındırır. Her biri sen açana kadar kapalıdır ve hiçbiri bir araç tuvalinin veya dışa aktarımın içine ulaşmaz - daha sakin bir uygulama, gönderdiğin dosyanın bir pikselini bile oynatmamalıdır.
-
-- <!--i:film--> **Reduce motion** (Hareketi azalt) - uygulamadaki geçişleri, kaymaları ve animasyonlu süslemeleri kapatır. Araç tuvalin ve herhangi bir animasyonlu dışa aktarım tam olarak tasarlandığı gibi hareket etmeye devam eder.
-- <!--i:image--> **Hide colourful previews** (Renkli önizlemeleri gizle) - galeri önizleme görsellerini sakin simge-ve-metin kartlarıyla değiştirir ve proje küçük resimlerinin rengini ve kontrastını düşürerek göz yormadan tanınabilir kalmalarını sağlar. Bir aracın içinde her şey tam renkli görünür.
-- <!--i:sliders--> **High contrast** (Yüksek kontrast) - uygulamanın kenarlıklarını, metnini ve odak halkalarını güçlendirir. Marka renklerin ve tuval üzerindeki her şey tam olarak ayarladığın gibi kalır.
-- <!--i:font--> **Large text** (Büyük metin) - uygulama tipografisini büyütür: etiketler, menüler ve buton metni. Kontroller boyutlarını korur, bu yüzden yalnızca içlerindeki kelimeler büyür, ve tasarımların içindeki tipografiye dokunulmaz, bu yüzden dışa aktardığın hiçbir şey yeniden akmaz.
-
-Bunlar profil kaydının kendisinde tutulur, bu yüzden bir profil dışa aktarımında yol alır ve bir sonraki kurulumda adınla ve oturumlarınla birlikte iner. (Cihaz ayrıca, ayarın ilk boyamadan önce uygulanması için küçük bir yerel yansı da tutar; bu yansı yalnızca cihaza özgüdür ve yol almaz.)
-
-## Lolly örneğin
-
-**Ayarlar → Preferences → Lolly örneği**, bu kurulumun araçlarını ve kataloğunu nereden aldığını söyler - örneğin adresi, ya da her şey build'in içinde gönderildiğinde *Bu uygulamayla birlikte gelir*. Bir dağıtımın bir tane sunduğu yerde, bir **Örnek konsolu** bağlantısı onun yönetim yüzeyini açar, **Değiştir** kurulumu yeniden yönlendirir ve **Ayrıl**, kendi çalışman kalırken örneğin tasarım sistemini, araçlarını ve kataloğunu kaldırır (bkz. [Lolly'yi kuruluşunda kullan](/info/organisation.html#leaving)).
-
-Başka bir örneğe yeniden yönlendirmek **masaüstü uygulamasını** gerektirir: bir tarayıcı, bir sayfanın araçları ve varlıkları farklı kaynaklardan yüklemesini engeller, bu yüzden web'de bu bölüm sadece nerede olduğunu bildirir ve orada bırakır.
-
-## Çevrimdışı kullanılabilir
-
-Lolly ilerledikçe önbelleğe alır, ama ilerledikçe önbelleğe alma yalnızca zaten gittiğin yerleri kapsar. **Ayarlar → Preferences → Çevrimdışı kullanılabilir**, önceden görebildiğin yolculuk içindir: bağlantısı olmayan bir uçuştan önce havaalanı wifi'sinde geçen bir saat gibi. İhtiyacın olacak parçaları indir, tek bir ilerleme çubuğunu izle ve aldığın her şey bağlantı gittikten sonra da çalışmaya devam etsin.
-
-Yedi parça, her biri taahhüt etmeden önce boyutu belirtilmiş halde:
-
-- <!--i:layout--> **Uygulama** - henüz açmadıkların dahil, her görünüm, düzenleyici ve font. Bu olmadan, çevrimiçiyken hiç ziyaret etmediğin bir ekran çevrimdışı yüklenemez.
-- <!--i:image--> **Katalog** - temel öğelerin ötesindeki marka varlıkları. Hepsini al, ya da *Choose by tag* (Etikete göre seç) aç ve yalnızca kullandığın etiketleri al.
-- <!--i:book--> **Kılavuzlar ve belgeler** - bu belgelendirme sitesi, kendi dilinde, ekran görüntüleri dahil.
-- <!--i:cpu--> **Konuşma sesleri** - Script sesinin ve anlatımının arkasındaki ses modelleri. Bir kez indirilir, sonra cihaz üzerinde çalışır.
-- <!--i:zap--> **Büyütme modelleri** - yapay zeka görsel büyütücüleri: fotoğraf, illüstrasyon/anime ve yüz.
-- <!--i:layers--> **Arka plan kaldırma** - *Remove background* (Arka planı kaldır) aracının arkasındaki cihaz üzerindeki kesme modelleri.
-- <!--i:shield--> **Verify deep scan** (Verify derin tarama) - bağlantıdan uzakta Content Credentials kontrolü için cihaz üzerindeki filigran tarayıcısı.
-
-Son dört öğe **büyük indirme** olarak işaretlenmiştir ve bilerek ayrı ayrı katılımlıdır: en üstteki **Download everything**, uygulamayı, seçtiğin katalog kapsamını, belgeleri ve tüm araçları tek seferde alır, başka hiçbir şeyi değil. Konuşma sesleri, üst ölçekleyiciler, arka plan kaldırma ve derin tarama, yalnızca o satırı adıyla istediğinde indirilir - tek bir düğmenin içine birkaç yüz megabaytı gizlemek dürüst olmaz.
-
-Parçaların altında araç başına liste yer alır: her araç ayrı ayrı indirilir (onay işareti çevrimdışı hazır anlamına gelir) veya **Download all** hepsini birden alır. İndirmeler kaldığı yerden devam eder - iptal edersen ya da bağlantıyı kaybedersen bir sonraki çalıştırma kaldığı yerden devam eder ve yalnızca eksik olanı getirir - ve yeniden çevrimiçi olduğunda kendilerini yeniler, yeni bir sürümün değiştirdiği kısmı çeker.
-
-Tarayıcı kalıcı depolama izni vermemişse bölüm bunu belirtir ve bunu isteyen **Protect downloads**'ı sunar - "indirildi" ile "tarayıcı alanı geri isteyene kadar indirildi" arasındaki fark budur.
-
-## Bir profili yeni bir cihaza taşıma
-
-Bir profil tamamen yerel olduğundan, onu boş bir kuruluma - yeni bir dizüstü, yeni sıfırlanmış bir tarayıcı, bir meslektaşın makinesi, çevrimdışı bir kutu - almanın iki yolu vardır. Aşağıdaki gibi **dosyayı taşı**, ya da [Cihazlarını senkronize et](/info/sync.html)'in anlattığı gibi, seçtiğin bir depolama üzerinden kendi cihazlarını birbiriyle uyumlu tut. Hiçbir Lolly girişi onu senin için geri yüklemez ve mesele de budur: başından beri hiçbir şey bir Lolly sunucusuna gitmedi.
-
-**Ayarlar → Preferences → Depolama → Başka bir cihaza taşı** altında:
-
-- <!--i:download--> **Verilerimi dışa aktar**, ait olduğu profilin adıyla adlandırılmış tek bir `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` dosyası indirir - tekrarlanan dışa aktarımların çakışmaması için günlük bir sıra numarasıyla (profilde olmayan ad parçaları atlanır). İçinde profilin, kaydedilen her oturum (küçük resmiyle birlikte), yüklediğin görseller - marka belirteçlerin ve yüklü yazı tiplerin kullanıcı varlığı olarak buna eşlik eder - ve tercihlerin (tema, düzen, yerel etkinlik istatistikleri) bulunur.
-- <!--i:upload--> Diğer kurulumdaki **Veri içe aktar…**, o dosyayı geri okur ve tam olarak kaldığın yerden devam edersin. Ayrıca [Sync](/info/sync.html)'in depolamanda tuttuğu bir kopyayı da alır.
-- <!--i:box--> **Verilerimi dışa aktar & hepsini oluştur**, aynı yedeği, kaydedilen her oturumu tamamlanmış çıktı dosyasına dönüştüren ve Projelerini yansıtan klasörlere yerleştiren ikinci bir zip dosyasıyla *birlikte* yazar. Hem kaynakların hem sonuçların eksiksiz bir çevrimdışı arşivi - çok sayıda oturumda büyük ve yavaş olabilir.
+Aynı anda iki bağlam için ayrı bir tarayıcı profili, ayrı bir kullanıcı hesabı veya web uygulamasının ikinci bir kurulu kopyasını kullan: her biri kendi bağımsız Lolly profilini taşır.
 
 ![Bütün bir kurulumu taşıyan iki düğme: Export my data tek bir zip yazar, Import data onu geri okur](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-Paket düz, kendi kendine yeten bir zip'tir; bu yüzden **her** yolla seyahat eder - USB, AirDrop, bir ağ paylaşımı, kendine e-posta - ve hedef tamamen çevrimdışı olabilir. Her parça sağlama toplamına tabidir; böylece aktarım sırasında hasar gören bir dosya, yarı bozuk geri yüklenmek yerine içe aktarmada yakalanır. İçe aktarma **birleştirir** (aynı adlı bir oturum veya görsel için, daha yakın zamanda kaydedilen kopya tutulur; klasörler, favoriler ve şablonlar eklenir; hedefin bilgileri ve ayarları kalır; geri kalan her şey korunur); bu yüzden zaten kullanımda olan bir hedefi asla silmez.
+> Bağlam başına bir dosya tut ve her birini ne olduğuna göre adlandır; örneğin `LollyTools-events-2026.zip` ve `LollyTools-me.zip`. Dosya profildir.
 
-Taşınmayan şeyler: katalog önbelleği (yeni cihazda kendini yeniden indirir) ve araçların kendisi (zaten mevcut varsayılır). 
-
-Tam paket düzeni, sürüm ilkesi ve bütünlük kuralları için bkz. **[Data Transfer](/info/data-transfer.html)**; uçtan uca anlatım için **[Using Lolly → Moving to another device](/info/using.html#moving-to-another-device)**.
+[Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) dosyanın neyi tuttuğunu, neyin geride kaldığını ve Sync dahil taşımanın diğer yollarını kapsar.
 
 ## Araçlar profilini nasıl kullanır
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+**Önceden doldurma.** Bir araç yazarı bir girdiyi profilinden çekecek şekilde işaretler (`bindToProfile: "firstname"`, `"email"`, `"headshot"` ve benzerleri). Araç açıldığında o girdi profilinden dolar ve bir kuruluş politikası girdiyi kilitlemedikçe, profili değiştirmeden bir oturum için geçersiz kılabilirsin. Önceden doldurma yerel bir kolaylıktır ve **Use my details** açık olsa da olmasa da gerçekleşir.
 
-Bir araç yalnızca bağlamak üzere açıkça yapıldığı profil alanlarını *önceden doldurur*:
+**Atıf.** Dışa aktardığında ayrıntıların dosyanın meta verisinde (PNG, PDF, SVG ve daha fazlası) yazar atfı olarak gidebilir; böylece bitmiş bir dosya işi kimin yaptığını söyleyebilir. Bunu ve Batch çalıştırmalarındaki yazarı **Use my details to create** yönetir. Kapalıyken dışa aktarma yine Lolly ile yapıldığını söyler ve kişisel bir yazar veya iletişim satırı taşımaz.
 
-**Onay kutusu (köken bilgisi).** Bir varlığı dışa aktardığında bilgilerin isteğe bağlı olarak **köken bilgisi (provenance)** olarak eşlik eder - dosyanın meta verisine gömülü bir yazar/kredi satırı (PNG, PDF, SVG, …) - böylece bitmiş bir varlık kimin yaptığını söyleyebilir. **Oluşturmak için bilgilerimi kullan**'ın yönettiği şey *tam olarak budur*: kapalı bırakırsan dışa aktarım yine de "Made with Lolly" araç/platform atfını taşır, ancak kişisel yazar/iletişim satırı gömülmez. (Aynı onay, **/pro** toplu çalıştırmalarında da yazarı ayarlar.) (Araç yazarları için bkz. [Araç Oluşturma → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) ve [Host API → `host.profile`](/info/host-api.html#host-profile).)
+Araç yazarları: bkz. [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) ve [`host.profile`](/info/host-api.html#host-profile).
 
-![Save Profile'ın yanında duran ve sen açana kadar kapalı olan tek bir Use my details to create anahtarı](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![Tek Use my details to create anahtarı; isteğe bağlı olarak işaretlenmiş ve sen açana kadar kapalı](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## Profil, Platform ve Yetenekler
+## Profil, tasarım sistemi ve yetenekler
 
-Arayüzde birbirine yakın duran ve karıştırılması kolay üç şey:
+Settings içinde birbirine yakın duran ve karıştırılması kolay üç şey var:
 
-- <!--i:people--> **Profile** - *sen* (ya da ekibin ya da içinde bulunduğun rol): ad, iletişim bilgisi, profil fotoğrafı, kaydettiğin işler. Kişisel, cihazda yerel, bir paket olarak taşınabilir.
-- <!--i:palette--> **Platform** - *marka*: her aracın üzerine render edildiği renkler, yazı tipleri ve genel ayarlar. Paylaşılan ve tutarlı, kişisel değil.
-- <!--i:sliders--> **Capabilities** - *uygulamanın yapabildikleri*: tam özellik seti ve sana açık araçlar.
+- <!--i:people--> **Profile** - sen, ekibin veya içinde bulunduğun rol: ad, iletişim, profil fotoğrafı ve kayıtlı işler. Kişisel, cihazda tutulur ve bir dosya olarak taşınabilir.
+- <!--i:palette--> **Design system** - marka: her aracın render ettiği renkler, yazı tipleri ve ayarlar. Kişisel değil, ortak ve tutarlı; bkz. [Design System Setup](/info/brand-studio.html).
+- <!--i:sliders--> **Capabilities** - uygulamanın neler yapabildiği: sana sunulan özellikler ve araçlar.
 
-Bir profil, bir varlığın *kimden* geldiğini değiştirir; platform onun neye *benzediğini* değiştirir; yetenekler *neler yapabileceğindir*.
+Bir profil bir dosyanın kimden olduğunu değiştirir; tasarım sistemi dosyanın nasıl göründüğünü değiştirir; yetenekler ise yapabileceğin şeylerdir.
 
-### "Profil" başka yerlerde iki şey daha anlamına gelir - bu değil
-
-Kelime, proje genelinde birden çok anlam taşır. Bunların hiçbiri, bu sayfanın konusu olan kişisel profil değildir:
-
-- <!--i:box--> **Content profile** - `profiles.json` içinde, bir dizi araç paketini bir marka kataloğuna bağlayan derleme zamanı yapılandırması (örn. `suse`, `lolly-start`). Bir operatörün dağıtım yaparken seçtiği şeydir; ayrıca `profile` **URL/CLI parametresi** de dışa aktarım sırasında bir *renk* varyantı seçmek için aynı adı kullanır (ICC/CMYK baskı koşulu - bkz. [URL Mode](/info/url-mode.html)). İkisi de *derleme/çıktı* ile ilgilidir, *seninle* değil. Bkz. [Configuration](/info/configuration.html).
-- <!--i:seal--> **Identity profile** - kaydolabileceğin isteğe bağlı **doğrulanmış Content Credentials kimliği** (e-postanı imzalı dışa aktarımlarına bağlayan kısa ömürlü bir sertifika). Bu, kişisel profilin ad/iletişim alanlarından ayrı bir imzalama kimliğidir, ancak ikisinin de gömülüp gömülmeyeceğini **Use my details to create** belirler. Bkz. [Content Credentials Identity](/info/content-credentials-identity.html).
+Sözcüğün Lolly'de üç başka anlamı daha var. Bir **content profile**, bir dağıtımın hangi araçları ve kataloğu sunacağını seçen bir derleme ayarıdır; terimi [Glossary](/info/glossary.html) tanımlar. `profile` bağlantı parametresi, bir CMYK baskı koşulu gibi bir dışa aktarma için renk profili seçer; bkz. [Reserved URL parameters](/info/url-parameters.html#print). Bir **verified identity**, e-postanı imzalı dışa aktarmalarına bağlayan isteğe bağlı imza sertifikasıdır; bu ayrıntılardan ayrıdır, ancak ikisinden birinin gömülüp gömülmeyeceğini **Use my details to create** yönetir; bkz. [Content Credentials](/info/content-credentials-identity.html).
 
 ![Telefon genişliğinde Verified identity kartı: sertifika ömrü seçici ve altındaki kayıt adımı - kişisel bilgilerinden ayrı olan kimlik profili](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Gizlilik
 
-Yukarıdaki isteğe bağlı kimlik kaydı dışında (bu, kaydolduğun e-postayı sertifika hizmetine gönderir - bkz. [Sunucu Yüzeyi](/info/server-surface.html)), bir profil asla iletilmez, yüklenmez veya seni tanımlamak ya da izlemek için kullanılmaz - onaylanacak bir şey yok, yalnızca neyin saklandığını bilmen için bu bildirim var. **Ayarlar → Preferences → Tüm verilerimi temizle** ile istediğin zaman tümünü sil. Bkz. [Gizlilik Politikası](/info/privacy.html).
+Kişisel profilin yerel olarak saklanır. Ayrıntıların bir yedekte veya Sync kopyasında, paylaştığın veya dışa aktardığın içerikte ve isteğe bağlı Content Credentials kaydı sırasında gidebilir. Bir Lolly Work örneğinde giriş, paylaşılan iş, telemetri politikası ve denetim kayıtları bu yerel profilden ayrıdır. **Settings → Preferences → Clear all my data** bu cihazı temizler; depolama sağlayıcının veya kuruluşunun tuttuğu kopyaları silmez. Bkz. [Privacy Policy](/info/privacy.html).

@@ -1,6 +1,6 @@
 {
   "name": "Gradiente",
-  "description": "Gradienti morbidi in stile mesh dai colori del tuo brand. Trascina i punti colore direttamente sul canvas, oppure attiva il Drift ed esporta il loop come WebM, MP4 o GIF.",
+  "description": "Cinque modi per creare un gradiente dai campioni colore del design system: Blend radiale morbido, una vera mesh Coons-patch come SVG nitido (Subdivide) o raster uniforme (Mesh), punti Warp liberi e onde Flow animate. Trascina tutto direttamente sulla tela; esporta immagini fisse o loop video senza stacchi.",
   "a11yLabel": "Mesh gradient che mescola {{count}} colori",
   "inputs.count.label": "Punti colore",
   "inputs.color1.label": "Colore 1 (base)",

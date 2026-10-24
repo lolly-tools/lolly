@@ -2,26 +2,26 @@
 
 _Laatst gecontroleerd: 28 september 2026._
 
-Lolly maakt on-brand graphics, socialemediaberichten, presentaties en lay-outs in de browser. Samen met [lolly.work](https://lolly.work) ondersteunt het ook gedeelde projecten, live samenwerking aan werk, goedgekeurde assets en organisatiebeleid.
+Als je team vandaag socialmediaberichten, dia's en flyers in Canva maakt, zegt deze pagina waar Lolly dezelfde klus doet en waar Canva beter past.
+
+## Wat Canva beter doet
+
+Canva combineert een grote sjabloon- en stockbibliotheek, apps en gehoste teamworkflows in één beheerde dienst. Die kant-en-klare inhoud en ervaring helpen wanneer je vandaag een startpunt nodig hebt. Zie de [sjablonen van Canva](https://www.canva.com/templates/) en de [appmarktplaats](https://www.canva.com/apps/). Het live bewerken heeft ook een lange operationele geschiedenis op een schaal die de werkcollabs van Lolly niet hebben bereikt.
 
 ## Waar ze overlappen
 
-Met beide begin je vanuit een sjabloon en maak je een afgeronde graphic zonder ontwerper te zijn. Beide ondersteunen teamworkflows en merkbeheer: [Canva bundelt deze in zijn zakelijke abonnementen](https://www.canva.com/canva-business/); Lolly scheidt de creatieve apps van de organisatieservice.
+Met beide begint iemand vanuit een sjabloon en maakt een afgeronde afbeelding zonder ontwerper te zijn. Beide ondersteunen teamwerk en merkbeheer: [Canva bundelt deze in zijn zakelijke abonnementen](https://www.canva.com/canva-business/), terwijl Lolly de creatieve app en de organisatieserver gescheiden houdt.
 
-Lolly draait zelfstandig op je apparaat zonder account. lolly.work voegt SSO, SCIM-provisioning, rollen, gedeelde catalogi, goedkeuringen en gebruiksrapportage toe wanneer je organisatie die nodig heeft. Het maakt deel uit van het Lolly-project, wordt afzonderlijk uitgerold en is open source onder MPL-2.0, net als Lolly zelf.
+## Hoe Lolly de overlappende klus doet
 
-## Sjablonen en teamwerk
+Een Lolly-tool codeert de wijzigingen die mensen mogen maken, en dezelfde tool draait in de browser, de desktop-app of de CLI. Een lay-out die op het Design-canvas is gemaakt kan een [tool met regels](/info/create-a-tool.html) worden, en één tool kan veel bestanden maken uit een tabel met waarden.
 
-Canva combineert een grote sjabloon- en stockbibliotheek, apps en gehoste teamworkflows in één service. Die kant-en-klare content en beheerde ervaring kunnen nuttig zijn bij het kiezen van een beginpunt. Zie [de sjablonen van Canva](https://www.canva.com/templates/) en de [appmarktplaats](https://www.canva.com/apps/).
+![Het vrije canvas van Design, waar de aangeboden kleuren, lettertypen en assets die van het design system zelf zijn](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-De tools van Lolly leggen toegestane wijzigingen vast en zijn herbruikbaar in de browser, de desktopapp of de CLI. Een ontwerp kan een [tool met regels](/info/create-a-tool.html) worden, en dezelfde tool kan veel outputs produceren uit een tabel met waarden. lolly.work beheert toegang, gedeeld werk en beleid rond die tools.
+Zelfstandig Lolly blijft maken en exporteren op het apparaat, zonder account, en werkt offline zodra de assets zijn opgeslagen. Twee mensen kunnen live bewerken in een [privécollab](/info/collaborate.html), van apparaat naar apparaat. Content Credentials staan standaard aan voor ondersteunde exports, en je kunt ze uitzetten.
 
-Live bewerken is mogelijk via zowel [privécollabs](/info/collaborate.html), die twee apparaten rechtstreeks verbinden, als werkcollabs via de lolly.work-instantie van een organisatie. Werkcollabs omvatten gedeelde bewerkingen, cursors en opgeslagen teamsessies. De huidige serverimplementatie gebruikt één samenwerkingsnode; schaal en operationele geschiedenis verschillen van de gevestigde service van Canva.
+## Met een organisatie
 
-## Waar het werk zich bevindt
+Lolly Work, gedraaid op de eigen server van je organisatie, voegt aanmelden, gedeelde projecten, live werkcollabs, goedgekeurde assets en beleid toe. [Wat waar draait](/info/compare.html#what-runs-where) zet de twee delen naast elkaar, met de grenzen die elke vergelijking deelt.
 
-Zelfstandige Lolly houdt creatie en export op het apparaat en kan offline werken zodra de assets beschikbaar zijn. Samenwerking aan werk, teamopslag en serverrendering gebruiken de geconfigureerde services van de organisatie. Deze implementatiekeuze is het onderscheid: een organisatie kan beide onderdelen van Lolly zelf beheren, zonder softwarelicentiekosten per gebruiker, terwijl ze wel betaalt voor eigen hosting en beheer.
-
-Content Credentials zijn optioneel voor ondersteunde exports. lolly.work kan serveroutput ondertekenen met een geconfigureerde organisatie-identiteit; een verifier moet die identiteit vertrouwen voordat de ondertekenaar als vertrouwd wordt getoond. Zie [Content Credentials-identiteit](/info/content-credentials-identity.html) en het [overzicht van de gecombineerde oplossing](/info/compare.html).
-
-Canva is een handelsmerk van de eigenaar. Deze pagina beschrijft waar de twee oplossingen overlappen en is niet verbonden aan Canva.
+Canva is een handelsmerk van zijn eigenaar. Deze pagina beschrijft waar de twee producten overlappen en is niet verbonden aan Canva.

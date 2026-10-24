@@ -747,6 +747,24 @@ test('public anonymous and browser behavior need explicit reviewed configuration
   }
 });
 
+test('the MCP size limits render as explicit settings, bounded by the edge request body', () => {
+  const mcp = container(deployment(render(), 'mcp').spec.template.spec);
+  assert.equal(env(mcp).NODE_ENV, 'production');
+  assert.equal(env(mcp).LOLLY_MCP_REQUEST_MAX_BYTES, '4500000');
+  assert.equal(env(mcp).LOLLY_MCP_RESPONSE_MAX_BYTES, '4400000');
+  assert.equal(env(mcp).LOLLY_MCP_MAX_IMAGE_BYTES, '4194304');
+  const raised = values();
+  raised.components.mcp.limits = { requestMaxBytes: 33554432, responseMaxBytes: 33554432, maxImageBytes: 26214400 };
+  const roomy = container(deployment(render(raised), 'mcp').spec.template.spec);
+  assert.equal(env(roomy).LOLLY_MCP_REQUEST_MAX_BYTES, '33554432');
+  assert.equal(env(roomy).LOLLY_MCP_RESPONSE_MAX_BYTES, '33554432');
+  assert.equal(env(roomy).LOLLY_MCP_MAX_IMAGE_BYTES, '26214400');
+  // A request larger than the edge's 32 MiB MCP body could never arrive.
+  const over = values();
+  over.components.mcp.limits = { requestMaxBytes: 33554433, responseMaxBytes: 4400000, maxImageBytes: 4194304 };
+  refuses(over, /requestMaxBytes/);
+});
+
 test('optional browser profile has bounded scratch and resources without extra privileges', () => {
   const parsed = spawnSync(
     'python3',

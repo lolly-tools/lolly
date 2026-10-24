@@ -1,6 +1,6 @@
 {
   "name": "スニペット",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "テキストを、デスクトップウィンドウ、静止画、または入力、選択、オートコンプリート、動きを演出したインタラクションとして見せます。",
   "inputs.code.label": "コード",
   "inputs.code.placeholder": "ここにコードを貼り付けてください…",
   "inputs.fileName.label": "ファイル名",

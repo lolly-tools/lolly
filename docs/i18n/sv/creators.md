@@ -1,60 +1,75 @@
-# Lolly för kreatörer
+# Skapa
 
-Du fyller i några fält och en färdig fil kommer ut, med typsnitt, färger och layout redan beslutade på din egen enhet. Du levererar på minuter och det ser ut som om du lagt ner timmar, och eftersom varumärkesreglerna är inbyggda i verktyget är det aldrig ditt namn på filen som bryter mot varumärket. Välj det spår nedan som matchar det du gör idag.
+Du fyller i några fält och en färdig fil kommer ut, med typsnitt, färger och layout redan bestämda, på din egen enhet. Eftersom varumärkesreglerna finns i verktyget är det aldrig ditt namn på filen som bryter mot varumärket. Välj det spår som passar det du gör i dag.
 
-Du är en hand i ett stafettlopp: en utvecklare kan skala upp verktyget du använder till en pipeline och en kollega kan köra det självbetjänat, så [En kampanjs livscykel](/info/overview.html#the-lifecycle-of-a-campaign) följer en tillgång genom alla tre par händer.
-
-Ny här? Börja med **[Skapa något på 60 sekunder](/info/make-something.html)** och kom tillbaka när du vet vilken del du vill gå djupare i. [Frågor och svar](/info/faq.html) tar upp det folk undrar innan de litar på ett gratis verktyg. [Så jämför sig Lolly](/info/positioning.html) är den ärliga redogörelsen för när du ska välja något annat.
+Ny här? Börja med **[Gör din första fil](/info/make-something.html)**. [Så fungerar Lolly](/info/how-lolly-works.html) visar hur ett verktyg du använder också kan köras från ett skript eller en kollegas telefon, och [Frågor och svar](/info/faq.html) tar upp det folk frågar innan de litar på ett gratisverktyg.
 
 ## Skapa
 
-Välj ett verktyg, fyll i några fält och ladda ner den färdiga filen. Eller öppna Design-kanvasen och lägg upp den fritt för hand: oavsett vilket kommer färgerna, typografin och avstånden från ditt varumärke snarare än från minnet, och inget kräver ett konto.
+Välj ett verktyg och fyll i det, eller lägg ut en sida fritt på Design-ytan.
 
-- **[Skapa något på 60 sekunder](/info/make-something.html)** - tre korta genomgångar utan något att ställa in, om du aldrig öppnat Lolly förut.
-- **[Att använda Lolly](/info/using.html)** - kanvasen, kontrollerna, sparande, Projekt och användning på mobil: hur appen själv beter sig.
-- **[Brand Studio](/info/brand-studio.html)** - när loggor, färger och typsnitt ska vara dina egna snarare än standardvärdena.
-- **[Importera en design](/info/design-import.html)** - när konstverket redan finns som en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil och du vill ha den redigerbar snarare än plattgjord.
-- **[Verktygsvyer](/info/utilities.html)** - kalkylbladet, omvandlaren, Colour Lab, PDF-extraheraren och Script audio, för jobben som inte är en verktygsrendering.
-- **[Webbläsartillägg](/info/extension.html)** - fånga en levande webbsida och återanvänd den som en tillgång i dina egna designer.
-- **[Sök](/info/search.html)** - ett fält som når dina verktyg, ditt sparade arbete, katalogen och dina inställningar.
-- **[Fråga Lolly](/info/ask.html)** - skriv en fråga och få tillbaka den matchande delen av dessa guider, med en länk rakt in i den.
-- **[Instrumentpanelen](/info/dashboard.html)** - vad den här enheten kan göra, ditt designsystem skrivskyddat och en snabbtitt på lagringsutrymmet.
-- **[Dina favoriter](/info/favourites.html)** - stjärnmärk det du använder ofta så får det en egen platta ovanför rutnätet.
-- **[Profiler](/info/profile.html)** - detaljerna verktygen förifyller från och de fyra tillgänglighetsreglagen som lugnar ner appen utan att flytta en pixel av det du exporterar.
+- **[Gör din första fil](/info/make-something.html)** - en kort lektion utan något att ställa in: en QR-kod, nedladdad och sparad som en redigerbar kopia.
+- **[Använda Lolly](/info/using.html)** - ytan, kontrollerna, att spara, Projects och mobilanvändning: hur själva appen beter sig.
+- **[Mallar](/info/templates.html)** - börja från en sparad layout i stället för ett tomt verktyg.
+- **[Text i Design](/info/text-composition.html)** - rubriker, löpande text och typ som passar sin ruta.
+- **[3D Studio](/info/3d-studio.html)** - SVG-grafik och 3D-modeller arrangerade, belysta och renderade som en scen.
+- **[Verktyg för filer](/info/utilities.html)** - åtgärda en fil på din enhet: dela den säkert, jämför två versioner, byt format, hämta ut orden eller kontrollera en färg.
+- **[Webbläsartillägg](/info/extension.html)** - ta en skärmbild av en levande webbsida från webbappen, eller läs en webbplats för att starta ett designsystem.
+
+## Gör det till ditt
+
+Ditt designsystem avgör hur varje verktyg ser ut.
+
+- **[Design System Setup](/info/brand-studio.html)** - logotyper, färger, typografi och resten, inställt en gång på `#/start`.
+- **[Lolly Demo i bruk](/info/lolly-demo-in-use.html)** - färgvarianter på verkligt arbete, och byte till ditt eget designsystem.
+- **[Varumärkesarkitekturer](/info/brand-architectures.html)** - flera designsystem, eller ett med flera färgvarianter, för en organisation.
+- **[Importera en design](/info/design-import.html)** - en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil öppnad som en redigerbar layout i stället för en platt bild.
+- **[Rebrand a deck](/info/rebrand.html)** - en PowerPoint-presentation flyttad till ditt designsystem, med diagram och animationer intakta.
+- **[Dela en design med regler](/info/create-a-tool.html)** - gör en layout till ett verktyg som andra fyller i.
+
+## Hitta och behåll ditt arbete
+
+- **[Hitta och återställ ditt arbete](/info/find-your-work.html)** - vart en sparad, nedladdad eller osparad fil tog vägen.
+- **[Sök](/info/search.html)** och **[Fråga Lolly](/info/ask.html)** - ett fält för dina verktyg, sparade arbete, tillgångar och inställningar, och svar från de här guiderna.
+- **[Settings](/info/dashboard.html)** - vad den här enheten kan göra, ditt designsystem skrivskyddat och din lagring.
+- **[Dina favoriter](/info/favourites.html)** och **[Profiler](/info/profile.html)** - stjärnmärkta verktyg, uppgifterna som verktyg fyller i på förhand och tillgänglighetsreglagen.
+- **[Synkronisera dina enheter](/info/sync.html)** - samma arbete på din dator och din telefon, via lagring du väljer.
 
 ## Animera
 
-Text som rör sig, scener på en tidslinje och rörelse som håller sig inom varumärket. En rörlig export komponeras bildruta för bildruta från en driven klocka istället för att spelas in från skärmen, så tajmingen driver aldrig och samma länk renderar samma klipp oavsett längd.
+Text som rör sig, scener på en tidslinje och rörelse som håller sig i varumärkets stil. En rörelseexport ritas bildruta för bildruta från en styrd klocka i stället för att spelas in från skärmen, så samma länk ger samma klipp.
 
-- **[Animering](/info/animating.html)** - keyframes, verkligt djup och en scenkamera för att flyga över resultatet.
-- **[Sekvensredigeraren](/info/sequence-editor.html)** - själva tidslinjen: klipp, overlay-spår, trimning och delning, övergångar och ljudmixen.
-- **[Export och format](/info/exporting.html)** - video-, GIF- och animerad PNG-sidan av exportpanelen, när rörelsen väl är rätt.
+- **[Animera](/info/animating.html)** - nyckelbilder, verkligt djup och en scenkamera.
+- **[Sekvensredigeraren](/info/sequence-editor.html)** - klipp, överlagringsspår, trimning och delning, övergångar och ljudmixen.
+- **[Wide Colour och HDR](/info/hdr-editing.html)** - färg bortom det vanliga omfånget, på skärmar och i format som kan visa det extra omfånget.
 
-## Spela in
+## Spela in och presentera
 
-Spela in en ren tagning med nedräkning, en nivåmätare och lätt coachning, eller gör om en röstanteckning till en färdig video som rör sig med ljudet. Det finns ännu ingen separat sida för inspelning: Att använda Lolly tar upp det, i tidslinjeavsnittet.
+Spela in en ren tagning med nedräkning och nivåmätare, eller ställ dig framför dina bilder.
 
-- **[Att använda Lolly](/info/using.html#timeline-sequence)** - att spela in en speakerröst direkt på tidslinjen, var tagningen sparas och hur den når mixen.
-- **[Skapa din första fil](/info/make-something.html#other-first-projects)** - audiogrammet, för när du hellre vill höras än synas.
-- **[Verktygsvyer](/info/utilities.html)** - Script audio, när orden kommer först och rösten kommer efter.
-
-## Presentera
-
-Lägg din kamera, logotyp och ditt namn ovanpå ett Design-bygge eller en Countdown, med privata kontroller i ett separat fönster.
-
-- **[Presentera med kamera](/info/presenting.html)** - beskärning, sparade scener, delning med publik, lokal inspelning och de nuvarande testbegränsningarna.
+- **[Design-tidslinjen](/info/design.html#timeline-sequence)** - att spela in ett speakerljud direkt på tidslinjen.
+- **[Gör din första fil](/info/make-something.html#other-first-projects)** - audiogrammet, för när du hellre vill bli hörd än sedd.
+- **[Presentera med kamera](/info/presenting.html)** - din kamera, logotyp och namn över en presentation eller Countdown, med privata kontroller i ett separat fönster.
+- **[Levande sidor som tar klickern](/info/interactive-pages.html)** och **[Agendaskärmar](/info/agenda.html)** - sidor och program för rummet.
 
 ## Samarbeta
 
-Två personer, två enheter, en session, redigerad i realtid. Skanna en kod över bordet och båda skärmarna håller samma arbete, utan konto och utan server i mitten - och helt utan internet när båda enheterna är på samma nätverk.
+Två personer, två enheter, en design, redigerad live, utan konto och utan någon server emellan.
 
-- **[Att arbeta tillsammans](/info/collaborate.html)** - att starta en session, vad som färdas mellan enheterna och vad som händer när nätverket går ner.
-- **[Att använda Lolly](/info/using.html#sharing-your-work)** - de tystare sätten att lämna över arbete: en delningslänk som bär hela tillståndet, eller en enda `.lolly`-fil.
+- **[Arbeta tillsammans](/info/collaborate.html)** - privata collabs mellan enheter, och arbetscollabs via din organisations Lolly Work.
+- **[Använda Lolly](/info/using.html#sharing-your-work)** - en delningslänk som bär hela tillståndet, eller en enda `.lolly`-fil.
+- **[Använd Lolly i din organisation](/info/organisation.html)** - inloggning, teamprojekt och hanterade inställningar, när din organisation kör Lolly Work.
 
 ## Publicera
 
-Skicka det dit det efterfrågades: en länk som bär designen, en tryckriktig PDF, en video, en presentation eller en mapp med varianter. Samma källa skapar alla, så du bygger den bara en gång.
+Skicka det dit det efterfrågades: en länk, en tryckriktig PDF, en video, en presentation eller en mapp med varianter, allt från samma källa.
 
-- **[Export och format](/info/exporting.html)** - tryckenheter, DPI, utfall och skärmärken, video, batch-körningar och själva exportpanelen.
-- **[Alla format Lolly kan öppna och skapa](/info/formats.html)** - hela listan in och ut, med ett kort på vanlig svenska bakom varje chip.
-- **[Dataöverföring](/info/data-transfer.html)** - säkerhetskopian, för att flytta allt du har skapat till en annan enhet.
+- **[Exportera en fil](/info/exporting.html)** - tryckenheter, utfall och skärmärken, video, batchkörningar och exportpanelen.
+- **[Varje format Lolly kan öppna och göra](/info/formats.html)** - hela listan över in och ut.
+- **[Kreativa rättigheter och krediter](/info/creative-rights.html)** - licenserna för det du använde, och krediterna som följer med filen.
+
+## Teamhandböcker och jämförelser
+
+- **För ditt team:** [försäljning](/info/sales.html), [marknadsföring](/info/marketing.html), [nyhetsredaktionen](/info/press.html) och [juridik](/info/legal.html).
+- **[Hur Lolly står sig](/info/positioning.html)** - vad Lolly är bra på, och när du ska ta något annat.
+- **[Lolly jämfört, verktyg för verktyg](/info/compare.html)** - Canva, Adobe, Figma, Penpot, varumärkesportaler, renderings-API:er och onlineomvandlare.

@@ -1691,5 +1691,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Wala pang kulay na naka-lock sa eksaktong ink. Mag-lock ng isa mula sa print setting ng isang kulay sa {start}.",
   "Ink and paper": "Ink at papel",
   "Named colours": "Mga pinangalanang kulay",
-  "Emphasis": "Diin"
+  "Emphasis": "Diin",
+  "Zoom to selection": "I-zoom sa pinili"
 }

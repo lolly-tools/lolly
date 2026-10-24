@@ -4,8 +4,8 @@
    fixed priority - above chrome/primitives/base, below overrides/a11y - no
    matter when Vite injects this chunk at runtime. Do not rely on load order. */
 @layer views {
-/* ── Brand studio (lib/brand-editor.ts) - every .be-* rule for the editor the
-      #/start brand studio mounts. Extracted from dashboard.css when the editor
+/* ── Design System Setup's editor (lib/brand-editor.ts) - every .be-* rule for
+      the editor #/start mounts. Extracted from dashboard.css when the editor
       became start-exclusive; imported by brand-editor.ts so whichever view mounts
       the editor pulls these styles with the same lazy chunk. `.be` is the
       positioning context for the swatch-editor popover. */

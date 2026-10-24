@@ -84,6 +84,9 @@ spec:
             - {name: LOLLY_BROWSER_MAX_CONCURRENCY, value: {{ $component.browser.maxConcurrent | quote }}}
             - {name: LOLLY_BROWSER_MAX_QUEUE, value: {{ $component.browser.maxQueued | quote }}}
             - {name: LOLLY_BROWSER_QUEUE_TIMEOUT_MS, value: {{ $component.browser.queueTimeoutMs | quote }}}
+            - {name: LOLLY_MCP_REQUEST_MAX_BYTES, value: {{ $component.limits.requestMaxBytes | int64 | quote }}}
+            - {name: LOLLY_MCP_RESPONSE_MAX_BYTES, value: {{ $component.limits.responseMaxBytes | int64 | quote }}}
+            - {name: LOLLY_MCP_MAX_IMAGE_BYTES, value: {{ $component.limits.maxImageBytes | int64 | quote }}}
             {{- else if eq $name "ca" }}
             - {name: CA_ISSUER_MODE, value: {{ $component.issuerMode | quote }}}
             {{- if eq $component.issuerMode "vault-pki" }}

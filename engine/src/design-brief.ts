@@ -19,7 +19,10 @@
  *   - `media`         photography, illustration and background families plus treatments;
  *   - `master`        archetypes with their slots in px at the master's size;
  *   - `houseRules`    the brand's machine-checkable rules (`BrandRuleV1`), the same list
- *                     `checkDesignHouseRules` evaluates.
+ *                     `checkDesignHouseRules` evaluates;
+ *   - `skills`        the brand skills (plan 323): the index of the brand's own guidance per
+ *                     discipline, without bodies, plus the name of the baseline Lolly
+ *                     generates from this brief.
  *
  * `coverage` gains one entry per section: `declared` when the pack states it, `derived`
  * when it was computed from the tokens, `neutral` for the stand-in master and
@@ -30,6 +33,7 @@
  * in packages/node-shell/src/design-brief.ts.
  */
 import type { BrandRuleV1 } from '@lolly-tools/core/brand-system-v1';
+import type { BrandSkillIndexEntryV1 } from '@lolly-tools/core/brand-skill-v1';
 import type { SlideMasterV1 } from '@lolly-tools/core';
 import { roleFontSize } from '@lolly-tools/core';
 import { brandContext } from './brand-context.ts';
@@ -47,6 +51,7 @@ import { neutralSlideMaster } from './rebrand-design-system.ts';
 import { DESIGN_HOUSE_RULE_KINDS, designHouseRules } from './design-house-rules.ts';
 import { parseColorToSrgb8 } from './css-color.ts';
 import type { BrandCheckCatalogOpts } from './brand-check.ts';
+import { brandSkillsSection } from './brand-skill.ts';
 
 /** One catalog asset, with only the fields the brief reads. */
 export interface DesignBriefAssetV1 {
@@ -57,6 +62,8 @@ export interface DesignBriefAssetV1 {
   tags?: string[];
   license?: string;
   deprecated?: boolean;
+  /** For a `skill` asset: its index row (`brandSkillIndexEntry`), which the `skills` section lists. */
+  skill?: BrandSkillIndexEntryV1;
 }
 
 /** The catalog facts a brief adds to a token document. Every field is optional. */
@@ -80,7 +87,7 @@ export interface DesignBriefCatalogV1 {
 
 export interface DesignBriefOpts { name?: string; theme?: string }
 
-type Coverage = 'declared' | 'derived' | 'neutral' | 'unavailable';
+type Coverage = 'declared' | 'derived' | 'neutral' | 'generated' | 'unavailable';
 type Swatch = { path: string; value: string; name: string };
 
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -401,6 +408,7 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
   // authored text from the same numbers the expansion writes.
   const styles = textStylesFromBrief({ type, themes, houseRules, theme: opts.theme ?? null }, { width: master.size.width, height: master.size.height });
   const colourways = colourwaySection(doc);
+  const skills = brandSkillsSection(assets.filter((a) => a.type === 'skill' && a.skill).map((a) => a.skill!), context.name);
   return {
     ...context,
     themes,
@@ -412,6 +420,7 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
     media,
     master: masterSection(master, resolve, masterDeclared ? facts.masterAsset : undefined),
     houseRules,
+    skills,
     coverage: {
       ...context.coverage,
       themes: (themes.length ? 'declared' : 'unavailable') as Coverage,
@@ -425,6 +434,7 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
       master: (masterDeclared ? 'declared' : 'neutral') as Coverage,
       houseRules: (houseRules.length ? 'declared' : 'unavailable') as Coverage,
       houseRuleKinds: [...DESIGN_HOUSE_RULE_KINDS],
+      skills: (skills.index.length ? 'declared' : 'generated') as Coverage,
     },
   };
 }

@@ -27,3 +27,7 @@ Atribusi, asal-usul, privasi, & persetujuan
 kreativitas & kepercayaan di tengah yang tak terhingga
 
 siapa pun bisa berkarya, dalam skala apa pun, di mana pun
+
+## Mengapa
+
+### [Karena kita berdiri di atas bahu para raksasa](/info/trust/shoulders-of-giants.html)

@@ -82,7 +82,10 @@ test('--file chooses the design system, --strict refuses with exit 4, and the hu
   assert.equal(strict.status, 4, strict.stderr);
   assert.deepEqual(strict.json.result.designSystem, { origin: 'file' });
   assert.equal(strict.json.result.strict, true);
-  assert.ok(strict.json.result.findings.filter((f: { family: string }) => f.family === 'verify').every((f: { severity: string }) => f.severity === 'error'));
+  // The writing score informs only, so strict never makes it an error.
+  const verify = strict.json.result.findings.filter((f: { family: string }) => f.family === 'verify');
+  assert.ok(verify.filter((f: { code: string }) => f.code !== 'verify.writing-score').every((f: { severity: string }) => f.severity === 'error'));
+  assert.ok(verify.filter((f: { code: string }) => f.code === 'verify.writing-score').every((f: { severity: string }) => f.severity !== 'error'));
 
   const human = lolly(['check', TRAP, '--browser=off', `--file=${TOKENS}`], state);
   assert.equal(human.status, 5, human.stderr);

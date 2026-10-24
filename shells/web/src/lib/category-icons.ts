@@ -40,6 +40,8 @@ const CATEGORY_ICON: Record<string, string> = {
   icons: g('shapes'),
   // Illustrations - a vector pen tool (drawn art).
   illustrations: g('penTool'),
+  // Guidelines - a mortarboard, the Skills room's own glyph (plan 323).
+  guidelines: g('graduationCap'),
   // Animations - a film strip (lottie / video motion).
   animations: g('filmStrip'),
   lottie: g('filmStrip'),

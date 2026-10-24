@@ -2,24 +2,24 @@
 
 _Huling sinuri: 28 Setyembre 2026._
 
-Parehong nag-aalok ang Lolly at Penpot ng mga open-source na design tool, shared na design token at live collaboration. Pinagsasama ng Lolly ang paglikha sa mismong device at ang [lolly.work](https://lolly.work), ang hiwalay nitong dine-deploy na organisation service.
+Kung nagdidisenyo ang team mo sa Penpot, gumagana ang Lolly kasabay ng Penpot: parehong open source at parehong nagbabasa ng parehong design token. Sinasabi ng pahinang ito kung para saan ang bawat isa.
 
-## Magkasamang pundasyon ng disenyo
+## Ang mas mahusay na ginagawa ng Penpot
 
-Gumagamit ang [design token ng Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) ng DTCG format, na binabasa rin ng Lolly. Maaaring ibahagi sa pagitan ng dalawang workflow ang mga kulay, type at iba pang value ng token. Binubuksan ng [Import a design](/info/design-import.html) ng Lolly ang `.penpot` export bilang nae-edit na layout.
+Ang [Penpot](https://penpot.app/) ay nagbibigay ng interface design, mga component, flexible na layout, interactive prototype at developer inspection, na may real-time editing at live cursor. Nag-aalok ito ng hosted at self-hosted na deployment, na may [mga opsyon sa pag-install ng Docker at Kubernetes](https://help.penpot.app/technical-guide/getting-started/). Para sa pagdidisenyo ng application, ang Penpot ang tool.
 
-Minementena ng Lolly ang Lolly Export plugin para sa Penpot. Ginagamit nito ang engine ng Lolly para sa opt-in na C2PA Content Credentials sa device. Magkahiwalay ang integridad ng lagda at ang tiwala sa lumagda: kailangan ng verifier ng identity na pinagkakatiwalaan nito, gaya ng inilalarawan sa [Content Credentials Identity](/info/content-credentials-identity.html).
+## Kung saan sila nagtatagpo
 
-## Mga workflow ng disenyo at team
+Ang [mga design token ng Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) ay gumagamit ng DTCG format, na binabasa rin ng Lolly, kaya ang mga kulay, type at iba pang token value ay lumilipat sa pagitan ng dalawa. Binubuksan ng [Import a design](/info/design-import.html) ng Lolly ang `.penpot` export bilang mae-edit na layout, at ang **Send to Penpot** sa Lolly ay nagpapadala ng design pabalik bilang `.penpot` archive. Pinapanatili rin ng Lolly ang [Lolly Export plugin para sa Penpot](https://github.com/lolly-tools/lolly-plugins-penpot-export), na gumagamit ng engine ng Lolly para magdagdag ng opt-in na Content Credentials sa device.
 
-Nagbibigay ang [Penpot](https://penpot.app/) ng interface design, mga component, flexible na layout, interactive prototype at developer inspection. Nag-aalok ito ng hosted at self-hosted na deployment, na may [mga opsyon sa pag-install para sa Docker at Kubernetes](https://help.penpot.app/technical-guide/getting-started/).
+## Paano ginagawa ng Lolly ang magkapatong na trabaho
 
-Gumagawa ang Design canvas ng Lolly ng mga nae-edit na asset at kayang gawing [tool na may mga patakaran](/info/create-a-tool.html) ang isang layout. Nagre-render ang parehong tool sa browser, desktop app o CLI at makakabuo ng mga variant mula sa data. Para sa teamwork, may direktang two-device na [private collab](/info/collaborate.html) ang Lolly at work collab sa pamamagitan ng lolly.work, na may shared edit, cursor at mga naka-save na team session.
+Ang Design canvas ng Lolly ay gumagawa ng mae-edit na asset at puwedeng gawing [tool na may mga patakaran](/info/create-a-tool.html) ang layout. Ang parehong tool ay nagre-render sa browser, desktop app o CLI at gumagawa ng mga variant mula sa data. Ang standalone na Lolly ay nagre-render at pumipirma sa device, nang walang account o server. Ang [pribadong collab](/info/collaborate.html) ay direktang nagpapares ng dalawang device.
 
-## Paano nagkakaiba ang mga deployment
+## Sa isang organisasyon
 
-Nagre-render at pumipirma ang standalone na Lolly sa device nang walang account o server. Nagdaragdag ang lolly.work ng SSO, SCIM provisioning, shared na catalogue at proyekto, mga role, mga approval, mga audit record at server rendering. Parehong open source sa ilalim ng MPL-2.0 ang dalawang repository at maaaring patakbuhin ng organisasyon. Gumagamit ng naka-configure na instance ang shared na gawain; nananatiling available nang hiwalay ang lokal na paglikha.
+Nagdaragdag ang Lolly Work ng single sign-on, SCIM provisioning, shared catalogue at project, mga papel, approval, audit record, work collab at server rendering. Parehong MPL-2.0 ang dalawang repository at puwedeng patakbuhin ng organisasyon ang pareho. Inilalagay ng [Ano ang tumatakbo saan](/info/compare.html#what-runs-where) ang dalawang bahagi nang magkatabi.
 
-Nakadepende ang pagpili sa gawain: ang workflow ng Penpot sa interface design at prototyping, ang paulit-ulit na asset production ng Lolly, o kombinasyong gumagamit ng shared token at mga na-import na disenyo. Kasalukuyang tumatakbo sa iisang server node ang work collaboration ng Lolly, at dapat bahagi ng pagsusuri ng organisasyon ang [deployment status](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) nito.
+Magagamit mo ang pareho: Penpot para sa interface design at prototyping, Lolly para sa mga paulit-ulit na file, pinagdugtong ng shared token at mga na-import na design.
 
-Ang Penpot ay trademark ng may-ari nito. Sa Lolly ang plugin sa itaas. Tingnan ang [Paano nakikipagkumpitensya ang Lolly](/info/positioning.html) at ang [pangkalahatang-ideya ng pinagsamang solusyon](/info/compare.html) para sa mas malawak na paghahambing.
+Ang Penpot ay trademark ng may-ari nito. Inilalarawan ng pahinang ito kung saan nagkakapatong ang dalawang produkto at hindi ito kaugnay ng Penpot.

@@ -1,88 +1,86 @@
 # Lolly so sánh như thế nào
 
-Những gì Lolly làm mà các công cụ sáng tạo hiện nay không làm, và những gì nó cố ý để lại cho chúng.
-
-Để xem phiên bản so sánh từng công cụ, mỗi trang riêng cho Canva, Adobe, Figma, các API kết xuất và các bộ chuyển đổi trực tuyến, xem [Lolly so sánh, từng công cụ một](/info/compare.html). Mỗi trang nêu rõ công cụ kia làm tốt hơn ở điểm nào và Lolly làm gì thay vào đó.
-
-> **Trạng thái thử nghiệm:** Lolly là một nguyên mẫu thử nghiệm khép kín (closed-pilot), chưa phải là sản phẩm hoàn thiện, và tính bảo mật của nó hiện đang trải qua quá trình tăng cường hạ tầng nghiêm ngặt của SUSE, chuẩn bị cho quy mô doanh nghiệp. Trang [Adoption & Governance](/info/adoption-governance.html#status) trình bày tình trạng hiện tại.
+Lolly là hai phần của một dự án mã nguồn mở. **Lolly** là engine, ứng dụng và công cụ để tạo, chỉnh sửa, chuyển đổi và xuất ngay trên thiết bị của bạn, không cần tài khoản. **Lolly Work** là máy chủ tổ chức, chạy trên hạ tầng của chính bạn, cho đăng nhập, dự án chung, phê duyệt và kết xuất trên máy chủ. Cả hai đều theo MPL-2.0. Trang này so sánh cặp đôi đó với những cách khác mà mọi người thiết kế, quản trị và sản xuất tệp.
 
 ## Các công cụ hiện nay
 
-Mỗi vòng tròn bên dưới chấm điểm mức độ đầy đủ mà một lớp sản phẩm cung cấp một khả năng **theo đúng những gì đã phát hành hôm nay** - không phải theo quảng cáo - với mỗi lớp được chấm điểm dựa trên đại diện tốt nhất của nó. Lolly được chấm điểm bằng cùng một tiêu chuẩn khắt khe: nó nhận vòng tròn đỏ duy nhất trên bảng, cho hạng mục độ chín muồi. Mở tên một hàng để xem lý giải đằng sau điểm số của nó. Các cột được sắp xếp theo hàng Mức độ hoàn thiện tổng thể ở trên cùng - giá trị trung bình của các hàng được chấm điểm, không tính hàng chi phí.
+Mỗi vòng cho điểm mức độ đầy đủ mà một loại sản phẩm đáp ứng một khả năng, với mỗi loại được chấm theo đại diện tốt nhất của nó. Cột Lolly bao gồm Lolly và Lolly Work cùng nhau, và mỗi hàng nói phần nào cung cấp gì. Mở tên một hàng để xem lý lẽ đằng sau điểm của nó. Các cột được sắp theo hàng Overall completeness ở trên cùng: trung bình của các hàng được chấm, trừ hàng chi tiêu.
 
 ::: figure positioning-comparison
-Mức độ hoàn thiện năng lực trên các công cụ sáng tạo hiện nay, khảo sát tháng 8/2026. Thang điểm: 0 không có, 25 mức giải pháp tạm, 50 có thật nhưng bị giới hạn hoặc một phần, 75 mạnh nhưng có lưu ý, 100 năng lực cốt lõi.
+So sánh khả năng: nghiên cứu đối thủ và điểm số từ tháng 8 năm 2026; phạm vi Lolly + Lolly Work được xem xét ngày 28 tháng 9 năm 2026. Chấm điểm: 0 không có, 25 mức tạm bợ, 50 có thật nhưng bị giới hạn hoặc chưa đầy đủ, 75 mạnh nhưng có lưu ý, 100 là năng lực cốt lõi.
 :::
 
-**Ghi chú chấm điểm.** Điểm số của Lolly giả định các tuyên bố đã công bố của nó là đúng, đó là lý do vì sao độ chín muồi là vòng tròn đỏ duy nhất của nó: thử nghiệm khép kín, đang trong quá trình tăng cường bảo mật, chưa có gì được kiểm toán. Nghiên cứu đã làm thay đổi một số ô.
+::: details Ghi chú chấm điểm
+Tính năng sẵn có và độ chín khi sản xuất là hai việc riêng. Lolly đã phát hành: phiên bản 1.0 ra mắt dưới dạng mã nguồn mở ngày 30 tháng 8 năm 2026, bảo mật của nó chưa được kiểm toán độc lập và bằng chứng áp dụng mới chỉ vài tháng ([Adoption & Governance](/info/adoption-governance.html#status) có tình trạng hiện tại). Có đăng nhập một lần, phê duyệt hay kết xuất trên máy chủ không thiết lập được một thành tích sản xuất, nên điểm độ chín phản ánh điều đó. Điểm của đối thủ giữ nguyên đợt xem xét tháng 8 có ghi ngày.
 
-Canva được chấm điểm dựa trên thành viên tốt nhất trong họ sản phẩm của nó cho mỗi hàng, vì nó sở hữu Affinity và Cavalry (cả hai được tặng miễn phí từ tháng 10/2025). Kết xuất ngoại tuyến và trên thiết bị đạt điểm 75 qua Affinity - một bộ ứng dụng desktop vẫn cần tài khoản đã xác minh và mang theo telemetry, khoản trừ điểm mà Adobe cũng phải chịu - trong khi chế độ ngoại tuyến của chính Canva chỉ chỉnh sửa các thiết kế đã đồng bộ trước, một thiết bị, khoảng thời gian giới hạn. Tự động điền đạt điểm 50: có thật nhưng bị giới hạn cho gói Enterprise, không đồng bộ, chỉ văn bản và hình ảnh. Khả năng tạo hàng loạt của Figma tăng từ 25 lên 50 khi Buzz phát hành tính năng điền bảng tính (bản beta miễn phí, tháng 8/2026).
+Một quy tắc chi phối bảng. Điểm tuyệt đối (100), ở các hàng chạm vào nội dung hoặc danh tính của bạn, cần một khả năng bạn dùng được không cần tài khoản và không điều kiện tiên quyết trên đám mây; các hàng về chính sản phẩm, như độ chín và độ dễ dùng, được miễn. Quy tắc đó làm Adobe mất điểm ở Content Credentials: cách triển khai rộng nhất đã phát hành (Photoshop, Lightroom, Premiere, Firefly) ký cục bộ và trên đám mây, nhưng không bao giờ thiếu tài khoản và danh tính Adobe, nên 75. Nó giới hạn các API kết xuất ở sản xuất hàng loạt và tự động hóa vì cùng lý do.
 
-Một quy tắc chi phối toàn bộ bảng: điểm Đầy đủ (100), trên các hàng liên quan đến nội dung hoặc danh tính của bạn, cần một khả năng bạn có thể sử dụng mà không cần tài khoản và không cần điều kiện tiên quyết về cloud; các hàng mô tả chính sản phẩm (độ chín muồi, độ dễ sử dụng) được miễn trừ. Quy tắc này khiến Adobe bị trừ điểm về nguồn gốc: C2PA được phát hành rộng rãi nhất (Photoshop, Lightroom, Premiere, Firefly) ký cục bộ lẫn trên cloud, nhưng không bao giờ thiếu tài khoản và danh tính Adobe, nên chỉ đạt 75. Quy tắc này cũng giới hạn điểm của các API kết xuất về tạo hàng loạt và tự động hóa vì cùng lý do.
+Canva được chấm theo thành viên gia đình tốt nhất của nó cho mỗi hàng, vì nó sở hữu Affinity và Cavalry (cả hai được tặng miễn phí vào tháng 10 năm 2025). Kết xuất ngoại tuyến và trên thiết bị được 75 nhờ Affinity, một bộ phần mềm máy tính vẫn cần tài khoản đã xác minh và mang telemetry, khoản trừ mà Adobe cũng chịu; chế độ ngoại tuyến riêng của Canva chỉ chỉnh các thiết kế đã đồng bộ trước, trên một thiết bị, trong một khoảng thời gian giới hạn. Autofill được 50: có thật nhưng bị giới hạn ở Enterprise và bất đồng bộ, và chỉ điền văn bản và ảnh. Sản xuất hàng loạt của Figma tăng từ 25 lên 50 khi Buzz ra mắt tính năng điền từ bảng tính (bản beta miễn phí, tháng 8 năm 2026).
 
-Điểm nguồn gốc 75 của Lolly phản ánh việc ký ngoại tuyến trên thiết bị: về mặt kiến trúc mạnh hơn nhưng chưa được kiểm toán, và một khóa thiết bị hiện lên là chưa được xác minh trong các trình xác thực tiêu chuẩn cho đến khi một danh tính hoặc CA riêng của một tổ chức xác nhận nó. Điểm 50 của Penpot đến từ plugin Lolly Export chính thức: cùng cách ký của engine, tùy chọn tham gia, được công bố là của riêng Lolly. Penpot cũng nhận vòng tròn duy nhất vượt thang điểm trên bảng, 90 điểm cho kết xuất trên thiết bị - canvas trên trình duyệt, lưu vào cloud tự chủ của riêng bạn (thậm chí một laptop), xuất riêng tư; chỉ có bước nhảy máy chủ mới tách nó khỏi Lolly. Cloudinary có cột riêng của nó: một pipeline media (DAM, API chuyển đổi, CDN), và là cột cloud duy nhất phát hành C2PA (50, vì fl_c2pa ký khi giao hàng, chứng thực là được-giao-bởi-Cloudinary, không phải được-tạo-bởi-bạn).
+Điểm 75 về Content Credentials của Lolly bao gồm ký trên thiết bị và ký phía máy chủ của Lolly Work với danh tính tổ chức đã cấu hình; một bên xác minh vẫn phải tin người ký ([Content Credentials Identity](/info/content-credentials-identity.html)). Điểm 50 của Penpot đến từ plugin xuất riêng của Lolly cho Penpot: cùng cách ký của engine, tùy chọn tham gia và được công bố như của Lolly. Penpot được 90 về kết xuất trên thiết bị: một canvas trình duyệt với đích lưu trên máy chủ của nó, có thể tự lưu trữ. Cloudinary có cột riêng cho thư viện tài nguyên, API biến đổi và CDN của nó; đợt xem xét tháng 8 chấm việc ký khi phân phối của nó là 50.
 
-Cộng tác trực tiếp diễn ra theo chiều ngược lại: Figma đặt ra chuẩn mực về quy mô (200 người biên tập) và P2P theo cặp, cách ly hoàn toàn (air-gapped) của Lolly chỉ đạt điểm Một phần. Giá cả là một ước tính, được ghi rõ như vậy: phép tính theo giá niêm yết trên các tổ hợp số lượng ghế thực tế, cố ý rộng, nhằm mục đích so sánh quy mô chứ không phải để mua sắm. Các API kết xuất đạt 75 về ràng buộc: mẫu bị khóa, không có lớp quản trị thương hiệu.
+Cộng tác trực tiếp của Lolly gồm collab riêng tư giữa hai thiết bị và work collab có xác thực qua Lolly Work, với chỉnh sửa chung, con trỏ và phiên nhóm đã lưu. Điểm Partial phản ánh bản triển khai work một nút hiện tại và lịch sử vận hành ngắn, không phải việc thiếu chỉnh sửa nhóm. Ước tính giá là phép tính số học từ giá niêm yết có ghi ngày để biết quy mô, không phải mua sắm.
+:::
 
-Khoảng trống: chưa có sản phẩm nào đã phát hành hôm nay vừa ưu tiên ràng buộc trước tiên vừa hoạt động ngoại tuyến mà không cần tài khoản và không có máy chủ trong đường kết xuất, và chưa ai sao chép điều khoản về tài khoản này. Lolly giờ đây đã phát hành canvas mở của riêng mình - **Design**, một canvas tự do thao tác trực tiếp - nhưng màu sắc, kiểu chữ và tài sản trên đó tuân theo các giá trị toàn cục của thương hiệu, nên ngay cả việc sắp xếp tự do vẫn ưu tiên ràng buộc trước tiên.
+## Khi nào nên dùng Lolly
 
-Điều Lolly **vẫn không phải** là một bộ ứng dụng thiết kế không ràng buộc; các nhà thiết kế sẽ tiếp tục dùng Illustrator và Figma cho công việc riêng biệt - và khi công việc đó cần trở thành một tài sản được quản trị, có thể tái tạo, tính năng [Import a design](/info/design-import.html) của công cụ Design đưa tệp Figma, Penpot, Illustrator, InDesign hoặc PDF đã hoàn thiện lên canvas dưới dạng các hộp có thể chỉnh sửa, tuân theo thương hiệu.
+::: cols
+## Hãy dùng Lolly khi
 
-![Canvas tự do của Design, nơi màu sắc, phông chữ và tài sản được cung cấp là của chính thương hiệu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+- Cần lặp đi lặp lại cùng loại tệp: ô sự kiện, thẻ tên, chứng nhận, cảnh báo, thẻ mạng xã hội
+- Nhiều tệp đến từ một mẫu và một bảng giá trị, trong [Batch](/info/batch.html#make-many-versions-of-one-design) hoặc CLI
+- Màu sắc, kiểu chữ và tài nguyên phải ở trong hệ thống thiết kế, kể cả trên canvas mở
+- Một thiết kế Figma, Penpot, Illustrator, InDesign hoặc PDF đã hoàn chỉnh cần trở nên chỉnh sửa và lặp lại được ([Import a design](/info/design-import.html))
+- Các tệp phải được tạo trên thiết bị hoặc máy chủ của chính bạn
 
-## Dùng cho
+## Hãy tìm thứ khác khi
 
-- Tạo nhanh các tài sản sáng tạo được vận hành hóa (thẻ sự kiện, huy hiệu, chữ ký, cảnh báo)
-- Sắp xếp tự do trên canvas mở (Design) khi các thành phần - màu sắc, kiểu chữ, biểu tượng, hình ảnh - vẫn phải tuân theo các giá trị toàn cục của thương hiệu
-- Đưa một thiết kế Figma, Penpot, Illustrator, InDesign hoặc PDF đã hoàn thiện lên (tính năng Import a design của công cụ Design) để nó có thể được chỉnh sửa, quản trị và kết xuất lại một cách xác định trong mọi định dạng của Lolly
-- Các quy trình "điền ba trường, nhận tài sản hoàn thiện" một-tới-nhiều - bao gồm các lượt chạy hàng loạt từ một bảng tính/CSV trong lưới xử lý hàng loạt `/pro` (dán hoặc nhập hàng, mỗi hàng cho ra một tài sản hoàn thiện, tải xuống dưới dạng zip)
-- Các kết quả đầu ra được gắn thương hiệu, luôn hoạt động, lặp lại theo chu kỳ
-- Những trường hợp mà việc kiểm soát tập trung cách thể hiện thương hiệu quan trọng hơn tính linh hoạt biểu đạt
+- Công việc là chỉnh sửa ảnh chụp chi tiết hoặc minh họa
+- Bạn đang thiết kế và làm nguyên mẫu giao diện ứng dụng
+- Bạn cần kho ảnh stock và thư viện mẫu lớn sẵn sàng từ ngày đầu
+- Bạn cần một dịch vụ được quản lý có thành tích dài ở quy mô lớn
+:::
 
-Deck Studio là một thước đo tốt cho giới hạn trần ở đây: toàn bộ một bộ slide được khai báo dưới dạng dữ liệu, được bố cục trực tiếp trên canvas và xuất ra dưới dạng PowerPoint gốc có thể chỉnh sửa.
+Thiết kế đã nhập và design token dùng chung cho phép một đội kết hợp Lolly với các ứng dụng chuyên dụng, trong khi Lolly Work quản trị tài nguyên chung, xem xét và bàn giao.
 
-![Deck Studio trong chế độ xem chia đôi - các slide của bộ trình chiếu được liệt kê dưới dạng khối bên trái, bản kết xuất bộ trình chiếu đã bố cục bên phải](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Cả một bộ trình chiếu cho thấy giới hạn trên: trong **Markdown Slides** một bộ trang được khai báo dưới dạng dữ liệu, dàn trang trực tiếp và xuất thành tệp PowerPoint gốc, chỉnh sửa được.
 
-## Không dùng cho
+![Markdown Slides ở chế độ chia đôi: các trang chiếu của bộ trang được liệt kê thành khối bên trái, bộ trang đã dàn đang kết xuất bên phải](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-- Nội dung chủ lực riêng biệt hoặc mang tính biểu tượng (biển quảng cáo lớn, video chủ đạo)
-- Công việc chiến dịch độc nhất thực sự cần một nhà thiết kế
-- Việc lên ý tưởng cần thoát hoàn toàn khỏi hệ thống thương hiệu - canvas mở của Lolly vẫn tuân theo màu sắc, kiểu chữ và tài sản theo các giá trị toàn cục của thương hiệu, và đó chính là mục đích
+## Quy tắc nằm trong công cụ
+
+Lolly đặt các quy tắc thương hiệu dùng lại được vào công cụ: màu sắc, phông chữ, lề tràn, khoảng cách và đầu vào được phép. Mẫu cố định những phần mà người nhận không được đổi. Lolly Work thêm quyền truy cập theo nhóm và chính sách đầu vào quanh mẫu đó, với chuỗi phê duyệt cho bản gửi danh mục và bàn giao.
+
+Kiểm tra một công cụ một lần giúp sản xuất lặp lại dễ hơn, vì mỗi đầu ra thừa hưởng quy tắc bố cục của nó. Nội dung chữ, ảnh tải lên và quyền sử dụng vẫn có thể cần kiểm tra, và Lolly Work cung cấp danh mục chung và các bước phê duyệt cho việc đó. Với đội sáng tạo, công cụ là lan can bảo vệ: bạn vẫn mang dữ liệu, nội dung chữ và hình ảnh, còn công cụ giữ mọi kết quả đúng thương hiệu.
+
+![Toàn bộ việc của người sản xuất: gõ chữ. Kiểu chữ, màu sắc và khoảng cách đã chốt từ khi công cụ được tạo](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+
+Ba điều nữa làm cách tiếp cận này khác biệt:
+
+- **Tệp cuối cùng, từ đầu vào.** Đầu vào vào, tệp hoàn chỉnh ra, không có "giờ hãy lưu nó từ công cụ thiết kế rồi chỉnh sửa lại".
+- **Công cụ ghép công cụ.** Một công cụ có thể nhúng bản kết xuất của công cụ khác vào một tệp hoàn chỉnh, không có ràng buộc mã giữa chúng.
+- **Mở đến tận đáy.** Engine là mã nguồn mở, và công cụ, tài nguyên cùng design token là các tệp bạn có thể giữ trong quản lý phiên bản hoặc quản lý trong Lolly Work, không phải các hàng trong cơ sở dữ liệu của người khác.
+
+Thiết kế táo bạo vẫn sống sót qua lan can bảo vệ. Bản đồ thành phố cỡ áp phích này là các đường phố và mặt nước vector thật, từ một danh sách thả xuống và hai ô màu không thể trỏ ra ngoài hệ thống thiết kế:
+
+![Các vòng kênh đào và mạng lưới đường của Amsterdam được vẽ kín khung bằng mực riêng của hệ thống thiết kế, mỗi nét do mẫu đặt thay vì làm tay](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
 ## Đổi mới theo xác suất, mở rộng quy mô theo tính xác định
 
-Hầu hết các lời chào hàng "sáng tạo AI" đặt mô hình vào sai phía của một ranh giới đã có từ lâu. Các nhà chép kinh và họa sĩ minh họa thời xưa đã xác định rõ ranh giới đó nằm ở đâu: bạn làm việc phóng khoáng trên bản phác thảo, nơi bất cứ điều gì cũng có thể thử và không gì bị chốt lại, rồi sau đó bạn đưa nó đến máy in, thứ đáng gờm chính vì nó chốt lại mọi thứ. Các bản phác thảo là nơi nghệ thuật tồn tại. Máy in là cách nó lan tỏa. Hai công cụ, hai công việc, mỗi công cụ sáng tạo theo cách riêng của mình, và tác phẩm được in ra có thể được tin cậy vì máy in giữ đúng lời hứa của nó ở mỗi lần in.
+Hầu hết lời chào bán "sáng tạo bằng AI" đặt mô hình sai phía của một ranh giới cũ. Các thầy chép và họa sĩ minh họa thời xưa đã xác định ranh giới đó nằm ở đâu. Bạn làm phóng khoáng trên bản phác, nơi mọi thứ thử được và không gì bị ràng buộc. Rồi bạn đến máy in, nơi cam kết. Bản phác là nơi có nghệ thuật, còn máy in là cách nó đi xa, và tác phẩm in đáng tin vì máy in giữ lời hứa ở mỗi lần ép.
 
-Lolly là máy in, không phải bản phác thảo. Hãy mang bất cứ thứ gì bạn thích vào giai đoạn lên ý tưởng - một mô hình, một nhà thiết kế, một tờ giấy ăn - nhưng khoảnh khắc một ý tưởng phải trở thành nhiều tài sản, nó phải đi qua thứ gì đó kết xuất theo cùng một cách mỗi lần, từ những dữ liệu đầu vào mà bất kỳ ai cũng có thể đọc lại. Đó mới thực sự là điều mà phần so sánh ở trên nói đến: không phải ai có bộ tạo tốt hơn, mà là ai làm cho bước chốt lại có thể tái tạo được.
+Lolly là máy in. Hãy mang bất cứ gì bạn thích đến phần ý tưởng, một mô hình, một nhà thiết kế hay một bản vẽ thô, nhưng ngay khi một ý tưởng phải thành nhiều tệp, nó đi qua thứ gì đó kết xuất giống nhau mỗi lần, từ các đầu vào ai cũng đọc lại được. Phép so sánh ở trên thực ra là về ai khiến bước cam kết đó lặp lại được.
 
 > Tin tưởng quá trình sáng tạo, mở rộng bằng sự nghiêm ngặt.
 
-## Quy tắc nằm trong công cụ và trong các mẫu của nó
+## Miễn phí mãi mãi
 
-Mọi công cụ khác trên thị trường đều tạo ra một *tệp*, và một tệp chỉ có thể được xem lại sau khi việc đã xong. Lolly đưa các quy tắc thương hiệu **lùi lên một bước**. Mã hex chính xác, tệp phông chữ có bản quyền, lề tràn (bleed), khoảng cách - tất cả đều được mã hóa cứng vào HTML và CSS của công cụ, vì vậy mẫu *không thể* tạo ra một tài sản sai thương hiệu. Chính bố cục thực hiện việc thực thi đó.
+**Nếu nó kết xuất trên thiết bị của bạn, nó miễn phí mãi mãi.** Engine, các shell, công cụ và định dạng là mã nguồn mở, và một phiên bản đã phát hành không thể bị thu hồi. Lolly Work cũng là mã nguồn mở. Một tổ chức trả cho hạ tầng và vận hành mà họ chọn, không có phí giấy phép phần mềm theo chỗ ngồi hay theo lượt kết xuất khi tự lưu trữ. [Questions & answers](/info/faq.html) kể câu chuyện đằng sau lời hứa.
 
-Vì vậy thứ đáng xem xét chính là **công cụ**, không phải từng tệp mà nó tạo ra. Làm đúng công cụ, và mọi tài sản mà nó từng tạo ra đều đúng thương hiệu theo cấu trúc. Cách bạn kiểm tra công việc của mình, và ai làm việc đó, vẫn là việc của bạn; Lolly làm cho thứ đã kiểm tra nhỏ hơn và việc tạo ra đầu ra nhanh hơn.
+## Nội dung của bạn ở đâu
 
-Đây là thay đổi mà bộ máy tất định thực sự mang lại. Đối với đội ngũ sáng tạo, đây là một rào chắn bảo vệ, không phải một sự thay thế - bạn vẫn ném quả bóng (dữ liệu, nội dung, hình ảnh) và mã nguồn là làn đường có thanh chắn giữ cho mọi cú ném không bao giờ rơi xuống rãnh.
+Công việc sáng tạo của Lolly có thể chạy trên phần cứng bạn sở hữu, và design token, phông chữ, logo cùng công cụ của nó là các tệp bạn có thể giữ. Với Lolly Work, dự án chung, tài nguyên, chính sách và bản ghi kiểm toán nằm trong bộ nhớ mà tổ chức của bạn cấu hình. [Trust](/info/trust.html) giải thích vì sao điều đó quan trọng, và [Privacy Policy](/info/privacy.html) cùng [Verify It Yourself](/info/verify-yourself.html) để bạn kiểm tra lời khẳng định thay vì tin lời chúng tôi.
 
-![Toàn bộ công việc của người sản xuất: gõ chữ. Kiểu chữ, màu sắc và khoảng cách đã được ấn định khi công cụ được tạo ra](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+## Từng công cụ một
 
-## Điều chỉ riêng Lolly mang lại
-
-- **Tiềm năng thiết kế táo bạo được truyền tải an toàn trong bối cảnh.** Các công cụ có thể thể hiện những ý tưởng thiết kế phiêu lưu trong các rào chắn được mã hóa cứng.
-
-- **Tự động hóa nội dung được định nghĩa bằng phần mềm, trả về tài sản cuối cùng.** Đầu vào → tệp cuối cùng. Không có chuyện "giờ hãy lưu nó từ công cụ thiết kế của bạn rồi xử lý hậu kỳ."
-- **Công cụ kết hợp công cụ.** Một công cụ có thể nhúng bản dựng của một công cụ khác và trả về nó như một phần của tài sản hoàn thiện duy nhất, không có sự ràng buộc mã nguồn giữa các công cụ - một khả năng nguyên thủy mà không sản phẩm canvas mở hay tạo mẫu DAM nào trên thị trường cung cấp.
-- **Trung lập với nhà cung cấp.** Kiểm soát đầy đủ tính năng và chi phí. Bộ máy mã nguồn mở. Công cụ và tài sản là nội dung được theo dõi bằng git, không bị khóa trong cơ sở dữ liệu SaaS.
-
-Điều đầu tiên trong số đó là điều người ta thường đánh giá thấp. Một bản đồ thành phố cỡ áp phích, được vẽ dưới dạng đường bộ và đường nước vector thực thụ, chỉ từ một danh sách thả xuống và hai trường màu không thể chỉ ra ngoài phạm vi thương hiệu:
-
-![Các vành đai kênh đào và mạng lưới đường phố của Amsterdam được vẽ sát mép bằng chính mực của thương hiệu, từng nét vẽ do mẫu đặt để chứ không phải bằng tay](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
-
-## Chủ quyền nội dung
-
-Có một cái tên cho những gì phần trước đã dẫn tới: chủ quyền. Quy trình xử lý nội dung của bạn chạy trên phần cứng bạn sở hữu. Thương hiệu của bạn - các token, phông chữ, logo, các công cụ thực thi chúng - nằm trong các tệp bạn nắm giữ, trong hệ thống quản lý phiên bản bạn kiểm soát, chứ không phải trong cơ sở dữ liệu của một nhà cung cấp với một nút xuất dữ liệu. Việc dựng hình diễn ra ngay trên thiết bị trước mặt bạn, vì vậy một tài sản không bao giờ phải đi qua bên thứ ba để tồn tại, và toàn bộ đường đi từ đầu vào đến tệp hoàn thiện đều là mã nguồn mở và có thể kiểm tra. Nếu mọi nhà cung cấp thiết kế SaaS biến mất vào ngày mai, một triển khai Lolly sẽ không hề hay biết.
-
-Điều này quan trọng với bất kỳ ai mà công việc của họ cần tồn tại lâu hơn một gói thuê bao: bậc phụ huynh có cuốn sách ảnh nằm trên chiếc laptop đó cũng nhiều như cơ quan công quyền có thư viện thương hiệu nằm dưới các quy định mua sắm. Đối với các tổ chức - cơ quan công quyền, các ngành bị quản lý chặt, bất kỳ ai mà thương hiệu là một tài sản chiến lược chứ không phải vật trang trí - câu hỏi "nội dung của chúng ta nằm ở đâu và ai có thể tắt nó đi" là một vấn đề quản trị, không phải một sở thích. Chủ quyền ở đây là một thuộc tính của kiến trúc chứ không phải một tính năng lưu trữ được thêm vào cho hợp lệ tuân thủ, và các trang [Chính sách quyền riêng tư](/info/privacy.html) và [Tự mình xác minh](/info/verify-yourself.html) tồn tại để bạn có thể kiểm tra tuyên bố đó thay vì chỉ tin vào nó.
-
-Bên dưới tất cả những điều đó là một lời hứa, được nêu ra như một cam kết chứ không phải một tính năng: **nếu nó dựng hình trên thiết bị của bạn, nó miễn phí mãi mãi.** Bộ máy, các shell, các công cụ, các định dạng - toàn bộ đường đi sáng tạo trên thiết bị đều là mã nguồn mở và sẽ luôn như vậy. Lời hứa đó có một cơ chế: một phiên bản đã được phát hành được cấp phép theo cách không thể thu hồi, và không tồn tại thỏa thuận đóng góp nào có thể cấp phép lại tác phẩm sau này. Toàn bộ ranh giới đó gói gọn trong một câu: mọi thứ dựng hình trên thiết bị của bạn đều miễn phí và mã nguồn mở, mãi mãi; việc phối hợp con người và máy móc qua mạng lưới là công việc của một mặt phẳng điều khiển riêng biệt, [lolly.work](https://lolly.work).
+[Lolly compared, tool by tool](/info/compare.html) so sánh Lolly với Canva, Adobe, Figma, Penpot, cổng thương hiệu, API kết xuất và trình chuyển đổi trực tuyến, mỗi thứ một trang, và nêu [what runs where](/info/compare.html#what-runs-where).

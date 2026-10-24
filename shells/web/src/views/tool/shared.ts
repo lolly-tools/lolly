@@ -6,7 +6,7 @@ import { personalShareFields } from '../../lib/share-privacy.ts';
  * no feature module has to import the orchestrator file. The tool view: one mounted tool - sidebar, canvas, actions bar, history and collab.
  */
 import { copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS } from '../../lib/tool-url-state.ts';
-import { replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-state.ts';
+import { flushAddressWrites, replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-state.ts';
 import type { ClipboardAPI, ComposeAPI, HostV1, StateAPI } from '@lolly-tools/core/host-v1';
 import { DEFAULT_CMYK_CONDITION, ENC_PARAM, HDR_DEFAULTS, PACK_PARAM, expandQuery, hasPackedState, isPackAvailable, packQuery, serializeHdr, unpackEncrypted } from '@lolly/engine';
 import type { DepthSetting, HdrSettings, VideoUrlSettings } from '@lolly/engine';
@@ -518,6 +518,7 @@ export async function shrinkUrl(
   barSeq: BarSeq | null
 ): Promise<void> {
   if (isIframeMode()) return; // a framed tool never rewrites its address
+  flushAddressWrites(); // shrink the latest state, not one still settling
   // The bar is normally the path form /t/<id>?… by now; tolerate the boot-time hash
   // form too. Keep the route part, rewrite only the query.
   const hashQ = window.location.hash.indexOf('?');
@@ -836,6 +837,8 @@ export function showShareDialog(
   manifest: ToolManifest,
   lolly?: ShareDialogLolly
 ): void {
+  // Sharing starts from the latest address: a write still settling goes out now.
+  flushAddressWrites();
   if (exportScope && !exportScope.dispatchEvent(new CustomEvent('lolly:share-open', { cancelable: true }))) return;
   updateRouteParams({ _dialog: 'share', share: null });
   openShareDialog({ ...shareDialogOptions(runtime, exportScope, manifest, lolly), onClose: () => { if (exportScope?.isConnected) updateRouteParams({ _dialog: null }); } });

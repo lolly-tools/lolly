@@ -1,68 +1,81 @@
 # I-verify Mo Mismo
 
-May mga claim ang privacy at security pages ng Lolly: walang analytics, walang tracking, hindi kailanman umaalis sa device ang mga file, isang cookie lang sa buong sistema. Iba ang page na ito: hindi ka nito hinihiling na paniwalaan ang alinman diyan. Isa itong listahan ng mga proseso, bawat isa may eksaktong command o click-path at ang output na makikita mo. Bawat claim dito ay mapapatunayang mali sa loob ng ilang minuto, karamihan nang hindi kailangang mag-install ng anuman.
+Masusuri ang bawat pangako sa site na ito, nang walang account. Karamihan ng check ay browser lang ang kailangan; ang iba ay nangangailangan ng terminal at kopya ng source. Kung ang check sa ibaba ay hindi nagbibigay ng resultang ipinapakita, bug iyon o sirang pangako, at gusto naming marinig ito: tingnan ang [Kung mabigo ang check](#if-a-check-fails).
 
-Kung may check sa page na ito na hindi nagbunga ng resultang ipinapakita, ito ay alinman sa isang bug o isang sirang pangako. [I-report ito](#if-a-check-fails) kahit alin sa dalawa, at pagtutuunan namin ito ng kahalagahang nararapat sa isang sirang pangako.
+Magsimula sa pinakamabilis: mag-drop ng file sa Verify. Pagkatapos, lumayo pa: panoorin ang network habang gumagamit ka ng tool, tanggalin ang saksakan at magpatuloy sa paggawa, bilangin ang mga cookie at basahin ang source.
+
+Sakop ng mga check na ito ang Lolly nang mag-isa. Kung nagpapatakbo ang organisasyon mo ng Lolly Work, nagdaragdag ito ng sign-in, shared na nilalaman, naka-configure na telemetry at audit record; i-check ang mga iyon laban sa [Server Surface](/info/server-surface.html) at sa [seksyon ng organisasyon ng privacy policy](/info/privacy.html#organisation-services-with-lolly-work).
 
 ## Panoorin itong gumana, sa loob ng sampung segundo
 
-Bago ang mga proseso, ang resulta. Buksan ang [`/verify`](/#/verify) at mag-drop ng file dito - walang upload, walang account, walang paghihintay sa server. Narito itong sinusuri ang [ginawang Queensland storm](/info/ai-stance.html) mula sa aming AI stance page: isang Gemini image na binuksan, binago ang laki, at ineksport ng Lolly. Bawat badge sa ibaba ay kinompyut sa device, mula sa sarili nitong bytes ng file.
+Buksan ang [`/verify`](/#/verify) at mag-drop ng file sa page. Walang upload, walang account at walang paghihintay sa server. Dito, sinusuri nito ang [generated na Queensland storm](/info/ai-stance.html) mula sa Our AI Stance: larawang ginawa ng Gemini, na binuksan, minarkahan at kinonberte ng Lolly. Ang bawat badge ay kinalkula sa device, mula sa sariling mga byte ng file.
 
 ![Verify sa isang phone-width na screen - ang storm image, isang berdeng Made with Lolly verdict at ang credential-intact at bytes-unchanged badges na nakasalansan sa ilalim nito](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 
-Ang verdict ay hindi isang badge lang kundi isang maliit na tambak ng mga ito, bawat isa ay isang independiyenteng katotohanan:
+Ang hatol ay maliit na tumpok ng mga badge, bawat isa ay independiyenteng katotohanan:
 
-- <!--i:lock--> **Made with Lolly** - buo ang credential *at* nagtatala ng Lolly export.
-- <!--i:seal--> **Buo ang credential** - na-parse ang naka-sign na C2PA manifest at na-verify ang sarili nitong claim signature.
-- <!--i:hash--> **Hindi nagbago ang bytes** - tumutugma pa rin ang hash ng file sa naka-sign. Baguhin ang isang pixel at mababaligtad ang badge na ito.
-- <!--i:sparkle--> **GEN AI** - isang makina ang gumawa ng mga pixel na ito, at sinasabi iyon ng file. Binabasa itong assertion pabalik ng Lolly sa halip na itago ito.
+- <!--i:lock--> **Made with Lolly**: buo ang credential *at* nagtatala ito ng Lolly export.
+- <!--i:seal--> **Buo ang credential**: nagpa-parse ang signed na C2PA manifest at nabe-verify ang sarili nitong claim signature.
+- <!--i:hash--> **Hindi nagbago ang mga byte**: tugma pa rin ang hash ng file sa pinirmahan. Baguhin ang isang pixel at magbabago ang badge na ito.
+- <!--i:sparkle--> **GEN AI**: makina ang gumawa ng mga pixel na ito, at sinasabi iyon ng file. Binabasa ng Lolly ang deklarasyong iyon pabalik sa halip na itago ang katotohanan.
 
-At ang buong kasaysayan ay sumasama sa file. Siyam na hakbang ang buhay dito - lima na itinala ng Google habang ginagawa at wina-watermark nito ang larawan, tapos apat na itinala ng Lolly habang binubuksan, minamarkahan at kinokonbert nito ang kopya sa page na ito - direktang binasa mula sa bytes, sa iyong device, at inihanay bilang isang timeline. Ito ang parehong larawan, na-verify sa parehong paraan, gaya ng C2PA timeline sa [AI stance page](/info/ai-stance.html).
+Ang buong kasaysayan ay naglalakbay kasama ng file. Siyam na hakbang ang nakaligtas dito: limang itinala ng Google habang ginagawa at winawatermark ang larawan, saka apat na itinala ng Lolly habang binubuksan, minamarkahan at kino-convert ang kopya sa page na ito. Binabasa ng Verify ang mga ito diretso mula sa mga byte at iginuguhit bilang timeline.
 
 ![Ang change history na binabasa ni Verify pabalik mula sa storm image - limang hakbang na itinala ng Google, tapos apat ng Lolly, na nagtatapos sa WebP sa page na ito](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-Wala doon sa lahat ng iyon ang trust claim, gayunman - ito ang demo. Ang trust claim ay nasa natitirang bahagi ng pahinang ito: bawat badge sa itaas ay reproducible, at narito kung paano mo ma-reproduce ang mga guarantee sa likod ng mga ito.
+Iyon ang demo. Ang mga check sa ibaba ang mga garantiya sa ilalim nito, at bawat isa ay maaaring ulitin. Ipinapaliwanag ng [Content Credentials](/info/content-credentials-identity.html) ang bawat hatol.
 
 ## Sa iyong browser, walang kailangang tools
 
-**1. Panoorin ang network.** Buksan ang [lolly.tools](https://lolly.tools), buksan ang DevTools ng iyong browser (F12), lumipat sa tab na **Network** at gumamit ng isang tool - mag-type ng URL sa [QR Code](/t/qr-code), baguhin ang mga kulay, i-export bilang PNG. Nananatili sa `lolly.tools` ang bawat request: ang app shell, ang sariling mga file ng tool, ang mga catalogue asset. Walang analytics host, walang CDN beacon, walang font service, walang "error reporting" endpoint. Ang itina-type mo sa isang tool ay lumalabas sa **wala talagang request** - lokal ang rendering.
+::: timeline
+- <!--i:globe--> **1. Panoorin ang network.** Buksan ang [lolly.tools](https://lolly.tools), buksan ang DevTools ng browser mo (F12), lumipat sa **Network** at gumamit ng tool: mag-type ng web address sa [QR Code](/t/qr-code), palitan ang mga kulay, mag-export ng PNG. Nananatili ang bawat request sa `lolly.tools`: ang app shell, ang sariling mga file ng tool at mga catalog asset. Walang analytics host, walang CDN beacon, walang font service at walang error-reporting endpoint. Ang tina-type mo sa tool ay lumalabas sa **walang anumang request**, dahil lokal ang rendering.
+- <!--i:eyeoff--> **2. Hugutin ang saksakan.** I-load ang app at magbukas ng isa o dalawang tool, saka mag-offline (airplane mode, o DevTools → Network → Offline) at mag-reload. Patuloy na gumagana ang gallery at bawat tool na binuksan mo, kasama ang rendering at export sa mga format na ginamit mo. Ang mga file ng tool at encoder ng format ay naka-cache sa unang beses na gamitin mo ang mga ito, kaya gumamit muna ng tool nang minsan online bago subukan offline. Ito ang pinakamalakas na iisang check sa page na ito: ang software na tumatawag pauwi ay hindi nakakaligtas kapag pinutol ang kurdon nito.
+- <!--i:check--> **3. Bilangin ang mga cookie.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Walang laman ang listahan: walang itinatakdang cookie ang app. I-paste ang `document.cookie` sa console at makakakuha ka ng `""`. Ang opsyonal na CA enrolment ay nagtatakda ng panandaliang `HttpOnly` na cookie, `lolly_ca_state`, saklaw sa `/api/ca`, na hindi maipapakita ng `document.cookie`. Ang Lolly Work instance ay gumagamit ng sarili nitong sign-in cookie; ihambing ang mga iyon sa [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+- <!--i:layers--> **4. Basahin ang sarili mong storage.** Sa parehong panel, ang lahat ng iniingatan ng Lolly ay nasa harap mo: ilang dosenang payak na `localStorage` key (theme, wika, lapad ng sidebar, mga setting ng tunog at view, at cached na kopya ng pampublikong tool catalog index) at ang sarili mong dokumento sa IndexedDB. Ang bawat value ay nababasang string o JSON, walang itinatago. Ang pag-clear ng site data ay nag-aalis ng mga lokal na record na ito, pero hindi ng Sync backup o ng mga record na hawak ng Lolly Work instance. Ang **Settings → Storage → Clear all my data** ay gumagawa ng pareho mula sa loob ng app, at mapapanood mong nauubos ang mga store at cache.
+- <!--i:lock--> **5. I-check na umiiral ang disclosure contact.** Ang [`/.well-known/security.txt`](/.well-known/security.txt) ay sumasagot ng [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) contact block, hindi HTML page.
+:::
 
-Ang mga tapat na eksepsiyon - bawat isa ay opt-in, sinimulan ng user, at nakikita sa parehong Network tab kapag nangyari: ang pagdagdag ng **Google Font** sa brand editor ay kumukuha ng isang family na iyon mula sa Google, matapos ang consent dialog na nagsasabi nga nito, minsan lang, bago ang unang fetch; ang pag-click sa **ICC press-profile preset** ay kumukuha ng profile na iyon mula sa pampublikong registry ng ICC sa color.org; ang pagpapatugtog ng opsyonal na built-in na **radio** ay nagsa-stream mula sa istasyon; ang paglalagay ng lokasyon sa **Meeting Planner** ay naghahanap ng lugar na iyon sa geocoding service ng open-meteo para sa mga coordinate at time zone nito, minsan bawat lungsod (naka-save ang mga sagot sa device mo), at dala ng input ang disclosure na iyon mismo sa kinatatayuan mo habang nagta-type ka; at ang **URL Screenshot** ay kinakailangang mag-load ng URL na itina-type mo - iyan ang trabaho nito, at napapanood mo itong nangyayari. Ang tool na nagdedeklara ng network capability ay maaaring mag-fetch lamang mula sa mga host na naka-allowlist sa manifest nito, at fail-closed ang mekanismong iyon; walang kasalukuyang na-ship na tool na nagdedeklara nito, kaya ang Content-Security-Policy na pinapatupad ng browser ang boundary na talagang nagpapanatili sa listahan sa itaas sa mga host nito. Pinapanatili ng [privacy policy](/info/privacy.html) ang canonical table ng lahat ng ito; ang standing rule nito ay hindi mangyayari ang isang network touch na wala sa table na iyon.
+::: details Ano pa ang maaari mong makita sa Network tab
+Ang ilang feature ay umaabot lang sa network kapag ginamit mo ang mga ito, at bawat isa ay nakikita sa parehong tab:
 
-**2. Bunutin ang plug.** I-load ang app at magbukas ng isa o dalawang tool, pagkatapos ay mag-offline - airplane mode, o DevTools → Network → Offline. I-reload. Patuloy na gumagana ang gallery at bawat tool na binuksan mo, kasama na ang rendering at export sa mga format na nagamit mo - naka-cache ang mga file ng isang tool at ang encoder ng isang format sa unang pagkakataong gamitin mo ang mga ito, kaya gamitin muna ang isang tool nang online bago ito subukan nang offline. Ito ang pinakamalakas na check sa pahinang ito: hindi nakakaligtas ang software na tumatawag pauwi kapag naputol ang kable nito.
+- ang pagdaragdag ng **Google Font** sa Design System Setup ay kumukuha ng isang family na iyon mula sa Google, pagkatapos ng consent dialog na nagsasabi nito, nang minsan, bago ang unang fetch;
+- ang pag-click ng **ICC press-profile preset** ay kumukuha ng profile na iyon mula sa pampublikong registry ng ICC sa color.org;
+- ang pagpapatugtog ng opsyonal na built-in na **radio** ay nag-i-stream mula sa istasyon;
+- ang paglalagay ng lokasyon sa **Meeting Planner** ay hinahanap ang lugar na iyon sa geocoding service ng open-meteo para sa coordinates at time zone nito, isang beses bawat lungsod (sine-save sa device mo ang mga sagot), at sinasabi ito ng field kung saan ka nagta-type;
+- ang **URL Screenshot** ay naglo-load ng address na tinype mo, dahil iyon ang trabaho nito, at mapapanood mo itong nangyayari.
 
-**3. Bilangin ang cookies.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Walang laman ang listahan - hindi nagse-set ng cookies ang app. O i-paste ang `document.cookie` sa console: makukuha mo ang `""`. (Ang tanging cookie sa buong sistema, `lolly_ca_state`, umiiral nang hanggang sampung minuto lamang sa panahon ng opsyonal na identity sign-in - buburahin agad pagkatapos matapos ang sign-in - naka-scope sa `/api/ca` at `HttpOnly`: inilalarawan ito nang tumpak ng [privacy policy](/info/privacy.html).)
-
-**4. Basahin ang sarili mong imbakan.** Kaparehong Application panel: makikita mo sa harap mo ang lahat ng iniimbak ng Lolly - mga dalawang dosenang plain na `localStorage` key (tema, wika, lapad ng sidebar, mga setting ng tunog at view, at isang cache na kopya ng pampublikong tool-catalogue index), at ang sarili mong mga dokumento sa IndexedDB. Bawat value ay isang nababasang string o JSON - walang ino-obfuscate, walang ini-encode para pigilan kang basahin ito. Kapag binura ang site data sa browser, natatanggal ang lahat nito, at walang naka-imbak na kopya ang Lolly sa server; ginagawa rin ito ng **Mga Setting → Imbakan → Burahin ang lahat ng aking data** mula sa loob ng app, at makikita mong nawawalan ng laman ang mga store at cache sa panel na ito.
-
-**5. Tingnan kung umiiral ang disclosure contact.** Sumasagot ang [`/.well-known/security.txt`](/.well-known/security.txt) ng contact block na sumusunod sa [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), hindi isang HTML page.
+Ang tool na nagdedeklara ng network capability ay maaari lang kumuha mula sa mga host na pinapayagan ng manifest nito, at nabibigo ang check na iyon nang sarado. Walang kasamang tool ngayon ang nagdedeklara nito, kaya ang Content-Security-Policy na ipinapatupad ng browser ang nagpapanatili sa listahan sa itaas sa mga host nito. Iniingatan ng [privacy policy](/info/privacy.html) ang canonical na table ng lahat ng ito, kasama ang trapiko ng managed-instance tulad ng policy refresh at naka-enable na reporting.
+:::
 
 ## Mula sa terminal
 
-**6. Ang render endpoint ay sumasagot gamit lamang ang pampublikong data.** Ang tanging feature ng server na naglalagay ng mga input na na-type ng user sa isang URL - ang hot-link render - ay live dito, at sinasabi ng [privacy policy](/info/privacy.html) kung ano ang ibig sabihin nito para sa mga input na inilalagay mo sa isang link:
+**6. Pampublikong data lang ang sinasagot ng render endpoint.** Ang nag-iisang server feature na naglalagay ng tinype na input sa URL, ang hot-link render, ay live dito. Sinasabi ng [privacy policy](/info/privacy.html) kung ano ang ibig sabihin niyon para sa mga input na inilalagay mo sa link.
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Ang switch ay per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): sa isang instance na nagtatakda nito, ang parehong probe ay nagbabalik ng `404` - ang pagkakaibang iyon ay ang flag na gumagana, hindi isang hindi pagkakapare-pareho.
+Bawat deployment ang pumipili (`LOLLY_DISABLE_RENDER_GET=1`): sa instance na nagtatakda nito, ang parehong probe ay nagbabalik ng `404`. Ang pagkakaibang iyon ay ang setting na gumagana, hindi hindi pagkakatugma.
 
-**7. Mabibilang ang server surface.** Nakalista sa [Server Surface](/info/server-surface.html) ang bawat server-side route na umiiral, kasama ang standing rule na ang endpoint na wala sa pahinang iyon ay hindi bahagi ng Lolly. I-`curl` ang mga ito; wala nang iba pang matutuklasan.
+**7. I-check ang mga serbisyong ine-enable ng deployment mo.** Inililista ng [Server Surface](/info/server-surface.html) ang mga opsyonal na serbisyo at nilalagyan ng link ang detalyadong reference nila. Para sa Lolly Work, isama ang mga authenticated API nito, collaboration connection, storage at naka-configure na provider. Ang probe sa pampublikong lolly.tools ay hindi sumusubok sa pribadong instance ng organisasyon.
+
+Kung nagpapatakbo ka ng sarili mong instance, ang [Delivery deployment](/info/deploy-delivery.html) ay may mga release check para rito: model integrity, ang edge probe at ang sample list nito, mga display rendition, ang private download gateway at ang signed catalog sa browser.
+
 
 ## Sa source
 
-Maaari pa ring maging teatro ang lahat sa itaas kung magkaiba ang na-deploy na code sa pampublikong code. Kaya suriin ang code - bumubuo ang deployment mula sa [pampublikong repository](https://github.com/lolly-tools/lolly):
+Lahat ng nasa itaas ay maaari pa ring maging pagtatanghal kung iba ang naka-deploy na code sa pampublikong code. Kaya i-check ang code. Bumubuo ang deployment mula sa [pampublikong repository](https://github.com/lolly-tools/lolly):
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
-**8. Walang tracker, walang analytics SDK, kahit saan.** Hanapin sa code na na-ship - ang engine, bawat shell (kasama ang browser extension, ang Tauri bridge overrides at ang service worker), ang server functions at ang tool packs - ang mga karaniwang kahinahinala:
+**8. Walang tracker at walang analytics SDK, saanman.** Hanapin sa code na kasama sa ipinapadala (ang engine, bawat shell kasama ang browser extension, ang mga Tauri bridge override at ang service worker, ang mga server function at ang mga tool pack) ang mga karaniwang suspek:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
   -e googletagmanager -e google-analytics -e posthog -e mixpanel -e hotjar \
   -e sentry.io -e segment.com -e '@vercel/analytics' \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
@@ -70,10 +83,12 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' 
 # (no output)
 ```
 
-**9. Walang third-party DNS resolver.** Hindi kailanman inirurutang ng SEAL check ng Verify ang mga lookup sa isang DNS-over-HTTPS provider - wala talagang resolver ang web app:
+Naghahanap ang scan na ito ng mga third-party tracking SDK. Hindi nito ipinapakitang walang first-party usage reporting: sinusuportahan ng Lolly Work ang organisation telemetry at hiwalay na audit log, na may sarili nilang policy at test.
+
+**9. Walang third-party DNS resolver.** Ang SEAL check ng Verify ay hindi kailanman nagpapadala ng lookup sa DNS-over-HTTPS provider, dahil walang resolver ang app:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
   -e cloudflare-dns.com -e dns.google -e /dns-query \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
   shells/web/public/sw.js services packages api community brands/*/tools
@@ -82,23 +97,25 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
 #  bans them)
 ```
 
-**10. Walang iniingatan ang certificate service.** Walang issuance log ang identity CA - hindi ang iyong email, hindi ang isang timestamp, hindi ang isang webhook. Ang kawalang iyon ay magre-grep:
+**10. Walang iniingatang issuance log ang certificate service.** Ang identity CA ay walang log ng iniisyu nito at walang inventory ng mga identity: walang stdout line, walang webhook, walang certificate store. Ang kawalan ay maaaring hanapin:
 
 ```bash
 grep -rn logIssuance services/ca api/ca
 # (no output)
 ```
 
-## Ipinapatupad ng mga test, hindi ng mga pangako
+Nag-iingat ang CA ng panandaliang working state: ang mga rate-limit bucket ay may hawak na hashed na IP at email key sa saklaw ng window nila, at ang admission store ng managed deployment ay nag-iingat ng keyed identifier at request digest nang hindi hihigit sa sampung minuto. Nasa [Content Credentials engineering](/info/content-credentials-engineering.html#protocol) ang detalye.
 
-Ang tatlong source check sa itaas ay hindi isang one-time audit lamang - naka-pin ang mga ito sa test suite, kaya hindi sila tahimik na mabubulok. Bibigo ang build ng [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) kung:
+## Ipinapatupad ng mga test
 
-- may lumitaw na analytics o tracking SDK kahit saan sa shipped source na sinusuri nito - app, engine, server, extension at tool-pack code man,
-- may lumitaw na third-party DNS-over-HTTPS resolver sa source na iyon,
-- bumalik ang CA issuance log - sa source **o** sa generated server bundle,
-- nawala sa privacy policy ang mga legal na kinakailangang pahayag nito (named controller, legal basis, karapatang magreklamo).
+Ang mga source check sa itaas ay hindi minsanang audit: naka-pin ang mga ito sa test suite, kaya hindi sila tahimik na maaagnas. Ang [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) ay sinusuri ang mas mahabang listahan ng pangalan ng tracker kaysa sa scan sa itaas at binibigo ang build kung:
 
-Patakbuhin mo ang mga ito sa clone (Node 22.18+; hindi kailangan ang `pnpm install` para sa file na ito):
+- may lumitaw na anumang analytics o tracking SDK saanman sa shipped source na ini-scan nito, sa app, engine, server, extension at tool-pack code;
+- may lumitaw na anumang third-party DNS-over-HTTPS resolver sa source na iyon;
+- bumalik ang CA issuance log, sa source **o** sa generated server bundle;
+- mawala sa privacy policy ang mga pahayag na hinihingi ng batas (pinangalanang controller, legal basis, karapatang magreklamo).
+
+Patakbuhin mo mismo ang mga ito sa clone (Node 22.18 o mas bago; ang file na ito ay hindi nangangailangan ng `pnpm install`):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -110,14 +127,12 @@ node --test tests/no-trackers.test.ts
 
 Ang buong suite (`pnpm install && pnpm test`) ay nagpapatakbo ng ilang libo pa, kabilang ang mga adversarial cryptography test na inilarawan sa [Security & Verification](/info/security.html).
 
-## Ang hindi mo ma-veripika mula sa labas - sinabi nang tapat
+## Ang hindi mo ma-verify mula sa labas
 
-Nakakakuha ng tiwala ang pahinang tulad nito sa pamamagitan ng pagbanggit sa sarili nitong mga limitasyon:
-
-- **Mga hosting access log.** Anumang server na sumasagot sa isang request ay maaaring mag-log ng request - IP, path, timestamp. Hindi mo mave-verify kung ano ang iniingatan o hindi iniingatan ng isang host, at hindi rin namin ito magagawa kundi ayon sa dokumentadong ugali ng aming provider. Iyan mismo ang dahilan kung bakit pinananatili ng arkitektura ang iyong content nang buo sa labas ng wire: kung ano ang hindi umaalis sa device mo ay hindi malo-log ng kahit sino.
-- **Na pinapatakbo ng deployment ang code na ito.** Mave-verify mo na malinis ang source at tugma rito ang na-deploy na behavior (ginagawa ng mga check sa itaas ang parehong dulo), pero hindi inaalok ng web platform ang binary-level attestation ng isang web deployment. Ang mga mitigation ay ang pampublikong repo, ang ipinapatupad na mga test, at ang offline check - isang na-tampeng deployment na tumatawag pauwi ay agad na bumabagsak sa check 1 at 2.
-- **Hindi naka-sandbox bilang default ang tool hooks.** Ang opsyonal na logic ng isang tool ay tumatakbo nang naisuri na, sa sariling realm ng pahina; ang bawat tool sa lolly.tools ay first-party at nasuri na bago ito na-ship. Ngayon, naka-ship na ang Worker isolation bilang per-tool opt-in - isang tool na ang manifest nito ay nagtatakda ng `isolate: true` ay pinapatakbo ang mga hook nito nang off-thread sa halip - kaya nagliliit ang hindi mo mave-verify mula sa labas, pero ang default na landas ay nasa in-realm pa rin at ang review pa rin ang kontrol. Nakasaad ito, hindi itinatago - tingnan ang bahaging [design boundaries](/info/security.html), na palaging ganito na ang sinasabi.
+- **Mga hosting access log.** Ang anumang server na sumasagot sa request ay maaaring mag-log nito: IP address, path at oras. Hindi matutukoy ng outside probe kung gaano katagal iniingatan ang mga log. Kinokontrol ng operator ang logging, rotation at export, at dapat ibunyag ang mga pagpiling iyon. Pinananatili ng lokal na rendering ang karaniwang edit sa device mo; ang opsyonal na server rendering at shared workspace service ay may hiwalay na daloy ng data na inilalarawan ng privacy policy.
+- **Na ang deployment ay nagpapatakbo ng code na ito.** Maaari mong i-check na malinis ang source at na tugma dito ang naka-deploy na behaviour, at ginagawa ng mga check sa itaas ang pareho. Ang binary-level attestation ng web deployment ay hindi iniaalok ng web platform. Ang mga pamamaraan ay ang pampublikong repository, ang mga ipinapatupad na test at ang offline check: ang deployment na pinakialaman na tumatawag pauwi ay bumabagsak sa mga check 1 at 2 nang sabay.
+- **Mga tool hook.** Ang opsyonal na logic ng built-in na tool ay nire-review sa halip na sandboxed: tumatakbo ito sa page maliban kung mag-opt in ang tool sa Worker. Ang bawat tool sa lolly.tools ay first-party at nire-review bago ipadala. Inilalatag ng [Threat Model](/info/threat-model.html#trust-boundaries) kung saan tumatakbo ang mga hook at ano ang naglilimita sa kanila.
 
 ## Kung mabigo ang isang check
 
-Ang anumang pagkakaiba sa pagitan ng pahinang ito at ng nasaksihang behavior ay isang security report, at talagang mas gusto naming marinig ito kaysa hindi: [fitzy+security@suse.com](mailto:fitzy+security@suse.com), ang button na **Report a vulnerability** sa anumang [lolly-tools repository](https://github.com/lolly-tools) o ang contact sa [`/.well-known/security.txt`](/.well-known/security.txt). Ang coordinated disclosure at reporter credit ang standing policy - nasa [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md) ang mga detalye.
+Ang pagkakaiba ng page na ito at ng nakikita mo ay security report. Ipadala ito sa mga pribadong channel sa [Security & Verification](/info/security.html#reporting-a-vulnerability). Nagsasagawa kami ng coordinated disclosure at kinikilala ang mga nag-uulat.

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Human and machine entry points for the shared terminal design-system store. */
-import { readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { canonicalJson } from '../../../engine/src/canonical-json.ts';
-import { basename, extname } from 'node:path';
+import { basename, dirname, extname, join } from 'node:path';
 import {
   assembleTokenSetFiles, coerceTokensDoc, createTokenSet, deriveBrandTokens,
   extractPenpotProject, extractSvgColors, readZip, summarizeTokensDoc,
@@ -35,7 +35,7 @@ Start with what you have. Setup is optional, and each source can be added later.
   Explore first    lolly list
   Make something   lolly qr-code --url=https://example.com --output=qr.svg
 
-Design-system commands: lolly system status | list | use | import | add | export | inspect | diff | generate | sync
+Design-system commands: lolly system status | list | use | import | add | export | inspect | diff | generate | sync | skills | skill
 `;
 
 type Flags = Record<string, string>;
@@ -301,7 +301,8 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
     // profile's own design system only: a --file or terminal system gets them only when it
     // is that same token document, so another brand never inherits them.
     const { briefCatalogSummary, readBriefCatalogFor } = await import('@lolly-tools/node-shell/design-brief');
-    const catalog = readBriefCatalogFor(origin?.kind, doc);
+    // The terminal reads the developer's own pack, so internal brand skills are named too.
+    const catalog = readBriefCatalogFor(origin?.kind, doc, { skillAudience: 'all' });
     const brief = designBrief(doc, catalog, { ...(name ? { name } : {}), theme: flags.theme });
     let result: unknown = { ...brief, origin, catalog: briefCatalogSummary(catalog) };
     if (action === 'check') {
@@ -325,6 +326,10 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
     if (flags.output) { await writeFile(flags.output, text); await emit({ output: flags.output }, `Saved ${flags.output}.\n`, json); }
     else if (json) await emitResult(result);
     else await writeOut(text);
+    return;
+  }
+  if (action === 'skills' || action === 'skill') {
+    await skillCommand(action, positionals, flags, json);
     return;
   }
   if (action === 'status') {
@@ -406,5 +411,70 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
     await emit(result, `Now using ${record.label}.\n${humanStatus(result)}`, json);
     return;
   }
-  throw usageError(`Unknown system command “${action}”. Use status, list, init, import, add, export, context, check, inspect, diff, generate, sync, or use.`, 'UNKNOWN_COMMAND');
+  throw usageError(`Unknown system command “${action}”. Use status, list, init, import, add, export, context, check, inspect, diff, generate, sync, skills, skill or use.`, 'UNKNOWN_COMMAND');
+}
+
+/**
+ * Brand skills (plan 323): the content profile's own guidance per discipline. The local
+ * CLI reads the developer's pack on disk, so internal skills are listed and read too.
+ */
+async function skillCommand(action: 'skills' | 'skill', positionals: string[], flags: Flags, json: boolean): Promise<void> {
+  const skills = await import('@lolly-tools/node-shell/brand-skills');
+  const scope = { audience: 'all' as const, ...(flags.profile && flags.profile !== '1' ? { profile: flags.profile } : {}) };
+  if (action === 'skills') {
+    const list = skills.listProfileBrandSkills(scope);
+    if (!list) throw usageError('No content profile answers, so there are no brand skills to list.', 'NO_PROFILE');
+    const rows = list.skills.map(s => `${s.name.padEnd(28)} ${s.discipline.padEnd(14)} ${s.status.padEnd(9)} ${s.audience.padEnd(9)} r${s.skillRevision}  ${s.label}`);
+    const human = `${list.label ?? list.profile} brand skills\n\n${rows.join('\n') || 'None authored yet.'}\n${list.baseline.name.padEnd(28)} generated baseline from the design brief\n\nRead one: lolly system skill <name>\n`;
+    await emit(list, human, json);
+    return;
+  }
+  const sub = positionals[1];
+  if (!sub) throw usageError('usage: lolly system skill <name> [--into=<dir>] | coverage <name> | check <folder>', 'MISSING_ARGUMENT');
+  if (sub === 'check' && positionals[2]) {
+    const target = positionals[2];
+    const info = await stat(target).catch(() => null);
+    if (!info) throw usageError(`Nothing at ${target}.`, 'NOT_FOUND');
+    const markdown = await readFile(info.isDirectory() ? join(target, 'SKILL.md') : target, 'utf8');
+    const result = await skills.profileBrandSkillFreshness(markdown, scope);
+    await emit(result, `${result.message}\n`, json);
+    return;
+  }
+  if (sub === 'coverage' && positionals[2]) {
+    const skill = await skills.readProfileBrandSkill(positionals[2], scope);
+    if (!skill) throw usageError(`No brand skill named ${positionals[2]}. List them with lolly system skills.`, 'NOT_FOUND');
+    const coverage = skills.profileBrandSkillCoverage(skill, scope);
+    const links = skills.profileBrandSkillLinks(skill, scope);
+    const result = { skill: skill.entry, coverage, links, findings: skill.skill.parsed.findings };
+    const human = [
+      `${skill.entry.label} (r${skill.entry.skillRevision})`, '',
+      ...coverage.rows.map(r => `${r.status.padEnd(14)} ${r.section ? `${r.section}: ` : ''}${r.detail}${r.values ? ` ${r.values.join(' ')}` : ''}`),
+      '', ...skill.skill.parsed.findings.map(f => `${f.severity.padEnd(8)} ${f.message}${f.line ? ` (line ${f.line})` : ''}`),
+      '', coverage.note, '',
+    ].join('\n');
+    await emit(result, human, json);
+    return;
+  }
+  const mode = flags.mode === 'bundled' ? 'bundled' : 'linked';
+  if (flags.mode && flags.mode !== 'linked' && flags.mode !== 'bundled') throw usageError('--mode is linked or bundled.', 'BAD_FLAG');
+  const exported = await skills.exportProfileBrandSkill(sub, {
+    ...scope, mode,
+    ...(flags.origin && flags.origin !== '1' ? { origin: flags.origin } : {}),
+    ...(flags['include-licensed'] === '1' ? { includeLicensed: true } : {}),
+  });
+  if (!exported) throw usageError(`No brand skill named ${sub}. List them with lolly system skills.`, 'NOT_FOUND');
+  if (!flags.into || flags.into === '1') {
+    const text = exported.files['SKILL.md'] as string;
+    if (json) await emitResult({ name: exported.name, markdown: text, rewrites: exported.rewrites, heldBack: exported.heldBack });
+    else await writeOut(text);
+    return;
+  }
+  const folder = join(flags.into, exported.name);
+  for (const [path, contents] of Object.entries(exported.files)) {
+    await mkdir(dirname(join(folder, path)), { recursive: true });
+    await writeFile(join(folder, path), contents);
+  }
+  const held = exported.heldBack.length ? `\nHeld back ${exported.heldBack.length}: ${exported.heldBack.map(h => `${h.asset} (${h.reason})`).join('; ')}` : '';
+  await emit({ folder, name: exported.name, files: Object.keys(exported.files), rewrites: exported.rewrites, heldBack: exported.heldBack },
+    `Wrote ${folder} (${Object.keys(exported.files).length} files, ${mode}).${held}\n`, json);
 }

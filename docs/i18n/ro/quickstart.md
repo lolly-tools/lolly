@@ -1,94 +1,88 @@
-# Ghid de pornire rapidă
+# Start
 
-Lolly îți transformă regulile - culori, tipografie, layout-uri, logică - în instrumente pe care oricine le poate folosi pentru a crea fișiere finite: imagini, PDF-uri, carduri pentru social media, video, doar completând câteva câmpuri. Ai puține de învățat și nimic de încărcat: crearea și exportul rulează pe dispozitivul tău, online sau offline.
+Până la sfârșitul acestei pagini, instrumentele tale vor purta propriile tale culori și fonturi, iar munca pe care o ai deja va fi gata de refolosit. Nu ai nevoie de cont, iar crearea și exportul rulează pe dispozitivul tău.
 
-Aceasta este pagina pe care s-o citești prima. Două lucruri te fac productiv: **fă-ți Lolly al tău** și **adu ce ai deja** (fișierele tale de design și tokenii). Orice altceva e la un link distanță.
+::: timeline
+- <!--i:sparkle--> **Fă un fișier.** [Fă primul tău fișier](/info/make-something.html) te ghidează printr-un cod QR în câteva minute.
+- <!--i:palette--> **Pune-ți brandul.** Pornește de la o culoare, un fișier de tokenuri sau un design terminat.
+- <!--i:layers--> **Fă mai multe la fel.** Partajează un link, completează o foaie de calcul sau rulează instrumentul dintr-un script.
+:::
 
-> Ești nou în Lolly și vrei doar să creezi ceva? [Creează ceva în 60 de secunde](/info/make-something.html) te trece prin trei exemple, sau [deschide aplicația](/#/), alege orice instrument din galerie, completează câmpurile și apasă **Export**. Revino aici când vrei să poarte brandul *tău*.
+Ești nou în idee? [Ce este Lolly?](/info/what-is-lolly.html) este introducerea de cinci minute, iar [Cum funcționează Lolly](/info/how-lolly-works.html) arată cine ce face.
 
-![Vizualizarea Utilities - instrumentele de zi cu zi care rulează pe dispozitiv, ca Strip Hidden Data, Compress PDF și Convert Image, toate într-un singur loc](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+## Pune-ți brandul
 
-## 1. Fă-l al tău - configurează-ți sistemul de design
+lolly.tools se deschide în **Lolly Demo**, sistemul de design de probă al Lolly; [Cunoaște Lolly Demo](/info/lolly-demo.html) arată ce vezi. Sistemul tău de design îl înlocuiește: un set mic de tokenuri de design, adică culori, fonturi și câteva reguli, cu care desenează fiecare instrument. Setează-l o dată și tot ce faci pornește în stilul brandului.
 
-Brandul tău în Lolly este un mic document de **design tokens** - culori, fonturi și câteva reguli - pe baza căruia randează fiecare instrument. Setează-l o dată și tot ce creezi este pe brand prin construcție, nu prin review. Există trei căi de intrare; alege-o pe cea care se potrivește cu locul unde brandul tău trăiește deja.
+Alege traseul potrivit cu ce ai:
 
-### Începe de la zero (constructorul de sistem de design)
+- <!--i:palette--> **O culoare.** Deschide **Design System Setup** (`#/start`), dă un nume sistemului tău de design și alege o culoare primară. Lolly derivă din ea o paletă completă și accesibilă, cu suprafețe deschise și închise, text și accente. Alege un font și ai un brand funcțional.
+- <!--i:upload--> **Un fișier de tokenuri.** **Add from…**, la baza barei de camere din Design System Setup, primește un fișier de tokenuri DTCG, Tokens Studio sau Penpot, un SVG sau un pachet `LollyBrand`. Plasează-l și paleta se completează. Cât sistemul de design este încă gol, **Start from a reference** din camera Overview deschide același selector.
+- <!--i:pentool--> **Un design terminat.** În Design, alege **Import a design** și plasează un fișier `.fig`, `.penpot`, `.ai`, `.idml` sau SVG. Vezi [Adu ce ai deja](#bring-in-what-you-already-have) mai jos.
 
-Prima rulare te lasă în **galerie**, cu un scurt dialog de bun venit peste ea, care oferă trei căi de intrare - **Make it yours** (fă-l al tău: Brand Studio, la `#/start`), **Bring your design** (adu-ți designul: trage un fișier Figma, Penpot, InDesign sau PDF și se deschide ca layout editabil - cea mai rapidă cale spre [Adu ce ai deja](#2-bring-in-what-you-already-have), mai jos) și **Explore the community tools** (explorează instrumentele comunității) - plus un rând de limbi, dacă engleza nu e a ta. Alege primul card și ajungi în [**Brand Studio**](/info/brand-studio.html). Dă-i un nume și o culoare primară, iar Lolly *derivă* din ea o paletă completă și accesibilă - suprafețe deschise/închise, text, accente - folosind aceeași matematică a culorii pe care motorul o folosește peste tot.
+Prima dată când deschizi galeria, o scurtă bun venit oferă aceleași alegeri: **Make it yours** deschide Design System Setup, **Bring your design** deschide un selector de fișiere pentru un design, iar **Explore the community tools** închide mesajul de bun venit.
 
-![Camera Colours din Brand Studio la o instalare nouă - un chip live, un câmp și întreaga primă decizie](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Alege un font și ai un brand funcțional în mai puțin de un minut. De acolo, cele șase camere ale studioului - Overview, Colours, Type, Logos, Tokens, Files - te lasă să-l duci oricât de departe vrei, în orice ordine, rafinând orice de câte ori revii. Fila **Design system** din dashboard (`#/d`) arată rezultatul doar în citire și trimite înapoi la `#/start`, acolo unde se face editarea (un sistem de design blocat rămâne doar-citire, în timp ce propriile tale sisteme locale rămân editabile).
+![Camera Colours din Design System Setup la o instalare nouă: un chip live, un câmp și toată prima decizie](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-### Importă un brand pe care îl ai deja
+De acolo, șapte camere o duc cât de departe vrei, în orice ordine: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** și **Usage & rules**. Fiecare previzualizare din aplicație se actualizează pe măsură ce tastezi. [Design System Setup](/info/brand-studio.html) acoperă fiecare cameră.
 
-Dacă brandul tău este deja capturat ca design tokens - din **Penpot**, **Tokens Studio** (Figma) sau orice fișier **DTCG** simplu - adu-l integral, în loc să-l retastezi. Două căi:
+Fonturile sunt păstrate pe dispozitivul tău. Alege un Google Font și Lolly stochează fișierul ca resursă de brand, deci tipografia ta călătorește offline și nu se preia nimic când un instrument desenează.
 
-- <!--i:palette--> **În aplicație:** [constructorul de sistem de design: Brand Studio](/info/brand-studio.html) (`#/start`) îl preia prin **Add from…**, din josul barei de camere - un fișier de tokeni, un export Penpot, un SVG sau un pachet `LollyBrand`. Trage-l acolo și paleta prinde viață.
-- <!--i:code--> **Din linia de comandă**, pentru a ridica un pachet de brand reutilizabil:
+### Vezi, comută și partajează un sistem de design
+
+- **Vezi-l pe cel activ.** **Settings → Design system** arată sistemul de design activ ca o copertă și pagini, doar pentru citire.
+- **Comută între ele.** **Settings → Preferences → Design systems** listează fiecare sistem de design de pe acest dispozitiv. O organizație poate rula mai multe sisteme de design sau unul cu mai multe colourway-uri; [Arhitecturi de brand](/info/brand-architectures.html) cartografiază aranjamentele.
+- **Partajează unul.** Exportă sistemul de design ca pachet `LollyBrand`: un singur fișier pe care un coleg îl importă ca să obțină aceeași paletă, aceleași fonturi și reguli.
+
+Un sistem de design furnizat de versiunea ta sau de organizația ta este **administrat**: arată un lacăt și rămâne doar pentru citire. Ca să schimbi unul, fă o copie editabilă din **Settings → Preferences → Design systems**.
+
+![Fila Design system din Settings: sistemul de design activ ca o copertă și pagini](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
+
+Sistemul tău de design înseamnă tokenuri DTCG, formatul pe care Penpot îl citește și îl scrie și pe care Tokens Studio îl aduce în Figma, deci paleta cu care proiectezi și paleta pe care o aplică Lolly sunt un singur document. [Tokenuri de design](/info/design-tokens.html) are detaliile.
+
+::: details Pentru dezvoltatori: construiește un pachet de brand din linia de comandă
+Ca să ridici un pachet de brand reutilizabil într-un checkout, `ingest:brand` acceptă cele trei containere pe care le exportă Penpot și Tokens Studio: un singur `tokens.json`, un director cu fișiere pe seturi cu `$metadata.json` sau o arhivă `project.penpot`.
 
 ```bash
-# a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`ingest:brand` acceptă toate cele trei forme de container în care Penpot / Tokens Studio exportă același document - un singur `tokens.json`, un director (`$metadata.json` + fișiere per set) sau o arhivă `project.penpot`. Cu `--activate` înregistrează brandul ca profil, comută la el și reconstruiește catalogul. Vezi [Configurare](/info/configuration.html) pentru modul în care pachetele de brand și profilurile se îmbină.
+`--activate` înregistrează brandul ca profil și îi construiește și validează catalogul. Nu schimbă niciodată profilul implicit: rulează cu `LOLLY_PROFILE=acme` ca să folosești noul pachet. [Configurare](/info/configuration.html) explică cum se potrivesc pachetele de brand și profilurile.
+:::
 
-### Ajustează-l în aplicație
+## Adu ce ai deja
 
-Odată ce un brand e activ, continuă să-l modelezi în [**Brand Studio**](/info/brand-studio.html) (`#/start`) - schimbi o culoare sau un rol și fiecare previzualizare din aplicație se actualizează pe măsură ce tastezi. (Fila **Design system** de la `#/d` din dashboard *arată* brandul doar în citire; în Studio îl editezi.)
+Nu pornești de la o pagină goală.
 
-![Fila Design-system din Dashboard - brandul activ, afișat doar în citire](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Același brand este rezumat pe cardul **Profile → Your brand** (Profil → Brandul tău). Fonturile sunt reale: alegi din Google Fonts, iar Lolly stochează fișierul **pe dispozitivul tău** ca resursă de brand, astfel încât tipografia ta călătorește offline și nimic nu este preluat la randare.
+**Fișiere de design.** Munca terminată din Figma, Penpot, Illustrator, InDesign sau orice aplicație SVG se deschide în Design ca un layout viu: textul rămâne editabil, formele rămân forme, iar imaginile ajung în biblioteca ta. Fișierul este citit în browser și nimic nu este încărcat. [Importă un design](/info/design-import.html) listează fiecare format și ce se păstrează.
 
-Când ești mulțumit, **exportă brandul ca pachet `LollyBrand`** - un singur fișier pe care un coleg îl poate importa pentru a obține exact aceeași paletă, fonturi și reguli. Așa se mută un brand între oameni și mașini, fără un server la mijloc.
+**Deck-uri.** Plasează un PowerPoint `.pptx` pe Lolly ca să-i arhivezi diapozitivele ca resurse, scrie un deck nou din Markdown în **Markdown Slides** sau folosește [Rebrand a deck](/info/rebrand.html) ca să muți întregul deck pe sistemul tău de design.
 
-> **Tokenii de brand merg în ambele sensuri.** Pentru că brandul Lolly *este* tokeni DTCG - formatul pe care Penpot îl citește și îl scrie nativ și pe care Tokens Studio îl aduce în Figma - paleta cu care *proiectezi* și paleta pe care Lolly o *impune* sunt un singur document, nu două liste pe care le ții sincronizate manual. Vezi [Design Tokens](/info/design-tokens.html).
-
-## 2. Adu ce ai deja
-
-Nu pornești de la o pagină goală. Lolly se deschide pentru munca de design și formatele deschise pe care le ai deja.
-
-### Fișiere de design open-source
-
-Lucrările finite din **Figma, Penpot, Illustrator, InDesign sau orice aplicație SVG** nu trebuie să rămână blocate în aplicația în care le-ai desenat. Deschide **Design**, dă click pe **Import a design**, iar fișierul se deschide ca un *layout viu* - nu o imagine aplatizată. Fiecare strat devine o casetă editabilă: textul rămâne re-tastabil, formele rămân forme, imaginile ajung în biblioteca ta, iar arta vectorială complexă este păstrată fidel. Sosește deja conformă cu fețele de brand și cu regulile tale de culoare.
-
-| Ai | Adu-l ca |
-|---|---|
-| Un frame din Figma | Nativ `.fig` (File → Save local copy), sau un export SVG |
-| Un design din Penpot | Exportul său `.penpot`, sau orice SVG |
-| Un fișier din Illustrator | Nativ `.ai` (compatibil PDF) sau `.pdf` - se deschide direct |
-| Un layout din InDesign | `.idml` (File → Export → InDesign Markup) |
-| Orice altceva | **Orice SVG** - ușa universală de intrare |
-
-Tot importul se întâmplă **pe dispozitivul tău** - fișierul este parsat în browser și nimic nu este încărcat. Detaliile complete, și exact ce se păstrează, sunt în [Import a design](/info/design-import.html).
-
-Ai în schimb o **prezentare PowerPoint**? Trage `.pptx` pe orice suprafață de încărcare ca să-i depui slide-urile ca resurse, scrie o prezentare nouă din Markdown în **Markdown Slides**, sau rulează **Rebrand** ca să primești aceeași prezentare înapoi re-tematizată, cu grafice și animații intacte.
+**Date.** Lipește sau plasează un tabel CSV sau JSON, iar câmpurile repetitive ale unui instrument se completează din el, sau [Batch](/info/batch.html#make-many-versions-of-one-design) face un fișier terminat pe rând.
 
 ### De la o creație unică la un șablon
 
-Iată câștigul: un layout importat este o sesiune obișnuită de Design, deci odată ce îl **salvezi**, trăiește la o URL. Oricine are Lolly poate deschide acea URL, poate schimba cuvintele, poate înlocui o imagine și poate randa propria versiune - fără aplicație de design, iar părțile blocate rămân blocate. Un design de unică folosință devine un instrument reutilizabil. Asta e toată ideea, atinsă fără să scrii o linie de configurare.
+Un layout importat este o sesiune Design obișnuită. **Share with rules** îl transformă într-un instrument: alegi ce părți pot schimba ceilalți, iar ei completează doar acelea.
 
-### Date deschise și instrumente deschise
+![Păstrează masterul Design, alege intrările și limitele într-o copie de creație, apoi partajează un instrument .lolly reutilizabil pe care destinatarii îl completează](/info/diagrams/concepts/share-with-rules.svg)
 
-[Setul de instrumente al comunității](/info/builders.html) este open source și agnostic de brand - coduri QR, hărți stradale, filtre, utilitare de confidențialitate - și randează pe baza brandului *tău* din momentul în care îl activezi.
+[Partajează un design cu reguli](/info/create-a-tool.html) parcurge fiecare pas.
 
-Alimentează instrumentele și cu propriile tale date deschise: lipește sau trage un tabel **CSV** sau **JSON**, iar câmpurile repetitive ale unui instrument se completează din el, câte o resursă finită per rând.
+## Fă mai multe, partajează și automatizează
 
-## 3. Creează ceva, apoi distribuie-l sau automatizează-l
+- <!--i:download--> **Exportă.** Instrumentele fac SVG, PDF, PNG, JPG, WebP, video și altele, în formatele oferite de fiecare instrument, la dimensiuni reale de tipar când ai nevoie. Vezi [Exportă un fișier](/info/exporting.html).
+- <!--i:link--> **Partajează un link.** Setările unui instrument călătoresc în link, deci linkul redeschide același fișier oriunde.
+- <!--i:layers--> **Fă unul pe rând.** Conduce un instrument dintr-o foaie de calcul în [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:cpu--> **Automatizează.** Aceeași randare rulează din [CLI](/info/cli.html) și dintr-un [agent AI](/info/ai-agents.html).
 
-Cu un brand activ și materialul tău la îndemână, fiecare instrument produce un fișier finit:
-
-- <!--i:download--> **Randează** orice instrument în **SVG, PDF, PNG, JPG, WebP, video** și altele - la dimensiuni reale de print și unități fizice, atunci când ai nevoie. Vezi [Export și formate](/info/exporting.html).
-- <!--i:link--> **Distribuie un link.** Fiecare stare de instrument este o URL, deci o resursă finită este reproductibilă și adresabilă prin parametri - commite link-ul, regenerează-l la cerere.
-- <!--i:layers--> **Fă-o în masă.** Alimentează un șablon dintr-o foaie de calcul în [grila batch](/info/exporting.html): o resursă finită per rând.
-- <!--i:cpu--> **Automatizează-l.** Aceeași randare rulează din [CLI](/info/cli.html) și dintr-un [agent AI](/info/ai-agents.html) - o URL este API-ul.
-
-„O URL este API-ul” e literal. Graficul de mai jos nu a fost desenat de nimeni: tipul, titlul și întregul tabel de date au fost scrise în bara de adrese, iar același link randează același grafic pe orice dispozitiv.
+Un link este o cerere completă. Nimeni nu a desenat diagrama de mai jos: tipul, titlul și întregul tabel de date au fost tastate în bara de adrese, iar același link desenează aceeași diagramă pe orice dispozitiv.
 
 ![Un grafic de arie al înregistrărilor lunare, ale cărui valori au ajuns toate ca parametru de interogare, nu ca un clic](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 ## Ce urmează
 
-Trei căi, în funcție de ce ai venit să faci:
-
-- <!--i:people--> **[Lolly pentru Creatori](/info/creators.html)** - creezi lucruri. Avantajele și cum să obții maximum din aplicație.
-- <!--i:code--> **[Lolly pentru Dezvoltatori](/info/builders.html)** - creezi instrumente, integrezi și implementezi. Documentația tehnică.
-- <!--i:shieldcheck--> **[Lolly pentru Operatori](/info/operators.html)** - ești responsabil de brand, securitate și lansare la nivelul unei organizații.
+- <!--i:people--> **[Creează](/info/creators.html)**: crearea, animarea, înregistrarea, partajarea și exportul.
+- <!--i:code--> **[Automatizează](/info/builders.html)**: sisteme de design, crearea de instrumente, linia de comandă, linkuri și agenți.
+- <!--i:usercheck--> **[Administrează](/info/operators.html)**: rularea Lolly pentru o echipă cu Lolly Work.
+- <!--i:server--> **[Instalează](/info/operate.html)**: găzduirea Lolly și Lolly Work.
+- <!--i:shieldcheck--> **[Încredere](/info/trust.html)**: confidențialitate, securitate și verificarea unui fișier de unul singur.

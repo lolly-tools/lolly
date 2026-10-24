@@ -1,88 +1,86 @@
 # Bagaimana Lolly dibandingkan
 
-Apa yang dilakukan Lolly yang tidak dilakukan alat kreatif masa kini, dan apa yang sengaja diserahkannya kepada mereka.
-
-Untuk versi per alat, satu halaman masing-masing untuk Canva, Adobe, Figma, API rendering dan konverter online, lihat [Lolly dibandingkan, alat demi alat](/info/compare.html). Setiap halaman menyatakan apa yang dilakukan alat lain dengan lebih baik dan apa yang dilakukan Lolly sebagai gantinya.
-
-> **Status pilot:** Lolly adalah prototipe pilot tertutup, bukan produk jadi, dan keamanannya saat ini sedang menjalani pengerasan infrastruktur ketat SUSE, mempersiapkan skala enterprise. Halaman [Adoption & Governance](/info/adoption-governance.html#status) membahas kondisi saat ini.
+Lolly adalah dua bagian dari satu proyek sumber terbuka. **Lolly** adalah engine, aplikasi, dan alat untuk membuat, menyunting, mengonversi, dan mengekspor di perangkat Anda, tanpa akun. **Lolly Work** adalah server organisasi, dijalankan di infrastruktur Anda sendiri, untuk login, proyek bersama, persetujuan, dan rendering server. Keduanya MPL-2.0. Halaman ini membandingkan pasangan itu dengan cara-cara lain orang mendesain, mengatur, dan memproduksi file.
 
 ## Alat masa kini
 
-Setiap cincin di bawah ini menilai seberapa lengkap sebuah kelas produk memberikan sebuah kapabilitas **sebagaimana dirilis hari ini** - bukan sebagaimana dipasarkan - dengan setiap kelas dinilai berdasarkan perwakilan terbaiknya. Lolly dinilai dengan pisau yang sama: ia mendapat satu-satunya cincin merah di papan ini, untuk kematangan. Buka nama baris untuk melihat alasan di balik skornya. Kolom diurutkan berdasarkan baris Overall completeness di atas - rata-rata dari baris yang dinilai, dengan baris biaya dikecualikan.
+Setiap cincin menilai seberapa lengkap suatu kelas produk menyediakan sebuah kapabilitas, dengan setiap kelas dinilai pada wakil terbaiknya. Kolom Lolly mencakup Lolly dan Lolly Work bersama, dan setiap baris menyatakan bagian mana yang menyediakan apa. Buka nama baris untuk penalaran di balik skornya. Kolom diurutkan menurut baris Overall completeness di bagian atas: rata-rata baris yang dinilai, dengan baris pengeluaran tidak dihitung.
 
 ::: figure positioning-comparison
-Kelengkapan kapabilitas di antara alat kreatif hari ini, diteliti Agustus 2026. Penilaian: 0 tidak ada, 25 tingkat akal-akalan, 50 nyata tetapi terbatas atau parsial, 75 kuat dengan catatan, 100 kompetensi inti.
+Perbandingan kapabilitas: riset pesaing dan skor dari Agustus 2026; cakupan Lolly + Lolly Work ditinjau 28 September 2026. Penilaian: 0 tidak ada, 25 tingkat akal-akalan, 50 nyata tetapi terbatas atau parsial, 75 kuat dengan catatan, 100 kompetensi inti.
 :::
 
-**Catatan penilaian.** Skor Lolly mengasumsikan klaim yang dipublikasikannya berlaku, itulah sebabnya kematangan adalah satu-satunya cincin merahnya: pilot tertutup, pengerasan keamanan sedang berlangsung, belum ada yang diaudit. Riset menggeser beberapa sel.
+::: details Catatan penilaian
+Fitur yang tersedia dan kematangan produksi adalah dua hal terpisah. Lolly sudah dirilis: versi 1.0 dikirim sebagai sumber terbuka pada 30 Agustus 2026, keamanannya belum diaudit secara independen, dan bukti adopsinya baru beberapa bulan ([Adoption & Governance](/info/adoption-governance.html#status) memuat keadaan terkini). Memiliki single sign-on, persetujuan, atau rendering server tidak menetapkan rekam jejak produksi, jadi skor kematangan mencerminkan itu. Skor pesaing mempertahankan tinjauan Agustus yang bertanggal.
 
-Canva dinilai berdasarkan anggota keluarga terbaiknya per baris, karena ia memiliki Affinity dan Cavalry (keduanya digratiskan Oktober 2025). Rendering offline dan on-device mendapat skor 75 melalui Affinity - suite desktop yang masih memerlukan akun terverifikasi dan membawa telemetri, pengurangan yang juga diambil Adobe - sementara mode offline Canva sendiri hanya mengedit desain yang sudah disinkronkan sebelumnya, satu perangkat, jendela terbatas. Autofill mendapat skor 50: nyata tetapi dibatasi Enterprise, asinkron, hanya teks dan gambar. Mass generation Figma naik dari 25 ke 50 saat Buzz merilis pengisian spreadsheet (beta gratis, Agustus 2026).
+Satu aturan mengatur papan ini. Nilai penuh (100), pada baris yang menyentuh konten atau identitas Anda, memerlukan kapabilitas yang dapat dipakai tanpa akun dan tanpa prasyarat cloud; baris tentang produk itu sendiri, seperti kematangan dan kemudahan penggunaan, dikecualikan. Aturan itu merugikan Adobe pada Content Credentials: implementasi terluas yang dikirim (Photoshop, Lightroom, Premiere, Firefly) menandatangani secara lokal dan di cloud, tetapi tidak pernah tanpa akun dan identitas Adobe, jadi 75. Aturan itu membatasi API rendering pada generasi massal dan otomatisasi karena alasan yang sama.
 
-Satu aturan mengatur papan ini: skor Penuh (100), pada baris yang menyentuh konten atau identitas Anda, memerlukan kapabilitas yang bisa Anda gunakan tanpa akun dan tanpa prasyarat cloud; baris yang menggambarkan produk itu sendiri (kematangan, kemudahan pakai) dikecualikan. Ini membebani Adobe pada provenans: C2PA paling luas yang dirilis (Photoshop, Lightroom, Premiere, Firefly) menandatangani secara lokal maupun di cloud, tetapi tidak pernah tanpa akun dan identitas Adobe, sehingga 75. Aturan ini juga membatasi API rendering pada mass generation dan otomasi dengan alasan yang sama.
+Canva dinilai pada anggota keluarganya yang terbaik per baris, karena ia memiliki Affinity dan Cavalry (keduanya dibagikan gratis pada Oktober 2025). Rendering offline dan di perangkat mendapat 75 melalui Affinity, suite desktop yang masih memerlukan akun terverifikasi dan membawa telemetri, pengurangan yang juga dikenakan pada Adobe; mode offline Canva sendiri hanya menyunting desain yang sudah disinkronkan sebelumnya, di satu perangkat, untuk jendela terbatas. Autofill mendapat 50: nyata tetapi terbatas Enterprise dan asinkron, dan hanya mengisi teks dan gambar. Generasi massal Figma naik dari 25 ke 50 ketika Buzz mengirim pengisian spreadsheet (beta gratis, Agustus 2026).
 
-Skor provenans 75 Lolly mencerminkan penandatanganan offline on-device: secara arsitektural lebih kuat tetapi belum diaudit, dan kunci perangkat terbaca sebagai tidak terverifikasi di validator standar sampai sebuah identitas atau CA milik organisasi memvalidasinya. Skor 50 Penpot diperoleh lewat plugin resmi Lolly Export: engine penandatanganan yang sama, opt-in, diungkapkan sebagai milik Lolly sendiri. Penpot juga mendapat satu-satunya cincin di luar skala pada papan ini, 90 pada rendering on-device - kanvas browser, simpan ke cloud sovereign Anda sendiri (bahkan laptop), ekspor privat; hanya lompatan ke server yang memisahkannya dari Lolly. Cloudinary mendapat kolomnya sendiri: sebuah pipeline media (DAM, API transformasi, CDN), dan satu-satunya kolom cloud yang merilis C2PA (50, karena fl_c2pa menandatangani saat pengiriman, mengesahkan delivered-by-Cloudinary, bukan made-by-you).
+Skor Content Credentials Lolly 75 mencakup penandatanganan di perangkat dan penandatanganan server Lolly Work dengan identitas organisasi yang dikonfigurasi; verifier masih harus memercayai penandatangan ([Content Credentials Identity](/info/content-credentials-identity.html)). Skor 50 Penpot datang melalui plugin ekspor Lolly sendiri untuk Penpot: penandatanganan engine yang sama, ikut serta dan diungkapkan sebagai milik Lolly. Penpot mendapat 90 pada rendering di perangkat: kanvas browser dengan target simpan di servernya, yang dapat di-host sendiri. Cloudinary mendapat kolomnya sendiri untuk pustaka aset, API transformasi, dan CDN-nya; tinjauan Agustus menilai penandatanganan pengirimannya 50.
 
-Kolaborasi langsung berjalan sebaliknya: Figma menetapkan tolok ukur skala (200 editor) dan P2P berpasangan air-gapped milik Lolly mendapat skor Parsial. Harga adalah perkiraan, dilabeli demikian: aritmetika harga daftar pada campuran seat yang realistis, sengaja dibuat lebar, untuk skala bukan pengadaan. API rendering mendapat 75 pada constraints: template terkunci, tanpa lapisan tata kelola brand.
+Kolaborasi langsung Lolly mencakup collab privat langsung dua perangkat dan work collab terautentikasi melalui Lolly Work, dengan suntingan bersama, kursor, dan sesi tim tersimpan. Skor Partial mencerminkan deployment kerja node tunggal saat ini dan riwayat operasi yang singkat, bukan ketiadaan penyuntingan tim. Perkiraan harga adalah aritmetika harga daftar bertanggal untuk skala, bukan pengadaan.
+:::
 
-Celahnya: tidak ada yang dirilis hari ini yang mengutamakan constraints dan bekerja offline tanpa akun dan tanpa server di jalur render, dan belum ada yang meniru klausul akun ini. Lolly kini merilis kanvas terbukanya sendiri - **Design**, sebuah kanvas bebas dengan manipulasi langsung - tetapi warna, tipe dan aset di dalamnya tetap tunduk pada global brand, sehingga bahkan penataan bebas tetap mengutamakan constraints.
+## Kapan memilih Lolly
 
-Apa yang **belum** menjadi Lolly adalah suite desain tanpa batasan; para desainer akan terus menggunakan Illustrator dan Figma untuk karya bespoke - dan ketika karya itu perlu menjadi aset yang diatur dan dapat direproduksi, [Import a design](/info/design-import.html) milik alat Design membawa berkas Figma, Penpot, Illustrator, InDesign atau PDF yang sudah jadi ke atas kanvas sebagai kotak yang dapat diedit dan sesuai brand.
+::: cols
+## Pilih Lolly bila
 
-![Kanvas bebas Design, tempat warna, huruf dan aset yang ditawarkan adalah milik brand itu sendiri](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+- Jenis file yang sama dibutuhkan berulang kali: ubin acara, tanda pengenal, sertifikat, peringatan, kartu sosial
+- Banyak file berasal dari satu templat dan tabel nilai, di [Batch](/info/batch.html#make-many-versions-of-one-design) atau CLI
+- Warna, huruf, dan aset harus tetap di dalam design system, bahkan di kanvas terbuka
+- Desain Figma, Penpot, Illustrator, InDesign, atau PDF yang sudah jadi harus menjadi dapat disunting dan dapat diulang ([Import a design](/info/design-import.html))
+- File harus dibuat di perangkat atau server Anda sendiri
 
-## Gunakan untuk
+## Pilih yang lain bila
 
-- Pembuatan cepat aset kreatif yang dioperasionalkan (tile acara, lencana, tanda tangan, peringatan)
-- Penataan bebas di kanvas terbuka (Design) ketika elemen-elemennya - warna, tipe, ikon, gambar - harus tetap sesuai dengan global brand
-- Mendaratkan desain Figma, Penpot, Illustrator, InDesign atau PDF yang sudah jadi (Import a design milik alat Design) sehingga dapat diedit, diatur dan di-render ulang secara deterministik dalam setiap format Lolly
-- Alur "isi tiga kolom, dapatkan aset jadi" satu-ke-banyak - termasuk proses massal dari spreadsheet/CSV di grid batch `/pro` (tempel atau impor baris, satu aset jadi per baris, unduh sebagai zip)
-- Output bermerek yang selalu aktif dan berulang
-- Hal-hal di mana kontrol terpusat atas ekspresi brand lebih penting daripada fleksibilitas ekspresif
+- Pekerjaannya retouching foto atau ilustrasi yang detail
+- Anda merancang dan membuat prototipe antarmuka aplikasi
+- Anda memerlukan pustaka stok dan templat besar yang siap sejak hari pertama
+- Anda memerlukan layanan terkelola dengan rekam jejak panjang pada skala besar
+:::
 
-Deck Studio adalah tolok ukur yang baik untuk batas atas di sini: satu set slide deck utuh dideklarasikan sebagai data, ditata langsung di kanvas dan diekspor sebagai PowerPoint asli yang dapat diedit.
+Desain yang diimpor dan token desain bersama memungkinkan tim menggabungkan Lolly dengan aplikasi spesialis, sementara Lolly Work mengatur aset bersama, tinjauan, dan pengiriman.
 
-![Deck Studio dalam tampilan terpisah - slide deck terdaftar sebagai blok di sebelah kiri, deck yang sudah ditata dirender di sebelah kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Seluruh deck slide menunjukkan langit-langitnya: di **Markdown Slides** deck dideklarasikan sebagai data, ditata secara langsung, dan diekspor sebagai file PowerPoint native yang dapat disunting.
 
-## Jangan gunakan untuk
+![Markdown Slides dalam tampilan terbagi: slide deck terdaftar sebagai blok di kiri, deck yang sudah ditata dirender di kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-- Konten hero bespoke atau unggulan (billboard, video besar)
-- Karya kampanye unik yang sungguh membutuhkan seorang desainer
-- Ideasi yang perlu lepas sepenuhnya dari sistem brand - kanvas terbuka Lolly tetap menyesuaikan warna, tipe dan aset dengan global brand, dan itulah intinya
+## Aturan hidup di dalam alat
+
+Lolly menaruh aturan brand yang dapat dipakai ulang di dalam alat: warna, font, margin bleed, jarak, dan input yang diizinkan. Templat menetapkan bagian yang tidak boleh diubah penerima. Lolly Work menambahkan akses grup dan kebijakan input di sekitar templat itu, dengan rantai persetujuan untuk pengajuan katalog dan pengiriman.
+
+Memeriksa alat sekali membuat produksi berulang lebih mudah, karena setiap keluaran mewarisi aturan tata letaknya. Teks, citra yang diunggah, dan hak penggunaan masih mungkin perlu diperiksa, dan Lolly Work menyediakan katalog bersama dan langkah persetujuan untuk itu. Bagi tim kreatif alat adalah pagar pengaman: Anda tetap membawa data, teks, dan gambar, dan alat menjaga setiap hasil tetap sesuai brand.
+
+![Seluruh tugas produsen: mengetik kata-katanya. Huruf, warna, dan jarak sudah ditetapkan saat alat dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+
+Tiga hal lagi yang membedakan pendekatan ini:
+
+- **File akhir, dari input.** Input masuk, file jadi keluar, tanpa "sekarang simpan dari alat desain Anda dan rapikan".
+- **Alat menyusun alat.** Satu alat dapat menyematkan render alat lain dalam satu file jadi, tanpa kopling kode antar keduanya.
+- **Terbuka sampai ke dasar.** Engine adalah sumber terbuka, dan alat, aset, serta token desain adalah file yang dapat Anda simpan dalam kendali versi atau kelola di Lolly Work, bukan baris di database orang lain.
+
+Desain yang berani tetap bertahan di balik pagar pengaman. Peta kota kelas poster ini adalah path jalan dan air vektor sejati, dari satu dropdown dan dua field warna yang tidak dapat diarahkan ke luar design system:
+
+![Cincin kanal dan jaringan jalan Amsterdam digambar dari tepi ke tepi dengan tinta design system sendiri, setiap goresan ditempatkan oleh templat, bukan dengan tangan](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
 ## Berinovasi secara probabilistik, berskala secara deterministik
 
-Sebagian besar pitch "AI kreatif" menempatkan model di sisi yang salah dari sebuah garis lama. Para penyalin naskah dan pelukis iluminasi sudah lebih dulu menetapkan di mana garis itu jatuh: Anda bekerja bebas di atas sketsa, tempat apa pun bisa dicoba dan tidak ada yang terikat, lalu Anda pergi ke mesin cetak, yang terasa menakutkan justru karena ia mengikat. Sketsa adalah tempat seninya berada. Mesin cetak adalah caranya bepergian. Dua instrumen, dua tugas, masing-masing inventif dengan caranya sendiri, dan karya cetak bisa dipercaya karena mesin cetak menepati janjinya pada setiap kali cetak.
+Kebanyakan penawaran "kreatif AI" menaruh model di sisi yang salah dari garis lama. Para penyalin naskah dan pengiluminasi sudah menetapkan di mana garis itu jatuh. Anda bekerja longgar pada sketsa, tempat apa pun boleh dicoba dan tidak ada yang mengikat. Lalu Anda menuju mesin cetak, yang mengikat. Sketsa adalah tempat seninya, dan mesin cetak adalah cara seni itu beredar, dan karya cetak dapat dipercaya karena mesin cetak menepati janjinya pada setiap cetakan.
 
-Lolly adalah mesin cetak, bukan sketsa. Bawa apa pun yang Anda suka ke tahap ideasi - sebuah model, seorang desainer, secarik kertas - tetapi begitu sebuah ide harus menjadi banyak aset, ide itu melewati sesuatu yang me-render dengan cara yang sama setiap kali, dari input yang bisa dibaca ulang oleh siapa pun. Itulah inti sebenarnya dari perbandingan di atas: bukan siapa yang punya generator lebih baik, tetapi siapa yang membuat langkah yang terikat itu dapat direproduksi.
+Lolly adalah mesin cetak itu. Bawa apa pun yang Anda suka untuk ide, model, desainer, atau gambar kasar, tetapi saat ide harus menjadi banyak file, ia melewati sesuatu yang merender dengan cara yang sama setiap kali, dari input yang dapat dibaca kembali siapa pun. Perbandingan di atas sebenarnya tentang siapa yang membuat langkah yang mengikat itu dapat diulang.
 
 > Percayai proses kreatif, berskala dengan kedisiplinan.
 
-## Aturan tinggal di dalam tool dan templatnya
+## Gratis selamanya
 
-Setiap alat lain di papan ini menghasilkan sebuah *file*, dan sebuah file hanya bisa dilihat setelah jadi. Lolly memindahkan aturan brand **satu langkah ke hulu**. Kode hex yang tepat, file font berlisensi, margin bleed, spasi - semuanya dikodekan langsung ke dalam HTML dan CSS alat tersebut, sehingga template *tidak bisa* menghasilkan aset yang menyimpang dari brand. Tata letak itu sendiri yang menegakkannya.
+**Jika dirender di perangkat Anda, ia gratis selamanya.** Engine, shell, alat, dan format adalah sumber terbuka, dan versi yang dirilis tidak dapat ditarik kembali. Lolly Work juga sumber terbuka. Organisasi membayar infrastruktur dan operasi yang dipilihnya, tanpa biaya lisensi perangkat lunak per kursi atau per render untuk hosting sendiri. [Questions & answers](/info/faq.html) menceritakan kisah di balik janji itu.
 
-Jadi yang layak diperhatikan adalah **alat**-nya, bukan setiap file yang dibuatnya. Buat alatnya benar, dan setiap aset yang pernah dihasilkannya sesuai brand sejak dari konstruksinya. Bagaimana Anda memeriksa pekerjaan Anda, dan siapa yang melakukannya, tetap urusan Anda; Lolly membuat hal yang diperiksa menjadi lebih kecil dan outputnya lebih cepat dibuat.
+## Di mana konten Anda berada
 
-Inilah perubahan yang sebenarnya dihadirkan oleh mesin deterministik. Bagi tim kreatif ini adalah pagar pengaman, bukan pengganti - Anda tetap yang melempar bola (data, teks, gambar) dan kode adalah jalur bumper yang menjaga setiap lemparan tidak keluar dari jalur.
+Karya kreatif Lolly dapat berjalan di perangkat keras milik Anda, dan token desain, font, logo, serta alatnya adalah file yang dapat Anda simpan. Dengan Lolly Work, proyek bersama, aset, kebijakan, dan catatan audit berada di penyimpanan yang dikonfigurasi organisasi Anda. [Trust](/info/trust.html) menjelaskan mengapa itu penting, dan [Privacy Policy](/info/privacy.html) serta [Verify It Yourself](/info/verify-yourself.html) memungkinkan Anda memeriksa klaimnya alih-alih percaya begitu saja pada kami.
 
-![Seluruh pekerjaan produser: ketik kata-katanya. Jenis huruf, warna, dan spasi sudah ditetapkan saat alat itu dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+## Alat demi alat
 
-## Apa yang secara unik disediakan ini
-
-- **Potensi desain liar yang dihadirkan secara aman dalam konteks.** Alat dapat mengekspresikan ide desain yang berani di dalam pagar pengaman yang telah dikodekan langsung.
-
-- **Otomasi konten yang ditentukan perangkat lunak dan mengembalikan aset akhir.** Input → file akhir. Tidak ada "sekarang simpan dari alat desain Anda dan olah lebih lanjut."
-- **Alat menyusun alat lain.** Satu alat dapat menyematkan hasil render alat lain dan mengembalikannya sebagai bagian dari satu aset jadi, tanpa keterikatan kode antar-alat - sebuah primitif yang tidak ditawarkan oleh produk open-canvas atau DAM-templating mana pun di papan.
-- **Netralitas vendor.** Kontrol penuh atas fitur dan biaya. Mesin open-source. Alat dan aset adalah konten yang dilacak git, bukan terkunci dalam basis data SaaS.
-
-Yang pertama dari semua itu adalah yang paling diremehkan orang. Peta kota bermutu poster, digambar sebagai jalur jalan dan air vektor sejati, dari satu dropdown dan dua bidang warna yang tidak bisa diarahkan keluar dari merek:
-
-![Cincin kanal dan jaringan jalan Amsterdam digambar dari tepi ke tepi dengan tinta merek itu sendiri, setiap goresan ditempatkan oleh template, bukan oleh tangan](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
-
-## Kedaulatan konten
-
-Ada nama untuk apa yang dijumlahkan oleh bagian sebelumnya: kedaulatan. Alur media Anda berjalan di perangkat keras milik Anda sendiri. Merek Anda - token, font, logo, alat yang menegakkannya - tersimpan dalam file yang Anda pegang, dalam kontrol versi yang Anda kendalikan, bukan dalam basis data vendor dengan tombol ekspor. Rendering terjadi di perangkat yang ada di depan Anda, sehingga sebuah aset tidak pernah harus melewati pihak ketiga untuk ada, dan seluruh jalur dari input hingga file jadi bersifat open source dan dapat diperiksa. Jika setiap vendor desain SaaS lenyap besok, deployment Lolly tidak akan terpengaruh.
-
-Ini penting bagi siapa pun yang pekerjaannya harus bertahan lebih lama dari sebuah langganan: orang tua yang buku fotonya hidup di laptop itu, sama seperti badan publik yang pustaka mereknya tunduk pada aturan pengadaan. Bagi organisasi - badan publik, industri yang diatur, siapa pun yang mereknya adalah aset strategis, bukan sekadar hiasan - "di mana konten kami berada dan siapa yang bisa mematikannya" adalah pertanyaan tata kelola, bukan preferensi. Kedaulatan di sini adalah sifat dari arsitekturnya, bukan fitur hosting yang ditambahkan demi kepatuhan, dan halaman [Kebijakan Privasi](/info/privacy.html) dan [Verifikasi Sendiri](/info/verify-yourself.html) ada agar Anda bisa memeriksa klaim itu, bukan sekadar mempercayainya.
-
-Di balik semuanya ada satu janji, dinyatakan sebagai komitmen, bukan fitur: **jika itu dirender di perangkat Anda, itu gratis selamanya.** Mesin, shell, alat, format - seluruh jalur kreatif di perangkat bersifat open source dan akan tetap begitu. Janji itu punya mekanisme: versi yang telah dirilis diberi lisensi sedemikian rupa sehingga tidak bisa ditarik kembali, dan tidak ada perjanjian kontributor yang bisa melisensikan ulang karya itu di kemudian hari. Seluruh batasannya muat dalam satu kalimat: segala sesuatu yang dirender di perangkat Anda gratis dan open source, selamanya; mengoordinasikan orang dan mesin lintas jaringan adalah tugas bidang kontrol terpisah, [lolly.work](https://lolly.work).
+[Lolly compared, tool by tool](/info/compare.html) membandingkan Lolly dengan Canva, Adobe, Figma, Penpot, portal brand, API rendering, dan konverter online, satu halaman masing-masing, dan memaparkan [what runs where](/info/compare.html#what-runs-where).

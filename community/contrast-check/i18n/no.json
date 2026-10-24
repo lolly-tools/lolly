@@ -1,4 +1,4 @@
 {
   "name": "Kontrast",
-  "description": "Sjekk et tekst- og bakgrunnspar, eller alle kombinasjonene i merkevarepaletten din, mot WCAG 2.1 og APCA, og se hvordan det oppfattes av fargeblinde."
+  "description": "Sjekk et par av tekst og bakgrunn, eller alle kombinasjonene i designsystemets palett, mot WCAG 2.1 og APCA, og se hvordan det oppleves for fargeblinde."
 }

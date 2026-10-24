@@ -2,26 +2,26 @@
 
 _最後核查：2026 年 9 月 28 日。_
 
-Lolly 在瀏覽器中製作符合品牌規範的圖形、社交媒體帖子、簡報和版面。與 [lolly.work](https://lolly.work) 配合，它還支援共享專案、實時工作協作、已批准的資產和組織策略。
+如果你的團隊目前在 Canva 製作社群貼文、投影片與傳單，本頁說明 Lolly 在哪裡能做同樣的工作，以及 Canva 在哪裡仍是更合適的選擇。
+
+## Canva 做得更好的地方
+
+Canva 把龐大的範本與圖庫、應用程式和託管的團隊工作流程結合在一項受管理的服務中。當你今天就需要一個起點時，這些現成的內容與體驗很有幫助。請見 [Canva 的範本](https://www.canva.com/templates/)與[應用程式市集](https://www.canva.com/apps/)。它的即時編輯也在 Lolly 的工作協作尚未達到的規模上有長期的營運歷史。
 
 ## 重疊之處
 
-兩者都能讓人從模板起步，不必是設計師也能做出成品圖形。兩者都支援團隊工作流和品牌控制：[Canva 將這些功能打包在其商業方案中](https://www.canva.com/canva-business/)；Lolly 則把創意應用與組織服務分開。
+兩者都讓人從範本開始，不必是設計師也能做出完成的圖像。兩者都支援團隊工作與品牌控制：[Canva 把這些打包在其商業方案中](https://www.canva.com/canva-business/)，而 Lolly 則將創作應用程式與組織伺服器分開。
 
-Lolly 在你的裝置上獨立執行，無需賬號。當組織需要時，lolly.work 提供 SSO、SCIM 預配、角色、共享目錄、審批和使用情況報告。它屬於 Lolly 專案，獨立部署，與 Lolly 本身一樣以 MPL-2.0 開源。
+## Lolly 如何完成重疊的工作
 
-## 模板與團隊協作
+Lolly 工具編碼了人們可以做的更改，同一個工具可在瀏覽器、桌面應用程式或 CLI 中執行。在 Design 畫布上製作的版面可以成為[附規則的工具](/info/create-a-tool.html)，而一個工具可以從一張值的表格製作許多檔案。
 
-Canva 將大型模板與相簿、應用和託管的團隊工作流整合在一個服務中。在挑選起點時，這些現成內容和託管體驗可能很有用。參見 [Canva 的模板](https://www.canva.com/templates/)和[應用市場](https://www.canva.com/apps/)。
+![Design 的自由畫布，其提供的色彩、字型與素材都是設計系統自己的](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Lolly 的工具將允許的修改編碼在內，可在瀏覽器、桌面應用或 CLI 中重複使用。一個設計可以成為[帶規則的工具](/info/create-a-tool.html)，同一個工具可以根據一張數值表生成多個輸出。lolly.work 圍繞這些工具管理訪問、共享工作和策略。
+單機版 Lolly 讓製作與匯出留在裝置上，不需要帳號，並且在素材儲存後可離線運作。兩個人可以在[私人協作](/info/collaborate.html)中從裝置到裝置即時編輯。支援的匯出預設開啟 Content Credentials，你可以關閉它。
 
-實時編輯有兩種方式：直接連線兩臺裝置的[私有協作](/info/collaborate.html)，以及透過組織的 lolly.work 例項進行的工作協作。工作協作包括共享編輯、游標和已儲存的團隊會話。當前的伺服器部署使用單個協作節點；其規模和執行歷史與 Canva 成熟的服務不同。
+## 搭配組織
 
-## 工作存放在哪裡
+在你組織自己的伺服器上運行的 Lolly Work，加入登入、共用專案、即時工作協作、核准的素材與政策。[什麼在哪裡執行](/info/compare.html#what-runs-where)把這兩部分並排比較，並附上每項比較共有的限制。
 
-獨立使用的 Lolly 將創作和匯出保留在裝置上，資源就緒後可離線工作。工作協作、團隊儲存和伺服器端渲染使用組織已配置的服務。這種部署選擇正是區別所在：組織可以自行運營 Lolly 的兩個部分，沒有按席位計算的軟體許可費用，但需要為自己的託管和管理付費。
-
-Content Credentials 對受支援的匯出檔案是可選的。lolly.work 可以使用已配置的組織身份對伺服器輸出簽名；驗證方必須信任該身份，才會將簽名者顯示為可信。參見 [Content Credentials 身份](/info/content-credentials-identity.html)和[組合方案概覽](/info/compare.html)。
-
-Canva 是其所有者的商標。本頁說明兩種方案的重疊之處，與 Canva 無關聯。
+Canva 是其擁有者的商標。本頁描述這兩項產品重疊之處，與 Canva 無關聯。

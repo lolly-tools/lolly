@@ -1,5 +1,5 @@
 {
   "name": "Darkroom",
-  "description": "Um estúdio profissional de tratamento de fotos: efeitos de filme, LUTs .cube de terceiros, tratamentos de cor do sistema de design e textura de acabamento - depois grave o seu visual como uma LUT que qualquer editor pode usar. Também abre um arquivo do Photoshop ou do GIMP como camadas: posicione, combine e oculte cada uma, aplique a cor no composto e exporte imagens planas ou um PSD em camadas.",
+  "description": "Faça a correção de cor de fotos e vídeos com visuais de filme, predefinições Adobe XMP, LUTs .cube e as cores do seu sistema de design. Reutilize um visual pela exportação de LUT ou por Gradação de vídeo. Abre camadas do Photoshop e do GIMP para posicionar, mesclar e exportar a imagem.",
   "featured.blurb": "Gradue fotos com visuais de filme, LUTs e as cores da sua marca"
 }

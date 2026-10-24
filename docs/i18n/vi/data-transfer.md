@@ -1,45 +1,49 @@
-# Chuyển dữ liệu - gói `lolly-backup`
+# Chuyển dữ liệu: gói `lolly-backup`
 
-Mọi thứ mà một người dùng Lolly tích lũy đều nằm **trên thiết bị của họ** - không tài khoản, không đám mây. Gói chuyển dữ liệu là cách giá trị đó di chuyển: xuất nó trên một bản cài đặt, mang file đi bằng bất kỳ phương tiện nào (USB, AirDrop, gửi email cho chính mình, chia sẻ mạng) rồi nhập nó vào một bản cài đặt khác. File *chính là* phương tiện vận chuyển. Đích đến có thể offline hoặc online. Điều đó không quan trọng, vì không có gì từng liên lạc với máy chủ.
+Lolly giữ thư viện cá nhân của bạn trên thiết bị. Gói sao lưu là cách thư viện đó di chuyển: xuất nó trên một bản cài, mang tệp bằng bất kỳ cách nào bạn thích (USB, AirDrop, email cho chính mình hoặc thư mục mạng) và nhập nó trên bản khác. Xuất và nhập không cần máy chủ, và đích có thể ngoại tuyến.
 
-![Hai nút di chuyển toàn bộ bản cài đặt: Export my data ghi ra một tệp zip, Import data đọc lại tệp đó](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
+Trang này là đặc tả định dạng, cho những người dựng shell, công cụ hoặc tập lệnh quanh sao lưu: zip chứa gì, phiên bản được chặn thế nào, một lần nhập gộp ra sao và những gì được kiểm tra. Hướng dẫn cho người chuyển công việc của chính họ là [Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device).
 
-Trang này là đặc tả định dạng. Để xem hướng dẫn dành cho người dùng cuối, xem [Tìm và khôi phục công việc của bạn → Chuyển công việc của bạn sang thiết bị khác](/info/find-your-work.html#move-your-work-to-another-device). Việc triển khai nằm ở [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), và [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) chốt hợp đồng khứ hồi.
+![Hai nút chuyển cả một bản cài: Export my data ghi một zip, Import data đọc lại](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-> **Phạm vi.** Một gói mang *dữ liệu người dùng*, không phải công cụ danh mục. Công cụ danh mục và tài sản danh mục được đồng bộ riêng và được giả định là đã có sẵn trên máy đích (trường hợp xấu nhất là ở phiên bản cao hơn); các công cụ người dùng tự tạo di chuyển bên trong `profile.json`. Việc nhập không bao giờ cài đặt hay nâng cấp một công cụ danh mục.
+> **Phạm vi.** Một gói mang *dữ liệu người dùng*, không phải công cụ danh mục. Công cụ danh mục và tài nguyên danh mục được đồng bộ riêng và được giả định đã có trên đích, tệ nhất là ở phiên bản cao hơn. Công cụ người dùng tự làm đi bên trong `profile.json`. Nhập không bao giờ cài hay nâng cấp một công cụ danh mục.
 
 ## Mục tiêu
 
-- <!--i:box--> **Một định dạng, mọi shell.** Web PWA, các ứng dụng desktop/mobile Tauri và các shell tương lai đều dùng chung một envelope và các schema phần được hỗ trợ. Các phần tùy chọn phụ thuộc vào năng lực của từng shell; các phần không được hỗ trợ sẽ được báo cáo. Mỗi cầu nối năng lực (capability bridge) cung cấp bộ chuyển đổi lưu trữ riêng của nó.
-- <!--i:shieldcheck--> **Sống sót qua chuyến đi.** Một gói bị hỏng hoặc bị cắt xén trong quá trình truyền sẽ báo lỗi rõ ràng khi nhập, không bao giờ khôi phục nửa vời.
-- <!--i:clock--> **Tồn tại lâu hơn phiên bản này.** Một ứng dụng cũ hơn vẫn có thể nhập các phần mà nó nhận ra trong một gói mới hơn. Một định dạng thực sự phá vỡ tương thích sẽ bị từ chối một cách sạch sẽ.
-- <!--i:check--> **An toàn khi hợp nhất.** Việc nhập vào một bản cài đặt đang được sử dụng không bao giờ xóa bất cứ thứ gì không có trong gói.
+- <!--i:box--> **Một định dạng, mọi shell.** Ứng dụng web, ứng dụng máy tính và di động cùng các shell tương lai dùng chung phong bì và schema của các phần. Các phần tùy chọn phụ thuộc vào khả năng của từng shell, và phần không được hỗ trợ được báo cáo. Mỗi cầu khả năng cung cấp bộ điều hợp lưu trữ của nó.
+- <!--i:shieldcheck--> **Sống sót qua chuyến đi.** Một gói bị hỏng hoặc cắt cụt khi truyền sẽ thất bại rõ ràng khi nhập và không bao giờ khôi phục dở dang.
+- <!--i:clock--> **Sống lâu hơn phiên bản này.** Một ứng dụng cũ hơn vẫn nhập được các phần của gói mới hơn mà nó nhận ra. Một định dạng thật sự phá vỡ bị từ chối gọn gàng.
+- <!--i:check--> **An toàn để gộp.** Nhập vào một bản cài đã dùng không bao giờ xóa thứ gì không có trong gói.
 
 ## Phong bì
 
-Một gói chỉ là một `.zip` thông thường. File tải xuống được đặt tên theo người sở hữu nó - `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (ví dụ `LollyTools-Ada-Lovelace-2026-06-26-1.zip`) - để một thư mục Downloads chứa các bản sao lưu vẫn dễ đọc. Phần tên và họ lấy từ hồ sơ và bị bỏ qua khi chưa thiết lập. Không có hồ sơ sẽ cho `LollyTools-2026-06-26-1.zip`, và chỉ có tên riêng sẽ cho `LollyTools-Ada-2026-06-26-1.zip`. Mỗi phần được làm sạch thành một token an toàn cho tên file (giữ lại chữ cái/chữ số Unicode, loại bỏ khoảng trắng/dấu câu, giới hạn 32 ký tự). `<n>` là một chuỗi số theo từng ngày, từng thiết bị, để các lần xuất lặp lại trong cùng một ngày không trùng nhau và vẫn theo thứ tự. `backupFilename()` trong [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) xây dựng tên này. Nội dung của zip giống hệt nhau bất kể tên gọi. Bên trong:
+Một gói là `.zip` thuần, nên nó sống sót qua mọi đường truyền nguyên vẹn và bất kỳ công cụ giải nén nào cũng kiểm tra được nội dung.
+
+Bản tải xuống được đặt tên theo người sở hữu nó: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, ví dụ `LollyTools-Ada-Lovelace-2026-06-26-1.zip`, để thư mục Downloads chứa các bản sao lưu vẫn đọc được. Họ và tên lấy từ hồ sơ và bị bỏ khi chưa đặt: không hồ sơ cho `LollyTools-2026-06-26-1.zip`, và chỉ có tên cho `LollyTools-Ada-2026-06-26-1.zip`. Mỗi tên được rút gọn thành token an toàn cho tên tệp (giữ chữ cái và chữ số Unicode, bỏ dấu cách và dấu câu, tối đa 32 ký tự). `<n>` là số thứ tự theo ngày, theo thiết bị, nên các lần xuất lặp lại trong một ngày không đụng nhau và giữ đúng thứ tự. `backupFilename()` trong `data-transfer.ts` dựng tên, và nội dung zip giống nhau bất kể tên.
 
 | Đường dẫn | Bắt buộc | Nội dung |
 |---|---|---|
-| `manifest.json` | có | Id định dạng, các phiên bản, số lượng và tính toàn vẹn theo từng phần. Điều đầu tiên trình đọc xem xét. |
-| `profile.json` | khi đã thiết lập | Toàn bộ bản ghi `me` của người dùng: tên, liên hệ, tham chiếu ảnh đại diện và cờ, cùng các thư mục, Thùng rác, bản thiết kế dự án, mẫu người dùng và các công cụ do người dùng tạo, mục yêu thích, công cụ đã ẩn, ngôn ngữ và lựa chọn emoji. Đọc qua `host.profile`. |
-| `sessions.json` | có | Mọi phiên đã lưu: slot, id/phiên bản công cụ, nhãn, ảnh thu nhỏ (data-URL) và toàn bộ dữ liệu đầu vào. Đọc qua `host.state`. |
-| `assets.json` | có | Siêu dữ liệu cho mỗi tài sản đã tải lên (hình ảnh, font, token thương hiệu, logo, bản sao các tệp đã tải xuống), mỗi cái trỏ tới các byte của nó dưới `assets/blobs/`. |
-| `assets/blobs/<n>.<ext>` | theo từng tài sản | Các byte thô của tài sản (file hình ảnh và font). Được lưu không nén (các định dạng đã nén sẵn). Phần mở rộng chỉ mang tính hình thức. MIME trong `assets.json` mới là căn cứ chính thức. |
-| `assets/blobs/<n>.c2pa` | khi có | Content Credentials đã trích xuất dưới dạng byte nhị phân chính xác, được tham chiếu bởi `_credentialFile` trong bản ghi tài sản. Đây không phải là khóa ký của thiết bị. |
-| `design-systems.json` | khi có | Các hệ thống thiết kế được tạo hoặc thêm vào trên bản cài đặt này, dưới dạng `{ active, records }`. Được hợp nhất theo id khi nhập; lựa chọn active của gói chỉ áp dụng khi máy đích chưa có hệ thống thiết kế riêng. |
-| `file-history.json` | tùy chọn | Các bản chụp tài sản theo phiên bản, báo cáo thao tác tệp cuối cùng và các bản kê khai batch hoàn chỉnh. Phần lịch sử có phiên bản riêng; do bộ chuyển đổi sao lưu `fileHistory` nội bộ của shell cung cấp. |
-| `revision-history.json` | tùy chọn, sao lưu thủ công | Các ID tạo tác ổn định, các checkpoint được giữ lại, ảnh thu nhỏ và các bản nháp phục hồi luân phiên. Do `host.state.history.backup` cung cấp khi được hỗ trợ. |
-| `file-history/versions/` | theo từng bản chụp | Byte tài sản trước đó và các credentials đã trích xuất, không phụ thuộc vào việc tài sản hiện tại có còn tồn tại hay không. |
-| `file-history/results/` | theo từng thao tác hoàn tất | Byte đầu ra chính xác. Không giữ lại hay bao gồm tệp gốc đã chọn để chuyển đổi. |
-| `prefs.json` | có | Tùy chọn cục bộ thuộc sở hữu người dùng: `theme`, `sidebarWidth` và số liệu hoạt động `ct-metrics`. |
-| `lolly.txt` | có | Một bản tóm tắt gói dễ đọc với con người (số lượng, hồ sơ, tên file) dành cho bất kỳ ai mở zip mà không có Lolly. Được tạo lại ở mỗi lần xuất và được nhận diện khi nhập, nên nó không bao giờ tính là một phần bị bỏ qua. Nó được ghi *sau* bản đồ toàn vẹn, nên nằm ngoài bản đồ đó. |
+| `manifest.json` | có | Id định dạng, phiên bản, số đếm và tính toàn vẹn từng phần. Thứ đầu tiên trình đọc nhìn vào. |
+| `profile.json` | khi đã đặt | Toàn bộ bản ghi `me` của người dùng: tên, liên hệ, tham chiếu ảnh chân dung và cờ, cùng thư mục, Trash, bản thiết kế dự án, mẫu của người dùng và công cụ do người dùng làm, mục yêu thích, công cụ ẩn, ngôn ngữ và lựa chọn emoji. Đọc qua `host.profile`. |
+| `sessions.json` | có | Mọi phiên đã lưu: ô, id và phiên bản công cụ, nhãn, hình thu nhỏ (data URL) và dữ liệu đầu vào đầy đủ. Đọc qua `host.state`. |
+| `assets.json` | có | Siêu dữ liệu cho từng tài nguyên đã tải lên (ảnh, phông chữ, token thương hiệu, logo, bản sao đã lưu của các bản tải xuống), mỗi cái trỏ tới byte của nó dưới `assets/blobs/`. |
+| `assets/blobs/<n>.<ext>` | mỗi tài nguyên | Các byte tài nguyên thô, lưu không nén vì hầu hết đã là định dạng nén. Phần mở rộng chỉ mang tính hình thức; kiểu MIME trong `assets.json` là chuẩn. |
+| `assets/blobs/<n>.c2pa` | khi có | Content Credentials đã trích xuất dưới dạng byte nhị phân chính xác, được tham chiếu bởi `_credentialFile` trong bản ghi tài nguyên. Đây không phải khóa ký của thiết bị. |
+| `design-systems.json` | khi có | Các hệ thống thiết kế được tạo hoặc thêm trên bản cài này, dưới dạng `{ active, records }`. Xem [Import rules](#import-rules). |
+| `file-history.json` | tùy chọn | Ảnh chụp tài nguyên có phiên bản, báo cáo thao tác tệp đã hoàn tất và manifest batch đầy đủ, có phiên bản riêng. Do bộ điều hợp sao lưu `fileHistory` nội bộ của shell cung cấp. |
+| `revision-history.json` | tùy chọn, sao lưu thủ công | ID sáng tạo ổn định, điểm kiểm tra được giữ, hình thu nhỏ và bản nháp khôi phục luân phiên. Do `host.state.history.backup` cung cấp nơi được hỗ trợ. |
+| `file-history/versions/` | mỗi ảnh chụp | Byte tài nguyên trước đó và credential đã trích xuất, dù tài nguyên hiện tại còn tồn tại hay không. |
+| `file-history/results/` | mỗi thao tác hoàn tất | Byte đầu ra chính xác. Không tệp gốc nào được chọn để chuyển đổi được giữ hay đưa vào. |
+| `prefs.json` | có | Tùy chọn cục bộ do người dùng sở hữu: `theme`, `sidebarWidth` và bộ đếm hoạt động `ct-metrics`. |
+| `lolly.txt` | có | Bản tóm tắt đọc được của gói (số đếm, hồ sơ, tên tệp) cho bất kỳ ai mở zip mà không có Lolly. Được tạo lại mỗi lần xuất và được nhận ra khi nhập, nên không bao giờ tính là phần bị bỏ qua. Nó được ghi sau bản đồ toàn vẹn, nên bản đồ không bao gồm tệp này. |
 
-Gói này cố tình chỉ là một zip thông thường: nó sống sót nguyên vẹn qua bất kỳ phương thức vận chuyển nào, và bất kỳ công cụ giải nén nào cũng có thể kiểm tra nó.
+::: details Cách xuất ghi zip
+Xuất ghi zip từng phần một (`shells/web/src/lib/zip-stream.ts`). Tệp tải lên, kết quả đã lưu và phiên bản tài nguyên đã lưu được đọc theo lát 4 MiB, không bao giờ nguyên khối, và kết quả cùng phiên bản đã lưu trước hết được kiểm tra với SHA-256 đã ghi. Mỗi tệp sau đó được đọc để lấy checksum và giá trị băm toàn vẹn, và zip tham chiếu tới nó ở nơi nó đang có.
 
-`profile.json` là phần nhỏ nhất và là phần mà trình đọc thấy đầu tiên trong ứng dụng: các thông tin mà người tạo điền một lần, cộng với tùy chọn cho phép các công cụ sử dụng chúng.
+Không gì được mã hóa lại, nên tệp mang Content Credentials giữ đúng các byte mà chữ ký của nó bao phủ, và mỗi phần giữ byte và giá trị băm chính xác. Với cùng các phần và thời gian, zip giống hệt với bộ ghi trong bộ nhớ trước đây, trừ việc tệp lịch sử trên 16 MiB được nén theo từng mảnh. `tests/backup-streaming.test.ts` kiểm tra điều này với các giá trị băm tham chiếu đã ghi.
 
-![Biểu mẫu chi tiết Hồ sơ trở thành profile.json: tên, thông tin liên hệ và ảnh đại diện](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+Trên một thư viện tổng hợp 192 MiB, đo trong Node, hoàn tất sao lưu tốn khoảng 125 đến 150 MiB ngoài thư viện, so với khoảng 850 MiB của bộ ghi trong bộ nhớ (`node scripts/bench-backup-finalise.ts`). Nhập vẫn đọc cả zip vào bộ nhớ.
+:::
 
 ## `manifest.json`
 
@@ -66,116 +70,149 @@ Gói này cố tình chỉ là một zip thông thường: nó sống sót nguy�
 
 | Trường | Ý nghĩa |
 |---|---|
-| `format` | Luôn là `lolly-backup`. Một file không có trường này bị từ chối với thông báo "not a Lolly backup". |
-| `formatVersion` | Bố cục mà gói này được **ghi** ra. Tăng lên mỗi khi tập hợp phần hoặc cấu trúc thay đổi. Trình đọc **không** dựa vào trường này để quyết định. |
-| `minReader` | Phiên bản trình đọc tối thiểu cần có để nhập gói này **một cách an toàn**. Đây là trường mà trình đọc dựa vào để quyết định. |
-| `app` | Id ứng dụng đã tạo ra gói, phục vụ chẩn đoán. |
+| `format` | Luôn là `lolly-backup`. Tệp thiếu nó bị từ chối là "not a Lolly backup". |
+| `formatVersion` | Bố cục mà gói này được **ghi** theo. Tăng khi có bất kỳ thay đổi nào về tập hợp phần hoặc hình dạng. Trình đọc **không** chặn theo trường này. |
+| `minReader` | Phiên bản trình đọc tối thiểu có thể nhập gói này **một cách an toàn**. Đây là trường mà trình đọc chặn theo. |
+| `app` | Id ứng dụng tạo ra, để chẩn đoán. |
 | `exportedAt` | Dấu thời gian ISO khi gói được tạo. |
-| `counts` | Những gì trình ghi đã đưa vào, phục vụ hiển thị và kiểm tra tính hợp lý. |
-| `integrity` | Tùy chọn. Ánh xạ mọi phần trừ `manifest.json` tới một digest kiểu SRI `sha256-<base64>` của các byte **chưa nén** của nó. |
+| `counts` | Những gì bên ghi đã đưa vào, để hiển thị và kiểm tra nhanh. |
+| `integrity` | Tùy chọn. Ánh xạ mọi phần trừ `manifest.json` tới giá trị băm kiểu SRI `sha256-<base64>` của byte **chưa nén** của nó. |
 
-## Chính sách phiên bản (tương thích xuôi)
+## Chính sách phiên bản
 
-Sự tách biệt giữa `formatVersion` và `minReader` là điều cho phép định dạng phát triển mà không bỏ rơi các bản cài đặt cũ:
+Hai số phiên bản cho phép định dạng lớn lên mà không bỏ rơi các bản cài cũ hơn.
 
-- Một trình đọc sẽ nhập một gói khi `manifest.minReader ≤` phiên bản trình đọc của chính nó. Nó chỉ từ chối (với thông báo "needs a newer version of the app") khi gói yêu cầu rõ ràng một trình đọc mới hơn.
-- Một thay đổi **bổ sung** - một phần *tùy chọn* mới, hoặc một trường manifest tùy chọn mới - làm tăng `formatVersion` nhưng để `minReader` không đổi. Các ứng dụng cũ hơn vẫn nhập mọi phần mà chúng nhận ra. Các phần chúng không nhận ra sẽ bị bỏ qua (xem bên dưới), chứ không bị âm thầm loại bỏ.
-- Một thay đổi **phá vỡ tương thích** - khi việc nhập sai một phần làm hỏng dữ liệu, hoặc khi một phần trước đây tùy chọn trở thành bắt buộc - sẽ làm tăng `minReader`. Các ứng dụng cũ hơn khi đó sẽ từ chối một cách sạch sẽ thay vì nhập thứ mà chúng không thể xử lý.
-- Nếu một gói trong tương lai đặt `formatVersion` nhưng bỏ qua `minReader`, trình đọc sẽ thận trọng quay về dựa vào `formatVersion` (coi thay đổi đó là phá vỡ tương thích).
+![Thay đổi định dạng gói hoặc là bổ sung, mà trình đọc cũ có thể bỏ qua, hoặc là phá vỡ, nơi nhập sai làm hỏng dữ liệu. Bổ sung tăng formatVersion và giữ minReader; phá vỡ tăng formatVersion và nâng minReader. Một trình đọc nhập khi minReader không lớn hơn phiên bản của chính nó.](/info/diagrams/concepts/backup-version-gate.svg)
 
-> **Quy tắc ngón tay cái cho tác giả:** nếu mọi trình đọc hiện có vẫn hành xử đúng khi bỏ qua phần bổ sung của bạn, thì đó là thay đổi bổ sung - tăng `formatVersion`, giữ nguyên `minReader`. Ngược lại, hãy tăng `minReader`.
+- Một trình đọc nhập gói khi `manifest.minReader` không lớn hơn phiên bản trình đọc của chính nó. Nó từ chối, với "needs a newer version of the app", chỉ khi gói đòi trình đọc mới hơn.
+- Một thay đổi **bổ sung**, như phần tùy chọn mới hoặc trường manifest tùy chọn mới, tăng `formatVersion` và để `minReader` yên. Ứng dụng cũ vẫn nhập mọi phần chúng nhận ra, và phần chúng không nhận ra được báo cáo là bị bỏ qua, không bị bỏ lặng lẽ.
+- Một thay đổi **phá vỡ**, nơi nhập sai một phần làm hỏng dữ liệu hoặc một phần tùy chọn trở nên bắt buộc, nâng `minReader`. Ứng dụng cũ khi đó từ chối gọn gàng thay vì nhập thứ chúng không xử lý được.
+- Nếu một gói tương lai đặt `formatVersion` nhưng bỏ `minReader`, trình đọc quay về chặn theo `formatVersion` và coi thay đổi là phá vỡ.
+
+> **Quy tắc ngón tay cái cho tác giả:** nếu mọi trình đọc hiện có vẫn làm đúng khi bỏ qua phần bổ sung của bạn, thay đổi là bổ sung: tăng `formatVersion` và để `minReader`. Nếu không, hãy nâng `minReader`.
 
 ## Tính toàn vẹn
 
-Khi `manifest.integrity` có mặt, trình đọc xác minh SHA-256 của từng phần được liệt kê **trước khi ghi bất cứ thứ gì**. Một sự không khớp ("failed its integrity check") hoặc một phần bị thiếu ("incomplete") sẽ hủy toàn bộ quá trình nhập - không có chuyện khôi phục một phần. Điều này bắt được sự hỏng hóc mà một phương thức truyền file có thể gây ra (một lượt AirDrop bị cắt xén, một cổng email mã hóa lại tệp đính kèm, một sector USB bị lỗi).
+Khi `manifest.integrity` có mặt, trình đọc kiểm tra SHA-256 của từng phần được liệt kê **trước khi ghi bất cứ gì**. Sai lệch ("failed its integrity check") hoặc thiếu một phần ("incomplete") dừng cả lần nhập, nên không có khôi phục từng phần. Điều này bắt được hư hại mà đường truyền tệp có thể gây ra: AirDrop bị cắt, cổng email mã hóa lại tệp đính kèm, một sector USB hỏng.
 
-Tính toàn vẹn được thiết kế theo kiểu nỗ lực tối đa: nó chỉ được ghi ở nơi có Web Crypto (mọi ngữ cảnh trình duyệt an toàn và Node hiện đại), và chỉ được xác minh khi cả bản đồ lẫn Web Crypto đều có mặt. Một gói không có bản đồ - ví dụ một gói từ trước khi tính toàn vẹn tồn tại - vẫn được nhập không thay đổi. "Không thể xác minh" không bao giờ bị coi là "hỏng".
+Tính toàn vẹn là nỗ lực tối đa. Nó chỉ được ghi nơi Web Crypto có sẵn (mọi ngữ cảnh trình duyệt an toàn và Node hiện đại), và chỉ được kiểm tra khi cả bản đồ lẫn Web Crypto cùng có mặt. Một gói không có bản đồ, như gói từ trước khi có tính toàn vẹn, nhập nguyên trạng: "cannot verify" không bao giờ được tính là "corrupt".
 
-Manifest không liệt kê chính nó lẫn README `lolly.txt` được tạo lại. Các digest bao phủ những phần mà manifest bảo chứng.
+Manifest không liệt kê chính nó cũng không liệt kê `lolly.txt` được tạo lại. Các giá trị băm bao gồm những phần mà manifest bảo chứng.
 
-## Ngữ nghĩa của việc nhập
+## Quy tắc nhập
 
-Nhập là một **hợp nhất**, không bao giờ là thay thế toàn bộ:
+Một lần nhập chạy ở một trong hai chế độ.
 
-- Dữ liệu hiện có trên máy đích được giữ nguyên tại chỗ.
-- Khi một slot phiên hoặc id hình ảnh đã tải lên có mặt ở cả hai bên, bản sao được lưu gần đây hơn sẽ được giữ lại, để một bản sao lưu cũ hơn không bao giờ ghi đè lên công việc mới hơn trên máy đích. Thời điểm bằng nhau hoặc không xác định sẽ giữ bản sao của máy đích. Trên một bản cài đặt web có lịch sử tạo tác, cùng quy tắc đó quyết định bản sao nào của một tác phẩm vẫn là bản hiện hành, còn bản sao kia được giữ lại như một bản nháp được bảo vệ (xem bên dưới).
-- Hồ sơ được hợp nhất, không bị thay thế. Mọi thư mục trên máy đích vẫn giữ nguyên nội dung của nó; một thư mục từ gói mà máy đích chưa có sẽ được thêm vào, và một thư mục có ở cả hai bên sẽ giữ tên và thư mục cha của máy đích, đồng thời nhận thêm các thành viên của gói mà nó còn thiếu. Một phiên đã được xếp vào một thư mục trên máy đích vẫn ở nguyên trong thư mục đó.
-- Mục yêu thích (công cụ, tài sản danh mục và các mục trong Dự án) được kết hợp lại. Mẫu, mẫu Dự án và công cụ người dùng từ gói được thêm vào khi máy đích chưa có bản ghi nào mang id đó. Các mục trong Thùng rác của cả hai bên đều được giữ lại, để một mục có thể khôi phục được ở bản cài đặt nào thì vẫn có thể khôi phục được.
-- Mọi trường hồ sơ khác (tên, thông tin liên hệ, ngôn ngữ, feature flag, công cụ đã ẩn và các cài đặt khác) giữ nguyên giá trị của máy đích. Một trường đang trống trên máy đích sẽ nhận giá trị của gói. Điều tương tự cũng áp dụng cho `prefs.json`: một tùy chọn chỉ được ghi vào nơi máy đích chưa có.
-- Lượt áp dụng thông thường của đồng bộ thiết bị là ngoại lệ: để giữ các thiết bị đồng bộ, nó lấy hồ sơ, tùy chọn, phiên và hình ảnh của bản sao đã đồng bộ. Khôi phục một bản sao trước đó cũng làm điều tương tự, vì nó cố tình lùi lại thời gian. Lần tham gia đầu tiên, **Đưa nó vào thiết bị này**, hợp nhất giống như một lượt nhập.
-- Các phiên bản tài sản lịch sử và ID thao tác là những ngoại lệ bất biến: nhập lặp lại có tính idempotent, và một ID đã đặt tên cho byte/lịch sử khác thì bị từ chối, không bị ghi đè. Nhập lại một tài sản hiện hành giống hệt sẽ giữ nguyên phiên bản của nó. Một tài sản hiện hành đã thay đổi phải mang một phiên bản khác.
-- Lịch sử tạo tác cũng được hợp nhất. Một tác phẩm có ở cả hai bên sẽ giữ bản sao được lưu gần đây hơn làm bản hiện hành và bản sao còn lại làm bản nháp được bảo vệ; một tác phẩm mà máy đích đang dùng slot của nó cho một tác phẩm khác sẽ được thêm vào bên cạnh; một tác phẩm đang ở trong Thùng rác của máy đích vẫn ở lại đó. Một id checkpoint đặt tên cho nội dung khác trên máy đích sẽ giữ nguyên id của máy đích. Một kho lưu trữ không vượt qua các kiểm tra của chính nó sẽ dừng việc nhập lại trước khi có bất kỳ thay đổi nào về hồ sơ, phiên, tài sản hay tùy chọn. Nhập lặp lại giống hệt không thêm dung lượng lưu trữ nào.
-- Không có gì nằm ngoài gói bị đụng tới. Một phiên mà máy đích có nhưng gói không có sẽ vẫn tồn tại sau khi nhập.
+- **Merge** là việc **Import data…** làm, và việc lần tham gia đầu tiên của sync, **Bring it to this device**, làm. Dữ liệu trên đích ở lại, và không gì không có trong gói bị chạm tới: một phiên mà đích có còn gói không có sống sót qua lần nhập.
+- **Replace** là cách đồng bộ thiết bị giữ các thiết bị đồng bộ: nó lấy bản ghi hồ sơ, tùy chọn, các phiên, ảnh và lựa chọn hệ thống thiết kế đang dùng của bản sao đã đồng bộ, và chỉ gỡ các mục mà thiết bị khác đã xóa kể từ lần đồng bộ cuối. Khôi phục một bản sao trước đó đi xa hơn và làm thiết bị khớp với bản sao đó, gỡ mọi thứ bản sao không có, sau khi lưu thiết bị trước. [Sync your devices](/info/sync.html) đề cập những gì một người thấy.
 
-Các phiên đã lưu tự động liên kết lại với hình ảnh của chúng: tham chiếu tài sản được giữ theo id, và cầu nối sẽ phân giải lại chúng sau khi các hình ảnh đã tải lên được khôi phục (dù sao thì nó cũng phải làm vậy, vì URL `blob:` không tồn tại được qua một lần tải lại trang).
+Trong một lần gộp, mọi thứ chỉ có trên đích được giữ, và mỗi loại dữ liệu trong gói gặp đích như sau:
 
-Bản tóm tắt nhập báo cáo `{ profile, sessions, userAssets, prefs, skipped, failedAssets }`. `failedAssets` đếm số tài sản đã tải lên nhưng không thể khôi phục (chẳng hạn bộ nhớ thiết bị đầy). Nó khác với `skipped`, vốn đếm các phần từ một trình ghi mới hơn tương thích ngược mà bản build này không nhận ra. Giao diện hiển thị `skipped` ("… · N newer items skipped"), để việc khôi phục trung thực về những gì nó đã bỏ lại.
+| Dữ liệu | Đã có trên đích | Chỉ có trong gói |
+|---|---|---|
+| Phiên (theo ô) và ảnh đã tải lên (theo id) | Bản lưu gần hơn được giữ, nên bản sao lưu cũ hơn không bao giờ ghi đè công việc mới hơn. Thời gian bằng nhau hoặc không rõ giữ bản của đích. | Được thêm |
+| Thư mục | Tên và thư mục cha của đích được giữ, và thư mục nhận các thành viên của gói mà nó thiếu. Một phiên được xếp vào thư mục trên đích vẫn ở đó. | Được thêm |
+| Mục yêu thích (công cụ, tài nguyên danh mục và mục Projects) | Được kết hợp | Được thêm |
+| Mẫu, mẫu Projects và công cụ người dùng (theo id) | Bản ghi của đích được giữ. | Được thêm |
+| Mục Trash | Mục của đích được giữ. | Được thêm, để một mục khôi phục được trên bản cài nào cũng vẫn khôi phục được. Một mục có thư mục đã được dùng lại trên đích, hoặc có ô Trash mà đích đã dùng, bị bỏ. |
+| Các trường hồ sơ khác (tên, thông tin liên hệ, ngôn ngữ, feature flag, công cụ ẩn và cài đặt khác) | Giá trị của đích được giữ. | Được lấy nơi trường của đích trống |
+| Tùy chọn (`prefs.json`) | Giá trị của đích được giữ. | Được ghi nơi đích chưa có |
+| Hệ thống thiết kế (theo id) | Bản ghi của gói thay thế bản của đích. | Được thêm. Lựa chọn đang dùng của gói chỉ áp dụng khi đích không có hệ thống thiết kế nào của riêng nó. |
+| Lịch sử sáng tạo | Bản lưu gần hơn vẫn là bản hiện tại, và bản kia được giữ làm bản nháp được bảo vệ. | Được thêm |
 
-Khi có file history, bản tóm tắt cũng mang theo `assetVersions`, `fileOperations` và `failedHistory`. Việc cạn dung lượng lưu trữ hoặc xung đột ID bất biến có thể gây ra một lượt khôi phục một phần; giao diện báo cho người dùng biết để giữ lại bản sao lưu gốc. Đồng bộ đám mây **không** tiến revision đã áp dụng của nó sau một lượt khôi phục một phần hoặc không được hỗ trợ, nên bản chụp vẫn khả dụng để thử lại. Khôi phục không phải là một giao dịch duy nhất trên toàn bộ các kho hồ sơ/phiên/tài sản/lịch sử.
+**Các phiên đã lưu tự liên kết lại với ảnh của chúng.** Tham chiếu tài nguyên được giữ theo id, và cầu phân giải lại chúng sau khi ảnh được khôi phục, việc nó vốn phải làm vì URL `blob:` không sống sót qua việc tải lại.
 
-## Lịch sử tạo tác (v3)
+**Bản ghi lịch sử không bao giờ đổi sau khi được ghi.** Nhập lặp lại phiên bản tài nguyên và ID thao tác không thêm gì, và một ID đã đặt tên cho byte hoặc lịch sử khác bị từ chối, không bị ghi đè. Nhập lại một tài nguyên hiện tại giống hệt giữ phiên bản của nó, và một tài nguyên hiện tại đã đổi phải mang phiên bản khác.
 
-Các bản sao lưu thủ công từ một máy chủ web có khả năng lưu lịch sử bao gồm `revision-history.json` với schema `{ version: 1, documents, revisions, recoveries }` riêng của nó. Nó mang theo các ID được giữ lại, các bản chụp đầu vào chính tắc, dấu phiên bản, ảnh xem trước raster và các bản nháp writer riêng biệt. Bộ chuyển đổi lịch sử ghi lại các phiên hiện tại và đầu (head) của chúng trong một giao dịch đọc; `sessions.json` dùng chính các bản chụp hiện tại đó cho các trình đọc cũ hơn.
+**Lịch sử sáng tạo có thêm vài quy tắc.** Một sản phẩm có ô mà đích dùng cho sản phẩm khác được thêm như một sản phẩm riêng, và một sản phẩm trong Trash của đích ở lại đó. Một id điểm kiểm tra đặt tên cho nội dung khác trên đích giữ cái của đích. Một kho lưu trữ không qua được kiểm tra của chính nó dừng việc nhập trước khi bất kỳ hồ sơ, phiên, tài nguyên hay tùy chọn nào thay đổi, và một lần nhập lặp lại giống hệt không thêm dung lượng nào.
 
-Khôi phục kiểm tra SHA-256 và số byte của payload, danh tính duy nhất, quan hệ tài liệu/đầu (head), dòng dõi, dấu thời gian, loại xem trước và các giới hạn trước khi commit kho lưu trữ trong một giao dịch duy nhất. Các tham chiếu cha đã được nén gọn có thể vắng mặt. Công việc hiện hành đang có không bao giờ bị âm thầm thay thế: khi một tác phẩm có ở cả hai bên, bên không được giữ làm hiện hành sẽ trở thành một bản nháp được bảo vệ. Giới hạn truyền 384 MiB của kho lưu trữ được kiểm tra rõ ràng, và các giới hạn lưu trữ được thực thi mà không cắt bớt các checkpoint đã được giữ lại. Toàn bộ bản sao lưu vẫn dùng cách triển khai ZIP trong bộ nhớ và không phải là một kho lưu trữ dạng streaming.
+**Bản tóm tắt báo cáo điều đã xảy ra.** Mỗi lần nhập trả về `profile`, `sessions`, `userAssets`, `prefs`, `skipped` và `failedAssets`.
 
-Bản tóm tắt bổ sung thêm `revisions` và `recoveryDrafts`, chỉ đếm những gì lượt nhập này đã thêm vào, cùng `added`, `kept`, `replaced`, `copies` và `hidden` cho biết mỗi tác phẩm đã được hợp nhất ra sao. Một shell không có khả năng này sẽ khôi phục các phiên thông thường và báo cáo phần lịch sử là bị bỏ qua. Lịch sử hệ thống tệp gốc vẫn chưa được hỗ trợ cho đến khi bộ chuyển đổi của nó cung cấp các giao dịch lịch sử bền vững. Trạng thái khách P2P không có lịch sử bền vững hay kho lưu trữ phục hồi nào.
+- `failedAssets` đếm các tài nguyên tải lên không khôi phục được, ví dụ do bộ nhớ thiết bị đầy.
+- `skipped` đếm các phần từ bên ghi mới hơn mà bản dựng này không nhận ra. Ứng dụng hiện nó ("… · N newer items skipped"), nên một lần khôi phục nói rõ nó bỏ lại gì.
+- Với lịch sử tệp, bản tóm tắt thêm `assetVersions`, `fileOperations`, `fileBatches` và `failedHistory`. Cạn bộ nhớ hoặc xung đột ID bất biến có thể gây khôi phục một phần, và ứng dụng khi đó bảo người dùng giữ bản sao lưu gốc.
+- Với lịch sử sáng tạo, nó thêm `revisions` và `recoveryDrafts`, chỉ đếm những gì lần nhập này thêm, và `added`, `kept`, `replaced`, `copies` và `hidden` cho cách mỗi sản phẩm được gộp. `skippedCheckpoints` đếm các điểm kiểm tra có id đặt tên cho nội dung khác trên đích, và `historyLeftOut` đếm các điểm kiểm tra và bản nháp cũ hơn không vừa chỗ lịch sử của thiết bị.
+- Một lần nhập replace thêm `removed` và `failedRemovals`.
 
-Đồng bộ bản chụp cá nhân cố tình loại trừ lịch sử tạo tác. Áp dụng một bản chụp vào một tài liệu cục bộ có lịch sử sẽ giữ lại trạng thái làm việc trước đó của nó dưới dạng một bản nháp phục hồi riêng biệt và làm mất hiệu lực token ghi của bất kỳ trình chỉnh sửa đang mở nào. Các checkpoint bất biến của nó vẫn ở lại trên thiết bị. Điều này bảo vệ lịch sử cục bộ trong khi thay thế bản chụp; nó không hợp nhất các lịch sử thiết bị đồng thời.
-
-Các tham chiếu tài sản lịch sử được giữ lại, trong khi việc kết xuất vẫn phân giải tài sản qua thư viện hiện có của đích đến. Kho lưu trữ này chưa đảm bảo byte tài sản cũ hay bản kết xuất công cụ cũ chính xác. Byte của phiên bản tài sản và kết quả tệp tiếp tục di chuyển qua phần sao lưu riêng hiện có của chúng.
-
-## Các phiên bản đã lưu và kết quả tệp (v2)
-
-Phần lịch sử tùy chọn chứa `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`; các trình đọc cũng chấp nhận dạng history-v1 trước đó không có batches. Mỗi bản chụp xác định ID tài sản ổn định và phiên bản chính xác, thời điểm lưu, độ dài byte và SHA-256 dạng hex, cùng một bản ghi tài sản mà `_file` và `_credentialFile` tùy chọn của nó trỏ đến các phần nhị phân. Các thao tác mang theo dữ kiện tệp gốc, yêu cầu, báo cáo, dấu thời gian và `_file` kết quả tùy chọn; tên backend lưu trữ, các handle OPFS và các lease thực thi không di chuyển theo. Các trình đọc chỉ hỗ trợ history-v1 cũ hơn sẽ từ chối phiên bản lịch sử mới trước khi nhập, thay vì âm thầm bỏ qua tư cách thành viên batch.
-
-Các bản kê khai batch ghi lại mọi nguồn đã chọn trước khi xử lý, kể cả các tệp chưa từng được đọc, các thành viên đã hủy, các lần không đặt trước được không gian kết quả và công việc bị gián đoạn. Mỗi thành viên có một ID thao tác ổn định, tham chiếu/dữ kiện nguồn, tên đầu ra được yêu cầu và báo cáo cuối cùng. Một nguồn chưa được đọc có các dữ kiện đã khai báo, không phải một digest bịa ra. Việc nhập xác thực danh tính thành viên và tính nhất quán với bất kỳ báo cáo thao tác nào đi kèm. Các báo cáo batch vẫn khả dụng khi các kết quả riêng lẻ đã bị xóa rõ ràng, nhưng một biên nhận không có nghĩa là byte đầu ra của nó vẫn còn được lưu trữ.
-
-- Mọi bản ghi lịch sử, báo cáo và tệp được tham chiếu đã biết đều được xác thực trước khi có bất kỳ lượt ghi nhập profile hay tài sản nào. Byte bị thiếu và SHA-256 không khớp sẽ thất bại ngay cả khi envelope không có bản đồ toàn vẹn. Các credentials đã trích xuất vẫn là mảng byte, kể cả các lượt nhập từ các writer cũ hơn từng serialize chúng dưới dạng JSON thành các đối tượng có khóa số.
-- Các thao tác đang chạy trở thành các bản ghi bị gián đoạn trong bản sao lưu, kèm một báo cáo lỗi giải thích và không có kết quả. Khôi phục không bao giờ khởi động lại công việc nền hay nhập một lease đang hoạt động. Thử lại đòi hỏi phải chọn lại tệp gốc, được kiểm tra đối chiếu với SHA-256 đã ghi lại của nó khi có sẵn.
-- Các kết quả đã khôi phục commit byte và metadata của chúng cùng nhau trong IndexedDB. Các kết quả mới thông thường dùng OPFS khi có sẵn, với phương án dự phòng là IndexedDB. Một thao tác đang chạy hiện có không bao giờ bị một lượt nhập thay thế.
-- Việc lắp ráp ZIP lịch sử vẫn nằm trong bộ nhớ: giới hạn hiện tại là **256 MiB payload lịch sử**, **4 MiB metadata lịch sử**, tối đa **100 thao tác**, **100 batch** và **2.000 bản chụp**. Việc xuất từ chối rõ ràng lịch sử quá khổ hoặc không đầy đủ; nó không bao giờ âm thầm bỏ qua. Hãy tải xuống riêng từng phiên bản/kết quả quan trọng trước khi xóa các bản sao cục bộ cũ hơn. Các giới hạn này không phải là một đảm bảo về đỉnh bộ nhớ đã đo cho điện thoại.
-- Lịch sử kết quả cục bộ có ngân sách 512 MiB và giới hạn 100 bản ghi. Các bản chụp tài sản có ngân sách riêng 512 MiB và tối đa 20 phiên bản lịch sử cho mỗi tài sản; byte credential đã trích xuất được tính vào ngân sách bản chụp đó. Khôi phục tôn trọng các giới hạn này và không bao giờ âm thầm loại bỏ dữ liệu người dùng hiện có.
-- Metadata batch cục bộ có ngân sách riêng 4 MiB, tối đa 100 bản kê khai và 20 thành viên mỗi batch. Các thành viên đang chờ giữ trước dung lượng metadata, với trần báo cáo 32 KiB mỗi thành viên. Đây là một ngân sách logic, không phải một đảm bảo về dung lượng đĩa trình duyệt; một lỗi hạn mức thực sự sẽ được hiển thị và báo cáo trong bộ nhớ vẫn tải xuống được. Thử lại một thành viên batch tạo ra một batch mới mà không ghi đè báo cáo cũ. Xóa một bản ghi batch không xóa byte kết quả riêng lẻ hay tài sản thư viện.
-- Các kết quả đã chuyển đổi có thể được thêm rõ ràng vào thư viện mà không cần chuẩn hóa hay mã hóa lại. Hash nguồn/đầu ra và quan hệ thao tác đi kèm tài sản đó. Việc thêm lặp lại tái sử dụng một bản sao không đổi; một bản sao đã chỉnh sửa không bao giờ bị ghi đè. Ảnh raster có thể khởi tạo một tài liệu Design mới. Tài liệu đó dùng ID tài sản thư viện hiện tại: việc thực thi các mốc phiên bản chính xác xuyên suốt runtime và đường dẫn URL của Design vẫn là công việc riêng. Các kết quả SVG/HTML/PDF/ZIP được giữ như tài sản tệp mờ (opaque) qua lượt bàn giao này, không được nâng cấp thành nội dung tương tác/vector đáng tin cậy.
-- **Convert → Recent file operations** hiển thị mức sử dụng lịch sử, các báo cáo, tải xuống và trình quản lý phiên bản. Trình quản lý cũng tìm ra các phiên bản trước đó của các tài sản thư viện đã xóa. Khôi phục một bản chụp tạo ra một phiên bản hiện tại mới trong khi vẫn giữ nguyên bản chụp đã chọn. **Cài đặt → Bộ nhớ** tính riêng kết quả và phiên bản khỏi các bộ nhớ đệm dùng-rồi-bỏ.
-- Việc dọn dẹp tệp tạm rõ ràng chỉ xóa các byte thuộc sở hữu thao tác và không còn được tham chiếu. Các bản ghi hiện tại bảo vệ tệp của chúng; các tệp OPFS gần đây có thời gian ân hạn một giờ. Các kết quả đã lưu và bản chụp tài sản không được tự động xóa.
-
-Các trình đọc cũ hơn vẫn chấp nhận envelope v2 (`minReader: 1`) và khôi phục các phần quen thuộc, tính các phần lịch sử không được hỗ trợ là bị bỏ qua. Khôi phục lịch sử đầy đủ đòi hỏi một shell có bộ chuyển đổi `fileHistory`; đây là một điểm nối nội bộ của shell, không phải một khả năng `HostV1` mới hướng tới công cụ. Khôi phục thật giữa hai thiết bị được bao phủ bởi cổng kiểm tra Chromium cục bộ; việc chấp nhận khôi phục trên Tauri/iOS/Android đã cài đặt vẫn là việc riêng.
+Khôi phục không phải một giao dịch duy nhất qua các kho hồ sơ, phiên, tài nguyên và lịch sử. Đồng bộ đám mây **không** đẩy bản sửa đổi đã áp dụng của nó lên sau một lần khôi phục một phần hoặc không được hỗ trợ, nên bản sao vẫn sẵn để thử lại.
 
 ## Những gì không được mang theo
 
-- **Bộ nhớ đệm danh mục** (siêu dữ liệu và blob tài sản đã tải xuống, chỉ mục công cụ) - được đồng bộ lại miễn phí trên máy đích.
-- **Công cụ danh mục và tài sản danh mục** - nằm ngoài phạm vi, và được giả định là đã có sẵn trên máy đích. Token thương hiệu, font và logo mà người dùng thêm vào là tài sản người dùng, nên chúng vẫn di chuyển theo.
-- **URL `blob:` / object URL** - được cầu nối tạo lại khi tải.
-- **Bản gốc chuyển đổi, lease thực thi trực tiếp và bí mật truy cập/ký cục bộ trên máy** - không phải payload lịch sử có thể mang theo. Một kết quả đã lưu là một bản sao, không phải một lời hứa rằng nguồn gốc đã được sao lưu.
-- **Bộ đếm chuỗi số xuất** - bộ đếm đặt tên tải xuống theo từng ngày (khóa `localStorage` `lolly-export-seq`) chỉ là một tiện ích đặt tên cục bộ. Nó được giữ ngoài `PREF_KEYS`, nên không bao giờ đi kèm trong một gói.
+- **Bộ nhớ đệm danh mục** (siêu dữ liệu và blob tài nguyên đã tải, chỉ mục công cụ), mà đích tự đồng bộ lại miễn phí.
+- **Công cụ danh mục và tài nguyên danh mục**, nằm ngoài phạm vi và được giả định đã có trên đích. Token thương hiệu, phông chữ và logo mà người dùng thêm là tài nguyên người dùng, nên chúng đi cùng.
+- **URL `blob:` và URL đối tượng**, mà cầu tạo lại khi nạp.
+- **Bản gốc chuyển đổi, lease thực thi đang chạy và bí mật truy cập hoặc ký cục bộ của máy.** Đây không phải lịch sử khả chuyển. Một kết quả đã lưu là một bản sao, không phải lời hứa rằng nguồn gốc đã được sao lưu.
+- **Bộ đếm thứ tự xuất**, bộ đếm đặt tên tải xuống theo ngày trong `localStorage` (`lolly-export-seq`). Nó được giữ ngoài `PREF_KEYS`, nên không bao giờ đi trong gói.
 
-Đồng hồ đo dung lượng lưu trữ liệt kê chi tiết theo cùng cách phân chia đó. Saved sessions, My images và File results & versions được mang theo trong một gói. Asset cache, tool previews và offline pins bên dưới chúng đều có thể tạo lại được, nên chúng ở lại.
+Đồng hồ lưu trữ hiện cùng sự phân chia. Saved sessions, My images và File results & versions đi vào gói. Bộ nhớ đệm tài nguyên, bản xem trước công cụ và các ghim ngoại tuyến bên dưới đều dựng lại được, nên chúng ở lại.
 
-![Đồng hồ đo dung lượng lưu trữ chia dữ liệu của thiết bị này thành các danh mục có tên, với Saved sessions và My images được theo dõi riêng biệt so với Asset cache, ở đây trên một bản cài đặt mới nơi mọi danh mục vẫn còn trống](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
+![Đồng hồ lưu trữ chia dữ liệu của thiết bị này thành các loại có tên, với Saved sessions và My images được theo dõi riêng khỏi Asset cache, ở đây trên bản cài mới nơi mọi loại còn trống](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
-## Cam kết xuyên shell
+## Dữ liệu tổ chức với Lolly Work
 
-`data-transfer.ts` chỉ đọc và ghi thông qua cầu nối năng lực (capability bridge) (`host.profile`, `host.state`, `host.assets`) và các tùy chọn `localStorage` dùng chung. Cùng một module đọc và ghi envelope chung trên web và Tauri, qua IndexedDB hoặc bộ nhớ hệ thống tệp. Các phần lịch sử tùy chọn chỉ xuất hiện ở nơi có bộ chuyển đổi tương ứng; một phần không được hỗ trợ sẽ được báo cáo là bị bỏ qua khi nhập. Bộ test headless kiểm chứng các phần chung với một cầu nối trong bộ nhớ, trong khi các giao dịch lịch sử cũng có các bài test trình duyệt thật.
+Gói này sao lưu thư viện cá nhân của thiết bị. Nó không phải bản sao lưu của một phiên bản **Lolly Work**: tài khoản tổ chức, chính sách truy cập, dự án chung, phiên bản danh mục, phê duyệt, tác vụ kết xuất và bản ghi kiểm toán do dịch vụ đó giữ. Hãy kết nối lại và đăng nhập để lấy lại quyền truy cập công việc chung; nhập một gói cá nhân không cấp quyền đó.
+
+Đơn vị vận hành sao lưu, lưu giữ và xóa dữ liệu máy chủ bằng các hướng dẫn riêng của Lolly Work: [Backup and restore](/info/work-operations.html#backup-and-restore) và [Work storage and data lifecycle](/info/work-data-lifecycle.html). Xóa hoặc xuất một thiết bị không thực hiện thao tác máy chủ nào trong số đó.
+
+## Qua các shell
+
+`data-transfer.ts` chỉ đọc và ghi qua cầu khả năng (`host.profile`, `host.state`, `host.assets`) và tùy chọn `localStorage` dùng chung. Cùng module đọc và ghi phong bì chung trên web và trong ứng dụng máy tính và di động, trên bộ nhớ IndexedDB hoặc hệ thống tệp. Các phần lịch sử tùy chọn chỉ xuất hiện nơi bộ điều hợp của chúng có sẵn, và phần không được hỗ trợ được báo cáo là bị bỏ qua khi nhập. Bộ kiểm thử không giao diện thực hiện các phần chung trên một cầu trong bộ nhớ, và các giao dịch lịch sử cũng có kiểm thử trên trình duyệt thật.
 
 Hai shell nằm ngoài đảm bảo đó, vì những lý do khác nhau:
 
-- **CLI dùng một lần** không có gì để mang theo - trạng thái của nó nằm trong bộ nhớ và chỉ tồn tại tạm thời trong mỗi lần gọi.
-- **TUI** có lưu trạng thái (`~/.lolly`: các phiên, thư mục, hồ sơ) và khung Profile của nó có thể sao lưu, nhưng nó ghi ra một kho lưu trữ *đơn giản hơn* của riêng nó: `saved-state/<slot>.json` cho mỗi phiên cộng với `profile.json` và `folders.json`, không có manifest, không có `formatVersion`/`minReader` và không có bản đồ toàn vẹn. Định dạng này **không** thể nhập lại bằng định dạng ở đây - trình đọc sẽ từ chối nó vì "not a Lolly backup" - và gây nhầm lẫn vì nó dùng tên tương tự (`lolly-backup-<stamp>.zip`). Hợp nhất hai định dạng này là một khoảng trống đã biết.
+- **CLI một lần** không có gì để mang: trạng thái của nó nằm trong bộ nhớ và kéo dài một lần gọi.
+- **TUI** giữ trạng thái trong `~/.lolly` (phiên, thư mục, hồ sơ), và màn hình Profile của nó có thể sao lưu, nhưng nó ghi một kho lưu trữ đơn giản hơn của riêng nó: `saved-state/<slot>.json` cho mỗi phiên cộng `profile.json` và `folders.json`, không có manifest, không `formatVersion` hay `minReader` và không có bản đồ toàn vẹn. Định dạng này không nhập được nó (trình đọc từ chối là "not a Lolly backup"), và tên của nó dễ nhầm (`lolly-backup-<stamp>.zip`). Hợp nhất hai thứ là một khoảng trống đã biết.
 
-## Các điểm mở rộng dự phòng
+## Chưa khả chuyển
 
-Phong bì dữ liệu được thiết kế là một manifest cộng với một tập các phần được đặt tên, để các loại dữ liệu di động mới có thể đi kèm sau này **mà không gây thay đổi phá vỡ tương thích**. Chúng được thêm vào như các phần bổ sung (`formatVersion` mới, `minReader` không đổi), và trình đọc hiện tại bỏ qua những gì nó không nhận ra. Những phần này chưa được xây dựng. Tên gọi được dự phòng ở đây để định dạng vẫn nhất quán khi chúng ra mắt.
+Phong bì là một manifest cộng các phần có tên, nên các loại dữ liệu khả chuyển mới có thể gia nhập sau dưới dạng phần bổ sung (một `formatVersion` mới, cùng `minReader`), và trình đọc hiện nay bỏ qua những gì chúng không nhận ra. Hệ thống thiết kế đã đi theo cách này, dưới dạng `design-systems.json` cộng tài nguyên người dùng của chúng.
 
-- **`tokens.json` - design token.** Một tài liệu design token theo chuẩn [W3C DTCG](https://tr.designtokens.org/format/) (định dạng mà [Penpot nhập và xuất](https://help.penpot.app/user-guide/design-systems/design-tokens/) - các token có `$value`/`$type`/`$description`, được tổ chức thành nhóm, tập hợp và chủ đề). Một tập token trong gói cho phép người dùng chuyển các thành phần thương hiệu gốc giữa các lần cài đặt cùng với các phiên làm việc của họ. (Token thương hiệu của riêng người dùng đã di chuyển ngay hôm nay dưới dạng tài sản `user/tokens/brand` trong `assets.json`; phần này sẽ mang theo cả một tài liệu DTCG với các tập hợp và chủ đề của nó.) Về lâu dài, một tập token đã nhập trở thành một nguồn hạng nhất mà các công cụ và tài sản bảng màu phân giải dựa vào.
-- **`penpot/` - các tệp Penpot đã nhập.** Một thư mục dự phòng cho một tệp Penpot (hoặc tập con liên quan đến Lolly được trích xuất từ đó) được nhập vào và hiển thị *như một công cụ*. Gói dữ liệu sẽ mang theo định nghĩa đã nhập, để nó đi cùng với phần còn lại của dữ liệu người dùng.
+Hai tên được dành riêng cho dữ liệu chưa đi được:
 
-Bất cứ thứ gì nằm ngoài các tên dự phòng này và các phần nêu trên, đối với trình đọc, đều là một phần không xác định: được giữ nguyên và tính vào `skipped`.
+- **`tokens.json`** sẽ mang cả một tài liệu design token [W3C DTCG](https://tr.designtokens.org/format/) với nhóm, bộ và chủ đề của nó, định dạng mà [Penpot nhập và xuất](https://help.penpot.app/user-guide/design-systems/design-tokens/). Token thương hiệu riêng của người dùng đã đi dưới dạng tài nguyên `user/tokens/brand` trong `assets.json`, và token của hệ thống thiết kế đi cùng bản ghi của nó.
+- **`penpot/`** được dành cho một tệp Penpot đã nạp, hoặc tập con liên quan Lolly của nó, đưa lên thành một công cụ.
+
+Trình đọc hiện nay chưa biết tên nào. Như mọi thứ khác ngoài các phần trên, mỗi tên là một phần không rõ với chúng: để nguyên và đếm trong `skipped`.
+
+## Phần lịch sử
+
+Hai phần lịch sử là tùy chọn và có phiên bản riêng. Hầu hết trình đọc có thể bỏ qua mục này.
+
+::: details Lịch sử sáng tạo (v3)
+Các bản sao lưu thủ công từ một bản cài web có lịch sử sáng tạo gồm `revision-history.json`, với schema `{ version: 1, documents, revisions, recoveries }` riêng. Nó mang các ID được giữ, ảnh chụp đầu vào chuẩn, dấu phiên bản, bản xem trước ảnh điểm và bản nháp riêng của bên ghi. Bộ điều hợp lịch sử chụp các phiên hiện tại và đầu của chúng trong một giao dịch đọc, và `sessions.json` dùng cùng các ảnh chụp hiện tại cho trình đọc cũ hơn.
+
+Khôi phục kiểm tra SHA-256 của payload và số byte, định danh duy nhất, quan hệ tài liệu và đầu, tổ tiên, dấu thời gian, loại bản xem trước và giới hạn trước khi xác nhận kho lưu trữ trong một giao dịch. Tham chiếu cha đã nén có thể thiếu. Công việc hiện tại đang có không bao giờ bị thay thế lặng lẽ: khi một sản phẩm có ở cả hai phía, phía không được giữ làm hiện tại trở thành bản nháp được bảo vệ.
+
+Giới hạn truyền 384 MiB của kho lưu trữ được kiểm tra tường minh, và giới hạn lưu trữ được thực thi mà không cắt các điểm kiểm tra được giữ. Xuất ghi `revision-history.json` và `sessions.json` theo từng khối, với cùng byte như một `JSON.stringify` đơn cho ra, nên văn bản tệp không bao giờ được giữ nguyên khối. Một tệp lịch sử sẽ vượt giới hạn bị bỏ ngay lúc nó vượt và chỉ được đếm từ đó. Kho lưu trữ sau đó được tạo lại mà không có các điểm kiểm tra tự động cũ nhất, và bản tóm tắt xuất đếm chúng là `checkpointsLeftOut`, hoặc kho bị từ chối hoàn toàn.
+
+Một shell không có khả năng này khôi phục các phiên thông thường và báo cáo phần lịch sử là bị bỏ qua. Lịch sử hệ thống tệp gốc vẫn không được hỗ trợ cho đến khi bộ điều hợp của nó cung cấp giao dịch lịch sử bền vững. Khách trong một collab riêng tư không có lịch sử bền vững hay kho khôi phục.
+
+Đồng bộ ảnh chụp cá nhân bỏ lịch sử sáng tạo. Áp dụng một ảnh chụp lên tài liệu cục bộ có lịch sử giữ trạng thái làm việc trước đó của nó làm bản nháp khôi phục riêng và làm vô hiệu mã ghi của mọi trình soạn thảo đang mở. Các điểm kiểm tra bất biến của nó ở lại trên thiết bị. Điều này bảo vệ lịch sử cục bộ trong lúc thay thế ảnh chụp; nó không gộp lịch sử đồng thời của các thiết bị.
+
+Tham chiếu tài nguyên lịch sử được giữ, trong khi kết xuất vẫn phân giải tài nguyên qua thư viện hiện có của đích. Kho lưu trữ này chưa đảm bảo byte tài nguyên cũ chính xác hay bản kết xuất công cụ cũ. Byte phiên bản tài nguyên và kết quả tệp đi trong phần sao lưu riêng của chúng.
+:::
+
+::: details Phiên bản đã lưu và kết quả tệp (v2)
+Phần lịch sử tùy chọn chứa `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`, và trình đọc cũng chấp nhận dạng history-v1 trước đó không có batch. Mỗi ảnh chụp cho ID tài nguyên ổn định và phiên bản chính xác, thời điểm lưu, độ dài byte và SHA-256 hex, cộng một bản ghi tài nguyên mà `_file` và `_credentialFile` tùy chọn trỏ tới các phần nhị phân. Thao tác mang dữ kiện tệp gốc, yêu cầu, báo cáo, dấu thời gian và `_file` kết quả tùy chọn. Tên backend lưu trữ, handle OPFS và lease thực thi không đi cùng. Trình đọc chỉ biết history v1 từ chối phiên bản lịch sử mới trước khi nhập, thay vì lặng lẽ bỏ tư cách thành viên batch.
+
+Manifest batch ghi mọi nguồn được chọn trước khi xử lý, kể cả tệp chưa từng đọc, thành viên bị hủy, lỗi dành chỗ cho kết quả và công việc bị gián đoạn. Mỗi thành viên có ID thao tác ổn định, tham chiếu nguồn và dữ kiện, tên đầu ra được yêu cầu và báo cáo cuối. Nguồn chưa đọc có dữ kiện khai báo, không có giá trị băm bịa ra. Nhập xác thực danh tính thành viên và tính nhất quán với mọi báo cáo thao tác đi kèm. Báo cáo batch vẫn có khi từng kết quả đã bị gỡ, nhưng biên nhận không có nghĩa byte đầu ra của nó vẫn được lưu.
+
+- **Xác thực trước.** Mọi bản ghi lịch sử, báo cáo và tệp tham chiếu đã biết được xác thực trước khi bất kỳ lần nhập hồ sơ hay tài nguyên nào ghi. Byte thiếu và SHA-256 không khớp đều thất bại ngay cả khi phong bì không có bản đồ toàn vẹn. Credential đã trích xuất vẫn là mảng byte, kể cả khi nhập từ bên ghi cũ hơn đã tuần tự hóa chúng thành đối tượng khóa số.
+- **Công việc đang chạy.** Thao tác đang chạy trở thành bản ghi bị gián đoạn trong bản sao lưu, với báo cáo lỗi giải thích và không có kết quả. Khôi phục không bao giờ khởi động lại công việc nền hay nhập lease đang hoạt động. Thử lại nghĩa là chọn lại tệp gốc, được kiểm tra với SHA-256 đã ghi khi có.
+- **Lưu trữ.** Kết quả được khôi phục xác nhận byte và siêu dữ liệu của chúng cùng nhau trong IndexedDB. Kết quả mới thông thường dùng OPFS nơi có, với IndexedDB dự phòng. Một thao tác đang chạy hiện có không bao giờ bị lần nhập thay thế.
+- **Giới hạn sao lưu.** Xuất đưa các byte này vào kho lưu trữ theo luồng, nhưng khôi phục vẫn giải nén cả bản sao lưu trong bộ nhớ, nên các giới hạn vẫn còn: **256 MiB payload lịch sử**, **4 MiB siêu dữ liệu lịch sử**, tối đa **100 thao tác**, **100 batch** và **2.000 ảnh chụp**. Xuất từ chối tường minh lịch sử quá khổ hoặc không đầy đủ và không bao giờ lặng lẽ bỏ nó. Hãy tải từng phiên bản và kết quả quan trọng trước khi gỡ các bản sao cục bộ cũ hơn. Các giới hạn này không phải đảm bảo mức bộ nhớ đỉnh đã đo cho điện thoại.
+- **Ngân sách cục bộ.** Lịch sử kết quả cục bộ có ngân sách 512 MiB và trần 100 bản ghi. Ảnh chụp tài nguyên có ngân sách 512 MiB riêng và tối đa 20 phiên bản lịch sử mỗi tài nguyên, và byte credential đã trích xuất tính vào ngân sách đó. Khôi phục tuân theo các giới hạn này và không bao giờ lặng lẽ đẩy dữ liệu người dùng hiện có ra.
+- **Siêu dữ liệu batch.** Siêu dữ liệu batch cục bộ có ngân sách 4 MiB riêng, tối đa 100 manifest và 20 thành viên mỗi batch. Thành viên đang chờ dành chỗ siêu dữ liệu, với trần báo cáo 32 KiB mỗi thành viên. Đây là ngân sách logic, không phải đảm bảo dung lượng đĩa của trình duyệt: lỗi hạn ngạch thật được hiển thị, và báo cáo trong bộ nhớ vẫn tải xuống được. Thử lại một thành viên batch tạo một batch mới mà không ghi đè báo cáo cũ. Gỡ một bản ghi batch không gỡ byte kết quả riêng lẻ hay tài nguyên thư viện.
+- **Kết quả trong thư viện.** Kết quả đã chuyển đổi có thể được thêm vào thư viện mà không chuẩn hóa hay mã hóa lại, kèm giá trị băm nguồn và đầu ra và quan hệ thao tác. Thêm lặp lại dùng lại bản không đổi, và bản đã chỉnh sửa không bao giờ bị ghi đè. Ảnh điểm có thể bắt đầu một tài liệu Design mới, dùng ID tài nguyên thư viện hiện tại; việc thực thi ghim phiên bản chính xác khắp runtime của Design và đường URL là công việc riêng. Kết quả SVG, HTML, PDF và ZIP được giữ làm tài nguyên tệp mờ, không được nâng thành nội dung tương tác hay vector đáng tin cậy.
+- **Nơi mọi người thấy điều này.** **Convert → Recent file operations** hiện mức dùng lịch sử, báo cáo, bản tải xuống và trình quản lý phiên bản, cũng tìm các phiên bản trước của tài nguyên thư viện đã xóa. Khôi phục một ảnh chụp tạo phiên bản hiện tại mới và giữ ảnh chụp đã chọn. **Settings → Preferences → Storage** đếm kết quả và phiên bản riêng khỏi bộ nhớ đệm dùng một lần.
+- **Dọn dẹp.** Dọn tệp tạm tường minh chỉ gỡ byte thuộc thao tác và không được tham chiếu. Bản ghi hiện tại bảo vệ tệp của chúng, và tệp OPFS gần đây có thời gian ân hạn một giờ. Kết quả đã lưu và ảnh chụp tài nguyên không bị xóa tự động.
+
+Trình đọc cũ hơn vẫn chấp nhận phong bì v2 (`minReader: 1`) và khôi phục những phần chúng biết, đếm các phần lịch sử không được hỗ trợ là bị bỏ qua. Khôi phục lịch sử đầy đủ cần shell có bộ điều hợp `fileHistory`, một đường nối bên trong shell thay vì một khả năng `HostV1` hướng công cụ mới. Khôi phục hai thiết bị thật được bao phủ bởi cổng Chromium cục bộ; khôi phục trên ứng dụng máy tính, iOS và Android đã cài vẫn cần được chấp nhận riêng.
+:::
 
 ## Tham khảo
 
-- Module: [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION` - hàm đặt tên `backupFilename()` là nội bộ).
-- Test hợp đồng: [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) - các trường hợp khứ hồi, hợp nhất, toàn vẹn, tương thích ngược và cổng kiểm tra trình đọc.
-- Test hợp đồng lịch sử: [`tests/file-history-backup.test.ts`](../tests/file-history-backup.test.ts), [`tests/file-batch-history.test.ts`](../tests/file-batch-history.test.ts) và [`tests/file-result-library.test.ts`](../tests/file-result-library.test.ts). Chấp nhận trên trình duyệt: [`tests/file-history.browser.test.ts`](../tests/file-history.browser.test.ts), [`tests/file-batch-history.browser.test.ts`](../tests/file-batch-history.browser.test.ts) và [`tests/file-result-reuse.browser.test.ts`](../tests/file-result-reuse.browser.test.ts).
-- Bề mặt cầu nối được dùng: `host.profile`, `host.state`, `host.assets` - xem [Host API](/info/host-api.html).
+- Module: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; hàm đặt tên `backupFilename()` là nội bộ).
+- Kiểm thử hợp đồng: `tests/data-transfer.test.ts`, bao gồm khứ hồi, gộp, toàn vẹn, tương thích về sau và chốt chặn trình đọc.
+- Kiểm thử hợp đồng lịch sử: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` và `tests/file-result-library.test.ts`. Nghiệm thu trên trình duyệt: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` và `tests/file-result-reuse.browser.test.ts`.
+- Bề mặt cầu được dùng: `host.profile`, `host.state` và `host.assets`; xem [Host API](/info/host-api.html).

@@ -1,60 +1,75 @@
-# 給創作者的 Lolly
+# 創作
 
-您只需填寫幾個欄位,便能產出成品檔案,字體、色彩與版面配置都已在您自己的裝置上決定好。您幾分鐘內就能交件,成果卻像花了數小時打造,而且因為品牌規則已內建於工具之中,絕不會有偏離品牌的檔案掛上您的名字。請從下方選擇符合您今天所做工作的路線。
+你填寫幾個欄位，就會在你自己的裝置上產出一個完成的檔案，字型、色彩與版面都已決定好。由於品牌規則在工具裡，永遠不會是你的名字出現在不符合品牌的檔案上。挑選符合你今天所做之事的路線。
 
-您是接力賽中的一棒:開發人員可以將您使用的工具擴展為一套流程,同事也能自助執行它,因此[活動的生命週期](/info/overview.html#the-lifecycle-of-a-campaign)一文追蹤了單一素材如何經過這三雙手。
-
-剛接觸這裡?先從**[六十秒做出成品](/info/make-something.html)**開始,等您確定想深入了解哪個部分後再回來。[問題與解答](/info/faq.html)整理了人們在信任一項免費工具之前會提出的疑問。[Lolly 與其他工具的比較](/info/positioning.html)則誠實說明了什麼時候該改用其他工具。
+初次使用？從**[製作你的第一個檔案](/info/make-something.html)**開始。[Lolly 如何運作](/info/how-lolly-works.html)說明你使用的工具如何也能從指令碼或同事的手機上執行，[問與答](/info/faq.html)則涵蓋人們在信任免費工具之前會問的問題。
 
 ## 製作
 
-選擇一項工具,填寫幾個欄位,下載成品檔案。或者開啟 Design 畫布,自由排版:無論哪種方式,色彩、字體與間距都取自您的品牌,而非憑記憶決定,且完全不需要帳號。
+挑選一個工具並填寫，或在 Design 畫布上自由排版。
 
-- **[六十秒做出成品](/info/make-something.html)** - 三段簡短示範，完全不用設定，適合從未打開過 Lolly 的您。
-- **[使用 Lolly](/info/using.html)** - 畫布、控制項、儲存、Projects 與手機使用方式：應用程式本身的運作方式。
-- **[The Brand Studio](/info/brand-studio.html)** - 何時該讓標誌、色彩與字體真正屬於您，而非使用預設值。
-- **[匯入設計](/info/design-import.html)** - 當作品已存在為 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 檔案，而您希望它可編輯而非扁平化時。
-- **[公用檢視](/info/utilities.html)** - 試算表、轉換器、Colour Lab、PDF 擷取器與 Script audio，適用於不屬於工具算繪的工作。
-- **[瀏覽器擴充功能](/info/extension.html)** - 擷取即時網頁，並在您自己的設計中重複使用它作為素材。
-- **[搜尋](/info/search.html)** - 單一欄位即可搜尋您的工具、已儲存的作品、您的素材與設定。
-- **[Ask Lolly](/info/ask.html)** - 輸入問題，即可取得這些指南中相符的章節，並附上直達連結。
-- **[The Dashboard](/info/dashboard.html)** - 此裝置能做什麼、您的設計系統(唯讀)以及儲存空間概覽。
-- **[您的收藏](/info/favourites.html)** - 為常用項目加星號，讓它在網格上方擁有專屬的方塊。
-- **[Profiles](/info/profile.html)** - 工具用來預先填入的個人資料，以及四個無障礙切換開關，能讓應用程式更沉靜，卻不會動到您匯出成果的任何一個像素。
+- **[製作你的第一個檔案](/info/make-something.html)** - 一堂不需任何設定的簡短課程：一個 QR 碼，下載後儲存為可編輯的副本。
+- **[使用 Lolly](/info/using.html)** - 畫布、控制項、儲存、Projects 與手機使用：應用程式本身的行為。
+- **[範本](/info/templates.html)** - 從已儲存的版面開始，而不是空白的工具。
+- **[Design 中的文字](/info/text-composition.html)** - 標題、流動文字與符合方塊大小的字型。
+- **[3D Studio](/info/3d-studio.html)** - SVG 圖稿與 3D 模型，排列、打光並渲染成同一個場景。
+- **[Utilities](/info/utilities.html)** - 在你的裝置上修復檔案：安全地分享、比較兩個版本、更改格式、取出文字或檢查顏色。
+- **[瀏覽器擴充功能](/info/extension.html)** - 從網頁應用程式對即時網頁截圖，或讀取網站以開始建立設計系統。
+
+## 讓它屬於你
+
+你的設計系統決定每個工具的外觀。
+
+- **[Design System Setup](/info/brand-studio.html)** - 標誌、色彩、字型等等，在 `#/start` 一次設定。
+- **[實際使用 Lolly Demo](/info/lolly-demo-in-use.html)** - 在真實工作上使用配色方案，並切換到你自己的設計系統。
+- **[品牌架構](/info/brand-architectures.html)** - 為一個組織提供多個設計系統，或一個帶有多種配色方案的設計系統。
+- **[匯入設計](/info/design-import.html)** - 將 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 檔案以可編輯的版面開啟，而不是扁平的圖片。
+- **[重塑簡報品牌](/info/rebrand.html)** - 把 PowerPoint 簡報移到你的設計系統上，圖表與動畫完好無損。
+- **[分享附規則的設計](/info/create-a-tool.html)** - 把版面變成其他人可以填寫的工具。
+
+## 尋找並保存你的作品
+
+- **[尋找並復原你的作品](/info/find-your-work.html)** - 已儲存、已下載或未儲存的檔案去了哪裡。
+- **[搜尋](/info/search.html)**與 **[Ask Lolly](/info/ask.html)** - 一個欄位涵蓋你的工具、已儲存的作品、素材與設定，並從這些指南中得到答案。
+- **[Settings](/info/dashboard.html)** - 這部裝置能做什麼、唯讀的設計系統，以及你的儲存空間。
+- **[你的最愛](/info/favourites.html)**與 **[個人資料](/info/profile.html)** - 加星號的工具、工具預先填入的詳細資料，以及無障礙開關。
+- **[同步你的裝置](/info/sync.html)** - 透過你選擇的儲存空間，在電腦與手機上使用同一份作品。
 
 ## 動畫
 
-會動的文字、時間軸上的場景,以及始終符合品牌調性的動態效果。動態匯出是依據驅動時鐘逐格合成而來,而非從螢幕錄製,因此時間點絕不會偏移,同一個連結無論長度為何都會算繪出相同的片段。
+會動的文字、時間軸上的場景，以及保持符合品牌的動態。動態匯出是由受驅動的時鐘逐格繪製，而不是從螢幕錄製，因此同一個連結會產出相同的片段。
 
-- **[動畫製作](/info/animating.html)** - 關鍵影格、真實深度,以及可飛越成果的場景攝影機。
-- **[序列編輯器](/info/sequence-editor.html)** - 時間軸本身:片段、疊加軌道、修剪與分割、轉場與混音。
-- **[匯出與格式](/info/exporting.html)** - 當動態效果就緒後,匯出面板中影片、GIF 與動態 PNG 的部分。
+- **[動畫製作](/info/animating.html)** - 關鍵影格、真實的景深與場景攝影機。
+- **[序列編輯器](/info/sequence-editor.html)** - 片段、覆疊軌道、修剪與分割、轉場與音訊混音。
+- **[廣色域與 HDR](/info/hdr-editing.html)** - 超出一般範圍的色彩，用於能顯示額外範圍的螢幕與格式。
 
-## 錄製
+## 錄製與簡報
 
-以預備拍數、電平表與溫和的引導,錄製一段乾淨的錄音,或是將語音備忘錄轉換成隨聲音而動的成品影片。目前尚未有獨立的 Record 頁面:此內容收錄在「使用 Lolly」的時間軸章節中。
+以倒數計時與音量表錄下乾淨的一次完整錄音，或把你自己放在投影片前面。
 
-- **[使用 Lolly](/info/using.html#timeline-sequence)** - 直接在時間軸上錄製旁白，錄音存在哪裡，以及它如何進入混音。
-- **[製作你的第一個檔案](/info/make-something.html#other-first-projects)** - audiogram，適合您想被聽見而非被看見的時候。
-- **[公用檢視](/info/utilities.html)** - Script audio，適用於先有文字、後有聲音的情況。
-
-## 簡報
-
-把您的攝影機畫面、標誌與姓名疊加在 Design 簡報或倒數計時之上，私有控制項則在另一個視窗中。
-
-- **[用攝影機簡報](/info/presenting.html)** - 取景、已儲存的場景、向觀眾分享、本機錄製，以及目前的試用限制。
+- **[Design 時間軸](/info/design.html#timeline-sequence)** - 直接在時間軸上錄製旁白。
+- **[製作你的第一個檔案](/info/make-something.html#other-first-projects)** - 音訊可視化，適合你比起被看見更想被聽見的時候。
+- **[用攝影機簡報](/info/presenting.html)** - 你的攝影機、標誌與姓名疊在簡報或 Countdown 之上，私人控制項則在另一個視窗。
+- **[由遙控器操作的即時頁面](/info/interactive-pages.html)**與 **[議程螢幕](/info/agenda.html)** - 為會場準備的頁面與節目。
 
 ## 協作
 
-兩個人、兩部裝置、一個工作階段,即時編輯。隔著桌子掃描一個代碼,兩個螢幕就會同步顯示相同的作品,中間沒有帳號、也沒有伺服器 - 而當兩部裝置位於同一網路時,甚至完全不需要網際網路。
+兩個人、兩部裝置、一份設計，即時編輯，不需要帳號，中間也沒有伺服器。
 
-- **[一起協作](/info/collaborate.html)** - 如何開始工作階段、裝置間傳遞了什麼,以及網路中斷時會發生什麼事。
-- **[使用 Lolly](/info/using.html#sharing-your-work)** - 更低調的交接作品方式:攜帶完整狀態的分享連結,或是單一 `.lolly` 檔案。
+- **[一起協作](/info/collaborate.html)** - 裝置之間的私人協作，以及經由你組織的 Lolly Work 的工作協作。
+- **[使用 Lolly](/info/using.html#sharing-your-work)** - 帶著完整狀態的分享連結，或一個 `.lolly` 檔案。
+- **[在你的組織使用 Lolly](/info/organisation.html)** - 當你的組織運行 Lolly Work 時的登入、團隊專案與受管理的設定。
 
 ## 發佈
 
-將成品送到需要它的地方:攜帶設計的連結、印刷級準確的 PDF、影片、簡報,或是一整個資料夾的變體版本。這一切都出自同一個來源,所以您只需建立一次。
+把它送到被要求的地方：連結、符合列印的 PDF、影片、簡報，或一個變體資料夾，全都來自同一個來源。
 
-- **[匯出與格式](/info/exporting.html)** - 印刷單位、DPI、出血與裁切標記、影片、批次執行,以及匯出面板本身。
-- **[Lolly 能開啟與製作的所有格式](/info/formats.html)** - 完整的匯入匯出清單,每個標籤背後都附有淺白易懂的說明卡。
-- **[資料轉移](/info/data-transfer.html)** - 備份包,用於將您做過的一切搬移到另一部裝置。
+- **[匯出檔案](/info/exporting.html)** - 列印單位、出血與裁切記號、影片、批次執行與匯出面板。
+- **[Lolly 能開啟與製作的每種格式](/info/formats.html)** - 完整的輸入與輸出清單。
+- **[創作權利與署名](/info/creative-rights.html)** - 你所用素材的授權，以及隨檔案一起傳遞的署名。
+
+## 團隊手冊與比較
+
+- **給你的團隊：**[業務](/info/sales.html)、[行銷](/info/marketing.html)、[新聞編輯室](/info/press.html)與[法務](/info/legal.html)。
+- **[Lolly 與其他方案比較](/info/positioning.html)** - Lolly 擅長什麼，以及何時該選擇別的工具。
+- **[逐項工具比較 Lolly](/info/compare.html)** - Canva、Adobe、Figma、Penpot、品牌入口網站、渲染 API 與線上轉換器。

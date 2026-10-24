@@ -6,7 +6,7 @@
  * WHY IT IS A SEPARATE FILE. The extension sets `window.__lollyCapture` at
  * document_start, so detection is two property reads and costs nothing. But the
  * DECISION is made at boot (`bridge/index.ts` picks the extension impl vs the
- * stub before the lazy `host.capture` facade exists, and the Design System studio
+ * stub before the lazy `host.capture` facade exists, and Design System Setup
  * decides whether the Website source tile exists at all), while the TRANSPORT it
  * gates - the postMessage relay, the request/reply plumbing, the site-read
  * decoder - is only ever used behind a user gesture. Importing the probe from the

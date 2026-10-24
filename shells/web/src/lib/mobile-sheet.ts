@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Mobile snap-sheet driver - the tool view's controls sheet (views/tool.ts,
- * where this logic originated verbatim) and the brand studio's palette sheet
+ * where this logic originated verbatim) and Design System Setup's palette sheet
  * (views/start.ts) share it. Drives a peek/half/full dock via a CSS height var
  * + a data attribute on `layoutEl` - heights, never transforms, so the sheet
  * can't become a containing block and trap position:fixed descendants.

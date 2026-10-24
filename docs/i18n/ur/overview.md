@@ -1,471 +1,181 @@
-# جائزہ
+# Lolly architecture
 
 ![Lolly آئیکن - بڑی سبز اور سفید لالی پاپ کینڈی](/info/icon.svg)
 
-یہ دستاویز Lolly پلیٹ فارم کے مقصد، ڈھانچے اور تعمیراتی فیصلوں کو قید کرتی ہے۔ یہ پروڈکٹ وژن اور کوڈبیس کی موجودہ حالت دونوں کی عکاسی کرتی ہے۔
+یہ صفحہ ان لوگوں کے لیے ہے جو Lolly کا کوڈ بدلتے ہیں: انجن، شیلز اور ٹول پیکس کیسے جڑتے ہیں، ہر ایک ریپوزٹری میں کہاں ہے، اور وہ عہد جو ہر تبدیلی کو پابند کرتے ہیں۔ اگر آپ جاننا چاہتے ہیں کہ Lolly کیا کرتا ہے اور کون استعمال کرتا ہے تو پہلے [Lolly کیسے کام کرتا ہے](/info/how-lolly-works.html) پڑھیں۔
 
-> **حیثیت:** Lolly ایک اندرونی پروٹوٹائپ ہے جو ایک **بند پائلٹ** میں ہے جو ابھی مکمل نہیں ہوا۔ انجن ڈیٹرمنسٹک اور اندرونی طور پر مستقل ہے، لیکن پروڈکٹ ابھی ابتدائی مرحلے میں ہے - SUSE پہلا گاہک ہے - اور اس کے کرپٹوگرافی اور فائل-پارسنگ انجن فی الحال SUSE کی سخت انفراسٹرکچر ہارڈننگ سے گزر رہے ہیں، انٹرپرائز پیمانے کی تیاری میں (ہم اس میں واقعی اچھے ہیں)۔ نیچے دی گئی آرکیٹیکچر کو زیرِ آزمائش ڈیزائن ارادے کے طور پر پڑھیں، نہ کہ ایک مکمل، تصدیق شدہ پروڈکٹ کے طور پر۔ دیکھیں [اپنانا اور نگرانی](/info/adoption-governance.html#status) کہ پائلٹ کیسے چلایا اور ناپا جاتا ہے۔
+دو ساتھی صفحات مزید گہرائی میں جاتے ہیں۔ [`engine/README.md`](../engine/README.md) انجن کا ماڈیول بہ ماڈیول نقشہ ہے، کوڈ سے بنایا ہوا۔ [Threat Model & Trust Boundaries](/info/threat-model.html) اسی فن تعمیر کو اعتماد کی سرحدوں کے طور پر پڑھتا ہے، اور انجن کس چیز کو ناقابل اعتماد سمجھتا ہے اس بارے میں ہر سوال کے لیے وہی صفحہ ہے۔
 
-> **یہ صفحہ کیسے پڑھیں۔** اس میں ترتیب سے دو قسم کا مواد ہے۔ پہلا نصف ہے
-> **یہ کیوں موجود ہے**: مسئلہ، پوزیشننگ اور وہ زندگی کا سفر جو ایک اثاثہ طے کرتا ہے۔
-> [بڑی تصویر](#the-big-picture-how-the-layers-fit) سے آگے یہ ہے
-> **پرتیں کیسے فٹ ہوتی ہیں**: تعاون کاروں کے لیے آرکیٹیکچر دستاویز، جس میں انجن/شیل/پیک
-> علیحدگی، ریپوزٹری لے آؤٹ، ڈیلیوری اہداف اور وہ عہد شامل ہیں جو پلیٹ فارم میں ہر
-> تبدیلی کو محدود کرتے ہیں۔ اگر آپ یہاں پروڈکٹ سمجھنے کے بجائے کوڈبیس تبدیل کرنے کے لیے ہیں، تو بڑی تصویر سے شروع کریں۔
->
-> دو ساتھی دستاویزات اس صفحے سے زیادہ گہرائی میں جاتی ہیں۔ ریپوزٹری میں [`engine/README.md`](../engine/README.md) انجن کا ماڈیول-بہ-ماڈیول نقشہ ہے، جس میں ہر ماڈیول اور یہ کیا پارس یا لکھتا ہے اس کی ایک تیار شدہ جدول ہے۔ [خطرے کا ماڈل اور اعتماد کی حدود](/info/threat-model.html)
-> وہی آرکیٹیکچر ہے جو اعتماد کی حدود کے طور پر پڑھی گئی ہے، اور یہ کسی بھی سوال کے لیے صحیح صفحہ ہے کہ انجن کیا غیر معتبر سمجھتا ہے۔
+## بڑی تصویر
 
----
+ٹولز اوپر ڈیٹا ہیں۔ بیچ میں انجن کسی پلیٹ فارم کو نہیں جانتا۔ نیچے شیلز ایک معاہدہ نافذ کرتے ہیں، اور کیٹلاگ مواد فراہم کرتے ہیں۔
 
-## یہ کیوں موجود ہے
+![ٹولز مشترکہ انجن کو مینی فیسٹ، ٹیمپلیٹ اور ہکس فراہم کرتے ہیں۔ ویب، Tauri اور ٹرمینل شیلز HostV1 capability bridge نافذ کرتے ہیں اور کیٹلاگ سے ٹولز اور ایسیٹس پڑھتے ہیں۔](/info/diagrams/concepts/platform-layers.svg)
 
-قابلِ تکرار تخلیقی کام ہر بار ماہر ہاتھوں کو جواز دینے کے لیے بہت زیادہ متوقع ہے، اور بغیر حفاظتی اقدامات کے سونپنے کے لیے بہت زیادہ معیار-حساس ہے۔ اگر اسے یونہی چھوڑ دیا جائے تو یہ تین طریقوں میں سے کسی ایک میں جاتا ہے: سست، غیر مستقل، یا کسی وینڈر کے ٹیمپلیٹس میں بند۔
+اگر آپ اسے خالص ڈیٹا اور Handlebars میں بیان کر سکتے ہیں تو وہ **انجن** میں آتا ہے۔ اگر وہ DOM، فائل سسٹم، نیٹ ورک یا کسی براؤزر یا آپریٹنگ سسٹم API کو چھوتا ہے تو وہ **host** میں آتا ہے، یعنی برج کی شیل والی طرف۔ انجن اوپن سورس ہے، اور کسی خاص برانڈ یا پلیٹ فارم کو جاننے والی کوئی چیز انجن میں نہیں جاتی۔
 
-یہ پلیٹ فارم اس کا براہ راست جواب ہے:
+## ریپوزٹری کی ترتیب
 
-> **بڑے پیمانے پر پروگرام ایبل تخلیقی اور مواد** - ان پٹس سے تیار کردہ اثاثے، جن کے قواعد ایک بار طے کیے جاتے ہیں، جسے بھی اُن کی ضرورت ہو اُس کے لیے۔
+Lolly ایک ریپوزٹری ہے۔ نیچے کی ہر ڈائریکٹری اس میں سادہ ڈائریکٹری ہے، سوائے `brands/suse` کے، جو **نجی** git submodule ہے اور SUSE ٹول پیک اور کیٹلاگ رکھتا ہے، جسے عوامی کلون نہیں لیتا۔ بلڈ کون سے پیکس پڑھتا ہے یہ content profile (`profiles.json`) ہے، جو عالمی طور پر بدلنے کے بجائے فی پروسیس حل ہوتا ہے۔ [Build Guide](/info/build-guide.html) میں کلون کمانڈ ہے اور یہ کہ نجی پیک کے اندر تبدیلی کیسے کمٹ ہوتی ہے۔
 
-Lolly وہ جگہ نہیں جہاں ڈیزائن سسٹم ایجاد ہوتا ہے - یہ وہ جگہ ہے جہاں وہ تیار ہوتا ہے۔ اسے ڈیزائن کے لیے ایک وینڈنگ مشین کی طرح سمجھیں: انتخاب کریں، نتیجہ حاصل کریں۔ ہر بار۔ انجن آپ کے سامنے موجود ہارڈویئر پر ہر فارمیٹ کی زیادہ سے زیادہ ممکنہ کوالٹی کے لیے کام کرتا ہے، اور وہی انجن ہر اُس سطح پر وہی فائل بناتا ہے جہاں یہ چلتا ہے۔
+| ڈائریکٹری | یہ کیا رکھتی ہے |
+|---|---|
+| `engine/` | پلیٹ فارم سے آزاد مرکزی حصہ: لوڈر، رن ٹائم، ان پٹس، ٹیمپلیٹس، URL موڈ، یونٹس اور فارمیٹ ماڈیولز |
+| `shells/` | ویب ایپ، Tauri ڈیسک ٹاپ اور موبائل ایپس، CLI، TUI اور براؤزر ایکسٹینشن |
+| `packages/` | ٹول مصنف SDK (`@lolly-tools/core`)، مشترکہ Node شیل حصے اور docs رینڈرر، دیگر کے ساتھ |
+| `community/` | برانڈ سے آزاد ٹولز، ساتھ مشترکہ ایموجی پیکس |
+| `brands/` | برانڈ پیکس: `lolly-demo` (Lolly Demo، وہ ڈیزائن سسٹم جو lolly.tools چلاتا ہے)، `lolly-start` (خالی ابتدائی) اور نجی `suse` |
+| `services/` | اختیاری MCP، سرٹیفکیٹ اور Penpot سروسز، اور ان کا مشترکہ سرور کوڈ |
+| `schemas/` | ٹول مینی فیسٹس، ایسیٹ اندراجات اور ایسیٹ حوالوں کے لیے JSON Schema |
+| `scripts/`, `tests/`, `docs/`, `api/` | بلڈ اور کیٹلاگ اسکرپٹس، انجن ٹیسٹ سویٹ، یہ docs اور تیار شدہ serverless بنڈلز |
 
-نتیجہ ہے **کثرت**: ہر تقریب کے پاس درست سائنیج ہے، ہر CVE الرٹ برانڈ اسٹائل سے میچ کرتا ہے، ہر لیبل صاف پرنٹ ہوتا ہے، ہر ای میل دستخط تازہ ہے - یہ سب اُن ٹولز سے جو پہلے ہی قواعد اپنے اندر رکھتے ہیں۔ پلیٹ فارم بار بار پیش آنے والے آپریشنلائزڈ تخلیقی کام کو سنبھالتا ہے۔ یہ جان بوجھ کر ایک مخصوص تخلیقی ٹول نہیں ہے - ڈیزائنرز اب بھی فلیگ شپ کام کے مالک رہتے ہیں۔
+::: details انجن اور شیل کی فائلیں جن سے آپ پہلے ملتے ہیں
+```
+engine/src/
+  index.ts          public surface: loader, runtime, template, inputs, url-mode
+  loader.ts         fetches and validates tool files
+  runtime.ts        orchestrates one mounted tool, from load to export
+  template.ts       Handlebars hydration and annotateTemplate
+  inputs.ts         manifest to runtime input model
+  url-mode.ts       URL to input state and back
+  validate.ts       JSON Schema validation of manifests
+  compose.ts        nested tool renders (composes)
+  embed.ts          portable lolly.tools embed URLs
+  bridge/host-v1.ts type re-export of the @lolly-tools/core contract
 
-### امکانی طور پر ایجاد کریں، ڈیٹرمنسٹک طور پر پیمانہ بنائیں
+shells/web/src/
+  main.ts           boot and routing
+  bridge/           the web implementations of the host APIs
+  catalog/sync.ts   boot-time catalog sync and offline cache
+  views/            the gallery, tool, projects, free canvas and the other views
+  pro/              Batch (#/batch)
 
-تخلیقی پائپ لائن میں AI کے بارے میں ہر بحث ایک ہی سوال پر رک جاتی ہے: اس میں کون سا حصہ مشین کا کام ہے؟ یہ ایک پرانا سوال ہے جس کا جواب طے شدہ ہے۔ کاتب اور مصور پہلے ہی دو آلات کے درمیان کام کرتے تھے - ڈھیلا خاکہ، جہاں کچھ بھی طے نہیں تھا اور ہر چیز آزمائی جا سکتی تھی، اور پرنٹنگ پریس، جو بالکل اس لیے خوفناک تھی کہ یہ عزم کرتی تھی۔ خاکے وہ جگہ تھے جہاں فن ہوتا تھا۔ پریس وہ طریقہ تھی جس سے یہ کسی تک پہنچتا تھا۔ کسی نے بھی ان دونوں کو الجھایا نہیں، اور دونوں آگے بڑھتے رہے - نئی سیاہی، نئے حروف، نئے پریسز - ہر ایک ہنر اور اس ارادے کے ساتھ ہم آہنگی میں بہتر ہوتا گیا جس کی وہ خدمت کرتا تھا۔
-
-Lolly وہی حد کھینچتا ہے۔ امکانی طور پر تلاش کریں: ایک ماڈل، ایک ڈیزائنر، ایک کچا خیال، ایک پرامپٹ جو کہیں ایسی جگہ جاتا ہے جس کی کسی نے منصوبہ بندی نہیں کی تھی۔ پھر ڈیٹرمنسٹک طور پر پیمانہ بنائیں - جو چیز کئی آؤٹ پٹس تک پہنچتی ہے وہ ایک *ٹول* ہے، اور ایک ٹول ہر بار انہی ان پٹس سے یکساں رینڈر ہوتا ہے جنہیں آپ پڑھ سکتے ہیں۔ تلاش آزاد رہتی ہے کیونکہ اس کے بعد کچھ بھی اس پر منحصر نہیں ہوتا کہ یہ دو بار یکساں طور پر اترے۔ آؤٹ پٹ اعتماد کماتا ہے کیونکہ یہ اندازہ نہیں ہے۔ AI تجربے کو پیشین گوئی، دوبارہ پیدا کیے جانے کے قابل نتائج میں لانا کوئی نیا نظم و ضبط نہیں ہے؛ یہ وہی محنت کی تقسیم ہے جس نے پرنٹ شدہ کام کو پہلی جگہ قابلِ اعتماد بنایا۔
-
-> تخلیقی عمل پر اعتماد کریں، سختی کے ساتھ پیمانہ بنائیں۔
-
-### متبادلات کے مقابلے میں
-
-::: figure positioning-comparison
-آج کے تخلیقی ٹولز میں صلاحیت کی مکملیت، اگست 2026 میں تحقیق شدہ۔ اسکورنگ: 0 غیر موجود، 25 حل جیسا معیار، 50 حقیقی لیکن محدود یا جزوی، 75 مضبوط لیکن احتیاط کے ساتھ، 100 بنیادی مہارت۔
+shells/cli/         bin/lolly.ts (entry), src/run.ts (headless render), src/bridge.ts
+shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
+```
 :::
 
-فرق واضح ہے: آج کوئی بھی شپ ہونے والی چیز ہمیں پابندی-پہلے، آف لائن-قابل، کم-مہارت، اندرونی طور پر قابلِ رسائی آؤٹ پٹ نہیں دیتی۔ Lolly میں ایک کھلا کینوس بھی شامل ہے - **Design** - جہاں رنگ، ٹائپ اور اثاثے برانڈ گلوبلز کے مطابق ہوتے ہیں، تو آزاد ترتیب پابندی-پہلے رہتی ہے۔ یہ جو **نہیں** ہے وہ ایک غیر محدود ڈیزائن سوٹ ہے: ڈیزائنرز مخصوص فلیگ شپ کام کے لیے Illustrator اور Figma استعمال کرتے رہتے ہیں۔ اس ٹول سے ترتیبات جمع کی جا سکتی ہیں۔
+ریپوزٹری کی جڑ میں `tools/` یا `catalog/` ڈائریکٹری نہیں ہے۔ `packages/node-shell/src/content-roots.ts` پوچھنے پر `profiles.json` سے جواب دیتا ہے کہ "ٹول `<id>` کہاں ہے" اور "کیٹلاگ کہاں ہے"۔ حقیقی `tools/` اور `catalog/` کی جوڑی صرف بلڈ آؤٹ پٹ میں لکھی جاتی ہے، مثلاً `dist/`، RPM payload یا کنٹینر امیج، کیونکہ براؤزر وہ دو راستے HTTP پر حاصل کرتا ہے۔
 
-![لائبریری میں ہر ٹول ایک کارڈ کے طور پر، زمرے کے لحاظ سے گروپ شدہ، تاکہ ایک پروڈیوسر ایک چن کر شروع کر سکے](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=aud-gallery-landscape)
+## Lolly کہاں چلتا ہے
 
-**اس کے لیے استعمال کریں:** آپریشنلائزڈ تخلیقی اثاثوں کی تیز تخلیق - ایونٹ ٹائلز، نام بیجز، دستخط، CVE الرٹس، QR کوڈز، سوشل کارڈز، کنسائنمنٹ لیبلز، منظم رپورٹس۔
+ہر سطح وہی انجن اور وہی ٹول فائلیں استعمال کرتی ہے۔
 
-**اس کے لیے استعمال نہ کریں:** مخصوص ہیرو مواد۔
+- **ویب ایپ۔** ترقی پسند ویب ایپ جو سروس ورکر کے ٹولز اور ایسیٹس کیش کرنے کے بعد آف لائن کام کرتی ہے۔ اسے اکاؤنٹ نہیں چاہیے؛ حالت ہر ڈیوائس پر IndexedDB میں رہتی ہے۔ ایک جوابی لے آؤٹ ڈیسک ٹاپ اور فون دونوں کو سنبھالتا ہے: فون پر کنٹرولز شیٹ بن جاتے ہیں اور ایکسپورٹ کنٹرولز تیرتی pill سے کھلتے ہیں۔
+- **ڈیسک ٹاپ اور موبائل ایپس۔** اسی ویب ایپ کے Tauri پیکج، مقامی فائل ڈائیلاگز، فائل سسٹم کی حالت اور مکمل آف لائن استعمال کے ساتھ۔
+- **CLI۔** `lolly <tool-id> --input=value --output=file.png` وہی انجن ہیڈ لیس DOM میں لوڈ کرتا ہے اور فائل لکھتا ہے۔ یہ مختلف ٹرانسپورٹ پر URL موڈ ہے، الگ نفاذ نہیں۔ دیکھیں [CLI](/info/cli.html)۔
+- **TUI۔** مکمل اسکرین، کی بورڈ پہلے ٹرمینل ایپ جو CLI کا برج دوبارہ استعمال کرتی ہے، محفوظ سیشنز ڈسک پر رکھتی ہے (ایپ انسٹال ہو تو ڈیسک ٹاپ ایپ کے اپنے فولڈر میں، ورنہ `~/.lolly` کے تحت) اور صرف تب محدود ہیڈ لیس براؤزر شروع کرتی ہے جب فارمیٹ کو چاہیے ہو۔ دیکھیں [TUI](/info/tui.html)۔
 
----
+![ڈیسک ٹاپ اسپلٹ منظر: بائیں مینی فیسٹ سے بنے کنٹرولز، دائیں لائیو کینوس](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
-## ایک مہم کی زندگی کا سفر
+فون کی چوڑائی پر وہی ٹول دوسرے لے آؤٹ کا محتاج نہیں: کنٹرولز اوپر شیٹ بن جاتے ہیں اور پری ویو اسکرین سنبھالتا ہے۔
 
-یہ دیکھنے کا سب سے واضح طریقہ کہ Lolly کیا ہے وہ خصوصیات کی فہرست نہیں ہے - یہ ہے کہ ایک واحد اثاثے کی پیروی کی جائے جیسے یہ ہاتھ سے ہاتھ گزرتا ہے۔ ایک لوکلائزڈ مہم کارڈ کو تنظیم کے ذریعے حرکت کرتے دیکھیں:
+![430px چوڑی اسکرین پر آڈیوگرام: اوپر کنٹرولز شیٹ، نیچے مکمل چوکور آرٹ ورک اور تیرتا ایکسپورٹ pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-1. **تخلیق کار قواعد طے کرتا ہے۔** ایک ڈیزائنر بنیادی ٹیمپلیٹ Design ٹول میں تحریر کرتا ہے، برانڈ کی ٹائپوگرافی اور رنگ متغیرات کو ہارڈ-کوڈ کرتے ہوئے۔ وہ ایک کارڈ نہیں بنا رہے - وہ بنیادی کام *ایک بار* کر رہے ہیں تاکہ انہیں دوبارہ کبھی اسے دستی طور پر لوکلائز نہ کرنا پڑے۔
-2. **ڈیولپر اسے پیمانہ دیتا ہے۔** وہی ٹیمپلیٹ CLI کے ذریعے ایک رات کی پائپ لائن میں تار دیا جاتا ہے، تاکہ ایک تازہ چارٹ یا ایک نئی زبان کا ورژن خودکار طور پر تخلیق ہو - کوئی ڈیزائنر فائل دوبارہ نہیں کھولتا۔
-3. **پروڈیوسر بس اسے استعمال کرتا ہے۔** ایک سیلز نمائندہ، ہوائی جہاز میں آف لائن، وہی ٹول کھولتا ہے اور کلائنٹ میٹنگ کے لیے بالکل برانڈ کے مطابق ڈیک تخلیق کرتا ہے۔ کوئی ڈیزائن مہارت نہیں، کوئی نیٹ ورک نہیں، کوئی انتظار نہیں۔
+ویب ایپ **Batch** (`#/batch`، `shells/web/src/pro/`) بھی ساتھ لاتی ہے، اسپریڈ شیٹ طرز کا گرڈ جو ایک یا کئی ٹولز میں بہت سی قطاریں ایک ساتھ رینڈر کرتا ہے؛ [Batch اور Multi-edit](/info/batch.html#make-many-versions-of-one-design) Batch کا احاطہ کرتا ہے۔ **Settings → Capabilities** وہ سب دکھاتا ہے جو پلیٹ فارم اپنے کرنے کے قابل بتاتا ہے۔
 
-مرحلہ دو میں "تازہ چارٹ" اسی طرح کا ایک رینڈر ہے، جو ایک ڈیٹا اسٹرنگ اور چند پیرامیٹرز سے تیار کیا گیا ہے بغیر کسی کے ڈیزائن فائل کھولے:
-
-![ایک عنوان والا stacked area چارٹ، جس کی تین سیریز ایک ٹھنڈی پیلیٹ میں بینڈ کی گئی ہیں، محور، legend اور عنوان سب template نے رکھے ہیں، ہاتھ سے نہیں](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Darea%26stackMode%3Dstacked%26palette%3Dcool%26heading%3DProduct%2520mix%2520by%2520quarter%26full&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-lifecycle-chart)
-
-نکتہ یہ نہیں ہے کہ Lolly ڈیزائنرز کے لیے اچھا ہے *اور* ڈیولپرز کے لیے اچھا ہے *اور* سیلز کے لیے اچھا ہے، ہر ایک الگ الگ۔ یہ ایک **ریلے ریس** ہے: تخلیق کار کا ابتدائی کام ڈیولپر کے ذریعے پیمانہ بنایا جاتا ہے، جو بدلے میں پروڈیوسر کو بااختیار بناتا ہے۔ ہوائی جہاز میں غیر تکنیکی نمائندے کے لیے بے تکلف تجربہ صرف اس لیے *ممکن* ہے کیونکہ ڈیزائنر نے سختی طے کی اور ڈیولپر نے اسے تعینات کیا۔
-
-یہی طاقت کا ضارب ہے۔ Lolly الگ کرداروں کے لیے الگ ٹولز کی دراز نہیں ہے - یہ ایک ڈیٹرمنسٹک اثاثہ زندگی کا سفر ہے جسے ہر کردار چھوتا ہے، اور جس ہاتھ سے یہ گزرتا ہے وہ پچھلے کی قدر کو ضرب دیتا ہے۔
-
----
-
-## ایک ٹول، کئی آؤٹ پٹس
-
-برانڈ کے اصول ٹول میں رہتے ہیں، ہر اُس فائل میں نہیں جسے یہ بناتا ہے (دیکھیں [Lolly کیسے موازنہ کرتا ہے](/info/positioning.html))۔ ٹول کو ایک بار درست کر لیں اور ہر آؤٹ پٹ وہی ٹائپ، رنگ اور فاصلہ بندی وراثت میں پاتا ہے، چاہے وہ ایک کارڈ ہو یا ایک درجن زبانوں میں قطاروں کی اسپریڈشیٹ۔ آپ اپنے کام کی جانچ کس طرح کرتے ہیں، اور کون کرتا ہے، یہ آپ ہی پر منحصر رہتا ہے؛ Lolly جانچنے کے قابل چیز کو چھوٹا اور آؤٹ پٹ بنانے کو تیز تر بنا دیتا ہے۔
-
-وہی ڈیٹرمنسٹک ٹول تین طریقوں سے اُس پیمانے تک پہنچتا ہے، سب ایک جیسا آؤٹ پٹ تیار کرتے ہوئے:
-
-- <!--i:people--> **ایک شخص، ایپ میں۔** `/pro` بیچ گرڈ: قطاریں پیسٹ یا درآمد کریں، ہر قطار کے لیے ایک مکمل اثاثہ حاصل کریں، زپ ڈاؤن لوڈ کریں۔ کوئی ڈیزائن مہارت نہیں، کوئی انتظار نہیں۔
-- <!--i:code--> **ایک ڈیولپر، کمانڈ لائن سے۔** CLI *وہی* انجن اور *وہی* رینڈر پاتھ ہیڈ لیس چلاتا ہے، تو ٹول کو ایک اسکرپٹ یا رات کی پائپ لائن میں ہر قطار پر ترتیب دیا جا سکتا ہے۔ ایک لوپ میں `lolly <tool> --field=…` کال پوری انٹیگریشن ہے۔
-- <!--i:cpu--> **ایک سسٹم یا AI ایجنٹ، MCP کے ذریعے۔** وہی ٹول پروگرام کے ذریعے چلایا گیا، اسی وفاداری کے ساتھ، جتنی قطاریں کام میں ہوں اُتنی ہی مقدار میں۔
-
-![ایک تازہ install پر Batch موڈ: ایک خالی row کسی tool کا انتظار کر رہی ہے، جس میں پوری spreadsheet سطح اور اس کا Render بٹن کسی بھی ڈیٹا کے آنے سے پہلے ہی موجود ہے](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
-
-برانڈ پابندیوں کا ایک سیٹ، ایک ڈیزائنر نے ایک بار طے کیا؛ یکساں آؤٹ پٹ تک تین راستے۔
-
----
-
-## بڑی تصویر: پرتیں کیسے فٹ ہوتی ہیں
-
-یہاں سے نیچے سب کچھ آرکیٹیکچر ہے۔ خاکہ پورے سسٹم کو ایک نظر میں دکھاتا ہے: ٹولز اوپر
-ڈیٹا ہیں، درمیان میں انجن کسی پلیٹ فارم کے بارے میں کچھ نہیں جانتا، اس کے نیچے شیلز
-ایک معاہدہ نافذ کرتے ہیں، اور کیٹلاگز مواد فراہم کرتے ہیں۔
-
-```
-                ┌─────────────────────────────────────────────┐
-                │              Tools (data, not code)         │
-                │   tool.json + template.html + hooks.js?     │
-                └─────────────────────────────────────────────┘
-                                    ▲
-                                    │ talks to via Capability Bridge v1
-                                    ▼
-                ┌─────────────────────────────────────────────┐
-                │                  Engine                     │
-                │   loader · validator · runtime · template   │
-                │   inputs · url-mode                         │
-                │   PLATFORM AGNOSTIC. Knows nothing of DOM,  │
-                │   filesystem, or You.                       │
-                └─────────────────────────────────────────────┘
-                                    ▲
-                                    │ implements HostV1
-                                    ▼
-        ┌──────────────┬──────────────┬──────────────┬──────────────┐
-        │  Web Shell   │ Tauri Desktop│ Tauri Mobile │  CLI Shell   │
-        │   (PWA)      │              │              │              │
-        └──────────────┴──────────────┴──────────────┴──────────────┘
-                                    ▲
-                                    │ fetches from
-                                    ▼
-                ┌─────────────────────────────────────────────┐
-                │              Catalogs                       │
-                │   catalog/tools/index.json + tool dirs      │
-                │   catalog/assets/index.json + asset files   │
-                └─────────────────────────────────────────────┘
-```
-
-### ریپوزٹری لے آؤٹ
-
-Lolly ایک ریپازیٹری ہے۔ اس میں `engine/`، `schemas/`، `scripts/`، `tests/`، `api/`، `docs/`، `community/`، `brands/lolly-start/`، ہر `shells/*` اور دونوں `services/*` سادہ ڈائریکٹریز ہیں۔ واحد استثنا `brands/suse` ہے، ایک **پرائیویٹ** git سب ماڈیول جس میں SUSE ٹول پیک اور کیٹلاگ موجود ہے، یہ اختیاری ہے اور پبلک کلون میں موجود نہیں ہوتا۔ کوئی مخصوص بلڈ کون سے پیکس پڑھے گا اس کا تعین ایک کنٹینٹ پروفائل (`profiles.json`) سے ہوتا ہے، جو ہر پراسیس کے لیے علیحدہ طے ہوتا ہے نہ کہ عالمی سطح پر تبدیل کیا جاتا ہے۔ کلون کمانڈ اور پرائیویٹ پیک کے اندر تبدیلی کیسے کمٹ کی جاتی ہے، اس کے لیے دیکھیں [Build Guide » Getting the source](/info/build-guide.html)۔
-
-```
-lolly/
-├── engine/           # Platform-agnostic core. Open source (MPL-2.0).
-│   └── src/
-│       ├── index.ts          # public surface - loader, runtime, template, inputs, url-mode
-│       ├── loader.ts         # fetches and validates tool files
-│       ├── runtime.ts        # orchestrates the 5-step lifecycle
-│       ├── template.ts       # Handlebars hydration + annotateTemplate
-│       ├── inputs.ts         # manifest → runtime input model
-│       ├── url-mode.ts       # URL ↔ input state round-trip
-│       ├── validate.ts       # JSON Schema validation of manifests
-│       ├── compose.ts        # resolve nested tool renders (composes)
-│       ├── embed.ts          # parse portable lolly.tools embed URLs
-│       └── bridge/
-│           └── host-v1.ts    # type re-export of the @lolly-tools/core contract
-│
-├── shells/
-│   ├── web/          # PWA - hosted online; primary distribution
-│   │   └── src/
-│   │       ├── main.ts           # boot, routing
-│   │       ├── theme.ts          # theme apply/persist (FOUC prevention)
-│   │       ├── bridge/           # web implementations of HostV1 APIs
-│   │       │   ├── index.ts      # compose all bridge pieces
-│   │       │   ├── db.ts         # IndexedDB setup
-│   │       │   ├── state.ts      # host.state - saved edits
-│   │       │   ├── profile.ts    # host.profile - user details
-│   │       │   ├── assets.ts     # host.assets - catalog + user uploads
-│   │       │   ├── clipboard.ts  # host.clipboard
-│   │       │   ├── export.ts     # host.export - rasterise/serialize
-│   │       │   ├── net.ts        # host.net - allowlisted fetch
-│   │       │   └── media.ts      # host.media - live camera frames (onFrame)
-│   │       ├── catalog/
-│   │       │   └── sync.ts       # boot-time catalog sync + offline cache
-│   │       ├── styles/           # app-wide CSS (app.css, picker.css, tokens.css)
-│   │       └── views/
-│   │           ├── gallery.ts    # tool library listing + saved-state cards
-│   │           ├── tool.ts       # mounts one tool (inputs + canvas + actions)
-│   │           ├── picker.ts     # asset picker UI (invoked by host.assets)
-│   │           ├── profile.ts    # user details editor
-│   │           ├── projects.ts   # /p - folders of saved sessions (nested; folder/selection export)
-│   │           └── free-canvas.ts # free-canvas editor overlay for render.layout:"editor" tools
-│   │
-│   ├── cli/          # Node.js CLI - same engine, headless jsdom
-│   │   ├── bin/lolly.ts
-│   │   └── src/
-│   │       ├── run.ts    # loadTool → createRuntime → export → write file
-│   │       └── bridge.ts # CLI implementation of HostV1
-│   │
-│   ├── tui/          # Interactive terminal shell (Ink) - reuses the CLI bridge
-│   │   └── src/
-│   │       ├── main.tsx  # full-screen app: Gallery / Projects / Profile / ToolView
-│   │       └── bridge.ts # CLI bridge + on-disk state under ~/.lolly
-│   │
-│   ├── tauri-desktop/ # downloadable desktop app
-│   └── tauri-mobile/  # iOS/Android app
-│
-├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
-│                     #   A SELECTION follows; a profile mounts these plus whatever
-│                     #   tools the active brand pack carries of its own.
-│   ├── qr-code/
-│   ├── snippet/
-│   ├── countdown-timer/
-│   ├── color-palette/
-│   ├── street-map/        # offline vector city-block maps
-│   ├── url-shot/          # "URL Screenshot" (capture capability)
-│   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
-│   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── chart/             # SVG charts from structured data
-│   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
-│   ├── meeting-planner/   # global timezone meeting scheduler
-│   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
-│   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
-│   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
-│   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
-│   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
-│   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── icon/              # favicon .ico / png / svg from text + colours
-│   └── lottie-digi-ad/    # animated Lottie ad banners
-│
-├── brands/            # brand packs - a catalog each, and optionally tools of their own
-│   ├── lolly-start/   # the blank starter brand, owned here
-│   │   └── catalog/
-│   │       ├── tools/index.json    # tool registry, generated per brand
-│   │       └── assets/
-│   │           ├── index.json      # asset registry
-│   │           └── lolly/...       # logo, palette, tokens
-│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
-│
-├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
-├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
-├── tests/            # engine tests
-└── docs/             # this file + authoring guides + positioning
-```
-
----
-
-## پلیٹ فارم ڈیلیوری ماڈل
-
-پلیٹ فارم کئی سطحوں پر چلتا ہے - ویب PWA، Tauri ڈیسک ٹاپ/موبائل، اسکرپٹ ایبل CLI اور انٹرایکٹو TUI۔ ان سب میں وہی انجن اور وہی ٹول فائلیں استعمال ہوتی ہیں۔
-
-### ویب (PWA) - بنیادی تقسیم
-ایک SUSE-کنٹرول شدہ URL پر ہوسٹ کیا گیا۔ سروس ورکر کے ٹولز اور اثاثوں کو کیش کر لینے کے بعد آف لائن کام کرتا ہے۔ یہاں زیادہ تر ملازمین، وینڈرز اور شراکت دار پلیٹ فارم استعمال کریں گے۔ کسی اکاؤنٹ کی ضرورت نہیں - حالت فی ڈیوائس IndexedDB میں محفوظ ہوتی ہے۔
-
-ویب شیل ایک لے آؤٹ سے ریسپانسیو ہے۔ ڈیسک ٹاپ پر ایک ٹول ٹریک پیڈ-مقامی کینوس نیویگیشن (کرسر کے گرد زوم کے لیے Cmd/Ctrl-وہیل یا پنچ، پین کے لیے اسپیس- یا مڈل-ڈریگ، `0`/`1`/`+`/`−` کیز اور ایک Fit/% HUD) کے ساتھ پیش نظارہ اسٹیج کے ساتھ ایک قابلِ ری سائز کنٹرولز سائیڈبار ہے۔ موبائل (≤640px) پر کنٹرولز ایک ٹاپ-اینکرڈ شیٹ بن جاتے ہیں جس میں ایک ڈریگ گرِپ peek/half/full پر اسنیپ کرتی ہے (ٹیپ ٹوگل کرتا ہے) ایک جامد فل-اسکرین پیش نظارے کے اوپر، اور ایک فلوٹنگ **Render** بٹن ایک نیچے کی شیٹ پاپ اپ میں **Export** کنٹرولز کھولتا ہے۔ موبائل پر پیش نظارے پر پنچ-زوم اور ڈریگ-پین ملتا ہے۔ رینڈر پاتھ اور ایکسپورٹ کنٹرولز دونوں میں یکساں ہیں - صرف کروم دوبارہ بہتا ہے۔
-
-![ڈیسک ٹاپ اسپلٹ ویو - بائیں جانب مینی فیسٹ سے تیار کردہ کنٹرولز، دائیں جانب لائیو کینوس](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
-
-فون کی چوڑائی پر وہی ٹول، بغیر کسی دوسرے لے آؤٹ کو برقرار رکھے: کنٹرولز اوپر ایک شیٹ بن جاتے ہیں، پیش نظارہ پوری اسکرین پر ہوتا ہے اور رینڈر پِل اس کے اوپر تیرتی ہے۔
-
-![430px چوڑی اسکرین پر ایک audiogram - اوپر controls کی شیٹ، نیچے مکمل شدہ مربع آرٹ ورک اور فلوٹنگ render pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
-
-**بیچ موڈ (`/pro`)۔** ویب شیل ایک اسپریڈشیٹ طرز کا بیچ گرڈ بھی فراہم کرتا ہے (`shells/web/src/pro/`) جو ایک یا کئی ٹولز میں بیک وقت متعدد قطاریں رینڈر کرتا ہے۔ یہ CSV/TSV راؤنڈ ٹرپ اور اسپریڈشیٹ پیسٹ، فی قطار ٹیمپلیٹ/فارمیٹ/سائز/یونٹ/dpi، ایک لائیو پیش نظارے کے ساتھ بلاکس-ایڈیٹر سائیڈ پینل، سکڑنے والے ایکسپورٹ کالمز، فی قطار "مطابقت" ٹیگ بار، بائیں جانب ڈریگ ہینڈل سے قطار کی ترتیب نو، دو مرحلوں پر مشتمل حذف کی تصدیق، محفوظ شدہ بیچ سیشنز اور ایک `.zip` ڈاؤن لوڈ فراہم کرتا ہے۔ یہ "بڑے پیمانے پر مواد کی تخلیق" کی پوزیشننگ کے پیچھے موجود ایک سے کئی سطح ہے۔
-
-### Tauri ڈیسک ٹاپ / موبائل
-پیکجڈ نیٹو ایپ (Tauri کے ذریعے چھوٹا فٹ پرنٹ)۔ مکمل آف لائن دستیابی، CLI پر منحصر ٹولز (PDF Smasher، Font Outliner) کے لیے فائل سسٹم رسائی، اور کیمرہ رسائی فراہم کرتا ہے۔ 2026 کے وسط میں ٹولنگ کی بہتری کے لیے شیڈول کیا گیا ہے۔
-
-### CLI
-`lolly <tool-id> [--input=value ...] --output=file.png`
-
-ڈیسک ٹاپ صارفین ٹرمینل سے بہت سے ٹولز کو چلا سکتے ہیں۔ CLI شیل وہی انجن لوڈ کرتا ہے، ایک jsdom DOM بناتا ہے، وہی رینڈر پاتھ چلاتا ہے اور فائل لکھتا ہے۔ URL موڈ ٹرانسپورٹ ہے - CLI کوئی الگ نفاذ نہیں ہے۔ یہ اس بات کی ضمانت دیتا ہے کہ CLI اور GUI کی آؤٹ پٹ یکساں ہوں۔
-
-```bash
-lolly qr-code --url=https://suse.com --output=qr.svg
-lolly quotes --quote="Ship it." --output=quote.png
-lolly                        # lists available tools
-lolly qr-code                # lists inputs for that tool
-```
-
-### TUI
-`pnpm run tui`
-
-CLI کا انٹرایکٹو ہم منصب: ایک فل اسکرین، کی بورڈ-فرسٹ ٹرمینل ایپ (Ink پر بنی ہوئی) جو ٹولز براؤز کرنے، ان پٹس بھرنے، پراجیکٹس محفوظ کرنے اور ایکسپورٹ کرنے کے لیے ہے - وہ بھی بغیر کسی GUI کے۔ اس کا ہوسٹ برج DOM سے آزاد فارمیٹس (SVG/EMF/EPS/HTML + text/data) کے لیے **CLI کے نفاذ کو دوبارہ استعمال کرتا ہے**، اور `~/.lolly` کے تحت ڈسک پر موجود اسٹیٹ کے ساتھ ایک اختیاری ان لائن پیش نظارہ بھی شامل کرتا ہے۔ اس کے علاوہ اس کے پاس ایک **براؤزر رینڈر ٹیئر** بھی ہے: ایک محدود دائرہ کار کا ہیڈ لیس Chromium (وہی جو MCP سرور انسٹال کرتا ہے) جو مانگ پر raster/PDF/ویڈیو اور لائیو-URL کیپچر تیار کرتا ہے - یہ ویب شیل کی ایک بنی ہوئی کاپی چلاتا ہے تاکہ آؤٹ پٹ یکساں رہے، اور صرف اس وقت شروع ہوتا ہے جب آپ پہلی بار ایسا فارمیٹ ایکسپورٹ کریں۔ اس طرح `url-shot` (crop + recolor + vector PDF/SVG کے ساتھ) اور ہر raster/pdf ٹول بھی ٹرمینل میں چلتا ہے۔ [TUI رہنما](/info/tui.html) دیکھیں۔
-
-آپ چاہے کسی بھی سطح پر ہوں، ڈیش بورڈ کا Capabilities ٹیب اس بات کا مکمل نقشہ ہے کہ پلیٹ فارم کیا کچھ کر سکنے کا اعلان کرتا ہے، جو گروپ شدہ اور کسی بھی ٹول کو کھولے بغیر پڑھنے کے قابل ہے۔
-
----
-
-## ٹول کیٹیگریز
-
-گیلری گروپنگ کے لیے ٹولز کو ان کے مینی فیسٹ میں ایک `category` سے ٹیگ کیا جاتا ہے۔
-
-قطاریں گیلری سیکشن کی ترتیب میں درج ہوتی ہیں۔ `utility` سیکشن گیلری میں ہمیشہ **آخر میں** رینڈر ہوتا ہے (ہر دوسری کیٹیگری کے بعد، بشمول مستقبل کی کیٹیگریز) - یہ آن-ڈیوائس "Offline Utilities" دراز ہے۔
-
-| زمرہ | مثالیں | منصوبہ بند |
-|---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
-| `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
-| `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
-
-یہ خانے **مثالیں ہیں، مکمل فہرست نہیں**۔ کون سے ٹولز موجود ہیں یہ اس پروفائل کی خاصیت ہے جو آپ نے ماؤنٹ کیا ہے، اس صفحے کی نہیں: ایک برانڈ پیک اپنے ٹولز شامل کرتا ہے، اور کسی کمیونٹی ٹول کو خارج بھی کر سکتا ہے جسے وہ شپ نہ کرنا چاہے۔ `catalog/tools/index.json` - جو مینی فیسٹس سے تیار ہوتی ہے اور وہ رجسٹری ہے جسے گیلری واقعی پڑھتی ہے - مستند فہرست ہے؛ کوئی پروفائل کیا ماؤنٹ کرتا ہے یہ گننے کے لیے، یہاں لکھے کسی عدد پر بھروسہ کرنے کے بجائے مینی فیسٹس گنیں (`ls community/*/tool.json brands/*/tools/*/tool.json`)۔ (اگر کوئی ٹول id دو پیکس میں موجود ہو تو یہ صرف ایک بار، جیتنے والے پیک سے ماؤنٹ ہوتا ہے۔)
-
-ٹولز کو حیثیت (status) کے لحاظ سے بھی درجہ بندی کیا جاتا ہے: `official` (برانڈ سے منظور شدہ، بغیر واٹرمارک کے)، `community` (بیرونی تعاون)، `experimental` (واٹرمارک شدہ ایکسپورٹس)۔ لائبریری کا بیشتر حصہ `official` ہے؛ نئے اسٹوڈیوز اور کیپچر ٹولز مستحکم ہونے تک عموماً `community` یا `experimental` میں رہتے ہیں۔ ہر سطح بیج دکھاتی ہے، تاکہ قاری کھولنے سے پہلے جان لے کہ وہ کیا لے رہا ہے - اور، اوپر دیے گئے کیٹیگری خانوں کی طرح، فی-حیثیت رکنیت اتنی تیزی سے بدلتی ہے کہ یہاں شمار کرنا ممکن نہیں۔ اسے گیلری یا تیار شدہ انڈیکس سے پڑھیں۔
-
-**Design** پہلا ٹول ہے جو `render.layout: "editor"` فری کینوس موڈ پر بنایا گیا ہے - ایک کروم لیس، براہ راست ہیرا پھیری کی سطح جہاں آپ متن، اشکال اور تصاویر کے باکسز کو گھسیٹ، سائز تبدیل، گھما اور اسنیپ کر سکتے ہیں، اور پھر ہر دوسرے ٹول کی طرح اسی رینڈر پاتھ کے ذریعے ایکسپورٹ کر سکتے ہیں۔
-
-**Strip Hidden Data** پہلی **آن ڈیوائس یوٹیلیٹی** ہے (`privacy: "on-device"`): ایک کنٹینٹ ٹرانسفارم ٹول جو *آپ* کی فراہم کردہ فائل لیتا ہے، اسے مکمل طور پر براؤزر میں پراسیس کرتا ہے اور ایک صاف کاپی واپس دیتا ہے - نہ کبھی اپ لوڈ کی جاتی ہے، نہ واٹرمارک لگتا ہے، نہ کوئی پراونینس مہر لگتی ہے۔ **Text** دوسری ہے - روزمرہ کے پیسٹ-ان-اے-ویب سائٹ کاموں (JSON فارمیٹ، JWT ڈی کوڈ، Base64، URL انکوڈ/ڈی کوڈ، SHA ہیشنگ) کے لیے ایک آن ڈیوائس ورک بینچ۔ **Compress PDF** تیسری ہے - یہ PDF کی تصاویر کو دوبارہ کمپریس کر کے اسے چھوٹا کرتی ہے، یہ بھی مکمل طور پر آن ڈیوائس۔ مارکر اور اس کا بیج ٹیکسٹ "آپ کے ڈیوائس پر چلتا ہے - کچھ بھی اپ لوڈ نہیں ہوتا" اب پورے ٹرانسفارم سیٹ کا احاطہ کرتا ہے: Strip Hidden Data، Text، Compress PDF، **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG)، **Convert Font**، **Redact** (کسی تصویر، SVG یا PDF کے حصوں کو ختم کرنا)، اور **Prompt Card** اور **Rebrand** (ایک `.pptx` کو بجا طور پر دوبارہ تھیم کرنا) جہاں پروفائل اسے ماؤنٹ کرتی ہے۔ یہ ایک پرائیویسی-یوٹیلیٹی کیٹیگری ہے جو خفیہ فائلوں کو سنگل پرپز ویب سائٹس کے حوالے کرنے کی جگہ لیتی ہے۔
-
-![یوٹیلیٹیز دراز، جہاں ہر کارڈ ایک ایسا ٹول ہے جو آپ کی پہلے سے موجود فائل کو تبدیل کرتا ہے](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
-
-> نوٹ: `category` اور `status` کو ہر `tool.json` سے `catalog/tools/index.json` (وہ رجسٹری جسے گیلری پڑھتی ہے) میں ڈی نارملائز کیا جاتا ہے۔ مینی فیسٹ ہی حتمی ماخذ ہے - انڈیکس `pnpm run build:catalog` کے ذریعے **تیار** کیا جاتا ہے اور اگر کمٹ شدہ انڈیکس مینی فیسٹس سے ہٹ جائے تو `pnpm run validate:catalog` CI کو ناکام کر دیتا ہے۔
-
----
+![نئی انسٹالیشن پر Batch: ٹول کا انتظار کرتی ایک خالی قطار، ڈیٹا آنے سے پہلے اسپریڈ شیٹ سطح اور اس کا Render بٹن اپنی جگہ پر](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
 ## آرکیٹیکچرل وعدے
 
-یہ فیصلے طے شدہ ہیں۔ ان میں سے کسی کو تبدیل کرنا ایک بڑا کام ہے - یہ کوڈ بیس میں ہر دوسرے فیصلے کو تشکیل دیتے ہیں۔
+یہ فیصلے طے شدہ ہیں۔ ان میں سے کسی کو بدلنا بڑا کام ہے، کیونکہ یہ کوڈ بیس کے ہر دوسرے فیصلے کو شکل دیتے ہیں۔
 
 ### 1۔ اعلانیہ ٹولز، ایک امری فرار کے راستے کے ساتھ
 
-ایک ٹول ایک مینی فیسٹ (`tool.json`) + ایک ٹیمپلیٹ (`template.html`) + اختیاری `hooks.js` پر مشتمل ہوتا ہے۔
+ٹول مینی فیسٹ (`tool.json`)، ٹیمپلیٹ (`template.html`) اور اختیاری `hooks.js` ہے۔ **مینی فیسٹ ان پٹس اعلان کرتا ہے**، ٹیمپلیٹ کبھی نہیں: ان پٹس Handlebars ٹوکنز سے اخذ نہیں ہوتے۔ زیادہ تر ٹولز صرف مینی فیسٹ اور ٹیمپلیٹ ہیں، جو غیر ڈیولپرز کو انہیں تصنیف کرنے دیتا ہے۔
 
-**مینی فیسٹ ان پٹس کا اعلان کرتا ہے۔** ٹیمپلیٹ نہیں۔ ان پٹس کا اندازہ Handlebars ٹوکنز سے نہیں لگایا جاتا۔ مینی فیسٹ ہی معاہدہ ہے؛ ٹیمپلیٹ `{{id}}` کے ذریعے نام شدہ ویری ایبلز استعمال کرتا ہے۔
+![Street Map کا کنٹرول اسٹیک: شہر کا ڈراپ ڈاؤن، تھیم سلیکٹ، وزن کی سلائیڈرز اور رنگ ٹریگرز، ہر ایک مینی فیسٹ کی ایک لائن سے بنا](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
 
-![Street Map کا کنٹرول اسٹیک - ایک شہر ڈراپ ڈاؤن، ایک تھیم سلیکٹ، ویٹ سلائیڈرز اور کلر ٹریگرز، ان میں سے ہر ایک مینی فیسٹ کی ایک لائن سے کھینچا گیا](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
-
-**Hooks اختیاری ہیں۔** زیادہ تر ٹولز خالص اعلانیہ ہوتے ہیں - مینی فیسٹ + ٹیمپلیٹ کافی ہے۔ جن ٹولز کو محسوب شدہ اقدار کی ضرورت ہو (QR encoding، چارٹ ڈیٹا کی تشکیل) وہ `hooks.js` فراہم کرتے ہیں جو نام شدہ لائف سائیکل فنکشنز ظاہر کرتا ہے (`onInit`، `onInput`، `onFrame` - موشن-ری ایکٹو ٹولز کے لیے فی-فریم لائیو کیمرہ ہک - `onLevel`، `beforeExport`، `afterExport`، `exportFile` - وہ فائل-اِن/فائل-آؤٹ ٹرانسفارم پاتھ جو Strip Hidden Data جیسی آن-ڈیوائس یوٹیلیٹیز استعمال کرتی ہیں - اور `exportStill`، اس ٹول کے لیے جو اپنا خود کا ڈیپ raster رکھتا ہو)۔ ہوسٹ ہکس کو `new Function('host', …)` کے ذریعے لوڈ کرتا ہے، جس میں کیپبیلٹی برج کلوژر اسکوپ کے طور پر شامل کیا جاتا ہے۔ یہ ایک **پورٹیبلٹی معاہدہ ہے، سیکیورٹی سینڈ باکس نہیں**: ہکس اب بھی پیج ریلم میں چلتے ہیں اور براؤزر شیل میں `window`/`fetch`/`document` تک *پہنچ سکتے ہیں* - `host.*` معاون، پورٹیبل سطح ہے، کوئی نافذ کردہ حد نہیں۔ اے سنک ہک نتائج کا وقت مقرر ہے (`onInit` 5s، `onInput` 2s، `beforeExport`/`afterExport` 5s، `exportFile`/`exportStill` 10s) اور دیر سے آنے والے نتائج رد کر دیے جاتے ہیں؛ ایک بے قابو *سنکرونس* ہک کو روکا نہیں جا سکتا۔ اسی لیے غیر معتبر تھرڈ پارٹی ہک کوڈ کو Worker isolation آنے تک چلانا محفوظ نہیں ہے۔
-
-یہ اس لیے اہم ہے کہ: اعلانیہ ٹولز غیر ڈویلپرز بھی تخلیق کر سکتے ہیں۔ اگر ہر ٹول ایک ویب ایپ ہوتا، تو خطرے کا نوٹ "ورک ہارس ٹیمپلیٹس بنانے/برقرار رکھنے کی محدود مہارتیں" ایک مستقل رکاوٹ بن جاتا۔
+جو ٹولز قدریں نکالتے ہیں، مثلاً QR انکوڈنگ یا چارٹ کی شکل، وہ hooks شامل کرتے ہیں: نام والے لائف سائیکل فنکشنز جنہیں رن ٹائم capability bridge انجیکٹ کر کے کال کرتا ہے۔ Hooks پورٹیبلٹی کا معاہدہ ہیں، سیکیورٹی سینڈ باکس نہیں، اور وہ وقت کے بجٹ میں چلتے ہیں۔ جن ٹولز کے hooks صفحے کے globals سے آزاد ثابت ہوں وہ `isolate: true` رکھتے ہیں اور Worker میں چلتے ہیں۔ [Tool hooks](/info/tool-hooks.html) میں لائف سائیکل اور بجٹ ہیں، اور [Threat Model](/info/threat-model.html) بتاتا ہے کہ صفحے کے اندر کا executor کیا روکتا ہے اور کیا نہیں۔
 
 ### 2۔ ٹولز اور اثاثے ڈیٹا ہیں، بنڈل شدہ کوڈ نہیں
 
-ویب اور Tauri ایپس بوٹ کے وقت ایک معلوم URL سے ٹول اور اثاثہ کیٹلاگس حاصل کرتی ہیں، انہیں مقامی طور پر کیش کرتی ہیں اور جو کچھ بھی وہاں موجود ہو اس پر کام کرتی ہیں۔ **نیا ایونٹ ٹائل یا موسمی اثاثہ شامل کرنے کے لیے ایپ ریلیز کی ضرورت نہیں ہوتی۔**
+ویب اور Tauri ایپس بوٹ پر ٹول اور ایسیٹ کیٹلاگ حاصل کرتی ہیں، انہیں کیش کرتی ہیں اور جو وہاں ہو اس کے ساتھ کام کرتی ہیں، اس لیے نئے ٹول یا ایسیٹ کو ایپ ریلیز نہیں چاہیے۔ ایسیٹ بائٹس کا SHA-256 چیک سم ہوتا ہے، اور ایسیٹ کا `id` اور `version` کیش کی تجدید چلاتے ہیں۔
 
-اثاثے کے بائٹس کو CDN پوائزننگ سے بچانے کے لیے SHA-256 چیک سم کیا جاتا ہے۔ اثاثے کی `id` + `version` کیش انویلیڈیشن چلاتی ہے۔
+### 3. Capability bridge ہی واحد API ہے جو ٹولز دیکھتے ہیں
 
-### 3۔ کیپبیلٹی برج واحد API ہے جو ٹولز دیکھتے ہیں
+ٹولز اپنے ٹیمپلیٹ سے باہر کبھی DOM کو نہیں چھوتے، `fetch` براہ راست کال نہیں کرتے اور فائل سسٹم کبھی نہیں پڑھتے۔ وہ ورژن والے `host.*` طریقے کال کرتے ہیں۔ معاہدے کی معیاری تعریف `packages/core/src/host-v1.ts` میں ہے، ٹول مصنف SDK `@lolly-tools/core`، تاکہ کوئی تیسرا فریق انجن پر انحصار کیے بغیر اس کے خلاف بنا سکے؛ `engine/src/bridge/host-v1.ts` اس کی اقسام دوبارہ ایکسپورٹ کرتا ہے۔
 
-ٹولز اپنے ٹیمپلیٹ ایریا سے باہر کبھی DOM کو نہیں چھوتے، کبھی براہ راست `fetch` کو کال نہیں کرتے، کبھی فائل سسٹم نہیں پڑھتے۔ وہ ورژن شدہ `host.*` میتھڈز کو کال کرتے ہیں۔ معاہدے کی معیاری تعریف `packages/core/src/host-v1.ts` میں ہے - ٹول-مصنف SDK `@lolly-tools/core`، تاکہ کوئی تھرڈ پارٹی انجن پر انحصار کیے بغیر اس پر تعمیر کر سکے؛ `engine/src/bridge/host-v1.ts` اس کا ایک ٹائپ ری-ایکسپورٹ ہے، اور انجن/شیل کوڈ اسی راستے سے بلا تبدیلی امپورٹ کرتا رہتا ہے:
-
-| برج API | یہ کیا کرتا ہے |
+| ضروری API | یہ کیا کرتی ہے |
 |---|---|
-| `host.profile` | صارف کا پہلا نام، ای میل، ہیڈ شاٹ، شہر، وغیرہ۔ `bindToProfile` کے ذریعے ان پٹس کو پہلے سے بھرتا ہے۔ |
-| `host.assets` | کیٹلاگ کوئریز، اثاثہ ریزولوشن، ہوسٹ کی فراہم کردہ پکر UI۔ |
-| `host.state` | ان پٹ سلاٹس کو محفوظ / لوڈ کریں۔ ویب پر IndexedDB، Tauri پر فائل سسٹم، CLI پر میموری۔ |
-| `host.clipboard` | کلپ بورڈ پر متن یا تصویر لکھیں (پلیٹ فارم فال بیکس کے ساتھ)۔ |
-| `host.export` | رینڈر ٹارگٹ کو ریسٹرائز یا سیریلائز کریں۔ تجرباتی ٹولز کے لیے واٹرمارک لگاتا ہے۔ |
-| `host.net` | الاؤ لسٹڈ fetch - صرف اس صورت میں دستیاب ہے جب ٹول نے `"network"` کیپبیلٹی کا اعلان کیا ہو۔ (فی الحال کوئی شپنگ ٹول اسے استعمال نہیں کرتا۔) |
+| `host.profile` | صارف کی تفصیلات؛ `bindToProfile` کے ذریعے ان پٹس کو پہلے سے بھرتی ہے |
+| `host.assets` | کیٹلاگ کوئریز، ایسیٹ کا حل اور host کا پکر |
+| `host.state` | ان پٹ سلاٹس محفوظ اور لوڈ کرنا: ویب پر IndexedDB، Tauri میں فائل سسٹم، CLI میں میموری |
+| `host.clipboard` | کلپ بورڈ پر متن یا تصویر لکھنا، پلیٹ فارم متبادلات کے ساتھ |
+| `host.export` | رینڈر ہدف کو راسٹرائز یا سیریلائز کرنا، اور آن ڈیوائس فائل ٹرانسفارم راستہ |
+| `host.log` | host کو درجہ بند لاگنگ |
 
-اختیاری، اضافی سطحیں تب ہی ظاہر ہوتی ہیں جب کوئی شیل انہیں فراہم کرے۔ کچھ **کیپبیلٹی-گیٹڈ** ہوتی ہیں - صرف اس وقت ظاہر ہوتی ہیں جب ٹول متعلقہ فلیگ کا اعلان کرے: `host.compose` (دوسرے ٹول کا رینڈر ایمبیڈ کرنا - `compose`)، `host.capture` (URL Screenshot کے لیے پیج کیپچر - `capture`) اور `host.recorder` (ریکارڈنگ ٹولز کے لیے مائیک/کیمرہ/ڈسپلے کیپچر - `microphone` / `camera` / `screen`)۔ باقی **فیچر-ڈیٹیکٹڈ** ہیں - جب بھی شیل انہیں فراہم کر سکے موجود ہوتی ہیں، اور ٹول ان شیلز کے لیے ایک فال بیک رکھتا ہے جو ایسا نہیں کر سکتیں۔
+باقی ہر API اختیاری اور اضافی ہے: `tokens`، `text`، `color`، `geom`، `pdf`، `compose`، `media`، `recorder` اور بہت سی اور۔ ٹول کا مینی فیسٹ `requires` کے تحت وہ اختیاری APIs درج کرتا ہے جنہیں اس کے hooks بغیر جانچے کال کرتے ہیں، اور جس host میں وہ نہ ہو وہ ٹول ماؤنٹ کرنے سے انکار کرتا ہے؛ hooks باقی کی feature-detect کرتے ہیں۔ چند، جیسے `recorder`، ایسی ڈیوائس صلاحیت بھی مانگتے ہیں جس کا ٹول اعلان کرتا ہے۔ `packages/core/src/host-v1/apis.ts` سب درج کرتا ہے اور [Host API](/info/host-api.html) ہر ایک کو دستاویز کرتا ہے۔ طریقہ شامل کرنا minor ورژن ہے؛ ہٹانا یا بدلنا major ورژن ہے، اور v2 آنے پر v1 چلتا رہتا ہے۔
 
-یہ ظاہر کرنے کے لیے کہ اس کا احاطہ کیا ہے، چند نمایاں سطحیں - [Host API](/info/host-api.html) ہر ایک کو دستاویزی شکل دیتا ہے، اور `packages/core/src/host-v1.ts` خود معاہدہ ہے:
+### 4. ایسیٹ آئی ڈیز ہمیشہ کے لیے ہیں
 
-| سطح (Surface) | کب سے | یہ کیا شامل کرتا ہے |
-|---|---|---|
-| `host.tokens` | 1.0 | DTCG ڈیزائن ٹوکنز - برانڈ کے اپنے primitives |
-| `host.text` | 1.0 | HarfBuzz WASM کے ذریعے text-to-path (`wasm` capability فلیگ ان tools کو نشان زد کرتا ہے جو اس پر انحصار کرتے ہیں) |
-| `host.media` | 1.4 | `onFrame` ہک کو چلانے والے لائیو کیمرہ فریمز۔ Progressive enhancement، جان بوجھ کر `camera` فلیگ سے مشروط *نہیں* - ایسا tool بدستور ایک عام still-image tool کے طور پر کام کرتا ہے |
-| `host.color` | 1.40 | Perceptual رنگ ریاضی: ΔEOK، WCAG + APCA تضاد، OKLab ramps، class-breaks، categorical palettes، harmony schemes (1.60)، CSS Color 4 mixing اور gradient baking (1.68)۔ خالص اور synchronous - shells کچھ بھی خود نافذ کرنے کے بجائے engine کا اپنا `makeColorApi()` منسلک کرتی ہیں، اس لیے یہ ہرگز مختلف نہیں ہو سکتا |
-| `host.images` | 1.60 | آلے پر bytes کو decode / resize / re-encode کرنا - convert راستہ (HEIC → JPEG، WebP میں compress، downscale)۔ ویب shell میں ایک lazy facade کے طور پر شپ کیا گیا، اس لیے HEIC decoder کبھی boot chunk میں داخل نہیں ہوتا |
-| `host.geom` | 1.64 | درست vector جیومیٹری: path booleans، offsetting، stroke-to-fill، spline lowering، simplification، hit testing۔ یہ بھی خالص، synchronous اور engine سے منسلک ہے (`makeGeomApi()`)؛ ناکامیاں *واپس کی جاتی ہیں*، کبھی throw نہیں کی جاتیں |
-
-باقی سب انہی اصولوں کی پیروی کرتے ہیں اور انہی کے ساتھ دستاویزی ہیں: آن-ڈیوائس دستاویز سرجری کے لیے `pdf` (1.8) اور `pptx` (1.58)، کلپ تجزیے اور آن-ڈیوائس TTS/ٹرانسکرپشن کے لیے `audio` (1.71) اور `speech` (1.96)، MilkDrop پلیس ہولڈر معاہدے کے لیے `viz` (1.72)، ڈیپ-بٹ اور لیئرڈ-بٹ میپ آؤٹ پٹ کے لیے `codec` (1.100) اور `layers` (1.102)، آن-ڈیوائس ماڈلز کے لیے `upscale` (1.101) اور `matte` (1.103)، اپنا خود کا پکسل کام کرنے والے ہکس کے لیے `raster` (1.105)، ایکسپورٹ-سیف تیروں کے لیے `connectors` (1.106) اور مکمل شدہ بائٹس پر دستخط کرنے کے لیے `c2pa` (1.85)۔ گنتی بڑھتی ہے؛ اصول نہیں بدلتے۔
-
-قابلِ اعلان کیپبیلٹیز یہ ہیں: `network`، `filesystem`، `clipboard`، `camera`، `microphone`، `screen`، `ffmpeg`، `wasm`، `capture`، `compose`۔ (`screen`، جو 1.54 میں شامل کی گئی، `host.recorder` کے ذریعے ڈسپلے کیپچر ہے - صارف براؤزر-نیٹو UI میں ایک اسکرین/ونڈو/ٹیب منتخب کرتا ہے؛ یہ `capture` سے مختلف ہے، جو خود ٹول کے بتائے ہوئے URL کو ریسٹرائز کرتا ہے۔)
-
-وہی ٹول براؤزر، Tauri اور ہیڈ لیس CLI میں چلتا ہے کیونکہ ہر شیل اس انٹرفیس کو نافذ کرتی ہے - ٹول کو کبھی معلوم نہیں ہوتا کہ وہ کس میں چل رہا ہے۔
-
-برج ورژن شدہ ہے۔ میتھڈز شامل کرنا ایک مائنر ورژن ہے۔ ہٹانا یا سگنیچرز بدلنا ایک میجر ورژن بمپ ہے۔ جب v2 شپ ہوتا ہے، v1 کا کام کرتے رہنا لازمی ہے۔
-
-### 4۔ اثاثہ IDs ہمیشہ کے لیے ہیں
-
-`suse/logo/primary` ایک معاہدہ ہے۔ ایک بار شائع ہو جانے کے بعد:
-- ID کبھی نہیں بدلتی، کبھی دوبارہ استعمال نہیں ہوتی۔
-- بائٹ تبدیلیاں → مینی فیسٹ میں `version` بڑھائیں۔
-- کسی نئے اثاثے سے تبدیل ہو جائے → `deprecated: true` سیٹ کریں اور اختیاری طور پر `replacedBy`۔
-- موجودہ حوالہ جات ہمیشہ حل ہوتے ہیں۔
-
-یہ محفوظ شدہ ٹول اسٹیٹس اور URL کے ذریعے شیئر کیے گئے لنکس کو برسوں تک پائیدار بناتا ہے۔
+`lolly/logo/primary` معاہدہ ہے۔ شائع ہونے کے بعد آئی ڈی کبھی نہیں بدلتی اور کبھی دوبارہ استعمال نہیں ہوتی۔ بائٹ کی تبدیلی ایسیٹ اندراج میں `version` بڑھاتی ہے، اور متبادل `deprecated: true` اور، اختیاری طور پر، `replacedBy` سیٹ کرتا ہے، تاکہ موجودہ حوالے ہمیشہ حل ہوں۔ یہی محفوظ سیشنز اور شیئر لنکس کو برسوں چلتا رکھتا ہے۔
 
 ### 5۔ URL موڈ فرسٹ-کلاس ہے
 
-ہر ان پٹ کو URL پیرامیٹر کے طور پر ظاہر کیا جا سکنا چاہیے:
+ہر ان پٹ URL پیرامیٹر کے طور پر ظاہر ہو سکتا ہے، اس لیے لنک مکمل فائل ہے:
 
 ```
-lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H
+https://lolly.tools/t/qr-code?url=https://example.com&ecl=H
 ```
 
-![وہ لنک اکیلے، اس میں کچھ اور نہ ہونے کے باوجود، مکمل شدہ اثاثہ ہے](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fsuse.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
+![وہ لنک اکیلا، بغیر کسی اور چیز کے، مکمل فائل ہے](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
 
-CLI موڈ ایک مختلف ٹرانسپورٹ کے تحت URL موڈ ہے - CLI شیل argv سے ایک URL-اسٹیٹ آبجیکٹ بناتا ہے اور **وہی** انجن پائپ لائن چلاتا ہے۔ صرف ایک رینڈر پاتھ موجود ہے۔ CLI GUI سے ڈرفٹ نہیں کر سکتا کیونکہ یہ کوئی الگ نفاذ نہیں ہے۔
-
-`url-mode.ts` راؤنڈ ٹرپ (پارس اور سیریلائز) کو سنبھالتا ہے۔ **محفوظ شدہ پیرامیٹرز** کا ایک سیٹ کبھی ٹول کو بطور ان پٹس فارورڈ نہیں کیا جاتا: آؤٹ پٹ کنٹرولز (`format`، `export`، `copy`، `filename`، `width`/`w`، `height`/`h`، `unit`، `dpi`)، پرنٹ اور پروونینس ڈائلز (`bleed`، `marks`، `profile`، `password`، `c2pa`، `imprint`، `durable`، `meta`، `hdr`، `depth`، `cuts`) اور اسٹیٹ کیریئرز (`template`، `z` - وہ "Shortest link" پیک شدہ ٹوکن - اور `zx`، وہی پاس ورڈ کے تحت خفیہ کاری شدہ)۔ `engine/src/url-mode.ts` میں `RESERVED` سیٹ مستند ہے اور ایک ٹیسٹ کے ذریعے پن کیا گیا ہے؛ [URL Mode](/info/url-mode.html) ان سب کو دستاویزی شکل دیتا ہے، بشمول وہ چند جو یہاں درج نہیں ہیں۔ URL موڈ میں اثاثے کے ان پٹس ان کی `id` کے ذریعے سیریلائز ہوتے ہیں؛ رن ٹائم انہیں ہائیڈریشن سے پہلے `host.assets.get()` کے ذریعے حل کرتا ہے۔ `width`/`height` کی قدریں `unit` میں ہوتی ہیں (ڈیفالٹ `px`، نیز `mm`/`cm`/`in`/`pt`/`pc`)؛ کسی طبعی یونٹ کے ساتھ `dpi` ریسٹر ریزولوشن سیٹ کرتا ہے۔ یہ کینوس دستاویز کا سائز طے کرتے ہیں اور ایکسپورٹ ڈائمینشنز پینل کو پہلے سے بھر دیتے ہیں۔
-
-چونکہ ہر ان پٹ لنک میں سفر کرتا ہے، ایک پیرامیٹر کی تبدیلی ایک مختلف مکمل شدہ اثاثہ بنا دیتی ہے۔ یہ پورا پیلیٹ ایک سیڈ رنگ، ایک ہارمونی اور ایک اسٹیپ کاؤنٹ ہے:
+پیرامیٹر بدلیں اور آپ کو مختلف فائل ملتی ہے۔ یہ پوری پیلیٹ ایک seed رنگ، ایک ہم آہنگی اور قدموں کی تعداد ہے:
 
 ![نو مراحل چار رنگتوں میں، سب اسی ایک بیج رنگ سے تخلیق کیے گئے جو لنک میں موجود ہے](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
 
-### 6۔ اسٹوریج براہ راست نہیں بلکہ برج کے ذریعے ہوتی ہے
+CLI اپنے آرگومنٹس سے وہی URL حالت بناتا ہے اور وہی پائپ لائن چلاتا ہے، اس لیے CLI ایپ سے الگ نہیں ہو سکتا۔ `engine/src/url-mode.ts` پارس اور سیریلائز کرتا ہے؛ محفوظ ناموں کا سیٹ (`format`، `width`، `dpi`، `c2pa`، `z` اور دیگر) ٹول کو کبھی نہیں دیا جاتا، اور [Reserved URL parameters](/info/url-parameters.html) سب درج کرتا ہے۔ ایسیٹ ان پٹس `id` سے سفر کرتے ہیں اور ٹیمپلیٹ بھرنے سے پہلے `host.assets.get()` سے حل ہوتے ہیں۔
 
-ویب شیل: IndexedDB۔ Tauri: فائل سسٹم۔ CLI: ان میموری۔ ٹولز صرف `host.state.save(slot, data)` اور `host.state.load(slot)` دیکھتے ہیں۔ `localStorage` استعمال نہیں ہوتا - یہ بہت چھوٹا ہے اور blobs کو محفوظ نہیں کر سکتا۔
+### 6. اسٹوریج برج سے گزرتا ہے
 
-صارفین ہر ٹول کے لیے متعدد نام شدہ ایڈٹ سلاٹ محفوظ کر سکتے ہیں اور بعد میں ہر سیشن پر واپس آ سکتے ہیں۔ کسی اکاؤنٹ کی تخلیق ضروری نہیں؛ حالت فی ڈیوائس ہوتی ہے۔ چونکہ برج ہی واحد جوڑ ہے، اس لیے یہ فی ڈیوائس حالت *پورٹیبل* بھی ہے: `shells/web/src/data-transfer.ts` سب کچھ `host.profile`/`host.state`/`host.assets` کے ذریعے واپس پڑھ کر ایک واحد `lolly-backup` زپ میں ڈال دیتا ہے جو کسی بھی دوسری تنصیب پر امپورٹ ہو جاتا ہے - "نئی ڈیوائس پر منتقل ہونے" کا آف لائن جواب جسے کسی سرور کی ضرورت نہیں (مکمل تفصیل: `docs/data-transfer.md`)۔ ملٹی ڈیوائس سنک پہلے ہی اس کی بنیاد پر کام کر رہا ہے، وہی بنڈل اس اسٹوریج کو بھیجتا ہے جسے صارف خود منتخب کرے (`docs/sync.md`)۔
+ویب ایپ IndexedDB استعمال کرتی ہے، Tauri فائل سسٹم اور CLI میموری۔ ٹولز صرف `host.state.save(slot, data)` اور `host.state.load(slot)` دیکھتے ہیں، کبھی `localStorage` نہیں۔ لوگ بغیر اکاؤنٹ کے فی ٹول کئی نام والے سیشنز رکھ سکتے ہیں۔ چونکہ برج ہی واحد جوڑ ہے، وہ حالت پورٹیبل بھی ہے: `shells/web/src/data-transfer.ts` اسے ایک `lolly-backup` فائل میں واپس پڑھتا ہے جو کسی بھی دوسری انسٹالیشن پر امپورٹ ہوتی ہے ([Data transfer](/info/data-transfer.html))، اور [Sync](/info/sync.html) وہی بنڈل شخص کے چنے ہوئے اسٹوریج کو بھیجتا ہے۔
 
 ### 7. میچورٹی ٹیگز بتاتے ہیں کہ ٹول کیا ہے
 
-ہر ٹول اپنے مینی فیسٹ میں `status: official | community | experimental` بیان کرتا ہے۔ گیلری اسٹیٹس کے مطابق ترتیب دیتی ہے۔ تجرباتی (experimental) ٹولز اپنے ایکسپورٹس پر خودکار طور پر واٹرمارک لگاتے ہیں - واٹرمارک `host.export.render` کے ذریعے لگایا جاتا ہے، ٹول کے ذریعے نہیں، اس لیے کوئی غیر سرکاری ٹول مصنف اسے غیر فعال نہیں کر سکتا۔
+ہر ٹول `status: official | community | experimental` اعلان کرتا ہے۔ گیلری status کے لحاظ سے ترتیب دیتی ہے، اور experimental ٹولز بطور ڈیفالٹ اپنی ایکسپورٹس پر واٹر مارک لگاتے ہیں: رن ٹائم واٹر مارک آن کرتا ہے جب تک کالر `watermark: false` نہ دے، اور آن ڈیوائس ٹولز مستثنیٰ ہیں۔ کیٹلاگ کے گرد ٹیم جو بھی عمل رکھے وہ اس کے اوپر بیٹھتا ہے۔
 
-یہ اس تاثراتی خطرے کا ساختی جواب ہے کہ گیلری کا ہر ٹول ایک جیسا وزن رکھتا ہے۔ ٹیم کیٹلاگ کے گرد جو بھی عمل اپناتی ہے، وہ اسی کے اوپر تہہ در تہہ آتا ہے۔
+### 8. ان پٹس مینی فیسٹ میں ٹائپ شدہ ہیں
 
-### 8۔ ٹول ان پٹس مینی فیسٹ کے ذریعے ٹائپڈ ہوتے ہیں، بشمول اثاثہ جات (assets)
+ان پٹ `type` اعلان کرتا ہے: `text`، `longtext`، `number`، `boolean`، `color`، `select`، `asset`، `date`، `time`، `datetime-local`، `url`، `blocks`، `vector`، `table` یا `file`۔ host ہر قسم کے لیے کنٹرول رینڈر کرتا ہے، اس لیے ٹولز کنٹرول کوڈ نہیں لکھتے، اور کوئی بھی ان پٹ `bindToProfile` رکھ سکتا ہے۔ تین سب سے زیادہ وزن رکھتے ہیں:
 
-ان پٹس ایک `type` بیان کرتے ہیں: `text`، `longtext`، `number`، `boolean`، `color`، `select`، `asset`، `date`، `time`، `datetime-local`، `url`، `blocks`، `vector`، `table` اور `file`۔ ہوسٹ مینی فیسٹ سے ہر ٹائپ کے لیے ایک عمومی کنٹرول رینڈر کرتا ہے - ٹولز کوئی کنٹرول کوڈ نہیں لکھتے۔ (صارف کے پروفائل سے پیشگی بھرنا کوئی ٹائپ نہیں ہے - کوئی بھی ان پٹ `bindToProfile` رکھ سکتا ہے۔) تین باقیوں سے زیادہ اہم ہیں:
+- **`asset`**، `filter` اور `allowUpload` کے ساتھ، ایسیٹ سسٹم کا برج ہے۔ `allowUpload: false` سلاٹ کو لائبریری ایسیٹس تک محدود کرتا ہے، اور صارف اپ لوڈز لائبریری کی `AssetRef` شکل بانٹتے ہیں۔
+- **`blocks`** سائیڈ پینل میں ایڈٹ ہونے والا دہرایا جانے والا فیلڈ گروپ ہے، جو Meeting Planner، Wayfinding، Diagrams اور دوسروں میں استعمال ہوتا ہے۔ رینڈر کیے بلاک پر کلک اس کی قطار پر فوکس کرتا ہے۔
+- **`file`** صارف کی اپنی فائل آن ڈیوائس یوٹیلیٹیز، مثلاً Strip Hidden Data اور Compress، کے لیے میموری میں رکھتا ہے، اور **`vector`** اعداد کے مقررہ سیٹ کو ایک کنٹرول میں گروپ کرتا ہے۔
 
-- **`asset`** (بمع `filter` اور `allowUpload`) عالمی اثاثہ نظام کا برج ہے؛ `allowUpload: false` برانڈ کے نفاذ کا لیور ہے، مثلاً اسپانسرشپ ٹائل لوگوز کے لیے جہاں صرف لائبریری اثاثوں کی اجازت ہو۔ صارف کی اپ لوڈز وہی `AssetRef` شکل استعمال کرتی ہیں جو لائبریری اثاثے کرتے ہیں، اس لیے ٹولز انہیں یکساں طریقے سے ہینڈل کرتے ہیں۔
-- **`blocks`** ایک بار بار آنے والا فیلڈ گروپ ہے - ایک ان پٹ کے اندر ایک منی ٹیبل، جو سائیڈ پینل میں ایڈٹ ہوتا ہے، ایک ٹائپڈ/امتیازی ایڈ مینو اور فی بلاک اثاثہ فیلڈز کے ساتھ۔ کینوس پر رینڈر شدہ بلاک پر کلک کرنے سے اس بلاک کی قطار فوکس ہو جاتی ہے۔ `meeting-planner`، `chart-creator`، `event-name-badge`، `wayfinding-signage`، `color-block` اور `digi-ad` میں استعمال ہوتا ہے۔
-- **`vector`** اعداد کے ایک مقررہ سیٹ (مثلاً ایک ٹرانسفارم) کو ایک مرکب کنٹرول میں گروپ کرتا ہے؛ **`file`** آن ڈیوائس ٹرانسفارم یوٹیلیٹیز (مثلاً `strip-data` اور `compress-pdf`) کے لیے صارف کی اپنی فائل کو بائٹس کی صورت میموری میں رکھتا ہے۔
+### 9. ٹیمپلیٹس logic-less ہیں
 
-### 9۔ ٹیمپلیٹس منطق سے خالی ہیں (Handlebars، EJS نہیں)
-
-Handlebars کو EJS پر جان بوجھ کر منتخب کیا گیا:
-- منطق سے خالی۔ ٹیمپلیٹس غیر ڈیویلپرز کے ذریعے بھی تحریر کیے جا سکتے ہیں۔
-- بذات خود محفوظ۔ `{{x}}` HTML-ایسکیپ کرتا ہے؛ `{{{x}}}` رضاکارانہ خام (raw) ہے۔
-- ٹیمپلیٹس میں کوئی من مانا JS نہ ہونے کا مطلب ہے کہ فی ٹیمپلیٹ XSS آڈٹ کی کوئی سطح نہیں۔
-
-منطق `hooks.js` میں رہتی ہے جہاں یہ واضح اور جائزہ لینے کے قابل ہے۔ دستیاب Handlebars ہیلپرز: `{{default}}`، `{{upper}}`، `{{lower}}`، `{{eq}}`، `{{markdown}}`، `{{asset ref}}`، `{{asset ref "property"}}` (نیز ڈیٹا فارمیٹ ہیلپرز `icsStamp`/`rfcText`/`csvCell` جو ساتھی `.ics`/`.vcf`/`.csv` ٹیمپلیٹس میں استعمال ہوتے ہیں)۔
+ٹیمپلیٹس Handlebars ہیں، اس لیے چنے گئے کہ غیر ڈیولپرز انہیں لکھ سکیں: `{{x}}` escape کرتا ہے، اور `{{{x}}}` واضح opt-in ہے۔ منطق `hooks.js` میں رہتی ہے، جہاں وہ واضح اور قابل ریویو ہے۔ کئی ٹیمپلیٹس hook کے نکالے markup کے لیے `{{{` استعمال کرتے ہیں، اس لیے ہر hook کو وہ escape کرنا ہوگا جو وہ دیتا ہے۔ helpers `default`، `upper`، `lower`، `eq`، `markdown`، `asset`، `framing` اور `media` ہیں، ساتھ `icsStamp`، `rfcText`، `csvCell` اور `arrow` ساتھی `.ics`، `.vcf` اور `.csv` ٹیمپلیٹس کے لیے۔ [Templates and rendering](/info/tool-rendering.html) ان کا احاطہ کرتا ہے۔
 
 ### 10۔ ٹولز ٹولز کو compose کرتے ہیں
 
-ایک ٹول **کسی دوسرے** ٹول کے رینڈر کو کسی ٹول سے ٹول امپورٹ کے بغیر ایمبیڈ کر سکتا ہے - compose انجن کے ذریعے حل ہوتا ہے، کبھی ٹول کے کوڈ کے ذریعے نہیں۔ اس کی دو سطحیں ہیں:
+ٹول دوسرے ٹول کا رینڈر بغیر ٹول سے ٹول imports کے ایمبیڈ کر سکتا ہے؛ انجن composition حل کرتا ہے۔ مینی فیسٹ `composes: [{ id, tool, inputs }]` اعلان کر سکتا ہے اور child کو `{{asset <id>}}` سے رکھ سکتا ہے، اور پورٹیبل ایمبیڈ URL (`https://lolly.tools/tool/<id>.svg?…`) child کو مقامی طور پر رینڈر کرتا ہے، یوں Design لائیو QR کوڈ یا چارٹ رکھتا ہے۔ SVG child SVG یا PDF parent میں ویکٹر رہتا ہے۔ Children درمیانی نتائج ہیں، کبھی واٹر مارک یا اسٹیمپ نہیں ہوتے، اور جو شیل ایک رینڈر نہ کر سکے وہ سلاٹ خالی چھوڑتا ہے جبکہ parent پھر بھی رینڈر ہوتا ہے۔ [Composition and brand overlays](/info/tool-composition.html) میں تفصیلات ہیں۔
 
-- **اعلانیہ مینی فیسٹ (Declarative manifest)** - `composes: [{ id, tool, inputs, format?, width?, height? }]`۔ انجن نامزد چائلڈ کو رینڈر کرتا ہے اور نتیجے کو منطق سے خالی ٹیمپلیٹ میں `{{asset <id>}}` کے طور پر رکھتا ہے۔ `event-name-badge` آج `qr-code` کو ایک SVG کے طور پر compose کرتا ہے۔
-- **پورٹیبل ایمبیڈ یو آر ایل** - `<img src="https://lolly.tools/tool/<id>.<ext>?<inputs>">`۔ شیل اس چائلڈ کو **مقامی طور پر** رینڈر کرتا ہے (جب تک مقامی رینڈر حل نہ ہو ایک placeholder پکسل دکھتا ہے)؛ `lolly.tools` سے کبھی کچھ فیچ نہیں کیا جاتا۔
+## جو ہم نے نہ کرنے کا انتخاب کیا
 
-کسی بھی ٹول کے رینڈر کو compose کریں: ایک **SVG** چائلڈ سچا ویکٹر رہتا ہے جب پیرنٹ SVG یا PDF میں ایکسپورٹ کرے اور PNG کے لیے صاف طور پر ریسٹرائز ہوتا ہے؛ **PNG/JPG/WEBP** چائلڈز تصاویر کے طور پر ایمبیڈ ہوتے ہیں۔ اس کے لیے `compose` صلاحیت درکار ہے۔ compose شدہ چائلڈز درمیانی (intermediate) ہوتے ہیں - کبھی واٹرمارک یا پروونینس اسٹیمپ شدہ نہیں ہوتے - اور compose نرمی سے تنزل کرتا ہے: جو شیل کسی چائلڈ کو رینڈر نہیں کر سکتا وہ محض اس سلاٹ کو چھوڑ دیتا ہے اور پیرنٹ پھر بھی رینڈر ہوتا ہے۔
-
----
-
-## ہم نے واضح طور پر کیا نہیں کرنے کا انتخاب کیا
-
-- **کوئی EJS نہیں / ٹیمپلیٹس میں کوئی صوابدیدی JS نہیں۔** XSS کا دائرہ صفر ہے۔ منطق `hooks.js` میں رہتی ہے۔
-- **کوئی لازمی اثاثہ CMS نہیں۔** افراد اپنی تخلیقی فائلیں براہِ راست ایپ کے اندر اثاثوں میں شامل کرتے ہیں ([اثاثے](/info/using.html#assets-your-library) اور برانڈ اسٹوڈیو کے ذریعے) - نہ کوئی سرور، نہ ایڈمن کنسول۔ کام ایک **سیشن** کے طور پر آگے بڑھایا جاتا ہے: ایک شیئر لنک اپنے ان پٹس اور سیٹنگز کو ساتھ رکھتا ہے (اپ لوڈ کردہ فائلیں ایک `.lolly` میں سفر کرتی ہیں)، اور وہی سیشن بیک اپ یا کولیب سیشن کے ذریعے سفر کرتا ہے۔ ڈیپلائمنٹ کو کنٹرول کرنے والا کوئی بھی کسی شیئر شدہ سیشن کو ایک **ٹیمپلیٹ** کے طور پر مقفل کر سکتا ہے - لنک کھولیں، اُس کی اقدار کو برانڈ پیک میں اُس ٹول کی ڈائرکٹری میں ایک ٹیمپلیٹ اندراج کے طور پر ریکارڈ کریں اور کمٹ کریں - جس کے بعد یہ ٹول کے "New from template" چوزر میں ظاہر ہوتا ہے اور `?template=<id>` کے طور پر ڈیپ لنک کے قابل ہوتا ہے۔ Git ڈیپلائمنٹ کے مالک کا مقفل کرنے کا مرحلہ ہے، تخلیق کار کا کبھی نہیں۔ *مشترکہ، زیرِ نگرانی* کیٹلاگ کے لیے، کوئی تنظیم اثاثہ ڈائرکٹری کو اُسی طرح منظم **کر سکتی ہے** اور PR جائزے کے ذریعے اپ ڈیٹس کو مشروط کر سکتی ہے - یہ ایک دستیاب گورننس ماڈل ہے، ایپ کی کوئی لازمی شرط نہیں۔
-- **کوئی جبری RBAC نہیں۔** اوپن ایپ بطور ڈیفالٹ عوامی رسائی کی حامل ہے؛ برانڈ رسک کو میچورٹی ٹیگز + واٹر مارکس کے ذریعے سنبھالا جاتا ہے۔ جو تنظیم زیادہ سخت کنٹرول چاہتی ہے وہ اپنی خود کی auth اور اوپر دیے گئے git-reviewed کیٹلاگ کو تہہ کے طور پر شامل کرتی ہے۔
-- **کوئی مرکزی ڈیٹا بیس نہیں۔** تمام یوزر اسٹیٹ فی ڈیوائس ہے؛ اختیاری سنک اسے اُس اسٹوریج میں کاپی کرتا ہے جسے صارف خود منتخب کرے، کبھی Lolly کے کسی ڈیٹا بیس میں نہیں۔
-- **کوئی مشترکہ tools/engine کوڈ پاتھ نہیں۔** انجن اوپن سورس ہے اور `community/` کے برانڈ سے غیر متعلق ٹولز بھی؛ نجی `brands/suse/` جیسا کوئی برانڈ پیک اپنے ٹولز اور کیٹلاگ اپنی شرائط کے تحت رکھتا ہے۔ ہر صورت میں یہ علیحدگی نافذ ہے (`engine/` سے ٹول کے مواد میں کوئی کراس اِمپورٹس نہیں) تاکہ تقسیم صاف رہے۔
-
----
+- **ٹیمپلیٹس میں من مانی JavaScript نہیں۔** منطق `hooks.js` میں رہتی ہے۔
+- **لازمی ایسیٹ سرور نہیں۔** لوگ ایپ میں Assets میں اپنی فائلیں شامل کرتے ہیں اور کام سیشن کے طور پر آگے دیتے ہیں: ان پٹس اور سیٹنگز کے لیے شیئر لنک، `.lolly` فائل جب اپ لوڈز بھی ساتھ جائیں۔ مشترکہ سیشن ٹول کے چوزر میں ٹیمپلیٹ بن سکتا ہے۔ جو تنظیم منظم کیٹلاگ چاہتی ہے وہ Lolly Work کا کیٹلاگ، منظوریاں اور پالیسیاں استعمال کر سکتی ہے، یا برانڈ پیک git میں سنبھال کر وہیں تبدیلیاں ریویو کر سکتی ہے۔
+- **زبردستی رسائی کنٹرول نہیں۔** کھلی ایپ بطور ڈیفالٹ عوامی ہے، اور پختگی کے ٹیگز اور واٹر مارکس برانڈ کا خطرہ اٹھاتے ہیں۔ جب ٹیم چاہے تو تنظیمی سائن اِن، کردار اور پالیسی Lolly Work سے آتی ہے۔
+- **مرکزی ڈیٹا بیس نہیں۔** صارف کی حالت ہر ڈیوائس پر رہتی ہے، اور اختیاری Sync اسے شخص کے چنے ہوئے اسٹوریج پر کاپی کرتا ہے، کبھی Lolly ڈیٹا بیس پر نہیں۔
+- **ٹولز اور انجن کے درمیان مشترکہ کوڈ راستہ نہیں۔** انجن اور کمیونٹی ٹولز اوپن سورس ہیں، اور برانڈ پیک جیسے نجی `brands/suse/` اپنے ٹولز اور کیٹلاگ اپنی شرائط پر رکھتا ہے۔ کوئی ٹول `engine/` سے import نہیں کرتا، اس لیے تقسیم صاف رہتی ہے۔
 
 ## ایک رینڈر کا لائف سائیکل
 
-ایک صارف `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H` کھولتا ہے:
+کوئی `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H` کھولتا ہے:
 
-1. **Boot.** ویب شیل IndexedDB کھولتا ہے، کیپیبلٹی برج تعمیر کرتا ہے، ٹول اور ایسٹ کیٹلاگز کو سنک کرتا ہے (یا آف لائن ہونے پر کیش سے لوڈ کرتا ہے)۔
-2. **Route.** URL ہیش → `tool` ویو، جس میں `qr-code` اور URL پیرامیٹرز نکالے جاتے ہیں۔
-3. **Load.** `loadTool('qr-code', fetchFile)` `tool.json` حاصل کرتا ہے، JSON اسکیما کے خلاف تصدیق کرتا ہے، `template.html`، `styles.css` اور `hooks.js` سورس حاصل کرتا ہے۔
-4. **Parse URL state.** `parseUrlState` URL پیرامیٹرز کو ابتدائی ان پٹ ویلیوز میں تبدیل کرتا ہے۔ ایسٹ ریفرنسز (`?logo=suse/logo/primary`) کو ہلکے پھلکے `{ id, _unresolved: true }` آبجیکٹس کے طور پر پارس کیا جاتا ہے۔
-5. **Runtime.** `createRuntime(tool, host, initialValues)` ان پٹ ماڈل تعمیر کرتا ہے (پروفائل ڈیٹا، ڈیفالٹس اور ابتدائی ویلیوز کو ملا کر)، `host.assets.get()` کے ذریعے ایسٹ ریفرنسز حل کرتا ہے، ہکس لوڈ کرتا ہے (closure-scoped `host`، سینڈ باکسڈ نہیں)، اور `hooks.onInit` کو کال کرتا ہے۔
-6. **Render.** شیل رن ٹائم کو سبسکرائب کرتا ہے؛ ہر اسٹیٹ تبدیلی پر اسے `{ model, hydrated }` موصول ہوتا ہے۔ یہ ماڈل سے ان پٹ کنٹرولز رینڈر کرتا ہے اور ہائیڈریٹڈ ٹیمپلیٹ HTML کو `#tool-canvas` میں لکھتا ہے۔
-7. **Interact.** صارف کسی ان پٹ میں ٹائپ کرتا ہے → `runtime.setInput(id, value)` → پابندیاں لاگو ہوتی ہیں → `hooks.onInput` کال ہوتا ہے → دوبارہ ہائیڈریٹ → دوبارہ رینڈر۔ کینوس براہ راست اپ ڈیٹ ہوتا ہے۔
-8. **Export.** صارف Download(PNG) پر کلک کرتا ہے → `runtime.export(canvasNode, 'png')` → `host.export.render` (dom-to-image-more کے ذریعے راسٹرائز کرتا ہے؛ SVG/PDF مخصوص DOM-واکنگ ویکٹرائزرز سے گزرتے ہیں) → بلاب → `host.export.download`۔ کوئی ٹول جن فارمیٹس کا انتخاب کر سکتا ہے ان کی رینج وسیع ہے، اور `schemas/tool.schema.json` میں موجود `render.formats` اینم اس کا حتمی حوالہ ہے - راسٹرز اور فلوٹ راسٹرز، ویکٹرز اور کٹ فائلیں، پرنٹ/CMYK، موشن، ایڈیٹ ایبل دستاویزات (`pptx`، `docx`، `odt`)، پیلیٹ اور ڈیٹا/ٹیکسٹ آؤٹ پٹس، آڈیو اور فونٹ فائلیں۔ [URL Mode](/info/url-mode.html) ہر آئی ڈی اور اس کی پیداوار کی فہرست دیتا ہے۔ آڈیو بھی اسی اینم میں شامل ہے جیسے کوئی اور چیز (`wav`، `mp3`، `m4a`، `opus`، جو آڈیوگرام اور ریکارڈنگ ٹولز کے ذریعے اعلان کیے گئے ہیں)؛ الگ سے، کسی ریکارڈنگ ٹول کا `render.capture` موڈ `host.recorder` کو چلاتا ہے، جس کی ٹیک براؤزر کے ریکارڈ کردہ کسی بھی کنٹینر میں ایک مکمل Blob کی صورت میں آتی ہے۔ (وہ ٹولز جو `render.export: false` سیٹ کرتے ہیں - جیسے Color Palette، Countdown Timer، Strip Hidden Data، Text، Compress PDF - ڈاؤن لوڈ/فارمیٹ/ڈائمنشن کنٹرولز چھپا دیتے ہیں۔) فزیکل یونٹس یہاں ہر فارمیٹ کے مطابق تبدیل کیے جاتے ہیں (PDF → حقیقی پیج پوائنٹس، راسٹر → DPI پر پکسلز بمعہ `pHYs` چنک)۔ تخلیقی حقوق/پراونینس میٹا ڈیٹا (مصنف، ٹول، ماخذ - جو `engine/src/metadata.ts` کے ذریعے تیار ہوتا ہے) ہر فارمیٹ میں شامل کیا جاتا ہے: PNG iTXt، JPEG EXIF، PDF info dict، SVG `<metadata>`، GIF comment۔ تجرباتی ٹولز کو ہوسٹ کی جانب سے واٹرمارک دیا جاتا ہے، نہ کہ ٹول کی جانب سے۔
+1. **بوٹ۔** ویب ایپ IndexedDB کھولتی ہے، capability bridge بناتی ہے اور ٹول اور ایسیٹ کیٹلاگ sync کرتی ہے، یا آف لائن ہونے پر کیش سے لوڈ کرتی ہے۔
+2. **راستہ۔** پاتھ `qr-code` کا ٹول منظر چنتا ہے، کوئری اس کی ابتدائی قدروں کے طور پر۔
+3. **لوڈ۔** `loadTool` `tool.json` حاصل کرتا ہے، اسے اسکیمے سے جانچتا ہے اور ٹیمپلیٹ، اسٹائلز اور hooks حاصل کرتا ہے۔
+4. **لنک پارس کریں۔** `parseUrlState` پیرامیٹرز کو ان پٹ قدروں میں بدلتا ہے۔ ایسیٹ حوالہ جیسے `?logo=lolly/logo/primary` غیر حل شدہ `{ id }` بن جاتا ہے۔
+5. **رن ٹائم شروع کریں۔** `createRuntime(tool, host, initialValues)` پروفائل ڈیٹا، ڈیفالٹس اور لنک سے ان پٹ ماڈل بناتا ہے، ایسیٹ حوالے حل کرتا ہے، hooks لوڈ کرتا ہے اور `onInit` کال کرتا ہے۔
+6. **رینڈر۔** شیل رن ٹائم کو سبسکرائب کرتا ہے، ماڈل سے کنٹرولز ڈرا کرتا ہے اور بھرا ٹیمپلیٹ `#tool-canvas` میں لکھتا ہے۔
+7. **تعامل۔** ٹائپ کرنا `runtime.setInput` کال کرتا ہے، جو پابندیاں لگاتا ہے، `onInput` کال کرتا ہے، ٹیمپلیٹ دوبارہ بھرتا ہے اور دوبارہ ڈرا کرتا ہے۔
+8. **ایکسپورٹ۔** **Download** `runtime.export(node, format)` کال کرتا ہے، اور شیل کا `host.export` فائل بناتا ہے: راسٹر، DOM walker سے ویکٹر، PDF، دستاویز یا `schemas/tool.schema.json` میں دوسرے فارمیٹس میں سے ایک۔ فزیکل یونٹس فی فارمیٹ بدلے جاتے ہیں، اور میٹا ڈیٹا اور Content Credentials وہاں ایمبیڈ ہوتے ہیں جہاں فارمیٹ رکھ سکے۔ Experimental ٹولز اپنا واٹر مارک host سے پاتے ہیں، ٹول سے نہیں۔ [Templates and rendering](/info/tool-rendering.html) اور [فائل ایکسپورٹ کریں](/info/exporting.html) ایکسپورٹ قدم کا احاطہ کرتے ہیں۔
 
-![وہ ایکسپورٹ پینل جو `?options` کھولتا ہے: فائل نام اور فارمیٹ کا جوڑا، آؤٹ پٹ سائز اور فائل لکھنے والے کنٹرولز](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
+![?options جو ایکسپورٹ پینل کھولتا ہے: فائل نام اور فارمیٹ کی جوڑی، آؤٹ پٹ سائز اور فائل لکھنے والے کنٹرولز](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
-Tauri میں وہی لائف سائیکل۔ CLI میں وہی لائف سائیکل - jsdom ہیڈ لیس DOM فراہم کرتا ہے؛ آؤٹ پٹ ایک فائل یا stdout میں جاتا ہے۔
+وہی لائف سائیکل Tauri میں چلتا ہے، اور CLI میں ہیڈ لیس DOM کے ساتھ، جہاں آؤٹ پٹ فائل یا stdout میں جاتی ہے۔
 
----
+## لائسنس
 
-## اوپن سورس حیثیت
-
-**کوڈ MPL-2.0 کے تحت ہے۔** `engine/`، `shells/*`، `services/*`، `schemas/` اور `docs/*.ts` **MPL-2.0** کے تحت اوپن سورس ہیں - برانڈ ٹولنگ کے لیے ایک وینڈر-نیوٹرل اسکیفولڈنگ پلیٹ فارم، یہ سب ایک ہی پبلک ریپازیٹری میں موجود ہے، [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)۔
-
-**ٹول کنٹینٹ برانڈ پیکس کی صورت میں فراہم کیا جاتا ہے**، ہر ایک اپنی اپنی شرائط کے ساتھ (پیک کی `NOTICE.md` دیکھیں)۔ `community/` اس ریپازیٹری کی ایک ڈائریکٹری ہے اور اس کے برانڈ-نیوٹرل ٹولز بھی MPL-2.0 کے تحت ہیں۔ `brands/suse/` وہ پرائیویٹ `suse-lolly` پیک ہے، واحد سب ماڈیول: SUSE ٹولز اور SUSE کیٹلاگ، **SUSE کی ملکیت**، بشمول اس کی لائسنس شدہ PremiumBeat موسیقی۔ `brands/lolly-start/` وہ خالی اسٹارٹر برانڈ ہے جس کی ملکیت اسی ریپازیٹری کے پاس ہے۔ فونٹس کسی پیک کے اندر **SIL Open Font License 1.1** کے تحت فراہم کیے جاتے ہیں - SUSE پیک میں SUSE اور SUSE Mono ٹائپ فیسز شامل ہیں۔
-
-ریپو-روٹ میں کوئی `tools/` یا `catalog/` ڈائریکٹری موجود نہیں ہے۔ `packages/node-shell/src/content-roots.ts` ریڈ ٹائم پر `profiles.json` سے یہ جواب دیتا ہے کہ "ٹول `<id>` کہاں موجود ہے" اور "کیٹلاگ کہاں ہے"، اس لیے پروفائل ہر پراسیس کے لیے علیحدہ جواب دیتی ہے اور پہلے سے کوئی ٹری تیار کرنے کی ضرورت نہیں ہوتی۔ ایک حقیقی `tools/` + `catalog/` جوڑا صرف بلڈ آؤٹ پٹ میں لکھا جاتا ہے - `dist/`، ایک RPM پے لوڈ، ایک کنٹینر امیج - کیونکہ براؤزر ان دونوں پاتھس کو HTTP کے ذریعے فیچ کرتا ہے۔
-
-یہ تقسیم نافذ ہے - `engine/` سے ٹول کے مواد میں کوئی کراس اِمپورٹس نہیں ہیں - تاکہ پلیٹ فارم/مواد کی حد صاف رہے۔
-
----
-
-## جہاں انجن ختم ہوتا ہے اور ہوسٹ شروع ہوتا ہے
-
-اگر آپ اسے خالص ڈیٹا + Handlebars میں بیان کر سکتے ہیں → **انجن**۔
-اگر یہ DOM، فائل سسٹم، نیٹ ورک یا کسی براؤزر/OS API کو چھوتا ہے → **ہوسٹ**۔
-
-یہ لکیر جان بوجھ کر واضح ہے۔ انجن اوپن سورس حصہ ہے۔ ہر وہ چیز جو SUSE، مخصوص پلیٹ فارمز یا رن ٹائم ماحول کے بارے میں جانتی ہے اس سے باہر رہتی ہے۔
-
-مزید تفصیل کے لیے، [`engine/README.md`](../engine/README.md) ہر انجن ماڈیول اور اس کی ذمہ داری کی فہرست دیتا ہے، اور [تھریٹ ماڈل اور ٹرسٹ باؤنڈریز](/info/threat-model.html) یہ ریکارڈ کرتا ہے کہ یہی لکیر کہاں ایک ٹرسٹ باؤنڈری کے طور پر بھی کام کرتی ہے۔
+کوڈ، بشمول `engine/`، `shells/`، `services/`، `schemas/` اور دستاویزات جنریٹر، MPL-2.0 ہے، ایک عوامی ریپوزٹری میں، [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)۔ دستاویزات کا متن CC BY-SA 4.0 ہے۔ برانڈ پیکس اپنی شرائط ہر پیک کے `NOTICE.md` میں رکھتے ہیں: کمیونٹی ٹولز MPL-2.0 ہیں، اور نجی SUSE پیک SUSE کی ملکیت ہے۔ [About](/info/about.html) میں مکمل لائسنسنگ نوٹ ہے۔

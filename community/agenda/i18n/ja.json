@@ -1,6 +1,6 @@
 {
   "name": "アジェンダ",
-  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
+  "description": "1つのプログラムから、ブランドに沿った画面、インタラクティブなウェブページ、アニメーション付きの概要、PowerPoint スライド、カレンダーを作成します。",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} セッション、{{trackCount}} トラック",
   "inputs.title.label": "イベント",
   "inputs.title.help": "すべてのレイアウトの先頭に印刷され、エクスポートされたファイルに名前が付けられます。",

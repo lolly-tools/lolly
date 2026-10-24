@@ -1,35 +1,36 @@
 # Penpot (kind: `penpot`)
 
-Federate an **open, self-hostable** Penpot instance as a **design-system source**. Two
-asset classes, handled differently:
+Connect a Penpot instance you host, and its design tokens flow into a Lolly Work design system
+while your designers keep working in Penpot. Boards stay in Penpot until a curator picks the
+ones worth keeping. Penpot remains the source of truth, and Work never writes to Penpot.
 
-- **Design tokens auto-federate** into the catalog as `tokens` assets (DTCG JSON), so the
-  console **Design system** view and brand-profile themes inherit from Penpot - the
-  console already parses DTCG, `$themes` included.
-- **Media is search-and-import, never auto-federated.** Boards surface only through the
-  console's **Search & import** panel; a curator imports the ones worth keeping, and each
-  import snapshots the exporter-rendered board into an instance-owned copy with full
-  rigor. Experimentation stays in Penpot; only curated boards enter the catalog
-  ([plans/30 section 3.1](../../plans/30-penpot-design-source.md)).
+![Penpot files split into two lanes: token sets federate on each sync into a design system that inherits them read-only, while boards are found by search and imported as catalog assets.](/info/diagrams/work-integrations/penpot-lanes.svg)
 
-Read-only; Penpot stays the source of truth.
+- **Tokens arrive on every sync.** Each file's tokens federate as one `tokens` asset (DTCG
+  JSON). The console's **Design system** tab lists them as token sets that the design system
+  inherits read-only, `$themes` included.
+- **Boards arrive only when chosen.** They appear in the **Search & import** panel on the
+  console's **Providers** page; a search matches file names and returns those files' boards.
+  Importing one saves the board, rendered by Penpot's exporter, as an instance-owned catalog
+  asset. Drafts stay in Penpot.
+
+[Design-system administration](../design-system-administration.md#sources-and-storage) covers
+how token sources combine with the active design system.
 
 ## What you need from Penpot
 
-- **Your instance URL** - your self-hosted Penpot origin, e.g.
-  `https://design.your-host.example` (the `baseUrl` option). Penpot's hosted cloud blocks
-  token-based API access, so this connector targets **self-hosted** instances.
-- **The `access-tokens` flag enabled** on that instance - add `access-tokens` to
-  `PENPOT_FLAGS` so *Your account → Access tokens* is available.
-- **A personal access token** from that page, with access to the teams/projects whose
-  tokens you want to federate.
-- Optionally note a **team**, **project**, or explicit **file ids** to scope which files'
-  tokens are pulled in.
+- **Your instance URL**, such as `https://design.your-host.example` (the `baseUrl` option). The
+  connector is written for self-hosted instances and has not been tried against Penpot's hosted
+  service.
+- **The `access-tokens` flag** on that instance: add `access-tokens` to `PENPOT_FLAGS` so
+  *Your account > Access tokens* is available.
+- **A personal access token** from that page, with access to the teams and projects whose tokens
+  you want.
+- Optionally, a **team**, a **project** or explicit **file ids** to limit which files are read.
 
 ## Credential shape
 
-A single sealed string - the Penpot personal access token (sent as
-`Authorization: Token …`):
+A single sealed string: the Penpot personal access token, sent as `Authorization: Token …`.
 
 ```bash
 lw providers credential design-penpot     # prompts; never argv, never shell history
@@ -48,16 +49,15 @@ lw providers credential design-penpot     # prompts; never argv, never shell his
 }
 ```
 
-- `options.baseUrl` (required) - your self-hosted Penpot origin. Every call is pinned to
-  this origin.
-- `options.teamId` / `options.projectId` scope discovery; `options.fileIds` federates
-  exactly those files and skips discovery.
-- `options.format` (default `png`) / `options.scale` (default `1`) - the render settings
-  for imported boards; `options.exporterUrl` overrides the exporter origin if it differs
-  from `baseUrl`.
-- `mapping.typeMap` (required) maps Penpot's two native types into the catalog: `tokens →
-  tokens` (the Design-system feed) and `board → image` (imported media). The console
-  connect card prefills this.
+| Setting | What it does |
+|---|---|
+| `options.baseUrl` (required) | Your Penpot origin. Every call is pinned to this origin. |
+| `options.teamId`, `options.projectId` | Limit which teams and projects are searched for files. |
+| `options.fileIds` | Read exactly these files and skip the search. |
+| `options.format` | How imported boards render: `png` (default), `svg`, `jpeg` or `webp`. |
+| `options.scale` | The render scale for imported boards, default `1`. |
+| `options.exporterUrl` | The exporter's origin, when it differs from `baseUrl`. |
+| `mapping.typeMap` (required) | Maps Penpot's two types into the catalog: `tokens` to `tokens` (the design-system feed) and `board` to `image` (imported media). The console's Penpot card fills this in. |
 
 ## Verify
 
@@ -66,20 +66,17 @@ lw providers preview --kind penpot --options '{"baseUrl":"https://design.your-ho
 lw providers health design-penpot
 ```
 
-`rpc get-profile <status>` errors mean the instance URL or token is wrong, or the
-`access-tokens` flag is off. The exact RPC command/field names are confirmed against your
-live instance on first sync (the driver carries live-verify notes until then).
+A `penpot rpc get-profile <status>` error means the instance URL or token is wrong, or the
+`access-tokens` flag is off. The RPC command and field names come from Penpot's documentation and
+are not yet confirmed against a live instance; a failed call reports the command
+(`penpot rpc <cmd> <status>`).
 
 ## Notes / limits
 
-- **Self-hosted only** - the connector uses Penpot's token-authed RPC, which the hosted
-  cloud does not expose; run your own instance (Penpot is AGPL/MPL, so there is no vendor
-  ToS on the connector - the cleanest BYOT posture in the picker).
-- **Tokens auto-federate; media is curated.** The DTCG token export flows into the feed
-  automatically; boards never do - they are search-and-import only, so drafts don't flood
-  the catalog. Board rendering needs the Penpot **exporter** reachable at
-  `exporterUrl`/`baseUrl`.
-- All calls are **host-pinned** to the configured origin (no open proxy).
-- Does **not** accept published exports.
-
-See also: [catalog](../catalog.md) · [permissions](../permissions.md).
+- **Self-hosted.** The connector uses Penpot's token-authenticated RPC against an origin you run.
+  Penpot is published under MPL-2.0, so no vendor terms of service apply to the connector.
+- **Up to 200 files.** One sync or search reads at most 200 files, so a very large instance
+  cannot stall a request.
+- **Board renders need the exporter.** Penpot's exporter must be reachable at `exporterUrl`, or
+  at `baseUrl` when that is not set.
+- **Pinned to your origin.** Every call goes only to the configured origin.

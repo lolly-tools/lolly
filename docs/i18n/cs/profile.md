@@ -1,154 +1,97 @@
-# Profily - kým jsi, když tvoříš
+# Profily
 
-**Profil** je pracovní identita, jako kterou Lolly tvoří. Je to malá sada údajů, ze kterých může nástroj čerpat, abys je nemusel psát pořád znovu - tvé jméno, kontaktní údaje, volitelná fotka, pár preferencí - plus všechno, co se nashromáždí, jak pracuješ: uložené session, nahrané obrázky a lokální počítadlo aktivity.
+Nastav své jméno, kontaktní údaje a portrét jednou a každý nástroj, který je k tomu určen, je za tebe vyplní: e-mailový podpis, jmenovku, kartu řečníka. Ten malý záznam je tvůj **profil** a žije na tvém zařízení.
 
-Všechno v profilu zůstává **na zařízení**, v místní databázi prohlížeče (IndexedDB u webové PWA, souborový systém u aplikací Tauri). Neexistuje žádný účet a nic se nikam nenahrává. Spravuješ to v **Nastavení → Preferences** (v patičce nebo v menu avataru); nástroje z toho vždy jen *čtou*, a to jen konkrétní pole, pro která byly postavené, aby je předvyplnily.
-
-> Nastavení spojí tvůj profil a bývalý Dashboard do jednoho místa. **Preferences** obsahuje tvé údaje a osobní volby; vedle nich stojí **Toto zařízení**, **Systém designu**, **Schopnosti** a **Aktivita a statistiky**. Úplnou mapu najdeš v [Nastavení](/info/dashboard.html).
+Tvůj profil také drží to, co při práci nashromáždíš: uložené relace, nahrané obrázky a místní přehled aktivity. Spravuješ ho v **Settings → Preferences**; nástroje čtou jen pole, která byly vytvořeny předvyplňovat. Samostatné používání nepotřebuje účet a volitelný Sync, sdílení i služby organizace mají každý vlastní toky dat, popsané níže.
 
 ## Co je v profilu
 
 | Část | Co to je |
 |---|---|
-| **Jméno** | Jméno a příjmení. |
-| **Kontakt** | E-mail a telefon. |
-| **Lokalita** | Město a země. |
-| **Fotka** | Volitelná fotka, oříznutá na čtverec a uložená jako lokální obrázek. Používají ji nástroje jako e-mailové podpisy, citátové karty, organizační schémata a dynamické layouty. |
-| **Použít mé údaje pro tvorbu** | Jediný opt-in přepínač (po zapnutí se zobrazuje jako **Používám své údaje**). Určuje, jestli tvé osobní údaje jedou s sebou jako **provenience** - řádek autora/kreditu vložený do exportovaných souborů - a jako autor u dávkových běhů **/pro**. (Neřídí předvyplnění: viz [Jak nástroje používají tvůj profil](#how-tools-use-your-profile).) |
-| **Předvolby** | Tvůj motiv (Světlý, Tmavý nebo Značkový - značkový motiv vymaluje aplikaci tvou vlastní paletou) a které části aplikace máš zapnuté přes **Feature flags**. |
-| **Přístupnost** | Čtyři přepínače pohodlí - *Omezit pohyb*, *Skrýt barevné náhledy*, *Vysoký kontrast*, *Velký text* - uložené v profilovém záznamu, takže jedou s sebou při exportu profilu. Viz [Přístupnost](#accessibility). |
-| **Tvá práce** | Uložené relace (s náhledy) - uspořádané do vnořených složek v **[Projektech](/info/using.html)** - tvá knihovna **Moje obrázky** a lokální statistiky aktivity, vše svázané s tímto profilem. |
+| **Name** | Jméno a příjmení. |
+| **Contact** | E-mail a telefon. |
+| **Location** | Město a země. |
+| **Headshot** | Volitelná fotka, oříznutá na čtverec a uložená jako místní obrázek, pro nástroje jako e-mailové podpisy, citační karty a organizační schémata. |
+| **Use my details to create** | Jeden volitelný přepínač (po zapnutí se jmenuje **Using my details**). Rozhoduje, zda tvé údaje putují jako autorské uvedení v exportovaných souborech a při během úloh Batch. Neovlivňuje předvyplňování; viz [Jak nástroje používají tvůj profil](#how-tools-use-your-profile). |
+| **Preferences** | Tvůj motiv, nastavení přístupnosti a které části aplikace sis zapnul v **Feature flags**. |
+| **Your work** | Uložené relace s miniaturami, uspořádané v [Projects](/info/find-your-work.html), tvé nahrané obrázky a místní statistiky aktivity. |
 
-Nic z toho není povinné. Prázdný profil je naprosto v pořádku - vyplníš si jen to, co ti ušetří psaní.
+Nic z toho není povinné. Prázdný profil funguje; vyplň jen to, co ti ušetří psaní.
 
-![Obrazovka Profilu - jméno, kontakt, volitelná fotka a tvé předvolby](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Settings na kartě Preferences: lišta nastavení a Your details s přepínačem Use my details to create a poli jména, kontaktu a polohy](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-Preference jsou ta jediná část, která mění, jak se aplikace dívá zpátky na tebe. Karty motivů jsou živé náhledy a použijí se ve chvíli, kdy si jednu vybereš - jen na tomhle zařízení.
+[Settings](/info/dashboard.html) mapuje vše ostatní pod Preferences, od vzhledu a emoji po úložiště a offline stahování.
 
-Stránka je dlouhá, takže má vlastní **postranní lištu nastavení** - Tvé údaje, Vzhled, Přístupnost, Instance Lolly, Tvoje aktivita, Úložiště, Dostupné offline, Experimentální funkce, Content Credentials - a nad ní pole **Hledat v nastavení**, které seznam filtruje za psaní. Každá sekce je odkazovatelná jako `#/settings?focus=<section-id>`, což ji otevře a odscrolluje do zobrazení (`#/settings?focus=storage-section`, `?focus=feature-flags-section` a tak dále), takže odkaz může mířit na jedno konkrétní nastavení místo na začátek stránky.
+## Ty, tým nebo role
 
-![Tři karty motivů, každá s náhledem vlastního typu a barvy, s vyznačenou aktivní](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Slovo "profil" naznačuje jednu pevnou osobu. V Lolly je blíž tvůrčímu kontextu: kým jsi, zatímco vytváříš tuhle věc. Může mít tři podoby a Lolly s každou zachází stejně.
 
-## Profil je kontext, ne jen osoba
+::: cols
+## Jako ty sám
 
-Slovo „profil" navozuje dojem jedné pevně dané osoby, ale v Lolly je to spíš **kontext tvoření** - *kým jsi, zatímco něco vytváříš*. Ten kontext může mít tři různé podoby a Lolly se ke všem chová stejně.
+Výchozí. Tvé jméno, e-mail, portrét. Nastav jednou a podpis, jmenovka i konferenční lockup se vyplní samy.
 
-### Jako jednotlivec
+## Jako tým
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+Sdílený název týmu, skupinová schránka jako `events@…`, oddělení a značka týmu. Jeden člověk ji nastaví a exportuje a všichni ostatní načtou stejný profil, takže soubory týmu nesou konzistentní údaje. Sdílený kiosek nebo demo notebook může provozovat jeden týmový profil.
+
+## Jako role
+
+Event manager tři dny v roce chce schránku akce a podznačku akce na jmenovkách a značení, pak zase svou obvyklou identitu. Uchovej tu roli jako uložený soubor profilu, načti ji pro akci a poté odlož.
+:::
 
 ![Ovládací prvek fotky, prázdný, dokud nenahraješ snímek, který pak zůstane na tomto zařízení](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-### Jako tým
+::: details Profily v organizaci používající Lolly Work
+Když se přihlásíš do [Lolly organizace](/info/organisation.html), Lolly Work může dodat ověřená pole profilu od svého poskytovatele identity a pevně nastavit pole či předvolby podle politiky organizace. Spravované pole je v aplikaci označeno.
 
-Profil nemusí být jeden konkrétní člověk. Může zastupovat **tým nebo funkci v rámci organizace**: sdílený název týmu, adresu skupinové schránky (`events@…`), oddělení, fotku nebo znak týmu. Jeden člověk ho nastaví, exportuje (viz níže) a zbytek týmu načte stejný profil - takže všechno, co tým vytvoří, nese konzistentní údaje, aniž by je kdokoli znovu zadával. Sdílený kiosek nebo zapůjčený demo notebook může běžet na jediném týmovém profilu, ve kterém tvoří všichni, kdo za ním sedí.
+Toto přihlášení také řídí přístup ke sdíleným projektům a assetům. Soubor týmového profilu je stále místní soubor: neuděluje členství v organizaci ani nenahrazuje pracovní účet. **Use my details to create** řídí uvedení v tvých exportech, ne přihlášení do organizace ani její auditní záznamy. Viz [Soukromí](/info/privacy.html#organisation-services-with-lolly-work).
+:::
 
-### Jako funkce - role, kterou si občas oblékneš
+## Měj jich několik, používej jeden
 
-Tohle je případ, který strohý model „jeden člověk, jeden profil" nepokrývá. Můžeš být **manažer/ka akce tři dny v roce** a zbytek roku úplně někdo jiný. Ty tři dny chceš mít po ruce údaje k akci, e-mail akce, možná dílčí značku akce, aby se ti vyplnily odznaky a značení; zbylých 362 dní chceš zpátky svou běžnou identitu.
+Instalace má najednou jeden aktivní profil a v aplikaci není žádný přepínač. Místo toho je každý profil přenosný soubor, tentýž záložní soubor, který bys použil k přesunu na nové zařízení. Chceš-li vstoupit do jiného kontextu:
 
-V Lolly je taková role prostě **další profil, který máš po ruce** - uložený balíček (viz další oddíl), který si načteš na akci a pak zase odložíš. Role je klobouk, ne nový účet. Nasadíš si ho, když ho potřebuješ, a sundáš, když jsi hotový/á.
+::: timeline
+- <!--i:download--> **Export my data** pod **Settings → Storage → Move to another device** uloží aktuální profil jako jeden `.zip`.
+- <!--i:trash--> **Clear all my data** vyprázdní tuto instalaci.
+- <!--i:upload--> **Import data…** načte soubor profilu pro kontext, do kterého vstupuješ.
+:::
 
-## Jedna instalace, jeden aktivní profil - víc jich můžeš mít v zásobě
+Import bez předchozího vymazání místo toho **sloučí**. Importované relace a obrázky se přidají; kde existují obě kopie, ponechá se ta uložená později. Složky, oblíbené a šablony se přidají vedle tvých a tvé vlastní údaje zůstanou, kromě prázdných polí, která převezmou hodnoty ze souboru. To se hodí pro zatažení relací jednoho týmu do tvého nastavení, ne pro čistý předěl mezi rolemi.
 
-Instalace má v každém okamžiku **jeden aktivní profil** - údaje, které nástroj právě vidí. V aplikaci není přepínač profilů; místo toho je každý profil **přenosný balíček** (jediný `.zip`, viz [níže](#moving-a-profile-to-a-new-device)). Je to záměrně stejný mechanismus jako přechod na nové zařízení - profil je soubor, který lze uložit, zkopírovat a načíst.
+Pro dva kontexty najednou použij samostatný profil prohlížeče, samostatný uživatelský účet nebo druhou nainstalovanou kopii webové aplikace: každá nese vlastní nezávislý profil Lolly.
 
-Pokud tedy opravdu žongluješ s víc kontexty (ty, tvůj tým, role manažera akce), stačí mít víc balíčků a načíst si ten, který zrovna potřebuješ:
+![Dvě tlačítka, která přesouvají celou instalaci: Export my data zapíše jeden zip, Import data jej přečte zpět](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-- <!--i:trash--> **Nejčistší přepnutí:** **Nastavení → Preferences → Úložiště → Vymazat všechna moje data**, pak **Import** balíčku pro kontext, do kterého přecházíš. Teď tvoříš čistě jako tento profil.
-- <!--i:layers--> **Vrstvení:** import *bez* předchozího vymazání se **sloučí** - importované relace a obrázky přistanou navrch toho, co už tam je; tam, kde obě strany mají totéž, se zachová kopie uložená později, a zbytek se ponechá. Složky, oblíbené a šablony se přidají k tvým, a tvoje vlastní údaje a nastavení zůstanou. Hodí se k natažení uložených relací jednoho týmu do tvého vlastního nastavení; není to řešení, pokud potřebuješ čistou hranici mezi rolemi.
-- <!--i:monitor--> **Vedle sebe:** protože je vše vázané na zařízení, samostatný profil prohlížeče, samostatný uživatelský účet nebo druhá nainstalovaná PWA nese vlastní nezávislý profil Lolly. Můžeš mít spuštěnou svou osobní instalaci i instalaci pro kiosek na akci současně, bez přepínání.
+> Měj jeden soubor na kontext a pojmenuj každý podle toho, co je, například `LollyTools-events-2026.zip` a `LollyTools-me.zip`. Ten soubor je profil.
 
-Obojí se odehrává v sekci Storage: ukazatel vyúčtuje každý bajt, který tahle instalace drží, kategorii po kategorii, a tlačítka pod ním jsou to, čím data smažeš nebo přeneseš.
-
-![Ukazatel úložiště, rozklad uložených relací, obrázků a cache proti tomu, co skutečně hlásí prohlížeč](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-> Drž si jeden balíček na kontext a přejmenuj soubory tak, aby bylo jasné, co jsou (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Soubor *je* profil.
-
-## Přístupnost
-
-**Nastavení → Preferences → Přístupnost** obsahuje čtyři nastavení pohodlí pro aplikaci *kolem* tvé práce. Každé je vypnuté, dokud ho nezapneš, a žádné z nich nezasahuje dovnitř plátna nástroje ani do exportu - klidnější aplikace nesmí pohnout ani pixelem souboru, který odešleš.
-
-- <!--i:film--> **Omezit pohyb** - vypne přechody, posuny a animované ozdůbky v aplikaci. Plátno tvého nástroje a jakýkoli animovaný export se hýbou přesně tak, jak byly navrženy.
-- <!--i:image--> **Skrýt barevné náhledy** - nahradí barevnou grafiku náhledů v galerii klidnými kartami s ikonou a textem a sníží barevnost a kontrast náhledů tvých projektů, aby zůstaly rozpoznatelné, aniž by křičely. Uvnitř nástroje se vše zobrazuje v plné barvě.
-- <!--i:sliders--> **Vysoký kontrast** - zesílí okraje, text a zaostřovací rámečky aplikace. Barvy tvé značky a vše na plátně zůstává přesně tak, jak jsi to nastavil.
-- <!--i:font--> **Velký text** - zvětší písmo aplikace: popisky, menu a text tlačítek. Ovládací prvky si drží svou velikost, takže se zvětší jen slova uvnitř nich, a písmo v tvých návrzích zůstává nedotčené, takže se nic z toho, co exportuješ, nepřeuspořádá.
-
-Tyto žijí přímo v profilovém záznamu, a proto cestují při exportu profilu a přistanou na další instalaci vedle tvého jména a tvých relací. (Zařízení si navíc drží malé lokální zrcadlo, aby se nastavení uplatnilo ještě před prvním vykreslením; to zrcadlo je vázané jen na zařízení a necestuje.)
-
-## Tvá instance Lolly
-
-**Nastavení → Preferences → Instance Lolly** říká, odkud tato instalace bere své nástroje a katalog - adresu instance, nebo *Součástí této aplikace*, když je vše zabalené přímo v buildu. Tam, kde to nasazení nabízí, otevře odkaz **Konzole instance** její administrátorské rozhraní, **Změnit** přesměruje instalaci a **Opustit** odstraní systém designu, nástroje a katalog instance, zatímco tvoje vlastní práce zůstane (viz [Používej Lolly ve své organizaci](/info/organisation.html#leaving)).
-
-Přesměrování na jinou instanci vyžaduje **desktopovou aplikaci**: prohlížeč blokuje stránce načítání nástrojů a assetů napříč origins, takže na webu sekce jen hlásí, kde se nacházíš, a tím to končí.
-
-## Dostupné offline
-
-Lolly cachuje průběžně, ale průběžné cachování pokryje jen to, kde jsi už byl. **Nastavení → Preferences → Dostupné offline** je pro cestu, kterou vidíš přicházet: hodinu na letištním wifi před letem bez připojení. Stáhni si části, které budeš potřebovat, sleduj jeden ukazatel průběhu a všechno, co sis vzal s sebou, funguje dál i bez připojení.
-
-Sedm částí, u každé je velikost uvedena předem, než se rozhodneš:
-
-- <!--i:layout--> **Aplikace** - každé zobrazení, editor a font, včetně těch, které jsi ještě neotevřel. Bez toho se obrazovka, kterou jsi online nikdy nenavštívil, offline nenačte.
-- <!--i:image--> **Katalog** - assety značky nad rámec základních. Vezmi si vše, nebo otevři *Vybrat podle štítku* a vezmi si jen štítky, které používáš.
-- <!--i:book--> **Průvodci a dokumentace** - tento web s dokumentací, ve tvém jazyce, včetně screenshotů.
-- <!--i:cpu--> **Hlasy pro řeč** - hlasové modely za zvukem ve Scriptu a namluvením. Stáhnou se jednou a pak běží přímo na zařízení.
-- <!--i:zap--> **Modely zvětšování** - AI zvětšovače obrázků: foto, ilustrace/anime a obličej.
-- <!--i:layers--> **Odstranění pozadí** - modely na vystřižení přímo na zařízení za funkcí *Odstranit pozadí*.
-- <!--i:shield--> **Hloubková kontrola Ověřit** - skener vodoznaků na zařízení pro kontrolu Content Credentials bez připojení.
-
-Poslední čtyři jsou označené jako **velké stažení** a jsou záměrně samostatné opt-iny: **Stáhnout vše** nahoře vezme aplikaci, zvolený rozsah katalogu, dokumentaci a všechny nástroje v jednom kroku a nic víc. Hlasy pro řeč, zvětšovače, odstranění pozadí a hloubková kontrola se stáhnou jen tehdy, když si o daný řádek jmenovitě řekneš - pár set megabajtů skrytých v jednom tlačítku by bylo nepoctivé.
-
-Pod částmi je seznam po jednotlivých nástrojích: každý nástroj se stahuje samostatně (fajfka znamená připraveno offline), nebo **Stáhnout vše** smete celý seznam. Stahování lze obnovit - když ho zrušíš nebo ztratíš připojení, další běh pokračuje tam, kde skončil, a stáhne jen to, co chybí - a samo se obnoví, jakmile jsi zpátky online, přičemž stáhne jen to, co změnilo nové vydání.
-
-Pokud prohlížeč neudělil trvalé úložiště, sekce to uvede a nabídne **Chránit stažené soubory**, což o něj požádá - to je rozdíl mezi „staženo“ a „staženo, dokud si prohlížeč nevezme místo zpátky“.
-
-## Přesun profilu na nové zařízení
-
-Protože je profil čistě lokální, existují dva způsoby, jak ho dostat do prázdné instalace - na nový notebook, čerstvě resetovaný prohlížeč, kolegův počítač, offline stroj. **Přenes soubor**, jak popisuje níže, nebo drž svá zařízení v kroku přes úložiště, které si zvolíš, jak vysvětluje [Synchronizuj svá zařízení](/info/sync.html). Žádné přihlášení do Lolly ti ho neobnoví, a to je právě smysl: nic se od začátku nikdy nedostalo na server Lolly.
-
-V **Nastavení → Preferences → Úložiště → Přesunout na jiné zařízení**:
-
-- <!--i:download--> **Exportovat moje data** stáhne jeden soubor `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - pojmenovaný podle profilu, ke kterému patří, s pořadovým číslem pro daný den, aby se opakované exporty nepřekrývaly (části názvu se vynechají, pokud je profil nemá). Obsahuje tvůj profil, každou uloženou relaci (i s náhledem), tvoje nahrané obrázky - tokeny tvé značky a nainstalovaná písma jedou s nimi jako uživatelská aktiva - a tvoje předvolby (motiv, rozvržení, statistiky lokální aktivity).
-- <!--i:upload--> **Importovat data…** na jiné instalaci soubor znovu načte a pokračuješ přesně tam, kde jsi skončil(a). Vezme také kopii, kterou [Synchronizace](/info/sync.html) uchovává v tvém úložišti.
-- <!--i:box--> **Exportovat moje data & vykreslit vše** zapíše stejnou zálohu *plus* druhý zip, který vyrenderuje každou uloženou relaci do jejího hotového výstupního souboru, ve složkách odpovídajících tvým Projects. Kompletní offline archiv zdrojů i výsledků - u velkého množství relací může být rozsáhlý a pomalý.
-
-![Dvě tlačítka, která přesunou celou instalaci: Exportovat moje data zapíše jeden zip, Import data ho zase načte](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
-
-Balíček je obyčejný, samostatný zip, takže se dá přenést **jakýmkoliv** způsobem - přes USB, AirDrop, síťové úložiště, e-mail sám sobě - a cíl může být úplně offline. Každá část má kontrolní součet, takže soubor poškozený při přenosu se odhalí při importu, místo aby se obnovil napůl rozbitý. Import **slučuje** (u relace nebo obrázku se stejným názvem se zachová kopie uložená později; složky, oblíbené a šablony se přidají; údaje a nastavení cíle zůstanou; všechno ostatní se zachová), takže nikdy nesmaže cíl, který se už používal.
-
-Co se nepřenáší: cache katalogu (na novém zařízení se sama znovu stáhne) a samotné nástroje (předpokládá se, že už tam jsou).
-
-Přesné rozvržení balíčku, zásady verzí a pravidla integrity najdeš v **[Přenosu dat](/info/data-transfer.html)**; kompletní postup krok za krokem je v **[Používání Lolly → Přechod na jiné zařízení](/info/using.html#moving-to-another-device)**.
+[Přesuň svou práci na jiné zařízení](/info/find-your-work.html#move-your-work-to-another-device) pokrývá, co soubor obsahuje, co zůstane za ním a další způsoby přesunu, včetně Sync.
 
 ## Jak nástroje používají tvůj profil
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+**Předvyplňování.** Autor nástroje označí vstup jako čerpající z tvého profilu (`bindToProfile: "firstname"`, `"email"`, `"headshot"` a tak dále). Když se nástroj otevře, ten vstup se vyplní z tvého profilu a můžeš ho pro jednu relaci přepsat, aniž by se profil změnil, pokud vstup nezamyká politika organizace. Předvyplňování je místní pohodlí a probíhá, ať je **Use my details** zapnuto, nebo ne.
 
-Nástroj vždy jen *předvyplní* ta pole profilu, pro která byl výslovně postavený:
+**Uvedení autorství.** Při exportu mohou tvé údaje putovat jako autorské uvedení v metadatech souboru (PNG, PDF, SVG a další), aby hotový soubor mohl říct, kdo dílo vytvořil. Řídí to **Use my details to create** i autora u běhů Batch. Při vypnutí export stále říká, že byl vytvořen v Lolly, a nenese žádný osobní řádek autora ani kontaktu.
 
-**Opt-in (provenience).** Když exportuješ asset, tvé údaje volitelně jedou s sebou jako **provenience** - řádek autora/kreditu vložený do metadat souboru (PNG, PDF, SVG, …) - takže hotový asset může říct, kdo ho vytvořil. *Tohle* řídí **Použít moje údaje k tvorbě**: nech to vypnuté a export pořád ponese atribuci nástroje/platformy „Vytvořeno v Lolly”, ale žádný osobní řádek autora/kontaktu se nevloží. (Stejný opt-in nastavuje autora i u dávkových běhů **/pro**.) (Autoři nástrojů: viz [Tvorba nástrojů → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) a [Host API → `host.profile`](/info/host-api.html#host-profile).)
+Autoři nástrojů: viz [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) a [`host.profile`](/info/host-api.html#host-profile).
 
-![Jediný přepínač Použít moje údaje k tvorbě, umístěný vedle Uložit profil a vypnutý, dokud ho nezapneš](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![Jediný přepínač Use my details to create, označený jako volitelný a vypnutý, dokud ho nezapneš](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## Profil vs Platforma vs Možnosti
+## Profil, designový systém a schopnosti
 
-Tři věci, které v UI sedí blízko sebe a snadno se pletou:
+Tři věci leží v Settings blízko sebe a snadno se pletou:
 
-- <!--i:people--> **Profil** - *ty* (nebo tvůj tým, nebo role, ve které jsi): jméno, kontakt, fotka, tvá uložená práce. Osobní, vázané na zařízení, přenosné jako balíček.
-- <!--i:palette--> **Platforma** - *značka*: barvy, fonty a globální nastavení, podle kterých vykresluje každý nástroj. Sdílená a konzistentní, ne osobní.
-- <!--i:sliders--> **Schopnosti** - *co aplikace umí*: kompletní sada funkcí a nástroje, které máš k dispozici.
+- <!--i:people--> **Profile** - ty, tvůj tým nebo role, ve které jsi: jméno, kontakt, portrét a uložená práce. Osobní, uchovaný na zařízení a přenosný jako soubor.
+- <!--i:palette--> **Design system** - značka: barvy, písma a nastavení, s nimiž se vykresluje každý nástroj. Sdílený a konzistentní, ne osobní; viz [Design System Setup](/info/brand-studio.html).
+- <!--i:sliders--> **Capabilities** - co aplikace umí: funkce a nástroje, které máš k dispozici.
 
-Profil mění, *od koho* asset je; platforma mění, *jak vypadá*; možnosti určují, *co dokážeš vytvořit*.
+Profil mění, od koho soubor je; designový systém mění, jak soubor vypadá; schopnosti jsou to, co můžeš vytvořit.
 
-### „Profil" znamená jinde ještě dvě jiné věci - ne tenhle
-
-Slovo je v projektu přetížené. Ani jedno z toho není osobní profil, o kterém je tahle stránka:
-
-- <!--i:box--> **Obsahový profil** - konfigurace v čase buildu v `profiles.json`, která svazuje sadu balíčků nástrojů se značkovým katalogem (např. `suse`, `lolly-start`). To si vybírá operátor při nasazení, a je to i to, co **parametr URL/CLI** `profile` volí jako *barevnou* variantu při exportu (tiskovou podmínku ICC/CMYK - viz [Režim URL](/info/url-mode.html)). Obojí se týká *buildu/výstupu*, ne *tebe*. Viz [Konfigurace](/info/configuration.html).
-- <!--i:seal--> **Identitní profil** - volitelná **ověřená identita Content Credentials**, kterou si můžeš zaregistrovat (krátkodobý certifikát, který svazuje tvůj e-mail s tvými podepsanými exporty). To je podpisová identita, oddělená od polí jména/kontaktu osobního profilu, ačkoli **Použít mé údaje pro tvorbu** řídí, jestli se vloží kterékoli z nich. Viz [Identita Content Credentials](/info/content-credentials-identity.html).
+Slovo má v Lolly ještě tři další významy. **Obsahový profil** je nastavení sestavení, které vybírá, jaké nástroje a katalog nasazení nese; pojem definuje [Glosář](/info/glossary.html). Parametr odkazu `profile` vybírá barevný profil exportu, například tiskovou podmínku CMYK; viz [Rezervované parametry URL](/info/url-parameters.html#print). **Ověřená identita** je volitelný podpisový certifikát, který váže tvůj e-mail na podepsané exporty, oddělený od těchto údajů, i když **Use my details to create** řídí, zda se vkládá jedno či druhé; viz [Content Credentials](/info/content-credentials-identity.html).
 
 ![Karta Ověřená identita v šířce telefonu: výběr platnosti certifikátu a pod ním krok registrace - identitní profil, oddělený od tvých osobních údajů](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Soukromí
 
-Mimo výše uvedenou volitelnou registraci identity (která pošle e-mail, který zaregistruješ, certifikační službě - viz [Serverová plocha](/info/server-surface.html)), se profil nikdy nepřenáší, nenahrává ani nepoužívá k tvé identifikaci či sledování - není co odsouhlasit, jen toto upozornění, abys věděl, co se uchovává. Kdykoli vše smaž pomocí **Nastavení → Preferences → Vymazat všechna moje data**. Viz [Zásady ochrany osobních údajů](/info/privacy.html).
+Tvůj osobní profil je uložen lokálně. Tvé údaje mohou putovat v záloze nebo kopii Sync, v obsahu, který sdílíš nebo exportuješ, a při volitelném zápisu Content Credentials. V instanci Lolly Work jsou přihlášení, sdílená práce, politika telemetrie a auditní záznamy oddělené od tohoto místního profilu. **Settings → Preferences → Clear all my data** vymaže toto zařízení; nesmaže kopie držené poskytovatelem úložiště nebo organizací. Viz [Zásady ochrany soukromí](/info/privacy.html).

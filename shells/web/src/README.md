@@ -5,23 +5,23 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 811,000 lines of TypeScript, tests included, and 62,000 lines of CSS.
+Roughly 815,000 lines of TypeScript, tests included, and 62,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 561 files, 212,507 lines | 292 files, 94,840 lines | 10 files, 1,599 lines |
-| `lib/` | 839 files, 174,757 lines | 499 files, 98,298 lines | 13 files, 1,820 lines |
+| `views/` | 562 files, 213,455 lines | 297 files, 96,129 lines | 10 files, 1,599 lines |
+| `lib/` | 845 files, 175,994 lines | 503 files, 99,263 lines | 13 files, 1,820 lines |
 | `bridge/` | 224 files, 55,547 lines | 136 files, 28,647 lines | none |
-| `components/` | 128 files, 29,212 lines | 59 files, 15,149 lines | 24 files, 1,579 lines |
-| `org/` | 80 files, 20,267 lines | 56 files, 16,766 lines | none |
+| `components/` | 128 files, 29,220 lines | 59 files, 15,149 lines | 24 files, 1,579 lines |
+| `org/` | 80 files, 20,324 lines | 56 files, 16,895 lines | none |
 | `collab/` | 20 files, 13,572 lines | 22 files, 14,267 lines | none |
 | `pro/` | 32 files, 9,421 lines | 16 files, 2,305 lines | 3 files, 1,256 lines |
 | `catalog/` | 11 files, 1,834 lines | 9 files, 1,009 lines | none |
 | `capture/` | 5 files, 781 lines | none | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 10 files, 1,977 lines | 133 files, 55,546 lines |
+| `styles/` | none | 10 files, 1,977 lines | 134 files, 55,713 lines |
 
-Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,132 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,334 of that.
+Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,138 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,334 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -36,7 +36,7 @@ If the feature is about producing bytes rather than showing a screen, skip the v
 
 ## What lives where
 
-**`views/`**: one module per screen, each lazily imported by the `main.ts` switch, plus the sub-modules those screens split into. The routed entry points are `tool.ts`, `gallery.ts`, `assets.ts`, `projects.ts`, `profile.ts`, `dashboard.ts`, `valid.ts` (the `/verify` Content Credentials check), `multi-edit.ts`, `start.ts` (the brand studio), `color-lab.ts`, `pdf-extract.ts` and `components.ts` (the browsable component library). Everything else in here is a piece of one of those: `tool-inputs.ts`, `tool-actions.ts`, `tool-stage-nav.ts` and `tool-types.ts` belong to the tool view; `free-canvas*.ts`, `timeline-panel.ts`, `deck-editor.ts`, `doc-editor.ts` and `rich-text.ts` are editor surfaces; `pdf-import.ts`, `pptx-import.ts`, `idml-import.ts` and `design-import.ts` are ingest paths; `picker.ts` is the asset picker that `host.assets.pick` lazily loads.
+**`views/`**: one module per screen, each lazily imported by the `main.ts` switch, plus the sub-modules those screens split into. The routed entry points are `tool.ts`, `gallery.ts`, `assets.ts`, `projects.ts`, `profile.ts`, `dashboard.ts`, `valid.ts` (the `/verify` Content Credentials check), `multi-edit.ts`, `start.ts` (Design System Setup), `color-lab.ts`, `pdf-extract.ts` and `components.ts` (the browsable component library). Everything else in here is a piece of one of those: `tool-inputs.ts`, `tool-actions.ts`, `tool-stage-nav.ts` and `tool-types.ts` belong to the tool view; `free-canvas*.ts`, `timeline-panel.ts`, `deck-editor.ts`, `doc-editor.ts` and `rich-text.ts` are editor surfaces; `pdf-import.ts`, `pptx-import.ts`, `idml-import.ts` and `design-import.ts` are ingest paths; `picker.ts` is the asset picker that `host.assets.pick` lazily loads.
 
 **`bridge/`**: the web implementation of `HostV1`, one file per capability, composed by `index.ts`. Everything to do with turning a rendered DOM node into a file is here: `export.ts` and its satellites (`export-pdf-vector.ts`, `export-pdfx.ts`, `export-css.ts`, `export-image-meta.ts`, `export-pptx.ts`), `svg-ir.ts`, `text.ts` and `text-svg.ts` (HarfBuzz text-to-path), `font-registry.ts`, the `sequence-*.ts` and `video-encode*.ts` family for motion export, plus `state.ts`, `assets.ts`, `pdf.ts`, `pptx.ts`, `capture.ts`, `recorder.ts`, `media.ts`, `images.ts`, `audio.ts` and `viz.ts`. Six of them are now re-export shims over `packages/node-shell/src/` (`pdf.ts`, `pdf-structure.ts`, `pptx.ts`, `net.ts`, `svg-ir.ts`, `text-svg.ts`) - the terminal shells run the same code, and plans/202 WP1.1 moved the implementations into the package so `shells/cli` no longer imports across the submodule boundary. Treat their public exports as a contract with other shells and edit the node-shell file, not the shim. Four more are replaced wholesale at build time by the Tauri desktop shell (`state.ts`, `capture.ts`, `export.ts`, `capabilities-provided.ts`; the mobile shell overrides the same set minus `capture.ts`), which puts their public exports under the same rule.
 
@@ -73,8 +73,8 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,656 | `views/deck-editor.ts` | yes |
 | 2,558 | `views/design-import.ts` | **none** |
 | 2,557 | `views/timeline-math.ts` | yes |
+| 2,455 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
 | 2,448 | `views/free-canvas-math.ts` | yes |
-| 2,435 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
 | 2,334 | `main.ts` | yes |
 | 2,280 | `lib/drop-router.ts` | yes |
 | 2,241 | `components/color-field.ts` | yes |

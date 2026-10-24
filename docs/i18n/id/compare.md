@@ -1,25 +1,50 @@
 # Lolly dibandingkan, alat demi alat
 
-Lolly mencakup pekerjaan kreatif, mulai dari satu konversi di perangkat hingga produksi aset sebuah organisasi yang terkelola. Halaman-halaman ini membandingkan alur kerja yang didukung tiap produk, cara penerapannya, dan batasan yang penting saat memilih solusi.
+Jika Anda sudah memakai produk lain, halaman-halaman ini menyatakan apakah Lolly menggantikan produk itu, bekerja berdampingan dengannya, atau tidak cocok untuk pekerjaan Anda. Masing-masing dimulai dengan apa yang dilakukan produk lain itu lebih baik.
 
 _Terakhir diperiksa: 28 September 2026._
 
-## Satu proyek, dua bagian yang diterapkan secara terpisah
+## Bandingkan menurut produk
 
-**Lolly** adalah mesin, aplikasi, dan alat untuk membuat, mengedit, mengonversi, dan mengekspor. Lolly berjalan di perangkat Anda, dapat bekerja secara luring setelah aset yang diperlukan tersedia, dan tidak memerlukan akun untuk penggunaan mandiri.
-
-**[lolly.work](https://lolly.work)** adalah layanan organisasi milik proyek ini, dikelola di [repositori lolly-work](https://github.com/lolly-tools/lolly-work). Layanan ini menyediakan SSO, provisioning SCIM, peran dan kebijakan, katalog dan proyek bersama, persetujuan, kolaborasi kerja, pelaporan penggunaan, catatan audit, dan perenderan server. Kedua bagian berlisensi sumber terbuka MPL-2.0. Organisasi menjalankan lolly.work berdampingan dengan Lolly dan menentukan layanan mana yang diaktifkan.
-
-Perbandingan ini mencakup **Lolly + lolly.work**. Fitur yang membutuhkan layanan organisasi diidentifikasi secara eksplisit. Penggunaan mandiri menyimpan berkas di perangkat; memilih proyek bersama, kolaborasi kerja, perenderan server, atau pengiriman akan mengirim data terkait ke layanan yang dikonfigurasi. Situs publik lolly.work adalah sandbox; lihat [panduan penerapan](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) dan [status terkini](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) untuk penerapan di organisasi.
-
-## Bandingkan menurut alur kerja
-
-- [Lolly dan Canva](/info/compare-canva.html) - templat, desain sehari-hari, dan produksi merek bersama.
-- [Lolly dan Adobe](/info/compare-adobe.html) - pengeditan, konversi, keluaran profesional, dan Content Credentials.
+- [Lolly dan Canva](/info/compare-canva.html) - templat, desain sehari-hari, dan produksi brand bersama.
+- [Lolly dan Adobe](/info/compare-adobe.html) - penyuntingan, konversi, keluaran profesional, dan Content Credentials.
 - [Lolly dan Figma](/info/compare-figma.html) - desain, kolaborasi langsung, dan produksi aset yang dapat dipakai ulang.
-- [Lolly dan Penpot](/info/compare-penpot.html) - desain sumber terbuka, token bersama, dan alur kerja organisasi.
-- [Lolly dan portal merek](/info/compare-brand-portals.html) - pustaka yang disetujui, templat terkunci, identitas, peninjauan, dan pelaporan.
-- [Lolly dan API perenderan](/info/compare-render-apis.html) - pembuatan otomatis di perangkat Anda, di CI, atau melalui lolly.work.
-- [Lolly dan pengonversi berkas daring](/info/compare-converters.html) - konversi format di perangkat Anda sendiri.
+- [Lolly dan Penpot](/info/compare-penpot.html) - desain sumber terbuka, token bersama, dan pekerjaan organisasi.
+- [Lolly dan portal brand](/info/compare-brand-portals.html) - pustaka yang disetujui, templat terkunci, identitas, tinjauan, dan pelaporan.
+- [Lolly dan API rendering](/info/compare-render-apis.html) - pembuatan otomatis di perangkat Anda, di CI, atau di server Lolly Work.
+- [Lolly dan konverter file online](/info/compare-converters.html) - konversi format di perangkat Anda sendiri.
 
 Untuk tampilan per kemampuan, lihat [Perbandingan Lolly](/info/positioning.html). Setiap perbandingan diberi tanggal; klaim yang tidak lagi sesuai dengan salah satu produk perlu dikoreksi.
+
+## Apa yang berjalan di mana
+
+Setiap perbandingan mencakup dua bagian dari satu proyek sumber terbuka. **Lolly** adalah engine, aplikasi, dan alat. **Lolly Work** adalah server organisasi, dipelihara di [repositori lolly-work](https://github.com/lolly-tools/lolly-work). Keduanya MPL-2.0, dan organisasi memutuskan layanan Lolly Work mana yang diaktifkan.
+
+::: cols
+## Di perangkat Anda: Lolly
+
+- Tanpa akun untuk penggunaan mandiri
+- Membuat, menyunting, mengonversi, dan mengekspor
+- Berfungsi offline setelah alat dan aset yang diperlukan disimpan
+- Content Credentials ditandatangani di perangkat
+- Collab privat antara dua perangkat, tanpa server
+
+## Di server organisasi Anda: Lolly Work
+
+- Single sign-on, penyediaan SCIM, peran, dan kebijakan
+- Katalog bersama, proyek tim, dan work collab
+- Persetujuan, pelaporan penggunaan, dan catatan audit
+- Rendering server, pekerjaan yang dapat dipulihkan, dan pengiriman yang disetujui
+- Penandatanganan server dengan identitas organisasi
+:::
+
+Penggunaan mandiri menjaga file di perangkat. Memilih proyek bersama, work collab, render server, atau pengiriman mengirim data yang dibutuhkan fitur itu ke server organisasi Anda.
+
+## Apa yang diasumsikan setiap perbandingan
+
+Batasan ini berlaku untuk setiap halaman dalam set ini, jadi dinyatakan sekali di sini:
+
+- **Work collab berjalan pada satu node server hari ini.** Skala dan riwayat operasinya berbeda dari produk hosted yang sudah lama mapan. [Work status and roadmap](/info/work-status.html) mencatat batas saat ini.
+- **Situs di [lolly.work](https://lolly.work) adalah sandbox demo.** Deployment organisasi yang tahan lama memerlukan penyimpanan persisten dan operator; [Install Lolly Work](/info/work-install.html) membahas keduanya.
+- **Tidak ada biaya lisensi perangkat lunak per kursi** untuk Lolly atau Lolly Work yang di-host sendiri. Hosting, penyimpanan, dan operasi tetap memerlukan biaya.
+- **Tanda tangan bukan penandatangan tepercaya.** Verifier harus memercayai sertifikat yang menandatangani file sebelum menampilkan penandatangan sebagai tepercaya; [Content Credentials Identity](/info/content-credentials-identity.html) menjelaskan caranya.

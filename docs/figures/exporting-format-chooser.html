@@ -1,0 +1,69 @@
+<!--
+  Concept: pick a format by where the file is going. Six destinations, each with a one-line rule and the
+  format chips that suit that destination. The full table with a reason per format stays on the page in a fold.
+  Contract: static fragment scoped under .efc, reads the docs theme tokens with fallbacks, no script, no
+  motion, no network.
+  Sources: the format labels of shells/web/src/lib/export-format-info.ts and the render.formats lists of
+  community/*/tool.json (docs/exporting.md, "Pick a format").
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.efc{--efc-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--efc-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --efc-ground:hsl(var(--secondary,84.5 55% 92.2%));--efc-paper:hsl(var(--card,0 0% 100%));
+ --efc-accent:hsl(var(--primary,176.5 89.5% 11.2%));--efc-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);
+ --efc-chip:color-mix(in oklab,var(--efc-accent) 10%,var(--efc-paper));
+ color:var(--efc-ink);background:var(--efc-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.efc *{box-sizing:border-box}
+.efc ul{list-style:none;margin:0;padding:0}
+.efc li{list-style:none;margin:0;font-size:inherit}
+.efc p{margin:0}
+.efc .efc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.efc .efc-card{background:var(--efc-paper);border-radius:16px;box-shadow:0 0 0 1px var(--efc-line);padding:14px 14px 12px;display:flex;flex-direction:column;gap:8px}
+.efc .efc-head{display:flex;align-items:center;gap:8px;font-weight:600;font-size:1.02em}
+.efc .efc-ico{width:22px;height:22px;flex:none;fill:none;stroke:var(--efc-accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.efc .efc-when{color:var(--efc-muted);font-size:.86em}
+.efc .efc-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+.efc .efc-chips li{background:var(--efc-chip);border-radius:999px;padding:2px 9px;font-size:.8em;font-weight:500;white-space:nowrap}
+.efc .efc-chips li.efc-lead{background:var(--efc-accent);color:hsl(var(--primary-foreground,0 0% 100%))}
+.efc .efc-foot{margin-top:10px;font-size:.8em;color:var(--efc-muted)}
+@container (max-width:640px){.efc .efc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (max-width:400px){.efc .efc-grid{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="efc" role="group" aria-label="Pick a format by where the file is going">
+  <ul class="efc-grid">
+    <li class="efc-card">
+      <p class="efc-head"><svg class="efc-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Screen and web</p>
+      <p class="efc-when">A chat, a slide, a website or a social post.</p>
+      <ul class="efc-chips"><li class="efc-lead">PNG</li><li>JPG</li><li>WebP</li><li>AVIF</li><li>SVG</li></ul>
+    </li>
+    <li class="efc-card">
+      <p class="efc-head"><svg class="efc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>Print and cutting</p>
+      <p class="efc-when">A printer, a press or a cutting machine.</p>
+      <ul class="efc-chips"><li class="efc-lead">PDF</li><li>Print PDF</li><li>Print TIFF</li><li>EPS</li><li>DXF</li></ul>
+    </li>
+    <li class="efc-card">
+      <p class="efc-head"><svg class="efc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Edit in another app</p>
+      <p class="efc-when">Someone keeps working on the content.</p>
+      <ul class="efc-chips"><li class="efc-lead">PowerPoint</li><li>Penpot</li><li>Word</li><li>OpenDocument</li><li>InDesign IDML</li><li>EMF</li></ul>
+    </li>
+    <li class="efc-card">
+      <p class="efc-head"><svg class="efc-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 10l5-3v10l-5-3z"/></svg>Motion</p>
+      <p class="efc-when">A video, a looping image or an animation.</p>
+      <ul class="efc-chips"><li class="efc-lead">MP4</li><li>WebM</li><li>GIF</li><li>APNG</li><li>Animated WebP</li><li>Animated SVG</li><li>dotLottie</li></ul>
+    </li>
+    <li class="efc-card">
+      <p class="efc-head"><svg class="efc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Sound</p>
+      <p class="efc-when">A voice take, a song or a soundtrack.</p>
+      <ul class="efc-chips"><li class="efc-lead">MP3</li><li>WAV</li><li>M4A</li><li>Opus</li></ul>
+    </li>
+    <li class="efc-card">
+      <p class="efc-head"><svg class="efc-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>Text, data and packages</p>
+      <p class="efc-when">An email, a calendar, a spreadsheet or a course.</p>
+      <ul class="efc-chips"><li class="efc-lead">HTML</li><li>Markdown</li><li>CSV</li><li>JSON</li><li>ICS</li><li>VCF</li><li>SRT</li><li>VTT</li><li>ZIP</li><li>SCORM</li></ul>
+    </li>
+  </ul>
+  <p class="efc-foot">A tool lists only the formats it can make, and only the ones this browser can produce.</p>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKFWp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnvanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo1MGI3ZTUwMC02NmIxLTQ5ODUtYjljZS0yM2ZhNjNmODVkY2EAAAAEZ2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTE6MTdaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkVRGZsZW5ndGgZDdZkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIJXx5i2Jndbe1bnXkaq6/nSiRjrTH4To5XyRvhzBVbDBY3BhZEgAAAAAAAAAAAAAAPBqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAAC8Y2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x4GGV4cG9ydGluZy1mb3JtYXQtY2hvb3NlcmRkYXRleBgyMDI2LTEwLTIzVDA1OjUxOjE3Ljc0N1pqZGltZW5zaW9uc2syNCDDlyAyNCBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALXanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqhjYm9ypmhkYzp0aXRsZXgYZXhwb3J0aW5nLWZvcm1hdC1jaG9vc2Vyamluc3RhbmNlSUR4LXVybjp1dWlkOmMyNjUzYjIwLWU1ODEtNDkxOS1iNjNjLTExMDE5YjIxNjI2YXRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggF7Kr51k1OvDvc996A8MWYImoyMPVgRM/G5rVgenLGcSiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggWk0XGzryPycmeTiMGrMhrFA8Xwpne9NZAkNn7Cj0otqiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIFxyUfHS99lRXxDzL7xYfd3tD1NN+E22ZzB4Epc6uZ6nomN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYmp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMmNib3LShFkB4aIBJhghgVkB2DCCAdQwggF5oAMCAQICCV62Za3zuzbmwDAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDU1MDE3WhcNMzYxMDIwMDU1MTE3WjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARPl+R0jDRyUMUODHnL55gD/WFqMvv/g3PTemRSaFp6PcRRJ2knh5t1rgs17mBYpk+PC5XLpsKPLcqK3VC3OOpPo3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQU1ElVC9fArB3ymphXgjzc8pqk/v8wHwYDVR0jBBgwFoAU1ElVC9fArB3ymphXgjzc8pqk/v8wCgYIKoZIzj0EAwIDSQAwRgIhAN1Dau4kFbfgfUeJCIQCICqljh+uCF41nK8/RO+XX/KiAiEA7pDpavCPCcHv8fb6VxG3qUPNJr8b+MUPklOjir2C3Aug9lhAjDTnNm/pIu31kfcKPu6qMsOToBaKRzo6nwbw2wgRHeKFzEUdinhTunQti2vs2vZbGLPscpbYZmX1wYgWihi6DA== -----END C2PA MANIFEST----- -->

@@ -102,6 +102,11 @@ export interface UrlGauge {
   /** Render a fresh cost model. `base` is accepted for the callers' symmetry; the meter
    *  measures content only (readableLen - baseLen). */
   update(model: UrlCostModel, base?: string): void;
+  /** Run `cost` now while a Share button that draws the meter is on screen, or else once
+   *  one comes on screen. Costing a link encodes the whole document, so a hidden meter
+   *  waits. Without IntersectionObserver nothing could report the meter coming back, so
+   *  `cost` runs at once. A later call replaces a waiting one. */
+  costWhenShown(cost: () => void): void;
   /** Clear the root state, cancel the toast timer and take the toast down - call on tool
    *  unmount so no Share button elsewhere keeps showing this tool's link. */
   dispose(): void;
@@ -179,7 +184,29 @@ export function createShareMeter(toastEl: HTMLElement | null, labels: GaugeLabel
     paint(gaugeVisual(queryLen, model.fidelity.faithful, model.target));
   };
 
+  let waiting: IntersectionObserver | null = null;
+  const costWhenShown = (cost: () => void): void => {
+    waiting?.disconnect();
+    waiting = null;
+    const Observer = doc.defaultView?.IntersectionObserver;
+    const buttons = [...doc.querySelectorAll<HTMLElement>('[data-share-meter]')];
+    if (!Observer || buttons.some((button) => button.getClientRects().length > 0)) {
+      cost();
+      return;
+    }
+    const observer = new Observer((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      if (waiting === observer) waiting = null;
+      cost();
+    });
+    waiting = observer;
+    for (const button of buttons) observer.observe(button);
+  };
+
   const dispose = (): void => {
+    waiting?.disconnect();
+    waiting = null;
     hideToast();
     toastEl?.remove();
     delete root.dataset.shareBand;
@@ -188,5 +215,5 @@ export function createShareMeter(toastEl: HTMLElement | null, labels: GaugeLabel
     for (const button of doc.querySelectorAll<HTMLElement>('[data-share-meter]')) button.removeAttribute('aria-description');
   };
 
-  return { update, dispose };
+  return { update, costWhenShown, dispose };
 }

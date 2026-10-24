@@ -9,6 +9,7 @@ import { openDocxMetadata } from '../engine/src/docx-metadata.ts';
 import { readZipMembers, decodeZipMember, storeZip, storeZipMembers } from '../engine/src/zip.ts';
 import { readOfficeXml } from '../engine/src/office-xml.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL or LOLLY_EXPORT_TEST_URL not set (serve the web shell locally)';
@@ -66,6 +67,7 @@ test('phone Strip Data removes selected Company while retaining Manager and rese
     assert.equal(await company.count(), 0);
     assert.equal(await manager.isChecked(), false);
     assert.equal(createHash('sha256').update(bytes).digest('hex'), originalHash);
+    await settledUrl(page); // the address the tool is still writing counts too
     assert.doesNotMatch(await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage }, url: location.href })), privateValues);
   } finally { await browser.close(); }
 });

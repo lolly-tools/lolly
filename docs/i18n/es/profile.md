@@ -1,162 +1,97 @@
-# Perfiles - quién eres cuando creas
+# Perfiles
 
-Un **perfil** es la identidad de trabajo con la que Lolly crea. Es el pequeño conjunto de datos del que una herramienta puede tomar información para que no tengas que volver a escribirlos cada vez - tu nombre, datos de contacto, una foto opcional, algunas preferencias - además de todo lo que acumulas mientras trabajas: sesiones guardadas, imágenes subidas y el recuento de actividad local.
+Define una vez tu nombre, tus datos de contacto y tu foto, y cada herramienta creada para usarlos los rellena por ti: una firma de correo, una credencial, una tarjeta de ponente. Ese pequeño registro es tu **perfil**, y vive en tu dispositivo.
 
-Todo lo que hay en un perfil vive **en el dispositivo**, en la base de datos local del navegador (IndexedDB en la PWA web, el sistema de archivos en las apps de Tauri). No hay cuenta y no se sube nada. Lo gestionas en **Ajustes → Preferences** (en el pie de página o en el menú de avatar); las herramientas solo *leen* el perfil, y únicamente los campos concretos para los que fueron diseñadas para autocompletar.
-
-> Ajustes reúne tu perfil y el antiguo Dashboard en un único destino. **Preferences** contiene tus datos y tus elecciones personales; **Este dispositivo**, **Sistema de diseño**, **Capacidades** y **Actividad y estadísticas** están junto a él. Consulta [Ajustes](/info/dashboard.html) para ver el mapa completo.
+Tu perfil también guarda lo que acumulas mientras trabajas: sesiones guardadas, imágenes subidas y tu recuento local de actividad. Lo gestionas en **Settings → Preferences**; las herramientas solo leen los campos para los que se crearon. El uso independiente no necesita cuenta, y Sync opcional, compartir y los servicios de organización tienen cada uno sus propios flujos de datos, descritos más abajo.
 
 ## Qué hay en un perfil
 
 | Parte | Qué es |
 |---|---|
-| **Nombre** | Nombre y apellidos. |
-| **Contacto** | Correo electrónico y teléfono. |
-| **Ubicación** | Ciudad y país. |
-| **Foto** | Una foto opcional, recortada a cuadrado y guardada como imagen local. La usan herramientas como firmas de correo, tarjetas de cita, organigramas y diseños dinámicos. |
-| **Usar mis datos para crear** | Un único interruptor de aceptación (dice **Usando mis datos** una vez activado). Controla si tus datos personales viajan como **procedencia** - la línea de autoría/crédito incrustada en los archivos exportados - y como autor en las ejecuciones por lotes de **/pro**. (No condiciona el autorrelleno: consulta [Cómo usan las herramientas tu perfil](#how-tools-use-your-profile).) |
-| **Preferencias** | Tu tema (Claro, Oscuro o Marca - el tema de marca pinta la app con tu propia paleta) y qué partes de la app has habilitado mediante **Feature flags**. |
-| **Accesibilidad** | Cuatro interruptores de confort - *Reducir movimiento*, *Ocultar vistas previas coloridas*, *Alto contraste*, *Texto grande* - guardados en el registro de perfil, así que viajan en una exportación de perfil. Consulta [Accesibilidad](#accessibility). |
-| **Tu trabajo** | Sesiones guardadas (con miniaturas) - organizadas en carpetas anidadas en **[Proyectos](/info/using.html)** - tu biblioteca **Mis imágenes** y las estadísticas de actividad local, todo vinculado a este perfil. |
+| **Name** | Nombre y apellidos. |
+| **Contact** | Correo y teléfono. |
+| **Location** | Ciudad y país. |
+| **Headshot** | Una foto opcional, recortada a un cuadrado y guardada como imagen local, para herramientas como firmas de correo, tarjetas de cita y organigramas. |
+| **Use my details to create** | Un interruptor de aceptación (se lee **Using my details** una vez activado). Decide si tus datos viajan como crédito de autoría en los archivos exportados y en las ejecuciones de Batch. No afecta al rellenado previo; consulta [How tools use your profile](#how-tools-use-your-profile). |
+| **Preferences** | Tu tema, tus ajustes de accesibilidad y qué partes de la aplicación activaste en **Feature flags**. |
+| **Your work** | Sesiones guardadas con sus miniaturas, organizadas en [Projects](/info/find-your-work.html), tus imágenes subidas y tus estadísticas locales de actividad. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Nada es obligatorio. Un perfil en blanco funciona; rellena solo lo que te ahorre escribir.
 
-![La pantalla de Perfil - nombre, contacto, una foto opcional y tus preferencias](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Settings en la pestaña Preferences: el carril de ajustes, y Your details con el interruptor Use my details to create y los campos de nombre, contacto y ubicación](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-| Parte | Qué es |
-|---|---|
-| **Nombre** | Nombre y apellidos. |
-| **Contacto** | Correo electrónico y teléfono. |
-| **Ubicación** | Ciudad y país. |
-| **Foto de perfil** | Una foto opcional, recortada en cuadrado y guardada como imagen local. La usan herramientas como firmas de correo, tarjetas de citas, bloques de color y diseños dinámicos. |
-| **Usar mis datos** | Un único interruptor de activación voluntaria. Controla si tus datos personales viajan como **procedencia** - la línea de autoría/crédito incrustada en los archivos exportados - y como autor en las ejecuciones por lotes de **/pro**. (No condiciona el autocompletado: consulta [Cómo usan las herramientas tu perfil](#how-tools-use-your-profile).) |
-| **Preferencias** | Tu tema (claro, oscuro o SUSE) y qué partes de la app has activado mediante los indicadores de funciones (**Feature flags**). |
-| **Tu trabajo** | Sesiones guardadas (con miniaturas) - organizadas en carpetas anidadas en **[Proyectos](/info/using.html)** - tu biblioteca de **Mis imágenes**, y las estadísticas de actividad local, todo vinculado a este perfil. |
+[Settings](/info/dashboard.html) recoge todo lo demás de Preferences, desde la apariencia y los emojis hasta el almacenamiento y las descargas sin conexión.
 
-La página es larga, así que lleva su propio **riel de ajustes** por el lateral - Tus datos, Apariencia, Accesibilidad, Instancia de Lolly, Tu actividad, Almacenamiento, Disponible sin conexión, Funciones experimentales, Content Credentials - con un campo **Buscar ajustes** encima que filtra la lista mientras escribes. Cada sección se puede enlazar directamente como `#/settings?focus=<section-id>`, lo que la abre y la desplaza a la vista (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, etc.), así que un enlace puede apuntar a un ajuste concreto en lugar de a la parte superior de la página.
+## Tú, un equipo o un rol
 
-![Tres tarjetas de tema, cada una mostrando su propio tipo y color, con la activa marcada](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+La palabra "perfil" sugiere una persona fija. En Lolly se parece más a un contexto de creación: quién eres mientras haces esto. Puede adoptar tres formas, y Lolly trata cada una del mismo modo.
 
-## Un perfil es un contexto, no solo una persona
+::: cols
+## Como tú mismo
 
-La palabra "perfil" sugiere una única persona fija, pero en Lolly es en realidad un **contexto de creación** - *quién eres mientras haces esto*. Ese contexto puede adoptar tres formas distintas, y Lolly las gestiona todas de la misma manera.
+Lo predeterminado. Tu nombre, tu correo, tu foto. Defínelo una vez y tu firma, tu credencial y tu rótulo de congreso se rellenan solos.
 
-### Como individuo
+## Como un equipo
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+El nombre compartido de un equipo, una bandeja de grupo como `events@…`, un departamento y la marca del equipo. Una persona lo configura y lo exporta, y todos los demás cargan el mismo perfil, así que los archivos del equipo llevan datos coherentes. Un quiosco compartido o un portátil de demostración puede ejecutar un perfil de equipo.
+
+## Como un rol
+
+Una persona que gestiona eventos tres días al año quiere la bandeja del evento y la submarca del evento en credenciales y cartelería, y luego recuperar su identidad habitual. Guarda ese rol como un archivo de perfil, cárgalo para el evento y déjalo a un lado después.
+:::
 
 ![El control de foto, vacío hasta que subes una imagen que luego permanece en este dispositivo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-### Como equipo
+::: details Perfiles en una organización que usa Lolly Work
+Cuando inicias sesión en el [Lolly de una organización](/info/organisation.html), Lolly Work puede aportar campos de perfil verificados desde su proveedor de identidad y fijar campos o preferencias según la política de la organización. Un campo gestionado se etiqueta en la aplicación.
 
-Un perfil no tiene por qué ser una sola persona. Puede representar a un **equipo o función dentro de una organización**: el nombre compartido del equipo, una dirección de bandeja de entrada de grupo (`events@…`), un departamento, la foto del equipo o el distintivo de la unidad. Una persona lo configura, lo exporta (ver más abajo) y el resto del equipo carga el mismo perfil - así todo lo que produce el equipo lleva datos coherentes sin que nadie tenga que volver a introducirlos. Un quiosco compartido o un portátil de demostración prestado puede ejecutar un único perfil de equipo bajo el que crea todo el que lo usa.
+Ese inicio de sesión también controla el acceso a proyectos y recursos compartidos. Un archivo de perfil de equipo sigue siendo un archivo local: no concede pertenencia a la organización ni sustituye una cuenta de trabajo. **Use my details to create** controla el crédito en tus exportaciones, no el inicio de sesión ni los registros de auditoría de la organización. Consulta [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+:::
 
-### Como función - un papel que te pones a veces
+## Guarda varios, usa uno
 
-Este es el caso que el modelo rígido de "una persona, un perfil" no contempla. Puede que seas **gestor de eventos tres días al año** y otra cosa completamente distinta el resto del tiempo. Esos tres días quieres los datos del evento, la bandeja de entrada del evento, quizá una submarca del evento para rellenar tus credenciales y señalética; los otros 362 quieres recuperar tu identidad normal.
+Una instalación tiene un perfil activo a la vez, y no hay selector en la aplicación. En su lugar, cada perfil es un archivo portátil, el mismo archivo de copia de seguridad que usarías para pasar a un dispositivo nuevo. Para entrar en otro contexto:
 
-En Lolly, ese papel es solo **otro perfil que tienes a mano** - un paquete guardado (siguiente sección) que cargas para el evento y apartas después. El papel es un sombrero, no una cuenta nueva. Póntelo cuando lo necesites, quítatelo cuando termines.
+::: timeline
+- <!--i:download--> **Export my data** en **Settings → Storage → Move to another device** guarda el perfil actual como un único `.zip`.
+- <!--i:trash--> **Clear all my data** vacía esta instalación.
+- <!--i:upload--> **Import data…** carga el archivo de perfil del contexto al que entras.
+:::
 
-## Una instalación, un perfil activo - puedes conservar muchos
+Importar sin borrar antes **fusiona**. Las sesiones y las imágenes importadas se añaden; donde existen ambas copias, se conserva la guardada más recientemente. Las carpetas, los favoritos y las plantillas se añaden junto a los tuyos, y tus propios datos se mantienen, salvo los campos vacíos, que toman los valores del archivo. Eso sirve para incorporar a tu configuración las sesiones de un equipo, pero no para una separación limpia entre roles.
 
-En cualquier momento una instalación tiene **un perfil activo** - los datos que ve una herramienta ahora mismo. No hay un selector de perfil dentro de la app; en su lugar, cada perfil es un **paquete portátil** (un único `.zip`, ver [más abajo](#moving-a-profile-to-a-new-device)). Ese es, deliberadamente, el mismo mecanismo que mudarse a un dispositivo nuevo - un perfil es un archivo que puedes guardar, copiar y cargar.
+Para dos contextos a la vez, usa un perfil de navegador distinto, una cuenta de usuario distinta o una segunda copia instalada de la aplicación web: cada una lleva su propio perfil de Lolly independiente.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![Los dos botones que mueven toda una instalación: Export my data escribe un zip, Import data lo vuelve a leer](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-- <!--i:trash--> **Cambio más limpio:** **Ajustes → Preferences → Almacenamiento → Borrar todos mis datos**, y luego **Importar** el paquete para el contexto al que estás pasando. Ahora estás creando puramente como ese perfil.
-- <!--i:layers--> **Superposición:** importar *sin* borrar antes **fusiona** - las sesiones e imágenes importadas se colocan encima de lo que ya hay; cuando ambos tienen el mismo elemento, se conserva la copia guardada más recientemente, y el resto se deja como está. Las carpetas, los favoritos y las plantillas se añaden a los tuyos, y tus propios datos y ajustes se mantienen. Útil para traer las sesiones guardadas de un equipo a tu propia configuración; no es lo que quieres si necesitas una separación de roles limpia.
-- <!--i:monitor--> **En paralelo:** como todo es específico del dispositivo, un perfil de navegador aparte, una cuenta de usuario aparte o una segunda PWA instalada llevan cada uno su propio perfil de Lolly independiente. Ejecuta tu instalación personal y la instalación del quiosco del evento a la vez, sin cambiar entre ellas.
+> Guarda un archivo por contexto y nombra cada uno según lo que es, como `LollyTools-events-2026.zip` y `LollyTools-me.zip`. El archivo es el perfil.
 
-Así que si de verdad manejas varios contextos a la vez (tú, tu equipo, el sombrero de gestor de eventos), conservas varios paquetes y cargas el que necesites:
-
-![El medidor de almacenamiento, desglosando sesiones guardadas, imágenes y caché frente a lo que realmente informa el navegador](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-> Conserva un paquete por contexto y renombra los archivos según lo que son (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). El archivo *es* el perfil.
-
-## Accesibilidad
-
-**Ajustes → Preferences → Accesibilidad** contiene cuatro ajustes de confort para la app *alrededor* de tu trabajo. Cada uno está desactivado hasta que lo activas, y ninguno llega dentro de un lienzo de herramienta ni de una exportación - una app más calmada no debe mover ni un píxel del archivo que entregas.
-
-- <!--i:film--> **Reducir movimiento** - desactiva las transiciones, deslizamientos y florituras animadas de la app. Tu lienzo de herramienta y cualquier exportación animada siguen moviéndose exactamente como están diseñados.
-- <!--i:image--> **Ocultar vistas previas coloridas** - cambia las ilustraciones de vista previa de la galería por tarjetas tranquilas de icono y texto, y reduce el color y el contraste de las miniaturas de tus proyectos para que sigan siendo reconocibles sin gritar. Dentro de una herramienta todo se muestra a todo color.
-- <!--i:sliders--> **Alto contraste** - refuerza los bordes, el texto y los anillos de foco de la app. Los colores de tu marca y todo lo que hay en el lienzo se mantienen exactamente como los configuraste.
-- <!--i:font--> **Texto grande** - agranda el tipo de la app: etiquetas, menús y texto de botones. Los controles mantienen su tamaño, así que solo las palabras dentro de ellos crecen, y el tipo dentro de tus diseños queda intacto, así que nada de lo que exportas se reajusta.
-
-Estos viven en el propio registro de perfil, por lo que viajan en una exportación de perfil y llegan a la siguiente instalación junto con tu nombre y tus sesiones. (El dispositivo también guarda un pequeño espejo local para que el ajuste se aplique antes del primer pintado; ese espejo es solo del dispositivo y no viaja.)
-
-## Tu instancia de Lolly
-
-**Ajustes → Preferences → Instancia de Lolly** indica de dónde obtiene esta instalación sus herramientas y su catálogo - la dirección de la instancia, o *Incluido con esta app* cuando todo se distribuye dentro de la compilación. Donde una implementación lo ofrece, un enlace de **Consola de la instancia** abre su superficie de administración, **Cambiar** redirige la instalación, y **Salir** elimina el sistema de diseño, las herramientas y el catálogo de la instancia mientras tu propio trabajo permanece (ver [Usa Lolly en tu organización](/info/organisation.html#leaving)).
-
-Redirigir a otra instancia necesita la **app de escritorio**: un navegador bloquea que una página cargue herramientas y activos entre orígenes distintos, así que en la web la sección informa dónde estás y lo deja ahí.
-
-## Disponible sin conexión
-
-Lolly guarda en caché a medida que avanzas, pero ese guardado en caché sobre la marcha solo cubre por dónde ya has pasado. **Ajustes → Preferences → Disponible sin conexión** es para el viaje que ves venir: una hora con wifi de aeropuerto antes de un vuelo sin nada. Descarga las partes que necesitarás, mira una sola barra de progreso, y todo lo que descargaste sigue funcionando aunque se corte la conexión.
-
-Siete partes, cada una con su tamaño indicado antes de que te comprometas:
-
-- <!--i:layout--> **La app** - cada vista, editor y fuente, incluidas las que aún no has abierto. Sin esto, una pantalla que nunca visitaste en línea no puede cargar sin conexión.
-- <!--i:image--> **Catálogo** - activos de marca más allá de lo esencial. Llévatelo todo, o abre *Elegir por etiqueta* y llévate solo las etiquetas que usas.
-- <!--i:book--> **Guías y documentación** - este sitio de documentación, en tu idioma, capturas de pantalla incluidas.
-- <!--i:cpu--> **Voces de voz** - los modelos de voz detrás del audio y la narración de Script. Se descargan una vez, y luego se ejecutan en el dispositivo.
-- <!--i:zap--> **Modelos de escalado** - los ampliadores de imagen por IA: foto, ilustración/anime y rostro.
-- <!--i:layers--> **Eliminación de fondo** - los modelos de recorte en el dispositivo detrás de *Eliminar fondo*.
-- <!--i:shield--> **Análisis profundo de Verificar** - el escáner de marca de agua en el dispositivo, para comprobar Content Credentials sin conexión.
-
-Las cuatro últimas están marcadas como **descarga grande**, y son deliberadamente opciones individuales: **Descargar todo** en la parte superior toma la app, el alcance de catálogo que elegiste, la documentación y todas las herramientas de una vez, y nada más. Las voces de voz, los ampliadores, la eliminación de fondo y el análisis profundo solo se descargan cuando pides esa fila por su nombre - unos cientos de megabytes escondidos dentro de un solo botón sería deshonesto.
-
-Debajo de las partes está la lista por herramienta: cada herramienta se descarga individualmente (la marca indica lista sin conexión), o **Descargar todas** las arrastra todas de golpe. Las descargas son reanudables - cancela o pierde la conexión y la siguiente ejecución retoma donde se quedó, obteniendo solo lo que falta - y se actualizan solas cuando vuelves a estar en línea, trayendo solo lo que cambió una nueva versión.
-
-Si el navegador no ha concedido almacenamiento persistente, la sección lo indica y ofrece **Proteger descargas**, que lo solicita - la diferencia entre "descargado" y "descargado hasta que el navegador quiera recuperar el espacio".
-
-## Mover un perfil a un dispositivo nuevo
-
-Como un perfil es totalmente local, hay dos formas de llevarlo a una instalación en blanco - un portátil nuevo, un navegador recién restablecido, el equipo de un compañero, una máquina sin conexión. **Lleva el archivo contigo**, como se explica abajo, o mantén tus propios dispositivos sincronizados mediante el almacenamiento que elijas, como explica [Sincroniza tus dispositivos](/info/sync.html). Ningún inicio de sesión de Lolly lo restaura por ti, y esa es la idea: nada llegó nunca a un servidor de Lolly, para empezar.
-
-En **Ajustes → Preferences → Almacenamiento → Mover a otro dispositivo**:
-
-- <!--i:download--> **Exportar mis datos** descarga un `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - con un nombre según el perfil al que pertenece, con un número de secuencia diario para que las exportaciones repetidas no choquen entre sí (las partes del nombre se omiten cuando el perfil no las tiene). Contiene tu perfil, todas las sesiones guardadas (con su miniatura), tus imágenes subidas - tus tokens de marca y las fuentes instaladas viajan junto como activos de usuario - y tus preferencias (tema, diseño, estadísticas de actividad local).
-- <!--i:upload--> **Importar datos…** en la otra instalación vuelve a leer ese archivo y retomas exactamente donde lo dejaste. También lee una copia que [Sincronización](/info/sync.html) guarda en tu almacenamiento.
-- <!--i:box--> **Exportar mis datos & renderizar todo** escribe esa misma copia de seguridad *además de* un segundo zip que renderiza cada sesión guardada a su archivo de salida final, en carpetas que reflejan tus Proyectos. Un archivo completo sin conexión tanto de las fuentes como de los resultados - y puede ser grande y lento con muchas sesiones.
-
-![Los dos botones que mueven una instalación entera: Exportar mis datos escribe un zip, Importar datos lo vuelve a leer](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
-
-El paquete es un zip plano y autocontenido, así que viaja por **cualquier** medio - USB, AirDrop, un recurso compartido de red, un correo a ti mismo - y el destino puede estar totalmente sin conexión. Cada parte lleva su suma de comprobación, así que un archivo dañado durante el traslado se detecta al importar en lugar de restaurarse a medias. Importar **fusiona** (en una sesión o imagen con el mismo nombre, se conserva la copia guardada más recientemente; se añaden las carpetas, los favoritos y las plantillas; los datos y ajustes del destino se mantienen; todo lo demás se conserva), así que nunca borra un destino que ya estuviera en uso.
-
-Lo que no viaja: la caché del catálogo (se vuelve a descargar sola en el dispositivo nuevo) y las propias herramientas (se asume que ya están presentes).
-
-Para el diseño exacto del paquete, la política de versiones y las reglas de integridad, consulta **[Transferencia de datos](/info/data-transfer.html)**; para el recorrido completo de principio a fin, **[Usar Lolly → Mudarse a otro dispositivo](/info/using.html#moving-to-another-device)**.
+[Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) cubre lo que contiene el archivo, lo que se queda atrás y las demás formas de mover, incluido Sync.
 
 ## Cómo usan las herramientas tu perfil
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+**Rellenado previo.** El autor de una herramienta marca una entrada como tomada de tu perfil (`bindToProfile: "firstname"`, `"email"`, `"headshot"` y así sucesivamente). Cuando la herramienta se abre, esa entrada se rellena desde tu perfil, y puedes anularla durante una sesión sin cambiar el perfil, a menos que una política de la organización bloquee la entrada. El rellenado previo es una comodidad local y ocurre esté o no activado **Use my details**.
 
-Una herramienta solo *autocompleta* los campos del perfil para los que fue diseñada explícitamente:
+**Crédito.** Al exportar, tus datos pueden viajar como crédito de autoría en los metadatos del archivo (PNG, PDF, SVG y más), de modo que un archivo terminado pueda decir quién hizo el trabajo. **Use my details to create** gobierna esto, y el autor en las ejecuciones de Batch. Con él desactivado, la exportación sigue diciendo que se hizo con Lolly, y no lleva ninguna línea personal de autor ni de contacto.
 
-**La opción de aceptar (procedencia).** Cuando exportas un activo, tus datos opcionalmente viajan como **procedencia** - una línea de autoría/crédito incrustada en los metadatos del archivo (PNG, PDF, SVG, …) - de modo que un activo terminado pueda decir quién lo hizo. *Esto* es lo que controla **Usar mis datos para crear**: déjalo desactivado y la exportación sigue llevando la atribución de herramienta/plataforma "Hecho con Lolly", pero no se incrusta ninguna línea personal de autoría/contacto. (La misma opción establece el autor en las ejecuciones por lotes de **/pro**.) (Autores de herramientas: consulta [Inputs de herramienta → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) y [API del host → `host.profile`](/info/host-api.html#host-profile)).
+Autores de herramientas: consultad [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) y [`host.profile`](/info/host-api.html#host-profile).
 
-![El interruptor único Usar mis datos para crear, junto a Guardar perfil y desactivado hasta que lo activas](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![El único interruptor Use my details to create, marcado como de aceptación y desactivado hasta que lo actives](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## Perfil frente a Plataforma frente a Capacidades
+## Perfil, design system y capacidades
 
-Tres elementos están próximos entre sí en la interfaz y es fácil confundirlos:
+Tres cosas están cerca en Settings y es fácil confundirlas:
 
-- <!--i:people--> **Perfil** - *tú* (o tu equipo, o el rol que ocupas): nombre, contacto, foto, tu trabajo guardado. Personal, local al dispositivo, portátil como paquete.
-- <!--i:palette--> **Plataforma** - la *marca*: colores, fuentes y ajustes globales con los que renderiza cada herramienta. Compartida y coherente, no personal.
-- <!--i:sliders--> **Capacidades** - *lo que la app puede hacer*: el conjunto completo de funciones y las herramientas disponibles para ti.
+- <!--i:people--> **Profile** - tú, tu equipo o el rol en el que estás: nombre, contacto, foto y trabajo guardado. Personal, guardado en el dispositivo y portátil como archivo.
+- <!--i:palette--> **Design system** - la marca: los colores, fuentes y ajustes con los que se renderiza cada herramienta. Compartido y coherente más que personal; consulta [Design System Setup](/info/brand-studio.html).
+- <!--i:sliders--> **Capabilities** - lo que puede hacer la aplicación: las funciones y herramientas a tu disposición.
 
-Un perfil cambia de quién *proviene* un recurso; la plataforma cambia su *aspecto*; las capacidades son *lo que puedes crear*.
+Un perfil cambia de quién es un archivo; el design system cambia cómo se ve el archivo; las capacidades son lo que puedes crear.
 
-### "Perfil" significa otras dos cosas en otro sitio - no esta
-
-La palabra está sobrecargada en todo el proyecto. Ninguna de estas dos es el perfil personal del que trata esta página:
-
-- <!--i:box--> **Perfil de contenido** - una configuración en tiempo de compilación en `profiles.json` que vincula un conjunto de paquetes de herramientas a un catálogo de marca (por ejemplo, `suse`, `lolly-start`). Es lo que elige un operador al desplegar, y es lo que el **parámetro de URL/CLI** `profile` también selecciona como una variante de *color* en el momento de exportar (la condición de imprenta ICC/CMYK - consulta [Modo URL](/info/url-mode.html)). Ambos tratan de la *compilación/salida*, no de ti. Consulta [Configuración](/info/configuration.html).
-- <!--i:seal--> **Perfil de identidad** - la **identidad verificada de Content Credentials** opcional que puedes inscribir (un certificado de vida corta que vincula tu correo a tus exportaciones firmadas). Eso es una identidad de firma, separada de los campos de nombre/contacto del perfil personal, aunque **Usar mis datos para crear** controla si se incrusta uno u otro. Consulta [Identidad de Content Credentials](/info/content-credentials-identity.html).
+La palabra tiene otros tres significados en Lolly. Un **perfil de contenido** es un ajuste de compilación que elige qué herramientas y catálogo distribuye un despliegue; el [Glossary](/info/glossary.html) define el término. El parámetro de enlace `profile` elige un perfil de color para una exportación, como una condición de prensa CMYK; consulta [Reserved URL parameters](/info/url-parameters.html#print). Una **identidad verificada** es el certificado de firma opcional que vincula tu correo con tus exportaciones firmadas, independiente de estos datos, aunque **Use my details to create** gobierna si se incrusta alguno de los dos; consulta [Content Credentials](/info/content-credentials-identity.html).
 
 ![La tarjeta de identidad verificada, en ancho de móvil: el selector de vida del certificado y el paso de inscripción debajo - el perfil de identidad, separado de tus datos personales](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Privacidad
 
-Fuera de la inscripción de identidad opcional de arriba (que envía el correo que inscribes al servicio de certificados - consulta [Superficie del servidor](/info/server-surface.html)), un perfil nunca se transmite, se sube ni se usa para identificarte o rastrearte - no hay nada que consentir, solo este aviso para que sepas qué se guarda. Bórralo todo en cualquier momento con **Ajustes → Preferences → Borrar todos mis datos**. Consulta la [Política de privacidad](/info/privacy.html).
+Tu perfil personal se almacena en local. Tus datos pueden viajar en una copia de seguridad o de Sync, en el contenido que compartes o exportas y durante el registro opcional de Content Credentials. En una instancia de Lolly Work, el inicio de sesión, el trabajo compartido, la política de telemetría y los registros de auditoría son independientes de este perfil local. **Settings → Preferences → Clear all my data** limpia este dispositivo; no borra las copias que conserva tu proveedor de almacenamiento u organización. Consulta la [Privacy Policy](/info/privacy.html).

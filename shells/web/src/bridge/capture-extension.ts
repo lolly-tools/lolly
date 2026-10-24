@@ -14,7 +14,7 @@
  *     extension's packaged page-walk script, with a screenshot and the tab's bytes;
  *     capture/finish-in-app.ts outlines the text and scores it here. A walk that
  *     fails or scores badly falls back to the PNG, typed as the raster it is.
- *   - the Design System studio's website source → the page's markup, stylesheet
+ *   - Design System Setup's website source → the page's markup, stylesheet
  *     text and a few icon/logo files, which `lib/design-system/extract-site.ts`
  *     parses into a census ON DEVICE (plan 97 section 9).
  *

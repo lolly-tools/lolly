@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Mjuka mesh-liknande gradienter från dina varumärkesfärger. Dra färgpunkterna direkt på canvasen, eller slå på Drift-läget och exportera loopen som WebM, MP4 eller GIF.",
+  "description": "Fem sätt att bygga en toning av designsystemets färgprover: mjuk radiell Blend, ett riktigt Coons-nät som skarp SVG (Subdivide) eller mjuk raster (Mesh), fria Warp-punkter och de animerade Flow-vågorna. Dra allt direkt på arbetsytan; exportera stillbilder eller sömlösa videoloopar.",
   "a11yLabel": "Nätgradient som blandar {{count}} färger",
   "inputs.count.label": "Färgpunkter",
   "inputs.color1.label": "Färg 1 (bas)",

@@ -119,7 +119,7 @@ export async function ensureGoogleFontsConsent(): Promise<boolean> {
     // Trimmed to the two facts and the one reassurance (plan 182 section 6.3): the
     // dialog now arrives on the press somebody just made, so it has to be
     // readable at a glance rather than skimmed past.
-    message: isTauriShell() ? t('Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.') : t('Google learns the family name and your IP address. The file is then kept in this browser and used offline. This is the one step in the studio that reaches a third party.'),
+    message: isTauriShell() ? t('Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in Design System Setup that reaches a third party.') : t('Google learns the family name and your IP address. The file is then kept in this browser and used offline. This is the one step in Design System Setup that reaches a third party.'),
     confirmLabel: t('Fetch from Google'),
   });
   if (!ok) return false;
@@ -772,7 +772,7 @@ export function logoGroupHtml(
 // ── Mount ─────────────────────────────────────────────────────────────────────
 
 /**
- * Render the brand studio into `root` and wire it. Returns a teardown that stops
+ * Render Design System Setup's editor into `root` and wire it. Returns a teardown that stops
  * the (font/preview) listeners. Locked builds render a read-only note and no-op.
  */
 /** The five areas the studio renders - the host view drives which one shows by
@@ -780,7 +780,7 @@ export function logoGroupHtml(
  *  edit came from.
  *
  *  The `BRAND_TABS` label+icon table that used to sit here is gone with the tab
- *  bar it fed: the design-system studio is rooms, and `views/start.ts` builds
+ *  bar it fed: Design System Setup is rooms, and `views/start.ts` builds
  *  its own navigation. The key itself is still the studio's vocabulary. */
 export type BrandTabKey = 'logos' | 'color' | 'type' | 'tokens' | 'catalogue';
 

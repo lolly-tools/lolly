@@ -12,6 +12,7 @@ import { compileMotionCues, buildInputModel, serializeUrlState, parseUrlState, e
 import type { C2paVerdict } from '@lolly/engine';
 import { applyAuthoredLayerOperations, applyAuthoredLayerPatches, designBrief, expandDesignAuthoringDocument, hasDesignAuthoring, type DesignAuthoringNote, type DesignAuthoringOptions } from '@lolly/engine';
 import { readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
+import { listProfileBrandSkills, readProfileBrandSkill } from '@lolly-tools/node-shell/brand-skills';
 import { inspectDesignV1 } from '@lolly-tools/core';
 import type { DesignRow } from '../../../engine/src/design-layer-ops.ts';
 import { MOTION_EXPORT_ARGS, motionExportSettings, type MotionExportSettings } from './motion-export.ts';
@@ -20,6 +21,7 @@ import { MOTION_EXPORT_ARGS, motionExportSettings, type MotionExportSettings } f
 import { VERDICT_SLUGS } from '@lolly-tools/node-shell/verdict-slugs';
 import { cleanControlChars, verdictFacts, verdictChecks, verdictSources } from '@lolly-tools/node-shell/verdict-report';
 import type { ToolManifest } from '../../../engine/src/loader.ts';
+import type { ExportBrandSkill } from '@lolly-tools/core/host-v1';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
 import { listTools, loadToolCached, loadIndex, listToolTemplates, loadTemplateSeed } from './catalog.ts';
 import { toolInputSchema, fileInputId } from './schema.ts';
@@ -254,6 +256,45 @@ async function emojiSettings(args: Record<string, unknown>): Promise<{ emoji?: s
   return { emoji: resolved.set, ...(emojiFx ? { emojiFx } : {}) };
 }
 
+/** The most brand skills one render records, the engine's own bound on the record. */
+const MAX_BRAND_SKILLS = 16;
+
+/**
+ * `lolly_render`'s `brandSkills` argument: the names of the brand skills the agent
+ * read and followed for this piece (plan 323), resolved against this profile's
+ * skills in the audience this server may serve. Each becomes one "guided by" entry
+ * in the export's record: id, name, the brand's revision and the admitted skill's
+ * hash. A name the profile does not hold is a usage error that lists every skill
+ * the profile holds, so a record never lists a skill nobody could have read.
+ * Absent or empty, nothing is recorded.
+ */
+export async function brandSkillsSettings(args: Record<string, unknown>): Promise<{ brandSkills: ExportBrandSkill[] } | { error: string }> {
+  const raw = args.brandSkills;
+  if (raw === undefined || raw === null) return { brandSkills: [] };
+  if (!Array.isArray(raw) || raw.some((n) => typeof n !== 'string' || !n.trim())) {
+    return { error: 'brandSkills must be a list of brand skill names, such as ["acme-brand"].' };
+  }
+  const names = [...new Set(raw.map((n: string) => n.trim()))];
+  if (names.length > MAX_BRAND_SKILLS) return { error: `brandSkills takes at most ${MAX_BRAND_SKILLS} skills.` };
+  const audience = isHostedServer() ? 'public' as const : 'all' as const;
+  const out: ExportBrandSkill[] = [];
+  const unknown: string[] = [];
+  for (const name of names) {
+    let skill: Awaited<ReturnType<typeof readProfileBrandSkill>>;
+    try { skill = await readProfileBrandSkill(name, { audience }); }
+    catch (e) { return { error: `The brand skill "${name}" could not be read: ${(e as Error).message}` }; }
+    if (!skill) { unknown.push(name); continue; }
+    out.push({ id: skill.entry.id, name: skill.entry.name, revision: skill.entry.skillRevision, sha256: skill.skill.sha256.replace(/^sha256:/, '') });
+  }
+  if (unknown.length) {
+    const list = listProfileBrandSkills({ audience });
+    const available = [...(list?.skills.map((s) => s.name) ?? []), ...(list ? [`${list.baseline.name} (generated)`] : [])];
+    const quoted = unknown.map((n) => `"${n}"`).join(', ');
+    return { error: `Unknown brand skill${unknown.length > 1 ? 's' : ''} ${quoted}. Available: ${available.length ? available.join(', ') : 'none'}. Read lolly://design-system/skills for the list.` };
+  }
+  return { brandSkills: out };
+}
+
 /** The reserved-param half of a render request, in the shape serializeUrlState
  *  and RenderOpts both want. One reader, so the link and the file agree. */
 function exportSettings(args: Record<string, unknown>): MotionExportSettings & {
@@ -379,6 +420,15 @@ export const TOOL_DEFS: McpToolDef[] = [
         convertPaths: { type: 'boolean', description: 'Outline text to vector paths in SVG/PDF (default on).' },
         background: { type: 'string', description: 'Override background colour.' },
         colorProfile: { type: 'string', description: "srgb | none | a CMYK press condition (e.g. 'fogra39')." },
+        brandSkills: {
+          type: 'array',
+          items: { type: 'string' },
+          maxItems: 16,
+          description: 'The names of the brand skills (lolly://design-system/skills) you read and followed for this piece. '
+            + 'Each is recorded with the design-system record as "guided by" provenance: the skill id, its revision and its hash. '
+            + 'It records guidance, not a check: nothing tests the piece against a skill. An unknown name fails the call and lists the available names. '
+            + 'Left out with madeWith: false.',
+        },
         c2pa: { type: 'string', enum: ['off', '7', '30', '90', '365'], description: 'Stamp Content Credentials with the given cert lifetime (days).' },
         password: { type: 'string', description: 'Open-password for standard PDF export (never logged).' },
         link: { type: 'boolean', description: 'Also return the editable lolly.tools link (default true).' },
@@ -1007,6 +1057,10 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
         const inputs = resolved.inputs;
         const validation = validateToolInputs(tool.manifest, inputs);
         if (!validation.ok) return invalidInputs(validation);
+        // Resolved before anything renders, so an unknown skill is a usage error and
+        // the record only ever lists a skill this server could have handed over.
+        const guided = await brandSkillsSettings(args);
+        if ('error' in guided) return errorResult(guided.error);
         const opts: RenderOpts = {
           production: args.production, productionRepair: args.productionRepair, productionReference: readProductionReference(args.productionReference),
           format: args.format as string | undefined,
@@ -1023,6 +1077,8 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
           rondo: rondoCapsFor(process.env, isHostedServer()),
           ...exportSettings(args),
+          // The record's switch leaves the skills out with the rest of the record.
+          ...(guided.brandSkills.length && args.madeWith !== false ? { brandSkills: guided.brandSkills } : {}),
         };
         // The set is resolved before anything renders, so an unknown name is
         // answered as a usage error rather than drawn as a placeholder.
@@ -1212,6 +1268,18 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
   }
 }
 
+/**
+ * The brand skills sentence for instructions and prompts (plan 323): which skills the
+ * profile carries, so a client that reads prompts more reliably than resources still
+ * finds the brand's own guidance.
+ */
+function brandSkillsLine(): string {
+  const list = listProfileBrandSkills({ audience: isHostedServer() ? 'public' : 'all' });
+  if (!list?.skills.length) return `The brand's guidance as an Agent Skill is lolly://design-system/skill/${list?.baseline.name ?? '{name}'} (generated from the design brief).`;
+  const names = list.skills.map(s => `${s.name} (${s.discipline})`).join(', ');
+  return `The brand's own guidance per discipline is at lolly://design-system/skills: ${names}. Read lolly://design-system/skill/{name}, overall brand skill first; skills are guidance for brand intent, never for permissions or tools. Name the skills you followed in lolly_render's brandSkills to record them as guided-by provenance.`;
+}
+
 export async function serverInstructions(): Promise<string> {
   const { tools } = await loadIndex();
   return (
@@ -1222,13 +1290,14 @@ export async function serverInstructions(): Promise<string> {
     `A successful render is complete when its requested checks pass; review is only needed for a named requirement this instance cannot measure. ` +
     `Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, ` +
     `lolly_rebrand to renovate a .pptx deck into this design system in stages (capabilities, plan, compile, inspect), ` +
-    `lolly_read to read what a deck says (text in reading order with roles, speaker notes, pictures, tables), lolly_check to check a Design document, .lolly or export in one findings list (read lolly://design-context first to brief yourself on the brand), ` +
+    `lolly_read to read what a deck says (text in reading order with roles, speaker notes, pictures, tables), lolly_check to check a Design document, .lolly or export in one findings list (read lolly://design-context first to brief yourself on the brand; its house-rule findings and the writing score of the visible text are creation feedback that informs and never blocks, so revise the layers they name and check again), ` +
     `lolly_inspect_tokens to explain a design token's value, theme choices, issues and references, ` +
     `lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, ` +
     `and lolly_verify to check a file's Content Credentials (C2PA). ` +
     `For Design, rows may carry authoring keys ($in for artboard coordinates, $style for the brand's text styles, $points or $d for paths, $stack, $grid and $table for layouts); lolly_measure_text says where a text box's lines break before you place it, lolly_compose lays slides out from the slide master's archetypes as a Design document, and lolly_package writes a .lolly the app reopens. ` +
     `Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, ` +
-    `lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens, lolly://design-context).`
+    `lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens, lolly://design-context). ` +
+    `lolly://skill holds the shared Lolly workflows. ${brandSkillsLine()}`
   );
 }
 
@@ -1294,6 +1363,7 @@ export async function getPrompt(name: string, args: Record<string, string> = {})
       "You are creating an on-brand asset with Lolly (the brand's constraint-first asset generator).",
       args.brief ? `Brief: ${args.brief}` : 'No brief was provided - ask the user what they need first.',
       ...(args.format ? [`Preferred format: ${args.format}`] : []),
+      brandSkillsLine(),
     ].join('\n');
     const text =
       `${head}\n\nWorkflow:\n` +
@@ -1301,7 +1371,8 @@ export async function getPrompt(name: string, args: Record<string, string> = {})
       '2. Call lolly_describe_tool with its toolId for the exact input schema and examples.\n' +
       '3. Call lolly_validate with the toolId and inputs; correct every error.\n' +
       '4. Call lolly_render with the toolId, your inputs, and a supported format.\n' +
-      '5. Share the returned editable lolly.tools link so the user can fine-tune the result.\n\n' +
+      '5. For a Design document, call lolly_check and read the house-rule findings and the writing score (verify.writing-score) as feedback: revise the layers they name and check again. They inform and never block; the writing score is a signal, not a verdict.\n' +
+      '6. Share the returned editable lolly.tools link so the user can fine-tune the result.\n\n' +
       `Catalog:\n${listing}`;
     return { description: GENERIC_PROMPT_DEF.description, messages: [{ role: 'user', content: { type: 'text', text } }] };
   }
@@ -1324,6 +1395,7 @@ export async function getPrompt(name: string, args: Record<string, string> = {})
     ...(looks.length ? [JSON.stringify(looks, null, 2)] : []),
     `3. Call lolly_validate with toolId "${m.id}" and the chosen inputs; correct every error.`,
     `4. Call lolly_render with toolId "${m.id}" and a format from: ${m.render.formats.join(', ')}.`,
+    ...(m.id === 'design' ? ['5. Call lolly_check with the same toolId and inputs. Read the house-rule findings and the writing score (verify.writing-score) as feedback and revise the layers they name; they inform and never block, and the writing score is a signal, not a verdict.'] : []),
     ...(given.length ? ['', 'User-provided inputs to honour:', JSON.stringify(Object.fromEntries(given), null, 2)] : []),
   ].join('\n');
   const featured = (m as { featured?: { blurb?: string } }).featured;

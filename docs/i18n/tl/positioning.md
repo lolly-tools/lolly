@@ -1,88 +1,86 @@
 # Paano ikinukumpara ang Lolly
 
-Kung ano ang ginagawa ng Lolly na hindi ginagawa ng mga creative tool ngayon, at kung ano ang sinasadya nitong iniiwan sa kanila.
-
-Para sa bersyong tool-by-tool, isang pahina bawat isa para sa Canva, Adobe, Figma, rendering APIs at online converters, tingnan ang [Lolly compared, tool by tool](/info/compare.html). Sinasaad ng bawat pahina kung ano ang mas mahusay na ginagawa ng ibang tool at kung ano naman ang ginagawa ng Lolly sa halip.
-
-> **Pilot status:** Ang Lolly ay isang closed-pilot prototype, hindi isang tapos na produkto, at kasalukuyang sinasailalim ang seguridad nito sa mahigpit na infrastructure hardening ng SUSE, bilang paghahanda para sa enterprise scale. Sinasaklaw ng pahinang [Adoption & Governance](/info/adoption-governance.html#status) ang kasalukuyang kalagayan.
+Ang Lolly ay dalawang bahagi ng iisang open-source na proyekto. Ang **Lolly** ay ang engine, mga app at tool para sa paggawa, pag-edit, pag-convert at pag-export sa device mo, nang walang account. Ang **Lolly Work** ay ang organisation server, pinapatakbo sa sarili mong infrastructure, para sa sign-in, shared project, approval at server rendering. Parehong MPL-2.0. Inihahambing ng pahinang ito ang pares sa ibang paraan ng pagdidisenyo, pamamahala at paggawa ng mga file ng mga tao.
 
 ## Mga tool ngayon
 
-Sinusukat ng bawat ring sa ibaba kung gaano kabuo ang paghahatid ng isang product class ng isang capability **ayon sa naka-ship ngayon** - hindi ayon sa marketing - kung saan sinusukat ang bawat class batay sa pinakamahusay nitong kinatawan. Sinusukat ang Lolly sa parehong kutsilyo: ito ang kumukuha ng tanging pulang ring sa board, para sa maturity. Buksan ang pangalan ng isang row para sa katwiran sa likod ng mga marka nito. Isinasaayos ang mga column ayon sa Overall completeness row sa itaas - ang mean ng mga scored row, na hindi kinabibilangan ng spend row.
+Ang bawat singsing ay nagmamarka kung gaano kakumpleto ang paghahatid ng uri ng produkto sa isang kakayahan, na ang bawat uri ay minamarkahan sa pinakamahusay nitong kinatawan. Sinasaklaw ng Lolly column ang Lolly at Lolly Work nang magkasama, at sinasabi ng bawat row kung aling bahagi ang nagbibigay ng ano. Buksan ang pangalan ng row para sa katwiran ng marka nito. Inaayos ang mga column ayon sa Overall completeness row sa itaas: ang mean ng mga minarkahang row, na hindi kasama ang spend row.
 
 ::: figure positioning-comparison
-Kumpletuhan ng kakayahan sa mga creative tool ngayon, sinaliksik noong Agosto 2026. Scoring: 0 wala, 25 workaround-grade, 50 tunay ngunit gated o partial, 75 malakas may mga caveat, 100 core competency.
+Paghahambing ng kakayahan: pananaliksik sa mga kakumpitensya at marka mula Agosto 2026; ang saklaw ng Lolly + Lolly Work ay nire-review noong 28 Setyembre 2026. Pagmamarka: 0 wala, 25 workaround-grade, 50 totoo pero may gate o bahagya, 75 malakas na may caveat, 100 pangunahing husay.
 :::
 
-**Mga tala sa scoring.** Inaandar ng mga marka ng Lolly ang pagpapalagay na totoo ang mga inilathalang claim nito, kaya't ang maturity ang tanging pulang ring nito: closed pilot, may isinasagawang security hardening, wala pang na-audit. Nagpalipat ang research ng ilang cell.
+::: details Mga tala sa pagmamarka
+Magkahiwalay ang mga available na feature at production maturity. Nailabas na ang Lolly: ang bersyon 1.0 ay inilabas bilang open source noong 30 Agosto 2026, wala pa itong independiyenteng audit sa seguridad at ilang buwan pa lang ang ebidensya ng adoption nito (nasa [Adoption & Governance](/info/adoption-governance.html#status) ang kasalukuyang estado). Ang pagkakaroon ng single sign-on, approval o server rendering ay hindi nagpapatunay ng production track record, kaya sinasalamin ng maturity score iyon. Ang mga marka ng kakumpitensya ay nananatili sa may-petsang review nila noong Agosto.
 
-Sinusukat ang Canva batay sa pinakamahusay na miyembro ng pamilya nito bawat row, dahil pag-aari nito ang Affinity at Cavalry (parehong ipinamahagi nang libre noong Oktubre 2025). Nakakuha ng 75 ang offline at on-device rendering sa pamamagitan ng Affinity - isang desktop suite na kailangan pa rin ng verified account at may dalang telemetry, ang deduction na kinukuha rin ng Adobe - samantalang ina-edit lamang ng offline mode mismo ng Canva ang mga pre-synced design, isang device, limitadong window. Nakakuha ng 50 ang Autofill: totoo pero Enterprise-gated, async, text at image lamang. Umakyat ng 25 papuntang 50 ang mass generation ng Figma nang mag-ship ang Buzz ng spreadsheet fill (free beta, Agosto 2026).
+Isang patakaran ang namamahala sa board. Ang buong marka (100), sa mga row na humahawak sa nilalaman o identity mo, ay nangangailangan ng kakayahang magagamit nang walang account at walang cloud precondition; ang mga row tungkol sa produkto mismo, tulad ng maturity at kadalian ng paggamit, ay hindi sakop. Ang patakarang iyon ay nagpapababa sa Adobe sa Content Credentials: ang pinakamalawak na naipadalang implementasyon (Photoshop, Lightroom, Premiere, Firefly) ay pumipirma nang lokal at sa cloud, pero hindi kailanman nang walang Adobe account at identity, kaya 75. Nililimitahan nito ang mga rendering API sa mass generation at automation sa parehong dahilan.
 
-Isang panuntunan ang namamahala sa board: ang Full (100), sa mga row na humihipo sa iyong content o pagkakakilanlan, ay nangangailangan ng capability na magagamit mo nang walang account at walang cloud precondition; hindi kasali dito ang mga row na naglalarawan sa produkto mismo (maturity, ease of use). Ito ang nagpapabayad sa Adobe sa provenance: ang pinakamalawak na na-ship na C2PA (Photoshop, Lightroom, Premiere, Firefly) ay pumipirma nang lokal at sa cloud, pero hindi kailanman nang walang Adobe account at identity, kaya 75. Nililimita nito ang render APIs sa mass generation at automation sa parehong dahilan.
+Ang Canva ay minamarkahan sa pinakamahusay nitong miyembro ng pamilya bawat row, dahil pagmamay-ari nito ang Affinity at Cavalry (parehong ipinamigay noong Oktubre 2025). Ang offline at on-device rendering ay 75 sa pamamagitan ng Affinity, isang desktop suite na nangangailangan pa rin ng na-verify na account at may telemetry, ang bawas na kinukuha rin ng Adobe; ang sariling offline mode ng Canva ay nag-e-edit lang ng mga pre-synced na design, sa isang device, sa limitadong panahon. Ang Autofill ay 50: totoo ito pero Enterprise-gated at asynchronous, at pumupuno lang ito ng text at larawan. Ang mass generation ng Figma ay tumaas mula 25 hanggang 50 nang ilabas ng Buzz ang spreadsheet fill (libreng beta, Agosto 2026).
 
-Ipinapakita ng 75 na provenance ng Lolly ang on-device offline signing: mas malakas sa arkitektura pero hindi pa na-audit, at nababasa ang device key bilang unverified sa stock validators hangga't hindi ito pinapatunayan ng isang identity o ng sariling CA ng isang organisasyon. Dumarating ang 50 ng Penpot sa pamamagitan ng opisyal na Lolly Export plugin: ang parehong engine signing, opt-in, at inihayag bilang pag-aari ng Lolly. Kinukuha rin ng Penpot ang tanging off-scale ring ng board, 90 sa on-device rendering - browser canvas, pag-save sa sarili mong sovereign cloud (kahit laptop), private export; ang server hop lamang ang naghihiwalay dito sa Lolly. Nakakakuha ang Cloudinary ng sarili nitong column: isang media pipeline (DAM, transform API, CDN), at ang tanging cloud column na nag-ship ng C2PA (50, dahil pumipirma ang fl_c2pa sa paghahatid, na nagpapatunay na delivered-by-Cloudinary, hindi made-by-you).
+Ang Content Credentials score ng Lolly na 75 ay sumasaklaw sa on-device signing at server signing ng Lolly Work gamit ang naka-configure na organisation identity; kailangan pa ring pagkatiwalaan ng verifier ang pumirma ([Content Credentials Identity](/info/content-credentials-identity.html)). Ang 50 ng Penpot ay dumarating sa pamamagitan ng sariling export plugin ng Lolly para sa Penpot: ang parehong engine signing, opt-in at isiniwalat bilang gawa ng Lolly. Ang Penpot ay 90 sa on-device rendering: browser canvas na may save target sa server nito, na maaaring i-self-host. Ang Cloudinary ay may sariling column para sa asset library, transform API at CDN nito; minarkahan ng review noong Agosto ang delivery signing nito ng 50.
 
-Tumatakbo naman sa kabaligtaran ang live collaboration: itinatakda ng Figma ang scale benchmark (200 editor) at nakakakuha ng Partial ang pairwise, air-gapped P2P ng Lolly. Isang hula ang presyo, at nakalagay ito bilang ganito: list-price arithmetic batay sa makatotohanang seat mix, sinadyang malawak, para sa scale hindi para sa procurement. Nakakakuha ang render APIs ng 75 sa constraints: naka-lock ang mga template, walang brand-governance layer.
+Ang live collaboration ng Lolly ay kasama ang direktang two-device na pribadong collab at authenticated na work collab sa pamamagitan ng Lolly Work, na may shared edit, cursor at naka-save na team session. Sinasalamin ng Partial score ang kasalukuyang single-node na work deployment at maikling kasaysayan ng operasyon, hindi kawalan ng team editing. Ang mga tantiya ng presyo ay may-petsang list-price arithmetic para sa laki, hindi procurement.
+:::
 
-Ang puwang: walang naka-ship ngayon na constraints-first at offline, walang account at walang server sa render path, at wala pang gumaya sa account clause. Ngayon, nag-ship na ang Lolly ng sarili nitong open canvas - **Design**, isang direct-manipulation na free canvas - pero ang mga kulay, type at asset dito ay sumusunod sa brand globals, kaya kahit ang malayang pag-aayos ay nananatiling constraints-first.
+## Kailan abutin ang Lolly
 
-Ang Lolly ay **hindi pa rin** isang unconstrained design suite; magpapatuloy ang mga designer sa paggamit ng Illustrator at Figma para sa bespoke work - at kapag kailangan nang maging governed, reproducible asset ang trabahong iyon, dinadala ng [Import a design](/info/design-import.html) ng Design tool ang tapos na Figma, Penpot, Illustrator, InDesign o PDF file papunta sa canvas bilang editable, brand-conformed na mga box.
+::: cols
+## Abutin ang Lolly kapag
 
-![Ang free canvas ng Design, kung saan ang mga kulay, font at asset na inaalok ay pag-aari ng brand](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+- Paulit-ulit na kailangan ang parehong uri ng file: event tile, badge, sertipiko, alerto, social card
+- Maraming file ang galing sa isang template at table ng mga value, sa [Batch](/info/batch.html#make-many-versions-of-one-design) o sa CLI
+- Ang mga kulay, type at asset ay dapat manatili sa loob ng design system, kahit sa bukas na canvas
+- Ang tapos na Figma, Penpot, Illustrator, InDesign o PDF na design ay dapat maging mae-edit at maulit ([Import a design](/info/design-import.html))
+- Ang mga file ay dapat gawin sa sarili mong mga device o server
 
-## Gamitin ito para sa
+## Abutin ang iba kapag
 
-- Mabilis na paggawa ng operationalised creative assets (event tiles, badges, signatures, alerts)
-- Malayang pag-aayos sa open canvas (Design) kapag ang mga piraso - kulay, type, icon, imahe - ay dapat manatiling sumusunod sa brand globals
-- Pagdadala ng tapos na Figma, Penpot, Illustrator, InDesign o PDF design (ang Import a design ng Design tool) para ma-edit, magovern, at ma-re-render nang deterministic sa bawat format ng Lolly
-- One-to-many na "punan ang tatlong field, kunin ang tapos na asset" na daloy - kasama ang bulk run mula sa isang spreadsheet/CSV sa `/pro` batch grid (i-paste o mag-import ng mga row, isang tapos na asset bawat row, i-download bilang zip)
-- Always-on, paulit-ulit na branded output
-- Mga bagay kung saan mas mahalaga ang sentral na kontrol sa brand expression kaysa sa expressive flexibility
+- Ang gawa ay detalyadong photo retouching o ilustrasyon
+- Nagdidisenyo at nagpa-prototype ka ng interface ng application
+- Kailangan mo ng malaking stock at template library na handa sa unang araw
+- Kailangan mo ng managed na serbisyo na may mahabang track record sa laki
+:::
 
-Magandang panukat ng ceiling dito ang Deck Studio: isang buong slide deck na idineklara bilang data, ina-layout nang live sa canvas at ine-export bilang native editable na PowerPoint.
+Ang mga na-import na design at shared na design token ay hinahayaang pagsamahin ng team ang Lolly sa mga espesyalistang application, habang pinamamahalaan ng Lolly Work ang mga shared asset, review at delivery.
 
-![Ang Deck Studio sa split view - nakalista ang mga slide ng deck bilang mga block sa kaliwa, ang naka-layout na deck na naka-render sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Ipinapakita ng isang buong slide deck ang kisame: sa **Markdown Slides**, idinedeklara ang deck bilang data, inilalatag nang live at ine-export bilang native at mae-edit na PowerPoint file.
 
-## Huwag itong gamitin para sa
+![Markdown Slides sa split view: ang mga slide ng deck na nakalista bilang block sa kaliwa, ang inilatag na deck na nire-render sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-- Bespoke o flagship hero content (billboards, malalaking video)
-- Natatanging campaign work na talagang nangangailangan ng designer
-- Ideation na kailangang lumaya nang tuluyan sa brand system - patuloy na isinasailalim ng open canvas ng Lolly ang mga kulay, type at asset sa brand globals, at iyan mismo ang punto
+## Nasa tool ang mga patakaran
+
+Inilalagay ng Lolly ang magagamit muling mga brand rule sa tool: mga kulay, font, bleed margin, spacing at pinapayagang input. Ang template ang nag-aayos ng mga bahaging hindi dapat baguhin ng tatanggap. Nagdaragdag ang Lolly Work ng group access at input policy sa paligid ng template na iyon, kasama ang approval chain para sa mga catalogue submission at delivery.
+
+Ang minsanang pag-check sa tool ay nagpapadali ng paulit-ulit na produksyon, dahil minamana ng bawat output ang mga layout rule nito. Ang copy, mga na-upload na larawan at karapatan sa paggamit ay maaari pa ring kailangang suriin, at nagbibigay ang Lolly Work ng mga shared catalogue at hakbang sa pag-apruba para roon. Para sa creative team, ang tool ay guard-rail: ikaw pa rin ang nagdadala ng data, copy at larawan, at pinananatili ng tool na on-brand ang bawat resulta.
+
+![Ang buong trabaho ng gumagawa: mag-type ng mga salita. Naayos na ang type, kulay at spacing noong ginawa ang tool](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+
+Tatlo pang bagay ang nagpapaiba sa pamamaraang ito:
+
+- **Ang huling file, mula sa mga input.** Input papasok, tapos na file palabas, walang "ngayon i-save mo mula sa design tool mo at ayusin pa".
+- **Nagko-compose ng mga tool ang mga tool.** Ang isang tool ay maaaring mag-embed ng render ng ibang tool sa iisang tapos na file, na walang code coupling sa pagitan nila.
+- **Bukas hanggang sa pinakailalim.** Open source ang engine, at ang mga tool, asset at design token ay mga file na maaari mong itago sa version control o pamahalaan sa Lolly Work, hindi mga row sa database ng iba.
+
+Nananatili ang mapangahas na disenyo sa kabila ng mga guard-rail. Ang poster-grade na mapa ng lungsod na ito ay tunay na vector na path ng kalsada at tubig, mula sa isang dropdown at dalawang colour field na hindi maituturo sa labas ng design system:
+
+![Ang mga canal ring at road network ng Amsterdam na iginuhit mula gilid hanggang gilid sa sariling ink ng design system, bawat stroke ay inilagay ng template at hindi ng kamay](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
 ## Mag-innovate nang probabilistiko, mag-scale nang deterministiko
 
-Karamihan sa mga pitch na "AI creative" ay inilalagay ang model sa maling gilid ng isang lumang linya. Naayos na ito noon ng mga eskriba at illuminator: gumagawa ka nang maluwag sa sketch, kung saan kahit ano ay maaaring subukan at walang naka-commit, at pagkatapos ay pupunta ka sa printing press, na nakakatakot mismo dahil nagko-commit ito. Sa mga sketch nakasalalay ang sining. Sa press naman kung paano ito lumaganap. Dalawang kasangkapan, dalawang trabaho, bawat isa ay malikhain sa sarili nitong paraan, at mapagkakatiwalaan ang naka-print na trabaho dahil tinupad ng press ang pangako nito sa bawat pull.
+Karamihan ng mga "AI creative" na pitch ay inilalagay ang model sa maling panig ng lumang hangganan. Nagpasya na ang mga eskriba at illuminator kung saan ito nasa. Malaya kang gumagawa sa sketch, kung saan puwedeng subukan ang anuman at walang kinikimkim. Saka ka pupunta sa printing press, na nagko-commit. Nasa mga sketch ang sining, at ang press ang paraan para maglakbay ito, at mapagkakatiwalaan ang nakalimbag na gawa dahil tinupad ng press ang pangako nito sa bawat hila.
 
-Ang Lolly ang press, hindi ang sketch. Dalhin ang kahit ano sa ideation - isang model, isang designer, isang napkin - pero sa sandaling kailangan nang maging maraming asset ang isang ideya, dumadaan ito sa isang bagay na nagre-render nang pareho sa bawat pagkakataon, mula sa mga input na kaya ng kahit sino basahin pabalik. Iyan ang tunay na punto ng paghahambing sa itaas: hindi kung sino ang may mas mahusay na generator, kundi kung sino ang gumagawang reproducible sa committed step.
+Ang Lolly ang press. Dalhin ang anumang gusto mo sa mga ideya, model, designer o magaspang na drawing, pero sa sandaling kailangang maging maraming file ang isang ideya, dumadaan ito sa isang bagay na nagre-render sa parehong paraan sa bawat pagkakataon, mula sa mga input na mababasa pabalik ng sinuman. Ang paghahambing sa itaas ay talagang tungkol sa kung sino ang nagpapaulit-ulit sa committed na hakbang na iyon.
 
 > Pagkatiwalaan ang creative process, mag-scale nang may rigor.
 
-## Nakatira ang mga alituntunin sa tool at sa mga template nito
+## Libre magpakailanman
 
-Ang bawat ibang tool sa board ay gumagawa ng *file*, at matitingnan lang ang isang file pagkatapos itong magawa. Inililipat ni Lolly ang mga brand rules **isang hakbang paatras**. Eksaktong hex codes, licensed font files, bleed margins, spacing - lahat ay naka-hard-code sa HTML at CSS ng tool, kaya *hindi kayang* mag-emit ang template ng off-brand na asset. Ang layout mismo ang nag-eenforce.
+**Kung nire-render ito sa device mo, libre ito magpakailanman.** Open source ang engine, mga shell, mga tool at mga format, at hindi mababawi ang nailabas na bersyon. Open source din ang Lolly Work. Ang organisasyon ay nagbabayad para sa infrastructure at operasyong pinipili nito, nang walang per-seat o per-render na bayad sa software licence para sa self-hosting. Ikinukuwento ng [Mga tanong at sagot](/info/faq.html) ang kuwento sa likod ng pangako.
 
-Kaya ang bagay na dapat tingnan ay ang **tool**, hindi ang bawat file na ginagawa nito. Kapag tama na ang tool, on-brand na ang bawat asset na ilalabas nito sa mismong pagkakabuo nito. Ikaw pa rin ang bahala kung paano mo susuriin ang iyong trabaho, at kung sino ang gagawa nito; pinaliit ni Lolly ang bagay na sinusuri at pinabilis ang paggawa ng output.
+## Kung saan nakatira ang nilalaman mo
 
-Ito ang pagbabagong talagang idinudulot ng deterministic engine. Para sa creative team, ito ay guard-rail, hindi kapalit - itinatapon mo pa rin ang bola (ang data, ang copy, ang imahe) at ang code ang bumper lane na pumipigil sa bawat throw na mapunta sa gutter.
+Ang creative na gawa ng Lolly ay maaaring tumakbo sa hardware na pag-aari mo, at ang mga design token, font, logo at tool nito ay mga file na maaari mong itago. Sa Lolly Work, ang mga shared project, asset, policy at audit record ay nasa storage na kino-configure ng organisasyon mo. Ipinapaliwanag ng [Tiwala](/info/trust.html) kung bakit ito mahalaga, at hinahayaan ka ng [Privacy Policy](/info/privacy.html) at [Verify It Yourself](/info/verify-yourself.html) na i-check ang pahayag sa halip na maniwala lang sa amin.
 
-![Ang buong trabaho ng producer: i-type ang mga salita. Ang type, kulay at spacing ay naayos na noong ginawa ang tool](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+## Tool por tool
 
-## Ang natatanging ibinibigay nito
-
-- **Malayang design potential na ligtas na naihahatid sa konteksto.** Kayang ipahayag ng mga tool ang matapang na design ideas sa loob ng hard-coded na guard-rails.
-
-- **Software-defined content automation na nagbabalik ng final asset.** Input → final file. Wala nang "i-save mo na lang mula sa design tool mo at i-post-process."
-- **Nagsasama-sama ang mga tool.** Kayang i-embed ng isang tool ang render ng isa pang tool at ibalik ito bilang bahagi ng iisang tapos na asset, nang walang tool-to-tool code coupling - isang primitive na wala sa alinmang open-canvas o DAM-templating na produkto sa board.
-- **Vendor neutrality.** Buong kontrol sa feature at gastos. Open-source na engine. Ang mga tool at asset ay git-tracked na content, hindi naka-lock sa SaaS database.
-
-Ang una sa mga iyon ang madalas na binibigyang-kulang ng halaga ng mga tao. Isang poster-grade na city map, iginuhit bilang tunay na vector road at water paths, mula sa isang dropdown at dalawang color fields na hindi mapapatungo sa labas ng brand:
-
-![Ang mga canal ring at road network ng Amsterdam na iginuhit gilid-hanggang-gilid gamit ang sariling tinta ng brand, bawat stroke inilagay ng template sa halip na ng kamay](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
-
-## Content sovereignty
-
-May pangalan ang pinagsama-samang resulta ng nakaraang seksyon: sovereignty. Tumatakbo ang media pipeline mo sa hardware na pag-aari mo. Ang brand mo - ang tokens, ang fonts, ang logos, ang mga tool na nag-eenforce sa mga ito - ay nakatira sa mga file na hawak mo, sa version control na kontrolado mo, hindi sa database ng isang vendor na may export button. Nangyayari ang rendering sa device na nasa harap mo, kaya hindi kailanman dumadaan ang isang asset sa third party para lang mabuo, at ang buong landas mula input hanggang tapos na file ay open source at maaaring siyasatin. Kung mawala bukas ang lahat ng SaaS design vendor, hindi mapapansin ito ng isang Lolly deployment.
-
-Mahalaga ito sa sinumang ang trabaho ay dapat mabuhay nang mas matagal kaysa sa isang subscription: ang magulang na ang photo book ay nasa laptop na iyon, katulad ng public body na ang brand library ay nasa ilalim ng procurement rules. Para sa mga organisasyon - public bodies, regulated industries, sinumang ang brand ay strategic asset at hindi lamang palamuti - ang "saan nakatira ang content namin at sino ang makakapatay nito" ay isyu ng governance, hindi lamang preference. Ang sovereignty dito ay katangian ng architecture sa halip na hosting feature na idinagdag para sa compliance, at ang mga pahinang [Privacy Policy](/info/privacy.html) at [Verify It Yourself](/info/verify-yourself.html) ay umiiral para masuri mo ang claim na ito sa halip na paniwalaan lamang.
-
-Sa ilalim ng lahat ng ito ay isang pangako, sinabi bilang commitment sa halip na feature: **kung nire-render ito sa device mo, ito ay libre magpakailanman.** Ang engine, ang shells, ang mga tool, ang formats - ang buong on-device creative path ay open source at mananatiling ganito. May mekanismo ang pangakong iyon: ang bersyong na-release ay lisensyado upang hindi na ito mabawi, at walang umiiral na contributor agreement na maaaring mag-relicense sa trabaho sa hinaharap. Ang buong hangganan ay kasya sa isang pangungusap: lahat ng nire-render sa device mo ay libre at open source, magpakailanman; ang pag-coordinate ng mga tao at makina sa isang network ay trabaho ng hiwalay na control plane, [lolly.work](https://lolly.work).
+Inihahambing ng [Ang Lolly na inihambing, tool por tool](/info/compare.html) ang Lolly sa Canva, Adobe, Figma, Penpot, brand portal, rendering API at online converter, isang page bawat isa, at inilalatag ang [ano ang tumatakbo saan](/info/compare.html#what-runs-where).

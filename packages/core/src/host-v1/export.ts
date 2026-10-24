@@ -240,6 +240,17 @@ export interface ExportOpts {
    * caller supplies its own `meta`.
    */
   madeWith?: boolean;
+  /**
+   * The brand skills an agent declared it read and followed for this piece
+   * (plan 323). Optional/additive: the runtime copies them into the
+   * auto-assembled `meta` as `brandSkills` under the same switch as the
+   * design-system record, so `madeWith: false` (or the runtime's switch turned
+   * off) leaves them out, and an on-device utility never records them. The
+   * runtime never invents an entry: only a surface that handed an agent the
+   * skills sets this, and malformed entries are dropped. A record of guidance,
+   * not a check. Ignored when the caller supplies its own `meta`.
+   */
+  brandSkills?: readonly ExportBrandSkill[];
 
   /**
    * Colour-management tag for the output. For raster formats (PNG/JPEG) this is
@@ -429,6 +440,27 @@ export interface ExportMeta {
    * is nothing to record.
    */
   themes?: ExportThemeChoice[];
+  /**
+   * The brand skills that guided an agent-made export (plan 323), in the order the
+   * agent named them. Present only when an agent declared the skills it followed
+   * (`ExportOpts.brandSkills`) and the design-system record is on. "Guided by",
+   * never a check: Lolly does not test the export against a skill. An internal
+   * skill is recorded by id, name, revision and hash, never by its text. Absent on
+   * records written before engine 1.282 and on hand-built metas.
+   */
+  brandSkills?: ExportBrandSkill[];
+}
+
+/** One brand skill revision that guided an export (plan 323). */
+export interface ExportBrandSkill {
+  /** The skill's catalog asset id, e.g. `lolly/skill/brand`. */
+  id: string;
+  /** The skill's Agent Skills name, e.g. `lolly-demo-brand`. */
+  name: string;
+  /** The brand's own revision of the skill (`skillRevision`), e.g. `1.0`. */
+  revision: string;
+  /** SHA-256 of the admitted skill, as 64 lowercase hex characters with no prefix. */
+  sha256: string;
 }
 
 /** One theme choice an export records (plans/319). */

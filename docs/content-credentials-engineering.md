@@ -1,66 +1,44 @@
-# Content Credentials - engineering & operator guide
+# Content Credentials engineering
 
-The engineering companion to [Content Credentials identity](/info/content-credentials-identity.html)
-(the user-facing page). This covers the device/CA architecture, the engine
-contracts, the CA service, the web-shell wiring, the one-time operator setup, the
-threat model and the roadmap.
+This page is for engineers and operators who integrate, audit or deploy Lolly's signing path. It covers how a device key becomes a verified signer, the engine contracts behind signing and verifying, the CA service and its protocol and the threat model.
 
-> **Versioning.** CA-issued signing first shipped at engine 1.11. The capability
-> bridge is additive-only, so everything here still holds, but the verifier has
-> grown since: it now reads **both C2PA 1.x and 2.x** claims (so credentials from
-> Gemini, Adobe and other generators verify), Lolly **writes** 2.x by default and
-> the trust list bundles the public C2PA/CAI anchors alongside the Lolly root. Read
-> the live `ENGINE_VERSION` in `engine/src/version.ts` and its changelog in `engine/CHANGELOG.md` rather
-> than trusting a pinned number here. Source line numbers are deliberately omitted
-> below - grep the named symbol; offsets drift.
+For what a reader sees, start with [Content Credentials](/info/content-credentials-identity.html) and [What Verify checks](/info/what-verify-checks.html). To deploy the CA, the canonical runbook is the [CA README](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md).
+
+::: note Versions and line numbers
+CA-issued signing first shipped at engine 1.11, and the capability bridge only grows, so everything here still holds. The verifier reads C2PA 1.x and 2.x claims, Lolly writes 2.x by default, and the trust list bundles the public C2PA and CAI anchors beside the Lolly root. Read the live `ENGINE_VERSION` in `engine/src/version.ts` and `engine/CHANGELOG.md` rather than a number pinned here. Source line numbers are left out because they drift: search for the named symbol.
+:::
 
 ## Architecture
 
-```
-┌───────────── device (open source) ─────────────┐   ┌─ serverless function ─┐
-│ WebCrypto P-256 keypair (non-extractable, IDB) │   │ /api/ca/* function     │
-│ shells/web/src/bridge/identity.ts              │──▶│ services/ca/handler    │
-│   enroll: popup OIDC → PoP → cert (cached)     │◀──│  - OIDC verify         │
-│   signer(): {sign, chain} while cert valid     │   │  - PoP verify          │
-│ export path: embedC2pa(..., {signer})          │   │  - X.509 issue (ES256) │
-│ verify path: verifyC2pa(..., {trustAnchors})   │   │ CA key: env/KMS only   │
-└────────────────────────────────────────────────┘   └────────────────────────┘
-```
+![From device key to verified signer: the device holds a non-extractable key, the person signs in with a provider that verifies their email, and the CA service checks a CSR and proof of possession. A legacy root or a managed Vault intermediate signs a short-lived certificate kept on the device, which signs each export; a verifier checks the export against pinned trust anchors, and in managed mode against the revocation list.](/info/diagrams/concepts/signing-architecture.svg)
 
-**Enrollment is app-level. Signing reached the bridge in a later release.**
-No tool can start, observe or inspect enrolment: there is no `host.identity`,
-the profile UI owns the flow and the ordinary export path consumes the signer
-inside the shell's own export implementation. What *is* on the bridge is
-`host.c2pa.sign` (v1.85, widened v1.104) - optional, additive and **not** gated
-by a `capabilities` flag, so a tool feature-detects `host.c2pa?.sign`. It exists
-for the case where the tool, not the export pipeline, authors the output file: a
-redaction that must ship as a new work rather than carry the un-redacted
-original as an ingredient, or an authorship claim stamped onto a file the user
-brought in. It routes to the shell's `signFreshC2pa`, which asks
-`host.identity.signer()` first - so **it signs with the enrolled identity when a
-valid certificate is cached**, and falls back to the ephemeral key otherwise.
-Everything stays on-device; nothing is uploaded.
+The device generates a WebCrypto P-256 keypair, non-extractable, kept in IndexedDB (`shells/web/src/bridge/identity.ts`). To enrol, it opens the provider's sign-in in a popup, sends a CSR with a proof of possession to the CA, and caches the certificate it gets back. While that certificate is valid, `signer()` returns `{ sign, chain }`, the export path calls `embedC2pa(…, { signer })` and the verify path calls `verifyC2pa(…, { trustAnchors })`. The CA's key lives in the host's environment store, or behind Vault in managed mode.
 
-The consequence is worth stating rather than discovering: a hook that calls it
-can put the user's CA-verified identity onto bytes of its own choosing. That is
-the point of the API (the tool *is* the author here), so **tool review is the
-control** - the same control that covers a `{{{x}}}` in a template. Two shipping
-tools use it: `community/redact` and `community/claim`. The engine
-additions remain ordinary options (`opts.signer`, `opts.trustAnchors`) on
-existing pure functions.
+**Enrolment belongs to the app; signing reached the bridge later.** No tool can start, observe or inspect enrolment. There is no `host.identity`: the Settings view owns the flow, and the ordinary export path uses the signer inside the shell's own export code.
+
+What *is* on the bridge is `host.c2pa.sign` (v1.85, widened in v1.104). It is optional and additive, and **not** gated by a `capabilities` flag, so a tool feature-detects `host.c2pa?.sign`. It exists for the case where the tool, not the export pipeline, authors the output file: a redaction that must ship as a new work rather than carry the unredacted original as an ingredient, or an authorship claim stamped onto a file the person brought in.
+
+It routes to the shell's `signFreshC2pa`, which asks `host.identity.signer()` first. So **it signs with the enrolled identity when a valid certificate is cached**, and falls back to the ephemeral key otherwise. Everything stays on the device.
+
+A hook that calls it can therefore put the person's CA-verified identity onto bytes of its own choosing. That is the point of the API, because the tool *is* the author here, so **tool review is the control**: the same control that covers a `{{{x}}}` in a template. Four shipping tools call `host.c2pa.sign`: `community/redact`, `community/claim`, `community/sign` and `community/rondocode`.
+
+Its companion `host.c2pa.readIngredients` (v1.104) reads every manifest a file already carries and packages each one as an ingredient, so a tool that signs an existing file carries those credentials forward instead of orphaning them. `claim`, `sign` and `rondocode` use the companion too. The engine side stays ordinary options (`opts.signer`, `opts.trustAnchors`) on existing pure functions.
+
+## Why the certificate identifies a person, not the app
+
+Lolly's engine and shells are open source. Once the code is public, "made with Lolly" can never be a *cryptographic* claim: anyone can fork the repository and emit bit-identical manifests. No certificate scheme fixes that, because the thing being attested, the software, is copyable by design.
+
+So the certificate attests **who signed, not which app signed**. Its Subject Alternative Name carries the OIDC-verified email. A fork cannot impersonate a Lolly user. It can only obtain certificates for its own users under this issuance policy, or run its own CA, whose root is not the Lolly root. The "Lolly" generator name in the manifest stays self-asserted, and Verify keeps that distinction: "Made with Lolly" is the maker's claim, while "Verified" is the cryptographic one.
+
+This follows Kerckhoffs's principle as Sigstore's Fulcio and Let's Encrypt practise it: **the repository holds no secrets, only protocol and public anchors.** The CA certificate is public, committed and served. The CA private key lives only in the host's environment store or a KMS. The device key is generated locally and cannot be exported.
 
 ## Engine contracts
 
-`HostV1` grows only by addition, and `host.c2pa` (above) is its one
-identity-adjacent surface. The relevant modules:
+`HostV1` grows only by addition, and `host.c2pa` is its one surface near identity. The modules underneath are these.
 
-### `engine/src/x509.ts` (DER/X.509 authority)
+### `engine/src/x509.ts`: DER and X.509
 
-Pure module shared by the ephemeral path, the CA service and tests. No DOM,
-`globalThis.crypto` only. It owns the DER writer helpers (`der`, `derSeq`,
-`derSet`, `derOctet`, `derUint`, `derOid`, `derTime`, `ecdsaRawToDer`) and
-`generateSigner` (c2pa.ts re-imports them - **byte-identical output**, so the
-existing c2pa test suite is the regression harness), plus:
+A pure module shared by the ephemeral path, the CA service and the tests. No DOM, `globalThis.crypto` only. It owns the DER writer helpers (`der`, `derSeq`, `derSet`, `derOctet`, `derUint`, `derOid`, `derTime`, `ecdsaRawToDer`) and `generateSigner`. `c2pa.ts` re-imports them with **byte-identical output**, so the existing C2PA test suite is the regression harness. It also exports:
 
 ```js
 export function pemToDer(pem)                      // -> Uint8Array
@@ -69,23 +47,18 @@ export async function generateCaRoot({ commonName, organization, days })
   // -> { certDer, pkcs8Der }  self-signed CA:TRUE root, ES256 P-256, keyCertSign
 export async function issueLeafCert({
   caCertDer, caPrivateKey,                          // issuer (CryptoKey or pkcs8 Uint8Array)
-  spkiDer,                                          // subject public key (CSR-less PoP flow)
+  spkiDer,                                          // subject public key (proven by the enrolment request)
   email, commonName, organization,                  // SAN rfc822Name + CN + O
-  days,                                             // enrollment default 30
+  days,                                             // default 7
+  notBefore, notAfter,                              // override days (the CA service sets these)
 })  // -> Uint8Array cert DER
 ```
 
-**c2pa-rs compatibility is non-negotiable in the leaf profile** (it hard-fails
-otherwise): subject MUST carry an `O=` attribute, EKU MUST be
-id-kp-emailProtection (`1.3.6.1.5.5.7.3.4` - anyEKU is rejected), keyUsage
-digitalSignature critical, SKI + AKI present, plus SAN rfc822Name = the
-verified email. Serial: random with the ephemeral path's stable-width trick.
+**The leaf profile must stay compatible with c2pa-rs**, which hard-fails otherwise. The subject MUST carry an `O=` attribute. The EKU MUST be id-kp-emailProtection (`1.3.6.1.5.5.7.3.4`); anyEKU is rejected. keyUsage is digitalSignature, critical. SKI and AKI are present, and the SAN rfc822Name is the verified email. The serial is random, with the ephemeral path's stable-width trick.
 
 ### `engine/src/c2pa.ts`
 
-`embedC2pa(bytes, format, opts)` and `embedC2paInPdf(bytes, opts)` take one
-optional `signer`. `buildC2paManifest` already threads it; the embedders use
-`opts.signer ?? await generateSigner(dates)`:
+`embedC2pa(bytes, format, opts)` and `embedC2paInPdf(bytes, opts)` take one optional `signer`. `buildC2paManifest` already threads it, and the embedders use `opts.signer ?? await generateSigner(dates)`:
 
 ```js
 opts.signer = {
@@ -96,14 +69,9 @@ opts.signer = {
 }
 ```
 
-Inside the COSE signing step: the x5chain (label 33) becomes
-`signer.chain ?? [signer.certDer]`, and the sign call becomes
-`signer.sign ? await signer.sign(sigStructure) : subtle.sign(…, signer.privateKey, sigStructure)`.
-Two-pass safety: chain bytes are captured once per embed (byte-identical
-across passes), ES256 signatures are fixed 64 bytes, alg stays hardcoded −7 -
-**P-256 only** by contract. `sign()` runs several times per embed (probe +
-fixed-point rounds + pass 2), fine for a WebCrypto key; a future
-user-presence key would need dummy probe signatures.
+Inside the COSE signing step, the x5chain (label 33) becomes `signer.chain ?? [signer.certDer]`, and the sign call becomes `signer.sign ? await signer.sign(sigStructure) : subtle.sign(…, signer.privateKey, sigStructure)`.
+
+Two passes stay safe: the chain bytes are captured once per embed, so they are byte-identical across passes; ES256 signatures are a fixed 64 bytes; and the algorithm stays hard-coded at −7, **P-256 only** by contract. `sign()` runs several times per embed (a probe, fixed-point rounds and pass 2). That is fine for a WebCrypto key; a future key that needs a person present would need dummy probe signatures.
 
 ### `engine/src/c2pa-verify.ts`
 
@@ -111,363 +79,173 @@ user-presence key would need dummy probe signatures.
 verifyC2pa(bytes, { trustAnchors } = {})   // trustAnchors: Uint8Array[] (root cert DER)
 ```
 
-Zero-options behaviour stays byte-identical (contract tests guard it). With
-anchors supplied, it captures the full x5chain and verifies leaf-signed-by-anchor
-(issuer-name DER bytes match anchor subject bytes + a signature check over the
-leaf's tbsCertificate using the anchor SPKI). `parseCertificate` is extended
-**additively** (tbsBytes, rawSignature, issuer/subject bytes, SAN emails,
-signature algorithm) - existing fields unchanged. It reads both `c2pa.claim` and
-`c2pa.claim.v2` (with `created_assertions`/`gathered_assertions` and
-`c2pa.actions.v2`), and multi-algorithm chains (ECDSA P-256/384/521, RSA
-PKCS#1 v1.5, RSA-PSS, Ed25519) walk an arbitrary but bounded depth to a pinned
-anchor.
+With no options the behaviour stays byte-identical, and contract tests guard that. With anchors supplied, it captures the full x5chain and verifies that the leaf is signed by an anchor: the issuer name's DER bytes match the anchor's subject bytes, and a signature check over the leaf's tbsCertificate uses the anchor's SPKI.
 
-Report verdict semantics (surfaced by the `/verify` view):
+`parseCertificate` is extended **additively** (tbsBytes, rawSignature, issuer and subject bytes, SAN emails, signature algorithm), and existing fields are unchanged. It reads both `c2pa.claim` and `c2pa.claim.v2` (with `created_assertions`, `gathered_assertions` and `c2pa.actions.v2`). Multi-algorithm chains (ECDSA P-256, P-384 and P-521, RSA PKCS#1 v1.5, RSA-PSS, Ed25519) walk an arbitrary but bounded depth to a pinned anchor.
 
-- Chain verifies + leaf inside validity → `report.trusted = true` and
-  `report.signer.identity = { email, issuer }`. The view resolves this to
-  **Verified** (or **Delivered by Lolly** when the active claim is a
-  `c2pa.published` rather than `c2pa.created` action).
-- Chain verifies but leaf outside validity → the `expired` verdict; the identity
-  is still set (it was CA-verified), but `report.trusted` stays false.
-- Intact Lolly claim → `report.madeWithLolly` (**Made with Lolly**); an intact
-  claim whose bytes fail only the hard binding → `report.likelyMadeWithLolly`
-  (amber **Likely made with Lolly**).
-- No anchors / no chain to an anchor → anonymous-but-valid ("Credential intact").
+How the report becomes the verdict the `/verify` view shows:
 
-### CLI
+- **Chain verifies and the leaf is inside its validity.** `report.trusted = true` and `report.signer.identity = { email, issuer }`. When the claim records a Lolly export, the headline stays **Made with Lolly** and the view adds a "Signed by \<email\> - identity verified by \<issuer\>" line. Otherwise the view resolves this to **Verified**, or **Delivered by Lolly** when the active claim is a `c2pa.published` rather than a `c2pa.created` action.
+- **Managed deployment.** `verifyC2pa` also takes `enrollmentTrust` (the public trust bundle) and `enrollmentCrls`. A managed chain is trusted only when its issuer's revocation list is fresh and does not list the leaf (`validateManagedCredential` in `engine/src/enrollment.ts`).
+- **Chain verifies but the leaf is outside its validity.** The `expired` verdict. The identity is still set, because it was CA-verified, but `report.trusted` stays false.
+- **An intact Lolly claim.** `report.madeWithLolly` (**Made with Lolly**). An intact claim whose bytes fail only the hard binding gives `report.likelyMadeWithLolly` (amber **Likely made with Lolly**).
+- **No anchors, or no chain to one.** Anonymous but valid: **Credential intact**.
 
-`lolly validate <file> [--json] [--deep] [--trust-anchor <root.pem>] [--no-default-anchors]` -
-same verifier, same report; `--trust-anchor` loads PEM → DER and appends to
-`trustAnchors`, and `--deep` adds the neural pixel-watermark scan (browser tier). The default anchor set is the **Lolly CA root plus the vendored C2PA
-known-certificate list**, identical to the web `/valid` view and to MCP's `lolly_verify`
-([plans/73-cli-ga-contract.md](https://github.com/lolly-tools/lolly/blob/main/plans/73-cli-ga-contract.md), section 12 O1) - so a Lolly-CA-signed export reads the same on every
-surface. `--no-default-anchors` drops both built-in sets for a bare-trust check, and
-every report prints which set produced the verdict.
+### `engine/src/enrollment.ts`
 
-## Beyond C2PA: pixel- and byte-level verify reads
+The enrolment protocol, the managed chain and the revocation list, shared by the app, the CA service and the verifier. `createEnrollmentCsr` builds the app's empty-subject P-256 PKCS#10 CSR, and `enrollmentProofMessage` is the message its proof of possession signs. The CA checks both with `verifyEnrollmentRequest`. For managed mode, `validateEnrollmentChain` checks an issued chain against its enrolment policy (pinned issuer and roots, email, policy OID and maximum lifetime), `validateEnrollmentCrl` checks a revocation list's signature, issuer and age, and `validateManagedCredential` combines them with the parsed trust bundle (`parseEnrollmentTrustBundle`) for the verifier. `revocationProofMessage` is what a device signs to revoke its own certificate.
 
-The web `/verify` view runs several checks *around* the credential. Each is a pure,
-DOM-free engine (or shell-lib) module fed a decoded RGBA buffer or the raw file
-bytes by the shell; none is a bridge capability, and none uploads anything - the
-deep-scan model download (same-origin, opt-in, one-time) is the only network touch,
-and it never sends the file. The web shell deliberately passes **no SEAL key
-resolver** - a DNS-published key reports "no key resolver" instead of being fetched
-through a third-party DoH service; the Node shells (CLI/TUI/desktop) resolve keys
-through the machine's own DNS.
+### `lolly validate`
 
-Each read has its own surface in the view, catalogued in the component library
-beside the module that defines it - here, the verdict-hero entry: the verdict
-states it covers and the `valid.ts` source behind them:
+`lolly validate <file…> [--json] [--metadata] [--deep] [--rebuild=<session.lolly>] [--require=credential|none] [--trust-anchor=<root.pem>] [--no-default-anchors]` runs the same verifier and prints the same report.
+
+- `--trust-anchor=` loads a PEM, converts it to DER and appends it to `trustAnchors`. It can repeat, and like every value flag it rejects the bare `--trust-anchor <root.pem>` form.
+- `--metadata` adds the embedded-metadata and hidden-data report.
+- `--deep` adds the neural pixel-watermark scan, which needs the browser tier.
+
+The default anchor set is the **Lolly CA root plus the vendored C2PA known-certificate list**, the same as the web Verify view and MCP's `lolly_verify`, so a Lolly-CA-signed export reads the same on every surface. `--no-default-anchors` drops both built-in sets for a bare-trust check, and every report prints which set produced the verdict.
+
+## Beyond C2PA: pixel and byte level Verify reads
+
+The Verify view runs several checks around the credential, described for readers on [What Verify checks](/info/what-verify-checks.html). Each is a pure, DOM-free module in the engine or a shell library, fed a decoded RGBA buffer or the raw file bytes by the shell. None is a bridge capability, and none uploads anything. The opt-in deep scan's one-time model download is the only network touch, from the same origin on the web and from the model host `lolli.li` in the desktop and mobile apps, and it never sends the file.
+
+Each read has its own surface in the view, catalogued in the component library next to the source that defines each surface. Here is the verdict-hero entry, with the verdict states it covers and the `valid.ts` source behind them:
 
 ![The component-library entry for the verify hero - the verdict states it covers (Made with Lolly, Verified, broken) beside the valid.ts source that defines them](/t/url-shot?url=%2F%23%2Fcomponents&width=1200&height=1400&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23cl-verify-valid%20.cl-card&dark=1&filename=ce-verify-card)
 
-### `engine/src/pixel-watermark.ts` - the Lolly Imprint
+### `engine/src/pixel-watermark.ts`: the Lolly Imprint
 
-Block-DCT spread-spectrum watermark (Cox/Kilian/Leighton/Shamoon) on the same 8×8
-grid JPEG's own DCT uses, so it survives recompression. `embedWatermark(rgba, opts)`
-adds a fixed ±1 chip to mid-band luma coefficients scaled by a perceptual mask;
-`detectWatermark(rgba, {width, height})` correlates and returns a presence score
-(`DetectResult`); `canCarryWatermark(w, h)` gates images too small to hold the mark
-(`MIN_IMPRINT_BLOCKS`). Presence-only, no payload. **Security posture is obscurity,
-not a hardened defence** - the chip key ships in this public source, so a motivated
-adversary who reads it can subtract the mark. It's honest cover against casual
-re-encoding/stripping, framed exactly like the self-signed on-device C2PA key
-(`plans/30-lollys-own-synth.md`). The shell embeds it two ways: the standalone raster
-encoders' `opts.imprint` branch, and `imprintEmbedCanvas` baking the mark into each
-Lolly-rendered raster as it's composited into a PDF page / PPTX slide - so a
-pure-vector page marks nothing, and the C2PA claim is gated on whether a mark was
-actually applied, never over-claimed. On by default; `?imprint=0` opts out.
+A block-DCT spread-spectrum watermark (Cox, Kilian, Leighton and Shamoon) on the same 8×8 grid JPEG's own DCT uses, so it survives recompression. `embedWatermark(rgba, opts)` adds a fixed ±1 chip to mid-band luma coefficients, scaled by a perceptual mask. `detectWatermark(rgba, {width, height})` correlates and returns a presence score (`DetectResult`). `canCarryWatermark(w, h)` rules out images too small to hold the mark (`MIN_IMPRINT_BLOCKS`). It records presence only, with no payload.
 
-### `engine/src/steganalysis.ts` - LSB chi-square
+**Its security rests on obscurity, not a hardened defence.** The chip key ships in this public source, so someone who reads it can subtract the mark. It is honest cover against casual re-encoding and stripping, framed exactly like the self-signed on-device C2PA key.
 
-`analyzeLsb(rgba, {width, height})` runs a chi-square test on pixel-pair LSB
-statistics and returns a likelihood that the image hides LSB-embedded data. It's a
-heuristic (amber), never a cryptographic verdict; the view renders it as an
-`LSB steganography likely` pip plus an `LSB analysis` metadata row.
+The shell embeds it two ways: through the standalone raster encoders' `opts.imprint` branch, and through `imprintEmbedCanvas`, which bakes the mark into each Lolly-rendered raster as it is composited into a PDF page or PPTX slide. A pure-vector page marks nothing, and the C2PA claim depends on whether a mark was actually applied, so it never over-claims. On by default; `?imprint=0` opts out.
 
-### `engine/src/file-metadata.ts` - appended payloads
+### `engine/src/steganalysis.ts`: LSB chi-square
 
-`extractFileMetadata(bytes)` reads EXIF/XMP/IPTC and, for provenance, detects bytes
-appended *after* a container's real end (PNG `IEND`, JPEG `EOI`, GIF trailer, APNG),
-returning them as an `appended` field the view renders with view/download of the
-extracted bytes (rendered only as escaped hex/text - never parsed or executed). The
-legitimate motion-photo append (`kind: 'video (motion photo)'`) is recognised and
-shown without a warning. This read is bytes-only, so MCP surfaces it in its metadata
-output too (it lacks the interactive extractor, but sees the same `appended` field).
+`analyzeLsb(rgba, {width, height})` runs a chi-square test on pixel-pair LSB statistics and returns a likelihood that the image hides LSB-embedded data. It is a heuristic, shown in amber and never as a cryptographic verdict. The view renders it as an `LSB steganography likely` pip plus an `LSB analysis` metadata row.
 
-### `engine/src/seal.ts` - SEAL cryptographic signatures
+### `engine/src/file-metadata.ts`: appended payloads
 
-`verifySeal(bytes, resolveKey?)` parses a hackerfactor [SEAL](https://github.com/hackerfactor/SEAL)
-record and verifies its signature over the covered byte ranges. The `resolveKey`
-resolver is optional and shell-supplied: **the web shell deliberately passes none**
-(zero network requests - a DNS-keyed record reports "no key resolver" there), while
-the Node shells (CLI/TUI/desktop) can supply one backed by the machine's own system
-DNS. **This is a byte-signature format - not a pixel watermark, and NOT Meta's
-Content Seal despite the shared word.** A key resolved from DNS yields domain
-attribution (`Signed by <domain> (SEAL)`, proving domain control, not a CA-verified
-legal identity); a key the file itself carries yields an
-internally-consistent-but-unattributed result. In the web app there is no network
-touch at all; in the Node shells the only network touch is a system-DNS key lookup -
-the file never leaves the device either way.
+`extractFileMetadata(bytes)` reads EXIF, XMP and IPTC. For provenance, it also detects bytes appended *after* a container's real end (PNG `IEND`, JPEG `EOI`, GIF trailer, APNG) and returns them as an `appended` field. The view renders that with a view and a download of the extracted bytes, shown only as escaped hex or text and never parsed or executed. A declared append, such as a motion photo's video, is recognised and shown without a warning. The read needs only bytes, so MCP shows the same `appended` field in its metadata output, without the interactive extractor.
 
-### Deep scan: `trustmark.ts` + `contentseal.ts` (web, opt-in)
+### `engine/src/seal.ts`: SEAL signatures
 
-Two open pixel-watermark decoders behind a one-time consent - a ~90 MB detector
-download gated by a single batch-level banner, after which the scan is passive per
-file (`shells/web/src/lib/trustmark.ts` and `contentseal.ts`, with
-`engine/src/contentseal.ts` for the DOM-free decode math):
+`verifySeal(bytes, resolveKey?)` parses a hackerfactor [SEAL](https://github.com/hackerfactor/SEAL) record and verifies its signature over the covered byte ranges. The `resolveKey` resolver is optional and supplied by the shell. **The Verify view passes none**, so it makes no network request and a DNS-keyed record reports "no key resolver". It is the only caller today: `lolly validate`, the TUI and MCP do not check SEAL.
 
-- **Adobe TrustMark** - a real, ECC-verified decode; a payload that passes its
-  error-correction check is a genuine read (green pip + recovered bytes), not a
-  guess.
-- **Meta Content Seal** - the *open* Pixel Seal / Video Seal watermark. No ECC gate,
-  so a decode that stays consistent across several re-encodings is an amber
-  statistical "likely", and the note always carries the caveat that Meta's
-  proprietary **Muse** image variant is a different watermark this cannot read (so a
-  hit is never "Meta AI", and absence rules nothing out).
+**SEAL is a byte-signature format, not a pixel watermark and not Meta's Content Seal, despite the shared word.** A key the file itself carries gives an internally consistent but unattributed result. A key resolved from DNS would give domain attribution (`Signed by <domain> (SEAL)`, proving control of the domain, not a CA-verified legal identity), but no shell supplies a resolver yet.
 
-Everything is on-device; nothing but the one-time model bytes is fetched.
+### Deep scan: `trustmark.ts` and `contentseal.ts`
 
-TrustMark's *write* side is one switch in the export panel, off by default for the
-same reason its scan is opt-in: a neural pass plus that one-time model download. It
-sits inside the Content protection card shown further down this page.
+Two open pixel-watermark decoders behind a one-time consent: about 90 MB of detector models, offered by one banner per batch, after which the scan runs on each file without asking again (`shells/web/src/lib/trustmark.ts` and `contentseal.ts`, with `engine/src/contentseal.ts` for the DOM-free decode maths). TrustMark is a real decode checked by error correction. Content Seal has no error-correcting check, so it reports an amber statistical "likely", always with the caveat that Meta's proprietary Muse variant is a different watermark. [What Verify checks](/info/what-verify-checks.html#deep-scan-trustmark-and-content-seal) has the reader's detail.
+
+TrustMark's *write* side is one switch in the export panel, off by default for the same reason its scan is opt-in: a neural pass plus that one-time model download. It sits in the Content protection card shown below.
 
 ## Trust anchors
 
-Trusted verification is **live** - the pinned Lolly root ships as a real PEM in
-`shells/web/src/ca-root.ts` (`CA_ROOT_PEM`, public by design) and is also served at
-`/api/ca/root.pem`. The verifier additionally bundles the public C2PA/CAI trust
-anchors (`engine/src/c2pa-trust.ts`) so third-party credentials (camera makers,
-Adobe, Google's C2PA root, Truepic-signed OpenAI output, …) resolve to their real
-issuer. Presence in a list never trusts on its own - a verdict of trusted requires
-the chain to actually verify and no other check to fail.
+Trusted verification is live. The pinned Lolly root ships as a real PEM in `shells/web/src/ca-root.ts` (`CA_ROOT_PEM`, public by design) and is also served at `/api/ca/root.pem`. The verifier also bundles the public C2PA and CAI trust anchors (`engine/src/c2pa-trust.ts`), so third-party credentials (camera makers, Adobe, Google's C2PA root, Truepic-signed OpenAI output and others) resolve to their real issuer. Presence in a list never trusts on its own: a trusted verdict needs the chain to actually verify and no other check to fail.
 
 ## CA service (`services/ca/`)
 
-Zero-dependency Node (node:http + WebCrypto), importing `engine/src/x509.ts`.
-A workspace package. Runs three ways from one `handler.mjs`:
+Node (node:http and WebCrypto), with one runtime dependency, `jose`, which verifies OIDC ID tokens. It imports `engine/src/x509.ts` and `engine/src/enrollment.ts`, and it is a workspace package. One `handler.mjs` runs four ways:
 
-- `node services/ca/server.mjs` - local dev on `:8787` (Vite proxies
-  `/api/ca` → `http://localhost:8787`; the string-shorthand proxy preserves
-  the path, so the handler always routes on the full `/api/ca/*` prefix).
-- `api/ca/[...path].js` at the **repo root** - a serverless function entry that
-  imports the same handler. (This bundle is generated by
-  `scripts/build-ca-fn.ts`; CI rebuilds it and fails on drift - never hand-edit
-  it.) The service worker bypasses `/api/`, and the platform serves functions
-  before rewrites, so the SPA catch-all never swallows it.
-- Imported directly by `tests/ca-service.test.ts` (pure logic tested without
-  a socket).
+- `node services/ca/server.mjs` for local development on `:8787`. Vite proxies `/api/ca` to `http://localhost:8787`; the string-shorthand proxy keeps the path, so the handler always routes on the full `/api/ca/*` prefix.
+- A container image built from `deploy/docker/ca.Dockerfile` at the repository root, running the same `server.mjs` on `$PORT` (default 8787).
+- `api/ca/[...path].js` at the repository root: a generated function bundle that imports the same handler, for hosts that run Node functions. `scripts/build-ca-fn.ts` generates it and CI fails on drift, so never edit it by hand. The service worker bypasses `/api/`, so the host must route `/api/ca/*` to the CA ahead of the app's single-page fallback.
+- Imported directly by `tests/ca-service.test.ts`, which tests the logic without a socket.
+
+The service has two issuer modes. **Legacy root** (`CA_ISSUER_MODE=legacy-root`, the default when no Vault setting is present) signs leaves itself, with the root key from the environment. **Managed** (`CA_ISSUER_MODE=vault-pki`) hands issuance to a Vault PKI intermediate, loads no root key, requires protocol version 2 and adds revocation through revocation lists.
 
 ### Protocol
 
 | Route | Purpose |
 |---|---|
-| `GET /api/ca/health` | Liveness plus `configured` - which OIDC providers this deployment actually has credentials for. The profile view builds its provider buttons from it, so a deployment with no OIDC app says so instead of offering a button that would 501 |
-| `GET /api/ca/root.pem` | The public Lolly root - for `c2patool --trust_anchors` and humans |
-| `GET /api/ca/auth/:provider?origin=` | Start OIDC (`suse` \| `github` \| `google`); sets HMAC state cookie, redirects to provider |
-| `GET /api/ca/callback/:provider` | Code exchange → verified email → mints a 10-min **enrollment token**; returns a tiny page that `postMessage`s the token to `origin` and closes |
-| `POST /api/ca/email/start` `{email, origin, days?}` | Magic link via Resend; the link returns the user to the app (`/#/profile?enrollToken=…`), which finishes enrollment via the normal `POST /api/ca/enroll` PoP exchange |
-| `POST /api/ca/enroll` `{token, spki, pop, days?}` | Verify token HMAC+expiry, verify PoP (ECDSA over the token bytes with the presented SPKI), issue a leaf valid for `days` ∈ {7, 30, 90, 365} (anything else → `CA_CERT_DAYS`, capped at `CA_CERT_MAX_DAYS`) → `{cert, chain, identity, notAfter}` (PEM) |
+| `GET /api/ca/health` | Liveness plus `configured` (which OIDC providers this deployment actually has credentials for) and the issuer mode. The Settings view builds its provider buttons from this, so a deployment with no OIDC app says so instead of offering a button that would return 501 |
+| `GET /api/ca/root.pem` | The public Lolly root, for `c2patool --trust_anchors` and for people |
+| `GET /api/ca/auth/:provider?origin=` | Starts OIDC (`suse`, `github` or `google`): sets an HMAC state cookie and redirects to the provider |
+| `GET /api/ca/callback/:provider` | Code exchange, then the verified email, then a 10-minute **enrolment token**. Returns a tiny page that `postMessage`s the token to `origin` and closes |
+| `POST /api/ca/email/start` `{email, origin, days?}` | Magic link through Resend; the link points at `/#/profile?enrollToken=…`. The current app offers no email enrolment button and does not read that token, so this route has no client today |
+| `POST /api/ca/enroll` `{version, token, csr, spki, pop, days?}` | Verifies the token's HMAC and expiry and the proof of possession, then issues a leaf. Version 2 (what the app sends): a P-256 PKCS#10 CSR whose key matches `spki`, plus an ECDSA signature over the token and the CSR digest. Version 1 (legacy mode only): a signature over the token bytes. Legacy mode issues for `days` in {7, 30, 90, 365} (anything else gets `CA_CERT_DAYS`, capped at `CA_CERT_MAX_DAYS`). Managed mode takes `lifetimeSeconds` up to the trust bundle's ceiling and has Vault sign the CSR. Returns `{cert, chain, identity, notAfter}` as PEM |
+| `GET /api/ca/issuer/<id>/crl` | Managed mode: the configured issuer's full revocation list, checked for signature, issuer and freshness before it is served |
+| `POST /api/ca/revoke/challenge`, then `POST /api/ca/revoke` | Managed mode: revocation authorised by the device. The service returns a single-use challenge for the presented certificate, the device signs it with the certificate's key, and the service revokes the certificate through Vault |
 
-Notes:
+- **Enrolment protocol v2.** The app sends an empty-subject P-256 PKCS#10 CSR and a proof-of-possession signature over the token and the CSR digest. A CSR cannot choose its own identity or extensions: those come from the verified token and server policy. Legacy mode still accepts the original v1 request without a CSR (raw SPKI plus a signature over the token) from older clients.
+- **Token state.** Enrolment tokens are HMAC-signed values (email, provider, expiry). In legacy mode there is no session store, and a replay within the 10-minute window re-issues a certificate for the same identity and key, which is harmless. Managed mode consumes each token's random identifier atomically in a shared admission store before calling Vault, so a token issues at most one certificate and a retry needs a fresh sign-in.
+- **No issuance log.** The CA keeps no issuance log or identity inventory: no stdout line, no webhook, no certificate store. Rate-limit buckets in the shared store hold only hashed IP and email keys for their window, and managed mode's admission store keeps a keyed identifier and request digest for at most ten minutes. An issued certificate exists only on the device that requested the certificate. The cost is that misissuance cannot be traced on the server; the mitigation is that leaves are short-lived. Vault's revocation storage in managed mode can keep revoked certificate bytes, including the email (see the CA README). A public append-only transparency log, which records certificates rather than identities, remains on the roadmap.
+- **Development provider.** With `CA_DEV_FAKE_PROVIDER=1`, never set in production, a `dev` provider signs in instantly as `dev@example.com`, so the full enrol, sign and verify loop is testable with no OAuth secrets.
 
-- **CSR-less enrollment.** The client sends its raw SPKI plus a
-  proof-of-possession signature over the enrollment token instead of a
-  PKCS#10 CSR - same soundness, no ASN.1 CSR parser server-side.
-- **Stateless.** Enrollment tokens are HMAC-signed values (email, provider,
-  exp) - no session store. Replay within the 10-minute window re-issues a
-  cert for the same identity+key, which is harmless.
-- **No issuance log.** The CA retains nothing about who enrolled: no stdout
-  line, no webhook, no store. An issued cert exists only on the device that
-  requested it. The cost is that misissuance can't be traced server-side; the
-  mitigation is that leaves are short-lived and expire. A public append-only
-  transparency log - which records certificates, not identities - remains the
-  Tier-3 upgrade.
-- **Dev provider.** With `CA_DEV_FAKE_PROVIDER=1` (never set in prod), a
-  `dev` provider authenticates instantly as `dev@example.com` so the full
-  enroll→sign→verify loop is testable with zero OAuth secrets.
+::: details Environment variables
+Set these in the host's environment store, and in `.env` for local work.
 
-### Environment variables (set in the host's environment store → also `.env` for local)
-
-| Var | What |
+| Variable | What |
 |---|---|
-| `CA_ROOT_KEY_PEM` | PKCS8 PEM of the root private key (**the only secret that matters**) |
-| `CA_ROOT_CERT_PEM` | PEM of the root cert (public, also committed) |
-| `CA_SERVICE_SECRET` | Random 32+ bytes; HMAC for state cookies + enrollment tokens |
-| `CA_CERT_DAYS` | Default leaf lifetime in days when the client doesn't choose (default `30`) |
-| `CA_CERT_MAX_DAYS` | Hard cap on any requested lifetime (default `365`) |
-| `CA_ALLOWED_ORIGINS` | Comma list, e.g. `https://lolly.tools,http://localhost:5173` |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth app |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth client (web) |
-| `SUSE_ISSUER` | `https://id.suse.com` (Keycloak OIDC discovery) |
-| `SUSE_CLIENT_ID` / `SUSE_CLIENT_SECRET` | id.suse.com OIDC app |
+| `CA_ISSUER_MODE` | `legacy-root` (the default when no `CA_VAULT_*` setting is present) or `vault-pki` |
+| `CA_ROOT_KEY_PEM` | Legacy mode: the PKCS8 PEM of the root private key, **the only secret that matters**. Managed mode loads no root key |
+| `CA_ROOT_CERT_PEM` | The root certificate's PEM (public, also committed) |
+| `CA_RATE_LIMIT_REST_URL` / `CA_RATE_LIMIT_REST_TOKEN` | The shared HTTPS rate-limit store (or the `LOLLY_RATE_LIMIT_REST_*` pair). Without it, a hosted deployment answers sign-in and enrolment requests with 503 unless `CA_ALLOW_IN_MEMORY_RATE_LIMIT=1` |
+| `CA_SERVICE_SECRET` | Random, 32 bytes or more: the HMAC key for state cookies and enrolment tokens |
+| `CA_CERT_DAYS` | The default leaf lifetime in days when the client does not choose (default `30`) |
+| `CA_CERT_MAX_DAYS` | The hard cap on any requested lifetime (default `365`) |
+| `CA_ALLOWED_ORIGINS` | A comma list, such as `https://lolly.tools,http://localhost:5173` |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | The GitHub OAuth app |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | The Google OAuth client (web) |
+| `SUSE_ISSUER` | The issuer URL of the OIDC provider behind the `suse` provider id, read through OIDC discovery |
+| `SUSE_CLIENT_ID` / `SUSE_CLIENT_SECRET` | That provider's OIDC client |
 | `RESEND_API_KEY` / `EMAIL_FROM` | Email magic links |
-| `CA_DEV_FAKE_PROVIDER` | `1` only in local dev |
+| `CA_DEV_FAKE_PROVIDER` | `1` only in local development |
+
+Managed mode adds its Vault, trust-bundle and revocation settings (`CA_VAULT_*`, `CA_ENROLLMENT_TRUST_JSON`), which the CA README lists.
+:::
 
 ## Web shell
 
-Everything below surfaces as one card in the export panel: the C2PA switch (plus
-its ephemeral lifetime picker), the pixel Imprint and the opt-in durable mark,
-each gated per format by the predicates in `views/tool-actions.ts`.
+Everything below appears as one card in the export panel: the C2PA switch with its ephemeral lifetime picker, the pixel Imprint and the opt-in durable mark, each enabled per format by the predicates in `views/tool-actions.ts`.
 
 ![The Content protection card as the shell assembles it, with one switch per provenance mechanism rather than a single blanket toggle](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26options%26c2pa%3D90%26imprint%3D1&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&css=%23tool-inputs%2C%23sidebar-utils%7Bdisplay%3Anone%7D&cropSelector=.export-protection&dark=1&filename=cc-export-protection)
 
-- `shells/web/src/bridge/identity.ts` - the identity manager:
-  `status()`, `enroll(provider)` (popup + postMessage + PoP + cert cache),
-  `signer()` (null unless a valid cert is cached), `forget()`. Keypair and
-  cert live in a dedicated IndexedDB store; CryptoKey objects structured-clone
-  into IDB natively.
-- Export path passes `signer` into `embedC2pa*` when available - one line at
-  the existing call site; ephemeral fallback is the engine default.
-- `/profile` gains a **Content Credentials** section: enrollment status
-  ("Signing as andy@… via GitHub - renews Jul 10"), four provider buttons,
-  and Forget this device.
-- `/verify` passes the pinned root (plus the bundled public anchors) as
-  `trustAnchors` and renders the trusted state: shield goes green-with-identity,
-  facts show the verified email + issuer.
+- `shells/web/src/bridge/identity.ts` is the identity manager: `status()`, `enroll(provider)` (popup, `postMessage`, proof of possession and the certificate cache), `signer()` (null unless a valid certificate is cached) and `forget()`. The keypair and certificate live in a dedicated IndexedDB store; CryptoKey objects structured-clone into IndexedDB natively.
+- The export path passes `signer` into `embedC2pa*` when one is available, one line at the existing call site. The ephemeral fallback is the engine default.
+- **Settings** has a **Content Credentials** section (the old `/profile` route still opens the section). It shows the enrolment status ("Signing as andy@… via GitHub - renews Jul 10"), a button for each provider the deployment configures, Renew, Forget this device and, on a managed deployment, Revoke certificate.
+- `/verify` passes the pinned root and the bundled public anchors as `trustAnchors` and renders the trusted state: the shield turns green with an identity, and the facts show the verified email and issuer.
 
-The enrolment card is where the certificate lifetime is chosen, before any popup
-opens. The provider buttons are built from `/api/ca/health.configured`, so a
-deployment that has wired up no OIDC app says so instead of offering a button that
-would 501.
+The enrolment card is where the certificate lifetime is chosen, before any popup opens. Its provider buttons come from `/api/ca/health.configured`, so a deployment with no OIDC app says so.
 
-![The Content Credentials section of Profile, expanded from the link, with the 7 / 30 / 90 / 365 day certificate lifetime picker above the provider row, which on a deployment with no OIDC app wired up says so instead of offering a button](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Didentity-section&width=1440&height=1400&dpi=192&waitMs=2600&format=svg&cropSelector=%23identity-section&walker=1&dark=1&filename=ce-identity-enrolment)
+![The Content Credentials section of Settings, expanded from the link, on a deployment with no OIDC app wired up: one line says so in place of the lifetime picker and the provider buttons](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Didentity-section&width=1440&height=1400&dpi=192&waitMs=2600&format=svg&cropSelector=%23identity-section&walker=1&dark=1&filename=ce-identity-enrolment)
 
-## Operator runbook (one-time setup - the parts only you can do)
+## Run the CA
 
-1. **Generate the root** (anywhere, then guard the key):
+The [CA README](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md) is the operator runbook: [hosted identity](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#deploy-and-maintain-hosted-identity) for provider clients, the verified-email policy, secrets, upgrades and rotation, and [managed intermediate enrolment](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#managed-intermediate-enrollment) for a Vault deployment, which holds no root key in the service.
 
-   ```bash
-   node services/ca/scripts/gen-root.mjs   # writes lolly-root-cert.pem + lolly-root-key.pem
-   ```
+To try the whole loop locally, with no secrets thanks to the development provider:
 
-   Commit/paste `lolly-root-cert.pem` into `shells/web/src/ca-root.ts`.
-   **Never commit the key.** Store it in a password manager, then set the
-   following secrets in your platform's environment store (production scope):
+```bash
+CA_DEV_FAKE_PROVIDER=1 CA_SERVICE_SECRET=dev node services/ca/server.mjs &
+pnpm run dev:web        # Vite proxies /api/ca → :8787
+```
 
-   ```
-   CA_ROOT_KEY_PEM       # paste the key PEM
-   CA_ROOT_CERT_PEM
-   CA_SERVICE_SECRET     # e.g. `openssl rand -hex 32`
-   CA_ALLOWED_ORIGINS    # https://lolly.tools
-   ```
+::: details Bootstrapping a legacy root deployment
+1. **Generate the root** anywhere, then guard the key: `node services/ca/scripts/gen-root.mjs` writes `lolly-root-cert.pem` and `lolly-root-key.pem`. Commit or paste `lolly-root-cert.pem` into `shells/web/src/ca-root.ts`. **Never commit the key.** Keep it in a password manager.
+2. **Register a provider client** for each provider you enable, with the callback `https://<your-host>/api/ca/callback/<provider>`, plus the `http://localhost:8787/api/ca/callback/<provider>` variant for development. GitHub needs the `user:email` scope; Google and the `suse` provider id (any OIDC issuer, such as Keycloak, set with `SUSE_ISSUER`) need `openid email`, plus `profile` for the latter. Email enrolment through Resend is optional, because the current app offers no email button.
+3. **Set the environment** in your platform's secret store, production and a staging copy: `CA_ROOT_KEY_PEM`, `CA_ROOT_CERT_PEM`, `CA_SERVICE_SECRET` (for example `openssl rand -hex 32`), `CA_ALLOWED_ORIGINS`, `CA_RATE_LIMIT_REST_URL` and `CA_RATE_LIMIT_REST_TOKEN`, plus the provider credentials. Do not set `CA_DEV_FAKE_PROVIDER` in production.
+4. **Deploy** one artifact: the container image from `deploy/docker/ca.Dockerfile`, or the generated function bundle `api/ca/[...path].js` (rebuild it with `pnpm run build:ca-fn`). Either way, route `/api/ca/*` to the CA ahead of the app's single-page fallback. Then `curl https://<your-host>/api/ca/health` should return JSON (`{"ok":true,…}`), not the app's HTML. HTML means the request reached the app instead of the CA, so check the routing.
+:::
 
-2. **Register OIDC apps** (callback URL for all three:
-   `https://lolly.tools/api/ca/callback/<provider>`; add the
-   `http://localhost:8787/api/ca/callback/<provider>` variant for dev):
-   - **GitHub** → Settings → Developer settings → OAuth Apps → New.
-     Scope used: `user:email`. Set `GITHUB_CLIENT_ID`/`SECRET`.
-   - **Google** → console.cloud.google.com → Credentials → OAuth client
-     (Web). Scopes: `openid email`. Set `GOOGLE_CLIENT_ID`/`SECRET`.
-   - **id.suse.com (Keycloak)** → your Keycloak admin → create an OIDC client
-     (Web). Scopes: `openid email profile`. Set `SUSE_ISSUER`
-     (the issuer from the app's OIDC discovery), `SUSE_CLIENT_ID`/`SECRET`.
-   - **Email** → resend.com API key + verified sender → `RESEND_API_KEY`,
-     `EMAIL_FROM`.
+## Threat model, abridged
 
-3. **Set the env vars** in your platform's environment store (production
-   scope, and add a preview/staging copy so preview deploys can exercise it):
+The full register is the [Threat Model](/info/threat-model.html).
 
-   ```
-   CA_ROOT_KEY_PEM       # paste the key PEM
-   CA_ROOT_CERT_PEM
-   CA_SERVICE_SECRET     # openssl rand -hex 32
-   CA_ALLOWED_ORIGINS    # https://lolly.tools
-   # …plus the provider creds from step 2. Do NOT set CA_DEV_FAKE_PROVIDER in prod.
-   ```
-
-4. **Deploy.** The CA lives at repo-root `api/ca/[...path].js` (a serverless
-   function) importing `services/ca/` + `engine/src/x509.ts`; both are
-   committed, and the platform compiles `api/` independently of the Vite build.
-   The app's catch-all rewrite `"/((?!api/).*)" → /index.html` excludes `/api/`
-   by pattern (and functions are served before rewrites anyway), so `/api/ca/*`
-   resolves to the function first - it is **not** swallowed by the SPA fallback.
-   Confirm it's live:
-   `curl https://lolly.tools/api/ca/health` should return JSON
-   (`{"ok":true,…}`), **not** the SPA's HTML. If it returns HTML, the function
-   wasn't compiled - check the project's **root directory** setting is the repo
-   root (so repo-root `api/` is in scope), not `shells/web`.
-
-5. **Local dev** (no secrets needed thanks to the dev provider):
-
-   ```bash
-   CA_DEV_FAKE_PROVIDER=1 CA_SERVICE_SECRET=dev node services/ca/server.mjs &
-   pnpm run dev:web        # Vite proxies /api/ca → :8787
-   ```
-
-## Threat model (abridged)
-
-- **Repo is public** → contains no secrets; root cert is public by design.
-- **Device key theft** → key is non-extractable; even XSS can at worst *use*
-  it while the page is open, bounded by the cert lifetime. Expiry is the only
-  recall mechanism - there is no revocation infrastructure.
-- **CA key theft** → catastrophic for trust, as with any CA; mitigations:
-  env-only storage now, KMS/HSM at Tier 4 and short leaf lifetimes bound how
-  long any misissued certificate stays usable (there is no revocation to miss).
-- **Fork abuse** → forks can request certs only through our OIDC-gated,
-  origin-allowlisted, rate-limitable endpoint, and only for identities they
-  actually control.
-- **Token replay** → the enrolment token is a stateless 10-minute HMAC, and
-  proof-of-possession binds the *presented* keypair, not the browser that
-  completed sign-in - so a token leaked inside its window yields a certificate
-  for that identity to whoever holds it. Accepted risk, bounded by the short
-  window; flagged for the PKI review.
+- **The repository is public.** It holds no secrets, and the root certificate is public by design.
+- **Device key theft.** The key cannot be exported, so even injected script can at worst *use* it while the page is open, and only within the certificate's lifetime. In legacy mode, expiry is the only recall. Managed mode adds revocation authorised by the device, through the issuer's revocation list, which reaches a client that was offline once its cached list expires.
+- **CA key theft.** Catastrophic for trust, as with any CA. Legacy mode keeps the root key in the host's environment store. Managed mode is designed to keep the intermediate key in an HSM or KMS behind Vault, with the root offline, and the service never holds either key. Short leaf lifetimes bound how long a misissued certificate stays usable.
+- **Fork abuse.** Forks can request certificates only through this OIDC-gated, origin-allowlisted, rate-limited endpoint, and only for identities they actually control.
+- **Token replay.** The enrolment token is a 10-minute HMAC, and the proof of possession binds the *presented* keypair, not the browser that completed sign-in. So a token leaked inside its window gives whoever holds it a certificate for that identity. In legacy mode the token is stateless, so this is an accepted risk bounded by the short window, and flagged for the PKI review. Managed mode consumes each token once, so a leaked token is useless after the first enrolment.
 
 ## Roadmap
 
-1. RFC 3161 timestamp countersignature in the same enroll/export round trip
-   → the *expired* verdict becomes provable-time trusted.
-2. Public append-only issuance transparency log (Rekor-shaped).
-3. C2PA conformance program: audited KMS custody → the official trust list →
-   green in Adobe Verify et al.
+1. An RFC 3161 timestamp countersignature in the same enrol and export round trip, so the *expired* verdict becomes trusted with a provable time.
+2. A public, append-only issuance transparency log, shaped like Rekor.
+3. The C2PA conformance programme: audited KMS custody, then the official trust list, then a green result in Adobe's verifier and others.
 
-CLI signer support has **shipped**: `--sign-key=<key.pem> --sign-cert=<chain.pem>`,
-with `$LOLLY_SIGN_KEY`/`$LOLLY_SIGN_CERT` (paths),
-`$LOLLY_SIGN_KEY_PEM`/`$LOLLY_SIGN_CERT_PEM` (the PEM text itself, for CI secret
-stores) and `$LOLLY_SIGN_KEY_PASSWORD` for an encrypted key. No flag ever takes
-key material. See [Signing from the terminal](/info/cli-signing.html).
+Signing from the terminal has shipped: `--sign-key=<key.pem> --sign-cert=<chain.pem>`, with environment variables for CI secret stores. See [Signing from the terminal](/info/cli-signing.html).
 
-### SSO - two distinct jobs, one identity provider
-
-id.suse.com (Keycloak) shows up in **two** places that must not be conflated.
-Both reuse the same OIDC client, but they answer different questions. Detailed
-implementation plans (local, under `plans/`): **`plans/32-sso-signing.md`** and
-**`plans/33-sso-tool-access.md`** - the summaries below are the roadmap view.
-
-4. **Complete SUSE SSO for *signing*** (deepens the identity in this doc -
-   "who signed"; full plan → `plans/32-sso-signing.md`). Today SUSE is one
-   enrolment provider among several and each enrolment is a fresh popup. Bring
-   it to true SSO:
-   - **Session reuse / silent renewal.** While the id.suse.com session is
-     live, a cert nearing expiry re-issues in the background via OIDC
-     `prompt=none` - no weekly popup, no interaction. This is what makes short
-     (7-day) certs painless and is the natural companion to Tier 3 timestamps.
-   - **Org / domain enforcement.** Optional issuance policy
-     (`CA_REQUIRE_ISSUER=suse`, `CA_ALLOWED_EMAIL_DOMAINS=suse.com`) so a SUSE
-     deployment mints certs only for SUSE identities, and SUSE becomes the
-     default IdP (other providers opt-in).
-   - **Richer provenance identity.** Carry the SSO group / role / org-unit into
-     the certificate (an OU or SAN otherName) so a credential can attest
-     "signed by a SUSE employee," not just an email - gated on the realm
-     releasing those claims. Feeds the CreativeWork author assertion.
-
-5. **SSO for *tool access*** (a NEW authorization axis - "who may use the
-   app," separate from signing; full plan → `plans/33-sso-tool-access.md`). Gate
-   who can open the app, specific tools, or gated features behind SUSE SSO:
-   - **Shell-level auth guard, never the engine.** The engine stays
-     platform-agnostic; access control is a host/shell concern. The web shell
-     gains an auth gate in front of the gallery/tool routes, configurable as
-     fully-gated, or per-tool / per-capability (a `tool.json` `access` policy
-     the host enforces, mirroring how `capabilities` gate today).
-   - **One IdP, two purposes.** Reuse the same id.suse.com/Keycloak OIDC the CA
-     uses, so a signed-in user is already enrol-ready for signing; sign-in for
-     *access* and identity for *signing* share a session.
-   - **Session handling.** A lightweight `/api/auth/*` companion to `/api/ca/*`
-     on the same serverless deployment (httpOnly session cookie, PKCE, refresh),
-     with role/group-based tool visibility.
-   - **OSS-safe by default.** Access-gating is deployment policy: **off** in the
-     open-source build so public lolly.tools stays open, enabled only by
-     configuration so a SUSE-internal deployment can lock it down. Keep it out
-     of `engine/` and behind a shell config flag so the open-sourcing split
-     stays clean.
+Organisation SSO, SCIM and sign-in for access to an instance belong to Lolly Work, with a client and lifecycle separate from the CA's signing enrolment. See [Set up enterprise identity](/info/work-enterprise-identity.html).

@@ -10,7 +10,7 @@
 import type { Box } from '../free-canvas-math.ts';
 import { announce } from '../../a11y.ts';
 import { t, tRaw } from '../../i18n.ts';
-import type { AddKind, Metrics, Point } from './shared.ts';
+import type { AddKind, CanvasIndex, Metrics, Point } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 // `freshEdgeId` + `toggleEdge` (plan 90) lived here: Connect mode's write into the
@@ -67,12 +67,79 @@ export const frameOffsetOfEl = (fc: FcCtx, el: Element): Point => {
   }
   return { x: f.offsetLeft, y: f.offsetTop };
 };
+/**
+ * The painted canvas by id, read with ONE `querySelectorAll` per paint. Looking a box up
+ * used to be two attribute-selector scans of the whole canvas, and an artboard always
+ * missed the first, so every artboard title and every dragged box cost up to two full
+ * walks per frame.
+ *
+ * `lolly-canvas-painted` (a full paint and each fast-path patch) drops the index, and the
+ * next lookup builds a new one. A hit counts only while the element is still in the document
+ * and still carries the id; anything else goes back to the selectors, so an element a
+ * lazy enhancer swapped is still found.
+ */
+export function canvasIndex(fc: FcCtx): CanvasIndex {
+  const held = fc.canvasIndex;
+  if (held?.probe?.isConnected) return held;
+  const boxes = new Map<string, HTMLElement>();
+  const frames = new Map<string, HTMLElement>();
+  const repeats = new Map<string, HTMLElement[]>();
+  const list: HTMLElement[] = [];
+  let probe: HTMLElement | null = null;
+  for (const el of fc.canvasEl.querySelectorAll<HTMLElement>('.lolly-box[data-box-id], .lolly-frame-page[data-frame-id]')) {
+    probe ??= el;
+    const boxId = el.classList.contains('lolly-box') ? el.getAttribute('data-box-id') : null;
+    if (boxId != null) {
+      list.push(el);
+      if (!boxes.has(boxId)) boxes.set(boxId, el);
+      else {
+        const more = repeats.get(boxId);
+        if (more) more.push(el);
+        else repeats.set(boxId, [el]);
+      }
+    }
+    const frameId = el.classList.contains('lolly-frame-page') ? el.getAttribute('data-frame-id') : null;
+    if (frameId != null && !frames.has(frameId)) frames.set(frameId, el);
+  }
+  // An empty canvas keeps no index: there is nothing to scan, and no probe to notice the
+  // first paint by.
+  const next: CanvasIndex = { boxes, frames, list, repeats, noBox: new Set(), noFrame: new Set(), probe };
+  fc.canvasIndex = probe ? next : null;
+  return next;
+}
+/** After a paint (`lolly-canvas-painted`) the next lookup reads the canvas afresh. */
+export function dropCanvasIndex(fc: FcCtx): void {
+  fc.canvasIndex = null;
+}
+function indexed(fc: FcCtx, id: string, frame: boolean): HTMLElement | null {
+  const ix = canvasIndex(fc);
+  const map = frame ? ix.frames : ix.boxes;
+  const misses = frame ? ix.noFrame : ix.noBox;
+  const attr = frame ? 'data-frame-id' : 'data-box-id';
+  const hit = map.get(id);
+  if (hit?.isConnected && hit.getAttribute(attr) === id) return hit;
+  // A known miss, or an artboard (whose element is its page, never a `.lolly-box`):
+  // nothing to scan for until the next paint.
+  if (!hit && (misses.has(id) || (!frame && ix.frames.has(id)))) return null;
+  const el = fc.canvasEl.querySelector<HTMLElement>(
+    frame ? `.lolly-frame-page[data-frame-id="${fc.keys.cssEscape(id)}"]` : `.lolly-box[data-box-id="${fc.keys.cssEscape(id)}"]`
+  );
+  if (el) {
+    map.set(id, el);
+    misses.delete(id);
+  } else {
+    map.delete(id);
+    misses.add(id);
+  }
+  return el;
+}
+/** The live `.lolly-box` for `id`, or null: never an artboard's page. */
+export const boxEl = (fc: FcCtx, id: string): HTMLElement | null => indexed(fc, id, false);
 // The live DOM element for box `id`. A frame-kind box has no `.lolly-box` - its
 // element IS the page (`.lolly-frame-page[data-frame-id]`), so fall back to it;
 // gestures then move the page directly and its frame-local children ride along.
 export const liveBoxEl = (fc: FcCtx, id: string): HTMLElement | null =>
-  { const { canvasEl } = fc; return canvasEl.querySelector<HTMLElement>(`.lolly-box[data-box-id="${fc.keys.cssEscape(id)}"]`) ??
-  canvasEl.querySelector<HTMLElement>(`.lolly-frame-page[data-frame-id="${fc.keys.cssEscape(id)}"]`); };
+  indexed(fc, id, false) ?? indexed(fc, id, true);
 export const readGuideVisibility = (fc: FcCtx): boolean => {
   const { GUIDE_VISIBILITY_KEY } = fc;
   try { return localStorage.getItem(GUIDE_VISIBILITY_KEY) === 'true'; }
@@ -260,6 +327,9 @@ export function stageOps(fc: FcCtx) {
     clientToNative: bindOp(fc, clientToNative),
     nativeToStage: bindOp(fc, nativeToStage),
     frameOffsetOfEl: bindOp(fc, frameOffsetOfEl),
+    canvasIndex: bindOp(fc, canvasIndex),
+    dropCanvasIndex: bindOp(fc, dropCanvasIndex),
+    boxEl: bindOp(fc, boxEl),
     liveBoxEl: bindOp(fc, liveBoxEl),
     readGuideVisibility: bindOp(fc, readGuideVisibility),
     setGuidesVisible: bindOp(fc, setGuidesVisible),

@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Zobrazte text v okně počítače, jako statický obrázek nebo řízenou interakci s psaním, výběrem, našeptáváním a pohybem.",
   "inputs.code.label": "Kód",
   "inputs.code.placeholder": "Sem vlož svůj kód…",
   "inputs.fileName.label": "Název souboru",

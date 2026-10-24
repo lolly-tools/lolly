@@ -5,6 +5,7 @@ import test from 'node:test';
 import { journeyDiagnostics } from './helpers/journey-diagnostics.ts';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 test('tool sidebars choose an emoji set once, insert at the caret, and preserve document choices', {
@@ -58,7 +59,7 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
     await page.locator('.emoji-pop unicode-emoji-picker').waitFor();
     await page.keyboard.press('Escape');
     assert.equal(await heading.inputValue(), 'Hello friend');
-    assert.equal(new URL(page.url()).searchParams.get('emojistyle'), initialStyle);
+    assert.equal(new URL(await settledUrl(page)).searchParams.get('emojistyle'), initialStyle);
     await insert.click();
     await choose();
     await pick();
@@ -162,7 +163,7 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
     const box = await page.locator('.emoji-pop').boundingBox();
     assert.ok(box && box.x >= 0 && box.x + box.width <= 391 && box.y >= 0 && box.y + box.height <= 845);
     await page.locator('.emoji-choice').getByRole('button', { name: 'Cancel', exact: true }).click();
-    assert.equal(new URL(page.url()).searchParams.get('emoji'), linkedSet);
+    assert.equal(new URL(await settledUrl(page)).searchParams.get('emoji'), linkedSet);
     await page.keyboard.press('Escape');
     const mobileHeading = page.locator('input[data-input-id="heading"]');
     await mobileHeading.fill(`Hi ${emoji}`);

@@ -574,6 +574,10 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    handles as a single box - one vocabulary - told apart by weight and tone rather than a
    dash. Dashed borders are drop areas throughout this shell and nothing else. */
 .fc-group-outline { border-width: 1px; border-color: hsl(var(--primary) / 0.65); }
+/* A selection past OUTLINE_CAP rows (chrome-sync.ts) draws every row's outline as one
+   path: the .fc-outline line, without a node per row. */
+.fc-outlines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.fc-outlines path { fill: none; stroke: hsl(var(--primary)); stroke-width: 1.5; stroke-linejoin: miter; }
 .fc-handle {
   position: absolute; width: 12px; height: 12px;
   margin-left: -6px; margin-top: -6px;

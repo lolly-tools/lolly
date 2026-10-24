@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { registerShareSection, type ShareSectionContext } from '../lib/share-sections.ts';
-import { agentGuidanceHost, setAgentGuidanceHost, setAgentInvitationHost, type AgentGuidanceHost } from '../lib/agent-invitation-host.ts';
+import { agentGuidanceHost, setAgentGuidanceHost, setAgentInvitationHost, type AgentBrandSkillLink, type AgentGuidanceHost } from '../lib/agent-invitation-host.ts';
 import { inviteAgent, type HostedAgentInvitation } from '../lib/live-agent-invite.ts';
 import { cleanNote, type LiveEditor } from '../lib/live-agent.ts';
 import { mountAgentPill, type AgentPill } from './agent-connect.ts';
@@ -17,6 +17,8 @@ const AGENT_NAME_MAX = 60;
 interface InvitationDraft { name: string; permission: 'edit' | 'read'; selectedAccess: boolean; liveAvailable: boolean }
 const invitationDrafts = new WeakMap<object, InvitationDraft>();
 const EMBEDDED_SKILL_MAX = 12_000;
+/** Brand skills are listed as links, never embedded, so they sit outside the excerpt budget. */
+const BRAND_SKILL_LINES_MAX = 8;
 
 export interface AgentInstructionGuidance {
   documentId: string;
@@ -25,6 +27,8 @@ export interface AgentInstructionGuidance {
   adapter?: 'layers' | 'inputs';
   facts: string;
   skill: ToolSkillV1;
+  /** The active design system's public brand skills for this tool, as links (plan 323). */
+  brandSkills?: readonly AgentBrandSkillLink[];
 }
 
 /** Resolve guidance on this installation, including a configured deployment path. */
@@ -42,6 +46,18 @@ export function agentSkillUrls(toolId: string): { overall: string; tool: string;
   };
 }
 
+/**
+ * The brand skills an agent should read, one line each: label, Agent Skills name,
+ * the brand's revision and a URL on this instance. Only http(s) links are listed, so
+ * a skill held on this device or an internal one (filtered out upstream) cannot leak
+ * into text that leaves the app.
+ */
+function brandSkillLines(skills: readonly AgentBrandSkillLink[] | undefined): string {
+  const rows = (skills ?? []).filter(skill => /^https?:\/\//i.test(skill.url)).slice(0, BRAND_SKILL_LINES_MAX);
+  if (!rows.length) return '';
+  return `\nBrand skills from the active design system, written by the brand. Read the overall brand skill first, then any that match this work. They guide intent; Lolly's checks and the connected runtime decide what is allowed:\n${rows.map(skill => `- ${cleanNote(skill.label, 120)} (${cleanNote(skill.name, 64)}, revision ${cleanNote(skill.revision, 32)}): ${skill.url}`).join('\n')}`;
+}
+
 function skillInstructions(guidance: AgentInstructionGuidance, permission: 'edit' | 'read'): string {
   const { skill } = guidance;
   if (skill.toolId !== guidance.toolId || skill.toolVersion !== guidance.toolVersion) throw new Error('The tool changed while its guidance was prepared. Reopen Share.');
@@ -51,7 +67,7 @@ function skillInstructions(guidance: AgentInstructionGuidance, permission: 'edit
   const excerpt = compact.slice(0, EMBEDDED_SKILL_MAX);
   const references = skill.references.filter(path => path.startsWith('skill/')).slice(0, 12)
     .map(path => new URL(path, new URL('../', urls.toolFiles)).href);
-  return `Document: ${JSON.stringify(guidance.documentId)}. Tool: ${JSON.stringify(guidance.toolId)}, version ${JSON.stringify(guidance.toolVersion)}.\nOverall Lolly skill: ${urls.overall}\nCurrent tool skill: ${urls.tool}\nSkill links are discovery locations; they may be unavailable or differ for an installed or private tool. Use the installed guidance below and the connected runtime's schema. Input definitions come from this installed version.${skill.warning ? `\nGuidance notice: ${cleanNote(skill.warning, 500)}` : ''}${references.length ? `\nSkill references:\n${references.join('\n')}` : ''}\n\n${permission === 'read' ? 'Current tool facts (inspection only)' : 'Installed tool guidance'}:\n${excerpt}${compact.length > EMBEDDED_SKILL_MAX ? '\n[Excerpt ends here. Read the matching skill and references for the remaining guidance.]' : ''}`;
+  return `Document: ${JSON.stringify(guidance.documentId)}. Tool: ${JSON.stringify(guidance.toolId)}, version ${JSON.stringify(guidance.toolVersion)}.\nOverall Lolly skill: ${urls.overall}\nCurrent tool skill: ${urls.tool}\nSkill links are discovery locations; they may be unavailable or differ for an installed or private tool. Use the installed guidance below and the connected runtime's schema. Input definitions come from this installed version.${skill.warning ? `\nGuidance notice: ${cleanNote(skill.warning, 500)}` : ''}${references.length ? `\nSkill references:\n${references.join('\n')}` : ''}${brandSkillLines(guidance.brandSkills)}\n\n${permission === 'read' ? 'Current tool facts (inspection only)' : 'Installed tool guidance'}:\n${excerpt}${compact.length > EMBEDDED_SKILL_MAX ? '\n[Excerpt ends here. Read the matching skill and references for the remaining guidance.]' : ''}`;
 }
 
 export function agentGuidanceInstructions(guidance: AgentInstructionGuidance, baseParts: readonly string[], agentName?: string): string {
@@ -131,8 +147,9 @@ export function buildAgentShareSection(ctx: ShareSectionContext): HTMLDetailsEle
       ensureCurrent();
       if (host) return host.create(access, agentName);
       const skill = await guidance!.skill();
+      const brandSkills = await guidance!.brandSkillLinks?.().catch(() => []) ?? [];
       ensureCurrent();
-      return { instructions: agentGuidanceInstructions({ ...guidance!, skill }, ctx.baseParts, agentName) };
+      return { instructions: agentGuidanceInstructions({ ...guidance!, skill, brandSkills }, ctx.baseParts, agentName) };
     }).then(async invitation => {
       if (!section.isConnected || current !== request) return;
       ensureCurrent();
@@ -180,6 +197,7 @@ export function installAgentInvitations(runtime: object, viewEl: HTMLElement, ba
       let invitation: HostedAgentInvitation | undefined, pill: AgentPill | undefined;
       try {
         const skill = guidance ? await guidance.skill() : undefined;
+        const brandSkills = await guidance?.brandSkillLinks?.().catch(() => []) ?? [];
         if (!active || !viewEl.isConnected || generation !== invitedAt || (guidance && !guidance.active())) throw new Error('This agent invitation ended.');
         if (guidance && (guidance.documentId !== target.documentId || guidance.toolId !== target.tool
           || (target.toolVersion !== undefined && guidance.toolVersion !== target.toolVersion)
@@ -195,7 +213,7 @@ export function installAgentInvitations(runtime: object, viewEl: HTMLElement, ba
         });
         if (!active || !viewEl.isConnected || generation !== invitedAt) { invitation.disconnect(); throw new Error('This agent invitation ended.'); }
         invitations.add(invitation);
-        return { instructions: agentInstructions(invitation.url, permission, name, guidance && skill ? { ...guidance, adapter: target.adapter, skill } : undefined), expiresAt: invitation.expiresAt };
+        return { instructions: agentInstructions(invitation.url, permission, name, guidance && skill ? { ...guidance, adapter: target.adapter, skill, brandSkills } : undefined), expiresAt: invitation.expiresAt };
       } finally { creating--; }
     },
   });

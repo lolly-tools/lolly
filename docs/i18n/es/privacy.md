@@ -1,411 +1,355 @@
 # Política de privacidad
 
-*Última actualización: 11 de agosto de 2026*
+*Última actualización: 23 de octubre de 2026*
 
-> **La versión corta.** Los documentos, imágenes, vídeos y archivos que creas en Lolly se quedan
-> en tu dispositivo. No hay cuentas para el uso ordinario, ni cookies de la propia app,
-> ni analítica ni rastreadores en ningún lugar del código - no es "no usamos
-> los datos", es que sencillamente no están presentes en el código fuente. Existe una lista corta y completa
-> de excepciones en las que el software habla con una red, y cada
-> una de ellas se describe abajo con detalle: qué sale, hacia quién y cuándo. La única
-> excepción que implica algo personal es un inicio de sesión que tienes que iniciar
-> tú mismo, de forma explícita. Si no está en este documento, no ocurre.
+**Crear cosas en Lolly ocurre en tu dispositivo.** Abrir una herramienta, escribir, previsualizar, exportar y comprobar un archivo se ejecuta todo en la aplicación de tu teléfono, ordenador o navegador. No necesitas una cuenta, y la aplicación no instala cookies para nada de eso.
+
+**Lo que creas sale de tu dispositivo solo cuando tú lo pides.** Añadir una Google Font, enviar un archivo a Drive o Dropbox, activar Sync, reproducir la radio o descargar un modelo de IA en el dispositivo hacen cada uno una solicitud que tú iniciaste. La aplicación también obtiene sus herramientas y actualizaciones de su propia dirección, y esas solicitudes no llevan nada de lo que hiciste. [Todas las solicitudes de red que puede hacer la aplicación](#every-network-request-the-app-can-make) las enumera, host por host.
+
+**Algunos servicios de Lolly se ejecutan en un servidor.** Los enlaces de renderizado, el recuperador de imágenes, el endpoint para agentes de IA y el servicio de identidad verificada reciben solo lo que tú les envías, y lo conservan únicamente durante el tiempo que indica esta página.
+
+**La instancia de Lolly Work de tu organización es distinta.** Almacena el trabajo compartido que depositas allí, y a esos datos se aplica la política de su operador, no esta.
+
+::: figure privacy-where-data-goes
+Adónde van tus datos: permanecen en tu dispositivo a menos que inicies una solicitud, y cada tipo de solicitud tiene su propio destino.
+:::
 
 ## Qué cubre esta política
 
-Lolly es software de código abierto - un motor, varios shells de aplicación (web, escritorio,
-móvil, CLI) y una extensión de navegador - que cualquiera puede ejecutar. Esta política tiene dos
-partes:
+Lolly es software de código abierto que cualquiera puede ejecutar: un motor, shells de aplicación para la web, el escritorio, el móvil y la terminal, y una extensión de navegador. Esta política tiene dos partes:
 
-- <!--i:code--> **El software en sí**: qué hace y qué no hace con tus datos, dondequiera que
-  se ejecute. Esto es una propiedad del código, así que es cierto para todo despliegue de Lolly,
-  el nuestro o el de cualquier otra persona.
-- <!--i:server--> **lolly.tools**, el despliegue de referencia que opera SUSE: las decisiones específicas
-  tomadas al ejecutar sus piezas opcionales del lado del servidor (qué se registra, durante cuánto tiempo, por
-  quién).
+- <!--i:code--> **El software en sí**: lo que hace y lo que no hace con tus datos, dondequiera que se ejecute. Es una propiedad del código, así que es cierta en cualquier despliegue de Lolly, el nuestro o el de cualquier otra persona.
+- <!--i:server--> **lolly.tools**, el despliegue de referencia que opera SUSE: las decisiones tomadas al operar sus piezas de servidor opcionales, como qué se registra, durante cuánto tiempo y quién lo ve.
 
-Si usas una instancia de Lolly autoalojada o empresarial, el comportamiento del software
-descrito a continuación sigue aplicando, pero el *operador* de esa instancia - no SUSE - es
-responsable de todo lo que ocurra del lado del servidor: su endpoint de renderizado, su servidor MCP,
-su autoridad de certificación de Content Credentials, si opera una. Pídeles su propia
-política. Consulta [Adopción y gobernanza](/info/adoption-governance.html) para
-saber qué implica operar Lolly.
+En una instancia de Lolly autoalojada o empresarial, el comportamiento del software descrito abajo sigue aplicándose, pero el *operador* de esa instancia, no SUSE, es responsable de todo lo que haya en sus servidores: su endpoint de renderizado, su servidor MCP, su servicio de certificados y su instancia de Lolly Work. Pídele su propia política. [Adoption & Governance](/info/adoption-governance.html) describe lo que implica operar Lolly.
 
-## La aplicación: qué se queda en tu dispositivo
+## Lo que se queda en tu dispositivo
 
-Los shells web, de escritorio y móvil de Lolly ejecutan todo el motor de renderizado del lado del cliente.
-Abrir una herramienta, rellenar entradas, previsualizar y exportar ocurre todo en tu
-dispositivo - no interviene ningún servidor, y la aplicación funciona sin conexión una vez cargada.
+Las aplicaciones web, de escritorio y móviles de Lolly ejecutan todo el motor de renderizado en el dispositivo. Una vez que las herramientas, los recursos y los codificadores que usas están en el dispositivo, renderizar y descargar no necesitan ningún servidor.
 
-**La aplicación no establece cookies.** Para funcionar, guarda una pequeña cantidad de datos **solo en
-tu dispositivo**, nunca transmitidos:
+**El uso de la aplicación de forma independiente no instala cookies.** El inicio de sesión de la organización y el registro opcional de identidad verificada tienen sus propias cookies, descritas en sus secciones. La aplicación guarda estos registros en el dispositivo:
 
-- <!--i:sliders--> **Preferencias de interfaz** - tema, idioma, ajustes de sonido, tamaño de la
-  barra lateral/zoom, criterios de orden y vista, qué consejos de introducción has visto - en
-  `localStorage`, para que estén disponibles antes de que la aplicación termine de arrancar.
-- <!--i:download--> **Una caché sin conexión del catálogo de herramientas y las vistas previas de recursos**, para que la galería
-  funcione sin conexión.
-- <!--i:hash--> **Contadores de uso locales** para las estadísticas de la tarjeta de tu perfil (cuántas exportaciones, qué
-  herramientas) - un blob pequeño y acotado en `localStorage`, que nunca leemos ni enviamos a
-  ningún sitio.
-- <!--i:folder--> **Tus propios documentos, sesiones guardadas, recursos subidos y fuentes** - almacenados en
-  IndexedDB en tu dispositivo, nunca subidos, nunca leídos por nadie salvo tú.
+- <!--i:sliders--> **Preferencias de la interfaz**: tema, idioma, ajustes de sonido, tamaños de la barra lateral y del zoom, opciones de orden y de vista, y qué consejos has visto, en `localStorage`, para que estén listas antes de que la aplicación termine de arrancar.
+- <!--i:download--> **Una caché sin conexión del catálogo de herramientas y de las vistas previas de recursos**, para que la galería funcione sin conexión.
+- <!--i:hash--> **Contadores de uso locales** para las estadísticas de la tarjeta de tu perfil, como cuántas exportaciones y qué herramientas: un registro pequeño y acotado en `localStorage`, que nosotros nunca leemos y que no se envía a ninguna parte.
+- <!--i:folder--> **Tu propio trabajo**: documentos, sesiones guardadas y su historial, imágenes y fuentes subidas, resultados de archivos y versiones anteriores, y la Papelera, que conserva los elementos eliminados durante 30 días. Todo esto reside en IndexedDB en el dispositivo y se queda allí a menos que elijas Sync o compartir.
+- <!--i:globe--> **Las búsquedas de ciudades de Meeting Planner**, en `localStorage`, para que cada ciudad se busque una sola vez.
+- <!--i:cpu--> **Modelos descargados y herramientas fijadas**: modelos de IA en el dispositivo que aceptaste descargar y herramientas que fijaste para usar sin conexión.
 
-Nada de esto se comparte, se vende ni se usa para identificarte o hacerte seguimiento. No
-hay nada que consentir, porque no ocurre ninguna recopilación - solo este aviso, para que
-sepas qué se guarda y dónde. Borrar el almacenamiento del sitio en tu navegador elimina
-todo eso en cualquier momento, y lo mismo hace **Ajustes → Almacenamiento → Borrar todos
-mis datos**, que además desactiva Sincronización primero. (Según la Directiva ePrivacy
-Art. 5(3), el almacenamiento estrictamente necesario para el servicio que pediste no
-requiere consentimiento - solo transparencia, que es lo que ofrecen tanto este documento
-como el aviso dentro de la app.)
+**Settings → Storage** muestra cuánto espacio usa Lolly en el dispositivo, con tu trabajo, la Papelera, los modelos descargados, las copias sin conexión y las cachés enumerados uno a uno. **Clear all my data** elimina allí la copia local y desactiva Sync primero; borrar el almacenamiento del sitio en tu navegador hace lo mismo. El almacenamiento estrictamente necesario para el servicio que pediste no requiere consentimiento según la Directiva ePrivacy (art. 5(3)), solo transparencia, que es lo que ofrecen este documento y el aviso dentro de la aplicación.
 
-![La sección de almacenamiento de la página de perfil en una pantalla del ancho de un teléfono: cada categoría de datos en el dispositivo nombrada, con el botón Clear all my data justo al lado](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![La sección de almacenamiento de Settings en una pantalla del ancho de un teléfono: cada categoría de datos del dispositivo con su nombre, con el botón Clear all my data junto a la lista](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-Tu propia copia de seguridad de estos datos - el paquete `lolly-backup` producido por **Exportar mis
-datos** - es un archivo que conservas y controlas. Nunca toca nuestros
-servidores a menos que decidas enviarlo tú mismo a algún sitio. Consulta [Transferencia de
-datos](/info/data-transfer.html).
+**Export my data** genera un archivo `lolly-backup` que conservas y controlas tú. Nunca toca nuestros servidores a menos que lo envíes tú mismo a algún sitio. Consulta [Data transfer](/info/data-transfer.html).
 
-## Utilidades en el dispositivo
+### Utilidades que se ejecutan en tu dispositivo
 
-Algunas herramientas - **Strip Hidden Data**, **Compress PDF** y otras que llevan la
-insignia **"Runs on your device"** - operan sobre un archivo que tú proporcionas. El archivo se lee
-en memoria en tu navegador, se transforma localmente y se ofrece de vuelta como descarga.
-Nunca se sube, porque no hay ningún servidor en la ruta al que subirlo.
-Estas utilidades funcionan sin conexión, y su salida no lleva marca de agua ni metadatos
-nuestros - el propósito de la mayoría de ellas es eliminar y proteger datos, no añadir riesgo.
+Algunas herramientas, como **Strip Hidden Data**, **Compress** y otras con la insignia **Runs on your device**, trabajan sobre un archivo que tú aportas. El archivo se lee en memoria, se transforma en el dispositivo y se ofrece de vuelta como descarga. Nunca se sube, porque no hay ningún servidor en el camino. Estas utilidades funcionan sin conexión, y su resultado no lleva marca de agua ni metadatos nuestros.
 
-![La insignia que llevan estas herramientas: Runs on your device - no se sube nada](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
+**Rondocode** es la única excepción, porque crea audio nuevo a partir de tu canción en lugar de transformar un archivo tuyo. Todo archivo de audio que escribe lleva Content Credentials que registran la canción y declaran cualquier canto generado por IA. El panel Export lo indica antes de exportar, y [Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility) enumera exactamente lo que se registra.
 
-Prepare for sharing mantiene las entradas de trabajo, los hallazgos privados y los mapas de sustitución en
-memoria, sin añadirlos automáticamente al historial, a los enlaces, a las copias de seguridad ni a la
-sincronización. La inspección y la sustitución no envían el contenido del archivo a un servidor ni validan
-credenciales en línea. El usuario decide si copia, descarga, envía o guarda explícitamente un resultado en su
-biblioteca; un resultado guardado sigue entonces los ajustes normales de copia de seguridad y sincronización
-de la biblioteca. Los archivos de receta omiten las cargas útiles previas y las asignaciones literales. Los
-informes de resumen contienen recuentos, ids de ámbito y hashes de archivo. La CLI también puede guardar un
-archivo de revisión privado que contenga los valores originales, solo cuando se solicita explícitamente con
-`--review-file`. Cerrar o abandonar una vista de preparación en el navegador libera su estado de trabajo; esto
-no es una promesa de borrado forense de la memoria del navegador o del sistema operativo.
+![La insignia que llevan estas herramientas: Runs on your device - nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
+
+**Prepare for sharing** y **Compare** trabajan en memoria en el dispositivo y no envían nada a un servidor, y Prepare no añade nada al historial, a los enlaces, a las copias de seguridad ni a Sync hasta que guardes un resultado.
+
+::: details Cómo gestionan tus archivos Prepare for sharing y Compare
+**Prepare for sharing** mantiene en memoria las entradas de trabajo, los hallazgos privados y los mapas de reemplazo, sin añadirlos al historial, a los enlaces, a las copias de seguridad ni a Sync. La inspección y el reemplazo no envían contenido de archivos a ningún servidor ni comprueban credenciales en línea. Tú eliges si copiar, descargar, enviar o guardar un resultado en tu biblioteca; un resultado guardado sigue entonces los ajustes de copia de seguridad y de Sync de tu biblioteca. Los archivos de receta omiten el contenido anterior y las asignaciones literales, y los informes de resumen contienen recuentos, ID de ámbito y hashes de archivo. La CLI guarda un archivo de revisión privado con los valores originales solo cuando se le pide con `--review-file`. Salir de una vista de preparación libera su estado de trabajo, lo cual no es una promesa de borrado forense de la memoria del navegador o del sistema operativo.
+
+Las copias preparadas y las operaciones de archivo terminadas comparten los controles de Compare. Los valores eliminados empiezan plegados, y los informes de comparación omiten nombres de origen, rutas y valores a menos que elijas incluirlos. El historial de archivos guarda la copia, así que comparar tras recargar significa volver a seleccionar el original, emparejado por su SHA-256 registrado. Seleccionarlo no guarda ni sube el archivo.
+:::
+
+Strip Hidden Data y Prepare for sharing también inspeccionan archivos DOCX, PPTX y XLSX en el dispositivo. En los DOCX compatibles se pueden quitar propiedades seleccionadas en una copia nueva; el resto del contenido de Office es solo de inspección, y las vistas previas privadas quedan tras un control de revelado.
+
+::: details Qué lee y qué elimina la inspección de Office
+| Formato de Office | Contenido del paquete inspeccionado | Eliminación admitida |
+|---|---|---|
+| DOCX | Propiedades básicas, de aplicación y personalizadas; comentarios y autores; marcadores y vistas previas de control de cambios; fragmentos de texto oculto; relaciones externas; objetos incrustados | Autor, último guardado por, fechas de creación, modificación y última impresión, título, asunto, descripción, palabras clave, propiedades personalizadas, Company, Manager, Template, base de hipervínculos, nombre y versión de la aplicación, y estadísticas (tiempo total de edición y recuentos de páginas, palabras, caracteres, líneas y párrafos), según lo seleccionado |
+| PPTX | Propiedades; comentarios y registros de autor; notas del orador; marcadores de diapositivas ocultas; relaciones externas; objetos incrustados y libros anidados compatibles | Ninguna |
+| XLSX | Propiedades; comentarios y notas; marcadores de hojas, filas y columnas ocultas; nombres definidos; relaciones y conexiones externas; superficies de vínculos externos y de caché de tablas dinámicas; objetos incrustados | Ninguna |
+
+**Límites.** El censo no inspecciona por completo el texto visible, las fórmulas, las dependencias, el aspecto renderizado ni las partes binarias arbitrarias. Admite hasta 300 partes de paquete, 64 MiB de expansión declarada en total, 2 MiB por parte XML y dos niveles anidados de paquetes incrustados; Prepare comparte los presupuestos de partes y de expansión en todo el trabajo. El contenido truncado, mal formado, cifrado y no admitido se notifica y se conserva. El contenido de macros se identifica y nunca se ejecuta, los formatos binarios heredados de Office y XLSB no se inspeccionan, y las referencias externas nunca se descargan.
+
+**Qué conserva la limpieza de DOCX.** La limpieza admite el formato de paquete DOCX transicional con partes de propiedades básicas, personalizadas y extendidas canónicas. De las propiedades extendidas, se pueden eliminar Company, Manager, Template, HyperlinkBase, Application, AppVersion y las estadísticas TotalTime, Pages, Words, Characters, CharactersWithSpaces, Lines y Paragraphs. DocSecurity, los títulos de encabezados y de partes, los indicadores de vínculos y otras propiedades de aplicación se conservan. Eliminar Template deja cualquier vínculo de plantilla adjunto en la configuración del documento, donde el censo lo notifica como una relación externa.
+
+Algunos lectores deciden cómo dibujar gráficos y dibujos a partir del nombre y la versión de la aplicación; LibreOffice, por ejemplo, muestra de forma distinta un gráfico de un archivo de Word 2007 sin ellos. Ambos se conservan cuando el archivo contiene gráficos, imágenes, formas u objetos incrustados, y la inspección los indica como conservados. Se conserva una propiedad que muestra un campo de Word (TEMPLATE, EDITTIME, NUMPAGES, NUMWORDS o NUMCHARS), y los campos de vínculo y los vínculos externos relativos conservan HyperlinkBase, porque sus destinos se resuelven respecto a esa dirección base.
+
+**Qué sigue siendo solo de inspección.** Los datos de firma digital extendida impiden la limpieza. Los paquetes de Office firmados, con macros, cifrados, mal formados, renombrados o anidados siguen siendo solo de inspección. También lo son los archivos con otros campos de Word que dependen de propiedades, como DOCPROPERTY o AUTHOR, o con controles de contenido vinculados a XML, porque quitar una propiedad podría cambiar el documento cuando Word actualice esos enlaces, y el texto en caché de los campos no puede mostrar que el siguiente renderizado se verá igual. Las partes XML con extensiones de nombre de archivo inusuales, los destinos de relaciones XML de Word que no se pueden inspeccionar con seguridad, las partes de encabezado o pie de página declaradas erróneamente y las partes SVG declaradas como XML con extensión `.svg` también siguen siendo solo de inspección en esta primera versión de limpieza.
+
+**Cómo comprueba su trabajo la limpieza.** Se conservan las partes de propiedades, sus declaraciones, los miembros no relacionados del paquete, los comentarios XML y los comentarios ZIP. La limpieza aplica los límites del censo y comprueba la integridad de cada miembro antes de escribir, y luego vuelve a inspeccionar las propiedades resultantes. Compare muestra las diferencias de propiedades admitidas con los valores plegados; no compara el texto visible ni el aspecto renderizado. Los valores usan vistas previas de hasta 2048 caracteres, así que las diferencias más allá de una vista previa pueden no mostrarse, y una revisión parcial no puede establecer que dos archivos sean iguales. El comando `prepare --strip-hidden-data` de la CLI elimina las propiedades de DOCX admitidas, y un sobre de revisión privado puede seleccionar propiedades concretas. Una protección de limpieza fallida conserva el archivo e informa de una operación fallida.
+:::
 
 ## Todas las solicitudes de red que puede hacer la app
 
-La tabla siguiente es la lista completa de todo lo que la aplicación obtiene o envía a través de una
-red. Si no está aquí, la aplicación no lo hace.
+La mayoría de las solicitudes traen herramientas, fuentes o modelos a tu dispositivo. Las acciones de envío transmiten el archivo que elegiste, Sync transmite una copia de seguridad al almacenamiento que elegiste, y los servicios de la organización transmiten el contenido o los datos necesarios para el trabajo compartido. Cada grupo de abajo enumera qué sale de tu dispositivo, cuándo, y qué ocurre si un operador bloquea la solicitud. Los proveedores de identidad y de recursos que configure un operador pueden añadir destinos a ese despliegue. [Todos los hosts fijos, en una tabla](#every-fixed-host-in-one-table) enumera los hosts con los que puede contactar la aplicación web.
 
-| Qué | Qué sale realmente de tu dispositivo | Cuándo (la acción que lo activa) | Si un operador lo bloquea |
-|---|---|---|---|
-| Sincronización del catálogo de herramientas | Nada personal - una solicitud del propio índice público de herramientas y recursos de Lolly, al origen propio de la app | Al iniciar, y luego se guarda en caché sin conexión | La app funciona con su conjunto de herramientas en caché. Solo deja de descubrir herramientas nuevas |
-| Una herramienta que necesita datos en vivo | Lo que esa herramienta concreta solicite, al host indicado en su propia descripción. Hoy eso es solo la búsqueda de ciudad en la herramienta Meeting Planner, que pregunta a `geocoding-api.open-meteo.com` para convertir un nombre de ciudad en coordenadas y una zona horaria - sin cuenta, sin clave y sin identificador más allá de la propia solicitud. El campo lo indica justo donde escribes, y cada respuesta se guarda en tu dispositivo para que una ciudad se busque una sola vez | Solo mientras usas esa herramienta, y solo una vez que introduces una ubicación | Esa búsqueda concreta falla. Aún puedes escribir las coordenadas a mano, y nada más se ve afectado |
-| Google Fonts | El nombre de la familia tipográfica elegida y tu dirección IP, a los servidores de fuentes de Google (`fonts.googleapis.com` para la hoja de estilos, `fonts.gstatic.com` para el archivo de fuente) | Solo si añades una Google Font en el editor de marca, **y solo después de aceptarlo en un diálogo que dice exactamente esto** - una descarga única por familia, que luego vive en tu dispositivo y se usa sin conexión | El selector de Google Fonts falla de forma segura. Sube un archivo de fuente en su lugar |
-| Send to Google Drive | El único archivo que elegiste enviar, a la API de Drive de Google (`www.googleapis.com`), tras un inicio de sesión de Google que completas en la propia ventana emergente de Google. El acceso de Lolly se limita a los archivos que ha creado (el ámbito `drive.file` - nunca puede leer el resto de tu Drive), y el token de inicio de sesión se mantiene en memoria durante la sesión, nunca se almacena | Solo cuando pulsas «Send to Google Drive» en una exportación EMF, y solo en las compilaciones donde el operador ha configurado un id de cliente de Google - sin uno, el botón no existe | El botón nunca aparece. Descarga el archivo y súbelo tú mismo a Drive |
-| Send to Dropbox | El único archivo que elegiste enviar, a la API de Dropbox (`api.dropboxapi.com` para el inicio de sesión y los metadatos, `content.dropboxapi.com` para el propio archivo), tras un inicio de sesión de Dropbox que completas en la propia ventana de Dropbox. El acceso de Lolly se limita a la carpeta de la app (solo puede ver `Apps/` y su propia carpeta ahí dentro - nunca el resto de tu Dropbox), el enlace «Open» que te muestra es un enlace privado de corta duración (no se crea ningún recurso compartido público), y un token de actualización solo se guarda si marcas «stay connected» | Solo cuando pulsas «Send to Dropbox» en un archivo, y solo en las compilaciones donde el operador ha configurado un id de cliente de Dropbox - sin uno, el botón no existe | El botón nunca aparece. Descarga el archivo y súbelo tú mismo a Dropbox |
-| Send to OneDrive | El único archivo que elegiste enviar, a los servicios de identidad y Graph de Microsoft (`login.microsoftonline.com` para el inicio de sesión, `graph.microsoft.com` para la subida; un archivo grande se sube en fragmentos a una dirección de subida propiedad de Microsoft en `api.onedrive.com`, `*.up.1drv.com` o `*.sharepoint.com`), tras un inicio de sesión de Microsoft que completas en la propia ventana de Microsoft. El acceso de Lolly se limita a su propia carpeta bajo `Apps/` (nunca puede leer el resto de tu OneDrive) más tu nombre visible para la etiqueta de la cuenta, y un token de actualización solo se guarda si marcas «stay connected» | Solo cuando pulsas «Send to OneDrive» en un archivo, y solo en las compilaciones donde el operador ha configurado un id de cliente de Microsoft - sin uno, el botón no existe | El botón nunca aparece. Descarga el archivo y súbelo tú mismo a OneDrive |
-| Send to LinkedIn | El único archivo que elegiste enviar, además de su nombre como texto de la publicación, a LinkedIn (`www.linkedin.com` para el inicio de sesión, `api.linkedin.com` para la subida y la publicación), tras un inicio de sesión de LinkedIn que completas en tu propio navegador. La publicación va a tu propio feed como publicación pública bajo tu nombre. Lolly puede publicar en tu nombre y leer tu nombre para la etiqueta de la cuenta, nada más de tu LinkedIn, y el inicio de sesión se conserva en este dispositivo solo si marcas «stay connected» - los tokens de LinkedIn duran 60 días y no se pueden renovar de forma silenciosa, así que caducan por sí solos | Solo cuando pulsas «Send to LinkedIn» en un archivo, únicamente en las apps de escritorio, y solo en las compilaciones donde hay una app de LinkedIn configurada - sin una, el botón no existe | Nada que bloquear en la app web: esto existe **solo en las apps de escritorio**, así que esos dos hosts están deliberadamente excluidos de la Content-Security-Policy de la app web más abajo. En las apps de escritorio, elimina la app de LinkedIn configurada y el botón nunca aparece |
-| Send to Penpot | El token de acceso personal de Penpot (lo pegas tú en la app) y el archivo `.penpot` del diseño que elegiste enviar, a la API de Penpot (`design.penpot.app`) a través de una pequeña pasarela en el propio origen de la app (`/api/penpot`), porque la API de Penpot no responde directamente a un navegador. La pasarela reenvía y olvida; las apps de escritorio hablan con Penpot directamente | Solo cuando pulsas «Send to Penpot» en la herramienta Design y confirmas un proyecto | La pasarela devuelve un error y el envío falla de forma segura. Exporta el archivo `.penpot` e impórtalo tú mismo en Penpot |
-| Send to Bluesky | La única imagen que elegiste enviar, su nombre como texto de la publicación y como texto alternativo, y tu identificador (handle) más una contraseña de aplicación (Bluesky → Settings → App passwords, nunca tu contraseña de cuenta), al servidor de Bluesky que indiques (`bsky.social` a menos que te autoalojes). La contraseña de aplicación se guarda solo en este dispositivo, nunca en una copia de seguridad, y Disconnect la borra | Solo cuando pulsas «Send to Bluesky» en una imagen, después de conectar la cuenta en tu perfil, únicamente en las **apps de escritorio** | Nada que bloquear en la app web: su política de abajo no incluye ningún host de Bluesky, así que ese cruce no existe ahí. En las apps de escritorio, elimina la conexión y el botón nunca aparece |
-| Send to Discord | El único archivo que elegiste enviar, como adjunto, a la dirección de webhook del canal que pegaste (`discord.com`). Una dirección de webhook permite a cualquiera que la tenga publicar en ese canal, así que se guarda solo en este dispositivo, nunca en una copia de seguridad, y Disconnect la borra | Solo cuando pulsas «Send to Discord» en un archivo, únicamente en las **apps de escritorio** | Nada que bloquear en la app web: su política de abajo no nombra `discord.com`, así que ese cruce no existe ahí. En las apps de escritorio, elimina el webhook y el botón nunca aparece |
-| Send to Mastodon | El único archivo que elegiste enviar y su nombre como texto de la publicación, al servidor de Mastodon (o compatible) que indiques, tras un inicio de sesión que completas en la propia ventana de ese servidor. Conectar registra una pequeña app por dispositivo en ese servidor; el inicio de sesión se conserva en este dispositivo solo si marcas «stay connected» | Solo cuando pulsas «Send to Mastodon» en un archivo. Tú eliges el servidor, así que no está en la política de abajo | El servidor que indiques tiene que permitir llamadas desde el navegador; si no lo hace, usa las apps de escritorio. Disconnect elimina el botón |
-| Send to Nextcloud / WebDAV | El único archivo que elegiste enviar, a tu propio servidor, mediante una única solicitud PUT autenticada con la dirección del servidor, el nombre de usuario y la contraseña de aplicación que introdujiste (Nextcloud → Settings → Security → Devices & sessions; nunca tu contraseña de cuenta). Se guarda solo en este dispositivo, nunca en una copia de seguridad, y Disconnect la borra | Solo cuando pulsas «Send to Nextcloud» en un archivo. Tú eliges el servidor, así que no está en la política de abajo | Tu servidor tiene que permitir llamadas desde el navegador con el origen de la app; si no lo hace, usa las apps de escritorio |
-| Send to S3-compatible storage | El único archivo que elegiste enviar, a tu propio bucket (AWS S3, MinIO, R2, B2, Garage - cualquier endpoint SigV4), firmado en tu dispositivo con el par de claves que introdujiste. Las claves se guardan solo en este dispositivo, nunca en una copia de seguridad, y Disconnect las borra | Solo cuando pulsas «Send to S3» en un archivo. Tú eliges el endpoint, así que no está en la política de abajo | Las reglas CORS de tu bucket tienen que permitir el origen de la app; si no lo hacen, usa las apps de escritorio |
-| Sincronización entre tus dispositivos | Una copia de lo que hiciste en este dispositivo - sesiones y proyectos guardados, tus sistemas de diseño con sus tipografías y logotipos, imágenes subidas, tu perfil y tus preferencias - como un solo archivo, al almacenamiento único que elegiste: la carpeta de la app Lolly en tu Dropbox (`api.dropboxapi.com`, `content.dropboxapi.com`), los archivos que Lolly creó en tu Google Drive (`www.googleapis.com`), la carpeta de la app Lolly en tu OneDrive (`graph.microsoft.com`, con los archivos más grandes subidos a `api.onedrive.com`, `*.up.1drv.com` o `*.sharepoint.com`, y descargas desde `*.files.1drv.com`, `my.microsoftpersonalcontent.com` o `*.sharepoint.com` de Microsoft), o tu propio servidor Nextcloud / WebDAV o bucket S3. El mismo almacenamiento también conserva hasta siete copias diarias y una copia de antes de tu última aplicación. **Nada llega a Lolly:** ningún servidor, relé o servidor de Lolly Work está en la ruta, y las apps no necesitan ningún sitio web de Lolly para esto, ni siquiera para iniciar sesión. La copia se cifra primero en tu dispositivo solo si defines una frase de contraseña. Los inicios de sesión, las claves, las contraseñas de aplicación, la frase de contraseña y los ajustes de sincronización permanecen en el dispositivo y nunca están en la copia. En la web, una conexión recordada de Google Drive conserva solo el nombre de tu cuenta (y tu propio id de cliente, si diste uno); el propio inicio de sesión de Google dura una sola visita. En la app de Android, el inicio de sesión de Google Drive pasa por los servicios de Google Play del teléfono, que ejecuta Google | Solo después de activar «Sync across my devices» o pulsar «Sync now»: una subida poco después de cada cambio y al salir de la app, y una comprobación de si hay una copia más nueva al iniciar la app | La sincronización falla y dice por qué; tu trabajo permanece en el dispositivo. Exporta tus datos a un archivo y muévelo tú mismo en su lugar |
-| Perfiles de imprenta ICC | Nada personal - una solicitud de un perfil estándar de condición de impresión, al registro público del ICC (`registry.color.org`, `www.color.org`) | Solo si haces clic en un preajuste ICC en el gestor de perfiles de impresión - una descarga única por perfil, que luego vive en tu dispositivo | Los preajustes ICC fallan. Aporta tu propio perfil `.icc` en su lugar |
-| Radio por internet | Nada personal - una solicitud de lista de reproducción y una transmisión de audio, a la emisora (`api.somafm.com` y el servidor icecast que esta indica, `*.somafm.com`) | Solo mientras reproduces la radio integrada opcional en el reproductor de sonido | La radio falla. El resto de funciones de sonido sigue funcionando |
-| Una URL que le pides a una herramienta que capture | Una solicitud a la dirección web exacta que escribes, desde la herramienta de captura de URL. Sea cual sea esa dirección. Este host no está en la política más abajo, porque tú lo eliges en el momento de usarla | Solo cuando introduces una URL en esa herramienta e inicias la captura | Un operador no puede autorizarlo por host. Para eliminarlo, elimina la herramienta |
-| Añadir una imagen desde una URL | Una solicitud a la dirección de imagen exacta que pegas en «Add from URL» (en el selector de recursos o en Recursos). La propia política de la app web prohíbe que el navegador obtenga contenido de otro sitio directamente, así que la solicitud la hace por ti una pequeña pasarela en el propio origen de la app (`/api/fetch-image`), que obtiene la imagen del lado del servidor y devuelve solo los bytes - no guarda nada y olvida la dirección. Rechaza cualquier cosa que no sea una dirección de imagen pública (una dirección privada o interna se bloquea). Las apps de escritorio obtienen la dirección directamente. Un enlace de Lolly que pegues no se obtiene en absoluto - se renderiza en tu dispositivo. El host no está en la política de abajo, porque tú lo eliges en el momento de usarlo | Solo cuando pegas una URL en «Add from URL» y confirmas | El operador desactiva la pasarela (`LOLLY_DISABLE_IMAGE_PROXY=1`); entonces solo se pueden añadir en la app web enlaces de Lolly, imágenes `data:` e imágenes del mismo origen. Las apps de escritorio no se ven afectadas |
-| Comprobación de firma SEAL | **Nada.** La app web no tiene ningún resolutor DNS - ver más abajo | Nunca | Nada que bloquear |
-| Modelos de IA en el dispositivo | Nada personal - una descarga única del archivo de modelo desde el host de modelos de Lolly (`lolli.li`), que luego se guarda en caché en tu dispositivo; sin cuenta, sin identificador, solo la solicitud y tu IP | Solo cuando usas una función que necesita un modelo (análisis profundo de Verify, ampliación de imagen, voz y similares) | Esa función espera a la descarga; todo lo demás sigue funcionando |
-| Instancia remota | Lo que sea que la instancia que indicas devuelva, a través de la misma sincronización de catálogo descrita arriba - más una etiqueta de versión en las solicitudes que le haces (tipo de shell y versión del engine, la misma información que lleva un user agent), para que su operador pueda ver qué versiones de Lolly hay en uso. En una instancia gestionada, mientras tienes la sesión iniciada, esa etiqueta también lleva un id de instalación por dispositivo para que la lista de dispositivos del operador pueda distinguir esta instalación. Solo viaja en solicitudes que tu propio uso ya genera - no hay temporizador y nada llama a casa por su cuenta - y al salir de la instancia se elimina el id, así que un dispositivo que se reconecta más tarde presenta uno nuevo. Tú eliges el host en el momento de usarlo, así que no está en la política más abajo | Solo si apuntas explícitamente el shell a otro despliegue de Lolly | El cambio de instancia falla. Tu instancia local no se ve afectada |
+::: details Lo que se descarga en tu dispositivo
+- <!--i:download--> **El catálogo de herramientas.** Nada personal: una solicitud del índice público de herramientas y recursos de Lolly, a la propia dirección de la aplicación, al arrancar y luego guardado en caché sin conexión. Si se bloquea, la aplicación funciona con sus herramientas en caché y deja de descubrir otras nuevas.
+- <!--i:sparkle--> **Conjuntos de emojis.** El conjunto que eliges se descarga de la propia dirección de la aplicación la primera vez que lo usas. No se envía nada personal. Las animaciones Lottie se leen en el dispositivo y no contactan con nadie.
+- <!--i:document--> **Google Fonts.** El nombre de la familia elegida y tu dirección IP van a los servidores de fuentes de Google (`fonts.googleapis.com` para la hoja de estilos, `fonts.gstatic.com` para el archivo de fuente). Esto ocurre solo cuando añades una Google Font en Design System Setup, y solo después de que aceptes en un diálogo que dice exactamente esto. Cada familia se descarga una vez, luego se conserva en el dispositivo y se usa sin conexión. Si se bloquea, el selector falla de forma segura; sube un archivo de fuente en su lugar.
+- <!--i:cpu--> **Modelos de IA en el dispositivo.** Nada personal: se descarga un archivo de modelo y luego se conserva en el dispositivo. Las compilaciones web usan por defecto la propia dirección de la aplicación; una compilación puede indicar otro host de modelos, como el host de versiones de Lolly `lolli.li` para las aplicaciones empaquetadas. El host recibe la solicitud y tu dirección IP, sin cuenta ni entradas del modelo. Esto ocurre solo cuando usas una función que necesita un modelo (el análisis profundo de Verify, el escalado de imágenes, la voz y similares) o eliges descargar modelos para usarlos sin conexión. Si se bloquea, esa función espera y todo lo demás funciona.
+- <!--i:sliders--> **Perfiles de impresión ICC.** Nada personal: una solicitud de un perfil estándar de condiciones de impresión al registro público del ICC (`registry.color.org`, `www.color.org`), solo cuando haces clic en un preajuste ICC en el gestor de perfiles de impresión, una vez por perfil. Si se bloquea, los preajustes fallan; aporta tu propio perfil `.icc`.
+- <!--i:globe--> **Radio por internet.** Nada personal: una solicitud de lista de reproducción y un flujo de audio de la emisora (`api.somafm.com` y el servidor de streaming al que apunta, `*.somafm.com`), solo mientras reproduces la radio opcional en el reproductor de sonido. Si se bloquea, la radio falla y todas las demás funciones de sonido funcionan.
+:::
 
-Cada host fijo de esa tabla es también la lista de permitidos completa en la
-Content-Security-Policy de la app, que el navegador hace cumplir. Así que la lista no es solo
-una descripción de lo que hace el código hoy, es el límite al que el navegador ciñe la app: un
-cambio futuro que intentara contactar con algún otro host quedaría bloqueado, no permitido en
-silencio. Una fila es la excepción deliberada, y su propia celda lo dice: Send to LinkedIn
-existe solo en las apps de escritorio, así que la política de la app web no nombra ninguno de
-sus dos hosts - la app web no podría alcanzarlos aunque su código lo intentara. Dos filas más,
-Bluesky y Discord, son también exclusivas de escritorio por el mismo motivo, y sus hosts quedan
-fuera de la política web por la misma razón. Cinco filas no tienen host fijo, porque tú eliges
-la dirección en el momento de usarla: una URL que le pides a una herramienta que capture, una
-instancia remota a la que apuntas el shell, y tu propio servidor de Mastodon, servidor WebDAV o
-bucket S3 (los dos últimos también como destino de sincronización). Ninguna de ellas está en la
-política, y cada una ocurre solo cuando escribes una dirección y actúas sobre ella. La fila de
-Penpot alcanza Penpot a través del propio origen de la app, así que queda cubierta por
-`'self'`. Un despliegue que no quiera ninguna de las opcionales (una instancia empresarial con
-sus propias fuentes, por ejemplo) elimina esos hosts de su política y las funciones fallan de
-forma segura en lugar de intentar conectarse.
+::: details Una herramienta que necesita datos en vivo
+- <!--i:globe--> **La búsqueda de ciudades de Meeting Planner.** Hoy es la única herramienta que obtiene datos en vivo. Pide a `geocoding-api.open-meteo.com` que convierta el nombre de cada ciudad (la ciudad anfitriona y la de cada miembro del equipo) en coordenadas y una zona horaria, sin cuenta, sin clave y sin más identificador que la propia solicitud. El campo Host city lo explica, y cada respuesta se guarda en el dispositivo para que una ciudad se busque una sola vez. Solo se ejecuta mientras la herramienta está abierta. Si se bloquea, la búsqueda falla y nada más se ve afectado.
+:::
 
-Aparte de dos tipos de fila, ninguna de estas envía tus documentos, proyectos, sesiones o
-archivos subidos a ningún sitio: existen para traer cosas *a* tu dispositivo
-(herramientas, fuentes, modelos). Los dos tipos son las filas de Send, que envían el único
-archivo que elegiste, y la fila de sincronización, que envía una copia de tu trabajo al
-almacenamiento que elegiste y a ningún servidor de Lolly. Cualquier otra excepción se
-nombra explícitamente en las secciones siguientes.
+::: details Archivos que envías
+Cada uno de estos envía solo el archivo que elegiste, cuando pulsas su botón Send, tras un inicio de sesión que completas en la ventana propia del servicio. La contraseña de aplicación de Bluesky, la dirección del webhook de Discord, la contraseña de aplicación de Nextcloud y las claves de S3 se guardan solo en este dispositivo, nunca en una copia de seguridad, y **Disconnect** las borra.
 
-**Una nota sobre lo que eliminamos.** Verify puede comprobar firmas SEAL, un esquema en el que
-la clave de firma de un archivo se publica en el DNS. Los navegadores no pueden hacer consultas DNS, así que cualquier
-implementación web tiene que enrutar la búsqueda a través de un resolutor DNS-over-HTTPS de
-un tercero - lo cual mostraría a ese operador el dominio que se está comprobando más tu dirección
-IP. Antes usábamos el de Cloudflare. **Ya no lo hacemos, y no hay ningún
-reemplazo**: la aplicación web ahora no pasa ningún resolutor, así que la verificación SEAL
-aquí no hace ninguna solicitud de red. Los archivos cuyo registro SEAL lleva su clave incorporada
-siguen verificándose por completo sin conexión. Los archivos cuya clave vive en el DNS informan "no key
-resolver" en su lugar, y puedes comprobarlos en la aplicación de escritorio o de línea de
-comandos, que resuelven el DNS de forma nativa a través de tu propia máquina sin que intervenga
-ningún tercero.
+- <!--i:upload--> **Google Drive.** El archivo, en cualquier formato, va a la API de Drive de Google (`www.googleapis.com`). El acceso de Lolly se limita a los archivos que creó (el ámbito `drive.file`), así que nunca puede leer el resto de tu Drive. En la aplicación web el token de inicio de sesión se mantiene en memoria durante la sesión y nunca se almacena; en las demás aplicaciones se guarda un token de actualización solo en este dispositivo si marcas **Stay connected**. El botón existe solo en las compilaciones donde el operador configuró un ID de cliente de Google. Si se bloquea, el botón nunca aparece; descarga el archivo y súbelo tú mismo.
+- <!--i:upload--> **Dropbox.** El archivo va a la API de Dropbox (`api.dropboxapi.com` para el inicio de sesión y los metadatos, `content.dropboxapi.com` para el archivo). El acceso es solo a la carpeta de la aplicación, así que Lolly ve `Apps/` y su propia carpeta allí y nada más. El enlace **Open** que muestra es un enlace privado de corta duración, y no se crea ningún recurso compartido público. Un token de actualización se guarda solo si marcas **Stay connected**. El botón existe solo con un ID de cliente de Dropbox configurado por el operador.
+- <!--i:upload--> **OneDrive.** El archivo va a los servicios de identidad y Graph de Microsoft (`login.microsoftonline.com` para el inicio de sesión, `graph.microsoft.com` para la subida); un archivo grande se sube por partes a `api.onedrive.com` o a orígenes de almacenamiento que el operador configuró. El acceso se limita a la propia carpeta de Lolly bajo `Apps/`, más tu nombre visible para la etiqueta de la cuenta. Un token de actualización se guarda solo si marcas **Stay connected**. El botón existe solo con un ID de cliente de Microsoft configurado por el operador.
+- <!--i:upload--> **LinkedIn**, **solo en las aplicaciones de escritorio**. El archivo, con su nombre como texto de la publicación, va a LinkedIn (`www.linkedin.com` para el inicio de sesión en tu propio navegador, `api.linkedin.com` para la subida y la publicación) como publicación pública en tu propio feed. Lolly puede publicar como tú y leer tu nombre para la etiqueta de la cuenta, nada más. El inicio de sesión se conserva solo si marcas **Stay connected**, y los tokens de LinkedIn duran 60 días y no se pueden renovar en silencio, así que caduca por sí mismo. Esos hosts no están en la política de conexión de la aplicación web. El botón existe solo en las compilaciones con una aplicación de LinkedIn configurada.
+- <!--i:upload--> **Penpot.** Tu token de acceso personal de Penpot, que pegas en la aplicación, y el archivo `.penpot` del diseño van a la API de Penpot (`design.penpot.app`) a través de un pequeño paso intermedio en la propia dirección de la aplicación (`/api/penpot`), porque la API de Penpot no responde directamente a un navegador. El paso intermedio reenvía y olvida; las aplicaciones de escritorio hablan con Penpot directamente. Esto ocurre solo cuando pulsas **Send to Penpot** en la herramienta Design y confirmas un proyecto. Si se bloquea, el envío falla de forma segura; exporta el archivo `.penpot` e impórtalo tú mismo.
+- <!--i:upload--> **Bluesky.** La imagen, su nombre como texto de la publicación y texto alternativo, y tu identificador y contraseña de aplicación (creada en Bluesky → Settings → App passwords, nunca la contraseña de tu cuenta) van al servidor de Bluesky que indiques, `bsky.social` a menos que elijas otro. Primero conectas la cuenta en **Settings → Connected services**.
+- <!--i:upload--> **Discord.** El archivo va como adjunto a la dirección del webhook del canal que pegaste, en discord.com. Cualquiera que tenga una dirección de webhook puede publicar en ese canal, por eso se queda en el dispositivo.
+- <!--i:upload--> **Mastodon.** El archivo, con su nombre como texto de la publicación, va al servidor de Mastodon o compatible que indiques, tras un inicio de sesión en la ventana propia de ese servidor. Conectar registra en ese servidor una pequeña aplicación para este dispositivo, y el inicio de sesión se conserva solo si marcas **Stay connected**.
+- <!--i:upload--> **Nextcloud o WebDAV.** El archivo va a tu propio servidor en una única subida autenticada, con la dirección del servidor, el nombre de usuario y la contraseña de aplicación que introdujiste (Nextcloud → Settings → Security → Devices & sessions; nunca la contraseña de tu cuenta).
+- <!--i:upload--> **Almacenamiento compatible con S3.** El archivo va a tu propio bucket (AWS S3, MinIO, R2, B2, Garage o cualquier endpoint SigV4), firmado en el dispositivo con el par de claves que introdujiste.
 
-![La pantalla de Verify: una zona para soltar archivos y nada más - el archivo se comprueba donde ya está, sin subida y sin cuenta](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Puedes confirmarlo tú mismo: comprobaciones verificables con grep para esta y cada
-otra afirmación de esta página, con los comandos exactos y la salida esperada, están en
-[Verifícalo tú mismo](/info/verify-yourself.html).
+**Los hosts que eliges necesitan la aprobación del operador.** Los hosts de Bluesky, Discord, Mastodon, Nextcloud y S3 no están en la lista fija de Lolly, porque los eliges tú. La aplicación no envía nada a ninguno hasta que el operador haya aprobado ese host HTTPS exacto: en la web, en la Content Security Policy del despliegue; en las aplicaciones de escritorio, cuando se compila la aplicación. Lo mismo se aplica al almacenamiento personalizado y a los hosts de subida de SharePoint. En la web, el servidor también debe permitir llamadas del navegador desde la aplicación (CORS), y una redirección falla de forma segura, así que usa una dirección que no redirija. Las aplicaciones de escritorio comprueban cada redirección con la lista aprobada.
 
-## URLs de renderizado con enlace directo
+Esta lista limita a qué hosts puede llegar la aplicación. No distingue entre cuentas o inquilinos de Google o Microsoft, y los permisos propios del proveedor deciden qué cuentas y acciones se permiten. Tampoco cubre las ventanas de inicio de sesión, otros tipos de recursos ni las funciones nativas, que tienen sus propias reglas. Un cambio requiere una nueva compilación de escritorio o nuevas cabeceras de respuesta web; guarda tu trabajo antes de reabrir la aplicación para recogerlo. [Connector origins](/info/connector-origins.html) describe la configuración.
+:::
 
-> **Activo en lolly.tools.** Cada URL
-> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` se renderiza de verdad, y las entradas
-> viajan en esa misma URL. La sección siguiente explica qué significa eso para ti, y
-> un operador puede desactivar la función en su propia instancia.
+::: details Sync entre tus dispositivos
+- <!--i:folder--> **Qué sale.** Una copia de lo que creaste en este dispositivo (sesiones y proyectos guardados, tus design systems con sus fuentes y logotipos, imágenes subidas, tu perfil y tus preferencias) como un único archivo, al único almacenamiento que elegiste: la carpeta de la aplicación Lolly en tu Dropbox (`api.dropboxapi.com`, `content.dropboxapi.com`), los archivos que Lolly creó en tu Google Drive (`www.googleapis.com`), la carpeta de la aplicación Lolly en tu OneDrive (`graph.microsoft.com`, con los archivos más grandes subidos a `api.onedrive.com` o a orígenes de almacenamiento que el operador configuró, y descargas desde orígenes de almacenamiento exactos que el operador configuró), o tu propio Nextcloud, servidor WebDAV o bucket S3. El mismo almacenamiento conserva hasta siete copias diarias y una copia anterior a tu última aplicación.
+- <!--i:shieldcheck--> **No va nada a Lolly.** Ningún servidor de Lolly, relay ni servidor de Lolly Work está en el camino, y las aplicaciones no necesitan ningún sitio web de Lolly para ello, ni siquiera para iniciar sesión. La copia se cifra primero en el dispositivo solo si estableces una frase de contraseña. Los inicios de sesión, las claves, las contraseñas de aplicación, la frase de contraseña y los ajustes de Sync se quedan en el dispositivo y nunca están en la copia. En la web, una conexión recordada de Google Drive conserva solo el nombre de tu cuenta (y tu propio ID de cliente, si diste uno), y el inicio de sesión de Google dura una visita. En la aplicación de Android, el inicio de sesión de Google Drive pasa por los servicios de Google Play del teléfono, que gestiona Google.
+- <!--i:sliders--> **Cuándo.** Solo después de que actives **Sync across my devices** o pulses **Sync now**: una subida poco después de cada cambio y al salir de la aplicación, y una comprobación de copia más reciente cuando la aplicación arranca. Si se bloquea, Sync falla e indica por qué, y tu trabajo se queda en el dispositivo. En su lugar puedes exportar tus datos a un archivo y moverlo tú mismo. [Sync your devices](/info/sync.html) describe la función.
+:::
 
-La aplicación en sí se queda por completo en tu dispositivo. Por separado, un operador puede activar
-las **URLs de renderizado con enlace directo** - `/tool/<tool-id>.<ext>?<inputs>` - para que un
-enlace de Lolly compartido pueda aparecer como una imagen en vivo en un README, una wiki o un panel.
-Obtener una de ellas le pide al servidor que renderice **datos públicos de herramientas y catálogo** con las entradas
-escritas en la URL.
+::: details Páginas web, capturas e imágenes de otros sitios
+- <!--i:monitor--> **Una URL que pides a una herramienta que capture.** La herramienta de captura de URL solicita la dirección exacta que escribes, solo cuando inicias la captura. Como eliges la dirección en ese momento, no está en la política de conexión, y un operador no puede permitirla ni bloquearla por host; para quitarla, quita la herramienta.
+- <!--i:globe--> **Una página web en un cuadro de Design.** La página se solicita, con tu dirección IP, al sitio del que procede, junto con lo que la propia página solicite. Donde el navegador lo admite, al marco no se le envían cookies ni más dirección que el origen de la propia aplicación, así que tu documento y su enlace nunca viajan con la solicitud. En la aplicación web solo se pueden enmarcar estos reproductores: `www.youtube-nocookie.com`, `player.vimeo.com`, `www.loom.com`, `www.google.com` (mapas) y `www.figma.com`, además de páginas de referencia en `wikipedia.org` y `*.wikipedia.org`, `commons.wikimedia.org`, `upload.wikimedia.org`, `www.wikidata.org`, `www.mediawiki.org` y `www.openstreetmap.org`. **Allow pages from any site**, en **Settings → Trusted sites**, recarga Lolly en tu dispositivo con una política que puede enmarcar cualquier página `https:`, y se siguen aplicando las mismas reglas de confianza y consulta. Una página se carga solo para un sitio de tus Trusted sites, incluidos los valores de referencia predeterminados que se pueden quitar, o después de que apruebes ese cuadro en su inspector; hasta entonces, un deck que alguien te envió muestra una imagen de cada página. Antes de presentar, la lista ofrece **Just this time** y **Always trust** para cada sitio, y no se pregunta nada mientras presentas. Si se bloquea, el cuadro muestra su imagen con un enlace para abrir la página en una pestaña nueva. Las herramientas de Lolly y las demos de Sandbox en un cuadro se ejecutan en la propia dirección de la aplicación y no contactan con nadie.
+- <!--i:sliders--> **Cambiar una página que muestras.** La acción **Use page** de un cuadro de página web te permite rechazar cookies o cerrar un banner dentro de la página. En las páginas accesibles de Lolly, **Hide cookie banners** oculta las superposiciones conocidas, incluida OneTrust, sin aceptar cookies ni cambiar la elección de consentimiento del sitio. **Page CSS** cambia la página en vivo y la presentación de ese cuadro; las exportaciones siguen usando el póster elegido. Las reglas no pueden importar recursos ni fuentes, y los navegadores impiden que Lolly cambie el CSS de otro sitio. Las vistas previas de Sandbox tienen su propio editor de CSS en **Edit in Sandbox**.
+- <!--i:code--> **Los recursos web de una demo de Sandbox.** Cada hoja de estilos, script, fuente o imagen a la que enlaza el código de la demo se solicita, con tu dirección IP y sin cookies, al sitio que la aloja; los archivos que nombra una hoja de estilos descargada, como los archivos de fuente de Google Fonts, cuentan como sitios aparte. Esto ocurre solo después de hacer clic en **Fetch & inline**, o para un sitio de tus Trusted sites; **Always trust** junto a un archivo añade su sitio a esa lista. Si se bloquea, la demo se ejecuta sin esos archivos, y Sandbox enumera cada archivo que no pudo descargar y por qué.
+- <!--i:download--> **Añadir una imagen desde una URL.** **Add from URL** en el selector de recursos o en Assets solicita la dirección exacta de imagen que pegas. La propia política de la aplicación web impide que el navegador descargue otro sitio directamente, así que un pequeño paso intermedio en la propia dirección de la aplicación (`/api/fetch-image`) obtiene la imagen y devuelve solo los bytes; no almacena nada, olvida la dirección y rechaza cualquier cosa que no sea una dirección de imagen pública. Las aplicaciones de escritorio descargan la dirección directamente. Un enlace de Lolly que pegues no se descarga en absoluto: se renderiza en el dispositivo. Si el operador desactiva el paso intermedio (`LOLLY_DISABLE_IMAGE_PROXY=1`), en la aplicación web solo se pueden añadir enlaces de Lolly, imágenes `data:` e imágenes del mismo origen, y las aplicaciones de escritorio no se ven afectadas.
+- <!--i:palette--> **Un design system desde un sitio web.** Design System Setup puede leer una página de un sitio que indiques, mediante la [extensión de navegador](#the-browser-extension) o la propia descarga de la aplicación de escritorio, nunca a través de un servidor de Lolly. No se descarga nada antes de que pulses, y no se siguen los enlaces de la página.
+:::
 
-- <!--i:usercheck--> **Sin cuentas, sin cookies, sin estado.** El punto de acceso es anónimo, y no se
-  lee nada en tu dispositivo. Tus documentos, sesiones y subidas nunca salen de tu
-  navegador - no pueden aparecer en estos enlaces en absoluto.
-- <!--i:document--> **Pero la propia URL se registra.** La cadena de consulta de una URL forma parte de la línea de
-  solicitud, así que aparece en los registros de acceso habituales de la plataforma de alojamiento, igual que
-  cualquier ruta solicitada. Si las entradas de un enlace contienen el nombre o el correo de alguien -
-  una etiqueta identificativa, una firma de correo - **ese texto queda en esos registros**, y ninguna
-  redacción de política lo cambia. Por eso una URL de enlace directo es el lugar equivocado para datos personales: dale solo
-  lo que pondrías en una página pública.
-- <!--i:globe--> **De todos modos, las entradas son públicas por construcción** - son lo que quien creó
-  el enlace escribió en la URL, legible por cualquiera que llegue al enlace. No pongas
-  secretos en un enlace compartido. Lolly ofrece cifrado de enlaces para contenido sensible.
-- <!--i:eyeoff--> Las respuestas se **almacenan en caché y se limitan de velocidad** como cualquier imagen pública, y se marcan
-  como `noindex` para que los buscadores no indexen tus renders.
+::: details Trabajar con otras personas y agentes
+- <!--i:link--> **Una collab privada.** Dos dispositivos se conectan directamente, sin ningún servidor en medio. La invitación y la respuesta llevan las direcciones que cada dispositivo ve por sí solo en su red, y esta compilación no configura ningún servidor externo de descubrimiento de direcciones, así que entrégalas solo a la persona con quien trabajas. Consulta [Working together](/info/collaborate.html).
+- <!--i:monitor--> **Nearby**, en la aplicación de escritorio. Mientras eres visible, que son diez minutos cuando inicias una invitación de collab o, si lo activas, siempre que la aplicación esté en marcha, la aplicación anuncia en la red local un nombre aleatorio, el nombre visible que elegiste y el tipo de dispositivo. No anuncia ninguna dirección de correo, cuenta ni identificador duradero.
+- <!--i:link--> **Invitar a un agente.** El estado del documento invitado, las vistas previas que pide el agente, la identidad del agente y sus ediciones pasan por el relay en vivo configurado (`lolly.ing` en lolly.tools) hasta el agente que invitas. Un plugin alojado instalado también reenvía las llamadas a través del conector de lolly.tools al relay que selecciona la invitación; el conector no conserva ninguna invitación ni documento entre llamadas. El relay mantiene las invitaciones y las solicitudes pendientes en memoria hasta que te desconectas o caducan: diez minutos para una invitación sin usar y treinta minutos sin actividad para una a la que alguien se unió. El proveedor de tu agente trata los datos que recibe según su propia política. Esto ocurre solo después de que creas una invitación en Share y entregas sus instrucciones a tu agente; el acceso de lectura permite inspeccionar y el de edición también permite hacer cambios. Pause detiene los cambios, y Disconnect o revocar la invitación termina el acceso. Si se bloquea, el agente no puede unirse ni continuar, y tú sigues editando.
+- <!--i:cpu--> **Allow AI control**, en la aplicación de escritorio. Un agente que se ejecuta en este ordenador puede leer y editar el documento de Design abierto mediante una conexión que permanece en el ordenador. Está desactivado hasta que lo activas. Lolly no envía nada a un servidor por ello; el proveedor del agente trata lo que el agente lee según su propia política. [Threat Model & Trust Boundaries](/info/threat-model.html) enumera lo que un agente así puede y no puede hacer.
+- <!--i:server--> **Una instancia remota.** Cuando apuntas la aplicación a otro despliegue de Lolly, recibe lo que esa instancia le devuelva, mediante la misma sincronización del catálogo, más una etiqueta de versión en las solicitudes a ella (el tipo de aplicación y la versión del motor, la misma información que lleva un user agent), para que su operador pueda ver qué versiones de Lolly están en uso. En una instancia gestionada, mientras tienes la sesión iniciada, la etiqueta también lleva un ID de instalación de este dispositivo, para que la lista de dispositivos del operador pueda distinguir las instalaciones; al salir se borra el ID, y un dispositivo que se reconecte más tarde presenta uno nuevo. Tú eliges el host, así que no está en la política de conexión. Si se bloquea, el cambio falla y tu instancia local no se ve afectada.
+- <!--i:people--> **La instancia de Lolly Work de tu organización.** La identidad de inicio de sesión y la información del dispositivo, las solicitudes de políticas, las sesiones compartidas, las ediciones de colaboración, las subidas, los envíos de aprobación y los archivos de entrega que uses, y las etiquetas de eventos de uso permitidas donde estén configuradas, van a la instancia de tu organización, con el inicio de sesión a través de su proveedor de identidad. Las actualizaciones de políticas y la telemetría activada pueden ejecutarse durante el uso; el trabajo compartido, las collabs, la revisión y la entrega envían contenido como parte de esos flujos de trabajo. Si se bloquea, esas funciones de la organización no pueden completarse, y tu trabajo personal permanece aparte. Consulta [Organisation services with Lolly Work](#organisation-services-with-lolly-work).
+:::
 
-¿Autoalojas Lolly y no quieres una superficie pública de renderizado? Configura
-`LOLLY_DISABLE_RENDER_GET=1` y todas estas URLs devuelven un 404.
+### Cada host fijo, en una tabla
 
-## El servidor MCP (opcional, para agentes de IA)
+La Content Security Policy de la aplicación web es lo que impide que un script llegue a cualquier host que no figure en ella. Además de la propia dirección de la aplicación, la tabla recoge todos los hosts que enumera esa política, más los dos hosts de LinkedIn que añaden las aplicaciones de escritorio, marcados como solo de escritorio. Una prueba de CI comprueba esta tabla con la política desplegada, así que no se puede añadir un host a una sin la otra.
 
-Lolly también puede ser alcanzado por un agente de IA a través del Model Context Protocol - un
-endpoint operado por el operador (lolly.tools ejecuta uno; cualquiera puede autoalojar el suyo
-propio, incluido uno completamente aislado de la red). Comparte la postura sin cuentas de la ruta de
-renderizado, más cuatro herramientas que necesariamente manejan bytes de archivo:
+| Qué | Qué sale realmente de tu dispositivo | Hosts |
+|---|---|---|
+| Modelos en el dispositivo en las aplicaciones empaquetadas, y archivos de versiones | Una solicitud de un archivo público, con tu dirección IP | `lolli.li` |
+| Google Fonts | El nombre de la familia de fuentes y tu dirección IP | `fonts.googleapis.com`, `fonts.gstatic.com` |
+| Send to y Sync con Google Drive | El archivo o la copia de seguridad que elegiste | `www.googleapis.com` |
+| Send to y Sync con Dropbox | El archivo o la copia de seguridad que elegiste | `api.dropboxapi.com`, `content.dropboxapi.com` |
+| Send to y Sync con OneDrive | El archivo o la copia de seguridad que elegiste, y tu nombre visible para la etiqueta de la cuenta | `login.microsoftonline.com`, `graph.microsoft.com`, `api.onedrive.com` |
+| Búsqueda de ciudades de Meeting Planner | Cada nombre de ciudad | `geocoding-api.open-meteo.com` |
+| Perfiles de impresión ICC | Una solicitud de un perfil público | `registry.color.org`, `www.color.org` |
+| Radio por internet | Una solicitud de lista de reproducción y un flujo de audio | `api.somafm.com`, `*.somafm.com` |
+| Invitar a un agente, y el espacio de trabajo lolly.ing | El estado del documento invitado, las vistas previas y las ediciones, y las solicitudes de espacio de trabajo que haces | `lolly.ing` |
+| Reproductores en un cuadro web de Design | Una solicitud de la página, con tu dirección IP | `www.youtube-nocookie.com`, `player.vimeo.com`, `www.loom.com`, `www.google.com`, `www.figma.com` |
+| Páginas de referencia en un cuadro web de Design | Una solicitud de la página, con tu dirección IP | `wikipedia.org`, `*.wikipedia.org`, `commons.wikimedia.org`, `upload.wikimedia.org`, `www.wikidata.org`, `www.mediawiki.org`, `www.openstreetmap.org` |
+| Send to LinkedIn, solo en las aplicaciones de escritorio | El archivo, con su nombre como publicación pública | `www.linkedin.com`, `api.linkedin.com` |
 
-- <!--i:cpu--> **`lolly_transform`** (ejecuta una utilidad en el dispositivo pero del lado del servidor, en
-  nombre del agente que llama), **`lolly_verify`** (comprueba Content Credentials) y
-  **`lolly_redact`** (tapa regiones de una imagen o un PDF) aceptan
-  los bytes de un archivo enviados por quien llama. Se procesan **en proceso, en memoria**,
-  y el resultado se devuelve en esa misma llamada - el archivo nunca se escribe en
-  disco ni se almacena una vez completada la solicitud.
-- <!--i:cpu--> **`lolly_rebrand`** (renueva una presentación antigua sobre un sistema de
-diseño, a través de sus etapas `plan`, `compile` e `inspect`) acepta los bytes de una
-presentación de la misma manera, y los procesa **en memoria, solo para esa llamada** - no
-se escribe nada en disco ni se conserva nada una vez enviada la respuesta. Su primera
-etapa, `capabilities`, indica con palabras adónde irían tus bytes antes de que envíes
-ninguno: en un servidor local autoalojado, la presentación nunca sale de esa máquina; en
-un servidor alojado, llamar a `lolly_rebrand` envía la presentación allí, hasta los
-límites de tamaño y de diapositivas que da esa misma etapa.
-- <!--i:checklist--> El resto de herramientas - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - funcionan solo a partir de parámetros (texto, números, colores,
-  URLs, ids de recursos del catálogo), las mismas entradas que toma una URL de renderizado con enlace directo.
-- <!--i:lock--> El acceso es o bien un token compartido que el operador emite a los clientes en los que confía, o bien
-  OAuth 2.1 sin estado: tokens firmados de corta duración verificados frente a un secreto
-  compartido, nada almacenado del lado del servidor, y el propio token nunca se escribe en un
-  registro ni en una URL de renderizado.
+La lista propia de las aplicaciones de escritorio incluye además el endpoint de tokens de Google para el inicio de sesión de Drive. Cualquier otro host, como un servidor de Mastodon o Nextcloud que indiques, necesita la aprobación del operador, como se describe en Archivos que envías. Los hosts que eliges en el momento de usarlos, como una URL que capturas o una instancia remota que indicas, no aparecen en ninguna lista.
 
-## Identidad de Content Credentials (un inicio de sesión que tienes que iniciar tú mismo)
 
-Lolly puede sellar una **Content Credential** criptográfica en tus exportaciones para que cualquiera pueda verificar, sin conexión, que un archivo no se ha alterado desde que salió de Lolly. Eso ya está **activado por defecto y totalmente local** - la clave de firma se genera en tu dispositivo y la propia firma ocurre sin conexión. Sin inscripción, esa clave es desechable: se genera un par de claves nuevo para cada exportación y se descarta junto con ella. Una vez que te inscribes, la clave pasa a ser permanente y se genera como **no extraíble** - ni siquiera el propio código de Lolly puede leerla, solo pedirle que firme. En cualquier caso, nunca sale de tu dispositivo. Esta sección cubre el único paso *opcional* que se añade a eso: inscribir una identidad verificada, para que tus exportaciones digan "Verificado - firmado por \<your email\>" en lugar de una clave anónima. **Si omites la inscripción, nada de esta sección se aplica a ti, y ningún dato personal sale nunca de tu dispositivo.**
+**Las firmas SEAL no hacen ninguna solicitud.** Verify puede comprobar firmas SEAL, un esquema cuya clave de firma se puede publicar en el DNS. Los navegadores no pueden hacer consultas DNS, así que una búsqueda web tendría que pasar por un resolvedor DNS sobre HTTPS de terceros, que vería el dominio que se comprueba y tu dirección IP. Lolly usaba el resolvedor de Cloudflare; ya no lo hace, y nada ha sustituido a Cloudflare. Ninguna aplicación de Lolly busca hoy claves SEAL: las aplicaciones de escritorio y móviles ejecutan la misma vista Verify, y el comando `lolly validate` de la línea de comandos no comprueba SEAL. Un archivo cuyo registro SEAL lleva su clave incluida se comprueba sin conexión, y Verify considera la firma internamente coherente sin confirmar el dominio. Un archivo cuya clave vive solo en el DNS muestra **SEAL signature did not verify**, con el motivo "no key resolver and no inline key".
 
-![La tarjeta de identidad verificada en la página de perfil, del ancho de un teléfono: el selector de duración del certificado y el paso de inscripción debajo, inactivo hasta que lo inicias tú mismo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
+![La pantalla Verify: un área para soltar y nada más - el archivo se comprueba donde ya está, sin subida y sin cuenta](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop)
 
-Si te inscribes, esto es exactamente lo que ocurre:
+Puedes comprobar esto y cualquier otra afirmación de esta página por tu cuenta: [Verify It Yourself](/info/verify-yourself.html) da los comandos y el resultado que cabe esperar.
 
-1. **Eliges un método de inicio de sesión** - GitHub, Google, SUSE (id.suse.com) o un
-   enlace por correo. Para los tres proveedores OIDC, se te redirige a la página de
-   inicio de sesión de ese proveedor, regida por su propia política de privacidad, no por la nuestra.
-   El servicio de certificados de Lolly recibe de vuelta solo una dirección de correo verificada y
-   el nombre del proveedor. Para el enlace por correo, la dirección que escribes se pasa a
-   **Resend**, una API de correo transaccional, únicamente para entregar ese enlace.
-2. **Una cookie de corta duración protege la redirección.** Esta es la única cookie que
-   establece todo el sistema Lolly: `lolly_ca_state`, `HttpOnly`, restringida a `/api/ca`,
-   que expira en diez minutos. Lleva un valor aleatorio, no un identificador de
-   rastreo, y existe solo para impedir que se falsifique la redirección OAuth. Se
-   borra en cuanto se completa el inicio de sesión.
-3. **Tu dirección IP se usa, brevemente, para prevenir abusos** de los endpoints de inicio
-de sesión (para que un script no pueda saturar una bandeja de entrada ni agotar la cuota
-de correo). Lolly le aplica una función hash antes de crear un bucket de control de abuso
-de corta duración; la dirección en bruto no se envía a ese almacén. El bucket expira al
-cabo de aproximadamente un minuto y no se usa para rastreo. Los registros de acceso de
-alojamiento habituales son independientes y se describen más abajo.
-4. **El servicio de certificados emite un certificado de corta duración** (7, 30, 90 o 365
-   días, a tu elección, limitado por la política del operador) que vincula tu correo verificado
-   a la mitad pública del par de claves generado en tu dispositivo. La mitad privada
-   nunca sale de tu navegador.
-5. **Nada sobre la emisión queda registrado.** El servicio de certificados no mantiene ningún registro
-   de emisión: ni tu correo, ni el proveedor, ni un número de serie, ni una
-   marca de tiempo. Sin base de datos, sin línea de registro, sin webhook. Tu dirección de correo existe en
-   la solicitud solo el tiempo necesario para escribirse en el certificado que recibe tu propio
-   dispositivo, y después desaparece por completo de nuestro lado.
-6. **A partir de ahí, la firma vuelve a ser sin conexión** durante toda la vida del
-   certificado. Exportar un archivo nunca contacta con el servicio de certificados - solo la inscripción lo hizo.
+## Servicios que ejecuta lolly.tools
 
-**La contrapartida, dicha con claridad.** Una versión anterior de este servicio sí registraba cada
-emisión, para que un certificado mal emitido o comprometido pudiera rastrearse. Lo
-eliminamos, porque ese registro era el único lugar en todo Lolly donde datos personales
-llegaban a reposar en un servidor, y preferimos no tenerlo a tenerlo con cuidado.
-Lo que perdemos es la trazabilidad del lado del servidor: si un certificado se usa mal
-no podemos buscar quién lo obtuvo. Los certificados son de corta duración por
-diseño - de 7 a 365 días, a tu elección, limitado por el operador - y expiran por sí
-solos, que es la mitigación en la que confiamos en su lugar. Quienes se autoalojan y cuyas
-obligaciones propias requieran un registro de auditoría pueden añadir uno, y convertirse en el responsable de esos
-datos al hacerlo.
+Estos se ejecutan en lolly.tools para todo el mundo. Cada uno recibe solo lo que tú envías. [Server Surface](/info/server-surface.html) describe los mismos componentes tal como funcionan en cualquier despliegue.
+
+### Enlaces de renderizado
+
+Cada URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` se renderiza de verdad, y sus entradas viajan en la URL, así que un enlace compartido de Lolly puede aparecer como imagen en vivo en un README, una wiki o un panel. Obtener uno le pide al servidor que renderice **datos públicos de herramientas y del catálogo** con las entradas escritas en la dirección.
+
+- <!--i:usercheck--> **Sin cuentas, sin cookies, sin estado.** La ruta no pide iniciar sesión, y no se lee nada de tu dispositivo. Tus documentos, sesiones y subidas nunca salen de tu navegador y no pueden aparecer en estos enlaces.
+- <!--i:document--> **Se registra la propia URL.** La cadena de consulta de una URL forma parte de la solicitud, así que aparece en los registros de acceso normales de la plataforma de alojamiento como cualquier ruta solicitada. Si las entradas de un enlace contienen el nombre o la dirección de correo de alguien, como podría ocurrir con una credencial de nombre o una firma de correo, **ese texto queda en esos registros**. Da a un enlace de renderizado solo lo que pondrías en una página pública.
+- <!--i:globe--> **Las entradas son públicas de todos modos.** Son lo que el autor del enlace escribió en la URL, legible por cualquiera a quien llegue el enlace. No pongas secretos en un enlace compartido; Lolly ofrece cifrado de enlaces para el contenido sensible.
+- <!--i:eyeoff--> **En caché, limitado y sin indexar.** Las respuestas se guardan en caché y tienen límite de frecuencia como cualquier imagen pública, y se marcan `noindex` para que los motores de búsqueda dejen fuera tus renderizados.
+
+Un despliegue autoalojado que no quiera ninguna ruta pública de renderizado define `LOLLY_DISABLE_RENDER_GET=1`, y cada una de estas URL devuelve 404.
+
+### El recuperador de imágenes y el paso intermedio de Penpot
+
+**Add from URL** en la aplicación web y **Send to Penpot** usan dos pequeños pasos intermedios en lolly.tools, descritos en [Todas las solicitudes de red que puede hacer la aplicación](#every-network-request-the-app-can-make). El recuperador de imágenes no conserva nada y olvida la dirección. El paso intermedio de Penpot reenvía tu token y tu archivo a Penpot y no conserva ninguno de los dos; registra el nombre del comando y el estado de la respuesta de Penpot.
+
+### El servidor MCP, para agentes de IA
+
+Un agente de IA puede llegar a Lolly mediante el Model Context Protocol, a través de un endpoint que opera un operador. lolly.tools opera uno, y cualquiera puede operar el suyo, incluso totalmente sin conexión.
+
+- <!--i:cpu--> **Archivos que envía un agente.** Las herramientas que reciben un archivo (`lolly_transform`, `lolly_verify`, `lolly_redact`, `lolly_read`, `lolly_check`, `lolly_package`, `lolly_compose`, `lolly_rebrand` y las herramientas de imagen `lolly_look`, `lolly_sample_color` y `lolly_trace_edges`) lo procesan en memoria y devuelven el resultado en la misma llamada. El archivo nunca se escribe en disco y no se conserva cuando la solicitud termina. `lolly_inspect` también recibe un archivo, y sus comprobaciones de vídeo y de producción de impresión escriben una copia de trabajo temporal que se borra cuando la llamada devuelve. Cualquier otra herramienta trabaja con los parámetros de la llamada: texto, números, colores, URL, ID de recursos del catálogo o un documento que aporta quien llama.
+- <!--i:cpu--> **Rebrand indica adónde va un deck.** La primera etapa de `lolly_rebrand`, `capabilities`, dice con palabras adónde irían tus bytes antes de que envíes nada: en un servidor local autoalojado el deck nunca sale de esa máquina, y en un servidor alojado, llamar a `lolly_rebrand` envía el deck allí, hasta los límites de tamaño y de diapositivas que da esa etapa.
+- <!--i:lock--> **El endpoint abierto.** En lolly.tools, `lolly.tools/api/mcp` está abierto a cualquiera sin token. Las llamadas tienen límite por dirección y por un presupuesto diario. La dirección se convierte en un resumen seudónimo en el almacén de control de abusos, como en los endpoints de inicio de sesión de más abajo, y el presupuesto solo cuenta tiempo de CPU y bytes enviados, sin dirección. El token bearer de un endpoint restringido nunca se escribe en un registro ni en una URL de renderizado.
+- <!--i:link--> **Enlaces de descarga para resultados grandes.** lolly.tools devuelve los resultados en línea y nunca emite estos enlaces. Un operador puede activarlos en su propia pasarela autenticada, donde un resultado se conserva como máximo cinco minutos y solo el token bearer del propio solicitante puede obtenerlo; consulta [MCP Server](/info/mcp.html#private-download-links-for-large-results). Un endpoint restringido planificado en `mcp.lolly.tools` aceptaría un token bearer que el operador emite a clientes de confianza, o bien OAuth 2.1 con tokens firmados de corta duración comprobados con un secreto compartido; su activación está pendiente, y figura en [Delivery hosts and processors](#delivery-hosts-and-processors).
+
+### Identidad verificada: un inicio de sesión que inicias tú
+
+Lolly puede sellar una **Content Credential** en tus exportaciones, para que cualquiera pueda comprobar sin conexión que un archivo no ha cambiado desde que salió de Lolly. Eso está **activado por defecto y es totalmente local**: la clave de firma se crea en tu dispositivo y la firma ocurre sin conexión. Sin registro, esa clave es desechable, un par de claves nuevo creado para cada exportación y descartado después. Una vez que te registras, la clave perdura y se genera **no extraíble**, de modo que ni siquiera el propio código de Lolly puede leerla, solo pedirle que firme. En ambos casos nunca sale de tu dispositivo.
+
+[Exporting](/info/exporting.html#content-credentials-c2pa) enumera lo que registra una credencial: la herramienta, la hora, la superficie de exportación en términos generales, tu nombre solo cuando activaste *Use my details*, las obras acreditadas que coloca una exportación y cada canción de Rondocode que reproduce una exportación de vídeo o audio (su nombre, un hash de su fuente y cómo renderizó la canción el sandbox de Lolly). El panel de exportación enumera esas canciones antes de que exportes.
+
+La credencial y los metadatos del archivo también registran el [design system y la colourway](/info/exporting.html#the-design-system-record) que dibujó la exportación: el ID y el nombre del design system, su versión publicada y la colourway. El nombre de un design system es texto que escribieron sus propietarios y puede ser el nombre de un cliente, así que la tarjeta **Design system** del panel de exportación muestra las palabras exactas antes de que exportes. Desmarca la tarjeta, o pasa `_madewith=0` o `--no-madewith`, para omitirlos.
+
+El único paso *opcional* además de eso es registrar una identidad verificada, para que tus exportaciones digan "Verified - signed by \<your email\>" en lugar de nombrar una clave anónima. **Si omites el registro, el servicio de certificados no recibe de ti ningún dato de registro.**
+
+![La tarjeta Verified identity en Settings, al ancho de un teléfono: el selector de duración del certificado y el paso de registro debajo, inactivo hasta que lo inicias tú](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
+
+Si te registras, esto es exactamente lo que ocurre:
+
+::: timeline
+- <!--i:usercheck--> **Eliges un método de inicio de sesión**: GitHub, Google, SUSE (id.suse.com) o un enlace por correo. Con los tres proveedores OIDC vas a la página de inicio de sesión del propio proveedor, bajo su política de privacidad, no la nuestra, y el servicio de certificados solo recibe de vuelta una dirección de correo verificada y el nombre del proveedor. Con el enlace por correo, la dirección que escribes va a **Resend**, un servicio de correo transaccional, solo para entregar ese enlace.
+- <!--i:lock--> **Una cookie de corta duración protege la redirección.** El servicio de certificados establece `lolly_ca_state`, `HttpOnly`, limitada a `/api/ca` y que caduca en diez minutos. Lleva un valor aleatorio y no un identificador de seguimiento, existe solo para impedir que se falsifique la redirección del inicio de sesión y se borra en cuanto este termina.
+- <!--i:eyeoff--> **Tu dirección IP se usa brevemente para evitar abusos** en los endpoints de inicio de sesión, de modo que un solo script no pueda inundar una bandeja de entrada ni agotar la cuota de correo. Lolly la convierte en un resumen SHA-256 antes de que llegue al almacén de control de abusos de corta duración, así que la dirección original no se envía allí. El resumen es seudónimo y no anónimo: alguien que tuviera el almacén podría recuperar una dirección IPv4 probando todas las posibles. El bucket caduca al cabo de aproximadamente un minuto y no se usa para nada más. Los registros de acceso normales del alojamiento son aparte y se describen más abajo.
+- <!--i:seal--> **El servicio emite un certificado** que vincula tu dirección de correo verificada con la clave pública de tu dispositivo. La clave privada permanece en el dispositivo: el cliente envía una solicitud de certificado con una prueba de posesión vinculada, y ninguna clave privada del dispositivo va a ninguno de los dos modos de emisor.
+- <!--i:check--> **La firma sigue siendo local.** Con el emisor heredado, una exportación no necesita ninguna solicitud al servicio de certificados. Una identidad gestionada también necesita una lista de revocación fresca y firmada de su emisor; el cliente puede usar una lista en caché dentro de su ventana de frescura configurada, y refrescarla puede contactar con el servicio de certificados durante una exportación. Un estado ausente, caducado o no válido impide que se use la identidad gestionada.
+:::
+
+::: details Conservación y revocación en cada modo de emisor
+**La emisión alojada heredada** ofrece 7, 30, 90 o 365 días, con el tope que fije el operador. No conserva inventario de identidades ni registro de emisiones, así que no puede buscar quién obtuvo un certificado ni revocar los certificados de esa persona; la duración es la revocación.
+
+**La emisión gestionada de la organización** usa una duración predeterminada de como máximo 24 horas y un máximo de siete días, con su propia raíz y política de confianza del emisor, y la firma va al emisor de Vault que configuró su operador. Su aplicación de registro usa un almacén compartido de admisión de un solo uso que guarda solo un identificador de autenticación con clave y un resumen de la solicitud, durante como máximo diez minutos, y no almacena inventario de identidades ni caché de respuestas de certificados. El proveedor de PKI, sus dispositivos de auditoría, pasarelas y copias de seguridad tienen sus propios flujos de datos. Incluso con el almacenamiento ordinario de emisiones desactivado, la revocación basada en certificados puede conservar el certificado, incluida su identidad de correo, y los números de serie de revocación y los identificadores de auditoría pueden seguir siendo vinculables; la política de tu operador decide ese inventario, quién puede acceder a él y cuánto tiempo se conserva.
+
+Un dispositivo gestionado puede pedir revocar su propio certificado, con una prueba autenticada del dispositivo, y ninguna API pide la clave privada del dispositivo. El operador puede retirar un emisor mediante su política de confianza. Lolly no conserva ninguna correspondencia entre personas y certificados, así que revocar los certificados de una persona cuando se va depende de los registros que conserve el operador, y los registros de PKI, los de auditoría, los destinatarios y las copias de seguridad siguen la política del operador. El [diseño del servicio de certificados](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md) abarca la custodia del emisor, la conservación del proveedor y la cualificación.
+:::
+
+## Servicios de la organización con Lolly Work
+
+**Lolly Work** es el servicio de organización opcional del proyecto Lolly, desplegado por separado por cada organización que opera una instancia. Conectarse a una instancia añade datos guardados en ese servidor junto a tu edición local. Su operador es responsable de la política de privacidad, los controles de acceso, los destinatarios, la conservación y las copias de seguridad de ese despliegue.
+
+| Flujo de trabajo | Datos que trata el servicio de la organización |
+|---|---|
+| Inicio de sesión y aprovisionamiento | Declaraciones del proveedor de identidad, cuenta y pertenencia a grupos, sesiones de inicio de sesión e información del dispositivo. OIDC gestiona el inicio de sesión; los administradores pueden aprovisionar y desactivar cuentas mediante SCIM |
+| Catálogo y proyectos compartidos | Recursos subidos, metadatos y versiones; proyectos y sesiones compartidos; contenido obtenido de proveedores de biblioteca configurados |
+| Collabs de trabajo | Estado de sesión compartido, ediciones en vivo y presencia de participantes enviados a través de la instancia; el estado guardado persiste según su política de almacenamiento |
+| Enlaces compartidos gestionados | Destino del enlace y ajustes de acceso, como caducidad y protección opcional con contraseña; las solicitudes se resuelven a través de la instancia y se pueden revocar |
+| Revisión y entrega | Contenido enviado, decisiones de aprobación, destino seleccionado, archivos preparados y comprobantes de entrega |
+| Renderizados y lotes en el servidor | Entradas de herramientas enviadas, solicitudes de renderizado, estado y archivos de salida conservados. Estos trabajos se ejecutan en el servidor y no en tu dispositivo |
+| Informes de uso | Etiquetas de eventos de una lista permitida, como ID de herramienta, formato e ID de recurso, según la política de telemetría de más abajo |
+| Auditoría | Registros de actor y acción de las operaciones gobernadas, guardados aparte de la telemetría de uso |
+
+El servicio usa cookies de autenticación, incluidas `lw_session` para los miembros con sesión iniciada y `lw_guest` para el acceso de invitados donde esté activado, separadas de la cookie del servicio de certificados. Las actualizaciones de políticas y los informes de uso activados pueden hacer solicitudes mientras se usa la aplicación, sin un clic aparte para cada una. Es tráfico hacia la instancia configurada, no un informe al proyecto Lolly sobre despliegues que no opera.
+
+**La telemetría de uso tiene tres niveles.** `off` no almacena eventos de uso, `aggregate` elimina los ID de usuario y `standard` puede atribuir eventos. El nivel predeterminado es `standard`, así que una instancia almacena los eventos de uso que recibe a menos que su operador elija `off`. La política de atribución predeterminada es `opt-in`, que necesita tu consentimiento antes de almacenar un ID de usuario; un operador puede configurar en su lugar informes atribuidos con `telemetryAttribution: default`. Los atributos permitidos son etiquetas, nunca valores de entrada de herramientas. Consulta [Work telemetry](/info/work-telemetry.html).
+
+**La auditoría es aparte.** Las acciones gobernadas pueden conservar un registro de auditoría identificado sea cual sea tu consentimiento de telemetría. Desactivar la telemetría no desactiva el almacenamiento de sesiones compartidas, los registros de aprobación, el almacenamiento de trabajos de renderizado ni la auditoría. El operador controla la conservación y el borrado, incluida cualquier seudonimización del registro de auditoría; consulta [Work storage and data lifecycle](/info/work-data-lifecycle.html).
+
+| | Tu dispositivo | La instancia de tu organización |
+|---|---|---|
+| Qué guarda | Tu trabajo personal, preferencias y cachés | Trabajo compartido, cuentas, subidas, aprobaciones, renderizados, auditoría y telemetría configurada |
+| Quién lo borra | Tú, con **Clear all my data** o con los datos del sitio de tu navegador | El operador, mediante los controles propios de la instancia |
+| A quién preguntar | A nadie: los registros están en tu dispositivo | Al operador de la instancia, para acceso, exportación o borrado |
+
+**Borrar en local no es borrar en el servidor.** Salir de una instancia o limpiar tu navegador elimina el estado local, no los registros ni las copias de seguridad de la organización. [Sync](/info/sync.html) personal y **Export my data** respaldan tu dispositivo, no el servicio de la organización. La demo pública de [lolly.work](https://lolly.work) guarda su estado solo en memoria y no es un almacenamiento duradero para tu trabajo.
 
 ## La extensión de navegador
 
-La extensión de navegador **Lolly URL Screenshot** no recopila, almacena ni
-transmite ningún dato personal. Sin análisis, sin rastreo, sin servidor remoto.
+La extensión de navegador **Lolly URL Screenshot** no recopila datos personales para nosotros. No tiene analítica, ni seguimiento, ni servidor propio. La página [Browser extension](/info/extension.html) describe cómo funciona.
 
-**Qué hace.** Cuando le pides a la aplicación web de Lolly que capture la
-captura de pantalla de una URL, la extensión abre esa página en una pestaña temporal en segundo
-plano, la captura en tu navegador usando el DevTools Protocol, entrega la imagen
-de vuelta a la aplicación y cierra la pestaña. Todo ocurre localmente, en tu propio
-dispositivo y red.
+**Qué hace.** La aplicación web de Lolly puede pedirle una captura de pantalla de una página web, o el contenido de una página para iniciar un design system desde un sitio web. Cada solicitud abre una ventana de aprobación en la extensión que muestra el sitio que la pide, si quiere una captura o el contenido de la página, y la dirección de la página. Solo después de que pulses **Approve once** la extensión abre esa página en una pestaña temporal en segundo plano, hace la captura o lee la página, entrega el resultado a la pestaña de Lolly que lo pidió y cierra la pestaña. Cada solicitud necesita su propia aprobación.
 
 **Datos.**
 
-- <!--i:shieldcheck--> **No recopilamos nada.** La extensión no tiene servidores y no realiza
-  solicitudes de red propias.
-- <!--i:photos--> **Las imágenes capturadas** van directamente a la aplicación Lolly en el mismo navegador - nunca
-  se suben desde la extensión.
-- <!--i:link--> **Las URL que capturas** se usan solo para cargar esa página concreta para esa
-  captura de pantalla. No se registran ni se comparten.
+- <!--i:shieldcheck--> **No recopilamos nada.** El resultado va solo a la página de Lolly que lo pidió, en el mismo navegador. La extensión no almacena contenido de páginas ni añade ningún otro destinatario.
+- <!--i:globe--> **Solicitudes de red.** La página que apruebas se carga como en cualquier pestaña, junto con lo que esa página solicite por sí misma. Leer el contenido de una página también descarga las hojas de estilos de esa página y algunas de sus imágenes de icono y logotipo, desde dentro de la página, y esas descargas no envían cookies a otros sitios. La extensión no hace ninguna otra solicitud, y ninguna va a un servidor de Lolly.
+- <!--i:lock--> **La sesión de tu navegador.** La página se carga con la sesión de tu navegador, como si la abrieras tú, así que una página en la que tienes la sesión iniciada puede poner información privada en el resultado.
+- <!--i:link--> **Las direcciones que apruebas** se usan solo para cargar esa página para esa solicitud. No se registran ni se comparten.
 
 **Permisos.**
 
-- <!--i:wrench--> **`debugger`** - para capturar la página renderizada mediante el DevTools Protocol (el
-  mismo mecanismo que usa la aplicación de escritorio de Lolly).
-- <!--i:monitor--> **`tabs`** - para abrir y cerrar la pestaña temporal en la que se carga la página.
-- <!--i:globe--> **Acceso a hosts (`<all_urls>`)** - porque la página que elijas capturar puede estar
-  en cualquier sitio. Chrome muestra esto en el momento de la instalación como una advertencia
-  de permiso amplio. La extensión solo visita la URL que le indiques.
+- <!--i:wrench--> **`debugger`**: para hacer la captura mediante el DevTools Protocol, el mismo mecanismo que usa la aplicación de escritorio de Lolly.
+- <!--i:monitor--> **`tabs`**: para abrir y cerrar la pestaña temporal, y para comprobar que ni la página de Lolly ni la página de destino se han movido desde que aprobaste.
+- <!--i:code--> **`scripting`**: para leer el contenido de una página en la pestaña temporal, después de que apruebes esa solicitud.
+- <!--i:database--> **`storage`**: para anotar los ID de sus pestañas temporales en el almacenamiento de sesión, de modo que se cierren aunque el navegador detenga la extensión durante una solicitud. No se almacena contenido de páginas.
+- <!--i:check--> **Acceso opcional a sitios (`http://*/*`, `https://*/*`)**: no se concede al instalar. Cuando pulsas **Approve once**, la extensión pide a Chrome acceso al único sitio de esa solicitud, y Chrome te lo pregunta la primera vez para cada sitio. Un sitio que permitiste antes sigue necesitando una aprobación nueva en cada solicitud.
 
-Ninguno de estos se usa para leer, monitorizar o transmitir tu navegación más allá de esa
-única captura solicitada.
+Ninguno de estos permisos se usa para leer, vigilar ni transmitir tu navegación más allá de la única solicitud que aprobaste.
+
+## Hosts de entrega y encargados del tratamiento
+
+Los archivos públicos del catálogo, las herramientas y las versiones de visualización proceden por defecto de la propia dirección de la aplicación. Los nombres direccionados por contenido cambian desde dónde se descarga un archivo, no quién recibe la solicitud. Esta función de entrega no activa ninguna CDN de terceros. Una CDN que termine TLS recibiría los detalles de la solicitud, incluidas las direcciones IP y las cookies o credenciales bearer que se le reenvíen, incluso bajo el mismo nombre de host del navegador, así que un operador que añada una asume un nuevo encargado del tratamiento.
+
+**Antes de añadir cualquier CDN o host de modelos externo**, el administrador debe publicar el nombre del encargado del tratamiento, el nombre de host, las jurisdicciones, los metadatos recibidos, la conservación y los acuerdos de transferencia. [Delivery deployment](/info/deploy-delivery.html) enumera qué divulgar. Las respuestas del espacio de trabajo privado evitan las cachés compartidas: los resultados personales, las denegaciones de acceso y los errores usan `private, no-store`, y una respuesta privada permitida puede revalidarse en tu navegador sin hacerse pública.
+
+Los servicios de referencia usan el alojamiento siguiente. Es una lista de nombres de host, no una afirmación de que la instancia de otra organización use la misma región.
+
+| Nombre de host o servicio | Función y destinatario | Región y tratamiento de datos |
+|---|---|---|
+| lolly.tools | Aplicación pública, catálogo, renderizado y servicios de certificados; alojamiento de UpCloud | Fráncfort, Alemania. Los detalles de las solicitudes pueden aparecer en los registros de la infraestructura; la edición local normal se queda en el dispositivo |
+| lolly.ing | Espacio de trabajo gestionado y servicios de agente de documentos; alojamiento de UpCloud | Fráncfort, Alemania. La base de datos privada y el almacenamiento de archivos están en el mismo host. Las cuentas, el contenido compartido y los registros del servicio siguen la política del administrador de la instancia |
+| mcp.lolly.tools | Pasarela MCP autenticada opcional planificada y descargas privadas de resultados; alojamiento de UpCloud | Fráncfort, Alemania, con el mismo encargado del alojamiento. Activación pendiente. La pasarela recibiría los detalles de la solicitud y los parámetros o archivos que envíe quien la llame |
+| lolli.li | Archivos públicos de versiones y modelos; UpCloud Managed Object Storage, separado del clúster de la aplicación | Fráncfort, Alemania, en la región de almacenamiento de objetos europe-2 de UpCloud. Una descarga envía los detalles de la solicitud, no las entradas que el modelo procesa después |
+| Proveedor de identidad configurado | Google, GitHub o un proveedor OIDC de un operador | El inicio de sesión sigue la política de ese proveedor. Pregunta al operador de la instancia por el nombre de host, la región y los acuerdos de transferencia |
+| Proveedor de recursos configurado | Brandfolder u otra biblioteca que elija el operador | El proveedor recibe las solicitudes de biblioteca permitidas. Sus permisos de origen y la política de la instancia rigen el acceso; pregunta al operador por sus nombres de host y regiones |
+| Registro por correo, cuando está configurado | Resend entrega el enlace de inicio de sesión solicitado | Recibe la dirección de correo de destino de ese mensaje; se aplican sus propios términos de tratamiento |
+
+La aplicación de referencia no usa ningún otro proveedor de alojamiento, base de datos o control de abusos. Un operador puede elegir otros proveedores para una instancia distinta, y los proveedores de alojamiento, identidad, recursos y correo necesitan cada uno su propia divulgación. La [región de almacenamiento de objetos](https://upcloud.com/docs/products/managed-object-storage/availability/) del host de modelos se verifica por separado de la región de la aplicación.
+
+**Enlaces de descarga MCP opcionales vinculados al principal.** Un operador puede activar enlaces de descarga para resultados grandes en una pasarela autenticada de una sola réplica. Están desactivados por defecto. La pasarela anónima en `lolly.tools/api/mcp` devuelve resultados en línea y nunca emite estos enlaces. El nombre de host restringido planificado es `mcp.lolly.tools`, en el mismo proveedor UpCloud en Fráncfort; la activación está pendiente, y esta página no afirma que exista un servicio de enlaces de descarga activo. Los enlaces no añaden ninguna CDN de terceros.
+
+Solo un solicitante autenticado con un ámbito de archivo puede recibir un enlace, y se exige el bearer del mismo solicitante para obtenerlo: usa el bearer validado de la llamada de renderizado, no otro token de la misma cuenta. La concesión caduca en 300 segundos. La titularidad y la búsqueda de resultados permanecen en la memoria de la pasarela, y los bytes de salida van a archivos temporales privados, que se purgan tras la caducidad o se eliminan en un apagado limpio. Un reinicio de la pasarela invalida los enlaces existentes. Los resultados retenidos están limitados a 64 MiB por bearer, 256 MiB en toda la pasarela y 200 archivos pendientes o retenidos. Los presupuestos diarios de CPU y de bytes decodificados cuentan los resultados cuando se retienen y cuando se descargan. Las respuestas usan `private, no-store` y `Referrer-Policy: no-referrer`. El token de un enlace por sí solo no permite que otra persona o agente lea el resultado.
 
 ## Registros de infraestructura
 
-Como cualquier sitio web, los servidores detrás de lolly.tools - y detrás de cualquier despliegue
-de Lolly - generan los registros de acceso estándar de un servidor web cada vez que llega una solicitud a
-ellos: dirección IP, ruta solicitada, marca de tiempo, agente de usuario. Ese es el comportamiento básico
-de hosting, no algo que Lolly añada, y nunca contiene el
-contenido de tus documentos, porque esos nunca llegan a un servidor en primer lugar. La
-única excepción deliberada es un archivo que entregas explícitamente a una llamada MCP
-`lolly_transform`, `lolly_verify`, `lolly_redact` o `lolly_rebrand`, que se procesa en memoria y nunca
-se escribe en disco ni en un registro, como se describe arriba.
+Esta sección describe el despliegue público de lolly.tools. Su plataforma de alojamiento registra detalles ordinarios de las solicitudes: dirección IP, ruta solicitada, marca de tiempo y user agent. Las ediciones locales no llegan a ese host. La cadena de consulta de un enlace de renderizado puede contener el texto que aportó quien lo creó, como se explicó arriba. Las herramientas de archivos MCP procesan en memoria los bytes que reciben. Una instancia de Lolly Work también guarda los registros descritos arriba, bajo la política de registros de su operador.
 
-**El propio código de Lolly no escribe nada en esos registros.** El servidor MCP no contiene
-ninguna instrucción de registro. El servicio de certificados emite exactamente dos líneas, ambas
-en caso de fallo y ambas deliberadamente reducidas: un código de estado de fallo de envío sin
-dirección de destinatario, y un mensaje de error sin traza de pila ni URL (una traza podría
-contener un token de inscripción). Todo lo demás en el registro pertenece a la plataforma de hosting,
-no a nosotros.
+**Los servicios públicos mantienen el registro de la aplicación al mínimo.** El servidor MCP registra el arranque, la configuración y las advertencias de renderizado; no guarda un registro de solicitudes propio y no registra tokens ni direcciones de quien llama. El paso intermedio de Penpot registra el nombre de cada comando y el estado de la respuesta de Penpot, nunca cabeceras, tokens ni el archivo. El servicio de certificados registra sus ajustes de arranque y las advertencias de configuración, más dos líneas depuradas en caso de fallo: un código de estado de fallo de envío sin dirección de destinatario y una línea fija de fallo sin texto de error, traza de pila ni URL, porque un error del proveedor puede contener valores de identidad o credenciales. Todo lo demás del registro procede de la plataforma de alojamiento.
 
-Para lolly.tools, el hosting es Vercel y la retención de registros de acceso sigue los valores
-predeterminados propios de la plataforma de Vercel para nuestro plan. No configuramos ningún drenaje de registros, ninguna
-exportación de registros a largo plazo ni ningún producto de analítica o monitorización adicional. No conservamos ninguna copia de estos
-registros nosotros mismos, lo que también significa que no tenemos forma de buscarlos por ti - consulta
-[Tus derechos](#your-rights).
+Para lolly.tools, el administrador de la instancia controla el registro de solicitudes, la rotación y la conservación en UpCloud. Esta página no indica un periodo máximo de conservación de registros que no se haya verificado. Contacta con el responsable del tratamiento indicado abajo para conocer el calendario vigente y para cualquier petición sobre registros guardados en servidores. Para otra instancia, se aplica la configuración de su operador, incluidas las exportaciones de registros u otros encargados del tratamiento.
 
 ## Bases legales, retención y destinatarios
 
-Casi nada de esto necesita una base legal, porque casi nada se procesa. Por
-exhaustividad, la lista completa:
+Esta tabla cubre el despliegue de referencia **lolly.tools**. No indica las bases jurídicas ni los plazos de conservación de la instancia de Lolly Work de tu organización; su operador los facilita en su propia política.
 
-| Procesamiento | Base legal (RGPD Art. 6) | Retenido durante |
+| Tratamiento | Base jurídica (RGPD, art. 6) | Plazo de conservación |
 |---|---|---|
-| Todo en tu dispositivo (documentos, preferencias, caché, contadores) | **No es en absoluto un procesamiento nuestro** - nunca llega hasta nosotros. El almacenamiento en tu dispositivo es estrictamente necesario para el servicio que solicitaste (ePrivacy Art. 5(3)), por lo que no requiere consentimiento | Hasta que lo elimines |
-| Tu dirección de correo durante la inscripción en Content Credentials | **Art. 6(1)(b)**, ejecución de un servicio que solicitaste explícitamente | No se retiene. Presente en memoria solo durante la duración de la solicitud |
-| Una clave de bucket derivada de un solo sentido a partir de tu dirección IP en los endpoints de inicio de sesión, para limitación de tasa | **Art. 6(1)(f)**, nuestro interés legítimo en prevenir el abuso de un servicio gratuito y de la cuota de correo de un tercero. Consideramos que esto supera una prueba de ponderación porque la dirección en bruto no se envía al limitador, el bucket se usa solo para control de abuso y expira automáticamente | Aproximadamente 1 minuto en el almacén de control de abuso; no se retiene después |
-| Registros de acceso de hosting (IP, ruta, marca de tiempo, agente de usuario) | **Art. 6(1)(f)**, nuestro interés legítimo en la seguridad del servicio, la prevención de abuso y el diagnóstico de fallos | Valor predeterminado de la plataforma de Vercel para nuestro plan. No añadimos drenaje ni exportación |
+| Todo lo que está en tu dispositivo (documentos, preferencias, caché, contadores) | **No es tratamiento nuestro en absoluto**: nunca nos llega. El almacenamiento en tu dispositivo es estrictamente necesario para el servicio que pediste (ePrivacy, art. 5(3)), así que no requiere consentimiento | Hasta que lo elimines |
+| Tu dirección de correo durante el registro heredado y alojado de Content Credentials | **Art. 6(1)(b)**, ejecución de un servicio que pediste expresamente | Sin inventario de identidades ni registro de emisiones en el servicio heredado; el correo se usa durante la solicitud y se incluye en tu certificado. La conservación de la PKI de organización gestionada, la auditoría y la revocación siguen la política de su operador |
+| Un resumen SHA-256 seudónimo creado a partir de tu dirección IP, para limitar la frecuencia en los endpoints de inicio de sesión y en los endpoints públicos de renderizado, imágenes y MCP | **Art. 6(1)(f)**, nuestro interés legítimo en evitar el abuso de un servicio gratuito y de la cuota de correo de un tercero. Consideramos que supera una prueba de ponderación porque la dirección original no se envía al limitador, el resumen se usa solo para el control de abusos y caduca por sí solo | Aproximadamente un minuto en el almacén de control de abusos; no se conserva después |
+| Registros de acceso del alojamiento (IP, ruta, marca de tiempo, user agent) | **Art. 6(1)(f)**, nuestro interés legítimo en la seguridad del servicio, la prevención de abusos y el diagnóstico de fallos | Rotación y conservación configuradas por el administrador; contacta con el responsable del tratamiento para el calendario vigente |
 
-**Destinatarios.** Las categorías de destinatario son: nuestro proveedor de hosting (Vercel
-Inc.); nuestro proveedor de almacén de control de abuso, que solo recibe claves de bucket
-derivadas de un solo sentido y de corta duración, nunca la dirección IP en bruto; y - solo si
-usas la opción de inicio de sesión por correo - un proveedor de correo transaccional (Resend).
-Si inicias sesión con GitHub, Google o SUSE (id.suse.com), interactúas directamente con ese
-proveedor bajo su propia política de privacidad. Ellos nos indican una dirección de correo
-verificada y nada más. No compartimos datos personales con nadie más, y no vendemos datos, no
-publicamos anuncios ni elaboramos perfiles de usuarios.
+**Destinatarios.** Las categorías de destinatarios son nuestro proveedor de alojamiento (UpCloud), que aloja la base de datos de la aplicación y el almacén de control de abusos, y, solo si usas la opción de inicio de sesión por correo, un proveedor de correo transaccional (Resend). El almacén de control de abusos recibe solo resúmenes de corta duración, nunca la dirección IP original. Si inicias sesión con GitHub, Google o SUSE (id.suse.com), tratas directamente con ese proveedor bajo su propia política de privacidad, y ellos nos comunican una dirección de correo verificada y nada más. No compartimos datos personales con nadie más, y no vendemos datos, no hacemos publicidad ni elaboramos perfiles de usuarios.
 
-**Transferencias fuera del EEE.** Vercel y Resend son empresas estadounidenses. El cómputo de
-funciones para lolly.tools está fijado a la región de Fráncfort de Vercel (`fra1`), por lo que
-el procesamiento ocurre en la UE, pero al ser proveedores con sede en EE. UU., podrían seguir
-acceder a los datos como encargados desde EE. UU. Esas transferencias se basan en las Cláusulas
-Contractuales Tipo de la Comisión Europea y/o el Marco de Privacidad de Datos UE-EE. UU., según
-se establece en el acuerdo de tratamiento de datos de cada proveedor. Dado que los datos
-personales que llegan a estos proveedores son tan limitados - una dirección de correo
-transmitida para enviar un mensaje, registros de acceso ordinarios, y un bucket de control de
-abuso derivado y de corta duración -, la exposición es correspondientemente pequeña.
+**Transferencias fuera del EEE.** El alojamiento, la base de datos y el almacenamiento de archivos de la aplicación de referencia están en Fráncfort. Los proveedores opcionales de identidad, correo y recursos tienen sus propios lugares de tratamiento y términos, que pueden incluir acceso desde fuera del EEE, y la región de un servidor por sí sola no establece la jurisdicción de todos los destinatarios. Contacta con el responsable del tratamiento para conocer los acuerdos con proveedores y los mecanismos de transferencia aplicables; para otra instancia, pregunta a su operador. Las [cláusulas contractuales tipo](https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/standard-contractual-clauses-scc_en) de la Comisión Europea son una garantía disponible para esas transferencias; esta página no afirma que un acuerdo de proveedor no verificado las use.
 
-**Toma de decisiones automatizada.** Ninguna. No hay elaboración de perfiles ni una decisión
-automatizada que produzca efectos jurídicos o similarmente significativos (Art. 22).
+**Decisiones automatizadas.** Ninguna. No hay elaboración de perfiles ni decisión automatizada con efectos jurídicos o similarmente significativos (art. 22).
 
 ## Privacidad de menores
 
-Lolly no recopila a sabiendas información personal de nadie, de ninguna edad, en
-el uso ordinario de la aplicación - no hay nada que recopilar. El único lugar donde
-se recoge alguna vez información personal (una dirección de correo) es la inscripción en Content
-Credentials, descrita arriba, que no está dirigida ni pensada para menores.
+El uso local ordinario de la aplicación no envía contenido personal a lolly.tools. Su registro opcional de Content Credentials recibe una dirección de correo y no se dirige a menores ni está pensado para ellos. Los servicios de organización tienen sus propias cuentas y tratamiento de datos, bajo la política de su operador.
 
 ## Tus derechos
 
-Dado que casi todo lo que Lolly toca se almacena únicamente en tu propio dispositivo, la
-mayoría de lo que la legislación de protección de datos llama "tus derechos" - acceso,
-corrección, eliminación, portabilidad - son cosas que ya puedes hacer tú mismo, al
-instante, sin pedirle nada a nadie: tus datos viven en el almacenamiento de tu navegador,
-en una forma que puedes inspeccionar, exportar (**Exportar mis datos**, arriba) o eliminar
-(borrando el almacenamiento del sitio en tu navegador, como arriba).
+Para los registros guardados solo en tu dispositivo, puedes acceder a los datos, corregirlos, eliminarlos y trasladarlos tú mismo. Residen en el almacenamiento de tu navegador o aplicación, en una forma que puedes inspeccionar, exportar (**Export my data**, arriba) o eliminar (**Clear all my data**, o los datos del sitio de tu navegador).
 
-Formalmente, en virtud de los artículos 15-22 del RGPD tienes derecho a **acceder** a tus
-datos personales, a **rectificarlos**, a **borrarlos**, a **restringir** su tratamiento u
-**oponerte** a él (incluida la oposición a cualquier cosa que basemos en intereses
-legítimos), a la **portabilidad de datos** y - cuando el tratamiento se base en el consentimiento - a
-**retirar ese consentimiento en cualquier momento**, sin afectar a la licitud de lo
-ocurrido antes de la retirada.
+Formalmente, según los artículos 15-22 del RGPD tienes derecho a **acceder** a tus datos personales, a **rectificarlos**, a **suprimirlos**, a **limitar** su tratamiento u **oponerte** a él (incluido todo lo que basemos en intereses legítimos), a la **portabilidad de los datos** y, cuando el tratamiento se base en el consentimiento, a **retirar ese consentimiento en cualquier momento**, sin que ello afecte a la licitud de lo ocurrido antes de retirarlo.
 
-Esta es la postura honesta sobre cómo ejercerlos frente a nosotros. Como ya no mantenemos
-un registro de emisión, **no tenemos ningún dato personal tuyo que podamos consultar,
-corregir, exportar o eliminar.** Si nos escribes preguntando qué tenemos sobre ti, la
-respuesta veraz es nada, y así te lo diremos. La única categoría que existe en absoluto es
-los registros de acceso de hosting vinculados a una dirección IP, en poder de nuestro
-proveedor de hosting bajo sus plazos de retención predeterminados. No tenemos capacidad
-para buscar ni eliminar selectivamente esos registros, y te lo diremos en vez de fingir lo
-contrario. Todo lo que es realmente *tuyo* está en tu dispositivo, donde ya puedes leerlo,
-exportarlo y destruirlo sin pedirle permiso a nadie.
+El servicio público de certificados no guarda registro de emisiones. Los registros de la infraestructura pueden contener detalles de las solicitudes, así que esta política no promete que el entorno de alojamiento no contenga datos personales. Contacta con el responsable del tratamiento para acceder a esos registros, suprimirlos o hacer otra petición sobre ellos; te explicaremos qué registros existen y qué se puede hacer. Para el trabajo, las identidades, la telemetría y los registros de auditoría que conserva una organización, contacta con el operador de tu Lolly Work, porque los controles locales de exportación y borrado no alcanzan esas copias.
 
-**Tienes derecho a reclamar.** Si crees que hemos gestionado tus datos de
-forma indebida, puedes presentar una reclamación ante una autoridad de control de
-protección de datos - en la UE, la autoridad de tu país de residencia, de tu lugar de trabajo
-o del lugar donde crees que se produjo la infracción (Art. 77). Nuestra autoridad de control
-principal es el *Bayerisches Landesamt für Datenschutzaufsicht* (BayLDA) en
-Ansbach, Alemania. No necesitas contactarnos primero, aunque nos gustaría tener la
-oportunidad de solucionarlo.
-
-No vendemos datos. No tenemos ninguno que vender.
+**Tienes derecho a reclamar.** Si crees que hemos tratado tus datos de forma indebida, puedes presentar una reclamación ante una autoridad de control de protección de datos: en la UE, la autoridad de tu país de residencia, de tu lugar de trabajo o del lugar donde creas que se produjo la infracción (art. 77). Nuestra autoridad de control principal es la *Bayerisches Landesamt für Datenschutzaufsicht* (BayLDA) en Ansbach, Alemania. No necesitas contactar primero con nosotros, aunque nos gustaría tener la oportunidad de corregir el problema.
 
 ## Cambios en esta política
 
-La fecha en la parte superior cambia cada vez que cambia este documento. Un cambio que altere
-lo que sale de tu dispositivo o lo que se retiene recibe su propia línea aquí, no una edición
-silenciosa - si quieres ver qué cambió, pregunta (abajo) o compáralo con el
-[código fuente público](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+La fecha de arriba cambia siempre que cambia este documento. Un cambio que altere lo que sale de tu dispositivo o lo que se conserva tiene aquí su propia línea en lugar de una edición silenciosa. Para ver qué cambió, pregunta (abajo) o compara con el [código fuente público](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**29 de septiembre de 2026:** se aclararon el servicio opcional lolly.work, su contenido en poder de la organización, las cookies de autenticación, la telemetría de uso y los registros de auditoría, y la separación entre el borrado local y la conservación en el servidor. Son flujos de trabajo opcionales ya existentes, no un nuevo requisito de subida para la edición local.
+
+**11 de octubre de 2026:** se sustituyó la descripción retirada del alojamiento en Vercel por el inventario de nombres de host de la aplicación en UpCloud, se distinguieron los proveedores opcionales de identidad y de recursos, y se describieron la entrega direccionada por contenido y el modo de descarga MCP retenida. Este cambio no activa ninguna CDN de terceros. La conservación de registros la controla el administrador en lugar de un valor predeterminado indicado de un plan de Vercel.
+
+**22 de octubre de 2026:** se corrigió la descripción del comportamiento existente. La sección de la extensión de navegador ahora cubre la ventana de aprobación de cada solicitud, el acceso a sitios pedido de uno en uno y las descargas de hojas de estilos e iconos al leer un sitio web. También se corrigieron: las filas de Send to Google Drive y de Meeting Planner, la nota sobre SEAL (ninguna aplicación de Lolly busca claves SEAL en el DNS), el nivel predeterminado de telemetría de uso del servicio de organización, las herramientas de imagen de MCP y el registro de aplicación de los servicios públicos. El software en sí no cambió.
+
+**23 de octubre de 2026:** se reorganizó la política según qué inicia cada solicitud, y se describió comportamiento existente que antes no cubría: las invitaciones de collab privada con direcciones de red local, Nearby en la aplicación de escritorio, Allow AI control, la lectura de un design system desde un sitio web, los conjuntos de emojis, la caché en el dispositivo de las búsquedas de ciudades de Meeting Planner, la Papelera y los demás registros que enumera Settings → Storage. Se corrigieron dos afirmaciones: Bluesky y Discord no son solo de escritorio, y todo host que una persona elige para enviar necesita la aprobación del operador tanto en la aplicación web como en las de escritorio; el resumen de una dirección IP para limitar la frecuencia es seudónimo, no anónimo. El software en sí no cambió.
 
 ## Quién es responsable y cómo contactarnos
 
@@ -416,14 +360,8 @@ El **responsable del tratamiento** de lolly.tools es:
 > 90461 Núremberg
 > Alemania
 
-SUSE ha designado un **Delegado de Protección de Datos**, localizable en
-[privacy@suse.com](mailto:privacy@suse.com). Usa esa dirección para cualquier solicitud
-formal en el marco de "Tus derechos" mencionado arriba.
+SUSE ha nombrado a un **Delegado de Protección de Datos**, localizable en [privacy@suse.com](mailto:privacy@suse.com). Usa esa dirección para cualquier solicitud formal conforme a "Tus derechos" arriba.
 
-Para cualquier cuestión sobre Lolly en sí - cómo funciona, por qué algo es como es o
-una corrección a este documento - contacta con **Andy Fitzsimon**,
-[fitzy@suse.com](mailto:fitzy@suse.com).
+Para cualquier cuestión sobre Lolly en sí, como cómo funciona, por qué algo es como es o una corrección a este documento, contacta con **Andy Fitzsimon**, [fitzy@suse.com](mailto:fitzy@suse.com).
 
-Para una instancia de Lolly autoalojada o empresarial, contacta con quien la opere
-en su lugar: el operador es el responsable de su propio despliegue. SUSE y el
-proyecto de código abierto Lolly no conservan datos de despliegues que no operan.
+Para una instancia de Lolly autoalojada o empresarial, contacta en su lugar con quien la opera: el operador es el responsable del tratamiento de su propio despliegue. SUSE y el proyecto de código abierto Lolly no tienen datos de los despliegues que no operan.

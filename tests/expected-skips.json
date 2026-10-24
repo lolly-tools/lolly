@@ -1452,6 +1452,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/docs-anchors.test.ts",
+      "fullName": "every old path that forwards to a section lands on a real one",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "a page with no masthead still opens with the pathways strip, once, in its body",
       "reason": "no built /info on disk - run `pnpm run build:info`",
@@ -1622,6 +1629,13 @@
     {
       "file": "tests/docs-masthead.test.ts",
       "fullName": "with nothing mapped, every page still gets the default field - not a blank band",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-md-links.test.ts",
+      "fullName": "no built docs page links a relative .md target or into plans/",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"

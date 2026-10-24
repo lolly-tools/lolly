@@ -1,0 +1,82 @@
+<!--
+  Concept: what a person sees in the TUI. Left, the first-run Start screen with its five choices;
+  right, the tab bar that every later session opens with, Tools active. The words are the TUI's own,
+  taken from a render of shells/tui/src/views/Start.tsx and shells/tui/src/components/Tabs.tsx with
+  ink at 80 x 26 (TSX_TSCONFIG_PATH=shells/tui/tsconfig.json), so the figure reads as the terminal does.
+  Band Contract: static fragment scoped under .tus. A terminal is dark in every docs theme, so the
+  screens sit on a dark plate with the TUI's own green accent and gray dim text (shells/tui/src/theme.ts);
+  the surrounding band reads the docs theme tokens with fallbacks. No script, no motion, no network.
+  The Start box's double rule is a CSS double border, so it never depends on box-drawing glyphs.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23 for the docs remediation plan. The C2PA signature added at bank time is the first
+  provenance record of this file.
+-->
+<style>
+.tus{--tus-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--tus-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --tus-ground:hsl(var(--secondary,84.5 55% 92.2%));
+ --tus-term:#11171a;--tus-text:#e8ece9;--tus-dim:#8d979b;--tus-green:#5fd27a;--tus-line:#2a3337;
+ --tus-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--tus-ink);background:var(--tus-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.tus *{box-sizing:border-box}
+.tus ul,.tus ol{list-style:none;margin:0;padding:0}
+.tus li{list-style:none;margin:0;font-size:inherit}
+.tus p{margin:0}
+.tus .tus-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
+.tus .tus-cap{font:600 11px/1.3 var(--tus-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--tus-muted);margin:0 0 8px 2px}
+.tus .tus-term{background:var(--tus-term);color:var(--tus-text);border-radius:14px;padding:16px;font:13px/1.5 var(--tus-mono);
+ box-shadow:0 1px 2px #0000001a,0 8px 22px #00000014;overflow:hidden}
+.tus .tus-box{border:3px double var(--tus-green);padding:12px 16px 14px;display:flex;flex-direction:column;gap:2px}
+.tus .tus-brand{color:var(--tus-green);font-weight:700}
+.tus .tus-b{font-weight:700}
+.tus .tus-dim{color:var(--tus-dim)}
+.tus .tus-choices{display:flex;flex-direction:column;gap:9px;margin:12px 0}
+.tus .tus-choice{display:flex;flex-direction:column}
+.tus .tus-row{display:inline-flex;gap:1.2ch;align-self:flex-start;padding:0 .3ch}
+.tus .tus-num{color:var(--tus-green);font-weight:700}
+.tus .tus-on .tus-row{background:var(--tus-text);color:var(--tus-term)}
+.tus .tus-on .tus-num{color:var(--tus-term)}
+.tus .tus-note{color:var(--tus-dim);padding-left:3.5ch}
+.tus .tus-tabs{display:flex;flex-wrap:wrap;gap:.4ch 2.4ch;align-items:baseline}
+.tus .tus-tabs .tus-active{color:var(--tus-green);font-weight:700}
+.tus .tus-hint{margin-top:12px;font-size:.84rem;color:var(--tus-muted)}
+.tus .tus-keys{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.86rem;color:var(--tus-ink)}
+.tus .tus-keys kbd{font:600 12px/1.6 var(--tus-mono);background:var(--tus-term);color:var(--tus-text);border-radius:6px;padding:0 7px;justify-self:start}
+@container (max-width:640px){.tus .tus-grid{grid-template-columns:minmax(0,1fr)}.tus .tus-term{font-size:12px}}
+</style>
+<div class="tus">
+  <div class="tus-grid">
+    <section aria-label="The Start screen">
+      <p class="tus-cap">First run: Start</p>
+      <div class="tus-term">
+        <div class="tus-box">
+          <p class="tus-brand">LOLLY</p>
+          <p class="tus-b">Make it yours, from whatever you have.</p>
+          <p class="tus-dim">Nothing here is a required step. Everything stays on this device.</p>
+          <ol class="tus-choices">
+            <li class="tus-choice tus-on"><span class="tus-row"><span class="tus-num">1</span><span class="tus-b">Make a QR code</span></span><span class="tus-note">A quick first win; no setup or existing file needed.</span></li>
+            <li class="tus-choice"><span class="tus-row"><span class="tus-num">2</span><span class="tus-b">One colour</span></span><span class="tus-note">Build a usable palette from the one thing you know.</span></li>
+            <li class="tus-choice"><span class="tus-row"><span class="tus-num">3</span><span class="tus-b">Bring a file</span></span><span class="tus-note">.lolly, tokens, Penpot, a token zip, or SVG.</span></li>
+            <li class="tus-choice"><span class="tus-row"><span class="tus-num">4</span><span class="tus-b">Mix resources</span></span><span class="tus-note">Start a system, then layer in logos, fonts and references.</span></li>
+            <li class="tus-choice"><span class="tus-row"><span class="tus-num">5</span><span class="tus-b">Explore tools first</span></span><span class="tus-note">Setup stays optional. Come back with 5 System.</span></li>
+          </ol>
+          <p class="tus-dim">↑↓ choose · Enter open · q quit</p>
+        </div>
+      </div>
+    </section>
+    <section aria-label="The tab bar">
+      <p class="tus-cap">Every session: the tab bar</p>
+      <div class="tus-term">
+        <p class="tus-tabs"><span class="tus-brand">Lolly</span><span><span class="tus-dim">1</span> <span class="tus-active">Tools</span></span><span><span class="tus-dim">2</span> Projects</span><span><span class="tus-dim">3</span> Profile</span><span><span class="tus-dim">4</span> Assets</span><span><span class="tus-dim">5</span> System</span></p>
+      </div>
+      <p class="tus-hint">The number keys switch views, except while you are typing in a field or a search.</p>
+      <div class="tus-keys">
+        <kbd>/</kbd><span>search tools</span>
+        <kbd>Enter</kbd><span>open the selected tool</span>
+        <kbd>x</kbd><span>export, in the tool view</span>
+        <kbd>Esc</kbd><span>go back</span>
+      </div>
+    </section>
+  </div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ3Gp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAm2anVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDozOWYxYjQ0Ny1lNTgxLTRmNzAtYTQ5OS0xMDI0NTQ1N2Y4NjEAAAAEQGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NDg6MjBaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkXgGZsZW5ndGgZDYpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIDGpirGT0doFkCI9+JGrmSmD1h2b8cOoRWfPmzFaezGcY3BhZEgAAAAAAAAAAAAAAMlqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACVY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xpdHVpLXN0YXJ0ZGRhdGV4GDIwMjYtMTAtMjNUMDU6NDg6MjAuNTMyWmhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALHanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAphjYm9ypmhkYzp0aXRsZWl0dWktc3RhcnRqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6NGQ5Y2NkNTYtZDdiZS00ODNkLWJmZjMtMzlhODQ0Nzg4ZDU0dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCC/KWCl9pT1dt+4E0vrOVMk4VaHaKi3F1EvQI7Ym/rVH6JjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCB1QgDb5YoadEnrGPU500GYlnde7XZBSvaAozeVvSLLEKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggUpo/2hrfL4vtKRpJGrFe4dd0sONuAGKEMw7PjGIis5KiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJganVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIwY2JvctKEWQHfogEmGCGBWQHWMIIB0jCCAXmgAwIBAgIJW7EJH+mm18aOMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNTQ3MjBaFw0zNjEwMjAwNTQ4MjBaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABEhS1RHAlmBtggw0mFoCxvEYatoiPyWdlYZJctfUbwI0h95G/xcxkLOyjxoah6RebRmigW8lwNzGzeO830pLB8ejcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBSTbVJjc3oJzTtZ1dz9kS4KFU5c6jAfBgNVHSMEGDAWgBSTbVJjc3oJzTtZ1dz9kS4KFU5c6jAKBggqhkjOPQQDAgNHADBEAiBcbdbh9ZEKQ+tCcLqMmkI76QAaPPPAi++xy/knQ/pI7AIgPNyYBhVq1IdDWENNwnGXB+sMo7A2785lQ05QLXM4oweg9lhAQnpoMUNeUtwohOw5HLsmBOOVLzjOLxOwHGwk/45UtM6m543ESumgcgvG0ROTIxrk6jLH5gy/mBqSkTo6ZQzP9w== -----END C2PA MANIFEST----- -->

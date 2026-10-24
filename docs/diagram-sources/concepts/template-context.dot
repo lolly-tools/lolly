@@ -1,0 +1,11 @@
+digraph template_context {
+  rankdir=TB
+  node [shape=box]
+  inputs [label="Declared inputs\nfrom the manifest"]
+  extras [label="Hook extras\ncomputed values"]
+  context [label="Template context\nnothing else in scope"]
+  file [label="Rendered file\nescaped by default"]
+  inputs -> context
+  extras -> context
+  context -> file
+}

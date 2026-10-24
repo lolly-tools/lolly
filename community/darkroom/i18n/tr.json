@@ -1,5 +1,5 @@
 {
   "name": "Karanlık Oda",
-  "description": "Profesyonel bir fotoğraf renk düzenleme karanlık odası: film görünümleri, üçüncü taraf .cube LUT'lar, tasarım sistemi renk işlemleri ve bitiş dokusu - ardından görünümünü herhangi bir düzenleyicinin kullanabileceği bir LUT'a dönüştür. Photoshop ya da GIMP dosyalarını da katmanlar halinde açar: her katmanı konumlandır, karıştır ve gizle, kompozisyonu renklendir, düz görseller ya da katmanlı bir PSD olarak dışa aktar.",
+  "description": "Fotoğrafları ve videoları film görünümleri, Adobe XMP ön ayarları, .cube LUT'lar ve tasarım sistemi renklerinle derecelendir. Bir görünümü LUT dışa aktarımı veya Video derecelendir ile yeniden kullan. Konumlandırma, harmanlama ve görsel dışa aktarımı için Photoshop ve GIMP katmanlarını açar.",
   "featured.blurb": "Fotoğrafları film görünümleri, LUT'lar ve marka renklerinizle işleyin"
 }

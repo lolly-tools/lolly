@@ -1,75 +1,78 @@
 # Webbläsartillägg
 
-Tillägget **Lolly URL Screenshot** låter webbappen ta en skärmdump av vilken webbsida som helst inifrån din webbläsare. Utan det behöver man skrivbordsappen för att fånga en URL - en webbläsarsida kan inte läsa pixlar från en annan sajt på egen hand. Tillägget kan, med samma fångst som skrivbordsappen använder.
+En webbsida kan inte läsa pixlarna på en annan webbplats, så Lollys webbapp behöver hjälp för att ta en skärmbild av en sida. I en Chromium-baserad webbläsare (Chrome, Edge, Brave, Arc eller Opera, från Chrome 111) ger det kostnadsfria tillägget **Lolly URL Screenshot** den hjälpen, med samma tagning som datorappen använder. Med det installerat:
 
-Den gör ett annat jobb på samma sätt: läser en enskild sida du anger så att Brand Studio kan dra ut ett varumärke från en levande webbplats. Båda täcks nedan.
+- **[URL Screenshot](/t/url-shot)** sparar sidan du komponerade som en fil;
+- en webbadress inklistrad i en bildplats kan bli en skärmbild av den sidan, med **Screenshot this page**;
+- källan **Website** i [Design System Setup](/info/brand-studio.html) kan läsa en sida för att starta ett designsystem.
 
-Det körs på Chromium-baserade webbläsare: **Chrome, Edge, Brave, Arc, Opera** - Chrome 111 eller senare.
+Du godkänner varje förfrågan, och datorappen gör samma jobb utan tillägget.
 
-Tills det är installerat öppnas **URL Screenshot** ändå så att du kan komponera en bild, och en notis högst upp i verktygets kontroller säger vad som saknas.
+## Innan du installerar
+
+Tills tillägget är installerat öppnas **URL Screenshot** ändå, så du kan komponera en bild. En notis överst bland verktygets kontroller säger vad som saknas.
 
 ![URL Screenshot-verktygets notis som erbjuder tillägget, visad när fångst till fil saknar en värd att köra på](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
-Varje kontroll är levande medan du väntar: mål-URL:en, rulldjupet, avvaktningsfördröjningen, beskärningsmarginalerna och färgändringen. Endast själva fångsten behöver en värd.
+Varje kontroll fungerar medan du väntar: mål-URL:en, rullningsdjupet, inställningsfördröjningen, beskärningsmarginalerna och omfärgningen. Bara själva tagningen behöver tillägget.
 
 ![URL Screenshot-kontrollerna med en mål-URL, rulldjup, avvaktningsfördröjning och beskärningsmarginaler, alla användbara innan tillägget finns](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Installera
 
-### Från Chrome Web Store
+**Från Chrome Web Store:** kommer snart. När tillägget är publicerat installerar du det med ett klick.
 
-*Kommer snart.* När det är publicerat installerar du det med ett klick och laddar sedan om Lolly.
-
-### Ladda in det själv (utvecklare)
-
-Tillägget finns i repot på `shells/chrome-extension/`.
+**Läs in det själv (utvecklare).** Tillägget finns i arkivet på `shells/chrome-extension/`. Den mappen är produktionsbygget, som bara fungerar med Lolly på `https://lolly.tools`.
 
 1. Öppna `chrome://extensions`.
 2. Slå på **Developer mode** (uppe till höger).
 3. Klicka på **Load unpacked** och välj mappen `shells/chrome-extension/`.
-4. Ladda om Lolly - **URL Screenshot** fungerar nu i webbläsaren.
+4. Ladda om Lolly-fliken. Upptäckten sker när sidan laddas, så uppmaningen "Get the extension" försvinner. **URL Screenshot** (under Utilities) kan då spara tagningar till en fil och blir tillgänglig i Batch-läget.
 
-## Hur det fungerar
+För en lokal utvecklingsserver kör du `pnpm run pack:chrome-extension:dev` och laddar in `dist/chrome-extension-dev` i stället. Det paketet godtar även `http://localhost:5173` och har **Development** i namnet.
 
-- Ett litet skript talar om för Lolly att tillägget finns, så att verktyget **URL Screenshot** slås på automatiskt - ingen konfiguration.
-- När du renderar öppnar tillägget målsidan i en bakgrundsflik, fångar den via DevTools Protocol (samma `Page.captureScreenshot` som skrivbordsappen använder), stänger sedan fliken och lämnar tillbaka bilden.
-- Det körs helt i din webbläsare, på ditt nätverk - så att fånga `localhost` eller en intern sajt fungerar. Själva fångsten laddas aldrig upp någonstans; den enda nätverkstrafiken är din egen webbläsare som laddar sidan du bad om att fotografera.
+## Vad som händer när Lolly frågar
 
-Medan en fångst pågår kan du kort se en banner *"…started debugging this browser"* på den tillfälliga fliken. Det är DevTools Protocol i arbete; den försvinner av sig själv när bilden är klar.
+![Lolly-fliken ber om en sida och du trycker på Approve once i tilläggets godkännandefönster. En bakgrundsflik öppnas, läser sidan och stängs. Sedan får Lolly-fliken resultatet.](/info/diagrams/concepts/extension-request.svg)
 
-## Läsa en sajt för Brand Studio
+1. **Lolly frågar.** Ett litet skript talar om för Lolly att tillägget finns, så en tagning eller en sidläsning kan starta utan ytterligare uppsättning.
+2. **Du godkänner.** Tillägget öppnar sitt eget fönster **Approve page request**. Det visar den begärande webbplatsen, om den vill ha en skärmbild eller sidans innehåll, och sidans adress. Inget läses förrän du trycker på **Approve once**. **Cancel**, eller att stänga fönstret, avslutar förfrågan.
+3. **Chrome frågar en gång per webbplats.** Första gången du godkänner en förfrågan för en webbplats frågar Chrome också om tillägget får komma åt den webbplatsen. Chrome behåller den åtkomsten när du tillåtit den, men varje senare förfrågan behöver fortfarande sin egen **Approve once**.
+4. **Sidan läses i en bakgrundsflik.** Tillägget öppnar målsidan i en bakgrundsflik, tar den via DevTools Protocol (samma `Page.captureScreenshot` som datorappen använder), stänger fliken och lämnar resultatet tillbaka till Lolly-fliken som frågade.
 
-Källan **Website** i Brand Studio startar ett varumärke från en sajt du redan har. På Chromium är det tillägget som läser den; på skrivbordsappen gör en inbyggd hämtning samma jobb, och på en vanlig webbläsare utan tillägg erbjuds rutan inte alls.
+Ett godkännande gäller en förfrågan och löper ut efter 30 sekunder. Bara en förfrågan kan vänta eller köras åt gången, och en godkänd förfrågan stoppas efter 55 sekunder. Om Lolly-sidan stängs eller ändras, eller målsidan flyttar till en annan webbplats, avbryts förfrågan.
 
-Vad som händer när du trycker på den:
+Tagningen körs i din webbläsare, på ditt nätverk, så `localhost` och interna webbplatser fungerar. Sidan laddas med din webbläsarsession, så en sida du är inloggad på kan visa privat information i resultatet. Tagningen laddas inte upp: den enda nätverkstrafiken är din egen webbläsare som laddar sidan du bad om.
 
-- En adress, en sida. Tillägget öppnar den i samma sorts bakgrundsflik, läser den renderade uppmärkningen, stilmallstexten och en handfull ikon- och logotypbilder, och stänger sedan fliken. Det följer inte länkar och det genomsöker inte sajten.
-- Stilmallar och typsnitt som ligger på andra platser (ett CDN, en typsnittstjänst) hämtas också, eftersom sidans färger och typografi finns i dem. Cross-origin-förfrågningar går utan dina cookies; samma-origin-förfrågningar använder dem, precis som sidan själv skulle göra.
-- Allt är begränsat - ett fast antal stilmallar, bilder och byte - så att en illvillig eller halvtrasig sida returnerar delvis material i stället för att hänga sig.
-- Byten går direkt tillbaka till den Lolly-flik som bad om dem. Tolkningen till färger, typografi och logotyper sker på din enhet; inget laddas upp.
+Medan en tagning körs kan du kort se en banner *"…started debugging this browser"* på den tillfälliga fliken. Det är DevTools Protocol i arbete, och bannern försvinner när bilden är klar.
 
-Ingenting läses förrän du trycker. Att klistra in en adress fyller bara i fältet.
+## Att läsa en webbplats för Design System Setup
 
-## Efter installation
+Källan **Website** i Design System Setup startar ett designsystem från en webbplats du redan har. I en Chromium-webbläsare läser tillägget sidan. I datorappen hämtar appen sidan själv. I en webbläsare utan tillägg erbjuds inte rutan Website.
 
-Ladda om Lolly-fliken. Uppmaningen "Get the extension" försvinner och **URL Screenshot** blir tillgängligt i galleriet och i Batch-läge.
+- **En adress, en sida.** Efter att du godkänt öppnar tillägget sidan i samma sorts bakgrundsflik, läser den renderade markupen, formatmallstexten och en handfull ikon- och logotypbilder och stänger sedan fliken. Det följer inte länkar och kryper inte.
+- **Formatmallar som hostas någon annanstans** (ett CDN eller en typsnittstjänst) hämtas också, eftersom sidans färger och typografi finns i dem. Förfrågningar mellan ursprung går utan dina cookies; förfrågningar inom samma ursprung använder dem, som sidan själv skulle göra.
+- **Allt är begränsat**, med en gräns för antalet formatmallar och bilder och för byte, så att en fientlig eller halvtrasig sida returnerar partiellt material i stället för att hänga sig.
+- **Tolkningen sker på din enhet.** Byten går direkt tillbaka till Lolly-fliken som frågade, som gör dem till färger, typografi och logotyper.
+
+Att klistra in en adress fyller bara i fältet. Inget läses förrän du startar läsningen och trycker på **Approve once**.
 
 ## Behörigheter
 
-Dess `manifest.json` deklarerar fyra behörigheter plus värdåtkomst:
+Tilläggets `manifest.json` deklarerar fyra behörigheter, plus webbplatsåtkomst som det ber om en webbplats i taget. Det sätter `minimum_chrome_version: 111`, och den aktuella versionen är 0.4.0.
 
-- `debugger` - styr bakgrundsfliken via DevTools Protocol. Det är det som tar skärmdumpen.
-- `tabs` - öppnar den tillfälliga bakgrundsfliken och stänger den igen efteråt.
-- `scripting` - kör den enkla sidläsaren inuti sajten du angav, för Brand Studios Website-källa.
-- `storage` - noterar id:t för en flik den öppnade, endast i sessionslagring, så att fliken ändå stängs om webbläsaren pausar tillägget mitt i läsningen. Rensas vid nästa start; inget om dig lagras.
-- `host_permissions: ["<all_urls>"]` - värdåtkomst till *alla* sajter, eftersom du kan peka det mot vilken URL du vill. Chrome visar detta vid installation som en bred varning: "read and change all your data on all websites".
+| Behörighet | Vad den är till för | När den beviljas |
+|---|---|---|
+| `debugger` | Styr bakgrundsfliken genom DevTools Protocol, som tar skärmbilden. | Vid installation |
+| `tabs` | Öppnar den tillfälliga bakgrundsfliken och stänger den efteråt, och kontrollerar att varken Lolly-sidan eller målsidan har flyttats sedan du godkände. | Vid installation |
+| `scripting` | Kör enkelsideläsaren inne i webbplatsen du angav, för källan Website. | Vid installation |
+| `storage` | Noterar id:t för en flik det öppnat, bara i sessionslagring, så att fliken ändå stängs om webbläsaren pausar tillägget mitt i en läsning. Rensas vid nästa start; inget om dig lagras. | Vid installation |
+| `optional_host_permissions: ["http://*/*", "https://*/*"]` | Webbplatsåtkomst, beviljas inte vid installation. När du trycker på **Approve once** ber tillägget Chrome om åtkomst till den enda webbplatsen i den förfrågan. | Första gången du godkänner en förfrågan för den webbplatsen, efter att Chrome frågat dig |
 
-Trots den varningen läser det bara den enda sida du ber det fånga eller importera, och det läser eller överför inte din webbläsardata - inget laddas upp någonstans.
-
-Manifestet anger även `minimum_chrome_version: 111`. Den aktuella versionen är 0.2.1.
+Tillägget läser bara den enda sida du godkänner. Det läser eller skickar inte dina surfdata, och inget laddas upp.
 
 ## Felsökning
 
-- **Ser fortfarande "Get the extension"?** Ladda om Lolly-fliken - identifieringen sker vid sidladdning.
-- **Inget händer på denna sajt?** Tillägget aktiveras bara på Lollys egna ursprung. Kör du en anpassad byggd version på en annan domän? Lägg till den i `content_scripts.matches` i tilläggets `manifest.json`.
-- **En fångst misslyckas?** Kontrollera att URL:en går att nå och börjar med `http://` eller `https://`. Vissa sidor blockerar aktivt automatiserad fångst.
+- **Ser du fortfarande "Get the extension"?** Ladda om Lolly-fliken.
+- **Händer inget på den här webbplatsen?** Tillägget fungerar bara på `https://lolly.tools`, plus `http://localhost:5173` i utvecklingspaketet. Ett annat ursprung, som en egen driftad kopia av Lolly, behöver ett eget bygge av tillägget som listar det ursprunget i både `manifest.json` och `policy.js`. Att bara redigera manifestet fungerar inte.
+- **Misslyckas en tagning?** Kontrollera att URL:en är nåbar och börjar med `http://` eller `https://`. Vissa sidor blockerar automatiserad tagning. Om du tryckte på **Cancel**, stängde godkännandefönstret eller väntade längre än 30 sekunder, starta tagningen igen.

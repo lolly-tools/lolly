@@ -269,7 +269,7 @@ test('once the review is showing, readiness rows and a problem appear in the ban
   assert.equal(text(rows[0]!.querySelector('[data-way]')), 'Download text recognition');
   assert.deepEqual([...rows[0]!.querySelectorAll('[data-way]')].map((b) => text(b)), ['Download text recognition', 'Keep as pictures', 'Choose another file']);
   assert.equal(text(rows[1]!.querySelector('.rb-ready-message')), 'The design system has no mark for dark slides, so slides that need one keep theirs and ask for review.');
-  assert.deepEqual([...rows[1]!.querySelectorAll('[data-way]')].map((b) => text(b)), ['Open the design system studio']);
+  assert.deepEqual([...rows[1]!.querySelectorAll('[data-way]')].map((b) => text(b)), ['Open Design System Setup']);
 
   controller.set({ ...controller.state, error: { code: 'stage-failed', message: 'x', step: 'preview' } });
   const error = alert.querySelector<HTMLElement>('.rb-error')!;

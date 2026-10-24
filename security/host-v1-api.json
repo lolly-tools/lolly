@@ -50,7 +50,7 @@
     "AssetRef": {
       "module": "asset-ref.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "14c50b00921356067db84ea0ef8cc07c54b505c06ef7e7fc5e372923cb9674fb"
+      "sha256": "a0a115b72f79d79f3356372ddb5d04737e1d8895944116e0eaa50fad4603122b"
     },
     "AssetsAPI": {
       "module": "assets.ts",
@@ -80,7 +80,7 @@
     "AssetQuery": {
       "module": "assets.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "6fae5ffc62b8b97c27e8bf73453ba2f2d714efb9e7419682e1ca24e4ffae2af0"
+      "sha256": "5167762c7e147cabd88ce9d0fe82ff43e32f52794b8284f0c5d30742895dee95"
     },
     "AssetPickerOpts": {
       "module": "assets.ts",
@@ -440,12 +440,17 @@
     "ExportOpts": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "5af2e76c13be287507cf6dfafa4347a0abdd5deb57942f701a335276fb43c970"
+      "sha256": "ad6efc5528b7256a8e7737a7f5f454956fad90867b5a3545c1e0f969d810fa19"
     },
     "ExportMeta": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "075edf327033a5000bd2bec787fc44b649cec99a918c8984c42eccaeebc89302"
+      "sha256": "852c59724b803c8af1cac2f270e4893e5393ce174a5650b47ccf936e774056cc"
+    },
+    "ExportBrandSkill": {
+      "module": "export.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "785a559cbf0dac9705bffd59d75cf513931356094f6a944743dee50c8b40d533"
     },
     "ExportThemeChoice": {
       "module": "export.ts",
