@@ -36,9 +36,12 @@ on:
         required: false
         type: string
         default: lolly-start
+    # The release key is an environment secret of release-catalog-signing. The two
+    # signing jobs below name that environment and read the key from it, so callers
+    # pass no secret and a job outside the environment never sees the key.
     secrets:
       LOLLY_CATALOG_SIGNING_KEY:
-        required: true
+        required: false
 
 permissions:
   contents: read
