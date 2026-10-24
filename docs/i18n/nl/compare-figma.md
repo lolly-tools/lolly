@@ -2,24 +2,26 @@
 
 _Laatst gecontroleerd: 28 september 2026._
 
-Lolly ondersteunt ontwerp, live bewerken en herbruikbare assetproductie. [lolly.work](https://lolly.work) voegt de organisatieservices rond dat werk toe: identiteit, gedeelde projecten, toegangsbeheer en goedkeuringen.
+Als je ontwerpers in Figma werken, zegt deze pagina hoe Lolly ernaast staat: wat Figma doet dat Lolly niet doet, en waar Lolly het herhaalwerk overneemt.
+
+## Wat Figma beter doet
+
+[Figma Design](https://www.figma.com/design/) brengt interfaceontwerp, componenten, interactieve prototypes en overdracht aan ontwikkelaars samen. De gevestigde praktijk en het ecosysteem van productontwerp tellen mee wanneer een team een hele applicatie moet ontwerpen en specificeren, en het live bewerken draait op een schaal die de werkcollabs van Lolly niet hebben bereikt.
 
 ## Waar ze overlappen
 
-Met beide kun je tekst, vormen en afbeeldingen op een canvas rangschikken en met anderen samenwerken. [Een ontwerp importeren](/info/design-import.html) van Lolly leest Figma-bestanden als bewerkbare lay-outs. Figma dekt ook sjabloongebaseerde merkproductie: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) maakt assets op basis van sjablonen en vult ze met CSV- of XLSX-bestanden.
+Met beide rangschik je tekst, vormen en afbeeldingen op een canvas en werk je met andere mensen. Figma dekt ook merkproductie op basis van sjablonen: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) maakt assets uit sjablonen en vult ze uit CSV- of XLSX-bestanden. Lolly's [Een ontwerp importeren](/info/design-import.html) opent Figma-bestanden als bewerkbare lay-outs, zodat de twee werk kunnen delen.
 
-Lolly verandert een ontwerp in een [herbruikbare tool met regels](/info/create-a-tool.html). Die tool draait in de browser of CLI en accepteert invoer uit een URL, een script of het batchraster. Hetzelfde sjabloon ondersteunt een individu die één asset bewerkt en een team dat veel varianten produceert.
+## Hoe Lolly de overlappende klus doet
 
-## Samenwerking en productontwerp
+Lolly maakt van een ontwerp een [herbruikbare tool met regels](/info/create-a-tool.html). De tool draait in de browser of de CLI en neemt zijn inputs uit een link, een script of een batchraster, zodat één sjabloon past bij een persoon die één bestand bewerkt en een team dat er veel maakt.
 
-[Figma Design](https://www.figma.com/design/) brengt interfaceontwerp, componenten, interactieve prototypes en developer handoff samen. De gevestigde productontwerpworkflow en het ecosysteem zijn relevant wanneer een team een complete applicatie moet ontwerpen en specificeren.
+![Het open canvas van Design, met Import a design in het Lolly-menu van de werkbalk](/info/shots/design.svg)
 
-Lolly biedt twee soorten live samenwerking. Een [privécollab](/info/collaborate.html) koppelt twee apparaten rechtstreeks, zonder account en zonder internet op een gedeeld netwerk. Een werkcollab gebruikt lolly.work voor geauthenticeerde toegang, gedeelde bewerkingen, live cursors en opgeslagen teamsessies. Samenwerking aan werk is geïmplementeerd in zowel de Lolly-client als de lolly.work-server; de huidige implementatie met één node toont geen gelijkwaardigheid met de operationele schaal van Figma aan.
+Een [privécollab](/info/collaborate.html) koppelt twee apparaten rechtstreeks, zonder account en zonder internet op een gedeeld netwerk. Zelfstandig Lolly rendert offline. Content Credentials staan standaard aan voor ondersteunde exports, en je kunt ze uitzetten.
 
-## Implementatie en productie
+## Met een organisatie
 
-De creatieve apps van Lolly en lolly.work zijn afzonderlijk uitgerolde onderdelen van hetzelfde open-sourceproject. Zelfstandige Lolly kan offline renderen zonder account. lolly.work levert SSO, SCIM, gedeelde catalogi, projectrechten, goedkeuringen, auditregistraties en serverrendering op infrastructuur die de organisatie beheert.
+Lolly Work voegt geauthenticeerde werkcollabs toe met gedeelde bewerkingen, live cursors en opgeslagen teamsessies, plus single sign-on, gedeelde catalogi, projectrechten, goedkeuringen en serverrendering. [Wat waar draait](/info/compare.html#what-runs-where) zet de twee delen naast elkaar.
 
-Teamsessies en bewerkingen in werkcollabs bereiken die instantie; lokale renders kunnen op het apparaat blijven. Content Credentials zijn optioneel voor ondersteunde exports, en ondertekening op de server gebruikt een geconfigureerde organisatie-identiteit. Zie het [overzicht van de gecombineerde oplossing](/info/compare.html) voor de scheiding en [Content Credentials-identiteit](/info/content-credentials-identity.html) voor hoe een verifier de ondertekenaar vertrouwt.
-
-Figma is een handelsmerk van de eigenaar. Deze pagina beschrijft waar de twee oplossingen overlappen en is niet verbonden aan Figma.
+Figma is een handelsmerk van zijn eigenaar. Deze pagina beschrijft waar de twee producten overlappen en is niet verbonden aan Figma.

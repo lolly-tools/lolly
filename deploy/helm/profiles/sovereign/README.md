@@ -108,6 +108,14 @@ default. Qualify sandbox startup and actual exports on the target before enablin
 this variant. `components.mcp.browser.noSandbox` stays false; any explicit bypass
 needs review of the actual container boundary and untrusted rendering workload.
 
+`components.mcp.limits` sets the gateway's size limits in bytes:
+`requestMaxBytes` (4,500,000), `responseMaxBytes` (4,400,000) and `maxImageBytes`
+(4 MiB), passed as `LOLLY_MCP_REQUEST_MAX_BYTES`, `LOLLY_MCP_RESPONSE_MAX_BYTES`
+and `LOLLY_MCP_MAX_IMAGE_BYTES`. These are the figures the public endpoint
+publishes. The schema keeps requests within the edge's 32 MiB MCP body. A browser
+endpoint that returns video needs a larger `responseMaxBytes`, because a larger
+answer becomes a tool error.
+
 Set `edge.nodeName` to the exact node's `kubernetes.io/hostname` label and
 `edge.upstreamSourceAddress` to a local
 node address used for outgoing Caddy sockets. Measure the actual peer at each

@@ -29,6 +29,7 @@ import type { LollySummary } from '../lib/lolly-pack.ts';
 import { AUTO_PACK_MIN, SHARE_WARN_LEN, BROWSER_HARD_CAP, type ShareFidelity } from '../lib/url-budget.ts';
 import { toLollyAppLink } from '../lib/deep-link.ts';
 import { appPathname } from '../lib/any-site.ts';
+import { flushAddressWrites } from '../lib/url-state.ts';
 
 /** The `.lolly` download vehicle (plans/114 Wave 2). Supplied by the tool view, which
  *  has the host + session the link builder never sees. `build(includeLicensed)` returns
@@ -337,7 +338,7 @@ function renderShareSurface(
         <div class="share-file-licensed" data-lolly-licensed hidden></div>
       </div>`, 'data-share-file') : ''}
       ${shareSectionHtml(t('Link options'), 'link', 'share-link-options', `
-          ${appLinkable ? shareOption('Open in the installed app', '<input type="checkbox" class="field-check" data-app-link>', 'The recipient needs Lolly installed to open this link.', 'data-app-link-row', { href: '/info/build/url-mode.html#the-lolly-scheme', text: t('URI guide') }) : ''}
+          ${appLinkable ? shareOption('Open in the installed app', '<input type="checkbox" class="field-check" data-app-link>', 'The recipient needs Lolly installed to open this link.', 'data-app-link-row', { href: '/info/build/url-app-links.html#the-lolly-scheme', text: t('URI guide') }) : ''}
           ${shareOption('Shortest link', '<input type="checkbox" class="field-check" data-shortest>', 'Compresses the link while keeping the same inputs and settings.', 'data-shortest-row hidden')}
           ${encryptable ? `
           ${shareOption('Password-protect this link', '<input type="checkbox" class="field-check" data-encrypt>', 'Encrypts the link on this device. The recipient needs your password to open the saved inputs and settings.', 'data-encrypt-row')}
@@ -573,6 +574,8 @@ function renderShareSurface(
   for (const cb of checkboxes) cb.addEventListener('change', () => { syncFullWins(); refresh(); });
 
   dialog.querySelector<HTMLButtonElement>('.share-copy-btn')!.addEventListener('click', async function (this: HTMLButtonElement) {
+    // The address bar says what the copied link says: a write still settling goes out now.
+    flushAddressWrites();
     const prev = this.textContent;
     try { await copyToClipboard(field.value); }
     catch {

@@ -2,24 +2,24 @@
 
 _Naposledy ověřeno: 28. září 2026._
 
-Lolly zvládá úpravy a převody obrázků, layout, opakovatelnou brandovou produkci, tiskový výstup a Content Credentials. [lolly.work](https://lolly.work) k tomuto kreativnímu workflow přidává identitu organizace, sdílené materiály, schvalování a automatizovanou serverovou produkci.
+Pokud pro běžné soubory sáhneš po Photoshopu, Illustratoru nebo InDesignu, tato stránka říká, které z těch úloh může Lolly převzít a které zůstávají u Adobe.
+
+## Co Adobe dělá lépe
+
+Specializované aplikace Adobe pokrývají hlubokou tvůrčí práci. [Photoshop](https://www.adobe.com/products/photoshop.html) například poskytuje podrobné úpravy fotografií, výběr, maskování a kompozici. Složitá retuš a opakující se asset značky mají různé potřeby: porovnej úpravy, které tvá práce vyžaduje, než ji přesuneš.
 
 ## Kde se překrývají
 
-Obě řešení podporují práci jako změna velikosti obrázků, skládání layoutů a export do profesionálních formátů. Lolly podporuje PDF/X, CMYK a rastrový výstup s vysokou bitovou hloubkou, s [možnostmi specifickými pro formáty](/info/formats.html). Její utility na zařízení převádějí a čistí soubory bez jejich nahrávání.
+Obojí mění velikost obrázků, skládá rozvržení a exportuje profesionální formáty. Lolly podporuje PDF/X, CMYK a rastrový výstup s vysokou bitovou hloubkou, se [schopnostmi podle formátu](/info/formats.html), a její utility na zařízení převádějí a čistí soubory bez nahrávání.
 
-Specializované aplikace Adobe pokrývají rozsáhlé kreativní workflow. [Photoshop](https://www.adobe.com/products/photoshop.html) například nabízí podrobné nástroje pro úpravu fotografií, výběry, maskování a kompozici. Porovnej úpravy, které tvá práce vyžaduje, s nástroji Lolly; opakující se brandový materiál a složitá retuš mohou mít odlišné požadavky.
+## Jak Lolly dělá překrývající se úlohu
 
-## Tvorba a organizační služby
+Samostatná Lolly nepotřebuje ani účet Adobe, ani účet Lolly a spouští stejný engine v prohlížeči, v desktopové aplikaci i v CLI. Šablony a designové tokeny udržují každý soubor konzistentní a [Share with rules](/info/create-a-tool.html) změní návrh na nástroj, který vyplňují ostatní.
 
-Samostatná Lolly běží bez účtu Adobe i bez účtu Lolly a používá stejný engine v prohlížeči, desktopové aplikaci i CLI. Šablony a design tokeny činí výstupy opakovatelnými a [Share with rules](/info/create-a-tool.html) promění design v nástroj, který mohou vyplňovat ostatní.
+Lolly podepisuje podporované exporty pomocí Content Credentials na zařízení, ve výchozím stavu zapnutých; můžeš je vypnout. Klíč zařízení dokazuje, že se soubor od podpisu nezměnil. Organizace může použít vlastní certifikační autoritu, takže její ověřovatelé podepisovateli důvěřují; rozdíl vysvětluje [Content Credentials Identity](/info/content-credentials-identity.html). Utility pro transformaci na zařízení nepřidávají žádný vodoznak Lolly ani Content Credentials.
 
-lolly.work je samostatná služba v rámci projektu Lolly, open source pod MPL-2.0 stejně jako kreativní aplikace. Poskytuje SSO, SCIM, sdílené katalogy a projekty, schvalování, zásady přístupu, auditní záznamy a serverové renderování. Organizace může obě části provozovat sama a připojit stávající knihovny materiálů. Lokální tvorba zůstává na zařízení; sdílená práce a serverové úlohy využívají nakonfigurované služby.
+## S organizací
 
-## Content Credentials a identita
+Lolly Work přidává přihlášení organizace, sdílené assety, schvalování a serverovou výrobu se [serverovým podepisováním](/info/work-c2pa.html) pod certifikátem organizace. [Co běží kde](/info/compare.html#what-runs-where) staví obě části vedle sebe.
 
-Lolly umí podepisovat podporované exporty přímo na zařízení, přičemž Content Credentials zapíná uživatel. Klíč vygenerovaný na zařízení dokládá integritu podpisu souboru; ověřovatel však musí podepisujícímu důvěřovat, než zobrazí ověřenou identitu. Organizace může používat vlastní certifikační autoritu a její kořenový certifikát distribuovat svým ověřovatelům. lolly.work podporuje také serverové podepisování pomocí nakonfigurovaného certifikátu a klíče organizace.
-
-V rámci řešení Lolly je tak k dispozici osobní i organizační podepisování. Viz [Content Credentials Identity](/info/content-credentials-identity.html), [průvodce podepisováním v lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md) a [přehled kombinovaného řešení](/info/compare.html). Transformační utility na zařízení nepřidávají vodoznaky Lolly ani metadata o původu.
-
-Adobe, Photoshop a Creative Cloud jsou ochranné známky společnosti Adobe. Tato stránka popisuje, kde se řešení překrývají, a není nijak spojena se společností Adobe.
+Adobe, Photoshop a Creative Cloud jsou ochranné známky společnosti Adobe. Tato stránka popisuje, kde se produkty překrývají, a není s Adobe nijak spojena.

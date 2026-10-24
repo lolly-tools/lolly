@@ -1,9 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Pure bundle generation; Work selects and records the exact source revision. */
-import { readFileSync } from 'node:fs';
+/**
+ * Pure bundle generation; Work selects and records the exact source revision.
+ *
+ * lolly-work's scripts/sync-docs-bundle.ts imports buildWorkBundle from the selected Lolly
+ * checkout and writes what it returns. Every Markdown guide goes through lowerForConsole
+ * (docs/work-console.ts) on the way, so the console, which renders no `:::` fences, pills or
+ * comments, gets plain Markdown, and version tokens arrive as the versions they stand for.
+ */
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve, relative, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { DOCS_ROOT, readRegistry } from '../docs/navigation.ts';
+import { readVersionFacts } from '../docs/version-tokens.ts';
+import { lowerForConsole } from '../docs/work-console.ts';
 
 export const sha256 = (bytes: string | Buffer): string => createHash('sha256').update(bytes).digest('hex');
 export interface WorkBundle {
@@ -14,6 +23,14 @@ export interface WorkBundle {
 
 export function buildWorkBundle(root = DOCS_ROOT): WorkBundle {
   const registry = readRegistry(root);
+  const facts = readVersionFacts(root);
+  // A figure is linked where the site serves its signed file (docs/build.ts copies the bank
+  // to /info/figures/ byte for byte), preferring the SVG when both exist, as the site does.
+  const figureUrl = (id: string): string | null => {
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) return null;
+    const file = ['svg', 'html'].map(ext => `${id}.${ext}`).find(name => existsSync(resolve(root, 'docs/figures', name)));
+    return file ? `${registry.canonical}/figures/${file}` : null;
+  };
   const files: Record<string, Buffer> = {};
   const sourcePaths: Record<string, string> = {};
   const sourceFiles = new Map(Object.entries(registry.workImport.files).map(([path, entry]) => [path, 'docs/' + entry.source]));
@@ -23,7 +40,10 @@ export function buildWorkBundle(root = DOCS_ROOT): WorkBundle {
     const absolute = resolve(root, source);
     const rel = relative(root, absolute);
     if (rel.startsWith('..' + sep) || rel === '..') throw new Error(`Source escapes the canonical checkout: ${source}`);
-    files[path] = readFileSync(absolute);
+    const bytes = readFileSync(absolute);
+    files[path] = path.endsWith('.md')
+      ? Buffer.from(lowerForConsole(bytes.toString('utf8'), { facts, figureUrl, where: source }))
+      : bytes;
     sourcePaths[path] = source;
   }
   const icons: Record<string, string> = { start: 'overview', create: 'docs', build: 'docs', manage: 'instance', operate: 'audit', trust: 'instance' };

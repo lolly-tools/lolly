@@ -2,7 +2,7 @@
 /**
  * curve-editor.ts - pure geometry + hit-test helpers.
  *
- * The mount function is DOM-driven and verified by hand in the brand studio;
+ * The mount function is DOM-driven and verified by hand in Design System Setup;
  * these tests pin the coordinate maths the drag relies on (t ⇄ x and value ⇄ y
  * must be exact inverses, or a grabbed point jumps), the hit-test region, the
  * dynamic chroma axis, and the clone/literal helpers.

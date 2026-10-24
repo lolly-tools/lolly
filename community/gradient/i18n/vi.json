@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Gradient mượt kiểu lưới, tạo từ các màu trong bảng màu thương hiệu của bạn. Kéo các điểm màu ngay trên canvas, hoặc bật chế độ trôi (Drift) để xuất vòng lặp dưới dạng WebM, MP4 hoặc GIF.",
+  "description": "Năm cách tạo gradient từ các mẫu màu của hệ thống thiết kế: Blend radial mềm, lưới Coons-patch thật dưới dạng SVG sắc nét (Subdivide) hoặc raster mượt (Mesh), các điểm Warp tự do và sóng Flow hoạt hình. Kéo mọi thứ ngay trên canvas; xuất ảnh tĩnh hoặc video lặp liền mạch.",
   "a11yLabel": "Gradient lưới pha trộn {{count}} màu",
   "inputs.count.label": "Điểm màu",
   "inputs.color1.label": "Màu 1 (nền)",

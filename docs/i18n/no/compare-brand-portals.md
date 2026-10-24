@@ -2,34 +2,35 @@
 
 _Sist kontrollert: 28. september 2026._
 
-Lolly og [lolly.work](https://lolly.work) dekker sammen opprettelses- og styringsarbeidsflytene team bruker merkevareportaler til: godkjente ressurser, låste maler, tilgangskontroll, gjennomgang og distribusjon. Sammenlign denne samlede løsningen med Bynder, Frontify, Marq eller Brandfolder når du velger hvordan folk finner merkevareressurser og lager nye.
+Hvis organisasjonen din har sine godkjente ressurser i Bynder, Frontify, Marq eller Brandfolder, sammenligner denne siden det med Lolly pluss Lolly Work: hvordan folk finner merkevareressurser, og hvordan de lager nye filer av dem.
 
-## Opprettelse og organisasjonstjenester
+## Hva en etablert portal gjør bedre
 
-Lollys motor og apper lager filene. Maler, designtokens og tillatte inndata definerer hva en person kan endre, og gjengivelsen kan bli på personens enhet. Frittstående Lolly trenger ingen konto.
+Etablerte portaler tilbyr administrert hosting, støtte og omfattende arbeidsflyter for ressursforvaltning. [Frontifys enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kombinerer for eksempel ressursoppdagelse, tilgangskontroller, godkjenningsarbeidsflyter og distribusjon. Lolly-stakken er yngre, og godkjenningskjedene er sekvensielle i stedet for vilkårlige forgrenende arbeidsflyter. [Work status and roadmap](/info/work-status.html) registrerer driftsgrensene.
 
-lolly.work er organisasjonstjenesten i samme prosjekt, vedlikeholdt i et [eget repositorium](https://github.com/lolly-tools/lolly-work) og driftet ved siden av Lolly. Den legger til identitet, delt lagring, policy, godkjenninger og rapportering. Begge delene er åpen kildekode under MPL-2.0. Skillet gjør at en enkeltperson kan bruke Lolly uavhengig, og en organisasjon kan drifte den samlede løsningen på infrastruktur den selv kontrollerer.
+## Hvor de overlapper
 
-## Hva den samlede løsningen tilbyr
+Begge dekker godkjente ressurser, låste maler, tilgangskontroll, gjennomgang og distribusjon. Lolly lager filene: maler, designtokener og tillatte inndata definerer hva noen kan endre, og gjengivelse kan bli på deres enhet. Lolly Work legger til identitet, delt lagring, policy, godkjenninger og rapportering på infrastruktur organisasjonen kontrollerer.
 
-| Behov | Lolly + lolly.work |
+![Det aktive designsystemet i Settings, vist som et omslag og sider: fargene, skriften og logoene hvert verktøy tegner med](/info/shots/dashboard-brand.svg)
+
+## Hva Lolly og Lolly Work leverer
+
+| Behov | Lolly + Lolly Work |
 |---|---|
-| Pålogging og provisjonering | OIDC-enkeltpålogging, flere identitetsleverandører, SCIM 2.0-brukerprovisjonering og gruppemedlemskap, og deaktivering av kontoer som tilbakekaller eksisterende økter. En identitetsleverandør som kun støtter SAML, kan kobles til via en OIDC-bro som Keycloak. |
-| Godkjente maler | Lolly definerer malens redigerbare inndata; lolly.work bruker gruppesynlighet og inndatapolicyer som låser verdier, begrenser valg eller skjuler kontroller. |
+| Pålogging og klargjøring | OIDC-enkelpålogging, flere identitetsleverandører, SCIM 2.0-brukerklargjøring og gruppemedlemskap, og kontodeaktivering som tilbakekaller eksisterende økter. En identitetsleverandør som bare har SAML, kan kobles til gjennom en OIDC-bro som Keycloak. |
+| Godkjente maler | Lolly definerer malens redigerbare inndata; Lolly Work bruker gruppesynlighet og inndatapolicyer som låser verdier, begrenser valg eller skjuler kontroller. |
 | Delt ressursbibliotek | Opplastinger eid av instansen, samlinger, egendefinerte metadata og tilgangsstyrte kataloger, pluss koblinger som leser eksisterende DAM- og lagringsbiblioteker. |
-| Gjennomgang | Ordnede godkjenningstrinn, kvalifiserte godkjennergrupper, kvorumsregler og funksjonsdeling; gjennomgang kan styre innsending til kataloger og levering til organisasjonens mål. |
-| Ressurshistorikk og tilgjengelighet | Versjoner og tilbakerulling for ressurser eid av instansen, oppbevaring og låsing, planlagt tilgjengelighet, utløp og tilbakekalling. Tilkoblede leverandører beholder sin egen kildehistorikk. |
-| Rapportering | Antall bruk og nedlastinger av ressurser, verktøy- og eksportaktivitet, dashbord og et revisjonsspor. Tilskriving av bruk følger driftens telemetripolicy; standardinnstillingen for tilskriving krever samtykke. |
-| Distribusjon | Lenker som utløper og kan tilbakekalles, delte samlinger, gjestetilgang og levering til konfigurerte mål i organisasjonen. |
+| Gjennomgang | Ordnede godkjenningstrinn, kvalifiserte godkjennergrupper, kvorumregler og funksjonsdeling; gjennomgang kan styre katalogoppføringer og levering til organisasjonsmål. |
+| Ressurshistorikk og tilgjengelighet | Versjoner og tilbakerulling for ressurser eid av instansen, oppbevaring og sperrer, planlagt tilgjengelighet, utløp og tilbakekalling. Tilkoblede leverandører beholder sin egen kildehistorikk. |
+| Lisenser og kreditter | Lolly registrerer lisensen til hver kilde en fil bruker og forbereder kredittene den skylder; [Creative rights and credits](/info/creative-rights.html) forklarer hva den registrerer og hvor kreditter skrives. Den avklarer ikke rettigheter. |
+| Rapportering | Antall ressursbruk og nedlastinger, verktøy- og eksportaktivitet, dashbord og et revisjonsspor. Bruksattribusjon følger installasjonens telemetripolicy; standard attribusjonsinnstilling krever samtykke. |
+| Distribusjon | Utløpende, tilbakekallbare lenker, delte samlinger, gjestetilgang og levering til konfigurerte organisasjonsdestinasjoner. |
 
-[Driftsveiledningene for lolly.work](https://github.com/lolly-tools/lolly-work/tree/main/docs) beskriver disse funksjonene og konfigurasjonen av dem. De er tilgjengelige funksjoner, ikke funksjoner som krever at du bygger et annet system rundt Lolly.
+[Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) og [Policy and governance](/info/work-governance.html) beskriver disse funksjonene og konfigurasjonen deres.
 
-## Velge en portalarbeidsflyt
+## Å beholde den eksisterende portalen
 
-Etablerte portaler tilbyr administrert drift, støtte og omfattende DAM-arbeidsflyter. For eksempel kombinerer [Frontifys enterprise-DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) ressurssøk, tilgangskontroll, godkjenningsarbeidsflyter og distribusjon. Sammenlign den nøyaktige arbeidsflyten du trenger for gjennomgang og rettigheter: Lolly tilbyr metadata, tilgangskontroll og kontroll over tilgjengelighet, mens juridisk klarering og lisensforpliktelser fortsatt krever en organisasjons egen prosess. Godkjenningskjedene er sekvensielle; de modellerer ikke vilkårlig forgrenede arbeidsflyter.
+En eksisterende DAM kan forbli sannhetskilden. Lolly Works katalogkoblinger gjør de godkjente ressursene tilgjengelige i Lolly, der folk lager nye filer under organisasjonens regler. Det er et integrasjonsvalg; Lollys eget bibliotek og egne godkjenninger er der når organisasjonen vil kjøre dem selv. [What runs where](/info/compare.html#what-runs-where) lister grensene hver sammenligning deler.
 
-Lolly-stakken er yngre, og [statussiden for lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) oppgir grensene for driften. Spesielt er det offentlige lolly.work-nettstedet en evalueringssandkasse. En varig organisasjonsdrift trenger vedvarende lagring og en driftsansvarlig. Egendrift har ingen programvarelisens per bruker; infrastruktur og administrasjon koster fortsatt penger.
-
-Et eksisterende DAM kan også forbli kilden til sannhet. Katalogkoblingene i lolly.work gjør de godkjente ressursene derfra tilgjengelige i Lolly, der folk lager nye filer etter organisasjonens regler. Det er et integrasjonsvalg; Lollys eget bibliotek og egne godkjenninger er tilgjengelige når organisasjonen vil styre disse arbeidsflytene selv.
-
-Se [Hvordan Lolly sammenlignes](/info/positioning.html) for funksjonssammenligningen og [Lolly sammenlignet, verktøy for verktøy](/info/compare.html) for resten av denne serien. Leverandørnavn identifiserer produktene som sammenlignes; Lolly er ikke tilknyttet dem.
+Se [How Lolly compares](/info/positioning.html) for kapabilitetssammenligningen. Leverandørnavn identifiserer produktene som sammenlignes; Lolly er ikke tilknyttet dem.

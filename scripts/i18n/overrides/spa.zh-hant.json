@@ -1690,5 +1690,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "尚無色彩鎖定到精確油墨。可在{start}中透過色彩的印刷設定鎖定一種。",
   "Ink and paper": "油墨與紙張",
   "Named colours": "命名色彩",
-  "Emphasis": "強調"
+  "Emphasis": "強調",
+  "Zoom to selection": "縮放至選取範圍"
 }

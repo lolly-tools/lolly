@@ -1,6 +1,6 @@
 {
   "name": "Verborgen data verwijderen",
-  "description": "Onthul en verwijder verborgen metadata uit afbeeldingen en PDF's - op je eigen apparaat.",
+  "description": "Verwijder gekozen DOCX-eigenschappen of metadata van afbeeldingen en pdf's en bekijk andere verborgen Office-inhoud, op je apparaat.",
   "a11yLabel": "Rapport verborgen data voor {{fileName}}",
   "inputs.source.label": "Afbeelding of PDF",
   "inputs.source.help": "Een JPEG, PNG, SVG of PDF. Wordt gelezen in je browser en verlaat nooit je apparaat."

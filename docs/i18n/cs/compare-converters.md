@@ -2,16 +2,20 @@
 
 _Naposledy ověřeno: 28. září 2026._
 
-Lolly převádí soubory v prohlížeči na tvém vlastním zařízení: HEIC na JPG, PNG na SVG, PDF na obrázky a mnoho dalších kombinací. Podporované převody a jejich omezení najdeš v [každém formátu, který Lolly umí otevřít a vytvořit](/info/formats.html).
+Pokud obvykle hledáš "HEIC to JPG" nebo "compress PDF" a nahraješ soubor na kterýkoli web, který se objeví, Lolly provede stejný převod v tvém prohlížeči, na tvém vlastním zařízení.
+
+## Co umí převodní web lépe
+
+Některé převodní weby zvládají formáty, které Lolly ne, a nepotřebují žádné předchozí nastavení. Převodník vybírej podle formátů a věrnosti, které potřebuješ, i podle toho, kde soubor zpracovává: některé převody zachovávají upravitelnou strukturu a jiné výsledek zploští.
 
 ## Kde převod probíhá
 
-Převodník v prohlížeči může soubor ke zpracování nahrát, nebo ho převést lokálně. Utility Lolly na zařízení zpracovávají soubor lokálně, bez účtu, reklam a trackerů. Nepřidávají vodoznak Lolly ani metadata o původu. Jakmile jsou potřebné prostředky pro převod k dispozici, mohou fungovat offline; velikost souboru je omezena pamětí zařízení a konkrétním čtecím modulem formátu.
+Převodník v prohlížeči může soubor ke zpracování nahrát, nebo převádět lokálně. Převodní utility Lolly zpracovávají soubor lokálně, bez účtu, reklam a trackerů, a nepřidávají žádný vodoznak Lolly ani Content Credentials. Jakmile jsou uloženy assety, které převod potřebuje, fungují offline. Velikost souboru je omezena pamětí zařízení a konkrétní čtečkou formátu.
 
-Převodník vybírej podle formátů a věrnosti, které potřebuješ, i podle toho, kde soubor zpracovává. Některé převody zachovají upravitelnou strukturu, jiné výsledek sloučí do jedné vrstvy; stránky Lolly o formátech tyto rozdíly popisují.
+![Zobrazení Utilities: Strip Hidden Data, Compress PDF, Convert Image a další úlohy na zařízení na jednom místě](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+
+[Každý formát, který Lolly umí otevřít a vytvořit](/info/formats.html) vypisuje podporované převody a jejich limity, včetně HEIC na JPG, PNG na SVG a PDF na obrázky.
 
 ## Když tým potřebuje víc
 
-[lolly.work](https://lolly.work) je samostatně nasazovaná organizační služba projektu Lolly. Přidává SSO, SCIM, sdílené katalogy, schvalování, reporting a serverové renderování pro podporovaná produkční workflow. Obě části jsou open source pod MPL-2.0. Organizace je může používat společně, zatímco její členové dál využívají utility na zařízení pro lokální převody.
-
-Rozdíl je důležitý pro nakládání s daty: lokální převod ponechá soubor na zařízení, zatímco volba sdíleného nahrání, serverového renderu nebo doručení odešle příslušná data nakonfigurovaným službám. [Přehled kombinovaného řešení](/info/compare.html) toto oddělení vysvětluje.
+Členové organizace dál používají utility na zařízení pro místní převody, i když organizace provozuje Lolly Work. Sdílené nahrání, serverové vykreslení nebo doručení je bod, kde data jdou na její server; oddělení vysvětluje [Co běží kde](/info/compare.html#what-runs-where).

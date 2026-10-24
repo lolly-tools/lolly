@@ -365,7 +365,7 @@ test('--quiet silences the diagnostics but never the payload or an error', async
   assert.match(failed.stderr, /Tool not found/, 'an error survives --quiet');
 });
 
-test('the byte-determinism docs/cli.md promises for SVG holds - with provenance off', async () => {
+test('the byte-determinism docs/cli-automation.md promises for SVG holds - with provenance off', async () => {
   // The docs used to claim "same inputs, same bytes" for everything. Measured, that is
   // true of SVG and the DOM-free formats and false of PDF (a /CreationDate), of the
   // browser tier, and of anything signed. Only the promise that survived is pinned here;
@@ -392,7 +392,7 @@ test('a DEFAULT render is signed, and therefore NOT byte-identical run to run (s
   assert.ok(a.stdout.includes(Buffer.from('c2pa')), 'a default render must carry a credential');
   assert.ok(!a.stdout.equals(b.stdout),
     'two default renders were byte-identical - either the credential stopped being embedded, ' +
-    'or it stopped carrying a timestamp; both change what docs/cli.md promises');
+    'or it stopped carrying a timestamp; both change what docs/cli-automation.md promises');
   // …and the bare render is the SAME bytes as before the default moved: the opt-out is a
   // real escape hatch, not a differently-shaped output.
   const bare = await cli(['run', 'vec-tool', '--label=Same', '--export=svg', '--no-provenance']);

@@ -1,52 +1,95 @@
-# Configuration reference
+# Work instance configuration
 
-One JSON file plus environment secrets. The standalone server reads `./instance.json`, or
-whatever path `LW_CONFIG` names. (`LW_CONFIG_JSON` is a different thing and not
-interchangeable: it carries the whole config as a *string* and is read only by the Vercel
-entrypoint.) Unset keys take the defaults below - `instance.example.json` is a working
-starting point, and `server/src/config/instance.ts` is the authority.
+A Work server takes its settings from three places. Knowing which one holds a setting tells you
+whether changing it needs a restart, and whether the value is safe to keep in version control.
 
-![Feature-flag governance - default state and toggle visibility, per user](shots/feature-flags.svg)
+::: figure work-configuration-layers
+The file and the environment are read when the server starts; governance changes while it runs.
+:::
 
-**Secrets are never in the config file.** Config is safe to keep in git; secrets come from
-the environment.
+- **`instance.json`** shapes the deployment: who can sign in, storage, limits and the render
+  worker. The standalone server, Compose and Helm read `./instance.json`, or the path in
+  `LW_CONFIG`, when the server starts. Edit the file and restart; on Helm, update the ConfigMap
+  and roll the pods. The serverless function entrypoint reads the whole configuration from the
+  `LW_CONFIG_JSON` string instead ([environment variables](#serverless-entrypoint)).
+- **Environment variables** hold every secret: session and link keys, provider credentials,
+  mail, webhook and signing keys. Secrets are never in the configuration file, so the file is
+  safe to keep in version control.
+- **Governance** holds what changes day to day: grants, tool overlays, approval chains, feature
+  flags and provider exposure. Change it live in the console, or export and apply it as a
+  document; see [governance](governance.md).
+
+![Feature-flag governance in the console: each flag's default state and whether people may change it](shots/feature-flags.svg)
+
+Unset keys take the defaults on this page. `instance.example.json` in the Work repository is a
+working starting point, and `server/src/config/instance.ts` is the authority.
+
+## A starting file
+
+A production instance needs a handful of keys, and the rest can keep their defaults:
+
+```json
+{
+  "deployment": { "mode": "production" },
+  "instance": {
+    "name": "Example Studio",
+    "baseUrl": "https://work.example.com",
+    "pack": "/srv/lolly-work/pack",
+    "catalogPublicationGeneration": 1
+  },
+  "idp": {
+    "issuer": "https://sso.example.com/realms/example",
+    "clientId": "lolly-work",
+    "displayName": "Example SSO"
+  }
+}
+```
+
+Set `DATABASE_URL`, `LW_SESSION_SECRET` and `LW_LINK_SECRET` in the environment (signing secrets
+of at least 32 bytes), plus `LW_IDP_CLIENT_SECRET` if the identity provider issues one. Add
+`idp.admission` to limit who may sign in: without it every verified sign-in is admitted, and
+setup warns. Map `idp.roleGroups` too: setup also warns for each of owner, admin, approver and
+author left unmapped, because a group with exactly that name at the identity provider would grant
+the role.
+
+Run `pnpm run check:setup` with the deployment's configuration and environment to read the same
+local checks as startup. It exits 1 for failed production checks and 0 otherwise; a zero exit
+does not turn `not-tested` integrations into acceptance evidence. It neither connects to the
+database nor calls identity, renderer or asset providers. The owner console's
+**Customer setup** page also checks the running store and pending migrations, and generates
+deployment files for a staged owner cutover ([Customer setup](customer-setup.md)).
 
 ## `deployment`
 
 | Key | Default | What it does |
 |---|---|---|
-| `mode` | `auto` | `production` enforces production checks regardless of NODE_ENV. `evaluation` deliberately permits memory storage and ephemeral secrets, including inside a production container. `auto` inherits production from NODE_ENV for existing installations. |
+| `mode` | `auto` | `production` enforces production checks regardless of NODE_ENV. `evaluation` permits memory storage and ephemeral secrets, including inside a production container. `auto` inherits production from NODE_ENV for existing installations. |
 | `application` | `api` | `api` serves the console and API without requiring an employee shell. `web` requires a governed shellDir or external appUrl. A configured shellDir is checked in either profile. |
 | `requireServerRendering` | `false` | Require every advertised tool to have at least one configured server format. Hooked tools need a worker URL and secret. This checks configuration, not a successful worker render. |
 
 Production refuses memory storage, development login, open access, missing identity,
 an unsafe public base URL, signing secrets shorter than 32 bytes, inconsistent worker
 or signer configuration, and an incompatible active pack. Helm defaults to production;
-the evaluation overlay and example JSON explicitly select evaluation. An old shell cannot
-bypass production validation with `LW_ALLOW_STALE_SHELL`.
-
-Run `pnpm run check:setup` with the deployment's config and environment to read the same
-local checks as startup. It exits 1 for failed production checks and 0 otherwise; a zero
-exit does not turn `not-tested` integrations into acceptance evidence. It neither connects
-to the database nor calls identity, renderer or asset providers. The owner console's
-**Customer setup** page additionally checks the running store and pending migrations.
+the evaluation overlay and example JSON select evaluation.
 
 ## `instance`
 
 | Key | Default | What it does |
 |---|---|---|
 | `name` | `Lolly Work` | the deploy's display name, also called the workspace name: console rail, sign-in card, `/healthz`, `instanceName` in `/api/auth/config`, and the invite, refusal and request pages, notices and copied invite messages ("Ana invited you to Example Studio"). Use the name people already know |
-| `baseUrl` | `http://localhost:8787` | the URL this deploy answers on. Drives OIDC redirect URIs and the `Secure` cookie flag - **must** match reality |
+| `baseUrl` | `http://localhost:8787` | the URL this deploy answers on. Drives OIDC redirect URIs and the `Secure` cookie flag - **must** match reality. Passkeys are offered only when this is HTTPS on a host name, or `http://localhost`; never on a bare IP address |
 | `pack` | `./packs/demo` | the brand pack mount: catalog, tools, design tokens, fonts, logos. The default is the small demo pack committed at `packs/demo`; the server warns at boot if the path does not exist, and the catalog is empty until it does |
-| `catalogPublicationGeneration` | `0` | operator-provisioned, nonnegative safe integer identifying an immutable mounted release. Production requires a positive generation, supplied here or by a verified signed source envelope. Advance it when changing an unsigned pack or its engine pin; never decrease it or reuse it for different bytes. |
+| `catalogPublicationGeneration` | *unset* | operator-provisioned, positive safe integer identifying an immutable mounted release; `0` and negative numbers are refused. Production requires a generation, supplied here or by a verified signed source envelope. Advance the number when changing an unsigned pack or its engine pin; never decrease a generation or reuse one for different bytes. |
+| `catalogPublicKey` | *unset* | a public P-256 key as a JWK (`kty: "EC"`, `crv: "P-256"`, no private `d`) that verifies a mounted catalog's signed publication sequence |
 | `shellDir` | *unset* | path to a built Lolly `shells/web/dist`. Set ⇒ the shell is served at `/` on one origin (session cookies work, the shell's `org/` governance seam activates) |
-| `appUrl` | *unset* | where the Lolly app lives when it is *not* same-origin (a Vite dev server, a split deploy). The console routes "Open Lolly" and deep links through it |
-| `modelOrigin` | `https://lolli.li` | where the served shell's on-device models come from when the shell dist does not carry them. The public shell build does not: its 1.2 GB of model weights live on the project's release host. A request for `/models/...` that `shellDir` cannot answer is passed to this exact origin, so the browser stays on one origin and an interrupted download resumes (Range, If-Range and the validators go through). `null` keeps every model request on this server, for a dist built with its models or a deployment that offers none. HTTPS only, without a path (a loopback `http://` origin is accepted for local testing) |
+| `shellReleasePointer` | *unset* | `true` serves immutable shell releases instead of one dist: `shellDir/current.json` selects the current release under `shellDir/releases/`, and the previous and retained releases keep answering for clients still on them. Needs an absolute `shellDir` |
+| `appUrl` | *unset* | where the Lolly app lives when it is *not* same-origin (a Vite dev server, a split deploy). The console sends "Open Lolly" and deep links to this address |
+| `modelOrigin` | `https://lolli.li` | where the served shell's on-device models come from when the shell dist does not carry them. The public shell build does not: its model files live on the project's release host. A request for `/models/...` that `shellDir` cannot answer is passed to this exact origin, so the browser stays on one origin and an interrupted download resumes (Range, If-Range and the validators go through). `null` keeps every model request on this server, for a dist built with its models or a deployment that offers none. HTTPS only, without a path (a loopback `http://` origin is accepted for local testing) |
 | `connectorOrigins` | *unset* | exact HTTPS origins (no paths, wildcards or credentials; at most 32) that the served shell's custom connectors may reach. Added to the shell's `connect-src` only; every other directive and header is unchanged. Use it where the ingress cannot replace response headers, for example a shared cluster with snippet annotations disabled. The shell build's `VITE_CONNECTOR_ORIGINS` must list the same origins, and each provider's CORS must allow the workspace origin |
 | `brandTokens` | *unset* | map source IDs (`mounted` or `profile:<name>`) to explicit tokens asset IDs; required when a source has multiple independent heads |
 | `connectPack` | *unset* | a `.lolly` instance pack to HOST from boot - a path relative to `pack` (or absolute). Seeded only before any durable branding decision, while no download is suppressed or hosted, so an ephemeral deploy offers `/connect/pack.lolly` without an owner ever uploading; an owner's own upload always wins, and a file naming a different instance base is refused loudly at seed time |
-| `inviteNote` | *unset* | one plain-text line shown on the invite page and at the end of copied invite messages, such as which sign-in to use when an organisation blocks one. Trimmed, at most 240 characters, no line breaks; an empty line is the same as unset. See [invite links](identity.md#invite-links) |
-| `homeView` | *unset* | the view a signed-in member's Lolly opens on when they arrive at the bare address: `tools` (the tools gallery) or `projects` (their Projects). Unset means tools. A link to a tool, a team project or a view still opens where it points, and choosing Tools later still shows the tools. Sent to members' shells in `GET /api/v1/org-config` as `home`; a shell that predates it ignores it |
+| `inviteNote` | *unset* | one plain-text line shown on the invite page and at the end of copied invite messages, such as which sign-in to use when an organisation blocks one. Trimmed, at most 240 characters, no line breaks; an empty line is the same as unset. See [invite links](invitations.md#invite-links) |
+| `homeView` | *unset* | the view a signed-in member's Lolly opens on when they arrive at the bare address: `tools` (the tools gallery) or `projects` (their Projects). Unset means tools. A link to a tool, a team project or a view still opens where it points, and choosing Tools later still shows the tools. Sent to members' shells in `GET /api/v1/org-config` as `home`; a shell that predates the setting ignores `home` |
 | `homeUrl` | *unset* | optional destination for the Home button and arrival at the bare address, overriding `homeView`. A root-relative URL such as `/#/p?team=project-id`, or an HTTPS URL for an organisation's own landing page. Credentials, protocol-relative URLs and executable schemes are refused. Explicit document and view links keep their destinations |
 
 `pack` supports materialized trees, modern `profiles.json` roots and legacy brand layouts. Selection lives in the Store; mounted files are never rewritten. See [Design-system administration](design-system-administration.md) for persistence requirements and explicit tokens selection.
@@ -59,10 +102,8 @@ higher positive `catalogPublicationGeneration` for the reviewed release once. Ke
 existing fence and sequence history; deleting them would remove rollback protection.
 
 Under a non-`open` access mode, a `shellDir` that is missing or predates the `org/`
-governance module **stops boot**. In evaluation, `LW_ALLOW_STALE_SHELL=1` downgrades
-the legacy shell guard to a warning; production validation still refuses that legacy shell.
-
-For generated deployment files and a staged owner cutover, use [Customer setup](customer-setup.md).
+governance module **stops boot**. `LW_ALLOW_STALE_SHELL=1` downgrades that refusal to a warning
+in evaluation only; production still refuses the old shell.
 
 ## `idp`
 
@@ -74,38 +115,40 @@ For generated deployment files and a staged owner cutover, use [Customer setup](
 | `groupsClaim` | `groups` | the claim carrying group membership |
 | `claimMap` | `given_name` / `family_name` / `email` / `title` | which claims fill firstname, lastname, email, title. `email_verified` vouches only for the `email` claim: a remapped email counts as verified only when it equals `email`, otherwise only under `emailVerification: trusted` |
 | `roleGroups` | `{}` | exact groups for owner/admin/approver/author/member/viewer. Highest match wins; unmatched accounts are members. Omitted high roles retain literal legacy names; omitted member/viewer have no mapping. An explicit empty array disables that role mapping. Each group can appear once. Applies to IdP and local groups, including existing accounts after restart. |
-| `additional` | `[]` | further IdPs beside the primary - each `{ id, kind?, issuer, clientId, displayName, groupsClaim?, claimMap?, clientSecretRef? }`. `kind` is `oidc` (default), `github` or `password`. A GitHub entry takes no `issuer`, needs `clientSecretRef`, refuses `scopes`, `authParams`, `hostedDomain` and `tenantId`, and accepts only `emailVerification: "claim"` (see the [GitHub recipe](identity.md#provider-recipes)). A `password` entry is described below. Unset claims inherit the primary's; the secret rides the env var `clientSecretRef` names; subs store namespaced `<id>:<sub>`. With several houses, plain `/api/auth/login` serves a chooser. Each entry may also set the per-IdP keys below (`hostedDomain`, `tenantId`, `emailVerification`, `scopes`, `authParams`); those are never inherited from the primary. See [identity](identity.md#more-than-one-idp) |
+| `additional` | `[]` | further IdPs beside the primary - each `{ id, kind?, issuer, clientId, displayName, groupsClaim?, claimMap?, clientSecretRef? }`. `kind` is `oidc` (default), `github` or `password`. A GitHub entry takes no `issuer`, needs `clientSecretRef`, refuses `scopes`, `authParams`, `hostedDomain` and `tenantId`, and accepts only `emailVerification: "claim"` (see the [GitHub recipe](identity-providers.md#github)). A `password` entry is described below. Unset claims inherit the primary's; the secret rides the env var `clientSecretRef` names; subs store namespaced `<id>:<sub>`. With several houses, plain `/api/auth/login` serves a chooser. Each entry may also set the per-IdP keys below (`hostedDomain`, `tenantId`, `emailVerification`, `scopes`, `authParams`); those are never inherited from the primary. See [more than one IdP](identity-providers.md#more-than-one-idp) |
 | `admission` | absent | who may sign in, checked on every OIDC, GitHub, password and proxy sign-in before a user row is written: `{ emails?: string[], domains?: string[], invitations?: boolean (default true) }`. Absent = every verified sign-in is admitted (production setup warns). `{}` admits invitations only. Admission by email, domain or invitation needs a verified email (see `emailVerification`). See [who may sign in](identity.md#who-may-sign-in) |
 | `linkedStandingDays` | `30` | whole days, 1-365. How long one sign-in's IdP groups, and the account's own sign-in's standing under `admission`, carry over to the person's other linked sign-ins. See [one person, several sign-ins](identity.md#one-person-several-sign-ins) |
 | `bootstrapOwners` | `[]` | emails that get the owner group (first `roleGroups.owner` name, else `owner`) on first account creation once admitted with a verified email. The group remains in local membership until an owner removes the group. Audited as `auth.bootstrap-owner`. Each must be admitted by `admission.emails` or `admission.domains`; refused when `roleGroups.owner` is `[]` |
+| `pending` | absent | up to eight provider names (each up to 80 characters) shown as disabled choices, such as **Company SSO (pending)**, on the sign-in and invitation pages. Adds no sign-in route. See [planned sign-ins](identity-providers.md#planned-sign-ins) |
 | `hostedDomain` | absent | per IdP. Google Workspace domain: the `hd` claim must equal it (a mismatch or missing claim refuses), and it is sent as the `hd` authorization parameter |
-| `tenantId` | absent | per IdP. Microsoft Entra directory id (GUID): the `tid` claim must equal it |
+| `tenantId` | absent | per IdP. Microsoft Entra directory id (GUID): the `tid` claim must equal this id |
 | `emailVerification` | `claim` | per IdP. `claim`: email-based admission needs `email_verified: true`. `trusted`: every email this IdP sends counts as verified (tenant-pinned IdPs that omit the claim) |
 | `linkByEmail` | primary: `true` under `claim`; additional: `false` | per IdP. Whether a sign-in from this IdP may join an existing person whose email matches. Additional providers require an explicit choice. Owner and admin accounts never join by email. The primary default requires a verified address; set `true` to link from a `trusted` IdP (refused unless that IdP has a `hostedDomain` or `tenantId` pin), or `false` to never link from this one |
 | `scopes` | `["openid", "profile", "email"]` | per IdP. Requested scopes, a list or a space-separated string; must include `openid` |
 | `authParams` | `{}` | per IdP. Extra authorization request parameters, allowlisted: `prompt`, `hd`, `domain_hint`, `login_hint`, `acr_values`. Any other key is refused; `hd` must equal `hostedDomain` when both are set |
 
-The following settings apply to each OIDC provider independently and are not
-inherited by `additional` entries. GitHub and password entries refuse these keys.
-See [Enterprise identity deployment](enterprise-identity.md) for registration,
-claim semantics, acceptance checks and lifecycle procedures.
+::: details Advanced keys for each OIDC provider
+These settings apply to each OIDC provider independently and are not inherited by `additional`
+entries. GitHub and password entries refuse them. See
+[Enterprise identity deployment](enterprise-identity.md) for registration, claim semantics,
+acceptance checks and lifecycle procedures.
 
 | Key | Default | What it does |
 |---|---|---|
 | `tokenEndpointAuthMethod` | `client_secret_post` with a secret, otherwise `none` | `client_secret_basic`, `client_secret_post` or `none`; must match provider registration and advertised metadata |
 | `signingAlgorithm` | `RS256` | Exactly one of `RS256`, `ES256`, `PS256`; other algorithms are refused |
-| `trustedAudiences` | absent | Explicit additional audience strings; the Work client must still be present and `azp`, when present, must match it |
+| `trustedAudiences` | absent | Explicit additional audience strings; the Work client must still be present and `azp`, when present, must match the Work client |
 | `assurance.acrValues` | absent | Nonempty string list; returned `acr` must equal one entry |
 | `assurance.amrValues` | absent | Nonempty string list; returned `amr` must include every entry |
 | `assurance.maxAgeSeconds` | absent | Integer 0-86400; requires `auth_time` within this age, with sixty seconds of tolerance |
+:::
 
 Gated access needs `idp.issuer`, `proxyAuth.enabled` or a `password` entry - or
 `dev.enabled` for local work. The server refuses to start otherwise. See [identity](identity.md).
 
 ### Email and password (`kind: "password"`)
 
-For people who cannot use the instance's other sign-ins, for example because their own
-organisation blocks unreviewed OAuth apps. Add one entry to `idp.additional`:
+For people who cannot use the instance's other sign-ins. Add one entry to `idp.additional`:
 
 ```json
 { "id": "email", "kind": "password", "label": "Email and password" }
@@ -115,69 +158,59 @@ organisation blocks unreviewed OAuth apps. Add one entry to `idp.additional`:
 |---|---|---|
 | `id` | - | the slug in `/api/auth/login?idp=<id>`. `password` is reserved for this kind |
 | `kind` | - | `password` |
-| `label` | `Email and password` | the chooser button and the sign-in list in a profile; `displayName` is accepted instead |
-| `linkByEmail` | `true` | whether a password sign-in joins the existing person who holds the same verified email. The other way round never happens: a password sign-in is stored unverified (an admin typed the address, no mailbox proved it), so no later sign-in through another provider joins an account by it |
+| `label` | `Email and password` | the chooser button and the sign-in list in a person's Lolly Settings; `displayName` is accepted instead |
+| `linkByEmail` | `false` | as for every `additional` entry, unset means no. `true` lets a password sign-in join the existing person who holds the same verified email. The other way round never happens: a password sign-in is stored unverified (an admin typed the address, no mailbox proved it), so no later sign-in through another provider joins an account by it |
 
 - At most one `password` entry. It takes no `issuer`, `clientId`, `clientSecretRef`,
   `groupsClaim`, `claimMap`, `hostedDomain`, `tenantId`, `scopes` or `authParams`, and
-  `emailVerification` can only be `claim`. It needs no secret, so setup counts it as
-  complete.
-- It can be the only sign-in: then no `issuer` is needed and `/api/auth/login` is the
-  form itself. Such an instance has no admin to issue the first link, so the first
-  owner gets theirs from the operator: list them in `bootstrapOwners` and run
-  `node scripts/password-link.ts --email <their address>` where the server runs (it
-  needs the server's `LW_CONFIG`, `DATABASE_URL` and `LW_SESSION_SECRET`, and prints the
-  link). The same command lets a locked-out bootstrap owner back in. During restricted
-  evaluation (`dev.enabled` on), a dev-login admin can issue links instead, and the
-  console's sign-in screen offers the dev sign-in with the password form beside the dev sign-in.
-- **No self sign-up, and nothing is emailed.** An admin or owner issues a one-time link
-  from the console (Copy sign-in link on an invitation, or Copy password link on a
-  person) and passes it on. The link sets the password and signs the person in. It
-  works once, for 7 days, and issuing a new link for an address cancels its unused
-  ones.
-- Whoever holds a link can sign in as its address, so a link that leads to an owner,
-  or that adds a password to an account that already signs in another way (unless it
-  is the issuer's own), is owner-only. A link is also issued only for an address
-  `admission` lets in now: an open invitation, a listed email or domain, or an account
-  the lists still admit. All of this is asked again when the link is opened and used,
-  on the issuer's standing at that moment, so a link stops working when its issuer is
-  disabled or loses the admin role, or the address has since come to need an owner.
-  "Disable access" cancels the person's unused links.
-- An owner signs in with a password only when an owner (or the operator command)
-  issued the link that set the password. A password set from an admin's link stops working for
-  an account that is later made an owner, until an owner issues a new link.
-- Every password sign-in runs the same admission, linking, invitation and "Disable
-  access" checks as any other sign-in. Setting a new password from a link ends every
-  session the account had. Removing the email and password sign-in from a person
-  (their profile, or the console) deletes the password.
-- Passwords are 12 to 256 characters and not the email address. They are stored as
-  scrypt hashes (N 2^15, r 8, p 1). At most two hashes are computed at once and 32
-  wait; past that a sign-in gets `503` with `Retry-After` at once.
-- Ten sign-in attempts in a row without a success lock that address for 15 minutes; a
-  successful sign-in resets the count. Each attempt is counted before its password is
-  checked, so parallel guesses get no more than ten checks, and attempts during a lock
-  are not counted, so guessing does not extend the lock. An admin can lift a lock from the
-  person (Unlock), without a new password. An unknown address, a wrong password and a
-  locked address all get the same answer.
-- The sign-in and link routes use the `auth` rate-limit bucket below, per client IP, on
+  `emailVerification` can only be `claim`. It needs no secret, so setup counts it as complete.
+- It can be the only sign-in: then no `issuer` is needed and `/api/auth/login` is the form
+  itself. The first owner then gets a link from the operator: list them in `bootstrapOwners`
+  and run `node scripts/password-link.ts --email <their address>` where the server runs (it
+  needs the server's `LW_CONFIG`, `DATABASE_URL` and `LW_SESSION_SECRET`). During restricted
+  evaluation (`dev.enabled` on), a dev-login admin can issue links instead, and the console's
+  sign-in screen offers the dev sign-in beside the password form.
+- Passwords are 12 to 256 characters and not the email address, stored as scrypt hashes
+  (N 2^15, r 8, p 1). At most two hashes are computed at once and 32 wait; past that a sign-in
+  gets `503` with `Retry-After` at once.
+- The sign-in and link routes use the `auth` [rate-limit bucket](#ratelimit), per client IP, on
   top of the lockout. A browser that runs out gets a page saying to wait a minute.
-- The forms are served with `Referrer-Policy: strict-origin`, not `no-referrer`: a form
-  post from a `no-referrer` page carries `Origin: null`, which the CSRF check refuses.
-  A proxy in front must not replace that header on `/api/auth/` (the YunoHost package's
-  nginx sets `no-referrer` on `/api/`, so email and password sign-in does not work
-  there as shipped).
+- The forms are served with `Referrer-Policy: strict-origin`, not `no-referrer`: a form post
+  from a `no-referrer` page carries `Origin: null`, which the CSRF check refuses. A proxy in
+  front must not replace that header on `/api/auth/` (the YunoHost package's nginx sets
+  `no-referrer` on `/api/`, so email and password sign-in does not work there as shipped).
 
-See [email and password](identity.md#email-and-password) for the flow.
+How people get and reset a password, who may issue a link, the lockout and what each sign-in
+checks are in [email and password](identity.md#email-and-password).
 
 ## `policy`
+
+What members may do, how long things last and how much they may store. The tables group the keys
+by job. Lolly reads the limits it needs from org-config.
+
+### Access, sessions and AI
 
 | Key | Default | What it does |
 |---|---|---|
 | `defaultAccessMode` | `gated` | `open` (anonymous catalog), `gated` (sign-in required), `per-tool` |
+| `sessionTtlHours` | `12` | member session lifetime (token `exp` and cookie `Max-Age`); must be > 0 and ≤ 720 |
+| `sessionMaxHours` | *unset* | the longest a session chain may run after the sign-in that started it, with sliding renewal on. Unset equals `sessionTtlHours`, which turns renewal off. When set it must be ≥ `sessionTtlHours` and ≤ 720. A session past half its TTL gets a fresh cookie on the next API write or poll of the session, org-config or inbox, never past `authAt + sessionMaxHours`. A device approved at `/activate`, and the browser kept signed in after removing a sign-in, continue the approving chain under the same cap; with renewal off that cap is `sessionTtlHours` from the sign-in, so a device approved late in a browser session gets only that session's remaining time. See [identity](identity.md#session-length-and-renewal) |
+| `serviceTokens.allowLegacyUnbounded` | `true` | keep accepting service tokens minted before tokens had an expiry. New tokens always expire. Rotate those integrations, then set `false` |
 | `ai.enabled` | `false` | approval ceiling for managed AI; the audited `ai` flag must also be explicitly On. See [managed AI](ai-policy.md). |
 | `ai.capabilities` | `[]` | explicit capability list; required and nonempty when enabling AI. Unknown or duplicate capabilities are rejected. |
-| `telemetry` | `standard` | `off`, `aggregate`, `standard` |
-| `telemetryAttribution` | `opt-in` | `opt-in` strips the user id until the user consents; `default` attributes at `standard` |
+
+A shorter `sessionTtlHours` bounds token lifetime while a directory change has not yet reached
+Work. With `sessionMaxHours` set, a cookie in use is renewed up to that cap, but each renewal
+checks the account, its session epoch and admission again first, so a person who left the lists
+stops at the end of their current cookie. Once Work receives a group or role change,
+authorization uses the live record on each request. Disabling an account or bumping its session
+epoch revokes existing member tokens on their next authenticated request. Token expiry does not
+replace the offboarding integration.
+
+### Invitations, requests and sharing
+
+| Key | Default | What it does |
+|---|---|---|
 | `guestLinks.enabled` | `true` | whether guest-edit links may be minted at all |
 | `guestLinks.maxTtlHours` | `168` | hard cap on any guest link's lifetime |
 | `guestLinks.defaultTtlHours` | `72` | the default offered when minting |
@@ -185,53 +218,25 @@ See [email and password](identity.md#email-and-password) for the flow.
 | `invites.domains` | `[]` | when not empty, a new address must be at one of these domains (a leading `@` is dropped, matching is case-insensitive) |
 | `invites.maxTtlHours` | `720` | how long an invitation made from a project stays open; at most 8784 (366 days) |
 | `invites.projectRoles` | all four | which project roles may be given by invitation, role change or group grant: any of `viewer`, `commenter`, `editor`, `manager`. A commenter reads and comments but never changes artwork |
-| `invites.passwordDomains` | `[]` | domains whose people usually sign in with email and password, the same rule as `domains`. When every address on a console or project invite is at one of them, "Can set a password" starts ticked, so the invite link also sets the password. It only suggests: the tick stays an admin's choice. See [setting a password from the link](identity.md#setting-a-password-from-the-link) |
-| `requests.project` | `true` | members may ask for access to a project or session link they cannot open, and viewers may ask to edit. See [asking for access](sharing.md#asking-for-access) |
-| `requests.join` | `false` | a person who signed in but is not admitted may ask the admins to let them in, from the refusal page. Off by default, because it lets anyone who can sign in somewhere reach the admins. See [asking to join](identity.md#asking-to-join) |
+| `invites.passwordDomains` | `[]` | domains whose people usually sign in with email and password, the same rule as `domains`. When every address on a console or project invite is at one of them, "Can set a password" starts ticked, so the invite link also sets the password. It only suggests: the tick stays an admin's choice. See [setting a password from the link](invitations.md#setting-a-password-from-the-link) |
+| `requests.project` | `true` | members may ask for access to a project or session link they cannot open, and viewers may ask to edit. See [asking for access](invitations.md#asking-for-access) |
+| `requests.join` | `false` | a person who signed in but is not admitted may ask the admins to let them in, from the refusal page. Off by default, because it lets anyone who can sign in somewhere reach the admins. See [asking to join](invitations.md#asking-to-join) |
 | `requests.ttlDays` | `14` | whole days, 1 to 60. How long a request stays open before it expires, with its notice |
 | `requests.joinOpenMax` | `50` | whole number, 1 to 1000. The most requests to join and to use another account for an invitation that may be open at once across the instance; past it, new ones are held (the person sees the same page, nothing is stored) |
-| `nearby.enabled` | `true` | instance-mediated "nearby" presence: the `collab.nearby` capability bit and both `/api/v1/collab/nearby` routes. `false` keeps the whole surface dark fleet-wide |
-| `comments.enabled` | `true` | durable canvas review; `false` disables reading and writing comment threads without changing session access |
-| `comments.mentions` | `true` | `@` mentions in comments and the `comment-people` list behind them; `false` stores no mentions and refuses that list. See [canvas comments](api.md#canvas-comments) |
-| `comments.notices` | `true` | inbox notices for mentions and replies; `false` writes none and hides the ones already written (they are still removed at 30 days) |
-| `comments.emailTitles` | `false` | name the document in mention email. Off, a private document's title is not sent to a mail provider. Mention email itself is a seam that is off in this release |
 | `sharing.instance.enabled` | `true` | whether a project may be shared with everyone signed in to this instance (never guests or service tokens). `false` also stops shares made before the change |
 | `sharing.instance.maxRole` | `commenter` | the highest role that audience may get: `viewer`, `commenter` or `editor`. Lowering it lowers existing shares too |
 | `sharing.customGroups` | `true` | whether members may make their own groups (`group.create`) and share projects with them. These groups never count as directory groups for grants |
 | `sharing.maxGrantDays` | *unset* | the longest end date a membership or group grant may carry, in whole days (1 to 3660). Unset means no limit |
-| `versions.maxBytes` | `1073741824` | bytes of saved-version content all documents together may hold (1 GiB); one document may hold at most 100 MiB. Over it the oldest automatic versions are removed first, then a named save or a restore answers `409 VERSION_SPACE`. See [data lifecycle](data-lifecycle.md#session-versions) |
-| `sessionTtlHours` | `12` | member session lifetime (token `exp` and cookie `Max-Age`); must be > 0 and ≤ 720 |
-| `sessionMaxHours` | *unset* | the longest a session chain may run after the sign-in that started it, with sliding renewal on. Unset equals `sessionTtlHours`, which turns renewal off. When set it must be ≥ `sessionTtlHours` and ≤ 720. A session past half its TTL gets a fresh cookie on the next API write or poll of the session, org-config or inbox, never past `authAt + sessionMaxHours`. A device approved at `/activate`, and the browser kept signed in after removing a sign-in, continue the approving chain under the same cap; with renewal off that cap is `sessionTtlHours` from the sign-in, so a device approved late in a browser session gets only that session's remaining time. See [identity](identity.md#session-length-and-renewal) |
-| `submit.maxBytes` | `67108864` | per-file cap on a catalog submission (64 MiB, matching publish-out). Over it: `413 PAYLOAD_TOO_LARGE` |
-| `submit.chain` | *unset* | approval chain id gating submissions. Unset means no review: a submitted asset is live the moment it is stored. Set to a chain that does not exist, submissions are refused (`503 SUBMIT_CHAIN_MISSING`) rather than published unreviewed |
-| `submit.quota.bytes` | `0` | cumulative byte ceiling per group; `0` is unlimited |
-| `submit.quota.count` | `0` | cumulative submission-count ceiling per group; `0` is unlimited |
-| `catalog.versionKeep` | `0` | how many versions of one instance asset to keep, head included. `0` keeps every version; a positive number trims oldest-first and deletes the trimmed bytes. The served version is never trimmed, and a held asset is never trimmed at all |
-| `fleet.minEngine` | *unset* | advisory engine version floor (dotted, e.g. `"1.140.0"`): below-floor engines are highlighted in the Fleet view with an upgrade nudge; nothing is blocked or force-upgraded |
-| `activity.mode` | `delegated` | `off` disables the activity timeline and agent activity dashboard; `owner-only` restricts them to owners; `delegated` also admits principals holding `audit.export`. Audit reads of those feeds record the reader and filter names, without query values. Security audit endpoints retain their own permissions |
-| `activity.auditSessionUpdates` | `true` | record routine API document saves as `session.update`. Set `false` to omit those new events; other security events and shared document history remain |
-| `retention.telemetryDays` | `0` | delete telemetry events older than this; `0` keeps everything |
-| `retention.auditDays` | `0` | trim audit rows older than this. The chain stays verifiable (the boundary's seq + hash are anchored before anything is deleted, and the head row is never trimmed), and a trim never passes the SIEM delivery cursor - an unreachable receiver pauses audit retention rather than losing events. See [operations](operations.md#retention-and-erasure) |
-| `projectFiles.enabled` | `true` | shared files inside team projects. They also need a durable store: on the memory store they are off whatever this says. See [sharing](sharing.md#shared-files) |
-| `projectFiles.maxFileBytes` | `26214400` | largest single file (25 MiB); at most `4294967296` (4 GiB, migration 0075). Over it: `413 PROJECT_FILE_TOO_LARGE` |
-| `projectFiles.projectBudgetBytes` | `134217728` | bytes of files one project may hold (128 MiB). Over it: `413 PROJECT_FILE_BUDGET` |
-| `projectFiles.instanceBudgetBytes` | `268435456` | bytes of files all projects together may hold (256 MiB). Over it: `413 INSTANCE_FILE_BUDGET` |
-| `projectFiles.uploadTtlHours` | `24` | the longest an unfinished upload stays open; at most 720. It expires sooner, 15 minutes after its begin or its last accepted part. An expired upload counts toward no budget; once it is an hour past expiry it is removed at the next upload or retention run |
-| `uploads.enabled` | `false` | scoped uploads: private, resumable uploads a person or a service token names by reference as a catalog submission original, an automation input or a [file reference](api.md#file-references). Off by default, and upgrading leaves them off; turning them on adds `uploads.instanceBudgetBytes` to what the blob store may hold (see below). See [resumable uploads](resumable-uploads.md) |
-| `uploads.maxFileBytes` | `67108864` | largest single upload (64 MiB); at most `4294967296` (4 GiB). A catalog original is also capped at `submit.maxBytes`. Over it: `413 UPLOAD_TOO_LARGE` |
-| `uploads.ownerBudgetBytes` | `134217728` | bytes one person or service token may hold in uploads that have not expired (128 MiB). Over it: `413 UPLOAD_BUDGET` |
-| `uploads.instanceBudgetBytes` | `268435456` | bytes all owners together may hold (256 MiB). Over it: `413 INSTANCE_UPLOAD_BUDGET` |
-| `uploads.uploadTtlHours` | `24` | the longest an unfinished upload stays open; at most 720. It expires sooner, 15 minutes after its begin or its last accepted part |
-| `uploads.readyTtlHours` | `24` | how long a finished upload can be named after it finished; at most 720. A catalog submission removes its upload sooner |
-| `uploads.fileTtlHours` | `168` | how long a finished file reference can be read and named after it finished (a week); at most 720. Its owner can delete it sooner |
+| `nearby.enabled` | `true` | instance-mediated "nearby" presence: the `collab.nearby` capability bit and both `/api/v1/collab/nearby` routes. `false` keeps the whole surface dark fleet-wide |
 
-`policy.invites` is optional; leaving it out keeps the defaults above. Unknown keys and
-values outside the lists are refused at startup. The tier and the domain list govern
-invitations, which let someone new sign in; sharing a project with someone who already has
-an account needs manager on the project and an allowed role only. The console does not edit
-this block (its configuration document covers grants, overlays, chains, providers, flags and
-catalog fields), so change it in the configuration and redeploy. Lolly reads the limits from
-org-config. See [sharing](sharing.md#invite-policy).
+`policy.invites` is optional; leaving it out keeps the defaults above. Unknown keys and values
+outside the lists are refused at startup, here and in `policy.sharing` and `policy.ai`.
+
+The tier and the domain list govern invitations, which let someone new sign in; sharing a project
+with someone who already has an account needs manager on the project and an allowed role only.
+The console does not edit this block (its configuration document covers grants, overlays, chains,
+providers, flags and catalog fields), so change it in the configuration and redeploy. See
+[invite policy](invitations.md#invite-policy).
 
 ```json
 "policy": {
@@ -255,14 +260,55 @@ default, and suggests the password tick for `example.com` addresses:
 }
 ```
 
-`policy.projectFiles` values are whole numbers above zero, with `maxFileBytes` no larger than
-`projectBudgetBytes` and `projectBudgetBytes` no larger than `instanceBudgetBytes`; anything
-else is refused at startup. Budgets count finished files and unfinished uploads that have not
-expired, each at its size plus 4096 bytes for its database rows, so many tiny files fill a budget
-too. One person's unfinished uploads may declare twice `maxFileBytes` in all, and one person may
-download twice `instanceBudgetBytes` a day (counted per server process). The defaults are sized for a small hosted Postgres that also holds the file bytes (the
-`pg` blob driver); Neon's free plan, for example, has 1 GB of storage in all and stops writes
-past that storage limit. Raise them only with the storage to match.
+### Comments and versions
+
+| Key | Default | What it does |
+|---|---|---|
+| `comments.enabled` | `true` | durable canvas review; `false` disables reading and writing comment threads without changing session access |
+| `comments.mentions` | `true` | `@` mentions in comments and the `comment-people` list behind them; `false` stores no mentions and refuses that list. See [canvas comments](api.md#canvas-comments) |
+| `comments.notices` | `true` | inbox notices for mentions and replies; `false` writes none and hides the ones already written (they are still removed at 30 days) |
+| `comments.emailTitles` | `false` | name the document in mention email. Off, a private document's title is not sent to a mail provider. Mention email itself is a seam that is off in this release |
+| `versions.maxBytes` | `1073741824` | bytes of saved-version content all documents together may hold (1 GiB); one document may hold at most 100 MiB. Over it the oldest automatic versions are removed first, then a named save or a restore answers `409 VERSION_SPACE`. See [data lifecycle](data-lifecycle.md#session-versions) |
+
+### Files and uploads
+
+| Key | Default | What it does |
+|---|---|---|
+| `projectFiles.enabled` | `true` | shared files inside team projects. They also need a durable store: on the memory store they are off whatever this says. See [shared files](team-projects.md#shared-files) |
+| `projectFiles.maxFileBytes` | `26214400` | largest single file (25 MiB); at most `4294967296` (4 GiB, migration 0075). Over it: `413 PROJECT_FILE_TOO_LARGE` |
+| `projectFiles.projectBudgetBytes` | `134217728` | bytes of files one project may hold (128 MiB). Over it: `413 PROJECT_FILE_BUDGET` |
+| `projectFiles.instanceBudgetBytes` | `268435456` | bytes of files all projects together may hold (256 MiB). Over it: `413 INSTANCE_FILE_BUDGET` |
+| `projectFiles.uploadTtlHours` | `24` | the longest an unfinished upload stays open; at most 720. It expires sooner, 15 minutes after its begin or its last accepted part. An expired upload counts toward no budget; once it is an hour past expiry it is removed at the next upload or retention run |
+| `uploads.enabled` | `false` | scoped uploads: private, resumable uploads a person or a service token names by reference as a catalog submission original, an automation input or a [file reference](api.md#file-references). Off by default, and upgrading leaves them off; turning them on adds `uploads.instanceBudgetBytes` to what the blob store may hold (see below). See [resumable uploads](resumable-uploads.md) |
+| `uploads.maxFileBytes` | `67108864` | largest single upload (64 MiB); at most `4294967296` (4 GiB). A catalog original is also capped at `submit.maxBytes`. Over it: `413 UPLOAD_TOO_LARGE` |
+| `uploads.ownerBudgetBytes` | `134217728` | bytes one person or service token may hold in uploads that have not expired (128 MiB). Over it: `413 UPLOAD_BUDGET` |
+| `uploads.instanceBudgetBytes` | `268435456` | bytes all owners together may hold (256 MiB). Over it: `413 INSTANCE_UPLOAD_BUDGET` |
+| `uploads.uploadTtlHours` | `24` | the longest an unfinished upload stays open; at most 720. It expires sooner, 15 minutes after its begin or its last accepted part |
+| `uploads.readyTtlHours` | `24` | how long a finished upload can be named after it finished; at most 720. A catalog submission removes its upload sooner |
+| `uploads.fileTtlHours` | `168` | how long a finished file reference can be read and named after it finished (a week); at most 720. Its owner can delete it sooner |
+
+Both blocks take whole numbers above zero, each cap no larger than the budget above it:
+`maxFileBytes` no larger than `projectBudgetBytes` (or `ownerBudgetBytes`), and that no larger
+than `instanceBudgetBytes`. Anything else is refused at startup. Budgets count finished files
+and unfinished uploads that have not expired, each at its size plus 4096 bytes for its database
+rows, so many tiny files fill a budget too; a file reference also counts the size of its
+`derivedFrom` and report as JSON. One person's unfinished project-file uploads may declare twice
+`maxFileBytes` in all, one owner may hold 16 unfinished uploads at once, and one person may
+download twice the project files' `instanceBudgetBytes` a day (counted per server process).
+
+The defaults are sized for a small hosted Postgres that also holds the file bytes (the `pg`
+blob driver); a small hosted plan can stop accepting writes once its storage allowance is used.
+Raise them only with the storage to match.
+
+Scoped uploads are off until `policy.uploads.enabled` is `true`, and an upgrade does not turn
+them on. Their bytes live in the same blob store as project files, under a separate instance
+budget, so the two instance budgets add up: with both defaults the blob store may hold 512 MiB
+of uploads instead of 256 MiB. A begin needs `tool.use` or `catalog.submit`, and members hold
+`tool.use` by default, so most members and service tokens can use that room. Size both budgets
+against the storage before turning uploads on.
+
+::: details Three budget examples
+Tighter project files for a small database:
 
 ```json
 "policy": {
@@ -270,18 +316,7 @@ past that storage limit. Raise them only with the storage to match.
 }
 ```
 
-`policy.uploads` follows the same rules: whole numbers above zero, with `maxFileBytes` no
-larger than `ownerBudgetBytes` and `ownerBudgetBytes` no larger than `instanceBudgetBytes`.
-Budgets count every upload that has not expired, finished or not, at its size plus 4096
-bytes, and a file reference also at the size of its `derivedFrom` and report as JSON. One owner
-may hold 16 unfinished uploads at once.
-
-Scoped uploads are off until `policy.uploads.enabled` is `true`, and an upgrade does not turn
-them on. Their bytes live in the same blob store as project files, under a separate instance
-budget, so the two instance budgets add up: with both defaults the blob store may hold 512 MiB
-of uploads instead of 256 MiB. A begin needs `tool.use` or `catalog.submit`, and members hold
-`tool.use` by default, so most members and service tokens can use that room. Size both
-budgets against the storage before turning uploads on. To keep the total at 256 MiB, split it:
+Uploads on, with the blob store still capped at 256 MiB in all:
 
 ```json
 "policy": {
@@ -290,31 +325,48 @@ budgets against the storage before turning uploads on. To keep the total at 256 
 }
 ```
 
-To take a 500 MiB recording into a project, for example, lift the project file cap and its
-budgets together:
+Room for a 500 MiB recording in a project, lifting the file cap and its budgets together:
 
 ```json
 "policy": {
   "projectFiles": { "maxFileBytes": 629145600, "projectBudgetBytes": 1073741824, "instanceBudgetBytes": 2147483648 }
 }
 ```
+:::
+
+### Catalog and submissions
+
+| Key | Default | What it does |
+|---|---|---|
+| `submit.maxBytes` | `67108864` | per-file cap on a catalog submission (64 MiB, matching publish-out). Over it: `413 PAYLOAD_TOO_LARGE` |
+| `submit.chain` | *unset* | approval chain id gating submissions. Unset means no review: a submitted asset is live the moment it is stored. Set to a chain that does not exist, submissions are refused (`503 SUBMIT_CHAIN_MISSING`) rather than published unreviewed |
+| `submit.quota.bytes` | `0` | cumulative byte ceiling per group; `0` is unlimited |
+| `submit.quota.count` | `0` | cumulative submission-count ceiling per group; `0` is unlimited |
+| `catalog.versionKeep` | `0` | how many versions of one instance asset to keep, head included. `0` keeps every version; a positive number trims oldest-first and deletes the trimmed bytes. The served version is never trimmed, and a held asset is never trimmed at all |
 
 Submit is **open to authors** by default: anyone holding `catalog.submit` submits and the
 asset goes live immediately. Name a `submit.chain` when the org wants review. Quota scopes are
 group names, and a submission is charged to every group its submitter belongs to, so extra
 memberships only tighten a member's budget. See [catalog](catalog.md#submitting-an-asset).
 
-`catalog.versionKeep` keeps everything by default; set a ceiling only when you deliberately
+`catalog.versionKeep` keeps everything by default; set a ceiling only when you
 want to bound blob growth - see
 [operations](operations.md#blob-growth-and-version-retention) and
 [catalog](catalog.md#versions).
 
-Shorter `sessionTtlHours` bounds token lifetime if a directory change has not yet reached
-Work. With `sessionMaxHours` set, a cookie in use is renewed up to that cap, but each
-renewal checks the account, its session epoch and admission again first, so a person who
-left the lists stops at the end of their current cookie. Once Work receives a group/role change, authorization uses the live record on each
-request. Account disable and a session-epoch bump revoke existing member tokens on their
-next authenticated request. Token expiry does not replace the offboarding integration.
+### Telemetry, activity and retention
+
+| Key | Default | What it does |
+|---|---|---|
+| `telemetry` | `standard` | `off`, `aggregate`, `standard` |
+| `telemetryAttribution` | `opt-in` | `opt-in` strips the user id until the user consents; `default` attributes at `standard` |
+| `activity.mode` | `delegated` | `off` disables the activity timeline and agent activity dashboard; `owner-only` restricts them to owners; `delegated` also admits principals holding `audit.export`. Audit reads of those feeds record the reader and filter names, without query values. Security audit endpoints retain their own permissions |
+| `activity.auditSessionUpdates` | `true` | record routine API document saves as `session.update`. Set `false` to omit those new events; other security events and shared document history remain |
+| `retention.telemetryDays` | `0` | delete telemetry events older than this; `0` keeps everything |
+| `retention.auditDays` | `0` | trim audit rows older than this. The chain stays verifiable (the boundary's seq + hash are anchored before anything is deleted, and the head row is never trimmed), and a trim never passes the SIEM delivery cursor - an unreachable receiver pauses audit retention rather than losing events. See [operations](operations.md#retention-and-erasure) |
+| `fleet.minEngine` | *unset* | advisory engine version floor (dotted, e.g. `"1.140.0"`): below-floor engines are highlighted in the Fleet view with an upgrade nudge; nothing is blocked or force-upgraded |
+
+What each telemetry level stores, and what is never recorded, is in [telemetry](telemetry.md).
 
 ## `render`
 
@@ -335,36 +387,23 @@ fixtures. For an internal CA, mount its public PEM read-only and set
 continues to authenticate the control plane. TLS certificates and trust mounts
 need their own deployment qualification.
 
-`policy.serviceTokens.allowLegacyUnbounded` defaults to `true` for existing
-credentials without expiry. New service credentials always use a bounded expiry.
-Rotate the legacy integrations before deliberately setting the policy to `false`.
-
 Every tool in the committed `packs/demo` ships hooks, so `instance.example.json` and
-`values-eval.yaml` both set `allowHooksInFastPath: true` - that pack is curated in this
-repo end to end. Repoint `instance.pack` at a pack you do not fully control and this goes
-back to `false`, with a Chromium worker for the hooked tools.
+`values-eval.yaml` both set `allowHooksInFastPath: true`: that pack is curated in the Work
+repository end to end. Point `instance.pack` at a pack you do not fully control and set it back
+to `false`, with a Chromium worker for the hooked tools.
 
-The Chromium worker always enables its browser sandbox. A bounded launch begins
-at startup, and `/readyz` stays unavailable until the browser connects. Failed
-startup or recovery stops the worker without an unsandboxed fallback.
-`LW_RENDER_BROWSER_STARTUP_TIMEOUT_MS` controls that budget (default `30000`,
-integer from `1000` to `120000`); Helm uses
-`renderWorker.browserStartupTimeoutMs`. Qualify the exact Linux image and target
-runtime with the existing non-root, seccomp and container permissions before
-rollout. A host that refuses the sandbox must remain out of service until its
-runtime is qualified. The separate evaluation `allowHooksInFastPath` setting runs
-curated demo hooks in `node:vm` and has no browser isolation; keep that setting
-false when preparing production packs.
+The Chromium worker always runs its browser sandbox. A bounded launch begins at startup, and the
+worker's `/readyz` stays unavailable until the browser connects; failed startup or recovery
+stops the worker, with no unsandboxed fallback. Qualify the exact Linux image and target runtime
+with the existing non-root, seccomp and container permissions before rollout, and keep a host
+that refuses the sandbox out of service until its runtime is qualified.
 
-The worker itself takes `LW_RENDER_MAX_CONCURRENT` (default `4`, Helm
-`renderWorker.maxConcurrent`): its per-pod render/rasterise cap. At capacity it answers
-`503 RENDER_BUSY` + `Retry-After` immediately - no internal queueing, so saturation stays
-visible to the HPA - and drops out of readiness (`/readyz`) until a slot frees. Its own
-timeouts are `LW_RENDER_NAV_TIMEOUT_MS`, `LW_RENDER_EXPORT_TIMEOUT_MS` and
-`LW_RENDER_TS_SKEW_MS` (HMAC clock skew between plane and worker) - see
-`workers/render/README.md`.
-
-Worker HMAC key and C2PA private key are secrets - see below and [c2pa](c2pa.md).
+At capacity the worker answers `503 RENDER_BUSY` with `Retry-After` at once, with no internal
+queue, so saturation stays visible to the autoscaler, and it drops out of readiness until a slot
+frees. Its concurrency, timeouts and startup budget are set in its own environment (see
+[Render worker](#render-worker)); on Helm, `renderWorker.maxConcurrent` and
+`renderWorker.browserStartupTimeoutMs` set the first and the last. The worker HMAC key and the C2PA private key are secrets; see
+[Secrets](#secrets) and [c2pa](c2pa.md).
 
 ## `audit`
 
@@ -385,14 +424,14 @@ restricted deletion access in the receiving system - see [audit](audit.md).
 | `users` | `[]` | `{ email, name?, groups? }` entries the dev provider will admit |
 
 **Keep this off in production.** It bypasses OIDC entirely, and setting `idp.issuer` does
-not turn it off - the two coexist happily and the passwordless route stays live. The server
+not turn it off - the two run side by side and the passwordless route stays live. The server
 warns at boot when it finds both.
 
 ## `proxyAuth`
 
 Reverse-proxy sign-in: an authenticating proxy in front of the instance (YunoHost's SSOwat,
 Authelia, oauth2-proxy) states who the person is in request headers. See
-[identity](identity.md#reverse-proxy-sign-in) for the contract and the security posture.
+[reverse-proxy sign-in](identity-providers.md#reverse-proxy-sign-in) for the contract and the security posture.
 
 | Key | Default | What it does |
 |---|---|---|
@@ -417,12 +456,13 @@ Authelia, oauth2-proxy) states who the person is in request headers. See
 
 | Key | Default | What it does |
 |---|---|---|
-| `enabled` | `true` | per-IP token buckets on the auth, telemetry and link surfaces |
+| `enabled` | `true` | per-IP token buckets on the auth, telemetry, link and automation surfaces; other routes are not throttled here |
 | `trustedProxyHops` | `0` | how many reverse proxies to trust in `X-Forwarded-For`. `0` reads only the socket peer. Behind one ingress, set `1` |
 | `maxBuckets` | `50000` | bucket table cap |
-| `auth` | `capacity 10, refillPerSec 0.2` | sign-in attempts, including each email and password guess and each use of a password link, and the invite page's and refusal page's forms (`/api/auth/invite`, `/api/auth/request`) |
+| `auth` | `capacity 10, refillPerSec 0.2` | sign-in attempts (`/api/auth/login`, the callback, linking a sign-in, passkeys, proxy sign-in, device sign-in and provider logout), including each email and password guess and each use of a password link, the invite page's and refusal page's forms (`/api/auth/invite`, `/api/auth/request`), and the instance card (`GET /api/v1/instance`) |
 | `telemetry` | `capacity 120, refillPerSec 4` | event ingest |
-| `link` | `capacity 30, refillPerSec 1` | signed-link resolution, including invite pages (`/l/invite/`) |
+| `link` | `capacity 30, refillPerSec 1` | signed-link resolution, including invite and join pages (`/l/invite/`, `/l/join/`), and the instance pack download (`/connect/pack.lolly`) |
+| `automation` | `capacity 120, refillPerSec 2` | the automation API (discovery, schemas, the document verbs, `/api/v1/render`, durable renders, render batches, `/api/v1/batch` and jobs), `GET /render/…`, agent connections (`/api/workspace/mcp`) and the outbound delivery `POST`s |
 
 ## `blobs`
 
@@ -452,6 +492,7 @@ thresholds and alerts administrators when one is reached: see
 | `pg` | One `bytea` value per blob. Every write and read holds the whole blob in Work's memory, and a read briefly needs several times the blob's size because PostgreSQL returns `bytea` as hex text. | At most 500 MiB per blob, because PostgreSQL could store a larger value but not return a blob of that size. Blobs share the database's storage, backups and a pool of four connections, so large files slow the database for everyone. |
 | `s3` | Streams in 8 MiB parts. A blob that fits in one part is a single `PUT`; a larger one is a multipart upload. A failed or refused upload is aborted, and the object already under that key stays until an upload completes. Reads stream from the store. | 10,000 parts per upload. When the caller gives the length in advance, parts grow past 8 MiB so the blob still fits. A part that fails with a server error or a dropped connection is retried twice. |
 
+::: details How S3 uploads are checked, and the permissions to grant
 Each S3 request signs the SHA-256 of its own body, so the store refuses a part that changed in
 transit. Work also computes the SHA-256 of the whole blob as the parts go out, and records it on
 the object as `x-amz-meta-sha256` when it is known before the object is created: always for a
@@ -472,6 +513,7 @@ reads as missing rather than refused. Where the store supports it, add a lifecyc
 (`AbortIncompleteMultipartUpload`) that removes incomplete multipart uploads after a day: a
 server that stops during an upload leaves its parts behind, and the store keeps them, and bills
 for them, until they are removed.
+:::
 
 ## `delivery`
 
@@ -553,21 +595,28 @@ relay never fails or slows a request. What gets sent, and to whom, is written up
 
 ### Emailing people notices
 
-People notices go through one function (`server/src/notify/people.ts`), which writes the
-inbox message and, once email is on, also mails each recipient's verified address, or the
-address of an invitee or a person asking to join who has no account yet. Email is off by
-default, and every page and answer says so: the request page says the instance does not
-send email yet, and the console never shows "Emailed" for a mail that did not go.
+People notices are access requests and their answers, accepted invitations, and invitations and
+approved requests to join for addresses with no account yet. They go through one function
+(`server/src/notify/people.ts`), which writes the inbox message and, once email is on, also
+mails each recipient's verified address, or the address of an invitee or a person asking to join
+who has no account yet.
 
-Email is on only when all three hold: `people.email` is `true`, `smtp` is set, and the
-server's mail sender can confirm that the relay accepted each message. The sender in this
-release sends and forgets, so it cannot confirm, and people notices stay inbox-only even
-with the first two set. Still to be built: that confirming sender; plain-text mails sent as
-"Ana via Example Studio" from the `smtp.from` address, which never carry text a person wrote
-(such as a request note) and end with "Not expecting this? You can ignore this email." and
-a link to stop emails from the instance; and caps of 50 invitation emails a day per
-inviter, one email per address a day, and one per request to each approver. Once a release
-carries them, switching email on takes these steps:
+In this release they stay inbox-only, and every page and answer says so: the request page says
+the instance does not send email yet, and the console never shows "Emailed" for a mail that did
+not go. Email turns on only when all three hold: `people.email` is `true`, `smtp` is set, and the
+server's mail sender can confirm that the relay accepted each message. This release's sender
+sends and forgets, so it cannot confirm.
+
+Still to be built: that confirming sender; plain-text mails sent as "Ana via Example Studio"
+from the `smtp.from` address, which never carry text a person wrote (such as a request note) and
+end with "Not expecting this? You can ignore this email." and a link to stop emails from the
+instance; and caps of 50 invitation emails a day per inviter, one email per address a day, and
+one per request to each approver.
+
+Keep using **Copy invite message** after email is on: a message sent from your own account is
+the one a new person is most likely to trust.
+
+::: details Switching email on, once a release sends people notices
 
 1. **Pick a provider** that gives you an SMTP relay on port 587 with STARTTLS and its own
    DNS records, such as Postmark, or Amazon SES. The sender address needs no mailbox.
@@ -599,14 +648,12 @@ carries them, switching email on takes these steps:
 4. **Check.** Wait until the provider shows the domain as verified. Then approve a request
    to join from a spare address, or invite one, and read the delivered mail's headers:
    they should show `spf=pass`, `dkim=pass` and `dmarc=pass`.
-
-Keep using **Copy invite message** after email is on: a message sent from your own account
-is the one a new person is most likely to trust.
+:::
 
 ## `siem`
 
-Audit events pushed to the org's own receiver in signed batches (plans/35). `url` absent
-(the default) means off. Loss-free by construction: the audit log is the outbox, a durable
+Audit events pushed to the org's own receiver in signed batches. `url` absent
+(the default) means off. Nothing is lost: the audit log is the outbox, a durable
 cursor records the highest seq the receiver confirmed, and a refused batch replays whole.
 Long-lived server only - on a serverless deploy, poll `GET /api/v1/audit` with a service
 token instead. Delivery lag is the `lw_siem_lag` gauge on `/metrics`.
@@ -625,6 +672,13 @@ see [account lifecycle operations](account-lifecycle.md#siem-projection-format).
 ## `catalogProviders`
 
 Server-side catalog connectors use `network.providers` for outbound requests.
+
+| Key | Default | What it does |
+|---|---|---|
+| `network.providers.allowedPrivateOrigins` | `[]` | exact origins (scheme, host and port) a connector may reach although they resolve to private addresses |
+| `network.providers.redirectOrigins` | `[]` | exact origins a GET or HEAD read may be redirected to from another origin |
+| `network.providers.maxBytes` | `67108864` | largest request and decoded response (64 MiB), from 1 byte to 1 GiB |
+
 Initial destinations must resolve entirely to public addresses unless their exact
 origin appears in `allowedPrivateOrigins`. Private deployments list only reviewed
 origins, including the intended scheme and port; paths and wildcards are refused.
@@ -679,8 +733,6 @@ instead ([hiding tags](catalog.md#hiding-tags)).
 | `LW_LINK_SECRET` | required in prod | link signature key |
 | `LW_LINK_SECRET_PREVIOUS` | during a rotation | same window contract for outstanding signed links |
 | `LW_IDP_CLIENT_SECRET` | if your IdP issues one | OIDC confidential client secret |
-| `LW_LOG_FORMAT` | `text` | `json` writes one JSON object per log line (and turns the http access line on) for a log pipeline |
-| `LW_LOG_HTTP` | off | `1` writes an access line per request in text mode: request id, method, route label, status, ms |
 | `LW_PROXY_AUTH_SECRET` | with `proxyAuth.enabled` | the shared secret the reverse proxy injects as `x-lw-proxy-auth`. The name is `proxyAuth.secretRef`; `proxyAuth.directory.bindPasswordRef` identifies the LDAP bind password the same way |
 | `LW_CREDENTIAL_SECRET` | once a provider credential is stored | master key sealing credentials at rest (AES-256-GCM) |
 | `LW_METRICS_TOKEN` | to scrape remotely | bearer token for `/metrics`. Required in production and proxied deployments; unset permits loopback only in an unproxied evaluation instance |
@@ -693,6 +745,10 @@ instead ([hiding tags](catalog.md#hiding-tags)).
 | `LW_BLOBS_S3_CREDENTIAL` | with `blobs.driver: s3` | `<accessKeyId>:<secretAccessKey>` for the blob bucket |
 | `<credentialRef>` | per config-managed provider or delivery destination | resolved at boot, never persisted |
 
+In development, `LW_SESSION_SECRET` and `LW_LINK_SECRET` fall back to ephemeral randoms, so
+sessions die on restart. In production (`NODE_ENV=production`) their absence throws.
+
+::: details Optional media proofs
 Optional media proofs come from the mounted publisher's verified catalog
 envelope. Original bytes must match its full SHA-256 digest before Work signs a
 caller-scoped resource map. Visible tool and asset entries and the verified,
@@ -705,30 +761,61 @@ bytes omit the optional resource and require the shell's safe preview fallback.
 Resource work is bounded to 4,096 referenced paths, 64 MiB per file and 256 MiB
 of checked bytes per view. A source pack without signed media proofs still
 supports tool rendering; qualify preview behavior with the paired shell release.
+:::
 
-In development, `LW_SESSION_SECRET` and `LW_LINK_SECRET` fall back to ephemeral randoms, so
-sessions die on restart. In production (`NODE_ENV=production`) their absence throws.
-
-### Everything else
+### Server
 
 | Var | Default | What |
 |---|---|---|
 | `LW_CONFIG` | `./instance.json` | config file **path**. The one the standalone server, Compose and Helm read |
-| `LW_CONFIG_JSON` | - | the whole config as a **string**. Read only by the Vercel entrypoint (`api/_lib/bootstrap.ts`); the standalone server ignores it |
 | `DATABASE_URL` | - | Postgres. Unset ⇒ in-memory store (evaluation only) |
+| `DATABASE_URL_UNPOOLED` | - | a direct (unpooled) Postgres URL that migrations run over when set; otherwise they use `DATABASE_URL` |
 | `LW_AUTO_MIGRATE` | `true` when unset | boot-time DDL. `false`/`0`/`off`/`no`/empty ⇒ no DDL and refuse to start on a pending schema (the HA invariant) |
 | `LW_SEED_CONFIG` | - | path to a governance document applied at boot; trusted and idempotent ([governance](governance.md)) |
 | `LW_ALLOW_STALE_SHELL` | - | `1` downgrades the stale-shell boot refusal to a warning |
+| `LW_BACKGROUND_POLL_MS` | `1000` | how often the durable render and automation runners look for queued work. `0` sets no timer: work still runs at boot and on submission, so a database that scales to zero can sleep. See [deployment](deployment.md) |
+| `LW_LIVE_RELAY_ORIGIN` | - | the bare HTTPS origin of a live-session relay on another origin; added, with its `wss://` form, to the served shell's `connect-src` |
+| `LW_RENDER_LEGACY_RESVG` | - | `1` forces the in-process resvg raster path even when a Chromium worker is configured, as a fallback if the worker's raster path misbehaves |
 | `PORT` | `8787` | listen port |
 | `NODE_ENV` | - | `production` makes secret checks fail-closed |
+| `LW_LOG_FORMAT` | `text` | `json` writes one JSON object per log line (and turns the http access line on) for a log pipeline |
+| `LW_LOG_HTTP` | off | `1` writes an access line per request in text mode: request id, method, route label, status, ms |
+
+### Serverless entrypoint
+
+The serverless function entrypoint (`api/_lib/bootstrap.ts`) reads these; the standalone server
+ignores them.
+
+| Var | Default | What |
+|---|---|---|
+| `LW_CONFIG_JSON` | - | the whole config as a **string**. Read only by the serverless function entrypoint (`api/_lib/bootstrap.ts`); the standalone server ignores it |
+| `LW_BASE_URL` | - | serverless entrypoint only, with no `LW_CONFIG_JSON`: the `instance.baseUrl` of the inert fallback configuration |
+| `LW_BOOT_TIMEOUT_MS` | `30000` | serverless entrypoint only: how long requests wait for a boot before they fail and the next request starts a fresh one |
+
+### Tests and the demo
+
+| Var | Default | What |
+|---|---|---|
 | `LW_TEST_DATABASE_URL` | - | enables the Postgres conformance leg in `pnpm test` |
 | `LW_TEST_S3_ENDPOINT`, `LW_TEST_S3_CREDENTIAL` | - | with `LW_TEST_DATABASE_URL`, run the process-level automation lease acceptance (`tests/automation-leases-process.test.ts`) against a disposable S3-compatible store. The credential is `<accessKeyId>:<secretAccessKey>`; the bucket is `LW_TEST_S3_BUCKET` (default `lolly-work-test`) and is created when missing |
 | `LOLLY_OSS_DIR` | `../lolly` | where `pnpm run demo` finds the built OSS web shell |
 | `LW_DEMO_MOCK_ASSETS` | - | `pnpm run demo` only: also seeds a mock provider, `demo-dam-large`, with this many synthetic assets (half SVG, half PNG, up to 200000) for checking the shell against a large catalog |
 
-## Changing configuration
+### Render worker
 
-Config is read at boot: edit and restart (Helm: update the ConfigMap and roll). Anything
-you want to change *without* a restart belongs in governance - grants, overlays, chains,
-feature flags, provider exposure - which is live-editable in the console and exportable as
-code. See [governance](governance.md).
+The Chromium render worker is a separate process with its own environment.
+
+| Var | Default | What |
+|---|---|---|
+| `LW_RENDER_WORKER_SECRET` | - | required: the shared HMAC key, the same value as on the server |
+| `LOLLY_WEB_BASE` | - | required: the HTTPS address of the Lolly shell the worker drives (HTTP only for localhost development) |
+| `LW_RENDER_TLS_CERT_FILE`, `LW_RENDER_TLS_KEY_FILE` | - | the worker's certificate chain and matching key, read-only files. Required in production |
+| `LW_RENDER_TLS_SERVER_NAME`, `LW_RENDER_TLS_CA_FILE` | - | the service name and private CA bundle the worker's own TLS health check uses |
+| `LW_RENDER_DEPLOYMENT_MODE` | - | `production` requires TLS; `evaluation` listens over HTTP on loopback only. Unset follows `NODE_ENV` |
+| `LW_RENDER_ALLOWED_ORIGINS` | - | comma-separated origins a rendered page may reach even on a private address, such as an internal asset host; plain origins, no paths |
+| `LW_RENDER_REQUIRE_USER_NAMESPACE` | - | `1` stops the worker before Chromium starts unless it runs in its own user namespace; Helm sets it when it grants the sandbox capabilities |
+| `LW_RENDER_MAX_CONCURRENT` | `4` | renders at once per worker |
+| `LW_RENDER_NAV_TIMEOUT_MS`, `LW_RENDER_EXPORT_TIMEOUT_MS` | `30000`, `20000` | per-render timeouts |
+| `LW_RENDER_TS_SKEW_MS` | `300000` | the clock skew the request HMAC tolerates between server and worker |
+| `LW_RENDER_BROWSER_STARTUP_TIMEOUT_MS` | `30000` | browser startup and recovery budget, from 1000 to 120000 |
+| `PORT` | `8791` | listen port |

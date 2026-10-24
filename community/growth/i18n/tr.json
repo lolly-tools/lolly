@@ -1,4 +1,4 @@
 {
   "name": "Büyüme",
-  "description": "Diferansiyel büyüme: kendini iterek sonunda mercana dönüşen bir çizgi. Bir halkadan, bir patlamadan, başlığının harflerinden ya da logondan başlat ve sonucu gerçek, plotere hazır SVG yollarıyla dışa aktar."
+  "description": "Diferansiyel büyüme: kendini iten ve mercan gibi kıvrılana kadar uzayan bir çizgi. Bir halkadan, patlamadan, başlık harflerinden ya da logodan başlat; sonucu plotter'a hazır gerçek SVG yolları olarak dışa aktar."
 }

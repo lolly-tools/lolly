@@ -27,3 +27,7 @@ Zuschreibung, Herkunft, Privatsphäre & Zustimmung
 Kreativität & Vertrauen inmitten des Unendlichen
 
 jeder kann erschaffen, in jedem Maßstab, überall
+
+## Warum
+
+### [Weil wir auf den Schultern von Riesen stehen](/info/trust/shoulders-of-giants.html)

@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { storeZip } from '../engine/src/zip.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 const origin = process.env.LOLLY_HISTORY_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL or LOLLY_EXPORT_TEST_URL not set (serve the web shell locally)';
 if (origin) assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname));
@@ -40,6 +41,7 @@ test('Strip Hidden Data inspects Office files with masked details and no cleaned
     assert.equal(await page.locator('[data-export-file]').count(), 0);
     assert.doesNotMatch(await page.locator('.exif-findings').innerText(), /CONFIDENTIAL_OFFICE_AUTHOR/);
     await page.locator('label[for="exif-show-details"]').click(); assert.match(await page.locator('.exif-findings').innerText(), /CONFIDENTIAL_OFFICE_AUTHOR/);
+    await settledUrl(page); // the address the tool is still writing counts too
     assert.doesNotMatch(await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage }, url: location.href })), /CONFIDENTIAL_OFFICE_AUTHOR|private-file/);
   } finally { await browser.close(); }
 });

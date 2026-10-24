@@ -1,6 +1,6 @@
 {
   "name": "Fragmento",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Presenta texto en una ventana de escritorio, como imagen fija o como una interacción dirigida con escritura, selecciones, autocompletado y movimiento.",
   "inputs.code.label": "Código",
   "inputs.code.placeholder": "Pega tu código aquí…",
   "inputs.fileName.label": "Nombre de archivo",

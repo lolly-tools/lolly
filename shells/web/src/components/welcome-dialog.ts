@@ -10,7 +10,7 @@
  * Escape via the `cancel` event, backdrop-box click test, mounted on <body>),
  * offering two paths:
  *
- *   "Make it yours"          → the #/start brand wizard. Persists the dismissed
+ *   "Make it yours"          → Design System Setup (#/start). Persists the dismissed
  *                              flag (audit 167 F-A5: taking a door IS an answer;
  *                              the fork re-appearing after a brand-room detour
  *                              read as amnesia). The brand room's own empty
@@ -95,7 +95,7 @@ function welcomeDoors(withImport: boolean): string {
         <span class="welcome-card-icon">${icon('heart', { size: 22 })}</span>
         <span class="welcome-card-kicker">${t('Make it yours')}</span>
         <span class="welcome-card-line">${t('Start from one colour or your design tokens - everything stays on this device.')}</span>
-        <span class="welcome-card-cta" aria-hidden="true">${t('Set up your brand →')}</span>
+        <span class="welcome-card-cta" aria-hidden="true">${t('Open Design System Setup →')}</span>
       </button>
       ${withImport ? `
       <button type="button" class="welcome-card" data-choice="import">

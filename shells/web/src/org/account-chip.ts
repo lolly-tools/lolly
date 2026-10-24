@@ -27,6 +27,7 @@ import { choiceDialog } from '../components/confirm-dialog.ts';
 import { registerAccountSlot, type AccountMenuControls } from '../lib/account-slot.ts';
 import { RECOVERY_SLOT_PREFIX, ownsRecoveryCopy, withoutRecoveryOwner } from '../lib/collab-recovery-owner.ts';
 import { getHostRef } from '../lib/host-ref.ts';
+import { flushAddressWrites } from '../lib/url-state.ts';
 import { iconNode } from '../lib/icon-node.ts';
 import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
@@ -303,7 +304,7 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps, menu?
     onClose: () => { chip.setAttribute('aria-expanded', 'false'); },
   });
 
-  const go = deps.go ?? ((hash: string) => { location.hash = hash; });
+  const go = deps.go ?? ((hash: string) => { flushAddressWrites(); location.hash = hash; });
 
   const onClick = (): void => {
     if ('isOpen' in popover && popover.isOpen()) { popover.close(true); return; }

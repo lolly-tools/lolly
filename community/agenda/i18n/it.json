@@ -1,6 +1,6 @@
 {
   "name": "Agenda",
-  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
+  "description": "Trasforma un unico programma in schermate con il tuo brand, pagine web interattive, panoramiche animate, slide PowerPoint e calendari.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} sessioni, {{trackCount}} tracce",
   "inputs.title.label": "Evento",
   "inputs.title.help": "Stampato all'inizio di ogni layout e nomina il file esportato.",

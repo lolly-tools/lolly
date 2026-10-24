@@ -1,0 +1,13 @@
+digraph learning_progress {
+  rankdir=TB
+  node [shape=box]
+  player [label="Course player\nsaves progress"]
+  store [label="IndexedDB\nthis browser"]
+  event [label="Progress event\non the player window"]
+  host [label="Host page\nsame origin"]
+  other [label="Other origin\nnot supported"]
+  player -> store
+  store -> event
+  event -> host
+  event -> other
+}

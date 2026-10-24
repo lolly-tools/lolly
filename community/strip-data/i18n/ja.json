@@ -1,6 +1,6 @@
 {
   "name": "隠しデータの削除",
-  "description": "画像やPDFに隠されたメタデータを表示・削除 - デバイス上で処理します。",
+  "description": "選択した DOCX のプロパティや画像・PDF のメタデータを削除し、その他の Office の隠れた内容を、お使いのデバイス上で確認できます。",
   "a11yLabel": "{{fileName}} の隠しデータレポート",
   "inputs.source.label": "画像またはPDF",
   "inputs.source.help": "JPEG、PNG、SVG、PDFに対応しています。ファイルはブラウザ内で読み込まれ、お使いの端末から外部に送信されることはありません。"

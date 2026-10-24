@@ -27,3 +27,7 @@ Przypisanie, pochodzenie, prywatność i zgoda
 kreatywność i zaufanie pośród nieskończoności
 
 każdy może tworzyć, w dowolnej skali, wszędzie
+
+## Dlaczego
+
+### [Ponieważ stoimy na ramionach gigantów](/info/trust/shoulders-of-giants.html)

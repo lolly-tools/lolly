@@ -30,11 +30,12 @@
  * tool before the WebGPU check has passed. mount-runtime.test.ts greps the source
  * tree to hold the line.
  */
-import { createRuntime } from '@lolly/engine';
+import { createRuntime, inRealmHookExecutor } from '@lolly/engine';
 import type { HookExecutor } from '@lolly/engine';
 import { installToolApis } from '../bridge/index.ts';
 import { getWorkerHookExecutor } from '../bridge/hook-worker.ts';
 import { webGpuChecked } from './webgpu/device.ts';
+import { canvasCostsEnabled, timeHookCalls } from './canvas-feedback.ts';
 
 type CreateRuntime = typeof createRuntime;
 
@@ -108,5 +109,15 @@ export const createToolRuntime: CreateRuntime = async (tool, host, initialState,
 export const createInteractiveToolRuntime: CreateRuntime = async (tool, host, initialState, opts) => {
   await webGpuChecked();
   await installToolApis(host as Parameters<typeof installToolApis>[0]);
-  return createRuntime(tool, host, initialState, withHookPolicy(tool, opts, true));
+  return createRuntime(tool, host, initialState, withHookTiming(withHookPolicy(tool, opts, true)));
 };
+
+/**
+ * A lab run that collects cost lanes (lib/canvas-feedback.ts) times the in-realm input
+ * hooks of the interactive view. Without one, and for any Worker-isolated tool, the
+ * options pass through untouched.
+ */
+function withHookTiming(opts: Parameters<CreateRuntime>[3] | undefined): Parameters<CreateRuntime>[3] | undefined {
+  if (opts?.hookExecutor || !canvasCostsEnabled()) return opts;
+  return { ...(opts ?? {}), hookExecutor: async (tool, host) => timeHookCalls(await inRealmHookExecutor(tool, host)) };
+}

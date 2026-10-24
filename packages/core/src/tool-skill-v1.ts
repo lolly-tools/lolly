@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { ToolManifest } from './manifest.ts';
+import { isAgentSkillName, parseSkillFrontmatter } from './skill-frontmatter-v1.ts';
 
 export const TOOL_SKILL_MAX_BYTES = 65536;
 export const TOOL_SKILL_FILES_MAX_BYTES = 524288;
@@ -86,8 +87,9 @@ export async function readToolSkill(
     if (!Array.isArray(references) || references.length > 16 || new Set(references).size !== references.length
       || references.some(path => typeof path !== 'string' || !isToolSkillReference(path))) throw new Error('Invalid tool skill reference.');
     const markdown = await read('SKILL.md');
-    if (markdown === null || bytes(markdown) > TOOL_SKILL_MAX_BYTES || !markdown.startsWith('---\n')
-      || !/^name: lolly-[a-z0-9-]+$/m.test(markdown) || !/^description: .+/m.test(markdown)) throw new Error('Invalid or missing authored SKILL.md.');
+    const frontmatter = markdown === null ? null : parseSkillFrontmatter(markdown);
+    if (markdown === null || bytes(markdown) > TOOL_SKILL_MAX_BYTES || !markdown.startsWith('---\n') || !frontmatter || frontmatter.errors.length
+      || !isAgentSkillName(frontmatter.fields.name, 'lolly-') || !frontmatter.fields.description?.trim()) throw new Error('Invalid or missing authored SKILL.md.');
     const files = { ...fallback.files };
     let total = bytes(markdown);
     for (const path of references) {

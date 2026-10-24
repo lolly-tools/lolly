@@ -10,6 +10,13 @@
 # plain directories their own configs stopped being read by anything: the two Tauri
 # shells' entries are absorbed below and their files are deleted, because a config
 # nobody reads looks like coverage and is not.
+#
+# Cooldown: every version update below waits three days after the release is
+# published (`cooldown`, matching minimumReleaseAge: 4320 in the pnpm workspace
+# files), so a compromised release has time to be found and pulled before it is
+# proposed here. Dependabot does not delay security updates, but pnpm still
+# refuses an npm version younger than three days; to take an urgent fix sooner,
+# allow that exact version with minimumReleaseAgeExclude in pnpm-workspace.yaml.
 version: 2
 updates:
   # ── pnpm workspaces ───────────────────────────────────────────────────────
@@ -22,6 +29,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 10
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
     commit-message:
@@ -77,6 +86,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
     commit-message:
@@ -87,6 +98,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
     commit-message:
@@ -108,6 +121,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
     commit-message:
@@ -118,6 +133,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
     commit-message:
@@ -130,6 +147,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
     commit-message:
@@ -142,6 +161,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
       - "ci"
@@ -160,6 +181,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
       - "ci"
@@ -183,6 +206,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
     commit-message:
@@ -195,6 +220,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
     labels:
       - "dependencies"
     commit-message:

@@ -1,6 +1,6 @@
 {
   "name": "Ajanda",
-  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
+  "description": "Tek bir programı markalı ekranlara, etkileşimli web sayfalarına, animasyonlu özetlere, PowerPoint slaytlarına ve takvimlere dönüştür.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} oturum, {{trackCount}} parça",
   "inputs.title.label": "Etkinlik",
   "inputs.title.help": "Her düzenin başına yazdırılır ve dışa aktarılan dosyayı adlandırır.",

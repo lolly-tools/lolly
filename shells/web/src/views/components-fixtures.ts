@@ -18,7 +18,7 @@ const FIXTURES: Array<[string, () => string]> = [
   ['Tile multi-select', tiles],
   ['Tile context menu', menu],
   ['Bulk-action bar (', () => row('<span class="chip chip--count">3 selected</span>', button('Download', true), button('Move'), button('Clear'))],
-  ['First-run welcome', () => panel('Make it yours.', '<p>Bring your brand. Create something that belongs to you.</p>' + row(button('Set up your brand', true), button('Explore tools')))],
+  ['First-run welcome', () => panel('Make it yours.', '<p>Bring your brand. Create something that belongs to you.</p>' + row(button('Open Design System Setup', true), button('Explore tools')))],
   ['Instance sheet', () => panel('Your workspace', '<label class="cl-fixture-label">Instance address<input class="field-input" value="https://lolly.tools" readonly></label>' + button('Connect', true))],
   ['Sound icon toggle', () => row(`<button type="button" class="btn" aria-label="Sound on">${icon('volumeOn')} Sound on</button>`, button('Muted'))],
   ['Theme cycle toggle', () => row(button('Light', true), button('Dark'), button('Brand'))],

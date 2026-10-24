@@ -2,26 +2,26 @@
 
 _Terakhir diperiksa: 28 September 2026._
 
-Lolly membuat grafik sesuai merek, unggahan media sosial, presentasi, dan tata letak di peramban. Bersama [lolly.work](https://lolly.work), Lolly juga mendukung proyek bersama, kolaborasi kerja langsung, aset yang disetujui, dan kebijakan organisasi.
+Jika tim Anda membuat postingan sosial, slide, dan flyer di Canva hari ini, halaman ini menyatakan di mana Lolly mengerjakan pekerjaan yang sama dan di mana Canva tetap lebih cocok.
+
+## Apa yang dilakukan Canva lebih baik
+
+Canva menggabungkan pustaka templat dan stok yang besar, aplikasi, dan alur kerja tim hosted dalam satu layanan terkelola. Konten siap pakai dan pengalaman itu membantu saat Anda memerlukan titik awal hari ini. Lihat [templat Canva](https://www.canva.com/templates/) dan [marketplace aplikasi](https://www.canva.com/apps/). Penyuntingan langsungnya juga memiliki riwayat operasi yang panjang pada skala yang belum dicapai work collab Lolly.
 
 ## Di mana keduanya beririsan
 
-Keduanya memungkinkan seseorang memulai dari templat dan menghasilkan grafik jadi tanpa harus menjadi desainer. Keduanya mendukung alur kerja tim dan kontrol merek: [Canva mengemasnya dalam paket bisnisnya](https://www.canva.com/canva-business/); Lolly memisahkan aplikasi kreatif dari layanan organisasi.
+Keduanya memungkinkan seseorang memulai dari templat dan menghasilkan grafik jadi tanpa menjadi desainer. Keduanya mendukung kerja tim dan kontrol brand: [Canva mengemasnya dalam paket bisnisnya](https://www.canva.com/canva-business/), sementara Lolly memisahkan aplikasi kreatif dari server organisasi.
 
-Lolly berjalan mandiri di perangkat Anda tanpa akun. lolly.work menambahkan SSO, provisioning SCIM, peran, katalog bersama, persetujuan, dan pelaporan penggunaan saat organisasi Anda membutuhkannya. Layanan ini bagian dari proyek Lolly, diterapkan secara terpisah dan berlisensi sumber terbuka MPL-2.0, seperti Lolly sendiri.
+## Bagaimana Lolly mengerjakan pekerjaan yang tumpang tindih
 
-## Templat dan kerja tim
+Alat Lolly mengodekan perubahan yang boleh dilakukan orang, dan alat yang sama berjalan di browser, aplikasi desktop, atau CLI. Tata letak yang dibuat di kanvas Design dapat menjadi [alat dengan aturan](/info/create-a-tool.html), dan satu alat dapat membuat banyak file dari tabel nilai.
 
-Canva menggabungkan pustaka templat dan stok yang besar, aplikasi, dan alur kerja tim yang di-hosting dalam satu layanan. Konten siap pakai dan pengalaman terkelola itu bisa berguna saat memilih titik awal. Lihat [templat Canva](https://www.canva.com/templates/) dan [marketplace aplikasi](https://www.canva.com/apps/).
+![Kanvas bebas Design, tempat warna, huruf, dan aset yang ditawarkan adalah milik design system sendiri](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Alat Lolly menyandikan perubahan yang diizinkan dan dapat dipakai ulang di peramban, aplikasi desktop, atau CLI. Sebuah desain dapat menjadi [alat dengan aturan](/info/create-a-tool.html), dan alat yang sama dapat menghasilkan banyak keluaran dari tabel nilai. lolly.work mengelola akses, pekerjaan bersama, dan kebijakan di sekitar alat-alat tersebut.
+Lolly mandiri menjaga pembuatan dan ekspor di perangkat, tanpa akun, dan berfungsi offline setelah asetnya disimpan. Dua orang dapat menyunting secara langsung dalam [collab privat](/info/collaborate.html), dari perangkat ke perangkat. Content Credentials aktif secara default untuk ekspor yang didukung, dan Anda dapat mematikannya.
 
-Pengeditan langsung tersedia melalui [collab pribadi](/info/collaborate.html), yang menghubungkan dua perangkat secara langsung, dan collab kerja melalui instans lolly.work milik organisasi. Collab kerja mencakup pengeditan bersama, kursor, dan sesi tim yang tersimpan. Penerapan server saat ini memakai satu node kolaborasi; skala dan riwayat operasinya berbeda dari layanan Canva yang sudah mapan.
+## Dengan organisasi
 
-## Di mana pekerjaan berada
+Lolly Work, yang dijalankan di server organisasi Anda sendiri, menambahkan login, proyek bersama, work collab langsung, aset dan kebijakan yang disetujui. [What runs where](/info/compare.html#what-runs-where) menyandingkan kedua bagian itu, dengan batasan yang dibagi setiap perbandingan.
 
-Lolly mandiri menyimpan pembuatan dan ekspor di perangkat dan dapat bekerja secara luring setelah asetnya tersedia. Kolaborasi kerja, penyimpanan tim, dan perenderan server menggunakan layanan yang dikonfigurasi organisasi. Pilihan penerapan inilah pembedanya: organisasi dapat menjalankan kedua bagian Lolly sendiri, tanpa biaya lisensi perangkat lunak per pengguna, sambil membayar hosting dan administrasinya sendiri.
-
-Content Credentials bersifat opsional untuk ekspor yang didukung. lolly.work dapat menandatangani keluaran server dengan identitas organisasi yang dikonfigurasi; verifier harus memercayai identitas itu sebelum menampilkan penandatangan sebagai tepercaya. Lihat [Identitas Content Credentials](/info/content-credentials-identity.html) dan [ringkasan solusi gabungan](/info/compare.html).
-
-Canva adalah merek dagang pemiliknya. Halaman ini menjelaskan di mana kedua solusi beririsan dan tidak berafiliasi dengan Canva.
+Canva adalah merek dagang pemiliknya. Halaman ini menjelaskan di mana kedua produk tumpang tindih dan tidak berafiliasi dengan Canva.

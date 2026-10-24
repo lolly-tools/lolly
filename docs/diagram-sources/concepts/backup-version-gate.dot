@@ -1,0 +1,16 @@
+digraph backup_version_gate {
+  rankdir=TB
+  node [shape=box]
+  change [label="A change to\nthe bundle format"]
+  additive [label="Additive\nold readers can ignore it"]
+  breaking [label="Breaking\na wrong import corrupts"]
+  bump [label="Bump formatVersion\nkeep minReader"]
+  raise [label="Bump formatVersion\nraise minReader"]
+  reader [label="Reader imports when\nminReader is at most its own"]
+  change -> additive
+  change -> breaking
+  additive -> bump
+  breaking -> raise
+  bump -> reader
+  raise -> reader
+}

@@ -90,7 +90,7 @@ test('a hosted source shows its host name only, and a locked system says how to 
   const html = tokenContextStripHtml(model);
   assert.match(html, /Hosted source \(work\.example\.com\)/);
   assert.doesNotMatch(html, /secret|token=x|\/org\//);
-  assert.match(html, /Read-only\. Start can make an editable copy\./);
+  assert.match(html, /Read-only\. Design System Setup can make an editable copy\./);
 });
 
 test('every value from a document or a system record is escaped', () => {

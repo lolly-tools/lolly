@@ -7,7 +7,7 @@
 Users can now upload custom fonts in TTF, OTF, or WOFF formats and set them as the brand font. These uploaded fonts become available across all tools in the workspace without requiring app updates.
 
 ### Usage
-1. Navigate to the Brand Studio (Design System > Appearance, or #/start Fonts tab)
+1. Navigate to Design System Setup (Design System > Appearance, or #/start Fonts tab)
 2. In the Fonts section, click **Add Font**
 3. Upload a TTF, OTF, or WOFF file from your computer
 4. The font is automatically detected and added to your brand's font library
@@ -38,7 +38,7 @@ Gradients now use OKLab color-space interpolation combined with Catmull-Rom spli
 
 ### Usage
 1. Open any tool with gradient inputs (e.g., Mesh Gradient, Design, filters)
-2. In the Brand Studio **Colour tab**, expand the gradient editor
+2. In Design System Setup's **Colour tab**, expand the gradient editor
 3. Add or edit gradient stops using the color picker
 4. A toggle labeled **Smooth Interpolation** appears; enable it for OKLab + Catmull-Rom rendering
 5. The gradient preview updates in real-time; export and compare with your design system specs
@@ -90,5 +90,5 @@ Text strokes (outlines) are now preserved when exporting to SVG, PDF, and EMF fo
 ## Future Roadmap
 
 - **Gradient animation:** Smooth gradients may support animation/interpolation between multiple gradient states (Q3 2026)
-- **Font subsetting UI:** Automatic glyph analysis and font subsetting directly in the Brand Studio (Q3 2026)
+- **Font subsetting UI:** Automatic glyph analysis and font subsetting directly in Design System Setup (Q3 2026)
 - **Text outline effects:** Gradient strokes and animated stroke dashoffset for outlined text (planned, TBD)

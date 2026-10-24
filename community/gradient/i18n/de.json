@@ -1,6 +1,6 @@
 {
   "name": "Verlauf",
-  "description": "Weiche Mesh-Verläufe aus den Farbfeldern Ihrer Marke. Ziehen Sie die Farbpunkte direkt auf der Zeichenfläche, oder aktivieren Sie Drift und exportieren Sie die Schleife als WebM, MP4 oder GIF.",
+  "description": "Fünf Wege, einen Verlauf aus den Farbfeldern des Designsystems zu bauen: weiches radiales Mischen, ein echtes Coons-Patch-Netz als scharfes SVG (Unterteilen) oder glattes Raster (Netz), frei verformbare Punkte (Verzerren) und die animierten Wellen von Fluss. Ziehen Sie alles direkt auf der Arbeitsfläche; exportieren Sie Standbilder oder nahtlose Videoschleifen.",
   "a11yLabel": "Mesh-Verlauf, der {{count}} Farben mischt",
   "inputs.count.label": "Farbpunkte",
   "inputs.color1.label": "Farbe 1 (Basis)",

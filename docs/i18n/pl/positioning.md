@@ -1,88 +1,86 @@
 # Jak Lolly wypada na tle innych
 
-To, co Lolly robi, a czego dzisiejsze narzędzia kreatywne nie robią, oraz to, co celowo pozostawia im.
-
-Wersję porównującą narzędzie po narzędziu, po jednej stronie dla Canvy, Adobe, Figmy, API do renderowania i konwerterów online, znajdziesz w [Lolly na tle innych, narzędzie po narzędziu](/info/compare.html). Każda strona podaje, co dane narzędzie robi lepiej i co Lolly robi zamiast tego.
-
-> **Status:** Lolly zostało wydane: wersja 1.0 ukazała się jako open source 30 sierpnia 2026. Jego bezpieczeństwo nie przeszło jeszcze niezależnego audytu, a dowody wdrożenia mają kilka miesięcy. Strona [Adoption & Governance](/info/adoption-governance.html#status) opisuje bieżący stan.
+Lolly to dwie części jednego projektu open source. **Lolly** to silnik, aplikacje i narzędzia do tworzenia, edycji, konwersji i eksportu na Twoim urządzeniu, bez konta. **Lolly Work** to serwer organizacji, prowadzony na Twojej własnej infrastrukturze, do logowania, wspólnych projektów, zatwierdzeń i renderowania serwerowego. Oba są na MPL-2.0. Ta strona porównuje tę parę z innymi sposobami, na jakie ludzie projektują, nadzorują i tworzą pliki.
 
 ## Dzisiejsze narzędzia
 
-Każdy pierścień poniżej ocenia, jak w pełni dana klasa produktu dostarcza daną możliwość **w obecnie dostarczanej postaci** - nie tak, jak jest marketowana - a każda klasa oceniana jest po swoim najlepszym przedstawicielu. Lolly oceniane jest tym samym nożem: bierze jedyny czerwony pierścień na planszy, za dojrzałość. Otwórz nazwę wiersza, by zobaczyć uzasadnienie ocen. Kolumny są posortowane według wiersza Overall completeness u góry - średniej z ocenianych wierszy, z pominięciem wiersza wydatków.
+Każdy pierścień ocenia, jak kompletnie klasa produktów dostarcza daną możliwość, przy czym każda klasa jest oceniana na swoim najlepszym przedstawicielu. Kolumna Lolly obejmuje Lolly i Lolly Work razem, a każdy wiersz mówi, która część co zapewnia. Otwórz nazwę wiersza, aby poznać uzasadnienie jego oceny. Kolumny są posortowane według wiersza Overall completeness na górze: średniej z ocenianych wierszy, z wyłączeniem wiersza wydatków.
 
 ::: figure positioning-comparison
-Kompletność możliwości w dzisiejszych narzędziach kreatywnych, na podstawie badania z sierpnia 2026. Punktacja: 0 brak, 25 na poziomie obejścia, 50 realne, ale ograniczone lub częściowe, 75 mocne z zastrzeżeniami, 100 kluczowa kompetencja.
+Porównanie możliwości: badania konkurencji i oceny z sierpnia 2026; pokrycie Lolly + Lolly Work sprawdzone 28 września 2026. Ocenianie: 0 brak, 25 obejście, 50 prawdziwe, ale z ograniczeniami lub częściowe, 75 mocne z zastrzeżeniami, 100 podstawowa kompetencja.
 :::
 
-**Uwagi do oceny.** Dostępne funkcje i dojrzałość produkcyjna to dwie osobne kwestie. Ocena dojrzałości Lolly odzwierciedla pierwsze publiczne wydanie w sierpniu 2026 bez niezależnego audytu bezpieczeństwa; obecność SSO, zatwierdzeń czy renderowania po stronie serwera nie ustanawia historii produkcyjnej. Opisy funkcji poniżej obejmują lolly.work, podczas gdy oceny konkurentów zachowują swój datowany przegląd z sierpnia.
+::: details Uwagi do oceniania
+Dostępne funkcje i dojrzałość produkcyjna to osobne sprawy. Lolly jest wydane: wersja 1.0 ukazała się jako open source 30 sierpnia 2026, jego bezpieczeństwo nie przeszło jeszcze niezależnego audytu, a dowody wdrożeń mają kilka miesięcy ([Adoption & Governance](/info/adoption-governance.html#status) podaje bieżący stan). Posiadanie jednokrotnego logowania, zatwierdzeń czy renderowania serwerowego nie ustanawia historii produkcyjnej, więc ocena dojrzałości to odzwierciedla. Oceny konkurentów zachowują swój datowany przegląd z sierpnia.
 
-Canva jest oceniana po najlepszym członku swojej rodziny produktów w każdym wierszu, ponieważ posiada Affinity i Cavalry (oba oddane za darmo w październiku 2025). Renderowanie offline i na urządzeniu ocenia się na 75 dzięki Affinity - pakietowi desktopowemu, który nadal wymaga zweryfikowanego konta i niesie telemetrię, co jest tym samym odliczeniem, jakie ponosi też Adobe - podczas gdy własny tryb offline Canvy edytuje wyłącznie wcześniej zsynchronizowane projekty, na jednym urządzeniu, w ograniczonym oknie czasowym. Autofill ocenia się na 50: realny, ale zablokowany za Enterprise, asynchroniczny, tylko tekst i obraz. Masowa generacja w Figmie wzrosła z 25 do 50, gdy Buzz wprowadził wypełnianie z arkusza kalkulacyjnego (darmowa beta, sierpień 2026).
+Jedna reguła rządzi tablicą. Pełne punkty (100) w wierszach dotyczących Twojej treści lub tożsamości wymagają możliwości, której można użyć bez konta i bez warunku chmury; wiersze o samym produkcie, takie jak dojrzałość i łatwość użycia, są z tego wyłączone. Ta reguła kosztuje Adobe w Content Credentials: najszersza dostarczona implementacja (Photoshop, Lightroom, Premiere, Firefly) podpisuje lokalnie i w chmurze, ale nigdy bez konta i tożsamości Adobe, więc 75. Z tego samego powodu ogranicza API renderujące w masowym generowaniu i automatyzacji.
 
-Planszą rządzi jedna zasada: pełny wynik (100) w wierszach dotykających Twojej treści lub tożsamości wymaga możliwości, z której możesz skorzystać bez konta i bez warunku chmury; wiersze opisujące sam produkt (dojrzałość, łatwość użycia) są z tego zwolnione. Kosztuje to Adobe punkty przy proweniencji: najszersze wdrożone C2PA (Photoshop, Lightroom, Premiere, Firefly) podpisuje lokalnie i w chmurze, ale nigdy bez konta Adobe i tożsamości, stąd 75. Ta sama zasada ogranicza API do renderowania w masowej generacji i automatyzacji.
+Canva jest oceniana na swoim najlepszym członku rodziny w każdym wierszu, ponieważ posiada Affinity i Cavalry (oba rozdane w październiku 2025). Renderowanie offline i na urządzeniu dostaje 75 przez Affinity, pakiet komputerowy, który nadal potrzebuje zweryfikowanego konta i niesie telemetrię, co Adobe też odlicza; własny tryb offline Canva edytuje tylko wstępnie zsynchronizowane projekty, na jednym urządzeniu, przez ograniczone okno. Autofill dostaje 50: jest prawdziwy, ale zamknięty w Enterprise i asynchroniczny, a wypełnia tylko tekst i obrazy. Masowe generowanie w Figma wzrosło z 25 do 50, gdy Buzz dostarczył wypełnianie z arkusza (darmowa beta, sierpień 2026).
 
-Wynik 75 dla proweniencji Lolly odzwierciedla podpisywanie offline na urządzeniu: architektonicznie silniejsze, ale nieaudytowane, a klucz urządzenia w standardowych walidatorach odczytywany jest jako niezweryfikowany, dopóki nie poręczy za niego tożsamość lub własny CA organizacji. 50 punktów Penpota pochodzi z oficjalnej wtyczki Lolly Export: to samo podpisywanie silnikiem, opcjonalne, ujawnione jako własność Lolly. Penpot bierze też jedyny na planszy pierścień poza skalą, 90 w renderowaniu na urządzeniu - płótno w przeglądarce, zapis do własnej suwerennej chmury (nawet laptopa), prywatny eksport; jedynie przeskok przez serwer odróżnia go od Lolly. Cloudinary otrzymuje własną kolumnę: to potok medialny (DAM, API do transformacji, CDN), i jedyna kolumna chmurowa dostarczająca C2PA (50, ponieważ fl_c2pa podpisuje przy dostarczeniu, poświadczając delivered-by-Cloudinary, a nie made-by-you).
+Ocena 75 Content Credentials w Lolly obejmuje podpisywanie na urządzeniu i podpisywanie serwerowe Lolly Work ze skonfigurowaną tożsamością organizacji; weryfikator nadal musi zaufać podpisującemu ([Content Credentials Identity](/info/content-credentials-identity.html)). 50 Penpot pochodzi z własnej wtyczki eksportu Lolly dla Penpot: to samo podpisywanie silnika, opcjonalne i ujawnione jako Lolly. Penpot dostaje 90 w renderowaniu na urządzeniu: kanwa przeglądarki z celem zapisu na jego serwerze, który można hostować samodzielnie. Cloudinary dostaje własną kolumnę za bibliotekę zasobów, API transformacji i CDN; sierpniowy przegląd ocenił jego podpisywanie dostarczania na 50.
 
-Współpraca na żywo działa w drugą stronę: Figma wyznacza benchmark skali (200 edytorów), a parami, odseparowana P2P Lolly ocenia się jako Partial. Cena to szacunek, oznaczony jako taki: arytmetyka cen katalogowych na realistycznych mieszankach miejsc, celowo szeroka, dla obrazu skali, nie zamówień publicznych. API do renderowania biorą 75 przy ograniczeniach: szablony zablokowane, brak warstwy governance marki.
+Współpraca na żywo w Lolly obejmuje bezpośrednie prywatne collaby dwóch urządzeń i uwierzytelniane collaby robocze przez Lolly Work, ze wspólnymi edycjami, kursorami i zapisanymi sesjami zespołu. Ocena Partial odzwierciedla obecne wdrożenie pracy na jednym węźle i krótką historię działania, a nie brak edycji zespołowej. Szacunki cen to datowana arytmetyka cen katalogowych dla skali, a nie zamówienie.
+:::
 
-Luka: nic dostarczanego dziś nie jest jednocześnie constraints-first i offline, bez konta i bez serwera na ścieżce renderowania, i nikt nie skopiował klauzuli o koncie. Lolly ma teraz własne otwarte płótno - **Design**, płótno bezpośredniej manipulacji - ale kolory, typografia i zasoby na nim podlegają globalnym ustawieniom marki, więc nawet swobodna kompozycja pozostaje constraints-first.
+## Kiedy sięgnąć po Lolly
 
-Tym, czym Lolly wciąż **nie jest**, to nieograniczony pakiet projektowy; projektanci nadal będą używać Illustratora i Figmy do prac autorskich - a gdy taka praca musi stać się zarządzanym, odtwarzalnym zasobem, funkcja narzędzia Design [Import a design](/info/design-import.html) przenosi gotowy plik z Figmy, Penpota, Illustratora, InDesigna lub PDF na płótno jako edytowalne, zgodne z marką bloki.
+::: cols
+## Sięgnij po Lolly, gdy
 
-![Otwarte płótno Design, na którym dostępne kolory, kroje pisma i zasoby są własnością marki](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+- Ten sam rodzaj pliku jest potrzebny raz po raz: kafle wydarzeń, identyfikatory, certyfikaty, alerty, karty do mediów społecznościowych
+- Wiele plików powstaje z jednego szablonu i tabeli wartości, w [Batch](/info/batch.html#make-many-versions-of-one-design) lub CLI
+- Kolory, typografia i zasoby muszą pozostać w obrębie systemu projektowego, nawet na otwartej kanwie
+- Gotowy projekt z Figmy, Penpot, Illustratora, InDesign lub PDF ma stać się edytowalny i powtarzalny ([Import a design](/info/design-import.html))
+- Pliki muszą powstawać na Twoich własnych urządzeniach lub serwerach
 
-## Do czego tego używać
+## Sięgnij po coś innego, gdy
 
-- Szybkie generowanie operacjonalizowanych zasobów kreatywnych (kafelki wydarzeń, odznaki, sygnatury, alerty)
-- Swobodna kompozycja na otwartym płótnie (Design), gdy elementy - kolory, typografia, ikony, obrazy - muszą pozostać zgodne z globalnymi ustawieniami marki
-- Wprowadzanie gotowego projektu z Figmy, Penpota, Illustratora, InDesigna lub PDF (funkcja Import a design narzędzia Design), tak by można go było edytować, zarządzać nim i deterministycznie ponownie renderować w każdym formacie Lolly
-- Przepływy typu jeden-do-wielu „wypełnij trzy pola, otrzymaj gotowy zasób” - w tym uruchomienia masowe z arkusza kalkulacyjnego/CSV w siatce wsadowej `/pro` (wklej lub zaimportuj wiersze, jeden gotowy zasób na wiersz, pobierz jako zip)
-- Stale dostępne, powtarzalne markowe treści
-- Sytuacje, w których centralna kontrola nad wyrazem marki liczy się bardziej niż elastyczność ekspresji
+- Praca to szczegółowa retusz zdjęć lub ilustracja
+- Projektujesz i prototypujesz interfejs aplikacji
+- Potrzebujesz dużej biblioteki zdjęć stockowych i szablonów gotowej od pierwszego dnia
+- Potrzebujesz zarządzanej usługi z długą historią w dużej skali
+:::
 
-Deck Studio dobrze pokazuje tu sufit możliwości: cała prezentacja slajdów zadeklarowana jako dane, ułożona na żywo na płótnie i wyeksportowana jako natywny, edytowalny plik PowerPoint.
+Zaimportowane projekty i wspólne tokeny projektowe pozwalają zespołowi łączyć Lolly ze specjalistycznymi aplikacjami, podczas gdy Lolly Work nadzoruje wspólne zasoby, przegląd i dostarczanie.
 
-![Deck Studio w widoku podzielonym - slajdy prezentacji wymienione jako bloki po lewej, wyrenderowana prezentacja po prawej](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Cała prezentacja pokazuje sufit: w **Markdown Slides** prezentacja jest deklarowana jako dane, układana na żywo i eksportowana jako natywny, edytowalny plik PowerPoint.
 
-## Do czego tego nie używać
+![Markdown Slides w widoku podzielonym: slajdy prezentacji wymienione jako bloki po lewej, ułożona prezentacja renderowana po prawej](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-- Autorskiej lub flagowej treści hero (billboardy, główne materiały wideo)
-- Unikalnej pracy kampanijnej, która naprawdę wymaga projektanta
-- Ideacji, która musi całkowicie wyjść poza system marki - otwarte płótno Lolly nadal podporządkowuje kolory, typografię i zasoby globalnym ustawieniom marki, i o to właśnie chodzi
+## Reguły żyją w narzędziu
+
+Lolly umieszcza w narzędziu reguły marki wielokrotnego użytku: kolory, czcionki, spady, odstępy i dozwolone dane wejściowe. Szablon utrwala części, których odbiorca nie może zmieniać. Lolly Work dodaje wokół tego szablonu dostęp grupowy i polityki danych wejściowych, z łańcuchami zatwierdzeń dla zgłoszeń do katalogu i dostarczania.
+
+Jednorazowe sprawdzenie narzędzia ułatwia powtarzalną produkcję, ponieważ każdy wynik dziedziczy jego reguły układu. Treść, wgrane obrazy i prawa użycia nadal mogą wymagać sprawdzenia, a Lolly Work zapewnia do tego wspólne katalogi i kroki zatwierdzania. Dla zespołu kreatywnego narzędzie to bariera ochronna: nadal wnosisz dane, tekst i obraz, a narzędzie utrzymuje każdy wynik zgodny z marką.
+
+![Cała praca producenta: wpisać słowa. Typografia, kolor i odstępy zostały ustalone, gdy narzędzie powstawało](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+
+Trzy kolejne rzeczy wyróżniają to podejście:
+
+- **Gotowy plik z danych wejściowych.** Dane wchodzą, gotowy plik wychodzi, bez "teraz zapisz to z narzędzia projektowego i popraw".
+- **Narzędzia składają narzędzia.** Jedno narzędzie może osadzić render innego w jednym gotowym pliku, bez sprzężenia kodu między nimi.
+- **Otwarte na wskroś.** Silnik jest open source, a narzędzia, zasoby i tokeny projektowe to pliki, które możesz trzymać w kontroli wersji lub zarządzać w Lolly Work, a nie wiersze w cudzej bazie danych.
+
+Odważny projekt przeżywa bariery ochronne. Ta mapa miasta klasy plakatowej to prawdziwe wektorowe ścieżki dróg i wody, z listy rozwijanej i dwóch pól koloru, których nie da się skierować poza system projektowy:
+
+![Pierścienie kanałów i sieć dróg Amsterdamu narysowane od krawędzi do krawędzi własnym atramentem systemu projektowego, każda kreska ustawiona przez szablon, a nie ręcznie](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
 ## Innowacja probabilistyczna, skala deterministyczna
 
-Większość pitchów „AI creative” stawia model po niewłaściwej stronie starej granicy. Skrybowie i iluminatorzy już dawno ustalili, gdzie ona przebiega: pracujesz swobodnie na szkicu, gdzie można spróbować wszystkiego i nic nie jest jeszcze przesądzone, a potem idziesz do prasy drukarskiej, która budzi respekt właśnie dlatego, że przesądza. To w szkicach była sztuka. Prasa była tym, jak ta sztuka trafiała dalej. Dwa narzędzia, dwa zadania, każde twórcze na swój sposób, a drukowanemu dziełu można było zaufać, ponieważ prasa dotrzymywała obietnicy przy każdym odbiciu.
+Większość pomysłów "kreatywnego AI" stawia model po złej stronie starej linii. Skrybowie i iluminatorzy ustalili, gdzie ona biegnie. Pracujesz swobodnie nad szkicem, gdzie wszystko można wypróbować i nic nie jest zobowiązaniem. Potem idziesz do prasy drukarskiej, która zobowiązuje. Szkice były miejscem, w którym była sztuka, a prasa tym, jak podróżowała, a drukowanemu dziełu można było ufać, ponieważ prasa dotrzymywała obietnicy przy każdym odbitce.
 
-Lolly jest prasą, nie szkicem. Przynieś do ideacji, co chcesz - model, projektanta, serwetkę - ale w chwili, gdy pomysł musi stać się wieloma zasobami, przechodzi przez coś, co renderuje się tak samo za każdym razem, z danych wejściowych, które każdy może odczytać wstecz. O to naprawdę chodzi w powyższym porównaniu: nie o to, kto ma lepszy generator, lecz o to, kto czyni ten przesądzający krok odtwarzalnym.
+Lolly jest prasą. Przynieś do pomysłów, co chcesz, model, projektanta lub szybki rysunek, ale w chwili, gdy pomysł ma stać się wieloma plikami, przechodzi przez coś, co renderuje tak samo za każdym razem, z danych wejściowych, które każdy może odczytać. Powyższe porównanie dotyczy naprawdę tego, kto czyni ten zobowiązujący krok powtarzalnym.
 
 > Ufaj procesowi twórczemu, skaluj z rygorem.
 
-## Reguły żyją w narzędziu i jego szablonach
+## Za darmo na zawsze
 
-Każde inne narzędzie na rynku produkuje *plik*, a plik można sprawdzić dopiero po fakcie. Lolly przesuwa reguły marki **o krok wcześniej w łańcuchu**. Dokładne kody hex, licencjonowane pliki czcionek, spady, odstępy - to wszystko jest na stałe zakodowane w HTML i CSS narzędzia, więc szablon *nie może* wyprodukować zasobu spoza marki. Egzekwuje to sam układ.
+**Jeśli renderuje się na Twoim urządzeniu, jest za darmo na zawsze.** Silnik, powłoki, narzędzia i formaty są open source, a wydana wersja nie może zostać cofnięta. Lolly Work też jest open source. Organizacja płaci za infrastrukturę i obsługę, które wybierze, bez opłaty licencyjnej za stanowisko ani za renderowanie przy samodzielnym hostowaniu. [Questions & answers](/info/faq.html) opowiada historię za tą obietnicą.
 
-Więc rzeczą wartą uwagi jest **narzędzie**, a nie każdy plik, który ono tworzy. Ustaw narzędzie poprawnie, a każdy zasób, jaki kiedykolwiek wyprodukuje, jest zgodny z marką z definicji. To, jak sprawdzasz swoją pracę i kto to robi, pozostaje twoją sprawą; Lolly sprawia, że rzecz do sprawdzenia jest mniejsza, a wynik szybszy do wykonania.
+## Gdzie żyje Twoja treść
 
-To jest zmiana, którą faktycznie wprowadza deterministyczny silnik. Dla zespołu kreatywnego to bariera ochronna, nie zamiennik - nadal rzucasz piłkę (dane, tekst, obraz), a kod jest torem odbojowym, który nie pozwala żadnemu rzutowi wypaść poza rynnę.
+Twórcza praca w Lolly może działać na sprzęcie, który posiadasz, a jej tokeny projektowe, czcionki, logo i narzędzia to pliki, które możesz zachować. W Lolly Work wspólne projekty, zasoby, polityki i zapisy audytu żyją w magazynie skonfigurowanym przez Twoją organizację. [Trust](/info/trust.html) wyjaśnia, dlaczego to ma znaczenie, a [Privacy Policy](/info/privacy.html) i [Verify It Yourself](/info/verify-yourself.html) pozwalają sprawdzić twierdzenie, zamiast wierzyć nam na słowo.
 
-![Cała praca producenta: wpisać słowa. Krój, kolor i odstępy zostały ustalone, gdy powstało narzędzie](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+## Narzędzie po narzędziu
 
-## Co to daje wyjątkowo
-
-- **Odważny potencjał projektowy dostarczany bezpiecznie w kontekście.** Narzędzia mogą wyrażać śmiałe pomysły projektowe wewnątrz sztywno zakodowanych barier ochronnych.
-
-- **Automatyzacja treści zdefiniowana programowo, która zwraca gotowy zasób.** Dane wejściowe → gotowy plik. Żadnego "teraz zapisz to z narzędzia projektowego i przetwórz ręcznie".
-- **Narzędzia łączą narzędzia.** Jedno narzędzie może osadzić render innego narzędzia i zwrócić go jako część jednego gotowego zasobu, bez sprzężenia kodu między narzędziami - prymityw, którego nie oferuje żaden produkt typu otwarte płótno czy szablonowanie DAM na rynku.
-- **Neutralność względem dostawcy.** Pełna kontrola nad funkcjami i kosztami. Silnik open source. Narzędzia i zasoby to treść śledzona w git, a nie dane zamknięte w bazie SaaS.
-
-Pierwszy z tych punktów jest ten, który ludzie najbardziej niedoceniają. Mapa miasta w jakości plakatowej, narysowana jako prawdziwe wektorowe ścieżki dróg i wody, z listy rozwijanej i dwóch pól koloru, których nie da się skierować poza markę:
-
-![Amsterdamskie pierścienie kanałów i sieć dróg narysowane od krawędzi do krawędzi w barwach marki, każde pociągnięcie umieszczone przez szablon, a nie ręcznie](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
-
-## Suwerenność treści
-
-Jest nazwa na to, do czego sprowadza się poprzednia sekcja: suwerenność. Twój potok mediów działa na sprzęcie, który posiadasz. Twoja marka - tokeny, czcionki, logotypy, narzędzia, które je egzekwują - żyje w plikach, które trzymasz, w systemie kontroli wersji, który kontrolujesz, a nie w bazie danych dostawcy z przyciskiem eksportu. Renderowanie odbywa się na urządzeniu, które masz przed sobą, więc zasób nigdy nie musi przejść przez stronę trzecią, żeby powstać, a cała droga od danych wejściowych do gotowego pliku jest open source i możliwa do sprawdzenia. Gdyby jutro zniknęli wszyscy dostawcy SaaS do projektowania, wdrożenie Lolly by tego nie zauważyło.
-
-To ma znaczenie dla każdego, czyja praca powinna przetrwać dłużej niż subskrypcja: dla rodzica, którego album ze zdjęciami żyje na tym laptopie, tak samo jak dla instytucji publicznej, której biblioteka marki podlega zasadom zamówień publicznych. Dla organizacji - instytucji publicznych, branż regulowanych, każdego, czyja marka jest zasobem strategicznym, a nie dekoracją - pytanie "gdzie żyje nasza treść i kto może ją wyłączyć" jest kwestią zarządzania, nie preferencją. Suwerenność jest tu właściwością architektury, a nie funkcją hostingową dodaną dla zgodności, a strony [Polityka prywatności](/info/privacy.html) i [Zweryfikuj to sam](/info/verify-yourself.html) istnieją, żebyś mógł to sprawdzić, a nie musiał uwierzyć na słowo.
-
-U podstaw tego wszystkiego jest jedna obietnica, sformułowana jako zobowiązanie, a nie funkcja: **jeśli renderuje się na twoim urządzeniu, jest wolne na zawsze.** Silnik, powłoki, narzędzia, formaty - cała ścieżka twórcza działająca na urządzeniu jest open source i taka pozostaje. Ta obietnica ma mechanizm: wydana wersja jest licencjonowana tak, że nie da się jej cofnąć, i nie istnieje żadna umowa z współtwórcami, która pozwoliłaby później zmienić licencję pracy. Cała granica mieści się w jednym zdaniu: wszystko, co renderuje się na twoim urządzeniu, jest wolne i open source na zawsze; koordynacja ludzi i maszyn w sieci to zadanie osobnej płaszczyzny sterowania, [lolly.work](https://lolly.work).
+[Lolly compared, tool by tool](/info/compare.html) porównuje Lolly z Canva, Adobe, Figma, Penpot, portalami marek, API renderującymi i internetowymi konwerterami, po jednej stronie na każdy, i opisuje [what runs where](/info/compare.html#what-runs-where).

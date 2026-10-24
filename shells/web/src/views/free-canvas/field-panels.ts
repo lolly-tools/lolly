@@ -11,6 +11,7 @@ import { num } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
 import { dimsCell, opt, segHtml, wireSegs } from '../free-canvas-fields.ts';
 import { pickPathPaint } from '../free-canvas-pen.ts';
+import { createStylePreview, TYPE_PREVIEW } from '../free-canvas-style-preview.ts';
 import { mountCssEditor } from '../../lib/css-code-editor.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
@@ -569,22 +570,34 @@ export function openTextPanel(fc: FcCtx, anchor: HTMLElement): void {
       if (Number.isFinite(v) && v >= 4) setField(fc, cfg.fontSizeField, v);
     }); }
   );
-  p.querySelectorAll<HTMLInputElement>('input[type="range"][data-tp]').forEach((rng) =>
-    { rng.addEventListener('input', () => {
-      const k = rng.dataset.tp;
-      const valEl = p.querySelector<HTMLElement>(`[data-tp-val="${k}"]`);
-      if (k === 'lh') {
-        if (valEl) valEl.textContent = (+rng.value).toFixed(2);
-        setField(fc, cfg.lineHeightField, +rng.value);
-      } else if (k === 'tr') {
-        if (valEl) valEl.textContent = rng.value;
-        setField(fc, cfg.trackingField, +rng.value);
-      } else {
-        if (valEl) valEl.textContent = rng.value;
-        setField(fc, cfg.padField, +rng.value);
+  // Line height, letter spacing and padding: the readout and the selected boxes follow
+  // the drag, and the model hears about it once, on release (`change`). One commit and
+  // one undo step per drag, instead of the whole edit pipeline on every tick.
+  const typePreview = createStylePreview();
+  const typeField: Record<string, string> = { lh: cfg.lineHeightField, tr: cfg.trackingField, pad: cfg.padField };
+  p.querySelectorAll<HTMLInputElement>('input[type="range"][data-tp]').forEach((rng) => {
+    const k = rng.dataset.tp ?? '';
+    const valEl = p.querySelector<HTMLElement>(`[data-tp-val="${k}"]`);
+    rng.addEventListener('input', () => {
+      const v = +rng.value;
+      if (valEl) valEl.textContent = k === 'lh' ? v.toFixed(2) : rng.value;
+      const css = TYPE_PREVIEW[k]?.(v);
+      if (!css) return;
+      for (const id of fc.selection) {
+        const text = fc.stage.liveBoxEl(id)?.querySelector<HTMLElement>(':scope > .lolly-box-text');
+        if (text) typePreview.set(text, css[0], css[1]);
       }
-    }); }
-  );
+    });
+    rng.addEventListener('change', () => {
+      typePreview.restore();
+      setField(fc, typeField[k], +rng.value);
+    });
+    // A drag that ends where it began fires no `change`: take the preview off anyway.
+    // After a frame, so a `change` that follows the pointer up commits first.
+    const settle = (): void => { requestAnimationFrame(() => typePreview.restore()); };
+    rng.addEventListener('pointerup', settle);
+    rng.addEventListener('pointercancel', settle);
+  });
   const cbField: Record<string, string> = {
     lig: cfg.ligaturesField,
     alt: cfg.alternatesField,

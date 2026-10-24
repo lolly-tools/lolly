@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "टेक्स्ट को डेस्कटॉप विंडो में, स्टिल इमेज के रूप में या टाइपिंग, चयन, ऑटोकंप्लीट और मोशन वाले निर्देशित इंटरैक्शन के रूप में प्रस्तुत करें।",
   "inputs.code.label": "कोड",
   "inputs.code.placeholder": "अपना कोड यहाँ पेस्ट करें…",
   "inputs.fileName.label": "फ़ाइल नाम",

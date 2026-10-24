@@ -1,6 +1,6 @@
 {
   "name": "Agenda",
-  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
+  "description": "Transformă un program în ecrane de brand, pagini web interactive, prezentări generale animate, diapozitive PowerPoint și calendare.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} sesiuni, {{trackCount}} piese",
   "inputs.title.label": "Eveniment",
   "inputs.title.help": "Tipărit la începutul fiecărui aspect și denumește fișierul exportat.",

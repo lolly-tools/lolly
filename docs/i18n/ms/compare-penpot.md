@@ -2,24 +2,24 @@
 
 _Disemak kali terakhir: 28 September 2026._
 
-Lolly dan Penpot kedua-duanya menawarkan alat reka bentuk sumber terbuka, token reka bentuk kongsi dan kolaborasi langsung. Lolly menggabungkan penciptaan pada peranti dengan [lolly.work](https://lolly.work), perkhidmatan organisasinya yang digunakan secara berasingan.
+Jika pasukan anda mereka bentuk dalam Penpot, Lolly berfungsi bersama Penpot: kedua-duanya sumber terbuka dan kedua-duanya membaca token reka bentuk yang sama. Halaman ini menyatakan tugas mana untuk setiap satu.
 
-## Asas reka bentuk kongsi
+## Apa yang Penpot lakukan dengan lebih baik
 
-[Token reka bentuk Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) menggunakan format DTCG, yang turut dibaca oleh Lolly. Warna, teks dan nilai token lain boleh dikongsi merentas kedua-dua aliran kerja. [Import reka bentuk](/info/design-import.html) Lolly membuka eksport `.penpot` sebagai susun atur yang boleh disunting.
+[Penpot](https://penpot.app/) menyediakan reka bentuk antara muka, komponen, reka letak fleksibel, prototaip interaktif dan pemeriksaan pembangun, dengan penyuntingan masa nyata dan kursor langsung. Ia menawarkan penempatan terhos dan dihos sendiri, dengan [pilihan pemasangan Docker dan Kubernetes](https://help.penpot.app/technical-guide/getting-started/). Untuk mereka bentuk aplikasi, Penpot ialah alatnya.
 
-Pemalam Lolly Export untuk Penpot diselenggara oleh Lolly. Ia menggunakan enjin Lolly untuk C2PA Content Credentials pilihan pada peranti. Integriti tandatangan dan kepercayaan terhadap penandatangan adalah berasingan: penyemak memerlukan identiti yang dipercayainya, seperti yang diterangkan dalam [Identiti Content Credentials](/info/content-credentials-identity.html).
+## Di mana kedua-duanya bertindih
 
-## Aliran kerja reka bentuk dan pasukan
+[Token reka bentuk Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) menggunakan format DTCG, yang turut dibaca Lolly, jadi warna, taip dan nilai token lain berpindah antara kedua-duanya. [Import a design](/info/design-import.html) Lolly membuka eksport `.penpot` sebagai reka letak boleh sunting, dan **Send to Penpot** dalam Lolly menghantar reka bentuk kembali sebagai arkib `.penpot`. Lolly juga menyelenggara [pemalam Lolly Export untuk Penpot](https://github.com/lolly-tools/lolly-plugins-penpot-export), yang menggunakan enjin Lolly untuk menambah Content Credentials ikut serta pada peranti.
 
-[Penpot](https://penpot.app/) menyediakan reka bentuk antara muka, komponen, susun atur fleksibel, prototaip interaktif dan pemeriksaan pembangun. Ia menawarkan penggunaan yang dihoskan dan dihos sendiri, dengan [pilihan pemasangan Docker dan Kubernetes](https://help.penpot.app/technical-guide/getting-started/).
+## Bagaimana Lolly melakukan tugas yang bertindih
 
-Kanvas Design Lolly mencipta aset yang boleh disunting dan boleh menukar susun atur menjadi [alat dengan peraturan](/info/create-a-tool.html). Alat yang sama memaparkan dalam pelayar, aplikasi desktop atau CLI dan boleh menjana variasi daripada data. Untuk kerja berpasukan, Lolly mempunyai [kolab peribadi](/info/collaborate.html) dua peranti secara terus dan kolab kerja melalui lolly.work, dengan suntingan kongsi, kursor dan sesi pasukan yang disimpan.
+Kanvas Design Lolly membuat aset boleh sunting dan boleh menukar reka letak menjadi [alat dengan peraturan](/info/create-a-tool.html). Alat yang sama merender dalam pelayar, apl desktop atau CLI dan membuat varian daripada data. Lolly kendiri merender dan menandatangani pada peranti, tanpa akaun atau pelayan. [Collab peribadi](/info/collaborate.html) memasangkan dua peranti secara terus.
 
-## Perbezaan penggunaan
+## Dengan organisasi
 
-Lolly kendiri memaparkan dan menandatangani pada peranti tanpa akaun atau pelayan. lolly.work menambah SSO, peruntukan SCIM, katalog dan projek kongsi, peranan, kelulusan, rekod audit dan pemaparan pelayan. Kedua-dua repositori ialah sumber terbuka MPL-2.0 dan boleh dikendalikan oleh organisasi. Kerja kongsi menggunakan instans yang dikonfigurasikan; penciptaan setempat kekal tersedia secara bebas.
+Lolly Work menambah log masuk tunggal, penyediaan SCIM, katalog dan projek dikongsi, peranan, kelulusan, rekod audit, collab kerja dan perenderan pelayan. Kedua-dua repositori MPL-2.0 dan organisasi boleh menjalankan kedua-duanya. [What runs where](/info/compare.html#what-runs-where) meletakkan kedua-dua bahagian bersebelahan.
 
-Pilihan bergantung pada kerja: aliran kerja reka bentuk antara muka dan prototaip Penpot, pengeluaran aset berulang Lolly, atau gabungan yang menggunakan token kongsi dan reka bentuk yang diimport. Kolaborasi kerja Lolly pada masa ini berjalan pada satu nod pelayan, dan [status penggunaannya](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) patut menjadi sebahagian daripada penilaian organisasi.
+Anda boleh menggunakan kedua-duanya: Penpot untuk reka bentuk antara muka dan prototaip, Lolly untuk fail berulang, disambung oleh token dikongsi dan reka bentuk yang diimport.
 
-Penpot ialah tanda dagangan pemiliknya. Pemalam di atas ialah milik Lolly. Lihat [Perbandingan Lolly](/info/positioning.html) dan [gambaran keseluruhan penyelesaian gabungan](/info/compare.html) untuk perbandingan yang lebih luas.
+Penpot ialah cap dagangan pemiliknya. Halaman ini menerangkan di mana kedua-dua produk bertindih dan tidak bergabung dengan Penpot.

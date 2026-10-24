@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { chromium, type Download } from 'playwright';
 import { openDocxMetadata } from '../engine/src/docx-metadata.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL or LOLLY_EXPORT_TEST_URL not set (serve the web shell locally)';
@@ -33,6 +34,7 @@ test('Strip Data DOCX canvas choices remove one property and reset when the sour
     await page.getByRole('checkbox', { name: 'Remove Title', exact: true }).waitFor();
     await page.waitForFunction(() => !document.querySelector('[data-export-file]'));
     assert.equal(await page.locator('[data-input-id="properties"]:checked').count(), 0);
+    await settledUrl(page); // the address the tool is still writing counts too
     assert.doesNotMatch(await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage }, url: location.href })), /Private fixture|Private project|Initial Fixture Author|private-docx/);
   } finally { await browser.close(); }
 });

@@ -47,6 +47,7 @@ import {
   readFileArg,
   resourceUri,
   success,
+  structuredLimitsFor,
   type Env,
   type Schema,
   type StructuredCtx,
@@ -238,7 +239,7 @@ function countsOf(inv: ContentInventoryV1): ReadCounts {
 export async function callRead(
   args: Record<string, unknown>,
   env: Env = process.env,
-  limits: Readonly<ReadLimitsV1> = READ_LIMITS,
+  limits: Readonly<ReadLimitsV1> = structuredLimitsFor(env),
 ): Promise<StructuredResult> {
   const ctx: StructuredCtx = { env, limits };
   try {

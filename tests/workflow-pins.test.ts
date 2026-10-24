@@ -59,4 +59,29 @@ test('downloaded CI executables are verified before execution and caches bind th
   const c2paDigest = ci.match(/C2PATOOL_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
   assert.ok(c2paDigest);
   assert.match(ci, new RegExp(`key: c2patool-[^\\n]*-${c2paDigest}`));
+
+  // cargo-audit is a verified release binary in CI and in the nightly and release-tag audit, never a build.
+  const advisories = readFileSync(path.join(workflowDir, 'dependency-audit.yml'), 'utf8');
+  const cargoAuditDigests = [ci, advisories].map((text) => {
+    assert.match(text, /echo "\$CARGO_AUDIT_LINUX_X64_SHA256 {2}[^\n]+" \| sha256sum --check/, 'cargo-audit is not checked before execution');
+    assert.doesNotMatch(text, /cargo install cargo-audit/);
+    return text.match(/CARGO_AUDIT_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
+  });
+  assert.ok(cargoAuditDigests[0], 'cargo-audit digest is not pinned');
+  assert.equal(cargoAuditDigests[1], cargoAuditDigests[0], 'both workflows pin the same cargo-audit release');
+});
+
+test('ffmpeg is a pinned release whose archive and cached binaries are verified, not an apt package', () => {
+  const ci = readFileSync(path.join(workflowDir, 'ci.yml'), 'utf8');
+  assert.doesNotMatch(ci, /apt-get install[^\n]*\bffmpeg\b/, 'ffmpeg comes from the pinned release, not apt');
+  const archive = ci.match(/FFMPEG_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
+  assert.ok(archive, 'ffmpeg archive digest is not pinned');
+  assert.match(ci, /echo "\$FFMPEG_LINUX_X64_SHA256 {2}\$archive" \| sha256sum --check/, 'ffmpeg archive is not checked before extraction');
+  assert.match(ci, new RegExp(`key: ffmpeg-[^\\n]*-${archive}\\n`), 'the ffmpeg cache key does not bind the archive digest');
+  // A cache hit skips the download, so the cached binaries are checked on every run before anything executes them.
+  for (const variable of ['FFMPEG_BIN_SHA256', 'FFPROBE_BIN_SHA256']) assert.match(ci, new RegExp(`${variable}: '[0-9a-f]{64}'`), variable);
+  const check = ci.split('- name: Check ffmpeg and put it on PATH')[1]?.split('\n      - name: ')[0] ?? '';
+  const verify = check.indexOf('sha256sum --check'), firstRun = check.indexOf('"$ff/ffmpeg" -hide_banner');
+  assert.ok(verify > 0 && firstRun > verify, 'cached ffmpeg runs before its binaries are verified');
+  assert.ok(check.indexOf('>> "$GITHUB_PATH"') > firstRun, 'ffmpeg reaches PATH before its capability check');
 });

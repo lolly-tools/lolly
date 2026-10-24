@@ -1,154 +1,97 @@
-# Mga Profile - kung sino ka kapag lumilikha ka
+# Mga profile
 
-Ang isang **profile** ay ang working identity kung saan gumagawa ang Lolly. Ito ang maliit na set ng detalye na maaaring kunin ng isang tool para hindi mo na kailanganing i-type ulit ang mga ito tuwing gagamit - ang pangalan mo, mga contact details, isang optional na headshot, ilang preference - kasama ang lahat ng naiipon mo habang gumagawa: naka-save na sessions, na-upload na larawan at ang lokal na activity tally.
+Itakda nang minsan ang pangalan, detalye ng contact at headshot mo, at pupunan ng bawat tool na ginawang gumamit ng mga ito ang mga iyon para sa iyo: email signature, badge, speaker card. Ang maliit na record na iyon ang **profile** mo, at nasa device mo ito.
 
-Ang lahat ng nasa profile ay nananatili **sa device**, sa local database ng browser (IndexedDB sa web PWA, ang filesystem sa mga Tauri app). Walang account at walang ino-upload. Pinamamahalaan mo ito sa ilalim ng **Mga Setting → Preferences** (sa footer o avatar menu); ang mga tool ay *bumabasa* lamang nito, at ang partikular na mga field lang na dinisenyo talaga nilang i-pre-fill.
-
-> Pinagsasama ng Mga Setting ang profile mo at ang dating Dashboard sa iisang destinasyon. Hawak ng **Preferences** ang mga detalye at personal na pinipili mo; katabi nito ang **Ang device na ito**, **Design system**, **Mga kakayahan** at **Aktibidad at stats**. Tingnan ang [Mga Setting](/info/dashboard.html) para sa buong mapa.
+Hawak din ng profile mo ang naiipon mo habang gumagawa: mga naka-save na session, mga na-upload na larawan at lokal mong tally ng aktibidad. Pinamamahalaan mo ito sa **Settings → Preferences**; ang mga tool ay nagbabasa lang ng mga field na ginawa nilang i-pre-fill. Hindi nangangailangan ng account ang standalone na paggamit, at ang opsyonal na Sync, pagbabahagi at mga serbisyo ng organisasyon ay may kani-kaniyang daloy ng data, na inilalarawan sa ibaba.
 
 ## Ano ang laman ng profile
 
 | Bahagi | Ano ito |
 |---|---|
-| **Pangalan** | Unang pangalan at apelyido. |
+| **Name** | Una at huling pangalan. |
 | **Contact** | Email at telepono. |
-| **Lokasyon** | Lungsod at bansa. |
-| **Headshot** | Isang optional na larawan, naka-crop sa square at itinatago bilang lokal na larawan. Ginagamit ng mga tool tulad ng email signatures, quote cards, org charts at dynamic layouts. |
-| **Gamitin ang detalye ko para gumawa** | Isang solong opt-in switch (ito ay nagbabasa ng **Using my details** kapag naka-on na). Kinokontrol nito kung ang personal mong detalye ay sumasama bilang **provenance** - ang author/credit line na naka-embed sa mga na-export na file - at bilang author sa mga **/pro** batch run. (Hindi nito ni-ga-gate ang pre-fill: tingnan ang [How tools use your profile](#how-tools-use-your-profile).) |
-| **Preferences** | Ang tema mo (Light, Dark o Brand - ang brand theme ay nagpipinta sa app gamit ang sarili mong palette) at kung aling bahagi ng app ang na-enable mo sa pamamagitan ng **Feature flags**. |
-| **Accessibility** | Apat na comfort switch - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - na nakatago sa profile record, kaya sumasama ito sa isang profile export. Tingnan ang [Accessibility](#accessibility). |
-| **Ang trabaho mo** | Naka-save na sessions (may thumbnails) - naka-organisa sa nested folders sa **[Projects](/info/using.html)** - ang **My images** library mo at ang lokal na activity stats, lahat naka-key sa profile na ito. |
+| **Location** | Lungsod at bansa. |
+| **Headshot** | Opsyonal na litrato, ginupit na parisukat at iniingatan bilang lokal na larawan, para sa mga tool tulad ng email signature, quote card at org chart. |
+| **Use my details to create** | Isang opt-in na switch (nakasulat itong **Using my details** kapag naka-on). Pinapasya nito kung sumasama ang mga detalye mo bilang author credit sa mga na-export na file at sa mga Batch run. Hindi nito naaapektuhan ang pre-fill; tingnan ang [Paano ginagamit ng mga tool ang profile mo](#how-tools-use-your-profile). |
+| **Preferences** | Ang theme mo, mga accessibility setting at kung aling bahagi ng app ang in-on mo sa **Feature flags**. |
+| **Your work** | Mga naka-save na session na may thumbnail, nakaayos sa [Projects](/info/find-your-work.html), mga na-upload mong larawan at lokal mong activity stats. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Walang kinakailangan sa mga ito. Gumagana ang blangkong profile; punan lang ang makakatipid sa pagta-type mo.
 
-![Ang Profile screen - pangalan, contact, isang optional na headshot at ang mga preference mo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Ang Settings sa Preferences tab: ang settings rail, at Your details na may Use my details to create switch at ang mga field ng pangalan, contact at lokasyon](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-Wala sa mga ito ang required. Ang blangkong profile ay perpektong profile pa rin; punan mo lang ang mga bagay na makakatipid sa iyo ng pag-type.
+Minamapa ng [Settings](/info/dashboard.html) ang lahat ng iba pa sa ilalim ng Preferences, mula sa appearance at emoji hanggang storage at offline download.
 
-Mahaba ang page, kaya may sarili itong **settings rail** pababa sa gilid - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - na may **Search settings** field sa itaas nito na nagfi-filter sa listahan habang nagta-type ka. Deep-linkable ang bawat section bilang `#/settings?focus=<section-id>`, na nagbubukas dito at nag-i-scroll papunta rito (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, at iba pa), kaya maaaring itugma ng isang link ang isang setting sa halip na ang itaas ng page.
+## Ikaw, isang team o isang papel
 
-![Tatlong theme card, bawat isa ay nagpe-preview ng sariling type at kulay, na may naka-flag na aktibo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Nagmumungkahi ang salitang "profile" ng isang nakapirming tao. Sa Lolly, mas malapit ito sa creating context: sino ka habang ginagawa mo ang bagay na ito. Maaari itong magkaroon ng tatlong hugis, at pare-pareho ang paghawak ng Lolly sa bawat isa.
 
-## Ang profile ay isang konteksto, hindi lang isang tao
+::: cols
+## Bilang ikaw
 
-Ang salitang "profile" ay parang tumutukoy sa iisang fixed na tao, pero sa Lolly, ito ay talagang isang **creating context** - *kung sino ka habang ginagawa mo ang bagay na ito*. Ang konteksto na ito ay puwedeng magkaroon ng tatlong magkakaibang anyo, at pare-pareho ang paraan ng pag-handle ni Lolly sa lahat ng ito.
+Ang default. Ang pangalan mo, email mo, headshot mo. Itakda nang minsan at pupunan ng sarili ang signature, badge at conference lockup mo.
 
-### Bilang indibidwal
+## Bilang team
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+Ang shared na pangalan ng team, group inbox tulad ng `events@…`, department at ang marka ng team. Isang tao ang nagse-setup at nag-e-export nito, at nilo-load ng lahat ng iba ang parehong profile, kaya ang mga file ng team ay may pare-parehong detalye. Ang shared kiosk o demo laptop ay puwedeng magpatakbo ng isang team profile.
+
+## Bilang papel
+
+Ang event manager na tatlong araw lang sa isang taon ay gusto ang event inbox at ang event sub-brand sa mga badge at signage, saka ibalik ang karaniwan niyang identity. Itago ang papel na iyon bilang naka-save na profile file, i-load para sa event at itabi pagkatapos.
+:::
 
 ![Ang headshot control, walang laman hanggang mag-upload ka ng larawan na nananatili sa device na ito pagkatapos](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-### Bilang isang team
+::: details Mga profile sa organisasyong gumagamit ng Lolly Work
+Kapag nag-sign in ka sa [Lolly ng organisasyon](/info/organisation.html), ang Lolly Work ay puwedeng magbigay ng mga verified na profile field mula sa identity provider nito at magtakda ng mga field o preference sa ilalim ng policy ng organisasyon. May label sa app ang managed na field.
 
-Hindi kailangang isang tao lang ang profile. Maaari itong tumayo para sa isang **team o function sa loob ng isang org**: ang shared na pangalan ng team, isang group inbox address (`events@…`), isang department, ang headshot o unit mark ng team. Isang tao ang mag-se-set up nito, mag-e-export nito (tingnan sa ibaba) at ang natitirang team ay mag-lo-load ng parehong profile - kaya lahat ng ginagawa ng team ay may consistent na detalye nang hindi na kailangang mag-re-enter ang sinuman. Isang shared kiosk o isang checked-out demo laptop ay maaaring magpatakbo ng iisang team profile na ginagawa bilang ng lahat ng gumagamit nito.
+Kinokontrol din ng sign-in na iyon ang access sa mga shared project at asset. Ang team profile file ay lokal na file pa rin: hindi ito nagbibigay ng membership sa organisasyon o pumapalit sa work account. Kinokontrol ng **Use my details to create** ang credit sa mga export mo, hindi ang sign-in o audit record ng organisasyon. Tingnan ang [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+:::
 
-### Bilang isang function - isang role na minsan mong isinusuot
+## Mag-ingat ng ilan, gumamit ng isa
 
-Ito ang sitwasyon na hindi nasasakop ng rigid na modelong "isang tao, isang profile." Puwede kang maging **event manager sa tatlong araw sa isang taon** at ibang-iba naman sa natitirang panahon. Sa tatlong araw na iyon, gusto mo ang event details, ang event inbox, at posibleng event sub-brand para punan ang iyong mga badge at signage; sa natitirang 362 araw, gusto mo namang ibalik ang iyong normal na identity.
+Ang install ay may iisang aktibong profile sa isang pagkakataon, at walang in-app switcher. Sa halip, ang bawat profile ay portable na file, ang parehong backup file na gagamitin mo sa paglipat sa bagong device. Para pumasok sa ibang konteksto:
 
-Sa Lolly, ang role na iyon ay isa lamang **ibang profile na nakalaan sa iyo** - isang saved bundle (susunod na seksyon) na ino-load mo para sa event at inilalagay sa tabi pagkatapos. Ang role ay parang sombrero, hindi bagong account. Isuot ito kapag kailangan mo, alisin kapag tapos ka na.
+::: timeline
+- <!--i:download--> Ang **Export my data** sa ilalim ng **Settings → Storage → Move to another device** ay nagse-save ng kasalukuyang profile bilang isang `.zip`.
+- <!--i:trash--> Ang **Clear all my data** ay nag-aalis ng laman ng install na ito.
+- <!--i:upload--> Ang **Import data…** ay nilo-load ang profile file para sa kontekstong papasukin mo.
+:::
 
-## Isang install, isang aktibong profile - marami kang puwedeng itago
+Ang pag-import nang hindi muna nagki-clear ay **nagsasama** sa halip. Idinaragdag ang mga na-import na session at larawan; kung parehong kopya ang umiiral, iniingatan ang mas kamakailang na-save. Idinaragdag sa tabi ng sa iyo ang mga folder, paborito at template, at nananatili ang sarili mong mga detalye, maliban sa mga walang laman na field, na kumukuha ng mga value ng file. Bagay iyon sa pagdadala ng mga session ng isang team sa sarili mong setup, pero hindi sa malinis na paghihiwalay ng mga papel.
 
-Sa anumang sandali, may **isang aktibong profile** ang isang install - ang mga detalyeng nakikita ng isang tool ngayon. Walang in-app profile switcher; sa halip, ang bawat profile ay isang **portable bundle** (isang solong `.zip`, tingnan [sa ibaba](#moving-a-profile-to-a-new-device)). Sadya iyon ang parehong mekanismo ng paglipat sa bagong device - ang isang profile ay isang file na maaari mong i-save, kopyahin at i-load.
+Para sa dalawang konteksto nang sabay, gumamit ng hiwalay na browser profile, hiwalay na user account o pangalawang naka-install na kopya ng web app: bawat isa ay may sariling independiyenteng Lolly profile.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![Ang dalawang button na naglilipat ng buong install: ang Export my data ay nagsusulat ng isang zip, ang Import data ay binabasa ito pabalik](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-- <!--i:trash--> **Pinakamalinis na paglipat:** **Mga Setting → Preferences → Imbakan → Burahin ang lahat ng aking data**, tapos **I-import** ang bundle para sa context na papasukan mo. Purong gumagawa ka na bilang profile na iyon.
-- <!--i:layers--> **Layering:** ang pag-import *nang hindi* muna nililinis ay **nag-me-merge** - dumadapo sa ibabaw ng mayroon na ang mga na-import na session at larawan; kapag pareho ang laman ng dalawa, mananatili ang kopyang mas kamakailang na-save, at hindi na ginagalaw ang iba. Idinaragdag sa iyo ang mga folder, favourite at template, at nananatili ang sarili mong mga detalye at setting. Kapaki-pakinabang para sa pagkuha ng naka-save na session ng isang team papunta sa sarili mong setup; hindi ito ang gusto mo kung kailangan mo ng malinis na hangganan ng role.
-- <!--i:monitor--> **Magkatabi:** dahil device-scoped ang lahat, may sarili at independiyenteng Lolly profile ang bawat hiwalay na browser profile, hiwalay na user account, o pangalawang naka-install na PWA. Patakbuhin nang sabay ang personal mong install at ang install ng event kiosk, walang paglipat-lipat.
+> Mag-ingat ng isang file bawat konteksto at pangalanan ang bawat isa ayon sa kung ano ito, tulad ng `LollyTools-events-2026.zip` at `LollyTools-me.zip`. Ang file ang profile.
 
-Kaya kung talagang nagpapalit-palit ka ng maraming konteksto (ikaw, ang team mo, ang event-manager hat), magtago ka ng ilang bundle at i-load ang kailangan mo:
-
-![Ang storage meter, na hinahati ang naka-save na sessions, mga larawan at cache laban sa talagang ini-report ng browser](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-> Magtago ng isang bundle bawat konteksto at palitan ang pangalan ng mga file ayon sa kung ano sila (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Ang file *ang* profile.
-
-## Accessibility
-
-Sa **Mga Setting → Preferences → Accessibility** naroroon ang apat na comfort setting para sa app sa *paligid* ng trabaho mo. Naka-off ang bawat isa hanggang i-on mo ito, at wala sa mga ito ang umaabot sa loob ng isang tool canvas o export - hindi dapat igalaw ng isang mas kalmadong app ang kahit isang pixel ng file na ipinapadala mo.
-
-- <!--i:film--> **Reduce motion** - nagpapatay ng mga transitions, slides at animated flourishes sa app. Nananatiling gumagalaw ang tool canvas mo at anumang animated export sa eksaktong dinisenyo ito.
-- <!--i:image--> **Hide colourful previews** - pinapalitan ang gallery preview artwork ng mga kalmadong icon-and-text cards, at binababa ang kulay at contrast ng project thumbnails mo para manatiling makikilala nang hindi nangungulit. Sa loob ng isang tool, buong kulay ang lahat na ipinapakita.
-- <!--i:sliders--> **High contrast** - pinapatibay ang borders, text at focus rings ng app. Nananatiling eksaktong itinakda mo ang mga kulay ng brand mo at lahat sa canvas.
-- <!--i:font--> **Large text** - pinalalaki ang type ng app: labels, menus at button text. Pinapanatili ng mga control ang laki nila, kaya ang mga salita lang sa loob nila ang lumalaki, at hindi hinihipo ang type sa loob ng mga disenyo mo, kaya walang mare-reflow sa ie-export mo.
-
-Nakatago ang mga ito sa mismong profile record, kaya naglalakbay ito sa isang profile export at dumadapo sa susunod na install kasama ang pangalan mo at ang mga session mo. (Nagtatago rin ang device ng maliit na lokal na mirror para maaplay ang setting bago ang unang paint; device-only ang mirror na iyon at hindi ito naglalakbay.)
-
-## Ang Lolly instance mo
-
-Sinasabi ng **Mga Setting → Preferences → Lolly instance** kung saan kinukuha ng install na ito ang mga tool at katalogo nito - ang address ng instance, o *Naka-bundle sa app na ito* kapag naka-ship na lahat sa loob ng build. Kung saan may inaalok ang isang deployment, isang **Instance console** link ang nagbubukas ng admin surface nito, ang **Baguhin** ay muling itinuturo ang install, at inaalis ng **Umalis** ang design system, mga tool at katalogo ng instance habang nananatili ang sarili mong gawa (tingnan ang [Gamitin ang Lolly sa iyong organisasyon](/info/organisation.html#leaving)).
-
-Ang muling pagtuturo sa ibang instance ay nangangailangan ng **desktop app**: pinipigilan ng browser ang isang page na mag-load ng mga tool at asset sa kabilang origins, kaya sa web, iniuulat lamang ng section kung nasaan ka at iniiwan doon.
-
-## Available offline
-
-Nag-cache ang Lolly habang gumagalaw ka, ngunit ang caching-as-you-go ay sumasaklaw lang sa napuntahan mo na. Ang **Mga Setting → Preferences → Available offline** ay para sa biyaheng nakikita mong papalapit: isang oras sa airport wifi bago ang isang flight na wala nito. I-download ang mga bahaging kakailanganin mo, panoorin ang isang progress bar, at patuloy na gumagana lahat ng dinala mo kahit wala nang connection.
-
-Pitong bahagi, bawat isa ay may nakasaad na laki bago ka mag-commit:
-
-- <!--i:layout--> **Ang app** - bawat view, editor at font, kasama pati ang mga hindi mo pa nabubuksan. Kung wala ito, ang isang screen na hindi mo binisita online ay hindi ma-lo-load offline.
-- <!--i:image--> **Katalogo** - brand assets na higit pa sa mga essentials. Kunin lahat, o buksan ang *Choose by tag* at kunin lamang ang mga tag na ginagamit mo.
-- <!--i:book--> **Mga Guide at doc** - ang documentation site na ito, sa wika mo, kasama ang mga screenshot.
-- <!--i:cpu--> **Speech voices** - ang voice models sa likod ng Script audio at narration. Na-download nang isang beses, pagkatapos ay tumatakbo ito on-device.
-- <!--i:zap--> **Upscaling models** - ang AI image upscalers: photo, illustration/anime at face.
-- <!--i:layers--> **Background removal** - ang on-device na cut-out models sa likod ng *Remove background*.
-- <!--i:shield--> **Verify deep scan** - ang on-device watermark scanner, para sa pagche-check ng Content Credentials malayo sa connection.
-
-Ang huling apat ay minarkahang **large download**, at sinadyang hiwa-hiwalay ang pag-opt-in: kinukuha ng **Download everything** sa itaas ang app, ang saklaw ng catalogue na napili mo, ang docs at lahat ng tools sa isang pagkuha lang at wala nang iba. Ang speech voices, ang mga upscaler, background removal at ang deep scan ay bawat isa ay nagda-download lang kapag hiningi mo ang row na iyon sa pangalan - hindi tapat ang magtago ng ilang daang megabytes sa loob ng isang button.
-
-Sa ilalim ng mga bahagi ay ang per-tool list: bawat tool ay nagda-download nang isa-isa (ang tsek ay nangangahulugang handa na offline), o ang **Download all** ay kinukuha ang lahat. Ma-resume ang mga download - i-cancel o mawalan ng koneksyon at ipagpapatuloy ito ng susunod na pagpapatakbo kung saan ito huminto, kinukuha lang ang nawawala - at nagre-refresh sila kapag online ka na ulit, kinukuha lang kung ano ang binago ng bagong release.
-
-Kung hindi pa nagbigay ang browser ng persistent storage, sinasabi ito ng seksyon at inaalok ang **Protect downloads**, na humihiling nito - ang pagkakaiba sa pagitan ng "na-download" at "na-download hanggang gustuhin ng browser na kunin ulit ang espasyo".
-
-## Paglipat ng profile sa bagong device
-
-Dahil ganap na local ang profile, may dalawang paraan para mailagay ito sa isang blangkong install - bagong laptop, bagong-reset na browser, makina ng katrabaho, o offline na device. **Dalhin ang file**, gaya ng nasa ibaba, o panatilihing magkatugma ang sarili mong mga device sa pamamagitan ng storage na pinili mo, gaya ng ipinapaliwanag ng [Sync your devices](/info/sync.html). Walang Lolly login na magre-restore nito para sa iyo, at iyon nga ang punto: wala talagang napunta sa isang Lolly server mula sa umpisa.
-
-Sa ilalim ng **Mga Setting → Preferences → Storage → Ilipat sa ibang device**:
-
-- <!--i:download--> Nagda-download ang **I-export ang data ko** ng isang `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - pinangalanan para sa profile na kinabibilangan nito, may per-day sequence number para hindi magbanggaan ang paulit-ulit na exports (ibinabagsak ang mga bahagi ng pangalan kapag wala ang mga ito sa profile). Naglalaman ito ng iyong profile, bawat na-save na session (kasama ang thumbnail nito), ang iyong mga na-upload na larawan - sumasama rin ang iyong brand tokens at naka-install na fonts bilang user assets - at ang iyong mga kagustuhan (theme, layout, local activity stats).
-- <!--i:upload--> Babasahin ng **I-import ang data…** sa ibang install ang file na iyon at magpapatuloy ka mula mismo sa iyong iniwan. Kinukuha rin nito ang isang kopyang hawak ng [Sync](/info/sync.html) sa storage mo.
-- <!--i:box--> Isinusulat ng **I-export ang data ko & i-render lahat** ang parehong backup *kasama* ang pangalawang zip na nagre-render ng bawat na-save na session sa finished output file nito, sa mga folder na kagaya ng iyong Projects. Isang kompletong offline archive ng parehong sources at resulta - at maaari itong maging malaki at mabagal kung marami ang sessions.
-
-![Ang dalawang button na naglilipat ng buong install: isinusulat ng Export my data ang isang zip, binabasa ito pabalik ng Import data](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
-
-Ang bundle ay simple at self-contained na zip, kaya puwede itong dalhin sa **anumang** paraan - USB, AirDrop, network share, email-to-yourself - at maaaring ganap na offline ang target. Bawat bahagi ay may checksum, kaya ang file na nasira sa paglipat ay mahuhuli sa import sa halip na ma-restore nang kalahating-sira. Ang import ay **nag-me-merge** (para sa session o larawang magkapareho ang pangalan, mananatili ang kopyang mas kamakailang na-save; idinaragdag ang mga folder, favourite at template; nananatili ang mga detalye at setting ng target; napananatili ang lahat ng iba), kaya hindi nito kailanman bubura ang isang target na ginagamit na.
-
-Ang hindi kasama sa paglipat: ang catalogue cache (nagda-download ulit ito mismo sa bagong device) at ang mga tool mismo (ipinapalagay na naroroon na).
-
-Para sa eksaktong bundle layout, version policy at integrity rules, tingnan ang **[Data Transfer](/info/data-transfer.html)**; para sa end-to-end walkthrough, **[Using Lolly → Moving to another device](/info/using.html#moving-to-another-device)**.
+Sinasaklaw ng [Ilipat ang gawa mo sa ibang device](/info/find-your-work.html#move-your-work-to-another-device) kung ano ang hawak ng file, kung ano ang naiiwan at ang iba pang paraan ng paglipat, kasama ang Sync.
 
 ## Paano ginagamit ng mga tool ang iyong profile
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+**Pre-fill.** Minamarkahan ng may-akda ng tool ang isang input na kumukuha mula sa profile mo (`bindToProfile: "firstname"`, `"email"`, `"headshot"` at iba pa). Kapag nagbukas ang tool, pinupunan ang input na iyon mula sa profile mo, at puwede mo itong i-override para sa isang session nang hindi binabago ang profile, maliban kung nilo-lock ng policy ng organisasyon ang input. Lokal na kaginhawahan ang pre-fill at nangyayari ito naka-on man o hindi ang **Use my details**.
 
-Ang isang tool ay *nagpu-pre-fill* lamang ng mga field ng profile na talagang dinisenyo nitong i-bind:
+**Credit.** Kapag nag-export ka, ang mga detalye mo ay puwedeng sumama bilang author credit sa metadata ng file (PNG, PDF, SVG at iba pa), para masabi ng tapos na file kung sino ang gumawa. Ang **Use my details to create** ang namamahala rito, at sa author sa mga Batch run. Kapag naka-off, sinasabi pa rin ng export na ginawa ito gamit ang Lolly, at walang dalang personal na author o contact line.
 
-**Ang opt-in (provenance).** Kapag nag-export ka ng asset, ang iyong mga detalye ay opsyonal na sumasama bilang **provenance** - isang author/credit line na naka-embed sa metadata ng file (PNG, PDF, SVG, …) - para masabi ng natapos na asset kung sino ang gumawa nito. *Ito* ang pinagagana ng **Use my details to create**: iwanan itong naka-off at dadalhin pa rin ng export ang "Made with Lolly" tool/platform attribution, pero walang personal na author/contact line na naka-embed. (Pinagagana rin ng parehong opt-in ang author sa **/pro** batch runs.) (Para sa tool authors: tingnan ang [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) at [Host API → `host.profile`](/info/host-api.html#host-profile).)
+Mga may-akda ng tool: tingnan ang [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) at [`host.profile`](/info/host-api.html#host-profile).
 
-![Ang iisang Use my details to create switch, katabi ng Save Profile at naka-off hangga't hindi mo ito binubuksan](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![Ang nag-iisang Use my details to create switch, minarkahang opt-in at naka-off hanggang i-on mo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## Profile vs Platform vs Capabilities
+## Profile, design system at capabilities
 
-Tatlong bagay ang magkalapit sa UI at madaling malito:
+Tatlong bagay ang magkakalapit sa Settings at madaling mapagkamalan:
 
-- <!--i:people--> **Profile** - *ikaw* (o ang iyong team, o ang role na hawak mo): pangalan, contact, headshot, ang iyong na-save na trabaho. Personal, device-local, portable bilang isang bundle.
-- <!--i:palette--> **Platform** - ang *brand*: mga kulay, fonts at global settings na ginagamitan ng bawat tool sa pag-render. Shared at consistent, hindi personal.
-- <!--i:sliders--> **Capabilities** - *ano ang kaya ng app*: ang buong feature set at ang mga tools na available sa iyo.
+- <!--i:people--> **Profile** - ikaw, ang team mo o ang papel na ginagampanan mo: pangalan, contact, headshot at naka-save na gawa. Personal, nasa device at portable bilang file.
+- <!--i:palette--> **Design system** - ang brand: mga kulay, font at setting na ginagamit ng bawat tool sa pag-render. Shared at pare-pareho sa halip na personal; tingnan ang [Design System Setup](/info/brand-studio.html).
+- <!--i:sliders--> **Capabilities** - ang kaya ng app: ang mga feature at tool na magagamit mo.
 
-Ang profile ang nagbabago kung *kanino galing* ang isang asset; ang platform ang nagbabago kung *ano ang itsura* nito; ang capabilities ang *magagawa mo*.
+Binabago ng profile kung kanino galing ang file; binabago ng design system kung ano ang itsura ng file; ang capabilities ay ang kaya mong gawin.
 
-### May dalawa pang kahulugan ang "profile" sa ibang bahagi - hindi ito ang tinutukoy dito
-
-Masyadong marami ang kahulugan ng salitang ito sa buong proyekto. Wala sa mga sumusunod ang tumutukoy sa personal na profile na pinag-uusapan ng pahinang ito:
-
-- <!--i:box--> **Content profile** - isang build-time configuration sa `profiles.json` na nagbibigkis ng set ng tool packs sa isang brand catalog (hal. `suse`, `lolly-start`). Ito ang pinipili ng operator kapag nag-de-deploy, at ito rin ang pinipili ng `profile` **URL/CLI parameter** bilang *kulay* variant sa oras ng export (ang ICC/CMYK press condition - tingnan ang [URL Mode](/info/url-mode.html)). Pareho itong tungkol sa *build/output*, hindi tungkol sa *iyo*. Tingnan ang [Configuration](/info/configuration.html).
-- <!--i:seal--> **Identity profile** - ang opsyonal na **verified Content Credentials identity** na maaari mong i-enrol (isang short-lived certificate na nag-uugnay ng iyong email sa iyong mga naka-sign na exports). Ito ay isang signing identity, hiwalay sa mga name/contact fields ng personal profile, bagaman pinagagana ng **Use my details to create** kung ang alinman sa dalawa ay naka-embed. Tingnan ang [Content Credentials Identity](/info/content-credentials-identity.html).
+May tatlo pang kahulugan ang salita sa Lolly. Ang **content profile** ay build setting na pumipili kung aling mga tool at catalogue ang dala ng deployment; dinedefine ng [Glossary](/info/glossary.html) ang termino. Ang `profile` link parameter ay pumipili ng colour profile para sa export, tulad ng CMYK press condition; tingnan ang [Mga reserved na URL parameter](/info/url-parameters.html#print). Ang **verified identity** ay ang opsyonal na signing certificate na nagbibigkis ng email mo sa mga signed export mo, hiwalay sa mga detalyeng ito, bagaman ang **Use my details to create** ang namamahala kung alinman sa dalawa ang ie-embed; tingnan ang [Content Credentials](/info/content-credentials-identity.html).
 
 ![Ang Verified identity card, phone-width: ang certificate lifetime picker at ang enrolment step sa ibaba nito - ang identity profile, hiwalay sa iyong personal na detalye](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Privacy
 
-Bukod sa opsyonal na identity enrolment sa itaas (na nagpapadala ng email na ini-enrol mo sa certificate service - tingnan ang [Server Surface](/info/server-surface.html)), ang profile ay hindi kailanman ipinapadala, ina-upload o ginagamit para kilalanin o subaybayan ka - walang dapat payagan, ito lang ang paalala para malaman mo kung ano ang naka-imbak. Burahin ang lahat nito anumang oras gamit ang **Mga Setting → Preferences → Clear all my data**. Tingnan ang [Privacy Policy](/info/privacy.html).
+Lokal na naka-store ang personal mong profile. Ang mga detalye mo ay puwedeng sumama sa backup o Sync copy, sa nilalamang ibinabahagi o ine-export mo at sa opsyonal na Content Credentials enrolment. Sa Lolly Work instance, ang sign-in, shared work, telemetry policy at audit record ay hiwalay sa lokal na profile na ito. Ang **Settings → Preferences → Clear all my data** ay nagki-clear sa device na ito; hindi nito binubura ang mga kopyang hawak ng storage provider o organisasyon mo. Tingnan ang [Privacy Policy](/info/privacy.html).

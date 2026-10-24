@@ -19,6 +19,7 @@ import test from 'node:test';
 import { buildDesignLolly } from '../packages/node-shell/src/rebrand/pipeline.ts';
 import { settleEditor } from '../packages/node-shell/src/open-session.ts';
 import { closeBrowser, getBrowser } from '../packages/node-shell/src/browsers.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'set LOLLY_EXPORT_TEST_URL';
@@ -62,11 +63,11 @@ test('the Canvas tab says what the document draws with, inspects it read-only an
     await page.goto(`${root}/#/open?lolly=${encodeURIComponent(path)}`, { waitUntil: 'load' });
     await page.waitForFunction(() => !!(window as unknown as { lolly?: { document?: unknown } }).lolly?.document && !!document.querySelector('#tool-canvas'), undefined, { timeout: 120_000 });
     await settleEditor(page, 120_000);
-    const themesInAddress = (): Promise<string | null> => page.evaluate(() => {
-      const hash = location.hash;
-      const query = hash.startsWith('#/') ? hash.slice(hash.indexOf('?') + 1) : location.search.slice(1);
+    const themesInAddress = async (): Promise<string | null> => {
+      const { hash, search } = new URL(await settledUrl(page));
+      const query = hash.startsWith('#/') ? hash.slice(hash.indexOf('?') + 1) : search.slice(1);
       return new URLSearchParams(query).get('_themes');
-    });
+    };
     await page.waitForFunction(() => {
       const hash = location.hash;
       const query = hash.startsWith('#/') ? hash.slice(hash.indexOf('?') + 1) : location.search.slice(1);

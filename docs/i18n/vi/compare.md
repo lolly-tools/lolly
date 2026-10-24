@@ -1,25 +1,50 @@
 # So sánh Lolly theo từng công cụ
 
-Lolly bao quát công việc sáng tạo, từ một lần chuyển đổi tệp ngay trên thiết bị đến sản xuất tài sản có quản trị trong một tổ chức. Các trang này so sánh quy trình làm việc mà từng sản phẩm hỗ trợ, cách triển khai và những giới hạn quan trọng khi chọn giải pháp.
+Nếu bạn đã dùng sản phẩm khác, các trang này cho biết Lolly có thay thế sản phẩm đó, hoạt động song song hay không phù hợp với công việc của bạn. Mỗi trang bắt đầu bằng điều sản phẩm kia làm tốt hơn.
 
 _Kiểm tra lần cuối: 28 tháng 9 năm 2026._
 
-## Một dự án, hai phần triển khai riêng biệt
+## So sánh theo sản phẩm
 
-**Lolly** là bộ engine, ứng dụng và công cụ để tạo, chỉnh sửa, chuyển đổi và xuất tệp. Lolly chạy trên thiết bị của bạn, hoạt động ngoại tuyến khi đã có sẵn các tài sản cần thiết và không cần tài khoản khi dùng độc lập.
-
-**[lolly.work](https://lolly.work)** là dịch vụ tổ chức của dự án, được duy trì trong [kho lolly-work](https://github.com/lolly-tools/lolly-work). Dịch vụ này cung cấp SSO, cấp phát SCIM, vai trò và chính sách, danh mục và dự án dùng chung, phê duyệt, cộng tác làm việc, báo cáo sử dụng, nhật ký kiểm toán và kết xuất phía máy chủ. Cả hai phần đều là mã nguồn mở theo MPL-2.0. Một tổ chức tự lưu trữ lolly.work cùng với Lolly và quyết định bật những dịch vụ nào.
-
-Các bài so sánh áp dụng cho **Lolly + lolly.work**. Những tính năng cần dịch vụ tổ chức đều được nêu rõ. Khi dùng độc lập, tệp luôn nằm trên thiết bị; nếu chọn dự án dùng chung, cộng tác làm việc, kết xuất phía máy chủ hoặc phân phối, dữ liệu liên quan sẽ được gửi đến các dịch vụ đã cấu hình. Trang lolly.work công khai là môi trường thử nghiệm (sandbox); xem [hướng dẫn triển khai](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) và [tình trạng hiện tại](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) để triển khai cho một tổ chức.
-
-## So sánh theo quy trình làm việc
-
-- [Lolly và Canva](/info/compare-canva.html) - mẫu, thiết kế hằng ngày và sản xuất thương hiệu dùng chung.
-- [Lolly và Adobe](/info/compare-adobe.html) - chỉnh sửa, chuyển đổi, đầu ra chuyên nghiệp và Content Credentials.
-- [Lolly và Figma](/info/compare-figma.html) - thiết kế, cộng tác trực tiếp và sản xuất tài sản có thể tái sử dụng.
-- [Lolly và Penpot](/info/compare-penpot.html) - thiết kế mã nguồn mở, token dùng chung và quy trình của tổ chức.
-- [Lolly và cổng thương hiệu](/info/compare-brand-portals.html) - thư viện đã duyệt, mẫu bị khóa, nhận diện, đánh giá và báo cáo.
-- [Lolly và API kết xuất](/info/compare-render-apis.html) - tạo tự động trên thiết bị của bạn, trong CI hoặc qua lolly.work.
-- [Lolly và trình chuyển đổi tệp trực tuyến](/info/compare-converters.html) - chuyển đổi định dạng ngay trên thiết bị của bạn.
+- [Lolly and Canva](/info/compare-canva.html) - mẫu, thiết kế hằng ngày và sản xuất thương hiệu dùng chung.
+- [Lolly and Adobe](/info/compare-adobe.html) - chỉnh sửa, chuyển đổi, đầu ra chuyên nghiệp và Content Credentials.
+- [Lolly and Figma](/info/compare-figma.html) - thiết kế, cộng tác trực tiếp và sản xuất tài nguyên dùng lại được.
+- [Lolly and Penpot](/info/compare-penpot.html) - thiết kế mã nguồn mở, token dùng chung và công việc tổ chức.
+- [Lolly and brand portals](/info/compare-brand-portals.html) - thư viện được duyệt, mẫu bị khóa, danh tính, xem xét và báo cáo.
+- [Lolly and rendering APIs](/info/compare-render-apis.html) - tạo tự động trên thiết bị của bạn, trong CI hoặc trên máy chủ Lolly Work.
+- [Lolly and online file converters](/info/compare-converters.html) - chuyển đổi định dạng trên thiết bị của chính bạn.
 
 Để xem so sánh theo từng khả năng, hãy đọc [Lolly so sánh thế nào](/info/positioning.html). Mỗi bài so sánh đều có ghi ngày; nhận định nào không còn khớp với một trong hai sản phẩm thì cần được sửa lại.
+
+## Cái gì chạy ở đâu
+
+Mỗi so sánh bao gồm hai phần của một dự án mã nguồn mở. **Lolly** là engine, ứng dụng và công cụ. **Lolly Work** là máy chủ tổ chức, được duy trì trong [kho lolly-work](https://github.com/lolly-tools/lolly-work). Cả hai đều theo MPL-2.0, và tổ chức quyết định bật dịch vụ Lolly Work nào.
+
+::: cols
+## Trên thiết bị của bạn: Lolly
+
+- Không cần tài khoản cho việc dùng độc lập
+- Tạo, chỉnh sửa, chuyển đổi và xuất
+- Hoạt động ngoại tuyến khi công cụ và tài nguyên cần thiết đã được lưu
+- Content Credentials được ký trên thiết bị
+- Collab riêng tư giữa hai thiết bị, không có máy chủ
+
+## Trên máy chủ của tổ chức bạn: Lolly Work
+
+- Đăng nhập một lần, cấp tài khoản SCIM, vai trò và chính sách
+- Danh mục chung, dự án nhóm và work collab
+- Phê duyệt, báo cáo sử dụng và bản ghi kiểm toán
+- Kết xuất trên máy chủ, tác vụ khôi phục được và bàn giao đã duyệt
+- Ký trên máy chủ bằng danh tính của tổ chức
+:::
+
+Dùng độc lập giữ tệp trên thiết bị. Chọn dự án chung, một work collab, kết xuất trên máy chủ hoặc bàn giao sẽ gửi dữ liệu mà tính năng đó cần tới máy chủ của tổ chức bạn.
+
+## Mọi so sánh đều giả định gì
+
+Các giới hạn này áp dụng cho mọi trang trong bộ này, nên được nêu một lần ở đây:
+
+- **Work collab hiện chạy trên một nút máy chủ duy nhất.** Quy mô và lịch sử vận hành của chúng khác với các sản phẩm lưu trữ lâu đời. [Work status and roadmap](/info/work-status.html) ghi các giới hạn hiện tại.
+- **Site tại [lolly.work](https://lolly.work) là một sandbox demo.** Một bản triển khai tổ chức bền vững cần lưu trữ liên tục và một đơn vị vận hành; [Install Lolly Work](/info/work-install.html) đề cập cả hai.
+- **Không có phí giấy phép phần mềm theo chỗ ngồi** cho Lolly hay Lolly Work tự lưu trữ. Lưu trữ, bộ nhớ và vận hành vẫn tốn tiền.
+- **Một chữ ký không phải một người ký đáng tin.** Bên xác minh phải tin chứng chỉ đã ký tệp trước khi hiện người ký là đáng tin; [Content Credentials Identity](/info/content-credentials-identity.html) giải thích cách làm.

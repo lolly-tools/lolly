@@ -1,88 +1,86 @@
 # Bagaimana Lolly dibandingkan
 
-Apa yang dilakukan Lolly yang tidak dilakukan oleh alat kreatif hari ini, dan apa yang sengaja ditinggalkan kepada mereka.
-
-Untuk versi alat demi alat, satu halaman untuk setiap satu Canva, Adobe, Figma, API pemaparan dan penukar dalam talian, lihat [Lolly compared, tool by tool](/info/compare.html). Setiap halaman menyatakan apa yang dilakukan alat lain dengan lebih baik dan apa yang dilakukan Lolly sebaliknya.
-
-> **Status:** Lolly telah dikeluarkan: versi 1.0 dilancarkan sebagai sumber terbuka pada 30 Ogos 2026. Keselamatannya belum menjalani audit bebas, dan bukti penerimaannya sudah berusia beberapa bulan. Halaman [Adoption & Governance](/info/adoption-governance.html#status) merangkumi keadaan semasa.
+Lolly ialah dua bahagian satu projek sumber terbuka. **Lolly** ialah enjin, apl dan alat untuk membuat, menyunting, menukar dan mengeksport pada peranti anda, tanpa akaun. **Lolly Work** ialah pelayan organisasi, dijalankan pada infrastruktur anda sendiri, untuk log masuk, projek dikongsi, kelulusan dan perenderan pelayan. Kedua-duanya MPL-2.0. Halaman ini membandingkan pasangan itu dengan cara lain orang mereka bentuk, mentadbir dan menghasilkan fail.
 
 ## Alat hari ini
 
-Setiap gelang di bawah menilai sejauh mana lengkapnya sesuatu kelas produk menyampaikan keupayaan **seperti yang dihantar hari ini** - bukan seperti yang dipasarkan - dengan setiap kelas dinilai berdasarkan wakil terbaiknya. Lolly dinilai dengan pisau yang sama: ia mengambil satu-satunya gelang merah pada papan, untuk kematangan. Buka nama baris untuk sebab di sebalik skornya. Lajur disusun mengikut baris kelengkapan Keseluruhan di bahagian atas - min bagi baris yang dinilai, dengan baris perbelanjaan dikecualikan.
+Setiap cincin menskor betapa lengkap kelas produk menyampaikan keupayaan, dengan setiap kelas diskor pada wakilnya yang terbaik. Lajur Lolly meliputi Lolly dan Lolly Work bersama, dan setiap baris menyatakan bahagian mana menyediakan apa. Buka nama baris untuk alasan di sebalik skornya. Lajur disusun mengikut baris Overall completeness di bahagian atas: purata baris yang diskor, dengan baris perbelanjaan dikecualikan.
 
 ::: figure positioning-comparison
-Kelengkapan keupayaan merentasi alat kreatif hari ini, dikaji pada Ogos 2026. Pemarkahan: 0 tiada, 25 gred jalan pintas, 50 nyata tetapi terhad atau separa, 75 kukuh dengan kaveat, 100 kecekapan teras.
+Perbandingan keupayaan: kajian pesaing dan skor Ogos 2026; liputan Lolly + Lolly Work disemak 28 September 2026. Pemarkahan: 0 tiada, 25 tahap penyelesaian sementara, 50 sebenar tetapi berpagar atau separa, 75 kuat dengan kaveat, 100 kecekapan teras.
 :::
 
-**Nota pemarkahan.** Ciri yang tersedia dan kematangan pengeluaran ialah dua pertimbangan yang berasingan. Skor kematangan Lolly mencerminkan keluaran awam pertamanya pada Ogos 2026 tanpa audit keselamatan bebas lagi; kehadiran SSO, kelulusan atau render pelayan tidak membuktikan rekod pengeluaran. Huraian ciri di bawah merangkumi lolly.work, manakala skor pesaing mengekalkan kajian Ogos mereka yang bertarikh.
+::: details Nota pemarkahan
+Ciri yang tersedia dan kematangan pengeluaran adalah berasingan. Lolly telah dikeluarkan: versi 1.0 dihantar sebagai sumber terbuka pada 30 Ogos 2026, keselamatannya belum menjalani audit bebas dan bukti penerimaannya berusia beberapa bulan ([Adoption & Governance](/info/adoption-governance.html#status) mempunyai keadaan semasa). Mempunyai log masuk tunggal, kelulusan atau perenderan pelayan tidak mewujudkan rekod prestasi pengeluaran, jadi skor kematangan mencerminkannya. Skor pesaing mengekalkan semakan Ogos bertarikh mereka.
 
-Canva dinilai berdasarkan ahli keluarganya yang terbaik bagi setiap baris, kerana ia memiliki Affinity dan Cavalry (kedua-duanya diberikan percuma Oktober 2025). Pemaparan luar talian dan pada peranti mendapat 75 melalui Affinity - suite desktop yang masih memerlukan akaun yang disahkan dan membawa telemetri, potongan yang turut dikenakan kepada Adobe - manakala mod luar talian Canva sendiri hanya mengedit reka bentuk yang telah diselaraskan terlebih dahulu, satu peranti, tetingkap terhad. Autofill mendapat 50: sebenar tetapi berkunci-Enterprise, tak segerak, teks dan imej sahaja. Penjanaan pukal Figma naik daripada 25 kepada 50 apabila Buzz menghantar isian hamparan (beta percuma, Ogos 2026).
+Satu peraturan mengawal papan. Markah penuh (100), pada baris yang menyentuh kandungan atau identiti anda, memerlukan keupayaan yang boleh anda gunakan tanpa akaun dan tanpa prasyarat awan; baris tentang produk itu sendiri, seperti kematangan dan kemudahan penggunaan, dikecualikan. Peraturan itu merugikan Adobe pada Content Credentials: pelaksanaan paling luas yang dihantar (Photoshop, Lightroom, Premiere, Firefly) menandatangani secara setempat dan dalam awan, tetapi tidak pernah tanpa akaun dan identiti Adobe, jadi 75. Ia menghadkan API perenderan pada penjanaan besar-besaran dan automasi atas sebab yang sama.
 
-Satu peraturan mengawal papan ini: Penuh (100), pada baris yang menyentuh kandungan atau identiti anda, memerlukan keupayaan yang boleh anda guna tanpa akaun dan tanpa prasyarat awan; baris yang menerangkan produk itu sendiri (kematangan, kemudahan penggunaan) dikecualikan. Ini merugikan Adobe pada asal-usul (provenance): C2PA yang paling luas dihantar (Photoshop, Lightroom, Premiere, Firefly) menandatangani secara setempat dan dalam awan, tetapi tidak pernah tanpa akaun dan identiti Adobe, jadi 75. Ini turut mengehadkan API pemaparan pada penjanaan pukal dan automasi atas sebab yang sama.
+Canva diskor pada ahli keluarganya yang terbaik bagi setiap baris, kerana ia memiliki Affinity dan Cavalry (kedua-duanya diberikan percuma pada Oktober 2025). Perenderan luar talian dan pada peranti mendapat 75 melalui Affinity, suite desktop yang masih memerlukan akaun disahkan dan membawa telemetri, potongan yang turut diambil Adobe; mod luar talian Canva sendiri hanya menyunting reka bentuk yang disegerakkan lebih awal, pada satu peranti, untuk tetingkap terhad. Autofill mendapat 50: ia sebenar tetapi berpagar Enterprise dan tak segerak, dan ia hanya mengisi teks dan imej. Penjanaan besar-besaran Figma naik daripada 25 kepada 50 apabila Buzz menghantar isian hamparan (beta percuma, Ogos 2026).
 
-Asal-usul 75 Lolly mencerminkan penandatanganan luar talian pada peranti: lebih kukuh dari segi seni bina tetapi belum diaudit, dan kunci peranti dibaca sebagai tidak disahkan dalam pengesah sedia ada sehingga identiti atau CA milik organisasi sendiri menjaminkannya. 50 Penpot datang melalui plugin Lolly Export rasmi: penandatanganan enjin yang sama, opt-in, didedahkan sebagai milik Lolly sendiri. Penpot juga mengambil satu-satunya gelang di luar skala pada papan, 90 pada pemaparan pada peranti - kanvas pelayar, simpan ke awan berdaulat anda sendiri (malah komputer riba), eksport peribadi; hanya lompatan pelayan yang memisahkannya daripada Lolly. Cloudinary mendapat lajurnya sendiri: saluran paip media (DAM, API transformasi, CDN), dan satu-satunya lajur awan yang menghantar C2PA (50, kerana fl_c2pa menandatangani semasa penghantaran, mengesahkan delivered-by-Cloudinary, bukan made-by-you).
+Skor 75 Content Credentials Lolly meliputi penandatanganan pada peranti dan penandatanganan pelayan Lolly Work dengan identiti organisasi yang dikonfigurasi; pengesah masih mesti mempercayai penandatangan ([Content Credentials Identity](/info/content-credentials-identity.html)). 50 Penpot datang melalui pemalam eksport Lolly sendiri untuk Penpot: penandatanganan enjin yang sama, ikut serta dan didedahkan sebagai milik Lolly. Penpot mendapat 90 pada perenderan pada peranti: kanvas pelayar dengan sasaran simpan pada pelayannya, yang boleh dihos sendiri. Cloudinary mendapat lajurnya sendiri untuk pustaka aset, API transformasi dan CDN; semakan Ogos menskor penandatanganan penghantarannya pada 50.
 
-Kerjasama langsung berjalan sebaliknya: Figma menetapkan penanda aras skala (200 penyunting) dan P2P berpasangan, tersekat udara (air-gapped) milik Lolly mendapat Separa. Harga adalah anggaran, dilabelkan sedemikian: pengiraan harga senarai atas gabungan kerusi yang realistik, sengaja luas, untuk skala bukan perolehan. API pemaparan mendapat 75 pada kekangan: templat terkunci, tiada lapisan tadbir urus jenama.
+Kolaborasi langsung Lolly termasuk collab peribadi dua peranti terus dan collab kerja disahkan melalui Lolly Work, dengan suntingan dikongsi, kursor dan sesi pasukan tersimpan. Skor Partial mencerminkan penempatan kerja nod tunggal semasa dan sejarah operasi yang pendek, bukan ketiadaan penyuntingan pasukan. Anggaran harga ialah aritmetik harga senarai bertarikh untuk skala, bukan perolehan.
+:::
 
-Jurang itu: tiada apa yang dihantar hari ini adalah kekangan-dahulu dan luar talian tanpa akaun dan tanpa pelayan dalam laluan pemaparan, dan tiada siapa yang menyalin klausa akaun itu. Lolly kini menghantar kanvas terbuka miliknya sendiri - **Design**, kanvas bebas manipulasi langsung - tetapi warna, jenis huruf dan aset padanya patuh kepada global jenama, jadi walaupun susunan bebas kekal kekangan-dahulu.
+## Bila memilih Lolly
 
-Apa yang Lolly masih **bukan** adalah suite reka bentuk tanpa kekangan; pereka bentuk akan terus menggunakan Illustrator dan Figma untuk kerja khusus - dan apabila kerja itu perlu menjadi aset yang ditadbir urus dan boleh dihasilkan semula, [Import a design](/info/design-import.html) pada alat Design membawa fail Figma, Penpot, Illustrator, InDesign atau PDF yang telah siap ke atas kanvas sebagai kotak yang boleh disunting dan patuh jenama.
+::: cols
+## Pilih Lolly apabila
 
-![Kanvas bebas Design, di mana warna, taip muka dan aset yang ditawarkan adalah milik jenama sendiri](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+- Jenis fail yang sama diperlukan berulang kali: jubin acara, lencana, sijil, amaran, kad sosial
+- Banyak fail datang daripada satu templat dan jadual nilai, dalam [Batch](/info/batch.html#make-many-versions-of-one-design) atau CLI
+- Warna, tipografi dan aset mesti kekal dalam sistem reka bentuk, walaupun pada kanvas terbuka
+- Reka bentuk Figma, Penpot, Illustrator, InDesign atau PDF yang siap harus menjadi boleh sunting dan boleh diulang ([Import a design](/info/design-import.html))
+- Fail mesti dibuat pada peranti atau pelayan anda sendiri
 
-## Guna untuk
+## Pilih yang lain apabila
 
-- Penjanaan pantas aset kreatif yang dioperasikan (jubin acara, lencana, tandatangan, amaran)
-- Susunan bebas bentuk pada kanvas terbuka (Design) apabila kepingan - warna, jenis huruf, ikon, imej - perlu kekal patuh kepada global jenama
-- Membawa masuk reka bentuk Figma, Penpot, Illustrator, InDesign atau PDF yang telah siap (Import a design pada alat Design) supaya ia boleh disunting, ditadbir urus dan dipapar semula secara deterministik dalam setiap format Lolly
-- Aliran "isi tiga medan, dapatkan aset siap" satu-kepada-ramai - termasuk larian pukal daripada hamparan/CSV dalam grid kelompok `/pro` (tampal atau import baris, satu aset siap bagi setiap baris, muat turun sebagai zip)
-- Output berjenama yang sentiasa aktif dan berulang
-- Perkara di mana kawalan berpusat terhadap ekspresi jenama lebih penting berbanding fleksibiliti ekspresif
+- Kerja itu ialah retouch foto atau ilustrasi terperinci
+- Anda mereka bentuk dan membuat prototaip antara muka aplikasi
+- Anda memerlukan stok besar dan pustaka templat sedia pada hari pertama
+- Anda memerlukan perkhidmatan terurus dengan rekod prestasi panjang pada skala besar
+:::
 
-Deck Studio adalah ukuran yang baik bagi siling di sini: keseluruhan dek slaid diisytiharkan sebagai data, disusun atur secara langsung pada kanvas dan dieksport sebagai PowerPoint asli yang boleh disunting.
+Reka bentuk yang diimport dan token reka bentuk dikongsi membolehkan pasukan menggabungkan Lolly dengan aplikasi pakar, manakala Lolly Work mentadbir aset dikongsi, semakan dan penghantaran.
 
-![Deck Studio dalam paparan berpecah - slaid dek disenaraikan sebagai blok di sebelah kiri, pemaparan dek yang telah disusun atur di sebelah kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Satu dek slaid penuh menunjukkan siling: dalam **Markdown Slides** dek diisytiharkan sebagai data, disusun secara langsung dan dieksport sebagai fail PowerPoint asli yang boleh disunting.
 
-## Jangan guna untuk
+![Markdown Slides dalam paparan terbahagi: slaid dek disenaraikan sebagai blok di kiri, dek yang disusun dirender di kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-- Kandungan hero khusus atau unggulan (papan iklan, video besar)
-- Kerja kempen unik yang benar-benar memerlukan pereka bentuk
-- Penjanaan idea yang perlu keluar sepenuhnya daripada sistem jenama - kanvas terbuka Lolly masih mematuhi warna, jenis huruf dan aset kepada global jenama, dan itulah intinya
+## Peraturan berada dalam alat
+
+Lolly meletakkan peraturan jenama boleh guna semula dalam alat: warna, fon, jidar bleed, jarak dan input yang dibenarkan. Templat menetapkan bahagian yang tidak boleh diubah penerima. Lolly Work menambah akses kumpulan dan dasar input di sekeliling templat itu, dengan rantaian kelulusan untuk penyerahan katalog dan penghantaran.
+
+Menyemak alat sekali memudahkan pengeluaran berulang, kerana setiap output mewarisi peraturan reka letaknya. Salinan, imej yang dimuat naik dan hak penggunaan masih mungkin perlu disemak, dan Lolly Work membekalkan katalog dikongsi dan langkah kelulusan untuk itu. Bagi pasukan kreatif alat ialah pagar pelindung: anda masih membawa data, salinan dan imej, dan alat memastikan setiap hasil selari dengan jenama.
+
+![Seluruh tugas pengeluar: taip perkataan. Tipografi, warna dan jarak telah ditetapkan semasa alat dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+
+Tiga lagi perkara membezakan pendekatan ini:
+
+- **Fail akhir, daripada input.** Input masuk, fail siap keluar, tanpa "sekarang simpan daripada alat reka bentuk anda dan baiki".
+- **Alat menggubah alat.** Satu alat boleh membenamkan render alat lain dalam satu fail siap, tanpa gandingan kod antara keduanya.
+- **Terbuka hingga ke dasar.** Enjin ialah sumber terbuka, dan alat, aset serta token reka bentuk ialah fail yang boleh anda simpan dalam kawalan versi atau urus dalam Lolly Work, bukan baris dalam pangkalan data orang lain.
+
+Reka bentuk yang berani bertahan di dalam pagar pelindung. Peta bandar bertaraf poster ini ialah laluan jalan dan air vektor sebenar, daripada satu senarai juntai bawah dan dua medan warna yang tidak boleh ditunjuk ke luar sistem reka bentuk:
+
+![Cincin terusan dan rangkaian jalan Amsterdam dilukis hujung ke hujung dalam dakwat sistem reka bentuk sendiri, setiap lejang diletakkan oleh templat dan bukan dengan tangan](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
 ## Berinovasi secara kebarangkalian, berskala secara deterministik
 
-Kebanyakan pitching "kreatif AI" meletakkan model di sisi yang salah pada satu garisan lama. Jurutulis dan penghias manuskrip sudah pun menetapkan di mana garisan itu jatuh: anda bekerja secara longgar pada lakaran, di mana apa sahaja boleh dicuba dan tiada apa yang komited, kemudian anda pergi ke mesin cetak, yang menggerunkan justeru kerana ia komited. Lakaran itulah tempat seninya berada. Mesin cetak itulah caranya ia diperjalankan. Dua alat, dua tugas, masing-masing inventif dengan caranya sendiri, dan karya cetakan itu boleh dipercayai kerana mesin cetak menepati janjinya pada setiap tarikan.
+Kebanyakan penyampaian "kreatif AI" meletakkan model di sebelah yang salah pada garis lama. Jurutulis dan pengiluminasi telah menentukan di mana ia jatuh. Anda bekerja bebas pada lakaran, di mana apa-apa boleh dicuba dan tiada apa-apa dikomit. Kemudian anda pergi ke mesin cetak, yang mengomit. Lakaran ialah tempat seni berada, dan mesin cetak ialah cara ia berpindah, dan karya cetak boleh dipercayai kerana mesin cetak memegang janjinya pada setiap tarikan.
 
-Lolly adalah mesin cetak, bukan lakaran. Bawa apa sahaja yang anda suka kepada penjanaan idea - model, pereka bentuk, tisu napkin - tetapi sebaik sahaja sesuatu idea perlu menjadi banyak aset, ia melalui sesuatu yang memaparkan dengan cara yang sama setiap kali, daripada input yang boleh dibaca semula oleh sesiapa sahaja. Itulah sebenarnya inti perbandingan di atas: bukan siapa mempunyai penjana yang lebih baik, tetapi siapa yang menjadikan langkah komited itu boleh dihasilkan semula.
+Lolly ialah mesin cetak. Bawa apa sahaja yang anda suka kepada idea, model, pereka atau lukisan kasar, tetapi sebaik sahaja idea perlu menjadi banyak fail ia melalui sesuatu yang merender dengan cara sama setiap kali, daripada input yang boleh dibaca semula oleh sesiapa. Perbandingan di atas sebenarnya tentang siapa yang menjadikan langkah komit itu boleh diulang.
 
 > Percayai proses kreatif, skala dengan ketelitian.
 
-## Peraturan tinggal dalam alat dan templatnya
+## Percuma selama-lamanya
 
-Setiap alat lain di papan ini menghasilkan *fail*, dan fail hanya boleh dilihat selepas faktanya. Lolly menggerakkan peraturan jenama **satu langkah ke hulu**. Kod hex yang tepat, fail fon berlesen, jidar bleed, jarak - kesemuanya dikodkan keras ke dalam HTML dan CSS alat itu, jadi templat itu *tidak boleh* menghasilkan aset yang terkeluar daripada jenama. Susun atur itu sendiri yang menguatkuasakannya.
+**Jika ia dirender pada peranti anda, ia percuma selama-lamanya.** Enjin, shell, alat dan format ialah sumber terbuka, dan versi yang dikeluarkan tidak boleh ditarik balik. Lolly Work juga sumber terbuka. Organisasi membayar untuk infrastruktur dan operasi yang dipilihnya, tanpa caj lesen perisian bagi setiap tempat duduk atau setiap render untuk hos sendiri. [Questions & answers](/info/faq.html) menceritakan kisah di sebalik janji itu.
 
-Jadi perkara yang patut dilihat ialah **alat** itu, bukan setiap fail yang dihasilkannya. Betulkan alat itu, dan setiap aset yang pernah dihasilkannya patuh jenama secara binaan. Cara anda menyemak kerja anda, dan siapa yang melakukannya, kekal terpulang kepada anda; Lolly menjadikan perkara yang patut disemak lebih kecil dan output lebih pantas dihasilkan.
+## Di mana kandungan anda berada
 
-Inilah perubahan yang sebenarnya dibawa oleh enjin deterministik. Bagi pasukan kreatif, ia adalah pagar keselamatan, bukan penggantian - anda masih melontar bola (data, teks, imej) dan kod itu ialah lorong bumper yang memastikan setiap lontaran tidak jatuh ke dalam parit.
+Kerja kreatif Lolly boleh berjalan pada perkakasan yang anda miliki, dan token reka bentuk, fon, logo dan alatnya ialah fail yang boleh anda simpan. Dengan Lolly Work, projek dikongsi, aset, dasar dan rekod audit berada dalam storan yang dikonfigurasi organisasi anda. [Trust](/info/trust.html) menerangkan mengapa itu penting, dan [Privacy Policy](/info/privacy.html) serta [Verify It Yourself](/info/verify-yourself.html) membolehkan anda menyemak dakwaan dan bukan mempercayai kata kami.
 
-![Seluruh kerja penerbit: taip perkataan. Jenis huruf, warna dan jarak telah ditetapkan apabila alat itu dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+## Alat demi alat
 
-## Apa yang disediakan secara unik oleh ini
-
-- **Potensi reka bentuk yang liar disampaikan dengan selamat dalam konteks.** Alat boleh meluahkan idea reka bentuk yang berani dalam pagar keselamatan yang dikodkan keras.
-
-- **Automasi kandungan ditakrif perisian yang memulangkan aset akhir.** Input → fail akhir. Tiada "sekarang simpan daripada alat reka bentuk anda dan proses pascanya."
-- **Alat menggubah alat.** Satu alat boleh membenamkan pemaparan alat lain dan memulangkannya sebagai sebahagian daripada satu aset siap tunggal, tanpa gandingan kod alat-ke-alat - satu primitif yang tiada produk kanvas terbuka atau templat DAM di papan menawarkannya.
-- **Neutraliti vendor.** Kawalan penuh ke atas ciri dan kos. Enjin sumber terbuka. Alat dan aset ialah kandungan yang dijejaki git, bukan terkunci dalam pangkalan data SaaS.
-
-Yang pertama itulah yang sering dipandang rendah oleh orang ramai. Peta bandar bertaraf poster, dilukis sebagai laluan jalan dan air vektor sebenar, daripada satu dropdown dan dua medan warna yang tidak boleh diarahkan keluar daripada jenama:
-
-![Gelang terusan dan rangkaian jalan Amsterdam dilukis hujung ke hujung dalam dakwat jenama itu sendiri, setiap lejang diletakkan oleh templat dan bukan tangan](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
-
-## Kedaulatan kandungan
-
-Ada nama bagi apa yang dihimpunkan oleh seksyen sebelum ini: kedaulatan. Saluran media anda berjalan pada perkakasan yang anda miliki. Jenama anda - token, fon, logo, alat yang menguatkuasakannya - berada dalam fail yang anda pegang, dalam kawalan versi yang anda kawal, bukan dalam pangkalan data vendor dengan butang eksport. Pemaparan berlaku pada peranti di hadapan anda, jadi sesuatu aset tidak pernah melalui pihak ketiga untuk wujud, dan seluruh laluan daripada input hingga fail siap adalah sumber terbuka dan boleh diperiksa. Jika setiap vendor reka bentuk SaaS lenyap esok, penggunaan Lolly tidak akan terjejas.
-
-Ini penting bagi sesiapa sahaja yang kerjanya sepatutnya bertahan lebih lama daripada langganan: ibu bapa yang buku fotonya berada pada komputer riba itu sama pentingnya dengan badan awam yang pustaka jenamanya tertakluk kepada peraturan perolehan. Bagi organisasi - badan awam, industri terkawal, sesiapa sahaja yang jenamanya ialah aset strategik dan bukan hiasan - "di mana kandungan kami berada dan siapa yang boleh mematikannya" ialah persoalan tadbir urus, bukan pilihan peribadi. Kedaulatan di sini ialah sifat seni bina itu sendiri dan bukan ciri pengehosan yang ditambah untuk pematuhan, dan halaman [Privacy Policy](/info/privacy.html) dan [Verify It Yourself](/info/verify-yourself.html) wujud supaya anda boleh menyemak dakwaan itu dan bukan sekadar mempercayainya.
-
-Di sebalik semua itu terdapat satu janji, dinyatakan sebagai komitmen dan bukan ciri: **jika ia dipaparkan pada peranti anda, ia percuma selama-lamanya.** Enjin, shell, alat, format - keseluruhan laluan kreatif pada peranti adalah sumber terbuka dan kekal begitu. Janji itu mempunyai mekanisme: versi yang telah dikeluarkan dilesenkan supaya ia tidak boleh ditarik balik, dan tiada perjanjian penyumbang yang wujud yang boleh melesenkan semula kerja itu kemudian. Keseluruhan sempadan itu muat dalam satu ayat: segala yang dipaparkan pada peranti anda adalah percuma dan sumber terbuka, selama-lamanya; menyelaraskan manusia dan mesin merentasi rangkaian ialah tugas satah kawalan berasingan, [lolly.work](https://lolly.work).
+[Lolly compared, tool by tool](/info/compare.html) membandingkan Lolly dengan Canva, Adobe, Figma, Penpot, portal jenama, API perenderan dan penukar dalam talian, satu halaman setiap satu, dan menyatakan [what runs where](/info/compare.html#what-runs-where).

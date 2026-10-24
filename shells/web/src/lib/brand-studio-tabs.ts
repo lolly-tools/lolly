@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Brand studio tabs - the three studio panels that don't touch the colour
+ * Design System Setup's tabs - the three studio panels that don't touch the colour
  * pipeline: non-colour token editors (Tokens tab), gradient tokens (Colour
  * tab's optional extra) and catalogue uploads (Catalogue tab). Split out of
  * brand-editor.ts so the editor stays the colour/typography/logo core; each

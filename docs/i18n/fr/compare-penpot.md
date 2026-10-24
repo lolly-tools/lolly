@@ -2,24 +2,24 @@
 
 _Dernière vérification : 28 septembre 2026._
 
-Lolly et Penpot proposent tous deux des outils de design open source, des design tokens partagés et la collaboration en direct. Lolly associe la création sur l'appareil à [lolly.work](https://lolly.work), son service d'organisation déployé séparément.
+Si ton équipe conçoit dans Penpot, Lolly travaille à ses côtés : les deux sont open source et lisent les mêmes design tokens. Cette page dit à quoi sert chacun.
 
-## Fondations de design communes
+## Ce que Penpot fait mieux
 
-Les [design tokens de Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) utilisent le format DTCG, que Lolly lit également. Les couleurs, la typographie et d'autres valeurs de tokens peuvent être partagées entre les deux workflows. L'[Import a design](/info/design-import.html) de Lolly ouvre un export `.penpot` comme une mise en page modifiable.
+[Penpot](https://penpot.app/) offre le design d'interface, les composants, des mises en page flexibles, des prototypes interactifs et l'inspection pour les développeurs, avec édition en temps réel et curseurs en direct. Il propose des déploiements hébergés et auto-hébergés, avec des [options d'installation Docker et Kubernetes](https://help.penpot.app/technical-guide/getting-started/). Pour concevoir une application, Penpot est l'outil.
 
-Le plugin Lolly Export pour Penpot est maintenu par Lolly. Il utilise le moteur de Lolly pour des C2PA Content Credentials activés sur option, sur l'appareil. L'intégrité de la signature et la confiance dans le signataire sont deux choses distinctes : un vérificateur a besoin d'une identité à laquelle il fait confiance, comme décrit dans [Content Credentials Identity](/info/content-credentials-identity.html).
+## Où ils se recoupent
 
-## Workflows de design et d'équipe
+Les [design tokens de Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) utilisent le format DTCG, que Lolly lit aussi, donc couleurs, typographie et autres valeurs de tokens passent de l'un à l'autre. [Import a design](/info/design-import.html) de Lolly ouvre un export `.penpot` comme mise en page modifiable, et **Send to Penpot** dans Lolly renvoie un design sous forme d'archive `.penpot`. Lolly maintient aussi le [plugin Lolly Export pour Penpot](https://github.com/lolly-tools/lolly-plugins-penpot-export), qui utilise le moteur de Lolly pour ajouter, sur l'appareil, des Content Credentials facultatifs.
 
-[Penpot](https://penpot.app/) offre le design d'interface, les composants, des mises en page flexibles, des prototypes interactifs et l'inspection pour les développeurs. Il propose des déploiements hébergés et auto-hébergés, avec des [options d'installation Docker et Kubernetes](https://help.penpot.app/technical-guide/getting-started/).
+## Comment Lolly fait la tâche commune
 
-Le canevas Design de Lolly crée des assets modifiables et peut transformer une mise en page en [outil avec des règles](/info/create-a-tool.html). Le même outil effectue son rendu dans le navigateur, l'application de bureau ou la CLI et peut générer des variantes à partir de données. Pour le travail d'équipe, Lolly propose à la fois des [collabs privées](/info/collaborate.html) directes entre deux appareils et des collabs de travail via lolly.work, avec modifications partagées, curseurs et sessions d'équipe enregistrées.
+Le canevas Design de Lolly crée des ressources modifiables et peut transformer une mise en page en [outil avec des règles](/info/create-a-tool.html). Le même outil se rend dans le navigateur, l'application de bureau ou la CLI et produit des variantes à partir de données. Lolly autonome fait le rendu et signe sur l'appareil, sans compte ni serveur. Une [collab privée](/info/collaborate.html) relie directement deux appareils.
 
-## En quoi les déploiements diffèrent
+## Avec une organisation
 
-Lolly autonome effectue le rendu et la signature sur l'appareil, sans compte ni serveur. lolly.work ajoute le SSO, le provisionnement SCIM, les catalogues et projets partagés, les rôles, les validations, les journaux d'audit et le rendu serveur. Les deux dépôts sont open source sous MPL-2.0 et peuvent être exploités par l'organisation. Le travail partagé utilise l'instance configurée ; la création locale reste disponible indépendamment.
+Lolly Work ajoute l'authentification unique, le provisionnement SCIM, les catalogues et projets partagés, les rôles, les approbations, les enregistrements d'audit, les collabs de travail et le rendu serveur. Les deux dépôts sont sous MPL-2.0 et une organisation peut exploiter les deux. [What runs where](/info/compare.html#what-runs-where) met les deux parties côte à côte.
 
-Le choix dépend du travail à faire : le workflow de design d'interface et de prototypage de Penpot, la production d'assets répétable de Lolly, ou une combinaison fondée sur des tokens partagés et des designs importés. La collaboration de travail de Lolly s'exécute actuellement sur un seul nœud serveur, et son [état de déploiement](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) doit faire partie de l'évaluation d'une organisation.
+Tu peux utiliser les deux : Penpot pour le design d'interface et le prototypage, Lolly pour les fichiers répétables, reliés par des tokens partagés et des designs importés.
 
-Penpot est une marque de son propriétaire. Le plugin ci-dessus est celui de Lolly. Consulte [Comment Lolly se compare](/info/positioning.html) et la [vue d'ensemble de la solution combinée](/info/compare.html) pour la comparaison plus large.
+Penpot est une marque de son propriétaire. Cette page décrit où les deux produits se recoupent et n'est pas affiliée à Penpot.

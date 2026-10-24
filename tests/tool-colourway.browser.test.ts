@@ -25,6 +25,7 @@ import { readFileSync } from 'node:fs';
 import type { Page } from 'playwright-core';
 
 import { closeBrowser, getBrowser } from '../packages/node-shell/src/browsers.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 import { addColourway, liftToColourways } from '../engine/src/colourway.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
@@ -54,12 +55,12 @@ const canvasPrimary = (page: Page): Promise<string> => page.evaluate(() =>
   getComputedStyle(document.querySelector('#tool-canvas')!).getPropertyValue('--brand-primary').trim().toLowerCase());
 const chromePrimary = (page: Page): Promise<string> => page.evaluate(() =>
   getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim().toLowerCase());
-const themesInAddress = (page: Page): Promise<Record<string, string> | null> => page.evaluate(() => {
-  const hash = location.hash;
-  const query = hash.startsWith('#/') ? hash.slice(hash.indexOf('?') + 1) : location.search.slice(1);
+const themesInAddress = async (page: Page): Promise<Record<string, string> | null> => {
+  const { hash, search } = new URL(await settledUrl(page));
+  const query = hash.startsWith('#/') ? hash.slice(hash.indexOf('?') + 1) : search.slice(1);
   const raw = new URLSearchParams(query).get('_themes');
   return raw ? JSON.parse(raw) : null;
-});
+};
 // One browser for the file, closed after the last case whichever cases ran.
 after(() => closeBrowser());
 

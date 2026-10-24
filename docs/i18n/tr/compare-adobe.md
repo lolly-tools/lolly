@@ -2,24 +2,24 @@
 
 _Son kontrol: 28 Eylül 2026._
 
-Lolly; görsel düzenleme ve dönüştürme, yerleşim, tekrarlanabilir marka üretimi, baskı çıktısı ve Content Credentials işlerini yürütür. [lolly.work](https://lolly.work) bu yaratıcı iş akışına kurumsal kimlik, paylaşılan varlıklar, onaylar ve otomatik sunucu üretimi ekler.
+Gündelik dosyalar için Photoshop, Illustrator veya InDesign'a uzanıyorsan bu sayfa bu işlerden hangilerini Lolly'nin devralabileceğini ve hangilerinin Adobe'de kaldığını söyler.
+
+## Adobe'nin daha iyi yaptığı
+
+Adobe'nin uzmanlaşmış uygulamaları derin yaratıcı işi kapsar. Örneğin [Photoshop](https://www.adobe.com/products/photoshop.html) ayrıntılı fotoğraf düzenleme, seçim, maskeleme ve birleştirme sağlar. Karmaşık bir rötuş ve yinelenen bir marka varlığının farklı ihtiyaçları vardır: işi taşımadan önce işinin gerektirdiği düzenleme işlemlerini karşılaştır.
 
 ## Örtüştükleri alanlar
 
-İkisi de görselleri yeniden boyutlandırma, yerleşim oluşturma ve profesyonel biçimlerde dışa aktarma gibi işleri destekler. Lolly; PDF/X, CMYK ve yüksek bit derinlikli raster çıktıyı destekler, [biçime özgü yetenekler](/info/formats.html) ile birlikte. Cihaz üstü yardımcı araçları dosyaları yüklemeden dönüştürür ve temizler.
+İkisi de görselleri yeniden boyutlandırır, düzenler oluşturur ve profesyonel biçimleri dışa aktarır. Lolly, [biçime özgü yeteneklerle](/info/formats.html) PDF/X, CMYK ve yüksek bit derinlikli raster çıktıyı destekler ve cihaz üzerindeki yardımcı araçları dosyaları yüklemeden dönüştürür ve temizler.
 
-Adobe'nin uzman uygulamaları kapsamlı yaratıcı iş akışlarını kapsar. Örneğin [Photoshop](https://www.adobe.com/products/photoshop.html) ayrıntılı fotoğraf düzenleme, seçim, maskeleme ve birleştirme (compositing) araçları sunar. İşinizin gerektirdiği düzenleme işlemlerini Lolly'nin araçlarıyla karşılaştırın; yinelenen bir marka varlığı ile karmaşık bir rötuşun gereksinimleri farklı olabilir.
+## Lolly örtüşen işi nasıl yapar
 
-## Oluşturma ve kurumsal hizmetler
+Bağımsız Lolly bir Adobe hesabına ve bir Lolly hesabına ihtiyaç duymaz ve aynı motoru tarayıcıda, masaüstü uygulamasında ve CLI'de çalıştırır. Şablonlar ve tasarım token'ları her dosyayı tutarlı tutar ve [Share with rules](/info/create-a-tool.html) bir tasarımı başkalarının doldurduğu bir araca dönüştürür.
 
-Bağımsız Lolly, Adobe hesabı veya Lolly hesabı olmadan çalışır; tarayıcıda, masaüstü uygulamasında ve CLI'da aynı motoru kullanır. Şablonlar ve tasarım token'ları çıktıları tekrarlanabilir kılar, [Kurallarla paylaş](/info/create-a-tool.html) ise bir tasarımı başkalarının doldurabileceği bir araca dönüştürür.
+Lolly desteklenen dışa aktarmaları cihazda Content Credentials ile imzalar; varsayılan olarak açıktır ve kapatabilirsin. Bir cihaz anahtarı dosyanın imzalandığından beri değişmediğini kanıtlar. Bir kuruluş kendi sertifika otoritesini kullanabilir; böylece doğrulayıcıları imzalayana güvenir; farkı [Content Credentials Identity](/info/content-credentials-identity.html) açıklar. Cihaz üzerindeki dönüştürme yardımcı araçları Lolly filigranı veya Content Credentials eklemez.
 
-lolly.work, Lolly projesi içinde ayrı bir hizmettir ve yaratıcı uygulamalar gibi MPL-2.0 ile açık kaynaklıdır. SSO, SCIM, paylaşılan kataloglar ve projeler, onaylar, erişim ilkeleri, denetim kayıtları ve sunucu tarafı işleme sağlar. Bir kurum her iki parçayı da kendisi çalıştırabilir ve mevcut varlık kütüphanelerini bağlayabilir. Yerel oluşturma cihazda kalır; paylaşılan işler ve sunucu işleri yapılandırılmış hizmetleri kullanır.
+## Bir kuruluşla
 
-## Content Credentials ve kimlik
+Lolly Work, kuruluş girişi, paylaşılan varlıklar, onaylar ve bir kuruluş sertifikası altında [sunucu imzalama](/info/work-c2pa.html) ile sunucu üretimi ekler. [What runs where](/info/compare.html#what-runs-where) iki parçayı yan yana koyar.
 
-Lolly, kullanıcının Content Credentials'ı etkinleştirmesiyle desteklenen dışa aktarmaları cihazda imzalayabilir. Cihazda üretilen bir anahtar dosya imzasının bütünlüğünü kanıtlar; ancak doğrulanmış bir kimlik gösterilmeden önce doğrulayıcının imzalayana yine de güvenmesi gerekir. Bir kurum kendi sertifika otoritesini kullanabilir ve kök sertifikasını doğrulayıcılarına dağıtabilir. lolly.work ayrıca yapılandırılmış bir kurum sertifikası ve anahtarıyla sunucu tarafında imzalamayı destekler.
-
-Böylece Lolly çözümü içinde hem kişisel hem de kurumsal imzalama mümkün olur. [Content Credentials Kimliği](/info/content-credentials-identity.html), [lolly.work imzalama kılavuzu](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md) ve [birleşik çözüme genel bakış](/info/compare.html) sayfalarına bakın. Cihaz üstü dönüştürme araçları Lolly filigranı veya köken (provenance) üstverisi eklemez.
-
-Adobe, Photoshop ve Creative Cloud, Adobe'nin ticari markalarıdır. Bu sayfa çözümlerin nerede örtüştüğünü anlatır ve Adobe ile bağlantılı değildir.
+Adobe, Photoshop ve Creative Cloud, Adobe'nin ticari markalarıdır. Bu sayfa ürünlerin nerede örtüştüğünü anlatır ve Adobe ile bağlantılı değildir.

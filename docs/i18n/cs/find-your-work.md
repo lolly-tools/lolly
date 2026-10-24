@@ -1,6 +1,8 @@
 # Najdi a obnov svou práci
 
-Všechno, co v Lolly vytvoříš, zůstává v prohlížeči nebo aplikaci, ve které jsi to udělal/a, na tomto zařízení, pokud nezapneš [Synchronizaci](/info/sync.html). Uložená práce je v **Projektech**. Stažený soubor je tam, kam ho umístil tvůj prohlížeč nebo systém, a kopie obvykle čeká v **Assetech**. Ve většině nástrojů se uchovává i práce, kterou jsi nikdy neuložil/a. Tahle stránka pokrývá každý z těchto případů, a navíc zavřenou kartu, vymazaná data prohlížeče, dřívější verze, smazané položky a přesun do jiného zařízení.
+Něco chybí: návrh, který jsi nikdy neuložil, soubor, který jsi stáhl, loňská verze, nebo všechno po vymazání prohlížeče. Začni tabulkou a pak sleduj sekci, na kterou ukazuje.
+
+Osobní práce zůstává v prohlížeči nebo aplikaci, kde vznikla, na tom zařízení, pokud nezapneš [Sync](/info/sync.html). Organizace používající volitelné Lolly Work také drží **Team projects** na svém serveru, viz níže.
 
 | Co jsi udělal/a | Kam se podívat |
 |---|---|
@@ -10,13 +12,23 @@ Všechno, co v Lolly vytvoříš, zůstává v prohlížeči nebo aplikaci, ve k
 | Nic z toho, v nástroji, který neukládá | Jen karta, ve které jsi pracoval/a, dokud ji nezavřeš |
 | Smazal/a jsi to v aplikaci | **Koš**, v **Projektech**, **Assetech** nebo **Nastavení → Úložiště**, na 30 dní |
 
+::: figure find-your-work-places
+Kde žije tvá práce: úložiště samotného prohlížeče drží Projects, History a Trash; stahování jde do složek tvého zařízení; Sync a záložní soubor jsou kopie mimo prohlížeč.
+:::
+
+::: details Najdi sdílenou práci v Lolly Work (volitelné)
+Otevři Lolly své organizace a přihlas se, pak se podívej do **Projects → Team projects**. Sdílené relace drží ta instance a zobrazují se podle tvého přístupu. Přihlášení může obnovit přístup k těm relacím na jiném zařízení; neobnoví tvou osobní knihovnu ani zálohu zařízení.
+
+V [pracovní kolaboraci](/info/collaborate.html#work-collabs-with-lolly-work-optional) počkej na **Saved to work**, než odejdeš. Pokud sdílený projekt chybí, zkontroluj, že jsi připojen ke správné instanci, a zeptej se jejího provozovatele na přístup nebo uchovávání. Vymazání dat prohlížeče odstraní místní kopie, ne kopii organizace na serveru. Viz [Používej Lolly ve své organizaci](/info/organisation.html).
+:::
+
 ## Najdi něco, co jsi uložil/a
 
 1. Stiskni **Domů** vlevo nahoře v nástroji.
 2. Otevři kartu **Projekty** nahoře na domovské obrazovce (na mobilu ikona složky).
 3. Podívej se na první obrazovku. Je tam práce uložená do **Moje knihovna** a každý projekt je tam složka. Chceš-li prohledat všechny složky najednou, napiš něco do pole **Hledat ve všech projektech…** dole na obrazovce.
 
-Položka je pojmenovaná podle názvu souboru, který jsi zadal/a v exportním panelu, nebo podle svého nástroje, například **QR Code**, pokud jsi nic nezadal/a. Otevři položku a každé nastavení se vrátí, připravené ke změně a dalšímu exportu. Chceš-li takhle ukládat novou práci, viz [Ukládání a pokračování](/info/using.html#saving-continuing).
+Položka se jmenuje podle názvu souboru, který jsi napsal do panelu exportu, nebo podle svého nástroje, například **QR Code**, pokud jsi nic nenapsal. Otevři položku a každé nastavení je zpět, připravené ke změně a dalšímu exportu. Chceš-li novou práci uchovávat takto, viz [Ukládání a pokračování](/info/using.html#saving-continuing).
 
 ::: note Není to v Projektech?
 - Možná je to v **Koši**: viz [Získej zpět něco, co jsi smazal/a](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Složky, které se vnořují.** Seskup uložené relace do složek a složky do dalších složek, jak hluboko chceš. Vytvoř složku, přejmenuj ji nebo přetáhni dlaždici na jinou složku, abys ji přesunul/a; drobečková navigace tě dovede zpátky nahoru. Relace uložené bez složky se objeví přímo v kořeni **Projektů**.
-- <!--i:clock--> **Řaď si po svém.** **Možnosti zobrazení**, tlačítko s posuvníky vpravo nahoře, nabízí **Mřížku** nebo **Seznam** a řazení podle **Názvu**, **Data přidání**, **Poslední úpravy** (výchozí), **Velikosti** a uvnitř složky i **Podle nástroje**. Složky jsou vždy první bez ohledu na aktivní řazení - řazení řadí jen relace a složky v rámci vlastní skupiny.
-- <!--i:document--> **Zakládej novou práci rovnou tady.** **Nový prvek** otevře společný výběr. Zvol **Šablony** a začni z uložené šablony: otevři ji k úpravám, nebo použij **+ Přidat** a novou kreaci rovnou ulož.
-- <!--i:checklist--> **Vícenásobný výběr (desktop).** Zaškrtni políčko u dlaždice, přetáhni výběrový obdélník přes prázdnou plochu nebo použij **Shift/Cmd-klik**; **klikni pravým tlačítkem** na dlaždici pro kontextovou nabídku. Lišta výběru pak nabídne **Vykreslit výběr**, **Přesunout do…**, **Novou složku**, **Smazat** (což přesune do koše), **Upravit společně** pro dvě až osm relací jednoho nástroje, vedle sebe pod jedním postranním panelem, a **Upravit jako tabulku**, což otevře výběr libovolné velikosti nebo směsi jako řádky v dávkové mřížce.
-- <!--i:download--> **Vykresli celou složku nebo výběr.** **Vykreslit složku** exportuje každou uloženou relaci ve složce - včetně jejích podsložek - jako jeden vnořený `.zip`. **Vykreslit výběr** dělá totéž pro jakýkoli vícenásobný výběr a jedna relace se vykreslí přímo do vlastního souboru. Batch/Pro není potřeba.
-- <!--i:link--> **Skoč rovnou na uloženou práci nástroje.** Zaškrtni jeden nebo víc nástrojů v galerii Nástroje a zvol **Zobrazit relace** z lišty výběru - Projekty se otevřou a ukážou jen relace vytvořené těmito nástroji, s tlačítkem **Vymazat** pro návrat k plnému zobrazení.
-- <!--i:link--> **Sdílej uloženou relaci.** Klikni pravým tlačítkem na relaci (na mobilu stiskni **•••** na její dlaždici) → **Odkaz ke sdílení**, abys zkopíroval/a odkaz, který ji znovu otevře se stejným nastavením; obrázky z tvého zařízení s odkazem necestují (celý dialog sdílení: viz [Sdílení tvojí práce](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Přejmenuj nebo zkopíruj relaci.** Klikni pravým tlačítkem na relaci (na mobilu stiskni **•••** na její dlaždici) pro **Přejmenovat**, **Duplicitní** (kopii ve stejné složce) a **Přesunout do…**.
+- <!--i:folder--> **Vnořené složky.** Seskupuj uložené relace do složek a složky do složek, tak hluboko, jak chceš. Vytvoř složku, přejmenuj ji nebo přetáhni dlaždici na jinou složku, abys ji přesunul; drobečková navigace tě vrátí nahoru. Relace uložené bez složky se objeví přímo v kořeni **Projects**.
+- <!--i:clock--> **Řaď po svém.** **View options**, tlačítko s posuvníky vpravo nahoře, nabízí **Grid** nebo **List** a řadí podle **Name**, **Date added**, **Last modified** (výchozí), **Size** a, uvnitř složky, **By tool**. Složky jdou vždy první bez ohledu na aktivní řazení - řazení uspořádává jen relace a složky uvnitř jejich vlastní skupiny.
+- <!--i:document--> **Zakládej novou práci rovnou.** **New asset** otevře sdílený výběr. Zvol **Templates**, abys začal z uložené šablony: otevři ji k úpravě nebo použij **+ Add** a ulož novou tvorbu hned.
+- <!--i:checklist--> **Vícenásobný výběr (desktop).** Zaškrtni políčko dlaždice, táhni výběrový rámeček přes prázdné místo nebo **Shift/Cmd-klik**; **pravým tlačítkem** na dlaždici otevřeš její kontextovou nabídku. Lišta výběru pak nabízí **Render selection**, **Move to…**, **New folder**, **Delete** (přesune do Koše), **Edit together** pro dvě až osm relací jednoho nástroje vedle sebe pod jedním postranním panelem a **Edit as sheet**, které otevře výběr libovolné velikosti či směsi jako řádky v mřížce dávky.
+- <!--i:download--> **Vykresli celou složku nebo výběr.** **Render folder** exportuje každou uloženou relaci ve složce - včetně podsložek - jako jeden vnořený `.zip`. **Render selection** totéž udělá pro jakýkoli vícenásobný výběr a jedna relace se vykreslí rovnou do vlastního souboru.
+- <!--i:link--> **Skoč rovnou k uložené práci nástroje.** Zaškrtni jeden nebo více nástrojů v galerii Tools a zvol **View sessions** na liště výběru - Projects se otevře a ukáže jen relace vytvořené těmito nástroji, s **Clear** pro návrat k úplnému zobrazení.
+- <!--i:link--> **Sdílej uloženou relaci.** Klikni pravým tlačítkem na relaci (na telefonu stiskni **•••** na její dlaždici) → **Share link** zkopíruje odkaz, který ji znovu otevře se stejným nastavením; obrázky z tvého zařízení s odkazem neputují (úplný dialog Share: viz [Sdílení práce](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Přejmenuj nebo zkopíruj.** Klikni pravým tlačítkem na relaci (na telefonu stiskni **•••** na její dlaždici) pro **Rename**, **Duplicate** (kopie ve stejné složce) a **Move to…**.
 
 ![Vyskakovací okno Možnosti zobrazení v Projektech: Rozvržení s Mřížkou a Seznamem a Řadit podle nastavené na Poslední úpravu, vedle tlačítka, které obrátí pořadí](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 Co se vrátí, závisí na tom, jak jsi odešel/odešla a který nástroj jsi použil/a:
 
-- **Zavřel/a jsi kartu, nebo ses vrátil/a jindy.** Neuložená práce zmizí, kromě [nástrojů, které ukládají za chodu](#which-tools-save-as-you-work): otevři tu práci z **Projektů**.
-- **Znovu jsi načetl/a stránku ve stejné kartě.** Tvoje nastavení se vrátí z adresy stránky. V nástrojích, které neukládají za chodu, se obrázky a soubory, které jsi přidal/a ze zařízení, a jednořádkový text delší než 150 znaků nevrátí, protože je adresa neuchovává.
-- **Stiskl/a jsi Domů, nebo tlačítko zpět vlevo nahoře.** Pokud jsi něco změnil/a od posledního uložení, stažení nebo zkopírování, dialog **Neuložené úpravy** se zeptá, jestli chceš nejdřív uložit. **Uložit & odejít** uloží práci a přenese tě do **Projektů**, nebo zpátky do složky projektu, ze které jsi práci otevřel/a. **Přesto odejít** zahodí tvoje změny: uložená položka se vrátí do stavu, ve kterém jsi ji naposledy uložil/a, a výtvor, který jsi nikdy neuložil/a, opustí **Projekty**. **Zrušit** tě nechá v nástroji.
+- **Zavřel jsi kartu nebo ses vrátil později.** Neuložená práce je pryč, kromě [nástrojů, které ukládají při práci](#which-tools-save-as-you-work): otevři tu práci z **Projects**.
+- **Znovu jsi načetl stránku ve stejné kartě.** Tvá nastavení se vrátí z adresy stránky. V nástrojích, které neukládají při práci, se obrázky a soubory přidané z tvého zařízení a jednořádkový text delší než 150 znaků nevrátí, protože je adresa nedrží.
+- **Stiskl jsi Home nebo tlačítko zpět vlevo nahoře.** Pokud jsi od posledního uložení, stažení nebo kopírování něco změnil, dialog **Unsaved edits** se zeptá, zda nejprve uložit. **Save & leave** uloží práci a odvede tě do **Projects** nebo zpět do složky projektu, odkud jsi práci otevřel. **Leave anyway** zahodí tvé změny: uložená položka se vrátí do podoby, jak jsi ji naposledy uložil, a tvorba, kterou jsi nikdy neuložil, opustí **Projects**. **Cancel** tě ponechá v nástroji.
 
 Lolly se zeptá, jen když stiskneš **Domů** nebo tlačítko zpět v nástroji. Zavření karty, znovunačtení a vlastní tlačítko Zpět tvého prohlížeče se nikdy neptají. Pro jistotu stiskni **Uložit jako**, nebo **Uložit** v exportním panelu, než nástroj opustíš.
+
+Když automatické obnovení není k dispozici, poznámka vedle editačních ovládacích prvků říká, co uchovat:
+
+- V nástroji, který pracuje se souborem, který přineseš, ulož svá nastavení a ponech i původní soubory.
+- V nahrávacím nástroji nebo utilitě bez akce Save ulož nebo stáhni výsledek, než odejdeš.
+- Desktopové a mobilní aplikace řeknou, kdy je třeba uložit ručně.
+- V soukromé kolaboraci drží dokument a jeho historii, včetně změn druhé osoby, ten, kdo pozval. Ten, kdo se připojil, pracuje na dočasné kopii a měl by uložit samostatnou kopii před koncem relace.
 
 ::: note Odešel/odešla jsi bez uložení omylem?
 V nástrojích, které ukládají za chodu, uchovává Historie kopii zahozených úprav. Otevři stránku **Historie**, najdi je pod **Změny** a stiskni **Otevřít jako kopii**. V jiných nástrojích jsou změny pryč.
@@ -84,12 +103,15 @@ V nástrojích, které ukládají za chodu, uchovává Historie kopii zahozenýc
 ::: details Které nástroje ukládají za chodu
 Ve webové aplikaci ukládá za chodu každý nástroj, který vytváří dokument: Design, Chart, QR Code, Text, Sandbox a další. Tyto nástroje ne:
 
-- nástroje, které pracují se souborem, který přineseš, jako Redact, Sign nebo Convert Image, protože Lolly si nikdy nenechává kopii toho souboru;
-- nástroje, které nahrávají z tvé kamery, mikrofonu nebo obrazovky, jako Record, Screen Capture a Voice Recorder;
-- 3D a Darkroom, které mají svůj vlastní soubor;
-- nástroj, na kterém není co měnit, jako Countdown.
+- nástroje, které pracují se souborem, který přineseš, jako Redact, Sign nebo Convert Image, protože Lolly nikdy nedrží kopii toho souboru;
+- nástroje, které nahrávají z kamery, mikrofonu nebo obrazovky, jako Record, Screen Capture a Voice Recorder;
+- nástroj, ve kterém není co měnit, jako Countdown.
 
-V ostatních nástrojích tvoje první změna zařadí práci do **Projektů**, jako bys ji uložil/a, a další změny se ukládají za chodu, jakmile nástroj dokreslí. Neuložený výtvor tak zůstává v Projektech i po zavření karty a znovu se otevře se svými změnami označenými jako neuložené. **Přesto odejít** je i tak zahodí, a Historie uchová kopii zahozených úprav na 30 dní. Opětovné otevření nástroje z domovské obrazovky začne nový výtvor; ten dřívější otevři z Projektů.
+V ostatních nástrojích tvá první změna založí práci v **Projects**, jako bys uložil, a pozdější změny se uchovávají při práci, jakmile nástroj dokončí vykreslení. Neuložená tvorba je v Projects stále po zavření karty a znovu se otevře s označenými neuloženými změnami.
+
+**Leave anyway** stále zahodí ty změny a History uchovává kopii zahozených úprav 30 dní. Opětovné otevření nástroje z domovské obrazovky začne novou tvorbu; dřívější otevři z Projects.
+
+3D a Darkroom ukládají při práci, ale neuchovávají soubor, který do nich načteš, například 3D model nebo LUT. History a **Save** uchovávají název, typ a velikost souboru, ne soubor. Když práci otevřeš znovu, poznámka říká, který soubor to byl, a nástroj funguje bez něj, dokud jej znovu nenačteš. Ponech si původní soubory.
 
 Se zapnutou [Synchronizací](/info/sync.html) putuje takto založený výtvor na tvá další zařízení jako cokoli jiného v Projektech. Jeho verze zůstávají na zařízení, kde vznikly.
 
@@ -138,7 +160,7 @@ Automatické kontrolní body s časem řídnou: jeden za minutu za poslední hod
 
 Když se úložiště Historie zaplní, nejdřív se odstraní nejstarší automatické kontrolní body výtvorů, které jsi 30 dní neotevřel/a. Uložení zůstane zachované vždy, i tehdy: zapíše se jako aktuální práce, a Historie uvede, že se toto uložení neuchovává jako verze. **Nastavení → Úložiště** ukazuje, kolik Historie zabírá.
 
-Stránka **History** (`#/history`, nebo **Open app history** v panelu) pokrývá každý výtvor v tomto prohlížeči. Na počítači otevři stránku pomocí tlačítka s hodinami vpravo nahoře na domovské obrazovce nebo v **Projektech**. Na mobilu přejdi do galerie nástrojů na domovské obrazovce, stiskni kulaté tlačítko s logem vpravo nahoře a zvol **Uložené relace**, což otevře History. Z **Projektů** tahle položka zatím nedělá nic.
+Stránka **History** (`#/history`) pokrývá každou tvorbu v tomto prohlížeči. Otevřeš ji tlačítkem hodin vpravo nahoře na domovské obrazovce nebo v **Projects**, volbou **Saved sessions** v nabídce profilu (na telefonu kulaté tlačítko loga vpravo nahoře) nebo stiskem **Open app history** v panelu History nástroje. Desktopové a mobilní aplikace stránku History nevedou, takže tam tlačítko hodin na domovské obrazovce a **Saved sessions** otevřou místo toho **Your recent work**: tvé nejnovější uložené relace a exporty s odkazem do Projects.
 
 - **Nedávné** uvádí tvoje výtvory, od nejnovějšího, s tlačítkem **Pokračovat**.
 - **Changes** dává checkpointy, stažení a výsledky Convert na jednu časovou osu. Stažení má **Reopen settings**.
@@ -174,7 +196,7 @@ Přihlášení, klíče a synchronizační heslo zůstávají na každém zaří
 ::: details Co obsahuje záložní soubor
 Soubor se jmenuje `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (části názvu pocházejí z tvého profilu a pokud nejsou nastavené, vynechají se; `<n>` je denní počítadlo, aby si exporty ze stejného dne nekolidovaly). Obsahuje tvůj profil, s tvými složkami, Košem, šablonami a oblíbenými; každou uloženou relaci s jejím náhledem; tvoje nahrané obrázky, písma, loga a kopie tvých stažení; tvoje design systémy; tvoje předvolby (motiv, šířku postranního panelu, lokální statistiky aktivity); uložené verze a výsledky z Convert; a z webové aplikace historii verzí tvých výtvorů.
 
-Mezipaměť katalogu součástí není - na novém zařízení se stáhne znovu. Každá část má kontrolní součet, takže soubor poškozený při přenosu se odhalí při importu, místo aby se obnovil napůl rozbitý. Uložené relace se automaticky znovu propojí s tvými importovanými obrázky. Webová, desktopová a mobilní aplikace čtou stejný soubor; terminálová aplikace píše svou vlastní, jednodušší zálohu, kterou tento formát nečte. **📦 Exportovat moje data & vykreslit vše** vytvoří stejný soubor plus druhý zip, ve kterém je každá uložená relace vykreslená do svého výstupu. (Plná specifikace formátu: [Přenos dat](/info/data-transfer.html).)
+Cache katalogu není zahrnuta - na novém zařízení se stáhne sama znovu. Každá část má kontrolní součet, takže soubor poškozený při přenosu se zachytí při importu, místo aby se obnovil napůl rozbitý. Uložené relace se automaticky znovu propojí s tvými importovanými obrázky. Webová, desktopová a mobilní aplikace čtou stejný soubor; terminálová aplikace zapisuje vlastní jednodušší zálohu, kterou tento formát nečte. **Export my data & render everything** vytvoří stejný soubor plus druhý zip s každou uloženou relací vykreslenou do jejího výstupu. (Úplná specifikace formátu: [Přenos dat](/info/data-transfer.html).)
 :::
 
 ## Když vymažeš data prohlížeče
@@ -185,11 +207,13 @@ Ve webové aplikaci Lolly uchovává všechno v úložišti tvého prohlížeče
 Stiskni **Exportovat moje data** pod **Nastavení → Úložiště** a ulož si soubor jinde.
 :::
 
-Když se aplikace spustí, Lolly požádá prohlížeč, aby nemazal jeho úložiště, když zařízení dochází místo. Rozhoduje prohlížeč. Pod **Nastavení → Dostupné offline** řádek začínající **Chráněno** znamená, že prohlížeč souhlasil; „Prohlížeč může stažené soubory smazat, pokud zařízení dochází místo“ znamená, že nesouhlasil, a **Chránit stažené soubory** se zeptá znovu. Pokud prohlížeč nesouhlasil, může při nedostatku místa smazat uloženou práci i stažené soubory, takže si ulož aktuální soubor **Exportovat moje data**.
+Při spuštění aplikace Lolly požádá prohlížeč, aby nemazal své úložiště, když zařízení dochází místo, a rozhodne prohlížeč. V **Settings → Available offline** řádek začínající **Protected** znamená, že prohlížeč souhlasil. "The browser may clear downloads if the device runs low on space" znamená, že ne, a **Protect downloads** se zeptá znovu.
+
+Pokud prohlížeč nesouhlasil, může při nedostatku místa smazat uloženou práci stejně jako stažené soubory, takže si uchovej nedávný soubor **Export my data**.
 
 **Nastavení → Úložiště** ukazuje, kolik místa zabírá každý druh dat. Jeho řádek **Historie** počítá automatické kontrolní body, jejich náhledy a obnovovací koncepty; **Odstranit automatické kontrolní body starší než 30 dní** uvolní to místo a zachová uložené i pojmenované verze. **Vymazat cache** zahodí stažené soubory katalogu, které se stáhnou znovu, až budou potřeba. **Vymazat všechna moje data** tě požádá o napsání slova, vypne Synchronizaci, a pak odstraní všechno, co Lolly uchovává v tomto prohlížeči: tvůj profil a nastavení, uložené relace s jejich historií a Koš, nahrané soubory, písma a design systémy, log stažení, výsledky Convert, stažené AI modely a offline kopie. Soubory, které jsi stáhl/a, zůstanou tam, kam jsi je uložil/a. Aplikace se pak spustí, jako při první návštěvě.
 
-![Karta úložiště na obrazovce o šířce telefonu: pojmenovaná každá kategorie dat v zařízení a dole tlačítko Vymazat všechna moje data](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Karta úložiště na obrazovce šířky telefonu: pojmenovaná každá kategorie dat na zařízení, s tlačítkem Clear all my data dole](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 V desktopové a mobilní aplikaci jsou uložené relace soubory ve vlastní datové složce aplikace a zbytek je ve vlastním úložišti aplikace, takže vymazání webového prohlížeče se jich netýká.
 

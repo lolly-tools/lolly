@@ -1,87 +1,87 @@
-# Mga karapatang malikhain, credit, at kung ano ang mananatiling iyo
+# Creative rights at mga credit
 
-Dapat kang magamit ang magagandang gawa ng ibang tao nang hindi kailangang maging eksperto sa licensing, at nang hindi tahimik na naiiwan ang mga taong gumawa nito. Kaya iniingatan ni Lolly ang source ng bawat gawang ginagamit nito, binabasa ang lisensya na naitala para rito, kinakalkula kung ano ang hinihingi ng lisensyang iyon para sa paggamit na talagang ginagawa mo, ginagawa ang bahaging kaya ng isang programa at pinapangalanan ang bahaging ikaw lang ang makakagawa.
+Dapat mong magamit ang magandang gawa ng ibang tao nang hindi nagiging eksperto sa paglilisensya, at nang hindi tahimik na iniiwan ang mga taong gumawa nito. Kaya iniingatan ng Lolly ang pinagmulan ng bawat gawang iginuguhit nito, binabasa ang lisensyang naitala para rito, tinutukoy kung ano ang hinihingi ng lisensyang iyon sa paggamit na ginagawa mo talaga, ginagawa ang bahaging kayang gawin ng programa at sinasabi sa iyo ang bahaging ikaw lang ang makakagawa.
 
-Wala sa mga ito ang legal advice at wala sa mga ito ang isang ruling tungkol sa proyekto mo. Nagtatala si Lolly ng mga katotohanan, nagpapatupad ng maliit na hanay ng mga rules na binasa mula mismo sa legal na teksto ng mga lisensya, at ipinapakita ang proseso nito. Ang isang lisensyang may mga kondisyon ay isang normal, pinapayagang pagpipilian. Hindi ito kailanman ipinapakita bilang isang sirang asset.
+Walang legal na payo sa alinman dito, at wala ring hatol tungkol sa proyekto mo. Nagtatala ang Lolly ng mga katotohanan, naglalapat ng maliit na hanay ng mga patakarang binasa mula sa sariling legal na teksto ng mga lisensya at ipinapakita ang paraan ng pagtatrabaho nito. Ang lisensyang may kondisyon ay normal at pinahihintulutang pagpili. Hindi ito kailanman ipinapakita bilang sirang asset.
+
+## Kung saan mo ito makakaharap
+
+Ang mga emoji set ang karaniwang kaso. Ang Twemoji ay CC BY 4.0, kaya ang heading na may emoji ay nag-e-export na may kinikilalang artwork at wala nang kailangang gawin mo. Parehong CC BY-SA 4.0 ang dalawang OpenMoji set, kaya ang pag-recolor sa isa sa mga glyph nila gamit ang brand treatment ay adaptasyon, at ang pagbabahagi ng adaptasyong iyon ay hihilingin sa iyong pumili ng compatible na lisensya nang minsan. Nakarehistro rin ang Fluent (MIT), Noto at Blobmoji (parehong Apache 2.0), at bawat isa ay nareresolba sa ilalim ng sarili nitong sinuring lisensya.
+
+Hindi kailanman hinaharang ang pagpili ng set, at ipinapakita ng set control ang lisensya kung saan ka pumipili. Ang parehong mga patakaran ang sumasagot para sa catalog illustration, LUT, font at anumang ibang naitalang gawa.
 
 ## Tatlong katotohanan, pinaghihiwalay
 
 Ang "CC BY 4.0", "kailangan ng credit ang paggamit na ito" at "nasa file na kararaan mo lang i-download ang credit" ay tatlong magkaibang pahayag, at pinaghihiwalay sila ni Lolly:
 
-- Ang **Evidence** ay kung ano ang idineklara ng isang source, itinala kung paano ito nakita, kasama kung sino ang nagsabi nito at saan ito nabasa. Ang mas huling import ay hindi kailanman nagpapawalang-bisa sa mas naunang record.
-- Ang **Obligation** ay kung ano ang ginagawa ng mga sinuring rules sa ebidensyang iyon para sa isang paggamit, isang delivery route at isang audience. Nananatiling kondisyonal ang mga sharing condition habang privately kang nagtatrabaho.
-- Ang **Delivery** ay kung ano talaga ang dala ng natapos na bytes, na sinusukat sa pamamagitan ng pagbasa muli sa mga ito. Sinasabi lang ni Lolly na kasama na ang credits kapag nahanap na ito ng isang reader sa na-deliver na file.
+- Ang **Evidence** ay ang idineklara ng source, naitala gaya ng pagkakatuklas, kasama kung sino ang nagsabi at saan ito binasa. Hindi kailanman ino-overwrite ng susunod na import ang naunang record.
+- Ang **Obligation** ay ang ginagawa ng mga sinuring patakaran sa ebidensyang iyon para sa isang paggamit, isang delivery route at isang audience. Ang mga kondisyong umiiral sa pagbabahagi ay nananatiling kondisyonal habang pribado kang gumagawa.
+- Ang **Delivery** ay ang talagang dala ng tapos na mga byte, sinusukat sa pagbasa pabalik. Sinasabi lang ng Lolly na kasama ang mga credit pagkatapos itong makita ng reader sa naihatid na file.
 
-## Saan mo ito unang mararanasan
+![Ang naitalang source evidence at ang napiling paggamit ay nagpapakain sa mga sinuring patakaran. Inihahanda ng Export ang mga credit, saka binabasa ng delivery check ang tapos na mga byte para iulat kung aling mga credit ang natagpuan o kailangan pa.](/info/diagrams/concepts/rights-evidence-to-delivery.svg)
 
-Ang mga emoji set ang pangkaraniwang kaso. CC BY 4.0 ang Twemoji, kaya ang isang heading na may emoji ay nag-e-export na naka-credit na ang artwork at wala nang dapat gawin pa. CC BY-SA 4.0 naman ang dalawang OpenMoji set, kaya ang pag-recolor sa isa sa mga glyph nila gamit ang isang brand treatment ay isang adaptation, at ang pagshe-share ng adaptation na iyon ay humihingi sa iyong pumili ng isang compatible na lisensya nang minsan lang. Hindi kailanman naha-block ang pagpili ng set, at pinapangalanan ng set control ang lisensya kung saan mo ito pinipili. Ganito rin ang sagot para sa isang catalog illustration, isang LUT, isang font at anumang iba pang naitalang gawa.
+## Ang nakikita mo, at ang gagawin
 
-## Ang mga salitang ginagamit ni Lolly
+Lumilitaw ang parehong mga salita sa export panel, Verify, command line at machine result, halos ayon sa kung gaano kadalas mo itong makakaharap.
 
-Iisang bokabularyo sa buong export panel, Verify, command line at machine result.
-
-| Ang nakikita mo | Ang ibig sabihin nito |
+| Ang nakikita mo | Ano ang ibig sabihin |
 |---|---|
-| Isasama ang Source credits. | Nakahanda na ang credit at kaya itong dalhin ng route. Wala pang naisulat, kaya hindi ito isang success message. |
-| Kasama na ang credits sa metadata ng file na ito. | Binasa pabalik ang na-deliver na bytes, na-verify ang credential at nahanap dito ang bawat kinakailangang source. |
-| Nasa download package ang credits at credentials. | Naglalakbay ang credit bilang isang companion file sa tabi ng artifact. Panatilihin silang magkasama kapag ipinasa mo ang mga ito. |
-| Idagdag ang credit na ito sa post description. | Ang napiling route ay walang dalang credential ni readable credit, kaya ikaw ang bahala sa pag-paste ng credit text. |
-| Kung ishe-share mo ang adaptation na ito, kailangan nito ng compatible na lisensya. | Nabago ang isang ShareAlike source at patungo ang resulta sa iba pang bagay maliban sa private use. Isang aksyon lang ang pagpili, hindi isang dialog kada placement. |
-| Hindi naitala ang source licence. | Walang naitala para sa source na ito. Isa itong puwang na dapat punan, hindi isang natuklasang laban sa gawa. |
-| Naitala ang mga kondisyon, hindi pa na-iinterpret. | Nakikilala ang identifier at nakalista ang mga kondisyon nito, at walang rule dito ang bumabasa sa mga ito. Walang automatic na pasa, walang automatic na ban. |
-| Magkasalungat ang dalawang licence declaration. | Pinapangalanan ng dalawang record ang magkaibang lisensya at wala pang pumili kung aling grant ang aplikable. |
-| Walang kinakailangang credit sa ilalim ng naitalang CC0 dedication. | Walang hinihingi ang dedication. May inaalok pa ring courtesy credit. |
-| Wala sa file na na-deliver ang credits. | May ipinangakong credit, hindi ito nahanap ng readback, at file mo pa rin ito. Mag-export ulit, o gamitin nang manu-mano ang credit text. |
+| Isasama ang mga source credit. | Handa na ang credit at kayang dalhin ng route ang credit. Wala pang naisusulat, kaya hindi ito mensahe ng tagumpay. |
+| Kasama ang mga credit sa metadata ng file na ito. | Nabasa pabalik ang mga naihatid na byte, na-verify ang credential at nakita sa credential ang bawat kinakailangang source. |
+| Nasa download package ang mga credit at credential. | Ang credit ay naglalakbay bilang companion file kasama ng artifact. Panatilihing magkasama ang mga ito kapag ipinasa. |
+| Kung ibabahagi mo ang adaptasyong ito, kailangan nito ng compatible na lisensya. | Binago ang ShareAlike na source at ang resulta ay papunta sa lugar na hindi pribadong paggamit. Ang pagpili ay isang aksyon, hindi dialog bawat placement. |
+| Idagdag ang credit na ito sa paglalarawan ng post. | Ang piniling route ay walang dala ng credential o nababasang credit, kaya sa iyo ang credit text na ipe-paste. |
+| Walang kinakailangang credit sa ilalim ng naitalang CC0 dedication. | Walang hinihingi ang dedication. Iniaalok pa rin ang courtesy credit. |
+| Hindi naitala ang lisensya ng source. | Walang naitala para sa source na ito. Puwang iyon na pupunan, hindi paghatol laban sa gawa. Hindi ito kailanman ebidensyang malayang ipasa ang gawa. |
+| Naitala ang mga kondisyon, hindi pa binibigyang-kahulugan. | Kilala ang identifier at nakalista ang mga kondisyon nito, at walang rule dito ang nagbabasa sa mga iyon. Walang awtomatikong pagpasa, walang awtomatikong pagbabawal. |
+| Hindi nagkakasundo ang dalawang licence declaration. | Dalawang record ang pumangalan ng magkaibang lisensya at walang pumili kung aling grant ang umiiral. |
+| Wala ang mga credit sa file na naihatid. | Ipinangako ang credit, hindi ito nakita ng readback at sa iyo pa rin ang file. Mag-export muli, o gamitin nang mano-mano ang credit text. |
 
-Hindi ginagamit ni Lolly ang "copyright verified", "legally safe", "fully cleared" o "rights cleared", at walang kahit isang berdeng licence badge kahit saan sa produkto. Ang mga salitang iyon ay mag-aangkin ng isang bagay na hindi kayang suriin ng kahit anong programa.
-
-## Ang mga lisensyang sinuri ni Lolly
-
-Rules version `rights-rules-2026-09-13.2`. Ang bawat rule sa ibaba ay binasa mismo mula sa legal na teksto ng lisensya, at ang section na pinagmulan nito ay sinipi sa tabi nito sa `engine/src/rights-profiles.ts` gayundin dito. Pinananatili ang isang version at port ayon sa naitala: ang isang CC BY 3.0 declaration ay nananatili sa sarili nitong version sa halip na iulat bilang 4.0 dahil mas gusto ng chooser ng app ang 4.0.
-
-| Lisensya | Ang hinihingi nito sa isang paggamit na kaya gawin ni Lolly | Batay sa |
-|---|---|---|
-| CC BY 4.0 | Ang creator, ang title, ang copyright notice, ang pangalan at link ng lisensya, ang source link at isang indikasyon ng mga pagbabago, bawat isa kapag ibinigay ito ng source. Walang paggamit na excluded, kasama na ang commercial use. | [Legal na teksto](https://creativecommons.org/licenses/by/4.0/legalcode.en), sections 2(a)(1) at 3(a) |
-| CC BY-SA 4.0 | Ang parehong credit. Bukod pa rito, kung magshe-share ka ng adaptation, ilalabas ito sa ilalim ng compatible na lisensya: CC BY-SA 4.0, Free Art License 1.3 o GPL-3.0-or-later, na iisang direksyon lang tumatakbo. Dala ang tatlong ito bilang data mula sa listahan ng Creative Commons, hindi kailanman tinutugma sa pamamagitan ng pangalan. | [Legal na teksto](https://creativecommons.org/licenses/by-sa/4.0/legalcode.en), sections 3(a) at 3(b); ang [listahan ng mga compatible na lisensya](https://creativecommons.org/compatible-licenses/) |
-| CC0 1.0 | Wala. Walang dalang kondisyon ang dedication, kaya nag-aalok si Lolly ng courtesy credit at hindi kailanman ito ipinapakita bilang required. | [Ang dedication](https://creativecommons.org/publicdomain/zero/1.0/legalcode.en), sections 2 at 3; ang [CC FAQ](https://creativecommons.org/faq/) tungkol sa crediting |
-| CC-PDDC | Wala. Ang naitatala ay ang assertion mismo at kung sino ang gumawa nito, dahil ang isang certification ay pahayag ng isang partido sa halip na patunay. | [Ang dedication at certification](https://creativecommons.org/licenses/publicdomain/), ang mga talata |
-| Apache License 2.0 | Naglalakbay kasama ng isang distributed work ang mga notice mula sa source at ang attribution text ng NOTICE file. Walang hinihingi ang isang runtime use. Ang isang lisensyang humihingi ng notice text pero walang dalang gawa ay iniuulat bilang isang gap. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), section 4, conditions 1 hanggang 4 |
-| MIT | Naglalakbay kasama ng mga kopya at substantial na bahagi ang copyright line at ang permission notice. Walang hinihingi ang runtime at reference na paggamit. | [MIT](https://opensource.org/license/mit), ang kondisyon ng permission notice |
-| SIL OFL 1.1 | Walang hinihingi sa text ang pag-render ng text gamit ang font. Ang pagpasa ng font file ay may dalang lisensya, copyright notice at ang reserved-name rule. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), conditions 2, 3 at 5; ang [OFL FAQ](https://openfontlicense.org/ofl-faq/) tungkol sa mga dokumento |
-
-### Naitala, hindi na-iinterpret
-
-Nakikilala ang CC BY-NC, CC BY-ND at ang mga kombinasyong NC-SA at NC-ND, nakalista ang kanilang mga kondisyon, at walang rule dito ang bumabasa sa mga ito. Nag-uulat ang mga ito ng `licence.unknown` kasama ang isang linyang pinapangalanan ang mga kondisyon. Hindi mababasa ang isang commercial context mula sa isang presyo o account, at kailangan ng sarili nitong review ang bawat kombinadong teksto bago ito galawin ng isang rule.
-
-Tatlo pang tapat na sagot, wala sa mga ito ang permission:
-
-- Ang isang `LicenseRef-` identifier ay bumabalik bilang sarili nito. Itinuturo nito ang isang naka-store na definition at hindi ito kailanman proprietary sa pamamagitan ng spelling.
-- Ang isang declaration na walang kumikilala ay bumabalik na unparsed, na kasama ang orihinal na teksto sa tabi nito.
-- Ang `A OR B` ay isang pagpipiliang inalok ng rights holder, kaya ibinabalik ang bawat alternatibo at wala ang napipili. Cumulative ang `A AND B`, at itinatala ito ng mga rule na ito sa halip na basahin nang magkasama ang dalawang profile.
-
-Ang nawawalang impormasyon ng lisensya ay hindi kailanman binabasa bilang ebidensya na ang isang gawa ay libreng ipasa.
-
-## Ang ginagawa ni Lolly para sa iyo
-
-- **Sa catalog.** Ipinapakita ng sheet ng isang gawa ang source at creator nito, ang canonical na pangalan ng lisensya na may orihinal na label na naka-keep sa ilalim, isang copyable na credit kung saan may naitala at isang linyang nagsasabi kung ano ang hinihingi ng paggamit nito. Sinasabi ng isang tile ang requirement; hindi ito kailanman nag-aangkin na natapos na ang isang export.
-- **Sa export panel.** Lumalabas ang isang Source credits card sa loob ng Content protection sa sandaling gumamit ang isang render ng naitalang gawa, sa tabi ng Licence na pinipili mo para sa sarili mong export. Ipinapakita nito ang state, ang credit text sa likod ng Details, isang Copy credit button at isang inline card kapag may utang na desisyon. Hindi kailanman naging blocking dialog ang isang desisyon: nagpapatuloy ang isang download na may natitirang aksyon, at nananatiling magagamit ang private na gawa.
-- **Sa file.** Ang isang export na naglagay ng naitalang gawa ay sumusulat ng isang Content Credentials source ingredient kada natatanging gawa, na nakatali sa orihinal na bytes sa kanilang pampublikong address, na may dalang creator, ang lisensya at ang link nito, ang source, ang revision at ang mga pagbabago. Pinipirmahan ni Lolly ang kanyang nasaksihan. Hindi ito kailanman pumipirma ng isang claim sa ngalan ng orihinal na artist, at sinasabi ni Verify kung alin sa dalawa ang nangyari.
-- **Pagkatapos isulat.** Babasahin pabalik ang na-deliver na bytes bago sabihin ng kahit ano na kasama na ang credits. Ang isang credential na hindi na-verify ay hindi bumibilang bilang isang na-deliver na credit.
-- **Sa isang na-e-edit na `.lolly` file.** Naglalakbay lang ang bytes kapag itinatala ng isang sinuring lisensya ang permission na ipasa ang source, at nililista ng `CREDITS.txt` ng pack kung ano ang naglakbay, sa ilalim ng aling lisensya, at kung ano ang hinawakan pabalik kasama ang dahilan. Ang isang hindi naitalang lisensya ay hinahawakan pabalik. Puwede mo pa ring isama ang held-back na content nang sinasadya, at itinatala ng credits file na iyon ay pinili mo.
-- **Sa Verify.** Nililista ng isang Sources panel ang bawat source na itinatala ng isang file, kasama ang isang kinomputong summary, ang credit, isang Copy credit button, isang Open source link na binubuksan lang kapag hiniling at ang mga nakasaad na limitasyon ng kung ano ang ininspeksyon. Ang isang tanong na Check for this use ay itinatanong lang kapag pumili ka ng paggamit, at wala nang kinukuha para sagutin ito.
-- **Kapag inaalis mo ang metadata.** Sinasabi sa iyo ng stripping kung ilang source credit na ang hindi na dala ng file, inaalok ang credit text, at inaalok ang isang malinis na file na may credits sa tabi nito. Ang stripped na bytes ay hindi kailanman ini-restamp.
+Hindi kailanman sinasabi ng Lolly na "copyright verified", "legally safe", "fully cleared" o "rights cleared", at walang iisang berdeng licence badge saanman sa produkto. Magke-claim ang mga salitang iyon ng bagay na hindi kayang suriin ng anumang programa.
 
 ## Ang mananatiling sa iyo
 
-- **Sa iyo ang pagpili mo ng lisensya.** Ang pag-claim ng isang file ay naghihiwalay ng tatlong state na dating iisa: walang idineklarang public na lisensya, isang explicit na all-rights-reserved notice at isang aktwal na public licence grant. Sumusulat si Lolly ng rights line para lang sa huling dalawa, at hindi kailanman mula sa profile mo.
-- **Hindi ni-re-relicense ang gawa mo para sa iyo.** Magkahiwalay na record ang mga terms ng isang source at ang sarili mong output declaration. Aplikable ang isang ShareAlike condition sa adaptation na ginogobyerno nito, hindi awtomatikong sa lahat pa ng iba mong ginawa.
-- **Nananatiling magagamit ang private na gawa.** Ang mga kondisyong aplikable sa sharing ay itinataas kapag nasa view ang sharing. Wala rito ang nagiging isang import ban, at walang licensing questionnaire ang nakaharang sa pagitan mo at ng sarili mong mga file.
-- **May tinatandaan ang isang desisyon laban sa sarili nitong mga katotohanan.** Bawat pagpipiliang itinatala mo ay tinatatakan ng isang fingerprint ng mga gawa, paggamit, route at audience na pinagbatayan nito. Baguhin ang set, ang treatment, ang format o ang audience at itatanong ulit ang tanong. Walang blanket na "ignore licences" switch, dahil hindi kayang maghatid ng credit o magbigay ng permission ang pag-click lang palayo sa isang warning.
-- **Nananatiling hiwalay ang mga detalye mo sa credit ng ibang partido.** Ang pag-alis ng sarili mong personal na metadata ay hindi nag-aalis ng isang naka-credit na artist, at ang isang required na credit ay hindi kailanman dahilan para i-export ang mga detalye ng contact mo.
+- **Sa iyo ang pagpili mo ng lisensya.** Ang pag-claim ng file ay naghihiwalay ng tatlong estadong dating iisa: walang idineklarang pampublikong lisensya, tahasang all-rights-reserved na paunawa at tunay na pampublikong licence grant. Nagsusulat lang ang Lolly ng rights line para sa huling dalawa, at hindi kailanman mula sa profile mo.
+- **Hindi nire-relicense ang gawa mo para sa iyo.** Magkahiwalay na record ang mga tuntunin ng source at ang sarili mong output declaration. Ang ShareAlike na kondisyon ay naaangkop sa adaptasyong pinamamahalaan nito, hindi awtomatiko sa lahat ng iba pang ginawa mo.
+- **Nananatiling magagamit ang pribadong gawa.** Ang mga kondisyong umiiral sa pagbabahagi ay ibinabangon kapag kita na ang pagbabahagi. Walang nagiging import ban dito, at walang licensing questionnaire sa pagitan mo at ng sarili mong mga file.
+- **Naaalala ang desisyon ayon sa sarili nitong mga katotohanan.** Ang bawat pagpiling itinatala mo ay tinatatakan ng fingerprint ng mga gawa, paggamit, route at audience na pinag-ukulan nito. Baguhin ang set, ang treatment, ang format o ang audience at itatanong muli ang tanong. Walang pangkalahatang "ignore licences" na switch, dahil ang pag-click palayo sa babala ay hindi makakapaghatid ng credit o makapagbibigay ng pahintulot.
+- **Hiwalay ang mga detalye mo sa credit ng third party.** Ang pag-alis ng sarili mong personal na metadata ay hindi nag-aalis ng kinikilalang artist, at ang kinakailangang credit ay hindi kailanman dahilan para i-export ang mga detalye ng contact mo.
 
-## Sa command line
+## Ang ginagawa ng Lolly sa bawat lugar
 
-Nagpi-print ang isang render ng isang `Rights:` block sa standard error kapag may required na credit o isyu ang evaluation. Dala nito ang status, isang linya kada isyu bilang `code - summary`, kung ano ang binasa pabalik ng na-deliver na file at ang credit text na i-paste.
+- **Sa catalog.** Ipinapakita ng sheet ng gawa ang source at lumikha nito, ang canonical na pangalan ng lisensya na nakapaloob sa ilalim ang orihinal na label, kopyahing credit kung may naitala at isang linyang nagsasabi kung ano ang hinihingi ng paggamit nito. Ang tile ay nagsasaad ng kinakailangan; hindi nito kailanman iniaangkin na natapos ang export.
+- **Sa export panel.** Lumilitaw ang Source credits card sa loob ng Content protection kapag gumagamit ang render ng naitalang gawa, sa tabi ng Licence na pinipili mo para sa sarili mong export. Ipinapakita nito ang estado, ang credit text sa likod ng Details, Copy credit button at inline na card kapag may utang na desisyon. Ang desisyon ay hindi kailanman humaharang na dialog: ang download na may natitirang aksyon ay nagpapatuloy pa rin.
+- **Sa file.** Ang export na naglagay ng naitalang gawa ay nagsusulat ng isang Content Credentials source ingredient bawat natatanging gawa, nakatali sa orihinal na mga byte sa pampublikong address nito, at may dalang lumikha, ang lisensya at link nito, ang source, ang revision at ang mga pagbabago. Pinipirmahan ng Lolly ang naobserbahan nito. Hindi nito kailanman pinipirmahan ang claim sa ngalan ng upstream na artist, at sinasabi ng Verify kung alin sa dalawa ang nangyari.
+- **Sa package.** Ang download na hindi kayang magdala ng credential, tulad ng `.lottie` animation, ay may dalang mga credit bilang `CREDITS.txt` at `credits.json` sa loob ng package. Binabasa ang mga iyon pabalik pagkatapos isulat, at walang inaangking signed credential para sa mga ito.
+- **Pagkatapos magsulat.** Binabasa pabalik ang mga naihatid na byte bago may magsabing kasama ang mga credit. Ang credential na hindi nag-verify ay hindi binibilang na naihatid na credit.
+- **Sa mae-edit na `.lolly` file.** Sumasama lang ang mga byte kapag may sinuring lisensyang nagtatala ng pahintulot na ipasa ang source. Inililista ng `CREDITS.txt` ng pack kung ano ang sumama, sa ilalim ng aling lisensya at kung ano ang pinigilan, kasama ang dahilan. Ang hindi naitalang lisensya ay pinipigilan. Maaari mo pa ring isama nang sadya ang pinigilang nilalaman, at itinatala ng credits file na pinili mo iyon.
+- **Sa Verify.** Inililista ng Sources panel ang bawat source na itinatala ng file, na may kinalkulang buod, ang credit, Copy credit button, Open source link na bumubukas lang kapag hiniling mo at ang mga nakasaad na limitasyon ng sinuri. Lumilitaw lang ang tanong na Check for this use kapag pumili ka ng paggamit, at walang kinukuha para sagutin ang tanong.
+- **Kapag nag-alis ka ng metadata.** Sinasabi ng Stripping kung ilang source credit ang hindi na dala ng file, iniaalok ang credit text at iniaalok ang malinis na file na ang mga credit ay nasa hiwalay na file. Hindi kailanman muling tinatatakan ang mga hinubdang byte.
+
+::: details Ang mga lisensyang nasuri ng Lolly
+Rules version `rights-rules-2026-09-13.2`. Bawat rule ay binasa mula sa sariling legal na teksto ng lisensya, at binabanggit dito at sa tabi ng rule sa `engine/src/rights-profiles.ts` ang seksyong pinagmulan nito. Ang bersyon at port ay iniingatan gaya ng naitala: ang CC BY 3.0 na deklarasyon ay nag-iingat ng sarili nitong bersyon sa halip na iulat bilang 4.0 dahil mas gusto ng chooser ng app ang 4.0.
+
+| Lisensya | Ano ang hinihingi nito sa paggamit na kayang gawin ng Lolly | Binasa mula sa |
+|---|---|---|
+| CC BY 4.0 | Ang lumikha, ang pamagat, ang copyright notice, ang pangalan at link ng lisensya, ang source link at indikasyon ng mga pagbabago, bawat isa kapag nagbigay ang source. Walang hindi isinasama, kasama ang komersyal na paggamit. | [Legal code](https://creativecommons.org/licenses/by/4.0/legalcode.en), mga seksyon 2(a)(1) at 3(a) |
+| CC BY-SA 4.0 | Ang parehong credit. Bukod pa rito, kung magbabahagi ka ng adaptasyon, lalabas ito sa ilalim ng compatible na lisensya: CC BY-SA 4.0, ang Free Art License 1.3 o GPL-3.0-or-later, na isang direksyon lang ang takbo. Ang tatlong iyon ay dala bilang data mula sa listahan ng Creative Commons, hindi kailanman itinutugma ayon sa pangalan. | [Legal code](https://creativecommons.org/licenses/by-sa/4.0/legalcode.en), mga seksyon 3(a) at 3(b); ang [compatible-licences list](https://creativecommons.org/compatible-licenses/) |
+| CC0 1.0 | Wala. Walang dalang kondisyon ang dedication, kaya nag-aalok ang Lolly ng courtesy credit at hindi kailanman ipinapakita ang isa bilang kinakailangan. | [Ang dedication](https://creativecommons.org/publicdomain/zero/1.0/legalcode.en), mga seksyon 2 at 3; ang [CC FAQ](https://creativecommons.org/faq/) tungkol sa pagbibigay ng credit |
+| CC-PDDC | Wala. Ang naitala ay ang mismong assertion at kung sino ang gumawa nito, dahil ang certification ay pahayag ng isang panig at hindi patunay. | Mga talata ng [dedication at certification](https://creativecommons.org/licenses/publicdomain/) |
+| Apache License 2.0 | Ang mga paunawa mula sa source at ang attribution text ng NOTICE file ay sumasama sa ipinamamahaging gawa. Ang runtime na paggamit ay walang hinihingi. Ang lisensyang humihingi ng notice text at gawang walang dala ay iniuulat bilang puwang. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), seksyon 4, mga kondisyon 1 hanggang 4 |
+| MIT | Ang copyright line at permission notice ay sumasama sa mga kopya at malalaking bahagi. Ang runtime at reference na paggamit ay walang hinihingi. | [MIT](https://opensource.org/license/mit), ang permission-notice na kondisyon |
+| SIL OFL 1.1 | Ang pag-render ng text gamit ang font ay walang hinihingi sa text. Ang pagpasa sa font file ay may dalang lisensya, copyright notice at ang reserved-name rule. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), mga kondisyon 2, 3 at 5; ang [OFL FAQ](https://openfontlicense.org/ofl-faq/) tungkol sa mga dokumento |
+
+**Naitala, hindi binigyang-kahulugan.** Kinikilala ang CC BY-NC, CC BY-ND at ang mga kombinasyong NC-SA at NC-ND, nakalista ang mga kondisyon nila at walang rule dito ang nagbabasa sa mga iyon. Nag-uulat ang mga ito ng `licence.unknown` na may linyang pinangalanan ang mga kondisyon. Hindi mababasa ang komersyal na konteksto mula sa presyo o account, at ang bawat pinagsamang teksto ay nangangailangan ng sariling review bago basahin ng rule ang tekstong iyon.
+
+Tatlo pang tapat na sagot, wala sa mga ito ang permission:
+
+- Ang `LicenseRef-` identifier ay bumabalik bilang sarili nito. Tumuturo ito sa naka-store na depinisyon at hindi kailanman proprietary dahil sa baybay nito.
+- Ang deklarasyong walang nakakakilala ay bumabalik na hindi na-parse, at iniingatan ang orihinal na teksto.
+- Ang `A OR B` ay pagpiliang inalok ng may hawak ng karapatan, kaya bawat alternatibo ay ibinabalik at walang pinipili. Ang `A AND B` ay pinagsama-sama, at itinatala ito ng mga rule na ito sa halip na basahin ang dalawang profile nang magkasama.
+:::
+
+::: details Sa command line at sa MCP
+Ang render ay nagpi-print ng `Rights:` block sa standard error kapag ang evaluation ay may kinakailangang credit o isyu. Dala nito ang status, isang linya bawat isyu bilang `code - summary`, kung ano ang nabasa pabalik sa naihatid na file at ang credit text na ipe-paste.
 
 ```
 Rights: actions-required
@@ -91,7 +91,7 @@ Rights: actions-required
   "water wave (OpenMoji Color 17.0.0)" by Vanessa Boutzikoudi (OpenMoji), CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/, source https://raw.githubusercontent.com/hfg-gmuend/openmoji/f9fc506a3f913be9897ab0181d611d4c910a4104/color/svg/1F30A.svg, changes: recoloured.
 ```
 
-Independent ang dalawang pahayag na iyon, na siyang punto ng paghihiwalay sa kanila: nasa file ang credit, at may utang pa ring desisyon sa lisensya bago i-share ang file. Nasusulat pa rin ang file sa parehong paraan.
+Dito, nasa file ang credit, at may utang pang desisyon sa lisensya bago ibahagi ang file. Isinusulat ang file sa alinmang kaso.
 
 | Status | Kahulugan | Exit |
 |---|---|---|
@@ -101,37 +101,34 @@ Independent ang dalawang pahayag na iyon, na siyang punto ng paghihiwalay sa kan
 | `unknown` | Mga gap lang ang mga isyu: isang lisensyang hindi naitala, o mga kondisyong hindi na-iinterpret. | 0 |
 | `delivery-failed` | Itinakda ng isang receipt, hindi kailanman ng isang evaluation: hindi nahanap sa na-deliver na bytes ang isang ipinangakong credit. Ipinapakita ito ng export panel; iniuulat ng CLI ang parehong katotohanan sa linya nitong readback sa halip. | hindi naka-print |
 
-Ang Exit 4 ay ang code na ibinibigay na ng CLI na ito sa isang protective check na sumagot ng hindi. Sinasadyang hindi ito 3, na nangangahulugang "subukan ulit sa ibang runner", at maghihintay ang isang desisyon sa lisensya sa bawat runner na mayroon.
+Ang Exit 4 ay ang code na ibinibigay na ng CLI na ito kapag sinabi ng protective check na hindi. Hindi ito 3, na nangangahulugang "retry on another runner", dahil maghihintay ang desisyon sa lisensya sa bawat runner na meron.
 
 Sinasabi ng `--rights=private` na hindi ini-deliver ang render na ito sa kahit sino. Nagpi-print pa rin ang block at nandiyan pa rin ang credit na kopyahin; ang bumababa ay ang kondisyong aplikable sa sharing, at walang naitatalang delivery claim. Walang flag para huwag pansinin ang isang kondisyon: usage error ang `--rights=ignore`.
 
-Stable at machine-readable ang mga issue code, independent sa isinaling copy:
+Matatag at machine-readable ang mga issue code, hiwalay sa isinaling copy: `attribution.source-missing`, `attribution.delivery-missing`, `licence.adaptation-choice`, `licence.use-not-covered`, `licence.grant-conflict`, `licence.unknown`, `source.redistribution-unknown`, `credential.ingredient-missing`.
 
-`attribution.source-missing`, `attribution.delivery-missing`, `licence.adaptation-choice`, `licence.use-not-covered`, `licence.grant-conflict`, `licence.unknown`, `source.redistribution-unknown`, `credential.ingredient-missing`.
+Sa MCP, ang `lolly_verify` ay nagbabalik ng `rights` payload na may buod, isang row bawat naitalang source at ang mga nakasaad na limitasyon. Ang browser-free na `lolly_render` ay nagbabalik ng `status`, `issues`, `credits`, `fingerprint` at `creditsInFile` flag na sinukat sa pagbasa pabalik ng mga byte.
+:::
 
-Sa MCP, nagbabalik ang `lolly_verify` ng isang `rights` payload na may summary, isang row kada naitalang source at ang mga nakasaad na limitasyon; nagbabalik naman ang browser-free na `lolly_render` ng `status`, `issues`, `credits`, `fingerprint` at isang `creditsInFile` flag na sinusukat sa pamamagitan ng pagbasa pabalik ng bytes.
+::: details Kung saan nakatira ang mga rule
+Limang engine module, lahat ay pure: walang network, walang orasan, walang filesystem. Ang rule data ay versioned at nasa repository, hindi kailanman kinukuha.
 
-## Kung saan nakatira ang mga rule
-
-Apat na engine module, lahat pure: walang network, walang clock, walang filesystem. Naka-version ang rule data at nasa repository, hindi kailanman kinukuha.
-
-| Module | Ang laman nito |
+| Module | Ano ang hawak nito |
 |---|---|
-| `engine/src/rights-profiles.ts` | Ang identifier table, ang minimal na SPDX expression reader, ang mga sinuring profile kasama ang kanilang mga citation at ang iisang rule para sa isang link na puwedeng i-print ng isang credit. |
-| `engine/src/rights-evaluate.ts` | Classification, issues, ang attribution plan at ang fingerprint. Deterministic: ang parehong mga katotohanan sa ibang order ay nagbibigay ng parehong sagot. |
-| `engine/src/rights-attribution.ts` | Readable na credits, ang mga companion file, ang source ingredients at ang receipt na sinusukat pagkatapos isulat. |
-| `engine/src/rights-report.ts` | Isang na-verify na credential na binasa pabalik bilang ang tatlong tanong na itinatanong ni Verify. |
+| `engine/src/rights-profiles.ts` | Ang identifier table, ang minimal na SPDX expression reader, ang mga sinuring profile kasama ang mga sipi nila at ang iisang rule para sa link na maaaring i-print ng credit. |
+| `engine/src/rights-evaluate.ts` | Klasipikasyon, mga isyu, ang attribution plan at ang fingerprint. Deterministiko: ang parehong mga katotohanan sa ibang pagkakasunod ay nagbibigay ng parehong sagot. |
+| `engine/src/rights-attribution.ts` | Mga nababasang credit, ang mga companion file, ang mga source ingredient at ang resibong sinukat pagkatapos magsulat. |
+| `engine/src/rights-companion.ts` | Ang readback ng mga package credit (`CREDITS.txt` at `credits.json` sa loob ng ZIP-based na download), na kinukumpirma ang mga credit nang hindi nag-aangkin ng signed credential. |
+| `engine/src/rights-report.ts` | Ang na-verify na credential na binabasa pabalik bilang tatlong tanong na itinatanong ng Verify. |
 
-Ang mga expectation file sa `tests/fixtures/rights/` ay isinulat mula sa mga teksto ng lisensya sa halip na mula sa output ng evaluator, at sinisipi ng README nito ang section sa likod ng bawat expectation.
+Ang mga expectation file sa `tests/fixtures/rights/` ay isinulat mula sa mga teksto ng lisensya at hindi mula sa output ng evaluator, at binabanggit ng README nila ang seksyon sa likod ng bawat expectation.
+:::
 
-## Ang hindi ginagawa nito
+## Ang hindi pa nagagawa nito
 
-Sinasaad nang tuwiran, dahil ang isang gap na hindi pinapangalanan ay nababasa bilang isang pangako.
-
-- **Hindi na-iinterpret ang NC at ND.** Naitatala ang kanilang mga kondisyon at iniuulat bilang unknown.
-- **Walang nakukumpirmang destination.** Naghahanda si Lolly ng caption; ang isang connector na tumatanggap ng request ay hindi patunay na nakarating ang isang credit sa isang reader, at wala ritong ipinapangako na pinapanatili ng isang susunod na upload, screenshot o transcode ang hidden metadata.
-- **Hindi pa isinusulat mula sa plan ang mga native metadata credit field.** Naglalakbay ang credits sa Content Credentials at sa readable na teksto. Hindi pa napupunan mula sa attribution plan ang mga per-source credit field ng IPTC at XMP.
-- **Hindi pa nabubuo ang corrections at withdrawal.** Ang pagdaragdag ng nawawalang creator o isang local na correction sa isang naitalang gawa, at ang pag-withdraw ng isang record, ay walang interface.
-- **Hindi pa nabubuo ang connected providers.** Ang binili nang stock, isang custom na permission at isang provider account ay walang import path, kaya ang kanilang mga grant ay maitatala lang bilang sarili mong pahayag.
-- **Hindi kasamang-buo ang organisation policy sa mga resultang ito.** Magkahiwalay pa rin ngayon ang export policy at ang mga kondisyon ng lisensya, at ang isang organisation approval ay hindi permission mula sa isang rights holder.
-- **Ilang delivery route ang wala pa sa landas na ito.** Ang pag-download ng isang catalog original, isang bulk ZIP, isang derived download, Send at Copy image ay hindi pa nag-e-evaluate o nagdadala ng mga credit na ito.
+- **Walang destinasyong nakukumpirma.** Naghahanda ang Lolly ng caption. Ang connector na tumatanggap ng request ay hindi patunay na umabot ang credit sa mambabasa, at walang pangako rito na ang susunod na upload, screenshot o transcode ay nag-iingat ng nakatagong metadata.
+- **Hindi isinusulat mula sa plan ang mga native metadata credit field.** Naglalakbay ang mga credit sa Content Credentials at sa nababasang text. Ang IPTC at XMP na per-source credit field ay hindi pa pinupunan mula sa attribution plan.
+- **Hindi pa nabubuo ang mga pagwawasto at pag-withdraw.** Ang pagdaragdag ng nawawalang lumikha o lokal na pagwawasto sa naitalang gawa, at ang pag-withdraw ng record, ay walang interface.
+- **Hindi pa nabubuo ang mga konektadong provider.** Ang binili na stock, custom na permiso at provider account ay walang import path, kaya ang mga grant nila ay maitatala lang bilang sarili mong pahayag.
+- **Hindi pinagsasama ang organisation policy sa mga resultang ito.** Magkahiwalay ngayon ang export policy at kondisyon ng lisensya, at ang pag-apruba ng organisasyon ay hindi pahintulot mula sa may hawak ng karapatan.
+- **Ilang delivery route ay wala pa sa path na ito.** Ang pag-download ng catalog original, bulk ZIP, Send at Copy image ay hindi pa sinusuri o dinadala ang mga credit na ito. Ang crop, colour grade, framed na kopya, Download as conversion at video edit ay ginagawa: ang source na may naitalang lisensya at walang sariling Content Credentials ay naglalakbay bilang hindi pinirmahang source ingredient kasama ang credit nito, ang LUT ay kinikilala sa ilalim ng sarili nitong lisensya at hindi kailanman sa ilalim ng sa larawan, at ang file na hindi kayang magdala ng credit na hinihingi ng source nito ay hindi sine-save. Wala pang nagbabasa pabalik sa mga file na iyon, kaya ang mga credit nila ay isinusulat, hindi kinukumpirma. Ang Retouch, single-image background removal at upscaling, at audio extraction ay nag-iingat lang ng sariling credential ng source.

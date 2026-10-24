@@ -10,7 +10,7 @@
  *
  * Two readings ride the same relay:
  *   - `host.capture.page()` → a PNG of the page (DevTools Protocol).
- *   - the Design System studio's website source → the page's markup, stylesheet
+ *   - Design System Setup's website source → the page's markup, stylesheet
  *     text and a few icon/logo files, which `lib/design-system/extract-site.ts`
  *     parses into a census ON DEVICE (plan 97 section 9).
  *

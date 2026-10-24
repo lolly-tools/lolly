@@ -4,15 +4,15 @@
    matter when Vite injects this chunk at runtime. Do not rely on load order. */
 @layer views {
 /*
- * #/start - the Design System studio shell (views/start.ts). Async CSS chunk,
- * loaded with the view. The rooms themselves are the brand studio's panels
+ * #/start - the Design System Setup shell (views/start.ts). Async CSS chunk,
+ * loaded with the view. The rooms themselves are Design System Setup's panels
  * (lib/brand-editor.ts, .be-* styles from brand-studio.css, imported by that
  * module); this sheet styles what sits around them - header, the rail of rooms
  * (a left sidebar from 900px, a horizontal chip strip below it), the rail's
  * foot actions, the Overview room, and the import card. Chrome colours flow
  * through tokens.css.
  *
- * `.ds-*` is the design-system studio's own namespace (plan 97 section 10); `.start-*`
+ * `.ds-*` is Design System Setup's own namespace (plan 97 section 10); `.start-*`
  * is what the surrounding page has always been called.
  */
 
