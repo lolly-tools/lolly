@@ -90,11 +90,10 @@ While you wait, the screen counts down how long the current invite still works. 
 
 ## Get the reply back
 
-**An invite on its own connects nothing.** The joining device makes a reply, and the reply has to reach your waiting screen. The reply comes as a link, a code and a QR, like the invite, but your waiting screen has no scanner, so send it back as a link or a code.
+**An invite on its own connects nothing.** The joining device makes a reply, and the reply has to reach your waiting screen. The joining device shows the reply as a link and a code, each with its own copy button. Send either one back through any channel you both use: a messaging app, email or a direct share between the two devices. There is no QR for the reply, because your waiting screen has no camera to scan one with.
 
 - **As a link.** The reply is a `#/join-reply?ans=...` address. Opened on the device that made the invite, it hands the reply to the waiting window, which moves on by itself. The tab that opened it says so and can be closed.
 - **As a code.** Paste it into **Paste the reply code here** on the waiting screen and press **Connect**.
-- **From a phone.** If the waiting device is a phone, its camera app can open the QR on the **Reply link** tab, which then works like opening the link.
 
 **You can test with two tabs on one device.** If you open your own invite in another tab, the join screen notices and says so in one line you can dismiss. The pairing is real; it just joins two windows of one browser.
 

@@ -980,10 +980,10 @@ describe('private collab - real-browser ceremony drills', { skip: GATE ?? false,
     await shot(pageB, '07-answer-minted');
     note('B: answer minted');
     // NO DOCS SHOT HERE, deliberately - see docs/collaborate.md's "SHOTS DROPPED" note.
-    // This screen is a one-time secret wearing three hats: the reply link carries the
+    // This screen is a one-time secret wearing two hats: the reply link carries the
     // capture origin (`http://localhost:<drill port>/#/join-reply?ans=…`), and the code
-    // and the QR are two more renderings of the same single-use payload. The drill cannot
-    // fix the first (its base IS a dev server) and nothing should fake it.
+    // is one more rendering of the same single-use payload (there is no reply QR). The
+    // drill cannot fix the first (its base IS a dev server) and nothing should fake it.
 
     // The LINK leg (section 11.25): a third tab in the same context hands the payload to A's
     // waiting dialog over the ceremony BroadcastChannel. Falls back to the paste leg.

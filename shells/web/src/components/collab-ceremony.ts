@@ -37,13 +37,19 @@
  * THE THREE STEPS, PER ROLE.
  *
  *   inviter   1. name the invite, mint it, show it (link / code / QR)
- *             2. wait for the reply - paste or scan it, with the 10-minute re-arm
- *                counted down in the open and "Make a new invite" always available
+ *             2. wait for the reply - pasted here, or handed over by the reply link
+ *                opened on this device - with the 10-minute re-arm counted down in
+ *                the open and "Make a new invite" always available
  *             3. connect, then hand off through `onConnected`
  *
  *   acceptor  1. paste or scan the invite
  *             2. the tool probe's verdict, then the name field
- *             3. show the reply back (link / code / QR), then connect
+ *             3. show the reply to send back (link / code), then connect
+ *
+ * The reply has no QR. The inviter's waiting screen has no camera to scan one with, so
+ * a reply QR could only ever be looked at. It travels back as text instead, through
+ * whatever channel the pair already uses, or over the nearby or rendezvous channel when
+ * one of those carried the invite.
  *
  * The acceptor's step 2 runs `checkTool` BEFORE the machine exists, so the probe's
  * verdict can be shown before asking for a name (section 6.1 wants the refusal at accept
@@ -152,12 +158,13 @@ export const STRINGS = {
   scan: 'Scan a code',
   scanNothing: 'Nothing was scanned. Paste the text instead.',
   scanFailed: 'The camera could not be used. Paste the text instead.',
-  // The QR skin (both roles). The invite/reply sit in two tabs (labelled by the existing
-  // link/code labels below), each with its own QR: the LINK (a plain phone camera opens it)
-  // and the CODE (base32, always small enough to scan, read by Lolly's own scanner - the
-  // airgap path, section 6.1 skin 2). Tapping a QR blows it up to near-fullscreen so a second
-  // device can scan it from across a desk. `{label}` in `qrEnlarge` is filled by the tab's
-  // own label, so the accessible name comes out already translated.
+  // The QR skin (the inviter's invite only). The invite sits in two tabs (labelled by the
+  // existing link/code labels below), each with its own QR: the LINK (a plain phone camera
+  // opens it) and the CODE (base32, always small enough to scan, read by Lolly's own
+  // scanner - the airgap path, section 6.1 skin 2). Tapping a QR blows it up to
+  // near-fullscreen so a second device can scan it from across a desk. `{label}` in
+  // `qrEnlarge` is filled by the tab's own label, so the accessible name comes out already
+  // translated. The reply is never drawn as a QR: see the header.
   qrEnlargeHint: 'Tap to enlarge for scanning',
   qrEnlarge: 'Enlarge {label} for scanning',
   qrZoomDismiss: 'Point another device here to scan it. Tap anywhere or press Escape to close.',
@@ -187,7 +194,7 @@ export const STRINGS = {
 
   // Inviter, step 2.
   waitHeading: 'Step 2 of 3: Wait for the reply',
-  waitBody: 'The other device makes a reply. Paste it here, or scan it.',
+  waitBody: 'The other device sends a reply. Paste it here, or open the reply link on this device.',
   replyLabel: 'Paste the reply code here',
   replyPlaceholder: 'Paste the reply here',
   connectAction: 'Connect',
@@ -228,7 +235,7 @@ export const STRINGS = {
   answerMintHeading: 'Step 3 of 3: Making the reply',
   answerMintBody: 'Getting this device ready.',
   answerHeading: 'Step 3 of 3: Send this reply back',
-  answerBody: 'The host pastes this code, or opens this link, in their waiting window.',
+  answerBody: 'Send one of these back to the person who invited you, using any messaging app. They open the link or paste the code.',
   answerLinkLabel: 'Reply link',
   answerCodeLabel: 'Reply code',
   // Named actions, not the shared "Copy the link" / "Copy the code". This is the step
@@ -588,7 +595,11 @@ export interface CollabCeremonyOptions {
   readonly toolId?: string;
   /** Prefill for the name field, normally the profile firstname. Clearable (section 4.5). */
   readonly profileName?: string;
-  /** Draw a QR for a token. Absent means the QR skin is simply not offered (section 11.27). */
+  /**
+   * Draw a QR for the invite. Absent means the QR skin is simply not offered (section 11.27).
+   * Read by the inviter only: the acceptor's reply goes back as a link and a code, never a
+   * QR, because the inviter's waiting screen has nothing to scan one with.
+   */
   readonly renderQr?: (text: string) => HTMLElement | null | Promise<HTMLElement | null>;
   /** Start a scan. Resolves with the scanned text, or null when nothing was read. */
   readonly scan?: () => Promise<string | null>;
@@ -602,8 +613,8 @@ export interface CollabCeremonyOptions {
   /** Fires once, when the dialog is gone. `state` is absent if none was ever started. */
   readonly onClose?: (state: CeremonyState | undefined) => void;
   /** Fires once with the acceptor's minted REPLY signal, the moment it exists - so a nearby
-   *  pairing can hand the reply back over its own channel rather than showing a QR to scan.
-   *  Acceptor only; never fired for the inviter (plans/110 section 3). */
+   *  pairing can hand the reply back over its own channel rather than leaving the human to
+   *  send the reply. Acceptor only; never fired for the inviter (plans/110 section 3). */
   readonly onAnswer?: (signal: string) => void;
   /** Fires once with the inviter's minted INVITE signal, the moment it exists - the symmetric
    *  twin of {@link onAnswer}, so an out-of-band channel (plans/138 Tier C: a shared-cloud
@@ -754,7 +765,7 @@ export function openCollabCeremony(opts: CollabCeremonyOptions): CollabCeremonyH
   let lastPhase: CeremonyState['phase'] | '' = '';
 
   /**
-   * Which of the two QR tabs (invite/reply LINK vs CODE) is showing. Kept here so the
+   * Which of the two QR tabs (the invite's LINK vs CODE) is showing. Kept here so the
    * choice survives a re-render (an ICE event repaints the invite screen while the human is
    * still on it). Default LINK: a plain camera opens it, which is what most people reach for.
    */
@@ -1268,8 +1279,14 @@ export function openCollabCeremony(opts: CollabCeremonyOptions): CollabCeremonyH
     return notice ? node('p', { class: 'note note--error', text: notice, attrs: { role: 'status' } }) : null;
   }
 
+  /**
+   * The button row. It wraps because the waiting screen carries four or five buttons, and
+   * at phone width the shared `.modal-actions` row (no wrap) pushed "Show the invite
+   * again" off the dialog's left edge, where nobody could press the button. A row that
+   * fits is laid out exactly as before.
+   */
   function actions(...kids: (Node | null)[]): HTMLElement {
-    return node('div', { class: 'modal-actions' }, kids);
+    return node('div', { class: 'modal-actions', style: 'flex-wrap:wrap' }, kids);
   }
 
   function cancelButton(): HTMLButtonElement {
@@ -1343,9 +1360,10 @@ export function openCollabCeremony(opts: CollabCeremonyOptions): CollabCeremonyH
   }
 
   /**
-   * The invite (or reply) in two tabs, each a QR plus its copyable text: the LINK - a plain
-   * phone camera opens it and lands on the join page - and the CODE, the base32 skin that
-   * always fits a scannable QR and is read by Lolly's own scanner (the airgap path).
+   * The invite in two tabs, each a QR plus its copyable text: the LINK - a plain phone
+   * camera opens it and lands on the join page - and the CODE, the base32 skin that always
+   * fits a scannable QR and is read by Lolly's own scanner (the airgap path). The reply
+   * does not come through here; {@link replyTokens} shows it without a QR.
    *
    * BOTH panels are in the DOM at once, the inactive one `hidden`, so every copy target and
    * the paste fallback are always present (and `url-mode`'s own tests, which read both
@@ -1401,6 +1419,29 @@ export function openCollabCeremony(opts: CollabCeremonyOptions): CollabCeremonyH
       }, [tab('link', linkLabel), tab('code', codeLabel)]),
       panel('link', linkLabel, linkValue, linkCopyAct, linkCopyLabel, tRaw(STRINGS.qrLinkTooBig)),
       panel('code', codeLabel, codeValue, codeCopyAct, codeCopyLabel),
+    ]);
+  }
+
+  /**
+   * The reply as text, with no QR: the LINK and the CODE one above the other, each with a
+   * button that says what it copies. Both stay on screen because neither is a fallback
+   * for the other. The link is the quick path when the inviter opens it on the device that
+   * is waiting; the code works wherever the waiting window is.
+   *
+   * The `data-token` and `data-act` names are the ones the tabbed version published, so
+   * the copy handler, the drill (`tests/collab-private.browser.test.ts`) and anything else
+   * reading them keep working unchanged.
+   */
+  function replyTokens(linkValue: string, codeValue: string): HTMLElement {
+    const row = (label: string, value: string, act: string, copyLabel: string): HTMLElement =>
+      node('div', { style: SLOT }, [
+        node('span', { text: label, style: LABEL }),
+        node('code', { text: value, style: TOKEN, attrs: { 'data-dynamic': '1', 'data-token': act } }),
+        button(act, copiedAct === act ? tRaw(STRINGS.copied) : copyLabel),
+      ]);
+    return node('div', { style: 'margin:0 0 10px' }, [
+      row(tRaw(STRINGS.answerLinkLabel), linkValue, 'copy-answer-link', tRaw(STRINGS.copyReplyLink)),
+      row(tRaw(STRINGS.answerCodeLabel), codeValue, 'copy-answer-code', tRaw(STRINGS.copyReplyCode)),
     ]);
   }
 
@@ -1696,10 +1737,9 @@ export function openCollabCeremony(opts: CollabCeremonyOptions): CollabCeremonyH
     return [
       heading(tRaw(STRINGS.answerHeading)),
       body(tRaw(STRINGS.answerBody)),
-      qrTabbedSlots(
-        tRaw(STRINGS.answerLinkLabel), `${base}${REPLY_ROUTE}?${ANSWER_PARAM}=${skins.link}`, 'copy-answer-link', tRaw(STRINGS.copyReplyLink),
-        tRaw(STRINGS.answerCodeLabel), skins.qr, 'copy-answer-code', tRaw(STRINGS.copyReplyCode),
-      ),
+      // `skins.qr` is the base32 CODE skin, the same text the invite's Code tab shows. It
+      // is named after the codec's skin, not drawn: nothing on this screen is a QR.
+      replyTokens(`${base}${REPLY_ROUTE}?${ANSWER_PARAM}=${skins.link}`, skins.qr),
       status(tRaw(STRINGS.answerWait)),
       skewNote(),
       observerNote(),
@@ -1914,7 +1954,8 @@ export function openCollabCeremony(opts: CollabCeremonyOptions): CollabCeremonyH
     }
 
     // The acceptor's reply is minted the moment it reaches `awaiting-connection`. Hand it
-    // straight back over the nearby channel (plans/110 section 3) rather than waiting for a scan.
+    // straight back over the nearby channel (plans/110 section 3) rather than waiting for
+    // the human to send the reply back.
     if (role === 'acceptor' && state?.answer && !answerFired) {
       answerFired = true;
       opts.onAnswer?.(state.answer.signal);

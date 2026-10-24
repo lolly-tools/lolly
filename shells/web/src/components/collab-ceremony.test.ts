@@ -5,7 +5,7 @@
  * jsdom, a manual clock, and stub effects - the same discipline `collab/ceremony.ts`'s
  * own suite runs on, for the same reason: the screens that matter most here are the
  * ones nobody can reach by hand (a ten-minute countdown running out, a guest network
- * eating the connection, a reply that scans back garbled).
+ * eating the connection, a reply that is pasted back garbled).
  *
  * Two things are NOT stubbed, on purpose. The codec is real, so every pasted invite
  * and reply in this file is a payload that actually packs and unpacks - which is the
@@ -618,7 +618,13 @@ test('inviter: "Make a new invite" mints one on demand and clears the spent budg
 // ── Acceptor: the three steps ─────────────────────────────────────────────────
 
 test('acceptor: paste, probe, name, reply - and the probe runs before the name is asked for', async () => {
-  const h = open({ role: 'acceptor', renderQr: () => dom.window.document.createElement('svg') });
+  // A renderer IS supplied, so the "no QR on the reply" assertions below are about the
+  // dialog's own choice, not about a host that cannot draw one.
+  const drawn: string[] = [];
+  const h = open({
+    role: 'acceptor',
+    renderQr: (text) => { drawn.push(text); return dom.window.document.createElement('svg'); },
+  });
 
   assert.equal(headingText(h.el), STRINGS.acceptHeading);
   typeInto(h.el, '#collab-cer-invite', 'gibberish');
@@ -644,11 +650,24 @@ test('acceptor: paste, probe, name, reply - and the probe runs before the name i
   clickAct(h.el, 'join');
   await settle();
 
-  assert.equal(headingText(h.el), STRINGS.answerHeading, 'step 3 is the reply, in both skins');
+  assert.equal(headingText(h.el), STRINGS.answerHeading, 'step 3 is the reply, as a link and a code');
   const link = h.el.querySelector('[data-token="copy-answer-link"]')?.textContent ?? '';
   assert.ok(link.startsWith(`https://lolly.tools/app${REPLY_ROUTE}?${ANSWER_PARAM}=`), `bad reply link: ${link}`);
   assert.match(h.el.querySelector('[data-token="copy-answer-code"]')?.textContent ?? '', /^[A-Z2-7]+$/);
   assert.ok(allText(h.el).includes(STRINGS.answerWait));
+
+  // No reply QR (Andy, 2026-10-23): the inviter's waiting screen has no camera to scan one
+  // with, so the reply goes back as text. Both forms are on screen at once, not in tabs.
+  assert.deepEqual(drawn, [], 'the reply is never handed to the QR renderer');
+  assert.equal(h.el.querySelector('.collab-cer-qr, .collab-cer-qr-slot'), null, 'no QR slot on the reply step');
+  assert.equal(h.el.querySelector('[data-act="zoom-qr"]'), null, 'nothing to enlarge for scanning');
+  assert.equal(h.el.querySelector('[role="tablist"]'), null, 'no link/code tabs: both forms show together');
+  for (const act of ['copy-answer-link', 'copy-answer-code']) {
+    const token = h.el.querySelector(`[data-token="${act}"]`);
+    assert.ok(token && !token.closest('[hidden]'), `${act}'s text is visible, not in a hidden panel`);
+    assert.ok(h.el.querySelector(`button[data-act="${act}"]`), `${act} has its own copy button`);
+  }
+  assert.ok(allText(h.el).includes(STRINGS.answerLinkLabel) && allText(h.el).includes(STRINGS.answerCodeLabel), 'each form is labelled');
 
   h.machine().send({ type: 'ice', state: 'connected' });
   h.machine().send({ type: 'ready' });
@@ -1360,7 +1379,9 @@ test('STRINGS: acceptor step 3 says the reply has to travel, and names the butto
   assert.equal(headingText(h.el), STRINGS.answerHeading);
   assert.match(STRINGS.answerHeading, /Send this reply back$/, 'the heading is the instruction, not a label');
   assert.ok(allText(h.el).includes(STRINGS.answerBody));
-  assert.match(STRINGS.answerBody, /pastes this code, or opens this link/, 'one sentence, and it names both ways');
+  assert.match(STRINGS.answerBody, /back to the person who invited you/, 'it says where the reply goes');
+  assert.match(STRINGS.answerBody, /open the link or paste the code/, 'and says both ways the inviter can use the reply');
+  assert.doesNotMatch(STRINGS.answerBody, /scan|QR/i, 'the reply has no QR, so the copy offers none');
 
   const label = (act: string): string =>
     h.el.querySelector(`[data-act="${act}"]`)?.textContent ?? '';
@@ -1379,6 +1400,10 @@ test('STRINGS: inviter step 2 labels its field for the thing being pasted, count
   // The other half of the same confusion: the inviting window called its field "Reply
   // from the other device", which describes the field rather than asking for anything.
   assert.equal(STRINGS.replyLabel, 'Paste the reply code here');
+  // And it never asks for a scan. It used to say "Paste it here, or scan it" over a screen
+  // with no scanner on it, so a reply QR on the other device could only be looked at.
+  assert.match(STRINGS.waitBody, /Paste it here, or open the reply link on this device\.$/);
+  assert.doesNotMatch(STRINGS.waitBody, /scan|QR/i);
   assert.equal(STRINGS.countdown, 'This invite works for another {time}.', 'the countdown copy is deliberately unchanged');
   assert.equal(STRINGS.countdownSpent, 'This invite has run out. Make a new one.');
 });

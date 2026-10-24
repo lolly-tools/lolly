@@ -66,7 +66,8 @@
  * send, but the reply has to travel BACK, and a blob pasted into a waiting dialog is
  * where pairs give up. So the reply is a link too. Clicking it opens a tab that hands
  * the payload to the tab holding the invite dialog over a `BroadcastChannel`, then gets
- * out of the way. Both legs are then click-or-paste-or-scan.
+ * out of the way. The invite leg is click, paste or scan; the reply leg is click or paste,
+ * and draws no QR, because the waiting window has no camera to scan one with.
  *
  * ── One more thing the channel is used for: "did I make this invite?" ──────────
  *
@@ -162,7 +163,7 @@ import {
 import { ANSWER_PARAM, INVITE_PARAM, MAX_TOKEN_CHARS } from './sdp-codec.ts';
 import type { CeremonyRole, ToolProbeRequest, ToolProbeResult } from './ceremony.ts';
 import { createRtcTransport, type RtcPeerConnectionCtor, type RtcTransport } from './rtc-transport.ts';
-import { createQrElementRenderer, probeBarcodeDetector, scanQrFromVideo } from './qr-skin.ts';
+import { probeBarcodeDetector, scanQrFromVideo } from './qr-skin.ts';
 import { flagHidden, isFlagOnSync, setFlagMirror, PRIVATE_COLLAB_FLAG } from '../feature-flags.ts';
 import { getCollabClientId, initCollabClientId } from '../lib/collab-plumbing.ts';
 import { deliverCollabConnection, releaseParked, type CollabConnection } from '../lib/collab-mount.ts';
@@ -370,8 +371,8 @@ export type ChannelFactory = (name: string) => CeremonyChannelLike | null;
 /**
  * Open the ceremony channel, or `null` where `BroadcastChannel` does not exist.
  *
- * Null is a supported answer, not an error: the reply-link skin is one of three (section 6.1),
- * and a browser without the API still has paste and scan. The route says so in words
+ * Null is a supported answer, not an error: the reply link is one of the reply's two forms,
+ * and a browser without the API still has the code to paste. The route says so in words
  * rather than failing.
  */
 export function openCeremonyChannel(make?: ChannelFactory): CeremonyChannelLike | null {
@@ -1309,8 +1310,6 @@ export interface JoinRouteDeps {
   readonly profileName?: string;
   /** Base for the reply link this side mints. Defaults to {@link appLinkBase}. */
   readonly linkBase?: string;
-  /** Draw a QR. Defaults to the in-repo encoder; `null` turns the skin off. */
-  readonly renderQr?: CollabCeremonyOptions['renderQr'] | null;
   /** Scan a QR. Defaults to a probe-gated camera scan; `null` turns the skin off. */
   readonly scan?: CollabCeremonyOptions['scan'] | null;
   /** Take the live pair. Defaults to the collab-mount registry. */
@@ -1469,7 +1468,6 @@ export async function mountJoinRoute(
       ? undefined
       : deps.scan ?? (await makeCameraScan(scanning.signal));
     if (leaving) return;
-    const renderQr = deps.renderQr === null ? undefined : deps.renderQr ?? createQrElementRenderer();
 
     let transport: RtcTransport | null = null;
     const effects = deps.effects ?? createCollabEffects({
@@ -1481,7 +1479,8 @@ export async function mountJoinRoute(
       role: 'acceptor',
       effects,
       profileName,
-      renderQr,
+      // No `renderQr`: this side only ever shows the REPLY, and the reply is never drawn as
+      // a QR (see `components/collab-ceremony.ts`'s header).
       scan,
       linkBase: deps.linkBase ?? appLinkBase(),
       onConnected: (handle) => {
