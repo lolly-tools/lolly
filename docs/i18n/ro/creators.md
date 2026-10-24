@@ -1,60 +1,75 @@
-# Lolly pentru creatori
+# Creează
 
-Completezi câteva câmpuri și iese un fișier finit, cu fonturile, culorile și layoutul deja decise pe propriul tău dispozitiv. Livrezi în câteva minute și arată de parcă ai petrecut ore întregi, iar pentru că regulile de brand sunt integrate în instrument, nu este niciodată numele tău pe fișierul care iese din brand. Alege mai jos direcția care se potrivește cu ce faci astăzi.
+Completezi câteva câmpuri și iese un fișier terminat, cu fonturile, culorile și layoutul deja stabilite, pe propriul tău dispozitiv. Pentru că regulile brandului sunt în instrument, nu numele tău apare pe fișierul în afara brandului. Alege culoarul potrivit cu ce faci astăzi.
 
-Ești o mână într-o ștafetă: un developer poate extinde instrumentul pe care îl folosești într-un pipeline, iar un coleg îl poate rula autonom (self-serve), așa că [Ciclul de viață al unei campanii](/info/overview.html#the-lifecycle-of-a-campaign) urmărește o resursă prin toate cele trei perechi de mâini.
-
-Nou aici? Începe cu **[Fă-ți primul fișier](/info/make-something.html)** și revino odată ce știi ce parte vrei să aprofundezi. [Întrebări și răspunsuri](/info/faq.html) acoperă ce întreabă lumea înainte să aibă încredere într-un instrument gratuit. [Cum se compară Lolly](/info/positioning.html) este relatarea onestă despre când să alegi altceva.
+Ești nou aici? Începe cu **[Fă primul tău fișier](/info/make-something.html)**. [Cum funcționează Lolly](/info/how-lolly-works.html) arată cum un instrument pe care îl folosești poate rula și dintr-un script sau pe telefonul unui coleg, iar [Întrebări și răspunsuri](/info/faq.html) acoperă ce întreabă oamenii înainte să aibă încredere într-un instrument gratuit.
 
 ## Creează
 
-Alege un instrument, completează câteva câmpuri și descarcă fișierul finit. Sau deschide canvasul Design și așază totul de mână liberă: în ambele cazuri, culorile, tipografia și spațierea vin din brandul tău, nu din memorie, și nimic nu are nevoie de cont.
+Alege un instrument și completează-l sau așază liber o pagină pe canvasul Design.
 
-- **[Fă-ți primul fișier](/info/make-something.html)** - o lecție scurtă fără nimic de configurat: creează un cod QR, descarcă-l și salvează o copie editabilă. Începe de aici dacă n-ai mai deschis Lolly până acum.
-- **[Folosirea Lolly](/info/using.html)** - canvasul, comenzile, salvarea, Proiectele și folosirea pe telefon: cum se comportă aplicația în sine.
-- **[Brand Studio](/info/brand-studio.html)** - când siglele, culorile și tipografia trebuie să fie ale tale, nu cele implicite.
-- **[Importă un design](/info/design-import.html)** - când desenul există deja ca fișier `.fig`, `.penpot`, `.ai`, `.idml` sau SVG și vrei să fie editabil, nu aplatizat.
-- **[Vizualizări utilitare](/info/utilities.html)** - foaia de calcul, convertorul, Colour Lab, extractorul PDF și Script audio, pentru sarcinile care nu sunt o randare de instrument.
-- **[Extensia de browser](/info/extension.html)** - captează o pagină web live și refolosește-o ca resursă în propriile tale desene.
-- **[Căutare](/info/search.html)** - un singur câmp care ajunge la instrumentele tale, la lucrările salvate, la catalog și la setările tale.
-- **[Întreabă Lolly](/info/ask.html)** - tastează o întrebare și primești înapoi secțiunea corespunzătoare din aceste ghiduri, cu un link direct spre ea.
-- **[Dashboard](/info/dashboard.html)** - ce poate face acest dispozitiv, sistemul tău de design doar-citire și o privire rapidă asupra spațiului de stocare.
-- **[Favoritele tale](/info/favourites.html)** - marchează cu stea ce folosești des, ca să primească propria dală deasupra grilei.
-- **[Profiluri](/info/profile.html)** - detaliile din care se precompletează instrumentele și cele patru comutatoare de accesibilitate care calmează aplicația fără să miște niciun pixel din ce exporți.
+- **[Fă primul tău fișier](/info/make-something.html)** - o lecție scurtă fără nimic de configurat: un cod QR, descărcat și salvat ca o copie editabilă.
+- **[Folosirea Lolly](/info/using.html)** - canvasul, controalele, salvarea, Projects și folosirea pe telefon: cum se comportă aplicația însăși.
+- **[Șabloane](/info/templates.html)** - pornește de la un layout salvat în loc de un instrument gol.
+- **[Text în Design](/info/text-composition.html)** - titluri, text curgător și tipografie care încape în caseta ei.
+- **[3D Studio](/info/3d-studio.html)** - artă SVG și modele 3D aranjate, luminate și randate ca o singură scenă.
+- **[Utilitare](/info/utilities.html)** - repară un fișier de pe dispozitivul tău: partajează-l în siguranță, compară două versiuni, schimbă-i formatul, scoate cuvintele din el sau verifică o culoare.
+- **[Extensia de browser](/info/extension.html)** - fă o captură a unei pagini web live din aplicația web sau citește un site ca să pornești un sistem de design.
+
+## Fă-l al tău
+
+Sistemul tău de design decide cum arată fiecare instrument.
+
+- **[Design System Setup](/info/brand-studio.html)** - logouri, culori, tipografie și restul, setate o dată la `#/start`.
+- **[Lolly Demo în uz](/info/lolly-demo-in-use.html)** - colourway-uri pe muncă reală și trecerea la propriul tău sistem de design.
+- **[Arhitecturi de brand](/info/brand-architectures.html)** - mai multe sisteme de design sau unul cu mai multe colourway-uri, pentru o organizație.
+- **[Importă un design](/info/design-import.html)** - un fișier `.fig`, `.penpot`, `.ai`, `.idml` sau SVG deschis ca layout editabil, nu ca imagine plată.
+- **[Rebrand a deck](/info/rebrand.html)** - un deck PowerPoint mutat pe sistemul tău de design, cu diagramele și animațiile intacte.
+- **[Partajează un design cu reguli](/info/create-a-tool.html)** - transformă un layout într-un instrument pe care ceilalți îl completează.
+
+## Găsește și păstrează-ți munca
+
+- **[Găsește și recuperează-ți munca](/info/find-your-work.html)** - unde a ajuns un fișier salvat, descărcat sau nesalvat.
+- **[Căutare](/info/search.html)** și **[Ask Lolly](/info/ask.html)** - un singur câmp pentru instrumentele, munca salvată, resursele și setările tale, plus răspunsuri din aceste ghiduri.
+- **[Settings](/info/dashboard.html)** - ce poate face acest dispozitiv, sistemul tău de design doar pentru citire și stocarea ta.
+- **[Favoritele tale](/info/favourites.html)** și **[Profiluri](/info/profile.html)** - instrumente cu stea, detaliile cu care se completează instrumentele și comutatoarele de accesibilitate.
+- **[Sincronizează-ți dispozitivele](/info/sync.html)** - aceeași muncă pe computer și pe telefon, printr-un spațiu de stocare ales de tine.
 
 ## Animă
 
-Text care se mișcă, scene pe o cronologie (timeline) și mișcare care rămâne în brand. Un export de mișcare este compus cadru cu cadru pornind de la un ceas condus (driven clock), nu înregistrat de pe ecran, așa că sincronizarea nu deviază niciodată, iar același link randează același clip la orice lungime.
+Text care se mișcă, scene pe o cronologie și mișcare care rămâne în stilul brandului. Un export de mișcare este desenat cadru cu cadru dintr-un ceas condus, nu înregistrat de pe ecran, deci același link face același clip.
 
-- **[Animație](/info/animating.html)** - keyframes, adâncime reală și o cameră de scenă pentru a survola rezultatul.
-- **[Editorul de secvențe](/info/sequence-editor.html)** - cronologia în sine: clipuri, piste de suprapunere, trim și split, tranziții și mixajul audio.
-- **[Export și formate](/info/exporting.html)** - partea de video, GIF și PNG animat a panoului de export, odată ce mișcarea este cum trebuie.
+- **[Animare](/info/animating.html)** - keyframe-uri, adâncime reală și o cameră de scenă.
+- **[Editorul de secvențe](/info/sequence-editor.html)** - clipuri, culoare de suprapunere, tăiere și împărțire, tranziții și mixul audio.
+- **[Culoare largă și HDR](/info/hdr-editing.html)** - culoare dincolo de gama obișnuită, pe ecrane și în formate care pot arăta gama suplimentară.
 
-## Înregistrează
+## Înregistrează și prezintă
 
-Înregistrează o priză curată cu numărătoare inversă, un indicator de nivel și îndrumare blândă, sau transformă o notă vocală într-un video finit care se mișcă odată cu sunetul. Nu există încă o pagină separată pentru Înregistrare: Folosirea Lolly o conține, în secțiunea despre cronologie.
+Înregistrează o preluare curată cu numărătoare inversă și indicator de nivel sau pune-te în fața diapozitivelor tale.
 
-- **[Folosirea Lolly](/info/using.html#timeline-sequence)** - înregistrarea unei voci direct pe cronologie, unde se salvează priza și cum ajunge ea în mixaj.
-- **[Fă-ți primul fișier](/info/make-something.html#other-first-projects)** - audiograma, pentru când preferi să fii auzit decât văzut.
-- **[Vizualizări utilitare](/info/utilities.html)** - Script audio, când cuvintele vin primele și vocea vine după.
-
-## Prezintă
-
-Pune-ți camera, logo-ul și numele peste un deck Design sau un Countdown, cu comenzi private într-o fereastră separată.
-
-- **[Prezentare cu camera](/info/presenting.html)** - încadrare, scene salvate, partajare cu publicul, înregistrare locală și limitările actuale ale versiunii de probă.
+- **[Cronologia Design](/info/design.html#timeline-sequence)** - înregistrarea unui voiceover direct pe cronologie.
+- **[Fă primul tău fișier](/info/make-something.html#other-first-projects)** - audiograma, pentru când preferi să fii auzit decât văzut.
+- **[Prezentare cu cameră](/info/presenting.html)** - camera, logoul și numele tău peste un deck sau Countdown, cu controale private într-o fereastră separată.
+- **[Pagini live care acceptă clicker-ul](/info/interactive-pages.html)** și **[Ecrane de agendă](/info/agenda.html)** - pagini și programe pentru sală.
 
 ## Colaborează
 
-Două persoane, două dispozitive, o singură sesiune, editată live. Scanează un cod peste masă și ambele ecrane țin aceeași lucrare, fără cont și fără server la mijloc - și fără internet deloc, când ambele dispozitive sunt în aceeași rețea.
+Două persoane, două dispozitive, un design, editat live, fără cont și fără server la mijloc.
 
-- **[Lucrul împreună](/info/collaborate.html)** - pornirea unei sesiuni, ce circulă între dispozitive și ce se întâmplă când rețeaua cade.
-- **[Folosirea Lolly](/info/using.html#sharing-your-work)** - modurile mai discrete de a preda o lucrare: un link de partajare care poartă întreaga stare, sau un singur fișier `.lolly`.
+- **[Lucrul împreună](/info/collaborate.html)** - collab-uri private între dispozitive și work collab-uri prin Lolly Work al organizației tale.
+- **[Folosirea Lolly](/info/using.html#sharing-your-work)** - un link de partajare care poartă întreaga stare sau un singur fișier `.lolly`.
+- **[Folosește Lolly în organizația ta](/info/organisation.html)** - autentificare, proiecte de echipă și setări administrate, când organizația ta rulează Lolly Work.
 
 ## Publică
 
-Trimite-l acolo unde a fost cerut: un link care poartă designul, un PDF fidel pentru tipar, un video, un deck sau un folder de variante. Aceeași sursă produce fiecare dintre ele, așa că îl construiești o singură dată.
+Trimite-l unde s-a cerut: un link, un PDF fidel tiparului, un video, un deck sau un dosar de variante, toate din aceeași sursă.
 
-- **[Export și formate](/info/exporting.html)** - unități de tipar, DPI, bleed și cropmark-uri, video, rulări în serie (batch) și panoul de export propriu-zis.
-- **[Fiecare format pe care Lolly îl poate deschide și crea](/info/formats.html)** - lista completă de intrare și ieșire, cu o fișă în limbaj simplu în spatele fiecărui chip.
-- **[Transfer de date](/info/data-transfer.html)** - pachetul de backup, pentru a muta tot ce ai creat pe un alt dispozitiv.
+- **[Exportă un fișier](/info/exporting.html)** - unități de tipar, bleed și semne de tăiere, video, rulări batch și panoul de export.
+- **[Fiecare format pe care Lolly îl poate deschide și face](/info/formats.html)** - lista completă de intrare și ieșire.
+- **[Drepturi creative și credite](/info/creative-rights.html)** - licențele a ce ai folosit și creditele care călătoresc cu fișierul.
+
+## Ghiduri de echipă și comparații
+
+- **Pentru echipa ta:** [vânzări](/info/sales.html), [marketing](/info/marketing.html), [redacția](/info/press.html) și [juridic](/info/legal.html).
+- **[Cum se compară Lolly](/info/positioning.html)** - la ce se pricepe Lolly și când să alegi altceva.
+- **[Lolly comparat, instrument cu instrument](/info/compare.html)** - Canva, Adobe, Figma, Penpot, portaluri de brand, API-uri de randare și convertoare online.

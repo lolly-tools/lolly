@@ -125,7 +125,7 @@ test('Lolly Demo reads as its own material: names, both looks, faces, logos and 
     "Lolly Demo, Lolly's own design system and the first one built on Lolly. Its palette is Opal: every colour is a treat or a piece of nature, remembered by name and never by number; a tint keeps its parent's name.");
   assert.deepEqual([...cover.querySelectorAll('.ds-issue-contents a')].map(a => a.textContent),
     ['33 colours', '3 typefaces', '7 logos', '6 colourways', 'Tokens', 'Print & CMYK']);
-  assert.ok(cover.querySelector('a.ds-issue-edit[href="#/start"]'), 'an editable system links to Start');
+  assert.ok(cover.querySelector('a.ds-issue-edit[href="#/start"]'), 'an editable system links to Design System Setup');
   assert.equal(cover.querySelector('.ds-issue-lock'), null);
 
   const lead = [...panel.querySelectorAll('#dash-palette .ds-leads-mode')][0]!;

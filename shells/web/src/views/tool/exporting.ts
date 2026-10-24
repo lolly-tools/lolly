@@ -9,6 +9,7 @@
  */
 import { hasVideoParams } from '@lolly/engine';
 import { mergeExportPrefs } from '../../lib/export-prefs.ts';
+import { flushAddressWrites } from '../../lib/url-state.ts';
 import { withStudioExport } from '../../lib/studio-export-guard.ts';
 import { waitForInitialViewport } from '../tool-initial-viewport.ts';
 import { marksFromCsv } from './shared.ts';
@@ -52,6 +53,9 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
   // the canvas DOM directly, so force any pending paint to land first - otherwise
   // we'd capture the frame before the latest keystroke.
   tview.render.flushRender();
+  // And the address: anything the export reads from it (the `_themes` choice the token
+  // bridge reads) must be the state being exported, not one still settling.
+  flushAddressWrites();
   // The opening fit hides the canvas briefly. SVG capture correctly skips hidden
   // artwork, so both manual and URL-driven exports must wait for this chrome state.
   await waitForInitialViewport(canvasEl, tview.mountLifecycle.signal);

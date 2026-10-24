@@ -27,3 +27,7 @@ Attribuering, proveniens, personvern & samtykke
 kreativitet & tillit blant det uendelige
 
 hvem som helst kan skape, i hvilken skala som helst, hvor som helst
+
+## Hvorfor
+
+### [Fordi vi står på giganters skuldre](/info/trust/shoulders-of-giants.html)

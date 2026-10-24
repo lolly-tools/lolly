@@ -21,6 +21,7 @@
  * Every string reaches the page through textContent.
  */
 import { getSessionSource, requestSourceProject } from '../lib/session-source.ts';
+import { currentAddress } from '../lib/url-state.ts';
 import { canGoBack, getPrevView } from '../lib/back-nav.ts';
 import { tRaw } from '../i18n.ts';
 import { isRecentlyAbsent, probeInstance } from './probe.ts';
@@ -100,7 +101,7 @@ export async function mountTeamProjectLink(view: HTMLElement, rawProjectId: stri
     hasSource,
     loginPath,
     unreachable,
-    returnTo: window.location.pathname + window.location.search + window.location.hash,
+    returnTo: currentAddress(),
   });
 
   const toProjects = { label: tRaw('Go to Projects'), href: '#/p' };

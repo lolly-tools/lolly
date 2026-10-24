@@ -2,26 +2,26 @@
 
 _Senast kontrollerad: 28 september 2026._
 
-Lolly skapar grafik, inlägg för sociala medier, presentationer och layouter i varumärkets stil i webbläsaren. Tillsammans med [lolly.work](https://lolly.work) stöder det också delade projekt, samarbete i realtid i arbetsflöden, godkända resurser och organisationspolicyer.
+Om ditt team gör sociala inlägg, bilder och flyers i Canva i dag säger den här sidan var Lolly gör samma jobb och var Canva förblir den bättre lösningen.
+
+## Vad Canva gör bättre
+
+Canva kombinerar ett stort mall- och stockbibliotek, appar och värdbaserade teamarbetsflöden i en hanterad tjänst. Det färdiga innehållet och den upplevelsen hjälper när du behöver en startpunkt i dag. Se [Canvas mallar](https://www.canva.com/templates/) och [appmarknad](https://www.canva.com/apps/). Dess redigering i realtid har också en lång driftshistorik i en skala som Lollys arbetscollabs inte har nått.
 
 ## Där de överlappar
 
-Båda låter någon utgå från en mall och ta fram en färdig grafik utan att vara designer. Båda stöder teamarbetsflöden och varumärkeskontroller: [Canva paketerar dessa i sina företagsplaner](https://www.canva.com/canva-business/); Lolly skiljer de kreativa apparna från organisationstjänsten.
+Båda låter någon börja från en mall och göra en färdig grafik utan att vara designer. Båda stöder teamarbete och varumärkeskontroller: [Canva paketerar dem i sina företagsplaner](https://www.canva.com/canva-business/), medan Lolly håller den kreativa appen och organisationsservern isär.
 
-Lolly körs fristående på din enhet utan konto. lolly.work lägger till SSO, SCIM-provisionering, roller, delade kataloger, godkännanden och användningsrapportering när din organisation behöver det. Det är en del av Lolly-projektet, driftsätts separat och är öppen källkod under MPL-2.0, precis som Lolly självt.
+## Hur Lolly gör det överlappande jobbet
 
-## Mallar och teamarbete
+Ett Lolly-verktyg kodar de ändringar folk får göra, och samma verktyg körs i webbläsaren, datorappen eller CLI. En layout gjord på Design-ytan kan bli ett [verktyg med regler](/info/create-a-tool.html), och ett verktyg kan göra många filer av en tabell med värden.
 
-Canva kombinerar ett stort mall- och bildbibliotek, appar och hostade teamarbetsflöden i en enda tjänst. Det färdiga innehållet och den hanterade upplevelsen kan vara användbara när du väljer utgångspunkt. Se [Canvas mallar](https://www.canva.com/templates/) och [appmarknadsplats](https://www.canva.com/apps/).
+![Designs fria yta, där färgerna, typsnitten och tillgångarna som erbjuds är designsystemets egna](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Lollys verktyg kodar tillåtna ändringar och kan återanvändas i webbläsaren, skrivbordsappen eller CLI. En design kan bli ett [verktyg med regler](/info/create-a-tool.html), och samma verktyg kan ge många utdata från en tabell med värden. lolly.work hanterar åtkomst, delat arbete och policyer kring de verktygen.
+Fristående Lolly fortsätter att skapa och exportera på enheten, utan konto, och fungerar offline när dess tillgångar är sparade. Två personer kan redigera live i en [privat collab](/info/collaborate.html), enhet till enhet. Content Credentials är på som standard för exporter som stöds, och du kan stänga av dem.
 
-Redigering i realtid finns både via [privata collabs](/info/collaborate.html), som ansluter två enheter direkt, och via arbetscollabs genom en organisations lolly.work-instans. Arbetscollabs omfattar delad redigering, markörer och sparade teamsessioner. Den nuvarande serverdriftsättningen använder en enda samarbetsnod; dess skala och driftshistorik skiljer sig från Canvas etablerade tjänst.
+## Med en organisation
 
-## Var arbetet finns
+Lolly Work, som körs på din organisations egen server, lägger till inloggning, delade projekt, levande arbetscollabs, godkända tillgångar och policyer. [Vad som körs var](/info/compare.html#what-runs-where) ställer de två delarna bredvid varandra, med gränserna som varje jämförelse delar.
 
-Fristående Lolly behåller skapande och export på enheten och kan fungera offline när dess resurser finns tillgängliga. Samarbete i arbetsflöden, teamlagring och serverrendering använder organisationens konfigurerade tjänster. Det här driftsättningsvalet är skillnaden: en organisation kan driva båda delarna av Lolly själv, utan programvarulicensavgift per användare, medan den betalar för sin egen hosting och administration.
-
-Content Credentials är valfria för exporter som stöds. lolly.work kan signera serverutdata med en konfigurerad organisationsidentitet; en verifierare måste lita på den identiteten innan undertecknaren visas som betrodd. Se [Content Credentials Identity](/info/content-credentials-identity.html) och [översikten över den kombinerade lösningen](/info/compare.html).
-
-Canva är ett varumärke som tillhör sin ägare. Den här sidan beskriver var de två lösningarna överlappar och är inte knuten till Canva.
+Canva är ett varumärke som tillhör sin ägare. Den här sidan beskriver var de två produkterna överlappar och är inte knuten till Canva.

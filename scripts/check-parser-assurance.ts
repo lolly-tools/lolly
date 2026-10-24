@@ -15,6 +15,8 @@ export interface ParserWaiver {
 }
 
 export interface ParserAssuranceEntry {
+  /** The group the parser is listed under on the generated page, such as "Images and colour". */
+  family?: string;
   fuzzTargets?: string[];
   waiver?: ParserWaiver;
   details: ParserInventoryDetails;
@@ -126,6 +128,7 @@ export function validateParserAssurance(options: {
       errors.push(`${entry.id}: missing from security/parser-assurance.json`);
       continue;
     }
+    if (!assurance.family?.trim()) errors.push(`${entry.id}: registry has no family to group it under`);
     const declared = [...new Set(assurance.fuzzTargets ?? [])].sort();
     if (declared.join('\0') !== entry.fuzzTargets.join('\0')) {
       errors.push(

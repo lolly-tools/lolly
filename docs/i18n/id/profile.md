@@ -1,154 +1,97 @@
-# Profil - siapa Anda saat berkarya
+# Profil
 
-**Profil** adalah identitas kerja yang digunakan Lolly untuk membuat. Ini adalah sekumpulan kecil detail yang dapat diambil oleh sebuah alat sehingga Anda tidak perlu mengetiknya ulang setiap kali - nama Anda, detail kontak, foto profil opsional, beberapa preferensi - ditambah semua yang Anda kumpulkan selama bekerja: sesi yang disimpan, gambar yang diunggah, dan tally aktivitas lokal.
+Atur nama, detail kontak, dan foto profil Anda sekali, dan setiap alat yang dibuat untuk memakainya mengisinya untuk Anda: tanda tangan email, tanda pengenal, kartu pembicara. Catatan kecil itu adalah **profil** Anda, dan berada di perangkat Anda.
 
-Semua isi profil tersimpan **di perangkat**, dalam basis data lokal browser (IndexedDB pada PWA web, sistem berkas pada aplikasi Tauri). Tidak ada akun dan tidak ada yang diunggah. Anda mengelolanya di **Pengaturan → Preferences** (di footer atau menu avatar); tool hanya pernah *membaca*-nya, dan hanya field tertentu yang memang dirancang untuk diisi otomatis.
-
-> Pengaturan menyatukan profil Anda dan Dashboard yang dulu terpisah menjadi satu tujuan. **Preferences** menyimpan detail dan pilihan pribadi Anda; **Perangkat ini**, **Sistem desain**, **Kemampuan** dan **Aktivitas & statistik** berada di sampingnya. Lihat [Pengaturan](/info/dashboard.html) untuk peta lengkapnya.
+Profil Anda juga menyimpan apa yang Anda kumpulkan saat bekerja: sesi tersimpan, gambar yang diunggah, dan hitungan aktivitas lokal Anda. Anda mengelolanya di **Settings → Preferences**; alat hanya membaca field yang dibuat untuk diisi otomatis. Penggunaan mandiri tidak memerlukan akun, dan Sync opsional, berbagi, serta layanan organisasi masing-masing memiliki aliran datanya sendiri, dijelaskan di bawah.
 
 ## Apa yang ada dalam profil
 
-| Bagian | Apa isinya |
+| Bagian | Apa itu |
 |---|---|
 | **Name** | Nama depan dan belakang. |
 | **Contact** | Email dan telepon. |
 | **Location** | Kota dan negara. |
-| **Headshot** | Foto opsional, dipotong menjadi persegi dan disimpan sebagai gambar lokal. Digunakan oleh alat seperti tanda tangan email, kartu kutipan, bagan organisasi, dan tata letak dinamis. |
-| **Use my details to create** | Sakelar opt-in tunggal (berbunyi **Using my details** setelah aktif). Mengontrol apakah detail pribadi Anda turut disertakan sebagai **provenance** - baris penulis/kredit yang tertanam dalam file yang diekspor - dan sebagai penulis pada proses batch **/pro**. (Ini tidak mengontrol pre-fill: lihat [How tools use your profile](#how-tools-use-your-profile).) |
-| **Preferences** | Tema Anda (Light, Dark, atau Brand - tema brand mewarnai aplikasi dengan palet Anda sendiri) dan bagian aplikasi mana yang Anda aktifkan lewat **Feature flags**. |
-| **Accessibility** | Empat sakelar kenyamanan - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - disimpan pada catatan profil, sehingga ikut terbawa dalam ekspor profil. Lihat [Accessibility](#accessibility). |
-| **Your work** | Sesi tersimpan (dengan thumbnail) - diatur ke dalam folder bersarang di **[Projects](/info/using.html)** - pustaka **My images** Anda, dan statistik aktivitas lokal, semuanya terkait dengan profil ini. |
+| **Headshot** | Foto opsional, dipotong persegi dan disimpan sebagai gambar lokal, untuk alat seperti tanda tangan email, kartu kutipan, dan bagan organisasi. |
+| **Use my details to create** | Satu sakelar ikut serta (berbunyi **Using my details** setelah dinyalakan). Ia menentukan apakah detail Anda ikut sebagai kredit pembuat dalam file ekspor dan pada proses Batch. Ia tidak memengaruhi pengisian otomatis; lihat [How tools use your profile](#how-tools-use-your-profile). |
+| **Preferences** | Tema, pengaturan aksesibilitas Anda, dan bagian aplikasi yang Anda aktifkan di **Feature flags**. |
+| **Your work** | Sesi tersimpan beserta thumbnail-nya, diatur di [Projects](/info/find-your-work.html), gambar yang Anda unggah, dan statistik aktivitas lokal Anda. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Tidak ada yang wajib. Profil kosong berfungsi; isi hanya apa yang menghemat ketikan Anda.
 
-![Layar Profile - nama, kontak, foto profil opsional, dan preferensi Anda](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Settings pada tab Preferences: rel pengaturan, dan Your details dengan sakelar Use my details to create serta field nama, kontak, dan lokasi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-Tidak ada satu pun dari ini yang wajib. Profil kosong adalah profil yang sangat baik; Anda hanya mengisi apa yang menghemat waktu pengetikan.
+[Settings](/info/dashboard.html) memetakan semua hal lain di bawah Preferences, dari tampilan dan emoji hingga penyimpanan dan unduhan offline.
 
-Halaman ini panjang, sehingga memiliki **settings rail**-nya sendiri di sisi samping - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - dengan bidang **Search settings** di atasnya yang menyaring daftar saat Anda mengetik. Setiap bagian dapat ditautkan langsung sebagai `#/settings?focus=<section-id>`, yang membukanya dan menggulirkannya agar terlihat (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, dan seterusnya), sehingga sebuah tautan dapat menunjuk ke satu pengaturan, bukan ke bagian atas halaman.
+## Anda, tim, atau peran
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Kata "profil" menyiratkan satu orang yang tetap. Di Lolly ia lebih mirip konteks pembuatan: siapa Anda saat membuat hal ini. Ia dapat berbentuk tiga, dan Lolly menangani masing-masing dengan cara yang sama.
 
-## Profil adalah sebuah konteks, bukan sekadar seseorang
+::: cols
+## Sebagai diri sendiri
 
-Kata "profil" mengesankan satu orang yang tetap, tapi di Lolly ini sebenarnya sebuah **konteks berkarya** - *siapa Anda saat membuat sesuatu*. Konteks itu bisa berbentuk tiga hal berbeda, dan Lolly menangani semuanya dengan cara yang sama.
+Default. Nama, email, dan foto profil Anda. Atur sekali dan tanda tangan, tanda pengenal, dan lockup konferensi Anda terisi sendiri.
 
-### Sebagai individu
+## Sebagai tim
+
+Nama bersama sebuah tim, kotak masuk grup seperti `events@…`, departemen, dan lambang tim. Satu orang menyiapkan dan mengekspornya, dan semua orang lain memuat profil yang sama, sehingga file tim membawa detail yang konsisten. Kios bersama atau laptop demo dapat menjalankan satu profil tim.
+
+## Sebagai peran
+
+Manajer acara tiga hari dalam setahun menginginkan kotak masuk acara dan sub-brand acara pada tanda pengenal dan papan petunjuk, lalu kembali ke identitas biasanya. Simpan peran itu sebagai file profil tersimpan, muat untuk acara, dan simpan kembali sesudahnya.
+:::
 
 ![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+::: details Profil di organisasi yang memakai Lolly Work
+Saat Anda login ke [Lolly organisasi](/info/organisation.html), Lolly Work dapat menyediakan field profil terverifikasi dari penyedia identitasnya dan menetapkan field atau preferensi di bawah kebijakan organisasi. Field terkelola diberi label di aplikasi.
 
-### Sebagai tim
+Login itu juga mengendalikan akses ke proyek dan aset bersama. File profil tim tetap file lokal: ia tidak memberi keanggotaan organisasi atau menggantikan akun kerja. **Use my details to create** mengendalikan kredit dalam ekspor Anda, bukan catatan login atau audit organisasi. Lihat [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+:::
 
-Sebuah profil tidak harus mewakili satu orang. Profil dapat mewakili **tim atau fungsi dalam sebuah organisasi**: nama bersama tim, alamat inbox grup (`events@…`), sebuah departemen, headshot tim, atau tanda unit. Satu orang mengaturnya, mengekspornya (lihat di bawah), dan sisa anggota tim memuat profil yang sama - sehingga semua yang dihasilkan tim membawa detail yang konsisten tanpa ada yang perlu memasukkannya ulang. Kios bersama atau laptop demo yang dipinjam dapat menjalankan satu profil tim yang digunakan oleh semua orang yang menggunakannya untuk berkarya.
+## Simpan beberapa, pakai satu
 
-### Sebagai fungsi - peran yang sesekali Anda kenakan
+Satu instalasi memiliki satu profil aktif pada satu waktu, dan tidak ada pengalih di aplikasi. Sebagai gantinya, setiap profil adalah file portabel, file cadangan yang sama yang Anda pakai untuk pindah ke perangkat baru. Untuk masuk ke konteks lain:
 
-Inilah kasus yang terlewat oleh model kaku "satu orang, satu profil". Anda mungkin seorang **manajer acara tiga hari dalam setahun** dan menjadi sesuatu yang sama sekali berbeda di sisa waktunya. Pada tiga hari itu Anda ingin detail acara, kotak masuk acara, mungkin sub-brand acara untuk mengisi badge dan papan penanda Anda; pada 362 hari lainnya Anda ingin identitas normal Anda kembali.
+::: timeline
+- <!--i:download--> **Export my data** di bawah **Settings → Storage → Move to another device** menyimpan profil saat ini sebagai satu `.zip`.
+- <!--i:trash--> **Clear all my data** mengosongkan instalasi ini.
+- <!--i:upload--> **Import data…** memuat file profil untuk konteks yang akan Anda masuki.
+:::
 
-Di Lolly, peran itu hanyalah **profil lain yang Anda simpan siap pakai** - sebuah bundel tersimpan (bagian berikutnya) yang Anda muat untuk acara itu lalu Anda simpan kembali sesudahnya. Peran adalah sebuah topi, bukan akun baru. Kenakan saat Anda membutuhkannya, lepaskan saat Anda selesai.
+Mengimpor tanpa membersihkan lebih dulu akan **menggabungkan**. Sesi dan gambar yang diimpor ditambahkan; bila kedua salinan ada, yang disimpan lebih baru dipertahankan. Folder, favorit, dan templat ditambahkan di samping milik Anda, dan detail Anda sendiri tetap, kecuali field kosong, yang mengambil nilai dari file. Itu cocok untuk memasukkan sesi satu tim ke pengaturan Anda, tetapi bukan untuk pemisahan bersih antar peran.
 
-## Satu instalasi, satu profil aktif - banyak yang bisa Anda simpan
+Untuk dua konteks sekaligus, gunakan profil browser terpisah, akun pengguna terpisah, atau salinan kedua aplikasi web yang terpasang: masing-masing membawa profil Lolly independennya sendiri.
 
-Pada suatu saat, satu instalasi memiliki **satu profil aktif** - detail yang dilihat oleh sebuah alat saat ini. Tidak ada pengalih profil di dalam aplikasi; sebagai gantinya, setiap profil adalah **bundle portabel** (satu file `.zip`, lihat [di bawah](#moving-a-profile-to-a-new-device)). Ini sengaja dibuat sebagai mekanisme yang sama dengan memindahkan ke perangkat baru - sebuah profil adalah file yang dapat Anda simpan, salin, dan muat.
+![Dua tombol yang memindahkan seluruh instalasi: Export my data menulis satu zip, Import data membacanya kembali](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+> Simpan satu file per konteks dan namai masing-masing sesuai isinya, seperti `LollyTools-events-2026.zip` dan `LollyTools-me.zip`. File itulah profilnya.
 
-- <!--i:trash--> **Peralihan paling bersih:** **Pengaturan → Preferences → Penyimpanan → Hapus semua data saya**, lalu **Impor** bundle untuk konteks yang akan Anda masuki. Anda sekarang berkarya murni sebagai profil tersebut.
-- <!--i:layers--> **Layering:** mengimpor *tanpa* menghapus terlebih dahulu **menggabungkan** - sesi dan gambar yang diimpor mendarat di atas apa yang sudah ada; ketika keduanya memiliki yang sama, salinan yang disimpan lebih baru dipertahankan, dan sisanya dibiarkan. Folder, favorit dan template ditambahkan ke milik Anda, dan detail serta pengaturan Anda sendiri tetap ada. Berguna untuk menarik sesi tersimpan satu tim ke dalam setup Anda sendiri; bukan yang Anda inginkan jika Anda memerlukan batas peran yang bersih.
-- <!--i:monitor--> **Berdampingan:** karena semuanya bersifat device-scoped, sebuah profil browser terpisah, sebuah akun pengguna terpisah atau sebuah PWA kedua yang terinstal masing-masing membawa profil Lolly independennya sendiri. Jalankan instalasi pribadi Anda dan instalasi kiosk acara sekaligus, tanpa perlu berpindah.
-
-Jadi jika Anda benar-benar menjalankan beberapa konteks sekaligus (Anda, tim Anda, topi manajer acara), Anda menyimpan beberapa bundel dan memuat yang Anda butuhkan:
-
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-> Simpan satu bundel per konteks dan ganti nama berkasnya sesuai isinya (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Berkas itu *adalah* profilnya.
-
-## Accessibility
-
-**Pengaturan → Preferences → Aksesibilitas** menyimpan empat pengaturan kenyamanan untuk aplikasi *di sekitar* pekerjaan Anda. Masing-masing nonaktif hingga Anda mengaktifkannya, dan tidak satu pun menjangkau ke dalam kanvas alat atau ekspor - aplikasi yang lebih tenang tidak boleh menggeser satu piksel pun dari berkas yang Anda kirim.
-
-- <!--i:film--> **Reduce motion** - menonaktifkan transisi, slide, dan hiasan animasi di aplikasi. Kanvas alat Anda dan ekspor animasi apa pun tetap bergerak persis seperti yang dirancang.
-- <!--i:image--> **Hide colourful previews** - mengganti artwork pratinjau galeri dengan kartu ikon-dan-teks yang tenang, dan menurunkan warna serta kontras thumbnail proyek Anda sehingga tetap dapat dikenali tanpa mencolok. Di dalam sebuah alat, semuanya tetap tampil dalam warna penuh.
-- <!--i:sliders--> **High contrast** - memperkuat border, teks, dan cincin fokus aplikasi. Warna brand Anda dan segala sesuatu di kanvas tetap seperti yang Anda atur.
-- <!--i:font--> **Large text** - memperbesar tipografi aplikasi: label, menu, dan teks tombol. Kontrol tetap pada ukurannya, sehingga hanya kata-kata di dalamnya yang membesar, dan tipografi di dalam desain Anda tidak tersentuh, sehingga tidak ada tata letak yang berubah pada hasil ekspor Anda.
-
-Pengaturan ini tersimpan pada catatan profil itu sendiri, itulah sebabnya ikut terbawa dalam ekspor profil dan sampai di instalasi berikutnya bersama nama dan sesi Anda. (Perangkat juga menyimpan salinan lokal kecil sehingga pengaturan berlaku sebelum tampilan pertama; salinan tersebut hanya ada di perangkat dan tidak ikut terbawa.)
-
-## Instance Lolly Anda
-
-**Pengaturan → Preferences → Instans Lolly** menunjukkan dari mana instalasi ini mendapatkan alat dan katalognya - alamat instans tersebut, atau *Bundled with this app* saat semuanya sudah tersedia di dalam build. Jika sebuah deployment menyediakannya, tautan **Konsol instans** membuka permukaan adminnya, **Ubah** mengarahkan ulang instalasi, dan **Keluar** menghapus sistem desain, alat dan katalog instans tersebut sementara karya Anda sendiri tetap ada (lihat [Gunakan Lolly di organisasi Anda](/info/organisation.html#leaving)).
-
-Mengarahkan ulang ke instance lain memerlukan **aplikasi desktop**: peramban memblokir halaman untuk memuat alat dan aset lintas origin, sehingga di web bagian ini hanya melaporkan di mana Anda berada dan berhenti sampai di situ.
-
-## Available offline
-
-Lolly melakukan cache seiring Anda menjelajah, tetapi cache-seiring-jalan ini hanya mencakup tempat yang sudah pernah Anda kunjungi. **Pengaturan → Preferences → Tersedia offline** ditujukan untuk perjalanan yang sudah bisa Anda perkirakan: satu jam di wifi bandara sebelum penerbangan tanpa koneksi sama sekali. Unduh bagian-bagian yang Anda perlukan, pantau satu progress bar, dan semua yang Anda ambil tetap berfungsi walau koneksi hilang.
-
-Tujuh bagian, masing-masing dengan ukurannya dinyatakan sebelum Anda melanjutkan:
-
-- <!--i:layout--> **The app** - setiap tampilan, editor, dan font, termasuk yang belum pernah Anda buka. Tanpa ini, layar yang belum pernah Anda kunjungi secara online tidak dapat dimuat secara offline.
-- <!--i:image--> **Catalogue** - aset brand di luar yang esensial. Ambil semuanya, atau buka *Choose by tag* dan ambil hanya tag yang Anda gunakan.
-- <!--i:book--> **Guides & docs** - situs dokumentasi ini, dalam bahasa Anda, termasuk tangkapan layar.
-- <!--i:cpu--> **Speech voices** - model suara di balik audio dan narasi Script. Diunduh sekali, lalu berjalan di perangkat.
-- <!--i:zap--> **Upscaling models** - upscaler gambar AI: foto, ilustrasi/anime, dan wajah.
-- <!--i:layers--> **Background removal** - model cut-out di perangkat di balik *Remove background*.
-- <!--i:shield--> **Verify deep scan** - pemindai watermark di perangkat, untuk memeriksa Content Credentials tanpa koneksi.
-
-Empat terakhir ditandai **unduhan besar**, dan sengaja dibuat sebagai opt-in individual: **Download everything** di bagian atas mengambil aplikasi, cakupan katalog yang Anda pilih, dokumentasi dan semua tool dalam satu proses dan tidak ada yang lain. Suara ucapan, upscaler, penghapus latar belakang dan pemindaian mendalam masing-masing hanya diunduh saat Anda memintanya per baris - beberapa ratus megabyte yang bersembunyi di dalam satu tombol akan tidak jujur.
-
-Di bawah bagian-bagian tersebut ada daftar per tool: setiap tool diunduh satu per satu (tanda centang berarti siap offline), atau **Download all** menyapu semuanya. Unduhan dapat dilanjutkan - batalkan atau kehilangan koneksi dan proses berikutnya melanjutkan dari titik terhenti, hanya mengambil yang hilang - dan akan menyegarkan dirinya sendiri saat Anda kembali online, hanya menarik apa yang berubah di rilis baru.
-
-Jika browser belum memberikan penyimpanan persisten, bagian ini akan menyatakannya dan menawarkan **Protect downloads**, yang memintanya - perbedaan antara "terunduh" dan "terunduh sampai browser ingin mengambil kembali ruangnya".
-
-## Memindahkan profil ke perangkat baru
-
-Karena sebuah profil sepenuhnya lokal, ada dua cara untuk memindahkannya ke instalasi yang masih kosong - laptop baru, browser yang baru direset, mesin rekan kerja, kotak offline. **Bawa berkasnya**, seperti di bawah, atau selaraskan perangkat Anda sendiri melalui penyimpanan pilihan Anda, seperti dijelaskan [Sinkronkan perangkat Anda](/info/sync.html). Tidak ada login Lolly yang memulihkannya untuk Anda, dan itulah intinya: tidak ada apa pun yang pernah dikirim ke server Lolly sejak awal.
-
-Di bawah **Pengaturan → Preferences → Penyimpanan → Pindah ke perangkat lain**:
-
-- <!--i:download--> **Ekspor data saya** mengunduh satu `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - dinamai sesuai profil pemiliknya, dengan nomor urut per hari agar ekspor berulang tidak bentrok (bagian nama dihilangkan saat profil tidak memilikinya). File ini berisi profil Anda, setiap sesi tersimpan (dengan thumbnail-nya), gambar yang Anda unggah - token brand dan font terpasang Anda ikut serta sebagai aset pengguna - dan preferensi Anda (tema, tata letak, statistik aktivitas lokal).
-- <!--i:upload--> **Impor data…** pada instalasi lain membaca kembali file itu dan Anda melanjutkan persis dari tempat Anda berhenti. Ini juga mengambil sebuah salinan yang disimpan [Sync](/info/sync.html) di penyimpanan Anda.
-- <!--i:box--> **Ekspor data saya & render semuanya** menulis backup yang sama *ditambah* zip kedua yang me-render setiap sesi tersimpan menjadi file hasil akhirnya, dalam folder yang mencerminkan Projects Anda. Arsip offline lengkap dari sumber maupun hasil - dan bisa berukuran besar serta lambat jika sesinya banyak.
-
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
-
-Bundel itu adalah file zip yang sederhana dan mandiri sepenuhnya, sehingga bisa berpindah dengan **cara apa pun** - USB, AirDrop, berbagi jaringan, email ke diri sendiri - dan target bisa sepenuhnya offline. Setiap bagian memiliki checksum, sehingga file yang rusak selama transit akan tertangkap saat impor, bukan dipulihkan dalam keadaan setengah rusak. Impor **menggabungkan** (untuk sesi atau gambar bernama sama, salinan yang disimpan lebih baru dipertahankan; folder, favorit dan template ditambahkan; detail dan pengaturan target tetap ada; semua yang lain dipertahankan), sehingga tidak pernah menghapus target yang sudah digunakan.
-
-Yang tidak ikut berpindah: cache katalog (ia mengunduh ulang dirinya di perangkat baru) dan tool itu sendiri (diasumsikan sudah ada). 
-
-Untuk tata letak bundel yang tepat, kebijakan versi dan aturan integritas, lihat **[Data Transfer](/info/data-transfer.html)**; untuk panduan lengkap dari awal sampai akhir, **[Using Lolly → Moving to another device](/info/using.html#moving-to-another-device)**.
+[Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) membahas apa yang dimuat file, apa yang tertinggal, dan cara lain untuk memindahkan, termasuk Sync.
 
 ## Cara tool menggunakan profil Anda
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+**Pengisian otomatis.** Pembuat alat menandai input agar diambil dari profil Anda (`bindToProfile: "firstname"`, `"email"`, `"headshot"`, dan seterusnya). Saat alat dibuka, input itu terisi dari profil Anda, dan Anda dapat menimpanya untuk satu sesi tanpa mengubah profil, kecuali kebijakan organisasi mengunci input itu. Pengisian otomatis adalah kemudahan lokal dan terjadi baik **Use my details** aktif maupun tidak.
 
-Sebuah tool hanya *mengisi otomatis* field profil yang memang secara eksplisit dirancang untuk diikat:
+**Kredit.** Saat mengekspor, detail Anda dapat ikut sebagai kredit pembuat di metadata file (PNG, PDF, SVG, dan lainnya), sehingga file jadi dapat menyatakan siapa yang membuat karya. **Use my details to create** mengatur ini, dan pembuat pada proses Batch. Bila mati, ekspor tetap menyatakan dibuat dengan Lolly, dan tidak membawa baris pembuat atau kontak pribadi.
 
-**Opsi opt-in (provenans).** Saat Anda mengekspor sebuah aset, detail Anda secara opsional ikut serta sebagai **provenans** - baris penulis/kredit yang disematkan dalam metadata file (PNG, PDF, SVG, …) - sehingga aset jadi dapat menyatakan siapa yang membuatnya. *Inilah* yang diatur oleh **Gunakan detail saya untuk membuat**: biarkan mati dan ekspor tetap membawa atribusi tool/platform "Made with Lolly", tetapi tidak ada baris penulis/kontak pribadi yang disematkan. (Opt-in yang sama menetapkan penulis pada run batch **/pro**.) (Penulis tool: lihat [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) dan [Host API → `host.profile`](/info/host-api.html#host-profile)).
+Pembuat alat: lihat [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) dan [`host.profile`](/info/host-api.html#host-profile).
 
-![The single Use my details to create switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![Satu sakelar Use my details to create, bertanda ikut serta dan mati sampai Anda menyalakannya](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## Profil vs Platform vs Kapabilitas
+## Profil, design system, dan capabilities
 
-Tiga hal berada berdekatan di antarmuka dan mudah tertukar:
+Tiga hal berdekatan di Settings dan mudah tertukar:
 
-- <!--i:people--> **Profile** - *Anda* (atau tim Anda, atau peran yang Anda jalani): nama, kontak, foto profil, karya tersimpan Anda. Personal, lokal-perangkat, portabel sebagai bundel.
-- <!--i:palette--> **Platform** - *brand*-nya: warna, font dan pengaturan global tempat setiap tool merender. Digunakan bersama dan konsisten, bukan personal.
-- <!--i:sliders--> **Capabilities** - *apa yang bisa dilakukan aplikasi*: keseluruhan fitur dan tool yang tersedia untuk Anda.
+- <!--i:people--> **Profil** - Anda, tim Anda, atau peran yang sedang Anda jalani: nama, kontak, foto profil, dan pekerjaan tersimpan. Pribadi, disimpan di perangkat, dan portabel sebagai file.
+- <!--i:palette--> **Design system** - brand: warna, font, dan pengaturan yang dipakai setiap alat untuk merender. Bersama dan konsisten, bukan pribadi; lihat [Design System Setup](/info/brand-studio.html).
+- <!--i:sliders--> **Capabilities** - apa yang dapat dilakukan aplikasi: fitur dan alat yang tersedia bagi Anda.
 
-Profil mengubah aset itu berasal *dari siapa*; platform mengubah *tampilannya*; kapabilitas adalah *apa yang bisa Anda buat*.
+Profil mengubah dari siapa sebuah file; design system mengubah tampilan file; capabilities adalah apa yang dapat Anda buat.
 
-### "Profil" berarti dua hal lain di tempat lain - bukan ini
-
-Istilah ini dipakai berlebihan di seluruh proyek. Tidak satu pun dari keduanya adalah profil pribadi yang dibahas di halaman ini:
-
-- <!--i:box--> **Content profile** - konfigurasi waktu-build di `profiles.json` yang mengikat sekumpulan paket tool ke katalog brand (misalnya `suse`, `lolly-start`). Ini yang dipilih operator saat deploy, dan ini juga yang dipilih **parameter URL/CLI** `profile` sebagai varian *warna* saat ekspor (kondisi cetak ICC/CMYK - lihat [URL Mode](/info/url-mode.html)). Keduanya berkaitan dengan *build/output*, bukan dengan *Anda*. Lihat [Configuration](/info/configuration.html).
-- <!--i:seal--> **Identity profile** - **identitas Content Credentials terverifikasi** opsional yang dapat Anda daftarkan (sertifikat berumur pendek yang mengikat email Anda ke ekspor bertanda tangan Anda). Itu adalah identitas penandatanganan, terpisah dari kolom nama/kontak profil pribadi, meski **Use my details to create** mengatur apakah salah satunya disematkan. Lihat [Content Credentials Identity](/info/content-credentials-identity.html).
+Kata ini memiliki tiga arti lain di Lolly. **Content profile** adalah pengaturan build yang memilih alat dan katalog apa yang dikirim sebuah deployment; [Glossary](/info/glossary.html) mendefinisikan istilahnya. Parameter tautan `profile` memilih profil warna untuk ekspor, seperti kondisi cetak CMYK; lihat [Reserved URL parameters](/info/url-parameters.html#print). **Verified identity** adalah sertifikat penandatanganan opsional yang mengikat email Anda ke ekspor bertanda tangan, terpisah dari detail ini, meskipun **Use my details to create** mengatur apakah salah satunya disematkan; lihat [Content Credentials](/info/content-credentials-identity.html).
 
 ![The Verified identity card, phone-width: the certificate lifetime picker and the enrolment step beneath it - the identity profile, separate from your personal details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Privasi
 
-Di luar pendaftaran identitas opsional di atas (yang mengirim email yang Anda daftarkan ke layanan sertifikat - lihat [Server Surface](/info/server-surface.html)), sebuah profil tidak pernah dikirimkan, diunggah atau digunakan untuk mengidentifikasi atau melacak Anda - tidak ada yang perlu disetujui, hanya pemberitahuan ini agar Anda tahu apa yang disimpan. Hapus semuanya kapan saja dengan **Pengaturan → Preferences → Hapus semua data saya**. Lihat [Kebijakan Privasi](/info/privacy.html).
+Profil pribadi Anda disimpan secara lokal. Detail Anda dapat ikut dalam salinan cadangan atau Sync, dalam konten yang Anda bagikan atau ekspor, dan selama pendaftaran Content Credentials opsional. Pada instans Lolly Work, login, pekerjaan bersama, kebijakan telemetri, dan catatan audit terpisah dari profil lokal ini. **Settings → Preferences → Clear all my data** membersihkan perangkat ini; ia tidak menghapus salinan yang dipegang penyedia penyimpanan atau organisasi Anda. Lihat [Privacy Policy](/info/privacy.html).

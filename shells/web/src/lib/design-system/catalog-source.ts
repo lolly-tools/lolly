@@ -62,7 +62,7 @@ export function catalogSourceHtml(record: DesignSystemRecord, adminHref?: string
     ${networkStatus.offline ? `<p>${t('Cached catalogue. The instance could not be reached for a refresh.')}</p>` : ''}
     ${record.catalog?.available === false ? `<p>${t('No selected tokens asset is available. Refresh the catalogue or ask the administrator to check its source.')}</p>` : ''}
     <p>${t('Removing a local copy does not remove these catalogue assets.')}</p>
-    <a href="/info/operate/deployment.html#removing-a-catalogue-design-system">${t('How to change the supplied design system')}</a>
+    <a href="/info/manage/profiles-and-brands.html#removing-a-catalogue-design-system">${t('How to change the supplied design system')}</a>
     ${adminLink}
   </details>`;
 }

@@ -1,45 +1,49 @@
-# Přenos dat - balíček `lolly-backup`
+# Přenos dat: balíček `lolly-backup`
 
-Vše, co uživatel Lolly nashromáždí, žije **na jeho zařízení** - žádný účet, žádný cloud. Balíček pro přenos dat je způsob, jak se tato hodnota přesouvá: exportuj ho na jedné instalaci, přenes soubor jakýmkoli způsobem (USB, AirDrop, e-mail sám sobě, síťové sdílení) a naimportuj ho na jiné. Soubor *je* přenos. Cíl může být offline nebo online. Nehraje to roli, protože nic nikdy nekomunikuje se serverem.
+Lolly drží tvou osobní knihovnu na zařízení. Záložní balíček je způsob, jak se ta knihovna přesouvá: exportuj ji na jedné instalaci, přenes soubor, jak chceš (USB, AirDrop, e-mail sám sobě nebo síťový disk) a importuj ji na jiné. Export i import nepotřebují server a cíl může být offline.
 
-![Dvě tlačítka, která přesunou celou instalaci: Exportovat moje data zapíše jeden zip, Import data ho zase načte](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
+Tato stránka je specifikace formátu pro lidi, kteří staví shelly, nástroje nebo skripty kolem záloh: co je v zipu, jak se verze brání, jak se import slučuje a co se kontroluje. Návod pro lidi přesouvající vlastní práci je [Přesuň svou práci na jiné zařízení](/info/find-your-work.html#move-your-work-to-another-device).
 
-Tato stránka je specifikace formátu. Návod pro koncového uživatele najdeš v [Najdi a obnov svou práci → Přenes svou práci do jiného zařízení](/info/find-your-work.html#move-your-work-to-another-device). Implementace je [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) a [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fixuje kontrakt zpětné kompatibility (round-trip).
+![Dvě tlačítka, která přesouvají celou instalaci: Export my data zapíše jeden zip, Import data jej přečte zpět](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-> **Rozsah.** Balíček nese *uživatelská data*, ne nástroje z katalogu. Nástroje a assety z katalogu se synchronizují zvlášť a předpokládá se, že na cílovém zařízení už jsou (v nejhorším případě ve vyšší verzi); nástroje, které si uživatel vytvořil sám, cestují uvnitř `profile.json`. Import nikdy nenainstaluje ani neaktualizuje nástroj z katalogu.
+> **Rozsah.** Balíček nese *uživatelská data*, ne nástroje katalogu. Nástroje a assety katalogu se synchronizují odděleně a předpokládá se, že na cíli už jsou, nanejvýš ve vyšší verzi. Nástroje, které si uživatel vytvořil sám, putují uvnitř `profile.json`. Import nikdy neinstaluje ani neaktualizuje nástroj katalogu.
 
 ## Cíle
 
-- <!--i:box--> **Jeden formát, každý shell.** Webová PWA, Tauri desktop/mobilní aplikace a budoucí shelly sdílejí stejnou obálku a podporovaná schémata částí. Volitelné části závisí na schopnostech daného shellu; nepodporované části se hlásí. Každý bridge schopností dodává vlastní adaptér úložiště.
-- <!--i:shieldcheck--> **Přežije cestu.** Balíček poškozený nebo zkrácený při přenosu při importu hlasitě selže, nikdy se napůl neobnoví.
-- <!--i:clock--> **Přežije tuto verzi.** Starší aplikace umí importovat i rozpoznané části novějšího balíčku. Skutečně nekompatibilní formát je čistě odmítnut.
-- <!--i:check--> **Bezpečné sloučení.** Import do už používané instalace nikdy nesmaže nic, co v balíčku nebylo.
+- <!--i:box--> **Jeden formát, každý shell.** Webová aplikace, desktopové a mobilní aplikace a budoucí shelly sdílejí stejnou obálku a schémata částí. Volitelné části závisejí na schopnostech každého shellu a nepodporované části se hlásí. Každý most schopností dodává svůj adaptér úložiště.
+- <!--i:shieldcheck--> **Přežije cestu.** Balíček poškozený nebo useknutý při přenosu při importu hlasitě selže a nikdy se neobnoví napůl.
+- <!--i:clock--> **Přežije tuto verzi.** Starší aplikace stále importuje části novějšího balíčku, které rozpozná. Skutečně zásadní formát je čistě odmítnut.
+- <!--i:check--> **Bezpečné sloučení.** Import na instalaci, která se už používá, nikdy nesmaže nic, co nebylo v balíčku.
 
 ## Obálka
 
-Balíček je obyčejný `.zip`. Stažený soubor je pojmenovaný podle osoby, které patří - `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (například `LollyTools-Ada-Lovelace-2026-06-26-1.zip`) - takže složka se zálohami ve Stažených souborech zůstává přehledná. Části se jménem a příjmením pocházejí z profilu a při jejich absenci se vynechají. Bez profilu vznikne `LollyTools-2026-06-26-1.zip` a jen s křestním jménem `LollyTools-Ada-2026-06-26-1.zip`. Každá část se převede na token bezpečný pro název souboru (zachovají se unicode písmena a číslice, mezery a interpunkce se odstraní, maximálně 32 znaků). `<n>` je pořadové číslo pro daný den a dané zařízení, takže se opakované exporty ve stejný den nepřekrývají a zůstávají seřazené. Název sestavuje `backupFilename()` v [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts). Obsah zipu je stejný bez ohledu na název. Uvnitř:
+Balíček je prostý `.zip`, takže přežije jakýkoli přenos nedotčen a obsah může zkontrolovat jakýkoli nástroj pro rozbalení.
+
+Stažení je pojmenováno po osobě, které patří: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, například `LollyTools-Ada-Lovelace-2026-06-26-1.zip`, aby složka Stažené se zálohami zůstala čitelná. Jméno a příjmení pocházejí z profilu a vynechávají se, když nejsou nastaveny: bez profilu vznikne `LollyTools-2026-06-26-1.zip` a jen s křestním jménem `LollyTools-Ada-2026-06-26-1.zip`. Každé jméno se zredukuje na token bezpečný pro název souboru (písmena a číslice Unicode se ponechají, mezery a interpunkce se odstraní, nejvýše 32 znaků). `<n>` je pořadí za den a zařízení, takže opakované exporty téhož dne nekolidují a zůstávají v pořadí. Název sestavuje `backupFilename()` v `data-transfer.ts` a obsah zipu je stejný bez ohledu na název.
 
 | Cesta | Povinné | Obsah |
 |---|---|---|
-| `manifest.json` | ano | ID formátu, verze, počty a integrita jednotlivých částí. To první, na co se čtenář podívá. |
-| `profile.json` | pokud je nastaveno | Celý uživatelův záznam `me`: jméno, kontakt, odkaz na fotografii a příznaky, plus složky, Koš, návrhy projektů, uživatelské šablony a uživatelem vytvořené nástroje, oblíbené, skryté nástroje, volba jazyka a emoji. Čte se přes `host.profile`. |
-| `sessions.json` | ano | Každá uložená relace: slot, ID/verze nástroje, štítek, náhled (data-URL) a kompletní vstupní data. Čte se přes `host.state`. |
-| `assets.json` | ano | Metadata pro každý nahraný asset (obrázky, fonty, brand tokeny, loga, uložené kopie stažení), každé odkazuje na svá data v `assets/blobs/`. |
-| `assets/blobs/<n>.<ext>` | u každého assetu | Surová data assetu (obrázkové a fontové soubory). Uloženo nekomprimovaně (formáty jsou už zkomprimované). Přípona je jen kosmetická. Rozhodující je MIME v `assets.json`. |
-| `assets/blobs/<n>.c2pa` | pokud je přítomné | Extrahované Content Credentials jako přesné binární bajty, na které odkazuje `_credentialFile` v záznamu assetu. Nejde o podepisovací klíče zařízení. |
-| `design-systems.json` | pokud je přítomné | Design systémy vytvořené nebo přidané na této instalaci, jako `{ active, records }`. Při importu se sloučí podle ID; aktivní volba balíčku se použije, jen když cíl nemá vlastní design systém. |
-| `file-history.json` | volitelné | Verzované snímky assetů, hlášení terminálových souborových operací a kompletní dávkové manifesty. Část historie má vlastní verzi; poskytuje ji interní záložní adaptér `fileHistory` daného shellu. |
-| `revision-history.json` | volitelné, ruční zálohy | Stabilní ID výtvorů, zachované checkpointy, náhledy a průběžné návrhy pro obnovu. Poskytuje `host.state.history.backup` tam, kde je podporováno. |
-| `file-history/versions/` | u každého snímku | Předchozí data assetu a extrahované credentials, bez ohledu na to, jestli aktuální asset ještě existuje. |
-| `file-history/results/` | u každé dokončené operace | Přesná výstupní data. Žádný originální soubor vybraný ke konverzi se neuchovává ani nezahrnuje. |
-| `prefs.json` | ano | Lokální preference vlastněné uživatelem: `theme`, `sidebarWidth` a počítadlo aktivity `ct-metrics`. |
-| `lolly.txt` | ano | Čitelné shrnutí balíčku (počty, profil, název souboru) pro každého, kdo zip otevře bez Lolly. Znovu se generuje při každém exportu a při importu je rozpoznán, takže se nikdy nepočítá jako přeskočená část. Zapisuje se *po* mapě integrity, takže do ní není zahrnut. |
+| `manifest.json` | ano | ID formátu, verze, počty a integrita po částech. První, na co se čtenář dívá. |
+| `profile.json` | je-li nastaveno | Celý záznam `me` uživatele: jméno, kontakt, odkaz na portrét a příznaky, plus složky, Koš, vzory projektů, uživatelské šablony a uživatelem vytvořené nástroje, oblíbené, skryté nástroje, jazyk a volba emoji. Čteno přes `host.profile`. |
+| `sessions.json` | ano | Každá uložená relace: slot, id a verze nástroje, popisek, miniatura (data URL) a úplná vstupní data. Čteno přes `host.state`. |
+| `assets.json` | ano | Metadata každého nahraného assetu (obrázky, písma, tokeny značky, loga, uložené kopie stažených souborů), každý ukazující na své bajty pod `assets/blobs/`. |
+| `assets/blobs/<n>.<ext>` | na asset | Surové bajty assetu, uložené nekomprimované, protože většina už je v komprimovaných formátech. Přípona je kosmetická; rozhodující je typ MIME v `assets.json`. |
+| `assets/blobs/<n>.c2pa` | je-li přítomno | Extrahované Content Credentials jako přesné binární bajty, odkazované přes `_credentialFile` v záznamu assetu. Nejsou to podpisové klíče zařízení. |
+| `design-systems.json` | je-li přítomno | Designové systémy vytvořené nebo přidané na této instalaci, jako `{ active, records }`. Viz [Pravidla importu](#import-rules). |
+| `file-history.json` | volitelné | Verzované snímky assetů, hotové zprávy o operacích se soubory a úplné manifesty dávek, s vlastní verzí. Poskytuje interní záložní adaptér shellu `fileHistory`. |
+| `revision-history.json` | volitelné, ruční zálohy | Stabilní ID tvorby, uchované kontrolní body, miniatury a průběžné záchranné koncepty. Poskytuje `host.state.history.backup`, kde je podporováno. |
+| `file-history/versions/` | na snímek | Předchozí bajty assetů a extrahované credentials, ať aktuální asset ještě existuje, nebo ne. |
+| `file-history/results/` | na hotovou operaci | Přesné výstupní bajty. Žádný původní soubor vybraný k převodu se neuchovává ani nezahrnuje. |
+| `prefs.json` | ano | Místní předvolby vlastněné uživatelem: `theme`, `sidebarWidth` a počítadlo aktivity `ct-metrics`. |
+| `lolly.txt` | ano | Čitelný souhrn balíčku (počty, profil, název souboru) pro kohokoli, kdo zip otevře bez Lolly. Znovu se generuje při každém exportu a při importu se rozpoznává, takže se nikdy nepočítá jako přeskočená část. Zapisuje se po mapě integrity, takže mapa tento soubor nepokrývá. |
 
-Balíček je záměrně obyčejný zip: přežije jakýkoli přenos neporušený a prohlédnout si ho umí libovolný nástroj na rozbalování.
+::: details Jak export zapisuje zip
+Export zapisuje zip po částech (`shells/web/src/lib/zip-stream.ts`). Nahrání, uložené výsledky a uložené verze assetů se čtou po úsecích 4 MiB, nikdy celé, a uložené výsledky a verze se nejprve kontrolují proti zaznamenanému SHA-256. Každý soubor se pak čte kvůli kontrolnímu součtu a digestu integrity a zip na něj odkazuje tam, kde je.
 
-`profile.json` je nejmenší část a ta, kterou uživatel v aplikaci vidí jako první: údaje, které producent vyplní jednou, plus opt-in, který nástrojům dovolí je použít.
+Nic se nepřekóduje, takže soubor nesoucí Content Credentials zachovává přesné bajty, které jeho podpis pokrývá, a každá část si drží přesné bajty a digest. Pro stejné části a čas je zip shodný se zipem staršího zapisovače v paměti, kromě toho, že soubor historie nad 16 MiB se komprimuje po kusech. `tests/backup-streaming.test.ts` to kontroluje proti zaznamenaným referenčním digestům.
 
-![Formulář s podrobnostmi profilu, který se stává souborem profile.json: jméno, kontaktní údaje a profilová fotka](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+Na syntetické knihovně 192 MiB, měřeno v Node, dokončení zálohy stálo asi 125 až 150 MiB navíc k knihovně, oproti asi 850 MiB u zapisovače v paměti (`node scripts/bench-backup-finalise.ts`). Import stále čte celý zip do paměti.
+:::
 
 ## `manifest.json`
 
@@ -66,116 +70,149 @@ Balíček je záměrně obyčejný zip: přežije jakýkoli přenos neporušený
 
 | Pole | Význam |
 |---|---|
-| `format` | Vždy `lolly-backup`. Soubor bez něj je odmítnut jako "not a Lolly backup". |
-| `formatVersion` | Rozvržení, se kterým byl balíček **zapsán**. Zvyšuje se při jakékoli změně sady nebo tvaru částí. Čtenáři se podle něj **ne**řídí. |
-| `minReader` | Minimální verze čtenáře potřebná k **bezpečnému** importu tohoto balíčku. Podle tohoto pole se čtenáři řídí. |
-| `app` | ID produkující aplikace, pro diagnostiku. |
-| `exportedAt` | ISO časové razítko vytvoření balíčku. |
-| `counts` | Co do něj zapisovatel vložil, pro zobrazení a kontrolu smysluplnosti. |
-| `integrity` | Volitelné. Mapuje každou část kromě `manifest.json` na digest ve stylu SRI `sha256-<base64>` jejích **nekomprimovaných** bajtů. |
+| `format` | Vždy `lolly-backup`. Soubor bez něj se odmítne jako "not a Lolly backup". |
+| `formatVersion` | Rozvržení, s nímž byl tento balíček **zapsán**. Zvyšuje se při jakékoli změně sady částí nebo tvarů. Čtenáři podle tohoto pole **nebrání**. |
+| `minReader` | Nejnižší verze čtenáře, která může tento balíček **bezpečně** importovat. Podle tohoto pole čtenáři brání. |
+| `app` | ID vytvářející aplikace, pro diagnostiku. |
+| `exportedAt` | Časové razítko ISO vytvoření balíčku. |
+| `counts` | Co zapisovač vložil, pro zobrazení a kontrolu rozumnosti. |
+| `integrity` | Volitelné. Mapuje každou část kromě `manifest.json` na digest `sha256-<base64>` ve stylu SRI jejích **nekomprimovaných** bajtů. |
 
-## Zásady verzování (zpětná kompatibilita)
+## Politika verzí
 
-Rozdělení mezi `formatVersion` a `minReader` umožňuje, aby formát rostl, aniž by osiřely starší instalace:
+Dvě čísla verzí nechají formát růst, aniž by starší instalace uvízly.
 
-- Čtenář balíček importuje, když `manifest.minReader ≤` jeho vlastní verze čtenáře. Odmítne ho (hláškou "needs a newer version of the app") jen tehdy, když balíček výslovně vyžaduje novější čtenáře.
-- **Aditivní** změna - nová *volitelná* část nebo nové volitelné pole v manifestu - zvýší `formatVersion`, ale `minReader` nechá beze změny. Starší aplikace stále importují každou část, kterou rozpoznají. Části, které nerozpoznají, se přeskočí (viz níže), ne tiše zahodí.
-- **Nekompatibilní** změna - taková, kde nesprávný import části poškodí data, nebo kde se dříve volitelná část stane povinnou - zvýší `minReader`. Starší aplikace pak čistě odmítnou import místo toho, aby importovaly něco, co neumí zpracovat.
-- Pokud budoucí balíček nastaví `formatVersion`, ale vynechá `minReader`, čtenáři se konzervativně řídí podle `formatVersion` (změnu považují za nekompatibilní).
+![Změna formátu balíčku je buď aditivní, což staří čtenáři mohou ignorovat, nebo zásadní, kde chybný import poškodí data. Aditivní zvyšuje formatVersion a ponechává minReader; zásadní zvyšuje formatVersion a zvedá minReader. Čtenář importuje, když je minReader nanejvýš jeho vlastní verze.](/info/diagrams/concepts/backup-version-gate.svg)
 
-> **Pravidlo pro autory:** pokud by každý existující čtenář udělal správnou věc i tak, že tvůj přírůstek ignoruje, jde o aditivní změnu - zvyš `formatVersion`, `minReader` nech beze změny. Jinak zvyš `minReader`.
+- Čtenář balíček importuje, když je `manifest.minReader` nanejvýš jeho vlastní verze čtenáře. Odmítne, s "needs a newer version of the app", jen když balíček vyžaduje novějšího čtenáře.
+- **Aditivní** změna, například nová volitelná část nebo nové volitelné pole manifestu, zvyšuje `formatVersion` a `minReader` ponechává. Starší aplikace stále importují každou část, kterou rozpoznají, a části, které nerozpoznají, se hlásí jako přeskočené, ne tiše zahozené.
+- **Zásadní** změna, kde chybný import části poškodí data nebo volitelná část se stane povinnou, zvedá `minReader`. Starší aplikace pak čistě odmítnou, místo aby importovaly něco, co nezvládnou.
+- Pokud budoucí balíček nastaví `formatVersion`, ale vynechá `minReader`, čtenáři se vrátí k bránění podle `formatVersion` a změnu považují za zásadní.
+
+> **Pravidlo pro autory:** pokud by každý existující čtenář udělal správnou věc ignorováním tvého přídavku, změna je aditivní: zvyš `formatVersion` a `minReader` ponech. Jinak zvyš `minReader`.
 
 ## Integrita
 
-Když je přítomné `manifest.integrity`, čtenář ověří SHA-256 každé uvedené části **před tím, než cokoli zapíše**. Neshoda ("failed its integrity check") nebo chybějící část ("incomplete") přeruší celý import - žádné částečné obnovení neexistuje. Tím se zachytí poškození, které může způsobit přenos souboru (zkrácený AirDrop, e-mailová brána, která přílohu překódovala, špatný sektor na USB).
+Když je `manifest.integrity` přítomno, čtenář zkontroluje SHA-256 každé uvedené části **dřív, než cokoli zapíše**. Neshoda ("failed its integrity check") nebo chybějící část ("incomplete") zastaví celý import, takže nedojde k částečné obnově. To zachytí poškození, které může přenos souboru způsobit: useknutý AirDrop, e-mailová brána, která přílohu překódovala, vadný sektor USB.
 
-Integrita je záměrně best-effort: zapisuje se jen tam, kde je dostupné Web Crypto (každý zabezpečený kontext prohlížeče a moderní Node), a ověřuje se jen tehdy, když jsou přítomné mapa i Web Crypto zároveň. Balíček bez mapy - třeba starší, z doby před integritou - se importuje beze změny. "Nelze ověřit" se nikdy nebere jako "poškozeno".
+Integrita je podle možností. Zapisuje se jen tam, kde je Web Crypto k dispozici (každý bezpečný kontext prohlížeče a moderní Node), a kontroluje se jen tehdy, když jsou přítomny mapa i Web Crypto. Balíček bez mapy, například z doby před integritou, se importuje beze změny: "cannot verify" se nikdy nepočítá jako "corrupt".
 
-Manifest neuvádí ani sám sebe, ani znovu generovaný soubor `lolly.txt` README. Digesty pokrývají části, za které manifest ručí.
+Manifest neuvádí sebe ani znovu generovaný `lolly.txt`. Digesty pokrývají části, za které manifest ručí.
 
-## Sémantika importu
+## Pravidla importu
 
-Import je sloučení, nikdy nahrazení všeho:
+Import běží v jednom ze dvou režimů.
 
-- Existující data na cílovém zařízení zůstávají na místě.
-- Když je slot relace nebo ID nahraného obrázku na obou stranách, zachová se kopie uložená později, takže starší záloha nikdy nepřepíše novější práci na cíli. Stejné nebo neznámé časy zachovají kopii cíle. Na webové instalaci s historií výtvorů rozhoduje stejné pravidlo o tom, která kopie výtvoru zůstane aktuální, a druhá kopie se zachová jako chráněný návrh (viz níže).
-- Záznam profilu se sloučí, nenahradí se. Každá složka na cíli si zachová svůj obsah; složka z balíčku, kterou cíl nemá, se přidá, a složka na obou stranách si zachová název a nadřazenou složku cíle a získá členy z balíčku, které jí chybí. Relace zařazená do složky na cíli zůstává zařazená tam.
-- Oblíbené (nástroje, assety katalogu a položky Projektů) se sloučí. Šablony, šablony Projektů a uživatelské nástroje z balíčku se přidají, když cíl nemá záznam s daným ID. Položky Koše z obou stran se zachovají, takže položka, kterou bylo možné obnovit na kterékoli instalaci, to pořád jde.
-- Každé další pole profilu (jméno, kontaktní údaje, jazyk, feature flags, skryté nástroje a ostatní nastavení) si zachová hodnotu cíle. Pole, které je na cíli prázdné, převezme hodnotu z balíčku. Totéž platí pro `prefs.json`: předvolba se zapíše jen tam, kde ji cíl nemá.
-- Výjimkou je běžná aplikace synchronizace zařízení: aby udržela zařízení v kroku, převezme záznam profilu, předvolby, relace a obrázky ze synchronizované kopie. Obnovení dřívější kopie dělá totéž, protože se úmyslně vrací v čase. První připojení, **Přenést to do tohoto zařízení**, se slučuje jako import.
-- Historické verze assetů a ID operací jsou neměnné výjimky: opakovaný import je idempotentní a ID, které už pojmenovává jiná data nebo historii, se odmítne, nepřepíše se. Opakovaný import identického aktuálního assetu zachová jeho verzi. Změněný aktuální asset musí nést jinou verzi.
-- Historie výtvorů se slučuje také. Výtvor na obou stranách zachová jako aktuální kopii uloženou později a druhou kopii jako chráněný návrh; výtvor, jehož slot cíl používá pro jiný výtvor, se přidá vedle něj; výtvor v Koši cíle tam zůstává. ID checkpointu, které na cíli pojmenovává jiný obsah, zachová to cílové. Archiv, který neprojde vlastními kontrolami, zastaví import ještě před jakoukoli změnou profilu, relace, assetu nebo předvolby. Identický opakovaný import nepřidá žádné úložiště.
-- Nic, co v balíčku nebylo, se nedotkne. Relace, kterou cíl měl, ale balíček ne, import přežije.
+- **Merge** dělá **Import data…** a první připojení synchronizace, **Bring it to this device**. Data na cíli zůstávají a nic, co nebylo v balíčku, se nedotkne: relace, kterou cíl měl a balíček ne, import přežije.
+- **Replace** používá synchronizace zařízení, aby udržela zařízení v souladu: vezme záznam profilu synchronizované kopie, předvolby, relace, obrázky a volbu aktivního designového systému a odstraní jen položky, které jiné zařízení od poslední synchronizace smazalo. Obnovení dřívější kopie jde dál a přizpůsobí zařízení té kopii, odstraní vše, co kopie nedrží, po uložení zařízení. Co člověk vidí, pokrývá [Synchronizace zařízení](/info/sync.html).
 
-Uložené relace se ke svým obrázkům automaticky znovu propojí: reference na assety se udržují podle ID a bridge je znovu přeloží poté, co jsou nahrané obrázky obnovené (musí tak jako tak, protože URL `blob:` nepřežijí obnovení stránky).
+Při sloučení se vše, co je jen na cíli, ponechá a každý druh dat v balíčku se s cílem setkává takto:
 
-Souhrn importu hlásí `{ profile, sessions, userAssets, prefs, skipped, failedAssets }`. `failedAssets` počítá nahrané assety, které se nepodařilo obnovit (například plné úložiště zařízení). To je odlišné od `skipped`, které počítá části od dopředu kompatibilního novějšího zapisovatele, jež tato verze nerozpoznala. UI zobrazuje `skipped` ("… · N novějších položek přeskočeno"), takže obnova je poctivá v tom, co nechala stranou.
+| Data | Už na cíli | Jen v balíčku |
+|---|---|---|
+| Relace (podle slotu) a nahrané obrázky (podle id) | Ponechá se kopie uložená později, takže starší záloha nikdy nepřepíše novější práci. Stejné nebo neznámé časy ponechají kopii cíle. | Přidáno |
+| Složky | Ponechá se jméno a rodič cíle a složka získá členy balíčku, které jí chybí. Relace zařazená do složky na cíli tam zůstane. | Přidáno |
+| Oblíbené (nástroje, assety katalogu a položky Projects) | Sloučeno | Přidáno |
+| Šablony, šablony Projects a uživatelské nástroje (podle id) | Ponechá se záznam cíle. | Přidáno |
+| Položky Koše | Ponechá se položka cíle. | Přidáno, takže položka, kterou lze obnovit na kterékoli instalaci, stále lze. Položka, jejíž složka je na cíli znovu používána nebo jejíž slot Koše cíl už používá, se vynechá. |
+| Další pole profilu (jméno, kontakt, jazyk, příznaky funkcí, skryté nástroje a další nastavení) | Ponechá se hodnota cíle. | Převezme se, kde je pole cíle prázdné |
+| Předvolby (`prefs.json`) | Ponechá se hodnota cíle. | Zapíše se, kde cíl žádnou nemá |
+| Designové systémy (podle id) | Záznam balíčku nahradí záznam cíle. | Přidáno. Aktivní volba balíčku se uplatní jen tehdy, když cíl nemá vlastní designový systém. |
+| Historie tvorby | Kopie uložená později zůstává aktuální a druhá se ponechá jako chráněný koncept. | Přidáno |
 
-Když je přítomná historie souborů, souhrn nese navíc `assetVersions`, `fileOperations` a `failedHistory`. Vyčerpání úložiště nebo konflikty neměnných ID mohou způsobit částečnou obnovu; UI řekne uživateli, aby si ponechal zdrojovou zálohu. Cloudová synchronizace **ne**posune svou aplikovanou revizi po částečné nebo nepodporované obnově, takže snímek zůstává dostupný pro opakovaný pokus. Obnova není jedna transakce napříč všemi úložišti profilu/relace/assetu/historie.
+**Uložené relace se k obrázkům automaticky znovu propojí.** Odkazy na assety se drží podle id a most je po obnově obrázků znovu vyřeší, což stejně dělat musí, protože URL `blob:` nepřežijí znovunačtení.
 
-## Historie výtvorů (v3)
+**Záznamy historie se po zapsání nikdy nemění.** Opakovaný import verzí assetů a ID operací nepřidá nic a ID, které už pojmenovává jiné bajty nebo historii, se odmítne, ne přepíše. Opětovný import identického aktuálního assetu ponechá jeho verzi a změněný aktuální asset musí nést jinou verzi.
 
-Ruční zálohy z webového hostitele schopného historie obsahují `revision-history.json` s vlastním schématem `{ version: 1, documents, revisions, recoveries }`. Nese zachovaná ID, kanonické snímky vstupů, verzová razítka, rastrové náhledy a samostatné návrhy editoru. Adaptér historie zachytí aktuální relace a jejich hlavy v jedné čtecí transakci; `sessions.json` používá stejné aktuální snímky pro starší čtenáře.
+**Historie tvorby má několik dalších pravidel.** Tvorba, jejíž slot cíl používá pro jinou tvorbu, se přidá jako samostatná tvorba a tvorba v Koši cíle tam zůstane. ID kontrolního bodu, které na cíli pojmenovává jiný obsah, ponechá kontrolní bod cíle. Archiv, který selže ve vlastních kontrolách, zastaví import dřív, než se změní jakýkoli profil, relace, asset nebo předvolba, a identický opakovaný import nepřidá žádné úložiště.
 
-Obnova před potvrzením archivu v jedné transakci kontroluje SHA-256 a počty bajtů payloadu, unikátní identity, vztahy dokument/hlava, původ, časová razítka, typy náhledů a limity. Zkompaktované odkazy na rodiče mohou chybět. Existující aktuální práce se nikdy tiše nenahradí: když je výtvor na obou stranách, strana, která se nezachová jako aktuální, se stane chráněným návrhem. Limit přenosu archivu 384 MiB se kontroluje explicitně a limity úložiště se vynucují bez zkracování zachovaných checkpointů. Celá záloha stále používá in-memory implementaci ZIP a není to streamovaný archiv.
+**Souhrn hlásí, co se stalo.** Každý import vrací `profile`, `sessions`, `userAssets`, `prefs`, `skipped` a `failedAssets`.
 
-Souhrn přidává `revisions` a `recoveryDrafts`, které počítají jen to, co tento import přidal, a `added`, `kept`, `replaced`, `copies` a `hidden` pro to, jak se každý výtvor sloučil. Shell bez této schopnosti obnoví běžné relace a část historie nahlásí jako přeskočenou. Historie nativního souborového systému zůstává nepodporovaná, dokud její adaptér nedodá trvalé transakce historie. Stav P2P hosta nemá trvalou historii ani archiv pro obnovu.
+- `failedAssets` počítá nahrané assety, které nešlo obnovit, například protože je úložiště zařízení plné.
+- `skipped` počítá části od novějšího zapisovače, které toto sestavení nerozpoznalo. Aplikace jej zobrazí ("… · N newer items skipped"), takže obnova uvádí, co nechala za sebou.
+- S historií souborů souhrn přidává `assetVersions`, `fileOperations`, `fileBatches` a `failedHistory`. Vyčerpání úložiště nebo konflikt neměnného ID může způsobit částečnou obnovu a aplikace pak řekne člověku, aby zdrojovou zálohu ponechal.
+- S historií tvorby přidává `revisions` a `recoveryDrafts`, počítající jen to, co tento import přidal, a `added`, `kept`, `replaced`, `copies` a `hidden` pro to, jak se každá tvorba sloučila. `skippedCheckpoints` počítá kontrolní body, jejichž id na cíli pojmenovává jiný obsah, a `historyLeftOut` počítá starší kontrolní body a koncepty, které se nevešly do místa pro historii zařízení.
+- Import typu replace přidává `removed` a `failedRemovals`.
 
-Osobní synchronizace snímků výslovně vylučuje historii výtvorů. Aplikace snímku na lokální dokument nesoucí historii zachová jeho předchozí pracovní stav jako samostatný návrh pro obnovu a zneplatní zapisovací token každého otevřeného editoru. Jeho neměnné checkpointy zůstávají na zařízení. Tohle chrání lokální historii během nahrazení snímkem; neslučuje souběžné historie z různých zařízení.
-
-Historické reference na assety se zachovávají, zatímco vykreslování pořád řeší assety přes existující knihovnu cíle. Tenhle archiv zatím nezaručuje přesná stará data assetu ani staré rendery nástroje. Data verze assetu a výsledku souboru nadále cestují přes svou existující samostatnou část zálohy.
-
-## Uložené verze a výsledky souborů (v2)
-
-Volitelná část historie obsahuje `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`; čtenáři akceptují i starší tvar history-v1 bez batchů. Každý snímek identifikuje stabilní ID assetu a přesnou verzi, čas uložení, délku v bajtech a hex SHA-256, plus záznam assetu, jehož `_file` a volitelný `_credentialFile` ukazují na binární části. Operace nesou původní fakta o souboru, požadavek, hlášení, časová razítka a volitelný výsledek `_file`; názvy úložných backendů, OPFS handly a exekuční leasy necestují. Starší čtenáři jen s history-v1 odmítnou novou verzi historie ještě před importem, místo aby tiše zahodili členství v batchi.
-
-Dávkové manifesty zaznamenávají každý vybraný zdroj před zpracováním, včetně souborů nikdy nepřečtených, zrušených členů, selhání rezervace místa pro výsledek a přerušené práce. Každý člen má stabilní ID operace, referenci/fakta zdroje, požadovaný název výstupu a terminálové hlášení. Nepřečtený zdroj má deklarovaná fakta, ne vymyšlený digest. Import validuje identitu člena a konzistenci s neseným hlášením operace. Dávková hlášení zůstávají dostupná, i když byly jednotlivé výsledky výslovně odstraněny, ale potvrzenka neznamená, že jeho výstupní data jsou stále uložená.
-
-- Každý známý záznam historie, hlášení a odkazovaný soubor se validuje před jakýmkoli zápisem importu profilu nebo assetu. Chybějící data a neshodující se SHA-256 selžou, i když obálka nemá mapu integrity. Extrahované credentials zůstávají poli bajtů, včetně importů od starších zapisovatelů, kteří je serializovali do JSON jako objekty s číselnými klíči.
-- Běžící operace se v záloze stanou přerušenými záznamy, s vysvětlujícím hlášením o selhání a bez výsledku. Obnova nikdy neobnoví práci na pozadí ani neimportuje aktivní lease. Opakování vyžaduje výběr originálního souboru, ověřeného proti jeho zaznamenanému SHA-256, je-li dostupné.
-- Obnovené výsledky zapíšou svá data a metadata společně v IndexedDB. Běžné nové výsledky používají OPFS, kde je dostupné, se záložním řešením IndexedDB. Existující živá operace se importem nikdy nenahradí.
-- Skládání ZIP historie je pořád v paměti: aktuální limit je **256 MiB payloadu historie**, **4 MiB metadat historie**, nejvýše **100 operací**, **100 dávek** a **2000 snímků**. Export výslovně odmítne příliš velkou nebo neúplnou historii; nikdy ji tiše nevynechá. Stáhni si důležité verze/výsledky jednotlivě, než odstraníš starší lokální kopie. Tyto limity nejsou změřenou zárukou špičkové paměti pro telefony.
-- Lokální historie výsledků má rozpočet 512 MiB a limit 100 záznamů. Snímky assetů mají samostatný rozpočet 512 MiB a nejvýše 20 historických verzí na asset; bajty extrahovaných credentials se počítají do tohoto rozpočtu snímků. Obnova tyto limity respektuje a nikdy tiše nevyřadí existující data uživatele.
-- Lokální metadata dávek mají samostatný rozpočet 4 MiB, nejvýše 100 manifestů a 20 členů na dávku. Čekající členové rezervují kapacitu metadat, se stropem 32 KiB hlášení na člena. Je to logický rozpočet, ne záruka místa na disku prohlížeče; skutečné selhání kvóty se zobrazí a hlášení v paměti zůstává ke stažení. Opakování člena dávky vytvoří novou dávku bez přepsání starého hlášení. Odstranění záznamu dávky neodstraní jednotlivá data výsledku ani assety knihovny.
-- Konvertované výsledky lze výslovně přidat do knihovny bez normalizace nebo přeenkódování. Asset doprovázejí hashe zdroje/výstupu a vztah operace. Opakovaná přidání znovu použijí nezměněnou kopii; upravená kopie se nikdy nepřepíše. Rastrové obrázky mohou začít nový dokument Design. Tenhle dokument používá aktuální ID assetu knihovny: vynucení přesných verzních pinů v celém běhovém prostředí a URL cestě Designu je pořád samostatná práce. Výsledky SVG/HTML/PDF/ZIP se tímto předáním uchovávají jako neprůhledné souborové assety, ne povýšené na důvěryhodný interaktivní/vektorový obsah.
-- **Convert → Recent file operations** zobrazí využití historie, hlášení, stažení a správce verzí. Správce také najde dřívější verze smazaných assetů knihovny. Obnova snímku vytvoří novou aktuální verzi a přitom zachová vybraný snímek nedotčený. **Nastavení → Úložiště** účtuje výsledky a verze odděleně od zahoditelných cache.
-- Explicitní úklid dočasných souborů odstraní jen data vlastněná operací, na která už nic neodkazuje. Aktuální záznamy chrání své soubory; nedávné OPFS soubory mají hodinovou ochrannou lhůtu. Uložené výsledky a snímky assetů se automaticky nečistí.
-
-Starší čtenáři pořád akceptují obálku v2 (`minReader: 1`) a obnoví známé části, přičemž nepodporované části historie počítají jako přeskočené. Plná obnova historie vyžaduje shell s adaptérem `fileHistory`; je to interní šev shellu, ne nová schopnost `HostV1` viditelná pro nástroje. Skutečnou obnovu mezi dvěma zařízeními pokrývá lokální Chromium gate; akceptace obnovy na nainstalovaném Tauri/iOS/Androidu zůstává samostatná.
+Obnova není jedna transakce napříč úložišti profilu, relací, assetů a historie. Cloudová synchronizace po částečné nebo nepodporované obnově **neposouvá** svou uplatněnou revizi, takže kopie zůstává k dispozici pro opakování.
 
 ## Co necestuje
 
-- **Katalogové cache** (stažená metadata a data assetů, index nástrojů) - na cíli se znovu synchronizují zdarma.
-- **Nástroje a assety z katalogu** - mimo rozsah, předpokládá se, že na cíli už jsou. Brand tokeny, fonty a loga, které uživatel přidal, jsou uživatelské assety, takže cestují.
-- **URL `blob:` / object URL** - bridge je při načtení znovu vygeneruje.
-- **Originály konverzí, živé exekuční leasy a lokální přístupová/podepisovací tajemství stroje** - nejsou přenosný payload historie. Uložený výsledek je kopie, ne příslib, že originální zdroj měl zálohu.
-- **Čítač pořadí exportů** - denní čítač pro pojmenovávání stažených souborů (klíč `localStorage` `lolly-export-seq`) je jen lokální pomůcka pro pojmenovávání. Je záměrně mimo `PREF_KEYS`, takže v balíčku nikdy nejede.
+- **Cache katalogu** (stažená metadata a bloby assetů, index nástrojů), které cíl zdarma znovu synchronizuje.
+- **Nástroje a assety katalogu**, které jsou mimo rozsah a předpokládá se, že jsou na cíli přítomny. Tokeny značky, písma a loga, která uživatel přidal, jsou uživatelské assety, takže putují.
+- **URL `blob:` a objektů**, které most při načtení znovu generuje.
+- **Originály převodů, živé exekuční zámky a strojově místní přístupové nebo podpisové tajemství.** Nejsou to přenosná historie. Uložený výsledek je kopie, ne příslib, že původní zdroj byl zálohován.
+- **Počítadlo exportní sekvence**, denní počítadlo pojmenování stažení v `localStorage` (`lolly-export-seq`). Je držené mimo `PREF_KEYS`, takže nikdy nejede v balíčku.
 
-Ukazatel úložiště zobrazuje stejné rozdělení. Uložené relace, Moje obrázky a Výsledky a verze souborů jedou v balíčku. Cache assetů, náhledy nástrojů a offline piny pod nimi jsou vždy odvoditelné znovu, takže zůstávají mimo.
+Měřič úložiště ukazuje stejné rozdělení. Uložené relace, My images a File results & versions jdou do balíčku. Cache assetů, náhledy nástrojů a offline připnutí pod nimi lze všechny znovu vytvořit, takže zůstávají pozadu.
 
-![Ukazatel úložiště rozdělující data tohoto zařízení do pojmenovaných kategorií, kde jsou Uložené relace a Moje obrázky sledovány odděleně od Cache assetů, zde na čerstvé instalaci, kde je zatím každá kategorie prázdná](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
+![Měřič úložiště rozdělující data tohoto zařízení do pojmenovaných kategorií, s Saved sessions a My images sledovanými odděleně od Asset cache, zde na čerstvé instalaci, kde je každá kategorie ještě prázdná](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
-## Záruka napříč shelly
+## Data organizace s Lolly Work
 
-`data-transfer.ts` čte a zapisuje výhradně přes bridge schopností (`host.profile`, `host.state`, `host.assets`) a sdílené preference v `localStorage`. Stejný modul čte a zapisuje společnou obálku na webu i v Tauri, přes IndexedDB nebo souborové úložiště. Volitelné části historie se objeví jen tam, kde je dostupný odpovídající adaptér; nepodporovaná část se při importu nahlásí jako přeskočená. Headless sada zkouší společné části proti in-memory bridge, zatímco transakce historie mají i testy ve skutečném prohlížeči.
+Tento balíček zálohuje osobní knihovnu zařízení. Není to záloha instance **Lolly Work**: účty organizace, politiky přístupu, sdílené projekty, verze katalogu, schvalování, úlohy vykreslení a auditní záznamy drží ta služba. Znovu se připoj a přihlas se, abys znovu získal přístup ke sdílené práci; import osobního balíčku tento přístup neuděluje.
+
+Provozovatelé zálohují, uchovávají a mažou serverová data podle vlastních průvodců Lolly Work: [Zálohování a obnova](/info/work-operations.html#backup-and-restore) a [Úložiště Work a životní cyklus dat](/info/work-data-lifecycle.html). Vymazání nebo export zařízení nic z těchto serverových operací neprovede.
+
+## Napříč shelly
+
+`data-transfer.ts` čte a zapisuje jen přes most schopností (`host.profile`, `host.state`, `host.assets`) a sdílené předvolby `localStorage`. Stejný modul čte a zapisuje společnou obálku na webu i v desktopových a mobilních aplikacích, přes IndexedDB nebo úložiště souborového systému. Volitelné části historie se objevují jen tam, kde je dostupný jejich adaptér, a nepodporovaná část se při importu hlásí jako přeskočená. Bezhlavá sada ověřuje společné části proti mostu v paměti a transakce historie mají také testy ve skutečném prohlížeči.
 
 Mimo tuto záruku stojí dva shelly, z různých důvodů:
 
-- **Jednorázové CLI** nemá co nést - jeho stav je in-memory a existuje jen pro dobu jednoho spuštění.
-- **TUI** stav skutečně udržuje (`~/.lolly`: relace, složky, profil) a jeho pohled Profile ho umí zálohovat, ale zapisuje *jednodušší* archiv vlastní konstrukce: `saved-state/<slot>.json` pro každou relaci plus `profile.json` a `folders.json`, bez manifestu, bez `formatVersion`/`minReader` a bez mapy integrity. **Není** importovatelný tímto formátem - čtenář ho odmítne jako „not a Lolly backup“ - a matoucím způsobem používá podobný název (`lolly-backup-<stamp>.zip`). Sjednocení obou je známá mezera.
+- **Jednorázové CLI** nemá co nést: jeho stav je v paměti a vydrží jedno vyvolání.
+- **TUI** drží stav v `~/.lolly` (relace, složky, profil) a jeho zobrazení Profile jej umí zálohovat, ale zapisuje jednodušší vlastní archiv: `saved-state/<slot>.json` na relaci plus `profile.json` a `folders.json`, bez manifestu, bez `formatVersion` či `minReader` a bez mapy integrity. Tento formát jej importovat neumí (čtenář jej odmítne jako "not a Lolly backup") a jeho název je matoucně podobný (`lolly-backup-<stamp>.zip`). Sjednocení obou je známá mezera.
 
-## Rezervované body pro rozšíření
+## Zatím nepřenosné
 
-Obálka je záměrně navržena jako manifest plus sada pojmenovaných částí, aby na ní později mohly jet nové druhy přenosných dat **bez nekompatibilní změny**. Zapadnou jako aditivní části (nový `formatVersion`, stejný `minReader`) a dnešní čtenář to, co nerozpozná, přeskočí. Zatím nejsou postavené. Jejich názvy jsou zde rezervované, aby formát zůstal koherentní, až přistanou.
+Obálka je manifest plus pojmenované části, takže nové druhy přenosných dat se mohou později přidat jako aditivní části (nový `formatVersion`, stejný `minReader`) a dnešní čtenáři přeskočí, co nerozpoznají. Designové systémy takto putují už dnes, jako `design-systems.json` plus jejich uživatelské assety.
 
-- **`tokens.json` - design tokeny.** Dokument s design tokeny podle [W3C DTCG](https://tr.designtokens.org/format/) (formát, který [Penpot importuje a exportuje](https://help.penpot.app/user-guide/design-systems/design-tokens/) - tokeny s `$value`/`$type`/`$description`, organizované do skupin, sad a témat). Sada tokenů v balíčku umožní uživateli přenést své brandové primitivy mezi instalacemi společně s relacemi. (Vlastní brand tokeny uživatele dnes už cestují jako asset `user/tokens/brand` v `assets.json`; tahle část by nesla celý dokument DTCG s jeho sadami a tématy.) Z dlouhodobého hlediska se z importované sady tokenů stane plnohodnotný zdroj, vůči kterému se řeší nástroje a paletové assety.
-- **`penpot/` - importované soubory Penpot.** Rezervovaný adresář pro soubor Penpot (nebo jeho extrahovanou, pro Lolly relevantní podmnožinu) importovaný a zpřístupněný *jako nástroj*. Balíček ponese importovanou definici, takže bude cestovat spolu se zbytkem uživatelských dat.
+Dvě jména jsou rezervována pro data, která zatím nepřenášejí:
 
-Cokoli mimo tyto rezervované názvy a výše uvedené části je pro čtenáře neznámá část: ponechá se nedotčená a započítá se do `skipped`.
+- **`tokens.json`** by nesl celý dokument designových tokenů [W3C DTCG](https://tr.designtokens.org/format/) s jeho skupinami, sadami a motivy, formát, který [Penpot importuje a exportuje](https://help.penpot.app/user-guide/design-systems/design-tokens/). Vlastní tokeny značky uživatele už putují jako asset `user/tokens/brand` v `assets.json` a tokeny designového systému putují s jeho záznamem.
+- **`penpot/`** je rezervováno pro pohlcený soubor Penpot, nebo jeho podmnožinu relevantní pro Lolly, zpřístupněný jako nástroj.
+
+Dnešní čtenáři neznají ani jedno z těchto jmen. Jako cokoli jiného mimo výše uvedené části je pro ně každé neznámou částí: ponechanou nedotčenou a započítanou do `skipped`.
+
+## Části historie
+
+Dvě části historie jsou volitelné a mají vlastní verze. Většina čtenářů může tuto sekci přeskočit.
+
+::: details Historie tvorby (v3)
+Ruční zálohy z webové instalace s historií tvorby obsahují `revision-history.json` s vlastním schématem `{ version: 1, documents, revisions, recoveries }`. Nese uchovaná ID, kanonické snímky vstupů, razítka verzí, rastrové náhledy a samostatné koncepty zapisovače. Adaptér historie zachytí aktuální relace a jejich hlavy v jedné čtecí transakci a `sessions.json` používá stejné aktuální snímky pro starší čtenáře.
+
+Obnova před potvrzením archivu v jedné transakci kontroluje SHA-256 obsahu a počty bajtů, jedinečné identity, vztahy dokumentu a hlavy, předky, časová razítka, typy náhledů a limity. Zhuštěné odkazy na rodiče mohou chybět. Existující aktuální práce se nikdy nenahradí potichu: když je tvorba na obou stranách, strana, která nezůstává aktuální, se stane chráněným konceptem.
+
+Limit přenosu archivu 384 MiB se kontroluje explicitně a limity úložiště se vynucují bez useknutí uchovaných kontrolních bodů. Export zapisuje `revision-history.json` a `sessions.json` po kusech, se stejnými bajty, jaké dává jeden `JSON.stringify`, takže se text souboru nikdy nedrží celý. Soubor historie, který by limit překročil, se zahodí v okamžiku, kdy ho překročí, a odtud se jen počítá. Archiv se pak vytvoří znovu bez nejstarších automatických kontrolních bodů a souhrn exportu je počítá jako `checkpointsLeftOut`, nebo se archiv odmítne celý.
+
+Shell bez této schopnosti obnoví běžné relace a část historie ohlásí jako přeskočenou. Nativní historie souborového systému zůstává nepodporována, dokud její adaptér nedodá trvalé transakce historie. Hosté v soukromé kolaboraci nemají trvalou historii ani archiv obnovy.
+
+Synchronizace osobního snímku historii tvorby vynechává. Uplatnění snímku na místní dokument s historií ponechá jeho předchozí pracovní stav jako samostatný záchranný koncept a zneplatní zápisový token každého otevřeného editoru. Jeho neměnné kontrolní body zůstávají na zařízení. To chrání místní historii při nahrazení snímkem; neslučuje souběžné historie zařízení.
+
+Historické odkazy na assety se zachovávají, zatímco vykreslování assety stále řeší přes stávající knihovnu cíle. Tento archiv zatím nezaručuje přesné staré bajty assetů ani stará vykreslení nástrojů. Bajty verzí assetů a výsledků souborů putují ve vlastní záložní části.
+:::
+
+::: details Uložené verze a výsledky souborů (v2)
+Volitelná část historie drží `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }` a čtenáři přijímají i dřívější tvar history-v1 bez dávek. Každý snímek udává stabilní ID assetu a přesnou verzi, čas uložení, délku v bajtech a hex SHA-256, plus záznam assetu, jehož `_file` a volitelný `_credentialFile` ukazují na binární části. Operace nesou původní fakta o souboru, požadavek, zprávu, časová razítka a volitelný výsledek `_file`. Názvy backendů úložiště, ukazatele OPFS a exekuční zámky nepřenášejí. Čtenáři, kteří znají jen history v1, novou verzi historie odmítnou před importem, místo aby potichu zahodili členství v dávce.
+
+Manifesty dávek zaznamenávají každý vybraný zdroj před zpracováním, včetně souborů nikdy nepřečtených, zrušených členů, selhání rezervace místa pro výsledek a přerušené práce. Každý člen má stabilní ID operace, odkaz na zdroj a fakta, požadovaný název výstupu a konečnou zprávu. Nepřečtený zdroj má deklarovaná fakta, ne vymyšlený digest. Import ověřuje identitu člena a konzistenci s jakoukoli nesenou zprávou operace. Zprávy dávek zůstávají dostupné, i když jednotlivé výsledky byly odstraněny, ale potvrzení neznamená, že jeho výstupní bajty jsou stále uloženy.
+
+- **Nejprve ověření.** Každý známý záznam historie, zpráva a odkazovaný soubor se ověří před jakýmkoli zápisem importu profilu nebo assetů. Chybějící bajty a neshodný SHA-256 selžou, i když obálka nemá mapu integrity. Extrahované credentials zůstávají bajtovými poli, včetně importů od starších zapisovačů, které je serializovaly jako objekty s číselnými klíči.
+- **Běžící práce.** Běžící operace se v záloze stanou přerušenými záznamy, s vysvětlující zprávou o selhání a bez výsledku. Obnova nikdy znovu nespouští práci na pozadí ani neimportuje aktivní zámek. Opakování znamená znovu vybrat původní soubor, zkontrolovaný proti zaznamenanému SHA-256, je-li k dispozici.
+- **Úložiště.** Obnovené výsledky potvrzují své bajty a metadata společně v IndexedDB. Běžné nové výsledky používají OPFS, kde je dostupné, s náhradou IndexedDB. Existující živá operace se importem nikdy nenahradí.
+- **Limity zálohy.** Export streamuje tyto bajty do archivu, ale obnova stále rozbaluje celou zálohu v paměti, takže limity zůstávají: **256 MiB obsahu historie**, **4 MiB metadat historie**, nejvýše **100 operací**, **100 dávek** a **2 000 snímků**. Export výslovně odmítne příliš velkou nebo neúplnou historii a nikdy ji potichu nevynechá. Důležité verze a výsledky stáhni jednotlivě, než odstraníš starší místní kopie. Tyto limity nejsou změřenou zárukou špičkové paměti pro telefony.
+- **Místní rozpočty.** Místní historie výsledků má rozpočet 512 MiB a strop 100 záznamů. Snímky assetů mají samostatný rozpočet 512 MiB a nejvýše 20 historických verzí na asset a bajty extrahovaných credentials se do toho rozpočtu počítají. Obnova tyto limity respektuje a nikdy potichu nevytlačí existující uživatelská data.
+- **Metadata dávek.** Místní metadata dávek mají samostatný rozpočet 4 MiB, nejvýše 100 manifestů a 20 členů na dávku. Čekající členové rezervují kapacitu metadat, se stropem zprávy 32 KiB na člena. Je to logický rozpočet, ne záruka místa na disku prohlížeče: skutečné selhání kvóty se zobrazí a zpráva v paměti zůstane ke stažení. Opakování člena dávky vytvoří novou dávku bez přepsání staré zprávy. Odstranění záznamu dávky neodstraní bajty jednotlivých výsledků ani assety knihovny.
+- **Výsledky v knihovně.** Převedené výsledky lze přidat do knihovny bez normalizace nebo překódování, s připojenými hashi zdroje a výstupu a vztahem operace. Opakovaná přidání znovu použijí nezměněnou kopii a upravená kopie se nikdy nepřepíše. Rastrové obrázky mohou zahájit nový dokument Design, který používá aktuální ID assetu knihovny; vynucení přesných připnutí verzí v celém runtime a cestě URL Design je samostatná práce. Výsledky SVG, HTML, PDF a ZIP se uchovávají jako neprůhledné souborové assety, nepovyšují se na důvěryhodný interaktivní ani vektorový obsah.
+- **Kde to lidé vidí.** **Convert → Recent file operations** ukazuje využití historie, zprávy, stažení a správce verzí, který také nachází dřívější verze smazaných assetů knihovny. Obnovení snímku vytvoří novou aktuální verzi a vybraný snímek ponechá. **Settings → Preferences → Storage** počítá výsledky a verze odděleně od odkladných cache.
+- **Úklid.** Výslovné vyčištění dočasných souborů odstraní jen bajty vlastněné operací a bez odkazů. Aktuální záznamy chrání své soubory a nedávné soubory OPFS mají hodinovou lhůtu. Uložené výsledky a snímky assetů se automaticky nečistí.
+
+Starší čtenáři obálku v2 stále přijímají (`minReader: 1`) a obnoví části, které znají, přičemž nepodporované části historie počítají jako přeskočené. Úplná obnova historie vyžaduje shell s adaptérem `fileHistory`, švem uvnitř shellu, ne novou schopností `HostV1` pro nástroje. Skutečná obnova na dvou zařízeních je pokryta místní bránou Chromium; obnova v nainstalovaných desktopových, iOS a Android aplikacích se musí ještě samostatně přijmout.
+:::
 
 ## Reference
 
-- Modul: [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION` - pojmenovávač `backupFilename()` je interní).
-- Kontraktní test: [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) - případy round-trip, sloučení, integrity, dopředné kompatibility a bránění podle verze čtenáře.
-- Kontraktní testy historie: [`tests/file-history-backup.test.ts`](../tests/file-history-backup.test.ts), [`tests/file-batch-history.test.ts`](../tests/file-batch-history.test.ts) a [`tests/file-result-library.test.ts`](../tests/file-result-library.test.ts). Akceptace v prohlížeči: [`tests/file-history.browser.test.ts`](../tests/file-history.browser.test.ts), [`tests/file-batch-history.browser.test.ts`](../tests/file-batch-history.browser.test.ts) a [`tests/file-result-reuse.browser.test.ts`](../tests/file-result-reuse.browser.test.ts).
-- Použitý povrch bridge: `host.profile`, `host.state`, `host.assets` - viz [Host API](/info/host-api.html).
+- Modul: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; pojmenovávač `backupFilename()` je interní).
+- Test smlouvy: `tests/data-transfer.test.ts`, pokrývající obousměrný průběh, sloučení, integritu, dopřednou kompatibilitu a bránu čtenáře.
+- Testy smlouvy historie: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` a `tests/file-result-library.test.ts`. Přijetí v prohlížeči: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` a `tests/file-result-reuse.browser.test.ts`.
+- Použitý povrch mostu: `host.profile`, `host.state` a `host.assets`; viz [Host API](/info/host-api.html).

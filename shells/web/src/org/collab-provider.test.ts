@@ -39,6 +39,10 @@ import {
 } from './collab-provider.ts';
 import type { CollabOutboxStore, WorkCollabEvent, WorkCollabHandle } from './collab-provider.ts';
 import { createOpGuard, type OpGuard } from '../collab/op-guard.ts';
+import { _resetCollabDeviceForTests, attachCollabPlumbing } from '../lib/collab-plumbing.ts';
+import type { CollabRuntime } from '../lib/collab-plumbing.ts';
+import { ROW_ID_FIELD } from '../lib/row-id.ts';
+import type { InputModelItem, InputValue } from '../../../../engine/src/inputs.ts';
 import { readFileSync } from 'node:fs';
 
 // ── Harness ───────────────────────────────────────────────────────────────────
@@ -113,6 +117,7 @@ interface HarnessOptions {
   clientId?: string;
   store?: CollabOutboxStore & { data: Map<string, CanvasOp[]> };
   outboxLimit?: number;
+  outboxOpLimit?: number;
   random?: () => number;
   reconnect?: boolean;
   principal?: string;
@@ -138,6 +143,7 @@ async function harness(o: HarnessOptions = {}): Promise<Harness> {
     principal: o.principal,
     random: o.random ?? (() => 0),
     outboxLimit: o.outboxLimit,
+    outboxOpLimit: o.outboxOpLimit,
     reconnect: o.reconnect,
     setTimer: (fn, ms) => {
       const entry = { ms, fire: fn };
@@ -574,6 +580,129 @@ test('outbox capacity preserves queued edits and pauses further writes', async (
   assert.equal(h.handle.state().role, 'observer');
   assert.equal(h.handle.state().reason, 'outbox-full');
   assert.deepEqual(h.events.filter(e => e.kind === 'warning'), [{ kind: 'warning', code: 'outbox-overflow', dropped: 0 }]);
+  h.handle.close();
+});
+
+// ── Local bursts (one transaction, one unit) ─────────────────────────────────
+
+const NO_DAMAGE = { moved: [], restyled: [], added: [], removed: [], zChanged: [], frames: [] };
+
+/** `n` rows of the `rows` collection, keyed the way the plumbing keys them. */
+const sharedRows = (n: number, from = 0): Record<string, string>[] =>
+  Array.from({ length: n }, (_, i) => ({ [ROW_ID_FIELD]: `row-${from + i}`, label: `Row ${from + i}` }));
+
+/** The same rows as the contract's box map. */
+const boxMap = (rows: readonly Record<string, string>[]) =>
+  new Map(rows.map(({ [ROW_ID_FIELD]: id, ...row }) => [id!, row]));
+
+/** A runtime holding one `rows` blocks input: just what lib/collab-plumbing.ts reads. */
+function rowsRuntime(rows: readonly Record<string, string>[]): CollabRuntime {
+  let model: InputModelItem[] = [{
+    id: 'rows', type: 'blocks', value: rows as unknown as InputValue, isDirty: false, control: 'blocks',
+    fields: [{ id: 'label', type: 'text' }],
+  }];
+  const write = (id: string, value: InputValue): void => {
+    model = model.map(item => (item.id === id ? { ...item, value } : item));
+  };
+  return {
+    getModel: () => model,
+    async setInput(id, value) { write(id, value); },
+    async applyPatch(values) { for (const [id, value] of Object.entries(values)) write(id, value as InputValue); },
+  };
+}
+
+test('one insert into a 1,900-row shared document keeps its author a writer', async () => {
+  // A peer built the room, so every row is already shared before the author edits.
+  const rows = sharedRows(1900);
+  const room = new ReferenceCanvasDoc('peer');
+  room.onLocalChange(NO_DAMAGE, boxMap(rows), 'rows');
+  const h = await harness();
+  joinNow(h, { checkpoint: room.checkpoint(), serverClock: 1 });
+  _resetCollabDeviceForTests('dev-a');
+  const runtime = rowsRuntime(rows);
+  attachCollabPlumbing(runtime, { adapter: h.handle.adapter, clientId: 'dev-a', raf: () => {} });
+
+  // The author adds one box at the bottom of the stack, through the shell's real path.
+  const added = { [ROW_ID_FIELD]: 'row-new', label: 'New' };
+  await runtime.setInput('rows', [added, ...rows] as unknown as InputValue);
+
+  const burst = h.handle.outbox();
+  assert.equal(burst.length, 1901, 'one add, and every existing row restates its order key');
+  assert.equal(new Set(burst.map(op => `${op.origin.clock}:${op.origin.client}`)).size, 1, 'under one origin');
+  assert.equal(h.handle.state().role, 'writer');
+  assert.equal(h.handle.state().reason, undefined);
+  assert.deepEqual(h.events.filter(e => e.kind === 'warning'), []);
+
+  // The author keeps editing while the burst drains.
+  await runtime.setInput('rows', [{ ...added, label: 'Renamed' }, ...rows] as unknown as InputValue);
+  assert.equal(h.handle.outbox().length, 1902);
+  assert.equal(h.handle.state().role, 'writer');
+
+  // Pacing is untouched: the first window still carries one frame's worth of ops.
+  await h.handle.persisted();
+  const sent = h.socket().framesOfType('ops');
+  assert.equal(sent.reduce((n, frame) => n + (frame.ops as unknown[]).length, 0), MAX_OPS_PER_FRAME);
+  h.handle.close();
+});
+
+test('a reorder handed over one op at a time counts as one transaction', async () => {
+  // lib/collab-plumbing.ts restates a reorder through the single-op door, one op
+  // per row, every op under the same origin.
+  const h = await harness({ outboxLimit: 2 });
+  joinNow(h);
+  for (let i = 0; i < 50; i++) {
+    h.handle.adapter.apply({ k: 'order', col: 'rows', id: `row-${i}`, orderKey: `k${i}`, origin: origin('dev-a', 7) });
+  }
+  h.handle.adapter.apply(param('title', 'Next', 'dev-a', 8));
+  assert.equal(h.handle.state().role, 'writer', 'two transactions sit within a limit of two');
+  h.handle.adapter.apply(param('title', 'Again', 'dev-a', 9));
+  assert.equal(h.handle.state().reason, 'outbox-full', 'a third crosses it');
+  assert.equal(h.handle.outbox().length, 52, 'the edit that crossed is kept');
+  h.handle.close();
+});
+
+test('a receipt retires its transaction from the count', async () => {
+  const h = await harness({ outboxLimit: 2 });
+  joinNow(h);
+  h.handle.adapter.apply(param('title', 'First', 'dev-a', 1));
+  await h.handle.persisted();
+  const sent = h.socket().framesOfType('ops')[0]!;
+  h.socket().deliver({ t: 'receipt', batchId: sent.batchId, acceptedIds: sent.ids, rejectedIds: [], durableRevision: 1 });
+  assert.deepEqual(h.handle.outbox(), []);
+  h.handle.adapter.apply(param('title', 'Second', 'dev-a', 2));
+  h.handle.adapter.apply(param('title', 'Third', 'dev-a', 3));
+  assert.equal(h.handle.state().role, 'writer', 'only the two unacknowledged transactions count');
+  h.handle.close();
+});
+
+test('a run of large transactions still pauses edits at the op limit', async () => {
+  const h = await harness({ outboxOpLimit: 100 });
+  joinNow(h);
+  h.handle.adapter.onLocalChange(NO_DAMAGE, boxMap(sharedRows(60)), 'rows');
+  assert.equal(h.handle.outbox().length, 60);
+  assert.equal(h.handle.state().role, 'writer', 'one burst under the op limit');
+
+  // Sixty more rows: sixty adds, and the first sixty restate their order.
+  h.handle.adapter.onLocalChange(NO_DAMAGE, boxMap(sharedRows(120)), 'rows');
+  assert.equal(h.handle.outbox().length, 180, 'the transaction that crossed is kept whole');
+  assert.equal(h.handle.state().role, 'observer');
+  assert.equal(h.handle.state().reason, 'outbox-full');
+
+  h.handle.adapter.apply(param('title', 'Paused', 'dev-a', 99));
+  assert.equal(h.handle.outbox().length, 180, 'further edits wait');
+  h.handle.close();
+});
+
+test('a burst stored by an earlier run reloads as one transaction', async () => {
+  const stored = Array.from({ length: 600 }, (_, i): CanvasOp =>
+    ({ k: 'order', col: 'rows', id: `row-${i}`, orderKey: `k${i}`, origin: origin('dev-a', 3) }));
+  const h = await harness({ store: memoryStore(new Map([[KEY(), stored]])) });
+  assert.equal(h.handle.outbox().length, 600);
+  assert.equal(h.handle.state().role, 'writer');
+  joinNow(h);
+  h.handle.adapter.apply(param('title', 'After reload', 'dev-a', 4));
+  assert.equal(h.handle.outbox().length, 601);
+  assert.equal(h.handle.state().role, 'writer');
   h.handle.close();
 });
 

@@ -1,25 +1,50 @@
 # Lolly w porównaniu, narzędzie po narzędziu
 
-Lolly obejmuje pracę twórczą od pojedynczej konwersji na urządzeniu po produkcję zasobów w zarządzanej organizacji. Te strony porównują przepływy pracy obsługiwane przez każdy produkt, sposób jego wdrożenia oraz ograniczenia, które mają znaczenie przy wyborze rozwiązania.
+Jeśli już używasz innego produktu, te strony mówią, czy Lolly go zastępuje, działa obok niego, czy nie pasuje do Twojej pracy. Każda zaczyna od tego, co inny produkt robi lepiej.
 
 _Ostatnio sprawdzono: 28 września 2026._
 
-## Jeden projekt, dwie osobno wdrażane części
+## Porównaj według produktu
 
-**Lolly** to silnik, aplikacje i narzędzia do tworzenia, edycji, konwersji i eksportu. Działa na Twoim urządzeniu, pracuje offline, gdy wymagane zasoby są dostępne, i nie wymaga konta przy samodzielnym użyciu.
-
-**[lolly.work](https://lolly.work)** to usługa organizacyjna projektu, utrzymywana w [repozytorium lolly-work](https://github.com/lolly-tools/lolly-work). Zapewnia SSO, provisioning SCIM, role i zasady, współdzielone katalogi i projekty, zatwierdzanie, współpracę w środowisku pracy, raportowanie użycia, rejestry audytu oraz renderowanie po stronie serwera. Obie części są open source na licencji MPL-2.0. Organizacja wdraża lolly.work obok Lolly i sama decyduje, które usługi włączyć.
-
-Porównania dotyczą **Lolly + lolly.work**. Funkcje wymagające usługi organizacyjnej są wyraźnie oznaczone. Samodzielne użycie zachowuje pliki na urządzeniu; wybór współdzielonych projektów, współpracy w środowisku pracy, renderowania serwerowego lub dostarczania powoduje wysłanie odpowiednich danych do skonfigurowanych usług. Publiczna witryna lolly.work to piaskownica; wdrożenie w organizacji opisują [przewodnik wdrożenia](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) i [aktualny status](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md).
-
-## Porównanie według przepływu pracy
-
-- [Lolly i Canva](/info/compare-canva.html) - szablony, codzienne projektowanie i współdzielona produkcja materiałów marki.
-- [Lolly i Adobe](/info/compare-adobe.html) - edycja, konwersja, profesjonalne wyjście i Content Credentials.
-- [Lolly i Figma](/info/compare-figma.html) - projektowanie, współpraca na żywo i produkcja zasobów wielokrotnego użytku.
-- [Lolly i Penpot](/info/compare-penpot.html) - projektowanie open source, współdzielone tokeny i przepływy pracy organizacji.
-- [Lolly i portale marki](/info/compare-brand-portals.html) - zatwierdzone biblioteki, zablokowane szablony, tożsamość, przegląd i raportowanie.
-- [Lolly i API renderowania](/info/compare-render-apis.html) - automatyczne generowanie na Twoim urządzeniu, w CI lub przez lolly.work.
-- [Lolly i internetowe konwertery plików](/info/compare-converters.html) - konwersja formatów na Twoim własnym urządzeniu.
+- [Lolly and Canva](/info/compare-canva.html) - szablony, codzienny projekt i wspólna produkcja marki.
+- [Lolly and Adobe](/info/compare-adobe.html) - edycja, konwersja, profesjonalny wynik i Content Credentials.
+- [Lolly and Figma](/info/compare-figma.html) - projekt, współpraca na żywo i produkcja zasobów wielokrotnego użytku.
+- [Lolly and Penpot](/info/compare-penpot.html) - projekt open source, wspólne tokeny i praca organizacji.
+- [Lolly and brand portals](/info/compare-brand-portals.html) - zatwierdzone biblioteki, zablokowane szablony, tożsamość, przegląd i raportowanie.
+- [Lolly and rendering APIs](/info/compare-render-apis.html) - zautomatyzowane generowanie na Twoim urządzeniu, w CI lub na serwerze Lolly Work.
+- [Lolly and online file converters](/info/compare-converters.html) - konwersja formatów na Twoim własnym urządzeniu.
 
 Porównanie funkcja po funkcji znajdziesz w [Jak Lolly wypada w porównaniu](/info/positioning.html). Każde porównanie jest datowane; twierdzenie, które przestało zgadzać się z którymkolwiek z produktów, wymaga poprawki.
+
+## Co działa gdzie
+
+Każde porównanie obejmuje dwie części jednego projektu open source. **Lolly** to silnik, aplikacje i narzędzia. **Lolly Work** to serwer organizacji, utrzymywany w [repozytorium lolly-work](https://github.com/lolly-tools/lolly-work). Oba są na MPL-2.0, a organizacja decyduje, które usługi Lolly Work włączyć.
+
+::: cols
+## Na Twoim urządzeniu: Lolly
+
+- Bez konta przy samodzielnym użyciu
+- Tworzenie, edycja, konwersja i eksport
+- Działa offline, gdy potrzebne narzędzia i zasoby są zapisane
+- Content Credentials podpisane na urządzeniu
+- Prywatne collaby między dwoma urządzeniami, bez serwera
+
+## Na serwerze Twojej organizacji: Lolly Work
+
+- Jednokrotne logowanie, provisioning SCIM, role i polityki
+- Wspólne katalogi, wspólne projekty i collaby robocze
+- Zatwierdzenia, raportowanie użycia i zapisy audytu
+- Renderowanie serwerowe, zadania do odzyskania i zatwierdzone dostarczanie
+- Podpisywanie serwerowe tożsamością organizacji
+:::
+
+Samodzielne użycie zachowuje pliki na urządzeniu. Wybór wspólnych projektów, collabu roboczego, renderowania serwerowego lub dostarczania wysyła dane, których ta funkcja potrzebuje, na serwer Twojej organizacji.
+
+## Co zakłada każde porównanie
+
+Te ograniczenia dotyczą każdej strony w tym zestawie, więc są podane raz tutaj:
+
+- **Collaby robocze działają dziś na jednym węźle serwera.** Ich skala i historia działania różnią się od długo ugruntowanych produktów hostowanych. [Work status and roadmap](/info/work-status.html) zapisuje bieżące ograniczenia.
+- **Witryna [lolly.work](https://lolly.work) to demonstracyjna piaskownica.** Trwałe wdrożenie organizacji wymaga trwałego magazynu i operatora; [Install Lolly Work](/info/work-install.html) omawia oba.
+- **Nie ma opłaty licencyjnej za stanowisko** za Lolly ani samodzielnie hostowane Lolly Work. Hosting, magazyn i obsługa nadal kosztują.
+- **Podpis to nie zaufany podpisujący.** Weryfikator musi zaufać certyfikatowi, który podpisał plik, zanim pokaże podpisującego jako zaufanego; [Content Credentials Identity](/info/content-credentials-identity.html) wyjaśnia jak.

@@ -19,10 +19,10 @@
  *
  * WHERE THE BYTES GO. A local server (stdio, or the HTTP server on a developer
  * machine) is a process on the machine that holds the file. A hosted server is
- * the one the gateway treats as hosted (`VERCEL`, `LOLLY_MCP_HOSTED=1` or
- * `NODE_ENV=production`, the test `publicOrigin` in gateway.ts applies), or one
- * whose public origin is not a loopback address: calling it transfers the file
- * there, and the capabilities stage says so in words. On both, the deck is held
+ * one that `isHostedServer` (hosted.ts) says is: `LOLLY_MCP_HOSTED=1`,
+ * `NODE_ENV=production`, or a public origin that is not a loopback address.
+ * Calling it transfers the file there, and the capabilities stage says so in
+ * words. On both, the deck is held
  * in memory for the call and nothing is written. The HTTP server listens on
  * every interface, so a local server's sentence says the file stays on the
  * machine the server runs on, which is the caller's only when the client runs
@@ -43,11 +43,12 @@
  * structured result; a larger one travels as an embedded JSON resource, the way
  * `lolly_transform` returns its bytes. Plan 272 replaces base64 in both
  * directions with handles; `deliverPlan` and `readFileArg` are the two places a
- * handle store plugs in. On Vercel the platform refuses bodies over 4.5 MB, so a
- * response whose serialised JSON-RPC body is over `VERCEL_RESPONSE_MAX_BYTES`
- * is refused with `output.too-large` rather than cut off, and a plan whose
- * compile request (the file and the plan together) would not fit one request is
- * refused at the plan stage with `source.too-large`.
+ * handle store plugs in. A hosted server takes requests up to
+ * `LOLLY_MCP_REQUEST_MAX_BYTES` and answers up to `LOLLY_MCP_RESPONSE_MAX_BYTES`
+ * (hosted.ts), so a response whose serialised JSON-RPC body is over the second is
+ * refused with `output.too-large` rather than cut off, and a plan whose compile
+ * request (the file and the plan together) would not fit the first is refused at
+ * the plan stage with `source.too-large`.
  *
  * ERRORS carry a stable code: the contract's `REBRAND_ERROR_CODES`, the
  * pipeline's own additions (`RebrandFailureCodeV1`), the preset codes the CLI
@@ -125,6 +126,15 @@ import planSchema from '../../../schemas/rebrand-plan-v1.schema.json' with { typ
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
 import { MAX_TRANSFORM_INPUT_BYTES } from './render.ts';
 import { loadToolCached } from './catalog.ts';
+import {
+  HOSTED_REQUEST_MAX_BYTES,
+  HOSTED_RESPONSE_MAX_BYTES,
+  hostedRequestMaxBytes,
+  hostedResponseMaxBytes,
+  isHostedServer,
+} from './hosted.ts';
+
+export { isHostedServer };
 
 // ─── limits ──────────────────────────────────────────────────────────────────
 
@@ -147,10 +157,6 @@ export const HOSTED_MAX_SLIDES = 100;
 export const LOCAL_MAX_SLIDES = 1999;
 /** A plan at or under this many bytes of JSON travels inside the structured result. */
 export const PLAN_INLINE_MAX_BYTES = 128 * 1024;
-/** Vercel refuses request and response bodies over 4.5 MB. */
-export const VERCEL_BODY_MAX_BYTES = 4_500_000;
-/** The serialised JSON-RPC response a Vercel call may send, leaving room for the id and the headers. */
-export const VERCEL_RESPONSE_MAX_BYTES = 4_000_000;
 /** Room a request keeps for the JSON-RPC envelope and the small arguments around the file and the plan. */
 export const REQUEST_ENVELOPE_BYTES = 16 * 1024;
 /** Queue items the plan stage lists; `inspect` pages through the rest. */
@@ -166,16 +172,17 @@ const PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.
 type Env = Record<string, string | undefined>;
 
 /**
- * The numbers one call works to. The defaults are the constants above; a test
- * lowers them to reach a cap with a small fixture.
+ * The numbers one call works to. The defaults are the constants above and the
+ * hosted defaults in hosted.ts; `rebrandLimitsFor` reads the settings over them,
+ * and a test lowers them to reach a cap with a small fixture.
  */
 export interface RebrandLimitsV1 {
   hostedMaxSlides: number;
   localMaxSlides: number;
   planInlineBytes: number;
-  /** The request body the platform takes, on Vercel. */
+  /** The request body a hosted server reads (`LOLLY_MCP_REQUEST_MAX_BYTES`). */
   bodyMaxBytes: number;
-  /** The serialised response this surface sends, on Vercel. */
+  /** The serialised response a hosted server sends (`LOLLY_MCP_RESPONSE_MAX_BYTES`). */
   responseMaxBytes: number;
 }
 
@@ -183,32 +190,20 @@ export const REBRAND_LIMITS: Readonly<RebrandLimitsV1> = Object.freeze({
   hostedMaxSlides: HOSTED_MAX_SLIDES,
   localMaxSlides: LOCAL_MAX_SLIDES,
   planInlineBytes: PLAN_INLINE_MAX_BYTES,
-  bodyMaxBytes: VERCEL_BODY_MAX_BYTES,
-  responseMaxBytes: VERCEL_RESPONSE_MAX_BYTES,
+  bodyMaxBytes: HOSTED_REQUEST_MAX_BYTES,
+  responseMaxBytes: HOSTED_RESPONSE_MAX_BYTES,
 });
+
+/** The limits this deployment works to: on a hosted server, its size settings read over the defaults. */
+export function rebrandLimitsFor(env: Env = process.env): Readonly<RebrandLimitsV1> {
+  if (!isHostedServer(env)) return REBRAND_LIMITS;
+  return { ...REBRAND_LIMITS, bodyMaxBytes: hostedRequestMaxBytes(env), responseMaxBytes: hostedResponseMaxBytes(env) };
+}
 
 /** What every stage reads: the environment and the limits. */
 export interface RebrandCtx {
   env: Env;
   limits: Readonly<RebrandLimitsV1>;
-}
-
-/**
- * Hosted or local. The gateway's own test for a hosted deployment (gateway.ts
- * `publicOrigin`), plus one case it does not need: a server whose public origin
- * is not a loopback address is reachable from other machines, so a file sent to
- * it leaves the machine it came from even when none of those flags is set.
- */
-export function isHostedServer(env: Env = process.env): boolean {
-  if (env.VERCEL || env.LOLLY_MCP_HOSTED === '1' || env.NODE_ENV === 'production') return true;
-  const origin = env.LOLLY_MCP_PUBLIC_ORIGIN?.trim();
-  if (!origin) return false;
-  try {
-    const host = new URL(origin).hostname;
-    return !(host === 'localhost' || host === '127.0.0.1' || host === '[::1]');
-  } catch {
-    return false;
-  }
 }
 
 function maxSlidesFor(ctx: RebrandCtx): number {
@@ -221,12 +216,12 @@ function base64Length(bytes: number): number {
 }
 
 /**
- * The largest deck one call takes. On Vercel that is the file whose base64
- * still fits one request beside the envelope, well under the 24 MiB the reader
- * takes elsewhere.
+ * The largest deck one call takes. On a hosted server that is the file whose
+ * base64 still fits one request beside the envelope, under the 24 MiB the
+ * reader takes on a local one.
  */
 export function maxInputBytesFor(ctx: RebrandCtx): number {
-  if (!ctx.env.VERCEL) return MAX_TRANSFORM_INPUT_BYTES;
+  if (!isHostedServer(ctx.env)) return MAX_TRANSFORM_INPUT_BYTES;
   return Math.min(MAX_TRANSFORM_INPUT_BYTES, Math.floor(((ctx.limits.bodyMaxBytes - REQUEST_ENVELOPE_BYTES) * 3) / 4));
 }
 
@@ -235,7 +230,7 @@ function mebibytes(bytes: number): string {
   return `${Math.round((bytes / (1024 * 1024)) * 10) / 10} MiB`;
 }
 
-/** Decimal megabytes, the unit the platform body limit is published in. */
+/** Decimal megabytes, the unit the request limit is published in. */
 function megabytes(bytes: number): string {
   return `${Math.round(bytes / 100_000) / 10} MB`;
 }
@@ -961,8 +956,8 @@ type StructuredResult = ToolCallResult & { structuredContent: Record<string, unk
 /**
  * The bytes a result goes out as: the whole JSON-RPC response, serialised, so
  * the structured copy beside the text copy and the escaping of every JSON text
- * block are counted. The id is left null; `VERCEL_RESPONSE_MAX_BYTES` keeps
- * room for it.
+ * block are counted. The id is left null; the gateway measures the response
+ * again with the real id, against the same limit.
  */
 export function responseBytes(result: StructuredResult): number {
   return Buffer.byteLength(JSON.stringify({ jsonrpc: '2.0', id: null, result }), 'utf8');
@@ -977,7 +972,7 @@ function success(sentence: string, structured: Record<string, unknown>, files: C
     ],
     structuredContent: structured,
   };
-  if (ctx.env.VERCEL) {
+  if (isHostedServer(ctx.env)) {
     const size = responseBytes(result);
     if (size > ctx.limits.responseMaxBytes) {
       throw new RebrandToolError('output.too-large', `The result comes to ${size} bytes and this server answers up to ${ctx.limits.responseMaxBytes} bytes; run lolly rebrand on the CLI for this deck.`);
@@ -1007,7 +1002,7 @@ function waitingSentence(counts: OutcomeCountsV1): string {
 // ─── capabilities ────────────────────────────────────────────────────────────
 
 /** What this server can do for a renovation, and where the bytes go. */
-export async function rebrandCapabilities(env: Env = process.env, limits: Readonly<RebrandLimitsV1> = REBRAND_LIMITS): Promise<Record<string, unknown>> {
+export async function rebrandCapabilities(env: Env = process.env, limits: Readonly<RebrandLimitsV1> = rebrandLimitsFor(env)): Promise<Record<string, unknown>> {
   const ctx: RebrandCtx = { env, limits };
   const hosted = isHostedServer(env);
   const maxSlides = maxSlidesFor(ctx);
@@ -1040,9 +1035,7 @@ export async function rebrandCapabilities(env: Env = process.env, limits: Readon
   };
   const transfer = !hosted
     ? 'The file stays on the machine this server runs on, which is this machine when the client runs here too, and the server sends it nowhere else.'
-    : env.VERCEL
-      ? `Calling lolly_rebrand sends the file to ${where}, which processes it in memory for that call only, up to ${maxSlides} slides and a file of about ${megabytes(maxBytes)}, because the platform takes requests up to ${megabytes(limits.bodyMaxBytes)} and compile and inspect send the file and the plan together in one request.`
-      : `Calling lolly_rebrand sends the file to ${where}, which processes it in memory for that call only, up to ${mebibytes(maxBytes)} and ${maxSlides} slides.`;
+    : `Calling lolly_rebrand sends the file to ${where}, which processes it in memory for that call only, up to ${maxSlides} slides and a file of about ${megabytes(maxBytes)}, because this server takes requests up to ${megabytes(limits.bodyMaxBytes)} and compile and inspect send the file and the plan together in one request.`;
   return {
     stage: 'capabilities',
     surface: contract.surface,
@@ -1064,7 +1057,7 @@ export async function rebrandCapabilities(env: Env = process.env, limits: Readon
       maxBytes,
       maxSlides,
       planInlineBytes: limits.planInlineBytes,
-      ...(env.VERCEL ? { maxRequestBytes: limits.bodyMaxBytes, maxResponseBytes: limits.responseMaxBytes } : {}),
+      ...(hosted ? { maxRequestBytes: limits.bodyMaxBytes, maxResponseBytes: limits.responseMaxBytes } : {}),
     },
     retention: contract.retention,
     transfer,
@@ -1127,13 +1120,13 @@ async function planStage(args: Record<string, unknown>, ctx: RebrandCtx): Promis
 }
 
 /**
- * On Vercel, refuse a plan whose compile call could not reach this server: that
- * request carries the file and the plan together, and the platform takes one
- * body up to `bodyMaxBytes`. The plan counted as an object, the smaller of the
- * two ways it can travel.
+ * On a hosted server, refuse a plan whose compile call could not reach it: that
+ * request carries the file and the plan together, and the server reads one body
+ * up to `bodyMaxBytes`. The plan counted as an object, the smaller of the two
+ * ways it can travel.
  */
 function checkCompileRequest(deck: DeckFile, plan: RenovationPlanV1, ctx: RebrandCtx): void {
-  if (!ctx.env.VERCEL) return;
+  if (!isHostedServer(ctx.env)) return;
   const request = REQUEST_ENVELOPE_BYTES + base64Length(deck.bytes.byteLength) + Buffer.byteLength(JSON.stringify(plan), 'utf8');
   if (request > ctx.limits.bodyMaxBytes) {
     throw new RebrandToolError('source.too-large', `A compile call for ${deck.name} would carry the file and its plan in about ${request} bytes, over the ${ctx.limits.bodyMaxBytes} bytes this server takes in one request; run lolly rebrand on the CLI for this deck.`);
@@ -1408,7 +1401,7 @@ async function inspectStage(args: Record<string, unknown>, ctx: RebrandCtx): Pro
 export async function callRebrand(
   args: Record<string, unknown>,
   env: Env = process.env,
-  limits: Readonly<RebrandLimitsV1> = REBRAND_LIMITS,
+  limits: Readonly<RebrandLimitsV1> = rebrandLimitsFor(env),
 ): Promise<StructuredResult> {
   const stage = typeof args.stage === 'string' ? args.stage : '';
   const ctx: RebrandCtx = { env, limits };

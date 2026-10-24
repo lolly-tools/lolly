@@ -1,27 +1,211 @@
 # Paggamit ng Lolly
 
-Isang praktikal na gabay sa aktuwal na *paggamit* ng app - pagbukas ng tool, pagtrabaho sa canvas, pag-export, pag-save at pag-share. Lahat ng nandito ay tumatakbo **sa device mo**: walang account, walang upload, at walang kailangang internet para sa mga screen na nabuksan mo na.
+Bukas mo na ang Lolly at gusto mong gumawa ng isang bagay, itago ito at ipasa. Dinadaanan ng pahinang ito ang siklong iyon: magbukas ng tool, baguhin ang pinapayagang baguhin, i-save ang resulta at ibahagi bilang link o file.
 
-> Bago ka rito? Ang [Quickstart](/info/quickstart.html) ang magpapasimula sa iyo sa paggawa sa loob ng ilang minuto, at ang [Lolly for Operators](/info/operators.html) ang sumasaklaw sa pag-install/pag-deploy ng app; ang pahinang ito ay tungkol sa pagpapatakbo nito kapag bukas na.
+Lahat ng narito ay tumatakbo sa device mo, walang account, at patuloy na gumagana offline kapag na-download na ang mga tool at asset na kailangan mo. Kailangan ng app ang browser o app na may WebGPU para magsimula; inililista ng [Supported environments](/info/supported-environments.html) ang mga nasubukan.
 
-## Pagbukas ng tool
+## Kilalanin ang paligid
 
-Ang home screen ay ang **gallery** - lahat ng tool, nakagrupo ayon sa kategorya. I-click ang isang card para magsimula ng bago sa tool na iyon; muling nagbubukas ang [naka-save na gawa](#saving-continuing) mula sa **Mga Project**. Gamitin ang search box para mag-filter ayon sa pangalan - o mag-[Search](/info/search.html) mula sa bar sa ibaba ng anim na listing screen (ang gallery, Utilities, Projects, Mga asset, ang Dashboard at Settings), na umaabot sa naka-save mong gawa, sa mga asset mo at sa mga setting mo bukod pa sa mga tool. Sa loob ng isang tool, umuurong ang bar para sa sariling chrome ng tool.
+::: figure using-app-map
+Ang home screen: apat na tab sa itaas at ang bar sa ibaba. Ang tool, kapag bukas, ay nagpapakita ng mga kontrol nito sa tabi ng live preview.
+:::
+
+Apat na tab ang nasa itaas ng home screen: **Tools**, **Utilities**, **Assets** at **Projects**. Ang Tools ay ang ginagamit mo sa paggawa, ang Utilities ay mga workbench para sa mga gawain tulad ng pag-convert, pag-check o paglilinis ng file, ang Assets ang library mo at hawak ng Projects ang mga na-save mo.
+
+Hawak ng bar sa ibaba ang **Open**, **Settings**, search field, **Verify** at **What?**. Lumalabas ito sa Tools, Utilities, Assets, Projects, Settings at sa mga gabay na binabasa mo sa app, at tumatabi kapag bukas na ang tool. Naaabot ng [Search](/info/search.html) ang mga tool, naka-save na gawa, asset at setting mo mula sa field na iyon. Sinasagot ng [Ask Lolly](/info/ask.html) ang tinype na tanong gamit ang katugmang seksyon ng mga gabay na ito.
+
+Mag-click ng card para magsimula ng bago sa tool na iyon. Ang naka-save na gawa ay muling bumubukas mula sa **Projects**.
 
 ![Isang gallery card na may halimbawang navigation at isang New action](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
-Bawat tool ay isang split view: **controls** sa isang gilid, at buhay na **preview** (ang canvas) sa kabila. Baguhin ang alinmang control at agad na nag-a-update ang preview.
+Ang bawat tool ay split view: ang mga **kontrol** sa isang panig at ang live na **preview** sa kabila. Baguhin ang kontrol at agad sumusunod ang preview, at ang nakikita mo ang ie-export.
 
 ![Split view ng isang tool - ang control stack sa kaliwa, at ang live na grouped bar chart na iginuhit nito sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-> May ilang tool (tulad ng **Design**) na bumubukas bilang **free canvas** - isang chromeless at direct-manipulation na surface kung saan dinadrag, binabago ang laki, iniikot at isinasnap mo ang mga box ng teksto, hugis at larawan, at dini-double-click para i-edit ang teksto sa mismong kinalalagyan nito. Nag-e-export ito sa parehong render path gaya ng ibang tool, kaya ang canvas *ang* file mismo. Tingnan ang [Ang free canvas](#the-free-canvas-design) sa ibaba.
+Ang **Design** ang pagbubukod. Bumubukas ito bilang malayang canvas ng mga kahon na dina-drag, nire-resize at tina-typan mo, na may sariling top bar, timeline at deck control. Ang [Design: ang malayang canvas](/info/design.html) ang gabay nito.
 
-Dalawang paraan para hubugin ang grid mismo tungo sa gusto mo:
+## Baguhin ang pinapayagan ng tool
 
-- <!--i:star--> **I-star ang ginagamit mo.** Lagyan ng ★ ang isang card at magkakaroon ito ng sarili nitong malaking tile sa strip sa itaas ng grid - tingnan ang [Ang mga paborito mo](/info/favourites.html).
-- <!--i:eyeoff--> **Itago ang tool na hindi mo ginagamit.** I-right-click ang isang card (o pumili ng ilan at gamitin ang selection bar) → **Hide tool**. Mawawala ito sa grid, at sa mga nahahanap ng pagtatype sa grid; may kulay-abong **Show hidden tools (N)** na tile sa dulong bahagi na muling maglalabas sa kanila, malabo, at bawat isa ay may **Unhide tool** sa sarili nitong menu. Tungkol lang sa grid mo ang pagtatago - bumubukas pa rin ang tool mula sa isang naka-save na link o bookmark, at nananatili ito kung nasaan man ito para sa lahat ng iba.
+Ipinapakita ng tool ang mga input na sinadyang magbago lang. Naayos na ng may-akda nito ang mga kulay, layout, type at logic, kaya anumang gagawin mo ay sumusunod sa kanilang mga patakaran. Kasama sa mga input ang text, slider, color picker, dropdown, petsa, image picker at mga umuulit na row group, at ang ilan ay nasa mga nakatiklop na seksyon.
 
-![Ang dulo ng Tools grid na nakalabas ang mga nakatagong tool: ang malabong QR Code Generator card, at sa tabi nito ang kulay-abong tile na nagbalik dito sa view, na ngayon ay nagbabasang Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+![Ang control stack ng isang tool - isang text field, mga colour trigger at isang slider, at wala nang iba dahil ikinandado ng may-akda ang lahat ng iba pa](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+
+**I-click ang design para hanapin ang kontrol nito.** Mag-click ng anumang elemento sa preview at magkakaroon ng focus ang katugmang kontrol at mag-i-scroll ito papasok sa view. Sa umuulit na row group, bumubukas ang eksaktong row na na-click mo.
+
+Ibinabalik ng **Clear changes**, sa itaas ng mga kontrol, ang bawat input sa default nito.
+
+**Mga pagpipilian sa design system.** Kapag nag-aalok ang design system mo ng higit sa isang colourway, light at dark na itsura o ibang theme choice, hawak ang mga ito ng seksyong **Design system** sa ilalim ng mga kontrol. Lumalabas lang ang pagpipilian kapag binabago nito ang tool na ito, kaya ang file utility ay walang ipinapakitang seksyon. Ang bawat colourway ay tuldok sa sarili nitong mga kulay, ang light at dark ay dalawang button at ang anumang ibang pagpipilian ay listahan.
+
+Ang pagpipilian ay para sa piraso na ito. Sumasama ito sa link at naka-save na session, sinusunod ito ng bawat kulay na naka-link sa design system at nananatili ang sariling mga kulay ng app. Ipinapakita ng Design ang parehong mga pagpipilian sa **Canvas** tab ng Inspector. Ang tool na ang mga kulay ay ang mismong nilalaman nito ay puwedeng manatili sa canonical na colourway, at wala nang iniaalok na colourway dot. Ipinapakita ng [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) ang mga colourway sa totoong gawa.
+
+### I-zoom at i-pan ang preview
+
+Laging ipinapakita ng preview ang eksaktong ie-export.
+
+- **Zoom:** Cmd/Ctrl-scroll o pinch sa trackpad, nakasentro sa pointer mo. Sa keyboard, ang `0` ay kasya sa window, ang `1` ay 100% at ang `+` / `−` ay nag-zoom.
+- **Pan:** pindutin nang matagal ang **Space** at mag-drag, o mag-drag gamit ang middle mouse button. Libre pa rin ang karaniwang click para sa pag-click ng mga bahagi ng design.
+- **Touch:** mag-pinch para mag-zoom, mag-drag para mag-pan at mag-double-tap para kumasya.
+- **Zoom HUD:** pindutin nang matagal ang Lolly swirl sa sulok para buksan ang `−`, **Fit** at `+`. Ang maikling tap sa swirl ay nagbubukas pa rin ng profile menu mo.
+
+Ang pagbabago ng laki ng output ay laging nagbabalik sa view sa malinis na fit.
+
+![Ang zoom HUD na nakabukas mula sa swirl sa sulok ng canvas - minus, Fit, plus, saka ang theme at sound toggle at ang grip na naglilipat nito](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+
+### Undo at redo
+
+Ang **Cmd/Ctrl-Z** ay umaatras at ang **Cmd/Ctrl-Shift-Z** (o **Cmd/Ctrl-Y**) ay sumusulong. Ang parehong pares ay nasa bilang mga button na **Undo** at **Redo** sa itaas ng mga kontrol (sa Design ay nasa top bar), at nagiging abo ang bawat isa kapag wala nang babawiin. Sinasabi ng mensahe kung aling input ang ibinalik ng bawat undo, na may **Redo** button sa mensahe.
+
+- **Isang hakbang ang isang drag.** Nagsasama ang paulit-ulit na pagbabago sa isang kontrol sa loob ng kalahating segundo, kaya iisang undo ang paghila ng slider sa buong saklaw nito.
+- **Iniingatan ang huling 100 hakbang.** Ang bagong edit pagkatapos ng undo ay nililinis ang forward stack.
+- **Sa text box**, ang Cmd/Ctrl-Z ay para sa field, character por character. Ang Lolly ang bahala sa mga slider, dropdown, kulay at switch.
+- **Ang pagpili ng file** sa file input ay hindi hakbang, dahil hawak lang ang mga byte na iyon para sa session na ito.
+
+Sa live na [collaboration](/info/collaborate.html), sa iyo lang ang history mo: ang pagbabago mula sa kabilang device ay hindi kailanman napupunta sa stack mo. Tumatagal ang undo hanggang umalis ka sa tool o mag-reload. Para sa anumang mas luma, ang mga tool na nagse-save habang gumagawa ka ay nag-iingat ng mga naunang bersyon sa ilalim ng **History**; tingnan ang [Bumalik sa naunang bersyon](/info/find-your-work.html#go-back-to-an-earlier-version).
+
+### Live na camera
+
+Ang mga epekto ng **Filter** tool (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art at Glitch) ay nagpapakita ng **Go live** button kapag may magagamit na camera. I-on ito at susundan ng epekto ang webcam mo frame por frame, at ire-record ng motion export ang resulta bilang GIF, WebM o MP4. Pinoproseso sa device mo ang mga frame, at binibitawan ang camera sa sandaling huminto ka o umalis sa tool. Ang anumang image picker ay may **Take a photo** din para sa isang frame.
+
+## Pag-save at pagpapatuloy
+
+Para itago ang gawa mo, pindutin ang **Save**, ang tsek sa tabi ng **Export** sa render pill. Ang bagong gawa ay napupunta sa **My library**, ang gawang na-save mo na dati ay ina-update kung nasaan ito at walang dina-download. May parehong **Save** button ang export panel.
+
+Para piliin kung saan ito mapupunta, pindutin ang **Save as**, sa tabi ng **Download** sa export panel. Sa ilalim ng **Save to a project**, iwanang napili ang **My library** o pumili ng project (gumagawa ng isa ang **＋ New project…**), saka pindutin ang **Save**; ang **Save as a template** ay nag-iingat ng design bilang [template](/info/templates.html), panimulang punto para sa mga bagong dokumento. Sa Design, ang **Save as** ay nasa Lolly menu; sa phone, pindutin ang **•••**, saka **File menu**, saka **Save as**.
+
+![Ang dalawang-kalahating render pill: Export, na may pataas na arrow na nagbubukas ng export panel, at Save, na may tsek na nagsi-save sa mismong lugar](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+
+::: timeline
+- <!--i:check--> Pindutin ang **Save** sa render pill, o ang **Save as** para pumili ng project.
+- <!--i:folder--> Ang item ay napupunta sa **My library**, o sa project na pinili mo.
+- <!--i:home--> Sa kalaunan, pindutin ang **Home** sa kaliwang itaas at buksan ang **Projects** tab.
+- <!--i:document--> Buksan ang item. Bumalik ang bawat setting, handang baguhin at i-export muli.
+:::
+
+Ipinapangalan ang mga item sa file name na tinype mo sa export panel, o kung hindi ay sa tool nila, tulad ng **QR Code**. Ang file na nakuha mo gamit ang **Download** ay tapos na kopya; para baguhin ito sa kalaunan, buksan ang naka-save na item sa Projects.
+
+Ang mga personal na save ay nananatili sa device na ito, sa browser o app na pinag-save-an mo, maliban kung i-on mo ang [Sync](/info/sync.html). Kung wala sa inaasahan mong lugar ang isang bagay, sinasaklaw ng [Hanapin at bawiin ang gawa mo](/info/find-your-work.html) ang bawat kaso, mula sa saradong tab hanggang sa na-clear na browser data.
+
+::: details Mga team project gamit ang Lolly Work (opsyonal)
+Kung [gumagamit ng Lolly Work ang organisasyon mo](/info/organisation.html), mag-sign in sa instance nito at buksan ang **Projects → Team projects** para sa mga session na ibinahagi sa iyo. Ang organisasyon ang nagtatakda ng access at retention, at ang Lolly Work service nito ang nag-iimbak ng mga session na iyon. Ang shared session ay sumasali sa live collab nito habang bumubukas kapag pinapayagan ng organisasyon mo ang live editing; ipinapaliwanag ng [Magtulungan](/info/collaborate.html#work-collabs-with-lolly-work-optional) ang mga hakbang.
+
+Nananatiling hiwalay ang personal mong library. Ang pag-sign in sa ibang device ay nagbibigay sa iyo ng team work, habang ang mga personal na save ay nangangailangan pa rin ng Sync o backup para makalipat.
+:::
+
+## Pagbabahagi ng gawa mo
+
+Lumalabas ang design bilang link o bilang file. Ang **Share** sa mga export control ay nagbubukas ng dialog na nag-aalok ng pareho, at ang **Share link** sa naka-save na session sa Projects ay nagbubukas ng parehong dialog para sa session na iyon.
+
+::: cols
+## Isang link
+
+- Dala ang bawat input sa address, kaya nauulit ng link ang design.
+- Iniiwan ang mga larawan at file na idinagdag mo mula sa device na ito, napakahabang text at napakalalaking listahan.
+- Bumubukas sa anumang browser, kaya puwede mong i-bookmark, i-paste o i-commit ang link.
+
+## Isang .lolly file
+
+- Dala ang naka-save na session kasama ang mga larawan at file sa device na ito, at puwedeng dalhin pati ang tool at ang design system.
+- Pinipigilan ang may lisensyang catalogue art maliban kung piliin mong isama ang mga file.
+- Bumubukas sa Lolly: i-double-click ito, gamitin ang **Open** o i-drop sa app.
+:::
+
+### Ang link
+
+Nasa itaas ng dialog ang link na handang kopyahin, na may **Copy** at **QR** button na nagbubukas ng QR Code tool sa link. Sa ilalim ng link, hawak ng **Link options** ang:
+
+- Ang **Open in the installed app** ay inililipat ang link sa `lolly://` address para sa Shortcuts, launcher at automation, na hindi nagbabago ang bawat parameter.
+- Ang **Shortest link** ay nagpa-pack ng mahabang design sa compact na token at ipinapakita ang natipid sa mga character. Nandoon pa rin lagi ang mababasang anyo.
+- Ang **Password-protect this link** ay ine-encrypt ang link sa device mo gamit ang AES-256. Hindi kailanman bahagi ng link ang password.
+- Ang **Pin this tool version** ay nagdaragdag ng `_v` flag, para hindi mabago ng susunod na update ng tool ang nire-render ng link.
+- Ang **When the recipient opens the link…** ay pumipili ng fullscreen, export panel na nakabukas na, download pagbukas (`&export`) o kopya sa clipboard (`&copy`).
+- Kinokopya ng **Copy credit** ang caption na "Made with Lolly" kasama ang link, para sa post o slide.
+
+Kapag may personal na field ang isang tool, tulad ng pangalan mo, ang **Review personal fields** ay inilalayo ang bawat isa sa link hangga't hindi mo ito nata-tsekan. Sinasaklaw ng [URL mode](/info/url-mode.html) ang lahat ng kayang dalhin ng link.
+
+**Sinasabi ng dialog kung ano ang hindi kayang dalhin ng link.** Ang larawan o file na idinagdag mo mula sa device na ito, napakahabang text value at napakalaking listahan ay hindi kasya sa address. Binibilang ang bawat isa habang binubuo ang link. Kung may kinailangang alisin, inililista ito ng dialog at itinuturo ka sa file option, sa halip na bigyan ka ng link na bumubukas na kulang ang larawan. Ang link na mahaba lang ay nakakakuha ng mas banayad na tala na may bilang ng character nito.
+
+**Ang ilang tool ay ginagawang buong produkto ang link.** Tinitipon ng Jump Page ang mga link mo sa isang page na ipamamahagi: bio link, talk, shop front. Walang naka-host at walang account sa likod ng page, dahil ang page ay ang link. Nakukuha ito ng bisita nang buong lapad, isang link bawat eksena habang nag-i-scroll.
+
+![Jump Page sa editor: ang eksenang heading sa itaas ng page, na may mga eksenang link sa ibaba nito](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+
+::: details Mga organisation-managed na link gamit ang Lolly Work
+Para sa pagbabahaging nangangailangan ng expiry, revocation o password, nag-aalok ang Lolly Work ng mga managed link sa mga shared session, tool at catalogue asset. Dumadaan ang mga ito sa serbisyo ng organisasyon at sumusunod sa mga access rule nito. Hiwalay ang mga ito sa mga self-contained na link sa itaas, at hindi mababawi ng pag-revoke ng isa ang file na na-download na ng iba. Inililista ng [Rendering at pagbabahagi](/info/manage/sharing.html) ang mga uri ng link at permission.
+:::
+
+### Ang .lolly na file
+
+Ang **Download .lolly**, sa **Editable file** section ng Share dialog, ay nagsusulat ng kasalukuyang design bilang isang file. Dala nito ang naka-save na session kasama ang mga larawan at file sa device na ito, at sumasama rin ang karaniwang catalogue art. Ang luma o hindi available na file ay nananatiling external reference sa halip na mawala. Bago mag-save, ipinapakita ng dialog ang laki ng file, ilang file ang naka-embed, ilan ang tinutukoy at kung kasama ang tool. Kung may share sheet ang device mo, ipinapasa ng **Send to…** ang file diretso roon (AirDrop, Android share).
+
+Ang **Download project (.lolly)**, sa menu ng folder sa **Projects**, ay nagsusulat ng buong folder, para makapagpatuloy ang iba sa bawat session sa folder. Naiiwan ang mga batch session, at sinasabi ng notice kung ilan. Ang **Download originals**, sa parehong menu, ay nagsusulat ng simpleng zip ng bawat item bilang sarili nitong file.
+
+Tatlong bagay ang ikaw ang magpapasya bago lumabas ang file:
+
+- **Kung isasama ang pangalan mo.** Isinusulat lang ang pangalan, email at organisasyon mo kapag naka-on ang **Use my details to create** sa [profile mo](/info/profile.html). Kapag naka-off, itinatala lang ng file na ginawa ito gamit ang Lolly, at kailan.
+- **Kung isasama ang art na pinigilan.** Ang may lisensyang art, brand-locked na art at mga catalogue work na ang lisensya ay hindi kailanman naitala ay hindi isinasama bilang default. Kung gumagamit ng alinman ang design, sinasabi ng dialog kung ilan at nag-aalok ng *Download without them* o *Include and download*, dahil ang pagsama sa mga ito ay nagbibigay ng mga file sa sinumang magbubukas ng `.lolly`. Inililista ng `CREDITS.txt` ng file kung ano ang sumama at hindi, kasama ang dahilan; ipinapaliwanag ng [Creative rights at mga credit](/info/creative-rights.html) ang mga patakaran.
+- **Kung isasama ang tool.** Ipina-pack ng **Include the tool** ang sariling mga file ng tool, para bumukas ang design sa device na walang tool na iyon. Nagsisimula itong may tsek para sa custom na tool, tulad ng fork, at walang tsek para sa tool na nakalista sa signed catalogue. Sa build na walang signed catalogue, bawat tool ay itinuturing na custom.
+
+**Pagbubukas ng isa.** Sa mga desktop at mobile app, i-double-click o i-tap ang `.lolly`, piliin ang **Open with Lolly** o ipadala ito sa Lolly mula sa share sheet. Sa web app, pindutin ang **Open** o i-drop ang file sa Lolly. Binabasa ng bawat ruta ang manifest ng file muna at ipinapakita ang laki, nilalaman at kung ano ang mangyayari, bago may maisulat.
+
+Kung may dalang tool ang file na wala ka, ipinapakita ng **Trust this tool?** ang tool at ang may-akda nito, at sinasabing ang pagbubukas nito ay nagpapatakbo ng sariling code ng tool sa device mo. Itutuloy ito ng **Trust & install**. Kung tanggihan, nase-save pa rin ang gawa sa Projects, naghihintay sa araw na idagdag mo ang tool. Ang tool na ang code ay dumarating bilang module ay hindi pa maaaring i-install sa ganitong paraan, at tinatanggihan sa parehong paraan.
+
+::: details Ano ang laman ng .lolly, at paano gumagana ang pagbubukas nito
+Ang `.lolly` ay ang bundle extension ng Lolly, at sinasabi ng `format` sa `manifest.json` nito kung ano ang nasa loob:
+
+- Ang **shared design** (`lolly-share`) ay may hawak na isang naka-save na session, mga naka-embed na file nito at resibo para sa anumang nareresolba pa sa pamamagitan ng reference. Maaari rin itong magdala ng tool at design system. Ang pagbubukas nito ay nagdaragdag ng bagong Project at hindi kailanman nag-o-overwrite ng session.
+- Ang **shared project** (`lolly-share`, kind `project`) ay may hawak na folder mula sa Projects: ang mga sub-folder nito, bawat session sa mga ito na may tile at ang mga larawang naka-file doon. Ang pagbubukas nito ay nagdaragdag ng kopya ng buong folder. Bawat session ay sumasama bilang `sessions/<key>.json` na may tile sa ilalim ng `thumbs/`. Ang Lolly na mas matanda kaysa sa mga project file ay hihilingang mag-update ka.
+- Ang **design-system pack** (`lolly-brand`) ay may hawak na token at puwedeng may mga font, logo, nailathalang bersyon at itinagong resource. Ang pagbubukas ng pack ay nagdaragdag ng hiwalay na pinangalanang design system at ginagawang aktibo ang system na iyon.
+- Ang **workspace o instance pack** ay `lolly-brand` na may mga idineklarang tool, catalogue asset at opsyonal na instance address. Ang pag-load ng isa ay pumapalit sa nag-iisang workspace overlay na na-load noon, at inililista ng preview ang mga device-wide na epektong iyon.
+
+Ang buong device backup ay hindi `.lolly`. Nananatili itong `LollyTools-….zip` (format `lolly-backup`) at ibinabalik sa pamamagitan ng **Settings → Storage → Import data…**. Ang naka-zip na tool folder ay nananatili ring `.zip`. Ang [Data transfer](/info/data-transfer.html) ang format reference.
+
+Ang `.lolly` ay karaniwang zip. Palitan ang pangalan nito ng `.zip` para tingnan ang loob: ang sarili mong mga larawan ay nasa ilalim ng `assets/uploads/`, ang catalogue art sa ilalim ng `assets/catalog/`, inililista ng `manifest.json` ang bawat file, at sinasabi ng README kung ano ang file.
+
+Nirerehistro ng macOS, Windows, Linux, iOS at Android ang format, ipinapakita ito ng mga desktop file manager bilang Lolly document at maipapakita ng GNOME Files ang sariling thumbnail ng naka-save na session. Ang pagbubukas mula sa Design System Setup ay nagrerekomenda ng design-system action kapag may dala ang shared design, pero hindi kailanman itinatago ang **Open shared design**.
+
+Ang dokumentong ipinasa mula sa ibang app sa iOS o Android ay may limitasyong 48 MB, dahil kinokopya ng hand-off ang mga byte nito sa hangganan ng app, at sinasabi ito ng app. Walang ganoong limitasyon ang **Open** sa loob ng Lolly, kaya gamitin ito para sa mas malaking bundle.
+
+Pagkatapos mong kumpirmahin, ini-inflate at vina-verify ng Lolly ang bundle nang minsan. Ang mga asset ay napupunta sa library mo, itinutugma sa checksum para magamit muli ang file na nasa device na. Ang mga session ay napupunta sa Projects na may bagong id, kaya puwedeng buksan nang dalawang beses ang parehong file; ang session na nawawala ang tool ay naghihintay doon. Ang mga file na higit sa 100 MB ay tinatawag na malaki, at nagbababala ang preview kapag mas kaunti ang libreng espasyong iniuulat ng browser storage kaysa sa kailangan ng file. Sinusuri ang bawat bahaging sakop ng integrity bago mag-commit ng anuman, at tinatanggihan ang sirang kopya nang walang naiiwan.
+:::
+
+Parehong nagpapasa ng snapshot ang link at file. Para sa live na pag-edit, sinasaklaw ng [Magtulungan](/info/collaborate.html) ang mga pribadong collab sa pagitan ng dalawang device at opsyonal na work collab sa pamamagitan ng Lolly Work.
+
+## Mga asset - ang library mo
+
+Tinitipon ng **Assets** (`#/a`) ang lahat ng magagamit ng mga tool mo: brand logo, larawan, audio at motion, nakagrupo ayon sa uri, kasama ang sarili mong mga file. Naka-store sa device mo ang mga upload mo. Ang organisasyong gumagamit ng Lolly Work ay puwede ring magbigay ng shared catalogue sa ilalim ng sarili nitong access rule; tingnan ang [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html).
+
+![Mga asset, kasama ang mga swatch at font ng brand at ang sarili mong mga upload](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+
+- <!--i:upload--> **Dalhin ang mga file mo.** I-drop ang larawan, SVG, audio clip, video, Lottie, PDF o PowerPoint deck sa upload area, o mag-click para pumili. Agad itong dumarating sa Assets at sa asset picker ng bawat tool. Ang multi-page na PDF o `.pptx` ay nagtatanong kung aling mga page o slide ang itatago, at ang bawat isa ay nagiging SVG asset. Ang larawang idinagdag mo sa loob ng tool ay iniingatan kung paano ito dumating sa **My images**, kaya ang Content Credential dito ay nabe-verify pa rin, at ang napakalaking file lang ang nagtatanong kung ire-resize. Ipinapakita ng **Settings → Storage** kung gaano karami ang hawak ng **My images**. Walang limitasyon maliban sa storage ng device mo. Para linisin ang EXIF at GPS data habang pumapasok ang mga larawan, i-on ang **Strip metadata from uploads** sa ilalim ng **Settings → Feature flags**; iniingatan ang Content Credentials sa alinmang paraan.
+- <!--i:star--> **I-favourite ang madalas mong abutin.** Lagyan ng star ang asset o brand swatch at ipi-pin ito sa itaas ng bawat picker.
+- <!--i:folder--> **Mag-ayos.** Ilipat ang asset sa ibang grupo, itago ang shared na brand asset na hindi mo ginagamit (ibinabalik ito ng **Show hidden**) o burahin ang sarili mong mga upload. Ang parehong selection bar tulad ng sa Projects ay kumikilos sa buong seleksyon.
+- <!--i:layers--> **Ihiwalay ang video sa background nito.** Buksan ang mga detalye ng video, o i-right-click ang card nito sa asset picker, at piliin ang **Remove background…**. Ang isang **On-device model** ay naghihiwalay ng subject mula sa magulong eksena; ang **Colour key** ay nag-aalis ng pantay na ilaw na backdrop tulad ng green screen, na may **Tolerance**, **Softness** at **Spill removal** para sa gilid, at hindi nangangailangan ng download. Ang **Resolution** (360, 480, 720 o 1080p, hindi lalampas sa source) ay nagpapalit ng detalye sa bilis. Ang cut-out, isang animated na WebP o PNG na may tunay na transparency, ay sine-save sa tabi ng orihinal, at sumasama ang Content Credential ng source bilang ingredient. Ipinapaliwanag ng [Generated once, rendered the same](/info/ai-features.html) kung bakit nananatili itong simpleng edit.
+
+### Dalhin ang palette at font mo kahit saan
+
+Ipinapakita ng **Swatches** panel sa Assets ang mga kulay na bumubuo sa brand mo: ang mga brand colour nito, mga kulay na idinagdag mo, ang mga ramp nito at ang spectrum nito. Ang mga role colour na iniingatan ng Lolly para sa interface (text, surface, gilid, colourway lead at kopya ng brand colour sa ilalim ng ibang pangalan) ay nasa likod ng kulay-abong **Show colour roles** card sa paanan ng panel.
+
+Ang bawat kulay ay card tulad ng anumang asset. Mag-click ng isa para buksan ang mga detalye nito, pumili ng ilan para i-download lang ang mga iyon o i-download ang buong palette sa format na binabasa ng ibang tool mo:
+
+- <!--i:code--> **Design tokens (JSON)**, **CSS variables** o **CSS classes**, para sa stylesheet o build. Ang kulay na mas malawak sa sRGB ay nag-iingat ng malawak nitong value: itinatakda ito ng CSS pagkatapos ng hex, at iniingatan ng JSON ang hex kasama ang malawak na kulay, ang CMYK build at ang spot ink.
+- <!--i:palette--> **Adobe Swatch Exchange (.ase)**, para sa Illustrator o Photoshop. Ang kulay na naka-lock sa CMYK build ay dumarating bilang CMYK swatch na iyon, ang spot ink bilang pinangalanang spot swatch at ang kulay na mas malawak sa sRGB bilang Lab.
+- <!--i:pentool--> **GIMP palette (.gpl)**, para sa GIMP o Inkscape, at **SCSS variables**, parehong sa sRGB.
+
+![Ang Swatches panel - ang limang palette download button sa itaas, saka ang bawat brand colour bilang chip na nagbubukas ng mga detalye nito](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+Pumili ng mga kulay gamit ang tuldok sa bawat card: Shift-click ng pangalawang tuldok para sa lahat ng nasa pagitan, mag-drag ng kahon sa mga puwang o pindutin ang Cmd/Ctrl+A habang may focus ang isang card. Nag-aalok ang bar ng **Download as…** sa parehong anim na format, **Copy hex** at **Favourite**. Bago ka pumili ng format, inililista ng menu ang anumang kulay na hindi kayang hawakan ng alinmang format (walang kulay ang Transparent), aling mga format ang nagse-save ng malawak na kulay bilang sRGB fallback nito (SCSS at GIMP) at alin ang may dalang CMYK at spot value (JSON at .ase). I-right-click ang card para sa parehong aksyon sa isang kulay.
+
+Pinupuno ng mga detalye ng kulay ang preview ng kulay at nagbubukas ng **Linked values** (ang CMYK build o spot ink nito, anumang value na isinulat para sa partikular na space o press at ang design token nito), **Every notation** (hex, OKLCH, Display-P3 at iba pa, bawat isa ay may copy button), **Plotted on a colour space**, **Tones** at **Readability**. Ang mga arrow key ay lumilipat sa palette, ang **Copy link** ay nagbabahagi ng mismong kulay at ang **Open in Colour Lab** ay dinadala ito pa.
+
+Inililista ng **Fonts** panel ang mga brand face mo na may **download** para sa bawat isa, para i-install nang lokal o ibigay sa print shop.
+
+## Gawing iyo ang grid
+
+- <!--i:star--> **I-favourite ang ginagamit mo.** I-right-click ang card at piliin ang **Add to favourites**, at magkakaroon ito ng malaking tile sa strip sa itaas ng grid. Sinasaklaw ng [Mga paborito mo](/info/favourites.html) ang strip.
+- <!--i:eyeoff--> **Itago ang tool na hindi mo ginagamit.** I-right-click ang card, o pumili ng ilan, at piliin ang **Hide tool**. Mawawala ito sa grid at sa mga nahahanap kapag nagta-type sa grid. Ibinabalik ito ng kulay-abong **Show hidden tools (N)** tile sa dulo, malabo, bawat isa ay may **Unhide tool** sa menu nito. Ang pagtatago ay nagbabago lang ng grid mo: bumubukas pa rin ang tool mula sa link o bookmark.
+- <!--i:clock--> **Ang mga tool mo, una.** Kapag may naka-save kang gawa sa tatlong magkakaibang tool, ang **Yours** na hanay ng mga chip sa itaas ng grid ay nangunguna sa mga paborito at kamakailang tool mo.
+- <!--i:sliders--> **Ayusin ayon sa gusto mo.** Itinatakda ng **View options** ang layout (**Grid**, **Card** o **List**), laki at density ng card, ang pagkakasunod-sunod at category filter.
+
+![Ang dulo ng Tools grid na nakabunyag ang mga nakatagong tool: ang malabong Wordmark card, at sa tabi nito ang kulay-abong tile na nagbalik dito sa view, na ngayon ay nagsasabing Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -31,26 +215,26 @@ gallery under a caption about its bottom. `press:` with no `on=` goes to the
 keyboard, and the End key with focus on the just-clicked box scrolls the
 document; the walker then anchors the body walk to that band.
 The tile reads "HIDE hidden tools" in the shot, not "Show" - it is a toggle and
-the recipe has just pressed it. The alt says so rather than quoting the resting
+the recipe has just pressed the tile. The alt says so rather than quoting the resting
 label the prose above already gives.
-There is no standalone per-card "hide" button
-(unlike the always-visible fav/pin corner icons) - Hide only exists inside a
-tile's right-click menu or the bulk bar, both confirmed in views/gallery.ts.
-The recipe goes the bulk-bar route since it needs no `|right` context-menu
-step: tick the card (`[data-select="qr-code"]`, the same checkbox hook the
-selection bullet under Projects uses), click the bar's Hide button
-(`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
-confirmed in lib/bulk-bar.ts), then click the grey reveal tile
-(`.gtile--hiddenbox`, confirmed in gallery.ts).
+The recipe hides nothing itself. The lolly-demo catalog the captures pin
+ships Wordmark hidden (`defaultHiddenTools` in its assets index.json), so a
+fresh profile already has one hidden tool and the recipe only clicks the grey
+reveal tile (`.gtile--hiddenbox`, confirmed in gallery.ts). It used to tick
+the QR Code card and press the bulk bar's Hide button first; under lolly-demo
+that published Wordmark dimmed and QR Code not, under a caption naming QR
+Code, so the steps were dropped rather than relied on. QR Code was hidden
+in that run too: the End scroll had left the pointer over its card, and a
+hovered hidden card lifts its dimming (gallery.css), so it read as a normal
+tool. The closing `hover:` puts the pointer back on the reveal tile, which
+keeps every revealed card dimmed.
 -->
 
-Para kumilos sa maraming card nang sabay, lagyan ng tsek ang checkbox ng bawat card, mag-drag ng selection box sa bakanteng espasyo o **Shift/Cmd-click**, at lalabas ang isang lumulutang na action bar. **Ang inaalok ng selection bar** ay bahagyang nagkakaiba kada view, dahil hindi lahat ng aksyon ay may saysay saanman:
+**Kumilos sa ilang card nang sabay.** I-tsek ang checkbox ng bawat card, mag-drag ng selection box sa walang laman na espasyo o Shift/Cmd-click, at lilitaw ang bar na may pinapayagan ng view na iyon:
 
-- **Tools / Utilities:** Favourite (o Alisin sa favourite), Itago (o Ipakita ulit), Magagamit offline (o Alisin sa offline), **Tingnan ang mga session** (binubuksan ang Mga Project na ipinapakita lang ang mga session na ginawa gamit ang mga tool na iyon) at Kopyahin ang link kapag eksaktong isang card ang napili.
-- **Mga asset:** Ang Favourite at Itago ay puwede sa anumang napili; ang I-duplicate, I-download at I-delete ay lumilitaw lang kapag ang bawat napiling item ay isa sa sarili mong mga upload - ang ibinahaging design-system na asset ay isang permanenteng kasunduan, kaya nananatiling hindi ito naaabot ng tatlong iyon kahit sa bulk.
-- **Mga Project:** tingnan ang [Hanapin at bawiin ang gawa mo](/info/find-your-work.html#find-something-you-saved).
-
-> Isang bitag sa label: umiiral lang ang **Tingnan ang mga session** kapag may bagay nang *napili*. Ang pag-right-click sa isang card na hindi napili ay nag-aalok naman ng **N naka-save na session**, na binubuksan ang isang listahan ng mga naka-save na session ng tool na iyon, kung saan inililipat ng pag-delete ang session sa Trash, sa halip na dalhin ka sa Mga Project.
+- **Tools at Utilities:** Favourite, Hide, Available offline, **View sessions** (Projects, na nagpapakita lang ng mga session na ginawa gamit ang mga tool na iyon) at Copy link para sa isang card.
+- **Assets:** Favourite at Hide para sa anumang seleksyon. Lumalabas lang ang Duplicate, Download at Delete kapag ang bawat napiling item ay isa sa sarili mong upload, dahil permanenteng kontrata ang shared na design-system asset.
+- **Projects:** tingnan ang [Hanapin at bawiin ang gawa mo](/info/find-your-work.html#find-something-you-saved).
 
 ![Ang gallery selection bar para sa dalawang tool, nag-aalok ng Magagamit offline, Tingnan ang mga session, Favourite at Itago](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
@@ -70,409 +254,37 @@ already exist, and build-docs-shots.ts gives every shot a fresh
 storage-seeding hook.
 -->
 
-### Ask Lolly
-
-Kapag mas gusto mong magtanong kaysa maghanap, kinukuha ng **Ask Lolly** (`#/ask`) ang tanong na tinipa mo at ibinabalik ang tugmang bahagi ng dokumentasyong ito nang **verbatim** - ang mismong salita ng mga gabay, hindi buod at hindi gawa ng makina - kasama ang sipi ng pahinang pinanggalingan nito at isang **Open in docs** na link sa tabi. Sa ilalim ng sagot ay ang mga lugar sa app na tumutugma sa parehong tanong: isang tool, isang setting, isang naka-save na project, bawat isa ay button na dumederetso roon.
-
-Ang transcript ay memorya ng session: magtanong ulit at unti-unting nabubuo ang thread habang tumatagal, tapos mag-reload at magsisimula itong bago. May **Ask Lolly: *ang query mo*** na row sa ibaba ng mga search result - sa ilalim ng anumang tiyak na hit na nakita ng ibang grupo - na dumederetsong nagpapasa ng tanong, kaya puwede kang magsimula sa bar at tumapos dito.
-
-## Ang canvas (preview)
-
-Laging ipinapakita ng preview ang eksaktong ie-export.
-
-**Desktop**
-
-- **Zoom:** Cmd/Ctrl-scroll, o pinch sa trackpad - nakasentro ang zoom sa pointer mo.
-- **Pan:** pindutin nang matagal ang **Space** at mag-drag, o mag-drag gamit ang **middle mouse button**. (Nananatiling libre ang simpleng pag-click para sa pag-click ng mga bahagi ng disenyo.)
-- **Keyboard:** `0` = fit sa window · `1` = 100% · `+` / `−` = zoom.
-- **Zoom HUD:** ang maliit na `−  NN%  +  Fit` na control sa sulok. I-click ang porsyento para mag-toggle sa Fit ↔ 100%.
-
-![Ang zoom HUD sa sulok ng canvas - minus, ang buhay na porsyento, plus, Fit, tapos ang theme at sound toggle](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
-
-**Touch**
-
-- **I-pinch** para mag-zoom, **i-drag** para mag-pan, **i-double-tap** para bumalik sa fit. Sa free canvas, ang dalawang daliri sa napiling object ay nag-i-scale, nag-i-rotate at naglilipat ng seleksyon sa halip na ng view (tingnan ang [I-resize, i-scale at i-rotate](#resize-scale-and-rotate)).
-
-**I-click para tumalon sa isang control:** i-click ang alinmang elemento sa disenyo at makukuha ng tugmang sidebar input ang focus at lilitaw ito sa view - para sa isang paulit-ulit na row group, binubuksan nito ang mismong row na na-click mo, kaya isang tap lang ang layo ng pag-edit sa nakikita mo.
-
-Ang pagbabago ng dimensyon ay laging nagbabalik sa view sa isang malinis na fit.
-
-### Ang free canvas (Design)
-
-Nagdaragdag ang mga free-canvas na tool ng working surface *sa paligid* ng artboard, parang pasteboard ng isang designer:
-
-- **Off-canvas staging.** I-drag ang isang box lampas sa gilid ng frame at mananatili itong ganap na **nakikita at napipili** - ipwesto sa gilid ang mga elemento habang inaayos mo ang komposisyon, tapos i-drag muli papasok. Ang lahat ng nasa labas ng frame ay **bahagyang pinalalabo** para agad mabasa ang export area, at pinananatili ng frame ang anino nito para markahan kung saan eksaktong nagsisimula ang file.
-- **Ang frame lang ang nag-e-export.** Ang na-export na file ay nakahangga sa artboard - anumang naiwan sa labas (o ang bahagi ng box na lumalampas sa gilid) ay basta na lang naikakrop palabas ng output, sa raster at vector na format nang pareho.
-- **Mag-zoom out lampas sa Fit** (hanggang 20%) para makita ang buong pasteboard kapag may inilagay kang mga bagay na malayo sa labas ng frame.
-- **Nababago ang laki ng artboard.** Ang pagpapalit ng export dimensions ay binabago ang laki ng frame sa kinalalagyan nito; pinananatili ng mga box ang posisyon nila, kaya puwede mong i-reframe ang isang layout sa paligid ng umiiral na nilalaman.
-- **Bago ka mag-export.** Sinusuri ng seksyong Document ng inspector ang naka-save na layer structure, tapos binabasa nito ang settled canvas para sa naka-clip na teksto at flat-colour contrast. Nagtatanong din ito sa parehong font registry na ginagamit ng SVG/PDF outlining kung may embeddable font bytes ang bawat text run; ang mga background na larawan at gradient ay pinangangalanan bilang visual check sa halip na bigyan ng gawa-gawang contrast score.
-
-![Ang libreng canvas ng Design - ang artboard kasama ang pasteboard na nakapaligid dito](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
-
-**I-flip ang isang selection.** Mag-right-click sa anumang box at piliin ang **Flip horizontal** o **Flip vertical** para i-mirror ito sa lugar, o pindutin ang `Shift+H` / `Shift+V` mula sa keyboard - Shift, dahil ang hubad na `V` ay ang Pointer tool. Nagmi-mirror ang bawat napiling box sa sarili nitong axis sa isang undo step, at tunay na transform ang mirror, kaya nananatili ito sa na-export na SVG, PDF at PNG at hindi lamang sa canvas.
-
-### I-resize, i-scale at i-rotate
-
-Pumili ng object, pagkatapos ay i-drag ang isang handle para baguhin ang laki nito, o i-drag ang bilog na handle sa ibaba ng seleksyon para i-rotate ang object. May dalawang mode ang pag-drag ng laki:
-
-- **I-resize**, ang default, ay ang kahon lang ang binabago. Nagre-rewrap ang teksto sa bagong laki, at nananatili ang font size, lapad ng stroke, corner radius at mga effect.
-- **I-scale** ay nagpapalaki o nagpapaliit sa buong object kasama ang nilalaman nito: pare-parehong nagbabago ang font size, stroke, corner radius, shadow, blur, padding at spacing.
-
-Pindutin ang `K` para i-on o i-off ang Scale. Kung walang keyboard, piliin ang **Scale mode** sa Lolly menu, o pindutin nang matagal ang button na **Pointer** sa tool rail (o i-right-click ito) at piliin ang **Scale**; sa touch screen, may Scale toggle din ang object bar. Habang naka-on ang Scale, ipinapakita ng Pointer button ang icon ng Scale at may tuldok sa gitna ng bawat handle. Ibinabalik ka ng `V` o **Escape** sa Resize at pinananatili ang seleksyon mo. Naka-off ang Scale tuwing magbubukas ng dokumento, kaya walang aksidenteng mag-i-scale ng mga stroke. Isang undo step ang bawat Scale, na may label na **Scale**.
-
-**Mag-scale gamit ang numero.** Kapag naka-on ang Scale, o kapag maraming object ang napili, i-click ang readout sa object bar para buksan ang popover na **Scale**. Mag-type ng porsyento, o ng lapad o taas at susunod ang dalawa pang value, piliin ang puntong mananatiling hindi gagalaw sa 3 x 3 grid at piliin ang **I-apply**. Isang undo step ang resulta, at hindi na kailangang mag-drag. Kapag naka-off ang Scale, laki at posisyon lang ang nagbabago sa maraming object.
-
-**Maraming object.** May mga handle sa gilid, hindi lang sa mga sulok, ang seleksyon ng maraming object. Malayang binabago ng pag-drag sa sulok ang lapad at taas hangga't tuwid ang bawat object sa seleksyon o naka-rotate sa buong quarter turn, at walang group o bilog sa seleksyon. Kung hindi, pinapanatili ng seleksyon ang mga proporsyon nito: ipinapakita ng mga handle nito ang scale cursor, at habang nagda-drag ka, idinadagdag ng readout ang **Proporsyonal**. Habang nire-resize o ini-scale mo, may maliit na label sa tabi ng seleksyon na nagpapakita ng laki, o ng porsyento sa Scale mode.
-
-**Mga key na hinahawakan mo habang nagda-drag** ay agad na umiepekto kapag pinindot o binitawan mo ang mga ito (nakalista rin ang mga ito sa shortcut sheet, `?`):
-
-| Hawak | Pag-resize o pag-scale | Pag-rotate | Paglilipat |
-|---|---|---|---|
-| **Shift** | Pinapanatili ang mga proporsyon (laging ganito ang Scale) | Umiikot nang 15 degree bawat hakbang | Walang pagbabago |
-| **Alt** (Option) | Nagsisimula sa gitna | Malayang umiikot | Ino-off ang snapping at grid |
-| **Cmd/Ctrl** | Ino-off ang snapping at grid | Malayang umiikot | Ino-off ang snapping at grid |
-
-Kapag walang hawak na key, hinihila ang pag-ikot sa pinakamalapit na 15 degree kapag nasa loob ito ng 4 na degree mula rito. Hindi nagro-rotate ang mga artboard, kaya wala silang rotate handle.
-
-**Humawak kahit saan sa gilid.** Hindi mo kailangang eksaktong tamaan ang handle. Ang bawat gilid ng seleksyon ay resize strip sa buong haba nito, at sa mouse o pen, may rotate zone sa labas lang ng bawat sulok. Ipinapakita ng pointer ang gagawin ng pag-drag, nakaikot para tumugma sa seleksyon. Nagiging resize o pag-ikot lang ang pagpindot sa strip o zone kapag nagsimula ka nang mag-drag, kaya ang simpleng click ay pumipili, nagdaragdag sa seleksyon o nag-aalis ng pagpili gaya ng dati. Walang handle, strip o zone ang naka-lock na object.
-
-**Nananatiling nagagalaw ang maliliit na object.** Sa object na 25 screen pixel o mas maliit ang lapad, nagtatago ang mga gitnang handle na susiksik sa mga sulok at bahagyang lumalayo sa outline ang iba pang handle, kaya inililipat ng pagpindot sa object ang object. Sa 10 pixel o mas maliit, nawawala rin ang mga handle sa sulok, at nagtitira ng handle sa bawat dulo ang manipis na linya. Inililipat din ang object ng pagpindot sa tabi mismo ng manipis na linya o napakaliit na object, basta hindi sa mga handle nito.
-
-**Malalaking grab area.** Sa touch screen, malalaki ang mga grab zone: ang bawat corner zone ay isang-kapat ng lapad at taas ng seleksyon sa screen, pinananatili sa pagitan ng 24 at 44 pixel, at sinasaklaw ng bawat side zone ang bahagi sa pagitan ng dalawang sulok. Kapag masyadong maliit ang seleksyon para dito, lumilipat sa labas ng outline ang mga zone, kaya inililipat pa rin ng pagpindot sa gitna ang seleksyon. May shade ang zone na nasa ilalim ng pointer mo, o ng daliring pinipindot mo. Para makuha ang parehong mga zone sa mouse o pen, i-on ang **Malalaking grab area** sa Lolly menu. Sa device na ito lang nase-save ang setting.
-
-**Dalawang daliri sa seleksyon.** Sa touch screen, ilagay ang dalawang daliri sa napiling object: mag-pinch para i-scale ang seleksyon, mag-twist para i-rotate ang seleksyon o igalaw ang dalawang daliri para dalhin ang seleksyon. Isang undo step ang anumang ginawa ng dalawang daliri. Kapag naka-on ang Scale, ini-scale rin ng pinch ang nilalaman; kapag naka-off, nire-resize ng pinch ang seleksyon nang proporsyonal. Hinihila ang twist sa pinakamalapit na 15 degree kapag malapit, at hindi nagsa-snap ang galaw ng dalawang daliri. Nagzo-zoom at nagpa-pan pa rin ng view ang dalawang daliri sa ibang lugar, at nagbubukas pa rin ng menu ang two-finger tap. Dapat lumapag ang unang daliri sa seleksyon at dapat sumunod agad ang pangalawa, sa seleksyon o sa labas lang ng gilid nito. Kung may artboard o naka-lock na object ang seleksyon, sumasakop sa halos buong view o lumalampas sa gilid ng view, magzo-zoom at magpa-pan ang dalawang daliri.
-
-### Mga Layer at Inspector
-
-Sa **Mga Layer**, bawat artboard ay isang collapsible na parent group. Piliin ang pangalan nito para tumalon doon, i-expand ang mga layer nito, at piliin o ayusin muli ang mga bagay sa loob ng artboard na iyon. Lumipat sa **Mga Pahina** para sa mga thumbnail at pagkakasunod-sunod ng pahina. Ang mga arrow key ay gumagalaw sa layer list; ibinabalik ng Left ang focus sa heading ng artboard.
-
-Inilalagay ng **Inspector** ang mga kontrol ng teksto o larawan sa una para sa napiling bagay. Gamitin ang option chips para sa mabibilis na pagpili at i-expand ang **Advanced** para sa mga detalye ng styling. Sa mga telepono, buksan ang **Inspector** mula sa **Higit pang aksyon**. Bumubukas ang mga control sa isang sheet; isinasara ito ng Escape o Back habang pinananatili ang seleksyon mo.
-
-### Pagguhit ng sarili mong hugis (ang pen)
-
-Sapat na ang mga box, bilog at rounded frame para sa karamihan ng layout. Kapag kailangan mo ng hugis na wala sa listahang iyon, iguhit mo: inilalagay ka ng **Pen** na button sa rail (o ng `P` key) sa drawing mode. Tatlong solong key ang naglilipat sa pagitan ng mga mode - **`V`** pabalik sa Pointer, **`P`** para sa Pen, **`N`** para sa node tool (**Edit points**) - at ang Pointer ang laging labasan mula sa kung nasaan ka man.
-
-![Ang tool rail ng free canvas: isang drag grip, ang Lolly menu, tapos Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards at Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
-
-- **I-click** para maglagay ng point. Sa default na curve type, ang **pag-click at pag-drag** ay naglalabas ng mga handle ng point na iyon, at iyon ang paraan para gumuhit ng kurba sa halip na sulok - pindutin ang **Alt** habang nagki-click para sa matulis na sulok. (Sa ibang curve type, sulok ang bawat inilagay na point at walang ginagawa ang drag; tingnan ang **Spline type** sa ibaba.)
-- Nagsi-snap ang mga point sa artboard at sa iba mo pang box habang inilalagay mo ang mga ito, at iginuguhit ang parehong mga gabay na ipinapakita ng karaniwang drag. Pinipigil ng Alt ang grid habang gumuguhit ka, at ang grid at ang mga gilid naman habang dinadrag mo ang isang point pagkatapos.
-- **I-click ang unang point mo** para isara ang loop at matapos sa isang kilos. Kung hindi, pindutin ang **Enter**, mag-double-click o magpalit lang ng tool - itinatago ang guhit, hindi itinatapon.
-- Isa-isang baitang ang ginagawa ng **Escape**: ang unang pindot ay iniiwan ang guhit at wala itong isinusulat, at ang pangalawa ay lumalabas sa pen.
-- Ang **Delete** habang gumuguhit ay nag-aalis ng huling point na inilagay mo.
-
-Ang resulta ay isang ordinaryong box sa canvas. Ilipat ito, baguhin ang laki nito, iikot ito, i-group ito, i-align ito, i-restack ito, bigyan ito ng fill, gradient, anino o opacity - kumikilos ang isang path gaya ng bawat ibang box, at wala ni isa sa mga control na iyon ang tumatrato rito nang iba.
-
-Dumarating din itong may kulay na. Ang unang path na iginuhit mo ay kumukuha ng fill at stroke na ibinibigay ng brand mo sa isang path, at pagkatapos noon ay kinukuha ng bawat bagong path ang **huli mong ginamit** - magtakda ng fill nang minsan at magpatuloy sa pagguhit, sa halip na kulayan muli ang bawat hugis. (Sa isang tool na walang sinasabi ang brand tungkol sa mga path, ang iginuhit na path ay may stroke na kulay na nakita mong ginamit habang iginuguhit ito, kaya hindi ito kailanman nagiging invisible.)
-
-**Pag-edit muli sa mga point.** I-double-click ang hugis (o gamitin ang **Edit points** sa object bar) at babalik ang mga point. I-drag ang isang point para ilipat ito, i-drag ang isang handle para baguhin ang tutok nito, i-click kahit saan sa kurba para magpasok ng point, rubber-band ang isang grupo ng point at pindutin ang Delete para alisin ang mga napili. Laging may hindi bababa sa dalawang point ang isang path, kaya hindi mo ito maaaksidenteng mabura nang tuluyan.
-
-Ang **Spline type** ang nagpapasya kung anong uri ng kurba ang dumadaan sa mga point mo, at ito ang pagpiling sulit intindihin:
-
-| Uri | Ang ginagawa nito |
-|---|---|
-| **Smooth (auto)** | Ang default. Kinakalkula nito ang sariling haba ng mga handle, kaya ang simpleng click-click-click ay nagbibigay ng tunay na makinis na kurba nang walang pakikipagbuno sa mga handle. Kung magtatakda ka ng handle, itinatali nito ang *direksyon* at nananatili sa kurba ang pagmamay-ari ng haba. |
-| **Bezier handles** | Ang klasikong pen. Ang mga handle ang control point, at ang pagpasok ng point ay hindi kailanman naggagalaw sa kurba. |
-| **Through the points** | Dumadaan nang eksakto sa bawat point na inilagay mo, walang handle. |
-| **B-spline** | Dumadaloy malapit sa mga point sa halip na dumaan sa mga ito, para sa mas malambot na hugis. |
-| **Straight lines** | Isang polyline. |
-
-Ang paglipat ng umiiral na path sa isang uring kumakalkula ng sarili nitong handle ay nagtatanong muna, dahil hindi na mababawi ang mga haba ng handle na itinakda mo - laging walang bawas ang paglipat sa **Bezier handles**. Sa gitna ng pagguhit ay walang prompt: dumederetso ang paglipat sa draft, at kasama roon ang anumang handle na nahila mo na. Sa mga uring may hawak sa sariling handle, bahagyang nagbabago ang hugis ng kurba kapag nagpasok ka ng point; sa **Bezier handles** ay hindi.
-
-May dala ring continuity rule ang bawat point, na ipinapakita ng hugis nito sa canvas - parisukat para sa **Corner** (magkahiwalay na gumagalaw ang mga handle), bilog para sa **Smooth** (nananatiling magkahanay ang mga handle), bilog na may singsing para sa **Symmetric** (magkahanay at magkapantay ang haba). Itakda ito para sa alinmang napiling point at agad itong susundin muli ng kurba.
-
-![Dalawang pen path na direktang na-render mula sa isang link: isang S-curve na may stroke at isang saradong blob na may fill](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22curve%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A140%2C%22y%22%3A180%2C%22w%22%3A800%2C%22h%22%3A420%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A14%2C%22path%22%3A%221!cubic!0_.02!.85!!!.25!-.45!s_.5!.5!-.22!.32!.22!-.32!y_.98!.12!-.25!.45!!!s%22%7D%2C%7B%22id%22%3A%22blob%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A340%2C%22y%22%3A620%2C%22w%22%3A400%2C%22h%22%3A320%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23d1e7ff%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A6%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!catmull-rom!1_.5!0_1!.42_.78!1_.22!1_0!.42%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=pen-path-geometry)
-
-Ang iginuhit na path ay dala rin ng link gaya ng lahat ng iba, kaya ang hugis na iginuhit mo ay muling bumubukas mula sa isang share link at magkatulad ang render nito mula sa CLI. Walang bahagi nito ang nakadepende sa editor.
-
-### Pagsasama ng mga hugis (path operations)
-
-Pumili ng dalawa o higit pang hugis, **i-right-click** ang canvas (two-finger tap sa touch) at ihahain ng menu ang mga operasyong inaasahan mo sa isang drawing app:
-
-- Pinagsasama sila ng **Union** sa iisang hugis, at pinananatili ang kulay ng pinakaitaas.
-- Inaalis ng **Subtract** ang lahat ng nasa itaas mula sa hugis na nasa ilalim.
-- Ang **Intersect** ay nagtitira lang ng bahaging nagsasapawan.
-- Ang **Exclude** ay nagtitira ng lahat maliban sa bahaging nagsasapawan.
-
-May tatlo pang gumagana sa iisang hugis: ang **Outline stroke…** ay ginagawang hugis na may fill ang isang stroke sa parehong outline (kapaki-pakinabang kapag gusto mong panatilihin ang kapal nang eksakto sa pagkakaguhit), ang **Offset path…** ay pinalalaki ang silweta palabas o, kapag negatibong numero, pinaliliit ito papasok, at ang **Simplify** ay muling binubuo ang isang path nang mas kaunti ang segment sa parehong hugis.
-
-![Isang gasuklay at isang singsing na may tunay na butas, pareho ay gawa ng Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
-
-Ang resulta ay isang bagong path na patuloy mong mae-edit gamit ang pen. Tunay na butas ang mga butas - ang **Fill rule** na control sa stroke panel ang nagpapasya kung ang magkakapatong na contour ay pupunuin (*non-zero*) o bubutasan (*even-odd*).
-
-May dalawang bagay na sadyang hindi ginagawa ng mga operasyong ito. **Tumatanggi sila sa halip na manira**: subukang i-intersect ang dalawang hugis na hindi nagsasapawan at sasabihin sa iyong walang matitira, at walang magbabago. At ang text at image box ay walang outline na mapagtatrabahuhan, kaya hinahayaan na lang sila sa halip na tayahin sa pamamagitan ng frame nila. Ang pinagsamang resulta ay iniimbak bilang payak na Bezier curve, na siya ring ginagawa ng isang drawing app - hindi nakakaligtas sa operasyon ang orihinal na spline type.
-
-### Mga 3D scene
-
-Piliin ang **3D scene** mula sa add menu sa tool rail at mag-drag ng frame: agad na bubukas ang 3D Studio sa bagong box, at babalik sa canvas ang anumang itinakda mo roon. Sa lahat ng ibang paraan, ang scene box ay isang ordinaryong box. Ilipat ito, baguhin ang laki nito, iikot ito, bigyan ito ng anino, ilagay ito sa isang slide o sa timeline, at kumikilos ito tulad ng iba.
-
-**Ang scene box ay nag-iingat ng recipe, hindi ng larawan.** Ang isang image box ay may hawak na na-render na file; ang isang scene box ay may hawak na isang setting, ang scene mismo, na nakasulat bilang sariling link query ng 3D Studio, na may bawat value na nasa default ng studio ay tinatanggal. Kaya nga ang isang scene ay mga isang daang byte lang sa halip na ilang kilobytes na halaga ng buong recipe, kaya gumagana ang parehong string sa isang share link at sa editor door, at kaya walang kailangang baguhin sa Design ang isang bagong studio control. Kaya rin nito nire-render muli ang box sa anumang laki at sandaling hinihingi ng dokumento sa halip na palakihin mula sa isang larawang kinuha noon pa. Ang mga larawang ginagamit ng isang scene ay nananatiling asset at naglalakbay ayon sa id, kaya ang isang upload sa loob ng isang scene ay napupunta sa isang `.lolly` file kasama ang iba pang bahagi ng dokumento.
-
-**I-edit ito sa studio.** Piliin ang box at ipapakita ng Inspector ang seksyong **3D scene**: isang linyang nagsasabi kung ano ang bumubuo sa scene, isa pa na nagsasabi ng lighting studio nito kapag pumili ka na ng isa, at isang button, **I-edit sa 3D Studio**. Binubuksan ng button ang studio sa scene ng box na iyon kasama ang bawat control na taglay ng tool. I-apply, at ang na-edit na scene ay isinusulat pabalik bilang isang solong hakbang, kaya isang undo lang ang nagbabalik sa box sa scene na pinagsimulan mo; isara ang studio nang hindi nag-a-apply at walang magbabago. Nananatili sa sarili nilang seksyon ang lahat ng iba pang bagay tungkol sa box - ang puwesto nito sa artboard, kung gaano kalaki ito, ang anino nito, kung kailan ito dumarating sa isang slide. Walang sariling larawan at caption ang isang scene box: mula sa studio ang larawan nito, at doon din itinatakda ang mga salita nito.
-
-**Isang live na scene, isang poster sa bawat ibang box.** Bawat 3D box sa isang dokumento ay nagpapakita ng poster: isang still na larawan ng scene, iginuhit sa labas ng screen sa pamamagitan ng shared renderer pool sa laki na sinasakop ng box. Ang isang dokumentong may dalawampung scene ay isang drawing context lang ang gastos, hindi dalawampu. Piliin ang isang scene box at ito ang magiging isang live na scene ng dokumento; i-deselect ito at ang frame na nasa screen ay magiging poster nito, kaya walang tumatalon. Isang scene lang ang live sa isang pagkakataon, at ang pagpili ng dalawang scene box nang sabay ay nag-iiwan sa pareho bilang poster. Sa release na ito, ang live na scene ay para sa pagtingin, hindi para sa pag-orbit: baguhin ang isang scene sa pamamagitan ng **I-edit sa 3D Studio**. Ang isang device na hindi makapagbukas ng floating-point graphics context ay pinapanatili ang poster at sinasabi kung bakit sa loob ng box sa halip na magpakita ng blangkong parihaba, at hindi naaapektuhan ang iba pang bahagi ng dokumento. Ang pagbukas ng isang Design na dokumentong walang 3D box ay hindi nagla-load ng anumang 3D code.
-
-**Sa timeline**, sinusundan ng scene box ang playhead tulad ng isang video clip: ang simula, clip-in at bilis nito ang gumagalaw sa scene sa loob ng sarili nitong animation, at ang haba ng scene ay iyong itinakda mo sa 3D Studio, kaya ang pag-trim ng box para maikli ay nagpapakita ng mas kaunting bahagi ng scene sa halip na pabilisin ito. Ang napiling scene box lang ang live; still na larawan ang lahat ng iba, at hindi nagsu-scrub ang isang still na larawan.
-
-**Sa isang export**, iginuguhit muli nang bago ang bawat scene sa laking kailangan ng file, sa pamamagitan ng parehong renderer na ginagamit ng studio. Nagre-render ang isang video ng isang frame kada scene kada sandali; ang isang PNG, SVG o PDF ay nag-e-embed ng isang larawan kada box sa sariling pixel size ng box. Wala sa labas ng screen ang kinukuhanan ng larawan, kaya hindi nakadepende ang isang export sa kung aling box ang napili mo. Ang isang scene na hindi maiguhit ay nabibigo ang export at sinasabi kung bakit, sa mismong salita ng studio.
-
-**Pagbabahagi ng isang scene na binuo sa sarili mong upload.** Dala ng isang share link ng isang Design na dokumento ang isang device-local na upload id sa loob ng isang scene nang ganoon na lang, kung saan binubura naman ito ng isang image box. Kaya ang isang scene na ang artwork o model ay isang file na na-upload mo ay nagpapakita ng default ng studio para sa larawang iyon sa device ng iba, maliban kung naglalakbay ang dokumento bilang isang `.lolly` file, na siyang nagdadala ng mga byte.
-
-## Timeline (Sequence)
-
-Ang **Sequence** ay ang timeline ng Design: nagdaragdag ito ng *oras* sa free canvas. Bawat box ay puwedeng magsimula sa isang sandali, tumakbo nang may haba at mag-animate papasok at palabas, at ang timeline na nakadock sa ilalim ng artboard ang pinag-aayusan mo sa kanila. Buksan mo ito at may tumutugtog nang sequence - isang title card, isang clip, isang end card, isang lower-third at isang music bed - kaya nakikita ang modelo bago ka pa magbago ng kahit ano.
-
-![Ang Sequence timeline: ang transport, ang ruler, isang overlay lane, ang magnetic sequence row kasama ang mga clip at seam chip nito, at ang Always on strip](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
-
-May dalawang uri ng row, at ang pagkakaiba nila ang buong punto:
-
-- Ang **sequence row** ay *magnetic*. Magkakadikit ang mga clip, sunod-sunod, at ang pag-drag sa isa ay nagsasaayos muli ng takbo sa halip na mag-iwan ng butas. Magbura ka ng clip at magsasara ang iba. Ito ang gulugod mo.
-- Malaya ang **overlay lanes**. Ang isang lower-third, isang logo, isang caption - anumang lumulutang sa ibabaw ng gulugod sa sarili nitong oras - ay may sariling lane at sariling simula.
-- Sa ilalim ng mga iyon, tinitipon ng **Always on** ang mga box na walang timing: mga tanawing basta naroon lang sa buong takbo. Ang `+` sa isang chip ay itinataas ang isa papunta sa isang lane; ibinabalik ito ng **Make always on**.
-
-![Ang editing stage: ang artboard sa gitna at harapan, ang tool rail sa kaliwa at ang zoom HUD sa sulok](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)
-
-Ang pagbukas sa timeline ay nagbibigay dito ng keyboard, kaya ang Space at ang mga arrow key ang nagpapatakbo sa playhead sa halip na sa pahina - at dahil bumubukas ito nang mag-isa sa isang komposisyong may timing na, totoo iyon sa mismong sandaling mag-load ang Sequence.
-
-> Mas malalim ang tinatalakay ng **[Ang sequence editor](/info/sequence-editor.html)** sa apat na bagay na nagpapasya kung mahuhulaan ang pakiramdam ng pag-edit sa oras: kung aling clip ang ine-edit ng isang click sa canvas, ang onion-skin na anino ng mga katabing clip, ang saklaw ng split at ang Join na nagbabawi sa isang hiwa, at ang pagtitrim (kasama ang set ng keyboard). Pindutin ang `?` habang naka-focus ang timeline para sa shortcut sheet.
-
-**Pag-edit.** I-drag ang gitna ng isang clip para ilipat o ayusin muli ito, mag-drag sa loob ng ilang pixel mula sa alinmang dulo para i-trim ito, at pindutin ang **Split at playhead** (o `S`) para hatiin ang isang clip sa dalawa. Kailangan ng Split ng clip na may tunay na **Length** at ng playhead na medyo nasa loob nito, kaya hindi mahahati ang isang open-ended na clip (ang music bed, halimbawa). Naka-on bilang default ang **Snap to edges** at nagsi-snap ito sa mga gilid ng clip, sa playhead at sa buong segundo, at may Alt para lampasan ito. Bawat drag ay iisang hakbang ng undo, at ang drag preview ay tumatakbo sa parehong aritmetika ng commit, kaya ang nakikita mo habang nagda-drag ang siya mong makukuha.
-
-Pumili ng clip at ibibigay sa iyo ng inspector ang parehong mga pag-edit bilang numero: **Length**, **Trim in** (gaano kalalim sa source ito nagsisimula), **Speed** bilang set ng nakatakdang multiplier mula ×0.25 hanggang ×4, **Animate in** / **Animate out** kasama ang haba nila at **Mute clip**. Sadyang walang **Start** na field ang clip sa magnetic row - ang row ang may hawak sa pagkakasunod-sunod, kaya nagda-drag ka para ilipat ito.
-
-Ang **Transitions** ay mga preset, hindi keyframe: Fade, Pop, Grow, Rise, Drop, ang apat na Slides, Zoom in at out, Tilt, Swoop, Spin, Drift o **Cut (walang animation)**. Nakabatay sa laki ng object ang mga distansya, kaya tama pa rin ang dating ng parehong preset sa isang full-frame na card at sa isang maliit na badge. Sa pagitan ng dalawang magkatabing clip sa sequence row ay may **seam chip**: i-click ito at piliin ang **I-cut** o **Crossfade**, na agad na ilalapat at magsasara. Buksan muli ang parehong chip para baguhin ang **Haba (ms)** at pindutin ang **Tapos na**. Ang crossfade ay iniimbak bilang isang fade out ng isa at isang fade in ng susunod, at ang aktuwal na dissolve ay hinahango mula sa pares na iyon: patuloy na tumatakbo ang unang clip lagpas sa cut at nagfa-fade out ito, habang ang susunod naman ay nagfa-fade in sa ilalim nito. Sinusunod ng preview at ng file ang parehong panuntunan, kaya kung ano ang nakikita mo sa seam, iyon din ang ine-export mo.
-
-**Tunog.** Magdagdag ng **Audio** na clip at mabubuhay ito sa timeline gaya ng anumang ibang clip: waveform, trim, mute. (Ang binuong bed na kasama sa default na session ang tanging eksepsiyon - sinisintesa ito sa oras ng export, kaya nananatiling payak at tahimik ang bar nito hangga't hindi ka nagre-render.) Pindutin ang mic para **mag-record ng voiceover** diretso sa timeline, may count-in at level meter, at nase-save ang take bilang sarili mong asset sa puntong sinimulan mo. Pindutin ang camera sa tabi nito para **mag-record ng video** sa parehong paraan: naka-crop ang take sa export size ng artboard habang ito'y nire-record, kaya ipinapakita ng maliit na self-view kung ano mismo ang mapupunta sa sequence sa playhead, full frame - ang paraan para makuha ang clip ng isang kasamahan mula sa isang shared link. Ang musika, diyalogo at ang sariling soundtrack ng isang clip ay pawang umaabot sa na-export na mix. (Ibang bagay ang **Audio track** ng export panel: isang bed na inilalatag sa ilalim ng buong clip, may fade at ducking. Magkasamang umiiral ang dalawa.)
-
-**Ang audio strip.** Piliin ang anumang clip na may dalang tunog at may bubukas na compact na strip sa ilalim ng timeline: isang **Volume** fader, **Pan** para sa stereo position, isang three-band na **EQ** (**Low**, **Mid**, **Mataas**), isang **Pitch** control na nagta-transpose sa semitones habang pinananatili ng boses ang sariling karakter, at **I-normalize ang volume**, na nagdadala sa clip sa broadcast loudness (BS.1770) para pantay ang isang tahimik na voice note at isang malakas na track. Kung saan nagtatagpo ang dalawang clip, hinahalo ng **Crossfade** ang junction sa halip na putulin ito. Isang **Epekto** slot ang nagpapatakbo ng on-device na processing sa clip - inaalis ng **Paglilinis ng boses** ang kuwarto at ang hiss mula sa isang recording. Ang pagbabago ng bilis ay pinananatili rin ang pitch: ang isang clip na binagalan o pinabilis ay time-stretched, hindi chipmunked. Sa bawat mix, ina-duck ng export ang musika sa ilalim ng pananalita habang dumarating at umaalis ang pananalita, at hinahawakan ang buong programa sa ilalim ng isang true-peak limiter, kaya walang nagcli-clip sa paglabas; ang waveform na sana ay nag-clip ay iginuguhit na may babala kung saan ito nangyayari.
-
-![Ang timeline na may napiling music clip: tumatakbo sa ibaba ang strip nito na may Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume, at ang Effect slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
-
-**Pag-render nito.** Ang motion export ay isang **deterministic composite**, hindi screen recording - ang bawat frame ay dine-decode, iginuguhit at ine-encode sa eksaktong oras, kaya hindi nakadepende ang file sa pagsabay ng makina mo, at walang praktikal na hangganan ng frame sa MP4 o WebM. Ang sariling haba ng timeline ang nagtatakda ng tagal maliban kung magta-type ka ng isa. Itinatatak ang Content Credentials gaya sa alinmang ibang export. Ang still na export ay nagbibigay sa iyo ng frame sa playhead, o ng buong contact sheet mula sa **Frames** na field sa tabi ng laki ng output - tingnan ang [Pag-export](/info/exporting.html#stills-from-a-timed-composition).
-
-Ilang limitasyong dapat tandaan: may hangganang isang oras ang isang sequence, nagbu-buffer ng frame ang GIF at animated PNG kaya nananatili silang maikli, ang isang clip na pinatakbo nang mas mabilis o mas mabagal ay pinananatili ang pitch nito (ini-time-stretch ito ng audio strip, at ang **Pitch** control ay nagta-transpose sa semitones habang pinananatili ang karakter ng boses) at nakatago rito ang **Record live** dahil mas mainam na daan ang compositor.
-
-**Higit pa sa mga preset: keyframe, depth, at isang camera.** Ang isang transition ay nagbibigay ng animation sa isang clip habang dumarating at umaalis ito. Para i-pose ang isang box *sa loob* ng isang clip - paganahin itong lumutang, mag-fade, mag-blur, angatin ito mula sa page, at ibalik ito - magdagdag ng keyframe: piliin ang clip, pindutin ang **+Keyframe** (ang diamond sa tool cluster ng timeline, ang diamond sa object bar ng canvas, o `K`) at ang posisyon ng playhead ang magpapasya kung aling pose ang isusulat ng susunod mong edit. Ang parehong keyframe system ay nagbibigay sa bawat timed na komposisyon ng isang **camera** na pumapasok, nag-pan sa buong eksena, at humuhugot ng focus, na ginagawang isang stack ng mga layer mula sa isang patag na SVG na maaari mong lipatan. Ang **[Animating](/info/animating.html)** ang buong gabay.
-
-May parehong timeline ang Design na tool, kaya puwede mong bigyan ng timing ang isang layout nang hindi lumilipat sa ibang tool, at nag-e-export din ito ng motion.
-
-## Pagpepresenta
-
-Para ilagay ang camera mo, isang logo at isang name caption sa ibabaw ng larawan ng audience, gamitin ang **Present with camera**. Sinasaklaw ng [Pagpe-present gamit ang camera](/info/presenting.html) ang mga pribadong control nito, naka-save na scene, hakbang sa pagbabahagi at pag-record. Nananatiling available ang ordinaryong mga control ng deck sa ibaba sa pamamagitan ng **I-present**.
-
-Ang isang Design na dokumentong binubuo ng mga **artboard** ay deck na. Buksan ang **Lolly menu** sa tool rail at piliin ang **Present** - ang huling row - at magiging full-screen na slide ang bawat artboard, ayon sa pagkakasunod-sunod ng mga artboard sa canvas. Tumatakbo ang deck sa isang kopya ng mga na-render na artboard, kaya hindi nagagalaw ang editor sa ilalim at ibinabalik ka nang eksakto sa pinanggalingan mo kapag umalis ka.
-
-- **Sumulong** gamit ang **Space**, `→`, **Page Down** o isang click sa strip sa kanang gilid ng screen; bumalik gamit ang `←`, **Page Up** o ang strip sa kaliwang gilid. Tumatalon ang **Home** at **End** sa una at huling slide. Isang maliit na bar ng mga control ang lumalabas kapag ginalaw mo ang pointer at nagtatago muli kapag tumigil ka.
-- **Overview** (`O` o ang grid button) ay inilalatag ang bawat artboard nang sabay-sabay sa ayos na ibinigay mo sa kanila sa canvas; i-click ang isa para buksan ito.
-- **Reveal steps.** Right-click ang isang box at piliin ang **Reveal at step 1**, **2** o **3** sa halip na ang default na **Always visible**. Maghihintay ang box na iyon hanggang sumulong ka sa hakbang nito, kaya maaaring dumating ang isang slide nang paunti-unti; ang mga box na magkapareho ang numero ay dumarating nang magkasama.
-- **Speaker view** (`S`) ay nagbubukas ng pangalawang window na may kasalukuyang slide, ang susunod, ang mga tala mo para sa slide na iyon at isang tumatakbong orasan. Kung babawalan ng browser ang pop-up, babalik ito sa isang panel sa ibabaw ng deck. Itinatakda ang mga tala kada artboard at hindi kailanman lumalabas sa slide mismo.
-- Nagpapanatili ang `B` ng itim na screen (anumang key ang magbabalik sa slide), ibinabalik ng `F` sa fullscreen at binabalatan ng **Escape** ang isang layer sa isang pagkakataon: mula overview pabalik sa deck, mula deck pabalik sa editor.
-- **Kiosk.** Bigyan ang isang artboard ng **Length** at mananatili roon ang deck sa haba ng oras na iyon, pagkatapos ay sumusulong ito mismo sa likod ng manipis na progress bar; ang `K` (o ang pause button, na lalabas lamang kapag may Length na ang isang bagay) ay huminto at muling magsisimula nito. Idagdag ang `kiosk` sa link at babalot ang deck sa dulo, na siyang gumagawa nitong signage.
-
-- **Sub-slide stacks.** I-right-click ang isang artboard at piliin ang **I-stack sa ilalim ng nakaraang slide** at ito'y magiging isang hakbang ng slide na iyon sa halip na sarili nitong slide: isang card lang ang ipinapakita ng overview, dinadaanan ng deck ang stack ayon sa pagkakasunod-sunod, at sinasabi ng row na **Stack** ng inspector kung aling slide ito kabilang.
-- **Morph.** Kapag ang dalawang magkasunod na slide ay pareho namang may dalang box na may parehong pangalan sa **Morph match** (i-right-click ang isang box, o ang row na **Morph match** ng inspector - `hero`, halimbawa), inililipat ng transition ang box na iyon mula sa kinaroroonan patungo sa kinaroroonan nito, binabago ang laki at kulay sa daan, sa halip na putulin ito. Ginagawa ng isang deck-wide na transition na **Morph** ang parehong bagay para sa bawat tugmang pares.
-- **Narration.** Puwedeng basahin nang malakas ang **Speaker notes** ng bawat artboard. Sa seksyong **Dokumento** ng inspector, pumili ng **Boses**, opsyonal na pangalawang boses na **Ihalo sa**, ang **Bilis** ng pagbasa, at isang **Panimula** at **Dulo** sa milliseconds sa paligid ng bawat slide; i-on ang **Ipakita ang mga caption kapag nagpe-present** at lumalabas ang mga salita habang binibigkas ang mga ito. Tumatakbo ang boses sa device mo. Ang parehong mga tala ay nagiging pelikula sa isang video export, tunay na slide audio sa isang PowerPoint export, at ang na-narrate na pelikula sa loob ng isang [SCORM package](/info/create/exporting.html#scorm-course-packages).
-
-![Ang seksyong Dokumento ng inspector: Boses, Ihalo sa, Bilis, Panimula, Dulo at Ipakita ang mga caption kapag nagpe-present](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
-
-Link din ang deck. Ang `?present` ay dumederetso rito, ang `s=` ay nagpapangalan sa slide - isang posisyon, isang artboard id o `id.step` para sa isang build step - at nag-a-update ang address habang gumagalaw ka, kaya ang ipinapadala mo ay ang slide na kinaroroonan mo. Sa mga tool author: nakadokumento ang mga parameter na iyon sa pahinang [URL Mode](/info/url-parameters.html#reserved-parameters).
+Lumalabas lang ang **View sessions** kapag may napili na. I-right-click na lang ang isang hindi napiling card at mag-aalok ito ng **N saved sessions**, isang listahan ng mga naka-save na session ng tool na iyon kung saan inililipat ng pagbura ang session sa Trash.
 
 ## Sa telepono
 
-Sa makikitid na screen, dumadaloy ang layout tungo sa iisang column:
+Sa makitid na screen, nagiging isang column ang layout:
 
-- Nagiging **sheet ang mga control** sa itaas na may **drag grip** sa ibabang gilid nito. I-drag ang grip para baguhin ang laki nito - nagsi-snap ito sa **peek / half / full** - o **i-tap** ang grip para mag-toggle sa collapsed ↔ expanded. Pinupuno ng preview ang espasyo sa ibaba at nananatili itong nakikita habang nag-e-edit ka.
-- Ang lumulutang na **Export** na button ay nagbubukas ng export sheet - lahat ng control para sa format, laki, copy, save at download sa isang lugar. Isara ito sa pamamagitan ng pag-tap sa backdrop.
+- Ang mga **kontrol ay nagiging sheet** sa itaas na may drag grip sa ibabang gilid nito. I-drag ang grip para mag-snap sa **peek**, **half** o **full**, o i-tap ito para tumiklop at lumawak. Pinupuno ng preview ang espasyo sa ibaba at nananatiling nakikita habang nag-e-edit ka.
+- Ang lumulutang na **Export** button ay nagbubukas ng export sheet: format, laki, kopya, save at download sa iisang lugar. I-tap ang backdrop para isara ang sheet.
 
 ![Isang tool sa screen na kasinlapad ng telepono - mga control bilang sheet sa itaas, ang binuong palette na pumupuno sa preview sa ibaba at ang render pill na lumulutang sa ibaba-gitna](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
-## Mga control (inputs)
-
-Inilalabas lang ng mga tool ang mga input na nilayong mag-iba-iba - ang lahat ng iba pa (kulay, layout, tipograpiya, lohika) ay nakakandado ng may-akda ng tool, kaya ang anumang gawin mo ay umaayon sa mga patakarang itinakda ng may-akda. Kabilang sa mga input ang teksto, slider, colour picker, dropdown, petsa, image picker at paulit-ulit na row group. May ilang nakagrupo sa ilalim ng mga collapsible section.
-
-![Ang control stack ng isang tool - isang text field, mga colour trigger at isang slider, at wala nang iba dahil ikinandado ng may-akda ang lahat ng iba pa](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
-
-**Reset:** Ibinabalik ng *Clear changes* ang bawat input sa mga default nito.
-
-### Undo at redo
-
-Ang **Cmd/Ctrl-Z** ay bumabalik at ang **Cmd/Ctrl-Shift-Z** (o **Cmd/Ctrl-Y**) ay sumusulong muli. Ang parehong pares ay nakaupo bilang **I-undo** at **I-redo** na button sa row sa itaas ng mga control - sa free canvas ay nasa tool rail sila - at kumukupas ang bawat isa habang wala nang mababawi. Sinasabi ng bawat hakbang kung ano iyon: mag-undo ng kulay at pangangalanan ng maliit na mensahe ang input na kaka-restore lang nito, na may **I-redo** na button dito para sa pagbabalik.
-
-- **Isang hakbang ang isang drag.** Ang paulit-ulit na pagbabago sa parehong control sa loob ng kalahating segundo ay pinagsasama, kaya ang paghila sa isang slider sa buong saklaw nito ay iisang undo sa halip na dalawang daan.
-- **Ang huling 100 hakbang ang itinatago** - nalalaglag sa dulo ang mas luma. Ang paggawa ng bagong edit pagkatapos mag-undo ay binubura ang forward stack, gaya rin ng nangyayari saanman.
-- **Habang nasa isang text box ang caret mo**, sa mismong field na ang Cmd/Ctrl-Z, karakter kada karakter. Ang Lolly ang pumapalit para sa mga control na walang sariling kapaki-pakinabang na undo: mga slider, dropdown, kulay at switch.
-- **Ang pagpili ng file** sa isang **file** na input ay hindi isang hakbang - hawak lang ang mga byte na iyon sa loob ng session, kaya wala namang maibabalik.
-
-Sa isang live na [collaboration](/info/collaborate.html), ang history ay nananatiling sa iyo lamang. Ang isang pagbabagong dumarating mula sa ibang device ay hindi kailanman napupunta sa stack mo, kaya ang undo ay maaari lang bumawi sa isang bagay na ginawa mo mismo.
-
-Umuurong lang ang **I-undo** sa loob ng pagbisitang ito; iniingatan din ng mga tool na nag-sa-save habang ginagawa mo ang mas naunang bersyon sa ilalim ng **History**, sa tabi ng **I-undo** (tingnan ang [Bumalik sa mas naunang bersyon](/info/find-your-work.html#go-back-to-an-earlier-version)).
-
-## Mga detalye mo at headshot
-
-Ang **Mga Setting** (kanang itaas ng gallery, na nagpapakita ng unang pangalan mo kapag nagtakda ka na ng isa) ang may hawak ng pangalan mo, mga detalye sa pakikipag-ugnayan at isang opsyonal na **headshot**. Ang mga tool na humihingi ng mga field na iyon ay awtomatikong pinupunan ang mga ito - itakda ang mga ito nang minsan at kusang mapupunan ang email signature, lockup at badge mo. Puwede mo pa ring palitan ang alinmang field kada session. Sumang-ayon gamit ang **Use my details to create** para sumama ang mga detalye mo bilang may-akda ng ini-export mo.
-
-Ang headshot at mga detalye mo ay nakatira **sa device na ito lamang**. Puwedeng higit pa sa iyo ang isang profile - isang koponan o isang tungkuling pinapasok mo paminsan-minsan. Tingnan ang **[Mga profile](/info/profile.html)** para sa buong larawan, kasama ang pagkakaroon ng higit sa isa.
-
-## Pag-save at pagpapatuloy
-
-Para itago ang gawa mo, piliin ang **I-save bilang**, ang tsek sa tabi ng **I-export**. Sa ilalim ng **Save to a project**, iwanang naka-select ang **Aking library** o pumili ng project (gumagawa ng isa ang **＋ Bagong project…**), tapos piliin ang **I-save**. Ino-update ng muling pag-save ang parehong item sa halip na gumawa ng kopya. Sa Design, ang **I-save bilang** ay nasa menu sa ilalim ng logo ng Lolly; sa telepono, pindutin ang **•••**, tapos ang **File menu**, tapos ang **I-save bilang**.
-
-Ang button na **I-save** sa export panel ay gumagawa ng parehong bagay sa iisang click at hindi kailanman nagda-download ng file: napupunta sa Aking library ang bagong gawa, at ang gawang na-save mo na dati ay ina-update sa kinaroroonan nito.
-
-Para bumalik mamaya, piliin ang **Home** sa kaliwang itaas, tapos buksan ang tab na **Mga Project** (folder icon sa telepono). Nasa unang screen nito ang mga save sa Aking library; isang folder doon ang isang project. Pinapangalanan ang mga item batay sa file name na tinype mo sa export panel, o kaya ay ayon sa tool nila, gaya ng **QR Code**. Buksan ang isa at nandoon ang bawat setting, handa nang baguhin at i-export ulit.
-
-Nananatili sa device na ito ang naka-save na gawa, sa browser o app na pinagsimulan mong mag-save, maliban kung i-on mo ang [Sync](/info/sync.html). Ang isang file na nakukuha mo gamit ang **I-download** ay isang tapos nang kopya; para baguhin ito mamaya, buksan ang naka-save na item sa Mga Project. Kung may bagay na wala sa inaasahan mong kinaroroonan, tingnan ang [Hanapin at bawiin ang gawa mo](/info/find-your-work.html).
-
-![Ang render pill na may dalawang kalahati - isang pataas na arrow na nagbubukas ng export panel, at isang tsek na may label na I-save bilang na nagbubukas ng save sheet](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
-
-## Projects
-
-Ang **Mga Project**, ang tab na **Mga Project** sa itaas ng home screen, ang humahawak ng lahat ng na-save mo, sa mga folder na ginawa mo. Sinasaklaw ng [Hanapin at bawiin ang gawa mo](/info/find-your-work.html#find-something-you-saved) ang paghahanap, pag-aayos at pag-search sa gawa mo roon, pati ang pag-restore ng item mula sa **Trash**.
-
-
-## Pagbabahagi ng gawa mo
-
-Dalawang paraan ang labasan ng isang disenyo: bilang link o bilang file. Inaalok ng Share dialog ang pareho. Buksan ito gamit ang **Share** sa export controls; ang **Share link** sa isang naka-save na session sa Projects ay binubuksan ang parehong dialog para sa session na iyon.
-
-### Ang link
-
-Nakukuha sa URL ng pahina ang bawat input, kaya ang link *ang* disenyo mismo. Sa itaas ng dialog nakaupo ang handang-kopyahing link, na may dalawang nakatiklop na seksyon sa ilalim nito.
-
-- Ang **Link options** ay may hawak na **Buksan sa naka-install na app** (pinapalitan ang field ng isang `lolly://` na URI para sa Shortcuts, mga launcher at automation, na hindi nagbabago ang bawat parameter), **Shortest link** (ang isang malaking disenyo ay gumagawa ng mahabang URL, kaya siniksik nito ang buong estado sa isang maliit na token at ipinapakita sa iyo ang natipid na karakter; naroon pa rin lagi ang nababasang anyo), **Password-protect this link** (AES-256 sa buong link, at hindi kailanman nasa loob nito ang password) at **Pin this tool version** - ang `_v` na flag, na nagtatali sa link sa bersyon ng tool na tinitingnan mo para hindi mabago ng isang susunod na update ang ini-render nito.
-- Ang **Link behaviour** ang mangyayari kapag binuksan ito ng tatanggap: fullscreen, nakabukas na agad ang export panel, download-sa-pagbukas gamit ang `&export` o copy-to-clipboard gamit ang `&copy`.
-
-I-paste ang link sa isang katrabaho, i-bookmark ito o i-commit ito. (Buong detalye: [URL Mode](/info/url-mode.html).)
-
-**May mga tool na ginagawang buong produkto ang link.** Tinitipon ng Jump Page ang mga link mo sa isang page para ibigay - isang bio link, isang talumpati sa conference, isang shop front. Walang kailangang i-host at walang account sa likod nito: ang page ang link, kaya bumubukas ito kasing bilis ng paglalakbay ng URL. Sa editor, makikita mo ang tapos na page sa tabi ng mga field; ang isang bisitang nagbukas ng link ay makakakuha nito sa buong lapad, isang link kada eksena habang nag-i-scroll sila.
-
-![Jump Page sa editor: ang eksenang heading sa itaas ng page, na may mga eksenang link sa ibaba nito](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
-
-**Sinasabi ng dialog kung ano ang hindi kayang dalhin ng isang link.** May tatlong bagay na hindi kasya sa isang URL: isang larawan o file na idinagdag mo mula sa device na ito, isang napakahabang halaga ng teksto o isang napakalaking listahan. Binibilang ang bawat isa habang binubuo ang link. Kung may kinailangang alisin, pinangangalanan ito ng dialog at itinuturo ka nito sa file sa ibaba, sa halip na abutan ka ng link na bumubukas nang nawawala ang larawan. Ang link na *mahaba* lang ay binibigyan ng mas banayad na paalala kasama ang bilang ng karakter nito, dahil kaya pang isalba ng packing ang haba.
-
-### Ang .lolly na file
-
-Ang `.lolly` ay ang portable-bundle extension ng Lolly, hindi isang pangako na parehong nilalaman ang taglay ng bawat file. Ang `format` sa `manifest.json` ang awtoridad. Binabasa muna ng app ang maliit na manifest na iyon at ipinapakita ang laki, nilalaman at aksyon bago ito magsulat ng kahit ano:
-
-- Isang **ibinahaging disenyo** (`lolly-share`) ay naglalaman ng isang naka-save na tool session, ng mga naka-embed na file nito at ng isang resibo para sa anumang naaayos pa rin sa pamamagitan ng reference. Puwede rin nitong dalhin ang tool at ang design system na ginamit para gawin ito. Ang pagbukas ay nagdaragdag ng bagong Project; hindi nito kailanman ino-overwrite ang umiiral na session.
-- Isang **ibinahaging project** (`lolly-share` na may `project` na kind) ay naglalaman ng isang folder mula sa Mga Project: ang mga sub-folder nito, bawat naka-save na session na naka-file doon, ang tile ng bawat session at ang mga larawang naka-file doon. Ang pagbukas ay nagdaragdag ng kopya ng buong folder sa Mga Project; wala sa umiiral na doon ang mapapalitan. Ang isang Lolly mula bago pa umiral ang project file ay hindi ito mababasa at sasabihing mag-update.
-- Isang **design-system pack** (`lolly-brand`) ay naglalaman ng mga token at puwedeng maglaman ng mga font, logo, na-publish na bersyon at mga retained na resource. Ang pagbukas ay nagdaragdag nito bilang hiwalay na pinangalanang design system, tapos lumilipat dito; nananatili ang mga system na nasa device na.
-- Ang isang **brand workspace / instance pack** ay isang `lolly-brand` na may deklaradong mga tool, mga catalogue asset at opsyonal na isang instance address. Nililista ng preflight ang mga epektong iyon sa buong device dahil pinapalitan ng pag-load nito ang nag-iisang dating naka-load na workspace overlay.
-
-Ang isang kumpletong **backup ng device/profile ay hindi isang `.lolly`**. Nananatili itong isang `LollyTools-….zip` na may format na `lolly-backup`, at nagre-restore sa pamamagitan ng **Mga Setting → Imbakan → I-import ang data…**, na kumukuha rin ng isang kopyang hawak ng Sync sa storage mo. Nananatili ring `.zip` ang isang payak na naka-zip na tool folder. Sa madaling salita, angkin ng session at design-system bundle ang `.lolly`; hindi ito angkin ng backup at loose archive na workflow.
-
-Ang **Download .lolly**, sa Share dialog ng tool na pinagtatrabahuhan mo, ay isinusulat ang kasalukuyang disenyo bilang isang shared-design bundle. Dala nito ang naka-save na session kasama ang mga larawan at file na available sa device na ito. Sumasakay din ang ordinaryong catalogue art. Pinipigil ang licensed art maliban kung tahasan mong isinama ito, at ang isang lipas na o hindi available na file ay nananatiling external reference sa halip na mawala. Ipinapakita ng inihandang resibo ang aktuwal na laki ng `.lolly`, bilang ng embedded file, bilang ng external reference at kung kasama ba ang tool. Kung may share sheet ang device mo, agad na iniaabot ng **I-send sa…** ang file na iyon dito (AirDrop, isang Android share) sa halip na i-save ito sa disk.
-
-Ang **Download project (.lolly)**, sa menu ng isang folder sa **Mga Project**, ay isinusulat ang folder na iyon bilang isang ibinahaging project, para may ibang tao na makapagbukas nito at magpatuloy sa bawat session dito. Naglalakbay ang bawat session bilang sariling bahagi nito (`sessions/<key>.json`, may tile nito sa ilalim ng `thumbs/`), nakalista ang folder tree sa `manifest.json`, at ang mga upload at catalogue art ay naglalakbay ayon sa parehong panuntunan ng isang solong ibinahaging disenyo. Hindi mga tool session ang mga batch session at naiiwan sila; sinasabi ng notice kung ilan. Ang **I-download ang mga orihinal**, sa tabi nito, ay hindi nagbago: isang payak na zip ng bawat item bilang sariling file nito.
-
-Ang `.lolly` ay isang ordinaryong zip. Palitan ang pangalan nito ng `.zip` at buksan ito: ang sarili mong mga larawan ay nasa ilalim ng `assets/uploads/` at ang catalogue na likha ay nasa `assets/catalog/`, bawat isa ay may tunay na pangalan at extension, nakalista sa `manifest.json` ang bawat isa at sinasabi ng README sa itaas kung ano ang file.
-
-May tatlong bagay na ikaw ang magpapasya bago ito umalis:
-
-- **Kung isasama ang iyong pangalan.** Isinusulat ang iyong pangalan, email at organisasyon sa file lamang kapag naka-on ang **Use my details to create** sa iyong profile. Kapag naka-off ito, itinatala ng file na ginawa ito gamit ang Lolly at kung kailan - wala nang tungkol sa iyo.
-- **Kung isasama ang licensed art.** Pinipigil bilang default ang licensed at brand-locked assets. Kung gumagamit ng mga ito ang disenyo, sinasabi ng dialog kung ilan at nag-aalok ito ng dalawang button - *Download without them* o *Include and download* - dahil ang pagsasama sa kanila ay nagbibigay ng mismong mga file sa kahit sinong magbukas ng `.lolly`.
-- **Kung isasama ang tool.** Pinapasok ng **Include the tool** ang sariling mga file ng tool kasama ng disenyo, para bumukas ito sa isang device na walang tool na iyon. Dumarating itong naka-tick para sa isang custom na tool - isang fork o isang pribadong brand tool na malamang na wala ang tatanggap - at naka-untick para sa isang tool na nakalista sa signed catalogue, dahil galing sa parehong pinagmulan ang kopya nila. (Sa isang build na walang signed catalogue, itinuturing na custom ang bawat tool at nagsisimulang naka-tick ang box.)
-
-**Ang pagbukas ng isa.** Sa isang naka-install na desktop o mobile app, i-double-click o i-tap ang isang `.lolly`, piliin ang **Open with Lolly**, o ipadala ito sa Lolly mula sa system share sheet. Nire-register ng macOS, Windows, Linux, iOS at Android ang format; ipinapakita ito ng desktop file manager bilang isang Lolly document (at maipapakita ng GNOME Files ang sariling thumbnail ng isang naka-save na session). Sa web app, gamitin ang **Buksan** o i-drop ang file sa Lolly. Ang bawat pintuan ay gumagamit ng parehong manifest-first na preflight. Ang pagbukas mula sa Brand Studio ay nagrerekomenda ng design-system na aksyon kapag may dala nito ang isang ibinahaging disenyo, pero hindi nito kailanman binabago ang label ng file o itinatago ang **Bukas na nakabahagi na disenyo**.
-
-Ang isang iOS o Android na dokumentong ipinasa mula sa ibang app ay may hangganang 48 MB dahil kailangang kopyahin ng native hand-off ang mga byte nito papasok sa app boundary. Sinasabi ito ng mobile app sa halip na tahimik na balewalain ang isang sobrang laking file. Ang **Buksan** sa loob ng Lolly ay hindi gumagamit ng hand-off na iyon; ito ang daanang susubukan para sa mas malaking bundle.
-
-Pagkatapos ng kumpirmasyon, ini-inflate at bini-verify ng napiling reader ang bundle nang isang beses. Ang mga asset ng isang ibinahaging disenyo ay napupunta sa library mo, ang session nito ay napupunta sa Mga Project at bubukas ang tool nito kapag available. Ang mga session ng isang ibinahaging project ay napupunta sa Mga Project sa ilalim ng bagong kopya ng mga folder nito, na may bagong id para mabuksan nang dalawang beses ang parehong file, at bubukas ang folder; ang isang session na walang tool ang device na ito ay maghihintay doon. Ang isang asset na nasa device na ay tinutugma gamit ang checksum at ginagamit muli. Ang isang design-system pack ay iniimbak sa sarili nitong namespace bago lumipat dito ang app. Ang mga file na lampas sa 100 MB ay tinatawag na malaki, at nagbibigay-babala ang preflight kapag mas maliit ang libreng espasyong iniuulat ng browser storage kaysa sa kailangan ng idineklarang payload. Sinusuri ang bawat bahaging saklaw ng integrity bago mag-commit ang operasyon; tinatanggihan ang isang sirang kopya at ino-roll back ang bagong ginawang destinasyon.
-
-Kung may dalang tool ang file na wala sa iyo, nagtatanong ang Lolly bago tumakbo ang tool na iyon: pinangangalanan ng **Tiwalaan ang tool na ito?** ang tool at ang may-akda nito at malinaw nitong sinasabi na ang pagbukas dito ay nagpapatakbo ng sariling code ng tool sa device mo, at ang **Tiwalaan at i-install** ang daan papasok. Tumanggi ka at nase-save pa rin sa projects mo ang ibinahaging gawa, naghihintay doon sa araw na idagdag mo ang tool. (May isang uri ng tool na hindi pa puwedeng i-sideload - ang code nito ay ipinapadala bilang isang module - at tinatanggihan din ito sa parehong paraan.)
-
-Parehong nag-aabot ng snapshot ang isang link at ang isang file. Para magtrabaho sa parehong session *nang sabay* sa iba - dalawang device, walang server, hindi kailangan ng internet kung nasa iisang network kayo - tingnan ang [Pagtutulungan](/info/collaborate.html).
-
-## Live camera (mga tool na tumutugon sa galaw)
-
-Bawat photo **Filter** - Halftone, Scanline, Posterize, Voronoi cells, Colour treatment, Pixel stretch at Imperfections - ay nagpapakita ng **Go live** na button kung saan may kamerang magagamit. I-on mo ito at susundan ng epekto ang webcam mo frame kada frame, kaya tumutugon ito sa galaw; puwede mong i-record ang resulta sa GIF, WebM o MP4. Ang mga frame ay binabasa at pinoproseso **sa device mo** at hindi kailanman umaalis dito, at ibinibitiw ang kamera sa mismong sandaling huminto ka o umalis sa tool. (May **Take a photo** din ang bawat image picker para kumuha ng iisang frame bilang larawang nasa device.)
-
-## My images
-
-Kapag pinayagan ka ng isang tool na magdagdag ng larawan mula sa device mo, itinatago ito nang eksakto sa dating nito - kaya nabe-verify pa rin ang Content Credential dito - at nase-save sa personal mong **My images** na library (sa ilalim ng **Mga Setting → Imbakan**). Tanging ang talagang napakalaking file ang nagtatanong kung itatago o babaguhin ang laki nito. Gamitin itong muli sa anumang tool. Para linisin ang EXIF/GPS habang pumapasok ang mga larawan, i-on ang **Strip metadata from uploads** sa profile mo. Walang hangganan: ganap na lokal ang library at limitado lang ito ng imbakan ng device mo - pamahalaan o burahin ang mga larawan doon.
-
-## Mga asset - ang library mo
-
-Ang **Mga asset** (`#/a`, o ang **Mga asset** na bahagi ng Mga Tool · Mga Utility · Mga asset · Mga Project na switch sa itaas ng bawat listing view) ay tinitipon ang lahat ng puwedeng gamitin ng mga tool mo - mga brand logo, larawan, audio at motion, nakagrupo ayon sa uri - at dito rin nakatira ang **sarili mong mga creative file**. Walang server, walang admin console, walang pull request: nasa device mo ang lahat.
-
-![Mga asset, kasama ang mga swatch at font ng brand at ang sarili mong mga upload](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
-
-- <!--i:upload--> **Ipasok ang mga file mo.** I-drag ang anumang larawan, SVG, audio clip, video, Lottie, PDF, o PowerPoint deck sa upload area - o mag-click para pumili - at makikita ito agad sa Mga asset, handa na sa asset picker ng bawat tool. Ang isang multi-page PDF o isang `.pptx` ay magtatanong kung aling mga page o slide ang itatago - bawat isa ay nagiging isang SVG asset. Mag-ingest nang kahit magkano; hindi ito kailanman aalis sa device mo.
-- <!--i:star--> **I-favourite ang mga madalas mong gamitin.** ★ ang isang asset (o isang brand swatch) at ito'y mapipin sa itaas ng bawat picker, para isang click lang ang layo ng paborito mong logo o kulay.
-- <!--i:folder--> **Ayusin.** I-recategorise ang isang asset sa ibang grupo, itago ang isang shared brand asset na hindi mo ginagamit (may **Show hidden** para ibalik ito) o burahin nang tuluyan ang sarili mong mga upload. Gumagana rin dito ang parehong multi-select na galaw at floating action bar tulad sa Mga Project, kaya kahit alin sa mga iyon ay magagawa sa buong seleksyon nang sabay-sabay.
-- <!--i:layers--> **Tanggalin ang background ng isang video.** Buksan ang detalye ng isang video o i-right-click ang card nito sa anumang asset picker at piliin ang **Tinatanggal ang background…** para i-save ang isang transparent na alternatibo - isang animated WebP o PNG na may tunay na alpha. Pumili ng isang **Method**: ang isang **On-device na model** ay gumugupit ng isang subject mula sa isang busy na eksena, o ang isang **Colour key** ay nagtatanggal ng isang pantay na naiilawang, patag na backdrop tulad ng isang green screen o isang plain na pader, may **Tolerance**, **Softness**, at **Pag-alis ng spill** para ayusin ang gilid. Hindi kailangan ng colour key ng pag-download ng model at ng network, kaya inaalok ang **Tanggalin ang background** sa anumang video at kadalasang mas malinis sa maayos na footage. Ang isang kontrol na **Resolution** (360, 480, 720, o 1080p, hindi kailanman lalampas sa source) ay ipinagpapalit ang detalye para sa mas maliit, mas mabilis na file. Tumatakbo ito bilang isang background job sa device mo. Ang tapos na cut-out ay naka-save sa tabi ng orihinal bilang sarili nitong asset, at ang Content Credential ng source video ay sumasama bilang isang ingredient. (Tingnan ang [Isang beses ginawa, parehong kinukuha](/info/ai-features.html) kung bakit nananatiling isang ordinaryong edit ang pag-alis ng background.)
-
-### Dalhin ang palette at font mo kahit saan
-
-Higit pa sa pagpapakita ang ginagawa ng **Swatches** na panel sa Mga asset - i-click ang isang kulay para kopyahin ito, o **i-download ang buong brand palette** sa format na sinasalita ng iba mong tool:
-
-- <!--i:code--> **Design tokens (JSON)**, **CSS variables** o **CSS classes** - ilagay ang brand diretso sa isang stylesheet o build;
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)** - i-load ito sa Illustrator o Photoshop;
-- <!--i:pentool--> **GIMP palette (.gpl)** - para sa GIMP o Inkscape.
-
-![Ang Swatches na panel - ang limang palette download button sa itaas, tapos ang bawat brand na kulay bilang chip na puwedeng kopyahin](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
-
-Nililista ng **Fonts** na panel ang mga brand face mo na may **download** sa tabi ng bawat isa, para i-install nang lokal o iabot sa isang print shop. (Ang Colours room ng [Brand Studio](/info/brand-studio.html) ay nag-aalok ng parehong palette download.)
-
-Ang mga asset ay isang kalahati ng bukas at gawin-mo-mismo na landas; ang kabila ay ang **paggawa ng sarili mong mga tool** - ang free canvas (Design, inilarawan sa itaas) ang nagpapagawa sa iyo ng isa nang biswal, walang kailangang code.
-
-## Tunog at accessibility
-
-Layunin ng Lolly na maging kumportableng gamitin para sa lahat. Nanabigahan ang interface sa keyboard, may wastong label ang mga custom na control para sa mga screen reader at ang buhay na preview ng bawat tool ay inilalabas bilang isang naka-label na larawang naglalarawan ng ginagawa nito.
-
-May marahang layer ng **assistive sounds** na nagpapatunay sa ginagawa mo - ang pagdating sa gallery, isang wasto laban sa hindi wastong pagsusuri ng Content Credentials, ang pagsara ng isang panel, ang paglipat ng filter. **Naka-off ito bilang default**: i-on ang **Sound** saanman lumitaw ang switch (sa options popover ng bawat view, o sa **Mga Setting**), at naaalala ang pinili mo.
-
-May apat na opt-in na comfort setting sa ilalim ng **Mga Setting → Accessibility**: ang **Reduce motion** (inaalis ang mga transition at palamuti ng app), ang **Hide colourful previews** (mahinahong icon-at-teksto na gallery card, at mas tahimik na project thumbnail), ang **High contrast** (mas malakas na border, teksto at focus ring) at ang **Large text** (mas malaking tipo ng app - mga label, menu, teksto ng button). Ang apat ay pinapakalma ang app *sa paligid* ng gawa mo: hindi sila kailanman umaabot sa loob ng isang tool canvas o nagbabago ng kahit isang pixel ng ini-export mo, at naka-off ang bawat isa hangga't hindi mo ino-on. Buong detalye sa [Ang profile mo → Accessibility](/info/profile.html#accessibility).
-
-Sa tabi ng Sound na switch ay ang **Neurospicy Mode** - isang opsyonal at nakakakalmang background focus track na tahimik na tumutugtog habang nagtatrabaho ka. Ang pag-on nito ay nagbubukas ng maliit na **player dock** sa ibabang sulok na sumusunod sa iyo sa buong app; mula rito ay puwede kang maghanap at pumili ng track, lumaktaw pasulong at paurong, itakda ang lakas at i-minimise o isara ito. Sumasaklaw ang listahan ng track sa ilang kategorya - mga procedural na himig ng *Lolly Sings*, ambient na loop at beat, sarili mong na-upload na audio at ilang live na internet **radio** na istasyon (kailangan ng koneksyon ang mga ito; offline na tumutugtog ang lahat ng iba). **Naka-off ito bilang default** at, gaya ng Sound, naaalala ito sa lahat ng session at device. Ang pag-off sa Sound ay pinapatahimik din ang focus track.
-
-## Imbakan at privacy
-
-Iniingatan ng Lolly ang gawa mo sa device mo: sa sariling imbakan ng browser na ito sa web app, at sa sariling imbakan ng app sa desktop at mobile app. Kung ano ang iniingatan, kung ano ang tinatanggal ng **Burahin ang lahat ng aking data** at kung ano ang kasamang nawawala kapag binura ang data ng browser ay nasa [Hanapin at bawiin ang gawa mo](/info/find-your-work.html#if-you-clear-your-browser-data); inililista ng [Patakaran sa Privacy](/info/privacy.html) ang lahat ng kinukuha o ipinapadala ng app, at ng [Server Surface](/info/server-surface.html) ang mga opsyonal na bahagi ng server.
-
-## Paglipat sa ibang device
-
-Para dalhin ang gawa mo sa pangalawang computer o telepono, gamitin ang Sync, ang isang backup file o ang isang `.lolly` file. Ikinukumpara ng [Ilipat ang gawa mo sa ibang device](/info/find-your-work.html#move-your-work-to-another-device) ang tatlo at inaakay ka sa **I-export ang data ko** at **I-import ang data…**.
-
-## Pag-import ng disenyo (Figma, Penpot, Illustrator, InDesign)
-
-Puwede mong dalhin sa Lolly ang isang umiiral na disenyo at ipagpatuloy ang trabaho rito: buksan ang **Design**, i-click ang **Import a design** sa canvas toolbar, at pumili ng Figma na **.fig** o SVG, Penpot na **.penpot**, Illustrator na **.ai** / **.pdf** o InDesign na **.idml**. Nagiging mae-edit na box sa free canvas ang mga layer - nananatiling matitipa muli ang teksto, napupunta sa **My images** ang mga larawan at umaayon ang tipo at mga kulay sa mga brand global - tapos ang resulta ay nase-save, naibabahagi at nire-render gaya ng anumang ibang session. Ganap na nangyayari sa device mo ang pag-parse. Buong detalye: **[Pag-import ng disenyo](/info/design-import.html)**.
-
-## Pag-export
-
-Tingnan ang **[Pag-export at mga format](/info/exporting.html)** para sa buong kuwento - pagpili ng format, laki ng output at mga print unit, transparency, video at copy/share. Sa madaling salita: pumili ng format, itakda ang laki kung kailangan at **Download** (o **Copy** papunta sa clipboard).
-
-## Batch (Pro) mode
-
-Para sa mga power user, nagre-render ang **Batch** (naka-link mula sa gallery, nasa likod ng Pro feature flag, na naka-on bilang default) ng maraming baryasyon nang sabay - isang grid kung saan ang bawat row ay isang set ng mga input, na sabay-sabay na ini-export. Mainam para sa paglo-localise ng isang card sa isang dosenang wika o sa paggawa ng bawat baryasyon ng laki sa iisang pasada. Punan ang mga row sa pamamagitan ng pagtatype, pag-paste diretso mula sa spreadsheet o pag-import ng CSV (puwede ka ring mag-export pabalik ng isa), at itakda ang format, laki at output filename kada row. I-save ang buong grid bilang isang pinangalanang **batch session** na muling bubukas mula sa gallery, at i-download ang bawat row bilang iisang `.zip`.
-
-![Ang batch toolbar - pangalan ng zip, unit, DPI, at ang format na minamana ng bawat row, may Sessions at Render sa kanan](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
-
-Ang Batch ay para sa paggawa ng **maraming baryasyon ng iisang template** nang sabay. Para i-render muli ang mga session na **naka-save mo na**, gamitin ang **Mga Project → I-render ang folder / I-render ang selection** (tingnan ang [Hanapin at bawiin ang gawa mo](/info/find-your-work.html#find-something-you-saved)) - hindi kailangan ng Pro.
-
-## Magkatabing pag-edit (Multi-edit)
-
-Ang Batch ay maraming variant ng *isang* disenyo. Ang **Multi-edit** ang kalahati pang bahagi ng trabaho: maraming **magkakaibang** naka-save na disenyo na bukas nang sabay-sabay, kaya isang pagbabago ang aaplikado sa lahat ng ito. Mag-tick sa pagitan ng **dalawa hanggang walo** na naka-save na session sa **Projects** at piliin ang **Edit together** mula sa selection bar; bubukas ang mga ito bilang live na card magkatabi sa `#/multi?s=<slot>,<slot>…`. Bawat card ay isang tunay na render ng session na iyon, hindi isang naka-imbak na thumbnail, kaya kung ano ang nakikita mo ay kung ano ang ie-export nito.
-
-Isang sidebar ang nagpapatakbo sa lahat:
-
-- <!--i:sliders--> **Shared** ang nangunguna - bawat input na idineklara ng dalawa o higit pa sa mga napiling session sa *parehong paraan* (parehong id, parehong uri, parehong constraint - ang parehong merge rule na ginagamit ng batch grid sa mga column nito). I-edit nang minsan ang isang shared na control at kakalat ang halaga sa bawat session na nagdedeklara nito, buhay sa bawat card. Ang dalawang session ng parehong tool ay nagbabahagi ng lahat; ang dalawang magkaibang tool ay nagbabahagi ng anumang nagkataong pareho sa kanila, at wala nang iba.
-- <!--i:document--> Sa ilalim nito, **isang nakatiklop na card kada session** kasama ang lahat ng sariling input ng session na iyon, sa parehong katapatan ng sariling sidebar ng tool - mga asset picker, paulit-ulit na row group, colour field - kasama ang isang siksik na export block: **Format**, **W** / **H**, **Unit**, **DPI** at sarili nitong **Download**. Ang Download na iyon ay sine-save muna ang session at saka ito nire-render sa karaniwang session-export na daan, kaya dala ng file ang parehong filename, format at Content Credentials na dadalhin nito kung diretso mula sa tool.
-- <!--i:search--> Ang **Filter inputs…** sa itaas ay pinapaliit ang mga control sa *bawat* card nang sabay - at ganoon mo naaabot ang "ang headline" sa walong session nang hindi ito hinahanap sa scroll.
-
-I-click ang alinmang canvas (o pindutin ang Enter dito) at bubukas ang sidebar card ng session na iyon at lilitaw ito sa view. Ang **Save all** ay isinusulat pabalik ang bawat session sa sarili nitong slot. Ang **Download all** ay nagse-save muna, tapos nire-render ang buong set sa parehong pipeline ng **Render selection** ng Projects - isang zip, kasama ang opsyonal na password lock na inaalok sa daan.
-
-Dalawang tapat na limitasyon. Totoo ang hangganang dalawa-hanggang-walo: bawat card ay nagta-mount ng sarili nitong live runtime, at iyon ang bilang na nananatiling maagap - ang link na humihingi ng higit pa (o ng session na wala na) ay sasabihin ito sa halip na mag-load nang kalahati. At pinangangalanan ng link ang *iyong* mga naka-save na slot, kaya muli nitong binubuksan ang set na iyon sa device na ito; hindi ito isang share link.
-
-Kapag mas malaki sa walo ang napili, may halong iba't ibang tool o may kasamang mga larawan bukod sa mga session, ang labasan ay ang **Edit as sheet** sa parehong selection bar: binubuksan nito ang buong napili bilang **mga row sa batch grid** (`#/pro?s=…`), walang limitasyon sa laki at walang panuntunang iisang tool. Wala sa dalawa ang mga folder - may sarili silang daan ng pagbukas sa grid. (Ang [Search](/info/search.html) ang isang bagay na hindi pa umaabot dito: ang Multi-edit ang tanging view na hindi kilala ng search bar.)
-
-## Offline at pag-install
-
-Ang Lolly ay isang PWA. Patuloy itong gumagana **offline** sa mga screen na nabuksan mo na, at dina-download ng **Ang app** sa ilalim ng **Mga Setting → Magagamit offline** ang iba pa - i-install ito mula sa address bar ng browser mo (o *Add to Home Screen* sa mobile) para sa isang parang-app at full-screen na karanasan. Nag-a-update ito nang mag-isa kapag online ka na muli.
-
-Tungkol sa mga update: kung hindi ma-load ang isang view kaagad pagkatapos ng isang update (isang blangkong panel, isang "failed to fetch" sa sulok), i-reload ang page nang isang beses - kukunin ng app ang bagong bersyon nang malinis at hindi maaapektuhan ang na-save mong gawa, session, at brand; isang larawan lang na idinagdag mo pero hindi na-save ang maaaring kailanganin mong idagdag ulit. Iniimbak nito ang lahat sa device mo, hindi sa page.
-
-Kayang panatilihin ng Design at Darkroom ang orihinal na image precision gamit ang **Wide colour / HDR** na pag-edit, kasama ang Sequence video. Puwedeng magdala ang mga brand swatch ng hiwalay na sRGB at P3 na value. Tingnan ang [Pag-edit ng Wide colour at HDR](/info/hdr-editing.html) para sa mga pagpipilian sa output at kasalukuyang limitasyon.
-
-
-### Live pages that take the clicker
-
-Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).
+## Settings, tunog at ginhawa
+
+Hawak ng **Settings**, sa paanan ng home screen, ang mga detalye mo, mga design system mo, accessibility, storage at offline download. Inilalarawan ng [Settings](/info/dashboard.html) ang bawat tab.
+
+- Ang **mga detalye at headshot mo** ay pumupuno sa anumang tool na ginawang gumamit sa kanila, tulad ng email signature o badge. Sinasaklaw ng [Mga profile](/info/profile.html) ang mga ito.
+- Ang **Accessibility** ay may apat na comfort switch: **Reduce motion**, **Hide colourful previews**, **High contrast** at **Large text**. Binabago nila ang app sa paligid ng gawa mo, hindi kailanman ang tool canvas o export.
+- Ang **Sound** ay nagpapatugtog ng mahihinahong assistive na tunog para sa ginagawa mo, at ang **Neurospicy Mode** ay nagpapatugtog ng kalmadong focus track. Parehong naka-off hanggang i-on mo, sa **Settings → Accessibility** o sa profile menu.
+- Dina-download ng **Available offline** ang natitirang bahagi ng app, mga tool mo, ang catalogue at ang mga gabay bago ka mawalan ng koneksyon. Ang Lolly ay web app na puwede mong i-install: gamitin ang install button ng browser mo, o *Add to Home Screen* sa phone, para sa full-screen na app na nag-a-update mismo kapag online ka ulit.
+- Ipinapakita ng **Storage** kung ano ang iniingatan ng Lolly sa device na ito. Ipinapaliwanag ng [Kung i-clear mo ang browser data mo](/info/find-your-work.html#if-you-clear-your-browser-data) kung ano ang inaalis ng pag-clear, at inililista ng [Privacy Policy](/info/privacy.html) ang lahat ng kinukuha o ipinapadala ng app.
+
+::: note Kung hindi ma-load ang view pagkatapos ng update
+Ang blangkong panel o mensaheng "failed to fetch" pagkatapos lang ng update ay kadalasang nawawala sa isang reload. Hindi nagagalaw ang naka-save mong gawa, mga session at design system, dahil naka-store ang mga ito sa device mo. Ang larawang idinagdag mo at hindi kailanman na-save lang ang maaaring kailangang idagdag muli.
+:::
+
+## Saan susunod
+
+- **[Design: ang malayang canvas](/info/design.html)**: ang canvas, mga hugis, ang timeline at pagpe-present ng deck.
+- **[Batch at Multi-edit](/info/batch.html)**: maraming bersyon ng isang design, o ilang naka-save na design na sabay na ine-edit.
+- **[Mag-export ng file](/info/exporting.html)**: pagpili ng format, laki, print unit, transparency at video.
+- **[Import a design](/info/design-import.html)**: dalhin ang Figma, Penpot, Illustrator o InDesign file sa Design at ituloy ang pag-edit.
+- **[Mga template](/info/templates.html)**: naka-save na panimulang punto para sa tool.
+- **[Wide Colour at HDR](/info/hdr-editing.html)**: panatilihin ang orihinal na precision ng larawan sa Design at Darkroom.
+- **[Hanapin at bawiin ang gawa mo](/info/find-your-work.html)**: kung nasaan ang lahat, at kung paano ilipat ito sa ibang device.

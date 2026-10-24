@@ -1,5 +1,5 @@
 {
   "name": "Darkroom",
-  "description": "Un cuarto oscuro profesional para el revelado de fotos: looks de película, LUTs .cube de terceros, tratamientos de color de tu sistema de diseño y textura de acabado - luego convierte tu look en una LUT que cualquier editor puede usar. También abre archivos de Photoshop o GIMP como capas: posiciona, mezcla y oculta cada una, gradúa la composición y exporta imágenes planas o un PSD por capas.",
+  "description": "Etalona fotos y vídeo con estilos de película, presets XMP de Adobe, LUT .cube y los colores de tu sistema de diseño. Reutiliza un estilo con la exportación de LUT o Etalonar un vídeo. Abre capas de Photoshop y GIMP para colocar, mezclar y exportar imágenes.",
   "featured.blurb": "Gradúa fotos con looks de película, LUTs y los colores de tu marca"
 }

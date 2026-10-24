@@ -1,6 +1,6 @@
 {
   "name": "Degradado",
-  "description": "Degradados suaves tipo malla a partir de los colores de tu marca. Arrastra los puntos de color directamente en el lienzo, o activa Deriva y exporta el bucle como WebM, MP4 o GIF.",
+  "description": "Cinco formas de crear un degradado con las muestras del sistema de diseño: Mezcla radial suave, una malla real de parches de Coons como SVG nítido (Subdividir) o ráster suave (Malla), puntos de Deformación libre y las ondas animadas de Flujo. Arrastra todo directamente en el lienzo; exporta imágenes fijas o bucles de vídeo sin cortes.",
   "a11yLabel": "Degradado de malla que combina {{count}} colores",
   "inputs.count.label": "Puntos de color",
   "inputs.color1.label": "Color 1 (base)",

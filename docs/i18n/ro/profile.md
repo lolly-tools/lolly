@@ -1,154 +1,97 @@
-# Profiluri - cine ești când creezi
+# Profiluri
 
-Un **profil** este identitatea de lucru sub care creează Lolly. Este micul set de detalii din care un instrument poate extrage, ca să nu le retastezi de fiecare dată - numele tău, datele de contact, o fotografie de profil opțională, câteva preferințe - plus tot ce acumulezi în timp ce lucrezi: sesiuni salvate, imagini încărcate și contorul local de activitate.
+Setează o dată numele, datele de contact și fotografia, iar fiecare instrument făcut să le folosească le completează pentru tine: o semnătură de email, un ecuson, un card de vorbitor. Acea mică înregistrare este **profilul** tău și trăiește pe dispozitivul tău.
 
-Tot ce ține de un profil trăiește **pe dispozitiv**, în baza de date locală a browserului (IndexedDB pe web PWA, sistemul de fișiere pe aplicațiile Tauri). Nu există cont și nimic nu este încărcat. Îl gestionezi sub **Setări → Preferences** (în subsol sau în meniul de avatar); instrumentele doar îl *citesc*, și doar câmpurile specifice pentru care au fost construite să le precompleteze.
-
-> Setările aduc profilul tău și fostul Dashboard într-o singură destinație. **Preferences** ține datele tale și alegerile personale; **Acest dispozitiv**, **Sistem de design**, **Capabilități** și **Activitate & statistici** stau alături de el. Vezi [Setări](/info/dashboard.html) pentru harta completă.
+Profilul tău conține și ce acumulezi cât lucrezi: sesiuni salvate, imagini încărcate și numărătoarea locală a activității tale. Îl gestionezi în **Settings → Preferences**; instrumentele citesc doar câmpurile pentru care au fost făcute să le completeze. Folosirea de sine stătătoare nu necesită cont, iar Sync opțional, partajarea și serviciile organizației au fiecare propriile fluxuri de date, descrise mai jos.
 
 ## Ce conține un profil
 
 | Parte | Ce este |
 |---|---|
-| **Nume** | Prenume și nume de familie. |
+| **Name** | Prenume și nume. |
 | **Contact** | Email și telefon. |
-| **Locație** | Oraș și țară. |
-| **Fotografie de profil** | O fotografie opțională, decupată pătrat și păstrată ca imagine locală. Folosită de instrumente precum semnăturile de email, cardurile cu citate, organigramele și layout-urile dinamice. |
-| **Use my details to create** | Un singur comutator opt-in (afișează **Using my details** odată activat). Controlează dacă detaliile tale personale sunt incluse ca **proveniență** - linia de autor/credit încorporată în fișierele exportate - și ca autor la rulările în lot **/pro**. (Nu condiționează pre-completarea: vezi [How tools use your profile](#how-tools-use-your-profile).) |
-| **Preferințe** | Tema ta (Light, Dark sau Brand - tema de brand colorează aplicația în propria ta paletă) și ce părți ale aplicației ai activat prin **Feature flags**. |
-| **Accesibilitate** | Patru comutatoare de confort - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - păstrate în înregistrarea profilului, deci sunt incluse la exportul unui profil. Vezi [Accessibility](#accessibility). |
-| **Munca ta** | Sesiuni salvate (cu miniaturi) - organizate în foldere imbricate în **[Projects](/info/using.html)** - biblioteca ta **My images** și statisticile locale de activitate, toate asociate acestui profil. |
+| **Location** | Oraș și țară. |
+| **Headshot** | O fotografie opțională, decupată pătrat și păstrată ca imagine locală, pentru instrumente precum semnăturile de email, cardurile de citate și organigramele. |
+| **Use my details to create** | Un singur comutator opt-in (scrie **Using my details** după ce e activat). Decide dacă detaliile tale călătoresc drept credit de autor în fișierele exportate și în rulările Batch. Nu afectează completarea automată; vezi [Cum folosesc instrumentele profilul tău](#how-tools-use-your-profile). |
+| **Preferences** | Tema, setările de accesibilitate și ce părți ale aplicației ai activat în **Feature flags**. |
+| **Your work** | Sesiuni salvate cu miniaturile lor, organizate în [Projects](/info/find-your-work.html), imaginile încărcate și statisticile locale de activitate. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Nimic nu este obligatoriu. Un profil gol funcționează; completează doar ce îți scutește tastarea.
 
-![Ecranul Profil - nume, contact, o fotografie de profil opțională și preferințele tale](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Settings, fila Preferences: bara de setări și Your details cu comutatorul Use my details to create și câmpurile de nume, contact și locație](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-Nimic din toate acestea nu este obligatoriu. Un profil gol este un profil perfect valid; completezi doar ce îți economisește tastarea.
+[Settings](/info/dashboard.html) cartografiază tot restul din Preferences, de la aspect și emoji la stocare și descărcări offline.
 
-Pagina este lungă, așa că are propriul **rail de setări** pe lateral - Datele tale, Aspect, Accesibilitate, Instanță Lolly, Activitatea ta, Stocare, Disponibil offline, Funcții experimentale, Content Credentials - cu un câmp **Caută în setări** deasupra lui, care filtrează lista pe măsură ce tastezi. Fiecare secțiune poate fi accesată direct printr-un link de forma `#/settings?focus=<section-id>`, care o deschide și o derulează în vizor (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, și așa mai departe), astfel încât un link poate indica o singură setare, nu doar începutul paginii.
+## Tu, o echipă sau un rol
 
-![Trei carduri de temă, fiecare previzualizând propriul tip și propria culoare, cu cel activ marcat](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Cuvântul „profil” sugerează o persoană fixă. În Lolly este mai aproape de un context de creație: cine ești cât faci acest lucru. Poate lua trei forme, iar Lolly le tratează pe fiecare la fel.
 
-## Un profil este un context, nu doar o persoană
+::: cols
+## Ca tine însuți
 
-Cuvântul „profil" sugerează o singură persoană fixă, dar în Lolly este de fapt un **context de creație** - *cine ești cât timp creezi acest lucru*. Acel context poate lua trei forme diferite, iar Lolly le tratează pe toate la fel.
+Implicit. Numele, emailul, fotografia ta. Setează o dată și semnătura, ecusonul și lockup-ul de conferință se completează singure.
 
-### Ca individ
+## Ca echipă
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+Numele comun al unei echipe, o căsuță de grup precum `events@…`, un departament și emblema echipei. O persoană o configurează și o exportă, iar toți ceilalți încarcă același profil, deci fișierele echipei poartă detalii consecvente. Un kiosk comun sau un laptop demo poate rula un profil de echipă.
+
+## Ca rol
+
+Un manager de evenimente care are nevoie trei zile pe an de căsuța evenimentului și de sub-brandul evenimentului pe ecusoane și semnalistică, apoi își recapătă identitatea obișnuită. Păstrează acel rol ca fișier de profil salvat, încarcă-l pentru eveniment și pune-l deoparte după aceea.
+:::
 
 ![Controlul pentru fotografia de profil, gol până încarci o fotografie care apoi rămâne pe acest dispozitiv](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-### Ca echipă
+::: details Profiluri într-o organizație care folosește Lolly Work
+Când te autentifici în [Lolly-ul unei organizații](/info/organisation.html), Lolly Work poate furniza câmpuri de profil verificate de la furnizorul ei de identitate și poate fixa câmpuri sau preferințe sub politica organizației. Un câmp administrat este etichetat în aplicație.
 
-Un profil nu trebuie neapărat să fie o singură persoană. Poate reprezenta o **echipă sau o funcție dintr-o organizație**: numele comun al echipei, o adresă de inbox de grup (`events@…`), un departament, fotografia echipei sau semnul unității. O persoană îl configurează, îl exportă (vezi mai jos), iar restul echipei încarcă același profil - astfel încât tot ce produce echipa poartă detalii consistente, fără ca nimeni să le reintroducă. Un chioșc partajat sau un laptop demo predat poate rula un singur profil de echipă sub care creează toată lumea din spatele lui.
+Acea autentificare controlează și accesul la proiecte și resurse comune. Un fișier de profil de echipă rămâne un fișier local: nu acordă apartenența la organizație și nu înlocuiește un cont Work. **Use my details to create** controlează creditul din exporturile tale, nu autentificarea sau înregistrările de audit ale organizației. Vezi [Confidențialitate](/info/privacy.html#organisation-services-with-lolly-work).
+:::
 
-### Ca funcție - un rol pe care îl porți uneori
+## Păstrează mai multe, folosește unul
 
-Acesta este cazul pe care modelul rigid „o persoană, un profil" îl ratează. Ai putea fi **manager de eveniment trei zile pe an** și cu totul altceva restul timpului. În acele trei zile vrei detaliile evenimentului, inboxul evenimentului, poate un sub-brand de eveniment care să-ți completeze ecusoanele și semnalistica; celelalte 362 vrei identitatea ta normală înapoi.
+O instalare are un singur profil activ la un moment dat și nu există comutator în aplicație. În schimb, fiecare profil este un fișier portabil, același fișier de backup pe care l-ai folosi ca să te muți pe un dispozitiv nou. Ca să intri în alt context:
 
-În Lolly, acel rol este pur și simplu **un alt profil pe care îl păstrezi la îndemână** - un pachet salvat (secțiunea următoare) pe care îl încarci pentru eveniment și îl pui deoparte după. Rolul este o pălărie, nu un cont nou. Pune-l când ai nevoie, scoate-l când ai terminat.
+::: timeline
+- <!--i:download--> **Export my data** din **Settings → Storage → Move to another device** salvează profilul curent ca un singur `.zip`.
+- <!--i:trash--> **Clear all my data** golește această instalare.
+- <!--i:upload--> **Import data…** încarcă fișierul de profil pentru contextul în care intri.
+:::
 
-## O instalare, un profil activ - poți păstra multe
+Importul fără ștergere prealabilă **îmbină**. Sesiunile și imaginile importate sunt adăugate; unde există ambele copii, este păstrată cea salvată mai recent. Dosarele, favoritele și șabloanele sunt adăugate lângă ale tale, iar propriile detalii rămân, în afară de câmpurile goale, care iau valorile fișierului. Asta se potrivește pentru a aduce sesiunile unei echipe în configurația ta, dar nu pentru o ruptură clară între roluri.
 
-În orice moment, o instalare are **un singur profil activ** - detaliile pe care le vede un instrument chiar acum. Nu există un comutator de profiluri în aplicație; în schimb, fiecare profil este un **pachet portabil** (un singur `.zip`, vezi [mai jos](#moving-a-profile-to-a-new-device)). Acesta este, în mod deliberat, același mecanism ca mutarea pe un dispozitiv nou - un profil este un fișier pe care îl poți salva, copia și încărca.
-
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-- <!--i:trash--> **Comutarea cea mai curată:** **Setări → Preferences → Stocare → Șterge toate datele mele**, apoi **Importă** pachetul pentru contextul în care intri. Acum creezi exclusiv sub acel profil.
-- <!--i:layers--> **Suprapunere:** importul *fără* a curăța mai întâi **suprapune** - sesiunile și imaginile importate se așază peste ce există deja; când există același element pe ambele părți, este păstrată copia salvată mai recent, iar restul rămâne neatins. Folderele, favoritele și șabloanele sunt adăugate la ale tale, iar propriile tale detalii și setări rămân. Util pentru a prelua sesiunile salvate ale unei echipe în propria configurație; nu ce vrei dacă ai nevoie de o delimitare clară de rol.
-- <!--i:monitor--> **Unul lângă altul:** pentru că totul este limitat la nivel de dispozitiv, un profil de browser separat, un cont de utilizator separat sau o a doua instalare PWA poartă fiecare propriul profil Lolly independent. Rulează simultan instalarea ta personală și instalarea de chioșc pentru eveniment, fără să comuți.
-
-Deci dacă chiar jonglezi cu mai multe contexte (tu, echipa ta, pălăria de manager de eveniment), păstrezi mai multe pachete și încarci pe cel de care ai nevoie:
-
-![Contorul de stocare, care detaliază sesiunile salvate, imaginile și cache-ul în raport cu ce raportează efectiv browserul](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-> Păstrează un pachet per context și redenumește fișierele după ce reprezintă (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Fișierul *este* profilul.
-
-## Accesibilitate
-
-**Setări → Preferences → Accesibilitate** conține patru setări de confort pentru aplicația *din jurul* muncii tale. Fiecare este dezactivată până o activezi, și niciuna nu ajunge în interiorul canvasului unui instrument sau al unui export - o aplicație mai calmă nu trebuie să mute niciun pixel din fișierul pe care îl livrezi.
-
-- <!--i:film--> **Reduce motion** - dezactivează tranzițiile, glisările și înfloriturile animate din aplicație. Canvasul instrumentului tău și orice export animat continuă să se miște exact așa cum au fost concepute.
-- <!--i:image--> **Hide colourful previews** - înlocuiește ilustrațiile de previzualizare din galerie cu carduri calme, cu pictogramă și text, și reduce culoarea și contrastul miniaturilor proiectelor tale, astfel încât rămân recognoscibile fără să „strige”. În interiorul unui instrument, totul se afișează în culori complete.
-- <!--i:sliders--> **High contrast** - întărește marginile, textul și inelele de focalizare ale aplicației. Culorile brandului tău și tot ce se află pe canvas rămân exact așa cum le-ai stabilit.
-- <!--i:font--> **Large text** - mărește tipul de literă al aplicației: etichete, meniuri și text de buton. Controalele își păstrează dimensiunea, deci doar cuvintele din interiorul lor devin mai mari, iar tipul de literă din designurile tale rămâne neatins, deci nimic din ce exporți nu se rearanjează.
-
-Acestea sunt stocate chiar în înregistrarea profilului, motiv pentru care sunt incluse la exportul unui profil și ajung pe următoarea instalare alături de numele tău și de sesiunile tale. (Dispozitivul mai păstrează și o mică oglindă locală, astfel încât setarea se aplică înainte de primul randaj; acea oglindă este exclusiv locală și nu călătorește.)
-
-## Instanța ta Lolly
-
-**Setări → Preferences → Instanță Lolly** spune de unde își ia această instalare instrumentele și catalogul - adresa instanței, sau *Inclus cu această aplicație* când totul vine în interiorul build-ului. Acolo unde un deployment oferă unul, un link **Consola instanței** deschide suprafața lui de administrare, **Schimbă** reorientează instalarea, iar **Părăsește** elimină sistemul de design, instrumentele și catalogul instanței, în timp ce propria ta lucrare rămâne (vezi [Folosește Lolly în organizația ta](/info/organisation.html#leaving)).
-
-Repoziționarea către o altă instanță necesită **aplicația desktop**: un browser blochează o pagină să încarce instrumente și active din alte origini, deci pe web secțiunea raportează unde te afli și se oprește acolo.
-
-## Disponibil offline
-
-Lolly pune în cache pe măsură ce înaintezi, dar acest cache progresiv acoperă doar locurile prin care ai trecut deja. **Setări → Preferences → Disponibil offline** este pentru călătoria pe care o vezi venind: o oră pe wifi de aeroport înainte de un zbor fără conexiune. Descarcă părțile de care vei avea nevoie, urmărește o singură bară de progres, iar tot ce ai luat continuă să funcționeze odată dispărută conexiunea.
-
-Șapte părți, fiecare cu dimensiunea afișată înainte să te angajezi:
-
-- <!--i:layout--> **Aplicația** - fiecare vizualizare, editor și font, inclusiv cele pe care nu le-ai deschis încă. Fără aceasta, un ecran pe care nu l-ai vizitat niciodată online nu se poate încărca offline.
-- <!--i:image--> **Catalog** - active de brand dincolo de cele esențiale. Ia-le pe toate, sau deschide *Choose by tag* și ia doar etichetele pe care le folosești.
-- <!--i:book--> **Ghiduri și documentație** - acest site de documentație, în limba ta, inclusiv capturile de ecran.
-- <!--i:cpu--> **Voci de sinteză vocală** - modelele de voce din spatele audio-ului Script și al narațiunii. Descărcate o singură dată, apoi rulează pe dispozitiv.
-- <!--i:zap--> **Modele de upscaling** - upscalerele AI pentru imagini: foto, ilustrație/anime și față.
-- <!--i:layers--> **Eliminarea fundalului** - modelele de decupaj pe dispozitiv din spatele funcției *Remove background*.
-- <!--i:shield--> **Scanare profundă Verify** - scanerul de filigrane pe dispozitiv, pentru verificarea Content Credentials fără conexiune.
-
-Ultimele patru sunt marcate **descărcare mare** și sunt în mod deliberat opțiuni individuale: **Download everything** din partea de sus preia aplicația, sfera catalogului pe care ai ales-o, documentația și toate uneltele într-o singură trecere și nimic altceva. Vocile de sinteză, upscalerele, eliminarea fundalului și scanarea profundă se descarcă fiecare doar când ceri acel rând pe nume - câteva sute de megaocteți ascunse într-un singur buton ar fi necinstit.
-
-Sub piese se află lista pe unelte: fiecare unealtă se descarcă individual (bifa înseamnă gata pentru offline), sau **Download all** le ia pe toate deodată. Descărcările pot fi reluate - anulezi sau pierzi conexiunea și rularea următoare continuă de unde s-a oprit, preluând doar ce lipsește - și se reîmprospătează singure când ești din nou online, preluând doar ce a schimbat o versiune nouă.
-
-Dacă browserul nu a acordat stocare persistentă, secțiunea spune asta și oferă **Protect downloads**, care o solicită - diferența dintre "descărcat" și "descărcat până când browserul vrea spațiul înapoi".
-
-## Mutarea unui profil pe un dispozitiv nou
-
-Pentru că un profil este în întregime local, există două moduri de a-l aduce pe o instalare goală - un laptop nou, un browser resetat, mașina unui coleg, o cutie offline. **Cară fișierul**, ca mai jos, sau ține-ți dispozitivele sincronizate printr-o stocare pe care o alegi tu, așa cum explică [Sincronizează-ți dispozitivele](/info/sync.html). Niciun login Lolly nu îl restaurează pentru tine, și asta e ideea: nimic nu a ajuns vreodată pe un server Lolly, de la bun început.
-
-Sub **Setări → Preferences → Stocare → Mută pe alt dispozitiv**:
-
-- <!--i:download--> **Exportă datele mele** descarcă un singur fișier `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - numit după profilul căruia îi aparține, cu un număr de secvență zilnic ca exporturile repetate să nu se ciocnească (părțile numelui lipsesc dacă profilul nu le are). Conține profilul tău, fiecare sesiune salvată (cu miniatura ei), imaginile tale încărcate - tokenii tăi de brand și fonturile instalate călătoresc alături ca active de utilizator - și preferințele tale (temă, aspect, statistici locale de activitate).
-- <!--i:upload--> **Importă date…** pe cealaltă instalare citește acel fișier înapoi și continui exact de unde ai rămas. De asemenea, preia o copie pe care [Sync](/info/sync.html) o ține în stocarea ta.
-- <!--i:box--> **Exportă datele mele & randează totul** scrie aceeași copie de rezervă *plus* un al doilea zip care randează fiecare sesiune salvată în fișierul ei final, în foldere care oglindesc Proiectele tale. O arhivă offline completă a surselor și a rezultatelor - și poate fi mare și lentă cu o mulțime de sesiuni.
+Pentru două contexte deodată, folosește un profil de browser separat, un cont de utilizator separat sau o a doua copie instalată a aplicației web: fiecare poartă propriul profil Lolly independent.
 
 ![Cele două butoane care mută o instalare întreagă: Export my data scrie un zip, Import data îl citește înapoi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-Pachetul este un zip simplu, autonom, deci călătorește prin **orice** mijloc - USB, AirDrop, un partaj de rețea, email către tine însuți - iar ținta poate fi complet offline. Fiecare parte are checksum, deci un fișier deteriorat în tranzit este detectat la import, în loc să fie restaurat pe jumătate stricat. Importul **fuzionează** (pentru o sesiune sau imagine cu același nume, este păstrată copia salvată mai recent; folderele, favoritele și șabloanele sunt adăugate; detaliile și setările țintei rămân; tot restul este păstrat), deci nu șterge niciodată o țintă deja în uz.
+> Păstrează un fișier pe context și denumește-l după ce este, precum `LollyTools-events-2026.zip` și `LollyTools-me.zip`. Fișierul este profilul.
 
-Ce nu călătorește: cache-ul de catalog (se re-descarcă singur pe noul dispozitiv) și instrumentele în sine (se presupune că sunt deja prezente).
-
-Pentru structura exactă a pachetului, politica de versiuni și regulile de integritate, vezi **[Data Transfer](/info/data-transfer.html)**; pentru parcursul complet, **[Using Lolly → Moving to another device](/info/using.html#moving-to-another-device)**.
+[Mută-ți munca pe alt dispozitiv](/info/find-your-work.html#move-your-work-to-another-device) acoperă ce conține fișierul, ce rămâne în urmă și celelalte moduri de mutare, inclusiv Sync.
 
 ## Cum folosesc instrumentele profilul tău
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+**Completare automată.** Un autor de instrument marchează o intrare ca extrăgând din profilul tău (`bindToProfile: "firstname"`, `"email"`, `"headshot"` și așa mai departe). Când se deschide instrumentul, acea intrare se completează din profilul tău, iar o poți înlocui pentru o sesiune fără a schimba profilul, dacă o politică a organizației nu blochează intrarea. Completarea automată este o comoditate locală și se întâmplă indiferent dacă **Use my details** este activ.
 
-Un instrument doar *precompletează* câmpurile de profil pentru care a fost construit explicit să se lege:
+**Credit.** Când exporți, detaliile tale pot călători ca credit de autor în metadatele fișierului (PNG, PDF, SVG și altele), deci un fișier terminat poate spune cine a făcut munca. **Use my details to create** guvernează asta, precum și autorul în rulările Batch. Cu el oprit, exportul spune totuși că a fost făcut cu Lolly și nu poartă nicio linie personală de autor sau contact.
 
-**Opțiunea (proveniență).** Când exporți un asset, datele tale călătoresc opțional alături ca **proveniență** - o linie de autor/credit inclusă în metadatele fișierului (PNG, PDF, SVG, …) - astfel încât un asset finalizat poate spune cine l-a creat. *Asta* guvernează **Folosește datele mele pentru a crea**: lasă-l dezactivat și exportul tot poartă atribuția unealtă/platformă "Made with Lolly", dar nicio linie personală de autor/contact nu este inclusă. (Aceeași opțiune setează autorul și pe rulările batch **/pro**.) (Autori de unelte: vezi [Crearea instrumentelor → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) și [API Gazdă → `host.profile`](/info/host-api.html#host-profile).)
+Autori de instrumente: vezi [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) și [`host.profile`](/info/host-api.html#host-profile).
 
-![Singurul comutator Use my details to create, lângă Save Profile și dezactivat până îl pornești](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![Singurul comutator Use my details to create, marcat opt-in și oprit până îl pornești](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## Profil vs. Platformă vs. Capabilități
+## Profil, sistem de design și capabilități
 
-Trei lucruri stau aproape unul de altul în interfață și se confundă ușor:
+Trei lucruri stau aproape în Settings și se confundă ușor:
 
-- <!--i:people--> **Profile** - *tu* (sau echipa ta, sau rolul pe care îl ai): nume, contact, fotografie, munca ta salvată. Personal, local pe dispozitiv, portabil ca pachet.
-- <!--i:palette--> **Platform** - *brandul*: culori, fonturi și setări globale față de care randează fiecare unealtă. Partajat și consistent, nu personal.
-- <!--i:sliders--> **Capabilities** - *ce poate face aplicația*: setul complet de funcții și uneltele disponibile pentru tine.
+- <!--i:people--> **Profile** - tu, echipa ta sau rolul în care ești: nume, contact, fotografie și munca salvată. Personal, păstrat pe dispozitiv și portabil ca fișier.
+- <!--i:palette--> **Design system** - brandul: culorile, fonturile și setările cu care randează fiecare instrument. Comun și consecvent, nu personal; vezi [Design System Setup](/info/brand-studio.html).
+- <!--i:sliders--> **Capabilities** - ce poate face aplicația: funcțiile și instrumentele disponibile pentru tine.
 
-Un profil schimbă de la *cine* provine o resursă; platforma schimbă *cum arată*; capabilitățile sunt *ce poți crea*.
+Un profil schimbă de la cine este un fișier; sistemul de design schimbă cum arată fișierul; capabilitățile sunt ce poți face.
 
-### „Profil" mai înseamnă alte două lucruri în altă parte - nu pe acesta
-
-Cuvântul are mai multe sensuri diferite în tot proiectul. Niciunul dintre acestea nu este profilul personal despre care vorbește această pagină:
-
-- <!--i:box--> **Content profile** - o configurație la momentul compilării în `profiles.json` care leagă un set de pachete de unelte de un catalog de brand (de ex. `suse`, `lolly-start`). Este ceea ce alege un operator la desfășurare, și este ceea ce selectează și **parametrul URL/CLI** `profile` - o variantă de *culoare* la export (condiția de tipar ICC/CMYK - vezi [URL Mode](/info/url-mode.html)). Ambele privesc *compilarea/rezultatul*, nu pe *tine*. Vezi [Configuration](/info/configuration.html).
-- <!--i:seal--> **Identity profile** - **identitatea Content Credentials verificată** opțională pe care o poți înregistra (un certificat pe termen scurt care leagă emailul tău de exporturile tale semnate). Aceasta este o identitate de semnare, separată de câmpurile nume/contact ale profilului personal, deși **Use my details to create** guvernează dacă oricare dintre ele este inclus. Vezi [Content Credentials Identity](/info/content-credentials-identity.html).
+Cuvântul are alte trei sensuri în Lolly. Un **content profile** este o setare de build care alege ce instrumente și catalog livrează o instalare; [Glosar](/info/glossary.html) definește termenul. Parametrul de link `profile` alege un profil de culoare pentru un export, precum o condiție de tipar CMYK; vezi [Parametrii URL rezervați](/info/url-parameters.html#print). O **verified identity** este certificatul opțional de semnare care leagă emailul tău de exporturile semnate, separat de aceste detalii, deși **Use my details to create** guvernează dacă vreunul este încorporat; vezi [Content Credentials](/info/content-credentials-identity.html).
 
 ![Cardul Verified identity, lățime de telefon: selectorul duratei certificatului și pasul de înregistrare de sub el - profilul de identitate, separat de datele tale personale](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Confidențialitate
 
-În afara înregistrării opționale de identitate de mai sus (care trimite emailul cu care te înregistrezi către serviciul de certificate - vezi [Suprafața serverului](/info/server-surface.html)), un profil nu este niciodată transmis, încărcat sau folosit pentru a te identifica sau urmări - nu e nimic la care să consimți, doar această notificare ca să știi ce se păstrează. Șterge totul oricând cu **Setări → Preferences → Șterge toate datele mele**. Vezi [Politică de confidențialitate](/info/privacy.html).
+Profilul tău personal este stocat local. Detaliile tale pot călători într-o copie de siguranță sau Sync, în conținutul pe care îl partajezi sau exporți și în timpul înrolării opționale pentru Content Credentials. Pe o instanță Lolly Work, autentificarea, munca comună, politica de telemetrie și înregistrările de audit sunt separate de acest profil local. **Settings → Preferences → Clear all my data** șterge acest dispozitiv; nu șterge copiile păstrate de furnizorul tău de stocare sau de organizație. Vezi [Politica de confidențialitate](/info/privacy.html).

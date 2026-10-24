@@ -1,346 +1,363 @@
-# Das Brand Studio
+# Design System Setup
 
-Das **Brand Studio** unter `#/start` ist der eine Ort, an dem Sie Ihre Marke gestalten - ihre Logos, Farben, Schrift, den Rest Ihrer Token und die Dateien, die sie verwahrt. Legen Sie es hier einmal fest, und jedes Tool, jede Seite und jeder Export folgt ihr *konstruktionsbedingt*, nicht durch Prüfung.
+Ihr Logo, Ihre Farben und Schriften gehören an einen Ort, damit jedes Tool, jede Seite und jeder Export mit ihnen zeichnet. Dieser Ort ist **Design System Setup** unter `#/start`, und sein Leitsatz sagt, wofür es da ist: *Make it yours*.
 
-Änderungen zeigen sich **live in der gesamten App** in der Vorschau, während Sie sie vornehmen, sodass Sie sehen können, wie eine Farbe oder Schrift überall ankommt, bevor Sie sie festschreiben. Alles läuft auf dem Gerät: Ihre Markendateien und Token verlassen nie Ihren Rechner (die Auswahl einer Google-Schrift lädt diese eine Schriftfamilie einmalig von Google, nach einem Zustimmungsdialog), und die Marke reist als einzelne [Brand-Pack](#move-a-brand-between-devices)-Datei.
+Beginnen Sie mit dem, was Sie haben. Legen Sie ein Logo ab, und Lolly liest seine Farben. Wählen Sie eine Schrift oder legen Sie die Schriftdatei ab, die Ihr Unternehmen lizenziert hat. Jede Änderung zeigt sich sofort in der ganzen App. Ihr Logo, Ihre Schriften und Tokens bleiben auf diesem Gerät. Eine Google Font zu wählen ist der eine Schritt, der nach außen greift: Lolly fragt zuerst, dann holt es die Familie einmal.
 
-> **Dies ist der Editor. Das Dashboard ist der Spiegel.** Der Tab **Design-System** im Dashboard (`#/d`) *zeigt* Ihre Marke schreibgeschützt an; *bearbeiten* tun Sie sie hier unter `#/start`. Wenn Sie später eine Farbe ändern möchten, kommen Sie zurück zum Brand Studio.
+Wenn es stimmt, geben Sie dem Designsystem einen Namen und drücken **Export**. Sie erhalten eine `.lolly`-Datei zum Aufbewahren, zum Öffnen auf einem anderen Gerät oder zur Weitergabe an eine Kollegin oder einen Kollegen. [Einstellungen](/info/dashboard.html#design-system) zeigt das aktive System schreibgeschützt, und seine Titelseite verlinkt zum Bearbeiten hierher zurück.
+
+## In fünf Minuten zu Ihrem machen
+
+::: timeline
+- <!--i:upload--> **Legen Sie Ihr Logo ab** auf der Ablagefläche in **Logos**. Lolly liest seine Form und seine Farben.
+- <!--i:palette--> **Nutzen Sie diese Farben.** Die Hauptfarbe des Logos wird Ihre Primärfarbe, und ein dunkles Neutral aus dem Logo wird Ihre Textfarbe.
+- <!--i:font--> **Wählen Sie eine Schrift** in **Type**: eine Google Font oder eine Schriftdatei, die Sie besitzen.
+- <!--i:pentool--> **Benennen Sie das System.** Ihre erste Bearbeitung erzeugt ein eigenes Designsystem, und Lolly fragt einmal nach seinem Namen.
+- <!--i:download--> **Export** schreibt das ganze System als eine Datei `LollyBrand-….lolly`.
+:::
+
+Die Kopfzeile zeigt, welches Designsystem Sie **Editing**, und sein Name ist ein Feld, das Sie jederzeit ändern können. Wenn Ihre erste Bearbeitung **What is this design system called?** fragt, sind die Worte aus Ihrem Logo eingetragen, wenn das Logo sie ausschreibt. **Save name** behält den Namen; **Not now** behält einen Platzhalter, bis Sie in der Kopfzeile einen eintippen. Der Name beschriftet das System in Settings und beim Wechseln und wird zum Namen der Datei, die **Export** schreibt.
 
 ## Die Räume
 
-Das Studio ist eine Reihe von **Räumen**, aufgelistet in einer Leiste an der Seite - keine Schritte. Nichts ist nummeriert, nichts hängt von etwas anderem ab, und in jedem von ihnen anzukommen ist legitim:
+Das Studio besteht aus Räumen in einer Leiste an der Seite, in keiner festen Reihenfolge: Nichts ist nummeriert, und nichts wartet auf etwas anderes. Auf einem Smartphone wird die Leiste zu einem Streifen aus Chips unter der Kopfzeile.
 
-- **Übersicht** - der Knotenpunkt. Was gerade vorhanden ist, auf einen Blick, mit einer Tür in jeden Raum.
-- **Farben** - Farben einzeln hinzufügen, Rollen zuweisen oder eine ganze Palette aus einer erzeugen.
-- **Schrift** - die vier Schriftschnitte, die die App, die Tools und jeder Export lesen.
-- **Logos** - Ihre Marken, in jeder Ausrichtung und Behandlung.
-- **Tokens** - Eckenradius, Abstände, Schatten und der Rest des Systems.
-- **Dateien** - die Bild-, Audio- und Bewegtbild-Dateien, die Ihre Marke verwahrt.
+![Die Raumleiste des Studios: Overview, Colours, Type, Logos, Tokens, Files und Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
-Auf einem Telefon wird dieselbe Liste zu einem horizontalen Chip-Streifen unter dem Header. Der Raumwechsel lädt nie etwas neu - der Editor behält alle seine Panels geladen und zeigt einfach das an, um das Sie gebeten haben.
+| Raum | Was Sie dort tun | Link-Schlüssel |
+|---|---|---|
+| **Overview** | Sehen, was das System enthält, mit einer Tür in jeden Raum | `overview` |
+| **Colours** | Farben hinzufügen, ihnen Rollen geben, Abstufungen und eine Palette bauen | `color` |
+| **Type** | Die vier Schriften wählen, die die App, die Tools und jeder Export lesen | `type` |
+| **Logos** | Ihre Zeichen in jeder Ausrichtung und Behandlung platzieren | `logos` |
+| **Tokens** | Ecken, Abstände, Schatten und jeder andere benannte Wert | `tokens` |
+| **Files** | Die Bild-, Audio- und Bewegungsdateien, die Ihre Marke behält | `catalogue` |
+| **Usage & rules** | Die Regeln, die Ihre Marke anwendet, an echten Beispielen geprüft | `usage` |
 
-**Verlinken Sie direkt zu einem Raum** mit `#/start?area=<key>`. Die Schlüssel sind `overview`, `color` *(beachten Sie die US-Schreibweise in der URL)*, `type`, `logos`, `tokens`, `catalogue` (der Files-Raum - der Panel-Schlüssel ist ein dauerhafter Vertrag, daher behält die URL den alten Namen) und `versions`. `?tab=` ist der seit langem bestehende Alias für dasselbe und wird weiterhin aufgelöst, sodass alte Links und Lesezeichen funktionsfähig bleiben; alles Unbekannte öffnet Overview, statt ins Leere zu laufen.
+Verlinken Sie einen Raum mit `#/start?area=<key>`. Der Raum Files behält den Schlüssel `catalogue`, weil ein Raumschlüssel ein dauerhafter Vertrag ist, und `?tab=` funktioniert weiter als älterer Alias. Ein unbekannter Schlüssel öffnet Overview.
 
-Am **unteren Ende der Leiste** angeheftet sind die Aktionen, die zum gesamten Designsystem gehören und nicht zu einem einzelnen Raum:
-
-- **Add from…** - der Quellenwähler, um eine Marke aus einer Datei, einem PDF, einem Bild, einer Schrift oder einer Website zu übernehmen. Siehe [Eine Marke einbringen](#bring-a-brand-in) weiter unten.
-- **Tray** - die Kandidaten, die ein Scan gefunden, aber noch nicht übernommen hat. Er bleibt verborgen, bis ein Scan tatsächlich etwas behält, und trägt dann eine Zahl; nichts darin ändert Ihre Marke, bevor Sie bei dieser Zeile auf Add drücken.
-- **Export** - schreibt das gesamte Designsystem als eine `LollyBrand-….lolly`.
-- **Tokens (.json)** - das reine Design-Tokens-Dokument für sich allein, für ein Repo, einen Build-Schritt oder ein anderes Tokens-Tool.
-- **Restore brand settings** - kehrt zu einem Checkpoint zurück, der vor einem Import oder einem Ersetzen der Markeneinstellungen gespeichert wurde.
-- **Versionen** - veröffentlicht, aktiviert und stellt benannte Kopien des Designsystems wieder her. Verborgen, bis es etwas Eigenes zum Veröffentlichen gibt (oder ein `?area=versions`-Link ausdrücklich danach verlangt).
-
-![Die Studio-Raumleiste - Overview, Colours, Type, Logos, Tokens und Files](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+Der **Fuß der Leiste** enthält die Aktionen für das ganze System statt für einen Raum. **Add from…** bringt eine Marke herein ([Eine Marke einbringen](#bring-a-brand-in)), und das **Tray** hält, was ein Scan gefunden hat und Sie noch nicht hinzugefügt haben. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** und **Restore brand settings** behalten und bewegen das System ([Ihr Designsystem behalten und bewegen](#keep-and-move-your-design-system)). Jede erscheint, sobald es etwas gibt, worauf sie wirken kann.
 
 ## Overview
 
-Overview ist der erste Raum, und er hat zwei Gesichter.
+Solange noch nichts gewählt ist, bietet Overview vier Wege zum Start. **Start from a reference** öffnet die Quellenauswahl für ein Logo, einen Screenshot, eine Webseite oder eine Design-Datei, und **Pick a colour**, **Choose a face** und **Add a logo** öffnen diese Steuerelemente direkt. Das Öffnen schreibt nichts, und **Explore the tools** ist von Anfang an da.
 
-Mit **noch nichts ausgewählt** heißt es **Machen Sie es sich zu eigen**. **Start from a reference** öffnet den Quellenwähler für ein Logo, einen Screenshot, eine Webseite oder eine Design-Datei. **Farbe auswählen**, **Schriftschnitt auswählen** und **Logo hinzufügen** öffnen direkt ihre vorhandenen Steuerelemente. Jeder Weg beginnt mit einer Entscheidung; das Öffnen eines Wegs schreibt nichts. **Werkzeuge entdecken** steht sofort zur Verfügung.
+Sobald irgendetwas Ihr eigenes ist, zeigt Overview, was Sie haben, mit Ihren eigenen Zählwerten vorn. Colours nennt die Zahl der Farben, mit einem gedämpften `· N starter`, wo geerbte Farben erscheinen; sein Streifen stellt Ihre Farben zuerst, dann eine Haarlinie, dann die ausgeblendeten Starter-Farben. Type liest sich nach Rolle (*Inter for headings*, mit *Starter for the rest* in der Zeile darunter). Logos nennt, wie viele Slots gefüllt sind (oder **Not set**), Tokens zeigt den Eckenradius, und Files sagt **Nothing yet**, solange die Bibliothek leer ist. Jeder Block öffnet seinen Raum.
 
-Sobald irgendetwas Ihnen gehört, zeigt derselbe Raum **was Sie haben**, angeführt von den Zählungen, die Sie erzeugt haben. Colours liest die Anzahl der Farben, die das Designsystem trägt, und ergänzt ein gedämpftes `· N starter` nur dort, wo geerbte Farben zu sehen sind; der Streifen daneben setzt zuerst die Farben, die Sie selbst gewählt haben, dann eine Haarlinie und die verblassten Starter-Farben. Schrift liest nach Rolle (*Inter für Überschriften*, mit *Starter für den Rest · SUSE, SUSE Mono* darunter). Logos liest, wie viele Plätze belegt sind, oder **Nicht festgelegt**. Tokens trägt den Eckenradius, markiert als *starter*, bis Sie ihn verschieben. Dateien sagt **Noch nichts**, solange die Bibliothek leer ist. Jeder Block ist eine Tür in seinen Raum. Es gibt hier Zählungen, nie eine Fortschrittsleiste und nie eine Abschlusskarte - in diesem Studio ist nichts geschuldet.
+### Starter und Ihr eigenes
+
+**Starter** ist das Wort für alles, was mit der App kam, statt gewählt zu werden. Eine frische Installation trägt gar keine Farbe, nur eine neutrale Rampe von Tinte zu Papier, damit Flächen, Text und Haarlinien rendern können, bevor irgendjemand etwas entscheidet. Dasselbe Wort kennzeichnet geerbtes Material in jedem Raum.
+
+::: cols
+## Starter
+
+- Kam mit der App: die Neutralen von Tinte zu Papier, die Starter-Schriften, der Standard-Eckenradius.
+- Gedämpft, mit einem Tag **Starter** und ohne Tönung.
+- Nicht als Ihre Farben gezählt. Die Neutralen liegen in **Tokens** als **Neutrals · starter · 9**, und **Open** zeigt sie in Colours als eine eingeklappte Gruppe (`#/start?area=color&group=neutral`).
+- Eine Rolle, die auf einer Starter-Farbe steht, liest sich *"Starter Paper stands in"*, mit **Choose…** in ihrer Auswahl.
+
+## Ihr eigenes
+
+- Von Ihnen gewählt oder installiert.
+- Volle Stärke und eine getönte Karte, wo Sie eine Schrift installiert haben.
+- Gezählt in Overview und in Tokens.
+- Eine Rolle, die einer anderen folgt, liest sich **↳ follows Primary**, statt den Namen der Primärfarbe zu wiederholen.
+:::
+
+Geerbtes Material wird nie mit gestricheltem Rahmen gezeichnet, weil ein gestrichelter Rahmen hier ein Ablageziel bedeutet.
 
 ## Logos
 
-Beginnen Sie damit, Ihren Ordner voller Zeichen in die Ablagezone oben zu leeren: **"Drop marks here, or choose several at once"** nimmt so viele Dateien entgegen, wie Sie auf einmal haben. Jede Datei wird auf ihre Form und ihre Farbe hin gelesen und dann unter **Waiting for a slot** als Chip eingereiht, der sagt, was er vermutet - *"Looks like the Horizontal primary"*, mit dem Maß, auf dem das beruht, und einer **Place**-Schaltfläche (**Replace**, wo dieser Platz bereits belegt ist). Wo er sich nicht sicher ist, sagt der Chip das offen und bietet stattdessen **Change slot** an, der alle acht auflistet. Nichts wird platziert, bevor Sie etwas drücken.
+Leeren Sie Ihren Ordner mit Zeichen in die Ablagefläche oben: **"Drop marks here, or choose several at once"** nimmt so viele Dateien an, wie Sie haben. Jede Datei wird auf Form und Farbe gelesen und wartet dann unter **Waiting for a slot** als Chip, der sagt, wie sie aussieht, etwa *"Looks like the Horizontal primary"*, mit der Messung, die er genutzt hat, und einer Schaltfläche **Place** (**Replace**, wo der Slot gefüllt ist). Wo er unsicher ist, sagt der Chip das und bietet **Change slot** mit allen acht. Nichts wird platziert, bis Sie etwas drücken.
 
-Rund um diese Warteschlange geschehen zwei Dinge. Ein Zeichen mit überschüssigem leerem Rand erhält zuerst ein **Zuschnittsangebot** - beantworten Sie es oder drücken Sie Escape, dann geht die Originaldatei unverändert ein. Und wo ein Zeichen einen leeren Nachbarplatz füllen kann, bietet der Raum die abgeleitete **Mono**- oder **Reverse**-Version als eigenen Chip an, markiert als *Generated*, der wieder verschwindet, sobald Sie diesen Platz anderweitig füllen.
+Ein Zeichen mit überschüssigem leerem Rand erhält zuerst ein Beschnittangebot; beantworten Sie es oder drücken Sie Escape, und das Original geht unberührt hinein. Wo ein Zeichen einen leeren Nachbar-Slot füllen kann, bietet der Raum die abgeleitete Version **mono** oder **reverse** als Chip mit der Kennzeichnung *Generated*.
 
-Darunter liegt das Raster, in dem jedes Zeichen landet - Plätze aus **Ausrichtung × Behandlung**:
+Jedes Zeichen landet in einem Raster aus acht optionalen Slots, je einer pro **Ausrichtung** und **Behandlung**:
 
-- **Ausrichtungen:** Horizontal (Wortmarke + Symbol in einer Reihe) und Vertical (gestapelt, für quadratische und hohe Flächen).
+- **Ausrichtungen:** Horizontal (Wortmarke und Symbol in einer Reihe) und Vertical (gestapelt, für quadratische und hohe Flächen).
 - **Behandlungen:** Primary, Primary reverse (für dunkle Hintergründe), Mono (eine Farbe) und Mono reverse.
 
-Das sind acht optionale Plätze. Klicken Sie auf einen Platz, um ein PNG, SVG, JPEG oder WebP hinzuzufügen; klicken Sie auf einen belegten Platz, um ihn zu ersetzen. Jeder Platz ist optional, und alles bleibt auf diesem Gerät.
+Eine Gruppe ohne Zeichen klappt zu einer Zeile zusammen; öffnen Sie sie, um ihre Slots zu sehen. Klicken Sie einen Slot an, um ein PNG, SVG, JPEG oder WebP hinzuzufügen, oder klicken Sie einen gefüllten Slot an, um das Zeichen zu ersetzen. Alles bleibt auf diesem Gerät.
 
-![Die Logo-Matrix - jede Ausrichtung oben, jede Behandlung als eigener gestrichelter Platz, alle optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Die Logo-Slots mit geöffneten Horizontal und Vertical: Jede Behandlung ist ein eigener Slot, und jeder Slot ist optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
-- **Custom marks** - fügen Sie unter **Custom marks** Zeichen hinzu, die Ihre Marke auf ihre eigene Art benennt (ein Icon, ein Wappen, ein Favicon); benennen Sie es und wählen Sie eine Datei.
-- **More identities** - eine Submarke, ein Produkt oder ein Event kann einen eigenen vollständigen Logosatz haben. Nutzen Sie **+ Add another logo** und benennen Sie ihn; Ihr Hauptsatz heißt schlicht "Your logo".
-- **Laden Sie ein SVG hoch, und Lolly liest seine Farben.** Bei einer brandneuen Installation setzt es leise Ihre Primärfarbe aus dem Logo und sagt Ihnen das. Bei einer bestehenden Marke bietet es die Farbe stattdessen als Vorschlag an - *"Found in the logo: #…"* mit einer **Use as primary**-Schaltfläche daneben - drüben im Colours-Raum, wo Sie sie annehmen oder verwerfen können.
+- **Custom marks** sind Zeichen, die Ihre Marke mit eigenem Namen anspricht, etwa ein Icon, ein Wappen oder ein Favicon.
+- **More identities.** Eine Untermarke, ein Produkt oder ein Event kann einen eigenen vollen Satz haben: **+ Add another logo** und geben Sie dem Satz einen Namen. Ihr Hauptsatz ist "Your logo". [Marken-Architekturen](/info/brand-architectures.html) zeigt, wann eine Logo-Identität der richtige Baustein ist.
+- **Lolly liest die Farben des Logos.** Eine Karte unter der Ablagefläche und noch einmal oben in Colours listet die Farben des Logos und fragt **Which is the main colour?**, mit bereits ausgewählter stärkster Farbe (nie das Weiß, auf dem es exportiert wurde). **Use these colours** fügt sie Ihrer Palette hinzu, macht die Hauptfarbe zu Ihrer Primärfarbe und, wenn das Logo ein dunkles Neutral hat, das auf Papier lesbar ist, macht dieses zur Textfarbe. **Not now** lässt sie im Tray. Bei einer ganz neuen Installation wird die wahrscheinlichste Antwort sofort angewendet, und die Karte bietet **Undo** oder eine andere Hauptfarbe. Eine SVG liefert genaue Farben; ein PNG, JPEG oder WebP liefert die Farben, die einen echten Anteil des Zeichens abdecken.
 
 ## Colours
 
-Der Raum wächst mit dem Designsystem mit. Nichts, was Sie noch nicht gebraucht haben, steht auf der Seite, sodass ein erster Besuch eine Entscheidung ist und der Rest eintrifft, sobald die Palette wächst.
+Der Raum wächst mit dem Designsystem: Ein erster Besuch ist eine Entscheidung, und der Rest kommt mit der Palette.
 
 ### Die erste Farbe
 
-Ein Designsystem ohne eigene Farben öffnet auf einer zentrierten Spalte: **Mit einer Farbe beginnen**, ein großer Live-Chip, ein Feld und eine ruhige Zeile, die besagt, dass Rollen, Schattierungen und Druckeinstellungen eintreffen, sobald das System wächst.
+Ein System ohne eigene Farben öffnet sich auf einem großen Chip und einem Feld, mit einer Zeile, die sagt, dass Rollen, Abstufungen und Druckeinstellungen mit dem Wachsen des Systems hinzukommen.
 
-- **Der Chip ist der Farbwähler.** Drücken Sie ihn, und die eigene OKLCH-Karte des Studios öffnet sich am Chip, vorbelegt mit dem, was das Feld gerade enthält: ein Name, das Rad, die vier Regler, Alpha und **Gespeichert als**, mit **Abbrechen** und **Farbe hinzufügen** am Fuß. Das Ziehen an einem Regler bemalt den Chip und schreibt das Feld dabei live um, und nichts erreicht das Designsystem, bevor Sie **Farbe hinzufügen** drücken.
-- **Das Feld nimmt jede Notation an** - `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` oder einen einfachen Farbnamen - und eine ganze *Liste* von Farben wird zu einer Reihe von Chips, die Sie einzeln hinzufügen.
-- **Zwei weitere Türen liegen daneben.** Die Pipette (bei einem Browser, der eine hat) entnimmt eine Farbe vom Bildschirm, und **Aus einem Bild** liest einen Screenshot oder ein Foto auf diesem Gerät und bietet die gefundenen Farben an.
-- **Hinzufügen ist nie deaktiviert.** Steht nichts Lesbares im Feld, öffnet es den Farbwähler, was ein leerer Druck meist bedeutet; Text, den es nicht verarbeiten kann, erhält eine Zeile unter dem Feld, die das sagt, statt einer toten Schaltfläche.
+- **Der Chip ist die Auswahl.** Drücken Sie **Pick a colour**, und die OKLCH-Karte des Studios öffnet sich, vorbelegt mit dem, was das Feld enthält: ein Name, das Rad, die vier Regler, Alpha und **Stored as**, mit **Cancel** und **Add colour** am Fuß. Nichts erreicht das System, bis Sie **Add colour** drücken.
+- **Das Feld nimmt jede Notation**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` oder einen Farbnamen. Fügen Sie eine Liste ein, und sie wird zu einer Reihe von Chips, die Sie einzeln oder mit **Add all** hinzufügen.
+- **Zwei weitere Wege hinein.** **Pick a colour from the screen** nutzt die Pipette, wo der Browser eine hat, und **Take colours from an image** liest einen Screenshot oder ein Foto auf diesem Gerät.
+- **Add ist nie deaktiviert.** Ist das Feld leer, öffnet es die Auswahl; Text, den es nicht lesen kann, erhält unter dem Feld eine Zeile, die das sagt.
 
-Die erste Farbe wird zu **Primär**, und der Chip, der auf das Hinzufügen antwortet, sagt das - *„Primär ist jetzt Vivid Violet"* - mit **Feinabstimmung** daneben.
+Ihre erste Farbe wird die **Primärfarbe**, und ein Chip bestätigt das, etwa *"Primary is now Vivid Violet"*, mit **Fine-tune**, um die Farbe anzupassen.
 
-![Der Colours-Raum mit noch nichts ausgewählt - ein großer Live-Chip, ein Feld und eine Zeile darüber, was später eintrifft](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
-
-### Starter
-
-**Starter** ist das Wort für alles, was mit der App mitkam, statt gewählt zu werden. Eine frische Installation trägt überhaupt keine Farbe: Was sie hat, ist ein neutraler Verlauf, Tinte durch Papier, sodass Flächen, Text und Haarlinien gerendert werden, bevor irgendjemand irgendetwas entschieden hat. Diese Neutraltöne sind Gerüst, werden also nicht als Farben gezählt und nicht in der Palettenfläche gezeichnet. Sie leben im Raum [Tokens](#tokens) als **Neutraltöne · Starter · 9**, mit einem **Öffnen**, das sie im Colours-Bereich als eine eingeklappte, markierte Gruppe zeigt (`#/start?area=color&group=neutral`).
-
-Dasselbe Wort zieht sich durch jeden Raum: Eine Rolle, die auf einer Starter-Farbe steht, liest *„Starter Paper springt ein"*, und ihr Farbwähler bietet **Auswählen…**; ein Starter-Schriftschnitt trägt eine **Starter**-Markierung und keine Tönung; ein Starter-Eckenradius ist auf der Overview markiert. Geerbtes Material wird nie mit gestricheltem Rand gezeichnet, weil ein gestrichelter Rand hier ein Ablageziel bedeutet.
 
 ### Während die Palette wächst
 
-Ihre Farben bleiben auf einem breiten Bildschirm neben einer **Im Kontext**-Vorschau, und stapeln sich auf kleineren Bildschirmen darüber. Die Vorschau kann ein Poster, ein Diagramm oder eine Interface-Karte zeigen, die Ihre Palette verwendet. Starter-Farben bleiben in ihrer eigenen einklappbaren Gruppe, getrennt von den Farben, die Sie hinzufügen.
+Ihre Farben stehen neben einer Vorschau **In context** auf einem breiten Bildschirm und darüber auf einem kleineren. Die Vorschau zeigt ein Poster, ein Diagramm oder eine Oberflächenkarte in Ihrer Palette. Starter-Farben bleiben in ihrer eigenen einklappbaren Gruppe.
 
-Fügen Sie einzelne Farben oder einen Satz Schattierungen hinzu, weisen Sie ihnen Rollen zu, und öffnen Sie die erweiterten Abschnitte, wenn Sie sie brauchen. Das Farbdiagramm, die Verläufe und die Download-Steuerelemente bleiben bei der Palette.
+![Der Raum Colours bei Lolly Demo: die Palette in einklappbaren Gruppen, jede Farbe mit Name und Hex, und die Download-Pille am Fuß](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Der Colours-Raum nach dem Hinzufügen einer Farbe, mit seiner Palette und einer Live-Kompositionsvorschau](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
-### Rollen - was Tools lesen
+### Rollen: was Tools lesen
 
-**Rollen** sind die Schicht über den Farbflächen: welche Farbe welchen Part in jedem Tool und Export übernimmt. Rollen sind optional (ein Designsystem aus drei losen Farben ohne Rollen ist eine völlig gute Wahl), jede Farbfläche kann eine annehmen, und der Kontrastwert wird gegen die Fläche gemessen, zuerst nach APCA.
+**Rollen** sagen, welche Farbe in jedem Tool und Export welche Aufgabe übernimmt. Sie sind optional (drei lose Farben und keine Rollen sind ein vollkommen gutes System), jede Farbe kann eine übernehmen, und die Kontrastanzeige wird gegen die Fläche gemessen, APCA zuerst. Jede Rollenzeile zeigt eine eigene Farbe in voller Stärke, eine einspringende Starter-Farbe oder **↳ follows Primary**.
 
-Eine Zeile liest sich in einem von drei Registern, sodass der Streifen nie eine Entscheidung behauptet, die niemand getroffen hat:
+Sobald die Palette Abstufungen hat, zeigt der Streifen alle sieben Rollen, die ein Tool lesen kann: Primary, Secondary, Surface, Text, Muted, Edge und On primary. On primary wird aus der Primärfarbe abgeleitet, steht als **Derived** und hat keine Auswahl.
 
-- eine eigene Farbe, die die Rolle bedient, in voller Stärke;
-- **Starter *Paper* springt ein** - gedämpft, mit **Auswählen…** an ihrem Farbwähler;
-- **↳ folgt Primär** - die Rolle löst sich über Primär auf, statt über eine eigene Farbe.
+Der eigene Akzent der App folgt standardmäßig dem Designsystem. Das ist die Einstellung **Interface follows the design system** unter **Settings → Appearance**; ist sie aus, bleibt das Chrome der App neutral, während Tools, Arbeitsflächen und Exporte dem Designsystem in beiden Fällen folgen.
 
-Sobald die Palette Schattierungen hat, wächst der Streifen auf alle sieben Plätze, die ein Tool lesen kann: Primär, Sekundär, Oberfläche, Text, Gedämpft, Kante und Auf Primärfarbe. Auf Primärfarbe wird von Primär abgeleitet, liest sich als **Abgeleitet** und trägt keinen Farbwähler.
+**Farbvarianten.** Ein Designsystem kann mehrere Leitfarben enthalten, je Werk gewählt. Lolly behält jede Farbvariante, aber dieser Raum kann noch keine verfassen: Eine Farbvariante wird in der Token-Datei geschrieben. Bei einem System mit Farbvarianten braucht jede Farbvariante eine eigene Primär- und Sekundärfarbe und, wenn sie den Hintergrund tönt, eine eigene Fläche; diese Rollen bleiben daher im Farbfeld-Editor gesetzt. [Lolly Demo im Einsatz](/info/lolly-demo-in-use.html#colourways-on-real-work) zeigt Farbvarianten an echter Arbeit, und [Farbvarianten zu einem Designsystem hinzufügen](/info/colourways.html#add-colourways-to-a-design-system) hat das Format.
 
-**Der eigene Akzent der App ist eine Präferenz, kein Token.** Standardmäßig folgt die Oberfläche dem Designsystem, und der Chrome-Akzent übernimmt die Primärfarbe. Das ist eine Darstellungseinstellung in [Ihrem Profil](/info/profile.html) - **Die Oberfläche folgt dem Designsystem** - und sie auszuschalten lässt das Chrome neutral. Tools, Canvases und Exporte sind in beiden Fällen unberührt, und die Schriften und der Eckenradius folgen dem Designsystem, ob die Einstellung an oder aus ist.
+### Weitere Farben finden
 
-### Die Experten-Flügel
+Drei Werkzeuge bauen auf Ihrer Primärfarbe auf. Die ersten beiden schlagen nur vor, und das dritte ersetzt die Palette, nachdem Sie die Änderung geprüft haben.
 
-Vier eingeklappte Abschnitte liegen unter der Kompositionsvorschau und den Farbrollen. Öffnen Sie den gewünschten; jeder ist direkt verlinkbar als `#/start?area=color&focus=<wing>`, was ihn öffnet, egal was der Raum sonst gerade zeigt:
+::: cols
+## Explore shades & harmonies
 
-- **Schattierungen & Harmonien erkunden** (`focus=generate`) - eine Farbe wird zu einem vollständigen Satz von Schattierungen. Unten beschrieben.
-- **Schattenkurven** (`focus=curves`) - formen Sie einen Verlauf Punkt für Punkt um. Helligkeit, Chroma und Farbton erhalten jeweils eine eigene Kurve, umschaltbar mit L / C / H, und die Schattierungen darunter werden live neu berechnet, während Sie ziehen.
-- **Kontrast** (`focus=contrast`) - **Kontrastsperre** stimmt einen Verlauf neu ab, um APCA-Zielwerte gegen einen von Ihnen gewählten Hintergrund zu erreichen, wobei jede Stufe ihren eigenen Farbton und ihre Chroma behält; **Farbton drehen** dreht den gesamten Verlauf körperlich um das Rad, wobei jede Schattierung ihre Helligkeit und Chroma behält.
-- **Drucken** (`focus=print`) - was aus der Primärfarbe im Druck wird: ihr automatischer Rasterwert, oder stattdessen ein festgelegter CMYK-Aufbau oder eine benannte Schmuckfarbe.
+Wählen Sie eine **Starting colour**, ein **Scheme** (Mono, Complement, Analogous oder Triad) und wie viele **Shades** (3 bis 20, Standard 5). **Fine-tune** legt UI-Intensität, Kontrast und Text auf der Marke fest. Klicken Sie eine Abstufung an, um sie hinzuzufügen, oder **Add 5 shades** für eine Gruppe. Ihre Farben und Rollen bleiben.
 
-### Eine Farbe, eine ganze Palette
+## Find matching colours
 
-Wählen Sie innerhalb von **Schattierungen & Harmonien erkunden** eine **Starting colour**. Lolly schlägt passende Schattierungen vor, mit derselben perzeptiven Farbmathematik (OKLCH), die die Engine überall sonst verwendet. Stellen Sie die Vorschläge fein ein:
+Wählen Sie eine **Harmony**: Complementary, Adjacent, Triad, Tetrad oder Analogous (mit **Accents** von 2 bis 5 und einem **Angle** von 10° bis 45°). Jeder Kandidat hat einen erzeugten Namen und **+ Add**, ein Druck pro Farbe.
 
-- **Schema** - Mono, Komplementär, Analog oder Triade - legt fest, wie die Sekundärfarbe zur Primärfarbe steht.
-- **Schattierungen** - ein Schieberegler von 3 bis 20 (Standard 5) steuert, wie viele Stufen jeder Verlauf erzeugt.
-- **Feinabstimmung** (eingeklappt) - **UI-Intensität** (Gedämpft / Kräftig), **Kontrast** (Komfort / Hoch) und **Text auf Marke** (Auto / Hell / Dunkel).
+## Rebuild the whole palette
 
-Das Ändern der Startfarbe und der Regler ändert nur die Vorschläge. Klicken Sie auf eine Schattierung, um diese Farbe hinzuzufügen, oder auf **5 Schattierungen hinzufügen**, um eine Gruppe hinzuzufügen (die Anzahl folgt Ihrer Shades-Einstellung). Bestehende Farben und Rollen bleiben an ihrem Platz. Rückgängig entfernt die Hinzufügung.
+Ersetzt die Palette aus einer Ausgangsfarbe, nach einer Prüfung dessen, was sich ändert und was bleibt. Zuerst wird ein Checkpoint angelegt, und danach wird **Undo** angeboten.
+:::
 
-Die Zeilen **Primär**, **Neutral** und **Sekundär** zeigen die vorgeschlagenen Schattierungen. Öffnen Sie **Theme preview**, um Hell- und Dunkel-Beispiele und ihre Kontrastwerte zu prüfen. Wählen Sie dort eine Neutral- oder Sekundär-Stufe, um die vorgeschlagenen Theme-Anker anzupassen. Das Neuaufbauen der ganzen Palette bleibt eine separate, geprüfte Aktion weiter unten.
+Alle drei nutzen dieselbe wahrnehmungsbasierte Farbmathematik (OKLCH) wie die Engine. In **Explore shades & harmonies** zeigen die Zeilen **Primary**, **Neutral** und **Secondary** die vorgeschlagenen Abstufungen, und **Theme preview** zeigt helle und dunkle Beispiele mit ihren Kontrastwerten.
 
 ![Drei vorgeschlagene Schattierungsgruppen, mit einzelnen Hinzufügen-Steuerelementen und einer separaten Theme preview](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1400&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-preview&format=svg&walker=1&dark=1&filename=bs-colour-ramps)
-
-### Die Palette aufbauen (Harmonie-Generator)
-
-Bei **Passende Farben finden** schlägt der Harmonie-Generator passende Akzentfarben aus der Primärfarbe vor. Wählen Sie eine **Harmonie** - **Complementary**, **Adjacent**, **Triad**, **Tetrad** oder **Analogous** (was seine eigene **Accents**-Anzahl von 2 bis 5 sowie einen Farbton-**Winkel** von 10° bis 45° mitbringt) - und jeder Kandidat kommt mit einem automatisch erzeugten, menschenlesbaren Namen und einer **+ Hinzufügen**-Schaltfläche. Das Hinzufügen einer Farbe legt sie sofort in die Palette, ein Druck für ein Token. **Im Kontext** zeigt Ihre hinzugefügten Farben in Beispielkompositionen.
 
 ![Erzeugte Akzente, jeder mit einer Farbfläche, einem automatisch erzeugten Namen, seinem Hex-Wert und einer Add-Schaltfläche](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### Eine erzeugte Palette übernehmen
 
-Das Hinzufügen einer vorgeschlagenen Farbe oder Schattierungsgruppe behält den Rest Ihrer Palette. Für einen vollständigen Ersatz öffnen Sie **Rebuild the whole palette…** und drücken **Preview full rebuild**. Die Übersicht erklärt die Änderungen: wie viele Rollen so bleiben, wie Sie sie zugewiesen haben, wie viele selbst hinzugefügte Farben erhalten bleiben, wie viele Schattenkurven neu verankert werden, wie viele Drucksperren neu verankert werden, wie viele verborgene Schattierungen verborgen bleiben, wie viele Verlaufsstopps ihre Farbe behalten.
+Öffnen Sie **Rebuild the whole palette…** und drücken Sie **Preview full rebuild**. Die Prüfung zählt, wie viele Rollen bleiben, wie Sie sie zugewiesen haben, wie viele Ihrer eigenen Farben behalten werden und wie viele Abstufungskurven, Druck-Sperren, ausgeblendete Abstufungen und Verlaufsstopps neu verankert oder behalten werden. **Apply rebuilt palette** übernimmt; **Cancel** ändert nichts. Danach bietet die Karte **Undo** mit Fokus darauf, und der Checkpoint vor dem Austausch stellt das ganze System wieder her.
 
-**Apply rebuilt palette** auf dieser Karte übernimmt sie; **Abbrechen** verlässt sie, ohne etwas zu ändern. Nachdem es gelaufen ist, bietet die Karte **Rückgängig** mit bereits gesetztem Fokus an - und ein Checkpoint des gesamten Designsystems wird *vor* dem Wechsel angelegt, sodass „stelle es wieder her, wie es war" eine Wiederherstellung ist und kein verlorener Nachmittag.
+Ein System mit Farbvarianten behält bei einem Neuaufbau jede Farbvariante. Die kanonische Farbvariante folgt der neuen Ausgangsfarbe, und jede andere Farbvariante behält ihre eigenen Farben, ihren Namen, ihre Reihenfolge und ihre Einstellungen. Die Prüfung listet auf, welche Farbvariante folgt und welche ihre Farben behalten. Lolly baut kein System neu auf, das seine Farbvarianten so kodiert, dass es sie nicht bearbeiten kann; die Karte sagt warum, und nichts ändert sich.
 
-### Die Palette, das Diagramm und jede Farbfläche
+### Die Expertenabschnitte
 
-Die Palette listet die Farben des Designsystems in einklappbaren Gruppen auf, jede mit ihrem eigenen **+ Hinzufügen**-Steuerelement. Erstellen und benennen Sie Gruppen um, um Ihre Arbeit zu organisieren. Eine Rolle erzeugt nie eine zweite Kachel: ein Token ist eine Kachel, und eine Kachel, auf die eine Rolle zeigt, trägt stattdessen eine kleine Eckmarkierung (**P**, **S**, **Su**, **T**). Unter den Kacheln klappt **Farbdiagramm** auf zwei Ansichten derselben Farbflächen auf: das **Rad** (das OKLCH-Rad - ziehen Sie einen Punkt, um ihn umzufärben, klicken Sie auf einen Punkt, um ihn zu bearbeiten, oder klicken Sie auf leeren Raum, um eine neue Farbfläche abzulegen) und das **Gamut**-Diagramm, das zeigt, wo der darstellbare Bereich tatsächlich endet. `#/start?area=color&focus=chart` öffnet die Karte direkt, wie es `?wheel` immer schon getan hat.
+Vier eingeklappte Abschnitte liegen unter der Vorschau und den Rollen. Jeder öffnet sich direkt mit `#/start?area=color&focus=<name>`:
+
+- **Explore shades & harmonies** (`focus=generate`), oben beschrieben.
+- **Shade curves** (`focus=curves`) formen eine Rampe Punkt für Punkt um, mit getrennten Kurven für Helligkeit, Buntheit und Farbton (L / C / H), und die Abstufungen werden beim Ziehen neu gezeichnet.
+- **Contrast** (`focus=contrast`): **Contrast-lock** tont eine Rampe auf APCA-Ziele gegen einen gewählten Hintergrund um, und **Rotate hue** dreht die ganze Rampe um das Rad.
+- **Print** (`focus=print`) legt fest, was die Primärfarbe im Druck wird: ihren automatischen Wert, einen festgelegten CMYK-Aufbau oder eine benannte Sonderfarbe.
+
+### Die Palette und jedes Farbfeld
+
+Die Palette listet Ihre Farben in einklappbaren Gruppen, jede mit ihrem eigenen **+ Add**. Legen Sie Gruppen an und benennen Sie sie nach Belieben um. Eine Rolle erzeugt nie eine zweite Kachel: Eine Kachel, auf die eine Rolle zeigt, trägt stattdessen eine kleine Markierung (**P**, **S**, **Su**, **T**). **Colour chart** unter den Kacheln zeigt dieselben Farben auf dem OKLCH-**Wheel** (ziehen Sie einen Punkt zum Umfärben, klicken Sie in leeren Raum, um ein Farbfeld hinzuzufügen) und im **Gamut**-Diagramm, das zeigt, wo der darstellbare Bereich endet. `#/start?area=color&focus=chart` öffnet das Diagramm direkt.
 
 ![Der Palettenbereich, jede Gruppe einklappbar, mit der Download-Pille am unteren Rand](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Das OKLCH-Rad - der Winkel steht für den Farbton, der Abstand von der Mitte für das Chroma, und die Grautöne verlaufen seitlich auf einer Helligkeitsschiene](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
-Klicken Sie auf eine beliebige Farbfläche, um deren Editor zu öffnen:
+Klicken Sie ein Farbfeld an, um seinen Editor zu öffnen:
 
-- **Umbenennen**.
-- **Farbe festlegen** - der Farbwähler öffnet mit perzeptuellen **OKLCH**-Reglern, mit Modi für **Hex**, **HSL**, **RGB** und **CMYK**; das Wertefeld liest *und* schreibt in dem jeweils aktiven Farbraum, sodass Sie einen Hex-Wert einfügen oder Farbanteile in Prozent eingeben können. Beachten Sie: Die Eingabe von CMYK legt die *Bildschirm*farbe per Umrechnung fest - um exakte Druckfarben festzulegen, verwenden Sie die Drucksperre weiter unten.
-- **Gespeichert als** - legen Sie fest, wie die Farbe gespeichert wird: **LCH** (Standard - perzeptuell, weiter Farbraum, die beste Wahl zum Bearbeiten), Hex, RGB oder HSL. Überschreiben Sie dies, wenn Sie einen exakten alten Hex-Wert oder einen sRGB-Wert festhalten müssen.
-- **Verwenden als** - weisen Sie dieser Farbe direkt eine der Markenrollen zu, ohne zum Rollen-Panel zurückzukehren. (Die Kachel einer Rolle selbst bietet dies nicht an - eine Rolle kann keine Rolle übernehmen.)
-- **Druckersatz** (eingeklappt) - das Druckverhalten der Farbe festlegen:
-  - **CMYK** - von **Auto** auf **Gesperrt** umschalten, um die automatische sRGB→CMYK-Umrechnung durch exakte Druckfarbwerte zu ersetzen (C/M/Y/K, 0–100).
-  - **Sonderfarbe** - von **Keine** auf **Festgelegt** umschalten, um die Farbe auf eine Sonderfarbe zu sperren; vergeben Sie einen **Namen** (z. B. `PANTONE 186 C`), optional ein **Farbbuch** und optional eine **Veredelung** (standardmäßig Normale Druckfarbe) für den Fall, dass es sich gar nicht um eine Druckfarbe handelt - eine Folie, eine Prägung (erhaben oder vertieft), einen Schmucklack, eine Soft-Touch-Veredelung oder einen Stanz-, Rill- oder Perforationsschnitt.
-- **In anderen Farbräumen** (eingeklappt) - dieselbe Idee erweitert: jede Zeile ist ein Farbraum, in dem diese Farbe ausgedrückt werden kann, entweder abgeleitet vom kanonischen Wert oder von Ihnen selbst festgelegt, wobei ein selbst festgelegter Wert beim Export Vorrang hat.
+- **Rename** das Farbfeld.
+- **Set the colour** auf OKLCH-Reglern oder in **Hex**, **HSL**, **RGB** oder **CMYK**. Das Wertefeld liest und schreibt im aktiven Raum. CMYK setzt hier die Bildschirmfarbe durch Umrechnung; um genaue Druckfarben festzulegen, nutzen Sie **Print substitutes**.
+- **Stored as** wählt, wie das Farbfeld gespeichert wird: **LCH** (der Standard, wahrnehmungsbasiert und mit weitem Farbraum), Hex, RGB oder HSL.
+- **Use as** gibt dem Farbfeld direkt eine Rolle. Drücken Sie eine hervorgehobene Rolle erneut, um die Rolle zu löschen.
+- **Print substitutes** (eingeklappt): sperren Sie **CMYK** von **Auto** auf genaue Druckfarbwerte oder legen Sie eine **Spot colour** mit einem **Name** (etwa `PANTONE 186 C`), einem optionalen **Book** und einem **Finish** für Folie, Prägung, Blindprägung, Spotlack, Soft Touch oder Stanzung, Rillung oder Perforation fest. Eine Druckmaschine nutzt diese Sperren, wenn Sie ein CMYK-PDF oder TIFF exportieren; siehe [Farbprofile](/info/exporting.html#colour-profiles).
+- **In other spaces** (eingeklappt): ein Wert pro Farbraum, abgeleitet oder von Ihnen verfasst, und ein verfasster gewinnt beim Export.
 
-Diese Drucksperren sind das, was eine Druckerei verwendet, wenn Sie ein CMYK-PDF oder -TIFF exportieren - siehe [Exportieren](/info/exporting.html#colour-profiles).
+**Ein Farbfeld zu löschen** ist sicher. Abgeleitete Abstufungen und Design-Rollen werden ausgeblendet, sodass nichts kaputtgeht, was sie liest, während von Ihnen hinzugefügte Farben entfernt werden.
 
-**Eine Farbe zu löschen** ist sicher: abgeleitete Verlaufsstufen und Theme-Rollen werden *ausgeblendet* (das zugrunde liegende Token wird weiterhin aufgelöst, sodass nichts nachgelagert kaputtgeht), während selbst hinzugefügte Farben vollständig entfernt werden.
+::: details Mit vielen Farbfeldern arbeiten
+Jedes Farbfeld hat einen Ziehgriff. Ziehen Sie, um innerhalb einer Gruppe neu zu ordnen, oder fokussieren Sie den Griff, drücken Sie Space, nutzen Sie die Pfeiltasten und drücken Sie Space erneut zum Ablegen; Escape bricht ab. Um Farben zwischen Gruppen zu verschieben, nutzen Sie das Steuerelement **Group** des Editors oder wählen Sie mehrere aus und nutzen **Move to**.
 
-### Arbeiten mit vielen Farbflächen
+Die Auswahl braucht keinen Modus. Die Leiste erscheint mit der ersten ausgewählten Kachel und verschwindet mit der letzten.
 
-Jede Farbfläche hat einen eigenen Ziehgriff. Ziehen Sie daran, um Farben innerhalb ihrer Gruppe neu zu ordnen, oder fokussieren Sie sie, drücken Sie die Leertaste, nutzen Sie die Pfeiltasten und drücken Sie erneut die Leertaste zum Ablegen. Escape bricht ab. Die Reihenfolge übersteht ein erneutes Öffnen des Studios und lässt sich rückgängig machen. Um Farben zwischen Gruppen zu verschieben, nutzen Sie das **Gruppieren**-Steuerelement des Farbflächen-Editors oder wählen Sie mehrere Farben aus und nutzen Sie **Verschieben**. Token-Namen und Rollenverweise bleiben intakt.
+- **Ziehen auf leerem Raum** zeichnet ein Rechteck; jede Kachel, die es berührt, kommt in die Auswahl, über Gruppen hinweg. Ein eingeklappter Abschnitt fügt nichts hinzu.
+- **Umschalt-Klick** nimmt einen Bereich in Leserichtung, **Cmd/Strg-Klick** schaltet eine Kachel um, und ein einfacher Klick öffnet den Editor.
+- Jede Gruppenkopfzeile hat **Select all**, und **Cmd-A** bei fokussierter Kachel nimmt jede Farbe, die Sie besitzen, nie eine Starter-Farbe.
+- Das Raster hat einen Tabstopp: Pfeile bewegen, Umschalt-Pfeile erweitern, Space schaltet um, Delete entfernt und Escape leert. Um einen Kanal zu verschieben, drücken Sie zuerst `l`, `c` oder `h`.
+- Drücken und halten Sie auf einem Touchscreen eine Kachel, um eine Auswahl zu beginnen, und tippen Sie dann zum Hinzufügen.
 
-Die Auswahl im Palettenbereich ist eine Geste, kein Modus. Es gibt keine Schaltfläche, die Sie zuerst drücken müssen, und die Leiste erscheint mit der ersten ausgewählten Kachel und verschwindet mit der letzten.
-
-- **Ziehen Sie auf der leeren Fläche des Bereichs**, um ein Rechteck aufzuziehen: jede Kachel, die es berührt, tritt der Auswahl bei, über Gruppengrenzen hinweg. Ein eingeklappter Abschnitt trägt nichts bei, und ein Ziehen, das sich nie bewegt, leert die Auswahl.
-- **Umschalt-Klick** nimmt den Bereich in Lesereihenfolge; **Cmd/Ctrl-Klick** schaltet eine Kachel um; ein einfacher Klick öffnet weiterhin den Editor dieser Kachel.
-- Jede Gruppenüberschrift trägt **Alle auswählen**, und **Cmd-A** mit einer fokussierten Kachel nimmt jede Farbe, die das Designsystem besitzt - nie eine Starter-Farbe.
-- Das Raster hat einen Tab-Stopp. Pfeile bewegen sich darin, Umschalt-Pfeile erweitern die Auswahl, die Leertaste schaltet eine Kachel um, Entfernen entfernt die Auswahl und Escape leert sie. (Pfeile bewegen nur den Fokus: Um einen Kanal zu justieren, drücken Sie zuerst `l`, `c` oder `h`, wie es der Messwert sagt.)
-- Auf einem Touchscreen gibt es kein Rechteck. Halten Sie eine Kachel gedrückt, um eine Auswahl zu beginnen, dann tippen Sie zum Hinzufügen; **Alle auswählen** je Gruppe übernimmt den Rest.
-
-Die Leiste selbst liest **{n} ausgewählt**, dann **Verschieben nach** (eine bestehende Gruppe oder eine neue, die Sie im Menü benennen), **Rolle zuweisen** (jede ausgewählte Farbe übernimmt der Reihe nach die nächste Rolle, sodass vier Kacheln alle vier Rollen in einem Druck füllen), **Herunterladen** (die Auswahl in einem der sechs Palettenformate), **Werte kopieren** (eine Zeile pro Farbe in ihrer gespeicherten Notation) und **Löschen**. Verschieben nach und Rolle zuweisen erscheinen erst, sobald die Palette Schattierungen zum Verschieben hat. Ein einziges Strg/Cmd-Z macht eine ganze Sammelaktion rückgängig - ein Verschieben von vierzig, ein Rollen-Durchlauf, ein Löschen - und ein Löschen sagt, was es behalten hat, weil eine Auswahl auch Kacheln erreicht, die dieser Raum nicht entfernt.
+Die Leiste zeigt **{n} selected**, dann **Move to**, **Give a role** (jede Farbe übernimmt der Reihe nach die nächste Rolle), **Download** (die Auswahl in jedem der sechs Palettenformate), **Duplicate** (eine Kopie von jeder, nach dem Original platziert), **Copy values** und **Delete**. Eine Kopie öffnet sich direkt im Editor; mehrere bleiben ausgewählt. Ein Cmd/Strg-Z macht eine ganze Sammelaktion rückgängig.
+:::
 
 ### Verläufe
 
-Ein optionales Panel **Verläufe** baut Übergangs-Tokens aus der Palette für Hintergründe und Akzente. Überspringen Sie es ganz, wenn das Designsystem keine Verläufe macht. Jeder Verlauf hat eine Vorschau, benannte Stopps (2-8) und einen Winkel. Das entscheidende Verhalten: **ein Stopp verweist auf eine Farbfläche**, ändern Sie also diese Farbfläche, folgt der Verlauf. Die Interpolation läuft in OKLCH für saubere Übergänge. Löschen Sie einen Stopp, um die Reihe zu kürzen.
+Das optionale Panel **Gradients** baut Verlaufs-Tokens aus der Palette. Jeder Verlauf hat eine Vorschau, 2 bis 8 benannte Stopps und einen Winkel. Ein Stopp zeigt auf ein Farbfeld; färben Sie das Farbfeld um, und der Verlauf folgt. Verläufe laufen in OKLCH.
 
-### Die Palette anderswo nutzen
-
-Die schwebende Pille am unteren Rand des Palettenbereichs lädt die ganze Palette als **Design-Tokens (JSON)**, **CSS-Variablen**, **CSS-Klassen**, **SCSS-Variablen**, eine **GIMP-Palette (.gpl)** oder ein **Adobe Swatch Exchange (.ase)** herunter - sodass das Designsystem direkt in Illustrator, Figma, GIMP oder ein Stylesheet übernommen werden kann. Sie sitzt außerhalb des Scrollbereichs des Panels, behält also ihren Platz, wie weit die Palette auch scrollt, und erscheint, sobald die Palette Schattierungen hat. (Sie können die Palette auch aus [Assets](/info/using.html#assets-your-library) herunterladen.)
+Die Palette-Downloads (Design-Tokens, CSS, SCSS, GIMP und Adobe Swatch Exchange) liegen in einer Pille am Fuß der Palette, sobald es Abstufungen gibt. [Palette und Schriften überallhin mitnehmen](/info/using.html#take-your-palette-and-fonts-anywhere) beschreibt jedes Format.
 
 ## Schrift
 
-Dieser Raum wächst auf dieselbe Weise. Ohne eigenen Schriftschnitt ist er eine Karte und eine Entscheidung: **Primär**, gesetzt in Lesegröße im Schriftschnitt, der sie heute bedient, eine **Starter**-Markierung neben dem Namen, ein ausgefülltes **Schriftschnitt auswählen** und die Zeile „Es wird nichts installiert, bis Sie eines auswählen." Unter der Karte steht „Überschriften, Code und Kursiv fallen auf die primäre Schriftart zurück, bis Sie sie zuweisen", mit **Einzeln auswählen**, das die anderen drei Karten für den Rest des Besuchs aufdeckt.
+Ohne eigene Schrift ist der Raum eine Karte: **Primary**, in Lesegröße in der Schrift gesetzt, die heute dient, mit einem Tag **Starter**, einer Schaltfläche **Choose a face** und der Zeile *"Nothing installs until you choose one."* Headings, Code und Italic folgen der Primärschrift, bis Sie sie wählen; **Choose them separately** zeigt ihre Karten.
 
 ![Der Schrift-Raum mit noch keinem gewählten Schriftschnitt - eine Karte in Lesegröße, eine Starter-Markierung darauf und ein ausgefülltes Schriftschnitt auswählen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
-Wählen Sie einen Schriftschnitt, und der Raum öffnet sich zu **vier Rollenkarten**, der Schriften-Liste und der Live-Schriftprobe. Die vier Schriftschnitte sind die, die die App, die Tools und jeder Export tatsächlich lesen:
+Wählen Sie eine Schrift, und der Raum öffnet sich zu vier Rollenkarten, der Liste Fonts und einem Live-Muster:
 
-- **Primär** - Fließtext, Buttons und jedes Tool.
-- **Überschriften** - die Display-Schriftart für `h1`/`h2`.
-- **Code** - eine Monospace-Schriftart für Code und Daten.
-- **Kursiv** - ein echter kursiver Begleiter für Betonungen, Zitate und Nebenbemerkungen.
+- **Primary**: Fließtext, Schaltflächen und jedes Tool.
+- **Headings**: die Auszeichnungsschrift für `h1` und `h2`.
+- **Code**: eine Festbreitenschrift für Code und Daten.
+- **Italic**: eine echte Kursive für Betonung, Zitate und Randbemerkungen.
 
-Überschriften, Code und Kursiv fallen jeweils auf die primäre Schriftart zurück, bis Sie sie zuweisen, sodass ein Designsystem mit nur einer Schriftart hier gar keine Entscheidungen treffen muss.
-
-**Eine Einfärbung bedeutet, dass Sie sie gewählt haben.** Eine Karte ist nur dort eingefärbt, wo Sie diesen Schriftschnitt installiert haben. Ein Starter-Schriftschnitt trägt dieselbe **Starter**-Markierung, die die geerbten Gruppen der Palette tragen, im gedämpften Register und ohne Einfärbung, und eine Rolle, die niemand gewählt hat, liest **↳ folgt Primär**, statt den Namen der Primärfarbe zu wiederholen, als wäre sie ausgewählt worden. Die Schaltfläche sagt **Ändern** bei einem eigenen Schriftschnitt und **Schriftschnitt auswählen** überall sonst. Nichts auf einer Karte legt etwas fest: Die Schaltfläche öffnet die **Vergleichsbühne**, beschränkt auf diese Rolle.
+Eine Karte ist nur getönt, wo Sie diese Schrift installiert haben, und ihre Schaltfläche sagt **Change** bei einer eigenen Schrift und überall sonst **Choose a face**. Nichts auf einer Karte übernimmt etwas: Die Schaltfläche öffnet die Vergleichsbühne für diese Rolle.
 
 ![Die vier aufgedeckten Rollenkarten - jede gesetzt in dem Schriftschnitt, der sie bedient, mit einer Starter-Markierung, wo niemand eine gewählt hat, und Kursiv, das Primär folgt](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Die Vergleichsbühne
 
+Die Bühne öffnet sich im Raum, unter der Karte, die Sie gedrückt haben, und die Karten klappen zu einem einzeiligen Streifen zusammen, damit die Bühne auf dem ersten Bildschirm eines Smartphones sichtbar ist. Escape bricht ab und gibt den Fokus an die Karte zurück.
+
+1. Drücken Sie **Choose a face** auf der Karte.
+2. Tippen Sie einen Familiennamen und drücken Sie **Preview**, oder drücken Sie eine der sechs **Pinned**-Familien unter dem Feld.
+3. Drücken Sie **Use this face**.
+
 ![Die geöffnete Vergleichsbühne unter ihrer Karte, mit der Suchzeile, den angepinnten Familien und den zu einem einzeiligen Streifen eingeklappten Karten](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dtype%26focus%3Dstage&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-type-stage)
 
-Die Bühne öffnet sich **inline im Raum**, nicht in einem Dialog, und direkt unter der Karte, die Sie gedrückt haben. Während sie offen ist, klappen die Karten zu einem einzeiligen Streifen aus Rolle und Schriftschnitt zusammen, sodass die Bühne selbst auf einem Smartphone auf dem ersten Bildschirm liegt. Escape bricht ab und gibt die Tastatur zurück an die Karte, von der aus Sie sie geöffnet haben.
+**Die Einwilligung wird einmal erfragt.** Wenn eine Vorschau zum ersten Mal Google Fonts erreicht, erklärt ein Dialog: *Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.* **Fetch from Google** macht weiter und wird gemerkt. **Cancel** lässt die Karte *"Not fetched. Nothing was sent to Google."* lesen, mit ihrem eigenen **Fetch from Google**.
 
-Einen Schriftschnitt zu wählen sind drei Drücke:
-
-1. **Schriftschnitt auswählen** auf der Karte.
-2. Tippen Sie einen Familiennamen ein und drücken Sie **Vorschau** - oder drücken Sie eine der sechs **Angepinnt**-Familien unter dem Feld, ein Druck je Familie. Die Karte erscheint bereits ladend, mit einem Skeleton-Balken dort, wo die Schriftprobe stehen wird, statt des Interface-Schriftschnitts, der für einen noch nicht gesehenen Schriftschnitt einspringt.
-3. **Diese Schriftschnitt verwenden**.
-
-**Die Zustimmung wird einmal abgefragt, beim Druck, den Sie gemacht haben.** Wenn eine Vorschau zum ersten Mal Google Fonts erreicht, sagt ein Dialog, was passiert: *Google erfährt den Familiennamen und Ihre IP-Adresse. Die Datei wird danach auf diesem Gerät gespeichert und offline verwendet. Dies ist der einzige Schritt im Studio, der einen Dritten erreicht.* **Von Google abrufen** macht weiter und wird gemerkt. **Abbrechen** verlässt die Karte mit *„Nicht abgerufen. Es wurde nichts an Google gesendet."*, mit ihrem eigenen, weiterhin aktiven **Von Google abrufen**, sodass es sich anders zu überlegen ein Druck auf die Karte selbst ist. Keine Karte zeigt je eine tote Schaltfläche: In welchem Zustand sie auch ist, ihre eine primäre Schaltfläche sagt, was der nächste Schritt ist.
-
-**Legen Sie eine Schriftdatei auf der Bühne ab**, und sie wird sofort in der Vorschau angezeigt - **TTF**, **OTF** oder **WOFF** von Ihrem eigenen Rechner, was der Weg für einen lizenzierten Unternehmens-Schriftschnitt ist, den Sie bereits besitzen. Diese Ablagezone ist die einzige Datei-Tür in diesem Raum.
-
-So oder so bleibt der Schriftschnitt auf diesem Gerät, wird in der App, in den Tools und in jedem Export gerendert, für immer offline, und reist in der Designsystem-Datei - beim Rendern wird nichts nachgeladen. Alles auf Google Fonts wird unter einer offenen Lizenz (OFL/Apache/UFL) veröffentlicht.
+**Legen Sie eine Schriftdatei auf der Bühne ab** (TTF, OTF oder WOFF), um eine lizenzierte Schrift, die Sie schon besitzen, in der Vorschau zu sehen. So oder so bleibt die Schrift auf diesem Gerät, rendert offline in der App, den Tools und jedem Export und reist in der Designsystem-Datei mit. Alles auf Google Fonts wird unter einer offenen Lizenz ausgeliefert (OFL, Apache oder UFL).
 
 ### Schriften auf diesem Gerät
 
-Das Panel **Schriften** listet jeden Schriftschnitt auf, den dieses Gerät besitzt, und die Rolle, die er bedient. Von Ihnen hinzugefügte Schriftschnitte führen unter **In the design system**, jeder mit seinen Rollen und einer Löschfunktion, und der, der Primär bedient, trägt das Abzeichen. Die Starter-Schriftschnitte folgen in einer eingeklappten Zeile - *Starter · SUSE, SUSE Mono · bedient Primär und Code, bis Sie wählen* - gedämpft, ohne Löschfunktion und ohne etwas zu befördern, weil keins von beidem eine Entscheidung ist, die irgendjemand getroffen hat. **Schriftschnitt hinzufügen** öffnet dieselbe Vergleichsbühne ohne Einschränkung.
-
-Das Panel **Schriftrollen** am Fuß zeigt eine Live-Schriftprobe jeder Rolle - Fließtext und UI in Primär, ein optionaler Display-Schriftschnitt für die obersten Überschriften, ein Kursiv für Betonungen, ein Mono für Code und Daten - mit der Familie und ihrem Zustand neben jeder einzelnen (*Inter*, *SUSE · starter*, *SUSE · folgt Primär*), sodass sich das gesamte Set auf einen Blick lesen lässt.
+Das Panel **Fonts** listet jede Schrift auf diesem Gerät und die Rolle, der sie dient. Von Ihnen hinzugefügte Schriften stehen vorn unter **In the design system**, jede mit ihren Rollen und einem Löschen. Die Starter-Schriften folgen in einer gedämpften, eingeklappten Zeile. **Add a face** öffnet die Vergleichsbühne für jede Rolle. Das Panel **Type roles** zeigt ein Live-Muster jeder Rolle mit ihrer Familie und ihrem Zustand, etwa *Inter* oder *Inter · follows Primary*.
 
 ## Tokens
 
-Der Rest des Design-Systems, bearbeitbar ohne Code anzufassen:
+Tokens sind die benannten Werte hinter dem Designsystem: Farben, Schriften, Logos, Ecken und Abstände. Tools lesen sie über ihren Namen, sodass eine Änderung hier jedes Tool auf einmal erreicht.
 
-![Der Tokens-Raum - ein Regler für Eckenradien sowie Abstände, Größen, Schatten und der Rest des Systems](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
+![Der Raum Tokens: der Kopf mit einem Beispiel aus dem System und den Dateiaktionen, Kacheln, die jede Art von Token zählen, dann die Farbpaare mit ihren Kontrastwerten](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
-- **Abgerundete Ecken** - ein einzelner Radius-Regler (0-1.5rem), dem Karten, Buttons und Panels in der gesamten App folgen.
-- **Neutraltöne** - der Tinte-durch-Papier-Verlauf, mit dem eine frische Installation ausgeliefert wird, aufgeführt als **Neutraltöne · Starter · 9** mit ihren neun Stufen und einem **Öffnen** in den Colours-Bereich. Es ist der einzige Ort, an dem die Starter-Neutraltöne verwaltet werden, und die *starter*-Markierung verschwindet in dem Moment, in dem der Verlauf erzeugt statt geerbt wird.
-- **Weitere Tokens** - fügen Sie **Abstände**, **Größen**, **Strichstärke**, **Deckkraft**, **Rotation**, einfache **Zahlen** und **Schatten** hinzu und bearbeiten Sie sie. Wählen Sie einen Typ, benennen Sie ihn (*Gutter, Card shadow…*) und legen Sie seinen Wert fest. Diese werden als standardmäßige [Design Tokens](/info/design-tokens.html) (DTCG) gespeichert und reisen mit dem Designsystem.
+- **Der Kopf** gibt ein Beispiel aus Ihrem eigenen System (*Primary is Spearmint, #033633*) und die Dateiaktionen: **Download** (das ganze System als Design-Tokens oder die Palette in fünf weiteren Formaten), **Copy CSS** und **Add from…**, um eine JSON-Datei wieder einzulesen.
+- **Kacheln** zählen jede Art von Token und springen zu ihrem Abschnitt: Colours, Type, Logos, Shape and spacing, More und All tokens. Sie zählen, was Ihr eigenes ist, wie Overview. Auf einem Smartphone scrollen die Kacheln seitwärts.
+- **Colours** beginnt mit den Paaren, die Tools zusammensetzen (Text auf Fläche, auf Primärfarbe, gedämpft auf Fläche), mit einer APCA-Anzeige in hell und dunkel, und markiert **Weak contrast**, wo ein Paar nicht genügt. Dann jede Farbgruppe: eine Rampe als eine Reihe von Chips, andere Farben mit ihrem Wert und der Referenz, die Tools nutzen, etwa `{color.brand.spearmint}`. Drücken Sie eine Referenz, um die Referenz zu kopieren. **Edit in Colours** öffnet eine Gruppe im Raum Colours.
+- **Type** und **Logos** listen die Schrift für jede Rolle und jeden Logo-Slot, mit **Edit in Type** und **Edit in Logos**, sobald Sie eigene haben.
+- **Shape and spacing** enthält **Rounded corners** (`shape.radius`) und **Spacing rhythm** (`space.base`). Jedes zeigt *Lolly default*, bis Sie den Regler bewegen, und danach *Yours*, speichert sofort und lässt sich rückgängig machen.
+- **More tokens** ergänzt Abstände, Größen, Strichstärke, Deckkraft, Drehung, einfache Zahlen und Schatten, gespeichert als Standard-[Design-Tokens](/info/design-tokens.html).
+- **App appearance (advanced)** listet die Farben, Größen und Schatten auf, die Lollys eigene Bildschirme nutzen, und **Inspect every token (advanced)** durchsucht und bearbeitet jeden gespeicherten Wert und zeigt jede Änderung zuerst zur Prüfung.
+
+Ein Abschnitt, in dem nichts steht, bietet den Weg, die Lücke zu füllen: **Pick a colour**, **Choose a face** oder **Add a logo**.
 
 ## Dateien
 
-Legen Sie hier die Dateien ab, die Ihre Marke aufbewahrt - abgesehen von Logos: **Vektor**-, **Bild**-, **Audio**- und **Bewegtbild**-Assets (Video, Lottie, animiert). Sie landen in [Assets](/info/using.html#assets-your-library), nach Bereichen sortiert und in der Asset-Auswahl jedes Tools bereit. Alles bleibt auf diesem Gerät. (Die Leiste beschriftet den Raum **Dateien**; der URL-Schlüssel bleibt `catalogue`, weil ein Panel-Schlüssel ein dauerhafter Vertrag ist.)
+Legen Sie die Dateien ab, die Ihre Marke außer Logos behält: **vector**-, **image**-, **audio**- und **motion**-Dateien (Video, Lottie und Animationen). Sie erscheinen in [Assets](/info/using.html#assets-your-library), nach Abschnitten sortiert und bereit in der Asset-Auswahl jedes Tools, und sie bleiben auf diesem Gerät.
+
+## Usage & rules
+
+**Usage & rules** setzt die Entscheidungen Ihrer Marke in Kraft: was Menschen ändern können, was fest bleibt und was Lolly prüfen kann.
+
+![Usage & rules bei Lolly Demo: eine leere Karte Brand rules mit Add your first rule, dann Try your brand in use mit bereiten Beispielen zum Rendern](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+
+**Brand rules** listet Ihre Regeln. **Add rule** (oder **Add your first rule**) öffnet ein kurzes Formular:
+
+- ein **Rule name** in Ihren eigenen Worten, etwa *Beacon accents*;
+- der **Check**: **Colour choices**, **Font choices**, **Fixed artwork** oder **Text length**, mit der Markenrolle, die er nutzt, unter Ihrem eigenen Namen für die Rolle;
+- das **Example**, auf das er angewendet wird (Poster, Title slide, Content slide oder Chart), der **Mode** und ob er **Required** oder **Advisory** ist;
+- **Reviewed by**, dann **Save draft** oder **Approve & save**.
+
+Die Freigabe hält Ihre eigene Entscheidung auf diesem Gerät fest. Freigegebene Pflichtregeln beschränken das wiederverwendbare Poster, und Prüfungen betreffen nur die Beispiel-PNGs; sie ändern kein anderes Tool.
+
+Regeln, die ein Designsystem in seiner Token-Datei mitbringt, etwa freigegebene Farbpaare, Textstärke und Ausrichtung oder ein Logo je Fläche, werden hier als **Checked in Design** aufgeführt. Design prüft sie Ebene für Ebene in der Karte **Before you export** des Export-Panels, und `lolly check` tut dasselbe für ein gespeichertes Design-Dokument ([Vor dem Export](/info/design.html#before-you-export)). Eine Regel, für die dieser Build keine Prüfung hat, wird wie geliefert behalten und mit **Unchecked** markiert.
+
+**Try your brand in use** rendert vier Beispiele aus der aktuellen Revision mit **Render & check examples**. Wählen Sie einen **Brand mode** und **Try your own text** für Überschrift, Begleittext und Foliensatz. Jedes Beispiel berichtet, was gemessen wurde, mit **See checks & sources** und **Download check report**, und **Make reusable poster** lädt eine `.lolly` herunter, deren festes Layout und freigegebene Eingabeoptionen mit der Datei reisen. Beispiele sind lokal: Durch eine Prüfung wird nichts veröffentlicht oder freigegeben.
+
+Ein Build, der mit einer festen Marke ausgeliefert wird, zeigt dieselben Regeln und Beispiele schreibgeschützt, unter *This brand is set*.
 
 ## Eine Marke importieren
 
-**Add from…** am unteren Ende der Leiste öffnet eine zweistufige Auswahl. Die erste Stufe fragt, was Sie *haben*, nicht welches Format es ist:
+**Add from…** am Fuß der Leiste öffnet eine Auswahl, die fragt, was Sie haben, nicht welches Format es ist:
 
-- **Design Tokens oder eine Design-Datei** - DTCG- oder Tokens-Studio-JSON, ein Penpot-Projekt, ein **Zip mit Token-Sets**, ein Lolly-Design-System-Paket oder eine SVG.
-- **PDF** - eine Präsentation oder eine Richtliniendatei, auf diesem Gerät gelesen für ihre Farben, ihre Marken und ihre eingebetteten Schriftarten.
-- **Logo oder Screenshot** - ein Bild wird zu einer vorgeschlagenen Palette, gelesen auf diesem Gerät. Nichts wird hochgeladen. Das liest Farben, nicht den Schriftschnitt oder das Layout im Bild.
-- **Gespeicherte Webseite** - wählen Sie eine HTML-Datei und ihre CSS-Dateien, oder fügen Sie HTML oder CSS ein. Bis zu 20 Dateien und 2 MB insgesamt. Nur der gelieferte Text wird gelesen; verlinkte Ressourcen werden nicht abgerufen, und Skripte laufen nicht. Dieser Weg funktioniert auch ohne die Erweiterung oder die Desktop-App.
-- **Schriftdatei** - TTF, OTF oder WOFF. Öffnet den Schrift-Raum, in dem die Schriftart installiert wird.
-- **Website** - eine einzelne Seite, gelesen für ihre Farben und Schrift. Diese Kachel erscheint nur auf einem Gerät, das tatsächlich eine Seite lesen kann, denn eine deaktivierte Kachel, die etwas bewirbt, das niemand anklicken kann, ist schlechter als gar keine Kachel. Wo sie erscheint, nennt sie ihre Lesequelle klar: von der App auf diesem Gerät abgerufen, oder über die Browser-Erweiterung in einem Hintergrund-Tab gelesen, angemeldet als Sie. Das Eintragen einer URL *befüllt* das Feld nur vorab - der Abrufen-Button ist die Zustimmung, sodass ein Link, den Ihnen jemand schickt, niemals von sich aus einen Abruf auslösen kann.
+- **Design tokens or a design file**: DTCG- oder Tokens-Studio-JSON, ein Penpot-Projekt, ein Zip aus Token-Sätzen, ein Lolly-Designsystem-Paket oder eine SVG.
+- **PDF**: ein Deck oder eine Richtliniendatei, auf diesem Gerät auf Farben, Zeichen und eingebettete Schriften gelesen.
+- **Logo or screenshot**: Ein Bild wird zu einer vorgeschlagenen Palette, auf diesem Gerät gelesen. Es liest Farben, nicht Schrift oder Layout.
+- **Saved web page**: eine HTML-Datei und ihre CSS-Dateien oder eingefügtes HTML oder CSS, bis zu 20 Dateien und 2 MB. Nur der Text, den Sie liefern, wird gelesen: Verknüpfte Ressourcen werden nicht abgerufen, und Skripte laufen nicht.
+- **Font file**: TTF, OTF oder WOFF. Öffnet den Raum Type, wo die Schrift installiert wird.
+- **Website**: eine Seite, auf Farben und Schrift gelesen. Diese Kachel erscheint nur auf einem Gerät, das eine Seite lesen kann, und sagt, welchen Leser es nutzt: die App auf diesem Gerät oder die Browser-Erweiterung in einem Hintergrund-Tab, als Sie angemeldet. Das Nennen einer URL füllt nur das Feld; das Drücken von Fetch ist die Einwilligung.
 
-Wählen Sie die Design-Datei-Quelle, und die zweite Stufe ist die Karte unten: die akzeptierten Formate führen als Icon-Kacheln in Präferenzreihenfolge an, und die gesamte Karte ist ein einziges Drop-Ziel - klicken Sie irgendwo darauf oder ziehen Sie eine Datei darauf. Sie können eine Datei auch direkt auf das Studio ziehen.
+Wählen Sie die Quelle Design-Datei, und die nächste Karte listet die akzeptierten Formate als Symbolkacheln, wobei die ganze Karte ein Ablageziel ist. Sie können eine Datei auch direkt auf dem Studio ablegen.
 
 ![Die Import-Karte - die akzeptierten Formate führen als Icon-Kacheln an, und die gesamte Karte ist ein einziges Drop-Ziel](/t/url-shot?url=%2F%23%2Fstart%3Fsource%3Dfile&width=1440&height=900&dpi=192&waitMs=1600&css=.start-import-modal%20.modal-msg%2C.start-import-modal%20.modal-title%7Bdisplay%3Anone%7D&cropSelector=.start-import-drop&walker=1&format=svg&dark=1&filename=bs-brand-import-formats)
 
-Was jede Design-Datei bietet:
+- Ein **Lolly-Designsystem-Paket** (`.lolly` oder eine ältere `.zip`) wird in einem Schritt installiert.
+- Ein **Penpot**-Export (`.penpot`) bringt seine Design-Tokens.
+- Eine **Design Tokens**-Datei (W3C DTCG) oder **Tokens Studio**-Datei (`.json`) bringt ihre Tokens.
+- Eine **einfache SVG** wird auf Farben gescannt, aus denen Sie wählen, wobei die erste Ihre Primärfarbe wird.
 
-- ein **Lolly-Design-System-Paket** (`.lolly`; die alte Form `.zip` wird weiterhin akzeptiert) - installiert in einem Schritt;
-- ein **Penpot**-Export (`.penpot`) - übernimmt dessen Design Tokens;
-- eine **Design Tokens**-Datei (`.json`) - W3C DTCG;
-- eine **Tokens Studio**-Datei (`.json`) - Tokens Studio;
-- eine **einfache SVG** (`.svg`) - Lolly scannt deren Farben und lässt Sie auswählen, welche behalten werden sollen, wobei die erste zu Ihrer Primärfarbe wird.
+### Eine Referenz prüfen
 
-Ein Logo/Screenshot, eine Website oder eine gespeicherte Seite öffnet **Your suggested design system**. Sehen Sie ein Beispiel mit den vorgeschlagenen Farben, wählen Sie bei Bedarf eine andere **Main colour**, und benennen Sie das System. **Use this design system** wendet die erzeugten Hell- und Dunkel-Paletten an und kehrt zur Overview zurück. Bestehende Schriftschnitte bleiben an ihrem Platz. Dies ersetzt die Farben und andere Token-Einstellungen des aktiven Systems. Ein Checkpoint muss zuerst gelingen; **Restore brand settings** stellt die vorherigen Einstellungen wieder her.
+Ein Logo, ein Screenshot, eine Website oder eine gespeicherte Seite öffnet **Try these colours**: ein Beispiel in den vorgeschlagenen Farben, eine **Main colour**, die Sie ändern können, und einen Namen für ein neues System. Ein Kasten buchstabiert aus, was das Anwenden bewirkt: Es **ersetzt** die aktiven Token-Einstellungen durch die erzeugte Palette und Standardstile, **behält** Ihre Schriften und Bibliotheksdateien, und das vorherige System lässt sich **wiederherstellen**. **Apply suggested settings** wendet die hellen und dunklen Paletten an, nach einem Checkpoint, und **Restore brand settings** kann die alten Einstellungen zurückbringen. **Change reference** wählt eine andere Quelle.
 
-**Source details and individual choices** zeigt, was gelesen wurde, erkannte Schriftnamen und den Text-/Aktions-Kontrast der Vorschau. Es bietet außerdem **Choose individual items in the tray** und **Download design context**. Der JSON-Bericht trägt Beobachtungen, vorgeschlagene Tokens und Quellinformationen; gespeichertes HTML/CSS enthält einen SHA-256 des gelieferten Texts. Er enthält keinen rohen Seitentext und ist kein signiertes Content Credential. Schriftnamen sind Vorschläge: Schrift bleibt der Ort, an dem Schriftschnitte gewählt und installiert werden.
+**Palette, source details and individual choices** zeigt, was gelesen wurde, gefundene Schriftnamen und den Kontrast der Vorschau. Schriftnamen sind nur Vorschläge; Type bleibt der Ort, an dem Sie eine Schrift installieren. Die Quelldetails können Typografie, Abstände, Innenabstände und Eckenwerte enthalten, wo beobachtet, sonst mit **Not observed** gekennzeichnet. Eine gespeicherte Seite oder ein nativer Website-Lesevorgang meldet deklarierte Stile, die die Seite eventuell nicht nutzt, und die Browser-Erweiterung kann gemessene Stile aus einer Stichprobe sichtbarer Elemente melden. Das sind Beobachtungen: Nichts wird installiert, und Quellabstände ersetzen nie Ihre eigenen. **Choose individual items in the tray** behält einzelne Elemente, und **Download design context** speichert einen JSON-Bericht mit Beobachtungen, vorgeschlagenen Tokens und Quellinformationen (mit einem SHA-256 jedes gelieferten HTML oder CSS). Der Bericht enthält keinen rohen Seitentext und ist kein signiertes Content Credential.
 
-PDF- und andere Design-Datei-Importe behalten ihre bestehenden Prüf-Steuerelemente. Elemente, die im **Tray** aufbewahrt werden, ändern nichts, bevor sie über den Raum hinzugefügt werden, dem diese Art von Material gehört.
+PDF- und Design-Datei-Importe behalten ihre eigenen Prüfsteuerungen. Elemente im **Tray** ändern nichts, bis Sie sie in dem Raum hinzufügen, dem diese Art von Material gehört. `#/start?source=<kind>` öffnet die Auswahl auf einer Quelle (`file`, `pdf`, `image`, `font`, `url`, `page`), und `?import` öffnet die einfache Liste.
 
-`#/start?source=<kind>` öffnet die Auswahl bei einer bestimmten Quelle (`file`, `pdf`, `image`, `font`, `url`, `page`), und `?import` öffnet sie bei der einfachen Liste.
+### Einen Look finden und vergleichen
 
-## Eine Marke zwischen Geräten übertragen
+Öffnen Sie **Find a look** aus Overview oder aus der Designsystem-Liste in Settings. Durchsuchen Sie Systeme, die auf diesem Gerät gespeichert sind, und einige wiederverwendbare Lolly-Beispiele und suchen Sie nach Name, Farb-Tag oder deklarierter Schrift. **Closest to my current palette** sortiert nach gemessener Farbähnlichkeit, wobei passende Schriften Gleichstände auflösen; es ist kein Qualitätswert.
 
-**Export** am unteren Ende der Leiste schreibt eine einzelne **`LollyBrand-….lolly`** - Ihre Tokens, Schriftschnitte, Logos und Theme-Präferenz, mit einem Integritäts-Manifest, das beim Wiedereinlesen überprüft wird. Web-Releases vor 1.0.7 nannten dieselbe Nutzlast `.zip`; diese alte Schreibweise wird weiterhin akzeptiert. Daneben schreibt **Tokens (.json)** das reine Design-Tokens-Dokument für sich: keine Schriftschnitte, keine Logos, nur die Tokens - genau das, was ein Repo, ein CI-Schritt oder ein anderes Tokens-Tool tatsächlich liest.
-
-Eine zurückzuholen geht über **Add from… → Design tokens or a design file** (oben), oder per Drag-and-Drop auf das Studio. So gibt Ihnen ein Kollege eine Marke weiter, oder so bringen Sie eine zu einer zweiten Installation - kein Konto, keine Cloud. Um eine Marke stattdessen über die Kommandozeile einzubringen, siehe [`ingest:brand`](/info/configuration.html#brand-packs).
-
-## Frühere Einstellungen wiederherstellen
-
-Wählen Sie **Restore brand settings** am Fuß der Leiste, wählen Sie einen datierten Checkpoint, und drücken Sie dann **Wiederherstellen**. Es stellt Farben, Schrift-Einstellungen und andere Markentokens für die aktive Marke wieder her. Schrift- und Bilddateien bleiben, wie sie sind.
-
-Lolly speichert Ihre aktuellen Einstellungen als **Before restore**, bevor der Checkpoint angewendet wird. Wählen Sie diesen Checkpoint, um die Wiederherstellung umzukehren, auch nach dem Schließen und erneuten Öffnen des Browsers. Die letzten 20 Checkpoints werden auf diesem Gerät aufbewahrt. Kann der Speicher nicht gelesen werden oder können die aktuellen Einstellungen nicht gespeichert werden, meldet der Dialog das Problem, damit Sie es erneut versuchen können.
-
-## Versionen
-
-**Versionen** am Fuß der Leiste ist der Ort, an dem ein Designsystem aufhört, ein bewegliches Ziel zu sein. Veröffentlichen Sie eine, und Sie erhalten eine **dauerhafte, benannte Kopie**, die auf diesem Gerät verbleibt: Sie ändert sich danach nie mehr, sodass ein Tool, das sie fixiert, immer dasselbe zeichnet. Das Panel bleibt verborgen, bis es etwas Eigenes zu veröffentlichen gibt, sodass ein Studio, das nie veröffentlicht, die Steuerelemente auch nie zu sehen bekommt.
-
-Drei Dinge sollten Sie wissen, bevor Sie irgendetwas drücken, und das Panel nennt alle drei vor dem Drücken, nicht danach:
-
-- **Eine Version ist dauerhaft.** Es gibt noch kein Löschen, daher hält das Panel fest, was aufbewahrt wurde und dass es aufbewahrt bleibt, statt eine Schaltfläche anzubieten, die lügt.
-- **Entfernungen führen die Kompatibilitätskarte an.** Hinzugefügte und geänderte Tokens sind Neuigkeiten; ein *entferntes* ist das, was ein Tool zerbricht, daher wird es zuerst genannt und beim Namen genannt.
-- **Veröffentlichen lässt sich nicht rückgängig machen; Wiederherstellen schon.** *Aktuellsten Stand aus dieser Version wiederherstellen* ist eine gewöhnliche Bearbeitung des Kopfs, daher landet sie auf dem Undo-Stapel des Studios, und das Panel bietet Ihnen sofort das **Rückgängig** an.
-
-Sie können **Nur veröffentlichen** oder **Veröffentlichen und aktivieren** - der Unterschied besteht darin, ob Tools und die App ab jetzt dieser Version folgen oder weiter Ihrer neuesten Bearbeitung folgen. **Wieder der neuesten folgen** bringt jede Bearbeitung im selben Moment live, in dem sie gemacht wird. `#/start?area=versions` öffnet das Panel direkt.
-
-## Wenn die Marke fest ist
-
-Manche Builds liefern ein **gesperrtes Designsystem** aus, etwa die SUSE Brand. Es zu öffnen zeigt einen schreibgeschützten Hinweis mit **Erstellen Sie eine bearbeitbare Kopie** und **Wechseln**. Seine ursprünglichen Farben, Schriftschnitte und Tokens bleiben intakt. Ihre eigenen lokalen Systeme bleiben bearbeitbar, selbst wenn das gesperrte System das erste auf dem Gerät war. Im Profil wählt **Öffnen** ein System aus und öffnet dessen Studio; **Neues erstellen** erstellt ein lokales System und öffnet es unter `#/start` mit fokussiertem Namensfeld.
-
-## Wie es weitergeht
-
-- **[Lolly benutzen](/info/using.html)** - die Zeichenfläche, Speichern, Projekte und Assets.
-- **[Design-Token](/info/design-tokens.html)** - das Token-Modell, in dem Ihre Marke ausgedrückt wird.
-- **[Exportieren & Formate](/info/exporting.html)** - Druckeinheiten, CMYK und die Formate, in die Ihre Marke gerendert wird.
-
-
-## Einen Look finden und vergleichen
-
-Öffnen Sie **Find a look** über Overview oder die Designsystem-Liste im Profil. Durchsuchen Sie auf diesem Gerät gespeicherte Systeme und einige wiederverwendbare Lolly-Beispiele. Suchen Sie nach Name, Farb-Tag oder angegebener Schrift. **Closest to my current palette** sortiert nach gemessener Farbähnlichkeit, wobei passende Schriftfamilien Gleichstände auflösen; das ist keine Qualitätsbewertung.
-
-Wählen Sie einen Look aus, um ihn zu prüfen, oder zwei, um sie zu vergleichen. Die Prüfen-Schaltfläche bleibt auf einem kleinen Bildschirm verfügbar. Das Auswählen eines Looks ändert nichts. **Use this saved system** wechselt durch die bestehende Designsystem-Registrierung. **Diese Farben verwenden** wendet ein Beispiel über den normalen Checkpoint- und Installationsablauf an und bewahrt die aktuellen Schriftschnitte. **Restore brand settings** kann den vorherigen Look wiederherstellen.
-
-Unter **Details and design context** haben gespeicherte Systeme bearbeitbare **Search tags** und einen Kontext-Download. Beispiele verwenden originale Lolly-Farbrezepte; es gibt keine ferngeladene Inspirationssammlung und kein erforderliches Konto.
+Wählen Sie einen Look zur Prüfung aus oder zwei zum Vergleich nebeneinander. Das Auswählen ändert nichts. **Use this saved system** wechselt dorthin, und **Use these colours** wendet die Farben eines Beispiels über den üblichen Checkpoint an und behält Ihre Schriften. **Restore brand settings** stellt den vorherigen Look wieder her. Gespeicherte Systeme haben bearbeitbare **Search tags** unter **Details and design context**. Die Beispiele sind originale Lolly-Farbrezepte, ohne gescrapte Sammlung und ohne Konto.
 
 ![Sunroom und Orchard nebeneinander vergleichen, bevor eines der beiden Farbsysteme angewendet wird.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
-Der Vergleich hält beide Paletten gemeinsam sichtbar. Das Prüfen eines Looks ändert nichts, bis Sie **Diese Farben verwenden** oder **Use this saved system** wählen.
+## Ihr Designsystem behalten und bewegen
 
-## Quellbelege lesen
+### Eine Marke zwischen Geräten bewegen
 
-Die optionalen Details der Quellprüfung zeigen Typografie, Abstände, Innenabstände und Eckenwerte, wo beobachtet. Gespeichertes HTML/CSS und native Website-Lesevorgänge melden Deklarationen, die von der gerenderten Seite möglicherweise nicht verwendet werden. Die Browser-Erweiterung kann gemessene Stile aus einer begrenzten Stichprobe sichtbarer Elemente melden, mit ihrem Viewport und ihrer Browser-Farbpräferenz. Ältere Erweiterungen funktionieren weiterhin mit deklarierten Stilen. Fehlende Felder sagen **Not observed**.
+**Export** schreibt eine Datei **`LollyBrand-….lolly`**: Ihre Tokens, Schriften, Logos und Design-Einstellung, mit einem Integritätsmanifest, das beim Zurückholen geprüft wird. Web-Releases vor 1.0.7 nannten dieselbe Datei `.zip`, und diese Schreibweise wird weiterhin akzeptiert. **Tokens (.json)** schreibt das einfache Design-Tokens-Dokument für sich, ohne Schriften oder Logos, für ein Repository, einen Build-Schritt oder ein anderes Tokens-Tool.
 
-Das sind Beobachtungen, keine automatischen Stileinstellungen. Schriftdateien werden von einem Referenz-Scan weder abgerufen noch installiert, und Quell-Abstände ersetzen nicht heimlich Ihre eigenen. Zählungen beschreiben Vorkommen in der Stichprobe, nicht Konfidenz oder Qualität.
+Um eine zurückzuholen, nutzen Sie **Add from… → Design tokens or a design file** oder legen Sie die Datei auf dem Studio ab. So reicht Ihnen eine Kollegin oder ein Kollege eine Marke, oder so nehmen Sie eine auf eine zweite Installation mit, ohne Konto und ohne Cloud. Um eine Marke über die Kommandozeile einzubringen, siehe [`ingest:brand`](/info/configuration.html#brand-packs).
 
-## Eine Komposition gegen das Designsystem prüfen
+**Fonts for Linux (.rpm)** packt die von Ihnen hinzugefügten Schriften in ein installierbares RPM. Wenn Sie welche selbst hochgeladen haben, bittet Lolly Sie zuerst zu bestätigen, dass Sie sie weitergeben dürfen.
 
-Öffnen Sie in Design **Export**, dann **Bevor Sie exportieren**. Die Prüfung verwendet dieselbe wirksame Designsystem-Version wie das Render. Sie vergleicht verfasste Farben, Token-Aliasse, Schriftwahl und Bild-Asset-IDs. Eigene Werte können beabsichtigt sein; ein Bild außerhalb der deklarierten Markenassets ist ein Prüfpunkt, kein verbotenes Bild.
+### Frühere Einstellungen wiederherstellen
 
-Wo ein konkreter Farb- oder Schriftvorschlag verfügbar ist, ändert seine Schaltfläche genau diese eine Ebene. Das normale **Rückgängig** stellt den ursprünglichen Wert wieder her. Gesperrte oder geänderte Ebenen werden von einem alten Vorschlag nicht überschrieben. Fehlende Quellbelege bleiben getrennt von einer Übereinstimmung. Gerenderter Kontrast und Textlayout werden von den bestehenden eingebundenen Prüfungen kontrolliert. Verläufe, Effekte, verschachtelte Tool-Inhalte, Rechte und subjektive Qualität werden vom Markenvergleich nicht bewertet. Prüfungen blockieren **Herunterladen** nicht.
+Wählen Sie **Restore brand settings**, wählen Sie einen datierten Checkpoint und drücken Sie **Restore**. Er stellt Farben, Schrifteinstellungen und andere Tokens der aktiven Marke wieder her; Schrift- und Bilddateien bleiben, wie sie sind. Lolly speichert Ihre aktuellen Einstellungen zuerst als **Before restore**, sodass Sie eine Wiederherstellung auch nach dem Schließen des Browsers rückgängig machen können. Die letzten 20 Checkpoints bleiben auf diesem Gerät.
 
-## Design-Kontext lokal nutzen
+### Versionen
 
-**Download design context** enthält das Token-Dokument, aufgelöste Farben, deklarierte Schriftfamilien, Asset-IDs, Quellbelege, wo erfasst, Abdeckung und explizite Regeln. Es enthält keine Schriftdateien oder Eigentumsnachweise. Die Referenzprüfung enthält außerdem ihre vorgeschlagenen Tokens und Beobachtungen.
+Eine veröffentlichte Version ist eine **dauerhafte, benannte Kopie**, die auf diesem Gerät behalten wird. Sie ändert sich nie, sodass ein Tool oder ein Link, der sie festlegt (mit `designv`), immer dasselbe zeichnet. Ein System mit etwas Eigenem zeigt am Fuß der Leiste einen unaufdringlichen Link **Versions & publishing**; nach Ihrer ersten Veröffentlichung wird daraus der Eintrag **Versions**. `#/start?area=versions` öffnet ihn direkt.
 
-Die CLI kann beide Downloads ohne Server lesen:
+- **Eine Version ist dauerhaft.** Es gibt noch kein Löschen, und das Panel sagt das.
+- **Entfernungen führen die Kompatibilitätskarte an**, weil ein entfernter Token das ist, was ein Tool kaputt macht.
+- **Veröffentlichen lässt sich nicht rückgängig machen; Wiederherstellen schon.** *Restore latest from this version* ist eine gewöhnliche Bearbeitung, mit sofort angebotenem **Undo**.
 
-```bash
-lolly system import ./lolly-design-context.json
-lolly system context --output=design-context.json
-lolly system check ./design-inputs.json --file=design-context.json
-```
+**Publish only** behält eine Version, ohne zu ändern, was Tools verfolgen; **Publish and make active** lässt Tools und die App dieser Version folgen. **Follow the latest again** schaltet jede Bearbeitung in dem Moment live, in dem Sie sie vornehmen.
 
-`system check` akzeptiert Design-Eingaben mit einem `boxes`-Array oder einem kompilierten Design-Dokument. Es meldet vorgeschlagene Korrekturen, ohne die Komposition zu ändern. Es kann weder Browser-Layout noch gerenderten Kontrast messen. Die bestehende MCP-Ressource **lolly://design-context** legt den Kontext des wirksamen Systems über den konfigurierten lokalen MCP-Prozess offen; es ist kein neuer gehosteter Dienst und kein API-Schlüssel nötig.
+## Ihre Designsysteme verwalten
+
+Öffnen Sie **Settings → Preferences → Design systems**, um Systeme zu wechseln, hinzuzufügen oder zu entfernen. **Open** wählt ein System aus und öffnet es hier; **Make a new one** erzeugt ein lokales System und öffnet es mit bereitem Namensfeld. Jeweils ein System ist aktiv, für das ganze Gerät. [Marken-Architekturen](/info/brand-architectures.html) hilft zu entscheiden, wann eine Marke ein eigenes Designsystem braucht.
+
+**Woher ein System kommt.** Das System, das der Katalog einer Bereitstellung liefert, heißt **Came with this app** oder, in einer App, die mit einer Instanz verbunden ist, **From this instance**. Klappen Sie **Catalogue source** auf, um zu sehen, wer es liefert, sein Tokens-Asset und seinen Namespace und seine bekannte Version oder Prüfsumme; schlägt eine Aktualisierung fehl, wird zwischengespeichertes Material gekennzeichnet.
+
+**Verwaltete Systeme sind schreibgeschützt.** Ein System heißt **Managed by this instance** (oder **Managed by this app** in der Desktop-App ohne Instanz), wenn sein Katalog das System sperrt. Sie können es nutzen und herunterladen, und sein Öffnen hier zeigt einen Hinweis zum Lesen mit **Make an editable copy** und **Switch**. Ihre eigenen lokalen Systeme bleiben bearbeitbar, auch wenn das verwaltete zuerst da war. Ein Build mit einer festen Marke öffnet Design System Setup auf *This brand is set*, mit den Tokens und Nutzungsregeln der Marke zum Lesen.
+
+**Jedes andere gelieferte System gehört Ihnen** zum Ausblenden, Bearbeiten und Zurücksetzen, einschließlich Lolly Demo und Lolly Starter auf lolly.tools. Eine Bearbeitung behält seinen Namen und kennzeichnet die Zeile mit **Edited here**, und **Reset to original** in seinem Menü verwirft die Änderungen, die auf diesem Gerät vorgenommen wurden. Der leere Starter ist die Ausnahme: Eine erste Änderung dort beginnt ein eigenes Designsystem, weshalb Lolly einmal fragt, wie das neue System heißen soll. [Lolly Demo im Einsatz](/info/lolly-demo-in-use.html#switch-to-your-own) zeigt, was Ihr eigenes System ersetzt.
+
+### Ein Designsystem entfernen
+
+Wählen Sie **Remove** im Menü eines Systems; die Bestätigung sagt, welches System danach aktiv ist. Gespeicherte Sitzungen, Uploads und mit einem anderen System geteiltes Material bleiben.
+
+Das Entfernen eines gelieferten Systems blendet es nur aus: Seine Katalog-Assets bleiben, **Bring back** zeigt es wieder, und es kehrt von selbst zurück, wenn Sie alles andere entfernen. Das Entfernen einer importierten oder bearbeiteten Kopie entfernt weder das gelieferte System noch seine Logos oder Schriften, und war die Kopie aktiv, wird das gelieferte System wieder aktiv. Das Entfernen einer aktiven gehosteten Kopie löscht nur die Verbindung dieser Kopie; eine getrennt gewählte Instanz bleibt ausgewählt.
+
+Das Ändern dessen, was ein Server liefert, ist Aufgabe der Administration: Ihr Betreiber ändert den Quellkatalog und stellt neu bereit, oder eine Lolly-Work-Administratorin prüft und übernimmt eine Serveränderung. Bearbeitungen hier bleiben lokal. Siehe [Ein Katalog-Designsystem entfernen](/info/configuration.html#removing-a-catalogue-design-system) und [Konfiguration](/info/configuration.html#supplied-and-local-design-systems).
+
+## Den Design-Kontext außerhalb der App nutzen
+
+**Download design context** speichert das Token-Dokument, aufgelöste Farben, deklarierte Schriftfamilien, Asset-IDs, Quellennachweise, wo erfasst, Abdeckung und ausdrückliche Regeln, ohne Schriftdateien und ohne Eigentumsnachweis. Die Kommandozeile liest die Datei ohne Server: `lolly system import` macht sie zum Designsystem des Terminals, und `lolly system check` prüft Design-Eingaben gegen den gespeicherten Kontext. [Ihr Designsystem einbringen](/info/cli.html#bring-your-design-system) behandelt den Import, [Welches Designsystem ein Befehl nutzt](/info/cli-decks.html#which-design-system-a-command-uses) die Prüfung, und ein MCP-Client liest dasselbe Briefing über `lolly://design-context` ([MCP-Server](/info/mcp.html)).
+
+## Wie es weitergeht
+
+- **[Lolly nutzen](/info/using.html)**: die Tools, Speichern, Teilen und Assets.
+- **[Marken-Architekturen](/info/brand-architectures.html)**: wie sich Bereiche, Produkte, mitgetragene Marken, Kunden und Saisons auf Designsysteme, Farbvarianten und Logo-Identitäten abbilden.
+- **[Design-Tokens](/info/design-tokens.html)**: das Token-Modell, in dem Ihre Marke geschrieben ist.
+- **[Eine Datei exportieren](/info/exporting.html)**: Druckeinheiten, CMYK und die Formate, in die Ihre Marke rendert.

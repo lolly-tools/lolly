@@ -878,7 +878,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     // via ::details-content, which computed style does not expose (display, visibility
     // and content-visibility all read "visible" on the hidden subtree, and it reports a
     // real getBoundingClientRect). So the walker drew it: the export preflight card on
-    // /info/authoring-tools rendered its collapsed Format/Size rows straight through
+    // /info/build/authoring-tools rendered its collapsed Format/Size rows straight through
     // the buttons below it. `content-visibility: hidden` set by an author is the same
     // class of skip, and is caught here too.
     if (isPaintSkipped(el, style)) return;

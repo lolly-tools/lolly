@@ -340,6 +340,74 @@ test('a canvas with no artboards answers "" rather than guessing', () => {
   } finally { f.destroy(); }
 });
 
+// ── Fit all from the model (review N1) ──────────────────────────────────────────
+//
+// The harness draws no template, so there is no `.lolly-frame-page` to measure: every
+// rect below comes from the rows. The canvas measures 1000 px for 1000 native px, so
+// client px equal model px here.
+
+const loose = (id: string, x: number, y = 20, extra: Partial<Box> = {}): Box =>
+  ({ kind: 'box', id, frame: '', x, y, w: 100, h: 60, bg: '#ccc', ...extra } as Box);
+
+test('Fit all frames every artboard and every loose layer, read from the model', () => {
+  const f = mount([frameBox('f1', 0, 0), frameBox('f2', 600, 1), loose('far', 1500, 400)]);
+  try {
+    const r = f.design.contentRect() as (ReturnType<typeof f.design.contentRect> & { extent?: unknown });
+    assert.deepEqual({ x: r!.x, y: r!.y, w: r!.w, h: r!.h }, { x: 0, y: 0, w: 1600, h: 460 },
+      'both boards (0..1000 x 0..300) and the parked layer (1500..1600 x 400..460)');
+    assert.deepEqual(r!.extent, { x: 0, y: 0, w: 1600, h: 460 }, 'the extent rides along');
+  } finally { f.destroy(); }
+});
+
+test('an artboard child does not widen Fit all, but does widen the zoom-out extent', () => {
+  // A child hanging 50 px off board 2's right edge (board 2 spans 600..1000).
+  const f = mount([frameBox('f1', 0, 0), frameBox('f2', 600, 1), childBox('c', 'f2', 950)]);
+  try {
+    const r = f.design.contentRect() as { x: number; y: number; w: number; h: number; extent?: { w: number } };
+    assert.equal(r.w, 1000, 'the boards alone: initial framing as before');
+    assert.equal(r.extent!.w, 1050, 'the page extent reaches the child');
+  } finally { f.destroy(); }
+});
+
+test('hidden layers, hidden boards, cameras and audio beds leave no mark on Fit all', () => {
+  const f = mount([
+    frameBox('f1', 0, 0),
+    loose('hid', 3000, 20, { hidden: true }),
+    { ...frameBox('f9', 5000, 9), hidden: true } as Box,
+    loose('cam', 7000, 20, { kind: 'camera' }),
+    loose('bed', 9000, 20, { kind: 'audio' }),
+  ]);
+  try {
+    const r = f.design.contentRect() as { w: number; extent?: { w: number } };
+    assert.equal(r.w, 400, 'only the shown board');
+    assert.equal(r.extent!.w, 400);
+  } finally { f.destroy(); }
+});
+
+test('without artboards, Fit stays the export box until a layer sits outside it', () => {
+  const inside = mount([loose('a', 10)]);
+  try { assert.equal(inside.design.contentRect(), null, 'everything inside: the plain fit, as before'); }
+  finally { inside.destroy(); }
+  const outside = mount([loose('a', 10), loose('b', 1200, 50)]);
+  try {
+    const r = outside.design.contentRect()!;
+    assert.deepEqual({ x: r.x, y: r.y, w: r.w, h: r.h }, { x: 0, y: 0, w: 1300, h: 1000 }, 'the export box plus the layer outside it');
+  } finally { outside.destroy(); }
+});
+
+test('a scene the playhead is hiding stays out of Fit all, as it always has', () => {
+  const f = mount([frameBox('f1', 0, 0), frameBox('f2', 600, 1)], { withTime: true });
+  try {
+    const page = document.createElement('div');
+    page.className = 'lolly-frame-page seq-off';
+    page.dataset.frameId = 'f2';
+    f.canvasEl.append(page);
+    const r = f.design.contentRect() as { w: number; extent?: { w: number } };
+    assert.equal(r.w, 400, 'only the scene on screen');
+    assert.equal(r.extent!.w, 1000, 'the extent still holds the whole page');
+  } finally { f.destroy(); }
+});
+
 // ══ 4. the model port ═════════════════════════════════════════════════════════
 
 test('model.setField writes N ids in ONE commit and leaves the selection untouched', () => {
@@ -896,6 +964,49 @@ test('Artboards modifier chords do not navigate or edit, and arrows also work on
     assert.equal(document.activeElement, cells[1]);
     assert.equal(f.commits(), 0);
   } finally { f.destroy(); }
+});
+
+test('the Artboards filmstrip builds thumbnails only for the cells in view, and stops when it closes', async () => {
+  // A stand-in IntersectionObserver the test drives by hand: the strip is what scrolls.
+  const observers: Array<{ cb: (e: Array<{ target: Element; isIntersecting: boolean }>) => void; root: Element | null; targets: Set<Element>; off: boolean }> = [];
+  const win = dom.window as unknown as Record<string, unknown>;
+  const real = win.IntersectionObserver;
+  win.IntersectionObserver = class {
+    o: (typeof observers)[number];
+    constructor(cb: (typeof observers)[number]['cb'], opts: { root?: Element }) {
+      this.o = { cb, root: opts?.root ?? null, targets: new Set(), off: false };
+      observers.push(this.o);
+    }
+    observe(el: Element) { this.o.targets.add(el); }
+    unobserve(el: Element) { this.o.targets.delete(el); }
+    disconnect() { this.o.off = true; this.o.targets.clear(); }
+  };
+  const f = mount([frameBox('f1', 0, 0), frameBox('f2', 600, 1), frameBox('f3', 1200, 2)]);
+  try {
+    f.design.toggleFramesPanel();
+    const strip = f.stageEl.querySelector<HTMLElement>('.fc-frames-strip')!;
+    const io = observers.find(o => o.root === strip);
+    assert.ok(io, 'the strip is the observer root');
+    const slots = [...strip.querySelectorAll<HTMLElement>('.fc-frame-cell-slot')];
+    assert.equal(io.targets.size, 3, 'every slot is watched');
+    // Each slot already holds a box of the thumbnail's size, so the strip does not jump.
+    for (const slot of slots) {
+      const hold = slot.firstElementChild as HTMLElement;
+      assert.equal(hold.className, 'fc-frame-thumb');
+      // A 400x300 board in the strip's 132x90 box: scale 0.3.
+      assert.deepEqual([hold.style.width, hold.style.height], ['120px', '90px']);
+      assert.equal(hold.childElementCount, 0, 'and nothing cloned yet');
+    }
+    io.cb([{ target: slots[0]!, isIntersecting: true }]);
+    await settle();
+    assert.ok(slots[0]!.firstElementChild!.childElementCount > 0, 'the cell in view got its thumbnail');
+    assert.equal(slots[2]!.firstElementChild!.childElementCount, 0, 'a cell out of view did not');
+    f.design.toggleFramesPanel();
+    assert.equal(io.off, true, 'closing the strip stops the observer');
+  } finally {
+    win.IntersectionObserver = real;
+    f.destroy();
+  }
 });
 
 test('a mark OUTSIDE the stage (the docked HUD) opens its menu in the viewport, above the dock', () => {

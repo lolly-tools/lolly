@@ -70,7 +70,7 @@ Read the references needed for the chosen tool and surface:
 | Renovating an old deck into the design system | `lolly_rebrand` (MCP) or `lolly rebrand plan\|compile\|inspect` (CLI) - see `reference/rebrand.md` |
 | Rebuilding a deck in Design from its content | `lolly://design-context` / `lolly system context` for the brief, `lolly_read` / `lolly read` for the source, `lolly_compose` / `lolly compose` for the slides, `lolly_check` / `lolly check` for the result - see `reference/recreate.md` |
 | Slides laid out from the brand's slide master, with its furniture and real PowerPoint placeholders | `lolly_compose` (MCP) or `lolly compose <spec.json>` (CLI) - see `reference/design.md` |
-| Checking a Design document, `.lolly` or export before handing it over | `lolly_check` (MCP) or `lolly check` (CLI) |
+| Checking a Design document, `.lolly` or export before handing it over | `lolly_check` (MCP) or `lolly check` (CLI); in an open document, `lolly_check_document` (site tools) |
 | Writing a Design document in artboard coordinates, by text style or with layouts | The authoring keys (`$in`, `$style`, `$stack`, …) - see `reference/design.md` |
 | Knowing where a text box's lines break before drawing it | `lolly_measure_text` (MCP) or `lolly measure --text` (CLI) |
 | A `.lolly` file a person opens in the app, pictures included | `lolly_package` (MCP) or `lolly package <design.json> --output=<file.lolly>` (CLI) |
@@ -94,9 +94,13 @@ Read the references needed for the chosen tool and surface:
 6. **Check before you hand over.** `lolly_check` (MCP) or `lolly check` (CLI)
    runs every check in one findings list: structure, the painted page, brand and
    house rules, Verify layout clues and, given the source, fidelity to it. Fix each
-   finding at its `layerId`, then check again; `exitCode` `0` is clean. It does
-   not judge a diagram: for a Diagrams export, follow the review loop in
-   `reference/diagrams.md`.
+   finding at its `layerId`, then check again; `exitCode` `0` is clean. A
+   document also gets `verify.writing-score`, the writing score of its visible
+   text: a signal, not a verdict, that never changes `exitCode`. Treat it and the
+   house-rule findings as creation feedback and revise the layers they name. In
+   an open document, `lolly_apply_document_changes` returns the same feedback
+   after each change. The check does not judge a diagram: for a Diagrams export,
+   follow the review loop in `reference/diagrams.md`.
 7. **Share the editable link.** When the human will iterate, hand them the
    `lolly.tools` link, not just the bytes.
 

@@ -1,0 +1,11 @@
+digraph tool_composition {
+  rankdir=TB
+  node [shape=box]
+  parent [label="Parent tool\ncomposes badgeQr"]
+  child [label="Child tool\nqr-code renders"]
+  slot [label="Image slot\nasset badgeQr"]
+  guard [label="Depth limit 3\ncycles left empty"]
+  parent -> child
+  child -> slot
+  child -> guard
+}

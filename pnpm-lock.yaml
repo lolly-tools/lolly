@@ -13,6 +13,8 @@ overrides:
   shell-quote: ^1.9.0
   ip-address: ^10.5.1
   nanoid: ^3.3.17
+  zod: ^4.6.6
+  undici: ^8.12.2
   react: ^19.2.8
   react-dom: ^19.2.8
   '@huggingface/transformers>sharp': ^0.35.5
@@ -32,7 +34,7 @@ importers:
     devDependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.135.0
-        version: 0.135.0(zod@4.6.2)
+        version: 0.135.0(zod@4.6.7)
       '@biomejs/biome':
         specifier: ^2.5.15
         version: 2.5.15
@@ -523,7 +525,7 @@ packages:
     resolution: {integrity: sha512-WWrdL57JhU5KoynpTjt9GXK6k7ud9nPw2uw/Trn+oBXh6s0KpjhAccWZm2Qxw08ARYG1UDQj5iC+JO42j1rt/g==}
     hasBin: true
     peerDependencies:
-      zod: ^3.25.0 || ^4.0.0
+      zod: ^4.6.6
     peerDependenciesMeta:
       zod:
         optional: true
@@ -1065,7 +1067,7 @@ packages:
       '@modelcontextprotocol/server': ^2.0.0
       react: ^19.2.8
       react-dom: ^19.2.8
-      zod: ^4.2.0
+      zod: ^4.6.6
     peerDependenciesMeta:
       '@modelcontextprotocol/server':
         optional: true
@@ -2897,8 +2899,8 @@ packages:
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
-  undici@8.11.2:
-    resolution: {integrity: sha512-u4UB2/IrKdU6lFxumHmmo1a3fCQO5tzQllRorfoRS63txhrB7xTpSn1PftwC4qEHkOaqP95fCWW4lJzwErwzhQ==}
+  undici@8.12.3:
+    resolution: {integrity: sha512-+fdndUTwBP86cVjihTp21hZHo7d6oj1c/47XPA3lL8mM0XHs+C4EkcjmgRsFnFk2f/UONGDy9ItBItmXsLOQHw==}
     engines: {node: '>=22.19.0'}
 
   unicode-emoji-picker@2.0.1:
@@ -3032,8 +3034,8 @@ packages:
   yoga-layout@3.2.1:
     resolution: {integrity: sha512-0LPOt3AxKqMdFBZA3HBAt/t/8vIKq7VaQYbuA8WxCgung+p9TVyKRYdpvCb80HcdTN2NkbIKbhNwKUfm3tQywQ==}
 
-  zod@4.6.2:
-    resolution: {integrity: sha512-lh5RCAGFa1Cm2hjtNwLQhSs/AsqdWnTQaBER9fEwN/88pSh7KOtJavtBx/0VlkN/uFd61SwYmljLMDAsHlvzBQ==}
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
   zxing-wasm@3.1.6:
     resolution: {integrity: sha512-mU7UNuvl+hOT+nlSOQTMHZ2tM8lRMsbjDIp5IO/+HmBl/FOq77q0OSZPJ3cm42A9c1MKU6Uve67FiGdkhsrT9g==}
@@ -3052,13 +3054,13 @@ snapshots:
       ansi-styles: 6.2.3
       is-fullwidth-code-point: 5.1.0
 
-  '@anthropic-ai/sdk@0.135.0(zod@4.6.2)':
+  '@anthropic-ai/sdk@0.135.0(zod@4.6.7)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       json-schema-to-ts: 3.1.1
       standardwebhooks: 1.1.1
     optionalDependencies:
-      zod: 4.6.2
+      zod: 4.6.7
 
   '@asamuzakjp/css-color@3.2.0':
     dependencies:
@@ -3460,22 +3462,22 @@ snapshots:
       eventsource-parser: 3.1.0
       jose: 6.2.12
       pkce-challenge: 5.0.1
-      zod: 4.6.2
+      zod: 4.6.7
 
   '@modelcontextprotocol/core@2.2.0':
     dependencies:
-      zod: 4.6.2
+      zod: 4.6.7
 
   '@modelcontextprotocol/core@2.3.1':
     dependencies:
-      zod: 4.6.2
+      zod: 4.6.7
 
-  '@modelcontextprotocol/ext-apps@2.0.0(@modelcontextprotocol/client@2.2.0)(@modelcontextprotocol/core@2.3.1)(@modelcontextprotocol/server@2.3.1)(react-dom@19.3.0(react@19.3.1))(react@19.3.1)(zod@4.6.2)':
+  '@modelcontextprotocol/ext-apps@2.0.0(@modelcontextprotocol/client@2.2.0)(@modelcontextprotocol/core@2.3.1)(@modelcontextprotocol/server@2.3.1)(react-dom@19.3.0(react@19.3.1))(react@19.3.1)(zod@4.6.7)':
     dependencies:
       '@modelcontextprotocol/client': 2.2.0
       '@modelcontextprotocol/core': 2.3.1
       '@standard-schema/spec': 1.1.0
-      zod: 4.6.2
+      zod: 4.6.7
     optionalDependencies:
       '@modelcontextprotocol/server': 2.3.1
       react: 19.3.1
@@ -3483,7 +3485,7 @@ snapshots:
 
   '@modelcontextprotocol/ext-tasks@0.2.2(@modelcontextprotocol/client@2.2.0)':
     dependencies:
-      zod: 4.6.2
+      zod: 4.6.7
     optionalDependencies:
       '@modelcontextprotocol/client': 2.2.0
 
@@ -3492,7 +3494,7 @@ snapshots:
       '@hono/node-server': 2.0.12(hono@4.13.7)
       '@modelcontextprotocol/client': 2.2.0
       '@modelcontextprotocol/core': 2.3.1
-      '@modelcontextprotocol/ext-apps': 2.0.0(@modelcontextprotocol/client@2.2.0)(@modelcontextprotocol/core@2.3.1)(@modelcontextprotocol/server@2.3.1)(react-dom@19.3.0(react@19.3.1))(react@19.3.1)(zod@4.6.2)
+      '@modelcontextprotocol/ext-apps': 2.0.0(@modelcontextprotocol/client@2.2.0)(@modelcontextprotocol/core@2.3.1)(@modelcontextprotocol/server@2.3.1)(react-dom@19.3.0(react@19.3.1))(react@19.3.1)(zod@4.6.7)
       '@modelcontextprotocol/ext-tasks': 0.2.2(@modelcontextprotocol/client@2.2.0)
       '@modelcontextprotocol/server': 2.3.1
       '@napi-rs/keyring': 2.1.1
@@ -3507,10 +3509,10 @@ snapshots:
       pino: 9.14.0
       proper-lockfile: 4.1.2
       react: 19.3.1
-      undici: 8.11.2
+      undici: 8.12.3
       vite: 8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
       yaml: 2.9.1
-      zod: 4.6.2
+      zod: 4.6.7
     transitivePeerDependencies:
       - '@rolldown/plugin-babel'
       - '@types/node'
@@ -3535,7 +3537,7 @@ snapshots:
   '@modelcontextprotocol/server@2.3.1':
     dependencies:
       '@modelcontextprotocol/core': 2.3.1
-      zod: 4.6.2
+      zod: 4.6.7
 
   '@napi-rs/canvas-android-arm64@1.0.11':
     optional: true
@@ -5252,7 +5254,7 @@ snapshots:
 
   undici-types@8.9.0: {}
 
-  undici@8.11.2: {}
+  undici@8.12.3: {}
 
   unicode-emoji-picker@2.0.1:
     dependencies:
@@ -5334,7 +5336,7 @@ snapshots:
 
   yoga-layout@3.2.1: {}
 
-  zod@4.6.2: {}
+  zod@4.6.7: {}
 
   zxing-wasm@3.1.6(@types/emscripten@1.41.5):
     dependencies:

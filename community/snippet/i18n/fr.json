@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Présente du texte dans une fenêtre de bureau, en image fixe ou en interaction dirigée avec saisie, sélections, saisie semi-automatique et animation.",
   "inputs.code.label": "Code",
   "inputs.code.placeholder": "Colle ton code ici…",
   "inputs.fileName.label": "Nom du fichier",

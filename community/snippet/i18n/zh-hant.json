@@ -1,6 +1,6 @@
 {
   "name": "程式碼片段",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "將文字呈現在桌面視窗中，輸出為靜態圖像，或帶有打字、選取、自動完成與動態的編排式互動。",
   "inputs.code.label": "程式碼",
   "inputs.code.placeholder": "在此貼上程式碼……",
   "inputs.fileName.label": "檔案名稱",

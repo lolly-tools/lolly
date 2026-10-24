@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Des dégradés doux façon maillage à partir des couleurs de ta marque. Fais glisser les points de couleur directement sur le canevas, ou active la dérive et exporte la boucle en WebM, MP4 ou GIF.",
+  "description": "Cinq façons de construire un dégradé à partir des échantillons du design system : Mélange radial doux, un vrai maillage de carreaux de Coons en SVG net (Subdiviser) ou en matriciel lisse (Maille), des points de Déformation libre et les ondes animées de Flux. Fais tout glisser directement sur le canevas ; exporte des images fixes ou des boucles vidéo sans raccord.",
   "a11yLabel": "Dégradé maillé mélangeant {{count}} couleurs",
   "inputs.count.label": "Points de couleur",
   "inputs.color1.label": "Couleur 1 (base)",

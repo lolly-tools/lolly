@@ -2,16 +2,20 @@
 
 _Sist kontrollert: 28. september 2026._
 
-Lolly konverterer filer i nettleseren på din egen enhet: HEIC til JPG, PNG til SVG, PDF til bilder og mange andre kombinasjoner. Se [alle formater Lolly kan åpne og lage](/info/formats.html) for de støttede konverteringene og begrensningene deres.
+Hvis du vanligvis søker etter "HEIC to JPG" eller "compress PDF" og laster filen opp til nettstedet som dukker opp, gjør Lolly den samme konverteringen i nettleseren din, på din egen enhet.
+
+## Hva et konverteringsnettsted kan gjøre bedre
+
+Noen konverteringsnettsteder håndterer formater Lolly ikke gjør, og trenger ikke noe oppsett først. Velg en konverterer etter formatene og troskapen du trenger, så vel som etter hvor den behandler filen: noen konverteringer beholder redigerbar struktur og andre flater ut resultatet.
 
 ## Hvor konverteringen skjer
 
-En nettleserbasert konverterer kan laste opp en fil for behandling eller konvertere lokalt. Lollys verktøy på enheten behandler filen lokalt, uten konto, reklame eller sporere. De legger ikke til Lolly-vannmerke eller proveniensmetadata. Når de nødvendige konverteringsressursene er tilgjengelige, kan de fungere uten nett; filstørrelsen begrenses av enhetens minne og det aktuelle formatleseren.
+En nettleserbasert konverterer kan laste opp en fil for behandling eller konvertere lokalt. Lollys konverteringsutilities behandler filen lokalt, uten konto, reklame eller sporere, og legger ikke til noe Lolly-vannmerke eller Content Credentials. Når ressursene en konvertering trenger, er lagret, fungerer de uten nett. Filstørrelsen begrenses av enhetens minne og det aktuelle formatets leser.
 
-Velg en konverterer ut fra formatene og troverdigheten du trenger, i tillegg til hvor den behandler filen. Noen konverteringer bevarer redigerbar struktur, mens andre flater ut resultatet; Lollys formatsider beskriver disse forskjellene.
+![Utilities-visningen: Strip Hidden Data, Compress PDF, Convert Image og de andre jobbene på enheten på ett sted](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+
+[Every format Lolly can open and make](/info/formats.html) lister de støttede konverteringene og grensene deres, inkludert HEIC til JPG, PNG til SVG og PDF til bilder.
 
 ## Når et team trenger mer
 
-[lolly.work](https://lolly.work) er Lolly-prosjektets separat driftede organisasjonstjeneste. Den legger til SSO, SCIM, delte kataloger, godkjenninger, rapportering og servergjengivelse for støttede produksjonsarbeidsflyter. Begge delene er åpen kildekode under MPL-2.0. En organisasjon kan bruke dem sammen mens medlemmene fortsetter å bruke verktøyene på enheten til lokale konverteringer.
-
-Skillet er viktig for databehandlingen: en lokal konvertering holder filen på enheten, mens en delt opplasting, servergjengivelse eller levering sender de aktuelle dataene til de konfigurerte tjenestene. [Oversikten over den samlede løsningen](/info/compare.html) forklarer skillet.
+En organisasjons medlemmer fortsetter å bruke utilityene på enheten for lokale konverteringer selv når organisasjonen kjører Lolly Work. En delt opplasting, servergjengivelse eller levering er punktet der data går til serveren; [What runs where](/info/compare.html#what-runs-where) forklarer skillet.

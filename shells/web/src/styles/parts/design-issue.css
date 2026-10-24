@@ -19,8 +19,8 @@
 .ds-issue ~ .dash-foot { margin-block-start: clamp(var(--sp-8), 6vw, var(--ui-space-section)); }
 
 /* Focus is always the prominent ring. Inside the cover it takes the system's
-   own ink, which contrasts with the ground whatever the look. Edit in Start is
-   filled with that ink, so its own colour is the ground: its ring takes the ink. */
+   own ink, which contrasts with the ground whatever the look. Edit in Design
+   System Setup is filled with that ink, so its own colour is the ground: its ring takes the ink. */
 .ds-issue :is(a, button, summary, [tabindex="-1"]):focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .ds-issue-cover :is(a, button, summary, [tabindex="-1"]):focus-visible { outline-color: currentColor; }
 .ds-issue-cover a.ds-issue-edit:focus-visible { outline-color: var(--cv-ink); }

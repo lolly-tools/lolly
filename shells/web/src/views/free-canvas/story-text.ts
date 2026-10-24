@@ -31,6 +31,22 @@ export function peek(fc:FcCtx,value:TextLayoutRequestV1){return fc.runtime.peekT
 export function read(fc: FcCtx): TextEditorSnapshot {
   return readDesignText(fc.runtime.getModel().find(item => item.id === fc.cv.textDocumentInput)?.value, fc.select.getBoxes());
 }
+const shared = new WeakMap<FcCtx, { source: unknown; boxes: Box[]; value: TextEditorSnapshot }>();
+/**
+ * The same reading as `read`, kept while the text document and the boxes array are the
+ * very ones it was read from, for chrome that only looks (the text ports, every sync of
+ * a pan). Shared, so never edited: anything that changes the text takes `read`, which
+ * parses a copy of its own.
+ */
+export function snapshot(fc: FcCtx): TextEditorSnapshot {
+  const source = fc.runtime.getModel().find(item => item.id === fc.cv.textDocumentInput)?.value;
+  const boxes = fc.select.getBoxes();
+  const held = shared.get(fc);
+  if (held && held.source === source && held.boxes === boxes) return held.value;
+  const value = readDesignText(source, boxes);
+  shared.set(fc, { source, boxes, value });
+  return value;
+}
 export async function write(fc: FcCtx, value: TextEditorSnapshot, label: string, typingGroup?: string): Promise<void> {
   if (!fc.history?.commit || !fc.cv.textDocumentInput) throw new Error('Text editing requires transaction history.');
   const before = read(fc);
@@ -217,4 +233,4 @@ export async function create(fc: FcCtx, boxes: Box[], id: string, mode: 'auto-wi
     fc.textEdit.editAfterPaint(id, { selectAll: true });
   } catch (error) { report(fc, error); } finally { probe.remove(); }
 }
-export function storyTextOps(fc: FcCtx) { return {request:bindOp(fc,request),layout:bindOp(fc,layout),peek:bindOp(fc,peek), read: bindOp(fc, read), write: bindOp(fc, write), create: bindOp(fc, create), available: bindOp(fc, available), start: bindOp(fc, start), finish: bindOp(fc, finish), upgrade: bindOp(fc, upgrade), position: bindOp(fc, position) }; }
+export function storyTextOps(fc: FcCtx) { return {request:bindOp(fc,request),layout:bindOp(fc,layout),peek:bindOp(fc,peek), read: bindOp(fc, read), snapshot: bindOp(fc, snapshot), write: bindOp(fc, write), create: bindOp(fc, create), available: bindOp(fc, available), start: bindOp(fc, start), finish: bindOp(fc, finish), upgrade: bindOp(fc, upgrade), position: bindOp(fc, position) }; }

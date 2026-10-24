@@ -746,6 +746,40 @@ test('overlay uses solver cells and spacing controls commit once or cancel witho
   dom.window.close();
 });
 
+test('a pan slides the overlay without drawing it again, and a zoom draws it afresh', () => {
+  const dom = new JSDOM(
+    '<!doctype html><body><div id="overlay"><div id="chrome"></div></div></body>'
+  );
+  const f = fixture([gridRoot, a], [track], [gridRoot, shown[1]!], [grid]);
+  f.fc.overlay = dom.window.document.querySelector<HTMLDivElement>('#overlay')!;
+  f.fc.chrome = dom.window.document.querySelector<HTMLDivElement>('#chrome')!;
+  const view = { x: 0, y: 0, scale: 1 };
+  Object.assign(f.fc.stage, {
+    metrics: () => ({ scale: view.scale }),
+    nativeToStage: (x: number, y: number) => ({ x: view.x + x * view.scale, y: view.y + y * view.scale }),
+  });
+  f.fc.selection = new Set(['root']);
+  f.fc.layout.paint();
+  const layer = f.fc.overlay.querySelector<HTMLElement>('.fc-layout-overlay')!;
+  const drawn = layer.querySelector('svg');
+  const points = drawn!.querySelector('polygon')!.getAttribute('points');
+  view.x = 30;
+  view.y = -12;
+  f.fc.layout.follow();
+  assert.equal(layer.querySelector('svg'), drawn, 'a pan keeps what was drawn');
+  assert.equal(layer.style.transform, 'translate(30px, -12px)', 'and slides it by the pan');
+  view.scale = 2;
+  f.fc.layout.follow();
+  assert.notEqual(layer.querySelector('svg'), drawn, 'a zoom draws the overlay again');
+  assert.equal(layer.style.transform, '', 'at the new scale, with no slide');
+  assert.notEqual(layer.querySelector('polygon')!.getAttribute('points'), points);
+  f.fc.selection = new Set();
+  f.fc.layout.paint();
+  f.fc.layout.follow();
+  assert.equal(layer.childElementCount, 0, 'nothing drawn is nothing to follow');
+  dom.window.close();
+});
+
 test('dynamic scope cannot swallow children of a static artboard', () => {
   const page = { id: 'page', kind: 'frame', x: 0, y: 0, w: 400, h: 400 },
     nested = { ...root, frame: 'page' },

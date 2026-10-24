@@ -124,6 +124,7 @@ export const MCP_RESOURCES: readonly string[] = [
   'lolly://catalog', 'lolly://assets', 'lolly://tokens', 'lolly://design-context',
   'lolly://skill', 'lolly://skill/{path}', 'lolly://tool/{id}/skill',
   'lolly://tool/{id}', 'lolly://tool/{id}/preview', 'lolly://asset/{id}',
+  'lolly://design-system/skills', 'lolly://design-system/skill/{name}', 'lolly://design-system/skill/{name}/{path}',
 ];
 
 /** The reserved query keys an agent meets first; the whole set is documented in url-mode. */

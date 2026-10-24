@@ -80,6 +80,7 @@ interface Asset {
   added?: string;
   formats?: AssetFormat[];
   locales?: Record<string, AssetFormat[]>;
+  meta?: { skill?: { files?: Array<{ url: string; checksum: string; size: number }> } };
 }
 
 /** Structure of catalog/assets/index.json (only the fields this script touches). */
@@ -161,6 +162,16 @@ async function stamp(indexPath: string, label: string): Promise<void> {
         if (depth == null) delete fmt.depth;
         else { fmt.depth = depth; labelled++; }
       }
+    }
+    // A brand skill's reference files (plan 323) are checked exactly like formats.
+    const skillFiles = asset.type === 'skill' ? asset.meta?.skill?.files : undefined;
+    for (const file of skillFiles ?? []) {
+      const absPath = localPathForUrl(file.url);
+      const sri = sriForFile(absPath);
+      if (!sri) { missing.push(`${asset.id} → ${file.url}  (resolved: ${absPath})`); continue; }
+      if (file.checksum !== sri.checksum || file.size !== sri.size) updated++;
+      file.checksum = sri.checksum;
+      file.size = sri.size;
     }
   }
 

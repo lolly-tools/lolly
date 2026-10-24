@@ -1,6 +1,6 @@
 {
-  "name": "Theme swap",
-  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
+  "name": "Смяна на тема",
+  "description": "Сменя темата, цветовете и шрифтовете в презентация на PowerPoint на това устройство. Rebrand прави това и още.",
   "a11yLabel": "Ребрандиране на презентация за {{fileName}}",
   "inputs.source.label": "PowerPoint файл",
   "inputs.source.help": "Файл .pptx. Чете се на твоето устройство и никога не се качва.",

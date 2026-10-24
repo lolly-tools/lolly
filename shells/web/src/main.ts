@@ -248,7 +248,7 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   data: { label: 'Spreadsheet', viewClasses: ['data-view'], footer: 'none' },
   // The studio keys on ?tab= for the same reason - "Manage fonts" (#/start?tab=type)
   // clicked while already on #/start must switch steps, not dedupe to a no-op.
-  start: { label: 'Brand setup', viewClasses: ['start-view'], footer: 'none' },
+  start: { label: 'Design System Setup', viewClasses: ['start-view'], footer: 'none' },
   // Multi-edit keys on its selection (?s=slot,slot…) so editing a different
   // selection re-mounts with the new set instead of deduping.
   multi: { label: 'Multi-edit', viewClasses: ['multi-view'], footer: 'none' },
@@ -760,7 +760,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       await mountCatalog(view, host, route.params);
       break;
     }
-    // --- /start: the brand studio (set, save, import or export your brand
+    // --- /start: Design System Setup (set, save, import or export your brand
     // primitives - step tabs, ?tab=<key> deep-links one). Lazy-loaded - it
     // statically pulls the engine's derive/token modules, which the gallery
     // cold-load must not pay for. ---

@@ -1415,6 +1415,137 @@
           "size": 947
         }
       ]
+    },
+    {
+      "id": "lolly/skill/brand",
+      "name": "Lolly Demo brand standards",
+      "description": "The overall Lolly Demo brand skill: voice, the Opal palette, type, logo use and layout. An example of a brand's standards carried as an Agent Skill.",
+      "type": "skill",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "skill",
+        "brand",
+        "guidelines"
+      ],
+      "formats": [
+        {
+          "format": "md",
+          "url": "/catalog/assets/lolly/skills/brand/SKILL.md",
+          "checksum": "sha256-YCF0MtBHA/Pn/b76mKrtpfa4JOmvoqPsDaZXDfUkGjc=",
+          "size": 2740
+        }
+      ],
+      "license": "CC0-1.0",
+      "meta": {
+        "skill": {
+          "name": "lolly-demo-brand",
+          "description": "The Lolly Demo brand standards for any piece of work made with the Lolly Demo design system. Read this first, before the photography or motion skill, whenever you design, write or review Lolly Demo material.",
+          "discipline": "brand",
+          "audience": "public",
+          "status": "draft",
+          "skillRevision": "1.0",
+          "maintainer": "lolly"
+        }
+      },
+      "added": "2026-10-23"
+    },
+    {
+      "id": "lolly/skill/photography",
+      "name": "Lolly Demo photography",
+      "description": "How Lolly Demo photographs look, and how to grade, crop and credit them.",
+      "type": "skill",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "skill",
+        "photography",
+        "guidelines"
+      ],
+      "formats": [
+        {
+          "format": "md",
+          "url": "/catalog/assets/lolly/skills/photography/SKILL.md",
+          "checksum": "sha256-dSST55LmnWfyTNrmek/yTqOBJcllNn+X/KhQgSz38r4=",
+          "size": 1947
+        }
+      ],
+      "license": "CC0-1.0",
+      "meta": {
+        "skill": {
+          "name": "lolly-demo-photography",
+          "description": "How Lolly Demo photographs look and how to grade, crop and treat them. Use when choosing, editing or grading a photograph for Lolly Demo work, in Darkroom, Filter or Design.",
+          "discipline": "photography",
+          "audience": "public",
+          "status": "draft",
+          "skillRevision": "1.0",
+          "maintainer": "lolly",
+          "appliesTo": {
+            "tools": [
+              "darkroom",
+              "filter"
+            ],
+            "families": [
+              "lolly/luts/"
+            ]
+          }
+        }
+      },
+      "added": "2026-10-23"
+    },
+    {
+      "id": "lolly/skill/motion",
+      "name": "Lolly Demo motion",
+      "description": "How Lolly Demo moves and sounds: timing, easing, transitions, kinetic type and music.",
+      "type": "skill",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "skill",
+        "motion",
+        "guidelines"
+      ],
+      "formats": [
+        {
+          "format": "md",
+          "url": "/catalog/assets/lolly/skills/motion/SKILL.md",
+          "checksum": "sha256-JHz6nSvvq+5l1kQKRXI4/yiu7Ind1egOUinmktFNNrs=",
+          "size": 1775
+        }
+      ],
+      "license": "CC0-1.0",
+      "meta": {
+        "skill": {
+          "name": "lolly-demo-motion",
+          "description": "How Lolly Demo moves and sounds: timing, easing, transitions, kinetic type and music. Use when making a video, animation, Lottie clip, animated slide or anything with a timeline or soundtrack for Lolly Demo.",
+          "discipline": "motion",
+          "audience": "public",
+          "status": "draft",
+          "skillRevision": "1.0",
+          "maintainer": "lolly",
+          "appliesTo": {
+            "tools": [
+              "design",
+              "lottie-digi-ad"
+            ],
+            "formats": [
+              "mp4",
+              "webm",
+              "gif",
+              "lottie"
+            ],
+            "media": [
+              "video",
+              "audio"
+            ],
+            "families": [
+              "lolly/loops/",
+              "lolly/songs/"
+            ]
+          }
+        }
+      },
+      "added": "2026-10-23"
     }
   ]
 }

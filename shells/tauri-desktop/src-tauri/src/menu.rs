@@ -84,7 +84,7 @@ pub fn build_menu(handle: &AppHandle, data: &MenuData) -> tauri::Result<Menu<tau
     go.append(&route_item(handle, "Verify a File", "#/valid", None)?)?;
     go.append(&route_item(handle, "Unpack a PDF", "#/unpack", None)?)?;
     go.append(&PredefinedMenuItem::separator(handle)?)?;
-    go.append(&route_item(handle, "Set Up Your Brand", "#/start", Some("CmdOrCtrl+Shift+B"))?)?;
+    go.append(&route_item(handle, "Design System Setup", "#/start", Some("CmdOrCtrl+Shift+B"))?)?;
     go.append(&route_item(handle, "Profile & Settings", "#/profile", Some("CmdOrCtrl+,"))?)?;
 
     // Tools - the same six leads the gallery greets a new user with.

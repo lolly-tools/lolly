@@ -1,0 +1,23 @@
+digraph signing_architecture {
+  rankdir=TB
+  node [shape=box]
+  device [label="Your device\nnon-extractable key"]
+  signin [label="Sign-in provider\nverified email"]
+  ca [label="CA service\nCSR and proof"]
+  legacy [label="Legacy root\nsigns the leaf"]
+  managed [label="Managed mode\nVault intermediate"]
+  cert [label="Short-lived cert\nkept on the device"]
+  crl [label="Revocation list\nmanaged mode only"]
+  export [label="Export\nsigned on the device"]
+  verify [label="Verifier\npinned trust anchors"]
+  device -> signin
+  signin -> ca
+  ca -> legacy
+  ca -> managed
+  legacy -> cert
+  managed -> cert
+  managed -> crl
+  cert -> export
+  export -> verify
+  crl -> verify
+}

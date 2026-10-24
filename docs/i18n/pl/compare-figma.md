@@ -2,24 +2,26 @@
 
 _Ostatnio sprawdzono: 28 września 2026._
 
-Lolly obsługuje projektowanie, edycję na żywo i produkcję zasobów wielokrotnego użytku. [lolly.work](https://lolly.work) dodaje wokół tej pracy usługi organizacyjne: tożsamość, współdzielone projekty, kontrolę dostępu i zatwierdzanie.
+Jeśli Twoi projektanci pracują w Figma, ta strona mówi, jak Lolly stoi obok niej: co Figma robi, a Lolly nie, i gdzie Lolly przejmuje powtarzalną pracę.
+
+## Co Figma robi lepiej
+
+[Figma Design](https://www.figma.com/design/) łączy projektowanie interfejsów, komponenty, interaktywne prototypy i przekazanie deweloperom. Jej ugruntowana praktyka projektowania produktów i ekosystem mają znaczenie, gdy zespół musi zaprojektować i opisać całą aplikację, a jej edycja na żywo działa w skali, której collaby robocze Lolly nie osiągnęły.
 
 ## Gdzie się pokrywają
 
-Oba pozwalają rozmieszczać tekst, kształty i obrazy na kanwie oraz pracować z innymi osobami. [Importuj projekt](/info/design-import.html) w Lolly odczytuje pliki Figma jako edytowalne układy. Figma obejmuje też produkcję materiałów marki opartą na szablonach: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) tworzy zasoby z szablonów i wypełnia je z plików CSV lub XLSX.
+Oba pozwalają układać tekst, kształty i obrazy na kanwie i pracować z innymi ludźmi. Figma obejmuje też produkcję marki opartą na szablonach: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) tworzy zasoby z szablonów i wypełnia je z plików CSV lub XLSX. [Import a design](/info/design-import.html) w Lolly otwiera pliki Figma jako edytowalne układy, więc oba mogą dzielić pracę.
 
-Lolly zamienia projekt w [narzędzie wielokrotnego użytku z regułami](/info/create-a-tool.html). Narzędzie to działa w przeglądarce lub CLI i przyjmuje dane wejściowe z adresu URL, skryptu lub siatki wsadowej. Ten sam szablon obsługuje zarówno osobę edytującą jeden zasób, jak i zespół produkujący wiele wariantów.
+## Jak Lolly wykonuje wspólne zadanie
 
-## Współpraca i projektowanie produktów
+Lolly zamienia projekt w [narzędzie wielokrotnego użytku z regułami](/info/create-a-tool.html). Narzędzie działa w przeglądarce lub CLI i bierze dane wejściowe z linku, skryptu lub siatki batch, więc jeden szablon służy osobie edytującej jeden plik i zespołowi tworzącemu wiele.
 
-[Figma Design](https://www.figma.com/design/) łączy projektowanie interfejsów, komponenty, interaktywne prototypy i przekazanie projektu deweloperom. Jej ugruntowany przepływ pracy projektowania produktów i ekosystem mają znaczenie, gdy zespół musi zaprojektować i opisać kompletną aplikację.
+![Otwarta kanwa Design z Import a design w menu Lolly na pasku narzędzi](/info/shots/design.svg)
 
-Lolly oferuje dwa rodzaje współpracy na żywo. [Prywatny collab](/info/collaborate.html) łączy bezpośrednio dwa urządzenia, bez konta i bez internetu w sieci współdzielonej. Collab roboczy korzysta z lolly.work do uwierzytelnionego dostępu, wspólnych edycji, kursorów na żywo i zapisanych sesji zespołu. Współpraca w środowisku pracy jest zaimplementowana zarówno w kliencie Lolly, jak i na serwerze lolly.work; jej obecne wdrożenie na jednym węźle nie dowodzi parytetu ze skalą działania Figmy.
+[Prywatny collab](/info/collaborate.html) łączy dwa urządzenia bezpośrednio, bez konta i bez internetu w sieci wspólnej. Samodzielne Lolly renderuje offline. Content Credentials są domyślnie włączone dla obsługiwanych eksportów i możesz je wyłączyć.
 
-## Wdrożenie i produkcja
+## Z organizacją
 
-Aplikacje twórcze Lolly i lolly.work to osobno wdrażane części tego samego projektu open source. Samodzielne Lolly może renderować offline bez konta. lolly.work zapewnia SSO, SCIM, współdzielone katalogi, uprawnienia projektów, zatwierdzanie, rejestry audytu i renderowanie serwerowe na infrastrukturze kontrolowanej przez organizację.
+Lolly Work dodaje uwierzytelniane collaby robocze ze wspólnymi edycjami, kursorami na żywo i zapisanymi sesjami zespołu, plus jednokrotne logowanie, wspólne katalogi, uprawnienia projektów, zatwierdzenia i renderowanie serwerowe. [What runs where](/info/compare.html#what-runs-where) zestawia obie części obok siebie.
 
-Sesje zespołu i edycje collabów roboczych trafiają do tej instancji; renderowanie lokalne może pozostać na urządzeniu. Content Credentials są opcjonalne dla obsługiwanych eksportów, a podpisywanie po stronie serwera używa skonfigurowanej tożsamości organizacji. Podział opisuje [przegląd rozwiązania łączonego](/info/compare.html), a to, jak weryfikator ufa podpisującemu, [Content Credentials Identity](/info/content-credentials-identity.html).
-
-Figma jest znakiem towarowym swojego właściciela. Ta strona opisuje, gdzie oba rozwiązania się pokrywają, i nie jest powiązana z firmą Figma.
+Figma jest znakiem towarowym swojego właściciela. Ta strona opisuje, gdzie oba produkty się pokrywają, i nie jest powiązana z Figma.

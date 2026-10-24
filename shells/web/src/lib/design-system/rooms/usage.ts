@@ -19,8 +19,11 @@ import type { UsageHost } from '../usage-model.ts';
 
 /**
  * Layer-level house rules (`DESIGN_HOUSE_RULE_KINDS`) are not checked by the examples
- * below: Design's export checks and `lolly check` evaluate them on a document. Their
- * kinds get a plain label here, since a house rule may list no role to show instead.
+ * below: Design's export checks and `lolly check` evaluate them on a document. In the
+ * web that is the export panel's "Before you export" card (`lib/creation-feedback.ts`,
+ * run from `views/tool-actions/preflight.ts` when the panel opens), and browser agents
+ * read the same report through `lolly_check_document`. Their kinds get a plain label
+ * here, since a house rule may list no role to show instead.
  */
 const houseRuleLabel = (kind: string): string => ({
   'text-weight': t('Text weight'),

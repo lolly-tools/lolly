@@ -66,6 +66,36 @@ type Written = 'recorded' | 'stored' | 'none';
  * again: space may have been freed (Settings > Storage, eviction, another tab). */
 export const CHECKPOINT_RETRY_MS = 60_000;
 
+/** A recovery draft waits this long after the last edit... */
+export const RECOVERY_DEBOUNCE_MS = 1000;
+/** ...but no longer than this after the first edit it has not yet protected. */
+export const RECOVERY_MAX_WAIT_MS = 5000;
+/** Two drafts are never closer than this... */
+export const RECOVERY_MIN_INTERVAL_MS = 1000;
+/** ...or than this many times the last capture took, so a large document, whose
+ * capture walks, serialises and hashes the whole of it, spends at most about one
+ * twentieth of a continuous edit on drafts... */
+export const RECOVERY_CAPTURE_FACTOR = 20;
+/** ...up to this, so a very large document still has a draft at least this often. */
+export const RECOVERY_MAX_INTERVAL_MS = 30_000;
+
+/**
+ * How long until the next recovery draft. The debounce and the maximum wait decide
+ * when the edits want protecting; the minimum interval decides how soon after the last
+ * draft another may start. Without that floor, five seconds into continuous editing
+ * the maximum wait reached zero and every edit drafted as soon as the previous draft
+ * finished, back to back, on documents where each draft is the most expensive thing
+ * the editor does.
+ */
+export function recoveryDelay(now: number, firstEdit: number, lastDraft: number | undefined, lastCaptureMs: number): number {
+  const wanted = Math.min(RECOVERY_DEBOUNCE_MS, Math.max(0, firstEdit + RECOVERY_MAX_WAIT_MS - now));
+  if (lastDraft === undefined) return wanted;
+  const interval = Math.min(RECOVERY_MAX_INTERVAL_MS, Math.max(RECOVERY_MIN_INTERVAL_MS, RECOVERY_CAPTURE_FACTOR * lastCaptureMs));
+  return Math.max(wanted, lastDraft + interval - now);
+}
+
+const clock = (): number => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
 export function createAutomaticHistory(opts: {
   history: HistoryPorts;
   initial?: RevisionCursor;
@@ -86,6 +116,9 @@ export function createAutomaticHistory(opts: {
   const writerId = crypto.randomUUID();
   let generation = 0, savedGeneration = 0, recoveredGeneration = 0, lastSave = 0;
   let dirtySince: number | undefined, recoverySince: number | undefined;
+  // When the last recovery draft finished, and how long the last capture took: the two
+  // inputs to the draft rate bound (`recoveryDelay`).
+  let lastDraftAt: number | undefined, lastCaptureMs = 0;
   let recovering = false, recoveryFailed = false;
   let stopped = false, paused = false, diverged = false, initialized = false, closed = false;
   // The record holds a save that no revision has (an adopt on open failed, or a
@@ -141,8 +174,14 @@ export function createAutomaticHistory(opts: {
     if (!recoveryFailed) opts.failure?.(message);
     recoveryFailed = true;
   };
-  /** Freeze the live document for one write (or `data`, an explicit save's). */
-  const freeze = (data?: SavedStateData): RevisionCapture => captureRevision(data ?? opts.snapshot());
+  /** Freeze the live document for one write (or `data`, an explicit save's), timing
+   * the capture: its cost is what the draft rate bound scales with. */
+  const freeze = (data?: SavedStateData): RevisionCapture => {
+    const started = clock();
+    const capture = captureRevision(data ?? opts.snapshot());
+    lastCaptureMs = Math.max(0, clock() - started);
+    return capture;
+  };
   /** The state holds generation `captured`; with no newer edit, nothing waits for a draft. */
   const settleRecovered = (captured: number): void => {
     recoveredGeneration = Math.max(recoveredGeneration, captured); recoveryFailed = false;
@@ -241,8 +280,11 @@ export function createAutomaticHistory(opts: {
     });
     queue = task.catch(recoveryFailure).finally(() => {
       recovering = false;
+      lastDraftAt = Date.now();
       if (!stopped && generation > captured && generation !== recoveredGeneration) {
-        clearTimeout(recoveryTimer); recoveryTimer = setTimeout(() => { void protect(); }, 1000);
+        const now = Date.now();
+        clearTimeout(recoveryTimer);
+        recoveryTimer = setTimeout(() => { void protect(); }, Math.max(RECOVERY_DEBOUNCE_MS, recoveryDelay(now, recoverySince ?? now, lastDraftAt, lastCaptureMs)));
       }
     });
     await queue;
@@ -336,7 +378,7 @@ export function createAutomaticHistory(opts: {
       generation++;
       const now = Date.now(); dirtySince ??= now; recoverySince ??= now;
       clearTimeout(recoveryTimer);
-      if (opts.history.recovery) recoveryTimer = setTimeout(() => { void protect(); }, Math.min(1000, Math.max(0, recoverySince + 5000 - now)));
+      if (opts.history.recovery) recoveryTimer = setTimeout(() => { void protect(); }, recoveryDelay(now, recoverySince, lastDraftAt, lastCaptureMs));
       if (adoptPending && !retryTimer) retryTimer = setTimeout(() => { void resume(); }, 60_000);
       // A refused checkpoint is tried again on an edit a while later, in case space
       // was freed since; another refusal pauses it again.

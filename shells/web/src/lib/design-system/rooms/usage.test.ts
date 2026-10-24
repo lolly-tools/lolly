@@ -102,3 +102,14 @@ test('the Brand mode menu names the mode the empty value renders', async () => {
   assert.equal(defaultModeName(storedDark), 'dark');
   assert.equal(defaultModeName({ color: { ink: { $type: 'color', $value: '#112233' } } }), '', 'no themes, no name: the menu says Default');
 });
+
+test('"Checked in Design" stays true: the export panel runs the house rules through creation feedback', async () => {
+  const { readFileSync } = await import('node:fs');
+  const read = (rel: string): string => readFileSync(new URL(rel, import.meta.url), 'utf8');
+  // The Design export audit loads the creation feedback rows when the panel opens...
+  assert.match(read('../../../views/tool-actions/preflight.ts'), /import\('\.\.\/\.\.\/lib\/creation-feedback\.ts'\)[\s\S]*creationFeedbackRows\(await readCreationFeedback\(/);
+  // ...which read the engine report...
+  assert.match(read('../../creation-feedback.ts'), /creationFeedback\(boxes, undefined, doc \?\? null, opts\)/);
+  // ...and that report checks the design system's house rules layer by layer.
+  assert.match(read('../../../../../../engine/src/creation-feedback.ts'), /checkDesignHouseRules\(drawn, designRules, doc,/);
+});

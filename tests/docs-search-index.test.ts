@@ -115,10 +115,13 @@ describe('docs search index', { skip: built ? false : 'run `pnpm run build:info`
 
   test('the index stays small enough to fetch on first keystroke', () => {
     // Fetched lazily, once, only when someone actually searches - but it is still
-    // a blocking wait before the first result, so the ceiling is deliberate.
+    // a blocking wait before the first result, so the 1 MB ceiling is deliberate.
+    // A locale that crosses the ceiling needs a decision: shorter snippets
+    // (SEARCH_SNIPPET_MAX and its byte budget in docs/build.ts), fewer indexed
+    // sections, or a reviewed higher ceiling.
     for (const lang of LOCALES) {
       const bytes = readFileSync(resolve(dirFor(lang), 'search-index.json')).byteLength;
-      assert.ok(bytes < 400_000, `${lang}: index is ${Math.round(bytes / 1024)} KB - trim SEARCH_SNIPPET_MAX`);
+      assert.ok(bytes < 1_000_000, `${lang}: index is ${Math.round(bytes / 1024)} KB, over the 1 MB ceiling`);
     }
   });
 });

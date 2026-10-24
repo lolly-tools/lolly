@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Ipakita ang text sa desktop window, bilang still image o directed na interaction na may pag-type, selections, autocomplete at galaw.",
   "inputs.code.label": "Code",
   "inputs.code.placeholder": "I-paste ang iyong code dito…",
   "inputs.fileName.label": "Pangalan ng file",

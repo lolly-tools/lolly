@@ -1,68 +1,81 @@
 # Ověř si to sám
 
-Stránky Lolly o soukromí a bezpečnosti obsahují tvrzení: žádná analytika, žádné sledování, soubory nikdy neopustí zařízení, jediný cookie v celém systému. Tahle stránka je jiná: nežádá tě, abys jim jen věřil. Je to seznam postupů, každý s přesným příkazem nebo cestou kliknutí a výstupem, který uvidíš. Každé tvrzení tady jde ověřit za pár minut, většinou bez instalace čehokoli.
+Každý slib na tomto webu lze ověřit, bez účtu. Většina kontrol potřebuje jen prohlížeč; zbytek potřebuje terminál a kopii zdrojového kódu. Pokud kontrola níže nedá uvedený výsledek, je to chyba nebo porušený slib a chceme o tom vědět: viz [Když kontrola selže](#if-a-check-fails).
 
-Pokud kterákoli kontrola na téhle stránce nedá výsledek, jaký je uvedený, jde buď o chybu, nebo o porušený slib. [Nahlas to](#if-a-check-fails) tak jako tak, a vezmeme to s vážností, jakou si porušený slib zaslouží.
+Začni nejrychlejší: přetáhni soubor na Verify. Pak jdi dál: sleduj síť při používání nástroje, vytáhni zástrčku a pracuj dál, spočítej cookies a přečti si zdroj.
+
+Tyto kontroly pokrývají samotnou Lolly. Pokud tvá organizace provozuje Lolly Work, přidává přihlášení, sdílený obsah, nakonfigurovanou telemetrii a auditní záznamy; ty ověř proti [Server Surface](/info/server-surface.html) a [části o organizaci v zásadách ochrany soukromí](/info/privacy.html#organisation-services-with-lolly-work).
 
 ## Vidíš to fungovat, za deset sekund
 
-Než přijdou postupy, tady je odměna. Otevři [`/verify`](/#/verify) a přetáhni na něj soubor - žádný upload, žádný účet, žádné čekání na server. Tady kontroluje [vygenerovanou bouři nad Queenslandem](/info/ai-stance.html) ze stránky o našem přístupu k AI: obrázek z Gemini, který Lolly otevřela, opatřila vodoznakem a exportovala. Každý odznak níže byl spočítaný přímo na zařízení, ze samotných bajtů souboru.
+Otevři [`/verify`](/#/verify) a přetáhni na stránku soubor. Žádné nahrávání, žádný účet a žádné čekání na server. Zde kontroluje [vygenerovanou queenslandskou bouři](/info/ai-stance.html) z Our AI Stance: obrázek, který vygeneroval Gemini a Lolly jej otevřela, označila a převedla. Každý odznak byl vypočten na zařízení, z vlastních bajtů souboru.
 
 ![Verify na obrazovce o šířce telefonu - obrázek bouře, zelený verdikt Made with Lolly a pod ním naskládané odznaky neporušený certifikát a nezměněné bajty](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 
-Verdikt není jeden odznak, ale malá hromádka odznaků, každý je nezávislé tvrzení:
+Verdikt je malá hromádka odznaků, každý je nezávislý fakt:
 
-- <!--i:lock--> **Made with Lolly** - certifikát je neporušený *a* zaznamenává export z Lolly.
-- <!--i:seal--> **Certifikát je neporušený** - podepsaný manifest C2PA se dá rozparsovat a jeho vlastní podpis nároku se ověří.
-- <!--i:hash--> **Bajty se nezměnily** - hash souboru pořád odpovídá tomu, co bylo podepsáno. Změň jeden pixel a tenhle odznak sklopí.
-- <!--i:sparkle--> **GEN AI** - tyhle pixely vytvořil stroj a soubor to sám říká. Lolly to tvrzení přečte zpátky, místo aby ho skrývala.
+- <!--i:lock--> **Made with Lolly**: credential je neporušený *a* zaznamenává export z Lolly.
+- <!--i:seal--> **The credential is intact**: podepsaný manifest C2PA se parsuje a jeho vlastní podpis tvrzení se ověří.
+- <!--i:hash--> **The bytes have not changed**: hash souboru stále odpovídá tomu, co bylo podepsáno. Změň jeden pixel a tento odznak se překlopí.
+- <!--i:sparkle--> **GEN AI**: tyto pixely vytvořil stroj a soubor to říká. Lolly toto prohlášení čte zpět, místo aby fakt skrývala.
 
-A celá historie cestuje spolu se souborem. Přežilo tu devět kroků - pět zaznamenal Google při generování a vodoznačení obrázku, pak čtyři zaznamenala Lolly při otevření, označení a konverzi kopie na téhle stránce - přečtených rovnou zpátky z bajtů, na tvém zařízení, a vykreslených jako časová osa. Je to stejný obrázek, ověřený stejným způsobem, jako časová osa C2PA na [stránce o přístupu k AI](/info/ai-stance.html).
+Celá historie putuje se souborem. Devět kroků zde přežilo: pět zaznamenal Google, když obrázek generoval a označil vodoznakem, a čtyři zaznamenala Lolly, když kopii na této stránce otevřela, označila a převedla. Verify je čte přímo z bajtů a kreslí jako časovou osu.
 
 ![Historie změn, kterou Verify čte zpátky z obrázku bouře - pět kroků zaznamenal Google, pak čtyři Lolly, konče WebPkem na téhle stránce](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-Nic z toho ale není důkaz důvěryhodnosti - to je jen ukázka. Zbytek této stránky je onen důkaz: každý odznak výše je ověřitelný a tady je návod, jak si ověřit záruky, které za nimi stojí.
+To je ukázka. Kontroly níže jsou záruky pod ní a každou lze reprodukovat. [Content Credentials](/info/content-credentials-identity.html) vysvětluje každý verdikt.
 
 ## Ve tvém prohlížeči, bez nástrojů
 
-**1. Sleduj síť.** Otevři [lolly.tools](https://lolly.tools), otevři si DevTools svého prohlížeče (F12), přepni na záložku **Network** a použij nějaký nástroj - zadej URL do [QR Code](/t/qr-code), změň barvy, exportuj PNG. Každý požadavek zůstává na `lolly.tools`: jádro aplikace, soubory nástroje, katalogová aktiva. Žádný analytický server, žádný CDN maják, žádná služba pro fonty, žádný endpoint pro "hlášení chyb". To, co do nástroje zadáš, se neobjeví **v žádném požadavku** - vykreslování probíhá lokálně.
+::: timeline
+- <!--i:globe--> **1. Sleduj síť.** Otevři [lolly.tools](https://lolly.tools), otevři DevTools prohlížeče (F12), přepni na **Network** a použij nástroj: napiš webovou adresu do [QR Code](/t/qr-code), změň barvy, exportuj PNG. Každý požadavek zůstává na `lolly.tools`: shell aplikace, vlastní soubory nástroje a assety katalogu. Není tu žádný hostitel analytiky, žádný maják CDN, žádná písmová služba ani endpoint pro hlášení chyb. To, co napíšeš do nástroje, se neobjeví v **žádném požadavku**, protože vykreslování je lokální.
+- <!--i:eyeoff--> **2. Vytáhni zástrčku.** Načti aplikaci a otevři jeden dva nástroje, pak přejdi offline (režim letadlo, nebo DevTools → Network → Offline) a znovu načti. Galerie a každý nástroj, který jsi otevřel, fungují dál, včetně vykreslování a exportu ve formátech, které jsi použil. Soubory nástroje a enkodér formátu se ukládají do cache při prvním použití, takže nástroj před testem offline jednou použij online. To je nejsilnější jednotlivá kontrola na této stránce: software, který telefonuje domů, přerušení šňůry nepřežije.
+- <!--i:check--> **3. Spočítej cookies.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Seznam je prázdný: aplikace nenastavuje žádné cookies. Vlož `document.cookie` do konzole a dostaneš `""`. Volitelný zápis CA nastavuje krátkodobé `HttpOnly` cookie `lolly_ca_state` s rozsahem `/api/ca`, které `document.cookie` neukáže. Instance Lolly Work používá vlastní přihlašovací cookies; porovnej je se [Soukromím](/info/privacy.html#organisation-services-with-lolly-work).
+- <!--i:layers--> **4. Přečti si vlastní úložiště.** Ve stejném panelu je před tebou vše, co Lolly uchovává: pár desítek prostých klíčů `localStorage` (motiv, jazyk, šířka postranního panelu, nastavení zvuku a zobrazení a kopie indexu veřejného katalogu nástrojů v cache) a tvé vlastní dokumenty v IndexedDB. Každá hodnota je čitelný řetězec nebo JSON, nic není zakódované. Vymazání dat webu tyto místní záznamy odstraní, ale ne zálohu Sync ani záznamy držené instancí Lolly Work. **Settings → Storage → Clear all my data** udělá totéž zevnitř aplikace a můžeš sledovat, jak se úložiště a cache vyprazdňují.
+- <!--i:lock--> **5. Ověř, že kontakt pro zveřejnění existuje.** [`/.well-known/security.txt`](/.well-known/security.txt) odpovídá blokem kontaktu [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), ne stránkou HTML.
+:::
 
-Poctivé výjimky - každá je opt-in, spouští ji uživatel a je vidět ve stejné záložce Network v okamžiku, kdy nastane: přidání **Google fontu** v editoru brandu stáhne danou rodinu fontů od Googlu, a to po dialogu se souhlasem, který tě na to přesně upozorní, jednou, ještě před prvním stažením; kliknutí na **předvolbu ICC tiskového profilu** stáhne daný profil z veřejného registru ICC na color.org; přehrávání volitelného vestavěného **rádia** streamuje ze stanice; zadání místa v **Meeting Planner** vyhledá dané místo přes geokódovací službu open-meteo kvůli jeho souřadnicím a časovému pásmu, jednou na město (odpovědi se ukládají do tvého zařízení), a přímo u pole, kam píšeš, je toto upozornění uvedeno; a **URL Screenshot** nutně načítá URL, kterou jsi zadal/a - to je jeho úkol a vidíš to na vlastní oči. Nástroj, který deklaruje síťovou schopnost, smí přistupovat jen k hostitelům povoleným v jeho manifestu, a tento mechanismus je fail-closed; žádný aktuálně dodávaný nástroj takovou schopnost nedeklaruje, takže hranicí, která výše uvedený seznam hostitelů skutečně vynucuje, je Content-Security-Policy vynucovaná prohlížečem. [Zásady ochrany osobních údajů](/info/privacy.html) obsahují úplnou tabulku všeho tohoto; jejich trvalé pravidlo zní, že síťové spojení, které v této tabulce není, se nekoná.
+::: details Co dalšího můžeš vidět na kartě Network
+Některé funkce sahají do sítě, jen když je použiješ, a každá je viditelná na téže kartě:
 
-**2. Vytáhni kabel.** Načti aplikaci, otevři jeden nebo dva nástroje a pak přejdi do offline režimu - letadlový režim, nebo DevTools → Network → Offline. Načti stránku znovu. Galerie i každý nástroj, který jsi otevřel/a, dál funguje, včetně vykreslování a exportu do formátů, které jsi použil/a - soubory nástroje a kodér daného formátu se uloží do mezipaměti při prvním použití, takže si nástroj jednou vyzkoušej online, než ho otestuješ offline. Toto je nejsilnější jednotlivá kontrola na této stránce: software, který si volá domů, přerušené spojení nepřežije.
+- přidání **Google Font** v Design System Setup stáhne tu jednu rodinu od Googlu, po dialogu souhlasu, který to říká, jednou, před prvním stažením;
+- kliknutí na předvolbu **ICC press-profile** stáhne profil z veřejného registru ICC na color.org;
+- přehrávání volitelného vestavěného **rádia** streamuje ze stanice;
+- zadání místa v **Meeting Planner** vyhledá to místo ve službě geokódování open-meteo kvůli souřadnicím a časovému pásmu, jednou na město (odpovědi se ukládají na tvém zařízení), a pole to říká tam, kde píšeš;
+- **URL Screenshot** načte adresu, kterou jsi napsal, protože to je jeho úkol, a vidíš, jak se to děje.
 
-**3. Spočítej cookies.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Seznam je prázdný - aplikace nenastavuje žádné cookies. Nebo vlož `document.cookie` do konzole: dostaneš `""`. (Jediná cookie v celém systému, `lolly_ca_state`, žije nanejvýš deset minut během volitelného přihlášení k identitě - smaže se ve chvíli, kdy se přihlášení dokončí - je omezena na `/api/ca` a je `HttpOnly`: [zásady ochrany osobních údajů](/info/privacy.html) ji popisují přesně.)
-
-**4. Přečti si vlastní úložiště.** Stejný panel Application: vše, co Lolly ukládá, je před tebou prohlédnutelné - pár desítek obyčejných klíčů `localStorage` (motiv, jazyk, šířka postranního panelu, nastavení zvuku a zobrazení, plus uložená kopie veřejného indexu katalogu nástrojů) a tvé vlastní dokumenty v IndexedDB. Každá hodnota je čitelný řetězec nebo JSON - nic není zatemněno, nic není zakódováno, aby se znesnadnilo čtení. Vymazání dat webu v prohlížeči odstraní úplně všechno, a Lolly nemá žádnou kopii na serveru; **Nastavení → Úložiště → Vymazat všechna moje data** udělá totéž uvnitř aplikace, a v tomto panelu můžeš sledovat, jak se úložiště a cache vyprazdňují.
-
-**5. Ověř, že existuje kontakt pro nahlašování.** [`/.well-known/security.txt`](/.well-known/security.txt) odpovídá kontaktním blokem podle [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), ne HTML stránkou.
+Nástroj, který deklaruje síťovou schopnost, smí stahovat jen z hostitelů, které jeho manifest povoluje, a ta kontrola selhává bezpečně. Žádný dnes dodávaný nástroj žádnou nedeklaruje, takže seznam výše drží u jeho hostitelů Content-Security-Policy vynucená prohlížečem. [Zásady ochrany soukromí](/info/privacy.html) vedou kanonickou tabulku všech těchto, včetně provozu spravované instance, jako je obnovování zásad a zapnuté hlášení.
+:::
 
 ## Z terminálu
 
-**6. Koncový bod pro vykreslování odpovídá pouze veřejnými daty.** Jediná serverová funkce, která vkládá uživatelem zadané vstupy do URL - hot-link renderování - je zde živá a [zásady ochrany soukromí](/info/privacy.html) popisují, co to znamená pro vstupy, které vložíš do odkazu:
+**6. Vykreslovací endpoint odpovídá jen veřejnými daty.** Jediná serverová funkce, která vkládá napsané vstupy do URL, vykreslení přes hot-link, je zde živá. [Zásady ochrany soukromí](/info/privacy.html) říkají, co to znamená pro vstupy, které vložíš do odkazu.
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Přepínač je nastavený pro každé nasazení zvlášť (`LOLLY_DISABLE_RENDER_GET=1`): na instanci, která ho nastaví, stejná sonda vrátí `404` - tento rozdíl znamená, že příznak funguje, nejde o nesrovnalost.
+Každé nasazení volí (`LOLLY_DISABLE_RENDER_GET=1`): na instanci, která to nastaví, stejná sonda vrátí `404`. Ten rozdíl je nastavení, které funguje, ne nesoulad.
 
-**7. Serverová plocha je vyčíslitelná.** [Server Surface](/info/server-surface.html) vypisuje každou existující serverovou trasu s trvalým pravidlem, že endpoint, který na této stránce není, není součástí Lolly. Vyzkoušej si je přes `curl`; nic dalšího tam nenajdeš.
+**7. Zkontroluj služby, které tvé nasazení zapíná.** [Server Surface](/info/server-surface.html) vypisuje volitelné služby a odkazuje na jejich podrobné reference. U Lolly Work zahrň jeho ověřená API, spojení pro spolupráci, úložiště a nakonfigurované poskytovatele. Sonda veřejného lolly.tools neotestuje soukromou instanci organizace.
+
+Pokud provozuješ vlastní instanci, [Nasazení doručování](/info/deploy-delivery.html) obsahuje kontroly vydání pro ni: integritu modelů, sondu okraje a její vzorový seznam, zobrazovací verze, bránu soukromého stahování a podepsaný katalog v prohlížeči.
+
 
 ## Ve zdrojovém kódu
 
-Všechno výše uvedené by pořád mohlo být jen divadlo, kdyby se nasazený kód lišil od veřejného kódu. Zkontroluj si tedy kód - nasazení se sestavuje z [veřejného repozitáře](https://github.com/lolly-tools/lolly):
+Všechno výše by mohlo být stále divadlo, kdyby se nasazený kód lišil od veřejného. Zkontroluj tedy kód. Nasazení se sestavuje z [veřejného repozitáře](https://github.com/lolly-tools/lolly):
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
-**8. Žádný sledovací nástroj, žádné analytické SDK, nikde.** Prohledej kód, který se dodává - jádro (engine), každý shell (včetně rozšíření pro prohlížeč, přepisů Tauri bridge a service workeru), serverové funkce a balíčky nástrojů - kvůli obvyklým podezřelým:
+**8. Žádný tracker ani SDK analytiky nikde.** Prohledej kód, který se dodává (engine, každý shell včetně rozšíření prohlížeče, přepisy mostu Tauri a service worker, serverové funkce a balíčky nástrojů), na obvyklá podezřelá:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
   -e googletagmanager -e google-analytics -e posthog -e mixpanel -e hotjar \
   -e sentry.io -e segment.com -e '@vercel/analytics' \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
@@ -70,10 +83,12 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' 
 # (no output)
 ```
 
-**9. Žádný resolver DNS třetí strany.** Kontrola SEAL v nástroji Verify nikdy nesměruje dotazy přes poskytovatele DNS-over-HTTPS - webová aplikace prostě žádný resolver nemá:
+Tento sken hledá SDK sledování třetích stran. Neukazuje nepřítomnost vlastního hlášení používání: Lolly Work podporuje telemetrii organizace a samostatný auditní log, s vlastní politikou a testy.
+
+**9. Žádný překladač DNS třetí strany.** Kontrola SEAL ve Verify nikdy neposílá dotaz přes poskytovatele DNS-over-HTTPS, protože aplikace nemá žádný překladač:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
   -e cloudflare-dns.com -e dns.google -e /dns-query \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
   shells/web/public/sw.js services packages api community brands/*/tools
@@ -82,23 +97,25 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
 #  bans them)
 ```
 
-**10. Certifikační služba si nic neuchovává.** Certifikační autorita pro identitu nemá žádný záznam o vydávání - žádný tvůj e-mail, žádné časové razítko, žádný webhook. Tuto nepřítomnost lze ověřit grepem:
+**10. Certifikační služba nevede žádný log vydávání.** Identitní CA nevede žádný log toho, co vydala, ani inventář identit: žádný řádek na stdout, žádný webhook, žádné úložiště certifikátů. Nepřítomnost lze vyhledat:
 
 ```bash
 grep -rn logIssuance services/ca api/ca
 # (no output)
 ```
 
-## Vynuceno testy, ne sliby
+CA udržuje krátkodobý pracovní stav: kbelíky omezování frekvence drží hashované klíče IP a e-mailu po dobu svého okna a úložiště přijetí spravovaného nasazení drží klíčovaný identifikátor a digest požadavku nejvýše deset minut. Podrobnosti uvádí [Content Credentials engineering](/info/content-credentials-engineering.html#protocol).
 
-Výše uvedené tři kontroly zdrojového kódu nejsou jednorázový audit - jsou zapíchnuté v sadě testů, takže se nemohou tiše rozpadnout. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) shodí sestavení, pokud:
+## Vynuceno testy
 
-- se kdekoli ve zveřejněném zdrojovém kódu, který prochází, objeví jakékoli analytické nebo sledovací SDK - stejně tak v aplikaci, jádru, na serveru, v rozšíření i v kódu balíčků nástrojů,
-- se v tomto zdrojovém kódu objeví jakýkoli resolver DNS-over-HTTPS třetí strany,
-- se vrátí záznam o vydávání certifikační autority - ve zdrojovém kódu **nebo** ve vygenerovaném serverovém balíčku,
-- zásady ochrany osobních údajů ztratí kterékoli ze svých zákonem vyžadovaných tvrzení (jmenovaný správce, právní základ, právo si stěžovat).
+Kontroly zdroje výše nejsou jednorázový audit: jsou připnuté v testovací sadě, takže nemohou potichu zahnít. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) kontroluje delší seznam jmen trackerů než sken výše a shodí sestavení, pokud:
 
-Spusť si je sám v klonu (Node 22.18+; pro tento soubor není potřeba `pnpm install`):
+- se kdekoli v dodávaném zdroji, který prohledává, objeví jakékoli SDK analytiky nebo sledování, napříč kódem aplikace, enginu, serveru, rozšíření a balíčků nástrojů;
+- se v tom zdroji objeví jakýkoli překladač DNS-over-HTTPS třetí strany;
+- se vrátí log vydávání CA, ve zdroji **nebo** ve generovaném serverovém balíku;
+- zásady ochrany soukromí ztratí své zákonem požadované údaje (pojmenovaný správce, právní základ, právo podat stížnost).
+
+Spusť je sám v klonu (Node 22.18 nebo novější; tento soubor nepotřebuje `pnpm install`):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -110,14 +127,12 @@ node --test tests/no-trackers.test.ts
 
 Celá sada (`pnpm install && pnpm test`) spustí ještě několik tisíc dalších, včetně adversariálních kryptografických testů popsaných v [Security & Verification](/info/security.html).
 
-## Co zvenčí ověřit nejde - řečeno na rovinu
+## Co zvenčí ověřit nelze
 
-Stránka jako tato si důvěru zaslouží tím, že pojmenuje vlastní meze:
-
-- **Přístupové protokoly hostingu.** Každý server, který odpovídá na požadavek, může požadavek zaznamenat - IP adresu, cestu, časové razítko. Nemůžeš ověřit, co host uchovává a co ne, a my sami to nemůžeme ověřit nad rámec zdokumentovaného chování našeho poskytovatele. Přesně proto architektura drží tvůj obsah zcela mimo dráty: co nikdy neopustí tvé zařízení, nemůže nikdo zaznamenat.
-- **Že nasazení běží na tomto kódu.** Můžeš ověřit, že zdrojový kód je čistý a že nasazené chování mu odpovídá (výše uvedené kontroly pokrývají oba konce), ale atestace na úrovni binárního kódu u webového nasazení není něco, co by webová platforma nabízela. Zmírněním rizika je veřejný repozitář, vynucené testy a offline kontrola - upravené nasazení, které si volá domů, okamžitě selže na kontrole 1 a 2.
-- **Háčky nástrojů (tool hooks) nejsou standardně sandboxované.** Volitelná logika nástroje běží po revizi, ve vlastním realmu stránky; každý nástroj na lolly.tools je first-party a před vydáním prochází revizí. Izolace ve workeru se nyní nabízí jako volba pro jednotlivý nástroj - nástroj, jehož manifest nastaví `isolate: true`, spouští své háčky mimo hlavní vlákno - takže to, co zvenčí ověřit nejde, se zužuje, ale výchozí cesta stále běží ve stejném realmu a kontrolou zůstává revize. To je řečeno otevřeně, ne zamlčeno - viz oddíl [hranice návrhu](/info/security.html), který to tvrdí odjakživa.
+- **Přístupové logy hostingu.** Každý server, který odpovídá na požadavek, jej může zalogovat: IP adresu, cestu a čas. Vnější sonda nemůže zjistit, jak dlouho se logy uchovávají. Logování, rotaci a exporty řídí provozovatel a musí tyto volby zveřejnit. Místní vykreslování drží běžné úpravy na tvém zařízení; volitelné serverové vykreslování a služby sdíleného pracovního prostoru mají samostatné toky dat popsané v zásadách ochrany soukromí.
+- **Že nasazení běží tento kód.** Můžeš zkontrolovat, že zdroj je čistý a že nasazené chování mu odpovídá, a výše uvedené kontroly dělají obojí. Atestace webového nasazení na úrovni binárního kódu není něco, co webová platforma nabízí. Zmírněním jsou veřejný repozitář, vynucené testy a offline kontrola: pozměněné nasazení, které telefonuje domů, selže v kontrolách 1 a 2 zároveň.
+- **Hooky nástrojů.** Volitelná logika vestavěného nástroje je revidována, ne izolována: běží ve stránce, pokud se nástroj nepřihlásí k Workeru. Každý nástroj na lolly.tools je prvostranný a před dodáním revidován. [Threat Model](/info/threat-model.html#trust-boundaries) uvádí, kde hooky běží a co je omezuje.
 
 ## Když kontrola selže
 
-Rozpor mezi touto stránkou a pozorovaným chováním je bezpečnostní hlášení a opravdu raději chceme, abys nám ho poslal/a, než abys mlčel/a: [fitzy+security@suse.com](mailto:fitzy+security@suse.com), tlačítko **Report a vulnerability** na kterémkoli [repozitáři lolly-tools](https://github.com/lolly-tools) nebo kontakt v [`/.well-known/security.txt`](/.well-known/security.txt). Koordinované zveřejnění a uznání nálezci jsou trvalá politika - podrobnosti má [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md).
+Rozdíl mezi touto stránkou a tím, co pozoruješ, je bezpečnostní hlášení. Pošli jej soukromými kanály na [Security & Verification](/info/security.html#reporting-a-vulnerability). Praktikujeme koordinované zveřejňování a uvádíme nahlašovatele.

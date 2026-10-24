@@ -98,7 +98,7 @@ A first attempt at native iOS capture (a `bridge-overrides/capture.ts` plus a `s
 
 That pattern, subtract a capability rather than let a tool fail at the tap, is the rule these two shells follow. Compare [`../tauri-desktop/README.md`](../tauri-desktop/README.md) before changing it.
 
-There is also no `site-fetch` bridge override (a stale vite.config.js map key for one was removed 2026-09-05, and it never fired). The Design System studio's Website source calls the native `site_fetch` command directly: it probes Tauri's own `__TAURI_INTERNALS__.invoke` global at runtime (`detectSiteTransport` in `shells/web/src/lib/design-system/sources/website.ts`) rather than going through a build-time module substitution.
+There is also no `site-fetch` bridge override (a stale vite.config.js map key for one was removed 2026-09-05, and it never fired). Design System Setup's Website source calls the native `site_fetch` command directly: it probes Tauri's own `__TAURI_INTERNALS__.invoke` global at runtime (`detectSiteTransport` in `shells/web/src/lib/design-system/sources/website.ts`) rather than going through a build-time module substitution.
 
 The `export` override opens with `export * from '../../web/src/bridge/export.ts'` for the same reason the desktop one does: the substitution replaces that module for **every** importer inside `bridge/`, so it has to carry the original's whole public surface or a sibling such as `export-pptx.ts` fails the build. The star re-export forwards live bindings, which matters because the web module assigns an `export let _host`.
 

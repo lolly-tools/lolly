@@ -27,3 +27,7 @@ Ghi công, nguồn gốc, quyền riêng tư, & sự đồng ý
 sự sáng tạo và niềm tin giữa vô hạn
 
 bất kỳ ai cũng có thể sáng tạo, ở bất kỳ quy mô nào, bất kỳ đâu
+
+## Vì sao
+
+### [Vì chúng tôi đứng trên vai những người khổng lồ](/info/trust/shoulders-of-giants.html)

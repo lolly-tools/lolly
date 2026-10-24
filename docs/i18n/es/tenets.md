@@ -27,3 +27,7 @@ Atribución, procedencia, privacidad & consentimiento
 creatividad & confianza en medio de lo infinito
 
 cualquiera puede crear, a cualquier escala, en cualquier lugar
+
+## Por qué
+
+### [Porque nos apoyamos en hombros de gigantes](/info/trust/shoulders-of-giants.html)

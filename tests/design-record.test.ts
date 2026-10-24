@@ -204,3 +204,50 @@ test('where a format writes the record: its own metadata, a credential only, or 
     assert.equal(designRecordCarrier(fmt, false), null, fmt);
   }
 });
+
+// ─── The brand skills record (plan 323) ──────────────────────────────────────
+
+const SKILL = { id: 'acme/skill/brand', name: 'acme-brand', revision: '1.0', sha256: '0f'.repeat(32) };
+
+test('brand skills ride the export only as the caller handed them, beside the design-system record', async () => {
+  const renders: Rec[] = [];
+  const runtime = await createRuntime(tool(), host(renders), {}, { tokenSelection: { colourway: 'persimmon' } });
+  await runtime.export(canvas(), 'png', {});
+  await runtime.export(canvas(), 'png', { brandSkills: [] });
+  await runtime.export(canvas(), 'png', { brandSkills: [SKILL, { ...SKILL, id: 'not an id' }] });
+  assert.equal('brandSkills' in metaOf(renders[0]!), false, 'the runtime never invents one');
+  assert.equal(JSON.stringify(metaOf(renders[1]!)), JSON.stringify(metaOf(renders[0]!)), 'an empty list changes no byte');
+  const meta = metaOf(renders[2]!);
+  assert.deepEqual(meta.brandSkills, [SKILL], 'a malformed entry is dropped');
+  assert.deepEqual(meta.designSystem, { id: 'acme', label: 'Acme' });
+  assert.equal(meta.description, 'Made with https://lolly.tools : Chart (Persimmon colourway) by Andy Fitzsimon', 'the description is unchanged');
+  assert.deepEqual(runtime.lastExportMeta?.brandSkills, [SKILL]);
+});
+
+test('brand skills follow the record\'s switch: off leaves no trace', async () => {
+  const renders: Rec[] = [];
+  const runtime = await createRuntime(tool(), host(renders));
+  await runtime.export(canvas(), 'png', { brandSkills: [SKILL], madeWith: false });
+  runtime.setMadeWith(false);
+  await runtime.export(canvas(), 'png', { brandSkills: [SKILL] });
+  await runtime.export(canvas(), 'png', { brandSkills: [SKILL], madeWith: true });
+  assert.equal('brandSkills' in metaOf(renders[0]!), false);
+  assert.equal('brandSkills' in metaOf(renders[1]!), false);
+  assert.deepEqual(metaOf(renders[2]!).brandSkills, [SKILL], 'an export\'s own madeWith wins for that one export');
+  // A caller's own meta is taken as given, and an on-device utility adds nothing.
+  const own = { software: 'Lolly', source: 'x', tool: 'T', author: '', contact: '', description: 'd' };
+  await runtime.export(canvas(), 'png', { meta: own, brandSkills: [SKILL], madeWith: true });
+  assert.deepEqual(metaOf(renders[3]!), own);
+  const utility = await createRuntime(tool({ privacy: 'on-device' }), host(renders));
+  await utility.export(canvas(), 'png', { brandSkills: [SKILL] });
+  assert.equal(renders[4]!.meta, undefined);
+});
+
+test('brand skills are recorded on a host with no design system', async () => {
+  const renders: Rec[] = [];
+  const bare = await createRuntime(tool(), host(renders, { snapshot: false }));
+  await bare.export(canvas(), 'png', { brandSkills: [SKILL] });
+  assert.deepEqual(metaOf(renders[0]!).brandSkills, [SKILL]);
+  assert.equal('designSystem' in metaOf(renders[0]!), false);
+  assert.equal(await bare.madeWithPreview(), null, 'the preview holds no skills the runtime was never handed');
+});

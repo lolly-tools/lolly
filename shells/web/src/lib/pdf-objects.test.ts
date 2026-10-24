@@ -4,7 +4,7 @@
  * driven by REAL in-memory pdf-lib objects - the same object graph a loaded
  * document produces, just assembled by hand.
  *
- * These are the four gates that, closed, turned the Brand Studio colours tab into a
+ * These are the four gates that, closed, turned Design System Setup's colours tab into a
  * white ghost page:
  *   buildShading  refused anything but ShadingType 2/3
  *   buildPattern  refused anything but PatternType 2

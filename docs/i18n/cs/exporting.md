@@ -1,8 +1,10 @@
-# Export a formáty
+# Export souboru
 
-Na **Export | Save as** u nástroje stiskni **Export**, z nabídky vedle názvu souboru vyber formát a pak stiskni **Download**. Běžné stažení se vytvoří na tvém zařízení. Schvalování v organizaci a možnosti doručení jsou popsány níže.
+Něco jsi vytvořil a musí to opustit Lolly: PNG do chatu, PDF pro tiskárnu, prezentaci, kterou kolega bude dál upravovat. Stiskni **Export**, levou polovinu pilulky **Export | Save**. Vyber formát vedle názvu souboru a stiskni **Download**. Soubor se vytvoří na tvém zařízení.
 
-Pro většinu úkolů se hodí jeden ze tří formátů:
+To, co vidíš na plátně, je to, co soubor obsahuje. Nabídka formátů vypisuje jen to, co tento nástroj v tomto prohlížeči umí vytvořit.
+
+Pro většinu úloh je správný jeden ze tří formátů:
 
 | Pro | Zvol | Protože |
 |---|---|---|
@@ -14,182 +16,195 @@ Pro většinu úkolů se hodí jeden ze tří formátů:
 Než ho pošleš, otevři ho na obrazovce, pro kterou byl vytvořený, nebo ho vytiskni ve skutečné velikosti.
 :::
 
-Zbytek této stránky pokrývá každý formát, velikost a možnost.
+::: details Schvalování a doručení s Lolly Work (volitelné)
+[Organizace provozující Lolly Work](/info/organisation.html) může řídit, které formáty a nastavení exportu její členové vidí. Kde se vyžaduje schválení, **Request approval** zastoupí **Download**. Řiď se politikou, kterou tvá instance ukazuje.
+
+Lolly Work může také doručit soubor do nakonfigurovaných cílů S3, WebDAV a HTTP, s kroky schvalování, potvrzeními o doručení a auditním záznamem. Odeslání souboru do tohoto pracovního postupu ho posílá službě organizace; běžné stažení zůstává na tvém zařízení. Osobní cíle Send a doručení organizace se konfigurují odděleně.
+
+Provozovatelé to nastavují podle [průvodce doručením organizace](/info/work-delivery.html). Pro serverová vykreslení ve frontě a dávky viz [Dávky a automatizace CLI](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ## Jak export funguje
 
-Náhled *je* ten soubor. Při exportu host vyrenderuje dané plátno do zvoleného formátu a předá ti stažení (nebo to dá na schránku). Picker skryje každý formát, který tvůj prohlížeč neumí vytvořit (viz [Video](#video)).
+Při exportu se plátno nástroje vykreslí do zvoleného formátu a předá se ti ke stažení nebo se vloží do schránky.
 
-K souboru vedou tři cesty. Většina nástrojů **vyrenderuje plátno** do zvoleného formátu. Textové a datové formáty (HTML, MD, TXT, JSON, CSV, ICS, VCF) jsou místo toho **generované z obsahu nástroje**, ne rasterizované z obrázku. A soukromí sloužící utility (např. *Strip Hidden Data*) používají třetí cestu: soubor, který *ty* vybereš, se na zařízení transformuje byte za bytem a rovnou vrátí zpět - žádné plátno, žádný watermark a žádná přidaná metadata o původu, protože je to už tvůj vlastní soubor.
+Soubor vznikne třemi cestami. Většina nástrojů **vykresluje plátno**. Textové a datové formáty (HTML, Markdown, TXT, JSON, CSV, ICS, VCF) se **generují z obsahu nástroje**, ne kreslí z obrázku. Utility ochrany soukromí, jako *Strip Hidden Data*, **transformují soubor, který jsi vybral**, na tvém zařízení a vrátí ho bez plátna, vodoznaku nebo přidaných metadat, protože je to už tvůj vlastní soubor.
 
-Akce v exportním panelu:
+![Tři exportní cesty se sbíhají do hotového souboru: vykreslit plátno, vygenerovat text nebo data z obsahu, nebo transformovat vybraný soubor na zařízení.](/info/diagrams/concepts/three-export-paths.svg)
 
-- <!--i:download--> **Stáhnout** - ulož soubor (hlavní akce). Pokud ho pak nemůžeš najít, viz [Najdi stažený soubor](/info/find-your-work.html#find-a-file-you-downloaded).
-- <!--i:photos--> **Kopírovat** - vlož obrázek do schránky, abys ho mohl/a rovnou vložit do Slacku, e-mailu nebo dokumentu. Tam, kde prohlížeč neumí kopírovat obrázky, místo toho soubor stáhne a řekne ti to.
-- <!--i:folder--> **Uložit** - ulož aktuální návrh do Projektů jedním kliknutím, bez dotazu kam; soubor nikdy nestáhne. **Uložit jako**, vedle **Export**, se zeptá kam (viz [Ukládání a pokračování](/info/using.html#saving-continuing)).
-- <!--i:link--> **Sdílet** - otevře **Share dialog**: odkaz ke kopírování, který návrh znovu vytvoří, přepínače nastavované při vstupu (celá obrazovka, exportní panel, stažení nebo zkopírování po otevření) a volitelný **Shortest link**, který zabalí celý stav do kompaktního tokenu (viz [Režim URL](/info/url-mode.html)).
+Panel exportu nabízí tyto akce. Autor nástroje vybírá, které se objeví; výchozí sada je Copy, Download a Save.
 
-(Které z nich se zobrazí, volí autor nástroje; výchozí sada je Copy, Download a Save.)
+- <!--i:download--> **Download** uloží soubor. Pokud jej poté nemůžeš najít, viz [Najdi stažený soubor](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copy** vloží obrázek do schránky, připravený k vložení do chatu, e-mailu nebo dokumentu. Kde prohlížeč nemůže kopírovat obrázky, stáhne místo toho a řekne ti to.
+- <!--i:folder--> **Save** uchová aktuální návrh v Projects jedním kliknutím a nikdy nestahuje soubor. **Save as** vedle **Download** se ptá kam (viz [Ukládání a pokračování](/info/using.html#saving-continuing)).
+- <!--i:link--> **Share** otevře dialog Share: odkaz, který návrh reprodukuje, přepínače při návštěvě (celá obrazovka, panel exportu, stažení nebo kopírování při otevření) a volitelný **Shortest link**, který zabalí celý stav do kompaktního tokenu (viz [Režim URL](/info/url-mode.html)).
 
 ![Panel exportu - formát, velikost a akce Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
-Share se otevře přes nástroj, s odkazem už sestaveným a přepínači při návštěvě pod ním.
+Když návrh vkládá vykreslení jiného nástroje, například obrazové pole v Design obsahující odkaz QR Code, vnořené vykreslení se nakreslí do exportu rodiče. V SVG a PDF zůstává skutečným vektorem a v PNG, JPG a WebP se rasterizuje ostře. Vložené vykreslení nedostane vodoznak ani vlastní provenienci; dostane je jen hotový soubor. Exporty HTML, Markdown a TXT složené vykreslení držet nemohou.
 
-::: details Schvalování a doručení s lolly.work (volitelné)
-[Organizace používající lolly.work](/info/organisation.html) může řídit dostupné formáty a nastavení exportu. Kde je schválení povinné, může aplikace místo **Download** zobrazit **Request approval**. Řiď se pravidly, která ukazuje tvá instance.
-
-Služba také podporuje řízené doručení do nakonfigurovaných cílů S3, WebDAV a HTTP, s kroky schválení tam, kde jsou nastaveny, potvrzeními o doručení a auditním záznamem. Odeslání souboru do tohoto workflow ho pošle do služby organizace; běžná místní stažení zůstávají na zařízení. Osobní cíle Send a řízené doručení organizace mají oddělenou konfiguraci.
-
-Pro provozovatele viz [průvodce doručením](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). K serverovým renderům ve frontě a dávkám viz [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
-:::
-
-### Renderování mnoha najednou
-
-Jeden export je jeden soubor, ale můžeš vyrenderovat **mnoho** v jednom průchodu - každý doručený jako jeden `.zip`:
-
-- <!--i:folder--> **Projects → Render folder** exportuje každou uloženou session ve složce (a jejích podsložkách) jako jeden vnořený zip; **Render selection** dělá totéž pro jakýkoli vícenásobný výběr; jedna uložená session se vyrenderuje přímo do vlastního souboru. Batch/Pro se nepotřebuje - viz [Using Lolly → Projects](/info/using.html).
-- <!--i:layers--> **Batch (Pro)** vyrenderuje mřížku vstupních sad - každou variantu jedné šablony najednou.
-
-Uložená session se dá znovu sdílet jako odkaz na nástroj z Projects (rekonstruuje URL nástroje z uložených vstupů), takže odkaz ji znovu otevře s naprosto stejným nastavením.
-
-## Výběr formátu
+## Vyber formát
 
 Název souboru a nabídka formátu jsou spolu jako jedna dvojice `name.format`, pod tlačítkem **Stáhnout**.
 
 ![Pole s názvem souboru srostlé s pickerem formátu, takže export čte jako jedna dvojice name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| Chceš… | Použij | Proč |
+Začni tím, kam soubor míří. Každá karta vypisuje formáty, které se hodí pro ten cíl; nástroj ukazuje jen ty, které umí vytvořit.
+
+::: figure exporting-format-chooser
+Šest cílů a formáty, které se pro každý hodí.
+:::
+
+Wordmark sázený v písmu tvého designového systému se exportuje jako SVG s každým písmenem jako obrysovou cestou, takže jeden soubor zůstane ostrý na velikosti vizitky i na velikosti obalu budovy.
+
+![Vlasový wordmark s širokým prostrkáním, který čte Aurora, druh čistě vektorového díla, o které jde na řádku SVG v tabulce](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+
+::: details Každý formát a k čemu slouží
+| Chceš | Použij | Proč |
 |---|---|---|
-| Ostrá loga / grafiku, která se škáluje | **SVG** | Vektor - nekonečně škálovatelný, malý, editovatelný; efekt, který vektorový export neumí nakreslit, se vloží jako obrázek |
-| Vektor pro Office / Windows aplikace | **EMF** | Vloží se jako editovatelný vektor do PowerPointu / Wordu; text zůstává živý a editovatelný a Disk Google ho otevře v Nákresech Google pro Slides |
-| Vektor pro tisk / návrhářské aplikace | **EPS**, nebo **EPS (CMYK)** | PostScriptový vektor pro Illustrator / tiskové workflow |
-| Vektor pro řezací / CNC stroje | **DXF** | Laserové řezačky, vinylové plotry, CNC - obrysové cesty v milimetrech |
-| Editovatelnou prezentaci | **PowerPoint** (PPTX) | Nativní editovatelný text a tvary, s obrázky a vektory, které zůstávají extrahovatelné |
-| Přenosný školicí kurz | **Export course** | Projdi obsah projektu a sestav verzovaný web, balíček SCORM nebo experimentální balíček xAPI |
-| Editovatelný textový dokument | **Word** (DOCX) nebo **OpenDocument** (ODT) | Skutečné odstavce a nadpisy, které textový procesor umí dál upravovat (Doc Studio) |
-| Fotku nebo obrázek pro obecné použití | **PNG** (bezztrátový) nebo **JPG** (menší) | Univerzální rastr |
-| Menší moderní obrázky | **WebP** / **AVIF** | Lepší komprese, alfa kanál |
-| Tisk | **PDF**, nebo **Print PDF** (CMYK) | Skutečná velikost stránky; CMYK pro tiskárnu |
-| Tiskový rastr pro tiskárnu | **Print TIFF** (CMYK) | Pixely DeviceCMYK pro osvitovou jednotku (RIP) |
-| Animaci pro web | **GIF** | Funguje všude, větší soubory |
-| Animaci s plnou barvou a skutečnou alfou | **APNG** | Animovaný PNG - bez limitu palety, skutečná průhlednost |
-| Animaci, nejmenší soubor | **Animated WebP** | Plná barva a alfa, lépe komprimované než GIF nebo APNG |
-| Animovaný vektor, který se škáluje | **Animated SVG** | Samostatný; smyčkuje se v prohlížeči nebo `<img>`, bez kodeku, jakákoli velikost |
-| Video pro sociální sítě / sdílení | **MP4** nebo **WebM** | Nejlepší poměr kvality k velikosti (viz níže) |
-| Formátovaný text / e-mailový podpis | **HTML** | Vloží se naformátovaný do e-mailových klientů |
-| Obyčejný obsah | **MD** / **TXT** | Jen text |
-| Kalendářní událost | **ICS** | Importuje se do libovolné kalendářové aplikace |
-| Kontaktní kartu | **VCF** | Importuje se do Kontaktů / adresářů |
-| Strukturovaná data k opětovnému importu | **JSON** / **CSV** | Obousměrně zachová obsah nástroje |
-| Favicon | **ICO** | Víceformátová ikona webu (**ZIP** sbalí několik formátů) |
+| Ostrá loga nebo grafiku, která se škáluje | **SVG** | Vektor: škálovatelný, malý a upravitelný; efekt, který vektorový export nenakreslí, se vloží jako obrázek |
+| Vektor pro Office a aplikace Windows | **EMF** | Vloží se jako upravitelný vektor do PowerPointu a Wordu, s živým textem; Google Drive jej otevře v Google Drawings |
+| Vektor pro tisk a návrhové aplikace | **EPS**, nebo **EPS (CMYK)** | Vektor PostScript pro Illustrator a tiskové postupy |
+| Vektor pro řezací stroje | **DXF** | Laserové řezačky, plotry vinylu a CNC: obrysové cesty v milimetrech |
+| Upravitelná sada snímků | **PowerPoint** (PPTX) | Nativní upravitelný text a tvary, s obrázky a vektory ponechanými extrahovatelnými |
+| Upravitelný textový dokument | **Word** (DOCX) nebo **OpenDocument** (ODT) | Skutečné odstavce a nadpisy, které textový procesor může dál upravovat (Doc Studio) |
+| Rozvržení pro InDesign | **InDesign IDML (static subset)** | Text, obdélníky, ovály a obrázky, jedna dvojstrana na kreslicí plochu (Design) |
+| Upravitelný dokument Penpot | **Penpot** | Plochy, tvary, text a propojené tokeny |
+| Fotka nebo obecný obrázek | **PNG** (bezeztrátový) nebo **JPG** (menší) | Univerzální raster |
+| Menší moderní obrázky | **WebP** nebo **AVIF** | Lepší komprese, s průhledností |
+| Tisk | **PDF**, nebo **Print PDF** (CMYK) | Skutečná velikost stránky; CMYK pro tisk |
+| Rastr pro tisk | **Print TIFF** (CMYK) | Pixely DeviceCMYK pro RIP |
+| Animace pro web | **GIF** | Přehraje se všude; větší soubory |
+| Animace s plnou barvou a skutečnou průhledností | **APNG** | Animované PNG: bez limitu palety |
+| Animace, nejmenší soubor | **Animated WebP** | Plná barva a průhlednost, menší než GIF nebo APNG |
+| Animovaný vektor, který se škáluje | **Animated SVG** | Samostatný; smyčkuje v prohlížeči nebo v `<img>`, v libovolné velikosti (Lottie Ad) |
+| Animace, která zůstane upravitelná | **dotLottie** | Tvary, cesty a vnější klíče transformací z časové osy Design |
+| Předání do Premiere | **Premiere XML + media** | Časované klipy a původní média pro Premiere (Design) |
+| Video pro sociální sítě a sdílení | **MP4** nebo **WebM** | Nejlepší kvalita na velikost souboru (viz [Video](#video)) |
+| Titulky | **SRT** nebo **VTT** | Časovaný text pro přehrávač videa (Captions, Audiogram a Record) |
+| Školicí kurz | **SCORM (LMS)** | Verzovaný web, balíček SCORM nebo xAPI (viz [SCORM](#scorm-course-packages)) |
+| Formátovaný text nebo e-mailový podpis | **HTML** | Vloží se formátovaně do e-mailových klientů |
+| Prostý obsah | **MD** nebo **TXT** | Jen text |
+| Událost kalendáře | **ICS** | Importuje se do jakékoli aplikace kalendáře |
+| Kontaktní karta | **VCF** | Importuje se do adresářů |
+| Strukturovaná data k opětovnému importu | **JSON** nebo **CSV** | Obousměrně přenáší obsah nástroje |
+| Favicon | **ICO** | Ikona webu ve více velikostech; **ZIP** sdružuje několik formátů |
+:::
 
-První řádek je běžný případ. Wordmark sázený tvým brandovým písmem se exportuje jako SVG, kde je každé písmeno obrysovou cestou místo pixelu, takže zůstává ostrý ve velikosti vizitky i ve velikosti polepu na budově ze stejného souboru.
+### Průhlednost
 
-![Vlásková rozšířeně kernovaná wordmarka Aurora, přesně ten typ čistého vektorového artworku, o kterém je řádek SVG v tabulce](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+Nástroje, které to podporují, nabízejí přepínač průhledného pozadí, například **No BG**. PNG, WebP, AVIF, SVG, APNG a Animated WebP zachovávají průhlednost a GIF zachovává tvrdý okraj. JPG a PDF jsou vždy neprůhledné. TIFF se zploští na bílou, nebo na černou na cestě HDR popsané v [HDR](#hdr-bright-colours).
 
 ## Velikost a tiskové jednotky
 
-Ve výchozím stavu exporty používají nativní pixelovou velikost nástroje. Tam, kde nástroj vystavuje **rozměry**, si můžeš nastavit šířku × výšku a **jednotku**:
+Exporty používají nativní velikost v pixelech nástroje, pokud nástroj nenabízí **dimensions**. Pak nastavíš šířku, výšku a **unit**:
 
-- **px** (výchozí) - přesné pixely.
-- **mm · cm · in · pt · pc** - fyzické/tiskové velikosti. S fyzickou jednotkou také nastavíš **DPI** (výchozí **300** pro tisk); engine to správně převede podle formátu - **PDF** se stane skutečnou stránkou dané velikosti, **rastr** se vyrenderuje ve správném počtu pixelů pro dané DPI (a vloží rozlišení), **SVG** ponechá fyzickou jednotku s px viewBoxem.
+- **px** (výchozí) jsou přesné pixely.
+- **mm, cm, in, pt** a **pc** jsou fyzické velikosti. S fyzickou jednotkou nastavíš také **DPI** (výchozí 300). **PDF** se stane skutečnou stránkou té velikosti, **raster** dostane počet pixelů pro to DPI a zaznamená rozlišení a **SVG** zachová fyzickou jednotku s pixelovým viewBox.
 
-Pro rastr ve vyšším rozlišení zadej větší šířku/výšku, nebo zvol fyzickou jednotku a zvyš DPI (pixely = velikost × DPI). Přepínač škálování na jedno kliknutí neexistuje.
-
-Příklad: šířka `210`, výška `297`, jednotka `mm` → stránka A4.
+Pro rastr ve vyšším rozlišení zadej větší šířku a výšku, nebo zvol fyzickou jednotku a zvyš DPI (pixely = velikost × DPI). Šířka `210`, výška `297` a jednotka `mm` dají stránku A4.
 
 ![Řádek rozměrů nastavený na 210 na 297 mm, s odhaleným polem DPI, protože jednotka je fyzická](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
 ## Snímky z časované kompozice
 
-**Časovaná kompozice** - časová osa [Sequence](/info/using.html#timeline-sequence) v Designu, nebo jakýkoli artboard řízený časovou osou - je pohyblivá věc, takže statický export musí odpovědět na otázku „který okamžik?". Pravidlo je přesně takové, jaké bys čekal: **snímek na pozici přehrávací hlavy**. Umísti přehrávací hlavu tam, kde chceš mít obrázek, a exportuj; co vidíš, to dostaneš.
+Časovaná kompozice, například časová osa [Sequence](/info/sequence-editor.html) v Design, se hýbe, takže statický export musí vybrat okamžik: **snímek na přehrávací hlavě**. Zaparkuj přehrávací hlavu tam, kde chceš obraz, a exportuj.
 
-Když chceš víc než jeden okamžik, objeví se vedle výstupní velikosti pole **Frames** (pouze pro časovanou kompozici a pouze pro statický formát - PNG, JPG, WebP, SVG nebo PDF). Nech ho na `1` pro snímek na hlavě přehrávání. Zvyš ho a dostaneš tolik statických snímků vzorkovaných v rovnoměrných intervalech napříč celou sekvencí:
+Pro více než jeden okamžik se vedle velikosti výstupu objeví pole **Frames**. Zobrazuje se jen u časované kompozice a statického formátu (PNG, JPG, WebP, SVG nebo PDF). Nech ho na `1` pro snímek na přehrávací hlavě. Zvyš ho a dostaneš tolik statických snímků, rovnoměrně rozprostřených přes celou sekvenci:
 
-- **Rastr a SVG** se vrátí jako jeden **zip** - `<name>-01.png`, `-02.png` a tak dále.
-- **PDF** se vrátí jako **jeden dokument s odpovídajícím počtem stránek**.
+- PNG, JPG, WebP a SVG se vrátí jako jedno ZIP: `<name>-01.png`, `-02.png` a tak dále.
+- PDF se vrátí jako jeden dokument s tolika stránkami.
 
-Užitečné pro storyboard, list náhledů, kontaktní list k revizi nebo sociální karusel vystřižený rovnou z videosestřihu.
+Každý snímek pochází ze středu svého úseku časové osy, takže první snímek není nikdy napůl vybledlý vstup a poslední není nikdy prázdný okamžik po skončení každého klipu.
 
-Vzorkování probíhá v **středu** každého intervalu, ne na okrajích, protože první okamžik sekvence bývá přechod na vstupu, který ještě nedoběhl, a poslední je stav po skončení všech klipů - vzorkování na koncových bodech by utratilo dva tvé snímky za skoro prázdné. Počet je omezen na **64** (kontaktní list je pro čtení člověkem) a cokoli nesmyslného zadané do pole spadne zpátky na `1`, místo aby export selhal. Každý snímek je obyčejný statický obrázek, takže Content Credentials, imprint, fyzické jednotky a DPI se chovají přesně stejně jako u jednoho exportu.
+::: figure exporting-contact-sheet
+Frames: 4 rozdělí sekvenci na čtyři stejné úseky a vezme střed každého.
+:::
 
-Pole **Snímky** je dnes způsob, jak získat kontaktní arch. Engine rezervuje odpovídající URL parametr `cuts`, ale žádný shell ho zatím z odkazu nečte, takže sdílený odkaz se vždy znovu otevře na snímku playheadu - viz [Režim URL](/info/url-parameters.html#contact-sheets-cuts).
+Použij to pro storyboard, kontaktní arch pro revizi nebo sociální karusel vystřižený z úpravy videa. Počet je omezen na 64 a cokoli jiného napsaného do pole se vrátí na `1`. Každý snímek je běžný statický obraz, takže credentials, Imprint, fyzické jednotky a DPI se chovají jako u jednoho exportu. Odkaz exportu, CLI a MCP žádají stejný arch pomocí `cuts=` (viz [Kontaktní archy](/info/url-export.html#contact-sheets)).
 
-## Vícestránkové PDF
+## Mnoho souborů najednou
 
-Některé nástroje místo jednoho výtvoru vytvářejí **vícestránkový PDF dokument** - obálku, obsah, který se rozlije na tolik stránek, kolik potřebuje, a zadní stranu, to vše v jednom souboru (viz nástroj *Booklet*). Každá stránka je **skutečná stránka PDF** o velikosti podle boxu dané stránky, takže čtenáři a tiskárny dostanou skutečné stránky, ne jeden dlouhý obrázek.
+Lolly má tři způsoby práce ve velkém, každý pro jinou úlohu:
 
-- **Stránky z obsahu.** Přidávej bloky textu a obrázků; nové stránky se vytvářejí automaticky, jakmile se bloky zaplní, a kterýkoli blok můžeš vynutit, aby začal novou stránku.
-- **Skutečné velikosti stránek.** Vyber A4, US Letter nebo A5 (na výšku - dvousloupcové rozvržení je pro to stavěné) - každá stránka a exportované PDF se vykreslí přesně v této velikosti.
+::: cols
+## Tabulka se stane jedním dokumentem
+Nástroj se vstupem tabulky, například **Battlecards**, změní každý řádek na stránku. Vlož tabulku ze své tabulky a dostaneš jedno PDF. Oprav řádky v tabulce a vlož znovu.
+## CSV se stane jedním souborem na řádek
+**Batch** (`#/batch`) vezme CSV a vykreslí jeden export pro každý řádek: jmenovky nebo certifikáty, jeden soubor každý, doručené v ZIP. Viz [Batch](/info/batch.html#make-many-versions-of-one-design).
+## Několik návrhů dostane jednu úpravu
+**Multi-edit** otevře několik uložených relací vedle sebe pro stejné doladění napříč různými návrhy. Viz [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+:::
 
-Vícestránkové PDF jsou RGB dokumenty a nenesou ořezové/spadávkové značky - ty patří k jednostránkové cestě **Print PDF** výše. Nesou ale stejná **metadata PDF/X-4** jako každý export PDF (boxy stránek, XMP, ID dokumentu, výstupní záměr sRGB s vloženým profilem) a nabízejí **Content Credentials** (níže) - u nástroje *Booklet* je tato volba předvybraná.
+Z **Projects** **Render folder** exportuje každou uloženou relaci ve složce a jejích podsložkách jako jedno vnořené ZIP a **Render selection** totéž udělá pro jakýkoli vícenásobný výběr; jedna uložená relace se vykreslí do vlastního souboru. Uloženou relaci lze také znovu sdílet jako odkaz na nástroj z Projects, který ji znovu otevře se stejným nastavením.
 
-## Vytváření mnoha věcí najednou
+## Soubory, které zůstanou upravitelné jinde
 
-Lolly má tři odlišné způsoby, jak pracovat ve velkém objemu, a řeší různé úkoly - dávkové úpravy jsou plnohodnotná schopnost platformy, ne něco, co si každý nástroj vymýšlí znovu:
+Některé formáty předávají tvou práci jiné aplikaci jako upravitelný obsah, ne jako obrázek.
 
-- <!--i:document--> **Jeden návrh × tabulka řádků → jeden vícestránkový dokument.** Nástroje se vstupem `table` (jako *Battlecards*) automaticky promění každý řádek ve stránku - vlož tabulku ze svého sešitu a dostaneš PDF velikosti prezentace. Tvým skutečným dávkovým editorem zůstává sešit: oprav v něm deset řádků a vlož znovu. Samotný nástroj stránky nikdy nespravuje.
-- <!--i:layers--> **Jeden návrh × datový soubor → mnoho samostatných souborů.** Dávková mřížka `/pro` vezme CSV a vyexportuje jeden soubor *na řádek* - jmenovky, certifikáty, každý zvlášť.
-- <!--i:sliders--> **Mnoho různých assetů upravovaných vedle sebe.** *Multi-edit* otevře několik uložených relací v jednom zobrazení pro koordinované doladění napříč odlišnými návrhy.
+### PowerPoint (PPTX)
 
-Základní pravidlo: řádky stejného návrhu, které patří do **jednoho dokumentu** → nástroj řízený tabulkou; řádky, které musí odejít jako **samostatné soubory** → `/pro`; **různé návrhy**, které potřebují stejnou úpravu → multi-edit. (Plánovaná exportní možnost „kombinovat média“ tyto první dvě propojí - spojí exporty stejného formátu do jednoho PDF, jednoho videa nebo náhledového kontaktního archu.)
+Design, Markdown Slides, Booklet, Doc Studio, Chart, Diagrams, Flow Chart a Agenda exportují sadu PowerPoint, jeden snímek na stránku. Každá stránka se rozebere na nativní objekty, takže kolega může sadu upravovat a vytahovat z ní assety:
 
-## PowerPoint (PPTX)
-
-Design, Markdown Slides, Booklet, Doc Studio, Chart a Diagrams dokážou exportovat **prezentaci PowerPoint** - jeden snímek na stránku. Cílem není pixel přesný screenshot, ale předat kolegovi prezentaci, kterou skutečně dokáže **editovat a vytahovat z ní prvky**. Proto se každá stránka rozloží na nativní objekty:
-
-- <!--i:font--> **Text** se stane skutečným, **editovatelným textovým polem PowerPointu** - s velikostí písma, barvou, řezem, kurzívou a zarovnáním z rozvržení - takže si můžeš opravit překlep nebo přestylovat přímo v PowerPointu.
-- <!--i:pentool--> **Vektory** (loga, ikony, značka SUSE) se vloží jako **skutečné obrázky SVG** - zůstanou ostré v jakékoli velikosti a PowerPoint na nich dokonce umí použít *Convert to Shape*.
-- <!--i:photos--> **Obrázky** projdou ve své nativní rozlišovací schopnosti jako vlastní extrahovatelné obrázky (hero oříznuté pomocí `cover` si za ořezem uchová celý obrázek, takže ho lze přerámovat), s jakoukoli úpravou nad obrázkem (filtry, prolnutí) věrně zapečenou.
-- <!--i:layers--> **Pozadí, ohraničení a linky** se stanou skutečnými obdélníkovými/čárovými tvary.
+- <!--i:font--> **Text** se stane upravitelnými textovými poli PowerPointu s velikostí písma, barvou, tloušťkou, kurzívou a zarovnáním rozvržení.
+- <!--i:pentool--> **Vektory** jako loga a ikony se vkládají jako obrázky SVG; zůstávají ostré a PowerPoint na nich umí *Convert to Shape*.
+- <!--i:photos--> **Obrázky** přicházejí v nativním rozlišení jako vlastní obrázky. Oříznutý hlavní obrázek si drží celý obrázek za ořezem a jakýkoli filtr nebo prolnutí na něm je zapečeno.
+- <!--i:layers--> **Pozadí, okraje a linky** se stanou tvary obdélníků a čar.
 
 ![Panel exportu s vybraným PowerPointem: jeden snímek na stránku, text a tvary zůstávají editovatelné](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
-Rozvržení je záměrně přibližné - cílem je věrný, znovupoužitelný **obsah**, ne uzamčený snímek obrazovky. Cokoli, co walker nedokáže vyjádřit nativně (složitá filtrovaná nebo maskovaná oblast), se vloží jako obrázek, aby se nic neztratilo. Prezentace má jednu velikost snímku, převzatou z první stránky.
+Rozvržení je přibližné; cílem je opakovaně použitelný obsah. Cokoli, co walker nedokáže vyjádřit nativně, třeba složitá filtrovaná nebo maskovaná oblast, se vloží jako obrázek, aby se nic neztratilo. Sada má jednu velikost snímku, převzatou z první stránky.
 
-PowerPoint je i cesta **dovnitř**. Přetáhni `.pptx` na libovolnou plochu pro nahrávání a vyber snímky, které chceš - každý se stane prvkem, který lze umístit, upravit nebo na něm stavět dál. **Markdown Slides** vytvoří novou prezentaci z Markdownu (a k tomu dá brandovanou šablonu `.pptx`) a nástroj **Rebrand** přeznačkuje existující prezentaci na místě - paletu motivu, napevno zadané barvy a fonty - aniž by se dotkl jejích grafů, SmartArtu nebo animací, a vrátí `.pptx`. Viz [Import designu → Prezentace a dokumenty](/info/design-import.html#decks-and-documents).
+PowerPoint je také cesta dovnitř: [Rebrand prezentace](/info/rebrand.html) přenese sadu do tvého designového systému a [Import návrhu](/info/design-import.html) ji otevře v Design.
 
-## Penpot
+### Penpot
 
-Každý nástroj, který dokáže exportovat SVG, dokáže exportovat i **soubor Penpot** (`.penpot`) - dokument připravený k dalšímu editování v Penpotu, ne jen k prohlížení.
-
-- <!--i:layout--> Z **Designu** se každý frame stane Penpot **boardem**, každý box na něm se přenese jako svůj vlastní editovatelný tvar - obdélník, elipsa, text, obrázek nebo cesta - a výsledek dorazí jako znovupoužitelná **komponenta** v panelu Assets, připravená znovu vytáhnout ven.
-- <!--i:pentool--> Z nástroje, jehož výstup je **čistá geometrie** - vektorové nástroje jako QR Code, Street Map, Wordmark a Palette Lab - se stejným způsobem přenese každá cesta, obdélník, textový řádek a přechod jako svůj vlastní editovatelný tvar.
-- <!--i:font--> Z nástroje, který svůj výstup skládá v **HTML**, **text zůstává textem** - jeden editovatelný textový objekt Penpotu na řádek, ne obrys a ne plochý obrázek. Kus grafiky, pro který Penpot nemá konstrukt - složitá ilustrace, živé plátno - se veze samostatně jako obrázek, takže nikdy nezploští text a boxy kolem něj. Celé rozvržení, které Penpot nedokáže věrně rozdělit, se přesto může přenést jako jeden obrázek v plné věrnosti, takže se nic nikdy neztratí.
-- <!--i:palette--> Barva nebo font, který tvar **dědí z brandového tokenu**, zůstane v souboru s tímto tokenem **propojený**: změň token v panelu Tokens Penpotu a každý tvar, který ho dědí, se přebarví spolu s ním, zatímco jednorázová doslovná barva zůstane přesně tam, kde je. Barvy a typografie brandu se dostanou i do panelu **Assets** a celá jeho sada designových tokenů do panelu **Tokens** - stejná sada tokenů DTCG, jakou používá vlastní paleta Lolly. Penpot si odtud vede vlastní kopii: úprava provedená v jeho panelu Tokens se do brandu vrátí přes [import Brand Studia](/info/design-import.html), ne sama od sebe.
+Většina nástrojů, které exportují SVG, exportuje také **soubor Penpot** (`.penpot`), připravený k dalším úpravám v Penpotu.
 
 | Co jsi vytvořil | V Penpotu |
 |---|---|
-| Text | Editovatelné textové objekty - oprav překlep nebo přestyluj |
-| Tvary, cesty, přechody, obrázky | Vlastní editovatelné vektorové tvary |
-| Barva nebo font z brandového tokenu | Živé propojení s tokenem - uprav token a každý tvar, který ho dědí, se přizpůsobí |
-| Celý design | Znovupoužitelná komponenta v panelu Assets |
-| Složitá ilustrace nebo živé plátno | Vloženo samostatně jako obrázek, editovatelný obsah kolem něj nedotčen |
+| Text | Upravitelné textové objekty: oprav překlep nebo změň styl |
+| Tvary, cesty, přechody a obrázky | Vlastní upravitelné vektorové tvary |
+| Barva nebo písmo z tokenu designového systému | Živé propojení tokenu: uprav token a každý tvar, který jej zdědí, ho následuje |
+| Celý návrh | Opakovaně použitelná komponenta v panelu Assets |
+| Složitá ilustrace nebo živé plátno | Vloženo samostatně jako obrázek, upravitelný obsah kolem něj nedotčen |
+
+Z Design se každý rám stane plochou Penpotu. Barvy a typografie designového systému přistanou v panelu Assets a jeho úplná sada tokenů v panelu Tokens. Penpot odtud drží vlastní kopii: token upravený v Penpotu se vrací importem v [Design System Setup](/info/brand-studio.html).
 
 ![Panel exportu s vybraným Penpotem: soubor .penpot a Send to Penpot vedle stahování](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
-Chceš-li ho otevřít, spusť Penpot, vyber projekt a zvol **Import**. Když jsi v panelu exportu přihlášený k Penpotu, udělá tento krok za tebe **Send to Penpot** - vyber tam projekt a soubor půjde rovnou do něj.
+Chceš-li soubor otevřít, spusť Penpot, vyber projekt a zvol **Import**. Přihlášen do Penpotu z panelu exportu, **Send to Penpot** ten krok udělá za tebe.
 
-## SCORM (balíčky kurzů)
+### Word, OpenDocument a InDesign
 
-Zvol **Export course** z podporovaného nástroje, složky projektu nebo výběru. V Designu otevře tento pracovní postup kurzu i volba **SCORM (LMS)** a Download. Lolly uloží výtvor, nechá tě prohlédnout obsah a pořadí kurzu, pak otevře modul a jeho exportní dialog.
+**Doc Studio** exportuje **Word** (DOCX) a **OpenDocument** (ODT) se skutečnými odstavci a nadpisy.
 
-- <!--i:layout--> Zvol dostupné provedení pro každý zdroj: statické stránky, pohyb jako video, zvuk nebo soubor ke stažení. V modulu přidej nativní text lekce a alternativy pro čtení.
-- <!--i:play--> Prohlédni si přehrávač pro studenta a zkontroluj popisy a titulky. Pohyb je zahrnutý jako video, včetně tiché animace. Když ho nástroj nedokáže znovu vytvořit z uložených vstupů, nejdřív exportuj hotovou nahrávku.
-- <!--i:file--> Vyber Website, SCORM 1.2, SCORM 2004 4th Edition, nebo experimentální cíl xAPI. Zkontroluj skutečný obsah a velikost ZIP, pak zkontrolovanou verzi ulož a stáhni.
-- <!--i:check--> Dokončení vyžaduje potvrzení každé povinné lekce a výběr Finish. Webový přehrávač ukládá postup v prohlížeči; balíček LMS se připojí ke svému přijímajícímu LMS.
+**Design** exportuje **InDesign IDML (static subset)**: text, obdélníky, ovály a obrázky PNG nebo JPEG, jedna dvojstrana na kreslicí plochu. Podporované vložené formátování zůstává upravitelné, obrázky putují v `Links` a souřadnice se stanou body InDesignu. Opětovné propojení, náhrada písem a změněné obtékání mohou vyžadovat pozornost. Efekty, animace, složené příběhy a nepodporovaná geometrie export zastaví se zprávou, která je vypíše. IDML nezachovává původní dokument, takže pro hotové dílo pošli PDF.
+
+### Časové osy: dotLottie a Premiere
+
+Z časové osy Design zapíše **dotLottie** animaci, která zůstane upravitelná v nástrojích Lottie; co zachovává, vypisují [Animace Lottie](/info/sequence-editor.html#lottie-animations). **Premiere XML + media** zabalí časované klipy a jejich původní média pro Premiere; viz [Výměna Premiere XML](/info/sequence-editor.html#premiere-xml-exchange).
+
+### SCORM (balíčky kurzů)
+
+Export kurzu je vypnutý, dokud nezapneš **Training and courses** v Settings → Preferences → Feature flags.
+
+Pak zvol **Export course** z podporovaného nástroje, složky projektu nebo výběru. V Design zvolení **SCORM (LMS)** a **Download** otevře stejný pracovní postup kurzu. Lolly práci uloží, nechá tě zkontrolovat obsah a pořadí kurzu a pak otevře modul a jeho dialog exportu.
+
+- <!--i:layers--> Vyber ztvárnění pro každý zdroj: statické stránky, pohyb jako video, zvuk nebo stažitelný zdroj. Přidej text lekce a čtecí alternativy v modulu.
+- <!--i:clock--> Prohlédni si přehrávač studenta a zkontroluj popisy a titulky. Pohyb je zahrnut jako video, včetně tiché animace.
+- <!--i:document--> Vyber Website, SCORM 1.2, SCORM 2004 4th Edition nebo experimentální cíl xAPI. Zkontroluj obsah a velikost ZIP, pak ulož a stáhni zkontrolovanou verzi.
+- <!--i:check--> Dokončení vyžaduje potvrzení každé povinné lekce a volbu Finish.
 
 ![Exportní panel na sadě Design se zvoleným SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
-Balíček obsahuje svůj hotový obsah a nevyžaduje účet Lolly. Website ZIP rozbal na hostiteli HTTP(S); LMS ZIP naimportuj beze změny jeho obsahu. Než kurz distribuuješ, otestuj zamýšlený cíl.
+Balíček drží svůj hotový obsah a nepotřebuje účet Lolly. Website ZIP umísti na hostitele HTTP(S); ZIP pro LMS importuj beze změny. Cíl otestuj, než kurz sdílíš. Pro kurz vytvořený z několika uložených tvorb viz [Vytvoř školicí kurz](/info/training-creators.html).
 
-Pro kurz sestavený z několika uložených výtvorů, importovaných médií a zdrojů použij [Vytvoření školicího kurzu](/info/create/training-creators.html). Výukový modul má vlastní seřazenou osnovu, výslovná potvrzení lekcí, náhled pro studenta a verzovanou historii balíčků. Jeho cesta přes CLI umí zabalit média, která jsi už exportoval.
+### DXF (soubory pro řezání)
 
-## DXF (řezací soubory)
+Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding a Wordmark exportují **DXF**, výměnný formát AutoCAD R12, který čtou laserové řezačky, plotry vinylu a software CNC. Geometrie se zapisuje jako obrysové cesty v milimetrech, text je převeden na obrysy a barva se mapuje na nejbližší AutoCAD Color Index, který obvykle řídí operaci řezačky. DXF je jen perokresba: fotografická nebo filtrovaná oblast nemá cestu řezu a vypouští se s varováním. Pro zachování rastrového obsahu použij SVG nebo PDF.
 
-Vektorové nástroje (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, varianty loga, Diagram Builder) umí exportovat do **DXF** - výměnného formátu AutoCAD R12, který čtou laserové řezačky, vinylové plotry a software CNC/CAD. Geometrie se zapisuje jako obrysové **cesty v milimetrech** (křivky zploštěné s jemnou tolerancí), text se převádí na obrysové cesty a barva se mapuje na nejbližší AutoCAD Color Index (který obvykle řídí nástroj/operaci na řezačce). DXF je čistě liniová grafika - fotografická nebo filtrovaná oblast nemá formu řezací cesty a je vynechána (Lolly na to upozorní), takže pro zachování rastrového obsahu použij SVG/PDF.
-
-Street Map je nejjasnější případ: celý návrh už je tahy, takže se každá silnice a kanál stanou řezací cestou a nic se nevynechává.
+Street Map je nejjasnější případ. Celý návrh je už z tahů, takže každá silnice a kanál se stane cestou řezu.
 
 ::: showcase
 ![Vykreslení Street Map Paříže inkoustem na krémovém podkladu - čistá liniová grafika, takže každý tah přežije cestu k řezačce](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
@@ -197,165 +212,196 @@ Street Map je nejjasnější případ: celý návrh už je tahy, takže se každ
 Přejeď a kamera se vzdálí skrz skutečnou geometrii: sedm cest, nikde žádné pixely, každý tah ostrý jako vlásek při jakémkoli přiblížení. To je stejný soubor, jaký čte řezačka.
 :::
 
-## Animované SVG
+## Tisk
 
-Nástroje pro pohyb (Animated Ad, Lottie Ad) dokážou exportovat **Animované SVG** - samostatnou *vektorovou* animaci. Na rozdíl od GIF/APNG/WebP (které vzorkují každý snímek do pixelů) animované SVG skládá vektorové snímky s vloženými klíčovými snímky CSS, takže se **škáluje do jakékoli velikosti bez kodeku a bez externího runtime** - přehraje se na kartě prohlížeče nebo v `<img>`. Text zůstává obrysovaný, takže se vykreslí kdekoli. Sdílí ovládací prvky **Duration**/snímková frekvence s ostatními animovanými formáty a (protože je na snímek těžší než bitmapa) používá nižší výchozí snímkovou frekvenci.
+**Print PDF** zapisuje CMYK proti pojmenované tiskové podmínce, ve výchozím stavu **Coated FOGRA39**. Vzorky značky se změřenými hodnotami inkoustu se převádějí přesně; ostatní barvy používají standardní převod zařízení. **Print TIFF** zapisuje pixely DeviceCMYK pro RIP a zaznamenává stejnou tiskovou podmínku do metadat TIFF. Obojí řídí ovládání Colour profile; podrobnosti jsou v [Barevné profily](#colour-profiles).
 
-## Průhlednost
+**Print marks & bleed** má vlastní kartu na tiskových formátech: spadávka v milimetrech plus Crop, Registration, Bleed, Colour bars a Stamp details.
 
-Nástroje, které to podporují, nabízejí přepínač **průhledné pozadí** (např. *No BG*). Průhlednost zachovávají PNG, WebP, AVIF, SVG (statické i animované), APNG a Animated WebP. JPG a PDF jsou vždy neprůhledné a TIFF se zploští na bílou (na HDR cestě na černou - viz níže).
+Některé nástroje sestavují **vícestránkové PDF**: obálku, obsah, který plyne na tolik stránek, kolik potřebuje, a zadní stránku, jako nástroj *Booklet*. Každá stránka je skutečná portrétní stránka PDF v A4, US Letter nebo A5 a libovolný blok můžeš vynutit na novou stránku. Jsou to dokumenty RGB bez ořezových značek a spadávky, které patří jednostránkovému Print PDF. Design PDF může být také **Notes handout**: portrétní stránka pro každý snímek s poznámkami řečníka pod ním.
 
-## Barevné prostory
+**Před exportem.** Karta **Before you export** dole v panelu říká, co se tiskárna chystá uvidět: formát, velikost a spadávku, oblasti ořezu a spadávky, pokrytí inkoustem, počty desek a počet stránek, s verdiktem vedle nadpisu. Nikdy export neblokuje. Design kartu ukazuje vždy s vlastními kontrolami, včetně interních pravidel designového systému vrstvu po vrstvě a signálu psaní pro text dokumentu ([Před exportem](/info/design.html#before-you-export)), a tyto tiskové kontroly přidá, když je **Print preflight** zapnuto. V ostatních nástrojích zapni **Print preflight** v Settings → Preferences → Feature flags; ve výchozím stavu je vypnuto a nasazení Lolly Work jej může pro své členy zapnout.
 
-Dvě různé otázky, které stojí za to udržet oddělené: ve kterých barevných prostorech Lolly umí **číst a přemýšlet**, a do kterých **zapisuje**.
+**Po exportu.** Jakmile je soubor hotový, Lolly jej přečte zpět a porovná s tím, co jsi zvolil: formát, velikost v pixelech nebo stránkách, délku klipu, průhledné pozadí, barvu CMYK, HDR, Content Credentials a heslo PDF nebo ZIP. Cokoli, co se liší, se zapíše na exportní kartu. Každé měření pochází ze souboru, nikdy z nastavení, a vlastnost, na kterou soubor nedokáže odpovědět, se nepočítá jako shoda. Příkazový řádek zapíše úplné porovnání pomocí `--export-report` (viz [Vykreslování pomocí CLI](/info/cli-rendering.html)).
 
-**Čtení.** Kdekoli je barva zapsaná - stylopis nástroje, malba importovaného SVG, hodnota designového tokenu, stín nebo gradient uvnitř zkráceného zápisu CSS - Lolly čte celý slovník **CSS Color 4**: `#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, pojmenované barvy CSS a `color()` v předdefinovaných prostorech - `srgb`, `srgb-linear`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d50`, `xyz-d65` - včetně komponent zapsaných klíčovým slovem `none`. Jeden parser to dělá pro celou platformu, takže se prohlížeč a každý exportní walker shodnou na tom, co daný barevný řetězec znamená.
+Kontroly inspektoru Design a porovnání se značkou v Design System Setup jsou samostatné kontroly: dívají se na návrh, zatímco tyto dvě karty se dívají na soubor.
 
-To je důležitější, než to zní, protože prohlížeč rozřeší moderní CSS do moderního CSS. Napiš `color-mix(in oklab, …)` a Chrome to spočítá jako `oklab(…)`; použij značkový token uložený jako `oklch()` a to je přesně ta hodnota, kterou vidí exportní walker. Barvy v těchto formách se čtou správně místo toho, aby se zahazovaly - a přesně to dělal walker, který rozuměl jen `rgb()`: exportoval text ve značkové barvě jako černý, ztrácel tónované panely a linky tabulek a četl `oklch(0.7 0.1 200) 0px 2px 4px` jako posun stínu 0.7 o 0.1.
+::: details Náklady z ceníku
+Pod kontrolou před tiskem karta nákladů převede stejné počty na peníze, s použitím jen cen, které někdo dodal. Čte tyto počty, i když je samotná karta kontroly vypnutá. Potřebuje dvě věci: úlohu, kterou ceník dokáže ocenit (desky, archy, plochu, stránky, řádky variant nebo výstupní soubory, takže prosté logo PNG ji nikdy neukáže), a **rate card**, ceník JSON od tvé tiskárny. Výchozí sestavení žádný nenese a nemá v aplikaci způsob, jak jej načíst. Ceník přichází jako asset katalogu, který nasazení dodá, nebo přes volitelné rozšíření ceníku, které zapne samostatný provozovatel nebo řídicí rovina. Bez ceníku se nic nezobrazí.
 
-**Uvažování.** Matematika barev probíhá percepčně, ne na surových kanálech. Odvození palety, rampy, harmonie a kontrast běží v **OKLCH/OKLab**, a barva mimo gamut se dostane do rozsahu vlastním algoritmem mapování gamutu CSS Color 4 - redukcí chromy s kontrolou percepční vzdálenosti - místo ořezáváním kanálů, takže se sytá barva usadí na nejbližší barvě, kterou bys fakticky přijal, místo na zploštělé. Gradienty interpolují v prostoru, který si vybereš (výchozí OKLab, nebo `oklch`, `lab`, `lch`, `srgb`, `srgb-linear`, `hsl`, se směrem přechodu odstínu pro ty polární), a míchání je **předvynásobené**, takže přechod do průhlednosti zachovává správnou barvu místo tmavnutí směrem k černé po cestě. Jeden interpolátor obsluhuje jak náhled, tak exportní walkery - a právě to zabránilo tomu, aby se kónický gradient míchal jinak na obrazovce a jinak v exportovaném souboru.
+Každá částka je sazba, kterou jsi dodal, krát množství, které Lolly spočítala, například `4 plate × €35.00`, a součet nese svůj zdroj: vydavatele ceníku a datum, z něhož sazby pocházejí. Neexistuje výchozí měna ani zástupná cena. To, co soubor říká sám o sobě, zůstává nepřímou řečí: *"The file says: … Lolly has not verified this."*
 
-**Zápis.** Výstup je záměrně užší než vstup, protože soubor musí být čitelný v čemkoli, co ho otevře, a prostor se na výstupu *deklaruje* pouze tehdy, když do něj byla čísla skutečně převedena. Obrazovkové a webové formáty se zapisují jako **sRGB** a takto se i označují; tiskové formáty se zapisují jako **CMYK** vůči pojmenované tiskové podmínce (níže); a HDR cesta je **Rec.2100 PQ** (výše). Barva se širokým gamutem, která dorazí až k exportu, se namapuje do sRGB místo toho, aby byla nesprávně označena - protažení `color(display-p3 …)` do vektorového souboru je plánovaným rozšířením, ne něčím, co dnešní exporty tvrdí, že dělají. Gradient vytvořený v OKLab se na výstupu *zapeče* do prostých zastávek sRGB, přičemž extra zastávky se vloží jen tam, kde by se sRGB viditelně odchýlilo od perceptuální křivky, protože `<linearGradient>` v SVG ani axiální stínování v PDF nemají nastavení interpolačního prostoru, které by ten záměr přeneslo. Jedna vytvořená hodnota, tři vykreslovače, žádný posun.
+Když částku nelze vypočítat, tabulka se stáhne, místo aby se vyplnila:
 
-## Barevné profily
+- Řádky, které karta neoceňuje, znamenají **žádný součet vůbec**, jen nadpis říkající, kolik jich je neoceněných.
+- Množství, které je strop, nese **"up to"** do svého mezisoučtu.
+- Sazby po datu platnosti ukazují **jen počty**, dokud nestiskneš *Use these rates anyway*; datum vypršení pak jede s částkou.
+- Otevřeno přes **odkaz** zůstávají peníze skryté, dokud o ně na tomto zařízení nepožádáš. CLI bere `--rate-card=<file.json>` jako místní soubor a nikdy jako parametr odkazu.
 
-Aby se barvy věrně reprodukovaly v aplikacích se správou barev (tiskárny, Photoshop, prohlížeče), exporty se **označují barevným profilem**:
+Karta se odstraní z každé fáze exportu, takže soubor nikdy nezmění. Je to aritmetika, ne nabídka; nabídku může dát jen tvá tiskárna.
+:::
 
-- **PNG / JPG** nesou vložený ICC profil **sRGB** - barevný prostor, ve kterém se náhled skutečně vykresluje - takže se nemusí nic odhadovat. (Jen značení; pixely se nepřekódovávají.)
-- **Print PDF (CMYK)** deklaruje cílovou **tiskovou podmínku** ve svém *OutputIntent* (výchozí *Coated FOGRA39*), čímž RIPu/tiskárně sděluje, jak mají být čteny jeho inkousty CMYK. Značkové vzorníky se změřenými hodnotami inkoustu se převádějí přesně; ostatní barvy používají standardní převod zařízení. Tato deklarace je *jméno*: s Lolly se nedodává žádný profil CMYK a PDF/X-4 vyžaduje vložený profil, takže pojmenovaná podmínka zapíše výstupní záměr bez nároku na shodu s PDF/X-4. Nahraj vlastní profil CMYK a zvol jeho řádek **Embed** v ovládacím prvku Barevný profil a profil se vloží jako *DestOutputProfile* souboru - v tu chvíli může být PDF opravdu PDF/X-4 a tvrdí to, kdykoli to zbytek souboru dovoluje. Tři věci nárok zadrží, přičemž si podrží výstupní záměr (RIP ho stále chce): grafika RGB, kterou se v průchodu CMYK nepodařilo převést, text kreditu proof-margin `prov` (vykreslený standardním fontem, který se nevkládá, a X-4 pro to nedělá výjimku) a **silné** heslo, protože X-4 zakazuje šifrování. Podmínka, kterou deklaruje, se pak čte z tohoto profilu: registrované jméno tam, kde ho profil dokáže prokázat, `Custom` pod vlastním jménem profilu tam, kde ne, takže soubor nikdy nemůže jmenovat jednu tiskovou podmínku a přitom nést naměřené hodnoty jiné.
-- **Print TIFF (CMYK)** zapisuje neoznačené pixely **DeviceCMYK** a stejnou tiskovou podmínku zaznamenává jako provenienci ve svých metadatech TIFF (*ImageDescription*), místo aby profil vkládal. Stejný ovládací prvek Barevný profil řídí oba formáty CMYK - TIFF nedokáže vložit tiskový profil vůbec, takže řádek **Embed** tam jen zaznamená jméno tohoto profilu a nic víc.
-- **TIFF (RGB)** je prostý, nekomprimovaný sourozenec sRGB - bezztrátový rastr při zvoleném DPI pro archivaci nebo obousměrnou cestu do editoru, s provenienci zaznamenanou ve stejných metadatech TIFF. Jakákoli průhlednost se zploští na bílou (tento profil nenese alfu). Stejně jako CMYK TIFF je jen pro desktop, protože prohlížeče TIFF nedokážou zobrazit náhled a mobilní stahování skončí slepou uličkou.
-- **SVG**, **EMF**, **EPS** a **DXF** jsou vektory nezávislé na rozlišení a profilu bez vloženého profilu - barvy SVG jsou prosté sRGB, barvy EMF a EPS jsou device RGB (a **EPS (CMYK)** zapisuje naivní DeviceCMYK) a **DXF** nese nejbližší index AutoCAD Color Index. (SVG, EPS a DXF, stejně jako PDF, převádějí veškerý text na vektorové cesty, takže výsledek se vykreslí i tam, kde není nainstalovaný font. EMF místo toho ve výchozím stavu ponechává text ŽIVÝ - skutečné záznamy textu v metasouboru, které zůstávají vybíratelné a editovatelné v Office a Google Slides, a na obrysy padá jen u řádků, které formát nedokáže vyjádřit; volba „Outline fonts“ v exportním panelu vynutí cesty všude.) **SVG** také reprodukuje CSS `box-shadow` z HTML - každý vnější stín se vykreslí za boxem, s posunem/rozšířením a Gaussovým rozostřením odpovídajícím prohlížeči, a vnitřní stíny se stejným způsobem vykreslí uvnitř.
+## Pohyb a zvuk
 
-To je automatické - není co ladit. Miniatury a náhledy značku vynechávají, aby zůstaly malé. Jeden profil *je* volba, protože mění pixely, ne je jen popisuje - viz **HDR** níže.
+### Video
 
-## HDR (jasné barvy)
+Animované nástroje exportují **MP4** a **WebM**. Výběr ukazuje jen kontejnery, které tento prohlížeč umí vytvořit, a sdílený odkaz `?format=`, který žádá takový, jaký nezvládne, přejde na ten druhý, s odpovídajícím názvem souboru. Animované nástroje také nabízejí **Start after**, který na okamžik drží plátno v klidu, aby se animace a písma před nahráváním ustálily, a **Duration**, délku hotového klipu. **Motion blur** (Off, Draft quality, Standard nebo High, s **Shutter angle**) rozmaže rychlý pohyb za cenu času vykreslení. Kde to prohlížeč podporuje, **Record live** nahraje náhled na obrazovce v reálném čase přes sdílení obrazovky.
 
-Běžné exporty jsou sRGB: bílá je bílá a sytá značková barva je stejně jasná jako normální bílá obrazovky. Na displeji schopném HDR je nad tím spousta rezervy a karta **HDR** v exportním panelu ji využívá - tvé značkové barvy a bílý text se posunou směrem ke špičkovému jasu, takže opravdu *září*, zatímco tmavé oblasti zůstávají tmavé a dávají té záři kontrast.
+![Nastavení časování animovaného exportu: Start after, Duration, Motion blur s Shutter angle a Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+
+**Quality** vybírá Smaller file, Balanced nebo Best quality. **Advanced** otevře **Codec**, **Frame rate**, **Rate mode** a **Hardware acceleration**. Kde nástroj má titulky, **Captions** vybírá **Embedded track** nebo **Sidecar .vtt + .srt** vedle videa. Odkaz nese kvalitu, kodek, snímkovou frekvenci, délku a počáteční zpoždění jako `vq`, `codec`, `fps`, `seconds` a `wait` ([Parametry URL](/info/url-parameters.html)).
+
+Video exporty si zachovávají zvuk. Nástroj může pod klip položit **music bed**: zvukový asset zacyklený nebo oříznutý na délku klipu, s prolínáním, hlasitostí a ducking pod vlastním zvukem záznamu. Nahrávací nástroje přenášejí svůj živý zvuk až do souboru.
+
+Sada Design, která zůstává klikací, může přesto odejít jako video. **Export slides as video** v nabídce Present otevře list exportu na MP4. Každý snímek hraje svou vlastní prodlevu, nebo Duration listu exportu, když žádnou nemá, a přechod snímků sady hraje mezi nimi jako prolnutí. Samotný dokument se nemění.
+
+### Animované obrázky
+
+**GIF** se přehraje všude a hodí se do chatu a e-mailu; je větší a má méně barev než video. **APNG** a **Animated WebP** zachovávají plnou barvu a průhlednost. **Lottie Ad** také exportuje **Animated SVG**: vektorové snímky s vloženými klíčovými snímky CSS, takže se škáluje na libovolnou velikost a smyčkuje na kartě prohlížeče nebo v `<img>` bez kodeku. Jeho text je převeden na obrysy a používá nižší výchozí snímkovou frekvenci, protože každý snímek je těžší než bitmapa. Všechny jsou bez zvuku.
+
+### Zvuk
+
+Některé nástroje exportují samotný zvuk. **Voice Recorder** zachytí záznam z mikrofonu s živým měřičem úrovně a uloží jej jako **MP3**, **WAV**, **M4A (AAC)** nebo **Opus (WebM)**, kódované na tvém zařízení. `wav`, `mp3`, `m4a` a `opus` jsou běžná id formátů, takže zvukový export je stejně sdílitelný a skriptovatelný jako PNG.
+
+Výběr assetů přijímá širokou škálu zvuku pro music bed, od MP3 a FLAC po MIDI a tracker moduly; [Formáty](/info/formats.html) je vypisují. [Píseň Rondocode](/info/rondocode.html) hraje v jakékoli délce, kterou její klip žádá.
+
+## Barva a HDR
+
+Lolly čte každou moderní barvu CSS, počítá barvy percepčně a každý soubor zapisuje v prostoru, který čtenář otevře: sRGB pro obrazovky, CMYK pro tisk a Rec.2100 PQ pro HDR. [Barva v enginu](/info/colour-engine.html) vysvětluje jak. Dokument Design nastavený na **Wide colour / HDR** se řídí vlastními pravidly popsanými v [Úpravy široké barvy a HDR](/info/hdr-editing.html).
+
+### Barevné profily
+
+Exporty jsou označeny barevným profilem, takže aplikace se správou barev, jako tiskárny, Photoshop a prohlížeče, čtou barvy tak, jak jsi je viděl. Děje se to automaticky; miniatury a náhledy značku vynechávají, aby zůstaly malé.
+
+- **PNG a JPG** nesou vložený profil ICC **sRGB**, prostor, v němž se náhled kreslí. Pixely jsou označeny, ne překódovány.
+- **Print PDF (CMYK)** deklaruje svou tiskovou podmínku v *OutputIntent*, což tiskárně říká, jak mají být čteny jeho inkousty CMYK.
+- **Print TIFF (CMYK)** zapisuje neoznačené pixely DeviceCMYK a zaznamenává tiskovou podmínku do metadat TIFF. TIFF nemůže vložit tiskový profil, takže řádek **Embed** zaznamenává jen název toho profilu.
+- **TIFF (RGB)** je nekomprimovaný sourozenec sRGB pro archiv nebo oběh přes editor. Zploští průhlednost na bílou. Oba TIFF jsou jen pro desktop, protože prohlížeče TIFF zobrazit nemohou.
+- **SVG**, **EMF**, **EPS** a **DXF** jsou vektory bez vloženého profilu: barvy SVG jsou sRGB, EMF a EPS používají zařízení RGB, **EPS (CMYK)** zapisuje DeviceCMYK a DXF používá AutoCAD Color Index. SVG, EPS a DXF převádějí text na cesty. EMF drží text živý a upravitelný v Office a Google Slides, s náhradou obrysy jen pro úseky, které formát nevyjádří; volba **Outline fonts** v panelu exportu vynutí cesty všude. SVG také reprodukuje stíny polí CSS, uvnitř i vně.
+
+::: details PDF/X-4 a tvůj vlastní tiskový profil
+Žádný profil CMYK se s Lolly nedodává. Pojmenovaná tisková podmínka zapíše výstupní záměr bez tvrzení o souladu s PDF/X-4, protože PDF/X-4 chce profil vložený.
+
+Načti vlastní profil CMYK a zvol jeho řádek **Embed** v ovládání Colour profile. Vloží se jako *DestOutputProfile* souboru a PDF tvrdí PDF/X-4, kdykoli to zbytek souboru dovolí. Tisková podmínka, kterou deklaruje, se čte z toho profilu: registrované jméno, kde ho profil dokazuje, nebo `Custom` pod vlastním jménem profilu.
+
+Tři věci zadrží tvrzení při zachování výstupního záměru: umělecké dílo RGB, které průchod CMYK nedokázal převést, text uznání `prov` s okrajem pro zkoušku (kreslený standardním písmem, které není vloženo) a heslo **Strong**, protože PDF/X-4 šifrování zakazuje. Každé PDF také nese metadata PDF/X-4: boxy stránky, XMP, ID dokumentu a výstupní záměr sRGB s jeho profilem.
+:::
+
+### HDR (jasné barvy)
+
+Toto je karta **HDR** panelu exportu, která zjasňuje běžné umělecké dílo pro obrazovky HDR. Zachování originálů HDR při úpravách je jiná funkce: [Úpravy široké barvy a HDR](/info/hdr-editing.html).
+
+Běžný export je sRGB: sytá barva značky je stejně jasná jako běžná bílá obrazovky. Displej HDR má nad tím rezervu. Karta **HDR** zesílí barvy tvé značky a bílý text směrem k nejvyššímu jasu, zatímco tmavé oblasti zůstávají tmavé a dávají záři kontrast.
 
 ![Karta HDR v exportním panelu, zapnutá, s odhalenými ovladači White / Reach / Dark lift / Focus pod ní](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formáty.** Rastrové formáty, které mají kam signál uložit: **PNG**, **JPG**, **AVIF** a **TIFF**. (Ne WebP - je 8bitový bez funkční cesty pro dekódování HDR, takže PQ WebP by prostě vypadal tmavě. Vektory a PDF nemají žádný model HDR vůbec.)
-- **Ve výchozím stavu vypnuto**, na rozdíl od barevného tagování - mění pixely, takže je to volitelné (opt-in). Zaškrtni kartu, nebo předej `hdr=1` v odkazu ke sdílení.
-- **Co se skutečně zapíše.** Pixely se překódují do **Rec.2100 PQ** - primární barvy BT.2020 s přenosovou křivkou SMPTE ST 2084 (PQ) - a kontejner nese odpovídající signál, aby aplikace se správou barev věděla, že je má takto číst: vygenerovaný **profil ICC v4 se značkou `cicp`** (JPG, TIFF), **chunk `cICP`** (PNG) nebo přepsaný box `colr` (AVIF). Zesílení je řízeno **percepční (OKLab) světlostí**, takže střední a světlejší barvy vystřelí na vrchol a tmavé se spíš zklidní, než aby se vypálily, a zachovává odstín - brandová zelená se rozjasní, ne zmátoví.
-- **Ovladače.** Čtyři, zobrazí se po zapnutí karty: **White** (strop špičkového jasu, 400–2000 nitů), **Reach** (jak hluboko do tónů se záře šíří), **Dark lift** (o kolik se rozjasní tmavé partie - `0` je ponechá tmavé) a **Focus** (kolik barevné sytosti zesílení zachová). Jezdí ve stejném parametru jako kompaktní vyladěná hodnota - `hdr=1600-60-0-50` znamená White 1600, Reach 60, Dark lift 0, Focus 50 - takže vyladěný vzhled je z odkazu reprodukovatelný.
-- **Kde to uvidíš.** Prohlížeče se správou barev na HDR displeji: Preview / Quick Look / Safari na zařízeních Apple, Chrome na HDR monitoru. Na běžné obrazovce SDR se soubor pořád zobrazí jako normální obrázek.
-- **Věz předem.** Řada platforem to, co nahraješ, **překóduje** a signál HDR odstraní - sociální sítě, messagingové aplikace, některé CMS - což může nechat obrázek vypadat tmavě nebo vymyté. Používej HDR tam, kde máš cíl pod kontrolou (web, který si sám stavíš, video stěna, prezentace na jasném panelu), ne jako výchozí volbu pro všechno.
-- **Průhlednost.** PNG a AVIF si podrží alfu; JPG je neprůhledný jako vždy. Cesta **TIFF** slučuje na **černou**, ne na bílou jako cesta SDR - v PQ je bílá kód pro 10 000 nitů, takže sloučení na ni by kolem každé hrany vytvořilo oslepující halo.
-- **Tytéž byty z terminálu.** `--hdr=1` spolu s `--export=png` nebo `--export=jpg` zapíše 16bitový Rec.2100 PQ PNG a JPEG s gain mapou podle ISO 21496-1 i v [CLI](/info/cli.html), a to ze stejných enkodérů enginu, ne z prohlížeče - takže nástroj nativní pro `<svg>` vyprodukuje soubor HDR, aniž by se na cestě objevil jakýkoli Chromium, a PNG je bajtově identický s tím z webového shellu. AVIF a TIFF zatím zůstávají exporty jen z webového shellu.
+- **Formáty.** PNG, JPG, AVIF a TIFF. WebP je 8bitový bez funkční cesty dekódování HDR a vektory a PDF nemají žádný model HDR.
+- **Ve výchozím stavu vypnuto,** protože mění pixely. Zaškrtni kartu nebo předej `hdr=1` ve sdíleném odkazu.
+- **Ciferníky.** **White** (strop nejvyššího jasu, 400 až 2000 nitů), **Reach** (jak daleko do tónů se záře šíří), **Dark lift** (jak moc se tmavé zjasní; `0` je nechá tmavé) a **Focus** (kolik bohatosti barev zesílení zachová). Putují jako jedna hodnota: `hdr=1600-60-0-50` je White 1600, Reach 60, Dark lift 0 a Focus 50.
+- **Co se zapisuje.** PNG dostane 16bitový Rec.2100 PQ s chunkem `cICP`. JPG je JPEG s mapou zisku ISO 21496-1: běžný obrázek SDR plus připojená mapa zisku. AVIF dostane přepsaný box `colr`. TIFF dostane pixely PQ s vygenerovaným profilem ICC v4 nesoucím značku `cicp` a zploští se na černou, protože bílá je v PQ kód 10 000 nitů a obklopila by každou hranu svatozáří. Zesílení sleduje percepční (OKLab) světlost a zachovává odstín, takže zelená značky je jasnější, ne mátová.
+- **Kde se záře ukáže.** V prohlížečích se správou barev na displeji HDR: Preview, Quick Look a Safari na zařízeních Apple, nebo Chrome na monitoru HDR. Obrazovka SDR ukáže normální obraz.
+- **Než to odešleš.** Mnoho platforem nahrávky překódovává a signál HDR odstraňuje, což může obraz nechat tmavý nebo vyprané. Použij HDR tam, kde cíl ovládáš, například na vlastním webu, videozdi nebo prezentaci na jasném panelu.
+- **Z terminálu.** `--hdr=1` s `--export=png` nebo `--export=jpg` zapíše stejný PNG a JPEG s mapou zisku v [CLI](/info/cli.html), ze stejných enkodérů enginu, bez prohlížeče v cestě. AVIF a TIFF zatím zůstávají webovými exporty.
 
-## Video
+## Co putuje se souborem
 
-Animované nástroje exportují pohyb jako **MP4**, **WebM** nebo **GIF** - a tam, kde je to nabízeno, jako **APNG**, **Animated WebP** nebo vektorové **Animované SVG** (výše). Který video kontejner uvidíš, závisí na tvém prohlížeči - výběr ukáže jen to, co dokáže skutečně nahrát:
+Hotový soubor může nést vedle obrázku několik záznamů. Některé jedou vedle pixelů a zmizí, když se soubor znovu uloží nebo očistí; dvě značky žijí přímo v pixelech.
 
-| Prohlížeč | Ukazuje |
-|---|---|
-| Safari / iOS | **MP4** |
-| Firefox | **WebM** |
-| Chrome / Edge 126+ / Android | **MP4 a WebM** |
-| Starší Chrome | **WebM** |
+::: figure exporting-what-travels
+Kde každý záznam žije, zda je ve výchozím stavu zapnutý a který parametr odkazu každý z nich řídí.
+:::
 
-GIF funguje všude (skvělý pro chat/e-mail; větší a s méně barvami než video). Animované nástroje také zpřístupňují **Wait** (kolik sekund nechat animaci ustálit před nahráváním) a **Duration** (délku klipu).
-
-> Sdílený odkaz `?format=…`, který požaduje kontejner, který tvůj prohlížeč neumí nahrát, elegantně přejde na ten druhý, a název souboru odpovídá kontejneru, který se nahrál.
-
-**Zvuk.** Videoexporty nejsou tiché. Nástroj může pod klip položit **hudební podklad** - zvukový prvek z katalogu, smyčkovaný nebo zkrácený na délku klipu, s prolínáním, hlasitostí a automatickým ztlumením (duckingem) pod vlastním zvukem záběru - a nahrávací nástroje přenášejí živý zvuk záběru přímo do souboru. **MP4** a **WebM** si podrží smíchanou stopu; GIF a animované obrazové formáty (APNG, Animated WebP, Animated SVG) jsou svou podstatou tiché.
-
-## Zvuk
-
-Některé nástroje exportují **zvuk samostatně**, nejen jako videostopu. **Voice Recorder** zachytí nahrávku z mikrofonu s živým měřičem úrovně a jemným koučováním a pak ji uloží jako **MP3** (výchozí, převedené ve tvém prohlížeči) nebo v původním kontejneru - **M4A** (AAC), **OGG** nebo **WebM** (Opus), podle toho, co tvůj prohlížeč nahrál. Stejně jako u všeho ostatního probíhá enkódování na tvém zařízení - nic se nenahrává.
-
-Zvuk, který *přineseš vlastní*, je stejně široký. Výběr prvků přijímá **MP3**, **WAV**, **OGG**/**Opus**, **M4A**/**AAC** a **FLAC** (zachované bajt po bajtu a dekódované na zařízení), **MIDI** (`.mid` - při importu převedené na drobnou syntezátorovou stopu přímo na zařízení) a **trackerové moduly** - **MOD**, **XM**, **IT**, **S3M**, **STM**, **MTM** (dekódované na zařízení vestavěným přehrávačem, pár kilobajtů dat skladby). Kterýkoli z nich se může stát **hudebním podkladem** pod videoexportem, nebo hrát v ambientním přehrávači Neurospicy Mode.
-
-Zvuk *je* součástí níže popsané pipeline `format=` / `--export=`: `wav`, `mp3`, `m4a` a `opus` jsou obyčejná id formátu, takže export samotného zvuku je stejně sdílitelný a skriptovatelný jako PNG. Výstupem je jen zvuk, žádný obrázek.
-
-## Původ a vodoznak
-
-Tam, kde to formát podporuje, nesou exporty **metadata o původu** - software, zdroj, název nástroje a kreditní řádek z tvého profilu - nativně vložená (PNG iTXt, JPEG EXIF, PDF info, SVG `<metadata>`, komentář GIF). Jde jen o autorství; nic se nenahrává. **Experimentální** nástroje navíc otisknou viditelný vodoznak, který přidává hostitel, takže ho nelze odstranit úpravou nástroje.
-
-**Lolly Imprint.** Rastrové exporty nesou i vlastní Lolly **neviditelný pixelový vodoznak** - *Lolly Imprint* - **ve výchozím stavu zapnutý**, stejně jako Content Credentials. Zatímco pověření a metadata o původu cestují *vedle* pixelů a při opětovném uložení, screenshotu nebo očištění metadat se ztratí, Imprint žije *v* pixelech a přežije rekompresi - takže kopii obrázku lze i později rozpoznat jako vytvořenou v Lolly. Je to trvalá stopa, ne kryptografická záruka, a nese jen informaci o přítomnosti (žádná osobní data). Jezdí v **PNG, JPG, WebP, AVIF, TIFF a BMP** a v rastrech vykreslených Lolly, které jsou vloženy do **PDF nebo PPTX** - nikdy v obrázku, který jsi vložil *ty*, jen v tom, co vykreslí samotné Lolly. Kartu **Lolly Imprint** v exportním panelu odškrtni, chceš-li ji vynechat, nebo v odkazu ke sdílení předej `imprint=0`. (Přežití AVIF při rekódování zatím není kalibrováno; detekce v PDF/PPTX pokrývá vložené rastry z Lolly.) [/verify](/verify) ho detekuje na zařízení - viz [Content Credentials Identity](/info/content-credentials-identity.html#the-lolly-imprint).
-
-**Trvalé pověření.** Vedle Imprintu stojí druhá, těžší značka: **Trvalé pověření** (Durable credential), které pomocí neuronového modelu na zařízení (formát TrustMark) zapíše id Lolly *do* pixelů, takže odkaz "vytvořeno v Lolly" přežije očištění metadat, rekódování i opětovné čtení nástroji, které rozumí TrustMarku, stejně jako těmi z Lolly. Je **ve výchozím stavu vypnuté** - na rozdíl od čistě javascriptového Imprintu stojí neuronový průchod při každém exportu plus jednorázové stažení modelu, takže jde o vědomé zapnutí, ne tichou daň. Jen rastr (**PNG, JPG, WebP, AVIF, TIFF**), zaškrtnuté v exportním panelu nebo předané jako `durable=1` v odkazu ke sdílení. V desktopové a mobilní aplikaci je karta rovnou skrytá, ne zobrazená jako nefunkční, protože offline není odkud model stáhnout.
-
-**Ochrana obsahu.** V exportním panelu se **Licence**, kterou udělíš, **Kredity zdrojů** čehokoli, co jsi umístil, *Password protect*, **C2PA Credentials**, **Lolly Imprint** a **Trvalé pověření** sbalí do jedné skupiny **Ochrana obsahu** citlivé na formát, takže provenience, práva a možnosti ochrany souboru žijí na jednom místě. Skupina zobrazuje jen karty, které se týkají zvoleného formátu. Sama se otevře, když odkaz nebo uložený dokument už deklaruje licenci, nebo když zdroj potřebuje tvoje rozhodnutí.
-
-**Licence.** Vyber, jak smí ostatní tvou práci používat: výchozí je *None (all rights reserved)*, nebo CC0 1.0, Public Domain Mark 1.0, nebo jedna z licencí Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Název licence a odkaz na její popis se zapíší do licenčních metadat souboru (EXIF, XMP a RIFF tam, kde formát tato pole má) a do jeho Content Credential. Volba se uloží spolu s dokumentem a v odkazu ke sdílení cestuje jako `licence=`. Lolly zapíše licenci, kterou jsi zvolil. Nekontroluje ani nevymáhá její podmínky. Nástroj s vlastním polem licence, jako Claim, si ponechá to pole místo toho a nezobrazí druhý výběr. Tiskové značky v ní záměrně *nejsou*: jsou to tiskové výrobní geometrie, ne ochrana, takže **Tiskové značky a spadávka** - míra spadávky v milimetrech plus Oříznout, Soutisk, Spadávka, Colour bars a Podrobnosti o otisku - má na tiskových formátech svou vlastní kartu na nejvyšší úrovni.
+Panel exportu sbalí **Licence**, **Source credits**, *Password protect*, **C2PA Credentials**, **Lolly Imprint** a **Durable credential** do jedné skupiny **Content protection**, která ukazuje jen karty, které zvolený formát může použít. Otevře se sama, když odkaz nebo dokument už deklaruje licenci, nebo když zdroj potřebuje tvé rozhodnutí. Karta **Design system** zůstává mimo skupinu, na očích při každém exportu.
 
 ![Skupina Ochrana obsahu otevřená u exportu PNG, zobrazující jen karty, které se na něj vztahují](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
-**Než exportuješ (tisková kontrola).** Zapni **Tiskovou kontrolu** (`export-preflight`) v příznacích funkcí svého profilu - je **ve výchozím stavu vypnutá**, takže člověka exportujícího PNG pro zprávu v chatu nikdy nepřekvapí prepress zjištění, a řídicí rovina nasazení ([lolly.work](https://lolly.work)) ji může svým členům ve výchozím stavu zapnout - a na patě panelu, hned nad tlačítky, se objeví karta **Než exportuješ**, kdykoli k zakázce mají tiskové pravidla co pravdivého říct: formát, velikost a spadávka, pak ořezová a spadávková plocha, pokrytí inkoustem, počet desek a počet stran, s verdiktem vedle nadpisu. Sedí pod všemi nastaveními, protože je to výrok *o* těchto nastaveních, ne další z nich - a nikdy export neblokuje. Říká ti, co za chvíli uvidí tiskárna.
+### Provenience a vodoznak
 
-**Cena spočítaná z tvého ceníku.** Pod tiskovou kontrolou - úplně naposled, stále nad tlačítky - sedí karta, která tytéž počty promění v peníze, a to vždy jen z cen, které jí někdo zadal. Čte, co spočítal průchod tiskové kontroly, ať je karta tiskové kontroly zapnutá nebo ne, a potřebuje, aby platily dvě věci: zakázka má vůbec něco, co lze podle ceníku ocenit (desky, archy, plochu, strany, řádky variant nebo výstupní soubory - takže obyčejné logo PNG se nikdy nezobrazí), **a** je přítomný **ceník** (rate card). Ceník je JSON seznam cen od tvé tiskárny. Výchozí sestavení žádný nenese a nemá způsob, jak ho v aplikaci načíst: přichází buď jako katalogový prvek, který dodá nasazení, nebo přes volitelné rozšíření pro ceníky, které zapne provozovatel vlastního hostingu nebo řídicí rovina. Bez ceníku se nezobrazí nic - žádná výzva, žádná prázdná tabulka.
+Kde formát pole má, nesou exporty **metadata proveniencie**: software, zdroj, jméno nástroje a řádek s uvedením z tvého profilu, zapsané do PNG iTXt, JPEG EXIF, informací PDF, `<metadata>` SVG nebo komentáře GIF. Zaznamenává jen autorství a nic se nenahrává. **Experimentální** nástroje také razítkují viditelný vodoznak, aplikovaný hostitelem, takže úprava nástroje značku nemůže odstranit.
 
-Pravidlo, kolem kterého je celá věc postavená, je, že **nikdy nevymýšlí peníze**. Každé číslo je sazba, kterou jsi zadal, vynásobená množstvím, které Lolly spočítalo - `4 plate × €35.00` - a součet nese svůj vlastní zdroj ve stejné větě jako číslo: vydavatele uvedeného na kartě a datum, ze kterého podle karty její sazby pocházejí. Neexistuje výchozí měna, zástupný symbol ani nula nahrazující chybějící cenu. To, co soubor říká sám o sobě, zůstává v nepřímé řeči: *„Soubor říká: … Lolly to neověřilo.”*
+**Lolly Imprint** je neviditelný pixelový vodoznak, **ve výchozím stavu zapnutý**. Credential a metadata putují vedle pixelů a ztratí se novým uložením, snímkem obrazovky nebo odstraněním metadat. Imprint žije v pixelech a přežije rekompresi, takže kopii lze stále rozpoznat jako vytvořenou v Lolly. Je to nápověda, ne kryptografická záruka, a nenese žádné osobní údaje. Jede v JPEG XL, PNG, JPG, WebP, AVIF, TIFF a BMP a v rastrech, které Lolly vykreslí do PDF nebo PPTX, nikdy v obrázku, který jsi vložil. Zruš zaškrtnutí **Lolly Imprint** nebo předej `imprint=0`, aby se Imprint vynechal. Přežití AVIF při překódování zatím není kalibrováno. [Verify](/verify) jej detekuje na tvém zařízení; viz [Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
 
-A když to nejde spočítat poctivě, pracovní tabulka **zmizí**, místo aby se zdegradovala na zašedlé nebo dopočítané číslo:
+**Durable credential** zapisuje id Lolly do pixelů neuronovým modelem na zařízení ve formátu TrustMark, takže odkaz "made with Lolly" přežije odstranění metadat i překódování a mohou jej číst nástroje znalé TrustMark. Je **ve výchozím stavu vypnutý**, protože stojí neuronový průchod na export a jednorázové stažení modelu. Pokrývá PNG, JPG, WebP, AVIF a TIFF; zaškrtni jej v panelu nebo předej `durable=1`. Desktopové a mobilní aplikace kartu skrývají, protože nemají původ, z něhož by model offline stáhly.
 
-- Položky, které ceník neoceňuje, znamenají **žádný součet vůbec** - jen nadpis udávající, kolik jich zůstalo bez ceny. Částečný součet není menší odpověď, je to špatná odpověď.
-- Množství, které je stropem, ne přesným počtem, si nese **"až"** až do mezisoučtu, takže se hranice nikdy nevypere do rovného čísla.
-- Sazby po datu platnosti zobrazují **jen počty**, dokud nestiskneš *Use these rates anyway* - poté se s číslem nese i datum expirace, takže propadlý součet nelze číst jako aktuální.
-- Otevřeno přes **odkaz**, peníze zůstávají skryté, dokud si o ně na tomto zařízení nepožádáš. Ani ceník, ani toto odhalení nikdy necestují v URL - ze stejného důvodu bere CLI `--rate-card=<file.json>` jako příznak lokálního souboru, nikdy jako parametr odkazu.
+**Licence.** Vyber, jak mohou ostatní tvou práci používat: *None (all rights reserved)* ve výchozím stavu, CC0 1.0, Public Domain Mark 1.0 nebo licence Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Jméno licence a odkaz na její deed se zapíší do metadat licence souboru (EXIF, XMP a RIFF, kde je formát má) a do jeho Content Credential. Volba se ukládá s dokumentem a putuje v odkazu jako `licence=`. Lolly zapíše licenci, kterou jsi zvolil; podmínky nekontroluje ani nevynucuje. Nástroj s vlastním polem licence, například Claim, ponechá místo toho to pole.
 
-Karta je ovládací prvek rozhraní, nikdy obsah: odstraní se z každé fáze exportu, takže nemůže hnout ani pixelem staženého souboru. A je to aritmetika, ne cenová nabídka - tu ti může dát jen tvoje tiskárna.
+### Záznam designového systému
 
-**Skládané renderování.** Když nástroj vloží výstup jiného nástroje (např. *Event Name Badge* vkládající *QR kód*), vnořený render se vloží přímo do exportu rodiče - zůstává **skutečně vektorový** v SVG a PDF a v PNG/JPG/WebP se ostře rastrizuje. Vložené dítě je mezikrok: nedostane *žádný* vodoznak ani *žádný* vlastní původ; má je jen hotový výsledný prvek rodiče. (Skládání pokrývá SVG a rastrové formáty; HTML/MD/TXT skládat nelze.)
+Export zaznamenává designový systém, který soubor vytvořil: jeho jméno, zveřejněnou verzi, z níž byl kreslen (když to není pracovní verze), a [colourway](/info/colourways.html), v němž byl kreslen. Jakákoli jiná volba motivu, kterou designový systém deklaruje, například hustota, se zaznamenává stejně. Volba světlý či tmavý se vynechává, protože obrázek už ukazuje, která byla použita.
 
-## Ochrana heslem
+**Záznam vidíš, než se cokoli zapíše.** Karta **Design system**, ve výchozím stavu zaškrtnutá, ukazuje přesná slova, která soubor ponese, například *Records: Acme · Colourway: Beach*, a popis, jak se bude číst. Jméno designového systému je to, co napsali jeho vlastníci, takže ho karta ukazuje tak, jak je psáno. Zruš zaškrtnutí karty, aby se záznam z toho exportu vynechal. Panel dokumentu Design uvádí stejná slova pod *Embedded in exports*.
 
-Dva nezávislé druhy zámku, oba zcela na zařízení.
+**Popis uvádí colourway vedle nástroje.** Se zaškrtnutou kartou se *"Made with https://lolly.tools : Chart"* změní na *"Made with https://lolly.tools : Chart (Beach colourway)"*. Jméno samotného designového systému zůstává v záznamu, ne v popisu. Popis bez názvu nástroje nebo takový, který nástroj píše ze svých vstupů, zůstává, jak je. Nástroj, který colourways ignoruje přes `tokenAxes`, žádný nezaznamenává a stejné pravidlo sleduje i PDF proof credit (tisková značka `prov`).
 
-**Heslo pro otevření PDF** - karta *Password protect* v exportním panelu nabízí po zadání hesla dvě úrovně:
+**Dovednosti značky, které vedly agenta.** Když agent vytvořil kus a pojmenoval [dovednosti značky](/info/brand-skills.html), které četl a dodržel, záznam také uvádí každou dovednost s její revizí, například *Guided by: acme-brand 1.0*. Slova znamenají, že dovednost vedla práci. Není to kontrola: Lolly kus proti dovednosti netestuje. Seznam přidá jen vlastní prohlášení agenta, což dnes znamená argument `brandSkills` v `lolly_render` [serveru MCP](/info/mcp.html), takže kus vytvořený v aplikaci nebo ze sdíleného odkazu žádný nenese. Content Credential drží seznam jako `brandSkills`, jednu hodnotu JSON s id, jménem, revizí a hashem SHA-256 každé dovednosti. Balíček XMP a metadata SVG drží stejnou hodnotu jako `lolly:BrandSkills`, PDF zapsané ze záznamu získá jedno klíčové slovo na dovednost a popis zůstává, jak byl. Interní dovednost se zaznamenává podle id, jména, revize a hashe, nikdy podle svého textu. Stejné přepínače seznam vynechají s ostatním záznamem: karta **Design system**, `_madewith=0`, `--no-madewith` a `madeWith: false`. Když server MCP kreslí soubor v prohlížeči (PDF, JPEG a další formáty, které jeho cesta bez prohlížeče nezapíše), metadata samotného souboru žádný seznam nedrží a může jej držet jen Content Credential. Předej `c2pa`, aby se záznam zachoval; bez credential vykreslení varuje, že dovednosti značky nebyly zaznamenány.
 
-![Karta Password protect rozbalená u exportu PDF, s polem pro heslo a dvěma úrovněmi zámku](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+**Čtení záznamu zpět.** [Verify](/verify) vypisuje záznam jako **Design system** v podrobnostech credential souboru a všechny dovednosti značky jako **Guided by**. *Recreate with these settings* znovu otevře nástroj v zaznamenané verzi a colourway. Odkaz se otevře se zaznamenaným designovým systémem, pokud toto zařízení drží systém se stejným id a jménem; jinak se otevře s tvým aktivním designovým systémem.
 
-- **Slabé** - jednoduché 40bitové heslo (RC4). Lehké odrazení, ne skutečná ochrana: jeho heslo může cestovat v odkazu ke sdílení (v čistém textu). Jen RGB `pdf`.
-- **Silné** - AES-256 (PDF 2.0). Jeho heslo se zadává při exportu a **nikdy** se nedává do odkazu. Silné se vztahuje i na **tisková/CMYK PDF** a na **každé PDF uvnitř dávkového zipu** (dávkový potvrzovací dialog heslo vybere). Protože PDF/X-4 zakazuje šifrování, silně uzamčené tiskové PDF si ponechá své CMYK, značky a output-intent, ale ztratí nárok na shodu s PDF/X-4.
+::: details Co se zapisuje kam a které běhy záznam vynechávají
+| Kam | Co se zapisuje |
+|---|---|
+| Content Credential | `designSystem` (id), `designSystemLabel`, `designVersion` a `themes` v tvrzení `tools.lolly.export`, každé prostá textová hodnota; `themes` je seznam voleb v JSON |
+| PNG, JPEG, WebP a JXL | Stejné čtyři hodnoty jako vlastnosti `lolly:` balíčku XMP souboru, ve jmenném prostoru `https://lolly.tools/ns/export/1.0/` |
+| SVG | Stejné vlastnosti `lolly:` uvnitř bloku `<metadata>` |
+| PDF | Klíčová slova jako *Design system: Acme* a *Colourway: Beach* |
+| Každý formát s polem popisu | Popis s colourway vedle nástroje |
 
-Obě úrovně se vzájemně vylučují s Content Credentials (zašifrované PDF nemůže nést pověření).
+Karta se objeví jen tehdy, když je co zaznamenat a formát může záznam držet. CSV, JSON, soubor kalendáře a další textové nebo datové formáty metadata nedrží a EPS, EMF, DXF a BMP nemají pro záznam pole. HTML, Markdown a CSS drží záznam jen ve svém Content Credential, takže pro ně karta neukazuje řádek popisu a skryje se, dokud je **C2PA Credentials** vypnuto. Pole, které designový systém nedává, zůstává mimo soubor.
 
-**Zamčená stahování (celý zip + vrstvená ochrana)** - export **ZIP** (formát *ZIP* v exportním panelu, který sdruží několik formátů nástroje), stažení **složky** (Projects → Download) nebo **dávková mřížka** mohou zamknout celý zip jedním heslem, na dvou úrovních:
+Sdílený odkaz záznam vypne pomocí `_madewith=0` ([Parametry URL](/info/url-parameters.html)); příkazový řádek bere `--no-madewith`, `lolly_render` [serveru MCP](/info/mcp.html) bere `madeWith: false` a panel exportu terminálové aplikace má řádek **Design system**. Příkazový řádek vypíše slova, která hotový soubor nese, na standardní chybový výstup, pro vykreslení nástroje i pro každý soubor, který `lolly run` exportuje z uložené relace Design, a vykreslení MCP je vypíše vedle souboru, obojí čtené zpět ze souboru. PNG, které příkazový řádek nakreslí bez prohlížeče, nenese žádná metadata souboru, takže jeho záznam putuje jen v credential. Utility na zařízení nepřidávají žádná metadata.
 
-- **Slabé** - tradiční **ZipCrypto**, jen odrazení. Jeho heslo může cestovat v odkazu ke sdílení `?password=`.
-- **Silné** - šifrování **AES-256**. Zadává se při exportu, nikdy se nedává do odkazu.
+Běhy bez karty **Design system** záznam vynechávají: běh Batch, složka exportovaná z Projects a export kolekce 3D a v terminálové aplikaci dávka CSV, export složky či výběru z Projects a zobrazení render-everything. Exportuj jeden soubor z nástroje, aby se designový systém zaznamenal.
+:::
 
-Stejná karta *Password protect* v exportním panelu řídí zámek PDF i ZIP. Jedno heslo chrání **každou** položku - obrázky, SVG, všechno, PDF nevyjímaje (jen kontejner zipu dokáže chránit soubory jiné než PDF, které vlastní zámek nemají). A jde o **vrstvenou ochranu**: každé PDF uvnitř je *navíc* jednotlivě zamčené stejným heslem pomocí AES-256, takže PDF zůstane zamčené i po rozbalení zipu. Výzva se objeví při zahájení stahování; prázdné heslo znamená žádný zámek.
+### Content Credentials (C2PA)
 
-**Odkazy ke sdílení chráněné heslem** - jakýkoli odkaz ke sdílení lze zašifrovat tak, aby si jeho otevření od příjemce vyžádalo heslo. Celý stav odkazu je zašifrovaný AES-256 pod klíčem odvozeným z hesla (PBKDF2); cestuje jen šifrovaný text, takže **heslo nikdy není v odkazu** a dešifrování probíhá **v prohlížeči příjemce** - server, který odkaz obsluhuje, vidí v URL jen šifrovaný text, nikdy heslo a nikdy dešifrovaný návrh. Zapni ho v dialogu **Share**. Zašifrovaný odkaz lze v Lolly jen *otevřít* (nelze ho vložit jako obrázek, protože tato cesta nemůže vyžádat heslo). Viz [URL Mode → Encrypted links](/info/url-mode.html).
+Exporty mohou nést **Content Credentials**: podepsaný manifest [C2PA](https://c2pa.org), který zaznamenává, co soubor vytvořilo, kdy a kde, vázaný na hash bajtů souboru, takže jakákoli pozdější úprava je odhalitelná. Specifikaci publikuje C2PA a Lolly zapisuje standardní manifesty, které může zkontrolovat libovolný čtenář C2PA.
 
-## Content Credentials (C2PA)
+![Karta C2PA Credentials, zaškrtnutá, s platností credential vedle zaškrtávacího políčka](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-Exporty mohou nést **Content Credentials** - podepsaný manifest [C2PA](https://c2pa.org) vložený do souboru, který způsobem odolným proti neoprávněným zásahům zaznamenává, že soubor vznikl v Lolly a od té doby nebyl změněn. Je to standardizovaná verze výše popsaných metadat o původu: kryptografické tvrzení (co soubor vytvořilo, kdy, kým a kde) svázané s hashem bajtů souboru, takže jakoukoli pozdější úpravu odhalí prohlížeč znalý C2PA. Standard spravuje [Content Authenticity Initiative](https://contentauthenticity.org) (Adobe, BBC, Microsoft, Nikon a další), takže stejná pověření, jaká zapisuje Lolly, přebírají i fotoaparáty, redakce a tvůrčí sady nástrojů.
-
-![Karta C2PA Credentials, předem zaškrtnutá, s dobou platnosti pověření vedle ní](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
-
-- **Formáty.** Každý kontejner s vkládáním C2PA: **PDF** (RGB i tiskové), **PNG / Animated PNG**, **JPG**, **GIF**, **SVG**, **TIFF** (RGB i tiskové), **WebP** (statické i animované), **AVIF**, **MP4**, **WebM** a zvukové kontejnery **MP3**, **WAV**, **M4A** a **OGG/Opus** - takže nahraný nebo syntetizovaný hlasový klip nese stejné pověření jako obrázek. Balíček **ZIP** otiskne pověření do každé podporované položky zvlášť, a právě tam ho dostane i **Animated SVG** (pod povrchem je to obyčejný dokument SVG; přímý export Animated SVG vlastní kartu nenabízí). MP4, AVIF a M4A používají specifikací dané vázání BMFF a MP3 mapování ID3v2, takže je ověří `c2patool` a další prohlížeče znalé C2PA; **WebM** a **OGG/Opus** zatím standardizované mapování C2PA nemají, takže Lolly nese manifest jako přílohu Matroska, respektive pole OpusTags, což kontroluje vlastní ověřovač Lolly (i CLI). (`ico`, `eps`, `emf`, `dxf`, `bmp`, `pptx`, formáty Office a textové/datové formáty kontejner C2PA nemají.)
-- **Ve výchozím stavu zapnuté.** Karta **C2PA Credentials** v exportním panelu je u téměř každého nástroje předem zaškrtnutá - odškrtni ji, chceš-li pověření vynechat u jednoho exportu (nebo v odkazu ke sdílení předej `c2pa=off`). Nástroj se ve svém manifestu může zapojení zcela vzdát.
-- **Co zaznamenává.** Nástroj a aplikaci, které soubor vytvořily, čas podpisu, exportní prostředí (rodinu enginu prohlížeče + rodinu OS - záměrně hrubě, nikdy jako otisk) a - jen když je zapnuté *Profile → Use my details* - tvé jméno a e-mail jako autora díla.
-- **Co vidí příjemci.** Nástroje pro kontrolu Content Credentials (aplikace Adobe, `c2patool`, contentcredentials.org/verify) manifest přečtou a zobrazí tvrzení. Protože Lolly podepisuje klíčem vygenerovaným **na tvém zařízení** - ne certifikátem z důvěryhodného seznamu - prohlížeče ho hlásí jako *neověřené* pověření. Struktura a odolnost proti zásahům jsou skutečné; identitu podepisujícího prostě nepotvrzuje žádná autorita. Chceš-li to vylepšit, můžeš si zaregistrovat **ověřenou identitu** (Profile → Content Credentials): krátkodobý certifikát od Lolly CA sváže tvůj e-mail s tvými exporty, zatímco podepisovací klíč stále nikdy neopustí tvé zařízení - viz [Content Credentials Identity](/info/content-credentials-identity.html).
-- **Kontrola souboru.** Lolly ověřuje i svá vlastní pověření: přetáhni jakýkoli soubor na [/verify](/verify) (nebo v CLI spusť `lolly validate <file>`) pro zprávu vytvořenou na zařízení - v čele s tím, zda soubor skutečně vznikl v Lolly a od té doby se nezměnil. Webové zobrazení Verify jde daleko za samotné pověření: označí **obsah generovaný AI**, detekuje **Lolly Imprint**, kontroluje podpisy **SEAL** a (volitelně) vodoznaky pixelů třetích stran a odhalí **skrytá data** - vše na zařízení, nic se nenahrává. Viz [Content Credentials Identity → Beyond the credential](/info/content-credentials-identity.html#beyond-the-credential-what-else-verify-shows).
-- **Soukromí.** Vše se odehrává na tvém zařízení: podepisovací klíč se vytvoří pro daný export a nikdy neopustí prohlížeč, nic se nenahrává a tvrzení obsahuje jen to, co už nesou metadata o původu. Nástroje pro soukromí (transformace *tvých vlastních* souborů na zařízení) pověření nikdy nepřidávají a *Strip Hidden Data* odstraní manifest C2PA stejně jako jakákoli jiná vložená metadata.
-- **Souvislosti.** U PDF se Content Credentials a **ochrana heslem** (kterákoli úroveň - viz výše) vzájemně vylučují (zašifrované PDF nemůže nést přílohu s pověřením). Pověření se přidává jako poslední krok nad hotovými bajty - po otisknutí DPI/EXIF/barevného profilu, metadat PDF/X a tiskových značek.
+- **Ve výchozím stavu zapnuto.** Karta **C2PA Credentials** je předvybraná pro téměř každý nástroj. Zruš zaškrtnutí pro jeden export, nebo předej `c2pa=off` v odkazu. Nástroj se může odhlásit ve svém manifestu.
+- **Formáty.** PDF (RGB a Print), PNG a APNG, JPG, GIF, SVG, TIFF (RGB a Print), WebP (statický i animovaný), AVIF, MP4, WebM, zvukové kontejnery MP3, WAV, M4A, OGG/Opus a FLAC a HTML, Markdown a CSS. ZIP razítkuje každého podporovaného člena, tak získá credential i Animated SVG. MP4, AVIF a M4A používají standardní vazbu BMFF a MP3 své mapování ID3v2, takže `c2patool` a další čtenáři je ověří. WebM a OGG/Opus zatím nemají standardní mapování, takže Lolly nese manifest jako přílohu Matroska a pole OpusTags, které ověřuje vlastní ověřovač Lolly. ICO, EPS, EMF, DXF, BMP, PPTX, formáty Office a další textové a datové formáty nemají kontejner C2PA.
+- **Co zaznamenává.** Nástroj a aplikaci, které soubor vytvořily, čas podpisu, shell, který jej exportoval, [designový systém a colourway](#the-design-system-record), dokud je zaškrtnutá karta **Design system**, a otisky aktivních vstupů. Text vstupů, pole vázaná na profil, neaktivní ovládací prvky, verze prohlížeče a údaje o operačním systému se vynechávají. Tvé jméno a e-mail se objeví jako autor jen tehdy, když je zapnuto **Use my details to create** v Settings → Preferences → Your details. Zdroje, které export umístí, putují jako ingredience: [připsaná díla](#source-credits) jako emoji a [písně Rondocode](/info/rondocode.html#songs-in-the-credential) ve video nebo audio exportu.
+- **Co vidí příjemci.** Nástroje C2PA jako aplikace Adobe, `c2patool` a contentcredentials.org/verify čtou manifest a ukazují tvrzení. Lolly podepisuje klíčem vytvořeným na tvém zařízení, ne certifikátem ze seznamu důvěry, takže prohlížeče hlásí *unverified* credential: struktura a odhalitelnost úprav jsou skutečné, za podepisovatele se nikdo neručí. Aby se to změnilo, zapiš **verified identity** v Settings → Preferences → Content Credentials; viz [Content Credentials Identity](/info/content-credentials-identity.html).
+- **Kontrola souboru.** Přetáhni jakýkoli soubor na [Verify](/verify) nebo spusť `lolly validate <file>` pro zprávu na zařízení, která začíná tím, zda soubor vytvořila Lolly a zda se od té doby změnil. Verify se dívá i za credential; viz [Co Verify kontroluje](/info/what-verify-checks.html).
+- **Soukromí.** Podpisový klíč se vytváří pro export a nikdy neopustí tvé zařízení a tvrzení drží jen to, co už nesou metadata proveniencie. Utility ochrany soukromí, které transformují tvé vlastní soubory, nepřidávají žádný credential a *Strip Hidden Data* odstraňuje manifest C2PA jako jakákoli jiná metadata. Utilita Rondocode vytváří nový zvuk, takže podepisuje, co zapisuje ([Písně Rondocode](/info/rondocode.html#files-from-the-rondocode-utility)).
+- **Interakce.** PDF chráněné heslem nemůže nést Content Credentials, v žádné úrovni. Credential se přidává jako poslední, přes hotové bajty, po DPI, EXIF, barevném profilu, metadatech PDF/X a tiskových značkách.
 
 ### Kredity zdrojů
 
-Export, který umístí cizí práci, zaznamená ten zdroj i do pověření. Emoji z připnuté sady je ten každodenní případ: dílo, jeho tvůrce, licence, odkud přesně pocházejí bajty a co se změnilo - to všechno cestuje se souborem. Řádek **Kredity zdrojů** v exportním panelu řekne, co si zdroje žádají od doručení, než si soubor stáhneš, a po stažení zpětně přečte doručené bajty, než řekne, že kredity jsou v souboru. Licence, která tě žádá o výběr, třeba přebarvený glyf CC BY-SA, který se chystáš sdílet, dostane kartu s možnostmi, jak z toho ven; stahování se nikdy neblokuje. [Tvůrčí práva a kredity](/info/creative-rights.html) obsahuje slova, prověřené licence a to, co zůstává tvoje.
+Export, který umístí cizí dílo, zaznamená ten zdroj v credential. Emoji nakreslené ze zvolené sady emoji je běžný případ: dílo, jeho tvůrce, licence, odkud přesné bajty pocházejí a co se změnilo, vše putuje se souborem. Text v nástroji, jehož šablona je SVG, ponechává emoji systému, takže se tam nic neuvádí. Řádek **Source credits** říká, co zdroje žádají od doručení, než stáhneš, a po stažení čte doručené bajty zpět, než řekne, že uvedení je v souboru. Licence, která žádá o volbu, například přebarvený glyf CC BY-SA, který se chystáš sdílet, dostane kartu s možnostmi; stažení se nikdy neblokuje. Formulace, přezkoumané licence a to, co zůstává tvé, uvádí [Tvůrčí práva a uvedení autorů](/info/creative-rights.html).
+
+## Ochrana heslem
+
+Dva druhy zámku, oba vytvořené na tvém zařízení. Obojí řídí karta *Password protect* panelu exportu.
+
+![Karta Password protect rozbalená u exportu PDF, s polem pro heslo a dvěma úrovněmi zámku](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+
+**Heslo pro otevření PDF** má po napsání hesla dvě úrovně:
+
+- **Weak**: 40bitové RC4, odstrašení, ne ochrana. Jeho heslo může putovat ve sdíleném odkazu, v čitelném textu. Jen RGB `pdf`.
+- **Strong**: AES-256 (PDF 2.0). Píše se při exportu a nikdy se nevkládá do odkazu. Vztahuje se i na Print PDF a na každé PDF uvnitř dávkového ZIP. Print PDF zamčené Strong zachová CMYK, značky a výstupní záměr, ale ztrácí tvrzení PDF/X-4.
+
+**Zamčené ZIP** pokrývá export ZIP, stažení složky z Projects nebo dávky, s jedním heslem ve dvou úrovních: **Weak** (ZipCrypto, odstrašení; může putovat v odkazu `?password=`) nebo **Strong** (AES-256, píše se při exportu, nikdy v odkazu). Heslo chrání každého člena a jakékoli PDF uvnitř je navíc samo zamčeno AES-256, takže zůstane zamčené po rozbalení ZIP. Výzva se objeví při zahájení stahování; prázdné heslo znamená žádný zámek.
+
+**Sdílený odkaz chráněný heslem** žádá příjemce o heslo před otevřením. Celý stav odkazu je zašifrován AES-256 pod klíčem odvozeným z hesla (PBKDF2), takže putuje jen šifrovaný text a dešifrování probíhá v prohlížeči příjemce. Server, který odkaz poskytuje, heslo ani návrh nikdy nevidí. Zapni to v dialogu **Share**. Šifrovaný odkaz se otevře jen v Lolly, nikdy jako vložený obrázek. Viz [Režim URL](/info/url-mode.html).
 
 ## Na telefonu
 
-Ovládací prvky exportu se skrývají za plovoucím tlačítkem **Export**, které otevře list **Export** - stejné formáty, velikost, kopírování, stažení a sdílení, přizpůsobené dotyku.
+Ovládací prvky exportu sedí za plovoucím tlačítkem **Export**, které otevře list **Export**: stejné formáty, velikost, kopírování, stažení a sdílení, ve velikosti pro dotyk.
 
-## Přehled formátů
+## ID formátů pro odkazy a CLI
 
-Každé id, které host umí vykreslit, seskupené. Jsou to zároveň hodnoty pro URL parametr `format=` a příznak CLI `--export=` - viz [Režim URL](/info/url-mode.html) a [CLI](/info/cli.html). Nabídka nástroje zobrazuje jen formáty, které ten nástroj umí vytvořit, takže je vždy kratší než tento seznam.
+Toto jsou hodnoty pro parametr URL `format=` a příznak CLI `--export=` (viz [Parametry URL](/info/url-parameters.html) a [CLI](/info/cli.html)). Nabídka nástroje ukazuje jen formáty, které ten nástroj umí vytvořit, takže je vždy kratší než tento seznam.
 
-| Druh | Id |
+| Druh | ID |
 |---|---|
-| Rastr | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
-| Vektor | `svg` · `svgz` (gzipovaný SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (soubor pro řezání) |
-| Stránka a dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (balíček kurzu SCORM, zip) · `penpot` (návrhový soubor Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Pohyb | `gif` · `apng` (animovaný PNG) · `webp-anim` (animovaný WebP) · `svg-anim` (animovaný SVG) · `webm` · `mp4` |
-| Audio | `wav` · `mp3` · `m4a` · `opus` |
-| Text a data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (paleta GIMP) |
-| Balíček | `zip` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `jxl` · `jxl-lossless` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Vektor | `svg` · `svgz` (SVG v gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (soubor pro řezání) |
+| Stránka a dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (návrhový soubor Penpot) · `scorm` (balíček kurzu, ZIP) |
+| Pohyb | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
+| Zvuk | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Text a data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (paleta GIMP) |
+| Balíky a balíčky | `zip` · `rpm` a `tar.gz` (vykreslení zapečetěné do balíčku Linuxu) |
 
-Několik dalších id pochází z **vlastního exportního hooku nástroje**, ne ze sdílené vykreslovací cesty: `ase` (Adobe Swatch Exchange, z Palette Lab), `exr` a `hdr` (rastry s vysokým dynamickým rozsahem z Darkroomu) a `ttf` / `otf` / `woff` (Font Convert). Formát se vybírá stejně - výběr, `format=`, `--export=` - jen bajty sestaví samotný nástroj. Font Convert je jedinou výjimkou: transformuje soubor s fontem, který dodáš *ty*, takže holé URL nemá co vykreslit.
+Několik id pochází z vlastního exportního kódu nástroje: `ase` (Adobe Swatch Exchange, z Palette Lab) a `exr` a `hdr` (rastry s vysokým dynamickým rozsahem, z Darkroom). **Convert Font** zapisuje `ttf`, `otf` a `woff` ze souboru písma, který dodáš, takže holý odkaz nemá co vykreslit.

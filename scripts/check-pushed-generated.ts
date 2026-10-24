@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
-/** Check generated source maps at pushed ref tips without touching the checkout or index. */
+/**
+ * Check generated source maps at pushed ref tips without touching the checkout or index.
+ *
+ * Stale counts never refuse a push: other merges move them, and
+ * .github/workflows/generated-readmes.yml regenerates both maps after each merge and
+ * proposes the result as one pull request. A push is refused only when a pushed tip's
+ * generators cannot run (missing generator, missing or misordered markers, a crash).
+ */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -81,7 +88,7 @@ function checkTips(tips: PushTip[]): boolean {
     refs.push(tip.ref);
     commits.set(object, refs);
   }
-  let clean = true;
+  let clean = true, drifted = false;
   const started = performance.now();
   for (const [commit, refs] of commits) {
     console.log(`Checking generated source maps at ${commit.slice(0, 12)} (${refs.join(', ')}).`);
@@ -90,13 +97,17 @@ function checkTips(tips: PushTip[]): boolean {
     try {
       snapshot(commit, directory);
       for (const generator of GENERATORS) {
-        const result = spawnSync(process.execPath, [join(directory, generator), '--check'], {
-          cwd: directory, encoding: 'utf8', maxBuffer: MAX_BUFFER,
+        const result = spawnSync(process.execPath, [join(directory, generator), '--check', '--allow-drift'], {
+          cwd: directory, encoding: 'utf8', maxBuffer: MAX_BUFFER, env: { ...process.env, GITHUB_ACTIONS: '' },
         });
         if (result.stdout) process.stdout.write(result.stdout);
         if (result.stderr) process.stderr.write(result.stderr);
         if (result.error) throw result.error;
-        if (result.status !== 0) clean = false;
+        // A tip based on an older main runs generators that predate --allow-drift: they report drift as
+        // "stale" and exit 1 after a complete run, which is still only drift.
+        const olderDrift = result.status === 1 && /README\.md (?:stats are stale|module table is stale)/.test(result.stderr ?? '');
+        if (olderDrift || /differs? from the tree/.test(result.stdout ?? '')) drifted = true;
+        if (result.status !== 0 && !olderDrift) clean = false;
       }
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error));
@@ -106,9 +117,12 @@ function checkTips(tips: PushTip[]): boolean {
     }
   }
   if (!clean) {
-    console.error('Generated source maps failed in a pushed commit. In a worktree for the affected ref, run:\n' +
-      '  node scripts/gen-web-src-readme.ts\n  node scripts/gen-engine-modules.ts\n' +
-      'Review and commit the generated README changes, then push again. Uncommitted fixes do not change the pushed commit.');
+    console.error('A generated source map cannot be built in a pushed commit (a missing generator, missing markers or a\n' +
+      'generator error above). Fix that in the affected ref, check with node scripts/check-pushed-generated.ts <ref>,\n' +
+      'and push again. Uncommitted fixes do not change the pushed commit.');
+  } else if (drifted) {
+    console.log('Generated source maps: the counts differ from the pushed tree. That is expected and does not block\n' +
+      'the push; .github/workflows/generated-readmes.yml regenerates them after the merge.');
   }
   console.log(`Generated source maps: ${commits.size} distinct commit tip(s) checked in ${((performance.now() - started) / 1000).toFixed(2)}s.`);
   return clean;

@@ -84,7 +84,13 @@ export function touchesDependencies(changes: Change[]): boolean {
 /** Reviewed ratchet baselines. The typecheck job still enforces every one of them on the same run. */
 const BASELINES = ['scripts/house-rules-baseline.json', 'scripts/vernacular-code-baseline.json',
   'scripts/vernacular-docs-baseline.json', 'scripts/vernacular-ui-baseline.json', 'security/lint-baseline.json',
-  'security/maintainability-baseline.json'];
+  'security/maintainability-baseline.json', 'scripts/data/docs-ratchets/h1-title.json',
+  'scripts/data/docs-ratchets/public-examples.json', 'scripts/data/docs-ratchets/vercel.json'];
+/**
+ * Generated maps that describe the code without being part of the build. After a merge,
+ * .github/workflows/generated-readmes.yml proposes them as a pull request that changes nothing else.
+ */
+const GENERATED_READMES = ['engine/README.md', 'shells/web/src/README.md'];
 /** Test paths the heavy shards own by name, after scripts/run-test-suite.ts (browser, Tauri, conformance, fuzz). */
 const HEAVY_TEST_NAME = /(?:^|[/_.-])(?:browser|capture|dom-emitter|export-emitter-golden|playwright|screen-capture|svg-walker|walker|webgpu|gpu|geometry|drawing|tauri|native|c2pa|c2patool|conformance|foreign|qpdf|fuzz)(?:[/_.-]|$)/i;
 /** The runtime markers scripts/run-test-suite.ts uses to put a test file in the browser shard. */
@@ -93,7 +99,7 @@ const TEST_FILE = /\.test\.(?:ts|js|mjs)$/;
 
 /**
  * The docs-and-tests lane: every change is under docs/ (pages, translations, shots, figures and the /info
- * site builder), a test or fixture, or a reviewed baseline. A pull request in this lane skips the heavy
+ * site builder), a test or fixture, a reviewed baseline, or one of the two generated READMEs. A pull request in this lane skips the heavy
  * tier; the fast security gates, the production build (which builds /info) and the unit shards that test
  * the docs builder still run, and the main push after the merge runs everything. A test the heavy shards
  * run, by name or by runtime marker, needs those shards. A manifest or lockfile anywhere needs the full
@@ -106,7 +112,8 @@ export function classifyDocsAndTests(changes: Change[], source?: (change: Change
   const reasons: string[] = [];
   for (const change of changes) {
     if (irregular(change) || DEPENDENCY_FILE.test(change.path)
-      || !(change.path.startsWith('docs/') || test(change.path) || BASELINES.includes(change.path))) {
+      || !(change.path.startsWith('docs/') || test(change.path) || BASELINES.includes(change.path)
+        || GENERATED_READMES.includes(change.path))) {
       reasons.push(`Heavy tier required: ${change.path}`);
     } else if (source && TEST_FILE.test(change.path)) {
       const text = source(change);
@@ -169,9 +176,21 @@ export function inspectScope(id: Identity, root = process.cwd(), policyPath = fi
     policySha256: hash(policy), changedPathsSha256: hash(JSON.stringify(changes)), changes };
 }
 
+/**
+ * "Re-run failed jobs" carries a successful scope job over from an earlier attempt of the same run, so the scope
+ * receipt can record an earlier attempt than the aggregator that reads the receipt. That receipt still describes
+ * this run: the same event, base, source and head commits give the same classification, and main() re-derives
+ * the scope from Git. So the attempt may be earlier, never later; every other identity field, the run id and
+ * every commit included, must match exactly. A receipt from another run or another commit is refused.
+ */
 export function validateScope(value: unknown, id: Identity): Scope {
   const scope = object(value);
-  for (const [key, expected] of Object.entries(id)) need(scope[key] === expected, `Scope ${key} differs`);
+  for (const [key, expected] of Object.entries(id)) {
+    if (key === 'runAttempt') {
+      need(Number.isSafeInteger(scope.runAttempt) && Number(scope.runAttempt) >= 1 && Number(scope.runAttempt) <= id.runAttempt,
+        'Scope runAttempt differs');
+    } else need(scope[key] === expected, `Scope ${key} differs`);
+  }
   need(scope.version === 1 && typeof scope.publicReadyEligible === 'boolean' && scope.policyCommit === id.base, 'Invalid scope policy');
   need(Array.isArray(scope.changes) && Array.isArray(scope.reasons) && scope.changes.length <= 4096, 'Missing scope inventory');
   need(scope.changedPathsSha256 === hash(JSON.stringify(scope.changes)), 'Scope inventory digest differs');
@@ -280,7 +299,7 @@ export async function qualify(id: Identity, scope: Scope, tier: Tier, out: strin
       pages.forEach((page, i) => { writeFileSync(resolve(out, `jobs-${i + 1}.original.json`), page.bytes, { flag: 'wx' }); });
       writeFileSync(resolve(out, 'scope.json'), `${JSON.stringify(scope, null, 2)}\n`, { flag: 'wx' });
       const report = { version: 1, status: 'CI_QUALIFIED', qualificationTier: tier, fullSuiteQualified: tier === 'release-ready', ...id,
-        workflow: WORKFLOW, scope: { publicReadyEligible: scope.publicReadyEligible, lane: scope.lane,
+        workflow: WORKFLOW, scope: { runAttempt: scope.runAttempt, publicReadyEligible: scope.publicReadyEligible, lane: scope.lane,
           dependencyChange: scope.dependencyChange, policyCommit: scope.policyCommit,
           policySha256: scope.policySha256, changedPathsSha256: scope.changedPathsSha256 },
         requiredJobs: assessment.required.map(name => { const job = assessment.jobs.find(job => job.name === name)!;

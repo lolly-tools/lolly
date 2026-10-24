@@ -372,20 +372,47 @@ jobs:
           LOLLY_GEOMETRY_HOST_REPORT: artifacts/geometry-host-report.json
         run: pnpm run test:geometry
 
+      # The Firefox and WebKit builds Playwright downloads (about 190 MB) come
+      # from this cache, keyed by the exact revisions playwright-core pins, so
+      # `playwright install` below downloads them only when Playwright moves.
+      - name: Cache Firefox and WebKit (browser 2/4)
+        if: matrix.shard == 'browser' && matrix.partition == '2/4'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            .browsers/firefox-*
+            .browsers/webkit-*
+          key: playwright-firefox-webkit-${{ runner.os }}-${{ hashFiles('node_modules/playwright-core/browsers.json') }}
+
+      # WebKit's system libraries are not on the runner image: install-deps adds
+      # about 200 packages (93 MB, GStreamer, GTK 4 and libav), so they still come
+      # from apt. A healthy run of this step takes 23 to 30 seconds. The image
+      # already drops an idle mirror connection after 15 seconds, but on
+      # 2026-10-23 the Azure mirror kept trickling data, so one attempt held the
+      # step until its 600-second command limit. Each attempt is now bounded at a
+      # few minutes, and every retry puts archive.ubuntu.com ahead of the Azure
+      # mirror in the image's own failover list (/etc/apt/apt-mirrors.txt, lowest
+      # priority first). Packages an earlier attempt finished stay in apt's cache.
       - name: Install Firefox and WebKit for geometry qualification
         if: matrix.shard == 'browser' && matrix.partition == '2/4'
-        timeout-minutes: 20
+        timeout-minutes: 15
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
         run: |
           node_bin="$(command -v node)"
-          for attempt in 1 2 3; do
-            if [ "$attempt" -gt 1 ]; then sudo timeout -k 10 120 dpkg --configure -a || true; fi
-            if sudo timeout -k 30 240 apt-get update &&
-              sudo timeout -k 30 600 "$node_bin" node_modules/playwright/cli.js install-deps firefox webkit &&
-              timeout -k 30 300 "$node_bin" node_modules/playwright/cli.js install firefox webkit; then exit 0; fi
+          for attempt in 1 2 3 4; do
+            if [ "$attempt" -gt 1 ]; then
+              sudo timeout -k 10 120 dpkg --configure -a || true
+              if [ -f /etc/apt/apt-mirrors.txt ]; then
+                printf 'https://archive.ubuntu.com/ubuntu/\tpriority:1\nhttps://security.ubuntu.com/ubuntu/\tpriority:2\nhttp://azure.archive.ubuntu.com/ubuntu/\tpriority:3\n' |
+                  sudo tee /etc/apt/apt-mirrors.txt > /dev/null
+              fi
+            fi
+            if sudo timeout -k 15 90 apt-get update &&
+              sudo timeout -k 15 180 "$node_bin" node_modules/playwright/cli.js install-deps firefox webkit &&
+              timeout -k 15 180 "$node_bin" node_modules/playwright/cli.js install firefox webkit; then exit 0; fi
             echo "::warning::Firefox and WebKit install attempt $attempt failed or stalled"
-            sleep 15
+            sleep 10
           done
           exit 1
 
@@ -396,18 +423,75 @@ jobs:
           LOLLY_BROWSER_CHANNEL: chromium
         run: pnpm run test:geometry:engines --output=artifacts/geometry-engines
 
-      - name: Install motion inspection tools
+      # Motion inspection (packages/node-shell/src/motion-inspect.ts) and its
+      # tests need ffmpeg and ffprobe with the libvpx VP9, libx264, libopus and AAC
+      # encoders, the VP9, H.264 and AV1 decoders, and the blackdetect,
+      # freezedetect, ebur128, silencedetect, ashowinfo and drawbox filters. A
+      # pinned static build replaces the apt package, whose mirror downloads
+      # stalled until the 25-minute step limit. It needs only glibc 2.28 and
+      # libgcc_s. BtbN keeps the last build of each month for two years, so the
+      # pin is a month-end build. Only these two shards get ffmpeg, as before:
+      # unit:engine expects its ffmpeg cases to skip (tests/expected-skips.json).
+      - name: Cache ffmpeg (browser and contracts shards)
         if: matrix.shard == 'browser' || matrix.shard == 'contracts'
-        timeout-minutes: 25
+        id: ffmpeg-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ffmpeg
+          key: ffmpeg-n9.0.2-17-g2a571b6068-linux64-gpl-68ee646831adaae2495618346f3bba94ff207ff83bbd34d643e7004730d66269
+
+      - name: Install pinned ffmpeg (browser and contracts shards)
+        if: (matrix.shard == 'browser' || matrix.shard == 'contracts') && steps.ffmpeg-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 5
+        env:
+          FFMPEG_RELEASE: autobuild-2026-09-30-13-08
+          FFMPEG_BUILD: ffmpeg-n9.0.2-17-g2a571b6068-linux64-gpl-9.0
+          FFMPEG_LINUX_X64_SHA256: '68ee646831adaae2495618346f3bba94ff207ff83bbd34d643e7004730d66269'
         run: |
-          for attempt in 1 2 3; do
-            if [ "$attempt" -gt 1 ]; then sudo timeout -k 10 120 dpkg --configure -a || true; fi
-            if sudo timeout -k 30 240 apt-get update &&
-              sudo timeout -k 30 600 apt-get install -y --no-install-recommends ffmpeg; then exit 0; fi
-            echo "::warning::apt-get attempt $attempt failed or stalled"
-            sleep 15
+          set -euo pipefail
+          archive="$RUNNER_TEMP/ffmpeg.tar.xz"
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
+            --connect-timeout 15 --max-time 180 --output "$archive" \
+            "https://github.com/BtbN/FFmpeg-Builds/releases/download/${FFMPEG_RELEASE}/${FFMPEG_BUILD}.tar.xz"
+          echo "$FFMPEG_LINUX_X64_SHA256  $archive" | sha256sum --check
+          mkdir -p ~/.cache/ffmpeg
+          tar -xJf "$archive" -C ~/.cache/ffmpeg --strip-components=2 "${FFMPEG_BUILD}/bin/ffmpeg" "${FFMPEG_BUILD}/bin/ffprobe"
+          rm -f "$archive"
+
+      # Runs on a cache hit too: the binaries must match the verified release
+      # before anything executes them, and must still do what the tests need.
+      - name: Check ffmpeg and put it on PATH (browser and contracts shards)
+        if: matrix.shard == 'browser' || matrix.shard == 'contracts'
+        timeout-minutes: 5
+        env:
+          FFMPEG_BIN_SHA256: '0d709a0bed1a43f24cd2c420878c63afea4580671b6949ad19ed124572f3bc3d'
+          FFPROBE_BIN_SHA256: 'a5bd5e9f8d74ab2c6d7d9e2e2738ff6d67bf9613e7143e143ba8ebe9b06385fb'
+        run: |
+          set -euo pipefail
+          ff="$HOME/.cache/ffmpeg"
+          printf '%s  %s\n%s  %s\n' "$FFMPEG_BIN_SHA256" "$ff/ffmpeg" "$FFPROBE_BIN_SHA256" "$ff/ffprobe" | sha256sum --check
+          "$ff/ffmpeg" -hide_banner -version | sed -n 1p
+          "$ff/ffprobe" -hide_banner -version | sed -n 1p
+          listed() { "$ff/ffmpeg" -hide_banner "-$1" 2>/dev/null | awk -v want="$2" '$2 == want { found = 1 } END { exit !found }'; }
+          for name in libvpx-vp9 libx264 libopus aac; do listed encoders "$name" || { echo "::error::ffmpeg has no $name encoder"; exit 1; }; done
+          for name in vp8 vp9 h264 hevc libdav1d opus aac; do listed decoders "$name" || { echo "::error::ffmpeg has no $name decoder"; exit 1; }; done
+          for name in blackdetect freezedetect ebur128 silencedetect ashowinfo drawbox atrim asetpts color anullsrc; do
+            listed filters "$name" || { echo "::error::ffmpeg has no $name filter"; exit 1; }
           done
-          exit 1
+          # Encode what the fixtures encode, then run the inspection filter chain on it.
+          work="$RUNNER_TEMP/ffmpeg-check"; mkdir -p "$work"
+          inputs=(-f lavfi -i color=red:s=160x120:r=24:d=1 -f lavfi -i anullsrc=r=48000:cl=stereo -t 1)
+          "$ff/ffmpeg" -hide_banner -v error -nostdin "${inputs[@]}" -c:v libvpx-vp9 -lossless 1 -c:a libopus -y "$work/check.webm"
+          "$ff/ffmpeg" -hide_banner -v error -nostdin "${inputs[@]}" -c:v libx264 -pix_fmt yuv420p -c:a aac -y "$work/check.mp4"
+          for file in "$work/check.webm" "$work/check.mp4"; do
+            "$ff/ffprobe" -v error -protocol_whitelist file,pipe -show_streams -show_format -of json "$file" > /dev/null
+            "$ff/ffmpeg" -hide_banner -nostdin -protocol_whitelist file,pipe -i "$file" \
+              -vf 'blackdetect=d=0.5:pix_th=0.03,freezedetect=n=-50dB:d=1' \
+              -af 'ashowinfo,ebur128=peak=true,silencedetect=n=-50dB:d=1' -f null - 2> "$work/analysis.log"
+            grep -q 'Integrated loudness' "$work/analysis.log" || { echo "::error::ffmpeg printed no loudness summary for $(basename "$file")"; exit 1; }
+          done
+          rm -rf "$work"
+          echo "$ff" >> "$GITHUB_PATH"
 
       - name: Install reference proxies for actual HTTP checks
         if: matrix.shard == 'unit:engine'
@@ -642,8 +726,9 @@ jobs:
     # Per shard, in minutes. Passing runs take about 15 (unit:engine), 11
     # (unit:web) and 21 to 33 (a browser partition) at the 90th percentile.
     # A shard that installs packages adds those step limits: a browser
-    # partition allows 20 + 25 + 10 for its installs, 34 for its tests and 7
-    # for checkout, with 9 to spare.
+    # partition allows 20 (Chromium) + 5 + 5 (ffmpeg and its check) + 10
+    # (Poppler) for its installs, plus 15 for Firefox and WebKit in partition 2,
+    # 34 for its tests and 7 for checkout, with 9 to spare.
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
@@ -732,11 +817,13 @@ jobs:
       - name: Typecheck must not have skipped the Tauri shells
         run: pnpm run typecheck:tauri --strict
 
-      # engine/README.md's module table is generated from the tree. Regenerating
-      # it must be a no-op; drift means a module was added, renamed or had its
-      # header comment changed without refreshing the map auditors navigate by.
-      - name: Engine module map drift (stale? rerun build:engine-modules)
-        run: pnpm run check:engine-modules
+      # engine/README.md's module table is generated from the tree. Every merge
+      # moves its line counts, so a pull request no longer regenerates it: drift
+      # is a warning here, and generated-readmes.yml regenerates the table after
+      # each merge and proposes it as one bot pull request. Missing markers or a
+      # failing generator still fail this step.
+      - name: Engine module map builds (drift is regenerated after merge)
+        run: node scripts/gen-engine-modules.ts --check --allow-drift
 
       # packages/rondo/generated/ is built from the vendored upstream by esbuild.
       # Rebuilding must be a no-op, so a patch or an upstream bump always lands
@@ -764,11 +851,13 @@ jobs:
         run: pnpm run check:docs-nav
 
       # shells/web/src/README.md opens with per-directory and largest-file stats
-      # that a new contributor uses to decide where to look. They were measured by
-      # hand and were already drifting; they are generated now, so this fails if
-      # the committed tables no longer match the tree.
-      - name: Web shell code-map stats drift (stale? rerun build:web-src-readme)
-        run: pnpm run check:web-src-readme
+      # that a new contributor uses to decide where to look. They are generated,
+      # and every web merge moves them, so committing them in each pull request
+      # made every open web pull request conflict with the next merge. Drift is a
+      # warning here; generated-readmes.yml regenerates the stats after each merge.
+      # Missing markers or a failing generator still fail this step.
+      - name: Web shell code-map stats build (drift is regenerated after merge)
+        run: node scripts/gen-web-src-readme.ts --check --allow-drift
 
       # The browser shell legitimately owns far more code than CLI. This gate is
       # about concentration inside individual modules, not cross-shell parity.

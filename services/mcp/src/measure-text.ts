@@ -25,7 +25,6 @@ import {
   BOOL,
   INT,
   STR,
-  STRUCTURED_LIMITS,
   ToolCodeError,
   contractPart,
   errorOut,
@@ -33,6 +32,7 @@ import {
   obj,
   plural,
   success,
+  structuredLimitsFor,
   type Env,
   type Schema,
   type StructuredCtx,
@@ -212,7 +212,7 @@ function documentRows(doc: unknown): unknown[] {
 export async function callMeasureText(
   args: Record<string, unknown>,
   env: Env = process.env,
-  limits: Readonly<StructuredLimitsV1> = STRUCTURED_LIMITS,
+  limits: Readonly<StructuredLimitsV1> = structuredLimitsFor(env),
 ): Promise<StructuredResult> {
   const ctx: StructuredCtx = { env, limits };
   try {

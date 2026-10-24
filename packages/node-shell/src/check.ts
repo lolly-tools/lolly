@@ -35,6 +35,13 @@
  * House rules: a broken rule is an error only when the brand approved it and marked
  * it required, the same line `brand-rules.ts` draws for what is enforced. A draft
  * rule's findings are warnings, with the review state in the evidence.
+ *
+ * The writing score: a document's verify family also carries one
+ * `verify.writing-score` finding, the score Verify shows for the text the document
+ * draws (`designWritingScore`, hidden layers left out). It is `warn` at the strong
+ * band and `info` for every lower band, never `error`, and it informs only: `verdict` leaves it
+ * out, so it never changes the outcome or the exit code, `strict` included. The
+ * family counts and the summary still count it, since it is in the findings list.
  */
 import { createHash } from 'node:crypto';
 import {
@@ -47,6 +54,7 @@ import {
   checkFindingFromMounted,
   checkFindingsFromForensic,
   checkFindingsFromHouseRules,
+  checkFindingFromWritingScore,
   createTokenSet,
   designBrief,
   designLayerLookup,
@@ -60,6 +68,8 @@ import {
   resolveTokenSelection,
   stripAssetModifiers,
   verifyDesignDocument,
+  designWritingScore,
+  WRITING_SCORE_CODE,
 } from '@lolly/engine';
 import type { DesignAuthoringNote, DesignBriefCatalogV1, ForensicCoverage } from '@lolly/engine';
 import { inspectDesignV1 } from '@lolly-tools/core';
@@ -989,6 +999,17 @@ function overMissingPicture(finding: MountedFindingInput, missing: ReturnType<ty
  * for a document whose render family found no browser tier to run on, the one case
  * `browser: 'require'` exits 3 for; an export has no render family to require.
  */
+/** What the verify reason says about the writing score. */
+function writingNote(writing: ReturnType<typeof designWritingScore>): string {
+  const hidden = writing.hidden ? ` ${plural(writing.hidden, 'hidden text layer')} ${writing.hidden === 1 ? 'was' : 'were'} left out.` : '';
+  if (writing.state !== 'scored') return `No visible text, so no writing score.${hidden}`;
+  const partial = writing.partial ? ' Only the first 65536 characters were scored.' : '';
+  return `Writing score ${writing.score}/100 (${writing.band}) over ${plural(writing.textLayers, 'text layer')}; it informs and does not change the exit code.${partial}${hidden}`;
+}
+
+/** Finding codes that inform and never count toward the outcome or the exit code. */
+export const INFORM_ONLY_CODES: ReadonlySet<string> = new Set([WRITING_SCORE_CODE]);
+
 function verdict(
   families: Record<CheckFamily, CheckFamilyStateV1>,
   findings: readonly CheckFindingV1[],
@@ -997,8 +1018,10 @@ function verdict(
 ): { outcome: CheckOutcomeV1; exitCode: CheckExitCodeV1 } {
   if (FAMILIES.some((f) => families[f].state === 'failed')) return { outcome: 'failed', exitCode: EXIT.failed };
   if (requiredTierMissing) return { outcome: 'failed', exitCode: EXIT.unavailable };
-  const errors = findings.some((f) => f.severity === 'error');
-  const warns = findings.some((f) => f.severity === 'warn');
+  // A finding that informs only (the writing score) never moves the outcome.
+  const counted = findings.filter((f) => !INFORM_ONLY_CODES.has(f.code));
+  const errors = counted.some((f) => f.severity === 'error');
+  const warns = counted.some((f) => f.severity === 'warn');
   if (errors || (strict && warns)) return { outcome: 'refused', exitCode: EXIT.refused };
   if (warns) return { outcome: 'review', exitCode: EXIT.review };
   return { outcome: 'clean', exitCode: EXIT.clean };
@@ -1302,6 +1325,16 @@ export async function checkFile(bytes: Uint8Array, name: string, asked: CheckFil
         }
         lists.push(...inThemeFindings(verify.list, multiTheme ? theme : undefined));
         reasons.push(multiTheme ? `In the ${theme} theme: ${verify.state.reason ?? ''}`.trim() : verify.state.reason ?? '');
+      }
+      // The writing score reads words, which no theme changes, so it is scored once.
+      if (failed === null) {
+        const writing = await guarded(opts.signal, async () => designWritingScore(doc.boxes, doc.textDocument !== undefined ? { textDocument: doc.textDocument } : {}));
+        if (isFailed(writing)) reasons.push(`The writing score could not be read: ${writing.failed}`);
+        else {
+          const finding = checkFindingFromWritingScore(writing);
+          if (finding) lists.push(finding);
+          reasons.push(writingNote(writing));
+        }
       }
       if (failed !== null) families.verify = familyState('failed', failed);
       else take('verify', familyState('ran', reasons.join(' ')), lists);

@@ -232,30 +232,64 @@ const THUMB_SCOPE_VAR = /^--(?:brand|lolly|font)-/;
 const THUMB_PAINT = ['background-color', 'background-image', 'color', 'font-family'] as const;
 
 let nextThumbScope = 0;
-const thumbStyles = new WeakMap<HTMLElement, { id: string; source: string; css: string }>();
+type ThumbSheet = { id: string; source: string; sheet: HTMLStyleElement; canvas: HTMLElement };
+const thumbStyles = new WeakMap<HTMLElement, ThumbSheet>();
+/** Every shared sheet still mounted, so one whose canvas has left the page can be dropped. */
+const thumbSheets = new Set<ThumbSheet>();
 
-/** Carry the tool's structural and custom CSS into previews outside its canvas.
- * Cache the re-scoping per canvas/render; each thumbnail remains self-contained. */
-function frameThumbStyles(canvas: HTMLElement, media: HTMLElement): HTMLStyleElement | null {
+/**
+ * Carry the tool's structural and custom CSS into previews outside its canvas.
+ *
+ * ONE stylesheet per canvas, shared by every thumbnail of it, rather than a copy inside
+ * each one: a navigator of 64 boards used to hold 64 identical sheets, and every sheet
+ * added or dropped restyled the document. Each thumbnail carries only the scope attribute
+ * the shared sheet is written against. When the canvas CSS changes (an edit to Custom CSS)
+ * the sheet is rewritten in place, so thumbnails built earlier follow it too.
+ */
+function frameThumbStyles(canvas: HTMLElement, media: HTMLElement): void {
+  const doc = canvas.ownerDocument;
   // Base tool CSS lives in <head>; template/custom CSS lives inside the canvas.
   const sheets = [
-    ...canvas.ownerDocument.head.querySelectorAll<HTMLStyleElement>('style[data-lolly-scope]'),
+    ...doc.head.querySelectorAll<HTMLStyleElement>('style[data-lolly-scope]'),
     ...canvas.querySelectorAll<HTMLStyleElement>('style[data-lolly-scope]'),
   ].filter(sheet => canvas.matches(sheet.dataset.lollyScope!));
-  if (!sheets.length) return null;
+  if (!sheets.length) return;
   const source = JSON.stringify(sheets.map(sheet => [sheet.dataset.lollyScope, sheet.textContent]));
   let cached = thumbStyles.get(canvas);
-  if (!cached || cached.source !== source) {
-    const id = String(++nextThumbScope);
-    const scope = `[data-frame-thumb-scope="${id}"]`;
-    const css = sheets.map(sheet => scopeCss(unscopeCss(sheet.textContent ?? '', sheet.dataset.lollyScope || '#tool-canvas'), scope)).join('\n');
-    cached = { id, source, css };
+  if (!cached) {
+    // A new canvas (a remount) drops the sheets of canvases that have left the page.
+    for (const old of thumbSheets) {
+      if (!old.canvas.isConnected) { old.sheet.remove(); thumbSheets.delete(old); }
+    }
+    const sheet = doc.createElement('style');
+    sheet.dataset.frameThumbStyle = String(++nextThumbScope);
+    cached = { id: sheet.dataset.frameThumbStyle, source: '', sheet, canvas };
     thumbStyles.set(canvas, cached);
+    thumbSheets.add(cached);
+  }
+  if (cached.source !== source || !cached.sheet.isConnected) {
+    const scope = `[data-frame-thumb-scope="${cached.id}"]`;
+    cached.sheet.textContent = sheets.map(sheet => scopeCss(unscopeCss(sheet.textContent ?? '', sheet.dataset.lollyScope || '#tool-canvas'), scope)).join('\n');
+    cached.source = source;
+    if (!cached.sheet.isConnected) { doc.head.appendChild(cached.sheet); thumbSheets.add(cached); }
+    dropDocumentWideRules(cached.sheet);
   }
   media.dataset.frameThumbScope = cached.id;
-  const style = document.createElement('style');
-  style.textContent = cached.css;
-  return style;
+}
+
+/**
+ * Remove the top-level `@font-face` and `@keyframes` rules from a thumbnail sheet. Both are
+ * document-wide, so the canvas's own sheets already define them for every thumbnail, and a
+ * copy that outlived the thumbnails would be read by exporters that walk
+ * `document.styleSheets` for font faces (the learning package, vector font discovery).
+ */
+function dropDocumentWideRules(style: HTMLStyleElement): void {
+  const sheet = style.sheet;
+  if (!sheet) return;
+  for (let i = sheet.cssRules.length - 1; i >= 0; i--) {
+    const type = sheet.cssRules[i]?.type;
+    if (type === 5 || type === 7) sheet.deleteRule(i);   // CSSRule.FONT_FACE_RULE, KEYFRAMES_RULE
+  }
 }
 
 /**
@@ -323,12 +357,11 @@ export function frameThumb(
   cfg: BoxFieldConfig,
   { maxW, maxH }: { maxW: number; maxH: number },
 ): HTMLElement {
-  const fw = Math.max(1, num(fb[cfg.wField])), fh = Math.max(1, num(fb[cfg.hField]));
-  const s = Math.min(maxW / fw, maxH / fh);
+  const { w, h, s } = frameThumbSize(fb, cfg, { maxW, maxH });
   const media = document.createElement('div');
   media.className = 'fc-frame-thumb';
-  media.style.width = `${Math.round(fw * s)}px`;
-  media.style.height = `${Math.round(fh * s)}px`;
+  media.style.width = `${w}px`;
+  media.style.height = `${h}px`;
   // A page can carry a blend mode (an artboard wears the same paint a box does). Isolate the
   // thumbnail so it blends against its own contents, not against the column behind it.
   media.style.setProperty('isolation', 'isolate');
@@ -336,6 +369,9 @@ export function frameThumb(
   const page = fid ? canvasEl.querySelector<HTMLElement>(`.lolly-frame-page[data-frame-id="${cssEscape(fid)}"]`) : null;
   const src = page ?? canvasEl;
   const clone = src.cloneNode(true) as HTMLElement;
+  // Paired with the live videos before anything is removed from the clone, while the two
+  // trees still match node for node.
+  freezeVideos(src, clone, s);
   clone.querySelectorAll('style[data-lolly-scope], script, [data-export-hide]').forEach(node => { node.remove(); });
   // The playhead hides clips outside its current time. A board thumbnail shows
   // its contents at rest, while authored display:none / hidden flags stay intact.
@@ -356,6 +392,7 @@ export function frameThumb(
   clone.style.transform = page
     ? `scale(${s})`
     : `translate(${-num(fb[cfg.xField]) * s}px, ${-num(fb[cfg.yField]) * s}px) scale(${s})`;
+  // A video whose live frame could not be copied (not decoded yet) stays a video, frozen.
   for (const v of clone.querySelectorAll<HTMLVideoElement>('video')) {
     v.muted = true; v.autoplay = false; v.removeAttribute('autoplay');
     try { v.pause(); } catch { /* not-ready - ignore */ }
@@ -364,9 +401,68 @@ export function frameThumb(
   // thumbnail keeps the box's poster instead.
   for (const el of clone.querySelectorAll('iframe[data-web-live], .lolly-box-web-note, .lolly-box-web-done')) el.remove();
   media.appendChild(clone);
-  const style = frameThumbStyles(canvasEl, media);
-  if (style) media.appendChild(style);
+  frameThumbStyles(canvasEl, media);
   return media;
+}
+
+/** The thumbnail's on-screen size and its scale from the frame's native px. */
+export function frameThumbSize(
+  fb: Box,
+  cfg: BoxFieldConfig,
+  { maxW, maxH }: { maxW: number; maxH: number },
+): { w: number; h: number; s: number } {
+  const fw = Math.max(1, num(fb[cfg.wField])), fh = Math.max(1, num(fb[cfg.hField]));
+  const s = Math.min(maxW / fw, maxH / fh);
+  return { w: Math.round(fw * s), h: Math.round(fh * s), s };
+}
+
+/**
+ * Swap each cloned `<video>` for a still of the frame its live twin is showing, so a
+ * thumbnail never opens a media element of its own. The clone used to keep its `src`:
+ * every thumbnail of a video board fetched the clip and spun up another decoder just to
+ * show one paused frame.
+ *
+ * The still is a `<canvas>` drawn at about the resolution the thumbnail shows it, and it
+ * takes the video's class and style plus its computed `object-fit` and
+ * `object-position`, the way an export's motion snapshot does, so it sits and crops
+ * exactly as the video did. A canvas, not a data URL: drawing a cross-origin frame is
+ * allowed (it only stops a read back), and no image is encoded per thumbnail. A video
+ * with no decoded frame yet, or one that cannot be drawn, is left in place.
+ */
+function freezeVideos(src: HTMLElement, clone: HTMLElement, s: number): void {
+  const copies = clone.querySelectorAll<HTMLVideoElement>('video');
+  if (!copies.length) return;
+  const lives = src.querySelectorAll<HTMLVideoElement>('video');
+  const dpr = src.ownerDocument.defaultView?.devicePixelRatio || 1;
+  copies.forEach((copy, n) => {
+    const live = lives[n];
+    const vw = live?.videoWidth ?? 0, vh = live?.videoHeight ?? 0;
+    if (!live || !vw || !vh || live.readyState < 2) return;
+    // Displayed px of the clip in the thumbnail: the box's layout size at the thumbnail
+    // scale, covered on both axes (so a cropping `cover` is as sharp as a `contain`).
+    const bw = live.offsetWidth || vw, bh = live.offsetHeight || vh;
+    const k = Math.min(1, Math.max(bw / vw, bh / vh) * s * dpr);
+    const still = copy.ownerDocument.createElement('canvas');
+    still.width = Math.max(1, Math.round(vw * k));
+    still.height = Math.max(1, Math.round(vh * k));
+    try {
+      const ctx = still.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(live, 0, 0, still.width, still.height);
+      still.className = copy.className;
+      const style = copy.getAttribute('style');
+      if (style) still.setAttribute('style', style);
+      const cs = getComputedStyle(live);
+      if (cs.objectFit) still.style.objectFit = cs.objectFit;
+      if (cs.objectPosition) still.style.objectPosition = cs.objectPosition;
+      still.setAttribute('aria-hidden', 'true');
+      // Cloning the `src` attribute already queued a load. Dropping the attribute now,
+      // in the same task, is what stops it: the queued resource selection then finds no
+      // source and fetches nothing, where a detached video would have loaded regardless.
+      copy.removeAttribute('src');
+      copy.replaceWith(still);
+    } catch { /* an undrawable frame keeps the frozen video below */ }
+  });
 }
 
 /**
