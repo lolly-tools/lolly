@@ -98,10 +98,10 @@ export function designShortcutGroups(
         { keys: 'Shift 2', label: t('Zoom to selection') },
         { keys: '+ / −', label: t('Zoom in / out') },
         // Canvas keys (free-canvas/frame-step.ts and free-canvas/zoom-marquee.ts).
-        { keys: 'Page Down / Page Up', label: t('Next / previous artboard') },
+        { keys: 'PgDn / PgUp', label: t('Next / previous artboard') },
         { keys: 'Home / End', label: t('First / last artboard') },
         { keys: 'Z + drag', label: t('Zoom to the dragged area') },
-        { keys: `Z + click / ${alt} Z + click`, label: t('Zoom in / out at the pointer') },
+        { keys: `Z / ${alt} Z + click`, label: t('Zoom in / out at the pointer') },
         { keys: 'Shift R', label: t('Toggle rulers and guides') },
         { keys: '/  or  \\', label: t('Hide / show editor chrome') },
         { keys: `${alt} 1`, label: t('Toggle timeline') },
