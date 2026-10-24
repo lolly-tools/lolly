@@ -994,6 +994,67 @@
   "$extensions": {
     "com.suse.lolly": {
       "shareCards": "opal",
+      "brandSystem": {
+        "schemaVersion": 1,
+        "id": "lolly-demo",
+        "label": "Lolly Demo",
+        "roles": [],
+        "bindings": [],
+        "rules": [
+          {
+            "id": "headline-case",
+            "label": "Headlines are never set in capitals",
+            "kind": "text-case",
+            "roleIds": [],
+            "parameters": { "target": "headline", "forbid": "upper" },
+            "scope": { "tools": ["design"] },
+            "requirement": "required",
+            "origin": { "kind": "source", "reference": "Lolly Demo brand standards (lolly/skill/brand)", "locator": "Voice" },
+            "review": { "state": "draft" },
+            "description": "Headings take sentence case. A headline is a title text, or the one largest text on its artboard. Names and short acronyms in capitals are fine."
+          },
+          {
+            "id": "body-align",
+            "label": "Body text is left-aligned",
+            "kind": "text-align",
+            "roleIds": [],
+            "parameters": { "align": "left", "roles": ["body"], "exemptRoles": ["quote", "attribution"] },
+            "scope": { "tools": ["design"] },
+            "requirement": "advisory",
+            "origin": { "kind": "source", "reference": "Lolly Demo brand standards (lolly/skill/brand)", "locator": "Layout" },
+            "review": { "state": "draft" },
+            "description": "Checks text in a body slot of the slide master. Short display lines may be centred, so text outside a body slot is not checked, and quotes keep the master's centred setting."
+          },
+          {
+            "id": "logo-surface",
+            "label": "Primary marks on light, reverse marks on dark",
+            "kind": "logo-surface",
+            "roleIds": [],
+            "parameters": {
+              "light": ["lolly/logo/horizontal", "lolly/logo/primary", "lolly/logo/mono"],
+              "dark": ["lolly/logo/horizontal-reverse", "lolly/logo/reverse", "lolly/logo/mono-reverse", "lolly/logo/horizontal-on-brand"],
+              "photo": ["lolly/logo/horizontal-reverse", "lolly/logo/reverse", "lolly/logo/mono-reverse", "lolly/logo/horizontal-on-brand", "lolly/logo/horizontal", "lolly/logo/primary", "lolly/logo/mono"]
+            },
+            "scope": { "tools": ["design"] },
+            "requirement": "advisory",
+            "origin": { "kind": "source", "reference": "Lolly brand standards (/brand)", "locator": "The mark" },
+            "review": { "state": "draft" },
+            "description": "The primary mark, the mono mark and the Liquorice wordmark sit on light. The reverse mark, the mono reverse mark and the Daylight wordmark sit on dark, and so does the Green Apple wordmark, drawn for the Spearmint ground. The standards name no mark for photographs, so any Lolly mark passes on one, and a mark set to follow its surface takes the reverse mark there."
+          },
+          {
+            "id": "dash-reserved",
+            "label": "Dashed lines mean drop here",
+            "kind": "dash-reserved",
+            "roleIds": [],
+            "parameters": { "styles": ["dashed"], "meaning": "a place where something can be dropped" },
+            "scope": { "tools": ["design"] },
+            "requirement": "advisory",
+            "origin": { "kind": "source", "reference": "Lolly brand standards (/brand)", "locator": "Clinic" },
+            "review": { "state": "draft" },
+            "description": "Dashes mark a place where something can be dropped and never frame an empty state. Lines drawn with the pen are not checked."
+          }
+        ]
+      },
       "emoji": {
         "schemaVersion": 1,
         "primary": {

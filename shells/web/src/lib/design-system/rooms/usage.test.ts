@@ -59,6 +59,8 @@ test('a house rule reads as checked in Design, an unknown kind as unchecked', as
   assert.match(weight.textContent ?? '', /Draft/);
   // A house rule with no role shows its kind in words, not the raw kind id.
   assert.match(card('logo-surface label').querySelector('.usage-rule-copy p')?.textContent ?? '', /Logo per surface/);
+  // Its scope reads Design, the tool's own name, rather than the raw tool id.
+  assert.match(weight.querySelector('.usage-hint')?.textContent ?? '', /^Design · /);
 
   const future = card('future label');
   assert.equal(future.querySelector('[data-checker]'), null);

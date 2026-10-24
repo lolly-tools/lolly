@@ -71,6 +71,33 @@ handoff with one named owner.
   for Lolly Demo, the emoji palette's limit; the ones left over are a role that repeats
   Avocado and the chrome slots, which repeat named colours apart from Honey
   deep and the dark hover. Rewrite the block after a colour change.
+- **Four house rules.** The tokens carry a `brandSystem` in
+  `$extensions['com.suse.lolly']` whose rules Design checks layer by layer
+  (`engine/src/design-house-rules.ts`): the export panel's Before you export
+  card, `lolly check` and the Start view's Usage & rules room all read them.
+  Each rule cites the Lolly brand standards (`/brand`) or the pack's own brand
+  skill (`lolly/skill/brand`):
+  - `headline-case` (text-case, required): headlines are never set in capitals.
+  - `body-align` (text-align, advisory): text in a body slot of the slide
+    master is left-aligned. Text without a slot role is not checked, because
+    short display lines may be centred.
+  - `logo-surface` (advisory): primary marks on light, reverse marks on dark.
+    The standards name no mark for photographs, so the `photo` list holds every
+    mark with the reverse marks first, which keeps `?theme=auto` and compose
+    picking the marks they picked before the rule existed.
+  - `dash-reserved` (advisory): dashed lines mean drop here.
+
+  All four are `draft`, so `lolly check` reports the required rule as a
+  warning until someone approves the rule. Three kinds are left out on purpose.
+  The slide master sets titles at weight 700 while the standards page sets
+  headings at 500, so there is no single weight for a text-weight rule. The
+  standards judge contrast by text size (4.5:1 for body text, 3:1 for large
+  headings) and keep highlight colours off body text, which one list of text
+  colours per background (color-pairing) cannot say. And stroke-on-rounded also
+  reports a full accent ring, which the standards allow as a highlight. Case on every line and
+  alignment on every text were tried as well: the community templates set their
+  eyebrow labels in capitals and centre some short display lines on purpose, so
+  both would have reported the shipped templates.
 - **No font files.** Outfit (headings), SUSE (text and italics) and SUSE Mono
   (code) are all served by the web shell from `shells/web/public/fonts/`, as for
   `lolly-start`.
