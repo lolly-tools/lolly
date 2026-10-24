@@ -60,6 +60,8 @@ node scripts/build-delivery.ts --root /path/to/release --previous /path/to/verif
 node scripts/verify-release-catalog.ts --root /path/to/release
 ```
 
+For a new signing key, start from a clean build without the old key's envelope and pass `--min-seq <n>` above the last published sequence. Browsers keep a sequence watermark for the origin across key changes. The signed sequence is the greater of the normal sequence (1, or the verified predecessor's sequence plus 1) and `n`. `LOLLY_CATALOG_MIN_SEQ` supplies the same minimum; the flag takes precedence. Values must be decimal integers from 0 to `Number.MAX_SAFE_INTEGER`. A lower minimum never lowers the normal sequence, and predecessor verification still applies when a previous envelope is present.
+
 Use your approved signing configuration and pinned key, and never put a private key in these paths or arguments; the normal release wrapper supplies those inputs. The final delivery pass adds compressed siblings and exact ETags without changing the decoded bytes. nginx can serve gzip siblings with `gzip_static`, while Brotli needs a suitable module; Caddy and Lolly Work can negotiate both precompressed forms. Never apply the public static maps to private Lolly Work routes just because their paths look alike.
 
 ## Release staleness and purge
