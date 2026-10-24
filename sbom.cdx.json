@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:156ebd3d-b6cd-4d91-8147-88e2d2400343",
+  "serialNumber": "urn:uuid:7d56aeac-a3bd-44e8-838a-04425d0f1b9a",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-20T20:09:19.028Z",
+    "timestamp": "2026-10-21T10:51:27.682Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -4299,10 +4299,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/font-types@0.12.5",
+      "bom-ref": "pkg:cargo/font-types@0.12.7",
       "name": "font-types",
-      "version": "0.12.5",
-      "purl": "pkg:cargo/font-types@0.12.5",
+      "version": "0.12.7",
+      "purl": "pkg:cargo/font-types@0.12.7",
       "scope": "required",
       "licenses": [
         {
@@ -4312,7 +4312,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8eb065f3251655b3c90e22e5e363f310fc5332fb3402e37bbc94752283248f6"
+          "content": "835ae9d781464a79026cde387f9cbc650c9a4909d7cf7e658b127e3c35d2f35d"
         }
       ],
       "properties": [
@@ -10835,6 +10835,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/read-fonts@0.45.1",
+      "name": "read-fonts",
+      "version": "0.45.1",
+      "purl": "pkg:cargo/read-fonts@0.45.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4edc8db0d972de88e53a085b1f01fb3fbdae7bb0cb7a0ce2b2f8285a412fe3ef"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/skera/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/redox_syscall@0.5.18",
       "name": "redox_syscall",
       "version": "0.5.18",
@@ -13176,6 +13201,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/synstructure@0.14.0",
+      "name": "synstructure",
+      "version": "0.14.0",
+      "purl": "pkg:cargo/synstructure@0.14.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "901704edd0dfe137f1987838ee4f259e4e063c31371bdb423f7ae38ec6f77f02"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/skera/Cargo.lock"
         }
       ]
     },
@@ -18349,6 +18401,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/write-fonts@0.54.1",
+      "name": "write-fonts",
+      "version": "0.54.1",
+      "purl": "pkg:cargo/write-fonts@0.54.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "55716cfa7e8bcdb90289e07dfac478ccb2e3ec0f9a604fe682c7a03a7984d705"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/skera/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/writeable@0.6.3",
       "name": "writeable",
       "version": "0.6.3",
@@ -18552,6 +18629,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/yoke-derive@0.8.4",
+      "name": "yoke-derive",
+      "version": "0.8.4",
+      "purl": "pkg:cargo/yoke-derive@0.8.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "Unicode-3.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec8ebde2db3681e8c9980cc27822030e68752690ddfa9473e739aeb4dbde6d71"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/skera/Cargo.lock"
         }
       ]
     },
@@ -18764,6 +18868,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/zerofrom-derive@0.1.8",
+      "name": "zerofrom-derive",
+      "version": "0.1.8",
+      "purl": "pkg:cargo/zerofrom-derive@0.1.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "Unicode-3.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f75b4683f6c7f45248d4d64056a24298c6281e0993356d7d1b4a1a962ef10d4a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/skera/Cargo.lock"
         }
       ]
     },
