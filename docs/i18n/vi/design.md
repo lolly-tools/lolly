@@ -18,7 +18,7 @@ Canvas hoạt động như bàn dán của nhà thiết kế quanh artboard:
 
 - **Để hộp ngoài artboard.** Kéo một hộp qua mép khung và nó vẫn hiện và chọn được. Mọi thứ ngoài khung bị làm mờ, và khung giữ bóng của nó để đánh dấu nơi tệp bắt đầu.
 - **Chỉ artboard được xuất.** Mọi thứ ngoài khung, hoặc phần hộp thò qua mép, bị cắt khỏi đầu ra ở cả định dạng điểm ảnh lẫn vector.
-- **Thu nhỏ quá Fit**, xuống 20%, để thấy mọi thứ bạn đã để ngoài.
+- **Thu nhỏ quá Fit** để thấy mọi thứ bạn đã để ngoài.
 - **Đổi kích thước artboard** bằng cách đổi kích thước xuất. Các hộp giữ vị trí, nên bạn có thể dựng lại khung bố cục quanh nội dung có sẵn.
 
 ![Sân khấu chỉnh sửa: artboard ở chính giữa phía trước, thanh công cụ bên trái và HUD thu phóng ở góc](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)

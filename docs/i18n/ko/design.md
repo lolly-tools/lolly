@@ -18,7 +18,7 @@ Design은 어떤 템플릿으로도 다룰 수 없는 레이아웃을 위한 도
 
 - **박스를 아트보드 밖에 둘 수 있어요.** 박스를 프레임 가장자리 너머로 끌어도 계속 보이고 선택할 수 있어요. 프레임 밖은 모두 흐려지고, 프레임은 그림자를 유지해 파일이 시작되는 곳을 표시해요.
 - **아트보드만 내보내져요.** 프레임 밖의 모든 것, 또는 가장자리에 걸친 박스의 일부는 래스터와 벡터 형식 모두에서 출력물에서 잘려요.
-- **Fit보다 더 축소**해서 20%까지 내려가 보관해 둔 모든 것을 볼 수 있어요.
+- **Fit보다 더 축소**해서 보관해 둔 모든 것을 볼 수 있어요.
 - 내보내기 크기를 바꿔서 **아트보드 크기를 조정**하세요. 박스는 위치를 유지하므로 기존 콘텐츠를 두고 레이아웃의 프레임을 다시 잡을 수 있어요.
 
 ![편집 스테이지: 정면 중앙의 아트보드, 왼쪽의 도구 레일, 모서리의 확대/축소 HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)

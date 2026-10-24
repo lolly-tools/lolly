@@ -42,10 +42,12 @@ La scelta appartiene a questo pezzo. Viaggia nel link e nella sessione salvata, 
 
 L'anteprima mostra sempre esattamente ciò che verrà esportato.
 
-- **Zoom:** Cmd/Ctrl + scorrimento o pizzico su un trackpad, centrato sul puntatore. Da tastiera, `0` adatta alla finestra, `1` è 100% e `+` / `−` fanno zoom.
+- **Zoom:** Cmd/Ctrl + scorrimento o pizzico su un trackpad, centrato sul puntatore. Da tastiera, `0` o `Shift+1` adatta tutto, `1` o `Shift+0` imposta il 100% e `Shift+2` adatta la selezione. `+` / `−` fanno zoom attorno al puntatore quando si trova sull'area di lavoro, altrimenti attorno al centro.
 - **Spostamento:** tieni premuto **Space** e trascina, oppure trascina con il tasto centrale del mouse. I semplici clic restano liberi per fare clic sulle parti del design.
 - **Tocco:** pizzica per fare zoom, trascina per spostare e tocca due volte per adattare.
 - **HUD dello zoom:** tieni premuta la spirale di Lolly nell'angolo per aprire `−`, **Fit** e `+`. Un tocco breve sulla spirale apre comunque il menu del tuo profilo.
+
+In Design, **Fit all** include gli artboard e i livelli liberi. Puoi ridurre manualmente lo zoom sotto il 20% finché l'intera pagina occupa metà della vista. Il limite inferiore è il minore tra il 5% della normale scala Fit e il 2% di zoom assoluto.
 
 Un cambio di dimensione dell'output riporta sempre la vista a un adattamento pulito.
 

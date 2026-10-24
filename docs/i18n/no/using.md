@@ -42,10 +42,12 @@ Valget tilhører dette arbeidet. Det følger med i lenken og den lagrede økten,
 
 Forhåndsvisningen viser alltid nøyaktig det som blir eksportert.
 
-- **Zoom:** Cmd/Ctrl-rull eller klyp på en styreflate, sentrert på pekeren. På tastaturet tilpasser `0` vinduet, `1` er 100% og `+` / `−` zoomer.
+- **Zoom:** Cmd/Ctrl-rull eller klyp på en styreflate, sentrert på pekeren. På tastaturet tilpasser `0` eller `Shift+1` alt, `1` eller `Shift+0` setter 100%, og `Shift+2` tilpasser markeringen. `+` / `−` zoomer rundt pekeren når den er over scenen, ellers rundt midten.
 - **Panorer:** hold **Space** og dra, eller dra med midtre museknapp. Vanlige klikk forblir frie til å klikke på deler av designet.
 - **Berøring:** klyp for å zoome, dra for å panorere og dobbelttrykk for å tilpasse.
 - **Zoom-HUD:** trykk og hold på Lolly-virvelen i hjørnet for å folde ut `−`, **Fit** og `+`. Et kort trykk på virvelen åpner fortsatt profilmenyen din.
+
+I Design tar **Fit all** med tegnebrett og løse lag. Du kan zoome ut manuelt under 20% til hele siden fyller halve visningen. Den faste nedre grensen er den laveste av 5% av vanlig Fit-skala og 2% absolutt zoom.
 
 En endring av utdatastørrelsen setter alltid visningen tilbake til en ren tilpasning.
 

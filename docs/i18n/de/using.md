@@ -42,10 +42,12 @@ Die Wahl gehört zu diesem Werk. Sie reist im Link und in der gespeicherten Sitz
 
 Die Vorschau zeigt immer genau das, was exportiert wird.
 
-- **Zoomen:** Cmd/Strg-Scrollen oder Spreizen auf einem Trackpad, zentriert auf Ihren Zeiger. Auf der Tastatur passt `0` das Fenster an, `1` ist 100 % und `+` / `−` zoomen.
+- **Zoomen:** Cmd/Strg-Scrollen oder Spreizen auf einem Trackpad, zentriert auf Ihren Zeiger. Auf der Tastatur passt `0` oder `Shift+1` alles in die Ansicht ein, `1` oder `Shift+0` stellt 100 % ein und `Shift+2` passt die Auswahl ein. `+` / `−` zoomen um den Zeiger, wenn er über der Arbeitsfläche liegt, sonst um die Mitte.
 - **Verschieben:** Halten Sie **Space** und ziehen Sie, oder ziehen Sie mit der mittleren Maustaste. Einfache Klicks bleiben frei zum Anklicken von Teilen des Designs.
 - **Touch:** Zum Zoomen spreizen, zum Verschieben ziehen und zum Anpassen doppeltippen.
 - **Zoom-HUD:** Halten Sie den Lolly-Wirbel in der Ecke gedrückt, um `−`, **Fit** und `+` auszuklappen. Ein kurzes Tippen auf den Wirbel öffnet weiterhin Ihr Profilmenü.
+
+In Design umfasst **Fit all** die Artboards und frei liegende Ebenen. Sie können manuell unter 20 % herauszoomen, bis die ganze Seite die Hälfte der Ansicht ausfüllt. Die feste Untergrenze ist der kleinere Wert aus 5 % des normalen Fit-Maßstabs und 2 % absolutem Zoom.
 
 Eine Änderung der Ausgabegröße bringt die Ansicht immer auf eine saubere Anpassung zurück.
 

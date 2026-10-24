@@ -42,10 +42,12 @@ Volba patří tomuto dílu. Putuje v odkazu a v uložené relaci, následuje ji 
 
 Náhled vždy zobrazuje přesně to, co se exportuje.
 
-- **Zvětšení:** Cmd/Ctrl a kolečko nebo štípnutí na trackpadu, vystředěné na ukazatel. Na klávesnici `0` přizpůsobí oknu, `1` je 100 % a `+` / `−` zvětšují a zmenšují.
+- **Zvětšení:** Cmd/Ctrl a kolečko nebo štípnutí na trackpadu, vystředěné na ukazatel. Na klávesnici `0` nebo `Shift+1` přizpůsobí vše, `1` nebo `Shift+0` nastaví 100 % a `Shift+2` přizpůsobí výběr. `+` / `−` mění zvětšení kolem ukazatele, pokud je nad scénou, jinak kolem středu.
 - **Posun:** podrž **Space** a táhni, nebo táhni prostředním tlačítkem myši. Obyčejná kliknutí zůstávají volná pro klikání na části návrhu.
 - **Dotyk:** štípnutím zvětšuješ, tažením posouváš a dvojitým klepnutím přizpůsobíš.
 - **HUD zvětšení:** stiskni a podrž spirálu Lolly v rohu, aby se rozložily `−`, **Fit** a `+`. Krátké klepnutí na spirálu stále otevře nabídku profilu.
+
+V Design zahrnuje **Fit all** kreslicí plochy i volné vrstvy. Ručně lze oddálit pod 20 %, dokud celá stránka nevyplní polovinu zobrazení. Pevná dolní mez je nižší z hodnot 5 % běžného měřítka Fit a 2 % absolutního zvětšení.
 
 Změna velikosti výstupu vždy vrátí zobrazení na čisté přizpůsobení.
 

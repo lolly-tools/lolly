@@ -42,10 +42,12 @@ Le choix appartient à cette pièce. Il voyage dans le lien et dans la session e
 
 L'aperçu montre toujours exactement ce qui sera exporté.
 
-- **Zoom :** Cmd/Ctrl-molette ou pincement sur un trackpad, centré sur ton pointeur. Au clavier, `0` ajuste à la fenêtre, `1` correspond à 100 % et `+` / `−` zooment.
+- **Zoom :** Cmd/Ctrl-molette ou pincement sur un trackpad, centré sur ton pointeur. Au clavier, `0` ou `Shift+1` ajuste tout, `1` ou `Shift+0` règle le zoom à 100 % et `Shift+2` ajuste la sélection. `+` / `−` zooment autour du pointeur quand il survole la zone de travail, ou autour du centre sinon.
 - **Déplacement :** maintiens **Space** et fais glisser, ou fais glisser avec le bouton central de la souris. Les simples clics restent libres pour cliquer sur des parties du design.
 - **Tactile :** pince pour zoomer, fais glisser pour déplacer et touche deux fois pour ajuster.
 - **HUD de zoom :** appuie longuement sur le tourbillon Lolly dans le coin pour déplier `−`, **Fit** et `+`. Un court appui sur le tourbillon ouvre toujours le menu de ton profil.
+
+Dans Design, **Fit all** inclut les plans de travail et les calques libres. Tu peux dézoomer manuellement sous 20 % jusqu'à ce que la page entière occupe la moitié de la vue. La limite basse est la plus petite des deux valeurs : 5 % de l'échelle Fit normale et 2 % de zoom absolu.
 
 Un changement de taille de sortie ramène toujours la vue à un ajustement propre.
 

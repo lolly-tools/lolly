@@ -18,7 +18,7 @@ Design হলো সেই লেআউটের টুল যা কোনো �
 
 - **বক্স আর্টবোর্ডের বাইরে রাখুন।** একটি বক্স ফ্রেমের কিনারা পেরিয়ে টানুন, তা দৃশ্যমান ও নির্বাচনযোগ্য থাকে। ফ্রেমের বাইরের সবকিছু ফিকে হয়, আর ফাইল কোথায় শুরু তা বোঝাতে ফ্রেম তার ছায়া রাখে।
 - **কেবল আর্টবোর্ড এক্সপোর্ট হয়।** ফ্রেমের বাইরের যেকোনো কিছু, বা কিনারা ছাপিয়ে থাকা বক্সের অংশ, র‍্যাস্টার ও ভেক্টর দুই ফরম্যাটেই আউটপুট থেকে কাটা পড়ে।
-- **Fit-এর বাইরে জুম আউট করুন**, 20% পর্যন্ত, আপনার রেখে দেওয়া সবকিছু দেখতে।
+- **Fit-এর বাইরে জুম আউট করুন**, আপনার রেখে দেওয়া সবকিছু দেখতে।
 - **এক্সপোর্টের মাপ বদলে আর্টবোর্ডের মাপ বদলান।** বক্স নিজেদের অবস্থান রাখে, তাই বিদ্যমান কনটেন্টের চারপাশে লেআউট নতুন করে ফ্রেম করা যায়।
 
 ![সম্পাদনার মঞ্চ: আর্টবোর্ড সামনে ও মাঝখানে, বাঁয়ে টুল রেল এবং কোণে জুম HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)

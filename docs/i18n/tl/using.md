@@ -42,10 +42,12 @@ Ang pagpipilian ay para sa piraso na ito. Sumasama ito sa link at naka-save na s
 
 Laging ipinapakita ng preview ang eksaktong ie-export.
 
-- **Zoom:** Cmd/Ctrl-scroll o pinch sa trackpad, nakasentro sa pointer mo. Sa keyboard, ang `0` ay kasya sa window, ang `1` ay 100% at ang `+` / `−` ay nag-zoom.
+- **Zoom:** Cmd/Ctrl-scroll o pinch sa trackpad, nakasentro sa pointer mo. Sa keyboard, ang `0` o `Shift+1` ay nagkakasya ng lahat sa view, ang `1` o `Shift+0` ay nagtatakda ng 100%, at ang `Shift+2` ay nagkakasya ng selection. Ang `+` / `−` ay nag-zoom sa paligid ng pointer kapag nasa stage ito, at sa gitna ng view kung wala roon.
 - **Pan:** pindutin nang matagal ang **Space** at mag-drag, o mag-drag gamit ang middle mouse button. Libre pa rin ang karaniwang click para sa pag-click ng mga bahagi ng design.
 - **Touch:** mag-pinch para mag-zoom, mag-drag para mag-pan at mag-double-tap para kumasya.
 - **Zoom HUD:** pindutin nang matagal ang Lolly swirl sa sulok para buksan ang `−`, **Fit** at `+`. Ang maikling tap sa swirl ay nagbubukas pa rin ng profile menu mo.
+
+Sa Design, kasama sa **Fit all** ang mga artboard at malalayang layer. Puwede kang mag-zoom out nang mano-mano nang mas mababa sa 20% hanggang mapuno ng buong page ang kalahati ng view. Ang huling hangganan ay ang mas mababa sa 5% ng karaniwang Fit scale at 2% absolute zoom.
 
 Ang pagbabago ng laki ng output ay laging nagbabalik sa view sa malinis na fit.
 

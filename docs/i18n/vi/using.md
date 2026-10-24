@@ -42,10 +42,12 @@ Lựa chọn thuộc về tác phẩm này. Nó đi cùng trong liên kết và 
 
 Bản xem trước luôn hiển thị chính xác thứ sẽ được xuất ra.
 
-- **Thu phóng:** Cmd/Ctrl-cuộn hoặc chụm trên bàn di chuột, lấy con trỏ làm tâm. Trên bàn phím, `0` vừa khung cửa sổ, `1` là 100% và `+` / `−` thu phóng.
+- **Thu phóng:** Cmd/Ctrl-cuộn hoặc chụm trên bàn di chuột, lấy con trỏ làm tâm. Trên bàn phím, `0` hoặc `Shift+1` vừa khung toàn bộ nội dung, `1` hoặc `Shift+0` đặt mức 100% và `Shift+2` vừa khung phần chọn. `+` / `−` thu phóng quanh con trỏ khi con trỏ ở trên vùng làm việc, hoặc quanh tâm khung nhìn trong trường hợp khác.
 - **Kéo:** giữ **Space** và kéo, hoặc kéo bằng nút giữa chuột. Nhấp thường vẫn dành để nhấp vào các phần của thiết kế.
 - **Cảm ứng:** chụm để thu phóng, kéo để di chuyển và chạm đúp để vừa khung.
 - **HUD thu phóng:** nhấn giữ vòng xoáy Lolly ở góc để bung `−`, **Fit** và `+`. Chạm ngắn vào vòng xoáy vẫn mở menu hồ sơ của bạn.
+
+Trong Design, **Fit all** bao gồm các artboard và lớp rời. Bạn có thể thu nhỏ thủ công dưới 20% cho đến khi toàn bộ trang chiếm nửa khung nhìn. Giới hạn dưới là giá trị nhỏ hơn giữa 5% tỷ lệ Fit thông thường và mức thu phóng tuyệt đối 2%.
 
 Đổi kích thước đầu ra luôn đưa khung nhìn về vừa khít gọn gàng.
 

@@ -42,10 +42,12 @@ Pilihan itu milik karya ini. Ia dibawa dalam pautan dan sesi tersimpan, setiap w
 
 Pratonton sentiasa menunjukkan tepat apa yang akan dieksport.
 
-- **Zum:** Cmd/Ctrl-skrol atau cubit pada pad jejak, berpusat pada penuding anda. Pada papan kekunci, `0` memuatkan tetingkap, `1` ialah 100% dan `+` / `−` zum.
+- **Zum:** Cmd/Ctrl-skrol atau cubit pada pad jejak, berpusat pada penuding anda. Pada papan kekunci, `0` atau `Shift+1` memuatkan semua kandungan, `1` atau `Shift+0` menetapkan 100% dan `Shift+2` memuatkan pilihan. `+` / `−` mengezum berpusat pada penuding apabila berada di atas pentas, atau pada pusat paparan jika tidak.
 - **Alih:** tahan **Space** dan seret, atau seret dengan butang tengah tetikus. Klik biasa kekal bebas untuk mengklik bahagian reka bentuk.
 - **Sentuh:** cubit untuk zum, seret untuk alih dan ketik dua kali untuk muat.
 - **HUD zum:** tekan dan tahan pusaran Lolly di sudut untuk membuka `−`, **Fit** dan `+`. Ketikan pendek pada pusaran masih membuka menu profil anda.
+
+Dalam Design, **Fit all** merangkumi artboard dan lapisan bebas. Zum keluar secara manual boleh turun di bawah 20% sehingga seluruh halaman memenuhi separuh paparan. Had bawah mutlak ialah nilai yang lebih rendah antara 5% skala Fit biasa dan zum mutlak 2%.
 
 Perubahan saiz output sentiasa mengembalikan paparan kepada muat yang bersih.
 

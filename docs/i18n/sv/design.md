@@ -18,7 +18,7 @@ Ytan fungerar som en designers arbetsbord runt ritytan:
 
 - **Parkera rutor utanför ritytan.** Dra en ruta förbi ramens kant så förblir den synlig och markerbar. Allt utanför ramen tonas ned, och ramen behåller sin skugga för att markera var filen börjar.
 - **Bara ritytan exporteras.** Allt utanför ramen, eller den del av en ruta som hänger över kanten, beskärs från utdatan i både raster- och vektorformat.
-- **Zooma ut förbi Fit**, ned till 20 %, för att se allt du parkerat.
+- **Zooma ut förbi Fit** för att se allt du parkerat.
 - **Ändra ritytans storlek** genom att ändra exportstorleken. Rutorna behåller sina positioner, så du kan ramma om en layout kring befintligt innehåll.
 
 ![Redigeringsscenen: ritytan i centrum, verktygsfältet till vänster och zoom-HUD:en i hörnet](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)
