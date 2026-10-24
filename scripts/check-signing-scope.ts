@@ -13,9 +13,9 @@
  * Environment: SIGNING_ENVIRONMENT, PIN (the pin this run builds for) and
  * RELEASE_PIN (the repository variable LOLLY_RELEASE_PUBLIC_KEY_JWK). When
  * GITHUB_OUTPUT is set, the checked pin is written there as `pin`, byte for byte as
- * given. With `--same-key` it instead compares RELEASE_PIN with NATIVE_PIN.
+ * given, in the delimited form so a pin that spans lines survives. With `--same-key` it instead compares RELEASE_PIN with NATIVE_PIN.
  */
-import { createPublicKey } from 'node:crypto';
+import { createPublicKey, randomUUID } from 'node:crypto';
 import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -74,7 +74,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv[2] === '-
     const pin = checkSigningScope({
       environment: process.env.SIGNING_ENVIRONMENT, pin: process.env.PIN, releasePin: process.env.RELEASE_PIN,
     });
-    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `pin=${pin}\n`);
+    // A pin variable may span lines, so use the delimited output form. It keeps the bytes exact.
+    const end = `pin_${randomUUID()}`;
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `pin<<${end}\n${pin}\n${end}\n`);
     console.log(`Signing scope ok: ${process.env.SIGNING_ENVIRONMENT}`);
   } catch (error) {
     console.error(`::error title=Signing scope::${(error as Error).message}`);

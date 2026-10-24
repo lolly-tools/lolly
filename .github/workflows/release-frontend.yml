@@ -35,9 +35,7 @@ on:
         type: string
         default: ''
       # Raise the catalog sequence floor for the final signing (first preview
-      # catalog only). TODO: scripts/sign-catalog.ts does not accept --min-seq on
-      # main yet (branch feat/sign-catalog-min-seq). Until it merges a non-empty
-      # value fails closed with "unknown flag --min-seq".
+      # catalog only), through scripts/sign-catalog.ts --min-seq.
       min_seq:
         required: false
         type: string

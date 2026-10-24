@@ -393,6 +393,21 @@ test('the checked pin is emitted exactly as the caller gave it, so release build
   const spaced = JSON.stringify({ y: jwk.y, x: jwk.x, crv: jwk.crv, kty: jwk.kty }, null, 2);
   for (const pin of [publicMaterial, spaced, ` ${publicMaterial}\n`]) {
     assert.equal(checkSigningScope({ environment: RELEASE_ENVIRONMENT, pin, releasePin: publicMaterial }), pin);
+    // The script writes it to GITHUB_OUTPUT; read it back the way the runner does.
+    const dir = mkdtempSync(join(tmpdir(), 'lolly-signing-scope-'));
+    try {
+      const output = join(dir, 'output');
+      writeFileSync(output, '');
+      const run = spawnSync(process.execPath, ['scripts/check-signing-scope.ts'], {
+        encoding: 'utf8', timeout: 10_000,
+        env: { ...process.env, SIGNING_ENVIRONMENT: RELEASE_ENVIRONMENT, PIN: pin, RELEASE_PIN: publicMaterial, GITHUB_OUTPUT: output },
+      });
+      assert.equal(run.status, 0, run.stderr);
+      const match = /^pin<<(\S+)\n([\s\S]*)\n\1\n$/.exec(readFileSync(output, 'utf8'));
+      assert.ok(match, 'the pin must use the delimited output form');
+      assert.equal(match[2], pin);
+      assert.equal(pin.includes(match[1]!), false);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
   }
 });
 
