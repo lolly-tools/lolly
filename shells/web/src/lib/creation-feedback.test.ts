@@ -8,7 +8,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { creationFeedbackRows, readCreationFeedback, type CreationFeedbackSource } from './creation-feedback.ts';
+import { creationFeedbackRows, hostAssetNames, readCreationFeedback, type AssetNamesHost, type CreationFeedbackSource } from './creation-feedback.ts';
 import { preflightBodyHtml, preflightView } from '../views/export-preflight.ts';
 
 const TOKENS = JSON.parse(readFileSync(new URL('../../../../tests/fixtures/design-brief/tokens.json', import.meta.url), 'utf8'));
@@ -125,4 +125,27 @@ test('the card renders the rows with escaped details and a plain link, and never
   assert.ok(!html.includes('<b>x</b>'), 'layer names are escaped');
   assert.doesNotMatch(html, /disabled|data-preflight-fix/, 'no control that gates or dismisses');
   assert.equal(view.show, true);
+});
+
+test('the host asset names keep each id and its display name, and a host that cannot answer gives none', async () => {
+  let queried: unknown;
+  const named: AssetNamesHost = {
+    assets: {
+      query: async (filter) => {
+        queried = filter;
+        return [
+          { id: 'example/logo/primary', meta: { name: ' Example Wordmark ' } },
+          { id: 'example/logo/reverse', meta: { name: '' } },
+          { id: 'example/photos/sea' },
+        ];
+      },
+    },
+  };
+  assert.deepEqual(await hostAssetNames(named), {
+    assets: [{ id: 'example/logo/primary', name: 'Example Wordmark' }, { id: 'example/logo/reverse' }, { id: 'example/photos/sea' }],
+  });
+  assert.deepEqual(queried, { includeDeprecated: true }, 'the same query hostBrandCatalog makes');
+  assert.equal(await hostAssetNames({ assets: { query: async () => { throw new Error('offline'); } } }), undefined);
+  assert.equal(await hostAssetNames({ assets: {} }), undefined);
+  assert.equal(await hostAssetNames(undefined), undefined);
 });

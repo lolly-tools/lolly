@@ -19,7 +19,7 @@ import { isVectorImageSrc, placedImageLabel } from '../../lib/placed-image.ts';
 import { getRateCardBlob, listCatalogRateCards, listRateCards } from '../../lib/rate-cards.ts';
 import { applyCostPanel, costView } from '../cost-panel.ts';
 import type { CostAuthoringContext } from '../cost-panel.ts';
-import { brandCheckRows, hostAssetNames, hostBrandCatalog, type BrandCatalogHost } from '../brand-check-rows.ts';
+import { brandCheckRows, hostBrandCatalog, type BrandCatalogHost } from '../brand-check-rows.ts';
 import { mountedDesignFindingMessage } from '../design-audit-copy.ts';
 import { runDesignChecks } from '../design-checks.ts';
 import { applyPreflight, isPreflightEnabled, preflightView } from '../export-preflight.ts';
@@ -110,7 +110,7 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
   // Creation feedback: the design system's house rules, layer by layer, and the writing
   // score Verify shows. It informs and never gates Download. Loaded on first open, so a
   // closed Export panel pays nothing for the text analysis.
-  const { readCreationFeedback, creationFeedbackRows } = await import('../../lib/creation-feedback.ts');
+  const { readCreationFeedback, creationFeedbackRows, hostAssetNames } = await import('../../lib/creation-feedback.ts');
   const feedbackRows = creationFeedbackRows(await readCreationFeedback({
     model: () => runtime.getModel(),
     snapshot: async () => ta.host.tokens?.snapshot?.(),

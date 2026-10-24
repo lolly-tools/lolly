@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Brand findings share the export check panel and the tool's normal undo path. */
 import { applyBrandFix, checkBrandDesign, type BrandCheckCatalogOpts, type BrandFinding } from '../../../../engine/src/brand-check.ts';
-import { brandCheckCatalog, type DesignBriefCatalogV1 } from '../../../../engine/src/design-brief.ts';
+import { brandCheckCatalog } from '../../../../engine/src/design-brief.ts';
 import type { AssetQuery, AssetRef, TokensSnapshot } from '@lolly-tools/core/host-v1';
 import { t, tRaw } from '../i18n.ts';
 import type { PreflightRow } from './export-preflight.ts';
@@ -30,7 +30,7 @@ export function coverageText(checked: { colors: number; fonts: number; assets: n
 /** The slice of the web host the catalog facts come from; every part is optional. */
 export interface BrandCatalogHost {
   assets?: {
-    query?(filter: AssetQuery): Promise<Array<Pick<AssetRef, 'id'> & Partial<Pick<AssetRef, 'meta'>>>>;
+    query?(filter: AssetQuery): Promise<Pick<AssetRef, 'id'>[]>;
     _iconThemes?(): Promise<unknown[]>;
     _photoTreatments?(): Promise<unknown[]>;
   };
@@ -58,28 +58,6 @@ export async function hostBrandCatalog(host: BrandCatalogHost | undefined): Prom
     iconThemes: { themes },
     photoTreatments: { treatments },
   });
-}
-
-/**
- * Each catalog asset's id and display name, from the asset index `hostBrandCatalog`
- * reads, for a message that gives an asset's name, such as a logo finding. Undefined
- * when the host cannot answer, so those messages keep the ids.
- */
-export async function hostAssetNames(host: BrandCatalogHost | undefined): Promise<Pick<DesignBriefCatalogV1, 'assets'> | undefined> {
-  const assets = host?.assets;
-  if (!assets?.query) return undefined;
-  try {
-    const refs = await assets.query({ includeDeprecated: true });
-    if (!Array.isArray(refs)) return undefined;
-    return {
-      assets: refs.filter((r) => typeof r?.id === 'string').map((r) => {
-        const name = r.meta?.name;
-        return typeof name === 'string' && name.trim() ? { id: r.id, name: name.trim() } : { id: r.id };
-      }),
-    };
-  } catch {
-    return undefined;
-  }
 }
 
 export async function brandCheckRows(options: {

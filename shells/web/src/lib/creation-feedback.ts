@@ -12,7 +12,7 @@
  * reaches in-browser agents through the site tools (`site-tools-discovery.ts`).
  */
 import { creationFeedback, designVisibleText, type CreationFeedbackReportV1, type DesignBriefCatalogV1 } from '@lolly/engine';
-import type { TokensSnapshot } from '@lolly-tools/core/host-v1';
+import type { AssetQuery, AssetRef, TokensSnapshot } from '@lolly-tools/core/host-v1';
 import { t, tRaw } from '../i18n.ts';
 import type { PreflightRow } from '../views/export-preflight.ts';
 import { setPendingVerify } from './verify-handoff.ts';
@@ -34,6 +34,33 @@ export interface CreationFeedbackRead {
 }
 
 const inputValue = (model: ReturnType<CreationFeedbackSource['model']>, id: string): unknown => model.find((item) => item.id === id)?.value;
+
+/** The part of a host the asset names are read from: its asset index. */
+export interface AssetNamesHost {
+  assets?: { query?(filter: AssetQuery): Promise<Array<Pick<AssetRef, 'id'> & Partial<Pick<AssetRef, 'meta'>>>> };
+}
+
+/**
+ * Each catalog asset's id and display name, from the asset index `hostBrandCatalog`
+ * reads (views/brand-check-rows.ts), for a message that gives an asset's name, such as a logo finding. Undefined
+ * when the host cannot answer, so those messages keep the ids.
+ */
+export async function hostAssetNames(host: AssetNamesHost | undefined): Promise<Pick<DesignBriefCatalogV1, 'assets'> | undefined> {
+  const assets = host?.assets;
+  if (!assets?.query) return undefined;
+  try {
+    const refs = await assets.query({ includeDeprecated: true });
+    if (!Array.isArray(refs)) return undefined;
+    return {
+      assets: refs.filter((r) => typeof r?.id === 'string').map((r) => {
+        const name = r.meta?.name;
+        return typeof name === 'string' && name.trim() ? { id: r.id, name: name.trim() } : { id: r.id };
+      }),
+    };
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * Read the report for the document the source holds. A design system that cannot be
