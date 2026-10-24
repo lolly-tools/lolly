@@ -10312,5 +10312,12 @@
   "Ink and paper": "Inkoust a papír",
   "Named colours": "Pojmenované barvy",
   "Emphasis": "Zdůraznění",
-  "Zoom to selection": "Přiblížit na výběr"
+  "Zoom to selection": "Přiblížit na výběr",
+  "Artboard titles": "Názvy pracovních ploch",
+  "Always": "Vždy",
+  "Selected and hovered": "Vybrané a pod ukazatelem",
+  "Next / previous artboard": "Další / předchozí pracovní plocha",
+  "First / last artboard": "První / poslední pracovní plocha",
+  "Zoom to the dragged area": "Přiblížit na tažený výběr",
+  "Zoom in / out at the pointer": "Přiblížit / oddálit u ukazatele"
 }

@@ -10312,5 +10312,12 @@
   "Ink and paper": "الحبر والورق",
   "Named colours": "ألوان مسمّاة",
   "Emphasis": "التأكيد",
-  "Zoom to selection": "تكبير إلى التحديد"
+  "Zoom to selection": "تكبير إلى التحديد",
+  "Artboard titles": "عناوين اللوحات",
+  "Always": "دائمًا",
+  "Selected and hovered": "المحددة وتحت المؤشر",
+  "Next / previous artboard": "اللوحة التالية / السابقة",
+  "First / last artboard": "أول / آخر لوحة",
+  "Zoom to the dragged area": "التكبير إلى المنطقة المسحوبة",
+  "Zoom in / out at the pointer": "تكبير / تصغير عند المؤشر"
 }

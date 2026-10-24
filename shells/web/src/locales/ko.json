@@ -10312,5 +10312,12 @@
   "Ink and paper": "잉크와 종이",
   "Named colours": "이름 있는 색상",
   "Emphasis": "강조",
-  "Zoom to selection": "선택 항목에 맞게 확대/축소"
+  "Zoom to selection": "선택 항목에 맞게 확대/축소",
+  "Artboard titles": "아트보드 제목",
+  "Always": "항상",
+  "Selected and hovered": "선택됨 및 포인터 아래",
+  "Next / previous artboard": "다음 / 이전 아트보드",
+  "First / last artboard": "첫 번째 / 마지막 아트보드",
+  "Zoom to the dragged area": "드래그한 영역으로 확대",
+  "Zoom in / out at the pointer": "포인터 위치에서 확대 / 축소"
 }

@@ -126,6 +126,9 @@ import { selectionTransformOps } from './free-canvas/selection-transform.ts';
 import { zonesOps } from './free-canvas/zones.ts';
 import { grabZonesOps, storedLargeGrab } from './free-canvas/grab-zones.ts';
 import { pinchOps } from './free-canvas/pinch.ts';
+import { frameTitlesOps } from './free-canvas/frame-titles.ts';
+import { frameStepOps } from './free-canvas/frame-step.ts';
+import { zoomMarqueeOps } from './free-canvas/zoom-marquee.ts';
 import { preloadGeometryKernels } from '../bridge/geometry-host.ts';
 export { clampRailPos, stageBlockers, ctxTopBand, centreCtxBar, FC_TILT } from './free-canvas/shared.ts';
 export type { DeepLinkState, CtxTopBand } from './free-canvas/shared.ts';
@@ -261,6 +264,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.zones = zonesOps(fc);
   fc.grabZones = grabZonesOps(fc);
   fc.pinch = pinchOps(fc);
+  fc.frameTitles = frameTitlesOps(fc);
+  fc.frameStep = frameStepOps(fc);
+  fc.zoomMarquee = zoomMarqueeOps(fc);
   fc.opts = opts;
 
   const {
@@ -1018,6 +1024,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // person tries first, and `preventDefault` is what stops the button synthesising the
   // click that would merely solo the frame. The tab advertises both through
   // `aria-keyshortcuts` - its `title` can only speak to a mouse.
+  // A focused title stays shown while it has the focus (frame-titles.ts).
+  frameLabels.addEventListener('focusin', fc.frameTitles.onTitleFocusIn);
+  frameLabels.addEventListener('focusout', fc.frameTitles.onTitleFocusOut);
   frameLabels.addEventListener('keydown', (e) => {
     const el = (e.target as HTMLElement | null)?.closest<HTMLElement>('.fc-frame-label');
     if (!el || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -1802,12 +1811,25 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const artboardListeners = new Set<(id: string) => void>(); fc.artboardListeners = artboardListeners;
   fc.artboardNotifiedId = '';
 
-  // Frame name labels: rebuild the tabs only when the frame set / order / active state
-  // changes (tracked by frameLabelKey), and reposition them every sync - the same MODEL-px
-  // discipline positionFrameScrim uses. Hidden entirely while editing text or in pen mode so
-  // the canvas stays clean. frameCfg-gated.
-  fc.frameLabelKey = '';
+  // Frame name labels (frame-titles.ts): only the titles shown exist, each patched in place
+  // and placed from the model on every sync - the same MODEL-px discipline
+  // positionFrameScrim uses. Hidden entirely while editing text or in pen mode so the
+  // canvas stays clean. frameCfg-gated.
   fc.frameLabelFrames = null;
+  // Which titles show, and the state that decides it (frame-titles.ts): by default the
+  // selected artboards, the ones holding the selection and the one under the pointer.
+  fc.titleMode = fc.frameTitles.readTitleMode();
+  fc.titleKept = new Set<string>();
+  fc.titleMetrics = null;
+  fc.titleFocusId = '';
+  fc.hoverFrameId = '';
+  fc.titleHoverAt = null;
+  fc.titleHoverRaf = 0;
+  fc.frameTitleEls = new Map<string, HTMLButtonElement>();
+  // PageDown / PageUp / Home / End (frame-step.ts) and hold-Z zoom (zoom-marquee.ts).
+  fc.frameStepId = '';
+  fc.zoomArmed = false;
+  fc.zoomDrag = null;
 
   // ── artboard rename (plans/179 A10) ──────────────────────────────────────────
   //
@@ -1865,6 +1887,15 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   document.addEventListener('copy', fc.modes.onCopy);
   document.addEventListener('cut', fc.modes.onCut);
   stageEl.addEventListener('pointermove', fc.keys.onStagePointerMove, { passive: true });
+  stageEl.addEventListener('pointerleave', fc.frameTitles.hoverEnd);
+  // Hold-Z zoom: the press is taken before any canvas gesture sees it; the drag follows
+  // the pointer the stage captured.
+  document.addEventListener('pointerdown', fc.zoomMarquee.zoomPointerDown, true);
+  stageEl.addEventListener('pointermove', fc.zoomMarquee.zoomPointerMove);
+  stageEl.addEventListener('pointerup', fc.zoomMarquee.zoomPointerUp);
+  stageEl.addEventListener('pointercancel', fc.zoomMarquee.zoomPointerUp);
+  window.addEventListener('keyup', fc.zoomMarquee.zoomKeyUp);
+  window.addEventListener('blur', fc.zoomMarquee.zoomBlur);
   const unwireZones = fc.zones.wire(); // the grab zones' hover cursor (plan 311)
   const unwirePinch = fc.pinch.wire(); // Safari's own pinch events while two fingers hold the selection
   stageEl.addEventListener('wheel', fc.keys.onStageWheel, { passive: true });
@@ -2389,6 +2420,14 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       document.removeEventListener('copy', fc.modes.onCopy);
       document.removeEventListener('cut', fc.modes.onCut);
       stageEl.removeEventListener('pointermove', fc.keys.onStagePointerMove);
+      stageEl.removeEventListener('pointerleave', fc.frameTitles.hoverEnd);
+      document.removeEventListener('pointerdown', fc.zoomMarquee.zoomPointerDown, true);
+      stageEl.removeEventListener('pointermove', fc.zoomMarquee.zoomPointerMove);
+      stageEl.removeEventListener('pointerup', fc.zoomMarquee.zoomPointerUp);
+      stageEl.removeEventListener('pointercancel', fc.zoomMarquee.zoomPointerUp);
+      window.removeEventListener('keyup', fc.zoomMarquee.zoomKeyUp);
+      window.removeEventListener('blur', fc.zoomMarquee.zoomBlur);
+      if (fc.titleHoverRaf) cancelAnimationFrame(fc.titleHoverRaf);
       unwireZones();
       unwirePinch();
       stageEl.removeEventListener('wheel', fc.keys.onStageWheel);

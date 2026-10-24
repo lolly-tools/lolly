@@ -68,6 +68,9 @@ import type { selectionTransformOps } from './selection-transform.ts';
 import type { zonesOps } from './zones.ts';
 import type { grabZonesOps } from './grab-zones.ts';
 import type { pinchOps } from './pinch.ts';
+import type { TitleMode, frameTitlesOps } from './frame-titles.ts';
+import type { frameStepOps } from './frame-step.ts';
+import type { zoomMarqueeOps } from './zoom-marquee.ts';
 
 export interface FcCtx {
   hierarchy: ReturnType<typeof hierarchyOps>;
@@ -339,10 +342,28 @@ export interface FcCtx {
   frameLabelFrames: { source: Box[]; frames: Array<{ b: Box; i: number }> } | null;
   /** Where the context bar was last placed: its band in the top chrome row. */
   ctxPlacedBand: string;
+  /** Which artboard titles show (frame-titles.ts): a device-local view preference. */
+  titleMode: TitleMode;
+  /** The artboards the selection keeps titled: selected ones and those holding a selected row. */
+  titleKept: Set<string>;
+  /** The stage metrics the last title sync measured, which a hover reuses. */
+  titleMetrics: Metrics | null;
+  /** The title with keyboard focus, which stays shown while focused. */
+  titleFocusId: string;
+  /** The artboard under the pointer, picked from the model. */
+  hoverFrameId: string;
+  titleHoverAt: { id: string } | { x: number; y: number } | null;
+  titleHoverRaf: number;
+  /** The title tabs shown, by artboard id. */
+  frameTitleEls: Map<string, HTMLButtonElement>;
+  /** The artboard PageDown / PageUp last went to (frame-step.ts). */
+  frameStepId: string;
+  /** Hold-Z zoom (zoom-marquee.ts): armed while Z is down, and the press being dragged. */
+  zoomArmed: boolean;
+  zoomDrag: { id: number; x: number; y: number; alt: boolean; left: number; top: number; w: number; h: number } | null;
   activeArtboardKey: string;
   artboardListeners: Set<(id: string) => void>;
   artboardNotifiedId: string;
-  frameLabelKey: string;
   renamingFrameId: string;
   ctxBlockers: StageBox[] | null;
   ctxFrozen: { left: number; top: number } | null;
@@ -404,6 +425,9 @@ export interface FcCtx {
   zones: ReturnType<typeof zonesOps>;
   grabZones: ReturnType<typeof grabZonesOps>;
   pinch: ReturnType<typeof pinchOps>;
+  frameTitles: ReturnType<typeof frameTitlesOps>;
+  frameStep: ReturnType<typeof frameStepOps>;
+  zoomMarquee: ReturnType<typeof zoomMarqueeOps>;
 }
 
 /** A module function minus its leading context parameter. */

@@ -10312,5 +10312,12 @@
   "Ink and paper": "油墨與紙張",
   "Named colours": "命名色彩",
   "Emphasis": "強調",
-  "Zoom to selection": "縮放至選取範圍"
+  "Zoom to selection": "縮放至選取範圍",
+  "Artboard titles": "畫板標題",
+  "Always": "一律顯示",
+  "Selected and hovered": "已選取與游標下",
+  "Next / previous artboard": "下一個 / 上一個畫板",
+  "First / last artboard": "第一個 / 最後一個畫板",
+  "Zoom to the dragged area": "縮放至拖曳的區域",
+  "Zoom in / out at the pointer": "在游標處放大 / 縮小"
 }

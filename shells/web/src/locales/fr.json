@@ -10312,5 +10312,12 @@
   "Ink and paper": "Encre et papier",
   "Named colours": "Couleurs nommées",
   "Emphasis": "Accentuation",
-  "Zoom to selection": "Zoomer sur la sélection"
+  "Zoom to selection": "Zoomer sur la sélection",
+  "Artboard titles": "Titres des plans de travail",
+  "Always": "Toujours",
+  "Selected and hovered": "Sélectionnés et survolés",
+  "Next / previous artboard": "Plan de travail suivant / précédent",
+  "First / last artboard": "Premier / dernier plan de travail",
+  "Zoom to the dragged area": "Zoomer sur la zone tracée",
+  "Zoom in / out at the pointer": "Zoom avant / arrière au pointeur"
 }

@@ -10312,5 +10312,12 @@
   "Ink and paper": "কালি ও কাগজ",
   "Named colours": "নামযুক্ত রং",
   "Emphasis": "জোর",
-  "Zoom to selection": "নির্বাচনে জুম করুন"
+  "Zoom to selection": "নির্বাচনে জুম করুন",
+  "Artboard titles": "আর্টবোর্ডের শিরোনাম",
+  "Always": "সব সময়",
+  "Selected and hovered": "নির্বাচিত ও পয়েন্টারের নিচে",
+  "Next / previous artboard": "পরের / আগের আর্টবোর্ড",
+  "First / last artboard": "প্রথম / শেষ আর্টবোর্ড",
+  "Zoom to the dragged area": "টানা এলাকায় জুম করুন",
+  "Zoom in / out at the pointer": "পয়েন্টারে জুম ইন / আউট"
 }

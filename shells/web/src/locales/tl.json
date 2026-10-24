@@ -10312,5 +10312,12 @@
   "Ink and paper": "Ink at papel",
   "Named colours": "Mga pinangalanang kulay",
   "Emphasis": "Diin",
-  "Zoom to selection": "I-zoom sa pinili"
+  "Zoom to selection": "I-zoom sa pinili",
+  "Artboard titles": "Mga pamagat ng artboard",
+  "Always": "Palagi",
+  "Selected and hovered": "Napili at nasa ilalim ng pointer",
+  "Next / previous artboard": "Susunod / nakaraang artboard",
+  "First / last artboard": "Una / huling artboard",
+  "Zoom to the dragged area": "I-zoom sa hinilang bahagi",
+  "Zoom in / out at the pointer": "Mag-zoom in / out sa pointer"
 }

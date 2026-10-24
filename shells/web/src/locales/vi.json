@@ -10312,5 +10312,12 @@
   "Ink and paper": "Mực và giấy",
   "Named colours": "Màu có tên",
   "Emphasis": "Nhấn mạnh",
-  "Zoom to selection": "Thu phóng tới phần đã chọn"
+  "Zoom to selection": "Thu phóng tới phần đã chọn",
+  "Artboard titles": "Tiêu đề bảng vẽ",
+  "Always": "Luôn luôn",
+  "Selected and hovered": "Đã chọn và dưới con trỏ",
+  "Next / previous artboard": "Bảng vẽ tiếp theo / trước",
+  "First / last artboard": "Bảng vẽ đầu / cuối",
+  "Zoom to the dragged area": "Thu phóng tới vùng đã kéo",
+  "Zoom in / out at the pointer": "Phóng to / thu nhỏ tại con trỏ"
 }

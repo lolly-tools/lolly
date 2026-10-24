@@ -10312,5 +10312,12 @@
   "Ink and paper": "Inchiostro e carta",
   "Named colours": "Colori con nome",
   "Emphasis": "Enfasi",
-  "Zoom to selection": "Zoom sulla selezione"
+  "Zoom to selection": "Zoom sulla selezione",
+  "Artboard titles": "Titoli dei tavoli da disegno",
+  "Always": "Sempre",
+  "Selected and hovered": "Selezionati e sotto il puntatore",
+  "Next / previous artboard": "Tavolo da disegno successivo / precedente",
+  "First / last artboard": "Primo / ultimo tavolo da disegno",
+  "Zoom to the dragged area": "Zoom sull'area trascinata",
+  "Zoom in / out at the pointer": "Ingrandisci / riduci sul puntatore"
 }

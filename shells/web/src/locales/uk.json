@@ -10312,5 +10312,12 @@
   "Ink and paper": "Фарба й папір",
   "Named colours": "Іменовані кольори",
   "Emphasis": "Акцент",
-  "Zoom to selection": "Масштабувати до вибору"
+  "Zoom to selection": "Масштабувати до вибору",
+  "Artboard titles": "Назви артбордів",
+  "Always": "Завжди",
+  "Selected and hovered": "Вибрані та під курсором",
+  "Next / previous artboard": "Наступний / попередній артборд",
+  "First / last artboard": "Перший / останній артборд",
+  "Zoom to the dragged area": "Масштабувати до виділеної області",
+  "Zoom in / out at the pointer": "Збільшити / зменшити біля курсора"
 }
