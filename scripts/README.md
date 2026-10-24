@@ -133,6 +133,7 @@ These drive tools in a real browser and export through the app's own render path
 | `build-mcp-fn.ts` | `build:mcp-fn` | Bundles the MCP serverless handler into a single self-contained catch-all function serving the JSON-RPC endpoint and the OAuth flow. | DESTRUCTIVE |
 | `build-ca-fn.ts` | `build:ca-fn` | The same treatment for the C2PA device-enrolment CA handler. | DESTRUCTIVE |
 | `check-mcp-live.ts` | `check:mcp` | Live smoke check of the deployed serverless functions behind lolly.tools. | network |
+| `check-api-bundles.ts` | | Compares the committed `api/` function bundles with a fresh build. Strict on pushes and tags; a pull request fails only when it changes what the bundles are built from. | |
 
 ## Engine module map
 
