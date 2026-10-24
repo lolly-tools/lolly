@@ -87,8 +87,11 @@ handoff with one named owner.
     picking the marks they picked before the rule existed.
   - `dash-reserved` (advisory): dashed lines mean drop here.
 
-  All four are `draft`, so `lolly check` reports the required rule as a
-  warning until someone approves the rule. Three kinds are left out on purpose.
+  All four are approved (`review: { state: "approved", authority: "Andy
+  Fitzsimon" }`, 24 Oct 2026), so `lolly check` reports a headline in capitals
+  as an error and a finding from the three advisory rules as a warning, and the
+  Usage & rules room shows each one as Required or Advisory. Three kinds are
+  left out on purpose.
   The slide master sets titles at weight 700 while the standards page sets
   headings at 500, so there is no single weight for a text-weight rule. The
   standards judge contrast by text size (4.5:1 for body text, 3:1 for large

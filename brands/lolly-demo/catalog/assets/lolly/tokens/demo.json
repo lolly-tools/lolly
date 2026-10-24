@@ -1010,7 +1010,7 @@
             "scope": { "tools": ["design"] },
             "requirement": "required",
             "origin": { "kind": "source", "reference": "Lolly Demo brand standards (lolly/skill/brand)", "locator": "Voice" },
-            "review": { "state": "draft" },
+            "review": { "state": "approved", "authority": "Andy Fitzsimon" },
             "description": "Headings take sentence case. A headline is a title text, or the one largest text on its artboard. Names and short acronyms in capitals are fine."
           },
           {
@@ -1022,7 +1022,7 @@
             "scope": { "tools": ["design"] },
             "requirement": "advisory",
             "origin": { "kind": "source", "reference": "Lolly Demo brand standards (lolly/skill/brand)", "locator": "Layout" },
-            "review": { "state": "draft" },
+            "review": { "state": "approved", "authority": "Andy Fitzsimon" },
             "description": "Checks text in a body slot of the slide master. Short display lines may be centred, so text outside a body slot is not checked, and quotes keep the master's centred setting."
           },
           {
@@ -1038,7 +1038,7 @@
             "scope": { "tools": ["design"] },
             "requirement": "advisory",
             "origin": { "kind": "source", "reference": "Lolly brand standards (/brand)", "locator": "The mark" },
-            "review": { "state": "draft" },
+            "review": { "state": "approved", "authority": "Andy Fitzsimon" },
             "description": "The primary mark, the mono mark and the Liquorice wordmark sit on light. The reverse mark, the mono reverse mark and the Daylight wordmark sit on dark, and so does the Green Apple wordmark, drawn for the Spearmint ground. The standards name no mark for photographs, so any Lolly mark passes on one, and a mark set to follow its surface takes the reverse mark there."
           },
           {
@@ -1050,7 +1050,7 @@
             "scope": { "tools": ["design"] },
             "requirement": "advisory",
             "origin": { "kind": "source", "reference": "Lolly brand standards (/brand)", "locator": "Clinic" },
-            "review": { "state": "draft" },
+            "review": { "state": "approved", "authority": "Andy Fitzsimon" },
             "description": "Dashes mark a place where something can be dropped and never frame an empty state. Lines drawn with the pen are not checked."
           }
         ]
