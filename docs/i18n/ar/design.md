@@ -18,7 +18,7 @@ Design هي الأداة للتخطيطات التي لا يغطيها قالب:
 
 - **أوقف الصناديق خارج لوحة العمل.** اسحب صندوقاً عبر حافة الإطار فيبقى مرئياً وقابلاً للتحديد. يبهت كل ما خارج الإطار، ويحتفظ الإطار بظله ليدل على حيث يبدأ الملف.
 - **لوحة العمل وحدها تُصدَّر.** أي شيء خارج الإطار، أو الجزء المتدلي من صندوق فوق الحافة، يُقتطع من الإخراج في الصيغ النقطية والمتجهة على حد سواء.
-- **صغّر إلى ما بعد Fit**، حتى 20%، لترى كل ما أوقفته جانباً.
+- **صغّر إلى ما بعد Fit** لترى كل ما أوقفته جانباً.
 - **غيّر حجم لوحة العمل** بتغيير حجم التصدير. تحتفظ الصناديق بمواضعها، فيمكنك إعادة تأطير تخطيط حول محتوى قائم.
 
 ![مرحلة التحرير: لوحة العمل في المقدمة والوسط، وشريط الأدوات على اليسار، وشريط التكبير في الزاوية](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)

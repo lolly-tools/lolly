@@ -42,10 +42,12 @@ Valet hör till det här stycket. Det följer med i länken och den sparade sess
 
 Förhandsvisningen visar alltid exakt det som kommer att exporteras.
 
-- **Zoom:** Cmd/Ctrl-scroll eller nyp på ett styrplatta, centrerat på pekaren. På tangentbordet anpassar `0` till fönstret, `1` är 100 % och `+` / `−` zoomar.
+- **Zoom:** Cmd/Ctrl-scroll eller nyp på en styrplatta, centrerat på pekaren. På tangentbordet anpassar `0` eller `Shift+1` allt till vyn, `1` eller `Shift+0` ställer in 100 % och `Shift+2` anpassar markeringen. `+` / `−` zoomar runt pekaren när den är över scenen, annars runt mitten.
 - **Panorera:** håll ned **Space** och dra, eller dra med mittenknappen på musen. Vanliga klick förblir lediga för att klicka på delar av designen.
 - **Touch:** nyp för att zooma, dra för att panorera och dubbeltryck för att anpassa.
 - **Zoom-HUD:** tryck och håll på Lolly-snurran i hörnet för att veckla ut `−`, **Fit** och `+`. Ett kort tryck på snurran öppnar fortfarande din profilmeny.
+
+I Design tar **Fit all** med ritytor och lösa lager. Du kan zooma ut manuellt under 20 % tills hela sidan fyller halva vyn. Den fasta nedre gränsen är det lägsta av 5 % av den vanliga Fit-skalan och 2 % absolut zoom.
 
 En ändring av utdatastorleken knäpper alltid tillbaka vyn till en ren anpassning.
 

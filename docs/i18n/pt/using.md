@@ -42,10 +42,12 @@ A escolha pertence a esta peça. Ela viaja no link e na sessão salva, todas as 
 
 A pré-visualização sempre mostra exatamente o que será exportado.
 
-- **Zoom:** Cmd/Ctrl com rolagem, ou pinça no trackpad, centrado no ponteiro. No teclado, `0` ajusta à janela, `1` é 100% e `+` / `−` dão zoom.
+- **Zoom:** Cmd/Ctrl com rolagem, ou pinça no trackpad, centrado no ponteiro. No teclado, `0` ou `Shift+1` ajusta tudo, `1` ou `Shift+0` define 100% e `Shift+2` ajusta a seleção. `+` / `−` dão zoom ao redor do ponteiro quando ele está sobre a área de edição, ou ao redor do centro caso contrário.
 - **Deslocar:** segure **Space** e arraste, ou arraste com o botão do meio do mouse. Os cliques simples ficam livres para clicar nas partes do design.
 - **Toque:** pinça para dar zoom, arraste para deslocar e toque duplo para ajustar.
 - **HUD de zoom:** mantenha pressionado o redemoinho do Lolly no canto para abrir `−`, **Fit** e `+`. Um toque curto no redemoinho ainda abre o menu do seu perfil.
+
+No Design, **Fit all** inclui as pranchetas e as camadas soltas. Você pode afastar o zoom manualmente abaixo de 20% até que a página inteira ocupe metade da visualização. O limite inferior é o menor entre 5% da escala Fit normal e 2% de zoom absoluto.
 
 Uma mudança no tamanho da saída sempre leva a vista de volta a um ajuste limpo.
 

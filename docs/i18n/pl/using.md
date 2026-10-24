@@ -42,10 +42,12 @@ Wybór należy do tej pracy. Podróżuje w linku i zapisanej sesji, podąża za 
 
 Podgląd zawsze pokazuje dokładnie to, co zostanie wyeksportowane.
 
-- **Powiększanie:** Cmd/Ctrl i przewijanie albo szczypnięcie na gładziku, względem wskaźnika. Na klawiaturze `0` dopasowuje do okna, `1` to 100%, a `+` / `−` powiększają.
+- **Powiększanie:** Cmd/Ctrl i przewijanie albo szczypnięcie na gładziku, względem wskaźnika. Na klawiaturze `0` lub `Shift+1` dopasowuje wszystko, `1` lub `Shift+0` ustawia 100%, a `Shift+2` dopasowuje zaznaczenie. `+` / `−` zmieniają powiększenie względem wskaźnika, gdy znajduje się nad sceną, a w przeciwnym razie względem środka widoku.
 - **Przesuwanie:** przytrzymaj **Space** i przeciągaj albo przeciągaj środkowym przyciskiem myszy. Zwykłe kliknięcia pozostają wolne do klikania części projektu.
 - **Dotyk:** szczypnij, aby powiększyć, przeciągaj, aby przesuwać, i stuknij dwukrotnie, aby dopasować.
 - **HUD powiększenia:** naciśnij i przytrzymaj wir Lolly w rogu, aby rozwinąć `−`, **Fit** i `+`. Krótkie stuknięcie wiru nadal otwiera menu profilu.
+
+W Design **Fit all** obejmuje obszary robocze i luźne warstwy. Ręcznie można oddalić poniżej 20%, aż cała strona zajmie połowę widoku. Bezwzględna dolna granica to mniejsza z wartości: 5% zwykłej skali Fit i 2% powiększenia bezwzględnego.
 
 Zmiana rozmiaru wyjściowego zawsze przywraca widok do czystego dopasowania.
 

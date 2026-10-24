@@ -42,10 +42,12 @@ Alegerea aparține acestei piese. Călătorește în link și în sesiunea salva
 
 Previzualizarea arată mereu exact ce se va exporta.
 
-- **Zoom:** Cmd/Ctrl și derulare sau ciupire pe trackpad, centrat pe cursor. De la tastatură, `0` încadrează fereastra, `1` este 100%, iar `+` / `−` fac zoom.
+- **Zoom:** Cmd/Ctrl și derulare sau ciupire pe trackpad, centrat pe cursor. De la tastatură, `0` sau `Shift+1` încadrează totul, `1` sau `Shift+0` setează 100%, iar `Shift+2` încadrează selecția. `+` / `−` fac zoom în jurul cursorului când este deasupra scenei, iar în rest în jurul centrului.
 - **Deplasare:** ține apăsat **Space** și trage sau trage cu butonul din mijloc al mouse-ului. Clicurile simple rămân libere pentru a da clic pe părți ale designului.
 - **Atingere:** ciupește pentru zoom, trage pentru deplasare și atinge de două ori pentru a încadra.
 - **Zoom HUD:** apasă lung pe spirala Lolly din colț ca să desfaci `−`, **Fit** și `+`. O atingere scurtă pe spirală deschide în continuare meniul profilului tău.
+
+În Design, **Fit all** include planșele și straturile libere. Poți micșora manual sub 20% până când întreaga pagină ocupă jumătate din zona vizibilă. Limita inferioară este valoarea mai mică dintre 5% din scara Fit obișnuită și 2% zoom absolut.
 
 O schimbare a dimensiunii de ieșire readuce mereu vederea la o încadrare curată.
 

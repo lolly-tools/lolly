@@ -42,10 +42,12 @@ Pilihan ini milik karya ini. Ia ikut dalam tautan dan sesi tersimpan, setiap war
 
 Pratinjau selalu menampilkan persis apa yang akan diekspor.
 
-- **Zoom:** Cmd/Ctrl-gulir atau cubit di trackpad, berpusat pada penunjuk Anda. Di keyboard, `0` menyesuaikan dengan jendela, `1` adalah 100%, dan `+` / `−` memperbesar atau memperkecil.
+- **Zoom:** Cmd/Ctrl-gulir atau cubit di trackpad, berpusat pada penunjuk Anda. Di keyboard, `0` atau `Shift+1` menyesuaikan semua konten, `1` atau `Shift+0` mengatur zoom ke 100%, dan `Shift+2` menyesuaikan pilihan. `+` / `−` melakukan zoom berpusat pada penunjuk saat berada di atas panggung, atau pada pusat tampilan jika tidak.
 - **Geser:** tahan **Space** dan seret, atau seret dengan tombol tengah mouse. Klik biasa tetap bebas untuk mengeklik bagian desain.
 - **Sentuh:** cubit untuk zoom, seret untuk menggeser, dan ketuk dua kali untuk menyesuaikan.
 - **Zoom HUD:** tekan dan tahan pusaran Lolly di sudut untuk membuka `−`, **Fit**, dan `+`. Ketukan singkat pada pusaran tetap membuka menu profil Anda.
+
+Di Design, **Fit all** mencakup artboard dan lapisan lepas. Zoom keluar secara manual dapat melewati 20% hingga seluruh halaman memenuhi separuh tampilan. Batas bawah mutlaknya adalah nilai yang lebih rendah antara 5% dari skala Fit biasa dan zoom absolut 2%.
 
 Perubahan ukuran keluaran selalu mengembalikan tampilan ke penyesuaian yang rapi.
 

@@ -42,10 +42,12 @@ The choice belongs to this piece. It travels in the link and the saved session, 
 
 The preview always shows exactly what will export.
 
-- **Zoom:** Cmd/Ctrl-scroll or pinch on a trackpad, centred on your pointer. On the keyboard, `0` fits the window, `1` is 100% and `+` / `−` zoom.
+- **Zoom:** Cmd/Ctrl-scroll or pinch on a trackpad, centred on your pointer. On the keyboard, `0` or `Shift+1` fits all, `1` or `Shift+0` is 100%, and `Shift+2` fits the selection. `+` / `−` zoom about the pointer when it is over the stage, or about the centre otherwise.
 - **Pan:** hold **Space** and drag, or drag with the middle mouse button. Plain clicks stay free for clicking parts of the design.
 - **Touch:** pinch to zoom, drag to pan and double-tap to fit.
 - **Zoom HUD:** press and hold the Lolly swirl in the corner to unfold `−`, **Fit** and `+`. A short tap on the swirl still opens your profile menu.
+
+In Design, **Fit all** includes artboards and loose layers. Manual zooming can go below 20% until the whole page fills half the view. The hard stop is the lower of 5% of the plain Fit scale and 2% absolute zoom.
 
 A change of output size always snaps the view back to a clean fit.
 

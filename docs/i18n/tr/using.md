@@ -42,10 +42,12 @@ Seçim bu parçaya aittir. Bağlantıda ve kayıtlı oturumda taşınır, tasar�
 
 Önizleme her zaman tam olarak dışa aktarılacak şeyi gösterir.
 
-- **Yakınlaştır:** Cmd/Ctrl ile kaydır veya izleme dörtgeninde sıkıştır; işaretçinde ortalanır. Klavyede `0` pencereye sığdırır, `1` yüzde 100'dür ve `+` / `−` yakınlaştırır.
+- **Yakınlaştır:** Cmd/Ctrl ile kaydır veya izleme dörtgeninde sıkıştır; işaretçinde ortalanır. Klavyede `0` veya `Shift+1` tümünü sığdırır, `1` veya `Shift+0` yüzde 100'e ayarlar ve `Shift+2` seçimi sığdırır. `+` / `−`, işaretçi sahnenin üzerindeyken onun etrafında, diğer durumlarda merkezin etrafında yakınlaştırır veya uzaklaştırır.
 - **Kaydır:** **Space** tuşunu basılı tutup sürükle ya da orta fare düğmesiyle sürükle. Düz tıklamalar tasarımın parçalarına tıklamak için serbest kalır.
 - **Dokunma:** yakınlaştırmak için sıkıştır, kaydırmak için sürükle ve sığdırmak için çift dokun.
 - **Yakınlaştırma HUD'u:** `−`, **Fit** ve `+` düğmelerini açmak için köşedeki Lolly girdabına basılı tut. Girdaba kısa dokunuş yine profil menünü açar.
+
+Design'da **Fit all**, çalışma alanlarını ve serbest katmanları kapsar. Sayfanın tamamı görünümün yarısını doldurana kadar yakınlaştırma oranını elle yüzde 20'nin altına indirebilirsin. Kesin alt sınır, normal Fit ölçeğinin yüzde 5'i ile yüzde 2 mutlak yakınlaştırma arasındaki düşük değerdir.
 
 Çıktı boyutunun değişmesi görünümü her zaman temiz bir sığdırmaya geri alır.
 

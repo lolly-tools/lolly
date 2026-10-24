@@ -18,7 +18,7 @@ Design उन लेआउट का टूल है जिन्हें क�
 
 - **बॉक्स को आर्टबोर्ड के बाहर रखें।** बॉक्स को फ़्रेम के किनारे के पार खींचें और वह दिखता और चुना जा सकता रहता है। फ़्रेम के बाहर सब कुछ फीका होता है, और फ़्रेम अपनी छाया रखता है जो दिखाती है कि फ़ाइल कहाँ से शुरू होती है।
 - **केवल आर्टबोर्ड एक्सपोर्ट होता है।** फ़्रेम के बाहर की कोई भी चीज़, या किनारे के पार लटका बॉक्स का हिस्सा, रैस्टर और वेक्टर दोनों फ़ॉर्मेट में आउटपुट से कट जाता है।
-- **Fit से आगे ज़ूम आउट करें**, 20% तक, ताकि आपका रखा सब कुछ दिखे।
+- **Fit से आगे ज़ूम आउट करें**, ताकि आपका रखा सब कुछ दिखे।
 - **आर्टबोर्ड का आकार बदलें** एक्सपोर्ट आकार बदलकर। बॉक्स अपनी स्थिति रखते हैं, इसलिए आप मौजूदा सामग्री के आसपास लेआउट दोबारा फ़्रेम कर सकते हैं।
 
 ![संपादन मंच: आर्टबोर्ड सामने और बीच में, बाईं ओर टूल रेल और कोने में ज़ूम HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)

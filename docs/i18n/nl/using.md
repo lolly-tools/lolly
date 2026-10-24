@@ -42,10 +42,12 @@ De keuze hoort bij dit stuk. Ze reist mee in de link en de opgeslagen sessie, el
 
 De voorvertoning toont altijd precies wat er geëxporteerd wordt.
 
-- **Zoomen:** Cmd/Ctrl-scrollen of knijpen op een trackpad, gecentreerd op je aanwijzer. Op het toetsenbord past `0` in het venster, is `1` 100% en zoomen `+` / `−`.
+- **Zoomen:** Cmd/Ctrl-scrollen of knijpen op een trackpad, gecentreerd op je aanwijzer. Op het toetsenbord past `0` of `Shift+1` alles in beeld, stelt `1` of `Shift+0` 100% in en past `Shift+2` de selectie in beeld. `+` / `−` zoomen rond de aanwijzer als die boven het werkvlak staat, en anders rond het midden.
 - **Verschuiven:** houd **Space** ingedrukt en sleep, of sleep met de middelste muisknop. Gewone klikken blijven vrij om op onderdelen van het ontwerp te klikken.
 - **Aanraken:** knijp om te zoomen, sleep om te verschuiven en tik tweemaal om te passen.
 - **Zoom-HUD:** houd de Lolly-swirl in de hoek ingedrukt om `−`, **Fit** en `+` uit te klappen. Een korte tik op de swirl opent nog steeds je profielmenu.
+
+In Design neemt **Fit all** de tekenborden en losse lagen mee. Je kunt handmatig onder 20% uitzoomen totdat de hele pagina de helft van de weergave vult. De vaste ondergrens is de laagste van 5% van de gewone Fit-schaal en 2% absolute zoom.
 
 Een wijziging van het uitvoerformaat zet de weergave altijd terug naar een schone pasvorm.
 
