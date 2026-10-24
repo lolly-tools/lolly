@@ -167515,6 +167515,26 @@ var init_desktop_renderer = __esm({
   }
 });
 
+// packages/node-shell/src/shell-startup.ts
+async function waitForShellStartup(page3, timeout = SHELL_STARTUP_TIMEOUT_MS) {
+  const settled = await page3.waitForFunction(
+    () => {
+      const state = document.documentElement.dataset.webgpu;
+      return state && !document.querySelector("dialog.view-loading[open]") ? state : null;
+    },
+    void 0,
+    { timeout, polling: 100 }
+  );
+  return await settled.jsonValue() === "ready" ? "ready" : "unsupported";
+}
+var SHELL_STARTUP_TIMEOUT_MS;
+var init_shell_startup = __esm({
+  "packages/node-shell/src/shell-startup.ts"() {
+    "use strict";
+    SHELL_STARTUP_TIMEOUT_MS = 6e4;
+  }
+});
+
 // packages/node-shell/src/webshell-render.ts
 var webshell_render_exports = {};
 __export(webshell_render_exports, {
@@ -167814,6 +167834,7 @@ async function transformViaWebShell({ toolId, fileInputId: fileInputId2, file, q
   try {
     const page3 = await ctx.newPage();
     await page3.goto(url, { waitUntil: "load", timeout: 3e4 });
+    await shellStarted(page3);
     const picker = `.file-picker[data-input-id="${fileInputId2}"] input.file-native`;
     try {
       await page3.waitForSelector(picker, { state: "attached", timeout: 3e4 });
@@ -167975,6 +167996,11 @@ async function renderVideoViaScreenshot(toolId, query2, format, dims = {}) {
     await ctx.close();
   }
 }
+async function shellStarted(page3) {
+  if (await waitForShellStartup(page3) === "unsupported") {
+    throw new BrowserError("The web shell could not start WebGPU in this browser, so it cannot open the tool. Run with a browser that has WebGPU (LOLLY_BROWSER_PATH or LOLLY_BROWSER_CHANNEL).");
+  }
+}
 async function renderToolPackageViaWebShell(bytes2, toolId, query2, format, production = {}) {
   const base = await webShellBase2();
   const browser = await getBrowser();
@@ -167983,8 +168009,11 @@ async function renderToolPackageViaWebShell(bytes2, toolId, query2, format, prod
   try {
     const page3 = await context.newPage();
     const observeInputs = await observeProductionInputs(page3, toolId, production.productionInputIds ?? []);
+    await page3.emulateMedia({ reducedMotion: "reduce" });
     await page3.goto(base, { waitUntil: "load", timeout: 3e4 });
     await page3.locator("#view[data-drop-ready]").waitFor({ state: "attached", timeout: 3e4 });
+    await shellStarted(page3);
+    await page3.emulateMedia({ reducedMotion: null });
     await page3.evaluate((data) => {
       const transfer = new DataTransfer();
       transfer.items.add(new File([new Uint8Array(data)], "tool.lolly"));
@@ -167993,6 +168022,7 @@ async function renderToolPackageViaWebShell(bytes2, toolId, query2, format, prod
     await page3.getByRole("button", { name: "Trust & install", exact: true }).click({ timeout: 1e4 }).catch(async () => {
       throw new BrowserError(`The reader could not open this tool file: ${(await page3.locator("body").innerText()).slice(-1500)}`);
     });
+    await shellStarted(page3);
     await page3.locator(".lolly-locked-design").waitFor({ timeout: 3e4 });
     waiting = await waitForExport(page3, format);
     const downloading = waiting.result;
@@ -168289,6 +168319,7 @@ var init_webshell_render = __esm({
     init_repo_root();
     init_content_roots();
     init_export_wait();
+    init_shell_startup();
     init_open_session();
     init_open_session();
     MIME4 = {

@@ -817,11 +817,13 @@ jobs:
       - name: Typecheck must not have skipped the Tauri shells
         run: pnpm run typecheck:tauri --strict
 
-      # engine/README.md's module table is generated from the tree. Regenerating
-      # it must be a no-op; drift means a module was added, renamed or had its
-      # header comment changed without refreshing the map auditors navigate by.
-      - name: Engine module map drift (stale? rerun build:engine-modules)
-        run: pnpm run check:engine-modules
+      # engine/README.md's module table is generated from the tree. Every merge
+      # moves its line counts, so a pull request no longer regenerates it: drift
+      # is a warning here, and generated-readmes.yml regenerates the table after
+      # each merge and proposes it as one bot pull request. Missing markers or a
+      # failing generator still fail this step.
+      - name: Engine module map builds (drift is regenerated after merge)
+        run: node scripts/gen-engine-modules.ts --check --allow-drift
 
       # packages/rondo/generated/ is built from the vendored upstream by esbuild.
       # Rebuilding must be a no-op, so a patch or an upstream bump always lands
@@ -849,11 +851,13 @@ jobs:
         run: pnpm run check:docs-nav
 
       # shells/web/src/README.md opens with per-directory and largest-file stats
-      # that a new contributor uses to decide where to look. They were measured by
-      # hand and were already drifting; they are generated now, so this fails if
-      # the committed tables no longer match the tree.
-      - name: Web shell code-map stats drift (stale? rerun build:web-src-readme)
-        run: pnpm run check:web-src-readme
+      # that a new contributor uses to decide where to look. They are generated,
+      # and every web merge moves them, so committing them in each pull request
+      # made every open web pull request conflict with the next merge. Drift is a
+      # warning here; generated-readmes.yml regenerates the stats after each merge.
+      # Missing markers or a failing generator still fail this step.
+      - name: Web shell code-map stats build (drift is regenerated after merge)
+        run: node scripts/gen-web-src-readme.ts --check --allow-drift
 
       # The browser shell legitimately owns far more code than CLI. This gate is
       # about concentration inside individual modules, not cross-shell parity.

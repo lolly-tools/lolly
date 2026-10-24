@@ -15,6 +15,7 @@ import { t } from '../../i18n.ts';
 import { colorFieldHtml, colorVarLabel, resolveColorVar, wireColorField } from '../../components/color-field.ts';
 import { icon as uiIcon } from '../../lib/icons.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
+import { createStylePreview, type StylePreview } from '../free-canvas-style-preview.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 // ── contextual bar ───────────────────────────────────────────────────────────
@@ -120,17 +121,131 @@ export function paintCtxHtml(fc: FcCtx, first: Box, allPaths: boolean, allStroke
       : '')
   );
 }
-/** One `wireColorField` call per bar - it binds delegated listeners on the scope, so a
- *  second call on the same element would fire every change twice. */
+/**
+ * A colour DRAG in one bar's picker: a pointer pressed inside a popover, until it comes
+ * up. While it lasts, a colour is shown on the selected elements (`preview`) and the
+ * model hears about it once, on release (`commit`). Where an element cannot show the
+ * colour on its own (a vector path, a gradient stop, a border not drawn yet), the drag
+ * writes the model live instead, at most once a frame (`live`), and the held pointer
+ * keeps those writes one undo step.
+ */
+interface PaintDrag {
+  /** Where the colour shows during this drag, decided by its first change: a CSS
+   *  property per element, or null to write the model live. */
+  targets: Array<[HTMLElement, string]> | null | undefined;
+  preview: StylePreview;
+  /** The write the release makes, when the drag previews. */
+  commit: (() => void) | null;
+  /** A live write waiting for its frame, when the drag cannot preview. */
+  live: (() => void) | null;
+  /** Run `live` on the next frame. */
+  schedule(): void;
+  /** The pointer came up: take the preview off, then make the one write. */
+  end(): void;
+}
+const paintDrags = new WeakMap<HTMLElement, PaintDrag>();
+const dragScopes = new WeakSet<HTMLElement>();
+
+/**
+ * The elements that can show `field` without the model, and the CSS property that
+ * does, for every selected row - or null when any of them cannot. Mirrors `boxCss` and
+ * `textCss` in community/_shared/design-renderer.js for the kinds it names; every other
+ * kind takes the live path rather than a guess.
+ */
+function paintPreviewTargets(fc: FcCtx, field: string): Array<[HTMLElement, string]> | null {
+  const { cfg } = fc;
+  const boxes = fc.select.getBoxes();
+  const idx = fc.select.selIndices(boxes);
+  if (!idx.length) return null;
+  const out: Array<[HTMLElement, string]> = [];
+  for (const i of idx) {
+    const b = boxes[i]!;
+    const kind = String(b[cfg.kindField] ?? '');
+    const el = fc.stage.liveBoxEl(fc.select.idOf(b, i));
+    if (!el) return null;
+    if (field === cfg.fillField && ['box', 'text', 'image', 'frame'].includes(kind)) {
+      out.push([el, 'background-color']);
+    } else if (field === cfg.textColorField && (kind === 'box' || kind === 'text')) {
+      const text = el.querySelector<HTMLElement>(':scope > .lolly-box-text');
+      if (!text) return null;
+      out.push([text, 'color']);
+    } else if (field === cfg.strokeField && ['box', 'text', 'image'].includes(kind)
+      && Number(b[cfg.strokeWField]) > 0 && String(b[field] ?? '').trim() !== '') {
+      out.push([el, 'border-color']);
+    } else return null;
+  }
+  return out;
+}
+
+function startPaintDrag(scope: HTMLElement): PaintDrag {
+  let frame = 0;
+  const drag: PaintDrag = {
+    targets: undefined, preview: createStylePreview(), commit: null, live: null,
+    schedule() {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const run = drag.live;
+        drag.live = null;
+        run?.();
+      });
+    },
+    end() {
+      if (paintDrags.get(scope) !== drag) return;
+      paintDrags.delete(scope);
+      document.removeEventListener('pointerup', drag.end, true);
+      document.removeEventListener('pointercancel', drag.end, true);
+      window.removeEventListener('blur', drag.end);
+      // The preview comes off before the commit, so the paint that follows compares
+      // the canvas with the template it was drawn from.
+      drag.preview.restore();
+      const last = drag.live ?? drag.commit;
+      drag.live = drag.commit = null;
+      last?.();
+    },
+  };
+  return drag;
+}
+
+/** Start following colour drags in this bar. Once per bar element: the bar's markup is
+ *  rebuilt in place, and the listener on the bar itself outlives each rebuild. */
+function watchPaintDrags(scope: HTMLElement): void {
+  if (dragScopes.has(scope)) return;
+  dragScopes.add(scope);
+  scope.addEventListener('pointerdown', (e) => {
+    if (!(e.target as Element | null)?.closest?.('.color-popover') || paintDrags.has(scope)) return;
+    const drag = startPaintDrag(scope);
+    paintDrags.set(scope, drag);
+    document.addEventListener('pointerup', drag.end, true);
+    document.addEventListener('pointercancel', drag.end, true);
+    window.addEventListener('blur', drag.end);
+  }, true);
+}
+
+/** One `wireColorField` call per bar build - it wires the field elements inside the
+ *  scope, so a second call on the same markup would fire every change twice. */
 export function wirePaintCtx(fc: FcCtx, scope: HTMLElement): void {
   const { cfg } = fc;
+  watchPaintDrags(scope);
   wireColorField(scope, {
     onChange: (id, val, detail) => {
-      if (id === 'fc-fill') {
-        if (fc.gradEdit != null) fc.gradient.setGradStopColor(fc.helpers.unwrapColor(val, detail));
-        else fc.fieldPanels.setField(cfg.fillField, fc.helpers.unwrapColor(val, detail));
-      } else if (id === 'fc-fg') fc.fieldPanels.setField(cfg.textColorField, fc.helpers.unwrapColor(val, detail));
-      else if (id === 'fc-stroke') fc.fieldPanels.setField(cfg.strokeField, fc.helpers.unwrapColor(val, detail));
+      const value = fc.helpers.unwrapColor(val, detail);
+      const gradStop = id === 'fc-fill' && fc.gradEdit != null;
+      const field = id === 'fc-fill' ? cfg.fillField : id === 'fc-fg' ? cfg.textColorField : id === 'fc-stroke' ? cfg.strokeField : '';
+      const apply = (): void => {
+        if (gradStop) fc.gradient.setGradStopColor(value);
+        else if (field) fc.fieldPanels.setField(field, value);
+      };
+      const drag = paintDrags.get(scope);
+      if (!drag) { apply(); return; }
+      if (drag.targets === undefined) drag.targets = gradStop || !field ? null : paintPreviewTargets(fc, field);
+      if (drag.targets) {
+        for (const [el, prop] of drag.targets) drag.preview.set(el, prop, value);
+        drag.commit = apply;
+        return;
+      }
+      drag.live = apply;
+      drag.schedule();
     },
   });
 }

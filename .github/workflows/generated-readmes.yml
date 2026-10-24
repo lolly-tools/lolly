@@ -1,0 +1,122 @@
+# SPDX-License-Identifier: MPL-2.0
+# Generated READMEs after merge.
+#
+# shells/web/src/README.md (code-map stats) and engine/README.md (module map)
+# are generated from the tree. When every pull request committed its own
+# regenerated copy, each merge moved the shared counts and every other open
+# web pull request conflicted with it, so each merge forced a rebase and a full
+# CI run on the rest. Pull requests now only warn about drift (ci.yml) and the
+# pre-push hook no longer refuses it. This workflow regenerates both maps after
+# each push to main and proposes the result as ONE pull request from the
+# chore/regenerate-generated-readmes branch, rebuilt from the newest main on
+# every run, so it never conflicts. It never pushes to main.
+#
+# The bot pull request qualifies like any other, through ci.yml and the
+# required `qualification` check. GitHub does not start workflows for a pull
+# request opened or updated with GITHUB_TOKEN, so a maintainer closes and
+# reopens it (or pushes to its branch) to run CI, then merges it. Its only
+# changes are the two generated READMEs, so it runs in the docs-and-tests lane.
+name: Generated READMEs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'shells/web/src/**'
+      - 'engine/src/**'
+      - 'engine/README.md'
+      - 'tests/**'
+      - 'scripts/gen-web-src-readme.ts'
+      - 'scripts/gen-engine-modules.ts'
+      - '.github/workflows/generated-readmes.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# The newest main wins: a later push regenerates from a later tree and
+# rebuilds the same branch, so an older run has nothing left to add.
+concurrency:
+  group: generated-readmes
+  cancel-in-progress: true
+
+jobs:
+  propose:
+    name: propose regenerated READMEs
+    if: github.repository == 'lolly-tools/lolly' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write        # the bot branch only; main is protected and never pushed
+      pull-requests: write   # open, refresh or close the one bot pull request
+    env:
+      BRANCH: chore/regenerate-generated-readmes
+      FILES: shells/web/src/README.md engine/README.md
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+
+      # Both generators use only Node's standard library, so no install runs.
+      - name: Regenerate the code-map stats and the engine module map
+        run: |
+          node scripts/gen-web-src-readme.ts
+          node scripts/gen-engine-modules.ts
+
+      - name: Open, refresh or close the bot pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          read -r -a files <<<"$FILES"
+          open=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --state open --json number --jq '.[0].number // empty')
+          if git diff --quiet -- "${files[@]}"; then
+            echo "The generated READMEs already match main at $GITHUB_SHA."
+            if [ -n "$open" ]; then
+              gh pr close "$open" --repo "$GITHUB_REPOSITORY" --delete-branch \
+                --comment "main already matches the generated READMEs at $GITHUB_SHA, so this pull request is no longer needed."
+            fi
+            exit 0
+          fi
+          # The generators may only rewrite their own README; anything else is a bug to look at, not to propose.
+          unexpected=$(git status --porcelain | cut -c4- | grep -vxF -e "${files[0]}" -e "${files[1]}" || true)
+          if [ -n "$unexpected" ]; then
+            echo "::error title=Unexpected generator output::$unexpected"
+            exit 1
+          fi
+          git --no-pager diff --stat -- "${files[@]}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch --quiet -c "$BRANCH"
+          git add -- "${files[@]}"
+          git commit --quiet --file=- <<MSG
+          chore: regenerate generated READMEs
+
+          Regenerated from main at $GITHUB_SHA by .github/workflows/generated-readmes.yml
+          (node scripts/gen-web-src-readme.ts and node scripts/gen-engine-modules.ts).
+          MSG
+          # The token reaches git only for this push, as a masked header, never in .git/config.
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::$auth"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+            push --force "https://github.com/$GITHUB_REPOSITORY.git" "HEAD:refs/heads/$BRANCH"
+          cat > "$RUNNER_TEMP/body.md" <<BODY
+          Regenerated from main at $GITHUB_SHA by \`.github/workflows/generated-readmes.yml\`. Only \`shells/web/src/README.md\` (code-map stats) and \`engine/README.md\` (module map) change.
+
+          Pull requests no longer commit these generated files, because every merge moved their counts and forced a rebase and a full CI run on every other open web pull request. Each push to main that changes their inputs rebuilds this branch from that main, so this pull request never conflicts and always matches the newest main.
+
+          **To merge:** GitHub does not start workflows for a pull request opened or updated with the workflow token, so CI and the required \`qualification\` check have not run on this commit yet. Close and reopen this pull request to run CI, then merge it as usual. It changes generated documentation only, so it qualifies in the docs-and-tests lane. A later push to main replaces this branch, and CI then needs another close and reopen.
+          BODY
+          if [ -n "$open" ]; then
+            gh pr edit "$open" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/body.md"
+            echo "Updated pull request #$open."
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$BRANCH" \
+              --title 'chore: regenerate generated READMEs' --body-file "$RUNNER_TEMP/body.md"
+          fi

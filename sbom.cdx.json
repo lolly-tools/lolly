@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:156ebd3d-b6cd-4d91-8147-88e2d2400343",
+  "serialNumber": "urn:uuid:dbe2787f-0f50-4f52-8ed5-84bae7da1354",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-20T20:09:19.028Z",
+    "timestamp": "2026-10-24T05:02:51.910Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -32103,10 +32103,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/undici@8.11.2",
+      "bom-ref": "pkg:npm/undici@8.12.3",
       "name": "undici",
-      "version": "8.11.2",
-      "purl": "pkg:npm/undici@8.11.2",
+      "version": "8.12.3",
+      "purl": "pkg:npm/undici@8.12.3",
       "scope": "excluded",
       "licenses": [
         {
@@ -32118,7 +32118,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bb8501dbf22b29d53a945c6e9879a6a356b77c240ee6dcd0965468adfa114badedc61ac1ef14e94a7d4f7edc02e2a10790e6aa3fde5f0965b8949cf012bc3385"
+          "content": "f9f7677544f004ff3a7158e2853a76d61647a3b77aa23d5cff8ed73c0de52fc98cd171ecf82e0491c8e6811b059c59367ff50e3460f2f48b4122d997b0b3901f"
         }
       ],
       "properties": [
@@ -32622,10 +32622,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/zod@4.6.2",
+      "bom-ref": "pkg:npm/zod@4.6.7",
       "name": "zod",
-      "version": "4.6.2",
-      "purl": "pkg:npm/zod@4.6.2",
+      "version": "4.6.7",
+      "purl": "pkg:npm/zod@4.6.7",
       "scope": "excluded",
       "licenses": [
         {
@@ -32637,7 +32637,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "961e510801856b50a6da18ed3702d0852b3f02ca9d5a74d0681111f5f13037ff3ca5287b28eb496afb41c7fd1596437fb8577ad52c189a58cb30302c1e5bf305"
+          "content": "83c5b60f6914e9af2e9ed734e777d7d6e5412b333bcaa0315bfdf3c24f37fba472176f9228eb95f9cd30043854c335753da19aa66647fab99c5333dffb7086c2"
         }
       ],
       "properties": [

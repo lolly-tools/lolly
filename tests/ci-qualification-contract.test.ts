@@ -341,6 +341,7 @@ test('the docs-and-tests lane takes documentation content, tests and reviewed ba
   assert.deepEqual(classifyDocsAndTests(docsChanges), { docsAndTestsEligible: true, reasons: [] });
   for (const path of ['docs/shots/design.png', 'docs/figures/lolly-demo-parts.html', 'docs/i18n/fr/install.md', 'docs/build.ts',
     'docs/navigation.ts', 'tests/fixtures/url/a.json', 'engine/src/units.test.ts', 'security/lint-baseline.json',
+    'engine/README.md', 'shells/web/src/README.md',
     'scripts/vernacular-docs-baseline.json']) {
     assert.equal(classifyDocsAndTests([change(path)]).docsAndTestsEligible, true, path);
   }
@@ -348,7 +349,8 @@ test('the docs-and-tests lane takes documentation content, tests and reviewed ba
     'README.md', 'package.json', 'docs/package.json', 'tests/fixtures/pkg/pnpm-lock.yaml', '.github/workflows/ci.yml',
     'scripts/ci-qualification.ts', 'security/dependency-roots.json', 'tests/expected-skips.json', 'tests/design-gpu.test.ts',
     'tests/foo.browser.test.ts', 'tests/c2pa-formats.test.ts', 'tests/fuzz-regression.test.ts', 'tests/tauri-security.test.ts',
-    'tests/native-file-associations.test.ts', 'tests/browser-gpu.ts', 'shells/web/src/bridge/svg-walker.test.ts']) {
+    'tests/native-file-associations.test.ts', 'tests/browser-gpu.ts', 'shells/web/src/bridge/svg-walker.test.ts',
+    'shells/web/README.md', 'engine/CHANGELOG.md', 'shells/web/src/views/README.md']) {
     assert.equal(classifyDocsAndTests([...docsChanges, change(path)]).docsAndTestsEligible, false, path);
   }
   assert.equal(classifyDocsAndTests([]).docsAndTestsEligible, false);
