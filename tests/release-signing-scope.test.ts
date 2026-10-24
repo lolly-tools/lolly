@@ -374,6 +374,10 @@ test('the preview workflow runs the same normal main CI check as the release can
   assert.match(workflowText('preview-web.yml'), /event=push&branch=main&status=success/);
 });
 
+test('each preview run is titled with its source, which the deploy tool binds by', () => {
+  assert.equal(workflowYaml('preview-web.yml')['run-name'], 'Preview web ${{ inputs.source }}');
+});
+
 test('the signing scope refuses a pin that belongs to the other environment', () => {
   const key = () => JSON.stringify(generateKeyPairSync('ec', { namedCurve: 'prime256v1' }).publicKey.export({ format: 'jwk' }));
   const release = key(), preview = key();

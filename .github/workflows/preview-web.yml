@@ -15,6 +15,9 @@
 # write) from publish (no npm, no compiler). tests/release-signing-scope.test.ts
 # keeps the two builds' arguments identical.
 name: Preview web image
+# The deploy tool finds a run by this title: head_sha is main's head at dispatch, while
+# source may be any reviewed ancestor of it.
+run-name: Preview web ${{ inputs.source }}
 
 on:
   workflow_dispatch:
