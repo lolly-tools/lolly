@@ -494,6 +494,12 @@ jobs:
       ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
       live_relay: https://lolly.tools/live
       profile: lolly-demo
+    # Passed explicitly. With only the release-catalog-signing environment secret,
+    # run 40079348093's source-catalog job (which names that environment) still
+    # received an empty key, so the environment route does not reach this called
+    # workflow yet. Remove this once a candidate signs without it.
+    secrets:
+      LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
 
   web-image:
     name: Opt-in native public web image (gated on the WebGPU table)
