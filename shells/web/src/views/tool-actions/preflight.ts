@@ -19,7 +19,7 @@ import { isVectorImageSrc, placedImageLabel } from '../../lib/placed-image.ts';
 import { getRateCardBlob, listCatalogRateCards, listRateCards } from '../../lib/rate-cards.ts';
 import { applyCostPanel, costView } from '../cost-panel.ts';
 import type { CostAuthoringContext } from '../cost-panel.ts';
-import { brandCheckRows, hostBrandCatalog, type BrandCatalogHost } from '../brand-check-rows.ts';
+import { brandCheckRows, hostAssetNames, hostBrandCatalog, type BrandCatalogHost } from '../brand-check-rows.ts';
 import { mountedDesignFindingMessage } from '../design-audit-copy.ts';
 import { runDesignChecks } from '../design-checks.ts';
 import { applyPreflight, isPreflightEnabled, preflightView } from '../export-preflight.ts';
@@ -114,6 +114,8 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
   const feedbackRows = creationFeedbackRows(await readCreationFeedback({
     model: () => runtime.getModel(),
     snapshot: async () => ta.host.tokens?.snapshot?.(),
+    // Asset names, read once per audit, so a logo finding gives each logo's catalog name.
+    catalog: () => hostAssetNames(ta.host as BrandCatalogHost),
   }));
   if (!ta.designAuditOpen || generation !== ta.designAuditGeneration) return;
   ta.designAuditRows = [

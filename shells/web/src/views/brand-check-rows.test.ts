@@ -7,7 +7,7 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { brandCheckRows, coverageText, hostBrandCatalog, type BrandCatalogHost } from './brand-check-rows.ts';
+import { brandCheckRows, coverageText, hostAssetNames, hostBrandCatalog, type BrandCatalogHost } from './brand-check-rows.ts';
 
 const DOC = {
   color: { ink: { $type: 'color', $value: '#112233' } },
@@ -54,6 +54,29 @@ test('the host catalog reads asset ids, themes and treatments, and survives a ho
   const broken: BrandCatalogHost = { assets: { query: async () => { throw new Error('offline'); } } };
   assert.deepEqual(await hostBrandCatalog(broken), { assets: [] });
   assert.deepEqual(await hostBrandCatalog(undefined), { assets: [] });
+});
+
+test('the host asset names keep each id and its display name, and a host that cannot answer gives none', async () => {
+  let queried: unknown;
+  const named: BrandCatalogHost = {
+    assets: {
+      query: async (filter) => {
+        queried = filter;
+        return [
+          { id: 'example/logo/primary', meta: { name: ' Example Wordmark ' } },
+          { id: 'example/logo/reverse', meta: { name: '' } },
+          { id: 'example/photos/sea' },
+        ];
+      },
+    },
+  };
+  assert.deepEqual(await hostAssetNames(named), {
+    assets: [{ id: 'example/logo/primary', name: 'Example Wordmark' }, { id: 'example/logo/reverse' }, { id: 'example/photos/sea' }],
+  });
+  assert.deepEqual(queried, { includeDeprecated: true }, 'the same query hostBrandCatalog makes');
+  assert.equal(await hostAssetNames({ assets: { query: async () => { throw new Error('offline'); } } }), undefined);
+  assert.equal(await hostAssetNames({ assets: {} }), undefined);
+  assert.equal(await hostAssetNames(undefined), undefined);
 });
 
 test('the coverage line reads correctly for one and for many', async () => {
