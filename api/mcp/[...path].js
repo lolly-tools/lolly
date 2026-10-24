@@ -4083,7 +4083,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.283.0";
+    ENGINE_VERSION = "1.284.0";
   }
 });
 
@@ -127647,7 +127647,7 @@ function surfaceUnder(layout2, index2, own3) {
   const board = artboardOf(row);
   for (let i = index2 - 1; i >= 0; i--) {
     const under = layout2.rows[i];
-    if (isHidden(under) || under.kind === "frame" || under.kind === "path" || artboardOf(under) !== board) continue;
+    if (layout2.hidden(under) || under.kind === "frame" || under.kind === "path" || artboardOf(under) !== board) continue;
     if (!covers(under, row)) continue;
     const paint3 = paintOf2(layout2, under);
     if (paint3 === "clear") continue;
@@ -127725,6 +127725,10 @@ function combinationPolicy(doc, theme) {
   }
   return { byBackground, names };
 }
+function hiddenTest(rows2) {
+  const flags = designHierarchyIndex(rows2).flags;
+  return (row) => isHidden(row) || flags.get(row.id == null ? "" : String(row.id))?.hidden === true;
+}
 function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
   const findings = [];
   const unknown2 = [];
@@ -127732,12 +127736,13 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
   const rows2 = Array.isArray(boxes2) ? boxes2.filter(record26) : [];
   const layout2 = {
     rows: rows2,
+    hidden: hiddenTest(rows2),
     frames: new Map(rows2.filter((r5) => r5.kind === "frame" && typeof r5.id === "string").map((r5) => [r5.id, r5])),
     tokens: createTokenSet(doc, { theme: opts.theme }),
     largest: /* @__PURE__ */ new Map()
   };
   for (const row of rows2) {
-    if (isHidden(row) || !textOf7(row).trim() || row.kind === "image") continue;
+    if (layout2.hidden(row) || !textOf7(row).trim() || row.kind === "image") continue;
     const key2 = artboardOf(row) ?? "";
     const size = num12(row.fontSize, 0);
     const top = layout2.largest.get(key2);
@@ -127746,7 +127751,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
   }
   let pairings = null;
   const catalogLogos = record26(opts.catalog) && record26(opts.catalog.logos) ? opts.catalog.logos : {};
-  const layers = rows2.slice(0, 5e3).map((row, index2) => ({ row, index: index2 })).filter(({ row }) => !isHidden(row) && typeof row.id === "string" && row.id);
+  const layers = rows2.slice(0, 5e3).map((row, index2) => ({ row, index: index2 })).filter(({ row }) => !layout2.hidden(row) && typeof row.id === "string" && row.id);
   const texts = layers.filter(({ row }) => textOf7(row).trim() && row.kind !== "image");
   for (const rule of Array.isArray(rules) ? rules : []) {
     if (!record26(rule) || typeof rule.id !== "string") continue;
@@ -127895,7 +127900,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         const [x, y, w, h] = [num12(row.x, 0), num12(row.y, 0), num12(row.w, 0), num12(row.h, 0)];
         for (let i = index2 + 1; i < layout2.rows.length && i < 5e3; i++) {
           const strip = layout2.rows[i];
-          if (isHidden(strip) || strip.kind === "frame" || strip.kind === "image" || textOf7(strip).trim() || artboardOf(strip) !== artboardOf(row)) continue;
+          if (layout2.hidden(strip) || strip.kind === "frame" || strip.kind === "image" || textOf7(strip).trim() || artboardOf(strip) !== artboardOf(row)) continue;
           const fill2 = colourOf2(layout2, valueText2(strip.bg));
           if (!fill2 || !accent(fill2) || num12(strip.opacity, 1) <= 0) continue;
           const [sx, sy, sw, sh] = [num12(strip.x, 0), num12(strip.y, 0), num12(strip.w, 0), num12(strip.h, 0)];
@@ -127979,6 +127984,7 @@ var init_design_house_rules = __esm({
     init_icon_theme();
     init_surface_variant();
     init_design_text();
+    init_design_hierarchy();
     DESIGN_HOUSE_RULE_KINDS = [
       "text-weight",
       "text-align",
@@ -129085,7 +129091,7 @@ function storiesOf(input) {
   }
   return out;
 }
-function hiddenTest(rows2) {
+function hiddenTest2(rows2) {
   const byId = /* @__PURE__ */ new Map();
   for (const row of rows2) {
     const id3 = str7(row.id);
@@ -129105,7 +129111,7 @@ function hiddenTest(rows2) {
 }
 function designVisibleText(boxes2, opts = {}) {
   const rows2 = (Array.isArray(boxes2) ? boxes2 : []).slice(0, ROW_LIMIT).map((row, index2) => ({ row, index: index2 })).filter((r5) => record29(r5.row));
-  const hidden4 = hiddenTest(rows2.map((r5) => r5.row));
+  const hidden4 = hiddenTest2(rows2.map((r5) => r5.row));
   const frames = rows2.filter((r5) => r5.row.kind === "frame" && str7(r5.row.id)).sort((a, b) => num13(a.row.order, a.index) - num13(b.row.order, b.index) || num13(a.row.x, 0) - num13(b.row.x, 0) || str7(a.row.id).localeCompare(str7(b.row.id)));
   const frameIds = new Set(frames.map((f) => str7(f.row.id)));
   const reading = (a, b) => num13(a.row.y, 0) - num13(b.row.y, 0) || num13(a.row.x, 0) - num13(b.row.x, 0) || a.index - b.index;
@@ -129234,10 +129240,7 @@ function creationFeedback(boxes2, rules, doc, opts = {}) {
   if (rules === void 0 && !record29(doc)) houseRules = { state: "no-design-system", checked: 0, findings: [], unknown: [] };
   else if (!designRules.length) houseRules = { state: "no-rules", checked: 0, findings: [], unknown: [] };
   else {
-    const list4 = Array.isArray(boxes2) ? boxes2 : [];
-    const isHidden3 = hiddenTest(list4.filter(record29));
-    const drawn = list4.map((row) => record29(row) && !selfHidden(row) && isHidden3(row) ? { ...row, hidden: true } : row);
-    const result = checkDesignHouseRules(drawn, designRules, doc, {
+    const result = checkDesignHouseRules(boxes2, designRules, doc, {
       ...opts.theme ? { theme: opts.theme } : {},
       ...opts.catalog !== void 0 ? { catalog: opts.catalog } : {},
       ...opts.background !== void 0 ? { background: opts.background } : {}

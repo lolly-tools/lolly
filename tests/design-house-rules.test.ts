@@ -211,6 +211,28 @@ test('hidden layers, unreadable input and rules with unreadable parameters never
   assert.deepEqual(checkDesignHouseRules(board({ id: 't', text: 'Words' }), rules, null).unknown.includes('pairings'), true);
 });
 
+test('a layer on a hidden artboard or inside a hidden group is not drawn, so it is not checked', () => {
+  const heavy = { role: 'title', text: 'Heavy headline', fontSize: 72, weight: '900' };
+  const boxes = [
+    ...board({ id: 'shown', ...heavy }),
+    { id: 'a2', kind: 'frame', x: 2000, y: 0, w: 1920, h: 1080, bg: '#ffffff', hidden: true },
+    { id: 'on-hidden-board', kind: 'text', frame: 'a2', x: 2100, y: 100, w: 600, h: 80, align: 'left', fg: '#13294b', ...heavy },
+    { id: 'g1', kind: 'group', frame: 'a1', hidden: true },
+    { id: 'g2', kind: 'group', frame: 'a1', group: 'g1' },
+    { id: 'in-hidden-group', kind: 'text', frame: 'a1', group: 'g1', x: 100, y: 300, w: 600, h: 80, align: 'left', fg: '#13294b', ...heavy },
+    { id: 'in-nested-group', kind: 'text', frame: 'a1', group: 'g2', x: 100, y: 500, w: 600, h: 80, align: 'left', fg: '#13294b', ...heavy },
+  ];
+  assert.deepEqual(run(boxes).findings.filter((f) => f.ruleId === 'headline-weight').map((f) => f.layerId), ['shown']);
+  // A hidden panel is not the surface under a text either: the text reads against the artboard.
+  const surface = [
+    { id: 'a1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#ffffff' },
+    { id: 'g', kind: 'group', frame: 'a1', hidden: true },
+    { id: 'panel', kind: 'box', frame: 'a1', group: 'g', x: 0, y: 0, w: 1920, h: 1080, bg: '#13294b' },
+    { id: 'sand', kind: 'text', frame: 'a1', x: 100, y: 100, w: 600, h: 80, text: 'Sand words', fontSize: 28, weight: '400', align: 'left', fg: '#f3e9d2' },
+  ];
+  assert.deepEqual(run(surface).findings.filter((f) => f.ruleId === 'pairings').map((f) => f.layerId), ['sand']);
+});
+
 test('the combination policy names colours relative to the background token group', () => {
   const policy = combinationPolicy(doc);
   assert.deepEqual(policy.byBackground.get('#ffffff'), { name: 'white', text: ['navy', 'ink'], graphic: ['navy', 'ink', 'reef'] });
