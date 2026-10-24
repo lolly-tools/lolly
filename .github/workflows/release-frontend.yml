@@ -38,10 +38,9 @@ on:
         default: lolly-start
     # The release key is an environment secret of release-catalog-signing. The two
     # signing jobs below name that environment and read the key from it, so callers
-    # pass no secret and a job outside the environment never sees the key.
-    secrets:
-      LOLLY_CATALOG_SIGNING_KEY:
-        required: false
+    # pass no secret and a job outside the environment never sees the key. Declaring
+    # it under workflow_call.secrets would hide the environment secret: the job reads
+    # the caller's value instead, which is empty (run 40079348093).
 
 permissions:
   contents: read
