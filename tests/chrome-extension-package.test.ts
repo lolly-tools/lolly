@@ -16,6 +16,7 @@ test('production source and archive require exact relay origins and protected ap
     const policy = new TextDecoder().decode(entries['policy.js']);
     assert.doesNotThrow(() => assertProductionExtension(manifest, policy));
     assert.ok(entries['consent.html']);
+    assert.match(new TextDecoder().decode(entries['page-walk.js']), /__lollyPageWalk/, 'the vector screenshot\'s page walk is packaged');
     assert.equal(manifest.web_accessible_resources, undefined);
     assert.equal(manifest.host_permissions, undefined);
     assert.match(manifest.content_security_policy.extension_pages, /script-src 'self'/);

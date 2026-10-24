@@ -187,6 +187,30 @@ test('approval requires site permission and the original requesting document', a
   }
 });
 
+test('the Lolly page may rewrite its own address while a request is open', async () => {
+  const h = harness();
+  const moved = { ...h.caller, tab: { ...h.caller.tab, url: 'https://lolly.tools/t/url-shot?url=x' } };
+  h.tabs.get(1)!.url = moved.tab.url;
+  const result = h.dispatch(request, moved);
+  await h.settle();
+  h.tabs.get(1)!.url = 'https://lolly.tools/t/url-shot?url=x&w=1280';
+  h.chrome.tabs.onUpdated.emit(1, { url: h.tabs.get(1)!.url });
+  const consent = h.consent();
+  await h.dispatch({ type: 'lolly-capture/approve', requestId: consent.requestId }, consent.sender);
+  await h.settle();
+  assert.equal((await result).dataUrl, 'data:image/png;base64,AA==', 'the same document on the same origin keeps its approval');
+});
+
+test('the requesting tab leaving the Lolly origin ends the request', async () => {
+  const h = harness();
+  const result = h.dispatch(request);
+  await h.settle();
+  h.tabs.get(1)!.url = 'https://other.example.test/';
+  h.chrome.tabs.onUpdated.emit(1, { url: h.tabs.get(1)!.url });
+  assert.equal((await result).ok, false);
+  assert.equal(h.operations.length, 0);
+});
+
 test('one approval enables one bounded screenshot and cannot be reused', async () => {
   const h = harness();
   const result = h.dispatch(request);

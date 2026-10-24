@@ -257,18 +257,18 @@ The service uses authentication cookies, including `lw_session` for signed-in me
 
 The **Lolly URL Screenshot** browser extension collects no personal data for us. It has no analytics, no tracking and no server of its own. The [Browser extension](/info/extension.html) page describes how it works.
 
-**What it does.** The Lolly web app can ask it for a screenshot of a web page, or for a page's contents to start a design system from a website. Each request opens an approval window in the extension that shows the requesting site, whether it wants a screenshot or the page contents, and the page address. Only after you press **Approve once** does the extension open that page in a temporary background tab, take the screenshot or read the page, hand the result to the Lolly tab that asked and close the tab. Every request needs its own approval.
+**What it does.** The Lolly web app can ask it for a screenshot of a web page, or for a page's contents to start a design system from a website. Each request opens an approval window in the extension that shows the requesting site, whether it wants a screenshot or the page contents, and the page address. Only after you press **Approve once** does the extension open that page in a temporary background tab, take the screenshot or read the page, hand the result to the Lolly tab that asked and close the tab. For an SVG screenshot it also reads the page's layout, its pictures and its font files in that tab, and the app turns them into shapes on your device. Every request needs its own approval.
 
 **Data.**
 
 - <!--i:shieldcheck--> **We collect nothing.** The result goes only to the Lolly page that asked, in the same browser. The extension stores no page contents and adds no other recipient.
-- <!--i:globe--> **Network requests.** The page you approve loads as it would in any tab, along with whatever that page requests itself. Reading a page's contents also fetches that page's stylesheets and a few of its icon and logo images, from inside the page, and those fetches send no cookies to other sites. The extension makes no other requests, and none go to a Lolly server.
+- <!--i:globe--> **Network requests.** The page you approve loads as it would in any tab, along with whatever that page requests itself. Reading a page's contents also fetches that page's stylesheets and a few of its icon and logo images, from inside the page, and those fetches send no cookies to other sites. An SVG screenshot asks the page again for the font files the page loaded, which your browser usually answers from its cache. The extension makes no other requests, and none go to a Lolly server.
 - <!--i:lock--> **Your browser session.** The page loads with your browser session, as it would if you opened it yourself, so a page you are signed in to can put private information in the result.
 - <!--i:link--> **The addresses you approve** are used only to load that one page for that one request. They are not logged or shared.
 
 **Permissions.**
 
-- <!--i:wrench--> **`debugger`**: to take the screenshot through the DevTools Protocol, the same mechanism the Lolly desktop app uses.
+- <!--i:wrench--> **`debugger`**: to take the screenshot through the DevTools Protocol, the same mechanism the Lolly desktop app uses, and for an SVG to run the page walk in the temporary tab.
 - <!--i:monitor--> **`tabs`**: to open and close the temporary tab, and to check that neither the Lolly page nor the target page has moved since you approved.
 - <!--i:code--> **`scripting`**: to read a page's contents in the temporary tab, after you approve that request.
 - <!--i:database--> **`storage`**: to note the ids of its temporary tabs in session storage, so they still close if the browser stops the extension during a request. No page contents are stored.
