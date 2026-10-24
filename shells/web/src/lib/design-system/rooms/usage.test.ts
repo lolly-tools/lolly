@@ -113,5 +113,5 @@ test('"Checked in Design" stays true: the export panel runs the house rules thro
   // ...which read the engine report...
   assert.match(read('../../creation-feedback.ts'), /creationFeedback\(boxes, undefined, doc \?\? null, opts\)/);
   // ...and that report checks the design system's house rules layer by layer.
-  assert.match(read('../../../../../../engine/src/creation-feedback.ts'), /checkDesignHouseRules\(drawn, designRules, doc,/);
+  assert.match(read('../../../../../../engine/src/creation-feedback.ts'), /checkDesignHouseRules\(boxes, designRules, doc,/);
 });

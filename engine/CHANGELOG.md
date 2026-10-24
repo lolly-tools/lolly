@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.284.0
+
+- `checkDesignHouseRules` leaves out every layer Design does not draw: a layer with its own `hidden` flag (as before), and now a layer on a hidden artboard or inside a hidden group or layout container, at any depth, read from `designHierarchyIndex`, the hierarchy Design paints from. A hidden layer is also no longer read as the surface under another layer, or as an accent strip along a rounded shape. `lolly check` and MCP `lolly_check` therefore stop reporting brand findings on undrawn layers; the result shape is unchanged.
+- `creationFeedback` passes the boxes straight to the checker: the copy it made to mark those layers hidden is gone, and its house-rule findings are unchanged.
+
 ## 1.283.0
 
 Follows 1.282.0 (brand skills, PR #499), which merges first.
