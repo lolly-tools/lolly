@@ -13,6 +13,8 @@ import { releaseCompilerEnvironment, validateReleaseEnvironment } from '../scrip
 import { verifyFrontendReceipt, writeFrontendReceipt } from '../scripts/release-frontend-receipt.ts';
 import { checkSigningScope, pinsMatch } from '../scripts/check-signing-scope.ts';
 
+// GitHub expression text, built so it is not mistaken for a template string.
+const gh = (body: string): string => '$' + `{{ ${body} }}`;
 const source = 'a'.repeat(40);
 const pair = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
 const privateMaterial = pair.privateKey.export({ format: 'pem', type: 'pkcs8' }).toString();
@@ -95,7 +97,7 @@ test('native packaging jobs receive signed artifacts and signing jobs run no com
   const reusable = read('release-frontend');
   for (const name of ['source-catalog', 'sign-artifact']) {
     const job = reusable.jobs[name];
-    assert.equal(job.environment, '${{ inputs.signing_environment }}');
+    assert.equal(job.environment, gh('inputs.signing_environment'));
     assert.ok(job.steps.some((step: any) => step.env?.LOLLY_CATALOG_SIGNING_KEY));
     for (const step of job.steps) assert.doesNotMatch(step.run ?? '', /\b(?:pnpm|npm|cargo|vite|tauri)\b/);
   }
@@ -133,7 +135,7 @@ const SIGNING_SECRETS: Record<string, string> = {
   ASC_ISSUER_ID: 'release-native-signing',
   LOLLY_PREVIEW_CATALOG_SIGNING_KEY: 'preview-catalog-signing',
 };
-const SIGNING_EXPRESSION = '${{ inputs.signing_environment }}';
+const SIGNING_EXPRESSION = gh('inputs.signing_environment');
 
 test('release signing secrets reach only the jobs that name their gated environment', () => {
   const directory = new URL('../.github/workflows/', import.meta.url);
@@ -281,7 +283,7 @@ test('each signing step reads only the key of the environment its own condition 
   }
   assert.equal(steps, 6); // source catalog, final catalog and receipt, each once per environment
   // Build jobs hold no key and read the preview variable never: they take the checked pin from the signer.
-  assert.equal(reusable.jobs.compile.env.VITE_CATALOG_PUBLIC_KEY_JWK, '${{ needs.source-catalog.outputs.pin }}');
+  assert.equal(reusable.jobs.compile.env.VITE_CATALOG_PUBLIC_KEY_JWK, gh('needs.source-catalog.outputs.pin'));
   assert.doesNotMatch(JSON.stringify(reusable.jobs.compile), /LOLLY_PREVIEW|secrets\./);
   assert.doesNotMatch(JSON.stringify(reusable.jobs.plan), /secrets\./);
   assert.equal(reusable.env.VITE_CATALOG_PUBLIC_KEY_JWK, undefined);
@@ -303,7 +305,7 @@ test('the preview workflow can never reach the release environment or release se
   assert.equal(frontend.uses, './.github/workflows/release-frontend.yml');
   assert.equal(frontend.with.signing_environment, PREVIEW_ENVIRONMENT);
   assert.equal(frontend.with.public_key_jwk, undefined, 'the preview pin comes only from its environment variable');
-  assert.equal(frontend.with.source, '${{ inputs.source }}');
+  assert.equal(frontend.with.source, gh('inputs.source'));
   // Main only, like the environment's deployment branch rule.
   assert.equal(workflow.jobs['source-qualification'].if, "github.ref == 'refs/heads/main'");
   assert.ok(workflow.jobs['web-release-gate'].needs.includes('source-qualification'));
@@ -375,7 +377,7 @@ test('the preview workflow runs the same normal main CI check as the release can
 });
 
 test('each preview run is titled with its source, which the deploy tool binds by', () => {
-  assert.equal(workflowYaml('preview-web.yml')['run-name'], 'Preview web ${{ inputs.source }}');
+  assert.equal(workflowYaml('preview-web.yml')['run-name'], `Preview web ${gh('inputs.source')}`);
 });
 
 test('the signing scope refuses a pin that belongs to the other environment', () => {
