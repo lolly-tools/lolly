@@ -167,10 +167,13 @@ test('release signing secrets reach only the jobs that name their gated environm
     'release-frontend.yml source-catalog LOLLY_CATALOG_SIGNING_KEY',
     'release-frontend.yml sign-artifact LOLLY_CATALOG_SIGNING_KEY',
   ]);
-  // The reusable workflow keeps its declaration for compatibility, but a caller has
-  // nothing to provide: the environment secret is what the signing jobs read.
-  const reusable = parse(readFileSync(new URL('release-frontend.yml', directory), 'utf8'));
-  assert.equal(reusable.on.workflow_call.secrets.LOLLY_CATALOG_SIGNING_KEY.required, false);
+  // A reusable workflow must not declare a secret its jobs read from an environment:
+  // the declared caller value (empty) hides the environment secret (run 40079348093).
+  for (const file of readdirSync(directory).filter(name => /\.ya?ml$/.test(name))) {
+    const call = parse(readFileSync(new URL(file, directory), 'utf8'))?.on?.workflow_call;
+    if (!call) continue;
+    assert.equal(call.secrets, undefined, `${file} declares workflow_call secrets`);
+  }
 });
 
 // Virtual retained files exercise the real signer/reader without allocating a
