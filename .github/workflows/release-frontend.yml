@@ -36,11 +36,15 @@ on:
         required: false
         type: string
         default: lolly-start
-    # The release key is an environment secret of release-catalog-signing. The two
-    # signing jobs below name that environment and read the key from it, so callers
-    # pass no secret and a job outside the environment never sees the key. Declaring
-    # it under workflow_call.secrets would hide the environment secret: the job reads
-    # the caller's value instead, which is empty (run 40079348093).
+    # The release key is an environment secret of release-catalog-signing. GitHub only
+    # hands an environment secret to a called workflow when the caller passes it by
+    # name, and an unpassed secret is an empty string with no error (runs 40079348093
+    # and 40105124697). So every caller passes it, and the two signing jobs, which name
+    # the environment, receive the environment's value, which takes precedence over a
+    # repository secret of the same name. Required, so a caller that forgets fails.
+    secrets:
+      LOLLY_CATALOG_SIGNING_KEY:
+        required: true
 
 permissions:
   contents: read
