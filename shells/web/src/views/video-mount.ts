@@ -25,6 +25,8 @@
  *   data-video-key   required for tracking - a stable per-instance id (box id)
  */
 
+import { isMediaGated } from './canvas-media-gate.ts';
+
 const lastTime = new Map<string, number>();     // data-video-key → last observed currentTime
 const wired = new WeakSet<HTMLVideoElement>();   // videos already given listeners (per element instance)
 
@@ -48,6 +50,9 @@ function trackOne(video: HTMLVideoElement): void {
     if (saved != null && Number.isFinite(dur) && dur > 0) {
       try { video.currentTime = saved % dur; } catch { /* seek disallowed pre-metadata - ignore */ }
     }
+    // A clip the media gate is holding paused (off screen, or the view is far out) keeps
+    // its restored position and waits for the gate to play it (views/canvas-media-gate.ts).
+    if (isMediaGated(video)) return;
     video.play?.()?.catch(() => { /* autoplay policy - a muted video should be fine, but never throw */ });
   };
   if (video.readyState >= 1 /* HAVE_METADATA */) seek();

@@ -11,6 +11,7 @@ import { flushAddressWrites, replaceRouteUrl, updateRouteParams } from '../../li
 import { acquireCollabSession } from '../../lib/collab-session-source.ts';
 import { mountPeerViewport } from '../tool-peer-view.ts';
 import { mountViewAddress } from '../tool-view-address.ts';
+import { mountStageMotion } from '../../lib/stage-lod.ts';
 import { stageBottomReserve, stageSideReserve } from '../../lib/design-panel-layout.ts';
 import { carryMountState, willRemountForCollab } from '../../lib/collab-live-mount.ts';
 import { releaseTeamSessionOrigin } from '../../org/team-session-origin.ts';
@@ -872,6 +873,9 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     const zoom = tview.stageZoom;
     tview.mountLifecycle.add('peer viewport', mountPeerViewport(tview.runtime, stageEl, canvasEl, zoom));
     tview.mountLifecycle.add('viewport URL', mountViewAddress(zoom, stageEl));
+    // `data-fc-moving` on the stage while the view moves, so the compositor scales the
+    // last raster instead of re-rastering every layer (lib/stage-lod.ts, editor.css).
+    tview.mountLifecycle.add('stage motion', mountStageMotion(zoom, stageEl));
     const linkedView = tview.urlFlags.get('_view');
     if (linkedView && !designChrome) requestAnimationFrame(() => {
       if (!viewEl.isConnected) return;

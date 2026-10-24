@@ -10,6 +10,7 @@
 import { hasVideoParams } from '@lolly/engine';
 import { mergeExportPrefs } from '../../lib/export-prefs.ts';
 import { flushAddressWrites } from '../../lib/url-state.ts';
+import { holdStageView } from '../../lib/stage-lod.ts';
 import { withStudioExport } from '../../lib/studio-export-guard.ts';
 import { waitForInitialViewport } from '../tool-initial-viewport.ts';
 import { marksFromCsv } from './shared.ts';
@@ -102,6 +103,8 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
   if (shutter) await tview.designSystem.closeShutter(detail, onCancel);
 
   const resumeStage = tview.stageZoom?.suspend();
+  // The view attributes (moving, level of detail) must not reach an export.
+  const releaseView = holdStageView(canvasEl);
   const prevTransform = canvasEl!.style.transform;
   const prevOuterTransform = outerEl!.style.transform;
   const prevZoom = canvasEl!.style.zoom; // paged docs fit-to-width via zoom
@@ -122,6 +125,7 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
     canvasEl!.style.zoom = prevZoom;
     outerEl!.style.width = prevW;
     outerEl!.style.height = prevH;
+    releaseView();
     resumeStage?.();
     saved.forEach(({ el, id }) => {
       if (el.isConnected && id != null) el.dataset.canvasInput = id;

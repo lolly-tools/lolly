@@ -31,6 +31,7 @@ import type { cameraCaptureOps } from './camera-capture.ts';
 import type { timelineOps } from './timeline.ts';
 import type { stageOps } from './stage.ts';
 import type { narrationOps } from './narration.ts';
+import type { lodOps } from './lod.ts';
 import type { railOps } from './rail.ts';
 import type { toolboxOps } from './toolbox.ts';
 import type { menusOps } from './menus.ts';
@@ -386,6 +387,7 @@ export interface FcCtx {
   fileDrop: ReturnType<typeof fileDropOps>;
   stage: ReturnType<typeof stageOps>;
   narration: ReturnType<typeof narrationOps>;
+  lod: ReturnType<typeof lodOps>;
   rail: ReturnType<typeof railOps>;
   toolbox: ReturnType<typeof toolboxOps>;
   menus: ReturnType<typeof menusOps>;
