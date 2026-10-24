@@ -132,6 +132,14 @@ const SIGNING_SECRETS: Record<string, string> = {
   ASC_ISSUER_ID: 'release-native-signing',
 };
 
+// Callers that still pass a signing secret to a reusable workflow, each with its reason.
+// The lolly.tools candidate's frontend build received an empty key from the
+// release-catalog-signing environment alone (run 40079348093), so its caller passes the
+// key again until a candidate signs through the environment alone.
+const PASSED_SIGNING_SECRETS: Record<string, string> = {
+  'deployment-suse.yml web-frontend LOLLY_CATALOG_SIGNING_KEY': 'environment secret reached the called workflow empty',
+};
+
 test('release signing secrets reach only the jobs that name their gated environment', () => {
   const directory = new URL('../.github/workflows/', import.meta.url);
   const readers: string[] = [];
@@ -145,11 +153,17 @@ test('release signing secrets reach only the jobs that name their gated environm
       if (job.uses) {
         assert.notEqual(job.secrets, 'inherit', `${file} ${id} passes every secret to ${job.uses}`);
         for (const name of Object.keys(SIGNING_SECRETS)) {
-          assert.equal(job.secrets?.[name], undefined, `${file} ${id} passes ${name} to ${job.uses}`);
+          if (job.secrets?.[name] === undefined) continue;
+          const key = `${file} ${id} ${name}`;
+          assert.ok(PASSED_SIGNING_SECRETS[key], `${file} ${id} passes ${name} to ${job.uses}`);
+          assert.equal(job.secrets[name], `\${{ secrets.${name} }}`, `${key} passes something other than the secret itself`);
+          readers.push(`${key} (passed)`);
         }
       }
       const environment = typeof job.environment === 'string' ? job.environment : job.environment?.name;
-      const text = JSON.stringify(job);
+      // A caller's `secrets:` block is checked above. Any other mention of a signing
+      // secret (a `with:` input, a step) still has to sit in the owning environment.
+      const text = JSON.stringify(job.uses ? { ...job, secrets: undefined } : job);
       for (const [name, owner] of Object.entries(SIGNING_SECRETS)) {
         if (!new RegExp(`\\bsecrets\\.${name}\\b`).test(text)) continue;
         assert.equal(environment, owner, `${file} ${id} reads ${name} outside ${owner}`);
@@ -158,6 +172,7 @@ test('release signing secrets reach only the jobs that name their gated environm
     }
   }
   assert.deepEqual(readers, [
+    'deployment-suse.yml web-frontend LOLLY_CATALOG_SIGNING_KEY (passed)',
     'ios-release.yml sign IOS_DIST_CERT_P12',
     'ios-release.yml sign IOS_DIST_CERT_PASSWORD',
     'ios-release.yml sign IOS_APP_STORE_PROFILE',
@@ -167,8 +182,8 @@ test('release signing secrets reach only the jobs that name their gated environm
     'release-frontend.yml source-catalog LOLLY_CATALOG_SIGNING_KEY',
     'release-frontend.yml sign-artifact LOLLY_CATALOG_SIGNING_KEY',
   ]);
-  // The reusable workflow keeps its declaration for compatibility, but a caller has
-  // nothing to provide: the environment secret is what the signing jobs read.
+  // The reusable workflow keeps the declaration optional, so a caller outside
+  // PASSED_SIGNING_SECRETS provides nothing.
   const reusable = parse(readFileSync(new URL('release-frontend.yml', directory), 'utf8'));
   assert.equal(reusable.on.workflow_call.secrets.LOLLY_CATALOG_SIGNING_KEY.required, false);
 });
