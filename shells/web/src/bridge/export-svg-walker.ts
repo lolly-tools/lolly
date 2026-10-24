@@ -84,7 +84,7 @@ export function parseBackdropBlurPx(bf: string): number | null {
   return Number.isFinite(v) && v >= 0 ? v : null;
 }
 
-export function detectUnsupportedCss(el: Element, s: CSSStyleDeclaration, vectorCaps?: { blend?: boolean; clipBasicShapes?: boolean; dropShadow?: boolean; cssFilter?: boolean; backdropBlur?: boolean; conic?: boolean }): string | null {
+export function detectUnsupportedCss(el: Element, s: CSSStyleDeclaration, vectorCaps?: { blend?: boolean; clipBasicShapes?: boolean; dropShadow?: boolean; cssFilter?: boolean; backdropBlur?: boolean; conic?: boolean; maskImage?: boolean }): string | null {
   const tag = el.tagName.toLowerCase();
   // <img> filters are already baked (bakeImageFilter); <svg> subtrees have their own
   // faithful/raster paths. Never rasterise those here.
@@ -121,7 +121,8 @@ export function detectUnsupportedCss(el: Element, s: CSSStyleDeclaration, vector
 
   const mask = s.maskImage || (s as { webkitMaskImage?: string }).webkitMaskImage
     || (s.mask && s.mask !== 'none' && s.mask !== 'match-source' ? s.mask : '');
-  if (mask && mask !== 'none') return `mask:${mask}`;
+  // `maskImage`: the caller drew this element's mask as an SVG <mask> (emitMaskImage).
+  if (mask && mask !== 'none' && !vectorCaps?.maskImage) return `mask:${mask}`;
 
   // clip-path: polygon() is always kept vector; circle()/ellipse()/inset() are kept only
   // where the caller emits them as a <clipPath> (vectorCaps.clipBasicShapes); url()/path()
@@ -239,10 +240,28 @@ export function firstCssUrl(value: string | null | undefined): string | null {
   // chevron (--field-chevron, styles/parts/fields.css:42 - one declaration, on
   // every <select> in the app) vanished from SVG and PDF exports: firstCssUrl
   // returned null, so the background branch never ran and nothing was emitted.
-  // Three alternatives, in CSS's own order: "double", 'single', or bare.
-  const m = String(value).match(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)\s]([^)]*[^)\s])?))\s*\)/);
+  // Three alternatives, in CSS's own order: "double", 'single', or bare. A quoted
+  // string may hold an escaped quote of its own kind: Chrome serialises an inline
+  // SVG written with double quotes as `url("data:...<svg xmlns=\"http...\">")`.
+  // Refusing the escape sent that through the bare branch, which kept the opening
+  // quote, so the "URL" was fetched as a path on the page's own site and came back
+  // as its HTML (every Wikipedia search icon, 2026-10-20).
+  const m = String(value).match(/url\(\s*(?:"((?:[^"\\]|\\[\s\S])*)"|'((?:[^'\\]|\\[\s\S])*)'|([^)\s"']([^)]*[^)\s])?))\s*\)/);
   if (!m) return null;
-  return (m[1] ?? m[2] ?? m[3] ?? '').trim() || null;
+  const quoted = m[1] ?? m[2];
+  return (quoted !== undefined ? unescapeCssString(quoted) : (m[3] ?? '')).trim() || null;
+}
+
+/** A CSS string's escapes resolved: `\"` and `\\` to the character, `\hex ` to its
+ *  code point, an escaped newline removed (CSS Syntax 3 section 4.3.7). */
+function unescapeCssString(s: string): string {
+  return s.replace(/\\([0-9a-fA-F]{1,6})[ \t\n]?|\\([\s\S])/g, (_m, hex: string | undefined, ch: string | undefined) => {
+    if (hex) {
+      const cp = parseInt(hex, 16);
+      return cp > 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : '\ufffd';
+    }
+    return ch === '\n' ? '' : ch!;
+  });
 }
 
 // A CSS url() → a self-contained href: a data: URI stays as-is; blob:/http/relative are
@@ -250,6 +269,263 @@ export function firstCssUrl(value: string | null | undefined): string | null {
 export async function cssUrlToHref(url: string): Promise<string | null> {
   try { return url.startsWith('data:') ? url : await blobToDataUrl(url); }
   catch { return null; }
+}
+
+/**
+ * The background colour and borders of a plain inline element, one box per line
+ * fragment (`getClientRects()`), under its text. CSS slices an inline box across
+ * lines by default (`box-decoration-break: slice`): every fragment gets the top
+ * and bottom borders, the first one the starting side and its corners, the last
+ * one the ending side and its corners. Solid borders only; a background image or
+ * a dashed border is left out rather than drawn wrongly.
+ */
+function paintInlineBox(NS: string, g: Element, el: Element, rootRect: { left: number; top: number }): void {
+  const style = window.getComputedStyle(el);
+  if (style.visibility === 'hidden' || !(parseFloat(style.opacity || '1') > 0)) return;
+  const bg = parseCssColorFull(style.backgroundColor);
+  const side = (k: 'top' | 'right' | 'bottom' | 'left'): { w: number; rgb: Rgba | null } => {
+    const w = style.getPropertyValue(`border-${k}-style`) === 'solid' ? parseFloat(style.getPropertyValue(`border-${k}-width`)) || 0 : 0;
+    return { w, rgb: w > 0 ? parseCssColorFull(style.getPropertyValue(`border-${k}-color`)) : null };
+  };
+  const t = side('top'), r = side('right'), b = side('bottom'), l = side('left');
+  if (!(bg && bg[3] > 0) && !t.rgb && !r.rgb && !b.rgb && !l.rgb) return;
+  const frags = Array.from(el.getClientRects()).filter((f) => f.width > 0 && f.height > 0);
+  const rtl = style.direction === 'rtl';
+  const rgbStr = (c: Rgba): string => `rgb(${c[0]},${c[1]},${c[2]})`;
+  frags.forEach((f, i) => {
+    const x = f.left - rootRect.left, y = f.top - rootRect.top;
+    const opensLeft = rtl ? i === frags.length - 1 : i === 0;
+    const closesRight = rtl ? i === 0 : i === frags.length - 1;
+    if (bg && bg[3] > 0) {
+      const { radii } = resolveRadii(style, f.width, f.height);
+      const cut: CornerPair = [0, 0];
+      const sliced = {
+        topLeft: opensLeft ? radii.topLeft : cut, bottomLeft: opensLeft ? radii.bottomLeft : cut,
+        topRight: closesRight ? radii.topRight : cut, bottomRight: closesRight ? radii.bottomRight : cut,
+      };
+      g.appendChild(makeRoundedFill(NS, x, y, f.width, f.height, sliced, uniformRadius(sliced), rgbaCss(bg)));
+    }
+    const edge = (rgb: Rgba | null, ex: number, ey: number, ew: number, eh: number): void => {
+      if (!rgb || !(ew > 0 && eh > 0)) return;
+      const e = makeSvgRect(NS, ex, ey, ew, eh, 0, rgbStr(rgb));
+      if (rgb[3] < 1) e.setAttribute('fill-opacity', String(rgb[3]));
+      g.appendChild(e);
+    };
+    edge(t.rgb, x, y, f.width, t.w);
+    edge(b.rgb, x, y + f.height - b.w, f.width, b.w);
+    if (opensLeft) edge(l.rgb, x, y, l.w, f.height);
+    if (closesRight) edge(r.rgb, x + f.width - r.w, y, r.w, f.height);
+  });
+}
+
+/**
+ * Checkbox, radio and range.
+ *
+ * Only for UA-drawn widgets (`appearance` still native). When a stylesheet has set
+ * `appearance: none` - which every control in this app does - the tick, dot and
+ * track are ordinary CSS the walker already paints, and drawing a second widget on
+ * top would be the wrong answer twice.
+ */
+function emitWidgetControl(NS: string, rootRect: { left: number; top: number }, _el: Element, d: ControlDesc, style: CSSStyleDeclaration, contentG: Element, r: DOMRect): void {
+  const appearance = style.getPropertyValue('appearance') || style.getPropertyValue('-webkit-appearance') || 'auto';
+  if (appearance === 'none') return;
+  const type = (d.type || '').toLowerCase();
+  const x = r.left - rootRect.left, y = r.top - rootRect.top, w = r.width, h = r.height;
+  const accent = parseCssColorFull(style.accentColor === 'auto' ? '' : style.accentColor) ?? [26, 115, 232, 1] as Rgba;
+  const acc = `rgb(${accent[0]},${accent[1]},${accent[2]})`;
+  const add = (e: Element) => contentG.appendChild(e);
+  const rect = (rx: number, ry: number, rw: number, rh: number, fill: string, rad: number, stroke?: string) => {
+    const q = document.createElementNS(NS, 'rect');
+    q.setAttribute('x', String(n2(rx))); q.setAttribute('y', String(n2(ry)));
+    q.setAttribute('width', String(n2(rw))); q.setAttribute('height', String(n2(rh)));
+    if (rad) { q.setAttribute('rx', String(n2(rad))); q.setAttribute('ry', String(n2(rad))); }
+    q.setAttribute('fill', fill);
+    if (stroke) { q.setAttribute('stroke', stroke); q.setAttribute('stroke-width', '1'); }
+    return q;
+  };
+
+  if (type === 'checkbox' || type === 'radio') {
+    // An approximation of the platform widget, not a copy of it: the real one is
+    // drawn by the compositor with no CSS to read. Blank was the alternative, and a
+    // recognisable checkbox is closer to what the reader saw than an empty square.
+    const round = type === 'radio' ? Math.min(w, h) / 2 : Math.min(2, Math.min(w, h) / 4);
+    add(rect(x, y, w, h, d.checked ? acc : '#fff', round, d.checked ? undefined : '#767676'));
+    if (d.checked && type === 'checkbox') {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', `M${n2(x + w * 0.22)} ${n2(y + h * 0.52)}L${n2(x + w * 0.42)} ${n2(y + h * 0.72)}L${n2(x + w * 0.78)} ${n2(y + h * 0.3)}`);
+      p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#fff');
+      p.setAttribute('stroke-width', String(n2(Math.max(1.5, Math.min(w, h) * 0.14))));
+      p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round');
+      add(p);
+    } else if (d.checked) {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', String(n2(x + w / 2))); c.setAttribute('cy', String(n2(y + h / 2)));
+      c.setAttribute('r', String(n2(Math.min(w, h) * 0.22)));
+      c.setAttribute('fill', '#fff');
+      add(c);
+    }
+    return;
+  }
+
+  if (type === 'range') {
+    const frac = rangeFraction(d);
+    const th = Math.max(3, Math.min(4, h * 0.25));
+    const ty = y + (h - th) / 2;
+    add(rect(x, ty, w, th, '#c4c4c4', th / 2));
+    if (frac > 0) add(rect(x, ty, w * frac, th, acc, th / 2));
+    const rr = Math.min(h, 14) / 2;
+    const c = document.createElementNS(NS, 'circle');
+    // The thumb's centre travels between its own radii, not the full track.
+    c.setAttribute('cx', String(n2(x + rr + (w - 2 * rr) * frac)));
+    c.setAttribute('cy', String(n2(y + h / 2)));
+    c.setAttribute('r', String(n2(rr)));
+    c.setAttribute('fill', acc);
+    add(c);
+  }
+}
+
+/** Top layer (`<dialog open>` shown modally, an open popover). Guarded because
+ *  `:popover-open` throws in engines that don't know the selector.
+ *
+ *  A top-layer box is a stacking context for its own internals, and the walk
+ *  lifts it above the rest of the document with its ::backdrop colour under it
+ *  (topLayerQueue). Not modelled: a backdrop-filter on ::backdrop, and the
+ *  order boxes entered the top layer, which the DOM does not expose, so the
+ *  walk's own order stands in for the opening order. */
+function isTopLayer(el: Element): boolean {
+  try { return typeof el.matches === 'function' && el.matches(':modal, :popover-open'); }
+  catch { return false; }
+}
+
+/** The `<image>` for a page snapshot's region placeholder, on the element box. */
+function regionImageEl(NS: string, href: string, x: number, y: number, w: number, h: number): Element {
+  const im = document.createElementNS(NS, 'image');
+  im.setAttribute('href', href);
+  im.setAttribute('x', String(n2(x))); im.setAttribute('y', String(n2(y)));
+  im.setAttribute('width', String(n2(w))); im.setAttribute('height', String(n2(h)));
+  im.setAttribute('preserveAspectRatio', 'none');
+  return im;
+}
+
+/** A top-layer box's ::backdrop: one viewport-sized rect of its colour. A
+ *  backdrop-filter on it is not reconstructed, and the log says so. */
+function emitBackdrop(NS: string, rootG: Element, rootRect: { left: number; top: number }, el: Element): void {
+  let bs: CSSStyleDeclaration;
+  try { bs = window.getComputedStyle(el, '::backdrop'); } catch { return; }
+  if (bs.backdropFilter && bs.backdropFilter !== 'none') {
+    _host?.log?.('warn', `svg: ::backdrop filter (${bs.backdropFilter}) on <${el.tagName.toLowerCase()}> is not reconstructed; its colour is`);
+  }
+  const col = parseCssColorFull(bs.backgroundColor);
+  if (!col || col[3] <= 0) return;
+  const r = document.createElementNS(NS, 'rect');
+  r.setAttribute('x', String(n2(-rootRect.left))); r.setAttribute('y', String(n2(-rootRect.top)));
+  r.setAttribute('width', String(n2(document.documentElement.clientWidth || window.innerWidth)));
+  r.setAttribute('height', String(n2(document.documentElement.clientHeight || window.innerHeight)));
+  r.setAttribute('fill', rgbaCss(col));
+  rootG.appendChild(r);
+}
+
+/**
+ * The children a box with no area still shows. It paints nothing of its own, but
+ * `overflow: visible` lets its children spill out, and a fixed child is laid out
+ * against the viewport whatever its parent clips. Pages mount portals, consent
+ * banners and fixed headers this way (github.com's header and hero canvas sit in
+ * 0-height fixed wrappers, a OneTrust banner in a 0-height static one), and
+ * returning at the empty box dropped them along with the box.
+ */
+function spilledChildren(el: Element, style: CSSStyleDeclaration): Element[] {
+  const spills = style.overflowX === 'visible' && style.overflowY === 'visible';
+  return renderedChildren(el).filter((child) => hasOwnBox(child)
+    && (spills || window.getComputedStyle(child).position === 'fixed'));
+}
+
+/** cssUrlToHref, or for a page snapshot the URL itself when the page cannot read
+ *  the bytes. A fetch that answers with something other than an image (a 404
+ *  page, a login redirect) is no image at all. */
+async function cssUrlToHrefOrRemote(url: string, remote: boolean): Promise<string | null> {
+  const href = await cssUrlToHref(url);
+  if (href) return href.startsWith('data:') && !/^data:image\//i.test(href) ? null : href;
+  return remote && /^https?:/i.test(url) ? url : null;
+}
+
+/**
+ * Draw a one-layer `mask-image: url(...)` as an SVG `<mask>` on the element's
+ * group: the mask image placed by mask-size, mask-position and mask-repeat over
+ * the mask-origin box, read by alpha (an image's `match-source`) or luminance.
+ * False when the mask is anything else (several layers, a gradient, an image
+ * that cannot be read); the caller then sends the element to the raster hatch.
+ */
+async function emitMaskImage(
+  NS: string, g: Element, defs: Element, style: CSSStyleDeclaration,
+  x: number, y: number, w: number, h: number, nextId: () => number, remote: boolean,
+): Promise<boolean> {
+  // Unprefixed first; Chrome before 120 knew these only as -webkit-mask-*.
+  const prop = (name: string): string => style.getPropertyValue(name) || style.getPropertyValue(`-webkit-${name}`);
+  const layers = splitCssArgs(prop('mask-image')).map((l) => l.trim()).filter((l) => l && l !== 'none');
+  if (layers.length !== 1 || !/^url\(/i.test(layers[0]!)) return false;
+  const url = firstCssUrl(layers[0]);
+  const href = url ? await cssUrlToHrefOrRemote(url, remote) : null;
+  if (!href) return false;
+  const first = (v: string | undefined, fallback: string): string =>
+    splitCssArgs(v || '').map((p) => p.trim()).filter(Boolean)[0] ?? fallback;
+  // mask-origin and mask-clip start at the border box, where a background's
+  // origin is the padding box.
+  const inset = (box: string): { x: number; y: number; w: number; h: number } => {
+    if (box === 'border-box') return { x, y, w, h };
+    const l = num2(style, 'borderLeftWidth') + (box === 'content-box' ? num2(style, 'paddingLeft') : 0);
+    const t = num2(style, 'borderTopWidth') + (box === 'content-box' ? num2(style, 'paddingTop') : 0);
+    const r = num2(style, 'borderRightWidth') + (box === 'content-box' ? num2(style, 'paddingRight') : 0);
+    const b = num2(style, 'borderBottomWidth') + (box === 'content-box' ? num2(style, 'paddingBottom') : 0);
+    return { x: x + l, y: y + t, w: Math.max(0, w - l - r), h: Math.max(0, h - t - b) };
+  };
+  const origin = inset(first(prop('mask-origin'), 'border-box'));
+  const clipBox = first(prop('mask-clip'), 'border-box');
+  const clip = clipBox === 'no-clip' ? { x: x - w, y: y - h, w: w * 3, h: h * 3 } : inset(clipBox);
+  const pl = placeBackground(
+    first(prop('mask-size'), 'auto'),
+    first(prop('mask-position'), '0% 0%'),
+    first(prop('mask-repeat'), 'repeat'),
+    { w: origin.w, h: origin.h }, await intrinsicSize(href),
+  );
+  if (!(pl.w > 0 && pl.h > 0)) return false;
+  const id = `fcmask-${nextId()}`;
+  const mask = document.createElementNS(NS, 'mask');
+  mask.setAttribute('id', id);
+  mask.setAttribute('maskUnits', 'userSpaceOnUse');
+  mask.setAttribute('maskContentUnits', 'userSpaceOnUse');
+  mask.setAttribute('x', String(n2(clip.x))); mask.setAttribute('y', String(n2(clip.y)));
+  mask.setAttribute('width', String(n2(clip.w))); mask.setAttribute('height', String(n2(clip.h)));
+  if (first(style.getPropertyValue('mask-mode'), 'match-source') !== 'luminance') mask.setAttribute('style', 'mask-type:alpha');
+  const image = (ix: number, iy: number): Element => {
+    const im = document.createElementNS(NS, 'image');
+    im.setAttribute('href', href);
+    im.setAttribute('x', String(n2(ix))); im.setAttribute('y', String(n2(iy)));
+    im.setAttribute('width', String(n2(pl.w))); im.setAttribute('height', String(n2(pl.h)));
+    im.setAttribute('preserveAspectRatio', 'none');
+    return im;
+  };
+  if (pl.repeatX || pl.repeatY) {
+    const pid = `fcmaskpat-${nextId()}`;
+    const pat = document.createElementNS(NS, 'pattern');
+    pat.setAttribute('id', pid);
+    pat.setAttribute('patternUnits', 'userSpaceOnUse');
+    pat.setAttribute('x', String(n2(origin.x + (pl.repeatX ? pl.x % pl.w : pl.x))));
+    pat.setAttribute('y', String(n2(origin.y + (pl.repeatY ? pl.y % pl.h : pl.y))));
+    pat.setAttribute('width', String(n2(pl.repeatX ? pl.w : Math.max(pl.w, clip.w))));
+    pat.setAttribute('height', String(n2(pl.repeatY ? pl.h : Math.max(pl.h, clip.h))));
+    pat.appendChild(image(0, 0));
+    defs.appendChild(pat);
+    const r = document.createElementNS(NS, 'rect');
+    r.setAttribute('x', String(n2(clip.x))); r.setAttribute('y', String(n2(clip.y)));
+    r.setAttribute('width', String(n2(clip.w))); r.setAttribute('height', String(n2(clip.h)));
+    r.setAttribute('fill', `url(#${pid})`);
+    mask.appendChild(r);
+  } else {
+    mask.appendChild(image(origin.x + pl.x, origin.y + pl.y));
+  }
+  defs.appendChild(mask);
+  g.setAttribute('mask', `url(#${id})`);
+  return true;
 }
 
 // preserveAspectRatio for a background-image sized via `background-size` + positioned via
@@ -482,6 +758,7 @@ export async function renderSvgFromHtml(node: Element, opts: ExportOpts): Promis
   const textContext = createInlineTextContext({
     text: opts.convertPaths !== false ? host?.text ?? null : null,
     log: host?.log?.bind(host), resolveFont: resolveVectorFont, fontMetrics: fontMetricsPx,
+    flatTree: opts.shadowSlots === true,
   });
   return renderHtmlSvg(node, opts, textContext);
 }
@@ -643,20 +920,9 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   /** What every element classifies as when the flag is off: in-flow, no context.
    *  Shared constant so the OFF path allocates nothing per node. */
   const DOM_ORDER_ROLE: StackingRole = { createsContext: false, reason: '', layer: 3, z: 0, order: 0 };
-  /** Top layer (`<dialog open>` shown modally, an open popover). Guarded because
-   *  `:popover-open` throws in engines that don't know the selector.
-   *
-   *  KNOWN LIMITATION: this only makes a top-layer box a stacking CONTEXT so its
-   *  internals order correctly. It does NOT lift it above the rest of the
-   *  document (HTML section top layer) and `::backdrop` is not modelled at all
-   *  (pseudoDescriptor sees only ::before/::after). On the measured fixtures
-   *  that is the single largest remaining paint-order defect - ~36 points of
-   *  local-gallery's loss, against ~2 points for everything this flag fixes - 
-   *  and it is a separate milestone. */
-  const topLayer = (el: Element): boolean => {
-    try { return typeof el.matches === 'function' && el.matches(':modal, :popover-open'); }
-    catch { return false; }
-  };
+  /** Top-layer boxes met during the walk, painted after it (see visitSvgNode). */
+  const topLayerQueue: Element[] = [];
+  const inTopLayerPass = new Set<Element>();
 
   /** Append `unit` where CSS says it paints. Returns a handle so a caller that
    *  later abandons the element (the zero-area clip-path early return) can undo
@@ -718,7 +984,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     if (cw <= 0 || ch <= 0) return;
     const cx = r.left + insetL, cy = r.top + insetT;
 
-    if (isWidgetControl(d)) { emitWidgetControl(el, d, style, contentG, r); return; }
+    if (isWidgetControl(d)) { emitWidgetControl(NS, rootRect, el, d, style, contentG, r); return; }
 
     const ct = controlText(d);
     if (!ct) return;
@@ -783,73 +1049,6 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     if (!cg.childNodes.length) cg.remove();
   }
 
-  /**
-   * Checkbox, radio and range.
-   *
-   * Only for UA-drawn widgets (`appearance` still native). When a stylesheet has set
-   * `appearance: none` - which every control in this app does - the tick, dot and
-   * track are ordinary CSS the walker already paints, and drawing a second widget on
-   * top would be the wrong answer twice.
-   */
-  function emitWidgetControl(_el: Element, d: ControlDesc, style: CSSStyleDeclaration, contentG: Element, r: DOMRect): void {
-    const appearance = (style as unknown as Record<string, string>).appearance
-      || (style as unknown as Record<string, string>).webkitAppearance || 'auto';
-    if (appearance === 'none') return;
-    const type = (d.type || '').toLowerCase();
-    const x = r.left - rootRect.left, y = r.top - rootRect.top, w = r.width, h = r.height;
-    const accent = parseCssColorFull(style.accentColor === 'auto' ? '' : style.accentColor) ?? [26, 115, 232, 1] as Rgba;
-    const acc = `rgb(${accent[0]},${accent[1]},${accent[2]})`;
-    const add = (e: Element) => contentG.appendChild(e);
-    const rect = (rx: number, ry: number, rw: number, rh: number, fill: string, rad: number, stroke?: string) => {
-      const q = document.createElementNS(NS, 'rect');
-      q.setAttribute('x', String(n2(rx))); q.setAttribute('y', String(n2(ry)));
-      q.setAttribute('width', String(n2(rw))); q.setAttribute('height', String(n2(rh)));
-      if (rad) { q.setAttribute('rx', String(n2(rad))); q.setAttribute('ry', String(n2(rad))); }
-      q.setAttribute('fill', fill);
-      if (stroke) { q.setAttribute('stroke', stroke); q.setAttribute('stroke-width', '1'); }
-      return q;
-    };
-
-    if (type === 'checkbox' || type === 'radio') {
-      // An approximation of the platform widget, not a copy of it: the real one is
-      // drawn by the compositor with no CSS to read. Blank was the alternative, and a
-      // recognisable checkbox is closer to what the reader saw than an empty square.
-      const round = type === 'radio' ? Math.min(w, h) / 2 : Math.min(2, Math.min(w, h) / 4);
-      add(rect(x, y, w, h, d.checked ? acc : '#fff', round, d.checked ? undefined : '#767676'));
-      if (d.checked && type === 'checkbox') {
-        const p = document.createElementNS(NS, 'path');
-        p.setAttribute('d', `M${n2(x + w * 0.22)} ${n2(y + h * 0.52)}L${n2(x + w * 0.42)} ${n2(y + h * 0.72)}L${n2(x + w * 0.78)} ${n2(y + h * 0.3)}`);
-        p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#fff');
-        p.setAttribute('stroke-width', String(n2(Math.max(1.5, Math.min(w, h) * 0.14))));
-        p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round');
-        add(p);
-      } else if (d.checked) {
-        const c = document.createElementNS(NS, 'circle');
-        c.setAttribute('cx', String(n2(x + w / 2))); c.setAttribute('cy', String(n2(y + h / 2)));
-        c.setAttribute('r', String(n2(Math.min(w, h) * 0.22)));
-        c.setAttribute('fill', '#fff');
-        add(c);
-      }
-      return;
-    }
-
-    if (type === 'range') {
-      const frac = rangeFraction(d);
-      const th = Math.max(3, Math.min(4, h * 0.25));
-      const ty = y + (h - th) / 2;
-      add(rect(x, ty, w, th, '#c4c4c4', th / 2));
-      if (frac > 0) add(rect(x, ty, w * frac, th, acc, th / 2));
-      const rr = Math.min(h, 14) / 2;
-      const c = document.createElementNS(NS, 'circle');
-      // The thumb's centre travels between its own radii, not the full track.
-      c.setAttribute('cx', String(n2(x + rr + (w - 2 * rr) * frac)));
-      c.setAttribute('cy', String(n2(y + h / 2)));
-      c.setAttribute('r', String(n2(rr)));
-      c.setAttribute('fill', acc);
-      add(c);
-    }
-  }
-
   async function visitSvgNode(
     el: any, parentG: Element, ctx: PaintCtx,
     o?: { forceContext?: boolean; placeDirect?: boolean },
@@ -885,6 +1084,13 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     const opacity = parseFloat(style.opacity ?? '1');
     if (opacity === 0) return;
 
+    // The top layer (HTML section 6.11): a modal dialog or an open popover paints
+    // above the whole document, with its ::backdrop under it, whatever its
+    // ancestors clip, fade or stack. Painted here among its DOM siblings, a page's
+    // fixed bottom bar came out over the welcome dialog. Queue it for the pass that
+    // follows the root walk instead. Snapshot mode only, like the rest of paint order.
+    if (stackingOrder && el !== node && !inTopLayerPass.has(el) && isTopLayer(el)) { topLayerQueue.push(el); return; }
+
     // `display: contents` generates NO box of its own (CSS Display 3 section 3.1: the element
     // is replaced by its contents for layout). getBoundingClientRect() is therefore
     // 0x0, and the `rect.width < 0.5` guard below would drop the element AND its whole
@@ -918,7 +1124,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
           style as unknown as Parameters<typeof stackingRole>[0],
           (style.zIndex && style.zIndex !== 'auto' && el.parentElement)
             ? window.getComputedStyle(el.parentElement).display : '',
-          topLayer(el),
+          isTopLayer(el),
         )
       : DOM_ORDER_ROLE;
     // The root of the walk is always a stacking context (Appendix E: the root
@@ -1047,7 +1253,10 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     }
 
     const rect = el.getBoundingClientRect();
-    if (rect.width < 0.5 || rect.height < 0.5) return;
+    if (rect.width < 0.5 || rect.height < 0.5) {
+      for (const child of spilledChildren(el, style)) await visitSvgNode(child, parentG, ctx);
+      return;
+    }
 
     const x = rect.left - rootRect.left;
     const y = rect.top  - rootRect.top;
@@ -1331,6 +1540,10 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       }
     }
 
+    // ── mask-image: url() (snapshot mode, see emitMaskImage) ──
+    const maskHandled = opts.maskImage === true
+      && await emitMaskImage(NS, g, defs, style, x, y, w, h, () => ++uid, opts.remoteCssImages === true);
+
     // ── backdrop-filter: blur() ─────────────────────────────────────────────
     // SVG has no primitive that reads what is painted behind an element, so the
     // backdrop has to be reconstructed: take the content already emitted (at this
@@ -1427,7 +1640,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     // for them would rasterise instead - an improvement for EMF/EPS, but DXF is
     // line-art only and drops raster regions outright, so it is a separate decision
     // with its own measurements, not a rider on this one.
-    const rasterReason = opts.rasterFallback !== false ? detectUnsupportedCss(el, style, { blend: true, clipBasicShapes: clipHandled, dropShadow: Boolean(dropShadows), cssFilter: true, backdropBlur: bfHandled, conic: true }) : null;
+    const rasterReason = opts.rasterFallback !== false ? detectUnsupportedCss(el, style, { blend: true, clipBasicShapes: clipHandled, dropShadow: Boolean(dropShadows), cssFilter: true, backdropBlur: bfHandled, conic: true, maskImage: maskHandled }) : null;
     if (rasterReason) {
       const pxScale = scaleX * Math.max(1, d.dpi / CSS_DPI);
       const pxW = Math.max(2, Math.min(MAX_RASTER_PX, Math.round(w * pxScale)));
@@ -1454,8 +1667,13 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       // renderSvgFromHtml is the shipping SVG/PDF/EMF/EPS path for every tool in
       // every profile. Snapshot-specific behaviour stays behind the flag.
       const scoped = opts.elementScopedRaster === true;
-      try { dataUrl = await rasterizeNodeToDataUrl(el as HTMLElement, pxW, pxH, undefined, opts._imprintSink, scoped); }
-      finally { el.style.opacity = prevOpacity; }
+      // A page snapshot's host has the pixels already: ask it before re-rendering.
+      const region = opts.regionImage?.(el) ?? null;
+      if (region) { dataUrl = region; el.style.opacity = prevOpacity; }
+      else {
+        try { dataUrl = await rasterizeNodeToDataUrl(el as HTMLElement, pxW, pxH, undefined, opts._imprintSink, scoped); }
+        finally { el.style.opacity = prevOpacity; }
+      }
       if (dataUrl) {
         _host?.log?.('info', `svg: rasterised <${tag}> ${scoped ? 'own paint' : 'subtree'} (unsupported ${rasterReason})`);
         const img = document.createElementNS(NS, 'image');
@@ -1483,7 +1701,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     const bgImgAll = ownPaintRastered ? 'none' : style.backgroundImage;
     const bgRgb = ownPaintRastered ? null : parseCssColorFull(style.backgroundColor);
     if (bgRgb) g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, rgbaCss(bgRgb)));
-    await emitBackgroundLayers(NS, g, defs, style, bgImgAll, x, y, w, h, radii, uniform, () => ++uid);
+    await emitBackgroundLayers(NS, g, defs, style, bgImgAll, x, y, w, h, radii, uniform, () => ++uid, opts.remoteCssImages === true);
 
     // ── Inset box-shadow ──────────────────────────────────────────────────────
     // CSS paints an inset shadow over the background and under the border/content,
@@ -2024,6 +2242,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     // inline walk descends the same wrappers for text nodes, and still returns
     // at every own-box element, so nothing double-paints.)
     const visitThroughInline = async (wrapper: Element): Promise<void> => {
+      if (opts.inlineDecorations === true) paintInlineBox(NS, contentG, wrapper, rootRect);
       for (const c of renderedChildren(wrapper)) {
         if (hasOwnBox(c)) await visitSvgNode(c, contentG, childCtx);
         else await visitThroughInline(c);
@@ -2055,7 +2274,12 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       const twin = typeof (el as VectorTwinCanvas).__lollyVectorTwin === 'function'
         ? await vectorTwinEl(el as HTMLCanvasElement, () => `tw${++uid}-`)
         : null;
-      if (twin) {
+      const region = twin ? null : opts.regionImage?.(el) ?? null;
+      if (region) {
+        // A page snapshot reads the canvas off the screen: a WebGL canvas without a
+        // preserved buffer reads back blank, and a tainted one throws.
+        contentG.appendChild(regionImageEl(NS, region, x, y, w, h));
+      } else if (twin) {
         // Placed on the element box with the raster branch's exact geometry and
         // stretch semantics, so swapping raster for vector cannot move a pixel.
         twin.setAttribute('x', String(n2(x))); twin.setAttribute('y', String(n2(y)));
@@ -2078,6 +2302,15 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       } catch (e) {
         _host?.log?.('warn', `svg: <canvas> could not be read (tainted?) - ${(e as Error).message}`);
       }
+    }
+
+    // ── Replaced content a page snapshot can only see on screen ──────────────
+    // A video frame, an iframe or an embedded object: the walker cannot read them
+    // (a cross-origin document, a frame the page never exposes), so a page
+    // snapshot's host fills the box from its screenshot. Tool exports skip them.
+    if (opts.regionImage && (tag === 'video' || tag === 'iframe' || tag === 'embed' || tag === 'object')) {
+      const region = opts.regionImage(el);
+      if (region) contentG.appendChild(regionImageEl(NS, region, x, y, w, h));
     }
 
     // ── Form controls ────────────────────────────────────────────────────────
@@ -2148,6 +2381,15 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   // directly. Handing it a frame nobody finalises would silently drop the whole
   // page if the export root ever happened to be positioned.
   await visitSvgNode(node, rootG, { frame: null, clips: [] });
+  // The top layer, above everything the walk painted, in the order the walk met it
+  // (the order boxes entered the top layer is not exposed). A popover opened inside
+  // a dialog is queued while the dialog is walked, so the loop reads a growing list.
+  for (let i = 0; i < topLayerQueue.length; i++) {
+    const el = topLayerQueue[i]!;
+    inTopLayerPass.add(el);
+    emitBackdrop(NS, rootG, rootRect, el);
+    await visitSvgNode(el, rootG, { frame: null, clips: [] }, { forceContext: true });
+  }
   // ONE line for the whole walk (plans/104 section 12 Q2): what did not stay vector, and why.
   // The user was told in advance by the export panel's amber row; this is the record in
   // the log, and it is what a CLI or a headless caller has instead of that row.
@@ -2370,6 +2612,8 @@ async function emitBackgroundLayers(
   NS: string, g: Element, defs: Element, style: CSSStyleDeclaration, bgImage: string,
   x: number, y: number, w: number, h: number, radii: CornerRadii, uniform: CornerPair | null,
   nextId: () => number,
+  /** Keep an unreadable http(s) image as its URL (ExportOpts.remoteCssImages). */
+  remote = false,
 ): Promise<void> {
   // `background-image` is a LIST: CSS lists layers top-first and paints them
   // bottom-first, and each layer carries its own size/position/repeat (those lists
@@ -2496,7 +2740,7 @@ async function emitBackgroundLayers(
       }
     } else {
       const bgUrl = firstCssUrl(bgImg);
-      const href = bgUrl ? await cssUrlToHref(bgUrl) : null;
+      const href = bgUrl ? await cssUrlToHrefOrRemote(bgUrl, remote) : null;
       if (href) {
         // Place the image per background-size/position/repeat instead of stretching
         // it across the border box. The old behaviour was right only for a `cover`

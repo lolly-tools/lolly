@@ -83,6 +83,7 @@ function reset(): void {
   hoverCapable = true;
   delete document.documentElement.dataset.a11yMotion;
   delete document.documentElement.dataset.a11yPreviews;
+  document.documentElement.removeAttribute('data-webgpu-pending');
   document.body.innerHTML = '';
 }
 
@@ -431,4 +432,22 @@ test('verified preview elements remain blank until approved bytes arrive and sho
   assert.equal(card.hasAttribute('src'), false); assert.equal(card.dataset.previewRefused, 'true');
   assert.match(root.textContent ?? '', /Preview unavailable/);
   root.remove();
+});
+
+test('motion previews hold still while the WebGPU startup check runs, then the centred tile plays', async () => {
+  reset();
+  hoverCapable = false;
+  document.documentElement.setAttribute('data-webgpu-pending', '');
+  assert.equal(motionPreviewsSuppressed(), true, 'held while the check runs');
+  const near = tile(motionVideoThumb('/near.mp4', 'cat-thumb'));
+  near.getBoundingClientRect = (() => ({ top: 330, height: 100, bottom: 430, left: 0, right: 0, width: 100, x: 0, y: 330, toJSON() {} })) as never;
+  const arm = armMotionPreviews(document.body);
+  observers[0]!.cb([{ target: near, isIntersecting: true }]);
+  assert.equal(played.length, 0, 'the centred tile waits for the check');
+  document.documentElement.removeAttribute('data-webgpu-pending');
+  await new Promise(resolve => setTimeout(resolve, 0)); // the attribute observer's delivery
+  assert.equal(motionPreviewsSuppressed(), false);
+  assert.deepEqual(played.map(v => v.getAttribute('src')), ['/near.mp4'], 'and plays once the check settles');
+  arm.destroy();
+  reset();
 });

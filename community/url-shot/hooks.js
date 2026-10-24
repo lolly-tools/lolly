@@ -57,9 +57,13 @@ function recolorCss(v) {
 // the shot (content renders bigger and crisper, not upscaled) - the way to enlarge
 // even a bitmap capture. scrollHeight reflows with it, so the scroll/crop geometry
 // (measured post-injection by the capture engine) stays self-consistent.
-function zoomCss(v) {
+function zoomOf(v) {
   var z = Number(v.zoom);
-  return (Number.isFinite(z) && z > 0 && Math.abs(z - 1) > 1e-3) ? 'html{zoom:' + z + '!important}' : '';
+  return (Number.isFinite(z) && z > 0 && Math.abs(z - 1) > 1e-3) ? z : 1;
+}
+function zoomCss(v) {
+  var z = zoomOf(v);
+  return z !== 1 ? 'html{zoom:' + z + '!important}' : '';
 }
 
 var clampInset = function (n) {
@@ -92,6 +96,9 @@ function stash(model) {
     scrollTo: v.scrollTo == null ? 1 : clamp01(v.scrollTo),
     waitMs: Number.isFinite(Number(v.waitMs)) ? Math.max(0, Number(v.waitMs)) : 500,
     css: [recolorCss(v), zoomCss(v), userCss].filter(Boolean).join('\n'),
+    // A vector capture takes its zoom as a smaller viewport instead (see beforeExport).
+    vectorCss: [recolorCss(v), userCss].filter(Boolean).join('\n'),
+    zoom: zoomOf(v),
     crop: {
       top: clampInset(v.cropTop), right: clampInset(v.cropRight),
       bottom: clampInset(v.cropBottom), left: clampInset(v.cropLeft),
@@ -236,14 +243,27 @@ async function beforeExport({ node, format, opts, host }) {
   // ── Still: a true vector for svg/pdf where the shell can print one, a raster
   //    otherwise (png/jpg/webp, and svg/pdf on a shell without capture.vector) ──
   var wantsVector = fmt === 'svg' || fmt === 'pdf';
-  var take = (wantsVector && typeof host.capture.vector === 'function')
-    ? function (spec) { return host.capture.vector(spec); }
-    : function (spec) { return host.capture.page(spec); };
+  var vector = wantsVector && typeof host.capture.vector === 'function';
+  // A vector capture zooms the way Ctrl/Cmd + does: a smaller viewport, drawn
+  // larger. CSS zoom on <html> scales the boxes the page walk measures but not the
+  // font sizes it reads, so on this path the zoom leaves the CSS and the result is
+  // painted `z` times its captured size. The screenshot behind it (for what the
+  // walk copies as pixels) is taken `z` times denser to match.
+  var z = vector ? _params.zoom : 1;
+  var take = function (spec) {
+    if (!vector) return host.capture.page(spec);
+    return host.capture.vector(Object.assign({}, spec, {
+      width: Math.max(1, Math.round(spec.width / z)),
+      height: Math.max(1, Math.round(spec.height / z)),
+      dpr: spec.dpr * z,
+      css: _params.vectorCss,
+    }));
+  };
   var paint = function (el, ref, w, h) {
     if (!el) return;
     el.setAttribute('src', ref.url);
-    el.setAttribute('width', String(ref.width || w));
-    el.setAttribute('height', String(ref.height || h));
+    el.setAttribute('width', String(ref.width ? Math.round(ref.width * z) : w));
+    el.setAttribute('height', String(ref.height ? Math.round(ref.height * z) : h));
   };
 
   paint(img, await take(Object.assign({}, baseSpec, { crop: _params.crop })), width, height);

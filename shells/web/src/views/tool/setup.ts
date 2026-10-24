@@ -746,7 +746,7 @@ export function wrapSetInput(tview: ToolViewCtx): void {
       if (
         cur && admitted &&
         inputHistory.record(
-          { id, label: tview.history.writeLabel(cur, cur.value, admitted.value), before: cur.value, after: admitted.value, tokenLinks: { before: beforeLinks, after: historyTokenLinks(runtime.getModel(), [id]) }, collabStamp: collabHistoryStamp(runtime) },
+          { id, label: tview.history.writeLabel(cur, cur.value, admitted.value), before: cur.value, after: admitted.value, inputType: cur.type, tokenLinks: { before: beforeLinks, after: historyTokenLinks(runtime.getModel(), [id]) }, collabStamp: collabHistoryStamp(runtime) },
           Date.now()
         ) !== 'ignored'
       ) {

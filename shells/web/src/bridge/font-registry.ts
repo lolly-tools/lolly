@@ -47,6 +47,7 @@ import { selectAdoptionFonts } from '../lib/design-system/adoption-fonts.ts';
 import { resolveSuseFontUrl, suseStaticWeight } from './text-svg.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 import { discoverFontFaces } from './fontface-discovery.ts';
+import { parseFontFamilies, pickFaces, weightRange } from '@lolly-tools/node-shell/font-faces';
 import type { PinnedAsset } from '../../../../engine/src/design-version.ts';
 import { pinnedFontAliases, verifyPinnedFontBytes } from '../../../../engine/src/token-font-pins.ts';
 
@@ -166,129 +167,9 @@ export const PLATFORM_FACES: Record<string, RegistryFace[]> = {
 };
 
 // ── Pure helpers (exported for tests) ────────────────────────────────────────
-
-/**
- * Split a computed CSS `font-family` into its families, in order, unquoted:
- * `"'Space Grotesk', Outfit, ui-sans-serif"` → `['Space Grotesk','Outfit','ui-sans-serif']`.
- * Commas inside quotes stay put (a family may legally contain one).
- */
-export function parseFontFamilies(css: string | undefined): string[] {
-  const out: string[] = [];
-  let cur = '';
-  let quote = '';
-  for (const ch of String(css ?? '')) {
-    if (quote) {
-      if (ch === quote) quote = '';
-      else cur += ch;
-    } else if (ch === '"' || ch === "'") {
-      quote = ch;
-    } else if (ch === ',') {
-      out.push(cur.trim());
-      cur = '';
-    } else cur += ch;
-  }
-  out.push(cur.trim());
-  return out.filter(Boolean);
-}
-
-/**
- * Parse a CSS `unicode-range` value to inclusive codepoint pairs.
- * Handles the three grammatical forms: `U+0-7F`, `U+2212`, and the wildcard
- * `U+4??` (which spans U+400–U+4FF). An empty/absent value → `[]`, which
- * `rangesCover` treats as "covers everything" (an unsubsetted face).
- */
-export function parseUnicodeRange(spec: string | undefined): Array<[number, number]> {
-  const out: Array<[number, number]> = [];
-  for (const raw of String(spec ?? '').split(',')) {
-    const t = raw.trim();
-    if (!/^u\+/i.test(t)) continue;
-    const body = t.slice(2);
-    if (body.includes('?')) {
-      const lo = parseInt(body.replace(/\?/g, '0'), 16);
-      const hi = parseInt(body.replace(/\?/g, 'F'), 16);
-      if (Number.isFinite(lo) && Number.isFinite(hi)) out.push([lo, hi]);
-      continue;
-    }
-    const [a, b] = body.split('-');
-    const lo = parseInt(a ?? '', 16);
-    const hi = b == null ? lo : parseInt(b, 16);
-    if (Number.isFinite(lo) && Number.isFinite(hi)) out.push([lo, hi]);
-  }
-  return out;
-}
-
-/** Does this face cover every codepoint in `text`? Whitespace is ignored (it
- *  never needs a glyph in an outline), and an empty range list means "all". */
-export function rangesCover(ranges: Array<[number, number]>, text: string): boolean {
-  if (!ranges.length) return true;
-  for (const ch of text) {
-    if (/\s/.test(ch)) continue;
-    const cp = ch.codePointAt(0)!;
-    if (!ranges.some(([lo, hi]) => cp >= lo && cp <= hi)) return false;
-  }
-  return true;
-}
-
-/** How many of `text`'s visible characters this face can draw. Ranks the
- *  fallback chain: the face carrying most of the run leads. An unsubsetted
- *  face (no ranges) claims everything. */
-export function coverageCount(ranges: Array<[number, number]>, text: string): number {
-  let n = 0;
-  for (const ch of text) {
-    if (/\s/.test(ch)) continue;
-    const cp = ch.codePointAt(0)!;
-    if (!ranges.length || ranges.some(([lo, hi]) => cp >= lo && cp <= hi)) n++;
-  }
-  return n;
-}
-
-/** Is this face a variable one (a `wght` RANGE rather than a single value)? */
-const weightRange = (weight: string): [number, number] | null => {
-  const parts = weight.trim().split(/\s+/).map(Number);
-  return parts.length === 2 && parts.every(Number.isFinite) ? [parts[0]!, parts[1]!] : null;
-};
-
-/**
- * Order this family's faces into a shaping chain for `text`: the face that
- * carries most of the run leads, its siblings follow to cover the rest (the
- * subsets are disjoint, so "Łódź" genuinely needs both `latin` and `latin-ext`).
- *
- * Weight is settled BEFORE coverage: a variable face can hit any weight, so all
- * variable subsets take a `wght` axis for the run; a static family narrows to
- * the nearest available weight, and faces of the other weights are dropped
- * (a bold run must never fall back into the regular file).
- *
- * Italic is deliberately strict: we never download italic faces, and outlining
- * an upright face for an italic run would silently un-slant the text. An empty
- * chain keeps the caller's honest <text> fallback. Exported for tests.
- */
-export function pickFaces(faces: RegistryFace[], style: FontStyleSlice, text: string): Array<{ face: RegistryFace; variations?: string[] }> {
-  const italic = style.fontStyle === 'italic' || style.fontStyle === 'oblique';
-  const weight = parseInt(style.fontWeight ?? '') || 400;
-  const slantOk = faces.filter(f => (f.style === 'italic') === italic);
-  if (!slantOk.length) return [];
-
-  const variable = slantOk.filter(f => weightRange(f.weight));
-  let candidates: Array<{ face: RegistryFace; variations?: string[] }>;
-  if (variable.length) {
-    candidates = variable.map(f => {
-      const [lo, hi] = weightRange(f.weight)!;
-      return { face: f, variations: [`wght=${Math.min(hi, Math.max(lo, weight))}`] };
-    });
-  } else {
-    const nearest = slantOk.reduce((a, b) =>
-      Math.abs(parseInt(b.weight) - weight) < Math.abs(parseInt(a.weight) - weight) ? b : a);
-    candidates = slantOk.filter(f => f.weight === nearest.weight).map(face => ({ face }));
-  }
-
-  // Rank by how much of THIS run each face can draw; a face that draws none of
-  // it (the latin-ext subset of an ASCII run) has no place in the chain.
-  return candidates
-    .map(c => ({ ...c, n: coverageCount(parseUnicodeRange(c.face.unicodeRange), text) }))
-    .filter(c => c.n > 0)
-    .sort((a, b) => b.n - a.n)
-    .map(({ n: _n, ...c }) => c);
-}
+// They live in node-shell's font-faces.ts, so url-shot's page walk chooses a captured
+// page's faces by the same rule this registry uses for the app's own.
+export { parseFontFamilies, parseUnicodeRange, rangesCover, coverageCount, pickFaces } from '@lolly-tools/node-shell/font-faces';
 
 // ── The registry ─────────────────────────────────────────────────────────────
 

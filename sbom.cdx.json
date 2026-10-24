@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:09d8e0bd-68ae-4d75-8b79-055dc17b2ca0",
+  "serialNumber": "urn:uuid:1a7f73af-cda0-437f-8a9c-1775ef257e6d",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-24T06:10:35.592Z",
+    "timestamp": "2026-10-24T07:21:19.640Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -7022,10 +7022,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/libc@0.2.189",
+      "bom-ref": "pkg:cargo/libc@0.2.191",
       "name": "libc",
-      "version": "0.2.189",
-      "purl": "pkg:cargo/libc@0.2.189",
+      "version": "0.2.191",
+      "purl": "pkg:cargo/libc@0.2.191",
       "scope": "required",
       "licenses": [
         {
@@ -7035,7 +7035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
+          "content": "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a"
         }
       ],
       "properties": [
@@ -7566,10 +7566,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/mdns-sd@0.21.5",
+      "bom-ref": "pkg:cargo/mdns-sd@0.21.6",
       "name": "mdns-sd",
-      "version": "0.21.5",
-      "purl": "pkg:cargo/mdns-sd@0.21.5",
+      "version": "0.21.6",
+      "purl": "pkg:cargo/mdns-sd@0.21.6",
       "scope": "required",
       "licenses": [
         {
@@ -7579,7 +7579,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "127d3355da0615643c88c885e29a1ccb29ca4b1ca1f2e44b3caed2e728a796aa"
+          "content": "8562654710f72a9cbce4b0d5b7c366a2f94330ba1ce3740f15e932ea2d37b161"
         }
       ],
       "properties": [
@@ -13604,10 +13604,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-plugin-single-instance@2.5.2",
+      "bom-ref": "pkg:cargo/tauri-plugin-single-instance@2.5.4",
       "name": "tauri-plugin-single-instance",
-      "version": "2.5.2",
-      "purl": "pkg:cargo/tauri-plugin-single-instance@2.5.2",
+      "version": "2.5.4",
+      "purl": "pkg:cargo/tauri-plugin-single-instance@2.5.4",
       "scope": "required",
       "licenses": [
         {
@@ -13617,7 +13617,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ee2c8fe2d6b75caed0153f91eda30ea1dea3bfb6710d5adb80456d2c035a569d"
+          "content": "561cd99484561bc39c954768e7b41a66cebbe1ac3d9d081c34361f740c489e2c"
         }
       ],
       "properties": [

@@ -61,6 +61,7 @@
 import { CoverflowGesture, CoverflowMotion, COVERFLOW_WHEEL_REST_MS } from './coverflow-motion.ts';
 import { COVERFLOW_TUCK as CF_TUCK, coverflowPose } from './coverflow-geometry.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
+import { startupMotionHeld } from './startup-motion.ts';
 
 const DRAG_SLOP = 8;            // px a press may travel and still count as a click
 const REST_MS = 900;            // a cover must rest centred this long before Open appears
@@ -572,7 +573,7 @@ export function mountCoverFlow(root: ParentNode): void {
   const timer = setInterval(() => {
     if (!rootEl.isConnected) { clearInterval(timer); return; }
     videoPolicy(lastCur);
-    if (reduced() || !fan || hov || dragging || Date.now() < hold || document.hidden || motion.active) return;
+    if (reduced() || !fan || hov || dragging || Date.now() < hold || document.hidden || motion.active || startupMotionHeld()) return;
     // Always one step on: the loop re-bases, so there is no "back to the start".
     motion.select(centerOf(curIndex() + 1));
     loop();
