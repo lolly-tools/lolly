@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { parse } from 'yaml';
 import { releaseCompilerEnvironment, validateReleaseEnvironment } from '../scripts/build-release-web.ts';
 import { verifyFrontendReceipt, writeFrontendReceipt } from '../scripts/release-frontend-receipt.ts';
+import { checkSigningScope } from '../scripts/check-signing-scope.ts';
 
 const source = 'a'.repeat(40);
 const pair = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
@@ -94,12 +95,12 @@ test('native packaging jobs receive signed artifacts and signing jobs run no com
   const reusable = read('release-frontend');
   for (const name of ['source-catalog', 'sign-artifact']) {
     const job = reusable.jobs[name];
-    assert.equal(job.environment, 'release-catalog-signing');
+    assert.equal(job.environment, '${{ inputs.signing_environment }}');
     assert.ok(job.steps.some((step: any) => step.env?.LOLLY_CATALOG_SIGNING_KEY));
     for (const step of job.steps) assert.doesNotMatch(step.run ?? '', /\b(?:pnpm|npm|cargo|vite|tauri)\b/);
   }
   assert.equal(reusable.jobs.compile.environment, undefined);
-  assert.equal(reusable.jobs.compile.needs, 'source-catalog');
+  assert.deepEqual(reusable.jobs.compile.needs, ['plan', 'source-catalog']);
   assert.ok(reusable.jobs.compile.steps.every((step: any) => !step.env?.LOLLY_CATALOG_SIGNING_KEY));
   for (const name of ['flatpak', 'linux-arm64', 'linux-rpm', 'desktop-extra', 'macos-intel', 'ios-release']) {
     const workflow = read(name), job = workflow.jobs[name === 'flatpak' ? 'build-deb' : 'build'];
@@ -130,7 +131,9 @@ const SIGNING_SECRETS: Record<string, string> = {
   ASC_KEY_P8: 'release-native-signing',
   ASC_KEY_ID: 'release-native-signing',
   ASC_ISSUER_ID: 'release-native-signing',
+  LOLLY_PREVIEW_CATALOG_SIGNING_KEY: 'preview-catalog-signing',
 };
+const SIGNING_EXPRESSION = '${{ inputs.signing_environment }}';
 
 test('release signing secrets reach only the jobs that name their gated environment', () => {
   const directory = new URL('../.github/workflows/', import.meta.url);
@@ -152,7 +155,13 @@ test('release signing secrets reach only the jobs that name their gated environm
       const text = JSON.stringify(job);
       for (const [name, owner] of Object.entries(SIGNING_SECRETS)) {
         if (!new RegExp(`\\bsecrets\\.${name}\\b`).test(text)) continue;
-        assert.equal(environment, owner, `${file} ${id} reads ${name} outside ${owner}`);
+        // Only release-frontend.yml picks its environment from an input, and each of its
+        // steps reads only the secret of the environment its own condition names (below).
+        if (file === 'release-frontend.yml' && environment === SIGNING_EXPRESSION) {
+          assert.ok(['release-catalog-signing', 'preview-catalog-signing'].includes(owner), `${file} ${id} reads ${name}`);
+        } else {
+          assert.equal(environment, owner, `${file} ${id} reads ${name} outside ${owner}`);
+        }
         readers.push(`${file} ${id} ${name}`);
       }
     }
@@ -165,7 +174,9 @@ test('release signing secrets reach only the jobs that name their gated environm
     'ios-release.yml sign ASC_KEY_ID',
     'ios-release.yml sign ASC_ISSUER_ID',
     'release-frontend.yml source-catalog LOLLY_CATALOG_SIGNING_KEY',
+    'release-frontend.yml source-catalog LOLLY_PREVIEW_CATALOG_SIGNING_KEY',
     'release-frontend.yml sign-artifact LOLLY_CATALOG_SIGNING_KEY',
+    'release-frontend.yml sign-artifact LOLLY_PREVIEW_CATALOG_SIGNING_KEY',
   ]);
   // A reusable workflow must not declare a secret its jobs read from an environment:
   // the declared caller value (empty) hides the environment secret (run 40079348093).
@@ -204,4 +215,171 @@ test('frontend receipts accept 150000 total entries and refuse the next retained
     t.mock.restoreAll();
     syncBuiltinESMExports();
   }
+});
+
+// Preview signing route (Phase 1b of the preview fast-deploy design). The preview key signs only the
+// lolly.tools web shell, from main, in an environment with no reviewer. These tests keep it from
+// ever touching a release, and keep every release path away from the preview route.
+const workflowsDirectory = new URL('../.github/workflows/', import.meta.url);
+const workflowText = (name: string) => readFileSync(new URL(name, workflowsDirectory), 'utf8');
+const workflowYaml = (name: string) => parse(workflowText(name));
+const RELEASE_ENVIRONMENT = 'release-catalog-signing', PREVIEW_ENVIRONMENT = 'preview-catalog-signing';
+
+test('release-frontend accepts exactly two signing environments and defaults to the release one', () => {
+  const reusable = workflowYaml('release-frontend.yml');
+  const inputs = reusable.on.workflow_call.inputs;
+  assert.equal(inputs.signing_environment.default, RELEASE_ENVIRONMENT);
+  assert.equal(inputs.source.default, '');
+  const plan = JSON.stringify(reusable.jobs.plan);
+  assert.match(plan, /release-catalog-signing\)/);
+  assert.match(plan, /preview-catalog-signing\)/);
+  assert.match(plan, /\*\) echo '::error::Unknown signing environment'; exit 1/);
+  assert.match(plan, /merge-base --is-ancestor \\"\$source\\" refs\/remotes\/origin\/main/);
+  assert.match(plan, /\^\[a-f0-9\]\{40\}\$/);
+  assert.equal(reusable.jobs.plan.environment, undefined);
+  // Every environment job waits for the plan, so an unknown name never reaches an environment.
+  for (const name of ['source-catalog', 'sign-artifact']) {
+    assert.ok([reusable.jobs[name].needs].flat().includes('plan'), `${name} must wait for plan`);
+    assert.equal(reusable.jobs[name].environment, SIGNING_EXPRESSION);
+  }
+  // The environment names are the only two that appear in the file.
+  assert.deepEqual([...new Set(workflowText('release-frontend.yml').match(/[a-z]+-catalog-signing/g))].sort(), [PREVIEW_ENVIRONMENT, RELEASE_ENVIRONMENT]);
+  // The sequence floor is validated and reaches only the final catalog signing.
+  assert.match(plan, /MIN_SEQ/);
+  const sign = reusable.jobs['sign-artifact'].steps.filter((step: any) => /^Sign frontend catalog/.test(step.name ?? ''));
+  assert.equal(sign.length, 2);
+  for (const step of sign) assert.match(step.run, /\$\{MIN_SEQ:\+--min-seq "\$MIN_SEQ"\}/);
+});
+
+test('each signing step reads only the key of the environment its own condition names', () => {
+  const reusable = workflowYaml('release-frontend.yml');
+  const conditions: Record<string, string> = {
+    LOLLY_CATALOG_SIGNING_KEY: `inputs.signing_environment == '${RELEASE_ENVIRONMENT}'`,
+    LOLLY_PREVIEW_CATALOG_SIGNING_KEY: `inputs.signing_environment == '${PREVIEW_ENVIRONMENT}'`,
+  };
+  let steps = 0;
+  for (const name of ['source-catalog', 'sign-artifact']) {
+    for (const step of reusable.jobs[name].steps) {
+      const used = Object.keys(conditions).filter(secret => new RegExp(`\\bsecrets\\.${secret}\\b`).test(JSON.stringify(step)));
+      if (!used.length) continue;
+      steps++;
+      assert.equal(used.length, 1, `${name} ${step.name} reads both keys`);
+      assert.equal(step.if, conditions[used[0]!], `${name} ${step.name} is not bound to its environment`);
+      assert.equal(step.env.LOLLY_CATALOG_SIGNING_KEY, `\${{ secrets.${used[0]} }}`);
+    }
+    // The pin check runs before any key is used.
+    const names = reusable.jobs[name].steps.map((step: any) => step.name ?? '');
+    const check = names.findIndex((value: string) => /^Check the signing scope/.test(value));
+    const firstSign = reusable.jobs[name].steps.findIndex((step: any) => /secrets\./.test(JSON.stringify(step)));
+    assert.ok(check >= 0 && check < firstSign, `${name} checks the pin before it signs`);
+    // The signer is given the pin it must match; sign-catalog.ts refuses any other key.
+    assert.match(reusable.jobs[name].env.VITE_CATALOG_PUBLIC_KEY_JWK, /vars\.LOLLY_PREVIEW_PUBLIC_KEY_JWK \|\| inputs\.public_key_jwk/);
+  }
+  assert.equal(steps, 6); // source catalog, final catalog and receipt, each once per environment
+  // Build jobs hold no key and read the preview variable never: they take the checked pin from the signer.
+  assert.equal(reusable.jobs.compile.env.VITE_CATALOG_PUBLIC_KEY_JWK, '${{ needs.source-catalog.outputs.pin }}');
+  assert.doesNotMatch(JSON.stringify(reusable.jobs.compile), /LOLLY_PREVIEW|secrets\./);
+  assert.doesNotMatch(JSON.stringify(reusable.jobs.plan), /secrets\./);
+  assert.equal(reusable.env.VITE_CATALOG_PUBLIC_KEY_JWK, undefined);
+});
+
+test('the preview workflow can never reach the release environment or release secrets', () => {
+  const text = workflowText('preview-web.yml'), workflow = workflowYaml('preview-web.yml');
+  assert.deepEqual(Object.keys(workflow.on), ['workflow_dispatch']);
+  assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs).sort(), ['min_seq', 'source']);
+  const code = text.replace(/^\s*#.*$/gm, '');
+  assert.doesNotMatch(code, /release-catalog-signing|release-native-signing|release-images|LOLLY_CATALOG_SIGNING_KEY|IOS_DIST|ASC_KEY|ASC_ISSUER|GHCR_PAT/);
+  assert.doesNotMatch(code, /\bsecrets\./, 'the preview workflow reads no secret itself; the signer reads its environment secret');
+  assert.doesNotMatch(text, /secrets:\s*inherit/);
+  for (const [id, job] of Object.entries<any>(workflow.jobs)) {
+    assert.equal(job.environment, undefined, `${id} names an environment`);
+    assert.equal(job.secrets, undefined, `${id} passes secrets`);
+  }
+  const frontend = workflow.jobs['web-frontend'];
+  assert.equal(frontend.uses, './.github/workflows/release-frontend.yml');
+  assert.equal(frontend.with.signing_environment, PREVIEW_ENVIRONMENT);
+  assert.equal(frontend.with.public_key_jwk, undefined, 'the preview pin comes only from its environment variable');
+  assert.equal(frontend.with.source, '${{ inputs.source }}');
+  // Main only, like the environment's deployment branch rule.
+  assert.equal(workflow.jobs['source-qualification'].if, "github.ref == 'refs/heads/main'");
+  assert.ok(workflow.jobs['web-release-gate'].needs.includes('source-qualification'));
+  for (const id of ['web-frontend', 'web-image', 'publish']) assert.ok(JSON.stringify(workflow.jobs[id].needs).includes('source-qualification'), id);
+  assert.equal(workflow.permissions.contents, 'read');
+  assert.equal(workflow.permissions.packages, undefined);
+});
+
+test('release workflows never reference the preview environment, key or pin', () => {
+  const directory = new URL('../.github/workflows/', import.meta.url);
+  for (const file of readdirSync(directory).filter(name => /\.ya?ml$/.test(name))) {
+    const text = workflowText(file);
+    if (file === 'preview-web.yml' || file === 'release-frontend.yml') continue;
+    assert.doesNotMatch(text, /preview-catalog-signing|LOLLY_PREVIEW|lolly-web-preview|signing_environment/, `${file} references the preview route`);
+  }
+  // Callers of the reusable workflow keep the release default and the release pin.
+  for (const file of ['desktop-extra', 'ios-release', 'linux-rpm', 'flatpak', 'linux-arm64', 'macos-intel', 'deployment-suse']) {
+    const text = workflowText(`${file}.yml`);
+    assert.match(text, /uses: \.\/\.github\/workflows\/release-frontend\.yml/);
+  }
+  for (const file of ['desktop-extra', 'ios-release', 'linux-rpm', 'flatpak', 'linux-arm64', 'macos-intel']) {
+    // Every native and app build embeds the release pin and nothing else (R22 S14).
+    assert.match(workflowText(`${file}.yml`), /public_key_jwk: \$\{\{ vars\.VITE_CATALOG_PUBLIC_KEY_JWK \}\}/, file);
+  }
+  assert.match(workflowText('deployment-suse.yml'), /public_key_jwk: \$\{\{ inputs\.public_key_jwk \}\}/);
+  // The preview pin never leaves the signer's environment, except as the checked output.
+  assert.deepEqual(
+    [...workflowText('release-frontend.yml').matchAll(/vars\.LOLLY_PREVIEW_PUBLIC_KEY_JWK/g)].length, 2);
+});
+
+test('only the preview publish job can write packages, runs no npm, and pushes by digest to its own package', () => {
+  const workflow = workflowYaml('preview-web.yml'), text = workflowText('preview-web.yml');
+  const writers = Object.entries<any>(workflow.jobs).filter(([, job]) => job.permissions?.packages === 'write').map(([id]) => id);
+  assert.deepEqual(writers, ['publish']);
+  const publish = workflow.jobs.publish;
+  assert.ok(publish.steps.every((step: any) => !/actions\/checkout|setup-node|pnpm|npm|node |scripts\//.test(`${step.uses ?? ''} ${step.run ?? ''}`)), 'publish runs no repository code');
+  assert.match(publish.steps.map((step: any) => step.run ?? '').join('\n'), /sha256sum --check/);
+  const push = publish.steps.find((step: any) => /crane push/.test(step.run ?? '')).run;
+  assert.match(push, /ghcr\.io\/\$owner\/lolly-web-preview/);
+  assert.match(push, /crane push "[^"]+" "\$repository@\$digest"/);
+  assert.doesNotMatch(text, /lolly-web:|lolly-web@|:latest|crane tag|candidate-|docker push|docker login/);
+  assert.doesNotMatch(text.replace(/lolly-web-preview/g, ''), /ghcr\.io\/\$owner\/lolly-web/);
+  assert.doesNotMatch(JSON.stringify(workflow.jobs['web-image']), /packages|docker push|crane/);
+  assert.equal(workflow.jobs['web-image'].permissions.packages, undefined);
+  assert.match(text, /org\.opencontainers\.image\.title=lolly-web-preview/);
+});
+
+test('the preview web build keeps the release build arguments, connector origins, CA trust and live relay', () => {
+  const release = workflowYaml('deployment-suse.yml').jobs['web-frontend'].with;
+  const preview = workflowYaml('preview-web.yml').jobs['web-frontend'].with;
+  const own = new Set(['public_key_jwk', 'signing_environment', 'source', 'min_seq']);
+  const strip = (value: Record<string, string>) => Object.fromEntries(Object.entries(value).filter(([key]) => !own.has(key)));
+  assert.deepEqual(strip(preview), strip(release));
+  for (const key of ['connector_origins', 'ca_enrollment_trust_json', 'live_relay', 'profile', 'target']) assert.ok(strip(release)[key], key);
+  const buildArguments = (text: string) => [...text.matchAll(/--build-arg "?([A-Z_]+)=?/g)].map(match => match[1]).sort();
+  const releaseJob = workflowText('deployment-suse.yml').split('\n  web-image:\n')[1]!.split('\n  probe-web-shell:')[0]!;
+  assert.deepEqual(buildArguments(workflowText('preview-web.yml')), buildArguments(releaseJob));
+  assert.deepEqual(
+    [...workflowText('preview-web.yml').matchAll(/--build-arg "?([A-Z_]+=[^\n]*)/g)].map(match => match[1]!.replace(/ \\$/, '')),
+    [...releaseJob.matchAll(/--build-arg "?([A-Z_]+=[^\n]*)/g)].map(match => match[1]!.replace(/ \\$/, '')),
+  );
+});
+
+test('the preview workflow runs the same normal main CI check as the release candidate workflow', () => {
+  const guard = (name: string) => workflowText(name).match(/node --input-type=module <<'JS'\n([\s\S]*?)\n\s+JS\n/)?.[1]?.replace(/^ +/gm, '');
+  assert.ok(guard('preview-web.yml'));
+  assert.equal(guard('preview-web.yml'), guard('deployment-suse.yml'));
+  assert.match(workflowText('preview-web.yml'), /event=push&branch=main&status=success/);
+});
+
+test('the signing scope refuses a pin that belongs to the other environment', () => {
+  const key = () => JSON.stringify(generateKeyPairSync('ec', { namedCurve: 'prime256v1' }).publicKey.export({ format: 'jwk' }));
+  const release = key(), preview = key();
+  assert.equal(checkSigningScope({ environment: RELEASE_ENVIRONMENT, pin: release, releasePin: release }), JSON.stringify(JSON.parse(release)));
+  assert.doesNotThrow(() => checkSigningScope({ environment: PREVIEW_ENVIRONMENT, pin: preview, releasePin: release }));
+  assert.throws(() => checkSigningScope({ environment: PREVIEW_ENVIRONMENT, pin: release, releasePin: release }), /never sign for the release pin/);
+  assert.throws(() => checkSigningScope({ environment: RELEASE_ENVIRONMENT, pin: preview, releasePin: release }), /only for the release pin/);
+  assert.throws(() => checkSigningScope({ environment: 'other-signing', pin: release, releasePin: release }), /Unknown signing environment/);
+  assert.throws(() => checkSigningScope({ environment: PREVIEW_ENVIRONMENT, pin: '', releasePin: release }), /not set/);
+  assert.throws(() => checkSigningScope({ environment: PREVIEW_ENVIRONMENT, pin: preview, releasePin: '' }), /not set/);
+  assert.throws(() => checkSigningScope({ environment: PREVIEW_ENVIRONMENT, pin: JSON.stringify({ ...JSON.parse(preview), d: 'x' }), releasePin: release }), /private key/);
+  assert.throws(() => checkSigningScope({ environment: RELEASE_ENVIRONMENT, pin: '{"kty":"RSA"}', releasePin: release }), /EC P-256/);
 });

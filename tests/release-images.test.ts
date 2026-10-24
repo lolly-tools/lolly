@@ -541,3 +541,22 @@ test('the docker README documents the published repositories, verification, mirr
   assert.match(section, /\/usr\/share\/nginx\/html\/models/);
   assert.match(section, /<family>@<hash16>/);
 });
+
+// Preview images (preview-web.yml) are never releases. Promotion admits only deployment-suse.yml
+// dispatch runs from main, and it refuses any web image packaged for a pin other than the
+// repository release pin, which is what a preview-signed image carries.
+test('a preview web image or preview workflow run can never be promoted', () => {
+  for (const [name, alter] of [
+    ['preview workflow run', (run: Record<string, unknown>) => { run.path = '.github/workflows/preview-web.yml'; }],
+    ['preview workflow run on main', (run: Record<string, unknown>) => { run.path = '.github/workflows/preview-web.yml'; run.event = 'workflow_dispatch'; run.head_branch = 'main'; }],
+    ['release workflow on a branch', (run: Record<string, unknown>) => { run.head_branch = 'feat/preview-web-signing'; }],
+    ['push run of the candidate workflow', (run: Record<string, unknown>) => { run.event = 'push'; }],
+  ] as const) assert.throws(() => admitRun(qualificationRun(alter), request), Error, name);
+  assert.equal(CANDIDATE_WORKFLOW, '.github/workflows/deployment-suse.yml');
+  const preview = (() => { const { kty, crv, x, y } = generateKeyPairSync('ec', { namedCurve: 'P-256' }).publicKey.export({ format: 'jwk' }); return { kty, crv, x, y }; })();
+  const files = receipts(all => {
+    all['public-candidate-web-receipts-attempt-2']!['public.jwk.json'] = preview;
+    all['public-candidate-web-receipts-attempt-2']!['catalog.json'] = { verified: true, files: 3, tools: 1, indexSha256: 'b'.repeat(64), keyId: keyThumbprint(preview) };
+  });
+  assert.throws(() => admitReceipts(request, 2, reader(files), pinText), /another public pin/);
+});

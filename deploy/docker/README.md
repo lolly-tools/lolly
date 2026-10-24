@@ -268,6 +268,50 @@ version. `candidate-<40-hex source>` tags are qualified candidates that are not
 signed or attested; do not deploy them. There is no `latest` tag. Deploy by
 digest: set `image.digest` to the digest listed in the release's `images.json`.
 
+### Preview web image (lolly.tools without a signing approval)
+
+`preview-web.yml` ships the lolly.tools web shell without waiting for a reviewer.
+It is dispatch-only and runs from `main` only. It takes an exact `source` commit,
+which must be an ancestor of `main` and have a successful `ci.yml` push run on
+`main`, and it applies the same WebGPU gate as the release image. It calls
+`release-frontend.yml` with `signing_environment: preview-catalog-signing`, builds
+the web image from the signed frontend, and publishes it to
+`ghcr.io/lolly-tools/lolly-web-preview` by digest only. It never writes `latest`
+or a version tag. Only the publish job holds `packages: write`, and it runs no npm
+and no repository script. Deploy it by digest, like any other image.
+
+What it does not change for releases:
+
+- The release key stays in `release-catalog-signing` (with its reviewers) and
+  signs only for the release pin. `release-frontend.yml` checks that, and
+  `sign-catalog.ts` refuses a key that does not match the pin it is given.
+- Native and app builds keep `VITE_CATALOG_PUBLIC_KEY_JWK` as the release pin.
+  The preview pin is never passed to them.
+- `release-images.yml` still admits only `deployment-suse.yml` dispatch runs from
+  `main`, and still refuses an image packaged for any pin but the release pin. A
+  preview digest cannot become a release.
+- The connector origins, CA-enrollment trust, live relay and profile come from the
+  same variables as the release build.
+- The preview image is not cosign-signed. Its labels say it is a preview.
+
+One-time setup (repository settings, not workflow code):
+
+1. Create the environment `preview-catalog-signing` with no required reviewer and
+   deployment branches limited to `main`.
+2. Generate a NEW P-256 key with `node scripts/sign-catalog.ts --gen-key` away from
+   the release key. Store its private half as the environment secret
+   `LOLLY_PREVIEW_CATALOG_SIGNING_KEY`. Never reuse the release key.
+3. Add the environment variable `LOLLY_PREVIEW_PUBLIC_KEY_JWK` with the matching
+   public JWK. It must differ from `LOLLY_RELEASE_PUBLIC_KEY_JWK`.
+4. Set the repository variable `DELIVERY_CATALOG_PUBLIC_KEY_JWK` to the preview pin
+   so the daily delivery monitor verifies lolly.tools against it.
+5. For the first preview catalog, pass `min_seq` above the live catalog's sequence,
+   because browsers refuse a lower one. Open tabs on the old shell refuse the
+   preview-signed catalog until their next navigation reloads the shell.
+
+`min_seq` needs `sign-catalog.ts --min-seq`. Until that flag is on `main`, a
+non-empty `min_seq` fails with "unknown flag --min-seq" instead of being ignored.
+
 ### How a release is made
 
 1. Dispatch `deployment-suse.yml` from main at the release commit with
