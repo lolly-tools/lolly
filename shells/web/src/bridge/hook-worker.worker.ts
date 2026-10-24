@@ -49,7 +49,20 @@ function inWorkerScope(): boolean {
   return typeof g.WorkerGlobalScope !== 'undefined' && typeof g.document === 'undefined';
 }
 
-if (inWorkerScope()) {
+/**
+ * One message listener per Worker realm, whatever evaluates this file. In the
+ * production build the geometry-host chunk imports helpers the bundler left in this
+ * entry chunk, by its URL. Chromium resolves that to the module already running;
+ * WebKit (Safari) evaluates the entry a second time. The second copy then added a
+ * listener with an empty core of its own, which missed `init` and answered every
+ * invoke "no hook" synchronously, ahead of the real core, so a Worker-isolated tool
+ * rendered with no hook output in Safari only. The flag lives on the realm's global,
+ * which both evaluations share.
+ */
+const LISTENER_BOUND = Symbol.for('lolly.hook-worker.listener');
+
+if (inWorkerScope() && !(globalThis as Record<symbol, unknown>)[LISTENER_BOUND]) {
+  (globalThis as Record<symbol, unknown>)[LISTENER_BOUND] = true;
   const post = postMessage as (message: unknown, transfer: Transferable[]) => void;
   async function prepare() {
     const [backend = 'typescript', mode] = ((globalThis as { name?: string }).name || 'typescript').split(':');
