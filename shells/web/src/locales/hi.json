@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "अगला / पिछला आर्टबोर्ड",
   "First / last artboard": "पहला / आख़िरी आर्टबोर्ड",
   "Zoom to the dragged area": "खींचे गए क्षेत्र पर ज़ूम करें",
-  "Zoom in / out at the pointer": "पॉइंटर पर ज़ूम इन / आउट"
+  "Zoom in / out at the pointer": "पॉइंटर पर ज़ूम इन / आउट",
+  "This link opens the creation only on this device, from the copy saved here.": "यह लिंक रचना को केवल इसी डिवाइस पर, यहाँ सहेजी गई प्रति से खोलता है।",
+  "Link that opens this creation on this device only": "ऐसा लिंक जो इस रचना को केवल इसी डिवाइस पर खोलता है",
+  "No link can carry this creation": "कोई लिंक इस रचना को नहीं रख सकता",
+  "To send the whole creation, download the .lolly file below.": "पूरी रचना भेजने के लिए नीचे दी गई .lolly फ़ाइल डाउनलोड करें।",
+  "To send the whole creation, share it on your network below.": "पूरी रचना भेजने के लिए इसे नीचे अपने नेटवर्क पर साझा करें।",
+  "To share it as a link, reduce some elements.": "इसे लिंक के रूप में साझा करने के लिए कुछ तत्व घटाएँ।",
+  "This creation is too large for a link.": "यह रचना लिंक के लिए बहुत बड़ी है।",
+  "The link above opens it only on this device.": "ऊपर का लिंक इसे केवल इसी डिवाइस पर खोलता है।"
 }

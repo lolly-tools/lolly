@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Další / předchozí pracovní plocha",
   "First / last artboard": "První / poslední pracovní plocha",
   "Zoom to the dragged area": "Přiblížit na tažený výběr",
-  "Zoom in / out at the pointer": "Přiblížit / oddálit u ukazatele"
+  "Zoom in / out at the pointer": "Přiblížit / oddálit u ukazatele",
+  "This link opens the creation only on this device, from the copy saved here.": "Tento odkaz otevře dílo jen v tomto zařízení, z kopie uložené zde.",
+  "Link that opens this creation on this device only": "Odkaz, který otevře toto dílo jen v tomto zařízení",
+  "No link can carry this creation": "Žádný odkaz toto dílo neunese",
+  "To send the whole creation, download the .lolly file below.": "Chcete-li odeslat celé dílo, stáhněte níže soubor .lolly.",
+  "To send the whole creation, share it on your network below.": "Chcete-li odeslat celé dílo, sdílejte jej níže ve své síti.",
+  "To share it as a link, reduce some elements.": "Chcete-li jej sdílet jako odkaz, zmenšete počet prvků.",
+  "This creation is too large for a link.": "Toto dílo je na odkaz příliš velké.",
+  "The link above opens it only on this device.": "Odkaz výše jej otevře jen v tomto zařízení."
 }

@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Planșa următoare / anterioară",
   "First / last artboard": "Prima / ultima planșă",
   "Zoom to the dragged area": "Mărește la zona trasă",
-  "Zoom in / out at the pointer": "Mărește / micșorează la cursor"
+  "Zoom in / out at the pointer": "Mărește / micșorează la cursor",
+  "This link opens the creation only on this device, from the copy saved here.": "Acest link deschide creația doar pe acest dispozitiv, din copia salvată aici.",
+  "Link that opens this creation on this device only": "Link care deschide această creație doar pe acest dispozitiv",
+  "No link can carry this creation": "Niciun link nu poate conține această creație",
+  "To send the whole creation, download the .lolly file below.": "Pentru a trimite întreaga creație, descarcă mai jos fișierul .lolly.",
+  "To send the whole creation, share it on your network below.": "Pentru a trimite întreaga creație, partaj-o mai jos în rețeaua ta.",
+  "To share it as a link, reduce some elements.": "Pentru a o partaja ca link, redu unele elemente.",
+  "This creation is too large for a link.": "Această creație este prea mare pentru un link.",
+  "The link above opens it only on this device.": "Linkul de mai sus o deschide doar pe acest dispozitiv."
 }

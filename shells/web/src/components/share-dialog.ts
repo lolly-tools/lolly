@@ -19,14 +19,14 @@ import { mountModal } from './modal.ts';
 import { createShareSection } from './share-section.ts';
 import { helpTip, linkHelpDescriptions, unwireHelpTips, wireHelpTips } from './help-tip.ts';
 import { icon } from '../lib/icons.ts';
-import { t } from '../i18n.ts';
+import { t, tRaw } from '../i18n.ts';
 import {
   mountShareSection, shareSectionBuilders, shareSectionOrder, shareSectionPlacement,
   type ShareSectionContext, type ShareSectionPlacement,
 } from '../lib/share-sections.ts';
 import { jellyActive } from '../lib/jelly.ts';
 import type { LollySummary } from '../lib/lolly-pack.ts';
-import { AUTO_PACK_MIN, SHARE_WARN_LEN, BROWSER_HARD_CAP, type ShareFidelity } from '../lib/url-budget.ts';
+import { AUTO_PACK_MIN, SHARE_WARN_LEN, BROWSER_HARD_CAP, LINK_CONTENT_MAX, type ShareFidelity } from '../lib/url-budget.ts';
 import { toLollyAppLink } from '../lib/deep-link.ts';
 import { appPathname } from '../lib/any-site.ts';
 import { flushAddressWrites } from '../lib/url-state.ts';
@@ -194,6 +194,9 @@ export interface ShareDialogOpts {
   /** Reads the live document for registered sections (lib/share-sections.ts). The
    *  dialog itself never reads the document. */
   document?: ShareSectionContext['document'];
+  /** The link that reopens this document from the copy saved on this device. Offered,
+   *  and labelled as such, only when the document is too large for a link. */
+  deviceLink?: string;
 }
 
 /**
@@ -262,7 +265,7 @@ function shareOption(title: string, control: string, description: string, attrib
 }
 
 function renderShareSurface(
-  { toolId, baseParts: initialParts = [], personalFields = [], manifest = {}, currentFormat = '', title = 'Share this tool', fidelity, lolly, document: readDocument }: ShareDialogOpts,
+  { toolId, baseParts: initialParts = [], personalFields = [], manifest = {}, currentFormat = '', title = 'Share this tool', fidelity, lolly, document: readDocument, deviceLink }: ShareDialogOpts,
   mount: (content: string) => { el: HTMLElement; close(): void },
   autofocus: boolean,
   sectionStates?: Map<string, boolean>,
@@ -316,6 +319,7 @@ function renderShareSurface(
         <p>These values stay out of the link unless you select them. Anyone with the link can read included values. Shortening a link does not hide its contents.</p>
         ${personal.map((field, index) => `<label><input type="checkbox" class="field-check" data-personal-field="${index}"> Include ${escape(field.label)}</label><textarea readonly aria-label="${escape(field.label)} value" rows="3">${escape(field.value)}</textarea>`).join('')}
       </fieldset>` : ''}
+      <p class="share-note" data-device-link-note hidden>${escape(t('This link opens the creation only on this device, from the copy saved here.'))}</p>
       <p class="share-warning" data-share-warning role="status" hidden></p>
       ${showImageNote ? `<p class="share-note">
         <span class="share-note-ico" aria-hidden="true">${icon('plane', { size: 18 })}</span>
@@ -404,7 +408,13 @@ function renderShareSurface(
   const encryptBody = dialog.querySelector<HTMLElement>('[data-encrypt-body]');
   const encryptPw   = dialog.querySelector<HTMLInputElement>('[data-encrypt-pw]');
   const copyBtn     = dialog.querySelector<HTMLButtonElement>('.share-copy-btn')!;
+  const deviceNote  = dialog.querySelector<HTMLElement>('[data-device-link-note]')!;
+  const linkOnlyBtns = [...dialog.querySelectorAll<HTMLButtonElement>('.share-qr-btn, .share-credit-btn')];
   let encToken: string | null = null;
+  // Past the pack limit a link cannot carry the document (perf review C1 step 3). The
+  // field then holds the link to the copy saved on this device, labelled as such, or
+  // nothing, and the verdict points at the .lolly file. Never a cut-down link.
+  let tooLarge = baseQuery.length > LINK_CONTENT_MAX;
 
   // The share verdict combines the two independent ways a link can fail its job.
   // CONTENT loss (fidelity: device-local images, or text/blocks past the link caps
@@ -425,6 +435,17 @@ function renderShareSurface(
     if (on && !states.has(fileCard.dataset.shareSection!)) fileCard.open = true;
   };
   const renderVerdict = (bestLen: number) => {
+    if (tooLarge) {
+      warnEl.hidden = false;
+      warnEl.classList.add('is-error');
+      warnEl.classList.remove('is-warn');
+      highlightLolly(true);
+      const remedy = lolly ? tRaw('To send the whole creation, download the .lolly file below.')
+        : canShareOtherwise ? tRaw('To send the whole creation, share it on your network below.')
+        : tRaw('To share it as a link, reduce some elements.');
+      warnEl.textContent = `⚠️ ${tRaw('This creation is too large for a link.')} ${deviceLink ? `${tRaw('The link above opens it only on this device.')} ` : ''}${remedy}`;
+      return;
+    }
     const lost = fidelity && !fidelity.faithful ? fidelity : null;
     // Past the browser hard cap even the packed link is impractical - the same red
     // verdict as dropped content, and the same remedy (the .lolly). `bestLen` is already
@@ -468,6 +489,17 @@ function renderShareSurface(
   };
 
   const refresh = () => {
+    deviceNote.hidden = !(tooLarge && deviceLink);
+    for (const btn of linkOnlyBtns) btn.toggleAttribute('disabled', tooLarge);
+    if (encryptCb) encryptCb.disabled = tooLarge;
+    if (tooLarge) {
+      field.value = deviceLink ?? '';
+      field.setAttribute('aria-label', deviceLink ? t('Link that opens this creation on this device only') : t('No link can carry this creation'));
+      copyBtn.toggleAttribute('disabled', !deviceLink);
+      if (appLinkCb) { appLinkCb.checked = false; appLinkCb.disabled = true; }
+      return;
+    }
+    field.setAttribute('aria-label', 'Shareable link');
     // On-visit flags always ride readable (and outside the pack/encryption, where
     // they still override on load) so the recipient - and any crawler - can see the
     // behaviour even on a password-protected link.
@@ -508,10 +540,18 @@ function renderShareSurface(
     shortestCb.checked = false;
     shortestRow.hidden = true;
     readableLen = shareUrlFromParts(baseParts, toolId).length;
+    tooLarge = baseQuery.length > LINK_CONTENT_MAX;
     renderVerdict(readableLen);
-    if (!isPackAvailable() || !baseQuery) return;
+    if (tooLarge || !isPackAvailable() || !baseQuery) return;
     packQuery(baseQuery).then(token => {
-      if (!token || mine !== packReq || !dialog.isConnected) return;
+      if (mine !== packReq || !dialog.isConnected) return;
+      if (!token) {
+        // The pack refused it: past what a link can carry (url-pack.ts limits).
+        tooLarge = true;
+        renderVerdict(readableLen);
+        refresh();
+        return;
+      }
       const packedLen = shareUrlFromParts([`${PACK_PARAM}=${token}`], toolId).length;
       if (packedLen >= readableLen) return;
       packedToken = token;

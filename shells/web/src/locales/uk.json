@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Наступний / попередній артборд",
   "First / last artboard": "Перший / останній артборд",
   "Zoom to the dragged area": "Масштабувати до виділеної області",
-  "Zoom in / out at the pointer": "Збільшити / зменшити біля курсора"
+  "Zoom in / out at the pointer": "Збільшити / зменшити біля курсора",
+  "This link opens the creation only on this device, from the copy saved here.": "Це посилання відкриває роботу лише на цьому пристрої, із копії, збереженої тут.",
+  "Link that opens this creation on this device only": "Посилання, що відкриває цю роботу лише на цьому пристрої",
+  "No link can carry this creation": "Жодне посилання не вміщує цю роботу",
+  "To send the whole creation, download the .lolly file below.": "Щоб надіслати всю роботу, завантажте файл .lolly нижче.",
+  "To send the whole creation, share it on your network below.": "Щоб надіслати всю роботу, поділіться нею нижче у своїй мережі.",
+  "To share it as a link, reduce some elements.": "Щоб поділитися нею як посиланням, зменште кількість елементів.",
+  "This creation is too large for a link.": "Ця робота завелика для посилання.",
+  "The link above opens it only on this device.": "Посилання вище відкриває її лише на цьому пристрої."
 }

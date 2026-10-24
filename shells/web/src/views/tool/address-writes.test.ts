@@ -155,3 +155,19 @@ test('no tool view module writes history directly around the guarded address wri
     assert.doesNotMatch(source, /history\.replaceState\(/, `${file} goes through replaceRouteUrl, which cannot throw into a paint`);
   }
 });
+
+test('a document too large for a link writes the pointer form, and only with a saved copy to restore', () => {
+  const session = read('views/tool/session.ts');
+  // Sliced by its doc comment: share-parity.test.ts reads this folder too, and finds the writer by its declaration.
+  const write = session.slice(session.indexOf('Build the address from the live model and replace the current one.'), session.indexOf('export function markUserDirty('));
+  const pointerAt = write.indexOf('const pointer = addressPointer(params, { contentLength: content.length, maxContent: LINK_CONTENT_MAX, refusedAt: packRefusedAt.get(tview), slot: durableSlot(tview) });');
+  assert.ok(pointerAt > 0, 'the pointer is decided from the content length, the pack limit and a refused pack');
+  assert.ok(pointerAt < write.indexOf('const written = replaceRouteUrl('), 'before any readable write');
+  assert.match(write, /if \(tooLarge\) watchForSlot\(tview\);/, 'without a saved copy yet, the pointer follows the first draft');
+  assert.match(write, /packRefusedAt\.set\(tview, content\.length\);/, 'a refused pack switches to the pointer from then on');
+  const durable = session.slice(session.indexOf('function durableSlot('), session.indexOf('function watchForSlot('));
+  assert.match(durable, /if \(tview\.collabHandle \|\| tview\.ephemeralState\) return null;/, 'a live collab keeps its own route');
+  assert.match(durable, /if \(!api\?\.history\?\.keepsEdits\(\)\) return null;/, 'only while history keeps writing the edits');
+  assert.match(durable, /localHistorySlot\(tview\.host\.state, tview\.tool\.manifest\) === slot/, 'the slot a reload of this entry resumes');
+  assert.match(read('views/tool/shared.ts'), /\.\.\.\(device \? \{ deviceLink: device \} : \{\}\)/, 'Share gets the device link');
+});

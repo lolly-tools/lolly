@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Tavolo da disegno successivo / precedente",
   "First / last artboard": "Primo / ultimo tavolo da disegno",
   "Zoom to the dragged area": "Zoom sull'area trascinata",
-  "Zoom in / out at the pointer": "Ingrandisci / riduci sul puntatore"
+  "Zoom in / out at the pointer": "Ingrandisci / riduci sul puntatore",
+  "This link opens the creation only on this device, from the copy saved here.": "Questo link apre la creazione solo su questo dispositivo, dalla copia salvata qui.",
+  "Link that opens this creation on this device only": "Link che apre questa creazione solo su questo dispositivo",
+  "No link can carry this creation": "Nessun link può contenere questa creazione",
+  "To send the whole creation, download the .lolly file below.": "Per inviare l'intera creazione, scarica qui sotto il file .lolly.",
+  "To send the whole creation, share it on your network below.": "Per inviare l'intera creazione, condividila sulla tua rete qui sotto.",
+  "To share it as a link, reduce some elements.": "Per condividerla come link, riduci alcuni elementi.",
+  "This creation is too large for a link.": "Questa creazione è troppo grande per un link.",
+  "The link above opens it only on this device.": "Il link qui sopra la apre solo su questo dispositivo."
 }

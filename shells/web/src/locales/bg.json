@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Следващ / предишен артборд",
   "First / last artboard": "Първи / последен артборд",
   "Zoom to the dragged area": "Мащабиране до очертаната област",
-  "Zoom in / out at the pointer": "Увеличаване / намаляване при курсора"
+  "Zoom in / out at the pointer": "Увеличаване / намаляване при курсора",
+  "This link opens the creation only on this device, from the copy saved here.": "Тази връзка отваря творбата само на това устройство, от копието, запазено тук.",
+  "Link that opens this creation on this device only": "Връзка, която отваря тази творба само на това устройство",
+  "No link can carry this creation": "Никоя връзка не може да побере тази творба",
+  "To send the whole creation, download the .lolly file below.": "За да изпратите цялата творба, изтеглете файла .lolly по-долу.",
+  "To send the whole creation, share it on your network below.": "За да изпратите цялата творба, споделете я по-долу в мрежата си.",
+  "To share it as a link, reduce some elements.": "За да я споделите като връзка, намалете някои елементи.",
+  "This creation is too large for a link.": "Тази творба е твърде голяма за връзка.",
+  "The link above opens it only on this device.": "Връзката по-горе я отваря само на това устройство."
 }
