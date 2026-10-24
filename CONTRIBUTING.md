@@ -80,13 +80,23 @@ That folder is gitignored and private to one machine, and `git add -f` is the
 only way a file there gets committed. Deleting a tracked `plans/` file passes.
 Check a branch with `node scripts/check-pushed-plans.ts HEAD`.
 
-Before the wording checks, the hook checks the web source map and engine module
+Before the wording checks, the hook builds the web source map and engine module
 table in each distinct commit tip being pushed. Branch creation, forced updates,
 multiple refs and annotated tags use Git's supplied object IDs. Deletions skip
 source checks. Intermediate commits are not checked when a later tip repairs
 them. The check reads raw Git blobs into a temporary directory, runs that commit's
-generators with `--check`, and removes the snapshot. Staged changes, unstaged
-changes and untracked files cannot change the result and remain untouched.
+generators with `--check --allow-drift`, and removes the snapshot. Staged changes,
+unstaged changes and untracked files cannot change the result and remain
+untouched.
+
+Stale counts never refuse a push and never fail a pull request. Every merge moves
+the generated counts in `shells/web/src/README.md` and `engine/README.md`, so a
+pull request that committed its own copy conflicted with every other open pull
+request. Pull requests leave those files alone; CI reports drift as a warning,
+and `.github/workflows/generated-readmes.yml` regenerates both after each push to
+main and proposes them as one bot pull request, "chore: regenerate generated
+READMEs". The hook and CI still refuse a map that cannot be built: a missing
+generator, missing or misordered markers, or a generator error.
 
 To check a particular commit or branch before pushing:
 
@@ -94,16 +104,24 @@ To check a particular commit or branch before pushing:
 node scripts/check-pushed-generated.ts HEAD
 ```
 
-If generated metadata is stale, run these commands in the affected branch's
-worktree, review the README changes and commit them before pushing again:
+To see the regenerated maps locally (you do not need to commit them; the bot
+pull request carries them after the merge):
 
 ```sh
 node scripts/gen-web-src-readme.ts
 node scripts/gen-engine-modules.ts
 ```
 
-The existing wording checks still inspect the working tree. The generated-source
-check complements the CI drift checks; a local pass does not qualify a release.
+The existing wording checks still inspect the working tree. A local pass does not
+qualify a release.
+
+The bot pull request is opened and refreshed with the workflow token, and GitHub
+does not start workflows for changes made with that token. To merge it, close and
+reopen it (which runs CI and the required `qualification` check), then merge it
+like any other pull request. It changes only the two generated READMEs, so it
+qualifies in the docs-and-tests lane. Each later push to main rebuilds its branch
+from the newest main, so it never conflicts and needs another close and reopen
+before merging. When main already matches, the workflow closes it.
 
 ```bash
 pnpm test          # the full suite: tests/ plus the co-located suites
@@ -168,7 +186,7 @@ compatibility check and fresh provider evidence.
 |---|---|---|
 | `public-ready` | Eligible web UI source and canonical UI token changes | Secret history, typecheck, production build and bundle budget, contracts, security, catalog validation, all-tool render check, custom static security rules, deployment scope and focused UI tests |
 | `release-ready` | Every change except a docs-and-tests pull request | All public-ready checks plus engine, web and tool units, all four browser shards and their execution gate, Tauri, conformance, regression fuzzing, API bundle drift, the rendering action and the dependency audit |
-| docs-and-tests (a tier of `qualification`, with no job of its own) | A pull request whose every change is under `docs/`, a test or a reviewed baseline | All release-ready checks except the four browser shards, their execution gate, Tauri, conformance and regression fuzzing |
+| docs-and-tests (a tier of `qualification`, with no job of its own) | A pull request whose every change is under `docs/`, a test, a reviewed baseline or one of the two generated READMEs | All release-ready checks except the four browser shards, their execution gate, Tauri, conformance and regression fuzzing |
 | `qualification` | Every change | Needs every other CI job, then requires the selected tier and a fresh scan of every job in the same attempt |
 
 ### The fast UI tier
@@ -208,8 +226,9 @@ soon as the fast checks pass.
 ### The docs-and-tests lane
 
 A pull request whose every change is under `docs/` (pages, translations, shots,
-figures and the `/info` builder), a test, a fixture or one of the reviewed
-ratchet baselines skips the heavy tier: the four WebGPU browser partitions and
+figures and the `/info` builder), a test, a fixture, one of the reviewed ratchet
+baselines or one of the two generated READMEs (`engine/README.md`,
+`shells/web/src/README.md`) skips the heavy tier: the four WebGPU browser partitions and
 their execution gate, Tauri, conformance (qpdf and c2patool) and regression
 fuzzing. Everything else still runs: secret history, custom static security
 rules, workflow pins, typecheck and its ratchets, catalog validation, the render

@@ -268,12 +268,19 @@ if (end < start) fail('engine/README.md has the engine-modules markers in the wr
 const next = `${readme.slice(0, start + START_MARK.length)}\n${sentence}\n\n${table}\n${readme.slice(end)}`;
 
 if (CHECK) {
-  if (next !== readme) {
+  if (next !== readme && process.argv.includes('--allow-drift')) {
+    // Pull requests and the pre-push hook pass --allow-drift: .github/workflows/generated-readmes.yml
+    // regenerates the table after each merge. Missing or misordered markers still fail above.
+    const note = 'engine/README.md module table differs from the tree. Nothing to do in this change: '
+      + '.github/workflows/generated-readmes.yml regenerates it after the merge.';
+    console.log(process.env.GITHUB_ACTIONS === 'true' ? `::warning title=Generated README drift::${note}` : note);
+  } else if (next !== readme) {
     fail(
       'engine/README.md module table is stale. Run `node scripts/gen-engine-modules.ts` and commit the result.',
     );
+  } else {
+    console.log(`engine/README.md module table is current (${rows.length} modules).`);
   }
-  console.log(`engine/README.md module table is current (${rows.length} modules).`);
 } else if (next === readme) {
   console.log(`engine/README.md module table already current (${rows.length} modules).`);
 } else {

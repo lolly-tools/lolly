@@ -201,6 +201,15 @@ function main(): void {
 
   if (process.argv.includes('--check')) {
     if (next !== current) {
+      // Pull requests and the pre-push hook pass --allow-drift: other merges move these
+      // counts, and .github/workflows/generated-readmes.yml regenerates them after each
+      // merge. Missing markers or a failing generator still exit 1 above.
+      if (process.argv.includes('--allow-drift')) {
+        const note = 'shells/web/src/README.md stats differ from the tree. Nothing to do in this change: '
+          + '.github/workflows/generated-readmes.yml regenerates them after the merge.';
+        console.log(process.env.GITHUB_ACTIONS === 'true' ? `::warning title=Generated README drift::${note}` : note);
+        return;
+      }
       console.error(
         'shells/web/src/README.md stats are stale. Run `pnpm run build:web-src-readme` and commit the result.',
       );
