@@ -46,6 +46,35 @@
     0 14px 34px #0002;
 }
 
+/* The view in motion and the level of detail (canvas performance review A5 and B1).
+   Both are attributes on #tool-stage (lib/stage-lod.ts, views/free-canvas/lod.ts),
+   never on the canvas: a thumbnail or a slide clones a page, and every render holds
+   both attributes off, so nothing here reaches an export or a capture. The rules are
+   anchored on #tool-canvas-outer, the wrapper no clone ever copies.
+
+   While the view moves the compositor scales the wrapper's last raster, soft while
+   the fingers move and sharp on release. will-change makes the wrapper a containing
+   block for fixed descendants, so it lasts only as long as a gesture. */
+.tool-layout.is-editor #tool-stage[data-fc-moving] #tool-canvas-outer { will-change: transform; }
+/* While moving, and from the far bucket out, an artboard keeps its hairline ring and
+   drops the blurred shadows that would otherwise be drawn again on every frame. */
+.tool-layout.is-editor #tool-stage[data-fc-moving] #tool-canvas-outer :is([data-pdf-page], .artboard),
+.tool-layout.is-editor #tool-stage:is([data-fc-lod="far"], [data-fc-lod="overview"]) #tool-canvas-outer :is([data-pdf-page], .artboard) {
+  box-shadow: 0 0 0 1px #0001;
+}
+/* Overview: shadows, filters and frosted glass inside the canvas go as well. An
+   artboard keeps only its ring. Text is hidden with `visibility` (the fit-text pass
+   measures layout, so never display:none); views/free-canvas/lod.ts writes a sheet
+   that shows again the few boxes whose text is still readable at this zoom. */
+.tool-layout.is-editor #tool-stage[data-fc-lod="overview"] #tool-canvas-outer .lolly-box {
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.tool-layout.is-editor #tool-stage[data-fc-lod="overview"] #tool-canvas-outer .lolly-box-text { text-shadow: none !important; visibility: hidden; }
+.tool-layout.is-editor #tool-stage[data-fc-lod="overview"] #tool-canvas-outer [data-pdf-page] { box-shadow: 0 0 0 1px #0001 !important; }
+
 /* Editor mode surfaces Export/Save/Copy/Share as prominent icons in the toolbar
    rail (see .fc-action), so the floating bottom Export|Save pill is removed. The
    #render-fab / #render-save buttons stay in the DOM (hidden) - the rail icons

@@ -88,6 +88,7 @@ import { fileDropOps } from './free-canvas/file-drop.ts';
 import { cameraCaptureOps } from './free-canvas/camera-capture.ts';
 import { timelineOps } from './free-canvas/timeline.ts';
 import { stageOps } from './free-canvas/stage.ts';
+import { lodOps } from './free-canvas/lod.ts';
 import { narrationOps } from './free-canvas/narration.ts';
 import { railOps } from './free-canvas/rail.ts';
 import { toolboxOps } from './free-canvas/toolbox.ts';
@@ -223,6 +224,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.cameraCapture = cameraCaptureOps(fc);
   fc.stage = stageOps(fc);
   fc.narration = narrationOps(fc);
+  fc.lod = lodOps(fc);
   fc.rail = railOps(fc);
   fc.toolbox = toolboxOps(fc);
   fc.menus = menusOps(fc);
@@ -2329,12 +2331,16 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       .catch(error => console.warn('design scene selection failed:', error));
   });
 
+  // Level of detail at far zoom, and media that plays only while seen (lod.ts).
+  fc.lod.mount();
+
   return {
     design: designPorts,
     duplicatePage: fc.hierarchy.duplicatePage,
     removePage: fc.hierarchy.removePage,
     pageChanged: fc.hierarchy.pageChanged,
     destroy() {
+      fc.lod.destroy();
       fc.cameraCapture.destroy();
       unwireFileDrop();
       disposeCanvasInteractions(fc);

@@ -180,6 +180,14 @@ export interface StageNav {
   /** Hold view transforms during capture. Release after restoring the preview layout. */
   suspend(): () => void;
   isSuspended(): boolean;
+  /**
+   * Hear the view start and stop MOVING (A5 of the canvas performance review). Motion
+   * starts with the first wheel, trackpad pinch, touch pinch or pan, or mouse/Space drag,
+   * and ends when the burst goes quiet (BURST_IDLE_MS), the pointer lifts, the gesture
+   * ends, or the stage is suspended for a capture. Keys and fits are single steps, not
+   * motion. Returns the unsubscribe, which ends the motion for that listener.
+   */
+  onMotion(start: () => void, end: () => void): () => void;
   reset(): void;
   isZoomed(): boolean;
   /**
@@ -357,12 +365,12 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     zoomNotifyPending = false;
     zoomNotifyRaf = 0;
     const started = startCanvasCost();
+    // Measured once and shared: the event carries the same absolute zoom the readouts
+    // get, so a listener on the stage (the canvas level of detail) needs no read of its own.
+    const abs = absScale();
     const EventType = stageEl.ownerDocument.defaultView?.CustomEvent;
-    if (EventType) stageEl.dispatchEvent(new EventType('lolly:stage-view'));
-    if (zoomListeners.size) {
-      const abs = absScale();
-      for (const cb of zoomListeners) { try { cb(abs); } catch { /* a bad readout must not break the view */ } }
-    }
+    if (EventType) stageEl.dispatchEvent(new EventType('lolly:stage-view', { detail: { abs } }));
+    for (const cb of zoomListeners) { try { cb(abs); } catch { /* a bad readout must not break the view */ } }
     endCanvasCost('stage-view', started);
   }
 
@@ -429,12 +437,33 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     burstFitW = 0;
     heldPageFloor = null;
     if (burstTimer !== null) { clearTimeout(burstTimer); burstTimer = null; }
+    motionEnd();
   }
   // Wheel events carry no "end": hold for the burst and release once it goes quiet.
   function holdForWheel(): void {
     holdBurstGeometry();
+    motionStart();
     if (burstTimer !== null) clearTimeout(burstTimer);
     burstTimer = setTimeout(releaseBurstGeometry, BURST_IDLE_MS);
+  }
+
+  // ── MOTION (canvas performance review A5) ─────────────────────────────────────
+  // While the view moves, the mounting view marks the stage (lib/stage-lod.ts) and
+  // editor.css lets the compositor scale the wrapper's last raster instead of
+  // re-rastering every layer each frame: soft for the length of the gesture, sharp on
+  // release. Every gesture path calls motionStart; everything that ends a burst, a pan
+  // or a pinch ends it, and so does a suspend, so no capture ever runs mid-motion.
+  const motionListeners = new Set<{ start: () => void; end: () => void }>();
+  let moving = false;
+  function motionStart(): void {
+    if (moving || suspensions || destroyed) return;
+    moving = true;
+    for (const l of motionListeners) { try { l.start(); } catch { /* a listener must not stop the view */ } }
+  }
+  function motionEnd(): void {
+    if (!moving) return;
+    moving = false;
+    for (const l of motionListeners) { try { l.end(); } catch { /* see motionStart */ } }
   }
   // The canvas width at Fit (the on-screen width with this module's zoom divided out).
   function fitWidth(): number {
@@ -713,6 +742,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       const [a, b] = [...pts.values()];
       const d = dist(a!, b!);
       const m = mid(a!, b!);
+      motionStart();
       contentFit = false;                                             // fingers own the view now
       if (lastMid) { tx += m.x - lastMid.x; ty += m.y - lastMid.y; }  // two-finger pan
       // Pinch-zoom with a dead-zone: ignore small finger-spread wobble so a
@@ -735,6 +765,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       apply();
       e.preventDefault();
     } else if (pts.size === 1 && isZoomed() && panPt) {
+      motionStart();
       contentFit = false;
       tx += e.clientX - panPt.x;
       ty += e.clientY - panPt.y;
@@ -761,6 +792,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       panPt = { x: p!.x, y: p!.y };
     } else if (pts.size === 0) {
       panPt = null;
+      motionEnd();
       // Settled back AT fit - clear the transform. (Not <=: zoomed OUT past fit
       // is a legitimate resting state now.)
       if (Math.abs(scale - 1) <= 0.001) reset();
@@ -1156,7 +1188,8 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       const c = typeof g.clientX === 'number' && typeof g.clientY === 'number' ? { x: g.clientX, y: g.clientY } : stageCentre();
       zoomAbout(Math.exp(pinchLogZoom(pinch, raw, e.timeStamp)), c.x, c.y);
     });
-    stageEl.addEventListener('gestureend', e => { e.preventDefault(); gesturing = false; });
+    // The fingers are off the trackpad, so the burst is over now rather than 150 ms later.
+    stageEl.addEventListener('gestureend', e => { e.preventDefault(); gesturing = false; releaseBurstGeometry(); });
 
     // Pan with middle-drag or Space+left-drag; plain left-clicks stay free so the
     // canvas click-to-focus behaviour keeps working.
@@ -1171,6 +1204,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     stageEl.addEventListener('pointermove', e => {
       if (!mousePanPt || e.pointerType !== 'mouse') return;
       holdBurstGeometry();
+      motionStart();
       contentFit = false;
       tx += e.clientX - mousePanPt.x;
       ty += e.clientY - mousePanPt.y;
@@ -1230,6 +1264,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     hud?.destroy();
     hudEl?.remove();
     zoomListeners.clear();
+    motionListeners.clear();
   }
 
   return {
@@ -1251,6 +1286,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     },
     suspend() {
       suspensions++;
+      motionEnd();   // a capture never runs with the stage marked as moving
       let released = false;
       return () => {
         if (released) return;
@@ -1263,6 +1299,15 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       };
     },
     isSuspended: () => suspensions > 0,
+    onMotion(start, end) {
+      const listener = { start, end };
+      motionListeners.add(listener);
+      if (moving) { try { start(); } catch { /* see motionStart */ } }
+      return () => {
+        if (!motionListeners.delete(listener) || !moving) return;
+        try { end(); } catch { /* see motionStart */ }
+      };
+    },
     reset, isZoomed, isUserZoomed, sync: syncHud, fit, fitSelection, focusRect,
     revealRect(rect, viewport) {
       if (![rect.x, rect.y, rect.w, rect.h, viewport.x, viewport.y, viewport.w, viewport.h].every(Number.isFinite) || viewport.w <= 0 || viewport.h <= 0) return;
