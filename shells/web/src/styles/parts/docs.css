@@ -229,6 +229,7 @@
 .docs-content img[src*="/info/shots/"] {
   max-width: 100%; min-width: 50%; border-radius: 1.2em;
   border: 1px solid var(--border); box-shadow: 0 6px 24px #0002;
+  background-color: color-mix(in oklab, var(--ui-color-surface-muted) 60%, var(--ui-color-surface-canvas));
 }
 
 /* Dual light/dark screenshots: .shot holds both the light img and a `.shot-alt` dark img;
