@@ -86,6 +86,11 @@ const BASELINES = ['scripts/house-rules-baseline.json', 'scripts/vernacular-code
   'scripts/vernacular-docs-baseline.json', 'scripts/vernacular-ui-baseline.json', 'security/lint-baseline.json',
   'security/maintainability-baseline.json', 'scripts/data/docs-ratchets/h1-title.json',
   'scripts/data/docs-ratchets/public-examples.json', 'scripts/data/docs-ratchets/vercel.json'];
+/**
+ * Generated maps that describe the code without being part of the build. After a merge,
+ * .github/workflows/generated-readmes.yml proposes them as a pull request that changes nothing else.
+ */
+const GENERATED_READMES = ['engine/README.md', 'shells/web/src/README.md'];
 /** Test paths the heavy shards own by name, after scripts/run-test-suite.ts (browser, Tauri, conformance, fuzz). */
 const HEAVY_TEST_NAME = /(?:^|[/_.-])(?:browser|capture|dom-emitter|export-emitter-golden|playwright|screen-capture|svg-walker|walker|webgpu|gpu|geometry|drawing|tauri|native|c2pa|c2patool|conformance|foreign|qpdf|fuzz)(?:[/_.-]|$)/i;
 /** The runtime markers scripts/run-test-suite.ts uses to put a test file in the browser shard. */
@@ -94,7 +99,7 @@ const TEST_FILE = /\.test\.(?:ts|js|mjs)$/;
 
 /**
  * The docs-and-tests lane: every change is under docs/ (pages, translations, shots, figures and the /info
- * site builder), a test or fixture, or a reviewed baseline. A pull request in this lane skips the heavy
+ * site builder), a test or fixture, a reviewed baseline, or one of the two generated READMEs. A pull request in this lane skips the heavy
  * tier; the fast security gates, the production build (which builds /info) and the unit shards that test
  * the docs builder still run, and the main push after the merge runs everything. A test the heavy shards
  * run, by name or by runtime marker, needs those shards. A manifest or lockfile anywhere needs the full
@@ -107,7 +112,8 @@ export function classifyDocsAndTests(changes: Change[], source?: (change: Change
   const reasons: string[] = [];
   for (const change of changes) {
     if (irregular(change) || DEPENDENCY_FILE.test(change.path)
-      || !(change.path.startsWith('docs/') || test(change.path) || BASELINES.includes(change.path))) {
+      || !(change.path.startsWith('docs/') || test(change.path) || BASELINES.includes(change.path)
+        || GENERATED_READMES.includes(change.path))) {
       reasons.push(`Heavy tier required: ${change.path}`);
     } else if (source && TEST_FILE.test(change.path)) {
       const text = source(change);

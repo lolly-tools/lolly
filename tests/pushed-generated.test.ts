@@ -90,18 +90,23 @@ test('valid pushed source ignores and preserves staged, unstaged, untracked and 
   assert.equal(readFileSync(join(f.root, WEB), 'utf8'), 'throw new Error("wrong generator");\n');
 });
 
-test('a stale pushed ref fails even with a newer clean HEAD and working README', t => {
+// Other merges move the generated counts, and generated-readmes.yml regenerates them after each
+// merge, so stale counts are reported and never refuse a push.
+test('stale counts at a pushed ref are reported and never refuse the push', t => {
   const f = fixture(t);
   f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n\n');
   const stale = f.commit();
   f.regenerate();
   const fixed = f.commit();
   const result = f.run(update(stale, 'refs/heads/stale', f.valid));
-  assert.equal(result.status, 1, result.output);
-  assert.match(result.output, /README.md stats are stale/);
+  assert.equal(result.status, 0, result.output);
+  assert.match(result.output, /README.md stats differ from the tree/);
   assert.match(result.output, /refs\/heads\/stale/);
-  assert.match(result.output, /Uncommitted fixes do not change the pushed commit/);
-  assert.equal(f.run(update(fixed, 'refs/heads/fixed', stale)).status, 0);
+  assert.match(result.output, /does not block\nthe push; .github\/workflows\/generated-readmes.yml regenerates them/);
+  assert.doesNotMatch(result.output, /::warning/, 'a local push prints plain text, not a CI annotation');
+  const clean = f.run(update(fixed, 'refs/heads/fixed', stale));
+  assert.equal(clean.status, 0, clean.output);
+  assert.doesNotMatch(clean.output, /differ from the tree/);
 });
 
 test('engine source, direct tests and fuzz metadata are checked from the pushed commit', t => {
@@ -111,18 +116,20 @@ test('engine source, direct tests and fuzz metadata are checked from the pushed 
   f.write('tests/fuzz/targets.ts', "export const targets = [{\n  name: 'sample',\n}];\n");
   const stale = f.commit();
   const result = f.run(update(stale));
-  assert.equal(result.status, 1, result.output);
-  assert.match(result.output, /engine\/README.md module table is stale/);
+  assert.equal(result.status, 0, result.output);
+  assert.match(result.output, /engine\/README.md module table differs from the tree/);
   f.regenerate();
-  assert.equal(f.run(update(f.commit())).status, 0);
+  const clean = f.run(update(f.commit()));
+  assert.equal(clean.status, 0, clean.output);
+  assert.match(clean.output, /module table is current/);
 });
 
 test('test-only coverage changes invalidate the engine table', t => {
   const f = fixture(t);
   f.write('tests/indirect.test.ts', "// Imports engine/src/sample.ts\n");
   const result = f.run(update(f.commit()));
-  assert.equal(result.status, 1, result.output);
-  assert.match(result.output, /engine\/README.md module table is stale/);
+  assert.equal(result.status, 0, result.output);
+  assert.match(result.output, /engine\/README.md module table differs from the tree/);
 });
 
 test('multiple updates check every distinct tip and peel annotated tags', t => {
@@ -133,10 +140,10 @@ test('multiple updates check every distinct tip and peel annotated tags', t => {
   const stale = f.commit();
   const result = f.run(update(f.valid, 'refs/heads/valid') + update(tag, 'refs/tags/valid-tag') +
     update(stale, 'refs/heads/stale', OLD) + update(ZERO, 'refs/heads/deleted', stale));
-  assert.equal(result.status, 1, result.output);
+  assert.equal(result.status, 0, result.output);
   assert.match(result.output, /2 distinct commit tip\(s\) checked/);
   assert.match(result.output, /refs\/heads\/valid, refs\/tags\/valid-tag/);
-  assert.match(result.output, /README.md stats are stale/);
+  assert.match(result.output, /README.md stats differ from the tree/);
 });
 
 test('new branches and unknown or non-fast-forward remote baselines need no fetch', t => {
@@ -190,8 +197,39 @@ test('Git archive attributes cannot hide stale generator inputs', t => {
   f.write('.gitattributes', 'shells/web/src/lib/widget.ts export-ignore\nengine/src/sample.ts export-subst\n');
   f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n\n');
   const result = f.run(update(f.commit()));
+  assert.equal(result.status, 0, result.output);
+  assert.match(result.output, /README.md stats differ from the tree/);
+});
+
+test('a map that cannot be built at a pushed ref refuses the push', t => {
+  const f = fixture(t);
+  f.write('shells/web/src/README.md', 'The markers were deleted.\n');
+  let result = f.run(update(f.commit()));
   assert.equal(result.status, 1, result.output);
-  assert.match(result.output, /README.md stats are stale/);
+  assert.match(result.output, /markers <!-- web-src-dirs:start -->/);
+  assert.match(result.output, /cannot be built in a pushed commit/);
+  f.write('shells/web/src/README.md', '<!-- web-src-dirs:start -->\n<!-- web-src-dirs:end -->\n' +
+    '<!-- web-src-largest:start -->\n<!-- web-src-largest:end -->\n');
+  f.regenerate();
+  f.write('engine/README.md', '<!-- engine-modules:end -->\n<!-- engine-modules:start -->\n');
+  result = f.run(update(f.commit()));
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /markers in the wrong order/);
+});
+
+test('a tip whose generators predate --allow-drift reports their stale exit as drift only', t => {
+  const f = fixture(t);
+  // The exact refusal the older generators print after a complete run.
+  f.write(WEB, "console.error('shells/web/src/README.md stats are stale. Run `pnpm run build:web-src-readme` and commit the result.');\nprocess.exit(1);\n");
+  let result = f.run(update(f.commit()));
+  assert.equal(result.status, 0, result.output);
+  assert.match(result.output, /does not block/);
+  f.write(WEB, "console.error('shells/web/src/README.md is missing - regenerate it');\nprocess.exit(1);\n");
+  result = f.run(update(f.commit()));
+  assert.equal(result.status, 1, result.output);
+  f.write(WEB, "console.error('shells/web/src/README.md stats are stale.');\nprocess.exit(2);\n");
+  result = f.run(update(f.commit()));
+  assert.equal(result.status, 1, result.output, 'only exit 1 after a complete run counts as drift');
 });
 
 test('hook forwards ref updates and uses Node directly before wording checks', t => {
@@ -209,6 +247,10 @@ test('hook forwards ref updates and uses Node directly before wording checks', t
   assert.ok(result.output.indexOf('distinct commit tip') < result.output.indexOf('code wording checked'));
   assert.ok(result.output.indexOf('docs wording checked') < result.output.indexOf('house rules checked'));
   f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n\n');
+  const drifted = f.run(update(f.commit()), true);
+  assert.equal(drifted.status, 0, drifted.output);
+  assert.match(drifted.output, /code wording checked/);
+  f.write('shells/web/src/README.md', 'The markers were deleted.\n');
   const failed = f.run(update(f.commit()), true);
   assert.equal(failed.status, 1, failed.output);
   assert.doesNotMatch(failed.output, /code wording checked/);
