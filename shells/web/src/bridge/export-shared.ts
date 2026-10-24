@@ -365,6 +365,8 @@ export interface DtoRenderOpts {
     margin?: string;
   };
   bgcolor?: string;
+  /** dom-to-image-more's clone hook: `after` is false before the clone's children are added. */
+  adjustClonedNode?: (original: Node, clone: Node, after: boolean) => void;
 }
 
 // This is the slice of dom-to-image-more's surface the export path uses;
@@ -518,10 +520,12 @@ export function makeRoundedFill(NS: string, x: number, y: number, w: number, h: 
 
 // Replaces blob: URLs in-place on the live node and returns a function that
 // restores the originals. Used for raster exports so dom-to-image-more receives
-// the fully styled live node rather than a detached clone.
-export async function swapBlobUrls(node: Element): Promise<() => void> {
+// the fully styled live node rather than a detached clone. Elements in `skip` keep
+// their URL: a thumbnail render hands those to the clone instead (thumbnailPictures).
+export async function swapBlobUrls(node: Element, skip?: { has(el: Element): boolean }): Promise<() => void> {
   const swaps: { el: Element; attr: string; url: string }[] = [];
   await Promise.all([...node.querySelectorAll('image, img')].map(async el => {
+    if (skip?.has(el)) return;
     for (const attr of ['href', 'src']) {
       const url = el.getAttribute(attr);
       if (url?.startsWith('blob:')) {
@@ -533,6 +537,56 @@ export async function swapBlobUrls(node: Element): Promise<() => void> {
     }
   }));
   return () => { for (const { el, attr, url } of swaps) el.setAttribute(attr, url); };
+}
+
+/**
+ * Smaller sources for a thumbnail render's pictures. A picture is drawn at its box's
+ * size times `renderScale` (output pixels per layout pixel), so a 3000 px photo in a
+ * 360 px preview needs a few hundred pixels, not the whole file inlined as a data URL,
+ * read back by the renderer and decoded again. Each picture held at more than twice
+ * the resolution it is drawn at gets a downscaled copy, keyed by its live element, for
+ * the render's clone (adjustClonedNode). The live canvas keeps its own picture, so
+ * nothing on screen softens while the thumbnail is taken. A picture that cannot be
+ * decoded here is left to the full inlining, as before.
+ */
+export async function thumbnailPictures(node: Element, renderScale: number): Promise<Map<Element, string>> {
+  const out = new Map<Element, string>();
+  if (!(renderScale > 0) || typeof createImageBitmap !== 'function') return out;
+  await Promise.all([...node.querySelectorAll('img')].map(async img => {
+    const url = img.getAttribute('src');
+    const { naturalWidth: nw, naturalHeight: nh, offsetWidth: bw, offsetHeight: bh } = img;
+    if (!url?.startsWith('blob:') || !nw || !nh || !bw || !bh) return;
+    // Covering its box is the largest a picture is drawn; contain and fill draw no larger.
+    const k = 2 * renderScale * Math.max(bw / nw, bh / nh);
+    if (k > 0.5) return;
+    try {
+      const blob = await (await fetch(url)).blob();
+      if (!/^image\/(jpeg|png|webp)$/.test(blob.type)) return;
+      const w = Math.max(1, Math.round(nw * k)), h = Math.max(1, Math.round(nh * k));
+      const bitmap = await createImageBitmap(blob, { resizeWidth: w, resizeHeight: h, resizeQuality: 'high' });
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d')?.drawImage(bitmap, 0, 0);
+      bitmap.close();
+      out.set(img, canvas.toDataURL(blob.type === 'image/jpeg' ? 'image/jpeg' : 'image/png', 0.9));
+    } catch { /* inlined in full by swapBlobUrls */ }
+  }));
+  return out;
+}
+
+/**
+ * A thumbnail render's clone takes the downscaled pictures (thumbnailPictures) through
+ * dom-to-image-more's clone hook. Returns the live elements whose URL therefore stays.
+ */
+export async function thumbnailClone(node: Element, dto: DtoRenderOpts, layoutWidth: number): Promise<ReadonlySet<Element>> {
+  const pictures = await thumbnailPictures(node, dto.width / layoutWidth);
+  if (pictures.size) {
+    dto.adjustClonedNode = (original, clone, after) => {
+      const src = after ? undefined : pictures.get(original as Element);
+      if (src) (clone as Element).setAttribute('src', src);
+    };
+  }
+  return new Set(pictures.keys());
 }
 
 export async function blobToDataUrl(url: string): Promise<string> {
