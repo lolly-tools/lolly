@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "次 / 前のアートボード",
   "First / last artboard": "最初 / 最後のアートボード",
   "Zoom to the dragged area": "ドラッグした範囲にズーム",
-  "Zoom in / out at the pointer": "ポインター位置でズームイン / アウト"
+  "Zoom in / out at the pointer": "ポインター位置でズームイン / アウト",
+  "This link opens the creation only on this device, from the copy saved here.": "このリンクは、ここに保存されたコピーから、この端末でのみ作品を開きます。",
+  "Link that opens this creation on this device only": "この端末でのみこの作品を開くリンク",
+  "No link can carry this creation": "この作品を載せられるリンクはありません",
+  "To send the whole creation, download the .lolly file below.": "作品全体を送るには、下の .lolly ファイルをダウンロードしてください。",
+  "To send the whole creation, share it on your network below.": "作品全体を送るには、下でネットワークに共有してください。",
+  "To share it as a link, reduce some elements.": "リンクとして共有するには、要素を減らしてください。",
+  "This creation is too large for a link.": "この作品はリンクにするには大きすぎます。",
+  "The link above opens it only on this device.": "上のリンクは、この端末でのみ開きます。"
 }

@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Volgend / vorig tekenbord",
   "First / last artboard": "Eerste / laatste tekenbord",
   "Zoom to the dragged area": "Inzoomen op het gesleepte gebied",
-  "Zoom in / out at the pointer": "In- / uitzoomen bij de aanwijzer"
+  "Zoom in / out at the pointer": "In- / uitzoomen bij de aanwijzer",
+  "This link opens the creation only on this device, from the copy saved here.": "Deze link opent de creatie alleen op dit apparaat, vanuit de hier opgeslagen kopie.",
+  "Link that opens this creation on this device only": "Link die deze creatie alleen op dit apparaat opent",
+  "No link can carry this creation": "Geen enkele link kan deze creatie bevatten",
+  "To send the whole creation, download the .lolly file below.": "Download hieronder het .lolly-bestand om de hele creatie te versturen.",
+  "To send the whole creation, share it on your network below.": "Deel de creatie hieronder op je netwerk om hem helemaal te versturen.",
+  "To share it as a link, reduce some elements.": "Verklein een aantal elementen om hem als link te delen.",
+  "This creation is too large for a link.": "Deze creatie is te groot voor een link.",
+  "The link above opens it only on this device.": "De link hierboven opent hem alleen op dit apparaat."
 }

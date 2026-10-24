@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Sonraki / önceki çalışma alanı",
   "First / last artboard": "İlk / son çalışma alanı",
   "Zoom to the dragged area": "Sürüklenen alana yakınlaştır",
-  "Zoom in / out at the pointer": "İmleçte yakınlaştır / uzaklaştır"
+  "Zoom in / out at the pointer": "İmleçte yakınlaştır / uzaklaştır",
+  "This link opens the creation only on this device, from the copy saved here.": "Bu bağlantı çalışmayı yalnızca bu cihazda, burada kayıtlı kopyadan açar.",
+  "Link that opens this creation on this device only": "Bu çalışmayı yalnızca bu cihazda açan bağlantı",
+  "No link can carry this creation": "Hiçbir bağlantı bu çalışmayı taşıyamaz",
+  "To send the whole creation, download the .lolly file below.": "Çalışmanın tamamını göndermek için aşağıdaki .lolly dosyasını indirin.",
+  "To send the whole creation, share it on your network below.": "Çalışmanın tamamını göndermek için aşağıda ağınızda paylaşın.",
+  "To share it as a link, reduce some elements.": "Bağlantı olarak paylaşmak için bazı öğeleri azaltın.",
+  "This creation is too large for a link.": "Bu çalışma bir bağlantı için çok büyük.",
+  "The link above opens it only on this device.": "Yukarıdaki bağlantı onu yalnızca bu cihazda açar."
 }

@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Susunod / nakaraang artboard",
   "First / last artboard": "Una / huling artboard",
   "Zoom to the dragged area": "I-zoom sa hinilang bahagi",
-  "Zoom in / out at the pointer": "Mag-zoom in / out sa pointer"
+  "Zoom in / out at the pointer": "Mag-zoom in / out sa pointer",
+  "This link opens the creation only on this device, from the copy saved here.": "Binubuksan ng link na ito ang likha sa device na ito lang, mula sa kopyang naka-save dito.",
+  "Link that opens this creation on this device only": "Link na nagbubukas ng likhang ito sa device na ito lang",
+  "No link can carry this creation": "Walang link na kayang magdala ng likhang ito",
+  "To send the whole creation, download the .lolly file below.": "Para ipadala ang buong likha, i-download ang .lolly file sa ibaba.",
+  "To send the whole creation, share it on your network below.": "Para ipadala ang buong likha, ibahagi ito sa iyong network sa ibaba.",
+  "To share it as a link, reduce some elements.": "Para maibahagi ito bilang link, bawasan ang ilang elemento.",
+  "This creation is too large for a link.": "Masyadong malaki ang likhang ito para sa isang link.",
+  "The link above opens it only on this device.": "Binubuksan lang ito ng link sa itaas sa device na ito."
 }

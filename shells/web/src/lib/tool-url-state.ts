@@ -54,3 +54,45 @@ export function copyBesidePackParams(target: URLSearchParams, source: URLSearchP
     if (value !== null) target.set(key, value);
   }
 }
+
+/** What the address keeps when a document is too large to carry: the workspace (with
+ *  `slot`, where the document is saved), the BESIDE_PACK_PARAMS the shell reads from
+ *  the address itself, and the result settings a link arrived with. */
+export function pointerParams(params: URLSearchParams): URLSearchParams {
+  const pointer = new URLSearchParams();
+  for (const key of [...WORKSPACE_PARAMS, ...BESIDE_PACK_PARAMS, ...RESULT_CONTEXT_PARAMS]) {
+    const value = params.get(key);
+    if (value !== null) pointer.set(key, value);
+  }
+  return pointer;
+}
+
+/**
+ * The address for one write: null to write the document itself, or the pointer form
+ * when the document is too large to carry and a saved copy can bring it back.
+ *
+ * Too large means the content query is past `maxContent` (the pack limit), or at
+ * least as long as one whose pack was already refused (`refusedAt`). `slot` is the
+ * saved copy this browser entry remembers; without one, the address keeps the
+ * document, because nothing else would restore it on a reload.
+ */
+export function addressPointer(params: URLSearchParams, opts: { contentLength: number; maxContent: number; refusedAt?: number; slot: string | null }): string | null {
+  const tooLarge = opts.contentLength > opts.maxContent || (opts.refusedAt !== undefined && opts.contentLength >= opts.refusedAt);
+  if (!tooLarge || !opts.slot) return null;
+  const pointer = pointerParams(params);
+  pointer.set('slot', opts.slot);
+  return pointer.toString();
+}
+
+/** The link that reopens a document from its saved copy on this device: its `slot`
+ *  and the plain keys the shell reads from the address. Null without a slot. */
+export function deviceLinkParams(address: URLSearchParams): URLSearchParams | null {
+  const slot = address.get('slot');
+  if (!slot) return null;
+  const link = new URLSearchParams({ slot });
+  for (const key of [...BESIDE_PACK_PARAMS, ...RESULT_CONTEXT_PARAMS]) {
+    const value = address.get(key);
+    if (value !== null) link.set(key, value);
+  }
+  return link;
+}

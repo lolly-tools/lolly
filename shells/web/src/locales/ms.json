@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Papan seni seterusnya / sebelumnya",
   "First / last artboard": "Papan seni pertama / terakhir",
   "Zoom to the dragged area": "Zum ke kawasan yang diseret",
-  "Zoom in / out at the pointer": "Zum masuk / keluar pada penuding"
+  "Zoom in / out at the pointer": "Zum masuk / keluar pada penuding",
+  "This link opens the creation only on this device, from the copy saved here.": "Pautan ini membuka karya hanya pada peranti ini, daripada salinan yang disimpan di sini.",
+  "Link that opens this creation on this device only": "Pautan yang membuka karya ini hanya pada peranti ini",
+  "No link can carry this creation": "Tiada pautan yang dapat memuatkan karya ini",
+  "To send the whole creation, download the .lolly file below.": "Untuk menghantar keseluruhan karya, muat turun fail .lolly di bawah.",
+  "To send the whole creation, share it on your network below.": "Untuk menghantar keseluruhan karya, kongsikan pada rangkaian anda di bawah.",
+  "To share it as a link, reduce some elements.": "Untuk berkongsi sebagai pautan, kurangkan beberapa elemen.",
+  "This creation is too large for a link.": "Karya ini terlalu besar untuk sebuah pautan.",
+  "The link above opens it only on this device.": "Pautan di atas membukanya hanya pada peranti ini."
 }

@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "পরের / আগের আর্টবোর্ড",
   "First / last artboard": "প্রথম / শেষ আর্টবোর্ড",
   "Zoom to the dragged area": "টানা এলাকায় জুম করুন",
-  "Zoom in / out at the pointer": "পয়েন্টারে জুম ইন / আউট"
+  "Zoom in / out at the pointer": "পয়েন্টারে জুম ইন / আউট",
+  "This link opens the creation only on this device, from the copy saved here.": "এই লিংক রচনাটি শুধু এই ডিভাইসে, এখানে সংরক্ষিত কপি থেকে খোলে।",
+  "Link that opens this creation on this device only": "যে লিংক এই রচনাটি শুধু এই ডিভাইসে খোলে",
+  "No link can carry this creation": "কোনো লিংকই এই রচনাটি বহন করতে পারে না",
+  "To send the whole creation, download the .lolly file below.": "পুরো রচনা পাঠাতে নিচের .lolly ফাইলটি ডাউনলোড করুন।",
+  "To send the whole creation, share it on your network below.": "পুরো রচনা পাঠাতে নিচে আপনার নেটওয়ার্কে শেয়ার করুন।",
+  "To share it as a link, reduce some elements.": "লিংক হিসেবে শেয়ার করতে কিছু উপাদান কমান।",
+  "This creation is too large for a link.": "এই রচনা লিংকের জন্য অনেক বড়।",
+  "The link above opens it only on this device.": "উপরের লিংক এটি শুধু এই ডিভাইসে খোলে।"
 }

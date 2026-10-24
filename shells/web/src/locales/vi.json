@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Bảng vẽ tiếp theo / trước",
   "First / last artboard": "Bảng vẽ đầu / cuối",
   "Zoom to the dragged area": "Thu phóng tới vùng đã kéo",
-  "Zoom in / out at the pointer": "Phóng to / thu nhỏ tại con trỏ"
+  "Zoom in / out at the pointer": "Phóng to / thu nhỏ tại con trỏ",
+  "This link opens the creation only on this device, from the copy saved here.": "Liên kết này chỉ mở tác phẩm trên thiết bị này, từ bản sao đã lưu tại đây.",
+  "Link that opens this creation on this device only": "Liên kết chỉ mở tác phẩm này trên thiết bị này",
+  "No link can carry this creation": "Không liên kết nào chứa nổi tác phẩm này",
+  "To send the whole creation, download the .lolly file below.": "Để gửi toàn bộ tác phẩm, hãy tải tệp .lolly bên dưới.",
+  "To send the whole creation, share it on your network below.": "Để gửi toàn bộ tác phẩm, hãy chia sẻ trên mạng của bạn bên dưới.",
+  "To share it as a link, reduce some elements.": "Để chia sẻ dưới dạng liên kết, hãy giảm bớt một số phần tử.",
+  "This creation is too large for a link.": "Tác phẩm này quá lớn để dùng liên kết.",
+  "The link above opens it only on this device.": "Liên kết ở trên chỉ mở nó trên thiết bị này."
 }

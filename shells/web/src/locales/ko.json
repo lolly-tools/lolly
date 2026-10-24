@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "다음 / 이전 아트보드",
   "First / last artboard": "첫 번째 / 마지막 아트보드",
   "Zoom to the dragged area": "드래그한 영역으로 확대",
-  "Zoom in / out at the pointer": "포인터 위치에서 확대 / 축소"
+  "Zoom in / out at the pointer": "포인터 위치에서 확대 / 축소",
+  "This link opens the creation only on this device, from the copy saved here.": "이 링크는 여기에 저장된 사본에서 이 기기에서만 작품을 엽니다.",
+  "Link that opens this creation on this device only": "이 기기에서만 이 작품을 여는 링크",
+  "No link can carry this creation": "어떤 링크도 이 작품을 담을 수 없습니다",
+  "To send the whole creation, download the .lolly file below.": "작품 전체를 보내려면 아래의 .lolly 파일을 내려받으세요.",
+  "To send the whole creation, share it on your network below.": "작품 전체를 보내려면 아래에서 네트워크에 공유하세요.",
+  "To share it as a link, reduce some elements.": "링크로 공유하려면 일부 요소를 줄이세요.",
+  "This creation is too large for a link.": "이 작품은 링크로 보내기에 너무 큽니다.",
+  "The link above opens it only on this device.": "위 링크는 이 기기에서만 엽니다."
 }

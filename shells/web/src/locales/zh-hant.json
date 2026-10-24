@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "下一個 / 上一個畫板",
   "First / last artboard": "第一個 / 最後一個畫板",
   "Zoom to the dragged area": "縮放至拖曳的區域",
-  "Zoom in / out at the pointer": "在游標處放大 / 縮小"
+  "Zoom in / out at the pointer": "在游標處放大 / 縮小",
+  "This link opens the creation only on this device, from the copy saved here.": "此連結只會在本裝置上，從此處儲存的副本開啟作品。",
+  "Link that opens this creation on this device only": "僅在本裝置上開啟此作品的連結",
+  "No link can carry this creation": "沒有連結能容納此作品",
+  "To send the whole creation, download the .lolly file below.": "要傳送完整作品，請下載下方的 .lolly 檔案。",
+  "To send the whole creation, share it on your network below.": "要傳送完整作品，請在下方透過你的網路分享。",
+  "To share it as a link, reduce some elements.": "若要以連結分享，請減少一些元素。",
+  "This creation is too large for a link.": "此作品太大，無法用連結分享。",
+  "The link above opens it only on this device.": "上方的連結只會在本裝置上開啟它。"
 }

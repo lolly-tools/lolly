@@ -62,3 +62,25 @@ test('an entry that remembers another slot treats the link as an override', asyn
   const opened = await open({ lollyHistory: { toolId: 'design', slot: 'design:other' } });
   assert.equal((opened.values.boxes as Array<Record<string, unknown>>)[0]!.x, '999');
 });
+
+/** A large document's address after perf review C1 step 3: the saved copy and the
+ *  workspace, no content (views/tool/session.ts writes it past the pack limit). */
+async function openPointer(entry: unknown) {
+  const { db: memory } = memoryDb();
+  const db = memory as unknown as IDBPDatabase;
+  const state = createStateAPI(db as unknown as StateDb, createRevisionStore(db));
+  await state.save(slot, { __toolId: 'design', boxes: saved });
+  window.history.replaceState(entry, '', '/design');
+  const address = new URLSearchParams({ slot, _view: '{"scale":2,"x":0,"y":0}', _themes: '{"":"dark"}' });
+  return openToolSession(state, manifest, parseUrlState(address.toString(), manifest));
+}
+
+test('reloading a large document\'s pointer address restores it from the slot', async () => {
+  const opened = await openPointer({ lollyHistory: { toolId: 'design', slot } });
+  assert.deepEqual(opened.values.boxes, saved);
+});
+
+test('the pointer address opened in a new entry on this device restores the same copy', async () => {
+  const opened = await openPointer(null);
+  assert.deepEqual(opened.values.boxes, saved, 'nothing in the address overrides the saved rows');
+});

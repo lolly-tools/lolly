@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Nästa / föregående rityta",
   "First / last artboard": "Första / sista ritytan",
   "Zoom to the dragged area": "Zooma till det dragna området",
-  "Zoom in / out at the pointer": "Zooma in / ut vid pekaren"
+  "Zoom in / out at the pointer": "Zooma in / ut vid pekaren",
+  "This link opens the creation only on this device, from the copy saved here.": "Den här länken öppnar skapelsen bara på den här enheten, från kopian som sparats här.",
+  "Link that opens this creation on this device only": "Länk som öppnar den här skapelsen bara på den här enheten",
+  "No link can carry this creation": "Ingen länk kan rymma den här skapelsen",
+  "To send the whole creation, download the .lolly file below.": "Ladda ner .lolly-filen nedan för att skicka hela skapelsen.",
+  "To send the whole creation, share it on your network below.": "Dela den i ditt nätverk nedan för att skicka hela skapelsen.",
+  "To share it as a link, reduce some elements.": "Minska några element för att dela den som länk.",
+  "This creation is too large for a link.": "Den här skapelsen är för stor för en länk.",
+  "The link above opens it only on this device.": "Länken ovan öppnar den bara på den här enheten."
 }

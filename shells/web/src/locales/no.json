@@ -10319,5 +10319,13 @@
   "Next / previous artboard": "Neste / forrige tegnebrett",
   "First / last artboard": "Første / siste tegnebrett",
   "Zoom to the dragged area": "Zoom til det dratte området",
-  "Zoom in / out at the pointer": "Zoom inn / ut ved pekeren"
+  "Zoom in / out at the pointer": "Zoom inn / ut ved pekeren",
+  "This link opens the creation only on this device, from the copy saved here.": "Denne lenken åpner skapelsen bare på denne enheten, fra kopien som er lagret her.",
+  "Link that opens this creation on this device only": "Lenke som åpner denne skapelsen bare på denne enheten",
+  "No link can carry this creation": "Ingen lenke kan romme denne skapelsen",
+  "To send the whole creation, download the .lolly file below.": "Last ned .lolly-filen nedenfor for å sende hele skapelsen.",
+  "To send the whole creation, share it on your network below.": "Del den i nettverket ditt nedenfor for å sende hele skapelsen.",
+  "To share it as a link, reduce some elements.": "Reduser noen elementer for å dele den som lenke.",
+  "This creation is too large for a link.": "Denne skapelsen er for stor for en lenke.",
+  "The link above opens it only on this device.": "Lenken ovenfor åpner den bare på denne enheten."
 }
