@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createAutomaticHistory } from './automatic-history.ts';
+import { createAutomaticHistory, recoveryDelay, RECOVERY_DEBOUNCE_MS, RECOVERY_MAX_INTERVAL_MS, RECOVERY_MIN_INTERVAL_MS } from './automatic-history.ts';
 import type { RevisionHistoryAPI, RevisionEntry } from '../bridge/revision-history.ts';
 import type { RecoveryEntry } from '../bridge/revision-recovery.ts';
 
@@ -461,5 +461,50 @@ test('a refused checkpoint is tried again on an edit a minute later, and drafts 
   assert.equal(drafts.length, before + 1, 'drafts continue');
   assert.equal(drafts.at(-1)!.branch, true, 'as a protected branch beside the saved record, never over it');
   assert.equal(controller.activity(), 'draft');
+  controller.dispose();
+});
+
+test('a recovery draft waits the minimum interval, which grows with the capture time', () => {
+  // The first draft keeps the old cadence: a second's debounce, five seconds at most.
+  assert.equal(recoveryDelay(1000, 1000, undefined, 0), RECOVERY_DEBOUNCE_MS);
+  assert.equal(recoveryDelay(5500, 1000, undefined, 0), 500);
+  assert.equal(recoveryDelay(9000, 1000, undefined, 0), 0, 'past the maximum wait the edits want protecting now');
+  // After a draft, the next one waits for the interval, however long the edits have waited.
+  assert.equal(recoveryDelay(9000, 1000, 9000, 5), RECOVERY_MIN_INTERVAL_MS, 'a cheap capture: one second');
+  assert.equal(recoveryDelay(9000, 1000, 9000, 200), 20 * 200, 'a capture of 200 ms: four seconds');
+  assert.equal(recoveryDelay(9000, 1000, 9000, 60_000), RECOVERY_MAX_INTERVAL_MS, 'never longer than the cap');
+  assert.equal(recoveryDelay(12_000, 1000, 9000, 50), 0, 'and no longer once the interval has passed');
+});
+
+test('thirty seconds of continuous editing against a slow draft store make a bounded number of drafts', async context => {
+  // Each draft takes 300 ms to store and an edit arrives every 100 ms. Before the bound,
+  // the maximum wait reached zero after five seconds and every edit drafted as soon as
+  // the previous draft finished: about one draft every 300 to 400 ms.
+  context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 1000 });
+  let value = 0;
+  const started: number[] = [];
+  const controller = createAutomaticHistory({
+    toolId: 'design', getSlot: () => 'slot', setSlot() {}, snapshot: () => ({ value }),
+    load: async () => null, capture: async () => null, saved() {},
+    history: {
+      head: async () => null, current: async () => ({ head: 'h', version: 'v' }), attachPreview: async () => {},
+      checkpoint: async () => ({ id: 'checkpoint' }) as RevisionEntry,
+      recovery: { list: async () => ({ entries: [] }), read: async () => null,
+        save: async () => {
+          started.push(Date.now());
+          await new Promise<void>(resolve => { setTimeout(resolve, 300); });
+          return { version: `d${started.length}`, diverged: false } as RecoveryEntry;
+        },
+      },
+    },
+  });
+  const settle = async (): Promise<void> => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
+  await settle();
+  for (let i = 0; i < 300; i++) { value++; controller.changed(); context.mock.timers.tick(100); await settle(); }
+  assert.ok(started.length >= 15, `edits are still protected while they continue (${started.length} drafts)`);
+  assert.ok(started.length <= 21, `but no more than one draft per stored draft plus a second (${started.length} drafts)`);
+  for (let i = 1; i < started.length; i++) {
+    assert.ok(started[i]! - started[i - 1]! >= 300 + RECOVERY_MIN_INTERVAL_MS, `drafts ${i - 1} and ${i} are an interval apart`);
+  }
   controller.dispose();
 });
