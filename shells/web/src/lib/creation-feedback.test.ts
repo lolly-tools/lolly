@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Creation feedback rows in the export panel's "Before you export" card: house-rule
- * findings are warnings that name their layer, the writing line carries the band and
- * the engine's own summary with a link into Verify, and nothing in the rows can gate
- * Download or record an exception.
+ * findings name their layer and read as a warning for a required rule and a note for an
+ * advisory one, the writing line carries the band and the engine's own summary with a
+ * link into Verify, and nothing in the rows can gate Download or record an exception.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { creationFeedbackRows, readCreationFeedback, type CreationFeedbackSource } from './creation-feedback.ts';
+import { creationFeedbackRows, hostAssetNames, readCreationFeedback, type AssetNamesHost, type CreationFeedbackSource } from './creation-feedback.ts';
 import { preflightBodyHtml, preflightView } from '../views/export-preflight.ts';
 
 const TOKENS = JSON.parse(readFileSync(new URL('../../../../tests/fixtures/design-brief/tokens.json', import.meta.url), 'utf8'));
@@ -20,27 +20,66 @@ const board = (...layers: Record<string, unknown>[]): Record<string, unknown>[] 
   { id: 'a1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#ffffff' },
   ...layers.map((l, i) => ({ frame: 'a1', kind: 'text', x: 100, y: 100 + i * 120, w: 1600, h: 100, fontSize: 28, weight: '400', align: 'left', fg: '#13294b', ...l })),
 ];
-const source = (boxes: unknown, doc: unknown = TOKENS): CreationFeedbackSource => ({
+const source = (boxes: unknown, doc: unknown = TOKENS, catalog?: CreationFeedbackSource['catalog']): CreationFeedbackSource => ({
   model: () => [{ id: 'boxes', value: boxes }, { id: 'background', value: '#ffffff' }],
   snapshot: async () => (doc ? { document: doc, system: null, version: 'latest', selection: {} } : undefined) as never,
+  ...(catalog ? { catalog } : {}),
 });
 
-test('house-rule findings are warnings that name the layer, under one checked line', async () => {
-  const read = await readCreationFeedback(source(board({ id: 'title', name: 'Headline', text: 'Quarterly results', align: 'center' })));
+test('house-rule findings name the layer under one checked line: required rules warn, advisory rules note', async () => {
+  // A 400 centred headline breaks the required headline weight and the advisory alignment.
+  const read = await readCreationFeedback(source(board({ id: 'title', name: 'Headline', text: 'Quarterly results', align: 'center', fontSize: 72 })));
   const rows = creationFeedbackRows(read);
   assert.equal(rows[0]!.id, 'house-rules.checked');
   assert.equal(rows[0]!.tone, 'note');
   assert.match(rows[0]!.text, /^House rules checked \(\d+\)\. Every finding below says which layer it is about\.$/);
   const findings = rows.filter((r) => r.id.startsWith('house-rule.'));
-  assert.ok(findings.length > 0);
+  assert.deepEqual(findings.map((f) => [f.id, f.tone]), [['house-rule.0.headline-weight', 'warn'], ['house-rule.1.align-left', 'note']]);
   for (const f of findings) {
-    assert.equal(f.tone, 'warn');
+    const engine = read.report.houseRules.findings.find((h) => h.message === f.text);
+    assert.ok(engine, 'the message is the engine finding verbatim');
+    assert.equal(f.tone, engine.requirement === 'required' ? 'warn' : 'note');
     assert.equal(f.title, '“Headline”', 'the layer is named by its name');
-    assert.ok(read.report.houseRules.findings.some((h) => h.message === f.text), 'the message is the engine finding verbatim');
     assert.equal(f.action, undefined, 'no ignore or exception control');
   }
   // Unknown rule kinds are said, never passed.
   assert.ok(rows.some((r) => r.id === 'house-rules.unknown' && r.tone === 'gap' && /clear-space/.test(r.text)));
+  // Only the required finding counts toward the card's "to fix" total.
+  const view = preflightView(null, { formatLabel: 'PNG', sizeText: '', additionalRows: rows });
+  assert.equal(view.tone, 'fix');
+  assert.match(view.verdict, /^1 to fix,/);
+});
+
+test('an advisory finding alone leaves nothing to fix', async () => {
+  const read = await readCreationFeedback(source(board({ id: 'body', name: 'Body copy', text: 'Revenue grew in every region this quarter.', align: 'center' })));
+  const rows = creationFeedbackRows(read);
+  assert.deepEqual(rows.filter((r) => r.id.startsWith('house-rule.')).map((r) => [r.id, r.tone]), [['house-rule.0.align-left', 'note']]);
+  const view = preflightView(null, { formatLabel: 'PNG', sizeText: '', additionalRows: rows });
+  assert.equal(view.tone, 'know');
+  assert.doesNotMatch(view.verdict, /to fix/);
+});
+
+test('catalog facts name the logos in a logo finding, and a catalog that cannot be read leaves the ids', async () => {
+  const logos = [
+    { id: 'a1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#13294b' },
+    { id: 'mark', name: 'Logo', kind: 'image', frame: 'a1', x: 100, y: 100, w: 200, h: 60, image: 'tidewater/logo/positive' },
+  ];
+  const message = async (catalog?: CreationFeedbackSource['catalog']) =>
+    (await readCreationFeedback(source(logos, TOKENS, catalog))).report.houseRules.findings.find((f) => f.ruleId === 'logo-surface')!;
+  let calls = 0;
+  const named = await message(async () => {
+    calls++;
+    return { assets: [{ id: 'tidewater/logo/positive', name: 'Tidewater Positive' }, { id: 'tidewater/logo/reverse', name: 'Tidewater Reverse' }] };
+  });
+  assert.equal(calls, 1, 'read once per report');
+  assert.match(named.message, /The logo “Tidewater Positive” sits on a dark surface; use “Tidewater Reverse”\.$/);
+  assert.deepEqual([named.value, named.expected], ['tidewater/logo/positive', 'tidewater/logo/reverse'], 'agents keep the ids');
+  const broken = await message(async () => { throw new Error('offline'); });
+  assert.match(broken.message, /The logo tidewater\/logo\/positive sits on a dark surface; use tidewater\/logo\/reverse\.$/);
+  assert.equal((await message()).message, broken.message, 'no catalog reads the same as one that failed');
+  // The advisory logo rule is a note on the card.
+  const rows = creationFeedbackRows(await readCreationFeedback(source(logos, TOKENS)));
+  assert.deepEqual(rows.filter((r) => r.id.startsWith('house-rule.')).map((r) => [r.id, r.tone]), [['house-rule.0.logo-surface', 'note']]);
 });
 
 test('the writing line carries the band, the engine summary and a link into Verify', async () => {
@@ -86,4 +125,27 @@ test('the card renders the rows with escaped details and a plain link, and never
   assert.ok(!html.includes('<b>x</b>'), 'layer names are escaped');
   assert.doesNotMatch(html, /disabled|data-preflight-fix/, 'no control that gates or dismisses');
   assert.equal(view.show, true);
+});
+
+test('the host asset names keep each id and its display name, and a host that cannot answer gives none', async () => {
+  let queried: unknown;
+  const named: AssetNamesHost = {
+    assets: {
+      query: async (filter) => {
+        queried = filter;
+        return [
+          { id: 'example/logo/primary', meta: { name: ' Example Wordmark ' } },
+          { id: 'example/logo/reverse', meta: { name: '' } },
+          { id: 'example/photos/sea' },
+        ];
+      },
+    },
+  };
+  assert.deepEqual(await hostAssetNames(named), {
+    assets: [{ id: 'example/logo/primary', name: 'Example Wordmark' }, { id: 'example/logo/reverse' }, { id: 'example/photos/sea' }],
+  });
+  assert.deepEqual(queried, { includeDeprecated: true }, 'the same query hostBrandCatalog makes');
+  assert.equal(await hostAssetNames({ assets: { query: async () => { throw new Error('offline'); } } }), undefined);
+  assert.equal(await hostAssetNames({ assets: {} }), undefined);
+  assert.equal(await hostAssetNames(undefined), undefined);
 });

@@ -153,7 +153,7 @@ export interface CreationFeedbackReportV1 {
 export interface CreationFeedbackOpts extends DesignVisibleTextOpts {
   /** The token theme the document is composed in, for alias colours. */
   theme?: string;
-  /** Catalog facts (`DesignBriefCatalogV1`): the logo set a logo rule falls back to. */
+  /** Catalog facts (`DesignBriefCatalogV1`): the logo set a logo rule falls back to, and each asset's display name for a logo finding's message. */
   catalog?: unknown;
   /** Design's `background` input, which a document with no frames paints under every layer. */
   background?: unknown;

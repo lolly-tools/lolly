@@ -56,7 +56,10 @@ export interface HouseRuleFinding {
 export interface DesignHouseRuleOpts {
   /** The token theme the document is composed in, for alias colours. */
   theme?: string;
-  /** Catalog facts (`DesignBriefCatalogV1`): the logo set stands in when a logo rule names none. */
+  /**
+   * Catalog facts (`DesignBriefCatalogV1`): the logo set stands in when a logo rule names
+   * none, and a logo finding's message calls each logo by its asset `name`.
+   */
   catalog?: unknown;
   /**
    * The document's canvas background (Design's `background` input), which a document
@@ -288,7 +291,23 @@ function hiddenTest(rows: Row[]): (row: Row) => boolean {
 }
 
 const label = (name: string): string => name.charAt(0).toUpperCase() + name.slice(1);
+/** Values for a field an agent reads (`value`, `expected`): comma-separated. */
 const list = (values: readonly string[]): string => values.join(', ');
+/** Choices in a sentence a person reads: "A, B or C", with no comma before the last. */
+const orList = (values: readonly string[]): string =>
+  values.length > 1 ? `${values.slice(0, -1).join(', ')} or ${values[values.length - 1]}` : (values[0] ?? '');
+
+/** Each catalog asset's display name by id (`DesignBriefCatalogV1.assets`). An asset with no name is left out. */
+function catalogAssetNames(catalog: unknown): Map<string, string> {
+  const names = new Map<string, string>();
+  const assets = record(catalog) && Array.isArray(catalog.assets) ? catalog.assets : [];
+  for (const asset of assets) {
+    if (!record(asset) || typeof asset.id !== 'string' || typeof asset.name !== 'string') continue;
+    const name = asset.name.trim();
+    if (name && !names.has(asset.id)) names.set(asset.id, name);
+  }
+  return names;
+}
 
 /** Check boxes against the house rules among `rules`. Rules of other kinds are left alone. */
 export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc: unknown, opts: DesignHouseRuleOpts = {}): DesignHouseRuleResult {
@@ -472,6 +491,14 @@ export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc:
       // so a `?theme=auto` logo is judged on the mark it takes there.
       const readColour = surfaceColourResolver(layout.tokens);
       let table: SurfaceVariantTableV1 | null = null;
+      // The message gives each logo's catalog name, or its id when the catalog gives none.
+      // `value` and `expected` keep the ids, which agents act on.
+      let names: Map<string, string> | null = null;
+      const logoName = (id: string): string => {
+        names ??= catalogAssetNames(opts.catalog);
+        const name = names.get(id);
+        return name ? `“${name}”` : id;
+      };
       for (const { row, index } of layers) {
         const raw = valueText(row.image) || (record(row.image) && typeof row.image.id === 'string' ? row.image.id : '');
         const resolved = aliasPath(raw) ? layout.tokens.resolve(aliasPath(raw)!) : raw;
@@ -491,7 +518,8 @@ export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc:
         }
         const allowed = kind === 'photo' ? photo : kind === 'dark' ? dark : light;
         if (allowed.length && !allowed.includes(id)) {
-          add(row, 'image', id, list(allowed), `The logo ${id} sits on a ${kind === 'photo' ? 'photograph' : `${kind} surface`}; use ${list(allowed)}.`);
+          const choices = [...new Set(allowed.map(logoName))];
+          add(row, 'image', id, list(allowed), `The logo ${logoName(id)} sits on a ${kind === 'photo' ? 'photograph' : `${kind} surface`}; use ${orList(choices)}.`);
         }
       }
     }

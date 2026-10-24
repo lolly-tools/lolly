@@ -202,6 +202,40 @@ test('logo surface falls back to the catalog logos when the rule lists none', ()
   assert.deepEqual(result.findings.map((f) => [f.layerId, f.expected]), [['l', 'pack/logo/positive']]);
 });
 
+test('logo surface names logos by their catalog names in the message and keeps the ids for agents', () => {
+  const rule = { ...rules.find((r) => r.id === 'logo-surface')!, parameters: { light: ['pack/logo/positive'], dark: ['pack/logo/reverse', 'pack/logo/mono-reverse', 'pack/logo/plain'] } };
+  const boxes = [
+    { id: 'a1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#13294b' },
+    { id: 'l', kind: 'image', frame: 'a1', x: 0, y: 0, w: 200, h: 60, image: 'pack/logo/positive' },
+  ];
+  const catalog = {
+    assets: [
+      { id: 'pack/logo/positive', name: 'Pack Wordmark - Positive' },
+      { id: 'pack/logo/reverse', name: 'Pack Wordmark - Reverse' },
+      { id: 'pack/logo/mono-reverse', name: '  Pack Mark - Mono reverse  ' },
+      { id: 'pack/logo/plain' },
+      { id: 'pack/icons/anchor', name: 'Anchor' },
+    ],
+  };
+  const [named] = checkDesignHouseRules(boxes, [rule], doc, { catalog }).findings;
+  assert.equal(named!.message,
+    `${rule.label}. The logo “Pack Wordmark - Positive” sits on a dark surface; use “Pack Wordmark - Reverse”, “Pack Mark - Mono reverse” or pack/logo/plain.`,
+    'names where the catalog gives them, the id where it does not, and no comma before "or"');
+  assert.equal(named!.value, 'pack/logo/positive', 'value stays the id');
+  assert.equal(named!.expected, 'pack/logo/reverse, pack/logo/mono-reverse, pack/logo/plain', 'expected stays the ids');
+
+  // No catalog, or a catalog with no names: the ids, as before.
+  const [bare] = checkDesignHouseRules(boxes, [rule], doc).findings;
+  assert.equal(bare!.message, `${rule.label}. The logo pack/logo/positive sits on a dark surface; use pack/logo/reverse, pack/logo/mono-reverse or pack/logo/plain.`);
+  assert.deepEqual([bare!.value, bare!.expected], [named!.value, named!.expected]);
+  const [unnamed] = checkDesignHouseRules(boxes, [rule], doc, { catalog: { assets: [{ id: 'pack/logo/positive', name: '' }, null, 'x'] } }).findings;
+  assert.equal(unnamed!.message, bare!.message);
+
+  // One choice reads as one name.
+  const single = { ...rule, parameters: { light: ['pack/logo/positive'], dark: ['pack/logo/reverse'] } };
+  assert.match(checkDesignHouseRules(boxes, [single], doc, { catalog }).findings[0]!.message, /; use “Pack Wordmark - Reverse”\.$/);
+});
+
 test('hidden layers, unreadable input and rules with unreadable parameters never throw', () => {
   assert.deepEqual(run(board({ id: 'hidden', role: 'title', text: 'Hidden', fontSize: 72, weight: '900', hidden: true })).findings, []);
   for (const input of [null, undefined, 'boxes', 42, [null, 'x', 3]]) assert.deepEqual(run(input as unknown as unknown[]).findings, []);

@@ -4083,7 +4083,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.284.0";
+    ENGINE_VERSION = "1.285.0";
   }
 });
 
@@ -127729,6 +127729,16 @@ function hiddenTest(rows2) {
   const flags = designHierarchyIndex(rows2).flags;
   return (row) => isHidden(row) || flags.get(row.id == null ? "" : String(row.id))?.hidden === true;
 }
+function catalogAssetNames(catalog) {
+  const names = /* @__PURE__ */ new Map();
+  const assets = record26(catalog) && Array.isArray(catalog.assets) ? catalog.assets : [];
+  for (const asset2 of assets) {
+    if (!record26(asset2) || typeof asset2.id !== "string" || typeof asset2.name !== "string") continue;
+    const name = asset2.name.trim();
+    if (name && !names.has(asset2.id)) names.set(asset2.id, name);
+  }
+  return names;
+}
 function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
   const findings = [];
   const unknown2 = [];
@@ -127931,7 +127941,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         add3(row, "strokeDash", style, "solid", `A ${style} border is reserved for ${meaning}.`);
       }
     } else if (rule.kind === "logo-surface") {
-      const fromCatalog = (names) => names.map((n7) => catalogLogos[n7]).filter((v) => typeof v === "string");
+      const fromCatalog = (names2) => names2.map((n7) => catalogLogos[n7]).filter((v) => typeof v === "string");
       const light = strings2(p.light).length ? strings2(p.light) : fromCatalog(["onLight", "monoOnLight"]);
       const dark = strings2(p.dark).length ? strings2(p.dark) : fromCatalog(["onDark", "monoOnDark"]);
       const photo = strings2(p.photo).length ? strings2(p.photo) : dark;
@@ -127943,6 +127953,12 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
       checked2++;
       const readColour = surfaceColourResolver(layout2.tokens);
       let table = null;
+      let names = null;
+      const logoName = (id3) => {
+        names ??= catalogAssetNames(opts.catalog);
+        const name = names.get(id3);
+        return name ? `\u201C${name}\u201D` : id3;
+      };
       for (const { row, index: index2 } of layers) {
         const raw = valueText2(row.image) || (record26(row.image) && typeof row.image.id === "string" ? row.image.id : "");
         const resolved2 = aliasPath(raw) ? layout2.tokens.resolve(aliasPath(raw)) : raw;
@@ -127963,7 +127979,8 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         }
         const allowed = kind === "photo" ? photo : kind === "dark" ? dark : light;
         if (allowed.length && !allowed.includes(id3)) {
-          add3(row, "image", id3, list2(allowed), `The logo ${id3} sits on a ${kind === "photo" ? "photograph" : `${kind} surface`}; use ${list2(allowed)}.`);
+          const choices2 = [...new Set(allowed.map(logoName))];
+          add3(row, "image", id3, list2(allowed), `The logo ${logoName(id3)} sits on a ${kind === "photo" ? "photograph" : `${kind} surface`}; use ${orList(choices2)}.`);
         }
       }
     }
@@ -127973,7 +127990,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
 function designHouseRules(rules) {
   return (rules ?? []).filter((r5) => DESIGN_HOUSE_RULE_KINDS.includes(r5.kind));
 }
-var DESIGN_HOUSE_RULE_KINDS, record26, strings2, num12, valueText2, isHidden, textOf7, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label, list2;
+var DESIGN_HOUSE_RULE_KINDS, record26, strings2, num12, valueText2, isHidden, textOf7, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label, list2, orList;
 var init_design_house_rules = __esm({
   "engine/src/design-house-rules.ts"() {
     "use strict";
@@ -128014,6 +128031,7 @@ var init_design_house_rules = __esm({
     artboardOf = (row) => typeof row.frame === "string" && row.frame ? row.frame : row.kind === "frame" && typeof row.id === "string" ? row.id : void 0;
     label = (name) => name.charAt(0).toUpperCase() + name.slice(1);
     list2 = (values) => values.join(", ");
+    orList = (values) => values.length > 1 ? `${values.slice(0, -1).join(", ")} or ${values[values.length - 1]}` : values[0] ?? "";
   }
 });
 

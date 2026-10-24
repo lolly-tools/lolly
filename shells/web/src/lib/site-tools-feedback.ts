@@ -7,14 +7,15 @@
  * The feedback informs; nothing here refuses an edit.
  */
 import { creationFeedbackDelta, type CreationFeedbackReportV1 } from '@lolly/engine';
-import { readCreationFeedback } from './creation-feedback.ts';
+import { hostAssetNames, readCreationFeedback } from './creation-feedback.ts';
 import { siteData } from './site-tools-data.ts';
 import type { SiteToolSource } from './site-tools-context.ts';
 
 /** The report for the mounted tool, or null when it is not a Design document. */
 export async function siteCreationFeedback(tool: SiteToolSource | null): Promise<CreationFeedbackReportV1 | null> {
   if (tool?.tool.manifest.id !== 'design') return null;
-  const { report } = await readCreationFeedback({ model: () => tool.model(), snapshot: () => tool.host.tokens?.snapshot?.() });
+  // The asset names let the logo finding name logos the way the export card does.
+  const { report } = await readCreationFeedback({ model: () => tool.model(), snapshot: () => tool.host.tokens?.snapshot?.(), catalog: () => hostAssetNames(tool.host) });
   return report;
 }
 
