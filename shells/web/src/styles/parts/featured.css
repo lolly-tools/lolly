@@ -368,6 +368,9 @@
   animation: ftile-kenburns 12s ease-in-out infinite alternate;
 }
 @keyframes ftile-kenburns { from { transform: scale(1); } to { transform: scale(1.03); } }
+/* Held still while the shell's WebGPU startup check runs (lib/startup-motion.ts), and
+   carried on from the same frame once the check settles. */
+html[data-webgpu-pending] .featured:not(.featured--static) .ftile-img.is-active { animation-play-state: paused; }
 /* Mobile: the Ken Burns scale continuously re-rasterises each active image's
    drop-shadow (the filter shape changes as it scales), and with several tiles live
    at once that per-frame filter work is the main cause of choppy left/right swiping
