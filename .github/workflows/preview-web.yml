@@ -1,0 +1,401 @@
+# SPDX-License-Identifier: MPL-2.0
+# Preview web image: the lolly.tools shell signed with the PREVIEW catalog key.
+#
+# Dispatch-only, from main only. It never touches the release key, the release
+# environment or any release tag. The frontend is built and signed by
+# release-frontend.yml in the preview-catalog-signing environment (no reviewer;
+# deployment branch main only). The image goes to a separate package,
+# ghcr.io/lolly-tools/lolly-web-preview, by digest only: never `latest` and never
+# a version tag. Nothing here is a release: scripts/release-images.ts admits only
+# deployment-suse.yml dispatch runs from main and refuses any pin but the release
+# pin, so a preview digest can never be promoted.
+#
+# Why the image build is not a call into deployment-suse.yml: that job builds and
+# pushes in one job with packages: write. This file splits build (no registry
+# write) from publish (no npm, no compiler). tests/release-signing-scope.test.ts
+# keeps the two builds' arguments identical.
+name: Preview web image
+# The deploy tool finds a run by this title: head_sha is main's head at dispatch, while
+# source may be any reviewed ancestor of it.
+run-name: Preview web ${{ inputs.source }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Exact 40-hex commit to ship; it must be an ancestor of main and have its successful CI push run on main
+        required: true
+        type: string
+      min_seq:
+        description: First preview catalog only. Raise the catalog sequence above the live catalog (needs sign-catalog.ts --min-seq)
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-web
+  cancel-in-progress: false
+
+env:
+  CRANE_VERSION: '0.22.1'
+  CRANE_LINUX_X64_SHA256: '0ab7a1d6932a213aed964ce97666c3077fe691c8606413674a8b3e0b9ec4cda0'
+
+jobs:
+  source-qualification:
+    name: Reviewed main CI source
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPECTED_SOURCE: ${{ inputs.source }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.source }}
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Bind the source to its completed normal main CI
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          git merge-base --is-ancestor "$EXPECTED_SOURCE" refs/remotes/origin/main
+          test -z "$(git status --porcelain)"
+          # The exact successful push run of ci.yml on main for this commit. The checks below are the
+          # same code deployment-suse.yml runs, and tests/release-signing-scope.test.ts keeps them identical.
+          CI_RUN=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$EXPECTED_SOURCE&event=push&branch=main&status=success&per_page=1" --jq '.workflow_runs[0].id // empty')
+          [[ "$CI_RUN" =~ ^[1-9][0-9]*$ ]]
+          export CI_RUN
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN" > "$RUNNER_TEMP/normal-ci-run.json"
+          ci_attempt=$(node --input-type=module -e '
+            import {readFileSync} from "node:fs";
+            const {run_attempt:attempt}=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/normal-ci-run.json"));
+            if(!Number.isSafeInteger(attempt) || attempt<1) throw Error("Invalid normal CI attempt");
+            process.stdout.write(String(attempt));
+          ')
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN/attempts/$ci_attempt/jobs?per_page=100" > "$RUNNER_TEMP/normal-ci-jobs.json"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const root=process.env.RUNNER_TEMP;
+          const run=JSON.parse(readFileSync(root+'/normal-ci-run.json'));
+          const inventory=JSON.parse(readFileSync(root+'/normal-ci-jobs.json'));
+          if(!Number.isSafeInteger(run.id) || run.id<1 || String(run.id)!==process.env.CI_RUN || run.path!=='.github/workflows/ci.yml' || run.event!=='push' || run.head_branch!=='main' || run.head_sha!==process.env.EXPECTED_SOURCE || run.repository?.full_name!==process.env.GITHUB_REPOSITORY || run.head_repository?.full_name!==process.env.GITHUB_REPOSITORY || run.status!=='completed' || run.conclusion!=='success' || !Number.isSafeInteger(run.run_attempt) || run.run_attempt<1) throw Error('Candidate requires its exact successful normal main CI run');
+          const jobs=inventory.jobs;
+          if(!Array.isArray(jobs) || !jobs.length || jobs.length>100 || inventory.total_count!==jobs.length) throw Error('Incomplete normal CI job inventory');
+          // Main pushes skip public-ready when the change is too broad for it. That skip
+          // is accepted only beside a successful release-ready, which needs every tier
+          // and refuses a public-ready skip on an eligible change.
+          const ids=new Set(),names=new Set(); let succeeded=0,expectedSkips=0,publicReadySkipped=false,releaseReady=false;
+          for(const job of jobs) {
+            const expectedSkip=job.conclusion==='skipped' && (job.name==='verified instance shell' || job.name==='public-ready');
+            if(!Number.isSafeInteger(job.id) || job.id<1 || ids.has(job.id) || job.run_id!==run.id || typeof job.name!=='string' || !job.name.length || job.name.length>256 || names.has(job.name) || job.status!=='completed' || (job.conclusion!=='success' && !expectedSkip)) throw Error('Normal CI job did not complete successfully');
+            ids.add(job.id); names.add(job.name);
+            if(job.conclusion==='success') { succeeded++; if(job.name==='release-ready') releaseReady=true; }
+            else { expectedSkips++; if(job.name==='public-ready') publicReadySkipped=true; }
+          }
+          if(!succeeded || expectedSkips>2 || (publicReadySkipped && !releaseReady)) throw Error('Invalid normal CI success inventory');
+          writeFileSync(root+'/normal-ci-source.json',JSON.stringify({version:1,source:run.head_sha,ciRun:run.id,ciAttempt:run.run_attempt,workflow:run.path,jobCount:jobs.length},null,2));
+          JS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: preview-main-ci-source-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/normal-ci-source.json
+          if-no-files-found: error
+          retention-days: 14
+
+  web-release-gate:
+    name: WebGPU release gate (web shell image)
+    needs: [source-qualification]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    defaults:
+      run:
+        shell: bash
+    env:
+      VITE_CONNECTOR_ORIGINS: ${{ vars.VITE_CONNECTOR_ORIGINS }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.source }}
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+      - name: Ask the gate; a refusal fails the preview
+        run: node scripts/webgpu-release-gate.ts --scope web
+
+  # The same inputs as deployment-suse.yml's web-frontend, with the preview
+  # environment. The connector origins, CA-enrollment trust and live relay must
+  # stay equal to the release build's (tests/release-signing-scope.test.ts).
+  web-frontend:
+    needs: [source-qualification, web-release-gate]
+    uses: ./.github/workflows/release-frontend.yml
+    with:
+      target: web
+      signing_environment: preview-catalog-signing
+      source: ${{ inputs.source }}
+      min_seq: ${{ inputs.min_seq }}
+      connector_origins: ${{ vars.VITE_CONNECTOR_ORIGINS }}
+      ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
+      live_relay: https://lolly.tools/live
+      profile: lolly-demo
+
+  # Builds and qualifies the image. It holds no registry write permission and
+  # writes the image to an archive; the publish job below pushes that archive.
+  web-image:
+    name: Preview web image build (no registry write)
+    needs: [source-qualification, web-release-gate, web-frontend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    outputs:
+      archive_sha256: ${{ steps.archive.outputs.sha256 }}
+      image_id: ${{ steps.archive.outputs.image_id }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPECTED_SOURCE: ${{ inputs.source }}
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ needs.web-frontend.outputs.public_key_jwk }}
+      VITE_CONNECTOR_ORIGINS: ${{ vars.VITE_CONNECTOR_ORIGINS }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.source }}
+          persist-credentials: false
+          submodules: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+
+      - name: Require the reviewed source and the preview pin
+        env:
+          SIGNING_ENVIRONMENT: preview-catalog-signing
+          PIN: ${{ needs.web-frontend.outputs.public_key_jwk }}
+          RELEASE_PIN: ${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          test ! -e brands/suse/tools
+          test -z "$(git status --porcelain)"
+          docker version
+          docker buildx version
+          mkdir -p "$RUNNER_TEMP/lolly-image-receipts" "$RUNNER_TEMP/lolly-qualified-web"
+          node scripts/check-signing-scope.ts
+          node --input-type=module -e '
+            import { writeFileSync } from "node:fs";
+            const key = JSON.parse(process.env.VITE_CATALOG_PUBLIC_KEY_JWK);
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/public.jwk.json", JSON.stringify({kty:key.kty,crv:key.crv,x:key.x,y:key.y}));
+          '
+
+      - name: Describe the image from its source
+        run: |
+          set -euo pipefail
+          version=$(node -p 'JSON.parse(require("node:fs").readFileSync("shells/tauri-desktop/src-tauri/tauri.conf.json", "utf8")).version')
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          created=$(TZ=UTC0 git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ "$EXPECTED_SOURCE")
+          [[ "$created" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+          echo "IMAGE_VERSION=$version" >> "$GITHUB_ENV"
+          echo "IMAGE_CREATED=$created" >> "$GITHUB_ENV"
+
+      - name: Check browser qualification for the web-only image
+        run: node scripts/webgpu-release-gate.ts --scope web
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-frontend-web
+          path: ${{ runner.temp }}/lolly-signed-web
+
+      - name: Verify the frontend artifact against the reviewed source
+        env:
+          LOLLY_PROFILE: lolly-demo
+          LOLLY_RELEASE_SOURCE: ${{ inputs.source }}
+        run: node scripts/release-frontend-receipt.ts --verify web "$RUNNER_TEMP/lolly-signed-web"
+
+      - name: Build the exact preview web image on native amd64
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = x86_64
+          builder="lolly-preview-web-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          builder_owned=false
+          trap 'if [[ "$builder_owned" == true ]]; then docker buildx rm "$builder" >/dev/null 2>&1 || true; fi' EXIT
+          docker buildx create --name "$builder" --driver docker-container \
+            --driver-opt image=moby/buildkit:v0.34.0@sha256:b059f8d7226d0b326bc871af489a5dddf65e36af4d20d14251b072974d9ee87c
+          builder_owned=true
+          docker buildx build --output "type=docker,dest=$RUNNER_TEMP/lolly-preview-web.tar" --no-cache-filter verify --platform linux/amd64 \
+            --builder "$builder" \
+            --build-context "release-frontend=$RUNNER_TEMP/lolly-signed-web" \
+            --label "org.opencontainers.image.revision=$EXPECTED_SOURCE" \
+            --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label org.opencontainers.image.title=lolly-web-preview \
+            --label "org.opencontainers.image.description=Preview build signed with the preview catalog key. Not a release and not for deployment outside lolly.tools." \
+            --label "org.opencontainers.image.version=$IMAGE_VERSION" \
+            --label "org.opencontainers.image.created=$IMAGE_CREATED" \
+            --label org.lolly.profile=lolly-demo \
+            --build-arg LOLLY_PROFILE=lolly-demo \
+            --build-arg "LOLLY_RELEASE_SOURCE=$EXPECTED_SOURCE" \
+            --build-arg "VITE_CATALOG_PUBLIC_KEY_JWK=$VITE_CATALOG_PUBLIC_KEY_JWK" \
+            --build-arg "VITE_CONNECTOR_ORIGINS=${VITE_CONNECTOR_ORIGINS:-}" \
+            -f deploy/docker/web.Dockerfile \
+            -t "lolly-preview-web:$EXPECTED_SOURCE" .
+          docker load -i "$RUNNER_TEMP/lolly-preview-web.tar"
+
+      - name: Verify the actual image catalog against the preview pin
+        run: |
+          set -euo pipefail
+          container=$(docker create "lolly-preview-web:$EXPECTED_SOURCE")
+          trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+          docker cp "$container:/usr/share/nginx/html/." "$RUNNER_TEMP/lolly-qualified-web/"
+          LOLLY_PROFILE=lolly-demo LOLLY_RELEASE_SOURCE="$EXPECTED_SOURCE" \
+            node scripts/release-frontend-receipt.ts --verify web "$RUNNER_TEMP/lolly-qualified-web"
+          node scripts/verify-release-catalog.ts --root "$RUNNER_TEMP/lolly-qualified-web" \
+            --public-key "$RUNNER_TEMP/lolly-image-receipts/public.jwk.json" \
+            > "$RUNNER_TEMP/lolly-image-receipts/catalog.json"
+          test "$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "lolly-preview-web:$EXPECTED_SOURCE")" = "$EXPECTED_SOURCE"
+
+      - name: Boot native web under its restricted bounds
+        run: |
+          set -euo pipefail
+          trap 'docker rm -f probe-web >/dev/null 2>&1 || true' EXIT
+          docker run -d --name probe-web --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            --memory 128m --cpus 0.5 --pids-limit 64 --tmpfs /tmp:size=16m,mode=1777 \
+            -p 127.0.0.1:18880:8080 "lolly-preview-web:$EXPECTED_SOURCE"
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import { setTimeout as delay } from "node:timers/promises";
+            import { writeFileSync } from "node:fs";
+            let response;
+            for (let attempt = 0; attempt < 100; attempt++) {
+              try { response = await fetch("http://127.0.0.1:18880/healthz"); } catch {}
+              if (response) break;
+              await delay(100);
+            }
+            assert.equal(response?.status, 200, "web");
+            writeFileSync(process.env.RUNNER_TEMP + "/lolly-image-receipts/web-boot.json", JSON.stringify({ serviceBootPassed: true, results: { web: 200 } }, null, 2));
+          '
+
+      - name: Record the archive hash for the publish job
+        id: archive
+        run: |
+          set -euo pipefail
+          echo "sha256=$(sha256sum "$RUNNER_TEMP/lolly-preview-web.tar" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "image_id=$(docker image inspect --format '{{ .Id }}' "lolly-preview-web:$EXPECTED_SOURCE")" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: preview-web-image
+          path: ${{ runner.temp }}/lolly-preview-web.tar
+          if-no-files-found: error
+          retention-days: 3
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: preview-web-qualification
+          path: ${{ runner.temp }}/lolly-image-receipts/*.json
+          if-no-files-found: error
+          retention-days: 3
+
+  # The only job with packages: write. It runs no npm, no compiler and no repository
+  # script: it checks the archive it was handed, pushes it by digest with a
+  # pinned registry tool and reads it back.
+  publish:
+    name: Publish the preview web image by digest
+    needs: [source-qualification, web-image]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXPECTED_SOURCE: ${{ inputs.source }}
+      REGISTRY_TOKEN: ${{ github.token }}
+      IMAGE_ID: ${{ needs.web-image.outputs.image_id }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: preview-web-image
+          path: ${{ runner.temp }}/preview
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: preview-web-qualification
+          path: ${{ runner.temp }}/qualification
+
+      - name: Check the archive is the one that was qualified
+        env:
+          ARCHIVE_SHA256: ${{ needs.web-image.outputs.archive_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$ARCHIVE_SHA256" =~ ^[a-f0-9]{64}$ ]]
+          echo "$ARCHIVE_SHA256  $RUNNER_TEMP/preview/lolly-preview-web.tar" | sha256sum --check
+
+      - name: Install the pinned registry tool
+        run: |
+          set -euo pipefail
+          bin="$RUNNER_TEMP/release-tools"
+          mkdir -p "$bin"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/crane.tar.gz" \
+            "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz"
+          echo "$CRANE_LINUX_X64_SHA256  $RUNNER_TEMP/crane.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/crane.tar.gz" -C "$bin" crane
+          echo "$bin" >> "$GITHUB_PATH"
+
+      - name: Push by digest only
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          repository="ghcr.io/$owner/lolly-web-preview"
+          trap 'rm -f "$HOME/.docker/config.json"' EXIT
+          printf '%s' "$REGISTRY_TOKEN" | crane auth login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          digest=$(crane digest --tarball "$RUNNER_TEMP/preview/lolly-preview-web.tar")
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+          # A digest reference carries no tag: nothing here can write latest or a version tag.
+          crane push "$RUNNER_TEMP/preview/lolly-preview-web.tar" "$repository@$digest"
+          test "$(crane digest "$repository@$digest")" = "$digest"
+          crane config "$repository@$digest" | jq -e --arg source "$EXPECTED_SOURCE" '.config.Labels["org.opencontainers.image.revision"] == $source'
+          # Receipts in the shape the preview deploy command already reads, under the preview artifact name.
+          receipts="$RUNNER_TEMP/receipt"
+          mkdir -p "$receipts"
+          cp "$RUNNER_TEMP/qualification/"*.json "$receipts/"
+          image_id=$(crane manifest "$repository@$digest" | jq -r '.config.digest')
+          test "$image_id" = "$IMAGE_ID"
+          jq -n --arg source "$EXPECTED_SOURCE" --arg id "$image_id" --arg digest "$repository@$digest" \
+            '{imageId: $id, digest: $digest, platform: "linux/amd64", source: $source}' > "$receipts/web.json"
+          jq -n --arg source "$EXPECTED_SOURCE" --arg run "$GITHUB_RUN_ID" --argjson attempt "$GITHUB_RUN_ATTEMPT" --slurpfile web "$receipts/web.json" \
+            '{source: $source, runId: $run, runAttempt: $attempt, neutralProfile: true, images: {web: $web[0]}, candidateRuntimeQualified: false}' > "$receipts/release.json"
+          {
+            echo "### Preview web image"
+            echo
+            echo "    $repository@$digest"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: preview-web-receipts-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/receipt/*.json
+          if-no-files-found: error
+          retention-days: 14
