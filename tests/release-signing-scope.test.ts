@@ -149,7 +149,8 @@ test('release signing secrets reach only the jobs that name their gated environm
       if (job.uses) {
         assert.notEqual(job.secrets, 'inherit', `${file} ${id} passes every secret to ${job.uses}`);
         if (job.uses === './.github/workflows/release-frontend.yml') {
-          assert.deepEqual(job.secrets, { LOLLY_CATALOG_SIGNING_KEY: '${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}' }, `${file} ${id} must pass the release key by name and nothing else`);
+          assert.deepEqual(Object.keys(job.secrets ?? {}), ['LOLLY_CATALOG_SIGNING_KEY'], `${file} ${id} must pass the release key and nothing else`);
+          assert.match(String(job.secrets.LOLLY_CATALOG_SIGNING_KEY), /^\$\{\{ secrets\.LOLLY_CATALOG_SIGNING_KEY \}\}$/, `${file} ${id} must pass the release key by name`);
           callers.push(`${file} ${id}`);
         } else {
           for (const name of Object.keys(SIGNING_SECRETS)) {
