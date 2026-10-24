@@ -22,14 +22,17 @@ Every control works while you wait: the target URL, the scroll depth, the settle
 
 **From the Chrome Web Store:** coming soon. Once the extension is published, you install it in one click.
 
-**Load it yourself (developers).** The extension lives in the repository at `shells/chrome-extension/`. That folder is the production build, which works with Lolly at `https://lolly.tools` only.
+**Load it yourself (developers).** The extension's source lives in the repository at `shells/chrome-extension/`. The packaging step builds the production package from that folder, which works with Lolly at `https://lolly.tools` only.
 
-1. Open `chrome://extensions`.
-2. Turn on **Developer mode** (top right).
-3. Click **Load unpacked** and choose the `shells/chrome-extension/` folder.
-4. Reload the Lolly tab. Detection happens when the page loads, so the "Get the extension" prompt disappears. **URL Screenshot** (under Utilities) can then save captures to a file and becomes available in Batch mode.
+1. Run `pnpm run pack:chrome-extension`. It builds the package into `dist/chrome-extension/`.
+2. Open `chrome://extensions`.
+3. Turn on **Developer mode** (top right).
+4. Click **Load unpacked** and choose the `dist/chrome-extension/` folder.
+5. Reload the Lolly tab. Detection happens when the page loads, so the "Get the extension" prompt disappears. **URL Screenshot** (under Utilities) can then save captures to a file and becomes available in Batch mode.
 
 For a local development server, run `pnpm run pack:chrome-extension:dev` and load `dist/chrome-extension-dev` instead. That package also accepts `http://localhost:5173` and has **Development** in its name.
+
+Loading the `shells/chrome-extension/` folder itself also works, for PNG screenshots. That folder has no page walk (the packaging step builds one in), so an SVG from it holds a screenshot rather than shapes.
 
 ## What happens when Lolly asks
 
@@ -40,9 +43,13 @@ For a local development server, run `pnpm run pack:chrome-extension:dev` and loa
 3. **Chrome asks once per site.** The first time you approve a request for a site, Chrome also asks whether the extension may access that site. Chrome keeps that access once you allow it, but every later request still needs its own **Approve once**.
 4. **The page is read in a background tab.** The extension opens the target page in a background tab, captures it through the DevTools Protocol (the same `Page.captureScreenshot` the desktop app uses), closes the tab and hands the result back to the Lolly tab that asked.
 
+For an **SVG**, the extension walks the page rather than taking a picture of the screen. A script packaged with the extension reads the page's layout in that background tab and turns the page into shapes and outlined text, so the file stays sharp at any size and every part stays editable. Pictures on the page come across as the pictures they are, and what the page draws with a canvas, a video or an effect SVG has no form for is copied from a screenshot of the same moment. Lolly checks the result against that screenshot, and when the two differ too much the SVG holds the screenshot instead.
+
+To outline the text in the page's own typeface, the extension hands Lolly the font files the page loaded. Chrome does not keep a font's bytes where an extension can read them, so the extension asks the page for each font again. Your browser usually answers from its cache, and the page's own security policy still applies to that request.
+
 An approval covers one request and expires after 30 seconds. Only one request can wait or run at a time, and an approved request stops after 55 seconds. If the Lolly page closes or changes, or the target page moves to another site, the request is cancelled.
 
-The capture runs in your browser, on your network, so `localhost` and internal sites work. The page loads with your browser session, so a page you are signed in to can show private information in the result. The capture is not uploaded: the only network traffic is your own browser loading the page you asked for.
+The capture runs in your browser, on your network, so `localhost` and internal sites work. The page loads with your browser session, so a page you are signed in to can show private information in the result. The capture is not uploaded: the only network traffic is your own browser loading the page you asked for, plus, for an SVG, that page's font files a second time.
 
 While a capture runs you may briefly see a *"…started debugging this browser"* banner on the temporary tab. That is the DevTools Protocol at work, and the banner clears when the shot is done.
 
@@ -59,11 +66,11 @@ Pasting an address only fills in the field. Nothing is read until you start the 
 
 ## Permissions
 
-The extension's `manifest.json` declares four permissions, plus site access that it asks for one site at a time. It sets `minimum_chrome_version: 111`, and the current version is 0.4.0.
+The extension's `manifest.json` declares four permissions, plus site access that it asks for one site at a time. It sets `minimum_chrome_version: 111`, and the current version is 0.5.0.
 
 | Permission | What it is for | When it is granted |
 |---|---|---|
-| `debugger` | Drives the background tab through the DevTools Protocol, which takes the screenshot. | At install |
+| `debugger` | Drives the background tab through the DevTools Protocol, which takes the screenshot and, for an SVG, runs the page walk. | At install |
 | `tabs` | Opens the temporary background tab and closes it afterwards, and checks that neither the Lolly page nor the target page has moved since you approved. | At install |
 | `scripting` | Runs the one-page reader inside the site you named, for the Website source. | At install |
 | `storage` | Notes the id of a tab it opened, in session storage only, so the tab still closes if the browser suspends the extension mid-read. Cleared on the next start; nothing about you is stored. | At install |

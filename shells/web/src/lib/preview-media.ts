@@ -58,6 +58,7 @@ import { verifiedResourceURL, isCatalogResourceURL } from '../catalog/tool-bytes
  */
 import { escape as escapeHtml } from '../utils.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
+import { onStartupMotionResume, startupMotionHeld } from './startup-motion.ts';
 import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 import { t } from '../i18n.ts';
 
@@ -81,9 +82,11 @@ export function motionKind(src: string): MotionKind {
  * `prefers-reduced-motion`, the app's own `data-a11y-motion="reduce"` (both inside
  * `prefersReducedMotion`), and `data-a11y-previews="hidden"`, whose whole point is a
  * calm gallery - a tile that starts moving under the pointer is the opposite of that.
+ * A fourth holds motion only until the shell's WebGPU startup check settles
+ * (startup-motion.ts).
  */
 export function motionPreviewsSuppressed(): boolean {
-  if (perfUiOn() || prefersReducedMotion()) return true;
+  if (perfUiOn() || prefersReducedMotion() || startupMotionHeld()) return true;
   return typeof document !== 'undefined' && document.documentElement.dataset.a11yPreviews === 'hidden';
 }
 
@@ -418,6 +421,7 @@ export function armMotionPreviews(root: Element, { hover = true, isCurrent = () 
   root.addEventListener('focusout', onFocusOut);
 
   let io: IntersectionObserver | null = null;
+  let unhold = (): void => {};
   if (!fine && typeof IntersectionObserver === 'function') {
     const elOf = new Map<Element, HTMLElement>();
     const visible = new Set<Element>();
@@ -445,6 +449,8 @@ export function armMotionPreviews(root: Element, { hover = true, isCurrent = () 
       elOf.set(box, el);
       io.observe(box);
     }
+    // A centred tile passed over while the startup check held motion plays once it settles.
+    unhold = onStartupMotionResume(pickCentered);
   }
 
   return {
@@ -458,6 +464,7 @@ export function armMotionPreviews(root: Element, { hover = true, isCurrent = () 
       root.removeEventListener('focusin', onFocusIn);
       root.removeEventListener('focusout', onFocusOut);
       io?.disconnect();
+      unhold();
       if (current) stopMotionPreview(current);
       current = null;
       syncControls(false);

@@ -645,7 +645,7 @@ A `VizPresetInfo` is `{ id, name, author, calm }`. `author` is not decoration: t
 Windowing and vector capture (v1.45):
 
 - `scrollDepth` frames a region (a 0..1 fraction of scroll height, or a px offset when > 1); `rangeTo` extends the shot *down* the page to that scroll position, producing a tall strip, the frame a scroll animation pans over. `crop` trims insets (each a `0..0.9` fraction). The returned ref's `width`/`height` are the **actual captured box** after crop and extension, so size your composite from the *result*, never the request. Hosts may also report `meta.pageWidth`/`pageHeight`/`scrollYPx` (treat them as optional).
-- `vector(spec)` prints the URL to a **true vector** SVG `AssetRef` (`type: 'vector'`): geometry, not pixels, crisp at any zoom and re-editable, at the cost of pixel-perfection (webfonts resolve by family name). Same windowing as `page()`. Check for `host.capture.vector` and fall back to `page()` where it is absent.
+- `vector(spec)` returns a **true vector** SVG `AssetRef` (`type: 'vector'`): geometry, not pixels, crisp at any zoom and re-editable. Hosts walk the live page into SVG with the export walker (`shells/web/src/capture/page-walk.ts`) and outline its text from the page's own font files; text in a font the page did not load from a file (a system font) stays live `<text>`. A canvas, a video frame or an effect SVG has no form for comes from a screenshot of the same moment, and a capture that differs from that screenshot by too much falls back: the desktop app to a print of the page, the CLI and the extension to the screenshot. Same windowing as `page()`. Check for `host.capture.vector` and fall back to `page()` where it is absent.
 :::
 
 ### `host.compose`

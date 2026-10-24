@@ -31,6 +31,7 @@ import { featuredStartIndex, recordFeaturedActivity, type FeaturedCollection } f
 import type { PreviewQueue } from '../lib/preview-queue.ts';
 import { escape } from '../utils.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { startupMotionHeld } from '../lib/startup-motion.ts';
 import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { renderFeaturedVariant, renderMissingLook, isManifestLook, displayFormatOf } from '../lib/featured-render.ts';
@@ -419,7 +420,8 @@ export function mountFeaturedRow(
       // it - a cross-fade firing mid-swipe animates two drop-shadowed images at once and
       // janks the scroll (mobile especially). `touching` covers the whole swipe;
       // hovering/manualUntil cover the mouse + post-gesture rest.
-      if (destroyed || !visible || !onScreen || document.hidden || hovering || touching || (coverflow && cfMotion.active) || performance.now() < manualUntil) return;
+      // ...and while the shell's WebGPU startup check runs (startup-motion.ts).
+      if (destroyed || !visible || !onScreen || document.hidden || hovering || touching || (coverflow && cfMotion.active) || performance.now() < manualUntil || startupMotionHeld()) return;
       track.querySelectorAll('.ftile-stage').forEach((s) => advanceStage(s));
     }, FADE_INTERVAL_MS);
   }
@@ -498,7 +500,7 @@ export function mountFeaturedRow(
   const clampV = (v: number): number => Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, v));
   const canDrift = (now: number): boolean =>
     looping && !coverflow && !reduced && !destroyed && visible && onScreen && !document.hidden &&
-    !hovering && !focusWithin && !touching && now >= manualUntil;
+    !hovering && !focusWithin && !touching && now >= manualUntil && !startupMotionHeld();
 
   function normalizeWrap(): void {
     if (!looping || halfWidth <= 0) return;

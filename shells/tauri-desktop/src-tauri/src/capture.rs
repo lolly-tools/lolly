@@ -12,11 +12,19 @@
 //!                         clip: scroll depth + crop insets + an optional range
 //!                         extension (the tall strip a scroll video pans over)
 //!                         all resolve into one clip rect.
-//!   • capture_page_pdf  - vector. Page.printToPDF under `screen` media
-//!                         emulation: a TRUE vector print of the page (text,
-//!                         boxes, paths) sized to the viewport width and the
+//!   • capture_page_walk - vector. Runs the app's page-walk script in the tab
+//!                         (shells/web/src/capture/page-walk.ts): the export
+//!                         walker turns the live layout into SVG geometry, and
+//!                         this hands it back with a screenshot of the same
+//!                         moment and the tab's cached bytes for what the walk
+//!                         could not read. The JS bridge outlines the text and
+//!                         scores the result (capture/finish-in-app.ts).
+//!   • capture_page_pdf  - vector, the fallback. Page.printToPDF under `screen`
+//!                         media emulation, sized to the viewport width and the
 //!                         full page height. The JS bridge converts PDF → SVG
 //!                         (the engine's pdf-map/pdf-svg path) and windows it.
+//!                         A print rasterises every CSS filter, blurred shadow
+//!                         and mask, so it is used when the walk is not.
 //!
 //! Clip semantics (probed, Chromium ≥ 120): with captureBeyondViewport: true the
 //! clip rect is relative to the DOCUMENT, not the scrolled viewport - so scroll
@@ -33,10 +41,14 @@
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
-use headless_chrome::protocol::cdp::{Emulation, Page};
+use std::collections::HashMap;
+
+use base64::Engine as _;
+use headless_chrome::protocol::cdp::types::Event;
+use headless_chrome::protocol::cdp::{Animation, Emulation, Network, Page, Runtime, CSS, DOM, IO};
 use headless_chrome::{Browser, LaunchOptions, Tab};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, State};
@@ -83,6 +95,10 @@ pub struct CaptureSpec {
     pub css: Option<String>,
     /// Trim insets, each a 0..0.9 fraction of the framed viewport box.
     pub crop: Option<CropSpec>,
+    /// Keep the tab's font and stylesheet responses for the page walk to read back
+    /// (see record_responses). Set by capture_page_walk, never by the caller.
+    #[serde(skip)]
+    pub record_responses: bool,
 }
 
 #[derive(Deserialize, Clone, Copy, PartialEq)]
@@ -123,6 +139,31 @@ pub struct VectorResult {
     pub page_width: f64,
     pub page_height: f64,
 }
+
+/// What the page-walk command hands back: the walk as the script returned it, a
+/// screenshot of the viewport taken just before it, and bytes from the tab's own
+/// cache for the pictures, stylesheets and font files the walk named.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WalkResult {
+    /// The page walk's result (shells/web/src/capture/page-walk.ts PageWalkResult).
+    pub walk: serde_json::Value,
+    /// Base64 PNG of the viewport, at `scale` pixels per CSS px.
+    pub shot: String,
+    pub scale: f64,
+    /// Bytes the tab already holds, by URL. Only the cache is read: nothing here
+    /// makes a request the page did not make.
+    pub resources: HashMap<String, WalkResource>,
+}
+
+#[derive(Serialize)]
+pub struct WalkResource {
+    pub base64: String,
+    pub mime: String,
+}
+
+/// The ceiling on the bytes one walk hands back from the tab's cache.
+const MAX_WALK_RESOURCE_BYTES: usize = 48 * 1024 * 1024;
 
 /// The optional live "sign-in" browser, shared by every capture so an authenticated
 /// session the user set up in the visible window is RIDDEN by the (otherwise headless)
@@ -247,6 +288,51 @@ pub async fn capture_page_pdf(
     tauri::async_runtime::spawn_blocking(move || capture_pdf_blocking(&session, &profile, spec))
         .await
         .map_err(|e| format!("capture task panicked: {e}"))?
+}
+
+/// The vector capture: walk the page into SVG geometry in the tab itself.
+///
+/// The script that runs in the page is the app's own copy, built into the bundle at
+/// `capture/page-walk.js`. A release build never runs a script that arrives over IPC:
+/// the window's tools run in the same realm as the bridge, and a capture can ride the
+/// user's signed-in session, so a passed script would be any page's code running as
+/// the user on any site. A debug build served by the dev server embeds no assets,
+/// and takes the script the window passed.
+#[tauri::command]
+pub async fn capture_page_walk(
+    app: AppHandle,
+    session: State<'_, CaptureSession>,
+    spec: CaptureSpec,
+    script: Option<String>,
+) -> Result<WalkResult, String> {
+    let mut spec = spec;
+    spec.record_responses = true;
+    let script = page_walk_script(&app, script)?;
+    if spec.isolation == Some(CaptureIsolation::Public) {
+        let slot = crate::capture_isolated::BusyGuard::enter()?;
+        return tauri::async_runtime::spawn_blocking(move || isolated_capture(spec, slot, |tab, spec| run_walk(tab, spec, &script)))
+            .await.map_err(|e| format!("capture task panicked: {e}"))?;
+    }
+    let profile = capture_profile_dir(&app)?;
+    let session = (*session).clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let vh = spec.height.unwrap_or((spec.width * 9 / 16).max(1)).max(1);
+        with_capture_tab(&session, &profile, &spec, vh, |tab| run_walk(tab, &spec, &script))
+    })
+    .await
+    .map_err(|e| format!("capture task panicked: {e}"))?
+}
+
+fn page_walk_script(app: &AppHandle, passed: Option<String>) -> Result<String, String> {
+    if let Some(asset) = app.asset_resolver().get("capture/page-walk.js".into()) {
+        return String::from_utf8(asset.bytes).map_err(|_| "The page-walk script is not UTF-8.".to_string());
+    }
+    if cfg!(debug_assertions) {
+        if let Some(script) = passed.filter(|s| !s.is_empty()) {
+            return Ok(script);
+        }
+    }
+    Err("This build carries no page-walk script.".into())
 }
 
 /// Open (or raise) a VISIBLE Chrome window on the shared persistent profile, at `url`,
@@ -469,6 +555,9 @@ fn open_page(
 /// Navigate a tab to `spec.url`, wait for load, and inject the custom CSS. Shared by
 /// the fresh-browser and live-session capture paths so both style the page identically.
 fn prepare_tab(tab: &Tab, spec: &CaptureSpec) -> Result<(), String> {
+    if spec.record_responses {
+        record_responses(tab);
+    }
     tab.navigate_to(&spec.url)
         .map_err(|e| format!("navigate: {e}"))?;
     tab.wait_until_navigated()
@@ -479,7 +568,7 @@ fn prepare_tab(tab: &Tab, spec: &CaptureSpec) -> Result<(), String> {
     // before scroll/settle so the page reflows and settles with it applied.
     if let Some(css) = spec.css.as_deref() {
         let css = css.trim();
-        if !css.is_empty() {
+        if !css.is_empty() && inject_inspector_css(tab, css).is_err() {
             // serde_json produces a safe, fully-escaped JS string literal.
             let literal = serde_json::to_string(css).unwrap_or_else(|_| "\"\"".into());
             let js = format!(
@@ -489,6 +578,54 @@ fn prepare_tab(tab: &Tab, spec: &CaptureSpec) -> Result<(), String> {
         }
     }
 
+    Ok(())
+}
+
+/// The font and stylesheet responses each walked tab received, by tab target id: the
+/// request ids Network.getResponseBody reads the bodies back by. Chrome keeps no font
+/// bytes for Page.getResourceContent, and asking the page's network again
+/// (Network.loadNetworkResource) is held to the page's connect-src, which a strict
+/// policy refuses. The bodies the page already received are neither.
+fn responses() -> &'static Mutex<HashMap<String, HashMap<String, Network::RequestId>>> {
+    static MAP: OnceLock<Mutex<HashMap<String, HashMap<String, Network::RequestId>>>> = OnceLock::new();
+    MAP.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+/// Start keeping the tab's font and stylesheet responses. Called before navigating.
+fn record_responses(tab: &Tab) {
+    let enabled = tab.call_method(Network::Enable {
+        max_total_buffer_size: None,
+        max_resource_buffer_size: None,
+        max_post_data_size: None,
+        report_direct_socket_traffic: None,
+        enable_durable_messages: None,
+    });
+    if enabled.is_err() {
+        return;
+    }
+    let target = tab.get_target_id().clone();
+    responses().lock().unwrap_or_else(|p| p.into_inner()).insert(target.clone(), HashMap::new());
+    let _ = tab.add_event_listener(Arc::new(move |event: &Event| {
+        if let Event::NetworkResponseReceived(e) = event {
+            if matches!(e.params.Type, Network::ResourceType::Font | Network::ResourceType::Stylesheet) {
+                if let Some(seen) = responses().lock().unwrap_or_else(|p| p.into_inner()).get_mut(&target) {
+                    seen.insert(e.params.response.url.clone(), e.params.request_id.clone());
+                }
+            }
+        }
+    }));
+}
+
+/// Add the userstyle as a DevTools inspector stylesheet. A `<style>` element is
+/// subject to the page's Content-Security-Policy, and a strict `style-src` refused
+/// it silently, so Recolour and Custom CSS did nothing on those sites. An inspector
+/// sheet sits after the page's own sheets and no page policy applies to it.
+fn inject_inspector_css(tab: &Tab, css: &str) -> Result<(), String> {
+    tab.call_method(DOM::Enable { include_whitespace: None }).map_err(|e| e.to_string())?;
+    tab.call_method(CSS::Enable(None)).map_err(|e| e.to_string())?;
+    let frame = tab.call_method(Page::GetFrameTree(None)).map_err(|e| e.to_string())?.frame_tree.frame.id;
+    let sheet = tab.call_method(CSS::CreateStyleSheet { frame_id: frame, force: None }).map_err(|e| e.to_string())?.style_sheet_id;
+    tab.call_method(CSS::SetStyleSheetText { style_sheet_id: sheet, text: css.to_string() }).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -608,6 +745,229 @@ fn run_raster(tab: &Tab, spec: &CaptureSpec) -> Result<CaptureResult, String> {
     })
 }
 
+/// Walk the prepared tab into SVG (see capture_page_walk). The frame is the viewport
+/// at the requested scroll depth, less the crop insets; the screenshot is that whole
+/// viewport, which the bridge fills the walk's region boxes from.
+fn run_walk(tab: &Tab, spec: &CaptureSpec, script: &str) -> Result<WalkResult, String> {
+    let vw = spec.width.max(1) as f64;
+    let vh = spec.height.unwrap_or((spec.width * 9 / 16).max(1)).max(1) as f64;
+    let scale = spec.dpr.filter(|d| *d > 0.0).unwrap_or(1.0);
+
+    let (_pw, ph, real_vh) = measure(tab);
+    let vh = if real_vh > 0.0 { real_vh } else { vh };
+    let ph = if ph > 0.0 { ph } else { vh };
+    let from = resolve_scroll(spec.scroll_depth.unwrap_or(0.0), ph, vh);
+    if from > 0.0 {
+        let _ = tab.evaluate(&format!("window.scrollTo(0, {from});"), false);
+    }
+    std::thread::sleep(Duration::from_millis(spec.wait_ms.unwrap_or(500)));
+
+    // Stop CSS animations where they are, so the screenshot and the walk read one frame.
+    let _ = tab.call_method(Animation::Enable(None));
+    let _ = tab.call_method(Animation::SetPlaybackRate { playback_rate: 0.0 });
+
+    // The viewport as it stands, in document space at the current scroll.
+    let at = tab
+        .evaluate("JSON.stringify([window.scrollX, window.scrollY])", false)
+        .ok()
+        .and_then(|o| o.value)
+        .and_then(|v| v.as_str().map(str::to_string))
+        .and_then(|s| serde_json::from_str::<[f64; 2]>(&s).ok())
+        .unwrap_or([0.0, from]);
+    let shot = tab
+        .call_method(Page::CaptureScreenshot {
+            format: Some(Page::CaptureScreenshotFormatOption::Png),
+            quality: None,
+            clip: Some(Page::Viewport { x: at[0], y: at[1], width: vw, height: vh, scale }),
+            from_surface: Some(true),
+            capture_beyond_viewport: Some(true),
+            optimize_for_speed: None,
+        })
+        .map_err(|e| format!("screenshot: {e}"))?
+        .data;
+
+    // Install the script, then walk. The result comes back as one JSON string.
+    let _ = tab.evaluate(script, false);
+    let c = spec.crop.unwrap_or_default();
+    let (l, r, t, b) = (clamp_inset(c.left), clamp_inset(c.right), clamp_inset(c.top), clamp_inset(c.bottom));
+    let win = format!("{{x:{},y:{},width:{},height:{}}}", vw * l, vh * t, vw * (1.0 - l - r), vh * (1.0 - t - b));
+    let expression = format!(
+        "globalThis.__lollyPageWalk ? globalThis.__lollyPageWalk({{window:{win}}}).then(r => JSON.stringify(r)) : Promise.reject(new Error('the page-walk script did not install'))"
+    );
+    tab.set_default_timeout(Duration::from_secs(90));
+    let out = tab
+        .call_method(Runtime::Evaluate {
+            expression,
+            return_by_value: Some(true),
+            generate_preview: None,
+            silent: Some(true),
+            await_promise: Some(true),
+            include_command_line_api: None,
+            user_gesture: None,
+            object_group: None,
+            context_id: None,
+            throw_on_side_effect: None,
+            timeout: None,
+            disable_breaks: None,
+            repl_mode: None,
+            allow_unsafe_eval_blocked_by_csp: None,
+            unique_context_id: None,
+            serialization_options: None,
+        })
+        .map_err(|e| format!("page walk: {e}"))?;
+    tab.set_default_timeout(Duration::from_secs(30));
+    if let Some(ex) = out.exception_details {
+        let msg = ex.exception.and_then(|o| o.description).unwrap_or(ex.text);
+        return Err(format!("page walk: {msg}"));
+    }
+    let text = out.result.value.and_then(|v| v.as_str().map(str::to_string)).ok_or("page walk: no result")?;
+    let walk: serde_json::Value = serde_json::from_str(&text).map_err(|e| format!("page walk: {e}"))?;
+    // An isolated public capture reads only what the tab holds; every other capture
+    // may also ask the page's own network stack again for a font (see below).
+    let resources = read_walk_resources(tab, &walk, spec.isolation != Some(CaptureIsolation::Public));
+    responses().lock().unwrap_or_else(|p| p.into_inner()).remove(tab.get_target_id());
+    Ok(WalkResult { walk, shot, scale, resources })
+}
+
+/// The tab's cached bytes for every URL the walk named: pictures it could not
+/// inline, stylesheets it could not read, every font file a readable `@font-face`
+/// rule points at, and every `url()` inside the stylesheets read here. A URL the
+/// tab does not hold is left out (a face the page never loaded, for one).
+///
+/// Chrome keeps a picture's bytes for Page.getResourceContent but not a font's, so a
+/// URL the cache refuses is read from the response the tab received (record_responses),
+/// and failing that, when `allow_network`, asked for again through the page's own
+/// network stack (Network.loadNetworkResource): the page's cookies, the page's HTTP
+/// cache, a URL the page itself declared. Bounded by MAX_WALK_RESOURCE_BYTES.
+fn read_walk_resources(tab: &Tab, walk: &serde_json::Value, allow_network: bool) -> HashMap<String, WalkResource> {
+    let strings = |v: Option<&serde_json::Value>| -> Vec<String> {
+        v.and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|s| s.as_str().map(str::to_string)).collect()).unwrap_or_default()
+    };
+    let fonts = walk.pointer("/text/fonts");
+    let sheets: Vec<String> = strings(fonts.and_then(|f| f.get("sheets")));
+    let mut want: Vec<String> = strings(walk.get("unresolved"));
+    want.extend(sheets.iter().cloned());
+    for rule in fonts.and_then(|f| f.get("rules")).and_then(|r| r.as_array()).into_iter().flatten() {
+        want.extend(strings(rule.get("urls")));
+    }
+
+    let mut frames: HashMap<String, (Page::FrameId, String)> = HashMap::new();
+    let mut main: Option<Page::FrameId> = None;
+    if let Ok(tree) = tab.call_method(Page::GetResourceTree(None)) {
+        fn walk_tree(t: &Page::FrameResourceTree, out: &mut HashMap<String, (Page::FrameId, String)>) {
+            for r in &t.resources {
+                out.insert(r.url.clone(), (t.frame.id.clone(), r.mime_type.clone()));
+            }
+            for c in t.child_frames.iter().flatten() {
+                walk_tree(c, out);
+            }
+        }
+        main = Some(tree.frame_tree.frame.id.clone());
+        walk_tree(&tree.frame_tree, &mut frames);
+    }
+    let Some(main) = main else { return HashMap::new() };
+    let seen = responses().lock().unwrap_or_else(|p| p.into_inner()).get(tab.get_target_id()).cloned().unwrap_or_default();
+
+    let mut out: HashMap<String, WalkResource> = HashMap::new();
+    let mut total = 0usize;
+    let mut i = 0;
+    while i < want.len() {
+        let url = want[i].clone();
+        i += 1;
+        if out.contains_key(&url) || !(url.starts_with("http://") || url.starts_with("https://")) {
+            continue;
+        }
+        let (frame_id, mime) = frames.get(&url).cloned().unwrap_or_else(|| (main.clone(), String::new()));
+        let bytes = match tab.call_method(Page::GetResourceContent { frame_id: frame_id.clone(), url: url.clone() }) {
+            Ok(r) if r.base_64_encoded => base64::engine::general_purpose::STANDARD.decode(&r.content).unwrap_or_default(),
+            Ok(r) => r.content.into_bytes(),
+            Err(_) => {
+                let received = seen.get(&url).and_then(|id| tab.call_method(Network::GetResponseBody { request_id: id.clone() }).ok());
+                match received {
+                    Some(r) if r.base_64_encoded => base64::engine::general_purpose::STANDARD.decode(&r.body).unwrap_or_default(),
+                    Some(r) => r.body.into_bytes(),
+                    None if allow_network => match load_through_page(tab, &frame_id, &url, MAX_WALK_RESOURCE_BYTES - total) {
+                        Some(b) => b,
+                        None => continue,
+                    },
+                    None => continue,
+                }
+            }
+        };
+        if total + bytes.len() > MAX_WALK_RESOURCE_BYTES {
+            break;
+        }
+        total += bytes.len();
+        // A stylesheet's own url()s are the font files of the rules the walk could not
+        // read; they resolve against the sheet.
+        if sheets.contains(&url) {
+            let css = String::from_utf8_lossy(&bytes);
+            if let Ok(base) = tauri::Url::parse(&url) {
+                for part in css.split("url(").skip(1) {
+                    let Some(end) = part.find(')') else { continue };
+                    let raw = part[..end].trim().trim_matches(|c| c == '"' || c == '\'');
+                    if raw.is_empty() || raw.starts_with("data:") {
+                        continue;
+                    }
+                    if let Ok(abs) = base.join(raw) {
+                        want.push(abs.to_string());
+                    }
+                }
+            }
+        }
+        let base64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
+        out.insert(url, WalkResource { base64, mime });
+    }
+    out
+}
+
+/// One resource through the page's own network stack, read off the stream CDP
+/// hands back. None on any failure, or past `limit` bytes.
+fn load_through_page(tab: &Tab, frame_id: &Page::FrameId, url: &str, limit: usize) -> Option<Vec<u8>> {
+    let _ = tab.call_method(Network::Enable {
+        max_total_buffer_size: None,
+        max_resource_buffer_size: None,
+        max_post_data_size: None,
+        report_direct_socket_traffic: None,
+        enable_durable_messages: None,
+    });
+    // With credentials first, as a same-origin font loads. A cross-origin font loads
+    // without them, and a font CDN's `Access-Control-Allow-Origin: *` refuses a
+    // credentialed request, so the second try leaves them off.
+    let load = |include_credentials: bool| {
+        tab.call_method(Network::LoadNetworkResource {
+            frame_id: Some(frame_id.clone()),
+            url: url.to_string(),
+            options: Network::LoadNetworkResourceOptions { disable_cache: false, include_credentials },
+        })
+        .ok()
+        .map(|r| r.resource)
+        .filter(|r| r.success && r.stream.is_some())
+    };
+    let res = load(true).or_else(|| load(false))?;
+    let handle = res.stream?;
+    let mut out = Vec::new();
+    let read = loop {
+        let Ok(chunk) = tab.call_method(IO::Read { handle: handle.clone(), offset: None, size: Some(1 << 20) }) else { break false };
+        if chunk.base_64_encoded.unwrap_or(false) {
+            match base64::engine::general_purpose::STANDARD.decode(&chunk.data) {
+                Ok(b) => out.extend(b),
+                Err(_) => break false,
+            }
+        } else {
+            out.extend(chunk.data.into_bytes());
+        }
+        if out.len() > limit {
+            break false;
+        }
+        if chunk.eof {
+            break true;
+        }
+    };
+    let _ = tab.call_method(IO::Close { handle });
+    read.then_some(out)
+}
+
 fn capture_pdf_blocking(
     session: &CaptureSession,
     profile: &Path,
@@ -666,4 +1026,97 @@ fn run_pdf(tab: &Tab, spec: &CaptureSpec) -> Result<VectorResult, String> {
         page_width: pw,
         page_height: ph,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+
+    /// One-file HTTP server on 127.0.0.1: each path maps to (content type, extra
+    /// headers, body). Runs for the life of the test process.
+    fn serve(routes: Vec<(&'static str, &'static str, String, Vec<u8>)>) -> String {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let origin = format!("http://{}", listener.local_addr().unwrap());
+        std::thread::spawn(move || {
+            for stream in listener.incoming().flatten() {
+                let mut stream = stream;
+                let mut buf = [0u8; 4096];
+                let n = stream.read(&mut buf).unwrap_or(0);
+                let req = String::from_utf8_lossy(&buf[..n]);
+                let path = req.split_whitespace().nth(1).unwrap_or("/").to_string();
+                let hit = routes.iter().find(|(p, _, _, _)| *p == path);
+                let (status, ctype, headers, body) = match hit {
+                    Some((_, t, h, b)) => ("200 OK", *t, h.clone(), b.clone()),
+                    None => ("404 Not Found", "text/plain", String::new(), Vec::new()),
+                };
+                let head = format!("HTTP/1.1 {status}\r\ncontent-type: {ctype}\r\ncontent-length: {}\r\nconnection: close\r\n{headers}\r\n", body.len());
+                let _ = stream.write_all(head.as_bytes());
+                let _ = stream.write_all(&body);
+            }
+        });
+        origin
+    }
+
+    /// The page walk in a real headless Chrome. Opt-in: it needs Chrome and the
+    /// built script (a desktop frontend build writes it to dist/capture/page-walk.js).
+    ///   LOLLY_PAGE_WALK_JS=<path> cargo test page_walk -- --ignored
+    #[test]
+    #[ignore]
+    fn page_walk_returns_geometry_a_screenshot_and_the_cached_bytes() {
+        let script = std::fs::read_to_string(std::env::var("LOLLY_PAGE_WALK_JS").expect("set LOLLY_PAGE_WALK_JS")).unwrap();
+        let png = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../../chrome-extension/icons/icon-48.png")).unwrap();
+        let font = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../../web/public/fonts/Outfit-latin[wght].woff2")).unwrap();
+        // No CORS header: the picture and the stylesheet are cross-origin to the page,
+        // and the page cannot read either. The sheet names its face relative to itself.
+        let images = serve(vec![
+            ("/p.png", "image/png", String::new(), png),
+            ("/css/g.css", "text/css", String::new(), b"@font-face{font-family:G;src:url(../fonts/g.woff2) format('woff2')}".to_vec()),
+            ("/fonts/g.woff2", "font/woff2", "access-control-allow-origin: *\r\n".into(), font.clone()),
+        ]);
+        let page = format!(
+            "<!doctype html><link rel=stylesheet href=\"{images}/css/g.css\"><style>@font-face{{font-family:F;src:url(/f.woff2) format('woff2');font-weight:100 900}}body{{margin:0;font-family:F}}h1{{margin:20px;font-size:40px}}</style>\
+             <h1>Walked</h1><p style=\"font-family:G\">Second face</p><img src=\"{images}/p.png\" width=48 height=48><canvas id=c width=60 height=30></canvas>\
+             <script>document.getElementById('c').getContext('2d').fillRect(0,0,60,30)</script>"
+        );
+        let csp = format!("content-security-policy: default-src 'self'; img-src 'self' {images}; style-src 'self' 'unsafe-inline' {images}; font-src 'self' {images}; script-src 'unsafe-inline'\r\n");
+        let origin = serve(vec![
+            ("/", "text/html", csp, page.into_bytes()),
+            ("/f.woff2", "font/woff2", String::new(), font),
+        ]);
+        let spec = CaptureSpec {
+            isolation: None,
+            url: format!("{origin}/"),
+            width: 640,
+            height: Some(400),
+            scroll_depth: None,
+            range_to: None,
+            wait_ms: Some(300),
+            dpr: Some(2.0),
+            css: Some("h1{color:#ff00ff}".into()),
+            crop: None,
+            record_responses: true,
+        };
+        let (_browser, tab) = open_page(&spec, 400, None).unwrap();
+        let out = run_walk(&tab, &spec, &script).unwrap();
+        let svg = out.walk["svg"].as_str().unwrap();
+        assert!(svg.starts_with("<svg"), "an SVG came back");
+        assert!(svg.contains("lolly-region:"), "the canvas is a region box for the bridge to fill");
+        assert!(svg.contains("data-lolly-text"), "the heading is a run for the bridge to outline");
+        assert!(!out.shot.is_empty() && out.scale == 2.0, "a screenshot at the capture scale");
+        for url in out.walk["unresolved"].as_array().unwrap() {
+            assert!(out.resources.contains_key(url.as_str().unwrap()), "{url} comes back from the cache");
+        }
+        let font_url = format!("{origin}/f.woff2");
+        assert!(out.resources.contains_key(&font_url), "the face the page loaded comes back");
+        let sheet = format!("{images}/css/g.css");
+        assert!(out.walk.pointer("/text/fonts/sheets").unwrap().as_array().unwrap().iter().any(|s| s == &sheet), "the walk could not read the cross-origin sheet");
+        assert!(out.resources.contains_key(&sheet), "the sheet comes back from the cache");
+        assert!(out.resources.contains_key(&format!("{images}/fonts/g.woff2")), "and so does the face it declares, resolved against the sheet");
+        let runs = out.walk.pointer("/text/runs").unwrap().as_array().unwrap();
+        assert!(runs.iter().any(|r| r["text"] == "Walked"));
+        // The userstyle went in as an inspector sheet, so the page's CSP let it through.
+        assert!(svg.contains("rgb(255,0,255)") || svg.contains("#ff00ff"), "the userstyle reached the page");
+    }
 }
