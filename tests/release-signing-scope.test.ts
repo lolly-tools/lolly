@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { parse } from 'yaml';
 import { releaseCompilerEnvironment, validateReleaseEnvironment } from '../scripts/build-release-web.ts';
 import { verifyFrontendReceipt, writeFrontendReceipt } from '../scripts/release-frontend-receipt.ts';
-import { checkSigningScope } from '../scripts/check-signing-scope.ts';
+import { checkSigningScope, pinsMatch } from '../scripts/check-signing-scope.ts';
 
 const source = 'a'.repeat(40);
 const pair = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
@@ -236,6 +236,10 @@ test('release-frontend accepts exactly two signing environments and defaults to 
   assert.match(plan, /\*\) echo '::error::Unknown signing environment'; exit 1/);
   assert.match(plan, /merge-base --is-ancestor \\"\$source\\" refs\/remotes\/origin\/main/);
   assert.match(plan, /\^\[a-f0-9\]\{40\}\$/);
+  // Deleting either preview guard must fail the suite.
+  const planRun = reusable.jobs.plan.steps.map((step: any) => step.run ?? '').join('\n');
+  assert.ok(planRun.includes('test "$GITHUB_REF" = refs/heads/main'), 'plan must keep the main-only guard for the preview environment');
+  assert.ok(planRun.includes('test -z "$PIN_INPUT"'), 'plan must keep the rule that a preview caller passes no pin');
   assert.equal(reusable.jobs.plan.environment, undefined);
   // Every environment job waits for the plan, so an unknown name never reaches an environment.
   for (const name of ['source-catalog', 'sign-artifact']) {
@@ -373,7 +377,7 @@ test('the preview workflow runs the same normal main CI check as the release can
 test('the signing scope refuses a pin that belongs to the other environment', () => {
   const key = () => JSON.stringify(generateKeyPairSync('ec', { namedCurve: 'prime256v1' }).publicKey.export({ format: 'jwk' }));
   const release = key(), preview = key();
-  assert.equal(checkSigningScope({ environment: RELEASE_ENVIRONMENT, pin: release, releasePin: release }), JSON.stringify(JSON.parse(release)));
+  assert.equal(checkSigningScope({ environment: RELEASE_ENVIRONMENT, pin: release, releasePin: release }), release);
   assert.doesNotThrow(() => checkSigningScope({ environment: PREVIEW_ENVIRONMENT, pin: preview, releasePin: release }));
   assert.throws(() => checkSigningScope({ environment: PREVIEW_ENVIRONMENT, pin: release, releasePin: release }), /never sign for the release pin/);
   assert.throws(() => checkSigningScope({ environment: RELEASE_ENVIRONMENT, pin: preview, releasePin: release }), /only for the release pin/);
@@ -382,4 +386,26 @@ test('the signing scope refuses a pin that belongs to the other environment', ()
   assert.throws(() => checkSigningScope({ environment: PREVIEW_ENVIRONMENT, pin: preview, releasePin: '' }), /not set/);
   assert.throws(() => checkSigningScope({ environment: PREVIEW_ENVIRONMENT, pin: JSON.stringify({ ...JSON.parse(preview), d: 'x' }), releasePin: release }), /private key/);
   assert.throws(() => checkSigningScope({ environment: RELEASE_ENVIRONMENT, pin: '{"kty":"RSA"}', releasePin: release }), /EC P-256/);
+});
+
+test('the checked pin is emitted exactly as the caller gave it, so release builds embed the same string', () => {
+  const jwk = JSON.parse(publicMaterial);
+  const spaced = JSON.stringify({ y: jwk.y, x: jwk.x, crv: jwk.crv, kty: jwk.kty }, null, 2);
+  for (const pin of [publicMaterial, spaced, ` ${publicMaterial}\n`]) {
+    assert.equal(checkSigningScope({ environment: RELEASE_ENVIRONMENT, pin, releasePin: publicMaterial }), pin);
+  }
+});
+
+test('release and native pins are compared by key, and the sync workflow runs that comparison', () => {
+  const other = JSON.stringify(generateKeyPairSync('ec', { namedCurve: 'prime256v1' }).publicKey.export({ format: 'jwk' }));
+  const spaced = JSON.stringify(JSON.parse(publicMaterial), null, 2);
+  assert.equal(pinsMatch(publicMaterial, spaced), true);
+  assert.equal(pinsMatch(publicMaterial, other), false);
+  assert.throws(() => pinsMatch(publicMaterial, ''), /not set/);
+  const sync = workflowYaml('release-pin-sync.yml');
+  assert.ok(sync.on.schedule && sync.on.workflow_dispatch !== undefined);
+  const step = sync.jobs.check.steps.find((s: any) => /--same-key/.test(s.run ?? ''));
+  assert.ok(step, 'the sync workflow must run check-signing-scope.ts --same-key');
+  assert.match(step.env.RELEASE_PIN, /vars\.LOLLY_RELEASE_PUBLIC_KEY_JWK/);
+  assert.match(step.env.NATIVE_PIN, /vars\.VITE_CATALOG_PUBLIC_KEY_JWK/);
 });

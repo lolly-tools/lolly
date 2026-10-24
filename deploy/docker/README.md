@@ -294,20 +294,40 @@ What it does not change for releases:
   same variables as the release build.
 - The preview image is not cosign-signed. Its labels say it is a preview.
 
-One-time setup (repository settings, not workflow code):
+One-time setup (repository settings, not workflow code). Do these in order, all
+before the first dispatch of `preview-web.yml`:
 
-1. Create the environment `preview-catalog-signing` with no required reviewer and
+1. Delete the repository-level `LOLLY_CATALOG_SIGNING_KEY` secret and keep only the
+   copy in the `release-catalog-signing` environment. Do this BEFORE the preview
+   environment goes live: a repository secret is readable by any workflow on any
+   pushed branch, and the preview environment has no reviewer to stop that.
+2. Create the environment `preview-catalog-signing` with no required reviewer and
    deployment branches limited to `main`.
-2. Generate a NEW P-256 key with `node scripts/sign-catalog.ts --gen-key` away from
+3. Generate a NEW P-256 key with `node scripts/sign-catalog.ts --gen-key` away from
    the release key. Store its private half as the environment secret
    `LOLLY_PREVIEW_CATALOG_SIGNING_KEY`. Never reuse the release key.
-3. Add the environment variable `LOLLY_PREVIEW_PUBLIC_KEY_JWK` with the matching
-   public JWK. It must differ from `LOLLY_RELEASE_PUBLIC_KEY_JWK`.
-4. Set the repository variable `DELIVERY_CATALOG_PUBLIC_KEY_JWK` to the preview pin
+4. Add the environment variable `LOLLY_PREVIEW_PUBLIC_KEY_JWK` with the matching
+   public JWK. It must differ from `LOLLY_RELEASE_PUBLIC_KEY_JWK`. The secret and
+   variable must exist before the first dispatch, or the run fails at signing.
+5. Set the repository variable `DELIVERY_CATALOG_PUBLIC_KEY_JWK` to the preview pin
    so the daily delivery monitor verifies lolly.tools against it.
-5. For the first preview catalog, pass `min_seq` above the live catalog's sequence,
+6. For the first preview catalog, pass `min_seq` above the live catalog's sequence,
    because browsers refuse a lower one. Open tabs on the old shell refuse the
    preview-signed catalog until their next navigation reloads the shell.
+
+The first dispatch is the real test of the registry push: the publish job pushes
+the image by digest with `crane`, and no earlier check exercises that path. Watch
+that first run, and check the digest it reports in `ghcr.io/lolly-tools/lolly-web-preview`.
+
+Rotating the release key: release builds require the caller's pin to equal the
+repository variable `LOLLY_RELEASE_PUBLIC_KEY_JWK`, but native callers pass
+`VITE_CATALOG_PUBLIC_KEY_JWK` and `deployment-suse.yml` passes its dispatch input.
+Nothing ties the variables together except the weekly `release-pin-sync.yml`, which
+fails when they name different keys. Change them in this order, with no release in
+flight: (1) put the new private key in the `release-catalog-signing` environment,
+(2) update `LOLLY_RELEASE_PUBLIC_KEY_JWK` and `VITE_CATALOG_PUBLIC_KEY_JWK` to the
+new public JWK together, (3) dispatch `release-pin-sync.yml` and confirm it passes
+before starting any release or native build.
 
 `min_seq` needs `sign-catalog.ts --min-seq`. Until that flag is on `main`, a
 non-empty `min_seq` fails with "unknown flag --min-seq" instead of being ignored.

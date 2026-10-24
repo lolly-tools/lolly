@@ -1,0 +1,33 @@
+# Fails when the two repository variables that pin the release catalog key drift apart.
+# release-frontend.yml checks LOLLY_RELEASE_PUBLIC_KEY_JWK at plan, while native callers
+# pass VITE_CATALOG_PUBLIC_KEY_JWK. A rotation that updates only one breaks native releases.
+name: release-pin-sync
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: release pins name one key
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/check-signing-scope.ts
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+      - name: Compare LOLLY_RELEASE_PUBLIC_KEY_JWK with VITE_CATALOG_PUBLIC_KEY_JWK
+        env:
+          RELEASE_PIN: ${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}
+          NATIVE_PIN: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
+        run: node scripts/check-signing-scope.ts --same-key

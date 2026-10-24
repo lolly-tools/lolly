@@ -12,7 +12,8 @@
  *
  * Environment: SIGNING_ENVIRONMENT, PIN (the pin this run builds for) and
  * RELEASE_PIN (the repository variable LOLLY_RELEASE_PUBLIC_KEY_JWK). When
- * GITHUB_OUTPUT is set, the checked pin is written there as `pin`.
+ * GITHUB_OUTPUT is set, the checked pin is written there as `pin`, byte for byte as
+ * given. With `--same-key` it instead compares RELEASE_PIN with NATIVE_PIN.
  */
 import { createPublicKey } from 'node:crypto';
 import { appendFileSync } from 'node:fs';
@@ -37,7 +38,7 @@ function readPin(text: string | undefined, label: string): PublicPin {
   return pin;
 }
 
-/** Returns the pin as one line of JSON, or throws. */
+/** Returns the caller's pin string unchanged (after validating it), or throws. */
 export function checkSigningScope(input: { environment?: string; pin?: string; releasePin?: string }): string {
   const { environment, pin, releasePin } = input;
   if (!environment || !SIGNING_ENVIRONMENTS.includes(environment)) throw new Error(`Unknown signing environment ${JSON.stringify(environment)}`);
@@ -46,10 +47,29 @@ export function checkSigningScope(input: { environment?: string; pin?: string; r
   const same = chosen.x === release.x && chosen.y === release.y;
   if (environment === RELEASE_ENVIRONMENT && !same) throw new Error('The release environment may sign only for the release pin');
   if (environment === PREVIEW_ENVIRONMENT && same) throw new Error('The preview environment may never sign for the release pin');
-  return JSON.stringify(JSON.parse(pin!));
+  return pin!;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+/**
+ * True when two public pins name the same key (kty, crv, x and y), whatever their
+ * whitespace or member order. Throws when either is not a valid public pin.
+ */
+export function pinsMatch(a: string | undefined, b: string | undefined): boolean {
+  const left = readPin(a, 'The first pin'), right = readPin(b, 'The second pin');
+  return left.kty === right.kty && left.crv === right.crv && left.x === right.x && left.y === right.y;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv[2] === '--same-key') {
+  // Used by release-pin-sync.yml: LOLLY_RELEASE_PUBLIC_KEY_JWK (release builds) and
+  // VITE_CATALOG_PUBLIC_KEY_JWK (native callers) must name the same key.
+  try {
+    if (!pinsMatch(process.env.RELEASE_PIN, process.env.NATIVE_PIN)) throw new Error('LOLLY_RELEASE_PUBLIC_KEY_JWK and VITE_CATALOG_PUBLIC_KEY_JWK name different keys; native releases would fail at plan');
+    console.log('Release and native pins name the same key');
+  } catch (error) {
+    console.error(`::error title=Release pin sync::${(error as Error).message}`);
+    process.exit(1);
+  }
+} else if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     const pin = checkSigningScope({
       environment: process.env.SIGNING_ENVIRONMENT, pin: process.env.PIN, releasePin: process.env.RELEASE_PIN,
