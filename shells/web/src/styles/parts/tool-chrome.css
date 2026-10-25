@@ -926,6 +926,19 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
 .preflight-modal-head[data-tone="fix"] .preflight-verdict {
   color: color-mix(in oklab, hsl(var(--destructive)), hsl(var(--foreground)) 30%);
 }
+/* A narrow dialog gives the verdict its own row under the title, balanced, so a
+   long summary ("1 to fix, 5 to know, 1 not checked") never splits a part
+   across lines and the title keeps one line. */
+@media (max-width: 520px) {
+  .preflight-modal-head { flex-wrap: wrap; row-gap: var(--sp-2); }
+  .preflight-modal-title { flex: 1 1 auto; }
+  .preflight-modal-head .preflight-verdict {
+    order: 3;
+    flex-basis: 100%;
+    margin-inline-start: 0;
+    text-wrap: balance;
+  }
+}
 .preflight-modal-close {
   margin-inline-start: 4px;
   border: none; background: none; cursor: pointer;

@@ -68,7 +68,7 @@ test('a house rule reads as checked in Design, an unknown kind as unchecked', as
   assert.match(future.textContent ?? '', /no checker/);
 });
 
-test('the Brand mode list offers the looks only, because a colourway is another axis (plans/319)', async () => {
+test('the Mode list offers the looks only, because a colourway is another axis (plans/319)', async () => {
   const { deriveBrandTokens } = await import('@lolly/engine');
   const { addLead } = await import('../leads.ts');
   const added = addLead(deriveBrandTokens({ primary: '#0c322c', name: 'Test' }), { colour: '#e05a2b', name: 'Persimmon', canonical: { name: 'Pine' } });
@@ -87,7 +87,7 @@ test('the Brand mode list offers the looks only, because a colourway is another 
   el.remove();
 });
 
-test('the Brand mode menu names the mode the empty value renders', async () => {
+test('the Mode menu names the mode the empty value renders', async () => {
   const { defaultModeName } = await import('./usage.ts');
   const { readFileSync } = await import('node:fs');
   const read = (rel: string): Record<string, unknown> => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));

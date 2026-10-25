@@ -232,10 +232,14 @@ export function preflightView(report: PreflightReport | null | undefined, ctx: P
   //
   // `refuse.output-file-size` is emitted unconditionally by the engine's registry,
   // so `gaps` is never 0 in practice and the "counted" leg is the one that can be.
-  // Four strings, inside the plan's 8-12 chrome-string budget.
+  // With something to fix and something not checked, the things to know still get
+  // their number when there are any: a house rule's advisory notes would otherwise
+  // show only inside the card. Five strings, inside the plan's 8-12 budget.
   const verdict = fix > 0
     ? (gaps > 0
-      ? t('{fix} to fix, {gaps} not checked', { fix, gaps })
+      ? (know > 0
+        ? t('{fix} to fix, {know} to know, {gaps} not checked', { fix, know, gaps })
+        : t('{fix} to fix, {gaps} not checked', { fix, gaps }))
       : t('{fix} to fix, {know} to know', { fix, know }))
     : gaps > 0
       ? t('{know} counted, {gaps} not checked', { know, gaps })

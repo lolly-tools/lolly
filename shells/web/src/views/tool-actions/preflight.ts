@@ -25,7 +25,7 @@ import { runDesignChecks } from '../design-checks.ts';
 import { applyPreflight, isPreflightEnabled, preflightView } from '../export-preflight.ts';
 import { exportCheckFindings, exportCheckLines } from '../export-check.ts';
 import type { PreflightRow } from '../export-preflight.ts';
-import { fmtLabel, isC2paFmt, isCmykFmt, printEnabled } from './shared.ts';
+import { fmtLabel, isC2paFmt, isCmykFmt, panelSize, printEnabled } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 import { DOCUMENT_THEME_EVENT } from '../../lib/document-theme.ts';
 
@@ -174,14 +174,7 @@ export function preflightJob(ta: ActionsCtx, format?: string): { job: PreflightJ
   // canvas, `declaredBy: 'manifest'`, no unit declared. The engine then emits
   // `print.trim-not-physical` / `refuse.trim-when-unset` instead of an area.
   const typed = (w ?? 0) > 0 && (h ?? 0) > 0;
-  // `declaredBy: 'url'` only when the size is genuinely the user's: a URL param,
-  // a restored session, a size-select pick or an edit. Hard-coding it meant the
-  // web could NEVER emit `refuse.trim-when-unset` while the CLI emitted it
-  // routinely for the identical job, so the two surfaces disagreed on a pre-filled
-  // tool where the user had set nothing at all.
-  const fromUser = typed && ta.sizeUserSet;
-  const manifestSize = fixed || !fromUser;
-  // …and when the manifest canvas is what renders, it is not always what COMES OUT.
+  // When the manifest canvas is what renders, it is not always what COMES OUT.
   // With both size fields blank the export path passes no dimension at all, so
   // `rasterStyle` takes its not-requested branch and supersamples the node box by
   // RASTER_DEFAULT_SCALE: a 1200 x 900 tool exported to PNG is a 2400 x 1800 file.
@@ -194,17 +187,21 @@ export function preflightJob(ta: ActionsCtx, format?: string): { job: PreflightJ
     !typed &&
     SUPERSAMPLED_EXPORT_FORMATS.has(fmt.toLowerCase());
   const canvasScale = supersampled ? RASTER_DEFAULT_SCALE : 1;
-  const width = manifestSize
-    ? { value: manifest.render.width * canvasScale, unit: 'px' as Unit }
-    : { value: w!, unit };
-  const height = manifestSize
-    ? { value: manifest.render.height * canvasScale, unit: 'px' as Unit }
-    : { value: h!, unit };
-  // `unitDeclared` is true only when the SOURCE spelled a unit out - here, when
-  // the panel offers the unit selector AND the value in the field is the one the
-  // user put there. False makes the engine refuse to derive an area rather than
-  // trust a fabricated unit.
-  const unitDeclared = !manifestSize && manifest.render.units !== false;
+  // The value is what the export writes: the fields whenever both hold one, since
+  // `exportDims` reads them whoever filled them in (Design fills them from the
+  // artboard), else the manifest canvas. `unitDeclared` is true only when the SOURCE
+  // spelled a unit out - the panel offers the unit selector AND the value in the
+  // field is the one the user put there. False makes the engine refuse to derive an
+  // area rather than trust a fabricated unit. `declaredBy: 'url'` only when the size
+  // is genuinely the user's (a URL param, a restored session, a size-select pick or
+  // an edit): hard-coding it meant the web could NEVER emit `refuse.trim-when-unset`
+  // while the CLI emitted it routinely for the identical pre-filled job.
+  const size = panelSize({
+    manifest: manifest.render, fixed, fields: { w, h }, unit,
+    userSet: ta.sizeUserSet, units: manifest.render.units !== false, canvasScale,
+  });
+  const width = size.width as { value: number; unit: Unit };
+  const height = size.height as { value: number; unit: Unit };
 
   const on = printEnabled(el);
   const bleedMm = parseFloat(
@@ -220,7 +217,7 @@ export function preflightJob(ta: ActionsCtx, format?: string): { job: PreflightJ
     modelPhase: 'post-init',
     settings: {
       format: fmt,
-      size: { width, height, dpi, declaredBy: manifestSize ? 'manifest' : 'url', unitDeclared },
+      size: { width, height, dpi, declaredBy: size.declaredBy, unitDeclared: size.unitDeclared },
       // The panel is the whole truth about bleed/marks/press profile here - an
       // absent card means the export applies none, which is a KNOWN null, not an
       // unknown. (A batch-snapshot row, which carries none of them, is the case
@@ -266,7 +263,7 @@ export function preflightJob(ta: ActionsCtx, format?: string): { job: PreflightJ
 
   // The fact row states the size the JOB carries, so it agrees with the findings
   // by construction: a manifest-sourced size shows as the pixel canvas it is.
-  const sizeText = manifestSize
+  const sizeText = !size.fromFields
     ? `${manifest.render.width * canvasScale} × ${manifest.render.height * canvasScale} px`
     : unit === 'px'
       ? `${w} × ${h} px`

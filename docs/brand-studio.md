@@ -256,7 +256,7 @@ Drop the files your brand keeps, apart from logos: **vector**, **image**, **audi
 
 **Usage & rules** puts your brand's choices to work: what people can change, what stays fixed and what Lolly can check.
 
-![Usage & rules on Lolly Demo: four house rules, each marked Checked in Design and Required or Advisory, then Try your brand in use with its examples ready to render](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Usage & rules on Lolly Demo: four house rules, each marked Checked in Design and Required or Advisory, then Try your design system in use with its examples ready to render](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** lists your rules. **Add rule** (or **Add your first rule**) opens a short form:
 
@@ -271,7 +271,7 @@ Rules a design system brings with it in its token file, such as approved colour 
 
 Lolly Demo brings four approved house rules. Headlines are never set in capitals: that rule is required, so `lolly check` reports a headline in capitals as an error. The other three are advisory. Body text is left-aligned. Primary marks sit on light surfaces and reverse marks on dark ones. Dashed lines mean drop here.
 
-**Try your brand in use** renders four examples from the current revision with **Render & check examples**. Choose a **Brand mode** and **Try your own text** for the heading, supporting text and slide text. Each example reports what was measured, with **See checks & sources** and **Download check report**, and **Make reusable poster** downloads a `.lolly` whose fixed layout and approved input choices travel with the file. Examples are local: nothing is published or approved by running a check.
+**Try your design system in use** renders four examples from the current revision with **Render & check examples**. Choose a **Mode** and **Try your own text** for the heading, supporting text and slide text. Each example reports what was measured, with **See checks & sources** and **Download check report**, and **Make reusable poster** downloads a `.lolly` whose fixed layout and approved input choices travel with the file. Examples are local: nothing is published or approved by running a check.
 
 A build that ships with a fixed brand shows the same rules and examples read-only, under *This brand is set*.
 
