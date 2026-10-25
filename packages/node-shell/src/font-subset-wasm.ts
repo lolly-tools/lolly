@@ -18,7 +18,7 @@ export function isSkeraWasm(value: unknown): value is SkeraWasm {
     && typeof api.lolly_subset_font === 'function';
 }
 
-export const SKERA_POLICY = 'skera-0.7.0/retain-gids/notdef/all-layout/all-names/v1';
+export const SKERA_POLICY = 'skera-0.8.0/retain-gids/notdef/all-layout/all-names/v1';
 export const MAX_FONT_BYTES = 32 * 1024 * 1024;
 
 /**
