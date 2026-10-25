@@ -1,6 +1,6 @@
 # Skera byte adapter
 
-The upstream `skera` 0.7.0 crate and transitive versions are pinned in Cargo.lock. No upstream source is patched. The adapter exports three prefixed allocation/subsetting functions; it has no JavaScript runtime dependencies. See LICENSES.txt for upstream notices.
+The upstream `skera` 0.8.0 crate and transitive versions are pinned in Cargo.lock. No upstream source is patched. The adapter exports three prefixed allocation/subsetting functions; it has no JavaScript runtime dependencies. See LICENSES.txt for upstream notices.
 
 From the Lolly root: `node scripts/build-skera.ts`. Rust 1.96.0 and the wasm32-unknown-unknown target are required. The committed `skera.wasm` is the browser asset. Browser users do not install Rust. Release settings and the 128 MiB memory ceiling are in Cargo.toml and the build script.
 
