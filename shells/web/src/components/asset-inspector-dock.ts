@@ -26,6 +26,8 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   const verify = body.querySelector('.cat-act-verify'); if (verify) primary.append(verify);
   const actions = body.querySelector('.cat-details-actions');
   const download = actions?.querySelector('.cat-act-download'); if (download) primary.prepend(download);
+  // A sheet that is not a file (a swatch) marks its own primary buttons.
+  for (const node of actions?.querySelectorAll<HTMLElement>(':scope > [data-inspector-primary]') ?? []) primary.append(node);
   const favourites = actions?.querySelector(':scope > .cat-act-row');
   const favourite = favourites?.querySelector<HTMLElement>('.cat-act-fav'); if (favourite) { favourite.setAttribute('aria-label', t('Favourite')); favourite.title = t('Favourite'); titleRow.insertBefore(favourite, toggle); }
   if (favourites?.childElementCount) primary.append(favourites); else favourites?.remove();
@@ -43,12 +45,14 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
     if (summary) {
       const label = summary.textContent ?? '';
       summary.className = 'section-card-summary'; summary.replaceChildren();
+      // The collapsible section card's head (parts/disclosure.css) draws the caret.
       const name = document.createElement('span'); name.className = 'section-card-title'; name.textContent = label;
-      const chev = document.createElement('span'); chev.className = 'section-card-chev'; chev.setAttribute('aria-hidden', 'true'); chev.innerHTML = icon('chevronDown'); summary.append(name, chev);
+      summary.append(name);
     }
     const children = [...section.children].filter(node => node !== summary);
-    if (children.length && !(children.length === 1 && children[0]!.classList.contains('cat-inspector-section-body'))) {
-      const content = document.createElement('div'); content.className = 'cat-inspector-section-body'; content.append(...children); section.append(content);
+    if (children.length === 1 && children[0]!.classList.contains('cat-inspector-section-body')) children[0]!.classList.add('section-card-body');
+    else if (children.length) {
+      const content = document.createElement('div'); content.className = 'cat-inspector-section-body section-card-body'; content.append(...children); section.append(content);
     }
     section.open = prefs[`section:${id}`] ? prefs[`section:${id}`] === 1 : open;
     const remember = () => { prefs[`section:${id}`] = section.open ? 1 : 2; save(); };
@@ -58,7 +62,7 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   const wrap = (node: HTMLElement | null, label: string, id: string, open = false) => {
     if (!node) return null;
     const section = document.createElement('details'), summary = document.createElement('summary'), content = document.createElement('div');
-    summary.textContent = t(label); content.className = 'cat-inspector-section-body';
+    summary.textContent = t(label); content.className = 'cat-inspector-section-body section-card-body';
     node.before(section); content.append(node); section.append(summary, content); enhance(section, id, open);
     return section;
   };
@@ -76,8 +80,11 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   for (const node of appearance.slice(1)) appearanceSection?.querySelector('.cat-inspector-section-body')?.append(node);
   for (const [index, section] of [...(actions?.querySelectorAll<HTMLDetailsElement>(':scope > details') ?? [])].entries()) enhance(section, index ? 'file-actions' : 'export');
   const checks = wrap(passport, 'Checks', 'checks', true);
+  // Sections a sheet writes itself: `<details data-inspector-id>`, kept where they are.
+  for (const section of body.querySelectorAll<HTMLDetailsElement>(':scope > details[data-inspector-id]')) enhance(section, section.dataset.inspectorId ?? 'section', section.open);
+  const keptActions = actions?.childElementCount ? actions : null; if (!keptActions) actions?.remove();
   const shared = body.querySelector<HTMLElement>('[data-shared-metadata]');
-  for (const node of [fileSection, shared, fileDetails, appearanceSection, actions, credentials, techSection, usageSection, rondo, textSection, checks]) if (node) body.append(node);
+  for (const node of [fileSection, shared, fileDetails, appearanceSection, keptActions, credentials, techSection, usageSection, rondo, textSection, checks]) if (node) body.append(node);
   const watched = [[fileSection, files], [techSection, tech], [usageSection, usage], [textSection, text], [checks, passport]] as const;
   const refresh = () => {
     if (disposed) return;

@@ -1,0 +1,74 @@
+<!--
+  Concept: the trust boundaries of docs/threat-model.md as a map. Left, what comes into a Lolly
+  device from outside; centre, the places on the device that check it; right, the optional servers,
+  which see only what a person sends. Each item carries the number of its card on the page.
+  Band Contract: static fragment scoped under .tmb, reads the docs theme tokens with fallbacks
+  (light/dark/brand via --card/--card-foreground/--secondary/--primary), no script, no motion, no
+  network. Stacks into one column in a narrow container.
+  Sources: the card list of docs/threat-model.md (cards 1 to 24), which cites the code for each.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5) for the plan 322 docs rewrite
+  directed by Andy Fitzsimon, 2026-10-23. The C2PA signature added at bank time is the first
+  provenance record of this file.
+-->
+<style>
+.tmb{--tmb-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--tmb-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --tmb-ground:hsl(var(--secondary,84.5 55% 92.2%));--tmb-paper:hsl(var(--card,0 0% 100%));
+ --tmb-accent:hsl(var(--primary,176.5 89.5% 11.2%));--tmb-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --tmb-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--tmb-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ color:var(--tmb-ink);background:var(--tmb-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.tmb *{box-sizing:border-box}
+.tmb ul{list-style:none;margin:0;padding:0}
+.tmb li{list-style:none;margin:0;font-size:inherit}
+.tmb p{margin:0}
+.tmb-grid{display:grid;grid-template-columns:minmax(0,1fr) 1.6rem minmax(0,1.15fr) 1.6rem minmax(0,1fr);align-items:stretch;gap:0}
+.tmb-zone{background:var(--tmb-paper);border-radius:16px;box-shadow:0 0 0 1px var(--tmb-line);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.tmb-zone--device{box-shadow:0 0 0 2px var(--tmb-accent)}
+.tmb-cap{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tmb-muted)}
+.tmb-title{font-weight:700;font-size:.98rem;line-height:1.2}
+.tmb-note{font-size:.76rem;color:var(--tmb-muted)}
+.tmb-items{display:flex;flex-direction:column;gap:6px}
+.tmb .tmb-item{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:7px 9px;border-radius:10px;background:var(--tmb-soft);font-size:.82rem}
+.tmb-item b{font-weight:600}
+.tmb-item span.tmb-sub{display:block;font-size:.72rem;color:var(--tmb-muted);margin-top:1px}
+.tmb-ns{display:inline-flex;gap:3px;flex:none;flex-wrap:wrap;justify-content:flex-end;max-width:48%}
+.tmb-n{display:inline-grid;place-items:center;min-width:1.45em;height:1.45em;padding:0 .3em;border-radius:999px;background:var(--tmb-accent);color:var(--tmb-on-accent);font-size:.68rem;font-weight:700;font-variant-numeric:tabular-nums}
+.tmb-arrow{display:flex;align-items:center;justify-content:center;color:var(--tmb-accent);font-weight:700;font-size:1.1rem}
+.tmb-arrow svg{width:1.2rem;height:1.2rem;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tmb .tmb-key{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.76rem;color:var(--tmb-muted)}
+.tmb-key .tmb-n{margin-inline-end:5px}
+@container (max-width:620px){
+ .tmb-grid{grid-template-columns:minmax(0,1fr);grid-auto-rows:auto}
+ .tmb-arrow{height:1.6rem}
+ .tmb-arrow svg{transform:rotate(90deg)}
+}
+</style><div class="tmb" role="group" aria-label="Lolly trust boundaries: what comes in, what checks it on the device, and what the optional servers see"><div class="tmb-grid">
+<section class="tmb-zone"><p class="tmb-cap">Comes in from outside</p><p class="tmb-title">Things Lolly did not make</p><ul class="tmb-items">
+<li class="tmb-item"><span><b>A tool from the catalogue</b><span class="tmb-sub">manifest, template, hooks</span></span><span class="tmb-ns"><span class="tmb-n">3</span><span class="tmb-n">4</span></span></li>
+<li class="tmb-item"><span><b>A tool inside a .lolly file</b><span class="tmb-sub">installed only after you agree</span></span><span class="tmb-ns"><span class="tmb-n">5</span></span></li>
+<li class="tmb-item"><span><b>A link or QR code</b><span class="tmb-sub">plain, packed or private</span></span><span class="tmb-ns"><span class="tmb-n">6</span><span class="tmb-n">7</span></span></li>
+<li class="tmb-item"><span><b>A file someone sent</b><span class="tmb-sub">images, PDFs, decks, fonts</span></span><span class="tmb-ns"><span class="tmb-n">9</span></span></li>
+<li class="tmb-item"><span><b>Translation strings</b></span><span class="tmb-ns"><span class="tmb-n">13</span></span></li>
+<li class="tmb-item"><span><b>A request to the extension</b><span class="tmb-sub">approved one at a time</span></span><span class="tmb-ns"><span class="tmb-n">14</span></span></li>
+<li class="tmb-item"><span><b>An AI agent you connect</b><span class="tmb-sub">on this computer or invited</span></span><span class="tmb-ns"><span class="tmb-n">17</span><span class="tmb-n">21</span></span></li>
+</ul></section>
+<div class="tmb-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+<section class="tmb-zone tmb-zone--device"><p class="tmb-cap">Your device</p><p class="tmb-title">Where each one is checked</p><ul class="tmb-items">
+<li class="tmb-item"><span><b>The page</b><span class="tmb-sub">the app, signed built-in tools, templates</span></span><span class="tmb-ns"><span class="tmb-n">1</span><span class="tmb-n">10</span><span class="tmb-n">18</span></span></li>
+<li class="tmb-item"><span><b>A strict worker</b><span class="tmb-sub">installed and remote tools, stopped on overrun</span></span><span class="tmb-ns"><span class="tmb-n">1</span><span class="tmb-n">2</span></span></li>
+<li class="tmb-item"><span><b>The engine</b><span class="tmb-sub">file parsers, signing, encryption</span></span><span class="tmb-ns"><span class="tmb-n">9</span><span class="tmb-n">11</span></span></li>
+<li class="tmb-item"><span><b>Offline cache and storage</b><span class="tmb-sub">service worker buckets, saved work</span></span><span class="tmb-ns"><span class="tmb-n">12</span></span></li>
+<li class="tmb-item"><span><b>Network rules</b><span class="tmb-sub">tool allowlists and the page's policy</span></span><span class="tmb-ns"><span class="tmb-n">8</span><span class="tmb-n">15</span></span></li>
+<li class="tmb-item"><span><b>Desktop app features</b><span class="tmb-sub">files, sign-in windows, remote requests</span></span><span class="tmb-ns"><span class="tmb-n">16</span></span></li>
+</ul></section>
+<div class="tmb-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+<section class="tmb-zone"><p class="tmb-cap">Optional servers</p><p class="tmb-title">Only what you send them</p><ul class="tmb-items">
+<li class="tmb-item"><span><b>MCP endpoint</b><span class="tmb-sub">agent rendering and render links</span></span><span class="tmb-ns"><span class="tmb-n">22</span></span></li>
+<li class="tmb-item"><span><b>Page capture on a server</b></span><span class="tmb-ns"><span class="tmb-n">19</span></span></li>
+<li class="tmb-item"><span><b>Image proxy</b><span class="tmb-sub">Add from URL in the web app</span></span><span class="tmb-ns"><span class="tmb-n">20</span></span></li>
+<li class="tmb-item"><span><b>Agent relay</b><span class="tmb-sub">invitations to one document</span></span><span class="tmb-ns"><span class="tmb-n">21</span></span></li>
+<li class="tmb-item"><span><b>Certificate service</b><span class="tmb-sub">verified signing identity</span></span><span class="tmb-ns"><span class="tmb-n">23</span></span></li>
+<li class="tmb-item"><span><b>Lolly Work instance</b><span class="tmb-sub">your organisation's shared work</span></span><span class="tmb-ns"><span class="tmb-n">24</span></span></li>
+</ul></section>
+</div><p class="tmb-key"><span><span class="tmb-n">1</span>A number is a card on this page</span><span>Rendering in the app stays on the device</span></p></div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKBGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAneanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDoyYjAwMWFiNi0yNmRjLTQyYWItYmEyZS00ZjZjNTNhOWZlYWQAAAAEWGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNzo1NzoxNVoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GR+UZmxlbmd0aBkNvmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggCYFGN6Q+c/x8KKk6x5WmI1L+CkK/SBGlqYXyFrJK/m9jcGFkSAAAAAAAAAAAAAAA7mp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAALpjYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHd0aHJlYXQtbW9kZWwtYm91bmRhcmllc2RkYXRleBgyMDI2LTEwLTIzVDA3OjU3OjE1LjExMFpqZGltZW5zaW9uc2syNCDDlyAyNCBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALVanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqZjYm9ypmhkYzp0aXRsZXd0aHJlYXQtbW9kZWwtYm91bmRhcmllc2ppbnN0YW5jZUlEeC11cm46dXVpZDpiNTQ5MDViZi1mZmIyLTRkNmEtOGZkYi03Yzc2Zjg4YjExYjd0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIOsudUADbX2nP7Ojb3gW8iaw63tl2iPGWYvDUbQn4mxDomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIOQgtKQ6D92rozd0qGHh1oAaD/bVOTtGYrJtUv9WbjZ4omN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCAsp48ulVWkWOUyejewqxdeP6G5lSNJizFabpl13BZKcqJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmJqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjJjYm9y0oRZAeGiASYYIYFZAdgwggHUMIIBeaADAgECAglO+ftaVTxArsswCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA3NTYxNVoXDTM2MTAyMDA3NTcxNVowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEL496Gn2Xa6VdLlJSErJzkXaUWmpmsy2bOPC4BC9+1pl7u5u1taQ+iGh5RFPZM0Nx6XpYlO2pTgonpsVIbUSX5aNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFHXh/WAonfcg062Gs5RJ9wd7ANZ2MB8GA1UdIwQYMBaAFHXh/WAonfcg062Gs5RJ9wd7ANZ2MAoGCCqGSM49BAMCA0kAMEYCIQDaDzT/LYcNKyp/hP6bHOoDqPqMlrljHI0aJLrTvgPzIwIhAPc5m3JufYwU/14oRn9JPPXrCO7S8cSu6LuVEAg9nMMioPZYQLTDMdJ9Fi2ywphn8Er68I17QAM3ir7I5XV7Zmdq8BeapgqMYr0vqYBHvBagGp9HV9f0Hm7DuZdATXcV8u2gNnA= -----END C2PA MANIFEST----- -->

@@ -13,14 +13,17 @@
  * adapter over them: it keeps the BrandSwatch-typed names the brand editor + catalog
  * import (swatchesTo…), plus the two web-only helpers below (rebuild BrandSwatch rows
  * from live PaletteEntry rows, and wrap a serializer's output in a Blob + filename).
- * BrandSwatch structurally satisfies the engine's PaletteSwatch, so no adaptation is
- * needed. Pure - no DOM, no host - so it stays unit-testable like brand-doc.ts.
+ * `exportSwatches` hands each BrandSwatch to the engine through `toPaletteSwatch`,
+ * which adds the colour as authored and the print lock for the formats that keep
+ * them (ENGINE 1.281). Pure - no DOM, no host - so it stays unit-testable like
+ * brand-doc.ts.
  */
 import type { BrandSwatch } from './brand-doc.ts';
 import type { PaletteEntry } from '../palette.ts';
+import { describeColor } from '@lolly/engine';
 import {
   paletteTokensJson, paletteCssVariables, paletteCssClasses, paletteScssVariables,
-  paletteGpl, paletteAse, type PaletteTokensOpts,
+  paletteGpl, paletteAse, type PaletteTokensOpts, type PaletteSwatch,
 } from '../../../../engine/src/palette-export.ts';
 
 export type SwatchExportFormat = 'tokens-json' | 'css-vars' | 'css-classes' | 'scss' | 'gpl' | 'ase';
@@ -61,15 +64,101 @@ export function paletteEntriesToSwatches(entries: readonly PaletteEntry[]): Bran
       key,
       group: e.group === 'spectrum' ? 'Spectrum' : (e.group ?? 'Brand'),
       name: e.label,
-      raw: e.hex,
+      // The colour as authored, where the token has one, so the formats that can
+      // hold a wider colour get it (toPaletteSwatch below).
+      raw: e.token?.css ?? e.hex,
       hex: e.hex, // non-hex values ('transparent', oklch strings) are filtered by resolved()
       isAlias: false,
       kind: e.group === 'spectrum' ? 'spectrum' : e.group ? 'ramp' : 'other',
       set: null,
       deletable: false,
-      lock: null,
+      lock: e.cmyk || e.spot ? {
+        ...(e.cmyk ? { cmyk: [...e.cmyk] as [number, number, number, number] } : {}),
+        ...(e.spot ? { spot: e.spot } : {}),
+      } : null,
     };
   });
+}
+
+/** A brand swatch as the engine's exporters take it: the hex, plus the colour as
+ *  authored and the print lock, which the formats with room for them keep. An
+ *  alias carries no colour of its own, so it carries no authored value. */
+export function toPaletteSwatch(s: BrandSwatch): PaletteSwatch {
+  return {
+    key: s.key, name: s.name, group: s.group, hex: s.hex,
+    ...(!s.isAlias && s.raw && s.raw !== s.hex ? { css: s.raw } : {}),
+    ...(s.lock?.cmyk ? { cmyk: s.lock.cmyk } : {}),
+    ...(s.lock?.spot ? { spot: s.lock.spot } : {}),
+  };
+}
+
+/**
+ * What each format can hold, as the engine's serializers write it
+ * (engine/src/palette-export.ts, whose header gives the detail).
+ *
+ *   - `alpha`: a translucent colour. None of the six: the engine keeps a swatch
+ *     only when its hex is six digits.
+ *   - `beyondSrgb`: a colour wider than sRGB, kept as itself. CSS variables and
+ *     classes write it beside the hex, tokens JSON as a face, .ase as Lab.
+ *   - `print`: the CMYK build and the spot ink. Tokens JSON (as Lolly's own
+ *     extension) and .ase (as CMYK and Spot swatches).
+ *
+ * The menu reads its notes from this table, so a serializer that gains room for
+ * more changes one row here rather than a rule spread through the UI.
+ */
+const FORMAT_REACH: Record<SwatchExportFormat, { alpha: boolean; beyondSrgb: boolean; print: boolean }> = {
+  'tokens-json': { alpha: false, beyondSrgb: true, print: true },
+  'css-vars': { alpha: false, beyondSrgb: true, print: false },
+  'css-classes': { alpha: false, beyondSrgb: true, print: false },
+  scss: { alpha: false, beyondSrgb: false, print: false },
+  gpl: { alpha: false, beyondSrgb: false, print: false },
+  ase: { alpha: false, beyondSrgb: true, print: true },
+};
+
+/** Why a swatch stays out of a file: no colour at all (Transparent), a colour
+ *  the format cannot hold the transparency of, or a value that is not a colour. */
+export type SwatchSkipReason = 'no-colour' | 'translucent' | 'unreadable';
+
+/** How a set of swatches fits one format. */
+export interface SwatchFit {
+  /** Written to the file. */
+  kept: PaletteEntry[];
+  /** Written, but as the sRGB fallback: the colour as authored is wider than sRGB. */
+  approximated: PaletteEntry[];
+  /** Written without their CMYK build or spot ink, which this format has no room for. */
+  printDropped: PaletteEntry[];
+  /** Left out, each with the reason. */
+  skipped: { entry: PaletteEntry; reason: SwatchSkipReason }[];
+}
+
+/** A hex as the six digits the serializers read: `#rgb` and a fully opaque
+ *  `#rrggbbaa` / `#rgba` widen or drop their alpha, a translucent one gives
+ *  'translucent', and anything that is not a hex gives null. */
+function opaqueHex(hex: string): string | 'translucent' | null {
+  const m = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(hex);
+  if (!m) return null;
+  const digits = m[1]!.length <= 4 ? [...m[1]!].map(d => d + d).join('') : m[1]!;
+  if (digits.length === 8 && digits.slice(6).toLowerCase() !== 'ff') return 'translucent';
+  return `#${digits.slice(0, 6)}`;
+}
+
+/** Sort swatches into what `format` writes, writes approximately, and leaves out.
+ *  A kept swatch carries the six-digit hex the format will write. */
+export function swatchFit(entries: readonly PaletteEntry[], format: SwatchExportFormat): SwatchFit {
+  const reach = FORMAT_REACH[format];
+  const fit: SwatchFit = { kept: [], approximated: [], printDropped: [], skipped: [] };
+  for (const entry of entries) {
+    const hex = entry.hex.trim();
+    if (!hex || hex.toLowerCase() === 'transparent') { fit.skipped.push({ entry, reason: 'no-colour' }); continue; }
+    const opaque = opaqueHex(hex);
+    if (opaque === 'translucent' && !reach.alpha) { fit.skipped.push({ entry, reason: 'translucent' }); continue; }
+    if (opaque === null || opaque === 'translucent') { fit.skipped.push({ entry, reason: 'unreadable' }); continue; }
+    fit.kept.push(opaque === hex ? entry : { ...entry, hex: opaque });
+    const css = entry.token?.css;
+    if (!reach.beyondSrgb && css && describeColor(css)?.inSrgb === false) fit.approximated.push(entry);
+    if (!reach.print && (Array.isArray(entry.cmyk) || entry.spot)) fit.printDropped.push(entry);
+  }
+  return fit;
 }
 
 /** One entry point for the UI: pick a format, get a ready-to-save Blob + filename. */
@@ -78,21 +167,22 @@ export function exportSwatches(
   opts?: PaletteTokensOpts,
 ): { blob: Blob; filename: string } {
   const base = slug(paletteName) || 'brand';
+  const rows = swatches.map(toPaletteSwatch);
   switch (format) {
     case 'tokens-json':
       // The DTCG shape Penpot (>= 2.6) and Tokens Studio import natively; when the
       // brand declares font.* roles they ride along as fontFamilies tokens, so the
       // brand's faces reach Penpot with its colours (plans/173 slice 1).
-      return { blob: new Blob([paletteTokensJson(swatches, opts)], { type: 'application/json' }), filename: `${base}-tokens.json` };
+      return { blob: new Blob([paletteTokensJson(rows, opts)], { type: 'application/json' }), filename: `${base}-tokens.json` };
     case 'css-vars':
-      return { blob: new Blob([paletteCssVariables(swatches)], { type: 'text/css' }), filename: `${base}-variables.css` };
+      return { blob: new Blob([paletteCssVariables(rows)], { type: 'text/css' }), filename: `${base}-variables.css` };
     case 'css-classes':
-      return { blob: new Blob([paletteCssClasses(swatches)], { type: 'text/css' }), filename: `${base}-classes.css` };
+      return { blob: new Blob([paletteCssClasses(rows)], { type: 'text/css' }), filename: `${base}-classes.css` };
     case 'scss':
-      return { blob: new Blob([paletteScssVariables(swatches)], { type: 'text/x-scss' }), filename: `${base}-variables.scss` };
+      return { blob: new Blob([paletteScssVariables(rows)], { type: 'text/x-scss' }), filename: `${base}-variables.scss` };
     case 'gpl':
-      return { blob: new Blob([paletteGpl(swatches, paletteName)], { type: 'text/plain' }), filename: `${base}.gpl` };
+      return { blob: new Blob([paletteGpl(rows, paletteName)], { type: 'text/plain' }), filename: `${base}.gpl` };
     case 'ase':
-      return { blob: new Blob([paletteAse(swatches) as BlobPart], { type: 'application/octet-stream' }), filename: `${base}.ase` };
+      return { blob: new Blob([paletteAse(rows) as BlobPart], { type: 'application/octet-stream' }), filename: `${base}.ase` };
   }
 }

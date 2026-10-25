@@ -12,7 +12,33 @@ No shared type is frozen before the counterexample fixtures pass (plan section 1
 
 This draft makes no conformance claim and states no threshold (C8), and it sets no latency target because the current evidence justifies none (plan section 18, review gate 5). It adds no reproducibility promise beyond the ones `docs/determinism.md` already makes. The probe numbers appear in one chapter, [conformance](conformance.html), as evidence that a single whole-image number cannot separate a lost caption from a half-pixel shift (C8).
 
-The notice at the head of every chapter must stay until this chapter records that people have read the draft (`plans/276-execution.md` section 5). No reading has been recorded yet, so the notice stays. Andy's answers of 2026-10-16 to the six questions below settle those questions only. They are a separate decision from the reading, and they do not lift the notice. The chapters that most need it are the constitution, the source rows and patches, the policy and the conformance chapters, because each fixes semantics the later contracts are built on (`plans/276-execution.md` section 5).
+The notice at the head of every chapter must stay until this chapter records the required chapter review (`plans/276-execution.md` section 5). On 2026-10-15 a focused DAM review compared the draft with plan 312 and existing source, and Andy authorised the amendments and first wave in plan 314. That review covers the resource, evidence and authority boundary. Andy's answers of 2026-10-16 settle the six questions below. Neither completes the wider chapter review or freezes a shared type, so the notice stays. The constitution, source rows and patches, policy and conformance chapters most need that review, because later contracts depend on their semantics.
+
+## DAM amendment, 2026-10-15
+
+The amendment keeps the four records and the confirmed pilots. It adds requirements for selected-file/representation identity, byte observations, imported evidence, scoped review and current source/processing authority. Rights reuse `packages/core/src/rights-v1.ts`; processing jobs and private evidence remain host or Work records. [Records](records.html) maps them, and [proof cases](proof-cases.html) adds cases 30 to 38.
+
+These are draft requirements, not implemented shared contracts. Work's federated metadata version is a cache change token, not proof of immutable bytes. Its catalog admission and version curation are distinct from its implemented final-byte staged delivery approval. Adaptive publication and remote processing of finished variants require explicit new operation/delivery contracts before implementation. The [policy](policy.html), [conformance](conformance.html) and [packaging](packaging.html) chapters state those limits.
+
+Wave 1 amends prose and runs focused executable evidence against existing seams. It changes no shared type, schema, wire order, engine version, package part, provenance write or live permission policy. Full DAM fixtures, a general historical provider resolver, contextual territory/channel evaluation and private portable evidence enforcement remain required work.
+
+The index identifies this amendment as `draft-2026-10-15`; chapter notices retain the original draft date. Existing executable evidence covers only the following parts of the new cases:
+
+| Evidence | What it establishes | What remains unproved |
+|---|---|---|
+| `shells/web/src/lib/asset-files.test.ts` and `lolly-work/tests/provider-source-observation.test.ts` | Same-format file identities survive selection/reordering; previews stay separate; fresh byte observations distinguish an overwrite under unchanged metadata. | Durable exact provider pin retrieval and the full saved source-to-delivery case (30, 31). |
+| `tests/rights-evaluate.test.ts` | Existing rights decisions follow fingerprinted facts and do not automatically apply to a changed source or context. | General territory/channel eligibility and current upstream permission enforcement (32, 33). |
+| `lolly-work/tests/delivery-api.test.ts`, `lolly-work/tests/catalog-versions.test.ts` and `lolly-work/tests/catalog-availability.test.ts` | Existing staged approval/idempotent retry, version-curation boundaries and imported availability gates. | New source-proof review, remote processing reconciliation and adaptive publication (33, 36, 37). |
+
+Passing those focused tests is not admission of a conformance fixture. Cases 34, 35 and 38 still require their full privacy, imported-recipe and package round trips.
+
+### Papirfly, Air and Adobe follow-up
+
+The same wave now includes plan 315's production findings: historical bytes versus current attributes, typed content and locale bindings, explicit bounded action targets, destination write intent, asynchronous readiness, search-mode compatibility and review purpose/origin. Cases 39 to 44 state the required counterexamples. A campaign remains a host/Work record referencing the four document records; no fifth root or separate renderer is introduced (R1, R3, R4, R5, R8, R11, R15).
+
+Focused evidence additionally exercises Work's current exposure predicate after an upstream approval change with unchanged bytes/cache token, and Batch's stable row mapping when a caller selects only failed rows. The first does not prove live upstream revocation or historical metadata retrieval. The second does not implement campaign persistence, content refresh, proof-set review or remote commit checks. Cases 39 to 44 remain unimplemented end-to-end requirements.
+
+Plan 314's later order is paged library, source/history, controlled campaign production, governed discovery and selected processing/delivery. Plan 191 owns portable locale/matrix descriptions; Work plan 43 owns persisted campaigns. Vendor qualification may proceed independently, and no new adapter is enabled by this draft.
 
 ## Confirmed decisions
 
@@ -137,6 +163,8 @@ On 2026-10-16 Andy also decided when the shared core types may be added. `Depend
 
 | Date | Change |
 |---|---|
+| 2026-10-15 | Plan 315 follow-up extends wave 1 with content/metadata history, typed production bindings and refresh, stable campaign rows, action targets, explicit destination writes, readiness, search combinations and review purpose/origin. Cases 39 to 44 and focused exposure/Batch evidence are added. Affects R1, R3, R4, R5, R8, R11 and R15; no shared contract or vendor adapter is implemented. |
+| 2026-10-15 | Focused DAM review and plan 314 wave 1. Four-record resource mapping, exact-byte pin requirements, source and processing authority, review subjects, imported generation evidence, fixed/adaptive delivery and private package disclosure are specified as draft requirements. Cases 30 to 38 are added. No shared type or conformance claim is introduced. |
 | 2026-09-24 | Draft for review. The twelve chapters were written from the plan 276 consolidation after its final review, with D1 to D13 confirmed, R1 to R15 adopted from evidence, C1 to C9 corrected and Q1 to Q6 recorded with their defaults. No type is frozen and no conformance claim is made. |
 | 2026-09-26 | Constitution. The thirteen invariants gain four reading groups with their numbers unchanged, and a table of where each one holds today, what is not met yet and which proof cases test it; the table finds no case that tests invariant 11 on its own and only case 7 behind invariant 5. The no-cloud limit now states R7 as a requirement and records that the web shell fails closed after 24 hours offline instead. The limits section says which two promises its first two items bound. Affects R7. |
 | 2026-09-26 | Proof cases. Cases 24 and 25 are added for the two gaps the constitution's table found: one chart's accessibility metadata checked in each of four outputs, and a local utility that keeps no record of its run. The table now maps both, and the count of cases is 25. Q4 stays open; case 25 tests its default for a utility. Affects R5 and R15. |
@@ -163,6 +191,8 @@ On 2026-10-16 Andy also decided when the shared core types may be added. `Depend
 | 2026-10-16 | Andy answered the six questions. The defaults for Q1 to Q5 are accepted as documented, and Q6 is recorded as decided: the specification is public from its first draft. Every chapter's Open points now state the decisions instead of open defaults. The shared core types `DependencyGraphV1`, `ComponentDefinitionV1`, `OutcomeV1` and `FindingV1` may be added after the counterexample fixtures pass, and not earlier. The draft notice stays on every chapter, because these answers record no reading of the chapters. Affects R5, R6, R7 and R8. |
 | 2026-10-17 | Plan 295 outlines underline through the shared SVG/PDF drawing geometry. Evaluation records the reference's CSS auto placement, thickness and pixel rounding, skip-ink measured from each cluster's outline with its dilation and whole-pixel cuts, the characters drawn through, hanging spaces underlined as their own fragment, and the cases that stay a `text-decoration` finding. Conformance records the decorated underline page, its unchanged ink and centroid bands, and removed, moved and unskipped negative controls in SVG and PDF. Affects R9 and R15; no shared contract or production release changes. |
 | 2026-10-17 | Plan 295 P3f draws dashed pen strokes on the internal WebGPU raster path, placed along the path as Chromium measures it, and clips a row by another row's silhouette draw by draw. Conformance records the dash and row clip rules and their controls, and two findings: the stroke outliner dropped a dash shorter than the stroke is wide when it outlined every dash at once, and the Design renderer draws a mirrored box's clip mirrored. The path stays internal and opt-in; no export, shared type or release changes. Affects R9 and R15. |
+
+| 2026-10-20 | Integrates the focused DAM and controlled-production amendment from plans 314 and 315 with the later source-history evidence and Andy's six decisions. Keeps cases 30 to 44 as scoped requirements, preserves the chapter review notices and existing implementation limits, and adds no shared type or schema. Affects R1, R3, R4, R5, R7, R8, R10, R11 and R15. |
 
 A change to any chapter must add a row here with its date and what changed, so that the chapter sources in `docs/spec/document-model/` carry one history (`plans/276-execution.md` section 1A). A row lists the resolution ids the change affects, which is this specification's own convention.
 

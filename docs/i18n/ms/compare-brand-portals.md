@@ -2,34 +2,35 @@
 
 _Disemak kali terakhir: 28 September 2026._
 
-Lolly dan [lolly.work](https://lolly.work) bersama-sama merangkumi aliran kerja penciptaan dan tadbir urus yang digunakan pasukan portal jenama untuknya: aset yang diluluskan, templat berkunci, kawalan akses, semakan dan pengedaran. Bandingkan penyelesaian gabungan itu dengan Bynder, Frontify, Marq atau Brandfolder semasa memilih cara orang mencari aset jenama dan menghasilkan aset baharu.
+Jika organisasi anda menyimpan aset yang diluluskan dalam Bynder, Frontify, Marq atau Brandfolder, halaman ini membandingkannya dengan Lolly ditambah Lolly Work: bagaimana orang mencari aset jenama, dan bagaimana mereka membuat fail baharu daripadanya.
 
-## Perkhidmatan penciptaan dan organisasi
+## Apa yang portal mantap lakukan dengan lebih baik
 
-Enjin dan aplikasi Lolly menghasilkan fail. Templat, token reka bentuk dan input yang dibenarkan menentukan perkara yang boleh diubah oleh seseorang, dan pemaparan boleh kekal pada peranti mereka. Lolly kendiri tidak memerlukan akaun.
+Portal mantap menawarkan pengehosan terurus, sokongan dan aliran kerja pengurusan aset yang luas. Sebagai contoh, [DAM perusahaan Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) menggabungkan penemuan aset, kawalan akses, aliran kerja kelulusan dan pengedaran. Tindanan Lolly lebih muda dan rantaian kelulusannya berjujukan dan bukan aliran kerja bercabang sewenang-wenangnya. [Work status and roadmap](/info/work-status.html) merekodkan had penempatannya.
 
-lolly.work ialah perkhidmatan organisasi dalam projek yang sama, diselenggara dalam [repositori berasingan](https://github.com/lolly-tools/lolly-work) dan digunakan bersama Lolly. Ia menambah identiti, storan kongsi, dasar, kelulusan dan pelaporan. Kedua-dua bahagian ialah sumber terbuka di bawah MPL-2.0. Pengasingan ini membolehkan individu menggunakan Lolly secara bebas dan organisasi menjalankan penyelesaian gabungan pada infrastruktur yang dikawalnya.
+## Di mana kedua-duanya bertindih
 
-## Perkara yang disediakan oleh penyelesaian gabungan
+Kedua-duanya meliputi aset diluluskan, templat terkunci, kawalan akses, semakan dan pengedaran. Lolly membuat fail: templat, token reka bentuk dan input yang dibenarkan menentukan apa yang boleh diubah seseorang, dan perenderan boleh kekal pada peranti mereka. Lolly Work menambah identiti, storan dikongsi, dasar, kelulusan dan pelaporan pada infrastruktur yang dikawal organisasi.
 
-| Keperluan | Lolly + lolly.work |
+![Sistem reka bentuk aktif dalam Settings, ditunjukkan sebagai kulit dan halaman: warna, tipografi dan logo yang dilukis oleh setiap alat](/info/shots/dashboard-brand.svg)
+
+## Apa yang disediakan Lolly dan Lolly Work
+
+| Keperluan | Lolly + Lolly Work |
 |---|---|
-| Log masuk dan peruntukan | Log masuk tunggal OIDC, berbilang penyedia identiti, peruntukan pengguna SCIM 2.0 dan keahlian kumpulan, serta penyahaktifan akaun yang membatalkan sesi sedia ada. Penyedia identiti SAML sahaja boleh disambungkan melalui jambatan OIDC seperti Keycloak. |
-| Templat yang diluluskan | Lolly menentukan input templat yang boleh disunting; lolly.work menggunakan keterlihatan kumpulan dan dasar input yang mengunci nilai, menghadkan pilihan atau menyembunyikan kawalan. |
-| Pustaka aset kongsi | Muat naik milik instans, koleksi, metadata tersuai dan katalog berkawalan akses, serta penyambung yang membaca pustaka DAM dan storan sedia ada. |
-| Semakan | Langkah kelulusan berurutan, kumpulan pelulus yang layak, peraturan kuorum dan pengasingan tugas; semakan boleh mengawal penyerahan katalog dan penghantaran ke sasaran organisasi. |
-| Sejarah dan ketersediaan aset | Versi dan penarikan balik untuk aset milik instans, pengekalan dan penahanan, ketersediaan berjadual, tamat tempoh dan pembatalan. Penyedia yang disambungkan mengekalkan sejarah sumber mereka sendiri. |
-| Pelaporan | Bilangan penggunaan dan muat turun aset, aktiviti alat dan eksport, papan pemuka dan jejak audit. Atribusi penggunaan mengikut dasar telemetri penggunaan; tetapan atribusi lalai memerlukan persetujuan. |
-| Pengedaran | Pautan yang tamat tempoh dan boleh dibatalkan, koleksi kongsi, akses tetamu dan penghantaran ke destinasi organisasi yang dikonfigurasikan. |
+| Log masuk dan penyediaan | Log masuk tunggal OIDC, berbilang penyedia identiti, penyediaan pengguna dan keahlian kumpulan SCIM 2.0, dan penyahaktifan akaun yang membatalkan sesi sedia ada. Penyedia identiti SAML sahaja boleh bersambung melalui jambatan OIDC seperti Keycloak. |
+| Templat diluluskan | Lolly mentakrifkan input boleh sunting templat; Lolly Work menggunakan keterlihatan kumpulan dan dasar input yang mengunci nilai, mengehadkan pilihan atau menyembunyikan kawalan. |
+| Pustaka aset dikongsi | Muat naik milik instans, koleksi, metadata tersuai dan katalog berkawalan akses, serta penyambung yang membaca pustaka DAM dan storan sedia ada. |
+| Semakan | Langkah kelulusan berturutan, kumpulan pelulus yang layak, peraturan kuorum dan pengasingan tugas; semakan boleh mentadbir penyerahan katalog dan penghantaran ke sasaran organisasi. |
+| Sejarah dan ketersediaan aset | Versi dan rollback untuk aset milik instans, pengekalan dan penahanan, ketersediaan berjadual, tamat tempoh dan pembatalan. Penyedia bersambung menyimpan sejarah sumber sendiri. |
+| Lesen dan kredit | Lolly merekodkan lesen setiap sumber yang digunakan fail dan menyediakan kredit yang terhutang; [Creative rights and credits](/info/creative-rights.html) menerangkan apa yang direkodkan dan di mana kredit ditulis. Ia tidak membersihkan hak. |
+| Pelaporan | Kiraan penggunaan dan muat turun aset, aktiviti alat dan eksport, papan pemuka dan jejak audit. Atribusi penggunaan mengikut dasar telemetri penempatan; tetapan atribusi lalai memerlukan persetujuan. |
+| Pengedaran | Pautan yang tamat tempoh dan boleh dibatalkan, koleksi dikongsi, akses tetamu dan penghantaran ke destinasi organisasi yang dikonfigurasi. |
 
-[Panduan operator lolly.work](https://github.com/lolly-tools/lolly-work/tree/main/docs) menerangkan ciri ini dan konfigurasinya. Ia merupakan keupayaan yang tersedia, bukan ciri yang memerlukan sistem lain dibina di sekeliling Lolly.
+[Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) dan [Policy and governance](/info/work-governance.html) menerangkan ciri ini dan konfigurasinya.
 
-## Memilih aliran kerja portal
+## Mengekalkan portal sedia ada anda
 
-Portal yang mantap menawarkan pengehosan terurus, sokongan dan aliran kerja DAM yang luas. Sebagai contoh, [DAM perusahaan Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) menggabungkan penemuan aset, kawalan akses, aliran kerja kelulusan dan pengedaran. Bandingkan aliran kerja semakan dan hak yang tepat yang anda perlukan: Lolly menyediakan kawalan metadata, akses dan ketersediaan, manakala pelepasan undang-undang dan obligasi lesen masih memerlukan proses organisasi. Rantaian kelulusannya bersiri; ia tidak memodelkan aliran kerja bercabang sewenang-wenangnya.
+DAM sedia ada boleh kekal sebagai sumber kebenaran. Penyambung katalog Lolly Work menjadikan aset yang diluluskannya tersedia dalam Lolly, di mana orang membuat fail baharu di bawah peraturan organisasi. Itu pilihan integrasi; pustaka dan kelulusan Lolly sendiri ada apabila organisasi mahu menjalankannya sendiri. [What runs where](/info/compare.html#what-runs-where) menyenaraikan had yang dikongsi setiap perbandingan.
 
-Tindanan Lolly lebih baharu, dan [halaman status lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) merekodkan had penggunaannya. Khususnya, tapak awam lolly.work ialah kotak pasir penilaian. Penggunaan organisasi yang berkekalan memerlukan storan berterusan dan seorang operator. Tiada caj lesen perisian setiap pengguna untuk hos kendiri; infrastruktur dan pentadbiran tetap memerlukan kos.
-
-DAM sedia ada juga boleh kekal sebagai sumber kebenaran. Penyambung katalog lolly.work menjadikan asetnya yang diluluskan tersedia dalam Lolly, tempat orang mencipta fail baharu di bawah peraturan organisasi. Itu ialah pilihan integrasi; pustaka dan kelulusan Lolly sendiri tersedia apabila organisasi mahu menguruskan aliran kerja itu sendiri.
-
-Lihat [Perbandingan Lolly](/info/positioning.html) untuk perbandingan keupayaan dan [Lolly dibandingkan, alat demi alat](/info/compare.html) untuk bahagian lain set ini. Nama vendor mengenal pasti produk yang dibandingkan; Lolly tidak berafiliasi dengan mereka.
+Lihat [How Lolly compares](/info/positioning.html) untuk perbandingan keupayaan. Nama vendor mengenal pasti produk yang dibandingkan; Lolly tidak bergabung dengan mereka.

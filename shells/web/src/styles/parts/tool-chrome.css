@@ -602,7 +602,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   border-bottom-left-radius: 0;
 }
 
-::placeholder{color:var(--ui-color-border-default)}
+::placeholder{color:color-mix(in srgb, var(--ui-color-border-default) 70%, var(--ui-color-text-muted))}
 
 
 .export-outcome-summary {
@@ -621,7 +621,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   padding: 8px 10px;
   border-radius: var(--radius);
   background: hsl(var(--muted) / .65);
-  color: hsl(var(--muted-foreground));
+  color: color-mix(in srgb, var(--ui-color-text-muted) 50%, var(--ui-color-border-default));
   font-size: var(--fs-sm);
   line-height: 1.35;
   text-align: left;
@@ -663,7 +663,6 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   gap: var(--sp-3);
   min-width: 0;
   padding-top: var(--sp-5);
-  border-top: 1px solid hsl(var(--border));
   opacity:1 !important;
 }
 
@@ -858,6 +857,44 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   border-color: hsl(var(--border) / 0.7);
   background: transparent;
   color: hsl(var(--muted-foreground));
+}
+
+/* Creation feedback rows (lib/creation-feedback.ts): a lead line naming the layer
+   or the band, the message, the flagged phrases under the writing line, then one
+   plain link to read the text in Verify. Lead, message and supporting lines are
+   three tiers told apart by weight and colour; the link is the card's only accent. */
+.preflight-finding-title {
+  display: block;
+  font-weight: 600;
+  color: var(--ui-color-text-default);
+}
+.preflight-finding-details {
+  list-style: none;
+  margin: var(--sp-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-1);
+  font-size: var(--fs-xs);
+  color: var(--ui-color-text-muted);
+}
+.preflight-finding-link {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 24px;
+  margin-block-start: var(--sp-2);
+  color: var(--ui-color-action-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: text-decoration-thickness var(--dur-1) var(--ease-out);
+}
+.preflight-finding-link:hover { text-decoration-thickness: 2px; }
+.preflight-finding-link:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* The details modal (opened by .preflight-open via mountModal). A centred dialog;
@@ -1354,6 +1391,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   font: inherit;
   font-size: var(--fs-md);
   transition: border-color var(--dur-1);
+  box-shadow: var(--ui-effect-inset);
 }
 
 /* :not(:focus) preserves the pre-dedupe outcome. The :focus ring is now the one
@@ -1375,7 +1413,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
 .tool-actions select:not(.field-select) {
   padding: 9px 28px 9px 12px;   /* right room for the custom chevron */
   background: var(--ui-color-surface-overlay);
-  box-shadow: var(--ui-effect-input-well);
+      box-shadow: var(--ui-elevation-control), var(--ui-effect-bevel);
   background-image: var(--field-chevron);  /* the one shared caret (parts/fields.css) */
   background-repeat: no-repeat;
   background-position: right 10px center;
@@ -1710,7 +1748,8 @@ box-shadow:none;
   overflow-wrap: anywhere;
 }
 .madewith-line[data-madewith-record] { color: hsl(var(--foreground)); }
-.madewith-description { font-size: var(--fs-xs); }
+.madewith-description { font-size: var(--fs-xs);  color: color-mix(in srgb, var(--ui-color-text-muted) 50%, var(--ui-color-border-default));
+ }
 
 /* Licence picker (tool-actions markup.ts licenceRow), inside Content protection. */
 .export-licence-pick {

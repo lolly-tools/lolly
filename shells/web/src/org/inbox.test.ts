@@ -144,6 +144,17 @@ test('unread messages at boot: the first fetch runs at once, then the ETag rides
   assert.equal(heard, 0, 'and tells nobody');
 });
 
+test('the queue links to the whole inbox, and a stopped inbox takes the link away (plan 320 J11)', async () => {
+  const { notificationLinks } = await import('../lib/notifications.ts');
+  let reviewed = 0;
+  startInbox({ initialUnread: 0, review: () => { reviewed++; } });
+  assert.deepEqual(notificationLinks().map((l) => l.label), ['All workspace messages']);
+  notificationLinks()[0]!.run();
+  assert.equal(reviewed, 1);
+  reset();
+  assert.deepEqual(notificationLinks(), [], 'gone with the inbox');
+});
+
 test('no unread messages at boot: nothing until the first focus, and focus never fetches twice in a minute', async () => {
   router = () => json({ messages: [] });
   startInbox({ initialUnread: 0 });

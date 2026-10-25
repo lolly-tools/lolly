@@ -85,7 +85,7 @@ export const showAddedChip = (bedit: BrandEditorCtx, one: { path: string[]; name
  * hero for a colour that was added somewhere else.
  */
 export const addColorEntries = (bedit: BrandEditorCtx, entries: ColorEntry[], reveal = false, group?: string): number => {
-  if (entries.length) bedit.state.pushUndo(t('Add colours'));
+  if (entries.length) bedit.state.pushUndo(entries.length === 1 ? t('Add colour') : t('Add colours'));
   // Was this room empty of the person's own colour before the add? That is
   // what makes the next line the FIRST colour, and the first colour becomes
   // the primary (plan 182 section 5.2) - it is what nine people in ten mean
@@ -154,10 +154,10 @@ export function wireAddedChip(bedit: BrandEditorCtx): void {
       return;
     }
     if (!target.closest('[data-be-added-primary]') || !bedit.addedSwatch) return;
-    // Deliberately UNSCOPED (no context), for the reason takePrimaryFromLogo
-    // states: a colour someone names as their primary is the brand's primary in
-    // both themes, unlike surface and text, which each theme inverts. With
-    // colourways, that is the canonical lead in both modes.
+    // Deliberately UNSCOPED (no context), as for a logo's main colour (see
+    // setLogoRoles in logos.ts): a colour someone names as their primary is the
+    // brand's primary in both themes, unlike surface and text, which each theme
+    // inverts. With colourways, that is the canonical lead in both modes.
     const path = bedit.addedSwatch.path;
     const name = bedit.addedSwatch.name;
     const key = bedit.swatches.find(s => s.path.length === path.length && s.path.every((seg, i) => seg === path[i]))?.key;

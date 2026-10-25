@@ -23,6 +23,12 @@ test('site tools register only in a supported top-level document and dispose the
   assert.equal(tools.get('lolly_apply_document_changes')!.annotations.readOnlyHint, false);
   assert.equal(tools.get('lolly_apply_document_changes')!.annotations.destructiveHint, true);
   assert.equal(tools.get('lolly_search_assets')!.annotations.readOnlyHint, true);
+  // Creation feedback is read-only, and both document tools tell a model it is guidance, not a gate.
+  const check = tools.get('lolly_check_document')!;
+  assert.deepEqual(check.annotations, { readOnlyHint: true, destructiveHint: false });
+  assert.match(check.description, /never blocks export/);
+  assert.match(check.description, /signal, not a verdict or a probability/);
+  assert.match(tools.get('lolly_apply_document_changes')!.description, /guidance to act on, not a gate/);
   dispose(); assert.equal(tools.size, 0);
   await assert.rejects(read.execute({}), /ended/);
   delete doc.modelContext;

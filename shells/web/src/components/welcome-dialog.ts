@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * First-run welcome for an UNBRANDED install (the lolly-start profile) - plus
- * the slim "how Lolly works" tips strip the gallery shows until dismissed.
+ * First-run welcome for an UNBRANDED install (the lolly-start profile). The
+ * gallery's tips strips ("how Lolly works" and the branded "Your brand is
+ * loaded") were removed on 19 October 2026 at Andy's request, as unhelpful.
  *
- * The gallery decides WHEN to show these (token discovery still resolves the
+ * The gallery decides WHEN to show the welcome (token discovery still resolves the
  * `lolly/tokens/brand` placeholder - see mountGallery); this module owns the
- * dialog/strip themselves. The welcome is built on mountModal (components/modal.ts,
+ * dialog itself. The welcome is built on mountModal (components/modal.ts,
  * Escape via the `cancel` event, backdrop-box click test, mounted on <body>),
  * offering two paths:
  *
- *   "Make it yours"          → the #/start brand wizard. Persists the dismissed
+ *   "Make it yours"          → Design System Setup (#/start). Persists the dismissed
  *                              flag (audit 167 F-A5: taking a door IS an answer;
  *                              the fork re-appearing after a brand-room detour
  *                              read as amnesia). The brand room's own empty
@@ -58,7 +59,6 @@ import { currentLang, docsAppHref, langOptions, setActiveLang, t, LANG_ICON_SVG,
 import { isTauriShell } from '../lib/instance-choice.ts';
 import type { Lang } from '../i18n.ts';
 import { escape, NAV_EVENTS } from '../utils.ts';
-import { createScope } from '../lib/dispose.ts';
 import { icon } from '../lib/icons.ts';
 import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { PickerHost } from '../views/picker.ts';
@@ -70,7 +70,6 @@ import { mountModal } from './modal.ts';
 // The dismissed flag lives in lib/welcome-gate.ts so the boot path can read it
 // without loading this module; existing importers keep reaching it from here.
 export { WELCOME_DISMISSED_KEY, isWelcomeDismissed, markWelcomeDismissed } from '../lib/welcome-gate.ts';
-const TIPS_DISMISSED_KEY = 'lolly-tips-dismissed';
 
 export type WelcomeChoice = 'brand' | 'import' | 'explore' | 'dismiss';
 
@@ -96,7 +95,7 @@ function welcomeDoors(withImport: boolean): string {
         <span class="welcome-card-icon">${icon('heart', { size: 22 })}</span>
         <span class="welcome-card-kicker">${t('Make it yours')}</span>
         <span class="welcome-card-line">${t('Start from one colour or your design tokens - everything stays on this device.')}</span>
-        <span class="welcome-card-cta" aria-hidden="true">${t('Set up your brand →')}</span>
+        <span class="welcome-card-cta" aria-hidden="true">${t('Open Design System Setup →')}</span>
       </button>
       ${withImport ? `
       <button type="button" class="welcome-card" data-choice="import">
@@ -310,86 +309,4 @@ export function showWelcomeDialog(profileApi?: WebProfileAPI, uploadHost?: Picke
  *  the same non-dismissal path a route change takes. No-op when nothing is open. */
 export function closeWelcomeDialog(): void {
   settleOpen?.(null);
-}
-
-/**
- * The one-time tips strip - "Every tool is a URL · works offline · nothing
- * leaves this device" - inserted just above the gallery masonry while the
- * install is unbranded and until the user dismisses it. `anchorEl` is the
- * element to insert before (the `.tool-masonry`); no-op when it's gone
- * (navigated away) or the strip was already dismissed.
- */
-export function mountBrandTips(anchorEl: HTMLElement | null): void {
-  if (!anchorEl || !anchorEl.isConnected) return;
-  try { if (localStorage.getItem(TIPS_DISMISSED_KEY) === '1') return; }
-  catch { return; } // storage off - a dismissal couldn't persist, so don't nag every visit
-  if (anchorEl.parentElement?.querySelector('.brand-tips')) return; // already mounted
-  const strip = document.createElement('aside');
-  strip.className = 'brand-tips';
-  strip.setAttribute('role', 'note');
-  strip.setAttribute('aria-label', 'How Lolly works');
-  strip.innerHTML = `
-    <a class="brand-tips-import" href="#/start?import=1">Bring your brand: import DTCG, Tokens Studio or Penpot tokens</a>
-    <p class="brand-tips-text">Every tool is a URL <span class="brand-tips-dot" aria-hidden="true">&middot;</span> works offline <span class="brand-tips-dot" aria-hidden="true">&middot;</span> nothing leaves this device</p>
-    <button type="button" class="brand-tips-dismiss" aria-label="Dismiss tips">&#x2715;</button>`;
-  strip.querySelector<HTMLButtonElement>('.brand-tips-dismiss')?.addEventListener('click', () => {
-    try { localStorage.setItem(TIPS_DISMISSED_KEY, '1'); } catch { /* storage off */ }
-    strip.remove();
-  });
-  anchorEl.before(strip);
-}
-
-const BRANDED_INTRO_KEY = 'lolly-branded-intro-dismissed';
-
-/**
- * The BRANDED install's first-run strip (plans/140 S4). The welcome dialog and
- * the tips strip above are unbranded-only, so a branded first visit used to get
- * the gallery with no orientation at all beyond the What? button. Same slim
- * shape as the tips strip, shown only when the banner ladder left the slot free
- * (the gallery decides that; this module owns the surface), and settled by:
- * its ✕, or opening ANY tool (making something IS the orientation) - watched
- * via NAV_EVENTS while mounted. An install that already holds saved work needs
- * no introduction: the flag settles silently and the strip never appears
- * mid-tenure.
- */
-export async function mountBrandedIntro(
-  anchorEl: HTMLElement | null,
-  state?: { list?: () => Promise<unknown[]> },
-): Promise<boolean> {
-  if (!anchorEl || !anchorEl.isConnected) return false;
-  try { if (localStorage.getItem(BRANDED_INTRO_KEY) === '1') return false; }
-  catch { return false; } // storage off - a dismissal couldn't persist, so don't nag every visit
-  const settle = (): void => { try { localStorage.setItem(BRANDED_INTRO_KEY, '1'); } catch { /* storage off */ } };
-  try {
-    const slots = await state?.list?.();
-    if (slots && slots.length > 0) { settle(); return false; }
-  } catch { /* state unavailable - fall through and show the strip */ }
-  if (!anchorEl.isConnected) return false; // navigated away while the state check ran
-  if (anchorEl.parentElement?.querySelector('.brand-tips')) return false; // one strip only
-  const strip = document.createElement('aside');
-  strip.className = 'brand-tips brand-tips--intro';
-  strip.setAttribute('role', 'note');
-  strip.setAttribute('aria-label', 'Getting started');
-  strip.innerHTML = `
-    <p class="brand-tips-text">Your brand is loaded <span class="brand-tips-dot" aria-hidden="true">&middot;</span> pick a template, make it yours, export on brand <span class="brand-tips-dot" aria-hidden="true">&middot;</span> <a href="${docsAppHref('start/quickstart')}">Quickstart</a></p>
-    <button type="button" class="brand-tips-dismiss" aria-label="Dismiss">&#x2715;</button>`;
-  // One scope owns the strip's listeners: dispose releases them all, so a
-  // teardown path can never forget one (lib/dispose.ts).
-  const scope = createScope();
-  const onNav = (): void => {
-    // Opening a tool is the strip's own advice taken - settle without requiring the ✕.
-    if (location.pathname.startsWith('/t/') || location.hash.startsWith('#/tool')) {
-      settle();
-      teardown();
-    }
-    if (!strip.isConnected) teardown(); // the gallery unmounted - stop listening either way
-  };
-  const teardown = (): void => {
-    scope.dispose();
-    strip.remove();
-  };
-  NAV_EVENTS.forEach(ev => scope.listen(window, ev, onNav));
-  strip.querySelector<HTMLButtonElement>('.brand-tips-dismiss')?.addEventListener('click', () => { settle(); teardown(); });
-  anchorEl.before(strip);
-  return true;
 }

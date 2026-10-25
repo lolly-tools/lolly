@@ -63,6 +63,8 @@ import { thumbsOps } from './assets/thumbs.ts';
 import { filtersOps } from './assets/filters.ts';
 import { sectionsOps } from './assets/sections.ts';
 import { detailsOps } from './assets/details.ts';
+import { swatchDetailsOps } from './assets/swatch-details.ts';
+import { SWATCH_SECTION, swatchSetOps } from './assets/swatch-set.ts';
 import { userAssetsOps } from './assets/user-assets.ts';
 import { bulkOps } from './assets/bulk.ts';
 import { downloadsOps } from './assets/downloads.ts';
@@ -104,6 +106,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.filters = filtersOps(cat);
   cat.sections = sectionsOps(cat);
   cat.details = detailsOps(cat);
+  cat.swatches = swatchDetailsOps(cat);
+  cat.swatchSet = swatchSetOps(cat);
   cat.userAssets = userAssetsOps(cat);
   cat.bulk = bulkOps(cat);
   cat.downloads = downloadsOps(cat);
@@ -117,6 +121,9 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   if (!preview) document.title = tRaw('{name} - Lolly', { name: t('Assets') });
   // Deep link: /#/a?asset=<id> focuses (scrolls to + highlights) that asset on load.
   const linkedAsset = new URLSearchParams(params).get('asset'); cat.linkedAsset = linkedAsset as CatCtx['linkedAsset'];
+  // Deep link: /#/a?swatch=<label> opens that brand swatch's details, the swatch
+  // sibling of ?asset=.
+  cat.linkedSwatch = linkedAsset ? null : new URLSearchParams(params).get('swatch');
   // Deep link: /#/a?section=<key>[,<key>…] lands with those sections EXPANDED (over the
   // collapsed-by-default state) and scrolls the first into view - the section-level sibling
   // of ?asset=. Validated against ALL_SECTION_KEYS at apply time (below).
@@ -151,6 +158,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // against the bucket table itself (a Set - an object lookup would answer yes to
   // 'constructor'); anything unrecognised leaves the default 'all' standing.
   cat.showHidden = new URLSearchParams(params).has('hidden');
+  // The role colours start behind their card (sections.ts swatchRevealHtml); ?swatches shows them.
+  cat.showSwatches = new URLSearchParams(params).has('swatches');
   cat.loadFailed = false;                    // the catalog query threw - a total sync failure, distinct from an empty catalogue
   const urlType = new URLSearchParams(params).get('type'); cat.urlType = urlType as CatCtx['urlType'];
   cat.typeFilter = urlType && new Set<string>(['all', ...Object.keys(TYPE_FILTER_TYPES)]).has(urlType)
@@ -189,6 +198,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // Catalog assets and uploads share selection; changes to files are upload-only.
   // Uses the Projects checkbox and floating bulk-bar pattern.
   const selected = new Set<string>(); cat.selected = selected;
+  // Swatch cards keep their own selection (views/assets/swatch-set.ts).
+  cat.swatchSelected = new Set<string>();
 
   const tileSelect = wireTileSelect({
     host: viewEl,
@@ -200,7 +211,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     setRefs: (refs) => {
       selected.clear();
       for (const id of refs) selected.add(id);
-      for (const tile of viewEl.querySelectorAll<HTMLElement>('.cat-tile')) {
+      for (const tile of viewEl.querySelectorAll<HTMLElement>('.cat-tile[data-id]')) {
         const on = selected.has(tile.dataset.id ?? '');
         tile.classList.toggle('is-selected', on);
         tile.querySelector('.cat-check')?.setAttribute('aria-pressed', String(on));
@@ -213,9 +224,11 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     // its own drag-to-scroll) - only in a genuine gap. `.cat-toolbar` earns its place: it's a
     // STICKY pill floating over the grid, so its padding and flex gaps read as empty canvas
     // while actually sitting on top of the cards - a press there is aiming at the toolbar.
-    noStart: '.cat-tile, button, a, input, label, textarea, select, dialog, .cat-bulkbar, '
+    noStart: '.cat-tile, button, a, input, label, textarea, select, dialog, .cat-bulkbar, .cat-swatchbar, '
       + '.cat-toolbar, .cat-fav-strip, .featured, .gallery-topbar, .gallery-footer, .updz, '
       + '[data-dropzone-mount], .cat-dl-section, .cat-uploads-bar',
+    // The Swatches section runs its own gestures over its own selection (swatch-set.ts).
+    owns: (el) => !el.closest(SWATCH_SECTION),
     // Keyboard grid (plans/132 WP-L): arrows/Space/Cmd-A from the shared model;
     // Delete soft-deletes uploads (catalog assets are a permanent contract -
     // they are silently skipped); F2 renames a single upload.
@@ -230,17 +243,32 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
       },
     },
   }); cat.tileSelect = tileSelect;
+  const unwireSwatchSet = cat.swatchSet.wire();
+  // A swatch card's ref is `sw:<panel index>`, so the one menu can tell the two
+  // kinds of card apart; the two selections never coexist, so the bulk menu
+  // belongs to whichever is non-empty.
+  const swatchRef = (ref: string): string | null => (ref.startsWith('sw:') ? ref.slice(3) : null);
   const tileMenu = wireTileContextMenu({
     host: viewEl,
-    tileSelector: '.cat-tile[data-id], .cat-fav-strip .ftile[data-tool]',
-    refOf: (tile) => tile.dataset.id ?? tile.dataset.tool ?? null,
+    tileSelector: '.cat-tile[data-id], .cat-swatch-tile[data-swatch-ref], .cat-fav-strip .ftile[data-tool]',
+    refOf: (tile) => tile.dataset.id ?? (tile.dataset.swatchRef ? `sw:${tile.dataset.swatchRef}` : null) ?? tile.dataset.tool ?? null,
     tileAt: (x, y) => cat.featuredHandle?.tileAt(x, y) ?? null,
-    isBulkTarget: (id, tile) => !tile.closest('.cat-fav-strip') && selected.size > 1 && selected.has(id),
-    singleHtml: (tgt) => tgt.tile?.closest('.cat-fav-strip')
-      ? menuItemHtml('fav', STAR_ICON, t('Unfavourite')) + menuItemHtml('share-favourite', icon('share'), t('Share'))
-      : cat.tiles.catTileMenuHtml(tgt.ref),
-    bulkHtml: () => cat.tiles.catBulkMenuHtml(),
-    onAction: (act, tgt) => {
+    isBulkTarget: (id, tile) => {
+      const sw = swatchRef(id);
+      if (sw !== null) return cat.swatchSet.isBulkTarget(sw);
+      return !tile.closest('.cat-fav-strip') && selected.size > 1 && selected.has(id);
+    },
+    singleHtml: (tgt) => {
+      const sw = swatchRef(tgt.ref);
+      if (sw !== null) return cat.swatchSet.menuHtml(sw);
+      return tgt.tile?.closest('.cat-fav-strip')
+        ? menuItemHtml('fav', STAR_ICON, t('Unfavourite')) + menuItemHtml('share-favourite', icon('share'), t('Share'))
+        : cat.tiles.catTileMenuHtml(tgt.ref);
+    },
+    bulkHtml: () => (cat.swatchSet.count() ? cat.swatchSet.bulkMenuHtml() : cat.tiles.catBulkMenuHtml()),
+    onAction: (act, tgt, kind) => {
+      const sw = tgt ? swatchRef(tgt.ref) : null;
+      if (sw !== null || (kind === 'bulk' && cat.swatchSet.count())) { cat.swatchSet.onMenuAction(act, sw); return; }
       if (act === 'fav' && tgt?.tile?.closest('.cat-fav-strip')) {
         void cat.userAssets.toggleFavourite(tgt.ref);
         return;
@@ -407,6 +435,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
       cat.mounted = false;
       cat.actionsPopover?.close();
       tileSelect.destroy();
+      unwireSwatchSet();
       tileMenu.destroy();
       unwireEscape();
       cat.sections.closeDetails();
@@ -458,6 +487,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     // Not optional: the marquee's mousedown is bound to viewEl (#view), which the router
     // REUSES for every route - leave it bound and the next mount stacks another copy.
     tileSelect.destroy();
+    unwireSwatchSet();
     tileMenu.destroy();
     unwireEscape();
     cat.featuredHandle?.destroy();
@@ -531,6 +561,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // Deep link: open the shared asset's details modal over the catalog once it's painted.
   // A styled id opens the base asset with its colour pre-selected + applied - an icon theme
   // (…?theme=<id>) or a photo treatment (…?treatment=<id>). An id carries at most one.
+  if (cat.linkedSwatch && !cat.swatches.openSwatchByLabel(cat.linkedSwatch)) announce(t('That swatch isn’t in this palette'));
   if (linkedAsset) {
     const { theme } = parseThemedAssetId(linkedAsset);
     const { treatment } = parseTreatedAssetId(linkedAsset);

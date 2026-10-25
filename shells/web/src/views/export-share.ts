@@ -3,7 +3,7 @@
 import { mountSharePanel, type ShareDialogOpts } from '../components/share-dialog.ts';
 import { mountDockedPanel } from '../components/docked-panel.ts';
 import { getExportPolicy } from '../lib/export-policy.ts';
-import { routeParams, updateRouteParams } from '../lib/url-state.ts';
+import { flushAddressWrites, routeParams, updateRouteParams } from '../lib/url-state.ts';
 import { icon } from '../lib/icons.ts';
 import { attachShareMeter } from '../lib/url-budget-gauge.ts';
 import { t } from '../i18n.ts';
@@ -98,6 +98,7 @@ export function mountExportShare(root: HTMLElement, options: () => ShareDialogOp
   };
   const open = (): void => {
     if (disposed) return;
+    flushAddressWrites();
     updateRouteParams({ _dialog: 'share', share: null });
     refresh();
     if (panel) { panel.show(); return; }

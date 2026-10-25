@@ -3,9 +3,10 @@
  * Workspace account actions in the existing profile menu, with a standalone
  * header chip only on views that have no profile control.
  *
- * Members get Inbox, Projects, Admin (when allowed) and sign-out actions. The
- * existing Settings row contains linked sign-ins; the standalone chip offers that
- * destination directly. Visitors get Sign in. org/index.ts registers the actions,
+ * Members get Projects, Admin (when allowed) and Sign out. In the avatar menu the
+ * workspace's messages are part of Notifications; the standalone chip, on a view with
+ * no avatar menu, adds an Inbox row. Linked sign-ins and Sign out everywhere live in
+ * Settings, which the standalone chip offers directly. Visitors get Sign in. org/index.ts registers the actions,
  * hands in everything this module reads (this module imports
  * nothing from org/index.ts, so it adds no load-order cycle) and loads it lazily, so it
  * is not on the boot path.
@@ -26,6 +27,7 @@ import { choiceDialog } from '../components/confirm-dialog.ts';
 import { registerAccountSlot, type AccountMenuControls } from '../lib/account-slot.ts';
 import { RECOVERY_SLOT_PREFIX, ownsRecoveryCopy, withoutRecoveryOwner } from '../lib/collab-recovery-owner.ts';
 import { getHostRef } from '../lib/host-ref.ts';
+import { flushAddressWrites } from '../lib/url-state.ts';
 import { iconNode } from '../lib/icon-node.ts';
 import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
@@ -37,9 +39,6 @@ export interface ChipAccount {
   inbox: { count(): number; onChange(fn: (count: number) => void): () => void; open(): void } | null;
 }
 
-/** How Sign out on all devices ended: done, an instance without the route, or a failure. */
-export type EverywhereOutcome = 'ok' | 'unsupported' | 'failed';
-
 /** Everything the chip reads and does, handed in by org/index.ts. */
 export interface AccountChipDeps {
   account(): ChipAccount | null;
@@ -48,7 +47,6 @@ export interface AccountChipDeps {
   /** Where Sign in goes, for a visitor on an open workspace; null when there is no way in. */
   signInUrl(): string | null;
   signOut(): Promise<boolean>;
-  signOutEverywhere(): Promise<EverywhereOutcome>;
   /** The member's account id (`OrgUser.sub`), which tags their recovery copies. */
   principal?: string;
   /** The workspace's own address, which tags recovery copies too. */
@@ -144,6 +142,39 @@ export function chipName(member: { email: string; name: string }): string {
 async function deliver(host: ReturnType<NonNullable<AccountChipDeps['host']>>, blob: Blob, filename: string): Promise<void> {
   if (host?.export?.download) { await host.export.download(blob, filename); return; }
   (await import('../bridge/anchor-save.ts')).anchorSave(blob, filename);
+}
+
+/**
+ * Before a sign-out: offer to download or discard the recovery copies this account
+ * holds for this workspace. Resolves 'go' to carry on (none here, or they are off the
+ * device now), 'stay' when the person cancelled, or the sentence to show when saving
+ * or removing them failed. The account menu and Settings (through org/index.ts) both
+ * ask it, so every way out asks the same question.
+ */
+export async function settleRecoveryCopies(
+  host: ReturnType<NonNullable<AccountChipDeps['host']>> | undefined, workspaceOrigin: string, principal: string | undefined,
+): Promise<'go' | 'stay' | string> {
+  if (!host?.state) return 'go';
+  const copies = await accountRecoveryCopies(host.state, workspaceOrigin, principal);
+  if (!copies.length) return 'go';
+  const choice = await choiceDialog({
+    title: tRaw('Download or discard {count} recovery copies before signing out?', { count: String(copies.length) }),
+    message: tRaw('Recovery copies keep interrupted edits from live documents on this device.'),
+    choices: [
+      { id: 'discard', label: tRaw('Discard recovery copies') },
+      { id: 'download', label: tRaw('Download recovery copies'), primary: true },
+    ],
+  });
+  if (choice === 'download') {
+    try { await deliver(host, recoveryCopiesFile(copies), RECOVERY_COPIES_FILENAME); } catch { return tRaw('Recovery download failed. Try again.'); }
+  } else if (choice !== 'discard') {
+    return 'stay';
+  }
+  // Downloaded or discarded, the copies leave this device before the person does: on a
+  // shared device the next person's browser must not hold them. A copy that cannot be
+  // removed keeps the person signed in, and says so.
+  try { for (const c of copies) await host.state.delete(c.slot); } catch { return tRaw('Could not complete this action. Please try again.'); }
+  return 'go';
 }
 
 /**
@@ -243,15 +274,16 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps, menu?
       error.setAttribute('role', 'alert');
       el.append(error);
     }
-    if (inbox) el.append(item('inbox', tRaw('Inbox'), { count: unread }));
+    // In the avatar menu the workspace's messages are part of Notifications, the
+    // one list (plan 320 J11); only the standalone chip, on a view with no avatar
+    // menu, keeps its own Inbox row.
+    if (inbox && !menu) el.append(item('inbox', tRaw('Inbox'), { count: unread }));
     el.append(item('projects', tRaw('Projects')));
     if (!menu) el.append(item('signins', tRaw('Linked sign-ins')));
     if (consoleUrl) el.append(item('console', tRaw('Admin'), { href: consoleUrl }));
-    el.append(
-      split(),
-      item('signout', tRaw('Sign out')),
-      item('everywhere', tRaw('Sign out everywhere')),
-    );
+    // Sign out everywhere lives in Settings, away from Sign out: side by side, the
+    // one that ends every session was a slip of the finger away (plan 320 J11).
+    el.append(split(), item('signout', tRaw('Sign out')));
     el.addEventListener('click', (e) => {
       const target = (e.target as Element).closest<HTMLElement>('[data-account-act]');
       if (!target) return;
@@ -260,7 +292,7 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps, menu?
       if (act === 'inbox') { pop.close(true); inbox?.open(); return; }
       if (act === 'projects') { pop.close(); go('#/p'); return; }
       if (act === 'signins') { pop.close(); go('#/settings?focus=instance-section'); return; }
-      if (act === 'signout' || act === 'everywhere') void leave(act, target);
+      if (act === 'signout') void leave(target);
     });
     const first = el.querySelector<HTMLElement>(state.failure ? '[data-account-act="signout"]' : '[data-account-act]');
     state.failure = '';
@@ -272,7 +304,7 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps, menu?
     onClose: () => { chip.setAttribute('aria-expanded', 'false'); },
   });
 
-  const go = deps.go ?? ((hash: string) => { location.hash = hash; });
+  const go = deps.go ?? ((hash: string) => { flushAddressWrites(); location.hash = hash; });
 
   const onClick = (): void => {
     if ('isOpen' in popover && popover.isOpen()) { popover.close(true); return; }
@@ -289,45 +321,22 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps, menu?
     if (chip.isConnected) { popover.close(); popover.open(); chip.setAttribute('aria-expanded', 'true'); }
   };
 
-  /** Offer to download or discard this account's recovery copies. Resolves whether to go on signing out. */
-  const settleRecoveryCopies = async (): Promise<boolean> => {
-    const host = deps.host ? deps.host() : getHostRef();
-    if (!host?.state) return true;
-    const copies = await accountRecoveryCopies(host.state, deps.workspaceOrigin, deps.principal);
-    if (!copies.length) return true;
-    const choice = await choiceDialog({
-      title: tRaw('Download or discard {count} recovery copies before signing out?', { count: String(copies.length) }),
-      message: tRaw('Recovery copies keep interrupted edits from live documents on this device.'),
-      choices: [
-        { id: 'discard', label: tRaw('Discard recovery copies') },
-        { id: 'download', label: tRaw('Download recovery copies'), primary: true },
-      ],
-    });
-    if (choice === 'download') {
-      try { await deliver(host, recoveryCopiesFile(copies), RECOVERY_COPIES_FILENAME); } catch { fail(tRaw('Recovery download failed. Try again.')); return false; }
-    } else if (choice !== 'discard') {
-      return false;
-    }
-    // Downloaded or discarded, the copies leave this device before the person does: on a
-    // shared device the next person's browser must not hold them. A copy that cannot be
-    // removed keeps the person signed in, and says so.
-    try { for (const c of copies) await host.state.delete(c.slot); } catch { fail(tRaw('Could not complete this action. Please try again.')); return false; }
-    return true;
+  /** This account's recovery copies, settled before a sign-out. Resolves whether to go on. */
+  const settle = async (): Promise<boolean> => {
+    const outcome = await settleRecoveryCopies(deps.host ? deps.host() : getHostRef(), deps.workspaceOrigin, deps.principal);
+    if (outcome === 'go') return true;
+    if (outcome !== 'stay') fail(outcome);
+    return false;
   };
 
-  const leave = async (act: 'signout' | 'everywhere', control: HTMLElement): Promise<void> => {
+  const leave = async (control: HTMLElement): Promise<void> => {
     if (state.busy) return;
     state.busy = true;
     control.setAttribute('aria-disabled', 'true');
     try {
       popover.close();
-      if (!await settleRecoveryCopies()) return;
-      if (act === 'everywhere') {
-        const outcome = await deps.signOutEverywhere().catch((): EverywhereOutcome => 'failed');
-        // An older instance has no such route: trying again would not help, so say what is missing.
-        if (outcome === 'unsupported') { fail(tRaw('This workspace cannot sign you out on other devices yet.')); return; }
-        if (outcome !== 'ok') { fail(tRaw('Could not sign out. Try again.')); return; }
-      } else if (!await deps.signOut().catch(() => false)) {
+      if (!await settle()) return;
+      if (!await deps.signOut().catch(() => false)) {
         fail(tRaw('Could not sign out. Try again.'));
         return;
       }

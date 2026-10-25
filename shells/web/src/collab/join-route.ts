@@ -66,7 +66,8 @@
  * send, but the reply has to travel BACK, and a blob pasted into a waiting dialog is
  * where pairs give up. So the reply is a link too. Clicking it opens a tab that hands
  * the payload to the tab holding the invite dialog over a `BroadcastChannel`, then gets
- * out of the way. Both legs are then click-or-paste-or-scan.
+ * out of the way. The invite leg is click, paste or scan; the reply leg is click or paste,
+ * and draws no QR, because the waiting window has no camera to scan one with.
  *
  * ── One more thing the channel is used for: "did I make this invite?" ──────────
  *
@@ -162,7 +163,7 @@ import {
 import { ANSWER_PARAM, INVITE_PARAM, MAX_TOKEN_CHARS } from './sdp-codec.ts';
 import type { CeremonyRole, ToolProbeRequest, ToolProbeResult } from './ceremony.ts';
 import { createRtcTransport, type RtcPeerConnectionCtor, type RtcTransport } from './rtc-transport.ts';
-import { createQrElementRenderer, probeBarcodeDetector, scanQrFromVideo } from './qr-skin.ts';
+import { probeBarcodeDetector, scanQrFromVideo } from './qr-skin.ts';
 import { flagHidden, isFlagOnSync, setFlagMirror, PRIVATE_COLLAB_FLAG } from '../feature-flags.ts';
 import { getCollabClientId, initCollabClientId } from '../lib/collab-plumbing.ts';
 import { deliverCollabConnection, releaseParked, type CollabConnection } from '../lib/collab-mount.ts';
@@ -370,8 +371,8 @@ export type ChannelFactory = (name: string) => CeremonyChannelLike | null;
 /**
  * Open the ceremony channel, or `null` where `BroadcastChannel` does not exist.
  *
- * Null is a supported answer, not an error: the reply-link skin is one of three (section 6.1),
- * and a browser without the API still has paste and scan. The route says so in words
+ * Null is a supported answer, not an error: the reply link is one of the reply's two forms,
+ * and a browser without the API still has the code to paste. The route says so in words
  * rather than failing.
  */
 export function openCeremonyChannel(make?: ChannelFactory): CeremonyChannelLike | null {
@@ -985,9 +986,10 @@ interface ViewElement extends HTMLElement { _cleanup?: () => void }
  * A handle a route can pull to stop waiting when it is being torn down.
  *
  * Both routes here wait on something outside themselves - the reply tab on an ack from
- * another window, `#/join` on a human deciding whether to turn the feature on - and both
- * waits are inside a promise the mount is parked on. Teardown has to be able to settle
- * that promise, or `main.ts` deleting the view leaves the mount pending forever.
+ * another window, `#/join` on a human deciding whether to turn the feature on - and each
+ * wait is a promise something is parked on: the reply tab's mount, and the flow `#/join`
+ * carries on after its mount has settled. Teardown has to be able to settle that promise,
+ * or `main.ts` deleting the view leaves it pending forever.
  */
 interface Cancellable { cancel?: () => void }
 
@@ -1308,8 +1310,6 @@ export interface JoinRouteDeps {
   readonly profileName?: string;
   /** Base for the reply link this side mints. Defaults to {@link appLinkBase}. */
   readonly linkBase?: string;
-  /** Draw a QR. Defaults to the in-repo encoder; `null` turns the skin off. */
-  readonly renderQr?: CollabCeremonyOptions['renderQr'] | null;
   /** Scan a QR. Defaults to a probe-gated camera scan; `null` turns the skin off. */
   readonly scan?: CollabCeremonyOptions['scan'] | null;
   /** Take the live pair. Defaults to the collab-mount registry. */
@@ -1354,7 +1354,7 @@ export async function mountJoinRoute(
   /** The own-invite ask's channel, held only so teardown can close it. */
   let ownAsk: CeremonyChannelLike | null = null;
   // The enable card AND the code door both wait on a human, so teardown needs a way to
-  // settle the promise the mount is parked on (see {@link Cancellable}). One handle for
+  // settle the promise the flow is parked on (see {@link Cancellable}). One handle for
   // both: they are never on screen at the same time.
   const gate: Cancellable = {};
   // `leaving` is set before the view is torn down, so the dialog's own `onClose` knows
@@ -1386,124 +1386,147 @@ export async function mountJoinRoute(
   await loadNamespace('collab');
   if (leaving) return;
 
-  const flagOn = deps.flagOn ?? (() => isFlagOnSync(PRIVATE_COLLAB_FLAG));
-  // Set only when the flag was turned on right here AND the profile write did not take:
-  // the page behind the ceremony then carries the one sentence that says so.
-  let notSaved: HTMLElement | null = null;
-  // What to say out loud once the route has painted whatever comes after the gate. Empty
-  // unless the flag was turned on right here - the ordinary path announces nothing extra.
-  let proceedSaid = '';
-  if (!flagOn()) {
-    // Whose refusal is it? A forced flag is the organization's, and no button on this
-    // page could honestly undo it. Anything else is the reader's own decision to make.
-    const governedOff = deps.governedOff ?? (() => flagHidden(PRIVATE_COLLAB_FLAG.id));
-    if (governedOff()) { card(view, tRaw(STRINGS.governedTitle), tRaw(STRINGS.governedBody)); return; }
+  // `main.ts` keeps its "Loading" card open, and the view marked as mounting, until this
+  // promise settles. The enable card and the code door both wait on a person, so a mount
+  // that awaited the answer left that modal card over the very screen asking the question,
+  // and the page could not be used. The mount therefore settles at the first of two
+  // things: the flow ending, or a screen that waits on a person being painted. The flow
+  // carries on detached from there, and teardown still reaches it, because `_cleanup` sets
+  // `leaving` and `gate.cancel` settles the wait.
+  const continueJoin = async (parked: () => void): Promise<void> => {
+    const flagOn = deps.flagOn ?? (() => isFlagOnSync(PRIVATE_COLLAB_FLAG));
+    // Set only when the flag was turned on right here AND the profile write did not take:
+    // the page behind the ceremony then carries the one sentence that says so.
+    let notSaved: HTMLElement | null = null;
+    // What to say out loud once the route has painted whatever comes after the gate. Empty
+    // unless the flag was turned on right here - the ordinary path announces nothing extra.
+    let proceedSaid = '';
+    if (!flagOn()) {
+      // Whose refusal is it? A forced flag is the organization's, and no button on this
+      // page could honestly undo it. Anything else is the reader's own decision to make.
+      const governedOff = deps.governedOff ?? (() => flagHidden(PRIVATE_COLLAB_FLAG.id));
+      if (governedOff()) { card(view, tRaw(STRINGS.governedTitle), tRaw(STRINGS.governedBody)); return; }
 
-    // NOTHING has been decoded yet, deliberately - the gate must not double as an oracle
-    // on a stranger's token (see the header).
-    if (!(await offerEnable(view, gate))) return;
-    if (leaving) return;
-
-    const saved = await enablePrivateCollab(host);
-    if (leaving) return;
-    // The same gate again, not an assumption that the write worked: if neither the record
-    // nor the mirror took, the feature really is still off, and the ordinary refusal is
-    // the true thing to say.
-    if (!flagOn()) { flagOff(view); return; }
-    if (!saved) notSaved = node('p', { class: 'note note--warning', text: tRaw(STRINGS.enableNotSaved) });
-    // Said after the next paint, not here: `card()` announces the page it paints, there is
-    // ONE live region, and the last write in a frame is the line a reader actually hears.
-    // Announcing the outcome first would leave it silently overwritten by a page title.
-    proceedSaid = saved ? tRaw(STRINGS.enableDone) : tRaw(STRINGS.enableNotSaved);
-  }
-
-  // Absent and empty are two different arrivals, and they get two different screens.
-  // NO `inv` at all is somebody who navigated here (from the Share dialog's "Join with
-  // a code", a bookmark, a typed address) and has a code in hand; the door is the whole
-  // answer. `inv=` present but empty is a link that was BUILT and then damaged on the
-  // way. That is a fact about the link, and worth saying.
-  const token = new URLSearchParams(params).get(INVITE_PARAM);
-  let invite: SignalView;
-  if (token === null) {
-    const pasted = await askForCode(view, gate);
-    if (leaving || !pasted) return;
-    invite = pasted;
-  } else {
-    const read = readSignal(token, 'invite');
-    if (!read.ok) {
-      // Deliberately NOT `proceedSaid` here: it ends "Opening the invite", and nothing is
-      // opening. The refusal card announces itself, which is the line that can be acted on.
-      if (read.code === 'empty') card(view, tRaw(STRINGS.emptyTitle), tRaw(STRINGS.emptyBody));
-      else if (read.code === 'wrong-kind') card(view, tRaw(STRINGS.wrongKindTitle), tRaw(STRINGS.wrongKindBody));
-      else card(view, tRaw(STRINGS.unreadableTitle), tRaw(STRINGS.unreadableBody));
-      return;
-    }
-    invite = read.value;
-  }
-
-  card(view, tRaw(STRINGS.joinTitle), tRaw(STRINGS.joinBody), notSaved ? [notSaved] : []);
-  if (proceedSaid) announce(proceedSaid);
-
-  // A durable client id if the database will give us one; the synchronous fallback
-  // already handed out an in-memory ULID, so this never blocks the ceremony.
-  await initCollabClientId().catch(() => '');
-  if (leaving) return;
-
-  const profileName = deps.profileName ?? (await readFirstname(host));
-  if (leaving) return;
-
-  const scan = deps.scan === null
-    ? undefined
-    : deps.scan ?? (await makeCameraScan(scanning.signal));
-  if (leaving) return;
-  const renderQr = deps.renderQr === null ? undefined : deps.renderQr ?? createQrElementRenderer();
-
-  let transport: RtcTransport | null = null;
-  const effects = deps.effects ?? createCollabEffects({
-    onTransport: (built) => { transport = built; deps.onTransport?.(built); },
-  });
-
-  const open = deps.openCeremony ?? openCollabCeremony;
-  dialog = open({
-    role: 'acceptor',
-    effects,
-    profileName,
-    renderQr,
-    scan,
-    linkBase: deps.linkBase ?? appLinkBase(),
-    onConnected: (handle) => {
-      const conn = connectionOf('acceptor', handle, transport, undefined);
-      if (!conn) return;
-      handed = conn;
-      (deps.onConnected ?? handOffConnection)(conn, dialog?.el ?? null);
-    },
-    onClose: () => {
-      scanning.abort();
-      // This page is about to say "nothing else is being shared", so make that true. A
-      // pair nobody adopted is still a live peer connection with three data channels,
-      // and the dialog will not close it (`lib/collab-mount.ts`) - we hold the transport
-      // precisely so somebody can. A no-op once a mount has taken it.
-      if (handed) { releaseParked(handed); handed = null; }
+      // NOTHING has been decoded yet, deliberately - the gate must not double as an oracle
+      // on a stranger's token (see the header).
+      const decided = offerEnable(view, gate);
+      parked();
+      if (!(await decided)) return;
       if (leaving) return;
-      card(view, tRaw(STRINGS.joinTitle), tRaw(STRINGS.joinDone));
-    },
-  });
 
-  // However the invite arrived, it is delivered as if pasted (see the header).
-  deliverInviteToDialog(dialog.el, invite.link);
+      const saved = await enablePrivateCollab(host);
+      if (leaving) return;
+      // The same gate again, not an assumption that the write worked: if neither the record
+      // nor the mirror took, the feature really is still off, and the ordinary refusal is
+      // the true thing to say.
+      if (!flagOn()) { flagOff(view); return; }
+      if (!saved) notSaved = node('p', { class: 'note note--warning', text: tRaw(STRINGS.enableNotSaved) });
+      // Said after the next paint, not here: `card()` announces the page it paints, there is
+      // ONE live region, and the last write in a frame is the line a reader actually hears.
+      // Announcing the outcome first would leave it silently overwritten by a page title.
+      proceedSaid = saved ? tRaw(STRINGS.enableDone) : tRaw(STRINGS.enableNotSaved);
+    }
 
-  // And then, beside a ceremony that is already running, one question that changes
-  // nothing: did a window on this device make this invite? Fired without an `await`
-  // precisely so it cannot delay the flow - the answer, if it ever comes, buys a
-  // sentence. Silence, no channel, and a torn-down view are all the same screen.
-  const asking = deps.channel === null ? null : openCeremonyChannel(deps.channel);
-  if (!asking) return;
-  ownAsk = asking;
-  void askOwnInvite(asking, invite.link, deps.askMs ?? OWN_INVITE_ASK_MS).then((mine) => {
-    if (ownAsk === asking) ownAsk = null;
-    try { asking.close(); } catch { /* a closed channel is the goal either way */ }
-    if (!mine || leaving || !dialog) return;
-    noteOwnInvite(dialog.el);
+    // Absent and empty are two different arrivals, and they get two different screens.
+    // NO `inv` at all is somebody who navigated here (from the Share dialog's "Join with
+    // a code", a bookmark, a typed address) and has a code in hand; the door is the whole
+    // answer. `inv=` present but empty is a link that was BUILT and then damaged on the
+    // way. That is a fact about the link, and worth saying.
+    const token = new URLSearchParams(params).get(INVITE_PARAM);
+    let invite: SignalView;
+    if (token === null) {
+      const asked = askForCode(view, gate);
+      parked();
+      const pasted = await asked;
+      if (leaving || !pasted) return;
+      invite = pasted;
+    } else {
+      const read = readSignal(token, 'invite');
+      if (!read.ok) {
+        // Deliberately NOT `proceedSaid` here: it ends "Opening the invite", and nothing is
+        // opening. The refusal card announces itself, which is the line that can be acted on.
+        if (read.code === 'empty') card(view, tRaw(STRINGS.emptyTitle), tRaw(STRINGS.emptyBody));
+        else if (read.code === 'wrong-kind') card(view, tRaw(STRINGS.wrongKindTitle), tRaw(STRINGS.wrongKindBody));
+        else card(view, tRaw(STRINGS.unreadableTitle), tRaw(STRINGS.unreadableBody));
+        return;
+      }
+      invite = read.value;
+    }
+
+    card(view, tRaw(STRINGS.joinTitle), tRaw(STRINGS.joinBody), notSaved ? [notSaved] : []);
+    if (proceedSaid) announce(proceedSaid);
+
+    // A durable client id if the database will give us one; the synchronous fallback
+    // already handed out an in-memory ULID, so this never blocks the ceremony.
+    await initCollabClientId().catch(() => '');
+    if (leaving) return;
+
+    const profileName = deps.profileName ?? (await readFirstname(host));
+    if (leaving) return;
+
+    const scan = deps.scan === null
+      ? undefined
+      : deps.scan ?? (await makeCameraScan(scanning.signal));
+    if (leaving) return;
+
+    let transport: RtcTransport | null = null;
+    const effects = deps.effects ?? createCollabEffects({
+      onTransport: (built) => { transport = built; deps.onTransport?.(built); },
+    });
+
+    const open = deps.openCeremony ?? openCollabCeremony;
+    dialog = open({
+      role: 'acceptor',
+      effects,
+      profileName,
+      // No `renderQr`: this side only ever shows the REPLY, and the reply is never drawn as
+      // a QR (see `components/collab-ceremony.ts`'s header).
+      scan,
+      linkBase: deps.linkBase ?? appLinkBase(),
+      onConnected: (handle) => {
+        const conn = connectionOf('acceptor', handle, transport, undefined);
+        if (!conn) return;
+        handed = conn;
+        (deps.onConnected ?? handOffConnection)(conn, dialog?.el ?? null);
+      },
+      onClose: () => {
+        scanning.abort();
+        // This page is about to say "nothing else is being shared", so make that true. A
+        // pair nobody adopted is still a live peer connection with three data channels,
+        // and the dialog will not close it (`lib/collab-mount.ts`) - we hold the transport
+        // precisely so somebody can. A no-op once a mount has taken it.
+        if (handed) { releaseParked(handed); handed = null; }
+        if (leaving) return;
+        card(view, tRaw(STRINGS.joinTitle), tRaw(STRINGS.joinDone));
+      },
+    });
+
+    // However the invite arrived, it is delivered as if pasted (see the header).
+    deliverInviteToDialog(dialog.el, invite.link);
+
+    // And then, beside a ceremony that is already running, one question that changes
+    // nothing: did a window on this device make this invite? Fired without an `await`
+    // precisely so it cannot delay the flow - the answer, if it ever comes, buys a
+    // sentence. Silence, no channel, and a torn-down view are all the same screen.
+    const asking = deps.channel === null ? null : openCeremonyChannel(deps.channel);
+    if (!asking) return;
+    ownAsk = asking;
+    void askOwnInvite(asking, invite.link, deps.askMs ?? OWN_INVITE_ASK_MS).then((mine) => {
+      if (ownAsk === asking) ownAsk = null;
+      try { asking.close(); } catch { /* a closed channel is the goal either way */ }
+      if (!mine || leaving || !dialog) return;
+      noteOwnInvite(dialog.el);
+    });
+  };
+
+  await new Promise<void>((mounted, failed) => {
+    let detached = false;
+    continueJoin(() => { detached = true; mounted(); }).then(() => mounted(), (error: unknown) => {
+      // Until a person is being asked something, a failure is the router's to show, with
+      // its Reload card. After that nothing awaits the mount, so the failure is logged.
+      if (!detached) { failed(error); return; }
+      if (!leaving) console.error('#/join stopped after its first screen:', error);
+    });
   });
 }
 

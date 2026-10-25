@@ -32,7 +32,11 @@ import { layoutInspectorControls, layoutInspectorSignature, layoutSectionRows, w
  * own (see `numField`) - so a drag is one undo step, not sixty.
  *
  * REPAINT DISCIPLINE. One `model.subscribe` handler, memoised on the selection ids
- * plus the WATCHED field values of the sections currently visible. An edit to a
+ * plus the WATCHED field values of the sections currently visible. A change to the
+ * rows is noticed by the identity of the `boxes` array (`noteBoxes`), never by
+ * serialising it, and the repaint it causes waits for the next frame, so the two
+ * emits of one edit cost one repaint. A write made by this column is the exception:
+ * it repaints at once, because the code after it reads the rebuilt column. An edit to a
  * field no visible section shows (a `notes` edit while a box is selected, the
  * timeline writing keyframes) leaves the DOM alone. A CLOSED column skips the work
  * entirely and repaints once on open. And a rebuild never runs while the user is
@@ -117,6 +121,7 @@ import {
 } from './free-canvas-fields.ts';
 import type { ChoiceField } from './free-canvas-fields.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
+import { oncePerFrame, ownWrites, rowsWatch } from './design-column-sync.ts';
 import type {
   ArtboardPort, DesignGuide, DesignGuidePort, FramePort, InspectorActions, ModelPort, NarrationActions, NarrationStatus, SelectionPort,
   ToolSettingsHandle,
@@ -137,6 +142,7 @@ import { approveWebLink } from './design-web-policy.ts';
 import { announce } from '../a11y.ts';
 import { fieldFocusToken } from '../lib/collab-field-focus.ts';
 import { onTrustedSitesChange } from '../lib/trusted-sites.ts';
+import { foldBody } from '../lib/disclosure-motion.ts';
 
 /** The dock slot this column lives in - the app's one right sidebar. */
 const DOCK_ID = 'inspector';
@@ -634,13 +640,15 @@ function wireInspectorSelects(root: HTMLElement, model: ModelPort, ids: string[]
 export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorHandle {
   let tokenDisposers: ReturnType<typeof mountDesignTokenBindings>[] = [];
   const tokenUiState = new Map<string, { open?: boolean; field?: string }>();
-  const { canvasEl, model, selection, artboard, actions, fonts, narration } = opts;
+  const { canvasEl, selection, artboard, actions, fonts, narration } = opts;
+  const writes = ownWrites();   // see design-column-sync.ts
+  const model = writes.model(opts.model);
   let voiceList: SpeechVoiceInfo[] | null = null;   // the bridge's voices, fetched once per column
   let mountedAudit: MountedDesignAudit | null = null;
   let mountedAuditKey = '';
   let mountedAuditGeneration = 0;
   let mountedAuditRevision = 0;
-  let boxesAuditKey = '';
+  const rows = rowsWatch(() => model.getBoxes());
   let waitingForCanvasPaint = false;
   const cfg = model.cfg as Cfg;
   const frame = model.frame as InspFrameCfg | null;
@@ -1239,8 +1247,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + `<span>${escape([facts, verdict].filter(Boolean).join(' · '))}</span>${items}</div></div>`;
   }
 
-  function currentBoxesAuditKey(): string {
-    try { return JSON.stringify(model.getBoxes()); } catch { return String(model.getBoxes().length); }
+  /** A change to the rows invalidates the mounted audit until the paint that shows them. */
+  function noteBoxes(): void {
+    if (rows.changed()) { waitingForCanvasPaint = true; mountedAudit = null; mountedAuditKey = ''; mountedAuditGeneration++; }
   }
 
   /** Run only against a settled canvas. A model echo arrives before tool.ts's rAF
@@ -1248,14 +1257,15 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * below is what releases the audit. */
   function scheduleMountedAudit(force = false): void {
     if (!open || waitingForCanvasPaint || destroyed) return;
-    const key = `${boxesAuditKey}|${mountedAuditRevision}`;
+    const key = `${rows.revision()}|${mountedAuditRevision}`;
     if (!force && key === mountedAuditKey) return;
     mountedAuditKey = key;
     const generation = ++mountedAuditGeneration;
+    const revision = rows.revision();
     const size = canvasSize();
     const report = inspectDesignV1(model.getBoxes(), { width: size.w, height: size.h });
     void auditCurrentDesign(canvasEl, report, { resolveFont: opts.resolveFont, isCurrent: () => !destroyed && generation === mountedAuditGeneration }).then(result => {
-      if (!result || destroyed || generation !== mountedAuditGeneration || boxesAuditKey !== currentBoxesAuditKey()) return;
+      if (!result || destroyed || generation !== mountedAuditGeneration || revision !== rows.revision()) return;
       mountedAudit = result;
       // Mounted findings are deliberately outside `signature()` (which hashes authored
       // state). Force the one repaint that publishes this asynchronous browser answer.
@@ -2317,7 +2327,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       return;
     }
     head?.setAttribute('aria-expanded', String(openSec));
-    if (rows) rows.hidden = !openSec;
+    if (rows) foldBody(rows, openSec, shown => { rows.hidden = !shown; });
   }
 
   // ── repaint memo ────────────────────────────────────────────────────────────
@@ -2341,7 +2351,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // Document's readout is the one value that is NOT in the model - it measures the
     // canvas - so it is hashed here and woken by the canvas's own `canvas-resize`.
     const size = g.kind === 'empty' ? canvasSize() : null;
-    const doc = size ? [model.getInput('background'), model.getInput('projectFps'), size.w, size.h, model.getBoxes(), documentThemeSignature(opts.theme)] : [];
+    if (size) noteBoxes();   // the health report reads every row: the revision stands for them
+    const doc = size ? [model.getInput('background'), model.getInput('projectFps'), size.w, size.h, rows.revision(), documentThemeSignature(opts.theme)] : [];
     // Narration status is the OTHER value no watched field carries: it is derived from
     // the `narration:<frameId>` clip's resolved asset meta, on a different row entirely.
     // Without it the Present section kept saying "Not narrated yet." after a successful
@@ -2544,18 +2555,10 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   // ── mount ───────────────────────────────────────────────────────────────────
 
-  boxesAuditKey = currentBoxesAuditKey();
-  const unsubModel = model.subscribe(() => {
-    const next = currentBoxesAuditKey();
-    if (next !== boxesAuditKey) {
-      boxesAuditKey = next;
-      waitingForCanvasPaint = true;
-      mountedAudit = null;
-      mountedAuditKey = '';
-      mountedAuditGeneration++;
-    }
-    sync();
-  });
+  // Rows are noted at once, before the paint event releases the audit; the repaint
+  // waits a frame unless this column made the write itself.
+  const repaint = oncePerFrame(() => sync());
+  const unsubModel = model.subscribe(() => { noteBoxes(); if (writes.active()) repaint.now(); else repaint.schedule(); });
   const unsubSel = selection.onChange(() => sync());
   const unsubGuides = opts.guides?.onChange(() => sync());
   const unsubArt = artboard.onChange(() => sync());

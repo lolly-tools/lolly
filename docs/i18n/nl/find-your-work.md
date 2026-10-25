@@ -1,6 +1,8 @@
 # Vind en herstel je werk
 
-Alles wat je in Lolly maakt, blijft in de browser of app waarin je het maakte, op dat apparaat, tenzij je [Synchronisatie](/info/sync.html) aanzet. Opgeslagen werk staat in **Projecten**. Een gedownload bestand staat waar je browser of systeem het neerzette, en meestal wacht er ook een kopie in **Assets**. Bij de meeste tools wordt werk dat je nooit hebt opgeslagen ook bewaard. Deze pagina behandelt elk van deze gevallen, plus een gesloten tabblad, gewiste browsergegevens, eerdere versies, verwijderde items en verhuizen naar een ander apparaat.
+Er ontbreekt iets: een ontwerp dat je nooit opsloeg, een bestand dat je downloadde, de versie van vorige week, of alles nadat de browser is gewist. Begin met de tabel en volg dan het gedeelte waarnaar ze wijst.
+
+Persoonlijk werk blijft in de browser of app waarin je het maakte, op dat apparaat, tenzij je [Sync](/info/sync.html) aanzet. Een organisatie die het optionele Lolly Work gebruikt, bewaart ook **Team projects** op haar server, hieronder behandeld.
 
 | Wat je deed | Waar je moet kijken |
 |---|---|
@@ -10,13 +12,23 @@ Alles wat je in Lolly maakt, blijft in de browser of app waarin je het maakte, o
 | Geen van beide, in een andere tool | Alleen het tabblad waarin je werkte, tot je het sluit |
 | In de app verwijderd | **Prullenbak**, in **Projecten**, **Assets** of **Instellingen → Opslag**, 30 dagen lang |
 
+::: figure find-your-work-places
+Waar je werk staat: de eigen opslag van de browser bevat Projects, History en Trash; downloads gaan naar de mappen van je apparaat; Sync en een back-upbestand zijn de kopieën buiten de browser.
+:::
+
+::: details Gedeeld werk vinden in Lolly Work (optioneel)
+Open de Lolly van je organisatie en meld je aan, kijk dan in **Projects → Team projects**. Gedeelde sessies worden door die instantie bewaard en verschijnen volgens je toegang. Aanmelden kan de toegang tot die sessies op een ander apparaat herstellen; het herstelt je persoonlijke bibliotheek of apparaatback-up niet.
+
+Wacht in een [werkcollab](/info/collaborate.html#work-collabs-with-lolly-work-optional) op **Saved to work** voordat je weggaat. Als een gedeeld project ontbreekt, controleer dan of je bent verbonden met de juiste instantie en vraag de beheerder naar toegang of bewaartermijn. Browsergegevens wissen verwijdert lokale kopieën, niet de serverkopie van de organisatie. Zie [Lolly gebruiken bij je organisatie](/info/organisation.html).
+:::
+
 ## Iets vinden dat je hebt opgeslagen
 
 1. Druk op **Home**, linksboven in de tool.
 2. Open het tabblad **Projecten** boven aan het startscherm (het mapicoon op een telefoon).
 3. Kijk op het eerste scherm. Werk dat is opgeslagen in **Mijn bibliotheek** staat daar, en elk project is een map. Om alle mappen tegelijk te doorzoeken, typ je iets in **Zoek in alle projecten…** onder aan het scherm.
 
-Een item krijgt de naam die je in het exportpaneel hebt getypt, of anders de naam van zijn tool, zoals **QR Code**, als je niets typte. Open het item en elke instelling is terug, klaar om te wijzigen en opnieuw te exporteren. Om nieuw werk op deze manier te bewaren, zie [Opslaan en verdergaan](/info/using.html#saving-continuing).
+Een item krijgt de naam van de bestandsnaam die je in het exportpaneel typte, of anders van zijn tool, zoals **QR Code**, als je er geen typte. Open het item en elke instelling is terug, klaar om te wijzigen en opnieuw te exporteren. Om nieuw werk zo te bewaren, zie [Opslaan en doorgaan](/info/using.html#saving-continuing).
 
 ::: note Niet in Projecten?
 - Het kan in de **Prullenbak** staan: zie [Iets terugvinden dat je hebt verwijderd](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Mappen die nesten.** Groepeer opgeslagen sessies in mappen, en mappen in mappen, zo diep als je wilt. Maak een map, hernoem hem of sleep een tegel op een andere map om hem te verplaatsen; een broodkruimelpad brengt je terug omhoog. Sessies die zonder map zijn opgeslagen, verschijnen direct op de root van **Projecten**.
-- <!--i:clock--> **Sorteer op je eigen manier.** **Weergaveopties**, de schuifknop rechtsboven, biedt **Raster** of **Lijst** en sorteert op **Naam**, **Datum toegevoegd**, **Laatst gewijzigd** (de standaard), **Grootte** en, binnen een map, **Op tool**. Mappen komen altijd eerst, ongeacht welke sortering actief is - de sortering ordent alleen de sessies en mappen binnen hun eigen groep.
-- <!--i:document--> **Breng nieuw werk direct naar binnen.** **Nieuw asset** opent de gedeelde kiezer. Kies **Sjablonen** om te beginnen bij een opgeslagen sjabloon: open hem om te bewerken, of gebruik **+ Toevoegen** om meteen een nieuwe creatie op te slaan.
-- <!--i:checklist--> **Meervoudige selectie (computer).** Vink het selectievakje van een tegel aan, sleep een selectiekader over lege ruimte of gebruik **Shift/Cmd-click**; klik met rechts op een tegel voor het contextmenu. De selectiebalk biedt dan **Selectie renderen**, **Verplaatsen naar…**, **Nieuwe map**, **Verwijderen** (dat verplaatst naar de prullenbak), **Samen bewerken** voor twee tot acht sessies van dezelfde tool, naast elkaar onder één zijbalk, en **Bewerken als blad**, dat een selectie van elke grootte of mix opent als rijen in het batchraster.
-- <!--i:download--> **Render een hele map of selectie.** **Map renderen** exporteert elke opgeslagen sessie in een map - inclusief submappen - als één geneste `.zip`. **Selectie renderen** doet hetzelfde voor elke meervoudige selectie, en één sessie rendert rechtstreeks naar zijn eigen bestand. Geen Batch/Pro nodig.
-- <!--i:link--> **Ga direct naar het opgeslagen werk van een tool.** Vink een of meer tools aan in de Tools-galerij en kies **Sessies bekijken** in de selectiebalk - Projecten opent dan met alleen de sessies die met die tools zijn gemaakt, met een **Wissen** om terug te gaan naar de volledige weergave.
-- <!--i:link--> **Deel een opgeslagen sessie.** Klik met rechts op een sessie (op een telefoon, druk op **•••** op de tegel) → **Link delen** om een link te kopiëren die de sessie heropent met dezelfde instellingen; afbeeldingen van je apparaat reizen niet mee met een link (de volledige Deel-dialoog: zie [Je werk delen](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Hernoem of dupliceer een sessie.** Klik met rechts op een sessie (op een telefoon, druk op **•••** op de tegel) voor **Hernoemen**, **Dupliceren** (een kopie in dezelfde map) en **Verplaatsen naar…**.
+- <!--i:folder--> **Mappen die nesten.** Groepeer opgeslagen sessies in mappen, en mappen in mappen, zo diep als je wilt. Maak een map, hernoem hem of sleep een tegel naar een andere map om te verplaatsen; een kruimelpad leidt je terug omhoog. Sessies die zonder map zijn opgeslagen, verschijnen direct in de root van **Projects**.
+- <!--i:clock--> **Sorteer op je eigen manier.** **View options**, de schuifregelaarknop rechtsboven, biedt **Grid** of **List** en sorteert op **Name**, **Date added**, **Last modified** (de standaard), **Size** en, binnen een map, **By tool**. Mappen komen altijd eerst, ongeacht welke sortering actief is - de sortering ordent alleen de sessies en mappen binnen hun eigen groep.
+- <!--i:document--> **Berg nieuw werk direct op.** **New asset** opent de gedeelde kiezer. Kies **Templates** om te beginnen vanuit een opgeslagen sjabloon: open het om te bewerken, of gebruik **+ Add** om een nieuwe creatie meteen op te slaan.
+- <!--i:checklist--> **Meervoudige selectie (desktop).** Vink het selectievakje van een tegel aan, sleep een selectiekader over lege ruimte of **Shift/Cmd-klik**; **klik met rechts** op een tegel voor het contextmenu. De selectiebalk biedt dan **Render selection**, **Move to…**, **New folder**, **Delete** (dat naar de Prullenbak verplaatst), **Edit together** voor twee tot acht sessies van één tool, naast elkaar onder één zijbalk, en **Edit as sheet**, dat een selectie van elke omvang of mix opent als rijen in het batchraster.
+- <!--i:download--> **Render een hele map of selectie.** **Render folder** exporteert elke opgeslagen sessie in een map - inclusief submappen - als één geneste `.zip`. **Render selection** doet hetzelfde voor elke meervoudige selectie, en een enkele sessie rendert rechtstreeks naar zijn eigen bestand.
+- <!--i:link--> **Spring direct naar het opgeslagen werk van een tool.** Vink in de galerij Tools een of meer tools aan en kies **View sessions** in de selectiebalk - Projects opent met alleen de sessies die met die tools zijn gemaakt, met een **Clear** om terug te keren naar de volledige weergave.
+- <!--i:link--> **Deel een opgeslagen sessie.** Klik met rechts op een sessie (druk op een telefoon op de **•••** op de tegel) → **Share link** om een link te kopiëren die hem opnieuw opent met dezelfde instellingen; afbeeldingen van je apparaat reizen niet mee met een link (de volledige Share-dialoog: zie [Je werk delen](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Hernoem of kopieer er een.** Klik met rechts op een sessie (druk op een telefoon op de **•••** op de tegel) voor **Rename**, **Duplicate** (een kopie in dezelfde map) en **Move to…**.
 
 ![De popover Weergaveopties in Projecten: Layout met Raster en Lijst, en Sorteren op ingesteld op Laatst gewijzigd, naast een knop die de volgorde omdraait](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 Wat terugkomt, hangt af van hoe je bent vertrokken en welke tool je gebruikte:
 
-- **Je sloot het tabblad, of kwam een andere keer terug.** Niet-opgeslagen werk is weg, behalve in de [tools die opslaan terwijl je werkt](#which-tools-save-as-you-work): open dat werk vanuit **Projecten**.
-- **Je herlaadde de pagina in hetzelfde tabblad.** Je instellingen komen terug uit het paginaadres. In tools die niet opslaan terwijl je werkt, komen afbeeldingen en bestanden die je vanaf je apparaat hebt toegevoegd, en tekst van één regel langer dan 150 tekens, niet terug, omdat het adres ze niet bevat.
-- **Je drukte op Home, of de terugknop linksboven.** Als je iets hebt gewijzigd sinds je voor het laatst opsloeg, downloadde of kopieerde, vraagt een dialoog **Niet-opgeslagen bewerkingen** of je eerst wilt opslaan. **Opslaan & verlaten** slaat het werk op en brengt je naar **Projecten**, of terug naar de projectmap van waaruit je het werk opende. **Toch verlaten** verwerpt je wijzigingen: een opgeslagen item gaat terug naar hoe je het voor het laatst opsloeg, en een nooit opgeslagen creatie verlaat **Projecten**. **Annuleer** houdt je in de tool.
+- **Je sloot het tabblad, of kwam een andere keer terug.** Niet-opgeslagen werk is weg, behalve in de [tools die opslaan terwijl je werkt](#which-tools-save-as-you-work): open dat werk vanuit **Projects**.
+- **Je herlaadde de pagina in hetzelfde tabblad.** Je instellingen komen terug uit het paginaadres. In tools die niet opslaan terwijl je werkt, komen afbeeldingen en bestanden die je vanaf je apparaat toevoegde, en tekst van één regel langer dan 150 tekens niet terug, omdat het adres ze niet bevat.
+- **Je drukte op Home, of op de terugknop linksboven.** Als je iets wijzigde sinds je voor het laatst opsloeg, downloadde of kopieerde, vraagt een dialoog **Unsaved edits** of je eerst wilt opslaan. **Save & leave** slaat het werk op en brengt je naar **Projects**, of terug naar de projectmap waaruit je het werk opende. **Leave anyway** gooit je wijzigingen weg: een opgeslagen item gaat terug naar hoe je het het laatst opsloeg, en een creatie die je nooit opsloeg verlaat **Projects**. **Cancel** houdt je in de tool.
 
 Lolly vraagt het alleen als je op **Home** of de terugknop drukt in een tool. Het tabblad sluiten, herladen en de eigen Terug-knop van je browser vragen nooit. Om zeker te zijn, druk je op **Opslaan als**, of **Opslaan** in het exportpaneel, voordat je een tool verlaat.
+
+Wanneer automatisch herstel niet beschikbaar is, zegt een opmerking naast de bewerkingsbediening wat je moet bewaren:
+
+- Sla in een tool die op een bestand werkt dat je meebrengt je instellingen op en bewaar ook de oorspronkelijke bestanden.
+- Sla in een opnametool, of een hulpprogramma zonder actie Save, het resultaat op of download het voordat je weggaat.
+- De desktop- en mobiele apps zeggen wanneer je met de hand moet opslaan.
+- Bij een privésamenwerking houdt de persoon die uitnodigde het document en zijn geschiedenis, inclusief de wijzigingen van de ander. De persoon die aansloot werkt op een tijdelijke kopie en moet een aparte kopie opslaan voordat de sessie eindigt.
 
 ::: note Per ongeluk verlaten zonder op te slaan?
 In tools die opslaan terwijl je werkt, bewaart Geschiedenis een kopie van de verworpen bewerkingen. Open de pagina **Geschiedenis**, zoek ze onder **Changes** en druk op **Open as a copy**. In andere tools zijn de wijzigingen weg.
@@ -84,12 +103,15 @@ In tools die opslaan terwijl je werkt, bewaart Geschiedenis een kopie van de ver
 ::: details Welke tools opslaan terwijl je werkt
 In de webapp slaat elke tool die een document maakt, op terwijl je werkt: Design, Chart, QR Code, Text, Sandbox en de rest. Deze tools doen dat niet:
 
-- tools die werken op een bestand dat je zelf aanlevert, zoals Redact, Sign of Convert Image, omdat Lolly nooit een kopie van dat bestand bewaart;
-- tools die opnemen via je camera, microfoon of scherm, zoals Record, Screen Capture en Voice Recorder;
-- 3D en Darkroom, die een eigen bestand aannemen;
+- tools die op een bestand werken dat je meebrengt, zoals Redact, Sign of Convert Image, omdat Lolly nooit een kopie van dat bestand bewaart;
+- tools die opnemen van je camera, microfoon of scherm, zoals Record, Screen Capture en Voice Recorder;
 - een tool zonder iets om te wijzigen, zoals Countdown.
 
-Bij de andere tools archiveert je eerste wijziging het werk al in **Projecten**, alsof je had opgeslagen, en latere wijzigingen worden bewaard terwijl je werkt, zodra de tool klaar is met tekenen. Een niet-opgeslagen creatie blijft dus in Projecten staan nadat je het tabblad sluit, en heropent met zijn wijzigingen als niet-opgeslagen gemarkeerd. **Toch verlaten** verwerpt ze nog steeds, en Geschiedenis bewaart een kopie van de verworpen bewerkingen gedurende 30 dagen. De tool opnieuw openen vanaf het startscherm begint een nieuwe creatie; open de eerdere vanuit Projecten.
+In de andere tools bergt je eerste wijziging het werk op in **Projects** alsof je had opgeslagen, en latere wijzigingen worden bewaard terwijl je werkt zodra de tool klaar is met tekenen. Een niet-opgeslagen creatie staat nog in Projects nadat je het tabblad sluit, en heropent met zijn wijzigingen gemarkeerd als niet opgeslagen.
+
+**Leave anyway** gooit die wijzigingen nog steeds weg, en History bewaart 30 dagen een kopie van de weggegooide bewerkingen. De tool opnieuw openen vanaf het startscherm begint een nieuwe creatie; open de eerdere vanuit Projects.
+
+3D en Darkroom slaan op terwijl je werkt, maar bewaren geen bestand dat je erin laadt, zoals een 3D-model of een LUT. History en **Save** bewaren de naam, het type en de grootte van het bestand, niet het bestand. Wanneer je het werk opnieuw opent, zegt een opmerking welk bestand het was, en de tool werkt zonder het totdat je het opnieuw laadt. Bewaar je oorspronkelijke bestanden.
 
 Met [Synchronisatie](/info/sync.html) aan gaat een creatie die zo is gearchiveerd naar je andere apparaten zoals al het andere in Projecten. De versies ervan blijven op het apparaat waarop ze zijn gemaakt.
 
@@ -138,7 +160,7 @@ Automatische checkpoints worden met de tijd spaarzamer: één per minuut in het 
 
 Wanneer de opslag van de Geschiedenis vol raakt, worden eerst de oudste automatische checkpoints verwijderd van creaties die je al 30 dagen niet hebt geopend. Een opslag wordt altijd bewaard, zelfs dan: het wordt geschreven als het huidige werk, en de Geschiedenis vermeldt dat dit opslaan niet als versie wordt bewaard. **Instellingen → Opslag** toont hoeveel de Geschiedenis gebruikt.
 
-De pagina **History** (`#/history`, of **Open app history** in het paneel) omvat elke creatie in deze browser. Open op een computer de pagina via de klokknop rechtsboven op het startscherm of in **Projecten**. Ga op een telefoon naar de tools-galerij op het startscherm, druk op de ronde logoknop rechtsboven en kies **Saved sessions**, wat History opent. Vanuit **Projecten** doet dat item nog niets.
+De pagina **History** (`#/history`) dekt elke creatie in deze browser. Om hem te openen druk je op de klokknop rechtsboven op het startscherm of op **Projects**, kies je **Saved sessions** in het profielmenu (op een telefoon de ronde logoknop rechtsboven), of druk je op **Open app history** in het History-paneel van een tool. De desktop- en mobiele apps hebben geen pagina History, dus daar openen de klokknop van het startscherm en **Saved sessions** in plaats daarvan **Your recent work**: je laatst opgeslagen sessies en exports, met een link naar Projects.
 
 - **Recent** toont je creaties, nieuwste eerst, met **Resume**.
 - **Changes** zet checkpoints, downloads en Convert-resultaten op één tijdlijn. Een download heeft **Reopen settings**.
@@ -174,7 +196,7 @@ Inloggegevens, sleutels en de synchronisatiewachtwoordzin blijven op elk apparaa
 ::: details Wat het back-upbestand bevat
 Het bestand heet `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (de naamdelen komen uit je profiel en worden weggelaten als ze niet zijn ingesteld; `<n>` is een teller per dag zodat exports op dezelfde dag niet botsen). Het bevat je profiel, met je mappen, Prullenbak, sjablonen en favorieten; elke opgeslagen sessie met zijn miniatuur; je geüploade afbeeldingen, lettertypen, logo's en de kopieën van je downloads; je design systems; je voorkeuren (thema, breedte van de zijbalk, lokale activiteitsstatistieken); opgeslagen versies en resultaten van Convert; en, vanuit de webapp, de versiegeschiedenis van je creaties.
 
-De catalogus-cache is niet inbegrepen - die downloadt zichzelf opnieuw op het nieuwe apparaat. Elk onderdeel heeft een checksum, zodat een bestand dat onderweg beschadigd raakt bij het importeren wordt opgemerkt in plaats van half hersteld te worden. Opgeslagen sessies koppelen zich automatisch opnieuw aan je geïmporteerde afbeeldingen. De web-, desktop- en mobiele apps lezen hetzelfde bestand; de terminal-app schrijft een eigen, eenvoudigere back-up, die dit formaat niet leest. **📦 Export my data & render everything** maakt hetzelfde bestand plus een tweede zip met elke opgeslagen sessie gerenderd naar zijn output. (Volledige formaatspecificatie: [Data Transfer](/info/data-transfer.html).)
+De catalogusbuffer is niet inbegrepen - die wordt op het nieuwe apparaat vanzelf opnieuw gedownload. Elk onderdeel heeft een checksum, dus een bestand dat onderweg beschadigd raakt wordt bij het importeren opgemerkt in plaats van half kapot hersteld. Opgeslagen sessies koppelen automatisch opnieuw aan je geïmporteerde afbeeldingen. De web-, desktop- en mobiele apps lezen hetzelfde bestand; de terminalapp schrijft een eenvoudigere eigen back-up, die dit formaat niet leest. **Export my data & render everything** maakt hetzelfde bestand plus een tweede zip met elke opgeslagen sessie gerenderd naar zijn uitvoer. (Volledige formaatspecificatie: [Data transfer](/info/data-transfer.html).)
 :::
 
 ## Als je je browsergegevens wist
@@ -185,11 +207,13 @@ In de webapp bewaart Lolly alles in de opslag van je browser voor deze site: opg
 Druk op **Exporteer mijn gegevens** onder **Instellingen → Opslag**, en bewaar het bestand ergens anders.
 :::
 
-Wanneer de app start, vraagt Lolly de browser om zijn opslag niet te wissen als het apparaat weinig ruimte heeft. De browser beslist. Onder **Instellingen → Offline beschikbaar** betekent een regel die begint met **Protected** dat de browser akkoord ging; "The browser may clear downloads if the device runs low on space" betekent dat hij dat niet deed, en **Protect downloads** vraagt het opnieuw. Als de browser niet akkoord ging, kan hij opgeslagen werk net zo goed als downloads wissen wanneer de ruimte opraakt, dus bewaar een recent bestand van **Exporteer mijn gegevens**.
+Wanneer de app start, vraagt Lolly de browser zijn opslag niet te wissen als het apparaat weinig ruimte heeft, en de browser beslist. Onder **Settings → Available offline** betekent een regel die met **Protected** begint dat de browser akkoord ging. "The browser may clear downloads if the device runs low on space" betekent dat hij dat niet deed, en **Protect downloads** vraagt het opnieuw.
+
+Als de browser niet akkoord ging, kan hij zowel opgeslagen werk als downloads wissen wanneer de ruimte krap wordt, dus bewaar een recent **Export my data**-bestand.
 
 **Instellingen → Opslag** toont hoeveel ruimte elk soort gegevens gebruikt. Zijn rij **Geschiedenis** telt automatische checkpoints, hun voorvertoningen en herstelconcepten; **Verwijder automatische checkpoints ouder dan 30 dagen** maakt die ruimte vrij en behoudt opgeslagen en benoemde versies. **Cache wissen** verwijdert gedownloade catalogusbestanden, die opnieuw downloaden wanneer nodig. **Al mijn gegevens wissen** vraagt je een woord te typen, zet Synchronisatie uit, en verwijdert dan alles wat Lolly in deze browser bewaart: je profiel en instellingen, opgeslagen sessies met hun geschiedenis en de Prullenbak, uploads, lettertypen en design systems, het downloadlogboek, Convert-resultaten, gedownloade AI-modellen en offline kopieën. Bestanden die je hebt gedownload, blijven waar je ze hebt opgeslagen. De app start daarna als bij een eerste bezoek.
 
-![De opslagkaart op een schermbreedte van een telefoon: elke categorie gegevens op het apparaat met naam genoemd, met onderaan de knop Al mijn gegevens wissen](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![De opslagkaart op een telefoonbreed scherm: elke categorie gegevens op het apparaat is benoemd, met de knop Clear all my data onderaan](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 In de desktop- en mobiele apps zijn opgeslagen sessies bestanden in de eigen datamap van de app en staat de rest in de eigen opslag van de app, dus het wissen van een webbrowser raakt ze niet.
 

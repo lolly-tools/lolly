@@ -820,7 +820,6 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // nudge. It renders HIDDEN and is revealed by revealFirstRunBanner() below,
   // once the welcome modal has been ruled out - on a visit where the welcome
   // shows, nothing else does, and the answer to that is async (token discovery).
-  // The tips strip is the ladder's last rung and mounts from the same place.
   // Placed ahead of the content so the phone-width nudge reads as an in-flow
   // card at the top of the gallery (A4); the privacy strip is fixed either way.
   const firstRunBanner = privacyNoticeMarkup() || personalizeNudgeMarkup(profile) || offlineNudgeMarkup(profile);
@@ -965,6 +964,9 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // below guard on the handle for exactly that window.
   let tileSelect: ReturnType<typeof import('../lib/tile-select.ts')['wireTileSelect']> | null = null;
   void import('../lib/tile-select.ts').then((m) => {
+    // Torn down before the chunk arrived: wiring now would put listeners on the
+    // persistent #view host whose cleanup already ran, so nothing would remove them.
+    if (!mounted) return;
     tileSelect = m.wireTileSelect({
       host: viewEl,
       tiles: selectableTiles,
@@ -1014,6 +1016,13 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // tileMenuHtml/bulkMenuHtml's menuItemHtml, which only run via the callbacks below.
   let ctxMod: typeof import('../lib/context-menu.ts') | null = null;
   void import('../lib/context-menu.ts').then((m) => {
+    // Boot mounts the gallery twice in quick succession (the first paint, then the
+    // catalog-sync remount). A first mount torn down before this chunk arrived used to
+    // wire its menu onto #view anyway, after its cleanup had run, so the listener was
+    // never removed. Registered first, that stale menu took every right-click: it acted
+    // on the torn-down mount's state (Add to favourites changed nothing on screen) and
+    // its preventDefault made the live mount's handler stand aside.
+    if (!mounted) return;
     ctxMod = m;
     const ctxMenu = m.wireTileContextMenu({
       host: viewEl,
@@ -2147,7 +2156,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   }
 
   // ── First-run ladder: welcome dialog, else ONE banner ───────────────────────
-  // The welcome + tips strip are for unbranded installs only, and whether the
+  // The welcome is for unbranded installs only, and whether the
   // welcome shows is what decides the banner slot (plans/137 A1), so the whole
   // ladder runs from here - after the unbranded answer, and after the search bar
   // has been claimed (the privacy strip measures that bar to pin itself).
@@ -2179,32 +2188,17 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     const step = await galleryWelcomeStep(host as unknown as GalleryHost & PickerHost, () => !!galleryRoot?.isConnected, deepLink.has('welcome'));
     if (!step || !galleryRoot?.isConnected) return;
     // Branded (or locked): no welcome to wait for, so the banner slot is free.
-    // When no banner claims it, a first-run install gets the branded intro strip
-    // (plans/140 S4) - same slot discipline, still one surface per visit. The
-    // strip module gates itself out for installs with saved work and settles
-    // when any tool opens.
+    // The branded intro strip that used to come first ("Your brand is loaded")
+    // was removed on 19 October 2026 as unhelpful, so the banner ladder has the
+    // slot to itself.
     if (!step.unbranded) {
-      // Orientation FIRST on a branded install (plans/170 WP-4, audit 167
-      // F-A16): a colleague's very first visit reads "Your brand is loaded…"
-      // before any banner rung - the privacy one-liner is one line and keeps
-      // its turn on the next visit. Still one surface per visit: the intro OR
-      // a rung, never both. The settled-flag pre-check keeps the lazy chunk
-      // off every later visit (the key mirrors welcome-dialog's
-      // BRANDED_INTRO_KEY - keep the two literals in step).
-      let introSettled = true;
-      try { introSettled = localStorage.getItem('lolly-branded-intro-dismissed') === '1'; } catch { /* storage off - never nag */ }
-      if (!introSettled) {
-        const welcome = await import('../components/welcome-dialog.ts');
-        if (!galleryRoot.isConnected) return;
-        if (await welcome.mountBrandedIntro(viewEl.querySelector<HTMLElement>('.tool-masonry'), host.state)) return;
-      }
       revealFirstRunBanner();
       return;
     }
     // The step opened the welcome when it was due. 'brand' navigates itself; the
     // upload host enables the "Bring your design" card. A welcome visit is the
-    // whole ask - the banner stays hidden and the tips strip waits for a later
-    // visit, and previews stay paused until the dialog closes.
+    // whole ask - the banner stays hidden until a later visit, and previews stay
+    // paused until the dialog closes.
     // `#/?welcome` forces it open past the dismissed flag, so docs and screenshot
     // runs can capture the greeting deterministically instead of needing a virgin
     // profile. It rides INSIDE the ladder on purpose: everything above still
@@ -2214,8 +2208,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       await step.closed;
       return;
     }
-    if (revealFirstRunBanner()) return;
-    step.welcome.mountBrandTips(viewEl.querySelector<HTMLElement>('.tool-masonry'));
+    revealFirstRunBanner();
   })().finally(() => previewQueue.setPaused(false));
 
 

@@ -38,7 +38,6 @@ import { embedWavInfo } from '../engine/src/riff-meta.ts';
 import { packTiff } from '../engine/src/tiff.ts';
 import { writeDocx } from '../engine/src/docx.ts';
 import { writeOdt } from '../engine/src/odt.ts';
-import { writeEpub } from '../engine/src/epub.ts';
 import { buildPptxParts } from '../engine/src/pptx.ts';
 import { readZip } from '../engine/src/zip.ts';
 import { gzip } from '../engine/src/gzip.ts';
@@ -261,12 +260,6 @@ const PROOFS: Proof[] = [
     },
   },
   {
-    token: 'EPUB', field: 'dc', check: () => {
-      const zip = writeEpub({ title: 'Claim test', author: SENTINEL, chapters: [{ title: 'One', xhtml: '<p>body</p>' }] });
-      assert.ok(zipPart(zip, 'OEBPS/content.opf').includes(SENTINEL), 'dc:creator in the OPF');
-    },
-  },
-  {
     token: 'AVIF', field: 'exif', check: () => {
       const src = tinyAvif();
       const out = insertAvifExif(src, META);
@@ -316,6 +309,8 @@ const BRIDGE_WRITTEN: Record<string, string> = {
   'CMYK TIFF:exif': 'encodeCmykTiff writes the CMYK TIFF tags in shells/web/src/bridge/export.ts, not the engine packTiff',
   'Animated SVG:dc': 'the animated writer builds its own Dublin Core block in shells/web/src/lib/svg-anim-core.ts',
   'ICS:prodid': 'PRODID comes from the calendar tools own template and hooks (meeting-planner, calendar-ics), not an engine writer',
+  'AAC:id3': 'mediabunny\'s ADTS muxer writes the ID3v2 tag from buildAudioTags (shells/web/src/lib/audio-tags.ts), driven by shells/web/src/lib/audio-encode.ts',
+  'MP3:id3': 'id3v2Tag in shells/web/src/lib/audio-encode.ts hand-builds the ID3v2.3 tag (TIT2/TPE1/TALB/COMM) and prepends it, because lamejs writes no metadata',
 };
 
 /** Register token → the format string embedC2pa takes. Checked against the
@@ -327,6 +322,7 @@ const C2PA_FORMAT_OF: Record<string, string> = {
   WEBP: 'webp', 'Animated WebP': 'webp',
   GIF: 'gif', TIFF: 'tiff', 'CMYK TIFF': 'cmyk-tiff', AVIF: 'avif',
   MP4: 'mp4', WEBM: 'webm', M4A: 'm4a', MP3: 'mp3', WAV: 'wav', Opus: 'opus',
+  OGG: 'ogg', FLAC: 'flac',
   HTML: 'html', MD: 'md',
 };
 

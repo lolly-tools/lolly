@@ -4,7 +4,7 @@
  * lolly CLI - the entry point.
  *
  * The usage text below is the REAL one: USAGE is printed by `lolly --help`, exit codes
- * and all (they used to live only in docs/cli.md, where a script author never sees them).
+ * and all (docs/cli-reference.md lists them too, but a script author reads --help, not the docs).
  *
  * Architectural note: this CLI is URL mode under a different transport. --foo=bar argv
  * pairs become the same input values the web shell would parse from ?foo=bar in the URL
@@ -45,6 +45,13 @@ Usage:
                                            system, the content profile's own system
   lolly system check <design-inputs.json>   review colours, type, asset references and the
                                            brand's house rules locally
+  lolly system skills                      the brand skills: the brand's own guidance per
+                                           discipline, plus the generated baseline
+  lolly system skill <name> [--into=<dir>]  print a brand skill, or write it as an Agent
+                                           Skills folder (--mode=linked|bundled,
+                                           --origin=<url>, --include-licensed)
+  lolly system skill coverage <name>        what the skill says against what Lolly checks
+  lolly system skill check <folder>         is an exported skill the current revision?
   lolly system list | use <id>              list or switch on-device systems
   lolly system inspect                     inspect token sources, references and choices
   lolly system diff <tokens.json>           compare authored and resolved token changes
@@ -339,7 +346,7 @@ Export options:
                            ($LOLLY_SIGN_KEY/$LOLLY_SIGN_CERT are the same two paths;
                            $LOLLY_SIGN_KEY_PEM/$LOLLY_SIGN_CERT_PEM carry the PEM text
                            itself, for CI secret stores with no filesystem.)
-                           See /info/cli-signing.html
+                           See /info/build/cli-signing.html
   --durable=1              embed the durable Content Credential (neural TrustMark).
                            Off by default (a neural encode, and a model download)
   --password=<pw>          PDF open-password (visible in \`ps\`; see --password-stdin)
@@ -349,6 +356,11 @@ Export options:
   --wait=<s> --codec=<c>   settle time before frame one, codec h264|hevc|vp9|av1,
   --vq=smaller|balanced|best   and quality - the export panel's fields, as URL params
   --lang=<xx>              use a tool's manifest translation sidecar
+  --emoji=<id@version>     draw emoji from this installed set (\`none\` clears a choice)
+  --emojifx=<treatment>    the set's brand treatment: original, influence:<bps>, snap,
+                           mono or duotone, with an optional ,unprotected
+  --emojistyle=<json>      an exact emoji style snapshot, as a share link carries it;
+                           it wins over --emoji and --emojifx
   --designv=<slug|latest>  the design-system version to render against: a published
                            version's slug, or \`latest\` for the edit head. Beats a
                            tool's own pin; a slug this catalog does not ship falls

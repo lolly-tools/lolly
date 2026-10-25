@@ -39,7 +39,7 @@ export function open(fc:FcCtx,anchor:HTMLElement,id?:string,attach=false):void{
 export function paint(fc:FcCtx):void{
   let chrome=fc.overlay.querySelector<HTMLElement>('[data-text-path-chrome]');if(!chrome){chrome=document.createElement('div');chrome.dataset.textPathChrome='';chrome.setAttribute('data-export-hide','');fc.overlay.append(chrome);}chrome.hidden=!!fc.editing||!!fc.penEdit||fc.popover?.hasAttribute('data-text-path-adjust')===true;if(chrome.hidden)return;
   const keep=new Set<string>(),root=fc.overlay.getBoundingClientRect();
-  for(const frame of fc.storyText.read().frames.filter(frame=>frame.path&&(fc.selection.has(frame.id)||fc.stage.liveBoxEl(frame.id)?.querySelector('[data-text-overset]')))){
+  for(const frame of fc.storyText.snapshot().frames.filter(frame=>frame.path&&(fc.selection.has(frame.id)||fc.stage.liveBoxEl(frame.id)?.querySelector('[data-text-overset]')))){
     const path=frame.path!,svg=fc.stage.liveBoxEl(frame.id)?.querySelector<SVGSVGElement>('svg[data-text-frame]'),matrix=svg?.getScreenCTM();if(!matrix)continue;
     const curve=textGuideGeometry(path.d),points:Array<{x:number;y:number}>=[];
     for(const property of ['start','end','baseline'] as const){let distance=property==='start'?path.start:property==='end'?path.end:(path.start+path.end)/2;if(path.flip)distance=path.start+path.end-distance;if(path.reverse)distance=curve.length-distance;if(parseSvgPath(path.d)[0]?.closed)distance=((distance%curve.length)+curve.length)%curve.length;const sample=curve.at(distance),angle=(sample.angle+(path.reverse?180:0)+(path.flip?180:0))*Math.PI/180;const point=new DOMPoint(sample.x-Math.sin(angle)*path.baseline,sample.y+Math.cos(angle)*path.baseline).matrixTransform(matrix);

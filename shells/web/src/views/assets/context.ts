@@ -23,6 +23,8 @@ import type { thumbsOps } from './thumbs.ts';
 import type { filtersOps } from './filters.ts';
 import type { sectionsOps } from './sections.ts';
 import type { detailsOps } from './details.ts';
+import type { swatchDetailsOps } from './swatch-details.ts';
+import type { swatchSetOps } from './swatch-set.ts';
 import type { userAssetsOps } from './user-assets.ts';
 import type { bulkOps } from './bulk.ts';
 import type { downloadsOps } from './downloads.ts';
@@ -45,6 +47,8 @@ export interface CatCtx {
   params: string;
   host: CatalogHost;
   linkedAsset: string;
+  /** `#/a?swatch=<label>`: the swatch whose details open once the view paints. */
+  linkedSwatch: string | null;
   linkedSections: string[];
   profile: Profile | null;
   allAssets: AssetRef[];
@@ -59,6 +63,8 @@ export interface CatCtx {
   searchHaystack: Map<string, string> | null;
   headshotUrl: string;
   showHidden: boolean;
+  /** The role colours under Swatches stay behind their card until it shows them (`?swatches`). */
+  showSwatches: boolean;
   loadFailed: boolean;
   urlType: string;
   typeFilter: TypeFilter;
@@ -88,6 +94,10 @@ export interface CatCtx {
   coverPool: string[];
   selected: Set<string>;
   tileSelect: TileSelect;
+  /** The selected swatch cards (their panel index), a store apart from `selected`. */
+  swatchSelected: Set<string>;
+  swatchSelect: TileSelect;
+  swatchBarCfg: BulkBarConfig;
   tileMenu: TileContextMenuHandle;
   FAV_VIEW_KEY: "lolly-catalog-fav-view";
   FAV_STRIP_KEY: "lolly-catalog-fav-strip";
@@ -141,6 +151,8 @@ export interface CatCtx {
   filters: ReturnType<typeof filtersOps>;
   sections: ReturnType<typeof sectionsOps>;
   details: ReturnType<typeof detailsOps>;
+  swatches: ReturnType<typeof swatchDetailsOps>;
+  swatchSet: ReturnType<typeof swatchSetOps>;
   userAssets: ReturnType<typeof userAssetsOps>;
   bulk: ReturnType<typeof bulkOps>;
   downloads: ReturnType<typeof downloadsOps>;

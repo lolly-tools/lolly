@@ -30,7 +30,7 @@ export function exampleLooks(): LocalLook[] {
   ].map(e => localLook(`example:${e.id}`, e.name, 'example', deriveBrandTokens({ primary: e.color, name: e.name }), e.tags));
 }
 export async function readLocalLooks(host: { designSystems: DesignSystemRegistry; assets: { _getBlob?(id: string): Promise<Blob | null> }; tokens?: { raw?(): Promise<unknown> } }) {
-  const records = await host.designSystems.list();
+  const records = await host.designSystems.visible();
   const activeId = await host.designSystems.activeId?.();
   const looks: LocalLook[] = [];
   let unavailable = Math.max(0, records.length - LOOK_LIMIT);

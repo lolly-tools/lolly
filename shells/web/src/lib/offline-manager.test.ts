@@ -69,7 +69,7 @@ let fetches: string[] = [];
 };
 
 const {
-  downloadList, docsFileList, speechFileLists, downloadSpeechFiles,
+  downloadList, OfflineDownloadError, docsFileList, speechFileLists, downloadSpeechFiles,
   clearSpeechCaches, speechCacheBytes, TRANSFORMERS_CACHE, SPEECH_CACHE, ORT_HF_CACHE,
   downloadRewordFiles, downloadReword, clearRewordCaches, rewordCacheBytes,
   downloadAskFiles, downloadAsk, clearAskCaches, askCacheBytes,
@@ -200,6 +200,34 @@ describe('offline-manager: downloadList', () => {
     );
     assert.ok(cacheStore.get('bucket')!.entries.has('/_app/a.js'),
       'the good file stays cached for the retry to resume from');
+  });
+
+  test('the error tells files the server does not have from files lost on the way', async () => {
+    // A user on a lolly-work instance saw "11 of 2308 files failed" in the console and
+    // nothing on screen: the server answered extension-less files with its app page.
+    // The row now says which kind of failure it was, so the error has to know.
+    const real = globalThis.fetch;
+    (globalThis as Record<string, unknown>).fetch = async (url: string, init?: { signal?: AbortSignal }) => {
+      if (url === '/.well-known/challenge') return { ok: true, status: 200, headers: new Headers({ 'content-type': 'text/html; charset=utf-8' }), blob: async () => new Blob(['<!doctype html>']) };
+      if (url === '/flaky.bin') throw new TypeError('Failed to fetch');
+      return (real as (u: string, i?: unknown) => Promise<unknown>)(url, init);
+    };
+    try {
+      server.set('/_app/ok.js', 4);
+      const err = await downloadList('bucket', [
+        { url: '/_app/ok.js', size: 4 },
+        { url: '/_app/gone.js', size: 4 },          // 404
+        { url: '/.well-known/challenge', size: 4 }, // the server's app page in its place
+        { url: '/flaky.bin', size: 4 },             // lost on the way
+      ]).then(() => null, (e: unknown) => e);
+      assert.ok(err instanceof OfflineDownloadError);
+      assert.equal(err.failed, 3);
+      assert.equal(err.total, 4);
+      assert.equal(err.missing, 2, 'the 404 and the app page are the server not having the file; the network error is not');
+      assert.match(err.message, /3 of 4 files failed/, 'the logged message is unchanged');
+    } finally {
+      (globalThis as Record<string, unknown>).fetch = real;
+    }
   });
 
   test('cancel aborts the queue and leaves already-fetched files for the resume', async () => {

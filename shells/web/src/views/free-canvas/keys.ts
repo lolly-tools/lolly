@@ -14,14 +14,17 @@ import { escapeHtml as escapeText, cssEscape as escapeSelector } from '../../lib
 import { deepActiveElement, isTypingTarget } from '../../lib/typing-target.ts';
 import { t } from '../../i18n.ts';
 import { centreCtxBar, ctxTopBand, stageBlockers } from './shared.ts';
-import type { Metrics, Rect, StageBox } from './shared.ts';
+import type { CtxTopBand, Metrics, Rect, StageBox } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { enterWebBox, mountWebFrames } from '../../lib/design-web-mount.ts';
 
-export function ctxBarBlockers(fc: FcCtx, sr: DOMRect): StageBox[] {
+/** The chrome the context bar's row must dodge. Held for the life of a box gesture, and
+ *  across the view-only syncs of a pan or zoom (`hold`): neither moves this chrome, and
+ *  the measure walks the document. A stage resize drops it (onStageResize). */
+export function ctxBarBlockers(fc: FcCtx, sr: DOMRect, hold = false): StageBox[] {
   const { stageEl, toolbarDock } = fc;
-  if (fc.ctxBlockers && fc.gesture) return fc.ctxBlockers;
+  if (fc.ctxBlockers && (fc.gesture || hold)) return fc.ctxBlockers;
   // .chrome-topleft, not just its .tools-home pill: the island can also carry the
   // Home fab beside the pill, and the ctx bar must dodge the whole cluster.
   //
@@ -42,28 +45,34 @@ export function ctxBarBlockers(fc: FcCtx, sr: DOMRect): StageBox[] {
     const top = fc.contextBar.stageReserves().top;
     out.push(...stageBlockers([toolbarDock], sr).filter(rect => rect.top < top + fc.ctxbar.offsetHeight + 8 && rect.bottom > top));
   }
-  fc.ctxBlockers = fc.gesture ? out : null;
+  fc.ctxBlockers = fc.gesture || hold ? out : null;
   return out;
 }
 export function positionCtxBar(fc: FcCtx, 
   boxes: Box[],
   idx: number[],
   liveRects: Map<number, Rect> | null,
-  m: Metrics
+  m: Metrics,
+  view = false
 ): void {
   const { cfg, ctxbar } = fc;
   if (fc.editing) {
     fc.rail.hideCtxBar();
     return;
   } // hidden while typing in a box
-  fc.rail.showCtxBar();
   // Pinned to the top chrome row (never over the selection, whose artwork the user is
   // looking at), centred in the band between the back pill and the zoom HUD and capped
   // to it - a bar too wide for a narrow phone row scrolls inside that width (see the
   // `.fc-ctxbar` overflow) instead of dropping down over the canvas.
-  const band = ctxTopBand({ w: m.sr.width, h: m.sr.height }, ctxBarBlockers(fc, m.sr), {
+  const bandOf = (): CtxTopBand => ctxTopBand({ w: m.sr.width, h: m.sr.height }, ctxBarBlockers(fc, m.sr, view), {
     reserve: fc.contextBar.stageReserves(),
   });
+  const bandKey = (b: CtxTopBand): string => `${b.lo},${b.hi},${b.top}`;
+  // So a view that moved (`view`) leaves the shown bar where it is, reading what it read,
+  // unless its row changed (a resize): measuring the bar once the outlines moved is a layout.
+  if (view && fc.ctxShown && !ctxbar.hidden && bandKey(bandOf()) === fc.ctxPlacedBand) return;
+  fc.rail.showCtxBar();
+  const band = bandOf();
   ctxbar.style.maxWidth = Math.max(0, band.hi - band.lo) + 'px';
   // Measured AFTER the bar is shown and its max-width is set, so `offsetWidth` reflects
   // a laid-out, capped bar rather than the zero a `hidden` element reports. A zero here
@@ -79,6 +88,7 @@ export function positionCtxBar(fc: FcCtx,
     ctxbar.style.left = pos.left + 'px';
     ctxbar.style.top = pos.top + 'px';
   }
+  fc.ctxPlacedBand = bw > 0 && !liveRects ? bandKey(band) : '';
   // Transform readout.
   const first = boxes[idx[0]!];
   const r = liveRects?.get(idx[0]!) || boxRect(first, cfg);
@@ -368,6 +378,11 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
     fc.stage.setGuidesVisible(!fc.authoringGuides.isVisible());
     return;
   }
+  // PageDown / PageUp / Home / End go to the next, previous, first and last artboard, and
+  // a held Z zooms to an area (frame-step.ts, zoom-marquee.ts). Neither changes the
+  // document, so both stay live off the playhead.
+  if (fc.frameStep.stepKey(e)) return;
+  if (fc.zoomMarquee.zoomKeyDown(e)) return;
   // ── THE ONE RULE, enforcement point 3 of 3: KEYBOARD ────────────────────────
   // Chrome suppression closes every POINTER path onto an off-playhead box; a nudge,
   // a Delete or a duplicate needs no chrome at all. Navigation stays live on purpose
@@ -593,15 +608,17 @@ export const onStageMove = (fc: FcCtx, e: any): void => {
   if (connectLayer.style.display !== 'none') fc.connectors.placeConnectLayer(fc.stage.metrics());
 };
 // The cheap half of a geometry change: drop the cached measurements, mark the scrim,
-// remember the pointer and ask for one chrome sync (scheduleSync coalesces to a frame).
+// remember the pointer and ask for one view-only chrome sync (scheduleViewSync coalesces
+// to a frame, and runs the full sync once the view rests). The context bar's blockers
+// stay: a pan or zoom never moves that chrome, and a resize drops them itself.
 function markStageMoved(fc: FcCtx, e: unknown): void {
   fc.gestureMetrics = null;
-  fc.ctxBlockers = null;
+  fc.titleMetrics = null;
   fc.scrimDirty = true;
   if (e && typeof e === 'object' && 'clientX' in e && 'clientY' in e && typeof e.clientX === 'number' && typeof e.clientY === 'number') {
     fc.lastPointer = { x: e.clientX, y: e.clientY };
   }
-  fc.chromeSync.scheduleSync();
+  fc.chromeSync.scheduleViewSync();
 }
 // A wheel over the stage. When it pans or zooms, the stage navigation writes the
 // wrapper's transform and the MutationObserver runs the full onStageMove for it, so
@@ -616,6 +633,7 @@ export const onStageWheel = (fc: FcCtx, e: unknown): void => {
 // rail's clamp reads the rail and stage rects, which a pan or zoom never changes, so it
 // runs here and not on every wheel tick.
 export const onStageResize = (fc: FcCtx, e: unknown): void => {
+  fc.ctxBlockers = null;
   fc.rail.dockRailForTimeline(!!fc.timelinePanel?.isOpen());
   onStageMove(fc, e);
   fc.rail.reclampRail();
@@ -658,7 +676,9 @@ export const onStagePointerMove = (fc: FcCtx, e: any): void => {
   ) {
     if (!fc.hoverRaf) fc.hoverRaf = requestAnimationFrame(fc.edges.updateHover);
   }
-  if (e?.buttons) fc.chromeSync.scheduleSync();
+  if (e?.buttons) fc.chromeSync.scheduleViewSync();
+  // The artboard under the pointer shows its title (frame-titles.ts), picked from the model.
+  else if (!fc.gesture && e && typeof e.clientX === 'number') fc.frameTitles.hover(e);
 };
 // A CSS transition that finishes inside the stage - the rail docking or undocking is the
 // one that matters (plans/179 A10) - changes the layout with no resize, no wheel and no

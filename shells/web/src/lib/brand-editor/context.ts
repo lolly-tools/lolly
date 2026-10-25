@@ -6,7 +6,6 @@
  * The brand editor (colour, type and logo rooms of /start).
  */
 import type { SlicePlane } from '@lolly/engine';
-import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { WebTokensAPI } from '../../bridge/tokens.ts';
 import type { BrandSwatch, ContrastLockPreset, RampCurves, RampId } from '../brand-doc.ts';
 import type { CurveEditorHandle } from '../curve-editor.ts';
@@ -19,9 +18,9 @@ import type { BrandTransferHost } from '../../brand-transfer.ts';
 import type { Beat } from '../design-system/beats.ts';
 import type { FaceState } from '../design-system/ownership.ts';
 import type { TypeBeat } from '../design-system/beats-type.ts';
-import type { BrandEditorOptions, Contrast, EditorHost, Fg, HarmonyKind, LogoCandidateChip, Scheme, Surface } from './shared.ts';
+import type { BrandEditorOptions, Contrast, EditorHost, Fg, HarmonyKind, LogoCandidateChip, LogoOfferState, Scheme, Surface } from './shared.ts';
 import type { PaletteSelection } from '../design-system/palette-select.ts';
-import type { StudioPanelHandle } from '../brand-studio-tabs.ts';
+import type { StudioPanelHandle, StudioTabCtx } from '../brand-studio-tabs.ts';
 import type { rampsOps } from './ramps.ts';
 import type { stateOps } from './state.ts';
 import type { curveEditorOps } from './curve-editor.ts';
@@ -222,7 +221,8 @@ export interface BrandEditorCtx {
   filledDefaultSlots: Set<string>;
   renderIntake: () => void;
   drainPendingLogos: () => void;
-  suggestEl: HTMLElement | null;
+  /** The colours the last placed logo offered, while its card is up (plan 320 S1). */
+  logoOffer: LogoOfferState | null;
   tray: Tray | null;
   LOGO_ACCEPT_TYPES: RegExp;
   LOGO_MAX_BYTES: number;
@@ -245,19 +245,8 @@ export interface BrandEditorCtx {
   intakeZone: HTMLElement;
   palErr: HTMLElement | null;
   palFmtSel: HTMLSelectElement | null;
-  radiusSlider: HTMLInputElement | null;
-  radiusPreview: HTMLElement | null;
-  radiusValueEl: HTMLElement | null;
-  radiusErr: HTMLElement | null;
-  radiusDebounce: ReturnType<typeof setTimeout> | undefined;
-  radiusPending: string | null;
-  spaceSlider: HTMLInputElement | null;
-  spacePreview: HTMLElement | null;
-  spaceValueEl: HTMLElement | null;
-  spaceErr: HTMLElement | null;
-  spaceDebounce: ReturnType<typeof setTimeout> | undefined;
-  spacePending: string | null;
-  studioCtx: { host: HostV1; doc: () => Record<string, unknown>; persist: (immediate?: boolean) => void; starterIds: () => ReadonlySet<string>; };
+  /** The narrow context every studio panel gets (brand-studio-tabs.ts), minus its tab's notify. */
+  studioCtx: Omit<StudioTabCtx, 'notify'> & { starterIds: () => ReadonlySet<string> };
   tokensMount: HTMLElement;
   tokensPanel: StudioPanelHandle | null;
   gradsMount: HTMLElement;

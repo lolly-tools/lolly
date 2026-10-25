@@ -6,9 +6,9 @@
  * Pinned:
  *  - a member's chip shows their name and says "Signed in to {workspace} as {name}";
  *    its dot follows the inbox count;
- *  - the menu carries Inbox, Team projects, Linked sign-ins, Sign out and Sign out on all
- *    devices, with Workspace console only for someone with a console address, absolute
- *    and opening apart from the app;
+ *  - the standalone chip's menu carries Inbox, Projects, Linked sign-ins and Sign out,
+ *    with Admin only for someone with a console address, absolute and opening apart
+ *    from the app; Sign out everywhere is not in it (plan 320 J11: it lives in Settings);
  *  - a visitor's chip is only Sign in, and there is no chip without a way in;
  *  - recovery copies count only when their `__collabRecovery` tag (the one the recovery
  *    view writes, read through lib/collab-recovery-owner.ts) carries this workspace and
@@ -16,15 +16,15 @@
  *  - Sign out with no copies signs out at once; with copies it asks first, and Download,
  *    Discard and Cancel each do what they say; Download and Discard both leave no copy of
  *    the account on the device, and the downloaded file carries no owner tag;
- *  - a failed sign-out, and an instance with no sign-out-everywhere route, leave the
- *    person signed in and tell them at the top of the menu.
+ *  - a failed sign-out leaves the person signed in and tells them at the top of the menu;
+ *  - settleRecoveryCopies, which Settings shares, answers go, stay or the failure.
  *
  * Run directly:  node --test shells/web/src/org/account-chip.test.ts
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import type { AccountChipDeps, ChipAccount, EverywhereOutcome } from './account-chip.ts';
+import type { AccountChipDeps, ChipAccount } from './account-chip.ts';
 
 const dom = new JSDOM('<!doctype html><html><head></head><body><div id="app"><main id="view"><div class="gallery-topright"><a class="profile-link" href="#/settings"></a></div></main></div></body></html>', { url: 'https://work.test/#/p', pretendToBeVisual: true });
 globalThis.window = dom.window as unknown as typeof globalThis.window;
@@ -76,7 +76,6 @@ function deviceState(slots: Record<string, object>) {
 interface Harness {
   deps: AccountChipDeps;
   signOuts: number;
-  everywhere: number;
   after: number;
   downloads: Array<{ name: string; text: string }>;
   went: string[];
@@ -88,7 +87,6 @@ function harness(opts: {
   consoleUrl?: string | null;
   signInUrl?: string | null;
   signOut?: boolean;
-  everywhere?: EverywhereOutcome;
   slots?: Record<string, object>;
   principal?: string;
 } = {}): Harness & { device: ReturnType<typeof deviceState> } {
@@ -96,7 +94,7 @@ function harness(opts: {
   let count = 2;
   const device = deviceState(opts.slots ?? {});
   const record = {
-    signOuts: 0, everywhere: 0, after: 0, downloads: [] as Array<{ name: string; text: string }>, went: [] as string[], device,
+    signOuts: 0, after: 0, downloads: [] as Array<{ name: string; text: string }>, went: [] as string[], device,
     inbox: { set(n: number) { count = n; for (const fn of listeners) fn(n); }, opened: 0 },
   };
   const account: ChipAccount | null = opts.account === undefined
@@ -111,7 +109,6 @@ function harness(opts: {
     consoleUrl: () => opts.consoleUrl ?? null,
     signInUrl: () => opts.signInUrl ?? null,
     signOut: async () => { h.signOuts++; return opts.signOut ?? true; },
-    signOutEverywhere: async () => { h.everywhere++; return opts.everywhere ?? 'ok'; },
     principal: opts.principal ?? 'u_ana',
     workspaceOrigin: WORKSPACE,
     host: () => ({
@@ -205,10 +202,10 @@ test('the menu carries the account actions, and the console only for someone wit
   assert.equal(chip().getAttribute('aria-expanded'), 'true');
   assert.equal(menu()!.querySelector('.org-account-menu-head')?.textContent, 'Acme');
   assert.equal(menu()!.querySelector('.org-account-menu-line')?.textContent, 'ana@acme.com');
-  for (const name of ['inbox', 'projects', 'signins', 'signout', 'everywhere']) assert.ok(act(name), `${name} is offered`);
+  for (const name of ['inbox', 'projects', 'signins', 'signout']) assert.ok(act(name), `${name} is offered`);
   assert.equal(act('console'), null, 'no console address, no console item');
   assert.equal(act('signout')!.textContent, 'Sign out');
-  assert.equal(act('everywhere')!.textContent, 'Sign out everywhere');
+  assert.equal(act('everywhere'), null, 'Sign out everywhere lives in Settings, apart from Sign out');
   click(act('projects')!);
   assert.deepEqual(h.went, ['#/p']);
   click(chip());
@@ -341,28 +338,38 @@ test('with recovery copies, Cancel keeps the person signed in', async () => {
   const h = harness({ slots: MINE });
   const off = mountAccountChip(slot(), h.deps);
   click(chip());
-  click(act('everywhere')!);
+  click(act('signout')!);
   await until(() => !!dialog(), 'the recovery question');
   click(dialog()!.querySelector('[data-act="cancel"]')!);
   await settle();
-  assert.equal(h.signOuts + h.everywhere + h.after, 0, 'nothing signed out');
+  assert.equal(h.signOuts + h.after, 0, 'nothing signed out');
   assert.deepEqual(h.device.deleted, []);
   off();
 });
 
-test('Sign out on all devices uses its own route and then leaves', async () => {
-  const h = harness();
-  const off = mountAccountChip(slot(), h.deps);
-  click(chip());
-  click(act('everywhere')!);
-  await until(() => h.after === 1, 'the sign-out to finish');
-  assert.equal(h.everywhere, 1);
-  assert.equal(h.signOuts, 0, 'the everywhere route does the whole job');
-  off();
+test('settleRecoveryCopies, shared with Settings, answers go, stay or the failure', async () => {
+  const { settleRecoveryCopies } = await import('./account-chip.ts');
+  const none = harness();
+  assert.equal(await settleRecoveryCopies(none.deps.host!(), WORKSPACE, 'u_ana'), 'go', 'no copies: nothing to ask');
+  assert.equal(await settleRecoveryCopies(null, WORKSPACE, 'u_ana'), 'go', 'no device storage: nothing to ask');
+
+  const kept = harness({ slots: MINE });
+  const keeping = settleRecoveryCopies(kept.deps.host!(), WORKSPACE, 'u_ana');
+  await until(() => !!dialog(), 'the recovery question');
+  click(dialog()!.querySelector('[data-act="cancel"]')!);
+  assert.equal(await keeping, 'stay');
+  assert.deepEqual(kept.device.deleted, []);
+
+  const stuck = harness({ slots: MINE });
+  stuck.device.state.delete = async () => { throw new Error('storage refused'); };
+  const failing = settleRecoveryCopies(stuck.deps.host!(), WORKSPACE, 'u_ana');
+  await until(() => !!dialog(), 'the recovery question');
+  click(dialog()!.querySelector('[data-choice="discard"]')!);
+  assert.equal(await failing, 'Could not complete this action. Please try again.');
 });
 
-test('a failed sign-out, or no sign-out-everywhere route, stays signed in and says so', async () => {
-  const h = harness({ signOut: false, everywhere: 'unsupported' });
+test('a failed sign-out stays signed in and says so', async () => {
+  const h = harness({ signOut: false });
   const off = mountAccountChip(slot(), h.deps);
   click(chip());
   click(act('signout')!);
@@ -373,9 +380,5 @@ test('a failed sign-out, or no sign-out-everywhere route, stays signed in and sa
   click(chip());
   click(chip());
   assert.equal(menu()!.querySelector('.org-account-menu-error'), null);
-  click(act('everywhere')!);
-  await until(() => !!menu()?.querySelector('.org-account-menu-error'), 'the failure line');
-  assert.equal(menu()!.querySelector('[role="alert"]')?.textContent, 'This workspace cannot sign you out on other devices yet.');
-  assert.equal(h.after, 0, 'still signed in');
   off();
 });

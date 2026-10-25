@@ -22,7 +22,7 @@ export async function adoptBrandPack(host: AdoptionHost, files: Unzipped, reader
   const summary: BrandImportSummary = { tokens: true, fontFamilies: 0, fontFiles: 0, logos: 0, prefs: 0, versions: 0, frozen: 0, versionsSkipped: 0, skipped: 0, failedFonts: 0, packTools: 0, packAssets: 0 };
   const families = new Set<string>();
   const selectedFontIds: string[] = [];
-  const types = new Set(['font', 'vector', 'raster', 'video', 'audio', 'lottie', 'model', 'lut', 'palette', 'tokens', 'profile', 'ratecard', 'text', 'data']);
+  const types = new Set(['font', 'vector', 'raster', 'video', 'audio', 'lottie', 'model', 'lut', 'palette', 'tokens', 'profile', 'ratecard', 'text', 'data', 'skill']);
   for (const [path, kind, prefix] of [['fonts.json', 'font', 'user/fonts/'], ['logos.json', 'logo', 'user/logo/'], ['frozen.json', 'frozen', 'user/frozen/']] as const) {
     const declared = readJson(files, path) ?? [];
     if (!Array.isArray(declared) || declared.length > 512) throw new Error('Invalid design-system file inventory.');

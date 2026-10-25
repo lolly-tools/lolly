@@ -1,0 +1,35 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Swatch cards in Assets (views/assets/swatch-set.ts). A swatch card IS an asset
+   card (.cat-tile, styles/parts/object-tiles.css), so its surface, hover, selected
+   ring, selection dot and the card and list layouts all come from there. This
+   sheet only shapes what a colour changes: in the grid layout the colour band is
+   shorter than a photo's 4:3 and the cards run a quarter narrower, so a palette
+   reads as a palette and not as a wall of images. */
+.catalog:not([data-browse-layout])[data-card-size] .cat-grid.cat-swatch-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--cat-card-min) * var(--card-scale) * .75)), 1fr));
+}
+.catalog:not([data-browse-layout]) .cat-swatch-tile { contain-intrinsic-size: auto 170px; }
+.catalog:not([data-browse-layout]) .cat-swatch-fig { aspect-ratio: 2 / 1; }
+/* The selection dot on the colour band's lower-left corner, as on every card. */
+.catalog:not([data-browse-layout]) .cat-swatch-tile .cat-check { top: calc(50cqw - var(--object-check-size) - 6px); }
+/* A pressed dot is filled with the brand's action colour, which a brand swatch can
+   be (SUSE's Pine): a white ring keeps it visible on its own colour. */
+.cat-swatch-tile .cat-check[aria-pressed="true"] { box-shadow: 0 0 0 2px #fff; }
+/* In the card-row and list layouts the colour is a small chip, which the flag would
+   cover. The card row still states the ink in words on its own line. */
+.catalog[data-browse-layout] .cat-swatch-fig .plat-chip-flag { display: none; }
+
+.cat-swatch-value { font-family: var(--ui-type-mono-family); }
+.cat-swatch-ink {
+  font-family: var(--ui-type-mono-family); font-size: var(--ui-type-caption);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* No locked ink: the generic conversion note, quieter than a locked value. */
+.cat-swatch-ink.is-generic { font-style: italic; }
+
+/* The download menu's notes: what a format leaves out or writes approximately. */
+.cat-swatch-menu-note {
+  max-width: 34ch; margin: 0; padding: 4px 10px 6px;
+  color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); line-height: 1.45;
+}
+.cat-swatch-menu-note:first-of-type { margin-block-start: var(--sp-3); }

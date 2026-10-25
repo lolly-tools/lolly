@@ -2,16 +2,20 @@
 
 _Ostatnio sprawdzono: 28 września 2026._
 
-Lolly konwertuje pliki w przeglądarce na Twoim własnym urządzeniu: HEIC na JPG, PNG na SVG, PDF na obrazy i wiele innych kombinacji. Obsługiwane konwersje i ich ograniczenia opisuje [każdy format, który Lolly potrafi otworzyć i utworzyć](/info/formats.html).
+Jeśli zwykle szukasz "HEIC to JPG" lub "compress PDF" i wysyłasz plik na dowolną stronę, która się pojawi, Lolly wykonuje tę samą konwersję w Twojej przeglądarce, na Twoim własnym urządzeniu.
+
+## Co może robić lepiej strona konwertera
+
+Niektóre strony konwerterów obsługują formaty, których Lolly nie obsługuje, i niczego wcześniej nie wymagają. Wybieraj konwerter według formatów i wierności, których potrzebujesz, a także według tego, gdzie przetwarza plik: niektóre konwersje zachowują edytowalną strukturę, a inne spłaszczają wynik.
 
 ## Gdzie odbywa się konwersja
 
-Konwerter działający w przeglądarce może przesłać plik do przetworzenia albo konwertować lokalnie. Narzędzia Lolly działające na urządzeniu przetwarzają plik lokalnie, bez konta, reklam i trackerów. Nie dodają znaku wodnego Lolly ani metadanych pochodzenia. Gdy wymagane zasoby konwersji są dostępne, mogą działać offline; rozmiar pliku ogranicza pamięć urządzenia i konkretny czytnik formatu.
+Konwerter w przeglądarce może wysłać plik do przetworzenia albo konwertować lokalnie. Utility konwersji w Lolly przetwarzają plik lokalnie, bez konta, reklam i trackerów, i nie dodają znaku wodnego Lolly ani Content Credentials. Gdy zasoby potrzebne do konwersji są zapisane, działają offline. Rozmiar pliku jest ograniczony pamięcią urządzenia i konkretnym czytnikiem formatu.
 
-Wybierając konwerter, kieruj się potrzebnymi formatami i wiernością, a także tym, gdzie przetwarza on plik. Niektóre konwersje zachowują edytowalną strukturę, inne spłaszczają wynik; strony Lolly o formatach opisują te różnice.
+![Widok Utilities: Strip Hidden Data, Compress PDF, Convert Image i pozostałe zadania na urządzeniu w jednym miejscu](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+
+[Every format Lolly can open and make](/info/formats.html) wymienia obsługiwane konwersje i ich ograniczenia, w tym HEIC do JPG, PNG do SVG i PDF do obrazów.
 
 ## Gdy zespół potrzebuje więcej
 
-[lolly.work](https://lolly.work) to osobno wdrażana usługa organizacyjna projektu Lolly. Dodaje SSO, SCIM, współdzielone katalogi, zatwierdzanie, raportowanie i renderowanie serwerowe dla obsługiwanych przepływów produkcyjnych. Obie części są open source na licencji MPL-2.0. Organizacja może używać ich razem, a jej członkowie nadal korzystają z narzędzi na urządzeniu do konwersji lokalnych.
-
-Różnica ma znaczenie dla obsługi danych: konwersja lokalna zachowuje plik na urządzeniu, natomiast wybór współdzielonego przesyłania, renderowania serwerowego lub dostarczania wysyła odpowiednie dane do skonfigurowanych usług. [Przegląd rozwiązania łączonego](/info/compare.html) wyjaśnia ten podział.
+Członkowie organizacji nadal korzystają z utility na urządzeniu do lokalnych konwersji, nawet gdy organizacja prowadzi Lolly Work. Wspólne wysłanie pliku, renderowanie serwerowe lub dostarczanie to punkt, w którym dane trafiają na jej serwer; [What runs where](/info/compare.html#what-runs-where) wyjaśnia ten podział.

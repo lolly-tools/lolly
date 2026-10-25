@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test, beforeEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import { openNotifications } from './notification-center.ts';
-import { publishNotification, notificationCount, _resetNotificationsForTests } from '../lib/notifications.ts';
+import { publishNotification, notificationCount, registerNotificationLink, _resetNotificationsForTests } from '../lib/notifications.ts';
 
 const dom = new JSDOM('<button id="profile">Profile</button>', { url: 'https://lolly.tools/' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, Element: dom.window.Element,
@@ -52,4 +52,15 @@ test('a second action sits beside the first and runs without closing the queue',
     [['Open copy', true], ['Download copy', false], ['Dismiss', false]]);
   click('Download copy'); await Promise.resolve(); await Promise.resolve();
   assert.equal(downloaded, 1); assert.equal(opened, 0); assert.ok(queue(), 'the queue stays open');
+});
+test('a fuller list behind the queue is one press from its foot, and leaving closes the queue', () => {
+  openNotifications();
+  const more = () => queue().querySelector<HTMLElement>('.notification-center-more')!;
+  assert.equal(more().hidden, true, 'nothing behind the queue: no foot');
+  let opened = 0;
+  const off = registerNotificationLink('workspace', { label: 'All workspace messages', run: () => { opened++; } });
+  assert.equal(more().hidden, false, 'the foot follows a registration while the queue is open');
+  click('All workspace messages');
+  assert.equal(opened, 1); assert.equal(queue(), null, 'the queue closes before the fuller list opens');
+  off(); openNotifications(); assert.equal(more().hidden, true, 'gone with its source');
 });

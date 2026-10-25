@@ -1,6 +1,6 @@
 {
   "name": "Agenda",
-  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
+  "description": "Ubah satu program acara menjadi layar bermerek, halaman web interaktif, ringkasan animasi, slide PowerPoint, dan kalender.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} sesi, {{trackCount}} trek",
   "inputs.title.label": "Acara",
   "inputs.title.help": "Dicetak di bagian atas setiap tata letak, dan memberi nama file yang diekspor.",

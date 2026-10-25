@@ -72,8 +72,13 @@ So decide, per release:
 
 - `pnpm run build` - neutral. Small, no thumbnails, tiles generate on first load.
 - `pnpm run build:profile` - embeds the active `tools/` + `catalog/` views including
-  previews and og cards. On the `lolly-start` profile that content is the public blank
-  brand, so it is safe to ship; on `suse` it is NOT (private pack).
+  previews and og cards. `lolly-demo` (what the Mac app ships) and `lolly-start` (the
+  blank brand Windows and Linux ship) are public, so either is safe to ship; `suse` is
+  NOT (private pack).
+
+The neutral build seeds from `lolly-demo` on the desktop shell and `lolly-start` on the
+mobile shell (`seedProfile` in each `vite.config.js`). `lolly-demo` lists the blank
+starter as a companion design system, so the Mac app carries both from the first launch.
 
 Whichever you pick, run `pnpm run previews` first if the tool set changed, or you will
 embed stale art.
@@ -82,7 +87,8 @@ embed stale art.
 
 The active content profile decides what gets baked in. **`brands/suse` is private and
 must never reach a public artifact.** `pnpm run profile` shows which one this checkout
-resolves to; `LOLLY_PROFILE=lolly-start` selects the public blank brand for one command.
+resolves to; `LOLLY_PROFILE=lolly-demo` (Mac) or `LOLLY_PROFILE=lolly-start` (Windows,
+Linux) selects a public brand for one command.
 `rpm/make-sources.sh` and `release/common.sh` both ask the resolver and refuse to run on
 the `suse` profile for this reason; the Flathub manifest gets it right
 structurally, by pinning this repository as its one source with

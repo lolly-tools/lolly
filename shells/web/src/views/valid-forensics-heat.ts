@@ -157,7 +157,7 @@ export function heatReaderHtml(
 
 export function layerControlsHtml(layers: ForensicLayers, hasModel: boolean): string {
   const toggle = (key: keyof ForensicLayers, label: string, swatch: string) =>
-    `<label class="fh-layer"><input type="checkbox" data-forensic-layer="${key}"${layers[key] ? ' checked' : ''}><i class="fh-swatch fh-swatch--${swatch}" aria-hidden="true"></i>${label}</label>`;
+    `<label class="fh-layer"><input type="checkbox" class="field-check" data-forensic-layer="${key}"${layers[key] ? ' checked' : ''}><i class="fh-swatch fh-swatch--${swatch}" aria-hidden="true"></i>${label}</label>`;
   return `<div class="fh-layers" role="group" aria-label="${t('Evidence layers')}">
     ${toggle('heat', t('Heat'), 'heat')}
     ${toggle('marks', t('Matched words'), 'clue')}

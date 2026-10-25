@@ -510,3 +510,17 @@ test('the strip is marked parked while it is scrolled out of view', t => {
   notify!([{ isIntersecting: true }]);
   assert.ok(!section.classList.contains('is-parked'));
 });
+
+test('the Gallery strip holds its drift while the WebGPU startup check runs, then drifts', t => {
+  const f = fixture(t, 'gallery');
+  const root = f.mount.ownerDocument.documentElement;
+  root.setAttribute('data-webgpu-pending', '');
+  const start = f.scroll.position;
+  // Drift is 22 px a second; at 6 frames a second each frame moves whole pixels, which
+  // the integer scrollLeft keeps.
+  f.settle(6, 3000);
+  assert.equal(f.scroll.position, start, 'no drift while the check runs');
+  root.removeAttribute('data-webgpu-pending');
+  f.settle(6, 3000);
+  assert.ok(f.scroll.position > start, `the strip drifts once the check settles (${start} -> ${f.scroll.position})`);
+});

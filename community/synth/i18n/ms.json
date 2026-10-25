@@ -1,4 +1,4 @@
 {
   "name": "Synth",
-  "description": "Satu instrumen visual yang anda mainkan. Empat adegan berjalan secara langsung pada GPU: dakwat cecair, kerumunan zarah yang terbang ke arah tajuk utama atau logo anda, medan maklum balas dan kamera anda sendiri. Setiap warna datang daripada palet jenama anda, dan gambar bergerak mengikut kursor anda, mengikut trek muzik dan mengikut pengawal MIDI. Eksport imej pegun atau gelung lancar."
+  "description": "Instrumen visual yang anda mainkan. Empat babak berjalan langsung pada GPU: dakwat bendalir, kawanan zarah yang terbang ke tajuk atau logo anda, medan suap balik dan kamera anda sendiri. Setiap warna datang daripada palet sistem reka bentuk, dan gambar bergerak mengikut penuding anda, runut muzik dan pengawal MIDI. Eksport imej pegun atau gelung tanpa sambungan."
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Brand studio - the ONE place brand primitives are created, edited, saved,
+ * Design System Setup's editor - the ONE place brand primitives are created, edited, saved,
  * imported and exported. Mounted exclusively by #/start (the Dashboard's
  * Design-system tab is a read-only rendering of the result; user preferences
  * like the app theme live on #/profile - that separation is the whole point).
@@ -109,7 +109,7 @@ export type { BrandTabKey, BrandEditorOptions } from './brand-editor/shared.ts';
 const _DEFAULT_RAMP_STEP = 5;
 
 // `segHtml` moved to lib/seg.ts (component audit rec 1 - the one `.view-seg`
-// primitive, shared beyond the brand studio); re-exported here for compat with
+// primitive, shared beyond Design System Setup); re-exported here for compat with
 // anything still importing it from this module.
 export { segHtml };
 
@@ -408,7 +408,10 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   bedit.derive.paintInitialScreen();
 
   bedit.derive.wirePrimaryLock();
-  bedit.ramps.$('[data-be-undo]')?.addEventListener('click', () => { bedit.replace.undoLast(); });
+  // Delegated: the Tokens room mounts its own Undo later in this function (pack.ts).
+  const onUndoClick = (e: Event): void => { if ((e.target as Element | null)?.closest?.('[data-be-undo]')) bedit.replace.undoLast(); };
+  bedit.root.addEventListener('click', onUndoClick);
+  bedit.cleanups.push(() => bedit.root.removeEventListener('click', onUndoClick));
   const reviewEl = bedit.ramps.$('[data-be-review]') as HTMLElement | null; bedit.reviewEl = reviewEl;
   /** The proposal the review card is describing, or null when it is closed. */
   bedit.pendingReplacement = null;
@@ -575,17 +578,17 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   // temporal-dead-zone reference.
   bedit.renderIntake = () => {};
   // Drains marks handed over by another view (the #/pdf exploder's "Send to the
-  // Design System studio"). Same forward-declared shape as renderIntake above
+  // Design System Setup"). Same forward-declared shape as renderIntake above
   // and for the same reason: the paint runs before the queue's own helpers
   // exist, and the real drain needs addLogoFiles.
   bedit.drainPendingLogos = () => {};
   void bedit.logos.paintLogos();
   bedit.cleanups.push(() => bedit.logoUrls.forEach(u => { URL.revokeObjectURL(u); }));
 
-  // The logo-colour pathway: an SVG mark carries the design system's real
-  // colours, so offer (or on a still-unbranded install, simply apply) its first
-  // colour. The note lives in the Add hero, where the colour lands.
-  const suggestEl = bedit.ramps.$('[data-be-suggest]') as HTMLElement | null; bedit.suggestEl = suggestEl;
+  // The logo-colour pathway (plan 320 S1): a placed mark carries the design
+  // system's real colours, so its card asks which one is the main colour (or,
+  // on a still-unbranded install, applies the likeliest answer and says so).
+  bedit.logoOffer = null;
   // The candidate tray (plan 97 section 8) - the HOST's, whenever it has one, because
   // two live trays over one storage key erase each other (see BrandEditorOptions
   // .tray). Only a host that mounts no tray of its own falls through to the
@@ -689,12 +692,20 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       return true;
     },
     openPickCard: () => {
-      // Anchored on the add row's own chip, which is the control the card
-      // belongs to at every beat - on a phone the card ignores the anchor and
-      // docks to the bottom edge (see openPickCard).
-      const chip = bedit.ramps.$('[data-be-tab-panel="color"] [data-ds-addc-pick]') as HTMLElement | null;
-      if (!chip) return false;
-      bedit.swatchEditor.openPickCard(chip, null);
+      // Anchored on the palette's own "+ Add swatch", which is on screen at every
+      // beat. The add row's chip sits inside the folded "Paste colours or use an
+      // image", where it measures 0x0 and the card would land at the panel's
+      // corner. On a phone the card ignores the anchor and docks to the bottom
+      // edge (see openPickCard).
+      const panel = '[data-be-tab-panel="color"]';
+      const anchor = (bedit.ramps.$(`${panel} .be-pal [data-be-add="custom"]:not([data-be-add-group])`)
+        ?? bedit.ramps.$(`${panel} [data-ds-addc-pick]`)) as HTMLElement | null;
+      if (!anchor) return false;
+      const fold = anchor.closest('details');
+      if (fold && !fold.open) fold.open = true;
+      anchor.scrollIntoView({ block: 'nearest' });
+      bedit.pickGroup = undefined;
+      bedit.swatchEditor.openPickCard(anchor, null);
       return true;
     },
     openTypeStage: (role) => {

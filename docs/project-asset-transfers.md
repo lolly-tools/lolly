@@ -1,49 +1,66 @@
 # Shared project assets
 
-In Assets, open **Browse sources**, then **Shared projects**. Choose a project and
-folder to browse files you can access. The grid shows up to 100 files per page.
-The current folder path appears above the grid. Browsing reads metadata; opening
-a file downloads and verifies the original. No personal-library import is needed.
+Your team keeps files in shared projects. From **Assets** you can browse those folders, copy a file into another project, offer it to your organisation's library or send it to a connected service, without importing anything into your personal library first.
 
-Select one or more assets and choose **Add to project**. A device folder stores
-references. **Copy to a shared project** copies files to a project root or nested
-folder. Everyone with project access can see those copies. Folders inherit the
-project's access rules. Original files stay in place.
+::: note Needs Lolly Work
+These steps work when you are signed in to your organisation's Lolly, with shared project files and folders on Lolly Work. Personal projects stay on your device; [Find and recover your work](/info/find-your-work.html) covers them, and [Use Lolly at your organisation](/info/organisation.html) covers signing in.
+:::
 
-Copies include the file bytes and name. Source tags, organisation fields, review
-decisions, private notes and prompts are not transferred. Embedded credentials
-remain in unchanged bytes; the copy action adds no export assertion. Provider
-files must explicitly be available originals. Renditions and unknown file roles
-are refused. SVG copies use the separate shared upload flow, which sanitizes SVG
-markup and may change the bytes.
+## Browse a shared project
 
-Each copy gets a distinct shared file identity, even when a teammate already
-uploaded equal bytes. A transfer receipt is kept on this device for the current
-account and connected instance. Upload and folder placement are recorded
-separately. Retrying a failed placement reuses the acknowledged upload. A lost
-finalize response is reconciled against the project's ready files. Unconfirmed
-uploads are reported rather than duplicated. A completed copy that a teammate
-subsequently moves is never automatically moved back.
+1. In **Assets**, open **Browse sources**, then **Shared projects**.
+2. Choose a project and a folder. The grid shows up to 100 files per page, with the folder path above the grid.
+3. Open a file to download and verify the original. Browsing itself reads only the files' details.
 
-The result lists successful copies and individual failures. **Cancel remaining
-copies** stops further work. A completed upload may remain at the project root
-when cancellation or lost access prevents placement. The result identifies that
-partial outcome. Closing the copy dialog also cancels remaining work.
+## Copy files to another project
 
-Open a shared file and choose **Submit to the catalog** (or the workspace's
-name) to offer the original to the connected Work instance. Choose the library
-audience explicitly: everyone in the workspace, or one of your groups. Library
-access is separate from project membership. Work reads and checks the stored
-original on the server and applies its usual scan, quota and review policy.
-The project file stays unchanged. The result distinguishes live assets and
-submissions awaiting review. A retry returns your existing pending submission.
+::: timeline
+- <!--i:check--> Select one or more files.
+- <!--i:folder--> Choose **Copy to a shared project**, then the project and the folder: its root or a nested folder.
+- <!--i:people--> Everyone with access to that project sees the copies, under the project's access rules. The originals stay where they were.
+:::
 
-**Send to** offers connected destinations that accept this asset format and
-allow asset uploads. The destination receives the original file bytes under its
-own access rules. Export-only organisation destinations are excluded. A DAM
-connection used for browsing does not acquire upload capability. Cloudinary,
-Orange Logic, Papirfly, Air and Adobe tenant write qualification is separate.
+**Add to project** is the other choice: it adds references to a project folder on your device instead of copying files.
 
-These workflows require shared project files and folders on Work. Project-to-library
-submission requires the server-side project-source intake API. Update Work before
-releasing the matching shell. No engine or SDK change is required.
+The result lists each copy that succeeded and each that failed. **Cancel remaining copies** stops further work, and closing the dialog cancels the rest too. If cancelling or lost access stops a copy before it is placed in its folder, the upload may remain at the project root, and the result says so.
+
+::: cols
+## Travels with a copy
+
+- The file's bytes and name
+- Embedded credentials, in bytes that did not change
+- A new shared file identity of its own, even when a teammate uploaded the same bytes
+
+## Stays behind
+
+- Source tags and organisation fields
+- Review decisions
+- Private notes and prompts
+- Any export assertion: copying adds none
+:::
+
+Only files a provider marks as available originals can be copied; renditions and files of unknown role are refused. SVG files go through the shared upload flow, which sanitises SVG markup and may change the bytes.
+
+::: details How copies stay reliable
+A receipt for each transfer is kept on this device for your current account and instance. Upload and folder placement are recorded separately, so retrying a failed placement reuses the upload that was already acknowledged. A lost response from the server is checked against the project's ready files, and an upload that cannot be confirmed is reported rather than sent twice. A copy a teammate moves afterwards is never moved back.
+:::
+
+## Offer a file to the library
+
+Open a shared file and choose **Submit to the catalog** (or your workspace's name for it) to offer the original to your organisation's library.
+
+- Choose the audience: everyone in the workspace, or one of your groups. Library access is separate from project membership.
+- Lolly Work reads and checks the stored original on the server and applies its usual scan, quota and review policy. The project file stays unchanged.
+- The result says whether the file is live or waiting for review. Trying again returns your existing pending submission rather than a second one.
+
+## Send to a connected service
+
+**Send to** lists the connected destinations that accept this file's format and allow uploads. The destination receives the original file under its own access rules, and the result reports delivery, review or a failure you can retry. Destinations that only take exports are not listed, and a library connection used only for browsing cannot upload.
+
+When an administrator turns on shared-original delivery, Lolly Work can also offer fixed Brandfolder and Cloudinary destinations. These send the verified server original without downloading it to your device first.
+
+::: details For administrators
+Brandfolder creates a new asset in a fixed section. Cloudinary's first writer stores an authenticated raw original in a fixed dynamic asset folder. Both check the remote original's digest before reporting delivery. A Brandfolder create that times out may need reconciling by an operator; do not create another delivery to get round that result. Qualifying a tenant for writes, and configuring it, are separate from connecting a read-only source.
+
+Submitting project files to the library needs Lolly Work's project-source intake on the server, so update Lolly Work before releasing the matching app; no engine or SDK change is needed. [Organisation delivery destinations](/info/manage/organisation-delivery.html) covers the server side.
+:::

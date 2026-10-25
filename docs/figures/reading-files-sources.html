@@ -1,0 +1,62 @@
+<!--
+  Concept: how a Lolly parser meets untrusted input. Four sources (a file you picked, a fetched or
+  stored asset, a link parameter, a file inside a file) reach a parser; it checks its named limits
+  before reading; then it answers in one of its three stated contracts.
+  Band Contract: static fragment scoped under .rfs, reads the docs theme tokens with fallbacks
+  (light/dark/brand via --card/--card-foreground/--secondary/--primary), no script, no motion, no
+  network. Stacks into one column in a narrow container.
+  Sources: docs/reading-files.md and docs/parser-inventory.md, which cite the parser modules and
+  security/parser-assurance.json.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5) for the plan 322 docs rewrite
+  directed by Andy Fitzsimon, 2026-10-23. The C2PA signature added at bank time is the first
+  provenance record of this file.
+-->
+<style>
+.rfs{--rfs-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--rfs-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --rfs-ground:hsl(var(--secondary,84.5 55% 92.2%));--rfs-paper:hsl(var(--card,0 0% 100%));
+ --rfs-accent:hsl(var(--primary,176.5 89.5% 11.2%));--rfs-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --rfs-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--rfs-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ color:var(--rfs-ink);background:var(--rfs-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.rfs *{box-sizing:border-box}
+.rfs ul{list-style:none;margin:0;padding:0}
+.rfs li{list-style:none;margin:0;font-size:inherit}
+.rfs p{margin:0}
+.rfs-grid{display:grid;grid-template-columns:minmax(0,1fr) 1.6rem minmax(0,.9fr) 1.6rem minmax(0,1.15fr);align-items:stretch}
+.rfs-col{display:flex;flex-direction:column;gap:7px;min-width:0}
+.rfs-cap{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rfs-muted);margin-bottom:2px}
+.rfs .rfs-cap{margin-bottom:2px}
+.rfs-card{background:var(--rfs-paper);border-radius:12px;box-shadow:0 0 0 1px var(--rfs-line);padding:8px 10px;font-size:.82rem}
+.rfs-card b{display:block;font-weight:600}
+.rfs-card span{display:block;font-size:.72rem;color:var(--rfs-muted);margin-top:1px}
+.rfs-gate{background:var(--rfs-accent);color:var(--rfs-on-accent);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;justify-content:center;height:100%}
+.rfs-gate b{font-weight:700;font-size:.95rem;line-height:1.2}
+.rfs-gate ul{display:flex;flex-direction:column;gap:4px}
+.rfs .rfs-gate li{font-size:.76rem}
+.rfs-gate li::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;margin-inline-end:6px;vertical-align:.15em;opacity:.8}
+.rfs-out{background:var(--rfs-paper);border-radius:12px;box-shadow:0 0 0 1px var(--rfs-line);padding:8px 10px;font-size:.8rem}
+.rfs-out b{display:block;font-weight:600}
+.rfs-out span{display:block;font-size:.72rem;color:var(--rfs-muted);margin-top:1px}
+.rfs-arrow{display:flex;align-items:center;justify-content:center;color:var(--rfs-accent)}
+.rfs-arrow svg{width:1.2rem;height:1.2rem;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+@container (max-width:600px){
+ .rfs-grid{grid-template-columns:minmax(0,1fr)}
+ .rfs-arrow{height:1.6rem}
+ .rfs-arrow svg{transform:rotate(90deg)}
+}
+</style><div class="rfs" role="group" aria-label="How a Lolly parser meets untrusted input: four sources, limits checked before reading, three kinds of answer"><div class="rfs-grid">
+<div class="rfs-col"><p class="rfs-cap">Untrusted input</p>
+<p class="rfs-card"><b>A file you picked</b><span>an upload, a drop, a share</span></p>
+<p class="rfs-card"><b>A fetched or stored asset</b><span>read back from storage or the network</span></p>
+<p class="rfs-card"><b>A link parameter</b><span>every link is public</span></p>
+<p class="rfs-card"><b>A file inside a file</b><span>a profile in a JPEG, a part in a deck</span></p></div>
+<div class="rfs-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+<div class="rfs-col"><p class="rfs-cap">The parser</p><div class="rfs-gate"><b>Named limits, checked before reading</b>
+<ul><li>size of each part</li><li>count of records</li><li>depth of nesting</li><li>every declared length</li></ul></div></div>
+<div class="rfs-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+<div class="rfs-col"><p class="rfs-cap">One stated answer</p>
+<p class="rfs-out"><b>Read what it can</b><span>the readable parts, or a note; never throws</span></p>
+<p class="rfs-out"><b>Stop at once</b><span>a clear error, before any cryptographic check</span></p>
+<p class="rfs-out"><b>Refuse</b><span>a privacy or security control never fails open</span></p></div>
+</div></div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ/mp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnYanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo4ZDYzODcxNC1lMGIwLTQ3MjMtYTY5NS1mZWFhY2ZhYjQxNzQAAAAEVmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjo0Mzo0OVoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRMVZmxlbmd0aBkNtmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggXmzmnxwxf6MojZ84XPtoSPXRBKUpq/90ZO+NemX4S8pjcGFkSAAAAAAAAAAAAAAA7Gp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAALhjYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHVyZWFkaW5nLWZpbGVzLXNvdXJjZXNkZGF0ZXgYMjAyNi0xMC0yM1QwNjo0Mzo0OS44MDBaamRpbWVuc2lvbnNrMjQgw5cgMjQgcHhoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAAC02p1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKkY2JvcqZoZGM6dGl0bGV1cmVhZGluZy1maWxlcy1zb3VyY2Vzamluc3RhbmNlSUR4LXVybjp1dWlkOmNiZmIyZGE2LTI5YjgtNDM0Zi1iNzE1LTBjZTBkNTA0NmUxMHRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgghpW/KMfNJ5aWdaXNG/f4D42RL4henTat48s1pkG1qOKiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggahDcJrxNIbxEvRrxS9aPNCyRb0/df11GUP3MCUFT6xKiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIEPVQvBU2Waxqzy/EOYqT35f1rZIx/URt6tLzoqTokV8omN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMGNib3LShFkB36IBJhghgVkB1jCCAdIwggF5oAMCAQICCVu0CQ1awSDrOzAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDY0MjQ5WhcNMzYxMDIwMDY0MzQ5WjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAT/KWAEytfCB8zg+qhsTYc8khhv9Ek2CfuqxEBuMBA7GrDcGrLxYX7MW4zKhmVUlSuk0I7BtNzspFhsBhksEcH/o3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUK2m9vFPLKdcO8wgh9IjKWqPYm3YwHwYDVR0jBBgwFoAUK2m9vFPLKdcO8wgh9IjKWqPYm3YwCgYIKoZIzj0EAwIDRwAwRAIgbDdO9tDWNIVO/OxNmx7+fa0c0DH59fDTWk8qV0pKYEgCIAUs6XDXiTqF0I4mDx65b78vQB88HH6+40FfCseGy4g0oPZYQJRWQhztAoNQQUFdnOy0WlWH8kzdve2EXcwHBDbXqbHWMksupWK9wn98L8btvUcRMw7nsGD2YYRyFs8ouPK8soA= -----END C2PA MANIFEST----- -->

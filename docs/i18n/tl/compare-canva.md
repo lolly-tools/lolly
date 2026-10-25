@@ -2,26 +2,26 @@
 
 _Huling sinuri: 28 Setyembre 2026._
 
-Gumagawa ang Lolly ng mga on-brand na graphic, social post, presentation at layout sa browser. Kasama ang [lolly.work](https://lolly.work), sinusuportahan din nito ang shared na proyekto, live na work collaboration, mga aprubadong asset at mga policy ng organisasyon.
+Kung gumagawa ang team mo ng mga social post, slide at flyer sa Canva ngayon, sinasabi ng pahinang ito kung saan ginagawa ng Lolly ang parehong trabaho at kung saan nananatiling mas bagay ang Canva.
+
+## Ang mas mahusay na ginagawa ng Canva
+
+Pinagsasama ng Canva ang malaking template at stock library, mga app at hosted na team workflow sa iisang managed service. Nakakatulong ang handa-nang nilalaman at karanasang iyon kapag kailangan mo ng panimulang punto ngayon. Tingnan ang [mga template ng Canva](https://www.canva.com/templates/) at [apps marketplace](https://www.canva.com/apps/). May mahabang kasaysayan din ng operasyon ang live editing nito sa laking hindi pa naaabot ng mga work collab ng Lolly.
 
 ## Kung saan sila nagtatagpo
 
-Parehong hinahayaan ang isang tao na magsimula sa template at makagawa ng tapos na graphic nang hindi kailangang maging designer. Parehong sumusuporta sa mga workflow ng team at brand control: [pinagsasama ito ng Canva sa mga business plan nito](https://www.canva.com/canva-business/); pinaghihiwalay ng Lolly ang mga creative app at ang organisation service.
+Parehong hinahayaan ang tao na magsimula sa template at gumawa ng tapos na graphic nang hindi designer. Parehong sumusuporta sa team work at brand control: [pinagsasama ng Canva ang mga ito sa mga business plan nito](https://www.canva.com/canva-business/), habang pinaghihiwalay ng Lolly ang creative app at ang organisation server.
 
-Tumatakbo ang Lolly nang standalone sa device mo nang walang account. Idinadagdag ng lolly.work ang SSO, SCIM provisioning, mga role, shared na catalogue, mga approval at usage reporting kapag kailangan ng organisasyon mo. Bahagi ito ng proyektong Lolly, hiwalay na dine-deploy at open source sa ilalim ng MPL-2.0, tulad mismo ng Lolly.
+## Paano ginagawa ng Lolly ang magkapatong na trabaho
 
-## Mga template at teamwork
+Ang Lolly tool ay nag-e-encode ng mga pagbabagong puwedeng gawin ng tao, at ang parehong tool ay tumatakbo sa browser, desktop app o CLI. Ang layout na ginawa sa Design canvas ay puwedeng maging [tool na may mga patakaran](/info/create-a-tool.html), at ang isang tool ay puwedeng gumawa ng maraming file mula sa table ng mga value.
 
-Pinagsasama ng Canva ang malaking template at stock library, mga app at hosted na workflow ng team sa isang serbisyo. Maaaring makatulong ang handa nang content at managed na karanasang iyon sa pagpili ng panimulang punto. Tingnan ang [mga template ng Canva](https://www.canva.com/templates/) at ang [apps marketplace](https://www.canva.com/apps/).
+![Ang malayang canvas ng Design, kung saan ang mga kulay, face at asset na iniaalok ay sa mismong design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Ine-encode ng mga tool ng Lolly ang mga pinahihintulutang pagbabago at maaaring gamitin muli sa browser, desktop app o CLI. Maaaring maging [tool na may mga patakaran](/info/create-a-tool.html) ang isang disenyo, at ang parehong tool ay makakagawa ng maraming output mula sa isang talaan ng mga value. Pinamamahalaan ng lolly.work ang access, shared na gawain at policy sa paligid ng mga tool na iyon.
+Pinananatili ng standalone na Lolly ang paggawa at pag-export sa device, nang walang account, at gumagana offline kapag na-save na ang mga asset nito. Dalawang tao ay puwedeng mag-edit nang live sa [pribadong collab](/info/collaborate.html), device sa device. Naka-on bilang default ang Content Credentials para sa mga sinusuportahang export, at puwede mo itong i-off.
 
-Available ang live editing sa pamamagitan ng [private collab](/info/collaborate.html), na direktang nagkokonekta ng dalawang device, at ng work collab sa pamamagitan ng lolly.work instance ng isang organisasyon. Kasama sa mga work collab ang shared edit, cursor at mga naka-save na team session. Gumagamit ng iisang collaboration node ang kasalukuyang server deployment; iba ang scale at operating history nito kumpara sa matatag nang serbisyo ng Canva.
+## Sa isang organisasyon
 
-## Kung saan nakatira ang gawain
+Nagdaragdag ang Lolly Work, na pinapatakbo sa sariling server ng organisasyon mo, ng sign-in, shared project, live na work collab, aprubadong asset at policy. Inilalagay ng [Ano ang tumatakbo saan](/info/compare.html#what-runs-where) ang dalawang bahagi nang magkatabi, kasama ang mga limitasyong pinagsasaluhan ng bawat paghahambing.
 
-Pinapanatili ng standalone na Lolly ang paglikha at export sa device at maaaring gumana offline kapag available na ang mga asset nito. Ang work collaboration, team storage at server rendering ay gumagamit ng mga naka-configure na serbisyo ng organisasyon. Ang pagpiling ito sa deployment ang pagkakaiba: maaaring patakbuhin ng organisasyon ang parehong bahagi ng Lolly nang mag-isa, nang walang bayad sa software license kada seat, habang nagbabayad para sa sarili nitong hosting at administrasyon.
-
-Opsyonal ang Content Credentials para sa mga sinusuportahang export. Maaaring pirmahan ng lolly.work ang server output gamit ang naka-configure na identity ng organisasyon; kailangang pagkatiwalaan ng verifier ang identity na iyon bago ipakitang pinagkakatiwalaan ang lumagda. Tingnan ang [Content Credentials Identity](/info/content-credentials-identity.html) at ang [pangkalahatang-ideya ng pinagsamang solusyon](/info/compare.html).
-
-Ang Canva ay trademark ng may-ari nito. Inilalarawan ng pahinang ito kung saan nagtatagpo ang dalawang solusyon at hindi ito kaugnay ng Canva.
+Ang Canva ay trademark ng may-ari nito. Inilalarawan ng pahinang ito kung saan nagkakapatong ang dalawang produkto at hindi ito kaugnay ng Canva.

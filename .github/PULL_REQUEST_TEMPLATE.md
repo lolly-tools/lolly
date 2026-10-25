@@ -25,7 +25,7 @@ sees the pointer. CONTRIBUTING.md section 4 has the path-to-repo table.
 - [ ] `pnpm test` passes
 - [ ] `pnpm run typecheck` passes
 - [ ] Touched a `tool.json` or a catalog asset? Ran `pnpm run build:catalog:all` **and** `pnpm run validate:catalog:all` (not the singular forms: the catalog index is generated per brand, so a community tool edit leaves other brands stale)
-- [ ] Added or updated a module under `engine/src/`? `pnpm run check:engine-modules` is clean (regenerate with `pnpm run build:engine-modules`)
+- [ ] Added or renamed a module under `engine/src/`? It opens with a doc comment whose first sentence says what it is for (the module map is regenerated after the merge, so do not commit `engine/README.md` or `shells/web/src/README.md` stats)
 
 ## Security
 

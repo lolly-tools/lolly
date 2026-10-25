@@ -57,6 +57,8 @@ export interface ProfileViewCtx {
   /** The instance's sign-out while a member is signed in to one (org/index.ts
    *  signOutOfInstance), else null: the instance card offers Sign out only when set. */
   signOut: (() => Promise<boolean>) | null;
+  /** Sign out on every device: 'ok', 'stayed' (kept the recovery copies) or the sentence to show. */
+  signOutEverywhere: (() => Promise<string>) | null;
   /** The workspace this shell is connected to and who is signed in (org/index.ts
    *  orgProfileAccount), else null: a plain deployment's card is unchanged. */
   account: ProfileAccount | null;
@@ -95,6 +97,8 @@ export interface ProfileViewCtx {
   trustedSitesUnsub: (() => void) | null;
   /** Detaches the instance card's Inbox button from the inbox count. */
   inboxUnsub: (() => void) | null;
+  /** Detaches the Design systems card from design-system switches and the page's key and press listeners. */
+  designSystemsUnsub: (() => void) | null;
   connectionsDetails: HTMLDetailsElement | null;
   connectionsLoaded: boolean;
   syncLoaded: boolean;

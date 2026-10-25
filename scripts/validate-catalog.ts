@@ -118,6 +118,9 @@ import { RESERVED } from '../engine/src/url-mode.ts';
 import { APP_PATH_WORDS } from '../engine/src/tool-url.ts';
 // The slide master rules beyond the schema (plans/275 section 2.7), pure so a test runs them too.
 import { libraryStructureIds, slideMasterProblems } from './lib/slide-master-rules.ts';
+// Brand skills (plan 323): the catalog record's one reader, and the engine's admission.
+import { validateBrandSkillMeta, type BrandSkillMetaV1 } from '../packages/core/src/brand-skill-v1.ts';
+import { admitBrandSkill } from '../engine/src/brand-skill.ts';
 // The masters build, so a library edit that was not rebuilt fails here and not only in a test.
 import { LIBRARY_FILE as SLIDE_LIBRARY_FILE, planWrites as planSlideMasterWrites } from './build-slide-masters.ts';
 // `canvas.*Field` → sub-field-id existence. The schema closes the canvas key SET;
@@ -1607,6 +1610,50 @@ for (const asset of assetsIndex.assets) {
   }
 }
 
+// ─── Brand skills (plan 323) ──────────────────────────────────────────────────
+//
+// A `skill` asset is a brand's standards for one discipline. Its record (`meta.skill`)
+// must read, its files must pass the same admission an upload does (no scripts, text
+// references only, within the limits) and its Agent Skills name must be unique in the
+// pack, because agents and exported folders address a skill by that name.
+{
+  const names = new Map<string, string>();
+  for (const asset of assetsIndex.assets) {
+    if (asset.type !== 'skill') continue;
+    const where = `[asset ${asset.id}] skill`;
+    const meta = (asset.meta as { skill?: unknown } | undefined)?.skill;
+    const problems = validateBrandSkillMeta(meta);
+    if (problems.length) { for (const problem of problems) errors.push(`${where}: ${problem}`); continue; }
+    const record = meta as BrandSkillMetaV1;
+    if (!/^[a-z0-9]+\/skill\/[a-z0-9][a-z0-9-]*$/.test(asset.id)) errors.push(`${where}: id must read <namespace>/skill/<slug>`);
+    if (asset.tier !== 'core') errors.push(`${where}: tier must be core, so the skill is offline wherever its design system is`);
+    if (!asset.license) errors.push(`${where}: license is required, so the skill does not travel as "not recorded"`);
+    const other = names.get(record.name);
+    if (other) errors.push(`${where}: name "${record.name}" is already used by ${other}`);
+    names.set(record.name, asset.id);
+    const entry = (asset.formats ?? []).find((f: { format: string }) => f.format === 'md');
+    if (!entry || asset.formats.length !== 1) { errors.push(`${where}: formats must hold exactly one md entry (references go in meta.skill.files)`); continue; }
+    const entryPath = catalogUrlPath(entry.url);
+    if (!existsSync(entryPath)) continue; // the asset loop above already reports a missing file
+    const files: Record<string, Uint8Array> = { 'SKILL.md': readFileSync(entryPath) };
+    let filesOk = true;
+    for (const file of record.files ?? []) {
+      const abs = catalogUrlPath(file.url);
+      if (!existsSync(abs)) { errors.push(`${where}: reference ${file.path} url "${file.url}" does not exist on disk`); filesOk = false; continue; }
+      const bytes = readFileSync(abs);
+      const actual = `sha256-${createHash('sha256').update(bytes).digest('base64')}`;
+      if (file.checksum !== actual || file.size !== bytes.length) errors.push(`${where}: reference ${file.path} checksum or size stale - run \`pnpm run build:catalog\``);
+      files[file.path] = bytes;
+    }
+    if (!filesOk) continue;
+    const admitted = await admitBrandSkill(files);
+    if (!admitted.ok) errors.push(`${where}: refused (${admitted.code}): ${admitted.reason}`);
+    else for (const finding of admitted.skill.parsed.findings) {
+      if (finding.severity === 'warning') warnings.push(`${where}: ${finding.message}${finding.line ? ` (line ${finding.line})` : ''}`);
+    }
+  }
+}
+
 // ─── Slide masters (plans/274 section 3.4, plans/275 section 2.7) ────────────
 //
 // A pack's `slide-master` asset is a SlideMasterFileV1: the schema first, then the
@@ -1865,6 +1912,39 @@ for (const message of defaultHiddenTemplateErrors(assetsIndex.defaultHiddenTempl
   hasTemplateFile: (toolId, tid) => !!toolFile(toolId, `templates/${tid}.json`),
 })) {
   errors.push(`assets/index.json: ${message}`);
+}
+
+// Companion design systems (shells/web/src/lib/design-system/companions.ts): each
+// entry seeds one editable system on a fresh device, so it must name a tokens
+// document this build can read: a live tokens asset in this index, or the starter
+// every web build bundles (brands/lolly-start's lolly/tokens/brand, starter.ts).
+// Like defaultHiddenTools, the list lives in the per-brand assets index.
+const BUNDLED_STARTER_TOKENS = 'lolly/tokens/brand';
+if (assetsIndex.companionDesignSystems !== undefined) {
+  const companions: unknown = assetsIndex.companionDesignSystems;
+  if (!Array.isArray(companions)) {
+    errors.push('assets/index.json: "companionDesignSystems" must be an array of { "tokens", "label" } entries');
+  } else {
+    const tokenIds = new Set((assetsIndex.assets as Array<{ id: string; type?: string; deprecated?: boolean }>)
+      .filter(asset => asset.type === 'tokens' && asset.deprecated !== true).map(asset => asset.id));
+    const listed = new Set<string>();
+    for (const entry of companions as Array<Record<string, unknown> | null>) {
+      const tokens = entry?.tokens;
+      const label = entry?.label;
+      if (typeof tokens !== 'string' || typeof label !== 'string' || !label.trim()) {
+        errors.push('assets/index.json: each companionDesignSystems entry needs a "tokens" asset id and a "label"');
+        continue;
+      }
+      if (tokens !== BUNDLED_STARTER_TOKENS && !tokenIds.has(tokens)) {
+        errors.push(`assets/index.json: companionDesignSystems entry "${tokens}" is neither a tokens asset in this index nor the bundled starter ${BUNDLED_STARTER_TOKENS}`);
+      }
+      if (tokens === assetsIndex.brandTokens) {
+        errors.push(`assets/index.json: companionDesignSystems entry "${tokens}" is this catalog's own design system (brandTokens)`);
+      }
+      if (listed.has(tokens)) errors.push(`assets/index.json: companionDesignSystems lists "${tokens}" twice`);
+      listed.add(tokens);
+    }
+  }
 }
 
 // ─── Design-system version pins (plans/97 section 6a) ──────────────────────────────

@@ -37,9 +37,16 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
   // card - the list, the switch and the doors live in lib/design-system/.
   {
     const dsBody = viewEl.querySelector<HTMLElement>('#design-systems-body');
+    pv.designSystemsUnsub?.();
+    pv.designSystemsUnsub = null;
     if (dsBody) {
       void import('../../lib/design-system/design-systems-card.ts')
-        .then(m => m.mountDesignSystemsCard(dsBody, host as unknown as Parameters<typeof m.mountDesignSystemsCard>[1]))
+        .then(m => {
+          const detach = m.mountDesignSystemsCard(dsBody, host as unknown as Parameters<typeof m.mountDesignSystemsCard>[1]);
+          // The view may have gone while the module loaded; then detach at once.
+          if (dsBody.isConnected) pv.designSystemsUnsub = detach;
+          else detach();
+        })
         .catch(() => { dsBody.innerHTML = ''; });
     }
   }
@@ -111,6 +118,27 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
       }
       signOutBtn.disabled = false;
       if (signOutErr) { signOutErr.textContent = t('Could not sign out. Try again.'); signOutErr.hidden = false; }
+    });
+  }
+  // Sign out everywhere: the same recovery-copy question the account menu asks, then
+  // the instance's route (pv.signOutEverywhere, from org/ through views/profile.ts).
+  // On success the app root loads afresh exactly as for Sign out; keeping the copies
+  // changes nothing; a failure is said under the rows.
+  const everywhereBtn = viewEl.querySelector<HTMLButtonElement>('#instance-signout-everywhere-btn');
+  const signOutEverywhere = pv.signOutEverywhere;
+  if (signOutEverywhere && everywhereBtn) {
+    everywhereBtn.addEventListener('click', async () => {
+      if (everywhereBtn.disabled) return;
+      everywhereBtn.disabled = true;
+      if (signOutErr) { signOutErr.hidden = true; signOutErr.textContent = ''; }
+      const outcome = await signOutEverywhere().catch(() => t('Could not sign out. Try again.'));
+      if (outcome === 'ok') {
+        window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
+        location.replace('/');
+        return;
+      }
+      everywhereBtn.disabled = false;
+      if (outcome !== 'stayed' && signOutErr) { signOutErr.textContent = outcome; signOutErr.hidden = false; }
     });
   }
 }
@@ -207,6 +235,8 @@ export function wireCleanup(pv: ProfileViewCtx): void {
     pv.trustedSitesUnsub = null;
     pv.inboxUnsub?.();
     pv.inboxUnsub = null;
+    pv.designSystemsUnsub?.();
+    pv.designSystemsUnsub = null;
   };
 }
 

@@ -75,6 +75,18 @@ test("'palette' surfaces the dashboard colour section, addressed by its unique i
   );
 });
 
+test("the Design system tab's pages are each one search away, the retired wheel included", async () => {
+  const lands = async (query: string, href: string): Promise<void> => {
+    const hits = await search(query);
+    assert.ok(hits.some((h) => h.href === href), `'${query}' lands on ${href}`);
+  };
+  await lands('logos', '#/settings?dash-logos');
+  await lands('colourways', '#/settings?dash-colourways');
+  // The palette wheel's page is gone; its keyword now opens the Colour page.
+  await lands('wheel', '#/settings?dash-palette');
+  await lands('typeface', '#/settings?dash-typedemo');
+});
+
 test("'storage' surfaces both the profile card and the dashboard glance", async () => {
   const hits = await search('storage');
   assert.ok(hits.some((h) => h.href === '#/settings?focus=storage-section'));

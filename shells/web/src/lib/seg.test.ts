@@ -3,7 +3,7 @@
  * lib/seg.ts - the segmented-control markup, in both looks.
  *
  * The app variant is pinned byte for byte: 116 call sites across the gallery, the
- * brand studio, the theme toggle and the text tools read that markup, and the panel
+ * Design System Setup, the theme toggle and the text tools read that markup, and the panel
  * variant was added beside it, not over it. The panel variant is pinned by what it
  * must and must not carry (`.lp-seg`, never `.view-seg-btn`), and its tab form by the
  * ARIA tabs pattern, including a round trip through lib/tabs.ts `wireTabs`, which is

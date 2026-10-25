@@ -31,6 +31,7 @@ import { DesignPackageError, designInputShape, packageDesign, type DesignPackage
 // Imported, not read from disk: the bundled Vercel function carries no schemas/ directory.
 import reportSchema from '../../../schemas/design-package-v1.schema.json' with { type: 'json' };
 import type { ContentBlock } from './protocol.ts';
+import { isHostedServer } from './rebrand.ts';
 import {
   BOOL,
   INT,
@@ -48,6 +49,7 @@ import {
   requestRoom,
   resourceUri,
   success,
+  structuredLimitsFor,
   type Env,
   type Schema,
   type StructuredCtx,
@@ -270,7 +272,7 @@ export async function callPackage(
   args: Record<string, unknown>,
   resolveDesign: PackageDesignResolver,
   env: Env = process.env,
-  limits: Readonly<PackageLimitsV1> = PACKAGE_LIMITS,
+  limits: Readonly<PackageLimitsV1> = structuredLimitsFor(env),
   deps: PackageDeps = {},
 ): Promise<StructuredResult> {
   const ctx: StructuredCtx = { env, limits };
@@ -300,8 +302,8 @@ export async function callPackage(
     }
     if (shape !== 'design') throw new ToolCodeError('input.unsupported', 'document must be a Design document (a boxes array, {boxes} or {values: {boxes}}) or a compiled document as lolly_compile returns it.');
 
-    // On Vercel every file arrives in one request body.
-    if (env.VERCEL) {
+    // On a hosted server every file arrives in one request body.
+    if (isHostedServer(env)) {
       const carried = (Array.isArray(args.assets) ? args.assets.reduce((n: number, a) => n + fileArgLength(a), 0) : 0) + fileArgLength(args.source);
       if (carried > requestRoom(ctx))
         throw new ToolCodeError('asset.too-large', `The pictures and the source come to ${carried} bytes of base64 and one request here carries ${requestRoom(ctx)}; run lolly package on the CLI.`);

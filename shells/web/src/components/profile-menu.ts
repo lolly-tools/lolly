@@ -86,7 +86,7 @@ export function attachProfileMenu(
   const updateNotifications = () => {
     const count = notificationCount(); badge.hidden = count === 0; badge.textContent = count > 99 ? '99+' : String(count);
     trigger.setAttribute('aria-label', count ? t('Profile and settings, {count} notifications', { count: String(count) }) : originalLabel ?? t('Profile and settings'));
-    if (notificationCountSlot?.isConnected) notificationCountSlot.textContent = String(count);
+    if (notificationCountSlot?.isConnected) { notificationCountSlot.textContent = String(count); notificationCountSlot.hidden = count === 0; }
   };
 
   const popover = mountBodyPopover(trigger, (el, pop) => {
@@ -97,7 +97,7 @@ export function attachProfileMenu(
       </div>
       ${hasAssets(host) ? `<div class="profile-menu-sound">${soundSwitchHtml()}</div>` : ''}
       <button type="button" class="profile-menu-item" role="menuitem" data-act="notifications">
-        <span>${t('Notifications')}</span><span class="profile-menu-count" data-notification-count>${notificationCount()}</span>
+        <span>${t('Notifications')}</span><span class="profile-menu-count" data-notification-count${notificationCount() ? '' : ' hidden'}>${notificationCount()}</span>
       </button>
       <a class="profile-menu-item" role="menuitem" href="/#/" data-act="home">
         <span>${t('Home')}</span>
@@ -113,7 +113,7 @@ export function attachProfileMenu(
         <span>${t('Design system')}</span><span class="profile-menu-count" data-ds-label></span>
       </button>
       <a class="profile-menu-item" role="menuitem" href="#/start" data-act="brand">
-        <span>${t('Set up your brand')}</span>
+        <span>${t('Design System Setup')}</span>
         ${CHEVRON}
       </a>
       <a class="profile-menu-item" role="menuitem" href="#/settings" data-act="settings">

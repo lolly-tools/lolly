@@ -20,7 +20,7 @@ export interface PaletteViewOptions {
 export function paletteCard(s: BrandSwatch, idx: number, roleGlyph?: string): string {
   return `<div class="be-pal-card" data-reorder-row="${esc(s.key)}">
     ${swatchTile({ label: s.name, hex: s.hex, locked: !!s.lock }, { idx, roleGlyph })}
-    <label class="be-pal-check"><input type="checkbox" data-be-select="${idx}" aria-label="${esc(tRaw('Select {name}', { name: s.name }))}"><span aria-hidden="true"></span></label>
+    <label class="be-pal-check"><input type="checkbox" class="field-check" data-be-select="${idx}" aria-label="${esc(tRaw('Select {name}', { name: s.name }))}"><span aria-hidden="true"></span></label>
     <button type="button" class="be-pal-reorder" data-reorder-handle aria-pressed="false" aria-label="${esc(tRaw('Reorder {name}', { name: s.name }))}" title="${esc(tRaw('Drag to reorder within this group. Or press Space, use arrow keys, then Space to drop.'))}">${icon('grip', { size: 16, filled: true })}</button>
     <span class="be-pal-name">${esc(s.name)}</span><code class="be-pal-hex">${esc(s.hex || 'transparent')}</code>
   </div>`;
@@ -48,12 +48,15 @@ export function paletteHtml(swatches: BrandSwatch[], starter: Set<string>, opts:
     </summary>
     ${items.length ? `<div class="be-pal-grid">${cards(items)}</div>` : `<button type="button" class="be-pal-empty" data-be-add="custom" data-be-add-group="${esc(name)}">${t('+ Add a swatch')}</button>`}
   </details>`).join('');
-  const count = chosen.length ? tRaw('{n} colours', { n: chosen.length }) : inherited.length ? tRaw('{n} starter colours', { n: inherited.length }) : t('No colours yet');
+  const count = chosen.length ? tRaw(chosen.length === 1 ? '{n} colour' : '{n} colours', { n: chosen.length }) : inherited.length ? tRaw('{n} starter colours', { n: inherited.length }) : t('No colours yet');
   return `<div class="be-pal-top"><span class="be-pal-count">${count}</span><div class="be-pal-topbtns">
       <button type="button" class="be-add" data-be-add="custom">${t('+ Add swatch')}</button>
       <button type="button" class="be-add" data-be-addgroup>${t('+ Add group')}</button>
     </div></div><div data-be-group-form></div>${body}
-    ${inherited.length ? `<details class="be-pal-group be-pal-group--starter" data-be-group="Starter colours"${!chosen.length || opts.starterGroup ? ' open' : ''}>
+    ${/* The starter neutrals stay folded until asked for (a tile, a checkbox and a
+          handle each, 27 controls before anything is chosen). The preview beside
+          the palette already shows them in use. */''}
+    ${inherited.length ? `<details class="be-pal-group be-pal-group--starter" data-be-group="Starter colours"${opts.starterGroup ? ' open' : ''}>
       <summary class="be-pal-group-head"><span class="be-pal-group-label">${t('Starter colours')}<span class="be-pal-group-n">${inherited.length}</span></span>
         ${action('data-be-pal-all', 'Starter colours', t('Select'))}<button type="button" class="be-pal-group-all" data-be-hide-starter>${t('Hide all')}</button>
       </summary><div class="be-pal-grid">${cards(inherited)}</div></details>` : ''}

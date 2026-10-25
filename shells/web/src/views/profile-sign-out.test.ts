@@ -57,7 +57,7 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
 
 const json = (body: unknown): Response => new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
 
-const { initOrg, orgAdminHref, orgMemberSignedIn, orgProfileAccount, signOutOfInstance, _resetOrgForTests } = await import('../org/index.ts');
+const { initOrg, orgAdminHref, orgMemberSignedIn, orgProfileAccount, signOutEverywhereFromSettings, signOutOfInstance, _resetOrgForTests } = await import('../org/index.ts');
 const { renderShell, wireInstanceCard } = { ...(await import('./profile/shell.ts')), ...(await import('./profile/chrome.ts')) };
 const { getMetrics } = await import('../metrics.ts');
 type ProfileViewCtx = import('./profile/context.ts').ProfileViewCtx;
@@ -65,6 +65,8 @@ type ProfileViewCtx = import('./profile/context.ts').ProfileViewCtx;
 const ORG_CONFIG_KEY = 'lolly:org-config:same-origin';
 
 /** Boot the org seam as `who`, with the logout route answering `logout`. */
+let everywhere: () => Response = () => new Response(null, { status: 204 });
+
 async function boot(who: 'member' | 'admin' | 'guest' | 'none' | 'no-instance', logout: () => Response = () => new Response(null, { status: 204 }), providerLogoutPath?: string): Promise<void> {
   _resetOrgForTests();
   store.clear();
@@ -78,6 +80,7 @@ async function boot(who: 'member' | 'admin' | 'guest' | 'none' | 'no-instance', 
     }
     if (url.includes('/api/v1/org-config')) return json({ instance: { name: 'Acme' }, inboxUnread: 0 });
     if (url.includes('/api/auth/logout')) return logout();
+    if (url.includes('/api/v1/me/revoke-sessions')) return everywhere();
     return new Response('', { status: 404 });
   };
   dom.reconfigure({ url: START });
@@ -95,6 +98,7 @@ function mountCard(): HTMLElement {
     instanceBase: '', activeDesignSystemLabel: '', adminHref: orgAdminHref(),
     // Exactly what views/profile.ts puts on the context.
     signOut: orgMemberSignedIn() ? signOutOfInstance : null,
+    signOutEverywhere: orgMemberSignedIn() ? signOutEverywhereFromSettings : null,
     account: orgProfileAccount(),
     canChangeInstance: false, shellUpdater: null, hasShellUpdater: false, headshotUrl: '', focusSync: false,
     displayName: '', metrics: getMetrics(),
@@ -176,6 +180,48 @@ test('a failed Sign out says so under the row, keeps the person signed in and re
   }
 });
 
+
+test('Sign out everywhere is its own row in Settings, below Sign out (plan 320 J11)', async () => {
+  await boot('member');
+  const view = mountCard();
+  const row = view.querySelector('#instance-everywhere-row');
+  assert.ok(row, 'a member can end every session from Settings');
+  assert.ok(view.querySelector('#instance-account-row')!.compareDocumentPosition(row!) & dom.window.Node.DOCUMENT_POSITION_FOLLOWING, 'after the Sign out row, not beside it');
+  for (const who of ['no-instance', 'guest', 'none'] as const) {
+    await boot(who);
+    assert.equal(mountCard().querySelector('#instance-signout-everywhere-btn'), null, who);
+  }
+});
+
+test('pressing Sign out everywhere ends every session, then reloads at the app root', async () => {
+  everywhere = () => new Response(null, { status: 204 });
+  await boot('member');
+  const view = mountCard();
+  view.querySelector<HTMLButtonElement>('#instance-signout-everywhere-btn')!.click();
+  await settle(); await settle();
+  assert.deepEqual(requests.filter((r) => r.method !== 'GET'), [{ url: '/api/v1/me/revoke-sessions', method: 'POST' }]);
+  assert.equal(store.has(ORG_CONFIG_KEY), false, 'this device forgets the member');
+  assert.equal(location.href, 'https://instance.test/');
+});
+
+test('an instance without the route says so under the rows and keeps the person signed in', async () => {
+  everywhere = () => new Response('', { status: 404 });
+  try {
+    await boot('member');
+    const view = mountCard();
+    const btn = view.querySelector<HTMLButtonElement>('#instance-signout-everywhere-btn')!;
+    btn.click();
+    await settle(); await settle();
+    const err = view.querySelector<HTMLElement>('#instance-signout-error')!;
+    assert.equal(err.hidden, false);
+    assert.equal(err.textContent, 'This workspace cannot sign you out on other devices yet.');
+    assert.equal(btn.disabled, false, 'the person can try again later');
+    assert.equal(location.href, START, 'no reload');
+    assert.equal(orgMemberSignedIn(), true);
+  } finally {
+    everywhere = () => new Response(null, { status: 204 });
+  }
+});
 
 test('provider sign-out accepts only the known instance path and leaves ordinary sign-out available', async () => {
   await boot('member', undefined, '/api/auth/logout-provider');

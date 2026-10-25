@@ -29,6 +29,7 @@ import { escape, NAV_EVENTS } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import { announce } from '../a11y.ts';
 import { historySettled } from '../lib/overlay-back.ts';
+import { flushAddressWrites } from '../lib/url-state.ts';
 import { mountModal } from './modal.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { getInstanceBase, initInstanceBase, setInstanceBase, instanceFetch } from '../lib/instance.ts';
@@ -281,6 +282,7 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
         if (!valid.ok) { step = { ...step, url: raw, error: urlProblemText(valid.reason), probed: undefined }; repaint('#instance-url'); return; }
         if (!isTauriShell()) {
           // Navigation works even when CSP or CORS prevents discovery from this origin.
+          flushAddressWrites(); // the workspace opens on the latest address
           location.assign(workspaceAppUrl(valid.base, location.hash));
           return;
         }
@@ -311,6 +313,7 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
           try {
             if (isAccountInstance(manifest) && !isTauriShell()) {
               // Login cookies, private catalog reads and sockets belong to this origin.
+              flushAddressWrites(); // the workspace opens on the latest address
               location.assign(workspaceAppUrl(base, location.hash));
               return;
             }

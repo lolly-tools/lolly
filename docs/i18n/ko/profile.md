@@ -1,154 +1,97 @@
-# 프로필 — 창작할 때의 나
+# 프로필
 
-**프로필**은 Lolly가 그 이름으로 제작 활동을 하는 작업 정체성입니다. 도구가 매번 다시 입력하지 않도록 가져다 쓸 수 있는 소소한 정보 모음으로 - 이름, 연락처, 선택적 프로필 사진, 몇 가지 환경설정 - 그리고 작업하면서 쌓이는 모든 것, 즉 저장된 세션, 업로드한 이미지, 로컬 활동 집계까지 포함합니다.
+이름, 연락처, 프로필 사진을 한 번 설정하면 이를 쓰도록 만들어진 모든 도구가 대신 채워줘요. 이메일 서명, 배지, 발표자 카드 등이에요. 이 작은 기록이 사용자의 **프로필**이며 기기에 있어요.
 
-프로필의 모든 것은 **기기 안**, 즉 브라우저의 로컬 데이터베이스(웹 PWA는 IndexedDB, Tauri 앱은 파일시스템)에 저장돼요. 계정도 없고 아무것도 업로드되지 않아요. **Settings → Preferences**(푸터 또는 아바타 메뉴)에서 관리할 수 있고, 도구는 프로필을 *읽기만* 하며, 그마저도 미리 채우도록 만들어진 특정 필드만 읽어요.
-
-> Settings는 프로필과 이전의 Dashboard를 하나의 목적지로 합쳐요. **Preferences**에는 내 정보와 개인 선택이 담기고, **This device**, **Design system**, **Capabilities**, **Activity & stats**가 그 옆에 있어요. 전체 지도는 [Settings](/info/dashboard.html)를 참고하세요.
+프로필에는 작업하면서 쌓이는 것도 담겨요. 저장된 세션, 업로드한 이미지, 로컬 활동 집계예요. **Settings → Preferences**에서 관리하며, 도구는 미리 채우도록 만들어진 필드만 읽어요. 독립 실행형 사용에는 계정이 필요 없고, 선택 사항인 Sync, 공유, 조직 서비스에는 아래에서 설명하는 각자의 데이터 흐름이 있어요.
 
 ## 프로필에 담기는 것
 
-| 항목 | 내용 |
+| 부분 | 설명 |
 |---|---|
-| **이름** | 성과 이름. |
-| **연락처** | 이메일과 전화번호. |
-| **위치** | 도시와 국가. |
-| **프로필 사진** | 선택적인 사진으로, 정사각형으로 잘려 로컬 이미지로 보관됩니다. 이메일 서명, 인용 카드, 조직도, 동적 레이아웃 같은 도구에서 사용됩니다. |
-| **내 정보로 제작** | 하나의 옵트인 스위치입니다(켜지면 **Using my details**로 표시됩니다). 켜면 내보낸 파일에 삽입되는 저자/크레딧 줄인 **출처(provenance)**로, 그리고 **/pro** 일괄 실행의 저자로 개인정보가 함께 실리는지를 제어합니다. (사전 채움 여부는 이 스위치가 아니라 다른 방식으로 제어됩니다: [How tools use your profile](#how-tools-use-your-profile) 참고.) |
-| **환경설정** | 테마(라이트, 다크 또는 Brand - Brand 테마는 앱을 사용자 고유의 팔레트로 칠합니다)와 **Feature flags**를 통해 활성화한 앱의 부분들. |
-| **접근성** | 네 가지 편의 스위치 - *동작 줄이기*, *화려한 미리보기 숨기기*, *고대비*, *큰 텍스트* - 는 프로필 레코드에 저장되므로 프로필 내보내기에도 함께 담깁니다. [Accessibility](#accessibility) 참고. |
-| **작업물** | (썸네일이 있는) 저장된 세션 - **[Projects](/info/using.html)**의 중첩 폴더로 정리됨 - 사용자의 **My images** 라이브러리, 그리고 이 프로필에 연결된 로컬 활동 통계. |
+| **Name** | 이름과 성. |
+| **Contact** | 이메일과 전화번호. |
+| **Location** | 도시와 국가. |
+| **Headshot** | 이메일 서명, 견적 카드, 조직도 같은 도구를 위해 정사각형으로 잘라 로컬 이미지로 보관하는 선택적 사진. |
+| **Use my details to create** | 동의 스위치 하나(한 번 켜면 **Using my details**로 표시돼요). 내보낸 파일과 Batch 실행에서 세부 정보가 작성자 크레딧으로 전달될지를 정해요. 미리 채우기에는 영향이 없으며 [도구가 프로필을 쓰는 방식](#how-tools-use-your-profile)을 참고하세요. |
+| **Preferences** | 테마, 접근성 설정, **Feature flags**에서 켠 앱의 부분. |
+| **Your work** | 썸네일이 있는 저장된 세션([Projects](/info/find-your-work.html)에 정리됨), 업로드한 이미지, 로컬 활동 통계. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+이 중 필수인 것은 없어요. 빈 프로필도 작동하니 입력을 줄여주는 것만 채우세요.
 
-![The Profile screen - name, contact, an optional headshot and your preferences](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Preferences 탭의 Settings: 설정 레일, 그리고 Use my details to create 스위치와 이름, 연락처, 위치 필드가 있는 Your details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-이 중 어느 것도 필수가 아니에요. 빈 프로필도 완전히 정상적인 프로필이에요. 타이핑을 줄여주는 항목만 채우면 돼요.
+[Settings](/info/dashboard.html)가 모양과 이모지부터 저장소와 오프라인 다운로드까지 Preferences의 나머지를 정리해요.
 
-이 페이지는 길기 때문에 옆쪽에 자체 **설정 레일**을 두고 있어요 - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials 순서로, 그 위에는 입력하는 대로 목록을 필터링하는 **Search settings** 필드가 있어요. 모든 섹션은 `#/settings?focus=<section-id>` 형태로 딥링크가 가능하며, 이 링크는 해당 섹션을 열고 화면에 스크롤해 보여줘요(`#/settings?focus=storage-section`, `?focus=feature-flags-section` 등). 그래서 링크가 페이지 맨 위가 아니라 하나의 설정을 정확히 가리킬 수 있어요.
+## 개인, 팀, 역할
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+"프로필"이라는 말은 고정된 한 사람을 떠올리게 해요. Lolly에서는 만드는 맥락, 즉 이것을 만드는 동안의 내가 누구인지에 더 가까워요. 세 가지 형태가 가능하며 Lolly는 각각을 같은 방식으로 처리해요.
 
-## 프로필은 사람이 아니라 맥락이에요
+::: cols
+## 나 자신으로
 
-"프로필"이라는 단어는 고정된 한 사람을 떠올리게 하지만, Lolly에서 프로필은 사실 **창작 맥락**이에요 — *이걸 만드는 동안 나는 누구인가*를 뜻해요. 이 맥락은 세 가지 다른 형태를 취할 수 있고, Lolly는 이 셋을 모두 똑같은 방식으로 다뤄요.
+기본값이에요. 이름, 이메일, 프로필 사진이에요. 한 번 설정하면 서명, 배지, 콘퍼런스 로고 조합이 저절로 채워져요.
 
-### 개인으로서
+## 팀으로
+
+팀의 공유 이름, `events@…` 같은 그룹 받은편지함, 부서, 팀의 마크예요. 한 사람이 설정하고 내보내면 나머지가 같은 프로필을 불러오므로, 팀의 파일에 일관된 세부 정보가 담겨요. 공용 키오스크나 데모 노트북에서 팀 프로필 하나를 실행할 수 있어요.
+
+## 역할로
+
+1년에 사흘만 일하는 행사 매니저는 배지와 사이니지에 행사 받은편지함과 행사 서브 브랜드를 원하고, 그다음에는 평소의 신원으로 돌아가요. 그 역할을 저장된 프로필 파일로 보관하고, 행사 때 불러오고, 끝나면 치워 두세요.
+:::
 
 ![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+::: details Lolly Work를 쓰는 조직의 프로필
+[조직의 Lolly](/info/organisation.html)에 로그인하면 Lolly Work가 신원 공급자로부터 검증된 프로필 필드를 제공하고 조직 정책에 따라 필드나 환경설정을 고정할 수 있어요. 관리되는 필드는 앱에 표시돼요.
 
-### 팀으로서
+그 로그인은 공유 프로젝트와 에셋의 접근도 제어해요. 팀 프로필 파일은 여전히 로컬 파일이며, 조직 멤버십을 부여하거나 업무 계정을 대체하지 않아요. **Use my details to create**는 내보내기의 크레딧을 제어하며 조직의 로그인이나 감사 기록은 제어하지 않아요. [개인정보](/info/privacy.html#organisation-services-with-lolly-work)를 참고하세요.
+:::
 
-프로필이 반드시 한 사람이어야 하는 것은 아닙니다. **조직 내 팀이나 부서**를 대신할 수도 있습니다: 팀의 공유 이름, 그룹 수신함 주소(`events@…`), 부서, 팀의 프로필 사진이나 유닛 마크 등입니다. 한 사람이 설정하고 내보내면(아래 참고) 나머지 팀원들은 같은 프로필을 불러옵니다 - 그러면 누구도 다시 입력할 필요 없이 팀이 만드는 모든 결과물이 일관된 정보를 담게 됩니다. 공용 키오스크나 대여용 데모 노트북도 그 뒤에 서는 모두가 같은 이름으로 제작하는 단일 팀 프로필로 운영할 수 있습니다.
+## 여러 개를 보관하고 하나를 사용하기
 
-### 기능으로서 — 가끔 걸치는 역할
+설치에는 한 번에 활성 프로필이 하나 있으며 앱 안의 전환기는 없어요. 대신 각 프로필은 새 기기로 옮길 때 쓰는 것과 같은 이식 가능한 백업 파일이에요. 다른 맥락으로 들어가려면 이렇게 해요.
 
-고정된 "한 사람, 하나의 프로필" 모델로는 담아낼 수 없는 경우예요. 누군가는 **1년에 사흘만 이벤트 매니저**이고, 나머지 기간은 완전히 다른 무언가일 수 있어요. 그 사흘 동안은 이벤트 정보, 이벤트 수신함, 어쩌면 배지와 사이니지에 들어갈 이벤트 서브 브랜드가 필요하고, 나머지 362일은 평소의 정체성으로 돌아가고 싶을 거예요.
+::: timeline
+- <!--i:download--> **Settings → Storage → Move to another device**의 **Export my data**가 현재 프로필을 `.zip` 하나로 저장해요.
+- <!--i:trash--> **Clear all my data**가 이 설치를 비워요.
+- <!--i:upload--> **Import data…**가 들어가려는 맥락의 프로필 파일을 불러와요.
+:::
 
-Lolly에서 그 역할은 그저 **손 닿는 곳에 두는 또 하나의 프로필**이에요 — 이벤트를 위해 불러오고 끝나면 치워두는 저장된 번들(다음 절 참고)이죠. 역할은 새로운 계정이 아니라 모자예요. 필요할 때 쓰고, 끝나면 벗으면 돼요.
+먼저 지우지 않고 가져오면 대신 **병합**돼요. 가져온 세션과 이미지가 추가되고, 두 사본이 모두 있으면 더 최근에 저장한 것이 유지돼요. 폴더, 즐겨찾기, 템플릿은 기존 것 옆에 추가되고, 비어 있는 필드를 제외한 사용자의 세부 정보는 그대로 있으며 빈 필드는 파일의 값을 받아요. 한 팀의 세션을 자신의 설정으로 가져오기에는 알맞지만, 역할 사이를 깔끔하게 끊는 데는 맞지 않아요.
 
-## 설치본 하나에 활성 프로필 하나 — 보관할 수 있는 수는 제한 없어요
+두 맥락을 동시에 쓰려면 별도의 브라우저 프로필, 별도의 사용자 계정 또는 웹 앱을 두 번째로 설치한 사본을 쓰세요. 각각 독립적인 Lolly 프로필을 가져요.
 
-어느 순간이든 설치본에는 **활성 프로필 하나**만 있습니다 - 도구가 지금 보고 있는 정보입니다. 앱 안에 프로필 전환기는 없습니다. 대신 각 프로필은 **이동 가능한 번들**입니다(하나의 `.zip` 파일, [아래](#moving-a-profile-to-a-new-device) 참고). 이는 새 기기로 옮길 때와 의도적으로 같은 방식입니다 - 프로필은 저장하고 복사하고 불러올 수 있는 파일입니다.
+![설치 전체를 옮기는 두 버튼: Export my data는 zip 하나를 쓰고, Import data는 다시 읽어요](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+> 맥락마다 파일 하나를 보관하고 `LollyTools-events-2026.zip`, `LollyTools-me.zip`처럼 무엇인지 알 수 있게 이름을 붙이세요. 그 파일이 곧 프로필이에요.
 
-- <!--i:trash--> **가장 깔끔한 전환:** **설정 → Preferences → 저장 공간 → 내 데이터 모두 지우기**를 실행한 다음, 새로 들어갈 맥락에 맞는 번들에서 **가져오기**를 누르세요. 이제부터는 오직 그 프로필로만 제작하는 거예요.
-- <!--i:layers--> **레이어링:** 먼저 지우지 *않고* 가져오면 **병합**돼요 - 가져온 세션과 이미지가 기존 내용 위에 얹히고, 양쪽에 같은 항목이 있으면 더 최근에 저장된 사본이 유지되며, 나머지는 그대로 둬요. 폴더, 즐겨찾기, 템플릿은 사용자의 것에 추가되고, 사용자 자신의 정보와 설정은 그대로 남아요. 한 팀의 저장된 세션을 내 설정에 끌어오고 싶을 때 유용하지만, 깔끔한 역할 경계가 필요할 때는 맞지 않아요.
-- <!--i:monitor--> **나란히 운영:** 모든 것이 기기 범위이므로, 별도의 브라우저 프로필, 별도의 사용자 계정, 또는 두 번째로 설치한 PWA는 각각 독립된 Lolly 프로필을 가져요. 전환할 필요 없이 개인 설치본과 행사용 키오스크 설치본을 동시에 실행할 수 있어요.
-
-여러 맥락(나, 팀, 이벤트 매니저라는 모자)을 실제로 오간다면, 여러 개의 번들을 보관해두고 필요한 것을 불러오면 돼요.
-
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-> 맥락마다 번들을 하나씩 보관하고, 파일 이름을 내용에 맞게 바꿔두세요(`LollyTools-events-2026.zip`, `LollyTools-me.zip`). 그 파일 *자체가* 프로필이에요.
-
-## 접근성
-
-**Settings → Preferences → Accessibility**에는 작업물 *주변* 앱을 위한 네 가지 편의 설정이 있어요. 각 설정은 켜기 전까지 꺼져 있고, 어느 것도 도구 캔버스나 내보내기 안쪽에는 영향을 주지 않아요 - 차분해진 앱이라도 사용자가 출고하는 파일의 픽셀 하나까지 건드려서는 안 되니까요.
-
-- <!--i:film--> **동작 줄이기** - 앱 안의 전환, 슬라이드, 애니메이션 효과를 끕니다. 도구 캔버스와 애니메이션 내보내기는 설계된 그대로 계속 움직입니다.
-- <!--i:image--> **화려한 미리보기 숨기기** - 갤러리 미리보기 이미지를 차분한 아이콘-텍스트 카드로 바꾸고, 프로젝트 썸네일의 색상과 대비를 낮춰 요란하지 않으면서도 알아볼 수 있게 유지합니다. 도구 안에서는 모든 것이 원래 색상 그대로 표시됩니다.
-- <!--i:sliders--> **고대비** - 앱의 테두리, 텍스트, 포커스 링을 강화합니다. 브랜드 색상과 캔버스 위의 모든 요소는 설정한 그대로 유지됩니다.
-- <!--i:font--> **큰 텍스트** - 앱 서체를 키웁니다: 레이블, 메뉴, 버튼 텍스트. 컨트롤 자체의 크기는 그대로이므로 그 안의 글자만 커지며, 디자인 안의 서체는 손대지 않으므로 내보내는 결과물의 레이아웃은 흐트러지지 않습니다.
-
-이 설정들은 프로필 레코드 자체에 저장되므로 프로필 내보내기에 함께 담겨 이름, 세션과 함께 다음 설치본으로 옮겨갑니다. (기기에는 첫 페인트 이전부터 설정이 적용되도록 작은 로컬 미러도 보관되는데, 이 미러는 기기 전용이며 이동하지 않습니다.)
-
-## 사용 중인 Lolly 인스턴스
-
-**Settings → Preferences → Lolly 인스턴스**는 이 설치본이 도구와 카탈로그를 어디에서 가져오는지 - 인스턴스의 주소, 혹은 모든 것이 빌드 안에 포함된 경우 *Bundled with this app*를 알려줘요. 배포본이 제공하는 경우 **인스턴스 콘솔** 링크로 관리 화면을 열 수 있고, **변경**으로 설치본을 다른 곳으로 재지정할 수 있으며, **나가기**로 인스턴스의 디자인 시스템, 도구, 카탈로그를 제거하는 동안에도 사용자 자신의 작업물은 남아요([조직에서 Lolly 사용하기](/info/organisation.html#leaving) 참고).
-
-다른 인스턴스로 재지정하려면 **데스크톱 앱**이 필요합니다. 브라우저는 페이지가 다른 오리진에서 도구와 자산을 불러오는 것을 차단하므로, 웹에서는 이 섹션이 현재 위치만 표시할 뿐 거기서 더 나아가지 않습니다.
-
-## 오프라인 사용 가능
-
-Lolly는 사용하는 동안 계속 캐시를 쌓지만, 이런 자연스러운 캐싱은 이미 다녀온 곳만 커버해요. **Settings → Preferences → Available offline**은 미리 예상되는 여정을 위한 거예요: 연결이 끊기는 비행 전, 공항 와이파이가 되는 한 시간 같은 상황이죠. 필요한 부분을 내려받고 진행률 표시줄 하나만 지켜보면, 챙긴 모든 것이 연결이 끊긴 뒤에도 계속 작동해요.
-
-필요한 부분마다 다운로드 전에 용량이 표시되는 일곱 가지 항목입니다.
-
-- <!--i:layout--> **앱** - 아직 열어보지 않은 화면까지 포함해 모든 화면, 편집기, 폰트입니다. 이것이 없으면 온라인 상태에서 방문한 적 없는 화면은 오프라인에서 불러올 수 없습니다.
-- <!--i:image--> **카탈로그** - 필수 요소를 넘어서는 브랜드 자산입니다. 전부 받거나, *Choose by tag*를 열어 사용하는 태그만 받을 수 있습니다.
-- <!--i:book--> **가이드와 문서** - 스크린샷을 포함한 사용자 언어의 이 문서 사이트입니다.
-- <!--i:cpu--> **음성 목소리** - Script의 오디오와 내레이션을 뒷받침하는 음성 모델입니다. 한 번 내려받으면 이후에는 기기에서 실행됩니다.
-- <!--i:zap--> **업스케일링 모델** - AI 이미지 업스케일러입니다: 사진, 일러스트/애니메, 얼굴.
-- <!--i:layers--> **배경 제거** - *Remove background* 기능을 뒷받침하는 기기 내 컷아웃 모델입니다.
-- <!--i:shield--> **Verify 심층 스캔** - 연결이 없는 곳에서 Content Credentials를 확인하기 위한 기기 내 워터마크 스캐너입니다.
-
-마지막 네 가지는 **대용량 다운로드**로 표시되며, 의도적으로 개별 옵트인 방식입니다. 맨 위의 **모두 다운로드**는 앱, 선택한 카탈로그 범위, 문서와 모든 도구를 한 번에 가져올 뿐 그 외에는 아무것도 하지 않습니다. 음성, 업스케일러, 배경 제거와 심층 스캔은 각각 해당 행을 이름으로 지정해 요청할 때만 다운로드됩니다 - 버튼 하나에 수백 메가바이트가 숨어 있다면 정직하지 않을 테니까요.
-
-각 파트 아래에는 도구별 목록이 있습니다: 각 도구를 개별적으로 다운로드하거나(체크 표시는 오프라인 준비 완료를 뜻합니다), **모두 다운로드**로 전부 한 번에 가져올 수 있습니다. 다운로드는 재개 가능합니다 - 취소하거나 연결이 끊겨도 다음 실행 시 중단된 지점부터 이어받아 누락된 부분만 가져옵니다 - 그리고 온라인 상태로 돌아오면 새 릴리스에서 변경된 부분만 가져와 자동으로 갱신됩니다.
-
-브라우저가 영구 저장소 권한을 부여하지 않은 경우 이 섹션에서 그 사실을 알리고 **다운로드 보호**를 제공하는데, 이는 권한을 요청합니다 - "다운로드됨"과 "브라우저가 공간을 회수하기 전까지만 다운로드됨"의 차이입니다.
-
-## 프로필을 새 기기로 옮기기
-
-프로필은 완전히 로컬에만 있기 때문에, 이를 빈 설치본 - 새 노트북, 방금 초기화한 브라우저, 동료의 컴퓨터, 오프라인 기기 - 으로 옮기는 방법은 두 가지예요. 아래처럼 **파일을 직접 옮기거나**, [Sync your devices](/info/sync.html)에서 설명하는 대로 선택한 저장소를 통해 자신의 기기들을 맞춰 두는 거예요. Lolly 로그인이 대신 복원해 주지는 않아요. 그게 핵심이에요 - 애초에 기기 밖으로 나간 적이 없으니까요.
-
-**Settings → Preferences → Storage → Move to another device** 아래에 있어요:
-
-- <!--i:download--> **내 데이터 내보내기**는 `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` 파일 하나를 다운로드해요 - 해당 프로필의 이름을 따르며, 반복 내보내기가 충돌하지 않도록 일별 일련번호가 붙어요(프로필에 해당 이름 부분이 없으면 생략돼요). 여기에는 프로필, 저장된 모든 세션(썸네일 포함), 업로드한 이미지가 담겨요 - 브랜드 토큰과 설치된 폰트도 사용자 자산으로 함께 실려요 - 그리고 환경설정(테마, 레이아웃, 로컬 활동 통계)도 담겨요.
-- <!--i:upload--> 다른 설치본의 **데이터 가져오기…**는 그 파일을 다시 읽어들여 중단했던 지점 그대로 이어가요. [동기화](/info/sync.html)가 저장소에 보관하는 사본도 함께 가져와요.
-- <!--i:box--> **내 데이터 내보내기 & 전체 렌더링**은 같은 백업을 작성하면서 *더불어* 저장된 모든 세션을 완성된 출력 파일로 렌더링한 두 번째 zip을 프로젝트 구조를 그대로 반영하는 폴더에 작성해요. 소스와 결과물 모두를 담은 완전한 오프라인 아카이브예요 - 세션이 많으면 용량이 크고 느릴 수 있어요.
-
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
-
-번들은 그 자체로 완결된 평범한 zip 파일이라서 USB, AirDrop, 네트워크 공유, 자신에게 보내는 이메일 등 **어떤** 방법으로도 옮길 수 있고, 대상 기기가 완전히 오프라인이어도 괜찮아요. 각 부분에는 체크섬이 있어서, 전송 중 손상된 파일은 어중간하게 복원되지 않고 가져오는 시점에 걸러져요. 가져오기는 **병합**돼요(이름이 같은 세션이나 이미지는 더 최근에 저장된 사본이 유지되고, 폴더, 즐겨찾기, 템플릿은 추가되며, 대상의 세부 정보와 설정은 그대로 남고, 나머지는 모두 유지돼요). 그래서 이미 사용 중인 대상을 지워버리는 일은 절대 없어요.
-
-함께 옮겨지지 않는 것: 카탈로그 캐시(새 기기에서 스스로 다시 다운로드돼요)와 도구 자체(이미 있다고 전제해요).
-
-정확한 번들 구조, 버전 정책과 무결성 규칙은 **[Data Transfer](/info/data-transfer.html)**를, 전체 진행 절차는 **[Using Lolly → Moving to another device](/info/using.html#moving-to-another-device)**를 참조하세요.
+[작업물을 다른 기기로 옮기기](/info/find-your-work.html#move-your-work-to-another-device)가 파일에 담기는 것, 남는 것, Sync를 포함한 다른 이동 방법을 다뤄요.
 
 ## 도구가 프로필을 사용하는 방식
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+**미리 채우기.** 도구 작성자는 입력이 프로필에서 값을 가져오도록 표시해요(`bindToProfile: "firstname"`, `"email"`, `"headshot"` 등). 도구가 열리면 그 입력이 프로필에서 채워지며, 조직 정책이 입력을 잠그지 않는 한 프로필을 바꾸지 않고 한 세션에 한해 덮어쓸 수 있어요. 미리 채우기는 로컬 편의 기능이며 **Use my details**의 켜짐 여부와 상관없이 일어나요.
 
-도구는 명시적으로 연결하도록 만들어진 프로필 필드만 *미리 채워요*.
+**크레딧.** 내보낼 때 세부 정보가 파일 메타데이터(PNG, PDF, SVG 등)에 작성자 크레딧으로 전달될 수 있어서, 완성된 파일이 누가 만들었는지 밝힐 수 있어요. **Use my details to create**가 이를, 그리고 Batch 실행의 작성자를 제어해요. 꺼져 있으면 내보내기는 여전히 Lolly로 만들었다고 밝히지만 개인 작성자나 연락처 줄은 담지 않아요.
 
-**옵트인(출처 정보).** 자산을 내보낼 때 사용자 정보는 선택적으로 **출처 정보(provenance)**로 함께 실릴 수 있어요 - 파일 메타데이터(PNG, PDF, SVG 등)에 삽입되는 작성자/크레딧 라인이에요 - 완성된 자산이 누가 만들었는지 밝힐 수 있게 해줘요. **내 정보를 사용하여 제작**이 통제하는 게 바로 *이것*이에요: 꺼두면 내보내기에는 여전히 "Made with Lolly" 도구/플랫폼 표시가 남지만 개인 작성자/연락처 라인은 삽입되지 않아요. (같은 옵트인이 **/pro** 일괄 실행의 작성자도 설정해요.) (도구 제작자용: [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile)와 [Host API → `host.profile`](/info/host-api.html#host-profile)을 참고하세요.)
+도구 작성자는 [`bindToProfile`](/info/tool-inputs.html#bindtoprofile)과 [`host.profile`](/info/host-api.html#host-profile)을 참고하세요.
 
-![The single Use my details to create switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![하나뿐인 Use my details to create 스위치: 옵트인으로 표시되며 켜기 전에는 꺼져 있어요](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## 프로필 vs 플랫폼 vs 기능
+## 프로필, 디자인 시스템, 기능
 
-이 셋은 UI에서 서로 가까이 놓여 있어서 헷갈리기 쉬워요.
+Settings에서 서로 가까이 있어 헷갈리기 쉬운 세 가지가 있어요.
 
-- <!--i:people--> **Profile** - *사용자* 본인(또는 팀, 또는 맡은 역할): 이름, 연락처, 프로필 사진, 저장한 작업물. 개인적이며 기기에 저장되고 번들로 이동 가능합니다.
-- <!--i:palette--> **Platform** - *브랜드*: 모든 도구가 렌더링 기준으로 삼는 색상, 폰트와 전역 설정. 공유되고 일관되며 개인적이지 않습니다.
-- <!--i:sliders--> **Capabilities** - *앱이 할 수 있는 것*: 전체 기능 세트와 사용 가능한 도구.
+- <!--i:people--> **Profile**: 나, 팀 또는 지금 맡은 역할로, 이름, 연락처, 프로필 사진, 저장된 작업물이에요. 개인적이며 기기에 보관되고 파일로 이식할 수 있어요.
+- <!--i:palette--> **Design system**: 브랜드로, 모든 도구가 렌더링에 쓰는 색상, 글꼴, 설정이에요. 개인적이지 않고 공유되며 일관돼요. [Design System Setup](/info/brand-studio.html)을 참고하세요.
+- <!--i:sliders--> **Capabilities**: 앱이 할 수 있는 일로, 사용할 수 있는 기능과 도구예요.
 
-프로필은 에셋이 *누구로부터* 나온 것인지를 바꾸고, 플랫폼은 그게 *어떻게 보이는지*를 바꾸며, 기능은 *무엇을 만들 수 있는지*를 결정해요.
+프로필은 파일이 누구에게서 왔는지를 바꾸고, 디자인 시스템은 파일의 모습을 바꾸며, 기능은 만들 수 있는 것이에요.
 
-### 다른 곳의 "프로필" — 이 페이지의 프로필이 아니에요
-
-이 단어는 프로젝트 전반에서 여러 의미로 쓰여요. 아래 둘 다 이 페이지에서 다루는 개인 프로필과는 달라요.
-
-- <!--i:box--> **Content profile** - `profiles.json`에 있는 빌드 타임 구성으로, 도구 팩 집합을 브랜드 카탈로그(예: `suse`, `lolly-start`)에 연결합니다. 배포 시 운영자가 선택하는 것이며, `profile` **URL/CLI 매개변수**도 내보내기 시점에 *색상* 변형(ICC/CMYK 인쇄 조건 - [URL Mode](/info/url-mode.html) 참조)을 선택합니다. 둘 다 *사용자* 자신이 아니라 *빌드/출력물*에 관한 것입니다. [Configuration](/info/configuration.html)을 참조하세요.
-- <!--i:seal--> **Identity profile** - 선택적으로 등록할 수 있는 **검증된 Content Credentials 신원**(이메일을 서명된 내보내기에 연결하는 단기 인증서)입니다. 이는 개인 프로필의 이름/연락처 필드와는 별개인 서명용 신원이지만, **내 정보를 사용하여 제작**이 둘 중 어느 쪽이 삽입될지를 통제합니다. [Content Credentials Identity](/info/content-credentials-identity.html)를 참조하세요.
+이 단어는 Lolly에서 다른 의미가 세 가지 더 있어요. **콘텐츠 프로필**은 배포가 어떤 도구와 카탈로그를 포함하는지 고르는 빌드 설정이며, [용어집](/info/glossary.html)이 이 용어를 정의해요. `profile` 링크 매개변수는 CMYK 인쇄 조건 같은 내보내기의 색상 프로필을 골라요. [예약된 URL 매개변수](/info/url-parameters.html#print)를 참고하세요. **검증된 신원**은 이메일을 서명된 내보내기에 연결하는 선택적 서명 인증서로 이 세부 정보와 별개이지만, 둘 중 어느 것을 임베드할지는 **Use my details to create**가 정해요. [Content Credentials](/info/content-credentials-identity.html)를 참고하세요.
 
 ![The Verified identity card, phone-width: the certificate lifetime picker and the enrolment step beneath it - the identity profile, separate from your personal details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## 프라이버시
 
-위의 선택적 신원 등록(등록에 사용한 이메일을 인증서 서비스로 전송해요 - [Server Surface](/info/server-surface.html) 참고)을 제외하면, 프로필은 전송되거나 업로드되거나 사용자를 식별·추적하는 데 쓰이지 않아요 - 동의할 대상이 없고, 보관되는 내용을 알리는 이 안내가 있을 뿐이에요. **Settings → Preferences → Clear all my data**로 언제든 전부 지울 수 있어요. [Privacy Policy](/info/privacy.html)를 참고하세요.
+개인 프로필은 로컬에 저장돼요. 세부 정보는 백업이나 Sync 사본, 공유하거나 내보내는 콘텐츠, 선택적 Content Credentials 등록 중에 전달될 수 있어요. Lolly Work 인스턴스에서 로그인, 공유 작업, 원격 측정 정책, 감사 기록은 이 로컬 프로필과 별개예요. **Settings → Preferences → Clear all my data**는 이 기기를 지우며, 저장소 공급자나 조직이 보관한 사본은 지우지 않아요. [개인정보 처리방침](/info/privacy.html)을 참고하세요.

@@ -15,8 +15,9 @@ test('local discovery filters explicit tags and fonts and puts an identical pale
 });
 test('library bounds file reads and retains usable systems when one cannot be previewed', async () => {
   let oversizedRead = false;
+  const rows = async () => [{ id: 'ok', label: 'Mine', headId: 'ok', tags: ['Mine'] }, { id: 'large', headId: 'large' }, { id: 'bad', headId: 'bad' }];
   const result = await readLocalLooks({
-    designSystems: { list: async () => [{ id: 'ok', label: 'Mine', headId: 'ok', tags: ['Mine'] }, { id: 'large', headId: 'large' }, { id: 'bad', headId: 'bad' }] } as unknown as DesignSystemRegistry,
+    designSystems: { list: rows, visible: rows } as unknown as DesignSystemRegistry,
     assets: { _getBlob: async id => {
       if (id === 'large') return { size: LOOK_BYTES + 1, text: async () => { oversizedRead = true; return '{}'; } } as Blob;
       return new Blob([id === 'ok' ? JSON.stringify(exampleLooks()[0]!.doc) : '{bad']);

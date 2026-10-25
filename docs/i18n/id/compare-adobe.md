@@ -2,24 +2,24 @@
 
 _Terakhir diperiksa: 28 September 2026._
 
-Lolly menangani pengeditan dan konversi gambar, tata letak, produksi merek berulang, keluaran cetak, dan Content Credentials. [lolly.work](https://lolly.work) menambahkan identitas organisasi, aset bersama, persetujuan, dan produksi server otomatis ke alur kerja kreatif tersebut.
+Jika Anda memakai Photoshop, Illustrator, atau InDesign untuk file sehari-hari, halaman ini menyatakan pekerjaan mana di antaranya yang dapat diambil alih Lolly dan mana yang tetap bersama Adobe.
+
+## Apa yang dilakukan Adobe lebih baik
+
+Aplikasi spesialis Adobe mencakup pekerjaan kreatif yang mendalam. [Photoshop](https://www.adobe.com/products/photoshop.html), misalnya, menyediakan penyuntingan foto, seleksi, masking, dan komposit yang mendetail. Retouch yang rumit dan aset brand yang berulang memiliki kebutuhan berbeda: bandingkan operasi penyuntingan yang dibutuhkan pekerjaan Anda sebelum memindahkan pekerjaan itu.
 
 ## Di mana keduanya beririsan
 
-Keduanya mendukung pekerjaan seperti mengubah ukuran gambar, menyusun tata letak, dan mengekspor format profesional. Lolly mendukung keluaran PDF/X, CMYK, dan raster dengan kedalaman bit tinggi, dengan [kemampuan khusus tiap format](/info/formats.html). Utilitas di perangkatnya mengonversi dan membersihkan berkas tanpa mengunggahnya.
+Keduanya mengubah ukuran gambar, menyusun tata letak, dan mengekspor format profesional. Lolly mendukung PDF/X, CMYK, dan keluaran raster bit-depth tinggi, dengan [kapabilitas khusus format](/info/formats.html), dan utilitas di perangkatnya mengonversi dan membersihkan file tanpa mengunggahnya.
 
-Aplikasi spesialis Adobe mencakup alur kerja kreatif yang luas. [Photoshop](https://www.adobe.com/products/photoshop.html), misalnya, menyediakan alat penyuntingan foto, seleksi, masking, dan komposit yang mendetail. Bandingkan operasi pengeditan yang dibutuhkan pekerjaan Anda dengan alat Lolly; aset merek yang berulang dan retus yang rumit dapat memiliki kebutuhan yang berbeda.
+## Bagaimana Lolly mengerjakan pekerjaan yang tumpang tindih
 
-## Layanan pembuatan dan organisasi
+Lolly mandiri tidak memerlukan akun Adobe dan tidak memerlukan akun Lolly, dan menjalankan engine yang sama di browser, aplikasi desktop, dan CLI. Templat dan token desain menjaga setiap file tetap konsisten, dan [Share with rules](/info/create-a-tool.html) mengubah desain menjadi alat yang diisi orang lain.
 
-Lolly mandiri berjalan tanpa akun Adobe maupun akun Lolly, dengan mesin yang sama di peramban, aplikasi desktop, dan CLI. Templat dan token desain membuat keluaran dapat diulang, dan [Bagikan dengan aturan](/info/create-a-tool.html) mengubah sebuah desain menjadi alat yang dapat diisi orang lain.
+Lolly menandatangani ekspor yang didukung dengan Content Credentials di perangkat, aktif secara default; Anda dapat mematikannya. Kunci perangkat membuktikan file tidak berubah sejak ditandatangani. Organisasi dapat memakai otoritas sertifikat sendiri, sehingga verifier-nya memercayai penandatangan; [Content Credentials Identity](/info/content-credentials-identity.html) menjelaskan perbedaannya. Utilitas transformasi di perangkat tidak menambahkan watermark Lolly atau Content Credentials.
 
-lolly.work adalah layanan terpisah dalam proyek Lolly, berlisensi sumber terbuka MPL-2.0 seperti aplikasi kreatifnya. Layanan ini menyediakan SSO, SCIM, katalog dan proyek bersama, persetujuan, kebijakan akses, catatan audit, dan perenderan server. Organisasi dapat menjalankan kedua bagian sendiri dan menghubungkan pustaka aset yang ada. Pembuatan lokal tetap berada di perangkat; pekerjaan bersama dan tugas server menggunakan layanan yang dikonfigurasi.
+## Dengan organisasi
 
-## Content Credentials dan identitas
+Lolly Work menambahkan login organisasi, aset bersama, persetujuan, dan produksi server, dengan [penandatanganan server](/info/work-c2pa.html) di bawah sertifikat organisasi. [What runs where](/info/compare.html#what-runs-where) menyandingkan kedua bagian itu.
 
-Lolly dapat menandatangani ekspor yang didukung di perangkat, dengan Content Credentials yang diaktifkan oleh pengguna. Kunci yang dibuat di perangkat membuktikan integritas tanda tangan berkas; verifier tetap perlu memercayai penandatangan sebelum menampilkan identitas terverifikasi. Organisasi dapat menggunakan otoritas sertifikat sendiri dan mendistribusikan root-nya ke verifier-nya. lolly.work juga mendukung penandatanganan di server dengan sertifikat dan kunci organisasi yang dikonfigurasi.
-
-Dengan begitu, penandatanganan pribadi dan penandatanganan organisasi sama-sama tersedia dalam solusi Lolly. Lihat [Identitas Content Credentials](/info/content-credentials-identity.html), [panduan penandatanganan lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md), dan [ringkasan solusi gabungan](/info/compare.html). Utilitas transformasi di perangkat tidak menambahkan tanda air Lolly atau metadata asal-usul.
-
-Adobe, Photoshop, dan Creative Cloud adalah merek dagang Adobe. Halaman ini menjelaskan di mana solusi-solusi tersebut beririsan dan tidak berafiliasi dengan Adobe.
+Adobe, Photoshop, dan Creative Cloud adalah merek dagang Adobe. Halaman ini menjelaskan di mana produk-produk itu tumpang tindih dan tidak berafiliasi dengan Adobe.

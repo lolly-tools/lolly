@@ -23,9 +23,17 @@
  * fields the snapshot actually knows. With no snapshot every field stays absent,
  * so a record built without one is byte-identical to one built before the record
  * existed.
+ *
+ * The brand skills record (plan 323, approved on the same condition): which brand
+ * skill revisions guided an agent-made piece. It is written only when an agent
+ * declared the skills it read and followed (`ExportMetaOptions.brandSkills`, which
+ * the runtime fills from `ExportOpts.brandSkills` while the record is on), never
+ * inferred. The words are "guided by": a skill is guidance, and nothing here
+ * checks the export against one. With no skills nothing is added anywhere.
  */
-import type { ExportMeta, ExportThemeChoice, Profile, ProfileAPI, TokenAxisKind, TokensSnapshot } from './bridge/host-v1.ts';
+import type { ExportBrandSkill, ExportMeta, ExportThemeChoice, Profile, ProfileAPI, TokenAxisKind, TokensSnapshot } from './bridge/host-v1.ts';
 import { TOKEN_AXIS_KINDS } from '@lolly-tools/core/host-v1';
+import { isAgentSkillName } from '@lolly-tools/core/skill-frontmatter-v1';
 import { canonicalJson } from './canonical-json.ts';
 import { DESIGN_VERSION_LATEST } from './design-version.ts';
 import { isDesignSystemId } from './design-system.ts';
@@ -64,13 +72,25 @@ export interface ExportMetaOptions {
    * the design-system record is filled from it; absent or null, nothing is.
    */
   snapshot?: TokensSnapshot | null;
+  /**
+   * The brand skills an agent declared it followed for this piece (plan 323).
+   * Recorded as given, after malformed entries are dropped; absent, empty or
+   * null, nothing is. Independent of the snapshot: a host with no design system
+   * still records the skills an agent was handed.
+   */
+  brandSkills?: readonly ExportBrandSkill[] | null;
 }
+
+/** The record fields of an export's metadata, as the readers and writers below take them. */
+export type DesignRecordFields = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'>;
 
 /** The design-system part of an export's metadata (plans/319). Every field is optional. */
 export interface DesignRecord {
   designSystem?: { id: string; label: string };
   designVersion?: string;
   themes?: ExportThemeChoice[];
+  /** The brand skills that guided an agent-made piece (plan 323). */
+  brandSkills?: ExportBrandSkill[];
 }
 
 /** What an export would write about its design system, shown before anything is written. */
@@ -92,6 +112,14 @@ const MAX_VERSION = 64;
 const MAX_GROUP = 64;
 const MAX_THEMES = 16;
 const MAX_THEMES_JSON = 8192;
+const MAX_BRAND_SKILLS = 16;
+const MAX_BRAND_SKILLS_JSON = 8192;
+const MAX_SKILL_ID = 200;
+/** A catalog asset id (schemas/asset.schema.json), the form a skill's id takes. */
+const SKILL_ID_RE = /^[a-z0-9]+(?:\/[a-z0-9][a-z0-9-]*)+$/;
+/** A brand skill's `skillRevision` (brand-skill-v1 validateBrandSkillMeta). */
+const SKILL_REVISION_RE = /^[A-Za-z0-9._-]{1,32}$/;
+const SHA256_HEX_RE = /^[0-9a-f]{64}$/;
 
 const clip = (s: string, n: number): string => (s.length > n ? s.slice(0, n) : s);
 const text = (v: unknown, n: number): string => (typeof v === 'string' ? clip(v.trim(), n) : '');
@@ -127,6 +155,7 @@ export async function buildExportMeta(
   const toolId  = clean(manifest?.id);
   const toolVersion = clean(manifest?.version);
   const record = opts?.snapshot ? designRecordOf(opts.snapshot, manifest) : {};
+  const brandSkills = brandSkillRecords(opts?.brandSkills);
 
   // The colourway joins the tool's name, never the design system's label: the
   // label stays in the record. With no tool name there is nothing to qualify.
@@ -145,6 +174,9 @@ export async function buildExportMeta(
     contact,                                                  // '' if none
     description,
     ...record,
+    // Beside the design-system record, never in the description: the description
+    // is the one-line credit, and the skills are a record of guidance.
+    ...(brandSkills.length ? { brandSkills } : {}),
   };
 
   // bindToMeta: a tool's own inputs supply/override provenance fields: the artist's
@@ -228,18 +260,19 @@ function recordedThemes(snapshot: TokensSnapshot, manifest?: MetadataManifest | 
 }
 
 /** Only the record's own fields of a meta, for a caller that shows or compares them. */
-export function designRecordFrom(meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null | undefined): DesignRecord {
+export function designRecordFrom(meta: DesignRecordFields | null | undefined): DesignRecord {
   if (!meta) return {};
   return {
     ...(meta.designSystem ? { designSystem: { ...meta.designSystem } } : {}),
     ...(meta.designVersion ? { designVersion: meta.designVersion } : {}),
     ...(meta.themes?.length ? { themes: meta.themes.map(t => ({ ...t })) } : {}),
+    ...(meta.brandSkills?.length ? { brandSkills: meta.brandSkills.map(s => ({ ...s })) } : {}),
   };
 }
 
 /** True when the record holds nothing to write. */
 export function isEmptyDesignRecord(record: DesignRecord | null | undefined): boolean {
-  return !record || (!record.designSystem && !record.designVersion && !record.themes?.length);
+  return !record || (!record.designSystem && !record.designVersion && !record.themes?.length && !record.brandSkills?.length);
 }
 
 /** The colourway a record names, if any. */
@@ -261,16 +294,34 @@ export function toolCredit(meta: Pick<ExportMeta, 'tool' | 'themes'> | null | un
 
 /**
  * The record as one plain English line, the words the CLI and the TUI show before
- * an export writes them: "Acme · Version 2026-10 · Colourway: Persimmon". The web
- * shell builds the same line through its own translations. Empty for an empty record.
+ * an export writes them: "Acme · Version 2026-10 · Colourway: Persimmon", ending
+ * in "Guided by: acme-brand 1.0" when an agent declared brand skills. The web
+ * shell builds the same line through its own translations. Empty for an empty
+ * record. `skills: false` leaves the brand skills out, for a caller that names
+ * them on a line of their own or compares design systems only.
  */
-export function designRecordWords(record: DesignRecord | null | undefined): string {
+export function designRecordWords(record: DesignRecord | null | undefined, opts: { skills?: boolean } = {}): string {
   if (!record) return '';
   const parts: string[] = [];
   if (record.designSystem) parts.push(record.designSystem.label);
   if (record.designVersion) parts.push(`Version ${record.designVersion}`);
   for (const t of record.themes ?? []) parts.push(`${themeChoiceLabel(t)}: ${t.name}`);
+  const guided = opts.skills === false ? '' : guidedByWords(record.brandSkills);
+  if (guided) parts.push(`Guided by: ${guided}`);
   return parts.join(' · ');
+}
+
+/**
+ * The brand skills a record names, as "acme-brand 1.0, acme-photography 1.2": each
+ * skill's name and revision, in the recorded order. Empty when there are none.
+ */
+export function guidedByWords(skills: readonly ExportBrandSkill[] | null | undefined): string {
+  return (skills ?? []).map(brandSkillLabel).join(', ');
+}
+
+/** One brand skill as people read it: its name and revision ("acme-brand 1.0"). */
+export function brandSkillLabel(skill: Pick<ExportBrandSkill, 'name' | 'revision'>): string {
+  return `${skill.name} ${skill.revision}`;
 }
 
 /** A theme group's heading in a record line: "Colourway" for a colourway, else the group's own id. */
@@ -284,7 +335,7 @@ export function themeChoiceLabel(choice: Pick<ExportThemeChoice, 'group' | 'kind
  * assertion. Verify keeps only scalar values from that assertion, so the theme
  * choices travel as one canonical JSON string. Empty when the record is.
  */
-export function designRecordEnvironment(meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null | undefined): Record<string, string> {
+export function designRecordEnvironment(meta: DesignRecordFields | null | undefined): Record<string, string> {
   const out: Record<string, string> = {};
   if (meta?.designSystem?.id) {
     out.designSystem = meta.designSystem.id;
@@ -292,16 +343,24 @@ export function designRecordEnvironment(meta: Pick<ExportMeta, 'designSystem' | 
   }
   if (meta?.designVersion) out.designVersion = meta.designVersion;
   if (meta?.themes?.length) out.themes = canonicalJson(meta.themes);
+  // The same reason as the themes: Verify keeps scalars, so the list is one JSON
+  // string. Re-checked here, so a hand-built meta cannot write an unbounded value.
+  const skills = brandSkillRecords(meta?.brandSkills);
+  if (skills.length) out.brandSkills = canonicalJson(skills);
   return out;
 }
 
-/** The record as PDF keyword entries ("Design system: Acme", "Colourway: Persimmon"). */
-export function designRecordKeywords(meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null | undefined): string[] {
+/**
+ * The record as PDF keyword entries ("Design system: Acme", "Colourway: Persimmon",
+ * then one "Guided by: acme-brand 1.0" per brand skill).
+ */
+export function designRecordKeywords(meta: DesignRecordFields | null | undefined): string[] {
   if (!meta) return [];
   const out: string[] = [];
   if (meta.designSystem?.label) out.push(`Design system: ${meta.designSystem.label}`);
   if (meta.designVersion) out.push(`Design version: ${meta.designVersion}`);
   for (const t of meta.themes ?? []) out.push(`${themeChoiceLabel(t)}: ${t.name}`);
+  for (const s of brandSkillRecords(meta.brandSkills)) out.push(`Guided by: ${brandSkillLabel(s)}`);
   return out;
 }
 
@@ -345,6 +404,7 @@ const XML_PROPS = [
   ['designSystemLabel', 'DesignSystemLabel'],
   ['designVersion', 'DesignVersion'],
   ['themes', 'Themes'],
+  ['brandSkills', 'BrandSkills'],
 ] as const;
 
 /**
@@ -353,7 +413,7 @@ const XML_PROPS = [
  * credential's keys. Empty when there is nothing to record, so a writer that adds
  * the namespace only when this is non-empty stays byte-identical for every other export.
  */
-export function designRecordXml(meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null | undefined): string[] {
+export function designRecordXml(meta: DesignRecordFields | null | undefined): string[] {
   const env = designRecordEnvironment(meta);
   return XML_PROPS.filter(([key]) => env[key]).map(([key, name]) => `<lolly:${name}>${xmlEsc(env[key]!)}</lolly:${name}>`);
 }
@@ -363,7 +423,8 @@ export function readDesignRecordXml(xml: string | null | undefined): DesignRecor
   if (!xml?.includes('lolly:')) return null;
   const env: Record<string, string> = {};
   for (const [key, name] of XML_PROPS) {
-    const m = new RegExp(`<lolly:${name}>([^<]{0,${MAX_THEMES_JSON}})</lolly:${name}>`).exec(xml);
+    const max = key === 'brandSkills' ? MAX_BRAND_SKILLS_JSON : MAX_THEMES_JSON;
+    const m = new RegExp(`<lolly:${name}>([^<]{0,${max}})</lolly:${name}>`).exec(xml);
     if (m) env[key] = xmlUnesc(m[1]!);
   }
   return readDesignRecord(env);
@@ -394,6 +455,42 @@ export function parseThemeChoices(raw: unknown): ExportThemeChoice[] {
 }
 
 /**
+ * A brand skills list, bounded and shape-checked: at most 16 entries, the first
+ * of each id kept, and an entry dropped unless its id reads as an asset id, its
+ * name as an Agent Skills name, its revision as a skill revision and its hash as
+ * a SHA-256 digest (64 hex characters; a `sha256:` prefix and upper case are
+ * normalised away). Used on the way in from an agent and on the way back from a
+ * foreign file alike, so both hold the same shape. Never invents an entry.
+ */
+export function brandSkillRecords(raw: unknown): ExportBrandSkill[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ExportBrandSkill[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (out.length >= MAX_BRAND_SKILLS) break;
+    if (!item || typeof item !== 'object') continue;
+    const r = item as Record<string, unknown>;
+    const id = typeof r.id === 'string' ? r.id.trim() : '';
+    const name = typeof r.name === 'string' ? r.name.trim() : '';
+    const revision = typeof r.revision === 'string' ? r.revision.trim() : '';
+    const sha256 = typeof r.sha256 === 'string' ? r.sha256.trim().toLowerCase().replace(/^sha256:/, '') : '';
+    if (id.length > MAX_SKILL_ID || !SKILL_ID_RE.test(id) || seen.has(id)) continue;
+    if (!isAgentSkillName(name) || !SKILL_REVISION_RE.test(revision) || !SHA256_HEX_RE.test(sha256)) continue;
+    seen.add(id);
+    out.push({ id, name, revision, sha256 });
+  }
+  return out;
+}
+
+/** A brand skills list from its JSON form (the credential key, the `lolly:BrandSkills` property). */
+export function parseBrandSkills(raw: unknown): ExportBrandSkill[] {
+  if (typeof raw !== 'string' || !raw || raw.length > MAX_BRAND_SKILLS_JSON) return [];
+  let list: unknown;
+  try { list = JSON.parse(raw); } catch { return []; }
+  return brandSkillRecords(list);
+}
+
+/**
  * The record a credential's export assertion carries (the keys
  * `designRecordEnvironment` writes), or null when it carries none. The id must
  * read as a design-system id, so a Recreate link built from it is a valid `ds=`.
@@ -407,6 +504,8 @@ export function readDesignRecord(env: Readonly<Record<string, unknown>> | null |
   if (version && version !== DESIGN_VERSION_LATEST && version !== 'head') out.designVersion = version;
   const themes = parseThemeChoices(env.themes);
   if (themes.length) out.themes = themes;
+  const brandSkills = parseBrandSkills(env.brandSkills);
+  if (brandSkills.length) out.brandSkills = brandSkills;
   return isEmptyDesignRecord(out) ? null : out;
 }
 

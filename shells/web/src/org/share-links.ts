@@ -211,7 +211,9 @@ export function buildInstanceShareSection(ctx: ShareSectionContext, config: OrgC
 
   // ── Guest access ────────────────────────────────────────────────────────────
   if (rows.guest) {
-    const tip = helpTip(t('The recipient can edit this tool until access expires. Their saves land with you.'));
+    // Plan 75 J8's copy: a guest's work stays on their device (there is no save-back
+    // yet), so the tip never promises that their saves reach the sender.
+    const tip = helpTip(t('The recipient can open this tool until the link ends. Their changes stay with them.'));
     const row = document.createElement('div');
     row.className = 'share-instance-row';
     // TTL options (hours); 72h is the default per the contract.

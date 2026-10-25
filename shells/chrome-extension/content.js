@@ -26,6 +26,7 @@ window.addEventListener('message', (event) => {
         id: msg.id,
         ok: !err && !!resp?.ok,
         dataUrl: resp?.dataUrl,
+        vector: resp?.vector,
         error: err || resp?.error,
       }, origin);
     });

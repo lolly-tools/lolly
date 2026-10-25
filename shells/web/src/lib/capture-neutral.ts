@@ -8,9 +8,12 @@
  * contexts handle most of it (no localStorage ⇒ no theme, no a11y prefs), but a
  * DEFAULT is not the same as absent:
  *
- *   - Jelly effects (`jelly-effects`) default ON for an unlocked brand - which is
- *     exactly the neutral `lolly-start` profile the docs pipeline captures under.
- *     So the soft-body controls were in every baseline by default, not by choice.
+ *   - Effect flags carry defaults of their own. Jelly effects (`jelly-effects`)
+ *     defaulted ON for an unlocked brand until 2026-09-11, so the soft-body controls
+ *     were in every baseline by default, not by choice, and Neurospicy Mode is still
+ *     on by default. The docs pipeline captures under the `lolly-demo` profile (Lolly's
+ *     own public demo brand, never SUSE's), and its defaults are no more neutral than
+ *     any other brand's.
  *   - The a11y prefs (reduce motion / high contrast / large text) are canonical on
  *     the PROFILE, so a seeded or restored profile can turn them on before paint.
  *
@@ -68,6 +71,13 @@ export function applyCaptureNeutral(): boolean {
 
 /** Attribute a settled view carries, as a `waitSelector=` recipe would name it. */
 export const CAPTURE_SETTLED_ATTR = 'data-shots-settled';
+
+/** Attribute `#view` carries from the start of a navigation until its view has
+ *  mounted (main.ts route()), for every route and every visitor. The loading card
+ *  marks the same span, but it is skipped for a scripted export, a framed tool and
+ *  the first gallery paint, and it waits 150 ms before it appears. A capture waits
+ *  for this attribute to clear instead of guessing a mount time with `waitMs`. */
+export const ROUTE_MOUNTING_ATTR = 'data-route-mounting';
 
 /** Attribute a look carries while it is still rendering - a gallery strip's dot whose
  *  look has not arrived yet (views/gallery-carousel.ts). Gallery-specific on purpose:

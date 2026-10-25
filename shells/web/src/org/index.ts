@@ -36,6 +36,7 @@ import {
   ensureInstallId, setInstallTag, setInstanceSession,
 } from '../lib/instance.ts';
 import { wireDeviceCodeSignIn } from './device-sign-in.ts';
+import { currentAddress } from '../lib/url-state.ts';
 import { noteCatalogRefused } from '../lib/catalog-access.ts';
 import { setFieldPolicies } from '../lib/field-policy.ts';
 import { beginAiProbe, finishAiProbe, knownManagedAi, startAiPolicyPolling, stopAiPolicyPolling } from './ai-policy.ts';
@@ -73,6 +74,7 @@ import { createInstanceSessionSource } from './session-source.ts';
 import { createSourceFiles } from './source-files.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { appPathname } from '../lib/any-site.ts';
+import { getHostRef } from '../lib/host-ref.ts';
 import { t, tRaw } from '../i18n.ts';
 import { invitePolicy } from './team-access.ts';
 import { escape, safeHref } from '../utils.ts';
@@ -566,6 +568,24 @@ export async function signOutEverywhere(): Promise<'ok' | 'unsupported' | 'faile
 }
 
 /**
+ * Sign out on every device from Settings, where the action lives (plan 320 J11): first
+ * the question the account menu asks about this account's recovery copies, then the
+ * instance's route. 'ok' once signed out (the caller then loads the app root afresh),
+ * 'stayed' when the person kept their copies, else the sentence to show.
+ */
+export async function signOutEverywhereFromSettings(): Promise<'ok' | 'stayed' | string> {
+  const { settleRecoveryCopies } = await import('./account-chip.ts');
+  const principal = session?.kind === 'member' ? session.user.sub : undefined;
+  const settled = await settleRecoveryCopies(getHostRef(), getInstanceBase() || location.origin, principal);
+  if (settled === 'stay') return 'stayed';
+  if (settled !== 'go') return settled;
+  const outcome = await signOutEverywhere().catch(() => 'failed' as const);
+  // An older instance has no such route: trying again would not help, so say what is missing.
+  if (outcome === 'unsupported') return tRaw('This workspace cannot sign you out on other devices yet.');
+  return outcome === 'ok' ? 'ok' : tRaw('Could not sign out. Try again.');
+}
+
+/**
  * Drop where this device's copies of team documents came from (org/team-origin-durable.ts,
  * plan 75 G17): they are bound to the person signed in, so a sign-out or another account
  * ends them at once, whether or not a copy is ever opened again. Lazy, off the boot path;
@@ -822,7 +842,7 @@ export function applyInjectables(config: OrgConfig | null): void {
  *  returnTo=<the URL the visitor asked for>, plus `prompt=select_account` after a
  *  sign-out on this device (see {@link signedOutKey}). */
 function loginUrl(loginPath: string): string {
-  const returnTo = location.pathname + location.search + location.hash;
+  const returnTo = currentAddress();
   const base = instancePath(loginPath);
   const sep = base.includes('?') ? '&' : '?';
   let picker = false;
@@ -921,7 +941,6 @@ function showAccountChip(auth: AuthConfig, owner: Session | null, principal: str
         return safeHref(href) ? href : null;
       },
       signOut: signOutOfInstance,
-      signOutEverywhere,
       ...(principal ? { principal } : {}),
       workspaceOrigin: getInstanceBase() || location.origin,
     });
@@ -1033,8 +1052,11 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       setInstallTag(null);
     }
 
-    // Gated instance, not a member → sign-in gate instead of the app.
-    if (auth.mode === 'gated' && !isMember) {
+    // Gated instance, not a member → sign-in gate instead of the app. A guest
+    // who joined through a guest link's landing is let through (plan 320 J1):
+    // the server scopes every read a guest can make to that link's tool, so the
+    // app shows that tool and nothing else of the workspace.
+    if (auth.mode === 'gated' && !isMember && session?.kind !== 'guest') {
       renderGate(auth, workspaceName() || undefined);
       // Signed out of a gated instance: no catalog or tool reads until sign-in
       // (which reloads). A missing view or sign-in link must not let boot proceed.

@@ -352,8 +352,8 @@ test('gateway HEAD answers headers only', async () => {
 
 test('a hosted gateway with no durable limiter still boots: renders 503, the rest of the surface answers', async () => {
   _resetRenderGetCaches();
-  // VERCEL=1 and no LOLLY_RATE_LIMIT_REST_* pair, no opt-in - the 2026-09-10 outage shape.
-  const handler = createGateway({ VERCEL: '1' } as NodeJS.ProcessEnv);
+  // Hosted and no LOLLY_RATE_LIMIT_REST_* pair, no opt-in - the 2026-09-10 outage shape.
+  const handler = createGateway({ LOLLY_MCP_HOSTED: '1' } as NodeJS.ProcessEnv);
   const call = (url: string, method = 'GET'): Promise<FakeRes> => new Promise((resolve, reject) => {
     const req = { method, url, headers: { host: 'lolly.tools' }, socket: { remoteAddress: '127.0.0.1' } } as unknown as IncomingMessage;
     const out: FakeRes = { status: 0, headers: {}, body: undefined };
@@ -373,7 +373,7 @@ test('a hosted gateway with no durable limiter still boots: renders 503, the res
 test('MCP secrets without LOLLY_MCP_PUBLIC_ORIGIN: the MCP surface answers 503, the function still boots and routes', async () => {
   _resetRenderGetCaches();
   // lolly.tools on 2026-09-10: LOLLY_MCP_TOKEN set, no public origin, no limiter store.
-  const hosted = { VERCEL: '1', LOLLY_MCP_TOKEN: 'test-token' } as NodeJS.ProcessEnv;
+  const hosted = { LOLLY_MCP_HOSTED: '1', LOLLY_MCP_TOKEN: 'test-token' } as NodeJS.ProcessEnv;
   const meta = await driveWith(hosted, '/.well-known/oauth-authorization-server');
   assert.equal(meta.status, 503);
   assert.equal(meta.headers['retry-after'], '60');

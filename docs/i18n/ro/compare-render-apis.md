@@ -2,24 +2,28 @@
 
 _Ultima verificare: 28 septembrie 2026._
 
-Lolly generează active din șabloane și date pe dispozitivul tău, în CI sau prin API-ul de server al [lolly.work](https://lolly.work). Soluția combinată acoperă randarea automată, precum și identitatea, politicile și livrarea din jurul joburilor de producție ale unei organizații.
+Dacă generezi astăzi imagini din șabloane printr-o API, această pagină spune cum face Lolly aceeași sarcină pe propriul tău dispozitiv, în CI sau pe propriul tău server.
+
+## Ce fac mai bine API-urile de randare găzduite
+
+[Bannerbear](https://www.bannerbear.com/) și [Placid](https://placid.app/) împachetează randarea ca servicii administrate, cu propria infrastructură, integrări și suport. Trimiți o cerere, iar altcineva rulează serverele.
 
 ## Unde se suprapun
 
-[Bannerbear](https://www.bannerbear.com/) și [Placid](https://placid.app/) generează imagini și alte media din șabloane prin API-uri și integrări. Lolly folosește aceeași abordare de șablon plus intrări, cu [modul URL](/info/url-mode.html), [CLI](/info/cli.html), o grilă de loturi și endpointuri de server ca modalități de a trimite munca.
+Ambele transformă un șablon plus intrări în media. Lolly își ia intrările dintr-un [link](/info/url-mode.html), [CLI](/info/cli.html), o grilă batch sau un endpoint de server.
 
-## Ce oferă lolly.work
+## Cum face Lolly sarcina comună
 
-lolly.work este serviciul de organizație implementat separat din proiectul Lolly. Rulează motorul Lolly în spatele unui API, aplică politici de vizibilitate a instrumentelor și de intrare și servește fișiere randate și linkuri de partajare semnate. [Serviciul său de randare recuperabil](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md) acceptă joburi individuale și loturi, trimitere idempotentă, stare, reîncercări limitate, anulare și păstrarea ieșirilor. Munca întreruptă poate fi reluată după repornirea serverului atunci când este configurată stocarea persistentă.
+Același instrument randează pe un laptop, într-un job CI sau pe un server, din aceleași intrări. Randarea locală și în CI nu necesită deloc un serviciu.
 
-Serverul folosește o cale rapidă de randare SVG/PNG și un worker Chromium opțional pentru instrumentele care au nevoie de un browser. Automatizarea se autentifică cu tokeni de serviciu, iar ieșirea finalizată poate fi trimisă prin [livrare guvernată](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) către destinațiile organizației. O identitate de semnare configurată activează semnarea C2PA pentru ieșirea compatibilă de pe server.
+![Setările de export batch: numele fișierului, formatul implicit, unitățile, DPI și numărul de rânduri de randat](/info/shots/use-batch-toolbar.svg)
+
+Pe un server, [Lolly Work](/info/compare.html#what-runs-where) rulează motorul Lolly în spatele unei API și aplică vizibilitatea instrumentelor și politicile de intrare. [Serviciul lui de randare recuperabil](/info/work-renders.html) acceptă joburi singulare și loturi, trimitere idempotentă, stare, reîncercări limitate, anulare și ieșiri păstrate, iar munca întreruptă reia după o repornire când este configurată stocare persistentă.
+
+Serverul are o cale rapidă SVG și PNG și un worker Chromium opțional pentru instrumentele care au nevoie de un browser. Automatizarea se autentifică cu tokenuri de serviciu, ieșirea terminată poate trece prin [livrare aprobată](/info/work-delivery.html) către destinații ale organizației, iar o identitate de semnare configurată adaugă Content Credentials ieșirii acceptate.
 
 ## Cine rulează serviciul
 
-Bannerbear și Placid oferă randarea ca servicii gestionate, cu infrastructură și integrări proprii. Cu Lolly, o persoană poate randa local sau o echipă poate opera lolly.work pe propria infrastructură. Ambele depozite Lolly sunt open source sub MPL-2.0; autogăzduirea nu are taxă de licență software per randare, însă calculul, stocarea și operarea rămân costuri de planificat.
+Cu Lolly, o persoană randează local sau o echipă rulează Lolly Work pe propria infrastructură. Trimiterea unui job pe server trimite intrările și resursele necesare la acea instanță, ceea ce diferă de calea pe dispozitiv. Un serviciu durabil are nevoie de o bază de date persistentă și de stocare pentru ieșiri, iar instrumentele dependente de browser au nevoie de workerul Chromium; [Instalează Lolly Work](/info/work-install.html) descrie ambele.
 
-Site-ul public lolly.work este un sandbox de evaluare, nu un angajament de găzduire în producție. Un serviciu durabil are nevoie de bază de date și de stocare a ieșirilor persistente; instrumentele dependente de browser au nevoie de workerul Chromium. [Ghidul de instalare](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) și [pagina de stare](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) descriu aceste cerințe și limitele actuale.
-
-Randarea locală și din CI rămâne disponibilă fără serviciul de organizație. Trimiterea unui job pe server transmite intrările sale și activele necesare către acea instanță; aceasta este distinct de calea de pe dispozitiv. Vezi [prezentarea generală a soluției combinate](/info/compare.html).
-
-Bannerbear și Placid sunt mărci comerciale ale proprietarilor lor. Această pagină descrie unde se suprapun soluțiile și nu este afiliată cu niciuna dintre ele.
+Bannerbear și Placid sunt mărci comerciale ale proprietarilor lor. Această pagină descrie unde se suprapun produsele și nu este afiliată cu niciuna.

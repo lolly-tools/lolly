@@ -31,6 +31,7 @@ import { featuredStartIndex, recordFeaturedActivity, type FeaturedCollection } f
 import type { PreviewQueue } from '../lib/preview-queue.ts';
 import { escape } from '../utils.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { startupMotionHeld } from '../lib/startup-motion.ts';
 import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { renderFeaturedVariant, renderMissingLook, isManifestLook, displayFormatOf } from '../lib/featured-render.ts';
@@ -419,7 +420,8 @@ export function mountFeaturedRow(
       // it - a cross-fade firing mid-swipe animates two drop-shadowed images at once and
       // janks the scroll (mobile especially). `touching` covers the whole swipe;
       // hovering/manualUntil cover the mouse + post-gesture rest.
-      if (destroyed || !visible || !onScreen || document.hidden || hovering || touching || (coverflow && cfMotion.active) || performance.now() < manualUntil) return;
+      // ...and while the shell's WebGPU startup check runs (startup-motion.ts).
+      if (destroyed || !visible || !onScreen || document.hidden || hovering || touching || (coverflow && cfMotion.active) || performance.now() < manualUntil || startupMotionHeld()) return;
       track.querySelectorAll('.ftile-stage').forEach((s) => advanceStage(s));
     }, FADE_INTERVAL_MS);
   }
@@ -498,7 +500,7 @@ export function mountFeaturedRow(
   const clampV = (v: number): number => Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, v));
   const canDrift = (now: number): boolean =>
     looping && !coverflow && !reduced && !destroyed && visible && onScreen && !document.hidden &&
-    !hovering && !focusWithin && !touching && now >= manualUntil;
+    !hovering && !focusWithin && !touching && now >= manualUntil && !startupMotionHeld();
 
   function normalizeWrap(): void {
     if (!looping || halfWidth <= 0) return;
@@ -965,38 +967,11 @@ export function mountFeaturedRow(
     if (dragMoved) { e.preventDefault(); e.stopPropagation(); dragMoved = false; }
   }, { signal, capture: true });
 
-  // ── Mobile drag handle - a JS-driven page-scroll grip (pointer events, so it works
-  // with a finger AND with a mouse at mobile widths). A belt-and-braces explicit
-  // handle that drags the page 1:1 (finger/cursor up → content up), like the tool
-  // editor's sheet grip. (Vertical swipes on the strip itself also scroll the page
-  // now - the strip never captures vertical.) ──
-  const grip = section.querySelector<HTMLElement>('.featured-grip');
-  if (grip) {
-    let gripId = -1;
-    let gripY = 0;
-    grip.addEventListener('pointerdown', (e) => {
-      gripId = e.pointerId;
-      gripY = e.clientY;
-      grip.classList.add('is-dragging');
-      try { grip.setPointerCapture(e.pointerId); } catch { /* best effort */ }
-      e.preventDefault();
-    }, { signal });
-    grip.addEventListener('pointermove', (e) => {
-      if (e.pointerId !== gripId) return;
-      const dy = e.clientY - gripY;
-      gripY = e.clientY;
-      window.scrollBy(0, -dy);                 // drag up → scroll the page down (content follows)
-      e.preventDefault();
-    }, { signal });
-    const gripEnd = (e: PointerEvent): void => {
-      if (e.pointerId !== gripId) return;
-      gripId = -1;
-      grip.classList.remove('is-dragging');
-      try { grip.releasePointerCapture(e.pointerId); } catch { /* ok */ }
-    };
-    grip.addEventListener('pointerup', gripEnd, { signal });
-    grip.addEventListener('pointercancel', gripEnd, { signal });
-  }
+  // The mobile drag handle (.featured-grip) is a visual cue only. It used to drive
+  // the page with window.scrollBy from pointer events, which replaced native touch
+  // scrolling: no momentum on iOS, and Safari's toolbar collapsing mid-drag moved
+  // the viewport under the finger, so the page lurched. A swipe that starts on the
+  // handle is now an ordinary native scroll, like a swipe anywhere else on the strip.
 
   // Recompute the loop on resize (debounced to a frame).
   let resizeRaf = 0;

@@ -1,5 +1,5 @@
 {
   "name": "暗房",
-  "description": "专业级调色暗房：胶片质感、第三方 .cube LUT、来自设计系统的色彩处理和质感修饰 - 再把你调出的效果烘焙成任何编辑软件都能用的 LUT。也能把 Photoshop 或 GIMP 文件当作图层打开：逐层定位、混合、隐藏，为合成图调色，导出平面图像或分层 PSD。",
+  "description": "用胶片风格、Adobe XMP 预设、.cube LUT 和设计系统颜色为照片和视频调色。可通过导出 LUT 或“视频调色”复用某种风格。可打开 Photoshop 和 GIMP 图层，用于定位、混合和导出图像。",
   "featured.blurb": "用胶片风格、LUT 和品牌色为照片调色"
 }

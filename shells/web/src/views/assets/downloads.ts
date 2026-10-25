@@ -147,6 +147,9 @@ export async function prepareSelectionDownload(cat: CatCtx, ref: AssetRef, appea
 // format gap (svg → png) ever comes up in practice.
 export async function openSendDialog(cat: CatCtx, ref: AssetRef): Promise<void> {
   const projectSource = ref.meta?.projectFileId ? getSessionSource() : undefined, projectBase = getInstanceBase();
+  const projectFile = projectSource && typeof ref.meta?.projectId === 'string' && typeof ref.meta.projectFileId === 'string'
+    && typeof ref.meta.projectChecksum === 'string'
+    ? { projectId: ref.meta.projectId, fileId: ref.meta.projectFileId, checksum: ref.meta.projectChecksum, name: String(ref.meta.name ?? ref.id) } : undefined;
   const format = String(ref.format || 'bin').toLowerCase();
   const name = String(ref.meta?.name ?? ref.id);
   try {
@@ -154,7 +157,7 @@ export async function openSendDialog(cat: CatCtx, ref: AssetRef): Promise<void> 
     await ensureBuiltinSendTargets();
   } catch (err) { console.error('Send destinations unavailable:', err); }
   if (!cat.mounted) return;
-  const offered = sendTargetsFor(format, 'asset');
+  const offered = sendTargetsFor(format, 'asset', projectFile);
 
   closeDownloadDialog(cat);
   const content = `
@@ -186,7 +189,7 @@ export async function openSendDialog(cat: CatCtx, ref: AssetRef): Promise<void> 
     if (el.closest('.cat-dl-cancel')) { closeDownloadDialog(cat); return; }
     const btn = el.closest<HTMLButtonElement>('[data-send-kind]');
     if (!btn || btn.hasAttribute('disabled')) return;
-    const target = sendTargetsFor(format, 'asset').find(tg => sendTargetId(tg) === btn.dataset.sendKind);
+    const target = sendTargetsFor(format, 'asset', projectFile).find(tg => sendTargetId(tg) === btn.dataset.sendKind);
     if (!target) return;
     const status = dlg.querySelector<HTMLElement>('.cat-send-status');
     // Swap the label span, not the button - it also holds the glyph.
@@ -215,17 +218,22 @@ export async function openSendDialog(cat: CatCtx, ref: AssetRef): Promise<void> 
         const listed = await listTeamFiles(String(ref.meta?.projectId));
         if (!listed.files.some(file => file.id === ref.meta?.projectFileId && file.checksum === ref.meta?.projectChecksum)) throw new Error(t('This shared file is unavailable or changed. Open it again.'));
       }
-      const blob = projectSource
-        ? new Blob([await readAssetViewerBytes(ref.original?.url ?? ref.url, new AbortController().signal) as BlobPart])
-        : await cat.bulk.credentialedBytes(ref);
       if (projectSource && (projectSource !== getSessionSource() || projectBase !== getInstanceBase())) throw new Error(t('The connected workspace changed. Open the file again.'));
-      const out = await target.send({
-        bytes: new Uint8Array(await blob.arrayBuffer()),
-        name,
-        format,
-        mime: blob.type || 'application/octet-stream',
-        choice,
-      });
+      const sendOriginal = async () => {
+        if (projectFile && target.sendProjectFile) return target.sendProjectFile(projectFile);
+        const blob = projectSource
+          ? new Blob([await readAssetViewerBytes(ref.original?.url ?? ref.url, new AbortController().signal) as BlobPart])
+          : await cat.bulk.credentialedBytes(ref);
+        if (projectSource && (projectSource !== getSessionSource() || projectBase !== getInstanceBase())) throw new Error(t('The connected workspace changed. Open the file again.'));
+        return target.send({
+          bytes: new Uint8Array(await blob.arrayBuffer()),
+          name,
+          format,
+          mime: blob.type || 'application/octet-stream',
+          choice,
+        });
+      };
+      const out = await sendOriginal();
       if (status && cat.dlDialog === dlg) {
         // The driver's url is REMOTE-SOURCED (the upload service's response) -
         // scheme-gate it before it renders as a link.

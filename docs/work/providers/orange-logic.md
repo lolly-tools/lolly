@@ -1,32 +1,44 @@
 # Orange Logic (kind: `orange-logic`)
 
-Read-only discovery and permitted rendition access through Orange Logic's public Search API.
-This connection reports `originals: false`: protected-original support awaits the separate
-Extract Original Document API contract. TR1 and TRX must not be presented as original files.
+Connect an Orange Logic DAM so people can search it from Lolly Work and use the renditions it
+already publishes, such as its `TR1` and `WebHigh` images, in their designs. Orange Logic stays
+the source. Work reads through its public Search API and you decide which Work groups see which
+results.
+
+This connection works with renditions, not original files. Each file is labelled with its
+rendition code, and Work refuses a cutover that would treat a rendition as the original. Moving
+originals out of Orange Logic needs its separate Extract Original Document API, which this
+connection does not use yet.
+
+| You get | Not included |
+|---|---|
+| Search across an administrator-chosen query | Original files (`originals: false`) |
+| The renditions you list, labelled as renditions | Generating missing renditions |
+| Approval and dates from fields you choose | AI calls, uploads, metadata edits or new public shares |
+| Byte ranges for large files | A DAM cutover |
 
 ## What you need
 
-- The exact HTTPS origin of your organisation's Orange Logic environment, including a custom
-  domain if applicable. Paths, URL credentials and wildcard origins are refused.
-- A dedicated account allowed to use bearer authentication and the required Search fields and
-  rendition formats. Choose an upstream subset appropriate for sharing through Work.
-- An administrator query and explicit Work exposure groups. Shared service access does not
-  reproduce each member's personal upstream permissions.
+- **The exact HTTPS origin** of your Orange Logic environment, including a custom domain if you
+  use one. Paths, credentials in the URL and wildcard origins are refused.
+- **A dedicated account** allowed to use bearer authentication, the Search fields and the
+  rendition formats you need. Choose an upstream subset that is right to share through Work.
+- **An administrator query** and explicit Work exposure groups. A shared service account does
+  not carry each member's own upstream permissions.
 
-Use **Providers > Orange Logic** for the advanced setup form, or the existing provider CLI.
-Missing formats are never generated. The connector makes no AI, upload, metadata-edit or
-public-share creation calls.
+Use the advanced **Providers > Orange Logic** form or `lw`.
 
 ## Credential shape
 
-Use JSON with `clientId` and `clientSecret`, obtained for the organisation's application account.
-The connector exchanges them on the configured origin, caches the token in its driver instance,
-and refreshes once after an HTTP 401. Alternatively store a bearer token as plain text or JSON
-with `bearerToken`. No browser consent flow or refresh-token blob is implemented for this kind.
+JSON with `clientId` and `clientSecret` for your organisation's application account. Work
+exchanges them on the configured origin, keeps the token in memory in its driver instance and
+refreshes once after an HTTP 401. Alternatively, store a bearer token as plain text or as JSON
+with `bearerToken`. There is no browser consent flow or refresh-token credential for this kind.
 
-Use the write-only credential panel or `lw providers credential orange-media`. Never put a
-credential in options, argv or a source URL. A config-managed source uses `credentialRef` to name
-an environment variable. An IP-bound token needs a stable outbound path for that Work instance.
+Use the write-only credential panel or `lw providers credential orange-media`, never options,
+the command line or a source URL. A config-managed source gives, in `credentialRef`, the name of
+an environment variable holding the credential. A token bound to an IP address needs a stable
+outbound path from the Work instance.
 
 ## instance.json
 
@@ -52,10 +64,25 @@ an environment variable. An IP-bound token needs a stable outbound path for that
 }
 ```
 
-The example's custom fields and status values must be replaced with your tenant's actual
-identifiers. With no approval mapping, approval is unknown. A configured approval field with
-no matching value is false. Availability fields read exact returned metadata keys; use ISO
-8601 dates. This is not a complete territory/channel/agreement rights evaluator.
+Replace the example's custom fields and status values with your tenant's own. The vendor's List
+Fields and Criteria tools show which exist.
+
+::: details Options
+| Option | Default | What it does |
+|---|---|---|
+| `baseUrl` (required) | | The exact HTTPS origin. |
+| `query` | none | Always combined with members' search text or id lookups; member text is escaped. |
+| `formats` | `TR1`, `WebHigh` | Up to twenty distinct rendition codes. |
+| `storageOrigins` | none | Up to twenty more exact HTTPS origins for rendition files. Storage reads carry no API token and redirects are refused. Work's egress policy still applies. |
+| `pageSize` | 100 | 1 to 500 per page. |
+| `minGapMs` | 250 | 0 to 60,000 ms between requests within one driver instance. |
+| `approvalField`, `approvedValues` | none | The field that marks approval and the values that count. A field needs an explicit value list. |
+:::
+
+**Approval and dates.** There is no built-in approval or availability field. With no approval
+mapping, approval is unknown; with a field set, a record without a matching value is not
+approved. Availability fields read the exact metadata keys returned, as ISO 8601 dates. This is
+not a full territory, channel or agreement rights evaluator.
 
 ## Verify
 
@@ -68,57 +95,47 @@ lw providers sync orange-media
 lw providers enable orange-media
 ```
 
-Inspect the sample, metadata, rendition labels and group access before enabling. Complete the
-[tenant verification](orange-logic-live-verify.md). An HTTP success does not prove the selected
-file's fidelity or an upstream rights clearance.
-
-## Options
-
-`baseUrl` is required. `query` is always combined with ordinary member text or ID lookups;
-member text is escaped. `formats` defaults to `TR1` and `WebHigh`, at most twenty distinct proxy
-codes. `storageOrigins` adds at most twenty exact HTTPS origins to the configured API origin;
-storage reads carry no API bearer token and redirects are refused. It does not grant access
-to arbitrary storage hosts. Existing Work egress policy also applies.
-
-`pageSize` is 1-500, default 100. `minGapMs` is 0-60000, default 250, within one driver instance.
-`approvalField` requires an explicit `approvedValues` list. There is no built-in approval or
-availability field assumption. Use the vendor's List Fields/Criteria tools to establish mapping.
+Check the sample, metadata, rendition labels and group access before enabling, then run the
+[Orange Logic check](tenant-check.md#orange-logic). A successful HTTP call proves neither the
+file's fidelity nor an upstream rights clearance. Contributors changing the driver follow its
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/orange-logic.md) in the Lolly Work repository.
 
 ## Notes / limits
 
-- Fixture-verified only. The endpoint is public Search v4 with forced JSON, numeric pages,
-  binned assets excluded and format generation disabled. It does not enable semantic search
-  or assume that an optional semantic result set is a full catalog.
-- `SystemIdentifier` is the permanent remote key for this source. Returned file references
-  include a fingerprint of the observed source edit/checksum fields and proxy code. A rename
-  keeps asset identity; a changed selected source requires refresh. This is not historical
-  revision retrieval or proof of an immutable proxy.
-- Files are labelled with their rendition code and `role: rendition`. Records without an
-  available requested format remain discoverable with no downloadable file. A representative
-  document preview does not make a PDF or PowerPoint original available.
-- Substituted/watermarked formats or paths carrying warnings are omitted. Resolution rechecks
-  the record and current mapped policy before fetching its selected rendition. A missing,
+- **Not yet confirmed against a live tenant.** The endpoint is public Search v4 with JSON
+  forced, numbered pages, binned assets excluded and format generation turned off. It does not
+  turn on semantic search or treat a semantic result set as the full catalog.
+- **Identity.** `SystemIdentifier` is the permanent id. A file reference includes a fingerprint
+  of the source's edit and checksum fields and the rendition code, so a rename keeps the asset
+  and a changed source needs a refresh. This is not retrieval of past revisions or proof that a
+  rendition never changes.
+- **Renditions only.** A record without any requested format stays searchable with no file to
+  download. A document preview does not make a PDF or PowerPoint original available.
+- **Substitutions refused.** Substituted or watermarked formats, and paths carrying warnings, are
+  left out. Before fetching, Work checks the record and the mapped policy again; a missing,
   changed, substituted or disallowed file fails clearly.
-- Public rendition paths are refreshed on access and never persisted in the feed. This does
-  not make their bearer-link access model private or retract already downloaded bytes.
-- A viewer's byte range is forwarded to the rendition read after the record and policy are
-  checked again. A partial reply is served only when its `Content-Range` matches the request
-  exactly and the body has that length; a storage origin that ignores ranges returns the whole
-  file. See [byte ranges](../catalog.md) in the catalog guide.
-- Pagination can continue without privileged totals. The connector constructs the next page
-  itself, never follows a returned next-page URL. Work's sync/page caps still report truncation.
-  Existing Work caches/pinned copies require an agreed source-change freshness bound.
-- A 429 is returned without retrying. Aggregate request budgets, exact fields, token responses,
-  proxies and storage origins need tenant qualification. Approval mappings do not imply AI
-  processing authority or a complete rights policy.
+- **Public rendition links** are refreshed on access and never stored in the catalog. That does
+  not make their access private, and it cannot withdraw bytes already downloaded.
+- **Byte ranges.** After the checks, a viewer's range request is forwarded to the rendition. A
+  partial reply is served only when its `Content-Range` matches the request exactly and the body
+  has that length; a storage origin that ignores ranges returns the whole file. See
+  [Large catalogs](../catalog.md#large-catalogs).
+- **Paging and caches.** Work builds each next page itself and never follows a returned next-page
+  URL. Work's sync and page limits still report truncation, and cached or pinned copies need an
+  agreed freshness bound.
+- **Rate limits.** A `429` is passed back without retries. Request budgets, exact fields, token
+  responses, proxies and storage origins all need checking on your tenant. An approval mapping
+  grants no AI processing authority and is not a full rights policy.
 
 ## Off-boarding
 
-Materialisation can copy the exposed renditions, with that limitation retained in metadata.
-Work refuses DAM cutover for this source because protected originals are unsupported. Do not
-schedule an original-preserving exit from a successful preview or rendition copy. Obtain the
-protected API contract and implement/test original access first. See [offboarding](../offboarding.md).
+Materialize can copy the exposed renditions, and the copies keep that limitation in their
+metadata. Work refuses a DAM cutover for this source because protected originals are not
+supported. Do not plan an original-preserving exit from a good preview or a rendition copy: the
+protected-original API contract has to be obtained, built and tested first. Moving originals
+later needs that contract and byte checks for the formats you need, including SVG, PDF and
+PowerPoint. See [Leave a DAM](../offboarding.md).
 
-Public contracts: [Search](https://developer.orangelogic.com/reference/search-api),
+Vendor references: [Search](https://developer.orangelogic.com/reference/search-api),
 [fields and format limits](https://developer.orangelogic.com/reference/fields-parameter),
 [authentication](https://developer.orangelogic.com/reference/authenticate).

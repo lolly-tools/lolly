@@ -24,6 +24,6 @@ The Lolly web app can ask for a screenshot or the markup, stylesheets and icons 
 
 The extension returns the approved screenshot or page contents to the requesting Lolly site. It adds no analytics or other recipient and stores no page contents. Describe the resulting data flow accurately in the dashboard.
 
-Privacy policy: [Lolly privacy policy](https://lolly.tools/info/privacy.html).
+Privacy policy: [Lolly privacy policy](https://lolly.tools/info/trust/privacy.html).
 
 The package includes the 128 pixel icon. Add a screenshot of the approval window and a completed reading to the store listing.

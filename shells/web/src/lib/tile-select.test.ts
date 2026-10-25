@@ -45,7 +45,7 @@ interface Harness {
   cleared: number;
 }
 
-function harness(opts?: { keyboard?: TileKeyboardAdapter }): Harness {
+function harness(opts?: { keyboard?: TileKeyboardAdapter; owns?: (el: Element) => boolean }): Harness {
   const dom = new JSDOM('<!doctype html><html><body></body></html>', { pretendToBeVisual: true });
   const w = dom.window;
   // The module reads these off the globals (it's written for a browser, not injected).
@@ -103,6 +103,7 @@ function harness(opts?: { keyboard?: TileKeyboardAdapter }): Harness {
     clear: () => { sel.clear(); h.cleared++; },
     noStart: '.tile, button',
     keyboard: opts?.keyboard,
+    owns: opts?.owns,
   });
 
   h.dot = (ref) => host.querySelector(`[data-select="${ref}"]`) as unknown as HTMLElement;
@@ -531,4 +532,32 @@ test('Shift+mousedown on a tile itself, not just its dot, is prevented so the br
 
   assert.equal(notPrevented, false);
   assert.equal(ev.defaultPrevented, true);
+});
+
+// ── owns: two instances on one host (the Assets grid and its Swatches section) ──
+
+test('an instance that does not own the press starts no marquee and clears nothing', () => {
+  const h = harness({ owns: () => false });
+  h.drag([10, 10], [325, 50]);
+  assert.deepEqual(got(h), []);
+  h.clickDot('a');
+  h.drag([105, 50], [106, 50]);              // a click in a gap that someone else owns
+  assert.deepEqual(got(h), ['a'], 'the other instance\'s gap click leaves this selection alone');
+  assert.equal(h.cleared, 0);
+});
+
+test('an instance that does not own the focus ignores Cmd/Ctrl+A', () => {
+  const h = harness({ keyboard: {}, owns: () => false });
+  const doc = h.host.ownerDocument;
+  const w = doc.defaultView!;
+  doc.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'a', metaKey: true, bubbles: true, cancelable: true }));
+  assert.deepEqual(got(h), []);
+});
+
+test('the owning instance still answers Cmd/Ctrl+A', () => {
+  const h = harness({ keyboard: {}, owns: () => true });
+  const doc = h.host.ownerDocument;
+  const w = doc.defaultView!;
+  doc.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'a', metaKey: true, bubbles: true, cancelable: true }));
+  assert.deepEqual(got(h), ['a', 'b', 'c', 'd']);
 });

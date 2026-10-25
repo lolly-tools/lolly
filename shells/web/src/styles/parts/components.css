@@ -107,6 +107,11 @@
   font-size: var(--fs-md);
   text-align:center;
 }
+/*when the error is the only thing on the page*/
+#view:has(>.error:last-child:first-child){place-content:center}
+#view > .error:first-child:last-child{max-width: 32em; margin:3em auto; border-width:5px;}
+
+
 
 .error-list {
   margin: 8px 0 0;
@@ -259,7 +264,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .reveal-item {
     animation: card-in var(--enter-dur, 3.32s) var(--enter-ease, cubic-bezier(.8, .1, .2, 1.2)) backwards;
-    animation-delay: var(--reveal-delay, 10ms); 
+    animation-delay: var(--reveal-delay, 10ms);
   }
 }
 
@@ -361,7 +366,7 @@
 
 /* Pin the profile link to the viewport on the gallery so it stays put while the
    tool list scrolls (mobile already does this below; this covers desktop too). */
- 
+
 
 /* Default avatar - shown when the user has no headshot yet (every profile): the Lolly
    swirl mark, still at rest and spinning on hover/focus, the same treatment the design
@@ -474,11 +479,12 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
    fields above keep inherit only; their mono comes from their context). */
 .share-link-field {         /* dialogs.css */
   padding: 7px 10px;
-  border: 1px solid hsl(var(--border));
+  border: .5px solid hsl(var(--border));
   border-radius: var(--radius);
   background: hsl(var(--muted) / 0.4);
   font-size: var(--fs-sm);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  box-shadow: var(--ui-effect-inset);
 }
 
 /* Floating swatch-name chip - painted in the swatch's own colour. showSwatchTip

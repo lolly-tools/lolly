@@ -80,8 +80,8 @@ Three ways to get one:
      A checkout carries its content packs and profiles.json, straight from a clone.
 
   2. The desktop app
-     Lolly for macOS, Windows and Linux carries its own tools and catalog, and
-     from the next release it bundles this same CLI, so installing it is enough.
+     Lolly for macOS, Windows and Linux carries its own tools and catalog and
+     bundles this same CLI, so installing it is enough.
 
   3. lolly system import <pack.lolly>
      Your design system: colours, fonts and logos, kept on this machine and used

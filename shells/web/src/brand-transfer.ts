@@ -6,8 +6,8 @@
  * between people: one `.lolly` carrying the active design tokens, every locally
  * installed font face (the actual woff2 bytes - the receiver renders your type
  * with zero network), and the brand-adjacent preferences (theme). Export it
- * from Profile → Adjust your brand or the #/start wizard; anyone loads it from
- * the same places and their whole install wears the brand - chrome, tools,
+ * from Design System Setup (#/start); anyone loads it there, or by dropping the
+ * file on the window, and their whole install wears the brand - chrome, tools,
  * exports.
  *
  * The envelope copies the backup bundle's proven rules (docs/data-transfer.md):
@@ -64,7 +64,7 @@ import {
   readVersionIndex, stripVersionIndex, versionAssetId, withVersionIndex,
 } from './lib/design-system/versions.ts';
 import type { PinnedAsset, VersionEntry, VersionIndex } from './lib/design-system/versions.ts';
-import { DEFAULT_DESIGN_SYSTEM_ID, TOKEN_EXT, designMaterialOf, withDesignSystemIdentity, collectAssetTokens, sha256Hex } from '@lolly/engine';
+import { DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID, TOKEN_EXT, designMaterialOf, withDesignSystemIdentity, collectAssetTokens, sha256Hex } from '@lolly/engine';
 import type { DesignMaterialKind } from '@lolly/engine';
 import type { UserFontsHost } from './user-fonts.ts';
 import type { DesignSystemRecord, DesignSystemRegistry } from './lib/design-system/registry.ts';
@@ -252,9 +252,9 @@ function brandReadme(summary: BrandPackSummary, label: string, filename: string)
     `[[ 🎨 ${filename} ]]`,
     '',
     `A portable Lolly brand${label ? ` - ${label}` : ''}: design tokens, fonts and theme in one file.`,
-    'Open Lolly, go to Profile → Adjust your brand → “Load a brand file…” (or the',
-    '#/start wizard) and choose this .lolly. Everything installs on-device;',
-    'nothing is uploaded anywhere.',
+    'Open Lolly and drop this .lolly onto the window, or add it in',
+    'Design System Setup. Everything installs on-device; nothing is',
+    'uploaded anywhere.',
     '',
     "[ What's inside ]",
     '',
@@ -552,10 +552,13 @@ export async function exportBrandPack(
   };
 
   const profile = await host.profile?.get().catch(() => null) ?? null;
-  // A named system names its own pack: the record's label is what the person
-  // called that design system, which beats the exporter's own name for it.
+  // A system names its own pack: the record's label is what the person called
+  // that design system, which beats the exporter's own name for it. That holds
+  // for the active system too (plan 320 S5): a pack of "Crumb & Co" used to be
+  // filed as "Mybrand" because only a named export read the label.
   const label = opts.label
     || record?.label
+    || (fontSystem?.id !== SHIPPED_DESIGN_SYSTEM_ID ? fontSystem?.label : '')
     || [profile?.firstname, profile?.lastname].filter(Boolean).join(' ')
     || 'My brand';
   const date = new Date().toISOString().slice(0, 10);

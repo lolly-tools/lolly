@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 .input-emoji-field { position: relative; display: flex; align-items: stretch; gap: 4px; min-width: 0; width: 100%; }
-.input-emoji-field > :first-child { flex: 1; min-width: 0; width: 0; }
+.input-emoji-field > :first-child { flex: 1; min-width: 0; width: 0; box-shadow: var(--ui-effect-inset); }
 .input-emoji-trigger {
   display: grid; place-items: center; align-self: center; flex: 0 0 auto;
   width: 30px; min-height: 32px; padding: 4px; border: 0;

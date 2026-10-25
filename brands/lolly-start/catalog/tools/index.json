@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-19T06:34:09.412Z",
+  "generatedAt": "2026-10-21T13:10:39.016Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -272,7 +272,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
-      "version": "2.6.3",
+      "version": "2.7.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -3729,7 +3729,7 @@
       "id": "flythrough",
       "name": "Flythrough",
       "description": "Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video.",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -4841,7 +4841,7 @@
       "id": "booth-studio",
       "name": "Booth",
       "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
-      "version": "0.3.1",
+      "version": "0.3.2",
       "status": "experimental",
       "category": "event",
       "tags": [
@@ -8748,7 +8748,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.27.0",
+      "version": "1.27.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -12069,7 +12069,7 @@
       "id": "3d",
       "name": "3D",
       "description": "Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -14173,7 +14173,7 @@
       "id": "timezone",
       "name": "Timezone",
       "description": "Turn places and timezones into artwork that follows the design system. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "status": "official",
       "category": "event",
       "tags": [

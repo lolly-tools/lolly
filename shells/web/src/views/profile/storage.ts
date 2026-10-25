@@ -11,7 +11,6 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { applyTheme } from '../../theme.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { t, tRaw } from '../../i18n.ts';
-import { staggerReveal } from '../../lib/reveal.ts';
 import { isHiddenSlot } from '../../lib/batch-slots.ts';
 import { mountModal } from '../../components/modal.ts';
 import { confirmDialog } from '../../components/confirm-dialog.ts';
@@ -226,7 +225,7 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
             <div class="profile-row-body">
               <div class="profile-row-wide">
                 <div class="store-sess-tools">
-                  <label class="store-selall"><input type="checkbox" id="sess-selall"> ${t('Select all')}</label>
+                  <label class="store-selall"><input type="checkbox" class="field-check" id="sess-selall"> ${t('Select all')}</label>
                   <button type="button" class="store-sort" data-sort="${sort}">${sort === 'recent' ? t('Recent ▾') : t('Largest first ▾')}</button>
                 </div>
                 <ul class="store-sess-list" id="store-sess-list">${sessionRowsHtml(m, sort, sessRowCtx)}</ul>
@@ -329,9 +328,6 @@ export async function loadStorage(pv: ProfileViewCtx) {
   const userImages = [...model.images.list]; // mutable mirror for the grid + lightbox
 
   body.innerHTML = renderSection(pv, model, sessSort);
-  // Content loaded async after the card opened - cascade it in like the catalog does
-  // (silent: the shuffle already played when the section toggled open).
-  staggerReveal([...body.children], { sound: false });
 
   const bar = body.querySelector('#store-bar');
   const heroNum = body.querySelector<HTMLElement>('#store-hero-num');

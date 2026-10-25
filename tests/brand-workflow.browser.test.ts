@@ -59,11 +59,14 @@ test('Profile creates and reopens editable systems beside a locked deployment br
     await name.blur();
     await page.getByText('Design system name saved.', { exact: true }).waitFor();
     await page.locator('[data-ds-room="color"]').click();
+    // The starter neutrals start folded, so open them before editing one.
+    await page.locator('details[data-be-group="Starter colours"] .be-pal-group-label').click();
     await page.locator('[data-be-tile="0"]').click();
     await page.locator('[data-be-editor-name]').fill('My edited colour');
     await page.locator('[data-be-editor-name]').press('Enter');
     await page.getByRole('checkbox', { name: 'Select My edited colour', exact: true }).waitFor();
-    await page.locator('[data-be-save-state]').filter({ hasText: /^Saved$/ }).waitFor();
+    // The Tokens room mirrors the same status, so read the Colours room's own.
+    await page.locator('.be-palette [data-be-save-state]').filter({ hasText: /^Saved$/ }).waitFor();
     const edited = await read();
     assert.notDeepEqual(edited.doc, created.doc);
 

@@ -29,6 +29,7 @@ import { wireMotionControls } from '../../lib/motion-export-controls.ts';
 import { loopRank } from '../../lib/neurospicy.ts';
 import { pcmToWavBlob } from '../../lib/pcm-wav.ts';
 import { embedRowLabel, isOwnProfile, listEligible, ownDigest } from '../../lib/press-profile-embed.ts';
+import { foldBody } from '../../lib/disclosure-motion.ts';
 import { stepFor } from '../../lib/unit-steps.ts';
 import { renderSong, songUrlToWavBlobUrl } from '../../lib/zzfxm-render.ts';
 import { bumpMetric, recordFormat } from '../../metrics.js';
@@ -40,6 +41,7 @@ import type { IdentityStatus, RunExportOpts } from '../tool.ts';
 import { addScrubBehavior, captureThumbnail, exportTargetNode } from '../tool-action-helpers.ts';
 import { ZIP_BUNDLE, extFor, fmtLabel, isC2paFmt, isCmykFmt, isPrintFmt } from './shared.ts';
 import type { MediaFrameLike } from './shared.ts';
+import { holdStageView } from '../../lib/stage-lod.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 export function wireFormatAndName(ta: ActionsCtx): void {
@@ -423,7 +425,7 @@ export function wirePrint(ta: ActionsCtx): void {
       const card = el!.querySelector('.export-pdfpass');
       const open = card?.classList.toggle('is-open') ?? false;
       const body = el!.querySelector<HTMLElement>('[data-pdfpass-body]');
-      if (body) body.style.display = open ? 'flex' : 'none';
+      if (body) foldBody(body, open, shown => { body.style.display = shown ? 'flex' : 'none'; });
       el!
         .querySelector('[data-action="pdfpass-toggle"]')
         ?.setAttribute('aria-expanded', String(open));
@@ -439,7 +441,7 @@ export function wirePrint(ta: ActionsCtx): void {
       const card = el!.querySelector('.export-pro-settings');
       const open = card?.classList.toggle('is-open') ?? false;
       const body = el!.querySelector<HTMLElement>('[data-prosettings-body]');
-      if (body) body.style.display = open ? 'flex' : 'none';
+      if (body) foldBody(body, open, shown => { body.style.display = shown ? 'flex' : 'none'; });
       el!
         .querySelector('[data-action="prosettings-toggle"]')
         ?.setAttribute('aria-expanded', String(open));
@@ -457,7 +459,7 @@ export function wirePrint(ta: ActionsCtx): void {
       const card = el!.querySelector('.export-protection');
       const open = card?.classList.toggle('is-open') ?? false;
       const body = el!.querySelector<HTMLElement>('[data-protection-body]');
-      if (body) body.style.display = open ? 'flex' : 'none';
+      if (body) foldBody(body, open, shown => { body.style.display = shown ? 'flex' : 'none'; });
       el!
         .querySelector('[data-action="protection-toggle"]')
         ?.setAttribute('aria-expanded', String(open));
@@ -1458,6 +1460,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             };
             runtime.pauseLive();
           }
+          // A live take films the screen, so the level of detail and the motion hint stay
+          // off for it: the stage is forced to `near` until the take ends.
+          const releaseLiveView = liveTake ? holdStageView(canvasEl) : () => {};
           const blob = await (async (): Promise<Blob> => {
             try {
               return liveTake
@@ -1470,6 +1475,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
                     { shutter: true, detail: fmtLabel(fmt), onCancel: cancelExport, size: exportSize }
                   );
             } finally {
+              releaseLiveView();
               if (liveDrive) {
                 delete (drvNode as unknown as { __lollyFrameDrive?: unknown }).__lollyFrameDrive;
                 runtime.resumeLive();

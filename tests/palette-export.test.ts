@@ -22,6 +22,7 @@ import {
   type PaletteSwatch,
 } from '../engine/src/palette-export.ts';
 import { makeColorApi } from '../engine/src/color-tools.ts';
+import { createTokenSet } from '../engine/src/tokens.ts';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
@@ -247,4 +248,111 @@ test('paletteTokensJson: no opts stays byte-identical to the one-argument call',
   const swatches = [{ key: 'color.brand.primary', name: 'Primary', group: 'Brand', hex: '#30ba78' }];
   assert.equal(paletteTokensJson(swatches), paletteTokensJson(swatches, {}));
   assert.equal(paletteTokensJson(swatches), paletteTokensJson(swatches, { fonts: [] }));
+});
+
+// ── v1.281: what each format carries beyond the sRGB hex ─────────────────────
+
+/** Read an .ase back: each colour entry's name, model, values and type. */
+function readAse(bytes: Uint8Array): { name: string; model: string; values: number[]; type: number }[] {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  assert.equal(String.fromCharCode(...bytes.slice(0, 4)), 'ASEF');
+  const count = dv.getUint32(8, false);
+  const out: { name: string; model: string; values: number[]; type: number }[] = [];
+  let o = 12;
+  for (let i = 0; i < count; i++) {
+    assert.equal(dv.getUint16(o, false), 1, 'colour entry block'); o += 2;
+    const len = dv.getUint32(o, false); o += 4;
+    const end = o + len;
+    const units = dv.getUint16(o, false); o += 2;
+    let name = '';
+    for (let u = 0; u < units - 1; u++) name += String.fromCharCode(dv.getUint16(o + u * 2, false));
+    o += units * 2;
+    const model = String.fromCharCode(...bytes.slice(o, o + 4)); o += 4;
+    const n = model === 'CMYK' ? 4 : model === 'Gray' ? 1 : 3;
+    const values: number[] = [];
+    for (let k = 0; k < n; k++) { values.push(dv.getFloat32(o, false)); o += 4; }
+    const type = dv.getUint16(o, false); o += 2;
+    assert.equal(o, end, `${name}: block length matches its contents`);
+    out.push({ name, model, values, type });
+  }
+  return out;
+}
+
+const vivid: PaletteSwatch = { key: 'color.brand.vivid', name: 'Vivid', group: 'Brand', hex: '#00ff00', css: 'color(display-p3 0 1 0)' };
+const deep: PaletteSwatch = { key: 'color.brand.deep', name: 'Deep', group: 'Brand', hex: '#00ff8a', css: 'oklch(85% 0.33 150)' };
+const pine: PaletteSwatch = { key: 'color.brand.pine', name: 'Pine', group: 'Brand', hex: '#0c322c', cmyk: [65, 0, 35, 85] };
+const gold: PaletteSwatch = { key: 'color.brand.gold', name: 'Gold', group: 'Brand', hex: '#c9a227', spot: { name: 'PANTONE 871 C', book: 'PANTONE+ Metallics' } };
+const signal: PaletteSwatch = { key: 'color.brand.signal', name: 'Signal', group: 'Brand', hex: '#c8102e', cmyk: [0, 100, 85, 6], spot: { name: 'PANTONE 186 C' } };
+const plain: PaletteSwatch = { key: 'color.brand.plain', name: 'Plain', group: 'Brand', hex: '#336699' };
+
+test('1.281 css-vars: a colour wider than sRGB is set again under @supports for its own notation', () => {
+  const css = paletteCssVariables([plain, vivid, deep]);
+  assert.match(css, /^:root \{\n {2}--color-brand-plain: #336699;\n {2}--color-brand-vivid: #00ff00;\n {2}--color-brand-deep: #00ff8a;\n\}\n/);
+  assert.match(css, /@supports \(color: color\(display-p3 0 1 0\)\) \{\n {2}:root \{\n {4}--color-brand-vivid: color\(display-p3 0 1 0\);\n {2}\}\n\}\n/);
+  assert.match(css, /@supports \(color: oklch\(85% 0\.33 150\)\) \{\n {2}:root \{\n {4}--color-brand-deep: oklch\(85% 0\.33 150\);/);
+  assert.equal((css.match(/@supports/g) ?? []).length, 2, 'one block per notation');
+});
+
+test('1.281 css-classes: the wider colour is declared after the hex, which a browser keeps when it cannot parse the wider one', () => {
+  assert.match(paletteCssClasses([vivid]), /\.bg-color-brand-vivid \{ background-color: #00ff00; background-color: color\(display-p3 0 1 0\); \}/);
+});
+
+test('1.281 tokens JSON: $value stays the hex; the face, CMYK build and spot ink sit under com.suse.lolly', () => {
+  const doc = JSON.parse(paletteTokensJson([vivid, pine, gold, plain]));
+  assert.equal(doc.color.brand.vivid.$value, '#00ff00');
+  assert.deepEqual(doc.color.brand.vivid.$extensions, { 'com.suse.lolly': { faces: { 'display-p3': { value: 'color(display-p3 0 1 0)' } } } });
+  assert.deepEqual(doc.color.brand.pine.$extensions, { 'com.suse.lolly': { cmyk: [65, 0, 35, 85] } });
+  assert.deepEqual(doc.color.brand.gold.$extensions, { 'com.suse.lolly': { spot: { name: 'PANTONE 871 C', book: 'PANTONE+ Metallics' } } });
+  assert.equal(doc.color.brand.plain.$extensions, undefined, 'nothing to add, nothing added');
+  // A colour past Display-P3 is a Rec.2020 face.
+  const wider = JSON.parse(paletteTokensJson([deep]));
+  assert.ok(wider.color.brand.deep.$extensions['com.suse.lolly'].faces.rec2020);
+});
+
+test('1.281 .ase: CMYK lock → CMYK swatch, spot → Spot swatch under the ink name, wider colour → Lab, the rest RGB', () => {
+  const entries = readAse(paletteAse([plain, pine, gold, signal, vivid]));
+  const by = Object.fromEntries(entries.map(e => [e.name, e]));
+  assert.deepEqual(by['Brand Plain']!.model, 'RGB ');
+  assert.equal(by['Brand Plain']!.type, 2);
+
+  assert.equal(by['Brand Pine']!.model, 'CMYK');
+  assert.deepEqual(by['Brand Pine']!.values.map(v => Math.round(v * 100)), [65, 0, 35, 85]);
+  assert.equal(by['Brand Pine']!.type, 2);
+
+  assert.equal(by['PANTONE 186 C']!.model, 'CMYK', 'a spot with a CMYK build uses the build');
+  assert.equal(by['PANTONE 186 C']!.type, 1, 'Spot');
+  assert.equal(by['PANTONE 871 C']!.model, 'LAB ', 'a spot with no build is defined by its Lab');
+  assert.equal(by['PANTONE 871 C']!.type, 1);
+
+  const lab = by['Brand Vivid']!;
+  assert.equal(lab.model, 'LAB ');
+  // L in 0..1, a and b as they are: Display-P3 green is roughly L 86.6, a -106.5, b 102.9 (D50).
+  assert.ok(Math.abs(lab.values[0]! - 0.866) < 0.002, `L ${lab.values[0]}`);
+  assert.ok(Math.abs(lab.values[1]! + 106.5) < 0.2 && Math.abs(lab.values[2]! - 102.9) < 0.2, `a/b ${lab.values}`);
+});
+
+test('1.281: a value that is not a colour never reaches a stylesheet, and an sRGB value adds nothing', () => {
+  const hostile: PaletteSwatch = { ...plain, css: 'red; } body { display: none' };
+  const srgb: PaletteSwatch = { ...plain, css: 'color(srgb 0.2 0.4 0.6)' };
+  for (const s of [hostile, srgb]) {
+    assert.equal(paletteCssVariables([s]), paletteCssVariables([plain]));
+    assert.equal(paletteCssClasses([s]), paletteCssClasses([plain]));
+    assert.equal(paletteTokensJson([s]), paletteTokensJson([plain]));
+    assert.deepEqual(paletteAse([s]), paletteAse([plain]));
+  }
+});
+
+test('1.281: SCSS and .gpl stay sRGB whatever the swatch carries', () => {
+  assert.equal(paletteScssVariables([{ ...vivid, cmyk: [1, 2, 3, 4] }]), paletteScssVariables([{ ...vivid, css: undefined }]));
+  assert.equal(paletteGpl([gold, vivid]), paletteGpl([{ ...gold, spot: undefined }, { ...vivid, css: undefined }]));
+});
+
+test('1.281 tokens JSON reads back through Lolly\'s own token reader with its face, CMYK build and spot ink', () => {
+  const doc = JSON.parse(paletteTokensJson([vivid, gold, signal]));
+  const back = Object.fromEntries(createTokenSet(doc).colors().map(c => [c.name, c]));
+  assert.equal(back.Vivid!.value, '#00ff00');
+  assert.deepEqual(back.Vivid!.faces, { 'display-p3': 'color(display-p3 0 1 0)' });
+  assert.deepEqual(back.Gold!.spot, { name: 'PANTONE 871 C', book: 'PANTONE+ Metallics' });
+  assert.deepEqual(back.Signal!.cmyk, [0, 100, 85, 6]);
+  assert.equal(back.Signal!.spot?.name, 'PANTONE 186 C');
 });

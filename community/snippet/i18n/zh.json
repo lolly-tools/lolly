@@ -1,6 +1,6 @@
 {
   "name": "代码片段",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "把文字呈现在桌面窗口中，可以是静态图像，也可以是包含输入、选择、自动补全和动画的编排式交互。",
   "inputs.code.label": "代码",
   "inputs.code.placeholder": "在此粘贴代码…",
   "inputs.fileName.label": "文件名",

@@ -61,7 +61,12 @@ const RULES: Record<ImageName, ImageRule> = {
 };
 
 export const CANDIDATE_WORKFLOW = '.github/workflows/deployment-suse.yml';
-export const PROFILE = 'lolly-start';
+/**
+ * The profile every public image carries. The candidate workflow builds the
+ * images for lolly.tools, so this is the profile that site ships: the
+ * lolly-public target in scripts/data/ship-targets.json.
+ */
+export const PROFILE = shipProfile();
 export const PLATFORM = 'linux/amd64';
 export const OIDC_ISSUER = 'https://token.actions.githubusercontent.com';
 const SHA = /^[a-f0-9]{40}$/;
@@ -74,6 +79,13 @@ type Json = Record<string, unknown>;
 
 function require(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
+}
+function shipProfile(): string {
+  const file = new URL('./data/ship-targets.json', import.meta.url);
+  const targets = (JSON.parse(readFileSync(file, 'utf8')) as { targets?: { name?: unknown; profile?: unknown }[] }).targets;
+  const profile = Array.isArray(targets) ? targets.find(target => target?.name === 'lolly-public')?.profile : undefined;
+  require(typeof profile === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(profile), 'scripts/data/ship-targets.json names no lolly-public profile');
+  return profile;
 }
 function object(value: unknown): Json {
   return value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Json : {};

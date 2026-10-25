@@ -59,6 +59,8 @@ test('a house rule reads as checked in Design, an unknown kind as unchecked', as
   assert.match(weight.textContent ?? '', /Draft/);
   // A house rule with no role shows its kind in words, not the raw kind id.
   assert.match(card('logo-surface label').querySelector('.usage-rule-copy p')?.textContent ?? '', /Logo per surface/);
+  // Its scope reads Design, the tool's own name, rather than the raw tool id.
+  assert.match(weight.querySelector('.usage-hint')?.textContent ?? '', /^Design · /);
 
   const future = card('future label');
   assert.equal(future.querySelector('[data-checker]'), null);
@@ -83,4 +85,33 @@ test('the Brand mode list offers the looks only, because a colourway is another 
   const options = [...el.querySelectorAll<HTMLOptionElement>('[data-mode] option')].map(o => o.value);
   assert.deepEqual(options, ['', 'light', 'dark'], 'Pine and Persimmon are not modes');
   el.remove();
+});
+
+test('the Brand mode menu names the mode the empty value renders', async () => {
+  const { defaultModeName } = await import('./usage.ts');
+  const { readFileSync } = await import('node:fs');
+  const read = (rel: string): Record<string, unknown> => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));
+  const demo = read('../../../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
+  const starter = read('../../../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json');
+  assert.equal(defaultModeName(demo), 'light');
+  assert.equal(defaultModeName(starter), 'light');
+  // A document whose stored selection is dark renders dark with no theme asked
+  // for, so the default is named dark, not after the first theme in the list.
+  const groups = (demo.$themes as Array<{ group?: string; id?: string; name?: string; kind?: string }>);
+  const modeGroup = groups.find(theme => theme.name === 'dark')?.group ?? '';
+  const darkId = groups.find(theme => theme.name === 'dark')?.id ?? 'dark';
+  const storedDark = { ...demo, $metadata: { ...(demo.$metadata as object ?? {}), activeThemeSelection: { [modeGroup]: darkId } } };
+  assert.equal(defaultModeName(storedDark), 'dark');
+  assert.equal(defaultModeName({ color: { ink: { $type: 'color', $value: '#112233' } } }), '', 'no themes, no name: the menu says Default');
+});
+
+test('"Checked in Design" stays true: the export panel runs the house rules through creation feedback', async () => {
+  const { readFileSync } = await import('node:fs');
+  const read = (rel: string): string => readFileSync(new URL(rel, import.meta.url), 'utf8');
+  // The Design export audit loads the creation feedback rows when the panel opens...
+  assert.match(read('../../../views/tool-actions/preflight.ts'), /import\('\.\.\/\.\.\/lib\/creation-feedback\.ts'\)[\s\S]*creationFeedbackRows\(await readCreationFeedback\(/);
+  // ...which read the engine report...
+  assert.match(read('../../creation-feedback.ts'), /creationFeedback\(boxes, undefined, doc \?\? null, opts\)/);
+  // ...and that report checks the design system's house rules layer by layer.
+  assert.match(read('../../../../../../engine/src/creation-feedback.ts'), /checkDesignHouseRules\(boxes, designRules, doc,/);
 });

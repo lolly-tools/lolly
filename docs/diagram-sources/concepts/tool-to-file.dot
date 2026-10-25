@@ -1,0 +1,11 @@
+digraph tool_to_file {
+  rankdir=TB
+  node [shape=box]
+  system [label="Design system\ncolours, type, logos"]
+  tool [label="Tool\nlayout and rules"]
+  input [label="Your input\nwords, pictures, data"]
+  file [label="Finished file\nPNG, PDF, SVG, video"]
+  system -> file
+  tool -> file
+  input -> file
+}

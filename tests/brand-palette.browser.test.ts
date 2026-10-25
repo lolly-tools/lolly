@@ -13,7 +13,11 @@ test('palette handles support keyboard, mouse and tablet dragging with persisten
   const context = await browser.newContext({ viewport: { width: 768, height: 1024 }, hasTouch: true, reducedMotion: 'reduce' });
   try {
     await context.addInitScript(() => {
-      for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
+      // The last key answers the studio's one-time "What is this design system
+      // called?" (plan 320 S5) for the default system. The first edit makes that
+      // system the person's own, and the ask then appears above the palette a moment
+      // later, which would move the handles between measuring and dragging them.
+      for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack', 'lolly:ds-name-asked:default']) localStorage.setItem(key, '1');
     });
     const page = await context.newPage(), errors: string[] = [];
     page.on('pageerror', e => errors.push(e.message));

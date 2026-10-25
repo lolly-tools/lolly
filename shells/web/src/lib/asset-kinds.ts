@@ -24,7 +24,7 @@
 export const VISUAL_TYPES: ReadonlySet<string> = new Set(['raster', 'vector', 'video', 'lottie', 'model', 'lut']);
 
 /** Types that are engine data, with nothing to show. */
-export const DATA_TYPES: ReadonlySet<string> = new Set(['palette', 'tokens', 'font', 'profile', 'ratecard', 'text', 'data']);
+export const DATA_TYPES: ReadonlySet<string> = new Set(['palette', 'tokens', 'font', 'profile', 'ratecard', 'text', 'data', 'skill']);
 
 /** Can this asset be tiled at all? False for the data types above. */
 export const isPlaceableAsset = (a: { type: string }): boolean => !DATA_TYPES.has(a.type);

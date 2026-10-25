@@ -694,20 +694,35 @@ export const DOCS_PAGES: Array<{ slug: string; src: string }> = [
   // that drops a separator silently shifts every audience tab's icon and slug.
   { slug: 'index', src: 'site.md' },
   { slug: 'quickstart', src: 'quickstart.md' },
+  // Plan 322: the story half of the old overview, and the second page of Start.
+  { slug: 'how-lolly-works', src: 'how-lolly-works.md' },
   // Plan 277: a new reader starts at the first lesson or the member page, in any language.
   { slug: 'make-something', src: 'make-something.md' },
   { slug: 'organisation', src: 'organisation.md' },
   { slug: 'creators', src: 'creators.md' },
   { slug: 'using', src: 'using.md' },
+  // Plan 322 split Using Lolly: the free canvas went to Design, the batch grid and
+  // Multi-edit to Batch, Ask Lolly to its own page and Offline to Settings. Listing
+  // the pages that took the content keeps translated coverage from shrinking.
+  { slug: 'design', src: 'design.md' },
+  { slug: 'batch', src: 'batch.md' },
+  { slug: 'ask', src: 'ask.md' },
   { slug: 'faq', src: 'faq.md' },
   { slug: 'overview', src: 'overview.md' },
   { slug: 'operators', src: 'operators.md' },
   { slug: 'profile', src: 'profile.md' },
+  // Settings (dashboard.md) took Accessibility, the Lolly instance and Available
+  // offline from Profiles in plan 322.
+  { slug: 'dashboard', src: 'dashboard.md' },
   // Plan 277 step 5: where saved work, downloads and earlier versions are; a reader
   // who has lost something reads it in their own language.
   { slug: 'find-your-work', src: 'find-your-work.md' },
   { slug: 'brand-studio', src: 'brand-studio.md' },
   { slug: 'exporting', src: 'exporting.md' },
+  // The Rondocode credential detail moved here from Export a file in plan 322. The
+  // colour notes that left the same page went to colour-engine, a tool-author
+  // reference, which stays English with the other engineering pages.
+  { slug: 'rondocode', src: 'rondocode.md' },
   { slug: 'data-transfer', src: 'data-transfer.md' },
   { slug: 'extension', src: 'extension.md' },
   { slug: 'verify-yourself', src: 'verify-yourself.md' },

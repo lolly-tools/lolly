@@ -21,6 +21,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { extractC2paStore } from '../engine/src/c2pa-extract.ts';
+import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
+import { C2PA_CHECK, defaultTrustAnchors, resolveVerdict } from '../engine/src/c2pa-verdict.ts';
 
 const REPO = new URL('..', import.meta.url).pathname;
 const DOCS = join(REPO, 'docs');
@@ -28,6 +30,9 @@ const BUILT = join(REPO, 'shells/web/public/info');
 
 /** The kinds inline() in docs/build.ts knows how to render. */
 const KINDS = ['entity', 'sig', 'act', 'file', 'detail'];
+/** Not pills: version tokens, expanded before rendering (docs/version-tokens.ts,
+ *  tests/docs-version-tokens.test.ts). */
+const VERSION_TOKEN_KINDS = ['work', 'download'];
 
 const mdFiles = readdirSync(DOCS).filter((f) => f.endsWith('.md'));
 
@@ -37,7 +42,7 @@ test('every provenance marker in docs/*.md uses a supported kind', () => {
     const src = readFileSync(join(DOCS, f), 'utf-8');
     // Any `%word{` that isn't a known kind - the shape an author typo takes.
     for (const m of src.matchAll(/%([a-zA-Z][a-zA-Z0-9_-]*)\{/g)) {
-      if (!KINDS.includes(m[1]!)) bad.push(`${f}: %${m[1]}{`);
+      if (!KINDS.includes(m[1]!) && !VERSION_TOKEN_KINDS.includes(m[1]!)) bad.push(`${f}: %${m[1]}{`);
     }
   }
   assert.deepEqual(bad, [], 'unknown pill kind - it would render as literal text');
@@ -153,10 +158,11 @@ function indexBuiltMedia(dir: string, into = new Map<string, string>()): Map<str
 
 const builtMedia = existsSync(BUILT) ? indexBuiltMedia(BUILT) : new Map<string, string>();
 
-test('every file a signed pill names and the page serves carries a Content Credential',
-  { skip: builtMedia.size ? false : 'no built /info on disk' }, () => {
-  const unsigned: string[] = [];
-  const missing: string[] = [];
+/** Every file in a `%file{}` on a line that carries a `%sig{}` AND served by that
+ *  page, with the docs line that points at the file. `path` is undefined when the
+ *  built /info does not ship the file. */
+function signedServedFiles(): Array<{ at: string; name: string; path: string | undefined }> {
+  const out: Array<{ at: string; name: string; path: string | undefined }> = [];
   for (const f of mdFiles) {
     const src = readFileSync(join(DOCS, f), 'utf-8');
     // "Served by the page" = named somewhere OTHER than inside a %file{} marker,
@@ -167,12 +173,66 @@ test('every file a signed pill names and the page serves carries a Content Crede
       for (const m of line.matchAll(/%file\{([^{}]+)\}/g)) {
         const name = m[1]!.trim();
         if (!outsidePills.includes(name)) continue;   // upstream source, not shipped
-        const path = builtMedia.get(name);
-        if (!path) { missing.push(`${f}:${i + 1} ${name}`); continue; }
-        if (!extractC2paStore(new Uint8Array(readFileSync(path)))) unsigned.push(`${f}:${i + 1} ${name}`);
+        out.push({ at: `${f}:${i + 1}`, name, path: builtMedia.get(name) });
       }
     }
   }
+  return out;
+}
+
+test('every file a signed pill names and the page serves carries a Content Credential',
+  { skip: builtMedia.size ? false : 'no built /info on disk' }, () => {
+  const unsigned: string[] = [];
+  const missing: string[] = [];
+  for (const { at, name, path } of signedServedFiles()) {
+    if (!path) { missing.push(`${at} ${name}`); continue; }
+    if (!extractC2paStore(new Uint8Array(readFileSync(path)))) unsigned.push(`${at} ${name}`);
+  }
   assert.deepEqual(missing, [], 'a signed pill names a file the built /info does not ship');
   assert.deepEqual(unsigned, [], 'a pill says the file is signed but the file carries no C2PA store');
+});
+
+// ── The credential behind the claim ──────────────────────────────────────────
+// A store being present is not the same as a credential a reader can check.
+// not-a-pipe.webp kept its store the whole time, yet its on-device certificate
+// lapsed on 2026-09-16 and Verify read "Credential expired" under a caption that
+// says "signed by Lolly"; the presence check above still passed.
+//
+// So each signed, served file is verified the way Verify reads it (verifyC2pa with
+// the Lolly root pinned, then resolveVerdict), and must resolve to an intact
+// verdict: expired, invalid and the softened likely-Lolly state all fail. Its
+// signing certificate must also stay valid for RENEW_MARGIN_DAYS beyond today, so
+// a lapse fails here while there is still time to re-sign the file
+// (scripts/sign-docs-media.ts) instead of after readers have seen the warning.
+
+const RENEW_MARGIN_DAYS = 60;
+const DAY_MS = 24 * 3600 * 1000;
+
+test(`every file a signed pill names verifies intact and stays valid for ${RENEW_MARGIN_DAYS} more days`,
+  { skip: builtMedia.size ? false : 'no built /info on disk' }, async () => {
+  const anchors = defaultTrustAnchors({ includeLollyRoot: true });
+  const renewBy = Date.now() + RENEW_MARGIN_DAYS * DAY_MS;
+  const broken: string[] = [];
+  const expiring: string[] = [];
+  let checked = 0;
+  for (const { at, name, path } of signedServedFiles()) {
+    if (!path) continue;   // the presence test above reports a missing file
+    const report = await verifyC2pa(new Uint8Array(readFileSync(path)), { trustAnchors: anchors });
+    if (!report.found) continue;   // and an unsigned one
+    checked++;
+    const verdict = resolveVerdict(report);
+    // tone 'good' is every intact state (valid, trusted, lolly, delivered); expired
+    // and likely-Lolly are 'warn', invalid is 'bad'.
+    if (verdict.state === 'expired' || verdict.state === 'invalid' || verdict.tone !== 'good') {
+      const failing = report.checks.filter((c) => !c.ok && c.code !== C2PA_CHECK.signingCredentialUntrusted).map((c) => c.code);
+      broken.push(`${at} ${name}: ${verdict.state} (${failing.join(', ') || report.state})`);
+    }
+    const notAfter = Date.parse(report.signer?.notAfter ?? '');
+    if (!Number.isFinite(notAfter) || notAfter < renewBy) {
+      expiring.push(`${at} ${name}: signing certificate valid until ${report.signer?.notAfter ?? 'an unreadable date'}`);
+    }
+  }
+  assert.ok(checked > 0, 'no signed, served file was verified - the pill scan found nothing to check');
+  assert.deepEqual(broken, [], 'a pill says the file is signed but its credential does not verify intact');
+  assert.deepEqual(expiring, [], `a signed file's certificate lapses within ${RENEW_MARGIN_DAYS} days - re-sign it before readers see "Credential expired"`);
 });

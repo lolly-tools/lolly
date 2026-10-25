@@ -1,4 +1,4 @@
 {
   "name": "Contrast",
-  "description": "Verifică o pereche text-fundal, sau fiecare pereche din paleta brandului tău, în raport cu WCAG 2.1 și APCA, și vezi cum arată persoanelor daltoniste."
+  "description": "Verifică o pereche text și fundal, sau fiecare combinație din paleta sistemului de design, conform WCAG 2.1 și APCA, și vezi cum se citește pentru cei cu daltonism."
 }

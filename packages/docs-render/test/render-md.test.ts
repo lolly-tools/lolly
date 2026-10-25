@@ -109,6 +109,27 @@ test('a GitHub-style same-page anchor resolves to the heading id this renderer e
   assert.match(mdToHtml('[x](/info/a--b.html#c--d)', ctx), /href="\/info\/a--b\.html#c--d"/);
 });
 
+test('a link that names a Markdown source takes the URL the context resolves', () => {
+  const seen: string[] = [];
+  const ctx = mockContext({
+    sourceLink: (url) => {
+      seen.push(url);
+      if (url.startsWith('create-a-tool.md')) return `/info/create/create-a-tool.html${url.slice('create-a-tool.md'.length)}`;
+      if (url === '../CONTRIBUTING.md') return 'https://github.com/lolly-tools/lolly/blob/main/CONTRIBUTING.md';
+      return null;
+    },
+  });
+  const html = mdToHtml('[Share](create-a-tool.md#rules), [contribute](../CONTRIBUTING.md) and [elsewhere](other.md).', ctx);
+  assert.match(html, /<a href="\/info\/create\/create-a-tool\.html#rules">Share<\/a>/);
+  // A GitHub target is external, so it opens in a new tab like every other external link.
+  assert.match(html, /<a href="https:\/\/github\.com\/lolly-tools\/lolly\/blob\/main\/CONTRIBUTING\.md" target="_blank" rel="noopener">contribute<\/a>/);
+  // Null leaves the link as written, for the build's link audit to report.
+  assert.match(html, /<a href="other\.md">elsewhere<\/a>/);
+  assert.deepEqual(seen, ['create-a-tool.md#rules', '../CONTRIBUTING.md', 'other.md']);
+  // A context without the hook leaves every link unchanged.
+  assert.match(mdToHtml('[Share](create-a-tool.md)', mockContext()), /<a href="create-a-tool\.md">Share<\/a>/);
+});
+
 test('markup metacharacters in prose are HTML-escaped', () => {
   const ctx = mockContext();
   const html = mdToHtml('Compare a < b && c > d in code.', ctx);
@@ -219,4 +240,21 @@ test('an unlabelled fence reads as plain text: labelled Code, no Copy', () => {
   const html = mdToHtml('```\nsrc/\n  index.ts\n```', mockContext());
   assert.match(html, /<div class="doc-code" data-label="Code"><div class="doc-code-bar"/);
   assert.ok(!/data-copy/.test(html));
+});
+
+test('a list whose every item opens with a picture renders as a picture list', () => {
+  const html = mdToHtml([
+    '- <!--g:dark--> ![The reverse mark](/icon-reverse.svg) Reverse',
+    '- ![A koala](/info/mascots/koala.webp) **Koala** Builders',
+  ].join('\n'), mockContext());
+  assert.match(html, /^<ul class="md-pictures">/);
+  assert.match(html, /<li class="md-pic-on-dark"><span class="md-pic"><img src="\/icon-reverse.svg" alt="The reverse mark" loading="lazy"><\/span><span class="md-pic-cap">Reverse<\/span><\/li>/);
+  assert.match(html, /<li><span class="md-pic"><img src="\/info\/mascots\/koala.webp" alt="A koala" loading="lazy"><\/span><span class="md-pic-cap"><strong>Koala<\/strong> Builders<\/span><\/li>/);
+  assert.ok(!html.includes('g:dark'), 'the plate marker never reaches the page');
+});
+
+test('one item without a picture keeps the list an ordinary list', () => {
+  const html = mdToHtml('- ![A koala](/info/mascots/koala.webp) Koala\n- Plain words', mockContext());
+  assert.match(html, /^<ul>\n<li><img src="\/info\/mascots\/koala.webp"/);
+  assert.ok(!html.includes('md-pictures'));
 });

@@ -98,11 +98,11 @@ export function mountTextControls(bar: HTMLElement, editor: ComposedTextEditor, 
       const paragraph = editor.story.paragraphs.find(item => item.start <= editor.range.start && item.end >= editor.range.start) ?? editor.story.paragraphs.at(-1)!;
       return textStyleResolver(editor.document).paragraph(editor.story, paragraph);
     }, (value, label) => editor.paragraph(value, label));
-    const together = document.createElement('label'), togetherInput = document.createElement('input'); togetherInput.type = 'checkbox'; togetherInput.disabled = editor.range.start === editor.range.end;
+    const together = document.createElement('label'), togetherInput = document.createElement('input'); togetherInput.type = 'checkbox'; togetherInput.className = 'field-check'; togetherInput.disabled = editor.range.start === editor.range.end;
     togetherInput.checked = editor.story.spans.some(span => span.noBreak && span.start <= editor.range.start && span.end >= editor.range.end);
     togetherInput.addEventListener('change', () => editor.span({ noBreak: togetherInput.checked }, t('Keep selection together')));
     together.append(togetherInput, document.createTextNode(t('Keep selection together'))); child.append(together);
-    const literal = document.createElement('label'), literalInput = document.createElement('input'); literalInput.type = 'checkbox'; literalInput.disabled = editor.range.start === editor.range.end;
+    const literal = document.createElement('label'), literalInput = document.createElement('input'); literalInput.type = 'checkbox'; literalInput.className = 'field-check'; literalInput.disabled = editor.range.start === editor.range.end;
     literalInput.checked = editor.story.spans.some(span => span.literal && span.start <= editor.range.start && span.end >= editor.range.end);
     literalInput.addEventListener('change', () => editor.span({ literal: literalInput.checked }, t('Literal text')));
     literal.append(literalInput, document.createTextNode(t('Literal text'))); child.append(literal);

@@ -47,7 +47,7 @@ Lolly أداة إبداعية: يأتي الناس إلى هنا ليصنعوا 
 
 ## خفض التحفيز ورفعه
 
-![The Neurospicy player docked over the app: track title and transport, separate Music and Effects volumes, and the Atmosphere mixer with Wind, Birdsong and Crickets raised](/t/url-shot?url=%2F%23%2F%3Fneuro%3Dplayer&width=1440&height=1000&dpi=192&waitMs=3200&css=%5Bdata-dock-viz-slot%5D%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23neuro-dock&dark=1&filename=incl-neuro-player)
+![The Neurospicy player docked over the app: track title and transport, separate Music and Effects volumes, and the Atmosphere mixer with Wind, Birdsong and Crickets raised](/t/url-shot?url=%2F%23%2F%3Fneuro%3Dplayer&width=1440&height=1700&dpi=192&waitMs=3200&css=%5Bdata-viz-canvas%5D%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-sec-head%3D%22atmosphere%22%5D%3Bwait%3A500&format=png&cropSelector=%23neuro-dock&dark=1&filename=incl-neuro-player)
 
 ![The visualiser open over the app, painting the music as a full-motion field, with its own transport and volume controls](/t/url-shot?url=%2F%23%2F%3Fneuro%3Dviz&width=1440&height=900&dpi=96&waitMs=2000&waitSelector=.audio-dock%5Bdata-demo-settled%5D&walker=1&format=svg&cropSelector=.audio-dock&css=.audio-dock%20*%7Bbackdrop-filter%3Anone%21important%7D&dark=1&filename=incl-neuro-viz)
 
@@ -90,9 +90,9 @@ Lolly أداة إبداعية: يأتي الناس إلى هنا ليصنعوا 
 
 ## الشمول الثقافي
 
-- <!--i:palette--> العلامة التجارية المحايدة التي تبدأ بها لا تفترض شيئا عن
-  هويتك؛ فوجود Lolly أصلا كي تحل هويتك ولوحة ألوانك وخطوطك محل ما لدينا في
-  دقائق.
+- <!--i:palette--> يفتح lolly.tools على [Lolly Demo](/info/lolly-demo.html)، نظام
+  التصميم التجريبي الخاص بـ Lolly، مع Lolly Starter المحايد على بعد مفتاح واحد؛
+  ووجود Lolly أصلا كي تحل هويتك ولوحة ألوانك وخطوطك محل ما لدينا في دقائق.
 - <!--i:pentool--> يعامل الخط بوصفه سطحا ثقافيا: تشكل الخطوط المرفوعة وخطوط
   Google بتشكيل نصي سليم عبر الأنظمة الكتابية، فتصدر الأسماء وعلامات التشكيل
   والنصوص غير اللاتينية كمسارات خارجية مرسومة رسما صحيحا، لا كمربعات فارغة أو
@@ -106,7 +106,12 @@ Lolly أداة إبداعية: يأتي الناس إلى هنا ليصنعوا 
 - <!--i:lock--> **الخصوصية بالبنية.** يبقى عملك على جهازك. لا متتبعات ولا
   تحليلات في قاعدة الكود، ونقاط الاتصال الشبكية القليلة معددة في
   [سياسة الخصوصية](/info/privacy.html). وتخزن تفضيلات إمكانية الوصول واللغة في
-  ملفك الشخصي، على جهازك: فالإعاقة أو اللغة ليست قياسات عن بعد أبدا.
+  ملفك الشخصي، على جهازك: فالإعاقة أو اللغة ليست قياسات عن بعد أبدا. تطبيق
+  Lolly لا يرسل أي قياسات عن بعد، ولا ينبغي لأحد أن يضطر إلى التخلي عن بياناته.
+  أما خادم Lolly Work، الذي تشغله مؤسسة لأعضائها، فيمكنه تخزين أحداث استخدام
+  مكونة من تسميات مثل معرّف الأداة بمستوى تحدده المؤسسة، ولا تحمل هذه الأحداث
+  أبدا إعدادات إمكانية الوصول أو اللغة؛ انظر
+  [القياس عن بعد ولوحات المتابعة](/info/work-telemetry.html).
 - <!--i:shieldcheck--> **مصدر أمين.** يمكن أن تحمل التصديرات Content
   Credentials، ويوسم المحتوى المولد بالذكاء الاصطناعي بوصفه كذلك. نؤمن بأن
   الجمهور يستحق أن يعرف كيف صنعت الوسائط، وبأن المبدعين يستحقون أدوات تستطيع

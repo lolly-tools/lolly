@@ -6,9 +6,10 @@
  * invite over the nearby channel; on THIS device that arrives as a `subscribeInvites`
  * callback. This module opens the accept ceremony for it, exactly as if the human had
  * pasted the invite, and sends the minted reply back over the SAME channel (via the
- * ceremony's `onAnswer` hook) instead of showing a QR to scan. The plate compare and the
- * tool probe are unchanged - nearby only replaces the transport of the invite/reply blobs,
- * never the trust ceremony (mDNS is unauthenticated; the matching plates are the auth).
+ * ceremony's `onAnswer` hook) instead of leaving the human to send the reply. The plate
+ * compare and the tool probe are unchanged - nearby only replaces the transport of the
+ * invite/reply blobs, never the trust ceremony (mDNS is unauthenticated; the matching
+ * plates are the auth).
  *
  * Installed once at boot beside `installNearbyBoot`. It is dormant unless a LAN provider is
  * registered (Tauri only) AND the `nearby-discovery` flag is on - so a plain web build wires
@@ -43,15 +44,13 @@ async function acceptNearbyInvite(invite: NearbyInboundInvite): Promise<void> {
   let ceremony: typeof import('../components/collab-ceremony.ts');
   let jr: typeof import('./join-route.ts');
   let rc: typeof import('./rtc-connection.ts');
-  let qr: typeof import('./qr-skin.ts');
   let mount: typeof import('../lib/collab-mount.ts');
   let i18n: typeof import('../i18n.ts');
   try {
-    [ceremony, jr, rc, qr, mount, i18n] = await Promise.all([
+    [ceremony, jr, rc, mount, i18n] = await Promise.all([
       import('../components/collab-ceremony.ts'),
       import('./join-route.ts'),
       import('./rtc-connection.ts'),
-      import('./qr-skin.ts'),
       import('../lib/collab-mount.ts'),
       import('../i18n.ts'),
     ]);
@@ -75,8 +74,8 @@ async function acceptNearbyInvite(invite: NearbyInboundInvite): Promise<void> {
     // defaultLinkBase() (a trap from a /t/<id> crawler-stub pathname) - same pattern
     // join-route.ts and private-opener.ts already apply.
     linkBase: jr.appLinkBase(),
-    renderQr: qr.createQrElementRenderer(),
-    // The minted reply goes straight back over the nearby channel instead of a QR.
+    // No `renderQr`: an acceptor only shows the reply, and the reply is never a QR. The
+    // minted reply goes straight back over the nearby channel instead.
     onAnswer: (signal) => { invite.respond(signal); },
     onConnected: (handle) => {
       if (!transport) return;

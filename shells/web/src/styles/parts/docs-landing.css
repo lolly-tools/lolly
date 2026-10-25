@@ -294,7 +294,7 @@ html[data-a11y-motion="reduce"] .btn-primary:hover,html[data-a11y-motion="reduce
 .dl-tile{--dl-accent:#50c369;
   position:relative;display:flex;flex-direction:column;gap:.3rem;isolation:isolate;
   padding:.75rem .8rem .7rem;border-radius:.85rem;overflow:hidden;text-decoration:none;
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.05);
   color:hsl(var(--on-band-dark));
   -webkit-backdrop-filter:blur(3px) saturate(1.45);backdrop-filter:blur(3px) saturate(1.45);
   box-shadow:0 .15em .6em #0003;
@@ -1045,21 +1045,11 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgb(238 145 56 / .13)}
    (.about-mascot / .audience-mascot / .everywhere-mascot: width, flex-shrink, drop-shadow)
    rides on THIS span, so it stays the flex child it was; the img just fills it, and the
    corner credential positions against it. NOT .asset-cred (that is width:100%, for the
-   full-column docs hero). */
+   full-column docs hero). The credential's card is a popover anchored to its glyph (the
+   docs stylesheet's .shot-cred-line), so it needs no room inside a small mascot: it
+   opens over the band and the credential script keeps it on screen. */
 .mascot-cred{position:relative;display:block;flex-shrink:0}
 .mascot-cred>img{display:block;width:100%;height:auto;margin:0}
-/* Keep a landing mascot's credit INSIDE its box (the brief), unlike a screenshot's
-   caption which deliberately overhangs the artwork edge. Clamp the line to the mascot's
-   own width and let the pills WRAP into a compact stack rather than run off the side. The
-   glyph stays bottom-anchored; the expanded line grows upward within the box. */
-.mascot-cred .shot-cred{max-width:calc(100% - 1rem)}
-.mascot-cred .shot-cred-line{max-width:100%}
-.mascot-cred .shot-cred-row{flex-wrap:wrap}
-/* Narrow columns stack the line and its glyph (the docs stylesheet's max-width:640px
-   rule). Keep the glyph at the BOTTOM and stack the collapsed line above it - the
-   line keeps its height while hidden, and with the glyph on top it was pushed clear
-   off a small floated mascot into whatever sat above. */
-@media(max-width:640px){.mascot-cred .shot-cred{flex-direction:column-reverse}}
 .audience-header{display:flex;align-items:center;justify-content:center;gap:2rem;padding:2.75rem 3rem 1.5rem}
 .audience-header-text{text-align:start}
 .audience-mascot{width:clamp(200px,26vw,430px);flex-shrink:0;filter:drop-shadow(0 6px 20px rgba(3,54,51,.18))}
@@ -1359,23 +1349,34 @@ html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
    dark and brand while staying a step softer than the body ink. */
 .persona-title{margin-bottom:1.25rem;text-align:center; color:color-mix(in oklab,var(--green) 65%,var(--page)) }
 .persona-radio,.lane-radio{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
-.persona-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.persona-tab{display:flex;flex-direction:column;gap:4px;padding:1rem 1.15rem;border:1px solid var(--border);border-radius:12px;background:var(--page);cursor:pointer;position:relative;transition:border-color .2s ease,transform .2s ease;padding-right:4.4rem}
-.persona-mascot{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);width:8.5em;height:8.5em;object-fit:contain;pointer-events:none}
-/* The platypus is a wide animal: in the 8.5em square it read as a smudge (Andy, 2026-09-03: 12em). */
-.persona-mascot[src$="platypus.webp"]{width:12em;height:12em; margin-top:-1.5em}
+/* Six doors, one per documentation pathway (Start, Create, Automate, Manage, Deploy,
+   Trust): one row on a wide screen, two rows of three on a narrow one and three rows
+   of two on a phone, so every door stays one tap away without scrolling past a stack. */
+.persona-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media (max-width:1099px){.persona-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.persona-tab{display:flex;flex-direction:column;gap:4px;padding:.9rem 1rem;border-radius:12px;background:var(--page);cursor:pointer;position:relative;transition:border-color .2s ease,transform .2s ease;padding-right:3.9rem;min-height:4.75rem}
+.persona-mascot{position:absolute;right:.35rem;top:50%;transform:translateY(-50%);width:4.6em;height:4.6em;object-fit:contain;pointer-events:none}
+/* The platypus is a wide animal: in the shared square it read as a smudge (Andy,
+   2026-09-03), so it keeps about a third more room than the others. */
+.persona-mascot[src$="platypus.webp"]{width:6.2em;height:6.2em; margin-top:-.6em}
 .persona-tab:hover{border-color:var(--muted);transform:translateY(-2px)}
 .persona-name{font-family:'SUSE Mono',monospace;font-weight:600;font-size:1.1rem}
 .persona-sub{font-size:.8125rem;color:var(--muted)}
-#door-creators:checked ~ .persona-tabs label[for="door-creators"],
-#door-builders:checked ~ .persona-tabs label[for="door-builders"],
-#door-operators:checked ~ .persona-tabs label[for="door-operators"]{border-color:var(--green);background:color-mix(in oklab,var(--green) 30%,var(--page))}
+#door-start:checked ~ .persona-tabs label[for="door-start"],
+#door-create:checked ~ .persona-tabs label[for="door-create"],
+#door-automate:checked ~ .persona-tabs label[for="door-automate"],
+#door-manage:checked ~ .persona-tabs label[for="door-manage"],
+#door-deploy:checked ~ .persona-tabs label[for="door-deploy"],
+#door-trust:checked ~ .persona-tabs label[for="door-trust"]{border-color:var(--green);background:color-mix(in oklab,var(--green) 30%,var(--page))}
 .persona-tabs img{transition: all .5s ease; filter:drop-shadow( 0 1px 14px color-mix(in oklab,var(--green) 86%,var(--page)))}
-#door-creators:not(:checked) ~ .persona-tabs label[for="door-creators"] img,
-#door-builders:not(:checked) ~ .persona-tabs label[for="door-builders"] img,
-#door-operators:not(:checked) ~ .persona-tabs label[for="door-operators"] img{filter:grayscale(.6) brightness(1.3) contrast(1.16) ; opacity:.2; transform:scale(.8) translate(2em, -5em)}
+#door-start:not(:checked) ~ .persona-tabs label[for="door-start"] img,
+#door-create:not(:checked) ~ .persona-tabs label[for="door-create"] img,
+#door-automate:not(:checked) ~ .persona-tabs label[for="door-automate"] img,
+#door-manage:not(:checked) ~ .persona-tabs label[for="door-manage"] img,
+#door-deploy:not(:checked) ~ .persona-tabs label[for="door-deploy"] img,
+#door-trust:not(:checked) ~ .persona-tabs label[for="door-trust"] img{filter:grayscale(.6) brightness(1.3) contrast(1.16) ; opacity:.2; transform:scale(.8) translate(1em, -1.5em)}
 /* Reduced motion: a door changes state without moving. The ghost rule above takes its
-   transition from .persona-tabs img, so one rule there stops all three mascots. Do not
+   transition from .persona-tabs img, so one rule there stops every door's mascot. Do not
    restate a transition on the ghost rule: its ids would out-rank this one. */
 @media (prefers-reduced-motion: reduce){
   .persona-tab:hover{transform:none}
@@ -1383,16 +1384,25 @@ html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
 }
 html[data-a11y-motion="reduce"] .persona-tab:hover{transform:none}
 html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
-#door-creators:checked ~ .persona-tabs label[for="door-creators"] .persona-sub,
-#door-builders:checked ~ .persona-tabs label[for="door-builders"] .persona-sub,
-#door-operators:checked ~ .persona-tabs label[for="door-operators"] .persona-sub{color:var(--text)}
-#door-creators:focus-visible ~ .persona-tabs label[for="door-creators"],
-#door-builders:focus-visible ~ .persona-tabs label[for="door-builders"],
-#door-operators:focus-visible ~ .persona-tabs label[for="door-operators"]{outline:2px solid var(--green);outline-offset:3px}
+#door-start:checked ~ .persona-tabs label[for="door-start"] .persona-sub,
+#door-create:checked ~ .persona-tabs label[for="door-create"] .persona-sub,
+#door-automate:checked ~ .persona-tabs label[for="door-automate"] .persona-sub,
+#door-manage:checked ~ .persona-tabs label[for="door-manage"] .persona-sub,
+#door-deploy:checked ~ .persona-tabs label[for="door-deploy"] .persona-sub,
+#door-trust:checked ~ .persona-tabs label[for="door-trust"] .persona-sub{color:var(--text)}
+#door-start:focus-visible ~ .persona-tabs label[for="door-start"],
+#door-create:focus-visible ~ .persona-tabs label[for="door-create"],
+#door-automate:focus-visible ~ .persona-tabs label[for="door-automate"],
+#door-manage:focus-visible ~ .persona-tabs label[for="door-manage"],
+#door-deploy:focus-visible ~ .persona-tabs label[for="door-deploy"],
+#door-trust:focus-visible ~ .persona-tabs label[for="door-trust"]{outline:2px solid var(--green);outline-offset:3px}
 .persona-pane{display:none;margin-top:1.5rem;padding:1.5rem;border:1px solid var(--ui-color-border-default);border-radius:12px;background:var(--page);position:relative}
-#door-creators:checked ~ .persona-panes .persona-pane:nth-child(1),
-#door-builders:checked ~ .persona-panes .persona-pane:nth-child(2),
-#door-operators:checked ~ .persona-panes .persona-pane:nth-child(3){display:block}
+#door-start:checked ~ .persona-panes .persona-pane:nth-child(1),
+#door-create:checked ~ .persona-panes .persona-pane:nth-child(2),
+#door-automate:checked ~ .persona-panes .persona-pane:nth-child(3),
+#door-manage:checked ~ .persona-panes .persona-pane:nth-child(4),
+#door-deploy:checked ~ .persona-panes .persona-pane:nth-child(5),
+#door-trust:checked ~ .persona-panes .persona-pane:nth-child(6){display:block}
 .lane-cols{display:grid;grid-template-columns:200px minmax(0,1fr);gap:.5rem 1.8rem;align-items:start}
 .lane-tabs{display:flex;flex-direction:column;gap:2px}
 .lane-tab{text-align:start;padding:.65rem .85rem;border-inline-start:2px solid var(--border);cursor:pointer;font-size:.9rem;font-weight:600;color:var(--muted);transition:color .15s ease,border-color .15s ease,background .15s ease}
@@ -1436,7 +1446,7 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
 [dir="rtl"] .hero-btn svg{transform:scaleX(-1)}
 .lane-doc{font-weight:700;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));text-decoration:none;font-size:.875rem}
 .lane-doc:hover{text-decoration:underline}
-/* nth-matched lane pairing, up to the six operator lanes */
+/* nth-matched lane pairing, up to six lanes behind a door */
 .lane-radio:nth-of-type(1):checked ~ .lane-cols .lane-panes .lane-pane:nth-child(1),
 .lane-radio:nth-of-type(2):checked ~ .lane-cols .lane-panes .lane-pane:nth-child(2),
 .lane-radio:nth-of-type(3):checked ~ .lane-cols .lane-panes .lane-pane:nth-child(3),
@@ -1456,7 +1466,11 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
 .lane-radio:nth-of-type(5):focus-visible ~ .lane-cols .lane-tabs .lane-tab:nth-child(5),
 .lane-radio:nth-of-type(6):focus-visible ~ .lane-cols .lane-tabs .lane-tab:nth-child(6){outline:2px solid var(--green);outline-offset:2px}
 @media (max-width:719px){
-  .persona-tabs{grid-template-columns:1fr}
+  .persona-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .persona-tab{padding-right:3.3rem}
+  .persona-name{font-size:1rem}
+  .persona-mascot{width:3.8em;height:3.8em}
+  .persona-mascot[src$="platypus.webp"]{width:5em;height:5em}
   .lane-cols{grid-template-columns:1fr}
   .lane-tabs{flex-direction:row;overflow-x:auto;padding-bottom:4px}
   .lane-tab{border-inline-start:0;border-bottom:2px solid var(--border);white-space:nowrap}

@@ -92,6 +92,23 @@ test('planBatch: rows with no uid still plan (identity is optional, the mapping 
   assert.equal(plan.skipped[0]!.uid, undefined);
 });
 
+test('planBatch: a caller-selected retry keeps row identity and leaves other locale values intact', async () => {
+  const rows: BatchRow[] = [
+    { uid: 'launch-en-square', toolId: 'qr-code', values: { lang: 'en', title: 'Launch' } },
+    { uid: 'launch-ar-square', toolId: 'qr-code', values: { lang: 'ar', title: 'Local copy' } },
+  ];
+  const before = structuredClone(rows);
+  const retry = await planBatch([rows[1]!], {
+    ...deps,
+    check: row => [{ uid: row.uid, title: row.values.title }],
+  });
+  assert.deepEqual(retry.srcIndex, [0], 'the retry queue has its own positions');
+  assert.equal(retry.renderable[0], rows[1]);
+  assert.equal(retry.findings[0]!.uid, 'launch-ar-square');
+  assert.deepEqual(retry.findings[0]!.items, [{ uid: 'launch-ar-square', title: 'Local copy' }]);
+  assert.deepEqual(rows, before, 'planning the selected retry does not mutate either locale');
+});
+
 test('runBatch: every emitted index is a QUEUE position, and the row rides with it', async () => {
   // The compacted array the runner is handed: grid rows r1/r3/r5 (r2, r4 were skipped).
   // With no DOM/catalog here every render fails, which is exactly the channel under

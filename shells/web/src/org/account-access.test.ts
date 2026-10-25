@@ -148,7 +148,9 @@ test('a member gets account actions in the existing profile menu', async () => {
   const menu = openProfileMenu();
   assert.equal(menu.querySelector('.org-account-menu-head')?.textContent, 'Acme');
   assert.equal(menu.querySelector('.org-account-menu-line')?.textContent, 'ana@acme.com');
-  for (const action of ['inbox', 'projects', 'signout', 'everywhere']) assert.ok(menu.querySelector(`[data-account-act="${action}"]`));
+  for (const action of ['projects', 'signout']) assert.ok(menu.querySelector(`[data-account-act="${action}"]`));
+  // Plan 320 J11: the inbox is part of Notifications and Sign out everywhere is in Settings.
+  for (const action of ['inbox', 'everywhere']) assert.equal(menu.querySelector(`[data-account-act="${action}"]`), null, action);
   const session = orgSession();
   assert.ok(session?.kind === 'member');
   assert.equal(session.user.name, 'Ana Ruiz');

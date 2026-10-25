@@ -2,34 +2,35 @@
 
 _Laatst gecontroleerd: 28 september 2026._
 
-Lolly en [lolly.work](https://lolly.work) dekken samen de creatie- en governanceworkflows waarvoor teams merkportalen gebruiken: goedgekeurde assets, vergrendelde sjablonen, toegangsbeheer, beoordeling en distributie. Vergelijk die gecombineerde oplossing met Bynder, Frontify, Marq of Brandfolder wanneer je kiest hoe mensen merkassets vinden en nieuwe maken.
+Als je organisatie haar goedgekeurde assets in Bynder, Frontify, Marq of Brandfolder bewaart, vergelijkt deze pagina dat met Lolly plus Lolly Work: hoe mensen merkassets vinden, en hoe ze er nieuwe bestanden van maken.
 
-## Creatie en organisatieservices
+## Wat een gevestigd portaal beter doet
 
-De engine en apps van Lolly maken de bestanden. Sjablonen, designtokens en toegestane invoer bepalen wat iemand kan wijzigen, en het renderen kan op hun eigen apparaat blijven. Zelfstandige Lolly heeft geen account nodig.
+Gevestigde portalen bieden beheerde hosting, support en uitgebreide workflows voor assetbeheer. [Frontify's enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combineert bijvoorbeeld het ontdekken van assets, toegangsbeheer, goedkeuringsworkflows en distributie. De Lolly-stack is jonger en zijn goedkeuringsketens zijn sequentieel in plaats van willekeurig vertakkende workflows. [Work status and roadmap](/info/work-status.html) legt zijn implementatiegrenzen vast.
 
-lolly.work is de organisatieservice in hetzelfde project, onderhouden in een [aparte repository](https://github.com/lolly-tools/lolly-work) en samen met Lolly uitgerold. Het voegt identiteit, gedeelde opslag, beleid, goedkeuringen en rapportage toe. Beide onderdelen zijn open source onder MPL-2.0. Door de scheiding kan een individu Lolly zelfstandig gebruiken en een organisatie de gecombineerde oplossing draaien op infrastructuur die ze zelf beheert.
+## Waar ze overlappen
 
-## Wat de gecombineerde oplossing biedt
+Beide dekken goedgekeurde assets, vergrendelde sjablonen, toegangsbeheer, review en distributie. Lolly maakt de bestanden: sjablonen, designtokens en toegestane inputs bepalen wat iemand kan wijzigen, en het renderen kan op hun apparaat blijven. Lolly Work voegt identiteit, gedeelde opslag, beleid, goedkeuringen en rapportage toe op infrastructuur die de organisatie beheert.
 
-| Behoefte | Lolly + lolly.work |
+![Het actieve design system in Settings, getoond als omslag en pagina's: de kleuren, typografie en logo's waarmee elke tool tekent](/info/shots/dashboard-brand.svg)
+
+## Wat Lolly en Lolly Work bieden
+
+| Behoefte | Lolly + Lolly Work |
 |---|---|
-| Aanmelden en provisioning | OIDC single sign-on, meerdere identity providers, SCIM 2.0-gebruikersprovisioning en groepslidmaatschap, en het uitschakelen van accounts waarbij bestaande sessies worden ingetrokken. Een identity provider die alleen SAML ondersteunt, kan via een OIDC-brug zoals Keycloak worden gekoppeld. |
-| Goedgekeurde sjablonen | Lolly definieert de bewerkbare invoer van het sjabloon; lolly.work past groepszichtbaarheid en invoerbeleid toe die waarden vergrendelen, keuzes beperken of bedieningselementen verbergen. |
-| Gedeelde assetbibliotheek | Uploads die eigendom zijn van de instantie, collecties, aangepaste metadata en catalogi met toegangsbeheer, plus connectors die bestaande DAM- en opslagbibliotheken lezen. |
-| Beoordeling | Geordende goedkeuringsstappen, geschikte goedkeurdersgroepen, quorumregels en functiescheiding; beoordeling kan catalogusinzendingen en aflevering aan organisatiedoelen aansturen. |
-| Assetgeschiedenis en beschikbaarheid | Versies en rollback voor assets van de instantie, bewaartermijnen en holds, geplande beschikbaarheid, verloop en intrekking. Gekoppelde providers bewaren hun eigen brongeschiedenis. |
-| Rapportage | Aantallen assetgebruik en downloads, tool- en exportactiviteit, dashboards en een audittrail. Gebruikstoewijzing volgt het telemetriebeleid van de implementatie; de standaardinstelling voor toewijzing vereist toestemming. |
-| Distributie | Verlopende, intrekbare links, gedeelde collecties, gasttoegang en aflevering aan geconfigureerde organisatiebestemmingen. |
+| Aanmelden en provisioning | OIDC single sign-on, meerdere identiteitsproviders, SCIM 2.0-gebruikersprovisioning en groepslidmaatschap, en het uitschakelen van accounts dat bestaande sessies intrekt. Een identiteitsprovider die alleen SAML kent, kan via een OIDC-brug zoals Keycloak aansluiten. |
+| Goedgekeurde sjablonen | Lolly definieert de bewerkbare inputs van het sjabloon; Lolly Work past groepszichtbaarheid en inputbeleid toe dat waarden vergrendelt, keuzes beperkt of bediening verbergt. |
+| Gedeelde assetbibliotheek | Uploads van de instantie, collecties, aangepaste metadata en catalogi met toegangsbeheer, plus connectors die bestaande DAM- en opslagbibliotheken lezen. |
+| Review | Geordende goedkeuringsstappen, in aanmerking komende goedkeurdersgroepen, quorumregels en functiescheiding; review kan catalogusinzendingen en bezorging aan organisatiedoelen beheersen. |
+| Assetgeschiedenis en beschikbaarheid | Versies en terugdraaien voor assets van de instantie, bewaartermijn en holds, geplande beschikbaarheid, verloop en intrekking. Gekoppelde providers houden hun eigen brongeschiedenis. |
+| Licenties en vermeldingen | Lolly legt de licentie vast van elke bron die een bestand gebruikt en bereidt de vermeldingen voor die het verschuldigd is; [Creatieve rechten en vermeldingen](/info/creative-rights.html) legt uit wat het vastlegt en waar vermeldingen worden geschreven. Het geeft geen rechten vrij. |
+| Rapportage | Aantallen van assetgebruik en downloads, tool- en exportactiviteit, dashboards en een auditspoor. Gebruikstoeschrijving volgt het telemetriebeleid van de implementatie; de standaardinstelling voor toeschrijving vereist toestemming. |
+| Distributie | Verlopende, intrekbare links, gedeelde collecties, gasttoegang en bezorging aan geconfigureerde organisatiebestemmingen. |
 
-De [lolly.work-beheerdersgidsen](https://github.com/lolly-tools/lolly-work/tree/main/docs) beschrijven deze functies en hun configuratie. Het zijn beschikbare mogelijkheden, in plaats van functies waarvoor je een ander systeem rond Lolly moet bouwen.
+[Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) en [Policy and governance](/info/work-governance.html) beschrijven deze functies en hun configuratie.
 
-## Een portalworkflow kiezen
+## Je bestaande portaal behouden
 
-Gevestigde portalen bieden beheerde hosting, support en uitgebreide DAM-workflows. [De enterprise-DAM van Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combineert bijvoorbeeld het vinden van assets, toegangsbeheer, goedkeuringsworkflows en distributie. Vergelijk de exacte beoordelings- en rechtenworkflow die je nodig hebt: Lolly biedt controle over metadata, toegang en beschikbaarheid, maar juridische clearance en licentieverplichtingen vragen nog steeds om het proces van een organisatie. De goedkeuringsketens zijn sequentieel; ze modelleren geen willekeurig vertakkende workflows.
+Een bestaande DAM kan de bron van waarheid blijven. De catalogusconnectors van Lolly Work maken de goedgekeurde assets beschikbaar in Lolly, waar mensen nieuwe bestanden maken onder de regels van de organisatie. Dat is een integratiekeuze; de eigen bibliotheek en goedkeuringen van Lolly zijn er wanneer de organisatie die zelf wil draaien. [Wat waar draait](/info/compare.html#what-runs-where) noemt de grenzen die elke vergelijking deelt.
 
-De Lolly-stack is jonger, en de [statuspagina van lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) legt de beperkingen van de implementatie vast. Met name is de openbare lolly.work-site een evaluatiesandbox. Een duurzame organisatie-implementatie vraagt om persistente opslag en een beheerder. Voor zelfhosting zijn er geen softwarelicentiekosten per gebruiker; infrastructuur en beheer kosten nog steeds geld.
-
-Een bestaande DAM kan ook de bron van waarheid blijven. De catalogusconnectors van lolly.work maken de goedgekeurde assets ervan beschikbaar in Lolly, waar mensen nieuwe bestanden maken onder de regels van de organisatie. Dat is een integratiekeuze; de eigen bibliotheek en goedkeuringen van Lolly zijn beschikbaar wanneer de organisatie die workflows zelf wil beheren.
-
-Zie [Hoe Lolly zich verhoudt](/info/positioning.html) voor de vergelijking van mogelijkheden en [Lolly vergeleken, tool voor tool](/info/compare.html) voor de rest van deze reeks. Namen van leveranciers geven de vergeleken producten aan; Lolly is niet aan hen verbonden.
+Zie [Hoe Lolly zich verhoudt](/info/positioning.html) voor de capabilityvergelijking. Namen van leveranciers identificeren de producten die worden vergeleken; Lolly is niet aan hen verbonden.

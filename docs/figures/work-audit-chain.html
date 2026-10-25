@@ -1,0 +1,77 @@
+<!--
+  Concept: how the Lolly Work audit log holds together. Each row's hash covers the previous row's
+  hash plus its own body, each row carries a MAC of its hash under a key derived from
+  LW_SESSION_SECRET (which the database never holds), and the head (seq and hash) is printed at boot
+  and hourly so a copy can live outside the server. Below, what each part catches: an edit breaks a
+  hash link, an edit that re-chains the hashes fails the MAC, and a truncation is caught by the head
+  kept elsewhere.
+  Band Contract: static fragment scoped under .wac, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network. Rows run in a row on a wide column and stack below 600px.
+  Sources: lolly-work server/src/audit (chain and MAC), server/src/main.ts (head log line),
+  migrations/0034_audit_mac_and_append_guard.sql, docs/work/audit.md.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.wac{--wac-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--wac-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --wac-ground:hsl(var(--secondary,84.5 55% 92.2%));--wac-paper:hsl(var(--card,0 0% 100%));
+ --wac-accent:hsl(var(--primary,176.5 89.5% 11.2%));--wac-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --wac-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);
+ --wac-wash:color-mix(in oklab,var(--wac-accent) 12%,var(--wac-paper));
+ --wac-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--wac-ink);background:var(--wac-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.wac *{box-sizing:border-box}
+.wac ol,.wac ul{list-style:none;margin:0;padding:0}
+.wac li{margin:0;font-size:inherit}
+.wac p{margin:0}
+.wac b{font-weight:600}
+.wac code{font:500 12px/1.35 var(--wac-mono);background:none;padding:0;color:inherit;overflow-wrap:anywhere}
+.wac .wac-cap{font:500 11px/1.3 var(--wac-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--wac-muted);margin-bottom:10px}
+.wac .wac-rows{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.1fr);gap:22px;align-items:stretch}
+.wac .wac-row{position:relative;background:var(--wac-paper);border-radius:12px;box-shadow:0 0 0 1px var(--wac-line);padding:10px;display:grid;gap:6px;align-content:start}
+.wac .wac-row:not(.wac-off)::after{content:"";position:absolute;top:50%;right:-17px;width:12px;height:12px;
+ border-top:2px solid var(--wac-accent);border-right:2px solid var(--wac-accent);transform:translateY(-50%) rotate(45deg)}
+.wac .wac-seq{font:600 12px/1 var(--wac-mono);color:var(--wac-muted)}
+.wac .wac-field{display:grid;gap:2px;font-size:12.5px}
+.wac .wac-field span{font:500 10.5px/1.2 var(--wac-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--wac-muted)}
+.wac .wac-head{background:var(--wac-wash)}
+.wac .wac-off{background:var(--wac-paper);box-shadow:0 0 0 1px var(--wac-line)}
+.wac .wac-off b{font-size:14px}
+.wac .wac-off p{font-size:12.5px;color:var(--wac-muted)}
+.wac .wac-key{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px}
+.wac .wac-key svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--wac-accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wac .wac-catch{margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.wac .wac-catch li{border-radius:10px;padding:8px 10px;background:var(--wac-paper);box-shadow:0 0 0 1px var(--wac-line);font-size:13px}
+.wac .wac-catch b{display:block;font-size:13px}
+@container (max-width:600px){
+ .wac .wac-rows{grid-template-columns:minmax(0,1fr);gap:18px}
+ .wac .wac-row:not(.wac-off)::after{top:auto;bottom:-14px;right:auto;left:18px;transform:rotate(135deg)}
+ .wac .wac-catch{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+<div class="wac" role="group" aria-label="How the audit chain, its MAC and the head copied off the server fit together">
+  <p class="wac-cap">The audit chain</p>
+  <ol class="wac-rows">
+    <li class="wac-row"><p class="wac-seq">seq 410</p>
+      <p class="wac-field"><span>body</span><code>policy.overlay.edit</code></p>
+      <p class="wac-field"><span>hash</span>H(hash 409 + body)</p>
+      <p class="wac-field"><span>MAC</span>HMAC(key, hash)</p></li>
+    <li class="wac-row"><p class="wac-seq">seq 411</p>
+      <p class="wac-field"><span>body</span><code>approval.submit</code></p>
+      <p class="wac-field"><span>hash</span>H(hash 410 + body)</p>
+      <p class="wac-field"><span>MAC</span>HMAC(key, hash)</p></li>
+    <li class="wac-row wac-head"><p class="wac-seq">seq 412, the head</p>
+      <p class="wac-field"><span>body</span><code>auth.login</code></p>
+      <p class="wac-field"><span>hash</span>H(hash 411 + body)</p>
+      <p class="wac-field"><span>MAC</span>HMAC(key, hash)</p></li>
+    <li class="wac-row wac-off"><b>A copy off the server</b><p>The head's seq and hash, printed at boot and every hour, kept by a log service or ticket you control</p></li>
+  </ol>
+  <p class="wac-key"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l3 3"/></svg><span>The MAC key is derived at boot from <code>LW_SESSION_SECRET</code>. The database never holds the key.</span></p>
+  <ul class="wac-catch">
+    <li><b>An edit</b>breaks the hash link at that row</li>
+    <li><b>An edit that re-chains the hashes</b>still fails the MAC</li>
+    <li><b>Dropping the newest rows</b>leaves a chain without the head you kept elsewhere</li>
+  </ul>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ9mp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnQanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDplNjYwYjI2OS1iNzJjLTQwODctYjkyMy1jMjY4NmZlNzBkNjIAAAAEUWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjozODoyNloAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRYgZmxlbmd0aBkNqmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFgggQyGLtFB/RBt6A/ztCjsPtmghmHY86udJ8LZnRjsHTZjcGFkSAAAAAAAAAAAAAAA52p1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAALNjYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHB3b3JrLWF1ZGl0LWNoYWluZGRhdGV4GDIwMjYtMTAtMjNUMDY6Mzg6MjYuNjI1WmpkaW1lbnNpb25zazI0IMOXIDI0IHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAs5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACn2Nib3KmaGRjOnRpdGxlcHdvcmstYXVkaXQtY2hhaW5qaW5zdGFuY2VJRHgtdXJuOnV1aWQ6MTEzNGU1MjktZjljZi00MDM5LWIxOTMtY2ZjNTgyMDhiOGYydGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCBQ6V5svJCUCAVMKcl72wNXCbdBroDt3Z/R58TU+3kR3aJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCCQCQu84DzGJ90sEYDz3uXALbAaRLKy+w5AyDO+L1ZTQqJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggya4NZWp/nbcdzeXTF4pR6lrejfbS4Rfrz9Iihqf8TTWiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJianVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIyY2JvctKEWQHhogEmGCGBWQHYMIIB1DCCAXmgAwIBAgIJdAR7+AnT3zTJMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNjM3MjZaFw0zNjEwMjAwNjM4MjZaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABFk844JC6CZ7iCz4iOEoke6x3bvlPQrRGdyiO6DEBKtJuKzIRQn9pz3kbSuR0yMYUkBBdLdfEVt9JAIOzkL/hmKjcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBRKG2meqBu5RLaqRVW9HB2USmJMmjAfBgNVHSMEGDAWgBRKG2meqBu5RLaqRVW9HB2USmJMmjAKBggqhkjOPQQDAgNJADBGAiEAtoO6z25q6pSB2UGKjTAydWf0gT+BT31NnsYjg2XWQrICIQDwfqw8c8Z4rfcRr2hBhBApp3DYeBKPr5HjLrY/N9kkQaD2WEC7wZXZdZ6XKYzljg6Wm0VcuqLpDpLwBsXAcyBIN2Akpr4X8NtfxV5SzRYXZuvI+u4UdSpScE916ZwA3aNPn3hX -----END C2PA MANIFEST----- -->

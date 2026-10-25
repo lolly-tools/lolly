@@ -39,7 +39,7 @@ export async function validateUserAssetVersion(snapshot: UserAssetVersion): Prom
     || !Number.isSafeInteger(snapshot.savedAt) || snapshot.savedAt < 0
     || !Number.isSafeInteger(snapshot.bytes) || snapshot.bytes < 0 || snapshot.bytes > 256 * 1024 * 1024
     || !/^[a-f0-9]{64}$/.test(snapshot.sha256) || r?.id !== snapshot.assetId || r?.version !== snapshot.version
-    || typeof r.format !== 'string' || !r.format || r.format.length > 100 || !['vector', 'raster', 'video', 'audio', 'lottie', 'model', 'lut', 'palette', 'tokens', 'font', 'profile', 'ratecard', 'text', 'data'].includes(r.type)
+    || typeof r.format !== 'string' || !r.format || r.format.length > 100 || !['vector', 'raster', 'video', 'audio', 'lottie', 'model', 'lut', 'palette', 'tokens', 'font', 'profile', 'ratecard', 'text', 'data', 'skill'].includes(r.type)
     || r.credential != null && (!(r.credential instanceof Uint8Array) || r.credential.byteLength > 16 * 1024 * 1024)
     || !(r.blob instanceof Blob) || r.blob.size !== snapshot.bytes) throw new Error('Invalid saved asset version in backup.');
   // In slices past 4 MiB: a backup checks each version before writing it and must

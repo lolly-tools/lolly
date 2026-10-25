@@ -46,6 +46,35 @@
     0 14px 34px #0002;
 }
 
+/* The view in motion and the level of detail (canvas performance review A5 and B1).
+   Both are attributes on #tool-stage (lib/stage-lod.ts, views/free-canvas/lod.ts),
+   never on the canvas: a thumbnail or a slide clones a page, and every render holds
+   both attributes off, so nothing here reaches an export or a capture. The rules are
+   anchored on #tool-canvas-outer, the wrapper no clone ever copies.
+
+   While the view moves the compositor scales the wrapper's last raster, soft while
+   the fingers move and sharp on release. will-change makes the wrapper a containing
+   block for fixed descendants, so it lasts only as long as a gesture. */
+.tool-layout.is-editor #tool-stage[data-fc-moving] #tool-canvas-outer { will-change: transform; }
+/* While moving, and from the far bucket out, an artboard keeps its hairline ring and
+   drops the blurred shadows that would otherwise be drawn again on every frame. */
+.tool-layout.is-editor #tool-stage[data-fc-moving] #tool-canvas-outer :is([data-pdf-page], .artboard),
+.tool-layout.is-editor #tool-stage:is([data-fc-lod="far"], [data-fc-lod="overview"]) #tool-canvas-outer :is([data-pdf-page], .artboard) {
+  box-shadow: 0 0 0 1px var(--ui-edge-default);
+}
+/* Overview: shadows, filters and frosted glass inside the canvas go as well. An
+   artboard keeps only its ring. Text is hidden with `visibility` (the fit-text pass
+   measures layout, so never display:none); views/free-canvas/lod.ts writes a sheet
+   that shows again the few boxes whose text is still readable at this zoom. */
+.tool-layout.is-editor #tool-stage[data-fc-lod="overview"] #tool-canvas-outer .lolly-box {
+  box-shadow: 0 0 0 0 var(--ui-edge-default) !important; /* zero-size ring: draws nothing */
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.tool-layout.is-editor #tool-stage[data-fc-lod="overview"] #tool-canvas-outer .lolly-box-text { text-shadow: none !important; visibility: hidden; }
+.tool-layout.is-editor #tool-stage[data-fc-lod="overview"] #tool-canvas-outer [data-pdf-page] { box-shadow: 0 0 0 1px var(--ui-edge-default) !important; }
+
 /* Editor mode surfaces Export/Save/Copy/Share as prominent icons in the toolbar
    rail (see .fc-action), so the floating bottom Export|Save pill is removed. The
    #render-fab / #render-save buttons stay in the DOM (hidden) - the rail icons
@@ -574,6 +603,10 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    handles as a single box - one vocabulary - told apart by weight and tone rather than a
    dash. Dashed borders are drop areas throughout this shell and nothing else. */
 .fc-group-outline { border-width: 1px; border-color: hsl(var(--primary) / 0.65); }
+/* A selection past OUTLINE_CAP rows (chrome-sync.ts) draws every row's outline as one
+   path: the .fc-outline line, without a node per row. */
+.fc-outlines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.fc-outlines path { fill: none; stroke: hsl(var(--primary)); stroke-width: 1.5; stroke-linejoin: miter; }
 .fc-handle {
   position: absolute; width: 12px; height: 12px;
   margin-left: -6px; margin-top: -6px;
@@ -1213,10 +1246,11 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
    selects the FRAME on click. Container is click-through (so canvas clicks fall through the
    gaps); only the tabs take a hit. Fixed-size chrome, positioned in stage px by the view. */
 .fc-frame-labels { position: absolute; inset: 0; pointer-events: none; z-index: 15; }
+/* A title shows for the selection, the hovered artboard, focus and rename by default
+   (frame-titles.ts), and is capped inline to its artboard's width on screen. */
 .fc-frame-label {
   position: absolute;
   pointer-events: auto;
-  max-width: 240px;
   padding: 0 6px;
   border: 0; border-radius: 5px 5px 0 0;
   background: transparent;
@@ -1732,6 +1766,9 @@ button.fc-readout:empty { display: none; }
    canvas click-to-focus behaviour, so the grab cursor only shows on Space-hold. */
 .tool-stage.is-grabbable { cursor: grab; }
 .tool-stage.is-grabbing  { cursor: grabbing; }
+/* Z held: a drag zooms to an area, a click zooms in (zoom-marquee.ts). */
+.tool-stage.fc-zoom-armed,
+.tool-stage.fc-zoom-armed .tool-canvas * { cursor: zoom-in; }
 
 /* Zoom HUD - a small TOP-RIGHT pill: −  [NN%]  +  Fit. Dimmed until the stage
    is hovered or the canvas is zoomed, so it stays out of the way at rest.
@@ -1763,12 +1800,13 @@ button.fc-readout:empty { display: none; }
   box-sizing: border-box;
   padding: 3px;
   border-radius: var(--radius-pill);
-  background: hsl(var(--card) / 0.85);
+  background: var(--ui-color-surface-raised);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  border: 1px solid hsl(var(--border));
+  border: 0;
   opacity: 0.45;
   transition: opacity var(--dur-1);
+  box-shadow: var(--ui-elevation-panel);
 }
 .tool-stage:hover .stage-nav,
 .stage-nav[data-zoomed="1"],

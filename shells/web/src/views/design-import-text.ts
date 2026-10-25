@@ -52,7 +52,7 @@ export async function showImportedFontNotice(families?: string[], canvas?: HTMLE
   await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
   if (canvas && !canvas.isConnected) return;
   await new Promise<void>(resolve => {
-    const message = tRaw('Text from {fonts} now uses your current brand fonts. To use your company’s typeface, add it in Make it yours → Type. Your imported design is kept; use Back to return to it.', { fonts: families.join(', ') });
+    const message = tRaw('Text from {fonts} now uses your current brand fonts. To use your company’s typeface, add it in Design System Setup → Type. Your imported design is kept; use Back to return to it.', { fonts: families.join(', ') });
     const modal = mountModal(`<h2 class="modal-title">${t('This design uses your brand fonts')}</h2>
       <p class="modal-msg">${escapeHtml(message)}</p><div class="modal-actions">
       <button type="button" class="btn" data-font-setup>${t('Add brand fonts')}</button>

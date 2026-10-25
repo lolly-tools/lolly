@@ -1,6 +1,6 @@
 {
-  "name": "Theme swap",
-  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
+  "name": "Đổi giao diện",
+  "description": "Đổi giao diện, màu và phông trong bản trình chiếu PowerPoint ngay trên thiết bị này. Rebrand làm được điều này và nhiều hơn.",
   "a11yLabel": "Công cụ đổi thương hiệu bộ slide cho {{fileName}}",
   "inputs.source.label": "Tệp PowerPoint",
   "inputs.source.help": "Tệp .pptx. Được đọc trên thiết bị của bạn, không bao giờ tải lên.",

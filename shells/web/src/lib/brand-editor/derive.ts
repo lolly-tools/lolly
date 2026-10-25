@@ -269,6 +269,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
             <div class="be-logo-queue" data-be-logo-queue hidden></div>
             <div class="be-logo-trim" data-be-logo-trim hidden></div>
           </div>
+          <div class="be-logo-colours" data-be-logo-colours="logos" hidden></div>
           <div class="be-logo-grid" data-be-logos></div>
           <p class="be-err" data-be-logo-err hidden></p>
         </div>
@@ -282,7 +283,8 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
            bottom edge however far the palette scrolls. -->
       <div class="be-split-scroll" data-be-split-scroll>
       <div class="be-panel be-palette">
-        <div class="be-palette-heading"><h2>${t('Your colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        <div class="be-palette-heading"><h2>${t('Colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        <div class="be-logo-colours" data-be-logo-colours="color" hidden></div>
         <div class="be-pal" data-be-pal></div>
         <button type="button" class="be-pal-restore" data-be-undo hidden>${t('Undo')}</button>
       <details class="be-addcolor"><summary>${t("Paste colours or use an image")}</summary>
@@ -295,8 +297,8 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
         ${/* The answer to one add (plan 137 C1): the colour, its name, and the two
               things worth doing next. Static markup filled in place (textContent
               and one custom property) so a swatch name never reaches a markup
-              sink. Borrows the logo suggestion's box - it is the same kind of
-              row in the same panel. */''}
+              sink. Styled as a suggestion row (be-suggest), the same kind of
+              row the panel has always used. */''}
         <div class="be-suggest be-added" data-be-added hidden>
           <span class="be-suggest-note">
             <span class="be-suggest-sw" data-be-added-sw aria-hidden="true"></span>
@@ -306,7 +308,6 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
           <button type="button" class="be-btn" data-be-added-tune>${t('Fine-tune')}</button>
           <button type="button" class="be-suggest-dismiss" data-be-added-dismiss aria-label="${escapeText(t('Dismiss'))}">&#x2715;</button>
         </div>
-        <div class="be-suggest" data-be-suggest hidden></div>
       </details>
 
         <!-- The colour charts, demoted to a folded card - repainted on open,
@@ -638,27 +639,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       </div>
       </div>
 
-      <div class="be-tab" data-be-tab-panel="tokens">
-      <div class="be-panel be-radius-panel">
-        ${panelHead(t('Rounded corners'), t('One brand radius drives a full scale: fine controls use smaller steps, panels use the base, and the pill step becomes fully rounded. Set it to 0 for straight corners everywhere.'))}
-        <div class="brand-radius-row">
-          <span class="brand-radius-preview" data-be-radius-preview aria-hidden="true"></span>
-          <input type="range" class="field-range brand-radius-slider" data-be-radius-slider min="0" max="1.5" step="0.05" aria-label="${escapeText(t('Corner radius'))}">
-          <span class="brand-radius-value" data-be-radius-value></span>
-        </div>
-        <p class="be-err" data-be-radius-err role="alert" hidden></p>
-      </div>
-      <div class="be-panel be-space-panel">
-        ${panelHead(t('Spacing rhythm'), t('One base space token drives every Lolly gap: the compact steps, controls, panels and page margins all move together. This only writes <code>space.base</code> to your brand.'))}
-        <div class="brand-space-row">
-          <span class="brand-space-preview" data-be-space-preview aria-hidden="true"><i></i><i></i><i></i></span>
-          <input type="range" class="field-range brand-space-slider" data-be-space-slider min="0.25" max="1.5" step="0.05" aria-label="${escapeText(t('Base spacing'))}">
-          <span class="brand-space-value" data-be-space-value></span>
-        </div>
-        <p class="be-err" data-be-space-err role="alert" hidden></p>
-      </div>
-      <div class="be-panel be-tokens" data-be-tokens-mount></div>
-      </div>
+      <div class="be-tab" data-be-tab-panel="tokens"><div class="be-tokens" data-be-tokens-mount></div></div>
 
       <div class="be-tab" data-be-tab-panel="catalogue">
       <div class="be-panel be-cat" data-be-cat-mount></div>
@@ -702,6 +683,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
             ${PALETTE_FORMATS.map(f => `<button type="button" class="be-bulkbar-item" data-be-bulk-dl="${escapeText(f.id)}">${escapeText(f.label)}</button>`).join('')}
           </div>
         </span>
+        <button type="button" class="be-bulkbar-btn" data-be-bulk-dup>${t('Duplicate')}</button>
         <button type="button" class="be-bulkbar-btn" data-be-bulk-copy>${t('Copy values')}</button>
         <button type="button" class="be-bulkbar-del" data-be-bulk-del>${t('Delete')}</button>
         <button type="button" class="be-bulkbar-x" data-be-bulk-cancel aria-label="${escapeText(t('Cancel selection'))}">✕</button>

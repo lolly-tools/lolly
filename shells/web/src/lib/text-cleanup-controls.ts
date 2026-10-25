@@ -5,7 +5,7 @@ import type { ComposedTextEditor } from './text-editor-session.ts';
 import { t } from '../i18n.ts';
 export function mountTextCleanup(root: HTMLElement, editor: ComposedTextEditor, error: (error: unknown) => void) {
   const details = document.createElement('details'), title = document.createElement('summary'); title.textContent = t('Typography cleanup'); details.append(title); root.append(details);
-  const check = (label: string, value: boolean) => { const row = document.createElement('label'), input = document.createElement('input'); input.type = 'checkbox'; input.checked = value; row.append(input, document.createTextNode(label)); details.append(row); return input; };
+  const check = (label: string, value: boolean) => { const row = document.createElement('label'), input = document.createElement('input'); input.type = 'checkbox'; input.className = 'field-check'; input.checked = value; row.append(input, document.createTextNode(label)); details.append(row); return input; };
   const quotes = check(t('Use language-specific quotes'), true), spaces = check(t('Remove repeated word spaces'), true), discretionary = check(t('Remove discretionary breaks'), false);
   const preview = document.createElement('button'); preview.type = 'button'; preview.textContent = t('Preview changes'); details.append(preview);
   const output = document.createElement('div'); output.setAttribute('role', 'status'); details.append(output);

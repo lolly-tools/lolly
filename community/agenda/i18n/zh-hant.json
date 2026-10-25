@@ -1,6 +1,6 @@
 {
   "name": "議程",
-  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
+  "description": "將一份議程變成符合品牌的畫面、互動式網頁、動態概覽、PowerPoint 投影片與行事曆。",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} 會話，{{trackCount}} 曲目",
   "inputs.title.label": "活動",
   "inputs.title.help": "列印在每個佈局的開頭，並命名導出的檔案。",

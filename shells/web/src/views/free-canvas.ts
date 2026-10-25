@@ -88,6 +88,7 @@ import { fileDropOps } from './free-canvas/file-drop.ts';
 import { cameraCaptureOps } from './free-canvas/camera-capture.ts';
 import { timelineOps } from './free-canvas/timeline.ts';
 import { stageOps } from './free-canvas/stage.ts';
+import { lodOps } from './free-canvas/lod.ts';
 import { narrationOps } from './free-canvas/narration.ts';
 import { railOps } from './free-canvas/rail.ts';
 import { toolboxOps } from './free-canvas/toolbox.ts';
@@ -126,6 +127,9 @@ import { selectionTransformOps } from './free-canvas/selection-transform.ts';
 import { zonesOps } from './free-canvas/zones.ts';
 import { grabZonesOps, storedLargeGrab } from './free-canvas/grab-zones.ts';
 import { pinchOps } from './free-canvas/pinch.ts';
+import { frameTitlesOps } from './free-canvas/frame-titles.ts';
+import { frameStepOps } from './free-canvas/frame-step.ts';
+import { zoomMarqueeOps } from './free-canvas/zoom-marquee.ts';
 import { preloadGeometryKernels } from '../bridge/geometry-host.ts';
 export { clampRailPos, stageBlockers, ctxTopBand, centreCtxBar, FC_TILT } from './free-canvas/shared.ts';
 export type { DeepLinkState, CtxTopBand } from './free-canvas/shared.ts';
@@ -223,6 +227,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.cameraCapture = cameraCaptureOps(fc);
   fc.stage = stageOps(fc);
   fc.narration = narrationOps(fc);
+  fc.lod = lodOps(fc);
   fc.rail = railOps(fc);
   fc.toolbox = toolboxOps(fc);
   fc.menus = menusOps(fc);
@@ -261,6 +266,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.zones = zonesOps(fc);
   fc.grabZones = grabZonesOps(fc);
   fc.pinch = pinchOps(fc);
+  fc.frameTitles = frameTitlesOps(fc);
+  fc.frameStep = frameStepOps(fc);
+  fc.zoomMarquee = zoomMarqueeOps(fc);
   fc.opts = opts;
 
   const {
@@ -1018,6 +1026,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // person tries first, and `preventDefault` is what stops the button synthesising the
   // click that would merely solo the frame. The tab advertises both through
   // `aria-keyshortcuts` - its `title` can only speak to a mouse.
+  // A focused title stays shown while it has the focus (frame-titles.ts).
+  frameLabels.addEventListener('focusin', fc.frameTitles.onTitleFocusIn);
+  frameLabels.addEventListener('focusout', fc.frameTitles.onTitleFocusOut);
   frameLabels.addEventListener('keydown', (e) => {
     const el = (e.target as HTMLElement | null)?.closest<HTMLElement>('.fc-frame-label');
     if (!el || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -1315,6 +1326,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // for group) so positioning can address them positionally.
   fc.chromeKey = null;
   fc.chromeNodes = null;
+  fc.chromeSetHeld = null;
 
   // Dock wrapper flex-centres the rail at rest without a transform on the rail
   // itself, and carries the left/top of a DRAGGED rail for the same reason
@@ -1773,6 +1785,15 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
 
   // ── overlay rendering ─────────────────────────────────────────────────────────
   fc.syncScheduled = false;
+  // A pan or zoom asks only for the view to be followed (chrome-sync.ts, renderChromeView);
+  // anything else asks for the full sync, and one is run once the view rests.
+  fc.syncFull = false;
+  fc.viewSettleTimer = 0;
+  // The painted canvas by id (stage.ts), dropped on every paint, and what the
+  // accessibility stamps last walked (chrome-sync.ts, syncBoxA11y).
+  fc.canvasIndex = null;
+  fc.a11yIndex = null;
+  fc.a11yPressed = new Set<string>();
 
   // ── active artboard → export bar (plans/141 WP-B) ─────────────────────────────
   // The export bar mirrors the artboard the user is working with. Emit (deduped)
@@ -1792,11 +1813,25 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const artboardListeners = new Set<(id: string) => void>(); fc.artboardListeners = artboardListeners;
   fc.artboardNotifiedId = '';
 
-  // Frame name labels: rebuild the tabs only when the frame set / order / active state
-  // changes (tracked by frameLabelKey), and reposition them every sync - the same MODEL-px
-  // discipline positionFrameScrim uses. Hidden entirely while editing text or in pen mode so
-  // the canvas stays clean. frameCfg-gated.
-  fc.frameLabelKey = '';
+  // Frame name labels (frame-titles.ts): only the titles shown exist, each patched in place
+  // and placed from the model on every sync - the same MODEL-px discipline
+  // positionFrameScrim uses. Hidden entirely while editing text or in pen mode so the
+  // canvas stays clean. frameCfg-gated.
+  fc.frameLabelFrames = null;
+  // Which titles show, and the state that decides it (frame-titles.ts): by default the
+  // selected artboards, the ones holding the selection and the one under the pointer.
+  fc.titleMode = fc.frameTitles.readTitleMode();
+  fc.titleKept = new Set<string>();
+  fc.titleMetrics = null;
+  fc.titleFocusId = '';
+  fc.hoverFrameId = '';
+  fc.titleHoverAt = null;
+  fc.titleHoverRaf = 0;
+  fc.frameTitleEls = new Map<string, HTMLButtonElement>();
+  // PageDown / PageUp / Home / End (frame-step.ts) and hold-Z zoom (zoom-marquee.ts).
+  fc.frameStepId = '';
+  fc.zoomArmed = false;
+  fc.zoomDrag = null;
 
   // ── artboard rename (plans/179 A10) ──────────────────────────────────────────
   //
@@ -1821,6 +1856,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.ctxBlockers = null;
   /** The placement held for the life of a box gesture (see positionCtxBar). */
   fc.ctxFrozen = null;
+  fc.ctxPlacedBand = '';
 
   // ── wiring ────────────────────────────────────────────────────────────────────
   // Two-finger-tap recognition - capture phase, so a second finger is already recorded by
@@ -1853,6 +1889,15 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   document.addEventListener('copy', fc.modes.onCopy);
   document.addEventListener('cut', fc.modes.onCut);
   stageEl.addEventListener('pointermove', fc.keys.onStagePointerMove, { passive: true });
+  stageEl.addEventListener('pointerleave', fc.frameTitles.hoverEnd);
+  // Hold-Z zoom: the press is taken before any canvas gesture sees it; the drag follows
+  // the pointer the stage captured.
+  document.addEventListener('pointerdown', fc.zoomMarquee.zoomPointerDown, true);
+  stageEl.addEventListener('pointermove', fc.zoomMarquee.zoomPointerMove);
+  stageEl.addEventListener('pointerup', fc.zoomMarquee.zoomPointerUp);
+  stageEl.addEventListener('pointercancel', fc.zoomMarquee.zoomPointerUp);
+  window.addEventListener('keyup', fc.zoomMarquee.zoomKeyUp);
+  window.addEventListener('blur', fc.zoomMarquee.zoomBlur);
   const unwireZones = fc.zones.wire(); // the grab zones' hover cursor (plan 311)
   const unwirePinch = fc.pinch.wire(); // Safari's own pinch events while two fingers hold the selection
   stageEl.addEventListener('wheel', fc.keys.onStageWheel, { passive: true });
@@ -1871,6 +1916,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const mo = new MutationObserver(fc.keys.onStageMove); fc.mo = mo;
   if (canvasEl.parentElement)
     mo.observe(canvasEl.parentElement, { attributes: true, attributeFilter: ['style'] });
+  // Every paint and fast-path patch may have replaced box elements, so the id index the
+  // chrome reads them through is dropped and read afresh on its next use.
+  canvasEl.addEventListener('lolly-canvas-painted', fc.stage.dropCanvasIndex);
   // Re-sync after every model change (paint()).
   // A bulk external apply - picking an ANIMATED template after the blank mount - can flip
   // the doc from untimed to timed; open the timeline the first time that happens, so the
@@ -2314,12 +2362,16 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       .catch(error => console.warn('design scene selection failed:', error));
   });
 
+  // Level of detail at far zoom, and media that plays only while seen (lod.ts).
+  fc.lod.mount();
+
   return {
     design: designPorts,
     duplicatePage: fc.hierarchy.duplicatePage,
     removePage: fc.hierarchy.removePage,
     pageChanged: fc.hierarchy.pageChanged,
     destroy() {
+      fc.lod.destroy();
       fc.cameraCapture.destroy();
       unwireFileDrop();
       disposeCanvasInteractions(fc);
@@ -2374,6 +2426,14 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       document.removeEventListener('copy', fc.modes.onCopy);
       document.removeEventListener('cut', fc.modes.onCut);
       stageEl.removeEventListener('pointermove', fc.keys.onStagePointerMove);
+      stageEl.removeEventListener('pointerleave', fc.frameTitles.hoverEnd);
+      document.removeEventListener('pointerdown', fc.zoomMarquee.zoomPointerDown, true);
+      stageEl.removeEventListener('pointermove', fc.zoomMarquee.zoomPointerMove);
+      stageEl.removeEventListener('pointerup', fc.zoomMarquee.zoomPointerUp);
+      stageEl.removeEventListener('pointercancel', fc.zoomMarquee.zoomPointerUp);
+      window.removeEventListener('keyup', fc.zoomMarquee.zoomKeyUp);
+      window.removeEventListener('blur', fc.zoomMarquee.zoomBlur);
+      if (fc.titleHoverRaf) cancelAnimationFrame(fc.titleHoverRaf);
       unwireZones();
       unwirePinch();
       stageEl.removeEventListener('wheel', fc.keys.onStageWheel);
@@ -2391,6 +2451,11 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       unwireWeb?.();
       ro.disconnect();
       mo.disconnect();
+      canvasEl.removeEventListener('lolly-canvas-painted', fc.stage.dropCanvasIndex);
+      if (fc.viewSettleTimer) {
+        clearTimeout(fc.viewSettleTimer);
+        fc.viewSettleTimer = 0;
+      }
       fc.poseMo?.disconnect();
       fc.dirtyObserver?.disconnect();
       unsub?.();

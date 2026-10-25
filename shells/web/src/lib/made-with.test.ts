@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { designRecordEnvironment } from '../../../../engine/src/metadata.ts';
-import { madeWithFact, madeWithLine, madeWithWords, recreateHrefFor, recreateSystemId, recreateWithRecord, withDesignRecordParams } from './made-with.ts';
+import { guidedByFact, madeWithFact, madeWithLine, madeWithWords, recreateHrefFor, recreateSystemId, recreateWithRecord, withDesignRecordParams } from './made-with.ts';
 
 const RECORD = {
   designSystem: { id: 'acme', label: 'Acme & Co' },
@@ -80,4 +80,22 @@ test('the Design editor line follows the runtime switch and its preview', async 
   assert.equal((await madeWithLine(runtime))!.description, preview.plainDescription);
   assert.equal(await madeWithLine({ madeWithPreview: async () => null, madeWith: () => true }), null);
   assert.equal(await madeWithLine({ madeWithPreview: async () => { throw new Error('x'); }, madeWith: () => true }), null);
+});
+
+test('brand skills (plan 323) read "Guided by" on the card line and as a Verify fact of their own', () => {
+  const brandSkills = [
+    { id: 'acme/skill/brand', name: 'acme-brand', revision: '1.0', sha256: '0f'.repeat(32) },
+    { id: 'acme/skill/photography', name: 'acme-photography', revision: '1.2', sha256: 'ab'.repeat(32) },
+  ];
+  const record = { designSystem: { id: 'acme', label: 'Acme & Co' }, brandSkills };
+  assert.equal(madeWithWords(record), 'Acme & Co · Guided by: acme-brand 1.0, acme-photography 1.2');
+  assert.equal(madeWithWords(record, { skills: false }), 'Acme & Co');
+  const env = { tool: 'Chart', ...designRecordEnvironment(record) };
+  assert.equal(madeWithFact(env), 'Acme & Co', 'the Design system fact gives the system only');
+  assert.equal(guidedByFact(env), 'acme-brand 1.0, acme-photography 1.2');
+  assert.equal(guidedByFact({ tool: 'Chart', ...designRecordEnvironment({ designSystem: record.designSystem }) }), null);
+  assert.equal(guidedByFact(null), null);
+  for (const words of [madeWithWords(record), guidedByFact(env)!]) {
+    assert.doesNotMatch(words, /compl|approv|check/i, 'guidance, never a verdict');
+  }
 });

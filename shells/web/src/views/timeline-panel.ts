@@ -1752,6 +1752,25 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
   }); tp.unsubShot = unsubShot;
 
   /**
+   * Every content paint puts the boxes back at their authored rest pose, so the playhead
+   * is applied again after each one. Nothing else does it for the FIRST paint: a deep
+   * link's `_t=` seeks while the canvas is still empty, the first paint arrives through
+   * runtime.subscribe's immediate call to its new subscriber (no emit, so the sync
+   * above never runs), and a paused clock sends no ticks. The playhead then read 0:02.4
+   * over boxes left at rest for good. Same open-panel rule as the shot reapply above.
+   */
+  const onCanvasPainted = (): void => {
+    if (tp.disposed || !tp.open) return;
+    try {
+      clock.reapply();
+    } catch {
+      /* the clock is gone; the panel is going with it */
+    }
+  };
+  canvasEl.addEventListener('lolly-canvas-painted', onCanvasPainted);
+  tp.unsubPaint = () => canvasEl.removeEventListener('lolly-canvas-painted', onCanvasPainted);
+
+  /**
    * A thumbnail is a picture of the CLIP, never of the frame the playhead is parked on
    * (plans/104 section 6.5). clip-thumbs cannot reach the authored values itself - importing
    * bridge/sequence-dom.ts would drag sequence-plan → @lolly/engine into the chunk

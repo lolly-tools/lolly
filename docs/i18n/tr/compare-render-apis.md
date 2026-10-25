@@ -2,24 +2,28 @@
 
 _Son kontrol: 28 Eylül 2026._
 
-Lolly şablonlardan ve verilerden varlıkları cihazınızda, CI'da veya [lolly.work](https://lolly.work)'ün sunucu API'si üzerinden üretir. Birleşik çözüm, otomatik işlemenin yanı sıra bir kurumun üretim işlerinin etrafındaki kimlik, ilke ve teslimatı da kapsar.
+Bugün şablonlardan görselleri bir API ile üretiyorsan bu sayfa Lolly'nin aynı işi kendi cihazında, CI'da veya kendi sunucunda nasıl yaptığını söyler.
+
+## Barındırılan render API'lerinin daha iyi yaptığı
+
+[Bannerbear](https://www.bannerbear.com/) ve [Placid](https://placid.app/) render'ı kendi altyapıları, entegrasyonları ve desteğiyle yönetilen hizmetler olarak paketler. Bir istek gönderirsin ve sunucuları başkası çalıştırır.
 
 ## Örtüştükleri alanlar
 
-[Bannerbear](https://www.bannerbear.com/) ve [Placid](https://placid.app/), şablonlardan API'ler ve entegrasyonlar aracılığıyla görseller ve diğer medyayı üretir. Lolly de aynı şablon artı girdi yaklaşımını kullanır; iş göndermenin yolları [URL modu](/info/url-mode.html), [CLI](/info/cli.html), toplu işlem ızgarası (batch grid) ve sunucu uç noktalarıdır.
+İkisi de bir şablon artı girdileri medyaya çevirir. Lolly girdileri bir [bağlantıdan](/info/url-mode.html), [CLI](/info/cli.html) üzerinden, bir toplu iş ızgarasından veya bir sunucu uç noktasından alır.
 
-## lolly.work'ün sağladıkları
+## Lolly örtüşen işi nasıl yapar
 
-lolly.work, Lolly projesindeki ayrı dağıtılan kurumsal hizmettir. Lolly motorunu bir API arkasında çalıştırır, araç görünürlüğü ve girdi ilkelerini uygular, işlenmiş dosyaları ve imzalı paylaşım bağlantılarını sunar. [Kurtarılabilir işleme hizmeti](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md) tekil işleri ve toplu işleri, idempotent gönderimi, durumu, sınırlı yeniden denemeleri, iptali ve saklanan çıktıları destekler. Kalıcı depolama yapılandırıldığında kesintiye uğrayan iş, sunucu yeniden başlatıldıktan sonra devam edebilir.
+Aynı araç, aynı girdilerden bir dizüstü bilgisayarda, bir CI işinde veya bir sunucuda render edilir. Yerel ve CI render'ı hiçbir hizmet gerektirmez.
 
-Sunucu, hızlı bir SVG/PNG işleme yolu ve tarayıcı gerektiren araçlar için isteğe bağlı bir Chromium çalışanı kullanır. Otomasyon hizmet token'larıyla kimlik doğrular ve tamamlanan çıktı [yönetilen teslimat](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) aracılığıyla kurum hedeflerine gönderilebilir. Yapılandırılmış bir imzalama kimliği, desteklenen sunucu çıktısında C2PA imzalamayı etkinleştirir.
+![Batch dışa aktarma ayarları: dosya adı, varsayılan biçim, birimler, DPI ve render edilecek satır sayısı](/info/shots/use-batch-toolbar.svg)
+
+Bir sunucuda [Lolly Work](/info/compare.html#what-runs-where), Lolly motorunu bir API'nin arkasında çalıştırır ve araç görünürlüğü ile girdi politikalarını uygular. [Recoverable render service](/info/work-renders.html) tekil işleri ve toplu işleri, idempotent gönderimi, durumu, sınırlı yeniden denemeleri, iptali ve tutulan çıktıları destekler ve kalıcı depolama yapılandırıldığında yarıda kalan iş bir yeniden başlatmadan sonra sürer.
+
+Sunucuda hızlı bir SVG ve PNG yolu ve bir tarayıcıya ihtiyaç duyan araçlar için isteğe bağlı bir Chromium çalışanı vardır. Otomasyon hizmet belirteçleriyle giriş yapar, bitmiş çıktı [approved delivery](/info/work-delivery.html) üzerinden kuruluş hedeflerine gidebilir ve yapılandırılmış bir imzalama kimliği desteklenen çıktıya Content Credentials ekler.
 
 ## Hizmeti kim çalıştırır
 
-Bannerbear ve Placid işlemeyi kendi altyapıları ve entegrasyonlarıyla yönetilen hizmetler olarak paketler. Lolly ile bir birey yerel olarak işleyebilir veya bir ekip lolly.work'ü kendi altyapısında çalıştırabilir. Her iki Lolly deposu da MPL-2.0 açık kaynaklıdır; kendi sunucunuzda barındırmanın işleme başına yazılım lisans ücreti yoktur, ancak hesaplama, depolama ve operasyon planlanması gereken maliyetler olarak kalır.
+Lolly ile bir birey yerelde render eder ya da bir ekip Lolly Work'ü kendi altyapısında çalıştırır. Bir sunucu işi göndermek, girdilerini ve gereken varlıkları o örneğe gönderir; bu, cihaz üzerindeki yoldan farklıdır. Kalıcı bir hizmet kalıcı bir veritabanı ve çıktı depolaması gerektirir ve tarayıcıya bağımlı araçlar Chromium çalışanı gerektirir; ikisini de [Install Lolly Work](/info/work-install.html) anlatır.
 
-Herkese açık lolly.work sitesi bir değerlendirme alanıdır (sandbox); üretim barındırma taahhüdü değildir. Kalıcı bir hizmet için kalıcı veritabanı ve çıktı depolaması gerekir; tarayıcıya bağımlı araçlar Chromium çalışanına ihtiyaç duyar. [Kurulum kılavuzu](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) ve [durum sayfası](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) bu gereksinimleri ve mevcut sınırları açıklar.
-
-Yerel ve CI işleme, kurumsal hizmet olmadan da kullanılabilir. Bir sunucu işi göndermek girdilerini ve gerekli varlıkları o örneğe gönderir; bu, cihaz üstü yoldan farklıdır. [Birleşik çözüme genel bakış](/info/compare.html) sayfasına bakın.
-
-Bannerbear ve Placid, sahiplerinin ticari markalarıdır. Bu sayfa çözümlerin nerede örtüştüğünü anlatır ve hiçbiriyle bağlantılı değildir.
+Bannerbear ve Placid, sahiplerinin ticari markalarıdır. Bu sayfa ürünlerin nerede örtüştüğünü anlatır ve ikisiyle de bağlantılı değildir.

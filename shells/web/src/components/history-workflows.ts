@@ -26,7 +26,7 @@ export function mountHistoryWorkflows(history: RevisionHistoryAPI, changed: () =
   };
   const from = dateField('From date'), to = dateField('To date');
   const namedLabel = document.createElement('label');
-  const named = document.createElement('input'); named.type = 'checkbox'; namedLabel.append(named, document.createTextNode(t('Named milestones only')));
+  const named = document.createElement('input'); named.type = 'checkbox'; named.className = 'field-check'; namedLabel.append(named, document.createTextNode(t('Named milestones only')));
   const reset = button('Clear filters');
   filters.append(search, tool, dates, namedLabel, reset);
   const compare = document.createElement('section'); compare.className = 'revision-history-compare'; compare.hidden = true; compare.setAttribute('aria-label', t('Version comparison'));
@@ -78,7 +78,7 @@ export function mountHistoryWorkflows(history: RevisionHistoryAPI, changed: () =
       const actions = document.createElement('div'); actions.className = 'revision-history-actions';
       const name = button(entry.milestone ? 'Rename milestone' : 'Name version');
       const checkLabel = document.createElement('label'), check = document.createElement('input');
-      check.type = 'checkbox'; check.checked = selected.has(entry.id); checkLabel.append(check, document.createTextNode(t('Compare'))); controls.add(check);
+      check.type = 'checkbox'; check.className = 'field-check'; check.checked = selected.has(entry.id); checkLabel.append(check, document.createTextNode(t('Compare'))); controls.add(check);
       check.addEventListener('change', () => {
         if (check.checked && [...selected.values()].some(other => other.documentId !== entry.documentId)) { check.checked = false; error(t('Choose versions of the same creation to compare.')); return; }
         if (check.checked && selected.size === 2) { check.checked = false; error(t('Clear the comparison or deselect a version before choosing another.')); return; }

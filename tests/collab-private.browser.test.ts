@@ -74,6 +74,9 @@ import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 // UI is judged against is the one the UI derives from, and the independent re-derivation
 // below runs the real `derivePlate` over fingerprints read out of the live SDP.
 import { PLATE_RE, derivePlate } from '../shells/web/src/collab/plate.ts';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
+import { expandQuery } from '../engine/src/url-pack.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 // ── Gate ──────────────────────────────────────────────────────────────────────
 
@@ -300,6 +303,24 @@ function watch(page: Page, label: string): PageLog {
   return log;
 }
 
+/**
+ * One input's value as the address bar carries the value. A tool's share URL packs its
+ * state into the `z=` token (engine/src/url-pack.ts), so the input is absent from the
+ * plain query; `expandQuery` is the same unpacking the shell does at load.
+ */
+async function addressInput(page: Page, id: string): Promise<string | null> {
+  const query = await page.evaluate(() => location.search.slice(1));
+  return new URLSearchParams(await expandQuery(query)).get(id);
+}
+
+/** Open the closed `<details>` a control sits in, through its summary, as a person would. */
+async function openDisclosureOf(page: Page, selector: string): Promise<void> {
+  await page.evaluate((sel: string) => {
+    const section = document.querySelector(sel)?.closest('details');
+    if (section && !section.open) section.querySelector<HTMLElement>(':scope > summary')?.click();
+  }, selector);
+}
+
 /** Poll `fn` until it returns a truthy value or the deadline passes. */
 async function until<T>(fn: () => Promise<T | null | undefined | false>, ms: number, what: string): Promise<T> {
   const deadline = Date.now() + ms;
@@ -376,9 +397,17 @@ function stopDevServer(): void {
  * the plain CSS primitives, which is a shipping configuration (it is a user toggle),
  * and the collab code paths under test read `[data-input-id]` either way. Nothing about
  * convergence, presence or the ceremony is jelly-aware.
+ *
+ * The drilled tool's "Start with" goes to Blank in the same write, for the same kind of
+ * reason. QR Code has built-in templates, so a blank open of it raises the template
+ * chooser (views/tool/setup.ts), and the chooser is deliberately not awaited: it opens
+ * over a tool that is already interactive, seconds later on a software adapter, and
+ * intercepts the clicks the ceremony makes. "Start with: Blank" is the person's own
+ * setting for skipping that question, and it opens the same manifest defaults the drill
+ * was written against.
  */
 async function setPrivateCollab(page: Page, on: boolean): Promise<void> {
-  await page.evaluate((want: boolean) => new Promise<void>((resolve, reject) => {
+  await page.evaluate(({ want, tool }: { want: boolean; tool: string }) => new Promise<void>((resolve, reject) => {
     const req = indexedDB.open('lolly');
     req.onerror = () => reject(req.error);
     req.onsuccess = () => {
@@ -395,12 +424,13 @@ async function setPrivateCollab(page: Page, on: boolean): Promise<void> {
           'private-collab': want,
           'jelly-effects': false,
         };
+        prof.templateStart = { ...(prof.templateStart as object || {}), [tool]: 'blank' };
         store.put(prof, 'me');
       };
       tx.oncomplete = () => { db.close(); resolve(); };
       tx.onerror = () => { db.close(); reject(tx.error); };
     };
-  }), on);
+  }), { want: on, tool: TOOL_ID });
 }
 
 /**
@@ -741,6 +771,10 @@ describe('private collab - real-browser ceremony drills', { skip: GATE ?? false,
         '--use-fake-device-for-media-stream',
         '--use-angle=swiftshader',
         '--enable-unsafe-swiftshader',
+        // The shell does not start without a WebGPU adapter (plan 295), and a launched
+        // Chromium offers none by default: every route that runs a tool shows the
+        // unsupported-environment card instead. The shared flags name SwiftShader.
+        ...webGpuLaunchArgs('software'),
       ],
     });
     const open = async (channel?: string) => {
@@ -822,7 +856,11 @@ describe('private collab - real-browser ceremony drills', { skip: GATE ?? false,
     await pageA.goto(`${base}/#/`, { waitUntil: 'domcontentloaded' });
     await waitForCatalog(pageA);
     await setPrivateCollab(pageA, true);
-    await pageA.reload({ waitUntil: 'domcontentloaded' });
+    // Settled, not just loaded: the shell wires its hashchange router at the END of boot,
+    // after the first view has mounted, so the hash navigation the ceremony opens with is
+    // dropped when made while the gallery is still mounting.
+    await pageA.reload({ waitUntil: 'networkidle' });
+    await shellSettled(pageA);
     const on = await until(
       () => pageA.evaluate(() => {
         try {
@@ -854,13 +892,16 @@ describe('private collab - real-browser ceremony drills', { skip: GATE ?? false,
     // for the mounted runtime and seed through its existing canvas input bridge.
     await pageA.waitForFunction(() => typeof (window as unknown as { __lollySetInput?: unknown }).__lollySetInput === 'function');
     await pageA.evaluate(({ field, value }) => (window as unknown as { __lollySetInput: (id: string, value: string) => void }).__lollySetInput(field, value), { field: FIELD, value: SENTINEL });
-    await until(() => pageA.evaluate(() => new URL(location.href).searchParams.get('url')).then(v => v === SENTINEL),
+    await until(async () => (await addressInput(pageA, FIELD)) === SENTINEL,
       10000, 'the sentinel edit to reach the model and its share URL before pairing');
     // Dispatched rather than clicked: the Share button lives in the actions bar, which
     // another floating control overlaps at this viewport, and Playwright refuses an
     // intercepted click. The handler is the same one a real click runs.
     await pageA.evaluate(() => document.querySelector<HTMLButtonElement>('[data-action="copy-url"]')?.click());
-    await pageA.waitForSelector('[data-act="start-private-collab"]', { timeout: 45_000 });
+    // The Share panel folds each registered section into a disclosure, closed at first.
+    await pageA.waitForSelector('[data-act="start-private-collab"]', { state: 'attached', timeout: 45_000 });
+    await openDisclosureOf(pageA, '[data-act="start-private-collab"]');
+    await pageA.waitForSelector('[data-act="start-private-collab"]', { timeout: 10_000 });
     await shot(pageA, '02-share-dialog');
     note('A: Share dialog shows the "Private collab" section');
 
@@ -939,10 +980,10 @@ describe('private collab - real-browser ceremony drills', { skip: GATE ?? false,
     await shot(pageB, '07-answer-minted');
     note('B: answer minted');
     // NO DOCS SHOT HERE, deliberately - see docs/collaborate.md's "SHOTS DROPPED" note.
-    // This screen is a one-time secret wearing three hats: the reply link carries the
+    // This screen is a one-time secret wearing two hats: the reply link carries the
     // capture origin (`http://localhost:<drill port>/#/join-reply?ans=…`), and the code
-    // and the QR are two more renderings of the same single-use payload. The drill cannot
-    // fix the first (its base IS a dev server) and nothing should fake it.
+    // is one more rendering of the same single-use payload (there is no reply QR). The
+    // drill cannot fix the first (its base IS a dev server) and nothing should fake it.
 
     // The LINK leg (section 11.25): a third tab in the same context hands the payload to A's
     // waiting dialog over the ceremony BroadcastChannel. Falls back to the paste leg.
@@ -1273,7 +1314,9 @@ describe('private collab - real-browser ceremony drills', { skip: GATE ?? false,
       await page.goto(`${base}/#/`, { waitUntil: 'domcontentloaded' });
       await waitForCatalog(page);
       await setPrivateCollab(page, false);
-      await page.reload({ waitUntil: 'domcontentloaded' });
+      // Settled for the same reason as the boot drill: the invite below is a hash navigation.
+      await page.reload({ waitUntil: 'networkidle' });
+      await shellSettled(page);
       const off = await until(
         () => page.evaluate(() => {
           try {
@@ -1410,15 +1453,25 @@ describe('private collab - real-browser ceremony drills', { skip: GATE ?? false,
 
   it('FOCUS: focusing a control on B paints a peer focus ring on A', async () => {
     requirePair();
+    // Quiet zone sits in the sidebar's Modules section, which starts closed: focus() does
+    // not land in a closed section on B, and A could not show a ring inside one. Each
+    // person opens it first.
+    for (const page of [pageA, pageB]) {
+      await openDisclosureOf(page, `[data-input-id="${FIELD_2}"]`);
+      // An opening section is not laid out yet, and focus() on a control with no box is a no-op.
+      await page.waitForSelector(`[data-input-id="${FIELD_2}"]`, { state: 'visible', timeout: 10_000 });
+    }
     await pageB.focus(`[data-input-id="${FIELD_2}"]`);
     const found = await until(
-      () => pageA.evaluate(() => {
-        const box = document.querySelector('.collab-focus-box');
-        const row = document.querySelector('.input-row.is-remote-focus');
-        return Boolean(box || row);
-      }),
+      () => pageA.evaluate((id: string) => {
+        // The ring has to be on THIS row. B's edits in the convergence drill leave its
+        // focus ring on the URL row, which a check for any ring at all would accept.
+        const row = document.querySelector(`[data-input-id="${id}"]`)?.closest('.is-remote-focus');
+        row?.scrollIntoView({ block: 'center' });
+        return Boolean(row);
+      }, FIELD_2),
       30_000,
-      "A to paint B's focus ring",
+      "A to paint B's focus ring on the Quiet zone row",
     );
     assert.equal(found, true);
     await shot(pageA, '17-A-focus-ring');

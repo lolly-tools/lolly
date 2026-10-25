@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.280.0', () => {
+test('ENGINE_VERSION is 1.285.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -557,7 +557,12 @@ test('ENGINE_VERSION is 1.280.0', () => {
   // 1.278.0 adds the manifest tokenAxes opt-out and the live theme switch for every tool (plans/319 A4); capture is unchanged.
   // 1.279.0 adds host.tokens family() and axes() and the canvas lead variables (plans/319 A5); capture is unchanged.
   // 1.280.0 records the design system and colourway that made each export (plans/319 A7); capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.280.0');
+  // 1.281.0 lets the palette exporters carry a wider colour, a CMYK build and a spot ink; capture is unchanged.
+  // 1.282.0 adds brand skills as design-system assets (plan 323); capture is unchanged.
+  // 1.283.0 adds creation feedback for Design (house rules and the writing score); capture is unchanged.
+  // 1.284.0 stops the house-rule checker reporting layers Design does not draw; capture is unchanged.
+  // 1.285.0 gives each logo's catalog name in the logo-surface finding's message; capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.285.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

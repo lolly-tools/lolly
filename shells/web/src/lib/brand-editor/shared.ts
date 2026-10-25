@@ -28,6 +28,7 @@ import { segHtml } from '../seg.ts';
 import { FONT_ROLES, colorIdentity } from '../design-system/ownership.ts';
 import type { FaceState } from '../design-system/ownership.ts';
 import type { RoleId } from '../design-system/roles.ts';
+import type { LogoRoleOffer } from '../design-system/logo-roles.ts';
 
 // ── Host shape ──────────────────────────────────────────────────────────────
 // The editor reads/writes tokens, fonts and brand packs. Every real web host
@@ -118,7 +119,7 @@ export async function ensureGoogleFontsConsent(): Promise<boolean> {
     // Trimmed to the two facts and the one reassurance (plan 182 section 6.3): the
     // dialog now arrives on the press somebody just made, so it has to be
     // readable at a glance rather than skimmed past.
-    message: isTauriShell() ? t('Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.') : t('Google learns the family name and your IP address. The file is then kept in this browser and used offline. This is the one step in the studio that reaches a third party.'),
+    message: isTauriShell() ? t('Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in Design System Setup that reaches a third party.') : t('Google learns the family name and your IP address. The file is then kept in this browser and used offline. This is the one step in Design System Setup that reaches a third party.'),
     confirmLabel: t('Fetch from Google'),
   });
   if (!ok) return false;
@@ -771,7 +772,7 @@ export function logoGroupHtml(
 // ── Mount ─────────────────────────────────────────────────────────────────────
 
 /**
- * Render the brand studio into `root` and wire it. Returns a teardown that stops
+ * Render Design System Setup's editor into `root` and wire it. Returns a teardown that stops
  * the (font/preview) listeners. Locked builds render a read-only note and no-op.
  */
 /** The five areas the studio renders - the host view drives which one shows by
@@ -779,7 +780,7 @@ export function logoGroupHtml(
  *  edit came from.
  *
  *  The `BRAND_TABS` label+icon table that used to sit here is gone with the tab
- *  bar it fed: the design-system studio is rooms, and `views/start.ts` builds
+ *  bar it fed: Design System Setup is rooms, and `views/start.ts` builds
  *  its own navigation. The key itself is still the studio's vocabulary. */
 export type BrandTabKey = 'logos' | 'color' | 'type' | 'tokens' | 'catalogue';
 
@@ -854,6 +855,20 @@ export interface ReplacePlan {
 }
 
 export type RasterLogoStats = Parameters<typeof classifyLogoRasterStats>[0];
+
+/** The colours a placed logo offered (plan 320 S1), while its card is up. */
+export interface LogoOfferState {
+  /** The name of the file the colours came from. */
+  label: string;
+  offer: LogoRoleOffer;
+  /** The main colour the card has selected. */
+  main: string;
+  /** True once the colours are in the palette and the roles point at them. */
+  applied: boolean;
+  /** The undo step the apply pushed. The card can only rewind the apply while
+   *  this step is still the latest one, so it never undoes a later edit. */
+  undoEntry: { doc: Record<string, unknown>; label: string } | null;
+}
 
 // ── The confirm-chip queue ──────────────────────────────────────────────────
 export interface LogoCandidateChip {

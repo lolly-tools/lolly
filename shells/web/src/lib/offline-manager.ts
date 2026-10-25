@@ -61,7 +61,7 @@ import { openDB } from '../bridge/db.ts';
 import { currentLang } from '../i18n.ts';
 import { MODELS_BASE } from './models-base.ts';
 import { modelNetworkUrl, modelStoredFileName } from './model-manifest.ts';
-import { downloadVerifiedModel, modelPartialCache, verifyModelBytes } from './model-delivery.ts';
+import { downloadVerifiedModel, modelPartialCache, notOnServer, verifyModelBytes } from './model-delivery.ts';
 import { UPSCALE_MODEL_STORE, UPSCALE_MODEL_CACHE_VERSION } from './upscale-models.ts';
 import { MATTE_MODEL_STORE, MATTE_MODEL_CACHE_VERSION } from './matte-models.ts';
 import { OCR_MODEL_STORE, OCR_MODEL_CACHE_VERSION } from './ocr-models.ts';
@@ -302,6 +302,26 @@ async function putFile(cache: Cache, file: ManifestFile, resp: Response, signal?
 
 const DOWNLOAD_CONCURRENCY = 4;
 
+/**
+ * A download that ended with files it could not save. `missing` counts the files
+ * the server answered for without having (404, 410, or its app page in place of
+ * the file); the rest failed on the way, which is usually the connection. The
+ * Available offline rows read the two apart, because one is the server's to fix
+ * and the other is worth trying again.
+ */
+export class OfflineDownloadError extends Error {
+  readonly failed: number;
+  readonly total: number;
+  readonly missing: number;
+  constructor(failed: number, total: number, missing: number, first: string) {
+    super(`offline download: ${failed} of ${total} files failed (first: ${first})`);
+    this.name = 'OfflineDownloadError';
+    this.failed = failed;
+    this.total = total;
+    this.missing = missing;
+  }
+}
+
 /** Where to actually FETCH a manifest file from. The manifest lists model weights
  *  under same-origin `/models/…`, which is correct for the web deploy (it self-serves
  *  them) but 404s in the desktop shell, whose build prunes `dist/models/` to stay
@@ -338,6 +358,7 @@ export async function downloadList(
   let loaded = 0;
   let done = 0;
   const failures: string[] = [];
+  let missing = 0;
   const report = () => onProgress?.({ loaded, total, done, count: files.length });
   report();
 
@@ -357,6 +378,7 @@ export async function downloadList(
       const ct = resp.headers.get('content-type') ?? '';
       if (!resp.ok || (ct.includes('text/html') && !file.url.endsWith('.html'))) {
         failures.push(file.url);
+        if (notOnServer(resp, file.url)) missing++;
         return;
       }
       // Buffer before publishing to Cache Storage so policy revocation aborts
@@ -368,6 +390,7 @@ export async function downloadList(
     } catch (err) {
       if (downloadSignal?.aborted) throw err;
       failures.push(file.url);
+      if ((err as { missing?: unknown })?.missing === true) missing++;
     }
   };
   const queue = [...files];
@@ -382,7 +405,7 @@ export async function downloadList(
   };
   await Promise.all(Array.from({ length: Math.min(DOWNLOAD_CONCURRENCY, files.length) }, worker));
   signal?.throwIfAborted();
-  if (failures.length) throw new Error(`offline download: ${failures.length} of ${files.length} files failed (first: ${failures[0]})`);
+  if (failures.length) throw new OfflineDownloadError(failures.length, files.length, missing, failures[0]!);
   return { bytes: total, files: files.length };
 }
 

@@ -1,4 +1,4 @@
 {
   "name": "Kontrast",
-  "description": "Prüfen Sie ein Text-Hintergrund-Paar oder jede Kombination in Ihrer Markenpalette gegen WCAG 2.1 und APCA, und sehen Sie, wie es für Menschen mit Farbsehschwäche wirkt."
+  "description": "Prüfen Sie ein Paar aus Text und Hintergrund oder alle Kombinationen der Designsystem-Palette nach WCAG 2.1 und APCA und sehen Sie, wie es für farbenblinde Betrachter wirkt."
 }

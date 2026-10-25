@@ -1,0 +1,101 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The Skills room (plan 323). The head, the row list, the badges and the hints are the
+   Usage room's own classes (start-usage.css); this sheet adds the selected row, the
+   reader and the coverage map. Cards differ by fill, never by a coloured edge. */
+@layer components {
+  [data-skills-readonly] { max-width: 1200px; margin-inline: auto; margin-top: 32px; }
+  .skills-room .usage-rules { margin-bottom: 28px; }
+
+  /* A row is one card; its title button covers the card, so the whole row is the
+     control while the accessible name stays the skill's label. */
+  .skills-row { position: relative; padding-block: 16px; align-items: center; transition: background-color var(--dur-1); }
+  .skills-row h3 { margin-bottom: 2px; }
+  .skills-row .usage-rule-icon { padding-top: 0; }
+  .skills-row p.usage-hint { margin: 0; }
+  .skills-row:hover { background: hsl(var(--muted) / .45); }
+  .skills-row[data-selected] { background: hsl(var(--muted) / .8); }
+  .skills-row:has(.skills-open:focus-visible) { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+  .skills-row .usage-rule-meta { position: relative; z-index: 1; pointer-events: none; }
+  .skills-open { all: unset; cursor: pointer; font: inherit; color: inherit; text-align: start; overflow-wrap: anywhere; }
+  .skills-open::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+  .skills-open:focus-visible { outline: none; }
+  .skills-row p.skills-row-desc { color: hsl(var(--muted-foreground)); font-size: var(--fs-lg); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden; margin: 0 0 2px; }
+  .usage-badge[data-status="approved"] { color: hsl(var(--foreground)); background: hsl(var(--muted)); border-color: transparent; }
+  .skills-lock { gap: 6px; }
+  .skills-lock svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+
+  /* The reader: a raised card with the text on the left and the coverage map beside it
+     on a wide screen, below it on a narrow one. */
+  .skills-reader { background: var(--ui-color-surface-raised); border-radius: var(--radius-lg); box-shadow: var(--ui-edge-faint), var(--ui-elevation-panel); padding: 24px; scroll-margin-top: var(--ds-sticky-top, 16px); min-width: 0; }
+  .skills-reader:empty { display: none; }
+  .skills-reader-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .skills-reader-title { min-width: 0; flex: 1 1 260px; }
+  .skills-reader-title h3 { margin: 0 0 6px; font-size: calc(var(--fs-xl) * 1.25); font-weight: 550; letter-spacing: -.015em; overflow-wrap: anywhere; }
+  .skills-reader-title .start-eyebrow { margin-bottom: 8px; }
+  .skills-reader-title .usage-hint { margin: 0; }
+  .skills-reader-desc { margin: 0 0 8px; max-width: 70ch; font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); line-height: 1.55; }
+  .skills-reader-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .skills-reader-actions .btn { display: inline-flex; align-items: center; gap: 6px; }
+  .skills-reader-note { max-width: 70ch; margin: 14px 0 0; }
+  .skills-reader [data-skills-status]:empty { min-height: 0; margin: 0; }
+  .skills-reader [data-skills-status]:not(:empty) { margin: 10px 0 0; }
+  .skills-reader-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; margin-top: 20px; }
+  @media (min-width: 1240px) { .skills-reader-grid { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); } }
+  .skills-refused { padding: 28px 0 8px; }
+  .skills-refused > svg { color: hsl(var(--destructive-text)); }
+
+  /* The skill text. Brand fonts throughout; code keeps the shell's mono token. */
+  .skills-md { min-width: 0; font-size: var(--fs-xl); line-height: 1.6; overflow-wrap: anywhere; }
+  .skills-md > :first-child { margin-top: 0; }
+  .skills-md h1, .skills-md h2, .skills-md h3, .skills-md h4 { line-height: 1.25; font-weight: 600; margin: 1.4em 0 .5em; letter-spacing: -.01em; }
+  .skills-md h1 { font-size: calc(var(--fs-xl) * 1.375); }
+  .skills-md h2 { font-size: calc(var(--fs-xl) * 1.125); }
+  .skills-md h3, .skills-md h4 { font-size: var(--fs-xl); }
+  .skills-md p, .skills-md ul, .skills-md ol, .skills-md blockquote, .skills-md table { margin: .6em 0; }
+  .skills-md ul, .skills-md ol { padding-inline-start: 1.4em; }
+  .skills-md li + li { margin-top: .25em; }
+  .skills-md a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .skills-md a:not([href]) { text-decoration: none; color: inherit; }
+  .skills-md code { font-family: var(--font-mono); font-size: .9em; background: hsl(var(--muted) / .7); border-radius: var(--radius-xs); padding: 0 .3em; }
+  .skills-md pre { background: hsl(var(--muted) / .6); border-radius: var(--radius-sm); padding: .75em 1em; overflow-x: auto; }
+  .skills-md pre code { background: none; padding: 0; }
+  .skills-md blockquote { margin-inline: 0; padding: .4em 1em; background: hsl(var(--muted) / .5); border-radius: var(--radius-sm); color: hsl(var(--foreground) / .9); }
+  .skills-md table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: var(--fs-lg); }
+  .skills-md th, .skills-md td { padding: .35em .7em; text-align: start; vertical-align: top; border-bottom: 1px solid hsl(var(--border)); }
+  .skills-md th { font-weight: 600; }
+  .skills-md hr { border: 0; height: 1px; background: hsl(var(--border)); margin: 1.5em 0; }
+  .skills-md img { max-width: 100%; height: auto; }
+
+  /* Coverage and owner notes. */
+  .skills-aside { min-width: 0; display: grid; gap: 24px; align-content: start; }
+  .skills-aside h4 { margin: 0 0 10px; font-size: var(--fs-xl); font-weight: 600; }
+  .skills-coverage { scroll-margin-top: var(--ds-sticky-top, 16px); background: hsl(var(--muted) / .45); border-radius: var(--radius-md); padding: 16px; min-width: 0; }
+  .skills-group { margin: 0; }
+  .skills-group + .skills-group { margin-top: 4px; }
+  .skills-group > summary, .skills-group--empty { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: auto; padding-block: 8px; font-size: var(--fs-lg); }
+  .skills-group > summary { color: hsl(var(--foreground)); }
+  .skills-group--empty { color: hsl(var(--muted-foreground)); }
+  .skills-count { font-variant-numeric: tabular-nums; min-width: 2ch; text-align: end; color: hsl(var(--muted-foreground)); }
+  .skills-group > ul { margin: 2px 0 10px; }
+  .skills-group li { margin-block: 10px; padding: 10px 12px; background: var(--ui-color-surface-raised); border-radius: var(--radius-sm); }
+  .skills-group li p { margin: 0; }
+  .skills-group li p + p { margin-top: 4px; }
+  .skills-cov-text { font-size: var(--fs-md); color: hsl(var(--foreground)); }
+  .skills-group li p.skills-swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 6px; }
+  .skills-swatches code { font-family: var(--font-mono); font-size: var(--fs-sm); margin-inline-end: 6px; }
+  .skills-swatch { display: inline-block; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); border-radius: var(--radius-xs); box-shadow: var(--ui-edge-default); }
+  .skills-note { margin: 12px 0 0; }
+  .skills-findings ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .skills-findings li { display: flex; gap: 8px; align-items: flex-start; font-size: var(--fs-md); line-height: 1.5; color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
+  .skills-findings li[data-severity="warning"] { color: hsl(var(--foreground)); }
+  .skills-finding-ic { flex: 0 0 auto; padding-top: 2px; color: hsl(var(--foreground)); }
+  .skills-finding-ic svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+
+  @media (max-width: 540px) {
+    .skills-reader { padding: 18px 16px; border-radius: var(--radius-md); }
+    .skills-reader-actions { width: 100%; }
+    .skills-reader-actions .btn { flex: 1 1 auto; justify-content: center; }
+    .skills-row .usage-rule-meta { pointer-events: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .skills-row { transition: none; } }
+}

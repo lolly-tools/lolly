@@ -37,8 +37,9 @@
  *            LOSSLESS: the PCM is fed at its own rate/channels, never resampled.
  *            libFLAC only accepts a fixed set of sample rates, so encodeFlac
  *            re-probes canEncodeAudio('flac') at the clip's real rate and fails with
- *            a message rather than mid-encode. No C2PA placer exists for FLAC (see
- *            engine/src/c2pa-containers.ts), so a FLAC export ships UNSIGNED.
+ *            a message rather than mid-encode. The credential rides in a FLAC
+ *            APPLICATION metadata block (engine/src/c2pa-containers.ts), which
+ *            Lolly's own verifier reads; c2patool has no FLAC reader.
  *
  * Every LOSSY path is a genuine re-encode of the samples given, so a lossy source
  * that is neither trimmed nor mixed must NOT be routed through one when the

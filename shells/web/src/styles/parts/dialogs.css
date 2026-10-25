@@ -514,6 +514,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 .unsaved-dialog-lead {
   display: flex;
   align-items: flex-start;
+  place-content:center;
   gap: var(--sp-6);
 }
 .unsaved-dialog-text {
@@ -521,6 +522,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   flex-direction: column;
   gap: var(--sp-3);
   min-width: 0;
+  place-self:center;
 }
 .unsaved-dialog-text h2 {
   font-size: var(--ui-type-lead);
@@ -534,8 +536,8 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
    stays hidden. */
 .unsaved-dialog-art {
   flex: none;
-  width: calc(52px * var(--a11y-fs));
-  height: calc(52px * var(--a11y-fs));
+  width: calc(96px * var(--a11y-fs));
+  height: calc(96px * var(--a11y-fs));
   color: color-mix(in oklab, var(--lolly-mark, var(--lolly-tone)) 40%, hsl(var(--muted-foreground)));
   --kg-ground: hsl(var(--card));
 }

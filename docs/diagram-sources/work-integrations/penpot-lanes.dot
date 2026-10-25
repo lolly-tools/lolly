@@ -1,0 +1,13 @@
+digraph penpot_lanes {
+  rankdir=TB
+  node [shape=box]
+  penpot [label="Penpot files\ntokens and boards"]
+  tokens [label="Token sets\nfederate on sync"]
+  boards [label="Boards\nfound by search"]
+  system [label="Design system\ninherits read-only"]
+  asset [label="Catalog asset\nimported copy"]
+  penpot -> tokens
+  penpot -> boards
+  tokens -> system
+  boards -> asset
+}

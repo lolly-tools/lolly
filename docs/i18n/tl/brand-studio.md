@@ -1,346 +1,363 @@
-# Ang Brand Studio
+# Design System Setup
 
-Ang **Brand Studio** sa `#/start` ang tanging lugar kung saan mo hinuhubog ang iyong brand - ang mga logo, kulay, type, ang natitira sa iyong tokens at ang mga file na iniingatan nito. I-set ito rito nang isang beses at susundin ito ng bawat tool, page at export *sa mismong pagkakabuo*, hindi sa pamamagitan ng review.
+Ang logo, mga kulay at typeface mo ay nabibilang sa iisang lugar, para gumuhit ang bawat tool, page at export gamit ang mga ito. Ang lugar na iyon ay ang **Design System Setup**, sa `#/start`, at sinasabi ng tagline nito kung para saan ito: *Make it yours*.
 
-Ang mga pagbabago ay nagpe-preview nang **live sa buong app** habang ginagawa mo ang mga ito, para makita mo ang isang kulay o font na lumalapat kahit saan bago mo ito i-commit. Nasa on-device ang lahat: ang iyong mga brand file at tokens ay hindi kailanman umaalis sa iyong makina (ang pagpili ng Google Font ay kumukuha ng iisang family na iyon mula sa Google, isang beses, matapos ang consent dialog), at ang brand ay naglalakbay sa isang solong [brand pack](#move-a-brand-between-devices) file.
+Magsimula sa anumang meron ka. Mag-drop ng logo at babasahin ng Lolly ang mga kulay nito. Pumili ng typeface, o i-drop ang font file na nilisensyahan ng kumpanya mo. Ipinapakita sa buong app ang bawat pagbabago agad. Nananatili sa device na ito ang logo, mga font at token mo. Ang pagpili ng Google Font ang nag-iisang hakbang na umaabot sa labas: nagtatanong muna ang Lolly, saka kinukuha ang family nang minsan.
 
-> **Ito ang editor. Ang dashboard ay ang salamin.** Ang **Design system** tab sa Dashboard (`#/d`) ay *ipinapakita* ang iyong brand read-only; *ini-edit* mo ito rito sa `#/start`. Kung gusto mong baguhin ang isang kulay sa ibang pagkakataon, bumalik sa Brand Studio.
+Kapag maayos na ang itsura, pangalanan ang design system at pindutin ang **Export**. Makakakuha ka ng isang `.lolly` file na itatago, bubuksan sa ibang device o ibibigay sa kasamahan. Ipinapakita ng [Settings](/info/dashboard.html#design-system) ang aktibong system na read-only, at ang cover nito ay nagli-link pabalik dito para sa pag-edit.
+
+## Gawing iyo sa limang minuto
+
+::: timeline
+- <!--i:upload--> **I-drop ang logo mo** sa drop zone sa **Logos**. Binabasa ng Lolly ang hugis at mga kulay nito.
+- <!--i:palette--> **Gamitin ang mga kulay na ito.** Ang pangunahing kulay ng logo ay nagiging primary mo, at ang madilim na neutral mula sa logo ay nagiging text colour mo.
+- <!--i:font--> **Pumili ng face** sa **Type**: Google Font, o font file na pag-aari mo.
+- <!--i:pentool--> **Pangalanan ang system.** Ang una mong edit ay gumagawa ng sarili mong design system, at nagtatanong ang Lolly nang minsan para sa pangalan nito.
+- <!--i:download--> Isinusulat ng **Export** ang buong system bilang isang `LollyBrand-….lolly` file.
+:::
+
+Ipinapakita ng header kung aling design system ang **Editing** mo, at ang pangalan nito ay field na puwede mong baguhin anumang oras. Kapag tinanong ng una mong edit ang **What is this design system called?**, napupunan ang mga salita mula sa logo mo kung binabaybay ito ng logo. Iniingatan ng **Save name** ang pangalan; pinananatili ng **Not now** ang placeholder hanggang mag-type ka ng isa sa header. Nilalagyan ng pangalan ang system sa Settings at kapag lumilipat ka, at ito ang nagiging pangalan ng file na isinusulat ng **Export**.
 
 ## Ang mga silid
 
-Ang studio ay isang set ng **mga silid** na nakalista sa isang rail sa gilid - hindi mga hakbang. Walang binibilang, walang naka-gate sa iba, at ang pagpasok sa alinman sa mga ito ay lehitimo:
+Ang studio ay hanay ng mga room sa rail sa gilid, nang walang takdang pagkakasunod-sunod: walang binibilang at walang naghihintay sa anupaman. Sa phone, nagiging strip ng mga chip sa ilalim ng header ang rail.
 
-- **Overview** - ang hub. Ano ang mayroon ngayon, sa isang sulyap, may pinto papunta sa bawat silid.
-- **Colours** - magdagdag ng mga kulay nang isa-isa, mag-assign ng roles o gumawa ng buong palette mula sa isa.
-- **Type** - ang apat na face na binabasa ng app, ng iyong mga tools at ng bawat export.
-- **Logos** - ang iyong mga marka, sa bawat orientation at treatment.
-- **Tokens** - corner radius, spacing, shadows at ang natitira sa system.
-- **Files** - ang mga image, audio at motion file na iniingatan ng iyong brand.
+![Ang room rail ng studio: Overview, Colours, Type, Logos, Tokens, Files at Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
-Sa telepono, ang parehong listahan ay nagiging horizontal chip strip na naka-pin sa ilalim ng header. Ang paglipat ng silid ay hindi kailanman nagre-reload ng anuman - pinananatili ng editor na naka-mount ang lahat ng panels nito at simpleng ipinapakita ang hiniling mo.
+| Room | Ano ang ginagawa mo roon | Link key |
+|---|---|---|
+| **Overview** | Tingnan kung ano ang hawak ng system, na may pinto papunta sa bawat room | `overview` |
+| **Colours** | Magdagdag ng mga kulay, bigyan sila ng role, gumawa ng shade at palette | `color` |
+| **Type** | Piliin ang apat na face na binabasa ng app, mga tool at bawat export | `type` |
+| **Logos** | Ilagay ang mga marka mo sa bawat orientation at treatment | `logos` |
+| **Tokens** | Mga sulok, spacing, anino at bawat ibang pinangalanang value | `tokens` |
+| **Files** | Ang mga larawan, audio at motion file na iniingatan ng brand mo | `catalogue` |
+| **Usage & rules** | Ang mga rule na inilalapat ng brand mo, sinusuri sa totoong halimbawa | `usage` |
 
-**I-deep-link ang isang silid** gamit ang `#/start?area=<key>`. Ang mga key ay `overview`, `color` *(pansinin ang US spelling sa URL)*, `type`, `logos`, `tokens`, `catalogue` (ang Files room - ang panel key ay isang permanenteng kontrata, kaya ipinapanatili ng URL ang lumang pangalan) at `versions`. Ang `?tab=` ay ang matagal nang alias para sa parehong bagay at gumagana pa rin, kaya patuloy na gumagana ang mga lumang link at bookmark; anumang hindi nakikilala ay nagbubukas sa Overview sa halip na mag-dead-end.
+Mag-link sa room gamit ang `#/start?area=<key>`. Pinapanatili ng Files room ang key na `catalogue`, dahil permanenteng kontrata ang room key, at gumagana pa rin ang `?tab=` bilang mas lumang alias. Ang hindi kilalang key ay nagbubukas ng Overview.
 
-Naka-pin sa **ilalim ng rail** ang mga aksyon na kabilang sa buong design system sa halip na sa isang silid lang:
-
-- **Add from…** - ang source picker, para sa pagpasok ng brand mula sa isang file, PDF, larawan, font o website. Tingnan ang [Bring a brand in](#bring-a-brand-in) sa ibaba.
-- **Tray** - ang mga kandidato na nadiskubre ng isang scan pero hindi pa naikokomit. Nananatili itong nakatago hangga't walang aktwal na napanatili ang isang scan, at may bilang ito kapag mayroon; walang binabago sa iyong brand hangga't hindi mo pinindot ang Add sa row na iyon.
-- **Export** - isinusulat ang buong design system bilang isang `LollyBrand-….lolly`.
-- **Tokens (.json)** - ang plain design-tokens document nang mag-isa, para sa isang repo, build step o ibang tokens tool.
-- **Restore brand settings** - bumalik sa isang checkpoint na na-save bago ang isang import o pagpapalit ng mga brand setting.
-- **Versions** - i-publish, i-activate at i-restore ang mga pinangalanang kopya ng design system. Nakatago hangga't walang sarili mong ma-publish (o hangga't hiniling ito ng `?area=versions` link sa pangalan).
-
-![Ang studio room rail - Overview, Colours, Type, Logos, Tokens at Files](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+Ang **paanan ng rail** ay may hawak ng mga aksyon para sa buong system sa halip na isang room. Ang **Add from…** ay nagdadala ng brand ([Magdala ng brand](#bring-a-brand-in)), at ang **Tray** ay may hawak ng nakita ng scan na hindi mo pa naidaragdag. Ang **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** at **Restore brand settings** ay nag-iingat at naglilipat ng system ([Itago at ilipat ang design system mo](#keep-and-move-your-design-system)). Bawat isa ay lumilitaw kapag may magagawa na ito.
 
 ## Overview
 
-Ang Overview ang unang silid, at may dalawang mukha ito.
+Kapag wala pang napili, nag-aalok ang Overview ng apat na paraan para magsimula. Binubuksan ng **Start from a reference** ang source picker para sa logo, screenshot, web page o design file, at ang **Pick a colour**, **Choose a face** at **Add a logo** ay direktang nagbubukas ng mga kontrol na iyon. Ang pagbubukas ng isa ay walang isinusulat, at nandoon na simula pa lang ang **Explore the tools**.
 
-Kapag **wala pang napipili**, sinasabi nitong **Make it yours**. Binubuksan ng **Start from a reference** ang source picker para sa isang logo, screenshot, web page o design file. Dumeretso namang nagbubukas ng sarili nilang existing na kontrol ang **Pick a colour**, **Choose a face** at **Add a logo**. Nagsisimula ang bawat ruta sa isang desisyon; walang isinusulat ang pagbukas ng isa. Available agad ang **Explore the tools**.
+Kapag may sarili nang anumang bagay, ipinapakita ng Overview ang meron ka, na nangunguna ang sarili mong mga bilang. Ang Colours ay nagbibigay ng bilang ng mga kulay, na may mahinang `· N starter` kung saan ipinapakita ang mga minanang kulay; inilalagay ng strip nito ang mga kulay mo muna, saka hairline, saka ang kupas na starter. Binabasa ang Type ayon sa role (*Inter for headings*, na may *Starter for the rest* sa linya sa ibaba). Sinasabi ng Logos kung ilang slot ang puno (o **Not set**), ipinapakita ng Tokens ang corner radius at sinasabi ng Files na **Nothing yet** habang walang laman ang library. Bawat block ay nagbubukas ng room nito.
 
-Sa sandaling may sarili ka nang taglay, ipinapakita ng parehong silid **ang mayroon ka**, na ang mga bilang na ginawa mo ang nangunguna. Binabasa ng Colours ang bilang ng mga kulay na taglay ng design system, at nagdaragdag ng maputlang `· N starter` lang kung may mga inherited na kulay na ipinapakita; ang strip sa tabi nito ay inilalagay muna ang mga kulay na pinili mo, tapos isang hairline, tapos ang mga faded na starter. Binabasa ng Type ayon sa role (*Inter para sa headings*, may *Starter para sa iba pa · SUSE, SUSE Mono* sa ilalim nito). Binabasa ng Logos kung ilang slot ang napunuan, o **Not set**. Dala ng Tokens ang corner radius, naka-tag na *starter* hanggang ilipat mo ito. Sinasabi ng Files na **Nothing yet** habang walang laman ang library. Bawat block ay isang pinto papunta sa silid nito. May mga bilang dito, hindi kailanman progress bar at hindi kailanman finish card - walang inuutang sa studio na ito.
+### Starter at sa iyo
+
+Ang **Starter** ay ang salita para sa anumang kasama ng app sa halip na pinili. Ang bagong install ay walang kulay, isa lang neutral na ramp mula ink hanggang paper, para makapag-render ang mga surface, text at hairline bago magpasya ang sinuman. Ang parehong salita ay nagmamarka ng minanang materyal sa bawat room.
+
+::: cols
+## Starter
+
+- Kasama ng app: ang ink-to-paper na neutral, ang starter na face, ang default na corner radius.
+- Mahina, may **Starter** tag at walang tint.
+- Hindi binibilang bilang mga kulay mo. Nasa **Tokens** ang mga neutral bilang **Neutrals · starter · 9**, at ipinapakita ng **Open** ang mga ito sa Colours bilang isang nakatiklop na grupo (`#/start?area=color&group=neutral`).
+- Ang role na nakatayo sa starter na kulay ay nagsasabing *"Starter Paper stands in"*, na may **Choose…** sa picker nito.
+
+## Sa iyo
+
+- Pinili o ini-install mo.
+- Buong lakas, at may tint na card kung saan ka nag-install ng face.
+- Binibilang sa Overview at sa Tokens.
+- Ang role na sumusunod sa iba ay nagsasabing **↳ follows Primary** sa halip na ulitin ang pangalan ng primary.
+:::
+
+Hindi kailanman iginuguhit ang minanang materyal na may dashed na border, dahil dito ang dashed na border ay nangangahulugang drop target.
 
 ## Logos
 
-Magsimula sa pagbuhos ng iyong folder ng mga marka sa drop zone sa itaas: kinukuha ng **"Drop marks here, or choose several at once"** kasing dami ng files na mayroon ka sa isang pagpasok. Bawat file ay binabasa para sa hugis at tinta nito, tapos pinipila sa ilalim ng **Waiting for a slot** bilang isang chip na nagsasabi ng iniisip nito - *"Looks like the Horizontal primary"*, kasama ang sinukat nito, at isang **Place** button (**Replace**, kung punô na ang slot na iyon). Kapag hindi sigurado, sinasabi ito ng chip nang tuwiran at inaalok ang **Change slot** sa halip, na naglilista ng lahat ng walo. Walang inilalagay hangga't wala kang pinindot.
+Ibuhos ang folder ng mga marka mo sa drop zone sa itaas: ang **"Drop marks here, or choose several at once"** ay tumatanggap ng kasing-dami ng file na meron ka. Binabasa ang bawat file para sa hugis at ink nito, saka naghihintay sa ilalim ng **Waiting for a slot** bilang chip na nagsasabi kung ano ang itsura nito, tulad ng *"Looks like the Horizontal primary"*, kasama ang sukat na ginamit at **Place** button (**Replace** kung puno ang slot). Kung hindi sigurado, sinasabi ito ng chip at nag-aalok ng **Change slot**, na naglilista ng lahat ng walo. Walang inilalagay hangga't wala kang pinipindot.
 
-Dalawang bagay ang nangyayari sa paligid ng pilang iyon. Ang isang marka na may sobrang walang laman na margin ay binibigyan muna ng **trim offer** - sagutin ito o pindutin ang Escape at ang orihinal na file ang ipapasok nang hindi ginalaw. At kapag maaaring pagkalooban ng isang marka ang isang walang laman na kapatid nitong slot, inaalok ng silid ang derived na **mono** o **reverse** na bersyon bilang sarili nitong chip, minarkahang *Generated*, na nawawala ulit kapag napunan mo ang slot na iyon sa ibang paraan.
+Ang markang may sobrang walang laman na margin ay unang nakakakuha ng trim offer; sagutin ito o pindutin ang Escape at papasok ang orihinal nang hindi ginagalaw. Kung saan puwedeng punan ng marka ang walang lamang katabing slot, nag-aalok ang room ng derived na **mono** o **reverse** na bersyon bilang chip na may markang *Generated*.
 
-Sa ilalim niyan ay nakaupo ang grid kung saan napupunta ang bawat marka - **orientation × treatment** slots:
+Ang bawat marka ay napupunta sa grid ng walong opsyonal na slot, isa bawat **orientation** at **treatment**:
 
-- **Orientations:** Horizontal (wordmark + symbol sa isang hanay) at Vertical (nakatambak, para sa parisukat at matataas na espasyo).
-- **Treatments:** Primary, Primary reverse (para sa madidilim na background), Mono (isang kulay) at Mono reverse.
+- **Mga orientation:** Horizontal (wordmark at simbolo sa isang hanay) at Vertical (nakapatong, para sa parisukat at matataas na espasyo).
+- **Mga treatment:** Primary, Primary reverse (para sa madilim na background), Mono (isang kulay) at Mono reverse.
 
-Iyon ay walong opsyonal na slots. I-click ang isang slot para magdagdag ng PNG, SVG, JPEG o WebP; i-click ang punông slot para palitan ito. Bawat slot ay opsyonal at lahat ay nananatili sa device na ito.
+Ang grupong wala pang marka ay tumitiklop sa isang linya; buksan ito para makita ang mga slot nito. Mag-click ng slot para magdagdag ng PNG, SVG, JPEG o WebP, o mag-click ng punong slot para palitan ang marka. Nananatili sa device na ito ang lahat.
 
-![Ang logo matrix - bawat orientation nasa itaas, bawat treatment bilang sariling dashed slot, lahat ay opsyonal](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Ang mga logo slot na nakabukas ang Horizontal at Vertical: ang bawat treatment ay sariling slot, at opsyonal ang bawat slot](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
-- **Custom marks** - magdagdag ng mga marka na pinangalanan ng iyong brand sa sarili nitong paraan (isang icon, crest, favicon) sa ilalim ng **Custom marks**; pangalanan ito at pumili ng file.
-- **More identities** - maaaring magkaroon ang sub-brand, produkto o event ng sarili nitong kumpletong set ng logos. Gamitin ang **+ Add another logo** at pangalanan ito; ang pangunahin mong set ay simpleng "Your logo".
-- **Mag-upload ng SVG at babasahin ni Lolly ang mga kulay nito.** Sa bagong install, tahimik nitong itinatakda ang iyong primary colour mula sa logo at sinasabi ito. Sa isang umiiral nang brand, inaalok nito ang kulay bilang suhestyon sa halip - *"Found in the logo: #…"* na may **Use as primary** button sa tabi nito - doon sa Colours room, kung saan mo ito puwedeng tanggapin o alisin.
+- **Mga custom na marka** ay mga markang tinatawag ng brand mo sa sarili nitong pangalan, tulad ng icon, crest o favicon.
+- **Mas maraming identity.** Ang sub-brand, produkto o event ay puwedeng magkaroon ng sarili nitong buong set: **+ Add another logo** at pangalanan ang set. Ang pangunahing set mo ay "Your logo". Ipinapakita ng [Brand architectures](/info/brand-architectures.html) kung kailan tamang block ang logo identity.
+- **Binabasa ng Lolly ang mga kulay ng logo.** Ang card sa ilalim ng drop zone, at muli sa itaas ng Colours, ay naglilista ng mga kulay ng logo at nagtatanong ng **Which is the main colour?**, na napili na ang pinakamalakas na kulay (hindi kailanman ang puting pinag-export nito). Idinaragdag ng **Use these colours** ang mga ito sa palette mo, ginagawang primary ang pangunahing kulay at, kapag may madilim na neutral ang logo na mababasa sa paper, ginagawa itong text colour. Iniiwan ng **Not now** ang mga ito sa Tray. Sa bagong install, agad na inilalapat ang pinakamalamang na sagot, at nag-aalok ang card ng **Undo** o ibang pangunahing kulay. Ang SVG ay nagbibigay ng eksaktong kulay; ang PNG, JPEG o WebP ay nagbibigay ng mga kulay na sumasakop sa totoong bahagi ng marka.
 
 ## Colours
 
-Lumalaki ang silid kasabay ng design system. Walang nasa page na hindi mo pa kailangan, kaya ang unang pagbisita ay isang desisyon lang, at dumarating ang iba pa habang lumalaki ang palette.
+Lumalaki ang room kasabay ng design system: ang unang pagbisita ay isang desisyon, at ang iba ay dumarating kasabay ng palette.
 
 ### Ang unang kulay
 
-Ang isang design system na wala pang sariling kulay ay nagbubukas sa isang naka-center na column: **Start with one colour**, isang malaking live na chip, isang field, at isang tahimik na linya na nagsasabing dumarating ang roles, shades at print settings habang lumalaki ang system.
+Ang system na walang sariling kulay ay bumubukas sa isang malaking chip at isang field, na may linyang nagsasabing dumarating ang mga role, shade at print setting habang lumalaki ang system.
 
-- **Ang chip ang picker.** Pindutin ito at bubukas sa chip ang sariling OKLCH card ng studio, na naka-seed sa anumang hawak ng field: isang pangalan, ang wheel, ang apat na dial, alpha at **Stored as**, may **Cancel** at **Add colour** sa ilalim. Ang pag-drag ng isang dial ay pinipinta ang chip at isinusulat ulit ang field habang ginagawa mo ito, at walang naaabot sa design system hangga't hindi mo pinindot ang **Add colour**.
-- **Tinatanggap ng field ang anumang notation** - `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` o isang plain na pangalan ng kulay - at ang isang buong *listahan* ng mga kulay ay nagiging isang hanay ng chips na idinaragdag mo nang isa-isa.
-- **May dalawa pang pinto sa tabi nito.** Kinukuha ng eyedropper (sa browser na may nito) ang isang kulay mula sa screen, at binabasa ng **From an image** ang isang screenshot o litrato sa device na ito at inaalok ang mga kulay na nahanap nito.
-- **Hindi kailanman naka-disable ang Add.** Kapag walang mababasa sa field, binubuksan nito ang picker, na siyang karaniwang ibig sabihin ng isang walang-laman na pindot; ang text na hindi nito ma-parse ay nakakakuha ng linya sa ilalim ng field na nagsasabi nito, sa halip na isang patay na button.
+- **Ang chip ang picker.** Pindutin ang **Pick a colour** at bubukas ang OKLCH card ng studio, na may seed na anumang laman ng field: pangalan, ang wheel, ang apat na dial, alpha at **Stored as**, na may **Cancel** at **Add colour** sa paanan. Walang umaabot sa system hanggang pindutin mo ang **Add colour**.
+- **Tumatanggap ang field ng anumang notation**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` o pangalan ng kulay. Mag-paste ng listahan at nagiging hanay ng mga chip na idadagdag nang isa-isa o gamit ang **Add all**.
+- **Dalawa pang paraan papasok.** Ginagamit ng **Pick a colour from the screen** ang eyedropper kung meron ang browser, at binabasa ng **Take colours from an image** ang screenshot o litrato sa device na ito.
+- **Hindi kailanman disabled ang Add.** Kapag walang laman ang field, binubuksan nito ang picker; ang text na hindi nito mabasa ay nakakakuha ng linya sa ilalim ng field na nagsasabi nito.
 
-Ang unang kulay ay nagiging **primary**, at sinasabi ito ng chip na sumasagot sa pagdagdag - *"Primary is now Vivid Violet"* - may **Fine-tune** sa tabi nito.
+Ang unang kulay mo ay nagiging **primary**, at kinukumpirma ito ng chip, tulad ng *"Primary is now Vivid Violet"*, na may **Fine-tune** para i-adjust ang kulay.
 
-![Ang Colours room na wala pang napipili - isang malaking live na chip, isang field at isang linya tungkol sa darating sa hinaharap](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
-
-### Starter
-
-Ang **Starter** ang salita para sa anumang dumating kasama ng app sa halip na pinili. Ang isang bagong install ay walang dalang kulay: ang mayroon ito ay isang neutral na ramp, ink-through-paper, kaya nagre-render na ang mga surface, text at hairline bago pa may nagdedesisyon ng kahit ano. Ang mga neutral na iyon ay scaffolding, kaya hindi sila binibilang bilang kulay at hindi sila iginuguhit sa palette pane. Naninirahan sila sa [Tokens](#tokens) room bilang **Neutrals · starter · 9**, may **Open** na nagpapakita sa kanila sa Colours pane bilang isang nakatiklop, naka-tag na grupo (`#/start?area=color&group=neutral`).
-
-Dinadala ang parehong salita sa bawat silid: ang isang role na nakatayo sa isang starter na kulay ay nagbabasa ng *"Starter Paper stands in"* at inaalok ng picker nito ang **Choose…**; ang isang starter na face ay may suot na **Starter** tag at walang tint; ang isang starter na corner radius ay naka-tag sa Overview. Hindi kailanman iginuguhit ang inherited na materyal na may dashed border, dahil ang dashed border dito ay nangangahulugang isang drop target.
 
 ### Habang lumalaki ang palette
 
-Nananatili ang mga kulay mo sa tabi ng isang **In context** na preview sa malawak na screen at nagtatambak sa itaas nito sa mas maliliit na screen. Kayang ipakita ng preview ang isang poster, chart o interface card gamit ang palette mo. Nananatili ang mga starter na kulay sa sarili nilang nakatiklop na grupo, hiwalay sa mga kulay na idinagdag mo.
+Ang mga kulay mo ay nasa tabi ng **In context** preview sa malapad na screen, at sa ibabaw nito sa mas maliit. Ipinapakita ng preview ang poster, chart o interface card sa palette mo. Ang mga starter na kulay ay nananatili sa sarili nilang nakatiklop na grupo.
 
-Magdagdag ng mga indibidwal na kulay o isang set ng shades, italaga ang roles ng mga ito, at buksan ang mga advanced na seksyon kapag kailangan mo. Nananatiling kasama ng palette ang colour chart, gradients at ang mga download control.
+![Ang Colours room sa Lolly Demo: ang palette sa mga nakatiklop na grupo, bawat kulay na may pangalan at hex nito, at ang download pill sa paanan](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Ang Colours room pagkatapos magdagdag ng isang kulay, kasama ang palette nito at isang live na composition preview](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
-### Roles - ang binabasa ng mga tool
+### Mga role: ang binabasa ng mga tool
 
-Ang **Roles** ang layer sa ibabaw ng mga swatch - kung aling kulay ang gagampan sa bawat bahagi sa bawat tool at export. Opsyonal ang roles (isang design system na may tatlong maluwag na kulay at walang roles ay isa ring mahusay), maaaring kumuha ng role ang anumang swatch at sinusukat ang contrast readout laban sa surface, unang-una ang APCA.
+Sinasabi ng mga **Role** kung aling kulay ang gumaganap ng bawat bahagi sa bawat tool at export. Opsyonal ang mga ito (ang tatlong maluwag na kulay na walang role ay ganap na mahusay na system), puwedeng kumuha ng isa ang anumang kulay at ang contrast readout ay sinusukat laban sa surface, APCA muna. Ang bawat role row ay nagpapakita ng sariling kulay nang buong lakas, starter na kulay na pumapalit, o **↳ follows Primary**.
 
-Nagbabasa ang isang row sa isa sa tatlong register, kaya hindi kailanman inaangkin ng strip ang isang desisyong walang gumawa:
+Kapag may mga shade na ang palette, ipinapakita ng strip ang lahat ng pitong role na mababasa ng tool: Primary, Secondary, Surface, Text, Muted, Edge at On primary. Ang On primary ay hinango mula sa primary, nagsasabing **Derived** at walang picker.
 
-- isang sariling kulay na naglilingkod sa role, sa buong lakas;
-- **Starter *Paper* stands in** - muted, may **Choose…** sa picker nito;
-- **↳ follows Primary** - nare-resolve ang role sa pamamagitan ng primary sa halip na sa sarili nitong kulay.
+Ang sariling accent ng app ay sumusunod sa design system bilang default. Iyon ang setting na **Interface follows the design system** sa **Settings → Appearance**; ang pag-off ng setting ay iniiwang neutral ang chrome ng app, habang ang mga tool, canvas at export ay sumusunod sa design system sa alinmang paraan.
 
-Kapag may shades na ang palette, lumalaki ang strip sa lahat ng pitong slot na kayang basahin ng isang tool: Primary, Secondary, Surface, Text, Muted, Edge at On primary. Ang On primary ay hinango mula sa primary, nagbabasa bilang **Derived** at walang dalang picker.
+**Mga colourway.** Ang design system ay puwedeng may ilang lead colour, bawat isa ay pinipili bawat piraso. Iniingatan ng Lolly ang bawat colourway, pero hindi pa kayang gawin ng room na ito ang isa: ang colourway ay isinusulat sa token file. Sa system na may mga colourway, kailangan ng bawat colourway ang sarili nitong primary at secondary, at sarili nitong surface kapag tinatint ng mga colourway ang background, kaya nananatiling nakatakda ang mga role na iyon sa swatch editor. Ipinapakita ng [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) ang mga colourway sa totoong gawa, at nasa [Magdagdag ng mga colourway sa design system](/info/colourways.html#add-colourways-to-a-design-system) ang format.
 
-**Ang sariling accent ng app ay isang preference, hindi isang token.** Bilang default, sinusunod ng interface ang design system at kinukuha ng chrome accent ang primary colour. Isa itong Appearance setting sa [profile mo](/info/profile.html) - **Interface follows the design system** - at kapag naka-off ito, nananatiling neutral ang chrome. Hindi naaapektuhan ang mga tool, canvas at export sa magkabilang paraan, at sinusunod ng mga font at ng corner radius ang design system kahit naka-on man o naka-off ang setting.
+### Humanap ng mas maraming kulay
 
-### Ang mga expert wing
+Tatlong tool ang nagtatayo sa primary mo. Ang una at ikalawa ay nagmumungkahi lang, at ang pangatlo ay pinapalitan ang palette pagkatapos mong i-review ang pagbabago.
 
-Apat na nakatiklop na seksyon ang nasa ilalim ng composition preview at ng colour roles. Buksan ang gusto mo; bawat isa ay deep-linkable bilang `#/start?area=color&focus=<wing>`, na binubuksan ito anuman ang ipinapakita ng silid sa ibang paraan:
+::: cols
+## Explore shades & harmonies
 
-- **Explore shades & harmonies** (`focus=generate`) - isang kulay tungo sa buong set ng shades. Inilalarawan sa ibaba.
-- **Shade curves** (`focus=curves`) - hubugin muli ang isang ramp point by point. Ang Lightness, chroma at hue ay bawat isa may sariling curve, pinapalitan gamit ang L / C / H, at nagre-rebake nang live ang mga shades sa ibaba habang hinihila mo.
-- **Contrast** (`focus=contrast`) - ang **Contrast-lock** ay nagre-retone ng ramp para maabot ang mga APCA target laban sa background na iyong pinili, bawat hakbang ay pinananatili ang sariling hue at chroma; ibinabaling ng **Rotate hue** ang buong ramp nang buo sa paligid ng gulong, pinananatili ng bawat shade ang sariling lightness at chroma.
-- **Print** (`focus=print`) - kung ano ang magiging primary sa press: ang awtomatikong screen value nito, o isang naka-pin na CMYK build o isang pinangalanang spot ink sa halip.
+Pumili ng **Starting colour**, **Scheme** (Mono, Complement, Analogous o Triad) at kung ilang **Shades** (3 hanggang 20, default 5). Ang **Fine-tune** ay nagtatakda ng UI intensity, contrast at text on brand. Mag-click ng shade para idagdag, o **Add 5 shades** para sa isang grupo. Nananatili ang mga kulay at role mo.
 
-### Isang kulay, buong palette
+## Find matching colours
 
-Sa loob ng **Explore shades & harmonies**, pumili ng **Starting colour**. Nagmumungkahi si Lolly ng magkatugmang shades gamit ang parehong perceptual colour maths (OKLCH) na ginagamit ng engine sa ibang dako. I-tune ang mga suhestyon:
+Pumili ng **Harmony**: Complementary, Adjacent, Triad, Tetrad o Analogous (na may **Accents** mula 2 hanggang 5 at **Angle** mula 10° hanggang 45°). Bawat kandidato ay may nabuong pangalan at **+ Add**, isang pindot bawat kulay.
 
-- **Scheme** - Mono, Complement, Analogous o Triad - nagtatakda kung paano nauugnay ang secondary colour sa iyong primary.
-- **Shades** - isang slider mula 3 hanggang 20 (default 5) ang kumokontrol kung ilang hakbang ang gagawin ng bawat ramp.
-- **Fine-tune** (nakatiklop) - **UI intensity** (Muted / Deep), **Contrast** (Comfort / High) at **Text on brand** (Auto / Light / Dark).
+## Rebuild the whole palette
 
-Ang pagbabago ng starting colour at ng mga control ay nagbabago lang ng mga suhestyon. I-click ang isang shade para idagdag ang kulay na iyon, o ang **Add 5 shades** para magdagdag ng isang grupo (sinusunod ng bilang ang Shades setting mo). Nananatili sa lugar ang mga umiiral na kulay at role. Inaalis ng Undo ang pagdagdag.
+Pinapalitan ang palette mula sa isang panimulang kulay, pagkatapos ng review kung ano ang magbabago at ano ang mananatili. May checkpoint na kinukuha muna, at iniaalok ang **Undo** pagkatapos.
+:::
 
-Ipinapakita ng mga row na **Primary**, **Neutral** at **Secondary** ang mga iminumungkahing shades. Buksan ang **Theme preview** para siyasatin ang mga halimbawang light at dark at ang mga contrast reading ng mga ito. Pumili ng hakbang sa Neutral o Secondary doon para ayusin ang mga iminumungkahing theme anchor. Ang muling pagbuo ng buong palette ay nananatiling hiwalay, sinuring aksyon sa ibaba.
+Ang tatlo ay gumagamit ng parehong perceptual colour maths (OKLCH) tulad ng engine. Sa **Explore shades & harmonies**, ipinapakita ng mga row na **Primary**, **Neutral** at **Secondary** ang mga iminumungkahing shade, at ipinapakita ng **Theme preview** ang mga halimbawang light at dark kasama ang mga contrast reading nito.
 
 ![Tatlong iminumungkahing grupo ng shades, may mga indibidwal na add control at hiwalay na Theme preview](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1400&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-preview&format=svg&walker=1&dark=1&filename=bs-colour-ramps)
-
-### Buuin ang palette (harmony generator)
-
-Sa **Find matching colours**, nagmumungkahi ang harmony generator ng magkatugmang accent colours mula sa primary. Pumili ng **Harmony** - **Complementary**, **Adjacent**, **Triad**, **Tetrad** o **Analogous** (na may sariling **Accents** count, 2 hanggang 5, at isang hue **Angle** mula 10° hanggang 45°) - at bawat candidate ay may kasamang auto-generated na human-readable na pangalan at isang **+ Add** button. Kapag idinagdag ang isa, agad itong napupunta sa palette, isang pindot para sa isang token. Ipinapakita ng **In context** ang mga kulay mong idinagdag sa mga sample na composition.
 
 ![Mga nabuong accent, bawat isa may swatch, auto-generated na pangalan, hex nito at isang Add button](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### Pagkumpirma ng isang nabuong palette
 
-Ang pagdagdag ng isang iminumungkahing kulay o grupo ng shades ay pinananatili ang natitirang bahagi ng palette mo. Para sa kumpletong kapalit, buksan ang **Rebuild the whole palette…** at pindutin ang **Preview full rebuild**. Ipinapaliwanag ng review kung ano ang mga pagbabago: ilang roles ang mananatili gaya ng itinalaga mo, ilang kulay na idinagdag mo mismo ang mapapanatili, ilang shade curve ang muling ia-anchor, ilang print lock ang muling ipipin, ilang nakatagong shade ang mananatiling nakatago, ilang gradient stop ang mananatili sa kulay nila.
+Buksan ang **Rebuild the whole palette…** at pindutin ang **Preview full rebuild**. Binibilang ng review kung ilang role ang nananatili ayon sa itinalaga mo, ilan sa sarili mong kulay ang iniingatan at ilang shade curve, print lock, nakatagong shade at gradient stop ang re-anchored o iniingatan. Kinukumpirma ng **Apply rebuilt palette**; walang binabago ang **Cancel**. Pagkatapos, nag-aalok ang card ng **Undo** na may focus dito, at ibinabalik ng checkpoint na kinuha bago ang pagpapalit ang buong system.
 
-Ang **Apply rebuilt palette** sa card na iyon ang kumukumpirma nito; ang **Cancel** ay lalayo at walang binabago. Kapag naisagawa na ito, inaalok ng card ang **Undo** na naka-focus na - at may checkpoint ng buong design system na kinukuha *bago* ang swap, kaya ang "ibalik gaya ng dati" ay isang restore lamang, hindi isang nasayang na hapon.
+Ang system na may mga colourway ay nag-iingat ng bawat colourway sa rebuild. Sinusunod ng canonical na colourway ang bagong panimulang kulay, at ang bawat ibang colourway ay nag-iingat ng sarili nitong mga kulay, pangalan, pagkakasunod-sunod at mga setting. Inililista ng review kung alin ang sumusunod at alin ang nag-iingat ng mga kulay nila. Hindi nire-rebuild ng Lolly ang system na nag-e-encode ng mga colourway nito sa paraang hindi nito ma-edit; sinasabi ng card kung bakit, at walang nagbabago.
 
-### Ang palette, ang chart at bawat swatch
+### Ang mga expert na seksyon
 
-Nakalista ng palette ang mga kulay ng design system sa mga nakatiklop na grupo, bawat isa may sariling **+ Add** control. Gumawa at magpalit ng pangalan ng mga grupo para ayusin ang gawa mo. Hindi kailanman gumagawa ng ikalawang tile ang isang role: isang token ay isang tile, at ang isang tile na tinuturo ng isang role ay may suot na maliit na corner mark sa halip (**P**, **S**, **Su**, **T**). Sa ilalim ng mga tile, ang **Colour chart** ay bumubukas sa dalawang view ng parehong mga swatch: ang **Wheel** (ang OKLCH wheel - i-drag ang isang dot para baguhin ang kulay nito, i-click ang isang dot para i-edit ito o i-click ang bakanteng espasyo para maglagay ng bagong swatch) at ang **Gamut** chart, na nagpapakita kung saan talaga nagtatapos ang displayable range. Binubuksan ng `#/start?area=color&focus=chart` ang card nang direkta, gaya ng lagi nang ginagawa ng `?wheel`.
+Apat na nakatiklop na seksyon ang nasa ilalim ng preview at ng mga role. Bawat isa ay direktang bumubukas gamit ang `#/start?area=color&focus=<name>`:
+
+- **Explore shades & harmonies** (`focus=generate`), inilarawan sa itaas.
+- Ang **Shade curves** (`focus=curves`) ay hinuhubog muli ang ramp punto por punto, na may magkakahiwalay na lightness, chroma at hue curve (L / C / H) at nagre-redraw ang mga shade habang nagda-drag ka.
+- **Contrast** (`focus=contrast`): ang **Contrast-lock** ay nire-retone ang ramp para abutin ang mga APCA target laban sa background na pinili mo, at ang **Rotate hue** ay iniikot ang buong ramp sa wheel.
+- Ang **Print** (`focus=print`) ay nagtatakda kung ano ang nagiging primary sa press: ang awtomatikong value nito, naka-pin na CMYK build o pinangalanang spot ink.
+
+### Ang palette at bawat swatch
+
+Inililista ng palette ang mga kulay mo sa mga nakatiklop na grupo, bawat isa ay may sariling **+ Add**. Gumawa at palitan ang pangalan ng mga grupo ayon sa gusto mo. Hindi kailanman gumagawa ng pangalawang tile ang role: ang tile na tinuturo ng role ay nagsusuot ng maliit na marka (**P**, **S**, **Su**, **T**). Ipinapakita ng **Colour chart** sa ilalim ng mga tile ang parehong mga kulay sa OKLCH **Wheel** (mag-drag ng tuldok para i-recolor, mag-click sa walang laman para magdagdag ng swatch) at sa **Gamut** chart, na nagpapakita kung saan nagtatapos ang naipapakitang saklaw. Direktang binubuksan ng `#/start?area=color&focus=chart` ang chart.
 
 ![Ang palette pane, bawat grupo ay maaaring i-fold, may download pill na nakalagay sa ibabang gilid](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Ang OKLCH wheel - ang angle ay hue, ang distansya palabas ay chroma at ang mga grey ay sumasakay sa isang lightness rail sa gilid](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
-I-click ang alinmang swatch para buksan ang editor nito:
+Mag-click ng swatch para buksan ang editor nito:
 
-- **Rename** ito.
-- **Set the colour** - ang picker ay nagbubukas sa perceptual **OKLCH** sliders, may mga mode para sa **Hex**, **HSL**, **RGB** at **CMYK**; ang value field ay nagbabasa *at* sumusulat sa kung anumang space ang aktibo, kaya maaari kang mag-paste ng hex o mag-type ng ink percentages. Tandaan na ang paglalagay ng CMYK ay nagtatakda ng *screen* na kulay sa pamamagitan ng conversion - para i-pin ang eksaktong mga ink, gamitin ang print lock sa ibaba.
-- **Stored as** - piliin kung paano pinananatili ang swatch: **LCH** (ang default - perceptual, wide-gamut, ang pinakamainam na pagpipilian para sa pag-edit), Hex, RGB o HSL. I-override ito kapag kailangan mong i-pin ang eksaktong legacy hex o itugma ang isang sRGB value.
-- **Use as** - ibigay sa swatch na ito ang isa sa mga brand roles nang direkta, nang hindi na bumabalik sa Roles panel. (Ang sariling tile ng isang role ay hindi ito inaalok - hindi maaaring kumuha ng role ang isang role.)
-- **Print substitutes** (naka-fold) - i-lock ang print behaviour ng kulay:
-  - **CMYK** - lipatin ito mula **Auto** patungong **Locked** para i-override ang automatic na sRGB→CMYK conversion gamit ang eksaktong ink values (C/M/Y/K, 0-100).
-  - **Spot colour** - lipatin ito mula **None** patungong **Set** para i-lock ang swatch sa isang spot colour; bigyan ito ng **Name** (hal. `PANTONE 186 C`), opsyonal na **Book** at opsyonal na **Finish** (Ordinary ink bilang default) para sa mga pagkakataong hindi talaga ink ang ginagamit - isang foil, isang emboss o deboss, isang spot varnish, isang soft touch o isang die cut, crease o perforation.
-- **In other spaces** (naka-fold) - pinalawak na bersyon ng parehong ideya: bawat row ay isang space na maaaring ma-express ang swatch na ito, alinman ay hango sa canonical value o binuo mo mismo, at ang binuo mo mismo ang mananaig sa export.
+- **Palitan ang pangalan** ng swatch.
+- **Itakda ang kulay** sa mga OKLCH slider, o sa **Hex**, **HSL**, **RGB** o **CMYK**. Ang value field ay nagbabasa at nagsusulat sa aktibong space. Ang CMYK dito ay nagtatakda ng screen colour sa pamamagitan ng conversion; para mag-pin ng eksaktong ink, gamitin ang **Print substitutes**.
+- Pinipili ng **Stored as** kung paano sine-save ang swatch: **LCH** (ang default, perceptual at wide-gamut), Hex, RGB o HSL.
+- Ang **Use as** ay nagbibigay ng role sa swatch nang direkta. Pindutin muli ang naka-highlight na role para i-clear ang role.
+- **Print substitutes** (nakatiklop): i-lock ang **CMYK** mula **Auto** hanggang eksaktong ink value, o magtakda ng **Spot colour** na may **Name** (tulad ng `PANTONE 186 C`), opsyonal na **Book** at **Finish** para sa foil, emboss, deboss, spot varnish, soft touch o die cut, crease o perforation. Ginagamit ng press ang mga lock na ito kapag nag-export ka ng CMYK PDF o TIFF; tingnan ang [Mga colour profile](/info/exporting.html#colour-profiles).
+- **In other spaces** (nakatiklop): isang value bawat colour space, hinango o isinulat mo, at ang isinulat mo ang nananalo sa export.
 
-Ang mga print lock na ito ang ginagamit ng isang press kapag nag-export ka ng CMYK PDF o TIFF - tingnan ang [Exporting](/info/exporting.html#colour-profiles).
+Ligtas ang **pagbura ng swatch**. Itinatago ang mga hinangong shade at theme role, kaya walang masisira sa nagbabasa sa mga ito, habang inaalis ang mga kulay na idinagdag mo.
 
-**Ligtas ang pagbura ng isang swatch**: ang mga derived ramp step at theme roles ay *itinatago* lamang (patuloy na nare-resolve ang underlying token, kaya walang masisira sa downstream), samantalang ang mga kulay na idinagdag mo mismo ay talagang aalisin.
+::: details Paggawa gamit ang maraming swatch
+Bawat swatch ay may drag handle. Mag-drag para mag-reorder sa loob ng grupo, o mag-focus sa handle, pindutin ang Space, gamitin ang mga arrow key at pindutin muli ang Space para ibaba; kinakansela ito ng Escape. Para ilipat ang mga kulay sa pagitan ng mga grupo, gamitin ang **Group** control ng editor o pumili ng ilan at gamitin ang **Move to**.
 
-### Paggamit ng maraming swatch
+Hindi nangangailangan ng mode ang pagpili. Lumilitaw ang bar sa unang napiling tile at nawawala sa huli.
 
-Bawat swatch ay may sariling drag handle. I-drag ito para muling ayusin ang mga kulay sa loob ng grupo nito, o i-focus ito, pindutin ang Space, gamitin ang arrow keys, at pindutin ulit ang Space para i-drop. Kinakansela ito ng Escape. Nabubuhay ang pagkakasunod-sunod kahit muling buksan ang studio at puwede itong i-undo. Para ilipat ang mga kulay sa pagitan ng mga grupo, gamitin ang **Group** control ng swatch editor o pumili ng ilang kulay at gamitin ang **Move**. Nananatiling buo ang mga pangalan ng token at role reference.
+- **Mag-drag sa walang laman na espasyo** para gumuhit ng parihaba; bawat tile na natatamaan nito ay sumasali sa seleksyon, sa iba't ibang grupo. Walang idinaragdag ang nakatiklop na seksyon.
+- Ang **Shift-click** ay kumukuha ng saklaw ayon sa pagkakasunod ng pagbasa, ang **Cmd/Ctrl-click** ay nagto-toggle ng isang tile, at ang karaniwang click ay nagbubukas ng editor.
+- Ang bawat header ng grupo ay may **Select all**, at ang **Cmd-A** na may naka-focus na tile ay kinukuha ang bawat kulay na pag-aari mo, hindi kailanman starter.
+- Ang grid ay may iisang tab stop: gumagalaw ang mga arrow, nagpapalawak ang Shift-arrow, nagto-toggle ang Space, nag-aalis ang Delete at nagki-clear ang Escape. Para i-nudge ang channel, pindutin muna ang `l`, `c` o `h`.
+- Sa touch screen, pindutin nang matagal ang tile para simulan ang seleksyon, saka mag-tap para magdagdag.
 
-Ang selection sa palette pane ay isang gesture, hindi isang mode. Walang button na pipindutin muna, at dumarating ang bar kasabay ng unang napiling tile at umaalis kasabay ng huli.
-
-- **Mag-drag sa bakanteng espasyo ng pane** para gumuhit ng rectangle: sumasali sa selection ang bawat tile na nadadaanan nito, kahit lampas sa hangganan ng grupo. Walang idinaragdag ang isang nakatiklop na section, at ang isang drag na hindi kumilos ay nagliligpit sa selection.
-- Kinukuha ng **Shift-click** ang range sa reading order; nagto-toggle ang **Cmd/Ctrl-click** ng isang tile; ang plain click ay nagbubukas pa rin ng editor ng tile na iyon.
-- Bawat group header ay may **Select all**, at kinukuha ng **Cmd-A** kapag naka-focus ang isang tile ang bawat kulay na taglay ng design system - hindi kailanman ang starter.
-- Isang tab stop ang mayroon ang grid. Nilalakad ito ng Arrows, pinapahaba ng Shift-arrows ang selection, tino-toggle ng Space ang isang tile, inaalis ng Delete ang selection at nililinis ito ng Escape. (Ang Arrows ay gumagalaw lang sa focus: para i-nudge ang isang channel, pindutin muna ang `l`, `c` o `h`, gaya ng sinasabi ng readout.)
-- Sa touch screen, walang rectangle. Pindutin at i-hold ang isang tile para simulan ang selection, tapos i-tap para magdagdag; dinadala ng per-group **Select all** ang natitira.
-
-Ang bar mismo ay nagbabasa ng **{n} selected**, tapos **Move to** (isang umiiral na grupo, o isang bago na pinangalanan mo sa loob ng menu), **Give a role** (kumukuha ang bawat napiling kulay ng susunod na role paikot, kaya napupunuan ng apat na tile ang lahat ng apat na role sa isang pindot), **Download** (ang selection sa alinman sa anim na palette format), **Copy values** (isang linya kada kulay sa naka-store nitong notation) at **Delete**. Lumalabas ang Move to at Give a role kapag may shades na ang palette na puwedeng ilipat-lipat. Isang Ctrl/Cmd-Z ang nag-a-undo ng buong bulk action - isang paglipat ng apatnapu, isang role walk, isang delete - at sinasabi ng delete kung ano ang naitago nito, dahil may naaabot ang isang selection na mga tile na hindi tinatanggal ng silid na ito.
+Ang bar ay nagsasabing **{n} selected**, saka **Move to**, **Give a role** (bawat kulay ay kumukuha ng susunod na role nang paisa-isa), **Download** (ang seleksyon sa alinman sa anim na palette format), **Duplicate** (kopya ng bawat isa, inilalagay pagkatapos ng orihinal), **Copy values** at **Delete**. Ang isang kopya ay direktang bumubukas sa editor; ang marami ay nananatiling napili. Ang isang Cmd/Ctrl-Z ay binabawi ang buong bulk action.
+:::
 
 ### Mga Gradient
 
-May opsyonal na **Gradients** panel na bumubuo ng blend token mula sa palette para sa mga background at accent. Laktawan ito nang buo kung hindi gumagamit ng gradient ang design system. Bawat gradient ay may preview, mga named stop (2–8) at isang angle. Ang pangunahing behavior: **ang isang stop ay tumutukoy sa isang swatch**, kaya kapag binago mo ang kulay ng swatch na iyon, susunod ang gradient. Ang interpolation ay tumatakbo sa OKLCH para sa malinis na blend. Burahin ang isang stop para paikliin ang run.
+Ang opsyonal na **Gradients** panel ay bumubuo ng blend token mula sa palette. Bawat gradient ay may preview, 2 hanggang 8 pinangalanang stop at anggulo. Ang stop ay tumuturo sa swatch, kaya i-recolor ang swatch at susunod ang gradient. Ang mga blend ay tumatakbo sa OKLCH.
 
-### Dalhin ang palette sa ibang lugar
-
-Ang floating pill na nakalagay sa ibabang gilid ng palette pane ay nagda-download ng buong palette bilang **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, isang **GIMP palette (.gpl)** o isang **Adobe Swatch Exchange (.ase)** - para diretso itong makapasok ang design system sa Illustrator, Figma, GIMP o isang stylesheet. Nasa labas ito ng scroller ng pane, kaya nananatili itong nakatayo kahit gaano pa kalayo ang pag-scroll ng palette, at lumalabas ito kapag may shades na ang palette. (Maaari mo ring i-download ang palette mula sa [Mga asset](/info/using.html#assets-your-library).)
+Ang mga palette download (design token, CSS, SCSS, GIMP at Adobe Swatch Exchange) ay nasa pill sa paanan ng palette kapag may mga shade na. Inilalarawan ng [Dalhin ang palette at mga font mo saanman](/info/using.html#take-your-palette-and-fonts-anywhere) ang bawat format.
 
 ## Type
 
-Lumalaki ang silid na ito sa parehong paraan. Kapag wala pang sariling face, ito ay isang card at isang desisyon: **Primary**, nakatakda sa reading size sa face na naglilingkod dito ngayon, isang **Starter** tag sa tabi ng pangalan, isang filled na **Choose a face** at ang linyang *"Nothing installs until you choose one."* Sa ilalim ng card ay nakaupo ang *"Headings, code and italic follow the primary until you choose them"*, may **Choose them separately** na naglalantad sa tatlo pang card para sa natitirang bahagi ng pagbisita.
+Kapag walang sariling face, ang room ay isang card: **Primary**, nakatakda sa laki ng pagbasa sa face na naglilingkod dito ngayon, na may **Starter** tag, **Choose a face** button at ang linyang *"Nothing installs until you choose one."* Ang Headings, code at italic ay sumusunod sa primary hanggang piliin mo ang mga ito; ipinapakita ng **Choose them separately** ang mga card nila.
 
 ![Ang Type room na wala pang napiling face - isang card sa reading size, may Starter tag dito, at isang filled na Choose a face](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
-Pumili ng isang face at bubukas ang silid tungo sa **apat na role card**, ang listahan ng Fonts at ang live specimen. Ang apat na face ay ang mga aktwal na binabasa ng app, ng mga tool at ng bawat export:
+Pumili ng isang face at bubukas ang room sa apat na role card, ang Fonts list at live na specimen:
 
-- **Primary** - body copy, mga button at bawat tool.
-- **Headings** - ang display face para sa `h1`/`h2`.
-- **Code** - isang monospace face para sa code at data.
-- **Italic** - isang tunay na italic companion para sa emphasis, quotations at asides.
+- **Primary**: body copy, mga button at bawat tool.
+- **Headings**: ang display face para sa `h1` at `h2`.
+- **Code**: monospace na face para sa code at data.
+- **Italic**: tunay na italic para sa diin, quotation at asides.
 
-Bumabalik ang headings, code at italic sa primary hanggang italaga mo ang mga ito, kaya ang isang one-face na design system ay walang kailangang desisyon dito.
-
-**Ibig sabihin ng tint, pinili mo ito.** Naka-tint lang ang isang card kung saan mo in-install ang face na iyon. Ang isang starter na face ay may suot na parehong **Starter** tag na suot ng mga inherited na grupo ng palette, sa muted register at walang tint, at ang isang role na walang pumili ay nagbabasa ng **↳ follows Primary** sa halip na ulitin ang pangalan ng primary na para bang napili ito. Sinasabi ng button na **Change** sa isang sarili mong face at **Choose a face** sa lahat ng iba pa. Walang kumukumpirma ng anuman sa card: ang button ay nagbubukas ng **compare stage** na naka-focus sa role na iyon.
+Ang card ay may tint lang kung saan mo ini-install ang face na iyon, at ang button nito ay nagsasabing **Change** sa sarili mong face at **Choose a face** sa lahat ng iba. Walang ginagawang commit ang anumang nasa card: binubuksan ng button ang compare stage para sa role na iyon.
 
 ![Ang apat na role card na nakalantad - bawat isa naka-set sa face na naglilingkod dito, may Starter tag kung saan walang pumili, at sumusunod ang Italic sa primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Ang compare stage
 
+Bumubukas ang stage sa loob ng room, sa ilalim ng card na pinindot mo, at tumitiklop ang mga card sa isang-linyang strip para makita ang stage sa unang screen ng phone. Kinakansela ng Escape at ibinabalik ang focus sa card.
+
+1. Pindutin ang **Choose a face** sa card.
+2. Mag-type ng family name at pindutin ang **Preview**, o pindutin ang isa sa anim na **Pinned** family sa ilalim ng field.
+3. Pindutin ang **Use this face**.
+
 ![Nakabukas ang compare stage sa ilalim ng card nito, may search row, ang mga pinned na family at ang mga card na nakatiklop sa isang one-line strip](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dtype%26focus%3Dstage&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-type-stage)
 
-Bumubukas ang stage **inline sa silid**, hindi sa isang dialog, at direkta sa ilalim ng card na pinindot mo. Habang nakabukas ito, nagtitiklop ang mga card tungo sa isang one-line strip ng role at face, kaya nasa unang screen ang stage kahit sa telepono. Kinakansela ito ng Escape at ibinabalik ang keyboard sa card na pinagmulan mo ng pagbukas.
+**Isang beses lang itinatanong ang pahintulot.** Sa unang beses na umabot ang preview sa Google Fonts, nagpapaliwanag ang dialog: *Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.* Itinutuloy ng **Fetch from Google** at naaalala ito. Iniiwan ng **Cancel** ang card na nagsasabing *"Not fetched. Nothing was sent to Google."*, na may sarili nitong **Fetch from Google**.
 
-Ang pagpili ng isang face ay tatlong pindot lang:
-
-1. **Choose a face** sa card.
-2. Mag-type ng pangalan ng family at pindutin ang **Preview** - o pindutin ang isa sa anim na **Pinned** na family sa ilalim ng field, isang pindot bawat isa. Lumalabas na ang card na parang loading na, may skeleton bar kung saan malalagay ang specimen sa halip na ang interface face na tumatayo bilang panandaliang kahalili ng isang face na hindi mo pa nakikita.
-3. **Use this face**.
-
-**Hinihingi ang consent nang isang beses lang, sa pindot na ginawa mo.** Sa unang pagkakataong may preview na umaabot sa Google Fonts, may dialog na nagsasabi kung ano ang mangyayari: *Nalalaman ng Google ang pangalan ng family at ang IP address mo. Pagkatapos, iniingatan ang file sa device na ito at ginagamit offline. Ito ang tanging hakbang sa studio na umaabot sa isang third party.* Nagpapatuloy ang **Fetch from Google** at naaalala ito. Iniiwan ng **Cancel** ang card na nagsasabing *"Not fetched. Nothing was sent to Google."* na may sarili nitong live na **Fetch from Google**, kaya ang pagbabago ng isip mo ay isang pindot lang sa mismong card. Walang card na nagpapakita ng patay na button: anuman ang estado nito, sinasabi ng iisa nitong primary kung ano ang susunod na hakbang.
-
-**Mag-drop ng font file sa stage** at agad itong nagpe-preview - **TTF**, **OTF** o **WOFF** mula sa sarili mong makina, na siyang daan para sa isang licensed corporate typeface na taglay mo na. Ang drop zone na iyon ang tanging pintuan ng file sa silid.
-
-Alinman sa dalawang paraan, ang face ay mananatili sa device na ito, nagre-render sa app, sa mga tool at sa bawat export, offline magpakailanman at naglalakbay sa design system file - walang kinukuha sa render time. Lahat ng nasa Google Fonts ay ipinapadala sa ilalim ng open licence (OFL/Apache/UFL).
+**Mag-drop ng font file sa stage** (TTF, OTF o WOFF) para i-preview ang lisensyadong typeface na pag-aari mo na. Sa alinmang paraan, nananatili ang face sa device na ito, nagre-render offline sa app, sa mga tool at sa bawat export, at sumasama sa design system file. Lahat ng nasa Google Fonts ay may bukas na lisensya (OFL, Apache o UFL).
 
 ### Fonts on this device
 
-Nililista ng **Fonts** panel ang bawat face na taglay ng device na ito at ang role na pinaglilingkuran nito. Nangunguna ang mga face na idinagdag mo sa ilalim ng **In the design system**, bawat isa may mga role nito at isang delete, at ang naglilingkod sa Primary ay may suot na badge. Sumusunod ang mga starter na face sa isang nakatiklop na row - *Starter · SUSE, SUSE Mono · serving Primary and Code until you choose* - muted, walang delete at walang ipe-promote, dahil wala sa dalawa ang desisyon na ginawa ng kahit sino. Binubuksan ng **Add a face** ang parehong compare stage nang walang focus.
-
-Ipinapakita ng **Type roles** panel sa ibaba ang live specimen ng bawat role - body at UI sa primary, opsyonal na display face para sa mga pinakaitaas na heading, isang italic para sa emphasis, isang mono para sa code at data - may family at estado nito sa tabi ng bawat isa (*Inter*, *SUSE · starter*, *SUSE · follows Primary*), kaya mababasa ang buong set nang sabay-sabay.
+Inililista ng **Fonts** panel ang bawat face sa device na ito at ang role na pinaglilingkuran nito. Ang mga face na idinagdag mo ay nangunguna sa ilalim ng **In the design system**, bawat isa ay may mga role nito at pagbura. Sumusunod ang mga starter na face sa isang mahinang, nakatiklop na row. Binubuksan ng **Add a face** ang compare stage para sa anumang role. Ipinapakita ng **Type roles** panel ang live na specimen ng bawat role kasama ang family at estado nito, tulad ng *Inter* o *Inter · follows Primary*.
 
 ## Tokens
 
-Ang natitirang bahagi ng design system, na maaaring i-edit nang hindi humihipo ng code:
+Ang mga token ay ang mga pinangalanang value sa likod ng design system: mga kulay, typeface, logo, sulok at spacing. Binabasa ng mga tool ang mga ito ayon sa pangalan, kaya ang pagbabago rito ay umaabot sa bawat tool nang sabay.
 
-![Ang Tokens room - isang corner-radius slider dagdag ang spacing, sizing, shadows at ang natitirang bahagi ng system](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
+![Ang Tokens room: ang head na may halimbawa mula sa system at ang mga file action, mga tile na nagbibilang ng bawat uri ng token, saka ang mga pares ng kulay na may contrast readout](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
-- **Rounded corners** - isang solong radius slider (0–1.5rem) na sinusunod ng mga card, button at panel sa buong app.
-- **Neutrals** - ang ink-through-paper ramp na kalakip ng isang bagong install, nakalista bilang **Neutrals · starter · 9** may siyam na hakbang nito at isang **Open** papunta sa Colours pane. Ito ang tanging lugar kung saan pinapamahalaan ang mga starter neutral, at nawawala ang *starter* tag sa sandaling ma-generate ang ramp sa halip na ma-inherit.
-- **More tokens** - magdagdag at mag-edit ng **spacing**, **sizing**, **stroke width**, **opacity**, **rotation**, plain **numbers** at **shadows**. Pumili ng type, bigyan ito ng pangalan (*Gutter, Card shadow…*) at itakda ang value nito. Ang mga ito ay iniimbak bilang standard [design tokens](/info/design-tokens.html) (DTCG) at sumasama sa design system.
+- **Ang head** ay nagbibigay ng halimbawa mula sa sarili mong system (*Primary is Spearmint, #033633*) at ng mga file action: **Download** (ang buong system bilang design token, o ang palette sa limang ibang format), **Copy CSS** at **Add from…** para basahin pabalik ang JSON file.
+- **Mga tile** na nagbibilang ng bawat uri ng token at lumilipat sa seksyon nito: Colours, Type, Logos, Shape and spacing, More at All tokens. Binibilang nila kung ano ang sa iyo, gaya ng Overview. Sa phone, nag-i-scroll patagilid ang mga tile.
+- Ang **Colours** ay nagsisimula sa mga pares na pinagsasama ng mga tool (text sa surface, sa primary, muted sa surface) na may APCA readout sa light at dark, at nagfa-flag ng **Weak contrast** kung saan kulang ang pares. Saka ang bawat grupo ng kulay: ramp bilang isang hanay ng mga chip, ibang mga kulay na may value nila at ang reference na ginagamit ng mga tool, tulad ng `{color.brand.spearmint}`. Pindutin ang reference para kopyahin ang reference. Binubuksan ng **Edit in Colours** ang grupo sa Colours room.
+- Inililista ng **Type** at **Logos** ang face para sa bawat role at bawat logo slot, na may **Edit in Type** at **Edit in Logos** kapag may sarili ka na.
+- Hawak ng **Shape and spacing** ang **Rounded corners** (`shape.radius`) at **Spacing rhythm** (`space.base`). Bawat isa ay nagsasabing *Lolly default* hanggang galawin mo ang slider at *Yours* pagkatapos, nagse-save agad at maaaring i-undo.
+- Nagdaragdag ang **More tokens** ng spacing, sizing, stroke width, opacity, rotation, payak na numero at anino, naka-store bilang karaniwang [design tokens](/info/design-tokens.html).
+- Inililista ng **App appearance (advanced)** ang mga kulay, laki at anino na ginagamit ng sariling mga screen ng Lolly, at hinahanap at ine-edit ng **Inspect every token (advanced)** ang anumang naka-store na value, na ipinapakita muna ang bawat pagbabago para sa review.
+
+Ang seksyong walang laman ay nag-aalok ng paraan para punan ang puwang: **Pick a colour**, **Choose a face** o **Add a logo**.
 
 ## Files
 
-Idrop dito ang mga file na taglay ng brand mo - bukod sa logos: **vector**, **image**, **audio** at **motion** (video, Lottie, animated) assets. Napupunta ang mga ito sa [Mga asset](/info/using.html#assets-your-library), na naka-sort sa mga section at handa na sa asset picker ng bawat tool. Lahat ay nananatili sa device na ito. (Tinatawag ng rail ang silid na **Files**; ang URL key ay nananatiling `catalogue`, dahil ang isang panel key ay isang permanenteng kontrata.)
+I-drop ang mga file na iniingatan ng brand mo, bukod sa mga logo: mga **vector**, **image**, **audio** at **motion** file (video, Lottie at animation). Lumilitaw ang mga ito sa [Assets](/info/using.html#assets-your-library), nakaayos sa mga seksyon at handa sa asset picker ng bawat tool, at nananatili sa device na ito.
+
+## Usage & rules
+
+Pinapagana ng **Usage & rules** ang mga pagpili ng brand mo: ano ang puwedeng baguhin ng mga tao, ano ang nananatiling nakapirmi at ano ang kayang suriin ng Lolly.
+
+![Usage & rules sa Lolly Demo: walang laman na Brand rules card na may Add your first rule, saka Try your brand in use na handa nang i-render ang mga halimbawa nito](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+
+Inililista ng **Brand rules** ang mga rule mo. Ang **Add rule** (o **Add your first rule**) ay nagbubukas ng maikling form:
+
+- isang **Rule name** sa sarili mong mga salita, tulad ng *Beacon accents*;
+- ang **Check**: **Colour choices**, **Font choices**, **Fixed artwork** o **Text length**, kasama ang brand role na ginagamit nito, sa ilalim ng sarili mong pangalan para sa role;
+- ang **Example** na pinaglalapatan nito (Poster, Title slide, Content slide o Chart), ang **Mode** at kung ito ay **Required** o **Advisory**;
+- **Reviewed by**, saka **Save draft** o **Approve & save**.
+
+Itinatala ng pag-apruba ang sarili mong desisyon sa device na ito. Ang mga aprubadong required na rule ay naglilimita sa reusable na poster, at sakop lang ng mga check ang mga halimbawang PNG; wala silang binabago sa ibang tool.
+
+Ang mga rule na dala ng design system sa token file nito, tulad ng aprubadong pagpapares ng kulay, bigat at alignment ng text o logo bawat surface, ay nakalista rito bilang **Checked in Design**. Sinusuri ng Design ang mga ito layer por layer sa **Before you export** card ng export panel, at ginagawa ng `lolly check` ang pareho para sa naka-save na Design document ([Before you export](/info/design.html#before-you-export)). Ang rule na walang checker ang build na ito ay iniingatan ayon sa ibinigay at minamarkahang **Unchecked**.
+
+Ang **Try your brand in use** ay nagre-render ng apat na halimbawa mula sa kasalukuyang revision gamit ang **Render & check examples**. Pumili ng **Brand mode** at **Try your own text** para sa heading, sumusuportang text at text ng slide. Iniuulat ng bawat halimbawa kung ano ang nasukat, na may **See checks & sources** at **Download check report**, at ang **Make reusable poster** ay nagda-download ng `.lolly` na ang nakapirming layout at aprubadong input choice ay sumasama sa file. Lokal ang mga halimbawa: walang inilalathala o inaaprubahan sa pagpapatakbo ng check.
+
+Ang build na may kasamang nakapirming brand ay nagpapakita ng parehong mga rule at halimbawa na read-only, sa ilalim ng *This brand is set*.
 
 ## Magdala ng isang brand
 
-Ang **Add from...** sa ibaba ng rail ay nagbubukas ng two-stage picker. Ang unang stage ay nagtatanong kung ano ang *taglay* mo, hindi kung anong format ito:
+Ang **Add from…** sa paanan ng rail ay nagbubukas ng picker na nagtatanong kung ano ang meron ka, hindi kung anong format ito:
 
-- **Design tokens o isang design file** - DTCG o Tokens Studio JSON, isang Penpot project, isang **zip ng token sets**, isang Lolly design system pack o isang SVG.
-- **PDF** - isang deck o isang guidelines file, na binabasa sa device na ito para sa mga kulay, marka at embedded typeface nito.
-- **Logo o screenshot** - ang isang larawan ay nagiging iminumungkahing palette, binabasa sa device na ito. Walang ini-upload. Binabasa nito ang mga kulay, hindi ang typeface o layout sa larawan.
-- **Naka-save na web page** - pumili ng isang HTML file at ang mga CSS file nito, o mag-paste ng HTML o CSS. Hanggang 20 file at 2 MB sa kabuuan. Ang text na ibinigay lang ang binabasa; hindi kinukuha ang mga naka-link na resource at hindi tumatakbo ang mga script. Gumagana rin ang ruta na ito nang walang extension o desktop app.
-- **Font file** - TTF, OTF o WOFF. Binubuksan ang Type room, kung saan nag-i-install ang face.
-- **Website** - isang pahina, binabasa para sa kulay at type nito. Lumilitaw lamang ang tile na ito sa isang device na talagang kayang magbasa ng pahina, dahil ang isang disabled na tile na nag-a-advertise ng bagay na walang kayang pindutin ay mas masahol pa kaysa sa walang tile. Kung saan man ito lumitaw, hayagan nitong pinapangalanan ang reader nito: kinukuha ng app sa device na ito, o binabasa sa pamamagitan ng browser extension sa isang background tab, naka-sign in bilang ikaw. Ang pagpapangalan ng URL ay *pina-prefill* lamang ang field - ang fetch button ang siyang pahintulot, kaya ang isang link na ipinadala sa iyo ng iba ay hindi kailanman makakapagsimula ng pagbasa.
+- **Design tokens o design file**: DTCG o Tokens Studio JSON, Penpot project, zip ng mga token set, Lolly design system pack o SVG.
+- **PDF**: deck o guidelines file, binabasa sa device na ito para sa mga kulay, marka at naka-embed na typeface nito.
+- **Logo o screenshot**: ang larawan ay nagiging iminumungkahing palette, binabasa sa device na ito. Binabasa nito ang mga kulay, hindi ang typeface o layout.
+- **Naka-save na web page**: isang HTML file at ang mga CSS file nito, o na-paste na HTML o CSS, hanggang 20 file at 2 MB. Ang text na ibinigay mo lang ang binabasa: hindi kinukuha ang mga naka-link na resource at hindi tumatakbo ang mga script.
+- **Font file**: TTF, OTF o WOFF. Binubuksan ang Type room, kung saan ini-install ang face.
+- **Website**: isang page, binabasa para sa mga kulay at type nito. Lumilitaw lang ang tile na ito sa device na kayang magbasa ng page, at sinasabi kung aling reader ang ginagamit: ang app sa device na ito, o ang browser extension sa background tab, naka-sign in bilang ikaw. Ang pagbibigay ng URL ay pumupuno lang sa field; ang pagpindot sa fetch ang pahintulot.
 
-Piliin ang design-file source at ang pangalawang stage ay ang card sa ibaba: ang mga tinatanggap na format ay nangunguna bilang icon tiles sa preference order, at ang buong card ay isang drop target - i-click kahit saan dito o mag-drag ng file papunta dito. Maaari ka ring mag-drop ng file nang direkta sa studio.
+Piliin ang design-file source at ililista ng susunod na card ang mga tinatanggap na format bilang icon tile, na ang buong card ay iisang drop target. Puwede ka ring mag-drop ng file diretso sa studio.
 
 ![Ang import card - ang mga tinatanggap na format ay nangunguna bilang icon tiles, at ang buong card ay isang drop target](/t/url-shot?url=%2F%23%2Fstart%3Fsource%3Dfile&width=1440&height=900&dpi=192&waitMs=1600&css=.start-import-modal%20.modal-msg%2C.start-import-modal%20.modal-title%7Bdisplay%3Anone%7D&cropSelector=.start-import-drop&walker=1&format=svg&dark=1&filename=bs-brand-import-formats)
 
-Ang ibinibigay ng bawat design file:
+- Ang **Lolly design-system pack** (`.lolly`, o legacy na `.zip`) ay nag-i-install sa isang hakbang.
+- Ang export ng **Penpot** (`.penpot`) ay nagdadala ng mga design token nito.
+- Ang **Design Tokens** (W3C DTCG) o **Tokens Studio** file (`.json`) ay nagdadala ng mga token nito.
+- Ang **payak na SVG** ay ini-scan para sa mga kulay na mapipili mo, na ang una ay nagiging primary mo.
 
-- isang **Lolly design-system pack** (`.lolly`; tinatanggap pa rin ang legacy na `.zip`) - nag-i-install sa isang hakbang;
-- isang **Penpot** export (`.penpot`) - kinukuha ang design tokens nito;
-- isang **Design Tokens** file (`.json`) - W3C DTCG;
-- isang **Tokens Studio** file (`.json`) - Tokens Studio;
-- isang **plain SVG** (`.svg`) - sini-scan ni Lolly ang mga kulay nito at hinahayaan kang pumili kung alin ang itatago, ang una ay magiging primary mo.
+### Mag-review ng reference
 
-Ang isang logo/screenshot, website o naka-save na page ay nagbubukas ng **Your suggested design system**. Tingnan ang isang halimbawa gamit ang mga iminumungkahing kulay, pumili ng ibang **Main colour** kung kailangan, at pangalanan ang system. Inilalapat ng **Use this design system** ang mga na-generate na light at dark na palette at bumabalik sa Overview. Nananatili sa lugar ang mga umiiral na font. Pinapalitan nito ang mga kulay at ibang token setting ng aktibong system. Kailangan munang magtagumpay ang isang checkpoint; ibinabalik ng **Restore brand settings** ang mga naunang setting.
+Ang logo, screenshot, website o naka-save na page ay nagbubukas ng **Try these colours**: halimbawa sa mga iminumungkahing kulay, **Main colour** na puwede mong baguhin at pangalan para sa bagong system. Isinasaad ng isang box kung ano ang ginagawa ng paglalapat: **pinapalitan** nito ang aktibong token setting ng nabuong palette at default na estilo, **iniingatan** nito ang mga font at library file mo at ang naunang system ay maaaring **mabawi**. Inilalapat ng **Apply suggested settings** ang light at dark na palette, pagkatapos ng checkpoint, at maibabalik ng **Restore brand settings** ang mga lumang setting. Pumipili ang **Change reference** ng ibang source.
 
-Ipinapakita ng **Source details and individual choices** kung ano ang nabasa, ang mga na-detect na pangalan ng font at ang text/action contrast ng preview. Inaalok din nito ang **Choose individual items in the tray** at **Download design context**. Dala ng JSON report ang mga obserbasyon, iminumungkahing token at impormasyon ng source; may kasamang SHA-256 ng ibinigay na text ang naka-save na HTML/CSS. Walang laman itong raw na page text at hindi ito isang naka-sign na Content Credential. Mga suhestyon lang ang mga pangalan ng font: nananatiling Type ang lugar kung saan pipili at mag-i-install ng mga font.
+Ipinapakita ng **Palette, source details and individual choices** kung ano ang nabasa, anumang font name na natagpuan at ang contrast ng preview. Mga mungkahi lang ang font name; ang Type pa rin ang kung saan ka nag-i-install ng face. Ang mga detalye ng source ay maaaring may typography, gap, padding at corner value kung naobserbahan, na may label na **Not observed** kung hindi. Ang naka-save na page o native na pagbasa ng website ay nag-uulat ng mga declared na estilo, na maaaring hindi ginagamit ng page, at ang browser extension ay maaaring mag-ulat ng mga sinukat na estilo mula sa sample ng nakikitang elemento. Mga obserbasyon ang mga ito: walang ini-install, at hindi kailanman pinapalitan ng source spacing ang sarili mo. Iniingatan ng **Choose individual items in the tray** ang mga solong item, at sine-save ng **Download design context** ang JSON report ng mga obserbasyon, iminumungkahing token at impormasyon ng source (kasama ang SHA-256 ng anumang ibinigay na HTML o CSS). Walang hilaw na text ng page ang report at hindi ito signed na Content Credential.
 
-Nananatili ang mga umiiral na review control ng PDF at ibang design-file import. Walang binabago ang mga item na naka-keep sa **Tray** hangga't hindi idinaragdag sa pamamagitan ng silid na siyang may-ari ng ganoong uri ng materyal.
+Ang mga PDF at design-file import ay nag-iingat ng sarili nilang review control. Ang mga item sa **Tray** ay walang binabago hanggang idagdag mo ang mga ito sa room na may-ari ng ganoong materyal. Binubuksan ng `#/start?source=<kind>` ang picker sa isang source (`file`, `pdf`, `image`, `font`, `url`, `page`), at binubuksan ng `?import` ang payak na listahan.
 
-Binubuksan ng `#/start?source=<kind>` ang picker sa isang partikular na source (`file`, `pdf`, `image`, `font`, `url`, `page`), at binubuksan ng `?import` ito sa plain list.
+### Humanap at maghambing ng look
 
-## Ilipat ang isang brand sa pagitan ng mga device
+Buksan ang **Find a look** mula sa Overview o mula sa design-system list sa Settings. Mag-browse ng mga system na naka-save sa device na ito at ilang reusable na halimbawa ng Lolly, at maghanap ayon sa pangalan, colour tag o declared na font. Ang **Closest to my current palette** ay nag-aayos ayon sa sinukat na pagkakahawig ng kulay, na ang tumutugmang font ang nagpapasya sa tabla; hindi ito quality score.
 
-Sumusulat ang **Export** sa ibaba ng rail ng iisang **`LollyBrand-….lolly`** - ang iyong mga token, font, logo at theme preference, may integrity manifest na ini-verify nito sa pagbalik. Pinangalanan ng mga web release bago ang 1.0.7 ang parehong payload na `.zip`; tinatanggap pa rin ang legacy spelling na iyon. Sa tabi nito, ang **Tokens (.json)** ay sumusulat ng plain design-tokens document nang mag-isa: walang font, walang logo, mga token lang, na siyang aktwal na binabasa ng isang repo, isang CI step o ibang tokens tool.
-
-Ang pagbabalik ng isa ay **Add from... → Design tokens or a design file** (sa itaas), o isang drag-and-drop papunta sa studio. Ito ang paraan kung paano ka bibigyan ng katrabaho ng isang brand, o kung paano mo dadalhin ang isa sa pangalawang install - walang account, walang cloud. Para magdala ng brand mula sa command line sa halip, tingnan ang [`ingest:brand`](/info/configuration.html#brand-packs).
-
-## Ibalik ang mga naunang setting
-
-Piliin ang **Restore brand settings** sa ibaba ng rail, pumili ng checkpoint na may petsa, tapos pindutin ang **Restore**. Ibinabalik nito ang mga kulay, type setting at ibang brand token para sa aktibong brand. Nananatili sa kasalukuyang anyo ang mga font at image file.
-
-Sine-save ni Lolly ang kasalukuyan mong mga setting bilang **Before restore** bago ilapat ang checkpoint. Piliin ang checkpoint na iyon para ibalik ang restore, kahit pagkatapos isara at buksan ulit ang browser. Iniingatan sa device na ito ang pinakahuling 20 checkpoint. Kung hindi mabasa ang storage o hindi mase-save ang kasalukuyang mga setting, iniuulat ng dialog ang problema para masubukan mo ulit.
-
-## Mga Bersyon
-
-Ang **Versions** sa ibaba ng rail ang lugar kung saan huminto na ang isang design system sa pagiging isang lumilipat na target. Mag-publish ng isa at makakakuha ka ng isang **permanente, may-pangalang kopya** na nakatago sa device na ito: hindi na ito magbabago pagkatapos, kaya ang isang tool na nag-pin dito ay lagi nang gagawa ng parehong bagay. Nananatiling nakatago ang panel hanggang sa may isang bagay ng sarili mong ipe-publish, kaya ang isang studio na hindi kailanman nag-publish ay hindi kailanman makikita ang mga kontrol.
-
-Tatlong bagay na dapat malaman bago ka mag-pindot ng anuman, at sinasabi ng panel ang tatlo bago ang pag-pindot sa halip na pagkatapos:
-
-- **Permanente ang isang version.** Wala pang delete ngayon, kaya sinasabi ng panel kung ano ang naitago at na patuloy itong mananatiling naka-imbak sa halip na mag-alok ng isang button na nagsisinungaling.
-- **Ang mga tinanggal ang nangunguna sa compatibility card.** Balita ang mga token na idinagdag at binago; ang isang *tinanggal* na token ang siyang sumisira sa isang tool, kaya ito ang unang pinangalanan at tinatawag sa tunay nitong katangian.
-- **Hindi na maaaring i-undo ang pag-publish; ang pag-restore ay maaari.** Ang *Restore latest from this version* ay isang ordinaryong edit sa head, kaya napupunta ito sa undo stack ng studio at inaalok agad sa iyo ng panel ang **Undo**.
-
-Puwede kang **Publish only**, o **Publish and make active** - ang pagkakaiba ay kung susundan ng mga tool at ng app ang version na iyon mula ngayon o patuloy na susundan ang iyong pinakahuling edit. **Follow the latest again** ang naglalagay sa bawat edit na live sa sandaling gawin ito. Binubuksan ng `#/start?area=versions` ang panel nang direkta.
-
-## Kapag Nakapirmi ang Brand
-
-May mga build na naglalabas ng **naka-lock na design system**, tulad ng SUSE Brand. Ang pagbukas nito ay nagpapakita ng read-only na tala na may **Make an editable copy** at **Switch**. Nananatiling buo ang orihinal na mga kulay, font at token nito. Nananatiling editable ang sarili mong mga lokal na system, kahit ang naka-lock na system ang naunang nasa device. Sa Profile, pinipili ng **Open** ang isang system at binubuksan ang studio nito; gumagawa ang **Make a new one** ng lokal na system at binubuksan ito sa `#/start` na naka-focus ang name field nito.
-
-## Saan susunod
-
-- **[Paggamit ng Lolly](/info/using.html)** - ang canvas, pag-save, mga proyekto at Mga asset.
-- **[Design Tokens](/info/design-tokens.html)** - ang token model kung saan naipahahayag ang iyong brand.
-- **[Pag-export at mga format](/info/exporting.html)** - print units, CMYK at ang mga format na ginagawan ng render ng iyong brand.
-
-
-## Maghanap at magkumpara ng isang look
-
-Buksan ang **Find a look** mula sa Overview o sa listahan ng design-system sa Profile. Mag-browse ng mga system na naka-save sa device na ito at ilang muling-magagamit na halimbawa ng Lolly. Maghanap ayon sa pangalan, colour tag o deklaradong font. Inaayos ng **Closest to my current palette** ayon sa sinukat na pagkakahawig ng kulay, na ang magkatugmang type family ang nagpapasya kung parehas; hindi ito isang quality score.
-
-Pumili ng isang look para suriin ito, o dalawa para ikumpara. Nananatiling available ang review button kahit sa maliit na screen. Walang binabago ang pagpili ng isang look. Nagpapalit ang **Use this saved system** sa pamamagitan ng umiiral na design-system registry. Inilalapat ng **Use these colours** ang isang halimbawa sa pamamagitan ng normal na checkpoint at install flow, pinapanatili ang kasalukuyang mga font. Puwedeng ibalik ng **Restore brand settings** ang naunang look.
-
-Sa ilalim ng **Details and design context**, may editable na **Search tags** ang mga naka-save na system at isang context download. Gumagamit ang mga halimbawa ng orihinal na colour recipe ng Lolly; walang remotely-scraped na inspiration collection o kinakailangang account.
+Pumili ng isang look para i-review ito, o dalawa para ihambing nang magkatabi. Walang binabago ang pagpili. Ang **Use this saved system** ay lumilipat dito, at ang **Use these colours** ay naglalapat ng mga kulay ng halimbawa sa karaniwang checkpoint, iniingatan ang mga font mo. Binabawi ng **Restore brand settings** ang naunang look. Ang mga naka-save na system ay may mae-edit na **Search tags** sa ilalim ng **Details and design context**. Ang mga halimbawa ay orihinal na colour recipe ng Lolly, walang scraped na koleksyon at walang account.
 
 ![Ikumpara ang Sunroom at Orchard nang magkatabi bago ilapat ang alinman sa dalawang colour system.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
-Pinananatili ng comparison na magkasamang nakikita ang dalawang palette. Walang binabago ang pagsusuri ng isang look hangga't hindi mo pinili ang **Use these colours** o **Use this saved system**.
+## Itago at ilipat ang design system mo
 
-## Basahin ang source evidence
+### Ilipat ang brand sa pagitan ng mga device
 
-Ipinapakita ng opsyonal na detalye ng source review ang typography, gaps, padding at corner value kung saan naobserbahan ang mga ito. Iniuulat ng naka-save na HTML/CSS at native na website read ang mga declaration, na maaaring hindi ginagamit ng na-render na page. Kayang iulat ng browser extension ang measured styles mula sa isang bounded sample ng mga nakikitang element, kasama ang viewport at colour preference ng browser nito. Gumagana pa rin ang mas lumang extension gamit ang declared styles. Sinasabi ng mga missing field na **Not observed**.
+Ang **Export** ay nagsusulat ng isang **`LollyBrand-….lolly`** file: ang mga token, font, logo at theme preference mo, na may integrity manifest na sinusuri pagbalik. Ang mga web release bago ang 1.0.7 ay pinangalanang `.zip` ang parehong file, at tinatanggap pa rin ang baybay na iyon. Ang **Tokens (.json)** ay nagsusulat ng payak na design-tokens na dokumento nang mag-isa, walang font o logo, para sa repository, build step o ibang tokens tool.
 
-Mga obserbasyon lang ito, hindi automatic na style setting. Hindi kinukuha o ini-install ang mga font file ng isang reference scan, at hindi tahimik na pinapalitan ng source spacing ang sarili mo. Inilalarawan ng mga bilang ang mga occurrence sa sample, hindi ang confidence o kalidad.
+Para ibalik ang isa, gamitin ang **Add from… → Design tokens or a design file**, o i-drop ang file sa studio. Ganito ibinibigay sa iyo ng kasamahan ang brand, o dinadala mo ang isa sa pangalawang install, nang walang account at walang cloud. Para magdala ng brand mula sa command line, tingnan ang [`ingest:brand`](/info/configuration.html#brand-packs).
 
-## Suriin ang isang composition laban sa design system
+Ang **Fonts for Linux (.rpm)** ay nagpa-pack ng mga font na idinagdag mo sa naii-install na RPM. Kung ikaw mismo ang nag-upload ng alinman sa mga ito, hihilingin muna ng Lolly na kumpirmahin mong puwede mong i-redistribute ang mga ito.
 
-Sa Design, buksan ang **Export**, tapos ang **Before you export**. Gumagamit ang check ng parehong effective na bersyon ng design system na ginagamit ng render. Inikukumpara nito ang mga authored na kulay, token alias, pinili na font at image asset ID. Maaaring sinasadya ang custom na value; ang isang larawan sa labas ng mga deklaradong brand asset ay isang review item, hindi isang ipinagbabawal na larawan.
+### Ibalik ang naunang mga setting
 
-Kung saan may available na konkretong suhestyon ng kulay o font, binabago ng button nito ang layer na iyon lang. Ibinabalik ng normal na **Undo** ang orihinal na value. Hindi pinapatungan ng isang lumang suhestyon ang mga naka-lock o nabagong layer. Nananatiling hiwalay ang nawawalang source evidence sa isang match. Sinusuri ng mga umiiral na mounted check ang rendered contrast at text layout. Hindi sinusuri ng brand comparison ang mga gradient, effect, nested tool content, rights at subjective quality. Hindi hinaharang ng mga check ang Download.
+Piliin ang **Restore brand settings**, pumili ng may-petsang checkpoint at pindutin ang **Restore**. Ibinabalik nito ang mga kulay, type setting at iba pang token para sa aktibong brand; nananatili ang mga font at larawang file. Sine-save muna ng Lolly ang kasalukuyan mong mga setting bilang **Before restore**, para mabawi mo ang restore kahit pagkatapos isara ang browser. Iniingatan sa device na ito ang huling 20 checkpoint.
 
-## Gamitin ang design context nang lokal
+### Mga bersyon
 
-Kasama sa **Download design context** ang token document, mga na-resolve na kulay, deklaradong font family, asset ID, source evidence kung saan naitala, coverage at explicit na rules. Hindi kasama rito ang mga font file o patunay ng pagmamay-ari. Kasama rin sa reference review ang mga iminumungkahing token at obserbasyon nito.
+Ang nailathalang bersyon ay **permanente at pinangalanang kopya** na iniingatan sa device na ito. Hindi ito nagbabago, kaya ang tool o link na nagpa-pin dito (gamit ang `designv`) ay patuloy na gumuguhit ng parehong bagay. Ang system na may sarili mong laman ay nagpapakita ng tahimik na **Versions & publishing** link sa paanan ng rail; pagkatapos ng unang publish mo, nagiging **Versions** na entry ito. Direktang binubuksan ito ng `#/start?area=versions`.
 
-Kayang basahin ng CLI ang alinman sa dalawang download nang walang server:
+- **Permanente ang bersyon.** Wala pang pagbura, at sinasabi ito ng panel.
+- **Nangunguna ang mga pag-alis sa compatibility card**, dahil ang inalis na token ang sumisira sa tool.
+- **Hindi mababawi ang pag-publish; mababawi ang pag-restore.** Ang *Restore latest from this version* ay karaniwang edit, na may **Undo** na iniaalok agad.
 
-```bash
-lolly system import ./lolly-design-context.json
-lolly system context --output=design-context.json
-lolly system check ./design-inputs.json --file=design-context.json
-```
+Ang **Publish only** ay nag-iingat ng bersyon nang hindi binabago ang sinusundan ng mga tool; ang **Publish and make active** ay ginagawang sumunod ang mga tool at app sa bersyong iyon. Ang **Follow the latest again** ay ginagawang live ang bawat edit sa sandaling gawin mo ito.
 
-Tinatanggap ng `system check` ang mga input ng Design na may `boxes` array o isang compiled na Design document. Iniuulat nito ang mga iminumungkahing fix nang hindi binabago ang composition. Hindi nito kayang sukatin ang browser layout o rendered contrast. Inilalantad ng umiiral na MCP resource na **lolly://design-context** ang context ng effective na system sa pamamagitan ng na-configure na lokal na MCP process; walang bagong hosted service o API key na kailangan.
+## Pamahalaan ang mga design system mo
+
+Buksan ang **Settings → Preferences → Design systems** para lumipat, magdagdag o mag-alis ng mga system. Pinipili ng **Open** ang system at binubuksan ito rito; ang **Make a new one** ay gumagawa ng lokal na system at binubuksan ito na handa ang name field nito. Isang system ang aktibo sa isang pagkakataon, para sa buong device. Tinutulungan ka ng [Brand architectures](/info/brand-architectures.html) magpasya kung kailan kailangan ng brand ng sarili nitong design system.
+
+**Kung saan nanggagaling ang system.** Ang system na ibinibigay ng catalogue ng deployment ay nagsasabing **Came with this app**, o **From this instance** sa app na nakakonekta sa isa. Palawakin ang **Catalogue source** para makita kung sino ang nagbibigay nito, ang tokens asset at namespace nito at ang alam na bersyon o checksum nito; kung mabigo ang refresh, may label ang cached na materyal.
+
+**Read-only ang mga managed na system.** Ang system ay nagsasabing **Managed by this instance** (o **Managed by this app** sa desktop app na walang instance) kapag nilo-lock ito ng catalogue nito. Puwede mo itong gamitin at i-download, at ang pagbukas dito ay nagpapakita ng read-only na tala na may **Make an editable copy** at **Switch**. Nananatiling mae-edit ang sarili mong mga lokal na system, kahit mas nauna ang managed. Ang build na may isang nakapirming brand ay nagbubukas ng Design System Setup sa *This brand is set*, kasama ang mga token at usage rule ng brand na mababasa.
+
+**Ang bawat ibang ibinigay na system ay sa iyo** na itago, i-edit at i-reset, kasama ang Lolly Demo at Lolly Starter sa lolly.tools. Ang pag-edit ng isa ay nag-iingat ng pangalan nito at minamarkahan ang row na **Edited here**, at ang **Reset to original** sa menu nito ay itinatapon ang mga pagbabagong ginawa sa device na ito. Ang blangkong starter ang eksepsiyon: ang unang pagbabago roon ay nagsisimula ng sarili mong design system, kaya minsang itinatanong ng Lolly kung ano ang itatawag sa bagong system. Ipinapakita ng [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) kung ano ang papalitan ng sarili mong system.
+
+### Pag-alis ng design system
+
+Piliin ang **Remove** mula sa menu ng system; sinasabi ng kumpirmasyon kung aling system ang magiging aktibo pagkatapos. Nananatili ang mga naka-save na session, upload at materyal na ibinahagi sa ibang system.
+
+Ang pag-alis ng ibinigay na system ay nagtatago lang dito: nananatili ang mga catalogue asset nito, ipinapakita itong muli ng **Bring back** at kusa itong bumabalik kung aalisin mo ang lahat ng iba. Ang pag-alis ng na-import o na-edit na kopya ay hindi nag-aalis ng ibinigay na system, ng mga logo o font nito, at kung aktibo ang kopya, ang ibinigay na system ay muling nagiging aktibo. Ang pag-alis ng aktibong hosted na kopya ay nililinis lang ang koneksyon ng kopyang iyon; nananatiling napili ang hiwalay na pinili mong instance.
+
+Ang pagbabago sa ibinibigay ng server ay gawain ng administrator: binabago ng operator nito ang source catalogue at nire-redeploy, o nire-review at inilalapat ng Lolly Work administrator ang pagbabago sa server. Lokal ang mga edit dito. Tingnan ang [Pag-alis ng catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) at [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+
+## Gamitin ang design context sa labas ng app
+
+Sine-save ng **Download design context** ang token document, mga nareresolbang kulay, mga declared na font family, asset id, source evidence kung naitala, coverage at tahasang mga rule, na walang font file at walang patunay ng pagmamay-ari. Binabasa ng command line ang file nang walang server: ang `lolly system import` ay ginagawa itong design system ng terminal at ang `lolly system check` ay sinusuri ang mga Design input laban sa naka-save na context. Sinasaklaw ng [Dalhin ang design system mo](/info/cli.html#bring-your-design-system) ang import at sinasaklaw ng [Aling design system ang ginagamit ng command](/info/cli-decks.html#which-design-system-a-command-uses) ang check, at binabasa ng MCP client ang parehong brief mula sa `lolly://design-context` ([MCP Server](/info/mcp.html)).
+
+## Saan susunod
+
+- **[Paggamit ng Lolly](/info/using.html)**: ang mga tool, pag-save, pagbabahagi at Assets.
+- **[Brand architectures](/info/brand-architectures.html)**: kung paano nagmamapa ang mga division, produkto, endorsed brand, kliyente at season sa mga design system, colourway at logo identity.
+- **[Design Tokens](/info/design-tokens.html)**: ang token model na pinagsusulatan ng brand mo.
+- **[Mag-export ng file](/info/exporting.html)**: mga print unit, CMYK at ang mga format na pinagre-renderan ng brand mo.

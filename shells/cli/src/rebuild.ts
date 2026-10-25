@@ -132,7 +132,7 @@ export async function rebuildSession(artifactPath: string, lollyPath: string): P
       `--rebuild can only compare the byte-stable formats: ${REBUILDABLE_FORMATS.join(', ')}. ` +
       `"${basename(artifactPath)}" is ${format || 'unrecognised'}. Raster and PDF output is laid out and ` +
       'rasterised by a browser engine, so identical inputs do not give identical bytes across versions ' +
-      '(see /info/determinism.html). Nothing was compared.',
+      '(see /info/build/determinism.html). Nothing was compared.',
       'FORMAT_NOT_REBUILDABLE',
     );
   }
@@ -323,8 +323,10 @@ async function collectReasons(
 
   // (d) the design system (plans/319). Only when BOTH sides name one: the artifact's
   // record, and the record the rebuilt file wrote about this machine's system. One
-  // side without a record is "could not tell", which is not a reason.
-  const drawn = designRecordWords(recorded), here = designRecordWords(rebuiltRecord);
+  // side without a record is "could not tell", which is not a reason. The brand
+  // skills an agent declared (plan 323) are not part of the design system, so the
+  // comparison leaves them out.
+  const drawn = designRecordWords(recorded, { skills: false }), here = designRecordWords(rebuiltRecord, { skills: false });
   if (drawn && here && drawn !== here) {
     reasons.push({ code: 'design-system', detail: `the artifact was drawn with ${drawn}; this rebuild drew with ${here}` });
   }

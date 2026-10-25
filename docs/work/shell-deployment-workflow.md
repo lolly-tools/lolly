@@ -1,5 +1,24 @@
 # Shell deployment workflow
 
+This page is for an operator who serves the Lolly web app from a private Work instance
+and wants to publish a newer, qualified build of it without rebuilding the Work image.
+The accepted image, engine pin, pack and public key stay as they are; only the web app
+moves forward. The deployment is resumable, so an interrupted run picks up where it
+stopped without repeating a change it already made.
+
+::: timeline
+- <!--i:checklist--> **Qualify.** The exact Lolly main commit passes CI.
+- <!--i:document--> **Request.** A workflow, or the local command, turns that CI attempt into a deployment request.
+- <!--i:layers--> **Prepare.** Build once, assemble the private inputs and qualify the candidate.
+- <!--i:upload--> **Deploy.** One resumable command stages, publishes and observes the new web app.
+:::
+
+The detailed release-engineering runbooks behind this page, for the public web app's
+update lanes, release classification and model checks, live in the Lolly repository's
+[scripts guide](https://github.com/lolly-tools/lolly/blob/main/scripts/README.md#hosted-web-app-releases).
+
+## Prepare the request
+
 Use Lolly's **Prepare shell deployment request** GitHub workflow after its exact
 main commit has qualified. Select `public-ready` for an eligible UI change or
 `release-ready` after the full suite. Supply the Lolly commit, CI run and attempt.
@@ -31,8 +50,10 @@ python3 -B scripts/verify-shell-qualification.py \
   --tier public-ready --out "$PRIVATE_RELEASE/request"
 ```
 
+## Prepare and deploy
+
 Build once with `prepare-shell-update.ts`, assemble with
-`assemble-private-shell-input.py`, and qualify with `prepare-private-shell.py`.
+`assemble-private-shell-input.py` and qualify with `prepare-private-shell.py`.
 These maintained commands retain the accepted image, engine pin, pack and public
 key. Their output remains bound to the complete manifest and source custody.
 If the source is unchanged, an already prepared artifact can be reused after a
@@ -98,55 +119,12 @@ secret scan and custom security scan. Full CI continues in the same run. Backend
 engine, authentication, database, dependency, unknown-path and CI policy changes
 require release-ready. A public-ready receipt never claims full-suite success.
 
-Changing the CI policy itself needs full qualification. This initial rollout also
-includes a Rustls Cargo dependency patch, so the first subsequent production
-release needs the matched release path with full qualification to establish a
-new baseline. The existing producer checks the complete source delta against the
-retained engine baseline; a UI-only request cannot carry that dependency change.
-The CI fast check does not override build compatibility.
+Changing the CI policy itself needs full qualification. The producer checks the
+complete source change against the retained engine baseline, so a request limited to the
+web app cannot carry a dependency change, and the fast CI check does not override build
+compatibility.
 
-## Timing and rollout
-
-The previous deployment spent roughly 369 seconds preparing the local shell even
-though Vite took about 11 seconds. Copying and repeated content hashes also cost
-several minutes. Guard batching reduces network round trips while keeping each
-fresh response, and this command avoids rebuilding accepted artifacts or replaying
-successful stages. The journal records preparation durations and preserves the
-existing operators' per-command timings.
-
-Local delta validation indexes candidate paths once before checking every
-protected resource. This avoids scanning the entire candidate for each accepted
-file while retaining the exact path, size and content-hash comparisons. Asset
-hashing, clone custody, source checks and publication guards still run normally.
-To compare the former scan and indexed lookup on saved manifests:
-
-```sh
-node scripts/benchmark-shell-update-delta.ts \
-  "$PRIVATE_RELEASE/previous-shell.manifest.json" \
-  "$PRIVATE_RELEASE/candidate-shell.manifest.json"
-```
-
-The read-only benchmark reports three samples for each implementation and checks
-that their complete deltas match. It measures in-memory manifest comparisons;
-JSON parsing, asset hashing, building, retention and publication are excluded.
-
-Fresh file hashes use a zeroed read buffer capped to the file size and 1 MiB.
-Empty files keep a one-byte buffer so the EOF read still detects concurrent
-growth. Every descriptor, path, stamp and directory check remains in place;
-each inventory still reads and hashes every byte. To measure a complete saved
-tree, checking the resulting manifest bytes and reporting its shell ID:
-
-```sh
-node scripts/benchmark-shell-manifest.ts \
-  "$PRIVATE_RELEASE/prepared-shell" \
-  "$PRIVATE_RELEASE/prepared-shell.manifest.json"
-```
-
-An optional third argument selects a saved `shell-update-files.ts` helper for
-before-and-after measurements. Alternate the order on the same immutable tree
-and preserve all samples. The benchmark measures one fresh inventory; it does
-not measure cloning, complete retention, building or publication. Filesystem
-caches and host load affect the result.
+## Publishing without a Work restart
 
 The [immutable shell-pointer mode](../deploy/helm/IMMUTABLE-SHELL-RELEASES.md) is a
 separate opt-in server capability. Its one-time image, configuration and volume

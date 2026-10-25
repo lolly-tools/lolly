@@ -1,6 +1,6 @@
 {
   "name": "Fragment kodu",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Pokaż tekst w oknie pulpitu, jako obraz nieruchomy albo reżyserowaną interakcję z pisaniem, zaznaczaniem, autouzupełnianiem i ruchem.",
   "inputs.code.label": "Kod",
   "inputs.code.placeholder": "Wklej swój kod tutaj…",
   "inputs.fileName.label": "Nazwa pliku",

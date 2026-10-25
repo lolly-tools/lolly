@@ -1,5 +1,5 @@
 {
   "name": "Ciemnia",
-  "description": "Profesjonalna ciemnia do korekcji kolorów: style filmowe, zewnętrzne pliki LUT .cube, zabiegi kolorystyczne systemu projektowego i tekstura wykończenia - a następnie zapisz swój styl jako LUT, którego użyje dowolny edytor. Otwiera też plik Photoshop lub GIMP jako warstwy: ustawiaj, mieszaj i ukrywaj każdą z nich, koryguj całą kompozycję i eksportuj płaskie obrazy albo warstwowy PSD.",
+  "description": "Koloryzuj zdjęcia i wideo looks filmowymi, presetami Adobe XMP, LUT-ami .cube i kolorami systemu projektowego. Użyj looku ponownie przez eksport LUT lub Koloryzację wideo. Otwiera warstwy Photoshopa i GIMP-a do pozycjonowania, mieszania i eksportu obrazu.",
   "featured.blurb": "Koryguj zdjęcia wyglądami filmowymi, LUT-ami i kolorami marki"
 }
