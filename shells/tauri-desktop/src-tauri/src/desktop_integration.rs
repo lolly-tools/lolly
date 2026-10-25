@@ -120,7 +120,7 @@ pub fn classify_argv(app: &AppHandle, argv: &[String]) {
             if let Some(target) = utility {
                 events.push_target_path("openUtilityFile", path, target);
             } else {
-                events.push_path("openFile", path);
+                deliver_open_file(app, path);
             }
         }
     }
@@ -163,13 +163,22 @@ pub fn classify_opened(app: &AppHandle, urls: &[url::Url]) {
         match opened_event(url) {
             Some(Opened::DeepLink(link)) => events.push("deepLink", link),
             Some(Opened::OpenFile(path)) => {
-                let canon = path.canonicalize().unwrap_or(path);
-                events.push_path("openFile", canon);
+                deliver_open_file(app, path.canonicalize().unwrap_or(path));
             }
             None => {}
         }
     }
     focus_main(app);
+}
+
+/// Hand a file the person chose to open (Finder, argv, File > Open..., Open
+/// Recent, the Dock menu) to the web side through the queue, and record it as
+/// a recent document (plans/321 M1). Hot-folder arrivals do not come this way:
+/// nobody chose them, so they are not recents.
+pub fn deliver_open_file(app: &AppHandle, path: PathBuf) {
+    let events: State<'_, DesktopEvents> = app.state();
+    crate::native_frame::note_recent(app, &path);
+    events.push_path("openFile", path);
 }
 
 pub fn focus_main(app: &AppHandle) {

@@ -8,6 +8,7 @@ mod desktop_integration;
 mod embedded_assets;
 mod live_server;
 mod menu;
+mod native_frame;
 mod native_transport;
 mod nearby;
 mod oauth;
@@ -141,6 +142,9 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             desktop_integration::desktop_note_export,
             desktop_integration::desktop_reveal_export,
             menu::set_menu_data,
+            // The macOS unified title bar's drag and double-click (plans/321 M1):
+            // one verb the page may ask for, instead of a window permission.
+            native_frame::desktop_titlebar,
             capture::capture_page,
             capture::capture_page_pdf,
             capture::capture_page_walk,
@@ -210,6 +214,9 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             webgpu_qualification::setup(app)?;
             presentation_windows::build(app, &windows)?;
             let handle = app.handle().clone();
+            // The Dock icon's menu (plans/321 M1). Its rows arrive with the
+            // frontend's first set_menu_data push.
+            native_frame::install_dock_menu(&handle);
             if !search_provider {
                 desktop_integration::classify_argv(
                     &handle,
