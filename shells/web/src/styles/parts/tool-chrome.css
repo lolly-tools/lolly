@@ -878,7 +878,8 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   color: var(--ui-color-text-muted);
 }
 .preflight-finding-link {
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   align-items: center;
   min-height: 24px;
   margin-block-start: var(--sp-2);

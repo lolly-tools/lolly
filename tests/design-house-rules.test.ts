@@ -202,6 +202,40 @@ test('logo surface falls back to the catalog logos when the rule lists none', ()
   assert.deepEqual(result.findings.map((f) => [f.layerId, f.expected]), [['l', 'pack/logo/positive']]);
 });
 
+test('logo surface names logos by their catalog names in the message and keeps the ids for agents', () => {
+  const rule = { ...rules.find((r) => r.id === 'logo-surface')!, parameters: { light: ['pack/logo/positive'], dark: ['pack/logo/reverse', 'pack/logo/mono-reverse', 'pack/logo/plain'] } };
+  const boxes = [
+    { id: 'a1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#13294b' },
+    { id: 'l', kind: 'image', frame: 'a1', x: 0, y: 0, w: 200, h: 60, image: 'pack/logo/positive' },
+  ];
+  const catalog = {
+    assets: [
+      { id: 'pack/logo/positive', name: 'Pack Wordmark - Positive' },
+      { id: 'pack/logo/reverse', name: 'Pack Wordmark - Reverse' },
+      { id: 'pack/logo/mono-reverse', name: '  Pack Mark - Mono reverse  ' },
+      { id: 'pack/logo/plain' },
+      { id: 'pack/icons/anchor', name: 'Anchor' },
+    ],
+  };
+  const [named] = checkDesignHouseRules(boxes, [rule], doc, { catalog }).findings;
+  assert.equal(named!.message,
+    `${rule.label}. The logo “Pack Wordmark - Positive” sits on a dark surface; use “Pack Wordmark - Reverse”, “Pack Mark - Mono reverse” or pack/logo/plain.`,
+    'names where the catalog gives them, the id where it does not, and no comma before "or"');
+  assert.equal(named!.value, 'pack/logo/positive', 'value stays the id');
+  assert.equal(named!.expected, 'pack/logo/reverse, pack/logo/mono-reverse, pack/logo/plain', 'expected stays the ids');
+
+  // No catalog, or a catalog with no names: the ids, as before.
+  const [bare] = checkDesignHouseRules(boxes, [rule], doc).findings;
+  assert.equal(bare!.message, `${rule.label}. The logo pack/logo/positive sits on a dark surface; use pack/logo/reverse, pack/logo/mono-reverse or pack/logo/plain.`);
+  assert.deepEqual([bare!.value, bare!.expected], [named!.value, named!.expected]);
+  const [unnamed] = checkDesignHouseRules(boxes, [rule], doc, { catalog: { assets: [{ id: 'pack/logo/positive', name: '' }, null, 'x'] } }).findings;
+  assert.equal(unnamed!.message, bare!.message);
+
+  // One choice reads as one name.
+  const single = { ...rule, parameters: { light: ['pack/logo/positive'], dark: ['pack/logo/reverse'] } };
+  assert.match(checkDesignHouseRules(boxes, [single], doc, { catalog }).findings[0]!.message, /; use “Pack Wordmark - Reverse”\.$/);
+});
+
 test('hidden layers, unreadable input and rules with unreadable parameters never throw', () => {
   assert.deepEqual(run(board({ id: 'hidden', role: 'title', text: 'Hidden', fontSize: 72, weight: '900', hidden: true })).findings, []);
   for (const input of [null, undefined, 'boxes', 42, [null, 'x', 3]]) assert.deepEqual(run(input as unknown as unknown[]).findings, []);
@@ -209,6 +243,28 @@ test('hidden layers, unreadable input and rules with unreadable parameters never
   const result = checkDesignHouseRules(board({ id: 't', text: 'Words' }), broken, doc);
   assert.ok(result.unknown.includes('headline-weight') && result.unknown.includes('align-left') && result.unknown.includes('pairings'));
   assert.deepEqual(checkDesignHouseRules(board({ id: 't', text: 'Words' }), rules, null).unknown.includes('pairings'), true);
+});
+
+test('a layer on a hidden artboard or inside a hidden group is not drawn, so it is not checked', () => {
+  const heavy = { role: 'title', text: 'Heavy headline', fontSize: 72, weight: '900' };
+  const boxes = [
+    ...board({ id: 'shown', ...heavy }),
+    { id: 'a2', kind: 'frame', x: 2000, y: 0, w: 1920, h: 1080, bg: '#ffffff', hidden: true },
+    { id: 'on-hidden-board', kind: 'text', frame: 'a2', x: 2100, y: 100, w: 600, h: 80, align: 'left', fg: '#13294b', ...heavy },
+    { id: 'g1', kind: 'group', frame: 'a1', hidden: true },
+    { id: 'g2', kind: 'group', frame: 'a1', group: 'g1' },
+    { id: 'in-hidden-group', kind: 'text', frame: 'a1', group: 'g1', x: 100, y: 300, w: 600, h: 80, align: 'left', fg: '#13294b', ...heavy },
+    { id: 'in-nested-group', kind: 'text', frame: 'a1', group: 'g2', x: 100, y: 500, w: 600, h: 80, align: 'left', fg: '#13294b', ...heavy },
+  ];
+  assert.deepEqual(run(boxes).findings.filter((f) => f.ruleId === 'headline-weight').map((f) => f.layerId), ['shown']);
+  // A hidden panel is not the surface under a text either: the text reads against the artboard.
+  const surface = [
+    { id: 'a1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#ffffff' },
+    { id: 'g', kind: 'group', frame: 'a1', hidden: true },
+    { id: 'panel', kind: 'box', frame: 'a1', group: 'g', x: 0, y: 0, w: 1920, h: 1080, bg: '#13294b' },
+    { id: 'sand', kind: 'text', frame: 'a1', x: 100, y: 100, w: 600, h: 80, text: 'Sand words', fontSize: 28, weight: '400', align: 'left', fg: '#f3e9d2' },
+  ];
+  assert.deepEqual(run(surface).findings.filter((f) => f.ruleId === 'pairings').map((f) => f.layerId), ['sand']);
 });
 
 test('the combination policy names colours relative to the background token group', () => {

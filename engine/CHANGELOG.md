@@ -6,6 +6,16 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.285.0
+
+- `checkDesignHouseRules`: the `logo-surface` finding's message gives each logo's display name from `opts.catalog.assets` (`DesignBriefCatalogV1`), in quotes, and falls back to the asset id when the catalog gives no name or no catalog is passed. The choices read as one plain list, "use A, B or C". The finding's `value` and `expected` keep the raw asset ids, so `lolly check` and MCP `lolly_check` (which pass catalog facts with names) show names in `message` while `evidence` and `suggestion` still carry the ids. Nothing else in the result changes.
+- `creationFeedback` already hands its `catalog` option to the checker, so its logo findings read the same way when the caller supplies one. The web shell's Before you export card now supplies the asset names from its asset index.
+
+## 1.284.0
+
+- `checkDesignHouseRules` leaves out every layer Design does not draw: a layer with its own `hidden` flag (as before), and now a layer on a hidden artboard or inside a hidden group or layout container, at any depth, read from `designHierarchyIndex`, the hierarchy Design paints from. A hidden layer is also no longer read as the surface under another layer, or as an accent strip along a rounded shape. `lolly check` and MCP `lolly_check` therefore stop reporting brand findings on undrawn layers; the result shape is unchanged.
+- `creationFeedback` passes the boxes straight to the checker: the copy it made to mark those layers hidden is gone, and its house-rule findings are unchanged.
+
 ## 1.283.0
 
 Follows 1.282.0 (brand skills, PR #499), which merges first.

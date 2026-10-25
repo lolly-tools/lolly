@@ -156,6 +156,10 @@ jobs:
       ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
       live_relay: https://lolly.tools/live
       profile: lolly-demo
+    # Passed by name so the signing jobs, which name preview-catalog-signing, receive
+    # that environment's key; an unpassed secret reaches a called workflow empty.
+    secrets:
+      LOLLY_PREVIEW_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_PREVIEW_CATALOG_SIGNING_KEY }}
 
   # Builds and qualifies the image. It holds no registry write permission and
   # writes the image to an archive; the publish job below pushes that archive.

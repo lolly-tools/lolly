@@ -60,12 +60,20 @@ on:
         type: string
         default: lolly-start
     # The release key is an environment secret of release-catalog-signing and the
-    # preview key (LOLLY_PREVIEW_CATALOG_SIGNING_KEY) is an environment secret of
-    # preview-catalog-signing. The two signing jobs name the chosen environment and
-    # read only that environment's key, so callers pass no secret and a job outside
-    # the environment never sees a key. Declaring a key under workflow_call.secrets
-    # would hide the environment secret: the job reads the caller's empty value
-    # instead (run 40079348093).
+    # preview key is an environment secret of preview-catalog-signing. GitHub only
+    # hands an environment secret to a called workflow when the caller passes it by
+    # name, and an unpassed secret is an empty string with no error (runs 40079348093
+    # and 40105124697). So each caller passes, by name, the one key for the
+    # environment it signs in: release callers LOLLY_CATALOG_SIGNING_KEY, preview-web.yml
+    # LOLLY_PREVIEW_CATALOG_SIGNING_KEY. The signing job that names that environment
+    # receives the environment's value. Neither is required, because each caller
+    # passes only one; a missing key still stops the run, since sign-catalog.ts
+    # refuses to sign without one.
+    secrets:
+      LOLLY_CATALOG_SIGNING_KEY:
+        required: false
+      LOLLY_PREVIEW_CATALOG_SIGNING_KEY:
+        required: false
     outputs:
       public_key_jwk:
         description: The checked public pin this frontend was built and signed for

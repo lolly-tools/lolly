@@ -3638,7 +3638,7 @@ ${LANDING_CSS}
 .docs-figure figcaption .shot-cred{position:relative;inset:auto;display:inline-flex;vertical-align:-.4em;margin-inline-start:.45em;margin-block:-.2rem}
 .docs-content img{height:auto;    max-width: min(100%, 40em);    height: auto;   margin: 0 auto; display: block;}
 /* App screenshots (docs/shots.json captures) read at full column width, framed like a window. */
-.docs-content img[src*="/info/shots/"]{max-width:100%;min-width:50%;border-radius:1.2em;
+.docs-content img[src*="/info/shots/"]{max-width:100%;min-width:50%;border-radius:1.2em;background-color:color-mix(in oklab, var(--ui-color-surface-muted) 60%, var(--ui-color-surface-canvas));
   /* The <img> carries hardcoded width/height attrs to reserve layout space (no
      settle shift). Let CSS win over them so a tall PORTRAIT shot (the mobile
      /verify captures) is bounded by HEIGHT and shrinks its width to match, rather

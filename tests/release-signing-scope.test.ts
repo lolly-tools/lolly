@@ -122,9 +122,12 @@ test('native packaging jobs receive signed artifacts and signing jobs run no com
 });
 
 // The release signing secrets are environment secrets, never repository secrets. A job
-// can read one only by naming its gated environment, so no caller may pass one through
-// (a passed value would reach jobs the reviewer never sees) and no job may read the
-// whole secrets context. A new reader has to be added here on purpose.
+// can read one only by naming its gated environment, and no job may read the whole
+// secrets context. A new reader has to be added here on purpose. GitHub hands an
+// environment secret to a called workflow only when the caller passes it by name (an
+// unpassed one is an empty string, runs 40079348093 and 40105124697), so each caller
+// of release-frontend.yml passes, by name, only the key of the environment it signs in.
+// The called job whose `environment:` is that environment then receives its value.
 const SIGNING_SECRETS: Record<string, string> = {
   LOLLY_CATALOG_SIGNING_KEY: 'release-catalog-signing',
   IOS_DIST_CERT_P12: 'release-native-signing',
@@ -140,6 +143,7 @@ const SIGNING_EXPRESSION = gh('inputs.signing_environment');
 test('release signing secrets reach only the jobs that name their gated environment', () => {
   const directory = new URL('../.github/workflows/', import.meta.url);
   const readers: string[] = [];
+  const callers: string[] = [];
   for (const file of readdirSync(directory).filter(name => /\.ya?ml$/.test(name)).sort()) {
     const workflow = parse(readFileSync(new URL(file, directory), 'utf8'));
     assert.doesNotMatch(JSON.stringify(workflow), /toJSON\(\s*secrets\s*\)|secrets\s*\[/, `${file} reads the secrets context dynamically`);
@@ -149,12 +153,21 @@ test('release signing secrets reach only the jobs that name their gated environm
     for (const [id, job] of Object.entries<any>(workflow.jobs ?? {})) {
       if (job.uses) {
         assert.notEqual(job.secrets, 'inherit', `${file} ${id} passes every secret to ${job.uses}`);
-        for (const name of Object.keys(SIGNING_SECRETS)) {
-          assert.equal(job.secrets?.[name], undefined, `${file} ${id} passes ${name} to ${job.uses}`);
+        if (job.uses === './.github/workflows/release-frontend.yml') {
+          const key = job.with?.signing_environment === 'preview-catalog-signing' ? 'LOLLY_PREVIEW_CATALOG_SIGNING_KEY' : 'LOLLY_CATALOG_SIGNING_KEY';
+          assert.deepEqual(Object.keys(job.secrets ?? {}), [key], `${file} ${id} must pass ${key} and nothing else`);
+          assert.match(String(job.secrets[key]), new RegExp(`^\\$\\{\\{ secrets\\.${key} \\}\\}$`), `${file} ${id} must pass ${key} by name`);
+          callers.push(`${file} ${id} ${key}`);
+        } else {
+          for (const name of Object.keys(SIGNING_SECRETS)) {
+            assert.equal(job.secrets?.[name], undefined, `${file} ${id} passes ${name} to ${job.uses}`);
+          }
         }
       }
       const environment = typeof job.environment === 'string' ? job.environment : job.environment?.name;
-      const text = JSON.stringify(job);
+      // A caller's `secrets:` block is checked above. Any other mention of a signing
+      // secret (a `with:` input, a step) still has to sit in the owning environment.
+      const text = JSON.stringify(job.uses ? { ...job, secrets: undefined } : job);
       for (const [name, owner] of Object.entries(SIGNING_SECRETS)) {
         if (!new RegExp(`\\bsecrets\\.${name}\\b`).test(text)) continue;
         // Only release-frontend.yml picks its environment from an input, and each of its
@@ -180,12 +193,27 @@ test('release signing secrets reach only the jobs that name their gated environm
     'release-frontend.yml sign-artifact LOLLY_CATALOG_SIGNING_KEY',
     'release-frontend.yml sign-artifact LOLLY_PREVIEW_CATALOG_SIGNING_KEY',
   ]);
-  // A reusable workflow must not declare a secret its jobs read from an environment:
-  // the declared caller value (empty) hides the environment secret (run 40079348093).
+  assert.deepEqual(callers, [
+    'deployment-suse.yml web-frontend LOLLY_CATALOG_SIGNING_KEY',
+    'desktop-extra.yml frontend LOLLY_CATALOG_SIGNING_KEY',
+    'flatpak.yml frontend LOLLY_CATALOG_SIGNING_KEY',
+    'ios-release.yml frontend LOLLY_CATALOG_SIGNING_KEY',
+    'linux-arm64.yml frontend LOLLY_CATALOG_SIGNING_KEY',
+    'linux-rpm.yml frontend LOLLY_CATALOG_SIGNING_KEY',
+    'macos-intel.yml frontend LOLLY_CATALOG_SIGNING_KEY',
+    'preview-web.yml web-frontend LOLLY_PREVIEW_CATALOG_SIGNING_KEY',
+  ]);
+  // release-frontend.yml declares both keys, neither required, because each caller
+  // passes only its own; a missing key still stops the run in sign-catalog.ts. No
+  // other reusable workflow declares a signing secret.
   for (const file of readdirSync(directory).filter(name => /\.ya?ml$/.test(name))) {
     const call = parse(readFileSync(new URL(file, directory), 'utf8'))?.on?.workflow_call;
     if (!call) continue;
-    assert.equal(call.secrets, undefined, `${file} declares workflow_call secrets`);
+    if (file === 'release-frontend.yml') {
+      assert.deepEqual(call.secrets, { LOLLY_CATALOG_SIGNING_KEY: { required: false }, LOLLY_PREVIEW_CATALOG_SIGNING_KEY: { required: false } });
+    } else {
+      for (const name of Object.keys(SIGNING_SECRETS)) assert.equal(call.secrets?.[name], undefined, `${file} declares ${name}`);
+    }
   }
 });
 
@@ -295,12 +323,14 @@ test('the preview workflow can never reach the release environment or release se
   assert.deepEqual(Object.keys(workflow.on.workflow_dispatch.inputs).sort(), ['min_seq', 'source']);
   const code = text.replace(/^\s*#.*$/gm, '');
   assert.doesNotMatch(code, /release-catalog-signing|release-native-signing|release-images|LOLLY_CATALOG_SIGNING_KEY|IOS_DIST|ASC_KEY|ASC_ISSUER|GHCR_PAT/);
-  assert.doesNotMatch(code, /\bsecrets\./, 'the preview workflow reads no secret itself; the signer reads its environment secret');
+  // Its only secret reference passes the preview key by name to the signer.
+  assert.deepEqual(code.match(/\bsecrets\.[A-Z0-9_]+/g), ['secrets.LOLLY_PREVIEW_CATALOG_SIGNING_KEY']);
   assert.doesNotMatch(text, /secrets:\s*inherit/);
   for (const [id, job] of Object.entries<any>(workflow.jobs)) {
     assert.equal(job.environment, undefined, `${id} names an environment`);
-    assert.equal(job.secrets, undefined, `${id} passes secrets`);
+    if (id !== 'web-frontend') assert.equal(job.secrets, undefined, `${id} passes secrets`);
   }
+  assert.deepEqual(Object.keys(workflow.jobs['web-frontend'].secrets), ['LOLLY_PREVIEW_CATALOG_SIGNING_KEY']);
   const frontend = workflow.jobs['web-frontend'];
   assert.equal(frontend.uses, './.github/workflows/release-frontend.yml');
   assert.equal(frontend.with.signing_environment, PREVIEW_ENVIRONMENT);

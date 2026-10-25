@@ -153,7 +153,7 @@ export interface CreationFeedbackReportV1 {
 export interface CreationFeedbackOpts extends DesignVisibleTextOpts {
   /** The token theme the document is composed in, for alias colours. */
   theme?: string;
-  /** Catalog facts (`DesignBriefCatalogV1`): the logo set a logo rule falls back to. */
+  /** Catalog facts (`DesignBriefCatalogV1`): the logo set a logo rule falls back to, and each asset's display name for a logo finding's message. */
   catalog?: unknown;
   /** Design's `background` input, which a document with no frames paints under every layer. */
   background?: unknown;
@@ -380,13 +380,8 @@ export function creationFeedback(boxes: unknown, rules: readonly BrandRuleV1[] |
   if (rules === undefined && !record(doc)) houseRules = { state: 'no-design-system', checked: 0, findings: [], unknown: [] };
   else if (!designRules.length) houseRules = { state: 'no-rules', checked: 0, findings: [], unknown: [] };
   else {
-    // The checker skips a layer whose own flag is set; a layer on a hidden artboard or in
-    // a hidden group is not drawn either, so it is marked hidden here, in place, keeping
-    // every row's index and so the paint order the surface reading needs.
-    const list = Array.isArray(boxes) ? boxes : [];
-    const isHidden = hiddenTest(list.filter(record));
-    const drawn = list.map((row) => (record(row) && !selfHidden(row) && isHidden(row) ? { ...row, hidden: true } : row));
-    const result = checkDesignHouseRules(drawn, designRules, doc, {
+    // The checker leaves out what Design does not draw, hidden artboards and groups included.
+    const result = checkDesignHouseRules(boxes, designRules, doc, {
       ...(opts.theme ? { theme: opts.theme } : {}),
       ...(opts.catalog !== undefined ? { catalog: opts.catalog } : {}),
       ...(opts.background !== undefined ? { background: opts.background } : {}),
