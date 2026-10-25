@@ -72,6 +72,7 @@
 @import './parts/notfound.css'     layer(chrome);
 @import './parts/overrides.css'    layer(overrides); /* cross-cutting overrides (top-right FAB/profile cluster) */
 @import './parts/iframe-mode.css'  layer(overrides); /* ?iframe: a framed tool draws its output only (lib/iframe-mode.ts) */
+@import './parts/native-titlebar.css'; /* macOS desktop app: the web top row shares the band with the window buttons. UNLAYERED, because the Design bar's sheet is unlayered and a layered rule can never beat it. Gated on html[data-native-titlebar], absent everywhere else */
 @import './parts/a11y.css'         layer(a11y);
 @import './parts/rtl.css'          layer(a11y); /* RTL correctness rules (Arabic) - accessibility layer, wins over views */
 @import './parts/perf-ui.css'      layer(perf); /* First layer wins for !important. Gated on html[data-perf-ui]: absent by default ⇒ no-op. */

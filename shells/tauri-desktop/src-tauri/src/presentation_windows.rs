@@ -30,6 +30,9 @@ pub fn build(app: &App, windows: &[tauri::utils::config::WindowConfig]) -> tauri
         let handle = app.handle().clone();
         let builder = WebviewWindowBuilder::from_config(app, config)?
             .on_web_resource_request(crate::embedded_assets::correct);
+        // The main window's native frame: title sync, and on macOS the unified
+        // title bar's page flag (native_frame.rs, plans/321 M1).
+        let builder = if config.label == "main" { crate::native_frame::main_window(builder) } else { builder };
         #[cfg(feature = "presentation-probe")]
         let builder = builder.initialization_script(include_str!("../tests/presentation-probe.js"));
         let window = builder

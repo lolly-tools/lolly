@@ -68,7 +68,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "time", "sync"] }
 # onnxruntime at build time and LINKS it (~+30 MB to the .app). That linked dylib
 # is not a frontendDist asset, so the ~2 GB `ar` archive-offset trap the README
 # documents for embedded models does not apply.
-ort = "=2.0.0-rc.13"
+ort = "=2.0.0-rc.15"
 # Native reword generation (src/reword.rs, plans/127): SmolLM2 tokenizer loading
 # (reads the staged tokenizer.json verbatim) + temperature/top-p sampling. The
 # fancy-regex feature keeps the pretokenizer pure Rust (no oniguruma C dep) -
@@ -111,6 +111,11 @@ zbus = { version = "5", default-features = false, features = ["tokio"] }
 # WebKit's supplied window configuration and shared media/opener relationship.
 objc2 = "0.6"
 objc2-web-kit = { version = "0.3", default-features = false, features = ["std", "WKUserContentController", "WKWebViewConfiguration"] }
+# The native frame (plans/321): the title-bar double-click, recent documents
+# and the Dock menu. Same versions Wry and tao already build, so nothing new is
+# fetched; only the headers named here are compiled.
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSString", "NSURL", "NSUserDefaults"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSDocumentController", "NSMenu", "NSMenuItem", "NSResponder", "NSWindow"] }
 
 [patch.crates-io]
 glib = { path = "../../../vendor/glib" }

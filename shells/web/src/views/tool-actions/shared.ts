@@ -8,7 +8,7 @@ import { C2PA_FORMATS, PRINT_MARK_FORMATS, SEPARATING_FORMATS } from '@lolly/eng
 import { fmtLabel } from '../../lib/export-format-info.ts';
 export { FMT_LABEL, fmtLabel, keepFormat, CMYK_TIFF_OK, TIFF_OK } from '../../lib/export-format-info.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
+import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.ts';
 import { marksToCsv } from '../../lib/print-marks-csv.ts';
 import type { ExportExperience, PrintMarks } from '../tool.ts';
 
@@ -189,4 +189,48 @@ export interface ArtInfo {
   id: string;
   w: number;
   h: number;
+}
+
+/** The export size the check states, worked out from the same inputs the export reads. */
+export interface PanelSizeInput {
+  /** The manifest canvas in pixels. */
+  manifest: { width: number; height: number };
+  /** True for a tool whose canvas has no size fields (`render.dims === false`). */
+  fixed: boolean;
+  /** The size fields; undefined for a blank or non-positive value. */
+  fields: { w: number | undefined; h: number | undefined };
+  unit: string;
+  /** True when the user, a URL or a restored session set the size, not the tool. */
+  userSet: boolean;
+  /** True when the tool declares physical units for its size fields. */
+  units: boolean;
+  /** The canvas scale a raster export applies when no size is requested. */
+  canvasScale: number;
+}
+
+/**
+ * The size an export will write, and who declared the size. The export reads the size
+ * fields whenever both hold a value (`exportDims`), whoever filled them in: Design
+ * fills them from the artboard. So the stated value is the fields' then, and the
+ * manifest canvas only when a field is blank or the tool has no fields. Who set the
+ * size is a separate fact: a size the tool filled in stays `declaredBy: 'manifest'`
+ * with no declared unit, so the check still refuses to derive a print area from that size.
+ */
+export function panelSize(input: PanelSizeInput): {
+  width: { value: number; unit: string };
+  height: { value: number; unit: string };
+  fromFields: boolean;
+  declaredBy: 'manifest' | 'url';
+  unitDeclared: boolean;
+} {
+  const { manifest, fixed, fields, unit, userSet, units, canvasScale } = input;
+  const fromFields = !fixed && (fields.w ?? 0) > 0 && (fields.h ?? 0) > 0;
+  const fromUser = fromFields && userSet;
+  return {
+    width: fromFields ? { value: fields.w!, unit } : { value: manifest.width * canvasScale, unit: 'px' },
+    height: fromFields ? { value: fields.h!, unit } : { value: manifest.height * canvasScale, unit: 'px' },
+    fromFields,
+    declaredBy: fromUser ? 'url' : 'manifest',
+    unitDeclared: fromUser && units,
+  };
 }
