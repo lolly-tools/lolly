@@ -14,6 +14,7 @@ import { confirmDialog } from '../components/confirm-dialog.ts';
 import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
 import { relTime } from '../lib/rel-time.ts';
+import { currentAddress } from '../lib/url-state.ts';
 import {
   linkSignInHref, linkableProviders, listIdentities, listSignInProviders, unlinkIdentity,
   type LinkedIdentity, type SignInProvider,
@@ -73,7 +74,7 @@ export async function mountLinkedSignIns(into: HTMLElement, opts: { returnTo?: (
     status.hidden = false;
     announce(msg, { assertive: error });
   };
-  const returnTo = opts.returnTo ?? (() => window.location.pathname + window.location.search + window.location.hash);
+  const returnTo = opts.returnTo ?? currentAddress;
 
   const row = (identity: LinkedIdentity): HTMLLIElement => {
     const li = el('li', undefined, 'store-manage--row');

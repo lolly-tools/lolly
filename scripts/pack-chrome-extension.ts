@@ -3,10 +3,12 @@ import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { zipSync } from 'fflate';
+import { buildPageWalkScript } from '../packages/node-shell/src/page-walk-bundle.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = join(ROOT, 'shells/chrome-extension');
 const FILES = ['manifest.json', 'policy.js', 'background.js', 'consent-flow.js', 'consent.html', 'consent.js', 'consent.css', 'content.js', 'inpage.js', 'LICENSE', 'icons/icon-16.png', 'icons/icon-48.png', 'icons/icon-128.png'];
+const PAGE_WALK = 'page-walk.js';
 const PRODUCTION_ORIGIN = 'https://lolly.tools';
 const DEVELOPMENT_ORIGIN = 'http://localhost:5173';
 
@@ -44,6 +46,10 @@ export async function packChromeExtension(opts: { development?: boolean; outputD
     await mkdir(dirname(join(output, file)), { recursive: true });
     await cp(join(SOURCE, file), join(output, file));
   }
+  // The vector screenshot's page walk (shells/web/src/capture/page-walk.ts), built
+  // into the package rather than kept in the source folder. A copy loaded unpacked
+  // from the source has none, and its vector requests fall back to the PNG.
+  await writeFile(join(output, PAGE_WALK), await buildPageWalkScript());
   if (opts.development) {
     manifest.name += ' (Development)';
     for (const entry of manifest.content_scripts) entry.matches.push(`${DEVELOPMENT_ORIGIN}/*`);
@@ -51,7 +57,7 @@ export async function packChromeExtension(opts: { development?: boolean; outputD
     await writeFile(join(output, 'policy.js'), `// SPDX-License-Identifier: MPL-2.0\nconst LOLLY_RELAY_ORIGINS = Object.freeze(['${PRODUCTION_ORIGIN}', '${DEVELOPMENT_ORIGIN}']);\n`);
   }
   const entries: Record<string, Uint8Array> = {};
-  for (const file of FILES) entries[file] = await readFile(join(output, file));
+  for (const file of [...FILES, PAGE_WALK]) entries[file] = await readFile(join(output, file));
   const archive = `${output}.zip`;
   await writeFile(archive, zipSync(entries));
   return archive;

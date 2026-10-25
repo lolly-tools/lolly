@@ -964,6 +964,9 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // below guard on the handle for exactly that window.
   let tileSelect: ReturnType<typeof import('../lib/tile-select.ts')['wireTileSelect']> | null = null;
   void import('../lib/tile-select.ts').then((m) => {
+    // Torn down before the chunk arrived: wiring now would put listeners on the
+    // persistent #view host whose cleanup already ran, so nothing would remove them.
+    if (!mounted) return;
     tileSelect = m.wireTileSelect({
       host: viewEl,
       tiles: selectableTiles,
@@ -1013,6 +1016,13 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // tileMenuHtml/bulkMenuHtml's menuItemHtml, which only run via the callbacks below.
   let ctxMod: typeof import('../lib/context-menu.ts') | null = null;
   void import('../lib/context-menu.ts').then((m) => {
+    // Boot mounts the gallery twice in quick succession (the first paint, then the
+    // catalog-sync remount). A first mount torn down before this chunk arrived used to
+    // wire its menu onto #view anyway, after its cleanup had run, so the listener was
+    // never removed. Registered first, that stale menu took every right-click: it acted
+    // on the torn-down mount's state (Add to favourites changed nothing on screen) and
+    // its preventDefault made the live mount's handler stand aside.
+    if (!mounted) return;
     ctxMod = m;
     const ctxMenu = m.wireTileContextMenu({
       host: viewEl,

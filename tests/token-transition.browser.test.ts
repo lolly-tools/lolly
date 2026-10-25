@@ -9,6 +9,7 @@ import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts
 import { settleEditor } from '../packages/node-shell/src/open-session.ts';
 import type { CanvasCommitEl } from '../shells/web/src/lib/canvas-commit.ts';
 import type { HostV1, TokenSet } from '../engine/src/bridge/host-v1.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'set LOLLY_EXPORT_TEST_URL';
@@ -192,7 +193,7 @@ test('Enter transition links refuse incompatible candidates and render, undo, re
     await page.locator('[data-topbar="redo"]').click();
     await customState(page, false, false);
     await settleEditor(page, 30_000);
-    const saved = page.url();
+    const saved = await settledUrl(page);
     await page.goto(saved);
     await page.waitForFunction(() => !!(document.getElementById('tool-canvas') as CanvasCommitEl)?.__lollyModel);
     await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });

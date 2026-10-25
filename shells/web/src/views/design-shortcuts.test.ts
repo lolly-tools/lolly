@@ -64,6 +64,26 @@ test('the inventory documents every cross-surface Design chord, including style 
   assert.equal(byLabel.get('Keyboard shortcuts'), '?');
 });
 
+test('the view rows list every zoom key the stage answers, Shift digits included', () => {
+  const view = designShortcutGroups('MacIntel').find((group) => group.label === 'View and panels');
+  assert.ok(view);
+  const rows = view.rows.map((row) => [row.keys, row.label]);
+  for (const row of [
+    ['0', 'Fit all'], ['Shift 1', 'Fit all'],
+    ['1', 'Actual size'], ['Shift 0', 'Actual size'],
+    ['Shift 2', 'Zoom to selection'],
+    ['+ / −', 'Zoom in / out'],
+  ]) {
+    assert.ok(rows.some(([k, l]) => k === row[0] && l === row[1]), `the sheet lists ${row[0]}: ${row[1]}`);
+  }
+  // Each Shift row is a real binding, matched on the physical key (`code`), so it holds
+  // on layouts where the shifted digit types something else.
+  const nav = readFileSync(join(here, 'tool-stage-nav.ts'), 'utf8');
+  for (const [digit, verb] of [['Digit0', 'zoomActual'], ['Digit1', 'fit'], ['Digit2', 'fitSelection']] as const) {
+    assert.match(nav, new RegExp(`e\\.shiftKey && e\\.code === '${digit}'\\)\\s*${verb}\\(\\)`), `Shift+${digit.slice(-1)} calls ${verb}()`);
+  }
+});
+
 const SCALE_ROW = 'Scale mode: handles scale fonts, strokes, radii and effects, not only the box';
 
 test('the K row is the canvas binding that turns Scale mode on and off', () => {

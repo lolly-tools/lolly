@@ -58,6 +58,7 @@
  * Run its tests:  node --import ./tests/css-stub.mjs --test shells/web/src/views/design-navigator.test.ts
  */
 import { mergeLayerOrder, mountLayerGroups } from './design-layer-groups.ts';
+import { oncePerFrame, ownWrites } from './design-column-sync.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import { framesAreSequenced, num, renumberFrameOrder } from './free-canvas-math.ts';
 import { thumbnailWork } from './design-thumbnail-work.ts';
@@ -278,16 +279,17 @@ function iconNode(name: IconName): Element | null {
 }
 
 /**
- * A rolling djb2 over the fields of a box. The thumbnail is a clone of the LIVE page, so
- * it goes stale the moment anything ON that page moves - not just when the frame row's
- * own name or size changes. Hashing is how the row memo can carry "and everything drawn
- * inside it" without holding a second copy of the document: it allocates nothing per
- * field beyond the `String(value)` any signature would build, and it is order-sensitive,
- * so a pure z-order swap of two children changes it too.
+ * Each row's own digest, kept for as long as the row object lives. Model rows are
+ * copied on write, never edited in place, so a row object that has been hashed once
+ * never needs hashing again: an edit to one box re-hashes that box, not the document.
  */
-export function hashBox(seed: number, b: Box | undefined): number {
-  let h = seed >>> 0;
-  if (!b) return h;
+const rowDigests = new WeakMap<object, number>();
+
+/** A djb2 over every field of one row, in sorted key order, cached per row object. */
+function rowDigest(b: Box): number {
+  const cached = rowDigests.get(b);
+  if (cached !== undefined) return cached;
+  let h = 5381;
   const push = (s: string): void => {
     for (let i = 0; i < s.length; i++) h = (Math.imul(h, 33) ^ s.charCodeAt(i)) >>> 0;
   };
@@ -297,6 +299,23 @@ export function hashBox(seed: number, b: Box | undefined): number {
     push(k);
     push(typeof v === 'object' ? JSON.stringify(v) : String(v));
   }
+  rowDigests.set(b, h);
+  return h;
+}
+
+/**
+ * A rolling djb2 over the fields of a box. The thumbnail is a clone of the LIVE page, so
+ * it goes stale the moment anything ON that page moves - not just when the frame row's
+ * own name or size changes. Hashing is how the row memo can carry "and everything drawn
+ * inside it" without holding a second copy of the document. The row's digest is cached
+ * per row object (`rowDigest`), and it is folded into the chain a byte at a time, so the
+ * chain stays order-sensitive: a pure z-order swap of two children changes it too.
+ */
+export function hashBox(seed: number, b: Box | undefined): number {
+  let h = seed >>> 0;
+  if (!b) return h;
+  const d = rowDigest(b);
+  for (let s = 0; s < 32; s += 8) h = (Math.imul(h, 33) ^ ((d >>> s) & 0xff)) >>> 0;
   return h;
 }
 
@@ -342,7 +361,13 @@ export function insertAt(ids: string[], id: string, beforeIndex: number): string
 }
 
 export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorHandle {
-  const { stageEl, canvasEl, model, selection, artboard, thumb, actions, narration } = opts;
+  const { stageEl, canvasEl, selection, artboard, thumb, narration } = opts;
+  // The column's own writes, through the model or a host verb, rebuild at once: the code
+  // after them reads the rebuilt rows (`queueFocus`, the rename's hand-back). Every other
+  // emit waits a frame (see design-column-sync.ts).
+  const writes = ownWrites();
+  const model = writes.model(opts.model);
+  const actions = writes.verbs(opts.actions);
   const skin = opts.skin === 'strip' ? 'strip' : 'column';
   const cfg = model.cfg as NavCfg;
   const frameCfg = model.frame as NavFrameCfg | null;
@@ -1827,7 +1852,10 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
   stageEl.appendChild(el);
   render(true);
 
-  const offModel = model.subscribe(() => render());
+  // One rebuild per frame for edits made elsewhere. The shell's paint asked for its
+  // frame first, so this runs after the paint, as the thumbnails need.
+  const rebuild = oncePerFrame(() => render());
+  const offModel = model.subscribe(() => { if (writes.active()) rebuild.now(); else rebuild.schedule(); });
   const offSel = selection.onChange(() => paintActive());
   const offArt = artboard.onChange(() => { listSig = '\u0000'; render(); });
   const offPages = opts.pages?.onChange(() => { listSig = '\u0000'; render(); });

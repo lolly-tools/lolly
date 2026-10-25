@@ -1,6 +1,8 @@
 # Znajdź i odzyskaj swoją pracę
 
-Wszystko, co tworzysz w Lolly, zostaje w przeglądarce lub aplikacji, w której to zrobiłeś, na tym urządzeniu, chyba że włączysz [Synchronizację](/info/sync.html). Zapisana praca jest w **Projektach**. Pobrany plik jest tam, gdzie umieściła go twoja przeglądarka lub system, a kopia zwykle czeka w **Zasobach**. W większości narzędzi praca, której nigdy nie zapisałeś, też jest zachowywana. Ta strona omawia każdy z tych przypadków, a także zamkniętą kartę, wyczyszczone dane przeglądarki, wcześniejsze wersje, usunięte elementy i przenoszenie na inne urządzenie.
+Czegoś brakuje: projektu, którego nigdy nie zapisałeś, pobranego pliku, zeszłotygodniowej wersji albo wszystkiego po wyczyszczeniu przeglądarki. Zacznij od tabeli, a potem idź do sekcji, na którą wskazuje.
+
+Osobista praca zostaje w przeglądarce lub aplikacji, w której ją zrobiłeś, na tym urządzeniu, chyba że włączysz [Sync](/info/sync.html). Organizacja używająca opcjonalnego Lolly Work trzyma też **Team projects** na swoim serwerze, co opisano niżej.
 
 | Co zrobiłeś | Gdzie szukać |
 |---|---|
@@ -10,13 +12,23 @@ Wszystko, co tworzysz w Lolly, zostaje w przeglądarce lub aplikacji, w której 
 | Żadne z powyższych, w narzędziu, które tego nie robi | Tylko karta, w której pracowałeś, do czasu jej zamknięcia |
 | Usunąłeś to w aplikacji | **Kosz**, w **Projektach**, **Zasobach** lub **Ustawienia → Pamięć**, przez 30 dni |
 
+::: figure find-your-work-places
+Gdzie żyje Twoja praca: własna pamięć przeglądarki przechowuje Projects, History i Trash; pobrania trafiają do folderów urządzenia; Sync i plik kopii zapasowej to kopie poza przeglądarką.
+:::
+
+::: details Znajdź wspólną pracę w Lolly Work (opcjonalnie)
+Otwórz Lolly swojej organizacji i zaloguj się, a potem zajrzyj do **Projects → Team projects**. Wspólne sesje są przechowywane przez tę instancję i pojawiają się według Twojego dostępu. Zalogowanie może przywrócić dostęp do tych sesji na innym urządzeniu; nie przywraca Twojej osobistej biblioteki ani kopii zapasowej urządzenia.
+
+W [collabie roboczym](/info/collaborate.html#work-collabs-with-lolly-work-optional) poczekaj na **Saved to work** przed wyjściem. Jeśli brakuje wspólnego projektu, sprawdź, czy jesteś połączony z właściwą instancją, i zapytaj jej operatora o dostęp lub retencję. Wyczyszczenie danych przeglądarki usuwa kopie lokalne, a nie kopię organizacji na serwerze. Zobacz [Use Lolly at your organisation](/info/organisation.html).
+:::
+
 ## Znajdź to, co zapisałeś
 
 1. Naciśnij **Start** w lewym górnym rogu narzędzia.
 2. Otwórz zakładkę **Projekty** na górze ekranu startowego (na telefonie ikona folderu).
 3. Spójrz na pierwszy ekran. Jest tam praca zapisana do **Mojej biblioteki**, a każdy projekt to folder. Aby przeszukać wszystkie foldery naraz, wpisz coś w **Szukaj we wszystkich projektach…** u dołu ekranu.
 
-Element jest nazwany od nazwy pliku, którą wpisałeś w panelu eksportu, albo od swojego narzędzia, na przykład **QR Code**, jeśli nic nie wpisałeś. Otwórz element, a każde ustawienie wraca, gotowe do zmiany i ponownego eksportu. Aby zapisywać nową pracę w ten sposób, zobacz [Zapisywanie i kontynuowanie](/info/using.html#saving-continuing).
+Element jest nazywany według nazwy pliku wpisanej w panelu eksportu albo według narzędzia, na przykład **QR Code**, jeśli nic nie wpisałeś. Otwórz element, a każde ustawienie wraca, gotowe do zmiany i ponownego eksportu. Aby zachowywać nową pracę w ten sposób, zobacz [Saving & continuing](/info/using.html#saving-continuing).
 
 ::: note Nie ma tego w Projektach?
 - Może być w **Koszu**: zobacz [Odzyskaj coś, co usunąłeś](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Foldery, które się zagnieżdżają.** Grupuj zapisane sesje w foldery, a foldery w kolejne foldery, tak głęboko, jak chcesz. Utwórz folder, zmień jego nazwę albo przeciągnij kafelek na inny folder, aby go przenieść; ścieżka okruszkowa prowadzi z powrotem w górę. Sesje zapisane bez folderu pojawiają się wprost w korzeniu **Projektów**.
-- <!--i:clock--> **Sortuj po swojemu.** **Opcje widoku**, przycisk z suwakami w prawym górnym rogu, oferuje **Siatkę** lub **Listę** i sortowanie według **Nazwy**, **Daty dodania**, **Ostatniej modyfikacji** (domyślnie), **Rozmiaru**, a wewnątrz folderu też **Według narzędzia**. Foldery zawsze są na początku, niezależnie od aktywnego sortowania - sortowanie porządkuje tylko sesje i foldery w obrębie własnej grupy.
-- <!--i:document--> **Twórz nową pracę od razu tutaj.** **Nowy zasób** otwiera wspólny selektor. Wybierz **Szablony**, aby zacząć od zapisanego szablonu: otwórz go do edycji albo użyj **+ Dodaj**, aby od razu zapisać nową kreację.
-- <!--i:checklist--> **Zaznaczanie wielokrotne (komputer).** Zaznacz pole wyboru kafelka, przeciągnij ramkę zaznaczenia po pustym miejscu albo użyj **Shift/Cmd-klik**; **prawy przycisk** na kafelku otwiera jego menu kontekstowe. Pasek zaznaczenia oferuje wtedy **Renderuj wybór**, **Przenieś do…**, **Nowy folder**, **Usuń** (co przenosi do kosza), **Edytuj razem** dla dwóch do ośmiu sesji jednego narzędzia, obok siebie pod jednym paskiem bocznym, oraz **Edytuj jako arkusz**, który otwiera zaznaczenie dowolnego rozmiaru lub mieszanki jako wiersze w siatce wsadowej.
-- <!--i:download--> **Renderuj cały folder albo zaznaczenie.** **Renderuj folder** eksportuje każdą zapisaną sesję z folderu - razem z podfolderami - jako jeden zagnieżdżony plik `.zip`. **Renderuj wybór** robi to samo dla dowolnego zaznaczenia wielokrotnego, a pojedyncza sesja renderuje się wprost do własnego pliku. Bez potrzeby Batch/Pro.
-- <!--i:link--> **Przejdź prosto do zapisanych prac narzędzia.** Zaznacz jedno lub więcej narzędzi w galerii Narzędzi i wybierz **Zobacz sesje** z paska zaznaczenia - Projekty otwierają się, pokazując tylko sesje zrobione tymi narzędziami, z przyciskiem **Wyczyść**, aby wrócić do pełnego widoku.
-- <!--i:link--> **Udostępnij zapisaną sesję.** Kliknij sesję prawym przyciskiem (na telefonie naciśnij **•••** na jej kafelku) → **Udostępnij link**, aby skopiować link, który otwiera ją ponownie z tymi samymi ustawieniami; obrazy z twojego urządzenia nie podróżują z linkiem (pełne okno udostępniania: zobacz [Udostępnianie swojej pracy](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Zmień nazwę albo skopiuj sesję.** Kliknij sesję prawym przyciskiem (na telefonie naciśnij **•••** na jej kafelku), aby zobaczyć **Zmień nazwę**, **Duplikat** (kopię w tym samym folderze) i **Przenieś do…**.
+- <!--i:folder--> **Foldery, które się zagnieżdżają.** Grupuj zapisane sesje w foldery, a foldery w folderach, tak głęboko, jak chcesz. Utwórz folder, zmień jego nazwę albo przeciągnij kafel na inny folder, aby go przenieść; okruszki prowadzą z powrotem w górę. Sesje zapisane bez folderu pojawiają się bezpośrednio w korzeniu **Projects**.
+- <!--i:clock--> **Sortuj po swojemu.** **View options**, przycisk suwaków w prawym górnym rogu, oferuje **Grid** lub **List** i sortuje według **Name**, **Date added**, **Last modified** (domyślnie), **Size** oraz, w folderze, **By tool**. Foldery zawsze są pierwsze, niezależnie od aktywnego sortowania - sortowanie porządkuje tylko sesje i foldery w ich własnej grupie.
+- <!--i:document--> **Składaj nową pracę prosto.** **New asset** otwiera wspólny selektor. Wybierz **Templates**, aby zacząć od zapisanego szablonu: otwórz go do edycji albo użyj **+ Add**, aby od razu zapisać nowe dzieło.
+- <!--i:checklist--> **Wielokrotne zaznaczanie (komputer).** Zaznacz pole wyboru kafla, przeciągnij ramkę zaznaczenia przez puste miejsce albo kliknij z **Shift/Cmd**; **kliknij prawym przyciskiem** kafel, aby zobaczyć jego menu kontekstowe. Pasek zaznaczania oferuje wtedy **Render selection**, **Move to…**, **New folder**, **Delete** (przenosi do Kosza), **Edit together** dla od dwóch do ośmiu sesji jednego narzędzia, obok siebie pod jednym paskiem bocznym, i **Edit as sheet**, który otwiera zaznaczenie dowolnego rozmiaru lub mieszanki jako wiersze w siatce batch.
+- <!--i:download--> **Wyrenderuj cały folder lub zaznaczenie.** **Render folder** eksportuje każdą zapisaną sesję w folderze - w tym jego podfoldery - jako jeden zagnieżdżony `.zip`. **Render selection** robi to samo dla dowolnego zaznaczenia wielokrotnego, a pojedyncza sesja renderuje się prosto do własnego pliku.
+- <!--i:link--> **Przejdź prosto do zapisanej pracy narzędzia.** Zaznacz jedno lub więcej narzędzi w galerii Tools i wybierz **View sessions** na pasku zaznaczania - Projects otwiera się, pokazując tylko sesje wykonane tymi narzędziami, z **Clear**, aby wrócić do pełnego widoku.
+- <!--i:link--> **Udostępnij zapisaną sesję.** Kliknij sesję prawym przyciskiem (na telefonie naciśnij **•••** na jej kaflu) → **Share link**, aby skopiować link, który otwiera ją ponownie z tymi samymi ustawieniami; obrazy z Twojego urządzenia nie podróżują z linkiem (pełne okno Share: zobacz [Sharing your work](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Zmień nazwę lub skopiuj.** Kliknij sesję prawym przyciskiem (na telefonie naciśnij **•••** na jej kaflu), aby uzyskać **Rename**, **Duplicate** (kopia w tym samym folderze) i **Move to…**.
 
 ![Wyskakujące okienko Opcje widoku w Projektach: Układ z Siatką i Listą oraz Sortuj według ustawione na Ostatnią modyfikację, obok przycisku odwracającego kolejność](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 To, co wraca, zależy od tego, jak wyszedłeś i którego narzędzia użyłeś:
 
-- **Zamknąłeś kartę albo wróciłeś innym razem.** Niezapisana praca przepada, z wyjątkiem [narzędzi, które zapisują w trakcie pracy](#which-tools-save-as-you-work): otwórz tę pracę z **Projektów**.
-- **Przeładowałeś stronę w tej samej karcie.** Twoje ustawienia wracają z adresu strony. W narzędziach, które nie zapisują w trakcie pracy, obrazy i pliki, które dodałeś z urządzenia, oraz jednowierszowy tekst dłuższy niż 150 znaków nie wracają, ponieważ adres ich nie przechowuje.
-- **Nacisnąłeś Start albo przycisk wstecz w lewym górnym rogu.** Jeśli coś zmieniłeś od ostatniego zapisu, pobrania albo skopiowania, okno **Niezapisane edycje** pyta, czy najpierw zapisać. **Zapisz i wyjdź** zapisuje pracę i przenosi cię do **Projektów** albo z powrotem do folderu projektu, z którego otworzyłeś pracę. **Wyjdź mimo to** odrzuca twoje zmiany: zapisany element wraca do stanu z ostatniego zapisu, a kreacja, której nigdy nie zapisałeś, znika z **Projektów**. **Anuluj** zatrzymuje cię w narzędziu.
+- **Zamknąłeś kartę lub wróciłeś innym razem.** Niezapisana praca przepadła, z wyjątkiem [narzędzi, które zapisują w trakcie pracy](#which-tools-save-as-you-work): otwórz tę pracę z **Projects**.
+- **Przeładowałeś stronę w tej samej karcie.** Twoje ustawienia wracają z adresu strony. W narzędziach, które nie zapisują w trakcie pracy, obrazy i pliki dodane z Twojego urządzenia oraz jednowierszowy tekst dłuższy niż 150 znaków nie wracają, ponieważ adres ich nie przechowuje.
+- **Nacisnąłeś Home lub przycisk wstecz w lewym górnym rogu.** Jeśli coś zmieniłeś od ostatniego zapisu, pobrania lub kopiowania, okno **Unsaved edits** pyta, czy najpierw zapisać. **Save & leave** zapisuje pracę i zabiera Cię do **Projects** lub z powrotem do folderu projektu, z którego otworzyłeś pracę. **Leave anyway** odrzuca Twoje zmiany: zapisany element wraca do stanu z ostatniego zapisu, a dzieło, którego nigdy nie zapisałeś, opuszcza **Projects**. **Cancel** zostawia Cię w narzędziu.
 
 Lolly pyta tylko wtedy, gdy naciśniesz **Start** albo przycisk wstecz w narzędziu. Zamknięcie karty, przeładowanie i własny przycisk Wstecz przeglądarki nigdy nie pytają. Aby mieć pewność, naciśnij **Zapisz jako** albo **Zapisz** w panelu eksportu, zanim opuścisz narzędzie.
+
+Gdy automatyczne odzyskiwanie jest niedostępne, uwaga obok kontrolek edycji mówi, co zachować:
+
+- W narzędziu pracującym na dostarczonym przez Ciebie pliku zapisz swoje ustawienia i zachowaj też oryginalne pliki.
+- W narzędziu nagrywającym albo utility bez akcji Save zapisz lub pobierz wynik przed wyjściem.
+- Aplikacje komputerowe i mobilne mówią, kiedy musisz zapisać ręcznie.
+- W prywatnej współpracy osoba, która zaprosiła, zachowuje dokument i jego historię, w tym zmiany drugiej osoby. Osoba, która dołączyła, pracuje na tymczasowej kopii i powinna zapisać osobną kopię przed końcem sesji.
 
 ::: note Wyszedłeś bez zapisywania przez pomyłkę?
 W narzędziach, które zapisują w trakcie pracy, Historia zachowuje kopię odrzuconych zmian. Otwórz stronę **Historia**, znajdź je pod **Zmiany** i naciśnij **Otwórz jako kopię**. W innych narzędziach zmiany przepadają.
@@ -84,12 +103,15 @@ W narzędziach, które zapisują w trakcie pracy, Historia zachowuje kopię odrz
 ::: details Które narzędzia zapisują w trakcie pracy
 W aplikacji webowej każde narzędzie, które tworzy dokument, zapisuje w trakcie pracy: Design, Chart, QR Code, Text, Sandbox i pozostałe. Te narzędzia nie:
 
-- narzędzia, które pracują na pliku, który przynosisz, takie jak Redact, Sign albo Convert Image, ponieważ Lolly nigdy nie zachowuje kopii tego pliku;
-- narzędzia, które nagrywają z twojej kamery, mikrofonu albo ekranu, takie jak Record, Screen Capture i Voice Recorder;
-- 3D i Darkroom, które przyjmują własny plik;
+- narzędzia pracujące na dostarczonym przez Ciebie pliku, takie jak Redact, Sign lub Convert Image, ponieważ Lolly nigdy nie przechowuje kopii tego pliku;
+- narzędzia nagrywające z kamery, mikrofonu lub ekranu, takie jak Record, Screen Capture i Voice Recorder;
 - narzędzie, w którym nie ma nic do zmiany, takie jak Countdown.
 
-W pozostałych narzędziach pierwsza zmiana umieszcza pracę w **Projektach** tak, jakbyś ją zapisał, a kolejne zmiany są zachowywane w trakcie pracy, gdy tylko narzędzie skończy rysować. Dzięki temu niezapisana kreacja nadal jest w Projektach po zamknięciu karty i otwiera się ponownie ze swoimi zmianami oznaczonymi jako niezapisane. **Wyjdź mimo to** nadal je odrzuca, a Historia zachowuje kopię odrzuconych zmian przez 30 dni. Ponowne otwarcie narzędzia z ekranu startowego zaczyna nową kreację; otwórz wcześniejszą z Projektów.
+W pozostałych narzędziach pierwsza zmiana składa pracę w **Projects**, jakbyś ją zapisał, a późniejsze zmiany są zachowywane w trakcie pracy, gdy narzędzie skończy rysować. Niezapisane dzieło nadal jest w Projects po zamknięciu karty i otwiera się ponownie ze zmianami oznaczonymi jako niezapisane.
+
+**Leave anyway** nadal odrzuca te zmiany, a History zachowuje kopię odrzuconych edycji przez 30 dni. Ponowne otwarcie narzędzia z ekranu głównego zaczyna nowe dzieło; wcześniejsze otwórz z Projects.
+
+3D i Darkroom zapisują w trakcie pracy, ale nie zachowują pliku, który do nich wczytasz, takiego jak model 3D lub LUT. History i **Save** zachowują nazwę, typ i rozmiar pliku, a nie sam plik. Gdy otworzysz pracę ponownie, uwaga mówi, jaki to był plik, a narzędzie działa bez niego, dopóki nie wczytasz go znowu. Zachowaj swoje oryginalne pliki.
 
 Przy włączonej [Synchronizacji](/info/sync.html) kreacja założona w ten sposób trafia na twoje inne urządzenia jak wszystko inne w Projektach. Jej wersje zostają na urządzeniu, na którym powstały.
 
@@ -138,7 +160,7 @@ Automatyczne punkty kontrolne rzednie z wiekiem: jeden na minutę przez ostatni�
 
 Gdy pamięć Historii się zapełni, najpierw usuwane są najstarsze automatyczne punkty kontrolne kreacji, których nie otwierałeś od 30 dni. Zapis jest zawsze zachowywany, nawet wtedy: zapisuje się jako bieżąca praca, a Historia podaje, że ten zapis nie jest zachowywany jako wersja. **Ustawienia → Pamięć** pokazuje, ile miejsca zajmuje Historia.
 
-Strona **History** (`#/history`, albo **Open app history** w panelu) obejmuje każdą kreację w tej przeglądarce. Na komputerze otwórz stronę z przycisku zegara w prawym górnym rogu ekranu startowego albo **Projektów**. Na telefonie przejdź do galerii narzędzi na ekranie startowym, naciśnij okrągły przycisk z logo w prawym górnym rogu i wybierz **Zapisane sesje**, co otwiera History. Z **Projektów** ten element na razie nic nie robi.
+Strona **History** (`#/history`) obejmuje każde dzieło w tej przeglądarce. Aby ją otworzyć, naciśnij przycisk zegara w prawym górnym rogu ekranu głównego lub **Projects**, wybierz **Saved sessions** w menu profilu (na telefonie okrągły przycisk logo w prawym górnym rogu) albo naciśnij **Open app history** w panelu History narzędzia. Aplikacje komputerowe i mobilne nie mają strony History, więc tam przycisk zegara na ekranie głównym i **Saved sessions** otwierają zamiast niej **Your recent work**: Twoje ostatnie zapisane sesje i eksporty, z linkiem do Projects.
 
 - **Ostatnie** wymienia twoje kreacje, od najnowszej, z przyciskiem **Wznów**.
 - **Changes** umieszcza checkpointy, pobrania i wyniki Convert na jednej osi czasu. Pobranie ma **Reopen settings**.
@@ -174,7 +196,7 @@ Logowania, klucze i hasło synchronizacji zostają na każdym urządzeniu. Lista
 ::: details Co zawiera plik kopii zapasowej
 Plik nazywa się `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (części nazwy pochodzą z twojego profilu i są pomijane, gdy nie są ustawione; `<n>` to licznik dzienny, żeby eksporty z tego samego dnia się nie zderzały). Zawiera twój profil, z twoimi folderami, Koszem, szablonami i ulubionymi; każdą zapisaną sesję z jej miniaturą; twoje wgrane obrazy, fonty, logotypy i kopie twoich pobrań; twoje systemy projektowe; twoje preferencje (motyw, szerokość paska bocznego, lokalne statystyki aktywności); zapisane wersje i wyniki z Convert; a z aplikacji webowej - historię wersji twoich kreacji.
 
-Pamięć podręczna katalogu nie jest dołączana - pobiera się sama na nowym urządzeniu. Każda część ma sumę kontrolną, więc plik uszkodzony w transporcie zostaje wychwycony przy imporcie, a nie przywrócony w połowie zepsuty. Zapisane sesje same podpinają się z powrotem do zaimportowanych obrazów. Aplikacja webowa, desktopowa i mobilna czytają ten sam plik; aplikacja terminalowa zapisuje własną, prostszą kopię zapasową, której ten format nie odczytuje. **📦 Eksportuj moje dane & wyrenderuj wszystko** tworzy ten sam plik plus drugi zip, w którym każda zapisana sesja jest wyrenderowana do swojego wyniku. (Pełna specyfikacja formatu: [Transfer danych](/info/data-transfer.html).)
+Pamięć podręczna katalogu nie jest uwzględniona - pobiera się ponownie na nowym urządzeniu. Każda część ma sumę kontrolną, więc plik uszkodzony w transporcie jest wykrywany przy imporcie, a nie przywracany w połowie zepsuty. Zapisane sesje automatycznie łączą się ponownie z zaimportowanymi obrazami. Aplikacje web, komputerowe i mobilne czytają ten sam plik; aplikacja terminalowa zapisuje własną, prostszą kopię zapasową, której ten format nie czyta. **Export my data & render everything** tworzy ten sam plik plus drugi zip z każdą zapisaną sesją wyrenderowaną do jej wyniku. (Pełna specyfikacja formatu: [Data transfer](/info/data-transfer.html).)
 :::
 
 ## Jeśli wyczyścisz dane przeglądarki
@@ -185,11 +207,13 @@ W aplikacji webowej Lolly przechowuje wszystko w pamięci przeglądarki dla tej 
 Naciśnij **Eksportuj moje dane** pod **Ustawienia → Pamięć** i zachowaj plik gdzie indziej.
 :::
 
-Gdy aplikacja się uruchamia, Lolly prosi przeglądarkę, aby nie czyściła jej pamięci, gdy na urządzeniu zabraknie miejsca. Decyduje przeglądarka. Pod **Ustawienia → Dostępne offline** wiersz zaczynający się od **Chronione** oznacza, że przeglądarka się zgodziła; „Przeglądarka może usunąć pobrania, jeśli na urządzeniu zabraknie miejsca” oznacza, że się nie zgodziła, a **Chroń pobrane pliki** pyta ponownie. Jeśli przeglądarka się nie zgodziła, może przy braku miejsca wyczyścić zarówno zapisaną pracę, jak i pobrania, więc trzymaj aktualny plik **Eksportuj moje dane**.
+Gdy aplikacja się uruchamia, Lolly prosi przeglądarkę, aby nie czyściła jej pamięci, gdy urządzeniu brakuje miejsca, a przeglądarka decyduje. W **Settings → Available offline** linia zaczynająca się od **Protected** oznacza, że przeglądarka się zgodziła. "The browser may clear downloads if the device runs low on space" oznacza, że nie, a **Protect downloads** pyta ponownie.
+
+Jeśli przeglądarka się nie zgodziła, może wyczyścić zapisaną pracę, a nie tylko pobrania, gdy zabraknie miejsca, więc trzymaj niedawny plik **Export my data**.
 
 **Ustawienia → Pamięć** pokazuje, ile miejsca zajmuje każdy rodzaj danych. Jej wiersz **Historia** liczy automatyczne punkty kontrolne, ich podglądy i wersje robocze odzyskiwania; **Usuń automatyczne punkty kontrolne starsze niż 30 dni** zwalnia to miejsce i zachowuje zapisane oraz nazwane wersje. **Wyczyść pamięć podręczną** usuwa pobrane pliki katalogu, które pobiorą się ponownie, gdy będą potrzebne. **Wyczyść wszystkie moje dane** prosi cię o wpisanie słowa, wyłącza Synchronizację, a potem usuwa wszystko, co Lolly przechowuje w tej przeglądarce: twój profil i ustawienia, zapisane sesje wraz z ich historią i Koszem, przesłane pliki, fonty i systemy projektowe, dziennik pobrań, wyniki Convert, pobrane modele AI i kopie offline. Pliki, które pobrałeś, zostają tam, gdzie je zapisałeś. Aplikacja uruchamia się wtedy tak, jak przy pierwszej wizycie.
 
-![Karta pamięci na ekranie o szerokości telefonu: nazwana każda kategoria danych na urządzeniu, a na dole przycisk Clear all my data](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Karta pamięci na ekranie o szerokości telefonu: nazwana każda kategoria danych na urządzeniu, z przyciskiem Clear all my data na dole](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 W aplikacjach desktopowych i mobilnych zapisane sesje to pliki we własnym folderze danych aplikacji, a reszta jest we własnej pamięci aplikacji, więc wyczyszczenie przeglądarki internetowej ich nie dotyka.
 

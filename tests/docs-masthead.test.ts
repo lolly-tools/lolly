@@ -174,13 +174,12 @@ test('the chip list is generated from the formats catalog, not hand-written', { 
   const exportable = catalog.formats.filter(f => f.dir !== 'in');
   // Newer formats the old 27-entry hand list never had. If someone replaces the
   // generator with a literal again, these are the first things to go missing.
-  for (const ext of ['.EXR', '.DOCX', '.WOFF', '.PSD', '.EPUB', '.ODT', '.SVGZ']) {
+  for (const ext of ['.EXR', '.DOCX', '.WOFF', '.PSD', '.SRT', '.ODT', '.SVGZ', '.FLAC', '.AAC', '.RPM']) {
     assert.ok(exts.includes(ext), `the chips lost ${ext} - is the list hand-written again?`);
   }
-  // …and one that was in the hand list but is NOT in the catalog: its presence would
-  // mean the literal survived somewhere.
-  assert.ok(!exts.includes('.OGG'), '.OGG is a leftover from the retired hand list');
-  // Every chip must trace back to an exportable catalog entry.
+  // Every chip must trace back to an exportable catalog entry, so a surviving literal
+  // naming a format the catalog does not write fails here. (This used to pin .OGG as
+  // a hand-list leftover; OGG is written now, by a Design sequence and Download as.)
   const tokens = new Set(exportable.map(f => `.${f.token.toUpperCase()}`));
   for (const ext of exts) assert.ok(tokens.has(ext), `${ext} is not an exportable format in the catalog`);
   // Import-only formats are never written, so they are never chips.

@@ -1,0 +1,181 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * The Skills room (plan 323), mounted on the real lolly-demo catalog entries, skill
+ * files and tokens: one row per skill plus the generated baseline, a reader that shows
+ * the brand's text without its frontmatter, the coverage map in the room's four
+ * groups, a refusal when admission fails, the lock on a managed system, and the two
+ * exports another model can read.
+ *
+ * Run: node --import ./tests/css-stub.mjs --test shells/web/src/lib/design-system/rooms/skills.test.ts
+ */
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { JSDOM } from 'jsdom';
+import { unzipSync } from 'fflate';
+import type { AssetRef } from '@lolly-tools/core/host-v1';
+
+const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/#/start?area=skills' });
+Object.assign(globalThis, {
+  window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Element: dom.window.Element,
+  Node: dom.window.Node, DocumentFragment: dom.window.DocumentFragment, location: dom.window.location,
+});
+
+const { mountSkillsRoom } = await import('./skills.ts');
+type Host = Parameters<typeof mountSkillsRoom>[1]['host'];
+
+const ROOT = new URL('../../../../../../', import.meta.url);
+const read = (rel: string): Uint8Array => readFileSync(new URL(rel, ROOT));
+const index = JSON.parse(new TextDecoder().decode(read('brands/lolly-demo/catalog/assets/index.json'))) as { assets?: unknown[] } | unknown[];
+type Entry = { id: string; type: string; name: string; version: string; license?: string; meta?: Record<string, unknown>; formats: Array<{ format: string; url: string; size?: number; checksum?: string }> };
+const entries = ((Array.isArray(index) ? index : index.assets) as Entry[]).filter(a => a.type === 'skill');
+const DOC = JSON.parse(new TextDecoder().decode(read('brands/lolly-demo/catalog/assets/lolly/tokens/demo.json')));
+
+const refOf = (entry: Entry): AssetRef => {
+  const primary = entry.formats[0]!;
+  return {
+    source: 'library', id: entry.id, type: entry.type, format: primary.format, url: primary.url, version: entry.version,
+    meta: { ...entry.meta, name: entry.name, ...(entry.license ? { license: entry.license } : {}), size: primary.size, originalChecksum: primary.checksum },
+  } as AssetRef;
+};
+
+function fixture(opts: { bytes?: (ref: AssetRef) => Uint8Array; locked?: boolean } = {}) {
+  const refs = entries.map(refOf);
+  const downloads: Array<{ blob: Blob; name: string }> = [];
+  const host = {
+    assets: {
+      query: async (filter: { type?: string }) => refs.filter(r => !filter.type || r.type === filter.type),
+      _queryMetadata: async () => refs,
+      get: async (id: string) => refs.find(r => r.id === id)!,
+      bytes: async (target: AssetRef | string) => {
+        const ref = typeof target === 'string' ? refs.find(r => r.url === target)! : target;
+        return opts.bytes ? opts.bytes(ref) : read(`brands/lolly-demo/catalog${ref.url.replace(/^\/catalog/, '')}`);
+      },
+    },
+    tokens: {
+      snapshot: async () => ({ document: DOC, system: null, version: null, selection: {} }),
+      active: async () => ({ label: 'Lolly Demo' }),
+      activeRecord: async () => ({ id: 'shipped', label: 'Lolly Demo', headId: 'lolly/tokens/demo', locked: !!opts.locked, source: { kind: 'shipped' as const } }),
+    },
+    export: { download: async (blob: Blob, name: string) => { downloads.push({ blob, name }); } },
+  } as unknown as Host;
+  const el = document.createElement('div');
+  document.body.append(el);
+  return { host, el, downloads };
+}
+
+async function until(test: () => boolean, what: string): Promise<void> {
+  for (let i = 0; i < 200 && !test(); i++) await new Promise(r => setTimeout(r, 5));
+  assert.ok(test(), `timed out waiting for ${what}`);
+}
+
+test('one row per skill, the brand skill first, and the generated baseline labelled as generated', async () => {
+  const { host, el } = fixture();
+  const room = mountSkillsRoom(el, { host });
+  try {
+    await until(() => el.querySelectorAll('[data-skill-row]').length === 4, 'four rows');
+    const rows = [...el.querySelectorAll<HTMLElement>('[data-skill-row]')];
+    assert.deepEqual(rows.map(r => r.dataset.skillRow), ['lolly/skill/brand', 'lolly/skill/motion', 'lolly/skill/photography', 'baseline']);
+    const first = rows[0]!;
+    assert.match(first.querySelector('.usage-hint')!.textContent!, /^Brand · /);
+    assert.equal(first.querySelector('button')!.textContent, 'Lolly Demo brand standards');
+    assert.match(first.querySelector('.usage-badge')!.textContent!, /Draft/);
+    assert.match(first.textContent!, /Revision 1\.0/);
+    assert.match(first.textContent!, /Public/);
+    assert.match(first.textContent!, /Maintained by Lolly/);
+    const baseline = rows[3]!;
+    assert.match(baseline.querySelector('.usage-badge')!.textContent!, /Generated/);
+    assert.match(baseline.textContent!, /Generated by Lolly/);
+    assert.match(baseline.querySelector('button')!.textContent!, /Lolly Demo baseline/);
+    assert.equal(el.querySelector('.skills-lock'), null, 'an editable system shows no lock');
+    // Every row's title button is a real, labelled control.
+    for (const row of rows) assert.ok(row.querySelector('button[type="button"][aria-controls="skills-reader"]')!.textContent!.trim());
+  } finally { room.teardown(); el.remove(); }
+});
+
+test('the reader shows the brand\'s text without frontmatter, the coverage map and the owner\'s notes', async () => {
+  const { host, el } = fixture();
+  const room = mountSkillsRoom(el, { host });
+  try {
+    await until(() => !!el.querySelector('[data-skills-md] h1'), 'the rendered skill');
+    const md = el.querySelector<HTMLElement>('[data-skills-md]')!;
+    assert.equal(md.querySelector('h1')!.textContent, 'Lolly Demo brand standards');
+    assert.doesNotMatch(md.textContent!, /name: lolly-demo-brand/, 'frontmatter is not prose');
+    assert.equal(md.querySelector('script, [onerror]'), null);
+    const hrefs = [...md.querySelectorAll('a[href]')].map(a => a.getAttribute('href')!);
+    assert.ok(hrefs.includes('#/a?asset=lolly%2Flogo%2Fhorizontal'), 'a catalog mark opens in Assets');
+    for (const href of hrefs) assert.match(href, /^(?:https?:\/\/|#\/a\?asset=)/, 'no link navigates the hash router anywhere else');
+    const groups = [...el.querySelectorAll<HTMLElement>('[data-coverage]')].map(g => g.dataset.coverage);
+    assert.deepEqual(groups, ['checked', 'conflict', 'agree', 'guidance']);
+    const text = el.querySelector('.skills-coverage')!.textContent!;
+    for (const label of ['Lolly checks this', 'Conflicts with your tokens', 'Agrees with your tokens', 'Guidance only']) assert.ok(text.includes(label), label);
+    assert.match(text, /Lines were matched by fixed patterns/, 'the engine\'s note is shown as plain text');
+    assert.ok(Number(el.querySelector('[data-coverage="agree"] .skills-count')!.textContent) > 0, 'the demo palette agrees with the demo tokens');
+    // Approval wording never claims a check.
+    assert.match(el.querySelector('.skills-reader-note')!.textContent!, /draft/i);
+  } finally { room.teardown(); el.remove(); }
+});
+
+test('choosing a row reads that skill; the baseline reads as generated', async () => {
+  const { host, el } = fixture();
+  const room = mountSkillsRoom(el, { host });
+  try {
+    await until(() => !!el.querySelector('[data-skills-md] h1'), 'the first skill');
+    el.querySelector<HTMLButtonElement>('[data-skill-open="lolly/skill/photography"]')!.click();
+    await until(() => el.querySelector('[data-skills-md] h1')?.textContent === 'Lolly Demo photography', 'photography');
+    assert.equal(el.querySelector('[data-skill-open="lolly/skill/photography"]')!.getAttribute('aria-current'), 'true');
+    assert.equal(el.querySelector('[data-skill-open="lolly/skill/brand"]')!.hasAttribute('aria-current'), false);
+    assert.ok(el.querySelector('[data-skill-row="lolly/skill/photography"]')!.hasAttribute('data-selected'));
+    el.querySelector<HTMLButtonElement>('[data-skill-open="baseline"]')!.click();
+    await until(() => /generated/i.test(el.querySelector('[data-skills-md] h1')?.textContent ?? ''), 'the baseline');
+    assert.match(el.querySelector('.skills-reader-note')!.textContent!, /Lolly writes this from the design system/);
+  } finally { room.teardown(); el.remove(); }
+});
+
+test('a skill that fails admission is refused with the reason, never shown in part', async () => {
+  const { host, el } = fixture({ bytes: () => new Uint8Array([0x23, 0x20, 0xff, 0xfe]) });
+  const room = mountSkillsRoom(el, { host });
+  try {
+    await until(() => !!el.querySelector('.skills-refused'), 'the refusal');
+    assert.match(el.querySelector('.skills-refused')!.textContent!, /not valid UTF-8/);
+    assert.equal(el.querySelector('[data-skills-md]'), null);
+    assert.equal(el.querySelector<HTMLButtonElement>('[data-skill-zip]')!.disabled, true, 'nothing to download from a refused skill');
+  } finally { room.teardown(); el.remove(); }
+});
+
+test('a managed system shows its lock', async () => {
+  const { host, el } = fixture({ locked: true });
+  const room = mountSkillsRoom(el, { host, readonly: true });
+  try {
+    await until(() => !!el.querySelector('.skills-lock'), 'the lock');
+    assert.match(el.querySelector('.skills-lock')!.textContent!, /Read-only/);
+    assert.ok(el.querySelector('.skills-lock svg'), 'with its lock glyph');
+  } finally { room.teardown(); el.remove(); }
+});
+
+test('Download skill (.zip) writes a linked Agent Skills folder; Copy as one file copies the same text', async () => {
+  const { host, el, downloads } = fixture();
+  const copied: string[] = [];
+  Object.defineProperty(globalThis, 'navigator', { value: { clipboard: { writeText: async (text: string) => { copied.push(text); } } }, configurable: true });
+  const room = mountSkillsRoom(el, { host });
+  try {
+    await until(() => el.querySelector<HTMLButtonElement>('[data-skill-zip]')?.disabled === false, 'the export buttons');
+    el.querySelector<HTMLButtonElement>('[data-skill-zip]')!.click();
+    await until(() => downloads.length === 1, 'the download');
+    assert.equal(downloads[0]!.name, 'lolly-demo-brand.zip');
+    const files = unzipSync(new Uint8Array(await downloads[0]!.blob.arrayBuffer()));
+    assert.deepEqual(Object.keys(files).sort(), ['lolly-demo-brand/SKILL.md', 'lolly-demo-brand/lolly.json']);
+    const skill = new TextDecoder().decode(files['lolly-demo-brand/SKILL.md']);
+    assert.match(skill, /^---\nname: "lolly-demo-brand"/);
+    assert.match(skill, /lolly-source: "http:\/\/localhost\/catalog\/assets\/lolly\/skills\/brand\/SKILL\.md"/);
+    assert.match(skill, /lolly-revision: "1\.0"/);
+    const companion = JSON.parse(new TextDecoder().decode(files['lolly-demo-brand/lolly.json']));
+    assert.equal(companion.mode, 'linked');
+    assert.equal(companion.asset, 'lolly/skill/brand');
+    assert.equal(companion.system.label, 'Lolly Demo');
+    assert.match(el.querySelector('[data-skills-status]')!.textContent!, /Downloaded lolly-demo-brand\.zip/);
+    el.querySelector<HTMLButtonElement>('[data-skill-copy]')!.click();
+    await until(() => copied.length === 1, 'the copy');
+    assert.equal(copied[0], skill.replace(/\s+$/, '') + '\n', 'one file is the exported SKILL.md when there are no references');
+  } finally { room.teardown(); el.remove(); }
+});

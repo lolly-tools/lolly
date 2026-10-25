@@ -1,4 +1,4 @@
 {
   "name": "Synth",
-  "description": "Çaldığın bir görsel enstrüman. Dört sahne GPU üzerinde canlı çalışır: akışkan mürekkep, başlığına ya da logona uçan bir parçacık sürüsü, bir geri besleme alanı ve kendi kameran. Her renk marka paletinden gelir; görüntü imlecine, bir müzik parçasına ve bir MIDI kontrolcüsüne tepki verir. Durağan bir görüntü ya da kesintisiz bir döngü olarak dışa aktar."
+  "description": "Çaldığın görsel bir enstrüman. Dört sahne GPU üzerinde canlı çalışır: akışkan mürekkep, başlığına veya logona uçan bir parçacık sürüsü, bir geri besleme alanı ve kendi kameran. Her renk tasarım sistemi paletinden gelir; görüntü işaretçine, bir müzik parçasına ve bir MIDI denetleyicisine göre hareket eder. Durağan görsel veya kesintisiz döngü olarak dışa aktar."
 }

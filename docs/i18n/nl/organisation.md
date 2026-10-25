@@ -1,6 +1,6 @@
 # Lolly gebruiken bij je organisatie
 
-Je organisatie kan zijn eigen Lolly draaien: dezelfde app, met de tools en het design system die je organisatie heeft gekozen, en soms een aanmelding. Deze pagina laat zien hoe je hem bereikt en wat er verandert zodra je dat doet.
+Je organisatie kan een eigen Lolly draaien: dezelfde app, met de tools en design systems die zij koos. Deze pagina laat zien hoe je erbij komt, hoe je aanmeldt en wat er verandert zodra je dat doet.
 
 ::: note Wat je van je organisatie nodig hebt
 Het webadres van de Lolly van je organisatie, of een `.lolly`-instelbestand dat je organisatie heeft gemaakt. lolly.tools zelf maakt geen verbinding met een organisatie.
@@ -8,13 +8,15 @@ Het webadres van de Lolly van je organisatie, of een `.lolly`-instelbestand dat 
 
 ## In een browser
 
-Open het adres dat je organisatie je heeft gegeven. Als de pagina je vraagt om aan te melden, druk dan op **Inloggen** en volg de aanmeldpagina die wordt geopend. Daarna werkt het als elke Lolly, met de tools en het design system van je organisatie.
+Open het adres dat je organisatie je gaf. Als de pagina vraagt om aan te melden, druk dan op **Sign in** en volg de aanmeldpagina die opent. Daarna werkt het als elke Lolly, met de tools en design systems van je organisatie.
 
-Een browser heeft geen instelling om over te schakelen naar een andere Lolly, dus open het eigen adres van je organisatie in plaats van lolly.tools.
+Je kunt ook beginnen vanaf lolly.tools: open **Settings**, druk op de kaart **Lolly instance** op **Open a workspace**, voer het adres in en druk op **Open this instance**. De browser gaat naar het eigen adres van je organisatie, omdat een browser de tools van een andere Lolly niet vanaf lolly.tools kan laden.
+
+![De kaart Lolly instance in Settings, waar je de werkruimte van je organisatie opent of wijzigt waar de app zijn tools vandaan haalt](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## In de desktop- of mobiele app
 
-De eerste keer dat de app start, vraagt hij **Waar moet Lolly zijn tools vandaan halen?**
+De app start met de meegeleverde tools. Om te verbinden open je **Settings** en druk je op de kaart **Lolly instance** op **Change**. Het venster vraagt **Where should Lolly get its tools?**
 
 1. Kies **Verbinden met een Lolly-instantie**.
 2. Voer het webadres van je organisatie in en druk op **Controleren en verbinden**.
@@ -23,23 +25,61 @@ De eerste keer dat de app start, vraagt hij **Waar moet Lolly zijn tools vandaan
 
 Tools van een verbonden instantie draaien met hetzelfde vertrouwen als die van de app zelf, dus verbind alleen met een instantie die je vertrouwt. Je organisatie kan je in plaats daarvan een `.lolly`-instelbestand sturen dat de app voor je verbindt.
 
-Om later te wisselen, open je **Instellingen**: de kaart **Lolly-instantie** heeft **Wijzigen** en **Verlaten**.
+Om later te wisselen gebruik je opnieuw **Change**, of **Leave** op dezelfde kaart.
 
-## Aanmelden met een code
+### Aanmelden met een code
 
-Als aanmelden op dit apparaat lastig is en de Lolly van je organisatie dit aanbiedt, druk dan op **Meld je aan met een code op een ander apparaat**. Lolly toont een korte code en een adres: open het adres op een telefoon of computer waar je al bent aangemeld, en voer daar de code in. De code is ongeveer tien minuten geldig.
+In de desktop- en mobiele apps biedt het aanmeldscherm ook een korte code, wanneer de Lolly van je organisatie aanmelden met een code ondersteunt. Druk op **Open sign-in in browser**, meld je aan en keur de code daar goed. Of open het adres dat getoond wordt op een telefoon of computer waarop je al bent aangemeld, en voer de code in. De code is ongeveer tien minuten geldig.
 
 ## Wat daar anders is
 
-- **Sommige bedieningselementen staan al voor je ingesteld.** Een bedieningselement dat je organisatie beheert, toont **Managed by** en de naam van de organisatie, of **Beheerd door je organisatie**. Een vast bedieningselement kan niet gewijzigd worden, een menu biedt misschien maar een deel van zijn keuzes, en een regel die begint met **Set by** kan zeggen welke regel van toepassing is en waarom. Sommige bedieningselementen worden helemaal niet getoond.
-- **Alleen de tools van je organisatie worden vermeld.** Een tool die je organisatie niet aanbiedt, wordt helemaal niet getoond.
-- **Gedeelde projecten.** Als je organisatie projecten met je deelt, toont **Projecten** een tegel **Teamprojecten**.
-- **Sommige exports hebben mogelijk goedkeuring nodig.** Waar je organisatie om goedkeuring vraagt, neemt **Goedkeuring vragen** de plaats in van **Downloaden**, en een tool biedt mogelijk minder formaten.
-- **Je eigen opslag** blijft op dit apparaat tenzij je [Synchronisatie](/info/sync.html) aanzet, zoals overal in Lolly.
+- **Sommige bedieningselementen zijn voor je ingesteld.** Een element dat je organisatie beheert toont **Managed by** en de naam van de organisatie, of **Managed by your organisation**. Een vast element kan niet worden gewijzigd, een menu kan maar een deel van zijn keuzes bieden, en een regel die begint met **Set by** kan zeggen welke regel van toepassing is en waarom. Sommige elementen worden helemaal niet getoond.
+- **Sommige design systems zijn vergrendeld.** Een design system dat je organisatie levert toont een slot en blijft alleen-lezen. Om wijzigingen te proberen, maak je een bewerkbare kopie in **Settings → Preferences → Design systems**.
+- **Alleen de tools van de organisatie staan in de lijst.** Een tool die je organisatie niet aanbiedt, wordt helemaal niet getoond.
+- **Gedeelde projecten.** Als je organisatie projecten met je deelt, toont **Projects** een tegel **Team projects**. Deze sessies staan op de server van de organisatie. Open er een om eraan te werken, of start vanuit **Share** een [werkcollab](/info/collaborate.html#work-collabs-with-lolly-work-optional) wanneer dat beschikbaar is.
+- **Sommige exports hebben mogelijk goedkeuring nodig.** Waar je organisatie om goedkeuring vraagt, komt **Request approval** in de plaats van **Download**, en een tool kan minder formaten bieden.
+
+### Wat waar blijft
+
+::: cols
+## Op dit apparaat
+
+- Je eigen opslagen, tenzij je [Sync](/info/sync.html) aanzet
+- Design systems die je zelf maakte
+- Alles wat je maakt en downloadt
+
+## Op de server van je organisatie
+
+- Je aanmeldidentiteit en apparaatgegevens
+- Teamprojecten, gedeelde sessies en live bewerkingen in een werkcollab
+- Assets die je uploadt naar de gedeelde bibliotheek
+- Goedkeuringsverzoeken en goedgekeurde bezorgingen
+- Gebruiksgebeurtenissen, waar je organisatie ze aanzet
+:::
+
+[Privacy](/info/privacy.html#organisation-services-with-lolly-work) noemt wat de server opslaat en wie die gegevens beheert.
+
+## Wat Lolly Work toevoegt
+
+De server van je organisatie draait **Lolly Work**, de organisatiesoftware van hetzelfde open-sourceproject. De app heeft geen werkaccount en geen Lolly Work nodig wanneer je haar zelfstandig gebruikt.
+
+::: details Wat Lolly Work kan toevoegen
+Je organisatie host [Lolly Work](https://github.com/lolly-tools/lolly-work) naast Lolly en kiest welke functies ze aanzet:
+
+- **Aanmelden en toegang.** Single sign-on van de organisatie, groepsgebaseerde rechten en beheerde profielvelden. Beheerders kunnen accounts via SCIM aanmaken en deactiveren.
+- **Gedeeld werk.** Teamprojecten, gedeelde sessies en [werkcollabs](/info/collaborate.html#work-collabs-with-lolly-work-optional), met live bewerken via de server van de organisatie.
+- **Een gedeelde assetbibliotheek.** Geüploade assets, collecties en gekoppelde bibliotheken, met toegangsregels, versies en review.
+- **Review en bezorging.** Goedkeuringsstappen, beheerde links met verloop of intrekking, en bezorging naar bestemmingen die de organisatie toestaat.
+- **Beheer.** Gebruiksrapportage onder het telemetriebeleid van de instantie, plus een auditrecord van beheerde acties.
+
+Als je de dienst opzet, begin dan met [Deployment](/info/deployment.html#organisation-services-with-lolly-work). De openbare demo op [lolly.work](https://lolly.work) is een sandbox; gebruik het eigen adres van je organisatie voor werk dat je wilt bewaren.
+:::
 
 ## Verlaten
 
-**Verlaten**, op de kaart **Lolly-instantie** in **Instellingen**, verwijdert het design system, de tools en de catalogus van je organisatie. Je eigen werk blijft behouden. Alles wat je met de tools van je organisatie hebt gemaakt, opent niet meer totdat je opnieuw verbinding maakt, en alles wat je bij de organisatie hebt opgeslagen, blijft bij de organisatie. In een browser op het eigen adres van je organisatie is er niets te verlaten: open in plaats daarvan een ander adres.
+**Leave**, op de kaart **Lolly instance** in **Settings**, verwijdert het design system, de tools en de catalogus van je organisatie. Je eigen werk blijft. Alles wat je met haar tools maakte, opent pas weer nadat je opnieuw verbindt.
+
+Alles wat je bij de organisatie opsloeg, blijft bij de organisatie, onder haar toegangs- en bewaarbeleid. Weggaan of dit apparaat wissen verwijdert die serverkopie niet. In een browser op het eigen adres van je organisatie valt er niets te verlaten: open in plaats daarvan een ander adres.
 
 ## Wie je kunt vragen
 

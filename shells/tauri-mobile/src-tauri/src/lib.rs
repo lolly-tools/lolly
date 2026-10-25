@@ -239,7 +239,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_lolly_auth::init())
         .manage(MobileEvents::default())
-        // The website source for the Design System studio (plans/97 section 9)
+        // The website source for Design System Setup (plans/97 section 9)
         // was the first command of this shell's own, because it has to enforce
         // the first-party redirect rule and the byte caps itself; the deep-link
         // queue is the second. Remote HTTP is a bounded command rather than a

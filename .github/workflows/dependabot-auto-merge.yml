@@ -18,22 +18,22 @@
 #      Without it GitHub REFUSES to enable auto-merge (the branch has no green-gate
 #      to wait on), so `gh pr merge --auto` errors - and worse, with protection off
 #      the merge it did manage was IMMEDIATE, landing bumps that no job had passed.
-#      Applied 2026-09-12: every CI job is a required context, by the exact name
-#      GitHub reports it under (the test matrix appears once per shard, e.g.
-#      "test (unit:web)"), with `strict: false` so a bump branch is not forced to
-#      rebase onto every main commit, and `enforce_admins: false` so the
-#      maintainer keeps pushing to main directly. The applied payload is committed
-#      at security/branch-protection-main.json so it is reproducible rather than
+#      The one required check is `qualification`, reported by GitHub Actions
+#      (app 15368). It replaced the 2026-09-12 list of every CI job by name. That
+#      job needs every other job in ci.yml and fails when any of them failed, so
+#      a new job is required as soon as it is added to its `needs:` list. Settings:
+#      `strict: false` so a bump branch is not forced to rebase onto every main
+#      commit, and `enforce_admins: false` so the maintainer keeps pushing to main
+#      directly. The live payload is committed at
+#      security/branch-protection-main.json so it is reproducible rather than
 #      living only in one account's API history:
 #
 #        gh api repos/lolly-tools/lolly/branches/main/protection            # read
 #        gh api -X PUT repos/lolly-tools/lolly/branches/main/protection \
 #          --input security/branch-protection-main.json                     # apply
 #
-#      Its `contexts` list must track the job names in ci.yml. Add a job there and
-#      it is NOT required until it is added here and re-applied; rename one and the
-#      old name blocks every PR forever, because a context that never reports is
-#      simply pending.
+#      Never rename the `qualification` job: a required check that never reports
+#      stays pending and blocks every PR.
 #
 #      NB: this gates ALL PRs, not just Dependabot's, so a shard that is red on
 #      main parks the whole queue until it is fixed.

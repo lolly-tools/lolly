@@ -107,9 +107,20 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
     // The same catalog facts `lolly check` uses, so a themed catalog icon is a known asset here too.
     catalog: () => hostBrandCatalog(ta.host as BrandCatalogHost),
   });
+  // Creation feedback: the design system's house rules, layer by layer, and the writing
+  // score Verify shows. It informs and never gates Download. Loaded on first open, so a
+  // closed Export panel pays nothing for the text analysis.
+  const { readCreationFeedback, creationFeedbackRows, hostAssetNames } = await import('../../lib/creation-feedback.ts');
+  const feedbackRows = creationFeedbackRows(await readCreationFeedback({
+    model: () => runtime.getModel(),
+    snapshot: async () => ta.host.tokens?.snapshot?.(),
+    // Asset names, read once per audit, so a logo finding gives each logo's catalog name.
+    catalog: () => hostAssetNames(ta.host as BrandCatalogHost),
+  }));
   if (!ta.designAuditOpen || generation !== ta.designAuditGeneration) return;
   ta.designAuditRows = [
     ...brandRows,
+    ...feedbackRows,
     ...structuralRows,
     ...mounted.findings.map(
       (finding): PreflightRow => ({

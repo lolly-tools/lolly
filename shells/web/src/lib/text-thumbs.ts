@@ -30,6 +30,7 @@
 import { analyzeTextSignals, makeColorApi } from '@lolly/engine';
 import { audioThumbPool, audioThumbInk, audioThumbLeads, THUMB_SURFACE, type ThumbTheme } from './audio-thumb-colour.ts';
 import { livePalette } from './live-palette.ts';
+import { analysesTextSignals, isTextKind, readableMarkdown } from './text-kinds.ts';
 
 /** One run of the excerpt: plain text, or a heat-marked span (bucket 1-5). */
 export interface TextThumbRun {
@@ -132,8 +133,15 @@ export function textThumbExcerpt(text: string, marks: readonly ThumbMark[]): Tex
   return runs;
 }
 
-/** Analyse a text slice into the thumb model. Pure given the slice. */
-export function textThumbModel(slice: string, totalChars: number): TextThumbModel {
+/**
+ * Analyse a text slice into the thumb model. Pure given the slice. With
+ * `signals: false` (a brand skill, lib/text-kinds.ts) nothing is analysed: the
+ * excerpt is the head of the text, with no heat marks and no score donut.
+ */
+export function textThumbModel(slice: string, totalChars: number, opts: { signals?: boolean } = {}): TextThumbModel {
+  if (opts.signals === false) {
+    return { size: textThumbSize(totalChars), runs: textThumbExcerpt(slice, []), score: 0, band: 'none' };
+  }
   const report = analyzeTextSignals(slice, { source: 'digital' });
   const marks: ThumbMark[] = [];
   for (const f of report.findings) {
@@ -353,12 +361,15 @@ export function mountTextThumbs(
   const build = async (el: HTMLElement): Promise<void> => {
     const id = el.dataset.textThumb;
     const ref = id ? lookup(id) : undefined;
-    if (!id || !ref || ref.type !== 'text') return;
+    if (!id || !ref || !isTextKind(ref.type)) return;
     const key = `${id}|${ref.version ?? ''}`;
     let model = modelCache.get(key);
     if (!model) {
-      const text = await (await fetch(ref.url)).text();
-      model = textThumbModel(text.slice(0, TEXT_THUMB_ANALYSIS_CAP), text.length);
+      const raw = await (await fetch(ref.url)).text();
+      // A skill's tile shows its first words, not its frontmatter, and is not analysed.
+      const signals = analysesTextSignals(ref.type);
+      const text = signals ? raw : readableMarkdown(raw);
+      model = textThumbModel(text.slice(0, TEXT_THUMB_ANALYSIS_CAP), text.length, { signals });
       modelCache.set(key, model);
     }
     paint(el, id, model);

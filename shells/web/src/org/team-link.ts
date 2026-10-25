@@ -35,6 +35,7 @@
  */
 import { commentId } from '@lolly-tools/core/canvas-review-v1';
 import { getSessionSource } from '../lib/session-source.ts';
+import { currentAddress } from '../lib/url-state.ts';
 import { tRaw } from '../i18n.ts';
 import { isRecentlyAbsent, probeInstance } from './probe.ts';
 import { openTeamSession, teamOpenMessage } from './team-open.ts';
@@ -96,7 +97,7 @@ export async function mountTeamLink(view: HTMLElement, rawSessionId: string): Pr
     hasSource,
     loginPath,
     unreachable,
-    returnTo: window.location.pathname + window.location.search + window.location.hash,
+    returnTo: currentAddress(),
   });
 
   if (plan.kind === 'invalid') {

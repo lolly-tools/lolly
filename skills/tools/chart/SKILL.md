@@ -5,7 +5,7 @@ description: "Operate the Lolly Chart tool (chart) using its declared inputs and
 
 # Chart
 
-Tool ID: `chart`. Tool version: `1.27.0`. Engine range: `^1.181.0`.
+Tool ID: `chart`. Tool version: `1.27.1`. Engine range: `^1.181.0`.
 
 Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.
 

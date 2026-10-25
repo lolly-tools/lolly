@@ -326,7 +326,11 @@ test('native image publication is opt-in and follows source, catalog and sandbox
   }
   const frontend = workflowJob(workflow, 'web-frontend');
   assert.match(frontend, /uses: \.\/\.github\/workflows\/release-frontend.yml/);
-  assert.match(frontend, /secrets.LOLLY_CATALOG_SIGNING_KEY/);
+  // The caller passes the release key by name and nothing else; the signing jobs, which
+  // name the release-catalog-signing environment, receive the environment's value.
+  assert.match(frontend, /\n {4}secrets:\n {6}LOLLY_CATALOG_SIGNING_KEY: \$\{\{ secrets\.LOLLY_CATALOG_SIGNING_KEY \}\}\n/);
+  assert.equal(frontend.match(/\$\{\{ secrets\./g)?.length, 1);
+  assert.doesNotMatch(frontend, /secrets: inherit/);
   assert.doesNotMatch(web, /LOLLY_CATALOG_SIGNING_KEY|--secret|release-catalog-signing/);
   assert.match(web, /release-frontend-receipt.ts --verify web/);
   assert.ok(web.indexOf('release-frontend-receipt.ts --verify web') < web.indexOf('docker buildx build'));

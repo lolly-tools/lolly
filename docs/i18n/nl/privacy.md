@@ -1,410 +1,355 @@
 # Privacybeleid
 
-*Laatst bijgewerkt: 11 augustus 2026*
+*Laatst bijgewerkt: 23 oktober 2026*
 
-> **De korte versie.** De documenten, afbeeldingen, video's en bestanden die je in Lolly
-> maakt, blijven op je apparaat. Er zijn geen accounts nodig voor gewoon gebruik, geen
-> cookies van de app zelf en nergens in de codebase analytics of trackers - niet "we
-> gebruiken de data niet," maar écht niet aanwezig in de bron. Er bestaat een korte,
-> volledige lijst uitzonderingen voor de gevallen waarin de software überhaupt met een
-> netwerk praat, en elk daarvan wordt hieronder concreet beschreven: wat er weggaat,
-> naar wie en wanneer. De enige uitzondering die iets persoonlijks betreft, is een
-> aanmelding die je expliciet moet starten. Staat het niet in dit document, dan gebeurt
-> het niet.
+**Dingen maken in Lolly gebeurt op je apparaat.** Een tool openen, typen, een voorbeeld bekijken, exporteren en een bestand controleren: het draait allemaal in de app op je telefoon, computer of browser. Je hebt geen account nodig en de app plaatst daarvoor geen cookies.
+
+**Wat je maakt verlaat je apparaat alleen als je erom vraagt.** Een Google Font toevoegen, een bestand naar Drive of Dropbox sturen, Sync aanzetten, de radio afspelen of een AI-model voor op je apparaat downloaden: elk daarvan doet een verzoek dat jij hebt gestart. De app haalt ook haar tools en updates op bij haar eigen adres, en die verzoeken bevatten niets van wat je hebt gemaakt. [Elk netwerkverzoek dat de app kan doen](#every-network-request-the-app-can-make) somt ze op, host voor host.
+
+**Een paar Lolly-diensten draaien op een server.** Renderlinks, de afbeeldingsophaler, het eindpunt voor AI-agents en de dienst voor geverifieerde identiteit ontvangen alleen wat je ze stuurt en bewaren het niet langer dan deze pagina aangeeft.
+
+**De Lolly Work-instantie van je organisatie werkt anders.** Die slaat het gedeelde werk op dat je daar neerzet, en het beleid van de beheerder geldt voor die gegevens, niet dit beleid.
+
+::: figure privacy-where-data-goes
+Waar je gegevens heen gaan: ze blijven op je apparaat, tenzij jij een verzoek start, en elk soort verzoek heeft zijn eigen bestemming.
+:::
 
 ## Wat dit beleid dekt
 
-Lolly is open-source software - een engine, meerdere app-shells (web, desktop,
-mobiel, CLI) en een browserextensie - die iedereen kan draaien. Dit beleid bestaat uit twee
-delen:
+Lolly is open-sourcesoftware die iedereen kan draaien: een engine, app-shells voor web, desktop, mobiel en de terminal, en een browserextensie. Dit beleid heeft twee delen:
 
-- <!--i:code--> **De software zelf**: wat deze wel en niet doet met je data, waar deze ook
-  draait. Dit is een eigenschap van de code, dus het geldt voor elke Lolly-implementatie,
-  van ons of van iemand anders.
-- <!--i:server--> **lolly.tools**, de referentie-implementatie die SUSE beheert: de specifieke keuzes
-  die gemaakt zijn bij het draaien van de optionele serveronderdelen ervan (wat er wordt gelogd, hoelang, door
-  wie).
+- <!--i:code--> **De software zelf**: wat deze wel en niet doet met je gegevens, waar die ook draait. Dit is een eigenschap van de code, dus het geldt voor elke Lolly-implementatie, van ons of van iemand anders.
+- <!--i:server--> **lolly.tools**, de referentie-implementatie die SUSE beheert: de keuzes bij het draaien van de optionele serveronderdelen, zoals wat er wordt gelogd, hoe lang en door wie.
 
-Als je een self-hosted of enterprise Lolly-instantie gebruikt, geldt het onderstaande softwaregedrag
-nog steeds, maar de *operator* van die instantie - niet SUSE - is
-verantwoordelijk voor alles wat server-side gebeurt: hun render-endpoint, hun MCP-server,
-hun certificaatautoriteit voor Content Credentials, als ze er een draaien. Vraag hen om
-hun eigen beleid. Zie [Adoptie & Governance](/info/adoption-governance.html) voor
-wat het beheren van Lolly inhoudt.
+Op een zelf gehoste of enterprise Lolly-instantie geldt het softwaregedrag hieronder nog steeds, maar de *beheerder* van die instantie, niet SUSE, is verantwoordelijk voor alles op hun servers: hun renderendpoint, hun MCP-server, hun certificaatdienst en hun Lolly Work-instantie. Vraag hen om hun eigen beleid. [Adoption & Governance](/info/adoption-governance.html) beschrijft wat het draaien van Lolly inhoudt.
 
-## De app: wat op je apparaat blijft
+## Wat op je apparaat blijft
 
-De web-, desktop- en mobiele shells van Lolly draaien de volledige render-engine client-side.
-Een tool openen, invoer invullen, voorvertonen en exporteren gebeurt allemaal op je
-apparaat - er is geen server bij betrokken, en de app werkt offline zodra deze geladen is.
+De web-, desktop- en mobiele apps van Lolly draaien de hele renderengine op het apparaat. Zodra de tools, assets en encoders die je gebruikt op het apparaat staan, hebben renderen en downloaden geen server nodig.
 
-**De app stelt geen cookies in.** Om te functioneren houdt de app een kleine hoeveelheid data **alleen op
-je apparaat** bij, nooit verzonden:
+**Zelfstandig gebruik van de app plaatst geen cookies.** Organisatie-aanmelding en de optionele inschrijving voor geverifieerde identiteit hebben hun eigen cookies, beschreven in hun eigen secties. De app bewaart deze gegevens op het apparaat:
 
-- <!--i:sliders--> **Interfacevoorkeuren** - thema, taal, geluidsinstellingen, formaat van zijbalk/zoom,
-  sorteer- en weergavekeuzes, welke onboardingtips je hebt gezien - in
-  `localStorage`, zodat ze beschikbaar zijn voordat de app klaar is met opstarten.
-- <!--i:download--> **Een offline cache van de toolcatalogus en asset-voorvertoningen**, zodat de galerij
-  werkt zonder verbinding.
-- <!--i:hash--> **Lokale gebruikstellers** voor de statistieken op je profielkaart (hoeveel exports, welke
-  tools) - een kleine, begrensde blob in `localStorage`, nooit door ons gelezen, nooit ergens
-  naartoe verzonden.
-- <!--i:folder--> **Je eigen documenten, opgeslagen sessies, geüploade assets en lettertypen** - opgeslagen in
-  IndexedDB op je apparaat, nooit geüpload, nooit door iemand anders dan jij gelezen.
+- <!--i:sliders--> **Interfacevoorkeuren**: thema, taal, geluidsinstellingen, formaten van zijbalk en zoom, sorteer- en weergavekeuzes en welke tips je hebt gezien, in `localStorage`, zodat ze klaarstaan voordat de app klaar is met starten.
+- <!--i:download--> **Een offlinecache van de toolcatalogus en assetvoorbeelden**, zodat de galerij zonder verbinding werkt.
+- <!--i:hash--> **Lokale gebruiksteller** voor de statistieken op je profielkaart, zoals hoeveel exports en welke tools: een klein, begrensd bestand in `localStorage`, nooit door ons gelezen en nergens heen gestuurd.
+- <!--i:folder--> **Je eigen werk**: documenten, opgeslagen sessies en hun geschiedenis, geüploade afbeeldingen en lettertypen, bestandsresultaten en eerdere versies, en de Prullenbak, die verwijderde items 30 dagen bewaart. Deze staan in IndexedDB op het apparaat en blijven daar, tenzij je kiest voor Sync of delen.
+- <!--i:globe--> **De stadszoekopdrachten van Meeting Planner**, in `localStorage`, zodat elke stad één keer wordt opgezocht.
+- <!--i:cpu--> **Gedownloade modellen en vastgepinde tools**: AI-modellen voor op je apparaat waarvoor je toestemming gaf om te downloaden en tools die je hebt vastgepind voor offline gebruik.
 
-Niets hiervan wordt gedeeld, verkocht of gebruikt om je te identificeren of te volgen. Er is niets
-om toestemming voor te geven, omdat er geen verzameling plaatsvindt - alleen deze kennisgeving, zodat je
-weet wat wordt bewaard en waar. De opslag van de site in je browser wissen verwijdert
-dat allemaal op elk moment, en dat doet **Instellingen → Opslag → Al mijn gegevens wissen** ook,
-wat ook eerst Synchronisatie uitschakelt. (Onder de ePrivacy-richtlijn
-Art. 5(3) vereist opslag die strikt noodzakelijk is voor de dienst die je hebt aangevraagd
-geen toestemming - alleen transparantie, en dat zijn dit document en
-de melding in de app allebei.)
+**Settings → Storage** toont hoeveel ruimte Lolly op het apparaat gebruikt, met je werk, de Prullenbak, gedownloade modellen, offlinekopieën en caches stuk voor stuk benoemd. **Clear all my data** verwijdert daar de lokale kopie en zet eerst Sync uit; de opslag van de site in je browser wissen doet hetzelfde. Opslag die strikt noodzakelijk is voor de dienst waar je om vroeg, vereist volgens de ePrivacy-richtlijn (art. 5, lid 3) geen toestemming, alleen transparantie, en dat bieden dit document en de melding in de app.
 
-![Het opslaggedeelte van de profielpagina op een scherm ter breedte van een telefoon: elke categorie on-device data benoemd, met de knop Al mijn gegevens wissen er direct naast](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Het opslaggedeelte van Settings op een telefoonbreed scherm: elke categorie gegevens op het apparaat is benoemd, met de knop Clear all my data naast de lijst](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-Je eigen back-up van deze gegevens - de bundel `lolly-backup` die wordt gemaakt door **Exporteer mijn
-gegevens** - is een bestand dat je zelf bewaart en beheert. Het raakt onze
-servers nooit, tenzij je er zelf voor kiest het ergens naartoe te sturen. Zie [Data
-Transfer](/info/data-transfer.html).
+**Export my data** maakt een `lolly-backup`-bestand dat jij bewaart en beheert. Het komt nooit op onze servers, tenzij je het zelf ergens heen stuurt. Zie [Data transfer](/info/data-transfer.html).
 
-## On-device hulpprogramma's
+### Hulpprogramma's die op je apparaat draaien
 
-Sommige tools - **Verborgen data verwijderen**, **PDF comprimeren** en andere met het
-**"Draait op je apparaat"**-label - werken op een bestand dat jij aanlevert. Het bestand wordt
-in je browser in het geheugen ingelezen, lokaal getransformeerd en teruggegeven als download.
-Het wordt nooit geüpload, omdat er geen server in het pad is om het naar te uploaden.
-Deze hulpprogramma's werken offline en hun uitvoer bevat geen watermerk of metadata van
-ons - het doel van de meeste ervan is juist om data te verwijderen & te beschermen, niet om risico toe te voegen.
+Sommige tools, zoals **Strip Hidden Data**, **Compress** en andere met het label **Runs on your device**, werken op een bestand dat jij aanlevert. Het bestand wordt in het geheugen gelezen, op het apparaat bewerkt en als download teruggegeven. Het wordt nooit geüpload, want er zit geen server in het pad. Deze hulpprogramma's werken offline en hun uitvoer bevat geen watermerk of metadata van ons.
 
-![Het label dat deze tools dragen: Draait op je apparaat - er wordt niets geüpload](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+**Rondocode** is de enige uitzondering, omdat het nieuwe audio maakt van jouw nummer in plaats van een bestand van jou te bewerken. Elk audiobestand dat het schrijft bevat Content Credentials die het nummer vastleggen en eventueel door AI gegenereerde zang vermelden. Het Export-paneel zegt dat vóór je exporteert, en [Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility) somt precies op wat er wordt vastgelegd.
 
-Prepare for sharing bewaart werkinvoer, privévondsten en vervangingskaarten
-in het geheugen, zonder ze automatisch toe te voegen aan geschiedenis, links, back-ups of synchronisatie.
-Inspectie en vervanging sturen geen bestandsinhoud naar een server en verifiëren geen
-credentials online. Gebruikers kiezen zelf of ze een resultaat kopiëren, downloaden, versturen of
-expliciet opslaan in hun bibliotheek; een opgeslagen resultaat volgt daarna de normale back-up- en
-synchronisatie-instellingen van de bibliotheek. Receptbestanden laten eerdere payloads en letterlijke koppelingen weg.
-Samenvattingsrapporten bevatten aantallen, scope-ID's en bestandshashes. De CLI kan ook een
-privé-controlebestand opslaan met de oorspronkelijke waarden, alleen wanneer daar expliciet om wordt gevraagd
-met `--review-file`. Een voorbereidingsweergave in de browser wissen of verlaten maakt zijn
-werktoestand vrij; dit is geen belofte van forensische verwijdering uit browser- of OS-geheugen.
+![Het label dat deze tools dragen: Runs on your device - nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
+
+**Prepare for sharing** en **Compare** werken in het geheugen van het apparaat en sturen niets naar een server, en Prepare voegt niets toe aan geschiedenis, links, back-ups of Sync totdat je een resultaat opslaat.
+
+::: details Hoe Prepare for sharing en Compare met je bestanden omgaan
+**Prepare for sharing** houdt werkinvoer, privévondsten en vervangingstabellen in het geheugen, zonder ze toe te voegen aan geschiedenis, links, back-ups of Sync. Inspectie en vervanging sturen geen bestandsinhoud naar een server en controleren online geen credentials. Jij kiest of je een resultaat kopieert, downloadt, verstuurt of opslaat in je bibliotheek; een opgeslagen resultaat volgt daarna de back-up- en Sync-instellingen van je bibliotheek. Receptbestanden laten eerdere inhoud en letterlijke koppelingen weg, en samenvattende rapporten bevatten aantallen, scope-ID's en bestandshashes. De CLI slaat alleen een privé-reviewbestand met de oorspronkelijke waarden op als je dat met `--review-file` vraagt. Een voorbereidingsweergave verlaten geeft de werkstatus vrij, wat geen belofte is van forensisch wissen uit het geheugen van de browser of het besturingssysteem.
+
+Voorbereide kopieën en afgeronde bestandsbewerkingen delen de bediening van Compare. Verwijderde waarden starten ingeklapt, en vergelijkingsrapporten laten bronnamen, paden en waarden weg, tenzij je ze wilt opnemen. De bestandsgeschiedenis bewaart de kopie, dus vergelijken na een herlaad betekent dat je het origineel opnieuw selecteert, gekoppeld aan de vastgelegde SHA-256. Het selecteren slaat het bestand niet op en uploadt het niet.
+:::
+
+Strip Hidden Data en Prepare for sharing inspecteren op het apparaat ook DOCX-, PPTX- en XLSX-bestanden. Bij ondersteunde DOCX-bestanden kunnen geselecteerde eigenschappen in een nieuwe kopie worden verwijderd; andere Office-inhoud is alleen te inspecteren, en privévoorbeelden blijven achter een onthulknop.
+
+::: details Wat de Office-inspectie leest en verwijdert
+| Office-indeling | Geïnspecteerde pakketinhoud | Verwijdering ondersteund |
+|---|---|---|
+| DOCX | Kern-, toepassings- en aangepaste eigenschappen; opmerkingen en auteurs; markeringen en voorbeelden van bijgehouden wijzigingen; verborgen tekstblokken; externe relaties; ingesloten objecten | Geselecteerde auteur, laatst opgeslagen door, datums van aanmaken/wijzigen/laatst afdrukken, titel, onderwerp, beschrijving, trefwoorden, aangepaste eigenschappen, Company, Manager, Template, hyperlinkbasis, toepassingsnaam en -versie, en statistieken (totale bewerkingstijd en aantallen pagina's, woorden, tekens, regels en alinea's) |
+| PPTX | Eigenschappen; opmerkingen en auteursgegevens; sprekersnotities; markeringen van verborgen dia's; externe relaties; ingesloten objecten en ondersteunde geneste werkmappen | Geen |
+| XLSX | Eigenschappen; opmerkingen en notities; markeringen van verborgen bladen, rijen en kolommen; gedefinieerde namen; externe relaties en verbindingen; externe-koppelings- en draaitabelcache-oppervlakken; ingesloten objecten | Geen |
+
+**Grenzen.** De telling inspecteert zichtbare tekst, formules, afhankelijkheden, weergegeven uiterlijk of willekeurige binaire onderdelen niet volledig. Ze ondersteunt maximaal 300 pakketonderdelen, 64 MiB aan totale aangegeven uitbreiding, 2 MiB per XML-onderdeel en twee geneste niveaus van ingesloten pakketten; Prepare deelt de budgetten voor onderdelen en uitbreiding over de hele taak. Afgekapte, misvormde, versleutelde en niet-ondersteunde inhoud wordt gemeld en behouden. Macro-inhoud wordt herkend en nooit uitgevoerd, oudere binaire Office-indelingen en XLSB worden niet geïnspecteerd, en externe verwijzingen worden nooit opgehaald.
+
+**Wat DOCX-opschoning behoudt.** Opschoning ondersteunt de transitional DOCX-pakketindeling met canonieke kern-, aangepaste en uitgebreide eigenschapsonderdelen. Uit de uitgebreide eigenschappen kunnen Company, Manager, Template, HyperlinkBase, Application, AppVersion en de statistieken TotalTime, Pages, Words, Characters, CharactersWithSpaces, Lines en Paragraphs worden verwijderd. DocSecurity, kop- en onderdeeltitels, koppelingsvlaggen en andere toepassingseigenschappen blijven behouden. Het verwijderen van Template laat een gekoppelde sjabloonlink in de documentinstellingen staan, waar de telling die als externe relatie meldt.
+
+Sommige lezers bepalen aan de hand van de toepassingsnaam en -versie hoe grafieken en tekeningen worden getekend; LibreOffice toont bijvoorbeeld een grafiek uit een Word 2007-bestand anders zonder die gegevens. Beide blijven behouden wanneer het bestand grafieken, afbeeldingen, vormen of ingesloten objecten bevat, en de inspectie vermeldt ze als behouden. Een eigenschap die een Word-veld toont (TEMPLATE, EDITTIME, NUMPAGES, NUMWORDS of NUMCHARS) blijft behouden, en koppelingsvelden en relatieve externe links behouden HyperlinkBase, omdat hun doelen ten opzichte van dat basisadres worden opgelost.
+
+**Wat alleen-inspectie blijft.** Uitgebreide gegevens van digitale handtekeningen blokkeren opschoning. Ondertekende, macro-ingeschakelde, versleutelde, misvormde, hernoemde of geneste Office-pakketten blijven alleen te inspecteren. Hetzelfde geldt voor bestanden met andere van eigenschappen afhankelijke Word-velden, zoals DOCPROPERTY of AUTHOR, of met aan XML gebonden inhoudsbesturingselementen, omdat het verwijderen van een eigenschap het document kan veranderen wanneer Word die koppelingen bijwerkt, en in de cache bewaarde veldtekst niet kan aantonen dat de volgende weergave er hetzelfde uitziet. XML-onderdelen met ongebruikelijke bestandsextensies, Word-XML-relatiedoelen die niet veilig kunnen worden geïnspecteerd, onjuist aangegeven koptekst- of voettekstonderdelen en SVG-onderdelen die als XML zijn aangegeven met een `.svg`-extensie blijven in deze eerste opschoningsrelease ook alleen te inspecteren.
+
+**Hoe opschoning zijn werk controleert.** Eigenschapsonderdelen, hun declaraties, niet-gerelateerde pakketleden, XML-opmerkingen en ZIP-opmerkingen blijven behouden. Opschoning past de grenzen van de telling toe en controleert de integriteit van elk lid vóór het schrijven, en inspecteert daarna de resulterende eigenschappen opnieuw. Compare toont ondersteunde eigenschapsverschillen met ingeklapte waarden; het vergelijkt geen zichtbare tekst of weergegeven uiterlijk. Waarden gebruiken voorvertoningen van maximaal 2048 tekens, dus verschillen voorbij een voorvertoning worden mogelijk niet getoond, en een gedeeltelijke controle kan niet vaststellen dat twee bestanden gelijk zijn. De `prepare --strip-hidden-data` van de CLI verwijdert ondersteunde DOCX-eigenschappen, en een privé-reviewenvelop kan afzonderlijke eigenschappen selecteren. Een mislukte opschoningscontrole behoudt het bestand en meldt een mislukte bewerking.
+:::
 
 ## Elk netwerkverzoek dat de app kan doen
 
-De onderstaande tabel is de volledige lijst van alles wat de app ophaalt of verzendt over een
-netwerk. Staat het hier niet, dan doet de app het niet.
+De meeste verzoeken brengen tools, lettertypen of modellen naar je apparaat. Send-acties verzenden het bestand dat je koos, Sync verzendt een back-up naar de opslag die je koos, en organisatiediensten verzenden de inhoud of gegevens die nodig zijn voor gedeeld werk. Elke groep hieronder noemt wat je apparaat verlaat, wanneer, en wat er gebeurt als een beheerder het verzoek blokkeert. De geconfigureerde identiteits- en assetproviders van een beheerder kunnen bestemmingen aan die implementatie toevoegen. [Every fixed host, in one table](#every-fixed-host-in-one-table) noemt de hosts die de webapp mag benaderen.
 
-| Wat | Wat er daadwerkelijk je apparaat verlaat | Wanneer (de handeling die het activeert) | Als een operator het blokkeert |
-|---|---|---|---|
-| Synchronisatie van de toolcatalogus | Niets persoonlijks - een verzoek om Lolly's eigen publieke tool- en assetindex, naar de eigen oorsprong van de app | Bij het opstarten, daarna offline gecachet | De app draait op zijn gecachete toolset. Hij stopt alleen met het ontdekken van nieuwe tools |
-| Een tool die live gegevens nodig heeft | Wat die specifieke tool ook opvraagt, naar de host die in zijn eigen beschrijving wordt genoemd. Vandaag is dat alleen de plaatsopzoeking in de Meeting Planner-tool, die `geocoding-api.open-meteo.com` vraagt om een plaatsnaam om te zetten in coördinaten en een tijdzone - geen account, geen sleutel en geen identifier voorbij het verzoek zelf. De invoer zegt dat precies waar je typt, en elk antwoord wordt op je apparaat opgeslagen zodat een plaats maar één keer wordt opgezocht | Alleen tijdens het gebruik van die tool, en alleen zodra je een locatie invoert | Die ene opzoeking mislukt. Je kunt nog steeds coördinaten met de hand typen, en verder wordt niets beïnvloed |
-| Google Fonts | De gekozen fontfamilienaam en je IP-adres, naar Google's fontservers (`fonts.googleapis.com` voor het stylesheet, `fonts.gstatic.com` voor het fontbestand) | Alleen als je een Google Font toevoegt in de merkeditor, **en alleen nadat je akkoord gaat in een dialoog die precies dit zegt** - een eenmalige ophaling per familie, waarna hij op je apparaat leeft en offline wordt gebruikt | De Google Fonts-kiezer faalt gesloten. Upload in plaats daarvan een fontbestand |
-| Versturen naar Google Drive | Het ene bestand dat je koos om te versturen, naar Google's Drive-API (`www.googleapis.com`), na een Google-aanmelding die je voltooit in Google's eigen pop-upvenster. Lolly's toegang is beperkt tot bestanden die het zelf heeft aangemaakt (de scope `drive.file` - het kan nooit de rest van je Drive lezen), en het aanmeldtoken wordt tijdens de sessie in het geheugen bewaard, nooit opgeslagen | Alleen wanneer je op "Versturen naar Google Drive" drukt bij een EMF-export, en alleen op builds waar de operator een Google-client-id heeft geconfigureerd - zonder dat bestaat de knop niet | De knop verschijnt nooit. Download het bestand en upload het zelf naar Drive |
-| Versturen naar Dropbox | Het ene bestand dat je koos om te versturen, naar Dropbox's API (`api.dropboxapi.com` voor aanmelding en metadata, `content.dropboxapi.com` voor het bestand zelf), na een Dropbox-aanmelding die je voltooit in Dropbox's eigen venster. Lolly's toegang is beperkt tot de app-map (het kan alleen `Apps/` en zijn eigen map daarin zien - nooit de rest van je Dropbox), de "Open"-link die het je toont is een kortlevende privélink (er wordt geen publieke share aangemaakt), en een refreshtoken wordt alleen opgeslagen als je "stay connected" aanvinkt | Alleen wanneer je op "Versturen naar Dropbox" drukt bij een bestand, en alleen op builds waar de operator een Dropbox-client-id heeft geconfigureerd - zonder dat bestaat de knop niet | De knop verschijnt nooit. Download het bestand en upload het zelf naar Dropbox |
-| Versturen naar OneDrive | Het ene bestand dat je koos om te versturen, naar Microsofts identity- en Graph-diensten (`login.microsoftonline.com` voor aanmelding, `graph.microsoft.com` voor de upload; een groot bestand wordt in delen geüpload naar een Microsoft-eigen uploadadres op `api.onedrive.com`, `*.up.1drv.com` of `*.sharepoint.com`), na een Microsoft-aanmelding die je voltooit in Microsofts eigen venster. Lolly's toegang is beperkt tot zijn eigen map onder `Apps/` (het kan nooit de rest van je OneDrive lezen) plus je weergavenaam voor het accountlabel, en een refreshtoken wordt alleen opgeslagen als je "stay connected" aanvinkt | Alleen wanneer je op "Versturen naar OneDrive" drukt bij een bestand, en alleen op builds waar de operator een Microsoft-client-id heeft geconfigureerd - zonder dat bestaat de knop niet | De knop verschijnt nooit. Download het bestand en upload het zelf naar OneDrive |
-| Versturen naar LinkedIn | Het ene bestand dat je koos om te versturen, plus zijn naam als tekst van de post, naar LinkedIn (`www.linkedin.com` voor de aanmelding, `api.linkedin.com` voor de upload en de post), na een LinkedIn-aanmelding die je voltooit in je eigen browser. De post gaat naar je eigen feed als een openbare post onder je naam. Lolly kan als jou posten en je naam lezen voor het accountlabel, verder niets op je LinkedIn, en de aanmelding wordt alleen op dit apparaat bewaard als je "stay connected" aanvinkt - LinkedIns tokens duren 60 dagen en kunnen niet stilzwijgend worden vernieuwd, dus vervallen ze vanzelf | Alleen wanneer je op "Versturen naar LinkedIn" drukt bij een bestand, alleen in de desktopapps, en alleen op builds waar een LinkedIn-app is geconfigureerd - zonder dat bestaat de knop niet | Niets te blokkeren in de webapp: dit bestaat alleen in de **desktopapps**, dus die twee hosts staan bewust NIET in het Content-Security-Policy van de webapp hieronder. In de desktopapps verwijder je de geconfigureerde LinkedIn-app en verschijnt de knop nooit |
-| Verzenden naar Penpot | Je persoonlijke toegangstoken van Penpot (dat je zelf in de app plakt) en het `.penpot`-archief van het design dat je koos om te versturen, naar Penpots API (`design.penpot.app`) via een kleine doorgeefluik op de eigen oorsprong van de app (`/api/penpot`), omdat Penpots API een browser niet rechtstreeks beantwoordt. Het doorgeefluik geeft door en vergeet; de desktopapps praten rechtstreeks met Penpot | Alleen wanneer je op "Verzenden naar Penpot" drukt in de Design-tool en een project bevestigt | Het doorgeefluik geeft een foutmelding en het versturen faalt gesloten. Exporteer het `.penpot`-bestand en importeer het zelf in Penpot |
-| Versturen naar Bluesky | De ene afbeelding die je koos om te versturen, zijn naam als posttekst en alt-tekst, en je handle plus een app-wachtwoord (Bluesky → Settings → App passwords, nooit je accountwachtwoord), naar de Bluesky-server die je noemt (`bsky.social` tenzij je zelf host). Het app-wachtwoord wordt alleen op dit apparaat opgeslagen, nooit in een back-up, en Disconnect wist het | Alleen wanneer je op "Versturen naar Bluesky" drukt bij een afbeelding, nadat je het account in je profiel hebt gekoppeld, alleen in de **desktopapps** | Niets te blokkeren in de webapp: zijn beleid hieronder noemt geen Bluesky-host, dus die overgang bestaat daar niet. In de desktopapps verwijder je de koppeling en verschijnt de knop nooit |
-| Versturen naar Discord | Het ene bestand dat je koos om te versturen, als bijlage, naar het webhookadres van het kanaal dat je hebt geplakt (`discord.com`). Een webhookadres laat iedereen die het heeft in dat kanaal posten, dus het wordt alleen op dit apparaat opgeslagen, nooit in een back-up, en Disconnect wist het | Alleen wanneer je op "Versturen naar Discord" drukt bij een bestand, alleen in de **desktopapps** | Niets te blokkeren in de webapp: zijn beleid hieronder noemt `discord.com` niet, dus die overgang bestaat daar niet. In de desktopapps verwijder je de webhook en verschijnt de knop nooit |
-| Versturen naar Mastodon | Het ene bestand dat je koos om te versturen en zijn naam als posttekst, naar de Mastodon-server (of compatibele server) die je noemt, na een aanmelding die je voltooit in het eigen venster van die server. Koppelen registreert een kleine app per apparaat op die server; de aanmelding wordt alleen op dit apparaat bewaard als je "stay connected" aanvinkt | Alleen wanneer je op "Versturen naar Mastodon" drukt bij een bestand. Je kiest zelf de server, dus die staat niet in het beleid hieronder | De server die je noemt moet browseraanroepen toestaan; doet hij dat niet, gebruik dan de desktopapps. Disconnect verwijdert de knop |
-| Versturen naar Nextcloud / WebDAV | Het ene bestand dat je koos om te versturen, naar je eigen server, via één geauthenticeerde PUT met het serveradres, de gebruikersnaam en het app-wachtwoord die je hebt ingevoerd (Nextcloud → Settings → Security → Devices & sessions; nooit je accountwachtwoord). Alleen op dit apparaat opgeslagen, nooit in een back-up, gewist door Disconnect | Alleen wanneer je op "Versturen naar Nextcloud" drukt bij een bestand. Je kiest zelf de server, dus die staat niet in het beleid hieronder | Je server moet browseraanroepen vanaf de oorsprong van de app toestaan; doet hij dat niet, gebruik dan de desktopapps |
-| Versturen naar S3-compatibele opslag | Het ene bestand dat je koos om te versturen, naar je eigen bucket (AWS S3, MinIO, R2, B2, Garage - elk SigV4-endpoint), ondertekend op je apparaat met het sleutelpaar dat je hebt ingevoerd. Sleutels worden alleen op dit apparaat opgeslagen, nooit in een back-up, gewist door Disconnect | Alleen wanneer je op "Versturen naar S3" drukt bij een bestand. Je kiest zelf het endpoint, dus dat staat niet in het beleid hieronder | De CORS-regels van je bucket moeten de oorsprong van de app toestaan; doen ze dat niet, gebruik dan de desktopapps |
-| Synchroniseren tussen je apparaten | Een kopie van wat je op dit apparaat hebt gemaakt - opgeslagen sessies en projecten, je design systems met hun lettertypen en logo's, geüploade afbeeldingen, je profiel en je voorkeuren - als één bestand, naar de ene opslag die je hebt gekozen: de Lolly-app-map in je Dropbox (`api.dropboxapi.com`, `content.dropboxapi.com`), bestanden die Lolly aanmaakte in je Google Drive (`www.googleapis.com`), de Lolly-app-map in je OneDrive (`graph.microsoft.com`, met grotere bestanden geüpload naar `api.onedrive.com`, `*.up.1drv.com` of `*.sharepoint.com`, en downloads vanaf Microsofts `*.files.1drv.com`, `my.microsoftpersonalcontent.com` of `*.sharepoint.com`), of je eigen Nextcloud- / WebDAV-server of S3-bucket. Dezelfde opslag bewaart ook tot zeven dagelijkse kopieën en één kopie van vóór je laatste toepassing. **Er gaat niets naar Lolly:** geen Lolly-server, relay of Lolly Work-server zit in het pad, en de apps hebben er geen Lolly-website voor nodig, zelfs niet om aan te melden. De kopie wordt eerst op je apparaat versleuteld, alleen als je een wachtwoordzin instelt. Aanmeldingen, sleutels, app-wachtwoorden, de wachtwoordzin en de synchronisatie-instellingen blijven op het apparaat en staan nooit in de kopie. Op het web bewaart een onthouden Google Drive-koppeling alleen je accountnaam (en je eigen client-id, als je die hebt opgegeven); de Google-aanmelding zelf duurt één bezoek. In de Android-app loopt de Google Drive-aanmelding via Google Play-services op de telefoon, die Google zelf beheert | Alleen nadat je "Sync across my devices" aanzet of op "Sync now" drukt: een upload kort na elke wijziging en wanneer je de app verlaat, en een controle op een nieuwere kopie wanneer de app start | Synchronisatie mislukt en zegt waarom; je werk blijft op het apparaat. Exporteer je gegevens naar een bestand en verplaats het zelf in plaats daarvan |
-| ICC-drukprofielen | Niets persoonlijks - een verzoek om een standaard drukconditieprofiel, naar het publieke register van het ICC (`registry.color.org`, `www.color.org`) | Alleen als je op een ICC-preset klikt in de printprofielbeheerder - een eenmalige ophaling per profiel, waarna hij op je apparaat leeft | ICC-presets mislukken. Lever in plaats daarvan je eigen `.icc`-profiel aan |
-| Internetradio | Niets persoonlijks - een playlistverzoek en een audiostream, naar het station (`api.somafm.com` en de icecast-server waar het naar verwijst, `*.somafm.com`) | Alleen terwijl je de optionele ingebouwde radio in de geluidsspeler afspeelt | De radio mislukt. Elke andere geluidsfunctie blijft werken |
-| Een URL die je een tool laat vastleggen | Een verzoek naar het exacte webadres dat je typt, vanuit de URL-screenshottool. Wat dat adres ook is. Deze host staat niet in het beleid hieronder, omdat je hem kiest op het moment van gebruik | Alleen wanneer je een URL in die tool invoert en de opname start | Een operator kan dit niet op host toestaan. Om het te verwijderen, verwijder je de tool |
-| Een afbeelding toevoegen vanaf een URL | Een verzoek naar het exacte afbeeldingsadres dat je plakt in "Add from URL" (in de assetkiezer of Assets). Het eigen beleid van de webapp verbiedt de browser om rechtstreeks een andere site op te halen, dus het verzoek wordt voor je gedaan door een klein doorgeefluik op de eigen oorsprong van de app (`/api/fetch-image`), dat de afbeelding server-side ophaalt en alleen de bytes teruggeeft - het slaat niets op en vergeet het adres. Het weigert alles wat geen publiek afbeeldingsadres is (een privé- of intern adres wordt geblokkeerd). De desktopapps halen het adres rechtstreeks op. Een Lolly-link die je plakt wordt helemaal niet opgehaald - hij rendert op je apparaat. De host staat niet in het beleid hieronder, omdat je hem kiest op het moment van gebruik | Alleen wanneer je een URL plakt in "Add from URL" en bevestigt | De operator zet het doorgeefluik uit (`LOLLY_DISABLE_IMAGE_PROXY=1`); daarna kunnen alleen Lolly-links, `data:`-afbeeldingen en afbeeldingen van dezelfde oorsprong worden toegevoegd in de webapp. De desktopapps zijn niet beïnvloed |
-| SEAL-handtekeningcontrole | **Niets.** De webapp heeft helemaal geen DNS-resolver - zie hieronder | Nooit | Niets te blokkeren |
-| AI-modellen op het apparaat | Niets persoonlijks - een eenmalige download van een modelbestand vanaf Lolly's modelhost (`lolli.li`), daarna gecachet op je apparaat; geen account, geen identifier, alleen het verzoek en je IP | Alleen wanneer je een functie gebruikt die een model nodig heeft (Verify deep scan, afbeelding-upscale, spraak, en vergelijkbare) | Die functie wacht op de download; al het andere blijft werken |
-| Externe instantie | Wat de instantie die je noemt ook teruggeeft, via dezelfde catalogussynchronisatie die hierboven is beschreven - plus een versietag op verzoeken ernaartoe (shelltype en engineversie, dezelfde informatie die een user agent meedraagt), zodat de operator ervan kan zien welke Lolly-versies in het veld zijn. Op een beheerde instantie, terwijl je bent aangemeld, draagt die tag ook een installatie-id per apparaat, zodat de apparatenlijst van de operator deze installatie kan onderscheiden. Hij reist alleen mee op verzoeken die je eigen gebruik al doet - er is geen timer en niets belt zelf naar huis - en de instantie verlaten verwijdert het id, zodat een apparaat dat later opnieuw verbindt een nieuwe presenteert. Je kiest de host op het moment van gebruik, dus die staat niet in het beleid hieronder | Alleen als je de shell expliciet naar een andere Lolly-deployment wijst | Instantiewisseling mislukt. Je lokale instantie is niet beïnvloed |
+::: details Wat naar je apparaat wordt opgehaald
+- <!--i:download--> **De toolcatalogus.** Niets persoonlijks: een verzoek om de openbare tool- en assetindex van Lolly zelf, naar het eigen adres van de app, bij het opstarten en daarna offline in de cache. Bij blokkering draait de app op zijn tools uit de cache en ontdekt geen nieuwe meer.
+- <!--i:sparkle--> **Emojisets.** De set die je kiest wordt gedownload van het eigen adres van de app, de eerste keer dat je die set gebruikt. Er wordt niets persoonlijks verstuurd. Lottie-animaties worden op het apparaat gelezen en nemen met niemand contact op.
+- <!--i:document--> **Google Fonts.** De gekozen familienaam en je IP-adres gaan naar de lettertypeservers van Google (`fonts.googleapis.com` voor het stijlblad, `fonts.gstatic.com` voor het lettertypebestand). Dit gebeurt alleen wanneer je in Design System Setup een Google Font toevoegt, en pas nadat je in een dialoog akkoord gaat die precies dit vermeldt. Elke familie wordt één keer opgehaald, daarna op het apparaat bewaard en offline gebruikt. Bij blokkering faalt de kiezer veilig; upload dan een lettertypebestand.
+- <!--i:cpu--> **AI-modellen op het apparaat.** Niets persoonlijks: een download van een modelbestand, daarna op het apparaat bewaard. Webbuilds gebruiken standaard het eigen adres van de app; een build kan een andere modelhost noemen, zoals de releasehost van Lolly `lolli.li` voor de verpakte apps. De host ontvangt het verzoek en je IP-adres, zonder account en zonder modelinvoer. Dit gebeurt alleen wanneer je een functie gebruikt die een model nodig heeft (de diepe scan van Verify, afbeeldingen opschalen, spraak en dergelijke) of ervoor kiest modellen te downloaden voor offline gebruik. Bij blokkering wacht die functie en werkt al het andere.
+- <!--i:sliders--> **ICC-persprofielen.** Niets persoonlijks: een verzoek om een standaardprofiel voor drukomstandigheden bij het openbare register van het ICC (`registry.color.org`, `www.color.org`), alleen wanneer je in het beheer van drukprofielen op een ICC-preset klikt, één keer per profiel. Bij blokkering mislukken de presets; lever dan je eigen `.icc`-profiel aan.
+- <!--i:globe--> **Internetradio.** Niets persoonlijks: een afspeellijstverzoek en een audiostream van het station (`api.somafm.com` en de streamserver waarnaar die verwijst, `*.somafm.com`), alleen terwijl je de optionele radio in de geluidsspeler afspeelt. Bij blokkering faalt de radio en werken alle andere geluidsfuncties.
+:::
 
-Elke vaste host in die tabel is ook de volledige toelatingslijst in het
-Content-Security-Policy van de app, die de browser afdwingt. De lijst is dus niet alleen een
-beschrijving van wat de code vandaag doet, het is de grens die de browser aan de
-app oplegt: een toekomstige wijziging die zou proberen een andere host te bereiken, zou worden geblokkeerd,
-niet stilzwijgend toegestaan. Eén rij is de bewuste uitzondering, en zijn eigen cel
-legt dat uit: Versturen naar LinkedIn bestaat alleen in de desktopapps, en het
-beleid van de webapp noemt geen van zijn hosts - de webapp zou ze niet kunnen bereiken,
-zelfs als de code het probeerde.
-Nog twee rijen, Bluesky en Discord, zijn op dezelfde manier alleen-desktop, en hun
-hosts blijven om dezelfde reden buiten het webbeleid. Vijf rijen hebben geen vaste
-host, omdat je het adres kiest op het moment van gebruik: een URL die je een tool laat
-vastleggen, een externe instantie waar je de shell naartoe wijst, en je eigen Mastodon-
-server, WebDAV-server of S3-bucket (de laatste twee ook als synchronisatiehuis). Geen daarvan staat in het beleid, en elk
-gebeurt alleen wanneer je een adres typt en ernaar handelt. De Penpot-rij bereikt
-Penpot via de eigen oorsprong van de app, dus die is gedekt door `'self'`. Een deployment die geen van de
-optionele onderdelen wil (een zakelijke instantie met eigen lettertypen, bijvoorbeeld) verwijdert die
-hosts uit zijn beleid, en de functies falen dan gesloten in plaats van naar buiten te reiken.
+::: details Een tool die live gegevens nodig heeft
+- <!--i:globe--> **Het stadsopzoeken van Meeting Planner.** Op dit moment is dit de enige tool die live gegevens ophaalt. Hij vraagt `geocoding-api.open-meteo.com` om elke plaatsnaam (de gaststad en de stad van elk teamlid) om te zetten in coördinaten en een tijdzone, zonder account, zonder sleutel en zonder identificatie buiten het verzoek zelf. De invoer Host city legt dit uit, en elk antwoord wordt op het apparaat bewaard zodat een stad één keer wordt opgezocht. Het gebeurt alleen terwijl de tool open is. Bij blokkering faalt het opzoeken en blijft al het andere ongemoeid.
+:::
 
-Op twee soorten rijen na, stuurt geen van deze je documenten, projecten,
-sessies of geüploade bestanden ergens naartoe: ze bestaan om dingen *naar* je apparaat te
-brengen (tools, lettertypen, modellen). De twee soorten zijn de Versturen-rijen, die het ene
-bestand versturen dat je koos, en de synchronisatierij, die een kopie van je werk stuurt naar de opslag
-die je koos en naar geen enkele Lolly-server. Elke andere uitzondering wordt expliciet genoemd in de
-secties hieronder.
+::: details Bestanden die je verstuurt
+Elk van deze verstuurt alleen het ene bestand dat je koos, wanneer je op de bijbehorende Send-knop drukt, na een aanmelding die je voltooit in het eigen venster van de dienst. Het app-wachtwoord van Bluesky, het webhookadres van Discord, het app-wachtwoord van Nextcloud en de S3-sleutels worden alleen op dit apparaat bewaard, nooit in een back-up, en **Disconnect** wist ze.
 
-**Een opmerking over wat we verwijderd hebben.** Verify kan SEAL-handtekeningen controleren, een schema waarbij
-de ondertekeningssleutel van een bestand in DNS wordt gepubliceerd. Browsers kunnen geen DNS-queries doen, dus
-elke webimplementatie moet de opzoeking routeren via een externe DNS-over-HTTPS-
-resolver - waardoor die operator het gecontroleerde domein plus je IP-
-adres te zien zou krijgen. We gebruikten vroeger die van Cloudflare. **Dat doen we niet meer, en er is geen
-vervanging**: de webapp geeft nu helemaal geen resolver door, dus SEAL-verificatie hier
-doet nul netwerkverzoeken. Bestanden waarvan het SEAL-record de sleutel inline draagt, verifiëren
-nog steeds volledig offline. Bestanden waarvan de sleutel in DNS staat, melden "geen sleutel-
-resolver" in plaats daarvan, en je kunt die controleren in de desktop- of command-line-app,
-die DNS native via je eigen machine oplost zonder enige derde partij
-erbij betrokken.
+- <!--i:upload--> **Google Drive.** Het bestand, in elk formaat, gaat naar de Drive-API van Google (`www.googleapis.com`). De toegang van Lolly is beperkt tot bestanden die het zelf aanmaakte (de `drive.file`-scope), dus het kan de rest van je Drive nooit lezen. In de webapp wordt het aanmeldtoken voor de sessie in het geheugen gehouden en nooit opgeslagen; in de andere apps wordt een refreshtoken alleen op dit apparaat opgeslagen als je **Stay connected** aanvinkt. De knop bestaat alleen in builds waarin de beheerder een Google-client-id heeft ingesteld. Bij blokkering verschijnt de knop nooit; download het bestand en upload het zelf.
+- <!--i:upload--> **Dropbox.** Het bestand gaat naar de API van Dropbox (`api.dropboxapi.com` voor aanmelden en metadata, `content.dropboxapi.com` voor het bestand). De toegang geldt alleen voor de app-map, dus Lolly ziet `Apps/` en de eigen map daarin en verder niets. De **Open**-link die het toont is een kortlevende privélink, en er wordt geen openbare deellink gemaakt. Een refreshtoken wordt alleen opgeslagen als je **Stay connected** aanvinkt. De knop bestaat alleen met een door de beheerder ingestelde Dropbox-client-id.
+- <!--i:upload--> **OneDrive.** Het bestand gaat naar de identiteits- en Graph-diensten van Microsoft (`login.microsoftonline.com` voor aanmelden, `graph.microsoft.com` voor de upload); een groot bestand wordt in delen geüpload naar `api.onedrive.com` of naar opslagbronnen die de beheerder heeft ingesteld. De toegang is beperkt tot de eigen map van Lolly onder `Apps/`, plus je weergavenaam voor het accountlabel. Een refreshtoken wordt alleen opgeslagen als je **Stay connected** aanvinkt. De knop bestaat alleen met een door de beheerder ingestelde Microsoft-client-id.
+- <!--i:upload--> **LinkedIn**, **alleen in de desktop-apps**. Het bestand, met zijn naam als berichttekst, gaat naar LinkedIn (`www.linkedin.com` voor aanmelden in je eigen browser, `api.linkedin.com` voor de upload en het bericht) als openbaar bericht op je eigen feed. Lolly kan als jou posten en je naam lezen voor het accountlabel, verder niets. De aanmelding wordt alleen bewaard als je **Stay connected** aanvinkt, en de tokens van LinkedIn gelden 60 dagen en kunnen niet stilzwijgend worden verlengd, dus ze verlopen vanzelf. Die hosts staan niet in het verbindingsbeleid van de webapp. De knop bestaat alleen in builds met een geconfigureerde LinkedIn-app.
+- <!--i:upload--> **Penpot.** Je persoonlijke toegangstoken voor Penpot, dat je in de app plakt, en het `.penpot`-archief van het ontwerp gaan naar de API van Penpot (`design.penpot.app`) via een kleine doorgeefschakel op het eigen adres van de app (`/api/penpot`), omdat de API van Penpot een browser niet rechtstreeks beantwoordt. De doorgeefschakel stuurt door en vergeet; de desktop-apps praten rechtstreeks met Penpot. Dit gebeurt alleen wanneer je in de Design-tool op **Send to Penpot** drukt en een project bevestigt. Bij blokkering faalt het versturen veilig; exporteer het `.penpot`-bestand en importeer het zelf.
+- <!--i:upload--> **Bluesky.** De afbeelding, haar naam als berichttekst en alt-tekst, en je handle en app-wachtwoord (aangemaakt onder Bluesky → Settings → App passwords, nooit je accountwachtwoord) gaan naar de Bluesky-server die je opgeeft, `bsky.social` tenzij je een andere kiest. Je koppelt eerst het account in **Settings → Connected services**.
+- <!--i:upload--> **Discord.** Het bestand gaat als bijlage naar het kanaalwebhookadres dat je hebt geplakt, op discord.com. Iedereen met een webhookadres kan in dat kanaal posten, en daarom blijft het op het apparaat.
+- <!--i:upload--> **Mastodon.** Het bestand, met zijn naam als berichttekst, gaat naar de Mastodon- of compatibele server die je opgeeft, na een aanmelding in het eigen venster van die server. Bij het koppelen wordt op die server een kleine app voor dit apparaat geregistreerd, en de aanmelding wordt alleen bewaard als je **Stay connected** aanvinkt.
+- <!--i:upload--> **Nextcloud of WebDAV.** Het bestand gaat in één geauthenticeerde upload naar je eigen server, met het serveradres, de gebruikersnaam en het app-wachtwoord die je invoerde (Nextcloud → Settings → Security → Devices & sessions; nooit je accountwachtwoord).
+- <!--i:upload--> **S3-compatibele opslag.** Het bestand gaat naar je eigen bucket (AWS S3, MinIO, R2, B2, Garage of elk SigV4-eindpunt), op het apparaat ondertekend met het sleutelpaar dat je invoerde.
 
-![Het Verify-scherm: een drop-target en verder niets - het bestand wordt gecontroleerd waar het al staat, zonder upload en zonder account](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Je kunt dit zelf controleren: doorzoekbare checks voor deze en elke
-andere claim op deze pagina, met de exacte commando's en verwachte uitvoer, vind je op
-[Verify It Yourself](/info/verify-yourself.html).
+**Hosts die je kiest hebben goedkeuring van de beheerder nodig.** De hosts voor Bluesky, Discord, Mastodon, Nextcloud en S3 staan niet in de vaste lijst van Lolly, omdat jij ze kiest. De app stuurt er niets naartoe totdat de beheerder precies die HTTPS-host heeft goedgekeurd: op het web in de Content Security Policy van de implementatie, in de desktop-apps wanneer de app wordt gebouwd. Hetzelfde geldt voor aangepaste opslag- en SharePoint-uploadhosts. Op het web moet de server bovendien browseraanroepen vanuit de app toestaan (CORS), en een redirect faalt veilig, dus gebruik een adres dat niet doorverwijst. De desktop-apps controleren elke redirect aan de hand van de goedgekeurde lijst.
 
-## Hot-linked render-URL's
+Deze lijst beperkt welke hosts de app kan bereiken. Ze maakt geen onderscheid tussen accounts of tenants bij Google of Microsoft, en de eigen rechten van de provider bepalen welke accounts en acties zijn toegestaan. Ze omvat ook geen aanmeldvensters, andere brontypen of native functies, die hun eigen regels hebben. Een wijziging vereist een nieuwe desktopbuild of nieuwe webresponse-headers; sla je werk op voordat je de app opnieuw opent om die op te pikken. [Connector origins](/info/connector-origins.html) beschrijft de configuratie.
+:::
 
-> **Live op lolly.tools.** Elke URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`
-> rendert echt, en de invoer reist mee in die URL. De sectie hieronder is
-> wat dat voor jou betekent, en een operator kan de functie uitzetten op zijn
-> eigen instantie.
+::: details Sync tussen je apparaten
+- <!--i:folder--> **Wat vertrekt.** Een kopie van wat je op dit apparaat hebt gemaakt (opgeslagen sessies en projecten, je design systems met hun lettertypen en logo's, geüploade afbeeldingen, je profiel en voorkeuren) als één bestand, naar de ene opslag die je koos: de Lolly-app-map in je Dropbox (`api.dropboxapi.com`, `content.dropboxapi.com`), bestanden die Lolly aanmaakte in je Google Drive (`www.googleapis.com`), de Lolly-app-map in je OneDrive (`graph.microsoft.com`, waarbij grotere bestanden naar `api.onedrive.com` of door de beheerder ingestelde opslagbronnen worden geüpload, en downloads van exacte, door de beheerder ingestelde opslagbronnen komen), of je eigen Nextcloud, WebDAV-server of S3-bucket. Dezelfde opslag bewaart tot zeven dagelijkse kopieën en één kopie van vóór je laatste toepassing.
+- <!--i:shieldcheck--> **Niets gaat naar Lolly.** Er zit geen Lolly-server, relay of Lolly Work-server in het pad, en de apps hebben er geen Lolly-website voor nodig, zelfs niet om aan te melden. De kopie wordt alleen eerst op het apparaat versleuteld als je een wachtwoordzin instelt. Aanmeldingen, sleutels, app-wachtwoorden, de wachtwoordzin en de Sync-instellingen blijven op het apparaat en staan nooit in de kopie. Op het web bewaart een onthouden Google Drive-koppeling alleen je accountnaam (en je eigen client-id, als je er een opgaf), en de Google-aanmelding duurt één bezoek. In de Android-app loopt de Google Drive-aanmelding via Google Play-services op de telefoon, die Google beheert.
+- <!--i:sliders--> **Wanneer.** Alleen nadat je **Sync across my devices** aanzet of op **Sync now** drukt: een upload kort na elke wijziging en wanneer je de app verlaat, en een controle op een nieuwere kopie wanneer de app start. Bij blokkering faalt Sync en zegt waarom, en je werk blijft op het apparaat. Je kunt in plaats daarvan je gegevens naar een bestand exporteren en zelf verplaatsen. [Sync your devices](/info/sync.html) behandelt de functie.
+:::
 
-De app zelf blijft volledig op je apparaat. Los daarvan kan een operator **hot-link render-
-URL's** inschakelen - `/tool/<tool-id>.<ext>?<inputs>` - zodat een gedeelde Lolly-
-link kan verschijnen als levende afbeelding in een README, een wiki of een dashboard. Zo'n URL ophalen
-vraagt de server om **publieke tool- en catalogusdata** te renderen met de invoer
-die in de URL staat geschreven.
+::: details Webpagina's, opnamen en afbeeldingen van andere sites
+- <!--i:monitor--> **Een URL die je een tool laat vastleggen.** De URL-screenshottool vraagt het exacte adres op dat je typt, alleen wanneer je de opname start. Omdat jij het adres op dat moment kiest, staat het niet in het verbindingsbeleid en kan een beheerder het niet per host toestaan of blokkeren; om het te verwijderen, verwijder je de tool.
+- <!--i:globe--> **Een webpagina in een Design-vak.** De pagina wordt, met je IP-adres, opgevraagd bij de site waar ze vandaan komt, samen met alles wat de pagina zelf opvraagt. Waar de browser het ondersteunt, krijgt het frame geen cookies en geen ander adres mee dan de eigen oorsprong van de app, zodat je document en de link ervan nooit met het verzoek meereizen. In de webapp kunnen alleen deze spelers worden ingekaderd: `www.youtube-nocookie.com`, `player.vimeo.com`, `www.loom.com`, `www.google.com` (kaarten) en `www.figma.com`, plus naslagpagina's op `wikipedia.org` en `*.wikipedia.org`, `commons.wikimedia.org`, `upload.wikimedia.org`, `www.wikidata.org`, `www.mediawiki.org` en `www.openstreetmap.org`. **Allow pages from any site**, onder **Settings → Trusted sites**, laadt Lolly op je apparaat opnieuw onder een beleid dat elke `https:`-pagina kan inkaderen, en dezelfde regels over vertrouwen en vragen blijven gelden. Een pagina laadt alleen voor een site in je Trusted sites, inclusief de verwijderbare standaardnaslagsites, of nadat je dat vak in zijn inspector goedkeurt; een deck dat iemand je stuurde toont tot die tijd een afbeelding van elke pagina. Voordat je presenteert biedt de lijst **Just this time** en **Always trust** voor elke site, en tijdens het presenteren wordt niets gevraagd. Bij blokkering toont het vak zijn afbeelding met een link om de pagina in een nieuw tabblad te openen. Lolly-tools en Sandbox-demo's in een vak draaien op het eigen adres van de app en nemen met niemand contact op.
+- <!--i:sliders--> **Een pagina aanpassen die je toont.** De actie **Use page** van een webpaginavak laat je cookies weigeren of een banner sluiten binnen de pagina. Bij toegankelijke Lolly-pagina's verbergt **Hide cookie banners** bekende overlays, waaronder OneTrust, zonder cookies te accepteren of de toestemmingskeuze van de site te wijzigen. **Page CSS** wijzigt de live pagina en presentatie van dat vak; exports gebruiken nog steeds de gekozen poster. De regels kunnen geen bronnen of lettertypen importeren, en browsers beletten Lolly de CSS van een andere site te wijzigen. Sandbox-voorbeelden hebben een eigen CSS-editor onder **Edit in Sandbox**.
+- <!--i:code--> **De webbronnen van een Sandbox-demo.** Elk stijlblad, script, lettertype of elke afbeelding waar de code van de demo naar linkt, wordt met je IP-adres en zonder cookies opgevraagd bij de site die ze host; bestanden die een opgehaald stijlblad noemt, zoals de lettertypebestanden van Google Fonts, tellen als aparte sites. Dit gebeurt alleen nadat je op **Fetch & inline** klikt, of voor een site in je Trusted sites; **Always trust** naast een bestand voegt zijn site aan die lijst toe. Bij blokkering draait de demo zonder die bestanden, en de Sandbox noemt elk bestand dat niet kon worden opgehaald en waarom.
+- <!--i:download--> **Een afbeelding toevoegen via een URL.** **Add from URL** in de assetkiezer of Assets vraagt het exacte afbeeldingsadres op dat je plakt. Het eigen beleid van de webapp belet de browser een andere site rechtstreeks op te halen, dus een kleine doorgeefschakel op het eigen adres van de app (`/api/fetch-image`) haalt de afbeelding op en geeft alleen de bytes terug; hij slaat niets op, vergeet het adres en weigert alles wat geen openbaar afbeeldingsadres is. De desktop-apps halen het adres rechtstreeks op. Een Lolly-link die je plakt wordt helemaal niet opgehaald: die wordt op het apparaat gerenderd. Als de beheerder de doorgeefschakel uitzet (`LOLLY_DISABLE_IMAGE_PROXY=1`), kunnen in de webapp alleen Lolly-links, `data:`-afbeeldingen en afbeeldingen van dezelfde oorsprong worden toegevoegd, en de desktop-apps blijven ongemoeid.
+- <!--i:palette--> **Een design system van een website.** Design System Setup kan één pagina lezen van een site die je noemt, via de [browserextensie](#the-browser-extension) of de eigen fetch van de desktop-app, nooit via een Lolly-server. Er wordt niets opgehaald voordat je drukt, en links op de pagina worden niet gevolgd.
+:::
 
-- <!--i:usercheck--> **Geen accounts, geen cookies, geen status.** Het endpoint is anoniem, en niets
-  op je apparaat wordt gelezen. Je documenten, sessies en uploads verlaten je
-  browser nooit - ze kunnen helemaal niet in deze links verschijnen.
-- <!--i:document--> **Maar de URL zelf wordt geregistreerd.** De query-string van een URL maakt deel uit van de
-  requestregel, dus die verschijnt in de gewone toegangslogs van het hostingplatform, op
-  dezelfde manier als elk opgevraagd pad. Als de invoer van een link iemands naam of e-mail bevat -
-  een naambadge, een e-mailhandtekening - **staat die tekst in die logs**, en geen
-  hoeveelheid beleidstekst verandert dat. Een hotlink-URL is dus de verkeerde plek voor
-  persoonlijke gegevens: geef hem alleen wat je op een openbare pagina zou zetten.
-- <!--i:globe--> **De invoer is sowieso openbaar door constructie** - het is wat de
-  maker van de link ook in de URL heeft getypt, leesbaar door iedereen die de link bereikt. Zet geen
-  geheimen in een gedeelde link. Lolly biedt linkversleuteling voor gevoelige inhoud.
-- <!--i:eyeoff--> Reacties worden **gecachet en rate-limited** zoals elke publieke afbeelding, en gemarkeerd
-  met `noindex` zodat zoekmachines je renders niet indexeren.
+::: details Samenwerken met andere mensen en agents
+- <!--i:link--> **Een privécollab.** Twee apparaten verbinden rechtstreeks, zonder server ertussen. De uitnodiging en het antwoord bevatten de adressen die elk apparaat zelf op zijn eigen netwerk ziet, en deze build configureert geen externe server voor adresontdekking, dus geef ze alleen aan de persoon met wie je werkt. Zie [Working together](/info/collaborate.html).
+- <!--i:monitor--> **Nearby**, in de desktop-app. Zolang je zichtbaar bent, wat tien minuten is wanneer je een collab-uitnodiging start of, als je dat aanzet, telkens wanneer de app draait, kondigt de app een willekeurige naam, de weergavenaam die je koos en het soort apparaat aan op het lokale netwerk. Het kondigt geen e-mailadres, account of blijvende identificatie aan.
+- <!--i:link--> **Een agent uitnodigen.** De status van het uitgenodigde document, de voorbeelden die de agent opvraagt, de identiteit van de agent en zijn bewerkingen gaan via de geconfigureerde live relay (`lolly.ing` op lolly.tools) naar de agent die je uitnodigt. Een geïnstalleerde gehoste plug-in stuurt aanroepen ook door via de lolly.tools-connector naar de relay die de uitnodiging kiest; de connector bewaart tussen aanroepen geen uitnodiging of document. De relay houdt uitnodigingen en openstaande verzoeken in het geheugen totdat je de verbinding verbreekt of ze verlopen: tien minuten voor een ongebruikte uitnodiging en dertig minuten zonder activiteit voor een uitnodiging waarmee iemand is aangesloten. De provider van je agent verwerkt de gegevens die hij ontvangt onder zijn eigen beleid. Dit gebeurt alleen nadat je in Share een uitnodiging maakt en de instructies ervan aan je agent geeft; leestoegang staat inspectie toe en bewerktoegang staat ook wijzigingen toe. Pauzeren stopt wijzigingen, en Disconnect of de uitnodiging intrekken beëindigt de toegang. Bij blokkering kan de agent niet deelnemen of doorgaan, en blijf jij gewoon bewerken.
+- <!--i:cpu--> **Allow AI control**, in de desktop-app. Een agent die op deze computer draait kan het geopende Design-document lezen en bewerken via een verbinding die op de computer blijft. Het staat uit totdat je het aanzet. Lolly stuurt hiervoor niets naar een server; de provider van de agent verwerkt wat de agent leest onder zijn eigen beleid. [Threat Model & Trust Boundaries](/info/threat-model.html) noemt wat zo'n agent wel en niet kan doen.
+- <!--i:server--> **Een externe instantie.** Wanneer je de app naar een andere Lolly-implementatie laat wijzen, ontvangt hij wat die instantie teruggeeft, via dezelfde catalogussynchronisatie, plus een versietag bij verzoeken ernaartoe (het soort app en de engineversie, dezelfde informatie die een user agent meestuurt), zodat de beheerder kan zien welke Lolly-versies in gebruik zijn. Op een beheerde instantie bevat de tag, terwijl je bent aangemeld, ook een installatie-id voor dit apparaat, zodat de apparatenlijst van de beheerder installaties kan onderscheiden; weggaan verwijdert het id, en een apparaat dat later weer verbindt presenteert een nieuw id. Jij kiest de host, dus hij staat niet in het verbindingsbeleid. Bij blokkering mislukt het overschakelen en blijft je lokale instantie ongemoeid.
+- <!--i:people--> **De Lolly Work-instantie van je organisatie.** Aanmeldidentiteit en apparaatgegevens, beleidsverzoeken, de gedeelde sessies, samenwerkingsbewerkingen, uploads, goedkeuringsindieningen en bezorgbestanden die je gebruikt, en toegestane labels voor gebruiksgebeurtenissen waar dat is ingesteld, gaan naar de instantie van je organisatie, met aanmelden via haar identiteitsprovider. Beleidsverversingen en ingeschakelde telemetrie kunnen tijdens gebruik draaien; gedeeld werk, collabs, review en bezorging sturen inhoud mee als onderdeel van die workflows. Bij blokkering kunnen die organisatiefuncties niet worden voltooid, en blijft je persoonlijke werk gescheiden. Zie [Organisation services with Lolly Work](#organisation-services-with-lolly-work).
+:::
 
-Host je Lolly zelf en wil je geen publiek renderoppervlak? Stel
-`LOLLY_DISABLE_RENDER_GET=1` in en elk van deze URL's geeft 404 terug.
+### Elke vaste host, in één tabel
 
-## De MCP-server (optioneel, voor AI-agents)
+De Content Security Policy van de webapp voorkomt dat een script een host bereikt die niet in de lijst staat. Naast het eigen adres van de app noemt de tabel elke host die dat beleid vermeldt, plus de twee LinkedIn-hosts die de desktop-apps toevoegen, gemarkeerd als alleen voor desktop. Een CI-test controleert deze tabel tegen het uitgerolde beleid, zodat een host niet aan het ene kan worden toegevoegd zonder het andere.
 
-Lolly kan ook worden bereikt door een AI-agent via het Model Context Protocol - een
-door een operator gedraaid endpoint (lolly.tools draait er een; iedereen kan zelf zijn eigen
-hosten, ook volledig air-gapped). Het deelt de geen-accounts-houding van het renderpad,
-plus vier tools die noodzakelijkerwijs met bestandsbytes werken:
+| Wat | Wat je apparaat echt verlaat | Hosts |
+|---|---|---|
+| Modellen op het apparaat in de verpakte apps, en releasebestanden | Een verzoek om een openbaar bestand, met je IP-adres | `lolli.li` |
+| Google Fonts | De naam van de lettertypefamilie en je IP-adres | `fonts.googleapis.com`, `fonts.gstatic.com` |
+| Verzenden naar en Sync met Google Drive | Het bestand of de back-up die je koos | `www.googleapis.com` |
+| Verzenden naar en Sync met Dropbox | Het bestand of de back-up die je koos | `api.dropboxapi.com`, `content.dropboxapi.com` |
+| Verzenden naar en Sync met OneDrive | Het bestand of de back-up die je koos, en je weergavenaam voor het accountlabel | `login.microsoftonline.com`, `graph.microsoft.com`, `api.onedrive.com` |
+| Het stadsopzoeken van Meeting Planner | Elke plaatsnaam | `geocoding-api.open-meteo.com` |
+| ICC-persprofielen | Een verzoek om een openbaar profiel | `registry.color.org`, `www.color.org` |
+| Internetradio | Een afspeellijstverzoek en een audiostream | `api.somafm.com`, `*.somafm.com` |
+| Een agent uitnodigen, en de lolly.ing-werkruimte | De status van het uitgenodigde document, voorbeelden en bewerkingen, en de werkruimteverzoeken die je doet | `lolly.ing` |
+| Spelers in een Design-webvak | Een verzoek om de pagina, met je IP-adres | `www.youtube-nocookie.com`, `player.vimeo.com`, `www.loom.com`, `www.google.com`, `www.figma.com` |
+| Naslagpagina's in een Design-webvak | Een verzoek om de pagina, met je IP-adres | `wikipedia.org`, `*.wikipedia.org`, `commons.wikimedia.org`, `upload.wikimedia.org`, `www.wikidata.org`, `www.mediawiki.org`, `www.openstreetmap.org` |
+| Verzenden naar LinkedIn, alleen in de desktop-apps | Het bestand, met zijn naam, als openbaar bericht | `www.linkedin.com`, `api.linkedin.com` |
 
-- <!--i:cpu--> **`lolly_transform`** (draait server-side een on-device-hulpmiddel, namens de
-  aanroepende agent), **`lolly_verify`** (controleert Content Credentials) en **`lolly_redact`**
-  (dekt gebieden van een afbeelding of PDF af) accepteren allemaal
-  de bytes van een bestand van de aanroeper. Ze worden **in-process, in het geheugen** verwerkt,
-  en het resultaat wordt in diezelfde aanroep teruggegeven - het bestand wordt nooit naar
-  schijf geschreven en nooit opgeslagen zodra het verzoek is afgerond.
-- <!--i:cpu--> **`lolly_rebrand`** (renoveert een oude slidedeck naar een design system,
-  via de fasen `plan`, `compile` en `inspect`) accepteert de bytes van een deck op dezelfde
-  manier, en verwerkt ze **in het geheugen, alleen voor die aanroep** - er wordt niets
-  naar schijf geschreven of bewaard zodra de respons is verstuurd. Zijn eerste fase,
-  `capabilities`, zegt in woorden waar je bytes naartoe zouden gaan voordat je er
-  een verstuurt: op een zelfgehoste lokale server verlaat het deck die machine nooit; op een
-  gehoste server stuurt het aanroepen van `lolly_rebrand` het deck daarnaartoe, tot aan de grootte-
-  en slidelimieten die diezelfde fase opgeeft.
-- <!--i:checklist--> Elke andere tool - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - werkt alleen met parameters (tekst, getallen, kleuren,
-  URL's, catalogus-asset-id's), dezelfde invoer die een hotlink-render-URL gebruikt.
-- <!--i:lock--> Toegang is ofwel een gedeeld token dat de operator uitgeeft aan clients die hij vertrouwt, of
-  stateless OAuth 2.1: kortlevende ondertekende tokens die worden geverifieerd tegen een gedeeld
-  geheim, niets server-side opgeslagen en het token zelf wordt nooit weggeschreven naar een
-  log of een render-URL.
+De eigen lijst van de desktop-apps bevat ook het tokeneindpunt van Google voor het aanmelden bij Drive. Elke andere host, zoals een Mastodon- of Nextcloud-server die je opgeeft, vereist goedkeuring van de beheerder, zoals beschreven onder Bestanden die je verstuurt. Hosts die je op het moment van gebruik kiest, zoals een URL die je vastlegt of een externe instantie die je opgeeft, staan in geen enkele lijst.
 
-## Content Credentials-identiteit (een aanmelding die je zelf moet starten)
 
-Lolly kan een cryptografische **Content Credential** in je exports verzegelen, zodat iedereen offline kan verifiëren dat een bestand ongewijzigd is sinds het Lolly verliet. Dat deel staat **standaard aan en is volledig lokaal** - de ondertekeningssleutel wordt op je apparaat gegenereerd en het ondertekenen zelf gebeurt offline. Zonder inschrijving is die sleutel een wegwerpsleutel: voor elke export wordt een nieuw sleutelpaar aangemaakt, dat samen met de export wordt weggegooid. Zodra je je inschrijft, wordt de sleutel blijvend en wordt hij **niet-extraheerbaar** gegenereerd - zelfs Lolly's eigen code kan hem niet lezen, alleen vragen om te ondertekenen. In beide gevallen verlaat hij nooit je apparaat. Dit onderdeel behandelt de ene *optionele* stap daarbovenop: het inschrijven van een geverifieerde identiteit, zodat je exports "Geverifieerd - ondertekend door \<your email\>" tonen in plaats van een anonieme sleutel. **Als je de inschrijving overslaat, is niets in dit onderdeel op jou van toepassing en verlaten er nooit persoonlijke gegevens je apparaat.**
+**SEAL-handtekeningen doen geen verzoek.** Verify kan SEAL-handtekeningen controleren, een schema waarvan de ondertekeningssleutel in DNS kan worden gepubliceerd. Browsers kunnen geen DNS-query's doen, dus een webopzoeking zou via een DNS-over-HTTPS-resolver van een derde moeten lopen, die het gecontroleerde domein en je IP-adres zou zien. Lolly gebruikte vroeger de resolver van Cloudflare; dat gebeurt niet meer, en niets heeft Cloudflare vervangen. Geen enkele Lolly-app zoekt vandaag SEAL-sleutels op: de desktop- en mobiele apps draaien dezelfde Verify-weergave, en `lolly validate` op de opdrachtregel controleert SEAL niet. Een bestand waarvan het SEAL-record zijn sleutel inline meedraagt, wordt offline gecontroleerd, en Verify noemt de handtekening intern consistent zonder het domein te bevestigen. Een bestand waarvan de sleutel alleen in DNS staat, toont **SEAL signature did not verify**, met de reden "no key resolver and no inline key".
 
-![De kaart Geverifieerde identiteit op de profielpagina, telefoonbreedte: de kiezer voor de certificaatlevensduur en de inschrijvingsstap eronder, sluimerend tot je hem zelf start](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
+![Het Verify-scherm: een neerzetgebied en verder niets - het bestand wordt gecontroleerd waar het al staat, zonder upload en zonder account](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop)
+
+Je kunt dit en elke andere bewering op deze pagina zelf controleren: [Verify It Yourself](/info/verify-yourself.html) geeft de opdrachten en de verwachte uitvoer.
+
+## Diensten die lolly.tools draait
+
+Deze draaien op lolly.tools voor iedereen. Elk ontvangt alleen wat jij stuurt. [Server Surface](/info/server-surface.html) beschrijft dezelfde onderdelen zoals ze werken in elke implementatie.
+
+### Renderlinks
+
+Elke URL van de vorm `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` rendert echt, en de invoer reist mee in de URL, zodat een gedeelde Lolly-link als live afbeelding kan verschijnen in een README, een wiki of een dashboard. Zo'n link ophalen vraagt de server om **openbare tool- en catalogusgegevens** te renderen met de invoer die in het adres staat.
+
+- <!--i:usercheck--> **Geen accounts, geen cookies, geen status.** De route vraagt geen aanmelding en er wordt niets op je apparaat gelezen. Je documenten, sessies en uploads verlaten je browser nooit en kunnen niet in deze links voorkomen.
+- <!--i:document--> **De URL zelf wordt vastgelegd.** De querystring van een URL maakt deel uit van het verzoek, dus ze verschijnt in de gewone toegangslogs van het hostingplatform, net als elk opgevraagd pad. Als de invoer van een link iemands naam of e-mailadres bevat, zoals een naambadge of een e-mailhandtekening, **staat die tekst in die logs**. Geef een renderlink alleen wat je ook op een openbare pagina zou zetten.
+- <!--i:globe--> **De invoer is hoe dan ook openbaar.** Het is wat de maker van de link in de URL typte, leesbaar voor iedereen die de link bereikt. Zet geen geheimen in een gedeelde link; Lolly biedt linkversleuteling voor gevoelige inhoud.
+- <!--i:eyeoff--> **In de cache, begrensd en niet geïndexeerd.** Antwoorden worden gecachet en begrensd in aantal verzoeken zoals elke openbare afbeelding, en gemarkeerd met `noindex` zodat zoekmachines je renders buiten beschouwing laten.
+
+Een zelf gehoste implementatie die geen openbare renderroute wil, stelt `LOLLY_DISABLE_RENDER_GET=1` in, en elk van deze URL's geeft 404 terug.
+
+### De afbeeldingsophaler en de Penpot-doorgeefschakel
+
+**Add from URL** in de webapp en **Send to Penpot** gebruiken twee kleine doorgeefschakels op lolly.tools, beschreven onder [Elk netwerkverzoek dat de app kan doen](#every-network-request-the-app-can-make). De afbeeldingsophaler bewaart niets en vergeet het adres. De Penpot-doorgeefschakel stuurt je token en archief door naar Penpot en bewaart geen van beide; hij logt de opdrachtnaam en de responsstatus van Penpot.
+
+### De MCP-server, voor AI-agents
+
+Een AI-agent kan Lolly bereiken via het Model Context Protocol, via een eindpunt dat een beheerder draait. lolly.tools draait er een, en iedereen kan een eigen draaien, ook volledig offline.
+
+- <!--i:cpu--> **Bestanden die een agent verstuurt.** De tools die een bestand aannemen (`lolly_transform`, `lolly_verify`, `lolly_redact`, `lolly_read`, `lolly_check`, `lolly_package`, `lolly_compose`, `lolly_rebrand` en de afbeeldingstools `lolly_look`, `lolly_sample_color` en `lolly_trace_edges`) verwerken het in het geheugen en geven het resultaat terug in dezelfde aanroep. Het bestand wordt nooit naar schijf geschreven en wordt niet bewaard zodra het verzoek klaar is. `lolly_inspect` neemt ook een bestand aan, en de video- en drukwerkcontroles ervan schrijven een tijdelijke werkkopie die wordt verwijderd zodra de aanroep terugkeert. Elke andere tool werkt met de parameters in de aanroep: tekst, getallen, kleuren, URL's, id's van catalogusassets of een document dat de aanroeper aanlevert.
+- <!--i:cpu--> **Rebrand zegt waar een deck heen gaat.** De eerste fase van `lolly_rebrand`, `capabilities`, zegt in woorden waar je bytes heen zouden gaan voordat je iets verstuurt: op een zelf gehoste lokale server verlaat het deck die machine nooit, en op een gehoste server stuurt het aanroepen van `lolly_rebrand` het deck daarheen, tot de grenzen voor grootte en aantal dia's die die fase geeft.
+- <!--i:lock--> **Het open eindpunt.** Op lolly.tools is `lolly.tools/api/mcp` voor iedereen open, zonder token. Aanroepen zijn begrensd per adres en door een dagbudget. Het adres wordt een pseudoniem digest in de opslag voor misbruikbestrijding, zoals bij de aanmeldeindpunten hieronder, en het budget telt alleen CPU-tijd en verzonden bytes, zonder adres. Het bearer-token van een afgeschermd eindpunt wordt nooit in een log of renderURL geschreven.
+- <!--i:link--> **Downloadlinks voor grote resultaten.** lolly.tools geeft resultaten inline terug en geeft deze links nooit uit. Een beheerder kan ze inschakelen voor de eigen geauthenticeerde gateway, waar een resultaat hoogstens vijf minuten wordt vastgehouden en alleen het eigen bearer-token van de aanroeper het kan ophalen; zie [MCP Server](/info/mcp.html#private-download-links-for-large-results). Een geplande afgeschermde endpoint op `mcp.lolly.tools` zou een bearer-token accepteren dat de beheerder aan vertrouwde clients uitgeeft, of OAuth 2.1 met kortlevende ondertekende tokens die worden gecontroleerd aan de hand van een gedeeld geheim; de activering is in behandeling, en het staat vermeld onder [Bezorghosts en verwerkers](#delivery-hosts-and-processors).
+
+### Geverifieerde identiteit: een aanmelding die je zelf start
+
+Lolly kan een **Content Credential** in je exports verzegelen, zodat iedereen offline kan nagaan dat een bestand ongewijzigd is sinds het Lolly verliet. Dat staat **standaard aan en is volledig lokaal**: de ondertekeningssleutel wordt op je apparaat gemaakt en het ondertekenen gebeurt offline. Zonder inschrijving is die sleutel een wegwerpsleutel, een vers sleutelpaar dat per export wordt gemaakt en daarna wordt weggegooid. Zodra je je inschrijft, blijft de sleutel bestaan en wordt hij **niet-exporteerbaar** gegenereerd, zodat zelfs de eigen code van Lolly hem niet kan lezen, alleen kan vragen om te ondertekenen. In beide gevallen verlaat hij je apparaat nooit.
+
+[Exporting](/info/exporting.html#content-credentials-c2pa) noemt wat een credential vastlegt: de tool, het tijdstip, het grove exportoppervlak, je naam alleen als je *Use my details* aanzette, de gecrediteerde werken die een export plaatst, en elk Rondocode-nummer dat een video- of audio-export afspeelt (de naam, een hash van de bron en hoe de sandbox van Lolly het nummer renderde). Het exportpaneel somt die nummers op voordat je exporteert.
+
+De credential en de metadata van het bestand leggen ook het [design system en de colourway](/info/exporting.html#the-design-system-record) vast die de export tekenden: het id en de naam van het design system, de gepubliceerde versie en de colourway. De naam van een design system is tekst die de eigenaars typten en kan de naam van een klant zijn, dus de kaart **Design system** in het exportpaneel toont de exacte woorden voordat je exporteert. Haal het vinkje van de kaart weg, of geef `_madewith=0` of `--no-madewith` mee, om ze weg te laten.
+
+De ene *optionele* stap daar bovenop is het inschrijven van een geverifieerde identiteit, zodat je exports "Verified - signed by \<your email\>" zeggen in plaats van een anonieme sleutel te noemen. **Als je de inschrijving overslaat, ontvangt de certificaatdienst geen inschrijvingsgegevens van jou.**
+
+![De kaart Verified identity in Settings, op telefoonbreedte: de keuze voor de levensduur van het certificaat en daaronder de inschrijfstap, slapend totdat je hem zelf start](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 Als je je wel inschrijft, gebeurt precies dit:
 
-1. **Je kiest een aanmeldmethode** - GitHub, Google, SUSE (id.suse.com) of een
-   gemailde link. Voor de drie OIDC-providers word je doorgestuurd naar de
-   eigen inlogpagina van die provider, geregeld door hun privacybeleid, niet het onze.
-   Lolly's certificaatdienst krijgt alleen een geverifieerd e-mailadres terug en
-   de naam van de provider. Voor de e-maillink wordt het adres dat je typt doorgegeven aan
-   **Resend**, een transactionele e-mail-API, uitsluitend om die ene link te bezorgen.
-2. **Een kortlevende cookie beschermt de omleiding.** Dit is de enige cookie die
-   het hele Lolly-systeem instelt: `lolly_ca_state`, `HttpOnly`, beperkt tot `/api/ca`,
-   verlopend binnen tien minuten. Hij bevat een willekeurige waarde, geen tracking-
-   identifier, en bestaat alleen om te voorkomen dat de OAuth-omleiding wordt vervalst. Hij wordt
-   gewist zodra de aanmelding is voltooid.
-3. **Je IP-adres wordt kort gebruikt om misbruik te voorkomen** van de
-   aanmeldendpoints (zodat één script geen inbox kan spammen of het e-mailquotum kan uitputten).
-   Lolly hasht het voordat het een kortlevende misbruikcontrole-bucket aanmaakt; het ruwe
-   adres wordt niet naar die opslag gestuurd. De bucket verloopt na ongeveer een minuut
-   en wordt niet gebruikt voor tracking. Gewone hosting-toegangslogs zijn apart en
-   worden hieronder beschreven.
-4. **De certificaatdienst geeft een kortlevend certificaat uit** (7, 30, 90 of 365
-   dagen, jouw keuze, begrensd door het beleid van de operator) dat je geverifieerde
-   e-mailadres koppelt aan de publieke helft van het sleutelpaar dat op je apparaat is gegenereerd. De private
-   helft verlaat je browser nooit.
-5. **Niets over de uitgifte wordt geregistreerd.** De certificaatdienst houdt geen
-   uitgiftelog bij: niet je e-mail, niet de provider, niet een serienummer, niet een
-   tijdstempel. Geen database, geen logregel, geen webhook. Je e-mailadres bestaat in het
-   verzoek maar net lang genoeg om te worden geschreven in het certificaat dat je eigen
-   apparaat ontvangt, en daarna is het aan onze kant volledig verdwenen.
-6. **Daarna is ondertekenen weer offline** voor de hele levensduur van het certificaat.
-   Een bestand exporteren neemt nooit contact op met de certificaatdienst - alleen inschrijven deed dat.
+::: timeline
+- <!--i:usercheck--> **Je kiest een aanmeldmethode**: GitHub, Google, SUSE (id.suse.com) of een gemailde link. Bij de drie OIDC-providers ga je naar de eigen aanmeldpagina van die provider, onder hun privacybeleid, niet het onze, en de certificaatdienst krijgt alleen een geverifieerd e-mailadres en de naam van de provider terug. Bij de e-maillink gaat het adres dat je typt naar **Resend**, een dienst voor transactionele e-mail, alleen om die ene link te bezorgen.
+- <!--i:lock--> **Een kortlevende cookie beschermt de redirect.** De certificaatdienst zet `lolly_ca_state`, `HttpOnly`, beperkt tot `/api/ca` en verlopend binnen tien minuten. Hij bevat een willekeurige waarde in plaats van een trackingidentificatie, bestaat alleen om te voorkomen dat de aanmeldredirect wordt vervalst en wordt gewist zodra het aanmelden klaar is.
+- <!--i:eyeoff--> **Je IP-adres wordt kort gebruikt om misbruik te voorkomen** van de aanmeldeindpunten, zodat één script geen inbox kan overspoelen of het e-mailquotum kan opmaken. Lolly maakt er een SHA-256-digest van voordat het de kortlevende opslag voor misbruikbestrijding bereikt, dus het ruwe adres wordt daar niet naartoe gestuurd. De digest is pseudoniem in plaats van anoniem: wie de opslag in handen heeft, zou een IPv4-adres kunnen terugvinden door elk mogelijk adres te proberen. De bucket verloopt na ongeveer een minuut en wordt voor niets anders gebruikt. Gewone toegangslogs van de hosting staan los hiervan en worden hieronder beschreven.
+- <!--i:seal--> **De dienst geeft een certificaat uit** dat je geverifieerde e-mailadres koppelt aan de publieke sleutel van je apparaat. De privésleutel blijft op het apparaat: de client stuurt een certificaataanvraag met een gebonden bewijs van bezit, en geen privésleutel van het apparaat gaat naar een van beide uitgevermodi.
+- <!--i:check--> **Ondertekenen blijft lokaal.** Met de legacy-uitgever heeft een export geen verzoek aan de certificaatdienst nodig. Een beheerde identiteit heeft bovendien een verse, ondertekende intrekkingslijst van haar uitgever nodig; de client kan een lijst uit de cache gebruiken binnen het geconfigureerde versheidsvenster, en het verversen ervan kan tijdens een export contact opnemen met de certificaatdienst. Ontbrekende, verlopen of ongeldige status verhindert dat de beheerde identiteit wordt gebruikt.
+:::
 
-**De afweging, ronduit gezegd.** Een eerdere versie van deze dienst logde elke
-uitgifte wel, zodat een verkeerd uitgegeven of gecompromitteerd certificaat traceerbaar was. We
-hebben dat verwijderd, omdat dat logboek de enige plek in heel Lolly was waar persoonlijke
-data op een server tot rust kwam, en we hebben het liever niet dan het zorgvuldig te bewaren. Wat we opgeven
-is server-side traceerbaarheid: als een certificaat wordt misbruikt, kunnen we niet opzoeken wie het
-heeft verkregen. Certificaten zijn met opzet kortlevend - 7 tot 365 dagen, jouw keuze,
-begrensd door de operator - en verlopen vanzelf, wat de mitigatie is waar we in plaats daarvan op
-vertrouwen. Self-hosters van wie de eigen verplichtingen een auditlog vereisen kunnen er zelf een toevoegen
-en worden daarmee de verwerkingsverantwoordelijke voor die data.
+::: details Bewaartermijn en intrekking per uitgevermodus
+**Legacy gehoste uitgifte** biedt 7, 30, 90 of 365 dagen, begrensd door de beheerder. Ze houdt geen identiteitsinventaris en geen uitgifte-log bij, dus ze kan niet opzoeken wie een certificaat kreeg of de certificaten van die persoon intrekken; de levensduur is de intrekking.
+
+**Beheerde organisatie-uitgifte** gebruikt een standaardlevensduur van hoogstens 24 uur en een maximum van zeven dagen, met een eigen root en uitgevertrouwensbeleid, en het ondertekenen gaat naar de Vault-uitgever die de beheerder instelde. De inschrijfapplicatie gebruikt een gedeelde toelatingsopslag voor eenmalig gebruik die alleen een gesleutelde authenticatie-identificatie en een aanvraagdigest bevat, hoogstens tien minuten, en slaat geen identiteitsinventaris of cache van certificaatantwoorden op. De PKI-provider, zijn auditapparaten, gateways en back-ups hebben hun eigen gegevensstromen. Zelfs met de gewone uitgifteopslag uitgeschakeld kan certificaatgebaseerde intrekking het certificaat bewaren, inclusief de e-mailidentiteit, en kunnen intrekkingsserienummers en audit-id's koppelbaar blijven; het beleid van je beheerder bepaalt die inventaris, wie erbij kan en hoe lang die wordt bewaard.
+
+Een beheerd apparaat kan met een geauthenticeerd bewijs van het apparaat vragen zijn eigen certificaat in te trekken, en geen enkele API vraagt om de privésleutel van het apparaat. De beheerder kan een uitgever intrekken via zijn vertrouwensbeleid. Lolly houdt geen koppeling bij tussen mensen en certificaten, dus het intrekken van iemands certificaten bij vertrek hangt af van records die de beheerder bijhoudt, en PKI-records, auditrecords, ontvangers en back-ups volgen het beleid van de beheerder. Het [ontwerp van de certificaatdienst](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md) behandelt bewaring door de uitgever, bewaring door de provider en kwalificatie.
+:::
+
+## Organisatiediensten met Lolly Work
+
+**Lolly Work** is de optionele organisatiedienst van het Lolly-project, apart uitgerold door elke organisatie die een instantie draait. Verbinden met een instantie voegt gegevens toe die op die server worden bewaard naast je lokale bewerking. De beheerder ervan is verantwoordelijk voor het privacybeleid, de toegangscontroles, de ontvangers, de bewaartermijnen en de back-ups van die implementatie.
+
+| Workflow | Gegevens die de dienst van de organisatie verwerkt |
+|---|---|
+| Aanmelden en provisioning | Claims van de identiteitsprovider, account- en groepslidmaatschap, aanmeldsessies en apparaatgegevens. OIDC regelt het aanmelden; beheerders kunnen accounts via SCIM aanmaken en deactiveren |
+| Gedeelde catalogus en projecten | Geüploade assets, metadata en versies; gedeelde projecten en sessies; inhoud opgehaald bij geconfigureerde bibliotheekproviders |
+| Werkcollabs | Gedeelde sessiestatus, live bewerkingen en aanwezigheid van deelnemers die via de instantie worden verstuurd; opgeslagen status blijft bestaan onder het opslagbeleid ervan |
+| Beheerde deellinks | Linkdoel en toegangsinstellingen, zoals verloopdatum en optionele wachtwoordbeveiliging; verzoeken worden via de instantie opgelost en kunnen worden ingetrokken |
+| Review en bezorging | Ingediende inhoud, goedkeuringsbeslissingen, gekozen bestemming, klaargezette bestanden en bezorgbewijzen |
+| Serverrenders en batches | Ingediende toolinvoer, renderverzoeken, status en bewaarde uitvoerbestanden. Deze taken draaien op de server in plaats van op je apparaat |
+| Gebruiksrapportage | Labels van gebeurtenissen op een toegestane lijst, zoals tool-id, formaat en asset-id, volgens het telemetriebeleid hieronder |
+| Audit | Records van actor en actie voor beheerde bewerkingen, apart bewaard van de gebruikstelemetrie |
+
+De dienst gebruikt authenticatiecookies, waaronder `lw_session` voor aangemelde leden en `lw_guest` voor gasttoegang waar die is ingeschakeld, los van de cookie van de certificaatdienst. Beleidsverversingen en ingeschakelde gebruiksrapportage kunnen verzoeken doen terwijl de app in gebruik is, zonder een aparte klik voor elk. Dit is verkeer naar de geconfigureerde instantie, geen rapport aan het Lolly-project over implementaties die het niet draait.
+
+**Gebruikstelemetrie heeft drie niveaus.** `off` slaat geen gebruiksgebeurtenissen op, `aggregate` verwijdert gebruikers-id's en `standard` kan gebeurtenissen toeschrijven. Het standaardniveau is `standard`, dus een instantie slaat de gebruiksgebeurtenissen op die ze ontvangt, tenzij de beheerder `off` kiest. Het standaardtoeschrijvingsbeleid is `opt-in`, wat jouw toestemming vereist voordat een gebruikers-id wordt opgeslagen; een beheerder kan in plaats daarvan toegeschreven rapportage instellen met `telemetryAttribution: default`. Toegestane attributen zijn labels, nooit invoerwaarden van tools. Zie [Work telemetry](/info/work-telemetry.html).
+
+**Audit staat los hiervan.** Beheerde acties kunnen een geïdentificeerd auditrecord bewaren, wat je telemetrietoestemming ook is. Telemetrie uitzetten zet de opslag van gedeelde sessies, goedkeuringsrecords, opslag van renderjobs of audit niet uit. De beheerder bepaalt bewaartermijn en wissing, inclusief eventuele pseudonimisering van het auditlog; zie [Work storage and data lifecycle](/info/work-data-lifecycle.html).
+
+| | Je apparaat | De instantie van je organisatie |
+|---|---|---|
+| Wat het bevat | Je persoonlijke werk, voorkeuren en caches | Gedeeld werk, accounts, uploads, goedkeuringen, renders, audit en geconfigureerde telemetrie |
+| Wie het verwijdert | Jij, met **Clear all my data** of de sitegegevens van je browser | De beheerder, via de eigen besturing van de instantie |
+| Wie je kunt vragen | Niemand: de records staan op je apparaat | De beheerder van de instantie, voor toegang, export of wissing |
+
+**Lokaal verwijderen is geen verwijderen op de server.** Een instantie verlaten of je browser wissen verwijdert de lokale status, niet de opgeslagen records of back-ups van de organisatie. Persoonlijke [Sync](/info/sync.html) en **Export my data** maken een back-up van je apparaat, niet van de dienst van de organisatie. De openbare demo op [lolly.work](https://lolly.work) bewaart zijn status alleen in het geheugen en is geen duurzame opslag voor je werk.
 
 ## De browserextensie
 
-De browserextensie **Lolly URL Screenshot** verzamelt, bewaart of verzendt geen enkele
-persoonlijke data. Geen analyse, geen tracking, geen externe server.
+De browserextensie **Lolly URL Screenshot** verzamelt geen persoonsgegevens voor ons. Ze heeft geen analytics, geen tracking en geen eigen server. De pagina [Browser extension](/info/extension.html) beschrijft hoe ze werkt.
 
-**Wat het doet.** Wanneer je de Lolly-webapp vraagt om een URL te fotograferen, opent de
-extensie die pagina in een tijdelijk achtergrondtabblad, legt hem vast in je
-browser via het DevTools Protocol, geeft de afbeelding terug aan de app en sluit
-het tabblad. Alles gebeurt lokaal, op je eigen apparaat en netwerk.
+**Wat ze doet.** De Lolly-webapp kan haar om een screenshot van een webpagina vragen, of om de inhoud van een pagina om een design system te starten vanaf een website. Elk verzoek opent in de extensie een goedkeuringsvenster dat de aanvragende site toont, of er een screenshot of de pagina-inhoud wordt gewild, en het paginaadres. Pas nadat je op **Approve once** drukt, opent de extensie die pagina in een tijdelijk achtergrondtabblad, maakt de screenshot of leest de pagina, geeft het resultaat aan het Lolly-tabblad dat erom vroeg en sluit het tabblad. Elk verzoek heeft zijn eigen goedkeuring nodig.
 
 **Gegevens.**
 
-- <!--i:shieldcheck--> **We verzamelen niets.** De extensie heeft geen servers en doet geen eigen
-  netwerkverzoeken.
-- <!--i:photos--> **Vastgelegde afbeeldingen** gaan rechtstreeks naar de Lolly-app in dezelfde browser - nooit
-  geüpload door de extensie.
-- <!--i:link--> **De URL's die je vastlegt** worden alleen gebruikt om die ene pagina te laden voor die ene
-  screenshot. Ze worden niet gelogd of gedeeld.
+- <!--i:shieldcheck--> **Wij verzamelen niets.** Het resultaat gaat alleen naar de Lolly-pagina die erom vroeg, in dezelfde browser. De extensie slaat geen pagina-inhoud op en voegt geen andere ontvanger toe.
+- <!--i:globe--> **Netwerkverzoeken.** De pagina die je goedkeurt laadt zoals in elk tabblad, samen met alles wat die pagina zelf opvraagt. Het lezen van de inhoud van een pagina haalt ook de stijlbladen van die pagina en een paar van haar pictogram- en logoafbeeldingen op, van binnenuit de pagina, en die ophaalacties sturen geen cookies naar andere sites. De extensie doet geen andere verzoeken en geen daarvan gaat naar een Lolly-server.
+- <!--i:lock--> **Je browsersessie.** De pagina laadt met je browsersessie, zoals wanneer je haar zelf opent, dus een pagina waarbij je bent aangemeld kan privé-informatie in het resultaat zetten.
+- <!--i:link--> **De adressen die je goedkeurt** worden alleen gebruikt om die ene pagina voor dat ene verzoek te laden. Ze worden niet gelogd of gedeeld.
 
 **Machtigingen.**
 
-- <!--i:wrench--> **`debugger`** - om de gerenderde pagina vast te leggen via het DevTools Protocol (hetzelfde
-  mechanisme dat de Lolly-desktopapp gebruikt).
-- <!--i:monitor--> **`tabs`** - om het tijdelijke tabblad te openen en sluiten waarin de pagina laadt.
-- <!--i:globe--> **Hosttoegang (`<all_urls>`)** - omdat de pagina die je kiest om vast te leggen op
-  elke site kan staan. Chrome toont dit bij installatie als een brede machtigings-
-  waarschuwing. De extensie bezoekt alleen de URL die je opgeeft.
+- <!--i:wrench--> **`debugger`**: om de screenshot te maken via het DevTools Protocol, hetzelfde mechanisme dat de Lolly-desktop-app gebruikt.
+- <!--i:monitor--> **`tabs`**: om het tijdelijke tabblad te openen en te sluiten, en om te controleren dat noch de Lolly-pagina noch de doelpagina is verplaatst sinds je goedkeurde.
+- <!--i:code--> **`scripting`**: om de inhoud van een pagina in het tijdelijke tabblad te lezen, nadat je dat verzoek goedkeurt.
+- <!--i:database--> **`storage`**: om de id's van de tijdelijke tabbladen in sessieopslag te noteren, zodat ze nog steeds sluiten als de browser de extensie tijdens een verzoek stopt. Er wordt geen pagina-inhoud opgeslagen.
+- <!--i:check--> **Optionele sitetoegang (`http://*/*`, `https://*/*`)**: niet verleend bij installatie. Wanneer je op **Approve once** drukt, vraagt de extensie Chrome om toegang tot de ene site in dat verzoek, en Chrome vraagt het je de eerste keer voor elke site. Een site die je eerder toestond, heeft nog steeds bij elk verzoek een nieuwe goedkeuring nodig.
 
-Geen van deze wordt gebruikt om je surfgedrag te lezen, te monitoren of door te sturen buiten
-die ene gevraagde opname.
+Geen van deze wordt gebruikt om je surfgedrag te lezen, te monitoren of door te geven, buiten het ene verzoek dat je goedkeurde.
+
+## Bezorghosts en verwerkers
+
+Openbare catalogusbestanden, tools en weergaveversies komen standaard van het eigen adres van de app. Inhoudsgeadresseerde namen veranderen waar een bestand wordt opgehaald, niet wie het verzoek ontvangt. Deze bezorgfunctie activeert geen CDN van een derde. Een CDN die TLS beëindigt zou verzoekgegevens ontvangen, waaronder IP-adressen en alle cookies of bearer-credentials die ernaartoe worden doorgestuurd, zelfs onder dezelfde browserhostnaam, dus een beheerder die er een toevoegt neemt een nieuwe verwerker aan.
+
+**Voordat een CDN of externe modelhost wordt toegevoegd**, moet de beheerder de naam van de verwerker, de hostnaam, de rechtsgebieden, de ontvangen metadata, de bewaartermijn en de doorgiftearrangementen publiceren. [Delivery deployment](/info/deploy-delivery.html) noemt wat bekendgemaakt moet worden. Antwoorden uit privéwerkruimtes omzeilen gedeelde caches: persoonlijke resultaten, toegangsweigeringen en fouten gebruiken `private, no-store`, en een toegestaan privéantwoord kan in je browser opnieuw worden gevalideerd zonder openbaar te worden.
+
+De referentiediensten gebruiken de hosting hieronder. Dit is een lijst van hostnamen, geen bewering dat de instantie van een andere organisatie dezelfde regio gebruikt.
+
+| Hostnaam of dienst | Functie en ontvanger | Regio en gegevensverwerking |
+|---|---|---|
+| lolly.tools | Openbare app, catalogus, rendering en certificaatdiensten; UpCloud-hosting | Frankfurt, Duitsland. Verzoekgegevens kunnen in infrastructuurlogs voorkomen; gewoon lokaal bewerken blijft op het apparaat |
+| lolly.ing | Beheerde werkruimte en documentagentdiensten; UpCloud-hosting | Frankfurt, Duitsland. De privédatabase en bestandsopslag staan op dezelfde host. Accounts, gedeelde inhoud en dienstrecords volgen het beleid van de beheerder van de instantie |
+| mcp.lolly.tools | Geplande optionele geauthenticeerde MCP-gateway en privédownloads van resultaten; UpCloud-hosting | Frankfurt, Duitsland, met dezelfde hostingverwerker. Activering in behandeling. De gateway zou verzoekgegevens en de parameters of bestanden van de aanroeper ontvangen |
+| lolli.li | Openbare release- en modelbestanden; UpCloud Managed Object Storage, gescheiden van het applicatiecluster | Frankfurt, Duitsland, in de europe-2-objectopslagregio van UpCloud. Een download stuurt verzoekgegevens, niet de invoer die het model later verwerkt |
+| Geconfigureerde identiteitsprovider | Google, GitHub of de OIDC-provider van een beheerder | Aanmelden volgt het beleid van die provider. Vraag de beheerder van de instantie om hostnaam, regio en doorgiftearrangementen |
+| Geconfigureerde assetprovider | Brandfolder of een andere bibliotheek die de beheerder kiest | De provider ontvangt toegestane bibliotheekverzoeken. Zijn bronrechten en het beleid van de instantie bepalen de toegang; vraag de beheerder om de hostnamen en regio's |
+| E-mailinschrijving, wanneer geconfigureerd | Resend bezorgt de gevraagde aanmeldlink | Ontvangt het bestemmingse-mailadres voor dat bericht; zijn eigen verwerkingsvoorwaarden zijn van toepassing |
+
+De referentietoepassing gebruikt geen andere hosting-, database- of misbruikbestrijdingsprovider. Een beheerder kan voor een andere instantie andere providers kiezen, en hosting-, identiteits-, asset- en e-mailproviders hebben elk hun eigen bekendmaking nodig. De [objectopslagregio](https://upcloud.com/docs/products/managed-object-storage/availability/) van de modelhost wordt apart geverifieerd van de regio van de applicatie.
+
+**Optionele downloadlinks voor MCP, gebonden aan de aanroeper.** Een beheerder kan downloadlinks voor grote resultaten inschakelen op een geauthenticeerde gateway met één replica. Ze staan standaard uit. De anonieme gateway op `lolly.tools/api/mcp` geeft resultaten inline terug en geeft deze links nooit uit. De geplande afgeschermde hostnaam is `mcp.lolly.tools`, bij dezelfde UpCloud-verwerker in Frankfurt; de activering is in behandeling, en deze pagina beweert niet dat er een live downloadlinkdienst is. De links voegen geen CDN van een derde toe.
+
+Alleen een geauthenticeerde aanroeper met een bestandsscope kan een link ontvangen, en het bearer-token van dezelfde aanroeper is nodig om hem op te halen: gebruik het gevalideerde bearer-token van de renderaanroep, niet een ander token voor hetzelfde account. De toekenning verloopt binnen 300 seconden. Eigendom en resultaatopzoeking blijven in het geheugen van de gateway, en uitvoerbytes gaan naar privé tijdelijke bestanden, opgeschoond na verloop of verwijderd bij een nette afsluiting. Een herstart van de gateway maakt bestaande links ongeldig. Vastgehouden resultaten zijn beperkt tot 64 MiB per bearer, 256 MiB over de hele gateway en 200 wachtende of vastgehouden bestanden. Dagelijkse budgetten voor CPU en gedecodeerde bytes tellen resultaten wanneer ze worden vastgehouden en wanneer ze worden gedownload. Antwoorden gebruiken `private, no-store` en `Referrer-Policy: no-referrer`. Het token van een link alleen laat geen andere persoon of agent het resultaat lezen.
 
 ## Infrastructuurlogs
 
-Zoals elke website genereren de servers achter lolly.tools - en achter elke
-Lolly-deployment - standaard webserver-toegangslogs telkens wanneer een verzoek ze
-bereikt: IP-adres, opgevraagd pad, tijdstempel, user agent. Dat is basaal
-hostinggedrag, geen toevoeging van Lolly, en het bevat nooit de
-inhoud van je documenten, omdat die nooit een server bereiken om te beginnen. De
-ene bewuste uitzondering is een bestand dat je expliciet aan een MCP-aanroep
-`lolly_transform`, `lolly_verify`, `lolly_redact` of `lolly_rebrand` geeft, dat
-in het geheugen wordt verwerkt en nooit naar schijf of een log wordt geschreven, zoals hierboven beschreven.
+Deze sectie beschrijft de openbare lolly.tools-implementatie. Het hostingplatform legt gewone verzoekgegevens vast: IP-adres, opgevraagd pad, tijdstempel en user agent. Lokale bewerkingen bereiken die host niet. De querystring van een renderlink kan de tekst bevatten die de aanroeper aanleverde, zoals hierboven uitgelegd. MCP-bestandstools verwerken de bytes die ze krijgen in het geheugen. Een Lolly Work-instantie bewaart daarnaast de hierboven beschreven records, onder het logbeleid van de beheerder.
 
-**Lolly's eigen code schrijft niets naar die logs.** De MCP-server bevat helemaal geen
-logging-statements. De certificaatservice geeft precies twee regels uit, allebei
-bij falen en allebei bewust gestript: een verzendfout-statuscode zonder
-ontvangeradres, en een foutmelding zonder stacktrace of URL (een stack zou
-een inschrijvingstoken kunnen bevatten). Al het overige in het log is van het hostingplatform,
-niet van ons.
+**De openbare diensten houden applicatielogging tot een minimum beperkt.** De MCP-server logt opstart, configuratie en renderwaarschuwingen; hij houdt geen eigen verzoeklog bij en logt geen tokens of adressen van aanroepers. De Penpot-doorgeefschakel logt elke opdrachtnaam en de responsstatus van Penpot, nooit headers, tokens of het bestand. De certificaatdienst logt zijn opstartinstellingen en configuratiewaarschuwingen, plus twee gestripte regels bij een fout: een statuscode voor een mislukte verzending zonder ontvangeradres, en een vaste foutregel zonder fouttekst, stacktrace of URL, omdat een providerfout identiteitswaarden of credentials kan bevatten. Al het andere in het log komt van het hostingplatform.
 
-Voor lolly.tools is Vercel de hostingpartij en de bewaartermijn van toegangslogs volgt
-Vercel's eigen platformstandaarden voor ons abonnement. We configureren geen logdrain, geen
-langetermijn-logexport en geen analytics- of monitoringproduct erbovenop. We bewaren zelf geen
-kopie van deze logs, wat ook betekent dat we ze niet voor je kunnen doorzoeken - zie
-[Jouw rechten](#your-rights).
+Voor lolly.tools beheert de beheerder van de instantie het loggen van verzoeken, de rotatie en de bewaartermijn bij UpCloud. Deze pagina noemt geen maximale logbewaartermijn die niet is geverifieerd. Neem contact op met de verwerkingsverantwoordelijke hieronder voor het actuele schema en voor elk verzoek over logs die op de server staan. Voor een andere instantie gelden de instellingen van haar beheerder, inclusief logexports of andere verwerkers.
 
 ## Rechtsgronden, bewaartermijnen en ontvangers
 
-Bijna niets hier heeft een rechtsgrond nodig, omdat er bijna niets wordt verwerkt. Voor
-de volledigheid de complete lijst:
+Deze tabel behandelt de referentie-implementatie **lolly.tools**. Ze noemt niet de rechtsgronden of bewaartermijnen van de Lolly Work-instantie van je organisatie; de beheerder ervan geeft die in zijn eigen beleid.
 
-| Verwerking | Rechtsgrond (GDPR Art. 6) | Bewaard voor |
+| Verwerking | Rechtsgrond (GDPR art. 6) | Bewaard gedurende |
 |---|---|---|
-| Alles op je apparaat (documenten, voorkeuren, cache, tellers) | **Helemaal geen verwerking door ons** - het bereikt ons nooit. Opslag op je apparaat is strikt noodzakelijk voor de dienst die je hebt aangevraagd (ePrivacy Art. 5(3)), dus is geen toestemming vereist | Tot je het verwijdert |
-| Je e-mailadres tijdens Content Credentials-inschrijving | **Art. 6(1)(b)**, uitvoering van een dienst die je expliciet hebt aangevraagd | Niet bewaard. Alleen aanwezig in het geheugen voor de duur van het verzoek |
-| Een op één manier afgeleide bucketsleutel gemaakt van je IP-adres op aanmeldendpoints, voor rate limiting | **Art. 6(1)(f)**, ons gerechtvaardigd belang om misbruik van een gratis dienst en van het e-mailquotum van een derde te voorkomen. Wij vinden dat dit een belangenafweging doorstaat omdat het ruwe adres niet naar de limiter wordt gestuurd, de bucket alleen voor misbruikcontrole wordt gebruikt en hij automatisch verloopt | Ongeveer 1 minuut in de misbruikcontrole-opslag; daarna niet bewaard |
-| Hosting-toegangslogs (IP, pad, tijdstempel, user agent) | **Art. 6(1)(f)**, ons gerechtvaardigd belang bij dienstbeveiliging, misbruikpreventie en het diagnosticeren van storingen | Vercel's platformstandaard voor ons abonnement. We voegen geen drain of export toe |
+| Alles op je apparaat (documenten, voorkeuren, cache, tellers) | **Helemaal geen verwerking door ons**: het bereikt ons nooit. Opslag op je apparaat is strikt noodzakelijk voor de dienst waar je om vroeg (ePrivacy art. 5, lid 3), dus er is geen toestemming nodig | Totdat je het verwijdert |
+| Je e-mailadres bij legacy gehoste inschrijving voor Content Credentials | **Art. 6(1)(b)**, uitvoering van een dienst waar je uitdrukkelijk om vroeg | Geen identiteitsinventaris of uitgifte-log in de legacy-dienst; het e-mailadres wordt tijdens het verzoek gebruikt en opgenomen in je certificaat. Bewaring van beheerde organisatie-PKI, audit en intrekking volgt het beleid van de beheerder |
+| Een pseudoniem SHA-256-digest van je IP-adres, voor het begrenzen van de aanmeldeindpunten en de openbare render-, afbeeldings- en MCP-eindpunten | **Art. 6(1)(f)**, ons gerechtvaardigd belang bij het voorkomen van misbruik van een gratis dienst en van het e-mailquotum van een derde. Wij achten dat een belangenafweging te doorstaan omdat het ruwe adres niet naar de begrenzer wordt gestuurd, de digest alleen voor misbruikbestrijding wordt gebruikt en vanzelf verloopt | Ongeveer één minuut in de opslag voor misbruikbestrijding; daarna niet bewaard |
+| Toegangslogs van de hosting (IP, pad, tijdstempel, user agent) | **Art. 6(1)(f)**, ons gerechtvaardigd belang bij beveiliging van de dienst, het voorkomen van misbruik en het diagnosticeren van storingen | Door de beheerder ingestelde rotatie en bewaartermijn; neem contact op met de verwerkingsverantwoordelijke voor het actuele schema |
 
-**Ontvangers.** De categorieën ontvangers zijn: onze hostingprovider (Vercel
-Inc.); onze provider van misbruikcontrole-opslag, die alleen kortlevende, op één manier
-afgeleide bucketsleutels ontvangt en nooit het ruwe IP-adres; en - alleen als je
-de e-mailaanmeldoptie gebruikt - een transactionele e-mailprovider (Resend). Als je je aanmeldt
-met GitHub, Google of SUSE (id.suse.com), heb je
-rechtstreeks contact met die provider, onder hun eigen privacybeleid. Zij vertellen
-ons een geverifieerd e-mailadres en verder niets. We delen persoonlijke gegevens met niemand
-anders, en we verkopen geen gegevens, tonen geen advertenties en profileren geen gebruikers.
+**Ontvangers.** De categorieën ontvangers zijn onze hostingprovider (UpCloud), die de database en de opslag voor misbruikbestrijding van de applicatie host, en, alleen als je de aanmeldoptie via e-mail gebruikt, een provider van transactionele e-mail (Resend). De opslag voor misbruikbestrijding ontvangt alleen kortlevende digests, nooit het ruwe IP-adres. Als je je aanmeldt met GitHub, Google of SUSE (id.suse.com), heb je rechtstreeks met die provider te maken onder hun eigen privacybeleid, en zij geven ons een geverifieerd e-mailadres door en niets anders. We delen persoonsgegevens met niemand anders, en we verkopen geen gegevens, voeren geen reclame uit en profileren geen gebruikers.
 
-**Doorgiften buiten de EER.** Vercel en Resend zijn Amerikaanse bedrijven. Functie-
-compute voor lolly.tools is vastgezet in Vercel's regio Frankfurt (`fra1`), dus
-de verwerking gebeurt in de EU, maar als in de VS gevestigde providers kunnen ze
-toch als verwerker toegang krijgen tot gegevens vanuit de VS. Die doorgiften steunen op de Standaard
-Contractuele Clausules van de Europese Commissie en/of het EU-VS Data Privacy
-Framework, zoals vastgelegd in de verwerkersovereenkomst van elke provider. Omdat de
-persoonlijke gegevens die deze providers bereiken zo beperkt zijn - een e-mailadres
-doorgegeven om één bericht te versturen, gewone toegangslogs, en een kortlevende afgeleide
-misbruikcontrole-bucket - is de blootstelling navenant klein.
+**Doorgifte buiten de EER.** De hosting, database en bestandsopslag van de referentietoepassing staan in Frankfurt. Optionele identiteits-, e-mail- en assetproviders hebben hun eigen verwerkingslocaties en voorwaarden, die toegang van buiten de EER kunnen omvatten, en de regio van een server alleen bepaalt niet het rechtsgebied van elke ontvanger. Neem contact op met de verwerkingsverantwoordelijke voor de providerovereenkomsten en doorgiftearrangementen die van toepassing zijn; vraag het voor een andere instantie aan de beheerder ervan. De [standaardcontractbepalingen](https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/standard-contractual-clauses-scc_en) van de Europese Commissie zijn één van de waarborgen die voor zulke doorgiften beschikbaar zijn; deze pagina beweert niet dat een niet-geverifieerde providerovereenkomst ze gebruikt.
 
-**Geautomatiseerde besluitvorming.** Geen. Er is geen profilering en geen geautomatiseerd
-besluit dat rechtsgevolgen of vergelijkbaar significante gevolgen heeft (art. 22).
+**Geautomatiseerde besluitvorming.** Geen. Er is geen profilering en geen geautomatiseerd besluit met rechtsgevolgen of vergelijkbaar significante gevolgen (art. 22).
 
 ## Privacy van kinderen
 
-Lolly verzamelt niet bewust persoonlijke informatie van wie dan ook, van welke leeftijd dan ook, in
-het normale gebruik van de app - er is niets te verzamelen. De enige plaats waar
-persoonlijke informatie (een e-mailadres) ooit wordt verzameld is Content Credentials-
-inschrijving, hierboven beschreven, die niet gericht is op of bedoeld is voor kinderen.
+Gewoon lokaal gebruik van de app stuurt geen persoonlijke inhoud naar lolly.tools. De optionele inschrijving voor Content Credentials ontvangt een e-mailadres en is niet gericht op of bedoeld voor kinderen. Organisatiediensten hebben hun eigen accounts en gegevensverwerking, onder het beleid van hun beheerder.
 
 ## Jouw rechten
 
-Omdat bijna alles wat Lolly aanraakt alleen op je eigen apparaat wordt opgeslagen, zijn de meeste
-dingen die de gegevensbeschermingswet "jouw rechten" noemt - inzage, correctie, verwijdering,
-overdraagbaarheid - dingen die je al zelf kunt doen, meteen, zonder iemand
-iets te vragen: je gegevens leven in de opslag van je browser, in een vorm die je kunt inspecteren,
-exporteren (**Exporteer mijn gegevens**, hierboven) of verwijderen (door de opslag van de site in
-je browser te wissen, zoals hierboven).
+Voor gegevens die alleen op je apparaat staan, kun je de gegevens zelf inzien, corrigeren, verwijderen en verplaatsen. Ze staan in de opslag van je browser of app, in een vorm die je kunt inspecteren, exporteren (**Export my data**, hierboven) of verwijderen (**Clear all my data**, of de sitegegevens van je browser).
 
-Formeel heb je onder AVG-artikelen 15-22 het recht op **inzage** in je
-persoonsgegevens, om ze te laten **rectificeren**, te laten **wissen**, de verwerking ervan te laten **beperken** of
-ertegen **bezwaar te maken** (inclusief bezwaar tegen alles wat we baseren op gerechtvaardigde
-belangen), op **gegevensoverdraagbaarheid** en - waar de verwerking op toestemming berust - om
-**die toestemming op elk moment in te trekken**, zonder gevolgen voor de rechtmatigheid van wat er
-gebeurde voordat je die introk.
+Formeel heb je onder de artikelen 15-22 van de GDPR het recht op **inzage** in je persoonsgegevens, op **rectificatie**, op **wissing**, op **beperking** van of **bezwaar tegen** de verwerking ervan (inclusief alles wat wij baseren op gerechtvaardigde belangen), op **gegevensoverdraagbaarheid** en, waar de verwerking op toestemming berust, om **die toestemming op elk moment in te trekken**, zonder dat dit de rechtmatigheid raakt van wat eerder plaatsvond.
 
-Hier is het eerlijke standpunt over het uitoefenen van die rechten tegenover ons. Omdat we geen
-uitgiftelog meer bijhouden, **hebben we geen persoonlijke gegevens over je die we kunnen opzoeken,
-corrigeren, exporteren of verwijderen.** Als je schrijft en vraagt wat we over je hebben, is het
-eerlijke antwoord niets, en dat zullen we zeggen. De enige categorie die wel bestaat,
-is hosting-toegangslogs gekoppeld aan een IP-adres, bewaard door onze hostingprovider onder
-hun standaard bewaartermijnen. We hebben geen mogelijkheid om die selectief op te zoeken of te
-verwijderen, en dat zullen we je vertellen in plaats van iets anders te doen alsof. Alles wat
-werkelijk *van jou* is, staat op je apparaat, waar je het al kunt lezen, exporteren
-en vernietigen zonder iemand toestemming te vragen.
+De openbare certificaatdienst houdt geen uitgifte-log bij. Infrastructuurlogs kunnen verzoekgegevens bevatten, dus dit beleid belooft niet dat de hostingomgeving geen persoonsgegevens bevat. Neem contact op met de verwerkingsverantwoordelijke voor inzage, wissing of een ander verzoek over die records; we leggen uit welke records bestaan en wat er kan worden gedaan. Voor werk, identiteiten, telemetrie en auditrecords die een organisatie bewaart, neem je contact op met je Lolly Work-beheerder, omdat lokale export- en verwijderopties die kopieën niet bereiken.
 
-**Je hebt het recht om een klacht in te dienen.** Als je vindt dat we je gegevens
-onjuist hebben behandeld, kun je een klacht indienen bij een toezichthoudende
-autoriteit voor gegevensbescherming - in de EU de autoriteit in je land van verblijf, werk
-of waar je vermoedt dat de inbreuk plaatsvond (art. 77). Onze leidende toezichthoudende
-autoriteit is het *Bayerisches Landesamt für Datenschutzaufsicht* (BayLDA) in
-Ansbach, Duitsland. Je hoeft niet eerst contact met ons op te nemen, al zouden we graag de
-kans krijgen om het op te lossen.
-
-We verkopen geen gegevens. We hebben er geen om te verkopen.
+**Je hebt het recht om een klacht in te dienen.** Als je denkt dat we je gegevens onjuist hebben behandeld, kun je een klacht indienen bij een toezichthoudende autoriteit voor gegevensbescherming: in de EU de autoriteit in je land van verblijf, op je werkplek of waar je denkt dat de inbreuk plaatsvond (art. 77). Onze leidende toezichthouder is het *Bayerisches Landesamt für Datenschutzaufsicht* (BayLDA) in Ansbach, Duitsland. Je hoeft niet eerst contact met ons op te nemen, al zouden we graag de kans krijgen het probleem op te lossen.
 
 ## Wijzigingen in dit beleid
 
-De datum bovenaan verandert zodra dit document verandert. Een wijziging die verandert
-wat je apparaat verlaat of wat wordt bewaard, krijgt hier zijn eigen regel, geen stille
-bewerking - als je wilt zien wat er is gewijzigd, vraag het (hieronder) of vergelijk met de
-[publieke bron](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+De datum bovenaan verandert telkens wanneer dit document verandert. Een wijziging die verandert wat je apparaat verlaat of wat wordt bewaard, krijgt hier een eigen regel in plaats van een stille aanpassing. Om te zien wat er is veranderd, vraag het (hieronder) of vergelijk met de [openbare broncode](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**29 september 2026:** de optionele dienst lolly.work verduidelijkt, met de inhoud die de organisatie bewaart, authenticatiecookies, gebruikstelemetrie en auditrecords, en de scheiding tussen lokaal verwijderen en bewaren op de server. Dit zijn bestaande optionele workflows, geen nieuwe uploadvereiste voor lokaal bewerken.
+
+**11 oktober 2026:** de beschrijving van de beëindigde Vercel-hosting vervangen door de inventaris van UpCloud-applicatiehostnamen, optionele identiteits- en assetproviders onderscheiden, en inhoudsgeadresseerde bezorging en de vastgehouden MCP-downloadmodus beschreven. Door deze wijziging wordt geen CDN van een derde ingeschakeld. De logbewaartermijn wordt door de beheerder bepaald in plaats van door een vermelde standaard van een Vercel-abonnement.
+
+**22 oktober 2026:** de beschrijving van bestaand gedrag gecorrigeerd. De sectie over de browserextensie behandelt nu het goedkeuringsvenster bij elk verzoek, sitetoegang die per site wordt gevraagd en het ophalen van stijlbladen en pictogrammen bij het lezen van een website. Ook gecorrigeerd: de rijen over Verzenden naar Google Drive en Meeting Planner, de SEAL-opmerking (geen enkele Lolly-app zoekt SEAL-sleutels op in DNS), het standaardniveau van gebruikstelemetrie van de organisatiedienst, de MCP-afbeeldingstools en de applicatielogging van de openbare diensten. De software zelf is niet gewijzigd.
+
+**23 oktober 2026:** het beleid opnieuw ingedeeld naar wat elk verzoek start, en bestaand gedrag beschreven dat het eerder niet behandelde: privécollab-uitnodigingen met lokale netwerkadressen, Nearby in de desktop-app, Allow AI control, een design system lezen van een website, emojisets, de cache op het apparaat van Meeting Planner voor stadszoekopdrachten, de Prullenbak en de andere records die Settings → Storage noemt. Twee beweringen gecorrigeerd: Bluesky en Discord zijn niet alleen voor desktop, en elke host die iemand kiest om naartoe te sturen, heeft in zowel de web- als de desktop-apps de goedkeuring van de beheerder nodig; de digest van een IP-adres voor begrenzing is pseudoniem, niet anoniem. De software zelf is niet gewijzigd.
 
 ## Wie is verantwoordelijk, en hoe ons te bereiken
 
@@ -415,14 +360,8 @@ De **verwerkingsverantwoordelijke** voor lolly.tools is:
 > 90461 Nürnberg
 > Duitsland
 
-SUSE heeft een **Functionaris Gegevensbescherming** aangesteld, bereikbaar via
-[privacy@suse.com](mailto:privacy@suse.com). Gebruik dat adres voor elk formeel
-verzoek onder "Jouw rechten" hierboven.
+SUSE heeft een **functionaris voor gegevensbescherming** aangesteld, bereikbaar op [privacy@suse.com](mailto:privacy@suse.com). Gebruik dat adres voor elk formeel verzoek onder "Je rechten" hierboven.
 
-Voor alles over Lolly zelf - hoe het werkt, waarom iets is zoals het is of
-een correctie op dit document - neem contact op met **Andy Fitzsimon**,
-[fitzy@suse.com](mailto:fitzy@suse.com).
+Voor alles over Lolly zelf, zoals hoe het werkt, waarom iets is zoals het is of een correctie op dit document, neem je contact op met **Andy Fitzsimon**, [fitzy@suse.com](mailto:fitzy@suse.com).
 
-Voor een self-hosted of enterprise Lolly-instance neem je in plaats daarvan contact op met wie
-hem beheert: de beheerder is de verwerkingsverantwoordelijke voor zijn eigen deployment. SUSE en het
-Lolly open source-project bewaren geen gegevens voor deployments die zij niet zelf draaien.
+Neem voor een zelf gehoste of enterprise Lolly-instantie contact op met wie die beheert: de beheerder is de verwerkingsverantwoordelijke voor de eigen implementatie. SUSE en het open-sourceproject Lolly bewaren geen gegevens voor implementaties die ze niet draaien.

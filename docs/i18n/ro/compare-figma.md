@@ -2,24 +2,26 @@
 
 _Ultima verificare: 28 septembrie 2026._
 
-Lolly susține design, editare în timp real și producție de active reutilizabile. [lolly.work](https://lolly.work) adaugă serviciile de organizație din jurul acestei munci: identitate, proiecte partajate, controale de acces și aprobări.
+Dacă designerii tăi lucrează în Figma, această pagină spune cum stă Lolly alături de el: ce face Figma și Lolly nu și unde preia Lolly munca repetitivă.
+
+## Ce face Figma mai bine
+
+[Figma Design](https://www.figma.com/design/) reunește designul de interfețe, componente, prototipuri interactive și predarea către dezvoltatori. Practica lui consacrată de design de produs și ecosistemul contează când o echipă trebuie să proiecteze și să specifice o aplicație întreagă, iar editarea lui live rulează la o scară pe care work collab-urile Lolly nu au atins-o.
 
 ## Unde se suprapun
 
-Ambele permit aranjarea textului, a formelor și a imaginilor pe un canvas și lucrul cu alte persoane. [Import a design](/info/design-import.html) din Lolly citește fișierele Figma ca layouturi editabile. Figma acoperă și producția de brand pe bază de șabloane: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) creează active din șabloane și le completează din fișiere CSV sau XLSX.
+Ambele te lasă să aranjezi text, forme și imagini pe un canvas și să lucrezi cu alte persoane. Figma acoperă și producția de brand bazată pe șabloane: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) face resurse din șabloane și le completează din fișiere CSV sau XLSX. [Importă un design](/info/design-import.html) din Lolly deschide fișiere Figma ca layouturi editabile, deci cele două pot partaja munca.
 
-Lolly transformă un design într-un [instrument reutilizabil cu reguli](/info/create-a-tool.html). Acel instrument rulează în browser sau în CLI și acceptă intrări dintr-un URL, dintr-un script sau din grila de loturi. Același șablon servește atât o persoană care editează un activ, cât și o echipă care produce multe variante.
+## Cum face Lolly sarcina comună
 
-## Colaborare și design de produs
+Lolly transformă un design într-un [instrument reutilizabil cu reguli](/info/create-a-tool.html). Instrumentul rulează în browser sau în CLI și își ia intrările dintr-un link, un script sau o grilă batch, deci un singur șablon servește o persoană care editează un fișier și o echipă care face multe.
 
-[Figma Design](https://www.figma.com/design/) reunește design de interfețe, componente, prototipuri interactive și predare către dezvoltatori. Fluxul său consacrat de design de produs și ecosistemul său sunt relevante atunci când o echipă trebuie să proiecteze și să specifice o aplicație completă.
+![Canvasul deschis Design, cu Import a design în meniul Lolly din bara de unelte](/info/shots/design.svg)
 
-Lolly oferă două tipuri de colaborare în timp real. Un [collab privat](/info/collaborate.html) împerechează direct două dispozitive, fără cont și fără internet într-o rețea comună. Un collab de lucru folosește lolly.work pentru acces autentificat, editări partajate, cursoare în timp real și sesiuni de echipă salvate. Colaborarea de lucru este implementată atât în clientul Lolly, cât și în serverul lolly.work; implementarea sa actuală pe un singur nod nu stabilește paritate cu scara de operare a Figma.
+Un [collab privat](/info/collaborate.html) împerechează direct două dispozitive, fără cont și fără internet necesar într-o rețea comună. Lolly de sine stătător randează offline. Content Credentials sunt active implicit pentru exporturile acceptate și le poți opri.
 
-## Implementare și producție
+## Cu o organizație
 
-Aplicațiile creative Lolly și lolly.work sunt părți implementate separat ale aceluiași proiect open source. Lolly de sine stătător poate randa offline, fără cont. lolly.work oferă SSO, SCIM, cataloage partajate, permisiuni de proiect, aprobări, jurnale de audit și randare pe server, pe o infrastructură controlată de organizație.
+Lolly Work adaugă work collab-uri autentificate cu editări comune, cursoare live și sesiuni de echipă salvate, plus single sign-on, cataloage comune, permisiuni de proiect, aprobări și randare pe server. [Ce rulează unde](/info/compare.html#what-runs-where) pune cele două părți una lângă alta.
 
-Sesiunile de echipă și editările din collaburile de lucru ajung la acea instanță; randările locale pot rămâne pe dispozitiv. Content Credentials sunt opționale pentru exporturile compatibile, iar semnarea pe server folosește o identitate de organizație configurată. Vezi [prezentarea generală a soluției combinate](/info/compare.html) pentru separare și [Content Credentials Identity](/info/content-credentials-identity.html) pentru modul în care un verificator ajunge să aibă încredere în semnatar.
-
-Figma este o marcă comercială a proprietarului său. Această pagină descrie unde se suprapun cele două soluții și nu este afiliată cu Figma.
+Figma este o marcă comercială a proprietarului ei. Această pagină descrie unde se suprapun cele două produse și nu este afiliată cu Figma.

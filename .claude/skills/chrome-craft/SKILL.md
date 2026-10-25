@@ -80,12 +80,15 @@ These came from Andy, more than once each. Constraints, not suggestions.
   hairline is fine. A transient accent border on hover or focus is fine.
 - **A dashed border means "drop here" and nothing else.** Not empty, not
   invalid, not optional, not out of range.
-- **Brand fonts only, through variables.** `var(--font-brand)`,
-  `var(--font-mono)`. Never a hardcoded family.
+- **Colours and fonts come from tokens.** Colours through the token
+  variables (`var(--brand-*)`, the `--ui-*` roles, `hsl(var(--primary))`),
+  families through `var(--font-brand)` and `var(--font-mono)`. Never a
+  literal hex or a hardcoded family.
 - **Escape closes every overlay.** A nested popover closes itself first and
   stops propagation. Every dialog goes through `components/modal.ts`.
 - **Never fight browser or user defaults.** No click, scroll or right-click
-  interception for effect.
+  interception for effect, and no decorative animation bound to every
+  interaction.
 - **Accessibility prefs are additive and chrome-only.** With nothing on, the
   page is byte-identical. Never CSS `zoom`. Reduced motion drops movement,
   keeps opacity and colour, never mutes audio.
@@ -170,7 +173,7 @@ too structural for a surgical pass and hand it to `review`.
 tokens. `transition: all` to named properties. Proportional digits on a live
 readout to `tabular-nums`. A duplicated box recipe to `fields.css` or
 `.btn`. Missing states. A dashed border that is not a drop area. An accent
-border on a rounded shape. A hardcoded family. Off-grid paddings. A hit area
+border on a rounded shape. A literal hex colour. A hardcoded family. Off-grid paddings. A hit area
 under 24px.
 
 **Output.** A table grouped by category, Before and After, one row per fix,

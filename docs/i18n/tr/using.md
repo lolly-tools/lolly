@@ -1,27 +1,213 @@
 # Lolly'yi kullanma
 
-Uygulamayı gerçekten *kullanmaya* dair pratik bir rehber - bir araç açmak, kanvasta çalışmak, dışa aktarmak, kaydetmek ve paylaşmak. Buradaki her şey **cihazında** çalışır: hesap yok, yükleme yok, ve zaten açtığın ekranlar için internet gerekmez.
+Lolly açık ve bir şey yapmak, saklamak ve iletmek istiyorsun. Bu sayfa o döngüyü anlatır: bir aracı aç, değiştirmene izin verdiği şeyi değiştir, sonucu kaydet ve bir bağlantı ya da dosya olarak paylaş.
 
-> Yeni misin? [Hızlı başlangıç](/info/quickstart.html) seni dakikalar içinde bir şeyler üretir hale getirir, [Operatörler için Lolly](/info/operators.html) ise uygulamayı kurmayı/dağıtmayı anlatır; bu sayfa ise açıldıktan sonra onu kullanmakla ilgili.
+Buradaki her şey hesap olmadan cihazında çalışır ve ihtiyacın olan araçlar ile varlıklar indirildikten sonra çevrimdışı da çalışmaya devam eder. Uygulamanın başlaması için WebGPU destekli bir tarayıcı veya uygulama gerekir; [Supported environments](/info/supported-environments.html) test edilenleri listeler.
 
-## Bir araç açma
+## Yolunu bul
 
-Ana ekran **galeri**dir - kategoriye göre gruplanmış tüm araçlar. O araçta yeni bir şey başlatmak için bir karta tıkla; [kaydedilmiş işler](#saving-continuing) **Projeler**'den yeniden açılır. İsme göre filtrelemek için arama kutusunu kullan - ya da altı listeleme ekranının (galeri, Yardımcı araçlar, Projeler, Varlıklar, Panel ve Ayarlar) altındaki çubuktan [Ara](/info/search.html); bu arama, araçların yanı sıra kaydedilmiş işlerine, varlıklarına ve ayarlarına da ulaşır. Bir aracın içinde çubuk, aracın kendi arayüzüne yer açmak için kenara çekilir.
+::: figure using-app-map
+Ana ekran: üstte dört sekme ve altta çubuk. Açılan bir araç, denetimlerini canlı önizlemenin yanında gösterir.
+:::
+
+Ana ekranın üstünde dört sekme yer alır: **Tools**, **Utilities**, **Assets** ve **Projects**. Tools ile üretirsin, Utilities bir dosyayı dönüştürmek, denetlemek veya temizlemek gibi işler için tezgâhlardır, Assets kitaplığındır ve Projects kaydettiklerini tutar.
+
+Alttaki çubuk **Open**, **Settings**, bir arama alanı, **Verify** ve **What?** içerir. Tools, Utilities, Assets, Projects, Settings ve uygulamada okuduğun kılavuzlarda görünür, bir araç açılınca kenara çekilir. [Search](/info/search.html), araçlarına, kayıtlı işlerine, varlıklarına ve ayarlarına o alandan ulaşır. [Ask Lolly](/info/ask.html), yazılı bir soruyu bu kılavuzların eşleşen bölümüyle yanıtlar.
+
+O araçta yeni bir şey başlatmak için bir karta tıkla. Kayıtlı işler bunun yerine **Projects** içinden yeniden açılır.
 
 ![Örnek gezinme ve bir Yeni eylemi içeren bir galeri kartı](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
-Her araç bölünmüş bir görünümdür: bir tarafta **kontroller**, diğer tarafta canlı bir **önizleme** (kanvas). Herhangi bir kontrolü değiştir, önizleme anında güncellenir.
+Her araç bölünmüş bir görünümdür: bir yanda **denetimler**, diğer yanda canlı bir **önizleme**. Bir denetimi değiştirirsin ve önizleme hemen takip eder; gördüğün şey dışa aktarılan şeydir.
 
 ![Bir aracın bölünmüş görünümü - solda kontrol yığını, sağda çizdiği canlı gruplu çubuk grafik](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-> Birkaç araç (**Design** gibi) bunun yerine bir **serbest kanvas** olarak açılır - metin, şekil ve görsel kutularını sürüklediğin, yeniden boyutlandırdığın, döndürdüğün ve hizaladığın, metni yerinde düzenlemek için çift tıkladığın çerçevesiz, doğrudan manipülasyon yüzeyi. Diğer her araçla aynı oluşturma yolundan dışa aktarılır, yani kanvas, dosyanın *ta kendisidir*. Aşağıdaki [Serbest kanvas](#the-free-canvas-design) bölümüne bak.
+**Design** istisnadır. Sürüklediğin, yeniden boyutlandırdığın ve içine yazdığın kutulardan oluşan serbest bir tuval olarak açılır; kendi üst çubuğu, zaman çizelgesi ve sunum denetimleri vardır. [Design: the free canvas](/info/design.html) onun kılavuzudur.
 
-Izgarayı istediğin hâle getirmenin iki yolu var:
+## Aracın değiştirmene izin verdiğini değiştir
 
-- <!--i:star--> **Kullandığını yıldızla.** Bir kartı ★ yıldızla, ızgaranın üstündeki şeritte kendine ait büyük bir kutucuk kazansın - bkz. [Favorilerin](/info/favourites.html).
-- <!--i:eyeoff--> **Hiç kullanmadığın bir aracı gizle.** Bir karta sağ tıkla (ya da birkaçını seçip seçim çubuğunu kullan) → **Aracı gizle**. Izgaradan ve ızgarada yazarken bulunanların arasından çıkar; en sondaki gri **Gizli araçları göster (N)** kutucuğu onları soluk hâlde geri getirir, her birinin kendi menüsünde **Aracı göster** bulunur. Gizleme yalnızca senin ızgaranla ilgilidir - araç kaydedilmiş bir bağlantıdan ya da bir yer iminden yine açılır ve herkes için olduğu yerde kalır.
+Bir araç yalnızca değişmesi amaçlanan girdileri gösterir. Yazarı renkleri, düzeni, yazıyı ve mantığı zaten sabitlemiştir; bu yüzden ne yaparsan yap onun kurallarına uyar. Girdiler metin, sürgüler, renk seçiciler, açılır menüler, tarihler, görsel seçiciler ve yinelenen satır grupları içerir ve bazıları katlanan bölümlerde durur.
 
-![Araçlar ızgarasının sonu, gizli araçlar açığa çıkmış hâlde: soluk QR Code Generator kartı ve yanında onu yeniden görünür kılan, şimdi Hide hidden tools yazan gri kutucuk](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-bulk%3D%22hide%22%5D%3Bwait%3A300%3Bclick%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+![Bir aracın kontrol yığını - bir metin alanı, renk düğmeleri ve bir kaydırıcı, yazarın sabitlemeyi seçtiği başka hiçbir şey yok](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+
+**Denetimini bulmak için tasarıma tıkla.** Önizlemedeki herhangi bir öğeye tıkla; eşleşen denetim odak alır ve görünüme kayar. Yinelenen bir satır grubunda tıkladığın tam satır açılır.
+
+Denetimlerin üstündeki **Clear changes**, her girdiyi varsayılanına döndürür.
+
+**Tasarım sistemi seçimleri.** Tasarım sistemin birden fazla colourway, açık ve koyu bir görünüm veya başka bir tema seçeneği sunduğunda, denetimlerin altındaki bir **Design system** bölümü bunları tutar. Bir seçenek yalnızca bu aracı değiştirdiğinde görünür; bu yüzden bir dosya yardımcı aracı hiç bölüm göstermez. Her colourway kendi renklerinde bir noktadır, açık ve koyu iki düğmedir ve diğer her seçenek bir listedir.
+
+Seçim bu parçaya aittir. Bağlantıda ve kayıtlı oturumda taşınır, tasarım sistemine bağlı her renk onu izler ve uygulamanın kendi renkleri olduğu gibi kalır. Design aynı seçimleri Inspector'ın **Canvas** sekmesinde gösterir. Renkleri içeriği olan bir araç kurallı colourway üzerinde kalabilir ve o zaman colourway noktası sunmaz. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) gerçek işlerde colourway'leri gösterir.
+
+### Önizlemeyi yakınlaştır ve kaydır
+
+Önizleme her zaman tam olarak dışa aktarılacak şeyi gösterir.
+
+- **Yakınlaştır:** Cmd/Ctrl ile kaydır veya izleme dörtgeninde sıkıştır; işaretçinde ortalanır. Klavyede `0` veya `Shift+1` tümünü sığdırır, `1` veya `Shift+0` yüzde 100'e ayarlar ve `Shift+2` seçimi sığdırır. `+` / `−`, işaretçi sahnenin üzerindeyken onun etrafında, diğer durumlarda merkezin etrafında yakınlaştırır veya uzaklaştırır.
+- **Kaydır:** **Space** tuşunu basılı tutup sürükle ya da orta fare düğmesiyle sürükle. Düz tıklamalar tasarımın parçalarına tıklamak için serbest kalır.
+- **Dokunma:** yakınlaştırmak için sıkıştır, kaydırmak için sürükle ve sığdırmak için çift dokun.
+- **Yakınlaştırma HUD'u:** `−`, **Fit** ve `+` düğmelerini açmak için köşedeki Lolly girdabına basılı tut. Girdaba kısa dokunuş yine profil menünü açar.
+
+Design'da **Fit all**, çalışma alanlarını ve serbest katmanları kapsar. Sayfanın tamamı görünümün yarısını doldurana kadar yakınlaştırma oranını elle yüzde 20'nin altına indirebilirsin. Kesin alt sınır, normal Fit ölçeğinin yüzde 5'i ile yüzde 2 mutlak yakınlaştırma arasındaki düşük değerdir.
+
+Çıktı boyutunun değişmesi görünümü her zaman temiz bir sığdırmaya geri alır.
+
+![Tuvalin köşesindeki girdaptan açılan yakınlaştırma HUD'u - eksi, Fit, artı, ardından tema ve ses anahtarları ve onu taşıyan tutamaç](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+
+### Geri alma ve yineleme
+
+**Cmd/Ctrl-Z** geri alır ve **Cmd/Ctrl-Shift-Z** (veya **Cmd/Ctrl-Y**) yineler. Aynı çift, denetimlerin üstünde **Undo** ve **Redo** düğmeleri olarak da durur (Design'da üst çubuktadırlar) ve geri alınacak bir şey kalmadığında her biri soluklaşır. Bir mesaj her geri almanın hangi girdiyi geri yüklediğini söyler; mesajda bir **Redo** düğmesi vardır.
+
+- **Bir sürükleme tek adımdır.** Bir denetimde yarım saniye içindeki tekrarlanan değişiklikler birleşir; bu yüzden bir sürgüyü aralığı boyunca çekmek tek bir geri almadır.
+- **Son 100 adım tutulur.** Bir geri almadan sonraki yeni düzenleme ileri yığınını temizler.
+- **Bir metin kutusunda** Cmd/Ctrl-Z alana aittir, karakter karakter. Lolly sürgüler, açılır menüler, renkler ve anahtarlar için devralır.
+- **Bir dosya girdisinde dosya seçmek** bir adım değildir; çünkü o baytlar yalnızca bu oturum için tutulur.
+
+Canlı bir [işbirliğinde](/info/collaborate.html) geçmişin sana ait kalır: diğer cihazdan gelen bir değişiklik asla senin yığınına girmez. Geri alma, araçtan çıkana veya sayfayı yenileyene kadar sürer. Daha eskisi için, çalışırken kaydeden araçlar önceki sürümleri **History** altında tutar; bkz. [Go back to an earlier version](/info/find-your-work.html#go-back-to-an-earlier-version).
+
+### Canlı kamera
+
+**Filter** aracının efektleri (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art ve Glitch) bir kamera varsa **Go live** düğmesi gösterir. Aç; efekt web kameranı kare kare izler ve bir hareket dışa aktarması sonucu GIF, WebM veya MP4 olarak kaydeder. Kareler cihazında işlenir ve kamera sen durdurduğun ya da araçtan ayrıldığın anda bırakılır. Her görsel seçicide ayrıca tek bir kare için **Take a photo** vardır.
+
+## Kaydetme ve devam etme
+
+İşini saklamak için render hapındaki **Export** yanındaki tik olan **Save** düğmesine bas. Yeni iş **My library** içine gider, daha önce kaydettiğin iş olduğu yerde güncellenir ve hiçbir şey indirilmez. Dışa aktarma panelinde aynı **Save** düğmesi vardır.
+
+Nereye gideceğini seçmek için dışa aktarma panelinde **Download** yanındaki **Save as** düğmesine bas. **Save to a project** altında **My library** seçili kalsın ya da bir proje seç (**＋ New project…** bir tane yapar), sonra **Save** düğmesine bas; **Save as a template** tasarımı yeni belgeler için bir başlangıç noktası olan bir [şablon](/info/templates.html) olarak saklar. Design'da **Save as** Lolly menüsündedir; bir telefonda **•••**, sonra **File menu**, sonra **Save as** düğmesine bas.
+
+![İki yarımlı render hapı: yukarı oklu, dışa aktarma panelini açan Export ve tikli, yerinde kaydeden Save](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+
+::: timeline
+- <!--i:check--> Render hapında **Save** düğmesine bas ya da bir proje seçmek için **Save as** düğmesine bas.
+- <!--i:folder--> Öğe **My library** içine ya da seçtiğin projeye gider.
+- <!--i:home--> Sonra sol üstteki **Home** düğmesine bas ve **Projects** sekmesini aç.
+- <!--i:document--> Öğeyi aç. Her ayar geri gelir; değiştirmeye ve yeniden dışa aktarmaya hazırdır.
+:::
+
+Öğeler, dışa aktarma panelinde yazdığın dosya adından ya da yoksa **QR Code** gibi araçlarının adından adlandırılır. **Download** ile aldığın dosya bitmiş bir kopyadır; sonra değiştirmek için kayıtlı öğeyi Projects içinde aç.
+
+Kişisel kayıtlar, [Sync](/info/sync.html) açmadıkça bu cihazda, kaydettiğin tarayıcıda veya uygulamada kalır. Bir şey beklediğin yerde değilse [Find and recover your work](/info/find-your-work.html), kapatılmış bir sekmeden temizlenmiş tarayıcı verisine kadar her durumu kapsar.
+
+::: details Lolly Work ile team projects (isteğe bağlı)
+[Kuruluşun Lolly Work kullanıyorsa](/info/organisation.html) örneğine giriş yap ve seninle paylaşılan oturumlar için **Projects → Team projects** bölümünü aç. Erişimi ve saklamayı kuruluş belirler ve bu oturumları onun Lolly Work hizmeti saklar. Kuruluşun canlı düzenlemeye izin veriyorsa paylaşılan bir oturum açılırken canlı collab'ına katılır; adımları [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) açıklar.
+
+Kişisel kitaplığın ayrı kalır. Başka bir cihazda giriş yapmak sana ekip işini getirir; kişisel kayıtların cihazlar arasında taşınması için yine Sync veya bir yedek gerekir.
+:::
+
+## Çalışmanı paylaşma
+
+Bir tasarım bağlantı veya dosya olarak gider. Dışa aktarma denetimlerindeki **Share** ikisini de sunan bir iletişim kutusu açar; Projects içindeki kayıtlı bir oturumdaki **Share link** aynı kutuyu o oturum için açar.
+
+::: cols
+## Bir bağlantı
+
+- Her girdiyi adreste taşır; böylece bağlantı tasarımı yeniden üretir.
+- Bu cihazdan eklediğin görselleri ve dosyaları, çok uzun metni ve çok büyük listeleri geride bırakır.
+- Herhangi bir tarayıcıda açılır; bağlantıyı yer imine ekleyebilir, yapıştırabilir veya işleyebilirsin.
+
+## Bir .lolly dosyası
+
+- Kayıtlı oturumu bu cihazdaki görseller ve dosyalarla taşır; aracı ve tasarım sistemini de taşıyabilir.
+- Dosyaları dahil etmeyi seçmedikçe lisanslı katalog çalışmalarını geride tutar.
+- Lolly'de açılır: çift tıkla, **Open** kullan veya uygulamaya bırak.
+:::
+
+### Bağlantı
+
+Kopyalamaya hazır bağlantı iletişim kutusunun üstünde, **Copy** ve bağlantıda QR Code aracını açan bir **QR** düğmesiyle durur. Bağlantının altında **Link options** şunları içerir:
+
+- **Open in the installed app**, bağlantıyı Shortcuts, başlatıcılar ve otomasyon için, her parametresi değişmeden bir `lolly://` adresine çevirir.
+- **Shortest link**, uzun bir tasarımı kompakt bir belirtece paketler ve karakter cinsinden kazancı gösterir. Okunabilir biçim de her zaman oradadır.
+- **Password-protect this link**, bağlantıyı cihazında AES-256 ile şifreler. Parola hiçbir zaman bağlantının parçası olmaz.
+- **Pin this tool version**, `_v` bayrağını ekler; böylece sonraki bir araç güncellemesi bağlantının render ettiğini değiştiremez.
+- **When the recipient opens the link…**, tam ekranı, dışa aktarma panelinin önceden açık olmasını, açılışta indirmeyi (`&export`) veya panoya kopyalamayı (`&copy`) seçer.
+- **Copy credit**, bir gönderi veya slayt için bağlantıyla birlikte "Made with Lolly" alt yazısını kopyalar.
+
+Bir araç adın gibi kişisel alanlar içerdiğinde **Review personal fields** her birini sen o alanı işaretleyene kadar bağlantının dışında tutar. [URL mode](/info/url-mode.html) bir bağlantının taşıyabileceği her şeyi kapsar.
+
+**İletişim kutusu bir bağlantının neleri taşıyamayacağını söyler.** Bu cihazdan eklediğin bir görsel veya dosya, çok uzun bir metin değeri ve çok büyük bir liste bir adrese sığmaz. Her biri bağlantı kurulurken sayılır. Bir şeyin bırakılması gerekmişse iletişim kutusu bunu listeler ve sana, bir resmi eksik açılan bir bağlantı vermek yerine dosya seçeneğini gösterir. Yalnızca uzun olan bir bağlantı, karakter sayısıyla birlikte daha yumuşak bir not alır.
+
+**Bazı araçlar bağlantıyı ürünün tamamı yapar.** Jump Page bağlantılarını dağıtılacak tek bir sayfada toplar: bir biyografi bağlantısı, bir konuşma, bir mağaza vitrini. Hiçbir şey barındırılmaz ve sayfanın arkasında hesap yoktur; çünkü sayfa bağlantının kendisidir. Ziyaretçi onu tam genişlikte, kaydırdıkça sahne başına bir bağlantıyla alır.
+
+![Düzenleyicideki Jump Page: sayfanın üstündeki başlık sahnesi ve altındaki bağlantı sahneleri](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+
+::: details Lolly Work ile kuruluş tarafından yönetilen bağlantılar
+Süre sonu, iptal veya parola gerektiren paylaşım için Lolly Work, paylaşılan oturumlara, araçlara ve katalog varlıklarına yönetilen bağlantılar sunar. Bunlar kuruluşun hizmeti üzerinden çözülür ve onun erişim kurallarını izler. Yukarıdaki kendi kendine yeten bağlantılardan ayrıdır ve birini iptal etmek, birinin zaten indirdiği bir dosyayı geri çağıramaz. [Rendering and sharing](/info/manage/sharing.html) bağlantı türlerini ve izinleri listeler.
+:::
+
+### .lolly dosyası
+
+Share iletişim kutusunun **Editable file** bölümündeki **Download .lolly**, geçerli tasarımı tek bir dosya olarak yazar. Kayıtlı oturumu bu cihazdaki görseller ve dosyalarla taşır; sıradan katalog çalışmaları da eşlik eder. Eski veya erişilemeyen bir dosya, kaybolmak yerine harici bir başvuru olarak kalır. Kaydetmeden önce iletişim kutusu dosyanın boyutunu, kaç dosya gömdüğünü, kaçına başvurduğunu ve aracın dahil olup olmadığını gösterir. Cihazında bir paylaşım sayfası varsa **Send to…** dosyayı doğrudan ona verir (AirDrop, bir Android paylaşımı).
+
+**Projects** içinde bir klasörün menüsündeki **Download project (.lolly)**, bütün bir klasörü yazar; böylece başkası klasördeki her oturumla devam edebilir. Batch oturumları geride kalır ve bildirim kaç tane olduğunu söyler. Aynı menüdeki **Download originals**, her öğeyi kendi dosyası olarak içeren düz bir zip yazar.
+
+Bir dosya gitmeden önce karar vermen gereken üç şey var:
+
+- **Adının girip girmeyeceği.** Adın, e-postan ve kuruluşun yalnızca [profilinde](/info/profile.html) **Use my details to create** açıkken yazılır. Kapalıyken dosya yalnızca Lolly ile ve ne zaman yapıldığını kaydeder.
+- **Geride tutulan çalışmaların girip girmeyeceği.** Lisanslı çalışmalar, markaya kilitli çalışmalar ve lisansı hiç kaydedilmemiş katalog eserleri varsayılan olarak dışarıda kalır. Tasarım bunlardan herhangi birini kullanıyorsa iletişim kutusu kaç tane olduğunu söyler ve *Download without them* veya *Include and download* seçeneklerini sunar; çünkü onları dahil etmek dosyaları `.lolly` dosyasını açan kişiye verir. Dosyanın `CREDITS.txt` dosyası nelerin gittiğini ve nelerin gitmediğini nedeniyle birlikte listeler; kuralları [Creative rights and credits](/info/creative-rights.html) açıklar.
+- **Aracın girip girmeyeceği.** **Include the tool**, aracın kendi dosyalarını paketler; böylece tasarım o araç olmayan bir cihazda açılır. Fork gibi özel bir araç için işaretli, imzalı katalogda listelenen bir araç için işaretsiz başlar. İmzalı kataloğu olmayan bir sürümde her araç özel sayılır.
+
+**Birini açmak.** Masaüstü ve mobil uygulamalarda bir `.lolly` dosyasına çift tıkla veya dokun, **Open with Lolly** seç ya da paylaşım sayfasından Lolly'ye gönder. Web uygulamasında **Open** düğmesine bas veya dosyayı Lolly'ye bırak. Her yol, hiçbir şey yazılmadan önce dosyanın bildirimini okur ve boyutunu, içeriğini ve ne olacağını gösterir.
+
+Dosya sende olmayan bir araç taşıyorsa **Trust this tool?** aracı ve yazarını gösterir ve onu açmanın aracın kendi kodunu cihazında çalıştıracağını söyler. **Trust & install** devam eder. Reddedersen iş yine Projects içine, aracı eklediğin güne kadar bekleyecek şekilde kaydedilir. Kodu bir modül olarak gelen bir araç henüz bu yolla kurulamaz ve aynı şekilde geri çevrilir.
+
+::: details Bir .lolly neyi tutar ve birini açmak nasıl çalışır
+`.lolly`, Lolly'nin paket uzantısıdır ve `manifest.json` içindeki `format` içeride ne olduğunu söyler:
+
+- Bir **paylaşılan tasarım** (`lolly-share`) tek bir kayıtlı oturumu, gömülü dosyalarını ve hâlâ başvuruyla çözümlenen her şey için bir makbuzu tutar. Aracı ve tasarım sistemini de taşıyabilir. Açmak yeni bir Project ekler ve bir oturumun üzerine asla yazmaz.
+- Bir **paylaşılan proje** (`lolly-share`, tür `project`) Projects'ten bir klasörü tutar: alt klasörlerini, içindeki her oturumu kendi karosuyla ve oraya dosyalanan resimleri. Açmak tüm klasörün bir kopyasını ekler. Her oturum `sessions/<key>.json` olarak, karosu `thumbs/` altında taşınır. Proje dosyalarının var olmasından önceki bir Lolly senden güncelleme yapmanı ister.
+- Bir **tasarım sistemi paketi** (`lolly-brand`) token'ları tutar ve yazı tiplerini, logoları, yayımlanmış sürümleri ve tutulan kaynakları da tutabilir. Paketi açmak ayrı adlandırılmış bir tasarım sistemi ekler ve o sistemi etkin yapar.
+- Bir **çalışma alanı veya örnek paketi**, bildirilmiş araçları, katalog varlıkları ve isteğe bağlı olarak bir örnek adresi olan bir `lolly-brand`'dir. Birini yüklemek, daha önce yüklenen tek çalışma alanı bindirmesinin yerini alır ve önizleme bu cihaz çapındaki etkileri listeler.
+
+Tam bir cihaz yedeği bir `.lolly` değildir. Bir `LollyTools-….zip` (biçim `lolly-backup`) olarak kalır ve **Settings → Storage → Import data…** ile geri yüklenir. Zip'lenmiş bir araç klasörü de `.zip` olarak kalır. [Data transfer](/info/data-transfer.html) biçim başvurusudur.
+
+Bir `.lolly` sıradan bir zip'tir. İçine bakmak için adını `.zip` yap: kendi görsellerin `assets/uploads/` altında, katalog çalışmaları `assets/catalog/` altında, `manifest.json` her dosyayı listeler ve bir README dosyanın ne olduğunu söyler.
+
+macOS, Windows, Linux, iOS ve Android'in hepsi biçimi kaydeder, masaüstü dosya yöneticileri onu bir Lolly belgesi olarak gösterir ve GNOME Files bir kayıtlı oturumun kendi küçük resmini gösterebilir. Design System Setup'tan açmak, paylaşılan bir tasarım bir tane taşıdığında tasarım sistemi eylemini önerir ama **Open shared design** düğmesini asla gizlemez.
+
+iOS veya Android'de başka bir uygulamadan verilen bir belge 48 MB ile sınırlıdır, çünkü devir baytlarını uygulama sınırı boyunca kopyalar ve uygulama bunu söyler. Lolly içindeki **Open** böyle bir sınır taşımaz; daha büyük bir paket için onu kullan.
+
+Onayladıktan sonra Lolly paketi bir kez açar ve doğrular. Varlıklar kitaplığına gider; sağlama toplamıyla eşleştirilir, böylece cihazda zaten olan bir dosya yeniden kullanılır. Oturumlar yeni kimliklerle Projects'e gider, böylece aynı dosya iki kez açılabilir; aracı eksik bir oturum orada bekler. 100 MB'ı aşan dosyalar büyük olarak belirtilir ve tarayıcı depolaması dosyanın gerektirdiğinden az boş alan bildirdiğinde önizleme uyarır. Bütünlükle kapsanan her parça herhangi bir şey işlenmeden önce denetlenir ve hasarlı bir kopya hiçbir şey geride bırakılmadan reddedilir.
+:::
+
+Bir bağlantı ve bir dosya, ikisi de bir anlık görüntü teslim eder. Canlı düzenleme için [Working together](/info/collaborate.html), iki cihaz arasındaki özel collab'ları ve Lolly Work üzerinden isteğe bağlı work collab'ları kapsar.
+
+## Varlıklar - kütüphanen
+
+**Assets** (`#/a`), araçlarının kullanabileceği her şeyi toplar: marka logoları, görseller, ses ve hareket; türe göre gruplanmış, kendi dosyalarınla birlikte. Yüklemelerin cihazında saklanır. Lolly Work kullanan bir kuruluş, kendi erişim kuralları altında paylaşılan bir katalog da sağlayabilir; bkz. [Use Lolly at your organisation](/info/organisation.html).
+
+![Varlıklar, markanın renk örnekleri ve yazı tipleriyle ve kendi yüklemelerinle](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+
+- <!--i:upload--> **Dosyalarını getir.** Yükleme alanına bir görsel, SVG, ses klibi, video, Lottie, PDF veya PowerPoint sunumu bırak ya da seçmek için tıkla. Assets içine ve her aracın varlık seçicisine hemen gelir. Çok sayfalı bir PDF veya bir `.pptx` hangi sayfaların veya slaytların tutulacağını sorar ve her biri bir SVG varlığı olur. Bir araç içinde eklediğin görsel **My images** içinde geldiği gibi tutulur; böylece üzerindeki bir Content Credential hâlâ doğrulanır ve yalnızca çok büyük bir dosya yeniden boyutlandırıp boyutlandırmayacağını sorar. **Settings → Storage**, **My images**'ın ne kadar tuttuğunu gösterir. Cihazının depolaması dışında bir sınır yoktur. Görseller gelirken EXIF ve GPS verilerini silmek için **Settings → Feature flags** altında **Strip metadata from uploads** seçeneğini aç; Content Credentials her iki durumda da korunur.
+- <!--i:star--> **Uzandıklarını favorile.** Bir varlığı veya marka rengini yıldızla; her seçicinin en üstüne sabitlenir.
+- <!--i:folder--> **Topla.** Bir varlığı başka bir gruba taşı, kullanmadığın paylaşılan bir marka varlığını gizle (**Show hidden** geri getirir) veya kendi yüklemelerini sil. Projects ile aynı seçim çubuğu tüm seçim üzerinde işlem yapar.
+- <!--i:layers--> **Bir videoyu arka planından ayır.** Bir videonun ayrıntılarını aç ya da bir varlık seçicideki kartına sağ tıkla ve **Remove background…** seç. Bir **On-device model** kalabalık bir sahneden bir konuyu keser; bir **Colour key** yeşil perde gibi eşit aydınlatılmış bir fonu kaldırır, kenar için **Tolerance**, **Softness** ve **Spill removal** vardır ve indirme gerektirmez. **Resolution** (360, 480, 720 veya 1080p, asla kaynağı aşmaz) ayrıntıyı hız için takas eder. Kesit, gerçek saydamlığa sahip animasyonlu bir WebP veya PNG, orijinalin yanına kaydedilir ve kaynağın Content Credential'ı bir bileşen olarak eşlik eder. [Generated once, rendered the same](/info/ai-features.html) bunun neden sade bir düzenleme kaldığını açıklar.
+
+### Paletini ve yazı tiplerini her yere taşı
+
+Assets içindeki **Swatches** paneli markanın hangi renklerden oluştuğunu gösterir: marka renkleri, eklediğin renkler, rampaları ve spektrumu. Lolly'nin arayüz için tuttuğu rol renkleri (metin, yüzeyler, kenarlar, colourway öncüleri ve bir marka renginin başka adla kopyaları) panelin altındaki gri bir **Show colour roles** kartının arkasında bekler.
+
+Her renk, diğer her varlık gibi bir karttır. Ayrıntılarını açmak için birine tıkla, yalnızca onları indirmek için birkaçını seç ya da paletin tamamını diğer aracının okuduğu biçimde indir:
+
+- <!--i:code--> Bir stil sayfası veya derleme için **Design tokens (JSON)**, **CSS variables** veya **CSS classes**. sRGB'den geniş bir renk geniş değerini korur: CSS onu hex'ten sonra ayarlar ve JSON hex'i geniş renk, CMYK derlemesi ve spot mürekkeple birlikte tutar.
+- <!--i:palette--> Illustrator veya Photoshop için **Adobe Swatch Exchange (.ase)**. Bir CMYK derlemesine kilitli renk o CMYK örneği olarak, bir spot mürekkep adlandırılmış bir spot örnek olarak ve sRGB'den geniş bir renk Lab olarak gelir.
+- <!--i:pentool--> GIMP veya Inkscape için **GIMP palette (.gpl)** ve **SCSS variables**; ikisi de sRGB'de.
+
+![Swatches paneli - üstte beş palet indirme düğmesi, ardından ayrıntılarını açan bir çip olarak her marka rengi](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+Renkleri her kartın üzerindeki noktayla seç: arasındakilerin hepsi için ikinci bir noktaya Shift ile tıkla, boşlukların arasından bir kutu sürükle ya da bir kart odaktayken Cmd/Ctrl+A bas. Çubuk aynı altı biçimde **Download as…**, **Copy hex** ve **Favourite** sunar. Bir biçim seçmeden önce menü, hiçbir biçimin tutamadığı renkleri (Transparent hiç renk değildir), hangi biçimlerin geniş bir rengi sRGB yedeği olarak kaydettiğini (SCSS ve GIMP) ve hangilerinin CMYK ve spot değerlerini taşıdığını (JSON ve .ase) listeler. Aynı eylemler için tek bir renkte bir karta sağ tıkla.
+
+Bir rengin ayrıntıları önizlemeyi renkle doldurur ve **Linked values** (CMYK derlemesi veya spot mürekkebi, belirli bir uzay veya baskı için yazılmış her değer ve tasarım token'ı), **Every notation** (hex, OKLCH, Display-P3 ve gerisi; her birinin bir kopyala düğmesiyle), **Plotted on a colour space**, **Tones** ve **Readability** bölümlerini açar. Ok tuşları paletin içinde gezinir, **Copy link** rengin kendisini paylaşır ve **Open in Colour Lab** onu daha ileri götürür.
+
+**Fonts** paneli marka yazı tiplerini, yerel olarak kurmak veya bir baskı atölyesine vermek için her biri için bir **download** ile listeler.
+
+## Izgarayı kendine göre yap
+
+- <!--i:star--> **Kullandığını favorile.** Bir karta sağ tıkla ve **Add to favourites** seç; ızgaranın üstündeki bir şeritte büyük bir karo alır. [Your favourites](/info/favourites.html) şeridi kapsar.
+- <!--i:eyeoff--> **Hiç kullanmadığın bir aracı gizle.** Bir karta sağ tıkla ya da birkaçını seç ve **Hide tool** seç. Izgaradan ve ızgarada yazdığında bulunanlardan düşer. Sondaki gri bir **Show hidden tools (N)** karosu onları soluk olarak yeniden gösterir; her birinin menüsünde **Unhide tool** vardır. Gizlemek yalnızca ızgaranı değiştirir: araç yine bir bağlantıdan veya yer işaretinden açılır.
+- <!--i:clock--> **Önce senin araçların.** Üç farklı araçta kayıtlı iş yaptığında, ızgaranın üstündeki bir **Yours** çip satırı favorilerin ve son araçlarınla başlar.
+- <!--i:sliders--> **Kendi yolunla düzenle.** **View options** düzeni (**Grid**, **Card** veya **List**), kart boyutunu ve yoğunluğu, sıralamayı ve bir kategori filtresini ayarlar.
+
+![Gizli araçların gösterildiği Tools ızgarasının sonu: soluk Wordmark kartı ve yanında onu yeniden görünür yapan, şimdi Hide hidden tools yazan gri karo](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -31,26 +217,26 @@ gallery under a caption about its bottom. `press:` with no `on=` goes to the
 keyboard, and the End key with focus on the just-clicked box scrolls the
 document; the walker then anchors the body walk to that band.
 The tile reads "HIDE hidden tools" in the shot, not "Show" - it is a toggle and
-the recipe has just pressed it. The alt says so rather than quoting the resting
+the recipe has just pressed the tile. The alt says so rather than quoting the resting
 label the prose above already gives.
-There is no standalone per-card "hide" button
-(unlike the always-visible fav/pin corner icons) - Hide only exists inside a
-tile's right-click menu or the bulk bar, both confirmed in views/gallery.ts.
-The recipe goes the bulk-bar route since it needs no `|right` context-menu
-step: tick the card (`[data-select="qr-code"]`, the same checkbox hook the
-selection bullet under Projects uses), click the bar's Hide button
-(`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
-confirmed in lib/bulk-bar.ts), then click the grey reveal tile
-(`.gtile--hiddenbox`, confirmed in gallery.ts).
+The recipe hides nothing itself. The lolly-demo catalog the captures pin
+ships Wordmark hidden (`defaultHiddenTools` in its assets index.json), so a
+fresh profile already has one hidden tool and the recipe only clicks the grey
+reveal tile (`.gtile--hiddenbox`, confirmed in gallery.ts). It used to tick
+the QR Code card and press the bulk bar's Hide button first; under lolly-demo
+that published Wordmark dimmed and QR Code not, under a caption naming QR
+Code, so the steps were dropped rather than relied on. QR Code was hidden
+in that run too: the End scroll had left the pointer over its card, and a
+hovered hidden card lifts its dimming (gallery.css), so it read as a normal
+tool. The closing `hover:` puts the pointer back on the reveal tile, which
+keeps every revealed card dimmed.
 -->
 
-Birden fazla kart üzerinde işlem yapmak için, her kartın onay kutusunu işaretle, boş alanın üzerine bir seçim kutusu sürükle ya da **Shift/Cmd-click** yap, ve yüzen bir eylem çubuğu belirir. **Seçim çubuğunun sunduğu**, görünüme göre biraz değişir, çünkü her eylem her yerde mantıklı değildir:
+**Aynı anda birkaç kart üzerinde işlem yap.** Her kartın onay kutusunu işaretle, boş alan üzerinde bir seçim kutusu sürükle ya da Shift/Cmd ile tıkla; o görünümün izin verdikleriyle bir çubuk belirir:
 
-- **Araçlar / Yardımcı araçlar:** Favori (ya da Favorilerden çıkar), Gizle (ya da Göster), Çevrimdışı kullanılabilir (ya da Çevrimdışından kaldır), tam olarak bir kart seçiliyken **Oturumları görüntüle** (yalnızca o araçlarla yapılmış oturumları gösteren Projeler'i açar) ve Bağlantıyı kopyala.
-- **Varlıklar:** Favori ve Gizle her seçime uygulanır; Çoğalt, İndir ve Sil yalnızca seçili her öğe kendi yüklemelerinden biri olduğunda görünür - paylaşılan bir tasarım sistemi varlığı kalıcı bir sözleşmedir, bu yüzden bu üçü toplu seçimde bile kapalı kalır.
-- **Projeler:** bkz. [Çalışmanı bul ve kurtar](/info/find-your-work.html#find-something-you-saved).
-
-> Bir etiket tuzağı: **Oturumları görüntüle** yalnızca bir şey *seçiliyken* vardır. Seçili olmayan tek bir karta sağ tıklamak ise, Projeler'e gitmek yerine, o aracın kaydedilmiş oturumlarının listesini açan **N kayıtlı oturum**'u sunar; burada bir silme, oturumu Çöp kutusuna taşır.
+- **Tools ve Utilities:** Favourite, Hide, Available offline, **View sessions** (Projects, yalnızca o araçlarla yapılan oturumları gösterir) ve tek bir kart için Copy link.
+- **Assets:** herhangi bir seçim için Favourite ve Hide. Duplicate, Download ve Delete yalnızca seçilen her öğe kendi yüklemelerinden biri olduğunda görünür; çünkü paylaşılan bir tasarım sistemi varlığı kalıcı bir sözleşmedir.
+- **Projects:** bkz. [Find and recover your work](/info/find-your-work.html#find-something-you-saved).
 
 ![İki araç için galeri seçim çubuğu, Available offline, View sessions, Favourite ve Hide sunuyor](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
@@ -70,409 +256,37 @@ already exist, and build-docs-shots.ts gives every shot a fresh
 storage-seeding hook.
 -->
 
-### Lolly'ye sor
-
-Aramak yerine sormayı tercih ettiğinde, **Lolly'ye sor** (`#/ask`) yazdığın soruyu alır ve bu belgelerin eşleşen bölümünü **birebir** geri verir - rehberlerin kendi sözleri, bir özet ya da bir üretim değil - geldiği sayfa kaynak gösterilerek ve yanında bir **Belgelerde aç** bağlantısıyla. Yanıtın altında, aynı sorunun uygulamada eşleştiği yerler durur: bir araç, bir ayar, kaydedilmiş bir proje; her biri seni oraya götüren birer düğme.
-
-Döküm, oturum belleğidir: bir devam sorusu sor, konu ilerledikçe iş parçacığı birikir; sayfayı yenilediğinde sıfırdan başlar. Arama sonuçlarının en altında - diğer grupların bulduğu somut sonuçların altında - bir **Lolly'ye sor: *sorgun*** satırı yer alır ve soruyu doğrudan buraya devreder, böylece çubukta başlayıp burada bitirebilirsin.
-
-## Kanvas (önizleme)
-
-Önizleme her zaman tam olarak dışa aktarılacak şeyi gösterir.
-
-**Masaüstü**
-
-- **Yakınlaştırma:** Cmd/Ctrl ile kaydır ya da trackpad'de iki parmakla sıkıştır - yakınlaştırma imlecinin bulunduğu noktada ortalanır.
-- **Kaydırma:** **Space** tuşunu basılı tutup sürükle ya da **orta fare tuşuyla** sürükle. (Düz tıklamalar, tasarımın parçalarına tıklamak için serbest kalır.)
-- **Klavye:** `0` = pencereye sığdır · `1` = %100 · `+` / `−` = yakınlaştırma.
-- **Yakınlaştırma HUD'u:** köşedeki küçük `−  NN%  +  Fit` kontrolü. Sığdır ↔ %100 arasında geçiş yapmak için yüzdeye tıkla.
-
-![Kanvasın köşesindeki yakınlaştırma HUD'u - eksi, canlı yüzde, artı, Fit, ardından tema ve ses anahtarları](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
-
-**Dokunmatik**
-
-- Yakınlaştırmak için **sıkıştır**, kaydırmak için **sürükle**, sığdırmaya sıfırlamak için **çift dokun**. Serbest kanvasta seçili bir nesnenin üzerindeki iki parmak bunun yerine seçimi ölçekler, döndürür ve taşır (bkz. [Yeniden boyutlandırma, ölçekleme ve döndürme](#resize-scale-and-rotate)).
-
-**Bir kontrole atlamak için tıkla:** Tasarımdaki herhangi bir öğeye tıkla, ilgili kenar çubuğu girdisi odaklanır ve görünüme kayar - tekrar eden bir satır grubunda tıkladığın satırı tam olarak açar, böylece gördüğünü düzenlemek tek dokunuş uzaklıktadır.
-
-Bir boyut değişikliği görünümü her zaman temiz bir sığdırmaya geri döndürür.
-
-### Serbest kanvas (Design)
-
-Serbest kanvas araçları, bir tasarımcının yapıştırma tahtası gibi, çalışma alanının *etrafına* bir çalışma yüzeyi ekler:
-
-- **Kanvas dışında bekletme.** Bir kutuyu çerçeve kenarının ötesine sürükle, tamamen **görünür ve seçilebilir** kalır - kompozisyonu düzenlerken öğeleri kenara park et, sonra geri sürükle. Çerçevenin dışındaki her şey **hafifçe soluklaştırılır**, böylece dışa aktarım alanı her zaman bir bakışta anlaşılır ve çerçeve, dosyanın tam olarak nerede başladığını göstermek için gölgesini korur.
-- **Yalnızca çerçeve dışa aktarılır.** Dışa aktarılan dosya çalışma alanıyla sınırlıdır - dışarıda kalan her şey (ya da bir kutunun kenardan taşan kısmı), hem raster hem vektör formatlarında, çıktıdan basitçe kırpılır.
-- **Sığdırın ötesine uzaklaştır** (%20'ye kadar), öğeleri çerçevenin çok dışına yerleştirdiğinde tüm yapıştırma tahtasını gör.
-- **Yeniden boyutlandırılabilir çalışma alanı.** Dışa aktarım boyutlarını değiştirmek çerçeveyi yerinde yeniden boyutlandırır; kutular konumlarını korur, böylece bir düzeni mevcut içeriğin etrafında yeniden çerçeveleyebilirsin.
-- **Dışa aktarmadan önce.** Denetçinin Belge bölümü, kaydedilmiş katman yapısını kontrol eder, ardından kırpılmış metin ve düz renk kontrastı için yerleşmiş kanvası okur. Ayrıca SVG/PDF anahatlamada kullanılan aynı yazı tipi kaydına, her metin parçasının gömülebilir yazı tipi baytları olup olmadığını sorar; görsel ve gradyan arka planları ise uydurma bir kontrast puanı yerine görsel kontroller olarak adlandırılır.
-
-![Design'ın serbest tuvali - çalışma yüzeyi ve onu çevreleyen yapıştırma masası](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
-
-**Bir seçimi çevir.** Herhangi bir kutuya sağ tıkla ve yerinde aynalamak için **Flip horizontal** veya **Flip vertical**'i seç, ya da klavyeden `Shift+H` / `Shift+V` tuşlarına bas - Shift, çünkü tek başına `V` Pointer aracıdır. Seçili her kutu kendi ekseninde tek bir geri alma adımında aynalanır ve ayna gerçek bir dönüşümdür, bu yüzden sadece tuvalde değil, dışa aktarılan SVG, PDF ve PNG'de de kalıcıdır.
-
-### Yeniden boyutlandırma, ölçekleme ve döndürme
-
-Bir nesne seç, sonra boyutunu değiştirmek için bir tutamacı sürükle ya da nesneyi döndürmek için seçimin altındaki yuvarlak tutamacı sürükle. Boyut sürüklemesi iki moddan birinde çalışır:
-
-- **Yeniden boyutlandır**, varsayılan mod, yalnızca kutuyu değiştirir. Metin yeni boyuta göre yeniden satırlanır; yazı tipi boyutu, kontur kalınlığı, köşe yarıçapı ve efektler olduğu gibi kalır.
-- **Ölçek**, nesnenin tamamını içeriğiyle birlikte büyütür veya küçültür: yazı tipi boyutu, kontur, köşe yarıçapı, gölge, bulanıklık, iç boşluk ve aralıkların hepsi aynı oranda değişir.
-
-Ölçeği açıp kapatmak için `K` tuşuna bas. Klavye olmadan, Lolly menüsünde **Ölçek modu** seçeneğini seç ya da araç çubuğundaki **İşaretçi** düğmesini basılı tut (veya üzerine sağ tıkla) ve **Ölçek** seçeneğini seç; dokunmatik ekranda nesne çubuğunda da bir Ölçek anahtarı bulunur. Ölçek açıkken İşaretçi düğmesi Ölçek simgesini gösterir ve her tutamacın ortasında bir nokta olur. `V` veya **Escape**, seçimini koruyarak yeniden boyutlandırmaya döner. Ölçek, bir belge her açıldığında kapalıdır; böylece kimse yanlışlıkla konturları ölçeklemez. Her ölçekleme, **Ölçek** adlı tek bir geri alma adımıdır.
-
-**Sayıyla ölçekle.** Ölçek açıkken ya da birden çok nesne seçiliyken, **Ölçek** açılır penceresini açmak için nesne çubuğundaki değere tıkla. Bir yüzde ya da bir genişlik veya yükseklik yaz, diğer iki değer de ona göre değişir; ardından 3 x 3 ızgarada sabit kalacak noktayı seç ve **Uygula**'yı seç. Sonuç, sürüklemeye gerek kalmadan tek bir geri alma adımıdır. Ölçek kapalıyken birden çok nesne yalnızca boyut ve konum değiştirir.
-
-**Birden çok nesne.** Birden çok nesneli bir seçimin köşelerinde olduğu gibi kenarlarında da tutamaçlar bulunur. Seçimdeki her nesne dik duruyorsa ya da tam çeyrek turlarla döndürülmüşse ve seçimde grup veya daire yoksa, köşe sürüklemesi genişliği ve yüksekliği serbestçe değiştirir. Aksi halde seçim oranlarını korur: tutamaçları ölçek imlecini gösterir ve sürüklerken değer satırına **Orantılı** eklenir. Yeniden boyutlandırırken veya ölçeklerken seçimin yanındaki küçük bir etiket boyutu, Ölçek modunda ise yüzdeyi gösterir.
-
-**Sürükleme sırasında basılı tuttuğun tuşlar**, bastığın ya da bıraktığın anda etki eder (kısayol listesi `?` de bunları gösterir):
-
-| Basılı tut | Yeniden boyutlandırma veya ölçekleme | Döndürme | Taşıma |
-|---|---|---|---|
-| **Shift** | Oranları korur (Ölçek her zaman korur) | 15 derecelik adımlarla döndürür | Değişiklik yok |
-| **Alt** (Option) | Merkezden çalışır | Serbestçe döndürür | Yaslamayı ve ızgarayı kapatır |
-| **Cmd/Ctrl** | Yaslamayı ve ızgarayı kapatır | Serbestçe döndürür | Yaslamayı ve ızgarayı kapatır |
-
-Hiçbir tuş basılı değilken, bir dönüş en yakın 15 dereceye 4 derece kadar yaklaştığında ona çekilir. Çalışma alanları döndürülmez, bu yüzden döndürme tutamaçları yoktur.
-
-**Kenar boyunca her yerden tut.** Bir tutamacı tam olarak yakalaman gerekmez. Seçimin her kenarı, tüm uzunluğu boyunca bir yeniden boyutlandırma şeridi olarak çalışır; fare veya kalemle her köşenin hemen dışında bir döndürme bölgesi de vardır. İmleç, sürüklemenin ne yapacağını seçime uyacak şekilde döndürülmüş olarak gösterir. Bir şeride veya bölgeye basış, ancak sürüklemeye başladığında yeniden boyutlandırma ya da dönüşe dönüşür; yani düz bir tıklama eskisi gibi seçer, seçime ekler ya da seçimi kaldırır. Kilitli bir nesnenin tutamacı, şeridi veya bölgesi yoktur.
-
-**Küçük nesneler taşınabilir kalır.** Ekranda 25 piksel veya daha dar bir nesnede, köşelere yığılacak orta tutamaçlar gizlenir ve diğer tutamaçlar çerçeveden biraz dışarı kayar; böylece nesneye basmak nesneyi taşır. 10 piksel veya daha azında köşe tutamaçları da kaybolur, ince bir çizgi ise her ucunda bir tutamaç tutar. İnce bir çizginin ya da çok küçük bir nesnenin hemen yanına, tutamaçlarından uzakta basmak da nesneyi taşır.
-
-**Büyük tutma alanları.** Dokunmatik ekranda tutma bölgeleri büyüktür: her köşe bölgesi, seçimin ekrandaki genişliğinin ve yüksekliğinin dörtte biridir, 24 ile 44 piksel arasında tutulur ve her kenar bölgesi iki köşe arasındaki aralığı kaplar. Seçim buna göre çok küçükse bölgeler çerçevenin dışına kayar, böylece ortaya basmak yine seçimi taşır. İmlecin altındaki ya da basılı tuttuğun parmağın altındaki bölge gölgelenir. Aynı bölgeleri fare veya kalemle de almak için Lolly menüsünde **Büyük tutma alanları**'nı aç. Ayar yalnızca bu cihazda saklanır.
-
-**Bir seçimin üzerinde iki parmak.** Dokunmatik ekranda seçili bir nesnenin üzerine iki parmak koy: seçimi ölçeklemek için sıkıştır, döndürmek için bük ya da taşımak için iki parmağı birlikte hareket ettir. İki parmağın yaptığı her şey tek bir geri alma adımı sayılır. Ölçek açıkken sıkıştırma içeriği de ölçekler; kapalıyken sıkıştırma seçimi orantılı olarak yeniden boyutlandırır. Bükme yakınsa en yakın 15 dereceye çekilir, iki parmakla taşıma ise hiçbir zaman yaslanmaz. İki parmak başka bir yerdeyse görünümü yine yakınlaştırır ve kaydırır, iki parmakla dokunma yine menüyü açar. İlk parmak seçimin üzerine inmeli, ikincisi de seçimin üzerine ya da kenarının hemen dışına hızla ardından gelmelidir. Seçim bir çalışma alanı ya da kilitli bir nesne içeriyorsa, görünümün çoğunu kaplıyorsa veya görünümün kenarını aşıyorsa, iki parmak bunun yerine yakınlaştırır ve kaydırır.
-
-### Katmanlar ve Denetçi
-
-**Katmanlar**'da her çalışma yüzeyi katlanabilir bir üst grup olur. Oraya atlamak için adını seç, katmanlarını genişlet, o çalışma yüzeyi içindeki nesneleri seç veya yeniden sırala. Küçük resimler ve sayfa sıralaması için **Sayfalar**'a geç. Ok tuşları katman listesinde gezinir; Left, çalışma yüzeyi başlığına döner.
-
-**Denetçi**, seçili nesne için önce metin veya görsel kontrollerini gösterir. Hızlı seçimler için seçenek çiplerini kullan ve stil ayrıntıları için **Advanced**'i genişlet. Telefonlarda **Denetçi**'yi **Diğer eylemler**'den aç. Kontroller bir sayfada açılır; Escape veya Geri, seçimini korurken onu kapatır.
-
-### Kendi şekillerini çizmek (kalem)
-
-Kutular, daireler ve yuvarlatılmış çerçeveler çoğu düzeni karşılar. Bu listede olmayan bir şekle ihtiyacın olduğunda onu çiz: raydaki **Kalem** düğmesi (ya da `P` tuşu) seni çizim moduna alır. Modlar arasında üç tek tuş gezdirir - **`V`** İşaretçi'ye geri, **`P`** Kalem'e, **`N`** düğüm aracına (**Noktaları düzenle**) - ve İşaretçi, içinde bulunduğun her şeyden çıkış yoludur.
-
-![Serbest kanvas araç rayı: bir sürükleme tutamacı, Lolly menüsü, ardından İşaretçi, Bir kutu ekle, Kalem, Noktaları düzenle, Çizgi, Zaman çizelgesi, Çalışma alanları ve Otomatik düzenle](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
-
-- Bir nokta yerleştirmek için **tıkla**. Varsayılan eğri türünde **tıklayıp sürüklemek** o noktanın tutamaçlarını dışarı çeker; köşe yerine eğri çizmenin yolu budur - sert bir köşe için tıklarken **Alt** tuşunu basılı tut. (Diğer eğri türlerinde yerleştirilen her nokta bir köşedir ve sürükleme bir işe yaramaz; aşağıdaki **Spline türü** bölümüne bak.)
-- Noktalar, sen yerleştirdikçe çalışma alanına ve diğer kutularına yapışır ve normal bir sürüklemenin çizdiği kılavuzların aynısını çizer. Alt, sen çizerken ızgarayı, sonrasında bir noktayı sürüklerken hem ızgarayı hem kenarları bastırır.
-- Döngüyü kapatıp tek hamlede bitirmek için **ilk noktana tıkla**. Aksi hâlde **Enter**'a bas, çift tıkla ya da yalnızca araç değiştir - çizim atılmaz, saklanır.
-- **Escape** birer basamak ilerler: ilk basış çizimi bırakır ve hiçbir şey yazmaz, ikincisi kalemden çıkar.
-- Çizim sırasında **Delete**, yerleştirdiğin son noktayı kaldırır.
-
-Sonuç, kanvasta sıradan bir kutudur. Taşı, yeniden boyutlandır, döndür, grupla, hizala, yeniden sırala, dolgu, gradyan, gölge ya da opaklık ver - bir yol da diğer her kutu gibi davranır ve bu kontrollerin hiçbiri ona farklı davranmaz.
-
-Boyalı olarak da gelir. Çizdiğin ilk yol, markanın bir yola verdiği dolgu ve konturu alır; sonrasında her yeni yol **en son kullandığını** alır - dolguyu bir kez ayarla ve çizmeye devam et, her şekli yeniden renklendirmek yerine. (Markası yollar hakkında bir şey söylemeyen bir araçta, çizilen bir yol onu çizerken gördüğün renkte konturlanır, yani hiçbir zaman görünmez olmaz.)
-
-**Noktaları yeniden düzenleme.** Şekle çift tıkla (ya da nesne çubuğundaki **Noktaları düzenle**'yi kullan), noktalar geri gelir. Bir noktayı taşımak için sürükle, yönünü değiştirmek için bir tutamacı sürükle, nokta eklemek için eğrinin herhangi bir yerine tıkla, bir grup noktayı lastik bantla seç ve seçilenleri kaldırmak için Delete'e bas. Bir yol her zaman en az iki nokta tutar, yani onu yanlışlıkla yok olacak kadar silemezsin.
-
-**Spline türü**, noktalarından hangi tür eğrinin geçeceğine karar verir ve anlamaya değer seçim de budur:
-
-| Tür | Ne yapar |
-|---|---|
-| **Yumuşak (otomatik)** | Varsayılan. Kendi tutamaç uzunluklarını hesaplar, böylece düz tık-tık-tık gerçekten yumuşak bir eğri verir, tutamaçlarla boğuşmadan. Bir tutamaç ayarlarsan *yönü* sabitler, uzunluğun sahipliği eğride kalır. |
-| **Bezier tutamaçları** | Klasik kalem. Tutamaçlar kontrol noktalarıdır ve nokta eklemek eğriyi hiç oynatmaz. |
-| **Noktalar boyunca** | Yerleştirdiğin her noktadan tam olarak geçer, tutamaç yok. |
-| **B-spline** | Noktaların içinden değil yakınından akar, daha yumuşak bir şekil için. |
-| **Düz çizgiler** | Bir çoklu çizgi. |
-
-Var olan bir yolu, tutamaçlarını kendi hesaplayan bir türe geçirmek önce sorar, çünkü ayarladığın tutamaç uzunlukları geri getirilemez - **Bezier tutamaçları**'na geçmek ise her zaman kayıpsızdır. Çizimin ortasında soru sorulmaz: geçiş doğrudan taslağa uygulanır ve o ana kadar çektiğin tutamaçlar da onunla birlikte gider. Tutamaçlarının sahibi olan türlerde nokta eklemek eğriyi çok az yeniden şekillendirir; **Bezier tutamaçları**'nda hiç değiştirmez.
-
-Her nokta ayrıca bir süreklilik kuralı taşır ve bunu kanvastaki şekliyle gösterir - **Köşe** için kare (tutamaçlar bağımsız hareket eder), **Yumuşak** için yuvarlak (tutamaçlar hizada kalır), **Simetrik** için halkalı yuvarlak (hem hizada hem eşit uzunlukta). Seçili noktalar için ayarla, eğri kuralı hemen yeniden sağlar.
-
-![Bir bağlantıdan doğrudan oluşturulmuş iki kalem yolu: konturlu bir S eğrisi ve kapalı, dolgulu bir leke](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22curve%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A140%2C%22y%22%3A180%2C%22w%22%3A800%2C%22h%22%3A420%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A14%2C%22path%22%3A%221!cubic!0_.02!.85!!!.25!-.45!s_.5!.5!-.22!.32!.22!-.32!y_.98!.12!-.25!.45!!!s%22%7D%2C%7B%22id%22%3A%22blob%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A340%2C%22y%22%3A620%2C%22w%22%3A400%2C%22h%22%3A320%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23d1e7ff%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A6%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!catmull-rom!1_.5!0_1!.42_.78!1_.22!1_0!.42%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=pen-path-geometry)
-
-Çizilen bir yol da diğer her şey gibi bağlantının içinde yolculuk eder, yani çizdiğin bir şekil bir paylaşım bağlantısından yeniden açılır ve CLI'dan birebir aynı oluşturulur. Hiçbir yanı düzenleyiciye bağlı değildir.
-
-### Şekilleri birleştirmek (yol işlemleri)
-
-İki ya da daha fazla şekil seç, kanvasa **sağ tıkla** (dokunmatikte iki parmakla dokun) ve menü, bir çizim uygulamasından bekleyeceğin işlemleri sunsun:
-
-- **Birleşim** onları tek bir şekilde birleştirir, en üsttekinin boyasını koruyarak.
-- **Çıkar** üstteki her şeyi alttaki şekilden keser.
-- **Kesiştir** yalnızca çakışmayı korur.
-- **Hariç tut** çakışma dışındaki her şeyi korur.
-
-Üç işlem daha tek bir şekil üzerinde çalışır: **Vuruşu anahatla…** bir konturu aynı anahatta sahip dolgulu bir şekle çevirir (bir kalınlığı tam çizildiği gibi korumak istediğinde işe yarar), **Yolu ofsetle…** silueti dışarı doğru büyütür ya da negatif bir sayıyla içeri doğru daraltır ve **Basitleştir** bir yolu aynı şekilde, daha az parçayla yeniden kurar.
-
-![Gerçek bir deliği olan bir hilal ve bir halka, ikisi de Çıkar ile üretildi](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=path-ops-boolean-result)
-
-Sonuç, kalemle düzenlemeyi sürdürebileceğin yeni bir yoldur. Delikler gerçek deliklerdir - kontur panelindeki bir **Doldurma kuralı** kontrolü, çakışan konturların dolacağına (*non-zero*) mı yoksa delip geçeceğine (*even-odd*) mi karar verir.
-
-Bu işlemlerin bilerek yapmadığı iki şey var. **Yıkmak yerine reddederler**: çakışmayan iki şekli kesiştirmek istersen korunacak bir şey olmadığı söylenir ve hiçbir şey değişmez. Metin ve görsel kutularının ise üzerinde çalışılacak bir anahattı yoktur, bu yüzden çerçeveleriyle yaklaşık olarak ele alınmak yerine oldukları gibi bırakılır. Birleştirilen sonuç düz Bezier eğrileri olarak saklanır, ki bir çizim uygulaması da bunu yapar - özgün spline türü işlemden sağ çıkmaz.
-
-### 3D sahneler
-
-Araç rayındaki ekleme menüsünden **3D sahne**'yi seç ve bir çerçeve çiz: 3D Studio yeni kutunun üzerinde hemen açılır ve orada ayarladığın şey kanvasa geri döner. Her açıdan bir sahne kutusu sıradan bir kutudur. Taşı, yeniden boyutlandır, döndür, gölge ver, bir slayda ya da zaman çizelgesine koy; diğerleri gibi davranır.
-
-**Bir sahne kutusu resmi değil tarifi tutar.** Bir görsel kutusu oluşturulmuş bir dosya tutar; bir sahne kutusu tek bir ayar tutar - sahnenin kendisi, 3D Studio'nun kendi bağlantı sorgusu olarak yazılır, hâlâ stüdyonun varsayılanında kalan her değer dışarıda bırakılır. Bir sahnenin bütün bir tarifin maliyeti olan birkaç kilobayt yerine yüz bayt kadar olmasının, aynı dizenin bir paylaşım bağlantısında ve düzenleyici kapısında çalışmasının ve yeni bir stüdyo kontrolünün Design'da hiçbir değişiklik gerektirmemesinin nedeni budur. Kutunun, daha önce çekilmiş bir resimden büyütülmek yerine belgenin istediği herhangi bir boyutta ve anda yeniden oluşturulmasının nedeni de budur. Bir sahnenin kullandığı resimler varlık olarak kalır ve kimlikle taşınır, bu yüzden bir sahnenin içindeki bir yükleme, belgenin geri kalanıyla birlikte bir `.lolly` dosyasına gider.
-
-**Onu stüdyoda düzenle.** Kutuyu seç, Denetçi bir **3D sahne** bölümü göstersin: sahnenin neyden yapıldığını adlandıran bir satır, birini seçtikten sonra ışıklandırma stüdyosunu adlandıran ikinci bir satır ve tek bir düğme, **3D Studio'da düzenle**. Düğme, stüdyoyu o kutunun sahnesi üzerinde, aracın sahip olduğu her kontrolle açar. Uygula, düzenlenmiş sahne tek bir adım olarak geri yazılır, böylece tek bir geri alma kutuyu başladığın sahneye döndürür; uygulamadan stüdyoyu kapat, hiçbir şey değişmez. Kutuyla ilgili geri kalan her şey - çalışma yüzeyindeki yeri, ne kadar büyük olduğu, gölgesi, bir slayta ne zaman geldiği - her zaman kullandığı bölümlerde kalır. Bir sahne kutusunun kendine ait görseli ve altyazısı yoktur: resmi stüdyodan gelir, sözleri de orada belirlenir.
-
-**Tek bir canlı sahne, diğer her kutuda bir poster.** Bir belgedeki her 3D kutusu bir poster gösterir: sahnenin durağan bir resmi, kutunun kapladığı boyutta, paylaşılan oluşturucu havuzu aracılığıyla ekran dışında çizilir. Yirmi sahneli bir belge yirmi değil tek bir çizim bağlamına mal olur. Bir sahne kutusunu seç, belgenin tek canlı sahnesi olsun; seçimi kaldır, ekranda olan çerçeve onun posteri olsun, böylece hiçbir şey sıçramaz. Aynı anda yalnızca bir sahne canlıdır ve iki sahne kutusunu aynı anda seçmek ikisini de poster olarak bırakır. Bu sürümde canlı sahne bakmak içindir, dönmek için değil: bir sahneyi **3D Studio'da düzenle** üzerinden değiştir. Kayan noktalı bir grafik bağlamı açamayan bir cihaz posteri korur ve boş bir dikdörtgen göstermek yerine nedenini kutunun içinde söyler, belgenin geri kalanı etkilenmez. 3D kutusu olmayan bir Design belgesini açmak hiç 3D kodu yüklemez.
-
-**Zaman çizelgesinde** bir sahne kutusu bir video klibi gibi oynatma başlığını izler: başlangıcı, klip girişi ve hızı sahneyi kendi animasyonu boyunca hareket ettirir, sahnenin uzunluğu ise 3D Studio'da ayarladığın uzunluktur, bu yüzden bir kutuyu daha kısa kırpmak sahneyi hızlandırmak yerine ondan daha azını gösterir. Yalnızca seçili sahne kutusu canlıdır; diğer her biri durağan bir resimdir ve durağan bir resim taranmaz.
-
-**Bir dışa aktarımda** her sahne, stüdyonun kullandığı aynı oluşturucuyla, dosyanın ihtiyaç duyduğu boyutta yeniden çizilir. Bir video, sahne başına, an başına bir kare oluşturur; bir PNG, SVG veya PDF, kutu başına, kutunun kendi piksel boyutunda bir resim gömer. Hiçbir şey ekrandan fotoğraflanmaz, bu yüzden bir dışa aktarım hangi kutuyu seçmiş olduğuna bağlı değildir. Çizilemeyen bir sahne dışa aktarımı başarısız kılar ve nedenini stüdyonun kendi sözleriyle söyler.
-
-**Kendi yüklemene dayanan bir sahneyi paylaşmak.** Bir Design belgesinin paylaşım bağlantısı, bir görsel kutusunun onu boşalttığı yerde, bir sahnenin içinde cihaza özel bir yükleme kimliğini olduğu gibi taşır. Bu yüzden görseli veya modeli senin yüklediğin bir dosya olan bir sahne, belge baytları taşıyan bir `.lolly` dosyası olarak yolculuk etmedikçe, başkasının cihazında o resim için stüdyonun varsayılanını gösterir.
-
-## Zaman çizelgesi (Sequence)
-
-**Sequence**, Design'ın zaman çizelgesidir: serbest kanvasa *zaman* ekler. Her kutu bir anda başlayabilir, bir süre boyunca çalışabilir, girip çıkarken canlanabilir; çalışma alanının altına yerleşen bir zaman çizelgesi de onları düzenlediğin yerdir. Aç, zaten çalan bir dizi bulursun - bir başlık kartı, bir klip, bir kapanış kartı, bir alt bant ve bir müzik yatağı - böylece model, sen hiçbir şeyi değiştirmeden önce görünür olur.
-
-![Sequence'in zaman çizelgesi: taşıma kontrolleri, cetvel, bir bindirme şeridi, klipleriyle ve ek noktası düğmeleriyle mıknatıslı sıralama sırası ve Always on şeridi](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
-
-İki tür satır var ve fark, işin bütün fikri:
-
-- **Dizi satırı** *manyetiktir*. Klipler boşluksuz, birbiri ardına oturur; birini sürüklemek boşluk bırakmak yerine sıralamayı değiştirir. Bir klibi sil, kalanlar kapanır. Bu senin omurgan.
-- **Bindirme şeritleri** serbesttir. Bir alt bant, bir logo, bir altyazı - omurganın üzerinde kendi zamanında yüzen her şey - kendi şeridini ve kendi başlangıcını alır.
-- Onların altında **Her zaman açık**, hiç zamanlaması olmayan kutuları toplar: baştan sona öylece orada duran dekor. Bir düğmedeki `+` onlardan birini bir şeride yükseltir; **Her zaman açık yap** geri gönderir.
-
-![Düzenleme sahnesi: ortada ön planda çalışma yüzeyi, solda araç rayı ve köşede yakınlaştırma HUD'u](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
-
-Zaman çizelgesini açmak klavyeyi ona verir, yani Space ve ok tuşları sayfayı değil oynatma başlığını sürer - ve zaten zamanlaması olan bir kompozisyonda kendiliğinden açıldığı için bu, Sequence yüklendiği anda geçerlidir.
-
-> **[Dizi düzenleyici](/info/sequence-editor.html)**, zamanda düzenlemenin öngörülebilir hissettirip hissettirmediğine karar veren dört şeyi derinlemesine anlatır: kanvastaki bir tıklamanın hangi klibi düzenlediği, komşu kliplerin soğan zarı hayaletleri, bölme kapsamı ve bir kesmeyi geri alan Birleştir ile kırpma (klavye seti dahil). Kısayol listesi için zaman çizelgesi odaktayken `?` tuşuna bas.
-
-**Düzenleme.** Bir klibi taşımak ya da sırasını değiştirmek için ortasından sürükle, kırpmak için iki ucundan birinin birkaç piksel yakınından sürükle, bir klibi ikiye kesmek için **Oynatma başlığında böl**'e (ya da `S`) bas. Bölme, gerçek bir **Uzunluk** taşıyan bir klip ve onun biraz içinde duran bir oynatma başlığı ister, bu yüzden ucu açık bir klip (örneğin müzik yatağı) bölünemez. **Kenarlara hizala** varsayılan olarak açıktır ve klip kenarlarına, oynatma başlığına ve tam saniyelere yapışır; Alt ile geçersiz kılınır. Her sürükleme tek bir geri alma adımıdır ve sürükleme önizlemesi, işlemenin yaptığı hesabın aynısını yapar, yani sürüklerken gördüğün şey elde ettiğin şeydir.
-
-Bir klip seç, denetçi aynı düzenlemeleri sayı olarak versin: **Uzunluk**, **Girişi kırp** (kaynağın ne kadar içinden başladığı), ×0,25'ten ×4'e sabit çarpanlar kümesi olarak **Hız**, uzunluklarıyla birlikte **Girişi canlandır** / **Çıkışı canlandır** ve **Klibi sessize al**. Manyetik satırdaki bir klipte bilerek **Başlangıç** alanı yoktur - sırayı satır yönetir, bu yüzden taşımak için sürüklersin.
-
-**Geçişler** anahtar kare değil, hazır ayarlardır: Solma, Pop, Büyüt, Yükseliş, Bırak, dört Kaydırma, Yakınlaştır ve Uzaklaştır, Eğim, Süzülme, Döndür, Sürüklenme ya da **Kes (animasyon yok)**. Mesafeler nesneyle birlikte ölçeklenir, böylece aynı hazır ayar tam kare bir kartta da küçük bir rozette de doğru okunur. Dizi satırındaki bitişik iki klip arasında bir **ek noktası düğmesi** vardır: tıkla ve **Kes** ya da **Çapraz geçiş**'i seç; seçim anında uygulanır ve düğme kapanır. **Uzunluk (ms)** değerini değiştirmek için aynı düğmeyi tekrar aç ve **Tamam**'a bas. Bir çapraz geçiş, bir klibin sönmesi ve bir sonrakinin belirmesi olarak saklanır ve gerçek erime bu çiftten türetilir: ilk klip kesimden sonra oynamaya devam ederek söner, bu sırada bir sonraki klip onun altında belirir. Önizleme ve dosya aynı kuralı izler, yani ek noktasında gördüğün şey dışa aktardığın şeydir.
-
-**Ses.** Bir **Ses** klibi ekle, zaman çizelgesinde diğer her klip gibi yaşasın: dalga formu, kırpma, sessize alma. (Varsayılan oturumla gelen üretilmiş yatak tek istisnadır - dışa aktarım anında sentezlenir, bu yüzden sen oluşturana kadar çubuğu düz ve sessiz kalır.) Zaman çizelgesine doğrudan **seslendirme kaydetmek** için mikrofona bas; geri sayım ve seviye göstergesi vardır, kayıt da başladığın noktada kendi varlığın olarak saklanır. Aynı şekilde **video kaydetmek** için yanındaki kameraya bas: kayıt, kaydedilirken çalışma yüzeyinin dışa aktarım boyutuna kırpılır, böylece küçük öz görünüm, oynatma başlığında sıraya tam kare halinde tam olarak neyin ekleneceğini gösterir - bir meslektaşının klibini paylaşılan bir bağlantıdan toplamanın yolu budur. Müzik, konuşma ve bir klibin kendi ses bandı, dışa aktarılan miksin hepsine ulaşır. (Dışa aktarım panelindeki **Ses parçası** başka bir şeydir: tüm klibin altına serilen tek bir yatak, solma ve kısma ile. İkisi bir arada var olur.)
-
-**Ses şeridi.** Ses taşıyan herhangi bir klibi seç, zaman çizelgesinin altında kompakt bir şerit açılsın: bir **Ses düzeyi** faderi, stereo konum için **Kaydır**, üç bantlı bir **EQ** (**Düşük**, **Orta**, **Yüksek**), sesin karakterini korurken yarım tonlarla aktaran bir **Perde** kontrolü ve klibi yayın ses düzeyine (BS.1770) getiren **Ses düzeyini normalize et**, böylece sessiz bir ses notu ile yüksek bir parça aynı seviyede durur. İki klip birleştiğinde **Çapraz geçiş** kesmek yerine bağlantıyı harmanlar. Bir **Efekt** yuvası klip üzerinde cihaz üstü işleme çalıştırır - **Ses temizleme** bir kayıttan odanın sesini ve cızırtıyı alır. Hız değişiklikleri perdeyi de korur: yavaşlatılmış ya da hızlandırılmış bir klip sincap sesine dönüşmez, zaman esnetilir. Her mikste dışa aktarım, konuşma geldikçe ve gittikçe müziği konuşmanın altına çeker ve tüm programı gerçek tepe sınırlayıcısı altında tutar, böylece çıkışta hiçbir şey kırpılmaz; kırpılacak olan bir dalga formu, gerçekleştiği yerde bir uyarıyla çizilir.
-
-![Müzik klibi seçiliyken zaman çizelgesi: şeridi altta Hız, Solmalar, Ses düzeyi, Kaydır, EQ, Perde, Ses düzeyini normalize et ve Efekt yuvasıyla uzanır](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
-
-**Oluşturma.** Bir hareket dışa aktarımı, ekran kaydı değil **belirlenimci bir bileşimdir** - her kare tam bir zamanda çözülür, çizilir ve kodlanır, yani dosya makinenin yetişmesine bağlı değildir ve MP4 ya da WebM'de pratikte bir kare tavanı yoktur. Sen bir süre yazmadıkça süreyi zaman çizelgesinin kendi uzunluğu belirler. Content Credentials, diğer her dışa aktarımdaki gibi damgalanır. Sabit kare dışa aktarımı sana oynatma başlığındaki kareyi ya da çıktı boyutunun yanındaki **Kareler** alanından bütün bir kontakt föyü verir - bkz. [Dışa aktarma](/info/exporting.html#stills-from-a-timed-composition).
-
-Akılda tutulacak birkaç sınır: bir dizi bir saatle sınırlıdır, GIF ve animasyonlu PNG karelerini tamponladığı için kısa kalırlar, daha hızlı ya da yavaş oynatılan bir klip perdesini korur (ses şeridi onu zamanda esnetir ve bir **Perde** kontrolü, sesin karakteri korunarak yarım tonlarla aktarır) ve **Canlı kaydet** burada gizlidir, çünkü bileşimci daha iyi yoldur.
-
-**Ön ayarların ötesinde: anahtar kareler, derinlik ve bir kamera.** Bir geçiş, bir klibi geldiğinde ve ayrılırken animasyonlu hale getirir. Bir kutuyu bir klibin *içinde* konumlandırmak için - kaydırmak, soldurmak, bulanıklaştırmak, sayfadan kaldırıp geri yerleştirmek için - anahtar kareler ekle: klibi seç, **+Keyframe**'e bas (zaman çizelgesinin araç kümesindeki eşkenar dörtgen, tuval nesne çubuğundaki eşkenar dörtgen veya `K`), ve oynatma başlığının konumu bir sonraki düzenlemenin hangi pozu yazacağına karar verir. Aynı anahtar kare sistemi, her zamanlanmış kompozisyona içeri giren, yatay kayan ve odağı değiştiren, tek düz bir SVG'yi arasında uçabileceğin bir katman yığınına dönüştüren bir **kamera** verir. **[Animasyon](/info/animating.html)** eksiksiz kılavuzdur.
-
-Design aracında da aynı zaman çizelgesi var, yani bir düzeni başka bir araca geçmeden zamanlayabilirsin ve o da hareketi dışa aktarır.
-
-## Sunum yapma
-
-Kameranı, bir logoyu ve bir isim altyazısını izleyici görüntüsünün üzerine yerleştirmek için **Present with camera**'yı kullan. Onun kendi kontrolleri, kaydedilmiş sahneleri, paylaşım ve kayıt adımları [Kamerayla sunum yapma](/info/presenting.html) sayfasında anlatılır. Aşağıdaki sıradan sunum kontrolleri **Sun** üzerinden erişilebilir kalır.
-
-**Çalışma alanlarından** oluşan bir Design belgesi zaten bir sunumdur. Araç rayındaki **Lolly menüsü**'nü aç ve son satır olan **Sun**'u seç - her çalışma alanı, kanvasta durdukları sırayla tam ekran bir slayta dönüşür. Sunum, oluşturulmuş çalışma alanlarının bir kopyası üzerinde çalışır, yani altındaki düzenleyiciye hiç dokunulmaz ve çıktığında tam bıraktığın yere dönersin.
-
-- **Space**, `→`, **Page Down** ile ya da ekranın sağ kenarındaki şeride tıklayarak **ilerle**; `←`, **Page Up** ya da sol kenardaki şeritle geri dön. **Home** ve **End** ilk ve son slayta atlar. İşaretçiyi her hareket ettirdiğinde küçük bir denetim çubuğu belirir, durduğunda yeniden gizlenir.
-- **Genel Görünüm** (`O` veya ızgara düğmesi) tüm çalışma yüzeylerini tuval üzerinde verdiğin düzende bir kerede sıralar; birini açmak için tıkla.
-- **Aşamalı gösterme.** Bir kutuya sağ tıkla ve varsayılan **Her Zaman Görünür** yerine **1. Adımda Göster**, **2** veya **3**'ü seç. O kutu, sırası geldiğinde ilerleyene kadar bekler, böylece bir slayt parça parça gelebilir; aynı numarayı paylaşan kutular birlikte gelir.
-- **Sunucu görünümü** (`S`) mevcut slaytı, sıradaki slaytı, o slayta ait notlarını ve işleyen bir saati içeren ikinci bir pencere açar. Tarayıcı açılır pencereyi engellerse sunumun üzerinde bir panele geri döner. Notlar çalışma yüzeyi başına ayarlanır ve asla slaytın kendisinde görünmez.
-- `B` siyah bir ekranda tutar (herhangi bir tuş slaytı geri getirir), `F` tam ekrana döner ve **Escape** bir seferde bir katman soyar: genel görünümden sunuma, sunumdan düzenleyiciye.
-- **Kiosk.** Bir çalışma yüzeyine bir **Süre** ver, sunum o kadar süre orada kalsın, ardından ince bir ilerleme çubuğunun arkasında kendiliğinden ilerlesin; `K` (ya da yalnızca bir öğenin süresi olduğunda görünen duraklat düğmesi) bunu durdurur ve yeniden başlatır. Bağlantıya `kiosk` ekle, sunum sonunda başa döner - onu tabela haline getiren de budur.
-
-- **Alt slayt yığınları.** Bir çalışma yüzeyine sağ tıkla ve **Önceki slaytın altına istifle**'yi seç; böylece kendi başına bir slayt olmak yerine o slaydın bir adımı olur: genel görünüm tek bir kart gösterir, sunum yığını sırayla gezer ve denetçinin **Yığın** satırı hangi slayta ait olduğunu söyler.
-- **Dönüştür.** İki ardışık slayt aynı **Dönüşüm eşleşmesi** adına sahip bir kutu taşıdığında (bir kutuya sağ tıkla ya da denetçinin **Dönüşüm eşleşmesi** satırını kullan - örneğin `hero`), geçiş o kutuyu kesmek yerine olduğu yerden olacağı yere taşır, yol boyunca yeniden boyutlandırıp yeniden renklendirir. Sunum geneli bir **Dönüştür** geçişi eşleşen her çift için aynısını yapar.
-- **Anlatım.** Her çalışma yüzeyinin **Konuşmacı notları** sesli okunabilir. Denetçinin **Belge** bölümünde bir **Ses** seç, isteğe bağlı olarak **Şununla karıştır** için ikinci bir ses, okuma **Hızı** ve her slaytın etrafında milisaniye cinsinden bir **Giriş** ve **Kuyruk** seç; **Sunum yaparken altyazıları göster**'i aç, sözler söylendikçe belirsin. Ses cihazında çalışır. Aynı notlar bir video dışa aktarımında filme, bir PowerPoint dışa aktarımında gerçek slayt sesine ve bir [SCORM paketi](/info/create/exporting.html#scorm-course-packages) içindeki anlatılan filme dönüşür.
-
-![Denetçinin Belge bölümü: Ses, Şununla karıştır, Hız, Giriş, Kuyruk ve Sunum yaparken altyazıları göster](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
-
-Sunum aynı zamanda bir bağlantıdır. `?present` doğrudan onu açar, `s=` slaydı adlandırır - bir konum, bir çalışma alanı kimliği ya da bir yapı adımı için `id.step` - ve sen ilerledikçe adres güncellenir, yani gönderdiğin şey üzerinde bulunduğun slayttır. Araç yazarları: bu parametreler [URL Modu](/info/url-parameters.html#reserved-parameters) sayfasında belgelenmiştir.
+**View sessions** yalnızca bir şey seçildiğinde görünür. Bunun yerine seçilmemiş tek bir karta sağ tıkla; o aracın kayıtlı oturumlarının, bir silmenin oturumu Çöp Kutusu'na taşıdığı bir listesi olan **N saved sessions** sunar.
 
 ## Telefonda
 
-Dar ekranlarda düzen tek sütuna geçer:
+Dar bir ekranda düzen tek sütun olur:
 
-- **Kontroller üstte bir panele dönüşür**, alt kenarında bir **sürükleme tutamacı** bulunur. Boyutlandırmak için tutamacı sürükle - **kısmi / yarım / tam** konumlarına yapışır - ya da daraltma ↔ genişletme arasında geçiş yapmak için tutamaca **dokun**. Önizleme alttaki alanı doldurur ve sen düzenlerken görünür kalır.
-- Yüzen bir **Dışa aktar** düğmesi dışa aktarım panelini açar - format, boyut, kopyalama, kaydetme ve indirme kontrollerinin tümü tek yerde. Arka plana dokunarak kapat.
+- **Denetimler**, alt kenarında bir sürükleme tutamağı olan üstte bir sayfaya **dönüşür**. **peek**, **half** veya **full** konumuna oturmak için tutamağı sürükle ya da daraltıp genişletmek için dokun. Önizleme aşağıdaki alanı doldurur ve sen düzenlerken görünür kalır.
+- Yüzen bir **Export** düğmesi dışa aktarma sayfasını açar: biçim, boyut, kopyalama, kaydetme ve indirme tek yerde. Sayfayı kapatmak için arka plana dokun.
 
 ![Telefon genişliğinde bir ekranda bir araç - üstte panel hâlinde kontroller, altta önizlemeyi dolduran üretilmiş palet ve alt ortada yüzen oluşturma düğmesi](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
-## Kontroller (girdiler)
-
-Araçlar yalnızca değişmesi amaçlanan girdileri gösterir - geri kalan her şey (renkler, düzen, tipografi, mantık) araç yazarı tarafından sabitlenmiştir, böylece oluşturduğun her şey yazarın koyduğu kurallara uyar. Girdiler arasında metin, kaydırıcılar, renk seçiciler, açılır menüler, tarihler, görsel seçiciler ve tekrar eden satır grupları bulunur. Bazıları katlanabilir bölümler altında gruplanmıştır.
-
-![Bir aracın kontrol yığını - bir metin alanı, renk düğmeleri ve bir kaydırıcı, yazarın sabitlemeyi seçtiği başka hiçbir şey yok](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
-
-**Sıfırlama:** *Değişiklikleri temizle* her girdiyi varsayılan değerlerine döndürür.
-
-### Geri alma ve yineleme
-
-**Cmd/Ctrl-Z** bir adım geri gider, **Cmd/Ctrl-Shift-Z** (ya da **Cmd/Ctrl-Y**) yeniden ileri gider. Aynı ikili, kontrollerin üzerindeki satırda **Geri al** ve **Yinele** düğmeleri olarak durur - serbest kanvasta ise araç rayındadır - ve geri alınacak bir şey kalmadığında her biri soluklaşır. Her adım ne olduğunu söyler: bir rengi geri al, küçük bir mesaj az önce geri getirdiği girdiyi adlandırsın, içinde geri dönüş için bir **Yinele** düğmesiyle.
-
-- **Bir sürükleme tek adımdır.** Aynı kontrolde yarım saniye içinde yapılan tekrarlı değişiklikler birleşir, yani bir kaydırıcıyı baştan sona çekmek iki yüz değil tek bir geri almadır.
-- **Son 100 adım tutulur** - daha eskileri sondan düşer. Geri aldıktan sonra yeni bir düzenleme yapmak, her yerde olduğu gibi ileri yığınını temizler.
-- **İmlecin bir metin kutusundayken** Cmd/Ctrl-Z, karakter karakter alanın kendisine aittir. Lolly, kendine ait işe yarar bir geri alması olmayan kontrolleri devralır: kaydırıcılar, açılır menüler, renkler ve anahtarlar.
-- Bir **file** girdisinde **dosya seçmek** bir adım değildir - o baytlar yalnızca oturum boyunca tutulur, yani geri konacak bir şey olmazdı.
-
-Canlı bir [işbirliğinde](/info/collaborate.html) geçmiş yalnızca sana ait kalır. Diğer cihazdan gelen bir değişiklik asla senin yığınına eklenmez, bu yüzden geri al yalnızca senin yaptığın bir şeyi geri getirebilir.
-
-Geri al yalnızca bu ziyaret boyunca geri gider; çalışırken kaydeden araçlar da **Geri al**'ın yanında, **Geçmiş** altında önceki sürümleri tutar (bkz. [Önceki bir sürüme geri dön](/info/find-your-work.html#go-back-to-an-earlier-version)).
-
-## Bilgilerin ve profil fotoğrafın
-
-**Ayarlar** (galerinin sağ üstünde, bir kez ayarladıktan sonra adını gösterir) adını, iletişim bilgilerini ve isteğe bağlı bir **profil fotoğrafı** barındırır. Bu alanları isteyen araçlar onları otomatik olarak önceden doldurur - bir kez ayarla, e-posta imzan, lockup'ların ve rozetlerin kendiliğinden dolsun. Yine de her alanı oturum başına geçersiz kılabilirsin. Dışa aktardığın şeyde bilgilerinin yazar olarak yer alması için **Oluşturmak için bilgilerimi kullan**'ı aç.
-
-Profil fotoğrafın ve bilgilerin **yalnızca bu cihazda** yaşar. Bir profil sadece sen olmaktan fazlası olabilir - arada bir üstlendiğin bir takım ya da bir rol. Birden fazlasını tutmak dahil tam tabloyu görmek için **[Profiller](/info/profile.html)** sayfasına bak.
-
-## Kaydetme ve devam etme
-
-Çalışmanı korumak için **Farklı kaydet**'e bas; bu, **Dışa aktar**'ın yanındaki onay işaretidir. **Save to a project** altında, **Kitaplığım** seçili kalsın ya da bir proje seç (**＋ Yeni proje…** bir tane oluşturur), sonra **Kaydet**'e bas. Tekrar kaydetmek kopya oluşturmak yerine aynı öğeyi günceller. Design'da, **Farklı kaydet** Lolly logosunun altındaki menüdedir; telefonda, **•••**'e, sonra **File menu**'ye, sonra **Farklı kaydet**'e bas.
-
-Dışa aktarım panelindeki **Kaydet** düğmesi aynısını tek tıkla yapar ve asla dosya indirmez: yeni çalışma Kitaplığım'a gider, daha önce kaydettiğin çalışma ise bulunduğu yerde güncellenir.
-
-Daha sonra geri dönmek için sol üstteki **Ana sayfa**'ya bas, sonra **Projeler** sekmesini aç (telefonda bir klasör simgesi). Kitaplığım kayıtları onun ilk ekranındadır; bir proje orada bir klasördür. Öğeler, dışa aktarım panelinde yazdığın dosya adını, ya da yoksa araçlarının adını taşır, örneğin **QR Code**. Birini aç, her ayar orada, değiştirmeye ve yeniden dışa aktarmaya hazır.
-
-Kaydedilmiş çalışma, [Sync](/info/sync.html)'i açmadıkça, kaydettiğin tarayıcıda ya da uygulamada bu cihazda kalır. **İndir**'le aldığın bir dosya bitmiş bir kopyadır; daha sonra değiştirmek için kaydedilmiş öğeyi Projeler'de aç. Bir şey beklediğin yerde değilse, bkz. [Çalışmanı bul ve kurtar](/info/find-your-work.html).
-
-![İki yarımlı oluşturma düğmesi - dışa aktarım panelini açan bir yukarı ok ve kayıt sayfasını açan Save as etiketli bir onay işareti](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
-
-## Projeler
-
-**Projeler**, ana ekranın üstündeki **Projeler** sekmesi, kaydettiğin her şeyi, oluşturduğun klasörlerde tutar. Çalışmanı orada bulmak, sıralamak ve aramak, ve **Çöp kutusu**'ndan bir öğeyi geri yüklemek, [Çalışmanı bul ve kurtar](/info/find-your-work.html#find-something-you-saved) sayfasındadır.
-
-
-## Çalışmanı paylaşma
-
-Bir tasarım iki yoldan biriyle dışarı çıkar: bir bağlantı olarak ya da bir dosya olarak. Paylaş penceresi ikisini de sunar. Dışa aktarım kontrollerindeki **Paylaş** ile aç; Projeler'de kaydedilmiş bir oturumdaki **Bağlantıyı paylaş** aynı pencereyi o oturum için açar.
-
-### Bağlantı
-
-Her girdi sayfa URL'sinde yakalanır, yani bir bağlantı tasarımın *ta kendisidir*. Pencerenin en üstünde kopyalamaya hazır bağlantı durur, altında da katlanmış iki bölüm vardır.
-
-- **Bağlantı seçenekleri** şunları barındırır: **Yüklü uygulamada aç** (alanı Shortcuts, başlatıcılar ve otomasyon için bir `lolly://` URI'sine çevirir, her parametre değişmeden kalır), **En kısa bağlantı** (büyük bir tasarım uzun bir URL yapar, bu yüzden bu seçenek tüm durumu kompakt bir jetona sıkıştırır ve kaç karakter kazandığını gösterir; okunabilir biçim de her zaman oradadır), **Bu bağlantıyı parolayla koru** (tüm bağlantı üzerinde AES-256, parola bağlantının içinde asla yer almaz) ve **Bu araç sürümünü sabitle** - yani `_v` bayrağı, bağlantıyı baktığın araç sürümüne çivileyerek sonraki bir güncellemenin neyi oluşturduğunu değiştirmesini engeller.
-- **Bağlantı davranışı**, alıcı onu açtığında ne olacağıdır: tam ekran, dışa aktarım paneli açılmış hâlde, `&export` ile açılışta indirme ya da `&copy` ile panoya kopyalama.
-
-Bağlantıyı bir meslektaşına yapıştır, yer imlerine ekle ya da commit'le. (Tam ayrıntılar: [URL Modu](/info/url-mode.html).)
-
-**Bazı araçlar bağlantıyı ürünün tamamı yapar.** Jump Page, dağıtmak için bağlantılarını tek bir sayfada toplar - bir bio bağlantısı, bir konferans konuşması, bir mağaza vitrini. Barındırılacak hiçbir şey ve arkasında hiçbir hesap yoktur: sayfa bağlantının kendisidir, bu yüzden URL ne kadar hızlı gidiyorsa o kadar hızlı açılır. Düzenleyicide bitmiş sayfayı alanların yanında görürsün; bağlantıyı açan bir ziyaretçi onu tam genişlikte alır, kaydırdıkça sahne başına bir bağlantı.
-
-![Düzenleyicideki Jump Page: sayfanın üstündeki başlık sahnesi ve altındaki bağlantı sahneleri](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
-
-**Pencere, bir bağlantının neyi taşıyamayacağını söyler.** Üç şey bir URL'ye sığmaz: bu cihazdan eklediğin bir görsel ya da dosya, çok uzun bir metin değeri ve çok büyük bir liste. Her biri bağlantı kurulurken sayılır. Bir şey dışarıda kalmak zorunda kaldıysa pencere bunu adıyla söyler ve seni aşağıdaki dosyaya yönlendirir; görseli eksik açılan bir bağlantı vermez. Yalnızca *uzun* olan bir bağlantı, karakter sayısıyla birlikte daha yumuşak bir not alır, çünkü sıkıştırma uzunluğu hâlâ kurtarabilir.
-
-### .lolly dosyası
-
-`.lolly`, Lolly'nin taşınabilir paket uzantısıdır, her dosyanın aynı şeyi içerdiğine dair bir söz değildir. `manifest.json` içindeki `format` yetkili olandır. Uygulama önce o küçük manifesti okur ve herhangi bir şey yazmadan önce boyutu, içeriği ve eylemi gösterir:
-
-- Bir **paylaşılan tasarım** (`lolly-share`), kaydedilmiş bir araç oturumunu, gömülü dosyalarını ve hâlâ referansla çözülen her şey için bir makbuzu içerir. Ayrıca onu yapmak için kullanılan aracı ve tasarım sistemini de taşıyabilir. Açmak yeni bir Proje ekler; var olan bir oturumun üzerine asla yazmaz.
-- Bir **paylaşılan proje** (`project` türündeki `lolly-share`), Projeler'den bir klasörü içerir: alt klasörlerini, içlerine dosyalanmış her kaydedilmiş oturumu, her oturumun kutucuğunu ve orada dosyalanmış resimleri. Açmak, tüm klasörün bir kopyasını Projeler'e ekler; orada zaten var olan hiçbir şeyin yerini almaz. Proje dosyaları var olmadan önceki bir Lolly bunu okuyamaz ve güncellemeni söyler.
-- Bir **tasarım sistemi paketi** (`lolly-brand`), tokenlar içerir ve yazı tipleri, logolar, yayınlanmış sürümler ve saklanan kaynaklar içerebilir. Açmak onu ayrı, adlandırılmış bir tasarım sistemi olarak ekler, sonra ona geçer; cihazda zaten olan sistemler kalır.
-- Bir **marka çalışma alanı / örnek paketi**, bildirilmiş araçlar, katalog varlıkları ve isteğe bağlı bir örnek adresi olan bir `lolly-brand`'dir. Ön kontrol bu cihaz geneli etkileri listeler, çünkü onu yüklemek daha önce yüklenmiş tek çalışma alanı katmanının yerini alır.
-
-Tam bir **cihaz/profil yedeği bir `.lolly` değildir**. `lolly-backup` formatıyla bir `LollyTools-….zip` olarak kalır ve **Ayarlar → Depolama → Veri içe aktar…** üzerinden geri yüklenir; bu da Sync'in depolamanda tuttuğu bir kopyayı da alır. Düz zip'lenmiş bir araç klasörü de `.zip` olarak kalır. Başka bir deyişle, oturum ve tasarım sistemi paketleri `.lolly`'ye sahiptir; yedek ve düz arşiv iş akışları değil.
-
-Üzerinde çalıştığın aracın Paylaş penceresindeki **.lolly indir**, geçerli tasarımı bir paylaşılan tasarım paketi olarak yazar. Kaydedilmiş oturumu, bu cihazda bulunan görseller ve dosyalarla birlikte taşır. Sıradan katalog işleri de yanında yolculuk eder. Lisanslı işler, açıkça dahil etmedikçe geride tutulur ve eski ya da erişilemeyen bir dosya kaybolmak yerine dış bir referans olarak kalır. Hazırlanan makbuz, gerçek `.lolly` boyutunu, gömülü dosya sayısını, dış referans sayısını ve aracın dahil olup olmadığını gösterir. Cihazında bir paylaşım sayfası varsa **Gönder…** o dosyayı diske kaydetmek yerine doğrudan ona verir (AirDrop, bir Android paylaşımı).
-
-**Projeler**'de bir klasörün menüsündeki **Download project (.lolly)**, o klasörü paylaşılan bir proje olarak yazar, böylece başka biri onu açıp içindeki her oturumla devam edebilir. Her oturum kendi parçası olarak yolculuk eder (`sessions/<key>.json`, kutucuğu `thumbs/` altında), klasör ağacı `manifest.json`'da listelenir, yüklemeler ve katalog işleri tek bir paylaşılan tasarımla aynı kurallar altında yolculuk eder. Toplu iş oturumları araç oturumu değildir ve geride kalır; bildirim kaç tane olduğunu söyler. Yanındaki **Download originals** değişmedi: her öğenin kendi dosyası olarak düz bir zip'i.
-
-Bir `.lolly` sıradan bir zip'tir. Adını `.zip` yapıp aç: kendi görsellerin `assets/uploads/` altında, katalog işleri `assets/catalog/` altındadır, her biri gerçek adı ve uzantısıyla; `manifest.json` hepsini listeler ve en üstteki bir README dosyanın ne olduğunu söyler.
-
-Gitmeden önce üç şeye sen karar verirsin:
-
-- **Adının dahil edilip edilmeyeceği.** Adın, e-postan ve kuruluşun dosyaya yalnızca profilinde **Use my details to create** açıkken yazılır. Kapalıyken dosya, Lolly ile ne zaman oluşturulduğunu kaydeder - senin hakkında hiçbir şey değil.
-- **Lisanslı görsellerin dahil edilip edilmeyeceği.** Lisanslı ve marka kilitli varlıklar varsayılan olarak dışarıda tutulur. Tasarım herhangi birini kullanıyorsa, iletişim kutusu kaç tane olduğunu söyler ve iki düğme sunar - *Download without them* ya da *Include and download* - çünkü onları dahil etmek, `.lolly` dosyasını açan herkese asıl dosyaları teslim eder demektir.
-- **Aracın dahil edilip edilmeyeceği.** **Include the tool**, aracın kendi dosyalarını tasarımla birlikte paketler, böylece o araca sahip olmayan bir cihazda da açılır. Özel bir araç için - alıcının büyük olasılıkla sahip olmadığı bir fork veya özel bir marka aracı - işaretli gelir, imzalı katalogda listelenen bir araç için ise işaretsiz gelir, çünkü onların kopyası aynı kaynaktan gelir. (İmzalı katalog olmayan bir yapıda, her araç özel sayılır ve kutu işaretli başlar.)
-
-**Bir dosyayı açmak.** Kurulu bir masaüstü ya da mobil uygulamada bir `.lolly`ye çift tıkla ya da dokun, **Open with Lolly**'i seç, ya da sistemin paylaşım sayfasından Lolly'ye gönder. macOS, Windows, Linux, iOS ve Android biçimi kaydeder; masaüstü dosya yöneticileri onu bir Lolly belgesi olarak gösterir (ve GNOME Files, kaydedilmiş bir oturumun kendi küçük resmini gösterebilir). Web uygulamasında **Aç**'ı kullan ya da dosyayı Lolly'nin üzerine bırak. Her kapı aynı manifest öncelikli ön kontrolü kullanır. Brand Studio'dan açmak, paylaşılan bir tasarım bir tasarım sistemi taşıdığında bu eylemi önerir, ama dosyayı asla yeniden etiketlemez ya da **Open shared design**'ı gizlemez.
-
-Başka bir uygulamadan devralınan bir iOS ya da Android belgesi 48 MB ile sınırlıdır, çünkü doğal devralma, baytlarını uygulama sınırı boyunca kopyalamak zorundadır. Mobil uygulama, aşırı büyük bir dosyayı sessizce yok saymak yerine bunu söyler. Lolly içindeki **Aç**, o devralmayı kullanmaz; daha büyük bir paket için denenecek yol odur.
-
-Onaydan sonra seçilen okuyucu paketi bir kez açar ve doğrular. Paylaşılan bir tasarımın varlıkları kitaplığına gider, oturumu Projeler'e gider ve aracı kullanılabilirse açılır. Paylaşılan bir projenin oturumları, aynı dosyanın iki kez açılabilmesi için klasörlerinin yeni kimliklerle yeni bir kopyası altında Projeler'e gider ve klasör açılır; bu cihazda aracı bulunmayan bir oturum orada bekler. Cihazda zaten olan bir varlık sağlama toplamıyla eşleştirilir ve yeniden kullanılır. Bir tasarım sistemi paketi, uygulama ona geçmeden önce kendi ad alanında saklanır. 100 MB'ın üzerindeki dosyalar büyük olarak belirtilir ve tarayıcı depolaması, bildirilen yükün ihtiyaç duyduğundan daha az boş alan bildirdiğinde ön kontrol uyarır. Bütünlük kapsamındaki her parça, işlem onaylanmadan önce kontrol edilir; hasarlı bir kopya reddedilir ve yeni oluşturulan hedef geri alınır.
-
-Dosya sende olmayan bir araç taşıyorsa Lolly, o araç çalışmadan önce sorar: **Bu araca güvenilsin mi?** aracı ve yazarını gösterir ve açmanın, aracın kendi kodunu cihazında çalıştıracağını açıkça söyler; geçiş yolu **Güven ve kur**'dur. Reddet, paylaşılan iş yine de projelerine kaydedilir ve aracı ekleyeceğin günü orada bekler. (Bir tür araç henüz yandan yüklenemez - kodu bir modül olarak gelenler - ve o da aynı şekilde geri çevrilir.)
-
-Bir bağlantı da bir dosya da bir anlık görüntü devreder. Aynı oturum üzerinde başka biriyle *aynı anda* çalışmak için - iki cihaz, sunucu yok, aynı ağdaysanız internet gerekmez - bkz. [Birlikte çalışma](/info/collaborate.html).
-
-## Canlı kamera (harekete duyarlı araçlar)
-
-Her fotoğraf **Filtresi** - Halftone, Scanline, Posterize, Voronoi hücreleri, Renk işleme, Piksel esnetme ve Kusurlar - bir kameranın kullanılabilir olduğu yerde bir **Canlıya geç** düğmesi gösterir. Aç, efekt kare kare web kameranı takip etsin, böylece harekete tepki verir; sonucu GIF, WebM ya da MP4 olarak kaydedebilirsin. Kareler **cihazında** okunur ve işlenir, oradan asla çıkmaz; durduğun ya da araçtan ayrıldığın anda kamera serbest bırakılır. (Herhangi bir görsel seçicide, tek bir kareyi cihaz üzerinde bir görsel olarak yakalamak için **Fotoğraf çek** de bulunur.)
-
-## Görsellerim
-
-Bir araç cihazından bir görsel eklemene izin verdiğinde, görsel tam geldiği hâliyle saklanır - böylece üzerindeki bir Content Credential hâlâ doğrulanır - ve kişisel **Görsellerim** kütüphanene kaydedilir (**Ayarlar → Depolama** altında). Yalnızca gerçekten çok büyük bir dosya, olduğu gibi mi kalsın yoksa küçültülsün mü diye sorar. Onu herhangi bir araçta yeniden kullan. Görseller girerken EXIF/GPS verilerini temizlemek için profilinde **Yüklemelerden meta verileri kaldır**'ı aç. Bir üst sınır yok: kütüphane tamamen yereldir ve yalnızca cihazının depolama alanıyla sınırlıdır - görselleri orada yönet ya da sil.
-
-## Varlıklar - kütüphanen
-
-**Varlıklar** (`#/a` ya da her listeleme görünümünün üstündeki Araçlar · Yardımcı araçlar · Varlıklar · Projeler geçişinin **Varlıklar** bölümü), araçlarının yararlanabileceği her şeyi - marka logoları, görseller, ses ve hareketli görüntü, türe göre gruplanmış - bir araya getirir ve **kendi yaratıcı dosyaların** da burada yaşar. Sunucu yok, yönetim konsolu yok, pull request yok: her şey cihazında.
-
-![Varlıklar, markanın renk örnekleri ve yazı tipleriyle ve kendi yüklemelerinle](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
-
-- <!--i:upload--> **Dosyalarını içeri getir.** Herhangi bir görseli, SVG'yi, ses klibini, videoyu, Lottie'yi, PDF'i veya PowerPoint sunumunu yükleme alanına sürükle - ya da seçmek için tıkla - ve anında Varlıklar'da belirir, her aracın içerik seçicisinde hazır olur. Çok sayfalı bir PDF veya bir `.pptx`, hangi sayfaları veya slaytları tutacağını sorar - her biri bir SVG varlığı olur. İstediğin kadar içeri aktar; cihazını asla terk etmez.
-- <!--i:star--> **Sık kullandığını favorile.** Bir içeriği (veya bir marka renk örneğini) ★ ile işaretle, her seçicinin en üstüne sabitlensin, böylece en çok kullandığın logo veya renk bir tık uzağında olsun.
-- <!--i:folder--> **Düzen yap.** Bir içeriği başka bir gruba yeniden kategorile, kullanmadığın paylaşılan bir marka içeriğini gizle (geri getirmek için **Show hidden** ile) veya kendi yüklemelerini tamamen sil. Projects'teki aynı çoklu seçim hareketi ve yüzen eylem çubuğu burada da çalışır, böylece bunların herhangi biri tüm bir seçime bir kerede yapılabilir.
-- <!--i:layers--> **Bir videonun arka planını kaldır.** Bir videonun ayrıntısını aç veya herhangi bir içerik seçicisinde kartına sağ tıkla ve saydam bir alternatif kaydetmek için **Remove background…**'ı seç - gerçek alfa kanallı animasyonlu bir WebP veya PNG. Bir **Method** seç: bir **On-device model**, hareketli bir sahneden bir öznesi keser, veya bir **Colour key**, green screen veya düz bir duvar gibi eşit aydınlatılmış, düz bir arka planı anahtarlar, kenarı ayarlamak için **Tolerance**, **Softness** ve **Spill removal** ile birlikte. Renk anahtarı ne model indirmesi ne de ağ gerektirir, bu yüzden **Remove background** her videoda sunulur ve düzenli görüntülerde genellikle daha temizdir. Bir **Resolution** kontrolü (360, 480, 720 veya 1080p, asla kaynağın ötesine geçmez) ayrıntıyı daha küçük, daha hızlı bir dosyayla takas eder. Cihazında arka planda bir iş olarak çalışır. Bitmiş kesim, orijinalin yanına kendi içeriği olarak kaydedilir ve kaynak videonun Content Credential'ı bir bileşen olarak onunla birlikte gider. (Arka plan kaldırmanın neden sıradan bir düzenleme olarak kaldığı için [Bir kez üretildi, aynı şekilde render edildi](/info/ai-features.html) sayfasına bak.)
-
-### Paletini ve yazı tiplerini her yere taşı
-
-Varlıklar'daki **Renk örnekleri** paneli göstermekten fazlasını yapar - bir rengi kopyalamak için tıkla ya da diğer aracının konuştuğu formatta **markanın tüm paletini indir**:
-
-- <!--i:code--> **Tasarım tokenları (JSON)**, **CSS değişkenleri** ya da **CSS sınıfları** - markayı doğrudan bir stil sayfasına ya da bir derlemeye aktar;
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)** - Illustrator ya da Photoshop'a yükle;
-- <!--i:pentool--> **GIMP paleti (.gpl)** - GIMP ya da Inkscape için.
-
-![Renk örnekleri paneli - üstte beş palet indirme düğmesi, ardından kopyalanabilir birer düğme olarak her marka rengi](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
-
-**Yazı tipleri** paneli, yerel olarak kurmak ya da bir matbaaya vermek için marka yüzlerini her birinin yanında bir **indir** ile listeler. ([Brand Studio](/info/brand-studio.html)'nun Renkler odası aynı palet indirmesini sunar.)
-
-Varlıklar, açık ve kendin-yap yolunun bir yarısıdır; diğeri **kendi araçlarını yapmaktır** - serbest kanvas (yukarıda anlatılan Design) kod yazmadan görsel olarak bir tane inşa etmeni sağlar.
-
-## Ses ve erişilebilirlik
-
-Lolly herkes için kullanımı rahat olmayı hedefler. Arayüz klavyeyle gezilebilir, özel kontroller ekran okuyucular için uygun etiketler taşır ve her aracın canlı önizlemesi, ne ürettiğini açıklayan tek, etiketlenmiş bir görsel olarak sunulur.
-
-Nazik bir **yardımcı sesler** katmanı yaptığın şeyi onaylar - galeriye varış, geçerli ya da geçersiz bir Content Credentials kontrolü, bir paneli kapatma, bir filtre değiştirme. **Varsayılan olarak kapalıdır**: anahtarın göründüğü her yerde (her görünümün seçenekler açılır penceresi, ya da **Ayarlar**) **Ses**'i aç, seçim hatırlanır.
-
-Dört isteğe bağlı konfor ayarı **Ayarlar → Erişilebilirlik** altında yaşar: **Reduce motion** (Hareketi azalt - uygulamanın geçişlerini ve süslerini kaldırır), **Hide colourful previews** (Renkli önizlemeleri gizle - sakin, simge ve metinden oluşan galeri kartları ve daha sessiz proje küçük resimleri), **High contrast** (Yüksek kontrast - daha güçlü kenarlıklar, metin ve odak halkaları) ve **Large text** (Büyük metin - daha büyük uygulama tipografisi: etiketler, menüler, düğme metni). Dördü de uygulamayı çalışmanın *etrafında* sakinleştirir: bir araç kanvasının içine hiç uzanmaz, dışa aktardığın şeyin tek bir pikselini bile değiştirmez ve her biri sen açana kadar kapalıdır. Tam ayrıntı: [Profilin → Erişilebilirlik](/info/profile.html#accessibility).
-
-Ses anahtarının yanında **Neurospicy Modu** bulunur - çalışırken sessizce çalan, isteğe bağlı, sakinleştirici bir arka plan odak parçası. Onu açmak, seni uygulama boyunca takip eden küçük bir **oynatıcı dock'u** alt köşede açar; oradan bir parça arayıp seçebilir, ileri geri atlayabilir, sesi ayarlayabilir, küçültebilir ya da kapatabilirsin. Parça listesi birkaç kategoriye yayılır - prosedürel *Lolly Sings* melodileri, ambiyans döngüleri ve beat'ler, kendi yüklediğin sesler ve bir avuç canlı internet **radyo** istasyonu (bunlar bağlantı gerektirir; geri kalan her şey çevrimdışı çalar). **Varsayılan olarak kapalıdır** ve Ses gibi oturumlar ve cihazlar arasında hatırlanır. Sesi kapatmak odak parçasını da susturur.
-
-## Depolama ve gizlilik
-
-Lolly, çalışmanı cihazında tutar: web uygulamasında bu tarayıcının kendi depolamasında, masaüstü ve mobil uygulamalarda ise uygulamanın kendi depolamasında. Nelerin tutulduğu, **Tüm verilerimi temizle**'nin nelerini kaldırdığı ve tarayıcı verilerini temizlemenin nelerini beraberinde götürdüğü [Çalışmanı bul ve kurtar](/info/find-your-work.html#if-you-clear-your-browser-data) sayfasındadır; [Gizlilik Politikası](/info/privacy.html) uygulamanın getirdiği ya da gönderdiği her şeyi listeler, [Sunucu Yüzeyi](/info/server-surface.html) ise isteğe bağlı sunucu bileşenlerini.
-
-## Başka bir cihaza geçiş
-
-Çalışmanı ikinci bir bilgisayara ya da telefona taşımak için Sync, bir yedek dosyası ya da bir `.lolly` dosyası kullan. [Çalışmanı başka bir cihaza taşı](/info/find-your-work.html#move-your-work-to-another-device), üçünü karşılaştırır ve **Verilerimi dışa aktar** ile **Veri içe aktar…**'ı adım adım anlatır.
-
-## Bir tasarım içe aktarma (Figma, Penpot, Illustrator, InDesign)
-
-Var olan bir tasarımı Lolly'ye getirip üzerinde çalışmaya devam edebilirsin: **Design**'ı aç, kanvas araç çubuğunda **Bir tasarım içe aktar**'a tıkla ve bir Figma **.fig** ya da SVG, bir Penpot **.penpot**, bir Illustrator **.ai** / **.pdf** ya da bir InDesign **.idml** seç. Katmanlar serbest kanvasta düzenlenebilir kutulara dönüşür - metin yeniden yazılabilir kalır, görseller **Görsellerim**'e yerleşir, tipografi ve renkler marka geneline uyar - sonra sonuç, diğer her oturum gibi kaydedilir, paylaşılır ve oluşturulur. Ayrıştırma tamamen cihazında gerçekleşir. Tam ayrıntı: **[Bir tasarım içe aktar](/info/design-import.html)**.
-
-## Dışa aktarma
-
-Format seçme, çıktı boyutu ve baskı birimleri, şeffaflık, video ve kopyalama/paylaşma dahil tüm ayrıntılar için **[Dışa Aktarma ve Formatlar](/info/exporting.html)** sayfasına bak. Kısaca: bir format seç, gerekiyorsa boyutu ayarla ve **İndir**'e bas (ya da panoya **Kopyala**'ya).
-
-## Batch (Pro) modu
-
-Güçlü kullanıcılar için **Batch** (galeriden bağlantılı, varsayılan olarak açık olan Pro özellik bayrağının arkasında) birçok varyasyonu bir kerede oluşturur - her satırın birlikte dışa aktarılan bir girdi seti olduğu bir ızgara. Bir kartı bir düzine dile yerelleştirmek ya da her boyut varyantını tek geçişte üretmek için ideal. Satırları yazarak, doğrudan bir e-tablodan yapıştırarak ya da bir CSV içe aktararak doldur (bir tane de dışa aktarabilirsin) ve satır başına format, boyut ve çıktı dosya adını ayarla. Bütün bir ızgarayı galeriden yeniden açılan adlandırılmış bir **batch oturumu** olarak kaydet ve her satırı tek bir `.zip` olarak indir.
-
-![Toplu işlem araç çubuğu - zip adı, birimler, DPI ve her satırın miras aldığı format, sağda Sessions ve Render ile birlikte](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
-
-Batch, **bir şablonun birçok varyantını** bir kerede üretmek içindir. **Zaten kaydettiğin** oturumları yeniden oluşturmak için **Projeler → Klasörü oluştur / Seçimi oluştur**'u kullan (bkz. [Çalışmanı bul ve kurtar](/info/find-your-work.html#find-something-you-saved)) - Pro gerekmez.
-
-## Yan yana düzenleme (Çoklu düzenleme)
-
-Batch, *tek bir* tasarımın birçok varyantıdır. **Multi-edit** işin diğer yarısıdır: aynı anda açılmış birkaç **farklı** kaydedilmiş tasarım, böylece tek bir değişiklik hepsine uygulanır. Projects'te **iki ile sekiz** arasında kaydedilmiş oturumu işaretle ve seçim çubuğundan **Edit together**'ı seç; `#/multi?s=<slot>,<slot>…` adresinde yan yana canlı kartlar olarak açılırlar. Her kart o oturumun gerçek bir render'ıdır, kaydedilmiş bir küçük resim değil, bu yüzden gördüğün şey dışa aktarılacak şeydir.
-
-Hepsini tek bir kenar çubuğu sürer:
-
-- <!--i:sliders--> Başı **Paylaşılan** çeker - seçili oturumlardan ikisinin ya da daha fazlasının *aynı şekilde* tanımladığı her girdi (aynı kimlik, aynı tür, aynı kısıtlar - toplu ızgaranın sütunlarında kullandığı birleştirme kuralının aynısı). Paylaşılan bir kontrolü bir kez düzenle, değer onu tanımlayan her oturuma yayılsın, her kartta canlı olarak. Aynı aracın iki oturumu her şeyi paylaşır; iki farklı araç ise yalnızca ortak olan neyse onu paylaşır, başka bir şeyi değil.
-- <!--i:document--> Onun altında, **oturum başına bir katlanmış kart** o oturumun kendi girdilerinin tümünü, aracın kendi kenar çubuğuyla aynı incelikte taşır - varlık seçiciler, tekrar eden satır grupları, renk alanları - artı derli toplu bir dışa aktarım bloğu: **Biçim**, **G** / **H**, **Birim**, **DPI** ve kendi **İndir**'i. Bu İndir önce oturumu kaydeder, sonra onu olağan oturum dışa aktarım yolundan oluşturur, böylece dosya doğrudan araçtan çıkacağı dosya adını, formatı ve Content Credentials'ı taşır.
-- <!--i:search--> En üstteki **Girdileri filtrele…**, kontrolleri *her* kartta bir kerede daraltır - sekiz oturumdaki "manşet"e kaydırmadan böyle ulaşırsın.
-
-Herhangi bir kanvasa tıkla (ya da üzerindeyken Enter'a bas), o oturumun kenar çubuğu kartı açılsın ve görünüme kaysın. **Tümünü kaydet** her oturumu kendi yuvasına geri yazar. **Tümünü indir** önce kaydeder, sonra tüm seti Projeler'in **Seçimi oluştur** yolunun geçtiği aynı hattan oluşturur - tek bir zip, yolda isteğe bağlı parola kilidi de önerilerek.
-
-İki dürüst sınır. İki-sekiz üst sınırı gerçektir: her kart kendi canlı çalışma zamanını bağlar ve tepkisel kalan sayı budur - daha fazlasını (ya da artık var olmayan bir oturumu) isteyen bir bağlantı, yarım yüklenmek yerine bunu söyler. Ayrıca bağlantı *senin* kayıt yuvalarını adlandırır, yani o seti bu cihazda yeniden açar; bir paylaşım bağlantısı değildir.
-
-Seçim sekizden büyük olduğunda, araçları karıştırdığında ya da oturumların yanında görseller de içerdiğinde kaçış kapısı aynı seçim çubuğundaki **Sayfa olarak düzenle**'dir: tüm seçimi, boyut sınırı ve aynı araç kuralı olmadan **toplu ızgarada satırlar** olarak açar (`#/pro?s=…`). Klasörler ikisinin de dışında kalır - onların ızgarada açılmak için kendi yolları var. ([Ara](/info/search.html) buraya henüz uzanmayan tek şeydir: Çoklu düzenleme, arama çubuğunun bilmediği tek görünümdür.)
-
-## Çevrimdışı ve kurulum
-
-Lolly bir PWA'dır. Zaten açtığın ekranlarda **çevrimdışı** çalışmaya devam eder, **Ayarlar → Çevrimdışı kullanılabilir** altındaki **Uygulama** ise geri kalanını indirir - uygulama benzeri, tam ekran bir deneyim için tarayıcının adres çubuğundan kur (ya da mobilde *Ana Ekrana Ekle*). Tekrar çevrimiçi olduğunda kendini günceller.
-
-Güncellemeler hakkında: bir güncellemeden hemen sonra bir görünüm hiç yüklenemezse (boş bir panel, köşede bir "failed to fetch"), sayfayı bir kez yeniden yükle - uygulama yeni sürümü temiz bir şekilde alır ve kaydedilmiş çalışman, oturumların ve markan dokunulmamış kalır; yalnızca eklediğin ve hiç kaydetmediğin bir görsel yeniden eklenmesi gerekebilir. Her şeyi sayfada değil, cihazında saklar.
-
-Design ve Darkroom, Sequence videosu dahil, **Wide colour / HDR** düzenlemesiyle özgün görsel hassasiyetini koruyabilir. Marka renk örnekleri ayrı sRGB ve P3 değerleri taşıyabilir. Çıktı seçenekleri ve güncel sınırlar için [Wide colour ve HDR düzenleme](/info/hdr-editing.html) sayfasına bak.
-
-
-### Live pages that take the clicker
-
-Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).
+## Ayarlar, ses ve rahatlık
+
+Ana ekranın altındaki **Settings**, ayrıntılarını, tasarım sistemlerini, erişilebilirliği, depolamayı ve çevrimdışı indirmeleri tutar. [Settings](/info/dashboard.html) her sekmeyi haritalar.
+
+- **Ayrıntıların ve profil fotoğrafın**, bir e-posta imzası veya rozet gibi bunları kullanmak için yapılmış her aracı doldurur. [Profiles](/info/profile.html) bunları kapsar.
+- **Accessibility** dört rahatlık anahtarına sahiptir: **Reduce motion**, **Hide colourful previews**, **High contrast** ve **Large text**. Çalışmanın etrafındaki uygulamayı değiştirirler, asla bir araç tuvalini veya bir dışa aktarmayı değil.
+- **Sound**, yaptıklarına karşılık yumuşak yardımcı sesler çalar ve **Neurospicy Mode** sakin bir odak parçası çalar. İkisi de **Settings → Accessibility** veya profil menüsünde açana kadar kapalıdır.
+- **Available offline**, bağlantıyı kaybetmeden önce uygulamanın geri kalanını, araçlarını, kataloğu ve kılavuzları indirir. Lolly kurabileceğin bir web uygulamasıdır: tarayıcının kur düğmesini ya da telefonda *Add to Home Screen* seçeneğini kullan; yeniden çevrimiçi olduğunda kendini güncelleyen tam ekran bir uygulama elde edersin.
+- **Storage**, Lolly'nin bu cihazda neleri tuttuğunu gösterir. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) temizlemenin neleri kaldırdığını açıklar ve [Privacy Policy](/info/privacy.html) uygulamanın getirdiği veya gönderdiği her şeyi listeler.
+
+::: note Bir güncellemeden sonra bir görünüm yüklenmezse
+Bir güncellemeden hemen sonra boş bir panel veya "failed to fetch" mesajı genellikle tek bir yenilemeyle düzelir. Kayıtlı işlerin, oturumların ve tasarım sistemlerin cihazında saklandığı için etkilenmez. Yalnızca eklediğin ve hiç kaydetmediğin bir resmin yeniden eklenmesi gerekebilir.
+:::
+
+## Bundan sonra nereye
+
+- **[Design: the free canvas](/info/design.html)**: tuval, şekiller, zaman çizelgesi ve bir sunumu sunma.
+- **[Batch and Multi-edit](/info/batch.html)**: bir tasarımın birçok sürümü ya da birlikte düzenlenen birkaç kayıtlı tasarım.
+- **[Export a file](/info/exporting.html)**: biçim, boyut, baskı birimleri, saydamlık ve video seçimi.
+- **[Import a design](/info/design-import.html)**: bir Figma, Penpot, Illustrator veya InDesign dosyasını Design'a getir ve düzenlemeye devam et.
+- **[Templates](/info/templates.html)**: bir araç için kayıtlı başlangıç noktaları.
+- **[Wide Colour and HDR](/info/hdr-editing.html)**: Design ve Darkroom'da özgün görsel hassasiyetini koru.
+- **[Find and recover your work](/info/find-your-work.html)**: her şeyin nerede olduğu ve başka bir cihaza nasıl taşınacağı.

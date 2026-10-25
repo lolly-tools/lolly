@@ -2,24 +2,28 @@
 
 _Kiểm tra lần cuối: 28 tháng 9 năm 2026._
 
-Lolly tạo tài sản từ mẫu và dữ liệu trên thiết bị của bạn, trong CI hoặc qua API máy chủ của [lolly.work](https://lolly.work). Giải pháp kết hợp bao quát việc kết xuất tự động cũng như nhận diện, chính sách và phân phối xung quanh các tác vụ sản xuất của tổ chức.
+Nếu hiện bạn tạo ảnh từ mẫu qua một API, trang này cho biết Lolly làm cùng việc đó thế nào trên thiết bị của chính bạn, trong CI hoặc trên máy chủ của bạn.
+
+## Các API kết xuất được lưu trữ làm tốt hơn điều gì
+
+[Bannerbear](https://www.bannerbear.com/) và [Placid](https://placid.app/) đóng gói kết xuất thành dịch vụ được quản lý, với hạ tầng, tích hợp và hỗ trợ riêng. Bạn gửi một yêu cầu và người khác vận hành máy chủ.
 
 ## Điểm giao nhau
 
-[Bannerbear](https://www.bannerbear.com/) và [Placid](https://placid.app/) tạo hình ảnh và nội dung đa phương tiện khác từ mẫu thông qua API và tích hợp. Lolly dùng cùng cách tiếp cận mẫu cộng đầu vào, với [chế độ URL](/info/url-mode.html), [CLI](/info/cli.html), lưới xử lý hàng loạt và các endpoint máy chủ là những cách gửi công việc.
+Cả hai đều biến một mẫu cộng đầu vào thành phương tiện. Lolly lấy đầu vào từ một [liên kết](/info/url-mode.html), [CLI](/info/cli.html), lưới batch hoặc một điểm cuối máy chủ.
 
-## lolly.work cung cấp những gì
+## Lolly làm phần việc chồng lấn thế nào
 
-lolly.work là dịch vụ tổ chức được triển khai riêng trong dự án Lolly. Nó chạy engine Lolly phía sau một API, áp dụng chính sách hiển thị công cụ và đầu vào, đồng thời phục vụ các tệp đã kết xuất và liên kết chia sẻ có chữ ký. [Dịch vụ kết xuất có thể phục hồi](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md) của nó hỗ trợ tác vụ đơn lẻ và theo lô, gửi bất biến (idempotent), trạng thái, thử lại có giới hạn, hủy và lưu giữ đầu ra. Công việc bị gián đoạn có thể tiếp tục sau khi máy chủ khởi động lại khi đã cấu hình lưu trữ bền vững.
+Cùng một công cụ kết xuất trên laptop, trong một tác vụ CI hoặc trên máy chủ, từ cùng các đầu vào. Kết xuất cục bộ và CI không cần dịch vụ nào.
 
-Máy chủ dùng đường kết xuất SVG/PNG nhanh và một worker Chromium tùy chọn cho các công cụ cần trình duyệt. Tự động hóa xác thực bằng service token, và đầu ra đã hoàn tất có thể được gửi qua [phân phối có quản trị](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) đến các đích của tổ chức. Một danh tính ký đã cấu hình cho phép ký C2PA trên đầu ra máy chủ được hỗ trợ.
+![Cài đặt xuất Batch: tên tệp, định dạng mặc định, đơn vị, DPI và số hàng cần kết xuất](/info/shots/use-batch-toolbar.svg)
+
+Trên máy chủ, [Lolly Work](/info/compare.html#what-runs-where) chạy engine Lolly sau một API và áp dụng khả năng hiển thị công cụ và chính sách đầu vào. [Dịch vụ kết xuất khôi phục được](/info/work-renders.html) của nó hỗ trợ tác vụ đơn và batch, gửi idempotent, trạng thái, thử lại có giới hạn, hủy và giữ đầu ra, và công việc bị gián đoạn tiếp tục sau khi khởi động lại khi cấu hình lưu trữ liên tục.
+
+Máy chủ có đường SVG và PNG nhanh và một worker Chromium tùy chọn cho các công cụ cần trình duyệt. Tự động hóa đăng nhập bằng token dịch vụ, đầu ra hoàn tất có thể đi qua [bàn giao đã duyệt](/info/work-delivery.html) tới các đích của tổ chức, và danh tính ký đã cấu hình thêm Content Credentials vào đầu ra được hỗ trợ.
 
 ## Ai vận hành dịch vụ
 
-Bannerbear và Placid đóng gói việc kết xuất thành các dịch vụ được quản lý với hạ tầng và tích hợp riêng. Với Lolly, một cá nhân có thể kết xuất cục bộ hoặc một nhóm có thể vận hành lolly.work trên hạ tầng của chính mình. Cả hai kho của Lolly đều là mã nguồn mở MPL-2.0; tự lưu trữ không tính phí giấy phép phần mềm theo từng lần kết xuất, trong khi tính toán, lưu trữ và vận hành vẫn là các chi phí cần lên kế hoạch.
+Với Lolly, một cá nhân kết xuất cục bộ, hoặc một đội chạy Lolly Work trên hạ tầng của chính mình. Gửi một tác vụ lên máy chủ là gửi đầu vào và tài nguyên cần thiết của nó tới phiên bản đó, khác với đường chạy trên thiết bị. Một dịch vụ bền vững cần cơ sở dữ liệu liên tục và nơi lưu trữ đầu ra, và các công cụ phụ thuộc trình duyệt cần worker Chromium; [Install Lolly Work](/info/work-install.html) mô tả cả hai.
 
-Trang lolly.work công khai là môi trường thử nghiệm để đánh giá, không phải cam kết lưu trữ cho môi trường sản xuất. Một dịch vụ bền vững cần cơ sở dữ liệu và lưu trữ đầu ra bền vững; các công cụ phụ thuộc trình duyệt cần worker Chromium. [Hướng dẫn cài đặt](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) và [trang tình trạng](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) mô tả các yêu cầu này và giới hạn hiện tại.
-
-Kết xuất cục bộ và trong CI vẫn có sẵn mà không cần dịch vụ tổ chức. Việc gửi một tác vụ máy chủ sẽ gửi đầu vào và các tài sản cần thiết của nó đến instance đó; điều này khác với đường xử lý trên thiết bị. Xem [tổng quan giải pháp kết hợp](/info/compare.html).
-
-Bannerbear và Placid là nhãn hiệu của chủ sở hữu tương ứng. Trang này mô tả những điểm giao nhau giữa các giải pháp và không liên kết với bên nào trong hai bên.
+Bannerbear và Placid là nhãn hiệu của chủ sở hữu chúng. Trang này mô tả nơi các sản phẩm chồng lấn và không liên kết với bên nào.

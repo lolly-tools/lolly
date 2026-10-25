@@ -1,94 +1,88 @@
-# 빠른 시작
+# 시작하기
 
-Lolly는 여러분의 규칙 - 색상, 서체, 레이아웃, 로직 - 을 누구나 쓸 수 있는 도구로 바꿔 줘요. 몇 개의 항목만 채우면 이미지, PDF, 소셜 카드, 영상 같은 완성된 파일이 나와요. 배울 것은 거의 없고 업로드할 것도 없어요. 만들기와 내보내기는 온라인이든 오프라인이든 여러분의 기기에서 실행돼요.
+이 페이지를 마치면 도구가 사용자의 색상과 글꼴을 입게 되고, 이미 가진 작업물은 재사용할 준비가 돼요. 계정이 필요 없고, 만들기와 내보내기는 기기에서 실행돼요.
 
-이 페이지를 가장 먼저 읽어 보세요. 두 가지만 하면 바로 쓸 수 있어요. **Lolly를 내 것으로 만들기**, 그리고 **이미 가진 것 가져오기**(디자인 파일과 토큰)예요. 나머지는 모두 링크 하나로 이어져요.
+::: timeline
+- <!--i:sparkle--> **파일 하나 만들기.** [첫 파일 만들기](/info/make-something.html)에서 몇 분 만에 QR 코드를 만들어 봐요.
+- <!--i:palette--> **브랜드 넣기.** 색상 하나, 토큰 파일, 완성된 디자인 중 무엇으로든 시작해요.
+- <!--i:layers--> **같은 것을 더 많이 만들기.** 링크를 공유하거나, 스프레드시트를 채우거나, 스크립트로 도구를 실행해요.
+:::
 
-> Lolly가 처음이라 일단 뭔가 만들어 보고 싶으세요? [60초 만에 무언가 만들기](/info/make-something.html)에서 세 가지를 따라 해 볼 수 있고, 아니면 [앱 열기](/#/)로 갤러리에서 아무 도구나 골라 빈칸을 채우고 **Export**를 누르면 돼요. *여러분의* 브랜드를 입히고 싶어지면 이 페이지로 돌아오세요.
+아이디어 자체가 처음이라면 [Lolly란?](/info/what-is-lolly.html)이 5분짜리 소개이고, [Lolly의 작동 방식](/info/how-lolly-works.html)에서 누가 무엇을 하는지 볼 수 있어요.
 
-![Utilities 화면 - Strip Hidden Data, Compress PDF, Convert Image 같은 온디바이스 일꾼들을 한곳에 모아 둔 곳](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+## 브랜드 넣기
 
-## 1. 내 것으로 만들기 - 디자인 시스템 설정하기
+lolly.tools는 Lolly 자체의 샘플 디자인 시스템인 **Lolly Demo**로 열려요. [Lolly Demo 만나보기](/info/lolly-demo.html)에서 지금 보는 것이 무엇인지 알려줘요. 사용자의 디자인 시스템이 이를 대체해요. 색상, 글꼴, 몇 가지 규칙으로 이루어진 작은 디자인 토큰 세트로, 모든 도구가 이를 바탕으로 그려요. 한 번 설정하면 만드는 모든 것이 브랜드에 맞게 시작돼요.
 
-Lolly에서 여러분의 브랜드는 작은 **디자인 토큰** 문서예요 - 색상, 폰트, 그리고 몇 가지 규칙이죠 - 모든 도구가 이 문서를 기준으로 렌더링해요. 한 번만 정해 두면 만드는 모든 것이 검수가 아니라 구조상 브랜드에 맞아요. 들어가는 방법은 세 가지예요. 여러분의 브랜드가 이미 어디에 있는지에 맞춰 고르세요.
+가진 것에 맞는 방법을 고르세요.
 
-### 처음부터 시작하기 (디자인 시스템 빌더)
+- <!--i:palette--> **색상 하나.** **Design System Setup**(`#/start`)을 열고 디자인 시스템 이름을 지은 뒤 기본 색상을 골라요. Lolly가 거기서 밝은 면과 어두운 면, 텍스트, 강조색을 갖춘 접근성 높은 팔레트 전체를 만들어요. 글꼴을 고르면 쓸 수 있는 브랜드가 완성돼요.
+- <!--i:upload--> **토큰 파일.** Design System Setup의 룸 레일 하단에 있는 **Add from…**은 DTCG, Tokens Studio, Penpot 토큰 파일, SVG, `LollyBrand` 팩을 받아요. 놓으면 팔레트가 채워져요. 디자인 시스템이 아직 비어 있는 동안에는 Overview 룸의 **Start from a reference**가 같은 선택기를 열어요.
+- <!--i:pentool--> **완성된 디자인.** Design에서 **Import a design**을 선택하고 `.fig`, `.penpot`, `.ai`, `.idml` 또는 SVG 파일을 놓아요. 아래 [이미 가진 것 가져오기](#bring-in-what-you-already-have)를 참고하세요.
 
-처음 실행하면 **갤러리**가 열리고, 그 위에 짧은 환영 대화상자가 세 가지 시작 방법을 안내해요 - **Make it yours**(`#/start`의 Brand Studio), **Bring your design**(Figma, Penpot, InDesign, PDF 파일을 끌어다 놓으면 편집 가능한 레이아웃으로 열려요 - 아래 [이미 가진 것 가져오기](#2-bring-in-what-you-already-have)로 가는 가장 빠른 길이에요), 그리고 **Explore the community tools**예요. 영어가 모국어가 아니라면 언어 목록도 함께 나와요. 첫 번째 카드를 고르면 [**Brand Studio**](/info/brand-studio.html)로 이동해요. 이름과 기본 색상만 정하면 Lolly가 거기에서 완전하고 접근성 있는 팔레트를 *도출*해요 - 밝은/어두운 표면, 텍스트, 강조색까지 - 엔진이 다른 곳에서도 쓰는 것과 같은 색상 계산으로요.
+갤러리를 처음 열면 짧은 환영 화면이 같은 선택지를 제공해요. **Make it yours**는 Design System Setup을 열고, **Bring your design**은 디자인용 파일 선택기를 열고, **Explore the community tools**는 환영 화면을 닫아요.
 
-![새로 설치했을 때의 Brand Studio Colours 룸 - 라이브 칩 하나, 필드 하나, 그리고 첫 번째 결정의 전부](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) 폰트를 고르면 1분도 안 되어 쓸 수 있는 브랜드가 완성돼요. 그다음부터는 스튜디오의 여섯 개 룸 - Overview, Colours, Type, Logos, Tokens, Files - 에서 원하는 만큼, 원하는 순서로 다듬을 수 있고, 다시 돌아올 때마다 언제든 고칠 수 있어요. 대시보드의 **Design system** 탭(`#/d`)은 그 결과를 읽기 전용으로 보여 주고, 편집이 이뤄지는 `#/start`를 가리켜요(잠긴 디자인 시스템은 읽기 전용으로 유지되고, 사용자 자신의 로컬 시스템은 계속 편집할 수 있어요).
+![새로 설치한 상태의 Design System Setup의 Colours 룸: 실시간 칩 하나, 입력란 하나, 첫 결정의 전부](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-### 이미 가진 브랜드 가져오기
+거기서부터 일곱 개의 룸이 원하는 만큼, 어떤 순서로든 이어져요. **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Usage & rules**예요. 앱의 모든 미리보기는 입력하는 대로 업데이트돼요. [Design System Setup](/info/brand-studio.html)에서 각 룸을 다뤄요.
 
-브랜드가 이미 디자인 토큰으로 정리돼 있다면 - **Penpot**, **Tokens Studio**(Figma), 또는 평범한 **DTCG** 파일이든 - 다시 입력하지 말고 통째로 가져오세요. 두 가지 경로가 있어요:
+글꼴은 기기에 보관돼요. Google Font를 고르면 Lolly가 파일을 브랜드 에셋으로 저장하므로, 글꼴이 오프라인에서도 따라다니고 도구가 그릴 때 아무것도 가져오지 않아요.
 
-- <!--i:palette--> **앱에서:** [디자인 시스템 빌더: Brand Studio](/info/brand-studio.html)(`#/start`)에서는 룸 레일 아래쪽의 **Add from…** 으로 가져와요 - 토큰 파일, Penpot 내보내기, SVG, 또는 `LollyBrand` 팩을요. 끌어다 놓으면 팔레트가 살아나요.
-- <!--i:code--> **명령줄에서**, 다시 쓸 수 있는 브랜드 팩을 만들려면:
+### 디자인 시스템 보기, 전환, 공유
+
+- **활성 디자인 시스템 보기.** **Settings → Design system**은 활성 디자인 시스템을 표지와 페이지로 읽기 전용으로 보여줘요.
+- **디자인 시스템 간 전환.** **Settings → Preferences → Design systems**는 이 기기의 모든 디자인 시스템을 나열해요. 한 조직이 디자인 시스템 여러 개를, 또는 컬러웨이가 여러 개인 디자인 시스템 하나를 운영할 수 있어요. [브랜드 아키텍처](/info/brand-architectures.html)에서 구성 방식을 정리해요.
+- **디자인 시스템 공유.** 디자인 시스템을 `LollyBrand` 팩으로 내보내요. 동료가 파일 하나를 가져오면 같은 팔레트, 글꼴, 규칙을 얻어요.
+
+빌드나 조직이 제공하는 디자인 시스템은 **관리형**이에요. 잠금이 표시되고 읽기 전용으로 유지돼요. 변경하려면 **Settings → Preferences → Design systems**에서 편집 가능한 사본을 만드세요.
+
+![Settings의 Design system 탭: 활성 디자인 시스템을 표지와 페이지로 보여줘요](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
+
+디자인 시스템은 Penpot이 읽고 쓰며 Tokens Studio가 Figma에 들여오는 형식인 DTCG 토큰이므로, 디자인할 때 쓰는 팔레트와 Lolly가 적용하는 팔레트는 하나의 문서예요. [디자인 토큰](/info/design-tokens.html)에서 자세히 설명해요.
+
+::: details 개발자용: 명령줄로 브랜드 팩 만들기
+체크아웃에서 재사용 가능한 브랜드 팩을 세우려면 `ingest:brand`가 Penpot과 Tokens Studio가 내보내는 세 가지 컨테이너를 받아요. 단일 `tokens.json`, `$metadata.json`이 있는 세트별 파일 디렉터리, 또는 `project.penpot` 아카이브예요.
 
 ```bash
-# a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`ingest:brand`는 Penpot / Tokens Studio가 같은 문서를 내보낼 때 쓰는 세 가지 컨테이너를 모두 받아요 - 단일 `tokens.json`, 디렉터리(`$metadata.json` + 세트별 파일), 또는 `project.penpot` 아카이브요. `--activate`를 쓰면 브랜드를 프로필로 등록하고 그 프로필로 전환한 뒤 카탈로그를 다시 빌드해요. 브랜드 팩과 프로필이 어떻게 맞물리는지는 [설정](/info/configuration.html)을 참고하세요.
+`--activate`는 브랜드를 프로필로 등록하고 카탈로그를 빌드하고 검증해요. 기본 프로필은 절대 바꾸지 않아요. 새 팩을 쓰려면 `LOLLY_PROFILE=acme`로 실행하세요. [구성](/info/configuration.html)에서 브랜드 팩과 프로필이 어떻게 맞물리는지 설명해요.
+:::
 
-### 앱에서 다듬기
+## 이미 가진 것 가져오기
 
-브랜드를 활성화한 뒤에도 [**Brand Studio**](/info/brand-studio.html)(`#/start`)에서 계속 다듬을 수 있어요 - 색상이나 역할을 바꾸면 앱 전체의 미리보기가 입력하는 대로 갱신돼요. (`#/d`의 대시보드 **Design system** 탭은 브랜드를 읽기 전용으로 *보여 줄* 뿐이고, 편집은 Studio에서 해요.)
+빈 페이지에서 시작하지 않아도 돼요.
 
-![대시보드의 Design system 탭 - 활성 브랜드를 읽기 전용으로 보여 줘요](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) 같은 브랜드가 **Profile → Your brand** 카드에도 요약돼 있어요. 폰트는 실제 파일이에요. Google Fonts에서 고르면 Lolly가 그 파일을 브랜드 자산으로 **여러분의 기기에** 저장하니, 타이포그래피가 오프라인에서도 그대로 따라오고 렌더링 시점에 아무것도 내려받지 않아요.
+**디자인 파일.** Figma, Penpot, Illustrator, InDesign 또는 모든 SVG 앱의 완성된 작업물이 Design에서 살아 있는 레이아웃으로 열려요. 텍스트는 다시 입력할 수 있고, 도형은 도형으로 유지되며, 이미지는 라이브러리에 들어가요. 파일은 브라우저에서 읽으며 아무것도 업로드되지 않아요. [디자인 가져오기](/info/design-import.html)에서 각 형식과 가져오는 내용을 나열해요.
 
-마음에 들면 **브랜드를 `LollyBrand` 팩으로 내보내세요** - 동료가 가져오기만 하면 똑같은 팔레트, 폰트, 규칙을 그대로 얻는 단일 파일이에요. 브랜드가 중간에 서버 없이 사람과 기기 사이를 오가는 방식이에요.
+**덱.** PowerPoint `.pptx`를 Lolly에 놓아 슬라이드를 에셋으로 보관하거나, **Markdown Slides**에서 Markdown으로 새 덱을 쓰거나, [덱 리브랜드](/info/rebrand.html)로 덱 전체를 디자인 시스템으로 옮기세요.
 
-> **브랜드 토큰은 양방향으로 오가요.** Lolly의 브랜드 *자체가* DTCG 토큰 - Penpot이 기본으로 읽고 쓰며 Tokens Studio가 Figma로 가져오는 그 형식 - 이기 때문에, 디자인할 때 *쓰는* 팔레트와 Lolly가 *강제하는* 팔레트는 손으로 맞춰야 하는 두 개의 목록이 아니라 하나의 문서예요. [디자인 토큰](/info/design-tokens.html)을 참고하세요.
-
-## 2. 이미 가진 것 가져오기
-
-빈 페이지에서 시작하지 않아요. Lolly는 여러분이 이미 가진 디자인 작업물과 열린 형식을 그대로 열어요.
-
-### 오픈소스 디자인 파일
-
-**Figma, Penpot, Illustrator, InDesign, 또는 SVG를 다루는 어떤 앱**에서 끝낸 작업물이 그 앱 안에만 갇혀 있을 이유는 없어요. **Design**을 열고 **Import a design**을 누르면 파일이 납작한 그림이 아니라 *살아 있는 레이아웃*으로 열려요. 모든 레이어가 편집 가능한 상자가 돼요. 텍스트는 다시 입력할 수 있고, 도형은 도형으로 남고, 이미지는 라이브러리에 들어가고, 복잡한 벡터 아트도 충실하게 보존돼요. 게다가 여러분의 브랜드 서체와 색상 규칙에 이미 맞춰진 상태로 도착해요.
-
-| 가지고 있는 것 | 가져오는 방법 |
-|---|---|
-| Figma 프레임 | 네이티브 `.fig`(File → Save local copy) 또는 SVG 내보내기 |
-| Penpot 디자인 | `.penpot` 내보내기 또는 아무 SVG |
-| Illustrator 파일 | 네이티브 `.ai`(PDF 호환) 또는 `.pdf` - 바로 열려요 |
-| InDesign 레이아웃 | `.idml`(File → Export → InDesign Markup) |
-| 그 밖의 모든 것 | **어떤 SVG든** - 어디서나 통하는 입구예요 |
-
-가져오기는 전부 **여러분의 기기에서** 이뤄져요 - 파일은 브라우저 안에서 해석되고 아무것도 업로드되지 않아요. 자세한 내용과 무엇이 그대로 넘어오는지는 [디자인 가져오기](/info/design-import.html)에 있어요.
-
-**PowerPoint 덱**을 갖고 계신가요? `.pptx`를 업로드 가능한 위치 어디든 놓으면 슬라이드를 에셋으로 담을 수 있어요. **Markdown Slides**에서 Markdown으로 새 덱을 작성하거나, **Rebrand**를 실행해서 차트와 애니메이션은 그대로 둔 채 테마만 바뀐 같은 덱을 돌려받을 수도 있어요.
+**데이터.** CSV나 JSON 표를 붙여넣거나 놓으면 도구의 반복 필드가 그것으로 채워지고, [Batch](/info/batch.html#make-many-versions-of-one-design)는 행마다 완성된 파일 하나를 만들어요.
 
 ### 한 번 쓰고 마는 작업물에서 템플릿으로
 
-여기서부터가 진짜예요. 가져온 레이아웃은 평범한 Design 세션이라, 한 번 **저장**하면 URL로 남아요. Lolly를 쓰는 누구나 그 URL을 열어 문구를 바꾸고 이미지를 갈아 끼워 자기 버전을 렌더링할 수 있어요 - 디자인 앱 없이, 잠긴 부분은 잠긴 채로요. 한 번 쓰고 말 디자인이 다시 쓸 수 있는 도구가 되는 거예요. 설정을 한 줄도 쓰지 않고 여기에 도달해요.
+가져온 레이아웃은 일반 Design 세션이에요. **Share with rules**는 이를 도구로 바꿔요. 다른 사람이 바꿔도 되는 부분을 사용자가 정하고, 그들은 그 부분만 채워요.
 
-### 열린 데이터와 열린 도구
+![Design 마스터를 유지하고, 작성용 사본에서 입력과 제한을 고른 뒤, 받는 사람이 채우는 재사용 가능한 .lolly 도구로 공유해요](/info/diagrams/concepts/share-with-rules.svg)
 
-[커뮤니티 도구 모음](/info/builders.html)은 오픈소스이고 브랜드에 얽매이지 않아요 - QR 코드, 거리 지도, 필터, 프라이버시 유틸리티요 - 그리고 브랜드를 활성화하는 순간부터 *여러분의* 브랜드로 렌더링돼요.
+[규칙과 함께 디자인 공유하기](/info/create-a-tool.html)에서 각 단계를 안내해요.
 
-도구에 여러분의 열린 데이터도 넣어 보세요. **CSV**나 **JSON** 표를 붙여 넣거나 끌어다 놓으면 도구의 반복 항목이 그 값으로 채워지고, 행마다 완성된 자산이 하나씩 나와요.
+## 많이 만들고, 공유하고, 자동화하기
 
-## 3. 무언가를 만들고, 그 결과를 공유하거나 자동화하기
+- <!--i:download--> **내보내기.** 도구는 SVG, PDF, PNG, JPG, WebP, 동영상 등을 각 도구가 제공하는 형식으로, 필요하면 실제 인쇄 크기로 만들어요. [파일 내보내기](/info/exporting.html)를 참고하세요.
+- <!--i:link--> **링크 공유.** 도구의 설정이 링크에 담겨 이동하므로, 링크는 어디서든 같은 파일을 다시 열어요.
+- <!--i:layers--> **행마다 하나씩 만들기.** [Batch](/info/batch.html#make-many-versions-of-one-design)에서 스프레드시트로 도구를 구동해요.
+- <!--i:cpu--> **자동화.** 같은 렌더링이 [CLI](/info/cli.html)와 [AI 에이전트](/info/ai-agents.html)에서도 실행돼요.
 
-브랜드를 활성화하고 재료도 갖췄다면, 모든 도구가 완성된 파일을 내놓아요:
-
-- <!--i:download--> **렌더링하세요.** 어떤 도구든 **SVG, PDF, PNG, JPG, WebP, 영상** 등으로 내보낼 수 있어요 - 필요하면 실제 인쇄 크기와 물리 단위로도요. [내보내기 & 형식](/info/exporting.html)을 참고하세요.
-- <!--i:link--> **링크로 공유하세요.** 모든 도구 상태가 URL이라, 완성된 자산은 재현할 수 있고 매개변수로 지정할 수 있어요 - 링크를 커밋해 두고 필요할 때 다시 만들면 돼요.
-- <!--i:layers--> **한꺼번에 처리하세요.** [배치 그리드](/info/exporting.html)에서 스프레드시트로 템플릿을 돌리면 행마다 완성된 자산이 하나씩 나와요.
-- <!--i:cpu--> **자동화하세요.** 같은 렌더링이 [CLI](/info/cli.html)에서도, [AI 에이전트](/info/ai-agents.html)에서도 돌아가요 - URL이 곧 API예요.
-
-"URL이 곧 API"라는 말은 그대로예요. 아래 차트는 누구도 그린 적이 없어요. 차트 종류도, 제목도, 데이터 표 전체도 주소창에 입력한 것이고, 같은 링크는 어떤 기기에서든 같은 차트를 그려 내요.
+링크는 완전한 요청이에요. 아래 차트는 아무도 그리지 않았어요. 유형, 제목, 데이터 표 전체를 주소창에 입력했을 뿐이고, 같은 링크는 어느 기기에서든 같은 차트를 그려요.
 
 ![월별 가입자 수를 나타내는 영역 차트로, 모든 값이 클릭이 아니라 쿼리 매개변수로 전달됐어요](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 ## 다음으로 갈 곳
 
-여기 온 목적에 따라 세 갈래 길이 있어요:
-
-- <!--i:people--> **[크리에이터를 위한 Lolly](/info/creators.html)** - 무언가를 만드는 분들을 위해서요. 어떤 점이 좋은지, 앱을 어떻게 최대한 활용하는지 다뤄요.
-- <!--i:code--> **[빌더를 위한 Lolly](/info/builders.html)** - 도구를 만들고, 통합하고, 배포하는 분들을 위해서요. 기술 문서예요.
-- <!--i:shieldcheck--> **[운영자를 위한 Lolly](/info/operators.html)** - 조직 전체의 브랜드, 보안, 도입을 책임지는 분들을 위해서요.
+- <!--i:people--> **[만들기](/info/creators.html)**: 제작, 애니메이션, 녹화, 공유, 내보내기.
+- <!--i:code--> **[자동화](/info/builders.html)**: 디자인 시스템, 도구 제작, 명령줄, 링크, 에이전트.
+- <!--i:usercheck--> **[관리](/info/operators.html)**: Lolly Work로 팀을 위해 Lolly 운영하기.
+- <!--i:server--> **[배포](/info/operate.html)**: Lolly와 Lolly Work 호스팅하기.
+- <!--i:shieldcheck--> **[신뢰](/info/trust.html)**: 개인정보, 보안, 파일 직접 확인하기.

@@ -1,60 +1,75 @@
-# Lolly for skapere
+# Lag
 
-Du fyller inn noen få felt, og en ferdig fil kommer ut, med skriftene, fargene og oppsettet allerede bestemt på din egen enhet. Du leverer på minutter, og det ser ut som du brukte timer, og fordi merkevarereglene er bakt inn i verktøyet, er det aldri navnet ditt på filen som bryter med merkevaren. Velg sporet nedenfor som passer det du gjør i dag.
+Du fyller ut noen få felt, og en ferdig fil kommer ut, med skrifter, farger og layout allerede bestemt, på din egen enhet. Fordi merkevarereglene ligger i verktøyet, er det aldri ditt navn på filen som ikke følger merkevaren. Velg sporet som passer det du gjør i dag.
 
-Du er én hånd i et stafettløp: en utvikler kan skalere verktøyet du bruker til en pipeline, og en kollega kan kjøre det selvbetjent, så [Livssyklusen til en kampanje](/info/overview.html#the-lifecycle-of-a-campaign) følger én ressurs gjennom alle tre par hender.
-
-Ny her? Start med **[Lag noe på 60 sekunder](/info/make-something.html)** og kom tilbake når du vet hvilken del du vil gå dypere inn i. [Spørsmål og svar](/info/faq.html) dekker det folk lurer på før de stoler på et gratis verktøy. [Hvordan Lolly sammenlignes](/info/positioning.html) er den ærlige gjennomgangen av når du bør velge noe annet.
+Ny her? Start med **[Make your first file](/info/make-something.html)**. [How Lolly works](/info/how-lolly-works.html) viser hvordan et verktøy du bruker, også kan kjøre fra et skript eller en kollegas telefon, og [Questions & answers](/info/faq.html) tar for seg det folk spør om før de stoler på et gratis verktøy.
 
 ## Lag
 
-Velg et verktøy, fyll inn noen få felt og last ned den ferdige filen. Eller åpne Design-canvasen og legg det ut for hånd: uansett kommer fargene, typografien og avstanden fra merkevaren din i stedet for fra hukommelsen, og ingenting krever en konto.
+Velg et verktøy og fyll det ut, eller legg ut en side fritt på Design-lerretet.
 
-- **[Lag noe på 60 sekunder](/info/make-something.html)** - tre korte gjennomganger uten noe å sette opp, hvis du aldri har åpnet Lolly før.
-- **[Bruke Lolly](/info/using.html)** - canvasen, kontrollene, lagring, Projects og bruk på telefon: hvordan appen selv oppfører seg.
-- **[Brand Studio](/info/brand-studio.html)** - når logoene, fargene og typografien skal være dine i stedet for standardvalgene.
-- **[Importere en design](/info/design-import.html)** - når kunstverket allerede finnes som en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil, og du vil ha den redigerbar i stedet for flatet ut.
-- **[Nyttefunksjoner](/info/utilities.html)** - regnearket, konverteren, Colour Lab, PDF-uttrekkeren og Script audio, for jobbene som ikke er en verktøygjengivelse.
-- **[Nettleserutvidelse](/info/extension.html)** - fang opp en levende nettside og gjenbruk den som en ressurs i dine egne design.
-- **[Søk](/info/search.html)** - ett felt som når verktøyene dine, ditt lagrede arbeid, katalogen og innstillingene dine.
-- **[Ask Lolly](/info/ask.html)** - skriv et spørsmål og få tilbake den tilsvarende delen av disse veiledningene, med en lenke rett inn i den.
-- **[Dashboard](/info/dashboard.html)** - hva denne enheten kan gjøre, designsystemet ditt skrivebeskyttet og et raskt blikk på lagringsplassen.
-- **[Dine favoritter](/info/favourites.html)** - stjernemerk det du bruker ofte, slik at det får en egen flis over rutenettet.
-- **[Profiler](/info/profile.html)** - detaljene verktøyene forhåndsutfyller fra, og de fire tilgjengelighetsbryterne som roer ned appen uten å flytte en piksel av det du eksporterer.
+- **[Make your first file](/info/make-something.html)** - én kort leksjon uten noe å sette opp: en QR-kode, lastet ned og lagret som en redigerbar kopi.
+- **[Using Lolly](/info/using.html)** - lerretet, kontrollene, lagring, Projects og bruk på telefon: hvordan selve appen oppfører seg.
+- **[Templates](/info/templates.html)** - start fra en lagret layout i stedet for et tomt verktøy.
+- **[Text in Design](/info/text-composition.html)** - overskrifter, flytende tekst og skrift som passer i boksen sin.
+- **[3D Studio](/info/3d-studio.html)** - SVG-grafikk og 3D-modeller arrangert, belyst og gjengitt som én scene.
+- **[Utilities](/info/utilities.html)** - fiks en fil på enheten din: del den trygt, sammenlign to versjoner, endre formatet, hent ut ordene eller sjekk en farge.
+- **[Browser extension](/info/extension.html)** - ta skjermbilde av en levende nettside fra nettappen, eller les et nettsted for å starte et designsystem.
+
+## Gjør det til ditt
+
+Designsystemet ditt avgjør hvordan hvert verktøy ser ut.
+
+- **[Design System Setup](/info/brand-studio.html)** - logoer, farger, skrift og resten, satt én gang på `#/start`.
+- **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - fargevarianter på ekte arbeid, og bytte til ditt eget designsystem.
+- **[Brand architectures](/info/brand-architectures.html)** - flere designsystemer, eller ett med flere fargevarianter, for én organisasjon.
+- **[Import a design](/info/design-import.html)** - en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil åpnet som en redigerbar layout i stedet for et flatt bilde.
+- **[Rebrand a deck](/info/rebrand.html)** - en PowerPoint-presentasjon flyttet over på designsystemet ditt, med diagrammer og animasjoner intakt.
+- **[Share a design with rules](/info/create-a-tool.html)** - gjør en layout om til et verktøy andre fyller ut.
+
+## Finn og behold arbeidet ditt
+
+- **[Find and recover your work](/info/find-your-work.html)** - hvor en lagret, nedlastet eller ulagret fil tok veien.
+- **[Search](/info/search.html)** og **[Ask Lolly](/info/ask.html)** - ett felt for verktøyene, det lagrede arbeidet, ressursene og innstillingene dine, og svar fra disse veiledningene.
+- **[Settings](/info/dashboard.html)** - hva denne enheten kan gjøre, designsystemet ditt skrivebeskyttet og lagringen din.
+- **[Your favourites](/info/favourites.html)** og **[Profiles](/info/profile.html)** - stjernemerkede verktøy, opplysningene verktøy forhåndsutfyller fra og tilgjengelighetsbryterne.
+- **[Sync your devices](/info/sync.html)** - det samme arbeidet på datamaskinen og telefonen, gjennom lagring du velger.
 
 ## Animer
 
-Tekst som beveger seg, scener på en tidslinje og bevegelse som holder seg innenfor merkevaren. En bevegelseseksport settes sammen bilde for bilde fra en styrt klokke i stedet for å tas opp fra skjermen, så timingen aldri drifter, og den samme lenken gjengir det samme klippet uansett lengde.
+Tekst som beveger seg, scener på en tidslinje og bevegelse som holder seg på merkevaren. En bevegelseseksport tegnes bilde for bilde fra en styrt klokke i stedet for å tas opp fra skjermen, så den samme lenken lager det samme klippet.
 
-- **[Animering](/info/animating.html)** - keyframes, ekte dybde og et scenekamera for å fly over resultatet.
-- **[Sekvenseditoren](/info/sequence-editor.html)** - selve tidslinjen: klipp, overleggsspor, trim og del, overganger og lydmiksen.
-- **[Eksportering og formater](/info/exporting.html)** - video-, GIF- og animert PNG-siden av eksportpanelet, når bevegelsen er riktig.
+- **[Animating](/info/animating.html)** - nøkkelbilder, ekte dybde og et scenekamera.
+- **[The sequence editor](/info/sequence-editor.html)** - klipp, overleggsspor, trimming og deling, overganger og lydmiksen.
+- **[Wide Colour and HDR](/info/hdr-editing.html)** - farger utover det vanlige området, på skjermer og i formater som kan vise det ekstra området.
 
-## Ta opp
+## Ta opp og presenter
 
-Ta opp et rent opptak med en nedtelling, en nivåmåler og forsiktig veiledning, eller gjør en talemelding om til en ferdig video som beveger seg med lyden. Det finnes ingen egen Ta opp-side ennå: Bruke Lolly dekker det, i tidslinjeseksjonen.
+Ta opp et rent opptak med nedtelling og nivåmåler, eller sett deg selv foran lysbildene dine.
 
-- **[Bruke Lolly](/info/using.html#timeline-sequence)** - ta opp en voiceover rett på tidslinjen, hvor opptaket lagres og hvordan det når miksen.
-- **[Lag din første fil](/info/make-something.html#other-first-projects)** - audiogrammet, for når du heller vil bli hørt enn sett.
-- **[Nyttefunksjoner](/info/utilities.html)** - Script audio, når ordene kommer først og stemmen kommer etterpå.
-
-## Presenter
-
-Legg kameraet, logoen og navnet ditt over et Design-sett eller en Nedtelling, med private kontroller i et eget vindu.
-
-- **[Presentere med kamera](/info/presenting.html)** - beskjæring, lagrede scener, deling med publikum, lokalt opptak og de nåværende prøvebegrensningene.
+- **[The Design timeline](/info/design.html#timeline-sequence)** - å ta opp en voiceover rett på tidslinjen.
+- **[Make your first file](/info/make-something.html#other-first-projects)** - audiogrammet, for når du heller vil bli hørt enn sett.
+- **[Presenting with camera](/info/presenting.html)** - kameraet, logoen og navnet ditt over en presentasjon eller Countdown, med private kontroller i et eget vindu.
+- **[Live pages that take the clicker](/info/interactive-pages.html)** og **[Agenda screens](/info/agenda.html)** - sider og programmer for rommet.
 
 ## Samarbeid
 
-To personer, to enheter, én økt, redigert live. Skann en kode over bordet, og begge skjermene holder det samme arbeidet, uten konto og uten server i midten - og ingen internett i det hele tatt når begge enhetene er på samme nettverk.
+To personer, to enheter, ett design, redigert i sanntid, uten konto og uten server imellom.
 
-- **[Å jobbe sammen](/info/collaborate.html)** - starte en økt, hva som reiser mellom enhetene og hva som skjer når nettverket faller ut.
-- **[Bruke Lolly](/info/using.html#sharing-your-work)** - de stillere måtene å gi arbeid videre på: en delingslenke som bærer hele tilstanden, eller én `.lolly`-fil.
+- **[Working together](/info/collaborate.html)** - private collabs mellom enheter, og work collabs gjennom organisasjonens Lolly Work.
+- **[Using Lolly](/info/using.html#sharing-your-work)** - en delingslenke som bærer hele tilstanden, eller én `.lolly`-fil.
+- **[Use Lolly at your organisation](/info/organisation.html)** - pålogging, teamprosjekter og administrerte innstillinger, når organisasjonen din kjører Lolly Work.
 
 ## Publiser
 
-Send det dit det ble bedt om: en lenke som bærer designet, en trykknøyaktig PDF, en video, en presentasjon eller en mappe med varianter. Den samme kilden lager hver eneste én av dem, så du bygger den én gang.
+Send det dit det ble bedt om: en lenke, en trykkriktig PDF, en video, en presentasjon eller en mappe med varianter, alt fra den samme kilden.
 
-- **[Eksportering og formater](/info/exporting.html)** - trykkenheter, DPI, utfallende og skjæremerker, video, batch-kjøringer og selve eksportpanelet.
-- **[Alle formater Lolly kan åpne og lage](/info/formats.html)** - hele inn-og-ut-listen, med et kort på ren tekst bak hver brikke.
-- **[Dataoverføring](/info/data-transfer.html)** - sikkerhetskopipakken, for å flytte alt du har laget til en annen enhet.
+- **[Export a file](/info/exporting.html)** - trykkenheter, utfall og beskjæringsmerker, video, batchkjøringer og eksportpanelet.
+- **[Every format Lolly can open and make](/info/formats.html)** - hele inn-og-ut-listen.
+- **[Creative rights and credits](/info/creative-rights.html)** - lisensene til det du brukte, og kredittene som følger med filen.
+
+## Teamhåndbøker og sammenligninger
+
+- **For teamet ditt:** [sales](/info/sales.html), [marketing](/info/marketing.html), [the newsroom](/info/press.html) og [legal](/info/legal.html).
+- **[How Lolly compares](/info/positioning.html)** - hva Lolly er god til, og når du bør velge noe annet.
+- **[Lolly compared, tool by tool](/info/compare.html)** - Canva, Adobe, Figma, Penpot, merkevareportaler, gjengivelses-API-er og nettbaserte konverterere.

@@ -2,24 +2,24 @@
 
 _Ultima verifica: 28 settembre 2026._
 
-Lolly gestisce modifica e conversione di immagini, impaginazione, produzione di brand ripetibile, output di stampa e Content Credentials. [lolly.work](https://lolly.work) aggiunge a quel flusso creativo identità dell'organizzazione, asset condivisi, approvazioni e produzione automatizzata lato server.
+Se per i file di tutti i giorni ricorri a Photoshop, Illustrator o InDesign, questa pagina dice quali di quei compiti Lolly può assumere e quali restano con Adobe.
+
+## Cosa fa meglio Adobe
+
+Le applicazioni specialistiche di Adobe coprono il lavoro creativo approfondito. [Photoshop](https://www.adobe.com/products/photoshop.html), per esempio, offre modifica fotografica dettagliata, selezione, mascheratura e composizione. Un ritocco complesso e una risorsa ricorrente del brand hanno esigenze diverse: confronta le operazioni di modifica che il tuo lavoro richiede prima di spostare quel lavoro.
 
 ## Dove si sovrappongono
 
-Entrambi supportano attività come ridimensionare immagini, comporre layout ed esportare formati professionali. Lolly supporta output PDF/X, CMYK e raster ad alta profondità di bit, con [funzionalità specifiche per formato](/info/formats.html). Le sue utilità sul dispositivo convertono e puliscono i file senza caricarli.
+Entrambi ridimensionano immagini, compongono layout ed esportano formati professionali. Lolly supporta PDF/X, CMYK e output raster ad alta profondità di bit, con [funzioni specifiche per formato](/info/formats.html), e le sue utility sul dispositivo convertono e ripuliscono i file senza caricarli.
 
-Le applicazioni specialistiche di Adobe coprono flussi creativi estesi. [Photoshop](https://www.adobe.com/products/photoshop.html), per esempio, offre strumenti dettagliati di fotoritocco, selezione, mascheratura e compositing. Confronta le operazioni di modifica richieste dal tuo lavoro con gli strumenti di Lolly; un asset di brand ricorrente e un ritocco complesso possono avere requisiti diversi.
+## Come Lolly svolge il compito in comune
 
-## Creazione e servizi per l'organizzazione
+Lolly standalone non richiede alcun account Adobe né alcun account Lolly, e fa girare lo stesso engine nel browser, nell'app desktop e nella CLI. Template e design token mantengono coerente ogni file, e [Share with rules](/info/create-a-tool.html) trasforma un design in uno strumento che altre persone compilano.
 
-Lolly autonomo funziona senza un account Adobe né un account Lolly, usando lo stesso motore nel browser, nell'app desktop e nella CLI. Template e design token rendono gli output ripetibili, e [Condividi con regole](/info/create-a-tool.html) trasforma un design in uno strumento che altre persone possono compilare.
+Lolly firma le esportazioni supportate con Content Credentials sul dispositivo, attive per impostazione predefinita; puoi disattivarle. Una chiave del dispositivo dimostra che il file non è cambiato da quando è stato firmato. Un'organizzazione può usare una propria autorità di certificazione, così i suoi verificatori si fidano del firmatario; [Content Credentials Identity](/info/content-credentials-identity.html) spiega la differenza. Le utility di trasformazione sul dispositivo non aggiungono filigrana di Lolly né Content Credentials.
 
-lolly.work è un servizio separato all'interno del progetto Lolly, open source con licenza MPL-2.0 come le app creative. Fornisce SSO, SCIM, cataloghi e progetti condivisi, approvazioni, policy di accesso, registri di audit e rendering lato server. Un'organizzazione può eseguire entrambe le parti in proprio e collegare le librerie di asset esistenti. La creazione locale resta sul dispositivo; il lavoro condiviso e i job lato server usano i servizi configurati.
+## Con un'organizzazione
 
-## Content Credentials e identità
+Lolly Work aggiunge accesso dell'organizzazione, risorse condivise, approvazioni e produzione sul server, con [firma sul server](/info/work-c2pa.html) sotto un certificato dell'organizzazione. [What runs where](/info/compare.html#what-runs-where) mette le due parti a confronto.
 
-Lolly può firmare sul dispositivo le esportazioni supportate, con Content Credentials abilitate dall'utente. Una chiave generata dal dispositivo dimostra l'integrità della firma del file; un verificatore deve comunque fidarsi del firmatario prima di mostrare un'identità verificata. Un'organizzazione può usare una propria autorità di certificazione e distribuirne la radice ai propri verificatori. lolly.work supporta anche la firma lato server con un certificato e una chiave dell'organizzazione configurati.
-
-Così sia la firma personale sia la firma organizzativa sono disponibili all'interno della soluzione Lolly. Consulta [Identità di Content Credentials](/info/content-credentials-identity.html), la [guida alla firma di lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md) e la [panoramica della soluzione combinata](/info/compare.html). Le utilità di trasformazione sul dispositivo non aggiungono filigrane Lolly né metadati di provenienza.
-
-Adobe, Photoshop e Creative Cloud sono marchi di Adobe. Questa pagina descrive dove le soluzioni si sovrappongono e non è affiliata ad Adobe.
+Adobe, Photoshop e Creative Cloud sono marchi di Adobe. Questa pagina descrive dove i prodotti si sovrappongono e non è affiliata ad Adobe.

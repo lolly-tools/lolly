@@ -1142,6 +1142,11 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
    keeps the earlier pace of 200 units a minute. Change the offset with the dash
    pattern. */
 @keyframes gtile-icon-trace { to { stroke-dashoffset: -16; } }
+/* Held still while the shell's WebGPU startup check runs (lib/startup-motion.ts): on
+   software graphics the per-frame repaint of every traced outline delayed the device
+   past its budget. Paused rather than removed, so the trace carries on from the same
+   frame once the check settles. */
+html[data-webgpu-pending] .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) { animation-play-state: paused; }
 /* The trace is a WAITING affordance only - stop it once real art has loaded (carousel
    .has-art / hero .is-ready), on the permanent icon-only fallback (preview gone, not
    "loading"), and under reduced-motion - leaving just the muted base. */
@@ -1417,6 +1422,8 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
    reduced motion, so a baseline is never mid-pulse. */
 .gcar-dot[data-look-pending] { animation: gcar-dot-wait 1.6s ease-in-out infinite; }
 @keyframes gcar-dot-wait { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+/* The pending dot holds still while the WebGPU startup check runs, like the trace above. */
+html[data-webgpu-pending] .gcar-dot[data-look-pending] { animation-play-state: paused; }
 /* Touch: a 6px dot is too small to reliably tap. Grow the TAP AREA only, via a
    ::after - the dot itself never changes size (padding here would also drag its
    box-shadow out to the bigger box and read as a bigger dot). */

@@ -1,8 +1,10 @@
-# Exporteren & Formaten
+# Een bestand exporteren
 
-Druk op **Export** op de **Export | Save as**-pil van een tool, kies een formaat in het menu naast de bestandsnaam en druk dan op **Download**. Een gewone download wordt op je apparaat gemaakt. Goedkeuring door de organisatie en bezorgopties komen hieronder aan bod.
+Je hebt iets gemaakt en het moet Lolly verlaten: een PNG voor een chat, een PDF voor de drukker, een deck dat een collega blijft bewerken. Druk op **Export**, de linkerhelft van de pil **Export | Save**. Kies naast de bestandsnaam een formaat en druk dan op **Download**. Het bestand wordt op je apparaat gemaakt.
 
-Voor de meeste klussen is een van deze drie formaten de juiste:
+Wat je op het canvas ziet is wat het bestand bevat. Het formaatmenu toont alleen wat deze tool in deze browser kan maken.
+
+Voor de meeste klussen is een van drie formaten het juiste:
 
 | Voor | Kies | Waarom |
 |---|---|---|
@@ -14,182 +16,195 @@ Voor de meeste klussen is een van deze drie formaten de juiste:
 Voordat je het verstuurt, open het op het scherm waarvoor het gemaakt is, of druk het af op het echte formaat.
 :::
 
-De rest van deze pagina behandelt elk formaat, elke grootte en elke optie.
+::: details Goedkeuringen en bezorging met Lolly Work (optioneel)
+Een [organisatie die Lolly Work draait](/info/organisation.html) kan bepalen welke formaten en exportinstellingen haar leden zien. Waar goedkeuring vereist is, komt **Request approval** in de plaats van **Download**. Volg het beleid dat je instantie toont.
+
+Lolly Work kan een bestand ook bezorgen bij geconfigureerde S3-, WebDAV- en HTTP-bestemmingen, met goedkeuringsstappen, bezorgbewijzen en een auditrecord. Een bestand indienen voor die workflow stuurt het naar de dienst van de organisatie; een gewone download blijft op je apparaat. Persoonlijke Send-bestemmingen en organisatiebezorging worden apart geconfigureerd.
+
+Beheerders zetten dit op met de [bezorggids voor organisaties](/info/work-delivery.html). Voor server-renders en batches in de wachtrij, zie [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ## Hoe exporteren werkt
 
-De preview *is* het bestand. Wanneer je exporteert, rendert de host dat canvas naar het formaat dat je koos en geeft je een download (of zet het op je klembord). De kiezer verbergt elk formaat dat je browser niet kan produceren (zie [Video](#video)).
+Wanneer je exporteert, wordt het canvas van de tool gerenderd naar het formaat dat je koos en als download aan je overhandigd, of op je klembord gezet.
 
-Drie paden leveren een bestand op. De meeste tools **renderen het canvas** naar het gekozen formaat. Tekst- en dataformaten (HTML, MD, TXT, JSON, CSV, ICS, VCF) worden in plaats daarvan **gegenereerd uit de inhoud van de tool**, niet gerasteriseerd vanuit het beeld. En privacytools (bijv. *Strip Hidden Data*) gebruiken een derde pad: het bestand dat *jij* kiest wordt byte-voor-byte op het apparaat getransformeerd en direct teruggegeven - geen canvas, geen watermerk en geen toegevoegde herkomstmetadata, omdat het al je eigen bestand is.
+Drie paden maken een bestand. De meeste tools **renderen het canvas**. Tekst- en gegevensformaten (HTML, Markdown, TXT, JSON, CSV, ICS, VCF) worden **gegenereerd uit de inhoud van de tool** in plaats van getekend uit het beeld. Privacyhulpprogramma's zoals *Strip Hidden Data* **transformeren het bestand dat je koos**, op je apparaat, en geven het terug zonder canvas, watermerk of toegevoegde metadata, omdat het al je eigen bestand is.
 
-De acties in het exportpaneel:
+![Drie exportpaden komen samen in een afgerond bestand: het canvas renderen, tekst of gegevens uit inhoud genereren, of een gekozen bestand op het apparaat transformeren.](/info/diagrams/concepts/three-export-paths.svg)
 
-- <!--i:download--> **Downloaden** - het bestand opslaan (de primaire actie). Vind je het daarna niet terug, zie [Een gedownload bestand vinden](/info/find-your-work.html#find-a-file-you-downloaded).
-- <!--i:photos--> **Kopiëren** - zet de afbeelding op je klembord om direct te plakken in Slack, e-mail, een document. Waar een browser geen afbeeldingen kan kopiëren, downloadt hij in plaats daarvan en meldt dat.
-- <!--i:folder--> **Opslaan** - bewaart het huidige design met één klik in Projecten, zonder te vragen waar; downloadt nooit een bestand. **Opslaan als**, naast **Exporteren**, vraagt waar (zie [Opslaan en verdergaan](/info/using.html#saving-continuing)).
-- <!--i:link--> **Delen** - opent de **Deel-dialoog**: een kopieerbare link die het design reproduceert, instellingen voor dit bezoek (volledig scherm, exportpaneel, downloaden of kopiëren bij openen) en een optionele **Kortste link** die de hele status in één compact token samenpakt (zie [URL Mode](/info/url-mode.html)).
+Het exportpaneel biedt deze acties. De maker van een tool kiest welke verschijnen; de standaardset is Copy, Download en Save.
 
-(De auteur van een tool kiest welke hiervan verschijnen; de standaardset is Kopiëren, Downloaden en Opslaan.)
+- <!--i:download--> **Download** slaat het bestand op. Als je het daarna niet kunt vinden, zie [Een gedownload bestand vinden](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copy** zet de afbeelding op je klembord, klaar om te plakken in een chat, een e-mail of een document. Waar een browser geen afbeeldingen kan kopiëren, downloadt hij in plaats daarvan en zegt dat.
+- <!--i:folder--> **Save** bewaart het huidige ontwerp met één klik in Projects en downloadt nooit een bestand. **Save as**, naast **Download**, vraagt waar (zie [Opslaan en doorgaan](/info/using.html#saving-continuing)).
+- <!--i:link--> **Share** opent de Share-dialoog: een link die het ontwerp reproduceert, de schakelaars voor bij bezoek (volledig scherm, exportpaneel, downloaden of kopiëren bij openen) en een optionele **Shortest link** die de hele status in een compact token pakt (zie [URL Mode](/info/url-mode.html)).
 
 ![Het exportpaneel - formaat, grootte en de acties Kopiëren / Downloaden / Opslaan / Delen](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
-Delen opent over de tool heen, met de link al opgebouwd en de schakelaars bij bezoek eronder.
+Wanneer een ontwerp de render van een andere tool insluit, zoals een Design-afbeeldingsvak met een QR Code-link, wordt de geneste render in de export van de ouder getekend. Ze blijft echte vector in SVG en PDF en rastert scherp in PNG, JPG en WebP. De ingesloten render krijgt geen watermerk en geen eigen herkomst; alleen het afgeronde bestand. Exports naar HTML, Markdown en TXT kunnen geen samengestelde render bevatten.
 
-::: details Goedkeuringen en bezorging met lolly.work (optioneel)
-Een [organisatie die lolly.work gebruikt](/info/organisation.html) kan beschikbare formaten en export-instellingen beheren. Waar goedkeuring vereist is, kan de app **Request approval** tonen in plaats van **Download**. Volg het beleid dat jouw instantie toont.
-
-De dienst ondersteunt ook beheerde bezorging naar geconfigureerde S3-, WebDAV- en HTTP-bestemmingen, met goedkeuringsstappen waar geconfigureerd, bezorgbewijzen en een auditlogboek. Een bestand indienen voor die workflow stuurt het naar de dienst van de organisatie; gewone lokale downloads blijven op het apparaat. Persoonlijke Send-bestemmingen en beheerde bezorging door de organisatie hebben een aparte configuratie.
-
-Voor beheerders, zie de [bezorggids](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Voor server-renders in de wachtrij en batches, zie [CLI-batch en automatisering](/info/cli-automation.html#organisation-jobs-with-lolly-work).
-:::
-
-### Meerdere tegelijk renderen
-
-Eén export is één bestand, maar je kunt er **meerdere** in één keer renderen - elk geleverd als één `.zip`:
-
-- <!--i:folder--> **Projecten → Map renderen** exporteert elke opgeslagen sessie in een map (en de submappen ervan) als één geneste zip; **Selectie renderen** doet hetzelfde voor elke meervoudige selectie; een enkele opgeslagen sessie rendert direct naar het eigen bestand. Geen Batch/Pro nodig - zie [Lolly gebruiken → Projecten](/info/using.html).
-- <!--i:layers--> **Batch (Pro)** rendert een raster van invoersets - elke variant van één template tegelijk.
-
-Een opgeslagen sessie kan ook opnieuw als toollink worden gedeeld vanuit Projecten (die reconstrueert de tool-URL vanuit de opgeslagen invoer), zodat een link hem heropent met exact dezelfde instellingen.
-
-## Een formaat kiezen
+## Kies een formaat
 
 De bestandsnaam en het formaatmenu staan samen als één paar `name.format`, onder **Downloaden**.
 
 ![Het bestandsnaamveld samengevoegd met de formaatkiezer, zodat de export als één paar naam.formaat leest](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| Je wilt… | Gebruik | Waarom |
+Begin bij waar het bestand heen gaat. Elke kaart noemt de formaten die bij die bestemming passen; een tool toont alleen de formaten die hij kan maken.
+
+::: figure exporting-format-chooser
+Zes bestemmingen en de formaten die bij elk passen.
+:::
+
+Een woordmerk gezet in het lettertype van je design system exporteert als SVG met elke letter als omlijnd pad, zodat één bestand scherp blijft op visitekaartjesformaat en op gebouwformaat.
+
+![Een haarfijn woordmerk met wijde letterspatiëring dat Aurora leest, het soort zuivere vectorartwork waar de SVG-rij van de tabel over gaat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+
+::: details Elk formaat en waar het voor dient
+| Je wilt | Gebruik | Waarom |
 |---|---|---|
-| Scherpe logo's / artwork dat schaalt | **SVG** | Vector - oneindig schaalbaar, klein, bewerkbaar; een effect dat de vectorexport niet kan tekenen, wordt ingesloten als afbeelding |
-| Vector voor Office / Windows-apps | **EMF** | Plakt als bewerkbare vector in PowerPoint / Word; tekst blijft live en bewerkbaar, en Google Drive opent het in Google Tekeningen voor Slides |
-| Vector voor print / ontwerpapps | **EPS**, of **EPS (CMYK)** | PostScript-vector voor Illustrator / drukwerkflows |
-| Vector voor snij- / CAD-machines | **DXF** | Lasersnijders, vinylplotters, CNC - contourpaden in millimeters |
-| Een bewerkbare presentatie | **PowerPoint** (PPTX) | Native bewerkbare tekst + vormen, met afbeeldingen en vectoren die extraheerbaar blijven |
-| Een draagbare cursus | **Cursus exporteren** | Bekijk de projectinhoud en bouw een geversioneerd Website-, SCORM- of experimenteel xAPI-pakket |
+| Scherpe logo's of artwork dat schaalt | **SVG** | Vector: schaalbaar, klein en bewerkbaar; een effect dat de vectorexport niet kan tekenen wordt als afbeelding ingesloten |
+| Vector voor Office- en Windows-apps | **EMF** | Plakt als bewerkbare vector in PowerPoint en Word, met live tekst; Google Drive opent het in Google Drawings |
+| Vector voor druk- en ontwerpapps | **EPS**, of **EPS (CMYK)** | PostScript-vector voor Illustrator en persworkflows |
+| Vector voor snijmachines | **DXF** | Lasersnijders, vinylplotters en CNC: omtrekpaden in millimeters |
+| Een bewerkbaar diadeck | **PowerPoint** (PPTX) | Native bewerkbare tekst en vormen, met afbeeldingen en vectoren die extraheerbaar blijven |
 | Een bewerkbaar tekstdocument | **Word** (DOCX) of **OpenDocument** (ODT) | Echte alinea's en koppen die een tekstverwerker kan blijven bewerken (Doc Studio) |
-| Een foto of algemene afbeelding | **PNG** (verliesvrij) of **JPG** (kleiner) | Universele raster |
-| Kleinere moderne afbeeldingen | **WebP** / **AVIF** | Betere compressie, alpha |
-| Print | **PDF**, of **Print PDF** (CMYK) | Werkelijke paginagrootte; CMYK voor drukwerk |
-| Printraster voor een drukpers | **Print TIFF** (CMYK) | DeviceCMYK-pixels voor een RIP |
-| Geanimeerd voor het web | **GIF** | Werkt overal, grotere bestanden |
-| Geanimeerd met volledige kleur + echte alpha | **APNG** | Geanimeerde PNG - geen paletbeperking, echte transparantie |
-| Geanimeerd, kleinste bestand | **Animated WebP** | Volledige kleur + alpha, beter gecomprimeerd dan GIF of APNG |
-| Geanimeerde vector die schaalt | **Animated SVG** | Zelfstandig; loopt in een browser of `<img>`, geen codec, elke grootte |
-| Video voor social / delen | **MP4** of **WebM** | Beste kwaliteit per byte (zie hieronder) |
-| Rijke tekst / e-mailhandtekening | **HTML** | Plakt opgemaakt in mailclients |
-| Platte inhoud | **MD** / **TXT** | Alleen tekst |
+| Een lay-out voor InDesign | **InDesign IDML (static subset)** | Tekst, rechthoeken, ovalen en afbeeldingen, één spread per tekenbord (Design) |
+| Een bewerkbaar Penpot-document | **Penpot** | Boards, vormen, tekst en gekoppelde tokens |
+| Een foto of algemeen bruikbare afbeelding | **PNG** (verliesvrij) of **JPG** (kleiner) | Universeel raster |
+| Kleinere moderne afbeeldingen | **WebP** of **AVIF** | Betere compressie, met transparantie |
+| Drukwerk | **PDF**, of **Print PDF** (CMYK) | Echt paginaformaat; CMYK voor een pers |
+| Drukraster voor een pers | **Print TIFF** (CMYK) | DeviceCMYK-pixels voor een RIP |
+| Geanimeerd voor het web | **GIF** | Speelt overal; grotere bestanden |
+| Geanimeerd met volle kleur en echte transparantie | **APNG** | Geanimeerde PNG: geen paletbeperking |
+| Geanimeerd, kleinste bestand | **Animated WebP** | Volle kleur en transparantie, kleiner dan GIF of APNG |
+| Geanimeerde vector die schaalt | **Animated SVG** | Zelfstandig; loopt in een browser of een `<img>`, op elk formaat (Lottie Ad) |
+| Een animatie die bewerkbaar blijft | **dotLottie** | Vormen, paden en uiterlijke transformatiesleutels uit de tijdlijn van Design |
+| Een overdracht naar Premiere | **Premiere XML + media** | Getimede clips en originele media voor Premiere (Design) |
+| Video voor social media en delen | **MP4** of **WebM** | Beste kwaliteit voor de bestandsgrootte (zie [Video](#video)) |
+| Ondertitels | **SRT** of **VTT** | Getimede tekst voor een videospeler (Captions, Audiogram en Record) |
+| Een trainingscursus | **SCORM (LMS)** | Een versiebeheerde website, SCORM- of xAPI-pakket (zie [SCORM](#scorm-course-packages)) |
+| Opgemaakte tekst of een e-mailhandtekening | **HTML** | Plakt opgemaakt in mailclients |
+| Gewone inhoud | **MD** of **TXT** | Alleen tekst |
 | Een agenda-afspraak | **ICS** | Importeert in elke agenda-app |
-| Een contactkaart | **VCF** | Importeert in Contacten / adresboeken |
-| Gestructureerde data om opnieuw te importeren | **JSON** / **CSV** | Rondtript de inhoud van de tool |
-| Een favicon | **ICO** | Site-icoon in meerdere formaten (**ZIP** bundelt meerdere formaten) |
+| Een contactkaart | **VCF** | Importeert in adresboeken |
+| Gestructureerde gegevens om opnieuw te importeren | **JSON** of **CSV** | Round-trip van de inhoud van de tool |
+| Een favicon | **ICO** | Siteicoon met meerdere formaten; **ZIP** bundelt meerdere formaten |
+:::
 
-De eerste rij is het gangbare geval. Een woordmerk gezet in je merklettertype exporteert als SVG, waarbij elke letter een omlijnd pad is in plaats van een pixel, zodat het scherp blijft op visitekaartjesformaat en op gevelgrootte vanuit hetzelfde bestand.
+### Transparantie
 
-![Een haarlijndun, breed getrackt woordmerk met de tekst Aurora, het soort pure vectorillustratie waar de SVG-rij van de tabel over gaat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+Tools die het ondersteunen bieden een schakelaar voor transparante achtergrond, zoals **No BG**. PNG, WebP, AVIF, SVG, APNG en Animated WebP behouden transparantie, en GIF behoudt een harde rand. JPG en PDF zijn altijd ondoorzichtig. TIFF vlakt af op wit, of op zwart op het HDR-pad dat onder [HDR](#hdr-bright-colours) wordt beschreven.
 
-## Grootte & druk-eenheden
+## Formaat en drukeenheden
 
-Standaard gebruiken exports de eigen pixelgrootte van de tool. Waar een tool **afmetingen** blootgeeft, kun je breedte × hoogte en een **eenheid** instellen:
+Exports gebruiken het native pixelformaat van de tool, tenzij de tool **dimensies** biedt. Dan stel je breedte, hoogte en een **eenheid** in:
 
-- **px** (standaard) - exacte pixels.
-- **mm · cm · in · pt · pc** - fysieke/drukgroottes. Bij een fysieke eenheid stel je ook **DPI** in (standaard **300** voor print); de engine converteert per formaat correct - **PDF** wordt een ware pagina op die grootte, **raster** rendert op het juiste pixelaantal voor de DPI (en betrekt de resolutie), **SVG** behoudt de fysieke eenheid met een px-viewBox.
+- **px** (de standaard) is exacte pixels.
+- **mm, cm, in, pt** en **pc** zijn fysieke formaten. Met een fysieke eenheid stel je ook **DPI** in (standaard 300). Een **PDF** wordt een echte pagina op dat formaat, een **raster** krijgt het pixelaantal voor die DPI en legt de resolutie vast, en een **SVG** behoudt de fysieke eenheid met een pixel-viewBox.
 
-Voor een raster met hogere resolutie voer je een grotere breedte/hoogte in, of kies je een fysieke eenheid en verhoog je de DPI (pixels = grootte × DPI). Er is geen schakelaar voor schalen met één klik.
-
-Voorbeeld: breedte `210`, hoogte `297`, eenheid `mm` → een A4-pagina.
+Voor een raster met hogere resolutie voer je een grotere breedte en hoogte in, of kies je een fysieke eenheid en verhoog je de DPI (pixels = formaat × DPI). Breedte `210`, hoogte `297` en eenheid `mm` maken een A4-pagina.
 
 ![De afmetingenrij ingesteld op 210 bij 297 mm, met het DPI-veld zichtbaar omdat de eenheid fysiek is](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
 ## Stills uit een getimede compositie
 
-Een **getimede compositie** - een [Sequence](/info/using.html#timeline-sequence)-tijdlijn in Design, of elk tijdlijngestuurd artboard - is iets bewegends, dus een stilstaande export moet antwoord geven op "welk moment?". De regel is wat je zou verwachten: **het frame bij de afspeelkop**. Zet de afspeelkop waar je de afbeelding wilt en exporteer; wat je ziet is wat eruit komt.
+Een getimede compositie, zoals een [Sequence](/info/sequence-editor.html)-tijdlijn in Design, beweegt, dus een stilstaande export moet een moment kiezen: **het beeld bij de afspeelkop**. Zet de afspeelkop waar je het beeld wilt en exporteer.
 
-Wanneer je meer dan één moment wilt, verschijnt het veld **Frames** naast de uitvoergrootte (alleen bij een getimede compositie, en alleen bij een still-formaat - PNG, JPG, WebP, SVG of PDF). Laat het op `1` staan voor het playhead-frame. Verhoog het en je krijgt dat aantal stills, gesampled op gelijke intervallen over de hele sequentie:
+Voor meer dan één moment verschijnt het veld **Frames** naast het uitvoerformaat. Het toont zich alleen voor een getimede compositie en een stilstaand formaat (PNG, JPG, WebP, SVG of PDF). Laat het op `1` voor het beeld bij de afspeelkop. Verhoog het en je krijgt zoveel stills, gelijkmatig verdeeld over de hele sequentie:
 
-- **Raster en SVG** komen terug als één **zip** - `<name>-01.png`, `-02.png` enzovoort.
-- **PDF** komt terug als een **enkel document met evenveel pagina's**.
+- PNG, JPG, WebP en SVG komen terug als één ZIP: `<name>-01.png`, `-02.png` enzovoort.
+- PDF komt terug als één document met zoveel pagina's.
 
-Handig voor een storyboard, een miniaturenblad, een contactblad voor review of een socialcarrousel geknipt direct uit een videomontage.
+Elke still komt uit het midden van zijn deel van de tijdlijn, dus het eerste beeld is nooit een half vervaagde entree en het laatste is nooit het lege moment nadat elke clip is afgelopen.
 
-Sampling gebeurt op het **middelpunt** van elk interval in plaats van op de randen, omdat het eerste moment van een sequentie vaak een intro-overgang is die nog niet is ingefaded en het laatste de toestand is nadat elke clip is geëindigd - sampling op de randen zou twee van je frames verspillen aan bijna-lege beelden. Het aantal is begrensd op **64** (een contactblad is bedoeld om door een mens te worden gelezen), en alles onzinnigs dat in het veld wordt getypt valt terug op `1` in plaats van de export te laten mislukken. Elk frame is een gewone still, dus Content Credentials, het watermerk, fysieke eenheden en DPI gedragen zich precies zoals bij een enkele export.
+::: figure exporting-contact-sheet
+Frames: 4 snijdt de sequentie in vier gelijke delen en neemt het midden van elk.
+:::
 
-Het veld **Frames** is de manier om vandaag een blad te krijgen. De engine reserveert een bijbehorende URL-parameter `cuts`, maar geen enkele shell leest die nog uit een link, dus een gedeelde link heropent altijd op het playhead-frame - zie [URL-modus](/info/url-parameters.html#contact-sheets-cuts).
+Gebruik het voor een storyboard, een review-contactvel of een social carrousel uit een videomontage. Het aantal is begrensd op 64, en al het andere dat in het veld wordt getypt valt terug op `1`. Elk beeld is een gewone still, dus credentials, de Imprint, fysieke eenheden en DPI gedragen zich zoals bij één export. Een exportlink, de CLI en MCP vragen hetzelfde vel aan met `cuts=` (zie [Contactvellen](/info/url-export.html#contact-sheets)).
 
-## PDF met meerdere pagina's
+## Veel bestanden tegelijk
 
-Sommige tools bouwen een **meerpagina-PDF-document** in plaats van één artwork - een omslag, inhoud die over zoveel pagina's stroomt als nodig is en een achterpagina, allemaal in één bestand (zie de tool *Booklet*). Elke pagina is een **echte PDF-pagina** op de grootte van het vak van die pagina, dus lezers en drukkers krijgen echte pagina's, geen ene lange afbeelding.
+Lolly heeft drie manieren om op volume te werken, elk voor een andere klus:
 
-- **Pagina's uit inhoud.** Voeg blokken tekst en afbeeldingen toe; nieuwe pagina's worden automatisch aangemaakt zodra de blokken vol raken, en je kunt elk blok dwingen om op een nieuwe pagina te beginnen.
-- **Echte paginaformaten.** Kies A4, US Letter of A5 (staand - de layout met twee kolommen is daarvoor gebouwd) - elke pagina, en de geëxporteerde PDF, wordt precies op dat formaat weergegeven.
+::: cols
+## Een tabel wordt één document
+Een tool met een tabelinvoer, zoals **Battlecards**, maakt van elke rij een pagina. Plak een tabel uit je spreadsheet en krijg één PDF. Corrigeer rijen in de spreadsheet en plak opnieuw.
+## Een CSV wordt één bestand per rij
+**Batch** (`#/batch`) neemt een CSV en rendert een export voor elke rij: naambadges of certificaten, elk een bestand, geleverd in een ZIP. Zie [Batch](/info/batch.html#make-many-versions-of-one-design).
+## Meerdere ontwerpen krijgen één bewerking
+**Multi-edit** opent meerdere opgeslagen sessies naast elkaar voor dezelfde bijwerking over verschillende ontwerpen. Zie [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+:::
 
-Meerpagina-PDF's zijn RGB-documenten en dragen geen snij-/afloopmarkeringen - die horen bij het single-page **Print PDF**-pad hierboven. Ze dragen wel dezelfde **PDF/X-4-metadata** als elke PDF-export (paginavakken, XMP, document-ID, een sRGB-output-intent met ingesloten profiel), en ze bieden **Content Credentials** (hieronder) - bij de tool *Booklet* staat de optie standaard aangevinkt.
+Vanuit **Projects** exporteert **Render folder** elke opgeslagen sessie in een map en haar submappen als één geneste ZIP, en **Render selection** doet hetzelfde voor elke meervoudige selectie; één opgeslagen sessie rendert naar zijn eigen bestand. Een opgeslagen sessie kan vanuit Projects ook opnieuw worden gedeeld als toollink, die haar met dezelfde instellingen heropent.
 
-## Veel dingen tegelijk maken
+## Bestanden die elders bewerkbaar blijven
 
-Lolly heeft drie verschillende manieren om op volume te werken, en ze lossen verschillende problemen op - batchbewerking is een eersteklas mogelijkheid van het platform, geen functie die elke tool opnieuw uitvindt:
+Sommige formaten geven je werk aan een andere toepassing door als bewerkbare inhoud in plaats van een afbeelding.
 
-- <!--i:document--> **Eén ontwerp × een tabel met rijen → één document met meerdere pagina's.** Tools met een `table`-invoer (zoals *Battlecards*) zetten elke rij automatisch om in een pagina - plak een tabel uit je spreadsheet, krijg een PDF ter grootte van een deck. Jouw echte batcheditor blijft de spreadsheet: fix tien rijen daar, plak opnieuw. De tool zelf beheert nooit pagina's.
-- <!--i:layers--> **Eén ontwerp × een gegevensbestand → veel losse bestanden.** Het `/pro`-batchraster neemt een CSV en rendert één export *per rij* - naambadges, certificaten, elk één bestand.
-- <!--i:sliders--> **Veel verschillende assets, naast elkaar bewerkt.** *Multi-edit* opent meerdere opgeslagen sessies in één weergave voor gecoördineerde retouches over verschillende ontwerpen heen.
+### PowerPoint (PPTX)
 
-Vuistregel: rijen van hetzelfde ontwerp die in **één document** horen → een tabelgestuurde tool; rijen die als **losse bestanden** verzonden moeten worden → `/pro`; **verschillende ontwerpen** die dezelfde aanpassing nodig hebben → multi-edit. (Een geplande render-optie "media combineren" zal de eerste twee overbruggen - door exports van hetzelfde formaat samen te voegen tot één PDF, één video of een proefdrukcontactblad.)
+Design, Markdown Slides, Booklet, Doc Studio, Chart, Diagrams, Flow Chart en Agenda exporteren een PowerPoint-deck, één dia per pagina. Elke pagina wordt uit elkaar gehaald in native objecten, zodat een collega het deck kan bewerken en assets eruit kan halen:
 
-## PowerPoint (PPTX)
-
-Design, Markdown Slides, Booklet, Doc Studio, Chart en Diagrams kunnen een **PowerPoint-presentatie** exporteren - één slide per pagina. Het punt is geen pixelperfecte screenshot; het is om een collega een presentatie te geven die ze daadwerkelijk kunnen **bewerken en waar ze assets uit kunnen halen**. Elke pagina wordt dus ontleed in native objecten:
-
-- <!--i:font--> **Tekst** wordt echte, **bewerkbare PowerPoint-tekstvakken** - met de lettergrootte, kleur, gewicht, cursivering en uitlijning uit de layout - zodat je een typfout kunt herstellen of kunt herstijlen in PowerPoint.
-- <!--i:pentool--> **Vectoren** (logo's, iconen, het SUSE-merkteken) worden ingesloten als **echte SVG-afbeeldingen** - ze blijven scherp op elke grootte, en PowerPoint kan er zelfs *Convert to Shape* op toepassen.
-- <!--i:photos--> **Afbeeldingen** komen door op hun native resolutie als hun eigen extraheerbare afbeeldingen (een `cover`-bijgesneden hero houdt de volledige afbeelding achter de bijsnede, zodat je opnieuw kunt kadreren), met elke behandeling op de afbeelding (filters, blends) getrouw ingebakken.
-- <!--i:layers--> **Achtergronden, randen en lijnen** worden echte rechthoek-/lijnvormen.
+- <!--i:font--> **Tekst** wordt bewerkbare PowerPoint-tekstvakken met de lettergrootte, kleur, dikte, cursief en uitlijning van de lay-out.
+- <!--i:pentool--> **Vectoren** zoals logo's en pictogrammen worden ingesloten als SVG-afbeeldingen; ze blijven scherp, en PowerPoint kan er *Convert to Shape* op toepassen.
+- <!--i:photos--> **Afbeeldingen** komen binnen op native resolutie als eigen afbeeldingen. Een bijgesneden hero behoudt de volledige afbeelding achter de uitsnede, en elk filter of elke mengmodus erop wordt ingebakken.
+- <!--i:layers--> **Achtergronden, randen en lijnen** worden rechthoek- en lijnvormen.
 
 ![Het exportpaneel met PowerPoint gekozen: één slide per pagina, tekst en vormen blijven bewerkbaar](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
-De layout is bij ontwerp benaderend - het doel is getrouwe, herbruikbare **inhoud**, geen vastgezette screenshot. Alles wat de walker niet native kan uitdrukken (een complex gefilterd of gemaskeerd gebied) wordt ingesloten als afbeelding, zodat niets verloren gaat. Een deck heeft één slideformaat, overgenomen van de eerste pagina.
+De lay-out is bij benadering; het doel is herbruikbare inhoud. Alles wat de walker niet native kan uitdrukken, zoals een complex gefilterd of gemaskeerd gebied, wordt als afbeelding ingesloten zodat niets verloren gaat. Een deck heeft één diaformaat, overgenomen van de eerste pagina.
 
-PowerPoint is ook een weg **naar binnen**. Zet een `.pptx` op elk uploadoppervlak neer en kies de slides die je wilt - elke wordt een asset om te plaatsen, te bewerken of op voort te bouwen. **Markdown Slides** schrijft een nieuwe presentatie vanuit Markdown (en geeft een branded `.pptx`-sjabloon mee), en de **Rebrand**-utility geeft een bestaande presentatie ter plekke een nieuw thema - themapalet, hardgecodeerde kleuren en lettertypen - zonder de charts, SmartArt of animaties aan te raken, en levert een `.pptx` terug. Zie [Een ontwerp importeren → Presentaties en documenten](/info/design-import.html#decks-and-documents).
+PowerPoint is ook een ingang: [Rebrand a deck](/info/rebrand.html) zet een deck over naar je design system, en [Een ontwerp importeren](/info/design-import.html) opent er een in Design.
 
-## Penpot
+### Penpot
 
-Elke tool die SVG kan exporteren, kan ook een **Penpot-bestand** (`.penpot`) exporteren - het document, klaar om in Penpot verder te bewerken in plaats van er alleen naar te kijken.
-
-- <!--i:layout--> Vanuit **Design** wordt elk frame een Penpot-**board**, elk vak erop komt over als zijn eigen bewerkbare vorm - rechthoek, ellips, tekst, afbeelding of pad - en het resultaat komt aan als een herbruikbaar **component** in het Assets-paneel, klaar om opnieuw uit te slepen.
-- <!--i:pentool--> Vanuit een tool waarvan de render **platte geometrie** is - de vectortools zoals QR Code, Street Map, Wordmark en Palette Lab - komt elk pad, elke rechthoek, tekstregel en gradiënt op dezelfde manier over, als zijn eigen bewerkbare vorm.
-- <!--i:font--> Vanuit een tool die zijn render opbouwt in **HTML**, **blijft de tekst tekst** - één bewerkbaar Penpot-tekstobject per regel, geen omtrek en geen platte afbeelding. Een stuk artwork waar Penpot geen construct voor heeft - een complexe illustratie, een live canvas - gaat op zichzelf mee als afbeelding, zodat het nooit de tekst en vakken eromheen plat maakt. Een hele lay-out die Penpot niet getrouw kan scheiden, kan alsnog als één afbeelding op volle getrouwheid overkomen, dus er gaat nooit iets verloren.
-- <!--i:palette--> Een kleur of lettertype dat een vorm **erft van een merktoken** blijft **gekoppeld** aan dat token in het bestand: verander het token in Penpots Tokens-paneel en elke vorm die het erft, schildert samen opnieuw, terwijl een eenmalige letterlijke kleur precies blijft waar hij is. De kleuren en typografieën van het merk komen ook in het **Assets**-paneel terecht, en de volledige set designtokens in het **Tokens**-paneel - dezelfde DTCG-tokenset die Lolly's eigen palet gebruikt. Penpot houdt vanaf daar zijn eigen kopie bij: een bewerking gemaakt in zijn Tokens-paneel komt terug in het merk via [Brand Studio's import](/info/design-import.html), niet vanzelf.
+De meeste tools die SVG exporteren, exporteren ook een **Penpot-bestand** (`.penpot`), klaar om in Penpot te blijven bewerken.
 
 | Wat je maakte | In Penpot |
 |---|---|
-| Tekst | Bewerkbare tekstobjecten - typfout herstellen of herstijlen |
-| Vormen, paden, gradiënten, afbeeldingen | Hun eigen bewerkbare vectorvormen |
-| Een kleur of lettertype uit een merktoken | Een live tokenkoppeling - bewerk het token, elke vorm die het erft volgt |
-| Het hele ontwerp | Een herbruikbaar component in het Assets-paneel |
-| Een complexe illustratie of live canvas | Op zichzelf ingesloten als afbeelding, de bewerkbare inhoud eromheen ongemoeid |
+| Tekst | Bewerkbare tekstobjecten: corrigeer een typfout of geef een andere stijl |
+| Vormen, paden, verlopen en afbeeldingen | Hun eigen bewerkbare vectorvormen |
+| Een kleur of lettertype uit een design-systeemtoken | Een live tokenkoppeling: bewerk het token en elke vorm die het erft volgt |
+| Het hele ontwerp | Een herbruikbare component in het paneel Assets |
+| Een complexe illustratie of live canvas | Op zichzelf ingesloten als afbeelding, de bewerkbare inhoud eromheen onaangeroerd |
+
+Vanuit Design wordt elk kader een Penpot-board. De kleuren en typografieën van het design system komen in het paneel Assets en de volledige tokenset in het paneel Tokens. Penpot houdt vanaf daar een eigen kopie: een token dat in Penpot is bewerkt komt terug via de import in [Design System Setup](/info/brand-studio.html).
 
 ![Het exportpaneel met Penpot gekozen: het .penpot-bestand, en Send to Penpot naast de download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
-Om het te openen, start je Penpot, kies je een project en kies je **Import**. Ingelogd bij Penpot vanuit het exportpaneel doet **Send to Penpot** die stap voor je - kies daar een project en het bestand gaat er direct in.
+Om het bestand te openen start je Penpot, kies je een project en kies je **Import**. Als je vanuit het exportpaneel bij Penpot bent aangemeld, doet **Send to Penpot** die stap voor je.
 
-## SCORM (cursuspakketten)
+### Word, OpenDocument en InDesign
 
-Kies **Cursus exporteren** vanuit een ondersteunde tool, een projectmap of een selectie. In Design opent het kiezen van **SCORM (LMS)** en Downloaden ook deze cursusworkflow. Lolly slaat de creatie op, laat je de inhoud en volgorde van de cursus controleren, en opent dan de module en de bijbehorende exportdialoog.
+**Doc Studio** exporteert **Word** (DOCX) en **OpenDocument** (ODT) met echte alinea's en koppen.
 
-- <!--i:layout--> Kies de beschikbare weergave voor elke bron: stilstaande pagina's, beweging als video, audio of een downloadbare bron. Voeg native lestekst en leesalternatieven toe in de module.
-- <!--i:play--> Bekijk de leerlingspeler vooraf en controleer beschrijvingen en ondertitels. Beweging wordt opgenomen als video, inclusief stille animatie. Exporteer eerst een afgewerkte opname wanneer een tool die niet vanuit opgeslagen invoer kan herscheppen.
-- <!--i:file--> Selecteer Website, SCORM 1.2, SCORM 2004 4th Edition, of een experimenteel xAPI-doel. Controleer de daadwerkelijke inhoud en ZIP-grootte, sla dan de gecontroleerde versie op en download hem.
-- <!--i:check--> Voltooiing vereist het bevestigen van elke verplichte les en het selecteren van Finish. De websitespeler bewaart voortgang in de browser; een LMS-pakket verbindt met het ontvangende LMS.
+**Design** exporteert **InDesign IDML (static subset)**: tekst, rechthoeken, ovalen en PNG- of JPEG-afbeeldingen, één spread per tekenbord. Ondersteunde inline opmaak blijft bewerkbaar, afbeeldingen reizen in `Links` en coördinaten worden InDesign-punten. Opnieuw koppelen, lettertypevervanging en gewijzigde omloop kunnen aandacht nodig hebben. Effecten, animatie, samengestelde verhalen en niet-ondersteunde geometrie stoppen de export met een rapport dat ze noemt. IDML behoudt het oorspronkelijke document niet, dus stuur PDF voor afgerond artwork.
+
+### Tijdlijnen: dotLottie en Premiere
+
+Vanuit de tijdlijn van Design schrijft **dotLottie** een animatie die bewerkbaar blijft in Lottie-tools; [Lottie animations](/info/sequence-editor.html#lottie-animations) noemt wat ze behoudt. **Premiere XML + media** verpakt getimede clips en hun originele media voor Premiere; zie [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange).
+
+### SCORM (cursuspakketten)
+
+Cursusexport staat uit totdat je **Training and courses** aanzet onder Settings → Preferences → Feature flags.
+
+Kies dan **Export course** in een ondersteunde tool, een projectmap of een selectie. In Design opent het kiezen van **SCORM (LMS)** en **Download** dezelfde cursusworkflow. Lolly slaat het werk op, laat je de cursusinhoud en -volgorde bekijken en opent dan de module en zijn exportdialoog.
+
+- <!--i:layers--> Kies een weergave voor elke bron: stilstaande pagina's, beweging als video, audio of een downloadbare bron. Voeg lestekst en leesalternatieven toe in de module.
+- <!--i:clock--> Bekijk de speler voor leerlingen en beoordeel beschrijvingen en ondertitels. Beweging wordt als video opgenomen, ook stille animatie.
+- <!--i:document--> Kies Website, SCORM 1.2, SCORM 2004 4th Edition of een experimenteel xAPI-doel. Controleer de inhoud en de ZIP-grootte, sla dan de gecontroleerde versie op en download die.
+- <!--i:check--> Voltooiing vereist dat elke verplichte les wordt bevestigd en Finish wordt gekozen.
 
 ![Het exportpaneel op een Design-deck met SCORM (LMS) gekozen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
-Het pakket bevat zijn afgewerkte inhoud en vereist geen Lolly-account. Pak een Website-ZIP uit op een HTTP(S)-host; importeer een LMS-ZIP zonder de inhoud ervan te wijzigen. Test de beoogde bestemming voordat je de cursus verspreidt.
+Het pakket bevat zijn afgeronde inhoud en heeft geen Lolly-account nodig. Zet een Website-ZIP op een HTTP(S)-host; importeer een LMS-ZIP ongewijzigd. Test de bestemming voordat je de cursus deelt. Voor een cursus uit meerdere opgeslagen creaties, zie [Create a training course](/info/training-creators.html).
 
-Gebruik voor een cursus die is samengesteld uit meerdere opgeslagen creaties, geïmporteerde media en bronnen [Een cursus maken](/info/create/training-creators.html). De leermodule heeft zijn eigen geordende outline, expliciete lesbevestigingen, leerlingpreview en geversioneerde pakketgeschiedenis. Het CLI-pad ervan kan media verpakken die je al hebt geëxporteerd.
+### DXF (snijbestanden)
 
-## DXF (snijbestanden)
+Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding en Wordmark exporteren **DXF**, het AutoCAD R12-uitwisselingsformaat dat lasersnijders, vinylplotters en CNC-software lezen. Geometrie wordt geschreven als omtrekpaden in millimeters, tekst wordt omlijnd en kleur wordt toegewezen aan de dichtstbijzijnde AutoCAD Color Index, die meestal de bewerking van de snijder aanstuurt. DXF is alleen lijntekening: een fotografisch of gefilterd gebied heeft geen snijpad en wordt weggelaten, met een waarschuwing. Gebruik SVG of PDF om rasterinhoud te behouden.
 
-Vectortools (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, de logo-lockups, Diagram Builder) kunnen exporteren naar **DXF** - het AutoCAD R12-uitwisselingsformaat dat lasersnijders, vinylplotters en CNC/CAD-software lezen. Geometrie wordt geschreven als **paden in millimeters** met omtrek (curven afgevlakt tot een fijne tolerantie), tekst wordt omgezet naar paden en kleur wordt gemapt naar de dichtstbijzijnde AutoCAD Color Index (die doorgaans de tool/bewerking op een snijmachine aanstuurt). DXF is alleen lijntekening - een fotografisch of gefilterd gebied heeft geen snijpadvorm en wordt weggelaten (Lolly waarschuwt), dus gebruik SVG/PDF wanneer je rastercontent moet behouden.
-
-Street Map is het duidelijkste geval: het hele ontwerp bestaat al uit lijnen, dus elke weg en elk kanaal wordt een snijpad zonder iets om weg te laten.
+Street Map is het duidelijkste geval. Het hele ontwerp bestaat al uit lijnen, dus elke weg en gracht wordt een snijpad.
 
 ::: showcase
 ![Een Street Map-render van Parijs in inkt op crème - pure lijnkunst, zodat elke lijn de reis naar een snijmachine overleeft](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
@@ -197,165 +212,196 @@ Street Map is het duidelijkste geval: het hele ontwerp bestaat al uit lijnen, du
 Scroll, en de camera zoomt terug door de daadwerkelijke geometrie: zeven paden, nergens pixels, elke lijn haarlijn-scherp op elke zoom. Dat is hetzelfde bestand dat een snijmachine leest.
 :::
 
-## Geanimeerde SVG
+## Drukwerk
 
-Bewegingstools (Animated Ad, Lottie Ad) kunnen **Geanimeerde SVG** exporteren - een op zichzelf staande, *vectoriële* animatie. In tegenstelling tot GIF/APNG/WebP (die elk frame naar pixels bemonsteren), stapelt een geanimeerde SVG vectorsnapshots met ingesloten CSS-keyframes, zodat ze **op elke grootte schaalt zonder codec en zonder externe runtime** - ze loopt in een browsertab of een `<img>`. Tekst blijft omlijnd zodat het overal wordt weergegeven. Ze deelt de **Duration**/framerate-besturing van de geanimeerde formaten, en gebruikt (omdat ze per frame zwaarder is dan een bitmap) een lagere standaardframerate.
+**Print PDF** schrijft CMYK tegen een benoemde drukconditie, standaard **Coated FOGRA39**. Merkstalen met gemeten inktwaarden worden exact omgezet; andere kleuren gebruiken een standaard apparaatomzetting. **Print TIFF** schrijft DeviceCMYK-pixels voor een RIP en legt dezelfde drukconditie vast in zijn TIFF-metadata. De bediening Colour profile stuurt beide; [Kleurprofielen](#colour-profiles) bevat de details.
 
-## Transparantie
+**Print marks & bleed** heeft een eigen kaart bij de drukformaten: de afloop in millimeters plus Crop, Registration, Bleed, Colour bars en Stamp details.
 
-Tools die het ondersteunen bieden een schakelaar voor **transparante achtergrond** (bijv. *No BG*). Transparantie wordt behouden door PNG, WebP, AVIF, SVG (statisch en geanimeerd), APNG en Animated WebP. JPG en PDF zijn altijd ondoorzichtig, en TIFF wordt platgeslagen op wit (op zwart bij het HDR-pad - zie hieronder).
+Sommige tools bouwen een **PDF met meerdere pagina's**: een omslag, inhoud die doorloopt over zoveel pagina's als nodig en een achterpagina, zoals in de tool *Booklet*. Elke pagina is een echte staande PDF-pagina in A4, US Letter of A5, en je kunt elk blok op een nieuwe pagina forceren. Dit zijn RGB-documenten zonder snijmerken of afloop, die bij de Print PDF van één pagina horen. Een Design-PDF kan ook een **Notes handout** zijn: een staande pagina voor elke dia met de sprekersnotities eronder.
 
-## Kleurruimtes
+**Voordat je exporteert.** Een kaart **Before you export** onderaan het paneel zegt wat een drukker straks gaat zien: formaat, grootte en afloop, snij- en afloopgebieden, inktdekking, aantal platen en aantal pagina's, met een oordeel naast de kop. Ze blokkeert nooit een export. Design toont de kaart altijd met zijn eigen controles, inclusief de huisstijlregels van het design system laag voor laag en het schrijfsignaal voor de tekst van het document ([Voordat je exporteert](/info/design.html#before-you-export)), en voegt deze drukcontroles toe wanneer **Print preflight** aan staat. Zet in andere tools **Print preflight** aan onder Settings → Preferences → Feature flags; het staat standaard uit, en een Lolly Work-implementatie kan het voor haar leden aanzetten.
 
-Twee verschillende vragen, die je uit elkaar moet houden: welke kleurruimtes Lolly kan **lezen en waarin denken**, en welke het **schrijft**.
+**Nadat je exporteert.** Zodra het bestand klaar is, leest Lolly het terug en vergelijkt het met wat je koos: formaat, pixel- of paginaformaat, cliplengte, een transparante achtergrond, CMYK-kleur, HDR, Content Credentials en een PDF- of ZIP-wachtwoord. Alles wat afwijkt wordt op de exportkaart geschreven. Elke meting komt uit het bestand, nooit uit de instelling, en een eigenschap die het bestand niet kan beantwoorden telt niet als overeenkomst. De opdrachtregel schrijft de volledige vergelijking met `--export-report` (zie [Render with the CLI](/info/cli-rendering.html)).
 
-**Lezen.** Overal waar een kleur wordt geschreven - het stylesheet van een tool, de paint van een geïmporteerde SVG, de waarde van een designtoken, een schaduw of gradiënt binnen een CSS-shorthand - leest Lolly de volledige **CSS Color 4**-vocabulaire: `#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, de benoemde CSS-kleuren en `color()` in de vooraf gedefinieerde ruimtes - `srgb`, `srgb-linear`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d50`, `xyz-d65` - inclusief componenten geschreven als het `none`-sleutelwoord. Eén parser doet dit voor het hele platform, zodat de browser en elke exportwalker het eens zijn over wat een kleurstring betekent.
+De inspectorcontroles van Design en de merkvergelijking in Design System Setup zijn aparte controles: ze kijken naar het ontwerp, terwijl deze twee kaarten naar het bestand kijken.
 
-Dat is belangrijker dan het klinkt, omdat een browser moderne CSS omzet naar moderne CSS. Schrijf `color-mix(in oklab, …)` en Chrome berekent `oklab(…)`; gebruik een merktoken opgeslagen als `oklch()` en dat is de letterlijke waarde die de exportwalker ziet. Kleuren in die vormen worden correct gelezen in plaats van weggelaten - wat een walker die alleen `rgb()` begreep deed, waardoor merkgekleurde tekst als zwart werd geëxporteerd, getinte panelen en tabelregels verloren gingen en `oklch(0.7 0.1 200) 0px 2px 4px` werd gelezen als een schaduwverschuiving van 0.7 bij 0.1.
+::: details Kosten uit een tarievenkaart
+Onder preflight zet een kostenkaart dezelfde aantallen om in geld, met alleen prijzen die iemand heeft aangeleverd. Ze leest die aantallen ook als de preflightkaart zelf uit staat. Ze heeft twee dingen nodig: een klus die een prijslijst kan prijzen (platen, vellen, oppervlak, pagina's, variantrijen of uitvoerbestanden, dus een gewone logo-PNG toont haar nooit) en een **rate card**, een JSON-prijslijst van je drukker. Een standaardbuild bevat er geen en heeft geen manier in de app om er een te laden. Een tarievenkaart komt als catalogusasset die een implementatie meelevert, of via de optionele tarievenkaartextensie die een zelfhoster of controlevlak aanzet. Zonder tarievenkaart wordt niets getoond.
 
-**Denkwerk.** Kleurwiskunde gebeurt perceptueel in plaats van in ruwe kanalen. Paletafleiding, verlopen, harmonieën en contrast draaien in **OKLCH/OKLab**, en een kleur buiten het gamut wordt binnen bereik gebracht door CSS Color 4's eigen gamut-mapping-algoritme - chromareductie met een perceptuele-afstandscontrole - in plaats van door kanalen af te knippen, zodat een felle kleur uitkomt op de dichtstbijzijnde kleur die je daadwerkelijk zou accepteren, in plaats van een afgevlakte. Verlopen interpoleren in een ruimte die je zelf kiest (standaard OKLab, of `oklch`, `lab`, `lch`, `srgb`, `srgb-linear`, `hsl`, met een tintrichting voor de polaire varianten), en menging is **premultiplied**, zodat een fade naar transparant de juiste kleur behoudt in plaats van onderweg naar zwart te verdonkeren. Eén interpolator bedient zowel de preview als de export-walkers - wat voorkwam dat een conisch verloop op het scherm anders werd gemengd dan in het geëxporteerde bestand.
+Elk bedrag is een tarief dat jij aanleverde maal een hoeveelheid die Lolly telde, zoals `4 plate × €35.00`, en het totaal draagt zijn bron: de uitgever op de kaart en de datum van de tarieven. Er is geen standaardvaluta en geen plaatsvervangende prijs. Wat het bestand over zichzelf zegt, blijft indirecte rede: *"The file says: … Lolly has not verified this."*
 
-**Schrijven.** De output is bewust smaller dan de input, omdat een bestand leesbaar moet zijn voor wat het ook opent, en een ruimte wordt alleen ooit *gedeclareerd* bij output wanneer de getallen daadwerkelijk ernaar zijn omgezet. Scherm- en webformaten worden geschreven als **sRGB** en als zodanig getagd; de printformaten worden geschreven als **CMYK** tegen een benoemde persconditie (hieronder); en het HDR-pad is **Rec.2100 PQ** (hierboven). Een kleur met een breed gamut die een export bereikt, wordt naar sRGB gemapt in plaats van verkeerd gelabeld - `color(display-p3 …)` doorvoeren tot in een vectorbestand is een geplande uitbreiding, geen iets dat de huidige exports beweren te doen. Een gradiënt gemaakt in OKLab wordt op weg naar buiten *gebakken* tot gewone sRGB-stops, met extra stops alleen ingevoegd waar sRGB zichtbaar zou afwijken van de perceptuele curve, omdat een SVG `<linearGradient>` en een PDF axiale shading geen instelling voor interpolatieruimte hebben om de bedoeling over te dragen. Eén geautoriseerde waarde, drie renderers, geen afwijking.
+Wanneer een bedrag niet kan worden uitgerekend, wordt de tabel ingetrokken in plaats van ingevuld:
 
-## Kleurprofielen
+- Regels die de kaart niet prijst betekenen **helemaal geen totaal**, alleen een kop die zegt hoeveel regels geen prijs hebben.
+- Een hoeveelheid die een plafond is, neemt **"up to"** mee in haar subtotaal.
+- Tarieven na hun geldig-tot-datum tonen **alleen aantallen** totdat je op *Use these rates anyway* drukt; de verloopdatum reist dan mee met het bedrag.
+- Geopend via een **link** blijft geld verborgen totdat je er op dit apparaat om vraagt. De CLI neemt `--rate-card=<file.json>` aan als lokaal bestand en nooit als linkparameter.
 
-Zodat kleuren getrouw worden gereproduceerd in kleurbeheerde apps (drukkerijen, Photoshop, browsers), worden exports **getagd met een kleurprofiel**:
+De kaart wordt uit elke exportfase gehaald, dus ze verandert het bestand nooit. Het is rekenwerk, geen offerte; alleen je drukker kan een offerte maken.
+:::
 
-- **PNG / JPG** bevatten een ingesloten **sRGB**-ICC-profiel - de kleurruimte waarin de preview daadwerkelijk wordt gerenderd - zodat er niets te raden overblijft. (Alleen tagging; de pixels worden niet opnieuw gecodeerd.)
-- **Print PDF (CMYK)** declareert een doel-**persconditie** in de *OutputIntent* (standaard *Coated FOGRA39*), die een RIP/drukkerij vertelt hoe de CMYK-inkten bedoeld zijn te worden gelezen. Merkstalen met gemeten inktwaarden worden exact omgezet; andere kleuren gebruiken een standaard apparaatconversie. Die declaratie is een *naam*: er wordt geen CMYK-profiel meegeleverd met Lolly, en PDF/X-4 wil het profiel ingesloten hebben, dus een benoemde conditie schrijft de outputintent zonder PDF/X-4-conformiteit te claimen. Laad een eigen CMYK-profiel en kies de rij **Embed** in de besturing Kleurprofiel, en het wordt ingesloten als het *DestOutputProfile* van het bestand - op dat moment kan de PDF echt PDF/X-4 zijn, en claimt dit wanneer de rest van het bestand het toelaat. Drie dingen houden de claim tegen terwijl de outputintent behouden blijft (een RIP wil die nog steeds): RGB-artwork dat de CMYK-pas niet kon omzetten, de bewijsmargetekst `prov` (getekend in een standaardlettertype dat niet is ingesloten, en X-4 maakt daar geen uitzondering voor) en een **Strong**-wachtwoord, aangezien X-4 versleuteling verbiedt. De conditie die wordt gedeclareerd, wordt dan van dat profiel afgelezen: een geregistreerde naam waar het profiel er een bewijst, `Custom` onder de eigen naam van het profiel waar dat niet zo is, zodat het bestand nooit de ene persconditie kan benoemen terwijl het de metingen van een andere bevat.
-- **Print TIFF (CMYK)** schrijft ongetagde **DeviceCMYK**-pixels en registreert dezelfde persconditie als herkomst in de TIFF-metadata (*ImageDescription*) in plaats van een profiel in te sluiten. Dezelfde besturing Kleurprofiel stuurt beide CMYK-formaten aan - een TIFF kan helemaal geen persprofiel insluiten, dus een rij **Embed** registreert daar alleen de eigen naam van dat profiel.
-- **TIFF (RGB)** is de gewone, ongecomprimeerde sRGB-tegenhanger - een verliesvrije raster op de gekozen DPI voor archivering of een heen-en-weer-reis met een editor, met herkomst geregistreerd in dezelfde TIFF-metadata. Elke transparantie wordt platgeslagen op wit (dit profiel bevat geen alfa). Net als de CMYK-TIFF is het alleen voor desktop, aangezien browsers geen TIFF kunnen voorvertonen en mobiele downloads doodlopen.
-- **SVG**, **EMF**, **EPS** en **DXF** zijn resolutie- en profielonafhankelijke vectoren zonder ingesloten profiel - de kleuren van SVG zijn gewoon sRGB, die van EMF en EPS zijn device-RGB (en **EPS (CMYK)** schrijft naïef DeviceCMYK) en **DXF** bevat de dichtstbijzijnde AutoCAD Color Index. (SVG, EPS en DXF zetten, net als PDF, alle tekst om in vectorpaden, zodat het resultaat overal wordt weergegeven, ook als het lettertype niet is geïnstalleerd. EMF houdt tekst standaard LIVE - echte metafile-tekstrecords die selecteerbaar en bewerkbaar blijven in Office en Google Slides, en valt alleen terug op omlijningen voor teksten die het formaat niet kan uitdrukken; de optie "Outline fonts" in het exportpaneel dwingt overal paden af.) **SVG** reproduceert ook CSS `box-shadow` uit de HTML - elke buitenschaduw wordt achter het vak getekend, verschoven/verspreid en Gaussisch vervaagd om overeen te komen met de browser, en inzetschaduwen worden op dezelfde manier binnenin getekend.
+## Beweging en geluid
 
-Dit gaat automatisch - niets om aan te passen. Miniaturen en previews slaan de tag over om klein te blijven. Eén profiel *is* een keuze, omdat het de pixels verandert in plaats van ze alleen te labelen - zie **HDR** hieronder.
+### Video
 
-## HDR (heldere kleuren)
+Geanimeerde tools exporteren **MP4** en **WebM**. De kiezer toont alleen de containers die deze browser kan maken, en een gedeelde `?format=`-link die er een vraagt die hij niet kan maken, valt terug op de andere, met een passende bestandsnaam. Geanimeerde tools bieden ook **Start after**, dat het canvas even stil houdt zodat animaties en lettertypen zich zetten voordat de opname begint, en **Duration**, de lengte van de afgeronde clip. **Motion blur** (Off, Draft quality, Standard of High, met een **Shutter angle**) vervaagt snelle beweging ten koste van rendertijd. Waar de browser het ondersteunt, neemt **Record live** het voorbeeld op het scherm in realtime op via een schermdeling.
 
-Gewone exports zijn sRGB: wit is wit, en een verzadigde merkkleur is net zo helder als het normale wit van het scherm. Op een HDR-geschikt scherm is daarboven veel speling, en de **HDR**-kaart in het exportpaneel gebruikt die - je merkkleuren en witte tekst worden richting piekhelderheid opgestuwd zodat ze echt *gloeien*, terwijl de donkere gebieden donker blijven en de gloed zijn contrast geven.
+![De timinginstellingen voor een geanimeerde export: Start after, Duration, Motion blur met zijn Shutter angle, en Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+
+**Quality** kiest Smaller file, Balanced of Best quality. **Advanced** opent **Codec**, **Frame rate**, **Rate mode** en **Hardware acceleration**. Waar een tool ondertitels heeft, kiest **Captions** een **Embedded track** of een **Sidecar .vtt + .srt** naast de video. Een link draagt de kwaliteit, codec, framerate, duur en startvertraging als `vq`, `codec`, `fps`, `seconds` en `wait` ([URL parameters](/info/url-parameters.html)).
+
+Video-exports behouden hun geluid. Een tool kan een **muziekbed** onder de clip leggen: een audioasset in een lus of getrimd tot de cliplengte, met fades, volume en ducking onder het eigen geluid van het beeldmateriaal. De opnametools nemen hun live audio mee naar het bestand.
+
+Een Design-deck dat een klikdeck blijft, kan toch als video vertrekken. **Export slides as video** in het menu Present opent het exportvenster op MP4. Elke dia speelt gedurende zijn eigen verblijftijd, of gedurende de Duration van het exportvenster als hij er geen heeft, en de diaovergang van het deck speelt ertussen als een dissolve. Het document zelf verandert niet.
+
+### Geanimeerde afbeeldingen
+
+**GIF** speelt overal en past bij chat en e-mail; het is groter en heeft minder kleuren dan video. **APNG** en **Animated WebP** behouden volle kleur en transparantie. **Lottie Ad** exporteert ook **Animated SVG**: vectorbeelden met ingesloten CSS-keyframes, dus het schaalt naar elk formaat en loopt in een browsertabblad of een `<img>` zonder codec. De tekst is omlijnd, en het gebruikt een lagere standaardframerate omdat elk beeld zwaarder is dan een bitmap. Al deze zijn stil.
+
+### Audio
+
+Sommige tools exporteren geluid op zichzelf. **Voice Recorder** neemt een microfoontake op met een live niveaumeter en slaat die op als **MP3**, **WAV**, **M4A (AAC)** of **Opus (WebM)**, op je apparaat gecodeerd. `wav`, `mp3`, `m4a` en `opus` zijn gewone formaat-id's, dus een audio-export is net zo deelbaar en scriptbaar als een PNG.
+
+De assetkiezer accepteert een breed scala aan audio voor een muziekbed, van MP3 en FLAC tot MIDI en trackermodules; [Formats](/info/formats.html) noemt ze. Een [Rondocode-nummer](/info/rondocode.html) speelt op welke lengte zijn clip ook vraagt.
+
+## Kleur en HDR
+
+Lolly leest elke moderne CSS-kleur, doet zijn kleurwiskunde perceptueel en schrijft elk bestand in een ruimte die een lezer kan openen: sRGB voor schermen, CMYK voor drukwerk en Rec.2100 PQ voor HDR. [Colour in the engine](/info/colour-engine.html) legt uit hoe. Een Design-document met **Wide colour / HDR** volgt zijn eigen regels, beschreven in [Wide colour and HDR editing](/info/hdr-editing.html).
+
+### Kleurprofielen
+
+Exports worden gelabeld met een kleurprofiel, zodat kleurbeheerde apps zoals drukkerijen, Photoshop en browsers de kleuren lezen zoals jij ze zag. Dit gebeurt automatisch; miniaturen en voorbeelden slaan het label over om klein te blijven.
+
+- **PNG en JPG** dragen een ingesloten ICC-profiel **sRGB**, de ruimte waarin het voorbeeld wordt getekend. De pixels worden gelabeld, niet opnieuw gecodeerd.
+- **Print PDF (CMYK)** verklaart zijn drukconditie in zijn *OutputIntent*, waarmee een drukker weet hoe zijn CMYK-inkten bedoeld zijn gelezen te worden.
+- **Print TIFF (CMYK)** schrijft ongelabelde DeviceCMYK-pixels en legt de drukconditie vast in zijn TIFF-metadata. Een TIFF kan geen drukprofiel insluiten, dus een rij **Embed** legt alleen de naam van dat profiel vast.
+- **TIFF (RGB)** is de ongecomprimeerde sRGB-tegenhanger voor archief of een round trip met een editor. Hij vlakt transparantie af op wit. Beide TIFF's zijn alleen voor desktop, omdat browsers geen TIFF kunnen tonen.
+- **SVG**, **EMF**, **EPS** en **DXF** zijn vectoren zonder ingesloten profiel: de kleuren van SVG zijn sRGB, EMF en EPS gebruiken apparaat-RGB, **EPS (CMYK)** schrijft DeviceCMYK en DXF gebruikt de AutoCAD Color Index. SVG, EPS en DXF zetten tekst om in paden. EMF houdt tekst live en bewerkbaar in Office en Google Slides, en valt alleen terug op omtrekken voor stukken die het formaat niet kan uitdrukken; de optie **Outline fonts** van het exportpaneel forceert overal paden. SVG reproduceert ook CSS-boxschaduwen, binnen en buiten.
+
+::: details PDF/X-4 en je eigen drukprofiel
+Er wordt geen CMYK-profiel met Lolly meegeleverd. Een benoemde drukconditie schrijft de output intent zonder PDF/X-4-conformiteit te claimen, omdat PDF/X-4 het ingesloten profiel wil.
+
+Laad een eigen CMYK-profiel en kies zijn rij **Embed** in de bediening Colour profile. Het wordt ingesloten als *DestOutputProfile* van het bestand, en de PDF claimt PDF/X-4 zodra de rest van het bestand dat toelaat. De drukconditie die ze verklaart wordt van dat profiel afgelezen: een geregistreerde naam waar het profiel er een bewijst, of `Custom` onder de eigen naam van het profiel.
+
+Drie dingen houden de claim tegen terwijl de output intent blijft: RGB-artwork dat de CMYK-pass niet kon omzetten, de creditstekst van de `prov`-proefmarge (getekend in een standaardlettertype dat niet is ingesloten) en een **Strong**-wachtwoord, aangezien PDF/X-4 versleuteling verbiedt. Elke PDF bevat ook PDF/X-4-metadata: paginaboxen, XMP, een document-ID en een sRGB-output intent met zijn profiel.
+:::
+
+### HDR (heldere kleuren)
+
+Dit is de kaart **HDR** van het exportpaneel, die gewoon artwork helderder maakt voor HDR-schermen. HDR-originelen behouden tijdens het bewerken is een andere functie: [Wide colour and HDR editing](/info/hdr-editing.html).
+
+Een gewone export is sRGB: een verzadigde merkkleur is zo helder als het normale wit van het scherm. Een HDR-scherm heeft ruimte erboven. De kaart **HDR** versterkt je merkkleuren en witte tekst richting piekhelderheid, terwijl donkere gebieden donker blijven en de gloed zijn contrast geven.
 
 ![De HDR-kaart in het exportpaneel, ingeschakeld, met de knoppen White / Reach / Dark lift / Focus eronder zichtbaar](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formaten.** De rasterformaten met een plek om het signaal te dragen: **PNG**, **JPG**, **AVIF** en **TIFF**. (Geen WebP - dat is 8-bit zonder werkend HDR-decodepad, dus een PQ-WebP zou er gewoon donker uitzien. Vectoren en PDF hebben helemaal geen HDR-model.)
-- **Standaard uit**, anders dan kleurtagging - het verandert de pixels, dus het is opt-in. Vink de kaart aan, of geef `hdr=1` mee in een deellink.
-- **Wat er daadwerkelijk wordt geschreven.** De pixels worden opnieuw gecodeerd naar **Rec.2100 PQ** - BT.2020-primairen met de SMPTE ST 2084 (PQ) transfercurve - en de container draagt het bijpassende signaal zodat een kleurbeheerde app weet dat hij ze zo moet lezen: een gegenereerd **ICC v4-profiel met een `cicp`-tag** (JPG, TIFF), een **`cICP`-chunk** (PNG) of een herschreven `colr`-box (AVIF). De versterking is gekoppeld aan **perceptuele (OKLab-)helderheid**, dus middentonen en hoger schieten naar piek en donkere tonen worden getemperd in plaats van uitgebrand, en het is kleurtoonbehoudend - een merkgroen wordt helderder, niet mintig.
-- **De regelaars.** Vier, zichtbaar als de kaart aanstaat: **White** (het piekhelderheidsplafond, 400-2000 nits), **Reach** (hoe ver naar beneden in de tinten de gloed reikt), **Dark lift** (hoeveel de donkere tonen opgehelderd worden - `0` houdt ze donker) en **Focus** (hoeveel kleurrijkheid de versterking behoudt). Ze rijden mee in dezelfde parameter als een compacte afgestelde waarde - `hdr=1600-60-0-50` is White 1600, Reach 60, Dark lift 0, Focus 50 - zodat een afgestelde look reproduceerbaar is vanuit de link.
-- **Waar je het zult zien.** Kleurbeheerde viewers op een HDR-scherm: Preview / Quick Look / Safari op Apple-apparaten, Chrome op een HDR-monitor. Op een gewoon SDR-scherm toont het bestand nog steeds als een normale afbeelding.
-- **Weten voordat je het verstuurt.** Veel platforms **coderen opnieuw** wat je uploadt en strippen het HDR-signaal - sociale netwerken, berichten-apps, sommige CMS'en - wat de afbeelding donker of verwassen kan laten ogen. Gebruik HDR waar je de bestemming beheerst (een site die je zelf bouwt, een videowand, een presentatie op een helder paneel), niet als standaard voor alles.
-- **Transparantie.** PNG en AVIF behouden hun alpha; JPG is zoals altijd ondoorzichtig. Het **TIFF**-pad platteert op **zwart**, niet op het wit van het SDR-pad - in PQ is wit de 10.000-nits-code, dus platten op wit zou elke rand omringen met een verblindende halo.
-- **Dezelfde bytes vanaf de terminal.** `--hdr=1` met `--export=png` of `--export=jpg` schrijft de 16-bit Rec.2100 PQ-PNG en de ISO 21496-1 gain-map-JPEG ook op de [CLI](/info/cli.html), uit dezelfde engine-encoders in plaats van een browser - dus een `<svg>`-native tool produceert een HDR-bestand zonder ergens Chromium in het pad, en de PNG is byte-identiek aan die van de webshell. AVIF en TIFF blijven voorlopig webshell-exports.
+- **Formaten.** PNG, JPG, AVIF en TIFF. WebP is 8-bit zonder werkend HDR-decodepad, en vectoren en PDF hebben geen HDR-model.
+- **Standaard uit**, omdat het de pixels verandert. Vink de kaart aan, of geef `hdr=1` mee in een deellink.
+- **De knoppen.** **White** (het plafond van de piekhelderheid, 400 tot 2000 nits), **Reach** (hoe ver de gloed zich door de tonen verspreidt), **Dark lift** (hoeveel de donkere tonen oplichten; `0` houdt ze donker) en **Focus** (hoeveel kleurrijkdom de versterking behoudt). Ze reizen als één waarde: `hdr=1600-60-0-50` is White 1600, Reach 60, Dark lift 0 en Focus 50.
+- **Wat er wordt geschreven.** PNG krijgt 16-bit Rec.2100 PQ met een `cICP`-chunk. JPG is een ISO 21496-1 gain-map-JPEG: een gewone SDR-afbeelding plus een toegevoegde gain map. AVIF krijgt een herschreven `colr`-box. TIFF krijgt PQ-pixels met een gegenereerd ICC v4-profiel met een `cicp`-tag, en vlakt af op zwart, omdat wit in PQ de code van 10.000 nits is en elke rand met een halo zou omringen. De versterking volgt perceptuele (OKLab) helderheid en behoudt de tint, dus een merkgroen wordt helderder, niet muntachtig.
+- **Waar de gloed te zien is.** Kleurbeheerde viewers op een HDR-scherm: Preview, Quick Look en Safari op Apple-apparaten, of Chrome op een HDR-monitor. Een SDR-scherm toont een normale afbeelding.
+- **Voordat je verstuurt.** Veel platforms coderen uploads opnieuw en strippen het HDR-signaal, waardoor de afbeelding donker of flets kan worden. Gebruik HDR waar je de bestemming beheert, zoals je eigen site, een videowand of een deck op een helder paneel.
+- **Vanaf de terminal.** `--hdr=1` met `--export=png` of `--export=jpg` schrijft dezelfde PNG en gain-map-JPEG op de [CLI](/info/cli.html), met dezelfde engine-encoders, zonder browser in het pad. AVIF en TIFF blijven voorlopig webexports.
 
-## Video
+## Wat met je bestand meereist
 
-Geanimeerde tools exporteren beweging als **MP4**, **WebM** of **GIF** - en, waar aangeboden, **APNG**, **Animated WebP** of de vectoriële **Geanimeerde SVG** (hierboven). Welke videocontainer je ziet, hangt af van je browser - de kiezer toont alleen wat hij daadwerkelijk kan opnemen:
+Een afgerond bestand kan naast de afbeelding meerdere records dragen. Sommige reizen naast de pixels en verdwijnen wanneer het bestand opnieuw wordt opgeslagen of gestript; twee merktekens zitten in de pixels zelf.
 
-| Browser | Toont |
-|---|---|
-| Safari / iOS | **MP4** |
-| Firefox | **WebM** |
-| Chrome / Edge 126+ / Android | **MP4 en WebM** |
-| Oudere Chrome | **WebM** |
+::: figure exporting-what-travels
+Waar elk record staat, of het standaard aan staat en welke linkparameter elk bepaalt.
+:::
 
-GIF werkt overal (geweldig voor chat/e-mail; groter en met minder kleuren dan video). Geanimeerde tools tonen ook **Wait** (seconden om de animatie te laten settelen voordat wordt opgenomen) en **Duration** (cliplengte).
-
-> Een gedeelde `?format=…`-link die een container aanvraagt die je browser niet kan opnemen, valt netjes terug op de andere, en de bestandsnaam komt overeen met de container die is opgenomen.
-
-**Geluid.** Video-exports zijn niet stil. Een tool kan een **muziekbed** onder de clip leggen - een audio-asset uit de catalogus, in lus of ingekort tot de cliplengte, met fade-in/out, volume en automatische ducking onder het eigen geluid van de beelden - en de opnametools voeren het live geluid van hun beelden rechtstreeks door naar het bestand. **MP4** en **WebM** behouden het gemixte spoor; GIF en de geanimeerde afbeeldingsformaten (APNG, Animated WebP, Animated SVG) zijn van nature stil.
-
-## Audio
-
-Sommige tools exporteren **audio los**, niet alleen als videospoor. De **Voice Recorder** legt een micro-opname vast met een live niveaumeter en zachte begeleiding, en slaat die op als **MP3** (de standaard, getranscodeerd in je browser) of in zijn native container - **M4A** (AAC), **OGG** of **WebM** (Opus), afhankelijk van wat je browser opnam. Zoals met al het andere gebeurt de codering op je apparaat - er wordt niets geüpload.
-
-Audio die je *zelf aanlevert* is net zo breed. De asset-kiezer accepteert **MP3**, **WAV**, **OGG**/**Opus**, **M4A**/**AAC** en **FLAC** (byte-voor-byte behouden en on-device gedecodeerd), **MIDI** (`.mid` - bij import omgezet naar een klein on-device synthspoor) en **trackermodules** - **MOD**, **XM**, **IT**, **S3M**, **STM**, **MTM** (on-device gedecodeerd door een meegeleverde player, enkele kilobytes songdata). Elk hiervan kan het **muziekbed** onder een video-export worden, of afspelen in de ambient player van Neurospicy Mode.
-
-Audio *maakt* deel uit van de `format=` / `--export=` pipeline hieronder: `wav`, `mp3`, `m4a` en `opus` zijn gewone format-id's, dus een audio-only export is net zo deelbaar en scriptbaar als een PNG. Wat eruit komt is alleen het geluid, geen beeld.
-
-## Herkomst & watermerk
-
-Waar het formaat het ondersteunt, dragen exports **herkomstmetadata** - software, bron, de naam van de tool en je profielvermelding - native ingebed (PNG iTXt, JPEG EXIF, PDF-info, SVG `<metadata>`, GIF-commentaar). Het is puur auteurschap; er wordt niets geüpload. **Experimentele** tools stempelen bovendien een zichtbaar watermerk, aangebracht door de host zodat het niet te verwijderen is door de tool te bewerken.
-
-**De Lolly Imprint.** Rasterexports dragen ook Lolly's eigen **onzichtbare pixelwatermerk** - de *Lolly Imprint* - **standaard aan**, net als Content Credentials. Waar de credential en de herkomstmetadata *naast* de pixels meereizen en verloren gaan bij een re-save, een screenshot of het strippen van metadata, leeft de Imprint *in* de pixels en overleeft hercompressie - zodat een kopie van de afbeelding later nog als Lolly-gemaakt herkend kan worden. Het is een duurzame aanwijzing, geen cryptografische garantie, en louter aanwezigheidsgebaseerd (er zit geen persoonlijke data in). Hij zit in **PNG, JPG, WebP, AVIF, TIFF en BMP**, en in de door Lolly gerenderde rasters die in een **PDF of PPTX** zijn samengesteld - nooit in een afbeelding die *jij* hebt ingesloten, alleen in wat Lolly zelf rendert. Vink de **Lolly Imprint**-kaart in het exportpaneel uit om het over te slaan, of geef `imprint=0` mee in een deellink. (Het overleven van AVIF bij hercodering is nog niet gekalibreerd; PDF/PPTX-detectie dekt de ingesloten Lolly-rasters.) [/verify](/verify) detecteert het on-device - zie [Content Credentials Identity](/info/content-credentials-identity.html#the-lolly-imprint).
-
-**De duurzame credential.** Naast de Imprint staat een tweede, zwaardere markering: **Durable credential**, die een on-device neuraal model (TrustMark-formaat) gebruikt om Lolly's id *in* de pixels te schrijven, zodat de "gemaakt met Lolly"-koppeling een metadatastrip, een hercodering en herlezing door TrustMark-bewuste tools én door Lolly zelf overleeft. Het staat **standaard uit** - in tegenstelling tot de pure JavaScript-Imprint kost het een neurale pas per export plus een eenmalige modeldownload, dus het is een bewuste opt-in in plaats van een stille belasting. Alleen raster (**PNG, JPG, WebP, AVIF, TIFF**), aangevinkt in het exportpaneel of meegegeven als `durable=1` in een deellink. Op de desktop- en mobiele apps is de kaart volledig verborgen in plaats van als no-op getoond, omdat er offline geen bron is om het model van op te halen.
-
-**Contentbescherming.** In het exportpaneel vouwen de **Licentie** die je verleent, de **Bronvermeldingen** van alles wat je hebt geplaatst, *Wachtwoordbeveiliging*, **C2PA Credentials**, de **Lolly Imprint** en de **Durable credential** samen tot één ingeklapte, formaatbewuste groep **Contentbescherming**, zodat de herkomst-, rechten- en beschermingsopties van een bestand op één plek staan. De groep toont alleen de kaarten die van toepassing zijn op het gekozen formaat. Hij gaat vanzelf open wanneer een link of een opgeslagen document al een licentie vermeldt, of wanneer een bron een beslissing van je nodig heeft.
-
-**Licentie.** Kies hoe anderen je werk mogen gebruiken: standaard *None (all rights reserved)*, of CC0 1.0, de Public Domain Mark 1.0, of een van de Creative Commons 4.0-licenties (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). De naam van de licentie en een link naar de akte worden geschreven in de licentiemetadata van het bestand (EXIF, XMP en RIFF waar het formaat die velden heeft) en in de Content Credential ervan. De keuze wordt opgeslagen bij het document en reist mee in een deellink als `licence=`. Lolly schrijft de licentie die je koos. Het controleert of handhaaft de voorwaarden niet. Een tool met een eigen licentieveld, zoals Claim, houdt dat veld aan en toont geen tweede kiezer. Drukmarkeringen zitten er bewust *niet* in: het is productiegeometrie voor druk, geen bescherming, dus **Drukmarkeringen & afloop** - de afloopmaat in millimeters plus Crop, Registration, Bleed, Colour bars en Stamp details - houdt zijn eigen kaart op het hoogste niveau bij de drukformaten.
+Het exportpaneel vouwt **Licence**, **Source credits**, *Password protect*, **C2PA Credentials**, de **Lolly Imprint** en de **Durable credential** samen in één groep **Content protection** die alleen de kaarten toont die het gekozen formaat kan gebruiken. Ze opent vanzelf wanneer een link of document al een licentie aangeeft, of wanneer een bron een beslissing van jou nodig heeft. De kaart **Design system** blijft buiten de groep, bij elke export in beeld.
 
 ![De groep Contentbescherming geopend op een PNG-export, met alleen de kaarten die erop van toepassing zijn](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
-**Voordat je exporteert (drukpreflight).** Zet **Drukpreflight** (`export-preflight`) aan bij de featureflags van je profiel - het staat **standaard uit**, zodat iemand die een PNG voor een chatbericht exporteert nooit overvallen wordt door prepress-bevindingen, en een implementatie ([lolly.work](https://lolly.work)) het voor haar leden standaard aan kan zetten - en er verschijnt een kaart **Voordat je exporteert** onderaan het paneel, direct boven de knoppen, telkens wanneer de drukregels iets waars te melden hebben over de opdracht: formaat, formaat en afloop, dan snij- en afloopgebieden, inktdekking, plaataantallen en paginaaantal, met een oordeel naast de kop. Hij staat onder elke instelling omdat het een uitspraak *over* die instellingen is in plaats van er nóg een van - en hij blokkeert nooit een export. Hij vertelt je wat een drukkerij zo te zien krijgt.
+### Herkomst en watermerk
 
-**Kosten, berekend vanuit je tarievenkaart.** Onder preflight - helemaal onderaan, nog steeds boven de knoppen - staat een kaart die diezelfde tellingen omzet in geld, en dat altijd alleen op basis van prijzen die iemand heeft opgegeven. Hij leest wat de preflight-pas geteld heeft, of de preflight-kaart zelf nu aan staat of niet, en heeft twee dingen nodig om waar te zijn: de opdracht heeft iets dat een prijslijst überhaupt kan prijzen (platen, vellen, oppervlakte, pagina's, variantregels of outputbestanden - dus een gewone logo-PNG toont hem nooit), **en** er is een **tarievenkaart** aanwezig. Een tarievenkaart is een JSON-prijslijst van je drukker. Een standaardbuild bevat er geen en heeft geen manier in de app om er een te laden: hij komt ofwel binnen als catalogus-asset die een implementatie meelevert, of via de optionele tarievenkaart-extensie die een self-hoster of control plane aanzet. Zonder tarievenkaart wordt niets getoond - geen prompt, geen lege tabel.
+Waar het formaat de velden heeft, dragen exports **herkomstmetadata**: de software, de bron, de naam van de tool en de vermeldingsregel van je profiel, geschreven in PNG iTXt, JPEG EXIF, PDF-info, SVG `<metadata>` of een GIF-opmerking. Het legt alleen auteurschap vast, en er wordt niets geüpload. **Experimental** tools zetten ook een zichtbaar watermerk, aangebracht door de host zodat het bewerken van de tool het merkteken niet kan verwijderen.
 
-De regel waar het geheel op gebouwd is, is dat **er nooit geld verzonnen wordt**. Elk cijfer is een tarief dat jij hebt aangeleverd vermenigvuldigd met een hoeveelheid die Lolly geteld heeft - `4 plate × €35.00` - en het totaal noemt zijn eigen bron in dezelfde zin als het cijfer: de uitgever die op de kaart staat, en de datum waarvan de kaart zegt dat de tarieven zijn. Er is geen standaardvaluta, geen placeholder en geen nul die staat voor een ontbrekende prijs. Wat het bestand over zichzelf zegt, blijft weergegeven als citaat: *"Het bestand zegt: … Lolly heeft dit niet geverifieerd."*
+**De Lolly Imprint** is een onzichtbaar pixelwatermerk, **standaard aan**. De credential en metadata reizen naast de pixels en gaan verloren bij opnieuw opslaan, een screenshot of het strippen van metadata. De Imprint zit in de pixels en overleeft hercompressie, zodat een kopie nog steeds als door Lolly gemaakt kan worden herkend. Het is een aanwijzing in plaats van een cryptografische garantie, en bevat geen persoonsgegevens. Hij zit in JPEG XL, PNG, JPG, WebP, AVIF, TIFF en BMP, en in de rasters die Lolly in een PDF of PPTX rendert, nooit in een afbeelding die je zelf insloot. Haal het vinkje bij **Lolly Imprint** weg of geef `imprint=0` mee om de Imprint weg te laten. Het overleven van AVIF bij hercodering is nog niet gekalibreerd. [Verify](/verify) detecteert hem op je apparaat; zie [De Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
 
-En als het niet eerlijk kan rekenen, **verdwijnt** de werktabel in plaats van te verwateren tot een grijs gemaakt of ingevuld cijfer:
+**De Durable credential** schrijft het id van Lolly in de pixels met een neuraal model op het apparaat in het TrustMark-formaat, zodat de link "made with Lolly" een metadatastrip en een hercodering overleeft en kan worden gelezen door TrustMark-bewuste tools. Hij staat **standaard uit**, omdat hij per export een neurale pass kost en een eenmalige modeldownload. Hij dekt PNG, JPG, WebP, AVIF en TIFF; vink hem aan in het paneel of geef `durable=1` mee. De desktop- en mobiele apps verbergen de kaart, omdat ze offline geen oorsprong hebben om het model van op te halen.
 
-- Regels die de kaart niet prijst betekenen **helemaal geen totaal** - alleen een kop die zegt hoeveel ervan ongeprijsd zijn. Een gedeeltelijke som is geen kleiner antwoord, het is een fout antwoord.
-- Een hoeveelheid die een bovengrens is in plaats van een exact aantal draagt **"tot"** door in het subtotaal, zodat een grens nooit witgewassen wordt tot een vast cijfer.
-- Tarieven na hun geldig-tot-datum tonen **alleen aantallen**, totdat je op *Deze tarieven toch gebruiken* drukt - en dan reist de vervaldatum mee met het cijfer, zodat een verlopen totaal niet als actueel gelezen kan worden.
-- Geopend via een **link** blijft geld verborgen totdat je erom vraagt op dit apparaat. Noch de kaart, noch die onthulling reist ooit mee in een URL - dezelfde reden waarom de CLI `--rate-card=<file.json>` als een lokale bestandsvlag neemt en nooit als linkparameter.
+**Licence.** Kies hoe anderen je werk mogen gebruiken: standaard *None (all rights reserved)*, CC0 1.0, de Public Domain Mark 1.0, of een Creative Commons 4.0-licentie (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). De licentienaam en een link naar de deed komen in de licentiemetadata van het bestand (EXIF, XMP en RIFF waar het formaat ze heeft) en in zijn Content Credential. De keuze wordt met het document opgeslagen en reist in een link mee als `licence=`. Lolly schrijft de licentie die je koos; het controleert of handhaaft de voorwaarden niet. Een tool met een eigen licentieveld, zoals Claim, behoudt dat veld in plaats daarvan.
 
-De kaart is chrome, nooit content: hij wordt uit elke exportfase gestript, dus hij kan geen pixel verplaatsen van het bestand dat je downloadt. En het is rekenwerk, geen offerte - alleen je drukker kan je die geven.
+### Het design-systeemrecord
 
-**Samengestelde renders.** Wanneer een tool de output van een andere tool insluit (bijv. een *Event Name Badge* die een *QR Code* insluit), wordt de geneste render ingevoegd in de export van de ouder - het blijft een **echte vector** in SVG en PDF en rasteriseert scherp in PNG/JPG/WebP. Het ingesloten kind is een tussenstap: het krijgt *geen* watermerk en *geen* eigen herkomst; alleen de afgeronde ouder-asset krijgt die. (Compositie geldt voor SVG en de rasterformaten; HTML/MD/TXT kunnen niet samengesteld worden.)
+Een export legt het design system vast dat het bestand maakte: zijn naam, de gepubliceerde versie waaruit werd getekend (wanneer dat niet de werkversie is) en de [colourway](/info/colourways.html) waarin werd getekend. Elke andere themakeuze die een design system declareert, zoals een dichtheid, wordt op dezelfde manier vastgelegd. De keuze licht of donker blijft weg, omdat de afbeelding al toont welke is gebruikt.
 
-## Wachtwoordbeveiliging
+**Je ziet het record voordat er iets wordt geschreven.** De kaart **Design system**, standaard aangevinkt, toont de exacte woorden die het bestand zal dragen, zoals *Records: Acme · Colourway: Beach*, en de beschrijving zoals ze zal lezen. De naam van een design system is wat de eigenaars typten, dus de kaart toont hem zoals geschreven. Haal het vinkje van de kaart weg om het record uit die export te laten. Het documentpaneel van Design noemt dezelfde woorden onder *Embedded in exports*.
 
-Twee onafhankelijke soorten sloten, beide volledig on-device.
+**De beschrijving noemt de colourway naast de tool.** Met de kaart aangevinkt wordt *"Made with https://lolly.tools : Chart"* *"Made with https://lolly.tools : Chart (Beach colourway)"*. De eigen naam van het design system blijft in het record, niet in de beschrijving. Een beschrijving zonder toolnaam, of een die een tool uit zijn eigen inputs schrijft, blijft zoals ze is. Een tool die colourways negeert via `tokenAxes` legt er geen vast, en de PDF-proefvermelding (het drukmerk `prov`) volgt dezelfde regel.
 
-**PDF open-wachtwoord** - de kaart *Password protect* in het exportpaneel biedt twee niveaus zodra er een wachtwoord is getypt:
+**Merkskills die een agent begeleidden.** Wanneer een agent het stuk maakte en de [merkskills](/info/brand-skills.html) noemde die hij las en volgde, noemt het record ook elke skill met zijn revisie, zoals *Guided by: acme-brand 1.0*. De woorden betekenen dat de skill het werk begeleidde. Ze zijn geen controle: Lolly toetst het stuk niet aan een skill. Alleen de eigen verklaring van de agent voegt de lijst toe, wat vandaag het argument `brandSkills` van `lolly_render` van de [MCP-server](/info/mcp.html) betekent, dus een stuk dat in de app of via een deellink is gemaakt draagt er geen. De Content Credential bevat de lijst als `brandSkills`, één JSON-waarde met van elke skill het id, de naam, de revisie en de SHA-256-hash. Het XMP-pakket en de SVG-metadata bevatten dezelfde waarde als `lolly:BrandSkills`, een PDF die uit het record wordt geschreven krijgt één trefwoord per skill en de beschrijving blijft zoals ze was. Een interne skill wordt vastgelegd met zijn id, naam, revisie en hash, nooit met zijn tekst. Dezelfde schakelaars laten de lijst weg samen met de rest van het record: de kaart **Design system**, `_madewith=0`, `--no-madewith` en `madeWith: false`. Wanneer de MCP-server het bestand in een browser tekent (een PDF, een JPEG en de andere formaten die zijn browservrije pad niet kan schrijven), bevat de eigen metadata van het bestand geen lijst en kan alleen een Content Credential er een bevatten. Geef `c2pa` mee om het record te behouden; zonder credential waarschuwt de render dat de merkskills niet zijn vastgelegd.
 
-![De kaart Wachtwoordbeveiliging uitgeklapt op een PDF-export, met het wachtwoordveld en de twee slotniveaus](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+**Het record teruglezen.** [Verify](/verify) noemt het record als **Design system** in de credentialdetails van een bestand en eventuele merkskills als **Guided by**. *Recreate with these settings* heropent de tool in de vastgelegde versie en colourway. De link opent met het vastgelegde design system wanneer dit apparaat er een met hetzelfde id en dezelfde naam heeft; anders opent hij met je actieve design system.
 
-- **Zwak** - een simpel 40-bit-wachtwoord (RC4). Een lichte afschrikking, geen echte bescherming: het wachtwoord kan meerijden in een share-link (in platte tekst). Alleen RGB-`pdf`.
-- **Sterk** - AES-256 (PDF 2.0). Het wachtwoord wordt bij de export getypt en wordt **nooit** in een link gezet. Sterk geldt ook voor **Print-/CMYK-PDF's** en voor **elke PDF in een batch-zip** (het bevestigingsvenster van de batch vraagt het wachtwoord). Omdat PDF/X-4 versleuteling verbiedt, behoudt een met Sterk vergrendelde Print-PDF zijn CMYK, markeringen en output-intent, maar vervalt de PDF/X-4-conformiteitsclaim.
+::: details Wat waar wordt geschreven, en welke runs het record weglaten
+| Waar | Wat wordt geschreven |
+|---|---|
+| Content Credential | `designSystem` (het id), `designSystemLabel`, `designVersion` en `themes` in de assertion `tools.lolly.export`, elk een gewone tekstwaarde; `themes` is een JSON-lijst van de keuzes |
+| PNG, JPEG, WebP en JXL | Dezelfde vier waarden als `lolly:`-eigenschappen van het XMP-pakket van het bestand, in de namespace `https://lolly.tools/ns/export/1.0/` |
+| SVG | Dezelfde `lolly:`-eigenschappen binnen het blok `<metadata>` |
+| PDF | Trefwoorden zoals *Design system: Acme* en *Colourway: Beach* |
+| Elk formaat met een beschrijvingsveld | De beschrijving, met de colourway naast de tool |
 
-Beide niveaus sluiten Content Credentials wederzijds uit (een versleutelde PDF kan de credential niet dragen).
+De kaart verschijnt alleen wanneer er iets is om vast te leggen en het formaat het record kan bevatten. CSV, JSON, een agendabestand en andere tekst- of gegevensformaten bevatten geen metadata, en EPS, EMF, DXF en BMP hebben geen veld voor het record. HTML, Markdown en CSS bevatten het record alleen in hun Content Credential, dus voor hen toont de kaart geen beschrijvingsregel en verbergt zich zolang **C2PA Credentials** uit staat. Een veld dat het design system niet geeft, blijft buiten het bestand.
 
-**Vergrendelde downloads (hele zip + defense-in-depth)** - een **ZIP**-export (het ZIP-formaat van het exportpaneel, dat meerdere formaten van een tool bundelt), een **map**-download (Projecten → Downloaden) of het **batchraster** kan de hele zip met één wachtwoord vergrendelen, op twee niveaus:
+Een deellink zet het record uit met `_madewith=0` ([URL parameters](/info/url-parameters.html)); de opdrachtregel neemt `--no-madewith`, `lolly_render` van de [MCP-server](/info/mcp.html) neemt `madeWith: false`, en het exportpaneel van de terminalapp heeft een rij **Design system**. De opdrachtregel drukt de woorden die een afgerond bestand draagt af op standaardfout, voor een toolrender en voor elk bestand dat `lolly run` exporteert uit een opgeslagen Design-sessie, en een MCP-render drukt ze naast het bestand af, beide teruggelezen uit het bestand. Een PNG die de opdrachtregel zonder browser tekent draagt geen bestandsmetadata, dus het record reist alleen in de credential. Hulpprogramma's op het apparaat voegen helemaal geen metadata toe.
 
-- **Zwak** - klassieke **ZipCrypto**, alleen een afschrikmiddel. Het wachtwoord kan meerijden in een `?password=`-share-link.
-- **Sterk** - **AES-256**-versleuteling. Bij de export getypt, nooit in een link gezet.
+Runs zonder kaart **Design system** laten het record weg: een Batch-run, een map die uit Projects wordt geëxporteerd en een 3D-collectie-export, en in de terminalapp een CSV-batch, een export van een Projects-map of -selectie en de weergave render-everything. Exporteer één bestand uit de tool om het design system vast te leggen.
+:::
 
-Dezelfde kaart *Password protect* in het exportpaneel regelt zowel het PDF- als het ZIP-slot. Het ene wachtwoord beschermt **elk** onderdeel - afbeeldingen, SVG, alles, ook PDF's (alleen de zip-container kan niet-PDF-bestanden beschermen, die geen eigen slot hebben). En het is **defense-in-depth**: elke PDF erin is *ook* afzonderlijk met hetzelfde wachtwoord AES-256-vergrendeld, zodat een PDF vergrendeld blijft zelfs nadat de zip is uitgepakt. De prompt verschijnt wanneer je de download start; een leeg wachtwoord betekent geen slot.
+### Content Credentials (C2PA)
 
-**Wachtwoordbeveiligde deellinks** - elke deellink kan versleuteld worden, zodat het openen ervan de ontvanger om een wachtwoord vraagt. De hele linkstatus wordt AES-256-versleuteld onder een sleutel die uit het wachtwoord is afgeleid (PBKDF2); er reist alleen cijfertekst mee, dus het **wachtwoord staat nooit in de link** en ontsleuteling gebeurt **in de browser van de ontvanger** - de server die de link serveert, ziet alleen de cijfertekst in de URL, nooit het wachtwoord en nooit het ontsleutelde ontwerp. Zet het aan in de dialoog **Delen**. Een versleutelde link kan alleen in Lolly *geopend* worden (hij kan niet als afbeelding ingesloten worden, omdat dat pad niet kan promptén). Zie [URL-modus → Versleutelde links](/info/url-mode.html).
+Exports kunnen **Content Credentials** dragen: een ondertekend [C2PA](https://c2pa.org)-manifest dat vastlegt wat het bestand maakte, wanneer en waar, gebonden aan een hash van de bytes van het bestand zodat elke latere wijziging detecteerbaar is. De specificatie wordt gepubliceerd door de C2PA, en Lolly schrijft standaardmanifesten die elke C2PA-lezer kan inspecteren.
 
-## Content Credentials (C2PA)
+![De kaart C2PA Credentials, aangevinkt, met de levensduur van de credential naast het selectievakje](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-Exports kunnen **Content Credentials** dragen - een ondertekend [C2PA](https://c2pa.org)-manifest ingebed in het bestand, dat op een manipulatiebestendige manier vastlegt dat het bestand met Lolly is gemaakt en sindsdien niet is gewijzigd. Het is de standaardversie van de herkomstmetadata hierboven: een cryptografische claim (wat het bestand maakte, wanneer, door wie en waar) gebonden aan een hash van de bytes van het bestand, zodat een latere bewerking detecteerbaar is door een C2PA-bewuste viewer. De standaard wordt beheerd door het [Content Authenticity Initiative](https://contentauthenticity.org) (Adobe, BBC, Microsoft, Nikon en anderen), dus dezelfde credentials die Lolly schrijft zijn dezelfde die camera's, redacties en creatieve suites aan het overnemen zijn.
-
-![De kaart C2PA Credentials, vooraf aangevinkt, met de levensduur van de credential ernaast](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
-
-- **Formaten.** Elke container met een C2PA-inbedding: **PDF** (zowel RGB als Print), **PNG / Animated PNG**, **JPG**, **GIF**, **SVG**, **TIFF** (RGB en Print), **WebP** (stilstaand en geanimeerd), **AVIF**, **MP4**, **WebM** en de audiocontainers **MP3**, **WAV**, **M4A** en **OGG/Opus** - zodat een opgenomen of gesynthetiseerde stemclip dezelfde credential meekrijgt als een afbeelding. Een **ZIP**-bundel stempelt elk ondersteund lid afzonderlijk, wat ook waar een **Animated SVG** er een oppikt (het is onderliggend een gewoon SVG-document; een directe Animated SVG-export biedt geen eigen kaart). MP4, AVIF en M4A gebruiken de BMFF-binding van de spec en MP3 zijn ID3v2-mapping, dus `c2patool` en andere C2PA-bewuste viewers verifiëren ze; **WebM** en **OGG/Opus** hebben nog geen gestandaardiseerde C2PA-mapping, dus Lolly draagt het manifest als een Matroska-bijlage respectievelijk een OpusTags-veld, wat Lolly's eigen verifier (en CLI) controleert. (`ico`, `eps`, `emf`, `dxf`, `bmp`, `pptx`, de Office-formaten en de tekst-/dataformaten hebben geen C2PA-container.)
-- **Standaard aan.** De kaart **C2PA Credentials** in het exportpaneel is voor bijna elke tool vooraf geselecteerd - vink uit om de credential op één export over te slaan (of geef `c2pa=off` mee in een deellink). Een tool kan er in zijn manifest volledig voor kiezen om af te zien.
-- **Wat het vastlegt.** De tool en app die het bestand maakten, het ondertekeningstijdstip, het exportoppervlak (browserengine-familie + OS-familie - opzettelijk grof, nooit een vingerafdruk) en - alleen wanneer *Profiel → Mijn gegevens gebruiken* aan staat - je naam en e-mail als auteur van het werk.
-- **Wat ontvangers zien.** Tools die Content Credentials inspecteren (Adobe-apps, `c2patool`, contentcredentials.org/verify) lezen het manifest en tonen de claim. Omdat Lolly ondertekent met een sleutel die **op je apparaat** gegenereerd is - geen certificaat van een vertrouwenslijst - melden viewers het als een *ongeverifieerde* credential. De structuur en de manipulatiebestendigheid zijn echt; alleen de identiteit van de ondertekenaar wordt eenvoudigweg niet door een autoriteit gewaarborgd. Om dat op te waarderen kun je een **geverifieerde identiteit** inschrijven (Profiel → Content Credentials): een kortlevend certificaat van de Lolly CA koppelt je e-mail aan je exports terwijl de ondertekeningssleutel nog steeds nooit je apparaat verlaat - zie [Content Credentials Identity](/info/content-credentials-identity.html).
-- **Een bestand controleren.** Lolly verifieert ook zijn eigen credentials: zet een bestand op [/verify](/verify) (of voer `lolly validate <file>` uit in de CLI) voor een on-device rapport - vooraan of het bestand echt met Lolly is gemaakt en sindsdien ongewijzigd is. De webweergave Verify leest veel verder dan de credential: het markeert **AI-gegenereerde content**, detecteert de **Lolly Imprint**, controleert **SEAL**-handtekeningen en (opt-in) watermerken van derden en toont **verborgen data** - alles on-device, niets geüpload. Zie [Content Credentials Identity → Voorbij de credential](/info/content-credentials-identity.html#beyond-the-credential-what-else-verify-shows).
-- **Privacy.** Alles gebeurt op je apparaat: de ondertekeningssleutel wordt aangemaakt voor de export en verlaat de browser nooit, er wordt niets geüpload en de claim bevat alleen wat de herkomstmetadata al draagt. Privacyhulpmiddelen (on-device transformaties van *je eigen* bestanden) voegen nooit credentials toe, en *Verborgen data verwijderen* verwijdert een C2PA-manifest net als elke andere ingesloten metadata.
-- **Interacties.** Voor PDF's sluiten Content Credentials en **wachtwoordbeveiliging** (beide niveaus - zie hierboven) elkaar wederzijds uit (een versleutelde PDF kan de credential-bijlage niet dragen). De credential wordt toegevoegd als laatste stap over de afgeronde bytes - na DPI/EXIF/kleurprofielstempeling, PDF/X-metadata en drukmarkeringen.
+- **Standaard aan.** De kaart **C2PA Credentials** is voor vrijwel elke tool vooraf geselecteerd. Haal het vinkje weg voor één export, of geef `c2pa=off` mee in een link. Een tool kan zich in zijn manifest afmelden.
+- **Formaten.** PDF (RGB en Print), PNG en APNG, JPG, GIF, SVG, TIFF (RGB en Print), WebP (stil en geanimeerd), AVIF, MP4, WebM, de audiocontainers MP3, WAV, M4A, OGG/Opus en FLAC, en HTML, Markdown en CSS. Een ZIP zet een stempel op elk ondersteund onderdeel, zo krijgt een Animated SVG er een. MP4, AVIF en M4A gebruiken de standaard BMFF-binding en MP3 zijn ID3v2-koppeling, dus `c2patool` en andere lezers verifiëren ze. WebM en OGG/Opus hebben nog geen standaardkoppeling, dus Lolly draagt het manifest als Matroska-bijlage en een OpusTags-veld, die de eigen verificator van Lolly controleert. ICO, EPS, EMF, DXF, BMP, PPTX, de Office-formaten en de andere tekst- en gegevensformaten hebben geen C2PA-container.
+- **Wat het vastlegt.** De tool en app die het bestand maakten, het ondertekeningstijdstip, de shell die het exporteerde, het [design system en de colourway](#the-design-system-record) zolang de kaart **Design system** is aangevinkt, en vingerafdrukken van actieve inputs. Invoertekst, aan het profiel gebonden velden, inactieve bediening, browserversies en gegevens van het besturingssysteem blijven weg. Je naam en e-mail verschijnen alleen als auteur wanneer **Use my details to create** aan staat onder Settings → Preferences → Your details. Bronnen die een export plaatst reizen mee als ingrediënten: [gecrediteerde werken](#source-credits) zoals emoji, en [Rondocode-nummers](/info/rondocode.html#songs-in-the-credential) in een video- of audio-export.
+- **Wat ontvangers zien.** C2PA-tools zoals Adobe-apps, `c2patool` en contentcredentials.org/verify lezen het manifest en tonen de claim. Lolly ondertekent met een sleutel die op je apparaat is gemaakt, niet met een certificaat uit een vertrouwenslijst, dus viewers melden een *unverified* credential: de structuur en het bewijs van manipulatie zijn echt, voor de ondertekenaar wordt niet ingestaan. Om dat te veranderen schrijf je een **geverifieerde identiteit** in onder Settings → Preferences → Content Credentials; zie [Content Credentials Identity](/info/content-credentials-identity.html).
+- **Een bestand controleren.** Zet een bestand op [Verify](/verify), of draai `lolly validate <file>`, voor een rapport op het apparaat dat begint met of Lolly het bestand maakte en of het sindsdien is gewijzigd. Verify kijkt ook voorbij de credential; zie [What Verify checks](/info/what-verify-checks.html).
+- **Privacy.** De ondertekeningssleutel wordt voor de export gemaakt en verlaat je apparaat nooit, en de claim bevat alleen wat de herkomstmetadata al draagt. Privacyhulpprogramma's die je eigen bestanden transformeren voegen geen credential toe, en *Strip Hidden Data* verwijdert een C2PA-manifest zoals elke andere metadata. Het Rondocode-hulpprogramma maakt nieuwe audio, dus het ondertekent wat het schrijft ([Rondocode-nummers](/info/rondocode.html#files-from-the-rondocode-utility)).
+- **Wisselwerkingen.** Een met wachtwoord beveiligde PDF kan geen Content Credentials dragen, op geen van beide niveaus. De credential wordt als laatste toegevoegd, over de afgeronde bytes, na DPI, EXIF, kleurprofiel, PDF/X-metadata en drukmerken.
 
 ### Bronvermelding
 
-Een export die het werk van iemand anders plaatst, legt die bron ook vast in de credential. Een emoji uit een vastgepinde set is het dagelijkse geval: het werk, de maker ervan, de licentie, waar de exacte bytes vandaan kwamen en wat er is veranderd reizen allemaal mee met het bestand. De rij **Bronvermelding** in het exportpaneel zegt wat de bronnen van de aflevering vragen voordat je downloadt, en na de download leest ze de afgeleverde bytes terug voordat ze zegt dat de naamsvermeldingen in het bestand staan. Een licentie die je om een keuze vraagt, zoals een herkleurde CC BY-SA-glyph die je op het punt staat te delen, krijgt een kaart met de uitwegen; de download wordt nooit geblokkeerd. [Creatieve rechten en naamsvermeldingen](/info/creative-rights.html) bevat de woorden, de beoordeelde licenties en wat van jou blijft.
+Een export die het werk van iemand anders plaatst, legt die bron vast in de credential. Een emoji getekend uit de gekozen emojiset is het alledaagse geval: het werk, zijn maker, de licentie, waar de exacte bytes vandaan kwamen en wat er veranderde reizen allemaal met het bestand mee. Tekst in een tool waarvan het sjabloon een SVG is, behoudt de eigen emoji van het systeem, dus daar wordt niets gecrediteerd. De rij **Source credits** zegt wat de bronnen van de bezorging vragen voordat je downloadt, en na de download leest ze de bezorgde bytes terug voordat ze zegt dat de vermeldingen in het bestand staan. Een licentie die vraagt om te kiezen, zoals een herkleurde CC BY-SA-glyph die je gaat delen, krijgt een kaart met de opties; de download wordt nooit geblokkeerd. [Creatieve rechten en vermeldingen](/info/creative-rights.html) bevat de formulering, de beoordeelde licenties en wat van jou blijft.
+
+## Wachtwoordbeveiliging
+
+Twee soorten vergrendeling, beide op je apparaat gemaakt. De kaart *Password protect* van het exportpaneel stuurt beide aan.
+
+![De kaart Wachtwoordbeveiliging uitgeklapt op een PDF-export, met het wachtwoordveld en de twee slotniveaus](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+
+**Een PDF-openwachtwoord** heeft twee niveaus zodra je een wachtwoord typt:
+
+- **Weak**: 40-bit RC4, een afschrikmiddel en geen bescherming. Het wachtwoord kan in een deellink meereizen, in leesbare tekst. Alleen RGB-`pdf`.
+- **Strong**: AES-256 (PDF 2.0). Bij export getypt en nooit in een link gezet. Het geldt ook voor Print PDF's en voor elke PDF in een batch-ZIP. Een met Strong vergrendelde Print PDF behoudt zijn CMYK, merken en output intent maar laat de PDF/X-4-claim vallen.
+
+**Een vergrendelde ZIP** dekt een ZIP-export, een mapdownload uit Projects of een batch, met één wachtwoord op twee niveaus: **Weak** (ZipCrypto, een afschrikmiddel; kan in een `?password=`-link meereizen) of **Strong** (AES-256, bij export getypt, nooit in een link). Het wachtwoord beschermt elk onderdeel, en elke PDF erin is bovendien met AES-256 op zichzelf vergrendeld, zodat hij vergrendeld blijft nadat de ZIP is uitgepakt. De prompt verschijnt wanneer de download start; een leeg wachtwoord betekent geen vergrendeling.
+
+**Een met wachtwoord afgeschermde deellink** vraagt de ontvanger om een wachtwoord voordat hij opent. De hele linkstatus wordt met AES-256 versleuteld onder een sleutel afgeleid van het wachtwoord (PBKDF2), dus alleen cijfertekst reist en het ontsleutelen gebeurt in de browser van de ontvanger. De server die de link bedient ziet het wachtwoord of het ontwerp nooit. Zet het aan in de **Share**-dialoog. Een versleutelde link opent alleen in Lolly, nooit als ingesloten afbeelding. Zie [URL Mode](/info/url-mode.html).
 
 ## Op een telefoon
 
-De exportbediening zit achter de zwevende knop **Exporteren**, die het blad **Exporteren** opent - dezelfde formaten, formaat, kopiëren, downloaden en delen, aangepast voor touch.
+De exportbediening zit achter de zwevende knop **Export**, die het venster **Export** opent: dezelfde formaten, grootte, kopiëren, downloaden en delen, op maat voor aanraking.
 
-## Formaatoverzicht
+## Formaat-id's voor links en de CLI
 
-Elk id dat de host kan renderen, gegroepeerd. Dit zijn ook de waarden voor de URL-parameter `format=` en de CLI-vlag `--export=` - zie [URL-modus](/info/url-mode.html) en [CLI](/info/cli.html). Het menu van een tool toont alleen de formaten die die tool kan maken, dus het is altijd korter dan deze lijst.
+Dit zijn de waarden voor de URL-parameter `format=` en de CLI-vlag `--export=` (zie [URL parameters](/info/url-parameters.html) en [CLI](/info/cli.html)). Het menu van een tool toont alleen de formaten die die tool kan maken, dus het is altijd korter dan deze lijst.
 
 | Soort | Id's |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
-| Vector | `svg` · `svgz` (gezipte SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (snijbestand) |
-| Pagina & document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (SCORM-cursuspakket, een zip) · `penpot` (Penpot-ontwerpbestand) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Beweging | `gif` · `apng` (Geanimeerde PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
-| Audio | `wav` · `mp3` · `m4a` · `opus` |
-| Tekst & data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (GIMP-palet) |
-| Bundel | `zip` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `jxl` · `jxl-lossless` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Vector | `svg` · `svgz` (gzipped SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (snijbestand) |
+| Pagina en document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot-ontwerpbestand) · `scorm` (cursuspakket, een ZIP) |
+| Beweging | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Tekst en gegevens | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP-palet) |
+| Bundels en pakketten | `zip` · `rpm` en `tar.gz` (de render verzegeld in een Linux-pakket) |
 
-Nog een paar id's komen van de **eigen export-hook van een tool** in plaats van het gedeelde renderpad: `ase` (Adobe Swatch Exchange, van Palette Lab), `exr` en `hdr` (Darkroom's high-dynamic-range rasters) en `ttf` / `otf` / `woff` (Font Convert). Ze kiezen een formaat op dezelfde manier - de kiezer, `format=`, `--export=` - de bytes worden alleen door de tool zelf gebouwd. Font Convert is de ene uitzondering: het transformeert een lettertypebestand dat *jij* aanlevert, dus er is niets voor een kale URL om te renderen.
+Een paar id's komen uit de eigen exportcode van een tool: `ase` (Adobe Swatch Exchange, uit Palette Lab) en `exr` en `hdr` (rasters met hoog dynamisch bereik, uit Darkroom). **Convert Font** schrijft `ttf`, `otf` en `woff` uit een fontbestand dat je aanlevert, dus een kale link heeft er niets voor te renderen.

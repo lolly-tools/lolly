@@ -19,7 +19,7 @@ import type { DesignGuidesHandle } from '../design-guides.ts';
 import type { hierarchyOps } from './hierarchy.ts';
 import type { layoutOps } from './layout.ts';
 import type { DesignStyleSnapshot } from '../design-style-clipboard.ts';
-import type { AddKind, BlockFieldDef, CanvasCfg, ConnectCfg, EditingState, EditorMode, FieldCfg, FmtBar, FontOption, Gesture, InitFreeCanvasOpts, Metrics, ModelItem, PenPart, Point, PopItem, Rect, StageBox, TouchPt } from './shared.ts';
+import type { AddKind, BlockFieldDef, CanvasCfg, CanvasIndex, ConnectCfg, EditingState, EditorMode, FieldCfg, FmtBar, FontOption, Gesture, InitFreeCanvasOpts, Metrics, ModelItem, PenPart, Point, PopItem, Rect, StageBox, TouchPt } from './shared.ts';
 import type { FieldBounds } from '../free-canvas-transform.ts';
 import type { WobbleHandle } from '../../lib/wobble.ts';
 import type { BoxFieldConfig } from '../free-canvas-math.ts';
@@ -31,6 +31,7 @@ import type { cameraCaptureOps } from './camera-capture.ts';
 import type { timelineOps } from './timeline.ts';
 import type { stageOps } from './stage.ts';
 import type { narrationOps } from './narration.ts';
+import type { lodOps } from './lod.ts';
 import type { railOps } from './rail.ts';
 import type { toolboxOps } from './toolbox.ts';
 import type { menusOps } from './menus.ts';
@@ -59,7 +60,7 @@ import type { textEditOps } from './text-edit.ts';
 import type { gesturesOps } from './gestures.ts';
 import type { connectorsOps } from './connectors.ts';
 import type { edgesOps } from './edges.ts';
-import type { chromeSyncOps } from './chrome-sync.ts';
+import type { ChromeSet, chromeSyncOps } from './chrome-sync.ts';
 import type { keysOps } from './keys.ts';
 import type { editorStateOps } from './editor-state.ts';
 import type { LoadedMaster, MasterStatus, slideMastersOps } from './slide-masters.ts';
@@ -68,6 +69,9 @@ import type { selectionTransformOps } from './selection-transform.ts';
 import type { zonesOps } from './zones.ts';
 import type { grabZonesOps } from './grab-zones.ts';
 import type { pinchOps } from './pinch.ts';
+import type { TitleMode, frameTitlesOps } from './frame-titles.ts';
+import type { frameStepOps } from './frame-step.ts';
+import type { zoomMarqueeOps } from './zoom-marquee.ts';
 
 export interface FcCtx {
   hierarchy: ReturnType<typeof hierarchyOps>;
@@ -247,11 +251,15 @@ export interface FcCtx {
   chromeKey: string | null;
   chromeNodes: {
     outlines: HTMLElement[];
+    /** Above OUTLINE_CAP selected rows, every row's outline as one path (chrome-sync.ts). */
+    outlinePath: SVGPathElement | null;
     groupOutline: HTMLElement | null;
     handles: HTMLElement[];
     stem: HTMLElement | null;
     rot: HTMLElement | null;
   } | null;
+  /** The chrome set the last full sync drew, for the view-only syncs that come after. */
+  chromeSetHeld: { boxes: Box[]; size: number; scale: boolean; set: ChromeSet } | null;
   toolbarDock: HTMLDivElement;
   toolbar: HTMLDivElement;
   grip: HTMLDivElement;
@@ -322,10 +330,41 @@ export interface FcCtx {
   pendingMove: PointerEvent | null;
   moveRaf: number;
   syncScheduled: boolean;
+  /** A sync is due that must do everything, not only follow the view (chrome-sync.ts). */
+  syncFull: boolean;
+  /** Runs the full sync once the view has rested after view-only syncs. */
+  viewSettleTimer: ReturnType<typeof setTimeout> | 0;
+  /** The painted canvas by id, read once per paint (stage.ts); null until the next lookup. */
+  canvasIndex: CanvasIndex | null;
+  /** The index the accessibility stamps last walked, and the ids they marked pressed. */
+  a11yIndex: CanvasIndex | null;
+  a11yPressed: Set<string>;
+  /** The artboards the last full sync gave tabs, for view-only syncs to reposition. */
+  frameLabelFrames: { source: Box[]; frames: Array<{ b: Box; i: number }> } | null;
+  /** Where the context bar was last placed: its band in the top chrome row. */
+  ctxPlacedBand: string;
+  /** Which artboard titles show (frame-titles.ts): a device-local view preference. */
+  titleMode: TitleMode;
+  /** The artboards the selection keeps titled: selected ones and those holding a selected row. */
+  titleKept: Set<string>;
+  /** The stage metrics the last title sync measured, which a hover reuses. */
+  titleMetrics: Metrics | null;
+  /** The title with keyboard focus, which stays shown while focused. */
+  titleFocusId: string;
+  /** The artboard under the pointer, picked from the model. */
+  hoverFrameId: string;
+  titleHoverAt: { id: string } | { x: number; y: number } | null;
+  titleHoverRaf: number;
+  /** The title tabs shown, by artboard id. */
+  frameTitleEls: Map<string, HTMLButtonElement>;
+  /** The artboard PageDown / PageUp last went to (frame-step.ts). */
+  frameStepId: string;
+  /** Hold-Z zoom (zoom-marquee.ts): armed while Z is down, and the press being dragged. */
+  zoomArmed: boolean;
+  zoomDrag: { id: number; x: number; y: number; alt: boolean; left: number; top: number; w: number; h: number } | null;
   activeArtboardKey: string;
   artboardListeners: Set<(id: string) => void>;
   artboardNotifiedId: string;
-  frameLabelKey: string;
   renamingFrameId: string;
   ctxBlockers: StageBox[] | null;
   ctxFrozen: { left: number; top: number } | null;
@@ -348,6 +387,7 @@ export interface FcCtx {
   fileDrop: ReturnType<typeof fileDropOps>;
   stage: ReturnType<typeof stageOps>;
   narration: ReturnType<typeof narrationOps>;
+  lod: ReturnType<typeof lodOps>;
   rail: ReturnType<typeof railOps>;
   toolbox: ReturnType<typeof toolboxOps>;
   menus: ReturnType<typeof menusOps>;
@@ -387,6 +427,9 @@ export interface FcCtx {
   zones: ReturnType<typeof zonesOps>;
   grabZones: ReturnType<typeof grabZonesOps>;
   pinch: ReturnType<typeof pinchOps>;
+  frameTitles: ReturnType<typeof frameTitlesOps>;
+  frameStep: ReturnType<typeof frameStepOps>;
+  zoomMarquee: ReturnType<typeof zoomMarqueeOps>;
 }
 
 /** A module function minus its leading context parameter. */

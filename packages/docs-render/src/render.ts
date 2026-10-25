@@ -19,6 +19,11 @@ function shotTry(file: string, ctx: DocsRenderContext): string {
   return link ? `<a class="shot-try" href="${esc(link.route)}">${esc(ctx.t('Try it in the app'))}</a>` : '';
 }
 
+// A picture-list item: an image first, then its caption. `<!--g:light|dark|brand-->`
+// before the image sets the plate a mark is drawn for (a reverse mark needs a dark one).
+const PICTURE_GROUND = /^<!--g:(light|dark|brand)-->\s*/;
+const PICTURE_ITEM = /^(!\[[^\]]*\]\([^)\s]+\))\s*([\s\S]*)$/;
+
 export function inline(text: string, ctx: DocsRenderContext): string {
   let s = esc(text);
   // One fact the recipe carries that the rewritten `src` cannot: the dark twin to pair
@@ -136,12 +141,15 @@ export function inline(text: string, ctx: DocsRenderContext): string {
   // External links (absolute http/https) open in a new tab; internal/relative links stay.
   // A same-page anchor written the way GitHub slugs a heading ("Licensing & structure"
   // becomes #licensing--structure) collapses its hyphen runs to match headingId, which
-  // never emits two in a row. The README renders on GitHub and as /info/about, so its
-  // links have to land on both.
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url: string) =>
-    /^https?:\/\//i.test(url)
+  // never emits two in a row. The README renders on GitHub and as /info/start/about, so its
+  // links have to land on both. A link to a Markdown source file (the form
+  // GitHub follows) goes to the page published from that file, through the context.
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, written: string) => {
+    const url = ctx.sourceLink?.(written) ?? written;
+    return /^https?:\/\//i.test(url)
       ? `<a href="${url}" target="_blank" rel="noopener">${label}</a>`
-      : `<a href="${/^#[a-z0-9-]+$/.test(url) ? url.replace(/-{2,}/g, '-') : url}">${label}</a>`);
+      : `<a href="${/^#[a-z0-9-]+$/.test(url) ? url.replace(/-{2,}/g, '-') : url}">${label}</a>`;
+  });
   // Technology marks: `<!--l:helm-->` → the mark, inline. Matched POST-esc
   // (`&lt;!--l:key--&gt;`) and LAST, so the emitted <svg> path `d=` meets no further regex.
   s = s.replace(/&lt;!--l:([a-z0-9-]+)--&gt;/g, (_m, key: string) => ctx.docLogo(key));
@@ -404,14 +412,35 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
       !lines[i]!.trim().startsWith('```');
 
     if (/^\s*[-*] /.test(line)) {
-      // Buffered so the <ul> can learn whether any item carried an icon marker.
-      const items: string[] = [];
-      let anyIcon = false;
+      // Buffered so the <ul> can learn whether any item carried an icon marker, and
+      // whether every item opens with a picture.
+      const raw: Array<{ text: string; code: string; ground: string }> = [];
       while (i < lines.length && /^\s*[-*] /.test(lines[i]!)) {
         const item = [lines[i]!.replace(/^\s*[-*] /, '')]; i++;
         while (itemContinues()) { item.push(lines[i]!.trim()); i++; }
         const code = takeItemFences();
         let text = item.join(' ');
+        // `<!--g:dark-->` sets the plate a picture sits on (invisible on GitHub).
+        const gm = PICTURE_GROUND.exec(text);
+        if (gm) text = text.slice(gm[0].length);
+        raw.push({ text, code, ground: gm?.[1] ?? '' });
+      }
+      // A list whose every item opens with a picture is a picture list: each picture on
+      // a plate of the same size, with the rest of the item as its caption underneath.
+      // The picture keeps its own file, so a credentialed one keeps its credential.
+      const pictures = raw.map(r => PICTURE_ITEM.exec(r.text));
+      if (pictures.every(Boolean)) {
+        const items = raw.map((r, n) => {
+          const [, img = '', rest = ''] = pictures[n]!;
+          const cap = rest.trim() ? `<span class="md-pic-cap">${inline(rest.trim(), ctx)}</span>` : '';
+          return `<li${r.ground ? ` class="md-pic-on-${r.ground}"` : ''}><span class="md-pic">${inline(img, ctx)}</span>${cap}${r.code}</li>`;
+        });
+        out.push('<ul class="md-pictures">', ...items, '</ul>'); continue;
+      }
+      const items: string[] = [];
+      let anyIcon = false;
+      for (const { text: itemText, code } of raw) {
+        let text = itemText;
         // `<!--i:key-->` opens the bullet with a doc icon (invisible on GitHub).
         const im2 = /^<!--i:([a-z-]+)-->\s*/.exec(text);
         const iconSvg = im2 ? ctx.docIcon(im2[1]!) : '';

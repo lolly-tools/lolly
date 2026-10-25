@@ -175,9 +175,9 @@ export async function openPrivateCollab(
     [wiring, track, qr] = await Promise.all([
       import('./join-route.ts'),
       import('./rtc-connection.ts'),
-      // qr-skin is already inside join-route's chunk (it imports it statically), so this
-      // costs no extra request - it just hands us the same `createQrElementRenderer` the
-      // accept side uses, so the inviter's invite screen shows a scannable code too.
+      // qr-skin is already inside join-route's chunk (its camera scan imports it
+      // statically), so this costs no extra request - it hands us `createQrElementRenderer`
+      // so the inviter's invite screen shows a scannable code.
       import('./qr-skin.ts'),
     ]);
   }
@@ -196,9 +196,9 @@ export async function openPrivateCollab(
   if (!open || !effects) return null;
 
   const scan = deps.scan === null ? undefined : deps.scan;
-  // Default to drawing the invite as a QR, the same default the accept side
-  // (`join-route.ts`) applies - so a second device can scan the invite instead of
-  // copy-pasting the code. `null` opts out (this file's own suite has no QR encoder); a
+  // Default to drawing the invite as a QR, so a second device can scan the invite instead
+  // of copy-pasting the code. Only the invite: the reply comes back as a link or a code,
+  // never a QR. `null` opts out (this file's own suite has no QR encoder); a
   // caller-supplied renderer wins over the default.
   const renderQr = deps.renderQr === null ? undefined : deps.renderQr ?? qr?.createQrElementRenderer();
 

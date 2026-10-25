@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Prezintă text într-o fereastră desktop, ca imagine statică sau ca interacțiune regizată cu tastare, selecții, completare automată și mișcare.",
   "inputs.code.label": "Cod",
   "inputs.code.placeholder": "Lipește codul aici…",
   "inputs.fileName.label": "Nume fișier",

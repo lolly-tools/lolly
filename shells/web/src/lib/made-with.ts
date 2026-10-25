@@ -10,16 +10,22 @@
  *
  * Every string here is for a TEXT sink (textContent, or a caller that escapes) and
  * so goes through tRaw: an HTML-escaped label would show its entities literally.
+ *
+ * The brand skills an agent declared it followed (plan 323) are part of the same
+ * record and read "Guided by", never as a check. The web shell has no agent, so
+ * nothing here sets them; a record that carries them shows them.
  */
 import type { DesignRecord, MadeWithPreview } from '../../../../engine/src/metadata.ts';
-import { readDesignRecord, themesSelection } from '../../../../engine/src/metadata.ts';
+import { guidedByWords, readDesignRecord, themesSelection } from '../../../../engine/src/metadata.ts';
 import { t, tRaw } from '../i18n.ts';
 
 /**
- * The record as one line: "Acme · Version 2026-10 · Colourway: Persimmon". Empty
- * for an empty record.
+ * The record as one line: "Acme · Version 2026-10 · Colourway: Persimmon", ending
+ * in "Guided by: acme-brand 1.0" when the record names brand skills. Empty for an
+ * empty record. `skills: false` leaves the brand skills out, for Verify, which
+ * lists them as a fact of their own.
  */
-export function madeWithWords(record: DesignRecord | null | undefined): string {
+export function madeWithWords(record: DesignRecord | null | undefined, opts: { skills?: boolean } = {}): string {
   if (!record) return '';
   const parts: string[] = [];
   if (record.designSystem) parts.push(record.designSystem.label);
@@ -29,6 +35,8 @@ export function madeWithWords(record: DesignRecord | null | undefined): string {
       ? tRaw('Colourway: {name}', { name: choice.name })
       : tRaw('{group}: {name}', { group: choice.group || t('Theme'), name: choice.name }));
   }
+  const guided = opts.skills === false ? '' : guidedByWords(record.brandSkills);
+  if (guided) parts.push(tRaw('Guided by: {skills}', { skills: guided }));
   return parts.join(' · ');
 }
 
@@ -88,7 +96,16 @@ export function recreateWithRecord(
 
 /** Verify's "Design system" fact for a credential's export assertion, or null when it records none. */
 export function madeWithFact(environment: Readonly<Record<string, unknown>> | null | undefined): string | null {
-  return madeWithWords(readDesignRecord(environment ?? null)) || null;
+  return madeWithWords(readDesignRecord(environment ?? null), { skills: false }) || null;
+}
+
+/**
+ * Verify's "Guided by" fact: the brand skills an agent declared it followed for the
+ * file (plan 323), as "acme-brand 1.0, acme-photography 1.2", or null when the
+ * credential names none. Guidance the agent declared, never a check.
+ */
+export function guidedByFact(environment: Readonly<Record<string, unknown>> | null | undefined): string | null {
+  return guidedByWords(readDesignRecord(environment ?? null)?.brandSkills) || null;
 }
 
 /**

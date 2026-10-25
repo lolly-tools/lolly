@@ -17,6 +17,7 @@
  * Every string reaches the page through textContent.
  */
 import { instancePath } from '../lib/instance.ts';
+import { currentAddress } from '../lib/url-state.ts';
 import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
 import { safeHref } from '../utils.ts';
@@ -73,7 +74,7 @@ export function switchAccountHref(returnTo: string): string {
 }
 
 /** The address on screen, for a sign-in to come back to. */
-const here = (): string => window.location.pathname + window.location.search + window.location.hash;
+const here = currentAddress;
 
 /** A card's one action: a link, or a button that runs `run`. */
 type CardAction = { label: string; href: string } | { label: string; run: () => void; id: string };

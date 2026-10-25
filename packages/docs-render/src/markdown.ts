@@ -39,8 +39,9 @@ export function headingId(text: string, ordinal: number): string {
 }
 
 /** The content tokens stripAuthoringComments must NOT eat, because they render:
- *  `<!--i:name-->` (bullet icon), `<!--l:name-->` (inline mark), `<!--lb:a b-->` (block). */
-export const CONTENT_TOKEN = 'i:[a-z-]+-->|l:[a-z0-9-]+-->|lb:[a-z0-9 -]+-->';
+ *  `<!--i:name-->` (bullet icon), `<!--l:name-->` (inline mark), `<!--lb:a b-->` (block),
+ *  `<!--g:dark-->` (the plate under a picture-list picture). */
+export const CONTENT_TOKEN = 'i:[a-z-]+-->|l:[a-z0-9-]+-->|lb:[a-z0-9 -]+-->|g:(?:light|dark|brand)-->';
 
 /**
  * Authoring comments (shot notes, capture instructions) are working metadata, never

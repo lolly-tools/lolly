@@ -1,94 +1,88 @@
 # Kom i gang
 
-Lolly gjør reglene dine - farger, typografi, layout, logikk - om til verktøy hvem som helst kan bruke til å lage ferdige filer: bilder, PDF-er, kort til sosiale medier, video, ved å fylle ut noen få felter. Det er lite å lære og ingenting å laste opp: alt lages og eksporteres på enheten din, med eller uten nett.
+Når du er ferdig med denne siden, bruker verktøyene dine dine egne farger og skrifter, og arbeidet du allerede har, er klart til å brukes på nytt. Du trenger ingen konto, og både å lage og å eksportere skjer på enheten din.
 
-Dette er siden du bør lese først. To ting gjør deg produktiv: **gjør Lolly til din** og **ta med det du allerede har** (designfilene og tokenene dine). Alt annet er én lenke unna.
+::: timeline
+- <!--i:sparkle--> **Lag én fil.** [Make your first file](/info/make-something.html) tar deg gjennom en QR-kode på noen få minutter.
+- <!--i:palette--> **Legg merkevaren din inn.** Start fra én farge, en tokens-fil eller et ferdig design.
+- <!--i:layers--> **Lag flere av det samme.** Del en lenke, fyll et regneark eller kjør verktøyet fra et skript.
+:::
 
-> Ny i Lolly og vil bare lage noe? [Lag noe på 60 sekunder](/info/make-something.html) tar deg gjennom tre, eller [åpne appen](/#/), velg et verktøy fra galleriet, fyll ut feltene og trykk **Export**. Kom tilbake hit når du vil at det skal bære *din* merkevare.
+Ny på selve ideen? [What is Lolly?](/info/what-is-lolly.html) er femminuttersintroduksjonen, og [How Lolly works](/info/how-lolly-works.html) viser hvem som gjør hva.
 
-![Utilities-visningen - arbeidshestene som kjører på enheten, som Strip Hidden Data, Compress PDF og Convert Image, samlet på ett sted](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+## Legg merkevaren din inn
 
-## 1. Gjør den til din - sett opp designsystemet ditt
+lolly.tools åpner i **Lolly Demo**, Lollys eget eksempel på et designsystem; [Meet Lolly Demo](/info/lolly-demo.html) viser hva du ser på. Ditt designsystem erstatter det: et lite sett med designtokens, altså farger, skrifter og noen få regler, som hvert verktøy tegner med. Sett det opp én gang, så starter alt du lager på merkevaren.
 
-Merkevaren din i Lolly er et lite **design-tokens**-dokument - farger, skrifter og noen få regler - som alle verktøy gjengir mot. Sett det opp én gang, så er alt du lager i tråd med merkevaren fra bunnen av, ikke etter en gjennomgang. Det finnes tre veier inn; velg den som passer der merkevaren din allerede bor.
+Velg ruten som passer det du har:
 
-### Start fra bunnen (designsystembyggeren)
+- <!--i:palette--> **Én farge.** Åpne **Design System Setup** (`#/start`), gi designsystemet et navn og velg en primærfarge. Lolly utleder en komplett, tilgjengelig palett fra den, med lyse og mørke flater, tekst og aksenter. Velg en skrift, så har du en fungerende merkevare.
+- <!--i:upload--> **En tokens-fil.** **Add from…**, nederst i romlisten i Design System Setup, tar en DTCG-, Tokens Studio- eller Penpot-tokens-fil, en SVG eller en `LollyBrand`-pakke. Slipp den inn, så fylles paletten. Mens designsystemet fortsatt er tomt, åpner **Start from a reference** i rommet Overview den samme velgeren.
+- <!--i:pentool--> **Et ferdig design.** I Design velger du **Import a design** og slipper en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil. Se [Bring in what you already have](#bring-in-what-you-already-have) nedenfor.
 
-Første gang lander du i **galleriet**, med en kort velkomstdialog over som tilbyr tre veier inn - **Make it yours** (Brand Studio på `#/start`), **Bring your design** (slipp en Figma-, Penpot-, InDesign- eller PDF-fil, så åpnes den som en redigerbar layout - den raskeste veien til [Ta med det du allerede har](#2-bring-in-what-you-already-have) nedenfor) og **Explore the community tools** - pluss en rad med språk hvis engelsk ikke er ditt. Velg det første kortet, så havner du i [**Brand Studio**](/info/brand-studio.html). Gi den et navn og en primærfarge, så *utleder* Lolly en komplett, tilgjengelig palett fra den - lyse og mørke flater, tekst, aksenter - med den samme fargematematikken motoren bruker overalt ellers.
+Første gang du åpner galleriet, tilbyr en kort velkomst de samme valgene: **Make it yours** åpner Design System Setup, **Bring your design** åpner en filvelger for et design og **Explore the community tools** lukker velkomsten.
 
-![Fargerommet i Brand Studio ved en ny installasjon - én levende fargeprøve, ett felt og hele det første valget](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Velg en skrift, og du har en fungerende merkevare på under ett minutt. Derfra lar studioets seks rom - Oversikt, Farger, Typografi, Logoer, Tokens, Filer - deg ta den så langt du vil, i hvilken rekkefølge du vil, og finpusse hva som helst av det hver gang du kommer tilbake. Fanen **Designsystem** på dashbordet (`#/d`) viser resultatet skrivebeskyttet og peker tilbake til `#/start`, som er der redigeringen skjer (et låst designsystem forblir skrivebeskyttet, mens dine egne lokale systemer forblir redigerbare).
+![Rommet Colours i Design System Setup på en ny installasjon: ett levende fargefelt, ett inndatafelt og hele den første beslutningen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-### Importer en merkevare du allerede har
+Derfra tar sju rom deg så langt du vil, i hvilken som helst rekkefølge: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** og **Usage & rules**. Hver forhåndsvisning i appen oppdateres mens du skriver. [Design System Setup](/info/brand-studio.html) dekker hvert rom.
 
-Er merkevaren din allerede fanget som design-tokens - fra **Penpot**, **Tokens Studio** (Figma) eller en hvilken som helst ren **DTCG**-fil - så ta den inn i sin helhet i stedet for å taste den inn på nytt. To veier:
+Skrifter lagres på enheten din. Velg en Google Font, så lagrer Lolly filen som en merkevareressurs, slik at skriften din følger med uten nett og ingenting hentes når et verktøy tegner.
 
-- <!--i:palette--> **I appen:** [designsystembyggeren: Brand Studio](/info/brand-studio.html) (`#/start`) tar den inn via **Add from…** nederst i romlisten - en token-fil, en Penpot-eksport, en SVG eller en `LollyBrand`-pakke. Slipp den inn, så lyser paletten opp.
-- <!--i:code--> **Fra kommandolinjen**, for å sette opp en gjenbrukbar merkevarepakke:
+### Se, bytt og del et designsystem
+
+- **Se det aktive.** **Settings → Design system** viser det aktive designsystemet som et omslag og sider, skrivebeskyttet.
+- **Bytt mellom dem.** **Settings → Preferences → Design systems** lister alle designsystemer på denne enheten. Én organisasjon kan ha flere designsystemer, eller ett med flere fargevarianter; [Brand architectures](/info/brand-architectures.html) kartlegger ordningene.
+- **Del ett.** Eksporter designsystemet som en `LollyBrand`-pakke: én fil en kollega importerer for å få samme palett, skrifter og regler.
+
+Et designsystem som bygget eller organisasjonen din leverer, er **administrert**: det viser en lås og forblir skrivebeskyttet. For å endre ett, lag en redigerbar kopi fra **Settings → Preferences → Design systems**.
+
+![Fanen Design system i Settings: det aktive designsystemet som et omslag og sider](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
+
+Designsystemet ditt er DTCG-tokens, formatet Penpot leser og skriver og Tokens Studio tar med til Figma, så paletten du designer med og paletten Lolly bruker, er ett og samme dokument. [Design Tokens](/info/design-tokens.html) har detaljene.
+
+::: details For utviklere: bygg en merkevarepakke fra kommandolinjen
+For å sette opp en gjenbrukbar merkevarepakke i en utsjekk, godtar `ingest:brand` de tre beholderne Penpot og Tokens Studio eksporterer: én enkelt `tokens.json`, en mappe med filer per sett med `$metadata.json`, eller et `project.penpot`-arkiv.
 
 ```bash
-# a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`ingest:brand` godtar alle de tre beholderne Penpot / Tokens Studio eksporterer det samme dokumentet i - en enkelt `tokens.json`, en mappe (`$metadata.json` + filer per sett) eller et `project.penpot`-arkiv. Med `--activate` registreres merkevaren som en profil, den aktiveres og katalogen bygges på nytt. Se [Konfigurasjon](/info/configuration.html) for hvordan merkevarepakker og profiler henger sammen.
+`--activate` registrerer merkevaren som en profil og bygger og validerer katalogen. Den endrer aldri standardprofilen: kjør med `LOLLY_PROFILE=acme` for å bruke den nye pakken. [Configuration](/info/configuration.html) forklarer hvordan merkevarepakker og profiler henger sammen.
+:::
 
-### Finjuster den i appen
+## Ta med det du allerede har
 
-Når en merkevare er aktiv, kan du fortsette å forme den i [**Brand Studio**](/info/brand-studio.html) (`#/start`) - endre en farge eller en rolle, så oppdateres alle forhåndsvisninger i appen mens du skriver. (Fanen **Design system** på dashbordet på `#/d` *viser* merkevaren skrivebeskyttet; det er i Studio du redigerer den.)
+Du starter ikke fra en blank side.
 
-![Design system-fanen på dashbordet - den aktive merkevaren vist skrivebeskyttet](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Den samme merkevaren er oppsummert på kortet **Profile → Your brand**. Skriftene er ekte: velg fra Google Fonts, så lagrer Lolly filen **på enheten din** som en merkevareressurs, slik at typografien din virker uten nett og ingenting hentes ved gjengivelse.
+**Designfiler.** Ferdig arbeid fra Figma, Penpot, Illustrator, InDesign eller en hvilken som helst SVG-app åpnes i Design som en levende layout: tekst kan fortsatt skrives på nytt, former forblir former og bilder havner i biblioteket ditt. Filen leses i nettleseren din, og ingenting lastes opp. [Import a design](/info/design-import.html) lister hvert format og hva som følger med.
 
-Når du er fornøyd, **eksporter merkevaren som en `LollyBrand`-pakke** - én enkelt fil en kollega kan importere for å få nøyaktig samme palett, skrifter og regler. Slik flytter en merkevare seg mellom folk og maskiner uten en server i mellom.
+**Presentasjoner.** Slipp en PowerPoint `.pptx` på Lolly for å arkivere lysbildene som ressurser, skriv en ny presentasjon fra Markdown i **Markdown Slides**, eller bruk [Rebrand a deck](/info/rebrand.html) for å flytte hele presentasjonen over på designsystemet ditt.
 
-> **Merkevare-tokens går begge veier.** Fordi Lollys merkevare *er* DTCG-tokens - formatet Penpot leser og skriver direkte, og som Tokens Studio tar med til Figma - er paletten du designer *med* og paletten Lolly *håndhever* ett dokument, ikke to lister du holder synkronisert for hånd. Se [Design-tokens](/info/design-tokens.html).
-
-## 2. Ta med det du allerede har
-
-Du starter ikke med blanke ark. Lolly åpner designarbeidet og de åpne formatene du allerede eier.
-
-### Åpne designfiler
-
-Ferdig arbeid i **Figma, Penpot, Illustrator, InDesign eller en hvilken som helst SVG-app** trenger ikke bli låst inne i appen du tegnet det i. Åpne **Design**, klikk **Import a design**, og filen åpnes som en *levende layout* - ikke et flatet bilde. Hvert lag blir en redigerbar boks: tekst kan skrives om, former forblir former, bilder havner i biblioteket ditt og kompleks vektorgrafikk bevares tro mot originalen. Den kommer inn allerede tilpasset merkevarens skrifter og fargeregler.
-
-| Du har | Ta det inn som |
-|---|---|
-| En Figma-ramme | Nativ `.fig` (File → Save local copy), eller en SVG-eksport |
-| Et Penpot-design | `.penpot`-eksporten, eller en hvilken som helst SVG |
-| En Illustrator-fil | Nativ `.ai` (PDF-kompatibel) eller `.pdf` - åpnes direkte |
-| En InDesign-layout | `.idml` (File → Export → InDesign Markup) |
-| Alt annet | **Hvilken som helst SVG** - den universelle døren inn |
-
-Hele importen skjer **på enheten din** - filen tolkes i nettleseren din og ingenting lastes opp. Alle detaljer, og nøyaktig hva som følger med over, finner du i [Importer et design](/info/design-import.html).
-
-Har du i stedet et **PowerPoint-sett**? Slipp `.pptx`-filen på hvilken som helst opplastingsflate for å arkivere lysbildene som ressurser, skriv et nytt sett fra Markdown i **Markdown Slides**, eller kjør **Rebrand** for å få tilbake det samme settet omtemasatt, med diagrammer og animasjoner intakt.
+**Data.** Lim inn eller slipp en CSV- eller JSON-tabell, så fylles et verktøys repeterende felt fra den, eller [Batch](/info/batch.html#make-many-versions-of-one-design) lager én ferdig fil per rad.
 
 ### Fra engangsjobb til mal
 
-Her er gevinsten: en importert layout er en helt vanlig Design-økt, så når du **lagrer** den, bor den på en URL. Hvem som helst med Lolly kan åpne den URL-en, endre ordene, bytte et bilde og gjengi sin egen versjon - uten designapp, og de låste delene forblir låst. Et engangsdesign blir et gjenbrukbart verktøy. Det er hele poenget, nådd uten å skrive en eneste linje med konfigurasjon.
+En importert layout er en vanlig Design-økt. **Share with rules** gjør den til et verktøy: du velger hvilke deler andre kan endre, og de fyller bare ut de.
 
-### Åpne data og åpne verktøy
+![Behold Design-masteren, velg inndata og grenser i en forfatterkopi, og del deretter et gjenbrukbart .lolly-verktøy som mottakerne fyller ut](/info/diagrams/concepts/share-with-rules.svg)
 
-[Fellesskapets verktøysett](/info/builders.html) er åpen kildekode og merkevareuavhengig - QR-koder, gatekart, filtre, personvernverktøy - og det gjengir mot *din* merkevare i det øyeblikket du aktiverer den.
+[Share a design with rules](/info/create-a-tool.html) går gjennom hvert trinn.
 
-Mat verktøyene med dine egne åpne data også: lim inn eller slipp en **CSV**- eller **JSON**-tabell, så fylles verktøyets gjentakende felter fra den, én ferdig ressurs per rad.
+## Lag mange, del og automatiser
 
-## 3. Lag noe, del det eller automatiser det
+- <!--i:download--> **Eksporter.** Verktøy lager SVG, PDF, PNG, JPG, WebP, video og mer, i formatene hvert verktøy tilbyr, i ekte trykkstørrelser når du trenger det. Se [Export a file](/info/exporting.html).
+- <!--i:link--> **Del en lenke.** Et verktøys innstillinger følger med i lenken, så lenken åpner den samme filen igjen overalt.
+- <!--i:layers--> **Lag én per rad.** Styr et verktøy fra et regneark i [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:cpu--> **Automatiser.** Den samme gjengivelsen kjører fra [CLI](/info/cli.html) og fra en [AI-agent](/info/ai-agents.html).
 
-Med en aktiv merkevare og materialet ditt for hånden lager hvert verktøy en ferdig fil:
-
-- <!--i:download--> **Gjengi** et hvilket som helst verktøy til **SVG, PDF, PNG, JPG, WebP, video** og mer - i ekte trykkstørrelser og fysiske enheter når du trenger det. Se [Eksport & formater](/info/exporting.html).
-- <!--i:link--> **Del en lenke.** Hver verktøytilstand er en URL, så en ferdig ressurs er reproduserbar og adresserbar med parametere - sjekk inn lenken, generer på nytt ved behov.
-- <!--i:layers--> **Gjør det i bulk.** Driv en mal fra et regneark i [masserutenettet](/info/exporting.html): én ferdig ressurs per rad.
-- <!--i:cpu--> **Automatiser det.** Den samme gjengivelsen kjører fra [CLI](/info/cli.html) og fra en [AI-agent](/info/ai-agents.html) - en URL er API-et.
-
-«En URL er API-et» er bokstavelig ment. Diagrammet nedenfor er ikke tegnet av noen: typen, overskriften og hele datatabellen ble skrevet inn i adressefeltet, og den samme lenken gjengir det samme diagrammet på hvilken som helst enhet.
+En lenke er en komplett forespørsel. Ingen tegnet diagrammet nedenfor: typen, overskriften og hele datatabellen ble skrevet inn i adressefeltet, og den samme lenken tegner det samme diagrammet på alle enheter.
 
 ![Et arealdiagram over månedlige registreringer, der hver verdi kom inn som en spørreparameter i stedet for et klikk](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 ## Hvor du går videre
 
-Tre veier, avhengig av hva du er her for å gjøre:
-
-- <!--i:people--> **[Lolly for skapere](/info/creators.html)** - du lager ting. Fordelene, og hvordan du får mest ut av appen.
-- <!--i:code--> **[Lolly for utviklere](/info/builders.html)** - du lager verktøy, integrerer og distribuerer. Den tekniske dokumentasjonen.
-- <!--i:shieldcheck--> **[Lolly for driftsansvarlige](/info/operators.html)** - du har ansvar for merkevare, sikkerhet og utrulling i en organisasjon.
+- <!--i:people--> **[Create](/info/creators.html)**: lage, animere, spille inn, dele og eksportere.
+- <!--i:code--> **[Automate](/info/builders.html)**: designsystemer, verktøyforfatting, kommandolinjen, lenker og agenter.
+- <!--i:usercheck--> **[Manage](/info/operators.html)**: å kjøre Lolly for et team med Lolly Work.
+- <!--i:server--> **[Deploy](/info/operate.html)**: å drifte Lolly og Lolly Work.
+- <!--i:shieldcheck--> **[Trust](/info/trust.html)**: personvern, sikkerhet og å sjekke en fil selv.

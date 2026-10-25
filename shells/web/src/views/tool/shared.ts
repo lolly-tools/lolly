@@ -5,8 +5,8 @@ import { personalShareFields } from '../../lib/share-privacy.ts';
  * constants and pure helpers that used to sit above mountTool(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The tool view: one mounted tool - sidebar, canvas, actions bar, history and collab.
  */
-import { copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS } from '../../lib/tool-url-state.ts';
-import { replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-state.ts';
+import { copyBesidePackParams, copyWorkspaceParams, deviceLinkParams, packableContent, RESULT_CONTEXT_PARAMS } from '../../lib/tool-url-state.ts';
+import { flushAddressWrites, replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-state.ts';
 import type { ClipboardAPI, ComposeAPI, HostV1, StateAPI } from '@lolly-tools/core/host-v1';
 import { DEFAULT_CMYK_CONDITION, ENC_PARAM, HDR_DEFAULTS, PACK_PARAM, expandQuery, hasPackedState, isPackAvailable, packQuery, serializeHdr, unpackEncrypted } from '@lolly/engine';
 import type { DepthSetting, HdrSettings, VideoUrlSettings } from '@lolly/engine';
@@ -518,6 +518,7 @@ export async function shrinkUrl(
   barSeq: BarSeq | null
 ): Promise<void> {
   if (isIframeMode()) return; // a framed tool never rewrites its address
+  flushAddressWrites(); // shrink the latest state, not one still settling
   // The bar is normally the path form /t/<id>?… by now; tolerate the boot-time hash
   // form too. Keep the route part, rewrite only the query.
   const hashQ = window.location.hash.indexOf('?');
@@ -836,6 +837,8 @@ export function showShareDialog(
   manifest: ToolManifest,
   lolly?: ShareDialogLolly
 ): void {
+  // Sharing starts from the latest address: a write still settling goes out now.
+  flushAddressWrites();
   if (exportScope && !exportScope.dispatchEvent(new CustomEvent('lolly:share-open', { cancelable: true }))) return;
   updateRouteParams({ _dialog: 'share', share: null });
   openShareDialog({ ...shareDialogOptions(runtime, exportScope, manifest, lolly), onClose: () => { if (exportScope?.isConnected) updateRouteParams({ _dialog: null }); } });
@@ -871,8 +874,22 @@ export function shareDialogOptions(
   // Sections that save the document elsewhere (lib/share-sections.ts) read it when they
   // save, not now.
   const readDocument = (): ShareDocument => readToolDocument(runtime, exportScope, manifest);
+  const device = deviceLink();
   return { toolId, personalFields: personalShareFields(runtime.getModel()), baseParts: parts.filter(part => part !== 'format=lolly'), manifest,
-    currentFormat: currentFormat === 'lolly' ? '' : currentFormat, fidelity, lolly, document: readDocument };
+    currentFormat: currentFormat === 'lolly' ? '' : currentFormat, fidelity, lolly, document: readDocument, ...(device ? { deviceLink: device } : {}) };
+}
+
+/**
+ * The link that reopens this document from the copy saved on this device: the slot
+ * this browser entry remembers, which is what the address keeps once a document is too
+ * large for a link (session.ts). Undefined until automatic history has saved a copy.
+ */
+function deviceLink(): string | undefined {
+  const address = routeParams();
+  const remembered = (window.history.state as { lollyHistory?: { slot?: unknown } } | null)?.lollyHistory?.slot;
+  if (!address.get('slot') || address.get('slot') !== remembered) return undefined;
+  const params = deviceLinkParams(address);
+  return params ? `${location.origin}${location.pathname}${location.hash.split('?')[0]}?${params}` : undefined;
 }
 
 // Re-create <script> elements so the browser executes them.

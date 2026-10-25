@@ -10,5 +10,6 @@
  * read: an older installed extension answers screenshots but not site reads, so the
  * app must be able to tell the two apart without a probe. Bump it when the site
  * request or reply shape changes; absent means "this extension cannot read sites".
+ * `vectorProtocol` announces the vector screenshot (`spec.vector`) the same way.
  */
-window.__lollyCapture = { version: '0.4.0', siteProtocol: 1 };
+window.__lollyCapture = { version: '0.5.0', siteProtocol: 1, vectorProtocol: 1 };

@@ -1,6 +1,6 @@
 {
   "name": "Gradien",
-  "description": "Gradien bergaya mesh yang lembut dari warna brand Anda. Seret titik warna langsung di kanvas, atau aktifkan Mengambang dan ekspor loop-nya sebagai WebM, MP4, atau GIF.",
+  "description": "Lima cara membuat gradien dari swatch sistem desain: Blend radial lembut, mesh Coons-patch asli sebagai SVG tajam (Subdivide) atau raster halus (Mesh), titik Warp bebas, dan gelombang Flow beranimasi. Seret semuanya langsung di kanvas; ekspor gambar diam atau loop video tanpa sambungan.",
   "a11yLabel": "Gradien mesh yang memadukan {{count}} warna",
   "inputs.count.label": "Titik warna",
   "inputs.color1.label": "Warna 1 (dasar)",

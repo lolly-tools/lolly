@@ -857,6 +857,10 @@ function drawFramed(ctx, source, iw, ih, W, H, framing, fit) {
 
     function loop() {
       if (disposed || !alive()) return;
+      // A detached canvas is a dead preview. The epoch above only moves when this
+      // tool paints AGAIN, so a one-shot render (a gallery look, a batch row) whose
+      // stage was removed kept this loop drawing for the rest of the session.
+      if (!canvas.isConnected) { disposeAll(); return; }
       // While the exporter drives deterministic frames, stop advancing on
       // wall-clock (that would clobber the exact phase between the sync paint and
       // the async capture); keep the loop alive so it resumes once the flag clears.
@@ -891,24 +895,24 @@ function drawFramed(ctx, source, iw, ih, W, H, framing, fit) {
     if (!pending.length) fireReady();
     loop();
 
-    window.__lollyBooth = {
-      dispose: function () {
-        disposed = true;
-        if (raf) cancelAnimationFrame(raf);
-        canvas.removeEventListener('pointermove', onMove);
-        canvas.removeEventListener('pointerleave', onLeave);
-        canvas.removeEventListener('click', onClick);
-        // The element stays in vidCache (that's what keeps playback continuous
-        // across paints) but MUST stop decoding - otherwise navigating away from
-        // the tool leaves a video running for the rest of the session.
-        if (bgVideo) { try { bgVideo.pause(); } catch (e) {} bgVideo = null; }
-        if (bgTex) { try { bgTex.dispose(); } catch (e) {} bgTex = null; }
-        disposables.forEach(function (d) { try { d.dispose(); } catch (e) {} });
-        try { pmrem.dispose(); } catch (e) {}
-        try { renderer.dispose(); } catch (e) {}
-        try { renderer.forceContextLoss(); } catch (e) {}
-      }
-    };
+    function disposeAll() {
+      if (disposed) return;
+      disposed = true;
+      if (raf) cancelAnimationFrame(raf);
+      canvas.removeEventListener('pointermove', onMove);
+      canvas.removeEventListener('pointerleave', onLeave);
+      canvas.removeEventListener('click', onClick);
+      // The element stays in vidCache (that's what keeps playback continuous
+      // across paints) but MUST stop decoding - otherwise navigating away from
+      // the tool leaves a video running for the rest of the session.
+      if (bgVideo) { try { bgVideo.pause(); } catch (e) {} bgVideo = null; }
+      if (bgTex) { try { bgTex.dispose(); } catch (e) {} bgTex = null; }
+      disposables.forEach(function (d) { try { d.dispose(); } catch (e) {} });
+      try { pmrem.dispose(); } catch (e) {}
+      try { renderer.dispose(); } catch (e) {}
+      try { renderer.forceContextLoss(); } catch (e) {}
+    }
+    window.__lollyBooth = { dispose: disposeAll };
   }
 
   // ---- hall lighting presets -----------------------------------------------

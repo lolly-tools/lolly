@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { unzipSync } from 'fflate';
 import { stampLearningShot } from './lib/learning-shot-credential.ts';
+import { turnOnLearning } from './lib/learning-feature-on.ts';
 const arg = (name: string) =>
   process.argv.find((v) => v.startsWith(`--${name}=`))?.slice(name.length + 3);
 const url = arg('url') || 'http://127.0.0.1:5173';
@@ -30,6 +31,7 @@ try {
   page.setDefaultTimeout(15000);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  await turnOnLearning(page, url);
   await page.goto(`${url}/?theme=light#/learning`);
   console.log('Opened course editor');
   await page.getByLabel('Course title', { exact: true }).fill('Partner enablement essentials');

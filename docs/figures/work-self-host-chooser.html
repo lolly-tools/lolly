@@ -1,0 +1,87 @@
+<!--
+  Concept: which Lolly Work page is mine. One question (will other people use this instance?) splits
+  the trials from the team installs; the team side asks what the reader already runs. Every leaf opens
+  the page with the commands. Every team install ends with Customer setup, optional enterprise identity
+  and day-to-day operations.
+  Band Contract: static fragment scoped under .wsc, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network. Links are root-relative navigation to /info pages. The demo leaf names
+  its address as plain text because an artifact links nothing off its own site.
+  Sources: the install paths in docs/work/self-host.md, install.md, ready-made-package.md and
+  platform-deployment.md; the package status in official-installations.md.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23 for the plan 322 docs remediation. The C2PA signature added at bank time is the first
+  provenance record of this file.
+-->
+<style>
+.wsc{--wsc-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--wsc-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --wsc-ground:hsl(var(--secondary,84.5 55% 92.2%));--wsc-paper:hsl(var(--card,0 0% 100%));
+ --wsc-accent:hsl(var(--primary,176.5 89.5% 11.2%));--wsc-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --wsc-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--wsc-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --wsc-wash:color-mix(in oklab,var(--wsc-accent) 12%,var(--wsc-paper));
+ color:var(--wsc-ink);background:var(--wsc-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size;display:grid;gap:14px}
+.wsc *{box-sizing:border-box}
+.wsc ul,.wsc ol{list-style:none;margin:0;padding:0}
+.wsc li{list-style:none;margin:0;font-size:inherit}
+.wsc p{margin:0}
+.wsc.wsc a{color:inherit;text-decoration:none}
+.wsc.wsc a:hover .wsc-name,.wsc.wsc a:focus-visible .wsc-name{text-decoration:underline;text-underline-offset:3px}
+.wsc .wsc-q{display:flex;align-items:center;gap:10px;font-weight:600;font-size:1.06rem}
+.wsc .wsc-q svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:var(--wsc-accent)}
+.wsc .wsc-split{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@container (min-width:620px){.wsc .wsc-split{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+.wsc .wsc-branch{background:var(--wsc-paper);border-radius:16px;box-shadow:0 0 0 1px var(--wsc-line);padding:12px;display:grid;gap:10px;align-content:start}
+.wsc .wsc-ans{display:flex;align-items:center;gap:8px;font-weight:600}
+.wsc .wsc-pill{display:inline-grid;place-items:center;min-width:2.6em;padding:3px 9px;border-radius:999px;font-size:.78rem;font-weight:700;letter-spacing:.02em;background:var(--wsc-accent);color:var(--wsc-on-accent)}
+.wsc .wsc-pill.wsc-no{background:var(--wsc-soft);color:var(--wsc-ink);box-shadow:inset 0 0 0 1px var(--wsc-line)}
+.wsc .wsc-sub{font-size:.88rem;color:var(--wsc-muted);font-weight:600}
+.wsc .wsc-leaves{display:grid;gap:8px}
+.wsc .wsc-leaf{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:9px 11px;border-radius:12px;background:var(--wsc-wash);box-shadow:0 0 0 1px var(--wsc-line)}
+.wsc .wsc-leaf svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;color:var(--wsc-accent)}
+.wsc .wsc-have{display:block;font-size:.84rem;color:var(--wsc-muted)}
+.wsc .wsc-name{display:block;font-weight:600}
+.wsc .wsc-note{display:block;font-size:.78rem;color:var(--wsc-muted);margin-top:2px}
+.wsc .wsc-group{display:grid;gap:8px;padding:10px;border-radius:14px;box-shadow:inset 0 0 0 1px var(--wsc-line)}
+.wsc .wsc-then{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.92rem}
+.wsc .wsc-then .wsc-lead{font-weight:600;margin-right:2px}
+.wsc .wsc-step{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--wsc-paper);box-shadow:0 0 0 1px var(--wsc-line)}
+.wsc .wsc-step b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--wsc-accent);color:var(--wsc-on-accent);font-size:.72rem}
+.wsc .wsc-arrow{color:var(--wsc-muted)}
+@container (max-width:519px){.wsc .wsc-arrow{display:none}}
+</style>
+<div class="wsc" role="group" aria-label="Choose a Lolly Work installation path">
+  <p class="wsc-q"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M15.5 14.4c.6-.2 1.3-.4 2-.4 2.5 0 4.5 2 4.5 4.5"/></svg>Will other people use this instance?</p>
+  <div class="wsc-split">
+    <section class="wsc-branch" aria-label="No: trying it">
+      <p class="wsc-ans"><span class="wsc-pill wsc-no">No</span>I want to try it</p>
+      <ul class="wsc-leaves">
+        <li><span class="wsc-leaf"><span><span class="wsc-have">Just looking</span><span class="wsc-name">The public demo at lolly.work</span><span class="wsc-note">Nothing to install; resets on restart</span></span></span></li>
+        <li><a class="wsc-leaf" href="/info/operate/install-work.html#1-try-it-on-your-computer"><span><span class="wsc-have">On my computer</span><span class="wsc-name">Local demo</span><span class="wsc-note">Node 24, about two minutes</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+        <li><a class="wsc-leaf" href="/info/operate/platform-deployment.html#evaluate-on-a-cluster"><span><span class="wsc-have">On a cluster</span><span class="wsc-name">Helm evaluation</span><span class="wsc-note">One command, memory only</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+      </ul>
+    </section>
+    <section class="wsc-branch" aria-label="Yes: for a team">
+      <p class="wsc-ans"><span class="wsc-pill">Yes</span>I am setting it up for a team</p>
+      <p class="wsc-sub">What do you run today?</p>
+      <ul class="wsc-leaves">
+        <li><a class="wsc-leaf" href="/info/operate/install-work.html#7-yunohost"><span><span class="wsc-have">A YunoHost server</span><span class="wsc-name">Install with YunoHost</span><span class="wsc-note">Sign in with your host accounts</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+        <li><a class="wsc-leaf" href="/info/operate/platform-deployment.html"><span><span class="wsc-have">Kubernetes: K3s, RKE2 or Rancher</span><span class="wsc-name">Install on Kubernetes</span><span class="wsc-note">Helm chart, your database and identity provider</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li>
+        <li class="wsc-group">
+          <span class="wsc-sub">One Linux server or VM</span>
+          <a class="wsc-leaf" href="/info/operate/ready-made-package.html"><span><span class="wsc-have">HTTPS and sign-in done for me</span><span class="wsc-name">Ready-made package</span><span class="wsc-note">Console and API today; browser app not yet qualified</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="wsc-leaf" href="/info/operate/install-work.html#5-container-compose"><span><span class="wsc-have">My own Compose configuration</span><span class="wsc-name">Compose from source</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="wsc-leaf" href="/info/operate/install-work.html#6-bare-metal-systemd"><span><span class="wsc-have">No containers</span><span class="wsc-name">Node and systemd</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </li>
+      </ul>
+    </section>
+  </div>
+  <ol class="wsc-then" aria-label="Then, for every team install">
+    <li class="wsc-lead">Then, for every team install</li>
+    <li><a class="wsc-step" href="/info/operate/customer-setup.html"><b>1</b><span class="wsc-name">Customer setup</span></a></li>
+    <li class="wsc-arrow" aria-hidden="true">&#8594;</li>
+    <li><a class="wsc-step" href="/info/operate/enterprise-identity.html"><b>2</b><span class="wsc-name">Enterprise identity (optional)</span></a></li>
+    <li class="wsc-arrow" aria-hidden="true">&#8594;</li>
+    <li><a class="wsc-step" href="/info/operate/operations.html"><b>3</b><span class="wsc-name">Keep it running</span></a></li>
+  </ol>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKAmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAncanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpmYTM4NTU2YS05OGM4LTQxZjQtOTY2NS00YjZmNmEwNDRkZTcAAAAEV2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNzoxNDo1M1oAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GSHCZmxlbmd0aBkNumRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFgg8M4UbbbNR6BwcRUafUd3AGtA48zsmYWZGEB/LpCgH2pjcGFkSAAAAAAAAAAAAAAA7Wp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAALljYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHZ3b3JrLXNlbGYtaG9zdC1jaG9vc2VyZGRhdGV4GDIwMjYtMTAtMjNUMDc6MTQ6NTMuMDc4WmpkaW1lbnNpb25zazI0IMOXIDI0IHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAtRqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACpWNib3KmaGRjOnRpdGxldndvcmstc2VsZi1ob3N0LWNob29zZXJqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6ODA1NGExZDctYzE0Ni00Njg3LTkzYmItYWMzMTJkM2EyZTYzdGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCDz3UwuObdBxzWUBWrRyD7LAlyD/xmrtWMvzkq45fQipKJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCDYdIIZPGUQzAUC4tiyGcVsC8sTZkmNZ8WXWo8vZDZOs6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggVPPauo+GxGx0jDR/s2Uzf3mUAfabixGHzl3iBIR5KWaiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJianVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIyY2JvctKEWQHhogEmGCGBWQHYMIIB1DCCAXmgAwIBAgIJfhV4AngM111FMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNzEzNTNaFw0zNjEwMjAwNzE0NTNaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDtwpnMScaqq5Ir5KH669SP9hLR9BQeJ8C8OEPEHVP3iSNKpqD56R78lBMe9LA7KpoYRKhynQjbt1LCOTNVUT66jcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBRgmCJ4Q+ZeQ+gq5h2UEoPCs8aPljAfBgNVHSMEGDAWgBRgmCJ4Q+ZeQ+gq5h2UEoPCs8aPljAKBggqhkjOPQQDAgNJADBGAiEAtQZCEP8MC5beNZTSoQYcBdz5UGyM+FrrGcILoEuBu1UCIQC49QGxdes5lAHVzH2hnb8VWDcohG7/FMr8orryVVQvhKD2WEAzJ3YDN1P4XTXApHVuU57EN5juprm3X4XHSITr+3ObiuK8+kAAbOiia6BLGqO5bafM93U0LPw+EpyiZXcmCEnZ -----END C2PA MANIFEST----- -->

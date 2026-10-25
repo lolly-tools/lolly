@@ -1,6 +1,6 @@
 {
   "name": "স্নিপেট",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "টেক্সট ডেস্কটপ উইন্ডোতে, স্থির ছবি হিসেবে বা টাইপিং, নির্বাচন, অটোকমপ্লিট ও মোশনসহ নির্দেশিত ইন্টারঅ্যাকশন হিসেবে উপস্থাপন করুন।",
   "inputs.code.label": "কোড",
   "inputs.code.placeholder": "আপনার কোড এখানে পেস্ট করুন…",
   "inputs.fileName.label": "ফাইলের নাম",

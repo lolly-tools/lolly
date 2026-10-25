@@ -1,0 +1,59 @@
+<!--
+  Concept: how the Frames field samples a timed composition. The sequence is cut into equal slices and
+  one still is taken from the middle of each, so the first still is not a half-faded entrance and the
+  last is not the empty moment after every clip has ended.
+  Contract: static fragment scoped under .ecs, reads the docs theme tokens with fallbacks, no script, no
+  motion, no network.
+  Sources: midpoint sampling in engine/src/url-mode.ts (cuts) and views/tool-actions/sequence.ts (the
+  Frames field); docs/exporting.md "Stills from a timed composition".
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ecs{--ecs-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ecs-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ecs-ground:hsl(var(--secondary,84.5 55% 92.2%));--ecs-paper:hsl(var(--card,0 0% 100%));
+ --ecs-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ecs-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .18);
+ color:var(--ecs-ink);background:var(--ecs-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start}
+.ecs *{box-sizing:border-box}
+.ecs p{margin:0}
+.ecs svg{display:block;width:100%;height:auto}
+.ecs .ecs-cap{font-size:.82em;color:var(--ecs-muted);margin-top:8px}
+.ecs .ecs-bar{fill:var(--ecs-paper);stroke:var(--ecs-line);stroke-width:1.5}
+.ecs .ecs-cut{stroke:var(--ecs-line);stroke-width:1.5;stroke-dasharray:4 4}
+.ecs .ecs-mid{fill:var(--ecs-accent)}
+.ecs .ecs-drop{stroke:var(--ecs-accent);stroke-width:1.5;fill:none}
+.ecs .ecs-frame{fill:var(--ecs-paper);stroke:var(--ecs-accent);stroke-width:1.5}
+.ecs .ecs-art{fill:var(--ecs-accent);opacity:.22}
+.ecs .ecs-text{fill:var(--ecs-ink);font:600 14px ui-sans-serif,system-ui,sans-serif}
+.ecs .ecs-small{fill:var(--ecs-muted);font:500 12px ui-sans-serif,system-ui,sans-serif}
+</style>
+<div class="ecs" role="group" aria-label="Frames: 4 takes one still from the middle of each quarter of the sequence">
+  <svg viewBox="0 0 640 220" role="img" aria-label="A sequence bar cut into four equal slices, a dot at the middle of each, and four numbered stills underneath">
+    <text class="ecs-small" x="20" y="22">0 s</text>
+    <text class="ecs-small" x="620" y="22" text-anchor="end">end of the sequence</text>
+    <rect class="ecs-bar" x="20" y="32" width="600" height="34" rx="8"/>
+    <line class="ecs-cut" x1="170" y1="32" x2="170" y2="66"/>
+    <line class="ecs-cut" x1="320" y1="32" x2="320" y2="66"/>
+    <line class="ecs-cut" x1="470" y1="32" x2="470" y2="66"/>
+    <circle class="ecs-mid" cx="95" cy="49" r="6"/>
+    <circle class="ecs-mid" cx="245" cy="49" r="6"/>
+    <circle class="ecs-mid" cx="395" cy="49" r="6"/>
+    <circle class="ecs-mid" cx="545" cy="49" r="6"/>
+    <path class="ecs-drop" d="M95 56v52M245 56v52M395 56v52M545 56v52"/>
+    <rect class="ecs-frame" x="45" y="110" width="100" height="70" rx="6"/>
+    <rect class="ecs-frame" x="195" y="110" width="100" height="70" rx="6"/>
+    <rect class="ecs-frame" x="345" y="110" width="100" height="70" rx="6"/>
+    <rect class="ecs-frame" x="495" y="110" width="100" height="70" rx="6"/>
+    <rect class="ecs-art" x="57" y="130" width="40" height="30" rx="3"/>
+    <rect class="ecs-art" x="207" y="122" width="76" height="38" rx="3"/>
+    <rect class="ecs-art" x="357" y="122" width="52" height="46" rx="3"/>
+    <rect class="ecs-art" x="507" y="140" width="76" height="20" rx="3"/>
+    <text class="ecs-text" x="95" y="204" text-anchor="middle">01</text>
+    <text class="ecs-text" x="245" y="204" text-anchor="middle">02</text>
+    <text class="ecs-text" x="395" y="204" text-anchor="middle">03</text>
+    <text class="ecs-text" x="545" y="204" text-anchor="middle">04</text>
+  </svg>
+  <p class="ecs-cap">PNG, JPG, WebP and SVG come back as numbered files in one ZIP; PDF comes back as four pages.</p>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKEmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnsanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDowYmY2MzhmOC1iYjJmLTQzNWQtODkwNC1mMTFmMWE3NmQxYTAAAAAEZ2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTA6MTBaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkPkmZsZW5ndGgZDdJkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIFGdJ76EXzyudHCcNkH9gjap4wnhM9JAJk0qgFgwe0O6Y3BhZEgAAAAAAAAAAAAAAPBqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAAC8Y2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x3ZXhwb3J0aW5nLWNvbnRhY3Qtc2hlZXRkZGF0ZXgYMjAyNi0xMC0yM1QwNTo1MDoxMC43ODZaamRpbWVuc2lvbnNtNjQwIMOXIDIyMCBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALVanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqZjYm9ypmhkYzp0aXRsZXdleHBvcnRpbmctY29udGFjdC1zaGVldGppbnN0YW5jZUlEeC11cm46dXVpZDo0OTkzOWE2NC03YjFjLTRjMmQtYjk2Yi1hYjMwZDQ3YzdjY2Z0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIDCvsQd7TXw+qA9MHcYftG26jWN5OffxQ50SynJ3FnrNomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIJevg3nK9pVilI/P7l2XUqwfOm94OIykixAktvWf82TeomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCDDJdDFQuiJt6BHB1cTFGxGzEro3nh5DG5wcWuGWm17MqJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmFqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjFjYm9y0oRZAeCiASYYIYFZAdcwggHTMIIBeaADAgECAglRygXu5EAlhu4wCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA1NDkxMFoXDTM2MTAyMDA1NTAxMFowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEKpq2x3mgOiOHWSjeotNMt+U7mV6n2RdJkpvRfSdue5IRydDfWpMAgXZHl3KbBr8eWfaiR6agoio4ZeuRnEclrKNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFLT4ZTOobx+DgcuDHuot0xDm+aAVMB8GA1UdIwQYMBaAFLT4ZTOobx+DgcuDHuot0xDm+aAVMAoGCCqGSM49BAMCA0gAMEUCIQDpSasl0srqKq0+5u4Ipm6at48gZb+APkXEZXyudDiqUwIgeNMQpai1x+KIQAKKilqTlIx7LRcwKReWPojQwJra6/Kg9lhAxm5DHyGt0MQqMxQvs9+BztyKqbF69zW2jHCxNKY6Ol6JYkkMT6LmOl0OcQpHGFWXcVCiPQev5t3+qLLfEvHpUw== -----END C2PA MANIFEST----- -->

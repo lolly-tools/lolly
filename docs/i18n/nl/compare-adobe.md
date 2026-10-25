@@ -2,24 +2,24 @@
 
 _Laatst gecontroleerd: 28 september 2026._
 
-Lolly verzorgt beeldbewerking en -conversie, opmaak, herhaalbare merkproductie, drukwerkoutput en Content Credentials. [lolly.work](https://lolly.work) voegt organisatie-identiteit, gedeelde assets, goedkeuringen en geautomatiseerde serverproductie toe aan die creatieve workflow.
+Als je voor alledaagse bestanden naar Photoshop, Illustrator of InDesign grijpt, zegt deze pagina welke van die klussen Lolly kan overnemen en welke bij Adobe blijven.
+
+## Wat Adobe beter doet
+
+De gespecialiseerde applicaties van Adobe dekken diepgaand creatief werk. [Photoshop](https://www.adobe.com/products/photoshop.html) biedt bijvoorbeeld gedetailleerd fotobewerken, selecteren, maskeren en samenstellen. Een complexe retouch en een terugkerende merkasset hebben verschillende behoeften: vergelijk de bewerkingen die je werk vereist voordat je dat werk verhuist.
 
 ## Waar ze overlappen
 
-Beide ondersteunen werk zoals het aanpassen van afbeeldingsformaten, het opmaken van lay-outs en het exporteren naar professionele formaten. Lolly ondersteunt PDF/X-, CMYK- en high-bit-depth-rasteroutput, met [formaatspecifieke mogelijkheden](/info/formats.html). De utilities op het apparaat converteren en reinigen bestanden zonder ze te uploaden.
+Beide wijzigen het formaat van afbeeldingen, stellen lay-outs samen en exporteren professionele formaten. Lolly ondersteunt PDF/X, CMYK en rasteruitvoer met hoge bitdiepte, met [formaatspecifieke mogelijkheden](/info/formats.html), en de hulpprogramma's op het apparaat zetten bestanden om en schonen ze op zonder ze te uploaden.
 
-De gespecialiseerde applicaties van Adobe dekken uitgebreide creatieve workflows. [Photoshop](https://www.adobe.com/products/photoshop.html) biedt bijvoorbeeld gedetailleerde tools voor fotobewerking, selectie, maskering en compositing. Vergelijk de bewerkingen die jouw werk vereist met de tools van Lolly; een terugkerende merkasset en een complexe retouche kunnen verschillende eisen stellen.
+## Hoe Lolly de overlappende klus doet
 
-## Creatie en organisatieservices
+Zelfstandig Lolly heeft geen Adobe-account en geen Lolly-account nodig, en draait dezelfde engine in de browser, de desktop-app en de CLI. Sjablonen en designtokens houden elk bestand consistent, en [Share with rules](/info/create-a-tool.html) maakt van een ontwerp een tool die anderen invullen.
 
-Zelfstandige Lolly draait zonder Adobe-account of Lolly-account, met dezelfde engine in de browser, de desktopapp en de CLI. Sjablonen en designtokens maken output herhaalbaar, en [Delen met regels](/info/create-a-tool.html) verandert een ontwerp in een tool die anderen kunnen invullen.
+Lolly ondertekent ondersteunde exports met Content Credentials op het apparaat, standaard aan; je kunt ze uitzetten. Een apparaatsleutel bewijst dat het bestand sinds de ondertekening niet is gewijzigd. Een organisatie kan haar eigen certificaatautoriteit gebruiken, zodat haar verificators de ondertekenaar vertrouwen; [Content Credentials Identity](/info/content-credentials-identity.html) legt het verschil uit. Transformatiehulpprogramma's op het apparaat voegen geen Lolly-watermerk of Content Credentials toe.
 
-lolly.work is een aparte service binnen het Lolly-project, open source onder MPL-2.0 net als de creatieve apps. Het levert SSO, SCIM, gedeelde catalogi en projecten, goedkeuringen, toegangsbeleid, auditregistraties en serverrendering. Een organisatie kan beide onderdelen zelf draaien en bestaande assetbibliotheken koppelen. Lokale creatie blijft op het apparaat; gedeeld werk en serverjobs gebruiken de geconfigureerde services.
+## Met een organisatie
 
-## Content Credentials en identiteit
+Lolly Work voegt organisatie-aanmelding, gedeelde assets, goedkeuringen en serverproductie toe, met [serverondertekening](/info/work-c2pa.html) onder een organisatiecertificaat. [Wat waar draait](/info/compare.html#what-runs-where) zet de twee delen naast elkaar.
 
-Lolly kan ondersteunde exports op het apparaat ondertekenen, met Content Credentials ingeschakeld door de gebruiker. Een door het apparaat gegenereerde sleutel bewijst de integriteit van de handtekening van het bestand; een verifier moet de ondertekenaar nog steeds vertrouwen voordat een geverifieerde identiteit wordt getoond. Een organisatie kan een eigen certificeringsinstantie gebruiken en de root daarvan verspreiden onder haar verifiers. lolly.work ondersteunt ook ondertekening op de server met een geconfigureerd organisatiecertificaat en bijbehorende sleutel.
-
-Daardoor zijn zowel persoonlijke ondertekening als organisatieondertekening beschikbaar binnen de Lolly-oplossing. Zie [Content Credentials-identiteit](/info/content-credentials-identity.html), de [ondertekeningsgids van lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md) en het [overzicht van de gecombineerde oplossing](/info/compare.html). Transformatie-utilities op het apparaat voegen geen Lolly-watermerken of herkomstmetadata toe.
-
-Adobe, Photoshop en Creative Cloud zijn handelsmerken van Adobe. Deze pagina beschrijft waar de oplossingen overlappen en is niet verbonden aan Adobe.
+Adobe, Photoshop en Creative Cloud zijn handelsmerken van Adobe. Deze pagina beschrijft waar de producten overlappen en is niet verbonden aan Adobe.

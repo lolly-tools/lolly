@@ -2,16 +2,20 @@
 
 _最後核查：2026 年 9 月 28 日。_
 
-Lolly 在瀏覽器中於你自己的裝置上轉換檔案：HEIC 轉 JPG、PNG 轉 SVG、PDF 轉影象，以及許多其他組合。支援的轉換及其限制請參閱[Lolly 能開啟和生成的所有格式](/info/formats.html)。
+如果你通常搜尋「HEIC to JPG」或「compress PDF」並把檔案上傳到出現的任何網站，Lolly 會在你的瀏覽器中、你自己的裝置上完成同樣的轉換。
+
+## 轉換器網站做得更好的地方
+
+有些轉換器網站處理 Lolly 不支援的格式，而且不需要事先設定任何東西。選擇轉換器時，除了它在哪裡處理檔案，也要看你需要的格式與保真度：有些轉換會保留可編輯的結構，有些則會把結果壓平。
 
 ## 轉換在哪裡進行
 
-基於瀏覽器的轉換器可能會上傳檔案進行處理，也可能在本地轉換。Lolly 的裝置端實用工具在本地處理檔案，無需賬號，沒有廣告和追蹤器。它們不會新增 Lolly 水印或溯源後設資料。所需的轉換資源就緒後，它們可以離線工作；檔案大小受裝置記憶體和具體格式讀取器的限制。
+以瀏覽器為基礎的轉換器可能上傳檔案進行處理，也可能在本機轉換。Lolly 的轉換 Utility 在本機處理檔案，沒有帳號、廣告或追蹤器，也不加入 Lolly 浮水印或 Content Credentials。一旦轉換所需的素材儲存好，它們就能離線運作。檔案大小受裝置記憶體和特定格式讀取器的限制。
 
-選擇轉換器時，除了它在哪裡處理檔案，還要看你所需的格式和保真度。有些轉換會保留可編輯的結構，另一些則會將結果拼合；Lolly 的格式頁面說明了這些差異。
+![Utilities 檢視：Strip Hidden Data、Compress PDF、Convert Image 與其他裝置端工作，集中在一處](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+
+[Lolly 能開啟與製作的每種格式](/info/formats.html)列出支援的轉換及其限制，包括 HEIC 轉 JPG、PNG 轉 SVG 與 PDF 轉圖片。
 
 ## 當團隊需要更多時
 
-[lolly.work](https://lolly.work) 是 Lolly 專案中獨立部署的組織服務。它為受支援的製作工作流增加了 SSO、SCIM、共享目錄、審批、報告和伺服器端渲染。兩部分均以 MPL-2.0 開源。組織可以將它們配合使用，成員則繼續使用裝置端實用工具進行本地轉換。
-
-這一區別關係到資料處理：本地轉換將檔案保留在裝置上，而選擇共享上傳、伺服器渲染或交付，則會將相關資料傳送到已配置的服務。[組合方案概覽](/info/compare.html)說明了這種分離。
+即使組織運行 Lolly Work，組織的成員仍會繼續使用裝置端 Utility 進行本機轉換。共用上傳、伺服器渲染或交付，是資料傳到其伺服器的時間點；[什麼在哪裡執行](/info/compare.html#what-runs-where)說明了這種區分。

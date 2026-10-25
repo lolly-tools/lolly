@@ -151,7 +151,7 @@ const OWN_FLAGS = ['json', 'strict', 'rate-card', 'run-length', 'use-expired-rat
  */
 const REFUSED: Record<string, string> = {
   // `--rates` stays refused: the flag is `--rate-card`, never `--rate`/`--rates`
-  // (docs/cli.md's `--profile`/`--press-profile` collision - do not add a third).
+  // (docs/cli-rendering.md's `--profile`/`--press-profile` collision - do not add a third).
   rates: '--rates is not a flag. The rate card flag is --rate-card=<file.json>.',
   batch: 'batch preflight is not implemented yet. Run `lolly preflight <tool-id>` for a single job.',
   // Removed before GA rather than frozen. It was a THIRD spelling for "where output

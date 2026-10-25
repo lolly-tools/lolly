@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Jemné síťové přechody z barev tvé značky. Táhni barevné body přímo na plátně, nebo zapni pomalý plynulý pohyb bodů a exportuj smyčku jako WebM, MP4 nebo GIF.",
+  "description": "Pět způsobů, jak vytvořit barevný přechod ze vzorníků design systému: jemné radiální Prolnutí, skutečná Coonsova síť jako ostré SVG (Rozdělit) nebo hladký rastr (Síť), volné body Warp a animované vlny Flow. Vše přetahujete přímo na plátně, exportujete obrázky nebo plynulé smyčky videa.",
   "a11yLabel": "Síťový gradient mísící {{count}} barev",
   "inputs.count.label": "Barevné body",
   "inputs.color1.label": "Barva 1 (základní)",

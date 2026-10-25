@@ -1501,6 +1501,10 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     rebuildNarration();
     rebuildSources();
     rebuildAtmosphere();
+    // The volumes come from the host like everything above. A host that gains them
+    // after the dock is built (the web shell builds one dock before any music source
+    // registers) would otherwise keep the empty block it was born with.
+    rebuildVolumes();
     void rebuildVisualiser();
     updateExpandVisibility();
     syncViz();

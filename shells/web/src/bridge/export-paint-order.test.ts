@@ -469,3 +469,57 @@ test('a twin producer that re-enters the walker gets NO twins inside it (depth g
     assert.ok(!svg.includes('rgb(200,0,0)'),
       'the inner canvas\'s own twin must NOT have been consulted during a nested walk');
   });
+
+// ─── zero-size boxes and the top layer ────────────────────────────────────────
+// Both lifted from third-party pages captured by url-shot: github.com mounts its
+// header and hero canvas in 0-height fixed wrappers, a OneTrust consent banner sits
+// in a 0-height static one, and lolly.tools' own welcome dialog came out under the
+// page's fixed bottom bar.
+test('a zero-size box still paints the children it lets spill out', { skip: SKIP }, async () => {
+  const markup = `<div id="root" style="position:relative;width:300px;height:200px">
+    <div style="height:0">${box('', 'rgb(18, 52, 86)')}</div>
+    <div style="position:fixed;left:0;top:0;width:300px;height:0">${box('', 'rgb(86, 52, 18)')}</div>
+    <div style="width:0;height:0;overflow:hidden">
+      ${box('', 'rgb(1, 2, 3)')}
+      ${box('position:fixed;left:100px;top:100px', 'rgb(3, 2, 1)')}
+    </div>
+  </div>`;
+  for (const so of [false, true]) {
+    const svg = await renderFixture(markup, so);
+    at(svg, 18, 52, 86);
+    at(svg, 86, 52, 18);
+    at(svg, 3, 2, 1);   // a fixed child escapes the clipping wrapper
+    assert.ok(!svg.includes('rgb(1,2,3)') && !svg.includes('rgb(1, 2, 3)'),
+      `an in-flow child of a 0x0 overflow:hidden box stays clipped away (stackingOrder ${so})`);
+  }
+});
+
+test('a modal dialog paints above the page, with its ::backdrop under it', { skip: SKIP }, async () => {
+  const { chromium } = browser as { chromium: any };
+  const b = await chromium.launch();
+  try {
+    const page = await b.newPage({ viewport: { width: 800, height: 600 } });
+    await page.setContent(`<!doctype html><style>dialog::backdrop{background:rgba(9, 8, 7, 0.5)}</style>
+      <body style="margin:0"><div id="root" style="position:relative;width:800px;height:600px">
+        <dialog id="d" style="width:200px;height:100px;padding:0;border:0;background:rgb(40, 50, 60)">hi</dialog>
+        <div style="position:fixed;left:0;bottom:0;width:800px;height:60px;background:rgb(60, 50, 40);z-index:10"></div>
+      </div></body>`);
+    await page.evaluate(() => (document.getElementById('d') as HTMLDialogElement).showModal());
+    await page.addScriptTag({ content: await bundle() });
+    const render = (so: boolean) => page.evaluate(async (s: boolean) => {
+      const blob = await (window as any).__render(document.getElementById('root'),
+        { convertPaths: false, rasterFallback: false, stackingOrder: s || undefined });
+      return await blob.text();
+    }, so);
+    const svg = await render(true);
+    // portableSvgPaint writes the translucent backdrop as a hex plus fill-opacity.
+    const backdrop = svg.indexOf('fill="#090807" fill-opacity="0.5"');
+    assert.ok(backdrop >= 0, 'the ::backdrop colour is painted');
+    const [bar, dialog] = order(svg, [[60, 50, 40], [40, 50, 60]]);
+    assert.ok(ASC([bar!, backdrop!, dialog!]), `fixed bar, then ::backdrop, then the dialog (got ${bar}, ${backdrop}, ${dialog})`);
+    // Tool exports keep DOM order: no lift and no backdrop without the flag.
+    const plain = await render(false);
+    assert.ok(at(plain, 40, 50, 60) < at(plain, 60, 50, 40), 'DOM order without stackingOrder');
+    assert.ok(!plain.includes('#090807'), 'no backdrop without stackingOrder');
+  } finally { await b.close(); }
+});

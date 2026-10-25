@@ -18,14 +18,21 @@
  * system lolly://design-context describes), Verify (from the document's own geometry,
  * or from an export's file, with OCR and the text classifier off), fidelity (with a
  * `source` deck or an `inventory` from lolly_read), and render: the mounted audit in
- * the web shell this server drives on its browser tier. A server with no browser (the
- * Vercel function at lolly.tools/api/mcp) reports render `unavailable` with the
- * reason, and the other families still run.
+ * the web shell this server drives on its browser tier. A hosted server opens that
+ * tier only where it has one (render.ts `browserTierAvailable`: the browser image
+ * with a web shell to drive); one without it, such as the lightweight endpoint at
+ * lolly.tools/api/mcp, reports render `unavailable` with the reason, and the other
+ * families still run.
  *
  * EXIT CODE. `exitCode` is the code `lolly check` exits with: 0 clean, 5 warnings to
  * review, 4 an error finding (or any warning under `strict`), 3 `browser: "require"`
  * with no browser tier, 1 a family that crashed. Findings are data, never a tool
  * error: `isError` is set only when the request or the input cannot be read.
+ *
+ * CREATION FEEDBACK. A document's verify family carries the writing score of its
+ * visible text (`verify.writing-score`, `info` below the strong band, `warn` at it,
+ * never `error`), which informs and never changes `exitCode`. The description asks
+ * an agent to read it with the house-rule findings and revise the named layers.
  *
  * ERRORS carry a stable code (`CHECK_TOOL_CODES`); the call never throws.
  */
@@ -37,8 +44,8 @@ import { readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/
 import reportSchema from '../../../schemas/check-report-v1.schema.json' with { type: 'json' };
 import inventorySchema from '../../../schemas/content-inventory-v1.schema.json' with { type: 'json' };
 import { loadToolCached } from './catalog.ts';
-import { designChecksTierB } from './render.ts';
-import { slidePartCount } from './rebrand.ts';
+import { browserTierAvailable, designChecksTierB } from './render.ts';
+import { isHostedServer, slidePartCount } from './rebrand.ts';
 import { FILE_SIZE_NOTE, deckSlideCount } from './read.ts';
 import {
   STRUCTURED_LIMITS,
@@ -53,6 +60,7 @@ import {
   readFileArg,
   requestRoom,
   success,
+  structuredLimitsFor,
   type Env,
   type FileArg,
   type Schema,
@@ -138,6 +146,8 @@ export function checkToolDef(p: CheckSchemaParts) {
       "brand (this server's design system and the house rules its brand pack declares; read lolly://design-context first), " +
       'Verify (layout clues from the layers, or from the file for an export; no OCR), and fidelity to a source deck or a lolly_read inventory. ' +
       'Each finding has a stable code, a severity, the layer id where there is one, the message the app shows and a fix where one is safe. ' +
+      "For a document, Verify also carries the writing score of its visible text (verify.writing-score, the score Verify shows for text: info below the strong band, warn at it, never error); the score is a signal, not a verdict, and never changes exitCode. " +
+      'Read the house-rule findings and the writing score as creation feedback: revise the layers they name, then check again. They inform and never block. ' +
       `exitCode is the code lolly check exits with: 0 clean, 5 to review, 4 refused, 3 no browser under browser: "require" (a document only; an export has no render family), 1 a family failed or nothing could be decoded. ` +
       `Files ${FILE_SIZE_NOTE}, and up to 100 slides or PDF pages per file on a hosted server; ` +
       'on a hosted server the file and the source travel in one request, so pass inventory rather than the source deck there.',
@@ -275,13 +285,23 @@ const localBrowser: NonNullable<CheckFileOptionsV1['renderChecks']> = async (ses
   }
 };
 
-/** The page hook on a server with no browser: the render family is unavailable, in words. */
+/** The page hook on a hosted server with no browser: the render family is unavailable, in words. */
 const noBrowser: NonNullable<CheckFileOptionsV1['renderChecks']> = async () => ({
   kind: 'no-hook',
   reason:
-    'This server is a serverless function with no browser, so the render family (clipping, contrast and font coverage in the painted editor) does not run here. ' +
+    'This server has no browser, so the render family (clipping, contrast and font coverage in the painted editor) does not run here. ' +
     'Call lolly_check on a local Lolly MCP server, or run lolly check.',
 });
+
+/**
+ * The render family's page hook here. A local server always tries its browser, so a
+ * missing one is reported with the steps to install Chromium. A hosted server opens a
+ * browser only where it has the browser tier, and otherwise says the family cannot run.
+ */
+async function renderChecksFor(env: Env): Promise<NonNullable<CheckFileOptionsV1['renderChecks']>> {
+  if (!isHostedServer(env)) return localBrowser;
+  return (await browserTierAvailable(env)) ? localBrowser : noBrowser;
+}
 
 function asCheckError(err: unknown): ToolCodeError<CheckToolCodeV1> {
   if (err instanceof ToolCodeError && Object.hasOwn(CODES, err.code)) return err as ToolCodeError<CheckToolCodeV1>;
@@ -390,7 +410,7 @@ export async function callCheck(
   args: Record<string, unknown>,
   resolveDesign: CheckDesignResolver,
   env: Env = process.env,
-  limits: Readonly<CheckLimitsV1> = CHECK_LIMITS,
+  limits: Readonly<CheckLimitsV1> = structuredLimitsFor(env),
   deps: CheckDeps = {},
 ): Promise<StructuredResult> {
   const ctx: StructuredCtx = { env, limits };
@@ -406,9 +426,9 @@ export async function callCheck(
     if (args.theme !== undefined && (typeof args.theme !== 'string' || !args.theme)) throw new ToolCodeError('request.invalid', 'theme is a theme name.');
     if (args.themes !== undefined && args.themes !== 'all' && !(Array.isArray(args.themes) && args.themes.length > 0 && args.themes.length <= 16 && args.themes.every((n) => typeof n === 'string' && n)))
       throw new ToolCodeError('request.invalid', 'themes is "all" or a list of theme names.');
-    // On Vercel the file and the source arrive in one request body; a file alone is
-    // held to its own cap when it is read.
-    if (env.VERCEL && args.source !== undefined) {
+    // On a hosted server the file and the source arrive in one request body; a file
+    // alone is held to its own cap when it is read.
+    if (isHostedServer(env) && args.source !== undefined) {
       const carried = fileArgLength(args.file) + fileArgLength(args.source);
       if (carried > requestRoom(ctx))
         throw new ToolCodeError('source.too-large', `The file and the source come to ${carried} bytes of base64 and one request here carries ${requestRoom(ctx)}; pass the lolly_read inventory as inventory instead of the source deck.`);
@@ -435,7 +455,7 @@ export async function callCheck(
       ocr: false,
       // Family reasons name this tool's arguments, never a CLI flag.
       surface: 'mcp',
-      renderChecks: deps.renderChecks ?? (env.VERCEL ? noBrowser : localBrowser),
+      renderChecks: deps.renderChecks ?? (await renderChecksFor(env)),
       ...(manifest !== undefined ? { designManifest: manifest } : {}),
     });
 

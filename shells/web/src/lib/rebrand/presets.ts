@@ -18,7 +18,7 @@
  *
  * An id both places hold resolves to the design system's preset and the personal one
  * is left out, which is the CLI's rule too. "Save as my preset" writes the personal
- * layer only; publishing a preset into a pack is a design system studio action.
+ * layer only; publishing a preset into a pack is a Design System Setup action.
  *
  * `presetFromPlan` turns the decisions on a plan into a preset: for each object class
  * where every row the person decided took the same action, that action and an

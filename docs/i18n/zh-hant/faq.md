@@ -1,6 +1,6 @@
-# 常見問題
+# 問與答
 
-顯示於 `/info` 首頁摺疊面板中的常見問題。
+常見問題，呈現為 `/info/start/faq.html` 上的手風琴。
 
 **維護方式：** 底下每個 `##` 標題都是一個問題；
 它下方（直到下一個 `##` 為止）的內容就是答案。答案使用與
@@ -8,51 +8,24 @@
 在這裡新增、移除或重新排序問題後，再重新執行 `pnpm run build:info`（或 `pnpm run dev:web`）。
 第一個 `##` 之前的所有內容（本標題與這些說明）都會被建置流程忽略。
 
-## 我在 /profile 頁面選擇加入之後會發生什麼事？
+順序是初次使用者的順序：先講代價，再講你的檔案，
+接著是取得並執行 Lolly，然後是組織，最後是它如何製成。每個問題的錨點
+是由相同位置的英文問題建立的，所以翻譯會維持
+英文的順序。
 
-初次使用 Lolly 時，你在任何地方輸入的一切都是完全私密的，直到你刻意要讓那些資訊透過媒體或分享連結（在有網路的情況下）傳出去為止。
+## 為什麼免費？有什麼陷阱嗎？
 
-選擇加入之後，你所挑選的個人檔案細節會被封進你做出來的成品裡，標示你是來源。沒有經你挑選的東西一律不會被納入。
+**我們為了自己而打造 Lolly。** SUSE 需要數以千計符合品牌的檔案，而且製作時不能把任何東西交給外部服務。所以我們打造了一個在裝置上完成所有事情的工具，並像我們製作的其他一切一樣以開源釋出。我們持續維護它，因為我們每天都在用。**沒有任何義務：**這裡的一切，無論有沒有我們都能運作。
 
-Lolly 會產出大量內容。我們採取嚴格的資料最小化做法來預防風險。
+那條界線是畫在授權裡的，而不是承諾：任何在本機執行的東西，永遠免費。已發布的版本以無法收回的方式授權，也沒有任何能讓任何人的作品重新授權的貢獻者協議。
 
-## Lolly是用「氛圍程式設計」做出來的嗎?
+## SUSE 到底保留了多少不公開？（也就是：什麼時候會過河拆橋）
 
-Lolly的開發運用了AI輔助程式設計、AI輔助探索,許多地方還使用了AI輔助生成的內容,所使用的模型與供應商多種多樣,包括來自公有雲前沿企業的模型。
+引擎、外殼、結構描述與不特定品牌的工具是開源的。SUSE 的商標與品牌工具是保持私有的部分，且已經分開。[lolly.tools](https://lolly.tools) 上的公開實例運行 [Lolly Demo](/info/lolly-demo.html)，也就是 Lolly 自己的設計系統。
 
-截至本文撰寫時,Lolly的供應鏈中不存在已知的資安漏洞,並承諾在CVE出現時採取快速的資安應變措施。
+這裡沒有任何東西靠承諾支撐：每個已發布的版本都維持開源，唯一保留的只有商標。2023 年另一家公司關閉其企業版 Linux 原始碼時，SUSE 共同創立了 [OpenELA](https://openela.org) 以保持該程式碼開放，這個專案承襲的也是同樣的立場。
 
-架構由人類設計,程式碼經過有意識地審慎篩選,體驗則由人類進行藝術指導。
-
-最重要的是,Lolly站在世界各地真正專家們數十年開源創新成果的肩膀之上。
-
-Lolly的程式碼庫中有一個確定性建置關卡,用以讓程式碼和文件對一般讀者保持連貫,並為體驗「去水」。這可能會讓專有的合成式溯源枚舉變得困難。這並非刻意為之。
-
-**生成式AI揭露:**
-
-- **LLM撰寫的程式碼:** Opus 4.8、Gemini 3.1、Qwen3-Coder-Next(此清單可能會擴充)
-- **LLM探索:** Gemini 3.1、Fable
-- **文件:** Sonnet 5
-- **開源函式庫:** 各自的作者,詳見SBOM、註解與檔案標頭
-
-此清單不包括內嵌於Lolly中的模型。
-
-**人類貢獻:**
-
-- **架構:** Andy Fitzsimon
-- **藝術指導:** Andy Fitzsimon
-- **人工撰寫的程式碼:** Andy Fitzsimon
-- **構想發想、審閱與意見回饋:** Ravan Naidoo、Matthias Eckermann、Kelly Andrews、Ryan Kleeman、Peter Chamalian、Penpot社群(清單並不詳盡)
-
-## 功能旗標是什麼？
-
-功能旗標可以開啟或關閉 Lolly 的各個部分。這類開關通常由管理員掌控；在 Lolly，掌控權在你手上。
-
-![每個功能旗標都是屬於你的開關，放在你自己的個人檔案裡，而不是管理員的主控台](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
-
-## 我要怎麼取得行動版或桌面版應用程式？
-
-任何人都可以發佈自己的應用程式，而這些程式的工具與設定會依目標對象不同而有很大差異。所以並沒有單一的一款應用程式，除非是你自己做的，或是由相關的人交給你。
+完整揭露：SUSE *確實*正在建置內部工具，把 Lolly 連接到自己的 IT 系統。那是 SUSE 的內部設置，不是公開與私有開發之間的分裂。Lolly 也以透過 [Open Build Service](https://openbuildservice.org/) 建置為目標，並由 [SUSE Application Collection](https://apps.rancher.io/applications) 提供安全的供應鏈產物。
 
 ## 為什麼取名叫「Lolly Tools」？
 
@@ -60,57 +33,19 @@ Lolly的程式碼庫中有一個確定性建置關卡,用以讓程式碼和文�
 
 用 **Tools** 是因為工具在你拿起它之前都靜靜待著。你不用它的時候它不會運作，你在用它的時候它也不會盯著你看。
 
-## 導入 Lolly 可能會遇到哪些阻礙？
+## 為什麼到處都是綠色？
 
-你原本在哪裡產生檔案，Lolly 就能接進哪裡；CLI 和 App 用的是同一套引擎，所以凌晨兩點跑的流水線，不可能和有人在瀏覽器裡預覽到的結果產生落差。導入的阻力很少出在技術，而是出在組織。可以預期以下這幾點：
+lolly.tools 在 [Lolly Demo](/info/lolly-demo.html) 中開啟，這是 Lolly 自己的範例設計系統，它的主色是綠色。這只是範例，不是規定。你可以切換到空白的設計系統 **Lolly Starter**，或到[設定 → 設計系統](/#/settings?focus=design-systems-section)切換到你自己的。
 
-**必須有人編寫一套精選的品牌目錄。** Lolly 是一個平台，不是一包做好
-的範本。若要進行*受治理的推行*，得有人定義共用的素材目錄
-（標誌、色盤、字型，都以永久 ID 表示），並為每一種輸出類型撰寫
-manifest + 範本。不過個人不必等這一步：在開放的應用程式裡，
-任何人第一天就能把自己的檔案匯入素材，
-並在 Design 裡建立工具。
+## 我可以使用自己的品牌嗎？
 
-**要貢獻不需要用 git。** 設計師在應用程式裡做出自己的工具與範本，然後分享給同事，或是提交給部署的擁有者納入預設。
+可以。**Design System Setup**（`#/start`）可由一種顏色、一個設計 token 檔案或一份完成的設計建立設計系統，之後每個工具都以你的設計系統繪製。[開始](/info/quickstart.html#put-your-brand-in)帶你走過這三條路線。
 
-**它刻意做得很窄，請照這個定位來介紹它。** Lolly 不是用來做客製化或主視覺內容的。它*就是*你的個人 DAM，由你的設計系統、工具與目錄灌注並強化；它*確實*有一塊開放畫布（Design），但即使在那裡，顏色、字體與素材也都遵循目前生效的設計全域設定，所以自由排版仍然待在系統之內。拿它跟 Figma 或 Canva 相比，它會顯得很有限。但就它本來的樣子來看，也就是流程化、重複性、超大規模的素材生成，沒有東西比得上。定位錯誤是最常見的挫折來源。
-
-**產出端的變革管理。** 既有流程今天就能動，即使產出的東西不符品牌規範。把它們改接到這套引擎，代表要重新測試、重新學習，而「我們本來就做得出檔案」就會成為不遷移的藉口。可以先從一個能見度高、達到正式品質的產出開始轉換，再把前後結果並排展示出來。
-
-Lolly 把整體水準一起拉上來。
-
-
-## 工具程式和工具差在哪裡？
-
-**基本答案 →** 工具程式不一定需要算圖，因此可以有不一樣的使用體驗。 
-
-**真正的答案 →** 之所以讓工具程式能託管在 Lolly Tools 裡，是為了再加上一層「便利性」防線，降低資料外流的誘因。 
-
-為什麼？因為大家都知道，每天都有人把**手上原本就機密的內容**交給某個隨便找到的網站，只為了完成一個很小的機械性操作：
-
-- 「**壓縮這個 PDF**」→ 把合約／薪資單／董事會簡報上傳給不明的對象。
-- 「**把 HEIC 轉成 JPG**」→ 把個人照片（連同 GPS EXIF）上傳到靠廣告營利的主機
-- 「**裁切／縮放這張圖**」→ 上傳產品截圖或尚未發布的素材
-- 「**格式化這段 JSON**」／「解碼這個 JWT」→ 把 API 回應、權杖、密鑰貼進某個格式化工具
-- 「**合併這幾個 PDF**」→ 上傳**兩份永遠不該放在同一台伺服器上的文件**
-
-這些網站以及它們龐大的複製長尾**預設就不值得信任**：保存期限不明、司法管轄不明、次要處理者不明，再加上廣告／聯盟行銷的商業模式，讓它們有十足的動機留下你交出去的東西。操作本身微不足道，**代價是內容本身。** 
-
-我們靠出色的便利性與服務，打贏這場治理之戰。 
-
-![工具程式檢視把大家平常交給隨便某個網站處理的機械性工作集中起來，全部改在 Lolly 裡執行](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
-
-## Lolly 能編輯並算圖我的 Figma、Penpot、Illustrator 或 InDesign 檔案嗎？
-
-可以。開啟 **Design**，點 **匯入設計**：它接受原生的 Figma **.fig**（Save local copy）、Penpot 的 **.penpot** 匯出檔、Illustrator 的 **.ai** 或 **.pdf**、InDesign 的 **.idml**（File → Export → InDesign Markup），或是**任何 SVG**（這是最寬的一道門，幾乎每個設計軟體都匯得出來）。不需要帳號、不需要外掛，也不需要設計軟體的授權。
-
-![Design 的開放畫布 - 匯入設計位於工具列的 Lolly 選單中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
-
-圖層會以可編輯的方塊出現在開放畫布上：文字仍然可以重打，形狀仍然是形狀，圖片會加進你自己的圖庫，字體與顏色則遵循品牌全域設定。存檔之後，這份版面就成為可重複使用、可用網址取用的範本，任何有 Lolly 的人都能重新填入內容；你還可以混入會在載入時重新算圖的即時工具（QR code、圖表）。從那裡開始，它就跟 Lolly 裡的其他東西一樣算圖：SVG、PDF、PNG 等等，都能從網址重現。請見[匯入設計](/info/design-import.html)。
+由你的組織或你的建置版本提供的設計系統是受管理的：它會顯示鎖頭並保持唯讀，你可以建立可編輯的副本來更改。
 
 ## 我昨天做的東西在哪裡？
 
-如果你按過**另存為**或**儲存**，它就在首頁的**專案**裡，在你儲存時所用的瀏覽器或應用程式中。如果你只按過**下載**，檔案就在你的瀏覽器或系統儲存下載內容的地方，通常**素材**裡也會有一份副本。有九個工具還會把未儲存的作品保留在**專案**裡。[找回你的成果](/info/find-your-work.html)涵蓋了每一種情況。
+如果你按了 **Save as** 或 **Save**，它就在首頁的 **Projects** 中，位於你儲存時所用的瀏覽器或應用程式裡。如果你只按了 **Download**，檔案就在你的瀏覽器或系統儲存下載內容的地方，通常 **Assets** 中也有一份副本。[隨工作自動儲存](/info/find-your-work.html#which-tools-save-as-you-work)的工具也會把未儲存的作品保存在 **Projects** 中。[尋找並復原你的作品](/info/find-your-work.html)涵蓋每一種情況。
 
 ## 我關掉了分頁。我的作品還在嗎？
 
@@ -118,29 +53,93 @@ Lolly 把整體水準一起拉上來。
 
 ## 我可以用檔案而不是連結來分享作品嗎？
 
-可以。當連結裝不下全部內容（你自己的照片、很長的文字）時，分享對話框會明確說出哪些東西會不見，並改為提供 **.lolly** 檔案：一個檔案裝著這份設計、它用到的圖片，以及（如果你選擇的話）工具本身。要帶走多少由你決定：只有在你的個人檔案選擇加入時，姓名與細節才會寫進去；有授權的美術素材除非你主動包含，否則會被留下不帶走；而打開含有工具的檔案的人，在工具能執行之前會先被問是否信任它。請見[分享你的作品](/info/using.html#sharing-your-work)。
+可以。當連結無法攜帶一切時（例如你自己的照片或長篇文字），Share 對話框會說明什麼會遺失，並改為提供 **.lolly** 檔案：一個檔案裝著設計、它使用的圖片，以及（如果你選擇）工具本身。
+
+你決定帶走多少。只有在你的個人資料選擇加入時，才會放入你的姓名與詳細資料；授權圖稿除非你選擇納入，否則會被保留。任何人開啟帶有工具的檔案時，在工具能執行之前，都會被問是否信任該工具。請見[分享你的作品](/info/using.html#sharing-your-work)。
+
+## 我的個人資料詳細資料有什麼用？
+
+你在 **Settings** 中的詳細資料會預先填入要求它們的工具，例如名牌上的姓名。它們留在這部裝置上。如果你還開啟了選擇加入，你挑選的詳細資料會被封入你製作的內容中，標示你為來源。除非你選擇納入你的詳細資料，否則不會包含任何內容。
+
+分享與同步只傳送你選擇的內容。在組織的 Lolly Work 實例上，共用的工作階段與受管轄的工作也會傳到該伺服器。請見[隱私](/info/privacy.html)。
+
+## 我要怎麼取得行動版或桌面版應用程式？
+
+請從[安裝 Lolly](/info/install.html) 下載。該頁面列出 macOS、Windows、Linux 與 Android 的每個建置版本，並說明如何檢查你下載的檔案。iPhone 與 iPad 從 App Store 取得 **Lolly Tools**；[iPhone 與 iPad 一節](/info/install.html#iphone-and-ipad)有連結。
+
+任何人也都可以建置並分發自己的應用程式副本，搭配他們的受眾所需的工具與設定。[建置指南](/info/build-guide.html)說明如何做到。
+
+## Lolly 說它需要 WebGPU。我該怎麼辦？
+
+網頁應用程式以 WebGPU 繪製，這是目前瀏覽器的圖形功能，並且在開啟工具之前會檢查它。請依序嘗試：
+
+1. 將你的瀏覽器更新到目前的版本。
+2. 在瀏覽器的設定中開啟圖形或硬體加速，然後重新啟動瀏覽器。
+3. 試試已測試過的瀏覽器：[支援的環境](/info/supported-environments.html)列出了它們。
+4. 在 Mac、iPhone 或 iPad 上，請改為[安裝應用程式](/info/install.html)。
+
+## Lolly 能編輯並算圖我的 Figma、Penpot、Illustrator 或 InDesign 檔案嗎？
+
+可以。開啟 **Design** 並點擊 **Import a design**：它接受原生的 Figma **.fig**（Save local copy）、Penpot **.penpot** 匯出、Illustrator **.ai** 或 **.pdf**、InDesign **.idml**（File → Export → InDesign Markup）或**任何 SVG**。你不需要帳號、外掛程式或設計應用程式的授權。
+
+![Design 的開放畫布 - 匯入設計位於工具列的 Lolly 選單中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+
+圖層會以可編輯的方塊進來：文字仍可重新輸入，圖形仍是圖形，圖片會加入你自己的資料庫。儲存後，**Share with rules** 可以把版面變成任何有 Lolly 的人都能重新填寫的工具。請見[匯入設計](/info/design-import.html)。
 
 ## 兩個人可以在沒有網際網路的情況下一起做同一份設計嗎？
 
-可以。一個人分享邀請（一個連結、一個 QR code 或一組短代碼），另一個人接受，兩台裝置就會即時共用同一個工作階段，包括在線狀態、焦點框，全都有。只要在同一個網路上就能運作，地下室裡用手機開的熱點也行，因為中間沒有伺服器。請見[一起協作](/info/collaborate.html)。
+可以。一個人以連結、QR 碼或短代碼分享邀請，另一個人接受。兩部裝置就會即時持有同一個工作階段，包括在線狀態與焦點框。它在任何共用網路上都能運作，包括地下室的手機熱點，因為中間沒有伺服器。請見[一起協作](/info/collaborate.html)。對於身處不同網路的同事，組織的 Lolly Work 實例提供經過驗證的工作協作。
+
+## 功能旗標是什麼？
+
+功能旗標可開啟或關閉 Lolly 的各個部分。在單機使用時，由你選擇個人設定。使用 Lolly Work 的組織可以依其政策設定預設值或隱藏選定的開關，而受管理的控制項會有標示。請見[在你的組織使用 Lolly](/info/organisation.html)。
+
+![單機應用程式中的個人功能旗標；組織政策可以管轄選定的開關](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
+
+## 工具程式和工具差在哪裡？
+
+Utility 對你已有的檔案做一件快速的工作，例如壓縮 PDF、轉換照片或移除隱藏資料，其中許多在你的裝置上執行，不會上傳任何內容。它們的存在，是為了讓人們通常交給隨便某個網站的工作留在 Lolly 之內。壓縮合約、轉換仍帶有位置資訊的度假照片，或把權杖貼進線上格式化工具，都不該意味著把檔案交給一個保留期限、司法管轄與商業模式都不明的網站。[Utilities](/info/utilities.html) 列出它們，[我們從未同意的交易](/info/status-quo.html)則講述它們背後的故事。
+
+![Utilities 檢視：Strip Hidden Data、Compress PDF、Convert Image 與其他裝置端工作，全都集中在一處](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+
+## 我們的組織可以使用 SSO、共用專案與核准嗎？
+
+可以，使用 **Lolly Work**，也就是同一個開源專案的組織伺服器。它獨立運行，並增加透過你的身分提供者的單一登入、SCIM 佈建、群組權限、共用專案與素材、即時工作協作、核准與稽核記錄。日常使用的應用程式仍可獨立運作。
+
+[在你的組織使用 Lolly](/info/organisation.html)涵蓋登入與尋找共用的工作，[部署](/info/deployment.html#organisation-services-with-lolly-work)則涵蓋設定。共用內容與組織記錄遵循該實例的隱私與保留政策。
+
+## 導入 Lolly 可能會遇到哪些阻礙？
+
+大多是生產端的改變，而非技術。想要一組受管轄工具的團隊，需要有人撰寫其設計系統與第一批範本，不過任何人從第一天起就可以在 Design 中開始製作自己的工具，不需要 git。而現有的流程即使輸出不符合品牌也仍會繼續運作，所以把一項看得見的輸出轉換好，並排呈現前後對照，比一份計畫更快說服人。
+
+[採用與治理](/info/adoption-governance.html)涵蓋依角色的上手、如何衡量試行，以及治理流程可以是什麼樣子。
+
+## Lolly是用「氛圍程式設計」做出來的嗎?
+
+Lolly 是以 AI 輔助編碼、AI 輔助探索，以及在許多地方以 AI 輔助內容開發的，使用了多種模型與供應商的組合，包括來自公有雲前沿公司的模型。架構由人建立，程式碼由人有意識地策展，體驗則由人擔任藝術指導。
+
+Lolly 相依套件中的高嚴重度或嚴重等級公告會阻擋 CI。尚無法修復的公告，只有在附上書面理由作為核准的例外時才會保留。[SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) 列出目前保留的每個例外，[發行說明](https://github.com/lolly-tools/lolly/releases)則列出每個版本帶有的例外。SECURITY.md 也說明如何回報漏洞。
+
+建置中的檢查也會拒絕程式碼註解、應用程式與這些文件中讀起來像機器產出的措辭，讓文字對每位讀者都保持平實。一個副作用是，偵測器可能更難判斷哪些文字出自模型。我們並非有意造成這樣的結果。
+
+最重要的是，Lolly 站在世界各地專家數十年開源工作的肩膀上。
+
+**生成式AI揭露:**
+
+- **LLM 撰寫的程式碼：** Opus 4.8、Gemini 3.1、Qwen3-Coder-Next、Codex Sol（此清單可能擴充）
+- **LLM 探索：** Gemini 3.1、Fable、Codex Astra
+- **文件：** Sonnet 5
+- **開源函式庫：** 其各自的作者，表達於 SBOM、註解與檔案標頭
+
+此清單不包括內嵌於Lolly中的模型。
+
+**人的貢獻：**
+- **構想、審閱與回饋：** Ravan Naidoo、Matthias Eckermann、Kelly Andrews、Ryan Kleeman、Peter Chamalian、Penpot 社群、Tim Hildred（名單並不完整）
+- **架構、藝術指導與雜訊清道夫：** Andy Fitzsimon
 
 ## SUSE 品牌的工具跑到哪裡去了？
 
-它們已經放在另一個私有的儲存庫裡。公開的複製版本根本不會抓取 SUSE 品牌包，所以公開建置跑的是中性的 `lolly-start` 設定檔：與品牌無關的社群工具，加上一個空白品牌讓你填入自己的內容。SUSE 為了保護自家商標，營運自己的實例。
-
-## 為什麼免費？有什麼陷阱嗎？
-
-**我們是為了自己才做出 Lolly 的。** SUSE 需要數千個符合品牌規範的檔案，每一個都要把名稱封在裡面，而且製作過程不能把任何東西交給外部服務。所以我們做了一個全部在裝置上完成的工具，並且像我們做的其他東西一樣以開源釋出。我們持續維護它，是因為我們每天都在用。**這不附帶任何義務：**這裡的一切，有沒有我們都照樣能用。
-
-那條界線畫在授權條款裡，不是畫在承諾裡：任何在本機執行的東西都永遠免費。已經釋出的版本，其授權方式讓它無法被收回，也沒有任何貢獻者協議能把別人的成果重新授權。完整說明請見[定位](/info/positioning.html)。
-
-## SUSE 到底保留了多少不公開？（也就是：什麼時候會過河拆橋）
-
-引擎、外殼、結構描述以及與品牌無關的工具都是開源的；保持私有的是 SUSE 的商標與品牌工具，而且它們已經被分離出來了。公開實例 [lolly.tools](https://lolly.tools) 執行於空白品牌之上。
-
-這條界線是結構性的，不是靠承諾的。每一個釋出的版本都是開源的，而且無法被收回；沒有任何貢獻者協議能把別人的成果重新授權；唯一保留下來的只有商標。2023 年另一家公司把自己的企業版 Linux 原始碼關閉時，SUSE 共同創立了 [OpenELA](https://openela.org) 來維持那些程式碼開放，本專案承襲的正是同樣的立場。
-
-完整揭露：SUSE *確實*正在建置內部工具，把 Lolly 整合進自家的 IT 系統，但那講的是 SUSE 的內部配置，不是公開開發與私有開發之分。Lolly 也打算透過 [Open Build Service](https://openbuildservice.org/) 來建置，並由 [SUSE Application Collection](https://apps.rancher.io/applications) 提供安全供應鏈的產出物。
+它們存放在獨立的私有儲存庫中。公開的 clone 完全不會擷取 SUSE 品牌套件，所以由它建置的版本，除非你選擇其他設定檔，否則使用中性的 `lolly-start` 設定檔：不特定品牌的社群工具，加上一個讓你以自己的內容填入的空白品牌。[lolly.tools](https://lolly.tools) 是以 `lolly-demo` 設定檔建置的，並在 [Lolly Demo](/info/lolly-demo.html)（Lolly 自己的設計系統）中開啟。SUSE 運行自己的實例以保護其商標。
 
 ## 那個 Lolly 標誌是什麼口味的？
 

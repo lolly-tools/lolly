@@ -27,3 +27,7 @@ Attribuering, proveniens, integritet & samtycke
 kreativitet & tillit bland det oändliga
 
 vem som helst kan skapa, i vilken skala som helst, var som helst
+
+## Varför
+
+### [Därför att vi står på jättars axlar](/info/trust/shoulders-of-giants.html)

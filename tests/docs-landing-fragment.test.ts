@@ -104,7 +104,7 @@ test('the persona device is CSS-only: radio pairing in the stylesheet, radios in
   // scripts) would break invisibly.
   const css = readFileSync(join(WEB_SRC, 'styles/parts/docs-landing.css'), 'utf8');
   assert.ok(
-    /#door-creators:checked ~ \.persona-panes \.persona-pane:nth-child\(1\)/.test(css),
+    /#door-start:checked ~ \.persona-panes \.persona-pane:nth-child\(1\)/.test(css),
     'the :checked pairing rules drive door-pane visibility',
   );
   assert.ok(
@@ -125,7 +125,7 @@ test('the persona device is CSS-only: radio pairing in the stylesheet, radios in
   }
   const landing = readFileSync(join(INFO, 'index.html'), 'utf8');
   assert.ok(landing.includes('<input class="persona-radio" type="radio" name="persona-door"'), 'the built landing ships the door radio group');
-  assert.ok(landing.includes('<input class="lane-radio" type="radio" name="lane-creators"'), 'each pane ships its lane radio group');
+  assert.ok(landing.includes('<input class="lane-radio" type="radio" name="lane-start"'), 'each pane ships its lane radio group');
   assert.ok(landing.includes('<label class="persona-tab" for="door-'), 'each door tab is a label for its radio');
   assert.ok(landing.includes('<label class="lane-tab" for="lane-'), 'each side tab is a label for its radio');
 });

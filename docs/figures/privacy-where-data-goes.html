@@ -1,0 +1,63 @@
+<!--
+  Concept: where a person's data goes in Lolly. Their work stays on their device. Three kinds of
+  destination receive something only when the person starts a request: places they choose (storage,
+  services they send to, pages they open), services lolly.tools runs, and their organisation's Lolly
+  Work instance. Downloads come the other way and carry none of their content.
+  Band Contract: static fragment scoped under .pwd, reads the docs theme tokens with fallbacks
+  (light/dark/brand via --card/--card-foreground/--secondary/--primary), no script, no motion, no
+  network. Stacks into one column in a narrow container.
+  Sources: docs/privacy.md, "Every network request the app can make" and the services sections.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5) for the plan 322 docs rewrite
+  directed by Andy Fitzsimon, 2026-10-23. The C2PA signature added at bank time is the first
+  provenance record of this file.
+-->
+<style>
+.pwd{--pwd-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--pwd-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --pwd-ground:hsl(var(--secondary,84.5 55% 92.2%));--pwd-paper:hsl(var(--card,0 0% 100%));
+ --pwd-accent:hsl(var(--primary,176.5 89.5% 11.2%));--pwd-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --pwd-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--pwd-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ color:var(--pwd-ink);background:var(--pwd-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.pwd *{box-sizing:border-box}
+.pwd ul{list-style:none;margin:0;padding:0}
+.pwd li{list-style:none;margin:0;font-size:inherit}
+.pwd p{margin:0}
+.pwd-grid{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.5fr);gap:14px;align-items:stretch}
+.pwd-device{background:var(--pwd-accent);color:var(--pwd-on-accent);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.pwd-cap{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+.pwd-big{font-weight:700;font-size:1.08rem;line-height:1.2}
+.pwd-device ul{display:flex;flex-direction:column;gap:5px}
+.pwd .pwd-device li{font-size:.82rem}
+.pwd-device li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-inline-end:7px;vertical-align:.12em;opacity:.8}
+.pwd-in{margin-top:auto;padding:8px 10px;border-radius:12px;background:hsl(var(--primary-foreground,0 0% 100%) / .14);font-size:.76rem}
+.pwd-in b{font-weight:700}
+.pwd-dests{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pwd-row{display:grid;grid-template-columns:minmax(0,7.2rem) minmax(0,1fr);gap:8px;align-items:center}
+.pwd-act{display:flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;color:var(--pwd-accent);line-height:1.2}
+.pwd-act svg{width:1.05rem;height:1.05rem;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pwd-card{background:var(--pwd-paper);border-radius:14px;box-shadow:0 0 0 1px var(--pwd-line);padding:10px 12px;min-width:0}
+.pwd-title{font-weight:700;font-size:.92rem}
+.pwd-what{font-size:.78rem;color:var(--pwd-muted);margin-top:2px}
+.pwd-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.pwd-tag{font-size:.68rem;padding:2px 7px;border-radius:999px;background:var(--pwd-soft)}
+.pwd .pwd-key{margin-top:12px;font-size:.76rem;color:var(--pwd-muted)}
+@container (max-width:600px){
+ .pwd-grid{grid-template-columns:minmax(0,1fr)}
+ .pwd-row{grid-template-columns:minmax(0,1fr)}
+}
+</style><div class="pwd" role="group" aria-label="Where your data goes in Lolly: your work stays on your device, and each kind of request you start has its own destination"><div class="pwd-grid">
+<section class="pwd-device"><p class="pwd-cap">Your device</p><p class="pwd-big">Your work stays here</p>
+<ul><li>Documents, sessions and history</li><li>Uploaded images and fonts</li><li>Preferences and offline copies</li><li>Models and tools you downloaded</li></ul>
+<p class="pwd-in"><b>Comes in, carrying nothing of yours:</b> tools, fonts, emoji sets, models, radio</p></section>
+<div class="pwd-dests">
+<div class="pwd-row"><p class="pwd-act"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>You send, sync or open</p>
+<section class="pwd-card"><p class="pwd-title">Places you choose</p><p class="pwd-what">The one file, backup or page request you started</p>
+<p class="pwd-tags"><span class="pwd-tag">Drive, Dropbox, OneDrive</span><span class="pwd-tag">Your server or bucket</span><span class="pwd-tag">Posting services</span><span class="pwd-tag">Web pages you show</span></p></section></div>
+<div class="pwd-row"><p class="pwd-act"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>You call a service</p>
+<section class="pwd-card"><p class="pwd-title">Services lolly.tools runs</p><p class="pwd-what">Only what you send, kept no longer than the policy states</p>
+<p class="pwd-tags"><span class="pwd-tag">Render links</span><span class="pwd-tag">Image fetcher</span><span class="pwd-tag">MCP endpoint</span><span class="pwd-tag">Agent relay</span><span class="pwd-tag">Verified identity</span></p></section></div>
+<div class="pwd-row"><p class="pwd-act"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>You sign in at work</p>
+<section class="pwd-card"><p class="pwd-title">Your organisation's Lolly Work</p><p class="pwd-what">Shared work you put there, under your operator's policy</p>
+<p class="pwd-tags"><span class="pwd-tag">Shared projects</span><span class="pwd-tag">Approvals</span><span class="pwd-tag">Server renders</span><span class="pwd-tag">Audit and telemetry</span></p></section></div>
+</div></div><p class="pwd-key">Nothing reaches any of these until you act: a send, a sync, a service call or signing in to your organisation. Clearing your device does not erase what a server holds.</p></div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKA2p1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAndanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo1NmU3MTRmNS1hYWJhLTRkNDktOTVkZS1iYzAxMGYzNjQ5MmYAAAAEWGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjo0Mzo0OVoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GReGZmxlbmd0aBkNvmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFgg6hyCNTpJifIBrrQyGmD6IL6q3f798O7C2kvroCEkq1RjcGFkSAAAAAAAAAAAAAAA7mp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAALpjYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHdwcml2YWN5LXdoZXJlLWRhdGEtZ29lc2RkYXRleBgyMDI2LTEwLTIzVDA2OjQzOjQ5Ljc3MVpqZGltZW5zaW9uc2syNCDDlyAyNCBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALVanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqZjYm9ypmhkYzp0aXRsZXdwcml2YWN5LXdoZXJlLWRhdGEtZ29lc2ppbnN0YW5jZUlEeC11cm46dXVpZDo5NzU4MWMyYy04MGZiLTQ5ZGQtOWU4Yi05NmFkOTM3N2E1OTB0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIIaVvyjHzSeWlnWlzRv3+A+NkS+IXp02rePLNaZBtajiomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIJmoVi9NtjbME5JSVDPZ6XZRQx41QDLimxG/pQYblQaqomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCAwsEHAKXCg0y937ynre6Bt+x6VmKYQvB+oxZCBxwZabKJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmFqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjFjYm9y0oRZAeCiASYYIYFZAdcwggHTMIIBeaADAgECAglBHTB8Dd7lz2AwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA2NDI0OVoXDTM2MTAyMDA2NDM0OVowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEkRzhIxwnXdxlC7NXDW1DAu8UEUeI5bX8gA/CDzTlw/phJVNa8xgpigRpeoG51ddcy3mwTaBiH3NJRWrcbr7W6KNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFAWJJL7P/96hBex9KXp+W+EYZqrOMB8GA1UdIwQYMBaAFAWJJL7P/96hBex9KXp+W+EYZqrOMAoGCCqGSM49BAMCA0gAMEUCIQDUf1s/mNdwdNowZjNBgfxZz9gu936uJNdy/1jjqOBCGgIgdGdq4B34RbaLeJHGjS+k0epng4Ykfuymuw1so9iFlfqg9lhAg3F7Eepmipr6nhTpf6s5F/L+ES0H57uffC6vQsWAe44CNeAd0djHX3OgJ3HoBYvs0Fucx5nNZcoibKRaFLil9Q== -----END C2PA MANIFEST----- -->

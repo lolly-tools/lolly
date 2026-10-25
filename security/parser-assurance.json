@@ -3,6 +3,7 @@
   "inventory": "docs/parser-inventory.md",
   "parsers": {
     "engine/src/emoji-svg.ts": {
+      "family": "Emoji",
       "fuzzTargets": [
         "emoji-svg"
       ],
@@ -15,6 +16,7 @@
       }
     },
     "engine/src/emoji-svg-syntax.ts": {
+      "family": "Emoji",
       "fuzzTargets": [
         "emoji-svg"
       ],
@@ -27,6 +29,7 @@
       }
     },
     "engine/src/emoji-segment.ts": {
+      "family": "Emoji",
       "fuzzTargets": [
         "emoji-text"
       ],
@@ -39,6 +42,7 @@
       }
     },
     "engine/src/emoji-pack.ts": {
+      "family": "Emoji",
       "fuzzTargets": [
         "emoji-pack"
       ],
@@ -51,6 +55,7 @@
       }
     },
     "engine/src/pdf-map.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "pdf-map"
       ],
@@ -59,10 +64,11 @@
         "bounds": "`PDF_MAP_MAX_ARRAY_DEPTH = 16`, `PDF_MAP_MAX_BF_RANGE = 0x10000`, `PDF_MAP_MAX_RUN_DEPTH = 12`, `PDF_MAP_MAX_PAGE_NODES = 4,000`, `PDF_MAP_MAX_TOKENS = 4 M`, `PDF_MAP_MAX_CONTENT_CHARS = 16 M`, `PDF_MAP_MAX_TOTAL_CONTENT_CHARS = 32 M`, plus named pattern/mask evaluation and node ceilings",
         "directTests": "`tests/pdf-map.test.ts`",
         "fuzzCoverage": "`pdf-map` (`interpretPdfPage` + `parseToUnicode`)",
-        "notes": "Two of the eight saved regressions are this module: `pdf-map-deep-array-nesting.bin` and `pdf-map-tounicode-range-oom.bin`. The CMap cap blocks a four-billion-iteration range; tokenizer accounting includes nested array members, and decoded characters, tokens and emitted nodes are charged page-wide across nested form, glyph, pattern and mask runs."
+        "notes": "Two saved regressions are this module: `pdf-map-deep-array-nesting.bin` and `pdf-map-tounicode-range-oom.bin`. The CMap cap blocks a four-billion-iteration range; tokenizer accounting includes nested array members, and decoded characters, tokens and emitted nodes are charged page-wide across nested form, glyph, pattern and mask runs."
       }
     },
     "engine/src/pdf-svg.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "pdf-derived"
       ],
@@ -75,6 +81,7 @@
       }
     },
     "engine/src/pdf-text.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "pdf-derived"
       ],
@@ -87,6 +94,7 @@
       }
     },
     "engine/src/pdf-artwork.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "pdf-derived"
       ],
@@ -99,6 +107,7 @@
       }
     },
     "engine/src/pdf-redaction.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "pdf-derived"
       ],
@@ -111,6 +120,7 @@
       }
     },
     "engine/src/pptx-read.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "pptx-read"
       ],
@@ -123,6 +133,7 @@
       }
     },
     "engine/src/svg-items.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "svg-items"
       ],
@@ -135,6 +146,7 @@
       }
     },
     "engine/src/pptx-patch.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "pptx-patch"
       ],
@@ -147,6 +159,7 @@
       }
     },
     "engine/src/docx-read.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "docx-read"
       ],
@@ -159,6 +172,7 @@
       }
     },
     "engine/src/icc.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "icc"
       ],
@@ -171,6 +185,7 @@
       }
     },
     "engine/src/file-metadata.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "file-metadata"
       ],
@@ -179,10 +194,11 @@
         "bounds": "`MAX_FIELDS = 64`, `MAX_VALUE_CHARS = 2048`, `MAX_TEXT_SCAN = 16 MB`, `MAX_GIF_BLOCKS = 1_000_000`, `MAX_MPF_IMAGES = 16`, `MAX_GAINMAP_SNIFF = 8192`",
         "directTests": "`tests/file-metadata.test.ts`",
         "fuzzCoverage": "`file-metadata` (`extractFileMetadata`)",
-        "notes": "Best-effort throughout: a malformed block yields fewer fields, never an exception. PDF is deliberately out of scope here and goes through `host.pdf.analyze`. Second parse path, added 2026-07-31: `readMpfIndex` reads a JPEG's CIPA DC-007 multi-picture index (both byte orders) over the `jpeg-segments.ts` walker, so a declared second image - an HDR gain map, an MPO - is NAMED in the reveal instead of being sniffed as an unexplained appended payload and flagged `sensitive`. Nothing the index claims is trusted: an image is reported only once its declared range lies inside the buffer and starts on an SOI."
+        "notes": "Best-effort throughout: a malformed block yields fewer fields, never an exception. PDF is out of scope here and goes through `host.pdf.analyze`. Second parse path, added 2026-07-31: `readMpfIndex` reads a JPEG's CIPA DC-007 multi-picture index (both byte orders) over the `jpeg-segments.ts` walker, so a declared second image - an HDR gain map, an MPO - is NAMED in the reveal instead of being sniffed as an unexplained appended payload and flagged `sensitive`. Nothing the index claims is trusted: an image is reported only once its declared range lies inside the buffer and starts on an SOI."
       }
     },
     "engine/src/strip-metadata.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "strip-metadata"
       ],
@@ -195,6 +211,7 @@
       }
     },
     "engine/src/jpeg-segments.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "jpeg-structure"
       ],
@@ -207,6 +224,7 @@
       }
     },
     "engine/src/radiance.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "radiance"
       ],
@@ -215,10 +233,11 @@
         "bounds": "`RADIANCE_MAX_HEADER_BYTES = 64 KB`, `RADIANCE_MAX_PIXELS = 32 Mpx` and `RADIANCE_RLE_MAX_WIDTH = 32767`; every scanline's declared run/literal length is checked against the remaining buffer before it is acted on",
         "directTests": "`tests/radiance.test.ts`",
         "fuzzCoverage": "`radiance` (header plus reader, seeded from both writer encodings)",
-        "notes": "Reader half of the writer (`readRadiance`). Follows the house reader rule: never throws, `null` on anything it cannot fully verify. Two decode shapes it deliberately REFUSES rather than mis-render: `-X` (mirrored rows) and `+Y` (bottom-up), because rows are returned in file order and accepting either would silently hand back a flipped picture."
+        "notes": "Reader half of the writer (`readRadiance`). Follows the house reader rule: never throws, `null` on anything it cannot fully verify. Two decode shapes it REFUSES rather than mis-render: `-X` (mirrored rows) and `+Y` (bottom-up), because rows are returned in file order and accepting either would silently hand back a flipped picture."
       }
     },
     "engine/src/gainmap-jpeg.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "jpeg-structure"
       ],
@@ -231,6 +250,7 @@
       }
     },
     "engine/src/media-sniff.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "media-sniff"
       ],
@@ -243,6 +263,7 @@
       }
     },
     "engine/src/output-facts.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "output-facts"
       ],
@@ -255,6 +276,7 @@
       }
     },
     "engine/src/psd.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "psd"
       ],
@@ -267,6 +289,7 @@
       }
     },
     "engine/src/xcf.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "xcf"
       ],
@@ -275,10 +298,11 @@
         "bounds": "`MAX_DIM = 300_000`, `MAX_LAYERS = 1_024`, `MAX_PROPS = 512`, `MAX_NAME = 4_096`, the same `maxDecodedBytes` budget; every pointer validated `14 < p < bytes.length` before deref, tile byte length bounded by the gap to the next tile pointer (worst-case-capped for the last)",
         "directTests": "`tests/xcf.test.ts`",
         "fuzzCoverage": "`xcf` (`readXcf`, seeds from `tests/helpers/xcf-fixture.ts`'s builder)",
-        "notes": "Same split contract (`XcfUnsupportedError` vs warn+degrade: a bad tile becomes a transparent tile, a bad layer a geometry-only row). GIMP's tile RLE is its own scheme (not PackBits) with per-opcode bounds; zlib tiles go through the injected `InflateFn`. Linear/float precisions are refused by class rather than mis-folded. There is deliberately no XCF writer (see psd-write.ts's header)."
+        "notes": "Same split contract (`XcfUnsupportedError` vs warn+degrade: a bad tile becomes a transparent tile, a bad layer a geometry-only row). GIMP's tile RLE is its own scheme (not PackBits) with per-opcode bounds; zlib tiles go through the injected `InflateFn`. Linear/float precisions are refused by class rather than mis-folded. There is no XCF writer (see psd-write.ts's header)."
       }
     },
     "engine/src/bmp.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "raster-decode"
       ],
@@ -291,6 +315,7 @@
       }
     },
     "engine/src/ico-decode.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "raster-decode"
       ],
@@ -303,6 +328,7 @@
       }
     },
     "engine/src/apng-decode.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "raster-decode"
       ],
@@ -315,6 +341,7 @@
       }
     },
     "engine/src/webp-anim-decode.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "raster-decode"
       ],
@@ -327,6 +354,7 @@
       }
     },
     "shells/web/src/lib/image-sample.ts (depthHint)": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "depth-hint"
       ],
@@ -339,6 +367,7 @@
       }
     },
     "community/darkroom/hooks.js (parseCube, parse3dl)": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "lut-parse"
       ],
@@ -351,6 +380,7 @@
       }
     },
     "engine/src/video-meta.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "video-meta"
       ],
@@ -363,6 +393,7 @@
       }
     },
     "engine/src/c2pa-extract.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "c2pa-extract",
         "c2pa-verify",
@@ -373,10 +404,11 @@
         "bounds": "`MAX_CBOR_DEPTH = 64`",
         "directTests": "`tests/c2pa-extract.test.ts`, plus coverage through `tests/c2pa-verify.test.ts`, `tests/c2pa-formats.test.ts`, `tests/c2pa-foreign-fixture.test.ts`, `tests/c2pa-jpeg-segments.test.ts`",
         "fuzzCoverage": "`c2pa-extract` (`collectActionChain` + `prepareC2paIngredientFromStore` + `sniffFormat` + `parseC2paStore`), `cbor` (`decodeCbor`, hit directly) and `c2pa-verify` (end to end)",
-        "notes": "Split out of `c2pa-verify.ts` precisely so the parsing is reviewable apart from the cryptography; nothing in this file does or checks crypto. Four of the eight saved regressions are its CBOR decoder. The decoder deliberately accepts indefinite lengths and half/single/double floats because foreign manifests use them. The target deliberately runs the never-throw pair first, because `parseC2paStore`'s controlled throw would otherwise skip them."
+        "notes": "Split out of `c2pa-verify.ts` precisely so the parsing is reviewable apart from the cryptography; nothing in this file does or checks crypto. Four saved regressions exercise its CBOR decoder. The decoder accepts indefinite lengths and half/single/double floats because foreign manifests use them. The target runs the never-throw pair first, because `parseC2paStore`'s controlled throw would otherwise skip them."
       }
     },
     "engine/src/c2pa-containers.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "c2pa-containers"
       ],
@@ -389,6 +421,7 @@
       }
     },
     "engine/src/c2pa-verify.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "c2pa-verify"
       ],
@@ -401,6 +434,7 @@
       }
     },
     "engine/src/der-read.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "der-read",
         "x509",
@@ -415,6 +449,7 @@
       }
     },
     "engine/src/x509.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "x509"
       ],
@@ -427,6 +462,7 @@
       }
     },
     "engine/src/seal.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "seal"
       ],
@@ -439,6 +475,7 @@
       }
     },
     "engine/src/data-import.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "data-import"
       ],
@@ -451,6 +488,7 @@
       }
     },
     "engine/src/brand-import.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "brand-import"
       ],
@@ -463,6 +501,7 @@
       }
     },
     "engine/src/tar-read.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "tar-read"
       ],
@@ -475,6 +514,7 @@
       }
     },
     "engine/src/epub-read.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "epub-read"
       ],
@@ -487,6 +527,7 @@
       }
     },
     "engine/src/url-pack.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "url-pack"
       ],
@@ -499,6 +540,7 @@
       }
     },
     "engine/src/keyframes.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "keyframes"
       ],
@@ -511,6 +553,7 @@
       }
     },
     "engine/src/present-interact.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "present-interact"
       ],
@@ -523,6 +566,7 @@
       }
     },
     "engine/src/svg-colors.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "svg-readers"
       ],
@@ -535,6 +579,7 @@
       }
     },
     "engine/src/svg-layers.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "svg-readers"
       ],
@@ -547,6 +592,7 @@
       }
     },
     "engine/src/svg-custgeom.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "svg-readers"
       ],
@@ -559,6 +605,7 @@
       }
     },
     "engine/src/svg-path.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "svg-readers",
         "geom"
@@ -572,6 +619,7 @@
       }
     },
     "engine/src/midi.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "midi"
       ],
@@ -584,6 +632,7 @@
       }
     },
     "engine/src/wav.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "wav"
       ],
@@ -596,6 +645,7 @@
       }
     },
     "engine/src/zzfxm.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "zzfxm"
       ],
@@ -608,6 +658,7 @@
       }
     },
     "engine/src/png-unfilter.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "png-unfilter"
       ],
@@ -620,6 +671,7 @@
       }
     },
     "engine/src/steganalysis.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "watermark-analysis"
       ],
@@ -632,6 +684,7 @@
       }
     },
     "engine/src/trustmark.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "watermark-analysis"
       ],
@@ -644,6 +697,7 @@
       }
     },
     "engine/src/contentseal.ts": {
+      "family": "Provenance, watermarks and checks",
       "fuzzTargets": [
         "watermark-analysis"
       ],
@@ -656,6 +710,7 @@
       }
     },
     "engine/src/prepare-document.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "prepare"
       ],
@@ -668,6 +723,7 @@
       }
     },
     "engine/src/prepare-text.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "prepare"
       ],
@@ -680,6 +736,7 @@
       }
     },
     "engine/src/geom-api.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "geom"
       ],
@@ -692,6 +749,7 @@
       }
     },
     "engine/src/dotlottie.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "lottie"
       ],
@@ -704,6 +762,7 @@
       }
     },
     "engine/src/lottie-edit.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "lottie-edits"
       ],
@@ -716,6 +775,7 @@
       }
     },
     "engine/src/jxl-container.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "jxl"
       ],
@@ -728,6 +788,7 @@
       }
     },
     "packages/node-shell/src/jxl-codec.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "jxl"
       ],
@@ -740,6 +801,7 @@
       }
     },
     "engine/src/deep-png.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "deep-image"
       ],
@@ -752,6 +814,7 @@
       }
     },
     "engine/src/deep-tiff.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "deep-image"
       ],
@@ -764,6 +827,7 @@
       }
     },
     "engine/src/deep-exr.ts": {
+      "family": "Images and colour",
       "fuzzTargets": [
         "deep-image"
       ],
@@ -776,6 +840,7 @@
       }
     },
     "engine/src/emoji-bundle.ts": {
+      "family": "Emoji",
       "fuzzTargets": [
         "emoji-bundle"
       ],
@@ -788,6 +853,7 @@
       }
     },
     "shells/web/src/lib/design-system/extract-site.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "brand-reference"
       ],
@@ -800,6 +866,7 @@
       }
     },
     "engine/src/brand-evidence.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "brand-reference"
       ],
@@ -812,6 +879,7 @@
       }
     },
     "engine/src/text-source.ts": {
+      "family": "Text and fonts",
       "fuzzTargets": [
         "text-source"
       ],
@@ -824,6 +892,7 @@
       }
     },
     "engine/src/text-story-document.ts": {
+      "family": "Text and fonts",
       "fuzzTargets": [
         "text-document",
         "text-source"
@@ -837,6 +906,7 @@
       }
     },
     "engine/src/text-fragment.ts": {
+      "family": "Text and fonts",
       "fuzzTargets": [
         "text-document"
       ],
@@ -849,6 +919,7 @@
       }
     },
     "engine/src/text-frame.ts": {
+      "family": "Text and fonts",
       "fuzzTargets": [
         "text-frame"
       ],
@@ -861,6 +932,7 @@
       }
     },
     "engine/src/vector-paint.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "vector-paint"
       ],
@@ -873,6 +945,7 @@
       }
     },
     "engine/src/vector-paint-import.ts": {
+      "family": "PDF and SVG",
       "fuzzTargets": [
         "vector-paint"
       ],
@@ -885,6 +958,7 @@
       }
     },
     "engine/src/motion-cues.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "motion-cues"
       ],
@@ -897,6 +971,7 @@
       }
     },
     "engine/src/sequence-samples.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "motion-params"
       ],
@@ -909,6 +984,7 @@
       }
     },
     "engine/src/motion-sampling.ts": {
+      "family": "Audio, video and animation",
       "fuzzTargets": [
         "motion-params"
       ],
@@ -921,6 +997,7 @@
       }
     },
     "services/mcp/src/negotiation.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "mcp-negotiation"
       ],
@@ -933,6 +1010,7 @@
       }
     },
     "engine/src/adobe-xml.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "adobe-xml"
       ],
@@ -945,6 +1023,7 @@
       }
     },
     "engine/src/camera-raw-preset.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "adobe-xml"
       ],
@@ -957,6 +1036,7 @@
       }
     },
     "engine/src/premiere-xml.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "adobe-xml"
       ],
@@ -969,6 +1049,7 @@
       }
     },
     "packages/node-shell/src/adobe-psd.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "adobe-psd"
       ],
@@ -981,6 +1062,7 @@
       }
     },
     "engine/src/idml-read.ts": {
+      "family": "Documents, interchange and design systems",
       "fuzzTargets": [
         "idml-read"
       ],
@@ -993,6 +1075,7 @@
       }
     },
     "packages/node-shell/wasm/layout-kernel/src/lib.rs (layout_solve)": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "layout-abi"
       ],
@@ -1005,6 +1088,7 @@
       }
     },
     "engine/src/penpot-layout.ts (importPenpotLayouts)": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "penpot-layout"
       ],
@@ -1017,6 +1101,7 @@
       }
     },
     "engine/src/design-layout.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "penpot-layout"
       ],
@@ -1029,6 +1114,7 @@
       }
     },
     "shells/web/src/views/design-guides.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "design-guides"
       ],
@@ -1041,6 +1127,7 @@
       }
     },
     "engine/src/design-hierarchy.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "design-hierarchy"
       ],
@@ -1053,6 +1140,7 @@
       }
     },
     "packages/core/src/lolly-features.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": ["lolly-hierarchy"],
       "details": {
         "inputSource": "Parsed .lolly session values, project sessions, templates and bundled Design input manifests",
@@ -1063,6 +1151,7 @@
       }
     },
     "shells/web/src/lib/lolly-pack.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": ["lolly-hierarchy"],
       "details": {
         "inputSource": "Portable .lolly share ZIPs carrying saved sessions, project folders, templates and bundled tools",
@@ -1073,16 +1162,18 @@
       }
     },
     "packages/node-shell/src/lolly-file.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": ["lolly-hierarchy"],
       "details": {
         "inputSource": "Portable .lolly session and reusable-tool ZIPs opened by Node shells",
         "bounds": "Engine ZIP reader caps input and total inflated bytes at 512 MiB, each entry at 256 MiB and inventory at 10,000 entries; shared semantic feature detection inspects at most 200,000 values",
         "directTests": "`tests/design-lolly.test.ts`, `tests/design-tool.test.ts`, `tests/design-hierarchy-lolly.test.ts`, `tests/design-hierarchy-lolly-fuzz.test.ts`",
-        "fuzzCoverage": "`lolly-hierarchy` opens web and packageDesign writer files and rejects deliberately downgraded hierarchy session, template and tool gates",
+        "fuzzCoverage": "`lolly-hierarchy` opens web and packageDesign writer files and rejects intentionally downgraded hierarchy session, template and tool gates",
         "notes": "Reader 7 admits canonical groups and pages in saved sessions; reader 8 admits group opacity, blend and sizing. Project folders remain an explicit app-only refusal; renovation files retain their separate reader. CRC and integrity checks precede returned payloads. Full graph validity and rendering are separate model contracts."
       }
     },
     "engine/src/design-layer-ops.ts": {
+      "family": "Design documents, links and agent requests",
       "fuzzTargets": [
         "design-hierarchy"
       ],
@@ -1095,6 +1186,7 @@
       }
     },
     "engine/src/font-inspect.ts": {
+      "family": "Text and fonts",
       "fuzzTargets": [
         "font-inspect"
       ],

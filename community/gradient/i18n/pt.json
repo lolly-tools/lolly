@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Gradientes suaves em malha a partir das amostras de cor da sua marca. Arraste os pontos de cor direto na tela, ou ative a Deriva e exporte o loop como WebM, MP4 ou GIF.",
+  "description": "Cinco jeitos de criar um gradiente a partir das amostras do sistema de design: Blend radial suave, uma malha Coons-patch real em SVG nítido (Subdivide) ou raster suave (Mesh), pontos Warp livres e as ondas animadas do Flow. Arraste tudo direto no canvas; exporte imagens estáticas ou loops de vídeo sem emendas.",
   "a11yLabel": "Gradiente em malha misturando {{count}} cores",
   "inputs.count.label": "Pontos de cor",
   "inputs.color1.label": "Cor 1 (base)",

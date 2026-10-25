@@ -1,94 +1,88 @@
-# Início rápido
+# Comece
 
-Lolly transforma suas regras - cores, tipografia, layouts, lógica - em ferramentas que qualquer pessoa pode usar para criar arquivos prontos: imagens, PDFs, cards para redes sociais, vídeo, preenchendo alguns campos. Há pouco a aprender e nada a enviar: criar e exportar acontece no seu dispositivo, online ou offline.
+Ao fim desta página, suas ferramentas vão usar suas próprias cores e fontes, e o trabalho que você já tem estará pronto para ser reaproveitado. Você não precisa de conta, e criar e exportar rodam no seu dispositivo.
 
-Esta é a página para ler primeiro. Duas coisas deixam você produtivo: **deixe Lolly com a sua cara** e **traga o que você já tem** (seus arquivos de design e tokens). Todo o resto está a um link de distância.
+::: timeline
+- <!--i:sparkle--> **Crie um arquivo.** [Make your first file](/info/make-something.html) guia você por um QR code em poucos minutos.
+- <!--i:palette--> **Coloque a sua marca.** Comece por uma cor, um arquivo de tokens ou um design pronto.
+- <!--i:layers--> **Crie mais do mesmo.** Compartilhe um link, preencha uma planilha ou execute a ferramenta a partir de um script.
+:::
 
-> Chegou agora em Lolly e só quer criar algo? [Crie algo em 60 segundos](/info/make-something.html) leva você por três deles, ou [abra o app](/#/), escolha qualquer ferramenta da galeria, preencha os campos e clique em **Export**. Volte aqui quando quiser tudo com a *sua* marca.
+É novo na ideia? [What is Lolly?](/info/what-is-lolly.html) é a introdução de cinco minutos, e [How Lolly works](/info/how-lolly-works.html) mostra quem faz o quê.
 
-![A visão Utilities - as ferramentas que rodam no dispositivo, como Strip Hidden Data, Compress PDF e Convert Image, todas em um só lugar](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+## Coloque a sua marca
 
-## 1. Deixe com a sua cara - configure seu Design System
+O lolly.tools abre no **Lolly Demo**, o sistema de design de exemplo do próprio Lolly; [Meet Lolly Demo](/info/lolly-demo.html) mostra o que você está vendo. O seu sistema de design o substitui: um pequeno conjunto de design tokens, ou seja, cores, fontes e algumas regras, com o qual todas as ferramentas desenham. Defina uma vez, e tudo o que você criar já começa na identidade da marca.
 
-Sua marca em Lolly é um pequeno documento de **design tokens** - cores, fontes e algumas regras - contra o qual toda ferramenta renderiza. Configure uma vez e tudo o que você fizer sai alinhado à marca por construção, não por revisão. Há três caminhos de entrada; escolha o que corresponde ao lugar onde sua marca já vive.
+Escolha o caminho que combina com o que você tem:
 
-### Comece do zero (o construtor de design system)
+- <!--i:palette--> **Uma cor.** Abra o **Design System Setup** (`#/start`), dê um nome ao seu sistema de design e escolha uma cor primária. O Lolly deriva dela uma paleta completa e acessível, com superfícies claras e escuras, texto e destaques. Escolha uma fonte e você tem uma marca funcionando.
+- <!--i:upload--> **Um arquivo de tokens.** **Add from…**, no pé da barra de salas do Design System Setup, aceita um arquivo de tokens DTCG, Tokens Studio ou Penpot, um SVG ou um pacote `LollyBrand`. Solte-o ali e a paleta é preenchida. Enquanto o sistema de design ainda está vazio, **Start from a reference** na sala Overview abre o mesmo seletor.
+- <!--i:pentool--> **Um design pronto.** No Design, escolha **Import a design** e solte um arquivo `.fig`, `.penpot`, `.ai`, `.idml` ou SVG. Veja [Traga o que você já tem](#bring-in-what-you-already-have) abaixo.
 
-Na primeira execução você cai na **galeria**, com um breve diálogo de boas-vindas por cima oferecendo três caminhos - **Make it yours** (o Brand Studio em `#/start`), **Bring your design** (solte um arquivo do Figma, Penpot, InDesign ou PDF e ele abre como um layout editável - a rota mais rápida para [Traga o que você já tem](#2-bring-in-what-you-already-have) abaixo) e **Explore the community tools** - além de uma fileira de idiomas, caso o inglês não seja o seu. Escolha o primeiro card e você chega no [**Brand Studio**](/info/brand-studio.html). Dê um nome e uma cor primária e Lolly *deriva* dali uma paleta completa e acessível - superfícies claras/escuras, texto, destaques - usando a mesma matemática de cor que o motor usa em todo o resto.
+Na primeira vez que você abre a galeria, uma breve boas-vindas oferece as mesmas escolhas: **Make it yours** abre o Design System Setup, **Bring your design** abre um seletor de arquivos para um design e **Explore the community tools** fecha as boas-vindas.
 
-![A sala Colours do Brand Studio numa instalação nova - um chip ao vivo, um campo, e toda a primeira decisão](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Escolha uma fonte e você tem uma marca funcionando em menos de um minuto. Dali, as seis salas do studio - Overview, Colours, Type, Logos, Tokens, Files - deixam você levar isso até onde quiser, em qualquer ordem, refinando qualquer parte sempre que voltar. A aba **Design system** do painel (`#/d`) mostra o resultado em modo somente leitura e aponta de volta para `#/start`, que é onde a edição acontece (um sistema de design travado permanece somente leitura, enquanto seus próprios sistemas locais continuam editáveis).
+![A sala Colours do Design System Setup em uma instalação nova: uma amostra ao vivo, um campo e toda a primeira decisão](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-### Importe uma marca que você já tem
+A partir daí, sete salas levam você até onde quiser, em qualquer ordem: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** e **Usage & rules**. Todas as prévias do app são atualizadas enquanto você digita. [Design System Setup](/info/brand-studio.html) cobre cada sala.
 
-Se sua marca já está registrada como design tokens - do **Penpot**, do **Tokens Studio** (Figma) ou de qualquer arquivo **DTCG** simples - traga tudo de uma vez em vez de redigitar. Dois caminhos:
+As fontes ficam no seu dispositivo. Escolha uma Google Font e o Lolly guarda o arquivo como um recurso da marca, então a sua tipografia funciona offline e nada é buscado quando uma ferramenta desenha.
 
-- <!--i:palette--> **No app:** o [construtor de design system: Brand Studio](/info/brand-studio.html) (`#/start`) aceita isso pelo **Add from…** no pé da barra de salas - um arquivo de tokens, uma exportação do Penpot, um SVG ou um pacote `LollyBrand`. Solte o arquivo e a paleta se acende.
-- <!--i:code--> **Pela linha de comando**, para montar um pacote de marca reutilizável:
+### Veja, troque e compartilhe um sistema de design
+
+- **Veja o ativo.** **Settings → Design system** mostra o sistema de design ativo como uma capa e páginas, somente leitura.
+- **Alterne entre eles.** **Settings → Preferences → Design systems** lista todos os sistemas de design deste dispositivo. Uma organização pode ter vários sistemas de design, ou um com várias variações de cores; [Brand architectures](/info/brand-architectures.html) mapeia as combinações.
+- **Compartilhe um.** Exporte o sistema de design como um pacote `LollyBrand`: um arquivo que um colega importa para ter a mesma paleta, as mesmas fontes e as mesmas regras.
+
+Um sistema de design fornecido pela sua versão ou organização é **gerenciado**: mostra um cadeado e fica somente leitura. Para alterar um, crie uma cópia editável em **Settings → Preferences → Design systems**.
+
+![A aba Design system em Settings: o sistema de design ativo como uma capa e páginas](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
+
+O seu sistema de design são tokens DTCG, o formato que o Penpot lê e grava e que o Tokens Studio leva ao Figma, então a paleta com que você projeta e a paleta que o Lolly aplica são um único documento. [Design Tokens](/info/design-tokens.html) traz os detalhes.
+
+::: details Para desenvolvedores: crie um pacote de marca pela linha de comando
+Para montar um pacote de marca reutilizável em um checkout, o `ingest:brand` aceita os três contêineres que o Penpot e o Tokens Studio exportam: um único `tokens.json`, um diretório de arquivos por conjunto com `$metadata.json` ou um arquivo `project.penpot`.
 
 ```bash
-# a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`ingest:brand` aceita os três contêineres em que Penpot / Tokens Studio exportam o mesmo documento - um único `tokens.json`, um diretório (`$metadata.json` + arquivos por conjunto) ou um arquivo `project.penpot`. Com `--activate` ele registra a marca como um perfil, muda para ela e reconstrói o catálogo. Veja [Configuração](/info/configuration.html) para entender como pacotes de marca e perfis se encaixam.
+`--activate` registra a marca como um perfil e compila e valida o catálogo dela. Ele nunca altera o perfil padrão: execute com `LOLLY_PROFILE=acme` para usar o novo pacote. [Configuration](/info/configuration.html) explica como pacotes de marca e perfis se encaixam.
+:::
 
-### Ajuste no app
+## Traga o que você já tem
 
-Com uma marca ativa, siga moldando ela no [**Brand Studio**](/info/brand-studio.html) (`#/start`) - mude uma cor ou um papel e toda prévia no app se atualiza enquanto você digita. (A aba **Design system** do painel, em `#/d`, *mostra* a marca em modo somente leitura; o Studio é onde você edita.)
+Você não começa de uma página em branco.
 
-![A aba Design-system do painel - a marca ativa exibida em modo somente leitura](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) A mesma marca aparece resumida no card **Profile → Your brand**. As fontes são reais: escolha no Google Fonts e Lolly guarda o arquivo **no seu dispositivo** como um asset de marca, então sua tipografia viaja offline e nada é buscado na hora de renderizar.
+**Arquivos de design.** Trabalhos prontos do Figma, Penpot, Illustrator, InDesign ou de qualquer app SVG abrem no Design como um layout vivo: o texto continua editável, as formas continuam formas e as imagens vão para a sua biblioteca. O arquivo é lido no seu navegador e nada é enviado. [Import a design](/info/design-import.html) lista cada formato e o que é mantido.
 
-Quando estiver satisfeito, **exporte a marca como um pacote `LollyBrand`** - um único arquivo que um colega pode importar para ter exatamente a mesma paleta, as mesmas fontes e as mesmas regras. É assim que uma marca circula entre pessoas e máquinas sem um servidor no meio.
+**Decks.** Solte um `.pptx` do PowerPoint no Lolly para arquivar os slides como recursos, escreva um deck novo a partir de Markdown em **Markdown Slides** ou use [Rebrand a deck](/info/rebrand.html) para levar o deck inteiro para o seu sistema de design.
 
-> **Os tokens de marca fazem o caminho de ida e de volta.** Como a marca de Lolly *é* tokens DTCG - o formato que o Penpot lê e escreve nativamente e que o Tokens Studio leva ao Figma - a paleta com a qual você *desenha* e a paleta que Lolly *aplica* são um só documento, não duas listas que você sincroniza na mão. Veja [Design Tokens](/info/design-tokens.html).
-
-## 2. Traga o que você já tem
-
-Você não começa de uma página em branco. Lolly abre o trabalho de design e os formatos abertos que você já tem.
-
-### Arquivos de design de código aberto
-
-Trabalho finalizado no **Figma, Penpot, Illustrator, InDesign ou qualquer app de SVG** não precisa ficar preso no app em que foi desenhado. Abra o **Design**, clique em **Import a design** e o arquivo abre como um *layout vivo* - não uma imagem achatada. Cada camada vira uma caixa editável: o texto continua digitável, as formas continuam formas, as imagens vão para a sua biblioteca e a arte vetorial complexa é preservada fielmente. Ele chega já ajustado às fontes e às regras de cor da sua marca.
-
-| Você tem | Traga como |
-|---|---|
-| Um frame do Figma | `.fig` nativo (File → Save local copy) ou uma exportação SVG |
-| Um design do Penpot | A exportação `.penpot` dele ou qualquer SVG |
-| Um arquivo do Illustrator | `.ai` nativo (compatível com PDF) ou `.pdf` - abre direto |
-| Um layout do InDesign | `.idml` (File → Export → InDesign Markup) |
-| Qualquer outra coisa | **Qualquer SVG** - a porta de entrada universal |
-
-Toda a importação acontece **no seu dispositivo** - o arquivo é interpretado no seu navegador e nada é enviado. Os detalhes completos, e exatamente o que é preservado, estão em [Importar um design](/info/design-import.html).
-
-Tem uma **apresentação do PowerPoint** em vez disso? Solte o `.pptx` em qualquer superfície de upload para arquivar seus slides como ativos, escreva uma nova apresentação a partir de Markdown no **Markdown Slides**, ou rode o **Rebrand** para receber a mesma apresentação de volta com outro tema, com gráficos e animações intactos.
+**Dados.** Cole ou solte uma tabela CSV ou JSON e os campos repetidos de uma ferramenta são preenchidos a partir dela, ou o [Batch](/info/batch.html#make-many-versions-of-one-design) gera um arquivo pronto por linha.
 
 ### De um trabalho pontual a um template
 
-Aqui está o ganho: um layout importado é uma sessão comum do Design, então assim que você **salva**, ele passa a viver em uma URL. Qualquer pessoa com Lolly pode abrir essa URL, trocar as palavras, trocar uma imagem e renderizar a própria versão - sem app de design, e as partes travadas continuam travadas. Um design de uma vez só vira uma ferramenta reutilizável. Essa é a ideia toda, alcançada sem escrever uma linha de configuração.
+Um layout importado é uma sessão comum do Design. **Share with rules** o transforma em uma ferramenta: você escolhe quais partes outras pessoas podem alterar, e elas preenchem somente essas.
 
-### Dados abertos e ferramentas abertas
+![Mantenha o master do Design, escolha entradas e limites em uma cópia de autoria e depois compartilhe uma ferramenta .lolly reutilizável que os destinatários preenchem](/info/diagrams/concepts/share-with-rules.svg)
 
-O [conjunto de ferramentas da comunidade](/info/builders.html) é de código aberto e independente de marca - QR codes, mapas de ruas, filtros, utilitários de privacidade - e renderiza com a *sua* marca no momento em que você a ativa.
+[Share a design with rules](/info/create-a-tool.html) percorre cada etapa.
 
-Alimente as ferramentas com seus próprios dados abertos também: cole ou solte uma tabela **CSV** ou **JSON** e os campos repetíveis de uma ferramenta se preenchem a partir dela, um asset pronto por linha.
+## Faça muitos, compartilhe e automatize
 
-## 3. Crie algo, depois compartilhe ou automatize o resultado
+- <!--i:download--> **Exporte.** As ferramentas geram SVG, PDF, PNG, JPG, WebP, vídeo e mais, nos formatos que cada ferramenta oferece, em tamanhos reais de impressão quando você precisar. Veja [Export a file](/info/exporting.html).
+- <!--i:link--> **Compartilhe um link.** As configurações de uma ferramenta viajam no link, então o link reabre o mesmo arquivo em qualquer lugar.
+- <!--i:layers--> **Faça um por linha.** Conduza uma ferramenta a partir de uma planilha no [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:cpu--> **Automatize.** A mesma renderização roda pela [CLI](/info/cli.html) e por um [agente de IA](/info/ai-agents.html).
 
-Com uma marca ativa e seu material em mãos, toda ferramenta produz um arquivo pronto:
-
-- <!--i:download--> **Renderize** qualquer ferramenta em **SVG, PDF, PNG, JPG, WebP, vídeo** e mais - em tamanhos reais de impressão e unidades físicas quando você precisar. Veja [Exportação & formatos](/info/exporting.html).
-- <!--i:link--> **Compartilhe um link.** Todo estado de ferramenta é uma URL, então um asset pronto é reproduzível e endereçável por parâmetros - versione o link, gere de novo quando quiser.
-- <!--i:layers--> **Faça em lote.** Comande um template a partir de uma planilha na [grade em lote](/info/exporting.html): um asset pronto por linha.
-- <!--i:cpu--> **Automatize.** A mesma renderização roda pela [CLI](/info/cli.html) e por um [agente de IA](/info/ai-agents.html) - uma URL é a API.
-
-"Uma URL é a API" é literal. O gráfico abaixo não foi desenhado por ninguém: o tipo dele, o título e toda a tabela de dados foram digitados na barra de endereços, e o mesmo link renderiza o mesmo gráfico em qualquer dispositivo.
+Um link é uma solicitação completa. Ninguém desenhou o gráfico abaixo: o tipo, o título e toda a tabela de dados foram digitados na barra de endereços, e o mesmo link desenha o mesmo gráfico em qualquer dispositivo.
 
 ![Um gráfico de área dos cadastros mensais, cujo cada valor chegou como um parâmetro de query em vez de um clique](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 ## Para onde ir agora
 
-Três caminhos, dependendo do que você veio fazer:
-
-- <!--i:people--> **[Lolly para Criadores](/info/creators.html)** - você cria coisas. As vantagens e como tirar o máximo do app.
-- <!--i:code--> **[Lolly para Desenvolvedores](/info/builders.html)** - você cria ferramentas, integra e faz deploy. A documentação técnica.
-- <!--i:shieldcheck--> **[Lolly para Operadores](/info/operators.html)** - você é responsável pela marca, pela segurança e pela implantação em uma organização.
+- <!--i:people--> **[Create](/info/creators.html)**: criar, animar, gravar, compartilhar e exportar.
+- <!--i:code--> **[Automate](/info/builders.html)**: sistemas de design, criação de ferramentas, linha de comando, links e agentes.
+- <!--i:usercheck--> **[Manage](/info/operators.html)**: executar o Lolly para uma equipe com o Lolly Work.
+- <!--i:server--> **[Deploy](/info/operate.html)**: hospedar o Lolly e o Lolly Work.
+- <!--i:shieldcheck--> **[Trust](/info/trust.html)**: privacidade, segurança e como verificar um arquivo você mesmo.

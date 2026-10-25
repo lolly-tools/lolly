@@ -1,8 +1,10 @@
-# 导出与格式
+# 导出文件
 
-在工具的 **Export | Save as** 按钮组上按 **Export**，从文件名旁的菜单中选择格式，然后按 **Download**。普通下载在你的设备上生成。组织审批和交付选项见下文。
+你做出了某样东西，它需要离开 Lolly：用于聊天的 PNG、给印刷厂的 PDF、同事要继续编辑的演示稿。按 **Export**，即 **Export | Save** 按钮的左半边。在文件名旁边选择一种格式，然后按 **Download**。文件在你的设备上生成。
 
-对大多数工作来说，三种格式中总有一种合适：
+你在画布上看到的就是文件所包含的内容。格式菜单只列出这个工具在这个浏览器中能制作的格式。
+
+对大多数任务来说，三种格式中的一种就合适：
 
 | 用途 | 选择 | 原因 |
 |---|---|---|
@@ -14,43 +16,32 @@
 发送之前，请在它要用于的屏幕上打开它，或按真实尺寸打印一次。
 :::
 
-本页接下来会介绍每一种格式、尺寸和选项。
+::: details 使用 Lolly Work 的审批和交付（可选）
+[运行 Lolly Work 的组织](/info/organisation.html)可以管控其成员能看到哪些格式和导出设置。在需要批准的地方，**Request approval** 取代 **Download**。请遵循你的实例显示的政策。
+
+Lolly Work 还可以把文件交付到已配置的 S3、WebDAV 和 HTTP 目的地，带有审批步骤、交付回执和审计记录。为此工作流提交文件会把它发送到组织的服务；普通下载则留在你的设备上。个人 Send 目的地和组织交付是分别配置的。
+
+运营者按[组织交付指南](/info/work-delivery.html)进行设置。关于排队的服务器渲染和批处理，请参见 [CLI 批处理与自动化](/info/cli-automation.html#organisation-jobs-with-lolly-work)。
+:::
 
 ## 导出的工作方式
 
-预览*就是*文件本身。导出时，宿主会把这块画布渲染成你选择的格式，交给你下载（或放到剪贴板上）。选择器会隐藏你的浏览器无法生成的格式（见[视频](#video)）。
+导出时，工具的画布会渲染为你选择的格式，并作为下载交给你，或放入你的剪贴板。
 
-有三条路径可以生成文件。大多数工具**渲染画布**为所选格式。文本和数据格式（HTML、MD、TXT、JSON、CSV、ICS、VCF）则是**由工具的内容生成**，而不是从图像栅格化而来。隐私类工具（例如*清除隐藏数据*）使用第三条路径：*你*选择的文件会在设备上逐字节转换后直接交还给你 - 没有画布、没有水印，也不会添加溯源元数据，因为它本来就是你自己的文件。
+有三条路径会生成文件。大多数工具**渲染画布**。文本和数据格式（HTML、Markdown、TXT、JSON、CSV、ICS、VCF）是**根据工具的内容生成**的，而不是从画面绘制的。像 *Strip Hidden Data* 这样的隐私实用工具会在你的设备上**转换你选择的文件**，并交还给你，没有画布、水印或附加的元数据，因为它本来就是你自己的文件。
 
-导出面板中的操作：
+![三条导出路径汇集到一个成品文件：渲染画布、根据内容生成文本或数据，或在设备上转换选中的文件。](/info/diagrams/concepts/three-export-paths.svg)
 
-- <!--i:download--> **下载** - 保存文件（主要操作）。如果之后找不到它，请见[找到你下载的文件](/info/find-your-work.html#find-a-file-you-downloaded)。
-- <!--i:photos--> **复制** - 将图像放到剪贴板，可直接粘贴到 Slack、邮件或文档中。若浏览器无法复制图像，则会改为下载并告知你。
-- <!--i:folder--> **保存** - 一键把当前设计保留在项目中，不问保存到哪里；它从不下载文件。**导出**旁边的**另存为**会询问保存位置（见[保存与继续](/info/using.html#saving-continuing)）。
-- <!--i:link--> **分享** - 打开**分享对话框**：一个可复制的链接可还原该设计，附带访问时开关（全屏、导出面板、打开时下载或复制）以及可选的**最短链接**，可将整个状态压缩进一个紧凑的令牌中（参见 [URL 模式](/info/url-mode.html)）。
+导出面板提供这些操作。工具的作者选择显示哪些；默认集合是 Copy、Download 和 Save。
 
-（这些选项中哪些会出现由工具作者决定；默认集合是复制、下载和保存。）
+- <!--i:download--> **Download** 保存文件。如果之后找不到，请参见[查找你下载的文件](/info/find-your-work.html#find-a-file-you-downloaded)。
+- <!--i:photos--> **Copy** 把图片放入你的剪贴板，可以粘贴到聊天、电子邮件或文档中。在浏览器无法复制图片的地方，它会改为下载并告知你。
+- <!--i:folder--> **Save** 一键把当前设计保存到 Projects，绝不下载文件。**Save as** 位于 **Download** 旁边，会询问存放位置（参见[保存与继续](/info/using.html#saving-continuing)）。
+- <!--i:link--> **Share** 打开 Share 对话框：一个可复现设计的链接、访问时的开关（全屏、导出面板、打开时下载或复制），以及可选的 **Shortest link**，它把整个状态压缩成一个紧凑的令牌（参见 [URL 模式](/info/url-mode.html)）。
 
 ![导出面板 - 格式、尺寸以及复制/下载/保存/分享操作](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
-分享会在工具上方打开，链接已经生成完毕，访问时开关就在链接下方。
-
-::: details 通过 lolly.work 审批和交付（可选）
-[使用 lolly.work 的组织](/info/organisation.html)可以管控可用的格式和导出设置。在需要审批的情况下，应用可以用 **Request approval** 取代 **Download**。请遵循你的实例所显示的策略。
-
-该服务还支持向已配置的 S3、WebDAV 和 HTTP 目标进行受管交付，并在已配置时提供审批步骤、交付回执和审计记录。为该工作流提交文件会将其发送到组织的服务；普通的本地下载仍保留在设备上。个人 Send 目标与受管的组织交付分别配置。
-
-运维人员请参阅[交付指南](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md)。关于排队的服务器渲染和批处理，请参阅 [CLI 批处理与自动化](/info/cli-automation.html#organisation-jobs-with-lolly-work)。
-:::
-
-### 一次渲染多个
-
-单次导出是一个文件，但你可以一次渲染**多个** - 每次都作为一个 `.zip` 交付：
-
-- <!--i:folder--> **项目 → 渲染文件夹**会将某个文件夹（及其子文件夹）中的每个已保存会话导出为一个嵌套压缩包；**渲染所选内容**对任意多选内容执行相同操作；单个已保存会话会直接渲染为自己的文件。无需 Batch/Pro - 参见[使用 Lolly → 项目](/info/using.html)。
-- <!--i:layers--> **批处理（Pro）**渲染一个输入集网格 - 一次生成同一模板的每个变体。
-
-已保存的会话也可以从项目中重新分享为工具链接（它会从已保存的输入重建工具 URL），因此链接会以完全相同的设置重新打开该会话。
+当一个设计嵌入了另一个工具的渲染结果时，例如包含 QR Code 链接的 Design 图片框，嵌套的渲染结果会被绘制进父项的导出中。它在 SVG 和 PDF 中保持真正的矢量，在 PNG、JPG 和 WebP 中则清晰地栅格化。嵌入的渲染结果没有水印，也没有自己的出处信息；只有成品文件才有。HTML、Markdown 和 TXT 导出无法容纳组合的渲染结果。
 
 ## 选择格式
 
@@ -58,138 +49,162 @@
 
 ![与格式选择器融合的文件名字段，使导出呈现为一个 name.format 组合](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| 你想要… | 使用 | 原因 |
+从文件的去向开始。每张卡片列出适合该目的地的格式；工具只显示它能制作的格式。
+
+::: figure exporting-format-chooser
+六个目的地，以及适合各自的格式。
+:::
+
+用设计系统字体排版的字标会导出为 SVG，每个字母都是转曲的路径，所以一个文件在名片尺寸和大楼外墙尺寸下都同样清晰。
+
+![一个字距很宽的极细字标，写着 Aurora，这正是表格中 SVG 一行所说的纯矢量作品](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+
+::: details 每种格式及其用途
+| 你想要 | 使用 | 原因 |
 |---|---|---|
-| 清晰的标志／可缩放的美术作品 | **SVG** | 矢量 - 可无限缩放、体积小、可编辑；矢量导出无法绘制的效果会作为图片嵌入 |
-| 用于 Office / Windows 应用的矢量图 | **EMF** | 以可编辑矢量粘贴进 PowerPoint / Word；文字保持实时可编辑，Google Drive 会用 Google 绘图为幻灯片打开它 |
-| 用于印刷 / 设计应用的矢量图 | **EPS**，或 **EPS (CMYK)** | 用于 Illustrator / 印刷工作流的 PostScript 矢量图 |
-| 用于切割 / CAD 设备的矢量图 | **DXF** | 激光切割机、乙烯基绘图仪、CNC - 以毫米为单位的轮廓路径 |
-| 可编辑的幻灯片文档 | **PowerPoint** (PPTX) | 原生可编辑的文字与形状，图片和矢量图保持可提取 |
-| 便携式培训课程 | **Export course** | 检查项目内容，构建带版本号的网站、SCORM 或实验性 xAPI 包 |
-| 可编辑的文本文档 | **Word** (DOCX) 或 **OpenDocument** (ODT) | 真正的段落与标题，可在文字处理软件中继续编辑（Doc Studio） |
-| 照片或通用图片 | **PNG**（无损）或 **JPG**（更小） | 通用位图 |
-| 更小的现代图片格式 | **WebP** / **AVIF** | 更好的压缩率，支持透明通道 |
-| 印刷 | **PDF**，或 **Print PDF**（CMYK） | 真实页面尺寸；CMYK 用于印刷机 |
-| 用于印刷机的印刷位图 | **Print TIFF**（CMYK） | 供 RIP 使用的 DeviceCMYK 像素 |
-| 用于网页的动图 | **GIF** | 到处都能用，文件更大 |
-| 全彩且带真实透明通道的动图 | **APNG** | 动态 PNG - 无调色板限制，真正透明 |
-| 体积最小的动图 | **Animated WebP** | 全彩加透明通道，压缩效果优于 GIF 或 APNG |
-| 可缩放的动态矢量图 | **Animated SVG** | 自包含；可在浏览器或 `<img>` 中循环播放，无需编解码器，任意尺寸 |
-| 用于社交分享的视频 | **MP4** 或 **WebM** | 每字节质量最佳（见下文） |
-| 富文本／邮件签名 | **HTML** | 可格式化粘贴进邮件客户端 |
-| 纯内容 | **MD** / **TXT** | 仅文本 |
-| 日历事件 | **ICS** | 可导入任意日历应用 |
-| 联系人名片 | **VCF** | 可导入通讯录 / 地址簿 |
-| 需要重新导入的结构化数据 | **JSON** / **CSV** | 让工具的内容往返互通 |
-| 网站图标 | **ICO** | 多尺寸网站图标（**ZIP** 打包多种格式） |
+| 可缩放的清晰徽标或作品 | **SVG** | 矢量：可缩放、体积小且可编辑；矢量导出无法绘制的效果会作为图片嵌入 |
+| 用于 Office 和 Windows 应用的矢量 | **EMF** | 作为可编辑矢量粘贴到 PowerPoint 和 Word，文字是实时文字；Google Drive 用 Google Drawings 打开它 |
+| 用于印刷和设计应用的矢量 | **EPS**，或 **EPS (CMYK)** | 面向 Illustrator 和印刷流程的 PostScript 矢量 |
+| 用于切割机的矢量 | **DXF** | 激光切割机、刻字机和 CNC：以毫米为单位的轮廓路径 |
+| 可编辑的幻灯片演示稿 | **PowerPoint** (PPTX) | 原生可编辑的文字和形状，图片和矢量保持可提取 |
+| 可编辑的文本文档 | **Word** (DOCX) 或 **OpenDocument** (ODT) | 文字处理软件可以继续编辑的真正段落和标题（Doc Studio） |
+| 用于 InDesign 的版面 | **InDesign IDML (static subset)** | 文字、矩形、椭圆和图片，每个画板一个跨页（Design） |
+| 可编辑的 Penpot 文档 | **Penpot** | 画板、形状、文字和关联的令牌 |
+| 照片或通用图像 | **PNG**（无损）或 **JPG**（更小） | 通用栅格图 |
+| 更小的现代图像 | **WebP** 或 **AVIF** | 压缩更好，支持透明 |
+| 印刷 | **PDF**，或 **Print PDF** (CMYK) | 真实页面尺寸；CMYK 用于印刷机 |
+| 用于印刷机的栅格印刷 | **Print TIFF** (CMYK) | 供 RIP 使用的 DeviceCMYK 像素 |
+| 用于网页的动画 | **GIF** | 到处都能播放；文件较大 |
+| 全彩且带真实透明的动画 | **APNG** | 动画 PNG：没有调色板限制 |
+| 动画，文件最小 | **Animated WebP** | 全彩和透明，比 GIF 或 APNG 更小 |
+| 可缩放的动画矢量 | **Animated SVG** | 自包含；可在浏览器或 `<img>` 中循环播放，任意尺寸（Lottie Ad） |
+| 仍可编辑的动画 | **dotLottie** | 来自 Design 时间线的形状、路径和外层变换关键帧 |
+| 交给 Premiere | **Premiere XML + media** | 为 Premiere 准备的定时片段和原始媒体（Design） |
+| 用于社交和分享的视频 | **MP4** 或 **WebM** | 相对于文件大小质量最佳（参见[视频](#video)） |
+| 字幕 | **SRT** 或 **VTT** | 用于视频播放器的定时文字（Captions、Audiogram 和 Record） |
+| 培训课程 | **SCORM (LMS)** | 带版本的网站、SCORM 或 xAPI 包（参见 [SCORM](#scorm-course-packages)） |
+| 富文本或电子邮件签名 | **HTML** | 以格式化形式粘贴到邮件客户端 |
+| 纯内容 | **MD** 或 **TXT** | 仅文字 |
+| 日历事件 | **ICS** | 导入任何日历应用 |
+| 联系人名片 | **VCF** | 导入通讯录 |
+| 要重新导入的结构化数据 | **JSON** 或 **CSV** | 往返保留工具的内容 |
+| 网站图标 | **ICO** | 多尺寸网站图标；**ZIP** 打包多种格式 |
+:::
 
-第一行是最常见的情况。以你的品牌字体设置的文字标识导出为 SVG，其中每个字母都是轮廓路径而非像素，因此从同一个文件出发，无论是名片大小还是建筑外墙包裹广告大小，都能保持清晰。
+### 透明度
 
-![一个细线宽字距的文字标识，写着 Aurora，正是表格 SVG 那一行所指的纯矢量艺术作品类型](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+支持透明的工具提供透明背景开关，例如 **No BG**。PNG、WebP、AVIF、SVG、APNG 和 Animated WebP 保留透明度，GIF 保留硬边。JPG 和 PDF 始终不透明。TIFF 会拼合到白色上，在 [HDR](#hdr-bright-colours) 下所述的 HDR 路径中则拼合到黑色上。
 
 ## 尺寸与印刷单位
 
-导出默认使用工具的原生像素尺寸。在工具提供**尺寸**选项的地方，你可以设置宽 × 高以及**单位**：
+除非工具提供 **dimensions**，否则导出使用工具的原生像素尺寸。提供时，你可以设置宽度、高度和 **unit**：
 
-- **px**（默认） - 精确像素。
-- **mm · cm · in · pt · pc** - 物理／印刷尺寸。使用物理单位时你还需设置 **DPI**（印刷默认为 **300**）；引擎会按格式正确转换 - **PDF** 会成为该尺寸下的真实页面，**栅格**会以适合该 DPI 的正确像素数渲染（并嵌入分辨率信息），**SVG** 会保留物理单位并配以像素 viewBox。
+- **px**（默认）是精确的像素。
+- **mm、cm、in、pt** 和 **pc** 是物理尺寸。使用物理单位时，你还要设置 **DPI**（默认 300）。**PDF** 会按该尺寸成为真实页面，**栅格图**会得到该 DPI 对应的像素数并记录分辨率，**SVG** 则保留物理单位并带有像素 viewBox。
 
-要获得更高分辨率的栅格图像，可输入更大的宽／高数值，或选择物理单位并提高 DPI（像素数 = 尺寸 × DPI）。没有一键缩放开关。
-
-示例：宽 `210`，高 `297`，单位 `mm` → 一张 A4 页面。
+要获得更高分辨率的栅格图，请输入更大的宽度和高度，或选择物理单位并提高 DPI（像素 = 尺寸 × DPI）。宽度 `210`、高度 `297` 和单位 `mm` 构成 A4 页面。
 
 ![尺寸行设置为 210 x 297 mm，DPI 字段因单位为物理单位而显示出来](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
 ## 从有时间线的作品中导出静帧
 
-一段**定时合成**内容 - Design 中的 [Sequence](/info/using.html#timeline-sequence) 时间线,或任何由时间线驱动的画板 - 本质上是运动的,所以静态导出必须回答“哪一帧?”。规则正如你所料:**播放头所在的那一帧**。把播放头停在你想要的画面处再导出;所见即所得。
+定时作品，例如 Design 中的 [Sequence](/info/sequence-editor.html) 时间线，是会动的，所以静态导出必须选择一个时刻：**播放头处的帧**。把播放头停在你想要的画面处再导出。
 
-当你需要多于一个瞬间时，**帧数**字段会出现在输出尺寸旁边（仅限有时间线的作品，且仅限静态格式 - PNG、JPG、WebP、SVG 或 PDF）。保持为 `1` 即为播放头所在帧。调高数值，你就会得到在整个序列中等间隔采样的相应数量静帧：
+如果需要多个时刻，**Frames** 字段会出现在输出尺寸旁边。它只在定时作品和静态格式（PNG、JPG、WebP、SVG 或 PDF）下显示。保持 `1` 表示播放头处的帧。调高它，就会得到相应数量的静态图，均匀分布在整个序列上：
 
-- **栅格与 SVG** 会以一个 **zip** 返回 - `<name>-01.png`、`-02.png` 依此类推。
-- **PDF** 会返回为**一份包含相应页数的单一文档**。
+- PNG、JPG、WebP 和 SVG 作为一个 ZIP 返回：`<name>-01.png`、`-02.png` 等等。
+- PDF 作为一份文档返回，页数与该数量相同。
 
-适用于分镜脚本、缩略图表、供审阅用的样张表，或直接从视频剪辑中截取的社交轮播图。
+每张静态图都取自其对应时间线片段的中间，所以第一帧绝不会是半淡入的入场，最后一帧也绝不会是所有片段结束后的空白时刻。
 
-采样取自每个区间的**中点**而非边缘，因为序列的第一瞬间通常是尚未淡入完成的入场过渡，最后一瞬间则是所有片段结束后的状态 - 若在端点采样，会把两帧浪费在近乎空白的画面上。数量上限为 **64**（样张表是给人看的），字段中输入任何无意义的内容都会回退为 `1` 而不会导致导出失败。每一帧都是一张普通静帧，因此 Content Credentials、印记、物理单位和 DPI 的表现都与单次导出完全一致。
+::: figure exporting-contact-sheet
+Frames: 4 把序列切成四个相等的片段，并取每个片段的中间。
+:::
 
-**帧数**字段是今天获得样张表的方式。引擎预留了对应的 `cuts` URL 参数，但目前没有任何外壳会从链接中读取它，因此分享的链接始终会以播放头所在帧重新打开 - 参见 [URL 模式](/info/url-parameters.html#contact-sheets-cuts)。
+可用于故事板、审阅用的联系表，或从视频剪辑中截取的社交媒体轮播图。数量上限为 64，字段中输入的其他任何内容都会回退为 `1`。每一帧都是普通的静态图，所以凭据、Imprint、物理单位和 DPI 的行为与单次导出相同。导出链接、CLI 和 MCP 用 `cuts=` 请求同样的联系表（参见[联系表](/info/url-export.html#contact-sheets)）。
 
-## 多页 PDF
+## 一次处理多个文件
 
-有些工具生成的是**多页 PDF 文档**,而不是单一作品 - 封面、可按需自动流排的内容、以及封底,全部在一个文件中(参见 *Booklet* 工具)。每一页都是按该页版面尺寸设定的**真实 PDF 页面**,因此阅读器和打印机得到的是真正的页面,而不是一整张长图。
+Lolly 有三种批量处理的方式，各自适用于不同的任务：
 
-- **由内容生成页面。** 添加文本和图像块；随着块的填充会自动创建新页面，你也可以强制任意块另起新页。
-- **真实的页面尺寸。** 选择 A4、US Letter 或 A5（纵向 - 双栏布局正是为此设计的） - 每一页以及导出的 PDF 都会以完全该尺寸渲染。
+::: cols
+## 一张表格变成一份文档
+带有表格输入项的工具，例如 **Battlecards**，会把每一行变成一页。从你的电子表格粘贴一张表格，就得到一份 PDF。在电子表格中修正各行，再粘贴一次。
+## 一份 CSV 变成每行一个文件
+**Batch**（`#/batch`）读取 CSV，并为每一行渲染一次导出：姓名牌或证书，每人一个文件，以 ZIP 交付。参见 [Batch](/info/batch.html#make-many-versions-of-one-design)。
+## 多个设计一次编辑
+**Multi-edit** 把多个已保存的会话并排打开，对不同设计做同样的修饰。参见 [Multi-edit](/info/batch.html#edit-several-saved-designs-together)。
+:::
 
-多页 PDF 是 RGB 文档,不带裁切/出血标记 - 那些属于上文的单页 **Print PDF** 路径。它们确实带有与每个 PDF 导出相同的 **PDF/X-4 元数据**(页面框、XMP、文档 ID、带嵌入配置文件的 sRGB 输出意图),并提供 **Content Credentials**(见下文) - 在 *Booklet* 工具上该选项默认预选。
+在 **Projects** 中，**Render folder** 会把文件夹及其子文件夹中每个已保存的会话导出为一个嵌套的 ZIP，**Render selection** 对任何多选执行同样的操作；单个已保存的会话则渲染为它自己的文件。已保存的会话还可以在 Projects 中再次作为工具链接分享，它会用相同的设置重新打开。
 
-## 一次生成多个内容
+## 在别处仍可编辑的文件
 
-Lolly 有三种不同的批量作业方式，分别解决不同的任务 - 批量编辑是平台的一等能力，而不是每个工具各自重新发明的功能：
+有些格式把你的作品作为可编辑的内容而不是图片交给另一个应用。
 
-- <!--i:document--> **一个设计 × 一张行表 → 一份多页文档。** 带有 `table` 输入的工具（如*Battlecards*）会自动把每一行变成一页 - 从你的电子表格粘贴一张表，就得到一份幻灯片大小的 PDF。你真正的批量编辑器仍然是电子表格：在那里修正十行内容，再粘贴一次。工具本身从不管理页面。
-- <!--i:layers--> **一个设计 × 一个数据文件 → 多个独立文件。** `/pro` 批处理网格接收一个 CSV，为*每一行*渲染一次导出 - 姓名牌、证书，每行一个文件。
-- <!--i:sliders--> **多个不同的资产，并排编辑。** *多重编辑*在一个视图中打开多个已保存会话，便于对不同设计进行协调式的微调。
+### PowerPoint (PPTX)
 
-经验法则：同一设计的多行、应归入**一份文档** → 使用表格驱动的工具；必须交付为**独立文件**的多行 → 使用 `/pro`；需要相同调整的**不同设计** → 使用多重编辑。（一个计划中的“合并媒体”渲染选项将会打通前两者 - 将同格式的导出拼接成一个 PDF、一段视频或一张校对样张表。）
+Design、Markdown Slides、Booklet、Doc Studio、Chart、Diagrams、Flow Chart 和 Agenda 会导出 PowerPoint 演示稿，每页一张幻灯片。每一页都被拆分为原生对象，这样同事可以编辑演示稿并从中取出素材：
 
-## PowerPoint（PPTX）
-
-Design、Markdown Slides、Booklet、Doc Studio、Chart 和 Diagrams 都可以导出**PowerPoint 演示文稿** - 每页一张幻灯片。这样做的目的不是逐像素还原的截图,而是交给同事一份他们真正能够**编辑并从中取出素材**的演示文稿。因此每一页都会被拆解为原生对象:
-
-- <!--i:font--> **文本**会变成真正的、**可编辑的 PowerPoint 文本框** - 保留版式中的字号、颜色、字重、斜体和对齐方式 - 因此你可以在 PowerPoint 中修正拼写或重新设计样式。
-- <!--i:pentool--> **矢量图形**(徽标、图标、SUSE 标志)以**真正的 SVG 图片**形式嵌入 - 它们在任何尺寸下都保持清晰,PowerPoint 甚至可以对它们执行*转换为形状*。
-- <!--i:photos--> **图像**以原生分辨率呈现为可独立提取的图片(经 `cover` 裁切的主图会在裁切范围之外保留完整图像,方便你重新取景),图像上的任何处理效果(滤镜、混合模式)都会如实烘焙进去。
-- <!--i:layers--> **背景、边框和分隔线**会变成真正的矩形/线条形状。
+- <!--i:font--> **文字**变成可编辑的 PowerPoint 文本框，保留版面的字号、颜色、字重、斜体和对齐。
+- <!--i:pentool--> 徽标和图标等**矢量图**作为 SVG 图片嵌入；它们保持清晰，PowerPoint 可以对它们执行 *Convert to Shape*。
+- <!--i:photos--> **图片**以原生分辨率作为各自的图片导出。裁切过的主图会在裁切之后保留完整的图像，其上的任何滤镜或混合都已烘焙进去。
+- <!--i:layers--> **背景、边框和线条**变成矩形和线条形状。
 
 ![选中 PowerPoint 的导出面板:每页一张幻灯片,文字和形状保持可编辑](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
-版式在设计上是近似的 - 目标是忠实、可复用的**内容**,而非锁定的截图。任何渲染器无法原生表达的部分(复杂的滤镜或蒙版区域)都会作为图片嵌入,以确保不丢失任何内容。一份演示文稿只有一个幻灯片尺寸,取自第一页。
+版面是近似的；目标是可复用的内容。遍历器无法原生表达的任何内容，例如带复杂滤镜或蒙版的区域，会作为图片嵌入，所以不会丢失任何东西。演示稿只有一种幻灯片尺寸，取自第一页。
 
-PowerPoint 也是一条**导入**通道。把 `.pptx` 拖放到任意上传区域,挑选你想要的幻灯片 - 每张都会变成一个可放置、调色或继续搭建的素材。**Markdown Slides** 会用 Markdown 生成一份全新的演示文稿(并附带一份品牌化的 `.pptx` 模板),而 **Rebrand** 工具则原地为已有演示文稿重新套用主题 - 主题调色板、写死的颜色和字体 - 而不触碰其中的图表、SmartArt 或动画,最终交回一个 `.pptx`。参见 [导入设计 → 演示文稿与文档](/info/design-import.html#decks-and-documents)。
+PowerPoint 也是一个入口：[重塑演示稿品牌](/info/rebrand.html)把演示稿移到你的设计系统上，[导入设计](/info/design-import.html)则在 Design 中打开一份演示稿。
 
-## Penpot
+### Penpot
 
-任何能导出 SVG 的工具也都能导出 **Penpot 文件**(`.penpot`) - 这是一份可以在 Penpot 中继续编辑的文档,而不只是用来查看的。
+大多数导出 SVG 的工具也会导出 **Penpot 文件**（`.penpot`），可直接在 Penpot 中继续编辑。
 
-- <!--i:layout--> 从**Design**导出时,每个画框都会变成一个 Penpot **画板**,其上的每个方框都会作为各自独立的可编辑形状带过来 - 矩形、椭圆、文字、图片或路径 - 最终结果会作为一个可复用的**组件**出现在 Assets 面板中,可随时再次拖出使用。
-- <!--i:pentool--> 从渲染为**纯几何图形**的工具导出时 - 例如 QR Code、Street Map、Wordmark 和 Palette Lab 这类矢量工具 - 每条路径、矩形、文字行和渐变都会以同样方式各自转为独立的可编辑形状。
-- <!--i:font--> 从以 **HTML** 布局渲染的工具导出时,**文字仍保持为文字** - 每行对应一个可编辑的 Penpot 文本对象,而不是轮廓,也不是扁平图片。对于 Penpot 没有对应构造的美术作品 - 复杂插图、实时画布 - 则会作为图片单独保留,因此它周围的文字和方框永远不会被压平。而一整个 Penpot 无法忠实拆分的版面,仍可作为一张完整保真度的图片整体带过来,所以不会丢失任何内容。
-- <!--i:palette--> 一个形状从**品牌 token 继承**而来的颜色或字体,会在文件中保持与该 token 的**链接**:在 Penpot 的 Tokens 面板中修改该 token,所有继承它的形状都会一起重新上色,而单独设定的字面颜色则原封不动。品牌的颜色与字体也会进入 **Assets** 面板,其完整的设计 token 集则进入 **Tokens** 面板 - 与 Lolly 自身调色板所用的是同一套 DTCG token 集。Penpot 从此处保留自己的一份副本:在其 Tokens 面板中所做的修改,需要通过 [Brand Studio 的导入](/info/design-import.html) 才能回到品牌中,而不会自动同步。
-
-| 你制作的内容 | 在 Penpot 中 |
+| 你做的内容 | 在 Penpot 中 |
 |---|---|
-| 文字 | 可编辑的文本对象 - 修正错字或重新设定样式 |
-| 形状、路径、渐变、图片 | 各自独立的可编辑矢量形状 |
-| 来自品牌 token 的颜色或字体 | 一个实时的 token 链接 - 修改 token,所有继承它的形状随之改变 |
-| 整个设计 | Assets 面板中一个可复用的组件 |
-| 复杂插图或实时画布 | 作为图片单独嵌入,周围可编辑内容不受影响 |
+| 文字 | 可编辑的文本对象：修正错字或重新设置样式 |
+| 形状、路径、渐变和图片 | 各自可编辑的矢量形状 |
+| 来自设计系统令牌的颜色或字体 | 实时令牌链接：编辑令牌，所有继承它的形状都会跟随 |
+| 整个设计 | Assets 面板中可复用的组件 |
+| 复杂的插画或实时画布 | 单独作为图片嵌入，其周围的可编辑内容不受影响 |
+
+从 Design 导出时，每个画框都变成一个 Penpot 画板。设计系统的颜色和字体样式进入 Assets 面板，其完整的令牌集合进入 Tokens 面板。Penpot 从此保留自己的副本：在 Penpot 中编辑的令牌会通过 [Design System Setup](/info/brand-studio.html) 中的导入回来。
 
 ![选中 Penpot 的导出面板:.penpot 文件,以及下载按钮旁的“发送到 Penpot”](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
-要打开它,启动 Penpot,选择一个项目,再选择**导入**。若已在导出面板中登录 Penpot,**发送到 Penpot** 会替你完成这一步 - 在那里选择一个项目,文件就会直接进入其中。
+要打开文件，启动 Penpot，选择一个项目并选择 **Import**。如果已从导出面板登录 Penpot，**Send to Penpot** 会替你完成这一步。
 
-## SCORM(课程包)
+### Word、OpenDocument 和 InDesign
 
-从受支持的工具、项目文件夹或所选内容中选择**导出课程**。在 Design 中，选择**SCORM (LMS)**并下载，同样会打开这个课程工作流程。Lolly 会保存这份创作，让你检查课程内容与顺序，然后打开该模块及其导出对话框。
+**Doc Studio** 导出带有真正段落和标题的 **Word** (DOCX) 和 **OpenDocument** (ODT)。
 
-- <!--i:layout--> 为每个来源选择可用的呈现形式：静态页面、以视频形式呈现的动态内容、音频，或可下载的资源。在模块中添加原生课程文字与替代阅读内容。
-- <!--i:play--> 预览学习者播放器，检查描述文字与字幕。动态内容（包括无声动画）都会以视频形式包含在内。当某个工具无法从已保存的输入重新生成一段录制内容时，请先导出成品录制内容。
-- <!--i:file--> 选择网站、SCORM 1.2、SCORM 2004 第 4 版，或实验性的 xAPI 目标。检查实际内容与 ZIP 大小，然后保存并下载已检查过的版本。
-- <!--i:check--> 要完成课程，需要确认每一课必修内容并选择“完成”。网站播放器会把进度保存在浏览器中；LMS 包则会连接到接收它的 LMS。
+**Design** 导出 **InDesign IDML (static subset)**：文字、矩形、椭圆以及 PNG 或 JPEG 图片，每个画板一个跨页。支持的行内格式保持可编辑，图片放在 `Links` 中传递，坐标转换为 InDesign 点。重新链接、字体替换和换行变化可能需要留意。效果、动画、组合的文章和不支持的几何图形会让导出中止，并给出列出它们的报告。IDML 不保留原始文档，所以成品作品请发送 PDF。
+
+### 时间线：dotLottie 和 Premiere
+
+从 Design 的时间线，**dotLottie** 写出一个在 Lottie 工具中仍可编辑的动画；[Lottie 动画](/info/sequence-editor.html#lottie-animations)列出了它保留的内容。**Premiere XML + media** 把定时片段及其原始媒体打包给 Premiere；参见 [Premiere XML 交换](/info/sequence-editor.html#premiere-xml-exchange)。
+
+### SCORM（课程包）
+
+在你于 Settings → Preferences → Feature flags 下开启 **Training and courses** 之前，课程导出是关闭的。
+
+然后从受支持的工具、项目文件夹或选区中选择 **Export course**。在 Design 中，选择 **SCORM (LMS)** 并 **Download** 会打开同一个课程工作流。Lolly 会保存作品，让你审阅课程内容和顺序，然后打开该模块及其导出对话框。
+
+- <!--i:layers--> 为每个来源选择呈现形式：静态页面、作为视频的动态内容、音频或可下载的资源。在模块中添加课程文字和阅读替代内容。
+- <!--i:clock--> 预览学习者播放器，并审阅说明和字幕。动态内容以视频形式包含，包括无声动画。
+- <!--i:document--> 选择 Website、SCORM 1.2、SCORM 2004 4th Edition 或实验性的 xAPI 目标。检查内容和 ZIP 大小，然后保存并下载检查过的版本。
+- <!--i:check--> 完成需要确认每个必修课程并选择 Finish。
 
 ![已选中 SCORM (LMS) 的 Design 演示文稿导出面板](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
-这个包包含它的成品内容，不需要 Lolly 账户。把网站版 ZIP 解压到某个 HTTP(S) 主机上；导入 LMS 版 ZIP 时不要改动其中的内容。在正式分发课程之前，请先测试预定的投放目的地。
+该包包含其成品内容，不需要 Lolly 账号。把 Website ZIP 放在 HTTP(S) 主机上；LMS ZIP 则原样导入。分享课程之前请测试目标环境。对于由多个已保存创作构建的课程，请参见[创建培训课程](/info/training-creators.html)。
 
-如果课程是由多个已保存的创作、导入的媒体与资源组合而成，请使用[创建培训课程](/info/create/training-creators.html)。该学习模块拥有自己的有序大纲、明确的课程确认机制、学习者预览，以及带版本记录的包历史。它的命令行路径可以把你已经导出的媒体打包起来。
+### DXF（切割文件）
 
-## DXF(切割文件)
+Asset Export、Diagrams、Growth、Logo Wall、QR Code、Street Map、Wayfinding 和 Wordmark 会导出 **DXF**，即激光切割机、刻字机和 CNC 软件读取的 AutoCAD R12 交换格式。几何图形以毫米为单位的轮廓路径写出，文字被转曲，颜色映射到最接近的 AutoCAD 颜色索引，这通常决定切割机的操作。DXF 只有线稿：照片或带滤镜的区域没有切割路径，会被丢弃并给出警告。要保留栅格内容，请使用 SVG 或 PDF。
 
-矢量工具(Brand Lockup、QR Code、Street Map、Wayfinding Signage、Pose Geeko、各种徽标组合、Diagram Builder)可以导出 **DXF**——这是激光切割机、乙烯基绘图仪和 CNC/CAD 软件都能读取的 AutoCAD R12 交换格式。几何图形以**毫米为单位的轮廓路径**写出(曲线被展平到很细的容差范围内),文字会被轮廓化为路径,颜色则映射到最接近的 AutoCAD 颜色索引(通常用来驱动切割机上对应的刀具/操作)。DXF 只是线稿格式——照片或经过滤镜处理的区域没有对应的切割路径形式,会被丢弃(Lolly 会给出警告),因此如果需要保留位图内容,请改用 SVG/PDF。
-
-Street Map 是最典型的例子:整个设计本身已经是描边线条,因此每条道路和运河都会变成一条切割路径,不会丢失任何内容。
+Street Map 是最清楚的例子。整个设计本来就是描边，所以每条道路和运河都变成一条切割路径。
 
 ::: showcase
 ![巴黎的 Street Map 渲染图,米色背景上的墨色线条 - 纯线条图形,因此每一笔描边都能完整传递到切割机](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
@@ -197,165 +212,196 @@ Street Map 是最典型的例子:整个设计本身已经是描边线条,因此�
 滚动查看,镜头会穿过实际的几何图形向后拉远:七条路径,没有任何像素,每一笔描边在任何缩放级别下都清晰如发丝。这正是切割机读取的同一份文件。
 :::
 
-## 动画 SVG
+## 印刷
 
-动效工具(Animated Ad、Lottie Ad)可以导出**动画 SVG** - 一种自包含的*矢量*动画。与逐帧采样为像素的 GIF/APNG/WebP 不同,动画 SVG 通过嵌入的 CSS 关键帧堆叠矢量快照,因此**可缩放到任意尺寸,无需编解码器,也无需外部运行时** - 它可以在浏览器标签页中循环播放,也可以放进 `<img>`。文本会保持轮廓化,因此可在任何地方渲染。它与其他动画格式共享**时长**/帧率控制项,并且(因为每帧比位图更重)默认使用较低的帧率。
+**Print PDF** 针对具名的印刷条件写出 CMYK，默认为 **Coated FOGRA39**。带有实测油墨值的品牌色板会被精确转换；其他颜色使用标准的设备转换。**Print TIFF** 写出供 RIP 使用的 DeviceCMYK 像素，并在其 TIFF 元数据中记录同样的印刷条件。Colour profile 控制项同时作用于两者；详见[颜色配置文件](#colour-profiles)。
 
-## 透明度
+**Print marks & bleed** 在印刷格式上有自己的卡片：以毫米计的出血，以及 Crop、Registration、Bleed、Colour bars 和 Stamp details。
 
-支持透明度的工具会提供**透明背景**开关(例如*无背景*)。PNG、WebP、AVIF、SVG(静态与动画)、APNG 和动画 WebP 都会保留透明度。JPG 和 PDF 始终不透明,TIFF 会拼合为白色背景(HDR 路径下则拼合为黑色 - 见下文)。
+有些工具生成**多页 PDF**：封面、按需流动到任意页数的内容和封底，如 *Booklet* 工具。每页都是 A4、US Letter 或 A5 的真正竖版 PDF 页面，你可以强制任何块另起一页。这些是没有裁切或出血标记的 RGB 文档，那些标记属于单页 Print PDF。Design PDF 也可以是 **Notes handout**：每张幻灯片一个竖版页面，下方是其演讲者备注。
 
-## 色彩空间
+**导出之前。** 面板底部的 **Before you export** 卡片会说明印刷厂将看到什么：格式、尺寸和出血、裁切和出血区域、墨量覆盖、印版数和页数，标题旁有一个结论。它绝不会阻止导出。Design 总是显示这张卡片及其自己的检查，包括设计系统的内部规则（逐图层）和文档文字的写作信号（[导出之前](/info/design.html#before-you-export)），并在 **Print preflight** 开启时加入这些印刷检查。在其他工具中，请在 Settings → Preferences → Feature flags 下开启 **Print preflight**；它默认关闭，Lolly Work 部署可以为其成员开启它。
 
-这是两个应当分开看待的不同问题:Lolly 能**读取和处理**哪些色彩空间,以及它会**写入**哪些色彩空间。
+**导出之后。** 文件准备好后，Lolly 会把它读回来，并与你的选择比较：格式、像素或页面尺寸、片段长度、透明背景、CMYK 颜色、HDR、Content Credentials 以及 PDF 或 ZIP 密码。任何不同之处都会写在导出卡片上。每个测量值都来自文件，而不是设置，文件无法回答的属性不会被算作匹配。命令行用 `--export-report` 写出完整的比较（参见[用 CLI 渲染](/info/cli-rendering.html)）。
 
-**读取。** 无论颜色写在哪里 - 工具的样式表、导入 SVG 的填充、设计令牌的值、CSS 简写中的阴影或渐变 - Lolly 都能读取完整的 **CSS Color 4** 词汇:`#hex`、`rgb()`、`hsl()`、`hwb()`、`lab()`、`lch()`、`oklab()`、`oklch()`、CSS 命名颜色,以及预定义色彩空间中的 `color()` - `srgb`、`srgb-linear`、`display-p3`、`a98-rgb`、`prophoto-rgb`、`rec2020`、`xyz-d50`、`xyz-d65` - 包括以 `none` 关键字写出的分量。整个平台由同一个解析器完成这项工作,因此浏览器与每个导出渲染器对颜色字符串的含义达成一致。
+Design 检查器的检查和 Design System Setup 中的品牌比较是独立的检查：它们查看设计，而这两张卡片查看文件。
 
-这一点比听起来更重要,因为浏览器会把现代 CSS 解析为现代 CSS。写下 `color-mix(in oklab, …)`,Chrome 就会计算出 `oklab(…)`;使用以 `oklch()` 存储的品牌令牌,导出渲染器看到的就是那个字面值。这些形式的颜色会被正确读取而不是被丢弃 - 而只理解 `rgb()` 的渲染器过去会把这些颜色丢弃:把品牌色文字导出成黑色,丢失带色调的面板和表格分隔线,并把 `oklch(0.7 0.1 200) 0px 2px 4px` 误读成 0.7 乘 0.1 的阴影偏移。
+::: details 来自价目卡的成本
+在预检下方，成本卡片会把同样的计数转换为金额，只使用有人提供的价格。即使预检卡片本身关闭，它也会读取这些计数。它需要两样东西：价目表可以定价的任务（印版、纸张、面积、页数、变体行数或输出文件，所以普通的徽标 PNG 从不显示它）和一张 **rate card**，即来自你的印刷商的 JSON 价目表。默认构建不附带任何价目卡，应用内也没有加载它的办法。价目卡以部署附带的目录素材形式到来，或通过自托管者或控制平面开启的可选价目卡扩展到来。没有价目卡时，什么都不会显示。
 
-**思路。** 色彩数学是按感知方式进行的,而不是在原始通道上运算。调色板推导、渐变色阶、和谐配色和对比度计算都运行在 **OKLCH/OKLab** 空间中;超出色域的颜色会通过 CSS Color 4 自身的色域映射算法——带感知距离检查的彩度削减——被拉回色域范围内,而不是简单地裁切通道,因此一个鲜艳的颜色会落在你实际能接受的最接近颜色上,而不是被压扁的颜色。渐变会在你选择的色彩空间中插值(默认是 OKLab,也可以是 `oklch`、`lab`、`lch`、`srgb`、`srgb-linear`、`hsl`,极坐标空间还可以指定色相走向),混合采用**预乘**方式,因此渐隐到透明时颜色始终正确,而不会在过程中逐渐发黑。预览和导出遍历器共用同一个插值器——这正是避免了圆锥渐变在屏幕上和导出文件中呈现出不同混合结果的原因。
+每个数字都是你提供的费率乘以 Lolly 统计的数量，例如 `4 plate × €35.00`，总额带有其来源：卡片的签发方和费率的日期。没有默认货币，也没有占位价格。文件对自己的描述始终属于转述：*"The file says: … Lolly has not verified this."*
 
-**写入。** 输出的范围刻意比输入窄,因为文件必须能被打开它的任何程序读取,而一个色彩空间只会在数值真正被转换到该空间时才会在输出中*声明*。屏幕和网页格式以 **sRGB** 写出并做相应标记;印刷格式以 **CMYK** 写出,并针对一个命名的印刷条件(见下文);HDR 路径则是 **Rec.2100 PQ**(见上文)。到达导出环节的广色域颜色会被映射进 sRGB,而不是被错误标注 - 把 `color(display-p3 …)` 原样带入矢量文件是一项计划中的扩展功能,并非当前导出所声称支持的。以 OKLab 创作的渐变在输出时会被*烘焙*为普通的 sRGB 色标,只在 sRGB 会明显偏离感知曲线的地方插入额外色标,因为 SVG 的 `<linearGradient>` 和 PDF 的轴向着色都没有插值空间设置来承载这一意图。一份创作值,三种渲染器,零漂移。
+当某个数字无法算出时，表格会被撤回而不是被填充：
 
-## 色彩配置文件
+- 价目卡未定价的行意味着**根本没有总额**，只有一个说明有多少行未定价的标题。
+- 属于上限的数量会把 **"up to"** 带入其小计。
+- 超过有效期的费率在你按 *Use these rates anyway* 之前**只显示数量**；此后到期日期会随数字一起显示。
+- 通过**链接**打开时，金额保持隐藏，直到你在这台设备上要求显示。CLI 把 `--rate-card=<file.json>` 作为本地文件，绝不作为链接参数。
 
-为了让颜色在支持色彩管理的应用(印刷厂、Photoshop、浏览器)中忠实还原,导出文件会**附带色彩配置文件标记**:
+这张卡片会从每个导出阶段中剥离，所以它绝不会改变文件。它是算术，不是报价；只有你的印刷商才能报价。
+:::
 
-- **PNG / JPG** 携带内嵌的 **sRGB** ICC 配置文件 - 也就是预览实际渲染所用的色彩空间 - 因此无需猜测。(仅为标记;像素本身不会重新编码。)
-- **印刷 PDF(CMYK)** 会在其 *OutputIntent* 中声明一个目标**印刷条件**(默认 *Coated FOGRA39*),告诉 RIP/印刷厂应如何解读其 CMYK 油墨。带有实测油墨值的品牌色样会被精确转换;其他颜色使用标准设备转换。这个声明只是一个*名称*:Lolly 并不随附任何 CMYK 配置文件,而 PDF/X-4 要求内嵌该配置文件,因此一个命名的印刷条件只会写出输出意图,而不会声称符合 PDF/X-4 规范。加载你自己的 CMYK 配置文件,并在色彩配置文件控件中选择其**嵌入**行,该文件就会作为文件的 *DestOutputProfile* 被内嵌 - 此时该 PDF 才能真正成为 PDF/X-4,并在文件其余部分允许的情况下声明这一点。有三种情况会在保留输出意图(RIP 仍然需要它)的同时收回这项声明:CMYK 处理无法转换的 RGB 图稿、以标准字体绘制且未内嵌的 `prov` 校样边距版权文字(X-4 对此不作例外),以及**强**密码,因为 X-4 禁止加密。文件声明的印刷条件正是从该配置文件中读出的:配置文件能证明的情况下使用一个注册名称,证明不了的情况下则在该配置文件自身的名称下显示为 `Custom`,因此文件绝不会一边命名某个印刷条件、一边携带另一个条件的测量值。
-- **印刷 TIFF(CMYK)** 写出未标记的 **DeviceCMYK** 像素,并将同一印刷条件作为溯源信息记录在其 TIFF 元数据(*ImageDescription*)中,而非内嵌配置文件。同一个色彩配置文件控件驱动这两种 CMYK 格式 - TIFF 根本无法内嵌印刷配置文件,因此**嵌入**行只会在此记录该配置文件自身的名称,仅此而已。
-- **TIFF(RGB)** 是普通的、未压缩的 sRGB 版本 - 在所选 DPI 下的无损光栅图,适用于归档或编辑器往返,溯源信息记录在同一 TIFF 元数据中。任何透明度都会拼合为白色(此配置文件不携带 alpha 通道)。与 CMYK TIFF 一样,它仅限桌面使用,因为浏览器无法预览 TIFF,移动端下载也会走入死路。
-- **SVG**、**EMF**、**EPS** 和 **DXF** 是与分辨率和配置文件无关的矢量格式,不携带内嵌配置文件 - SVG 的颜色是普通 sRGB,EMF 和 EPS 的颜色是设备 RGB(**EPS(CMYK)**写出的是朴素的 DeviceCMYK),**DXF** 携带最接近的 AutoCAD 颜色索引。(SVG、EPS 和 DXF 与 PDF 一样,会将所有文本转为矢量路径轮廓,因此即使未安装该字体也能正常渲染。EMF 则默认保持文本为**活文本** - 真正的图元文件文本记录,在 Office 和 Google Slides 中仍可选中和编辑,仅对该格式无法表达的文字才回退为轮廓;导出面板中的“Outline fonts”选项会强制在所有地方使用路径。)**SVG** 还会还原 HTML 中的 CSS `box-shadow` - 每个外阴影都绘制在方框之后,按浏览器的方式做偏移/扩散和高斯模糊,内阴影则以同样方式绘制在方框内部。
+## 动态与声音
 
-这一切都是自动完成的 - 没有需要调整的设置。缩略图和预览会跳过标记以保持文件体积小。有一种配置文件*确实*是一个选择,因为它会改变像素本身,而不只是给像素打标签 - 见下文的 **HDR**。
+### 视频
 
-## HDR(明亮色彩)
+动画工具导出 **MP4** 和 **WebM**。选择器只显示这个浏览器能制作的容器，请求了它无法制作的格式的分享 `?format=` 链接会回退到另一种，文件名也相应匹配。动画工具还提供 **Start after**，它会让画布静止片刻，使动画和字体在录制前稳定下来，以及 **Duration**，即成品片段的长度。**Motion blur**（Off、Draft quality、Standard 或 High，带 **Shutter angle**）会以渲染时间为代价模糊快速运动。在浏览器支持的地方，**Record live** 会改为通过屏幕共享实时录制屏幕上的预览。
 
-普通导出是 sRGB 的:白色就是白色,饱和的品牌色最亮也只能达到屏幕正常白色的亮度。而在支持 HDR 的显示器上,这之上还有大量余量,导出面板中的 **HDR** 卡片正是利用这一点 - 你的品牌色和白色文字会被提升到接近峰值亮度,使其真正*发光*,而暗部则保持深暗,为发光效果提供对比。
+![动画导出的时间设置：Start after、Duration、带 Shutter angle 的 Motion blur，以及 Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+
+**Quality** 可选 Smaller file、Balanced 或 Best quality。**Advanced** 打开 **Codec**、**Frame rate**、**Rate mode** 和 **Hardware acceleration**。工具带有字幕时，**Captions** 选择 **Embedded track** 或视频旁的 **Sidecar .vtt + .srt**。链接以 `vq`、`codec`、`fps`、`seconds` 和 `wait` 携带质量、编解码器、帧率、时长和开始延迟（[URL 参数](/info/url-parameters.html)）。
+
+视频导出会保留声音。工具可以在片段下铺一层**配乐**：一个循环播放或裁切到片段长度的音频素材，带有淡入淡出、音量，以及在画面自带声音下的闪避。录制类工具会把它们的实时音频带入文件。
+
+保持点击翻页的 Design 演示稿仍然可以导出为视频。Present 菜单中的 **Export slides as video** 会在 MP4 上打开导出面板。每张幻灯片按自己的停留时间播放，没有时则按导出面板的 Duration，演示稿的幻灯片转场在它们之间以溶解方式播放。文档本身不会改变。
+
+### 动画图像
+
+**GIF** 到处都能播放，适合聊天和电子邮件；它比视频更大，颜色更少。**APNG** 和 **Animated WebP** 保留全彩和透明。**Lottie Ad** 还导出 **Animated SVG**：带有内嵌 CSS 关键帧的矢量帧，所以它可缩放到任何尺寸，并且无需编解码器就能在浏览器标签页或 `<img>` 中循环播放。它的文字被转曲，并使用较低的默认帧率，因为每一帧都比位图更重。所有这些都是无声的。
+
+### 音频
+
+有些工具单独导出声音。**Voice Recorder** 通过实时电平表录制麦克风录音，并保存为 **MP3**、**WAV**、**M4A (AAC)** 或 **Opus (WebM)**，在你的设备上编码。`wav`、`mp3`、`m4a` 和 `opus` 都是普通的格式 ID，所以音频导出像 PNG 一样可分享、可脚本化。
+
+素材选择器接受范围很广的音频作为配乐，从 MP3 和 FLAC 到 MIDI 和 tracker 模块；[格式](/info/formats.html)列出了它们。[Rondocode 歌曲](/info/rondocode.html)会按其片段要求的任何长度播放。
+
+## 颜色与 HDR
+
+Lolly 读取每一种现代 CSS 颜色，以感知方式进行色彩运算，并在读者能打开的色彩空间中写出每个文件：屏幕用 sRGB，印刷用 CMYK，HDR 用 Rec.2100 PQ。[引擎中的颜色](/info/colour-engine.html)解释了方法。设置为 **Wide colour / HDR** 的 Design 文档遵循自己的规则，见[广色域与 HDR 编辑](/info/hdr-editing.html)。
+
+### 颜色配置文件
+
+导出会带有颜色配置文件标记，所以印刷厂、Photoshop 和浏览器等色彩管理应用读取到的颜色与你看到的一致。这是自动发生的；缩略图和预览为保持小巧而跳过该标记。
+
+- **PNG 和 JPG** 嵌入 **sRGB** ICC 配置文件，即预览所用的色彩空间。像素是被标记的，而不是重新编码的。
+- **Print PDF (CMYK)** 在其 *OutputIntent* 中声明其印刷条件，告诉印刷厂应如何读取其 CMYK 油墨。
+- **Print TIFF (CMYK)** 写出未标记的 DeviceCMYK 像素，并在其 TIFF 元数据中记录印刷条件。TIFF 无法嵌入印刷配置文件，所以 **Embed** 行只记录该配置文件的名称。
+- **TIFF (RGB)** 是未压缩的 sRGB 兄弟格式，用于存档或编辑器往返。它会把透明度拼合到白色上。两种 TIFF 都仅限桌面，因为浏览器无法预览 TIFF。
+- **SVG**、**EMF**、**EPS** 和 **DXF** 是没有嵌入配置文件的矢量：SVG 的颜色是 sRGB，EMF 和 EPS 使用设备 RGB，**EPS (CMYK)** 写出 DeviceCMYK，DXF 使用 AutoCAD 颜色索引。SVG、EPS 和 DXF 会把文字转曲为路径。EMF 在 Office 和 Google Slides 中保持文字为实时可编辑的，只对格式无法表达的文字段才回退为轮廓；导出面板的 **Outline fonts** 选项会在所有地方强制转曲。SVG 还会重现 CSS 盒阴影，包括内阴影和外阴影。
+
+::: details PDF/X-4 与你自己的印刷配置文件
+Lolly 不附带任何 CMYK 配置文件。具名的印刷条件会写入输出意图，但不声称符合 PDF/X-4，因为 PDF/X-4 要求嵌入配置文件。
+
+加载你自己的 CMYK 配置文件，并在 Colour profile 控制项中选择它的 **Embed** 行。它会作为文件的 *DestOutputProfile* 嵌入，只要文件的其余部分允许，PDF 就会声称符合 PDF/X-4。它声明的印刷条件是从该配置文件读出的：配置文件能证明时是已注册的名称，否则是以配置文件自己的名称标注的 `Custom`。
+
+有三样东西会在保留输出意图的同时撤回该声明：CMYK 处理无法转换的 RGB 作品、`prov` 校样边距署名文字（以未嵌入的标准字体绘制）和 **Strong** 密码，因为 PDF/X-4 禁止加密。每个 PDF 还带有 PDF/X-4 元数据：页面框、XMP、文档 ID 以及带配置文件的 sRGB 输出意图。
+:::
+
+### HDR（明亮色彩）
+
+这是导出面板的 **HDR** 卡片，它为 HDR 屏幕提亮普通作品。在编辑中保留 HDR 原件是另一项功能：[广色域与 HDR 编辑](/info/hdr-editing.html)。
+
+普通导出是 sRGB：饱和的品牌色和屏幕的普通白色一样亮。HDR 显示器在此之上还有余量。**HDR** 卡片会把你的品牌色和白色文字朝峰值亮度提升，同时暗部保持黑暗，为光晕提供对比。
 
 ![导出面板中开启的 HDR 卡片,其下展开了 White / Reach / Dark lift / Focus 四个旋钮](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **格式。** 有承载该信号能力的位图格式:**PNG**、**JPG**、**AVIF** 和 **TIFF**。(不含 WebP - 它是 8 位色深,没有可用的 HDR 解码路径,所以 PQ 编码的 WebP 只会显得偏暗。矢量图和 PDF 则完全没有 HDR 模型。)
-- **默认关闭**,与色彩标注不同 - 它会改变像素本身,所以是选择性开启的。勾选该卡片,或在分享链接中传入 `hdr=1`。
-- **实际写入的内容。** 像素会被重新编码为 **Rec.2100 PQ** - BT.2020 基色配合 SMPTE ST 2084(PQ)传递曲线 - 容器中会带有匹配的信号,让支持色彩管理的应用知道该如何读取它们:一个带 `cicp` 标签的生成 **ICC v4 配置文件**(JPG、TIFF)、一个 **`cICP` 数据块**(PNG),或一个重写过的 `colr` box(AVIF)。增亮以**感知(OKLab)明度**为门控,因此中间调及以上的颜色会冲向峰值亮度,而暗部则被压抑而不是过曝,且过程保持色相不变 - 品牌绿会变得更亮,而不会变成薄荷色。
-- **可调参数。** 卡片开启后会显示四项:**White**(峰值亮度上限,400-2000 尼特)、**Reach**(光晕向暗部延伸的程度)、**Dark lift**(暗部提亮的程度 - `0` 保持暗部原样)以及 **Focus**(增亮过程保留的色彩浓郁程度)。它们同乘一个紧凑的调好数值参数一起传递 - `hdr=1600-60-0-50` 即 White 1600、Reach 60、Dark lift 0、Focus 50 - 因此一个调好的效果可以通过链接原样复现。
-- **在哪里能看到效果。** 在 HDR 显示器上、具备色彩管理的查看器中:苹果设备上的“预览” / 快速查看 / Safari,或 HDR 显示器上的 Chrome。在普通 SDR 屏幕上,该文件仍会显示为一张普通图片。
-- **发布前须知。** 许多平台会**重新编码**你上传的内容并剥离 HDR 信号 - 社交网络、即时通讯应用、部分 CMS 都是如此 - 这可能导致图片看起来偏暗或发灰。请在你能掌控最终展示环境的场合使用 HDR(自建网站、视频墙、明亮面板上的演示文稿),而不是作为所有场景的默认设置。
-- **透明度。** PNG 和 AVIF 会保留其 alpha 通道;JPG 一如既往不透明。**TIFF** 路径会以**黑色**为底压平,而不是 SDR 路径所用的白色 - 因为在 PQ 中,白色对应的是 10,000 尼特的编码值,若以此为底压平,每条边缘都会出现刺眼的光晕。
-- **来自终端的同一份字节。** 在 [CLI](/info/cli.html) 上,`--hdr=1` 搭配 `--export=png` 或 `--export=jpg` 同样会写出 16 位的 Rec.2100 PQ PNG 以及 ISO 21496-1 增益图 JPEG,且出自同一套引擎编码器,而非浏览器 - 因此一个原生 `<svg>` 工具能在整条路径中不经过任何 Chromium 就生成 HDR 文件,且该 PNG 与网页端生成的逐字节相同。AVIF 和 TIFF 目前仍仅限网页端导出。
+- **格式。** PNG、JPG、AVIF 和 TIFF。WebP 是 8 位的，没有可用的 HDR 解码路径，矢量和 PDF 没有 HDR 模型。
+- **默认关闭**，因为它会改变像素。勾选该卡片，或在分享链接中传入 `hdr=1`。
+- **调节项。** **White**（峰值亮度上限，400 到 2000 尼特）、**Reach**（光晕向下扩散到多少色调）、**Dark lift**（暗部提亮多少；`0` 使它们保持黑暗）和 **Focus**（提亮保留多少色彩丰富度）。它们作为一个值传递：`hdr=1600-60-0-50` 表示 White 1600、Reach 60、Dark lift 0 和 Focus 50。
+- **写出的内容。** PNG 得到带 `cICP` 块的 16 位 Rec.2100 PQ。JPG 是 ISO 21496-1 增益图 JPEG：一张普通的 SDR 图片加上附带的增益图。AVIF 得到重写的 `colr` 盒。TIFF 得到 PQ 像素和一个带 `cicp` 标签的生成的 ICC v4 配置文件，并拼合到黑色上，因为白色在 PQ 中是 10,000 尼特的编码，会在每条边缘周围产生光晕。提亮遵循感知（OKLab）明度并保持色相，所以品牌绿会变亮，而不会变成薄荷色。
+- **光晕在哪里可见。** HDR 显示器上的色彩管理查看器：Apple 设备上的预览、快速查看和 Safari，或 HDR 显示器上的 Chrome。SDR 屏幕显示的是普通图像。
+- **发布之前。** 许多平台会对上传内容重新编码并剥离 HDR 信号，这可能让图像变暗或发灰。请在你能控制目的地的地方使用 HDR，例如你自己的网站、视频墙或明亮屏幕上的演示稿。
+- **在终端中。** 在 [CLI](/info/cli.html) 上，`--hdr=1` 加 `--export=png` 或 `--export=jpg` 会写出同样的 PNG 和增益图 JPEG，使用同样的引擎编码器，路径中没有浏览器。AVIF 和 TIFF 目前仍只能通过网页导出。
 
-## 视频
+## 随文件传递的内容
 
-动画工具将动效导出为 **MP4**、**WebM** 或 **GIF** - 如有提供,还可导出 **APNG**、**动画 WebP** 或矢量的**动画 SVG**(见上文)。你能看到哪种视频容器取决于你的浏览器 - 选择器只会显示浏览器实际能录制的格式:
+成品文件除了画面之外还可以携带若干记录。有些随像素一起，在文件被重新保存或被剥离时消失；有两种标记存在于像素本身之中。
 
-| 浏览器 | 显示 |
-|---|---|
-| Safari / iOS | **MP4** |
-| Firefox | **WebM** |
-| Chrome / Edge 126+ / Android | **MP4 和 WebM** |
-| 旧版 Chrome | **WebM** |
+::: figure exporting-what-travels
+每条记录存放在哪里、默认是否开启，以及哪个链接参数控制它。
+:::
 
-GIF 在任何地方都能用(适合聊天/邮件;比视频体积更大、色彩更少)。动画工具还提供 **Wait**(录制前让动画稳定下来的等待秒数)和 **Duration**(片段时长)选项。
-
-> 分享的 `?format=…` 链接如果请求了浏览器无法录制的容器格式，会自动优雅降级到另一种，文件名会与实际录制的容器格式保持一致。
-
-**声音。** 视频导出并非无声。工具可以在片段下方铺设**背景音乐** - 目录中的音频素材,循环或裁剪至片段长度,支持淡入/淡出、音量调节,并会在画面自带声音出现时自动降低音量;而录制类工具会把画面的实时音频原样带入文件。**MP4** 和 **WebM** 保留混合音轨;GIF 和动画图像格式(APNG、动画 WebP、动画 SVG)天生无声。
-
-## 音频
-
-一些工具可以**单独导出音频**,而不仅仅作为视频音轨。**Voice Recorder** 通过实时电平表和轻柔的提示录制一段麦克风声音,然后保存为 **MP3**(默认格式,在浏览器中转码)或其原生容器格式 - **M4A**(AAC)、**OGG** 或 **WebM**(Opus),具体取决于浏览器录制的格式。与其他一切一样,编码在你的设备上完成 - 不会上传任何内容。
-
-你*导入*的音频同样广泛支持。素材选择器接受 **MP3**、**WAV**、**OGG**/**Opus**、**M4A**/**AAC** 和 **FLAC**(逐字节保留并在设备上解码)、**MIDI**(`.mid` - 导入时转换为一个体积极小的设备端合成音轨)以及**跟踪器模块** - **MOD**、**XM**、**IT**、**S3M**、**STM**、**MTM**(由内置播放器在设备上解码,曲目数据仅几千字节)。这些都可以作为视频导出下方的**背景音乐**,或在 Neurospicy Mode 的环境音播放器中播放。
-
-音频*确实*属于下文的 `format=` / `--export=` 管线的一部分:`wav`、`mp3`、`m4a` 和 `opus` 都是普通的格式 id,因此纯音频导出与 PNG 一样易于分享、易于脚本化。输出的只是声音本身,没有画面。
-
-## 溯源与水印
-
-只要格式支持,导出文件就会携带**溯源元数据** - 软件、来源、工具名称以及你的个人资料署名行 - 以原生方式内嵌(PNG iTXt、JPEG EXIF、PDF 信息、SVG `<metadata>`、GIF 注释)。这仅涉及署名,不会上传任何内容。**实验性**工具还会额外加盖一个可见水印,由宿主应用施加,因此无法通过编辑工具本身来移除。
-
-**Lolly Imprint。** 光栅导出还携带 Lolly 自有的**不可见像素水印** - *Lolly Imprint* - 与 Content Credentials 一样**默认开启**。凭证和溯源元数据是随像素*一同*传播的,重新保存、截图或清除元数据都会使其丢失,而 Imprint 则存在于像素*内部*,能在重新压缩后依然存活 - 因此图像的副本日后仍可被识别为 Lolly 制作。它是一种持久的线索,而非加密级别的保证,并且仅表明存在与否(不携带任何个人数据)。它存在于 **PNG、JPG、WebP、AVIF、TIFF 和 BMP** 中,以及合成进 **PDF 或 PPTX** 的 Lolly 渲染光栅图像中 - 绝不会出现在*你自己*嵌入的图像里,只存在于 Lolly 自身渲染的内容中。取消勾选导出面板中的 **Lolly Imprint** 卡片即可跳过它,或在分享链接中传入 `imprint=0`。(AVIF 在重新编码后的存活情况尚未校准;PDF/PPTX 检测仅覆盖内嵌的 Lolly 光栅图像。)[/verify](/verify) 可在设备上检测它 - 参见[Content Credentials 身份](/info/content-credentials-identity.html#the-lolly-imprint)。
-
-**持久凭证。** 在 Imprint 之外还有第二种更重的标记:**Durable credential**,它使用设备端神经网络模型(TrustMark 格式)将 Lolly 的 id 写*入*像素中,使“由 Lolly 制作”的关联能在元数据被清除、重新编码,以及被支持 TrustMark 的工具(不仅限于 Lolly 自身)重新读取后依然存活。它**默认关闭** - 与纯 JavaScript 实现的 Imprint 不同,它每次导出都要花费一次神经网络推理外加一次性的模型下载,因此是刻意的可选开启项,而非默默产生的开销。仅限光栅格式(**PNG、JPG、WebP、AVIF、TIFF**),可在导出面板中勾选,或在分享链接中传入 `durable=1`。在桌面版和移动版应用中,该卡片会被直接隐藏,而不是显示为一个无效选项,因为离线状态下没有来源可供获取该模型。
-
-**内容保护。** 在导出面板中，你所授予的**许可证**、你放入内容的**来源致谢**、*密码保护*、**C2PA Credentials**、**Lolly Imprint** 和**持久凭证**会折叠进一个可展开、按格式自适应的**内容保护**分组，让文件的溯源、权利和保护选项集中在一处。该分组只显示适用于所选格式的卡片。当链接或已保存的文档已经声明了许可证，或某个来源需要你做出决定时，它会自动展开。
-
-**许可证。** 选择别人可以如何使用你的作品：默认是*无（保留所有权利）*，或者选择 CC0 1.0、公共领域标记 1.0，或者六种 Creative Commons 4.0 许可证之一（BY、BY-SA、BY-NC、BY-NC-SA、BY-ND、BY-NC-ND）。许可证名称及其条款链接会被写入文件的许可证元数据（在格式支持的情况下写入 EXIF、XMP 和 RIFF），以及它的 Content Credential 中。这个选择会随文档一起保存，并在分享链接中以 `licence=` 传递。Lolly 只会写下你选择的许可证，不会检查或强制执行其条款。带有自己许可证字段的工具，例如 Claim，会保留该字段，不会再显示第二个选择器。印刷标记刻意*不*包含在其中：它们属于印刷生产用的几何信息，而不是保护措施，因此**Print marks & bleed**（以毫米为单位的出血测量值，加上裁切线、套准线、出血线、色标和印张信息）在印刷格式上保留自己独立的顶层卡片。
+导出面板把 **Licence**、**Source credits**、*Password protect*、**C2PA Credentials**、**Lolly Imprint** 和 **Durable credential** 折叠为一个 **Content protection** 组，只显示所选格式可用的卡片。当链接或文档已经声明了许可协议，或某个来源需要你做决定时，它会自动展开。**Design system** 卡片留在这个组之外，在每次导出时都可见。
 
 ![在 PNG 导出上展开的内容保护分组,只显示适用于该格式的卡片](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
-**导出前(印刷预检)。** 在你个人资料的功能开关中启用 **Print preflight**(`export-preflight`) - 它**默认关闭**,因此为聊天消息导出一张 PNG 的个人用户不会被印前检查结果冷不防打扰,而部署方的控制面板([lolly.work](https://lolly.work))可以为其成员默认开启它 - 每当印刷规则真有话要说时,面板底部、按钮上方就会出现一张**导出前须知**卡片:格式、尺寸与出血,然后是裁切与出血区域、油墨覆盖率、印版数量与页数,标题旁附带一个结论。它位于所有设置之下,因为它是关于这些设置的*陈述*,而非另一个设置项 - 并且它绝不会阻止导出。它只是告诉你印刷厂即将看到什么。
+### 出处与水印
 
-**费用,根据你的价目表算出。** 预检卡片下方 - 位于最末,仍在按钮上方 - 有一张卡片,把同样的计数换算成金额,而且只会使用有人明确提供给它的价格。它会读取预检环节统计出的一切,无论预检卡片本身是否开启,并且需要两个条件同时成立:该任务有可供计价的内容(印版、印张、面积、页数、变体行或输出文件 - 因此一张普通的徽标 PNG 永远不会显示它),**并且**存在一张**价目表**。价目表是来自你的印刷厂的 JSON 价格清单。默认构建版本不附带任何价目表,也没有应用内加载方式:它只能通过部署方随附的目录素材获取,或通过自托管方/控制面板启用的可选价目表扩展获取。没有价目表时,不会显示任何内容 - 既没有提示,也没有空表格。
+在格式有相应字段的地方，导出会携带**出处元数据**：软件、来源、工具名称和你的个人资料署名行，写入 PNG iTXt、JPEG EXIF、PDF 信息、SVG `<metadata>` 或 GIF 注释。它只记录作者身份，不上传任何内容。**Experimental** 工具还会盖上可见的水印，由宿主应用，所以编辑工具无法移除这个标记。
 
-整个功能所依据的原则是：**它绝不凭空造出金额**。每一个数字都是你提供的费率乘以 Lolly 统计出的数量 - `4 plate × €35.00` - 总额会在同一句话中注明自己的来源：价目表所标注的发行方，以及价目表所称的费率日期。没有默认货币、没有占位符，也没有用零来代替缺失的价格。文件自身所说的内容始终以转述的口吻呈现：*"文件称：… Lolly 尚未对此进行核实。"*
+**Lolly Imprint** 是一种不可见的像素水印，**默认开启**。凭据和元数据随像素一起传递，在重新保存、截图或元数据剥离时丢失。Imprint 存在于像素之中，能经受重新压缩，所以副本仍可被识别为 Lolly 制作。它是一种提示，而不是加密保证，也不携带个人数据。它存在于 JPEG XL、PNG、JPG、WebP、AVIF、TIFF 和 BMP 中，以及 Lolly 渲染进 PDF 或 PPTX 的栅格图中，但绝不存在于你嵌入的图片中。取消勾选 **Lolly Imprint** 或传入 `imprint=0`，即可不加入 Imprint。AVIF 经过重新编码后的留存情况尚未校准。[Verify](/verify) 在你的设备上检测它；参见 [Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint)。
 
-当它无法诚实地算出结果时,工作表会**直接消失**,而不是退化成灰显或填入某个数字:
+**Durable credential** 使用设备端神经网络模型，以 TrustMark 格式把 Lolly 的 ID 写入像素，所以 “made with Lolly” 的链接能经受元数据剥离和重新编码，并能被支持 TrustMark 的工具读取。它**默认关闭**，因为每次导出都需要一次神经网络处理，并且需要一次性下载模型。它涵盖 PNG、JPG、WebP、AVIF 和 TIFF；在面板中勾选它，或传入 `durable=1`。桌面和移动应用隐藏该卡片，因为它们离线时没有可获取模型的来源。
 
-- 价目表未定价的项目意味着**根本没有总额** - 只有一行说明有多少项未定价。一个不完整的总和不是一个较小的答案,而是一个错误的答案。
-- 若数量是上限而非精确计数,会将**“最多”**一并带入其小计,因此一个上限值永远不会被洗白成一个确切数字。
-- 已过有效期的费率只显示**数量**,直到你点击*仍使用这些费率*为止 - 此后过期日期会与数字一同显示,因此一个过期的总额不会被误读为当前有效的总额。
-- 通过**链接**打开时,金额会保持隐藏,直到你在本设备上主动请求查看。无论是价目表本身还是这一显示操作,都绝不会出现在 URL 中 - 出于同样的原因,CLI 只把 `--rate-card=<file.json>` 作为本地文件参数,而绝不作为链接参数。
+**Licence。** 选择他人可以如何使用你的作品：默认是 *None (all rights reserved)*，也可选 CC0 1.0、Public Domain Mark 1.0，或 Creative Commons 4.0 许可协议（BY、BY-SA、BY-NC、BY-NC-SA、BY-ND、BY-NC-ND）。许可协议名称和指向其条款页面的链接会写入文件的许可元数据（格式支持的 EXIF、XMP 和 RIFF）及其 Content Credential。该选择随文档保存，并在链接中以 `licence=` 传递。Lolly 写入你选择的许可协议；它不检查或强制执行条款。带有自己许可字段的工具，例如 Claim，则保留该字段。
 
-该卡片属于界面元素,绝非内容本身:它会从每个导出环节中被剥离,因此不会影响你下载文件中的任何一个像素。它是一次算术运算,而非一份报价 - 只有你的印刷厂才能给你真正的报价。
+### 设计系统记录
 
-**组合渲染。** 当一个工具嵌入另一个工具的输出时(例如 *Event Name Badge* 嵌入一个 *QR Code*),嵌套渲染会内联进父级的导出结果中 - 在 SVG 和 PDF 中它保持为**真正的矢量**,在 PNG/JPG/WebP 中则清晰地栅格化。被嵌入的子级只是一个中间产物:它*不会*获得任何水印,也*不会*携带任何自身的溯源信息;只有最终完成的父级素材才会有。(组合功能覆盖 SVG 和光栅格式;HTML/MD/TXT 无法被组合。)
+导出会记录制作文件的设计系统：它的名称、绘制所用的已发布版本（当它不是工作版本时），以及绘制所用的[配色方案](/info/colourways.html)。设计系统声明的任何其他主题选择，例如密度，也以同样方式记录。浅色或深色的选择不予记录，因为画面本身已经表明用的是哪一种。
 
-## 密码保护
+**在写入任何内容之前，你会看到这条记录。** 默认勾选的 **Design system** 卡片会显示文件将携带的确切文字，例如 *Records: Acme · Colourway: Beach*，以及描述的最终措辞。设计系统的名称是其所有者输入的任何内容，所以卡片按原样显示。取消勾选卡片即可在该次导出中不加入该记录。Design 的文档面板在 *Embedded in exports* 下列出同样的文字。
 
-两种独立的锁定方式,均完全在设备本地完成。
+**描述会在工具旁给出配色方案。** 勾选该卡片后，*"Made with https://lolly.tools : Chart"* 会变成 *"Made with https://lolly.tools : Chart (Beach colourway)"*。设计系统自己的名称保留在记录中，而不在描述中。没有工具名称的描述，或工具根据自己的输入写出的描述，保持原样。通过 `tokenAxes` 忽略配色方案的工具不记录配色方案，PDF 校样署名（`prov` 印刷标记）也遵循同样的规则。
 
-**PDF 打开密码** - 输入密码后，导出面板的 *Password protect* 卡片提供两个级别：
+**指导代理的品牌技能。** 当代理制作了作品并指明它读取并遵循的[品牌技能](/info/brand-skills.html)时，记录还会列出每项技能及其修订版本，例如 *Guided by: acme-brand 1.0*。这些字的意思是该技能指导了这项工作。它们不是检查：Lolly 不会对照技能测试作品。只有代理自己的声明才会加入该列表，目前这意味着 [MCP 服务器](/info/mcp.html)的 `lolly_render` 的 `brandSkills` 参数，所以在应用中或通过分享链接制作的作品不带这个列表。Content Credential 把该列表作为 `brandSkills` 保存，这是一个 JSON 值，包含每项技能的 ID、名称、修订版本和 SHA-256 哈希。XMP 数据包和 SVG 元数据以 `lolly:BrandSkills` 保存同一个值，由该记录写出的 PDF 每项技能增加一个关键词，描述保持原样。内部技能按其 ID、名称、修订版本和哈希记录，绝不记录其文本。同样的开关会连同记录的其余部分一起省略该列表：**Design system** 卡片、`_madewith=0`、`--no-madewith` 和 `madeWith: false`。当 MCP 服务器在浏览器中绘制文件时（PDF、JPEG 以及其无浏览器路径无法写出的其他格式），文件自己的元数据不含该列表，只有 Content Credential 可以保存。传入 `c2pa` 可保留记录；没有凭据时，渲染会警告品牌技能没有被记录。
 
-![PDF 导出中展开的密码保护卡片,显示密码字段和两个锁定级别](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+**读回记录。** [Verify](/verify) 在文件的凭据详情中把该记录列为 **Design system**，把任何品牌技能列为 **Guided by**。*Recreate with these settings* 会在记录的版本和配色方案下重新打开工具。当这台设备持有具有相同 ID 和名称的设计系统时，链接会以记录的设计系统打开；否则会以你当前的设计系统打开。
 
-- **弱** - 简单的 40 位密码（RC4）。只是轻度威慑，并非真正的保护：其密码可随分享链接传输（以明文形式）。仅限 RGB `pdf`。
-- **强** - AES-256（PDF 2.0）。其密码在导出时输入，**绝不**放入链接。强也适用于 **Print / CMYK PDF** 以及**批量 zip 中的每个 PDF**（批量确认对话框会收集密码）。由于 PDF/X-4 禁止加密，启用强锁定的 Print PDF 会保留其 CMYK、印刷标记和输出意图，但会失去 PDF/X-4 合规声明。
+::: details 什么写在哪里，以及哪些运行会省略记录
+| 位置 | 写入的内容 |
+|---|---|
+| Content Credential | `tools.lolly.export` 断言中的 `designSystem`（ID）、`designSystemLabel`、`designVersion` 和 `themes`，每个都是纯文本值；`themes` 是选择的 JSON 列表 |
+| PNG、JPEG、WebP 和 JXL | 与这四个相同的值，作为文件 XMP 数据包的 `lolly:` 属性，位于命名空间 `https://lolly.tools/ns/export/1.0/` |
+| SVG | `<metadata>` 块内的相同 `lolly:` 属性 |
+| PDF | 关键词，例如 *Design system: Acme* 和 *Colourway: Beach* |
+| 每种带有描述字段的格式 | 描述，在工具旁带有配色方案 |
 
-两个级别均与 Content Credentials 互斥(加密的 PDF 无法附带凭证)。
+只有存在可记录的内容并且格式能容纳该记录时，才会出现这张卡片。CSV、JSON、日历文件和其他文本或数据格式不含元数据，EPS、EMF、DXF 和 BMP 没有用于该记录的字段。HTML、Markdown 和 CSS 只在其 Content Credential 中保存该记录，所以对它们而言，卡片不显示描述行，并且在 **C2PA Credentials** 关闭时隐藏。设计系统没有提供的字段不会写入文件。
 
-**锁定下载(整个压缩包 + 纵深防御)** - **ZIP** 导出(导出面板的 *ZIP* 格式,将某个工具的多种格式打包在一起)、**文件夹**下载(项目 → 下载)或**批量网格**都可以用一个密码锁定整个压缩包,分两个级别:
+分享链接用 `_madewith=0` 关闭该记录（[URL 参数](/info/url-parameters.html)）；命令行使用 `--no-madewith`，[MCP 服务器](/info/mcp.html)的 `lolly_render` 使用 `madeWith: false`，终端应用的导出面板有一个 **Design system** 行。命令行会在标准错误上打印成品文件所携带的文字，既针对工具渲染，也针对 `lolly run` 从已保存的 Design 会话导出的每个文件，MCP 渲染会把它们打印在文件旁，两者都是从文件读回的。命令行在没有浏览器的情况下绘制的 PNG 不携带文件元数据，所以它的记录只存在于凭据中。设备端实用工具完全不添加元数据。
 
-- **弱** - 传统的 **ZipCrypto**，仅起威慑作用。其密码可随 `?password=` 分享链接传输。
-- **强** - **AES-256** 加密。在导出时输入，绝不放入链接。
+没有 **Design system** 卡片的运行会省略该记录：Batch 运行、从 Projects 导出的文件夹和 3D 合集导出，以及在终端应用中的 CSV 批处理、Projects 文件夹或选区导出和渲染全部的视图。从工具中导出一个文件即可记录设计系统。
+:::
 
-导出面板中的同一张 *Password protect* 卡片同时驱动 PDF 和 ZIP 的锁定。这一个密码保护**每一个**成员 - 图像、SVG、一切内容，包括 PDF（只有 zip 容器能保护本身没有锁定机制的非 PDF 文件）。而且它是**纵深防御**：其中的任何 PDF 也会*同时*用同一密码单独进行 AES-256 锁定，因此 zip 解开后 PDF 仍保持锁定。提示会在开始下载时出现；密码留空即表示不锁定。
+### Content Credentials (C2PA)
 
-**密码保护的分享链接** - 任何分享链接都可以加密,使打开时要求接收者输入密码。整个链接状态都使用由密码派生的密钥(PBKDF2)进行 AES-256 加密;传输的只有密文,因此**密码绝不会出现在链接中**,解密在**接收者的浏览器中**进行 - 提供该链接的服务器只能看到 URL 中的密文,永远看不到密码,也看不到解密后的设计内容。在**分享**对话框中开启此功能。加密链接只能在 Lolly 中*打开*(无法作为图片嵌入,因为该路径无法弹出提示)。参见 [URL 模式 → 加密链接](/info/url-mode.html)。
+导出可以携带 **Content Credentials**：一份签名的 [C2PA](https://c2pa.org) 清单，记录了是什么制作了文件、何时何地，并绑定到文件字节的哈希，因此任何后续编辑都可被检测。该规范由 C2PA 发布，Lolly 写出任何 C2PA 阅读器都能检查的标准清单。
 
-## Content Credentials(C2PA)
+![已勾选的 C2PA Credentials 卡片，复选框旁边是凭据有效期](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-导出内容可以携带 **Content Credentials** - 一份签名的 [C2PA](https://c2pa.org) 清单,嵌入文件中,以防篡改的方式记录该文件是用 Lolly 制作的,且此后未被更改。这是上文来源元数据的标准化版本:一项加密声明(文件由何制作、何时、由谁、在何处)绑定到文件字节的哈希值,因此任何后续编辑都能被支持 C2PA 的查看器检测到。该标准由 [Content Authenticity Initiative](https://contentauthenticity.org)(Adobe、BBC、微软、尼康等)负责维护,因此 Lolly 写入的凭证与相机、新闻编辑室和创意套件正在采用的凭证是同一套。
-
-![预先勾选的 C2PA Credentials 卡片,旁边显示凭证有效期](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
-
-- **格式。** 每种支持 C2PA 嵌入的容器:**PDF**(RGB 和印刷版均可)、**PNG / 动态 PNG**、**JPG**、**GIF**、**SVG**、**TIFF**(RGB 和印刷版)、**WebP**(静态和动态)、**AVIF**、**MP4**、**WebM**以及音频容器 **MP3**、**WAV**、**M4A** 和 **OGG/Opus** - 因此录制或合成的语音片段和图片一样带有相同的凭证。**ZIP** 压缩包会为每个支持的成员单独打上标记,**动态 SVG** 也是通过这种方式获得凭证的(它底层其实是一个普通的 SVG 文档;直接导出动态 SVG 本身没有对应的卡片)。MP4、AVIF 和 M4A 使用规范的 BMFF 绑定,MP3 使用其 ID3v2 映射,因此 `c2patool` 和其他支持 C2PA 的查看器可以验证它们;**WebM** 和 **OGG/Opus** 尚无标准化的 C2PA 映射,因此 Lolly 分别将清单以 Matroska 附件和 OpusTags 字段的形式携带,由 Lolly 自身的验证器(及 CLI)检查。(`ico`、`eps`、`emf`、`dxf`、`bmp`、`pptx`、Office 格式以及文本/数据格式均没有 C2PA 容器。)
-- **默认开启。** 导出面板中的 **C2PA Credentials** 卡片对几乎每个工具都是预先勾选的 - 取消勾选可在单次导出中跳过凭证(或在分享链接中传入 `c2pa=off`)。工具也可以在其清单中完全选择退出。
-- **它记录了什么。** 制作该文件的工具和应用、签名时间、导出所用的环境(浏览器引擎系列 + 操作系统系列 - 特意做得粗略,绝非指纹)以及 - 仅当*个人资料 → 使用我的信息*开启时 - 你的姓名和邮箱作为作品作者。
-- **接收者会看到什么。** 具备检查 Content Credentials 功能的工具(Adobe 应用、`c2patool`、contentcredentials.org/verify)会读取清单并显示该声明。由于 Lolly 使用**在你的设备上**生成的密钥签名 - 而非来自受信任列表的证书 - 查看器会将其报告为*未验证*的凭证。其结构和防篡改性都是真实的;只是签名者身份没有得到权威机构的担保。要升级这一点,你可以注册**已验证身份**(个人资料 → Content Credentials):由 Lolly CA 颁发的短期证书会将你的邮箱与导出内容绑定,而签名密钥仍然绝不会离开你的设备 - 参见 [Content Credentials Identity](/info/content-credentials-identity.html)。
-- **检查文件。** Lolly 也会验证自己的凭证:将任意文件拖放到 [/verify](/verify)(或在 CLI 中运行 `lolly validate <file>`)即可获得一份设备本地报告 - 首先说明该文件是否确实由 Lolly 制作且此后未被更改。网页版 Verify 视图查看的内容远不止凭证本身:它会标记**AI 生成内容**、检测 **Lolly Imprint**、检查 **SEAL** 签名和(可选)第三方像素水印,并揭示**隐藏数据** - 全部在设备本地完成,不上传任何内容。参见 [Content Credentials Identity → 凭证之外](/info/content-credentials-identity.html#beyond-the-credential-what-else-verify-shows)。
-- **隐私。** 一切都在你的设备上完成:签名密钥为本次导出而创建,绝不离开浏览器,不会上传任何内容,且声明中只包含来源元数据已经携带的信息。隐私工具(对*你自己*文件的设备本地转换)绝不会添加凭证,*清除隐藏数据*会像清除其他嵌入元数据一样清除 C2PA 清单。
-- **相互影响。** 对于 PDF,Content Credentials 与**密码保护**(任一级别 - 见上文)互斥(加密的 PDF 无法附带凭证附件)。凭证作为最后一步添加到最终字节上 - 在 DPI/EXIF/色彩配置文件标记、PDF/X 元数据和印刷标记之后。
+- **默认开启。** **C2PA Credentials** 卡片对几乎每个工具都是预先选中的。可以在一次导出中取消勾选，或在链接中传入 `c2pa=off`。工具可以在其清单中选择退出。
+- **格式。** PDF（RGB 和 Print）、PNG 和 APNG、JPG、GIF、SVG、TIFF（RGB 和 Print）、WebP（静态和动画）、AVIF、MP4、WebM，音频容器 MP3、WAV、M4A、OGG/Opus 和 FLAC，以及 HTML、Markdown 和 CSS。ZIP 会给每个受支持的成员盖章，Animated SVG 就是这样得到凭据的。MP4、AVIF 和 M4A 使用标准 BMFF 绑定，MP3 使用其 ID3v2 映射，所以 `c2patool` 和其他阅读器可以验证它们。WebM 和 OGG/Opus 暂时没有标准映射，所以 Lolly 将清单作为 Matroska 附件和 OpusTags 字段携带，由 Lolly 自己的验证器检查。ICO、EPS、EMF、DXF、BMP、PPTX、Office 格式和其他文本及数据格式没有 C2PA 容器。
+- **记录什么。** 制作文件的工具和应用、签名时间、导出它的外壳、在 **Design system** 卡片勾选期间的[设计系统和配色方案](#the-design-system-record)，以及有效输入的指纹。输入文字、绑定到个人资料的字段、未启用的控制项、浏览器版本和操作系统详细信息都不包含在内。只有当 Settings → Preferences → Your details 下的 **Use my details to create** 开启时，你的姓名和电子邮件才会作为作者出现。导出所放置的来源会作为素材来源传递：[署名作品](#source-credits)，例如 emoji，以及视频或音频导出中的 [Rondocode 歌曲](/info/rondocode.html#songs-in-the-credential)。
+- **接收者看到什么。** Adobe 应用、`c2patool` 和 contentcredentials.org/verify 等 C2PA 工具会读取清单并显示声明。Lolly 使用在你设备上生成的密钥签名，而不是来自信任列表的证书，所以查看器会报告凭据为 *unverified*：结构和篡改证据是真实的，签名者则没有被担保。要改变这一点，请在 Settings → Preferences → Content Credentials 下注册**已验证身份**；参见 [Content Credentials 身份](/info/content-credentials-identity.html)。
+- **检查文件。** 把任何文件拖到 [Verify](/verify)，或运行 `lolly validate <file>`，即可得到设备端报告，开头说明文件是否由 Lolly 制作，以及此后是否有变化。Verify 也会查看凭据之外的内容；参见 [Verify 检查什么](/info/what-verify-checks.html)。
+- **隐私。** 签名密钥是为该次导出生成的，绝不离开你的设备，声明只包含出处元数据已经携带的内容。转换你自己文件的隐私实用工具不添加凭据，*Strip Hidden Data* 会像移除其他元数据一样移除 C2PA 清单。Rondocode 实用工具制作新音频，所以它会为所写内容签名（[Rondocode 歌曲](/info/rondocode.html#files-from-the-rondocode-utility)）。
+- **相互作用。** 设有密码的 PDF 无法携带 Content Credentials，两个等级皆然。凭据最后添加，覆盖完成的字节，位于 DPI、EXIF、颜色配置文件、PDF/X 元数据和印刷标记之后。
 
 ### 来源署名
 
-一次放置了他人作品的导出，也会把该来源记录进凭证之中。从某个固定的表情符号集中选用的表情符号就是最常见的情形：作品本身、其创作者、许可证、确切字节的出处，以及有过哪些改动，都会随文件一起传递。导出面板中的**来源署名**一行，会在下载之前告诉你这些来源对本次交付提出了什么要求；下载完成之后，它会先回读交付的字节，然后才会说署名已经写入文件。像一个即将分享的、经过重新上色的 CC BY-SA 字形这样需要你做出选择的许可证，会得到一张列出各种解决方式的卡片；下载本身绝不会被阻止。[创作权益与署名](/info/creative-rights.html)一文列出了具体措辞、已审核的许可证，以及始终归你所有的部分。
+放置他人作品的导出会在凭据中记录该来源。从所选 emoji 集绘制的 emoji 是最常见的情形：作品、其创作者、许可协议、确切字节的来源以及改动了什么，都随文件一起传递。模板为 SVG 的工具中的文字保留系统自己的 emoji，所以那里不署名任何来源。**Source credits** 行会在你下载前说明来源对交付有什么要求，下载之后，它会先读回交付的字节，再说署名已在文件中。需要你选择的许可协议，例如你即将分享的重新着色的 CC BY-SA 字形，会得到一张带选项的卡片；下载绝不会被阻止。[创作版权与署名](/info/creative-rights.html)介绍了措辞、已审阅的许可协议，以及什么仍归你所有。
+
+## 密码保护
+
+两种锁，都在你的设备上生成。导出面板的 *Password protect* 卡片同时控制这两种。
+
+![PDF 导出中展开的密码保护卡片,显示密码字段和两个锁定级别](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+
+**PDF 打开密码**在你输入密码后有两个等级：
+
+- **Weak**：40 位 RC4，只是一种威慑而非保护。它的密码可以明文随分享链接传递。仅限 RGB `pdf`。
+- **Strong**：AES-256（PDF 2.0）。在导出时输入，绝不放入链接。它也适用于 Print PDF 以及批量 ZIP 内的每个 PDF。使用 Strong 锁定的 Print PDF 保留其 CMYK、标记和输出意图，但放弃 PDF/X-4 声明。
+
+**带锁的 ZIP** 涵盖 ZIP 导出、从 Projects 或批处理下载的文件夹，使用一个密码，分两个等级：**Weak**（ZipCrypto，只是威慑；可以随 `?password=` 链接传递）或 **Strong**（AES-256，在导出时输入，绝不放入链接）。密码保护每个成员，其中的任何 PDF 还会各自用 AES-256 单独加锁，所以 ZIP 解压之后它仍然是锁定的。提示在下载开始时出现；留空密码表示不加锁。
+
+**密码保护的分享链接**会在打开之前向接收者索要密码。整个链接状态用由密码派生的密钥（PBKDF2）以 AES-256 加密，所以传递的只有密文，解密发生在接收者的浏览器中。提供链接的服务器永远看不到密码或设计。在 **Share** 对话框中开启它。加密的链接只能在 Lolly 中打开，绝不能作为嵌入图片。参见 [URL 模式](/info/url-mode.html)。
 
 ## 在手机上
 
-导出控件位于悬浮的**导出**按钮之后，点按后会打开**导出**工作表 - 同样的格式、尺寸、复制、下载和分享选项，为触控做了适配。
+导出控制项位于浮动的 **Export** 按钮之后，它会打开 **Export** 面板：同样的格式、尺寸、复制、下载和分享，针对触摸做了尺寸调整。
 
-## 格式参考
+## 用于链接和 CLI 的格式 ID
 
-宿主可渲染的每个 id，按类别分组。这些同时也是 URL `format=` 参数和 CLI `--export=` 标志的取值 - 参见 [URL 模式](/info/url-mode.html) 和 [CLI](/info/cli.html)。工具的菜单只会显示该工具能生成的格式，因此永远比这份列表短。
+这些是 URL 的 `format=` 参数和 CLI 的 `--export=` 标志的取值（参见 [URL 参数](/info/url-parameters.html)和 [CLI](/info/cli.html)）。工具的菜单只显示该工具能制作的格式，所以总是比这份列表短。
 
-| 类别 | ID |
+| 类型 | ID |
 |---|---|
-| 位图 | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff`(RGB TIFF) · `cmyk-tiff`(Print TIFF) · `bmp` · `ico` |
-| 矢量 | `svg` · `svgz`(经 gzip 压缩的 SVG) · `emf` · `wmf` · `eps` · `eps-cmyk`(EPS CMYK) · `dxf`(切割文件) |
-| 页面与文档 | `pdf` · `pdf-cmyk`(Print PDF) · `pptx`(PowerPoint) · `scorm`(SCORM 课程包,一个压缩包) · `penpot`(Penpot 设计文件) · `docx`(Word) · `odt`(OpenDocument Text) |
-| 动态 | `gif` · `apng`(动态 PNG) · `webp-anim`(动态 WebP) · `svg-anim`(动态 SVG) · `webm` · `mp4` |
-| 音频 | `wav` · `mp3` · `m4a` · `opus` |
-| 文本与数据 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl`(GIMP 调色板) |
-| 打包 | `zip` |
+| 栅格 | `png` · `jpg`/`jpeg` · `webp` · `avif` · `jxl` · `jxl-lossless` · `tiff`（RGB TIFF）· `cmyk-tiff`（Print TIFF）· `bmp` · `ico` |
+| 矢量 | `svg` · `svgz`（gzip 压缩的 SVG）· `emf` · `wmf` · `eps` · `eps-cmyk`（EPS CMYK）· `dxf`（切割文件） |
+| 页面与文档 | `pdf` · `pdf-cmyk`（Print PDF）· `pptx`（PowerPoint）· `docx`（Word）· `odt`（OpenDocument Text）· `idml`（InDesign）· `penpot`（Penpot 设计文件）· `scorm`（课程包，一个 ZIP） |
+| 动态 | `gif` · `apng`（Animated PNG）· `webp-anim`（Animated WebP）· `svg-anim`（Animated SVG）· `webm` · `mp4` · `lottie`（dotLottie）· `premiere-xml`（Premiere XML + media） |
+| 音频 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| 文本与数据 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl`（GIMP palette） |
+| 捆绑包与软件包 | `zip` · `rpm` 和 `tar.gz`（封入 Linux 软件包的渲染结果） |
 
-还有少数 id 来自**工具自身的导出钩子**,而非共享的渲染路径:`ase`(Adobe Swatch Exchange,来自 Palette Lab)、`exr` 和 `hdr`(Darkroom 的高动态范围位图)以及 `ttf` / `otf` / `woff`(字体转换)。它们选择格式的方式相同 - 选择器、`format=`、`--export=` - 只是字节内容由工具自行构建。字体转换是唯一的例外:它转换的是*你自己*提供的字体文件,因此单纯的 URL 无从渲染。
+有几个 ID 来自工具自己的导出代码：`ase`（Adobe Swatch Exchange，来自 Palette Lab）以及 `exr` 和 `hdr`（高动态范围栅格图，来自 Darkroom）。**Convert Font** 会根据你提供的字体文件写出 `ttf`、`otf` 和 `woff`，所以单独的链接没有什么可供它渲染。

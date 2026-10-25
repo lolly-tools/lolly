@@ -27,3 +27,7 @@ Attribution, provenance, Privacy, & consent
 pagkamalikhain at tiwala sa gitna ng walang hanggan
 
 kahit sino ay puwedeng lumikha, sa anumang sukat, kahit saan
+
+## Bakit
+
+### [Dahil nakatayo kami sa balikat ng mga higante](/info/trust/shoulders-of-giants.html)

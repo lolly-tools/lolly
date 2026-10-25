@@ -1,21 +1,69 @@
-# API surface
+# Lolly Work API reference
 
-Every route the console and the CLI use - they share one API, so the two surfaces stay in
-parity by construction. Errors are `{ error: { code, message } }` with an honest HTTP status.
+The routes the Work console, the `lw` CLI and the Lolly apps call, grouped by job, with the
+permission each one needs. To render files from a script, start with
+[Automate with the Work API](automation-api.md): it covers discovery, schemas, the document
+verbs, jobs and batches, and this page holds everything else.
 
-"Action" is the RBAC action the caller must hold ([permissions](permissions.md)); *member*
-means any signed-in member; *public* means no session needed.
+Errors are `{ error: { code, message } }` with an HTTP status that matches the error. In the
+tables, "Action" is the permission the caller must hold ([permissions](permissions.md)),
+*member* means any signed-in member and *public* means no session is needed.
 
-## Health and metrics
+A few routes are described on the page that owns their feature: personal data export and
+offboarding in [account lifecycle](account-lifecycle.md) and [data lifecycle](data-lifecycle.md),
+reverse-proxy sign-in and SCIM ownership in [identity](identity.md), back-channel logout in
+[enterprise identity](enterprise-identity.md), the AI policy read in [managed AI](ai-policy.md),
+catalog sources and file previews in [file previews](file-preview.md), and the transfer
+inventory in [project portability](project-portability.md).
 
-| Route | Action | Notes |
+## Who can call what
+
+Every request comes from one kind of caller, and its credential decides which routes it can
+reach at all. The action in each table then decides what that caller may do there.
+
+| Caller | How it identifies itself | What it can reach |
 |---|---|---|
-| `GET /healthz` | public | `{ ok, name, accessMode, appUrl? }` - liveness |
-| `GET /readyz` | public | `{ ok, store }`, 503 while the store cannot answer - readiness |
-| `GET /metrics` | token | Prometheus; loopback-only unless `LW_METRICS_TOKEN` is set |
-| `GET /api/v1/alerts` | `telemetry.view` | `{ alerts: [{ id, kind, level, month, value, threshold, title, detail, href }] }`: alerts the server raises for administrators, shown as the console banner. Today only the [blob offload trigger](operations.md#blob-offload-trigger) |
+| A person | the `lw_session` cookie, from signing in on the instance or approving a device sign-in | every route their role and grants allow |
+| A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | routes gated by an action its role holds: automation (but not `GET /render/…`), uploads and file references, catalog submissions of bytes or uploads, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals, deliveries to a destination that needs approval, live collaboration, telemetry consent, comments, versions, history, access requests, project file uploads and submitting a project file to the catalog |
+| A guest | the `lw_guest` cookie, from joining through a guest-edit link | only what the link grants: the document and tool it opens (that tool's files under `/tools/*`, a catalog that lists only that tool and `GET /render/…` for it), its own session and telemetry |
+| An agent | `Authorization: Bearer <key>` on `/api/workspace/mcp` only: `POST` for MCP calls, `DELETE` to disconnect ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API |
+| An identity provider | a SCIM bearer on `/scim/v2/*` only ([SCIM](#scim-provisioning)) | the SCIM protocol routes |
+| A signed link | the `?s=` signature on `/l/:id`, plus the `lw_link_<id>` cookie for a password link | that link's target |
+| A job receiver | the `x-lw-job-token` header on `GET /api/v1/jobs/:id/result` | that one job's result, for 24 hours |
+| A metrics scraper | the bearer token in `LW_METRICS_TOKEN` | `GET /metrics` |
+| Nobody signed in | no credential | the public routes; on an `open` instance, also the catalog and any tool that no visibility rule hides |
 
-## Instance manifest and the connect surface
+Per-IP rate limits apply to sign-in, signed links, telemetry and automation, and some routes add
+a per-person limit, given in their rows. The sizes are in
+[configuration](configuration.md#ratelimit).
+
+## Common error codes
+
+| Code | Status | Meaning |
+|---|---|---|
+| `UNAUTHORIZED` | 401 | no session, or this deployment is sign-in gated |
+| `FORBIDDEN` | 403 | the required action is missing |
+| `OWNER_ONLY_ACTION` | 403 | an owner-only escalation was attempted |
+| `GUEST_LINKS_DISABLED` | 403 | guest links are off on this deployment |
+| `BAD_SIGNATURE` | 403 | link signature invalid |
+| `CONFIG_MANAGED` | 409 | the target is owned by `instance.json` |
+| `CONFLICT` | 409 | stale session `rev` - the body's `current` is the server session to rebase on |
+| `LINK_EXPIRED` / `LINK_REVOKED` | 410 | the link has passed its expiry, or has been revoked |
+| `FORMAT_NOT_ALLOWED` | 415 | from an outbound delivery: the destination does not accept that format |
+| `RATE_LIMITED` | 429 | too many requests of one kind from one person; `retry-after` gives the seconds to wait |
+| `INVALID_INPUT` | 400 | a required field is missing or malformed |
+
+The codes a render, schema or batch answers with, such as `INPUT_LOCKED`,
+`BRAND_RULE_VIOLATION` and `RENDER_BUSY`, are in
+[limits and errors](automation-api.md#limits-and-errors). Sections below list the codes
+particular to their routes.
+
+## Connecting apps
+
+A downloaded Lolly app learns about the instance before anyone signs in, then polls one document
+while a person works.
+
+### Instance manifest and the connect surface
 
 | Route | Action | Notes |
 |---|---|---|
@@ -25,255 +73,144 @@ means any signed-in member; *public* means no session needed.
 | `PUT /api/v1/instance-pack` | `instance.config` (**owner**) | host a pack cut by the OSS builder; refused unless its instance base is this deployment |
 | `DELETE /api/v1/instance-pack` | `instance.config` (**owner**) | stop hosting |
 
-The manifest is what a downloaded app learns about this deployment before
-anyone signs in: `{ name, accessMode, provider, providerName, loginPath,
-engineVersion, capabilities, brand, connect? }`. `engineVersion` is the vendored
-engine pin this deploy serves tools against; `capabilities` identifies the surfaces
-the server ships (`catalog`, `collab`, `submit`, `scim`); `connect.packUrl`
-appears exactly while a pack is hosted. It carries no secrets and no user
-data, and shares the auth rate-limit bucket. Any origin may read it
-(`Access-Control-Allow-Origin: *`, with `OPTIONS` answering the preflight),
-because a client that adds this deployment's design system by URL fetches this
-card from its own page before anyone has signed in. The pack itself is never built
-here - the OSS repo's `build-instance-pack.ts` owns the signed format, and
-this instance is where the finished pack publishes to. See "Connecting apps to
-this instance" in [operations](operations.md) for the connect story.
+The manifest is what a downloaded app learns about this deployment before anyone signs in:
+`{ name, accessMode, provider, providerName, loginPath, engineVersion, capabilities, providers,
+brand, branding, connect? }`.
+
+- `engineVersion` is the vendored engine pin this deploy serves tools against.
+- `capabilities` lists the surfaces the server ships (`catalog`, `collab`, `submit`, `scim`).
+- `providers` lists the sign-ins on offer as `[{ id, name, kind, loginPath }]`.
+- `branding` is described under [Catalog](#catalog).
+- `connect.packUrl` appears exactly while a pack is hosted.
+
+The manifest carries no secrets and no user data, and shares the auth rate-limit bucket. Any
+origin may read it (`Access-Control-Allow-Origin: *`, with `OPTIONS` answering the preflight),
+because a client that adds this deployment's design system by URL fetches this card from its own
+page before anyone has signed in. The pack itself is never built here: the open-source
+repository's `build-instance-pack.ts` owns the signed format, and this instance is where the
+finished pack publishes to. See "Connecting apps to this instance" in
+[operations](operations.md) for the connect story.
 
 `brand` is the design system this deployment hosts, for a client that adds one
-by URL and keeps it on the device for offline use (OSS `plans/186`):
+by URL and keeps it on the device for offline use:
 
 ```json
 "brand": {
-  "profile": "suse",
-  "label": "SUSE tokens",
+  "profile": "lolly-demo",
+  "label": "Lolly Demo",
   "version": "1.2.0",
   "checksum": "sha256-QOn2…",
-  "locked": true,
+  "locked": false,
   "packUrl": "https://brand.example/connect/pack.lolly"
 }
 ```
 
-Every field comes from the mounted pack itself, never from a second copy here.
-`profile` is the active brand profile on a profile-aware pack (the one
-`GET /api/v1/brand/profiles` lists) and `null` on a single-brand one; `label` is the
-tokens asset's name; `checksum` is that asset's own integrity checksum, which is
-what a client compares to ask "has the brand here changed since I copied it"
-without downloading anything; `locked` mirrors the tokens asset's `brandLock`,
-so a client knows the brand is authoritative and must not offer to customise it;
-`version` is the hosted pack's version when one is hosted; `packUrl` repeats
-`connect.packUrl` so one block answers both what is here and where to download the pack.
-The whole block is `null` when the pack ships no tokens asset, and it changes
-the moment an admin switches brand profile. It states no colours and no font
-files: those stay behind `GET /api/brand`.
+Every field comes from the mounted pack itself, never from a second copy here:
 
-The pack download is conditional. `GET /connect/pack.lolly` sends a strong
-`ETag` (the hosted pack's checksum, the same one `GET /api/v1/instance-pack`
-reports) with `cache-control: private, no-cache`, and answers `304` to an
-`If-None-Match` that matches, so a client re-checks a pack it already holds for
-the price of one header. The access gate is unchanged and runs first: on a gated
-instance an unauthenticated conditional request gets `401` and no tag.
+- `profile` is the active brand profile on a profile-aware pack (the one
+  `GET /api/v1/brand/profiles` lists), and `null` on a single-brand one;
+- `label` is the tokens asset's name;
+- `checksum` is that asset's own integrity checksum, which a client compares to ask "has the
+  brand here changed since I copied it" without downloading anything;
+- `locked` mirrors the tokens asset's `brandLock`, so a client knows the brand is authoritative
+  and must not offer to customise the brand;
+- `version` is the hosted pack's version when one is hosted;
+- `packUrl` repeats `connect.packUrl`, so one block answers both what is here and where to
+  download the pack.
 
-Cross-origin reads of the pack follow that same gate. An **open** instance sends
-`Access-Control-Allow-Origin: *` and `Access-Control-Expose-Headers: ETag` (a
-browser hides the tag from script otherwise, and the tag is what the client came
-for), and answers the `OPTIONS` preflight a conditional GET triggers with
-`Allow-Methods: GET`, `Allow-Headers: If-None-Match` and a day of `Max-Age`. A
-**gated** instance sends no CORS header at all, on the download or the
-preflight: a page on another origin cannot present the session cookie, and a
-wildcard with credentials is refused by browsers, so the answer there is to sign
-in on the instance and export the pack, or connect from the desktop app.
+The whole block is `null` when the pack ships no tokens asset, and it changes the moment an admin
+switches brand profile. It states no colours and no font files: those stay behind
+`GET /api/brand`.
 
-## Auth
+`GET /connect/pack.lolly` sends a strong `ETag` (the hosted pack's checksum, the same one
+`GET /api/v1/instance-pack` reports) with `cache-control: private, no-cache`, so a client
+re-checks a pack it already holds for the price of one header. The access gate runs first: on a
+gated instance an unauthenticated conditional request gets `401` and no tag.
 
-| Route | Action | Notes |
-|---|---|---|
-| `GET /api/auth/config` | public | what the sign-in screen needs (mode, IdP display name, and `providers: [{ id, name, kind, loginPath }]` with `kind` `oidc`, `github` or `password`), plus `instanceName` (`instance.name`), `inviteOnly` (`true` while `idp.admission` is set) and `joinRequests` (`policy.requests.join`: the refusal page offers Ask to join) |
-| `GET /api/auth/login` | public | starts sign-in with PKCE: OIDC, or GitHub OAuth 2.0 for `?idp=` naming a `kind: "github"` entry; for a `kind: "password"` entry, the email and password form. With several entries and no `?idp=`, the chooser; `404 NO_IDP` with no sign-in configured |
-| `POST /api/auth/password/login` | public | the form (`email`, `password`, `returnTo`, `csrf`) answers `303` to `returnTo` with `lw_session`, or the form again with `400` and one message for an unknown email, a wrong password and a locked address. A JSON body `{ email, password, returnTo? }` answers `{ ok, returnTo }` or `400 INVALID_CREDENTIALS`. A refused admission is `403`; an owner's account reached with a password not set from an owner's link is `403 OWNER_LINK_REQUIRED`. `503 BUSY` with `Retry-After` while too many password checks wait. See [identity.md](identity.md#email-and-password) |
-| `GET /api/auth/password/set?token=…` | public | the page a one-time link opens: the address, read-only, an optional name, and a new password twice. A used, expired or unknown link, or one its issuer may no longer issue, is a `410` page |
-| `POST /api/auth/password/set` | public | the form (`token`, `name`, `password`, `confirm`, `returnTo`, `csrf`): spends the link once, sets the password, ends the account's other sessions, signs the person in and answers `303` to `returnTo`. `name` is optional, 1 to 80 characters once trimmed, and becomes the account's display name. `returnTo` is set only by the [invite page](#invite-links-and-access-requests); a value that is not a path on this origin, or none, is `/` |
-| `GET /api/auth/callback` | public | verifies the `id_token` (OIDC) or reads the GitHub profile and emails, then mints `lw_session`. A failure a browser sees is an HTML page with a way to start again; an API caller without `Accept: text/html` keeps the JSON error, except GitHub failures, which are always the page |
-| `GET /api/auth/link?idp=<id>&returnTo=<path>` | member (cookie) | runs that IdP and links the identity it returns to the current user, then redirects to `returnTo`; no new session. An identity that belongs to someone else is a `409` HTML page. A `password` entry is not linked from here: a `400` HTML page says to ask an admin for a sign-in link, with a link back to `returnTo`. See [identity.md](identity.md#one-person-several-sign-ins) |
-| `GET /api/v1/me/identities` | member | the person's linked sign-ins: `{ identities: [{ idp, subjectHash, displayName, email, emailVerified, linkedAt, lastLoginAt, canUnlink, unlinkBlocked? }], available: [{ id, name, kind, linkPath }] }` |
-| `DELETE /api/v1/me/identities/:idp/:subjectHash` | member | `204`: the removal ends every session of the account, and the browser that asked gets a fresh session cookie in the same chain (the same `authAt` and sign-in time, cut at `authAt + sessionMaxHours`; see [identity](identity.md#session-length-and-renewal)). No cookie when the request carried no session cookie of the person's or that chain has reached its cap, and the person signs in again. `409 ACCOUNT_SIGN_IN` for the sign-in the account was created with, `409 LAST_SIGN_IN` for the last one |
-| `POST /api/v1/me/revoke-sessions` | member (own session cookie) | sign out on all devices: bumps the caller's own session epoch, so every session they hold ends on its next request, and clears `lw_session` and `lw_guest` on this browser. `204` with `cache-control: no-store`. A service token, a bearer caller or an agent acting for someone gets `401`. Five calls an hour per person, then `429 RATE_LIMITED` with `retry-after: 3600`. Audited `user.sessions.revoked` with `{ self: true }` |
-| `GET /api/auth/dev?email=…` | public | dev provider only; `404` when `dev.enabled` is false |
-| `GET /api/auth/session` | member/guest | the current principal |
-| `POST /api/auth/logout` | any | clears both cookies |
-| `POST /api/v1/auth/device` | public | start device sign-in: `{deviceCode, userCode, verificationUri, interval, expiresIn}` |
-| `POST /api/v1/auth/device/token` | public | the device's poll: `{status}` of `pending`/`denied`/`expired`, or `approved` + the session cookie (single read). The cookie continues the approving browser's chain and ends no later than its `authAt + sessionMaxHours` (`sessionTtlHours` from that sign-in while renewal is off); once that chain has ended the answer is `denied`, audited `auth.denied` with `reason: 'session-max'` |
-| `GET /activate` | member (page) | where a person types and confirms a device code - approval binds the approver's identity, so it lives here and nowhere else |
-| `GET /api/v1/auth/device/pending` | `fleet.view` | pending codes, oldest first |
-| `POST /api/v1/auth/device/deny` | `fleet.manage` | refuse a pending code from the console |
+::: details Cross-origin reads of the pack
+Cross-origin reads follow the same gate. An **open** instance sends
+`Access-Control-Allow-Origin: *` and `Access-Control-Expose-Headers: ETag` (a browser hides the
+tag from script otherwise, and the tag is what the client came for), and answers the `OPTIONS`
+preflight a conditional GET triggers with `Allow-Methods: GET`, `Allow-Headers: If-None-Match`
+and a day of `Max-Age`.
 
-## The polled document
+A **gated** instance sends no CORS header at all, on the download or the preflight: a page on
+another origin cannot present the session cookie, and a wildcard with credentials is refused by
+browsers. There, sign in on the instance and export the pack, or connect from the desktop app.
+:::
+
+### The polled document
 
 | Route | Action | Notes |
 |---|---|---|
 | `GET /api/v1/org-config` | member | the one document a shell polls; ETag'd on policy version and `inboxUnread`, the same count `GET /api/v1/inbox` answers as `unread` for the same `X-Lolly-Client` (its shell and engine selectors apply to both) |
 | `GET /api/v1/org-config/preview?groups=a,b` | `policy.edit` | what a member in those groups would receive |
 
-## Catalog
+### Client identification
+
+Shells send `X-Lolly-Client` (shell, shell version, engine, platform). It feeds the fleet
+histogram and message targeting; it is never trusted for authorization. The OSS shells add
+an `install/<id>` token while - and only while - their person is signed in: on a request
+that carries a live member session, it registers the install in the fleet registry.
+Anonymous and guest traffic with the same token feeds the histogram and nothing else, and
+there is no heartbeat: an install is seen exactly when its person uses the instance, and
+leaving the instance client-side deletes the id.
+
+## People and access
+
+Sign-in, the people on the instance, how new people are invited or ask to join and the machine
+credentials that act without a person.
+
+### Sign-in and sessions
 
 | Route | Action | Notes |
 |---|---|---|
-| `GET /catalog/*` | per access mode | pack blobs, lifecycle-gated |
-| `GET /api/v1/catalog/assets` | per access mode | one page of the caller's feed: `q`, `source`, `section`, `collection`, `tag`, `type`, `cursor`, `limit`; returns `{ assets, total, nextCursor, facets, version }` ([large catalogs](catalog.md#large-catalogs)) |
-| `GET /api/v1/catalog/assets/*` | member; visible asset | inspect source facts, organisation fields and text-index status without returning extracted words |
-| `GET /api/v1/catalog/search` | `catalog.read` | live fan-out to search-capable providers |
-| `PUT /api/v1/catalog/assets/<id>/meta` | `catalog.edit` | org-defined field values and `replacedBy` on any asset the caller sees; `name`/`description`/`tags` on `inst/*` only |
-| `PUT /api/v1/catalog/text-index/<id>` | `catalog.edit` | explicitly save reviewed text with `sourceRevision`, `fileId` and `method`; `text: null` clears; stale revisions return 409 ([reviewed text](catalog.md#reviewed-text-from-the-assets-inspector)) |
-| `GET /api/v1/catalog/assets/<id>/versions` | `catalog.read` | one instance asset's byte history, newest first, with the served version and the retention ceiling |
-| `PUT /api/v1/catalog/assets/<id>/head` | `catalog.edit` | roll back: `{ "version": N }` points the head at a version that already exists |
-| `DELETE /api/v1/catalog/assets/<id>/versions/<n>` | `catalog.edit` | `409 VERSION_IS_HEAD` for the served version, `409 ASSET_HELD` while a hold is set |
-| `GET /catalog/inst/<id>/<format>?v=N` | per access mode | a prior version's bytes, through every gate the head answers to |
-| `GET /api/v1/catalog/fields` | `catalog.read` | the org's field definitions, plus a `canEdit` bit for honest UI |
-| `PUT/DELETE /api/v1/catalog/fields/<id>` | `policy.edit` | define or retire one field; the definitions also ride the governance document |
-| `GET /api/v1/catalog/tags[?provider=<id>]` | `policy.edit` or `catalog.provider.manage` | every label the catalog carries, counted per source, with the rules hiding each one |
-| `PUT /api/v1/catalog/tags/rules` | `policy.edit` (scope `*`), `catalog.provider.manage` (scope `provider:<id>`) | `{ scope, hidden }` replaces a hidden-tag list, `{ scope, hide, show }` edits it; applied when the index is served |
-| `GET /api/v1/catalog/collections` | `catalog.collection.manage` | the curator's view: every set as curated |
-| `GET/PUT/DELETE /api/v1/catalog/collections/<id>` | `catalog.collection.manage` | create, edit or remove one set; a `PUT` refuses any member the curator cannot see |
-| `GET /api/v1/catalog/lifecycle` | `catalog.expire` | all lifecycle rows |
-| `PUT /api/v1/catalog/lifecycle/*` | `catalog.expire` | set/merge a row; `revoke: true` revokes |
-| `POST /api/v1/catalog/scan/*` | `catalog.scan` | record a C2PA scan result for one asset ([c2pa](c2pa.md)) |
-| `GET/POST /api/v1/injectables`, `DELETE …/:id` | `catalog.injectable.manage` | the assets/tools injected into member shells |
-| `GET /api/v1/brand/profiles`, `PUT /api/v1/brand/profile` | member + `catalog.read` / `brand.switch` | inspect sources; compatible profile selection |
-| `POST /api/v1/brand/changes/preview`, `POST /api/v1/brand/changes` | `brand.switch` or `instance.config`, action dependent | preview impact; apply against the reviewed revision |
-| `GET /api/brand`, `/api/brand/logo/:variant`, `/api/brand/font/:file` | public | brand chrome only (tokens, wordmark, woff2) so the sign-in screen is on-brand |
+| `GET /api/auth/config` | public | what the sign-in screen needs (mode, IdP display name, and `providers: [{ id, name, kind, loginPath }]` with `kind` `oidc`, `github` or `password`), plus `instanceName` (`instance.name`), `inviteOnly` (`true` while `idp.admission` is set) and `joinRequests` (`policy.requests.join`: the refusal page offers Ask to join) |
+| `GET /api/auth/login` | public | starts sign-in with PKCE: OIDC, or GitHub OAuth 2.0 for `?idp=` naming a `kind: "github"` entry; for a `kind: "password"` entry, the email and password form. With several entries and no `?idp=`, the chooser; `404 NO_IDP` with no sign-in configured |
+| `POST /api/auth/password/login` | public | the form (`email`, `password`, `returnTo`, `csrf`) answers `303` to `returnTo` with `lw_session`, or the form again with `400` and one message for an unknown email, a wrong password and a locked address. A JSON body `{ email, password, returnTo? }` answers `{ ok, returnTo }` or `400 INVALID_CREDENTIALS`. A refused admission is `403`; an owner's account reached with a password not set from an owner's link is `403 OWNER_LINK_REQUIRED`. `503 BUSY` with `Retry-After` while too many password checks wait. See [identity](identity.md#email-and-password) |
+| `GET /api/auth/password/set?token=…` | public | the page a one-time link opens: the address, read-only, an optional name, and a new password twice. A used, expired or unknown link, or one its issuer may no longer issue, is a `410` page |
+| `POST /api/auth/password/set` | public | the form (`token`, `name`, `password`, `confirm`, `returnTo`, `csrf`): spends the link once, sets the password, ends the account's other sessions, signs the person in and answers `303` to `returnTo`. `name` is optional, 1 to 80 characters once trimmed, and becomes the account's display name. `returnTo` is set only by the [invite page](#invite-links-and-access-requests); a value that is not a path on this origin, or none, is `/` |
+| `GET /api/auth/callback` | public | verifies the `id_token` (OIDC) or reads the GitHub profile and emails, then mints `lw_session`. A failure a browser sees is an HTML page with a way to start again; an API caller without `Accept: text/html` keeps the JSON error, except GitHub failures, which are always the page |
+| `GET /api/auth/link?idp=<id>&returnTo=<path>` | member (cookie) | runs that IdP and links the identity it returns to the current user, then redirects to `returnTo`; no new session. An identity that belongs to someone else is a `409` HTML page. A `password` entry is not linked from here: a `400` HTML page says to ask an admin for a sign-in link, with a link back to `returnTo`. See [identity](identity.md#one-person-several-sign-ins) |
+| `GET /api/v1/me/identities` | member | the person's linked sign-ins: `{ identities: [{ idp, subjectHash, displayName, email, emailVerified, linkedAt, lastLoginAt, canUnlink, unlinkBlocked? }], available: [{ id, name, kind, linkPath }] }` |
+| `DELETE /api/v1/me/identities/:idp/:subjectHash` | member | `204`: the removal ends every session of the account, and the browser that asked gets a fresh session cookie in the same chain (the same `authAt` and sign-in time, cut at `authAt + sessionMaxHours`; see [identity](identity.md#session-length-and-renewal)). No cookie when the request carried no session cookie of the person's or that chain has reached its cap, and the person signs in again. `409 ACCOUNT_SIGN_IN` for the sign-in the account was created with, `409 LAST_SIGN_IN` for the last one |
+| `POST /api/v1/me/revoke-sessions` | member (own session cookie) | sign out on all devices: bumps the caller's own session epoch, so every session they hold ends on its next request, and clears `lw_session` and `lw_guest` on this browser. `204` with `cache-control: no-store`. A service token, a bearer caller or an agent acting for someone gets `401`. Five calls an hour per person, then `429 RATE_LIMITED` with `retry-after: 3600`. Audited `user.sessions.revoked` with `{ self: true }` |
+| `GET /api/auth/security` | member (page) | Account security: the person's passkeys, and Add a passkey and Remove when they signed in within the last 10 minutes. Signed out, it redirects to sign-in |
+| `GET /api/auth/passkeys/login`, `GET /api/auth/passkeys/client.js` | public (page) | the passkey sign-in page and the script both passkey pages load |
+| `POST /api/auth/passkeys/register/options`, `POST /api/auth/passkeys/register/verify` | member, signed in within the last 10 minutes | add a passkey: ask for options, then send the authenticator's `response` with a `label` of 1 to 80 characters. `201 { ok: true }`; `401 REAUTH_REQUIRED` once the 10 minutes have passed, `409 PASSKEY_LIMIT` at 10 passkeys, `400 PASSKEY_REFUSED` when the response does not verify |
+| `POST /api/auth/passkeys/authenticate/options`, `POST /api/auth/passkeys/authenticate/verify` | public | sign in with a passkey: options (body `{ returnTo? }`), then the `response`. `200 { ok, returnTo }` with `lw_session`; `400 PASSKEY_REFUSED` for an unknown passkey, a disabled account or a failed check, `400 PASSKEY_EXPIRED` for a used or expired challenge |
+| `POST /api/auth/passkeys/:id/remove` | member, signed in within the last 10 minutes | `200 { ok: true }`; `404` when the passkey is not on the account |
+| `GET /api/auth/dev?email=…` | public | dev provider only; `404` when `dev.enabled` is false |
+| `GET /api/auth/session` | member/guest | the current principal |
+| `POST /api/auth/logout` | any | clears both cookies |
+| `GET/POST /api/auth/logout-provider` | member signed in through an OIDC provider | sign out of the identity provider as well: the `GET` page asks to confirm, and its form's `POST` ends this browser's Work sessions and answers `303` to the provider's end-session endpoint. `401 NO_OIDC_SESSION` without an OIDC sign-in, `409 NO_PROVIDER_LOGOUT` when the provider offers no end-session endpoint. See [enterprise identity](enterprise-identity.md) |
+| `POST /api/v1/auth/device` | public | start device sign-in: `{deviceCode, userCode, verificationUri, interval, expiresIn}` |
+| `POST /api/v1/auth/device/token` | public | the device's poll: `{status}` of `pending`/`denied`/`expired`, or `approved` + the session cookie (single read). The cookie continues the approving browser's chain and ends no later than its `authAt + sessionMaxHours` (`sessionTtlHours` from that sign-in while renewal is off); once that chain has ended the answer is `denied`, audited `auth.denied` with `reason: 'session-max'` |
+| `GET/POST /activate` | member (page) | where a person types and confirms a device code - approval binds the approver's identity, so it lives here and nowhere else |
+| `GET /api/v1/auth/device/pending` | `fleet.view` | pending codes, oldest first |
+| `POST /api/v1/auth/device/deny` | `fleet.manage` | refuse a pending code from the console |
 
-The [design-system administration contract](design-system-administration.md#review-and-apply) describes additive inventory fields, action permissions, replacement requirements and `409 STALE_PREVIEW`. The public instance descriptor adds `branding: { revision, sourceId }` even when `brand` is null; authenticated org configuration carries the same pair. `X-Lolly-Brand-Revision` reports the request snapshot. A request carrying a different revision is rejected with `409 BRAND_REVISION_CHANGED` so a render cannot combine source revisions.
+The passkey routes exist only while `instance.baseUrl` is HTTPS on a host name, or
+`http://localhost`; a bare IP address gets none. Every passkey `POST` must come from this
+instance's own origin (`403 ORIGIN_REQUIRED`), a challenge lasts five minutes, and the
+routes share the `auth` rate-limit bucket.
 
-## Catalog submit
-
-| Route | Action | Notes |
-|---|---|---|
-| `POST /api/v1/catalog/submit?name=…` | `catalog.submit` | raw bytes in the body; `201` for a new asset, `200` with `duplicate: true` for identical bytes |
-| `POST /api/v1/catalog/submit?name=…&projectId=…&fileId=…&checksum=…` | `catalog.submit` and current project read access | empty body; admits the verified ready project original through the same scan, quota and review pipeline; project files must be enabled on a durable store; service tokens are refused |
-| `POST /api/v1/catalog/submit?name=…&uploadId=…&checksum=…` | `catalog.submit` (`catalog.edit` with `assetId`) | empty body; submits the caller's own finished [`catalog-submission` upload](#uploads) through the same scan, quota and review pipeline, then removes the upload. `404` for any upload the caller cannot name; `413` when it is larger than `policy.submit.maxBytes` |
-| `POST /api/v1/catalog/submit?type=template\|user-tool` | `catalog.submit` | a template or user tool as JSON; `toolId=` identifies the tool when the body does not; `422 INVALID_SUBMISSION` when the JSON or its tool is not one this pack can serve; `clientRef=` is echoed on the submission |
-| `POST /api/v1/catalog/submit?assetId=inst/…&note=…` | `catalog.edit` | the same pipeline, landing as the next VERSION of an existing asset; `groups`/`type`/`tags`/`description` are refused here and belong to `…/meta` |
-| `GET /api/v1/catalog/submissions` | `catalog.read` | the caller's own submissions plus the ones open on a step their groups may act on |
-| `GET /api/v1/catalog/submissions/:id/bytes` | `catalog.read` | preview before publication - submitter and reviewer only |
-| `PATCH /api/v1/catalog/submissions/:id` | `catalog.read` | correct a pending submission's `name`/`type`/`tags`/`description` and its org `fields`, and (with `catalog.collection.manage`) the `collectionId` it joins on approval; `409` once it has settled |
-| `POST /api/v1/catalog/submissions/:id/act` | member (the approvals engine gates it) | `approve` publishes, `reject` returns with the comment |
-
-Project-source intake requires the observed whole-file SHA-256. Work verifies every
-stored part and the complete file, then checks source access again after scanning.
-The source file stays unchanged. `groups=` selects library exposure independently
-of project membership; omitted groups mean every workspace member. Only groups the
-submitter belongs to are accepted. `type`, `toolId` and `assetId` cannot be combined
-with a project source. Source identifiers are retained privately in the submission
-and audit event, never in the public catalog entry.
-
-Retries for the same person, project file, checksum and audience return the existing
-live or pending submission. Concurrent admissions of the same source are serialized
-by a transaction advisory lock in Postgres; contention returns `409 SUBMISSION_BUSY`.
-A pending record left without an approval by an interrupted admission returns
-`503 SUBMISSION_INCOMPLETE` for administrator inspection instead of creating another
-asset or claiming review has started. A changed or inaccessible source returns
-`404 NOT_FOUND`; verification failures return `422 SOURCE_UNAVAILABLE`; access lost
-during scanning returns `403 SOURCE_CHANGED`.
-
-Refusals: `413 PAYLOAD_TOO_LARGE` over `policy.submit.maxBytes`, `409 QUOTA_EXCEEDED`,
-`422 SCAN_REJECTED` when the pre-store hook vetoes, `502 SCAN_UNAVAILABLE` when it cannot
-answer and `onError` is `reject`, `503 SUBMIT_CHAIN_MISSING` when `policy.submit.chain` names
-a chain the instance does not have. The preview route answers `410 ASSET_EXPIRED` once the
-published asset's lifecycle stops it, like every other surface that hands out bytes. See
-[catalog](catalog.md#submitting-an-asset).
-
-## Catalog providers
-
-| Route | Action |
-|---|---|
-| `GET /api/v1/catalog/providers`, `GET …/setup`, `GET …/:id`, `GET …/:id/health`, `GET …/:id/drift` | `catalog.provider.read` |
-| `POST /api/v1/catalog/providers`, `PUT …/:id`, `DELETE …/:id`, `POST …/preview`, `POST …/:id/setup-preview`, `POST …/:id/sync`, `POST …/:id/materialize`, `POST …/:id/import` (one asset) | `catalog.provider.manage` |
-| `PUT/DELETE …/:id/credential`, `POST …/:id/oauth/start`, `POST …/:id/enable`, `POST …/:id/disable`, `POST …/:id/cutover` | `catalog.provider.credential` (**owner**) |
-| `POST …/:id/publish` | `catalog.provider.publish` (**owner**) |
-
-Config-managed providers reject mutations with `409 CONFIG_MANAGED`.
-Cutover returns `422 ORIGINALS_UNAVAILABLE` for a source that explicitly provides renditions
-without protected originals. The refusal leaves identities, aliases and activation state unchanged.
-
-`GET …/setup` returns versioned public typed-form descriptors (WebDAV and Google Drive),
-credential sealing availability and the installed browser-consent redirect URI/scope,
-with no secrets. Provider wire records include `guidedSetupAvailable`; advanced settings
-outside the guided subset do not receive the guided resume action. `POST …/preview` with `setupVersion: 1`
-validates that guided configuration and tests a bounded paged listing plus one streamed
-original. The response includes `pages`, `scanned`, `sampleTotal`, `truncated`, exposure and
-availability exclusions, mapper notes and `original: {ok,bytes?,sha256?,contentType?,detail?}`.
-No source, file or credential is persisted. The guided limits are five pages, 1,000
-distinct files, 2 MiB per XML/Drive metadata response, 32 MiB per original and 30 seconds overall. Legacy
-preview and exclusive `shape: true` diagnostics retain their existing contracts.
-Creation and `PUT …/:id` accept `setupVersion: 1` to validate the guided subset; guided
-updates require a disabled source. `POST …/:id/setup-preview` tests a guided DB-managed
-Google Drive source using its sealed credential, without returning the credential. Its response adds
-`revision`, a digest of the configuration and credential identity. `POST …/:id/enable`
-accepts `{setupRevision}` and refuses `409 SETUP_CHANGED` if it no longer matches, including
-changes during the health check. This optional guard preserves advanced activation contracts;
-creation, credential storage, sync and enabling retain their separate audited permissions.
-
-`POST …/:id/oauth/start` accepts `{clientId,clientSecret}` for a disabled, guided DB-managed
-Google Drive source. It requires an owner browser session, credential sealing and a suitable
-instance URL. It returns `{authorizeUrl}` plus an encrypted HttpOnly/SameSite state cookie
-with a ten-minute lifetime, bound to the member session and source revision. Its client
-secret and PKCE verifier are sealed with a separate credential-key context; refresh tokens
-are never put in browser cookies or responses. Only the latest consent in a browser is pending.
-`GET /api/auth/provider-oauth/callback` checks state, session, current permission and source
-revision, exchanges the code on Google's fixed endpoint with PKCE, checks offline read-only
-scope and folder access, then seals the credential. JSON replies are capped at 64 KiB with
-a 20-second aggregate exchange deadline. Failed/declined consent preserves the old grant.
-The callback clears the state cookie and redirects to `/admin#/providers?setup=<id>&oauth=…`
-with a safe outcome (`connected`, `denied`, `expired`, `changed`, `failed`); codes, vendor
-error descriptions and credentials are not reflected. Reconnecting requires a disabled
-source. Google Drive is the only browser-consent kind in this version.
-
-## Outbound delivery
+### People and groups
 
 | Route | Action | Notes |
 |---|---|---|
-| `GET /api/v1/destinations` | authenticated; results filtered by `delivery.create` per target | safe fixed-target descriptors visible to this caller; never endpoints, bucket names, prefixes or credential refs |
-| `POST /api/v1/destinations/:id/deliveries?name=…&format=…` | `delivery.create` on `destination:<id>` | verified Lolly export as the raw body; `201` after immediate delivery, or `202 awaiting-approval` when the target binds a chain |
-| `POST /api/v1/destinations/:id/deliveries?projectId=…&fileId=…&checksum=…` | signed-in person + current project viewer access + `delivery.create` | empty body; verified shared original, only with explicit `projectFiles` on a DAM destination |
-| `POST /api/v1/jobs/:id/deliveries` | job owner + `delivery.create` on the body’s `destinationId` | deliver a completed render job’s retained output by reference; JSON `{destinationId,name,format?}` |
-| `GET /api/v1/deliveries` | authenticated | caller's own delivery history remains readable after permission loss |
-| `GET /api/v1/deliveries/:id` | authenticated | caller's own delivery receipt; another principal receives 404 |
-| `POST /api/v1/deliveries/:id/retry` | `delivery.create` on the destination | retry failed work from its immutable staged bytes; refuses a changed destination |
-
-Both create routes accept `Idempotency-Key`; repeating the same delivery returns its existing
-record without another provider write, while reuse for different bytes/metadata returns
-`409 IDEMPOTENCY_KEY_REUSED`. The raw body, or the referenced job output, must carry Lolly's
-C2PA export assertion. See
-[outbound delivery](delivery.md).
-
-## Policy and governance
-
-| Route | Action |
-|---|---|
-| `GET /api/v1/policy/tools` | `policy.edit` |
-| `PUT /api/v1/policy/overlays/:toolId` | `policy.edit` |
-| `GET /api/v1/policy/flags`, `PUT /api/v1/policy/flags/:flagId` | `policy.edit` |
-| `GET /api/v1/grants` | `grant.edit` |
-| `POST /api/v1/grants`, `DELETE /api/v1/grants` | `grant.edit` + owner for owner-only actions |
-| `GET /api/v1/config/export` | `policy.edit` |
-| `POST /api/v1/config/apply?dryRun=1&prune=1` | `policy.edit` (+ owner for owner-only grants) |
-| `GET /api/v1/chains`, `PUT /api/v1/chains/:id` | member / `policy.edit` |
-
-## People and groups
-
-| Route | Action |
-|---|---|
-| `GET /api/v1/users`, `GET /api/v1/users/:id` | admin/owner role |
-| `POST /api/v1/users/:id/revoke-sessions` | `grant.edit` - sign-out-everywhere: bumps the user's session epoch, every prior cookie and token fails its next request |
-| `DELETE /api/v1/users/:id` | `instance.config` (**owner**) - erasure: deletes the row + de-attributes telemetry; `409` while they own unarchived projects, and `409 ERASE_UPLOADS_REMAIN` when some of their [uploads](#uploads) could not be removed first (run it again) |
-| `POST /api/v1/retention/run` | `instance.config` (**owner**) - apply the stated retention policy now, and remove expired unfinished project-file uploads (`projectFilesSwept`) and expired [scoped uploads](#uploads) (`uploadsSwept`) |
-| `GET/POST /api/v1/groups`, `DELETE /api/v1/groups/:name` | `grant.edit` |
-| `PUT /api/v1/users/:id/local-groups` | `grant.edit` |
-| `POST /api/v1/users/:id/disabled` | `grant.edit` |
+| `GET /api/v1/users`, `GET /api/v1/users/:id` | admin/owner role | |
+| `POST /api/v1/users/:id/revoke-sessions` | `grant.edit` | sign-out-everywhere: bumps the user's session epoch, every prior cookie and token fails its next request |
+| `DELETE /api/v1/users/:id` | `instance.config` (**owner**) | erasure: deletes the row + de-attributes telemetry; `409` while they own unarchived projects, and `409 ERASE_UPLOADS_REMAIN` when some of their [uploads](#uploads) could not be removed first (run it again) |
+| `POST /api/v1/retention/run` | `instance.config` (**owner**) | apply the stated retention policy now, and remove expired unfinished project-file uploads (`projectFilesSwept`) and expired [scoped uploads](#uploads) (`uploadsSwept`) |
+| `GET/POST /api/v1/groups`, `DELETE /api/v1/groups/:name` | `grant.edit` | |
+| `PUT /api/v1/users/:id/local-groups` | `grant.edit` | |
+| `POST /api/v1/users/:id/disabled` | `grant.edit` | |
 | `GET /api/v1/users/:id/identities` | admin/owner role | that person's linked sign-ins, the same rows as `/api/v1/me/identities`. With a `password` entry configured, also `password: { set, email, lockedUntil? }`: whether the person has a password, the address a new link would be for, and until when it is locked |
 | `DELETE /api/v1/users/:id/identities/:idp/:subjectHash` | `grant.edit` | `204`, and every session of that person ends; the same two refusals; an owner's sign-ins are owner-only. Removing a `password` sign-in deletes the password (also from `DELETE /api/v1/me/identities/...`) |
 | `POST /api/v1/users/:id/password/unlock` | `grant.edit` | `204`: lifts a lock that wrong passwords set, keeping the password. `404 NO_PASSWORD` when the person has none; an owner's is owner-only |
 
-## Invitations
+### Invitations
 
 Who may sign in when `idp.admission` is set, one email address at a time. See
 [identity](identity.md#who-may-sign-in) for how sign-in uses an invitation.
@@ -317,23 +254,7 @@ carries `created: boolean`, and an address handled without one reads
   like `local@domain` with no spaces.
 - `groups`: local group names, the same slug rule as `POST /api/v1/groups` (letters,
   digits, `.`, `_`, `-`, 64 characters at most), at most 50. Attaching groups carries the
-  controls of `PUT /api/v1/users/:id/local-groups`:
-  - the caller also needs `grant.edit` (`403 FORBIDDEN`);
-  - a group that maps to the owner role needs the owner role (`403 OWNER_ONLY`);
-  - a group that maps to any role above the caller's is refused (`403 ROLE_ESCALATION`);
-  - a group holding a grant for an owner-only action needs the owner role
-    (`403 OWNER_ONLY_ACTION`);
-  - each group must be in the local registry (`400 UNKNOWN_GROUP`). An owner may also
-    name an IdP group or a role group, which the first admitted sign-in adds to the
-    registry;
-  - an address that already belongs to an account gets the groups at once
-    (`status: "applied"`, with the `userIds` changed), under the same controls, and is
-    refused for your own account (`self`), a disabled one (`account-disabled`) and an
-    owner's unless an owner is inviting (`owner-only`). Only an account that has shown
-    it holds the address counts: a sign-in whose IdP verified it, a trusted source (the
-    reverse proxy, an IdP set to `emailVerification: "trusted"`), an accepted invitation
-    for it, or an account provisioned with no sign-in yet. An account that only claims
-    the address gets an invitation, which a verified sign-in has to accept.
+  controls of `PUT /api/v1/users/:id/local-groups`, listed below.
 - `policy.invites` applies to each address that gets an invitation: the `allow` tier
   (`invites-not-allowed`) and the `domains` list (`domain-not-allowed`). It does not
   apply to the `applied` branch. `maxTtlHours` is for in-app invites; this route takes
@@ -345,7 +266,7 @@ carries `created: boolean`, and an address handled without one reads
   the existing invitation unchanged with `created: false`. A pending invitation that has
   expired is revoked and replaced.
 - `passwordSetup`: the invite link may also set a password for the address, once, while
-  it has none (see [identity](identity.md#setting-a-password-from-the-link)). Honoured only
+  it has none (see [setting a password from the link](invitations.md#setting-a-password-from-the-link)). Honoured only
   for an admin or owner while a `password` entry is configured, and ignored otherwise.
   Whoever holds such a link can set the password, so send it privately.
 - Revoking an accepted invitation that belongs to an owner needs the owner role
@@ -353,14 +274,32 @@ carries `created: boolean`, and an address handled without one reads
 - Inviting an address closes its open request to join, if it has one.
 
 Nothing is emailed. Send each person their `link`, which opens the
-[invite page](identity.md#invite-links) for that invitation. `signInUrl` is
+[invite page](invitations.md#invite-links) for that invitation. `signInUrl` is
 `instance.baseUrl`. Audit actions: `invite.create` (with `via`: `console`, `project`,
 `request` or `reinvite`, plus `from` for an invitation made again and `passwordSetup`),
 `invite.link` (a new link), `invite.open` (the first sign-in started from a link),
 `invite.wrong-account`, `invite.revoke` and `invite.accept` (with `via`: `sign-in`,
 `join` or `link`).
 
-## Invite links and access requests
+::: details The controls on attaching groups
+- the caller also needs `grant.edit` (`403 FORBIDDEN`);
+- a group that maps to the owner role needs the owner role (`403 OWNER_ONLY`);
+- a group that maps to any role above the caller's is refused (`403 ROLE_ESCALATION`);
+- a group holding a grant for an owner-only action needs the owner role
+  (`403 OWNER_ONLY_ACTION`);
+- each group must be in the local registry (`400 UNKNOWN_GROUP`). An owner may also name an IdP
+  group or a role group, which the first admitted sign-in adds to the registry;
+- an address that already belongs to an account gets the groups at once (`status: "applied"`,
+  with the `userIds` changed), under the same controls, and is refused for your own account
+  (`self`), a disabled one (`account-disabled`) and an owner's unless an owner is inviting
+  (`owner-only`). Only an account that has shown it holds the address counts: a sign-in whose
+  IdP verified the address, a trusted source (the reverse proxy, an IdP set to
+  `emailVerification: "trusted"`), an accepted invitation for it, or an account provisioned with
+  no sign-in yet. An account that only claims the address gets an invitation, which a verified
+  sign-in has to accept.
+:::
+
+### Invite links and access requests
 
 Every pending invitation has a personal link, `<baseUrl>/l/invite/<token>`, and each project
 on it has a link of its own. The token is signed with `LW_LINK_SECRET` (the previous key
@@ -368,7 +307,7 @@ still verifies during a rotation) over the invitation id, the project id (none f
 workspace link) and the invitation's link version. It is never stored. A token identifies an
 invitation and never admits anyone: the person still signs in, with the invited address.
 New link raises the version, so every earlier link stops working. See
-[identity](identity.md#invite-links) for the pages and the sign-in they start.
+[invite links](invitations.md#invite-links) for the pages and the sign-in they start.
 
 **Pages and forms.** Server-rendered HTML in English, with no script.
 
@@ -387,6 +326,19 @@ The `ask` token is minted only on a page the server renders right after it verif
 sign-in (the refusal and wrong-account pages). It lives 30 minutes, travels in a hidden
 form field, and carries the verified address, so the address on a request is never typed.
 
+**Project join links.** A manager can also make one reusable link that anyone may open to
+join a project, or one document in it, with a fixed role. Opening the link changes nothing;
+joining takes a signed-in account or, when the link allows new people, a personal
+invitation for the address the person enters.
+
+| Route | Who | Notes |
+|---|---|---|
+| `POST /api/v1/projects/:id/invite-links` | manager | body `{ role: "viewer" \| "commenter" \| "editor", sessionId? }`. `201 { id, role, allowNewPeople, url, expiresAt }`, or `200` with the caller's own live link of the same kind. A link lasts 7 days, or `policy.invites.maxTtlHours` when that is shorter. `allowNewPeople` is true when the caller may invite new people. `403 ROLE_NOT_ALLOWED` for a role `policy.invites.projectRoles` leaves out, `409 PROJECT_ARCHIVED`, and after 50 new links in a day `429 RATE_LIMITED` |
+| `GET /api/v1/projects/:id/invite-links` | manager | `{ links }`: the project's links that still work |
+| `DELETE /api/v1/projects/:id/invite-links/:link` | manager | revoke; `204` |
+| `GET /l/join/:id?s=…` | public; reads the session cookie | the join page. A link stops working (`410`) once its maker is disabled or no longer a manager, the project is archived, the document is deleted or the role is no longer allowed |
+| `POST /api/auth/project-link` | public form | the join page's form: `id`, `sig`, `csrf`, `action` (`join` or `new`) and `email` (for `new`). `join` adds the signed-in person and answers `303` to the project; `new` makes an invitation for the address and answers `303` to its invite page, at most 50 addresses an hour per link |
+
 **Requests.** JSON routes with the session cookie. Service tokens are refused.
 
 | Route | Who | Notes |
@@ -396,7 +348,7 @@ form field, and carries the verified address, so the address on a request is nev
 | `GET /api/v1/access-requests/mine?projectId=…` or `?sessionId=…` | member | `{ requests: MyRequest[] }`: the caller's own requests for that target, open or answered in the last 30 days, newest first |
 | `POST /api/v1/access-requests/:id/withdraw` | the requester | body `{}`; `200 { request: MyRequest }`, or `404` for anyone else |
 | `GET /api/v1/access-requests?status=open\|answered&since=…` | member | `{ requests: RequestView[] }`: the requests the caller may answer now, and nothing for someone who answers none |
-| `POST /api/v1/access-requests/:id/approve` | an approver, checked again now | body `{ role? }` (project requests; the role asked for when absent). `200 { request, outcome, invitation?, link?, message? }`, with `outcome` one of `added`, `already`, `invited` or `moved`. `message.text` is a ready-to-send line for an approved join, for example "You can now sign in to lolly.ing. Open https://lolly.ing and sign in as sam.k@gmail.com with GitHub." |
+| `POST /api/v1/access-requests/:id/approve` | an approver, checked again now | body `{ role? }` (project requests; the role asked for when absent). `200 { request, outcome, invitation?, link?, message? }`, with `outcome` one of `added`, `already`, `invited` or `moved`. `message.text` is a ready-to-send line for an approved join, for example "You can now sign in to Example Studio. Open https://work.example.com and sign in as sam.k@example.net with GitHub." |
 | `POST /api/v1/access-requests/:id/decline` | an approver | body `{}`; `200 { request }` |
 
 ```ts
@@ -413,10 +365,10 @@ type RequestView = {
 ```
 
 Who may answer, what each approval does, and how requests close are in
-[sharing](sharing.md#asking-for-access) and [identity](identity.md#asking-to-join). An
-approver is checked again on every list, approve and decline, against the project stored on
-the request, never an id the client sends. Exactly one answer wins: approve claims the
-request first, then acts. If the action then fails on a database error, the answer is
+[asking for access](invitations.md#asking-for-access) and [asking to join](invitations.md#asking-to-join). Here, the
+race rule: an approver is checked again on every list, approve and decline, against the project
+stored on the request, never an id the client sends, and exactly one answer wins, because
+approve claims the request first, then acts. If the action then fails on a database error, the answer is
 `500`, the request stays approved, the audit row records `effect: "failed"`, and a manager
 adds the person by hand.
 
@@ -428,31 +380,30 @@ adds the person by hand.
 | `PROJECT_ARCHIVED` | 409 | the project was archived; the request closes as `expired` |
 | `INVITATION_ENDED` | 409 | a switch request whose invitation is no longer pending; the request closes as `expired` |
 
-Audit actions: `access.request`, `access.request.held` (a cap held it; `reason`
+Audit actions: `access.request`, `access.request.held` (held by a cap; `reason`
 `per-email`, `workspace-cap` or `per-invitation`), `access.approve`, `access.decline`,
 `access.withdraw` and `access.supersede`, each with subject `request:<id>` (a held request
 stores nothing, so its subject is `request`). A note is recorded only as its length
 (`noteChars`), never its text, and no payload holds a token.
 
-## Service tokens
+### Service tokens
 
 | Route | Action | Notes |
 |---|---|---|
-| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint; the secret (`lwt_…`) appears in this response and never again |
-| `GET /api/v1/tokens` | `token.manage` (**owner**) | list with last-used and revocation state - never secrets |
-| `DELETE /api/v1/tokens/:id` | `token.manage` (**owner**) | revoke; the very next use gets `401` |
+| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint: body `{ label, role, ttlDays? }`. `label` says which automation holds the token (up to 80 characters), `role` is any role but `guest`, and `ttlDays` is a whole number from 1 to 365 (90 by default). `201` with the token record and `token`, the secret (`lwt_…`), which appears in this response and never again |
+| `GET /api/v1/tokens` | `token.manage` (**owner**) | list with expiry, last-used and revocation state - never secrets |
+| `DELETE /api/v1/tokens/:id` | `token.manage` (**owner**) | revoke: `200 { ok: true }`, or `404` for a token that is unknown or already revoked; the very next use gets `401` |
 
 A minted token rides `Authorization: Bearer lwt_…` and resolves to a synthetic
-principal carrying the token's role (no groups) - RBAC, grants and audit see it
-like any member (`user:svc_<id>` actor). It works on the **action-gated**
-surface (fleet, providers, governance export/apply, audit, telemetry summary);
-approvals, submit and collab refuse it - those flows mean "a person decided".
-See [identity](identity.md#service-tokens).
+principal carrying the token's role (no groups): permissions, grants and audit see it like any
+member (`user:svc_<id>` actor). [Who can call what](#who-can-call-what) lists where a token is
+accepted and refused, and [Automate with the Work API](automation-api.md) shows a first call.
+See [service tokens](enterprise-identity.md#service-tokens).
 
-## SCIM provisioning
+### SCIM provisioning
 
 Admin (cookie, owner-only) mints the bearer; the protocol half is what the IdP calls with the bearer.
-See [identity](identity.md#scim-provisioning).
+See [SCIM provisioning](enterprise-identity.md#scim-provisioning).
 
 | Route | Auth |
 |---|---|
@@ -465,120 +416,12 @@ See [identity](identity.md#scim-provisioning).
 an IdP runs before create. `active=false` on a User `PATCH` (or a `DELETE`) deprovisions:
 disable + session-epoch bump. Group membership maps to each user's local groups.
 
-## Approvals and inbox
+## Projects and documents
 
-| Route | Action |
-|---|---|
-| `GET/POST /api/v1/approvals` | member |
-| `GET /api/v1/approvals/approvers` | member |
-| `POST /api/v1/approvals/:id/act` | `approval.act` |
-| `POST /api/v1/approvals/:id/withdraw` | member (submitter) |
-| `GET /api/v1/inbox` | member - `{ messages, unread }` with `ETag: "ib-<16 hex>"` and `cache-control: private, no-cache`; a matching `If-None-Match` answers `304`, so a shell can check often for one header. `messages` holds the caller's messages and comment notices; `unread` counts both, and the tag moves when either changes |
-| `POST /api/v1/inbox/:id/ack` | member - dismisses the message for the caller. For a comment notice (`cn_…`) it deletes the caller's own notice row and nothing else, so the next reply in that thread shows a notice again |
-| `GET/POST /api/v1/messages` | `message.send` |
+Projects, the documents (sessions) inside them, who can open them, their saved versions and
+comments and the live room where people and agents edit together.
 
-Message targeting is groups × shell selectors × engine-version range. Besides the
-console's messages, the server writes `approval`, `expiry`, `collab` and `share`
-messages, `request` (someone asks for access and you may answer) and `notice` (an
-answer to your request, an accepted invitation, a welcome, an invitation entry that no
-longer works). `data.kind` identifies which, and `data.at` is when it happened; the kinds
-are listed in [sharing](sharing.md#notices).
-
-The inbox hides a message whose subject the caller can no longer reach: a project share
-or a live-collab invite once they cannot see the project, an invite also once its session
-is deleted, and an access request for a project once they no longer manage the project. Hidden is
-not deleted: the message comes back if the access does.
-
-Comment notices (plan 76 milestone 4) appear in the same list. There is one per person
-per thread, updated as replies arrive, and it is built when the inbox is read:
-
-```json
-{ "id": "cn_<24 hex>", "kind": "comment", "severity": "info",
-  "title": "Ana mentioned you in Spring poster",
-  "body": "<the first 140 characters of the newest message someone else wrote and nobody deleted>",
-  "cta": { "label": "Open thread", "url": "<appUrl>/#/team/<sessionId>?thread=<threadId>" },
-  "data": { "kind": "comment-mention", "sessionId": "...", "projectId": "...", "threadId": "...",
-            "actorName": "Ana", "label": "Spring poster", "count": "1", "at": "<iso>" },
-  "dismissible": true }
-```
-
-`data.kind` is `comment-mention` or `comment-reply`. A reply notice that counts several
-replies is titled "New replies in Spring poster: 3". `actorName` is the person's name,
-never an address, and `Member` when the account is gone. With no message by someone else
-left, `body` is "This comment is no longer available." `appUrl` is `instance.appUrl`, or
-empty when the app is served from this origin. The text is English; a client should build
-its own title from `data` and its own link from `data.sessionId` and `data.threadId`.
-
-Each notice is checked again on every read with the rule the comments routes use: the
-caller can still open the session, `session.view` and `comment.view` hold, and
-`policy.comments.enabled` and `policy.comments.notices` are not `false`. A notice that
-fails a grant or the policy is hidden and kept until it is 30 days old; after that the
-next read of the inbox (or of org-config) removes it, as does the next notice written for
-the person. One whose session is deleted, or whose project the caller can no longer reach,
-is deleted. Notices
-are never emailed today; see `policy.comments` under [Canvas comments](#canvas-comments).
-
-## Links and rendering
-
-| Route | Action |
-|---|---|
-| `POST /api/v1/links` | `link.create` (`link.create-guest` for `guest-edit`) |
-| `GET /api/v1/links[?all=1]` | member (own links; `all=1` needs the admin view) |
-| `POST /api/v1/links/:id/revoke` | own link, or `link.revoke` |
-| `GET /l/:id?s=…[&name=…]` | public (the signature *is* the authorization); a password link also needs its cookie. A browser opening a guest link gets its landing page, which admits nobody |
-| `POST /l/:id?s=…[&name=…]` | public: checks a password link's password and sets its cookie; the guest landing's form joins here (`name`, `password`) and is answered with `303` into the app |
-| `GET /l/:id?s=…&zip=1`, `…&asset=<id>[&dl=1]` | public - a collection link's zip-all, and one member of that set (an id it does not name is `404 NOT_IN_COLLECTION`) |
-| `GET /render/<toolId>.<format>` | `export.server`, or a guest scoped to that tool |
-
-A password link's password goes in the body of `POST /l/:id?s=…`, as the form
-field `password` or as JSON `{"password": "…"}`. The answer sets an HttpOnly
-cookie, `lw_link_<id>`, with `Path=/l/<id>`, lasting 12 hours at most and never
-past the link's expiry. A form gets a `303` back to the link and JSON gets
-`200 {"ok": true}`. A wrong password is `401 PASSWORD_INCORRECT`; ten wrong
-passwords from one address within 15 minutes lock the link for that address
-(`429 PASSWORD_LOCKED` with `Retry-After`). A browser that opens a password link
-without the cookie gets a page with that form. Password links answer
-`private, no-store`, because the cookie, not the URL, decides who reads them.
-`&pw=…` on the `GET` is deprecated and still works for one more release: the
-answer carries a `Deprecation` header and sets the same cookie, and the server
-logs one warning per link. See [Password links](sharing.md#password-links).
-
-For worker-backed renders, asset inputs use the same URL encoding as the Lolly
-shell. A `user/team/<fileId>` reference is resolved to that project's file endpoint
-only when the submitter can read the project and the file belongs to the render's
-scoped read ticket. The worker receives no general session credentials. Private
-files outside that scope remain inaccessible; inline baked assets keep their
-original bytes.
-
-## Recoverable render resources
-
-`POST /api/v1/renders` submits an authenticated, persistent single-tool request.
-List/get its state, retrieve its verified output, cancel it, or create a retry
-resource through the same API. The standalone server recovers expired leases;
-function-only hosts refuse new submissions. See [Recoverable renders](renders.md)
-for the request contract, routes, limits and deployment requirements.
-
-New durable outputs expose a partial execution receipt at
-`GET /api/v1/renders/:id/evidence`. It records loaded source hashes, prepared
-context, observed asset byte digests and the output digest under the same lease.
-The receipt describes its coverage gaps; it is not a complete dependency lock.
-The same download includes the output's [render identity](renders.md#render-identity),
-which binds the typed request to the resolved tool source, engine version,
-sources and effective policy.
-
-Render and batch requests accept `verification: "output-v1"`, or
-`verification: { profile: "output-v1", widthPx: 1200, heightPx: 630 }`.
-These assertions require final-file readback before publication. Failed required
-checks retain `error.inspection` and publish no output. The [verification profile](renders.md#verify-the-produced-file)
-lists supported formats and measurement limits; this is not design approval.
-
-`POST /api/v1/render-batches` creates a parent and up to 200 independent child
-renders atomically. Read its ordered rows and output receipts, download a JSON
-manifest, cancel unfinished rows or retry a terminal batch while retaining its
-successful children. The [batch API](renders.md#batches-with-durable-rows) is
-separate from the existing `/api/v1/batch` job/ZIP contract.
-
-## Projects and sessions
+### Projects and sessions
 
 | Route | Action |
 |---|---|
@@ -590,13 +433,15 @@ separate from the existing `/api/v1/batch` job/ZIP contract.
 | `GET /api/v1/projects/:id/folders` | viewer; `{ folders: [{ id, projectId, parentId, name, createdAt, createdBy, items: [{ kind, ref }] }] }` |
 | `POST /api/v1/projects/:id/folders` | editor and `session.edit`, project not archived; `{ name, parentId? }`; `201 { folder }`. An omitted or null parent creates a folder at the project root |
 | `PATCH /api/v1/projects/:id/folders/:folderId` | editor and `session.edit`; `{ name }` renames a folder |
+| `PUT /api/v1/projects/:id/folders/:folderId/parent` | editor and `session.edit`; `{ parentId }`, a folder in this project or `null` for the root, moves the folder. `200 { parentId }`; `400 INVALID_INPUT` for a parent outside the project or inside the folder itself |
+| `DELETE /api/v1/projects/:id/folders/:folderId` | editor and `session.edit`; `204`. The folder's documents, files and subfolders move up to its parent folder, or to the project root |
 | `PUT /api/v1/projects/:id/folders/items/:kind/:ref` | editor and `session.edit`; `{ folderId }` moves a session or finished file into a folder in this project. Null returns it to the project root. Changes no document content or file bytes |
 | `GET/POST /api/v1/projects/:id/sessions` | viewer / editor and `session.create`. List rows carry `updatedByName` |
 | `GET /api/v1/sessions/:id`, `GET …/revisions` | viewer. The full session carries `myRole`, the caller's effective project role; workspace capabilities still apply |
 | `PUT /api/v1/sessions/:id` | editor and `session.edit`. Session bodies (this and the `POST` above) may be up to 4 MiB; other routes take 512 KiB |
 | `DELETE /api/v1/sessions/:id` | `session.delete`, editor, and the caller must be the session's creator or a manager of the project (its owner, a manager member, or a holder of `project.manage`; admins and owners hold it by default and a deny grant applies to them too) |
-| `GET /api/v1/projects/:id/members` | viewer - `{ myRole, canTransfer, members: [{ userId, name, email?, role, via, addedAt, isMe? }], effective?, effectiveTruncated?, adminAccess?, invitations?, requests? }`; `email`, `effective`, `adminAccess`, `invitations` and `requests` for managers only; `isMe: true` marks the caller's own row. `via` is `owner` or `member`. `canTransfer` says whether the caller may hand the project on, by the test `PATCH` applies to `ownerId`. `effective` lists the people who can open the project without a row on it: `[{ userId, name, role, via: group \| admin, group?, isMe? }]`, no email, disabled accounts left out, sorted by name and capped at 200 (`effectiveTruncated: true`). Group rows cover only the groups the caller is in, unless the caller is an admin or owner. `adminAccess` is `listed` for an admin or owner caller, who also gets the `admin` rows, and `note` for any other manager, who gets no `admin` rows and sees group rows at the level the group gives; see [permissions](permissions.md#who-can-see-who-has-access). `invitations` lists the pending invitations that carry the project and those that expired in the last 30 days: `{ id, email, role, createdAt, expiresAt?, status: pending \| expired, openedAt?, invitedByName?, passwordSetup, link? }`, where `link` is the invite link for this project's entry, while pending. `requests` lists the open requests for the project: `{ id, userId, name, email, role, currentRole, note?, createdAt, viaSession?: { id, name } }` |
-| `POST /api/v1/projects/:id/invite` | manager - body `{ emails, role, passwordSetup? }`; `200 { results: [{ email, status: added \| invited \| already \| refused, reason?, invitationId?, link?, expiresAt? }], link, message }`. A result's `link` is that address's own invite link for this project; the top-level `link` is `<appUrl or baseUrl>/#/team/project/<id>`. `message: { workspace, inviter, providers, note? }` is what Lolly needs to compose an invite message. `passwordSetup` is honoured only for an admin or owner with `user.invite` while a `password` entry is configured. New addresses follow `policy.invites`. A caller without `user.invite` may send 100 addresses an hour (`429 RATE_LIMITED`). Reasons are listed in [sharing](sharing.md#inviting-people) |
+| `GET /api/v1/projects/:id/members` | viewer - who is on the project, with more for managers; the shape is [below](#the-members-answer) |
+| `POST /api/v1/projects/:id/invite` | manager - body `{ emails, role, passwordSetup? }`; `200 { results: [{ email, status: added \| invited \| already \| refused, reason?, invitationId?, link?, expiresAt? }], link, message }`. A result's `link` is that address's own invite link for this project; the top-level `link` is `<appUrl or baseUrl>/#/team/project/<id>`. `message: { workspace, inviter, providers, note? }` is what Lolly needs to compose an invite message. `passwordSetup` is honoured only for an admin or owner with `user.invite` while a `password` entry is configured. New addresses follow `policy.invites`. A caller without `user.invite` may send 100 addresses an hour (`429 RATE_LIMITED`). Reasons are listed in [inviting people to a project](invitations.md#invite-people-to-a-project) |
 | `PATCH /api/v1/projects/:id/members/:userId` | manager - body `{ role }`; `409` for the owner |
 | `PUT /api/v1/projects/:id/members/:userId/expiry` | manager - body `{ expiresAt }`, an ISO time in the future or `null` to clear; within `policy.sharing.maxGrantDays`. A membership past its end date gives no access and stays listed so it can be extended; sharing with the person again, an accepted invitation or an approved request also restores it, with no end date. Editors who may share cannot set end dates: an end date a minute away is a removal, and removal is for managers. `409` for the owner |
 | `GET /api/v1/projects/:id/sharing` | viewer - `{ general: { audience: restricted \| instance, role }, grants: [{ principal: { kind: group, name } \| { kind: custom-group, id, name, memberCount }, role, expiresAt? }], expiries, settings: { viewersCanComment, viewersCanExport, editorsCanShare }, policy: { audiences, instanceMaxRole, roles, customGroups, maxGrantDays? }, canManage }`. `expiries` maps member ids to end dates, for managers only. `viewersCanComment: false` stops viewers creating comments and replies (`403`). `viewersCanExport` is advice to shells only: a viewer can render on their own device, so the server cannot enforce that restriction. Read by `@lolly-tools/core/sharing-v1` `readShareState` |
@@ -613,11 +458,12 @@ separate from the existing `/api/v1/batch` job/ZIP contract.
 | `POST /api/v1/sessions/bulk` | `session.edit` and `project.manage`; only sessions in projects where the caller is an editor |
 | `GET /api/v1/collab/invitees?sessionId=…&q=…` | member with read access to the session |
 | `POST /api/v1/collab/invites` | `collab.edit` (= `session.edit`) |
+| `POST /api/v1/collab/sessions/:id/socket-ticket` | signed-in member (session cookie) with read access to the session and `collab.join` - a one-use ticket for [the collab socket](#the-collab-socket): `200 { ticket }` |
 | `GET /api/v1/collab/rooms` | `telemetry.view` - live room census for the console |
 | `GET/POST /api/v1/collab/nearby` | `collab.join` - the nearby-discovery handover lane |
 
 Roles on a project (viewer, commenter, editor, manager, owner) are described in
-[sharing](sharing.md#people-and-roles). A commenter reads and comments like a viewer and
+[people and roles](team-projects.md#people-and-roles). A commenter reads and comments like a viewer and
 never changes artwork. A viewer or commenter asked to write gets `403 READ_ONLY`;
 someone who cannot see the project gets `403 FORBIDDEN`.
 
@@ -652,261 +498,170 @@ server-side and delivers through the inbox (`kind: "collab"`, `data.sessionId`
 for the deep link); re-inviting refreshes the pending message instead of adding
 a second.
 
-### Project files
+#### The members answer
 
-Files shared inside a project ([sharing](sharing.md#shared-files)). While
-`sharing.projectFiles` in org-config is `false` (policy off, or the memory store), every
-route here answers `404 NOT_FOUND` with the message `project files are off`.
+`GET /api/v1/projects/:id/members` answers:
 
-| Route | Who | Answer |
-|---|---|---|
-| `GET /api/v1/projects/:id/files` | viewer | `200 { files, limits }` |
-| `POST /api/v1/projects/:id/files` | editor and `session.create`, project not archived; a person, so a service token gets `403` | `201 { file, partBytes }`: the upload is reserved |
-| `PUT /api/v1/projects/:id/files/:fileId/parts/:n` | the uploader | `204`; the body is part `n`'s bytes |
-| `GET /api/v1/projects/:id/files/:fileId/parts` | the uploader | `200`: which parts are stored, so an interrupted upload sends only the rest (see below). Asking does not move `expiresAt` |
-| `POST /api/v1/projects/:id/files/:fileId/finalize` | the uploader | `200 { file }` with `ready: true`; repeating it is harmless |
-| `GET /api/v1/projects/:id/files/:fileId` | viewer | the bytes, as an attachment, `private, no-store` |
-| `PATCH /api/v1/projects/:id/files/:fileId` | editor and `session.edit`, project not archived; a person, so a service token gets `403` | `200 { name }`; the body is `{ name }`, 1 to 200 characters with no control characters. The bytes, id and checksum do not change, so sessions that use the file keep working. `400 INVALID_INPUT` for a bad name, `403` without editor access, `404` for an unknown or unfinished file or a file in another project |
-| `DELETE /api/v1/projects/:id/files/:fileId` | the uploader, or manager and up | `204`; on an unfinished upload this cancels it |
+```ts
+{
+  myRole, canTransfer,
+  members: [{ userId, name, email?, role, via, addedAt, isMe? }],
+  effective?, effectiveTruncated?, adminAccess?, invitations?, requests?,
+}
+```
 
-The begin body is `{ name, size, checksum, contentType, parts: [{ size, checksum }], asset }`,
-where `checksum` is the hex SHA-256 of the whole file and of each part, every part but the
-last is `partBytes` (1 MiB) long, and `asset` is the shell's own description of the file.
-The instance keeps only `type` and `format` (up to 64 characters each), `width` and `height`
-(numbers above zero) and `meta.name` (up to 200 characters) from `asset`, and drops anything
-else, a credential included. `file` in the begin answer also carries `parts` and `expiresAt`.
-`expiresAt` is 15 minutes after the begin; each accepted part moves it to 15 minutes after
-that part, but never past `policy.projectFiles.uploadTtlHours` after the begin.
+- `email`, `effective`, `adminAccess`, `invitations` and `requests` are for managers only.
+  `isMe: true` marks the caller's own row, and `via` is `owner` or `member`.
+- `canTransfer` says whether the caller may hand the project on, by the test `PATCH` applies to
+  `ownerId`.
+- `effective` lists the people who can open the project without a row on it:
+  `[{ userId, name, role, via: group | admin, group?, isMe? }]`, no email, disabled accounts left
+  out, sorted by name and capped at 200 (`effectiveTruncated: true`). Group rows cover only the
+  groups the caller is in, unless the caller is an admin or owner.
+- `adminAccess` is `listed` for an admin or owner caller, who also gets the `admin` rows, and
+  `note` for any other manager, who gets no `admin` rows and sees group rows at the level the
+  group gives; see [who can see who has access](team-projects.md#who-can-see-who-has-access).
+- `invitations` lists the pending invitations that carry the project and those that expired in
+  the last 30 days: `{ id, email, role, createdAt, expiresAt?, status: pending | expired,
+  openedAt?, invitedByName?, passwordSetup, link? }`, where `link` is the invite link for this
+  project's entry, while pending.
+- `requests` lists the open requests for the project:
+  `{ id, userId, name, email, role, currentRole, note?, createdAt, viaSession?: { id, name } }`.
 
-The parts report is `{ id, ready, size, checksum, expiresAt, partBytes, parts, missing,
-receivedParts, receivedBytes, offset }`. `missing` lists the part numbers not yet stored, in
-order; a stored part whose bytes no longer match its digest is listed too. `offset` is the
-bytes in the run of stored parts from the start. A finished file reports `ready: true`, no
-`expiresAt` and nothing missing, so a client whose finalize answer was lost learns the file is
-complete. An expired upload answers `410 UPLOAD_EXPIRED`. [Resumable uploads](resumable-uploads.md)
-explains the protocol and the choice of it over tus.
+### Share links
 
-Each `files` row is `{ id, projectId, name, size, checksum, contentType, ready: true, asset,
-createdAt, createdBy, createdByName? }`, newest first. Only finished files are listed.
-`createdByName` never falls back to an email address. `limits` is `{ partBytes, maxBytes,
-projectBudgetBytes, projectUsedBytes, instanceRemainingBytes }`, where the used and remaining
-figures count finished files and unfinished uploads that have not expired, each at its size
-plus 4096 bytes for its database rows.
-
-| Code | Status | When |
-|---|---|---|
-| `PROJECT_FILE_TOO_LARGE` | 413 | begin: `size` is over `policy.projectFiles.maxFileBytes` |
-| `PROJECT_FILE_BUDGET` | 413 | begin: the project's files would pass `projectBudgetBytes` |
-| `INSTANCE_FILE_BUDGET` | 413 | begin: all projects' files would pass `instanceBudgetBytes` |
-| `PROJECT_FILE_PENDING` | 413 | begin: the caller already has 16 unfinished uploads, or their declared sizes with this one would pass twice `maxFileBytes` |
-| `INVALID_INPUT` / `INVALID_PART` | 400 | malformed metadata, or no such part |
-| `CHECKSUM_MISMATCH` | 422 | a part, or the finished file, does not match its declared digest |
-| `FILE_READY` | 409 | a part sent to a finished file |
-| `UPLOAD_INCOMPLETE` | 409 | finalize before every part arrived |
-| `UPLOAD_EXPIRED` | 410 | the upload passed its expiry (15 minutes without an accepted part, or `uploadTtlHours` after the begin) or was cancelled |
-| `FILE_IN_USE` | 409 | delete of a file that live sessions in the project use; `sessions: [{ id, title }]` identifies them. A manager may add `?force=1` |
-| `RATE_LIMITED` | 429 | download: this person already downloaded twice `instanceBudgetBytes` today, as counted by this server process; `retry-after` gives the seconds to wait |
-
-Errors keep the usual `{ "error": { "code", "message" } }` shape. Finishing an upload is
-audited as `project.file-upload`, a rename as `project.file-rename` (with the `fileId`), a delete
-or cancel as `project.file-delete` (with `forced: true` and the session ids when `?force=1` was
-needed). An unfinished upload more
-than an hour past its expiry is removed, parts first, when someone next begins an upload (up to
-50 at a time) and by `POST /api/v1/retention/run` (up to 500), whose answer then carries
-`projectFilesSwept`. The long-lived server also sweeps them at boot and daily, whatever the
-retention policy says. A serverless deploy has no timer, so there their parts stay in storage
-until one of those runs; they count toward no budget meanwhile.
-
-### Uploads
-
-Private, resumable uploads that a person or a service token names by reference
-([resumable uploads](resumable-uploads.md)). They use the same parts protocol as project
-files. A `catalog-submission` upload is the original for
-`POST /api/v1/catalog/submit?uploadId=…&checksum=…`, which removes it once the submission is
-stored. An `automation-input` upload is read by `upload: { id, checksum }` in `/api/v1/inspect`
-and `/api/v1/optimize`, as often as its owner likes until it expires. A finished `file` upload
-is a [file reference](#file-references), which its owner can also read back. Nobody downloads
-an upload in the other two scopes. `policy.uploads.enabled` is `false` by default, and while it
-is, every route here answers `404 NOT_FOUND` with the message `uploads are off`.
-
-| Route | Who | Answer |
-|---|---|---|
-| `GET /api/v1/uploads` | a member or a service token | `200 { uploads, limits }`: the caller's own uploads that have not expired, newest first, at most 50 |
-| `POST /api/v1/uploads` | `catalog.submit` for scope `catalog-submission`, `tool.use` for `automation-input` and `file`; a member or a service token, never a guest | `201 { upload, partBytes }`: the upload is reserved |
-| `GET /api/v1/uploads/:id` | the owner | `200 { upload }` |
-| `GET /api/v1/uploads/:id/parts` | the owner | `200`: the parts report, as for project files |
-| `PUT /api/v1/uploads/:id/parts/:n` | the owner | `204`; the body is part `n`'s bytes |
-| `POST /api/v1/uploads/:id/finalize` | the owner | `200 { upload }` with `ready: true`, and `file` for scope `file`; repeating it is harmless |
-| `DELETE /api/v1/uploads/:id` | the owner | `204`; parts first, then the record |
-
-The begin body is `{ scope, name, size, checksum, contentType, parts: [{ size, checksum }] }`
-with the same digest and part rules as a project file; scope `file` also takes `role`,
-`derivedFrom` and `report` as below. An `upload` is `{ id, scope, name, size,
-checksum, contentType, ready, createdAt, expiresAt }`; the begin answer adds `parts`. An
-unfinished upload expires like a project file, at most `policy.uploads.uploadTtlHours` after
-its begin; a finished one expires `policy.uploads.readyTtlHours` after it finished, or
-`policy.uploads.fileTtlHours` for scope `file`. Every route
-but the list and the begin answers `404 NOT_FOUND` for an upload the caller does not own, so an
-id reveals nothing. `limits` is `{ partBytes, maxBytes, ownerBudgetBytes, ownerUsedBytes,
-instanceRemainingBytes }`.
-
-| Code | Status | When |
-|---|---|---|
-| `UPLOAD_TOO_LARGE` | 413 | begin: `size` is over `policy.uploads.maxFileBytes`, or over `policy.submit.maxBytes` for a catalog original; `maxBytes` gives the cap |
-| `UPLOAD_BUDGET` | 413 | begin: the owner's uploads would pass `ownerBudgetBytes` |
-| `INSTANCE_UPLOAD_BUDGET` | 413 | begin: all owners' uploads would pass `instanceBudgetBytes` |
-| `UPLOAD_PENDING` | 413 | begin: the owner already has 16 unfinished uploads |
-| `INVALID_INPUT` / `INVALID_PART` | 400 | an unknown scope, malformed metadata, or no such part |
-| `CHECKSUM_MISMATCH` | 422 | a part, or the finished upload, does not match its declared digest |
-| `UPLOAD_READY` | 409 | a part sent to a finished upload |
-| `UPLOAD_INCOMPLETE` | 409 | finalize before every part arrived |
-| `UPLOAD_EXPIRED` | 410 | the upload passed its expiry |
-
-A consumer given a reference it cannot use answers `400 INVALID_INPUT` for a malformed one and
-`404 NOT_FOUND` for one the caller does not own, in the wrong scope, unfinished, expired or
-with another checksum. Finishing an upload is audited as `upload.finish` and a cancel as
-`upload.delete`, with the scope, size and checksum but not the name. Expired uploads are swept
-like project files. Erasing an account removes every upload the person owns, or answers
-`409 ERASE_UPLOADS_REMAIN` and changes nothing else while any remain.
-
-### File references
-
-A file reference is an opaque id for bytes kept on this instance, with their digest, an
-expiry and the operations its owner can run on them. Upload once, then inspect, optimize and
-read back by reference, without sending the bytes again or getting them back in a JSON body.
-A reference is a finished upload in scope `file`, so it shares the [uploads](#uploads)
-budgets, caps, sweep, erasure and `policy.uploads.enabled` switch. It lasts
-`policy.uploads.fileTtlHours` (a week by default) after it finished, and outlasts a restart.
-
-A reference belongs to the account that made it: a person, from any of their sessions, or one
-service token. A service token's references are its own, not those of the person who minted
-it, so a new token does not see an old token's references. Nobody else learns that a
-reference exists. Every route on one reference, and every request that identifies one, answers
-the same `404 NOT_FOUND` for someone else's reference as for an id that was never issued. Two
-owners who keep the same bytes get two references.
-
-| Route | Who | Answer |
-|---|---|---|
-| `GET /api/v1/files?limit=&cursor=` | a member or a service token with `tool.use` | `200 { files, nextCursor }`: the caller's own references, newest first, 50 a page by default and at most 50. `nextCursor` is opaque, or `null` on the last page |
-| `POST /api/v1/files` | as above | `201 { file }`: the bytes in the JSON body are kept as a reference |
-| `GET /api/v1/files/:id` | the owner | `200 { file, report }` |
-| `GET /api/v1/files/:id/content` | the owner | `200` with the bytes |
-| `DELETE /api/v1/files/:id` | the owner | `204`; the bytes go first, then the record |
-
-`POST /api/v1/files` takes `{ name, contentType, bytesBase64, checksum?, role?, derivedFrom?,
-report? }`, with the bytes as canonical base64, up to 4 MiB or `policy.uploads.maxFileBytes` if
-that is smaller. `checksum` is the sha256 you expect; other bytes are refused. Behind a request
-cap smaller than the body, such as Vercel's 4.5 MB, or for a larger file, begin an upload with
-scope `file` instead and send it in parts; `lw upload <file> --scope file` does that.
-
-`role` is `original` unless the bytes are the `output` of an operation done elsewhere. An
-output may name `derivedFrom: { id, checksum }`, one of the caller's own references, and
-carry a `report`: a `FileOperationReportV1` from `@lolly-tools/core/file-operation-v1`, at most
-64 KiB of JSON, that passes that contract's check. Work keeps the report the owner supplied
-and labels it so; it does not check the claims in the report.
-
-A `file` is `{ id, name, contentType, size, checksum, role, derivedFrom, reportedBy, createdAt,
-expiresAt, operations, unavailable }`. `checksum` is the sha256 of the exact bytes.
-`reportedBy` is `owner`, `instance` or `null`. `operations` lists what the owner can do with
-this reference, each as the request to make: `read`, `inspect`, `optimize` for a PNG, JPEG or
-SVG, and `delete`. `unavailable` lists an operation this reference cannot take, with a
-`code` and a `reason`.
-
-Reading back streams the bytes as an attachment with `x-content-type-options: nosniff` and a
-sandboxing `content-security-policy`, whatever the declared type, so a reference never runs as
-a page. `ETag` is the quoted sha256 and `Repr-Digest` carries it as `sha-256=:…:`. Each part is
-checked as it streams, and a body that fails its declared digest is cut short. One owner may
-read back twice `policy.uploads.instanceBudgetBytes` a day, counted per server process; past
-that the answer is `429 RATE_LIMITED` with `retry-after`.
-
-The document verbs take a reference where they take bytes: `file: { id, checksum }` in
-`/api/v1/inspect` and `/api/v1/optimize`. `/api/v1/optimize` with `output: "file"` keeps its
-output as a new reference of the caller, with `role: "output"`, `derivedFrom` naming the input
-reference when there was one, and a report this instance wrote (`reportedBy: "instance"`). It
-answers `{ file, bytes, savedBytes, stages }` instead of `bytesBase64`. Queued (`?async=1`)
-requests read the reference when they run.
-
-Nothing about a reference or its caller is cached. Every request resolves the caller, checks
-`tool.use` against the current grants and loads the reference again, so each of these refuses
-the very next request:
-
-- the owner deletes the reference: `404`;
-- an owner revokes the service token: `401`;
-- an admin disables the person, or signs them out everywhere: `401` for the old sessions;
-- a grant denies the caller `tool.use`: `403`, and the reference reads again once the grant
-  goes;
-- the reference expires, or the account is erased: `404`.
-
-A queued (`?async=1`) request is checked again when it runs, against the account that queued
-it rather than the session. Deleting the reference, revoking the token, disabling the person,
-denying `tool.use`, expiry and erasure each make it a failed job that reads nothing, with the
-reason in its `error`; these status codes do not apply to this route. Signing out everywhere ends
-sessions only, so work already queued for the account still runs. To stop that work too,
-disable the person or revoke the token before it runs.
-
-A reference counts toward the budgets at its size plus 4096 bytes for its database rows, plus
-the size of its `derivedFrom` and report as JSON, so a report takes room like the bytes do.
-
-Document agents, which act for a person inside one document, cannot use the person's file
-references. Making a reference is audited as `file.create` and deleting one through these
-routes as `file.delete`, with the size, checksum and role but not the name. Reads are not
-audited. [Discovery](#effective-schemas-and-discovery) reports `files.references`, which is
-`true` while `policy.uploads.enabled` is.
-
-| Code | Status | When |
-|---|---|---|
-| `UPLOAD_TOO_LARGE` | 413 | create: the bytes are over 4 MiB or `policy.uploads.maxFileBytes` |
-| `PAYLOAD_TOO_LARGE` | 413 | create: the body is too large to read |
-| `UPLOAD_BUDGET` / `INSTANCE_UPLOAD_BUDGET` / `UPLOAD_PENDING` | 413 | as for an upload begin |
-| `CHECKSUM_MISMATCH` | 422 | create: the bytes are not the `checksum` given |
-| `INVALID_INPUT` | 400 | malformed base64, name, media type, role, `derivedFrom`, report, `limit` or `cursor` |
-| `RATE_LIMITED` | 429 | read back: the owner's daily amount is used up |
-
-### The collab socket
-
-Live co-editing runs over `GET /ws/collab/:sessionId`, a WebSocket upgrade
-carrying the same session cookie an HTTP call would. Authorization happens
-**before the handshake completes**, so a refusal is a plain HTTP status on the
-socket rather than a mystery disconnect: `401` unauthenticated, `404` no such
-session, `403` the project is not visible to you or `collab.join` is denied,
-`410` the session is in the bin, `429` too many connections or reconnects, `503`
-busy or shutting down. Write access is not a refusal: a member who may read but
-not edit is seated as an **observer**.
-
-One optional field rides the upgrade URL, and a client that omits it is
-unaffected:
-
-| Param | Meaning |
+| Route | Action |
 |---|---|
-| `ds` | the brand profile the client is rendering with |
-| `dsi` | the instance base that design system came from |
+| `POST /api/v1/links` | `link.create` (`link.create-guest` for `guest-edit`) |
+| `GET /api/v1/links[?all=1]` | member (own links; `all=1` needs the admin view) |
+| `POST /api/v1/links/:id/revoke` | own link, or `link.revoke` |
+| `GET /l/:id?s=…[&name=…]` | public (the signature *is* the authorization); a password link also needs its cookie. A browser opening a guest link gets its landing page, which admits nobody |
+| `POST /l/:id?s=…[&name=…]` | public: checks a password link's password and sets its cookie; the guest landing's form joins here (`name`, `password`) and is answered with `303` into the app |
+| `GET /l/:id?s=…&zip=1`, `…&asset=<id>[&dl=1]` | public - a collection link's zip-all, and one member of that set (an id it does not name is `404 NOT_IN_COLLECTION`) |
 
-A room hosted here runs under exactly one design system, the one this deployment
-governs (OSS `plans/186` section 3.10). When a client identifies one, `dsi` must be
-this instance's `baseUrl` (a trailing slash and letter case are not a
-difference, and the comparison is on the origin) and, on a profile-aware pack,
-`ds` must be the **active** brand profile that `GET /api/v1/brand/profiles`
-reports. A mismatch is refused `403 DESIGN_SYSTEM_MISMATCH`, whose body names
-the design system to switch to. On a pack with no brand profiles there is
-nothing to compare a name against, so only `dsi` is checked. Sending neither
-param joins as before; sending one of the two checks only that one.
+**Password links.** The password goes in the body of `POST /l/:id?s=…`, as the form field
+`password` or as JSON `{"password": "…"}`. The answer sets an HttpOnly cookie, `lw_link_<id>`,
+with `Path=/l/<id>`, lasting 12 hours at most and never past the link's expiry. A form gets a
+`303` back to the link and JSON gets `200 {"ok": true}`. A browser that opens a password link
+without the cookie gets a page with that form. Password links answer `private, no-store`,
+because the cookie, not the URL, decides who reads them. See
+[password links](sharing.md#password-links).
 
-Clients can negotiate `interactionVersion: 1` in their join frame. Transform and
-text claims belong to the live room, expire after ten seconds without renewal and
-end on disconnect, demotion or object deletion. Acquisition covers all requested
-objects atomically. Previews use document coordinates and never write the session.
-Durable operations carry their claim ID; conflicting or expired claims are refused.
+A wrong password is `401 PASSWORD_INCORRECT`. Ten wrong passwords from one address within 15
+minutes lock the link for that address (`429 PASSWORD_LOCKED` with `Retry-After`).
 
-Canvas asset fields carry bounded `lolly-asset-v1:` references on the scalar lane.
-These contain an asset ID, type, format, optional dimensions and an immutable project
-file version; local URLs, file bytes and metadata do not travel in room operations.
-The session projection stores ordinary asset reference objects so project file usage,
-reopening and export retain their existing behavior. The shell uploads a device image
-before sending its reference and restores project bytes before painting a received image.
-The interaction-v1 shell understands these references. Older members receive ordinary
-fields and retain their already-restored images; extension strings are omitted from
-their operations and checkpoints. Live delivery of a newly added image needs the current shell.
-Clients that do not negotiate this version continue to use the existing protocol.
+::: note `&pw=` on a link is deprecated
+`&pw=…` on the `GET` is deprecated as of Work 1.1.2, which still accepts the parameter: the
+answer carries a `Deprecation` header and sets the same cookie, and the server logs one warning
+per link. A later release refuses `&pw=`.
+:::
+
+`GET /render/<toolId>.<format>`, which renders from the inputs in a URL, is described in
+[render from a URL](automation-api.md#render-from-a-url).
+
+### Session versions
+
+Saved versions of a document. What is kept, and for how long, is
+in [data lifecycle](data-lifecycle.md#session-versions). Every route needs a signed-in
+person (a service token gets `401`), current session read access (`404`, `403`, `410`
+as for the session) and `session.view`. Saving, naming, pinning and restoring also need
+editor access and `session.edit` (`403 READ_ONLY`) and a project that is not archived
+(`409 PROJECT_ARCHIVED`). Deleting needs a manager of the project (`403 FORBIDDEN`).
+
+| Route | Result |
+|---|---|
+| `GET /api/v1/sessions/:id/versions?limit=&before=` | `200 { versions, before? }`, newest first. `limit` is 1 to 100 (30 by default); `before` is a version id to page on from, and the answer carries one when a full page came back. `cache-control: private, no-store` |
+| `GET /api/v1/sessions/:id/versions/:versionId` | `200 { version }` with its `inputs` and `meta` |
+| `POST /api/v1/sessions/:id/versions` | Save the document as it is stored now, with a name: `{ label, requestId }`, a label of 1 to 120 characters. `201 { version }`; the same `requestId` again answers `200` with the first version. Audited `session.version.save` |
+| `PATCH /api/v1/sessions/:id/versions/:versionId` | Name, rename or pin a version: `{ annotationRev, label?, pinned? }`, below. `200 { version }`. Audited `session.version.annotate` |
+| `POST /api/v1/sessions/:id/versions/:versionId/restore` | Restore it: `{ requestId }`. `200 { revision, live, restored, before, skipped, vetoed }`, below |
+| `DELETE /api/v1/sessions/:id/versions/:versionId` | Delete it, with its restore pair. `200 { deleted: true }`. Audited `session.version.delete` |
+
+A version is `{ id, sessionId, rev, kind, label?, contributors, createdBy?, createdByName?,
+restoredFrom?, beforeId?, bytes, at, pinned, annotationRev }`. `kind` is `auto`, `close`,
+`save`, `named`, `restore` or `before` (the document a restore replaced). `contributors`
+are `{ id, kind, edits, name }` for the people and agents who edited since the version
+before it; guests are counted together as one entry named "Guest". Names never carry
+an email address.
+
+**Name and pin.** `PATCH` changes only a version's `label` and `pinned`; its content and
+everything else stay as they were saved. Send the `annotationRev` you read with the
+version, and `label` (1 to 120 characters, or `null` to remove the name), `pinned`
+(`true` or `false`), or both; a field you leave out keeps its value. Each change adds
+one to `annotationRev`. When someone else changed the name or pin since you read it,
+the answer is `409 VERSION_CHANGED` with the current `version` in the error, so you can
+show it and try again. A request that asks for the name and pin the version already
+has answers `200` and changes nothing, so a repeated request is safe. A version saved
+with a name can be renamed but keeps a name (`400`). A named or pinned version is kept:
+history never removes it for age or space, and it counts against the named limits of
+the person who first named or pinned it, until neither name nor pin is left.
+
+**Restore.** On the long-lived server a restore goes through the document's live room,
+which it opens when none is open, as one batch that everyone in the room receives, and
+it needs `collab.join` (`403`). The restoring person's own write checks apply: an input
+they may not change keeps its value and is named in `vetoed`, and an input the tool
+does not declare, or of the wrong type, is named in `skipped`. On a serverless deploy
+it is a compare-and-swap on the session row. Two versions record it, with the same
+`requestId`: the `before` version, the document it replaced, which Undo restores, and
+the `restore` version, the document it produced. In the answer, `before` is the id to
+restore for Undo, `restored` is the restore version's id (or `null` when history had
+no room for it), `revision` is the session's revision after it and `live` says whether
+anyone else was in the room. The same `requestId` again answers with the first result.
+Comments are never changed. The audit entry `session.restore` holds ids and counts.
+
+Saves, name and pin changes and restores share one limit per person: 10 a minute and
+60 an hour (`429 RATE_LIMITED`, `retry-after` in seconds).
+
+::: details Version error codes
+| Code | Status | When |
+|---|---|---|
+| `VERSION_LIMIT` | 409 | a named save, or naming or pinning a version, past 20 kept versions per person or 100 per document |
+| `VERSION_CHANGED` | 409 | the version's name or pin changed after the `annotationRev` you sent; the error carries the current `version` |
+| `VERSION_SPACE` | 409 | a named save, or the `before` version of a restore, does not fit the space caps (100 MiB per document; `policy.versions.maxBytes` for the instance) |
+| `RESTORE_INCOMPLETE` | 409 | the document cannot take every change of the version (a ceiling such as the number of objects); nothing was changed |
+| `SESSION_CHANGED` | 409 | the document kept changing while restoring, or it is open on another server; try again |
+| `NOT_FOUND` | 404 | the version is not one of this session's |
+| `INVALID_INPUT` | 400 | a missing or malformed `label`, `pinned`, `annotationRev`, `requestId`, `limit` or `before`, or removing the name of a version saved with one |
+:::
+
+### History across documents
+
+`GET /api/v1/history` lists the versions of every document you can read, newest first,
+in one request. It needs a signed-in person: a service token gets `401`, and
+a request an agent makes for a person gets `403`, because an agent's access is one
+project or one document. The answer is `200 { entries, before? }`, private to you
+(`cache-control: private, no-store`).
+
+What can appear is decided on the server before anything is read, with the same rules
+as reading one document's versions: access to the project (membership, its end date,
+groups and sharing) and `session.view` on the document. A document in a project you
+cannot see, a deleted document, and a document a grant denies you never appear, and
+nothing in the answer says they exist.
+
+Without `project`, the page covers your own projects, as your Projects list shows them:
+projects you own or were added to (directly or through a group), projects you pinned,
+and projects you opened in the last 30 days. A project you hid never appears, and an
+archived project appears only with `archived=1`. A project shared with everyone, or one
+an administrator can see only as an administrator, appears once you pin it, or for
+30 days after you open the project.
+
+| Parameter | Meaning |
+|---|---|
+| `limit` | 1 to 100 entries, 50 by default |
+| `before` | the `before` of the page you read last, to read the next one. It identifies the last entry of that page and is otherwise opaque. A page that came back full carries one |
+| `project` | one project you can see, including one you hid or archived: `404` when there is none, `403` when you cannot see that project |
+| `tool` | one tool id |
+| `kind` | one or more of `auto`, `close`, `save`, `named`, `restore` and `before`, separated by commas |
+| `kept=1` | only versions kept by a name or a pin |
+| `from`, `to` | a date and time; both ends are included |
+| `archived=1` | include your archived projects |
+
+An entry is a version as `GET /api/v1/sessions/:id/versions` lists it (above), with
+`projectId`, `projectName`, `projectArchived` (only when it is), `toolId`, `toolVersion`
+and `sessionLabel` (the document's current name, or `null`). It never carries the
+document's content or an email address. Read a version's content with
+`GET /api/v1/sessions/:id/versions/:versionId`. A malformed parameter answers
+`400 INVALID_INPUT`.
 
 ### Canvas comments
 
@@ -972,12 +727,11 @@ carries no text; a client fetches the one thread.
 answer is `429 RATE_LIMITED` with `retry-after` in seconds (3600 when the hourly write
 limit is the one reached, otherwise 60).
 
-**Policy.** `policy.comments` takes `enabled` (default true), `mentions` (default true;
-false stores no mentions and refuses `comment-people`), `notices` (default true; false
-writes no notices and hides the existing ones) and `emailTitles` (default false). Mention
-email is a seam that is off in this release. When it is switched on, a new mention is
-mailed as "Ana mentioned you on <workspace>" with a link to the thread, never the comment
-text, and identifies the document only with `emailTitles: true`. Replies are not mailed.
+**Policy.** `policy.comments` turns review, mentions, notices and the document title in mention
+email on or off; the keys and defaults are in [configuration](configuration.md#comments-and-versions). Mention
+email is a seam that is off in this release. When it is switched on, a new mention is mailed as
+"Ana mentioned you on <workspace>" with a link to the thread, never the comment text, and
+identifies the document only with `emailTitles: true`. Replies are not mailed.
 
 Viewers may comment when `comment.create` permits it, without gaining artwork
 editing rights. People may edit or delete their own messages with `comment.edit`.
@@ -996,360 +750,60 @@ Limits are 100 threads per session, 50 messages per thread, 4,000 characters per
 message and 64 KB per stored thread. Message bodies are plain text. Attribution and
 timestamps come from the server; audit records contain identifiers, not message text.
 
-### Session versions
+### The collab socket
 
-Saved versions of a document (plan 76 milestone 4). What is kept, and for how long, is
-in [data lifecycle](data-lifecycle.md#session-versions). Every route needs a signed-in
-person (a service token gets `401`), current session read access (`404`, `403`, `410`
-as for the session) and `session.view`. Saving, naming, pinning and restoring also need
-editor access and `session.edit` (`403 READ_ONLY`) and a project that is not archived
-(`409 PROJECT_ARCHIVED`). Deleting needs a manager of the project (`403 FORBIDDEN`).
+Live co-editing runs over `GET /ws/collab/:sessionId`, a WebSocket upgrade. A browser
+upgrade carries the same session cookie an HTTP call would, and must come from this
+instance's origin (`403 FORBIDDEN_ORIGIN` otherwise). The desktop and mobile apps instead
+send a one-use ticket from `POST /api/v1/collab/sessions/:id/socket-ticket` as
+`Sec-WebSocket-Protocol: lolly-collab-v1, lolly-ticket.<ticket>`. A ticket opens one
+session's room once, within 30 seconds of being issued, and stands in for the member's
+session. An upgrade that sends `Sec-WebSocket-Protocol` without a valid ticket is refused
+`401`. Tickets are held in the memory of the process that issued them, so the ticket
+request and the upgrade must reach the same process; the ticket route answers
+`501 UNAVAILABLE` where no collaboration gateway runs, such as a serverless deploy, and
+`429 BUSY` while too many tickets are waiting. Authorization happens
+**before the handshake completes**, so a refusal is a plain HTTP status on the
+socket rather than a mystery disconnect: `401` unauthenticated, `404` no such
+session, `403` the project is not visible to you or `collab.join` is denied,
+`410` the session is in the bin, `429` too many connections or reconnects, `503`
+busy or shutting down. Write access is not a refusal: a member who may read but
+not edit is seated as an **observer**.
 
-| Route | Result |
+One optional field rides the upgrade URL, and a client that omits it is
+unaffected:
+
+| Param | Meaning |
 |---|---|
-| `GET /api/v1/sessions/:id/versions?limit=&before=` | `200 { versions, before? }`, newest first. `limit` is 1 to 100 (30 by default); `before` is a version id to page on from, and the answer carries one when a full page came back. `cache-control: private, no-store` |
-| `GET /api/v1/sessions/:id/versions/:versionId` | `200 { version }` with its `inputs` and `meta` |
-| `POST /api/v1/sessions/:id/versions` | Save the document as it is stored now, with a name: `{ label, requestId }`, a label of 1 to 120 characters. `201 { version }`; the same `requestId` again answers `200` with the first version. Audited `session.version.save` |
-| `PATCH /api/v1/sessions/:id/versions/:versionId` | Name, rename or pin a version: `{ annotationRev, label?, pinned? }`, below. `200 { version }`. Audited `session.version.annotate` |
-| `POST /api/v1/sessions/:id/versions/:versionId/restore` | Restore it: `{ requestId }`. `200 { revision, live, restored, before, skipped, vetoed }`, below |
-| `DELETE /api/v1/sessions/:id/versions/:versionId` | Delete it, with its restore pair. `200 { deleted: true }`. Audited `session.version.delete` |
+| `ds` | the brand profile the client is rendering with |
+| `dsi` | the instance base that design system came from |
 
-A version is `{ id, sessionId, rev, kind, label?, contributors, createdBy?, createdByName?,
-restoredFrom?, beforeId?, bytes, at, pinned, annotationRev }`. `kind` is `auto`, `close`,
-`save`, `named`, `restore` or `before` (the document a restore replaced). `contributors`
-are `{ id, kind, edits, name }` for the people and agents who edited since the version
-before it; guests are counted together as one entry named "Guest". Names never carry
-an email address.
+A room hosted here runs under exactly one design system, the one this deployment
+governs. When a client identifies one, `dsi` must be
+this instance's `baseUrl` (a trailing slash and letter case are not a
+difference, and the comparison is on the origin) and, on a profile-aware pack,
+`ds` must be the **active** brand profile that `GET /api/v1/brand/profiles`
+reports. A mismatch is refused `403 DESIGN_SYSTEM_MISMATCH`, whose body names
+the design system to switch to. On a pack with no brand profiles there is
+nothing to compare a name against, so only `dsi` is checked. Sending neither
+param joins as before; sending one of the two checks only that one.
 
-**Name and pin.** `PATCH` changes only a version's `label` and `pinned`; its content and
-everything else stay as they were saved. Send the `annotationRev` you read with the
-version, and `label` (1 to 120 characters, or `null` to remove the name), `pinned`
-(`true` or `false`), or both; a field you leave out keeps its value. Each change adds
-one to `annotationRev`. When someone else changed the name or pin since you read it,
-the answer is `409 VERSION_CHANGED` with the current `version` in the error, so you can
-show it and try again. A request that asks for the name and pin the version already
-has answers `200` and changes nothing, so a repeated request is safe. A version saved
-with a name can be renamed but keeps a name (`400`). A named or pinned version is kept:
-history never removes it for age or space, and it counts against the named limits of
-the person who first named or pinned it, until neither name nor pin is left.
+Clients can negotiate `interactionVersion: 1` in their join frame. Transform and
+text claims belong to the live room, expire after ten seconds without renewal and
+end on disconnect, demotion or object deletion. Acquisition covers all requested
+objects atomically. Previews use document coordinates and never write the session.
+Durable operations carry their claim ID; conflicting or expired claims are refused.
 
-**Restore.** On the long-lived server a restore goes through the document's live room,
-which it opens when none is open, as one batch that everyone in the room receives, and
-it needs `collab.join` (`403`). The restoring person's own write checks apply: an input
-they may not change keeps its value and is named in `vetoed`, and an input the tool
-does not declare, or of the wrong type, is named in `skipped`. On a serverless deploy
-it is a compare-and-swap on the session row. Two versions record it, with the same
-`requestId`: the `before` version, the document it replaced, which Undo restores, and
-the `restore` version, the document it produced. In the answer, `before` is the id to
-restore for Undo, `restored` is the restore version's id (or `null` when history had
-no room for it), `revision` is the session's revision after it and `live` says whether
-anyone else was in the room. The same `requestId` again answers with the first result.
-Comments are never changed. The audit entry `session.restore` holds ids and counts.
-
-Saves, name and pin changes and restores share one limit per person: 10 a minute and
-60 an hour (`429 RATE_LIMITED`, `retry-after` in seconds).
-
-| Code | Status | When |
-|---|---|---|
-| `VERSION_LIMIT` | 409 | a named save, or naming or pinning a version, past 20 kept versions per person or 100 per document |
-| `VERSION_CHANGED` | 409 | the version's name or pin changed after the `annotationRev` you sent; the error carries the current `version` |
-| `VERSION_SPACE` | 409 | a named save, or the `before` version of a restore, does not fit the space caps (100 MiB per document; `policy.versions.maxBytes` for the instance) |
-| `RESTORE_INCOMPLETE` | 409 | the document cannot take every change of the version (a ceiling such as the number of objects); nothing was changed |
-| `SESSION_CHANGED` | 409 | the document kept changing while restoring, or it is open on another server; try again |
-| `NOT_FOUND` | 404 | the version is not one of this session's |
-| `INVALID_INPUT` | 400 | a missing or malformed `label`, `pinned`, `annotationRev`, `requestId`, `limit` or `before`, or removing the name of a version saved with one |
-
-### History across documents
-
-`GET /api/v1/history` lists the versions of every document you can read, newest first,
-in one request (plan 221). It needs a signed-in person: a service token gets `401`, and
-a request an agent makes for a person gets `403`, because an agent's access is one
-project or one document. The answer is `200 { entries, before? }`, private to you
-(`cache-control: private, no-store`).
-
-What can appear is decided on the server before anything is read, with the same rules
-as reading one document's versions: access to the project (membership, its end date,
-groups and sharing) and `session.view` on the document. A document in a project you
-cannot see, a deleted document, and a document a grant denies you never appear, and
-nothing in the answer says they exist.
-
-Without `project`, the page covers your own projects, as your Projects list shows them:
-projects you own or were added to (directly or through a group), projects you pinned,
-and projects you opened in the last 30 days. A project you hid never appears, and an
-archived project appears only with `archived=1`. A project shared with everyone, or one
-an administrator can see only as an administrator, appears once you pin it, or for
-30 days after you open the project.
-
-| Parameter | Meaning |
-|---|---|
-| `limit` | 1 to 100 entries, 50 by default |
-| `before` | the `before` of the page you read last, to read the next one. It identifies the last entry of that page and is otherwise opaque. A page that came back full carries one |
-| `project` | one project you can see, including one you hid or archived: `404` when there is none, `403` when you cannot see it |
-| `tool` | one tool id |
-| `kind` | one or more of `auto`, `close`, `save`, `named`, `restore` and `before`, separated by commas |
-| `kept=1` | only versions kept by a name or a pin |
-| `from`, `to` | a date and time; both ends are included |
-| `archived=1` | include your archived projects |
-
-An entry is a version as `GET /api/v1/sessions/:id/versions` lists it (above), with
-`projectId`, `projectName`, `projectArchived` (only when it is), `toolId`, `toolVersion`
-and `sessionLabel` (the document's current name, or `null`). It never carries the
-document's content or an email address. Read a version's content with
-`GET /api/v1/sessions/:id/versions/:versionId`. A malformed parameter answers
-`400 INVALID_INPUT`.
-
-## Telemetry, activity, audit, fleet, system
-
-| Route | Action |
-|---|---|
-| `POST /api/v1/telemetry` | member or guest session; attribution per level/consent |
-| `POST /api/v1/telemetry/consent` | member |
-| `GET /api/v1/telemetry/summary` | `telemetry.view` |
-| `GET /api/v1/stats/overview` | `telemetry.view` |
-| `GET /api/v1/stats/series?days=N` | `telemetry.view` - day-bucketed audit-action counts (counts only), the console's per-view activity headers; `days` clamps 7–90 |
-| `GET /api/v1/activity` | `audit.export` |
-| `GET /api/v1/audit?limit=&before=` (paged: the `limit` newest events, or those older than the `before` seq; `nextBefore` is the cursor while older rows exist), `GET /api/v1/audit/head` | `audit.export` |
-| `GET /api/v1/fleet` | `fleet.view` - the version histogram, plus `engineVersion` (this deploy's vendored pin) |
-| `GET /api/v1/fleet/installs` | `fleet.view` - registered installs, newest activity first |
-| `PATCH /api/v1/fleet/installs/:id` | `fleet.manage` - set or clear the operator name |
-| `DELETE /api/v1/fleet/installs/:id` | `fleet.manage` - forget the row (bookkeeping; the device is untouched) |
-| `GET /api/v1/system/setup` | `instance.config`: safe running checks, pack, store and schema |
-| `GET /api/v1/system/setup/configuration` | `instance.config`: non-secret settings, callback, environment presence and retained account/test evidence |
-| `POST /api/v1/system/setup/configuration` | `instance.config`: validate a setup draft and return deployment/Helm files; never saves live deployment settings |
-| `POST /api/v1/system/setup/identity-test` | `instance.config`: bounded installed-issuer discovery, audited result |
-| `POST /api/v1/system/setup/account-test` | `instance.config`: exact `{sub}` lookup and retained SCIM/sign-in correlation; no email merge |
-| `GET /api/v1/system/setup/tools/:id` | `instance.config` plus current tool use/export permission: sample input metadata and governed checked formats |
-| `GET /api/v1/system/migrations` | `instance.config` (**owner**) |
-| `GET /api/v1/docs`, `GET /api/v1/docs/:slug` | member - this documentation set |
-
-## Static
-
-| Route | Notes |
-|---|---|
-| `GET /admin`, `GET /admin/*` | the admin console (static; every call it makes is auth-enforced) |
-| `GET /tools/*` | a tool's files (`tool.json`, `template.html`, `hooks.js`, ...) from the pack's `tools/<id>/`, never from the shell dist. Gated like `/catalog/*`, and a tool the caller's groups cannot see answers 404, the same absence the tool index shows. A guest may fetch the tool its link opens |
-| `GET /`, `GET /*` | the Lolly web shell, when `instance.shellDir` is set. Registered last, so API/console/catalog/render/link routes always win; `api`, `catalog`, `tools`, `render`, `l`, `admin`, `healthz` are reserved prefixes |
-
-## Common error codes
-
-| Code | Status | Meaning |
-|---|---|---|
-| `UNAUTHORIZED` | 401 | no session, or this deployment is sign-in gated |
-| `FORBIDDEN` | 403 | the required action is missing |
-| `OWNER_ONLY_ACTION` | 403 | an owner-only escalation was attempted |
-| `GUEST_LINKS_DISABLED` | 403 | guest links are off on this deployment |
-| `BAD_SIGNATURE` | 403 | link signature invalid |
-| `CONFIG_MANAGED` | 409 | the target is owned by `instance.json` |
-| `CONFLICT` | 409 | stale session `rev` - the body's `current` is the server session to rebase on |
-| `LINK_EXPIRED` / `LINK_REVOKED` | 410 | self-explanatory |
-| `INPUT_LOCKED` | 422 | a locked input was supplied by the caller |
-| `INPUT_HIDDEN` | 422 | the caller supplied an input that policy hides from them |
-| `INPUT_NOT_ALLOWED` | 422 | the value is not one of those a choice rule allows |
-| `BRAND_RULE_VIOLATION` | 422 | a render input breaks a reviewed design-system rule for that format |
-| `RATE_LIMITED` | 429 | too many requests of one kind from one person; `retry-after` gives the seconds to wait |
-| `INVALID_INPUT` | 400 | an automation request is missing or has malformed required fields |
-| `DOCUMENT_API_ERROR` | 400 | the requested compile/inspect/diff/measure/optimise/package operation could not be performed |
-| `DATA_BINDING_ERROR` | 400 | a live JSON/CSV provider binding could not resolve, parse, query or validate |
-| `ROW_VALIDATION_FAILED` | 422 | a batch row does not satisfy the selected tool contract |
-| `IDEMPOTENCY_KEY_REUSED` | 409 | the principal reused an idempotency key for different request bytes |
-| `UNSUPPORTED_FORMAT` | 400 | a format this deployment cannot produce (org_config's `render.formats` identifies what it can) |
-| `FORMAT_NOT_ALLOWED` | 403 | the format exists here but this tool's overlay policy excludes it |
-| `RENDER_BUSY` | 503 | the render worker is at capacity - retry after `Retry-After` seconds |
-| `HOOKED_TOOL_NEEDS_CHROMIUM` | 501 | hooked tool, no worker configured (org_config's `render.hookedTools` is `false`) |
-| `TOOL_REQUIRES_UNMET` | 501 | the manifest's `requires` identifies a `host.*` API the in-process render host lacks (`text`, `compose`, `audio`, the device APIs); route the tool through the Chromium worker |
-
-## Client identification
-
-Shells send `X-Lolly-Client` (shell, shell version, engine, platform). It feeds the fleet
-histogram and message targeting; it is never trusted for authorization. The OSS shells add
-an `install/<id>` token while - and only while - their person is signed in: on a request
-that carries a live member session, it registers the install in the fleet registry.
-Anonymous and guest traffic with the same token feeds the histogram and nothing else, and
-there is no heartbeat: an install is seen exactly when its person uses the instance, and
-leaving the instance client-side deletes the id.
-# Automation and document API
-
-The typed automation surface mirrors the open-source engine's document verbs:
-`POST /api/v1/compile`, `/validate`, `/inspect`, `/diff`, `/measure`, `/optimize`,
-`/package`, and `/render`; `GET /api/v1/schema/:toolId` publishes a tool's input
-schema. JSON requests use `{toolId, inputs}` rather than URL-only merge fields.
-Schema, compile, package and render all enforce the caller's `tool.use` decision
-and tool-visibility overlay; a document verb cannot be used to discover a tool
-hidden from that principal. Render additionally requires `export.server`.
-
-## Effective schemas and discovery
-
-| Route | Action | Notes |
-|---|---|---|
-| `GET /api/v1/discovery` | public | What this deployment can do, the same for everyone: document API and engine versions, server render formats, hooked tools, Content Credentials, automation verbs and batch limits, live collaboration, document agents, whether [file references](#file-references) are on (`files.references`), and `unavailable` entries for what it lacks. Shared caches may hold it; it carries an ETag |
-| `GET /api/v1/discovery/me` | member, service token or open guest | What the caller can do: `principal` (`member`, `service` or `guest`), `can` bits for `tool.use`, `export.server`, `export.request`, `delivery.create` and `catalog.read`, provider reference schemes that resolve for the caller, limits, the render worker's live readiness when one is configured, and `unavailable` entries. Private, never cached |
-| `GET /api/v1/discovery/tools?limit=&cursor=` | as above | The tools the caller can use, sorted by id, 25 a page by default and at most 100. Each entry has `name`, `version`, `renderer`, the server `formats` the caller may request, `can.render`, its schema URL and `unavailable` entries. `next` is an opaque cursor, or `null` on the last page |
-| `GET /api/v1/schema/:toolId?view=&format=` | `tool.use` | The caller's effective input schema (below). `view=raw` returns the tool's own schema and needs `policy.edit`. `format` selects the output format whose design-system rules apply. Without it, the schema carries only the rules that apply to every format |
-
-`GET /api/v1/schema/:toolId` keeps its `apiVersion` and `schema` fields. The
-schema is now the effective one for the caller, built from the tool, the tool
-policy that applies to the caller, the design-system choice rules for the
-format and the deployment's render probe:
-
-- An input the policy hides is absent from `properties` and `required`, and the
-  response omits that input.
-- A locked input has `readOnly: true` and, when the rule carries a value, that
-  value as `const` and `default`. The server applies it, so leave it out of
-  requests: sending it is refused with `INPUT_LOCKED`.
-- A choice input gains an `enum` of the values the policy allows, narrowed to
-  the tool's own options when it declares some. A reviewed design-system choice
-  rule does the same, with `reason` naming the rule.
-
-The response adds `view`, `toolId`, `tool` (`name`, `version`), `versions`
-(`engine`, `tool`, `policy`, `design`, `catalog`, and `rules` when design-system
-rules apply), `policy`, `render` (`renderer`, `formats`, and `format` when one
-was requested), `unavailable` and `etag`. Each `policy` entry is one change the
-policy made, an `effect` of `locked`, `choice` or `format-excluded` with the
-`input` or `format`, plus the overlay's name as `by` and the rule's `reason`
-when they exist. Entries never name groups or values from rules that do not
-apply to the caller. The `ETag` header matches `etag` and moves with any change
-to the effective contract, so `If-None-Match` answers `304` while it holds.
-
-Each `unavailable` entry identifies one `format`, `action` or `feature` with a
-stable `code` and a `reason`:
-
-| Code | Meaning |
-|---|---|
-| `WORKER_NOT_CONFIGURED` | the format needs the Chromium render worker, and this deployment does not run one |
-| `UNSUPPORTED_FORMAT` | the deployment does not produce this format on the server; the web app can still export it |
-| `HOOKED_TOOL_NEEDS_CHROMIUM` | the tool runs scripts, and no worker is configured |
-| `TOOL_REQUIRES_UNMET` | the tool needs host APIs the in-process render host does not provide |
-| `SVG_TEMPLATE_REQUIRED` | server rendering needs an SVG template |
-| `FORMAT_NOT_ALLOWED` | tool policy does not allow the format |
-| `FORBIDDEN` | the caller lacks the permission, such as `export.server` for `render` |
-| `RENDER_BUSY` / `WORKER_UNREACHABLE` | the configured worker is at capacity or did not answer its readiness check |
-| `TOOL_UNAVAILABLE` | the deployment cannot load the tool |
-
-Compile, validate, package and the rows of `POST /api/v1/batch` check the
-caller's inputs against the same policy the schema shows. Compile and package
-refuse a locked, hidden or not-allowed input with `422` and the code the render
-route uses (`INPUT_LOCKED`, `INPUT_HIDDEN` or `INPUT_NOT_ALLOWED`), naming the
-`input`, `by` and `reason`, and compile with the locked values applied. Validate
-reports the same codes as errors and does not count a missing locked or hidden
-input against the caller. A batch row that breaks the policy fails
-`ROW_VALIDATION_FAILED` before the job is queued. Durable renders and render
-batches check the current policy at each attempt, as before, so one admitted
-before a policy change records that attempt's failure with the same codes.
-
-Design-system rules can apply to some output formats only. Compile, validate and
-package accept an optional `format`, one the tool declares, and then apply that
-format's rules, as the schema read with the same `format` shows. Without one,
-they apply only the rules every format shares, as the default schema shows. A
-batch row is checked against the rules for the batch's `format`, and a render
-against the rules for its format. Design-system rules that are not choices, such
-as a text length, are not in the schema; the render checks them and refuses a
-value that breaks one with `BRAND_RULE_VIOLATION`.
-
-The discovery routes and the schema route share the `rateLimit.automation`
-bucket. The public deployment record uses it too, so reading that record never
-costs a sign-in attempt.
-
-Discovery is served under `/api/v1` rather than `/.well-known/`, because on a
-shared origin `/.well-known/` belongs to the web shell, whose static
-`/.well-known/lolly.json` describes the shell.
-
-## Jobs, batches and provider references
-
-Pass `?async=1` or `Prefer: respond-async` to receive `202 {jobId,statusUrl}`.
-Poll `GET /api/v1/jobs/:id`, download a completed result from
-`GET /api/v1/jobs/:id/result`, or list the caller's jobs at `GET /api/v1/jobs`.
-Completed job resources include `resultSha256`, computed from the output bytes rather than blob
-provider metadata; it is `null` until a result exists.
-`DELETE /api/v1/jobs/:id` removes queued work or retained output, except while a delivery
-retains that output (`409 JOB_OUTPUT_IN_USE`). Jobs are isolated to the member or service
-principal that created them. A completed render can be delivered without a download/upload
-round trip through `POST /api/v1/jobs/:id/deliveries`; the delivery shares the immutable result
-blob and records the source job id. Repeating a
-request with the same `Idempotency-Key` returns its existing job; reusing that
-key for different request bytes returns `409 IDEMPOTENCY_KEY_REUSED`. A
-`callbackUrl` is used only when it exactly matches the instance-configured
-webhook endpoint; callback requests carry `x-lolly-timestamp` and a signed
-`x-lolly-signature` header. The callback body is
-`{jobId, state, resultUrl, resultToken, deliveryId}`. `resultToken` is a 24-hour token for
-that one job's result: send it as the `x-lw-job-token` header on
-`GET /api/v1/jobs/:id/result`, and the receiver needs no session of its own.
-A completed job resource carries the same `resultToken`, and `null` before then.
-
-The token used to travel in the URL, as `resultUrl?token=…`. A URL ends up in
-access logs, proxy logs and CDN logs, so that form is deprecated. For one more
-release `resultUrl` still carries `?token=` and the result route still accepts
-it, answering with a `Deprecation` header
-([RFC 9745](https://www.rfc-editor.org/rfc/rfc9745)). After that release
-`resultUrl` loses its query and a query token is refused, so move receivers to
-the header now.
-
-Callbacks go through a durable outbox. The write that settles a job also stores
-its callback, and any Work process sends callbacks that are due, so a callback
-left unanswered by a restart is sent again afterwards. Every attempt for one job
-carries the same id, in `x-lolly-delivery-id` and as `deliveryId` in the signed
-JSON body. This is the idempotency key
-contract of a signed-HTTPS delivery: the receiver should act on each id once.
-Each attempt has a fresh timestamp, signature, result URL and result token. A refusal, a
-timeout or a dropped connection is retried after 5 s, 30 s, 2 min, 10 min and
-30 min, six attempts in all. The job resource reports `callback: {id, state,
-attempts, lastOutcome, lastStatus, nextAttemptAt}`. `state` is `pending`,
-`acknowledged` (the receiver answered 2xx) or `failed`. Work never reports a
-callback as delivered, because a 2xx answer does not show what the receiver did
-next. `lastOutcome` is `acknowledged`, `refused`, `uncertain` (the request may
-have reached the receiver) or `not-sent` (the URL is not approved, or no signing
-secret is configured). `callbackFailed` stays `true` until the receiver
-acknowledges.
-
-`POST /api/v1/batch {toolId,format,rows,keepGoing?,retries?,concurrency?,priority?}`
-always creates a job and produces one ZIP. Requested concurrency is capped at
-four in this process, priority at 0–9, and retries at three. Progress is exposed
-as `{done,total}` and the ZIP's `manifest.json` records every row outcome. In
-place of `rows`, `bind:{source,query?,as?}` reads JSON/CSV from a governed
-provider; `as` may be the JSON Schema returned by the schema route, and every
-row is also checked against the actual tool before enqueue. `query` is a typed,
-nested equality selector: it is forwarded to the provider and enforced again
-over the returned objects. CSV follows RFC 4180, including quoted commas,
-escaped quotes and embedded newlines; its cell values are strings.
-
-Provider refs are resolved during compile and before render cache identity.
-Local `image://brand`, `catalog://`, and `library://` refs stay offline-first.
-`cms://<provider-id>/<remote-id>` uses that enabled catalog provider's stored
-credential, exposure and lifecycle; `net://<operator-allowed-origin>/<path>` is
-restricted to origins present in provider configuration. Both are timeout- and
-byte-bounded, content-addressed, and use immutable resize, format-conversion and
-metadata-strip stages. `/inspect` and `/optimize` also accept `bytesBase64`, a
-provider `source`, `upload: { id, checksum }` naming the caller's own finished
-`automation-input` [upload](#uploads), for a file too large for one request, or `file: { id,
-checksum }` naming one of the caller's [file references](#file-references). `/optimize` with
-`output: "file"` keeps its output as a file reference; `/package` accepts either a compiled `document` or
-`{toolId,inputs}` and can run asynchronously.
-
-These routes use the configurable `rateLimit.automation` bucket. It is technical
-admission control, not printer-rate pricing; durable per-principal quotas and
-usage accounting are specified in plan 45.
-
-Durable render and batch requests accept `production: { contract,
-referenceBase64?, repair? }` for the engine's `lolly/production-still-v1` profile.
-The `lolly/production-motion-v1` profile is not accepted by Work's render API.
-The contract and repair choices are included in request identity and retries.
-Contracts can protect runtime input identities with `kind: "input"`, a declared
-input id in `location` and a canonical JSON SHA-256 in `expected`. Required input
-checks need observed runtime values; file-only inspection cannot reconstruct them.
-The retained evidence contains `production` and optional `productionAttempts`;
-failed required checks return no artifact and retain `PRODUCTION_VERIFICATION_FAILED`
-diagnostics on the render record. See [Production still checks](renders.md#production-still-checks-and-permitted-repairs)
-for fields, collector limits and worker compatibility.
-
-## Managed rule mappings
-
-| Route | Action | Notes |
-|---|---|---|
-| `GET /api/v1/brand/rules` | `catalog.read` | Published guide and source-specific mappings; compatible input inventory is visible to policy editors |
-| `POST /api/v1/brand/rules/preview` | `policy.edit` | Validate `{ mappings }`, inspect format coverage, return revision and review token |
-| `POST /api/v1/brand/rules` | `policy.edit` | Apply the reviewed mappings with `revision` and `reviewToken`; audited, stale-safe and durable outside development |
-
-See [managed production rules](design-system-administration.md#managed-production-rules) for scope and draft handling. Render input checks do not certify output appearance. Durable output metadata includes `brandRules` with disposition, scope and revision; synchronous and durable downloads expose `x-lolly-brand-check`.
-
+Canvas asset fields carry bounded `lolly-asset-v1:` references on the scalar lane.
+These contain an asset ID, type, format, optional dimensions and an immutable project
+file version; local URLs, file bytes and metadata do not travel in room operations.
+The session projection stores ordinary asset reference objects so project file usage,
+reopening and export retain their existing behavior. The shell uploads a device image
+before sending its reference and restores project bytes before painting a received image.
+The interaction-v1 shell understands these references. Older members receive ordinary
+fields and retain their already-restored images; extension strings are omitted from
+their operations and checkpoints. Live delivery of a newly added image needs the current shell.
+Clients that do not negotiate this version continue to use the existing protocol.
 
 ### Project session presence
 
@@ -1373,7 +827,7 @@ See [Document agents](document-agents.md#admin-visibility) for reporting semanti
 
 ### Project agent invitations
 
-Agent activity uses an `agent:<invitation id>` audit actor with the inviting user recorded separately as `invitedBy`. The activity API returns `actor.kind: "agent"` and, when known, `actor.invitedBy: { id, name }`. Filtering by a user or group includes their invited agents. See [Activity attribution](document-agents.md#activity-attribution).
+The activity API returns an agent as `actor.kind: "agent"` with, when known, `actor.invitedBy: { id, name }`; [activity attribution](document-agents.md#activity-attribution) explains how agents are attributed and filtered.
 
 These routes require a signed-in person with access to the project. They never return a stored connection key. See [Document and project agent invitations](document-agents.md) for the MCP tools and their scope.
 
@@ -1384,3 +838,532 @@ These routes require a signed-in person with access to the project. They never r
 | `DELETE /api/v1/projects/:id/agents/:agentId` | inviter or project manager; revokes the key and closes its document connections; `204` |
 
 Project keys authenticate only `POST /api/workspace/mcp`, using `Authorization: Bearer <key>`. They do not authenticate the REST API. `DELETE /api/workspace/mcp` disconnects document connections without revoking the key. MCP requests recheck current inviter access. Project tools accept only their declared arguments and never a caller-selected project or HTTP path. Tool failures return `isError: true` with a safe error code and explanation. Document tools require `sessionId` for a project key; a document key remains bound to its original document.
+
+### Document agent invitations
+
+A document key admits an agent to one Design document. These routes need a signed-in
+person who can open the document and holds `collab.join`. A document the caller cannot
+open, or one that is not a Design document, answers `404`.
+
+| Route | Access and response |
+|---|---|
+| `GET /api/v1/sessions/:id/agents` | `{ enabled, canEdit, agents }`. Each row includes `actingFor` (the inviter's display name), expiry, connection state and `canRevoke`; no key or hash |
+| `POST /api/v1/sessions/:id/agents` | `{ label, role, hours? }`, with `viewer` or `editor` access and 1 to 168 hours (default 24). An `editor` agent needs a caller with editor access and edit rights. Refused on archived projects (`403 READ_ONLY`), `409 AGENT_LIMIT` when the caller already has 16 live document and project agent invitations, `503 AGENT_UNAVAILABLE` where no live room host runs. `201 { agent, endpoint, secret }` returns the connection key once |
+| `DELETE /api/v1/sessions/:id/agents/:agentId` | inviter or project manager; revokes the key and closes its connection; `204` |
+
+## Files and uploads
+
+Three ways to keep bytes on the instance. **Project files** are shared inside a team project.
+**Uploads** are private, resumable uploads one person or service token makes for a catalog
+submission or an automation input. **File references** are finished uploads kept for a week by default, so
+a script can inspect, optimize and read back a file without sending it again.
+
+### The parts protocol
+
+Project files and uploads arrive in parts, so a dropped connection costs only the parts that
+did not arrive. [Resumable uploads](resumable-uploads.md) explains the protocol and why it was
+chosen over tus.
+
+1. **Begin.** Declare the file: `name`, `size`, `contentType`, `checksum` (the hex SHA-256 of
+   the whole file) and `parts: [{ size, checksum }]`, one SHA-256 per part. Every part but the
+   last is `partBytes` (1 MiB) long. The answer reserves the upload and carries `parts` and
+   `expiresAt`.
+2. **Send the parts**, in any order: `PUT …/parts/:n` with part `n`'s bytes. Each accepted part
+   moves `expiresAt` to 15 minutes after that part, but never past the scope's `uploadTtlHours`
+   after the begin.
+3. **Ask what is missing** after an interruption: `GET …/parts` answers
+   `{ id, ready, size, checksum, expiresAt, partBytes, parts, missing, receivedParts,
+   receivedBytes, offset }`. `missing` lists the part numbers not yet stored, in order, and also
+   a stored part whose bytes no longer match its digest. `offset` is the bytes in the run of
+   stored parts from the start. Asking does not move `expiresAt`.
+4. **Finalize**: `POST …/finalize` checks every part and the whole file, and repeating it is
+   harmless. A finished file reports `ready: true` and nothing missing, so a client whose
+   finalize answer was lost learns the file is complete.
+
+An unfinished upload expires 15 minutes after its begin or its last accepted part, then answers
+`410 UPLOAD_EXPIRED` and counts toward no budget. Budgets count each file at its size plus 4096
+bytes for its database rows, so many tiny files fill a budget too. One person may hold 16
+unfinished uploads of each kind at once. Errors keep the usual
+`{ "error": { "code", "message" } }` shape.
+
+### Project files
+
+Files shared inside a project ([shared files](team-projects.md#shared-files)). While
+`sharing.projectFiles` in org-config is `false` (policy off, or the memory store), every
+route here answers `404 NOT_FOUND` with the message `project files are off`.
+
+| Route | Who | Answer |
+|---|---|---|
+| `GET /api/v1/projects/:id/files` | viewer | `200 { files, limits }` |
+| `POST /api/v1/projects/:id/files` | editor and `session.create`, project not archived; a person, so a service token gets `403` | `201 { file, partBytes }`: the upload is reserved |
+| `PUT /api/v1/projects/:id/files/:fileId/parts/:n` | the uploader | `204`; the body is part `n`'s bytes |
+| `GET /api/v1/projects/:id/files/:fileId/parts` | the uploader | `200`: the [parts report](#the-parts-protocol), so an interrupted upload sends only the rest |
+| `POST /api/v1/projects/:id/files/:fileId/finalize` | the uploader | `200 { file }` with `ready: true`; repeating it is harmless |
+| `GET /api/v1/projects/:id/files/:fileId` | viewer | the bytes, as an attachment, `private, no-store` |
+| `PATCH /api/v1/projects/:id/files/:fileId` | editor and `session.edit`, project not archived; a person, so a service token gets `403` | `200 { name }`; the body is `{ name }`, 1 to 200 characters with no control characters. The bytes, id and checksum do not change, so sessions that use the file keep working. `400 INVALID_INPUT` for a bad name, `403` without editor access, `404` for an unknown or unfinished file or a file in another project |
+| `DELETE /api/v1/projects/:id/files/:fileId` | the uploader, or manager and up | `204`; on an unfinished upload this cancels the upload |
+
+The begin body adds `asset` to the [parts protocol](#the-parts-protocol) fields: the shell's
+own description of the file. The instance keeps only `type` and `format` (up to 64 characters
+each), `width` and `height` (numbers above zero) and `meta.name` (up to 200 characters) from
+`asset`, and drops anything else, a credential included. An unfinished project file stays open
+at most `policy.projectFiles.uploadTtlHours` after its begin, and a finished one reports no
+`expiresAt`.
+
+Each `files` row is `{ id, projectId, name, size, checksum, contentType, ready: true, asset,
+createdAt, createdBy, createdByName? }`, newest first. Only finished files are listed.
+`createdByName` never falls back to an email address. `limits` is `{ partBytes, maxBytes,
+projectBudgetBytes, projectUsedBytes, instanceRemainingBytes }`, where the used and remaining
+figures count finished files and unfinished uploads that have not expired, each with the 4096
+bytes of overhead.
+
+::: details Project file error codes
+| Code | Status | When |
+|---|---|---|
+| `PROJECT_FILE_TOO_LARGE` | 413 | begin: `size` is over `policy.projectFiles.maxFileBytes` |
+| `PROJECT_FILE_BUDGET` | 413 | begin: the project's files would pass `projectBudgetBytes` |
+| `INSTANCE_FILE_BUDGET` | 413 | begin: all projects' files would pass `instanceBudgetBytes` |
+| `PROJECT_FILE_PENDING` | 413 | begin: the caller already has 16 unfinished uploads, or their declared sizes with this one would pass twice `maxFileBytes` |
+| `INVALID_INPUT` / `INVALID_PART` | 400 | malformed metadata, or no such part |
+| `CHECKSUM_MISMATCH` | 422 | a part, or the finished file, does not match its declared digest |
+| `FILE_READY` | 409 | a part sent to a finished file |
+| `UPLOAD_INCOMPLETE` | 409 | finalize before every part arrived |
+| `UPLOAD_EXPIRED` | 410 | the upload passed its expiry (15 minutes without an accepted part, or `uploadTtlHours` after the begin) or was cancelled |
+| `FILE_IN_USE` | 409 | delete of a file that live sessions in the project use; `sessions: [{ id, title }]` identifies them. A manager may add `?force=1` |
+| `RATE_LIMITED` | 429 | download: this person already downloaded twice `instanceBudgetBytes` today, as counted by this server process; `retry-after` gives the seconds to wait |
+:::
+
+Finishing an upload is audited as `project.file-upload`, a rename as `project.file-rename`
+(with the `fileId`), and a delete or cancel as `project.file-delete` (with `forced: true` and the
+session ids when `?force=1` was needed).
+
+An unfinished upload more than an hour past its expiry is removed, parts first, when someone
+next begins an upload (up to 50 at a time) and by `POST /api/v1/retention/run` (up to 500),
+whose answer then carries `projectFilesSwept`. The long-lived server also sweeps them at boot
+and daily, whatever the retention policy says. A serverless deploy has no timer, so there their
+parts stay in storage until one of those runs; they count toward no budget meanwhile.
+
+### Uploads
+
+Private, resumable uploads that a person or a service token names by reference
+([resumable uploads](resumable-uploads.md)), sent with the [parts protocol](#the-parts-protocol).
+Each has one of three scopes:
+
+- a `catalog-submission` upload is the original for
+  `POST /api/v1/catalog/submit?uploadId=…&checksum=…`, which removes the upload once the
+  submission is stored;
+- an `automation-input` upload is read by `upload: { id, checksum }` in `/api/v1/inspect` and
+  `/api/v1/optimize`, as often as its owner likes until the upload expires;
+- a finished `file` upload is a [file reference](#file-references), which its owner can also
+  read back.
+
+Nobody downloads an upload in the other two scopes. `policy.uploads.enabled` is `false` by
+default, and while uploads are off every route here answers `404 NOT_FOUND` with the message
+`uploads are off`.
+
+| Route | Who | Answer |
+|---|---|---|
+| `GET /api/v1/uploads` | a member or a service token | `200 { uploads, limits }`: the caller's own uploads that have not expired, newest first, at most 50 |
+| `POST /api/v1/uploads` | `catalog.submit` for scope `catalog-submission`, `tool.use` for `automation-input` and `file`; a member or a service token, never a guest | `201 { upload, partBytes }`: the upload is reserved |
+| `GET /api/v1/uploads/:id` | the owner | `200 { upload }` |
+| `GET /api/v1/uploads/:id/parts` | the owner | `200`: the [parts report](#the-parts-protocol) |
+| `PUT /api/v1/uploads/:id/parts/:n` | the owner | `204`; the body is part `n`'s bytes |
+| `POST /api/v1/uploads/:id/finalize` | the owner | `200 { upload }` with `ready: true`, and `file` for scope `file`; repeating it is harmless |
+| `DELETE /api/v1/uploads/:id` | the owner | `204`; parts first, then the record |
+
+The begin body adds `scope` to the parts protocol fields; scope `file` also takes `role`,
+`derivedFrom` and `report` as [below](#file-references). An `upload` is `{ id, scope, name,
+size, checksum, contentType, ready, createdAt, expiresAt }`; the begin answer adds `parts`.
+`limits` is `{ partBytes, maxBytes, ownerBudgetBytes, ownerUsedBytes, instanceRemainingBytes }`.
+
+An unfinished upload stays open at most `policy.uploads.uploadTtlHours` after its begin. A
+finished one expires `policy.uploads.readyTtlHours` after it finished, or
+`policy.uploads.fileTtlHours` for scope `file`. Every route but the list and the begin answers
+`404 NOT_FOUND` for an upload the caller does not own, so an id reveals nothing.
+
+::: details Upload error codes
+| Code | Status | When |
+|---|---|---|
+| `UPLOAD_TOO_LARGE` | 413 | begin: `size` is over `policy.uploads.maxFileBytes`, or over `policy.submit.maxBytes` for a catalog original; `maxBytes` gives the cap |
+| `UPLOAD_BUDGET` | 413 | begin: the owner's uploads would pass `ownerBudgetBytes` |
+| `INSTANCE_UPLOAD_BUDGET` | 413 | begin: all owners' uploads would pass `instanceBudgetBytes` |
+| `UPLOAD_PENDING` | 413 | begin: the owner already has 16 unfinished uploads |
+| `INVALID_INPUT` / `INVALID_PART` | 400 | an unknown scope, malformed metadata, or no such part |
+| `CHECKSUM_MISMATCH` | 422 | a part, or the finished upload, does not match its declared digest |
+| `UPLOAD_READY` | 409 | a part sent to a finished upload |
+| `UPLOAD_INCOMPLETE` | 409 | finalize before every part arrived |
+| `UPLOAD_EXPIRED` | 410 | the upload passed its expiry |
+:::
+
+A consumer given a reference it cannot use answers `400 INVALID_INPUT` for a malformed one and
+`404 NOT_FOUND` for one the caller does not own, in the wrong scope, unfinished, expired or
+with another checksum. Finishing an upload is audited as `upload.finish` and a cancel as
+`upload.delete`, with the scope, size and checksum but not the name. Expired uploads are swept
+like project files. Erasing an account removes every upload the person owns, or answers
+`409 ERASE_UPLOADS_REMAIN` and changes nothing else while any remain.
+
+### File references
+
+A file reference is an opaque id for bytes kept on this instance, with their digest, an
+expiry and the operations its owner can run on them. Upload once, then inspect, optimize and
+read back by reference, without sending the bytes again or getting them back in a JSON body.
+A reference is a finished upload in scope `file`, so it shares the [uploads](#uploads)
+budgets, caps, sweep, erasure and `policy.uploads.enabled` switch. It lasts
+`policy.uploads.fileTtlHours` (a week by default) after it finished, and outlasts a restart.
+
+A reference belongs to the account that made it: a person, from any of their sessions, or one
+service token. A service token's references are its own, not those of the person who minted
+it, so a new token does not see an old token's references. Nobody else learns that a
+reference exists. Every route on one reference, and every request that identifies one, answers
+the same `404 NOT_FOUND` for someone else's reference as for an id that was never issued. Two
+owners who keep the same bytes get two references.
+
+| Route | Who | Answer |
+|---|---|---|
+| `GET /api/v1/files?limit=&cursor=` | a member or a service token with `tool.use` | `200 { files, nextCursor }`: the caller's own references, newest first, 50 a page by default and at most 50. `nextCursor` is opaque, or `null` on the last page |
+| `POST /api/v1/files` | as above | `201 { file }`: the bytes in the JSON body are kept as a reference |
+| `GET /api/v1/files/:id` | the owner | `200 { file, report }` |
+| `GET /api/v1/files/:id/content` | the owner | `200` with the bytes |
+| `DELETE /api/v1/files/:id` | the owner | `204`; the bytes go first, then the record |
+
+`POST /api/v1/files` takes `{ name, contentType, bytesBase64, checksum?, role?, derivedFrom?,
+report? }`, with the bytes as canonical base64, up to 4 MiB or `policy.uploads.maxFileBytes` if
+that is smaller. `checksum` is the sha256 you expect; other bytes are refused. Behind a request
+cap smaller than the body, such as a serverless host's limit of a few megabytes, or for a larger file, begin an upload with
+scope `file` instead and send it in parts; `lw upload <file> --scope file` does that.
+
+`role` is `original` unless the bytes are the `output` of an operation done elsewhere. An
+output may name `derivedFrom: { id, checksum }`, one of the caller's own references, and
+carry a `report`: a `FileOperationReportV1` from `@lolly-tools/core/file-operation-v1`, at most
+64 KiB of JSON, that passes that contract's check. Work keeps the report the owner supplied
+and labels it so; it does not check the claims in the report.
+
+A `file` is `{ id, name, contentType, size, checksum, role, derivedFrom, reportedBy, createdAt,
+expiresAt, operations, unavailable }`. `checksum` is the sha256 of the exact bytes.
+`reportedBy` is `owner`, `instance` or `null`. `operations` lists what the owner can do with
+this reference, each as the request to make: `read`, `inspect`, `optimize` for a PNG, JPEG or
+SVG, and `delete`. `unavailable` lists an operation this reference cannot take, with a
+`code` and a `reason`.
+
+Reading back streams the bytes as an attachment with `x-content-type-options: nosniff` and a
+sandboxing `content-security-policy`, whatever the declared type, so a reference never runs as
+a page. `ETag` is the quoted sha256 and `Repr-Digest` carries it as `sha-256=:…:`. Each part is
+checked as it streams, and a body that fails its declared digest is cut short. One owner may
+read back twice `policy.uploads.instanceBudgetBytes` a day, counted per server process; past
+that the answer is `429 RATE_LIMITED` with `retry-after`.
+
+The document verbs take a reference where they take bytes: `file: { id, checksum }` in
+`/api/v1/inspect` and `/api/v1/optimize`. `/api/v1/optimize` with `output: "file"` keeps its
+output as a new reference of the caller, with `role: "output"`, `derivedFrom` naming the input
+reference when there was one, and a report this instance wrote (`reportedBy: "instance"`). It
+answers `{ file, bytes, savedBytes, stages }` instead of `bytesBase64`. Queued (`?async=1`)
+requests read the reference when they run.
+
+Nothing about a reference or its caller is cached. Every request resolves the caller, checks
+`tool.use` against the current grants and loads the reference again, so each of these refuses
+the very next request:
+
+- the owner deletes the reference: `404`;
+- an owner revokes the service token: `401`;
+- an admin disables the person, or signs them out everywhere: `401` for the old sessions;
+- a grant denies the caller `tool.use`: `403`, and the reference reads again once the grant
+  goes;
+- the reference expires, or the account is erased: `404`.
+
+A queued (`?async=1`) request is checked again when it runs, against the account that queued
+it rather than the session. Deleting the reference, revoking the token, disabling the person,
+denying `tool.use`, expiry and erasure each make it a failed job that reads nothing, with the
+reason in its `error`; these status codes do not apply to this route. Signing out everywhere ends
+sessions only, so work already queued for the account still runs. To stop that work too,
+disable the person or revoke the token before it runs.
+
+A reference counts toward the budgets at its size plus the 4096 bytes of overhead, plus the size
+of its `derivedFrom` and report as JSON, so a report takes room like the bytes do.
+
+Document agents, which act for a person inside one document, cannot use the person's file
+references. Making a reference is audited as `file.create` and deleting one through these
+routes as `file.delete`, with the size, checksum and role but not the name. Reads are not
+audited. [Discovery](automation-api.md#find-out-what-you-can-do) reports `files.references`, which is
+`true` while `policy.uploads.enabled` is.
+
+::: details File reference error codes
+| Code | Status | When |
+|---|---|---|
+| `UPLOAD_TOO_LARGE` | 413 | create: the bytes are over 4 MiB or `policy.uploads.maxFileBytes` |
+| `PAYLOAD_TOO_LARGE` | 413 | create: the body is too large to read |
+| `UPLOAD_BUDGET` / `INSTANCE_UPLOAD_BUDGET` / `UPLOAD_PENDING` | 413 | as for an upload begin |
+| `CHECKSUM_MISMATCH` | 422 | create: the bytes are not the `checksum` given |
+| `INVALID_INPUT` | 400 | malformed base64, name, media type, role, `derivedFrom`, report, `limit` or `cursor` |
+| `RATE_LIMITED` | 429 | read back: the owner's daily amount is used up |
+:::
+
+## Catalog and design system
+
+The assets members browse and place, how new ones are submitted and reviewed, the external
+sources Work federates, the destinations it delivers to and the design-system rules renders are
+checked against.
+
+### Catalog
+
+| Route | Action | Notes |
+|---|---|---|
+| `GET /catalog/*` | per access mode | pack blobs, lifecycle-gated |
+| `GET /api/v1/catalog/assets` | per access mode | one page of the caller's feed: `q`, `source`, `section`, `collection`, `tag`, `type`, `cursor`, `limit`; returns `{ assets, total, nextCursor, facets, version }` ([large catalogs](catalog.md#large-catalogs)) |
+| `GET /api/v1/catalog/assets/*` | member; visible asset | inspect source facts, organisation fields and text-index status without returning extracted words |
+| `GET /api/v1/catalog/search` | `catalog.read` | live fan-out to search-capable providers |
+| `PUT /api/v1/catalog/assets/<id>/meta` | `catalog.edit` | org-defined field values and `replacedBy` on any asset the caller sees; `name`/`description`/`tags` on `inst/*` only |
+| `PUT /api/v1/catalog/text-index/<id>` | `catalog.edit` | explicitly save reviewed text with `sourceRevision`, `fileId` and `method`; `text: null` clears; stale revisions return 409 ([reviewed text](catalog.md#reviewed-text-from-the-assets-inspector)) |
+| `GET /api/v1/catalog/assets/<id>/versions` | `catalog.read` | one instance asset's byte history, newest first, with the served version and the retention ceiling |
+| `PUT /api/v1/catalog/assets/<id>/head` | `catalog.edit` | roll back: `{ "version": N }` points the head at a version that already exists |
+| `DELETE /api/v1/catalog/assets/<id>/versions/<n>` | `catalog.edit` | `409 VERSION_IS_HEAD` for the served version, `409 ASSET_HELD` while a hold is set |
+| `GET /catalog/inst/<id>/<format>?v=N` | per access mode | a prior version's bytes, through every gate the head answers to |
+| `GET /api/v1/catalog/fields` | `catalog.read` | the org's field definitions, plus a `canEdit` bit so a client offers editing only to someone who may edit |
+| `PUT/DELETE /api/v1/catalog/fields/<id>` | `policy.edit` | define or retire one field; the definitions also ride the governance document |
+| `GET /api/v1/catalog/tags[?provider=<id>]` | `policy.edit` or `catalog.provider.manage` | every label the catalog carries, counted per source, with the rules hiding each one |
+| `PUT /api/v1/catalog/tags/rules` | `policy.edit` (scope `*`), `catalog.provider.manage` (scope `provider:<id>`) | `{ scope, hidden }` replaces a hidden-tag list, `{ scope, hide, show }` edits the list; applied when the index is served |
+| `GET /api/v1/catalog/collections` | `catalog.collection.manage` | the curator's view: every set as curated |
+| `GET/PUT/DELETE /api/v1/catalog/collections/<id>` | `catalog.collection.manage` | create, edit or remove one set; a `PUT` refuses any member the curator cannot see |
+| `GET /api/v1/catalog/lifecycle` | `catalog.expire` | all lifecycle rows |
+| `PUT /api/v1/catalog/lifecycle/*` | `catalog.expire` | set/merge a row; `revoke: true` revokes |
+| `POST /api/v1/catalog/scan/*` | `catalog.scan` | record a C2PA scan result for one asset ([c2pa](c2pa.md)) |
+| `GET/POST /api/v1/injectables`, `DELETE …/:id` | `catalog.injectable.manage` | the assets/tools injected into member shells |
+| `GET /api/v1/brand/profiles`, `PUT /api/v1/brand/profile` | member + `catalog.read` / `brand.switch` | inspect sources; compatible profile selection |
+| `POST /api/v1/brand/changes/preview`, `POST /api/v1/brand/changes` | `brand.switch` or `instance.config`, action dependent | preview impact; apply against the reviewed revision |
+| `GET /api/brand`, `/api/brand/logo/:variant`, `/api/brand/font/:file` | public | brand chrome only (tokens, wordmark, woff2) so the sign-in screen is on-brand |
+
+The [design-system administration contract](design-system-administration.md#review-and-apply) describes additive inventory fields, action permissions, replacement requirements and `409 STALE_PREVIEW`. The public instance descriptor adds `branding: { revision, sourceId }` even when `brand` is null; authenticated org configuration carries the same pair. `X-Lolly-Brand-Revision` reports the request snapshot. A request carrying a different revision is rejected with `409 BRAND_REVISION_CHANGED` so a render cannot combine source revisions.
+
+### Catalog submit
+
+| Route | Action | Notes |
+|---|---|---|
+| `POST /api/v1/catalog/submit?name=…` | `catalog.submit` | raw bytes in the body; `201` for a new asset, `200` with `duplicate: true` for identical bytes |
+| `POST /api/v1/catalog/submit?name=…&projectId=…&fileId=…&checksum=…` | `catalog.submit` and current project read access | empty body; admits the verified ready project original through the same scan, quota and review pipeline; project files must be enabled on a durable store; service tokens are refused |
+| `POST /api/v1/catalog/submit?name=…&uploadId=…&checksum=…` | `catalog.submit` (`catalog.edit` with `assetId`) | empty body; submits the caller's own finished [`catalog-submission` upload](#uploads) through the same scan, quota and review pipeline, then removes the upload. `404` for any upload the caller cannot name; `413` when it is larger than `policy.submit.maxBytes` |
+| `POST /api/v1/catalog/submit?type=template\|user-tool` | `catalog.submit` | a template or user tool as JSON; `toolId=` identifies the tool when the body does not; `422 INVALID_SUBMISSION` when the JSON or its tool is not one this pack can serve; `clientRef=` is echoed on the submission |
+| `POST /api/v1/catalog/submit?assetId=inst/…&note=…` | `catalog.edit` | the same pipeline, landing as the next VERSION of an existing asset; `groups`/`type`/`tags`/`description` are refused here and belong to `…/meta` |
+| `GET /api/v1/catalog/submissions` | `catalog.read` | the caller's own submissions plus the ones open on a step their groups may act on |
+| `GET /api/v1/catalog/submissions/:id/bytes` | `catalog.read` | preview before publication - submitter and reviewer only |
+| `PATCH /api/v1/catalog/submissions/:id` | `catalog.read` | correct a pending submission's `name`/`type`/`tags`/`description` and its org `fields`, and (with `catalog.collection.manage`) the `collectionId` it joins on approval; `409` once it has settled |
+| `POST /api/v1/catalog/submissions/:id/act` | member (the approvals engine gates it) | `approve` publishes, `reject` returns with the comment |
+
+::: details Submitting a project file
+Project-source intake requires the observed whole-file SHA-256. Work verifies every stored part
+and the complete file, then checks source access again after scanning. The source file stays
+unchanged. `groups=` selects library exposure independently of project membership; omitted
+groups mean every workspace member. Only groups the submitter belongs to are accepted. `type`,
+`toolId` and `assetId` cannot be combined with a project source. Source identifiers are kept
+privately in the submission and audit event, never in the public catalog entry.
+
+Retries for the same person, project file, checksum and audience return the existing live or
+pending submission. Concurrent admissions of the same source are serialized by a transaction
+advisory lock in Postgres; contention returns `409 SUBMISSION_BUSY`. A pending record left
+without an approval by an interrupted admission returns `503 SUBMISSION_INCOMPLETE` for
+administrator inspection instead of creating another asset or claiming review has started. A
+changed or inaccessible source returns `404 NOT_FOUND`; verification failures return
+`422 SOURCE_UNAVAILABLE`; access lost during scanning returns `403 SOURCE_CHANGED`.
+:::
+
+Refusals: `413 PAYLOAD_TOO_LARGE` over `policy.submit.maxBytes`, `409 QUOTA_EXCEEDED`,
+`422 SCAN_REJECTED` when the pre-store hook vetoes, `502 SCAN_UNAVAILABLE` when it cannot
+answer and `onError` is `reject`, `503 SUBMIT_CHAIN_MISSING` when `policy.submit.chain` names
+a chain the instance does not have. The preview route answers `410 ASSET_EXPIRED` once the
+published asset's lifecycle stops it, like every other surface that hands out bytes. See
+[catalog](catalog.md#submitting-an-asset).
+
+### Catalog providers
+
+| Route | Action |
+|---|---|
+| `GET /api/v1/catalog/providers`, `GET …/setup`, `GET …/:id`, `GET …/:id/health`, `GET …/:id/drift` | `catalog.provider.read` |
+| `POST /api/v1/catalog/providers`, `PUT …/:id`, `DELETE …/:id`, `POST …/preview`, `POST …/:id/setup-preview`, `POST …/:id/sync`, `POST …/:id/materialize`, `POST …/:id/import` (one asset) | `catalog.provider.manage` |
+| `PUT/DELETE …/:id/credential`, `POST …/:id/oauth/start`, `POST …/:id/enable`, `POST …/:id/disable`, `POST …/:id/cutover` | `catalog.provider.credential` (**owner**) |
+| `POST …/:id/publish` | `catalog.provider.publish` (**owner**) |
+
+Config-managed providers reject mutations with `409 CONFIG_MANAGED`.
+Cutover returns `422 ORIGINALS_UNAVAILABLE` for a source that explicitly provides renditions
+without protected originals. The refusal leaves identities, aliases and activation state unchanged.
+
+::: details Guided setup and browser consent
+`GET …/setup` returns versioned public typed-form descriptors (WebDAV and Google Drive),
+credential sealing availability and the installed browser-consent redirect URI/scope,
+with no secrets. Provider wire records include `guidedSetupAvailable`; advanced settings
+outside the guided subset do not receive the guided resume action. `POST …/preview` with `setupVersion: 1`
+validates that guided configuration and tests a bounded paged listing plus one streamed
+original. The response includes `pages`, `scanned`, `sampleTotal`, `truncated`, exposure and
+availability exclusions, mapper notes and `original: {ok,bytes?,sha256?,contentType?,detail?}`.
+No source, file or credential is persisted. The guided limits are five pages, 1,000
+distinct files, 2 MiB per XML/Drive metadata response, 32 MiB per original and 30 seconds overall. Legacy
+preview and exclusive `shape: true` diagnostics retain their existing contracts.
+Creation and `PUT …/:id` accept `setupVersion: 1` to validate the guided subset; guided
+updates require a disabled source. `POST …/:id/setup-preview` tests a guided DB-managed
+Google Drive source using its sealed credential, without returning the credential. Its response adds
+`revision`, a digest of the configuration and credential identity. `POST …/:id/enable`
+accepts `{setupRevision}` and refuses `409 SETUP_CHANGED` if it no longer matches, including
+changes during the health check. This optional guard preserves advanced activation contracts;
+creation, credential storage, sync and enabling retain their separate audited permissions.
+
+`POST …/:id/oauth/start` accepts `{clientId,clientSecret}` for a disabled, guided DB-managed
+Google Drive source. It requires an owner browser session, credential sealing and a suitable
+instance URL. It returns `{authorizeUrl}` plus an encrypted HttpOnly/SameSite state cookie
+with a ten-minute lifetime, bound to the member session and source revision. Its client
+secret and PKCE verifier are sealed with a separate credential-key context; refresh tokens
+are never put in browser cookies or responses. Only the latest consent in a browser is pending.
+`GET /api/auth/provider-oauth/callback` checks state, session, current permission and source
+revision, exchanges the code on Google's fixed endpoint with PKCE, checks offline read-only
+scope and folder access, then seals the credential. JSON replies are capped at 64 KiB with
+a 20-second aggregate exchange deadline. Failed/declined consent preserves the old grant.
+The callback clears the state cookie and redirects to `/admin#/providers?setup=<id>&oauth=…`
+with a safe outcome (`connected`, `denied`, `expired`, `changed`, `failed`); codes, vendor
+error descriptions and credentials are not reflected. Reconnecting requires a disabled
+source. Google Drive is the only browser-consent kind in this version.
+:::
+
+### Outbound delivery
+
+| Route | Action | Notes |
+|---|---|---|
+| `GET /api/v1/destinations` | authenticated; results filtered by `delivery.create` per target | safe fixed-target descriptors visible to this caller; never endpoints, bucket names, prefixes or credential refs |
+| `POST /api/v1/destinations/:id/deliveries?name=…&format=…` | `delivery.create` on `destination:<id>` | verified Lolly export as the raw body; `201` after immediate delivery, or `202 awaiting-approval` when the target binds a chain |
+| `POST /api/v1/destinations/:id/deliveries?projectId=…&fileId=…&checksum=…` | signed-in person + current project viewer access + `delivery.create` | empty body; verified shared original, only with explicit `projectFiles` on a DAM destination |
+| `POST /api/v1/jobs/:id/deliveries` | job owner + `delivery.create` on the body’s `destinationId` | deliver a completed render job’s retained output by reference; JSON `{destinationId,name,format?}` |
+| `GET /api/v1/deliveries` | authenticated | caller's own delivery history remains readable after permission loss |
+| `GET /api/v1/deliveries/:id` | authenticated | caller's own delivery receipt; another principal receives 404 |
+| `POST /api/v1/deliveries/:id/retry` | `delivery.create` on the destination | retry failed work from its immutable staged bytes; refuses a changed destination |
+
+Both create routes accept `Idempotency-Key`; repeating the same delivery returns its existing
+record without another provider write, while reuse for different bytes/metadata returns
+`409 IDEMPOTENCY_KEY_REUSED`. The raw body, or the referenced job output, must carry Lolly's
+C2PA export assertion. See
+[outbound delivery](delivery.md).
+
+### Managed rule mappings
+
+| Route | Action | Notes |
+|---|---|---|
+| `GET /api/v1/brand/rules` | `catalog.read` | Published guide and source-specific mappings; compatible input inventory is visible to policy editors |
+| `POST /api/v1/brand/rules/preview` | `policy.edit` | Validate `{ mappings }`, inspect format coverage, return revision and review token |
+| `POST /api/v1/brand/rules` | `policy.edit` | Apply the reviewed mappings with `revision` and `reviewToken`; audited, stale-safe and durable outside development |
+
+See [managed production rules](design-system-administration.md#managed-production-rules) for scope and draft handling. Render input checks do not certify output appearance. Durable output metadata includes `brandRules` with disposition, scope and revision; synchronous and durable downloads expose `x-lolly-brand-check`.
+
+## Governance, approvals and inbox
+
+Tool policy, grants and approval chains, the approvals people act on and the inbox where
+messages and comment notices arrive.
+
+### Policy and governance
+
+| Route | Action |
+|---|---|
+| `GET /api/v1/policy/tools` | `policy.edit` |
+| `PUT /api/v1/policy/overlays/:toolId` | `policy.edit` |
+| `GET /api/v1/policy/flags`, `PUT /api/v1/policy/flags/:flagId` | `policy.edit` |
+| `GET /api/v1/grants` | `grant.edit` |
+| `POST /api/v1/grants`, `DELETE /api/v1/grants` | `grant.edit` + owner for owner-only actions |
+| `GET /api/v1/config/export` | `policy.edit` |
+| `POST /api/v1/config/apply?dryRun=1&prune=1` | `policy.edit` (+ owner for owner-only grants) |
+| `GET /api/v1/chains`, `PUT /api/v1/chains/:id` | member / `policy.edit` |
+| `POST /api/v1/chains/preview` | `policy.edit` - checks a draft chain before saving: `{ steps: [{ name, eligibleCount, otherEligibleCount, required, viable }], viable }`, where a step is viable when enough people other than the caller may act on that step |
+
+### Approvals and inbox
+
+| Route | Action |
+|---|---|
+| `GET/POST /api/v1/approvals` | member |
+| `GET /api/v1/approvals/approvers` | member |
+| `POST /api/v1/approvals/:id/act` | `approval.act` |
+| `POST /api/v1/approvals/:id/withdraw` | member (submitter) |
+| `GET /api/v1/inbox` | member - `{ messages, unread }` with `ETag: "ib-<16 hex>"` and `cache-control: private, no-cache`; a matching `If-None-Match` answers `304`, so a shell can check often for one header. `messages` holds the caller's messages and comment notices; `unread` counts both, and the tag moves when either changes |
+| `POST /api/v1/inbox/:id/ack` | member - dismisses the message for the caller. For a comment notice (`cn_…`) it deletes the caller's own notice row and nothing else, so the next reply in that thread shows a notice again |
+| `GET/POST /api/v1/messages` | `message.send` |
+
+Message targeting is groups × shell selectors × engine-version range. Besides the
+console's messages, the server writes `approval`, `expiry`, `collab` and `share` messages,
+`request` (someone asks for access and you may answer) and `notice` (an answer to your request,
+an accepted invitation, a welcome, an invitation entry that no longer works). `data.kind`
+identifies which, and `data.at` is when it happened; [notices](invitations.md#notices) lists the
+kinds.
+
+The inbox hides a message whose subject the caller can no longer reach: a project share
+or a live-collab invite once they cannot see the project, an invite also once its session
+is deleted, and an access request for a project once they no longer manage the project. Hidden is
+not deleted: the message comes back if the access does.
+
+Comment notices appear in the same list. There is one per person
+per thread, updated as replies arrive, and it is built when the inbox is read:
+
+```json
+{ "id": "cn_<24 hex>", "kind": "comment", "severity": "info",
+  "title": "Ana mentioned you in Spring poster",
+  "body": "<the first 140 characters of the newest message someone else wrote and nobody deleted>",
+  "cta": { "label": "Open thread", "url": "<appUrl>/#/team/<sessionId>?thread=<threadId>" },
+  "data": { "kind": "comment-mention", "sessionId": "...", "projectId": "...", "threadId": "...",
+            "actorName": "Ana", "label": "Spring poster", "count": "1", "at": "<iso>" },
+  "dismissible": true }
+```
+
+`data.kind` is `comment-mention` or `comment-reply`. A reply notice that counts several
+replies is titled "New replies in Spring poster: 3". `actorName` is the person's name,
+never an address, and `Member` when the account is gone. With no message by someone else
+left, `body` is "This comment is no longer available." `appUrl` is `instance.appUrl`, or
+empty when the app is served from this origin. The text is English; a client should build
+its own title from `data` and its own link from `data.sessionId` and `data.threadId`.
+
+Each notice is checked again on every read with the rule the
+[comments routes](#canvas-comments) use: the caller can still open the session, `session.view`
+and `comment.view` hold, and `policy.comments.enabled` and `policy.comments.notices` are not
+`false`. A
+notice that fails a grant or the policy is hidden and kept until it is 30 days old; after that the
+next read of the inbox (or of org-config) removes it, as does the next notice written for
+the person. One whose session is deleted, or whose project the caller can no longer reach,
+is deleted. Notices
+are never emailed today; see `policy.comments` under [Canvas comments](#canvas-comments).
+
+## Administration and health
+
+The routes an operator and the monitoring stack read: health probes, metrics, telemetry and
+audit, the fleet of installed apps, setup checks and the static files the server hands out.
+
+### Health and metrics
+
+| Route | Action | Notes |
+|---|---|---|
+| `GET /healthz` | public | `{ ok, name, accessMode, appUrl? }` - liveness |
+| `GET /readyz` | public | `{ ok, store }` - readiness. `503` while the store cannot answer or the mounted catalog is not prepared yet, and in production also while migrations are pending or the setup checks fail |
+| `GET /metrics` | token | Prometheus. With `LW_METRICS_TOKEN` set, the bearer token is required. Without one, only loopback may read it, and only on an evaluation instance with no proxy: in production, behind `proxyAuth` or with `rateLimit.trustedProxyHops` above `0`, a request without the token gets `404`, from loopback too |
+| `GET /api/v1/alerts` | `telemetry.view` | `{ alerts: [{ id, kind, level, month, value, threshold, title, detail, href }] }`: alerts the server raises for administrators, shown as the console banner. Today only the [blob offload trigger](operations.md#blob-offload-trigger) |
+
+### Telemetry, activity, audit, fleet and setup
+
+| Route | Action |
+|---|---|
+| `POST /api/v1/telemetry` | member or guest session; attribution per level/consent |
+| `POST /api/v1/telemetry/consent` | member |
+| `GET /api/v1/telemetry/summary` | `telemetry.view` |
+| `GET /api/v1/stats/overview` | `telemetry.view` |
+| `GET /api/v1/stats/series?days=N` | `telemetry.view` - day-bucketed audit-action counts (counts only), the console's per-view activity headers; `days` clamps 7–90 |
+| `GET /api/v1/activity` | `audit.export` |
+| `GET /api/v1/audit?limit=&before=` (paged: the `limit` newest events, or those older than the `before` seq; `nextBefore` is the cursor while older rows exist), `GET /api/v1/audit/head` | `audit.export` |
+| `GET /api/v1/fleet` | `fleet.view` - the version histogram, plus `engineVersion` (this deploy's vendored pin) |
+| `GET /api/v1/fleet/installs` | `fleet.view` - registered installs, newest activity first |
+| `PATCH /api/v1/fleet/installs/:id` | `fleet.manage` - set or clear the operator name |
+| `DELETE /api/v1/fleet/installs/:id` | `fleet.manage` - forget the row (bookkeeping; the device is untouched) |
+| `GET /api/v1/system/setup` | `instance.config`: safe running checks, pack, store and schema |
+| `GET /api/v1/system/setup/configuration` | `instance.config`: non-secret settings, callback, environment presence and retained account/test evidence |
+| `POST /api/v1/system/setup/configuration` | `instance.config`: validate a setup draft and return deployment/Helm files; never saves live deployment settings |
+| `POST /api/v1/system/setup/identity-test` | `instance.config`: bounded installed-issuer discovery, audited result |
+| `POST /api/v1/system/setup/account-test` | `instance.config`: exact `{sub}` lookup and retained SCIM/sign-in correlation; no email merge |
+| `GET /api/v1/system/setup/tools/:id` | `instance.config` plus current tool use/export permission: sample input metadata and governed checked formats |
+| `GET /api/v1/system/migrations` | `instance.config` (**owner**) |
+| `GET /api/v1/docs`, `GET /api/v1/docs/:slug` | member - this documentation set |
+| `GET /api/v1/docs/img/:file`, `GET /api/v1/docs/shots/:file`, `GET /api/v1/docs/shots/:file/cred` | member - the images and screenshots those pages show, and a screenshot's Content Credentials as JSON (`404 NO_CRED` when it carries none) |
+
+### Static files
+
+| Route | Notes |
+|---|---|
+| `GET /admin`, `GET /admin/*` | the admin console (static; every call it makes is auth-enforced) |
+| `GET /tools/*` | a tool's files (`tool.json`, `template.html`, `hooks.js`, ...) from the pack's `tools/<id>/`, never from the shell dist. Gated like `/catalog/*`, and a tool the caller's groups cannot see answers 404, the same absence the tool index shows. A guest may fetch the tool its link opens |
+| `GET /models/*` | the shell's on-device model files, when `instance.shellDir` is set: from the shell dist when it carries them, otherwise passed through to `instance.modelOrigin` (see [configuration](configuration.md#instance)) |
+| `GET /`, `GET /*` | the Lolly web shell, when `instance.shellDir` is set. Registered last, so API/console/catalog/render/link routes always win; `api`, `catalog`, `tools`, `render`, `l`, `e`, `o`, `admin`, `scim`, `healthz`, `activate` and `connect` are reserved prefixes |

@@ -1,25 +1,50 @@
 # Lolly srovnání nástroj po nástroji
 
-Lolly pokrývá kreativní práci od jediné konverze na zařízení až po produkci materiálů v řízené organizaci. Tyto stránky porovnávají pracovní postupy, které jednotlivé produkty podporují, způsob jejich nasazení a omezení, na kterých při výběru řešení záleží.
+Pokud už používáš jiný produkt, tyto stránky říkají, zda ho Lolly nahrazuje, funguje vedle něj, nebo se pro tvou práci nehodí. Každá začíná tím, co ten druhý produkt dělá lépe.
 
 _Naposledy ověřeno: 28. září 2026._
 
-## Jeden projekt, dvě samostatně nasazované části
+## Srovnání podle produktu
 
-**Lolly** je engine, aplikace a nástroje pro vytváření, úpravy, převod a export. Běží na tvém zařízení, po zpřístupnění potřebných prostředků funguje offline a pro samostatné použití nepotřebuje účet.
-
-**[lolly.work](https://lolly.work)** je organizační služba projektu, kterou spravuje [repozitář lolly-work](https://github.com/lolly-tools/lolly-work). Poskytuje SSO, provisioning přes SCIM, role a zásady, sdílené katalogy a projekty, schvalování, spolupráci v rámci práce, reporting využití, auditní záznamy a serverové renderování. Obě části jsou open source pod licencí MPL-2.0. Organizace provozuje lolly.work spolu s Lolly a rozhoduje, které služby zapne.
-
-Srovnání se týkají **Lolly + lolly.work**. Funkce, které vyžadují organizační službu, jsou uvedeny výslovně. Při samostatném použití zůstávají soubory v zařízení; pokud zvolíš sdílené projekty, spolupráci v rámci práce, serverové renderování nebo doručení, odešlou se příslušná data nakonfigurovaným službám. Veřejný web lolly.work je sandbox; pro nasazení v organizaci viz [průvodce nasazením](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) a [aktuální stav](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md).
-
-## Srovnání podle pracovního postupu
-
-- [Lolly a Canva](/info/compare-canva.html) - šablony, každodenní design a sdílená brandová produkce.
+- [Lolly a Canva](/info/compare-canva.html) - šablony, každodenní návrh a sdílená výroba pro značku.
 - [Lolly a Adobe](/info/compare-adobe.html) - úpravy, převody, profesionální výstup a Content Credentials.
-- [Lolly a Figma](/info/compare-figma.html) - design, živá spolupráce a opakovatelná produkce materiálů.
-- [Lolly a Penpot](/info/compare-penpot.html) - open source design, sdílené tokeny a organizační workflow.
-- [Lolly a brandové portály](/info/compare-brand-portals.html) - schválené knihovny, zamčené šablony, identita, revize a reporting.
-- [Lolly a renderovací API](/info/compare-render-apis.html) - automatické generování na tvém zařízení, v CI nebo přes lolly.work.
+- [Lolly a Figma](/info/compare-figma.html) - návrh, živá spolupráce a opakovaná výroba assetů.
+- [Lolly a Penpot](/info/compare-penpot.html) - open-source návrh, sdílené tokeny a práce organizace.
+- [Lolly a portály značek](/info/compare-brand-portals.html) - schválené knihovny, zamčené šablony, identita, revize a reporty.
+- [Lolly a vykreslovací API](/info/compare-render-apis.html) - automatizovaná generace na tvém zařízení, v CI nebo na serveru Lolly Work.
 - [Lolly a online převodníky souborů](/info/compare-converters.html) - převod formátů na tvém vlastním zařízení.
 
 Srovnání po jednotlivých schopnostech najdeš v [Jak si Lolly stojí v porovnání](/info/positioning.html). Každé srovnání je datované; tvrzení, které už neodpovídá jednomu z produktů, je třeba opravit.
+
+## Co běží kde
+
+Každé srovnání pokrývá dvě části jednoho open-source projektu. **Lolly** je engine, aplikace a nástroje. **Lolly Work** je organizační server udržovaný v [repozitáři lolly-work](https://github.com/lolly-tools/lolly-work). Obojí je MPL-2.0 a organizace rozhoduje, které služby Lolly Work zapne.
+
+::: cols
+## Na tvém zařízení: Lolly
+
+- Žádný účet pro samostatné používání
+- Tvorba, úpravy, převody a export
+- Funguje offline, jakmile jsou uloženy potřebné nástroje a assety
+- Content Credentials podepsané na zařízení
+- Soukromé kolaborace mezi dvěma zařízeními, bez serveru
+
+## Na serveru tvé organizace: Lolly Work
+
+- Jednotné přihlášení, zřizování SCIM, role a politiky
+- Sdílené katalogy, týmové projekty a pracovní kolaborace
+- Schvalování, hlášení používání a auditní záznamy
+- Serverové vykreslování, obnovitelné úlohy a schválené doručení
+- Serverové podepisování s identitou organizace
+:::
+
+Samostatné používání drží soubory na zařízení. Volba sdílených projektů, pracovní kolaborace, serverového vykreslení nebo doručení posílá data, která ta funkce potřebuje, na server tvé organizace.
+
+## Co každé srovnání předpokládá
+
+Tyto limity platí pro každou stránku v této sadě, takže jsou uvedeny jednou zde:
+
+- **Pracovní kolaborace dnes běží na jednom serverovém uzlu.** Jejich měřítko a provozní historie se liší od dlouho zavedených hostovaných produktů. [Stav a plán Work](/info/work-status.html) zaznamenává aktuální limity.
+- **Web na [lolly.work](https://lolly.work) je demo pískoviště.** Trvalé nasazení v organizaci potřebuje trvalé úložiště a provozovatele; obojí pokrývá [Instalace Lolly Work](/info/work-install.html).
+- **Pro Lolly ani samostatně hostované Lolly Work neexistuje poplatek za softwarovou licenci na uživatele.** Hosting, úložiště a provoz stále stojí peníze.
+- **Podpis není důvěryhodný podepisovatel.** Ověřovatel musí důvěřovat certifikátu, který soubor podepsal, než ukáže podepisovatele jako důvěryhodného; vysvětluje to [Content Credentials Identity](/info/content-credentials-identity.html).

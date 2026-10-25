@@ -1,6 +1,6 @@
 {
   "name": "Фрагмент коду",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Показуйте текст у вікні стільниці, як нерухоме зображення або як керовану взаємодію з набором, вибором, автодоповненням і рухом.",
   "inputs.code.label": "Код",
   "inputs.code.placeholder": "Вставте свій код тут…",
   "inputs.fileName.label": "Назва файлу",

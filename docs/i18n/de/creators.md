@@ -1,60 +1,75 @@
-# Lolly für Kreative
+# Erstellen
 
-Sie füllen ein paar Felder aus, und heraus kommt eine fertige Datei, bei der Schriften, Farben und Layout bereits auf Ihrem eigenen Gerät entschieden sind. Sie liefern in Minuten, und es sieht aus, als hätten Sie Stunden investiert, und weil die Markenregeln fest im Tool verankert sind, steht nie Ihr Name auf der markenfremden Datei. Wählen Sie unten die Spur, die zu dem passt, was Sie heute vorhaben.
+Sie füllen ein paar Felder aus, und eine fertige Datei kommt heraus, mit festgelegten Schriften, Farben und Layout, auf Ihrem eigenen Gerät. Weil die Markenregeln im Tool liegen, steht nie Ihr Name auf der Datei, die nicht zur Marke passt. Wählen Sie die Spur, die zu dem passt, was Sie heute tun.
 
-Sie sind eine Hand in einer Staffel: Ein Entwickler kann das Tool, das Sie nutzen, zu einer Pipeline ausbauen, und eine Kollegin oder ein Kollege kann es im Selbstbedienungsmodus ausführen, daher verfolgt [Der Lebenszyklus einer Kampagne](/info/overview.html#the-lifecycle-of-a-campaign) ein Asset durch alle drei Paar Hände.
-
-Neu hier? Beginnen Sie mit **[In 60 Sekunden etwas erstellen](/info/make-something.html)** und kommen Sie zurück, sobald Sie wissen, welchen Teil Sie vertiefen möchten. [Fragen & Antworten](/info/faq.html) behandelt, was Menschen fragen, bevor sie einem kostenlosen Tool vertrauen. [Wie Lolly im Vergleich abschneidet](/info/positioning.html) ist die ehrliche Einschätzung, wofür Sie besser zu etwas anderem greifen.
+Neu hier? Beginnen Sie mit **[Ihre erste Datei erstellen](/info/make-something.html)**. [Wie Lolly funktioniert](/info/how-lolly-works.html) zeigt, wie ein Tool, das Sie nutzen, auch aus einem Skript oder vom Smartphone einer Kollegin laufen kann, und [Fragen und Antworten](/info/faq.html) behandelt, was Leute fragen, bevor sie einem kostenlosen Tool vertrauen.
 
 ## Erstellen
 
-Wählen Sie ein Tool, füllen Sie ein paar Felder aus und laden Sie die fertige Datei herunter. Oder öffnen Sie die Design-Leinwand und legen Sie frei Hand an: In beiden Fällen kommen Farben, Schrift und Abstände aus Ihrer Marke statt aus dem Gedächtnis, und nichts erfordert ein Konto.
+Wählen Sie ein Tool und füllen Sie es aus, oder legen Sie eine Seite frei auf der Design-Arbeitsfläche an.
 
-- **[Make something in 60 seconds](/info/make-something.html)** - drei kurze Rundgänge ganz ohne Einrichtung, falls Sie Lolly noch nie geöffnet haben.
-- **[Lolly nutzen](/info/using.html)** - die Leinwand, die Steuerelemente, das Speichern, Projekte und die Nutzung am Telefon: wie sich die App selbst verhält.
-- **[Das Brand Studio](/info/brand-studio.html)** - wann Logos, Farben und Schrift Ihre eigenen sein sollen statt der Standardvorgaben.
-- **[Ein Design importieren](/info/design-import.html)** - wenn die Grafik bereits als `.fig`-, `.penpot`-, `.ai`-, `.idml`- oder SVG-Datei vorliegt und Sie sie bearbeitbar statt geplättet haben möchten.
-- **[Utility-Ansichten](/info/utilities.html)** - die Tabellenkalkulation, der Konverter, das Colour Lab, der PDF-Extraktor und Script Audio, für die Aufgaben, die kein Tool-Render sind.
-- **[Browser-Erweiterung](/info/extension.html)** - erfassen Sie eine lebende Webseite und nutzen Sie sie als Asset in Ihren eigenen Designs weiter.
-- **[Suche](/info/search.html)** - ein Feld, das Ihre Tools, Ihre gespeicherte Arbeit, den Katalog und Ihre Einstellungen erreicht.
-- **[Ask Lolly](/info/ask.html)** - tippen Sie eine Frage ein und erhalten Sie den passenden Abschnitt dieser Anleitungen zurück, mit einem Link direkt hinein.
-- **[Das Dashboard](/info/dashboard.html)** - was dieses Gerät kann, Ihr Designsystem schreibgeschützt und ein Blick auf den Speicherplatz.
-- **[Ihre Favoriten](/info/favourites.html)** - markieren Sie mit einem Stern, was Sie häufig nutzen, damit es eine eigene Kachel über dem Raster erhält.
-- **[Profile](/info/profile.html)** - die Angaben, aus denen Tools vorausfüllen, und die vier Barrierefreiheits-Schalter, die die App beruhigen, ohne ein Pixel dessen zu verschieben, was Sie exportieren.
+- **[Ihre erste Datei erstellen](/info/make-something.html)** - eine kurze Lektion ohne Einrichtung: ein QR-Code, heruntergeladen und als bearbeitbare Kopie gespeichert.
+- **[Lolly nutzen](/info/using.html)** - die Arbeitsfläche, die Steuerelemente, Speichern, Projekte und die Nutzung auf dem Smartphone: wie sich die App selbst verhält.
+- **[Vorlagen](/info/templates.html)** - mit einem gespeicherten Layout statt einem leeren Tool beginnen.
+- **[Text in Design](/info/text-composition.html)** - Überschriften, Fließtext und Schrift, die in ihre Box passt.
+- **[3D Studio](/info/3d-studio.html)** - SVG-Grafiken und 3D-Modelle als eine Szene angeordnet, beleuchtet und gerendert.
+- **[Utilities](/info/utilities.html)** - eine Datei auf Ihrem Gerät reparieren: sicher teilen, zwei Versionen vergleichen, das Format ändern, die Worte herausholen oder eine Farbe prüfen.
+- **[Browser-Erweiterung](/info/extension.html)** - eine Live-Webseite aus der Web-App abfotografieren oder eine Website lesen, um ein Designsystem zu beginnen.
+
+## Machen Sie es zu Ihrem
+
+Ihr Designsystem bestimmt, wie jedes Tool aussieht.
+
+- **[Design System Setup](/info/brand-studio.html)** - Logos, Farben, Schrift und der Rest, einmal festgelegt unter `#/start`.
+- **[Lolly Demo im Einsatz](/info/lolly-demo-in-use.html)** - Farbvarianten an echter Arbeit und der Wechsel zu Ihrem eigenen Designsystem.
+- **[Marken-Architekturen](/info/brand-architectures.html)** - mehrere Designsysteme oder eines mit mehreren Farbvarianten für eine Organisation.
+- **[Ein Design importieren](/info/design-import.html)** - eine `.fig`-, `.penpot`-, `.ai`-, `.idml`- oder SVG-Datei, als bearbeitbares Layout statt als flaches Bild geöffnet.
+- **[Ein Deck neu branden](/info/rebrand.html)** - ein PowerPoint-Deck auf Ihr Designsystem übertragen, mit intakten Diagrammen und Animationen.
+- **[Ein Design mit Regeln teilen](/info/create-a-tool.html)** - ein Layout in ein Tool verwandeln, das andere ausfüllen.
+
+## Ihre Arbeit finden und behalten
+
+- **[Ihre Arbeit finden und wiederherstellen](/info/find-your-work.html)** - wohin eine gespeicherte, heruntergeladene oder nicht gespeicherte Datei gegangen ist.
+- **[Suche](/info/search.html)** und **[Ask Lolly](/info/ask.html)** - ein Feld für Ihre Tools, gespeicherte Arbeit, Assets und Einstellungen sowie Antworten aus diesen Anleitungen.
+- **[Einstellungen](/info/dashboard.html)** - was dieses Gerät kann, Ihr Designsystem schreibgeschützt und Ihr Speicher.
+- **[Ihre Favoriten](/info/favourites.html)** und **[Profile](/info/profile.html)** - markierte Tools, die Angaben, die Tools vorausfüllen, und die Schalter für Barrierefreiheit.
+- **[Ihre Geräte synchronisieren](/info/sync.html)** - dieselbe Arbeit auf Ihrem Computer und Ihrem Smartphone, über Speicher Ihrer Wahl.
 
 ## Animieren
 
-Text, der sich bewegt, Szenen auf einer Zeitleiste und Bewegung, die markenkonform bleibt. Ein Bewegtbild-Export wird Bild für Bild aus einer gesteuerten Uhr zusammengesetzt statt vom Bildschirm aufgezeichnet, sodass das Timing nie driftet und derselbe Link denselben Clip in jeder Länge rendert.
+Text, der sich bewegt, Szenen auf einer Zeitleiste und Bewegung, die markenkonform bleibt. Ein Bewegungsexport wird Bild für Bild aus einer gesteuerten Uhr gezeichnet statt vom Bildschirm aufgenommen, sodass derselbe Link denselben Clip erzeugt.
 
-- **[Animieren](/info/animating.html)** - Keyframes, echte Tiefe und eine Szenenkamera, um über das Ergebnis zu fliegen.
-- **[Der Sequenz-Editor](/info/sequence-editor.html)** - die Zeitleiste selbst: Clips, Overlay-Spuren, Trimmen und Teilen, Übergänge und die Audiomischung.
-- **[Exportieren & Formate](/info/exporting.html)** - die Video-, GIF- und Animated-PNG-Seite des Exportfensters, sobald die Bewegung stimmt.
+- **[Animieren](/info/animating.html)** - Keyframes, echte Tiefe und eine Szenenkamera.
+- **[Der Sequenz-Editor](/info/sequence-editor.html)** - Clips, Overlay-Spuren, Trimmen und Teilen, Übergänge und die Audio-Mischung.
+- **[Weiter Farbraum und HDR](/info/hdr-editing.html)** - Farbe jenseits des üblichen Bereichs, auf Bildschirmen und in Formaten, die den zusätzlichen Bereich zeigen können.
 
-## Aufnehmen
+## Aufnehmen und präsentieren
 
-Nehmen Sie einen sauberen Take mit Einzähler, Pegelanzeige und sanftem Coaching auf, oder verwandeln Sie eine Sprachnotiz in ein fertiges Video, das sich mit dem Ton bewegt. Es gibt noch keine eigene Record-Seite: Lolly nutzen trägt sie im Abschnitt zur Zeitleiste.
+Nehmen Sie einen sauberen Take mit Einzählung und Pegelanzeige auf, oder stellen Sie sich vor Ihre Folien.
 
-- **[Lolly nutzen](/info/using.html#timeline-sequence)** - eine Voiceover direkt auf die Zeitleiste aufnehmen, wo der Take gespeichert wird und wie er in die Mischung gelangt.
-- **[Ihre erste Datei erstellen](/info/make-something.html#other-first-projects)** - die Audiogramm-Szene, für wenn Sie lieber gehört als gesehen werden möchten.
-- **[Utility-Ansichten](/info/utilities.html)** - Script Audio, wenn die Worte zuerst kommen und die Stimme danach.
-
-## Präsentieren
-
-Legen Sie Ihre Kamera, Ihr Logo und Ihren Namen über ein Design-Deck oder einen Countdown, mit privaten Steuerelementen in einem separaten Fenster.
-
-- **[Mit Kamera präsentieren](/info/presenting.html)** - Bildausschnitt, gespeicherte Szenen, Teilen mit dem Publikum, lokale Aufnahme und die aktuellen Einschränkungen der Testphase.
+- **[Die Design-Zeitleiste](/info/design.html#timeline-sequence)** - einen Sprechertext direkt auf die Zeitleiste aufnehmen.
+- **[Ihre erste Datei erstellen](/info/make-something.html#other-first-projects)** - das Audiogramm, wenn Sie lieber gehört als gesehen werden möchten.
+- **[Mit Kamera präsentieren](/info/presenting.html)** - Ihre Kamera, Ihr Logo und Ihr Name über einem Deck oder Countdown, mit privaten Steuerelementen in einem separaten Fenster.
+- **[Live-Seiten, die den Clicker annehmen](/info/interactive-pages.html)** und **[Agenda-Bildschirme](/info/agenda.html)** - Seiten und Programme für den Raum.
 
 ## Zusammenarbeiten
 
-Zwei Menschen, zwei Geräte, eine Sitzung, live bearbeitet. Scannen Sie einen Code über den Tisch hinweg, und beide Bildschirme zeigen dieselbe Arbeit, ganz ohne Konto und ohne Server dazwischen - und ganz ohne Internet, wenn beide Geräte im selben Netzwerk sind.
+Zwei Menschen, zwei Geräte, ein Design, live bearbeitet, ohne Konto und ohne Server dazwischen.
 
-- **[Gemeinsam arbeiten](/info/collaborate.html)** - eine Sitzung starten, was zwischen den Geräten übertragen wird und was passiert, wenn das Netzwerk ausfällt.
-- **[Lolly nutzen](/info/using.html#sharing-your-work)** - die stilleren Wege, Arbeit weiterzugeben: ein Freigabelink, der den gesamten Zustand trägt, oder eine einzelne `.lolly`-Datei.
+- **[Zusammenarbeiten](/info/collaborate.html)** - private Collabs zwischen Geräten und Work-Collabs über das Lolly Work Ihrer Organisation.
+- **[Lolly nutzen](/info/using.html#sharing-your-work)** - ein Share-Link, der den ganzen Zustand trägt, oder eine einzelne `.lolly`-Datei.
+- **[Lolly in Ihrer Organisation nutzen](/info/organisation.html)** - Anmeldung, Team-Projekte und verwaltete Einstellungen, wenn Ihre Organisation Lolly Work betreibt.
 
 ## Veröffentlichen
 
-Schicken Sie es dorthin, wo es verlangt wurde: ein Link, der das Design trägt, ein druckgetreues PDF, ein Video, eine Präsentation oder ein Ordner voller Varianten. Dieselbe Quelle erzeugt jedes davon, Sie bauen es also nur einmal.
+Senden Sie es dorthin, wo es verlangt wurde: ein Link, ein druckgetreues PDF, ein Video, ein Deck oder ein Ordner voller Varianten, alles aus derselben Quelle.
 
-- **[Exportieren & Formate](/info/exporting.html)** - Druckeinheiten, DPI, Beschnitt und Schnittmarken, Video, Stapelläufe und das Exportfenster selbst.
-- **[Jedes Format, das Lolly öffnen und erzeugen kann](/info/formats.html)** - die vollständige Liste der Ein- und Ausgabeformate, mit einer verständlichen Karte hinter jedem Chip.
-- **[Datenübertragung](/info/data-transfer.html)** - das Backup-Bündel, um alles, was Sie erstellt haben, auf ein anderes Gerät zu übertragen.
+- **[Eine Datei exportieren](/info/exporting.html)** - Druckeinheiten, Beschnitt und Schnittmarken, Video, Batch-Läufe und das Export-Panel.
+- **[Jedes Format, das Lolly öffnen und erzeugen kann](/info/formats.html)** - die vollständige Liste für Ein- und Ausgabe.
+- **[Kreativrechte und Credits](/info/creative-rights.html)** - die Lizenzen dessen, was Sie genutzt haben, und die Credits, die mit der Datei reisen.
+
+## Playbooks für Teams und Vergleiche
+
+- **Für Ihr Team:** [Vertrieb](/info/sales.html), [Marketing](/info/marketing.html), [die Presseabteilung](/info/press.html) und [Recht](/info/legal.html).
+- **[Wie Lolly sich vergleicht](/info/positioning.html)** - worin Lolly gut ist und wann Sie zu etwas anderem greifen sollten.
+- **[Lolly im Vergleich, Tool für Tool](/info/compare.html)** - Canva, Adobe, Figma, Penpot, Marken-Portale, Rendering-APIs und Online-Konverter.

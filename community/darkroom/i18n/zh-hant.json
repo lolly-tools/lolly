@@ -1,5 +1,5 @@
 {
   "name": "暗房",
-  "description": "專業級調色暗房：底片質感、第三方 .cube LUT、來自設計系統的色彩處理與質感修飾 - 再把調好的效果烘焙成任何編輯軟體都能用的 LUT。也能把 Photoshop 或 GIMP 檔案當作圖層開啟：逐層定位、混合、隱藏，為合成影像調色，匯出平面影像或分層 PSD。",
+  "description": "以底片風格、Adobe XMP 預設集、.cube LUT 與你的設計系統色彩為照片和影片調色。可透過 LUT 匯出或「影片調色」重複使用同一種風格。可開啟 Photoshop 與 GIMP 圖層來定位、混合與匯出圖像。",
   "featured.blurb": "以底片風格、LUT 與您的品牌色調色"
 }

@@ -823,7 +823,7 @@ ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ```
 
-### mediabunny 1.61.5
+### mediabunny 1.61.6
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
@@ -1204,7 +1204,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### @mediabunny/flac-encoder 1.61.5
+### @mediabunny/flac-encoder 1.61.6
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
@@ -2196,7 +2196,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @codemirror/view 6.43.14
+### @codemirror/view 6.43.15
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
@@ -2286,7 +2286,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-### @codemirror/autocomplete 6.20.3
+### @codemirror/autocomplete 6.20.4
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
@@ -2851,7 +2851,7 @@ SOFTWARE.
 license of the upstream project, https://github.com/evanw/kiwi.)
 ```
 
-### zxing-wasm 3.1.5
+### zxing-wasm 3.1.6
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2023 Ze-Zheng Wu

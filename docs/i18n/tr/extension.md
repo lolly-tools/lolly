@@ -1,75 +1,78 @@
-# Tarayıcı Uzantısı
+# Tarayıcı uzantısı
 
-**Lolly URL Screenshot** uzantısı, web uygulamasının tarayıcın içinden herhangi bir web sayfasının ekran görüntüsünü almasını sağlar. Uzantı olmadan bir URL'yi yakalamak masaüstü uygulamasını gerektirir - bir tarayıcı sayfası başka bir siteden tek başına piksel okuyamaz. Uzantı bunu, masaüstü uygulamasının kullandığı aynı yakalamayı kullanarak yapabilir.
+Bir web sayfası başka bir web sitesinin piksellerini okuyamaz; bu yüzden Lolly web uygulamasının bir sayfanın ekran görüntüsünü alması için yardıma ihtiyacı vardır. Chromium tabanlı bir tarayıcıda (Chrome 111'den itibaren Chrome, Edge, Brave, Arc veya Opera) ücretsiz **Lolly URL Screenshot** uzantısı, masaüstü uygulamasının kullandığı aynı yakalamayı kullanarak bu yardımı sağlar. Kurulduğunda:
 
-Aynı şekilde başka bir iş daha yapar: adlandırdığın tek bir sayfayı okur, böylece Brand Studio canlı bir web sitesinden bir marka çekebilir. İkisi de aşağıda ele alınıyor.
+- **[URL Screenshot](/t/url-shot)**, oluşturduğun sayfayı bir dosya olarak kaydeder;
+- bir görsel yuvasına yapıştırılan bir web adresi, **Screenshot this page** ile o sayfanın ekran görüntüsüne dönüşebilir;
+- [Design System Setup](/info/brand-studio.html) içindeki **Website** kaynağı, bir tasarım sistemi başlatmak için bir sayfayı okuyabilir.
 
-Chromium tabanlı tarayıcılarda çalışır: **Chrome, Edge, Brave, Arc, Opera** - Chrome 111 veya üzeri.
+Her isteği sen onaylarsın ve masaüstü uygulaması aynı işleri uzantı olmadan yapar.
 
-Kurulana kadar **URL Screenshot** yine de açılır, böylece bir çekim oluşturabilirsin; aracın kontrollerinin üstündeki bir not neyin eksik olduğunu söyler.
+## Kurmadan önce
+
+Uzantı kurulana kadar **URL Screenshot** yine açılır; böylece bir çekim oluşturabilirsin. Aracın denetimlerinin üstündeki bir not neyin eksik olduğunu söyler.
 
 ![Dosyaya yakalama işleminin çalışacağı bir sunucu olmadığında gösterilen, URL Screenshot aracının uzantıyı öneren notu](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
-Beklerken her kontrol canlıdır: hedef URL, kaydırma derinliği, yerleşme gecikmesi, kırpma boşlukları ve yeniden renklendirme. Yalnızca yakalamanın kendisi bir sunucu gerektirir.
+Beklerken her denetim çalışır: hedef URL, kaydırma derinliği, yerleşme gecikmesi, kırpma boşlukları ve yeniden renklendirme. Yalnızca yakalamanın kendisi uzantıya ihtiyaç duyar.
 
 ![Hedef URL, kaydırma derinliği, yerleşme gecikmesi ve kırpma boşlukları içeren, uzantı olmadan önce de kullanılabilen URL Screenshot kontrolleri](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Kurulum
 
-### Chrome Web Store'dan
+**Chrome Web Store'dan:** yakında. Uzantı yayımlandığında tek tıkla kurarsın.
 
-*Yakında.* Yayınlandığında tek tıkla kuracaksın, ardından Lolly'yi yeniden yükleyeceksin.
+**Kendin yükle (geliştiriciler).** Uzantı depoda `shells/chrome-extension/` altında yaşar. O klasör yalnızca `https://lolly.tools` adresindeki Lolly ile çalışan üretim derlemesidir.
 
-### Kendin yükle (geliştiriciler)
+1. `chrome://extensions` aç.
+2. **Developer mode** seçeneğini aç (sağ üstte).
+3. **Load unpacked** düğmesine tıkla ve `shells/chrome-extension/` klasörünü seç.
+4. Lolly sekmesini yenile. Algılama sayfa yüklendiğinde olur; böylece "Get the extension" istemi kaybolur. **URL Screenshot** (Utilities altında) sonra yakalamaları bir dosyaya kaydedebilir ve Batch modunda kullanılabilir olur.
 
-Uzantı, depoda `shells/chrome-extension/` altında yer alır.
+Yerel bir geliştirme sunucusu için `pnpm run pack:chrome-extension:dev` komutunu çalıştır ve bunun yerine `dist/chrome-extension-dev` klasörünü yükle. Bu paket ayrıca `http://localhost:5173` adresini kabul eder ve adında **Development** yer alır.
 
-1. `chrome://extensions` adresini aç.
-2. **Geliştirici modunu** (sağ üstte) etkinleştir.
-3. **Paketlenmemişi yükle**'ye tıkla ve `shells/chrome-extension/` klasörünü seç.
-4. Lolly'yi yeniden yükle - **URL Screenshot** artık tarayıcıda çalışır.
+## Lolly sorduğunda ne olur
 
-## Nasıl çalışır
+![Lolly sekmesi bir sayfa ister ve uzantının onay penceresinde Approve once düğmesine basarsın. Bir arka plan sekmesi açılır, sayfayı okur ve kapanır. Sonra Lolly sekmesi sonucu alır.](/info/diagrams/concepts/extension-request.svg)
 
-- Küçük bir betik, uzantının mevcut olduğunu Lolly'ye bildirir; böylece **URL Screenshot** aracı otomatik olarak etkinleşir - kurulum gerekmez.
-- Görüntü oluşturduğunda, uzantı hedef sayfayı arka planda bir sekmede açar, DevTools Protokolü üzerinden yakalar (masaüstü uygulamasının kullandığı aynı `Page.captureScreenshot`), ardından sekmeyi kapatır ve görüntüyü geri verir.
-- Tamamen tarayıcında, kendi ağında çalışır - bu yüzden `localhost` veya bir iç siteyi yakalamak da işe yarar. Yakalamanın kendisi hiçbir yere yüklenmez; tek ağ trafiği, çekmesini istediğin sayfayı yükleyen kendi tarayıcındır.
+1. **Lolly sorar.** Küçük bir betik Lolly'ye uzantının mevcut olduğunu söyler; böylece bir yakalama veya sayfa okuması başka bir kuruluma gerek olmadan başlayabilir.
+2. **Sen onaylarsın.** Uzantı kendi **Approve page request** penceresini açar. İsteyen siteyi, ekran görüntüsü mü sayfa içeriği mi istediğini ve sayfa adresini gösterir. **Approve once** düğmesine basana kadar hiçbir şey okunmaz. **Cancel** veya pencereyi kapatmak isteği sonlandırır.
+3. **Chrome site başına bir kez sorar.** Bir site için bir isteği ilk onayladığında Chrome ayrıca uzantının o siteye erişip erişemeyeceğini sorar. İzin verdiğinde Chrome o erişimi tutar, ancak sonraki her istek yine kendi **Approve once** onayını gerektirir.
+4. **Sayfa bir arka plan sekmesinde okunur.** Uzantı hedef sayfayı bir arka plan sekmesinde açar, DevTools Protocol aracılığıyla yakalar (masaüstü uygulamasının kullandığı aynı `Page.captureScreenshot`), sekmeyi kapatır ve sonucu isteyen Lolly sekmesine verir.
 
-Bir yakalama çalışırken, geçici sekmede kısaca *"…bu tarayıcıda hata ayıklamaya başladı"* bildirimini görebilirsin. Bu, DevTools Protokolünün çalışmasıdır; çekim bittiğinde kendiliğinden kaybolur.
+Bir onay tek isteği kapsar ve 30 saniye sonra sona erer. Aynı anda yalnızca bir istek bekleyebilir veya çalışabilir ve onaylanmış bir istek 55 saniye sonra durur. Lolly sayfası kapanırsa veya değişirse ya da hedef sayfa başka bir siteye geçerse istek iptal edilir.
 
-## Brand Studio için bir site okumak
+Yakalama tarayıcında, ağında çalışır; bu yüzden `localhost` ve iç siteler çalışır. Sayfa tarayıcı oturumunla yüklenir; bu yüzden oturum açtığın bir sayfa sonuçta özel bilgi gösterebilir. Yakalama yüklenmez: tek ağ trafiği, istediğin sayfayı yükleyen kendi tarayıcındır.
 
-Brand Studio'daki **Website** kaynağı, zaten sahip olduğun bir siteden bir marka başlatır. Chromium'da bunu okuyan uzantıdır; masaüstü uygulamasında aynı işi yerel bir getirme (fetch) yapar ve uzantısı olmayan düz bir tarayıcıda bu döşeme (tile) hiç sunulmaz.
+Bir yakalama çalışırken geçici sekmede kısa süre bir *"…started debugging this browser"* bandı görebilirsin. Bu, çalışan DevTools Protocol'dür ve çekim bittiğinde bant kalkar.
 
-Ona bastığında olanlar:
+## Design System Setup için bir siteyi okuma
 
-- Tek adres, tek sayfa. Uzantı aynı türden bir arka plan sekmesinde onu açar, işlenmiş biçimlendirmeyi (rendered markup), stil sayfası metnini ve birkaç simge ile logo görselini okur, sonra sekmeyi kapatır. Bağlantıları takip etmez ve tarama yapmaz.
-- Başka yerde barındırılan stil sayfaları ve yazı tipleri (bir CDN, bir font servisi) de getirilir, çünkü sayfanın renkleri ve tipografisi bunların içinde yaşar. Çapraz kökenli istekler çerezlerin olmadan gider; aynı kökenli olanlar, sayfanın kendisinin yapacağı gibi çerezleri kullanır.
-- Her şeyin bir üst sınırı vardır - sınırlı sayıda sayfa, görsel ve bayt - böylece kötü niyetli veya yarı bozuk bir sayfa askıda kalmak yerine kısmi malzeme döndürür.
-- Baytlar doğrudan isteği yapan Lolly sekmesine geri gider. Renklere, tipografiye ve logolara ayrıştırma cihazında gerçekleşir; hiçbir şey yüklenmez.
+Design System Setup içindeki **Website** kaynağı, zaten sahip olduğun bir siteden tasarım sistemi başlatır. Chromium tarayıcıda sayfayı uzantı okur. Masaüstü uygulamasında sayfayı uygulamanın kendisi getirir. Uzantısız bir tarayıcıda Website karosu sunulmaz.
 
-Sen basmadan hiçbir şey okunmaz. Bir adres yapıştırmak yalnızca alanı doldurur.
+- **Bir adres, bir sayfa.** Onayladıktan sonra uzantı sayfayı aynı türden bir arka plan sekmesinde açar, işlenmiş işaretlemeyi, stil sayfası metnini ve bir avuç simge ile logo görselini okur, sonra sekmeyi kapatır. Bağlantıları izlemez veya tarama yapmaz.
+- **Başka yerde barındırılan stil sayfaları** (bir CDN veya yazı tipi hizmeti) de getirilir, çünkü sayfanın renkleri ve yazısı onlarda yaşar. Çapraz kaynak istekleri çerezlerin olmadan gider; aynı kaynak istekleri, sayfanın kendisinin yapacağı gibi onları kullanır.
+- **Her şey sınırlıdır**, stil sayfası ve görsel sayısında ve baytlarda bir sınırla; böylece düşmanca veya yarı bozuk bir sayfa takılmak yerine kısmi malzeme döndürür.
+- **Ayrıştırma cihazında olur.** Baytlar doğrudan isteyen Lolly sekmesine geri gider; o da onları renklere, yazıya ve logolara çevirir.
 
-## Kurduktan sonra
-
-Lolly sekmesini yeniden yükle. "Uzantıyı al" istemi kaybolur ve **URL Screenshot** galeride ve Toplu (Batch) modda kullanılabilir hâle gelir.
+Bir adres yapıştırmak yalnızca alanı doldurur. Okumayı başlatıp **Approve once** düğmesine basana kadar hiçbir şey okunmaz.
 
 ## İzinler
 
-`manifest.json` dosyası, sunucu erişimine ek olarak dört izin bildirir:
+Uzantının `manifest.json` dosyası, bir seferde bir site için istediği site erişimine ek olarak dört izin bildirir. `minimum_chrome_version: 111` ayarlar ve geçerli sürüm 0.4.0'dır.
 
-- `debugger` - arka plan sekmesini DevTools Protokolü üzerinden yönetir. Ekran görüntüsünü alan budur.
-- `tabs` - geçici arka plan sekmesini açar ve ardından yeniden kapatır.
-- `scripting` - Brand Studio Website kaynağı için, belirttiğin site içinde tek sayfalık okuyucuyu çalıştırır.
-- `storage` - açtığı bir sekmenin kimliğini, yalnızca oturum depolamasında not eder; böylece tarayıcı uzantıyı okuma sırasında askıya alsa bile sekme yine de kapatılır. Bir sonraki başlangıçta temizlenir; hakkında hiçbir şey saklanmaz.
-- `host_permissions: ["<all_urls>"]` - *tüm* sitelere sunucu erişimi, çünkü onu istediğin herhangi bir URL'ye yönlendirebilirsin. Chrome bunu kurulum sırasında geniş kapsamlı bir "tüm web sitelerindeki tüm verilerini oku ve değiştir" uyarısı olarak gösterir.
+| İzin | Ne için | Ne zaman verilir |
+|---|---|---|
+| `debugger` | Ekran görüntüsünü alan DevTools Protocol aracılığıyla arka plan sekmesini sürer. | Kurulumda |
+| `tabs` | Geçici arka plan sekmesini açar ve sonradan kapatır ve onayından beri ne Lolly sayfasının ne de hedef sayfanın taşınmadığını denetler. | Kurulumda |
+| `scripting` | Website kaynağı için adını verdiğin sitenin içinde tek sayfalık okuyucuyu çalıştırır. | Kurulumda |
+| `storage` | Açtığı bir sekmenin kimliğini yalnızca oturum depolamasına not eder; böylece tarayıcı uzantıyı okuma ortasında askıya alırsa sekme yine kapanır. Sonraki başlangıçta temizlenir; hakkında hiçbir şey saklanmaz. | Kurulumda |
+| `optional_host_permissions: ["http://*/*", "https://*/*"]` | Site erişimi, kurulumda verilmez. **Approve once** düğmesine bastığında uzantı, o istekteki tek site için Chrome'dan erişim ister. | O site için bir isteği ilk onayladığında, Chrome sana sorduktan sonra |
 
-Bu uyarıya rağmen, yalnızca yakalamasını veya içe aktarmasını istediğin tek sayfayı okur ve gezinme verilerini okumaz veya iletmez - hiçbir şey hiçbir yere yüklenmez.
-
-Manifest ayrıca `minimum_chrome_version: 111` ayarını yapar. Güncel sürüm 0.2.1'dir.
+Uzantı yalnızca onayladığın tek sayfayı okur. Gezinme verini okumaz veya göndermez ve hiçbir şey yüklenmez.
 
 ## Sorun giderme
 
-- **Hâlâ "Uzantıyı al" mı görüyorsun?** Lolly sekmesini yeniden yükle - algılama sayfa yüklenirken gerçekleşir.
-- **Bu sitede hiçbir şey olmuyor mu?** Uzantı yalnızca Lolly'nin kendi kökenlerinde etkinleşir. Başka bir alan adında özel bir yapı mı çalıştırıyorsun? Uzantının `manifest.json` dosyasındaki `content_scripts.matches` alanına ekle.
-- **Bir yakalama başarısız mı oluyor?** URL'nin erişilebilir olduğundan ve `http://` veya `https://` ile başladığından emin ol. Bazı sayfalar otomatik yakalamayı etkin biçimde engeller.
+- **Hâlâ "Get the extension" görüyor musun?** Lolly sekmesini yenile.
+- **Bu sitede hiçbir şey olmuyor mu?** Uzantı yalnızca `https://lolly.tools` ve geliştirme paketinde `http://localhost:5173` üzerinde çalışır. Kendi sunucusunda barındırılan bir Lolly kopyası gibi başka bir kaynak, o kaynağı hem `manifest.json` hem `policy.js` içinde listeleyen uzantının kendi derlemesini gerektirir. Yalnızca manifest'i düzenlemek çalışmaz.
+- **Bir yakalama mı başarısız oluyor?** URL'nin erişilebilir olduğunu ve `http://` veya `https://` ile başladığını denetle. Bazı sayfalar otomatik yakalamayı engeller. **Cancel** düğmesine bastıysan, onay penceresini kapattıysan veya 30 saniyeden uzun beklediysen yakalamayı yeniden başlat.

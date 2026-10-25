@@ -15,6 +15,7 @@ import { groupedIdmlParts } from './fixtures/adobe/grouped-layout.ts';
 import { baseHost } from './helpers/host.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 test('Adobe preset import reaches Darkroom controls and URL', { skip: origin ? false : 'no browser origin (set LOLLY_EXPORT_TEST_URL to a local web shell)', timeout: 90000 }, async () => {
@@ -35,10 +36,10 @@ test('Adobe preset import reaches Darkroom controls and URL', { skip: origin ? f
     assert.equal(await notes.isVisible(), true);
     await input.setInputFiles(new URL('./fixtures/adobe/preset.xmp', import.meta.url).pathname);
     await page.waitForFunction(() => Array.from(document.querySelectorAll<HTMLButtonElement>('#tool-sidebar button')).some(button => button.textContent === 'Import Adobe photo preset' && !button.disabled));
-    assert.equal(new URL(page.url()).searchParams.get('exposure'), '0.75');
+    assert.equal(new URL(await settledUrl(page)).searchParams.get('exposure'), '0.75');
     await input.setInputFiles({ name: 'legacy.lrtemplate', mimeType: 'text/plain', buffer: Buffer.from('s = { Exposure2012 = 1 }') });
     await page.locator('#tool-sidebar p').filter({ hasText: 'Lua is never executed.' }).waitFor();
-    assert.equal(new URL(page.url()).searchParams.get('exposure'), '0.75');
+    assert.equal(new URL(await settledUrl(page)).searchParams.get('exposure'), '0.75');
     assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 });
@@ -69,7 +70,7 @@ test('Adobe layout loop preset reaches the canvas and a finished video', { skip:
     await page.locator('.fc-choreo-panel').waitFor({ state: 'detached' });
     await page.waitForFunction(() => document.querySelectorAll('[data-t-kf]').length >= 3);
     await page.locator('.tl-panel').waitFor({ timeout: 15000 });
-    const state = parseUrlState(await expandQuery(new URL(page.url()).searchParams.toString()), design.manifest);
+    const state = parseUrlState(await expandQuery(new URL(await settledUrl(page)).searchParams.toString()), design.manifest);
     const rows = state.values.boxes as Record<string, InputValue>[];
     const artwork = rows.filter(box => box.kind !== 'group');
     const groups = rows.filter(box => box.kind === 'group');

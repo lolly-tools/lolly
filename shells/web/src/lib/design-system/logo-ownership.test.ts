@@ -2,7 +2,7 @@
 /**
  * The logo ownership pass (logo-ownership.ts) and the paths around it, against
  * the cases a review found: published versions, restores, removals, a full disk,
- * the brand studio's save and the Versions panel.
+ * Design System Setup's save and the Versions panel.
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/lib/design-system/logo-ownership.test.ts
  *
  * Every case runs on the REAL assets bridge, registry and tokens bridge over one

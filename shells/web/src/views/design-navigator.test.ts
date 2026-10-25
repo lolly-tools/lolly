@@ -469,6 +469,7 @@ test('narration dot: a status change alone repaints the row', () => {
   assert.equal(f.rowById('f1').querySelector('.fc-nav-dot')!.getAttribute('data-narration'), 'pending');
   st = 'current';
   f.model.setInput('autoAdvance', false);   // any model notification, no field changed
+  frames(1);   // a change made elsewhere rebuilds on the next frame
   assert.equal(f.rowById('f1').querySelector('.fc-nav-dot')!.getAttribute('data-narration'), 'current');
   f.nav.destroy();
 });
@@ -488,12 +489,14 @@ test('dwell chip: needs BOTH a positive dur and auto-advance on', () => {
   const f = mount(THREE.map((b) => (b.id === 'f1' ? { ...b, dur: 3 } : b)));
   assert.equal(f.nav.el.querySelectorAll('.fc-nav-chip--dwell').length, 0, 'dur alone is not a dwell');
   f.model.setInput('autoAdvance', true);
+  frames(1);
   const chips = [...f.nav.el.querySelectorAll('.fc-nav-chip--dwell')];
   assert.equal(chips.length, 1, 'only the frame that has a dur');
   assert.equal(chips[0]!.textContent, '3s');
   assert.equal(chips[0]!.getAttribute('aria-label'), 'Auto-advance 3s');
   assert.ok(f.rowById('f1').contains(chips[0]!));
   f.model.setInput('autoAdvance', false);
+  frames(1);
   assert.equal(f.nav.el.querySelectorAll('.fc-nav-chip--dwell').length, 0, 'turning it off removes the chip');
   f.nav.destroy();
 });
@@ -1026,10 +1029,14 @@ test('repaint memo: an unrelated model change rebuilds no rows and re-clones no 
   const before = f.rowById('f2');
   assert.equal(f.c.thumbs.length, 3);
   f.model.setInput('somethingElse', 42);
+  frames();
   assert.equal(f.rowById('f2'), before, 'the row element survived');
   assert.equal(f.c.thumbs.length, 3, 'no thumbnail was re-cloned');
-  // A change that DOES touch a row rebuilds it, and re-clones only that row's thumbnail.
+  // A change that DOES touch a row rebuilds it on the next frame, and re-clones only
+  // that row's thumbnail.
   f.model.setField(['f2'], 'name', 'Renamed');
+  assert.equal(f.rowById('f2'), before, 'an edit made elsewhere waits for the next frame');
+  frames(1);
   assert.notEqual(f.rowById('f2'), before);
   assert.deepEqual(f.c.thumbs, ['f1', 'f2', 'f3'], 'not yet: the clone waits for the paint frame');
   frames();
@@ -1488,6 +1495,49 @@ test('an edit that changes nothing on any page re-clones nothing', () => {
   f.nav.destroy();
 });
 
+test('an edit to one row re-hashes that row only: digests are kept per row object', () => {
+  // The image object counts every JSON.stringify that reaches it, which is how hashBox
+  // reads an object field. Before the per-row cache, every rebuild hashed every field of
+  // every row on every emit.
+  let hashed = 0;
+  const image = { id: 'lolly/logo/primary', toJSON() { hashed++; return { id: 'lolly/logo/primary' }; } };
+  const f = mount(WITH_KIDS.map((b) => (b.id === 'c3' ? { ...b, image } as unknown as Box : b)), { active: 'f1' });
+  hashed = 0;
+  f.model.setField(['c2'], 'text', 'edited');
+  frames();
+  f.model.setField(['c9'], 'text', 'edited too');
+  frames();
+  assert.equal(hashed, 0, 'edits to other rows never re-hashed the image row');
+  f.model.setField(['c3'], 'name', 'Logo two');
+  frames();
+  assert.equal(hashed, 1, 'its own edit made a new row, hashed once');
+  f.nav.destroy();
+});
+
+test("edits made elsewhere rebuild once a frame; the column's own writes rebuild at once", () => {
+  let reads = 0;
+  const f = mount(THREE, { narration: () => { reads++; return 'none'; } });
+  reads = 0;
+  f.model.setInput('autoAdvance', true);
+  assert.equal(reads, 0, 'nothing is rebuilt before the frame');
+  frames(1);
+  const perBuild = reads;
+  assert.ok(perBuild > 0, 'the frame rebuilt the list');
+  reads = 0;
+  // Two emits in one frame, as a canvas commit makes (before and after the hook).
+  f.model.setInput('autoAdvance', false);
+  f.model.setInput('transition', 'fade');
+  frames(1);
+  assert.equal(reads, perBuild, 'two emits in a frame cost what one does');
+  // A rename is the column's own write: the row shows it straight away.
+  f.rowById('f3').dispatchEvent(new W.MouseEvent('dblclick', { bubbles: true }));
+  const input = f.nav.el.querySelector<HTMLInputElement>('[data-nav-name-input]')!;
+  input.value = 'Closing';
+  key(input, 'Enter');
+  assert.equal(f.rowById('f3').querySelector('.fc-nav-name')?.textContent, 'Closing');
+  f.nav.destroy();
+});
+
 test('hashBox: order-sensitive, field-complete, and blind to an absent value', () => {
   const a = hashBox(5381, { id: 'a', x: 1, y: 2 });
   assert.equal(hashBox(5381, { y: 2, x: 1, id: 'a' }), a, 'key order in the object is not data');
@@ -1740,9 +1790,11 @@ test('loose layer grouping reacts to grouping and ungrouping without changing th
   const f=mount([{id:'a',kind:'text',text:'A'},{id:'b',kind:'text',text:'B'}] as Box[]);
   try {
     f.model.setField(['a','b'],'group','g2');
+    frames(1);
     assert.ok(f.nav.el.querySelector('[data-object-group="g2"]'));
     assert.deepEqual(f.layerIds(),['b','a']);
     f.model.setField(['a','b'],'group','');
+    frames(1);
     assert.equal(f.nav.el.querySelector('[data-object-group]'),null);
     assert.deepEqual(f.model.getBoxes().map(box=>box.id),['a','b']);
   } finally { f.nav.destroy(); }

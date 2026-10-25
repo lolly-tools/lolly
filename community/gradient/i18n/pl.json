@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Miękkie gradienty w stylu siatki z kolorów Twojej marki. Przeciągaj punkty kolorów wprost na płótnie albo włącz Dryf i eksportuj pętlę jako WebM, MP4 lub GIF.",
+  "description": "Pięć sposobów budowy gradientu z próbek systemu projektowego: miękka radialna mieszanka (Blend), prawdziwa siatka Coonsa jako ostry SVG (Subdivide) lub gładki raster (Mesh), swobodne punkty Warp i animowane fale Flow. Przeciągaj wszystko na płótnie; eksportuj stopklatki lub pętle wideo bez szwu.",
   "a11yLabel": "Gradient siatkowy mieszający {{count}} kolorów",
   "inputs.blend.label": "Tryb mieszania",
   "inputs.blend.help": "Sposób mieszania się punktów kolorów.",
