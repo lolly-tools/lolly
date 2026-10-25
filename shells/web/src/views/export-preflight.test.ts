@@ -114,6 +114,22 @@ test('the verdict states what there is to fix, and carries no counts of things',
   assert.equal(counted.verdict, '1 to fix, 1 to know');
 });
 
+test('the verdict keeps the things to know when something is also not checked', () => {
+  // A required house rule broken, two advisory notes, and a contrast review: the
+  // notes keep their number in the summary rather than showing only inside the card.
+  const v = preflightView(null, {
+    ...CTX,
+    additionalRows: [
+      { id: 'house-rule.0.headline-case', tone: 'warn', text: 'Capitals.' },
+      { id: 'house-rule.1.body-align', tone: 'note', text: 'Centred.' },
+      { id: 'house-rule.2.logo-surface', tone: 'note', text: 'Logo.' },
+      { id: 'design.text.contrast-review', tone: 'gap', text: 'Review visually.' },
+    ],
+  });
+  assert.equal(v.verdict, '1 to fix, 2 to know, 1 not checked');
+  assert.equal(v.tone, 'fix');
+});
+
 test('a gap is toned as a gap and counted separately from a measurement', () => {
   const v = preflightView(report([
     { id: 'plates.process', severity: 'info', message: 'four plates', count: { kind: 'processPlates', value: 4, unit: 'plate', bound: 'ceiling', basis: 't' } },
