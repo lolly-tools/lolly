@@ -143,6 +143,7 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             menu::set_menu_data,
             capture::capture_page,
             capture::capture_page_pdf,
+            capture::capture_page_walk,
             // Authenticated capture: open a visible sign-in window on the shared
             // profile, report whether a session is live, and clear it. GUI only -
             // interactive, like site_fetch/nearby; a headless render never signs in.
@@ -162,7 +163,7 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             // raw HTTP plugin, this command pins public DNS answers, enforces
             // HTTPS, bounds bytes/headers and rechecks every redirect.
             remote_fetch::remote_fetch,
-            // Website source for the Design System studio (plans/97 section 9). GUI
+            // Website source for Design System Setup (plans/97 section 9). GUI
             // only, deliberately: unlike capture, which cli.rs also registers
             // because the url-shot TOOL calls host.capture mid-render, this
             // command is reachable only from a button in the studio. A headless

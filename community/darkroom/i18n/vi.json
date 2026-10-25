@@ -1,5 +1,5 @@
 {
   "name": "Phòng tối",
-  "description": "Một phòng tối chỉnh màu ảnh chuyên nghiệp: hiệu ứng phim, LUT .cube của bên thứ ba, xử lý màu theo hệ thống thiết kế và kết cấu hoàn thiện - sau đó nướng phong cách của bạn thành một LUT mà bất kỳ trình chỉnh sửa nào cũng dùng được. Cũng có thể mở file Photoshop hoặc GIMP dưới dạng các lớp: định vị, hòa trộn và ẩn từng lớp, chỉnh màu cho ảnh tổng hợp, rồi xuất ảnh phẳng hoặc file PSD nhiều lớp.",
+  "description": "Chỉnh màu ảnh và video với phong cách phim, preset Adobe XMP, LUT .cube và màu của hệ thống thiết kế. Dùng lại một phong cách qua xuất LUT hoặc Chỉnh màu video. Mở lớp Photoshop và GIMP để định vị, hòa trộn và xuất ảnh.",
   "featured.blurb": "Chỉnh màu ảnh với hiệu ứng phim, LUT và màu thương hiệu của bạn"
 }

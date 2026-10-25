@@ -21,6 +21,8 @@ export interface DocsPage {
   path: string;
   icon: string;
   aliases: string[];
+  /** An old path that now opens at one section of this page: alias to the section's id. */
+  aliasAnchors?: Record<string, string>;
   secondarySections?: string[];
   description?: string;
   headingId?: string;
@@ -40,7 +42,9 @@ export interface DocsRegistry {
   sectionSubtitles: false;
   sections: DocsSection[];
   pages: DocsPage[];
-  workImport: { repository: string; commit: string; version: string; files: Record<string, { source: string; sha256: string }> };
+  /** The Lolly Work release these guides describe: its tag commit, version and Helm chart version
+   *  (read by the %work{version} and %work{chart} tokens, docs/version-tokens.ts). */
+  workImport: { repository: string; commit: string; version: string; chart: string; files: Record<string, { source: string; sha256: string }> };
 }
 
 export const DOCS_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -70,6 +74,9 @@ export function validateRegistry(registry: DocsRegistry, root = DOCS_ROOT): void
     for (const alias of page.aliases) {
       if (!PATH.test(alias) || aliases.has(alias)) throw new Error(`Duplicate or invalid old documentation path: ${alias}`);
       aliases.add(alias);
+    }
+    for (const [alias, anchor] of Object.entries(page.aliasAnchors ?? {})) {
+      if (!page.aliases.includes(alias) || !ID.test(anchor)) throw new Error(`Section anchor for an unknown old path, or an invalid id: ${alias}`);
     }
     for (const section of page.secondarySections ?? []) if (!sections.has(section)) throw new Error(`Unknown cross-listed section: ${section}`);
     if (page.work) {

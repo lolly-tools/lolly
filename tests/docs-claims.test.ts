@@ -419,12 +419,17 @@ test('the persona device jumps into the app where the plan says it can', () => {
   const persona = siteJson('persona.json') as { doors: Array<{ id: string; lanes: Array<{ tab: string; cta?: { href: string }; doc: { slug: string } }> }> };
   const ctas: Record<string, string | null> = {};
   for (const d of persona.doors) for (const l of d.lanes) ctas[`${d.id}/${l.tab}`] = l.cta?.href ?? null;
+  // The doors are the six documentation pathways (Andy, 2026-10-23), so a reader
+  // who picks one on the landing meets the same name in the navigation.
+  assert.deepEqual(persona.doors.map((d) => d.id), ['start', 'create', 'automate', 'manage', 'deploy', 'trust']);
   assert.deepEqual(ctas, {
-    'creators/Make': '#/', 'creators/Animate': '#/tool/design', 'creators/Record': '#/tool/record',
-    'creators/Collaborate': '#/tool/design', 'creators/Post': '#/',
-    'builders/Designers': '#/start', 'builders/Developers': null, 'builders/Infrastructure': null,
-    'operators/AI': null, 'operators/Sales': '#/', 'operators/Marketing': '#/',
-    'operators/Security': '#/utilities', 'operators/Press': '#/tool/chart', 'operators/Legal': null,
+    'start/Try it': '#/tool/qr-code', 'start/Make it yours': '#/start', 'start/Install': null, 'start/Questions': null,
+    'create/Make': '#/', 'create/Animate': '#/tool/design', 'create/Record': '#/tool/record',
+    'create/Collaborate': '#/tool/design', 'create/Post': '#/', 'create/Teams': null,
+    'automate/Designers': '#/start', 'automate/Developers': null, 'automate/AI': null,
+    'manage/Members': '#/settings?focus=instance-section', 'manage/Administrators': null,
+    'deploy/Lolly': null, 'deploy/Lolly Work': null,
+    'trust/Security': '#/utilities', 'trust/Privacy': null, 'trust/Verify': '#/verify',
   });
   // Every lane's docs page is a registered page.
   for (const d of persona.doors) for (const l of d.lanes) {

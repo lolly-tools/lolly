@@ -59,6 +59,8 @@ test('a house rule reads as checked in Design, an unknown kind as unchecked', as
   assert.match(weight.textContent ?? '', /Draft/);
   // A house rule with no role shows its kind in words, not the raw kind id.
   assert.match(card('logo-surface label').querySelector('.usage-rule-copy p')?.textContent ?? '', /Logo per surface/);
+  // Its scope reads Design, the tool's own name, rather than the raw tool id.
+  assert.match(weight.querySelector('.usage-hint')?.textContent ?? '', /^Design · /);
 
   const future = card('future label');
   assert.equal(future.querySelector('[data-checker]'), null);
@@ -101,4 +103,15 @@ test('the Brand mode menu names the mode the empty value renders', async () => {
   const storedDark = { ...demo, $metadata: { ...(demo.$metadata as object ?? {}), activeThemeSelection: { [modeGroup]: darkId } } };
   assert.equal(defaultModeName(storedDark), 'dark');
   assert.equal(defaultModeName({ color: { ink: { $type: 'color', $value: '#112233' } } }), '', 'no themes, no name: the menu says Default');
+});
+
+test('"Checked in Design" stays true: the export panel runs the house rules through creation feedback', async () => {
+  const { readFileSync } = await import('node:fs');
+  const read = (rel: string): string => readFileSync(new URL(rel, import.meta.url), 'utf8');
+  // The Design export audit loads the creation feedback rows when the panel opens...
+  assert.match(read('../../../views/tool-actions/preflight.ts'), /import\('\.\.\/\.\.\/lib\/creation-feedback\.ts'\)[\s\S]*creationFeedbackRows\(await readCreationFeedback\(/);
+  // ...which read the engine report...
+  assert.match(read('../../creation-feedback.ts'), /creationFeedback\(boxes, undefined, doc \?\? null, opts\)/);
+  // ...and that report checks the design system's house rules layer by layer.
+  assert.match(read('../../../../../../engine/src/creation-feedback.ts'), /checkDesignHouseRules\(boxes, designRules, doc,/);
 });

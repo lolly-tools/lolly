@@ -7,6 +7,7 @@ import type { TableValue } from '@lolly/engine';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import type { InputModelItem } from '../../../../engine/src/inputs.ts';
 import { encodeBlocksCompact } from './blocks-url.ts';
+import { MAX_UNPACKED } from '../../../../engine/src/url-pack.ts';
 import { stripHiddenRowIds } from './row-id.ts';
 import { asRow } from '../views/tool-types.ts';
 
@@ -30,6 +31,12 @@ export const SHARE_WARN_LEN = 16_000;
  *  packed link is impractical to pass around, so the Share dialog escalates to the `.lolly`
  *  file (which always opens complete). Distinct from URL_HARD_CAP below (the embed-only cap). */
 export const BROWSER_HARD_CAP = 64_000;
+/** Past this many characters of content a link cannot carry the document: the pack
+ *  refuses it (MAX_UNPACKED, engine/src/url-pack.ts). The tool's address then keeps a
+ *  pointer to the saved copy (views/tool/session.ts), and Share offers that copy's
+ *  link for this device and the `.lolly` file. Content queries are percent-encoded,
+ *  so characters and bytes are the same count. */
+export const LINK_CONTENT_MAX = MAX_UNPACKED;
 /** The engine's embed-URL ceiling - MIRROR of engine/src/tool-url.ts:61 (MAX_URL, not
  *  exported). It gates ONLY a Lolly tool-URL pasted as an image INSIDE another tool (and the
  *  canonical embed id minted from it), NOT a normal page load - so it is deliberately NOT the

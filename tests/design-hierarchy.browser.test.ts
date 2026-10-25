@@ -5,6 +5,7 @@ import { mkdir } from 'node:fs/promises';
 import { chromium, type Page } from 'playwright';
 import type { CanvasCommitEl } from '../shells/web/src/lib/canvas-commit.ts';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 
 const origin = process.env.LOLLY_HIERARCHY_TEST_URL ?? process.env.LOLLY_IMPORT_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const skip = origin ? false : 'Serve the web shell and set LOLLY_HIERARCHY_TEST_URL.';
@@ -44,7 +45,7 @@ test('Design pages scope the canvas locally while nested groups and document edi
     assert.equal(await page.locator('.fc-nav-layers [data-id="g1"]').count(), 0);
     assert.deepEqual(await source(page), before, 'choosing a page never writes a declared input');
     assert.equal(await page.locator('.is-unsaved').count(), dirtyBefore, 'choosing a page does not mark document dirty');
-    assert.equal(new URL(page.url()).searchParams.has('page'), false);
+    assert.equal(new URL(await settledUrl(page)).searchParams.has('page'), false);
     await page.locator('[data-page-id="one"] [data-nav-row]').click();
     await page.locator('.fc-nav-layers [data-id="g1"]').waitFor();
     const group = page.locator('.fc-nav-layers [data-id="g1"]');

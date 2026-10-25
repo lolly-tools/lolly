@@ -1,68 +1,81 @@
 # Tự mình xác minh
 
-Các trang về quyền riêng tư và bảo mật của Lolly đưa ra những tuyên bố: không phân tích dữ liệu, không theo dõi, tệp không bao giờ rời khỏi thiết bị, chỉ một cookie duy nhất trong toàn hệ thống. Trang này thì khác: nó không yêu cầu bạn tin vào bất kỳ điều gì trong số đó. Đây là một danh sách các quy trình, mỗi quy trình kèm theo đúng lệnh hoặc đường dẫn thao tác và kết quả bạn sẽ thấy. Mọi tuyên bố ở đây đều có thể kiểm chứng sai trong vài phút, phần lớn không cần cài đặt gì cả.
+Mọi lời hứa trên site này đều kiểm tra được, không cần tài khoản. Hầu hết kiểm tra chỉ cần trình duyệt; phần còn lại cần terminal và bản sao mã nguồn. Nếu một kiểm tra dưới đây không cho kết quả như đã nêu, đó là lỗi hoặc một lời hứa bị phá vỡ, và chúng tôi muốn biết: xem [If a check fails](#if-a-check-fails).
 
-Nếu bất kỳ mục kiểm tra nào trên trang này không cho ra kết quả như hiển thị, đó là lỗi hoặc một lời hứa bị phá vỡ. [Báo cáo lại](#if-a-check-fails) trong cả hai trường hợp, và chúng tôi sẽ xử lý với mức độ nghiêm trọng mà một lời hứa bị phá vỡ đáng nhận.
+Bắt đầu với cách nhanh nhất: thả một tệp lên Verify. Rồi đi xa hơn: theo dõi mạng khi bạn dùng công cụ, rút phích cắm mà vẫn làm việc, đếm cookie và đọc mã nguồn.
+
+Các kiểm tra này bao gồm Lolly tự thân. Nếu tổ chức của bạn chạy Lolly Work, nó thêm đăng nhập, nội dung chung, telemetry đã cấu hình và bản ghi kiểm toán; hãy kiểm tra những thứ đó với [Server Surface](/info/server-surface.html) và [phần tổ chức của chính sách quyền riêng tư](/info/privacy.html#organisation-services-with-lolly-work).
 
 ## Xem nó hoạt động, trong mười giây
 
-Trước khi vào các quy trình, đây là kết quả cuối. Mở [`/verify`](/#/verify) và thả một tệp vào đó - không tải lên, không cần tài khoản, không chờ máy chủ. Đây là nó đang kiểm tra [cơn bão Queensland do AI tạo ra](/info/ai-stance.html) từ trang lập trường về AI của chúng tôi: một hình ảnh Gemini mà Lolly đã mở, đóng watermark và xuất ra. Mọi huy hiệu bên dưới đều được tính toán trên thiết bị, từ chính các byte của tệp.
+Mở [`/verify`](/#/verify) và thả một tệp lên trang. Không tải lên, không tài khoản và không chờ máy chủ. Ở đây nó kiểm tra [cơn bão Queensland được tạo](/info/ai-stance.html) từ Our AI Stance: một ảnh do Gemini tạo, mà Lolly đã mở, đánh dấu và chuyển đổi. Mọi huy hiệu được tính trên thiết bị, từ chính byte của tệp.
 
 ![Verify trên màn hình rộng bằng điện thoại - hình ảnh cơn bão, một kết luận Made with Lolly màu xanh lá và các huy hiệu credential-intact cùng bytes-unchanged xếp bên dưới](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 
-Kết luận không phải một huy hiệu duy nhất mà là một nhóm nhỏ các huy hiệu, mỗi cái là một sự thật độc lập:
+Kết luận là một chồng huy hiệu nhỏ, mỗi cái là một sự thật độc lập:
 
-- <!--i:lock--> **Made with Lolly** - credential còn nguyên vẹn *và* ghi lại một lần xuất từ Lolly.
-- <!--i:seal--> **Credential còn nguyên vẹn** - manifest C2PA đã ký được phân tích thành công và chữ ký claim của chính nó được xác minh.
-- <!--i:hash--> **Các byte chưa thay đổi** - hash của tệp vẫn khớp với những gì đã được ký. Thay đổi một pixel là huy hiệu này sẽ đảo ngược.
-- <!--i:sparkle--> **GEN AI** - một cỗ máy đã tạo ra các pixel này, và tệp nói vậy. Lolly đọc lại tuyên bố đó thay vì che giấu nó.
+- <!--i:lock--> **Made with Lolly**: credential còn nguyên *và* ghi một bản xuất Lolly.
+- <!--i:seal--> **The credential is intact**: manifest C2PA có chữ ký phân tích được và chữ ký khẳng định của chính nó xác minh được.
+- <!--i:hash--> **The bytes have not changed**: giá trị băm của tệp vẫn khớp với những gì đã ký. Đổi một điểm ảnh và huy hiệu này đảo ngược.
+- <!--i:sparkle--> **GEN AI**: một cỗ máy đã tạo các điểm ảnh này, và tệp nói vậy. Lolly đọc lại khai báo đó thay vì giấu sự thật.
 
-Và toàn bộ lịch sử đi cùng tệp. Chín bước còn tồn tại ở đây - năm bước do Google ghi lại khi tạo và đóng dấu bảo mật cho hình ảnh, sau đó bốn bước do Lolly ghi lại khi mở, đánh dấu và chuyển đổi bản sao trên trang này - được đọc thẳng ra từ các byte, trên thiết bị của bạn, và hiển thị dưới dạng dòng thời gian. Đây là cùng một hình ảnh, được xác minh theo cùng cách, như dòng thời gian C2PA trên [trang lập trường về AI](/info/ai-stance.html).
+Toàn bộ lịch sử đi cùng tệp. Chín bước còn lại ở đây: năm bước Google ghi lại khi tạo và đóng hình mờ cho ảnh, rồi bốn bước Lolly ghi lại khi mở, đánh dấu và chuyển đổi bản sao trên trang này. Verify đọc chúng thẳng từ các byte và vẽ thành dòng thời gian.
 
 ![Lịch sử thay đổi mà Verify đọc lại từ hình ảnh cơn bão - năm bước do Google ghi lại, sau đó bốn bước do Lolly, kết thúc ở tệp WebP trên trang này](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-Tuy nhiên, tất cả những điều đó không phải là tuyên bố về độ tin cậy - đó chỉ là bản demo. Phần còn lại của trang này mới là tuyên bố về độ tin cậy: mọi huy hiệu ở trên đều có thể tái tạo được, và đây là cách bạn tái tạo các cam kết đằng sau chúng.
+Đó là bản demo. Các kiểm tra dưới đây là những đảm bảo nằm bên dưới nó, và mỗi cái đều tái hiện được. [Content Credentials](/info/content-credentials-identity.html) giải thích từng kết luận.
 
 ## Ngay trong trình duyệt của bạn, không cần công cụ nào
 
-**1. Theo dõi mạng.** Mở [lolly.tools](https://lolly.tools), mở DevTools của trình duyệt (F12), chuyển sang tab **Network** và dùng thử một công cụ - gõ một URL vào [QR Code](/t/qr-code), đổi màu, xuất PNG. Mọi yêu cầu đều nằm trên `lolly.tools`: vỏ ứng dụng, các tệp riêng của công cụ, tài sản danh mục. Không có máy chủ phân tích, không có beacon CDN, không có dịch vụ phông chữ, không có điểm cuối "báo cáo lỗi" nào. Những gì bạn gõ vào một công cụ **không xuất hiện trong bất kỳ yêu cầu nào** - việc kết xuất diễn ra cục bộ.
+::: timeline
+- <!--i:globe--> **1. Theo dõi mạng.** Mở [lolly.tools](https://lolly.tools), mở DevTools của trình duyệt (F12), chuyển sang **Network** và dùng một công cụ: gõ địa chỉ web vào [QR Code](/t/qr-code), đổi màu, xuất một PNG. Mọi yêu cầu ở lại `lolly.tools`: vỏ ứng dụng, tệp của chính công cụ và tài nguyên danh mục. Không có máy chủ phân tích, không tín hiệu CDN, không dịch vụ phông chữ và không điểm cuối báo lỗi. Những gì bạn gõ vào công cụ xuất hiện trong **không yêu cầu nào**, vì kết xuất là cục bộ.
+- <!--i:eyeoff--> **2. Rút phích cắm.** Nạp ứng dụng và mở một hai công cụ, rồi chuyển ngoại tuyến (chế độ máy bay, hoặc DevTools → Network → Offline) và tải lại. Thư viện và mọi công cụ bạn đã mở tiếp tục hoạt động, kể cả kết xuất và xuất ở các định dạng bạn đã dùng. Tệp của công cụ và bộ mã hóa của một định dạng được lưu đệm lần đầu bạn dùng, nên hãy dùng một công cụ một lần khi trực tuyến trước khi thử ngoại tuyến. Đây là kiểm tra đơn lẻ mạnh nhất trên trang này: phần mềm gọi về nhà không sống sót khi bị cắt dây.
+- <!--i:check--> **3. Đếm cookie.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Danh sách trống: ứng dụng không đặt cookie. Dán `document.cookie` vào console và bạn nhận `""`. Việc đăng ký CA tùy chọn đặt một cookie `HttpOnly` ngắn hạn, `lolly_ca_state`, trong phạm vi `/api/ca`, mà `document.cookie` không hiện được. Một phiên bản Lolly Work dùng cookie đăng nhập riêng của nó; hãy so với [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+- <!--i:layers--> **4. Đọc bộ nhớ của chính bạn.** Trong cùng bảng, mọi thứ Lolly giữ đều ở trước mặt bạn: vài chục khóa `localStorage` thuần (chủ đề, ngôn ngữ, độ rộng thanh bên, cài đặt âm thanh và chế độ xem, và bản sao đã lưu đệm của chỉ mục danh mục công cụ công khai) và tài liệu của chính bạn trong IndexedDB. Mọi giá trị là chuỗi hoặc JSON đọc được, không có gì bị làm rối. Xóa dữ liệu site gỡ các bản ghi cục bộ này, nhưng không gỡ bản sao lưu Sync hay bản ghi do phiên bản Lolly Work giữ. **Settings → Storage → Clear all my data** làm tương tự từ bên trong ứng dụng, và bạn có thể xem các kho và bộ nhớ đệm trống đi.
+- <!--i:lock--> **5. Kiểm tra liên hệ công bố lỗ hổng có tồn tại.** [`/.well-known/security.txt`](/.well-known/security.txt) trả lời bằng khối liên hệ [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), không phải trang HTML.
+:::
 
-Những ngoại lệ trung thực - mỗi ngoại lệ đều là tùy chọn tham gia, do người dùng khởi xướng và hiển thị trong cùng tab Network khi nó xảy ra: thêm một **Google Font** trong trình soạn thương hiệu sẽ tải riêng họ phông chữ đó từ Google, sau một hộp thoại xin đồng ý cho bạn biết chính xác điều đó, một lần, trước lần tải đầu tiên; nhấp vào một **cấu hình in ICC** sẽ tải cấu hình đó từ sổ đăng ký công khai của ICC tại color.org; phát **radio** tích hợp tùy chọn sẽ phát trực tuyến từ đài; nhập một địa điểm vào **Meeting Planner** sẽ tra cứu địa điểm đó tại dịch vụ định vị địa lý của open-meteo để lấy tọa độ và múi giờ, một lần cho mỗi thành phố (câu trả lời được lưu trên thiết bị của bạn), và ô nhập liệu mang theo lời công bố đó ngay tại nơi bạn gõ; và **URL Screenshot** tất yếu phải tải URL bạn đã gõ - đó là công việc của nó, và bạn theo dõi điều đó xảy ra. Một công cụ khai báo khả năng mạng chỉ có thể tải từ các máy chủ mà tệp manifest của nó cho phép, và cơ chế đó là fail-closed (mặc định chặn); hiện chưa có công cụ nào đã phát hành khai báo điều này, vì vậy Content-Security-Policy do trình duyệt thực thi mới là ranh giới thực sự giữ danh sách trên đúng với các máy chủ của nó. [Chính sách quyền riêng tư](/info/privacy.html) lưu giữ bảng chuẩn của tất cả những điều này; quy tắc cố định của nó là một lượt truy cập mạng không có trong bảng đó thì không xảy ra.
+::: details Những gì khác bạn có thể thấy trong thẻ Network
+Một số tính năng chỉ với tới mạng khi bạn dùng chúng, và mỗi cái đều thấy được trong cùng thẻ:
 
-**2. Rút phích cắm.** Tải ứng dụng và mở một hoặc hai công cụ, sau đó ngắt kết nối mạng - chế độ máy bay, hoặc DevTools → Network → Offline. Tải lại trang. Thư viện và mọi công cụ bạn đã mở vẫn hoạt động, kể cả việc kết xuất và xuất theo các định dạng bạn đã dùng - các tệp của một công cụ và bộ mã hóa của một định dạng được lưu vào bộ nhớ đệm ngay lần đầu bạn sử dụng, vì vậy hãy chạy thử một công cụ khi còn trực tuyến trước khi kiểm tra nó ở chế độ ngoại tuyến. Đây là phép kiểm tra đơn lẻ mạnh nhất trên trang này: phần mềm gọi về nhà không thể sống sót khi dây bị cắt.
+- thêm một **Google Font** trong Design System Setup tải đúng họ phông chữ đó từ Google, sau một hộp thoại đồng ý nói rõ điều đó, một lần, trước lần tải đầu tiên;
+- nhấp một **cài đặt sẵn hồ sơ in ICC** tải hồ sơ đó từ sổ đăng ký công khai của ICC tại color.org;
+- phát **radio** tích hợp tùy chọn truyền phát từ đài;
+- nhập một địa điểm trong **Meeting Planner** tra địa điểm đó tại dịch vụ geocoding của open-meteo để lấy tọa độ và múi giờ, một lần cho mỗi thành phố (câu trả lời được lưu trên thiết bị), và ô nhập nói rõ điều này nơi bạn gõ;
+- **URL Screenshot** tải địa chỉ bạn gõ, vì đó là việc của nó, và bạn xem nó xảy ra.
 
-**3. Đếm cookie.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Danh sách trống - ứng dụng không đặt cookie nào. Hoặc dán `document.cookie` vào console: bạn nhận được `""`. (Cookie duy nhất trong toàn hệ thống, `lolly_ca_state`, tồn tại nhiều nhất mười phút trong lúc đăng nhập danh tính tùy chọn - bị xóa ngay khi đăng nhập hoàn tất - có phạm vi giới hạn ở `/api/ca` và là `HttpOnly`: [chính sách quyền riêng tư](/info/privacy.html) mô tả nó chính xác.)
-
-**4. Đọc bộ lưu trữ của chính bạn.** Cùng bảng Application: mọi thứ Lolly lưu giữ đều có thể xem trực tiếp trước mắt bạn - khoảng vài chục khóa `localStorage` đơn thuần (chủ đề, ngôn ngữ, độ rộng thanh bên, các thiết lập âm thanh và hiển thị, cùng một bản sao đệm của chỉ mục catalogue công cụ công khai), và các tài liệu của riêng bạn trong IndexedDB. Mỗi giá trị là một chuỗi hoặc JSON có thể đọc được - không có gì bị làm rối, không có gì được mã hóa để cản việc đọc nó. Xóa dữ liệu trang trong trình duyệt sẽ xóa hết tất cả, và Lolly không giữ bản sao nào ở phía máy chủ; **Cài đặt → Bộ nhớ → Xóa toàn bộ dữ liệu của tôi** cũng làm điều tương tự từ bên trong ứng dụng, và bạn có thể theo dõi các store và bộ nhớ đệm trống dần ngay trong bảng này.
-
-**5. Kiểm tra liên hệ công bố có tồn tại.** [`/.well-known/security.txt`](/.well-known/security.txt) trả về một khối liên hệ theo [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), không phải một trang HTML.
+Một công cụ khai báo khả năng mạng chỉ có thể tải từ các máy chủ mà manifest của nó cho phép, và kiểm tra đó thất bại theo hướng đóng. Hiện không công cụ nào đi kèm khai báo khả năng đó, nên Content-Security-Policy do trình duyệt thực thi là thứ giữ danh sách trên trong các máy chủ của nó. [Chính sách quyền riêng tư](/info/privacy.html) giữ bảng chuẩn của tất cả những thứ này, kể cả lưu lượng phiên bản được quản lý như làm mới chính sách và báo cáo đã bật.
+:::
 
 ## Từ một terminal
 
-**6. Điểm cuối render chỉ trả về dữ liệu công khai.** Tính năng máy chủ duy nhất đưa dữ liệu do người dùng gõ vào một URL - render qua hot-link - đang hoạt động ở đây, và [chính sách quyền riêng tư](/info/privacy.html) nêu rõ điều đó có ý nghĩa gì đối với dữ liệu bạn đưa vào một liên kết:
+**6. Điểm cuối kết xuất chỉ trả lời bằng dữ liệu công khai.** Tính năng máy chủ duy nhất đặt đầu vào đã gõ vào URL, kết xuất hot-link, đang hoạt động ở đây. [Chính sách quyền riêng tư](/info/privacy.html) nói điều đó nghĩa là gì với các đầu vào bạn đặt trong liên kết.
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Công tắc này được đặt theo từng lần triển khai (`LOLLY_DISABLE_RENDER_GET=1`): trên một instance có đặt cờ này, cùng một phép kiểm tra (probe) sẽ trả về `404` - sự khác biệt đó là do cờ đang hoạt động, không phải là một sự không nhất quán.
+Mỗi bản triển khai tự chọn (`LOLLY_DISABLE_RENDER_GET=1`): trên phiên bản đặt nó, cùng phép thăm dò trả về `404`. Sự khác biệt đó là cài đặt đang hoạt động, không phải bất nhất.
 
-**7. Bề mặt máy chủ có thể liệt kê được.** [Server Surface](/info/server-surface.html) liệt kê mọi tuyến phía máy chủ đang tồn tại, với quy tắc cố định là một điểm cuối không có trên trang đó thì không thuộc về Lolly. Hãy `curl` chúng; không còn gì khác để tìm thấy.
+**7. Kiểm tra các dịch vụ mà bản triển khai của bạn bật.** [Server Surface](/info/server-surface.html) liệt kê các dịch vụ tùy chọn và liên kết tới tài liệu chi tiết của chúng. Với Lolly Work, hãy gồm các API có xác thực, kết nối cộng tác, lưu trữ và nhà cung cấp đã cấu hình. Thăm dò lolly.tools công khai không kiểm thử một phiên bản tổ chức riêng tư.
+
+Nếu bạn chạy phiên bản riêng, [Delivery deployment](/info/deploy-delivery.html) có các kiểm tra phát hành cho nó: toàn vẹn mô hình, phép thăm dò edge và danh sách mẫu của nó, bản hiển thị, cổng tải xuống riêng tư và danh mục có chữ ký trong trình duyệt.
+
 
 ## Trong mã nguồn
 
-Tất cả những điều trên vẫn có thể chỉ là màn kịch nếu mã đã triển khai khác với mã công khai. Vì vậy hãy kiểm tra mã nguồn - bản triển khai được xây dựng từ [kho lưu trữ công khai](https://github.com/lolly-tools/lolly):
+Tất cả những điều trên vẫn có thể là diễn kịch nếu mã đã triển khai khác với mã công khai. Vậy hãy kiểm tra mã. Bản triển khai dựng từ [kho công khai](https://github.com/lolly-tools/lolly):
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
-**8. Không có trình theo dõi, không có SDK phân tích, ở bất cứ đâu.** Tìm kiếm trong mã được phát hành - engine, mọi shell (bao gồm tiện ích mở rộng trình duyệt, các ghi đè cầu nối Tauri và service worker), các hàm máy chủ và các gói công cụ - để tìm những nghi phạm quen thuộc:
+**8. Không có trình theo dõi và không có SDK phân tích ở bất kỳ đâu.** Tìm trong mã được phát hành (engine, mọi shell kể cả tiện ích mở rộng trình duyệt, các ghi đè cầu Tauri và service worker, các hàm máy chủ và các gói công cụ) những kẻ tình nghi thông thường:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
   -e googletagmanager -e google-analytics -e posthog -e mixpanel -e hotjar \
   -e sentry.io -e segment.com -e '@vercel/analytics' \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
@@ -70,10 +83,12 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' 
 # (no output)
 ```
 
-**9. Không có bộ phân giải DNS bên thứ ba.** Kiểm tra SEAL của Verify không bao giờ định tuyến các truy vấn qua một nhà cung cấp DNS-over-HTTPS - ứng dụng web đơn giản là không có bộ phân giải nào:
+Phép quét này tìm SDK theo dõi của bên thứ ba. Nó không chứng minh sự vắng mặt của báo cáo sử dụng của chính chúng tôi: Lolly Work hỗ trợ telemetry tổ chức và nhật ký kiểm toán riêng, với chính sách và kiểm thử riêng.
+
+**9. Không có trình phân giải DNS của bên thứ ba.** Kiểm tra SEAL của Verify không bao giờ gửi tra cứu qua nhà cung cấp DNS-over-HTTPS, vì ứng dụng không có trình phân giải:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
   -e cloudflare-dns.com -e dns.google -e /dns-query \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
   shells/web/public/sw.js services packages api community brands/*/tools
@@ -82,23 +97,25 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
 #  bans them)
 ```
 
-**10. Dịch vụ chứng chỉ không lưu giữ bất cứ điều gì.** CA danh tính không có nhật ký cấp phát - không email của bạn, không dấu thời gian, không webhook. Sự vắng mặt này có thể xác minh bằng grep:
+**10. Dịch vụ chứng chỉ không giữ nhật ký cấp phát.** CA danh tính không giữ nhật ký về những gì nó đã cấp và không có kho danh tính: không dòng stdout, không webhook, không kho chứng chỉ. Sự vắng mặt có thể tìm kiếm được:
 
 ```bash
 grep -rn logIssuance services/ca api/ca
 # (no output)
 ```
 
-## Được thực thi bởi các bài kiểm thử, không phải lời hứa
+CA có giữ trạng thái làm việc ngắn hạn: các nhóm giới hạn tốc độ giữ khóa IP và email đã băm trong cửa sổ của chúng, và kho nhận vào của bản triển khai được quản lý giữ một định danh có khóa và giá trị băm yêu cầu tối đa mười phút. [Content Credentials engineering](/info/content-credentials-engineering.html#protocol) có chi tiết.
 
-Ba phép kiểm tra mã nguồn ở trên không phải là một cuộc kiểm toán một lần - chúng được ghim cố định trong bộ kiểm thử, nên không thể âm thầm mục nát. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) sẽ làm bản dựng thất bại nếu:
+## Được thực thi bằng kiểm thử
 
-- bất kỳ SDK phân tích hoặc theo dõi nào xuất hiện ở bất cứ đâu trong mã nguồn được phát hành mà nó quét - ứng dụng, engine, máy chủ, tiện ích mở rộng và mã gói công cụ như nhau,
-- bất kỳ bộ phân giải DNS-over-HTTPS bên thứ ba nào xuất hiện trong mã nguồn đó,
-- nhật ký cấp phát của CA quay trở lại - trong mã nguồn **hoặc** trong gói máy chủ đã tạo ra,
-- chính sách quyền riêng tư mất đi các tuyên bố bắt buộc theo luật (bên kiểm soát được nêu tên, cơ sở pháp lý, quyền khiếu nại).
+Các kiểm tra mã nguồn trên không phải một lần kiểm toán duy nhất: chúng được ghim trong bộ kiểm thử, nên không thể mục nát lặng lẽ. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) kiểm tra danh sách tên trình theo dõi dài hơn phép quét trên và làm hỏng bản dựng nếu:
 
-Tự bạn chạy chúng trong bản clone (Node 22.18+; không cần `pnpm install` cho tệp này):
+- bất kỳ SDK phân tích hay theo dõi nào xuất hiện ở bất cứ đâu trong mã nguồn phát hành mà nó quét, qua mã ứng dụng, engine, máy chủ, tiện ích mở rộng và gói công cụ;
+- bất kỳ trình phân giải DNS-over-HTTPS của bên thứ ba nào xuất hiện trong mã nguồn đó;
+- nhật ký cấp phát CA quay lại, trong mã nguồn **hoặc** gói máy chủ được tạo;
+- chính sách quyền riêng tư mất các tuyên bố bắt buộc theo luật (bên kiểm soát có tên, cơ sở pháp lý, quyền khiếu nại).
+
+Hãy tự chạy chúng trong bản clone (Node 22.18 trở lên; tệp này không cần `pnpm install`):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -110,14 +127,12 @@ node --test tests/no-trackers.test.ts
 
 Bộ kiểm thử đầy đủ (`pnpm install && pnpm test`) chạy thêm vài nghìn kiểm thử nữa, bao gồm các kiểm thử mật mã học đối kháng (adversarial) được mô tả trong [Security & Verification](/info/security.html).
 
-## Những gì bạn không thể xác minh từ bên ngoài - nói thẳng
+## Những gì bạn không kiểm chứng được từ bên ngoài
 
-Một trang như thế này giành được lòng tin bằng cách nêu rõ chính giới hạn của nó:
-
-- **Nhật ký truy cập lưu trữ.** Bất kỳ máy chủ nào trả lời một yêu cầu đều có thể ghi lại yêu cầu đó - IP, đường dẫn, dấu thời gian. Bạn không thể xác minh một máy chủ lưu giữ hay không lưu giữ điều gì, và chúng tôi cũng vậy, ngoài hành vi đã được nhà cung cấp của chúng tôi ghi thành văn bản. Đó chính xác là lý do kiến trúc giữ hoàn toàn nội dung của bạn ngoài đường truyền: những gì không bao giờ rời khỏi thiết bị của bạn thì không ai có thể ghi lại được.
-- **Rằng bản triển khai chạy đúng mã này.** Bạn có thể xác minh mã nguồn sạch và hành vi đã triển khai khớp với nó (các phép kiểm tra ở trên làm cả hai đầu), nhưng chứng thực ở cấp độ nhị phân cho một bản triển khai web không phải là điều nền tảng web cung cấp. Các biện pháp giảm thiểu là kho công khai, các bài kiểm thử được thực thi bắt buộc và phép kiểm tra ngoại tuyến - một bản triển khai bị can thiệp mà gọi về nhà sẽ thất bại ngay ở phép kiểm tra 1 và 2.
-- **Các hook của công cụ không được cách ly (sandbox) theo mặc định.** Logic tùy chọn của một công cụ chạy sau khi đã được xem xét, trong chính realm của trang; mọi công cụ trên lolly.tools đều là bên thứ nhất và được xem xét trước khi phát hành. Cách ly Worker giờ đây đã có sẵn dưới dạng tùy chọn tham gia theo từng công cụ - một công cụ có manifest đặt `isolate: true` sẽ chạy các hook của nó ngoài luồng chính thay vào đó - vì vậy những gì bạn không thể xác minh từ bên ngoài đang thu hẹp lại, nhưng đường dẫn mặc định vẫn nằm trong realm và việc xem xét vẫn là biện pháp kiểm soát. Điều này được nêu rõ, không bị che giấu - xem mục [ranh giới thiết kế](/info/security.html), vốn luôn nói như vậy.
+- **Nhật ký truy cập lưu trữ.** Bất kỳ máy chủ nào trả lời yêu cầu đều có thể ghi nhật ký: địa chỉ IP, đường dẫn và thời gian. Một phép thăm dò từ ngoài không xác lập được nhật ký được giữ bao lâu. Đơn vị vận hành kiểm soát việc ghi nhật ký, xoay vòng và xuất, và phải công bố các lựa chọn đó. Kết xuất cục bộ giữ các chỉnh sửa thông thường trên thiết bị của bạn; kết xuất máy chủ tùy chọn và dịch vụ không gian làm việc chung có các luồng dữ liệu riêng mà chính sách quyền riêng tư mô tả.
+- **Rằng bản triển khai chạy mã này.** Bạn có thể kiểm tra mã nguồn sạch và hành vi đã triển khai khớp với nó, và các kiểm tra trên làm cả hai. Chứng thực ở mức nhị phân cho một bản triển khai web không phải thứ nền tảng web cung cấp. Các biện pháp giảm nhẹ là kho công khai, các kiểm thử được thực thi và kiểm tra ngoại tuyến: một bản triển khai bị can thiệp mà gọi về nhà sẽ trượt kiểm tra 1 và 2 cùng lúc.
+- **Hook của công cụ.** Logic tùy chọn của công cụ tích hợp được xem xét thay vì đặt trong sandbox: nó chạy trong trang trừ khi công cụ chọn dùng Worker. Mọi công cụ trên lolly.tools đều là sản phẩm của chính chúng tôi và được xem xét trước khi phát hành. [Threat Model](/info/threat-model.html#trust-boundaries) nêu hook chạy ở đâu và điều gì giới hạn chúng.
 
 ## Nếu một phép kiểm tra thất bại
 
-Sự khác biệt giữa trang này và hành vi quan sát được là một báo cáo bảo mật, và chúng tôi thực sự muốn nghe về điều đó hơn là không: [fitzy+security@suse.com](mailto:fitzy+security@suse.com), nút **Report a vulnerability** trên bất kỳ [kho lolly-tools](https://github.com/lolly-tools) nào hoặc liên hệ trong [`/.well-known/security.txt`](/.well-known/security.txt). Công bố phối hợp và ghi nhận công của người báo cáo là chính sách cố định - [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md) có đầy đủ chi tiết.
+Sự khác biệt giữa trang này và những gì bạn quan sát được là một báo cáo bảo mật. Hãy gửi nó qua các kênh riêng tư tại [Security & Verification](/info/security.html#reporting-a-vulnerability). Chúng tôi thực hành công bố phối hợp và ghi nhận người báo cáo.

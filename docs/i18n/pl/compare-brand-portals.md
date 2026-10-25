@@ -2,34 +2,35 @@
 
 _Ostatnio sprawdzono: 28 września 2026._
 
-Lolly i [lolly.work](https://lolly.work) razem obejmują przepływy tworzenia i zarządzania, do których zespoły używają portali marki: zatwierdzone zasoby, zablokowane szablony, kontrola dostępu, przegląd i dystrybucja. Porównaj to rozwiązanie łączone z Bynder, Frontify, Marq lub Brandfolder, wybierając sposób, w jaki ludzie znajdują zasoby marki i tworzą nowe.
+Jeśli Twoja organizacja trzyma zatwierdzone zasoby w Bynder, Frontify, Marq lub Brandfolder, ta strona porównuje to z Lolly plus Lolly Work: jak ludzie znajdują zasoby marki i jak tworzą z nich nowe pliki.
 
-## Tworzenie i usługi organizacyjne
+## Co robi lepiej ugruntowany portal
 
-Silnik i aplikacje Lolly tworzą pliki. Szablony, tokeny projektowe i dozwolone dane wejściowe określają, co można zmienić, a renderowanie może pozostać na urządzeniu użytkownika. Samodzielne Lolly nie wymaga konta.
+Ugruntowane portale oferują zarządzany hosting, wsparcie i rozbudowane przepływy zarządzania zasobami. [Enterprise DAM Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) na przykład łączy wyszukiwanie zasobów, kontrolę dostępu, przepływy zatwierdzania i dystrybucję. Stos Lolly jest młodszy, a jego łańcuchy zatwierdzania są sekwencyjne, a nie dowolnymi rozgałęzionymi przepływami. [Work status and roadmap](/info/work-status.html) zapisuje jego ograniczenia wdrożeniowe.
 
-lolly.work to usługa organizacyjna w tym samym projekcie, utrzymywana w [osobnym repozytorium](https://github.com/lolly-tools/lolly-work) i wdrażana obok Lolly. Dodaje tożsamość, współdzielone przechowywanie, zasady, zatwierdzanie i raportowanie. Obie części są open source na licencji MPL-2.0. Taki podział pozwala osobie indywidualnej korzystać z Lolly niezależnie, a organizacji uruchomić rozwiązanie łączone na infrastrukturze, którą kontroluje.
+## Gdzie się pokrywają
 
-## Co zapewnia rozwiązanie łączone
+Oba obejmują zatwierdzone zasoby, zablokowane szablony, kontrolę dostępu, przegląd i dystrybucję. Lolly tworzy pliki: szablony, tokeny projektowe i dozwolone dane wejściowe określają, co ktoś może zmienić, a renderowanie może zostać na jego urządzeniu. Lolly Work dodaje tożsamość, wspólny magazyn, politykę, zatwierdzenia i raportowanie na infrastrukturze kontrolowanej przez organizację.
 
-| Potrzeba | Lolly + lolly.work |
+![Aktywny system projektowy w Settings, pokazany jako okładka i strony: kolory, typografia i logo, z których rysuje każde narzędzie](/info/shots/dashboard-brand.svg)
+
+## Co zapewniają Lolly i Lolly Work
+
+| Potrzeba | Lolly + Lolly Work |
 |---|---|
-| Logowanie i provisioning | Logowanie jednokrotne OIDC, wielu dostawców tożsamości, provisioning użytkowników SCIM 2.0 i członkostwo w grupach oraz wyłączanie kont, które unieważnia istniejące sesje. Dostawca tożsamości obsługujący wyłącznie SAML może łączyć się przez most OIDC, taki jak Keycloak. |
-| Zatwierdzone szablony | Lolly definiuje edytowalne dane wejściowe szablonu; lolly.work stosuje widoczność dla grup i zasady danych wejściowych, które blokują wartości, ograniczają wybór lub ukrywają kontrolki. |
-| Współdzielona biblioteka zasobów | Przesłane pliki należące do instancji, kolekcje, niestandardowe metadane i katalogi z kontrolą dostępu oraz konektory odczytujące istniejące biblioteki DAM i magazyny. |
-| Przegląd | Uporządkowane kroki zatwierdzania, uprawnione grupy zatwierdzających, reguły kworum i rozdział obowiązków; przegląd może obejmować zgłoszenia do katalogów i dostarczanie do celów organizacji. |
-| Historia i dostępność zasobów | Wersje i przywracanie dla zasobów należących do instancji, retencja i blokady, zaplanowana dostępność, wygasanie i unieważnianie. Podłączeni dostawcy zachowują własną historię źródłową. |
-| Raportowanie | Liczniki użycia i pobrań zasobów, aktywność narzędzi i eksportów, pulpity oraz ślad audytu. Przypisywanie użycia zależy od zasad telemetrii wdrożenia; domyślne ustawienie przypisywania wymaga zgody. |
-| Dystrybucja | Wygasające i odwoływalne linki, współdzielone kolekcje, dostęp dla gości i dostarczanie do skonfigurowanych miejsc docelowych organizacji. |
+| Logowanie i provisioning | Jednokrotne logowanie OIDC, wielu dostawców tożsamości, provisioning użytkowników SCIM 2.0 i członkostwo w grupach oraz wyłączanie kont, które unieważnia istniejące sesje. Dostawca tożsamości tylko SAML może się połączyć przez most OIDC, taki jak Keycloak. |
+| Zatwierdzone szablony | Lolly definiuje edytowalne dane wejściowe szablonu; Lolly Work stosuje widoczność grup i polityki danych wejściowych, które blokują wartości, ograniczają wybory lub ukrywają kontrolki. |
+| Wspólna biblioteka zasobów | Wgrane pliki należące do instancji, kolekcje, metadane niestandardowe i katalogi z kontrolą dostępu, plus konektory czytające istniejące biblioteki DAM i magazynu. |
+| Przegląd | Uporządkowane kroki zatwierdzania, uprawnione grupy zatwierdzających, reguły kworum i rozdział obowiązków; przegląd może obejmować zgłoszenia do katalogu i dostarczanie do celów organizacji. |
+| Historia zasobów i dostępność | Wersje i wycofywanie dla zasobów należących do instancji, retencja i blokady, planowana dostępność, wygaśnięcie i unieważnienie. Połączeni dostawcy zachowują własną historię źródła. |
+| Licencje i uznania autorstwa | Lolly zapisuje licencję każdego źródła używanego przez plik i przygotowuje uznania, które mu się należą; [Creative rights and credits](/info/creative-rights.html) wyjaśnia, co zapisuje i gdzie uznania są zapisywane. Nie rozstrzyga praw. |
+| Raportowanie | Liczby użycia i pobrań zasobów, aktywność narzędzi i eksportów, panele i ślad audytu. Przypisanie użycia podlega polityce telemetrii wdrożenia; domyślne ustawienie przypisania wymaga zgody. |
+| Dystrybucja | Wygasające, możliwe do unieważnienia linki, wspólne kolekcje, dostęp gościa i dostarczanie do skonfigurowanych miejsc docelowych organizacji. |
 
-[Przewodniki operatora lolly.work](https://github.com/lolly-tools/lolly-work/tree/main/docs) opisują te funkcje i ich konfigurację. To dostępne możliwości, a nie funkcje, które wymagają budowania kolejnego systemu wokół Lolly.
+[Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) i [Policy and governance](/info/work-governance.html) opisują te funkcje i ich konfigurację.
 
-## Wybór przepływu pracy portalu
+## Zachowanie istniejącego portalu
 
-Ugruntowane portale oferują zarządzany hosting, wsparcie i rozbudowane przepływy pracy DAM. Na przykład [enterprise DAM firmy Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) łączy wyszukiwanie zasobów, kontrolę dostępu, przepływy zatwierdzania i dystrybucję. Porównaj dokładny przepływ przeglądu i praw, którego potrzebujesz: Lolly zapewnia metadane oraz kontrolę dostępu i dostępności, natomiast prawne dopuszczenie i zobowiązania licencyjne nadal wymagają procesu organizacji. Jego łańcuchy zatwierdzania są sekwencyjne; nie modelują dowolnie rozgałęzionych przepływów pracy.
+Istniejące DAM może pozostać źródłem prawdy. Konektory katalogu Lolly Work udostępniają jego zatwierdzone zasoby w Lolly, gdzie ludzie tworzą nowe pliki według reguł organizacji. To wybór integracji; własna biblioteka i zatwierdzenia Lolly są tam, gdy organizacja chce je prowadzić sama. [What runs where](/info/compare.html#what-runs-where) wymienia ograniczenia wspólne dla każdego porównania.
 
-Stos Lolly jest młodszy, a [strona statusu lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) rejestruje ograniczenia jego wdrożenia. W szczególności publiczna witryna lolly.work jest piaskownicą do oceny. Trwałe wdrożenie w organizacji wymaga trwałego przechowywania i operatora. Samodzielny hosting nie wiąże się z opłatą licencyjną za oprogramowanie za użytkownika; infrastruktura i administracja nadal kosztują.
-
-Istniejący system DAM może też pozostać źródłem prawdy. Konektory katalogów lolly.work udostępniają jego zatwierdzone zasoby w Lolly, gdzie ludzie tworzą nowe pliki według reguł organizacji. To wybór integracyjny; własna biblioteka i zatwierdzanie w Lolly są dostępne, gdy organizacja chce samodzielnie zarządzać tymi przepływami pracy.
-
-Porównanie możliwości znajdziesz w [Jak Lolly wypada w porównaniu](/info/positioning.html), a pozostałe strony tego zestawu w [Lolly w porównaniu, narzędzie po narzędziu](/info/compare.html). Nazwy dostawców identyfikują porównywane produkty; Lolly nie jest z nimi powiązane.
+Zobacz [How Lolly compares](/info/positioning.html), aby poznać porównanie możliwości. Nazwy dostawców identyfikują porównywane produkty; Lolly nie jest z nimi powiązane.

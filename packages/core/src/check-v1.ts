@@ -75,6 +75,10 @@ export type CheckExitCodeV1 = (typeof CHECK_EXIT_CODES)[number];
  * 3: `--browser=require` and no browser tier. 4: an error finding, or any warn
  * under `--strict`. 5: warn findings only, the full report kept, as
  * `rebrand compile` does.
+ *
+ * One finding informs and never counts toward the code: `verify.writing-score`,
+ * the writing score of a document's visible text (`warn` at the strong band,
+ * `info` for every lower band, never `error`). It stays in the findings and the tallies.
  */
 export const CHECK_EXIT = { clean: 0, failed: 1, usage: 2, unavailable: 3, refused: 4, review: 5 } as const;
 

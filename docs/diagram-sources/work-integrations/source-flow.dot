@@ -1,0 +1,13 @@
+digraph source_flow {
+  rankdir=TB
+  node [shape=box]
+  source [label="Your source\ndrive, bucket or DAM"]
+  catalog [label="Work catalog\nreferences, read-only"]
+  copy [label="Materialize\ncopies in your store"]
+  groups [label="Exposure\nthe groups you choose"]
+  tools [label="Lolly tools\npick and render"]
+  source -> catalog
+  catalog -> groups
+  catalog -> copy
+  groups -> tools
+}

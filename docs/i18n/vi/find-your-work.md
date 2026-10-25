@@ -1,6 +1,8 @@
 # Tìm và khôi phục công việc của bạn
 
-Mọi thứ bạn làm trong Lolly ở lại trong trình duyệt hoặc ứng dụng bạn đã tạo nó, trên thiết bị đó, trừ khi bạn bật [Sync](/info/sync.html). Công việc đã lưu nằm trong **Dự án**. Một tệp đã tải xuống nằm ở bất cứ đâu mà trình duyệt hoặc hệ thống của bạn đặt nó, và thường có một bản sao chờ sẵn trong **Tài sản**. Ở hầu hết công cụ, công việc bạn chưa từng lưu cũng được giữ lại. Trang này nói về từng trường hợp đó, cộng với việc đóng tab, xóa dữ liệu trình duyệt, các phiên bản trước đó, các mục đã xóa và việc chuyển sang thiết bị khác.
+Có gì đó bị thiếu: một thiết kế bạn chưa từng lưu, một tệp bạn đã tải, phiên bản của tuần trước, hoặc mọi thứ sau khi trình duyệt bị xóa. Hãy bắt đầu với bảng, rồi theo phần mà nó chỉ tới.
+
+Công việc cá nhân ở lại trong trình duyệt hoặc ứng dụng bạn đã làm, trên thiết bị đó, trừ khi bạn bật [Sync](/info/sync.html). Một tổ chức dùng Lolly Work tùy chọn cũng giữ **Team projects** trên máy chủ của họ, được đề cập bên dưới.
 
 | Bạn đã làm gì | Tìm ở đâu |
 |---|---|
@@ -10,13 +12,23 @@ Mọi thứ bạn làm trong Lolly ở lại trong trình duyệt hoặc ứng d
 | Không cái nào, ở công cụ khác | Chỉ tab bạn đang làm việc, cho đến khi bạn đóng tab |
 | Đã xóa nó trong ứng dụng | **Thùng rác**, trong **Dự án**, **Tài sản** hoặc **Cài đặt → Bộ nhớ**, trong 30 ngày |
 
+::: figure find-your-work-places
+Công việc của bạn nằm ở đâu: bộ nhớ riêng của trình duyệt giữ Projects, History và Trash; các bản tải xuống đi vào thư mục trên thiết bị; Sync và tệp sao lưu là các bản sao ngoài trình duyệt.
+:::
+
+::: details Tìm công việc chung trong Lolly Work (tùy chọn)
+Mở Lolly của tổ chức bạn và đăng nhập, rồi tìm trong **Projects → Team projects**. Các phiên chung do phiên bản đó giữ và xuất hiện theo quyền truy cập của bạn. Đăng nhập có thể khôi phục quyền truy cập các phiên đó trên thiết bị khác; nó không khôi phục thư viện cá nhân hay bản sao lưu thiết bị của bạn.
+
+Trong một [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), hãy đợi **Saved to work** trước khi rời đi. Nếu một dự án chung bị thiếu, hãy kiểm tra bạn đang kết nối đúng phiên bản và hỏi đơn vị vận hành về quyền truy cập hoặc thời hạn lưu giữ. Xóa dữ liệu trình duyệt gỡ các bản sao cục bộ, không gỡ bản sao trên máy chủ của tổ chức. Xem [Use Lolly at your organisation](/info/organisation.html).
+:::
+
 ## Tìm lại thứ bạn đã lưu
 
 1. Nhấn **Trang chủ** ở góc trên bên trái của công cụ.
 2. Mở tab **Dự án** ở đầu màn hình chính (biểu tượng thư mục trên điện thoại).
 3. Xem ở màn hình đầu tiên. Công việc đã lưu vào **Thư viện của tôi** nằm ở đó, và mỗi dự án là một thư mục. Để tìm trong mọi thư mục cùng lúc, hãy gõ vào ô **Tìm trong mọi dự án…** ở chân màn hình.
 
-Một mục được đặt tên theo tên tệp bạn đã gõ trong bảng xuất, hoặc theo công cụ của nó, chẳng hạn **QR Code**, nếu bạn không gõ gì. Mở mục đó và mọi thiết lập sẽ trở lại, sẵn sàng để đổi và xuất lại. Để giữ công việc mới theo cách này, xem [Lưu & tiếp tục](/info/using.html#saving-continuing).
+Một mục được đặt tên theo tên tệp bạn gõ trong bảng xuất, hoặc theo công cụ của nó, như **QR Code**, nếu bạn không gõ. Mở mục đó và mọi cài đặt trở lại, sẵn sàng để đổi và xuất lại. Để giữ công việc mới theo cách này, xem [Saving & continuing](/info/using.html#saving-continuing).
 
 ::: note Không có trong Dự án?
 - Có thể nó nằm trong **Trash**: xem [Lấy lại thứ bạn đã xóa](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Thư mục có thể lồng nhau.** Nhóm các phiên đã lưu vào các thư mục, và thư mục trong thư mục, sâu bao nhiêu tùy thích. Tạo một thư mục, đổi tên nó hoặc kéo một ô sang thư mục khác để di chuyển nó; một dòng breadcrumb đưa bạn quay lại. Các phiên được lưu mà không có thư mục sẽ xuất hiện thẳng ở gốc của **Dự án**.
-- <!--i:clock--> **Sắp xếp theo cách của bạn.** **Tùy chọn xem**, nút thanh trượt ở góc trên bên phải, cho **Lưới** hoặc **Danh sách** và sắp xếp theo **Tên**, **Ngày thêm**, **Sửa đổi lần cuối** (mặc định), **Kích thước** và, bên trong một thư mục, **Theo công cụ**. Thư mục luôn đứng trước bất kể kiểu sắp xếp nào đang bật - kiểu sắp xếp chỉ xếp thứ tự các phiên và thư mục trong nhóm của chính chúng.
-- <!--i:document--> **Đưa việc mới thẳng vào đây.** **Tài sản mới** mở bộ chọn dùng chung. Chọn **Mẫu** để bắt đầu từ một mẫu đã lưu: mở nó để chỉnh sửa, hoặc dùng **+ Thêm** để lưu ngay một tác phẩm mới.
-- <!--i:checklist--> **Chọn nhiều mục (trên máy tính).** Tích ô chọn của một thẻ, kéo một khung chọn qua vùng trống hoặc **Shift/Cmd-nhấp**; **nhấp chuột phải** vào một thẻ để mở menu ngữ cảnh. Khi đó thanh lựa chọn sẽ đưa ra **Xuất bản phần đã chọn**, **Di chuyển đến…**, **Thư mục mới**, **Xóa** (chuyển vào Trash), **Chỉnh sửa cùng nhau** cho hai đến tám phiên một công cụ, cạnh nhau dưới một thanh bên, và **Chỉnh sửa dưới dạng bảng tính**, mở một lựa chọn ở bất kỳ kích thước hay pha trộn nào thành các hàng trong lưới batch.
-- <!--i:download--> **Kết xuất cả một thư mục hoặc lựa chọn.** **Kết xuất thư mục** xuất mọi phiên đã lưu trong một thư mục - kể cả các thư mục con - thành một tệp `.zip` lồng nhau. **Xuất bản phần đã chọn** làm điều tương tự cho bất kỳ lựa chọn nhiều mục nào, còn một phiên đơn lẻ xuất thẳng ra tệp riêng của nó. Không cần Batch/Pro.
-- <!--i:link--> **Nhảy thẳng tới việc đã lưu của một công cụ.** Tích một hoặc nhiều công cụ trên gallery Tools rồi chọn **Xem các phiên** trên thanh lựa chọn - Dự án mở ra chỉ hiện những phiên tạo bằng các công cụ đó, kèm một nút **Xóa** để quay lại toàn cảnh.
-- <!--i:link--> **Chia sẻ một phiên đã lưu.** Nhấp chuột phải vào một phiên (trên điện thoại, nhấn **•••** trên ô của nó) → **Chia sẻ liên kết** để sao chép một liên kết mở lại nó với cùng thiết lập; ảnh từ thiết bị của bạn không đi kèm với liên kết (hộp thoại Share đầy đủ: xem [Chia sẻ công việc của bạn](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Đổi tên hoặc sao chép một phiên.** Nhấp chuột phải vào một phiên (trên điện thoại, nhấn **•••** trên ô của nó) để **Đổi tên**, **trùng lặp** (một bản sao trong cùng thư mục) và **Di chuyển đến…**.
+- <!--i:folder--> **Thư mục lồng nhau.** Gom các phiên đã lưu vào thư mục, và thư mục trong thư mục, sâu tùy ý. Tạo thư mục, đổi tên hoặc kéo một ô vào thư mục khác để di chuyển; đường dẫn breadcrumb đưa bạn ngược lên. Các phiên lưu không có thư mục xuất hiện ngay ở gốc **Projects**.
+- <!--i:clock--> **Sắp xếp theo cách của bạn.** **View options**, nút thanh trượt ở trên bên phải, cung cấp **Grid** hoặc **List** và sắp xếp theo **Name**, **Date added**, **Last modified** (mặc định), **Size** và, trong một thư mục, **By tool**. Thư mục luôn đứng trước bất kể kiểu sắp xếp nào - việc sắp xếp chỉ xếp thứ tự các phiên và thư mục trong nhóm của chúng.
+- <!--i:document--> **Lưu công việc mới thẳng vào.** **New asset** mở bộ chọn dùng chung. Chọn **Templates** để bắt đầu từ một mẫu đã lưu: mở nó để chỉnh sửa, hoặc dùng **+ Add** để lưu ngay một sản phẩm mới.
+- <!--i:checklist--> **Chọn nhiều (máy tính).** Đánh dấu hộp của ô, kéo một khung chọn qua khoảng trống hoặc **Shift/Cmd-nhấp**; **nhấp chuột phải** một ô để có menu ngữ cảnh. Thanh chọn khi đó cung cấp **Render selection**, **Move to…**, **New folder**, **Delete** (chuyển vào Trash), **Edit together** cho hai đến tám phiên cùng một công cụ, cạnh nhau dưới một thanh bên, và **Edit as sheet**, mở vùng chọn bất kỳ kích thước hoặc hỗn hợp nào thành các hàng trong lưới batch.
+- <!--i:download--> **Kết xuất cả thư mục hoặc vùng chọn.** **Render folder** xuất mọi phiên đã lưu trong thư mục - kể cả thư mục con - thành một `.zip` lồng nhau. **Render selection** làm tương tự cho bất kỳ vùng chọn nhiều nào, và một phiên đơn kết xuất thẳng ra tệp của riêng nó.
+- <!--i:link--> **Nhảy thẳng tới công việc đã lưu của một công cụ.** Đánh dấu một hoặc nhiều công cụ trên thư viện Tools và chọn **View sessions** từ thanh chọn - Projects mở chỉ hiện các phiên tạo bằng những công cụ đó, với **Clear** để quay lại chế độ xem đầy đủ.
+- <!--i:link--> **Chia sẻ một phiên đã lưu.** Nhấp chuột phải một phiên (trên điện thoại, nhấn **•••** trên ô của nó) → **Share link** để sao chép liên kết mở lại nó với cùng cài đặt; ảnh từ thiết bị của bạn không đi cùng liên kết (hộp thoại Share đầy đủ: xem [Sharing your work](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Đổi tên hoặc sao chép một phiên.** Nhấp chuột phải một phiên (trên điện thoại, nhấn **•••** trên ô của nó) để có **Rename**, **Duplicate** (một bản sao trong cùng thư mục) và **Move to…**.
 
 ![Popover Tùy chọn xem trong Dự án: Layout với Grid và List, và Sort by đặt ở Last modified, cạnh một nút đảo ngược thứ tự](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 Những gì quay lại phụ thuộc vào cách bạn rời đi và công cụ bạn đã dùng:
 
-- **Bạn đã đóng tab, hoặc quay lại vào lúc khác.** Công việc chưa lưu sẽ mất, trừ ở [những công cụ tự lưu khi bạn làm việc](#which-tools-save-as-you-work): hãy mở công việc đó từ **Dự án**.
-- **Bạn đã tải lại trang trong cùng một tab.** Các thiết lập của bạn quay lại từ địa chỉ trang. Ở các công cụ không tự lưu khi bạn làm việc, ảnh và tệp bạn đã thêm từ thiết bị, cùng văn bản một dòng dài hơn 150 ký tự, sẽ không quay lại, vì địa chỉ không chứa chúng.
-- **Bạn đã nhấn Trang chủ, hoặc nút quay lại ở góc trên bên trái.** Nếu bạn đã thay đổi gì đó kể từ lần lưu, tải xuống hoặc sao chép gần nhất, một hộp thoại **Chỉnh sửa chưa lưu** sẽ hỏi có lưu trước không. **Lưu & rời đi** lưu công việc và đưa bạn đến **Dự án**, hoặc quay lại thư mục dự án mà bạn đã mở công việc từ đó. **Vẫn rời đi** hủy bỏ các thay đổi của bạn: một mục đã lưu quay về đúng như lần lưu gần nhất, còn một tác phẩm bạn chưa từng lưu sẽ rời khỏi **Dự án**. **Hủy bỏ** giữ bạn ở lại công cụ.
+- **Bạn đã đóng thẻ, hoặc quay lại vào lúc khác.** Công việc chưa lưu đã mất, trừ trong [các công cụ lưu khi bạn làm việc](#which-tools-save-as-you-work): hãy mở công việc đó từ **Projects**.
+- **Bạn đã tải lại trang trong cùng thẻ.** Cài đặt của bạn quay lại từ địa chỉ trang. Trong các công cụ không lưu khi bạn làm việc, ảnh và tệp bạn thêm từ thiết bị, và văn bản một dòng dài hơn 150 ký tự, không quay lại, vì địa chỉ không chứa chúng.
+- **Bạn đã nhấn Home, hoặc nút quay lại ở trên bên trái.** Nếu bạn đã đổi gì đó kể từ lần lưu, tải hoặc sao chép cuối, hộp thoại **Unsaved edits** hỏi có lưu trước không. **Save & leave** lưu công việc và đưa bạn tới **Projects**, hoặc về thư mục dự án bạn đã mở công việc từ đó. **Leave anyway** bỏ các thay đổi: một mục đã lưu trở lại như lần lưu cuối, và một sản phẩm bạn chưa từng lưu rời **Projects**. **Cancel** giữ bạn trong công cụ.
 
 Lolly chỉ hỏi khi bạn nhấn **Trang chủ** hoặc nút quay lại trong một công cụ. Đóng tab, tải lại trang và nút Back của chính trình duyệt không bao giờ hỏi. Để chắc chắn, hãy nhấn **Lưu thành**, hoặc **Lưu** trong bảng xuất, trước khi bạn rời khỏi một công cụ.
+
+Khi không có khôi phục tự động, một ghi chú bên cạnh các điều khiển chỉnh sửa cho biết nên giữ gì:
+
+- Trong công cụ làm việc trên tệp bạn mang vào, hãy lưu cài đặt và cũng giữ các tệp gốc.
+- Trong công cụ ghi âm, hoặc tiện ích không có hành động Save, hãy lưu hoặc tải kết quả trước khi rời đi.
+- Ứng dụng máy tính và di động cho biết khi bạn cần lưu thủ công.
+- Trong một cộng tác riêng tư, người mời giữ tài liệu và lịch sử của nó, kể cả các thay đổi của người kia. Người tham gia làm việc trên một bản sao tạm thời và nên lưu một bản sao riêng trước khi phiên kết thúc.
 
 ::: note Lỡ rời đi mà không lưu?
 Ở những công cụ tự lưu khi bạn làm việc, History giữ lại một bản sao của các chỉnh sửa đã bị hủy. Mở trang **History**, tìm chúng dưới **Changes** rồi nhấn **Mở dưới dạng bản sao**. Ở các công cụ khác, các thay đổi đã mất.
@@ -84,12 +103,15 @@ Lolly chỉ hỏi khi bạn nhấn **Trang chủ** hoặc nút quay lại trong 
 ::: details Công cụ nào tự lưu khi bạn làm việc
 Trong ứng dụng web, mọi công cụ tạo ra một tài liệu đều tự lưu khi bạn làm việc: Design, Chart, QR Code, Text, Sandbox và những công cụ khác. Các công cụ sau đây thì không:
 
-- các công cụ làm việc trên một tệp bạn mang vào, chẳng hạn Redact, Sign hoặc Convert Image, vì Lolly không bao giờ giữ một bản sao của tệp đó;
-- các công cụ ghi từ camera, micro hoặc màn hình của bạn, chẳng hạn Record, Screen Capture và Voice Recorder;
-- 3D và Darkroom, vốn nhận một tệp riêng của chúng;
-- một công cụ không có gì để thay đổi, chẳng hạn Countdown.
+- các công cụ làm việc trên tệp bạn mang vào, như Redact, Sign hoặc Convert Image, vì Lolly không bao giờ giữ bản sao của tệp đó;
+- các công cụ ghi từ camera, micro hoặc màn hình của bạn, như Record, Screen Capture và Voice Recorder;
+- một công cụ không có gì để đổi, như Countdown.
 
-Ở các công cụ khác, thay đổi đầu tiên của bạn đã lưu công việc vào **Dự án** như thể bạn đã lưu, và các thay đổi sau đó được giữ lại trong khi bạn làm việc, ngay khi công cụ vẽ xong. Vì vậy một tác phẩm chưa lưu vẫn còn trong Dự án sau khi bạn đóng tab và mở lại với các thay đổi được đánh dấu là chưa lưu. Dù vậy, **Vẫn rời đi** sẽ hủy bỏ chúng, và History giữ lại một bản sao của các chỉnh sửa đã bị hủy trong 30 ngày. Mở lại công cụ từ màn hình chính sẽ bắt đầu một tác phẩm mới; hãy mở tác phẩm trước đó từ Dự án.
+Trong các công cụ khác, thay đổi đầu tiên của bạn lưu công việc vào **Projects** như thể bạn đã lưu, và các thay đổi sau được giữ khi bạn làm việc khi công cụ vẽ xong. Một sản phẩm chưa lưu vẫn nằm trong Projects sau khi bạn đóng thẻ, và mở lại với các thay đổi được đánh dấu là chưa lưu.
+
+**Leave anyway** vẫn bỏ các thay đổi đó, và History giữ một bản sao các chỉnh sửa bị bỏ trong 30 ngày. Mở lại công cụ từ màn hình chính bắt đầu một sản phẩm mới; hãy mở cái trước từ Projects.
+
+3D và Darkroom lưu khi bạn làm việc, nhưng chúng không giữ tệp bạn nạp vào, như mô hình 3D hay LUT. History và **Save** giữ tên, loại và kích thước của tệp, không giữ tệp. Khi bạn mở lại công việc, một ghi chú cho biết đó là tệp nào, và công cụ chạy không có nó cho đến khi bạn nạp lại. Hãy giữ các tệp gốc của bạn.
 
 Khi bật [Sync](/info/sync.html), một tác phẩm được lưu theo cách này cũng chuyển sang các thiết bị khác của bạn như mọi thứ khác trong Dự án. Các phiên bản của nó vẫn ở lại trên thiết bị nơi chúng được tạo ra.
 
@@ -138,7 +160,7 @@ Các Automatic checkpoint thưa dần theo thời gian: một lần mỗi phút 
 
 Khi bộ nhớ History đầy, các Automatic checkpoint cũ nhất của những tác phẩm bạn chưa mở trong 30 ngày sẽ bị xóa trước tiên. Một lượt lưu luôn được giữ lại, ngay cả khi đó: nó được ghi thành công việc hiện tại, và History cho biết lượt lưu này không được giữ như một phiên bản. **Cài đặt → Bộ nhớ** cho biết History đang dùng bao nhiêu dung lượng.
 
-Trang **History** (`#/history`, hoặc **Open app history** trong bảng) bao trùm mọi tác phẩm trong trình duyệt này. Trên máy tính, mở trang này từ nút đồng hồ ở góc trên bên phải của màn hình chính hoặc của **Dự án**. Trên điện thoại, vào gallery công cụ trên màn hình chính, nhấn nút logo tròn ở góc trên bên phải rồi chọn **Phiên đã lưu**, thao tác này sẽ mở History. Từ **Dự án**, mục đó chưa làm gì cả.
+Trang **History** (`#/history`) bao gồm mọi sản phẩm trong trình duyệt này. Để mở, nhấn nút đồng hồ ở trên bên phải màn hình chính hoặc **Projects**, chọn **Saved sessions** trong menu hồ sơ (trên điện thoại, nút logo tròn ở trên bên phải), hoặc nhấn **Open app history** trong bảng History của một công cụ. Ứng dụng máy tính và di động không có trang History, nên ở đó nút đồng hồ của màn hình chính và **Saved sessions** mở **Your recent work** thay thế: các phiên đã lưu và bản xuất gần nhất của bạn, kèm liên kết tới Projects.
 
 - **Recent** liệt kê các tác phẩm của bạn, mới nhất trước, kèm **Tiếp tục**.
 - **Changes** đặt các checkpoint, lượt tải xuống và kết quả Convert trên cùng một dòng thời gian. Một lượt tải xuống có **Reopen settings**.
@@ -174,7 +196,7 @@ Thông tin đăng nhập, khóa và passphrase sync ở lại trên từng thi�
 ::: details Nội dung của tệp sao lưu
 Tệp này được đặt tên `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (các phần tên lấy từ hồ sơ của bạn và bị bỏ nếu chưa thiết lập; `<n>` là một bộ đếm theo từng ngày để các lượt xuất cùng ngày không trùng nhau). Nó chứa hồ sơ của bạn, cùng các thư mục, Trash, mẫu và mục yêu thích; mọi phiên đã lưu cùng ảnh thu nhỏ của nó; ảnh, font, logo bạn đã tải lên và các bản sao tệp bạn đã tải xuống; các hệ thống thiết kế của bạn; các tùy chọn của bạn (theme, độ rộng thanh bên, số liệu hoạt động cục bộ); các phiên bản đã lưu và kết quả từ Convert; và, từ ứng dụng web, lịch sử phiên bản của các tác phẩm của bạn.
 
-Bộ nhớ đệm danh mục không được bao gồm - nó tự tải lại trên thiết bị mới. Mỗi phần đều có checksum, nên một tệp bị hỏng trong quá trình truyền sẽ bị phát hiện khi nhập thay vì được khôi phục nửa vời. Các phiên đã lưu tự động liên kết lại với ảnh bạn đã nhập. Ứng dụng web, desktop và di động đọc cùng một tệp; ứng dụng terminal ghi ra một bản sao lưu đơn giản hơn của riêng nó, mà định dạng này không đọc được. **📦 Export my data & render everything** tạo ra cùng một tệp cộng với một tệp zip thứ hai với mọi phiên đã lưu được kết xuất ra đầu ra của nó. (Đặc tả định dạng đầy đủ: [Chuyển dữ liệu](/info/data-transfer.html).)
+Bộ nhớ đệm danh mục không được bao gồm - nó tự tải lại trên thiết bị mới. Mỗi phần có checksum, nên tệp hỏng khi truyền được bắt khi nhập thay vì được khôi phục dở dang. Các phiên đã lưu tự liên kết lại với ảnh bạn đã nhập. Ứng dụng web, máy tính và di động đọc cùng một tệp; ứng dụng terminal ghi bản sao lưu đơn giản hơn của riêng nó, mà định dạng này không đọc. **Export my data & render everything** tạo cùng tệp đó cộng một zip thứ hai với mọi phiên đã lưu được kết xuất thành đầu ra. (Đặc tả định dạng đầy đủ: [Data transfer](/info/data-transfer.html).)
 :::
 
 ## Nếu bạn xóa dữ liệu trình duyệt
@@ -185,11 +207,13 @@ Trong ứng dụng web, Lolly giữ mọi thứ trong bộ nhớ trình duyệt 
 Nhấn **Xuất dữ liệu của tôi** dưới **Cài đặt → Bộ nhớ**, và giữ tệp đó ở một nơi khác.
 :::
 
-Khi ứng dụng khởi động, Lolly yêu cầu trình duyệt không xóa bộ nhớ của nó khi thiết bị sắp hết dung lượng. Trình duyệt là bên quyết định. Dưới **Cài đặt → Khả dụng ngoại tuyến**, một dòng bắt đầu bằng **Protected** nghĩa là trình duyệt đã đồng ý; "The browser may clear downloads if the device runs low on space" nghĩa là chưa, và **Bảo vệ các bản tải xuống** sẽ hỏi lại. Nếu trình duyệt chưa đồng ý, nó có thể xóa cả công việc đã lưu lẫn các bản tải xuống khi hết dung lượng, nên hãy giữ một tệp **Xuất dữ liệu của tôi** gần đây.
+Khi ứng dụng khởi động, Lolly yêu cầu trình duyệt không xóa bộ nhớ của nó khi thiết bị sắp hết chỗ, và trình duyệt quyết định. Dưới **Settings → Available offline**, dòng bắt đầu bằng **Protected** nghĩa là trình duyệt đã đồng ý. "The browser may clear downloads if the device runs low on space" nghĩa là chưa, và **Protect downloads** xin lại.
+
+Nếu trình duyệt không đồng ý, nó có thể xóa cả công việc đã lưu lẫn các bản tải xuống khi hết chỗ, nên hãy giữ một tệp **Export my data** gần đây.
 
 **Cài đặt → Bộ nhớ** cho biết mỗi loại dữ liệu dùng bao nhiêu dung lượng. Hàng **History** của nó đếm số Automatic checkpoint, bản xem trước và bản nháp phục hồi của chúng; **Remove automatic checkpoints older than 30 days** giải phóng dung lượng đó và giữ lại các Saved version cùng các phiên bản có đặt tên. **Xóa bộ nhớ đệm** loại bỏ các tệp danh mục đã tải xuống, các tệp này sẽ tải lại khi cần. **Xóa toàn bộ dữ liệu của tôi** yêu cầu bạn gõ một từ, tắt Sync, rồi xóa mọi thứ Lolly lưu trong trình duyệt này: hồ sơ và tùy chọn của bạn, các phiên đã lưu cùng lịch sử và Thùng rác của chúng, các tệp đã tải lên, font và hệ thống thiết kế, nhật ký tải xuống, kết quả Convert, các mô hình AI đã tải xuống và các bản sao ngoại tuyến. Các tệp bạn đã tải xuống vẫn ở nguyên nơi bạn đã lưu chúng. Sau đó ứng dụng khởi động như lần truy cập đầu tiên.
 
-![Thẻ lưu trữ trên màn hình rộng bằng điện thoại: mọi loại dữ liệu trên thiết bị đều được gọi tên, với nút Clear all my data ở dưới cùng](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Thẻ lưu trữ trên màn hình cỡ điện thoại: mọi loại dữ liệu trên thiết bị đều được gọi tên, với nút Clear all my data ở dưới cùng](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Trong các ứng dụng desktop và di động, các phiên đã lưu là các tệp trong thư mục dữ liệu riêng của ứng dụng và phần còn lại nằm trong bộ nhớ riêng của ứng dụng, nên việc xóa một trình duyệt web không ảnh hưởng đến chúng.
 

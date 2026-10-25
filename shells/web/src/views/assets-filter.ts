@@ -23,6 +23,7 @@
 
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { fold, tokenize, scoreHaystack } from '../lib/search/match.ts';
+import { TEXT_KINDS } from '../lib/text-kinds.ts';
 
 /** The sticky filetype-filter buckets. 'all' admits everything. */
 export type TypeFilter = 'all' | 'image' | 'vector' | 'motion' | '3d' | 'lut' | 'audio' | 'text' | 'font';
@@ -35,7 +36,8 @@ export const TYPE_FILTER_TYPES: Record<Exclude<TypeFilter, 'all'>, ReadonlySet<s
   '3d': new Set(['model']),
   lut: new Set(['lut']),
   audio: new Set(['audio']),
-  text: new Set(['text', 'data']),
+  // Every text kind (a brand skill reads as text, lib/text-kinds.ts) plus tabular data.
+  text: new Set([...TEXT_KINDS, 'data']),
   font: new Set(['font']),
 };
 

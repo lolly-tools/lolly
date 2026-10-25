@@ -641,7 +641,7 @@ export function apcaLcAbs(textHex: string, bgHex: string): number {
 
 // ── Labels on a colour: the swatch ink ───────────────────────────────────────
 // The colour picker's swatch name chip, its value pill and dial disc, the
-// Colour Lab's swatch and ramp steps, Brand Studio's role marks and draft
+// Colour Lab's swatch and ramp steps, Design System Setup's role marks and draft
 // shades and the design-system specimen all put a short label straight onto an
 // arbitrary colour. Those labels follow APCA: white or the dark ink, whichever
 // reads with the higher |Lc| against the colour the label sits on, scored by

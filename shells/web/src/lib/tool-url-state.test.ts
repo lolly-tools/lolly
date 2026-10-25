@@ -3,7 +3,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { InputModelItem } from '../../../../engine/src/inputs.ts';
 import { parseUrlState } from '@lolly/engine';
-import { copyWorkspaceParams, inputParamIds } from './tool-url-state.ts';
+import { addressPointer, copyWorkspaceParams, deviceLinkParams, inputParamIds, packableContent, pointerParams } from './tool-url-state.ts';
+import { LINK_CONTENT_MAX } from './url-budget.ts';
 import { encodeAddressModelParam, encodeModelParam } from './url-budget.ts';
 
 const item = (spec: Partial<InputModelItem>): InputModelItem => ({ id: 'value', type: 'text', value: '', isDirty: false, ...spec }) as InputModelItem;
@@ -54,4 +55,39 @@ test('a delayed content write takes current workspace state, including closed pa
   const current = new URLSearchParams('_ui=new&_view=latest&present=&s=frame-2.1&kiosk=&slot=local');
   copyWorkspaceParams(pending, current);
   assert.equal(pending.toString(), 'z=content&_ui=new&_view=latest&present=&s=frame-2.1&kiosk=&slot=local');
+});
+
+/** A Design address as session.ts builds it: content, `_themes`, workspace, slot and result context. */
+const designAddress = (): URLSearchParams => new URLSearchParams({
+  bx: 'shape,box,100,100,180,120', textDocument: '{"stories":[]}', format: 'png', w: '1920', h: '1080',
+  _themes: '{"":"dark"}', _view: '{"scale":2,"x":10,"y":20}', _sel: 'shape', slot: 'design:abc', designv: '3',
+});
+
+test('a document past the pack limit switches the address to the pointer form', () => {
+  const params = designAddress();
+  const content = packableContent(params).toString();
+  assert.ok(content.length < LINK_CONTENT_MAX);
+  const opts = { maxContent: LINK_CONTENT_MAX, slot: 'design:abc' };
+  assert.equal(addressPointer(params, { ...opts, contentLength: content.length }), null, 'a small document keeps its content');
+  assert.equal(addressPointer(params, { ...opts, contentLength: LINK_CONTENT_MAX }), null, 'exactly at the limit still packs');
+  const pointer = new URLSearchParams(addressPointer(params, { ...opts, contentLength: LINK_CONTENT_MAX + 1 })!);
+  assert.deepEqual(Object.fromEntries(pointer), {
+    _view: '{"scale":2,"x":10,"y":20}', _sel: 'shape', slot: 'design:abc', _themes: '{"":"dark"}', designv: '3',
+  }, 'workspace, the saved copy and the keys the shell reads from the address; no content, no export settings');
+});
+
+test('a refused pack is remembered, and without a saved copy the document stays in the address', () => {
+  const params = designAddress();
+  const opts = { maxContent: LINK_CONTENT_MAX, slot: 'design:abc' };
+  assert.ok(addressPointer(params, { ...opts, contentLength: 70_000, refusedAt: 70_000 }), 'refused at this length: the pointer');
+  assert.ok(addressPointer(params, { ...opts, contentLength: 90_000, refusedAt: 70_000 }), 'and at anything longer');
+  assert.equal(addressPointer(params, { ...opts, contentLength: 60_000, refusedAt: 70_000 }), null, 'a shorter document packs again');
+  assert.equal(addressPointer(params, { ...opts, contentLength: LINK_CONTENT_MAX + 1, slot: null }), null, 'nothing else would restore it on a reload');
+  assert.equal(pointerParams(new URLSearchParams('bx=a&_view=v')).toString(), '_view=v');
+});
+
+test('the device link reopens the saved copy and nothing else', () => {
+  const link = deviceLinkParams(designAddress())!;
+  assert.deepEqual(Object.fromEntries(link), { slot: 'design:abc', _themes: '{"":"dark"}', designv: '3' });
+  assert.equal(deviceLinkParams(new URLSearchParams('bx=a&_view=v')), null, 'no saved copy, no device link');
 });

@@ -1,0 +1,74 @@
+<!--
+  Concept: the three places a Lolly Work server takes its settings from, and what changing each one
+  takes: instance.json (read at start, restart to change, safe in version control), the environment
+  (every secret plus a few process switches, read at start, never in the file) and governance (live
+  in the console, exported and applied as a document). Members' apps read the outcome through
+  GET /api/v1/org-config; secrets never leave the server.
+  Band Contract: static fragment scoped under .wcl, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network. Three columns on a wide column, stacked below 560px.
+  Sources: lolly-work server/src/config/instance.ts (DEFAULTS, LW_CONFIG), server/src/main.ts, the
+  configuration and governance guides in docs/work/.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.wcl{--wcl-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--wcl-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --wcl-ground:hsl(var(--secondary,84.5 55% 92.2%));--wcl-paper:hsl(var(--card,0 0% 100%));
+ --wcl-accent:hsl(var(--primary,176.5 89.5% 11.2%));--wcl-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --wcl-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);
+ --wcl-wash:color-mix(in oklab,var(--wcl-accent) 12%,var(--wcl-paper));
+ --wcl-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--wcl-ink);background:var(--wcl-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.wcl *{box-sizing:border-box}
+.wcl ul{list-style:none;margin:0;padding:0}
+.wcl li{margin:0;font-size:inherit}
+.wcl p{margin:0}
+.wcl b{font-weight:600}
+.wcl code{font:500 12px/1.35 var(--wcl-mono);background:none;padding:0;color:inherit;overflow-wrap:anywhere}
+.wcl .wcl-cap{font:500 11px/1.3 var(--wcl-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--wcl-muted)}
+.wcl .wcl-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px}
+.wcl .wcl-col{background:var(--wcl-paper);border-radius:14px;box-shadow:0 0 0 1px var(--wcl-line);padding:12px;display:grid;gap:10px;align-content:start}
+.wcl .wcl-head{display:flex;align-items:center;gap:8px}
+.wcl .wcl-head svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--wcl-accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wcl .wcl-head b{font-size:16px;line-height:1.2}
+.wcl .wcl-what{font-size:14px}
+.wcl .wcl-list li{font-size:13px;color:var(--wcl-muted);padding-left:12px;position:relative}
+.wcl .wcl-list li::before{content:"";position:absolute;left:0;top:.55em;width:5px;height:5px;border-radius:50%;background:var(--wcl-accent)}
+.wcl .wcl-change{border-radius:10px;background:var(--wcl-wash);padding:8px 10px;font-size:13px}
+.wcl .wcl-change b{display:block;font-size:13px}
+.wcl .wcl-out{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;border-radius:12px;padding:10px 12px;background:var(--wcl-paper);box-shadow:0 0 0 1px var(--wcl-line)}
+.wcl .wcl-out svg{width:20px;height:20px;flex:none;fill:none;stroke:var(--wcl-accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wcl .wcl-out p{font-size:14px;flex:1 1 260px}
+@container (max-width:560px){
+ .wcl .wcl-cols{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+<div class="wcl" role="group" aria-label="Where a Lolly Work server takes its settings from">
+  <p class="wcl-cap">Where settings live</p>
+  <div class="wcl-cols">
+    <div class="wcl-col">
+      <div class="wcl-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h4"/></svg><b><code>instance.json</code></b></div>
+      <p class="wcl-what">Shapes the deployment</p>
+      <ul class="wcl-list"><li>who can sign in</li><li>storage and limits</li><li>the render worker</li><li>notifications and the audit head log</li></ul>
+      <p class="wcl-change"><b>Read at start</b>Edit the file, then restart. Safe to keep in version control.</p>
+    </div>
+    <div class="wcl-col">
+      <div class="wcl-head"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><b>Environment</b></div>
+      <p class="wcl-what">Holds every secret, and a few process switches</p>
+      <ul class="wcl-list"><li>session and link keys</li><li>provider and blob credentials</li><li>mail, webhook and signing keys</li><li>database, port and migrations</li></ul>
+      <p class="wcl-change"><b>Read at start</b>Set it in your secret store. Never in the file.</p>
+    </div>
+    <div class="wcl-col">
+      <div class="wcl-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg><b>Governance</b></div>
+      <p class="wcl-what">Changes day to day</p>
+      <ul class="wcl-list"><li>grants</li><li>tool overlays</li><li>approval chains</li><li>feature flags and provider exposure</li></ul>
+      <p class="wcl-change"><b>Live</b>Change it in the console, or export and apply it as a document.</p>
+    </div>
+  </div>
+  <div class="wcl-out">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
+    <p>Members' apps read the outcome through <code>GET /api/v1/org-config</code>. Secrets never leave the server.</p>
+  </div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKCmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnkanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpiOGMzNzIwYS0xMTYyLTRjNmEtYTk0NC0xMTJjOTc1YWE3MjQAAAAEW2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjozMzo0M1oAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRXGZmxlbmd0aBkNxmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFgg2loZrTbp9Q1R1E2IHH+/DdnJycxv6q5hVCRNWHcOCbhjcGFkSAAAAAAAAAAAAAAA8Wp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAL1jYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHgZd29yay1jb25maWd1cmF0aW9uLWxheWVyc2RkYXRleBgyMDI2LTEwLTIzVDA2OjMzOjQzLjQ2M1pqZGltZW5zaW9uc2syNCDDlyAyNCBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALYanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqljYm9ypmhkYzp0aXRsZXgZd29yay1jb25maWd1cmF0aW9uLWxheWVyc2ppbnN0YW5jZUlEeC11cm46dXVpZDplODIxZjkxOC02NWZmLTQ4MjEtOTZmMC02YTIxYWJmYjM0ZGJ0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIPXju9AxojsoRxAfNDIrEEvYE6fRLeQt/r9LBLYN/0RxomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYID0/hLZJAjSOMVy+6Fi+89wZBbLU8lBorVMV170eYkhtomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCDGUkiDfdfGlw0GS7WMLr/CHBlkdYQ+M8ReKSsAVVZ86aJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmJqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjJjYm9y0oRZAeGiASYYIYFZAdgwggHUMIIBeaADAgECAglPDIZDasrWomEwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA2MzI0M1oXDTM2MTAyMDA2MzM0M1owNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEK7ysmTtSBQcGa1bOdQmj42ny4hvHJ9ppoG+WgRr5Nq4L5IjA+JuncIGef47/gytJayuJ6WEHmi1miN867pNAcqNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFDmVQ2fNSZSzfkNtnzenSo7/TnymMB8GA1UdIwQYMBaAFDmVQ2fNSZSzfkNtnzenSo7/TnymMAoGCCqGSM49BAMCA0kAMEYCIQCEswouSJP8l4askLziWbrp1LM5JNJciNugp/UEmV6XBwIhAJluWLPvFyc67D/mIp/Mn5PrnjrOZ2zC+Q3kOyWuxpFioPZYQBr1o4q4aiSfRecTJH4zogguV5QLb0BWQA9HyEC2207RsimWDplJWcB87WVEmLi+UD0V7W77nlPvWGQ1M61EdtE= -----END C2PA MANIFEST----- -->

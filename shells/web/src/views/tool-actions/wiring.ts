@@ -41,6 +41,7 @@ import type { IdentityStatus, RunExportOpts } from '../tool.ts';
 import { addScrubBehavior, captureThumbnail, exportTargetNode } from '../tool-action-helpers.ts';
 import { ZIP_BUNDLE, extFor, fmtLabel, isC2paFmt, isCmykFmt, isPrintFmt } from './shared.ts';
 import type { MediaFrameLike } from './shared.ts';
+import { holdStageView } from '../../lib/stage-lod.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 export function wireFormatAndName(ta: ActionsCtx): void {
@@ -1459,6 +1460,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             };
             runtime.pauseLive();
           }
+          // A live take films the screen, so the level of detail and the motion hint stay
+          // off for it: the stage is forced to `near` until the take ends.
+          const releaseLiveView = liveTake ? holdStageView(canvasEl) : () => {};
           const blob = await (async (): Promise<Blob> => {
             try {
               return liveTake
@@ -1471,6 +1475,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
                     { shutter: true, detail: fmtLabel(fmt), onCancel: cancelExport, size: exportSize }
                   );
             } finally {
+              releaseLiveView();
               if (liveDrive) {
                 delete (drvNode as unknown as { __lollyFrameDrive?: unknown }).__lollyFrameDrive;
                 runtime.resumeLive();

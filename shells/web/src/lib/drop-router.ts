@@ -7,9 +7,9 @@
  * only the routes that genuinely apply:
  *
  *   design file (.fig/.penpot/.idml/.indd/SVG/zip) → Design, parsed to boxes
- *   token doc / .penpot / design-system pack zip → the Design System studio
+ *   token doc / .penpot / design-system pack zip → Design System Setup
  *   PDF / .ai   → edit as a design · pages → SVG library assets · compress ·
- *                 the Design System studio (a guidelines PDF's colours, marks
+ *                 Design System Setup (a guidelines PDF's colours, marks
  *                 and embedded faces - plan 97 section 8) · Rebrand (a PDF deck,
  *                 renovated for the design system)
  *   zipped tool folder → install it on this device and open it
@@ -143,7 +143,7 @@ export function takePendingDesignImport(): { file: File; scenes: boolean; rules?
 
 let pendingDesignSystemFile: File | null = null;
 
-/** Arm the Design System studio's one-shot file handoff. Kept beside the take
+/** Arm Design System Setup's one-shot file handoff. Kept beside the take
  *  so Profile can wait until a file is actually chosen before creating its
  *  destination system (cancel must be a true no-op). */
 export function setPendingDesignSystemFile(file: File): void {
@@ -583,7 +583,7 @@ export function dropChooserChoices(s: Sniff, ctx: ChooserContext): DialogChoice[
     choices.push({ id: 'design', label: t('Edit in Design'), primary: !s.archive });
     choices.push({ id: 'design-rules', label: t('Share with rules') });
   }
-  // The Design System studio door, next to the Design one so the two
+  // The Design System Setup door, next to the Design one so the two
   // .penpot destinations read as a pair (plan 97 section 14.9). It leads only when no
   // earlier route already claimed the call-to-action, so nothing above it moves.
   if (single && s.designSystem && !packZip) {

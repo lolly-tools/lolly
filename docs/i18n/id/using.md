@@ -1,27 +1,213 @@
 # Menggunakan Lolly
 
-Panduan praktis untuk benar-benar *menggunakan* aplikasinya - membuka tool, mengolah kanvas, mengekspor, menyimpan dan membagikan. Semua yang ada di sini berjalan **di perangkat Anda**: tanpa akun, tanpa unggahan, dan tanpa internet yang dibutuhkan untuk layar yang sudah Anda buka.
+Lolly sudah terbuka dan Anda ingin membuat sesuatu, menyimpannya, dan mengirimkannya. Halaman ini menelusuri putaran itu: buka alat, ubah apa yang boleh Anda ubah, simpan hasilnya, dan bagikan sebagai tautan atau file.
 
-> Baru di sini? [Mulai Cepat](/info/quickstart.html) membuat Anda berkarya dalam hitungan menit, dan [Lolly untuk Operator](/info/operators.html) membahas pemasangan/penerapan aplikasi; halaman ini tentang mengoperasikannya setelah terbuka.
+Semua yang ada di sini berjalan di perangkat Anda, tanpa akun, dan tetap berfungsi offline setelah alat dan aset yang Anda perlukan diunduh. Aplikasi memerlukan browser atau aplikasi dengan WebGPU untuk dimulai; [Supported environments](/info/supported-environments.html) mencantumkan yang telah diuji.
 
-## Membuka tool
+## Mengenal sekeliling
 
-Layar utama adalah **galeri** - setiap tool, dikelompokkan menurut kategori. Klik sebuah kartu untuk memulai sesuatu yang baru di tool tersebut; [karya tersimpan](#saving-continuing) dibuka kembali dari **Proyek**. Gunakan kotak pencarian untuk menyaring berdasarkan nama - atau [Cari](/info/search.html) dari bilah di kaki enam layar daftar (galeri, Utilities, Projects, Aset, Dashboard dan Settings), yang menjangkau karya tersimpan, aset dan pengaturan Anda selain tool. Di dalam sebuah tool, bilah itu menyingkir untuk memberi tempat pada antarmuka tool itu sendiri.
+::: figure using-app-map
+Layar beranda: empat tab di sepanjang atas dan bilah di dasar. Alat yang sudah dibuka menampilkan kontrolnya di samping pratinjau langsung.
+:::
+
+Empat tab berjajar di bagian atas layar beranda: **Tools**, **Utilities**, **Assets**, dan **Projects**. Tools adalah yang Anda pakai untuk membuat, Utilities adalah meja kerja untuk tugas seperti mengonversi, memeriksa, atau membersihkan file, Assets adalah pustaka Anda, dan Projects menyimpan apa yang Anda simpan.
+
+Bilah di dasar berisi **Open**, **Settings**, field pencarian, **Verify**, dan **What?**. Bilah ini tampil di Tools, Utilities, Assets, Projects, Settings, dan panduan yang Anda baca di aplikasi, lalu menyingkir begitu alat dibuka. [Search](/info/search.html) menjangkau alat, pekerjaan tersimpan, aset, dan pengaturan Anda dari field itu. [Ask Lolly](/info/ask.html) menjawab pertanyaan yang diketik dengan bagian panduan ini yang sesuai.
+
+Klik kartu untuk memulai sesuatu yang baru di alat itu. Pekerjaan tersimpan dibuka kembali dari **Projects**.
 
 ![Kartu galeri dengan navigasi contoh dan sebuah aksi + Baru](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
-Setiap tool berupa tampilan terbagi: **kontrol** di satu sisi, **pratinjau** langsung (kanvas) di sisi lain. Ubah kontrol mana pun dan pratinjaunya langsung diperbarui.
+Setiap alat adalah tampilan terbagi: **kontrol** di satu sisi dan **pratinjau** langsung di sisi lain. Ubah kontrol dan pratinjau langsung mengikuti, dan apa yang Anda lihat itulah yang diekspor.
 
 ![Split view sebuah alat - tumpukan kontrol di kiri, dan bar chart live berkelompok yang digambarnya di kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-> Beberapa tool (seperti **Design**) justru terbuka sebagai **kanvas bebas** - permukaan tanpa panel yang dimanipulasi langsung tempat Anda menyeret, mengubah ukuran, memutar dan mengaitkan kotak teks, bentuk dan gambar, serta klik ganda untuk menyunting teks di tempat. Ekspornya melewati jalur render yang sama dengan tool lain, jadi kanvas itu *adalah* berkasnya. Lihat [Kanvas bebas](#the-free-canvas-design) di bawah.
+**Design** adalah pengecualian. Ia terbuka sebagai kanvas bebas berisi kotak yang bisa Anda seret, ubah ukurannya, dan ketik di dalamnya, dengan bilah atas, garis waktu, dan kontrol deck sendiri. [Design: the free canvas](/info/design.html) adalah panduannya.
 
-Dua cara membentuk kisi itu sendiri menjadi kisi yang Anda inginkan:
+## Ubah apa yang boleh diubah alat
 
-- <!--i:star--> **Bintangi yang Anda pakai.** Beri ★ pada sebuah kartu dan kartu itu mendapat ubin besar tersendiri di strip atas kisi - lihat [Favorit Anda](/info/favourites.html).
-- <!--i:eyeoff--> **Sembunyikan tool yang tak pernah Anda pakai.** Klik kanan sebuah kartu (atau pilih beberapa lalu gunakan bilah seleksi) → **Hide tool**. Kartu itu keluar dari kisi, dan dari hasil pengetikan di kisi; ubin abu-abu **Show hidden tools (N)** di ujung paling akhir menampilkannya kembali dalam keadaan redup, masing-masing dengan **Unhide tool** di menunya sendiri. Menyembunyikan hanya soal kisi Anda - tool-nya tetap terbuka dari tautan tersimpan atau bookmark, dan tetap berada di tempatnya bagi orang lain.
+Alat hanya menampilkan input yang memang dimaksudkan untuk berubah. Pembuatnya sudah menetapkan warna, tata letak, tipografi, dan logikanya, sehingga apa pun yang Anda buat tetap mengikuti aturan mereka. Input mencakup teks, penggeser, pemilih warna, dropdown, tanggal, pemilih gambar, dan grup baris berulang, dan sebagian berada dalam bagian yang dapat dilipat.
 
-![Ujung kisi Tools dengan tool tersembunyi ditampilkan: kartu QR Code Generator yang redup, dan di sebelahnya ubin abu-abu yang mengembalikannya ke tampilan, kini bertuliskan Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+![Tumpukan kontrol sebuah tool - satu kolom teks, pemicu warna dan satu penggeser, tanpa apa pun lagi yang dipilih penulisnya untuk dikunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+
+**Klik desainnya untuk menemukan kontrolnya.** Klik elemen mana pun di pratinjau dan kontrol yang sesuai mendapat fokus lalu bergulir ke tampilan. Dalam grup baris berulang, baris persis yang Anda klik terbuka.
+
+**Clear changes**, di atas kontrol, mengembalikan setiap input ke defaultnya.
+
+**Pilihan design system.** Bila design system Anda menawarkan lebih dari satu colourway, tampilan terang dan gelap, atau pilihan tema lain, bagian **Design system** di bawah kontrol memuatnya. Pilihan hanya muncul bila mengubah alat ini, jadi utilitas file tidak menampilkan bagian itu sama sekali. Setiap colourway adalah titik dengan warnanya sendiri, terang dan gelap adalah dua tombol, dan pilihan lain berupa daftar.
+
+Pilihan ini milik karya ini. Ia ikut dalam tautan dan sesi tersimpan, setiap warna yang terhubung ke design system mengikutinya, dan warna aplikasi sendiri tetap seperti adanya. Design menampilkan pilihan yang sama di tab **Canvas** Inspector. Alat yang warnanya adalah isinya dapat tetap pada colourway kanonis, dan kemudian tidak menawarkan titik colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada pekerjaan nyata.
+
+### Zoom dan geser pratinjau
+
+Pratinjau selalu menampilkan persis apa yang akan diekspor.
+
+- **Zoom:** Cmd/Ctrl-gulir atau cubit di trackpad, berpusat pada penunjuk Anda. Di keyboard, `0` atau `Shift+1` menyesuaikan semua konten, `1` atau `Shift+0` mengatur zoom ke 100%, dan `Shift+2` menyesuaikan pilihan. `+` / `−` melakukan zoom berpusat pada penunjuk saat berada di atas panggung, atau pada pusat tampilan jika tidak.
+- **Geser:** tahan **Space** dan seret, atau seret dengan tombol tengah mouse. Klik biasa tetap bebas untuk mengeklik bagian desain.
+- **Sentuh:** cubit untuk zoom, seret untuk menggeser, dan ketuk dua kali untuk menyesuaikan.
+- **Zoom HUD:** tekan dan tahan pusaran Lolly di sudut untuk membuka `−`, **Fit**, dan `+`. Ketukan singkat pada pusaran tetap membuka menu profil Anda.
+
+Di Design, **Fit all** mencakup artboard dan lapisan lepas. Zoom keluar secara manual dapat melewati 20% hingga seluruh halaman memenuhi separuh tampilan. Batas bawah mutlaknya adalah nilai yang lebih rendah antara 5% dari skala Fit biasa dan zoom absolut 2%.
+
+Perubahan ukuran keluaran selalu mengembalikan tampilan ke penyesuaian yang rapi.
+
+![Zoom HUD terbuka dari pusaran di sudut kanvas - minus, Fit, plus, lalu sakelar tema dan suara serta pegangan untuk memindahkannya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+
+### Undo dan redo
+
+**Cmd/Ctrl-Z** mundur satu langkah dan **Cmd/Ctrl-Shift-Z** (atau **Cmd/Ctrl-Y**) maju satu langkah. Pasangan yang sama tersedia sebagai tombol **Undo** dan **Redo** di atas kontrol (di Design berada di bilah atas), dan masing-masing memudar bila tidak ada lagi yang bisa dibatalkan. Sebuah pesan menyebut input mana yang dipulihkan tiap undo, dengan tombol **Redo** di dalam pesan.
+
+- **Satu seretan adalah satu langkah.** Perubahan berulang pada satu kontrol dalam setengah detik digabung, jadi menarik penggeser sepanjang rentangnya adalah satu undo.
+- **100 langkah terakhir disimpan.** Suntingan baru setelah undo mengosongkan tumpukan maju.
+- **Di kotak teks**, Cmd/Ctrl-Z milik field itu, karakter demi karakter. Lolly mengambil alih untuk penggeser, dropdown, warna, dan sakelar.
+- **Memilih file** pada input file bukan sebuah langkah, karena byte itu hanya ditahan untuk sesi ini.
+
+Dalam [kolaborasi](/info/collaborate.html) langsung, riwayat Anda tetap milik Anda: perubahan dari perangkat lain tidak pernah masuk ke tumpukan Anda. Undo bertahan sampai Anda meninggalkan alat atau memuat ulang. Untuk yang lebih lama, alat yang menyimpan saat Anda bekerja menyimpan versi sebelumnya di bawah **History**; lihat [Go back to an earlier version](/info/find-your-work.html#go-back-to-an-earlier-version).
+
+### Kamera langsung
+
+Efek alat **Filter** (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art, dan Glitch) menampilkan tombol **Go live** bila kamera tersedia. Aktifkan dan efek mengikuti webcam Anda bingkai demi bingkai, dan ekspor gerak merekam hasilnya sebagai GIF, WebM, atau MP4. Bingkai diproses di perangkat Anda, dan kamera dilepas begitu Anda berhenti atau meninggalkan alat. Pemilih gambar mana pun juga memiliki **Take a photo** untuk satu bingkai.
+
+## Menyimpan & melanjutkan
+
+Untuk menyimpan pekerjaan Anda, tekan **Save**, tanda centang di samping **Export** pada pil render. Pekerjaan baru masuk ke **My library**, pekerjaan yang Anda simpan sebelumnya diperbarui di tempatnya, dan tidak ada yang diunduh. Panel ekspor memiliki tombol **Save** yang sama.
+
+Untuk memilih tujuannya, tekan **Save as**, di samping **Download** di panel ekspor. Di bawah **Save to a project**, biarkan **My library** terpilih atau pilih proyek (**＋ New project…** membuat satu), lalu tekan **Save**; **Save as a template** menyimpan desain sebagai [templat](/info/templates.html), titik awal untuk dokumen baru. Di Design, **Save as** ada di menu Lolly; di ponsel, tekan **•••**, lalu **File menu**, lalu **Save as**.
+
+![Pil render dua bagian: Export, dengan panah ke atas yang membuka panel ekspor, dan Save, dengan tanda centang yang menyimpan di tempat](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+
+::: timeline
+- <!--i:check--> Tekan **Save** pada pil render, atau **Save as** untuk memilih proyek.
+- <!--i:folder--> Item masuk ke **My library**, atau ke proyek yang Anda pilih.
+- <!--i:home--> Nanti, tekan **Home** di kiri atas dan buka tab **Projects**.
+- <!--i:document--> Buka item. Setiap pengaturan kembali, siap diubah dan diekspor lagi.
+:::
+
+Item dinamai sesuai nama file yang Anda ketik di panel ekspor, atau sesuai alatnya, seperti **QR Code**. File yang Anda dapat dengan **Download** adalah salinan jadi; untuk mengubahnya nanti, buka item tersimpan di Projects.
+
+Simpanan pribadi tetap di perangkat ini, di browser atau aplikasi tempat Anda menyimpan, kecuali Anda mengaktifkan [Sync](/info/sync.html). Jika sesuatu tidak ada di tempat yang Anda harapkan, [Find and recover your work](/info/find-your-work.html) membahas setiap kasus, dari tab yang tertutup hingga data browser yang dibersihkan.
+
+::: details Proyek tim dengan Lolly Work (opsional)
+Jika [organisasi Anda memakai Lolly Work](/info/organisation.html), login ke instansnya dan buka **Projects → Team projects** untuk sesi yang dibagikan kepada Anda. Organisasi menetapkan akses dan retensi, dan layanan Lolly Work-nya menyimpan sesi tersebut. Sesi bersama bergabung ke collab langsungnya saat dibuka bila organisasi Anda mengizinkan penyuntingan langsung; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) menjelaskan langkahnya.
+
+Pustaka pribadi Anda tetap terpisah. Login di perangkat lain memberi Anda pekerjaan tim, sedangkan simpanan pribadi tetap memerlukan Sync atau cadangan untuk berpindah.
+:::
+
+## Membagikan karya Anda
+
+Desain keluar sebagai tautan atau sebagai file. **Share** di kontrol ekspor membuka dialog yang menawarkan keduanya, dan **Share link** pada sesi tersimpan di Projects membuka dialog yang sama untuk sesi itu.
+
+::: cols
+## Tautan
+
+- Membawa setiap input di alamat, sehingga tautan mereproduksi desain.
+- Meninggalkan gambar dan file yang Anda tambahkan dari perangkat ini, teks yang sangat panjang, dan daftar yang sangat besar.
+- Terbuka di browser mana pun, jadi Anda dapat menandai, menempel, atau meng-commit tautan itu.
+
+## File .lolly
+
+- Membawa sesi tersimpan beserta gambar dan file di perangkat ini, dan dapat membawa alat serta design system juga.
+- Menahan karya katalog berlisensi kecuali Anda memilih menyertakan file-nya.
+- Terbuka di Lolly: klik dua kali, gunakan **Open**, atau letakkan di aplikasi.
+:::
+
+### Tautannya
+
+Tautan siap salin berada di bagian atas dialog, dengan **Copy** dan tombol **QR** yang membuka alat QR Code pada tautan itu. Di bawah tautan, **Link options** memuat:
+
+- **Open in the installed app** mengubah tautan menjadi alamat `lolly://` untuk Shortcuts, peluncur, dan otomatisasi, dengan setiap parameter tidak berubah.
+- **Shortest link** memadatkan desain panjang menjadi token ringkas dan menampilkan penghematan dalam karakter. Bentuk yang terbaca juga selalu tersedia.
+- **Password-protect this link** mengenkripsi tautan di perangkat Anda dengan AES-256. Kata sandi tidak pernah menjadi bagian dari tautan.
+- **Pin this tool version** menambahkan flag `_v`, sehingga pembaruan alat berikutnya tidak dapat mengubah apa yang dirender tautan.
+- **When the recipient opens the link…** memilih layar penuh, panel ekspor yang sudah dibentangkan, unduhan saat dibuka (`&export`), atau salinan ke clipboard (`&copy`).
+- **Copy credit** menyalin keterangan "Made with Lolly" bersama tautan, untuk postingan atau slide.
+
+Bila alat memiliki field pribadi, seperti nama Anda, **Review personal fields** menjaga masing-masing tetap di luar tautan sampai Anda mencentang field itu. [URL mode](/info/url-mode.html) membahas semua yang dapat dibawa tautan.
+
+**Dialog menyatakan apa yang tidak dapat dibawa tautan.** Gambar atau file yang Anda tambahkan dari perangkat ini, nilai teks yang sangat panjang, dan daftar yang sangat besar tidak muat di alamat. Masing-masing dihitung saat tautan dibuat. Jika ada yang harus dibuang, dialog mencantumkannya dan mengarahkan Anda ke opsi file, bukan menyerahkan tautan yang terbuka tanpa gambar. Tautan yang hanya panjang mendapat catatan yang lebih ringan dengan jumlah karakternya.
+
+**Beberapa alat menjadikan tautan sebagai seluruh produk.** Jump Page mengumpulkan tautan Anda ke satu halaman untuk dibagikan: tautan bio, presentasi, etalase toko. Tidak ada yang di-host dan tidak ada akun di balik halaman, karena halaman itu adalah tautannya. Pengunjung mendapatkannya selebar penuh, satu tautan per adegan saat menggulir.
+
+![Jump Page di editor: scene heading di bagian atas halaman, dengan scene link di bawahnya](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+
+::: details Tautan yang dikelola organisasi dengan Lolly Work
+Untuk berbagi yang memerlukan masa berlaku, pencabutan, atau kata sandi, Lolly Work menawarkan tautan terkelola ke sesi bersama, alat, dan aset katalog. Tautan diselesaikan melalui layanan organisasi dan mengikuti aturan aksesnya. Tautan ini terpisah dari tautan mandiri di atas, dan mencabutnya tidak dapat menarik kembali file yang sudah diunduh seseorang. [Rendering and sharing](/info/manage/sharing.html) mencantumkan jenis tautan dan izin.
+:::
+
+### Berkas .lolly
+
+**Download .lolly**, di bagian **Editable file** dialog Share, menulis desain saat ini sebagai satu file. File membawa sesi tersimpan beserta gambar dan file di perangkat ini, dan karya katalog biasa ikut serta. File yang usang atau tidak tersedia tetap menjadi referensi eksternal, bukan menghilang. Sebelum menyimpan, dialog menampilkan ukuran file, berapa file yang disematkan, berapa yang dirujuk, dan apakah alatnya disertakan. Bila perangkat Anda memiliki share sheet, **Send to…** menyerahkan file langsung ke sana (AirDrop, berbagi Android).
+
+**Download project (.lolly)**, di menu folder pada **Projects**, menulis satu folder utuh, sehingga orang lain dapat melanjutkan setiap sesi di folder itu. Sesi batch tertinggal, dan pemberitahuan menyebut jumlahnya. **Download originals**, di menu yang sama, menulis zip biasa berisi tiap item sebagai file tersendiri.
+
+Ada tiga hal yang Anda putuskan sebelum file keluar:
+
+- **Apakah nama Anda dimasukkan.** Nama, email, dan organisasi Anda ditulis hanya bila **Use my details to create** aktif di [profil Anda](/info/profile.html). Bila mati, file hanya mencatat bahwa ia dibuat dengan Lolly, dan kapan.
+- **Apakah karya yang ditahan dimasukkan.** Karya berlisensi, karya terkunci brand, dan karya katalog yang lisensinya tidak pernah dicatat tetap di luar secara default. Jika desain memakai salah satunya, dialog menyebut berapa banyak dan menawarkan *Download without them* atau *Include and download*, karena menyertakannya menyerahkan file kepada siapa pun yang membuka `.lolly`. `CREDITS.txt` pada file mencantumkan apa yang ikut dan apa yang tidak, beserta alasannya; [Creative rights and credits](/info/creative-rights.html) menjelaskan aturannya.
+- **Apakah alat dimasukkan.** **Include the tool** mengemas file alat itu sendiri, sehingga desain terbuka di perangkat tanpa alat tersebut. Awalnya tercentang untuk alat kustom, seperti fork, dan tidak tercentang untuk alat yang dicantumkan katalog bertanda tangan. Pada build tanpa katalog bertanda tangan, setiap alat dianggap kustom.
+
+**Membukanya.** Di aplikasi desktop dan seluler, klik dua kali atau ketuk `.lolly`, pilih **Open with Lolly**, atau kirim ke Lolly dari share sheet. Di aplikasi web, tekan **Open** atau letakkan file di Lolly. Setiap jalur membaca manifes file lebih dulu dan menampilkan ukuran, isi, dan apa yang akan terjadi, sebelum apa pun ditulis.
+
+Jika file membawa alat yang tidak Anda miliki, **Trust this tool?** menampilkan alat dan pembuatnya, dan menyatakan bahwa membukanya menjalankan kode milik alat itu di perangkat Anda. **Trust & install** melanjutkan. Jika ditolak, pekerjaan tetap disimpan ke Projects, menunggu hari Anda menambahkan alat itu. Alat yang kodenya dikirim sebagai modul belum dapat dipasang dengan cara ini, dan ditolak dengan cara yang sama.
+
+::: details Apa isi sebuah .lolly, dan bagaimana membukanya bekerja
+`.lolly` adalah ekstensi bundel Lolly, dan `format` dalam `manifest.json`-nya menyatakan isinya:
+
+- **Desain bersama** (`lolly-share`) berisi satu sesi tersimpan, file yang disematkan, dan tanda terima untuk apa pun yang masih diselesaikan lewat referensi. Dapat juga membawa alat dan design system. Membukanya menambahkan Project baru dan tidak pernah menimpa sesi.
+- **Proyek bersama** (`lolly-share`, jenis `project`) berisi folder dari Projects: sub-foldernya, setiap sesi di dalamnya beserta ubinnya, dan gambar yang disimpan di sana. Membukanya menambahkan salinan seluruh folder. Setiap sesi dibawa sebagai `sessions/<key>.json` dengan ubinnya di bawah `thumbs/`. Lolly dari sebelum file proyek ada akan meminta Anda memperbarui.
+- **Paket design system** (`lolly-brand`) berisi token dan dapat berisi font, logo, versi terbit, dan sumber daya yang dipertahankan. Membuka paket menambahkan design system bernama terpisah dan menjadikannya aktif.
+- **Paket ruang kerja atau instans** adalah `lolly-brand` dengan alat yang dideklarasikan, aset katalog, dan opsional alamat instans. Memuatnya menggantikan satu overlay ruang kerja yang dimuat sebelumnya, dan pratinjau mencantumkan efek di seluruh perangkat itu.
+
+Cadangan perangkat penuh bukan `.lolly`. Ia tetap berupa `LollyTools-….zip` (format `lolly-backup`) dan dipulihkan melalui **Settings → Storage → Import data…**. Folder alat yang di-zip juga tetap `.zip`. [Data transfer](/info/data-transfer.html) adalah referensi formatnya.
+
+`.lolly` adalah zip biasa. Ganti namanya menjadi `.zip` untuk melihat isinya: gambar Anda sendiri ada di `assets/uploads/`, karya katalog di `assets/catalog/`, `manifest.json` mencantumkan setiap file, dan README menjelaskan apa file itu.
+
+macOS, Windows, Linux, iOS, dan Android semuanya mendaftarkan format ini, pengelola file desktop menampilkannya sebagai dokumen Lolly, dan GNOME Files dapat menampilkan thumbnail sesi tersimpan itu sendiri. Membuka dari Design System Setup merekomendasikan aksi design system bila desain bersama membawanya, tetapi tidak pernah menyembunyikan **Open shared design**.
+
+Dokumen yang diserahkan dari aplikasi lain di iOS atau Android dibatasi 48 MB, karena serah terima menyalin byte-nya melintasi batas aplikasi, dan aplikasi menyatakannya. **Open** di dalam Lolly tidak memiliki batas itu, jadi gunakan untuk bundel yang lebih besar.
+
+Setelah Anda mengonfirmasi, Lolly mengekstrak dan memverifikasi bundel sekali. Aset masuk ke pustaka Anda, dicocokkan dengan checksum sehingga file yang sudah ada di perangkat dipakai ulang. Sesi masuk ke Projects dengan id baru, sehingga file yang sama dapat dibuka dua kali; sesi yang alatnya hilang menunggu di sana. File di atas 100 MB ditandai besar, dan pratinjau memperingatkan bila penyimpanan browser melaporkan ruang kosong lebih sedikit dari yang dibutuhkan file. Setiap bagian yang tercakup integritas diperiksa sebelum apa pun di-commit, dan salinan yang rusak ditolak tanpa meninggalkan sisa.
+:::
+
+Tautan dan file sama-sama menyerahkan snapshot. Untuk penyuntingan langsung, [Working together](/info/collaborate.html) membahas collab privat antara dua perangkat dan work collab opsional melalui Lolly Work.
+
+## Aset - pustaka Anda
+
+**Assets** (`#/a`) mengumpulkan semua yang dapat dipakai alat Anda: logo brand, gambar, audio, dan gerak, dikelompokkan menurut jenis, bersama file Anda sendiri. Unggahan Anda disimpan di perangkat Anda. Organisasi yang memakai Lolly Work juga dapat menyediakan katalog bersama di bawah aturan aksesnya sendiri; lihat [Use Lolly at your organisation](/info/organisation.html).
+
+![Aset - aset brand, swatch dan font, ditambah unggahan Anda sendiri](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+
+- <!--i:upload--> **Bawa file Anda masuk.** Letakkan gambar, SVG, klip audio, video, Lottie, PDF, atau deck PowerPoint di area unggah, atau klik untuk memilih. File langsung tiba di Assets dan di pemilih aset setiap alat. PDF multi-halaman atau `.pptx` menanyakan halaman atau slide mana yang disimpan, dan masing-masing menjadi aset SVG. Gambar yang Anda tambahkan di dalam alat disimpan sebagaimana datangnya di **My images**, sehingga Content Credential padanya tetap terverifikasi, dan hanya file yang sangat besar yang menanyakan apakah ukurannya akan diubah. **Settings → Storage** menampilkan seberapa banyak isi **My images**. Tidak ada batas selain penyimpanan perangkat Anda. Untuk menghapus data EXIF dan GPS saat gambar masuk, aktifkan **Strip metadata from uploads** di bawah **Settings → Feature flags**; Content Credentials tetap dipertahankan dalam kedua kasus.
+- <!--i:star--> **Favoritkan yang sering Anda pakai.** Beri bintang pada aset atau swatch brand dan ia tersemat di bagian atas setiap pemilih.
+- <!--i:folder--> **Rapikan.** Pindahkan aset ke grup lain, sembunyikan aset brand bersama yang tidak Anda pakai (**Show hidden** mengembalikannya), atau hapus unggahan Anda sendiri. Bilah pilihan yang sama seperti Projects berlaku untuk seluruh pilihan.
+- <!--i:layers--> **Angkat video dari latar belakangnya.** Buka detail video, atau klik kanan kartunya di pemilih aset, dan pilih **Remove background…**. **On-device model** memotong subjek dari adegan yang ramai; **Colour key** menghapus latar yang diterangi merata seperti green screen, dengan **Tolerance**, **Softness**, dan **Spill removal** untuk tepinya, dan tidak memerlukan unduhan. **Resolution** (360, 480, 720, atau 1080p, tidak pernah melebihi sumber) menukar detail dengan kecepatan. Hasil potongan, WebP atau PNG animasi dengan transparansi sungguhan, disimpan di samping aslinya, dan Content Credential sumber ikut sebagai ingredient. [Generated once, rendered the same](/info/ai-features.html) menjelaskan mengapa ini tetap penyuntingan biasa.
+
+### Bawa palet dan font Anda ke mana saja
+
+Panel **Swatches** di Assets menampilkan warna penyusun brand Anda: warna brand, warna yang Anda tambahkan, ramp, dan spektrumnya. Warna peran yang dipertahankan Lolly untuk antarmuka (teks, permukaan, tepi, pemimpin colourway, dan salinan warna brand dengan nama lain) menunggu di balik kartu abu-abu **Show colour roles** di dasar panel.
+
+Setiap warna adalah kartu seperti aset lain. Klik satu untuk membuka detailnya, pilih beberapa untuk mengunduh hanya yang itu, atau unduh seluruh palet dalam format yang dibaca alat Anda yang lain:
+
+- <!--i:code--> **Design tokens (JSON)**, **CSS variables**, atau **CSS classes**, untuk stylesheet atau build. Warna yang lebih lebar dari sRGB mempertahankan nilai lebarnya: CSS menyetelnya setelah hex, dan JSON menyimpan hex bersama warna lebar, racikan CMYK, dan tinta spot.
+- <!--i:palette--> **Adobe Swatch Exchange (.ase)**, untuk Illustrator atau Photoshop. Warna yang dikunci pada racikan CMYK tiba sebagai swatch CMYK itu, tinta spot sebagai swatch spot bernama, dan warna yang lebih lebar dari sRGB sebagai Lab.
+- <!--i:pentool--> **GIMP palette (.gpl)**, untuk GIMP atau Inkscape, dan **SCSS variables**, keduanya dalam sRGB.
+
+![Panel Swatches - lima tombol unduh palet di bagian atas, lalu setiap warna brand sebagai chip yang membuka detailnya](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+Pilih warna dengan titik pada setiap kartu: Shift-klik titik kedua untuk semua yang berada di antaranya, seret kotak melewati celah, atau tekan Cmd/Ctrl+A dengan kartu terfokus. Bilah menawarkan **Download as…** dalam enam format yang sama, **Copy hex**, dan **Favourite**. Sebelum Anda memilih format, menu mencantumkan warna yang tidak dapat ditampung format mana pun (Transparent tidak memiliki warna sama sekali), format mana yang menyimpan warna lebar sebagai fallback sRGB-nya (SCSS dan GIMP), dan mana yang membawa nilai CMYK dan spot (JSON dan .ase). Klik kanan kartu untuk aksi yang sama pada satu warna.
+
+Detail warna mengisi pratinjau dengan warna itu dan membentangkan **Linked values** (racikan CMYK atau tinta spot, nilai apa pun yang dibuat untuk ruang warna atau mesin cetak tertentu, dan token desainnya), **Every notation** (hex, OKLCH, Display-P3, dan lainnya, masing-masing dengan tombol salin), **Plotted on a colour space**, **Tones**, dan **Readability**. Tombol panah menelusuri palet, **Copy link** membagikan warna itu sendiri, dan **Open in Colour Lab** membawanya lebih jauh.
+
+Panel **Fonts** mencantumkan huruf brand Anda dengan **download** untuk masing-masing, untuk dipasang secara lokal atau diserahkan ke percetakan.
+
+## Atur grid sesuai Anda
+
+- <!--i:star--> **Favoritkan yang Anda pakai.** Klik kanan kartu dan pilih **Add to favourites**, dan ia mendapat ubin besar di strip di atas grid. [Your favourites](/info/favourites.html) membahas strip itu.
+- <!--i:eyeoff--> **Sembunyikan alat yang tidak pernah Anda pakai.** Klik kanan kartu, atau pilih beberapa, dan pilih **Hide tool**. Ia hilang dari grid dan dari apa yang ditemukan saat mengetik di grid. Ubin abu-abu **Show hidden tools (N)** di akhir menampilkannya kembali, diredupkan, masing-masing dengan **Unhide tool** di menunya. Menyembunyikan hanya mengubah grid Anda: alat tetap terbuka dari tautan atau bookmark.
+- <!--i:clock--> **Alat Anda, lebih dulu.** Setelah Anda menyimpan pekerjaan di tiga alat berbeda, baris chip **Yours** di atas grid memuat favorit dan alat terbaru Anda lebih dulu.
+- <!--i:sliders--> **Susun sesuai cara Anda.** **View options** menetapkan tata letak (**Grid**, **Card**, atau **List**), ukuran dan kepadatan kartu, urutan, dan filter kategori.
+
+![Akhir grid Tools dengan alat tersembunyi ditampilkan: kartu Wordmark yang diredupkan, dan di sampingnya ubin abu-abu yang mengembalikannya ke tampilan, kini bertuliskan Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -31,26 +217,26 @@ gallery under a caption about its bottom. `press:` with no `on=` goes to the
 keyboard, and the End key with focus on the just-clicked box scrolls the
 document; the walker then anchors the body walk to that band.
 The tile reads "HIDE hidden tools" in the shot, not "Show" - it is a toggle and
-the recipe has just pressed it. The alt says so rather than quoting the resting
+the recipe has just pressed the tile. The alt says so rather than quoting the resting
 label the prose above already gives.
-There is no standalone per-card "hide" button
-(unlike the always-visible fav/pin corner icons) - Hide only exists inside a
-tile's right-click menu or the bulk bar, both confirmed in views/gallery.ts.
-The recipe goes the bulk-bar route since it needs no `|right` context-menu
-step: tick the card (`[data-select="qr-code"]`, the same checkbox hook the
-selection bullet under Projects uses), click the bar's Hide button
-(`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
-confirmed in lib/bulk-bar.ts), then click the grey reveal tile
-(`.gtile--hiddenbox`, confirmed in gallery.ts).
+The recipe hides nothing itself. The lolly-demo catalog the captures pin
+ships Wordmark hidden (`defaultHiddenTools` in its assets index.json), so a
+fresh profile already has one hidden tool and the recipe only clicks the grey
+reveal tile (`.gtile--hiddenbox`, confirmed in gallery.ts). It used to tick
+the QR Code card and press the bulk bar's Hide button first; under lolly-demo
+that published Wordmark dimmed and QR Code not, under a caption naming QR
+Code, so the steps were dropped rather than relied on. QR Code was hidden
+in that run too: the End scroll had left the pointer over its card, and a
+hovered hidden card lifts its dimming (gallery.css), so it read as a normal
+tool. The closing `hover:` puts the pointer back on the reveal tile, which
+keeps every revealed card dimmed.
 -->
 
-Untuk bertindak pada beberapa kartu sekaligus, centang kotak centang tiap kartu, seret kotak seleksi melintasi ruang kosong atau **Shift/Cmd-click**, dan sebuah bilah aksi mengambang akan muncul. **Apa yang ditawarkan bilah seleksi** sedikit berbeda menurut tampilannya, karena tidak setiap tindakan masuk akal di mana-mana:
+**Bertindak pada beberapa kartu sekaligus.** Centang kotak setiap kartu, seret kotak pilihan melintasi ruang kosong, atau Shift/Cmd-klik, dan sebuah bilah muncul dengan apa yang diizinkan tampilan itu:
 
-- **Tools / Utilities:** Favourite (atau Unfavourite), Hide (atau Unhide), Available offline (atau Remove from offline), **View sessions** (membuka Projects yang hanya menampilkan sesi yang dibuat dengan tool tersebut) dan Copy link ketika tepat satu kartu terpilih.
-- **Aset:** Favourite dan Hide berlaku untuk seleksi apa pun; Duplicate, Download dan Delete baru muncul setelah setiap item yang terpilih adalah unggahan Anda sendiri - aset design system bersama adalah kontrak permanen, jadi ketiga tindakan itu tetap tidak berlaku padanya sekalipun secara massal.
-- **Proyek:** lihat [Temukan dan pulihkan karya Anda](/info/find-your-work.html#find-something-you-saved).
-
-> Satu jebakan label: **Lihat sesi** hanya ada setelah ada sesuatu yang *terpilih*. Mengeklik kanan satu kartu yang belum terpilih justru menawarkan **N sesi tersimpan**, yang membuka daftar sesi tersimpan tool tersebut, tempat penghapusan memindahkan sesi itu ke Sampah, alih-alih membawa Anda ke Proyek.
+- **Tools dan Utilities:** Favourite, Hide, Available offline, **View sessions** (Projects, hanya menampilkan sesi yang dibuat dengan alat-alat itu) dan Copy link untuk satu kartu.
+- **Assets:** Favourite dan Hide untuk pilihan apa pun. Duplicate, Download, dan Delete muncul hanya bila setiap item terpilih adalah unggahan Anda sendiri, karena aset design system bersama adalah kontrak permanen.
+- **Projects:** lihat [Find and recover your work](/info/find-your-work.html#find-something-you-saved).
 
 ![Bar seleksi galeri untuk dua tool, menawarkan Available offline, View sessions, Favourite dan Hide](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
@@ -70,409 +256,37 @@ already exist, and build-docs-shots.ts gives every shot a fresh
 storage-seeding hook.
 -->
 
-### Ask Lolly
-
-Ketika Anda lebih suka bertanya daripada mencari, **Ask Lolly** (`#/ask`) menerima pertanyaan yang Anda ketik dan mengembalikan bagian dokumentasi ini yang cocok secara **verbatim** - kata-kata panduannya sendiri, bukan ringkasan dan bukan hasil generasi - lengkap dengan sebutan halaman asalnya dan tautan **Open in docs** di sebelahnya. Di bawah jawaban itu ada tempat-tempat di aplikasi yang cocok dengan pertanyaan yang sama: sebuah tool, sebuah pengaturan, sebuah proyek tersimpan, masing-masing sebagai tombol yang langsung membawa Anda ke sana.
-
-Transkripnya adalah memori sesi: ajukan pertanyaan lanjutan dan utasnya bertambah seiring jalan, lalu muat ulang dan semuanya dimulai dari awal. Hasil pencarian memuat baris **Ask Lolly: *kueri Anda*** di bagian bawah - di bawah hasil konkret apa pun yang ditemukan kelompok lain - yang meneruskan pertanyaan itu langsung, sehingga Anda bisa mulai di bilah pencarian dan menyelesaikannya di sini.
-
-## Kanvas (pratinjau)
-
-Pratinjau selalu menampilkan persis apa yang akan diekspor.
-
-**Desktop**
-
-- **Zoom:** Cmd/Ctrl-gulir, atau cubit di trackpad - zoom berpusat pada penunjuk Anda.
-- **Geser:** tahan **Space** lalu seret, atau seret dengan **tombol tengah mouse**. (Klik biasa tetap bebas untuk mengeklik bagian desain.)
-- **Papan ketik:** `0` = paskan ke jendela · `1` = 100% · `+` / `−` = zoom.
-- **HUD zoom:** kontrol kecil `−  NN%  +  Fit` di sudut. Klik persentasenya untuk beralih Fit ↔ 100%.
-
-![HUD zoom di sudut kanvas - minus, persentase langsung, plus, Fit, lalu sakelar tema dan suara](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
-
-**Sentuh**
-
-- **Cubit** untuk zoom, **seret** untuk menggeser, **ketuk dua kali** untuk mengatur ulang agar pas. Di kanvas bebas, dua jari pada objek yang dipilih justru menskalakan, memutar, dan memindahkan pilihan (lihat [Ubah ukuran, skala, dan putar](#resize-scale-and-rotate)).
-
-**Klik untuk melompat ke sebuah kontrol:** klik elemen mana pun di desain dan input sidebar yang sesuai akan mendapat fokus lalu tergulir ke tampilan - untuk grup baris berulang, baris yang tepat Anda klik akan terbuka, jadi menyunting apa yang Anda lihat hanya sejauh satu ketukan.
-
-Perubahan dimensi selalu mengembalikan tampilan ke ukuran pas yang rapi.
-
-### Kanvas bebas (Design)
-
-Tool kanvas bebas menambahkan area kerja *di sekeliling* artboard, seperti meja kerja seorang desainer:
-
-- **Off-canvas staging.** Seret sebuah kotak melewati tepi bingkai dan kotak itu tetap sepenuhnya **terlihat dan bisa dipilih** - parkir elemen di samping sementara Anda menata komposisi, lalu seret kembali ke dalam. Semua yang di luar bingkai **diredupkan perlahan** sehingga area ekspor selalu terbaca sekilas, dan bingkai mempertahankan bayangannya untuk menandai persis di mana berkas dimulai.
-- **Only the frame exports.** Berkas hasil ekspor dibatasi oleh artboard - apa pun yang tertinggal di luar (atau bagian kotak yang menjulur melewati tepi) langsung dipangkas dari keluaran, baik pada format raster maupun vektor.
-- **Zoom out past Fit** (hingga 20%) untuk melihat seluruh meja kerja ketika Anda menampung banyak hal jauh di luar bingkai.
-- **Resizable artboard.** Mengubah dimensi ekspor mengubah ukuran bingkai di tempat; kotak-kotak mempertahankan posisinya, jadi Anda bisa membingkai ulang tata letak di sekitar konten yang sudah ada.
-- **Before you export.** Bagian **Document** pada inspektur memeriksa struktur layer tersimpan, lalu membaca kanvas yang sudah stabil untuk mendeteksi teks yang terpotong dan kontras warna datar. Bagian ini juga menanyakan kepada registry font yang sama yang dipakai untuk outlining SVG/PDF apakah setiap rangkaian teks memiliki byte font yang bisa disematkan; latar belakang gambar dan gradien disebutkan sebagai pemeriksaan visual, bukan diberi skor kontras rekaan.
-
-![Kanvas bebas Design - artboard beserta meja kerja di sekitarnya](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
-
-**Balik sebuah seleksi.** Klik kanan kotak mana pun dan pilih **Flip horizontal** atau **Flip vertical** untuk mencerminkannya di tempat, atau tekan `Shift+H` / `Shift+V` dari keyboard - Shift, karena `V` saja adalah alat Pointer. Setiap kotak terpilih mencerminkan pada porosnya sendiri dalam satu langkah undo, dan pencerminan tersebut adalah transformasi sungguhan, sehingga bertahan pada SVG, PDF dan PNG yang diekspor, bukan hanya di kanvas.
-
-### Ubah ukuran, skala, dan putar
-
-Pilih sebuah objek, lalu seret handle untuk mengubah ukurannya, atau seret handle bundar di bawah pilihan untuk memutar objek. Seretan ukuran bekerja dalam salah satu dari dua mode:
-
-- **Ubah ukuran**, yang menjadi default, hanya mengubah kotak. Teks dibungkus ulang mengikuti ukuran baru, sedangkan ukuran font, lebar stroke, radius sudut, dan efek tetap seperti semula.
-- **Skala** membesarkan atau mengecilkan seluruh objek beserta isinya: ukuran font, stroke, radius sudut, bayangan, blur, padding, dan jarak semuanya berubah dengan besar yang sama.
-
-Tekan `K` untuk menyalakan atau mematikan Skala. Tanpa keyboard, pilih **Mode Skala** di menu Lolly, atau tekan dan tahan tombol **Penunjuk** di rel alat (atau klik kanan tombol itu) lalu pilih **Skala**; di layar sentuh, bilah objek juga punya sakelar Skala. Selama Skala aktif, tombol Penunjuk menampilkan ikon Skala dan setiap handle punya titik di tengahnya. `V` atau **Escape** mengembalikan ke Ubah ukuran dan mempertahankan pilihan Anda. Skala selalu nonaktif saat dokumen dibuka, agar tidak ada yang menskalakan stroke secara tidak sengaja. Setiap Skala adalah satu langkah urungkan, berlabel **Skala**.
-
-**Skala dengan angka.** Saat Skala aktif, atau saat beberapa objek dipilih, klik keterangan di bilah objek untuk membuka popover **Skala**. Ketik persentase, atau lebar atau tinggi dan dua nilai lainnya ikut menyesuaikan, pilih titik yang tetap diam pada kisi 3 × 3, lalu pilih **Terapkan**. Hasilnya satu langkah urungkan, tanpa perlu menyeret. Saat Skala nonaktif, beberapa objek hanya berubah ukuran dan posisi.
-
-**Beberapa objek.** Pilihan beberapa objek punya handle di tepi selain di sudut. Seretan sudut mengubah lebar dan tinggi secara bebas selama setiap objek dalam pilihan tegak atau diputar dengan kelipatan seperempat putaran penuh, dan pilihan tidak memuat grup atau lingkaran. Jika tidak, pilihan mempertahankan proporsinya: handle-nya menampilkan kursor skala, dan selama Anda menyeret, keterangan menambahkan **Proporsional**. Saat Anda mengubah ukuran atau menskalakan, label kecil di samping pilihan menampilkan ukuran, atau persentase dalam mode Skala.
-
-**Tombol yang ditahan saat menyeret** berlaku begitu ditekan atau dilepas (lembar pintasan, `?`, juga mencantumkannya):
-
-| Tahan | Mengubah ukuran atau menskalakan | Memutar | Memindahkan |
-|---|---|---|---|
-| **Shift** | Mempertahankan proporsi (Skala selalu begitu) | Berputar dengan langkah 15 derajat | Tidak ada perubahan |
-| **Alt** (Option) | Bekerja dari tengah | Berputar bebas | Mematikan snap dan kisi |
-| **Cmd/Ctrl** | Mematikan snap dan kisi | Berputar bebas | Mematikan snap dan kisi |
-
-Tanpa tombol yang ditahan, putaran ditarik ke kelipatan 15 derajat terdekat begitu berjarak 4 derajat darinya. Artboard tidak berputar, jadi tidak punya handle putar.
-
-**Pegang di mana saja di sepanjang tepi.** Anda tidak perlu mengenai handle dengan tepat. Setiap sisi pilihan adalah strip ubah ukuran di sepanjang sisinya, dan dengan mouse atau pena ada zona putar tepat di luar setiap sudut. Penunjuk menampilkan apa yang akan dilakukan seretan, diputar mengikuti pilihan. Tekanan di strip atau zona baru menjadi pengubahan ukuran atau putaran setelah Anda mulai menyeret, sehingga klik biasa tetap memilih, menambah ke pilihan, atau membatalkan pilihan seperti sebelumnya. Objek terkunci tidak punya handle, strip, atau zona.
-
-**Objek kecil tetap bisa dipindahkan.** Pada objek selebar 25 piksel layar atau kurang, handle tengah yang berdesakan dengan sudut disembunyikan dan handle lainnya bergeser sedikit keluar dari garis tepi, sehingga menekan objek akan memindahkannya. Pada 10 piksel atau kurang, handle sudut ikut hilang, dan garis tipis tetap punya satu handle di setiap ujung. Menekan tepat di samping garis tipis atau objek yang sangat kecil, di luar handle-nya, juga memindahkan objek.
-
-**Area genggam besar.** Di layar sentuh, zona genggam berukuran besar: zona setiap sudut seperempat lebar dan tinggi pilihan di layar, dijaga antara 24 dan 44 piksel, dan zona setiap sisi mencakup bagian di antara dua sudut. Jika pilihan terlalu kecil untuk itu, zona bergeser ke luar garis tepinya, sehingga menekan bagian tengah tetap memindahkan pilihan. Zona di bawah penunjuk, atau di bawah jari yang menekan, diarsir. Untuk mendapatkan zona yang sama dengan mouse atau pena, aktifkan **Area genggam besar** di menu Lolly. Pengaturan ini hanya disimpan di perangkat ini.
-
-**Dua jari pada pilihan.** Di layar sentuh, letakkan dua jari pada objek yang dipilih: cubit untuk menskalakan pilihan, putar jari untuk memutarnya, atau gerakkan kedua jari untuk membawanya. Apa pun yang dilakukan dua jari dihitung sebagai satu langkah urungkan. Saat Skala aktif, cubitan juga menskalakan isinya; saat nonaktif, cubitan mengubah ukuran pilihan secara proporsional. Putaran ditarik ke kelipatan 15 derajat terdekat jika sudah dekat, dan gerakan dua jari tidak pernah snap. Dua jari di tempat lain tetap melakukan zoom dan menggeser tampilan, dan ketukan dua jari tetap membuka menu. Jari pertama harus mendarat di pilihan dan jari kedua harus menyusul dengan cepat, di pilihan atau tepat di luar tepinya. Jika pilihan memuat artboard atau objek terkunci, menutupi sebagian besar tampilan, atau melewati tepi tampilan, dua jari justru melakukan zoom dan menggeser.
-
-### Layer dan Inspektor
-
-Di **Layer**, setiap artboard adalah grup induk yang bisa dilipat. Pilih namanya untuk melompat ke sana, perluas layer-nya, dan pilih atau susun ulang objek di dalam artboard tersebut. Beralih ke **Halaman** untuk melihat gambar mini dan urutan halaman. Tombol panah menggerakkan Anda melalui daftar layer; panah kiri kembali ke judul artboard.
-
-**Inspektor** menempatkan kontrol teks atau gambar lebih dulu untuk objek yang dipilih. Gunakan chip opsi untuk pilihan cepat dan perluas **Advanced** untuk detail penataan gaya. Di ponsel, buka **Inspektor** dari **Aksi lainnya**. Kontrolnya terbuka dalam sebuah lembar; Escape atau Kembali menutupnya sambil tetap mempertahankan seleksi Anda.
-
-### Menggambar bentuk Anda sendiri (pena)
-
-Kotak, lingkaran dan bingkai bersudut membulat mencakup sebagian besar tata letak. Ketika Anda butuh bentuk yang tidak ada dalam daftar itu, gambarlah: tombol **Pen** di rel (atau tombol `P`) membawa Anda ke mode menggambar. Tiga tombol tunggal berpindah antar-mode - **`V`** kembali ke Pointer, **`P`** untuk Pen, **`N`** untuk tool node (**Edit points**) - dan Pointer selalu menjadi jalan keluar dari mode mana pun.
-
-![Rel tool kanvas bebas: pegangan seret, menu Lolly, lalu Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
-
-- **Klik** untuk menempatkan sebuah titik. Pada jenis kurva bawaan, **klik lalu seret** menarik keluar handle titik itu, dan begitulah cara Anda menggambar kurva alih-alih sudut - tahan **Alt** saat mengeklik jika ingin sudut tajam. (Pada jenis kurva lain, setiap titik yang ditempatkan adalah sudut dan seretan tidak berpengaruh; lihat **Spline type** di bawah.)
-- Titik mengait ke artboard dan ke kotak Anda yang lain saat ditempatkan, memunculkan panduan yang sama seperti seretan biasa. Alt menonaktifkan kisi selagi Anda menggambar, dan menonaktifkan kisi sekaligus tepi saat Anda menyeret sebuah titik sesudahnya.
-- **Klik titik pertama Anda** untuk menutup lengkung dan menyelesaikannya dalam satu gerakan. Kalau tidak, tekan **Enter**, klik ganda atau cukup ganti tool - gambarnya disimpan, bukan dibuang.
-- **Escape** bekerja satu tingkat demi satu tingkat: tekanan pertama membatalkan gambar dan tidak menulis apa pun, tekanan kedua keluar dari pena.
-- **Delete** selagi menggambar menghapus titik terakhir yang Anda tempatkan.
-
-Hasilnya adalah kotak biasa di kanvas. Pindahkan, ubah ukurannya, putar, kelompokkan, ratakan, susun ulang urutannya, beri isian, gradien, bayangan atau opasitas - sebuah path berperilaku seperti kotak lain, dan tak satu pun kontrol itu memperlakukannya berbeda.
-
-Bentuk itu juga langsung berwarna. Path pertama yang Anda gambar mengambil isian dan garis yang ditetapkan brand Anda untuk sebuah path, dan setelah itu setiap path baru mengambil **apa pun yang terakhir Anda pakai** - atur isiannya sekali lalu terus menggambar, alih-alih mewarnai ulang setiap bentuk. (Pada tool yang brand-nya tidak mengatur path, path yang digambar diberi garis dengan warna yang Anda lihat saat menggambarnya, jadi tidak pernah tak kelihatan.)
-
-**Menyunting titiknya lagi.** Klik ganda bentuknya (atau gunakan **Edit points** di bilah objek) dan titik-titiknya muncul kembali. Seret sebuah titik untuk memindahkannya, seret handle untuk mengarahkannya ulang, klik di mana saja pada kurva untuk menyisipkan titik, tarik kotak seleksi pada sekelompok titik lalu tekan Delete untuk menghapus yang terpilih. Sebuah path selalu menyisakan setidaknya dua titik, jadi Anda tidak bisa tak sengaja menghapusnya sampai lenyap.
-
-**Spline type** menentukan jenis kurva yang melewati titik-titik Anda, dan inilah pilihan yang layak dipahami:
-
-| Jenis | Fungsinya |
-|---|---|
-| **Smooth (auto)** | Bawaan. Menghitung sendiri panjang handle-nya, jadi klik-klik-klik biasa sudah menghasilkan kurva yang benar-benar mulus tanpa perlu mengutak-atik handle. Kalau Anda memang mengatur sebuah handle, handle itu mengunci *arahnya* dan panjangnya tetap dipegang kurva. |
-| **Bezier handles** | Pena klasik. Handle adalah titik kendalinya, dan menyisipkan titik tidak pernah menggeser kurva. |
-| **Through the points** | Melewati persis setiap titik yang Anda tempatkan, tanpa handle. |
-| **B-spline** | Mengalir di dekat titik alih-alih melewatinya, untuk bentuk yang lebih lembut. |
-| **Straight lines** | Garis patah. |
-
-Mengalihkan path yang sudah ada ke jenis yang menghitung handle-nya sendiri akan dikonfirmasi lebih dulu, karena panjang handle yang Anda atur tidak bisa dipulihkan - beralih ke **Bezier handles** selalu tanpa kehilangan apa pun. Di tengah proses menggambar tidak ada konfirmasi: peralihannya langsung diterapkan pada draf, dan handle apa pun yang sudah Anda tarik ikut hilang. Pada jenis yang memegang handle-nya sendiri, menyisipkan titik sedikit mengubah bentuk kurva; pada **Bezier handles** tidak.
-
-Setiap titik juga membawa aturan kontinuitas, ditunjukkan oleh bentuknya di kanvas - persegi untuk **Corner** (handle bergerak sendiri-sendiri), bulat untuk **Smooth** (handle tetap segaris), bulat bercincin untuk **Symmetric** (segaris dan sama panjang). Terapkan pada titik mana pun yang terpilih dan kurvanya langsung menyesuaikan diri.
-
-![Dua path pena yang dirender langsung dari sebuah tautan: kurva S bergaris dan gumpalan tertutup berisi warna](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22curve%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A140%2C%22y%22%3A180%2C%22w%22%3A800%2C%22h%22%3A420%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A14%2C%22path%22%3A%221!cubic!0_.02!.85!!!.25!-.45!s_.5!.5!-.22!.32!.22!-.32!y_.98!.12!-.25!.45!!!s%22%7D%2C%7B%22id%22%3A%22blob%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A340%2C%22y%22%3A620%2C%22w%22%3A400%2C%22h%22%3A320%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23d1e7ff%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A6%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!catmull-rom!1_.5!0_1!.42_.78!1_.22!1_0!.42%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=pen-path-geometry)
-
-Path yang digambar ikut dibawa di dalam tautan seperti segala hal lain, jadi bentuk yang Anda gambar terbuka kembali dari tautan berbagi dan dirender sama persis dari CLI. Tidak ada bagiannya yang bergantung pada editor.
-
-### Menggabungkan bentuk (operasi path)
-
-Pilih dua bentuk atau lebih, **klik kanan** kanvas (ketuk dua jari pada layar sentuh) dan menunya menawarkan operasi yang Anda harapkan dari aplikasi menggambar:
-
-- **Union** menyatukannya menjadi satu bentuk, dengan mempertahankan warna bentuk paling atas.
-- **Subtract** memotong semua yang di atas dari bentuk paling bawah.
-- **Intersect** hanya menyisakan bagian yang bertumpang tindih.
-- **Exclude** menyisakan semuanya kecuali bagian yang bertumpang tindih.
-
-Tiga lainnya bekerja pada satu bentuk: **Outline stroke…** mengubah garis menjadi bentuk berisi dengan kontur yang sama (berguna bila Anda ingin mempertahankan ketebalan persis seperti digambar), **Offset path…** melebarkan siluetnya ke luar atau, dengan angka negatif, menyusutkannya ke dalam dan **Simplify** menyusun ulang sebuah path dengan lebih sedikit segmen pada bentuk yang sama.
-
-![Bulan sabit dan cincin dengan lubang sungguhan, keduanya dihasilkan oleh Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
-
-Hasilnya adalah path baru yang bisa terus Anda sunting dengan pena. Lubangnya adalah lubang sungguhan - kontrol **Fill rule** di panel garis menentukan apakah kontur yang bertumpang tindih terisi (*non-zero*) atau menembus (*even-odd*).
-
-Dua hal yang sengaja tidak dilakukan operasi ini. Operasi ini **menolak alih-alih merusak**: minta perpotongan dua bentuk yang tidak bertumpang tindih dan Anda akan diberi tahu bahwa tidak ada yang bisa disisakan, lalu tidak ada yang berubah. Dan kotak teks serta kotak gambar tidak punya kontur untuk diolah, jadi keduanya dibiarkan apa adanya alih-alih didekati lewat bingkainya. Hasil gabungan disimpan sebagai kurva Bezier biasa, sama seperti yang dilakukan aplikasi menggambar - jenis spline aslinya tidak bertahan setelah operasi itu.
-
-### Scene 3D
-
-Pilih **Scene 3D** dari menu tambah pada rel tool dan tarik keluar sebuah bingkai: 3D Studio langsung terbuka pada kotak baru itu, dan apa pun yang Anda atur di sana kembali ke kanvas. Dalam segala hal lainnya, kotak scene adalah kotak biasa. Pindahkan, ubah ukurannya, putar, beri bayangan, taruh di slide atau di timeline, dan ia berperilaku seperti kotak lainnya.
-
-**Kotak scene menyimpan resepnya, bukan gambarnya.** Kotak gambar menyimpan berkas hasil render; kotak scene menyimpan satu pengaturan, scene itu sendiri, ditulis sebagai kueri tautan milik 3D Studio sendiri, dengan setiap nilai yang masih berada pada bawaan studio dihilangkan. Itulah sebabnya sebuah scene berukuran sekitar seratus byte, bukan beberapa kilobyte yang dikenakan resep utuh, itulah sebabnya string yang sama bekerja di tautan berbagi maupun di pintu editor, dan itulah sebabnya kontrol studio baru tidak memerlukan perubahan apa pun di Design. Itu juga sebabnya kotak ini dirender ulang pada ukuran dan momen apa pun yang diminta dokumen, alih-alih diperbesar dari gambar yang diambil sebelumnya. Gambar yang dipakai sebuah scene tetap berupa aset dan berpindah lewat id, jadi sebuah unggahan di dalam scene masuk ke berkas `.lolly` bersama sisa dokumen.
-
-**Sunting di studio.** Pilih kotaknya dan Inspektor menampilkan bagian **Scene 3D**: satu baris yang menyebutkan scene ini dibuat dari apa, baris kedua menyebutkan studio pencahayaannya begitu Anda memilihnya, dan satu tombol, **Edit di 3D Studio**. Tombol ini membuka studio pada scene kotak tersebut dengan semua kontrol yang dimiliki tool. Terapkan, dan scene yang disunting ditulis kembali sebagai satu langkah tunggal, sehingga satu undo mengembalikan kotak ke scene tempat Anda memulai; tutup studio tanpa menerapkan dan tidak ada yang berubah. Segala hal lain tentang kotak itu - posisinya di artboard, ukurannya, bayangannya, kapan ia muncul pada slide - tetap berada di bagian yang biasa digunakan. Kotak scene tidak memiliki gambar sendiri dan tidak ada keterangan: gambarnya berasal dari studio, dan kata-katanya juga diatur di sana.
-
-**Satu scene live, sebuah poster di setiap kotak lainnya.** Setiap kotak 3D dalam sebuah dokumen menampilkan sebuah poster: gambar diam dari scene tersebut, digambar di luar layar melalui shared renderer pool pada ukuran yang ditempati kotak itu. Sebuah dokumen dengan dua puluh scene hanya menghabiskan satu drawing context, bukan dua puluh. Pilih sebuah kotak scene dan ia menjadi scene live tunggal milik dokumen; batalkan pilihannya dan bingkai yang tadinya ada di layar menjadi posternya, sehingga tidak ada yang meloncat. Hanya satu scene yang live pada satu waktu, dan memilih dua kotak scene sekaligus membuat keduanya tetap sebagai poster. Pada rilis ini, scene live hanya untuk dilihat, bukan untuk diputar mengelilingi: ubah sebuah scene lewat **Edit di 3D Studio**. Perangkat yang tidak bisa membuka graphics context floating-point mempertahankan poster dan menyebutkan alasannya di dalam kotak, alih-alih menampilkan persegi kosong, dan sisa dokumen tidak terpengaruh. Membuka dokumen Design tanpa kotak 3D tidak memuat kode 3D sama sekali.
-
-**Pada timeline**, sebuah kotak scene mengikuti playhead seperti klip video: start, clip-in dan speed-nya menggerakkan scene melalui animasinya sendiri, dan panjang scene itu adalah yang Anda atur di 3D Studio, sehingga memangkas sebuah kotak menjadi lebih pendek menampilkan lebih sedikit bagian scene, bukan mempercepatnya. Hanya kotak scene yang dipilih yang live; semua yang lain adalah gambar diam, dan gambar diam tidak bisa di-scrub.
-
-**Dalam sebuah ekspor**, setiap scene digambar ulang dari awal pada ukuran yang dibutuhkan berkas, melalui renderer yang sama yang dipakai studio. Video merender satu frame per scene per momen; PNG, SVG atau PDF menyematkan satu gambar per kotak pada ukuran piksel kotak itu sendiri. Tidak ada yang difoto dari layar, sehingga sebuah ekspor tidak bergantung pada kotak mana yang tadi Anda pilih. Scene yang tidak bisa digambar membuat ekspor gagal dan memberi tahu Anda alasannya, dengan kata-kata studio itu sendiri.
-
-**Membagikan scene yang dibuat dari unggahan Anda sendiri.** Tautan berbagi dari sebuah dokumen Design membawa id unggahan lokal-perangkat di dalam sebuah scene apa adanya, sementara kotak gambar mengosongkannya. Jadi sebuah scene yang artwork atau modelnya adalah berkas yang Anda unggah akan menampilkan bawaan studio untuk gambar itu di perangkat orang lain, kecuali dokumennya berpindah sebagai berkas `.lolly`, yang membawa byte-nya.
-
-## Timeline (Sequence)
-
-**Sequence** adalah timeline milik Design: ia menambahkan *waktu* ke kanvas bebas. Setiap kotak bisa mulai pada suatu momen, berjalan selama durasi tertentu dan beranimasi masuk serta keluar, dan sebuah timeline yang menempel di bawah artboard adalah tempat Anda menatanya. Buka dan sudah ada rangkaian yang berjalan - kartu judul, sebuah klip, kartu penutup, lower-third dan latar musik - sehingga modelnya terlihat sebelum Anda mengubah apa pun.
-
-![Timeline Sequence: transport, penggaris, sebuah jalur overlay, baris sequence magnetis dengan klip dan chip sambungannya serta strip Always on](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
-
-Ada dua jenis baris, dan perbedaannya adalah inti dari seluruh gagasannya:
-
-- **Baris rangkaian** bersifat *magnetis*. Klip duduk rapat tanpa celah, satu demi satu, dan menyeret satu klip mengurutkan ulang rangkaiannya alih-alih meninggalkan lubang. Hapus sebuah klip dan sisanya merapat. Inilah tulang punggung Anda.
-- **Jalur overlay** bebas. Lower-third, logo, keterangan - apa pun yang mengambang di atas tulang punggung pada waktunya sendiri - mendapat jalur dan titik mulainya sendiri.
-- Di bawahnya, **Always on** mengumpulkan kotak yang sama sekali tidak punya pewaktuan: latar yang sekadar hadir sepanjang durasi. Tanda `+` pada sebuah chip menaikkannya ke sebuah jalur; **Make always on** mengembalikannya.
-
-![Panggung edit: artboard di depan dan tengah, rel alat di sebelah kiri dan HUD zoom di sudut](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)
-
-Membuka timeline menyerahkan papan ketik kepadanya, jadi Space dan tombol panah menggerakkan playhead alih-alih halaman - dan karena timeline terbuka sendiri pada komposisi yang sudah punya pewaktuan, hal itu berlaku sejak Sequence dimuat.
-
-> **[Editor rangkaian](/info/sequence-editor.html)** membahas lebih dalam empat hal yang menentukan apakah menyunting dalam waktu terasa bisa ditebak: klip mana yang disunting oleh klik di kanvas, bayangan onion-skin dari klip tetangga, cakupan pemisahan dan Join yang membatalkan sebuah potongan serta pemangkasan (termasuk perangkat papan ketiknya). Tekan `?` dengan timeline dalam fokus untuk melihat lembar pintasannya.
-
-**Menyunting.** Seret bagian tengah klip untuk memindahkan atau mengurutkannya ulang, seret dalam jarak beberapa piksel dari salah satu ujungnya untuk memangkasnya dan tekan **Split at playhead** (atau `S`) untuk memotong satu klip menjadi dua. Split memerlukan klip dengan **Length** yang nyata dan playhead sedikit masuk ke dalamnya, jadi klip tanpa ujung (latar musik, misalnya) tidak bisa dipisah. **Snap to edges** aktif secara bawaan dan mengait ke tepi klip, playhead dan detik bulat, dengan Alt untuk mengabaikannya. Setiap seretan adalah satu langkah undo, dan pratinjau seretannya menjalankan perhitungan yang sama dengan hasil akhirnya, jadi apa yang Anda lihat saat menyeret itulah yang Anda dapat.
-
-Pilih sebuah klip dan inspektur memberikan suntingan yang sama dalam bentuk angka: **Length**, **Trim in** (seberapa jauh ke dalam sumber klip itu dimulai), **Speed** berupa sekumpulan pengali tetap dari ×0.25 sampai ×4, **Animate in** / **Animate out** beserta durasinya dan **Mute clip**. Klip di baris magnetis sengaja tidak punya kolom **Start** - barisnya yang memegang urutan, jadi Anda menyeret untuk memindahkannya.
-
-**Transisi** adalah preset, bukan keyframe: Fade, Pop, Grow, Rise, Drop, empat varian Slide, Zoom in dan out, Tilt, Swoop, Spin, Drift atau **Cut (no animation)**. Jaraknya menskala mengikuti objek, jadi preset yang sama terbaca dengan benar pada kartu satu bingkai penuh maupun pada lencana kecil. Di antara dua klip bersebelahan pada baris rangkaian ada **chip sambungan**: klik chip itu lalu pilih **Cut** atau **Crossfade**, yang langsung diterapkan lalu menutup. Buka chip yang sama sekali lagi untuk mengubah **Length (ms)** lalu tekan **Done**. Crossfade disimpan sebagai fade keluar dari satu klip dan fade masuk ke klip berikutnya, dan dissolve yang sesungguhnya diturunkan dari pasangan itu: klip pertama terus diputar melewati titik potong dan fade keluar, sementara klip berikutnya fade masuk di bawahnya. Pratinjau dan berkas mengikuti aturan yang sama, jadi apa yang Anda lihat di sambungan itulah yang Anda ekspor.
-
-**Suara.** Tambahkan klip **Audio** dan klip itu hidup di timeline seperti klip lain: gelombang suara, pemangkasan, bisu. (Latar musik hasil generasi yang disertakan sesi bawaan adalah satu-satunya pengecualian - latar itu disintesis saat ekspor, jadi barnya tetap polos dan senyap sampai Anda merender.) Tekan ikon mikrofon untuk **merekam sulih suara** langsung ke timeline, lengkap dengan hitungan mundur dan meter level, dan hasil rekamannya disimpan sebagai aset Anda sendiri pada titik Anda mulai. Tekan ikon kamera di sebelahnya untuk **merekam video** dengan cara yang sama: hasil rekamannya dipangkas ke ukuran ekspor artboard selagi merekam, sehingga tampilan diri yang kecil itu menunjukkan persis apa yang masuk ke rangkaian pada playhead, bingkai penuh - cara untuk mengumpulkan klip rekan kerja dari tautan yang dibagikan. Musik, dialog dan trek suara milik klip semuanya masuk ke campuran hasil ekspor. (**Audio track** di panel ekspor adalah hal yang berbeda: satu latar yang dipasang di bawah seluruh klip, dengan fade dan ducking. Keduanya bisa berdampingan.)
-
-**Strip audio.** Pilih klip apa pun yang membawa suara dan sebuah strip ringkas terbuka di bawah timeline: sebuah fader **Volume**, **Geser** untuk posisi stereo, sebuah **EQ** tiga pita (**Rendah**, **Mid**, **Tinggi**), sebuah kontrol **Pitch** yang mentranspos dalam semiton sambil suara mempertahankan karakternya, dan **Normalkan volume**, yang membawa klip ke loudness siaran (BS.1770) sehingga catatan suara yang pelan dan trek yang keras berada pada level yang sama. Di tempat dua klip bertemu, **Crossfade** memadukan sambungannya alih-alih memotong. Sebuah slot **Efek** menjalankan pemrosesan di perangkat pada klip itu - **Pembersihan suara** menghilangkan suara ruangan dan desis dari sebuah rekaman. Perubahan speed juga mempertahankan pitch: klip yang diperlambat atau dipercepat mengalami time-stretch, bukan berubah jadi suara chipmunk. Pada setiap mix, ekspor melakukan ducking musik di bawah ucapan seiring ucapan datang dan pergi, dan menahan seluruh program di bawah true-peak limiter sehingga tidak ada yang clipping saat keluar; sebuah waveform yang seharusnya clipping digambar dengan peringatan di titik kejadiannya.
-
-![Timeline dengan klip musik terpilih: stripnya membentang di sepanjang bagian bawah dengan Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume dan slot Effect](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
-
-**Merendernya.** Ekspor gerak adalah **komposit deterministik**, bukan rekaman layar - setiap frame didekode, digambar dan dikodekan pada waktu yang persis, jadi berkasnya tidak bergantung pada kemampuan mesin Anda mengimbangi, dan praktis tidak ada batas jumlah frame pada MP4 atau WebM. Panjang timeline itu sendiri menentukan durasinya kecuali Anda mengetiknya. Content Credentials dibubuhkan seperti pada ekspor lain. Ekspor gambar diam memberi Anda frame pada posisi playhead, atau satu lembar kontak penuh dari kolom **Frames** di samping ukuran keluaran - lihat [Ekspor](/info/exporting.html#stills-from-a-timed-composition).
-
-Beberapa batasan yang perlu diingat: satu rangkaian dibatasi satu jam, GIF dan PNG beranimasi menyangga frame-nya sehingga harus tetap pendek, klip yang diputar lebih cepat atau lebih lambat mempertahankan pitch-nya (strip audio melakukan time-stretch, dan sebuah kontrol **Pitch** mentranspos dalam semiton dengan karakter suara tetap terjaga) dan **Record live** disembunyikan di sini karena kompositor adalah jalur yang lebih baik.
-
-**Melampaui preset: keyframe, depth dan sebuah kamera.** Sebuah transisi menganimasikan sebuah klip saat ia masuk dan keluar. Untuk memberi pose pada sebuah kotak *di dalam* sebuah klip - menghanyutkannya, memudarkannya, mengaburkannya, mengangkatnya dari halaman lalu meletakkannya kembali - tambahkan keyframe: pilih klipnya, tekan **+Keyframe** (belah ketupat di kluster alat timeline, belah ketupat di object bar kanvas atau `K`) dan posisi playhead menentukan pose mana yang ditulis oleh edit Anda berikutnya. Sistem keyframe yang sama memberi tiap komposisi berwaktu sebuah **kamera** yang mendorong masuk, panning menyamping dan menarik fokus, dan mengubah satu SVG datar menjadi tumpukan layer yang bisa Anda terbangi. **[Animating](/info/animating.html)** adalah panduan lengkapnya.
-
-Tool Design punya timeline yang sama, jadi Anda bisa mengatur waktu sebuah tata letak tanpa berpindah ke tool lain, dan tool itu juga mengekspor gerak.
-
-## Presentasi
-
-Untuk menempatkan kamera Anda, sebuah logo dan keterangan nama di atas gambar audiens, gunakan **Present with camera**. Kontrol privatnya, scene tersimpan, langkah berbagi dan merekam dibahas di [Presenting with camera](/info/presenting.html). Kontrol dek biasa di bawah tetap tersedia lewat **Present**.
-
-Dokumen Design yang tersusun dari **artboard** sudah merupakan sebuah dek. Buka **Lolly menu** di rel tool lalu pilih **Present** - baris terakhir - dan setiap artboard menjadi slide layar penuh, dalam urutan letak artboard di kanvas. Dek berjalan di atas salinan artboard yang sudah dirender, jadi editor di baliknya tidak pernah tersentuh dan keluar dari dek mengembalikan Anda persis ke tempat semula.
-
-- **Maju** dengan **Space**, `→`, **Page Down**, atau klik pada strip di tepi kanan layar; mundur dengan `←`, **Page Up**, atau strip di tepi kiri. **Home** dan **End** melompat ke slide pertama dan terakhir. Sebuah bilah kontrol kecil memudar masuk setiap kali Anda menggerakkan pointer dan menyembunyikan diri lagi setelah Anda berhenti.
-- **Overview** (`O` atau tombol grid) menyusun semua artboard sekaligus dalam susunan yang Anda berikan pada kanvas; klik salah satu untuk membukanya.
-- **Reveal steps.** Klik kanan sebuah kotak dan pilih **Reveal at step 1**, **2**, atau **3** alih-alih default **Always visible**. Kotak tersebut kemudian menunggu sampai Anda maju ke langkahnya, sehingga sebuah slide bisa muncul secara bertahap; kotak-kotak dengan nomor yang sama muncul bersamaan.
-- **Speaker view** (`S`) membuka jendela kedua berisi slide saat ini, slide berikutnya, catatan Anda untuk slide tersebut, dan sebuah jam yang berjalan. Jika browser memblokir pop-up, tampilan ini beralih ke sebuah panel di atas deck. Catatan diatur per artboard dan tidak pernah muncul pada slide itu sendiri.
-- `B` menahan sebuah layar hitam (tombol apa pun mengembalikan slide), `F` kembali ke fullscreen, dan **Escape** mengupas satu lapisan pada satu waktu: overview kembali ke deck, deck kembali ke editor.
-- **Kiosk.** Beri sebuah artboard sebuah **Length** dan deck akan bertahan di sana selama itu, lalu maju sendiri di balik progress bar tipis; `K` (atau tombol pause, yang hanya muncul setelah sesuatu memiliki length) menghentikan dan memulai ulang itu. Tambahkan `kiosk` ke tautan dan deck akan berputar kembali (wrap) di akhir, itulah yang menjadikannya signage.
-
-- **Tumpukan sub-slide.** Klik kanan sebuah artboard dan pilih **Stack under the previous slide** dan itu menjadi sebuah langkah dari slide tersebut, bukan slide tersendiri: overview menampilkan satu kartu, dek berjalan melalui tumpukan itu secara berurutan, dan baris **Stack** pada inspektur menyebutkan slide mana yang menjadi induknya.
-- **Morf.** Ketika dua slide berurutan sama-sama memiliki kotak dengan nama **Morph match** yang sama (klik kanan sebuah kotak, atau baris **Morph match** pada inspektur - misalnya `hero`), transisi memindahkan kotak itu dari posisi lama ke posisi barunya, mengubah ukuran dan warna di sepanjang jalan, alih-alih memotong. Transisi **Morph** untuk seluruh dek melakukan hal yang sama pada setiap pasangan yang cocok.
-- **Narasi.** **Speaker notes** setiap artboard bisa dibacakan dengan suara. Di bagian **Document** pada inspektur, pilih sebuah **Voice**, opsional suara kedua untuk **Blend with**, **Speed** membaca, serta **Lead-in** dan **Tail** dalam milidetik di sekitar setiap slide; nyalakan **Show captions when presenting** dan kata-katanya muncul saat diucapkan. Suaranya berjalan di perangkat Anda. Catatan yang sama menjadi film dalam ekspor video, audio slide sungguhan dalam ekspor PowerPoint, dan film bernarasi di dalam [paket SCORM](/info/create/exporting.html#scorm-course-packages).
-
-![Bagian Document pada inspektur: Voice, Blend with, Speed, Lead-in, Tail dan Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
-
-Dek itu juga sebuah tautan. `?present` langsung membukanya, `s=` memilih slide-nya - sebuah posisi, id artboard atau `id.step` untuk satu langkah kemunculan - dan alamatnya diperbarui saat Anda berpindah, jadi yang Anda kirim adalah slide tempat Anda berada. Penulis tool: parameter itu didokumentasikan di halaman [URL Mode](/info/url-parameters.html#reserved-parameters).
+**View sessions** muncul hanya setelah sesuatu dipilih. Klik kanan satu kartu yang tidak dipilih dan ia menawarkan **N saved sessions**, daftar sesi tersimpan alat itu tempat penghapusan memindahkan sesi ke Tempat Sampah.
 
 ## Di ponsel
 
-Pada layar sempit, tata letaknya mengalir menjadi satu kolom:
+Pada layar sempit, tata letak menjadi satu kolom:
 
-- **Kontrol berubah menjadi lembar** di bagian atas dengan **pegangan seret** di tepi bawahnya. Seret pegangannya untuk mengubah ukuran - lembar itu mengait ke **peek / half / full** - atau **ketuk** pegangannya untuk beralih antara terlipat ↔ terbuka. Pratinjau mengisi ruang di bawahnya dan tetap terlihat selagi Anda menyunting.
-- Tombol **Export** yang mengambang membuka lembar ekspor - semua kontrol format, ukuran, salin, simpan dan unduh dalam satu tempat. Tutup dengan mengetuk latar belakangnya.
+- **Kontrol menjadi sheet** di bagian atas dengan pegangan seret di tepi bawahnya. Seret pegangan untuk menjepret ke **peek**, **half**, atau **full**, atau ketuk untuk menciutkan dan membentangkan. Pratinjau mengisi ruang di bawahnya dan tetap terlihat saat Anda menyunting.
+- Tombol **Export** yang mengambang membuka sheet ekspor: format, ukuran, salin, simpan, dan unduh di satu tempat. Ketuk latar belakang untuk menutup sheet.
 
 ![Sebuah tool pada layar selebar ponsel - kontrol sebagai lembar di atas, palet hasil generasi mengisi pratinjau di bawah dan pil render mengambang di tengah bawah](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
-## Kontrol (input)
-
-Tool hanya menampilkan input yang memang boleh berubah - selebihnya (warna, tata letak, tipografi, logika) dikunci oleh penulis tool, sehingga apa pun yang Anda buat memenuhi aturan yang ditetapkan penulisnya. Input mencakup teks, penggeser, pemilih warna, menu tarik-turun, tanggal, pemilih gambar dan grup baris berulang. Sebagian dikelompokkan di bawah bagian yang bisa dilipat.
-
-![Tumpukan kontrol sebuah tool - satu kolom teks, pemicu warna dan satu penggeser, tanpa apa pun lagi yang dipilih penulisnya untuk dikunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
-
-**Reset:** *Clear changes* mengembalikan setiap input ke nilai bawaannya.
-
-### Undo dan redo
-
-**Cmd/Ctrl-Z** mundur satu langkah dan **Cmd/Ctrl-Shift-Z** (atau **Cmd/Ctrl-Y**) maju lagi. Pasangan yang sama tersedia sebagai tombol **Undo** dan **Redo** di baris atas kontrol - pada kanvas bebas keduanya ada di rel tool - dan masing-masing meredup selama tidak ada lagi yang bisa dibatalkan. Setiap langkah menyebutkan dirinya: batalkan sebuah warna dan pesan kecil menyebut input yang baru saja dipulihkan, dengan tombol **Redo** di dalamnya untuk jalan kembali.
-
-- **Satu seretan adalah satu langkah.** Perubahan berulang pada kontrol yang sama dalam setengah detik digabungkan, jadi menarik penggeser sepanjang rentangnya adalah satu undo, bukan dua ratus.
-- **100 langkah terakhir disimpan** - yang lebih lama terlepas dari ujungnya. Menyunting hal baru setelah membatalkan akan menghapus tumpukan maju, sama seperti di tempat lain.
-- **Selagi kursor Anda berada di kotak teks**, Cmd/Ctrl-Z menjadi milik kolom itu sendiri, karakter demi karakter. Lolly mengambil alih untuk kontrol yang tidak punya undo sendiri yang berguna: penggeser, menu tarik-turun, warna dan sakelar.
-- **Memilih berkas** pada input **file** bukanlah sebuah langkah - byte itu hanya disimpan untuk sesi berjalan, jadi tidak akan ada yang bisa dikembalikan.
-
-Dalam sebuah [kolaborasi](/info/collaborate.html) live, riwayat tetap hanya milik Anda. Perubahan yang datang dari perangkat lain tidak pernah masuk ke stack Anda, jadi undo hanya bisa membatalkan sesuatu yang Anda lakukan sendiri.
-
-Undo hanya menjangkau kembali sepanjang kunjungan ini; tool yang menyimpan saat Anda bekerja juga menyimpan versi sebelumnya di bawah **History**, di sebelah **Undo** (lihat [Kembali ke versi sebelumnya](/info/find-your-work.html#go-back-to-an-earlier-version)).
-
-## Data diri & foto Anda
-
-**Pengaturan** (kanan atas galeri, menampilkan nama depan Anda begitu Anda mengaturnya) menyimpan nama, detail kontak dan **foto diri** opsional Anda. Tool yang meminta kolom-kolom itu mengisinya otomatis - atur sekali dan tanda tangan email, lockup serta lencana Anda akan terisi sendiri. Anda tetap bisa menimpa kolom mana pun per sesi. Aktifkan **Use my details to create** agar detail Anda ikut tercantum sebagai penulis pada apa yang Anda ekspor.
-
-Foto dan detail Anda ada **hanya di perangkat ini**. Sebuah profil bisa lebih dari sekadar diri Anda - sebuah tim atau peran yang sesekali Anda jalani. Lihat **[Profil](/info/profile.html)** untuk gambaran lengkapnya, termasuk menyimpan lebih dari satu.
-
-## Menyimpan & melanjutkan
-
-Untuk menyimpan karya Anda, pilih **Simpan sebagai**, tanda centang di sebelah **Ekspor**. Di bawah **Save to a project**, biarkan **Pustaka saya** terpilih atau pilih sebuah proyek (**＋ Proyek baru…** membuat satu), lalu pilih **Simpan**. Menyimpan lagi memperbarui item yang sama, bukan membuat salinan. Di Design, **Simpan sebagai** ada di menu di bawah logo Lolly; di ponsel, tekan **•••**, lalu **File menu**, lalu **Simpan sebagai**.
-
-Tombol **Simpan** di panel ekspor melakukan hal yang sama dalam satu klik dan tidak pernah mengunduh berkas: karya baru masuk ke Pustaka saya, dan karya yang pernah Anda simpan diperbarui di tempatnya.
-
-Untuk kembali nanti, pilih **Beranda** di kiri atas, lalu buka tab **Proyek** (ikon folder di ponsel). Simpanan Pustaka saya ada di layar pertamanya; sebuah proyek adalah folder di sana. Item diberi nama sesuai nama file yang Anda ketik di panel ekspor, atau jika tidak, sesuai tool-nya, seperti **QR Code**. Buka salah satu dan setiap pengaturan ada di sana, siap diubah dan diekspor lagi.
-
-Karya tersimpan tetap berada di perangkat ini, di browser atau aplikasi tempat Anda menyimpannya, kecuali Anda mengaktifkan [Sync](/info/sync.html). Berkas yang Anda dapatkan dengan **Unduh** adalah salinan jadi; untuk mengubahnya nanti, buka item tersimpan itu di Projects. Jika sesuatu tidak berada di tempat yang Anda kira, lihat [Temukan dan pulihkan karya Anda](/info/find-your-work.html).
-
-![Pil render berbagi dua - panah ke atas yang membuka panel ekspor, dan tanda centang berlabel Save as yang membuka lembar simpan](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
-
-## Projects
-
-**Proyek**, tab **Proyek** di bagian atas layar utama, menyimpan semua yang telah Anda simpan, dalam folder yang Anda buat. Menemukan, mengurutkan dan mencari karya Anda di sana, serta memulihkan item dari **Sampah**, dibahas di [Temukan dan pulihkan karya Anda](/info/find-your-work.html#find-something-you-saved).
-
-
-## Membagikan karya Anda
-
-Sebuah desain keluar lewat salah satu dari dua cara: sebagai tautan atau sebagai berkas. Dialog Share menawarkan keduanya. Buka dengan **Share** di kontrol ekspor; **Share link** pada sesi tersimpan di Projects membuka dialog yang sama untuk sesi itu.
-
-### Tautannya
-
-Setiap input tertangkap di URL halaman, jadi sebuah tautan *adalah* desainnya. Di bagian atas dialog terdapat tautan yang siap disalin, dengan dua bagian terlipat di bawahnya.
-
-- **Link options** memuat **Open in the installed app** (mengalihkan kolom menjadi URI `lolly://` untuk Shortcuts, launcher dan otomasi, dengan setiap parameter tidak berubah), **Shortest link** (desain besar menghasilkan URL panjang, jadi opsi ini memampatkan seluruh keadaan ke dalam token ringkas dan menunjukkan penghematannya dalam jumlah karakter; bentuk yang terbaca selalu tersedia juga), **Password-protect this link** (AES-256 atas seluruh tautan, kata sandinya tidak pernah ada di dalamnya) dan **Pin this tool version** - flag `_v`, yang memaku tautan ke versi tool yang sedang Anda lihat sehingga pembaruan berikutnya tidak bisa mengubah hasil rendernya.
-- **Link behaviour** adalah apa yang terjadi ketika penerimanya membuka tautan itu: layar penuh, panel ekspor yang sudah terbuka, unduh-saat-dibuka dengan `&export` atau salin-ke-papan-klip dengan `&copy`.
-
-Tempelkan tautannya untuk rekan kerja, jadikan bookmark atau commit ke repositori. (Detail lengkap: [URL Mode](/info/url-mode.html).)
-
-**Bagi beberapa alat, link adalah keseluruhan produknya.** Jump Page mengumpulkan link Anda ke dalam satu halaman untuk dibagikan - sebuah bio link, sebuah talk konferensi, sebuah shop front. Tidak ada yang perlu di-hosting dan tidak ada akun di baliknya: halamannya adalah linknya, jadi ia terbuka secepat URL itu sampai. Di editor Anda melihat halaman jadi di samping field-fieldnya; pengunjung yang membuka link mendapatkannya dalam lebar penuh, satu link per scene saat mereka scroll.
-
-![Jump Page di editor: scene heading di bagian atas halaman, dengan scene link di bawahnya](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
-
-**Dialognya menyebutkan apa yang tidak bisa dibawa sebuah tautan.** Tiga hal tidak muat di dalam URL: gambar atau berkas yang Anda tambahkan dari perangkat ini, nilai teks yang sangat panjang atau daftar yang sangat besar. Masing-masing dihitung saat tautannya dibangun. Jika ada yang terpaksa ditinggalkan, dialog menyebutkannya dan mengarahkan Anda ke berkas di bawah, alih-alih menyerahkan tautan yang terbuka tanpa gambarnya. Tautan yang sekadar *panjang* mendapat catatan yang lebih ringan beserta jumlah karakternya, karena pemampatan masih bisa menyelamatkan panjangnya.
-
-### Berkas .lolly
-
-`.lolly` adalah ekstensi bundel portabel milik Lolly, bukan jaminan bahwa setiap berkas berisi hal yang sama. `format` di dalam `manifest.json` adalah otoritasnya. Aplikasi membaca manifest kecil itu lebih dulu dan menampilkan ukuran, isi serta tindakan sebelum menulis apa pun:
-
-- Sebuah **shared design** (`lolly-share`) berisi satu sesi tool tersimpan, berkas yang disematkan di dalamnya dan sebuah tanda terima untuk apa pun yang masih diselesaikan lewat referensi. Ia juga bisa membawa tool dan design system yang dipakai untuk membuatnya. Membukanya menambahkan sebuah Project baru; ia tidak pernah menimpa sesi yang sudah ada.
-- Sebuah **shared project** (`lolly-share` dengan jenis `project`) berisi sebuah folder dari Projects: subfoldernya, setiap sesi tersimpan yang diarsipkan di dalamnya, ubin masing-masing sesi dan gambar yang diarsipkan di sana. Membukanya menambahkan salinan seluruh folder ke Projects; tidak ada yang sudah ada di sana yang digantikan. Sebuah Lolly dari sebelum berkas project ada tidak bisa membaca berkas ini dan meminta Anda memperbarui.
-- Sebuah **design-system pack** (`lolly-brand`) berisi token dan bisa berisi font, logo, versi terbit dan sumber daya yang dipertahankan. Membukanya menambahkannya sebagai design system bernama terpisah, lalu beralih ke sana; sistem yang sudah ada di perangkat tetap ada.
-- Sebuah **brand workspace / instance pack** adalah sebuah `lolly-brand` dengan tool yang dideklarasikan, aset katalog dan opsional sebuah alamat instance. Preflight-nya mencantumkan efek-efek yang berlaku ke seluruh perangkat itu karena memuatnya menggantikan satu-satunya overlay workspace yang dimuat sebelumnya.
-
-Sebuah **cadangan penuh perangkat/profil bukanlah sebuah `.lolly`**. Ia tetap berupa `LollyTools-….zip` dengan format `lolly-backup`, dan dipulihkan lewat **Pengaturan → Penyimpanan → Impor data…**, yang juga mengambil sebuah salinan yang disimpan Sync di penyimpanan Anda. Sebuah folder tool yang di-zip apa adanya juga tetap `.zip`. Dengan kata lain, bundel sesi dan design system memiliki `.lolly`; alur kerja cadangan dan arsip lepasan tidak.
-
-**Download .lolly**, di dialog Share pada tool yang sedang Anda gunakan, menuliskan desain saat ini sebagai sebuah bundel shared-design. Berkas itu membawa sesi tersimpan beserta gambar dan berkas yang tersedia di perangkat ini. Karya katalog biasa juga ikut serta. Karya berlisensi ditahan kecuali Anda secara eksplisit menyertakannya, dan berkas yang basi atau tidak tersedia tetap menjadi referensi eksternal alih-alih menghilang. Tanda terima yang disiapkan menampilkan ukuran `.lolly` sebenarnya, jumlah berkas yang disematkan, jumlah referensi eksternal dan apakah tool-nya disertakan. Di perangkat yang memiliki lembar berbagi, **Send to…** menyerahkan berkas itu langsung ke sana (AirDrop, berbagi Android) alih-alih menyimpannya ke disk.
-
-**Download project (.lolly)**, di menu sebuah folder dalam **Proyek**, menuliskan folder itu sebagai sebuah shared project, sehingga orang lain bisa membukanya dan melanjutkan setiap sesi di dalamnya. Setiap sesi berpindah sebagai bagiannya sendiri (`sessions/<key>.json`, dengan ubinnya di bawah `thumbs/`), pohon foldernya dicantumkan di `manifest.json`, dan unggahan serta karya katalog berpindah dengan aturan yang sama seperti sebuah shared design tunggal. Sesi batch bukan sesi tool dan tertinggal; pemberitahuannya menyebutkan berapa banyak. **Download originals**, di sebelahnya, tidak berubah: sebuah zip biasa dari setiap item sebagai berkasnya sendiri.
-
-Berkas `.lolly` adalah zip biasa. Ganti namanya menjadi `.zip` lalu buka: gambar Anda sendiri ada di `assets/uploads/` dan karya katalog di `assets/catalog/`, masing-masing dengan nama dan ekstensi aslinya, `manifest.json` mencantumkan semuanya dan sebuah README di bagian atas menjelaskan berkas apa ini.
-
-Tiga hal yang Anda tentukan sendiri sebelum berkasnya dikirim:
-
-- **Apakah nama Anda ikut masuk.** Nama, email dan organisasi Anda ditulis ke dalam file hanya saat **Use my details to create** aktif di profil Anda. Dengan itu nonaktif, file mencatat bahwa file itu dibuat dengan Lolly dan kapan - tanpa apa pun tentang Anda.
-- **Apakah karya berlisensi ikut masuk.** Aset berlisensi dan brand-locked ditahan secara default. Jika desain menggunakan salah satunya, dialog menyebutkan jumlahnya dan menawarkan dua tombol - *Download without them* atau *Include and download* - karena menyertakannya menyerahkan file sebenarnya kepada siapa pun yang membuka `.lolly` tersebut.
-- **Apakah alatnya ikut masuk.** **Include the tool** mengemas file alat itu sendiri bersama desain, sehingga terbuka di perangkat yang tidak memiliki alat tersebut. Ini datang tercentang untuk alat kustom - sebuah fork atau alat brand privat yang kemungkinan besar tidak dimiliki penerima Anda - dan tidak tercentang untuk alat yang tercantum di katalog bertanda tangan, karena salinan mereka berasal dari sumber yang sama. (Pada build tanpa katalog bertanda tangan, setiap alat dihitung sebagai kustom dan kotaknya dimulai tercentang.)
-
-**Membuka salah satunya.** Pada aplikasi desktop atau mobile yang terpasang, klik ganda atau ketuk sebuah `.lolly`, pilih **Open with Lolly**, atau kirim ke Lolly dari lembar berbagi sistem. macOS, Windows, Linux, iOS dan Android semuanya mendaftarkan formatnya; pengelola berkas desktop menampilkannya sebagai dokumen Lolly (dan GNOME Files bisa menampilkan gambar mini sesi tersimpan itu sendiri). Di aplikasi web, gunakan **Buka** atau jatuhkan berkasnya ke Lolly. Setiap pintu memakai preflight manifest-first yang sama. Membuka dari Brand Studio merekomendasikan aksi design-system saat sebuah shared design membawanya, tetapi tidak pernah melabeli ulang berkasnya atau menyembunyikan **Desain terbuka bersama**.
-
-Sebuah dokumen iOS atau Android yang diserahkan dari aplikasi lain dibatasi hingga 48 MB karena hand-off native harus menyalin byte-nya melewati batas aplikasi. Aplikasi mobile menyebutkan hal ini alih-alih diam-diam mengabaikan berkas yang terlalu besar. **Buka** di dalam Lolly tidak memakai hand-off itu; inilah jalur yang perlu dicoba untuk bundel yang lebih besar.
-
-Setelah konfirmasi, pembaca yang dipilih meng-inflate dan memverifikasi bundel itu sekali. Aset dari sebuah shared design masuk ke pustaka Anda, sesinya masuk ke Projects dan tool-nya terbuka jika tersedia. Sesi dari sebuah shared project masuk ke Projects di bawah salinan baru foldernya, dengan id baru sehingga berkas yang sama bisa dibuka dua kali, dan foldernya terbuka; sebuah sesi yang tool-nya tidak dimiliki perangkat ini menunggu di sana. Sebuah aset yang sudah ada di perangkat dicocokkan lewat checksum dan dipakai ulang. Sebuah design-system pack disimpan di namespace-nya sendiri sebelum aplikasi beralih ke sana. Berkas di atas 100 MB ditandai sebagai besar, dan preflight memberi peringatan ketika penyimpanan browser melaporkan ruang kosong yang lebih sedikit daripada yang dibutuhkan payload yang dinyatakan. Setiap bagian yang tercakup integritas diperiksa sebelum operasi dikomit; salinan yang rusak ditolak dan tujuan yang baru dibuat dikembalikan (rolled back).
-
-Jika berkas itu membawa tool yang tidak Anda miliki, Lolly bertanya sebelum tool tersebut boleh berjalan: **Trust this tool?** menyebutkan nama tool dan penulisnya serta menyatakan dengan jelas bahwa membukanya berarti menjalankan kode milik tool itu di perangkat Anda, dengan **Trust & install** sebagai jalan untuk melanjutkan. Menolak pun, karya yang dibagikan tetap tersimpan di projects Anda, menunggu sampai hari Anda menambahkan tool-nya. (Satu jenis tool belum bisa dipasang dari luar - yaitu yang kodenya dikirim sebagai modul - dan tool semacam itu ditolak dengan cara yang sama.)
-
-Tautan maupun berkas sama-sama menyerahkan satu potret keadaan. Untuk mengerjakan sesi yang sama *pada waktu yang sama* dengan orang lain - dua perangkat, tanpa server, tanpa perlu internet jika Anda berada di satu jaringan - lihat [Bekerja bersama](/info/collaborate.html).
-
-## Kamera langsung (tool yang bereaksi pada gerakan)
-
-Setiap **Filter** foto - Halftone, Scanline, Posterize, Voronoi cells, Colour treatment, Pixel stretch dan Imperfections - menampilkan tombol **Go live** bila ada kamera yang tersedia. Nyalakan dan efeknya mengikuti webcam Anda frame demi frame, sehingga bereaksi terhadap gerakan; hasilnya bisa Anda rekam ke GIF, WebM atau MP4. Frame dibaca dan diproses **di perangkat Anda** dan tidak pernah keluar darinya, dan kamera dilepaskan begitu Anda berhenti atau meninggalkan tool-nya. (Setiap pemilih gambar juga punya **Take a photo** untuk mengambil satu frame sebagai gambar di perangkat.)
-
-## My images
-
-Ketika sebuah tool memungkinkan Anda menambahkan gambar dari perangkat, gambar itu disimpan persis seperti saat datang - sehingga Content Credential padanya tetap terverifikasi - dan masuk ke pustaka **My images** pribadi Anda (di bawah **Pengaturan → Penyimpanan**). Hanya berkas yang benar-benar besar yang menanyakan apakah akan disimpan apa adanya atau diubah ukurannya. Pakai ulang di tool mana pun. Untuk membersihkan EXIF/GPS saat gambar masuk, nyalakan **Strip metadata from uploads** di profil Anda. Tidak ada batas: pustakanya sepenuhnya lokal dan hanya dibatasi oleh penyimpanan perangkat Anda - kelola atau hapus gambar di sana.
-
-## Aset - pustaka Anda
-
-**Aset** (`#/a`, atau segmen **Aset** pada sakelar Alat · Utilitas · Aset · Proyek di bagian atas setiap tampilan daftar) mengumpulkan semua yang bisa dipakai tool Anda - logo brand, gambar, audio dan gerak, dikelompokkan menurut jenisnya - dan di sinilah **berkas kreatif Anda sendiri** juga tinggal. Tanpa server, tanpa konsol admin, tanpa pull request: semuanya ada di perangkat Anda.
-
-![Aset - aset brand, swatch dan font, ditambah unggahan Anda sendiri](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
-
-- <!--i:upload--> **Bawa masuk file Anda.** Seret gambar, SVG, klip audio, video, Lottie, PDF atau deck PowerPoint apa pun ke area unggah - atau klik untuk memilih - dan file itu langsung masuk ke Aset, siap di asset picker tiap alat. PDF multi-halaman atau sebuah `.pptx` akan menanyakan halaman atau slide mana yang ingin disimpan - masing-masing menjadi aset SVG. Ingest sebanyak yang Anda mau; ia tidak pernah keluar dari perangkat Anda.
-- <!--i:star--> **Jadikan favorit apa yang sering Anda gunakan.** Beri ★ pada sebuah aset (atau swatch brand) dan ia akan disematkan ke atas tiap picker, sehingga logo atau warna andalan Anda hanya sejauh satu klik.
-- <!--i:folder--> **Rapikan.** Kategorikan ulang sebuah aset ke grup lain, sembunyikan aset brand bersama yang tidak Anda gunakan (dengan **Show hidden** untuk memunculkannya kembali) atau hapus unggahan Anda sendiri sepenuhnya. Gesture multi-select dan action bar mengambang yang sama seperti di Projects juga berfungsi di sini, jadi semua itu bisa dilakukan pada seluruh pilihan sekaligus.
-- <!--i:layers--> **Pisahkan video dari latar belakangnya.** Buka detail sebuah video atau klik kanan kartunya di asset picker mana pun dan pilih **Remove background…** untuk menyimpan alternatif transparan - sebuah WebP atau PNG beranimasi dengan alpha sungguhan. Pilih sebuah **Method**: sebuah **On-device model** memotong subjek keluar dari adegan yang ramai, atau sebuah **Colour key** mengunci keluar latar belakang datar yang diterangi merata seperti green screen atau dinding polos, dengan **Tolerance**, **Softness** dan **Spill removal** untuk menyetel tepiannya. Colour key tidak perlu unduhan model atau jaringan, jadi **Remove background** ditawarkan pada video apa pun dan sering lebih bersih pada footage yang rapi. Sebuah kontrol **Resolution** (360, 480, 720 atau 1080p, tidak pernah melebihi sumber) menukar detail dengan file yang lebih kecil dan lebih cepat. Ini berjalan sebagai background job di perangkat Anda. Cut-out yang jadi disimpan di samping yang asli sebagai aset sendiri dan Content Credential video sumbernya ikut serta sebagai bahan. (Lihat [Generated once, rendered the same](/info/ai-features.html) untuk alasan mengapa menghapus latar belakang tetap dianggap sebagai edit biasa.)
-
-### Bawa palet dan font Anda ke mana saja
-
-Panel **Swatches** di Aset tidak sekadar menampilkan - klik sebuah warna untuk menyalinnya, atau **unduh seluruh palet brand** dalam format yang dipahami tool Anda yang lain:
-
-- <!--i:code--> **Design tokens (JSON)**, **CSS variables** atau **CSS classes** - masukkan brand langsung ke sebuah stylesheet atau proses build;
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)** - muat ke Illustrator atau Photoshop;
-- <!--i:pentool--> **GIMP palette (.gpl)** - untuk GIMP atau Inkscape.
-
-![Panel Swatches - lima tombol unduh palet di bagian atas, lalu setiap warna brand sebagai chip yang bisa disalin](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
-
-Panel **Fonts** mencantumkan huruf brand Anda dengan tombol **download** di samping masing-masing, untuk dipasang secara lokal atau diserahkan ke percetakan. (Ruang Colours di [Brand Studio](/info/brand-studio.html) menawarkan unduhan palet yang sama.)
-
-Aset adalah separuh dari jalur terbuka yang bisa Anda kerjakan sendiri; separuh lainnya adalah **membuat tool Anda sendiri** - kanvas bebas (Design, yang dijelaskan di atas) memungkinkan Anda membangunnya secara visual, tanpa perlu kode.
-
-## Suara & aksesibilitas
-
-Lolly berupaya nyaman digunakan oleh semua orang. Antarmukanya bisa dinavigasi dengan papan ketik, kontrol khususnya membawa label yang benar untuk pembaca layar dan pratinjau langsung setiap tool disajikan sebagai satu gambar berlabel yang menjelaskan apa yang sedang dibuatnya.
-
-Lapisan lembut **suara bantuan** menegaskan apa yang Anda lakukan - tiba di galeri, hasil pemeriksaan Content Credentials yang sah vs. tidak sah, menutup panel, mengganti filter. Fitur ini **mati secara bawaan**: nyalakan **Sound** di mana pun sakelarnya muncul (popover opsi tiap tampilan, atau **Pengaturan**), dan pilihan itu diingat.
-
-Empat pengaturan kenyamanan opsional ada di **Pengaturan → Accessibility**: **Reduce motion** (menghilangkan transisi dan hiasan gerak aplikasi), **Hide colourful previews** (kartu galeri yang tenang berupa ikon dan teks, serta gambar mini proyek yang lebih kalem), **High contrast** (garis tepi, teks dan cincin fokus yang lebih tegas) dan **Large text** (huruf aplikasi lebih besar - label, menu, teks tombol). Keempatnya menenangkan aplikasi *di sekeliling* karya Anda: semuanya tidak pernah menjangkau ke dalam kanvas tool atau mengubah satu piksel pun dari yang Anda ekspor, dan masing-masing mati sampai Anda menyalakannya. Detail lengkap di [Profil Anda → Accessibility](/info/profile.html#accessibility).
-
-Di samping sakelar Sound ada **Neurospicy Mode** - trek fokus latar yang menenangkan dan opsional, yang berputar pelan selagi Anda bekerja. Menyalakannya membuka **dok pemutar** kecil di sudut bawah yang mengikuti Anda ke seluruh aplikasi; dari sana Anda bisa mencari dan memilih trek, melompat maju dan mundur, mengatur volume serta mengecilkan atau menutupnya. Daftar treknya mencakup beberapa kategori - lagu prosedural *Lolly Sings*, ambient loop dan beat, audio unggahan Anda sendiri dan sejumlah stasiun **radio** internet langsung (yang ini butuh koneksi; selebihnya berputar secara luring). Fitur ini **mati secara bawaan** dan, seperti Sound, diingat lintas sesi dan perangkat. Mematikan Sound juga membisukan trek fokusnya.
-
-## Penyimpanan & privasi
-
-Lolly menyimpan karya Anda di perangkat Anda: di penyimpanan browser itu sendiri pada aplikasi web, dan di penyimpanan aplikasi itu sendiri pada aplikasi desktop dan mobile. Apa yang disimpan, apa yang dihapus oleh **Clear all my data** dan apa yang ikut terhapus saat Anda menghapus data browser dibahas di [Temukan dan pulihkan karya Anda](/info/find-your-work.html#if-you-clear-your-browser-data); [Kebijakan Privasi](/info/privacy.html) mencantumkan semua yang diambil atau dikirim aplikasi, dan [Server Surface](/info/server-surface.html) komponen server opsionalnya.
-
-## Pindah ke perangkat lain
-
-Untuk membawa karya Anda ke komputer atau ponsel kedua, gunakan Sync, sebuah berkas backup atau sebuah berkas `.lolly`. [Pindahkan karya Anda ke perangkat lain](/info/find-your-work.html#move-your-work-to-another-device) membandingkan ketiganya dan memandu Anda melalui **Export my data** dan **Import data…**.
-
-## Mengimpor desain (Figma, Penpot, Illustrator, InDesign)
-
-Anda bisa membawa desain yang sudah ada ke Lolly dan terus mengerjakannya: buka **Design**, klik **Import a design** di bilah alat kanvas, lalu pilih **.fig** atau SVG dari Figma, **.penpot** dari Penpot, **.ai** / **.pdf** dari Illustrator atau **.idml** dari InDesign. Lapisan menjadi kotak yang bisa disunting di kanvas bebas - teks tetap bisa diketik ulang, gambar masuk ke **My images** dan huruf serta warna menyesuaikan dengan global brand - lalu hasilnya bisa disimpan, dibagikan dan dirender seperti sesi lain. Penguraiannya terjadi sepenuhnya di perangkat Anda. Detail lengkap: **[Impor desain](/info/design-import.html)**.
-
-## Mengekspor
-
-Lihat **[Ekspor & Format](/info/exporting.html)** untuk cerita lengkapnya - memilih format, ukuran keluaran dan satuan cetak, transparansi, video serta salin/bagikan. Singkatnya: pilih format, atur ukurannya bila perlu lalu **Download** (atau **Copy** ke papan klip).
-
-## Mode Batch (Pro)
-
-Untuk pengguna tingkat lanjut, **Batch** (tertaut dari galeri, dibatasi oleh flag fitur Pro yang aktif secara bawaan) merender banyak variasi sekaligus - sebuah kisi yang setiap barisnya adalah satu set input, diekspor bersamaan. Ideal untuk melokalkan sebuah kartu ke belasan bahasa atau menghasilkan setiap varian ukuran dalam satu jalan. Isi barisnya dengan mengetik, menempel langsung dari spreadsheet atau mengimpor CSV (Anda juga bisa mengekspornya kembali), dan atur format, ukuran serta nama berkas keluaran per baris. Simpan satu kisi utuh sebagai **sesi batch** bernama yang bisa dibuka lagi dari galeri, dan unduh setiap barisnya sebagai satu `.zip`.
-
-![Toolbar batch - nama zip, unit, DPI dan format yang diwarisi tiap baris, dengan Sessions dan Render di kanan](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
-
-Batch untuk menghasilkan **banyak varian dari satu templat** sekaligus. Untuk merender ulang sesi yang **sudah Anda simpan**, gunakan **Projects → Render folder / Render selection** (lihat [Temukan dan pulihkan karya Anda](/info/find-your-work.html#find-something-you-saved)) - tanpa perlu Pro.
-
-## Menyunting berdampingan (Multi-edit)
-
-Batch adalah banyak varian dari *satu* desain. **Multi-edit** adalah setengah pekerjaan lainnya: beberapa desain tersimpan yang **berbeda** dibuka sekaligus, sehingga satu perubahan berlaku untuk semuanya. Centang **dua hingga delapan** sesi tersimpan di **Projects** dan pilih **Edit together** dari selection bar; mereka terbuka sebagai kartu live berdampingan di `#/multi?s=<slot>,<slot>…`. Tiap kartu adalah render sungguhan dari sesi itu, bukan thumbnail tersimpan, jadi apa yang Anda lihat adalah apa yang akan diekspor.
-
-Satu sidebar mengendalikan semuanya:
-
-- <!--i:sliders--> **Shared** memimpinnya - setiap input yang dideklarasikan dengan cara yang *sama* oleh dua atau lebih sesi terpilih (id sama, tipe sama, batasan sama - aturan merge yang sama yang dipakai grid batch pada kolomnya). Edit satu kontrol shared sekali dan nilainya menyebar ke setiap sesi yang mendeklarasikannya, langsung di setiap kartu. Dua sesi dari tool yang sama berbagi segalanya; dua tool berbeda hanya berbagi input yang sama-sama mereka miliki.
-- <!--i:document--> Di bawahnya, **satu kartu terlipat per sesi** dengan semua input sesi itu sendiri, pada fidelitas yang sama seperti sidebar tool itu sendiri - asset picker, grup baris berulang, kolom warna - ditambah satu blok ekspor ringkas: **Format**, **W** / **H**, **Unit**, **DPI**, dan **Download** miliknya sendiri. Download itu menyimpan sesi terlebih dahulu lalu merendernya lewat jalur ekspor sesi biasa, sehingga file itu membawa nama file, format, dan Content Credentials yang sama seperti langsung dari tool itu.
-- <!--i:search--> **Filter inputs…** di bagian atas mempersempit kontrol di *semua* kartu sekaligus - begitulah caranya Anda sampai ke "judul utama" dalam delapan sesi tanpa perlu menggulir mencarinya.
-
-Klik kanvas mana pun (atau tekan Enter padanya) dan kartu sidebar sesi itu terbuka lalu tergulir ke tampilan. **Save all** menuliskan setiap sesi kembali ke slotnya masing-masing. **Download all** menyimpan lebih dulu, lalu merender seluruh set lewat alur yang sama dengan **Render selection** di Projects - satu zip, dengan kunci kata sandi opsional yang ditawarkan di tengah jalan.
-
-Dua batasan yang jujur. Batas dua sampai delapan itu nyata: setiap kartu memasang runtime langsungnya sendiri, dan itulah jumlah yang tetap responsif - tautan yang meminta lebih banyak (atau meminta sesi yang sudah tidak ada) akan mengatakannya alih-alih memuat separuh. Dan tautannya menyebut slot simpanan *Anda*, jadi ia membuka kembali set itu di perangkat ini; ini bukan tautan berbagi.
-
-Ketika seleksinya lebih dari delapan, mencampur beberapa tool atau memuat gambar selain sesi, jalan keluarnya adalah **Edit as sheet** di bilah seleksi yang sama: ia membuka seluruh seleksi sebagai **baris di kisi batch** (`#/pro?s=…`), tanpa batas jumlah dan tanpa aturan harus satu tool. Folder tidak termasuk pada keduanya - folder punya jalur buka-di-kisi sendiri. ([Cari](/info/search.html) adalah satu-satunya hal yang belum menjangkau ke sini: Multi-edit adalah satu-satunya tampilan yang tidak dikenali bilah pencarian.)
-
-## Luring & pemasangan
-
-Lolly adalah PWA. Lolly tetap bekerja **luring** pada layar yang sudah Anda buka, dan **Aplikasi** di bawah **Pengaturan → Tersedia offline** mengunduh sisanya - pasang dari bilah alamat browser Anda (atau *Add to Home Screen* di ponsel) untuk pengalaman layar penuh seperti aplikasi. Lolly memperbarui dirinya sendiri ketika Anda kembali daring.
-
-Tentang update: jika sebuah view gagal dimuat tepat setelah update (panel kosong, sebuah "failed to fetch" di sudut), muat ulang halamannya sekali - aplikasi akan mengambil versi baru secara bersih dan pekerjaan, sesi serta brand Anda tidak tersentuh; hanya gambar yang Anda tambahkan dan belum pernah disimpan yang mungkin perlu ditambahkan lagi. Ia menyimpan semuanya di perangkat Anda, bukan di halaman.
-
-Design dan Darkroom bisa mempertahankan presisi gambar asli dengan penyuntingan **Wide colour / HDR**, termasuk video Sequence. Swatch brand bisa membawa nilai sRGB dan P3 yang terpisah. Lihat [Wide colour and HDR editing](/info/hdr-editing.html) untuk pilihan output dan batasan saat ini.
-
-
-### Live pages that take the clicker
-
-Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).
+## Settings, suara, dan kenyamanan
+
+**Settings**, di dasar layar beranda, memuat detail Anda, design system, aksesibilitas, penyimpanan, dan unduhan offline. [Settings](/info/dashboard.html) memetakan setiap tab.
+
+- **Detail dan foto profil Anda** mengisi alat apa pun yang dibuat untuk memakainya, seperti tanda tangan email atau tanda pengenal. [Profiles](/info/profile.html) membahasnya.
+- **Accessibility** memiliki empat sakelar kenyamanan: **Reduce motion**, **Hide colourful previews**, **High contrast**, dan **Large text**. Sakelar ini mengubah aplikasi di sekitar pekerjaan Anda, tidak pernah kanvas alat atau ekspor.
+- **Sound** memutar suara bantu yang lembut untuk apa yang Anda lakukan, dan **Neurospicy Mode** memutar trek fokus yang tenang. Keduanya mati sampai Anda menyalakannya, di **Settings → Accessibility** atau menu profil.
+- **Available offline** mengunduh sisa aplikasi, alat Anda, katalog, dan panduan sebelum koneksi hilang. Lolly adalah aplikasi web yang dapat dipasang: gunakan tombol pasang di browser Anda, atau *Add to Home Screen* di ponsel, untuk aplikasi layar penuh yang memperbarui dirinya sendiri saat Anda kembali online.
+- **Storage** menampilkan apa yang disimpan Lolly di perangkat ini. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) menjelaskan apa yang dihapus oleh pembersihan, dan [Privacy Policy](/info/privacy.html) mencantumkan semua yang diambil atau dikirim aplikasi.
+
+::: note Jika sebuah tampilan gagal dimuat setelah pembaruan
+Panel kosong atau pesan "failed to fetch" tepat setelah pembaruan biasanya hilang dengan satu kali muat ulang. Pekerjaan tersimpan, sesi, dan design system Anda tidak tersentuh, karena disimpan di perangkat Anda. Hanya gambar yang Anda tambahkan dan tidak pernah disimpan yang mungkin perlu ditambahkan lagi.
+:::
+
+## Ke mana selanjutnya
+
+- **[Design: the free canvas](/info/design.html)**: kanvas, bentuk, garis waktu, dan mempresentasikan deck.
+- **[Batch and Multi-edit](/info/batch.html)**: banyak versi dari satu desain, atau beberapa desain tersimpan disunting bersama.
+- **[Export a file](/info/exporting.html)**: memilih format, ukuran, satuan cetak, transparansi, dan video.
+- **[Import a design](/info/design-import.html)**: bawa file Figma, Penpot, Illustrator, atau InDesign ke Design dan lanjutkan menyunting.
+- **[Templates](/info/templates.html)**: titik awal tersimpan untuk sebuah alat.
+- **[Wide Colour and HDR](/info/hdr-editing.html)**: pertahankan presisi gambar asli di Design dan Darkroom.
+- **[Find and recover your work](/info/find-your-work.html)**: di mana semuanya berada, dan cara memindahkannya ke perangkat lain.

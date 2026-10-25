@@ -409,6 +409,40 @@ test('the design-system record reads back from an SVG export', async () => {
   assert.equal(fields.find((f) => f.label === 'density')?.value, 'Roomy', 'a group with no kind is labelled by its own id');
 });
 
+test('brand skills (plan 323) ride the XMP packet and the SVG metadata, and read back as Guided by', async () => {
+  const { buildExportXmp, insertPngXmp, insertJpegXmp, injectSvgMeta } = await import('../engine/src/image-meta.ts');
+  const { readFileDesignRecord } = await import('../engine/src/file-metadata.ts');
+  const brandSkills = [
+    { id: 'acme/skill/brand', name: 'acme-brand', revision: '1.0', sha256: '0f'.repeat(32) },
+    { id: 'acme/skill/photography', name: 'acme-photography', revision: '1.2', sha256: 'ab'.repeat(32) },
+  ];
+  const base = { software: 'Lolly', source: 'https://lolly.tools', tool: 'Chart', author: '', contact: '', description: 'Made with https://lolly.tools : Chart', designSystem: { id: 'acme', label: 'Acme' } };
+  const meta = { ...base, brandSkills };
+  assert.ok(buildExportXmp(meta)!.includes('<lolly:BrandSkills>[{"id":"acme/skill/brand",'));
+  const svg = new TextEncoder().encode(injectSvgMeta('<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>', meta));
+  for (const bytes of [insertPngXmp(tinyPng(), meta), insertJpegXmp(tinyJpeg(), meta), svg]) {
+    assert.deepEqual(readFileDesignRecord(bytes), { designSystem: base.designSystem, brandSkills });
+    const guided = extractFileMetadata(bytes).fields.filter((f) => f.label === 'Guided by');
+    assert.deepEqual(guided.map((f) => f.value), ['acme-brand 1.0', 'acme-photography 1.2']);
+    assert.ok(guided.every((f) => f.source === 'XMP lolly:BrandSkills'));
+  }
+  // Skills alone still declare the namespace and read back.
+  const alone = new TextEncoder().encode(injectSvgMeta('<svg xmlns="http://www.w3.org/2000/svg"/>', { ...base, designSystem: undefined, brandSkills }));
+  assert.deepEqual(readFileDesignRecord(alone), { brandSkills });
+});
+
+test('an export without brand skills writes the exact XMP packet and SVG block it wrote before', async () => {
+  const { buildExportXmp, injectSvgMeta } = await import('../engine/src/image-meta.ts');
+  const base = { software: 'Lolly', source: 'https://lolly.tools', tool: 'Chart', author: '', contact: '', description: 'd', designSystem: { id: 'acme', label: 'Acme' } };
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>';
+  for (const brandSkills of [undefined, []]) {
+    const meta = brandSkills ? { ...base, brandSkills } : base;
+    assert.equal(buildExportXmp(meta), buildExportXmp(base));
+    assert.equal(injectSvgMeta(svg, meta), injectSvgMeta(svg, base));
+    assert.equal(injectSvgMeta(svg, meta).includes('BrandSkills'), false);
+  }
+});
+
 // ─── AVIF EXIF item write (closes the recorded Wave 2 follow-up) ─────────────
 
 test('insertAvifExif: non-AVIF input and metadata-free meta pass through untouched', async () => {

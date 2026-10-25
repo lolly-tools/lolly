@@ -50,7 +50,7 @@ import { cameraAvailable, recorderAvailable } from './capture-support.ts';
 import { createLazyScanAPI } from './scan-lazy.ts';
 // The PROBE leaf, not capture-extension.ts itself: the impl choice below is made
 // at boot, the postMessage transport behind it is not (see the probe's header).
-import { hasCaptureExtension } from './capture-extension-probe.ts';
+import { hasCaptureExtension, hasVectorCapture } from './capture-extension-probe.ts';
 import { vizSupported } from '../lib/viz-support.ts';
 // The dependency-free leaf, NOT '../lib/speech-kokoro.ts' (which re-exports the whole
 // engine speech-text module) - this module is on the boot path and needs only the number.
@@ -345,14 +345,22 @@ export async function createBridge(): Promise<WebHost> {
   // A lazy facade must still mirror the impl's SURFACE synchronously, because tools
   // feature-detect `typeof host.capture.vector === 'function'` (host-v1 CaptureAPI:
   // "callers feature-detect host.capture.vector and fall back to page()"). vector() is
-  // native-desktop-only - the Chrome extension and the web stub both expose page()
-  // alone - so it is surfaced exactly where the resolved impl has it: the Tauri build,
-  // whose capture override IS the native page+vector impl. A page-only facade made the
+  // surfaced exactly where the resolved impl has it: the Tauri build, whose capture
+  // override IS the native page+vector impl, and a Chrome extension that announces
+  // the vector screenshot (0.5.0 and later). The web stub has page() alone. A page-only facade made the
   // detect lie everywhere, so url-shot rasterised every SVG/PDF capture it could have
   // kept true-vector (regression from c71a7de's lazy-facade conversion).
   const captureFacade: NonNullable<WebHost['capture']> = {
     page: async (spec) => (await loadCapture()).page(spec),
   };
+  if (extCapture && hasVectorCapture()) {
+    // An extension 0.5.0 or later answers the vector screenshot (capture-extension.ts).
+    captureFacade.vector = async (spec) => {
+      const impl = await loadCapture();
+      if (!impl.vector) throw new Error('Vector capture is unavailable in this shell.');
+      return impl.vector(spec);
+    };
+  }
   if (!extCapture && isTauriShell()) {
     // Eagerly load the native capture impl at bridge creation, NOT lazily on the first
     // capture. Its module raises HOOK_BUDGET_MS.beforeExport (5s default → 90s) to fit a

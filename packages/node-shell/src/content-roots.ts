@@ -743,6 +743,39 @@ function copyTree(src: string, dst: string): void {
   cpSync(src, dst, { recursive: true, dereference: true, filter: () => true });
 }
 
+/**
+ * A copy of `isPublicBrandSkillAsset` (`@lolly-tools/core/brand-skill-v1`). This module
+ * imports nothing outside node: and repo-root.ts, because release tooling copies the two
+ * files on their own (tests/webgpu-release-gate.test.ts), so the check is restated here
+ * and tests/brand-skill.test.ts pins the two copies to the same answers.
+ */
+export function isPublicSkillRow(asset: unknown): boolean {
+  if (!asset || typeof asset !== 'object' || (asset as { type?: unknown }).type !== 'skill') return true;
+  const meta = (asset as { meta?: { skill?: { audience?: unknown } } }).meta;
+  return !!meta && typeof meta === 'object' && meta.skill?.audience === 'public';
+}
+
+/**
+ * Internal brand skills (plan 323) never reach a static catalog: a statically hosted tree
+ * is public whatever profile built the tree. Their files and index rows are removed from the
+ * copy; the pack's own index is never touched. With no internal skill in the index the
+ * served index is left exactly as copied, so a later signing step sees the same file.
+ */
+function dropInternalSkills(catalogOut: string): void {
+  const indexPath = join(catalogOut, 'assets', 'index.json');
+  if (!existsSync(indexPath)) return;
+  const index = JSON.parse(readFileSync(indexPath, 'utf8')) as { assets?: unknown[] };
+  const assets = Array.isArray(index.assets) ? index.assets : [];
+  const internal = assets.filter((a) => !isPublicSkillRow(a)) as Array<{ formats?: Array<{ url?: string }>; meta?: { skill?: { files?: Array<{ url?: string }> } } }>;
+  if (!internal.length) return;
+  for (const asset of internal) {
+    for (const { url } of [...(asset.formats ?? []), ...(asset.meta?.skill?.files ?? [])]) {
+      if (typeof url === 'string' && url.startsWith('/catalog/') && !url.includes('..')) rmSync(join(catalogOut, ...url.slice('/catalog/'.length).split('/')), { force: true });
+    }
+  }
+  writeFileSync(indexPath, JSON.stringify({ ...index, assets: assets.filter((a) => isPublicSkillRow(a)) }, null, 2) + '\n');
+}
+
 /** The one remaining copy path: write a real tools/ + catalog/ tree into dest. */
 export function materializeInto(dest: string, r?: ContentRoots): void {
   const roots = r ?? contentRoots();
@@ -766,6 +799,7 @@ export function materializeInto(dest: string, r?: ContentRoots): void {
     mkdirSync(join(merged, '..'), { recursive: true });
     writeFileSync(merged, JSON.stringify(readAssetIndex(roots), null, 2) + '\n');
   }
+  dropInternalSkills(catalogOut);
 
   for (const [id, { dir, base }] of plan) {
     const out = join(toolsOut, id);

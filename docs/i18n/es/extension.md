@@ -1,80 +1,78 @@
 # Extensión de navegador
 
-La extensión **Lolly URL Screenshot** permite que la aplicación web capture cualquier página web desde tu navegador. Sin ella, capturar una URL requiere la aplicación de escritorio - una página del navegador no puede leer píxeles de otro sitio por su cuenta. La extensión sí puede, usando la misma captura que usa la aplicación de escritorio.
+Una página web no puede leer los píxeles de otro sitio web, así que la aplicación web de Lolly necesita ayuda para capturar una página. En un navegador basado en Chromium (Chrome, Edge, Brave, Arc u Opera, desde Chrome 111), la extensión gratuita **Lolly URL Screenshot** da esa ayuda, con la misma captura que usa la aplicación de escritorio. Con ella instalada:
 
-Hace otros dos trabajos del mismo modo. Una dirección web pegada en un campo de imagen puede convertirse en una captura de esa página (**Capturar esta página**), y la extensión puede leer una sola página que tú nombras para que Brand Studio pueda extraer una marca de un sitio web en directo. Cada solicitud espera tu aprobación en la extensión.
+- **[URL Screenshot](/t/url-shot)** guarda como archivo la página que compusiste;
+- una dirección web pegada en un espacio de imagen puede convertirse en una captura de esa página, con **Screenshot this page**;
+- la fuente **Website** de [Design System Setup](/info/brand-studio.html) puede leer una página para iniciar un design system.
 
-Funciona en navegadores basados en Chromium: **Chrome, Edge, Brave, Arc, Opera** - Chrome 111 o más reciente.
+Tú apruebas cada solicitud, y la aplicación de escritorio hace los mismos trabajos sin la extensión.
 
-Hasta que se instala, **URL Screenshot** igualmente se abre para que puedas componer una captura, y una nota en la parte superior de los controles de la herramienta indica qué falta.
+## Antes de instalar
+
+Hasta que se instala la extensión, **URL Screenshot** sigue abriéndose, así que puedes componer una captura. Una nota en la parte superior de los controles de la herramienta dice qué falta.
 
 ![La nota de la herramienta URL Screenshot ofreciendo la extensión, mostrada cuando la captura a archivo no tiene un host donde ejecutarse](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%23capture-hint-notice&dark=1&filename=exp-url-shot-notice)
 
-Todos los controles están activos mientras esperas: la URL de destino, la profundidad de desplazamiento, el retardo de estabilización, los recortes de encuadre y el recoloreado. Solo la captura en sí necesita un host.
+Todos los controles funcionan mientras esperas: la URL de destino, la profundidad de desplazamiento, el retardo de estabilización, los márgenes de recorte y el recoloreado. Solo la captura en sí necesita la extensión.
 
 ![Los controles de URL Screenshot con una URL de destino, profundidad de desplazamiento, retardo de estabilización y recortes de encuadre, todos utilizables antes de que exista la extensión](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
 ## Instalar
 
-### Desde la Chrome Web Store
+**Desde la Chrome Web Store:** próximamente. Cuando se publique la extensión, se instalará con un clic.
 
-*Próximamente.* Una vez publicada, la instalarás con un clic y luego recargarás Lolly.
-
-### Cárgala tú mismo (desarrolladores)
-
-La extensión vive en el repositorio en `shells/chrome-extension/`. Esa carpeta es la compilación de producción, que solo funciona con Lolly en `https://lolly.tools`.
+**Cárgala tú mismo (desarrolladores).** La extensión vive en el repositorio en `shells/chrome-extension/`. Esa carpeta es la compilación de producción, que funciona solo con Lolly en `https://lolly.tools`.
 
 1. Abre `chrome://extensions`.
-2. Activa el **modo de desarrollador** (arriba a la derecha).
-3. Haz clic en **Cargar descomprimida** y elige la carpeta `shells/chrome-extension/`.
-4. Recarga Lolly - **URL Screenshot** ahora funciona en el navegador.
+2. Activa **Developer mode** (arriba a la derecha).
+3. Haz clic en **Load unpacked** y elige la carpeta `shells/chrome-extension/`.
+4. Recarga la pestaña de Lolly. La detección ocurre cuando se carga la página, así que el aviso "Get the extension" desaparece. **URL Screenshot** (en Utilities) ya puede guardar capturas en un archivo y queda disponible en el modo Batch.
 
 Para un servidor de desarrollo local, ejecuta `pnpm run pack:chrome-extension:dev` y carga `dist/chrome-extension-dev` en su lugar. Ese paquete también acepta `http://localhost:5173` y lleva **Development** en el nombre.
 
-## Cómo funciona
+## Qué ocurre cuando Lolly pide algo
 
-- Un pequeño script le indica a Lolly que la extensión está presente, así que **URL Screenshot** puede guardar capturas sin más configuración.
-- Apruebas cada solicitud. Cuando Lolly la pide, la extensión abre su propia ventana **Approve page request**, que muestra el sitio que la solicita, si quiere una captura o el contenido de la página, y la dirección de la página. No se lee nada hasta que pulsas **Approve once**. **Cancel**, o cerrar la ventana, termina la solicitud.
-- La primera vez que apruebas una solicitud para un sitio, Chrome también pregunta si la extensión puede acceder a ese sitio. Chrome conserva ese acceso una vez que lo permites, pero cada solicitud posterior sigue necesitando su propio **Approve once**.
-- Una aprobación cubre una solicitud y caduca a los 30 segundos. Solo puede haber una solicitud esperando o en curso a la vez, y una solicitud aprobada se detiene a los 55 segundos. Si la página de Lolly se cierra o cambia, o la página de destino pasa a otro sitio, la solicitud se cancela.
-- Después de que apruebas, la extensión abre la página de destino en una pestaña en segundo plano, la captura mediante el DevTools Protocol (el mismo `Page.captureScreenshot` que usa la aplicación de escritorio), luego cierra la pestaña y devuelve la imagen a la pestaña de Lolly que la pidió.
-- Se ejecuta enteramente en tu navegador, en tu red - así que capturar `localhost` o un sitio interno funciona. La página se carga con tu sesión del navegador, así que una página en la que has iniciado sesión puede mostrar información privada en el resultado. La captura en sí nunca se sube a ningún sitio; el único tráfico de red es el de tu propio navegador cargando la página que pediste capturar.
+![La pestaña de Lolly pide una página y tú pulsas Approve once en la ventana de aprobación de la extensión. Se abre una pestaña en segundo plano, lee la página y se cierra. Luego la pestaña de Lolly recibe el resultado.](/info/diagrams/concepts/extension-request.svg)
 
-Mientras se ejecuta una captura, puede que veas brevemente un aviso *"…started debugging this browser"* en la pestaña temporal. Eso es el DevTools Protocol en acción; desaparece solo cuando la captura termina.
+1. **Lolly pide.** Un pequeño script indica a Lolly que la extensión está presente, así que una captura o una lectura de página pueden empezar sin más configuración.
+2. **Tú apruebas.** La extensión abre su propia ventana **Approve page request**. Muestra el sitio solicitante, si quiere una captura o el contenido de la página, y la dirección de la página. No se lee nada hasta que pulsas **Approve once**. **Cancel**, o cerrar la ventana, termina la solicitud.
+3. **Chrome pregunta una vez por sitio.** La primera vez que apruebas una solicitud para un sitio, Chrome también pregunta si la extensión puede acceder a ese sitio. Chrome conserva ese acceso una vez que lo permites, pero cada solicitud posterior sigue necesitando su propio **Approve once**.
+4. **La página se lee en una pestaña en segundo plano.** La extensión abre la página de destino en una pestaña en segundo plano, la captura mediante el DevTools Protocol (el mismo `Page.captureScreenshot` que usa la aplicación de escritorio), cierra la pestaña y devuelve el resultado a la pestaña de Lolly que lo pidió.
 
-## Leer un sitio para Brand Studio
+Una aprobación cubre una solicitud y caduca a los 30 segundos. Solo una solicitud puede esperar o ejecutarse a la vez, y una solicitud aprobada se detiene a los 55 segundos. Si la página de Lolly se cierra o cambia, o la página de destino pasa a otro sitio, la solicitud se cancela.
 
-La fuente **Website** en Brand Studio inicia una marca a partir de un sitio que ya tienes. En Chromium, la extensión es la que lo lee; en la aplicación de escritorio, una obtención nativa hace la misma tarea, y en un navegador normal sin extensión, la casilla ni siquiera se ofrece.
+La captura se ejecuta en tu navegador, en tu red, así que `localhost` y los sitios internos funcionan. La página se carga con la sesión de tu navegador, de modo que una página en la que tienes la sesión iniciada puede mostrar información privada en el resultado. La captura no se sube: el único tráfico de red es tu propio navegador cargando la página que pediste.
 
-Qué ocurre cuando la pulsas:
+Mientras se ejecuta una captura puedes ver brevemente un aviso *"…started debugging this browser"* en la pestaña temporal. Es el DevTools Protocol trabajando, y el aviso desaparece cuando termina la captura.
 
-- Una dirección, una página. Después de que apruebas, la extensión la abre en el mismo tipo de pestaña en segundo plano, lee el marcado renderizado, el texto de la hoja de estilos y un puñado de imágenes de iconos y logotipos, y luego cierra la pestaña. No sigue enlaces ni rastrea el sitio.
-- Las hojas de estilos alojadas en otro lugar (una CDN, un servicio de fuentes) también se obtienen, porque los colores y la tipografía de la página viven en ellas. Las solicitudes de origen cruzado se hacen sin tus cookies; las del mismo origen sí las usan, exactamente como lo haría la propia página.
-- Todo tiene un límite - un número acotado de hojas, imágenes y bytes - para que una página hostil o mal formada devuelva material parcial en lugar de quedarse colgada.
-- Los bytes vuelven directamente a la pestaña de Lolly que los solicitó. El análisis en colores, tipografía y logotipos ocurre en tu dispositivo; nada se sube.
+## Leer un sitio para Design System Setup
+
+La fuente **Website** de Design System Setup inicia un design system a partir de un sitio que ya tienes. En un navegador Chromium, la extensión lee la página. En la aplicación de escritorio, la propia aplicación descarga la página. En un navegador sin extensión, el mosaico Website no se ofrece.
+
+- **Una dirección, una página.** Tras tu aprobación, la extensión abre la página en el mismo tipo de pestaña en segundo plano, lee el marcado renderizado, el texto de las hojas de estilo y un puñado de imágenes de iconos y logotipos, y luego cierra la pestaña. No sigue enlaces ni rastrea.
+- **Las hojas de estilo alojadas en otro sitio** (una CDN o un servicio de fuentes) también se descargan, porque los colores y la tipografía de la página viven en ellas. Las solicitudes entre orígenes van sin tus cookies; las del mismo origen las usan, como haría la propia página.
+- **Todo tiene tope**, con un límite en el número de hojas de estilo e imágenes y en bytes, así que una página hostil o a medio romper devuelve material parcial en lugar de colgarse.
+- **El análisis ocurre en tu dispositivo.** Los bytes vuelven directamente a la pestaña de Lolly que los pidió, que los convierte en colores, tipografía y logotipos.
 
 Pegar una dirección solo rellena el campo. No se lee nada hasta que inicias la lectura y pulsas **Approve once**.
 
-## Después de instalar
-
-Recarga la pestaña de Lolly. El aviso "Get the extension" desaparece, **URL Screenshot** (en Utilities) puede guardar capturas en un archivo, y la herramienta queda disponible en el modo Batch.
-
 ## Permisos
 
-Su `manifest.json` declara cuatro permisos, más acceso a sitios que pide de uno en uno:
+El `manifest.json` de la extensión declara cuatro permisos, además de un acceso a sitios que pide de uno en uno. Define `minimum_chrome_version: 111`, y la versión actual es la 0.4.0.
 
-- `debugger` - controla la pestaña en segundo plano mediante el DevTools Protocol. Esto es lo que toma la captura de pantalla.
-- `tabs` - abre la pestaña temporal en segundo plano y la cierra después, y comprueba que ni la página de Lolly ni la página de destino se han movido desde que aprobaste la solicitud.
-- `scripting` - ejecuta el lector de una sola página dentro del sitio que indicaste, para la fuente Website de Brand Studio.
-- `storage` - anota el id de una pestaña que abrió, solo en el almacenamiento de sesión, para que la pestaña se cierre igualmente si el navegador suspende la extensión a mitad de la lectura. Se borra al siguiente inicio; nada sobre ti queda almacenado.
-- `optional_host_permissions: ["http://*/*", "https://*/*"]` - acceso a sitios, que no se concede al instalar. Cuando pulsas **Approve once**, la extensión pide a Chrome acceso al único sitio de esa solicitud, y Chrome te pregunta la primera vez por cada sitio.
+| Permiso | Para qué sirve | Cuándo se concede |
+|---|---|---|
+| `debugger` | Maneja la pestaña en segundo plano mediante el DevTools Protocol, que hace la captura. | Al instalar |
+| `tabs` | Abre la pestaña temporal en segundo plano y la cierra después, y comprueba que ni la página de Lolly ni la de destino se han movido desde que aprobaste. | Al instalar |
+| `scripting` | Ejecuta el lector de una página dentro del sitio que indicaste, para la fuente Website. | Al instalar |
+| `storage` | Anota el ID de una pestaña que abrió, solo en el almacenamiento de sesión, para que la pestaña se cierre aunque el navegador suspenda la extensión a mitad de lectura. Se borra en el siguiente arranque; no se guarda nada sobre ti. | Al instalar |
+| `optional_host_permissions: ["http://*/*", "https://*/*"]` | Acceso a sitios, no concedido al instalar. Cuando pulsas **Approve once**, la extensión pide a Chrome acceso al único sitio de esa solicitud. | La primera vez que apruebas una solicitud para ese sitio, tras preguntártelo Chrome |
 
-Solo lee la única página que apruebas, y no lee ni transmite tus datos de navegación - nada se sube a ningún sitio.
-
-El manifiesto también fija `minimum_chrome_version: 111`. La versión actual es 0.4.0.
+La extensión lee solo la única página que apruebas. No lee ni envía tus datos de navegación, y no se sube nada.
 
 ## Solución de problemas
 
-- **¿Sigues viendo "Get the extension"?** Recarga la pestaña de Lolly - la detección ocurre al cargar la página.
-- **¿No pasa nada en este sitio?** La extensión funciona solo en `https://lolly.tools`, más `http://localhost:5173` en el paquete de desarrollo. Otro origen, como una copia de Lolly alojada por ti, necesita una compilación aparte de la extensión que incluya ese origen tanto en `manifest.json` como en `policy.js`. Editar solo el manifiesto ya no funciona.
-- **¿Falla una captura?** Comprueba que la URL sea accesible y empiece por `http://` o `https://`. Algunas páginas bloquean activamente la captura automatizada. Si pulsaste **Cancel**, cerraste la ventana de aprobación o esperaste más de 30 segundos, inicia la captura de nuevo.
+- **¿Sigues viendo "Get the extension"?** Recarga la pestaña de Lolly.
+- **¿No pasa nada en este sitio?** La extensión funciona solo en `https://lolly.tools`, además de `http://localhost:5173` en el paquete de desarrollo. Otro origen, como una copia autoalojada de Lolly, necesita su propia compilación de la extensión que enumere ese origen tanto en `manifest.json` como en `policy.js`. Editar solo el manifiesto no funciona.
+- **¿Falla una captura?** Comprueba que la URL es accesible y empieza por `http://` o `https://`. Algunas páginas bloquean la captura automatizada. Si pulsaste **Cancel**, cerraste la ventana de aprobación o esperaste más de 30 segundos, inicia de nuevo la captura.

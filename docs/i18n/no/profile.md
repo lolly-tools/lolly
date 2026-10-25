@@ -1,154 +1,97 @@
-# Profiler - hvem du er når du skaper
+# Profiler
 
-En **profil** er den arbeidsidentiteten Lolly skaper *som*. Det er det lille settet med detaljer et verktøy kan hente fra, slik at du slipper å skrive dem inn på nytt hver gang - navnet ditt, kontaktdetaljer, et valgfritt portrettbilde, noen preferanser - pluss alt du samler opp mens du jobber: lagrede økter, opplastede bilder og den lokale aktivitetstellingen.
+Sett navnet ditt, kontaktopplysningene dine og portrettbildet ditt én gang, så fyller hvert verktøy som er bygget for å bruke dem, dem inn for deg: en e-postsignatur, et navneskilt, et foredragskort. Den lille posten er **profilen** din, og den ligger på enheten din.
 
-Alt i en profil finnes **på enheten**, i nettleserens lokale database (IndexedDB i web-PWA-en, filsystemet i Tauri-appene). Det finnes ingen konto, og ingenting lastes opp. Du administrerer den under **Innstillinger → Preferences** (i bunnteksten eller avatarmenyen); verktøy *leser* den bare noensinne, og kun de spesifikke feltene de er bygget for å forhåndsutfylle.
-
-> Innstillinger samler profilen din og det tidligere Dashboard på ett sted. **Preferences** inneholder detaljene og de personlige valgene dine; **Denne enheten**, **Designsystem**, **Funksjoner** og **Aktivitet og statistikk** ligger ved siden av den. Se [Innstillinger](/info/dashboard.html) for hele kartet.
+Profilen din holder også det du bygger opp mens du arbeider: lagrede økter, opplastede bilder og din lokale aktivitetstelling. Du styrer den under **Settings → Preferences**; verktøy leser bare feltene de er bygget for å forhåndsutfylle. Frittstående bruk trenger ingen konto, og valgfri Sync, deling og organisasjonstjenester har hver sin dataflyt, beskrevet nedenfor.
 
 ## Hva som er i en profil
 
 | Del | Hva det er |
 |---|---|
-| **Navn** | Fornavn og etternavn. |
-| **Kontakt** | E-post og telefon. |
-| **Sted** | By og land. |
-| **Portrettbilde** | Et valgfritt bilde, beskåret til kvadrat og lagret som et lokalt bilde. Brukes av verktøy som e-postsignaturer, sitatkort, organisasjonskart og dynamiske oppsett. |
-| **Bruk mine detaljer til å skape** | En enkelt opt-in-bryter (den viser **Using my details** når den er på). Den styrer om dine personopplysninger følger med som **proveniens** - forfatter-/kredittlinjen bakt inn i eksporterte filer - og som forfatter i **/pro**-batch-kjøringer. (Den styrer ikke forhåndsutfylling: se [How tools use your profile](#how-tools-use-your-profile).) |
-| **Preferanser** | Temaet ditt (Light, Dark eller Brand - merkevaretemaet maler appen i din egen palett) og hvilke deler av appen du har slått på via **Feature flags**. |
-| **Tilgjengelighet** | Fire komfortbrytere - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - lagret på profilposten, så de følger med ved en profileksport. Se [Accessibility](#accessibility). |
-| **Ditt arbeid** | Lagrede økter (med miniatyrbilder) - organisert i nøstede mapper i **[Projects](/info/using.html)** - biblioteket ditt **My images** og de lokale aktivitetsstatistikkene, alt knyttet til denne profilen. |
+| **Name** | Fornavn og etternavn. |
+| **Contact** | E-post og telefon. |
+| **Location** | By og land. |
+| **Headshot** | Et valgfritt bilde, beskåret til en firkant og beholdt som et lokalt bilde, for verktøy som e-postsignaturer, sitatkort og organisasjonskart. |
+| **Use my details to create** | Én valgfri bryter (den leses som **Using my details** når den er på). Den avgjør om detaljene dine følger med som forfatterkreditt i eksporterte filer og på Batch-kjøringer. Den påvirker ikke forhåndsutfylling; se [How tools use your profile](#how-tools-use-your-profile). |
+| **Preferences** | Temaet ditt, tilgjengelighetsinnstillingene dine og hvilke deler av appen du slo på i **Feature flags**. |
+| **Your work** | Lagrede økter med miniatyrbildene sine, organisert i [Projects](/info/find-your-work.html), de opplastede bildene dine og den lokale aktivitetsstatistikken din. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Ingenting av det er påkrevd. En blank profil fungerer; fyll bare ut det som sparer deg for å skrive.
 
-![Profilskjermen - navn, kontakt, et valgfritt portrettbilde og preferansene dine](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Settings på fanen Preferences: innstillingslisten, og Your details med bryteren Use my details to create og feltene for navn, kontakt og sted](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-Ingenting av dette er obligatorisk. En blank profil er en helt utmerket profil; du fyller bare inn det som sparer deg for skriving.
+[Settings](/info/dashboard.html) kartlegger alt annet under Preferences, fra utseende og emoji til lagring og nedlastinger for bruk uten nett.
 
-Siden er lang, så den har sin egen **innstillingsskinne** nedover siden - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - med et **Search settings**-felt over den som filtrerer listen etter hvert som du skriver. Hver seksjon er dyplenkbar som `#/settings?focus=<section-id>`, som åpner den og skroller den inn i visning (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, og så videre), slik at en lenke kan peke på én innstilling i stedet for toppen av siden.
+## Du, et team eller en rolle
 
-![Tre temakort, hvert forhåndsviser sin egen type og farge, med det aktive markert](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+Ordet "profil" antyder én fast person. I Lolly er det nærmere en skapende kontekst: hvem du er mens du lager dette. Den kan ha tre former, og Lolly håndterer hver på samme måte.
 
-## En profil er en kontekst, ikke bare en person
+::: cols
+## Som deg selv
 
-Ordet «profil» antyder én fast person, men i Lolly er det egentlig en **skapende kontekst** - *hvem du er mens du lager denne tingen*. Den konteksten kan ha tre ulike former, og Lolly håndterer alle på samme måte.
+Standarden. Navnet ditt, e-posten din, portrettbildet ditt. Sett det én gang, så fyller signaturen, navneskiltet og konferansemerket seg selv.
 
-### Som enkeltperson
+## Som et team
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+Et teams delte navn, en gruppeinnboks som `events@…`, en avdeling og teamets merke. Én person setter det opp og eksporterer det, og alle andre laster den samme profilen, så teamets filer bærer konsistente detaljer. En delt kiosk eller en demobærbar kan kjøre én teamprofil.
+
+## Som en rolle
+
+En arrangementsansvarlig som er det tre dager i året, vil ha arrangementsinnboksen og arrangementets underbrand på navneskilt og skilting, og så den vanlige identiteten sin tilbake. Behold den rollen som en lagret profilfil, last den for arrangementet og legg den bort etterpå.
+:::
 
 ![Portrettbilde-kontrollen, tom inntil du laster opp et bilde som deretter blir værende på denne enheten](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-### Som et team
+::: details Profiler hos en organisasjon som bruker Lolly Work
+Når du logger på [organisasjonens Lolly](/info/organisation.html), kan Lolly Work levere verifiserte profilfelt fra identitetsleverandøren sin og låse felt eller innstillinger under organisasjonspolicy. Et administrert felt er merket i appen.
 
-En profil trenger ikke være ett enkelt menneske. Den kan representere et **team eller en funksjon i en organisasjon**: teamets delte navn, en gruppe-innboksadresse (`events@…`), en avdeling, teamets portrettbilde eller enhetsmerke. Én person setter den opp, eksporterer den (se under), og resten av teamet laster inn samme profil - slik at alt teamet produserer bærer konsistente detaljer uten at noen må skrive dem inn på nytt. En delt kiosk eller en utsjekket demolaptop kan kjøre en enkelt teamprofil som alle bak den skaper som.
+Den påloggingen styrer også tilgang til delte prosjekter og ressurser. En teamprofilfil er fortsatt en lokal fil: den gir ikke organisasjonsmedlemskap og erstatter ikke en jobbkonto. **Use my details to create** styrer kreditten i eksportene dine, ikke organisasjonens pålogging eller revisjonsposter. Se [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+:::
 
-### Som en funksjon - en rolle du bærer iblant
+## Behold flere, bruk én
 
-Dette er tilfellet den rigide modellen «én person, én profil» går glipp av. Du kan være en **eventansvarlig tre dager i året** og noe helt annet resten av tiden. De tre dagene vil du ha eventdetaljer, event-innboksen, kanskje en event-undermerkevare som fyller ut merkene og skiltingen din; de andre 362 vil du ha din vanlige identitet tilbake.
+En installasjon har én aktiv profil om gangen, og det finnes ingen bryter i appen. I stedet er hver profil en portabel fil, den samme sikkerhetskopifilen du ville brukt for å flytte til en ny enhet. For å gå inn i en annen kontekst:
 
-I Lolly er den rollen bare **en annen profil du har for hånden** - en lagret pakke (neste seksjon) du laster inn for eventet og legger til side etterpå. Rollen er en hatt, ikke en ny konto. Ta den på når du trenger den, ta den av når du er ferdig.
+::: timeline
+- <!--i:download--> **Export my data** under **Settings → Storage → Move to another device** lagrer gjeldende profil som én `.zip`.
+- <!--i:trash--> **Clear all my data** tømmer denne installasjonen.
+- <!--i:upload--> **Import data…** laster profilfilen for konteksten du går inn i.
+:::
 
-## Én installasjon, én aktiv profil - men du kan ha flere
+Å importere uten å tømme først **slår sammen** i stedet. Importerte økter og bilder legges til; der begge kopiene finnes, beholdes den som ble lagret sist. Mapper, favoritter og maler legges til ved siden av dine, og dine egne detaljer blir, bortsett fra tomme felt, som tar filens verdier. Det passer for å hente ett teams økter inn i ditt eget oppsett, men ikke for et rent brudd mellom roller.
 
-På et hvilket som helst tidspunkt har en installasjon **én aktiv profil** - detaljene et verktøy ser akkurat nå. Det finnes ingen profilbytter i appen; i stedet er hver profil en **portabel pakke** (en enkelt `.zip`, se [under](#moving-a-profile-to-a-new-device)). Det er bevisst den samme mekanismen som å flytte til en ny enhet - en profil er en fil du kan lagre, kopiere og laste inn.
+For to kontekster samtidig, bruk en egen nettleserprofil, en egen brukerkonto eller en andre installert kopi av nettappen: hver bærer sin egen uavhengige Lolly-profil.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![De to knappene som flytter en hel installasjon: Export my data skriver én zip, Import data leser den inn igjen](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-- <!--i:trash--> **Reneste bytte:** **Innstillinger → Preferences → Lagring → Slett alle mine data**, deretter **Importer** pakken for konteksten du går inn i. Nå skaper du utelukkende som den profilen.
-- <!--i:layers--> **Lagdeling:** å importere *uten* å tømme først **slår sammen** - de importerte øktene og bildene havner oppå det som allerede er der; der begge har det samme, beholdes kopien som ble lagret sist, og resten lar man være. Mapper, favoritter og maler legges til dine, og dine egne opplysninger og innstillinger blir stående. Praktisk for å hente inn ett teams lagrede økter i ditt eget oppsett; ikke det du vil ha om du trenger en ren rollegrense.
-- <!--i:monitor--> **Side ved side:** fordi alt er enhetsbegrenset, bærer en separat nettleserprofil, en separat brukerkonto eller en installert PWA nummer to hver sin uavhengige Lolly-profil. Kjør din personlige installasjon og kioskinstallasjonen for arrangementet samtidig, uten bytting.
+> Behold én fil per kontekst og gi hver navn etter hva den er, som `LollyTools-events-2026.zip` og `LollyTools-me.zip`. Filen er profilen.
 
-Så hvis du virkelig sjonglerer flere kontekster (deg, teamet ditt, eventansvarlig-hatten), holder du på flere pakker og laster inn den du trenger:
-
-![Lagringsmåleren, som bryter ned lagrede økter, bilder og cache mot det nettleseren faktisk rapporterer](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-> Hold én pakke per kontekst og gi filene nytt navn etter hva de er (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Filen *er* profilen.
-
-## Tilgjengelighet
-
-**Innstillinger → Preferences → Accessibility** har fire komfortinnstillinger for appen *rundt* arbeidet ditt. Hver er av inntil du slår den på, og ingen av dem når inn i et verktøylerret eller en eksport - en roligere app skal ikke flytte en eneste piksel i filen du leverer.
-
-- <!--i:film--> **Reduce motion** - slår av overgangene, glidningene og de animerte fintene i appen. Verktøylerretet ditt og enhver animert eksport fortsetter å bevege seg akkurat som designet.
-- <!--i:image--> **Hide colourful previews** - bytter ut galleriets forhåndsvisningsgrafikk med rolige ikon-og-tekst-kort, og demper fargen og kontrasten på prosjektminiatyrene dine slik at de forblir gjenkjennelige uten å rope. Inne i et verktøy vises alt i full farge.
-- <!--i:sliders--> **High contrast** - styrker appens kantlinjer, tekst og fokusringer. Merkevarefargene dine og alt på lerretet forblir nøyaktig som du har satt dem.
-- <!--i:font--> **Large text** - øker appens skriftstørrelse: etiketter, menyer og knappetekst. Kontrollene beholder sin størrelse, så bare ordene i dem blir større, og skrift inne i designene dine er urørt, så ingenting du eksporterer flyter om.
-
-Disse lever på selve profilposten, som er hvorfor de følger med ved en profileksport og havner på neste installasjon sammen med navnet ditt og øktene dine. (Enheten beholder også et lite lokalt speil slik at innstillingen gjelder før første maling; det speilet er kun lokalt og følger ikke med.)
-
-## Din Lolly-instans
-
-**Innstillinger → Preferences → Lolly-instans** viser hvor denne installasjonen henter verktøyene og katalogen sin fra - adressen til instansen, eller *Bundled with this app* når alt følger med i selve bygget. Der en distribusjon tilbyr det, åpner en **Instanskonsoll**-lenke dens adminflate, **Endre** peker installasjonen om, og **Forlat** fjerner instansens designsystem, verktøy og katalog mens ditt eget arbeid blir værende (se [Bruk Lolly i organisasjonen din](/info/organisation.html#leaving)).
-
-Å peke om til en annen instans krever **skrivebordsappen**: en nettleser hindrer en side i å laste verktøy og ressurser på tvers av opphav, så på nett rapporterer seksjonen bare hvor du er og lar det bli med det.
-
-## Tilgjengelig offline
-
-Lolly cacher etter hvert som du går, men caching-etter-hvert-som-du-går dekker bare der du allerede har vært. **Innstillinger → Preferences → Tilgjengelig offline** er for turen du kan se komme: en time på flyplass-wifi før en flytur uten noen. Last ned delene du trenger, følg med på én fremdriftslinje, og alt du tok med fortsetter å virke uten forbindelsen.
-
-Syv deler, hver med størrelsen oppgitt før du bekrefter:
-
-- <!--i:layout--> **Appen** - hver visning, editor og font, inkludert de du ikke har åpnet ennå. Uten denne kan en skjerm du aldri besøkte online ikke lastes offline.
-- <!--i:image--> **Katalog** - merkevareressurser utover det essensielle. Ta alt sammen, eller åpne *Choose by tag* og ta bare taggene du bruker.
-- <!--i:book--> **Guider og dokumentasjon** - denne dokumentasjonssiden, på ditt språk, med skjermbilder inkludert.
-- <!--i:cpu--> **Talestemmer** - stemmemodellene bak Script-lyd og fortelling. Lastes ned én gang, kjører deretter på enheten.
-- <!--i:zap--> **Oppskaleringsmodeller** - AI-bildeoppskalererne: foto, illustrasjon/anime og ansikt.
-- <!--i:layers--> **Bakgrunnsfjerning** - kutt-ut-modellene på enheten bak *Remove background*.
-- <!--i:shield--> **Verify deep scan** - vannmerkeskanneren på enheten, for å sjekke Content Credentials uten forbindelse.
-
-De fire siste er merket **stor nedlasting**, og de er bevisst individuelle opt-in-valg: **Last ned alt** øverst tar med appen, katalogomfanget du valgte, dokumentasjonen og alle verktøy i én omgang - og ikke noe annet. Talestemmer, oppskaleringsverktøyene, bakgrunnsfjerning og dypskanningen laster hver for seg bare ned når du ber om den raden ved navn - noen hundre megabyte gjemt inni én knapp ville vært uredelig.
-
-Under delene ligger listen per verktøy: hvert verktøy lastes ned enkeltvis (haken betyr klar offline), eller **Last ned alle** tar hele listen. Nedlastinger kan gjenopptas - avbryt eller mist forbindelsen, og neste kjøring fortsetter der den stoppet og henter bare det som mangler - og de oppdaterer seg selv når du er tilbake på nett, og henter bare det en ny versjon har endret.
-
-Hvis nettleseren ikke har gitt varig lagring, sier delen fra om det og tilbyr **Beskytt nedlastinger**, som ber om det - forskjellen mellom «lastet ned» og «lastet ned til nettleseren vil ha plassen tilbake».
-
-## Flytte en profil til en ny enhet
-
-Fordi en profil er helt lokal, finnes det to måter å få den inn på en blank installasjon - en ny bærbar datamaskin, en nylig tilbakestilt nettleser, en kollegas maskin, en offline-boks. **Ta med filen**, som under, eller hold dine egne enheter i takt gjennom lagring du velger selv, som [Synkroniser enhetene dine](/info/sync.html) forklarer. Ingen Lolly-innlogging gjenoppretter den for deg, og det er hele poenget: ingenting ble noensinne sendt til en Lolly-server i utgangspunktet.
-
-Under **Innstillinger → Preferences → Lagring → Flytt til en annen enhet**:
-
-- <!--i:download--> **Eksporter dataene mine** laster ned én `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - navngitt etter profilen den tilhører, med et løpenummer per dag slik at gjentatte eksporter ikke kolliderer (navnedeler utelates når profilen mangler dem). Den inneholder profilen din, hver lagrede økt (med miniatyrbilde), dine opplastede bilder - merkevaretokenene og de installerte fontene dine blir med som brukerressurser - og innstillingene dine (tema, layout, lokal aktivitetsstatistikk).
-- <!--i:upload--> **Importer data…** på den andre installasjonen leser den filen tilbake inn, og du fortsetter nøyaktig der du slapp. Den tar også en kopi [Synk](/info/sync.html) holder i lagringen din.
-- <!--i:box--> **Eksporter dataene mine & rendre alt** skriver den samme sikkerhetskopien *pluss* en andre zip som rendrer hver lagrede økt til sin ferdige utfil, i mapper som gjenspeiler prosjektene dine. Et komplett offlinearkiv av både kildene og resultatene - og det kan bli stort og tregt med mange økter.
-
-![De to knappene som flytter en hel installasjon: Eksporter dataene mine skriver én zip, Importer data leser den tilbake](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
-
-Pakken er en enkel, selvstendig zip-fil, så den kan reise på **en hvilken som helst** måte - USB, AirDrop, en nettverksdeling, e-post til deg selv - og målet kan være helt offline. Hver del er sjekksummert, slik at en fil som er skadet under overføring, oppdages ved import i stedet for å bli gjenopprettet halvveis ødelagt. Import **slår sammen** (av en økt eller et bilde med samme navn beholdes kopien som ble lagret sist; mapper, favoritter og maler legges til; målets opplysninger og innstillinger blir stående; alt annet beholdes), så den sletter aldri et mål som allerede er i bruk.
-
-Det som ikke følger med: katalog­mellomlageret (det laster seg ned på nytt på den nye enheten) og selve verktøyene (antas allerede å være til stede).
-
-For den eksakte pakkestrukturen, versjonspolicyen og integritetsreglene, se **[Dataoverføring](/info/data-transfer.html)**; for gjennomgangen fra start til slutt, **[Bruke Lolly → Flytte til en annen enhet](/info/using.html#moving-to-another-device)**.
+[Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) dekker hva filen holder, hva som blir igjen og de andre måtene å flytte på, inkludert Sync.
 
 ## Hvordan verktøy bruker profilen din
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+**Forhåndsutfylling.** En verktøyforfatter markerer en inndata som å hente fra profilen din (`bindToProfile: "firstname"`, `"email"`, `"headshot"` og så videre). Når verktøyet åpnes, fylles den inndataen fra profilen din, og du kan overstyre den for én økt uten å endre profilen, med mindre en organisasjonspolicy låser inndataen. Forhåndsutfylling er en lokal bekvemmelighet og skjer uansett om **Use my details** er på.
 
-Et verktøy *forhåndsutfyller* bare noensinne de profilfeltene det eksplisitt er bygget for å binde til:
+**Kreditt.** Når du eksporterer, kan detaljene dine følge med som forfatterkreditt i filens metadata (PNG, PDF, SVG og mer), slik at en ferdig fil kan si hvem som laget arbeidet. **Use my details to create** styrer dette, og forfatteren på Batch-kjøringer. Når den er av, sier eksporten fortsatt at den er laget med Lolly, og bærer ingen personlig forfatter- eller kontaktlinje.
 
-**Opt-in-valget (proveniens).** Når du eksporterer en ressurs, kan detaljene dine valgfritt følge med som **proveniens** - en forfatter-/krediteringslinje bygget inn i filens metadata (PNG, PDF, SVG, …) - slik at en ferdig ressurs kan si hvem som lagde den. *Dette* er det **Bruk mine opplysninger til å opprette** styrer: la den stå av, og eksporten har fortsatt attribusjonen «Laget med Lolly» for verktøy/plattform, men ingen personlig forfatter-/kontaktlinje blir bygget inn. (Det samme opt-in-valget setter forfatteren på batch-kjøringer i **/pro**.) (Verktøyforfattere: se [Lage verktøy → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) og [Host API → `host.profile`](/info/host-api.html#host-profile).)
+Verktøyforfattere: se [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) og [`host.profile`](/info/host-api.html#host-profile).
 
-![Den ene bryteren Bruk mine opplysninger til å opprette, ved siden av Lagre profil og av til du slår den på](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![Den ene bryteren Use my details to create, merket som valgfri og av til du slår den på](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## Profil vs. plattform vs. funksjoner
+## Profil, designsystem og kapabiliteter
 
-Tre ting ligger nær hverandre i grensesnittet og er lette å forveksle:
+Tre ting ligger nær hverandre i Settings og er lette å blande sammen:
 
-- <!--i:people--> **Profil** - *deg* (eller teamet ditt, eller rollen du har): navn, kontakt, portrett, ditt lagrede arbeid. Personlig, enhetslokalt, flyttbart som en pakke.
-- <!--i:palette--> **Plattform** - *merkevaren*: farger, fonter og globale innstillinger hvert verktøy rendrer mot. Delt og konsistent, ikke personlig.
-- <!--i:sliders--> **Kapabiliteter** - *hva appen kan gjøre*: hele funksjonssettet og verktøyene som er tilgjengelige for deg.
+- <!--i:people--> **Profile** - du, teamet ditt eller rollen du er i: navn, kontakt, portrettbilde og lagret arbeid. Personlig, beholdt på enheten og portabel som en fil.
+- <!--i:palette--> **Design system** - merkevaren: farger, skrifter og innstillinger hvert verktøy gjengir med. Delt og konsistent i stedet for personlig; se [Design System Setup](/info/brand-studio.html).
+- <!--i:sliders--> **Capabilities** - hva appen kan gjøre: funksjonene og verktøyene som er tilgjengelige for deg.
 
-En profil endrer hvem en ressurs er *fra*; plattformen endrer hvordan den *ser ut*; funksjoner er *hva du kan lage*.
+En profil endrer hvem en fil er fra; designsystemet endrer hvordan filen ser ut; kapabiliteter er det du kan lage.
 
-### «Profil» betyr to andre ting andre steder - ikke denne
-
-Ordet brukes i flere betydninger på tvers av prosjektet. Ingen av disse er den personlige profilen denne siden handler om:
-
-- <!--i:box--> **Innholdsprofil** - en byggetidskonfigurasjon i `profiles.json` som binder et sett med verktøypakker til en merkevarekatalog (f.eks. `suse`, `lolly-start`). Det er det en operatør velger ved utrulling, og det er også det **URL-/CLI-parameteren** `profile` velger som en *fargevariant* av ved eksporttidspunktet (ICC-/CMYK-trykktilstanden - se [URL-modus](/info/url-mode.html)). Begge handler om *bygget/utdataene*, ikke om *deg*. Se [Konfigurasjon](/info/configuration.html).
-- <!--i:seal--> **Identitetsprofil** - den valgfrie **verifiserte Content Credentials-identiteten** du kan registrere (et kortlevd sertifikat som knytter e-posten din til dine signerte eksporter). Det er en signeringsidentitet, atskilt fra den personlige profilens navn-/kontaktfelt, selv om **Bruk detaljene mine ved oppretting** styrer om noen av dem blir bygget inn. Se [Content Credentials-identitet](/info/content-credentials-identity.html).
+Ordet har tre andre betydninger i Lolly. En **content profile** er en byggeinnstilling som velger hvilke verktøy og hvilken katalog en installasjon leveres med; [Glossary](/info/glossary.html) definerer begrepet. Lenkeparameteren `profile` velger en fargeprofil for en eksport, for eksempel en CMYK-trykkbetingelse; se [Reserved URL parameters](/info/url-parameters.html#print). En **verified identity** er det valgfrie signeringssertifikatet som knytter e-posten din til de signerte eksportene dine, adskilt fra disse detaljene, selv om **Use my details to create** styrer om noen av dem bygges inn; se [Content Credentials](/info/content-credentials-identity.html).
 
 ![Kortet for Verifisert identitet, telefonbredde: velgeren for sertifikatets levetid og registreringssteget under - identitetsprofilen, atskilt fra de personlige detaljene dine](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Personvern
 
-Utenom den valgfrie identitetsregistreringen ovenfor (som sender e-posten du registrerer til sertifikattjenesten - se [Serveroverflate](/info/server-surface.html)), blir en profil aldri overført, lastet opp eller brukt til å identifisere eller spore deg - det er ingenting å samtykke til, bare denne merknaden slik at du vet hva som lagres. Fjern alt sammen når som helst med **Innstillinger → Preferences → Slett alle mine data**. Se [Personvernerklæringen](/info/privacy.html).
+Din personlige profil lagres lokalt. Detaljene dine kan følge med i en sikkerhetskopi eller Sync-kopi, i innhold du deler eller eksporterer og under valgfri registrering for Content Credentials. På en Lolly Work-instans er pålogging, delt arbeid, telemetripolicy og revisjonsposter adskilt fra denne lokale profilen. **Settings → Preferences → Clear all my data** tømmer denne enheten; den sletter ikke kopier hos lagringsleverandøren eller organisasjonen din. Se [Privacy Policy](/info/privacy.html).

@@ -2520,6 +2520,24 @@ test('unticking the card turns the runtime switch off and shows the plain descri
   h.dispose();
 });
 
+test('a record that names brand skills shows them as Guided by, and unticking removes them with the rest', async () => {
+  // The web shell has no agent, so nothing sets brand skills here yet (plan 323);
+  // a preview that carries them is still shown in the card's own words.
+  const preview = {
+    ...PERSIMMON_PREVIEW,
+    record: { ...PERSIMMON_PREVIEW.record, brandSkills: [{ id: 'acme/skill/brand', name: 'acme-brand', revision: '1.0', sha256: '0f'.repeat(32) }] },
+  };
+  const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview } });
+  await settle();
+  const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
+  assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon · Guided by: acme-brand 1.0');
+  const toggle = card.querySelector('[data-action="madewith"]') as HTMLInputElement;
+  toggle.checked = false;
+  toggle.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records nothing about the design system.');
+  h.dispose();
+});
+
 test('a link that turned the record off opens the card unticked', async () => {
   const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW, on: false } });
   await settle();

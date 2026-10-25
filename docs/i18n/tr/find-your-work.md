@@ -1,6 +1,8 @@
 # Çalışmanı bul ve kurtar
 
-Lolly'de yaptığın her şey, [Sync](/info/sync.html)'i açmadıkça, onu yaptığın tarayıcıda ya da uygulamada, o cihazda kalır. Kaydedilmiş iş **Projeler**'dedir. İndirilen bir dosya, tarayıcının ya da sistemin onu koyduğu her yerdedir ve genellikle bir kopyası **Varlıklar**'da bekler. Çoğu araçta, hiç kaydetmediğin çalışma da tutulur. Bu sayfa bunların her birini, artı kapatılmış bir sekmeyi, temizlenmiş tarayıcı verilerini, önceki sürümleri, silinmiş öğeleri ve başka bir cihaza taşımayı kapsar.
+Bir şey eksik: hiç kaydetmediğin bir tasarım, indirdiğin bir dosya, geçen haftanın sürümü ya da tarayıcı temizlendikten sonra her şey. Tabloyla başla, sonra işaret ettiği bölümü izle.
+
+Kişisel iş, [Sync](/info/sync.html) açmadıkça yaptığın tarayıcıda veya uygulamada, o cihazda kalır. İsteğe bağlı Lolly Work kullanan bir kuruluş ayrıca **Team projects** öğesini sunucusunda tutar; aşağıda kapsanır.
 
 | Ne yaptın | Nereye bak |
 |---|---|
@@ -10,13 +12,23 @@ Lolly'de yaptığın her şey, [Sync](/info/sync.html)'i açmadıkça, onu yapt�
 | Hiçbiri, başka herhangi bir araçta | Yalnızca çalıştığın sekme, onu kapatana kadar |
 | Uygulamada sildin | **Çöp kutusu**, **Projeler**'de, **Varlıklar**'da veya **Ayarlar → Depolama**'da, 30 gün boyunca |
 
+::: figure find-your-work-places
+İşinin yaşadığı yerler: tarayıcının kendi depolaması Projects, History ve Trash'i tutar; indirmeler cihazının klasörlerine gider; Sync ve bir yedek dosyası tarayıcının dışındaki kopyalardır.
+:::
+
+::: details Lolly Work'te paylaşılan işi bul (isteğe bağlı)
+Kuruluşunun Lolly'sini aç ve giriş yap, sonra **Projects → Team projects** içine bak. Paylaşılan oturumlar o örnek tarafından tutulur ve erişimine göre görünür. Giriş yapmak, başka bir cihazda o oturumlara erişimi geri getirebilir; kişisel kitaplığını veya cihaz yedeğini geri getirmez.
+
+Bir [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) içinde ayrılmadan önce **Saved to work** göstergesini bekle. Paylaşılan bir proje eksikse doğru örneğe bağlı olduğunu denetle ve erişim veya saklama için işletmesine sor. Tarayıcı verisini temizlemek yerel kopyaları kaldırır, kuruluşun sunucu kopyasını değil. Bkz. [Use Lolly at your organisation](/info/organisation.html).
+:::
+
 ## Kaydettiğin bir şeyi bul
 
 1. Aracın sol üstünden **Ana sayfa**'ya bas.
 2. Ana ekranın üstündeki **Projeler** sekmesini aç (telefonda klasör simgesi).
 3. İlk ekrana bak. **Kitaplığım**'a kaydedilen çalışma orada durur ve her proje bir klasördür. Tüm klasörleri aynı anda aramak için ekranın altındaki **Tüm projelerde ara…**'ya yaz.
 
-Bir öğe, dışa aktarım panelinde yazdığın dosya adıyla, ya da hiçbir şey yazmadıysan **QR Code** gibi kendi aracının adıyla anılır. Öğeyi aç, her ayar geri gelsin, değiştirmeye ve yeniden dışa aktarmaya hazır. Yeni çalışmayı bu şekilde tutmak için bkz. [Kaydetme ve devam etme](/info/using.html#saving-continuing).
+Bir öğe, dışa aktarma panelinde yazdığın dosya adından ya da hiç yazmadıysan **QR Code** gibi aracının adından adlandırılır. Öğeyi aç; her ayar geri gelir, değiştirmeye ve yeniden dışa aktarmaya hazırdır. Yeni işi bu şekilde saklamak için bkz. [Saving & continuing](/info/using.html#saving-continuing).
 
 ::: note Projeler'de yok mu?
 - **Çöp kutusu**'nda olabilir: bkz. [Sildiğin bir şeyi geri al](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **İç içe geçen klasörler.** Kaydedilmiş oturumları klasörlere, klasörleri de istediğin kadar derinlikte başka klasörlerin içine grupla. Bir klasör oluştur, yeniden adlandır ya da bir kutucuğu başka bir klasörün üzerine sürükleyerek taşı; bir breadcrumb seni geri yukarı taşır. Klasörsüz kaydedilen oturumlar doğrudan **Projeler** kökünde görünür.
-- <!--i:clock--> **Kendi yönteminle sırala.** Sağ üstteki kaydırıcı düğmesi olan **Görüntüleme seçenekleri**, **Izgara** ya da **Liste** sunar ve **Ad**, **Eklenme tarihi**, **Son değiştirilme** (varsayılan), **Boyut**'a göre, klasör içindeyse **Araca göre** sıralar. Hangi sıralama aktif olursa olsun klasörler her zaman önce gelir - sıralama yalnızca oturumları ve klasörleri kendi grupları içinde sıraya koyar.
-- <!--i:document--> **Yeni çalışmayı doğrudan buraya dosyala.** **Yeni varlık**, paylaşılan seçiciyi açar. Kaydedilmiş bir şablondan başlamak için **Şablonlar**'ı seç: düzenlemek için aç, ya da yeni bir oluşumu hemen kaydetmek için **+ Ekle**'yi kullan.
-- <!--i:checklist--> **Çoklu seçim (masaüstü).** Bir kutucuğun onay kutusunu işaretle, boş alanın üzerine bir seçim kutusu sürükle ya da **Shift/Cmd-click** yap; bağlam menüsü için bir kutucuğa **sağ tıkla**. Seçim çubuğu ardından **Seçimi oluştur**, **Taşı…**, **Yeni klasör**, **Sil** (çöp kutusuna taşır), iki ile sekiz tek-araçlı oturumu tek bir kenar çubuğu altında yan yana getiren **Birlikte düzenle** ve herhangi bir boyut ya da karışımdaki bir seçimi toplu ızgarada satırlar olarak açan **Sayfa olarak düzenle**'yi sunar.
-- <!--i:download--> **Bütün bir klasörü ya da seçimi oluştur.** **Klasörü oluştur**, bir klasördeki - alt klasörleri dahil - her kaydedilmiş oturumu tek bir iç içe `.zip` olarak dışa aktarır. **Seçimi oluştur** herhangi bir çoklu seçim için aynısını yapar, tek bir oturum ise doğrudan kendi dosyasına oluşturulur. Batch/Pro gerekmez.
-- <!--i:link--> **Bir aracın kaydedilmiş işine doğrudan atla.** Araçlar galerisinde bir ya da daha fazla aracı işaretle ve seçim çubuğundan **Oturumları görüntüle**'yi seç - Projeler, yalnızca o araçlarla yapılmış oturumları gösterecek şekilde açılır, tam görünüme dönmek için bir **Temizle** ile birlikte.
-- <!--i:link--> **Kaydedilmiş bir oturumu paylaş.** Bir oturuma sağ tıkla (telefonda, kutucuğundaki **•••**'e bas) → aynı ayarlarla yeniden açan bir bağlantı kopyalamak için **Bağlantıyı paylaş**; cihazından gelen fotoğraflar bağlantıyla birlikte gitmez (tam Paylaş penceresi: bkz. [Çalışmanı paylaşmak](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Birini yeniden adlandır ya da kopyala.** **Yeniden adlandır**, **Çoğalt** (aynı klasörde bir kopya) ve **Taşı…** için bir oturuma sağ tıkla (telefonda, kutucuğundaki **•••**'e bas).
+- <!--i:folder--> **İç içe geçen klasörler.** Kayıtlı oturumları klasörlere ve klasörlerin içinde klasörlere, istediğin kadar derin gruplandır. Bir klasör oluştur, yeniden adlandır ya da taşımak için bir karoyu başka bir klasöre sürükle; bir içerik yolu seni yukarı geri götürür. Klasörsüz kaydedilen oturumlar doğrudan **Projects** kökünde görünür.
+- <!--i:clock--> **Kendi yolunla sırala.** Sağ üstteki sürgü düğmesi olan **View options**, **Grid** veya **List** sunar ve **Name**, **Date added**, **Last modified** (varsayılan), **Size** ve bir klasörün içinde **By tool** ile sıralar. Hangi sıralama etkin olursa olsun klasörler her zaman önce gelir - sıralama yalnızca oturumları ve klasörleri kendi gruplarının içinde sıralar.
+- <!--i:document--> **Yeni işi doğrudan dosyala.** **New asset** paylaşılan seçiciyi açar. Kayıtlı bir şablondan başlamak için **Templates** seç: düzenlemek için aç ya da yeni bir yaratımı hemen kaydetmek için **+ Add** kullan.
+- <!--i:checklist--> **Çoklu seçim (masaüstü).** Bir karonun onay kutusunu işaretle, boş alan üzerinde bir seçim kutusu sürükle ya da **Shift/Cmd ile tıkla**; bağlam menüsü için bir karoya **sağ tıkla**. Seçim çubuğu sonra **Render selection**, **Move to…**, **New folder**, **Delete** (Trash'e taşır), tek araçlı iki ila sekiz oturum için tek bir kenar çubuğu altında yan yana **Edit together** ve her boyutta veya karışımda bir seçimi toplu iş ızgarasında satırlar olarak açan **Edit as sheet** sunar.
+- <!--i:download--> **Bir klasörün veya seçimin tamamını render et.** **Render folder**, bir klasördeki her kayıtlı oturumu - alt klasörleri dahil - iç içe tek bir `.zip` olarak dışa aktarır. **Render selection** herhangi bir çoklu seçim için aynısını yapar ve tek bir oturum doğrudan kendi dosyasına render edilir.
+- <!--i:link--> **Bir aracın kayıtlı işine doğrudan atla.** Tools galerisinde bir veya daha fazla aracı işaretle ve seçim çubuğundan **View sessions** seç - Projects yalnızca o araçlarla yapılan oturumları göstererek açılır; tam görünüme dönmek için bir **Clear** vardır.
+- <!--i:link--> **Kayıtlı bir oturumu paylaş.** Bir oturuma sağ tıkla (telefonda karosundaki **•••** düğmesine bas) → aynı ayarlarla yeniden açan bir bağlantıyı kopyalamak için **Share link** (cihazından resimler bir bağlantıyla gitmez; tam Share iletişim kutusu için bkz. [Sharing your work](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Birini yeniden adlandır veya kopyala.** Bir oturuma sağ tıkla (telefonda karosundaki **•••** düğmesine bas): **Rename**, **Duplicate** (aynı klasörde bir kopya) ve **Move to…**.
 
 ![Projeler'deki Görüntüleme seçenekleri popover'ı: Izgara ve Liste ile Düzen, ve Son değiştirilme'ye ayarlı Sıralama ölçütü, sırayı ters çeviren bir düğmenin yanında](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 Neyin geri geldiği, nasıl ayrıldığına ve hangi aracı kullandığına bağlıdır:
 
-- **Sekmeyi kapattın, ya da başka bir zaman geri döndün.** Kaydedilmemiş çalışma, [çalışırken kaydeden araçlar](#which-tools-save-as-you-work) dışında kaybolur: o çalışmayı **Projeler**'den aç.
-- **Sayfayı aynı sekmede yeniden yükledin.** Ayarların sayfa adresinden geri gelir. Çalışırken kaydetmeyen araçlarda, cihazından eklediğin görseller ve dosyalar, ve 150 karakterden uzun tek satırlık metin geri gelmez, çünkü adres onları tutmaz.
-- **Ana sayfa'ya ya da sol üstteki geri düğmesine bastın.** Son kaydetmenden, indirmenden ya da kopyalamandan bu yana bir şey değiştirdiysen, bir **Kaydedilmemiş düzenlemeler** penceresi önce kaydetmek isteyip istemediğini sorar. **Kaydet & çık** çalışmayı kaydeder ve seni **Projeler**'e, ya da çalışmayı açtığın proje klasörüne geri götürür. **Yine de çık** değişikliklerini geri alır: kaydedilmiş bir öge en son kaydettiğin hâline döner, hiç kaydetmediğin bir oluşum ise **Projeler**'den ayrılır. **İptal** seni araçta tutar.
+- **Sekmeyi kapattın veya başka zaman geri geldin.** Kaydedilmemiş iş gider; [çalışırken kaydeden araçlar](#which-tools-save-as-you-work) hariç: o işi **Projects** içinden aç.
+- **Sayfayı aynı sekmede yeniledin.** Ayarların sayfa adresinden geri gelir. Çalışırken kaydetmeyen araçlarda cihazından eklediğin resimler ve dosyalar ile 150 karakterden uzun tek satırlı metin geri gelmez, çünkü adres onları tutmaz.
+- **Home düğmesine veya sol üstteki geri düğmesine bastın.** En son kaydettiğinden, indirdiğinden veya kopyaladığından beri bir şeyi değiştirdiysen bir **Unsaved edits** iletişim kutusu önce kaydedip kaydetmeyeceğini sorar. **Save & leave** işi kaydeder ve seni **Projects**'e ya da işi açtığın proje klasörüne götürür. **Leave anyway** değişikliklerini atar: kayıtlı bir öğe en son kaydettiğin hâline döner ve hiç kaydetmediğin bir yaratım **Projects**'ten ayrılır. **Cancel** seni araçta tutar.
 
 Lolly yalnızca bir araçta **Ana sayfa**'ya ya da geri düğmesine bastığında sorar. Sekmeyi kapatmak, yeniden yüklemek ve tarayıcının kendi Geri düğmesi hiçbir zaman sormaz. Emin olmak için bir araçtan ayrılmadan önce **Farklı kaydet**'e, ya da dışa aktarım panelinde **Kaydet**'e bas.
+
+Otomatik kurtarma kullanılamadığında, düzenleme denetimlerinin yanındaki bir not neyi saklaman gerektiğini söyler:
+
+- Getirdiğin bir dosya üzerinde çalışan bir araçta ayarlarını kaydet ve özgün dosyaları da sakla.
+- Bir kayıt aracında veya Save eylemi olmayan bir yardımcı araçta, ayrılmadan önce sonucu kaydet veya indir.
+- Masaüstü ve mobil uygulamalar elle kaydetmen gerektiğinde bunu söyler.
+- Özel bir iş birliğinde davet eden kişi belgeyi ve diğer kişinin değişiklikleri dahil geçmişini tutar. Katılan kişi geçici bir kopya üzerinde çalışır ve oturum bitmeden ayrı bir kopya kaydetmelidir.
 
 ::: note Yanlışlıkla kaydetmeden mi ayrıldın?
 Çalışırken kaydeden araçlarda, Geçmiş atılan düzenlemelerin bir kopyasını tutar. **Geçmiş** sayfasını aç, onları **Changes** altında bul ve **Kopya olarak aç**'a bas. Diğer araçlarda değişiklikler kaybolmuştur.
@@ -84,12 +103,15 @@ Lolly yalnızca bir araçta **Ana sayfa**'ya ya da geri düğmesine bastığınd
 ::: details Hangi araçlar çalışırken kaydeder
 Web uygulamasında, bir belge oluşturan her araç çalışırken kaydeder: Design, Chart, QR Code, Text, Sandbox ve geri kalanı. Şu araçlar kaydetmez:
 
-- kendi getirdiğin bir dosya üzerinde çalışan araçlar, örneğin Redact, Sign ya da Convert Image, çünkü Lolly o dosyanın bir kopyasını asla tutmaz;
-- kameranı, mikrofonunu ya da ekranını kaydeden araçlar, örneğin Record, Screen Capture ve Voice Recorder;
-- kendi dosyalarını alan 3D ve Darkroom;
-- değiştirilecek hiçbir şeyi olmayan bir araç, örneğin Countdown.
+- Redact, Sign veya Convert Image gibi getirdiğin bir dosya üzerinde çalışan araçlar, çünkü Lolly o dosyanın hiçbir kopyasını tutmaz;
+- Record, Screen Capture ve Voice Recorder gibi kamerandan, mikrofonundan veya ekranından kayıt yapan araçlar;
+- Countdown gibi değiştirilecek bir şeyi olmayan bir araç.
 
-Bu araçlarda, ilk değişikliğin çalışmayı sanki kaydetmişsin gibi **Projeler**'e dosyalar, sonraki değişiklikler de araç çizimini bitirdikten sonra, çalışırken tutulur. Yani kaydedilmemiş bir oluşum, sekmeyi kapattıktan sonra bile Projeler'de kalır ve değişiklikleri kaydedilmemiş olarak işaretlenmiş biçimde yeniden açılır. **Yine de çık** bunları her durumda geri alır, ve Geçmiş atılan düzenlemelerin bir kopyasını 30 gün boyunca tutar. Aracı ana ekrandan yeniden açmak yeni bir oluşum başlatır; öncekini Projeler'den aç.
+Diğer araçlarda ilk değişikliğin işi kaydetmişsin gibi **Projects** içine dosyalar ve araç çizimi bitirdikten sonra sonraki değişiklikler çalışırken tutulur. Kaydedilmemiş bir yaratım sekmeyi kapattıktan sonra da Projects içindedir ve değişiklikleri kaydedilmemiş olarak işaretlenmiş şekilde yeniden açılır.
+
+**Leave anyway** bu değişiklikleri yine atar ve History atılan düzenlemelerin bir kopyasını 30 gün tutar. Aracı ana ekrandan yeniden açmak yeni bir yaratım başlatır; önceki olanı Projects içinden aç.
+
+3D ve Darkroom çalışırken kaydeder, ancak içlerine yüklediğin bir 3D model veya LUT gibi dosyayı tutmaz. History ve **Save** dosyanın adını, türünü ve boyutunu tutar, dosyayı değil. İşi yeniden açtığında bir not hangi dosya olduğunu söyler ve araç, onu yeniden yükleyene kadar o olmadan çalışır. Özgün dosyalarını sakla.
 
 [Sync](/info/sync.html) açıkken, bu şekilde dosyalanan bir oluşum, Projeler'deki her şey gibi diğer cihazlarına da gider. Sürümleri ise yapıldıkları cihazda kalır.
 
@@ -138,7 +160,7 @@ Otomatik kontrol noktaları yaşlandıkça seyrekleşir: son bir saat için daki
 
 Geçmiş depolaması dolduğunda, önce 30 gündür açmadığın oluşumların en eski otomatik kontrol noktaları kaldırılır. Bir kayıt o zaman bile her zaman tutulur: güncel çalışma olarak yazılır ve Geçmiş, bu kaydın bir sürüm olarak tutulmadığını söyler. **Ayarlar → Depolama**, Geçmiş'in ne kadar yer kapladığını gösterir.
 
-**History** sayfası (`#/history`, ya da panoda **Open app history**), bu tarayıcıdaki her oluşumu kapsar. Bir bilgisayarda, sayfayı ana ekranın ya da **Projeler**'in sağ üstündeki saat düğmesinden aç. Telefonda, ana ekrandaki araçlar galerisine git, sağ üstteki yuvarlak logo düğmesine bas ve History'yi açan **Kaydedilmiş oturumlar**'ı seç. **Projeler**'den o öğe henüz hiçbir şey yapmaz.
+**History** sayfası (`#/history`) bu tarayıcıdaki her yaratımı kapsar. Açmak için ana ekranın veya **Projects**'in sağ üstündeki saat düğmesine bas, profil menüsünde **Saved sessions** seç (telefonda sağ üstteki yuvarlak logo düğmesi) ya da bir aracın History panelinde **Open app history** düğmesine bas. Masaüstü ve mobil uygulamalar bir History sayfası tutmaz; bu yüzden orada ana ekranın saat düğmesi ve **Saved sessions** bunun yerine **Your recent work** sayfasını açar: en son kayıtlı oturumların ve dışa aktarmaların, Projects'e bir bağlantıyla.
 
 - **Son**, oluşumlarını en yeniden en eskiye, **Devam et** ile birlikte listeler.
 - **Changes**, kontrol noktalarını, indirmeleri ve Convert sonuçlarını tek bir zaman çizelgesine koyar. Bir indirmenin **Reopen settings**'i vardır.
@@ -174,7 +196,7 @@ Girişler, anahtarlar ve senkronizasyon parolası her cihazda kalır. Son indirm
 ::: details Yedek dosyası ne tutar
 Dosya `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` olarak adlandırılır (ad parçaları profilinden gelir ve ayarlanmamışsa atlanır; `<n>`, aynı günkü dışa aktarımların çakışmaması için günlük bir sayaçtır). Profilini; klasörlerin, çöp kutun, şablonların ve favorilerinle birlikte içerir; küçük resmiyle birlikte her kaydedilmiş oturumu; yüklediğin görselleri, yazı tiplerini, logoları ve indirmelerinin kopyalarını; tasarım sistemlerini; tercihlerini (tema, kenar çubuğu genişliği, yerel etkinlik istatistikleri); kaydedilmiş sürümleri ve Convert sonuçlarını; ve, web uygulamasından, oluşumlarının sürüm geçmişini içerir.
 
-Katalog önbelleği dahil değildir - yeni cihazda kendini yeniden indirir. Her parça sağlama toplamıyla korunur, bu yüzden aktarım sırasında hasar gören bir dosya yarı bozuk geri yüklenmek yerine içe aktarımda yakalanır. Kaydedilmiş oturumlar, içe aktardığın görsellere otomatik olarak yeniden bağlanır. Web, masaüstü ve mobil uygulamalar aynı dosyayı okur; terminal uygulaması bu formatın okumadığı, kendine ait daha basit bir yedek yazar. **📦 Export my data & render everything**, aynı dosyayı, artı her kaydedilmiş oturumun çıktısına oluşturulduğu ikinci bir zip'i yapar. (Tam format şartnamesi: [Veri Aktarımı](/info/data-transfer.html).)
+Katalog önbelleği dahil değildir - yeni cihazda kendiliğinden yeniden iner. Her parçanın sağlama toplamı vardır; bu yüzden aktarım sırasında hasar gören bir dosya yarım yamalak geri yüklenmek yerine içe aktarma sırasında yakalanır. Kayıtlı oturumlar, içe aktarılan görsellerine otomatik olarak yeniden bağlanır. Web, masaüstü ve mobil uygulamalar aynı dosyayı okur; terminal uygulaması kendi daha basit yedeğini yazar ve bu biçim onu okumaz. **Export my data & render everything** aynı dosyayı ve her kayıtlı oturumun çıktısına render edildiği ikinci bir zip'i üretir. (Tam biçim şartnamesi: [Data transfer](/info/data-transfer.html).)
 :::
 
 ## Tarayıcı verilerini temizlersen
@@ -185,11 +207,13 @@ Web uygulamasında Lolly, bu site için tarayıcının depolamasında her şeyi 
 **Ayarlar → Depolama** altında **Verilerimi dışa aktar**'a bas ve dosyayı başka bir yerde sakla.
 :::
 
-Uygulama başladığında, Lolly tarayıcıdan, cihazın alanı azaldığında depolamasını temizlememesini ister. Karar tarayıcıya aittir. **Ayarlar → Çevrimdışı kullanılabilir** altında, **Protected** ile başlayan bir satır tarayıcının kabul ettiği anlamına gelir; "Cihazın alanı azalırsa tarayıcı indirmeleri temizleyebilir" ise kabul etmediği anlamına gelir ve **İndirmeleri koru** yeniden sorar. Tarayıcı kabul etmediyse, alan azaldığında indirmelerin yanı sıra kaydedilmiş çalışmayı da temizleyebilir, bu yüzden yakın tarihli bir **Verilerimi dışa aktar** dosyası sakla.
+Uygulama başladığında Lolly, cihazın alanı azaldığında tarayıcıdan depolamasını temizlememesini ister ve karara tarayıcı verir. **Settings → Available offline** altında **Protected** ile başlayan bir satır tarayıcının kabul ettiği anlamına gelir. "The browser may clear downloads if the device runs low on space" kabul etmediği anlamına gelir ve **Protect downloads** yeniden ister.
+
+Tarayıcı kabul etmediyse alan azaldığında indirmelerin yanı sıra kayıtlı işi de temizleyebilir; bu yüzden yakın tarihli bir **Export my data** dosyası sakla.
 
 **Ayarlar → Depolama**, her veri türünün ne kadar alan kullandığını gösterir. Onun **Geçmiş** satırı otomatik kontrol noktalarını, önizlemelerini ve kurtarma taslaklarını sayar; **30 günden eski otomatik kontrol noktalarını kaldır**, bu alanı boşaltır ve kaydedilmiş ile adlandırılmış sürümleri korur. **Önbelleği temizle**, indirilen katalog dosyalarını bırakır, bunlar gerektiğinde yeniden indirilir. **Tüm verilerimi temizle**, bir kelime yazmanı ister, Sync'i kapatır, ardından Lolly'nin bu tarayıcıda tuttuğu her şeyi kaldırır: profilin ve ayarların, geçmişleriyle birlikte kaydedilmiş oturumların ve Çöp kutusu, yüklemelerin, yazı tiplerin ve tasarım sistemlerin, indirme günlüğü, Convert sonuçları, indirilen AI modelleri ve çevrimdışı kopyalar. İndirdiğin dosyalar, kaydettiğin yerde kalır. Uygulama ardından ilk ziyaretteki gibi başlar.
 
-![Telefon genişliğinde bir ekranda depolama kartı: cihazdaki her veri kategorisi adlandırılmış, altta Tüm verilerimi temizle düğmesiyle](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Telefon genişliğindeki ekranda depolama kartı: cihazdaki verilerin her kategorisi adıyla, altta Clear all my data düğmesi](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Masaüstü ve mobil uygulamalarda, kaydedilmiş oturumlar uygulamanın kendi veri klasöründeki dosyalardır, geri kalanı ise uygulamanın kendi depolamasındadır, bu yüzden bir web tarayıcısını temizlemek onlara dokunmaz.
 

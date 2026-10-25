@@ -21,6 +21,7 @@ import { assetBaseId } from '../../lib/asset-favourites.ts';
 import { assetFiles } from '../../lib/asset-files.ts';
 import { thumbImgHtml } from '../../lib/asset-thumb-src.ts';
 import { icon } from '../../lib/icons.ts';
+import { isTextKind } from '../../lib/text-kinds.ts';
 import { audioThumbPlaceholder } from '../../lib/audio-thumb.ts';
 import { peaksFingerprint } from '../../lib/audio-peaks.ts';
 import { isModuleFormat } from '../../lib/mod-render.ts';
@@ -203,12 +204,13 @@ export function thumbHtml(cat: CatCtx, ref: AssetRef, asSpan = false, full = fal
       + `<${tag} class="cat-emoji-specimen" data-emoji-specimen role="img" aria-label="${escapeText(tRaw('How {set} draws five emoji', { set: pack.label }))}"></${tag}>`
       + `<${tag} class="cat-emoji-names">${escapeText(names)}</${tag}></${tag}>`;
   }
-  // A text asset (.txt/.md, plans/125): the bytes ARE the text, so an <img src=text>
-  // is a broken image. The modal (full) shows a real reading preview filled after mount
-  // from the asset url (the fetch is async; this markup is built sync). A grid tile shows
-  // a calm document stub. A tabular data asset gets its own stub glyph.
-  if (ref.type === 'text' || ref.type === 'data') {
-    if (full && ref.type === 'text') {
+  // A text asset (.txt/.md, plans/125) or a brand skill (plan 323, a Markdown file):
+  // the bytes ARE the text, so an <img src=text> is a broken image. The modal (full)
+  // shows a real reading preview filled after mount from the asset url (the fetch is
+  // async; this markup is built sync). A grid tile shows a calm document stub. A
+  // tabular data asset gets its own stub glyph.
+  if (isTextKind(ref.type) || ref.type === 'data') {
+    if (full && isTextKind(ref.type)) {
       // The reading surface: raw monospace <pre> (textContent-filled) plus a
       // rendered-markdown sibling the toggle swaps in, and a small tools pill
       // (font zoom for both modes; the render toggle unhides for md-shaped
@@ -225,8 +227,9 @@ export function thumbHtml(cat: CatCtx, ref: AssetRef, asSpan = false, full = fal
     // lib/text-thumbs.ts (mountTextThumbGrid): a brand-inked excerpt sized by
     // document length, focused on the hottest AI-signal region with its heat
     // marks, and a faint corner score donut - the audio-waveform treatment,
-    // for text. Data assets keep the ▦ stub (their bytes are not prose).
-    if (ref.type === 'text') {
+    // for text. A skill gets the excerpt without marks or donut. Data assets keep
+    // the ▦ stub (their bytes are not prose).
+    if (isTextKind(ref.type)) {
       return `<${tag} class="cat-thumb cat-thumb-stub cat-thumb-ttxt" data-text-thumb="${escapeText(ref.id)}" aria-hidden="true">¶</${tag}>`;
     }
     // A stored PDF (an auto-saved render keeps its credentialed bytes verbatim,

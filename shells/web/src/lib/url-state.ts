@@ -1,10 +1,22 @@
 // SPDX-License-Identifier: MPL-2.0
-import { rememberOverlayUrlState } from './overlay-back.ts';
-/** Address-bar state writes keep the mounted view and its history entry. */
-export function replaceRouteUrl(url: string, state: unknown = window.history.state): void {
-  window.history.replaceState(state, '', url);
+import { rememberOverlayUrlState, routeBase } from './overlay-back.ts';
+/**
+ * Address-bar state writes keep the mounted view and its history entry. Returns false
+ * when the browser refused the write. WebKit and Firefox throw once a page calls
+ * replaceState too often, and an address past the browser's limit can throw too. A
+ * refused write leaves the address as it was, and never throws into the caller, so a
+ * paint that ends with an address write still finishes.
+ */
+export function replaceRouteUrl(url: string, state: unknown = window.history.state): boolean {
+  try {
+    window.history.replaceState(state, '', url);
+  } catch (error) {
+    console.warn('[lolly] the browser refused an address write', error);
+    return false;
+  }
   rememberOverlayUrlState();
   window.dispatchEvent(new window.Event('lolly:url-state'));
+  return true;
 }
 
 export function routeParams(href: string = window.location.href): URLSearchParams {
@@ -27,6 +39,121 @@ export function mergeRouteParams(href: string, changes: Record<string, string | 
 
 export function updateRouteParams(changes: Record<string, string | number | boolean | null>): void {
   replaceRouteUrl(mergeRouteParams(window.location.href, changes));
+}
+
+/** An address write that waits until its value stops changing. */
+export interface SettledWrite {
+  /** Note a change. The write runs once, the settle time after the last change. */
+  schedule(): void;
+  /** Run a waiting write now. */
+  flush(): void;
+  /** Drop a waiting write, so nothing is written. */
+  cancel(): void;
+  /** True while a write is waiting. */
+  pending(): boolean;
+}
+
+/** A refused write is tried again after 1, 2, 4 and 8 seconds, which gives a rate limit
+ *  time to pass, and then waits for the next change or flush. */
+const RETRY_MS = 1000;
+const RETRIES = 4;
+const waiting = new Set<SettledWrite>();
+let flushOnHide = false;
+
+/**
+ * Write the address once a burst of changes settles, not on every change. Each write
+ * parses and rebuilds the whole address, which can hold the whole document, and wakes
+ * every `lolly:url-state` listener. Browsers also refuse a page that writes too often.
+ *
+ * `write` builds the address from the latest state when it runs and returns false when
+ * the browser refused the write. A write that belongs to a route the page has since left is
+ * dropped. Anything that reads the address, or leaves the page, calls
+ * {@link flushAddressWrites} first.
+ */
+export function settledWrite(write: () => boolean, settleMs: number): SettledWrite {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let route = '';
+  let retries = 0;
+  const stop = (): void => {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+    waiting.delete(writer);
+  };
+  const arm = (ms: number): void => {
+    waiting.add(writer);
+    timer = setTimeout(run, ms);
+  };
+  const run = (): void => {
+    stop();
+    if (routeBase(window.location.href) !== route) return;
+    if (write()) { retries = 0; return; }
+    if (retries < RETRIES) arm(RETRY_MS * 2 ** retries++);
+  };
+  const writer: SettledWrite = {
+    schedule() {
+      if (!waiting.has(writer)) route = routeBase(window.location.href);
+      stop();
+      retries = 0;
+      listenForHide();
+      arm(settleMs);
+    },
+    flush() { if (waiting.has(writer)) run(); },
+    cancel: stop,
+    pending: () => waiting.has(writer),
+  };
+  return writer;
+}
+
+/** Run every waiting address write now: before something reads the address, and when
+ *  the page is hidden or left, so a reload or a copied address carries the latest state. */
+export function flushAddressWrites(): void {
+  for (const writer of [...waiting]) writer.flush();
+}
+
+/** The address on screen, path, query and hash, after any waiting write: what a sign-in
+ *  or another page should bring the person back to. */
+export function currentAddress(): string {
+  flushAddressWrites();
+  return window.location.pathname + window.location.search + window.location.hash;
+}
+
+/**
+ * Resolves once no address write is waiting, without forcing one. Two frames pass
+ * first, so a render an edit has queued paints and schedules its write; then the
+ * promise waits for that write to run or be dropped. Browser tests read the address
+ * through this instead of guessing at the settle time (tests/helpers/settled-address.ts).
+ */
+export function addressSettled(): Promise<void> {
+  const frame = (): Promise<void> => new Promise((done) => {
+    requestAnimationFrame(() => done());
+    setTimeout(done, 100); // a hidden page draws no frames, and queues no paints either
+  });
+  return frame().then(frame).then(() => new Promise<void>((done) => {
+    const check = (): void => { if (waiting.size) setTimeout(check, 25); else done(); };
+    check();
+  }));
+}
+
+/** The hook a browser driver reads the settled address through. */
+export const ADDRESS_SETTLED_HOOK = '__lollyAddressSettled';
+
+/**
+ * Give an automated browser (WebDriver and Playwright set `navigator.webdriver`, the
+ * signal lib/webgpu/device.ts already reads) the {@link addressSettled} hook. A person's
+ * browser never gets the hook, and no app code calls the hook.
+ */
+export function exposeAddressSettled(win: { navigator?: { webdriver?: boolean } }): void {
+  if (win.navigator?.webdriver) (win as Record<string, unknown>)[ADDRESS_SETTLED_HOOK] = addressSettled;
+}
+if (typeof window !== 'undefined') exposeAddressSettled(window);
+
+function listenForHide(): void {
+  if (flushOnHide) return;
+  flushOnHide = true;
+  window.addEventListener('pagehide', flushAddressWrites);
+  window.document.addEventListener('visibilitychange', () => {
+    if (window.document.visibilityState === 'hidden') flushAddressWrites();
+  });
 }
 
 /** Restore disclosures before listening, without replaying preference writes. */

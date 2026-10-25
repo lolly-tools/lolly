@@ -76,6 +76,7 @@ import { beginViewFade } from './view-fade.ts';
 import { beginViewLoading, type ViewLoading } from './components/view-loading.ts';
 import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView } from './lib/back-nav.ts';
 import { startWebGpuCheck, webGpuChecked } from './lib/webgpu/device.ts';
+import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
 
 // The collab + nearby wiring, installed once the critical load is done rather than at
 // module scope. All five are REGISTRATIONS - a Share-dialog row, the opener that row
@@ -248,7 +249,7 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   data: { label: 'Spreadsheet', viewClasses: ['data-view'], footer: 'none' },
   // The studio keys on ?tab= for the same reason - "Manage fonts" (#/start?tab=type)
   // clicked while already on #/start must switch steps, not dedupe to a no-op.
-  start: { label: 'Brand setup', viewClasses: ['start-view'], footer: 'none' },
+  start: { label: 'Design System Setup', viewClasses: ['start-view'], footer: 'none' },
   // Multi-edit keys on its selection (?s=slot,slot…) so editing a different
   // selection re-mounts with the new set instead of deduping.
   multi: { label: 'Multi-edit', viewClasses: ['multi-view'], footer: 'none' },
@@ -760,7 +761,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       await mountCatalog(view, host, route.params);
       break;
     }
-    // --- /start: the brand studio (set, save, import or export your brand
+    // --- /start: Design System Setup (set, save, import or export your brand
     // primitives - step tabs, ?tab=<key> deep-links one). Lazy-loaded - it
     // statically pulls the engine's derive/token modules, which the gallery
     // cold-load must not pay for. ---
@@ -1156,7 +1157,12 @@ async function boot(): Promise<void> {
   // to paint. navigate() holds every route that can run a tool until the check passes;
   // a failure replaces the view with the unsupported-environment card wherever the
   // person is (stopForWebGpu).
-  void startWebGpuCheck().then(() => { document.documentElement.dataset.webgpu = 'ready'; }, stopForWebGpu);
+  // While it runs, the gallery's looping motion holds still (lib/startup-motion.ts): on
+  // software graphics its per-frame repaints could delay the device past its budget.
+  document.documentElement.setAttribute(STARTUP_PENDING_ATTRIBUTE, '');
+  void startWebGpuCheck()
+    .then(() => { document.documentElement.dataset.webgpu = 'ready'; }, stopForWebGpu)
+    .finally(() => { document.documentElement.removeAttribute(STARTUP_PENDING_ATTRIBUTE); });
   // Prime the in-memory tool index from the last cached copy so the gallery can
   // paint immediately, before the network catalog sync resolves. syncCatalog
   // overwrites window.__toolIndex with fresh data when it lands. (Mirrors the

@@ -1,6 +1,6 @@
 {
   "name": "Кодов откъс",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Покажете текст в прозорец на десктоп, като статично изображение или като режисирано взаимодействие с писане, селекции, автоматично довършване и движение.",
   "inputs.code.label": "Код",
   "inputs.code.placeholder": "Постави кода си тук…",
   "inputs.fileName.label": "Име на файла",

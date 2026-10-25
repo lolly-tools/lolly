@@ -427,8 +427,8 @@ export interface Runtime {
    * (plans/319). On by default. The export panel's "Design system" card, the
    * `_madewith=0` param and the CLI's `--no-madewith` turn it off; an export's own
    * `opts.madeWith` wins over this setting for that one export. Off, the export's
-   * metadata carries no design system, version or theme choice, and its
-   * description keeps its plain form.
+   * metadata carries no design system, version or theme choice, no brand skills
+   * (plan 323), and its description keeps its plain form.
    */
   setMadeWith(on: boolean): void;
   madeWith(): boolean;
@@ -2182,10 +2182,16 @@ export async function createRuntime(
         // The design-system record (plans/319) rides only while it is on: the
         // export panel's card, `_madewith`, `--no-madewith`, or this export's own
         // opts.madeWith. Off, the snapshot is not read and nothing is recorded.
-        const snapshot = (opts.madeWith ?? madeWithOn) ? await recordSnapshot() : null;
+        const recordOn = opts.madeWith ?? madeWithOn;
+        const snapshot = recordOn ? await recordSnapshot() : null;
+        // The brand skills an agent declared (plan 323) ride the same switch, and
+        // only as the caller handed them: the runtime never fills them in itself.
+        const brandSkills = recordOn && opts.brandSkills?.length ? opts.brandSkills : null;
         // Pass the input model so bindToMeta inputs (the artist's author/copyright/
         // licence declaration) merge over the profile-derived provenance.
-        meta = await buildExportMeta(host, tool.manifest, profile, model, snapshot ? { snapshot } : undefined);
+        meta = await buildExportMeta(host, tool.manifest, profile, model, snapshot || brandSkills
+          ? { ...(snapshot ? { snapshot } : {}), ...(brandSkills ? { brandSkills } : {}) }
+          : undefined);
         // The licence the person picked in the export panel. A tool input bound to
         // the licence field is the more specific declaration, so it wins.
         const notice = outputLicenceNotice(declaredLicence);

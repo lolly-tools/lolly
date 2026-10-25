@@ -12,14 +12,19 @@
  *   • png / jpg   - a real screenshot of the viewport, honouring crop + scroll + recolor.
  *   • pdf         - a TRUE vector print of the page via Chromium's page.pdf() (selectable
  *                   text, crisp at any zoom), not a screenshot embedded as an image.
- *   • svg         - the high-DPI screenshot wrapped in a scalable <svg><image>. Element-level
- *                   vectorisation of an arbitrary page is not a browser primitive; this is
- *                   a faithful, resolution-independent container instead.
+ *   • svg         - TRUE vector: the page walked into SVG geometry from its live layout
+ *                   (url-vector-capture.ts), text outlined from the faces the page loaded,
+ *                   with a screenshot crop only where the walk cannot draw (a WebGL
+ *                   canvas, a video frame, an effect SVG has no form for). Checked against
+ *                   a screenshot of the same moment; a capture that differs too much falls
+ *                   back to that screenshot in a scalable <svg><image>, with a note.
  *
  * Extras beyond a plain shot: crop insets (left/right/top/bottom), a recolor pass
  * (filter presets + optional tint), custom CSS, scroll depth, and a settle delay.
  */
 import { getBrowser, BrowserError } from './browsers.ts';
+import { captureVectorShot } from './url-vector-capture.ts';
+import { VECTOR_SHOT_MAX_DISTANCE } from './page-text.ts';
 
 /**
  * Refuse a capture target that a HOSTED process must never navigate to: a
@@ -73,7 +78,11 @@ function isPrivateHost(host: string): boolean {
 }
 
 /** Per-call capture policy. `publicOnly` runs assertPublicHttpUrl first. */
-export interface CaptureOpts { publicOnly?: boolean }
+export interface CaptureOpts {
+  publicOnly?: boolean;
+  /** How long the capture may hold its browser context (default CAPTURE_DEADLINE_MS). */
+  deadlineMs?: number;
+}
 
 export interface CaptureParams {
   url: string;
@@ -319,9 +328,18 @@ function recolorCss(p: CaptureParams): string {
  * Capture `params.url` to `format` at `dims`. Returns the encoded bytes + mime.
  * Throws BrowserError with an actionable message when Chromium isn't installed.
  */
+/**
+ * The longest one capture may hold its browser context: the load (45s), the settle
+ * wait (15s), a wait selector (60s), the page walk (60s) and the screenshot, with
+ * room to spare. DevTools calls and evaluations have no timeout of their own, and
+ * a page that keeps its main thread busy (vercel.com in headless Chrome, on
+ * 2026-10-20) answers none of them, so without this a capture waited forever.
+ */
+export const CAPTURE_DEADLINE_MS = 240_000;
+
 export async function captureUrl(
   params: CaptureParams, format: string, dims: CaptureDims, opts: CaptureOpts = {},
-): Promise<{ bytes: Uint8Array; mime: string }> {
+): Promise<{ bytes: Uint8Array; mime: string; notes?: string[] }> {
   const fmt = format.toLowerCase() === 'jpeg' ? 'jpg' : format.toLowerCase();
   if (!params.url) throw new BrowserError('Enter a URL to capture.');
   if (opts.publicOnly) assertPublicHttpUrl(params.url);
@@ -335,19 +353,40 @@ export async function captureUrl(
   const width = Math.max(1, Math.round(dims.width || 1280));
   const height = Math.max(1, Math.round(dims.height || 720));
   const dpr = dims.dpi && dims.dpi > 96 ? dims.dpi / 96 : 1;
+  const zoom = Number.isFinite(params.zoom) && params.zoom > 0 ? params.zoom : 1;
+  // An SVG capture zooms the way Ctrl/Cmd + does: a smaller CSS viewport drawn
+  // larger. CSS `zoom` on <html> (what the raster formats use) scales the boxes the
+  // walk measures but not the computed font sizes it reads, so text would come out
+  // the wrong size. The layout box is in CSS px; width/height stay the output size.
+  const svgZoom = fmt === 'svg' && Math.abs(zoom - 1) > 1e-3 ? zoom : 1;
+  const lw = Math.max(1, Math.round(width / svgZoom));
+  const lh = Math.max(1, Math.round(height / svgZoom));
 
   const browser = await getBrowser();
   const ctx = await browser.newContext({
-    viewport: { width, height },
-    deviceScaleFactor: dpr,
+    viewport: { width: lw, height: lh },
+    deviceScaleFactor: dpr * svgZoom,
     serviceWorkers: 'block',
     ...(params.contextPrefs ?? {}),
   });
+  // Closing the context ends every call still waiting on the page.
+  let stalled = false;
+  const deadline = opts.deadlineMs ?? CAPTURE_DEADLINE_MS;
+  const watchdog = setTimeout(() => { stalled = true; void ctx.close().catch(() => {}); }, deadline);
   try {
     // Runs before the page's own scripts (docs pipeline uses it to pre-dismiss
     // the first-run welcome); no-op for the end-user tool, which never sets it.
     if (params.initScript) await ctx.addInitScript({ content: params.initScript });
     const page = await ctx.newPage();
+    // A vector capture outlines text from the page's own font files, and Chrome keeps
+    // no font bytes in the tab's resource cache: keep the responses as they arrive.
+    const received = new Map<string, { body(): Promise<Buffer> }>();
+    if (fmt === 'svg') {
+      page.on('response', (r) => {
+        const kind = r.request().resourceType();
+        if (kind === 'font' || kind === 'stylesheet') received.set(r.url(), r);
+      });
+    }
     await page.goto(params.url, { waitUntil: 'load', timeout: 45_000 }).catch((e: Error) => {
       throw new BrowserError(`Couldn't load ${params.url}: ${e.message}`);
     });
@@ -361,20 +400,27 @@ export async function captureUrl(
 
     // Browser zoom → a `zoom` on <html> (like Ctrl/Cmd +): magnifies the page so
     // even a bitmap shot is enlarged and crisp, not upscaled. scrollHeight reflows
-    // with it, so the crop/scroll math below stays consistent.
-    const zoom = Number.isFinite(params.zoom) && params.zoom > 0 ? params.zoom : 1;
-    const zoomCss = Math.abs(zoom - 1) > 1e-3 ? `html{zoom:${zoom}!important}` : '';
+    // with it, so the crop/scroll math below stays consistent. SVG zooms through the
+    // viewport instead (svgZoom above).
+    const zoomCss = svgZoom === 1 && Math.abs(zoom - 1) > 1e-3 ? `html{zoom:${zoom}!important}` : '';
 
     // Recolor + zoom + custom CSS, injected before the shot (userstyle-style, additive).
     const styles = [recolorCss(params), zoomCss, params.css || ''].filter(Boolean).join('\n');
-    if (styles) await page.addStyleTag({ content: styles }).catch(() => {});
+    if (styles) await injectCss(page, styles);
 
-    // A 'tint' recolor lays a multiply overlay of the chosen colour over the page.
+    // A 'tint' recolor lays a multiply overlay of the chosen colour over the page,
+    // in the top layer: a child of <html> sits under the greyscale filter on <html>
+    // and came out grey, so every tint was a plain darkening. A shown popover paints
+    // above the whole document and outside its filter, and the page walk lifts it
+    // the same way. A browser with no popover keeps the old overlay.
     if (params.recolor === 'tint' && params.tintColor) {
       await page.evaluate((color: string) => {
         const o = document.createElement('div');
-        o.style.cssText = `position:fixed;inset:0;background:${color};mix-blend-mode:multiply;pointer-events:none;z-index:2147483647`;
-        document.documentElement.appendChild(o);
+        o.style.cssText = `position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;border:0;padding:0;background:${color};mix-blend-mode:multiply;pointer-events:none;z-index:2147483647`;
+        const pop = typeof (o as HTMLElement & { showPopover?: () => void }).showPopover === 'function';
+        if (pop) o.setAttribute('popover', 'manual');
+        (document.body ?? document.documentElement).appendChild(o);
+        if (pop) (o as HTMLElement & { showPopover: () => void }).showPopover();
       }, params.tintColor).catch(() => {});
     }
 
@@ -419,12 +465,36 @@ export async function captureUrl(
       return { bytes: new Uint8Array(pdf), mime: 'application/pdf' };
     }
 
-    // ── Raster (png/jpg) or svg-wrapped raster: viewport shot, cropped ──
     const l = clamp01(params.cropLeft), r = clamp01(params.cropRight);
     const t = clamp01(params.cropTop), b = clamp01(params.cropBottom);
     const clipW = Math.max(1, Math.round(width * (1 - l - r)));
     const clipH = Math.max(1, Math.round(height * (1 - t - b)));
-    const clip = { x: Math.round(width * l), y: Math.round(height * t), width: clipW, height: clipH };
+    const notes: string[] = [];
+
+    // ── Vector SVG: the walked page, checked against its own screenshot ──
+    if (fmt === 'svg') {
+      const win = { x: lw * l, y: lh * t, width: lw * (1 - l - r), height: lh * (1 - t - b) };
+      try {
+        const shot = await captureVectorShot(page as unknown as Parameters<typeof captureVectorShot>[0], {
+          window: win, scale: dpr * svgZoom,
+          received: async (url: string) => { const r = received.get(url); return r ? new Uint8Array(await r.body()) : null; },
+          ...(opts.publicOnly ? { publicUrl: (u: string) => { try { assertPublicHttpUrl(u); return true; } catch { return false; } } } : {}),
+        });
+        if (shot.distance <= VECTOR_SHOT_MAX_DISTANCE) {
+          return { bytes: new TextEncoder().encode(sizeSvg(shot.svg, clipW, clipH)), mime: 'image/svg+xml', notes: shot.warnings };
+        }
+        notes.push(`The vector capture differed from the page in ${Math.round(shot.distance * 100)}% of the frame, so the SVG holds a screenshot instead.`);
+      } catch (e) {
+        notes.push(`The vector capture failed (${(e as Error).message}), so the SVG holds a screenshot instead.`);
+      }
+    }
+
+    // ── Raster (png/jpg) or svg-wrapped raster: viewport shot, cropped ──
+    // In layout px: for svg the viewport is the zoomed-out one, for raster it is the output.
+    const clip = {
+      x: Math.round(lw * l), y: Math.round(lh * t),
+      width: Math.max(1, Math.round(lw * (1 - l - r))), height: Math.max(1, Math.round(lh * (1 - t - b))),
+    };
 
     const shotType = fmt === 'jpg' ? 'jpeg' : 'png';
     const png = await page.screenshot({
@@ -441,13 +511,48 @@ export async function captureUrl(
         `<svg xmlns="http://www.w3.org/2000/svg" width="${clipW}" height="${clipH}" ` +
         `viewBox="0 0 ${clipW} ${clipH}">` +
         `<image width="${clipW}" height="${clipH}" href="data:image/png;base64,${b64}"/></svg>`;
-      return { bytes: new TextEncoder().encode(svg), mime: 'image/svg+xml' };
+      return { bytes: new TextEncoder().encode(svg), mime: 'image/svg+xml', notes };
     }
 
     return { bytes: new Uint8Array(png), mime: fmt === 'jpg' ? 'image/jpeg' : 'image/png' };
+  } catch (e) {
+    if (stalled) throw new BrowserError(`${params.url} stopped answering, so nothing was captured within ${Math.round(deadline / 1000)}s.`);
+    throw e;
   } finally {
-    await ctx.close();
+    clearTimeout(watchdog);
+    await ctx.close().catch(() => {});
   }
+}
+
+/** Give a walked SVG the output size. Its viewBox stays the walked window in layout
+ *  px, so a zoomed capture scales up exactly as the browser zoom would have. */
+function sizeSvg(svg: string, width: number, height: number): string {
+  return svg.replace(/<svg\b[^>]*>/, (open) => open
+    .replace(/\swidth="[^"]*"/, ` width="${width}"`)
+    .replace(/\sheight="[^"]*"/, ` height="${height}"`));
+}
+
+/**
+ * Add CSS to the page as a DevTools inspector stylesheet. A `<style>` element is
+ * subject to the page's Content-Security-Policy, and a strict `style-src` (gov.uk
+ * sends one) refused it silently: Recolour and Custom CSS did nothing on those
+ * pages. An inspector sheet sits after the page's own sheets, as an author sheet,
+ * and no page policy applies to that sheet. The style element stays as the fallback for a
+ * browser without the CSS domain.
+ */
+async function injectCss(page: { context(): { newCDPSession(p: unknown): Promise<{ send(m: string, p?: unknown): Promise<unknown>; detach(): Promise<void> }> }; addStyleTag(o: { content: string }): Promise<unknown> }, css: string): Promise<void> {
+  try {
+    const cdp = await page.context().newCDPSession(page);
+    try {
+      await cdp.send('DOM.enable');
+      await cdp.send('CSS.enable');
+      const { frameTree } = await cdp.send('Page.getFrameTree') as { frameTree: { frame: { id: string } } };
+      const { styleSheetId } = await cdp.send('CSS.createStyleSheet', { frameId: frameTree.frame.id }) as { styleSheetId: string };
+      await cdp.send('CSS.setStyleSheetText', { styleSheetId, text: css });
+      return;
+    } finally { await cdp.detach().catch(() => {}); }
+  } catch { /* no CSS domain: the style element below */ }
+  await page.addStyleTag({ content: css }).catch(() => {});
 }
 
 /** Pull url-shot's capture params out of the runtime's current input model. */

@@ -120,11 +120,16 @@ test('scope inspection reads changed test files from Git to keep heavy-tier test
   assert.equal(inspect().lane, 'full', 'a deleted test is read from the base, where it still asks for a browser');
 });
 
-test('scope binds exact source, attempt, policy and inventory digest', () => {
+test('scope binds exact run, commits, policy and inventory digest, and an attempt no later than the current one', () => {
   assert.equal(validateScope(scope(), id).publicReadyEligible, true);
-  for (const difference of [{ source: 'e'.repeat(40) }, { runAttempt: 1 }, { policyCommit: 'e'.repeat(40) },
+  for (const difference of [{ source: 'e'.repeat(40) }, { policyCommit: 'e'.repeat(40) },
     { changedPathsSha256: 'e'.repeat(64) }, { policySha256: null }]) {
     assert.throws(() => validateScope({ ...scope(), ...difference }, id));
+  }
+  // id is attempt 2. An earlier attempt of the same run is accepted; a later, absent or malformed one is not.
+  assert.equal(validateScope({ ...scope(), runAttempt: 1 }, id).runAttempt, 1);
+  for (const runAttempt of [3, 0, -1, 1.5, '1', null, undefined]) {
+    assert.throws(() => validateScope({ ...scope(), runAttempt }, id), /Scope runAttempt differs/, String(runAttempt));
   }
   const broad = [change('engine/src/runtime.ts')];
   assert.throws(() => validateScope({ ...scope(), changes: broad, changedPathsSha256: hash(JSON.stringify(broad)) }, id), /not eligible/);
@@ -136,6 +141,36 @@ test('scope binds exact source, attempt, policy and inventory digest', () => {
   const lock = [change('pnpm-lock.yaml')];
   assert.throws(() => validateScope({ ...scope(false), lane: 'full', changes: lock, changedPathsSha256: hash(JSON.stringify(lock)) }, id), /hides a dependency/);
   assert.equal(validateScope({ ...scope(false), lane: 'full', dependencyChange: true, changes: lock, changedPathsSha256: hash(JSON.stringify(lock)) }, id).dependencyChange, true);
+});
+
+test('a failed-only rerun qualifies with the scope receipt its first attempt wrote', async t => {
+  // Run 39906275080: attempt 1 failed in browser 2/4; "Re-run failed jobs" carried the scope job over, so attempt 2
+  // read the attempt-1 receipt and refused it with "Scope runAttempt differs" although every job then passed.
+  const carried = { ...scope(false), runAttempt: 1 };
+  assert.equal(id.runAttempt, 2);
+  const accepted = validateScope(carried, id);
+  // The provider re-lists every job of attempt 2, carried-over ones included, under attempt 2.
+  assert.equal(assessJobs(run(), page(jobs()), id, accepted, 'release-ready').ready, true);
+  const all = [...jobs(), job('release-ready', 100)];
+  assert.equal(assessJobs(run(), page(all), id, accepted, 'release-ready', true).ready, true);
+  // Never a receipt from another run, another commit or another repository, whatever its attempt.
+  for (const difference of [{ runId: 999 }, { source: 'e'.repeat(40) }, { headSha: 'e'.repeat(40) }, { base: 'e'.repeat(40) },
+    { tree: 'e'.repeat(40) }, { repository: 'attacker/lolly' }, { headRepository: 'attacker/lolly' }, { headBranch: 'other' },
+    { event: 'pull_request' }]) {
+    assert.throws(() => validateScope({ ...carried, ...difference }, id), /Scope .* differs/, JSON.stringify(difference));
+  }
+  // The receipt records the current attempt and which attempt classified the scope.
+  const directory = mkdtempSync(join(tmpdir(), 'lolly-ci-rerun-'));
+  const originalFetch = globalThis.fetch, originalToken = process.env.GH_TOKEN;
+  t.after(() => { globalThis.fetch = originalFetch; if (originalToken === undefined) delete process.env.GH_TOKEN;
+    else process.env.GH_TOKEN = originalToken; rmSync(directory, { recursive: true, force: true }); });
+  process.env.GH_TOKEN = 'unit-fixture';
+  globalThis.fetch = (async input => new Response(String(input).includes('/jobs?') ? JSON.stringify(page(all)[0]) : JSON.stringify(run()),
+    { status: 200 })) as typeof fetch;
+  await qualify(id, accepted, 'release-ready', directory, true);
+  const report = JSON.parse(readFileSync(join(directory, 'qualification.json'), 'utf8'));
+  assert.equal(report.runAttempt, 2); assert.equal(report.scope.runAttempt, 1); assert.equal(report.fullSuiteQualified, true);
+  assert.equal(JSON.parse(readFileSync(join(directory, 'scope.json'), 'utf8')).runAttempt, 1);
 });
 
 test('public-ready can finish while full unit and browser suites remain pending', () => {
@@ -306,6 +341,7 @@ test('the docs-and-tests lane takes documentation content, tests and reviewed ba
   assert.deepEqual(classifyDocsAndTests(docsChanges), { docsAndTestsEligible: true, reasons: [] });
   for (const path of ['docs/shots/design.png', 'docs/figures/lolly-demo-parts.html', 'docs/i18n/fr/install.md', 'docs/build.ts',
     'docs/navigation.ts', 'tests/fixtures/url/a.json', 'engine/src/units.test.ts', 'security/lint-baseline.json',
+    'engine/README.md', 'shells/web/src/README.md',
     'scripts/vernacular-docs-baseline.json']) {
     assert.equal(classifyDocsAndTests([change(path)]).docsAndTestsEligible, true, path);
   }
@@ -313,7 +349,8 @@ test('the docs-and-tests lane takes documentation content, tests and reviewed ba
     'README.md', 'package.json', 'docs/package.json', 'tests/fixtures/pkg/pnpm-lock.yaml', '.github/workflows/ci.yml',
     'scripts/ci-qualification.ts', 'security/dependency-roots.json', 'tests/expected-skips.json', 'tests/design-gpu.test.ts',
     'tests/foo.browser.test.ts', 'tests/c2pa-formats.test.ts', 'tests/fuzz-regression.test.ts', 'tests/tauri-security.test.ts',
-    'tests/native-file-associations.test.ts', 'tests/browser-gpu.ts', 'shells/web/src/bridge/svg-walker.test.ts']) {
+    'tests/native-file-associations.test.ts', 'tests/browser-gpu.ts', 'shells/web/src/bridge/svg-walker.test.ts',
+    'shells/web/README.md', 'engine/CHANGELOG.md', 'shells/web/src/views/README.md']) {
     assert.equal(classifyDocsAndTests([...docsChanges, change(path)]).docsAndTestsEligible, false, path);
   }
   assert.equal(classifyDocsAndTests([]).docsAndTestsEligible, false);

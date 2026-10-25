@@ -24,7 +24,7 @@ import { unzlibSync } from 'fflate';
 import { xmlProvenanceFields } from './software-origin.ts';
 import { auxiliaryMetadata, type AuxiliaryMetadata } from './auxiliary-metadata.ts';
 import { pngGeneratorHint } from './png-generator.ts';
-import { readDesignRecordXml, themeChoiceLabel, type DesignRecord } from './metadata.ts';
+import { brandSkillLabel, readDesignRecordXml, themeChoiceLabel, type DesignRecord } from './metadata.ts';
 
 export type MetaGroup =
   | 'location'
@@ -389,6 +389,8 @@ function readXmp(text: string, out: FileMetadata): void {
     if (record.designSystem) out.fields.push({ label: 'Design system', value: clip(record.designSystem.label), group: 'software', source: 'XMP lolly:DesignSystemLabel' });
     if (record.designVersion) out.fields.push({ label: 'Design version', value: clip(record.designVersion), group: 'software', source: 'XMP lolly:DesignVersion' });
     for (const t of record.themes ?? []) out.fields.push({ label: themeChoiceLabel(t), value: clip(t.name), group: 'software', source: 'XMP lolly:Themes' });
+    // The brand skills an agent declared it followed (plan 323): guidance, never a check.
+    for (const s of record.brandSkills ?? []) out.fields.push({ label: 'Guided by', value: clip(brandSkillLabel(s)), group: 'software', source: 'XMP lolly:BrandSkills' });
   }
 
   // dc:subject keywords - the DAM payoff (plans/144 Wave 5): a photo's own
@@ -1607,7 +1609,8 @@ export function extractFileMetadata(bytes: Uint8Array): FileMetadata {
 /**
  * The design-system record a Lolly export carries in its own metadata (plans/319):
  * the `lolly:` properties of its XMP packet (PNG, JPEG, WebP, TIFF, JXL, AVIF) or of
- * an SVG's `<metadata>` block. Null when the file carries none. For a shell that
+ * an SVG's `<metadata>` block, brand skills included (plan 323). Null when the
+ * file carries none. For a shell that
  * stamps the credential over bytes another tier wrote, so the credential gives the
  * same design system the file does. Never throws.
  */

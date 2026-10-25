@@ -1,6 +1,6 @@
 {
   "name": "漸層",
-  "description": "以你的品牌色票打造柔和的網格式漸層。直接在畫布上拖曳色點，或開啟漂移，將循環匯出為 WebM、MP4 或 GIF。",
+  "description": "用設計系統色票建立漸層的五種方式：柔和的放射式 Blend、以清晰 SVG 呈現的真正 Coons 曲面網格 (Subdivide) 或平滑點陣 (Mesh)、自由形式的 Warp 控制點，以及動態的 Flow 波浪。所有內容都能直接在畫布上拖曳；可匯出靜態圖像或無縫接合的影片循環。",
   "a11yLabel": "融合 {{count}} 種顏色的網格漸層",
   "inputs.count.label": "色點數量",
   "inputs.color1.label": "顏色 1（基礎色）",

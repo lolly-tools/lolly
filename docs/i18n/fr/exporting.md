@@ -1,6 +1,8 @@
-# Export et formats
+# Exporter un fichier
 
-Appuie sur **Export** dans la pastille **Export | Save as** d'un outil, choisis un format dans le menu à côté du nom de fichier, puis appuie sur **Download**. Un téléchargement ordinaire est généré sur ton appareil. L'approbation par l'organisation et les options de livraison sont traitées plus bas.
+Tu as créé quelque chose et cela doit sortir de Lolly : un PNG pour une conversation, un PDF pour l'imprimeur, un deck qu'un collègue continuera de modifier. Appuie sur **Export**, la moitié gauche de la pastille **Export | Save**. Choisis un format à côté du nom de fichier, puis appuie sur **Download**. Le fichier est créé sur ton appareil.
+
+Ce que tu vois sur le canevas est ce que le fichier contient. Le menu de format ne liste que ce que cet outil peut produire dans ce navigateur.
 
 Pour la plupart des tâches, l'un de ces trois formats convient :
 
@@ -14,43 +16,32 @@ Pour la plupart des tâches, l'un de ces trois formats convient :
 Avant de l'envoyer, ouvre-le sur l'écran pour lequel il a été fait, ou imprime-le à sa taille réelle.
 :::
 
-Le reste de cette page couvre tous les formats, toutes les tailles et toutes les options.
+::: details Approbations et livraison avec Lolly Work (facultatif)
+Une [organisation qui utilise Lolly Work](/info/organisation.html) peut encadrer les formats et réglages d'export que ses membres voient. Là où une approbation est requise, **Request approval** remplace **Download**. Suis la politique que ton instance affiche.
+
+Lolly Work peut aussi livrer un fichier vers des destinations S3, WebDAV et HTTP configurées, avec des étapes d'approbation, des accusés de livraison et un enregistrement d'audit. Soumettre un fichier à ce flux l'envoie au service de l'organisation ; un téléchargement ordinaire reste sur ton appareil. Les destinations Send personnelles et la livraison d'organisation sont configurées séparément.
+
+Les opérateurs le mettent en place avec le [guide de livraison de l'organisation](/info/work-delivery.html). Pour les rendus serveur et les lots en file d'attente, voir [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ## Comment fonctionne l'export
 
-L'aperçu *est* le fichier. Quand tu exportes, l'hôte rend ce canevas dans le format choisi et te fournit un téléchargement (ou le place dans ton presse-papiers). Le sélecteur masque tout format que ton navigateur ne peut pas produire (voir [Video](#video)).
+Quand tu exportes, le canevas de l'outil est rendu dans le format choisi et t'est remis en téléchargement, ou placé dans ton presse-papiers.
 
-Trois voies produisent un fichier. La plupart des outils **rendent le canevas** dans le format choisi. Les formats texte et données (HTML, MD, TXT, JSON, CSV, ICS, VCF) sont au contraire **générés à partir du contenu de l'outil**, pas rastérisés depuis l'image. Et les utilitaires de confidentialité (par ex. *Strip Hidden Data*) empruntent une troisième voie : le fichier que *tu* choisis est transformé octet par octet sur ton appareil et rendu tel quel - pas de canevas, pas de filigrane et pas de métadonnées de provenance ajoutées, puisque c'est déjà ton propre fichier.
+Trois chemins produisent un fichier. La plupart des outils **rendent le canevas**. Les formats texte et données (HTML, Markdown, TXT, JSON, CSV, ICS, VCF) sont **générés à partir du contenu de l'outil** plutôt que dessinés à partir de l'image. Les utilitaires de confidentialité comme *Strip Hidden Data* **transforment le fichier que tu as choisi**, sur ton appareil, et te le rendent sans canevas, sans filigrane et sans métadonnées ajoutées, car c'est déjà ton propre fichier.
 
-Les actions dans les contrôles d'export :
+![Trois chemins d'export convergent vers un fichier terminé : rendre le canevas, générer du texte ou des données à partir du contenu, ou transformer sur l'appareil un fichier choisi.](/info/diagrams/concepts/three-export-paths.svg)
 
-- <!--i:download--> **Télécharger** - enregistrer le fichier (l'action principale). Si tu ne le retrouves pas ensuite, voir [Retrouver un fichier téléchargé](/info/find-your-work.html#find-a-file-you-downloaded).
-- <!--i:photos--> **Copier** - mettre l'image dans ton presse-papiers pour la coller directement dans Slack, un e-mail, un document. Là où un navigateur ne peut pas copier d'images, il télécharge à la place et te le signale.
-- <!--i:folder--> **Enregistrer** - conserver le design actuel dans Projets en un clic, sans demander où ; ça ne télécharge jamais de fichier. **Enregistrer sous**, à côté d'**Exporter**, demande où (voir [Enregistrer et reprendre](/info/using.html#saving-continuing)).
-- <!--i:link--> **Partager** - ouvre la **boîte de dialogue Share** : un lien copiable qui reproduit le design, des bascules à l'ouverture (plein écran, panneau d'export, téléchargement ou copie à l'ouverture) et un **Shortest link** optionnel qui compresse tout l'état dans un jeton compact (voir [URL Mode](/info/url-mode.html)).
+Le panneau d'export propose ces actions. L'auteur d'un outil choisit lesquelles apparaissent ; l'ensemble par défaut est Copy, Download et Save.
 
-(L'auteur d'un outil choisit lesquelles de ces actions apparaissent ; l'ensemble par défaut est Copy, Download et Save.)
+- <!--i:download--> **Download** enregistre le fichier. Si tu ne le retrouves pas ensuite, voir [Find a file you downloaded](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copy** place l'image dans ton presse-papiers, prête à coller dans une conversation, un e-mail ou un document. Là où un navigateur ne peut pas copier d'images, il télécharge à la place et te le dit.
+- <!--i:folder--> **Save** conserve le design actuel dans Projects en un clic et ne télécharge jamais de fichier. **Save as**, à côté de **Download**, demande où (voir [Saving and continuing](/info/using.html#saving-continuing)).
+- <!--i:link--> **Share** ouvre la boîte de dialogue Share : un lien qui reproduit le design, les bascules à la visite (plein écran, panneau d'export, téléchargement ou copie à l'ouverture) et un **Shortest link** facultatif qui condense tout l'état en un jeton compact (voir [URL Mode](/info/url-mode.html)).
 
 ![Le panneau d'export - format, taille et les actions Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
-Share s'ouvre par-dessus l'outil, avec le lien déjà construit et les bascules à l'ouverture en dessous.
-
-::: details Approbations et livraison avec lolly.work (optionnel)
-Une [organisation qui utilise lolly.work](/info/organisation.html) peut encadrer les formats disponibles et les réglages d'export. Quand une approbation est requise, l'appli peut afficher **Request approval** à la place de **Download**. Suis la politique affichée par ton instance.
-
-Le service prend aussi en charge la livraison encadrée vers des destinations S3, WebDAV et HTTP configurées, avec des étapes d'approbation là où elles sont configurées, des accusés de livraison et un journal d'audit. Soumettre un fichier à ce workflow l'envoie au service de l'organisation ; les téléchargements locaux ordinaires restent sur l'appareil. Les destinations Send personnelles et la livraison encadrée de l'organisation ont chacune leur propre configuration.
-
-Pour les opérateurs, voir le [guide de livraison](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Pour les rendus serveur en file d'attente et les lots, voir [Lots CLI et automatisation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
-:::
-
-### Rendre plusieurs éléments à la fois
-
-Un export unique donne un seul fichier, mais tu peux en rendre **plusieurs** en une seule passe - chacun livré sous forme d'un `.zip` :
-
-- <!--i:folder--> **Projects → Render folder** exporte chaque session sauvegardée d'un dossier (et de ses sous-dossiers) sous forme d'un seul zip imbriqué ; **Render selection** fait la même chose pour toute sélection multiple ; une seule session sauvegardée s'exporte directement dans son propre fichier. Pas besoin de Batch/Pro - voir [Using Lolly → Projects](/info/using.html).
-- <!--i:layers--> **Batch (Pro)** rend une grille d'ensembles d'entrées - chaque variante d'un même modèle à la fois.
-
-Une session sauvegardée peut aussi être repartagée comme lien d'outil depuis Projects (elle reconstruit l'URL de l'outil à partir des entrées sauvegardées), de sorte qu'un lien la rouvre avec exactement les mêmes réglages.
+Quand un design incorpore le rendu d'un autre outil, comme un bloc image de Design contenant un lien QR Code, le rendu imbriqué est dessiné dans l'export du parent. Il reste vraiment vectoriel en SVG et PDF et se rastérise nettement en PNG, JPG et WebP. Le rendu incorporé n'a ni filigrane ni provenance propres ; seul le fichier terminé en a. Les exports HTML, Markdown et TXT ne peuvent pas contenir un rendu composé.
 
 ## Choisir un format
 
@@ -58,138 +49,162 @@ Le nom de fichier et le menu de format se trouvent ensemble comme une seule pair
 
 ![Le champ du nom de fichier fusionné au sélecteur de format, de sorte que l'export se lit comme une seule paire nom.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| Tu veux… | Utilise | Pourquoi |
+Pars de la destination du fichier. Chaque carte liste les formats qui conviennent à cette destination ; un outil n'affiche que ceux qu'il peut produire.
+
+::: figure exporting-format-chooser
+Six destinations et les formats qui conviennent à chacune.
+:::
+
+Un logotype composé dans la police de ton design system s'exporte en SVG avec chaque lettre en tracé détouré, donc un seul fichier reste net à la taille d'une carte de visite comme à celle d'un habillage d'immeuble.
+
+![Un logotype fin à espacement large qui lit Aurora, le genre d'illustration purement vectorielle dont parle la ligne SVG du tableau](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+
+::: details Tous les formats et leur usage
+| Tu veux | Utilise | Pourquoi |
 |---|---|---|
-| Des logos / illustrations nets qui s'adaptent à l'échelle | **SVG** | Vectoriel - infiniment redimensionnable, léger, modifiable ; un effet que l'export vectoriel ne peut pas dessiner est intégré comme une image |
-| Du vectoriel pour Office / applications Windows | **EMF** | Se colle comme vecteur modifiable dans PowerPoint / Word ; le texte reste actif et modifiable, et Google Drive l'ouvre dans Google Drawings pour Slides |
-| Du vectoriel pour l'impression / applications de design | **EPS**, ou **EPS (CMYK)** | Vectoriel PostScript pour Illustrator / flux d'impression |
-| Du vectoriel pour découpe / machines CAO | **DXF** | Découpeuses laser, traceurs vinyle, CNC - tracés de contour en millimètres |
-| Une présentation modifiable | **PowerPoint** (PPTX) | Texte et formes natifs modifiables, images et vecteurs extractibles |
-| Un cours portable | **Export course** | Réviser le contenu du projet et construire un package Website, SCORM ou xAPI expérimental versionné |
-| Un document texte modifiable | **Word** (DOCX) ou **OpenDocument** (ODT) | De vrais paragraphes et titres qu'un traitement de texte peut continuer à modifier (Doc Studio) |
-| Une photo ou une image polyvalente | **PNG** (sans perte) ou **JPG** (plus léger) | Raster universel |
-| Des images modernes plus légères | **WebP** / **AVIF** | Meilleure compression, alpha |
-| Impression | **PDF**, ou **Print PDF** (CMYK) | Taille de page réelle ; CMJN pour l'impression |
-| Raster d'impression pour une presse | **Print TIFF** (CMYK) | Pixels DeviceCMYK pour un RIP |
-| Animé pour le web | **GIF** | Fonctionne partout, fichiers plus lourds |
-| Animé en couleurs complètes + vrai alpha | **APNG** | PNG animé - pas de limite de palette, transparence réelle |
-| Animé, fichier le plus léger | **WebP animé** | Couleurs complètes + alpha, mieux compressé que GIF ou APNG |
-| Vectoriel animé qui s'adapte à l'échelle | **SVG animé** | Autonome ; boucle dans un navigateur ou une balise `<img>`, sans codec, à toute taille |
-| Vidéo pour les réseaux sociaux / le partage | **MP4** ou **WebM** | Meilleure qualité par octet (voir ci-dessous) |
-| Texte enrichi / signature e-mail | **HTML** | Se colle formaté dans les clients de messagerie |
-| Contenu brut | **MD** / **TXT** | Texte seul |
-| Un événement de calendrier | **ICS** | S'importe dans toute application de calendrier |
-| Une carte de contact | **VCF** | S'importe dans Contacts / carnets d'adresses |
-| Des données structurées à réimporter | **JSON** / **CSV** | Fait l'aller-retour avec le contenu de l'outil |
-| Une favicon | **ICO** | Icône de site multi-taille (**ZIP** regroupe plusieurs formats) |
+| Des logos ou illustrations nets qui s'adaptent à l'échelle | **SVG** | Vectoriel : redimensionnable, léger et modifiable ; un effet que l'export vectoriel ne sait pas dessiner est incorporé comme image |
+| Du vectoriel pour Office et les applications Windows | **EMF** | Se colle comme vectoriel modifiable dans PowerPoint et Word, avec texte actif ; Google Drive l'ouvre dans Google Drawings |
+| Du vectoriel pour l'impression et les applications de design | **EPS**, ou **EPS (CMYK)** | Vectoriel PostScript pour Illustrator et les flux d'impression |
+| Du vectoriel pour les machines de découpe | **DXF** | Découpeuses laser, traceurs de vinyle et CNC : tracés de contour en millimètres |
+| Un deck de diapositives modifiable | **PowerPoint** (PPTX) | Texte et formes natifs modifiables, avec images et vecteurs restant extractibles |
+| Un document texte modifiable | **Word** (DOCX) ou **OpenDocument** (ODT) | De vrais paragraphes et titres qu'un traitement de texte peut continuer de modifier (Doc Studio) |
+| Une mise en page pour InDesign | **InDesign IDML (static subset)** | Texte, rectangles, ovales et images, une planche par plan de travail (Design) |
+| Un document Penpot modifiable | **Penpot** | Boards, formes, texte et tokens liés |
+| Une photo ou une image généraliste | **PNG** (sans perte) ou **JPG** (plus léger) | Raster universel |
+| Des images modernes plus légères | **WebP** ou **AVIF** | Meilleure compression, avec transparence |
+| L'impression | **PDF**, ou **Print PDF** (CMYK) | Taille de page réelle ; CMJN pour une presse |
+| Un raster d'impression pour une presse | **Print TIFF** (CMYK) | Pixels DeviceCMYK pour un RIP |
+| Animé pour le web | **GIF** | Lu partout ; fichiers plus lourds |
+| Animé en pleine couleur avec vraie transparence | **APNG** | PNG animé : pas de limite de palette |
+| Animé, fichier le plus léger | **Animated WebP** | Pleine couleur et transparence, plus léger que GIF ou APNG |
+| Vecteur animé qui s'adapte à l'échelle | **Animated SVG** | Autonome ; boucle dans un navigateur ou une `<img>`, à toute taille (Lottie Ad) |
+| Une animation qui reste modifiable | **dotLottie** | Formes, tracés et clés de transformation extérieures de la timeline de Design |
+| Une remise à Premiere | **Premiere XML + media** | Clips minutés et médias d'origine pour Premiere (Design) |
+| Vidéo pour les réseaux sociaux et le partage | **MP4** ou **WebM** | Meilleure qualité pour la taille du fichier (voir [Video](#video)) |
+| Sous-titres | **SRT** ou **VTT** | Texte minuté pour un lecteur vidéo (Captions, Audiogram et Record) |
+| Un cours de formation | **SCORM (LMS)** | Un site web versionné, un paquet SCORM ou xAPI (voir [SCORM](#scorm-course-packages)) |
+| Du texte enrichi ou une signature d'e-mail | **HTML** | Se colle avec sa mise en forme dans les clients de messagerie |
+| Du contenu simple | **MD** ou **TXT** | Texte seulement |
+| Un événement de calendrier | **ICS** | S'importe dans n'importe quelle application de calendrier |
+| Une carte de contact | **VCF** | S'importe dans les carnets d'adresses |
+| Des données structurées à réimporter | **JSON** ou **CSV** | Aller-retour du contenu de l'outil |
+| Un favicon | **ICO** | Icône de site multi-tailles ; **ZIP** regroupe plusieurs formats |
+:::
 
-La première ligne est le cas courant. Un logotype composé dans la police de ta marque s'exporte en SVG, où chaque lettre est un tracé détouré plutôt qu'un pixel, donc il reste net aussi bien à la taille d'une carte de visite qu'à celle d'un habillage de bâtiment, à partir du même fichier.
+### Transparence
 
-![Un logotype fin à interlettrage large affichant Aurora, le type même d'illustration purement vectorielle dont parle la ligne SVG du tableau](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+Les outils qui la prennent en charge proposent une bascule de fond transparent, comme **No BG**. PNG, WebP, AVIF, SVG, APNG et Animated WebP gardent la transparence, et GIF garde un bord net. JPG et PDF sont toujours opaques. TIFF aplatit sur du blanc, ou sur du noir sur le chemin HDR décrit sous [HDR](#hdr-bright-colours).
 
 ## Taille et unités d'impression
 
-Par défaut, les exports utilisent la taille en pixels native de l'outil. Là où un outil expose des **dimensions**, tu peux définir largeur × hauteur et une **unité** :
+Les exports utilisent la taille en pixels native de l'outil sauf si l'outil propose des **dimensions**. Dans ce cas, tu définis la largeur, la hauteur et une **unit** :
 
-- **px** (par défaut) - pixels exacts.
-- **mm · cm · in · pt · pc** - tailles physiques/d'impression. Avec une unité physique, tu définis aussi le **DPI** (par défaut **300** pour l'impression) ; le moteur convertit correctement selon le format - **PDF** devient une vraie page à cette taille, le **raster** se rend au bon nombre de pixels pour le DPI (et intègre la résolution), **SVG** conserve l'unité physique avec un viewBox en px.
+- **px** (le défaut) est en pixels exacts.
+- **mm, cm, in, pt** et **pc** sont des tailles physiques. Avec une unité physique, tu définis aussi le **DPI** (300 par défaut). Un **PDF** devient une vraie page à cette taille, un **raster** reçoit le nombre de pixels correspondant à ce DPI et consigne la résolution, et un **SVG** garde l'unité physique avec un viewBox en pixels.
 
-Pour obtenir un raster en plus haute résolution, saisis une largeur/hauteur plus grande, ou choisis une unité physique et augmente le DPI (pixels = taille × DPI). Il n'y a pas de bascule d'échelle en un clic.
-
-Exemple : largeur `210`, hauteur `297`, unité `mm` → une page A4.
+Pour un raster de plus haute résolution, saisis une largeur et une hauteur plus grandes, ou choisis une unité physique et augmente le DPI (pixels = taille × DPI). Largeur `210`, hauteur `297` et unité `mm` donnent une page A4.
 
 ![La ligne des dimensions réglée sur 210 par 297 mm, avec le champ DPI révélé parce que l'unité est physique](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
 ## Images fixes depuis une composition temporisée
 
-Une **composition temporelle** - une chronologie [Sequence](/info/using.html#timeline-sequence) dans Design, ou tout artboard piloté par une chronologie - est une chose en mouvement, donc un export fixe doit répondre à "quel instant ?". La règle est celle à laquelle on s'attend : **l'image à la position de lecture**. Positionne la tête de lecture où tu veux l'image et exporte ; ce que tu vois est ce qui en ressort.
+Une composition minutée, comme une timeline [Sequence](/info/sequence-editor.html) dans Design, bouge ; un export fixe doit donc choisir un instant : **l'image à la tête de lecture**. Place la tête de lecture là où tu veux l'image et exporte.
 
-Quand tu veux plus d'un instant, le champ **Frames** apparaît à côté de la taille de sortie (uniquement pour une composition temporisée, et uniquement pour un format fixe - PNG, JPG, WebP, SVG ou PDF). Laisse-le à `1` pour l'image à la tête de lecture. Augmente-le et tu obtiens ce nombre d'images fixes échantillonnées à intervalles égaux sur toute la séquence :
+Pour plus d'un instant, le champ **Frames** apparaît à côté de la taille de sortie. Il ne s'affiche que pour une composition minutée et un format fixe (PNG, JPG, WebP, SVG ou PDF). Laisse-le à `1` pour l'image à la tête de lecture. Augmente-le et tu obtiens ce nombre d'images fixes, réparties uniformément sur toute la séquence :
 
-- **Raster et SVG** reviennent sous forme d'un seul **zip** - `<name>-01.png`, `-02.png` et ainsi de suite.
-- **PDF** revient sous la forme d'un **document unique comptant ce nombre de pages**.
+- PNG, JPG, WebP et SVG reviennent dans un seul ZIP : `<name>-01.png`, `-02.png` et ainsi de suite.
+- PDF revient sous forme d'un seul document avec autant de pages.
 
-Utile pour un storyboard, une planche de vignettes, une planche-contact pour révision ou un carrousel social découpé directement dans un montage vidéo.
+Chaque image fixe vient du milieu de sa tranche de la timeline, donc la première image n'est jamais une entrée à moitié estompée et la dernière n'est jamais l'instant vide après la fin de tous les clips.
 
-L'échantillonnage se fait au **milieu** de chaque intervalle plutôt qu'à ses bords, car le premier instant d'une séquence est souvent une transition d'entrée qui n'a pas encore terminé son fondu, et le dernier est l'état après la fin de chaque clip - un échantillonnage aux extrémités gaspillerait deux de tes images sur des images quasi vides. Le nombre est plafonné à **64** (une planche-contact est faite pour être lue par un humain), et toute saisie incohérente dans le champ retombe sur `1` plutôt que de faire échouer l'export. Chaque image est une image fixe ordinaire, donc Content Credentials, l'imprint, les unités physiques et le DPI se comportent exactement comme pour un export unique.
+::: figure exporting-contact-sheet
+Frames: 4 découpe la séquence en quatre tranches égales et prend le milieu de chacune.
+:::
 
-Le champ **Frames** est aujourd'hui le moyen d'obtenir une planche. Le moteur réserve un paramètre d'URL `cuts` correspondant, mais aucun shell ne le lit encore depuis un lien, donc un lien partagé se rouvre toujours sur l'image à la tête de lecture - voir [URL Mode](/info/url-parameters.html#contact-sheets-cuts).
+Utilise-le pour un storyboard, une planche contact de revue ou un carrousel social tiré d'un montage vidéo. Le nombre est plafonné à 64, et tout autre contenu saisi dans le champ revient à `1`. Chaque image est une image fixe ordinaire, donc les credentials, l'Imprint, les unités physiques et le DPI se comportent comme pour un export unique. Un lien d'export, la CLI et MCP demandent la même planche avec `cuts=` (voir [Contact sheets](/info/url-export.html#contact-sheets)).
 
-## PDF multi-pages
+## Beaucoup de fichiers à la fois
 
-Certains outils construisent un **document PDF multi-pages** au lieu d'une œuvre unique - une couverture, un contenu qui s'étale sur autant de pages que nécessaire et une quatrième de couverture, le tout dans un seul fichier (voir l'outil *Booklet*). Chaque page est une **vraie page PDF** dimensionnée à la boîte de cette page, donc les lecteurs et les imprimeurs obtiennent de vraies pages, pas une seule image tout en hauteur.
+Lolly propose trois façons de travailler en volume, chacune pour un besoin différent :
 
-- **Pages générées à partir du contenu.** Ajoute des blocs de texte et d'images ; de nouvelles pages se créent automatiquement à mesure que les blocs se remplissent, et tu peux forcer n'importe quel bloc à commencer une nouvelle page.
-- **Vraies tailles de page.** Choisis A4, US Letter ou A5 (portrait - la mise en page à deux colonnes est conçue pour ça) - chaque page, et le PDF exporté, se rend exactement à cette taille.
+::: cols
+## Un tableau devient un seul document
+Un outil avec une entrée tableau, comme **Battlecards**, transforme chaque ligne en page. Colle un tableau depuis ton tableur et obtiens un PDF. Corrige les lignes dans le tableur et colle de nouveau.
+## Un CSV devient un fichier par ligne
+**Batch** (`#/batch`) prend un CSV et rend un export pour chaque ligne : badges nominatifs ou certificats, un fichier chacun, livrés dans un ZIP. Voir [Batch](/info/batch.html#make-many-versions-of-one-design).
+## Plusieurs designs reçoivent une même modification
+**Multi-edit** ouvre plusieurs sessions enregistrées côte à côte pour la même retouche sur des designs différents. Voir [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+:::
 
-Les PDF multi-pages sont des documents RGB et ne portent pas de repères de coupe/fond perdu - cela relève du chemin **Print PDF** mono-page ci-dessus. Ils portent en revanche les mêmes **métadonnées PDF/X-4** que tout export PDF (boîtes de page, XMP, identifiant de document, un intent de sortie sRGB avec profil intégré), et ils proposent les **Content Credentials** (ci-dessous) - sur l'outil *Booklet*, l'option est présélectionnée.
+Depuis **Projects**, **Render folder** exporte chaque session enregistrée d'un dossier et de ses sous-dossiers dans un seul ZIP imbriqué, et **Render selection** fait de même pour toute sélection multiple ; une session enregistrée seule se rend dans son propre fichier. Une session enregistrée peut aussi être partagée de nouveau comme lien d'outil depuis Projects, qui la rouvre avec les mêmes réglages.
 
-## Créer beaucoup de choses à la fois
+## Des fichiers qui restent modifiables ailleurs
 
-Lolly propose trois façons distinctes de travailler en volume, et elles résolvent des besoins différents - l'édition par lots est une capacité de premier ordre de la plateforme, pas quelque chose que chaque outil réinvente :
+Certains formats remettent ton travail à une autre application sous forme de contenu modifiable plutôt que d'image.
 
-- <!--i:document--> **Un design × un tableau de lignes → un document multi-pages.** Les outils avec une entrée `table` (comme *Battlecards*) transforment automatiquement chaque ligne en page - colle un tableau depuis ton tableur, obtiens un PDF façon deck. Ton vrai éditeur par lots reste le tableur : corrige dix lignes là-bas, colle à nouveau. L'outil lui-même ne gère jamais les pages.
-- <!--i:layers--> **Un design × un fichier de données → plusieurs fichiers séparés.** La grille de lot `/pro` prend un CSV et rend un export *par ligne* - badges nominatifs, certificats, un fichier chacun.
-- <!--i:sliders--> **Plusieurs assets différents, édités côte à côte.** *Multi-edit* ouvre plusieurs sessions sauvegardées dans une seule vue pour des retouches coordonnées sur des designs distincts.
+### PowerPoint (PPTX)
 
-Règle empirique : des lignes du même design qui appartiennent à **un seul document** → un outil piloté par tableau ; des lignes qui doivent sortir en **fichiers séparés** → `/pro` ; des **designs différents** qui ont besoin de la même retouche → multi-edit. (Une option de rendu « combine media » prévue fera le pont entre les deux premières - en concaténant des exports de même format en un seul PDF, une seule vidéo ou une planche-contact de vérification.)
+Design, Markdown Slides, Booklet, Doc Studio, Chart, Diagrams, Flow Chart et Agenda exportent un deck PowerPoint, une diapositive par page. Chaque page est décomposée en objets natifs, donc un collègue peut modifier le deck et en extraire des ressources :
 
-## PowerPoint (PPTX)
-
-Design, Markdown Slides, Booklet, Doc Studio, Chart et Diagrams peuvent exporter une **présentation PowerPoint** - une diapositive par page. Le but n'est pas une capture d'écran pixel-perfect ; c'est de remettre à un collègue une présentation qu'il peut réellement **modifier et dont il peut extraire les éléments**. Chaque page est donc décomposée en objets natifs :
-
-- <!--i:font--> Le **texte** devient de vraies **zones de texte PowerPoint modifiables** - avec la taille de police, la couleur, la graisse, l'italique et l'alignement de la mise en page - pour que tu puisses corriger une coquille ou restyliser dans PowerPoint.
-- <!--i:pentool--> Les **vecteurs** (logos, icônes, la marque SUSE) sont intégrés comme de vraies **images SVG** - ils restent nets à toute taille, et PowerPoint peut même leur appliquer *Convertir en forme*.
-- <!--i:photos--> Les **images** arrivent à leur résolution native comme leurs propres images extractibles (un visuel recadré en `cover` conserve l'image complète derrière le cadrage, pour que tu puisses recadrer à nouveau), avec tout traitement appliqué sur l'image (filtres, fusions) intégré fidèlement.
-- <!--i:layers--> Les **arrière-plans, bordures et règles** deviennent de vraies formes rectangle/ligne.
+- <!--i:font--> **Le texte** devient des zones de texte PowerPoint modifiables avec la taille de police, la couleur, la graisse, l'italique et l'alignement de la mise en page.
+- <!--i:pentool--> **Les vecteurs** comme les logos et les icônes sont incorporés sous forme d'images SVG ; ils restent nets, et PowerPoint peut leur appliquer *Convert to Shape*.
+- <!--i:photos--> **Les images** arrivent en résolution native comme images à part entière. Une image principale recadrée garde l'image entière derrière le cadrage, et tout filtre ou fusion qu'elle porte est intégré.
+- <!--i:layers--> **Les fonds, bordures et filets** deviennent des formes de rectangles et de lignes.
 
 ![Le panneau d'export avec PowerPoint sélectionné : une diapositive par page, texte et formes restent modifiables](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
-La mise en page est volontairement approximative - l'objectif est un **contenu** fidèle et réutilisable, pas une capture d'écran figée. Tout ce que le walker ne peut pas exprimer nativement (une zone complexe filtrée ou masquée) est intégré comme une image pour ne rien perdre. Un diaporama a une seule taille de diapositive, reprise de la première page.
+La mise en page est approximative ; l'objectif est un contenu réutilisable. Tout ce que le parcours ne peut pas exprimer nativement, comme une zone complexe filtrée ou masquée, est incorporé comme image pour que rien ne se perde. Un deck a une seule taille de diapositive, reprise de la première page.
 
-PowerPoint est aussi une voie d'**entrée**. Dépose un `.pptx` sur n'importe quelle zone d'upload et choisis les diapositives voulues - chacune devient un élément à placer, retoucher ou sur lequel construire. **Markdown Slides** écrit une nouvelle présentation à partir de Markdown (et fournit un modèle `.pptx` à ta marque), et l'utilitaire **Rebrand** rethème une présentation existante sur place - palette du thème, couleurs et polices en dur - sans toucher à ses graphiques, SmartArt ou animations, et renvoie un `.pptx`. Voir [Importer un design → Présentations et documents](/info/design-import.html#decks-and-documents).
+PowerPoint est aussi une porte d'entrée : [Rebrand a deck](/info/rebrand.html) fait passer un deck sur ton design system, et [Import a design](/info/design-import.html) en ouvre un dans Design.
 
-## Penpot
+### Penpot
 
-Tout outil capable d'exporter en SVG peut aussi exporter un **fichier Penpot** (`.penpot`) - le document, prêt à continuer d'être modifié dans Penpot plutôt qu'à être seulement regardé.
-
-- <!--i:layout--> Depuis **Design**, chaque cadre devient un **board** Penpot, chaque boîte qu'il contient est reprise comme sa propre forme modifiable - rectangle, ellipse, texte, image ou tracé - et le résultat arrive comme **composant** réutilisable dans le panneau Assets, prêt à être ressorti par glisser-déposer.
-- <!--i:pentool--> Depuis un outil dont le rendu est de la **géométrie pure** - les outils vectoriels comme QR Code, Street Map, Wordmark et Palette Lab - chaque tracé, rectangle, ligne de texte et dégradé est repris de la même façon, comme sa propre forme modifiable.
-- <!--i:font--> Depuis un outil qui construit son rendu en **HTML**, **le texte reste du texte** - un objet texte Penpot modifiable par ligne, pas un contour et pas une image plate. Une illustration pour laquelle Penpot n'a pas de construction - une illustration complexe, un canvas en direct - est reprise à part comme une image, de sorte qu'elle n'aplatit jamais le texte et les boîtes qui l'entourent. Une mise en page entière que Penpot ne peut pas séparer fidèlement peut quand même arriver comme une seule image en pleine fidélité, donc rien n'est jamais perdu.
-- <!--i:palette--> Une couleur ou une police qu'une forme **hérite d'un token de marque** reste **liée** à ce token dans le fichier : change le token dans le panneau Tokens de Penpot et toutes les formes qui en héritent se repeignent ensemble, tandis qu'une couleur littérale ponctuelle reste exactement où elle est. Les couleurs et typographies de la marque atterrissent aussi dans le panneau **Assets**, et son jeu complet de design tokens dans le panneau **Tokens** - le même jeu de tokens DTCG que la propre palette de Lolly utilise. Penpot en garde sa propre copie à partir de là : une modification faite dans son panneau Tokens revient dans la marque via [l'import de Brand Studio](/info/design-import.html), pas d'elle-même.
+La plupart des outils qui exportent du SVG exportent aussi un **fichier Penpot** (`.penpot`), prêt à être modifié dans Penpot.
 
 | Ce que tu as créé | Dans Penpot |
 |---|---|
-| Texte | Objets texte modifiables - corriger une coquille ou restyler |
-| Formes, tracés, dégradés, images | Leurs propres formes vectorielles modifiables |
-| Une couleur ou une police issue d'un token de marque | Un lien de token en direct - modifie le token, toutes les formes qui en héritent suivent |
+| Texte | Objets texte modifiables : corriger une coquille ou restyler |
+| Formes, tracés, dégradés et images | Leurs propres formes vectorielles modifiables |
+| Une couleur ou une police d'un token de design system | Un lien de token actif : modifie le token et chaque forme qui en hérite suit |
 | Le design entier | Un composant réutilisable dans le panneau Assets |
-| Une illustration complexe ou un canvas en direct | Intégré à part comme une image, le contenu modifiable autour reste intact |
+| Une illustration complexe ou un canevas en direct | Incorporé seul comme image, le contenu modifiable autour restant intact |
+
+Depuis Design, chaque cadre devient un board Penpot. Les couleurs et typographies du design system arrivent dans le panneau Assets et son jeu complet de tokens dans le panneau Tokens. Penpot garde sa propre copie à partir de là : un token modifié dans Penpot revient via l'import dans [Design System Setup](/info/brand-studio.html).
 
 ![Le panneau d'export avec Penpot sélectionné : le fichier .penpot, et Send to Penpot à côté du téléchargement](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
-Pour l'ouvrir, lance Penpot, choisis un projet et sélectionne **Import**. Connecté à Penpot depuis le panneau d'export, **Send to Penpot** fait cette étape à ta place - choisis un projet là-bas et le fichier y va directement.
+Pour ouvrir le fichier, lance Penpot, choisis un projet et choisis **Import**. Connecté à Penpot depuis le panneau d'export, **Send to Penpot** fait cette étape pour toi.
 
-## SCORM (packages de cours)
+### Word, OpenDocument et InDesign
 
-Choisis **Export course** dans un outil pris en charge, un dossier de projet ou une sélection. Dans Design, choisir **SCORM (LMS)** puis Download ouvre aussi ce flux de cours. Lolly enregistre la création, te laisse revoir le contenu et l'ordre du cours, puis ouvre le module et sa boîte de dialogue d'export.
+**Doc Studio** exporte **Word** (DOCX) et **OpenDocument** (ODT) avec de vrais paragraphes et titres.
 
-- <!--i:layout--> Choisis le rendu disponible pour chaque source : pages fixes, mouvement en vidéo, audio ou ressource téléchargeable. Ajoute le texte de leçon natif et les alternatives de lecture dans le module.
-- <!--i:play--> Prévisualise le lecteur apprenant et revois les descriptions et sous-titres. Le mouvement est inclus comme vidéo, animation silencieuse comprise. Exporte d'abord un enregistrement terminé quand un outil ne peut pas le recréer à partir des entrées enregistrées.
-- <!--i:file--> Sélectionne Website, SCORM 1.2, SCORM 2004 4th Edition, ou une cible xAPI expérimentale. Vérifie le contenu réel et la taille du ZIP, puis enregistre et télécharge la version vérifiée.
-- <!--i:check--> La complétion exige d'accuser réception de chaque leçon requise et de sélectionner Finish. Le lecteur du site web stocke la progression dans le navigateur ; un package LMS se connecte au LMS qui le reçoit.
+**Design** exporte **InDesign IDML (static subset)** : texte, rectangles, ovales et images PNG ou JPEG, une planche par plan de travail. La mise en forme en ligne prise en charge reste modifiable, les images voyagent dans `Links` et les coordonnées deviennent des points InDesign. Le rétablissement des liens, la substitution de polices et les changements de renvoi à la ligne peuvent demander de l'attention. Les effets, l'animation, les articles composés et la géométrie non prise en charge arrêtent l'export avec un rapport qui les liste. IDML ne conserve pas le document d'origine, donc envoie un PDF pour un travail final.
+
+### Timelines : dotLottie et Premiere
+
+Depuis la timeline de Design, **dotLottie** écrit une animation qui reste modifiable dans les outils Lottie ; [Lottie animations](/info/sequence-editor.html#lottie-animations) liste ce qu'il conserve. **Premiere XML + media** emballe les clips minutés et leurs médias d'origine pour Premiere ; voir [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange).
+
+### SCORM (paquets de cours)
+
+L'export de cours est désactivé jusqu'à ce que tu actives **Training and courses** sous Settings → Preferences → Feature flags.
+
+Choisis ensuite **Export course** depuis un outil pris en charge, un dossier de projet ou une sélection. Dans Design, choisir **SCORM (LMS)** puis **Download** ouvre le même flux de cours. Lolly enregistre le travail, te laisse relire le contenu et l'ordre du cours, puis ouvre le module et sa boîte de dialogue d'export.
+
+- <!--i:layers--> Choisis une restitution pour chaque source : pages fixes, animation en vidéo, audio ou ressource téléchargeable. Ajoute le texte des leçons et les alternatives de lecture dans le module.
+- <!--i:clock--> Prévisualise le lecteur de l'apprenant et relis les descriptions et les sous-titres. L'animation est incluse sous forme de vidéo, y compris l'animation silencieuse.
+- <!--i:document--> Choisis Website, SCORM 1.2, SCORM 2004 4th Edition ou une cible xAPI expérimentale. Vérifie le contenu et la taille du ZIP, puis enregistre et télécharge la version vérifiée.
+- <!--i:check--> L'achèvement exige de reconnaître chaque leçon requise et de choisir Finish.
 
 ![Le panneau d'export sur une présentation Design avec SCORM (LMS) sélectionné](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
-Le package inclut son contenu fini et ne nécessite pas de compte Lolly. Extrais un Website ZIP sur un hébergeur HTTP(S) ; importe un LMS ZIP sans modifier son contenu. Teste la destination prévue avant de distribuer le cours.
+Le paquet contient son contenu terminé et n'exige aucun compte Lolly. Place un ZIP Website sur un hôte HTTP(S) ; importe un ZIP LMS tel quel. Teste la destination avant de partager le cours. Pour un cours construit à partir de plusieurs créations enregistrées, voir [Create a training course](/info/training-creators.html).
 
-Pour un cours assemblé à partir de plusieurs créations enregistrées, de médias importés et de ressources, utilise [Créer un cours de formation](/info/create/training-creators.html). Le module d'apprentissage a son propre plan ordonné, des accusés de réception de leçon explicites, un aperçu apprenant et un historique de packages versionné. Son chemin CLI peut empaqueter des médias que tu as déjà exportés.
+### DXF (fichiers de découpe)
 
-## DXF (fichiers de découpe)
+Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding et Wordmark exportent en **DXF**, le format d'échange AutoCAD R12 que lisent les découpeuses laser, les traceurs de vinyle et les logiciels CNC. La géométrie est écrite sous forme de tracés de contour en millimètres, le texte est détouré et la couleur correspond à l'AutoCAD Color Index le plus proche, qui pilote en général l'opération de la découpeuse. DXF est du dessin au trait uniquement : une zone photographique ou filtrée n'a pas de tracé de découpe et est abandonnée, avec un avertissement. Utilise SVG ou PDF pour conserver le contenu raster.
 
-Les outils vectoriels (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, les lockups de logo, Diagram Builder) peuvent exporter en **DXF** - le format d'échange AutoCAD R12 que lisent les découpeuses laser, les traceurs vinyle et les logiciels CNC/CAO. La géométrie est écrite comme des **chemins de contour en millimètres** (courbes aplaties avec une tolérance fine), le texte est converti en chemins et la couleur est associée à l'AutoCAD Color Index le plus proche (qui pilote généralement l'outil ou l'opération sur une découpeuse). DXF n'est que du dessin au trait - une zone photographique ou filtrée n'a pas de forme de chemin de coupe et est abandonnée (Lolly prévient), utilise donc SVG/PDF quand tu dois conserver du contenu raster.
-
-Street Map est le cas le plus clair : le design entier est déjà composé de traits, donc chaque route et canal devient un chemin de découpe sans rien à abandonner.
+Street Map est le cas le plus clair. Tout le design est déjà fait de traits, donc chaque route et chaque canal devient un tracé de découpe.
 
 ::: showcase
 ![Un rendu Street Map de Paris à l'encre sur crème - du pur trait, si bien que chaque trait survit au voyage vers une découpeuse](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
@@ -197,165 +212,196 @@ Street Map est le cas le plus clair : le design entier est déjà composé de tr
 Fais défiler, et la caméra recule à travers la géométrie réelle : sept chemins, aucun pixel nulle part, chaque trait net comme un cheveu à tout niveau de zoom. C'est le même fichier que lit une découpeuse.
 :::
 
-## SVG animé
+## Impression
 
-Les outils d'animation (Animated Ad, Lottie Ad) peuvent exporter en **SVG animé** - une animation *vectorielle* autonome. Contrairement au GIF/APNG/WebP (qui échantillonnent chaque image en pixels), un SVG animé empile des instantanés vectoriels avec des images-clés CSS intégrées, si bien qu'il **s'adapte à toute taille sans codec et sans environnement d'exécution externe** - il boucle dans un onglet de navigateur ou une balise `<img>`. Le texte reste converti en contour pour s'afficher partout. Il partage les contrôles **Durée**/fréquence d'images des formats animés, et (étant plus lourd par image qu'un bitmap) utilise une fréquence d'images par défaut plus basse.
+**Print PDF** écrit du CMJN selon une condition d'impression nommée, **Coated FOGRA39** par défaut. Les nuanciers de marque avec valeurs d'encre mesurées se convertissent exactement ; les autres couleurs utilisent une conversion d'appareil standard. **Print TIFF** écrit des pixels DeviceCMYK pour un RIP et consigne la même condition d'impression dans ses métadonnées TIFF. Le contrôle Colour profile pilote les deux ; [Colour profiles](#colour-profiles) donne le détail.
 
-## Transparence
+**Print marks & bleed** a sa propre carte sur les formats d'impression : le fond perdu en millimètres plus Crop, Registration, Bleed, Colour bars et Stamp details.
 
-Les outils qui le prennent en charge proposent un bouton **arrière-plan transparent** (par ex. *No BG*). La transparence est préservée par PNG, WebP, AVIF, SVG (fixe et animé), APNG et WebP animé. JPG et PDF sont toujours opaques, et TIFF s'aplatit sur blanc (sur noir sur le chemin HDR - voir ci-dessous).
+Certains outils produisent un **PDF de plusieurs pages** : une couverture, du contenu qui s'écoule sur autant de pages que nécessaire et une page de fin, comme dans l'outil *Booklet*. Chaque page est une vraie page PDF en portrait au format A4, US Letter ou A5, et tu peux forcer n'importe quel bloc sur une nouvelle page. Ce sont des documents RVB sans traits de coupe ni repères de fond perdu, qui relèvent du Print PDF d'une seule page. Un PDF Design peut aussi être un **Notes handout** : une page en portrait pour chaque diapositive avec ses notes de l'intervenant dessous.
 
-## Espaces colorimétriques
+**Avant d'exporter.** Une carte **Before you export** au pied du panneau dit ce qu'un imprimeur est sur le point de voir : format, taille et fond perdu, zones de coupe et de fond perdu, couverture d'encre, nombre de plaques et de pages, avec un verdict à côté de son titre. Elle ne bloque jamais un export. Design affiche toujours la carte avec ses propres vérifications, dont les règles maison du design system calque par calque et le signal d'écriture du texte du document ([Before you export](/info/design.html#before-you-export)), et ajoute ces vérifications d'impression quand **Print preflight** est activé. Dans les autres outils, active **Print preflight** sous Settings → Preferences → Feature flags ; il est désactivé par défaut, et un déploiement Lolly Work peut l'activer pour ses membres.
 
-Deux questions différentes, à garder séparées : quels espaces colorimétriques Lolly peut **lire et penser**, et lesquels il **écrit**.
+**Après l'export.** Une fois le fichier prêt, Lolly le relit et le compare à ce que tu as choisi : format, taille en pixels ou de page, durée du clip, fond transparent, couleur CMJN, HDR, Content Credentials et mot de passe de PDF ou de ZIP. Tout ce qui diffère est écrit sur la carte d'export. Chaque mesure vient du fichier, jamais du réglage, et une propriété que le fichier ne peut pas renseigner n'est pas comptée comme conforme. La ligne de commande écrit la comparaison complète avec `--export-report` (voir [Render with the CLI](/info/cli-rendering.html)).
 
-**Lecture.** Partout où une couleur est écrite - la feuille de style d'un outil, la couleur d'un SVG importé, la valeur d'un jeton de design, une ombre ou un dégradé dans un raccourci CSS - Lolly lit tout le vocabulaire **CSS Color 4** : `#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, les couleurs nommées CSS et `color()` dans les espaces prédéfinis - `srgb`, `srgb-linear`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d50`, `xyz-d65` - y compris les composants écrits avec le mot-clé `none`. Un seul analyseur fait cela pour toute la plateforme, si bien que le navigateur et chaque walker d'export s'accordent sur le sens d'une chaîne de couleur.
+Les vérifications de l'inspector de Design et la comparaison de marque dans Design System Setup sont des vérifications distinctes : elles examinent le design, tandis que ces deux cartes examinent le fichier.
 
-Cela compte plus qu'il n'y paraît, car un navigateur résout du CSS moderne en CSS moderne. Écris `color-mix(in oklab, …)` et Chrome calcule `oklab(…)` ; utilise un jeton de marque stocké en `oklch()` et c'est la valeur littérale que voit le walker d'export. Les couleurs sous ces formes sont lues correctement plutôt qu'abandonnées - ce qu'un walker ne comprenant que `rgb()` faisait, exportant un texte de couleur de marque en noir, perdant des panneaux teintés et des règles de tableau, et lisant `oklch(0.7 0.1 200) 0px 2px 4px` comme un décalage d'ombre de 0,7 sur 0,1.
+::: details Coût à partir d'une grille tarifaire
+Sous le preflight, une carte de coût transforme les mêmes comptages en argent, en n'utilisant que des prix que quelqu'un a fournis. Elle lit ces comptages même quand la carte de preflight elle-même est désactivée. Elle a besoin de deux choses : un travail qu'une liste de prix sait chiffrer (plaques, feuilles, surface, pages, lignes de variantes ou fichiers de sortie, donc un simple logo PNG ne l'affiche jamais) et une **rate card**, une liste de prix JSON de ton imprimeur. Un build par défaut n'en porte aucune et n'a aucun moyen d'en charger une dans l'application. Une rate card arrive comme ressource de catalogue qu'un déploiement livre, ou via l'extension facultative de rate card qu'un auto-hébergeur ou un plan de contrôle active. Sans rate card, rien n'est affiché.
 
-**Réflexion.** Les mathématiques de couleur se font de façon perceptuelle plutôt que dans des canaux bruts. La dérivation de palette, les dégradés, les harmonies et le contraste tournent en **OKLCH/OKLab**, et une couleur hors gamut est ramenée dans la plage par l'algorithme de mappage de gamut propre à CSS Color 4 - une réduction de chroma avec une vérification de distance perceptuelle - plutôt que par écrêtage des canaux, donc une couleur vive se stabilise sur la couleur la plus proche que tu accepterais vraiment plutôt que sur une version aplatie. Les dégradés interpolent dans un espace que tu choisis (OKLab par défaut, ou `oklch`, `lab`, `lch`, `srgb`, `srgb-linear`, `hsl`, avec une direction de parcours de teinte pour les espaces polaires), et le mélange est **prémultiplié**, donc un fondu vers le transparent garde la bonne couleur au lieu de s'assombrir vers le noir en chemin. Un seul interpolateur sert à la fois l'aperçu et les walkers d'export - c'est précisément ce qui a empêché un dégradé conique d'être mélangé d'une façon à l'écran et d'une autre dans le fichier exporté.
+Chaque chiffre est un tarif que tu as fourni multiplié par une quantité que Lolly a comptée, comme `4 plate × €35.00`, et le total porte sa source : l'émetteur de la carte et la date de ses tarifs. Il n'y a ni devise par défaut ni prix fictif. Ce que le fichier dit de lui-même reste du discours rapporté : *"The file says: … Lolly has not verified this."*
 
-**Écriture.** La sortie est délibérément plus étroite que l'entrée, car un fichier doit être lisible par ce qui l'ouvre, et un espace n'est *déclaré* en sortie que lorsque les nombres y ont été réellement convertis. Les formats écran et web sont écrits en **sRGB** et étiquetés comme tels ; les formats impression sont écrits en **CMJN** par rapport à une condition presse nommée (ci-dessous) ; et le chemin HDR est en **Rec.2100 PQ** (ci-dessus). Une couleur grand gamut qui atteint un export est ramenée en sRGB plutôt que mal étiquetée - faire passer `color(display-p3 …)` dans un fichier vectoriel est une extension prévue, pas quelque chose que les exports actuels prétendent faire. Un dégradé créé en OKLab est *cuit* en simples arrêts sRGB à la sortie, avec des arrêts supplémentaires insérés uniquement là où le sRGB divergerait visiblement de la courbe perceptuelle, car un `<linearGradient>` SVG et un dégradé axial PDF n'ont aucun réglage d'espace d'interpolation pour porter l'intention. Une valeur créée, trois moteurs de rendu, aucune dérive.
+Quand un chiffre ne peut pas être calculé, le tableau est retiré plutôt que rempli :
 
-## Profils colorimétriques
+- Des lignes que la carte ne chiffre pas signifient **aucun total du tout**, seulement un titre qui dit combien ne sont pas chiffrées.
+- Une quantité qui est un plafond porte **"up to"** dans son sous-total.
+- Des tarifs dépassant leur date de validité affichent **uniquement les comptages** jusqu'à ce que tu appuies sur *Use these rates anyway* ; la date d'expiration accompagne alors le chiffre.
+- Ouvert via un **lien**, l'argent reste masqué jusqu'à ce que tu le demandes sur cet appareil. La CLI prend `--rate-card=<file.json>` comme fichier local et jamais comme paramètre de lien.
 
-Pour que les couleurs se reproduisent fidèlement dans les applications à gestion des couleurs (imprimeurs, Photoshop, navigateurs), les exports sont **étiquetés avec un profil colorimétrique** :
+La carte est retirée de chaque étape d'export, donc elle ne change jamais le fichier. C'est de l'arithmétique, pas un devis ; seul ton imprimeur peut faire un devis.
+:::
 
-- **PNG / JPG** portent un profil ICC **sRGB** intégré - l'espace colorimétrique dans lequel l'aperçu est réellement rendu - pour ne rien laisser à deviner. (Étiquetage seulement ; les pixels ne sont pas réencodés.)
-- Le **PDF impression (CMJN)** déclare une **condition presse** cible dans son *OutputIntent* (par défaut *Coated FOGRA39*), indiquant à un RIP/imprimeur comment ses encres CMJN doivent être lues. Les couleurs de marque avec valeurs d'encre mesurées sont converties exactement ; les autres couleurs utilisent une conversion périphérique standard. Cette déclaration est un *nom* : aucun profil CMJN n'est fourni avec Lolly, et le PDF/X-4 exige que le profil soit intégré, donc une condition nommée écrit l'intention de sortie sans revendiquer la conformité PDF/X-4. Charge un profil CMJN à toi et choisis sa ligne **Intégrer** dans le contrôle de profil colorimétrique et il est intégré comme *DestOutputProfile* du fichier - à ce moment-là, le PDF peut être authentiquement PDF/X-4, et le revendique dès que le reste du fichier le permet. Trois choses retiennent la revendication tout en conservant l'intention de sortie (un RIP en a toujours besoin) : les visuels RVB que la passe CMJN n'a pas pu convertir, le texte de crédit de marge de preuve `prov` (dessiné dans une police standard non intégrée, et le X-4 ne fait pas d'exception pour cela) et un mot de passe **fort**, car le X-4 interdit le chiffrement. La condition qu'il déclare est ensuite lue sur ce profil : un nom enregistré là où le profil en prouve un, `Custom` sous le nom propre du profil là où ce n'est pas le cas, si bien que le fichier ne peut jamais nommer une condition presse tout en portant les mesures d'une autre.
-- Le **TIFF impression (CMJN)** écrit des pixels **DeviceCMYK** non étiquetés et enregistre la même condition presse comme provenance dans ses métadonnées TIFF (*ImageDescription*) plutôt que d'intégrer un profil. Le même contrôle de profil colorimétrique pilote les deux formats CMJN - un TIFF ne peut pas du tout intégrer un profil presse, donc une ligne **Intégrer** y enregistre uniquement le nom propre de ce profil.
-- **TIFF (RVB)** est le pendant sRGB simple, non compressé - un raster sans perte à la résolution choisie pour l'archivage ou un aller-retour dans un éditeur, avec la provenance enregistrée dans les mêmes métadonnées TIFF. Toute transparence est aplatie sur blanc (ce profil ne porte pas de canal alpha). Comme le TIFF CMJN, il est réservé au bureau, car les navigateurs ne peuvent pas prévisualiser un TIFF et les téléchargements mobiles restent bloqués.
-- **SVG**, **EMF**, **EPS** et **DXF** sont des vecteurs indépendants de la résolution et du profil, sans profil intégré - les couleurs du SVG sont du sRGB simple, celles de l'EMF et de l'EPS sont du RVB périphérique (et l'**EPS (CMJN)** écrit un DeviceCMYK naïf) et le **DXF** porte l'index de couleur AutoCAD le plus proche. (SVG, EPS et DXF, comme le PDF, convertissent tout texte en chemins vectoriels, si bien que le résultat s'affiche même où la police n'est pas installée. L'EMF, lui, garde le texte VIVANT par défaut - de vrais enregistrements de texte de métafichier qui restent sélectionnables et modifiables dans Office et Google Slides, se rabattant sur des contours seulement pour les segments que le format ne peut pas exprimer ; l'option « Convertir les polices en contours » du panneau d'export force les contours partout.) Le **SVG** reproduit aussi le `box-shadow` CSS du HTML - chaque ombre extérieure est peinte derrière la boîte, décalée/étalée et floutée en gaussienne pour correspondre au navigateur, et les ombres internes sont peintes à l'intérieur de la même façon.
+## Animation et son
 
-C'est automatique - aucun réglage à ajuster. Les miniatures et aperçus sautent l'étiquette pour rester légers. Un profil *est* un choix, car il change les pixels plutôt que de simplement les étiqueter - voir **HDR** ci-dessous.
+### Vidéo
 
-## HDR (couleurs vives)
+Les outils animés exportent en **MP4** et **WebM**. Le sélecteur n'affiche que les conteneurs que ce navigateur peut produire, et un lien partagé `?format=` qui en demande un qu'il ne peut pas produire se rabat sur l'autre, avec un nom de fichier cohérent. Les outils animés proposent aussi **Start after**, qui maintient le canevas immobile un instant pour que les animations et les polices se stabilisent avant l'enregistrement, et **Duration**, la durée du clip terminé. **Motion blur** (Off, Draft quality, Standard ou High, avec un **Shutter angle**) floute les mouvements rapides au prix du temps de rendu. Là où le navigateur le permet, **Record live** enregistre l'aperçu à l'écran en temps réel via un partage d'écran à la place.
 
-Les exports ordinaires sont en sRGB : le blanc est blanc, et une couleur de marque saturée est aussi lumineuse que le blanc normal de l'écran. Sur un écran compatible HDR, il y a beaucoup de marge au-dessus de cela, et la carte **HDR** du panneau d'export l'utilise - tes couleurs de marque et ton texte blanc sont poussés vers la luminosité maximale pour qu'ils *rayonnent* réellement, tandis que les zones sombres restent sombres et donnent au rayonnement son contraste.
+![Les réglages de minutage d'un export animé : Start after, Duration, Motion blur avec son Shutter angle, et Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+
+**Quality** choisit Smaller file, Balanced ou Best quality. **Advanced** ouvre **Codec**, **Frame rate**, **Rate mode** et **Hardware acceleration**. Là où un outil a des sous-titres, **Captions** choisit une **Embedded track** ou un **Sidecar .vtt + .srt** à côté de la vidéo. Un lien porte la qualité, le codec, la fréquence d'images, la durée et le délai de départ sous la forme `vq`, `codec`, `fps`, `seconds` et `wait` ([URL parameters](/info/url-parameters.html)).
+
+Les exports vidéo conservent leur son. Un outil peut poser un **music bed** sous le clip : une ressource audio bouclée ou rognée à la durée du clip, avec fondus, volume et ducking sous le son propre de la séquence. Les outils d'enregistrement transmettent leur audio en direct jusqu'au fichier.
+
+Un deck Design qui reste un deck à clics peut quand même sortir en vidéo. **Export slides as video** dans le menu Present ouvre la feuille d'export sur MP4. Chaque diapositive reste affichée pour sa propre durée, ou pour la Duration de la feuille d'export quand elle n'en a pas, et la transition de diapositive du deck se joue entre elles sous forme de fondu enchaîné. Le document lui-même ne change pas.
+
+### Images animées
+
+**GIF** se lit partout et convient à la messagerie et à l'e-mail ; il est plus lourd et a moins de couleurs qu'une vidéo. **APNG** et **Animated WebP** gardent la pleine couleur et la transparence. **Lottie Ad** exporte aussi en **Animated SVG** : des images vectorielles avec des images clés CSS incorporées, donc il s'adapte à toute taille et boucle dans un onglet de navigateur ou une `<img>` sans codec. Son texte est détouré, et il utilise une fréquence d'images par défaut plus basse car chaque image est plus lourde qu'une image bitmap. Tous ceux-ci sont silencieux.
+
+### Audio
+
+Certains outils exportent du son seul. **Voice Recorder** capture une prise au microphone avec un indicateur de niveau en direct et l'enregistre en **MP3**, **WAV**, **M4A (AAC)** ou **Opus (WebM)**, encodé sur ton appareil. `wav`, `mp3`, `m4a` et `opus` sont des identifiants de format ordinaires, donc un export audio est aussi partageable et scriptable qu'un PNG.
+
+Le sélecteur de ressources accepte une large gamme d'audio pour un fond musical, du MP3 et FLAC au MIDI et aux modules tracker ; [Formats](/info/formats.html) les liste. Une [chanson Rondocode](/info/rondocode.html) se joue pendant la durée que demande son clip.
+
+## Couleur et HDR
+
+Lolly lit toute couleur CSS moderne, fait ses calculs de couleur de façon perceptive et écrit chaque fichier dans un espace qu'un lecteur peut ouvrir : sRGB pour les écrans, CMJN pour l'impression et Rec.2100 PQ pour le HDR. [Colour in the engine](/info/colour-engine.html) explique comment. Un document Design réglé sur **Wide colour / HDR** suit ses propres règles, décrites dans [Wide colour and HDR editing](/info/hdr-editing.html).
+
+### Profils colorimétriques
+
+Les exports sont balisés avec un profil colorimétrique, pour que les applications gérant la couleur, comme les imprimeurs, Photoshop et les navigateurs, lisent les couleurs comme tu les as vues. Cela se fait automatiquement ; les vignettes et aperçus omettent la balise pour rester légers.
+
+- **PNG et JPG** portent un profil ICC **sRGB** incorporé, l'espace dans lequel l'aperçu est dessiné. Les pixels sont balisés, pas réencodés.
+- **Print PDF (CMYK)** déclare sa condition d'impression dans son *OutputIntent*, ce qui indique à un imprimeur comment ses encres CMJN doivent être lues.
+- **Print TIFF (CMYK)** écrit des pixels DeviceCMYK sans balise et consigne la condition d'impression dans ses métadonnées TIFF. Un TIFF ne peut pas incorporer de profil de presse, donc une ligne **Embed** ne consigne que le nom de ce profil.
+- **TIFF (RGB)** est le jumeau sRGB non compressé pour l'archivage ou un aller-retour vers un éditeur. Il aplatit la transparence sur du blanc. Les deux TIFF sont réservés au bureau, car les navigateurs ne peuvent pas prévisualiser un TIFF.
+- **SVG**, **EMF**, **EPS** et **DXF** sont des vecteurs sans profil incorporé : les couleurs du SVG sont en sRGB, EMF et EPS utilisent du RVB d'appareil, **EPS (CMYK)** écrit du DeviceCMYK et DXF utilise l'AutoCAD Color Index. SVG, EPS et DXF détourent le texte en tracés. EMF garde le texte actif et modifiable dans Office et Google Slides, ne revenant aux contours que pour les passages que le format ne peut pas exprimer ; l'option **Outline fonts** du panneau d'export force des tracés partout. SVG reproduit aussi les ombres portées CSS, intérieures et extérieures.
+
+::: details PDF/X-4 et ton propre profil de presse
+Aucun profil CMJN n'est livré avec Lolly. Une condition d'impression nommée écrit l'output intent sans revendiquer la conformité PDF/X-4, car PDF/X-4 exige que le profil soit incorporé.
+
+Charge un profil CMJN à toi et choisis sa ligne **Embed** dans le contrôle Colour profile. Il est incorporé comme *DestOutputProfile* du fichier, et le PDF revendique PDF/X-4 chaque fois que le reste du fichier le permet. La condition d'impression qu'il déclare est lue sur ce profil : un nom enregistré là où le profil en prouve un, ou `Custom` sous le nom propre du profil.
+
+Trois choses retirent la revendication tout en gardant l'output intent : un visuel RVB que la passe CMJN n'a pas pu convertir, le texte de crédit de marge d'épreuve `prov` (dessiné dans une police standard non incorporée) et un mot de passe **Strong**, car PDF/X-4 interdit le chiffrement. Chaque PDF porte aussi des métadonnées PDF/X-4 : zones de page, XMP, un identifiant de document et un output intent sRGB avec son profil.
+:::
+
+### HDR (couleurs lumineuses)
+
+C'est la carte **HDR** du panneau d'export, qui éclaircit les visuels ordinaires pour les écrans HDR. Conserver des originaux HDR pendant l'édition est une autre fonction : [Wide colour and HDR editing](/info/hdr-editing.html).
+
+Un export ordinaire est en sRGB : une couleur de marque saturée est aussi lumineuse que le blanc normal de l'écran. Un écran HDR a de la marge au-dessus. La carte **HDR** pousse tes couleurs de marque et le texte blanc vers la luminosité maximale, tandis que les zones sombres restent sombres et donnent son contraste à l'éclat.
 
 ![La carte HDR dans le panneau d'export, activée, avec les molettes White / Reach / Dark lift / Focus révélées en dessous](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formats.** Les formats raster ayant une place pour porter le signal : **PNG**, **JPG**, **AVIF** et **TIFF**. (Pas WebP - il est en 8 bits sans chemin de décodage HDR fonctionnel, donc un WebP PQ paraîtrait simplement sombre. Les vecteurs et le PDF n'ont aucun modèle HDR.)
-- **Désactivé par défaut**, contrairement au marquage colorimétrique - ça change les pixels, donc c'est optionnel. Coche la case, ou passe `hdr=1` dans un lien de partage.
-- **Ce qui est réellement écrit.** Les pixels sont réencodés en **Rec.2100 PQ** - primaires BT.2020 avec la courbe de transfert SMPTE ST 2084 (PQ) - et le conteneur porte le signal correspondant pour qu'une application gérant la couleur sache les lire ainsi : un **profil ICC v4 généré avec une balise `cicp`** (JPG, TIFF), un **chunk `cICP`** (PNG) ou une boîte `colr` réécrite (AVIF). Le boost est piloté par la **luminosité perceptuelle (OKLab)**, donc les couleurs moyennes et au-delà montent au maximum et les tons sombres sont calmés plutôt que cramés, et il préserve la teinte - un vert de marque devient plus lumineux, pas plus menthe.
-- **Les réglages.** Quatre, révélés quand la case est cochée : **White** (le plafond de luminosité maximale, 400-2000 nits), **Reach** (jusqu'où le rayonnement se propage dans les tons), **Dark lift** (de combien les tons sombres s'éclaircissent - `0` les garde sombres) et **Focus** (combien de richesse colorimétrique le boost conserve). Ils voyagent dans le même paramètre qu'une valeur réglée compacte - `hdr=1600-60-0-50` signifie White 1600, Reach 60, Dark lift 0, Focus 50 - donc un rendu réglé est reproductible depuis le lien.
-- **Où tu le verras.** Les visionneuses gérant la couleur sur un écran HDR : Preview / Quick Look / Safari sur les appareils Apple, Chrome sur un moniteur HDR. Sur un écran SDR ordinaire, le fichier s'affiche toujours comme une image normale.
-- **À savoir avant de publier.** De nombreuses plateformes **réencodent** ce que tu téléverses et suppriment le signal HDR - réseaux sociaux, applications de messagerie, certains CMS - ce qui peut laisser l'image paraître sombre ou délavée. Utilise le HDR là où tu maîtrises la destination (un site que tu construis, un mur vidéo, une présentation sur un écran lumineux), pas par défaut pour tout.
-- **Transparence.** PNG et AVIF conservent leur alpha ; JPG reste opaque comme toujours. Le chemin **TIFF** aplatit sur **noir**, pas sur blanc comme le chemin SDR - en PQ, le blanc est le code à 10 000 nits, donc aplatir dessus cernerait chaque bord d'un halo aveuglant.
-- **Les mêmes octets depuis le terminal.** `--hdr=1` avec `--export=png` ou `--export=jpg` écrit le PNG Rec.2100 PQ en 16 bits et le JPEG à gain-map ISO 21496-1 sur le [CLI](/info/cli.html) aussi, à partir des mêmes encodeurs du moteur plutôt que d'un navigateur - donc un outil `<svg>` natif produit un fichier HDR sans aucun Chromium sur le chemin, et le PNG est identique octet pour octet à celui de l'interface web. AVIF et TIFF restent des exports réservés à l'interface web pour l'instant.
+- **Formats.** PNG, JPG, AVIF et TIFF. WebP est en 8 bits sans chemin de décodage HDR fonctionnel, et les vecteurs et le PDF n'ont pas de modèle HDR.
+- **Désactivé par défaut**, car cela change les pixels. Coche la carte, ou passe `hdr=1` dans un lien de partage.
+- **Les cadrans.** **White** (le plafond de luminosité maximale, de 400 à 2000 nits), **Reach** (jusqu'où dans les tons l'éclat se répand), **Dark lift** (de combien les sombres s'éclaircissent ; `0` les garde sombres) et **Focus** (combien de richesse de couleur le boost conserve). Ils voyagent comme une seule valeur : `hdr=1600-60-0-50` signifie White 1600, Reach 60, Dark lift 0 et Focus 50.
+- **Ce qui est écrit.** PNG reçoit du Rec.2100 PQ 16 bits avec un bloc `cICP`. JPG est un JPEG à carte de gain ISO 21496-1 : une image SDR ordinaire plus une carte de gain ajoutée. AVIF reçoit une boîte `colr` réécrite. TIFF reçoit des pixels PQ avec un profil ICC v4 généré portant une balise `cicp`, et s'aplatit sur du noir, car le blanc est le code 10 000 nits en PQ et ferait un halo sur chaque bord. Le boost suit la luminosité perceptive (OKLab) et conserve la teinte, donc un vert de marque devient plus lumineux, pas mentholé.
+- **Où l'éclat se voit.** Dans les visionneuses gérant la couleur sur un écran HDR : Preview, Quick Look et Safari sur les appareils Apple, ou Chrome sur un moniteur HDR. Un écran SDR affiche une image normale.
+- **Avant de livrer.** Beaucoup de plateformes réencodent les envois et suppriment le signal HDR, ce qui peut rendre l'image sombre ou délavée. Utilise le HDR là où tu contrôles la destination, comme ton propre site, un mur vidéo ou un deck sur un panneau lumineux.
+- **Depuis le terminal.** `--hdr=1` avec `--export=png` ou `--export=jpg` écrit le même PNG et le même JPEG à carte de gain sur la [CLI](/info/cli.html), à partir des mêmes encodeurs du moteur, sans navigateur sur le trajet. AVIF et TIFF restent des exports web pour l'instant.
 
-## Vidéo
+## Ce qui voyage avec ton fichier
 
-Les outils animés exportent le mouvement en **MP4**, **WebM** ou **GIF** - et, quand c'est proposé, en **APNG**, **WebP animé** ou en **SVG animé** vectoriel (ci-dessus). Le conteneur vidéo que tu vois dépend de ton navigateur - le sélecteur n'affiche que ce qu'il peut réellement enregistrer :
+Un fichier terminé peut porter plusieurs enregistrements à côté de l'image. Certains voyagent à côté des pixels et disparaissent quand le fichier est réenregistré ou nettoyé ; deux marques vivent dans les pixels eux-mêmes.
 
-| Navigateur | Affiche |
-|---|---|
-| Safari / iOS | **MP4** |
-| Firefox | **WebM** |
-| Chrome / Edge 126+ / Android | **MP4 et WebM** |
-| Chrome plus ancien | **WebM** |
+::: figure exporting-what-travels
+Où vit chaque enregistrement, s'il est activé par défaut et quel paramètre de lien le contrôle.
+:::
 
-Le GIF fonctionne partout (idéal pour le chat/e-mail ; plus lourd et moins riche en couleurs que la vidéo). Les outils animés exposent aussi **Wait** (secondes pour laisser l'animation se stabiliser avant l'enregistrement) et **Duration** (durée du clip).
-
-> Un lien partagé `?format=…` qui demande un conteneur que ton navigateur ne peut pas enregistrer se rabat élégamment sur l'autre et nomme le fichier en conséquence.
-
-**Son.** Les exports vidéo ne sont pas silencieux. Un outil peut poser une **bande musicale** sous le clip - un fichier audio du catalogue, bouclé ou coupé à la durée du clip, avec fondu d'entrée/sortie, volume et atténuation automatique sous le son propre des images - et les outils d'enregistrement font passer directement le son en direct de leurs images dans le fichier. **MP4** et **WebM** conservent la piste mixée ; le GIF et les formats d'image animée (APNG, WebP animé, SVG animé) sont silencieux par nature.
-
-## Audio
-
-Certains outils exportent de l'**audio seul**, pas seulement comme piste vidéo. Le **Voice Recorder** capture une prise micro avec un vumètre en direct et un accompagnement en douceur, puis l'enregistre en **MP3** (le défaut, transcodé dans ton navigateur) ou dans son conteneur natif - **M4A** (AAC), **OGG** ou **WebM** (Opus), selon ce qu'a enregistré ton navigateur. Comme pour tout le reste, l'encodage se fait sur ton appareil - rien n'est téléversé.
-
-L'audio que tu *importes* est tout aussi large. Le sélecteur d'assets accepte **MP3**, **WAV**, **OGG**/**Opus**, **M4A**/**AAC** et **FLAC** (conservés à l'identique et décodés sur l'appareil), **MIDI** (`.mid` - converti à l'import en une minuscule piste synthé sur l'appareil) et les **modules tracker** - **MOD**, **XM**, **IT**, **S3M**, **STM**, **MTM** (décodés sur l'appareil par un lecteur intégré, quelques kilo-octets de données musicales). Chacun d'eux peut devenir la **bande musicale** sous un export vidéo, ou jouer dans le lecteur ambiant du mode Neurospicy.
-
-L'audio *fait* partie du pipeline `format=` / `--export=` ci-dessous : `wav`, `mp3`, `m4a` et `opus` sont des identifiants de format ordinaires, si bien qu'un export audio seul est aussi partageable et scriptable qu'un PNG. Ce qui en ressort, c'est le son seul, sans image.
-
-## Provenance et filigrane
-
-Là où le format le permet, les exports portent des **métadonnées de provenance** - logiciel, source, nom de l'outil et ta ligne de crédit de profil - intégrées nativement (PNG iTXt, JPEG EXIF, info PDF, `<metadata>` SVG, commentaire GIF). C'est uniquement de la paternité ; rien n'est téléversé. Les outils **expérimentaux** apposent en plus un filigrane visible, appliqué par l'hôte pour qu'il ne puisse pas être retiré en modifiant l'outil.
-
-**Le Lolly Imprint.** Les exports raster portent aussi le propre **filigrane invisible en pixels** de Lolly - le *Lolly Imprint* - **activé par défaut**, tout comme les Content Credentials. Là où le credential et les métadonnées de provenance voyagent *à côté* des pixels et se perdent lors d'un réenregistrement, d'une capture d'écran ou d'un nettoyage de métadonnées, l'Imprint vit *dans* les pixels et survit à la recompression - si bien qu'une copie de l'image peut encore être reconnue comme faite avec Lolly plus tard. C'est un indice durable, pas une garantie cryptographique, et c'est de la simple présence (il ne porte aucune donnée personnelle). Il voyage dans **PNG, JPG, WebP, AVIF, TIFF et BMP**, et dans les rasters rendus par Lolly composités dans un **PDF ou PPTX** - jamais dans une image que *toi* tu as intégrée, seulement dans ce que Lolly lui-même rend. Décoche la carte **Lolly Imprint** dans le panneau d'export pour le sauter, ou passe `imprint=0` dans un lien de partage. (La survie de l'AVIF au réencodage n'est pas encore calibrée ; la détection PDF/PPTX couvre les rasters Lolly intégrés.) [/verify](/verify) le détecte sur l'appareil - voir [Identité des Content Credentials](/info/content-credentials-identity.html#the-lolly-imprint).
-
-**Le credential durable.** Une seconde marque, plus lourde, se trouve à côté de l'Imprint : le **Credential durable**, qui utilise un modèle neuronal sur l'appareil (format TrustMark) pour écrire l'identifiant de Lolly *dans* les pixels afin que le lien « fait avec Lolly » survive à un nettoyage de métadonnées, un réencodage et une relecture par des outils compatibles TrustMark aussi bien que par ceux de Lolly. Il est **désactivé par défaut** - contrairement à l'Imprint en pur JavaScript, il coûte une passe neuronale par export plus un téléchargement de modèle unique, donc c'est un choix explicite plutôt qu'une taxe discrète. Raster seulement (**PNG, JPG, WebP, AVIF, TIFF**), coché dans le panneau d'export ou passé en `durable=1` dans un lien de partage. Sur les applications de bureau et mobile, la carte est carrément masquée plutôt qu'affichée comme sans effet, car il n'y a pas d'origine où récupérer le modèle hors ligne.
-
-**Protection du contenu.** Dans le panneau d'export, la **Licence** que tu accordes, les **Crédits de source** de tout ce que tu as placé, *Password protect*, **C2PA Credentials**, le **Lolly Imprint** et le **Credential durable** se replient en un seul groupe **Protection du contenu** réduit et adapté au format, si bien que les options de provenance, de droits et de protection d'un fichier vivent au même endroit. Le groupe n'affiche que les cartes qui s'appliquent au format choisi. Il s'ouvre de lui-même quand un lien ou un document enregistré déclare déjà une licence, ou quand une source a besoin d'une décision de ta part.
-
-**Licence.** Choisis comment les autres peuvent utiliser ton travail : *None (all rights reserved)* par défaut, ou CC0 1.0, la Public Domain Mark 1.0, ou l'une des licences Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Le nom de la licence et un lien vers son résumé sont écrits dans les métadonnées de licence du fichier (EXIF, XMP et RIFF là où le format a ces champs) et dans son Content Credential. Le choix est enregistré avec le document et voyage dans un lien de partage sous la forme `licence=`. Lolly écrit la licence que tu as choisie. Il ne vérifie ni n'impose les conditions. Un outil avec son propre champ de licence, comme Claim, garde ce champ à la place et n'affiche pas de second sélecteur. Les repères d'impression n'y figurent volontairement *pas* : ce sont de la géométrie de production imprimée plutôt que de la protection, donc **Repères d'impression et fond perdu** - la mesure de fond perdu en millimètres plus Crop, Registration, Bleed, barres de couleur et détails de tampon - conserve sa propre carte de premier niveau sur les formats impression.
+Le panneau d'export regroupe **Licence**, **Source credits**, *Password protect*, **C2PA Credentials**, le **Lolly Imprint** et le **Durable credential** dans un seul groupe **Content protection** qui n'affiche que les cartes que le format choisi peut utiliser. Il s'ouvre tout seul quand un lien ou un document déclare déjà une licence, ou quand une source exige une décision de ta part. La carte **Design system** reste en dehors du groupe, visible à chaque export.
 
 ![Le groupe Protection du contenu ouvert sur un export PNG, montrant seulement les cartes qui s'appliquent](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
-**Avant d'exporter (contrôle qualité impression).** Active le **Contrôle qualité impression** (`export-preflight`) dans les indicateurs de fonctionnalité de ton profil - il est **désactivé par défaut**, si bien qu'un particulier exportant un PNG pour un message de chat ne se fait jamais surprendre par des constats de prépresse, et un plan de contrôle de déploiement ([lolly.work](https://lolly.work)) peut l'activer par défaut pour ses membres - et une carte **Avant d'exporter** apparaît au bas du panneau, juste au-dessus des boutons, chaque fois que les règles d'impression ont quelque chose de vrai à dire sur le travail : format, taille et fond perdu, puis zones de rognage et de fond perdu, couverture d'encre, nombre de plaques et de pages, avec un verdict à côté de son titre. Elle se trouve sous chaque réglage car c'est une affirmation *à propos* de ces réglages plutôt qu'un réglage de plus - et elle ne bloque jamais un export. Elle te dit ce qu'un imprimeur est sur le point de voir.
+### Provenance et filigrane
 
-**Coût, calculé à partir de ta grille tarifaire.** Sous le contrôle qualité - tout en bas, encore au-dessus des boutons - se trouve une carte qui transforme ces mêmes comptages en argent, et uniquement à partir de prix que quelqu'un lui a donnés. Elle lit ce que la passe de contrôle qualité a compté, que la carte de contrôle qualité elle-même soit activée ou non, et elle a besoin de deux conditions vraies : le travail a quelque chose qu'une liste de prix peut effectivement chiffrer (plaques, feuilles, surface, pages, lignes de variantes ou fichiers de sortie - donc un simple PNG de logo ne l'affiche jamais), **et** une **grille tarifaire** est présente. Une grille tarifaire est une liste de prix JSON venant de ton imprimeur. Une installation par défaut n'en fournit aucune et n'a aucun moyen d'en charger une dans l'application : elle arrive soit comme un asset de catalogue qu'un déploiement fournit, soit via l'extension de grille tarifaire optionnelle qu'un auto-hébergeur ou un plan de contrôle active. Sans grille tarifaire, rien ne s'affiche - ni invite, ni tableau vide.
+Là où le format a les champs, les exports portent des **métadonnées de provenance** : le logiciel, la source, le nom de l'outil et ta ligne de crédit de profil, écrits dans PNG iTXt, JPEG EXIF, PDF info, SVG `<metadata>` ou un commentaire GIF. Elles consignent seulement l'auteur, et rien n'est envoyé. Les outils **Experimental** apposent aussi un filigrane visible, appliqué par l'hôte pour que modifier l'outil ne puisse pas retirer la marque.
 
-La règle sur laquelle tout repose est qu'**elle n'invente jamais d'argent**. Chaque chiffre est un tarif que tu as fourni multiplié par une quantité que Lolly a comptée - `4 plate × €35.00` - et le total nomme sa propre source dans la même phrase que le chiffre : l'émetteur nommé par la grille, et la date à laquelle la grille dit que ses tarifs datent. Il n'y a ni devise par défaut, ni valeur de substitution, ni zéro tenant lieu de prix manquant. Ce que le fichier dit de lui-même reste du discours rapporté : *« Le fichier indique : … Lolly n'a pas vérifié cela. »*
+**Le Lolly Imprint** est un filigrane invisible dans les pixels, **activé par défaut**. Le credential et les métadonnées voyagent à côté des pixels et sont perdus lors d'un réenregistrement, d'une capture d'écran ou d'un nettoyage des métadonnées. L'Imprint vit dans les pixels et survit à la recompression, donc une copie peut toujours être reconnue comme faite avec Lolly. C'est un indice et non une garantie cryptographique, et il ne porte aucune donnée personnelle. Il voyage dans JPEG XL, PNG, JPG, WebP, AVIF, TIFF et BMP, et dans les rasters que Lolly rend dans un PDF ou un PPTX, jamais dans une image que tu as incorporée. Décoche **Lolly Imprint** ou passe `imprint=0` pour omettre l'Imprint. La survie d'AVIF au réencodage n'est pas encore calibrée. [Verify](/verify) le détecte sur ton appareil ; voir [The Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
 
-Et quand elle ne peut pas calculer honnêtement, le tableau de travail **disparaît** plutôt que de se dégrader en un chiffre grisé ou complété d'office :
+**Le Durable credential** écrit l'identifiant de Lolly dans les pixels avec un modèle neuronal sur l'appareil au format TrustMark, pour que le lien « fait avec Lolly » survive à un nettoyage de métadonnées et à un réencodage et puisse être lu par des outils compatibles TrustMark. Il est **désactivé par défaut**, car il coûte une passe neuronale par export et un téléchargement de modèle unique. Il couvre PNG, JPG, WebP, AVIF et TIFF ; coche-le dans le panneau ou passe `durable=1`. Les applications de bureau et mobiles masquent la carte, car elles n'ont aucune origine d'où récupérer le modèle hors ligne.
 
-- Des lignes que la grille ne chiffre pas signifient **aucun total du tout** - juste un en-tête indiquant combien d'entre elles ne sont pas chiffrées. Une somme partielle n'est pas une réponse plus petite, c'est une réponse fausse.
-- Une quantité qui est un plafond plutôt qu'un compte exact porte **« jusqu'à »** jusque dans son sous-total, si bien qu'une borne n'est jamais blanchie en un chiffre plat.
-- Les tarifs dépassant leur date de validité n'affichent que des **comptages**, jusqu'à ce que tu appuies sur *Utiliser ces tarifs quand même* - et alors la date d'expiration voyage avec le chiffre, si bien qu'un total périmé ne peut pas être lu comme un total actuel.
-- Ouverte via un **lien**, la somme reste masquée jusqu'à ce que tu la demandes sur cet appareil. Ni la carte ni cette révélation ne voyagent jamais dans une URL - la même raison pour laquelle le CLI prend `--rate-card=<file.json>` comme indicateur de fichier local et jamais comme paramètre de lien.
+**Licence.** Choisis comment les autres peuvent utiliser ton travail : *None (all rights reserved)* par défaut, CC0 1.0, la Public Domain Mark 1.0, ou une licence Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Le nom de la licence et un lien vers son acte vont dans les métadonnées de licence du fichier (EXIF, XMP et RIFF là où le format en a) et dans son Content Credential. Le choix est enregistré avec le document et voyage dans un lien sous la forme `licence=`. Lolly écrit la licence que tu as choisie ; il ne vérifie ni n'applique ses conditions. Un outil avec son propre champ de licence, comme Claim, garde ce champ à la place.
 
-La carte est du chrome, jamais du contenu : elle est retirée de chaque étape d'export, si bien qu'elle ne peut déplacer aucun pixel du fichier que tu télécharges. Et c'est de l'arithmétique, pas un devis - seul ton imprimeur peut t'en donner un.
+### L'enregistrement du design system
 
-**Rendus composés.** Quand un outil intègre le rendu d'un autre outil (par ex. un *Event Name Badge* intégrant un *QR Code*), le rendu imbriqué est intégré dans l'export du parent - il reste un **vrai vecteur** en SVG et PDF et se rasterise nettement en PNG/JPG/WebP. L'enfant intégré est un intermédiaire : il ne reçoit *aucun* filigrane ni *aucune* provenance propre ; seul l'asset parent terminé en reçoit. (La composition couvre le SVG et les formats raster ; le HTML/MD/TXT ne peut pas être composé.)
+Un export consigne le design system qui a produit le fichier : son nom, la version publiée dont il vient (quand ce n'est pas la version de travail) et le [colourway](/info/colourways.html) dans lequel il a été dessiné. Tout autre choix de thème qu'un design system déclare, comme une densité, est consigné de la même façon. Le choix clair ou sombre est omis, car l'image montre déjà lequel a été utilisé.
 
-## Protection par mot de passe
+**Tu vois l'enregistrement avant que quoi que ce soit soit écrit.** La carte **Design system**, cochée par défaut, montre les mots exacts que le fichier portera, comme *Records: Acme · Colourway: Beach*, et la description telle qu'elle se lira. Le nom d'un design system est ce que ses propriétaires ont saisi, donc la carte l'affiche tel quel. Décoche la carte pour omettre l'enregistrement de cet export. Le panneau de document de Design liste les mêmes mots sous *Embedded in exports*.
 
-Deux types de verrouillage indépendants, entièrement sur l'appareil.
+**La description donne le colourway à côté de l'outil.** Avec la carte cochée, *"Made with https://lolly.tools : Chart"* devient *"Made with https://lolly.tools : Chart (Beach colourway)"*. Le nom propre du design system reste dans l'enregistrement, pas dans la description. Une description sans nom d'outil, ou qu'un outil écrit à partir de ses propres entrées, est laissée telle quelle. Un outil qui ignore les colourways via `tokenAxes` n'en consigne aucun, et le crédit d'épreuve du PDF (le repère d'impression `prov`) suit la même règle.
 
-**Mot de passe d'ouverture PDF** - la carte *Password protect* du panneau d'export propose deux niveaux une fois un mot de passe saisi :
+**Les brand skills qui ont guidé un agent.** Quand un agent a créé la pièce et nommé les [brand skills](/info/brand-skills.html) qu'il a lus et suivis, l'enregistrement liste aussi chaque skill avec sa révision, comme *Guided by: acme-brand 1.0*. Ces mots signifient que le skill a guidé le travail. Ce n'est pas une vérification : Lolly ne teste pas la pièce par rapport à un skill. Seule la déclaration de l'agent lui-même ajoute la liste, ce qui, aujourd'hui, veut dire l'argument `brandSkills` de `lolly_render` du [serveur MCP](/info/mcp.html), donc une pièce créée dans l'application ou depuis un lien de partage n'en porte aucune. Le Content Credential contient la liste sous `brandSkills`, une valeur JSON avec l'identifiant, le nom, la révision et le hachage SHA-256 de chaque skill. Le paquet XMP et les métadonnées SVG contiennent la même valeur sous `lolly:BrandSkills`, un PDF écrit à partir de l'enregistrement gagne un mot-clé par skill et la description reste telle quelle. Un skill interne est consigné par son identifiant, son nom, sa révision et son hachage, jamais par son texte. Les mêmes interrupteurs omettent la liste avec le reste de l'enregistrement : la carte **Design system**, `_madewith=0`, `--no-madewith` et `madeWith: false`. Quand le serveur MCP dessine le fichier dans un navigateur (un PDF, un JPEG et les autres formats que son chemin sans navigateur ne peut pas écrire), les métadonnées propres du fichier ne contiennent aucune liste et seul un Content Credential peut en contenir une. Passe `c2pa` pour conserver l'enregistrement ; sans credential, le rendu avertit que les brand skills n'ont pas été consignés.
 
-![La carte Password protect développée sur un export PDF, avec le champ de mot de passe et les deux niveaux de verrouillage](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+**Relire l'enregistrement.** [Verify](/verify) liste l'enregistrement sous **Design system** dans les détails du credential d'un fichier et tout brand skill sous **Guided by**. *Recreate with these settings* rouvre l'outil dans la version et le colourway consignés. Le lien s'ouvre avec le design system consigné quand cet appareil en détient un de même identifiant et de même nom ; sinon il s'ouvre avec ton design system actif.
 
-- **Weak** - un simple mot de passe 40 bits (RC4). Une dissuasion légère, pas une vraie protection : son mot de passe peut voyager dans un lien de partage (en clair). RGB `pdf` uniquement.
-- **Strong** - AES-256 (PDF 2.0). Son mot de passe est saisi à l'export et n'est **jamais** placé dans un lien. Strong s'applique aussi aux **PDF Print / CMYK** et à **chaque PDF à l'intérieur d'un zip de lot** (la boîte de dialogue de confirmation du lot recueille le mot de passe). PDF/X-4 interdisant le chiffrement, un PDF Print verrouillé en Strong conserve son CMYK, ses repères et son intention de sortie mais perd la conformité PDF/X-4.
+::: details Ce qui est écrit où, et quelles exécutions omettent l'enregistrement
+| Où | Ce qui est écrit |
+|---|---|
+| Content Credential | `designSystem` (l'identifiant), `designSystemLabel`, `designVersion` et `themes` dans l'assertion `tools.lolly.export`, chacun une valeur de texte simple ; `themes` est une liste JSON des choix |
+| PNG, JPEG, WebP et JXL | Les quatre mêmes valeurs comme propriétés `lolly:` du paquet XMP du fichier, dans l'espace de noms `https://lolly.tools/ns/export/1.0/` |
+| SVG | Les mêmes propriétés `lolly:` dans le bloc `<metadata>` |
+| PDF | Des mots-clés comme *Design system: Acme* et *Colourway: Beach* |
+| Tout format avec un champ de description | La description, avec le colourway à côté de l'outil |
 
-Les deux niveaux sont mutuellement exclusifs avec Content Credentials (un PDF chiffré ne peut pas recevoir le credential).
+La carte n'apparaît que lorsqu'il y a quelque chose à consigner et que le format peut contenir l'enregistrement. CSV, JSON, un fichier de calendrier et les autres formats texte ou données ne contiennent aucune métadonnée, et EPS, EMF, DXF et BMP n'ont aucun champ pour l'enregistrement. HTML, Markdown et CSS ne contiennent l'enregistrement que dans leur Content Credential, donc pour eux la carte n'affiche aucune ligne de description et se masque quand **C2PA Credentials** est désactivé. Un champ que le design system ne fournit pas reste hors du fichier.
 
-**Téléchargements verrouillés (zip entier + défense en profondeur)** - un export **ZIP** (le format *ZIP* du panneau d'export, qui regroupe plusieurs formats d'un outil), un téléchargement de **dossier** (Projects → Download) ou la **grille de lot** peuvent verrouiller l'ensemble du zip avec un seul mot de passe, selon deux niveaux :
+Un lien de partage désactive l'enregistrement avec `_madewith=0` ([URL parameters](/info/url-parameters.html)) ; la ligne de commande prend `--no-madewith`, `lolly_render` du [serveur MCP](/info/mcp.html) prend `madeWith: false`, et le panneau d'export de l'application de terminal a une ligne **Design system**. La ligne de commande affiche sur la sortie d'erreur standard les mots qu'un fichier terminé porte, pour un rendu d'outil et pour chaque fichier que `lolly run` exporte depuis une session Design enregistrée, et un rendu MCP les affiche à côté du fichier, les deux relus depuis le fichier. Un PNG que la ligne de commande dessine sans navigateur ne porte aucune métadonnée de fichier, donc son enregistrement voyage dans le credential seul. Les utilitaires sur l'appareil n'ajoutent aucune métadonnée.
 
-- **Weak** - **ZipCrypto** traditionnel, une simple dissuasion. Son mot de passe peut voyager dans un lien de partage `?password=`.
-- **Strong** - chiffrement **AES-256**. Saisi à l'export, jamais placé dans un lien.
+Les exécutions sans carte **Design system** omettent l'enregistrement : un lot Batch, un dossier exporté depuis Projects et un export de collection 3D, et dans l'application de terminal un lot CSV, un export de dossier ou de sélection de Projects et la vue render-everything. Exporte un fichier depuis l'outil pour consigner le design system.
+:::
 
-La même carte *Password protect* du panneau d'export pilote à la fois les verrous PDF et ZIP. Le mot de passe unique protège **chaque** membre - images, SVG, tout, PDF compris (seul le conteneur zip peut protéger les fichiers non-PDF, qui n'ont pas de verrou propre). Et c'est une **défense en profondeur** : tout PDF à l'intérieur est *aussi* verrouillé individuellement en AES-256 avec le même mot de passe, donc un PDF reste verrouillé même après décompression du zip. L'invite apparaît quand tu démarres le téléchargement ; un mot de passe vide signifie aucun verrou.
+### Content Credentials (C2PA)
 
-**Liens de partage protégés par mot de passe** - tout lien de partage peut être chiffré pour que son ouverture demande un mot de passe au destinataire. L'état complet du lien est chiffré en AES-256 sous une clé dérivée du mot de passe (PBKDF2) ; seul le texte chiffré voyage, donc le **mot de passe n'est jamais dans le lien** et le déchiffrement se fait **dans le navigateur du destinataire** - le serveur qui sert le lien ne voit que le texte chiffré dans l'URL, jamais le mot de passe ni le design déchiffré. Active-le dans la boîte de dialogue **Share**. Un lien chiffré ne peut être qu'*ouvert* dans Lolly (il ne peut pas être intégré comme image, puisque ce chemin ne peut pas afficher d'invite). Voir [URL Mode → Encrypted links](/info/url-mode.html).
+Les exports peuvent porter des **Content Credentials** : un manifeste [C2PA](https://c2pa.org) signé qui consigne ce qui a produit le fichier, quand et où, lié à un hachage des octets du fichier de sorte que toute modification ultérieure soit détectable. La spécification est publiée par la C2PA, et Lolly écrit des manifestes standard que tout lecteur C2PA peut inspecter.
 
-## Content Credentials (C2PA)
+![La carte C2PA Credentials, cochée, avec la durée de vie du credential à côté de la case](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-Les exports peuvent porter des **Content Credentials** - un manifeste [C2PA](https://c2pa.org) signé, intégré au fichier, qui enregistre de façon infalsifiable que le fichier a été créé avec Lolly et n'a pas été modifié depuis. C'est la version normalisée des métadonnées de provenance ci-dessus : une déclaration cryptographique (ce qui a créé le fichier, quand, par qui et où) liée à un hachage des octets du fichier, de sorte que toute modification ultérieure est détectable par un lecteur compatible C2PA. La norme est gérée par la [Content Authenticity Initiative](https://contentauthenticity.org) (Adobe, BBC, Microsoft, Nikon et d'autres), de sorte que les credentials écrits par Lolly sont les mêmes que ceux adoptés par les appareils photo, les rédactions et les suites créatives.
-
-![La carte C2PA Credentials, précochée, avec la durée de vie du credential à côté](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
-
-- **Formats.** Chaque conteneur avec intégration C2PA : **PDF** (RGB et Print), **PNG / Animated PNG**, **JPG**, **GIF**, **SVG**, **TIFF** (RGB et Print), **WebP** (fixe et animé), **AVIF**, **MP4**, **WebM** et les conteneurs audio **MP3**, **WAV**, **M4A** et **OGG/Opus** - un clip vocal enregistré ou synthétisé embarque donc le même credential qu'une image. Un bundle **ZIP** appose sa marque individuellement à chaque membre pris en charge, ce qui est aussi là qu'un **SVG animé** en récupère une (c'est un document SVG ordinaire en dessous ; un export direct en SVG animé n'offre pas de carte propre). MP4, AVIF et M4A utilisent la liaison BMFF de la spécification et MP3 son mapping ID3v2, donc `c2patool` et les autres lecteurs compatibles C2PA les vérifient ; **WebM** et **OGG/Opus** n'ont pas encore de mapping C2PA normalisé, donc Lolly porte le manifeste sous forme de pièce jointe Matroska et de champ OpusTags respectivement, que le vérificateur (et la CLI) de Lolly contrôlent. (`ico`, `eps`, `emf`, `dxf`, `bmp`, `pptx`, les formats Office et les formats texte/données n'ont pas de conteneur C2PA.)
-- **Activé par défaut.** La carte **C2PA Credentials** du panneau d'export est précochée pour presque tous les outils - décoche-la pour omettre le credential sur un seul export (ou passe `c2pa=off` dans un lien de partage). Un outil peut s'en exclure entièrement dans son manifeste.
-- **Ce qui est enregistré.** L'outil et l'application qui ont créé le fichier, l'heure de signature, la surface d'export (famille de moteur de navigateur + famille d'OS - volontairement grossière, jamais une empreinte) et - uniquement quand *Profile → Use my details* est activé - ton nom et ton e-mail comme auteur de l'œuvre.
-- **Ce que voient les destinataires.** Les outils d'inspection des content credentials (applications Adobe, `c2patool`, contentcredentials.org/verify) liront le manifeste et afficheront la déclaration. Comme Lolly signe avec une clé générée **sur ton appareil** - pas un certificat issu d'une liste de confiance - les lecteurs signalent un credential *non vérifié*. La structure et la preuve d'intégrité sont réelles ; c'est uniquement l'identité du signataire qui n'est pas garantie par une autorité. Pour améliorer cela, tu peux inscrire une **identité vérifiée** (Profile → Content Credentials) : un certificat de courte durée émis par la CA Lolly lie ton e-mail à tes exports tandis que la clé de signature ne quitte toujours jamais ton appareil - voir [Content Credentials Identity](/info/content-credentials-identity.html).
-- **Vérifier un fichier.** Lolly vérifie aussi ses propres credentials : dépose n'importe quel fichier sur [/verify](/verify) (ou lance `lolly validate <file>` dans la CLI) pour un rapport sur l'appareil - dont le point principal indique si le fichier a bien été créé avec Lolly et n'a pas changé depuis. La vue Verify du web va bien au-delà du credential : elle signale le **contenu généré par IA**, détecte le **Lolly Imprint**, vérifie les signatures **SEAL** et (en option) les tatouages numériques tiers, et fait ressortir les **données cachées** - tout cela sur l'appareil, rien n'est envoyé. Voir [Content Credentials Identity → Beyond the credential](/info/content-credentials-identity.html#beyond-the-credential-what-else-verify-shows).
-- **Confidentialité.** Tout se passe sur ton appareil : la clé de signature est créée pour l'export et ne quitte jamais le navigateur, rien n'est envoyé et la déclaration ne contient que ce que les métadonnées de provenance portent déjà. Les utilitaires de confidentialité (transformations sur l'appareil de *tes propres* fichiers) n'ajoutent jamais de credential, et *Strip Hidden Data* supprimera un manifeste C2PA comme toute autre métadonnée intégrée.
-- **Interactions.** Pour les PDF, Content Credentials et la **protection par mot de passe** (l'un ou l'autre niveau - voir ci-dessus) sont mutuellement exclusifs (un PDF chiffré ne peut pas recevoir la pièce jointe du credential). Le credential est ajouté en dernière étape sur les octets finaux - après l'apposition DPI/EXIF/profil colorimétrique, les métadonnées PDF/X et les repères d'impression.
+- **Activé par défaut.** La carte **C2PA Credentials** est présélectionnée pour presque tous les outils. Décoche-la pour un export, ou passe `c2pa=off` dans un lien. Un outil peut s'en exclure dans son manifeste.
+- **Formats.** PDF (RVB et Print), PNG et APNG, JPG, GIF, SVG, TIFF (RVB et Print), WebP (fixe et animé), AVIF, MP4, WebM, les conteneurs audio MP3, WAV, M4A, OGG/Opus et FLAC, et HTML, Markdown et CSS. Un ZIP appose la marque sur chaque membre pris en charge, c'est ainsi qu'un Animated SVG en reçoit une. MP4, AVIF et M4A utilisent la liaison BMFF standard et MP3 sa correspondance ID3v2, donc `c2patool` et d'autres lecteurs les vérifient. WebM et OGG/Opus n'ont pas encore de correspondance standard, donc Lolly porte le manifeste comme pièce jointe Matroska et comme champ OpusTags, que le vérificateur propre de Lolly contrôle. ICO, EPS, EMF, DXF, BMP, PPTX, les formats Office et les autres formats texte et données n'ont pas de conteneur C2PA.
+- **Ce qu'il consigne.** L'outil et l'application qui ont créé le fichier, l'heure de signature, le shell qui l'a exporté, le [design system et le colourway](#the-design-system-record) tant que la carte **Design system** est cochée, et les empreintes des entrées actives. Le texte saisi, les champs liés au profil, les contrôles inactifs, les versions du navigateur et les détails du système d'exploitation sont omis. Ton nom et ton e-mail n'apparaissent comme auteur que si **Use my details to create** est activé sous Settings → Preferences → Your details. Les sources qu'un export place voyagent comme ingrédients : les [œuvres créditées](#source-credits) comme les emoji, et les [chansons Rondocode](/info/rondocode.html#songs-in-the-credential) dans un export vidéo ou audio.
+- **Ce que voient les destinataires.** Les outils C2PA comme les applications Adobe, `c2patool` et contentcredentials.org/verify lisent le manifeste et affichent la déclaration. Lolly signe avec une clé créée sur ton appareil, pas avec un certificat d'une liste de confiance, donc les visionneuses signalent un credential *unverified* : la structure et la détection d'altération sont réelles, le signataire n'est pas garanti. Pour changer cela, inscris une **verified identity** sous Settings → Preferences → Content Credentials ; voir [Content Credentials Identity](/info/content-credentials-identity.html).
+- **Vérifier un fichier.** Dépose n'importe quel fichier sur [Verify](/verify), ou lance `lolly validate <file>`, pour un rapport sur l'appareil qui indique d'abord si Lolly a créé le fichier et s'il a changé depuis. Verify regarde aussi au-delà du credential ; voir [What Verify checks](/info/what-verify-checks.html).
+- **Confidentialité.** La clé de signature est créée pour l'export et ne quitte jamais ton appareil, et la déclaration ne contient que ce que les métadonnées de provenance portent déjà. Les utilitaires de confidentialité qui transforment tes propres fichiers n'ajoutent aucun credential, et *Strip Hidden Data* supprime un manifeste C2PA comme toute autre métadonnée. L'utilitaire Rondocode crée de l'audio nouveau, donc il signe ce qu'il écrit ([Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility)).
+- **Interactions.** Un PDF protégé par mot de passe ne peut pas porter de Content Credentials, à aucun des deux niveaux. Le credential est ajouté en dernier, sur les octets terminés, après le DPI, l'EXIF, le profil colorimétrique, les métadonnées PDF/X et les repères d'impression.
 
 ### Crédits de source
 
-Un export qui place l'œuvre de quelqu'un d'autre enregistre aussi cette source dans le credential. Un emoji tiré d'un jeu épinglé est le cas de tous les jours : l'œuvre, son créateur, la licence, la provenance exacte des octets et ce qui a changé voyagent tous avec le fichier. La ligne **Crédits de source** du panneau d'export dit ce que les sources demandent pour la livraison avant que tu télécharges, et après le téléchargement elle relit les octets livrés avant de dire que les crédits sont dans le fichier. Une licence qui te demande de choisir, comme un glyphe CC BY-SA recoloré que tu es sur le point de partager, reçoit une carte avec les issues possibles ; le téléchargement n'est jamais bloqué. [Droits créatifs et crédits](/info/creative-rights.html) a les mots, les licences examinées et ce qui reste à toi.
+Un export qui place le travail de quelqu'un d'autre consigne cette source dans le credential. Un emoji dessiné à partir du jeu d'emoji choisi en est le cas courant : l'œuvre, son créateur, la licence, l'origine des octets exacts et ce qui a changé voyagent tous avec le fichier. Le texte d'un outil dont le modèle est un SVG garde les emoji du système, donc rien n'y est crédité. La ligne **Source credits** dit ce que les sources demandent pour la livraison avant que tu télécharges, et après le téléchargement elle relit les octets livrés avant de dire que les crédits sont dans le fichier. Une licence qui te demande de choisir, comme un glyphe CC BY-SA recoloré que tu t'apprêtes à partager, reçoit une carte avec les options ; le téléchargement n'est jamais bloqué. [Creative rights and credits](/info/creative-rights.html) contient la formulation, les licences relues et ce qui reste à toi.
+
+## Protection par mot de passe
+
+Deux types de verrou, tous deux créés sur ton appareil. La carte *Password protect* du panneau d'export pilote les deux.
+
+![La carte Password protect développée sur un export PDF, avec le champ de mot de passe et les deux niveaux de verrouillage](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+
+**Un mot de passe d'ouverture de PDF** a deux niveaux dès que tu saisis un mot de passe :
+
+- **Weak** : RC4 40 bits, un moyen dissuasif plutôt qu'une protection. Son mot de passe peut voyager dans un lien de partage, en clair. `pdf` RVB uniquement.
+- **Strong** : AES-256 (PDF 2.0). Saisi à l'export et jamais mis dans un lien. Il s'applique aussi aux Print PDF et à chaque PDF dans un ZIP de lot. Un Print PDF verrouillé en Strong garde son CMJN, ses repères et son output intent mais abandonne la revendication PDF/X-4.
+
+**Un ZIP verrouillé** couvre un export ZIP, un téléchargement de dossier depuis Projects ou un lot, avec un seul mot de passe à deux niveaux : **Weak** (ZipCrypto, dissuasif ; il peut voyager dans un lien `?password=`) ou **Strong** (AES-256, saisi à l'export, jamais dans un lien). Le mot de passe protège chaque membre, et tout PDF à l'intérieur est aussi verrouillé en AES-256 de son côté, donc il reste verrouillé après l'extraction du ZIP. L'invite apparaît au début du téléchargement ; un mot de passe vide signifie aucun verrou.
+
+**Un lien de partage protégé par mot de passe** demande un mot de passe au destinataire avant de s'ouvrir. Tout l'état du lien est chiffré en AES-256 avec une clé dérivée du mot de passe (PBKDF2), donc seul du texte chiffré voyage et le déchiffrement a lieu dans le navigateur du destinataire. Le serveur qui sert le lien ne voit jamais le mot de passe ni le design. Active-le dans la boîte de dialogue **Share**. Un lien chiffré ne s'ouvre que dans Lolly, jamais comme image incorporée. Voir [URL Mode](/info/url-mode.html).
 
 ## Sur téléphone
 
-Les commandes d'export se trouvent derrière le bouton flottant **Exporter**, qui ouvre la feuille **Export** - mêmes formats, taille, copie, téléchargement et partage, dimensionnés pour le tactile.
+Les contrôles d'export se trouvent derrière le bouton flottant **Export**, qui ouvre la feuille **Export** : les mêmes formats, taille, copie, téléchargement et partage, dimensionnés pour le tactile.
 
-## Référence des formats
+## Identifiants de format pour les liens et la CLI
 
-Tous les identifiants que l'hôte peut rendre, regroupés. Ce sont aussi les valeurs du paramètre d'URL `format=` et du flag CLI `--export=` - voir [URL Mode](/info/url-mode.html) et [CLI](/info/cli.html). Le menu d'un outil n'affiche que les formats que cet outil peut produire, donc il est toujours plus court que cette liste.
+Ce sont les valeurs du paramètre d'URL `format=` et de l'option CLI `--export=` (voir [URL parameters](/info/url-parameters.html) et [CLI](/info/cli.html)). Le menu d'un outil n'affiche que les formats que cet outil peut produire, donc il est toujours plus court que cette liste.
 
 | Type | Identifiants |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (TIFF RGB) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
-| Vectoriel | `svg` · `svgz` (SVG gzippé) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMJN) · `dxf` (fichier de découpe) |
-| Page et document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (package de cours SCORM, un zip) · `penpot` (fichier de design Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Animation | `gif` · `apng` (PNG animé) · `webp-anim` (WebP animé) · `svg-anim` (SVG animé) · `webm` · `mp4` |
-| Audio | `wav` · `mp3` · `m4a` · `opus` |
-| Texte et données | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (palette GIMP) |
-| Paquet | `zip` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `jxl` · `jxl-lossless` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Vectoriel | `svg` · `svgz` (SVG compressé en gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (fichier de découpe) |
+| Page et document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (fichier de design Penpot) · `scorm` (paquet de cours, un ZIP) |
+| Animation | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Texte et données | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (palette GIMP) |
+| Bundles et paquets | `zip` · `rpm` et `tar.gz` (le rendu scellé dans un paquet Linux) |
 
-Quelques identifiants supplémentaires proviennent du **hook d'export propre à l'outil** plutôt que du chemin de rendu partagé : `ase` (Adobe Swatch Exchange, depuis Palette Lab), `exr` et `hdr` (les rasters HDR de Darkroom) et `ttf` / `otf` / `woff` (Font Convert). Ils choisissent un format de la même façon - le sélecteur, `format=`, `--export=` - seuls les octets sont construits par l'outil. Font Convert est la seule exception : il transforme un fichier de police que *tu* fournis toi-même, donc une simple URL n'a rien à rendre.
+Quelques identifiants viennent du code d'export propre d'un outil : `ase` (Adobe Swatch Exchange, de Palette Lab) et `exr` et `hdr` (rasters à grande plage dynamique, de Darkroom). **Convert Font** écrit `ttf`, `otf` et `woff` à partir d'un fichier de police que tu fournis, donc un lien nu n'a rien à lui faire rendre.

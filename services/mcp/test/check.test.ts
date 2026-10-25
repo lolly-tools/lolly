@@ -20,7 +20,7 @@ import { checkFile } from '@lolly-tools/node-shell/check';
 import { readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
 import { CHECK_OUTCOME_EXIT_CODES, type CheckReportV1 } from '@lolly-tools/core';
 import { dispatch } from '../src/server.ts';
-import { serverInstructions } from '../src/tools.ts';
+import { getPrompt, serverInstructions } from '../src/tools.ts';
 import type { JsonRpcResponse } from '../src/protocol.ts';
 import { CHECK_LIMITS, CHECK_OUTPUT_SCHEMA, CHECK_TOOL_CODES, callCheck, type CheckDesignResolver } from '../src/check.ts';
 import { callRead } from '../src/read.ts';
@@ -161,12 +161,12 @@ test('the render family runs through the page hook, and is unavailable where thi
   assert.match(older.families.render.reason ?? '', /^This web shell predates the hook\. Clipping was predicted from font metrics/);
   assert.equal(older.families.structure.state, 'ran', 'the other families still run');
 
-  // A serverless function cannot paint the editor: unavailable in words, and require exits 3.
-  const vercel = { VERCEL: '1' };
-  const serverless = reportOf((await callCheck({ file: trapFile }, unreachable, vercel)) as Result);
-  assert.equal(serverless.families.render.state, 'unavailable');
-  assert.match(serverless.families.render.reason ?? '', /serverless function/);
-  const required = (await callCheck({ file: trapFile, browser: 'require' }, unreachable, vercel)) as Result;
+  // A hosted server with no browser cannot paint the editor: unavailable in words, and require exits 3.
+  const noBrowser = { LOLLY_MCP_HOSTED: '1', LOLLY_WEB_BASE: 'https://lolly.example', LOLLY_BROWSER_PATH: '/nonexistent/chromium' };
+  const hostedOnly = reportOf((await callCheck({ file: trapFile }, unreachable, noBrowser)) as Result);
+  assert.equal(hostedOnly.families.render.state, 'unavailable');
+  assert.match(hostedOnly.families.render.reason ?? '', /This server has no browser/);
+  const required = (await callCheck({ file: trapFile, browser: 'require' }, unreachable, noBrowser)) as Result;
   assertValid(required);
   assert.equal(required.isError, undefined, 'a missing tier is a report, not a tool error');
   assert.equal(reportOf(required).exitCode, 3);
@@ -227,8 +227,11 @@ test('requests it cannot read are refused with a stable code, and the call never
     assert.ok(CHECK_TOOL_CODES.includes(code as never), code);
 });
 
+// A hosted server with no browser here, as on the lightweight endpoint, so no call opens one.
+const HOSTED = { LOLLY_MCP_HOSTED: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test', LOLLY_BROWSER_PATH: '/nonexistent/chromium' };
+
 test('hosted caps: the file and source together, the file alone and the response', async () => {
-  const hosted = { VERCEL: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' };
+  const hosted = HOSTED;
   const deck = { base64: b64(NOTES), name: 'notes.pptx' };
   const room = b64(NOTES).length + 16 * 1024 + 100;
   // Each file fits alone, but not both in one request: steer to the inventory.
@@ -269,7 +272,7 @@ test('inventory takes what lolly_read returned, whole or its inventory field', a
 });
 
 test('hosted caps count a PDF\'s pages, for the file, the source and an inventory', async () => {
-  const hosted = { VERCEL: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' };
+  const hosted = HOSTED;
   const limits = { ...CHECK_LIMITS, hostedMaxSlides: 2 };
   const pdf = { base64: b64(EDITABLE_PDF), name: 'editable.pdf' };
   const file = (await callCheck({ file: pdf }, unreachable, hosted, limits)) as Result;
@@ -316,4 +319,24 @@ test('edits records deliberate wording changes: excepted in the report, never pa
   refusedWith(await check({ file: trapFile, browser: 'off', edits: [{ source: dropped, reason: 'x' }] }), 'request.invalid');
   refusedWith(await check({ file: trapFile, browser: 'off', inventory, edits: [{ source: dropped }] }), 'request.invalid');
   refusedWith(await check({ file: trapFile, browser: 'off', inventory, edits: 'all of them' }), 'request.invalid');
+});
+
+test('creation feedback: the writing score is in the report, never changes exitCode, and agents are told to revise', async () => {
+  const report = reportOf(await check({ file: trapFile, browser: 'off' }));
+  const writing = report.findings.filter((f) => f.code === 'verify.writing-score');
+  assert.equal(writing.length, 1);
+  assert.notEqual(writing[0]!.severity, 'error');
+  const counted = report.findings.filter((f) => f.code !== 'verify.writing-score');
+  assert.equal(report.exitCode, counted.some((f) => f.severity === 'error') ? 4 : counted.some((f) => f.severity === 'warn') ? 5 : 0);
+
+  const res = (await dispatch({ jsonrpc: '2.0', id: nextId++, method: 'tools/list', params: {} })) as JsonRpcResponse;
+  const description = (res.result as { tools: Array<{ name: string; description: string }> }).tools.find((t) => t.name === 'lolly_check')?.description ?? '';
+  assert.match(description, /verify\.writing-score/);
+  assert.match(description, /never changes exitCode/);
+  assert.match(description, /revise the layers they name/);
+  assert.match(await serverInstructions(), /creation feedback that informs and never blocks, so revise the layers they name/);
+  const prompt = await getPrompt('design', {});
+  assert.match((prompt!.messages[0]!.content as { text: string }).text, /Call lolly_check with the same toolId and inputs\. Read the house-rule findings and the writing score/);
+  const generic = await getPrompt('create-branded-asset', { brief: 'a slide' });
+  assert.match((generic!.messages[0]!.content as { text: string }).text, /call lolly_check and read the house-rule findings and the writing score/);
 });

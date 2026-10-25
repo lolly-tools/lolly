@@ -1,5 +1,5 @@
 {
   "name": "Chambre noire",
-  "description": "Une chambre noire professionnelle pour l'étalonnage photo : looks pellicule, LUTs .cube tierces, traitements colorimétriques du système de design et texture de finition - puis grave ton look sous forme de LUT utilisable dans n'importe quel logiciel. Ouvre aussi un fichier Photoshop ou GIMP en calques : positionne, fusionne et masque chacun, étalonne le composite, puis exporte des images aplaties ou un PSD en calques.",
+  "description": "Étalonne photos et vidéo avec des looks de film, des préréglages XMP Adobe, des LUT .cube et les couleurs de ton design system. Réutilise un look via l'export LUT ou Étalonner une vidéo. Ouvre des calques Photoshop et GIMP pour positionner, mélanger et exporter l'image.",
   "featured.blurb": "Étalonnez vos photos avec looks film, LUT et les couleurs de votre marque"
 }

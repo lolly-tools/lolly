@@ -141,12 +141,15 @@ export function inline(text: string, ctx: DocsRenderContext): string {
   // External links (absolute http/https) open in a new tab; internal/relative links stay.
   // A same-page anchor written the way GitHub slugs a heading ("Licensing & structure"
   // becomes #licensing--structure) collapses its hyphen runs to match headingId, which
-  // never emits two in a row. The README renders on GitHub and as /info/about, so its
-  // links have to land on both.
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url: string) =>
-    /^https?:\/\//i.test(url)
+  // never emits two in a row. The README renders on GitHub and as /info/start/about, so its
+  // links have to land on both. A link to a Markdown source file (the form
+  // GitHub follows) goes to the page published from that file, through the context.
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, written: string) => {
+    const url = ctx.sourceLink?.(written) ?? written;
+    return /^https?:\/\//i.test(url)
       ? `<a href="${url}" target="_blank" rel="noopener">${label}</a>`
-      : `<a href="${/^#[a-z0-9-]+$/.test(url) ? url.replace(/-{2,}/g, '-') : url}">${label}</a>`);
+      : `<a href="${/^#[a-z0-9-]+$/.test(url) ? url.replace(/-{2,}/g, '-') : url}">${label}</a>`;
+  });
   // Technology marks: `<!--l:helm-->` → the mark, inline. Matched POST-esc
   // (`&lt;!--l:key--&gt;`) and LAST, so the emitted <svg> path `d=` meets no further regex.
   s = s.replace(/&lt;!--l:([a-z0-9-]+)--&gt;/g, (_m, key: string) => ctx.docLogo(key));

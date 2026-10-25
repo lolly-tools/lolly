@@ -1,0 +1,17 @@
+digraph trusted_two_gates {
+  rankdir=TB
+  node [shape=box]
+  file [label="A signed file\ncredential found"]
+  intact [label="Gate one\nsignature and bytes"]
+  broken [label="Fails\nCredential broken"]
+  valid [label="Passes: valid\nsigner anonymous"]
+  anchor [label="Gate two\nchain to an anchor"]
+  expired [label="Certificate lapsed\nidentity shown, not trusted"]
+  trusted [label="Passes: trusted\nCA-verified signer"]
+  file -> intact
+  intact -> broken
+  intact -> valid
+  valid -> anchor
+  anchor -> expired
+  anchor -> trusted
+}

@@ -2,24 +2,28 @@
 
 _Senast kontrollerad: 28 september 2026._
 
-Lolly genererar resurser från mallar och data på din enhet, i CI eller via [lolly.work](https://lolly.work)s server-API. Den kombinerade lösningen täcker automatiserad rendering såväl som identiteten, policyerna och leveransen kring en organisations produktionsjobb.
+Om du genererar bilder från mallar genom ett API i dag säger den här sidan hur Lolly gör samma jobb på din egen enhet, i CI eller på din egen server.
+
+## Vad värdbaserade renderings-API:er gör bättre
+
+[Bannerbear](https://www.bannerbear.com/) och [Placid](https://placid.app/) paketerar rendering som hanterade tjänster, med egen infrastruktur, egna integrationer och eget stöd. Du skickar en begäran och någon annan kör servrarna.
 
 ## Där de överlappar
 
-[Bannerbear](https://www.bannerbear.com/) och [Placid](https://placid.app/) genererar bilder och andra medier från mallar via API:er och integrationer. Lolly använder samma tillvägagångssätt med en mall plus indata, med [URL-läge](/info/url-mode.html), [CLI](/info/cli.html), ett batchrutnät och serverslutpunkter som sätt att skicka in arbete.
+Båda gör en mall plus indata till media. Lolly tar indata från en [länk](/info/url-mode.html), [CLI](/info/cli.html), ett batchrutnät eller en serverslutpunkt.
 
-## Vad lolly.work erbjuder
+## Hur Lolly gör det överlappande jobbet
 
-lolly.work är den separat driftsatta organisationstjänsten i Lolly-projektet. Den kör Lolly-motorn bakom ett API, tillämpar verktygssynlighet och indatapolicyer samt levererar renderade filer och signerade delningslänkar. Dess [återställningsbara renderingstjänst](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md) stöder enskilda jobb och batchar, idempotent inskickning, status, begränsade omförsök, avbrytande och sparade utdata. Avbrutet arbete kan återupptas efter en serveromstart när beständig lagring är konfigurerad.
+Samma verktyg renderas på en bärbar dator, i ett CI-jobb eller på en server, från samma indata. Lokal rendering och CI-rendering behöver ingen tjänst alls.
 
-Servern använder en snabb SVG/PNG-renderingsväg och en valfri Chromium-worker för verktyg som behöver en webbläsare. Automatisering autentiseras med tjänsttokens, och färdiga utdata kan skickas via [styrd leverans](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) till organisationens mål. En konfigurerad signeringsidentitet möjliggör C2PA-signering av serverutdata som stöds.
+![Exportinställningar för Batch: filnamn, standardformat, enheter, DPI och antalet rader att rendera](/info/shots/use-batch-toolbar.svg)
+
+På en server kör [Lolly Work](/info/compare.html#what-runs-where) Lolly-motorn bakom ett API och tillämpar verktygssynlighet och indatapolicyer. Dess [återställningsbara renderingstjänst](/info/work-renders.html) stöder enstaka jobb och batchar, idempotent inskickning, status, begränsade omförsök, avbrytande och bevarad utdata, och avbrutet arbete återupptas efter en omstart när beständig lagring är konfigurerad.
+
+Servern har en snabb SVG- och PNG-väg och en valfri Chromium-worker för verktyg som behöver en webbläsare. Automatisering loggar in med tjänsttoken, färdig utdata kan gå genom [godkänd leverans](/info/work-delivery.html) till organisationsdestinationer, och en konfigurerad signeringsidentitet lägger till Content Credentials på utdata som stöds.
 
 ## Vem som driver tjänsten
 
-Bannerbear och Placid paketerar rendering som hanterade tjänster med egen infrastruktur och egna integrationer. Med Lolly kan en enskild person rendera lokalt, eller så kan ett team driva lolly.work på sin egen infrastruktur. Båda Lolly-repositoryerna är öppen källkod under MPL-2.0; egen drift har ingen programvarulicensavgift per rendering, medan beräkning, lagring och drift fortfarande är kostnader att planera för.
+Med Lolly renderar en individ lokalt, eller så kör ett team Lolly Work på sin egen infrastruktur. Att skicka in ett serverjobb skickar dess indata och nödvändiga tillgångar till den instansen, vilket skiljer sig från vägen på enheten. En varaktig tjänst behöver en beständig databas och utdatalagring, och verktyg som beror på webbläsaren behöver Chromium-workern; [Install Lolly Work](/info/work-install.html) beskriver båda.
 
-Den publika webbplatsen lolly.work är en utvärderingssandlåda, inte ett åtagande om produktionshosting. En varaktig tjänst behöver beständig databas och beständig lagring av utdata; webbläsarberoende verktyg behöver Chromium-workern. [Installationsguiden](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) och [statussidan](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) beskriver de kraven och de nuvarande begränsningarna.
-
-Lokal rendering och rendering i CI förblir tillgängliga utan organisationstjänsten. Att skicka in ett serverjobb skickar dess indata och nödvändiga resurser till den instansen; det skiljer sig från vägen på enheten. Se [översikten över den kombinerade lösningen](/info/compare.html).
-
-Bannerbear och Placid är varumärken som tillhör sina ägare. Den här sidan beskriver var lösningarna överlappar och är inte knuten till någon av dem.
+Bannerbear och Placid är varumärken som tillhör sina ägare. Den här sidan beskriver var produkterna överlappar och är inte knuten till någondera.

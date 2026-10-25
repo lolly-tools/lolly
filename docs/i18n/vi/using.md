@@ -1,27 +1,213 @@
 # Sử dụng Lolly
 
-Một hướng dẫn thực tế về việc *dùng* ứng dụng - mở một công cụ, làm việc trên canvas, xuất file, lưu và chia sẻ. Mọi thứ ở đây đều chạy **trên thiết bị của bạn**: không tài khoản, không tải lên, và không cần internet cho những màn hình bạn đã mở sẵn.
+Bạn đang mở Lolly và muốn tạo một thứ, giữ nó lại và gửi đi. Trang này đi qua vòng đó: mở một công cụ, đổi những gì nó cho phép đổi, lưu kết quả và chia sẻ dưới dạng liên kết hoặc tệp.
 
-> Mới dùng? [Bắt đầu nhanh](/info/quickstart.html) giúp bạn tạo được sản phẩm chỉ trong vài phút, còn [Lolly cho nhà vận hành](/info/operators.html) hướng dẫn cài đặt/triển khai ứng dụng; trang này nói về cách điều khiển nó khi đã mở.
+Mọi thứ ở đây chạy trên thiết bị của bạn, không cần tài khoản, và tiếp tục hoạt động ngoại tuyến sau khi công cụ và tài nguyên bạn cần đã được tải. Ứng dụng cần trình duyệt hoặc ứng dụng có WebGPU để khởi động; [Supported environments](/info/supported-environments.html) liệt kê các môi trường đã kiểm thử.
 
-## Mở một công cụ
+## Làm quen xung quanh
 
-Màn hình chính là **gallery** - mọi công cụ, nhóm theo danh mục. Nhấp vào một thẻ để bắt đầu điều gì đó mới trong công cụ đó; [công việc đã lưu](#saving-continuing) mở lại từ **Dự án**. Dùng ô tìm kiếm để lọc theo tên - hoặc [Tìm kiếm](/info/search.html) từ thanh ở chân sáu màn hình danh sách (gallery, Utilities, Projects, Tài sản, Dashboard và Settings), nơi với tới cả công việc đã lưu, tài sản và các thiết lập của bạn chứ không riêng các công cụ. Bên trong một công cụ, thanh này nhường chỗ cho giao diện riêng của công cụ.
+::: figure using-app-map
+Màn hình chính: bốn thẻ dọc phía trên và thanh ở chân. Khi một công cụ được mở, các điều khiển của nó hiện bên cạnh bản xem trước trực tiếp.
+:::
+
+Bốn thẻ chạy dọc phía trên màn hình chính: **Tools**, **Utilities**, **Assets** và **Projects**. Tools là thứ bạn dùng để tạo, Utilities là bàn làm việc cho các việc như chuyển đổi, kiểm tra hay dọn một tệp, Assets là thư viện của bạn và Projects giữ những gì bạn đã lưu.
+
+Thanh ở chân có **Open**, **Settings**, một ô tìm kiếm, **Verify** và **What?**. Nó hiện trên Tools, Utilities, Assets, Projects, Settings và các hướng dẫn bạn đọc trong ứng dụng, và nhường chỗ khi một công cụ được mở. [Search](/info/search.html) tới được công cụ, công việc đã lưu, tài nguyên và cài đặt của bạn từ ô đó. [Ask Lolly](/info/ask.html) trả lời một câu hỏi gõ vào bằng phần khớp trong các hướng dẫn này.
+
+Nhấp một thẻ để bắt đầu việc mới trong công cụ đó. Công việc đã lưu mở lại từ **Projects**.
 
 ![Một thẻ gallery có ví dụ điều hướng và một hành động New](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
-Mỗi công cụ là một khung chia đôi: **các điều khiển** ở một bên, **bản xem trước** (canvas) trực tiếp ở bên kia. Thay đổi bất kỳ điều khiển nào và bản xem trước cập nhật ngay lập tức.
+Mỗi công cụ là một khung chia đôi: **điều khiển** ở một bên và **bản xem trước** trực tiếp ở bên kia. Đổi một điều khiển và bản xem trước theo ngay, và những gì bạn thấy là những gì được xuất.
 
 ![Chế độ xem chia đôi của một công cụ - ngăn xếp điều khiển ở bên trái, và biểu đồ cột nhóm trực tiếp mà nó vẽ ở bên phải](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-> Một vài công cụ (như **Design**) lại mở dưới dạng **canvas tự do** - một bề mặt thao tác trực tiếp, không khung giao diện, nơi bạn kéo, đổi kích thước, xoay và gắn các khối văn bản, hình khối và hình ảnh, rồi nhấp đúp để sửa văn bản ngay tại chỗ. Nó xuất file qua cùng quy trình render như mọi công cụ khác, nên canvas *chính là* file. Xem [Canvas tự do](#the-free-canvas-design) bên dưới.
+**Design** là ngoại lệ. Nó mở ra như một canvas tự do gồm các hộp bạn kéo, đổi kích thước và gõ vào, với thanh trên, dòng thời gian và điều khiển trình chiếu riêng. [Design: the free canvas](/info/design.html) là hướng dẫn của nó.
 
-Hai cách để nắn chính cái lưới đó thành cái lưới bạn muốn:
+## Đổi những gì công cụ cho phép đổi
 
-- <!--i:star--> **Đánh dấu sao thứ bạn hay dùng.** Gắn ★ cho một thẻ và nó có một ô lớn của riêng mình trên dải phía trên lưới - xem [Mục yêu thích của bạn](/info/favourites.html).
-- <!--i:eyeoff--> **Ẩn công cụ bạn không bao giờ dùng.** Nhấp chuột phải vào một thẻ (hoặc chọn vài thẻ rồi dùng thanh lựa chọn) → **Hide tool**. Nó rời khỏi lưới, và khỏi những gì việc gõ tìm trong lưới tìm được; một ô xám **Show hidden tools (N)** ở tận cuối sẽ hiện chúng trở lại, mờ đi, mỗi thẻ có **Unhide tool** trong menu riêng. Việc ẩn chỉ liên quan tới lưới của bạn - công cụ vẫn mở được từ một liên kết đã lưu hay một bookmark, và với mọi người khác nó vẫn nằm nguyên chỗ cũ.
+Một công cụ chỉ hiện những đầu vào được định để thay đổi. Tác giả của nó đã cố định màu sắc, bố cục, kiểu chữ và logic, nên mọi thứ bạn tạo đều theo quy tắc của họ. Đầu vào gồm văn bản, thanh trượt, bộ chọn màu, danh sách thả xuống, ngày, bộ chọn ảnh và nhóm hàng lặp, và một số nằm trong các phần gập được.
 
-![Cuối lưới Tools với các công cụ đã ẩn được hiện ra: thẻ QR Code Generator mờ đi, và bên cạnh là ô xám vừa đưa nó trở lại tầm nhìn, giờ hiện chữ Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+![Ngăn điều khiển của một công cụ - một ô văn bản, các nút mở bảng màu và một thanh trượt, không còn gì khác vì tác giả đã chọn khoá phần còn lại](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+
+**Nhấp vào thiết kế để tìm điều khiển của nó.** Nhấp vào bất kỳ phần tử nào trong bản xem trước và điều khiển tương ứng được lấy tiêu điểm và cuộn vào tầm nhìn. Trong một nhóm hàng lặp, đúng hàng bạn nhấp sẽ mở ra.
+
+**Clear changes**, phía trên các điều khiển, đưa mọi đầu vào về mặc định.
+
+**Lựa chọn của hệ thống thiết kế.** Khi hệ thống thiết kế của bạn có nhiều hơn một colourway, một giao diện sáng và tối hoặc lựa chọn chủ đề khác, một phần **Design system** dưới các điều khiển chứa chúng. Một lựa chọn chỉ xuất hiện khi nó đổi công cụ này, nên một tiện ích tệp không hiện phần nào. Mỗi colourway là một chấm với màu của nó, sáng và tối là hai nút và mọi lựa chọn khác là một danh sách.
+
+Lựa chọn thuộc về tác phẩm này. Nó đi cùng trong liên kết và phiên đã lưu, mọi màu liên kết với hệ thống thiết kế đều theo nó và màu của chính ứng dụng giữ nguyên. Design hiện cùng các lựa chọn trong thẻ **Canvas** của Inspector. Một công cụ mà màu sắc là nội dung của nó có thể ở lại colourway chuẩn, và khi đó không có chấm colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) cho thấy colourway trên công việc thật.
+
+### Thu phóng và kéo bản xem trước
+
+Bản xem trước luôn hiển thị chính xác thứ sẽ được xuất ra.
+
+- **Thu phóng:** Cmd/Ctrl-cuộn hoặc chụm trên bàn di chuột, lấy con trỏ làm tâm. Trên bàn phím, `0` hoặc `Shift+1` vừa khung toàn bộ nội dung, `1` hoặc `Shift+0` đặt mức 100% và `Shift+2` vừa khung phần chọn. `+` / `−` thu phóng quanh con trỏ khi con trỏ ở trên vùng làm việc, hoặc quanh tâm khung nhìn trong trường hợp khác.
+- **Kéo:** giữ **Space** và kéo, hoặc kéo bằng nút giữa chuột. Nhấp thường vẫn dành để nhấp vào các phần của thiết kế.
+- **Cảm ứng:** chụm để thu phóng, kéo để di chuyển và chạm đúp để vừa khung.
+- **HUD thu phóng:** nhấn giữ vòng xoáy Lolly ở góc để bung `−`, **Fit** và `+`. Chạm ngắn vào vòng xoáy vẫn mở menu hồ sơ của bạn.
+
+Trong Design, **Fit all** bao gồm các artboard và lớp rời. Bạn có thể thu nhỏ thủ công dưới 20% cho đến khi toàn bộ trang chiếm nửa khung nhìn. Giới hạn dưới là giá trị nhỏ hơn giữa 5% tỷ lệ Fit thông thường và mức thu phóng tuyệt đối 2%.
+
+Đổi kích thước đầu ra luôn đưa khung nhìn về vừa khít gọn gàng.
+
+![HUD thu phóng bung ra từ vòng xoáy ở góc canvas - trừ, Fit, cộng, rồi các công tắc chủ đề và âm thanh và tay nắm để di chuyển nó](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+
+### Hoàn tác và làm lại
+
+**Cmd/Ctrl-Z** lùi một bước và **Cmd/Ctrl-Shift-Z** (hoặc **Cmd/Ctrl-Y**) tiến một bước. Cặp này cũng có dạng nút **Undo** và **Redo** phía trên các điều khiển (trong Design chúng nằm ở thanh trên), và mỗi nút mờ đi khi không còn gì để hoàn tác. Một thông báo cho biết mỗi lần hoàn tác đã khôi phục đầu vào nào, với nút **Redo** trong thông báo.
+
+- **Một lần kéo là một bước.** Các thay đổi lặp lại trên một điều khiển trong nửa giây được gộp, nên kéo thanh trượt hết dải chỉ là một lần hoàn tác.
+- **100 bước gần nhất được giữ.** Một chỉnh sửa mới sau khi hoàn tác xóa ngăn xếp phía trước.
+- **Trong ô văn bản**, Cmd/Ctrl-Z thuộc về ô đó, từng ký tự một. Lolly đảm nhận với thanh trượt, danh sách thả xuống, màu sắc và công tắc.
+- **Chọn một tệp** trong ô nhập tệp không phải một bước, vì các byte đó chỉ được giữ trong phiên này.
+
+Trong một [cộng tác](/info/collaborate.html) trực tiếp, lịch sử của bạn vẫn là của bạn: một thay đổi từ thiết bị kia không bao giờ vào ngăn xếp của bạn. Hoàn tác kéo dài đến khi bạn rời công cụ hoặc tải lại. Với những gì cũ hơn, các công cụ lưu khi bạn làm việc giữ các phiên bản trước trong **History**; xem [Go back to an earlier version](/info/find-your-work.html#go-back-to-an-earlier-version).
+
+### Camera trực tiếp
+
+Các hiệu ứng của công cụ **Filter** (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art và Glitch) hiện nút **Go live** khi có camera. Bật nó và hiệu ứng theo webcam của bạn từng khung hình, và một bản xuất chuyển động ghi kết quả thành GIF, WebM hoặc MP4. Khung hình được xử lý trên thiết bị của bạn, và camera được giải phóng ngay khi bạn dừng hoặc rời công cụ. Mọi bộ chọn ảnh cũng có **Take a photo** cho một khung hình đơn.
+
+## Lưu & tiếp tục
+
+Để giữ công việc, nhấn **Save**, dấu tích bên cạnh **Export** trên viên thuốc kết xuất. Công việc mới vào **My library**, công việc đã lưu trước đó được cập nhật tại chỗ và không có gì được tải xuống. Bảng xuất có cùng nút **Save**.
+
+Để chọn nơi lưu, nhấn **Save as**, bên cạnh **Download** trong bảng xuất. Dưới **Save to a project**, để **My library** được chọn hoặc chọn một dự án (**＋ New project…** tạo mới), rồi nhấn **Save**; **Save as a template** giữ thiết kế như một [mẫu](/info/templates.html), điểm khởi đầu cho tài liệu mới. Trong Design, **Save as** nằm ở menu Lolly; trên điện thoại, nhấn **•••**, rồi **File menu**, rồi **Save as**.
+
+![Viên thuốc kết xuất hai nửa: Export, với mũi tên lên mở bảng xuất, và Save, với dấu tích lưu tại chỗ](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+
+::: timeline
+- <!--i:check--> Nhấn **Save** trên viên thuốc kết xuất, hoặc **Save as** để chọn dự án.
+- <!--i:folder--> Mục đó vào **My library**, hoặc vào dự án bạn đã chọn.
+- <!--i:home--> Sau đó, nhấn **Home** ở góc trên bên trái và mở thẻ **Projects**.
+- <!--i:document--> Mở mục đó. Mọi cài đặt trở lại, sẵn sàng để đổi và xuất lại.
+:::
+
+Các mục được đặt tên theo tên tệp bạn gõ trong bảng xuất, hoặc theo công cụ của chúng, như **QR Code**. Một tệp bạn có từ **Download** là bản sao hoàn chỉnh; để đổi nó sau này, hãy mở mục đã lưu trong Projects.
+
+Các bản lưu cá nhân ở lại trên thiết bị này, trong trình duyệt hoặc ứng dụng bạn đã lưu, trừ khi bạn bật [Sync](/info/sync.html). Nếu thứ gì không ở chỗ bạn mong đợi, [Find and recover your work](/info/find-your-work.html) đề cập mọi trường hợp, từ thẻ đã đóng đến dữ liệu trình duyệt bị xóa.
+
+::: details Dự án nhóm với Lolly Work (tùy chọn)
+Nếu [tổ chức bạn dùng Lolly Work](/info/organisation.html), hãy đăng nhập phiên bản của nó và mở **Projects → Team projects** để xem các phiên chia sẻ với bạn. Tổ chức đặt quyền truy cập và thời hạn lưu giữ, và dịch vụ Lolly Work của họ lưu các phiên đó. Một phiên chung tham gia work collab trực tiếp của nó khi mở nếu tổ chức cho phép chỉnh sửa trực tiếp; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) giải thích các bước.
+
+Thư viện cá nhân của bạn vẫn tách biệt. Đăng nhập trên thiết bị khác cho bạn công việc nhóm, còn các bản lưu cá nhân vẫn cần Sync hoặc bản sao lưu để chuyển sang.
+:::
+
+## Chia sẻ công việc của bạn
+
+Một thiết kế ra đi dưới dạng liên kết hoặc tệp. **Share** trong các điều khiển xuất mở một hộp thoại đưa ra cả hai, và **Share link** trên một phiên đã lưu trong Projects mở cùng hộp thoại đó cho phiên ấy.
+
+::: cols
+## Một liên kết
+
+- Mang mọi đầu vào trong địa chỉ, nên liên kết tái tạo được thiết kế.
+- Bỏ lại ảnh và tệp bạn thêm từ thiết bị này, văn bản rất dài và danh sách rất lớn.
+- Mở trong bất kỳ trình duyệt nào, nên bạn có thể đánh dấu, dán hoặc commit liên kết.
+
+## Một tệp .lolly
+
+- Mang phiên đã lưu cùng ảnh và tệp trên thiết bị này, và có thể mang cả công cụ lẫn hệ thống thiết kế.
+- Giữ lại tác phẩm danh mục có giấy phép trừ khi bạn chọn đưa tệp vào.
+- Mở trong Lolly: nhấp đúp, dùng **Open** hoặc thả lên ứng dụng.
+:::
+
+### Liên kết
+
+Liên kết sẵn sàng sao chép nằm ở đầu hộp thoại, với **Copy** và nút **QR** mở công cụ QR Code trên liên kết. Dưới liên kết, **Link options** gồm:
+
+- **Open in the installed app** chuyển liên kết sang địa chỉ `lolly://` cho Shortcuts, trình khởi chạy và tự động hóa, mọi tham số giữ nguyên.
+- **Shortest link** nén một thiết kế dài thành token gọn và hiện số ký tự tiết kiệm được. Dạng đọc được luôn có sẵn.
+- **Password-protect this link** mã hóa liên kết trên thiết bị của bạn bằng AES-256. Mật khẩu không bao giờ là một phần của liên kết.
+- **Pin this tool version** thêm cờ `_v`, để bản cập nhật công cụ sau này không thể đổi những gì liên kết kết xuất.
+- **When the recipient opens the link…** chọn toàn màn hình, bảng xuất đã mở rộng sẵn, tải xuống khi mở (`&export`) hoặc sao chép vào clipboard (`&copy`).
+- **Copy credit** sao chép dòng chú thích "Made with Lolly" cùng liên kết, cho một bài đăng hoặc một trang chiếu.
+
+Khi một công cụ chứa các trường cá nhân, như tên của bạn, **Review personal fields** giữ từng trường ngoài liên kết cho đến khi bạn đánh dấu trường đó. [URL mode](/info/url-mode.html) đề cập mọi thứ một liên kết có thể mang.
+
+**Hộp thoại cho biết một liên kết không mang được gì.** Ảnh hoặc tệp bạn thêm từ thiết bị này, một giá trị văn bản rất dài và một danh sách rất lớn không vừa trong địa chỉ. Mỗi thứ được đếm khi liên kết được dựng. Nếu có gì phải bỏ, hộp thoại liệt kê và chỉ bạn sang tùy chọn tệp, thay vì đưa bạn một liên kết mở ra thiếu ảnh. Một liên kết chỉ dài sẽ nhận ghi chú nhẹ hơn kèm số ký tự.
+
+**Một số công cụ biến liên kết thành toàn bộ sản phẩm.** Jump Page gom các liên kết của bạn vào một trang để phát: liên kết tiểu sử, một buổi nói chuyện, một cửa hàng. Không có gì được lưu trữ và không tài khoản nào đứng sau trang, vì trang chính là liên kết. Người truy cập thấy nó toàn chiều rộng, mỗi cảnh một liên kết khi cuộn.
+
+![Jump Page trong trình chỉnh sửa: cảnh tiêu đề ở đầu trang, với các cảnh liên kết bên dưới](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+
+::: details Liên kết do tổ chức quản lý với Lolly Work
+Với việc chia sẻ cần hạn dùng, thu hồi hoặc mật khẩu, Lolly Work cung cấp liên kết được quản lý tới phiên chung, công cụ và tài nguyên danh mục. Chúng được phân giải qua dịch vụ của tổ chức và theo quy tắc truy cập của nó. Chúng tách biệt với các liên kết tự chứa ở trên, và thu hồi một liên kết không thể thu lại tệp mà ai đó đã tải. [Rendering and sharing](/info/manage/sharing.html) liệt kê các loại liên kết và quyền.
+:::
+
+### File .lolly
+
+**Download .lolly**, trong phần **Editable file** của hộp thoại Share, ghi thiết kế hiện tại thành một tệp. Nó mang phiên đã lưu cùng ảnh và tệp trên thiết bị này, và tác phẩm danh mục thông thường cũng đi cùng. Một tệp cũ hoặc không còn sẵn vẫn là tham chiếu bên ngoài thay vì biến mất. Trước khi lưu, hộp thoại hiện kích thước tệp, số tệp nó nhúng, số tệp nó tham chiếu và công cụ có được đưa vào không. Nơi thiết bị có bảng chia sẻ, **Send to…** đưa tệp thẳng vào đó (AirDrop, chia sẻ Android).
+
+**Download project (.lolly)**, trong menu của một thư mục ở **Projects**, ghi cả thư mục, để người khác tiếp tục với mọi phiên trong thư mục. Các phiên Batch ở lại, và thông báo cho biết bao nhiêu. **Download originals**, trong cùng menu, ghi một zip thường chứa từng mục dưới dạng tệp riêng.
+
+Ba điều do bạn quyết định trước khi một tệp ra đi:
+
+- **Tên của bạn có vào không.** Tên, email và tổ chức của bạn chỉ được ghi khi **Use my details to create** bật trong [hồ sơ của bạn](/info/profile.html). Khi tắt, tệp chỉ ghi rằng nó được tạo bằng Lolly, và vào lúc nào.
+- **Tác phẩm bị giữ lại có vào không.** Tác phẩm có giấy phép, tác phẩm khóa theo thương hiệu và tác phẩm danh mục mà giấy phép chưa bao giờ được ghi lại mặc định ở ngoài. Nếu thiết kế dùng bất kỳ thứ nào, hộp thoại cho biết bao nhiêu và đưa ra *Download without them* hoặc *Include and download*, vì đưa vào nghĩa là trao các tệp cho bất kỳ ai mở `.lolly`. Tệp `CREDITS.txt` của nó liệt kê những gì đã đi và không đi, kèm lý do; [Creative rights and credits](/info/creative-rights.html) giải thích các quy tắc.
+- **Công cụ có vào không.** **Include the tool** đóng gói các tệp của chính công cụ, để thiết kế mở được trên thiết bị không có công cụ đó. Mặc định được đánh dấu với công cụ tùy chỉnh, như một bản fork, và không đánh dấu với công cụ nằm trong danh mục đã ký. Trên bản dựng không có danh mục đã ký, mọi công cụ đều tính là tùy chỉnh.
+
+**Mở một tệp.** Trong ứng dụng máy tính và di động, nhấp đúp hoặc chạm một `.lolly`, chọn **Open with Lolly** hoặc gửi nó tới Lolly từ bảng chia sẻ. Trong ứng dụng web, nhấn **Open** hoặc thả tệp lên Lolly. Mọi lộ trình đều đọc manifest của tệp trước và hiện kích thước, nội dung và điều sẽ xảy ra, trước khi bất cứ gì được ghi.
+
+Nếu tệp mang một công cụ bạn không có, **Trust this tool?** hiện công cụ và tác giả của nó, và nói rằng mở nó sẽ chạy mã của chính công cụ trên thiết bị của bạn. **Trust & install** tiếp tục. Từ chối thì công việc vẫn được lưu vào Projects, chờ ngày bạn thêm công cụ. Một công cụ có mã đi kèm dưới dạng module chưa thể cài theo cách này, và bị từ chối theo cùng cách.
+
+::: details Một tệp .lolly chứa gì, và việc mở nó hoạt động ra sao
+`.lolly` là phần mở rộng gói của Lolly, và `format` trong `manifest.json` của nó cho biết bên trong có gì:
+
+- Một **thiết kế chung** (`lolly-share`) chứa một phiên đã lưu, các tệp nhúng của nó và một biên nhận cho mọi thứ vẫn được phân giải bằng tham chiếu. Nó cũng có thể mang công cụ và hệ thống thiết kế. Mở nó thêm một Project mới và không bao giờ ghi đè một phiên.
+- Một **dự án chung** (`lolly-share`, kind `project`) chứa một thư mục từ Projects: các thư mục con của nó, mọi phiên trong đó cùng ô hình của chúng và các ảnh được lưu ở đó. Mở nó thêm một bản sao của cả thư mục. Mỗi phiên đi dưới dạng `sessions/<key>.json` với ô hình của nó trong `thumbs/`. Lolly từ trước khi có tệp dự án sẽ yêu cầu bạn cập nhật.
+- Một **gói hệ thống thiết kế** (`lolly-brand`) chứa token và có thể chứa phông chữ, logo, các phiên bản đã phát hành và tài nguyên được giữ lại. Mở gói thêm một hệ thống thiết kế có tên riêng và đặt hệ thống đó làm hệ thống đang dùng.
+- Một **gói không gian làm việc hoặc phiên bản** là một `lolly-brand` với các công cụ đã khai báo, tài nguyên danh mục và có thể một địa chỉ phiên bản. Nạp một gói thay thế lớp phủ không gian làm việc duy nhất đã nạp trước đó, và bản xem trước liệt kê các hiệu ứng trên toàn thiết bị đó.
+
+Một bản sao lưu toàn thiết bị không phải `.lolly`. Nó vẫn là `LollyTools-….zip` (định dạng `lolly-backup`) và được khôi phục qua **Settings → Storage → Import data…**. Một thư mục công cụ được nén cũng vẫn là `.zip`. [Data transfer](/info/data-transfer.html) là tài liệu tham chiếu định dạng.
+
+Một `.lolly` là một tệp zip bình thường. Đổi tên thành `.zip` để nhìn bên trong: ảnh của riêng bạn nằm dưới `assets/uploads/`, tác phẩm danh mục dưới `assets/catalog/`, `manifest.json` liệt kê mọi tệp, và một README cho biết tệp là gì.
+
+macOS, Windows, Linux, iOS và Android đều đăng ký định dạng này, trình quản lý tệp trên máy tính hiện nó như tài liệu Lolly và GNOME Files có thể hiện hình thu nhỏ riêng của một phiên đã lưu. Mở từ Design System Setup sẽ gợi ý hành động hệ thống thiết kế khi một thiết kế chung mang theo, nhưng không bao giờ ẩn **Open shared design**.
+
+Một tài liệu được chuyển từ ứng dụng khác trên iOS hoặc Android bị giới hạn 48 MB, vì việc bàn giao sao chép các byte của nó qua ranh giới ứng dụng, và ứng dụng nói rõ điều này. **Open** bên trong Lolly không có giới hạn đó, nên hãy dùng nó cho gói lớn hơn.
+
+Sau khi bạn xác nhận, Lolly giải nén và xác minh gói một lần. Tài nguyên vào thư viện của bạn, được khớp theo checksum để tệp đã có trên thiết bị được dùng lại. Các phiên vào Projects với id mới, nên cùng một tệp có thể mở hai lần; một phiên thiếu công cụ chờ ở đó. Tệp trên 100 MB được nêu là lớn, và bản xem trước cảnh báo khi bộ nhớ trình duyệt báo còn ít chỗ trống hơn tệp cần. Mọi phần được bảo vệ toàn vẹn được kiểm tra trước khi bất cứ gì được ghi, và một bản hỏng bị từ chối mà không để lại gì.
+:::
+
+Cả liên kết lẫn tệp đều trao một ảnh chụp tại thời điểm. Để chỉnh sửa trực tiếp, [Working together](/info/collaborate.html) đề cập collab riêng tư giữa hai thiết bị và work collab tùy chọn qua Lolly Work.
+
+## Tài sản - thư viện của bạn
+
+**Assets** (`#/a`) gom mọi thứ mà công cụ của bạn có thể dùng: logo thương hiệu, ảnh, âm thanh và chuyển động, nhóm theo loại, cùng các tệp của riêng bạn. Tệp bạn tải lên được lưu trên thiết bị. Một tổ chức dùng Lolly Work cũng có thể cung cấp danh mục chung theo quy tắc truy cập riêng; xem [Use Lolly at your organisation](/info/organisation.html).
+
+![Tài sản, cùng các mẫu màu và font của thương hiệu và các file bạn tự tải lên](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+
+- <!--i:upload--> **Đưa tệp của bạn vào.** Thả một ảnh, SVG, clip âm thanh, video, Lottie, PDF hoặc bộ trình chiếu PowerPoint lên vùng tải lên, hoặc nhấp để chọn. Nó xuất hiện ngay trong Assets và trong bộ chọn tài nguyên của mọi công cụ. Một PDF nhiều trang hoặc `.pptx` hỏi giữ trang hay trang chiếu nào, và mỗi cái trở thành một tài nguyên SVG. Ảnh bạn thêm trong một công cụ được giữ nguyên như khi đến trong **My images**, nên Content Credential trên đó vẫn xác minh được, và chỉ một tệp rất lớn mới hỏi có đổi kích thước không. **Settings → Storage** cho biết **My images** chứa bao nhiêu. Không có giới hạn nào ngoài dung lượng thiết bị. Để xóa dữ liệu EXIF và GPS khi ảnh đưa vào, bật **Strip metadata from uploads** dưới **Settings → Feature flags**; Content Credentials được giữ dù theo cách nào.
+- <!--i:star--> **Yêu thích những gì bạn hay dùng.** Gắn sao một tài nguyên hoặc ô màu thương hiệu và nó được ghim lên đầu mọi bộ chọn.
+- <!--i:folder--> **Dọn dẹp.** Chuyển tài nguyên sang nhóm khác, ẩn tài nguyên thương hiệu chung bạn không dùng (**Show hidden** đưa nó lại) hoặc xóa tệp tải lên của chính bạn. Cùng thanh chọn như Projects tác động lên cả vùng chọn.
+- <!--i:layers--> **Tách video khỏi nền.** Mở chi tiết của một video, hoặc nhấp chuột phải vào thẻ của nó trong bộ chọn tài nguyên, và chọn **Remove background…**. Một **On-device model** cắt chủ thể khỏi cảnh rối; một **Colour key** loại bỏ phông nền sáng đều như màn xanh, với **Tolerance**, **Softness** và **Spill removal** cho phần viền, và không cần tải gì. **Resolution** (360, 480, 720 hoặc 1080p, không bao giờ vượt nguồn) đánh đổi chi tiết lấy tốc độ. Phần cắt ra, một WebP hoặc PNG động với độ trong suốt thật, được lưu cạnh bản gốc, và Content Credential của nguồn đi kèm như một thành phần. [Generated once, rendered the same](/info/ai-features.html) giải thích vì sao việc này vẫn chỉ là một chỉnh sửa thường.
+
+### Mang bảng màu và font của bạn đi khắp nơi
+
+Bảng **Swatches** trong Assets hiện các màu tạo nên thương hiệu của bạn: màu thương hiệu, màu bạn thêm, các dải và phổ của nó. Các màu vai trò mà Lolly giữ cho giao diện (văn bản, bề mặt, viền, màu dẫn của colourway và bản sao của màu thương hiệu dưới tên khác) nằm sau thẻ xám **Show colour roles** ở chân bảng.
+
+Mỗi màu là một thẻ như mọi tài nguyên khác. Nhấp một màu để mở chi tiết, chọn vài màu để tải riêng chúng hoặc tải cả bảng màu theo định dạng mà công cụ khác của bạn đọc:
+
+- <!--i:code--> **Design tokens (JSON)**, **CSS variables** hoặc **CSS classes**, cho một bảng định kiểu hoặc một bản dựng. Màu rộng hơn sRGB giữ giá trị rộng của nó: CSS đặt nó sau mã hex, còn JSON giữ mã hex cùng màu rộng, bản dựng CMYK và mực spot bên cạnh.
+- <!--i:palette--> **Adobe Swatch Exchange (.ase)**, cho Illustrator hoặc Photoshop. Màu khóa vào một bản dựng CMYK đến dưới dạng ô màu CMYK đó, mực spot dưới dạng ô spot có tên và màu rộng hơn sRGB dưới dạng Lab.
+- <!--i:pentool--> **GIMP palette (.gpl)**, cho GIMP hoặc Inkscape, và **SCSS variables**, cả hai ở sRGB.
+
+![Bảng Swatches - năm nút tải bảng màu ở trên cùng, rồi mọi màu thương hiệu dưới dạng chip mở chi tiết của nó](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+Chọn màu bằng chấm trên mỗi thẻ: Shift-nhấp chấm thứ hai để chọn mọi thứ ở giữa, kéo một khung qua các khoảng trống hoặc nhấn Cmd/Ctrl+A khi một thẻ đang có tiêu điểm. Thanh cung cấp **Download as…** theo cùng sáu định dạng, **Copy hex** và **Favourite**. Trước khi bạn chọn định dạng, menu liệt kê mọi màu mà không định dạng nào chứa được (Transparent hoàn toàn không có màu), định dạng nào lưu màu rộng thành màu sRGB dự phòng (SCSS và GIMP) và định dạng nào mang giá trị CMYK và spot (JSON và .ase). Nhấp chuột phải một thẻ để có cùng hành động cho một màu.
+
+Chi tiết của một màu lấp đầy bản xem trước bằng màu đó và mở ra **Linked values** (bản dựng CMYK hoặc mực spot, mọi giá trị được viết cho một không gian hay máy in cụ thể và design token của nó), **Every notation** (hex, OKLCH, Display-P3 và các cách khác, mỗi cách có nút sao chép), **Plotted on a colour space**, **Tones** và **Readability**. Phím mũi tên duyệt qua bảng màu, **Copy link** chia sẻ chính màu đó và **Open in Colour Lab** đưa nó đi xa hơn.
+
+Bảng **Fonts** liệt kê các kiểu chữ thương hiệu của bạn, mỗi kiểu có nút **download**, để cài cục bộ hoặc giao cho nhà in.
+
+## Biến lưới thành của bạn
+
+- <!--i:star--> **Yêu thích những gì bạn dùng.** Nhấp chuột phải một thẻ và chọn **Add to favourites**, và nó có một ô lớn trong dải phía trên lưới. [Your favourites](/info/favourites.html) đề cập dải này.
+- <!--i:eyeoff--> **Ẩn công cụ bạn không bao giờ dùng.** Nhấp chuột phải một thẻ, hoặc chọn nhiều thẻ, và chọn **Hide tool**. Nó biến khỏi lưới và khỏi kết quả khi gõ tìm trong lưới. Một ô xám **Show hidden tools (N)** ở cuối hiện chúng lại, mờ đi, mỗi cái có **Unhide tool** trong menu. Việc ẩn chỉ đổi lưới của bạn: công cụ vẫn mở được từ liên kết hoặc dấu trang.
+- <!--i:clock--> **Công cụ của bạn lên trước.** Khi bạn đã lưu công việc trong ba công cụ khác nhau, một hàng chip **Yours** phía trên lưới dẫn đầu bằng công cụ yêu thích và gần đây của bạn.
+- <!--i:sliders--> **Sắp xếp theo cách của bạn.** **View options** đặt bố cục (**Grid**, **Card** hoặc **List**), kích thước và mật độ thẻ, thứ tự sắp xếp và bộ lọc danh mục.
+
+![Cuối lưới Tools với các công cụ ẩn được hiện ra: thẻ Wordmark bị làm mờ, và bên cạnh là ô xám đã bật nó lại, nay đọc là Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -31,26 +217,26 @@ gallery under a caption about its bottom. `press:` with no `on=` goes to the
 keyboard, and the End key with focus on the just-clicked box scrolls the
 document; the walker then anchors the body walk to that band.
 The tile reads "HIDE hidden tools" in the shot, not "Show" - it is a toggle and
-the recipe has just pressed it. The alt says so rather than quoting the resting
+the recipe has just pressed the tile. The alt says so rather than quoting the resting
 label the prose above already gives.
-There is no standalone per-card "hide" button
-(unlike the always-visible fav/pin corner icons) - Hide only exists inside a
-tile's right-click menu or the bulk bar, both confirmed in views/gallery.ts.
-The recipe goes the bulk-bar route since it needs no `|right` context-menu
-step: tick the card (`[data-select="qr-code"]`, the same checkbox hook the
-selection bullet under Projects uses), click the bar's Hide button
-(`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
-confirmed in lib/bulk-bar.ts), then click the grey reveal tile
-(`.gtile--hiddenbox`, confirmed in gallery.ts).
+The recipe hides nothing itself. The lolly-demo catalog the captures pin
+ships Wordmark hidden (`defaultHiddenTools` in its assets index.json), so a
+fresh profile already has one hidden tool and the recipe only clicks the grey
+reveal tile (`.gtile--hiddenbox`, confirmed in gallery.ts). It used to tick
+the QR Code card and press the bulk bar's Hide button first; under lolly-demo
+that published Wordmark dimmed and QR Code not, under a caption naming QR
+Code, so the steps were dropped rather than relied on. QR Code was hidden
+in that run too: the End scroll had left the pointer over its card, and a
+hovered hidden card lifts its dimming (gallery.css), so it read as a normal
+tool. The closing `hover:` puts the pointer back on the reveal tile, which
+keeps every revealed card dimmed.
 -->
 
-Để thao tác trên nhiều thẻ cùng lúc, tích ô chọn của từng thẻ, kéo một khung chọn qua vùng trống hoặc **Shift/Cmd-nhấp**, và một thanh hành động nổi sẽ xuất hiện. **Thanh lựa chọn đưa ra những gì** thì khác nhau đôi chút theo từng màn hình, vì không phải hành động nào cũng hợp lý ở mọi nơi:
+**Tác động lên nhiều thẻ cùng lúc.** Đánh dấu hộp của từng thẻ, kéo một khung chọn qua khoảng trống hoặc Shift/Cmd-nhấp, và một thanh xuất hiện với những gì chế độ xem đó cho phép:
 
-- **Tools / Utilities:** Yêu thích (hoặc Bỏ yêu thích), Ẩn (hoặc Bỏ ẩn), Khả dụng ngoại tuyến (hoặc Xóa khỏi ngoại tuyến), **Xem các phiên** (mở Dự án chỉ hiện những phiên tạo bằng các công cụ đó) và Sao chép liên kết khi đúng một thẻ đang được chọn.
-- **Tài sản:** Yêu thích và Ẩn áp dụng cho mọi lựa chọn; trùng lặp, Tải xuống và Xóa chỉ hiện ra khi mọi mục đã chọn đều là file bạn tự tải lên - một tài sản dùng chung của hệ thống thiết kế là một cam kết vĩnh viễn, nên ba lệnh đó vẫn nằm ngoài nó ngay cả khi thao tác hàng loạt.
-- **Dự án:** xem [Tìm và khôi phục công việc của bạn](/info/find-your-work.html#find-something-you-saved).
-
-> Một cái bẫy về nhãn: **Xem các phiên** chỉ tồn tại khi đã có thứ gì đó *được chọn*. Nhấp chuột phải vào một thẻ chưa chọn thì thay vào đó bạn thấy **N phiên đã lưu**, mở ra một danh sách các phiên đã lưu của công cụ đó, nơi việc xóa sẽ chuyển phiên đó vào Thùng rác, thay vì đưa bạn sang Dự án.
+- **Tools và Utilities:** Favourite, Hide, Available offline, **View sessions** (Projects, chỉ hiện các phiên tạo bằng những công cụ đó) và Copy link cho một thẻ đơn.
+- **Assets:** Favourite và Hide cho mọi vùng chọn. Duplicate, Download và Delete chỉ xuất hiện khi mọi mục được chọn đều là tệp tải lên của riêng bạn, vì một tài nguyên hệ thống thiết kế dùng chung là một cam kết vĩnh viễn.
+- **Projects:** xem [Find and recover your work](/info/find-your-work.html#find-something-you-saved).
 
 ![Thanh chọn trên gallery cho hai công cụ, hiển thị Khả dụng ngoại tuyến, Xem các phiên, Yêu thích và Ẩn](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
@@ -70,409 +256,37 @@ already exist, and build-docs-shots.ts gives every shot a fresh
 storage-seeding hook.
 -->
 
-### Ask Lolly
-
-Khi bạn muốn hỏi thay vì tự lần tìm, **Ask Lolly** (`#/ask`) nhận một câu hỏi bạn gõ vào và trả lại đúng phần tài liệu này **nguyên văn** - chính lời của các hướng dẫn, không phải bản tóm tắt và không phải nội dung sinh ra - kèm trích dẫn trang nguồn và một liên kết **Open in docs** bên cạnh. Dưới câu trả lời là những chỗ trong ứng dụng khớp với cùng câu hỏi đó: một công cụ, một thiết lập, một dự án đã lưu, mỗi thứ là một nút chỉ việc đưa bạn tới đó.
-
-Bản ghi hội thoại là bộ nhớ của phiên: hỏi tiếp và mạch trò chuyện dài dần theo bạn, rồi tải lại trang thì nó bắt đầu lại từ đầu. Kết quả tìm kiếm mang một dòng **Ask Lolly: *truy vấn của bạn*** ở dưới cùng - bên dưới mọi kết quả cụ thể mà các nhóm khác tìm được - chuyển thẳng câu hỏi sang, nên bạn có thể bắt đầu ở thanh tìm kiếm và kết thúc tại đây.
-
-## Canvas (bản xem trước)
-
-Bản xem trước luôn hiển thị chính xác thứ sẽ được xuất ra.
-
-**Máy tính**
-
-- **Thu phóng:** cuộn kèm Cmd/Ctrl, hoặc chụm hai ngón trên trackpad - điểm thu phóng lấy con trỏ của bạn làm tâm.
-- **Di chuyển khung nhìn:** giữ **Space** rồi kéo, hoặc kéo bằng **nút chuột giữa**. (Nhấp chuột thường vẫn để dành cho việc nhấp vào các phần của thiết kế.)
-- **Bàn phím:** `0` = vừa khung cửa sổ · `1` = 100% · `+` / `−` = thu phóng.
-- **HUD thu phóng:** điều khiển nhỏ `−  NN%  +  Fit` ở góc. Nhấp vào phần trăm để chuyển giữa Fit ↔ 100%.
-
-![HUD thu phóng ở góc canvas - dấu trừ, phần trăm trực tiếp, dấu cộng, Fit, rồi tới công tắc giao diện và âm thanh](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
-
-**Cảm ứng**
-
-- **Chụm** để thu phóng, **kéo** để lia, **nhấp đúp** để đặt lại vừa khung. Trên canvas tự do, hai ngón tay đặt trên một đối tượng đang chọn sẽ co giãn, xoay và di chuyển phần đã chọn thay vì khung nhìn (xem [Đổi kích thước, co giãn và xoay](#resize-scale-and-rotate)).
-
-**Nhấp để nhảy tới điều khiển tương ứng:** nhấp vào phần tử bất kỳ trong thiết kế và trường nhập tương ứng ở thanh bên sẽ được focus và cuộn vào tầm nhìn - với một nhóm hàng lặp lại, nó mở ra đúng hàng bạn vừa nhấp, nên sửa thứ bạn đang nhìn chỉ cách một cú chạm.
-
-Mỗi lần đổi kích thước, khung nhìn luôn tự chỉnh về trạng thái vừa khung gọn gàng.
-
-### Canvas tự do (Design)
-
-Các công cụ canvas tự do thêm một bề mặt làm việc *bao quanh* khung tranh, giống bảng dán của nhà thiết kế:
-
-- **Dàn dựng ngoài canvas.** Kéo một khối ra quá mép khung và nó vẫn hoàn toàn **hiện rõ và chọn được** - để tạm các phần tử sang một bên trong lúc sắp xếp bố cục, rồi kéo chúng trở vào. Mọi thứ nằm ngoài khung đều được **làm mờ nhẹ** để vùng xuất file luôn dễ nhận ra ngay từ cái nhìn đầu tiên, và khung vẫn giữ bóng đổ để đánh dấu chính xác nơi file bắt đầu.
-- **Chỉ phần trong khung được xuất.** File xuất ra bị giới hạn bởi khung tranh - bất cứ thứ gì còn nằm ngoài (hoặc phần của một khối tràn qua mép) đơn giản là bị cắt khỏi kết quả, ở cả định dạng raster lẫn vector.
-- **Thu nhỏ quá mức Fit** (xuống tới 20%) để nhìn thấy toàn bộ bảng dán khi bạn đã dàn đồ ra xa khung.
-- **Khung tranh đổi kích thước được.** Thay đổi kích thước xuất file sẽ đổi kích thước khung ngay tại chỗ; các khối giữ nguyên vị trí, nên bạn có thể đóng khung lại một bố cục quanh nội dung sẵn có.
-- **Trước khi xuất file.** Mục Document của inspector kiểm tra cấu trúc lớp đã lưu, sau đó đọc canvas đã ổn định để tìm văn bản bị cắt và độ tương phản màu phẳng. Nó cũng hỏi cùng bộ đăng ký font mà việc tạo đường viền SVG/PDF dùng xem mỗi đoạn văn bản có dữ liệu font nhúng được hay không; nền ảnh và nền gradient được nêu tên như các việc cần kiểm tra bằng mắt thay vì được cho một điểm tương phản bịa ra.
-
-![Canvas tự do của Design - khung tranh cùng bảng dán bao quanh nó](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
-
-**Lật một lựa chọn.** Nhấp chuột phải vào bất kỳ khối nào và chọn **Lật ngang** hoặc **Lật dọc** để phản chiếu nó tại chỗ, hoặc nhấn `Shift+H` / `Shift+V` từ bàn phím - dùng Shift, vì `V` đơn thuần là công cụ Con trỏ. Mỗi khối được chọn phản chiếu theo trục riêng của nó trong một bước hoàn tác, và phép phản chiếu là một phép biến đổi thực sự, nên nó vẫn giữ nguyên trong SVG, PDF và PNG xuất ra chứ không chỉ trên canvas.
-
-### Đổi kích thước, co giãn và xoay
-
-Chọn một đối tượng, rồi kéo một tay nắm để đổi kích thước, hoặc kéo tay nắm tròn bên dưới phần đã chọn để xoay đối tượng. Kéo để đổi kích thước có hai chế độ:
-
-- **Đổi kích thước**, mặc định, chỉ thay đổi khung. Văn bản xuống dòng lại theo kích thước mới, còn cỡ chữ, độ dày nét viền, bán kính góc và hiệu ứng giữ nguyên.
-- **Tỷ lệ** phóng to hoặc thu nhỏ cả đối tượng cùng nội dung: cỡ chữ, nét viền, bán kính góc, bóng đổ, làm mờ, đệm và khoảng cách đều thay đổi cùng một mức.
-
-Nhấn `K` để bật hoặc tắt chế độ Tỷ lệ. Nếu không có bàn phím, hãy chọn **Chế độ Tỷ lệ** trong menu Lolly, hoặc nhấn giữ nút **Con trỏ** trên thanh công cụ (hoặc nhấp chuột phải vào nút đó) rồi chọn **Tỷ lệ**; trên màn hình cảm ứng, thanh đối tượng cũng có nút bật/tắt Tỷ lệ. Khi Tỷ lệ đang bật, nút Con trỏ hiện biểu tượng Tỷ lệ và mỗi tay nắm có một chấm ở giữa. `V` hoặc **Escape** quay lại Đổi kích thước và giữ nguyên phần đã chọn. Tỷ lệ luôn tắt mỗi khi mở một tài liệu, nên không ai vô tình co giãn nét viền. Mỗi lần Tỷ lệ là một bước hoàn tác, có nhãn **Tỷ lệ**.
-
-**Co giãn theo con số.** Khi Tỷ lệ đang bật, hoặc khi chọn nhiều đối tượng, hãy nhấp vào số hiển thị trên thanh đối tượng để mở bảng **Tỷ lệ**. Nhập một tỷ lệ phần trăm, hoặc chiều rộng hay chiều cao để hai giá trị còn lại tự cập nhật theo, chọn điểm đứng yên trên lưới 3 x 3 rồi chọn **Áp dụng**. Kết quả là một bước hoàn tác, không cần kéo. Khi Tỷ lệ tắt, nhiều đối tượng chỉ thay đổi kích thước và vị trí.
-
-**Nhiều đối tượng.** Phần đã chọn gồm nhiều đối tượng có tay nắm ở các cạnh chứ không chỉ ở các góc. Kéo góc sẽ đổi chiều rộng và chiều cao tự do khi mọi đối tượng trong phần đã chọn đều thẳng đứng hoặc xoay theo bội số của một phần tư vòng, và phần đã chọn không có nhóm hay hình tròn. Nếu không, phần đã chọn giữ nguyên tỷ lệ: các tay nắm hiện con trỏ co giãn, và trong lúc bạn kéo, số hiển thị có thêm **Theo tỷ lệ**. Khi bạn đổi kích thước hoặc co giãn, một nhãn nhỏ cạnh phần đã chọn cho biết kích thước, hoặc phần trăm trong chế độ Tỷ lệ.
-
-**Các phím giữ khi kéo** có tác dụng ngay khi bạn nhấn hoặc thả (bảng phím tắt, `?`, cũng liệt kê chúng):
-
-| Giữ | Đổi kích thước hoặc co giãn | Xoay | Di chuyển |
-|---|---|---|---|
-| **Shift** | Giữ nguyên tỷ lệ (Tỷ lệ luôn giữ) | Xoay từng bước 15 độ | Không đổi |
-| **Alt** (Option) | Lấy tâm làm gốc | Xoay tự do | Tắt bắt dính và lưới |
-| **Cmd/Ctrl** | Tắt bắt dính và lưới | Xoay tự do | Tắt bắt dính và lưới |
-
-Khi không giữ phím nào, góc xoay được kéo về bội số 15 độ gần nhất khi lệch không quá 4 độ. Bảng vẽ không xoay được, nên không có tay nắm xoay.
-
-**Nắm ở bất kỳ đâu dọc theo cạnh.** Bạn không cần nhắm đúng tay nắm. Mỗi cạnh của phần đã chọn là một dải đổi kích thước chạy suốt chiều dài, và với chuột hoặc bút có thêm vùng xoay ngay bên ngoài mỗi góc. Con trỏ cho biết thao tác kéo sẽ làm gì, xoay theo hướng của phần đã chọn. Nhấn vào một dải hoặc vùng chỉ trở thành đổi kích thước hay xoay khi bạn bắt đầu kéo, nên một cú nhấp thường vẫn chọn, thêm vào phần đã chọn hoặc bỏ chọn như trước. Đối tượng bị khóa không có tay nắm, dải hay vùng.
-
-**Đối tượng nhỏ vẫn di chuyển được.** Với đối tượng rộng 25 pixel màn hình trở xuống, các tay nắm giữa chen sát góc sẽ ẩn đi và các tay nắm còn lại dịch ra ngoài đường viền một chút, nên nhấn lên đối tượng sẽ di chuyển đối tượng. Từ 10 pixel trở xuống, các tay nắm góc cũng biến mất, và một đường mảnh giữ lại một tay nắm ở mỗi đầu. Nhấn ngay cạnh một đường mảnh hoặc một đối tượng rất nhỏ, miễn là không trúng tay nắm, cũng di chuyển đối tượng.
-
-**Vùng nắm lớn.** Trên màn hình cảm ứng, các vùng nắm lớn hơn: mỗi vùng góc bằng một phần tư chiều rộng và chiều cao của phần đã chọn trên màn hình, giữ trong khoảng 24 đến 44 pixel, và mỗi vùng cạnh phủ đoạn giữa hai góc. Khi phần đã chọn quá nhỏ, các vùng dời ra ngoài đường viền, nên nhấn vào giữa vẫn di chuyển phần đã chọn. Vùng nằm dưới con trỏ, hoặc dưới ngón tay đang giữ, được tô bóng. Để có các vùng tương tự với chuột hoặc bút, hãy bật **Vùng nắm lớn** trong menu Lolly. Thiết lập này chỉ được lưu trên thiết bị này.
-
-**Hai ngón tay trên phần đã chọn.** Trên màn hình cảm ứng, đặt hai ngón tay lên một đối tượng đang chọn: chụm để co giãn phần đã chọn, xoay hai ngón để xoay phần đã chọn hoặc di chuyển cả hai ngón để mang phần đã chọn đi. Mọi thao tác của hai ngón tay được tính là một bước hoàn tác. Khi Tỷ lệ bật, chụm cũng co giãn nội dung; khi Tỷ lệ tắt, chụm đổi kích thước phần đã chọn theo tỷ lệ. Góc xoay được kéo về bội số 15 độ gần nhất khi gần, và di chuyển bằng hai ngón không bao giờ bắt dính. Hai ngón tay ở nơi khác vẫn thu phóng và lia khung nhìn, và chạm hai ngón vẫn mở menu. Ngón thứ nhất phải đặt lên phần đã chọn và ngón thứ hai phải theo sau nhanh, đặt lên phần đã chọn hoặc ngay bên ngoài mép của phần đó. Nếu phần đã chọn có bảng vẽ hoặc đối tượng bị khóa, chiếm phần lớn khung nhìn hoặc vượt ra ngoài mép khung nhìn, hai ngón tay sẽ thu phóng và lia khung nhìn.
-
-### Các lớp và Bảng kiểm tra
-
-Trong **Các lớp**, mỗi khung tranh là một nhóm cha có thể thu gọn. Chọn tên của nó để nhảy tới đó, mở rộng các lớp của nó, và chọn hoặc sắp xếp lại các đối tượng trong khung tranh đó. Chuyển sang **Trang** để xem hình thu nhỏ và thứ tự trang. Các phím mũi tên di chuyển qua danh sách lớp; phím Left quay về tiêu đề khung tranh.
-
-**Bảng kiểm tra** đưa các điều khiển văn bản hoặc hình ảnh lên trước cho đối tượng đang chọn. Dùng các chip lựa chọn để chọn nhanh và mở rộng **Advanced** để xem chi tiết định kiểu. Trên điện thoại, mở **Bảng kiểm tra** từ **Thêm thao tác**. Các điều khiển mở trong một tấm trượt; Escape hoặc Back đóng nó lại trong khi vẫn giữ nguyên lựa chọn của bạn.
-
-### Tự vẽ hình của bạn (công cụ pen)
-
-Khối hộp, hình tròn và khung bo góc lo được phần lớn bố cục. Khi bạn cần một hình không có trong danh sách đó, hãy vẽ nó: nút **Pen** trên thanh công cụ (hoặc phím `P`) đưa bạn vào chế độ vẽ. Ba phím đơn chuyển qua lại giữa các chế độ - **`V`** quay về Pointer, **`P`** cho Pen, **`N`** cho công cụ node (**Edit points**) - và Pointer luôn là lối ra khỏi bất kỳ chế độ nào bạn đang ở.
-
-![Thanh công cụ của canvas tự do: tay cầm kéo, menu Lolly, rồi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards và Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
-
-- **Nhấp** để đặt một điểm. Ở kiểu đường cong mặc định, **nhấp rồi kéo** sẽ kéo tay cầm của điểm đó ra, đó là cách bạn vẽ một đường cong thay vì một góc gãy - giữ **Alt** khi nhấp để có góc gãy. (Ở các kiểu đường cong khác, mọi điểm đặt xuống đều là góc gãy và thao tác kéo không có tác dụng; xem **Spline type** bên dưới.)
-- Các điểm bám vào khung tranh và vào những khối khác của bạn khi bạn đặt chúng, vẽ ra đúng các đường dẫn hướng như một lần kéo bình thường. Alt tắt lưới trong lúc bạn vẽ, và tắt cả lưới lẫn các cạnh khi sau đó bạn kéo một điểm.
-- **Nhấp vào điểm đầu tiên** để khép vòng và kết thúc trong một thao tác. Nếu không, nhấn **Enter**, nhấp đúp hoặc chỉ cần đổi công cụ - bản vẽ được giữ lại, không bị vứt đi.
-- **Escape** lùi từng nấc một: lần nhấn đầu bỏ bản vẽ và không ghi gì, lần thứ hai thoát khỏi pen.
-- **Delete** trong lúc vẽ sẽ bỏ điểm bạn vừa đặt.
-
-Kết quả là một khối bình thường trên canvas. Di chuyển, đổi kích thước, xoay, nhóm, canh hàng, xếp lại lớp, cho nó màu nền, một gradient, một bóng đổ hay một độ mờ - một path hành xử như mọi khối khác, và không điều khiển nào đối xử với nó khác đi.
-
-Nó cũng có sẵn màu. Path đầu tiên bạn vẽ lấy màu nền và nét mà thương hiệu của bạn gán cho một path, sau đó mỗi path mới lấy **thứ bạn dùng gần nhất** - đặt màu nền một lần rồi vẽ tiếp, thay vì phải tô lại từng hình. (Trong một công cụ mà thương hiệu không nói gì về path, path bạn vẽ ra được kẻ nét đúng màu bạn nhìn thấy lúc đang vẽ, nên nó không bao giờ vô hình.)
-
-**Chỉnh lại các điểm.** Nhấp đúp vào hình (hoặc dùng **Edit points** trên thanh đối tượng) và các điểm hiện lại. Kéo một điểm để dời nó, kéo một tay cầm để đổi hướng, nhấp vào bất cứ đâu trên đường cong để chèn một điểm, khoanh chọn một nhóm điểm rồi nhấn Delete để xoá những điểm đang chọn. Một path luôn giữ ít nhất hai điểm, nên bạn không thể lỡ tay xoá nó biến mất hoàn toàn.
-
-**Spline type** quyết định loại đường cong chạy qua các điểm của bạn, và đây là lựa chọn đáng hiểu cho rõ:
-
-| Kiểu | Nó làm gì |
-|---|---|
-| **Smooth (auto)** | Mặc định. Tự tính lấy độ dài tay cầm, nên chỉ nhấp - nhấp - nhấp là có một đường cong mượt thật sự mà không phải vật lộn với tay cầm. Nếu bạn có đặt một tay cầm, nó ghim *hướng* lại, còn độ dài vẫn do đường cong nắm. |
-| **Bezier handles** | Cây pen cổ điển. Tay cầm chính là điểm điều khiển, và việc chèn một điểm không bao giờ làm đường cong xê dịch. |
-| **Through the points** | Đi đúng qua mọi điểm bạn đặt, không tay cầm. |
-| **B-spline** | Chạy gần các điểm chứ không xuyên qua chúng, cho một hình mềm hơn. |
-| **Straight lines** | Một đường gấp khúc. |
-
-Chuyển một path có sẵn sang kiểu tự tính lấy tay cầm sẽ hỏi trước, vì độ dài tay cầm bạn đã đặt không lấy lại được - chuyển sang **Bezier handles** thì luôn không mất mát gì. Đang vẽ dở thì không có hộp hỏi: việc chuyển áp thẳng vào bản nháp, và mọi tay cầm bạn đã kéo ra sẽ đi theo. Ở những kiểu tự nắm tay cầm, chèn thêm một điểm làm đường cong đổi dáng rất nhẹ; với **Bezier handles** thì không.
-
-Mỗi điểm còn mang một quy tắc liên tục, thể hiện qua hình dạng của nó trên canvas - vuông là **Corner** (hai tay cầm di chuyển độc lập), tròn là **Smooth** (hai tay cầm luôn thẳng hàng), tròn có vòng là **Symmetric** (thẳng hàng và bằng độ dài). Đặt quy tắc cho các điểm đang chọn và đường cong lập tức tuân theo.
-
-![Hai path vẽ bằng pen render thẳng từ một liên kết: một đường cong chữ S có nét và một khối tròn khép kín được tô đầy](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22curve%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A140%2C%22y%22%3A180%2C%22w%22%3A800%2C%22h%22%3A420%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A14%2C%22path%22%3A%221!cubic!0_.02!.85!!!.25!-.45!s_.5!.5!-.22!.32!.22!-.32!y_.98!.12!-.25!.45!!!s%22%7D%2C%7B%22id%22%3A%22blob%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A340%2C%22y%22%3A620%2C%22w%22%3A400%2C%22h%22%3A320%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23d1e7ff%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A6%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!catmull-rom!1_.5!0_1!.42_.78!1_.22!1_0!.42%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=pen-path-geometry)
-
-Một path đã vẽ đi theo liên kết như mọi thứ khác, nên hình bạn vẽ mở lại được từ một liên kết chia sẻ và render y hệt từ CLI. Không có gì ở nó phụ thuộc vào trình chỉnh sửa.
-
-### Kết hợp các hình (phép toán path)
-
-Chọn từ hai hình trở lên, **nhấp chuột phải** lên canvas (chạm hai ngón trên màn hình cảm ứng) và menu đưa ra những phép toán bạn vẫn chờ đợi ở một ứng dụng vẽ:
-
-- **Union** gộp chúng thành một hình, giữ màu của hình trên cùng.
-- **Subtract** cắt bỏ mọi hình phía trên khỏi hình dưới cùng.
-- **Intersect** chỉ giữ lại phần chồng lên nhau.
-- **Exclude** giữ lại mọi thứ trừ phần chồng lên nhau.
-
-Ba phép nữa làm việc trên một hình đơn: **Outline stroke…** biến một nét thành hình tô kín đúng theo đường bao đó (hữu ích khi bạn muốn giữ độ dày đúng như đã vẽ), **Offset path…** phình bóng hình ra ngoài hoặc, với một số âm, co nó vào trong và **Simplify** dựng lại một path với ít đoạn hơn mà vẫn giữ nguyên dáng.
-
-![Một hình lưỡi liềm và một vòng khuyên có lỗ thật, cả hai đều do Subtract tạo ra](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
-
-Kết quả là một path mới mà bạn có thể tiếp tục chỉnh bằng pen. Lỗ là lỗ thật - một điều khiển **Fill rule** trên bảng nét quyết định các đường bao chồng nhau sẽ tô kín (*non-zero*) hay đục thủng qua (*even-odd*).
-
-Có hai điều các phép toán này cố tình không làm. Chúng **từ chối chứ không phá**: bảo nó giao hai hình không chồng nhau thì bạn được báo là chẳng còn gì để giữ, và không có gì thay đổi. Còn khối văn bản và khối ảnh không có đường bao để làm việc, nên chúng được để yên thay vì bị xấp xỉ bằng cái khung của mình. Một kết quả kết hợp được lưu dưới dạng đường Bezier thuần, đúng như cách một ứng dụng vẽ vẫn làm - kiểu spline ban đầu không sống sót qua phép toán.
-
-### Các cảnh 3D
-
-Chọn **3D scene** từ menu thêm trên thanh công cụ và kéo ra một khung: 3D Studio mở ngay lập tức trên khối mới, và những gì bạn đặt ở đó quay trở lại canvas. Ở mọi mặt khác, một khối scene là một khối bình thường. Di chuyển nó, đổi kích thước, xoay nó, cho nó một bóng đổ, đặt nó lên một slide hoặc lên dòng thời gian, và nó hoạt động như mọi khối khác.
-
-**Khối scene giữ công thức, không phải một bức ảnh.** Một khối hình ảnh chứa một file đã render; một khối scene chỉ chứa một thiết lập, chính là cảnh đó, được viết dưới dạng chuỗi truy vấn liên kết riêng của 3D Studio, với mọi giá trị còn ở mặc định của studio đều được bỏ qua. Đó là lý do một scene chỉ khoảng một trăm byte thay vì vài kilobyte mà cả một công thức tốn, lý do cùng một chuỗi đó chạy được cả trong liên kết chia sẻ lẫn ở cửa trình chỉnh sửa, và lý do một điều khiển studio mới không cần thay đổi gì trong Design. Đó cũng là lý do khối này render lại ở bất kỳ kích thước và thời điểm nào tài liệu yêu cầu, thay vì được phóng to từ một bức ảnh chụp từ trước. Những hình ảnh một scene dùng vẫn là tài sản và di chuyển theo id, nên một lượt tải lên bên trong một scene đi vào một file `.lolly` cùng với phần còn lại của tài liệu.
-
-**Chỉnh sửa nó trong studio.** Chọn khối và Inspector hiện một mục **3D scene**: một dòng nêu tên scene được làm từ gì, dòng thứ hai nêu tên studio ánh sáng của nó khi bạn đã chọn một studio, và một nút, **Chỉnh sửa trong 3D Studio**. Nút này mở studio trên scene của khối đó với mọi điều khiển mà công cụ có. Nhấn Apply, và scene đã chỉnh sửa được ghi lại thành một bước duy nhất, nên một lần hoàn tác đưa khối trở lại scene bạn bắt đầu; đóng studio mà không Apply thì không có gì thay đổi. Mọi thứ khác về khối - vị trí trên khung tranh, kích thước, bóng đổ, thời điểm nó xuất hiện trên một slide - vẫn nằm trong các mục vẫn luôn dùng. Một khối scene không có ảnh riêng và không có chú thích: hình ảnh của nó đến từ studio, và lời của nó cũng được đặt ở đó.
-
-**Một scene sống, một poster trên mọi khối khác.** Mọi khối 3D trong một tài liệu đều hiện một poster: một bức ảnh tĩnh của scene, được vẽ ngoài màn hình qua bộ renderer dùng chung ở đúng kích thước khối chiếm. Một tài liệu có hai mươi scene chỉ tốn một ngữ cảnh vẽ, không phải hai mươi. Chọn một khối scene và nó trở thành scene sống duy nhất của tài liệu; bỏ chọn nó và khung hình vừa hiện trên màn hình trở thành poster của nó, nên không có gì giật hình. Chỉ một scene sống tại một thời điểm, và chọn hai khối scene cùng lúc để cả hai ở dạng poster. Ở bản phát hành này scene sống chỉ để xem, không để xoay quanh: đổi một scene qua **Chỉnh sửa trong 3D Studio**. Một thiết bị không mở được ngữ cảnh đồ hoạ dấu phẩy động vẫn giữ poster và nói rõ lý do ngay trong khối thay vì hiện một hình chữ nhật trống, và phần còn lại của tài liệu không bị ảnh hưởng. Mở một tài liệu Design không có khối 3D nào thì không tải bất kỳ mã 3D nào cả.
-
-**Trên dòng thời gian**, một khối scene chạy theo đầu phát như một clip video: điểm bắt đầu, clip-in và tốc độ của nó di chuyển scene qua chính hoạt ảnh của nó, còn độ dài của scene là thứ bạn đặt trong 3D Studio, nên cắt gọt một khối cho ngắn lại chỉ cho xem ít scene hơn chứ không làm nó nhanh hơn. Chỉ khối scene đang chọn mới sống; mọi khối còn lại là một ảnh tĩnh, và một ảnh tĩnh thì không tua được.
-
-**Trong một bản xuất**, mỗi scene được vẽ lại từ đầu ở kích thước file cần, qua đúng renderer mà studio dùng. Một video render một khung hình cho mỗi scene tại mỗi thời điểm; một PNG, SVG hoặc PDF nhúng một hình cho mỗi khối ở đúng kích thước pixel riêng của khối. Không có gì được chụp lại từ màn hình, nên một bản xuất không phụ thuộc vào khối nào bạn đã chọn. Một scene không vẽ được sẽ làm bản xuất thất bại và cho bạn biết vì sao, bằng chính lời của studio.
-
-**Chia sẻ một scene dựng trên tệp bạn tự tải lên.** Một liên kết chia sẻ của một tài liệu Design mang theo một id tải lên cục bộ trên thiết bị bên trong một scene y nguyên như vậy, trong khi một khối hình ảnh thì làm trống nó đi. Vì thế một scene mà tác phẩm hoặc mô hình là một file bạn đã tải lên sẽ hiện mặc định của studio cho hình đó trên thiết bị người khác, trừ khi tài liệu di chuyển dưới dạng một file `.lolly`, thứ mang theo cả dữ liệu.
-
-## Dòng thời gian (Sequence)
-
-**Sequence** là dòng thời gian của Design: nó thêm *thời gian* vào canvas tự do. Mỗi khối có thể bắt đầu ở một thời điểm, chạy trong một khoảng và có hiệu ứng vào ra, còn dòng thời gian gắn dưới khung tranh là nơi bạn sắp xếp chúng. Mở lên là đã có sẵn một chuỗi đang chạy - một thẻ tiêu đề, một clip, một thẻ kết, một dòng chữ dưới màn hình và một nền nhạc - nên mô hình hiện ra trước mắt trước khi bạn thay đổi bất cứ thứ gì.
-
-![Dòng thời gian Sequence: thanh điều khiển vận chuyển, thước đo, một lane overlay, hàng chuỗi có nam châm với các clip và các chip nối liền, cùng dải Always on](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
-
-Có hai loại hàng, và khác biệt giữa chúng chính là toàn bộ ý tưởng:
-
-- **Hàng chuỗi** có tính *nam châm*. Các clip nằm sát nhau không kẽ hở, cái này nối tiếp cái kia, và kéo một clip sẽ sắp xếp lại thứ tự chứ không để lại một lỗ trống. Xoá một clip thì phần còn lại dồn khít lại. Đây là xương sống của bạn.
-- **Làn phủ** thì tự do. Một dòng chữ dưới màn hình, một logo, một phụ đề - bất cứ thứ gì nổi trên xương sống theo thời điểm riêng của nó - đều có làn riêng và điểm bắt đầu riêng.
-- Bên dưới những hàng đó, **Always on** gom các khối hoàn toàn không có định thời: phần nền cảnh đơn giản là có mặt suốt từ đầu tới cuối. Dấu `+` trên một chip đưa một khối lên làn; **Make always on** trả nó về lại.
-
-![Sân khấu chỉnh sửa: bảng vẽ ở chính giữa phía trước, dải công cụ bên trái và HUD thu phóng ở góc](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)
-
-Mở dòng thời gian là giao bàn phím cho nó, nên Space và các phím mũi tên điều khiển đầu phát chứ không phải cả trang - và vì nó tự mở trên một bố cục vốn đã có định thời, điều đó đúng ngay từ lúc Sequence tải xong.
-
-> **[Trình chỉnh sửa chuỗi](/info/sequence-editor.html)** đi sâu vào bốn thứ quyết định việc dựng theo thời gian có dễ đoán hay không: một cú nhấp trên canvas sẽ sửa clip nào, bóng mờ onion-skin của các clip liền kề, phạm vi của lệnh cắt và lệnh Join hoàn lại một nhát cắt, cùng việc cắt gọt (kể cả bộ phím tắt). Nhấn `?` khi dòng thời gian đang được focus để xem bảng phím tắt.
-
-**Chỉnh sửa.** Kéo phần giữa của một clip để dời hoặc sắp lại thứ tự, kéo trong phạm vi vài pixel quanh một trong hai đầu để cắt gọt và nhấn **Split at playhead** (hoặc `S`) để cắt một clip thành hai. Split cần một clip có **Length** thực và đầu phát nằm hẳn vào bên trong nó, nên một clip không có điểm kết (nền nhạc chẳng hạn) thì không cắt được. **Snap to edges** bật sẵn và bám vào cạnh clip, đầu phát và các mốc giây tròn, giữ Alt để bỏ qua. Mỗi lần kéo là một bước hoàn tác duy nhất, và bản xem trước lúc kéo chạy đúng phép tính như lúc chốt, nên thứ bạn thấy trong lúc kéo chính là thứ bạn nhận được.
-
-Chọn một clip và bảng thuộc tính cho bạn đúng những chỉnh sửa đó dưới dạng con số: **Length**, **Trim in** (bắt đầu vào sâu bao nhiêu trong nguồn), **Speed** là một tập hệ số cố định từ ×0.25 đến ×4, **Animate in** / **Animate out** cùng độ dài của chúng và **Mute clip**. Một clip trên hàng nam châm cố tình không có ô **Start** - hàng đó nắm giữ thứ tự, nên bạn kéo để dời nó.
-
-**Transitions** là các preset, không phải keyframe: Fade, Pop, Grow, Rise, Drop, bốn kiểu Slide, Zoom in và Zoom out, Tilt, Swoop, Spin, Drift hoặc **Cắt (không hoạt ảnh)**. Khoảng cách co giãn theo đối tượng, nên cùng một preset đọc ra đúng trên cả một thẻ tràn khung lẫn một huy hiệu nhỏ. Giữa hai clip liền nhau trên hàng chuỗi có một **chip mối nối**: nhấp vào đó rồi chọn **Cắt** hoặc **Chuyển mờ dần**, lệnh áp dụng ngay lập tức và chip đóng lại. Mở lại chính chip đó để đổi **Độ dài (ms)** rồi nhấn **Xong**. Một crossfade được lưu thành một lần mờ đi của clip này và một lần hiện lên của clip kế, còn phần hoà trộn thật được suy ra từ cặp đó: clip đầu tiên tiếp tục phát qua điểm cắt rồi mờ dần, trong khi clip kế mờ dần hiện lên bên dưới nó. Bản xem trước và file tuân theo cùng một quy tắc, nên những gì bạn thấy tại mối nối chính là những gì bạn xuất ra.
-
-**Âm thanh.** Thêm một clip **Audio** và nó nằm trên dòng thời gian như mọi clip khác: dạng sóng, cắt gọt, tắt tiếng. (Nền nhạc tạo sẵn đi kèm phiên mặc định là ngoại lệ duy nhất - nó được tổng hợp ở lúc xuất file, nên thanh của nó vẫn trơn và im lặng cho tới khi bạn render.) Nhấn nút micro để **ghi lời thuyết minh** thẳng lên dòng thời gian, có đếm ngược và một đồng hồ đo mức, và bản thu được lưu thành tài sản của riêng bạn ngay tại điểm bạn bắt đầu. Nhấn nút camera cạnh đó để **quay video** theo cùng cách đó: bản quay được cắt theo đúng kích thước xuất file của artboard ngay trong lúc quay, nên khung xem nhỏ hiện đúng những gì sẽ vào chuỗi tại đầu phát, trọn khung hình - đây là cách lấy clip của một đồng nghiệp từ một liên kết chia sẻ. Nhạc, lời thoại và tiếng của riêng một clip đều đi vào bản trộn khi xuất. (Ô **Audio track** trong bảng xuất file là chuyện khác: một nền nhạc trải dưới toàn bộ clip, có fade và ducking. Hai thứ này cùng tồn tại.)
-
-**Dải âm thanh.** Chọn bất kỳ clip nào có tiếng và một dải gọn mở ra dưới dòng thời gian: một fader **Âm lượng**, **Lia** cho vị trí âm thanh nổi, một **EQ** ba dải (**Thấp**, **Trung**, **Cao**), một điều khiển **Cao độ** dịch giọng theo nửa cung trong khi giọng vẫn giữ chất riêng, và **Chuẩn hóa âm lượng**, đưa clip lên mức loudness phát sóng (BS.1770) để một ghi âm nhỏ tiếng và một bản nhạc to tiếng nằm ngang mức nhau. Nơi hai clip gặp nhau, **Chuyển mờ dần** hoà trộn điểm nối thay vì cắt cứng. Một ô **Hiệu ứng** chạy xử lý trên thiết bị cho clip - **Làm sạch giọng nói** lấy tiếng phòng và tiếng rè ra khỏi một bản ghi âm. Thay đổi tốc độ vẫn giữ nguyên cao độ: một clip bị làm chậm hoặc nhanh lên được kéo giãn thời gian, không bị biến giọng như sóc. Ở mọi lần trộn, bản xuất hạ nhạc xuống dưới lời nói khi lời nói xuất hiện rồi ngừng, và giữ cả chương trình dưới một bộ giới hạn true-peak, nên không có gì bị clip khi ra; một dạng sóng lẽ ra đã bị clip được vẽ kèm cảnh báo tại đúng chỗ nó xảy ra.
-
-![Dòng thời gian với clip nhạc đang được chọn: dải của nó chạy dọc phía dưới với Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume và ô Effect](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
-
-**Kết xuất.** Một bản xuất chuyển động là một **hợp thành tất định**, không phải bản quay màn hình - mỗi khung hình được giải mã, vẽ và mã hoá ở một thời điểm chính xác, nên file không phụ thuộc vào chuyện máy bạn có chạy kịp hay không, và trên thực tế MP4 hay WebM không có trần số khung hình. Chính độ dài của dòng thời gian đặt ra thời lượng, trừ khi bạn tự nhập một con số. Content Credentials được đóng dấu như với mọi bản xuất khác. Một bản xuất ảnh tĩnh cho bạn khung hình tại đầu phát, hoặc cả một bảng ảnh liên hoàn từ ô **Frames** bên cạnh kích thước đầu ra - xem [Xuất file](/info/exporting.html#stills-from-a-timed-composition).
-
-Vài giới hạn cần nhớ: một chuỗi bị chặn ở một giờ, GIF và PNG động phải đệm các khung hình nên chúng chỉ nên ngắn, một clip phát nhanh hơn hoặc chậm hơn vẫn giữ nguyên cao độ (dải âm thanh kéo giãn thời gian cho nó, và một điều khiển **Cao độ** dịch theo nửa cung trong khi vẫn giữ chất giọng) và **Record live** bị ẩn ở đây vì bộ hợp thành là con đường tốt hơn.
-
-**Vượt ra ngoài preset: keyframe, chiều sâu và camera.** Một transition làm cho một clip chuyển động khi nó xuất hiện và biến mất. Để tạo dáng cho một hộp *bên trong* một clip - làm nó trôi, mờ dần, làm mờ, nhấc nó khỏi trang và đặt nó trở lại - hãy thêm keyframe: chọn clip, nhấn **+Keyframe** (hình thoi trong cụm công cụ của timeline, hình thoi trên thanh đối tượng của canvas, hoặc phím `K`) và vị trí của playhead sẽ quyết định lần chỉnh sửa tiếp theo của bạn ghi vào tư thế nào. Cùng hệ thống keyframe đó mang lại cho mọi bố cục có thời gian một **camera** có thể đẩy vào gần, lia ngang và kéo tiêu điểm, biến một SVG phẳng thành một chồng lớp mà bạn có thể bay qua lại giữa chúng. **[Tạo hoạt ảnh](/info/animating.html)** là hướng dẫn đầy đủ.
-
-Công cụ Design có cùng dòng thời gian đó, nên bạn định thời cho một bố cục mà không phải chuyển sang công cụ khác, và nó cũng xuất được chuyển động.
-
-## Trình chiếu
-
-Để đặt camera, một logo và một chú thích tên lên trên hình ảnh khán giả, dùng **Present with camera**. Các điều khiển riêng, các scene đã lưu, các bước chia sẻ và ghi hình của nó được nói tới trong [Trình chiếu bằng camera](/info/presenting.html). Các điều khiển bộ slide thông thường bên dưới vẫn dùng được qua **Trình chiếu**.
-
-Một tài liệu Design gồm nhiều **khung tranh** vốn đã là một bộ slide. Mở **menu Lolly** trên thanh công cụ rồi chọn **Present** - dòng cuối cùng - và mỗi khung tranh thành một slide toàn màn hình, theo đúng thứ tự các khung tranh nằm trên canvas. Bộ slide chạy trên một bản sao của các khung tranh đã render, nên trình chỉnh sửa bên dưới không hề bị đụng tới và khi thoát ra bạn quay lại đúng chỗ cũ.
-
-- **Tiến tới** với **Space**, `→`, **Page Down** hoặc nhấp vào dải ở cạnh phải màn hình; lùi lại bằng `←`, **Page Up** hoặc dải ở cạnh trái. **Home** và **End** nhảy đến slide đầu tiên và cuối cùng. Một thanh điều khiển nhỏ mờ dần hiện ra mỗi khi bạn di chuyển con trỏ và tự ẩn đi khi bạn dừng lại.
-- **Overview** (`O` hoặc nút lưới) sắp mọi artboard ra cùng lúc theo đúng cách bạn đã bố trí chúng trên canvas; nhấp vào một cái để mở nó.
-- **Reveal steps.** Nhấp chuột phải vào một hộp và chọn **Reveal at step 1**, **2** hoặc **3** thay vì mặc định **Always visible**. Hộp đó sẽ chờ cho đến khi bạn tiến đến bước của nó, để một slide có thể xuất hiện theo từng phần; các hộp cùng chung một số sẽ xuất hiện cùng lúc.
-- **Speaker view** (`S`) mở một cửa sổ thứ hai gồm slide hiện tại, slide kế tiếp, ghi chú của bạn cho slide đó và một đồng hồ đang chạy. Nếu trình duyệt chặn cửa sổ popup, nó sẽ chuyển về dạng một bảng phủ lên trên bộ slide. Ghi chú được đặt riêng cho từng artboard và không bao giờ xuất hiện trên chính slide.
-- `B` giữ màn hình đen (nhấn phím bất kỳ để đưa slide trở lại), `F` quay về chế độ toàn màn hình và **Escape** lùi lại từng lớp một: từ overview về bộ slide, từ bộ slide về trình chỉnh sửa.
-- **Kiosk.** Đặt cho một artboard một **Length** và bộ slide sẽ giữ nguyên tại đó trong khoảng thời gian đó, rồi tự tiến tới đằng sau một thanh tiến trình mỏng; `K` (hoặc nút tạm dừng, chỉ xuất hiện khi có thứ gì đó đã có độ dài) dừng và khởi động lại việc đó. Thêm `kiosk` vào liên kết và bộ slide sẽ quay vòng khi đến cuối, đó chính là điều biến nó thành bảng hiển thị (signage).
-
-- **Sub-slide stacks.** Nhấp chuột phải vào một khung tranh và chọn **Xếp chồng dưới trang chiếu trước** thì nó trở thành một bước của trang chiếu đó thay vì một trang chiếu riêng: overview chỉ hiện một thẻ, bộ slide đi qua chồng đó theo thứ tự, và hàng **Xếp chồng** của inspector nói rõ nó thuộc trang chiếu nào.
-- **Morph.** Khi hai trang chiếu liền nhau đều mang một khối có cùng tên **Khớp Biến hình** (nhấp chuột phải vào một khối, hoặc hàng **Khớp Biến hình** của inspector - ví dụ `hero`), transition di chuyển khối đó từ vị trí cũ sang vị trí mới, đổi kích thước và màu trên đường đi, thay vì cắt cứng. Một transition **Biến hình** áp dụng cho cả bộ slide làm điều tương tự cho mọi cặp khớp.
-- **Narration.** **Ghi chú người nói** của mỗi khung tranh có thể được đọc to. Trong mục **Tài liệu** của inspector, chọn một **Giọng đọc**, tuỳ chọn một giọng thứ hai để **Pha với**, **Tốc độ** đọc, và một khoảng **Dẫn vào** và **Đuôi** tính bằng mili giây quanh mỗi trang chiếu; bật **Hiện phụ đề khi trình chiếu** và lời hiện ra khi được đọc. Giọng đọc chạy trên thiết bị của bạn. Cùng những ghi chú đó trở thành phần lồng tiếng trong một bản xuất video, âm thanh trang chiếu thật trong một bản xuất PowerPoint, và bộ phim có lời trong một [gói SCORM](/info/create/exporting.html#scorm-course-packages).
-
-![Mục Tài liệu của inspector: Giọng đọc, Pha với, Tốc độ, Dẫn vào, Đuôi và Hiện phụ đề khi trình chiếu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
-
-Bộ slide cũng là một liên kết. `?present` mở thẳng vào đó, `s=` chỉ định slide - một vị trí, một id khung tranh hoặc `id.step` cho một bước hiện dần - và địa chỉ cập nhật theo lúc bạn di chuyển, nên thứ bạn gửi đi đúng là slide bạn đang xem. Với tác giả công cụ: các tham số đó được mô tả ở trang [Chế độ URL](/info/url-parameters.html#reserved-parameters).
+**View sessions** chỉ xuất hiện khi đã chọn thứ gì đó. Thay vào đó, nhấp chuột phải một thẻ đơn chưa chọn và nó đưa ra **N saved sessions**, danh sách các phiên đã lưu của công cụ đó, nơi một lần xóa chuyển phiên vào Thùng rác.
 
 ## Trên điện thoại
 
-Trên màn hình hẹp, bố cục dồn về một cột:
+Trên màn hình hẹp, bố cục thành một cột:
 
-- **Các điều khiển trở thành một tấm trượt** ở phía trên với một **tay cầm kéo** ở mép dưới. Kéo tay cầm để đổi kích thước - nó chốt vào **peek / half / full** - hoặc **chạm** vào tay cầm để chuyển giữa thu gọn ↔ mở rộng. Bản xem trước lấp đầy phần bên dưới và luôn hiện ra trong lúc bạn chỉnh sửa.
-- Nút **Export** nổi mở tấm trượt xuất file - tất cả các điều khiển về định dạng, kích thước, sao chép, lưu và tải xuống ở cùng một chỗ. Đóng nó lại bằng cách chạm vào lớp nền.
+- **Các điều khiển thành một tấm** ở trên cùng với tay kéo ở cạnh dưới. Kéo tay nắm để bám vào **peek**, **half** hoặc **full**, hoặc chạm để thu gọn và mở rộng. Bản xem trước lấp đầy khoảng trống bên dưới và vẫn ở trong tầm nhìn khi bạn chỉnh sửa.
+- Một nút **Export** nổi mở bảng xuất: định dạng, kích thước, sao chép, lưu và tải xuống ở một nơi. Chạm vào nền phía sau để đóng bảng.
 
 ![Một công cụ trên màn hình rộng bằng điện thoại - điều khiển là một tấm trượt phía trên, bảng màu vừa tạo lấp đầy bản xem trước bên dưới và nút render nổi ở chính giữa phía dưới](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
-## Điều khiển (đầu vào)
-
-Các công cụ chỉ để lộ những trường đầu vào vốn được phép thay đổi - mọi thứ khác (màu sắc, bố cục, kiểu chữ, logic) đều do tác giả công cụ khoá cố định, nên bất cứ thứ gì bạn tạo ra đều tuân theo quy tắc mà tác giả đặt. Trường đầu vào gồm văn bản, thanh trượt, bộ chọn màu, danh sách thả xuống, ngày tháng, bộ chọn ảnh và các nhóm hàng lặp lại. Một số được gom trong các mục có thể thu gọn.
-
-![Ngăn điều khiển của một công cụ - một ô văn bản, các nút mở bảng màu và một thanh trượt, không còn gì khác vì tác giả đã chọn khoá phần còn lại](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
-
-**Đặt lại:** *Clear changes* đưa mọi trường đầu vào về giá trị mặc định.
-
-### Hoàn tác và làm lại
-
-**Cmd/Ctrl-Z** lùi một bước và **Cmd/Ctrl-Shift-Z** (hoặc **Cmd/Ctrl-Y**) tiến lại. Cũng cặp đó nằm dưới dạng nút **Hoàn tác** và **Làm lại** ở hàng phía trên các điều khiển - trên canvas tự do thì chúng nằm trên thanh công cụ - và mỗi nút mờ đi khi không còn gì để lấy lại. Mỗi bước đều nói rõ nó là gì: hoàn tác một màu và một thông báo nhỏ gọi tên trường vừa được khôi phục, kèm một nút **Làm lại** trong đó để đi ngược lại.
-
-- **Một lần kéo là một bước.** Các thay đổi liên tiếp trên cùng một điều khiển trong vòng nửa giây được gộp lại, nên kéo một thanh trượt hết dải chỉ là một lần hoàn tác chứ không phải hai trăm.
-- **100 bước gần nhất được giữ** - những bước cũ hơn rơi khỏi cuối hàng. Chỉnh sửa mới sau khi hoàn tác sẽ xoá ngăn xếp tiến lên, đúng như ở mọi nơi khác.
-- **Khi con trỏ nhập của bạn đang ở trong một ô văn bản**, Cmd/Ctrl-Z thuộc về chính ô đó, từng ký tự một. Lolly chỉ tiếp quản cho những điều khiển vốn không có hoàn tác riêng hữu ích: thanh trượt, danh sách thả xuống, màu sắc và công tắc.
-- **Chọn một file** trong một trường **file** không phải là một bước - số byte đó chỉ được giữ trong phiên làm việc, nên sẽ chẳng có gì để đặt lại.
-
-Trong một [cộng tác](/info/collaborate.html) trực tiếp, lịch sử vẫn hoàn toàn thuộc về riêng bạn. Một thay đổi đến từ thiết bị khác không bao giờ được đưa vào ngăn xếp của bạn, nên undo chỉ có thể hoàn tác lại điều gì đó chính bạn đã làm.
-
-**Hoàn tác** chỉ lùi lại trong lượt truy cập này; các công cụ tự lưu khi bạn làm việc còn giữ các phiên bản trước đó dưới **History**, bên cạnh **Hoàn tác** (xem [Quay lại phiên bản trước đó](/info/find-your-work.html#go-back-to-an-earlier-version)).
-
-## Thông tin & ảnh chân dung của bạn
-
-**Cài đặt** (góc trên bên phải của gallery, hiện tên của bạn khi bạn đã đặt tên) lưu tên, thông tin liên hệ và một **ảnh chân dung** tuỳ chọn của bạn. Các công cụ hỏi tới những trường đó sẽ tự điền sẵn - đặt một lần và chữ ký email, các lockup cùng huy hiệu của bạn sẽ tự điền lấy. Bạn vẫn có thể ghi đè từng trường cho mỗi phiên. Bật **Use my details to create** để thông tin của bạn đi kèm với tư cách tác giả trên thứ bạn xuất ra.
-
-Ảnh chân dung và thông tin của bạn **chỉ nằm trên thiết bị này**. Một hồ sơ có thể không chỉ là bạn - mà là một nhóm hoặc một vai trò bạn thỉnh thoảng đảm nhận. Xem **[Hồ sơ](/info/profile.html)** để biết toàn cảnh, gồm cả việc giữ nhiều hơn một hồ sơ.
-
-## Lưu & tiếp tục
-
-Để giữ lại tác phẩm, chọn **Lưu thành**, dấu tích bên cạnh **Xuất**. Trong mục **Save to a project**, để nguyên **Thư viện của tôi** đang chọn hoặc chọn một dự án (**＋ Dự án mới…** tạo một dự án), rồi chọn **Lưu**. Lưu lại lần nữa sẽ cập nhật đúng mục đó thay vì tạo bản sao. Trong Design, **Lưu thành** nằm trong menu dưới logo Lolly; trên điện thoại, nhấn **•••**, rồi **File menu**, rồi **Lưu thành**.
-
-Nút **Lưu** trong bảng xuất file cũng làm điều tương tự chỉ với một cú nhấp và không bao giờ tải file xuống: tác phẩm mới sẽ vào Thư viện của tôi, còn tác phẩm bạn đã lưu trước đó được cập nhật ngay tại chỗ.
-
-Để quay lại sau, chọn **Trang chủ** ở trên cùng bên trái, rồi mở tab **Dự án** (biểu tượng thư mục trên điện thoại). Các mục đã lưu ở Thư viện của tôi nằm ở màn hình đầu tiên; một dự án là một thư mục ở đó. Các mục được đặt tên theo tên file bạn đã gõ trong bảng xuất, hoặc theo công cụ của chúng, chẳng hạn **QR Code**. Mở một mục và mọi thiết lập đều ở đó, sẵn sàng để đổi và xuất lại.
-
-Công việc đã lưu ở lại trên thiết bị này, trong trình duyệt hoặc ứng dụng bạn đã lưu từ đó, trừ khi bạn bật [Sync](/info/sync.html). Một file bạn tải về bằng **Tải xuống** là một bản hoàn chỉnh; để đổi nó sau này, hãy mở mục đã lưu trong Dự án. Nếu có gì đó không nằm ở nơi bạn nghĩ, xem [Tìm và khôi phục công việc của bạn](/info/find-your-work.html).
-
-![Nút render hai nửa - một mũi tên lên mở bảng xuất file, và một dấu tích có nhãn Lưu thành mở tấm trượt lưu](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
-
-## Projects
-
-**Dự án**, tab **Dự án** ở đầu màn hình chính, giữ mọi thứ bạn đã lưu, trong các thư mục bạn tạo. [Tìm và khôi phục công việc của bạn](/info/find-your-work.html#find-something-you-saved) nói về việc tìm, sắp xếp và tìm kiếm công việc của bạn ở đó, cùng việc khôi phục một mục từ **Thùng rác**.
-
-
-## Chia sẻ công việc của bạn
-
-Một thiết kế đi ra ngoài theo một trong hai cách: dưới dạng một liên kết hoặc dưới dạng một file. Hộp thoại Share cho cả hai. Mở nó bằng **Share** trong các điều khiển xuất file; **Share link** trên một phiên đã lưu trong Projects mở đúng hộp thoại đó cho phiên ấy.
-
-### Liên kết
-
-Mọi trường đầu vào đều được ghi lại trong URL của trang, nên một liên kết *chính là* thiết kế. Ở đầu hộp thoại là liên kết sẵn sàng để sao chép, với hai mục thu gọn bên dưới.
-
-- **Link options** chứa **Open in the installed app** (chuyển trường sang một URI `lolly://` dùng cho Shortcuts, launcher và tự động hoá, mọi tham số giữ nguyên), **Shortest link** (một thiết kế lớn tạo ra URL dài, nên tuỳ chọn này nén toàn bộ trạng thái vào một token gọn và cho bạn thấy tiết kiệm được bao nhiêu ký tự; dạng dễ đọc thì vẫn luôn có sẵn), **Password-protect this link** (AES-256 phủ toàn bộ liên kết, mật khẩu không bao giờ nằm trong đó) và **Pin this tool version** - cờ `_v`, ghim liên kết vào đúng phiên bản công cụ bạn đang xem để một bản cập nhật sau này không đổi được thứ nó render.
-- **Link behaviour** là điều xảy ra khi người nhận mở nó: toàn màn hình, bảng xuất file mở sẵn, tự tải xuống khi mở với `&export` hoặc tự sao chép vào clipboard với `&copy`.
-
-Dán liên kết cho một đồng nghiệp, lưu vào bookmark hoặc commit nó. (Chi tiết đầy đủ: [Chế độ URL](/info/url-mode.html).)
-
-**Một số công cụ biến chính liên kết thành toàn bộ sản phẩm.** Jump Page gom các liên kết của bạn vào một trang duy nhất để chia sẻ - một liên kết bio, một buổi nói chuyện hội nghị, một mặt tiền cửa hàng. Không có gì để host và không có tài khoản đứng sau nó: trang chính là liên kết, nên nó mở nhanh như chính URL di chuyển. Trong trình chỉnh sửa, bạn thấy trang hoàn chỉnh bên cạnh các trường nhập liệu; một khách truy cập mở liên kết sẽ thấy nó ở toàn bộ chiều rộng, mỗi cảnh một liên kết khi họ cuộn.
-
-![Jump Page trong trình chỉnh sửa: cảnh tiêu đề ở đầu trang, với các cảnh liên kết bên dưới](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
-
-**Hộp thoại nói rõ thứ một liên kết không thể mang theo.** Ba thứ không nhét vừa vào một URL: một ảnh hoặc file bạn thêm từ thiết bị này, một giá trị văn bản rất dài hoặc một danh sách rất lớn. Từng thứ được đếm khi liên kết đang được dựng. Nếu có gì đó buộc phải bỏ lại, hộp thoại gọi tên nó và chỉ bạn sang phần file bên dưới, thay vì đưa cho bạn một liên kết mở ra mà thiếu mất hình. Một liên kết chỉ đơn thuần *dài* thì nhận một ghi chú nhẹ hơn kèm số ký tự, vì việc nén vẫn có thể cứu được độ dài.
-
-### File .lolly
-
-`.lolly` là phần mở rộng gói di động của Lolly, không phải một lời hứa rằng mọi file đều chứa cùng một thứ. `format` trong `manifest.json` mới là thẩm quyền quyết định. Ứng dụng đọc bản kê khai nhỏ đó trước và hiện kích thước, nội dung và hành động trước khi ghi bất cứ thứ gì:
-
-- Một **thiết kế dùng chung** (`lolly-share`) chứa một phiên công cụ đã lưu, các file nhúng của nó và một biên nhận cho bất cứ thứ gì vẫn được giải quyết theo tham chiếu. Nó cũng có thể mang theo công cụ và hệ thống thiết kế dùng để tạo ra nó. Mở nó thêm một Dự án mới; nó không bao giờ ghi đè một phiên đã có.
-- Một **dự án dùng chung** (`lolly-share` với loại `project`) chứa một thư mục từ Dự án: các thư mục con của nó, mọi phiên đã lưu nằm trong đó, ảnh thẻ của mỗi phiên và các hình ảnh nằm trong đó. Mở nó thêm một bản sao của cả thư mục vào Dự án; không có gì đã có sẵn bị thay thế. Một bản Lolly từ trước khi có file dự án không đọc được nó và sẽ báo cần cập nhật.
-- Một **gói hệ thống thiết kế** (`lolly-brand`) chứa các token và có thể chứa font, logo, các phiên bản đã xuất bản và các tài nguyên được giữ lại. Mở nó thêm nó vào như một hệ thống thiết kế có tên riêng, rồi chuyển sang dùng nó; các hệ thống đã có trên thiết bị vẫn được giữ nguyên.
-- Một **gói không gian làm việc thương hiệu / instance** là một `lolly-brand` có khai báo công cụ, tài sản danh mục và tuỳ chọn một địa chỉ instance. Bước kiểm tra trước liệt kê những tác động trên toàn thiết bị đó vì việc tải nó thay thế lớp phủ không gian làm việc duy nhất đã tải trước đó.
-
-Một bản **sao lưu thiết bị/hồ sơ đầy đủ không phải là một `.lolly`**. Nó vẫn là một `LollyTools-….zip` với định dạng `lolly-backup`, và khôi phục qua **Cài đặt → Bộ nhớ → Nhập dữ liệu…**, nơi cũng nhận một bản sao mà Sync giữ trong kho lưu trữ của bạn. Một thư mục công cụ nén zip thông thường cũng vẫn là `.zip`. Nói cách khác, gói phiên và gói hệ thống thiết kế sở hữu `.lolly`; quy trình sao lưu và kho lưu trữ rời thì không.
-
-**Download .lolly**, trong hộp thoại Share của công cụ bạn đang làm, ghi thiết kế hiện tại thành một gói thiết kế dùng chung. Nó mang theo phiên đã lưu cùng với những ảnh và file có sẵn trên thiết bị này. Tác phẩm catalogue thông thường cũng đi kèm theo. Tác phẩm có bản quyền bị giữ lại trừ khi bạn chủ động đưa nó vào, và một file cũ hoặc không còn khả dụng vẫn giữ nguyên là một tham chiếu ngoài thay vì biến mất. Biên nhận đã chuẩn bị hiện kích thước `.lolly` thực tế, số file nhúng, số tham chiếu ngoài và liệu công cụ có được kèm theo hay không. Nơi thiết bị của bạn có bảng chia sẻ, **Gửi đến…** đưa thẳng file đó sang đấy (AirDrop, một lượt chia sẻ trên Android) thay vì lưu ra ổ đĩa.
-
-**Download project (.lolly)**, trong menu của một thư mục trong **Dự án**, ghi thư mục đó thành một dự án dùng chung, để người khác có thể mở nó và tiếp tục với mọi phiên trong đó. Mỗi phiên di chuyển như một phần riêng của nó (`sessions/<key>.json`, với ảnh thẻ của nó dưới `thumbs/`), cây thư mục được liệt kê trong `manifest.json`, và các file tải lên cùng tác phẩm catalogue di chuyển theo cùng quy tắc như một thiết kế dùng chung đơn lẻ. Các phiên batch không phải là phiên công cụ và bị bỏ lại; thông báo cho biết có bao nhiêu. **Tải bản gốc**, bên cạnh đó, không đổi: một file zip thường của từng mục dưới dạng file riêng của nó.
-
-Một file `.lolly` là một file zip bình thường. Đổi tên nó thành `.zip` rồi mở ra: ảnh của bạn nằm dưới `assets/uploads/` còn tác phẩm catalogue dưới `assets/catalog/`, mỗi thứ giữ tên thật và phần mở rộng của nó, `manifest.json` liệt kê từng thứ một và một file README ở trên cùng nói file này là gì.
-
-Ba điều là của bạn để quyết định trước khi nó đi:
-
-- **Tên bạn có được đưa vào hay không.** Tên, email và tổ chức của bạn chỉ được ghi vào file khi **Use my details to create** được bật trong hồ sơ của bạn. Khi tắt, file chỉ ghi rằng nó được tạo bằng Lolly và khi nào - không có gì về bạn.
-- **Tài sản có bản quyền có được đưa vào hay không.** Các tài sản có bản quyền và khóa theo thương hiệu bị giữ lại mặc định. Nếu thiết kế dùng bất kỳ tài sản nào như vậy, hộp thoại cho biết có bao nhiêu và đưa ra hai nút - *Download without them* hoặc *Include and download* - vì việc bao gồm chúng nghĩa là trao file thực cho bất kỳ ai mở `.lolly`.
-- **Công cụ có được đưa vào hay không.** **Include the tool** đóng gói các file của chính công cụ đó cùng thiết kế, để nó mở được trên thiết bị không có công cụ ấy. Mặc định được tích cho một công cụ tùy chỉnh - một bản fork hay một công cụ thương hiệu riêng mà người nhận khó có sẵn - và không tích cho một công cụ đã có trong danh mục đã ký, vì bản của họ đến từ cùng nguồn. (Trên một bản build không có danh mục đã ký, mọi công cụ đều tính là tùy chỉnh và ô này mặc định được tích.)
-
-**Mở một file.** Trên một ứng dụng desktop hoặc di động đã cài, nhấp đúp hoặc chạm vào một file `.lolly`, chọn **Open with Lolly**, hoặc gửi nó cho Lolly từ bảng chia sẻ của hệ thống. macOS, Windows, Linux, iOS và Android đều đăng ký định dạng này; trình quản lý file trên desktop hiện nó như một tài liệu Lolly (và GNOME Files có thể hiện ảnh thu nhỏ riêng của một phiên đã lưu). Trong ứng dụng web, dùng **Mở** hoặc thả file vào Lolly. Mọi cửa đều dùng cùng bước kiểm tra trước dựa trên manifest. Mở từ Brand Studio gợi ý hành động hệ thống thiết kế khi một thiết kế dùng chung mang theo một hệ thống, nhưng nó không bao giờ đổi nhãn file hay ẩn **Thiết kế chung mở**.
-
-Một tài liệu iOS hoặc Android được chuyển vào từ ứng dụng khác bị giới hạn ở 48 MB vì cơ chế bàn giao gốc phải sao chép byte của nó qua ranh giới ứng dụng. Ứng dụng di động nói rõ điều đó thay vì âm thầm bỏ qua một file quá khổ. **Mở** bên trong Lolly không dùng cơ chế bàn giao đó; đây là đường nên thử cho một gói lớn hơn.
-
-Sau khi xác nhận, trình đọc được chọn giải nén và xác minh gói đó một lần. Tài sản của một thiết kế dùng chung vào thư viện của bạn, phiên của nó vào Dự án và công cụ của nó mở lên khi có sẵn. Các phiên của một dự án dùng chung vào Dự án dưới một bản sao mới của các thư mục, với id mới để cùng một file có thể mở hai lần, và thư mục mở ra; một phiên mà thiết bị này thiếu công cụ thì chờ ở đó. Một tài sản đã có trên thiết bị được đối chiếu bằng checksum và tái sử dụng. Một gói hệ thống thiết kế được lưu trong không gian tên riêng của nó trước khi ứng dụng chuyển sang dùng nó. File trên 100 MB được gọi tên là lớn, và bước kiểm tra trước cảnh báo khi bộ nhớ trình duyệt báo còn ít dung lượng trống hơn mức payload đã khai báo cần. Mọi phần có tính toàn vẹn được kiểm tra trước khi thao tác chốt lại; một bản sao bị hỏng bị từ chối và đích vừa tạo ra bị hoàn tác.
-
-Nếu file mang theo một công cụ bạn chưa có, Lolly hỏi trước khi công cụ đó được phép chạy: **Tin cậy công cụ này?** nêu tên nó và tác giả của nó, đồng thời nói thẳng rằng mở nó là chạy mã của chính công cụ đó trên thiết bị của bạn, với **Tin cậy & cài đặt** là lối đi tiếp. Nếu bạn từ chối, phần việc được chia sẻ vẫn được lưu vào dự án của bạn, chờ ở đó tới ngày bạn thêm công cụ ấy. (Có một loại công cụ chưa nạp ngoài được - loại có mã chạy dưới dạng module - và nó bị từ chối theo cùng cách.)
-
-Một liên kết và một file đều trao đi một ảnh chụp tại một thời điểm. Để làm việc trên cùng một phiên *cùng lúc* với người khác - hai thiết bị, không máy chủ, không cần internet nếu bạn ở chung một mạng - xem [Làm việc cùng nhau](/info/collaborate.html).
-
-## Camera trực tiếp (các công cụ phản ứng theo chuyển động)
-
-Mọi **Filter** ảnh - Halftone, Scanline, Posterize, Voronoi cells, Colour treatment, Pixel stretch và Imperfections - đều hiện một nút **Go live** ở nơi có camera. Bật nó lên và hiệu ứng bám theo từng khung hình webcam của bạn, nên nó phản ứng theo chuyển động; bạn có thể ghi lại kết quả thành GIF, WebM hoặc MP4. Các khung hình được đọc và xử lý **trên thiết bị của bạn** và không bao giờ rời khỏi đó, còn camera được giải phóng ngay khi bạn dừng lại hoặc rời khỏi công cụ. (Bộ chọn ảnh nào cũng có **Take a photo** để chụp một khung hình đơn thành một ảnh trên thiết bị.)
-
-## My images
-
-Khi một công cụ cho phép bạn thêm ảnh từ thiết bị, ảnh được giữ đúng như lúc nó đến - nên một Content Credential trên đó vẫn xác minh được - và lưu vào thư viện cá nhân **My images** của bạn (dưới **Cài đặt → Bộ nhớ**). Chỉ một file thực sự khổng lồ mới hỏi là giữ nguyên hay giảm kích thước. Dùng lại nó ở bất kỳ công cụ nào. Để xoá EXIF/GPS ngay khi ảnh đi vào, hãy bật **Strip metadata from uploads** trong hồ sơ của bạn. Không có giới hạn số lượng: thư viện hoàn toàn cục bộ và chỉ bị giới hạn bởi dung lượng thiết bị của bạn - quản lý hoặc xoá ảnh ngay tại đó.
-
-## Tài sản - thư viện của bạn
-
-**Tài sản** (`#/a`, hoặc phần **Tài sản** trong bộ chuyển Công cụ · Tiện ích · Tài sản · Dự án ở đầu mọi màn hình danh sách) gom mọi thứ các công cụ của bạn có thể dùng tới - logo thương hiệu, hình ảnh, âm thanh và chuyển động, nhóm theo loại - và đây cũng là nơi **các file sáng tạo của riêng bạn** nằm. Không máy chủ, không bảng quản trị, không pull request: tất cả đều nằm trên thiết bị của bạn.
-
-![Tài sản, cùng các mẫu màu và font của thương hiệu và các file bạn tự tải lên](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
-
-- <!--i:upload--> **Đưa tệp của bạn vào.** Kéo bất kỳ hình ảnh, SVG, đoạn âm thanh, video, Lottie, PDF hoặc bộ slide PowerPoint nào vào vùng tải lên - hoặc nhấp để chọn - và nó sẽ có ngay trong Tài sản, sẵn sàng trong bộ chọn tài sản của mọi công cụ. Một PDF nhiều trang hoặc một tệp `.pptx` sẽ hỏi bạn muốn giữ những trang hoặc slide nào - mỗi trang/slide trở thành một tài sản SVG. Nhập vào bao nhiêu tùy thích; nó không bao giờ rời khỏi thiết bị của bạn.
-- <!--i:star--> **Đánh dấu yêu thích những gì bạn hay dùng.** ★ một tài sản (hoặc một mẫu màu thương hiệu) và nó sẽ được ghim lên đầu mọi bộ chọn, để logo hay màu sắc quen thuộc của bạn chỉ cách một cú nhấp.
-- <!--i:folder--> **Sắp xếp gọn gàng.** Phân loại lại một tài sản vào một nhóm khác, ẩn một tài sản thương hiệu dùng chung mà bạn không sử dụng (với **Show hidden** để đưa nó trở lại) hoặc xóa hẳn các tệp bạn tự tải lên. Cùng thao tác chọn nhiều và thanh hành động nổi như ở Dự án cũng hoạt động ở đây, nên bất kỳ điều gì trong số đó đều có thể áp dụng cho cả một lượt chọn cùng lúc.
-- <!--i:layers--> **Tách một video khỏi nền của nó.** Mở chi tiết của một video hoặc nhấp chuột phải vào thẻ của nó trong bất kỳ bộ chọn tài sản nào và chọn **Xóa nền…** để lưu một phiên bản trong suốt thay thế - một WebP hoặc PNG động có kênh alpha thực sự. Chọn một **Phương thức**: một **Mô hình trên thiết bị** cắt chủ thể ra khỏi một cảnh phức tạp, hoặc một **Khóa màu** tách nền dựa trên một phông nền phẳng, chiếu sáng đều như phông xanh (green screen) hoặc một bức tường trơn, với **Dung sai**, **Độ mềm** và **Loại bỏ vệt màu** để tinh chỉnh viền. Khóa màu không cần tải mô hình và không cần mạng, nên **Xóa nền** được cung cấp cho mọi video và thường cho kết quả sạch hơn trên những đoạn phim gọn gàng. Một điều khiển **Độ phân giải** (360, 480, 720 hoặc 1080p, không bao giờ vượt quá nguồn) đánh đổi độ chi tiết lấy một file nhỏ hơn, nhanh hơn. Nó chạy như một tác vụ nền trên thiết bị của bạn. Kết quả cắt nền hoàn chỉnh được lưu bên cạnh bản gốc như một tài sản riêng, và Content Credential của video nguồn đi kèm theo như một thành phần (ingredient). (Xem [Tạo một lần, kết xuất giống nhau](/info/ai-features.html) để hiểu vì sao việc xóa nền vẫn là một chỉnh sửa thông thường.)
-
-### Mang bảng màu và font của bạn đi khắp nơi
-
-Bảng **Swatches** trong Tài sản làm được nhiều hơn là chỉ hiển thị - nhấp vào một màu để sao chép nó, hoặc **tải xuống toàn bộ bảng màu thương hiệu** ở định dạng mà công cụ kia của bạn hiểu:
-
-- <!--i:code--> **Design tokens (JSON)**, **CSS variables** hoặc **CSS classes** - đưa thẳng thương hiệu vào một stylesheet hay một bản build;
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)** - nạp vào Illustrator hoặc Photoshop;
-- <!--i:pentool--> **GIMP palette (.gpl)** - dành cho GIMP hoặc Inkscape.
-
-![Bảng Swatches - năm nút tải bảng màu chạy ngang phía trên, rồi mọi màu thương hiệu dưới dạng chip sao chép được](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
-
-Bảng **Fonts** liệt kê các bộ chữ thương hiệu của bạn kèm một nút **download** bên cạnh mỗi bộ, để cài trên máy hoặc trao cho một xưởng in. (Phòng Colours của [Brand Studio](/info/brand-studio.html) cũng có cùng tính năng tải bảng màu này.)
-
-Tài sản là một nửa của con đường mở, tự làm lấy; nửa còn lại là **tự tạo công cụ của riêng bạn** - canvas tự do (Design, đã mô tả ở trên) cho phép bạn dựng một công cụ một cách trực quan, không cần viết mã.
-
-## Âm thanh & khả năng tiếp cận
-
-Lolly hướng tới việc dùng thoải mái với tất cả mọi người. Giao diện điều hướng được bằng bàn phím, các điều khiển tuỳ chỉnh đều mang nhãn đúng chuẩn cho trình đọc màn hình và bản xem trước trực tiếp của mỗi công cụ được phơi ra như một hình ảnh duy nhất có nhãn mô tả thứ nó đang tạo.
-
-Một lớp **âm thanh hỗ trợ** nhẹ nhàng xác nhận việc bạn vừa làm - khi vào gallery, khi kiểm tra Content Credentials hợp lệ hay không hợp lệ, khi đóng một bảng, khi đổi một bộ lọc. Nó **tắt theo mặc định**: bật **Sound** ở bất cứ đâu có công tắc đó (popover tuỳ chọn của mỗi màn hình, hoặc **Cài đặt**), và lựa chọn sẽ được ghi nhớ.
-
-Bốn thiết lập tiện nghi tuỳ chọn nằm dưới **Cài đặt → Accessibility**: **Reduce motion** (bỏ các hiệu ứng chuyển cảnh và điểm nhấn của ứng dụng), **Hide colourful previews** (thẻ gallery chỉ còn biểu tượng và chữ, ảnh thu nhỏ của dự án dịu lại), **High contrast** (viền, chữ và vòng focus đậm hơn) và **Large text** (chữ trong ứng dụng lớn hơn - nhãn, menu, chữ trên nút). Cả bốn đều làm dịu ứng dụng *quanh* công việc của bạn: chúng không bao giờ với vào canvas của một công cụ hay đổi một pixel nào trong thứ bạn xuất ra, và mỗi thứ đều tắt cho tới khi bạn bật nó. Chi tiết đầy đủ trong [Hồ sơ của bạn → Khả năng tiếp cận](/info/profile.html#accessibility).
-
-Cạnh công tắc Sound là **Neurospicy Mode** - một bản nhạc nền tập trung, êm dịu, tuỳ chọn, phát khe khẽ trong lúc bạn làm việc. Bật nó lên sẽ mở một **khay trình phát** nhỏ ở góc dưới, đi theo bạn khắp ứng dụng; từ đó bạn có thể tìm và chọn một bản nhạc, tua tới và lùi, chỉnh âm lượng cùng thu nhỏ hoặc đóng nó lại. Danh sách nhạc trải qua vài danh mục - các giai điệu *Lolly Sings* sinh tự động, các vòng lặp và beat nền, âm thanh bạn tự tải lên và một số ít đài **radio** internet trực tiếp (những đài này cần kết nối; mọi thứ còn lại phát được ngoại tuyến). Nó **tắt theo mặc định** và, như Sound, được ghi nhớ qua các phiên và các thiết bị. Tắt Sound cũng tắt luôn tiếng bản nhạc tập trung này.
-
-## Lưu trữ & quyền riêng tư
-
-Lolly giữ công việc của bạn trên thiết bị của bạn: trong bộ nhớ riêng của trình duyệt này ở ứng dụng web, và trong bộ nhớ riêng của ứng dụng ở các ứng dụng desktop và di động. Những gì được giữ lại, những gì **Clear all my data** xoá đi và những gì việc xoá dữ liệu trình duyệt cuốn theo đều có trong [Tìm và khôi phục công việc của bạn](/info/find-your-work.html#if-you-clear-your-browser-data); [Chính sách quyền riêng tư](/info/privacy.html) liệt kê mọi thứ ứng dụng tải về hay gửi đi, còn [Server Surface](/info/server-surface.html) liệt kê các thành phần máy chủ tuỳ chọn.
-
-## Chuyển sang thiết bị khác
-
-Để đưa công việc của bạn sang một máy tính hoặc điện thoại khác, hãy dùng Sync, một file sao lưu hoặc một file `.lolly`. [Chuyển công việc của bạn sang thiết bị khác](/info/find-your-work.html#move-your-work-to-another-device) so sánh cả ba cách và hướng dẫn qua **Xuất dữ liệu của tôi** và **Nhập dữ liệu…**.
-
-## Nhập một thiết kế (Figma, Penpot, Illustrator, InDesign)
-
-Bạn có thể đưa một thiết kế có sẵn vào Lolly và tiếp tục làm việc trên đó: mở **Design**, nhấp **Import a design** trên thanh công cụ của canvas, rồi chọn một file Figma **.fig** hoặc SVG, một file Penpot **.penpot**, một file Illustrator **.ai** / **.pdf** hoặc một file InDesign **.idml**. Các lớp trở thành những khối chỉnh sửa được trên canvas tự do - văn bản vẫn gõ lại được, hình ảnh đáp xuống **My images** còn kiểu chữ và màu sắc tuân theo các biến thương hiệu toàn cục - rồi kết quả được lưu, chia sẻ và render như bất kỳ phiên nào khác. Việc phân tích diễn ra hoàn toàn trên thiết bị của bạn. Chi tiết đầy đủ: **[Nhập một thiết kế](/info/design-import.html)**.
-
-## Xuất file
-
-Xem **[Xuất file & Định dạng](/info/exporting.html)** để biết toàn bộ câu chuyện - chọn định dạng, kích thước đầu ra và đơn vị in ấn, độ trong suốt, video và sao chép/chia sẻ. Tóm gọn: chọn một định dạng, đặt kích thước nếu cần và **Download** (hoặc **Copy** vào clipboard).
-
-## Chế độ Batch (Pro)
-
-Dành cho người dùng chuyên sâu, **Batch** (liên kết từ gallery, nằm sau cờ tính năng Pro vốn bật theo mặc định) render nhiều biến thể cùng lúc - một bảng lưới nơi mỗi hàng là một tập trường đầu vào, được xuất cùng nhau. Lý tưởng để bản địa hoá một tấm thiệp sang hàng chục ngôn ngữ hoặc tạo mọi biến thể kích thước trong một lượt. Điền các hàng bằng cách gõ vào, dán thẳng từ một bảng tính hoặc nhập một file CSV (bạn cũng xuất ngược ra được một file), và đặt định dạng, kích thước, tên file xuất theo từng hàng. Lưu cả một bảng lưới thành một **phiên batch** có tên riêng để mở lại từ gallery, và tải mọi hàng xuống dưới dạng một file `.zip` duy nhất.
-
-![Thanh công cụ batch - tên tệp zip, đơn vị, DPI và định dạng mà mọi hàng kế thừa, với Sessions và Render ở bên phải](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
-
-Batch dùng để tạo **nhiều biến thể của cùng một mẫu** cùng lúc. Để render lại các phiên bạn **đã lưu từ trước**, hãy dùng **Dự án → Kết xuất thư mục / Xuất bản phần đã chọn** (xem [Tìm và khôi phục công việc của bạn](/info/find-your-work.html#find-something-you-saved)) - không cần Pro.
-
-## Chỉnh sửa cạnh nhau (Multi-edit)
-
-Batch là nhiều biến thể của *một* thiết kế. **Multi-edit** là nửa còn lại của công việc: nhiều thiết kế đã lưu **khác nhau** cùng mở một lúc, để một thay đổi áp dụng cho tất cả. Tích chọn từ **hai đến tám** phiên làm việc đã lưu trong **Projects** và chọn **Edit together** từ thanh chọn; chúng sẽ mở thành các thẻ trực tiếp cạnh nhau tại `#/multi?s=<slot>,<slot>…`. Mỗi thẻ là một bản kết xuất thực của phiên làm việc đó, không phải một ảnh thu nhỏ đã lưu sẵn, nên những gì bạn thấy chính là những gì sẽ được xuất ra.
-
-Một thanh bên điều khiển cả đám:
-
-- <!--i:sliders--> **Shared** đứng đầu - mọi trường đầu vào mà từ hai phiên đã chọn trở lên khai báo *giống hệt nhau* (cùng id, cùng kiểu, cùng ràng buộc - đúng quy tắc gộp mà bảng lưới batch dùng cho các cột của nó). Sửa một điều khiển dùng chung một lần và giá trị toả ra mọi phiên có khai báo nó, ngay trên từng thẻ. Hai phiên của cùng một công cụ chia sẻ mọi thứ; hai công cụ khác nhau chia sẻ đúng những gì chúng tình cờ có chung, không hơn.
-- <!--i:document--> Bên dưới là **một thẻ thu gọn cho mỗi phiên** với toàn bộ trường đầu vào của riêng phiên đó, đủ chi tiết như thanh bên của chính công cụ - bộ chọn tài sản, nhóm hàng lặp lại, trường màu - cộng một khối xuất file gọn: **Format**, **W** / **H**, **Unit**, **DPI** và nút **Download** của riêng nó. Nút Download đó lưu phiên trước rồi render nó qua đường xuất phiên thông thường, nên file mang đúng tên, định dạng và Content Credentials như khi xuất thẳng từ công cụ.
-- <!--i:search--> **Filter inputs…** ở trên cùng lọc hẹp các điều khiển trên *mọi* thẻ cùng lúc - đó là cách bạn tới được "dòng tiêu đề" trong tám phiên mà không phải cuộn đi tìm.
-
-Nhấp vào canvas bất kỳ (hoặc nhấn Enter trên nó) và thẻ thanh bên của phiên đó mở ra và cuộn vào tầm nhìn. **Save all** ghi mọi phiên trở lại ô lưu của riêng nó. **Download all** lưu trước, rồi render cả bộ qua đúng đường ống như **Render selection** của Projects - một file zip, kèm tuỳ chọn khoá bằng mật khẩu được đưa ra trên đường đi.
-
-Hai giới hạn nói thẳng. Trần hai đến tám là thật: mỗi thẻ gắn một runtime sống của riêng nó, và đó là con số còn giữ được độ mượt - một liên kết đòi nhiều hơn (hoặc đòi một phiên không còn tồn tại) sẽ báo thẳng ra thay vì tải nửa vời. Và liên kết gọi tên các ô lưu của *bạn*, nên nó mở lại đúng bộ đó trên thiết bị này; đây không phải một liên kết chia sẻ.
-
-Khi lựa chọn lớn hơn tám, trộn nhiều công cụ hoặc gồm cả ảnh lẫn phiên làm việc, lối thoát là **Edit as sheet** trên cùng thanh lựa chọn đó: nó mở cả lựa chọn thành **các hàng trong bảng lưới batch** (`#/pro?s=…`), không giới hạn số lượng và không đòi cùng một công cụ. Thư mục nằm ngoài cả hai - chúng có đường mở-trong-lưới riêng. ([Tìm kiếm](/info/search.html) là thứ duy nhất chưa với tới đây: Multi-edit là màn hình duy nhất mà thanh tìm kiếm không biết tới.)
-
-## Ngoại tuyến & cài đặt
-
-Lolly là một PWA. Nó tiếp tục chạy **ngoại tuyến** trên những màn hình bạn đã mở sẵn, còn **Ứng dụng** dưới **Cài đặt → Khả dụng ngoại tuyến** tải về phần còn lại - hãy cài nó từ thanh địa chỉ trình duyệt (hoặc *Add to Home Screen* trên di động) để có trải nghiệm giống ứng dụng, toàn màn hình. Nó tự cập nhật khi bạn online trở lại.
-
-Về các bản cập nhật: nếu một view không tải được ngay sau khi cập nhật (một bảng trống, một dòng "failed to fetch" ở góc màn hình), hãy tải lại trang một lần - ứng dụng sẽ nhận phiên bản mới một cách gọn gàng và công việc, phiên làm việc cùng thương hiệu đã lưu của bạn không hề bị ảnh hưởng; chỉ một ảnh bạn đã thêm nhưng chưa từng lưu mới có thể cần thêm lại. Nó lưu trữ mọi thứ trên thiết bị của bạn, không phải trong trang.
-
-Design và Darkroom có thể giữ độ chính xác ảnh gốc với chỉnh sửa **Wide colour / HDR**, kể cả video Sequence. Mẫu màu thương hiệu có thể mang giá trị sRGB và P3 riêng biệt. Xem [Chỉnh sửa Wide colour và HDR](/info/hdr-editing.html) để biết các lựa chọn đầu ra và giới hạn hiện tại.
-
-
-### Live pages that take the clicker
-
-Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).
+## Cài đặt, âm thanh và sự thoải mái
+
+**Settings**, ở chân màn hình chính, chứa thông tin của bạn, các hệ thống thiết kế, trợ năng, lưu trữ và tải xuống ngoại tuyến. [Settings](/info/dashboard.html) vẽ ra từng thẻ.
+
+- **Thông tin và ảnh chân dung của bạn** điền vào mọi công cụ được xây để dùng chúng, như chữ ký email hoặc thẻ tên. [Profiles](/info/profile.html) đề cập chúng.
+- **Accessibility** có bốn công tắc thoải mái: **Reduce motion**, **Hide colourful previews**, **High contrast** và **Large text**. Chúng đổi ứng dụng xung quanh công việc của bạn, không bao giờ đổi canvas công cụ hay bản xuất.
+- **Sound** phát âm thanh hỗ trợ nhẹ nhàng cho những gì bạn làm, và **Neurospicy Mode** phát một bản nhạc tập trung êm dịu. Cả hai tắt cho đến khi bạn bật, trong **Settings → Accessibility** hoặc menu hồ sơ.
+- **Available offline** tải phần còn lại của ứng dụng, các công cụ, danh mục và hướng dẫn trước khi bạn mất kết nối. Lolly là ứng dụng web có thể cài: dùng nút cài của trình duyệt, hoặc *Add to Home Screen* trên điện thoại, để có ứng dụng toàn màn hình tự cập nhật khi bạn trực tuyến trở lại.
+- **Storage** cho biết Lolly giữ gì trên thiết bị này. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) giải thích việc xóa gỡ bỏ những gì, và [Privacy Policy](/info/privacy.html) liệt kê mọi thứ ứng dụng tải hoặc gửi.
+
+::: note Nếu một màn hình không tải được sau khi cập nhật
+Một bảng trống hoặc thông báo "failed to fetch" ngay sau khi cập nhật thường hết sau một lần tải lại. Công việc đã lưu, các phiên và hệ thống thiết kế của bạn không bị ảnh hưởng, vì chúng được lưu trên thiết bị. Chỉ ảnh bạn thêm mà chưa lưu có thể cần thêm lại.
+:::
+
+## Đi tiếp từ đâu
+
+- **[Design: the free canvas](/info/design.html)**: canvas, hình khối, dòng thời gian và trình chiếu một bộ trang.
+- **[Batch and Multi-edit](/info/batch.html)**: nhiều phiên bản của một thiết kế, hoặc nhiều thiết kế đã lưu được chỉnh sửa cùng nhau.
+- **[Export a file](/info/exporting.html)**: chọn định dạng, kích thước, đơn vị in, độ trong suốt và video.
+- **[Import a design](/info/design-import.html)**: đưa tệp Figma, Penpot, Illustrator hoặc InDesign vào Design và tiếp tục chỉnh sửa.
+- **[Templates](/info/templates.html)**: điểm khởi đầu đã lưu cho một công cụ.
+- **[Wide Colour and HDR](/info/hdr-editing.html)**: giữ độ chính xác ảnh gốc trong Design và Darkroom.
+- **[Find and recover your work](/info/find-your-work.html)**: mọi thứ ở đâu, và cách chuyển sang thiết bị khác.

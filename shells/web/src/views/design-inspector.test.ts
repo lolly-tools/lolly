@@ -46,8 +46,15 @@ for (const k of ['window', 'document', 'HTMLElement', 'HTMLInputElement', 'Keybo
   escape: (s: string) => s.replace(/[^a-zA-Z0-9_-]/g, (c) => `\\${c}`),
 };
 globalThis.CSS = (dom.window as unknown as { CSS: typeof globalThis.CSS }).CSS;
-globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) =>
-  dom.window.setTimeout(() => cb(0), 0) as unknown as number) as typeof requestAnimationFrame;
+// Frames run on a timer, and on demand: the column repaints on the frame after a model
+// change made elsewhere (`poke`), and the suite reads that repaint straight away.
+const rafQueue: FrameRequestCallback[] = [];
+const runFrames = (): void => { for (const cb of rafQueue.splice(0, rafQueue.length)) cb(0); };
+globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+  rafQueue.push(cb);
+  dom.window.setTimeout(runFrames, 0);
+  return rafQueue.length;
+}) as typeof requestAnimationFrame;
 const fire = (el: EventTarget, type: string): void => { el.dispatchEvent(new W.Event(type, { bubbles: true })); };
 const click = (el: EventTarget): void => { el.dispatchEvent(new W.MouseEvent('click', { bubbles: true })); };
 // The collapse state is remembered device-locally, and jsdom's own localStorage is a
@@ -221,7 +228,7 @@ function mount(initial: Box[] = BOXES, extra: Partial<Parameters<typeof initDesi
     handle, model, el: handle.el,
     boxes: () => rows,
     select: (ids: string[]) => selection.set(ids),
-    poke: (fn: (r: Box[]) => Box[]) => { rows = fn(rows.map((b) => ({ ...b }))); emit(); },
+    poke: (fn: (r: Box[]) => Box[]) => { rows = fn(rows.map((b) => ({ ...b }))); emit(); runFrames(); },
     commits, arrays, setInputs, calls,
     get noHistory() { return noHistory; },
   } as unknown as Harness;
@@ -1550,6 +1557,65 @@ test('the memo DOES rebuild when a watched field changes underneath (the canvas 
   assert.notEqual(after, before, 'the section body was rebuilt');
   assert.equal(after.value, '999');
   h.handle.destroy();
+});
+
+test('the rows are never serialised to notice a change', () => {
+  // Each row counts every JSON.stringify call that reaches the row. The change key used to be a
+  // stringify of the whole document on every model emit, twice per edit.
+  let serialised = 0;
+  const counted = BOXES.map((b) => ({ ...b, toJSON() { serialised++; const { toJSON: _drop, ...plain } = this as Box & { toJSON?: unknown }; return plain; } }));
+  const h = mount(counted as unknown as Box[]);
+  try {
+    h.select(['b1']);
+    serialised = 0;
+    for (let i = 0; i < 5; i++) h.poke((rows) => rows.map((b) => (b.id === 'f1' ? { ...b, notes: `take ${i}` } : b)));
+    h.poke((rows) => rows.map((b) => (b.id === 'b1' ? { ...b, x: 77 } : b)));
+    assert.equal(num(h, 'x').value, '77', 'the selected box still follows the edit');
+    assert.equal(serialised, 0, 'and no emit serialised the rows');
+  } finally { h.handle.destroy(); }
+});
+
+test('a change to the rows is noticed by identity: the same rows in a new array are no change', () => {
+  const h = mount();
+  try {
+    // Nothing selected: the Document section, whose health report reads every row.
+    const health = (): Element | null => h.el.querySelector('[data-design-check]');
+    const first = health();
+    assert.ok(first, 'the Document section shows its health check');
+    h.model.commit([...h.boxes()]);   // a re-emit: a new array, every row the same object
+    runFrames();
+    assert.equal(health(), first, 'the same rows rebuild nothing');
+    h.model.commit(h.boxes().map((b) => (b.id === 'b1' ? { ...b, x: 5 } : b)));
+    runFrames();
+    assert.notEqual(health(), first, 'a changed row rebuilds the section that reads it');
+  } finally { h.handle.destroy(); }
+});
+
+test("edits made elsewhere repaint once a frame; the column's own writes repaint at once", () => {
+  let builds = 0;
+  const h = mount(BOXES, { fonts: { options: () => { builds++; return [['sans', 'Sans'], ['mono', 'Mono']]; }, weights: () => [['400', 'Regular'], ['700', 'Bold']] } });
+  try {
+    h.select(['t1']);
+    assert.equal(num(h, 'fontSize').value, '48');
+    builds = 0;
+    // Two emits in one frame, as a canvas commit makes (before and after the hook).
+    h.model.setField(['t1'], 'fontSize', 50);
+    h.model.setField(['t1'], 'fontSize', 52);
+    assert.equal(num(h, 'fontSize').value, '48', 'nothing repaints before the frame');
+    runFrames();
+    assert.equal(num(h, 'fontSize').value, '52', 'the frame shows the latest value');
+    const perBuild = builds;
+    assert.ok(perBuild > 0, 'the text section was rebuilt');
+    // One more emit, one more frame: the same number of builds as the two emits above.
+    builds = 0;
+    h.model.setField(['t1'], 'fontSize', 54);
+    runFrames();
+    assert.equal(builds, perBuild, 'two emits in a frame cost what one does');
+    // The column's own write repaints straight away: the code after it reads the result.
+    typeNum(h, 'fontSize', '60');
+    assert.equal(num(h, 'fontSize').value, '60');
+    assert.equal(h.boxes().find((b) => b.id === 't1')!.fontSize, 60);
+  } finally { h.handle.destroy(); }
 });
 
 test('a rebuild is deferred while a text field in the column has focus', async () => {

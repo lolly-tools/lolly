@@ -12,12 +12,19 @@
  *                  height inside a tall range strip). We wrap the PNG in a data-
  *                  URL AssetRef and carry the geometry in meta so a tool can pan
  *                  a scroll video over the strip.
- *   vector(spec) → true vector. Native `capture_page_pdf` prints the page to a
- *                  vector PDF; we convert it to a standalone SVG through the
- *                  engine's PDF interpreter (the same path a .ai/.pdf upload
- *                  takes) and WINDOW it - scroll depth, crop insets and the range
- *                  extension become viewBox geometry, so a vector shot frames
- *                  identical content to a raster shot of the same spec.
+ *   vector(spec) → true vector, two ways. First the page walk: native
+ *                  `capture_page_walk` runs the app's page-walk script in the tab,
+ *                  turning the live layout into SVG geometry, and returns it with a
+ *                  screenshot and the tab's cached bytes; finishWalkCapture outlines
+ *                  the text with host.text, fills the region boxes and scores the
+ *                  result against the screenshot. A walk that fails or scores past
+ *                  VECTOR_SHOT_MAX_DISTANCE falls back to the print: native
+ *                  `capture_page_pdf` prints the page to a vector PDF, converted to
+ *                  a standalone SVG through the engine's PDF interpreter (the same
+ *                  path a .ai/.pdf upload takes) and WINDOWED - scroll depth, crop
+ *                  insets and the range extension become viewBox geometry. A print
+ *                  rasterises every CSS filter, blurred shadow and mask, which is
+ *                  why it is the second choice.
  *
  * Both results flow into the normal render/export path (units, format,
  * provenance, watermark) unchanged.
@@ -26,6 +33,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import { windowPdfSvg, HOOK_BUDGET_MS } from '@lolly/engine';
 import type { AssetRef, CaptureAPI, CaptureSpec } from '@lolly-tools/core/host-v1';
+import { VECTOR_SHOT_MAX_DISTANCE } from '@lolly-tools/node-shell/page-text';
+import type { WalkCapture } from '../../web/src/capture/finish-in-app.ts';
 
 /**
  * What the two native commands hand back. These MIRROR `CaptureResult` and
@@ -79,6 +88,49 @@ function resolveScroll(depth: number | undefined, pageH: number, viewportH: numb
 const clampInset = (v: number | undefined): number =>
   Number.isFinite(v) ? Math.min(0.9, Math.max(0, v as number)) : 0;
 
+/**
+ * The page-walk capture (see the header), or null when it should fall back to the
+ * print: the walk failed, or its SVG differs from the screenshot by too much.
+ */
+async function walkVector(s: CaptureSpec): Promise<AssetRef | null> {
+  // A debug build is served by the dev server and embeds no assets, so it passes
+  // the dev server's copy of the script. A release build reads its own (capture.rs).
+  const script = import.meta.env.DEV ? await fetch('/capture/page-walk.js').then((r) => (r.ok ? r.text() : null)).catch(() => null) : null;
+  let res: WalkCapture;
+  try {
+    res = await invoke<WalkCapture>('capture_page_walk', {
+      spec: {
+        url: s.url, width: s.width, height: s.height,
+        scrollDepth: s.scrollDepth, waitMs: s.waitMs, dpr: s.dpr, css: s.css, crop: s.crop,
+        isolation: s.isolation,
+      },
+      script,
+    });
+  } catch (e) {
+    console.warn('[capture] page walk failed, printing instead:', typeof e === 'string' ? e : (e as Error)?.message);
+    return null;
+  }
+  const [{ finishWalkCapture }, { createTextAPI }] = await Promise.all([
+    import('../../web/src/capture/finish-in-app.ts'),
+    import('../../web/src/bridge/text.ts'),
+  ]);
+  const fin = await finishWalkCapture(res, createTextAPI());
+  if (fin.distance > VECTOR_SHOT_MAX_DISTANCE) {
+    console.warn(`[capture] page walk differed from the page in ${Math.round(fin.distance * 100)}% of the frame, printing instead`);
+    return null;
+  }
+  return {
+    source: 'remote',
+    id: `capture-vector:${s.url}`,
+    type: 'vector',
+    format: 'svg',
+    url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(fin.svg)}`,
+    width: Math.round(fin.width),
+    height: Math.round(fin.height),
+    meta: { capturedFrom: s.url, method: 'page-walk', distance: fin.distance, ...fin.stats },
+  };
+}
+
 export function createCaptureAPI(): CaptureAPI & { _isolatedPublic: true } {
   return {
     _isolatedPublic: true,
@@ -126,6 +178,10 @@ export function createCaptureAPI(): CaptureAPI & { _isolatedPublic: true } {
     async vector(spec: CaptureSpec): Promise<AssetRef> {
       const s = spec ?? ({} as CaptureSpec);
       if (!s.url) throw new Error('capture.vector: a url is required');
+
+      // The page walk first, the print only when it falls short (see the header).
+      const walked = await walkVector(s);
+      if (walked) return walked;
 
       let res: NativeVectorResult;
       try {

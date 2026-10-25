@@ -202,7 +202,7 @@ function coverHtml(m: IssueModel, contents: Array<{ id: string; label: string }>
         <nav class="ds-issue-contents" aria-label="${escapeText(tRaw('In this design system'))}">
           <ul>${contents.map(c => `<li><a href="${escapeText(jumpHref(c.id))}" data-issue-jump="${escapeText(c.id)}">${escapeText(c.label)}</a></li>`).join('')}</ul>
         </nav>
-        ${m.locked ? '' : `<a class="ds-issue-edit" href="#/start">${t('Edit in Start')}</a>`}
+        ${m.locked ? '' : `<a class="ds-issue-edit" href="#/start">${t('Edit in Design System Setup')}</a>`}
       </div>
       <div class="ds-issue-band" aria-hidden="true"><i></i><i></i>${more.map(h => `<i style="background:${h}"></i>`).join('')}</div>
     </section>`;
@@ -536,7 +536,7 @@ function printBody(core: readonly PaletteEntry[]): string {
     </div>
     ${locked.length
       ? `<div class="plat-swatch-grid">${locked.map(c => swatch(c)).join('')}</div>`
-      : `<p class="cat-empty">${tRaw("No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.", { start: `<a href="#/start?tab=colours">${t('Start')}</a>` })}</p>`}
+      : `<p class="cat-empty">${tRaw("No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.", { start: `<a href="#/start?tab=colours">${t('Design System Setup')}</a>` })}</p>`}
     <p class="plat-section-desc">${t('Press conditions a CMYK PDF can declare in its <code>OutputIntent</code>. Selected per-export via the <code>colorProfile</code> option; raster &amp; on-screen output stays sRGB.')}</p>
     <div class="ds-issue-table"><table class="plat-table">
       <thead><tr><th>${t('Profile key')}</th><th>${t('Identifier')}</th><th>${t('Condition')}</th></tr></thead>
@@ -592,7 +592,7 @@ export function brandPanelHtml(input: BrandPanelInput): string {
     <div class="ds-issue" data-issue>${issueHtml(input)}</div>
     <p class="visually-hidden" role="status" data-issue-status></p>
     <p class="plat-note dash-foot" role="note">
-      ${tRaw('This tab reads the active design system. Edit it in {start}, or change theme and sound in {profile}.', { start: `<a href="#/start">${t('Start')}</a>`, profile: `<a href="#/settings">${t('Preferences')}</a>` })}
+      ${tRaw('This tab reads the active design system. Edit it in {start}, or change theme and sound in {profile}.', { start: `<a href="#/start">${t('Design System Setup')}</a>`, profile: `<a href="#/settings">${t('Preferences')}</a>` })}
       ${' '}${tRaw('Building the UI? Browse the shell’s primitives & views in the {link}.', { link: `<a href="#/components">${t('Component library')}</a>` })}
     </p>`;
 }

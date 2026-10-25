@@ -27,3 +27,7 @@ Atribusi, asal usul, privasi, & persetujuan
 kreativiti & kepercayaan di tengah yang tak terhingga
 
 sesiapa sahaja boleh mencipta, pada apa jua skala, di mana-mana
+
+## Mengapa
+
+### [Kerana kami berdiri di atas bahu gergasi](/info/trust/shoulders-of-giants.html)

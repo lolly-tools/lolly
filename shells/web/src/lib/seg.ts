@@ -6,7 +6,7 @@
  *
  *   - `variant: 'app'` (the default): `.view-seg`/`.view-seg-btn`, styled in
  *     styles/parts/gallery.css (an always-eager sheet, so the primitive is
- *     available before a lazy view chunk loads). The brand studio, the gallery, the
+ *     available before a lazy view chunk loads). Design System Setup, the gallery, the
  *     theme toggle and the other app-level pickers use it.
  *   - `variant: 'panel'`: `.lp-seg`, the segmented control of the plan 273 panel
  *     primitive (styles/parts/panel.css), for a control that lives inside an
@@ -15,7 +15,7 @@
  *     the two by changing one option.
  *
  * Moved out of brand-editor.ts (its original home) so views that aren't the
- * brand studio can render the same markup without importing the whole editor.
+ * Design System Setup can render the same markup without importing the whole editor.
  *
  * Every segmented control in the app should be built from this - a mutually
  * exclusive choice among a handful of named options, `aria-pressed` the ONE
@@ -38,7 +38,7 @@ export interface SegOptions {
   attr?: string;
   /** Extra class(es) on the group - a caller's own layout/scoping hook. */
   extraClass?: string;
-  /** Name of a valueless marker attribute on the group, e.g. the brand studio's
+  /** Name of a valueless marker attribute on the group, e.g. Design System Setup's
    *  `data-be-schemekind`. Name only - a value would need its own escaping pass
    *  and no caller has wanted one; keeping it valueless is what lets this be
    *  escaped as a plain identifier below. */

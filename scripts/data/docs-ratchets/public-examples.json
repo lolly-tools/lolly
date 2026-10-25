@@ -1,0 +1,92 @@
+{
+  "$comment": "Tool and asset ids that English docs pages name but a public clone (community/, brands/lolly-start, brands/lolly-demo) does not have, recorded 2026-10-23 with the docs PRs open then. tests/docs-public-examples.test.ts fails only on an id missing here. Replace an example with a lolly-demo or lolly-start id; do not add to this list. The page lists are for reading; regenerate with node scripts/docs-ratchets.ts --write.",
+  "tools": {
+    "card": [
+      "docs/work/renders.md"
+    ],
+    "chart-creator": [
+      "docs/cli-automation.md",
+      "docs/url-inputs.md"
+    ],
+    "color-block": [
+      "docs/cli-automation.md"
+    ],
+    "dynamic-layout": [
+      "docs/url-inputs.md"
+    ],
+    "email-signature": [
+      "docs/cli-automation.md",
+      "docs/url-export.md"
+    ],
+    "event-name-badge": [
+      "docs/cli-rendering.md",
+      "docs/host-api.md",
+      "docs/overview.md",
+      "docs/tool-composition.md",
+      "docs/url-mode.md"
+    ],
+    "example": [
+      "docs/tool-skills.md"
+    ],
+    "hello-card": [
+      "docs/authoring-tools.md"
+    ],
+    "my-tool": [
+      "docs/production-checks.md"
+    ],
+    "pose-geeko": [
+      "docs/url-inputs.md"
+    ],
+    "quotes": [
+      "docs/build-terminal.md",
+      "docs/cli-automation.md",
+      "docs/cli-rendering.md",
+      "docs/overview.md",
+      "docs/url-export.md",
+      "docs/url-inputs.md",
+      "docs/url-mode.md",
+      "docs/url-parameters.md"
+    ]
+  },
+  "assets": {
+    "community/emoji/twemoji/color-starter": [
+      "docs/url-parameters.md"
+    ],
+    "suse/icons/ai": [
+      "docs/authoring-assets.md"
+    ],
+    "suse/logo/...": [
+      "docs/tool-composition.md"
+    ],
+    "suse/logo/hor-neg-green": [
+      "docs/cli-automation.md",
+      "docs/cli.md"
+    ],
+    "suse/logo/hor-pos-green": [
+      "docs/tui.md"
+    ],
+    "suse/logo/primary": [
+      "docs/authoring-assets.md",
+      "docs/glossary.md",
+      "docs/overview.md",
+      "docs/reproducibility.md",
+      "docs/url-inputs.md"
+    ],
+    "suse/logos/mark": [
+      "docs/work/catalog.md",
+      "docs/work/cli.md"
+    ],
+    "suse/palette/icon-themes": [
+      "docs/authoring-assets.md"
+    ],
+    "suse/tokens/brand": [
+      "docs/authoring-assets.md",
+      "docs/design-tokens.md",
+      "docs/work/catalog.md",
+      "docs/work/cli.md"
+    ],
+    "suse/wordmark/horizontal": [
+      "docs/authoring-assets.md"
+    ]
+  }
+}

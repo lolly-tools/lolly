@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Malumanay na mesh-style na gradient mula sa mga swatch ng iyong brand. I-drag ang mga colour point direkta sa canvas, o i-on ang Drift mode at i-export ang loop bilang WebM, MP4 o GIF.",
+  "description": "Limang paraan para gumawa ng gradient mula sa mga swatch ng design system: malambot na radial na Blend, totoong Coons-patch mesh bilang malinaw na SVG (Subdivide) o makinis na raster (Mesh), malayang Warp points at animated na Flow waves. I-drag ang lahat mismo sa canvas; mag-export ng stills o seamless na video loops.",
   "a11yLabel": "Mesh gradient na naghahalo ng {{count}} kulay",
   "inputs.count.label": "Mga punto ng kulay",
   "inputs.color1.label": "Kulay 1 (base)",

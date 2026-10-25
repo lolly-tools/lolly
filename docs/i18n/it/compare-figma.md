@@ -2,24 +2,26 @@
 
 _Ultima verifica: 28 settembre 2026._
 
-Lolly supporta design, modifica in tempo reale e produzione di asset riutilizzabili. [lolly.work](https://lolly.work) aggiunge i servizi per l'organizzazione attorno a questo lavoro: identità, progetti condivisi, controlli di accesso e approvazioni.
+Se i tuoi designer lavorano in Figma, questa pagina dice come Lolly si affianca a esso: cosa fa Figma che Lolly non fa, e dove Lolly prende in carico il lavoro ripetitivo.
+
+## Cosa fa meglio Figma
+
+[Figma Design](https://www.figma.com/design/) riunisce design di interfacce, componenti, prototipi interattivi e passaggio agli sviluppatori. La sua consolidata pratica di product design e il suo ecosistema contano quando un team deve progettare e specificare un'intera applicazione, e la sua modifica live gira su una scala che le collab di lavoro di Lolly non hanno raggiunto.
 
 ## Dove si sovrappongono
 
-Entrambi permettono di disporre testo, forme e immagini su una tela e di lavorare con altre persone. [Importa un design](/info/design-import.html) di Lolly legge i file Figma come layout modificabili. Anche Figma copre la produzione di brand basata su template: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) crea asset a partire da template e li compila da file CSV o XLSX.
+Entrambi permettono di disporre tipografia, forme e immagini su una tela e di lavorare con altre persone. Figma copre anche la produzione di brand basata su template: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) crea risorse da template e le compila da file CSV o XLSX. [Import a design](/info/design-import.html) di Lolly apre i file Figma come layout modificabili, quindi i due possono condividere il lavoro.
 
-Lolly trasforma un design in uno [strumento riutilizzabile con regole](/info/create-a-tool.html). Quello strumento funziona nel browser o nella CLI e accetta input da un URL, da uno script o dalla griglia batch. Lo stesso template supporta sia una persona che modifica un singolo asset sia un team che produce molte varianti.
+## Come Lolly svolge il compito in comune
 
-## Collaborazione e product design
+Lolly trasforma un design in uno [strumento riutilizzabile con regole](/info/create-a-tool.html). Lo strumento gira nel browser o nella CLI e prende i suoi input da un link, uno script o una griglia batch, quindi un template serve sia chi modifica un file sia un team che ne crea molti.
 
-[Figma Design](https://www.figma.com/design/) riunisce interface design, componenti, prototipi interattivi e handoff agli sviluppatori. Il suo flusso di product design consolidato e il suo ecosistema sono rilevanti quando un team deve progettare e specificare un'applicazione completa.
+![La tela aperta di Design, con Import a design nel menu Lolly della barra degli strumenti](/info/shots/design.svg)
 
-Lolly offre due tipi di collaborazione in tempo reale. Una [collab privata](/info/collaborate.html) collega direttamente due dispositivi, senza account e senza bisogno di internet su una rete condivisa. Una collab di lavoro usa lolly.work per l'accesso autenticato, le modifiche condivise, i cursori in tempo reale e le sessioni di team salvate. La collaborazione di lavoro è implementata sia nel client Lolly sia nel server lolly.work; la sua attuale distribuzione a nodo singolo non stabilisce una parità con la scala operativa di Figma.
+Una [collab privata](/info/collaborate.html) mette in coppia due dispositivi direttamente, senza account e senza bisogno di internet su una rete condivisa. Lolly standalone esegue il rendering offline. Le Content Credentials sono attive per impostazione predefinita per le esportazioni supportate, e puoi disattivarle.
 
-## Distribuzione e produzione
+## Con un'organizzazione
 
-Le app creative di Lolly e lolly.work sono parti distribuite separatamente dello stesso progetto open source. Lolly autonomo può eseguire il rendering offline senza un account. lolly.work fornisce SSO, SCIM, cataloghi condivisi, permessi di progetto, approvazioni, registri di audit e rendering lato server su un'infrastruttura controllata dall'organizzazione.
+Lolly Work aggiunge collab di lavoro autenticate con modifiche condivise, cursori live e sessioni di team salvate, più single sign-on, cataloghi condivisi, permessi di progetto, approvazioni e rendering sul server. [What runs where](/info/compare.html#what-runs-where) mette le due parti a confronto.
 
-Le sessioni di team e le modifiche delle collab di lavoro raggiungono quell'istanza; i rendering locali possono restare sul dispositivo. Le Content Credentials sono facoltative per le esportazioni supportate, e la firma lato server usa un'identità dell'organizzazione configurata. Consulta la [panoramica della soluzione combinata](/info/compare.html) per la separazione e [Identità di Content Credentials](/info/content-credentials-identity.html) per come un verificatore si fida del firmatario.
-
-Figma è un marchio del suo proprietario. Questa pagina descrive dove le due soluzioni si sovrappongono e non è affiliata a Figma.
+Figma è un marchio del suo titolare. Questa pagina descrive dove i due prodotti si sovrappongono e non è affiliata a Figma.

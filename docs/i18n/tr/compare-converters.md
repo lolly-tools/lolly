@@ -2,16 +2,20 @@
 
 _Son kontrol: 28 Eylül 2026._
 
-Lolly dosyaları tarayıcıda, kendi cihazınızda dönüştürür: HEIC'ten JPG'ye, PNG'den SVG'ye, PDF'ten görsellere ve daha birçok kombinasyon. Desteklenen dönüşümler ve sınırları için [Lolly'nin açabildiği ve üretebildiği her biçim](/info/formats.html) sayfasına bakın.
+Genellikle "HEIC to JPG" veya "compress PDF" arayıp dosyayı çıkan hangi siteye olursa yüklüyorsan, Lolly aynı dönüştürmeyi tarayıcında, kendi cihazında yapar.
+
+## Bir dönüştürücü sitesinin daha iyi yapabildiği
+
+Bazı dönüştürücü siteleri Lolly'nin işlemediği biçimleri işler ve önce hiçbir şeyin kurulmasını gerektirmez. Bir dönüştürücüyü ihtiyacın olan biçimlere ve aslına uygunluğa ve ayrıca dosyayı nerede işlediğine göre seç: bazı dönüştürmeler düzenlenebilir yapıyı korur, bazıları sonucu düzleştirir.
 
 ## Dönüştürmenin gerçekleştiği yer
 
-Tarayıcı tabanlı bir dönüştürücü, dosyayı işlemek için yükleyebilir veya yerel olarak dönüştürebilir. Lolly'nin cihaz üstü yardımcı araçları dosyayı yerel olarak işler; hesap, reklam veya izleyici yoktur. Lolly filigranı ya da köken (provenance) üstverisi eklemezler. Gerekli dönüştürme varlıkları kullanıma hazır olduktan sonra çevrimdışı çalışabilirler; dosya boyutu cihazın belleği ve ilgili biçim okuyucusuyla sınırlıdır.
+Tarayıcı tabanlı bir dönüştürücü işlemek için bir dosya yükleyebilir ya da yerelde dönüştürebilir. Lolly'nin dönüştürme yardımcı araçları dosyayı hesap, reklam veya izleyici olmadan yerelde işler ve Lolly filigranı veya Content Credentials eklemez. Bir dönüştürmenin ihtiyaç duyduğu varlıklar kaydedildikten sonra çevrimdışı çalışırlar. Dosya boyutu cihazın belleği ve belirli biçim okuyucusuyla sınırlıdır.
 
-Dönüştürücüyü, dosyayı nerede işlediğinin yanı sıra ihtiyacınız olan biçimlere ve aslına uygunluğa göre seçin. Bazı dönüşümler düzenlenebilir yapıyı korur, bazıları ise sonucu düzleştirir; Lolly'nin biçim sayfaları bu farkları açıklar.
+![Utilities görünümü: Strip Hidden Data, Compress PDF, Convert Image ve diğer cihaz üzerindeki işler tek yerde](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+
+[Every format Lolly can open and make](/info/formats.html), HEIC to JPG, PNG to SVG ve PDF to images dahil desteklenen dönüştürmeleri ve sınırlarını listeler.
 
 ## Bir ekibin daha fazlasına ihtiyacı olduğunda
 
-[lolly.work](https://lolly.work), Lolly projesinin ayrı dağıtılan kurumsal hizmetidir. Desteklenen üretim iş akışları için SSO, SCIM, paylaşılan kataloglar, onaylar, raporlama ve sunucu tarafı işleme ekler. Her iki parça da MPL-2.0 ile açık kaynaklıdır. Bir kurum bunları birlikte kullanırken üyeleri yerel dönüştürmeler için cihaz üstü yardımcı araçları kullanmayı sürdürebilir.
-
-Bu ayrım veri işleme açısından önemlidir: yerel bir dönüştürme dosyayı cihazda tutar; paylaşılan bir yüklemeyi, sunucu tarafı işlemeyi veya teslimatı seçmek ise ilgili verileri yapılandırılmış hizmetlere gönderir. [Birleşik çözüme genel bakış](/info/compare.html) bu ayrımı açıklar.
+Bir kuruluşun üyeleri, kuruluş Lolly Work çalıştırsa bile yerel dönüştürmeler için cihaz üzerindeki yardımcı araçları kullanmaya devam eder. Paylaşılan bir yükleme, sunucu render'ı veya teslimat, verinin sunucusuna gittiği noktadır; ayrımı [What runs where](/info/compare.html#what-runs-where) açıklar.

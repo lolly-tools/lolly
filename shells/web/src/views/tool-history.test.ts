@@ -12,8 +12,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  createHistory, sameValue, carriesBytes, cloneValue, describeRowChange,
-  HISTORY_LIMIT, COALESCE_MS,
+  createHistory, sameValue, carriesBytes, cloneValue, describeRowChange, freezeValue,
+  FREEZE_HISTORY_VALUES, HISTORY_LIMIT, COALESCE_MS,
 } from './tool-history.ts';
 import type { InputValue } from '../../../../engine/src/inputs.js';
 import { buildInputModel, updateInput, tokenRestoreRefsOf } from '../../../../engine/src/inputs.ts';
@@ -163,16 +163,128 @@ test('the default limit and window are the documented ones', () => {
   assert.equal(COALESCE_MS, 500);
 });
 
-test('recorded values are CLONED, so later mutation cannot corrupt history', () => {
+test('a recorded value is frozen in a test build, so a later write fails loudly instead of corrupting history', () => {
+  assert.equal(FREEZE_HISTORY_VALUES, true, 'node tests are a test build');
   const h = createHistory();
   const before = { n: 1 };
-  const after = { n: 2 };
+  const after = { n: 2, rows: [{ x: 1 }] };
   h.record(edit('obj', before, after), 0);
-  after.n = 99;
-  before.n = 98;
+  assert.throws(() => { after.n = 99; }, TypeError);
+  assert.throws(() => { before.n = 98; }, TypeError);
+  assert.throws(() => { after.rows[0]!.x = 5; }, TypeError, 'all the way down');
+  assert.throws(() => { after.rows.push({ x: 2 }); }, TypeError);
   const e = h.undo();
   assert.deepEqual(e?.before, { n: 1 });
-  assert.deepEqual(e?.after, { n: 2 });
+  assert.deepEqual(e?.after, { n: 2, rows: [{ x: 1 }] });
+});
+
+test('freezeValue freezes arrays and plain objects, and leaves bytes and instances alone', () => {
+  const bytes = new Uint8Array([1, 2]);
+  const when = new Date(0);
+  const value = freezeValue({ rows: [{ a: 1 }], bytes, when, none: null });
+  assert.ok(Object.isFrozen(value) && Object.isFrozen(value.rows) && Object.isFrozen(value.rows[0]));
+  assert.equal(Object.isFrozen(bytes), false, 'freezing a typed array with elements would throw');
+  assert.equal(Object.isFrozen(when), false, 'an instance is not model data');
+  bytes[0] = 9;
+  assert.equal(bytes[0], 9);
+  // An object already frozen is taken as frozen all the way down: a commit that replaced
+  // one row walks that row only.
+  const kept = Object.freeze({ a: 1 });
+  const next = freezeValue([kept, { b: 2 }]);
+  assert.ok(Object.isFrozen(next[1]));
+  assert.equal(freezeValue(5), 5);
+  assert.equal(freezeValue(null), null);
+});
+
+test('history keeps values by reference: consecutive steps share the rows they did not change', () => {
+  const h = createHistory({ coalesceMs: 0 });
+  const v0 = [{ id: 'a', x: 0 }, { id: 'b', x: 0 }];
+  const v1 = v0.map((r) => (r.id === 'a' ? { ...r, x: 1 } : r));
+  const v2 = v1.map((r) => (r.id === 'b' ? { ...r, x: 2 } : r));
+  h.record(edit('boxes', v0, v1), 0);
+  h.record(edit('boxes', v1, v2), 1000);
+  const second = h.undo()!, first = h.undo()!;
+  assert.equal(second.before, v1, 'no copy: the very array the model held');
+  assert.equal(second.after, v2);
+  assert.equal(first.before, v0);
+  assert.equal(first.after, second.before, 'step k after IS step k+1 before');
+  assert.equal(v2[0], v1[0], 'and the untouched row is one object across both steps');
+});
+
+test('a hundred nudges of a 2,000-row document keep about 2,100 rows, not two hundred copies', () => {
+  const h = createHistory({ coalesceMs: 0 });
+  let doc = Array.from({ length: 2000 }, (_, i) => ({ id: `r${i}`, x: i, y: 0 }));
+  for (let step = 0; step < 100; step++) {
+    const i = (step * 37) % doc.length;
+    const next = doc.map((row, k) => (k === i ? { ...row, y: row.y + 1 } : row));
+    h.record(edit('boxes', doc, next), step * 1000);
+    doc = next;
+  }
+  const rows = new Set<object>();
+  for (let e = h.undo(); e; e = h.undo()) {
+    for (const r of e.before as unknown as object[]) rows.add(r);
+    for (const r of e.after as unknown as object[]) rows.add(r);
+  }
+  // 2,000 original rows plus one new row per nudge. Copies would be 100 steps x 2
+  // values x 2,000 rows.
+  assert.ok(rows.size <= 2100, `history holds ${rows.size} distinct rows`);
+});
+
+test('a coalesced gesture keeps its first before and its latest after, both by reference', () => {
+  const h = createHistory();
+  const v0 = [{ id: 'a', x: 0 }];
+  const v1 = [{ id: 'a', x: 1 }];
+  const v2 = [{ id: 'a', x: 2 }];
+  h.beginHold();
+  h.record(edit('boxes', v0, v1), 0);
+  h.record(edit('boxes', v1, v2), 5000);
+  h.endHold();
+  const e = h.undo()!;
+  assert.equal(e.before, v0);
+  assert.equal(e.after, v2);
+});
+
+test('sameValue compares row by row: a row that is the same object is never serialised', () => {
+  let serialised = 0;
+  const row = (id: string, x: number) => ({ id, x, toJSON() { serialised++; return { id, x }; } });
+  const rows = Array.from({ length: 50 }, (_, i) => row(`r${i}`, i));
+  const moved = rows.map((r, i) => (i === 7 ? row('r7', 99) : r));
+  serialised = 0;
+  assert.equal(sameValue(rows as unknown as InputValue, moved as unknown as InputValue), false);
+  assert.equal(serialised, 2, 'only the changed row, on each side');
+  serialised = 0;
+  assert.equal(sameValue(rows as unknown as InputValue, [...rows] as unknown as InputValue), true, 'a new array of the same rows');
+  assert.equal(serialised, 0);
+  const copied = rows.map((r) => row(r.id, r.x));
+  assert.equal(sameValue(rows as unknown as InputValue, copied as unknown as InputValue), true, 'equal copies are still equal');
+  // A command's `{ input: value }` map: the input it did not change costs nothing.
+  serialised = 0;
+  const text = 'x'.repeat(10);
+  assert.equal(sameValue({ boxes: rows, text } as unknown as InputValue, { boxes: rows, text: `${text}!` } as unknown as InputValue), false);
+  assert.equal(serialised, 0, 'the unchanged boxes were compared by identity');
+});
+
+test('sameValue answers exactly as comparing JSON would', () => {
+  const cases: unknown[] = [
+    [], [1, 2], [2, 1], [undefined], [null], [[1]], [[1], [2]], { a: 1, b: 2 }, { b: 2, a: 1 }, { a: 1, b: undefined },
+    { a: 1 }, { a: [1, { c: 2 }] }, { a: [1, { c: 3 }] }, { a: () => 1 }, {}, 'x', 1, true, null,
+    { toJSON: () => 'x' }, [{ id: 'a' }, { id: 'b' }], [{ id: 'a' }, { id: 'c' }], { boxes: [{ id: 'a' }], n: 1 },
+    { boxes: [{ id: 'a' }], n: 2 }, { n: 1, boxes: [{ id: 'a' }] },
+  ];
+  for (const a of cases) {
+    for (const b of cases) {
+      assert.equal(sameValue(a as InputValue, b as InputValue), JSON.stringify(a) === JSON.stringify(b), `${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
+    }
+  }
+});
+
+test('only a file input is walked for bytes: other inputs cannot hold them', () => {
+  const bytes = { bytes: new Uint8Array([1]) };
+  const h = createHistory({ coalesceMs: 0 });
+  assert.equal(h.record({ ...edit('upload', null, bytes), inputType: 'file' }, 0), 'ignored', 'a file input carrying bytes is not recorded');
+  assert.equal(h.record(edit('legacy', null, bytes), 1000), 'ignored', 'nor is an entry that does not say what it is');
+  const rows = [{ id: 'a', image: { source: 'library', id: 'lolly/logo/primary' } }];
+  assert.equal(h.record({ ...edit('boxes', [], rows), inputType: 'blocks' }, 2000), 'pushed', 'a blocks input is recorded without the walk');
 });
 
 // ── undo / redo ──────────────────────────────────────────────────────────────

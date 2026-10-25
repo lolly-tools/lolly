@@ -1,6 +1,8 @@
 # Găsește și recuperează-ți lucrarea
 
-Tot ce faci în Lolly rămâne în browserul sau aplicația în care l-ai făcut, pe dispozitivul respectiv, decât dacă activezi [Sync](/info/sync.html). Lucrarea salvată e în **Proiecte**. Un fișier descărcat e oriunde l-a pus browserul sau sistemul tău, iar o copie te așteaptă de obicei în **Resurse**. În majoritatea instrumentelor, lucrarea pe care n-ai salvat-o niciodată este păstrată și ea. Pagina asta acoperă fiecare dintre acestea, plus o filă închisă, date de browser șterse, versiuni anterioare, elemente șterse și mutarea pe alt dispozitiv.
+Lipsește ceva: un design pe care nu l-ai salvat, un fișier descărcat, versiunea de săptămâna trecută sau tot după ștergerea browserului. Începe cu tabelul, apoi urmează secțiunea la care trimite.
+
+Munca personală rămâne în browserul sau aplicația în care ai făcut-o, pe acel dispozitiv, dacă nu activezi [Sync](/info/sync.html). O organizație care folosește Lolly Work opțional păstrează și **Team projects** pe serverul ei, acoperite mai jos.
 
 | Ce ai făcut | Unde te uiți |
 |---|---|
@@ -10,13 +12,23 @@ Tot ce faci în Lolly rămâne în browserul sau aplicația în care l-ai făcut
 | Niciuna, în orice alt instrument | Doar fila în care ai lucrat, până o închizi |
 | L-ai șters în aplicație | **Coș de gunoi**, în **Proiecte**, **Resurse** sau **Setări → Stocare**, timp de 30 de zile |
 
+::: figure find-your-work-places
+Unde trăiește munca ta: stocarea proprie a browserului conține Projects, History și Trash; descărcările merg în dosarele dispozitivului tău; Sync și un fișier de backup sunt copiile din afara browserului.
+:::
+
+::: details Găsește munca comună în Lolly Work (opțional)
+Deschide Lolly-ul organizației tale și autentifică-te, apoi uită-te în **Projects → Team projects**. Sesiunile comune sunt ținute de acea instanță și apar după accesul tău. Autentificarea poate restaura accesul la acele sesiuni pe alt dispozitiv; nu restaurează biblioteca ta personală sau backup-ul dispozitivului.
+
+Într-un [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), așteaptă **Saved to work** înainte să pleci. Dacă lipsește un proiect comun, verifică dacă ești conectat la instanța potrivită și întreabă operatorul ei despre acces sau păstrare. Ștergerea datelor browserului elimină copiile locale, nu copia de pe serverul organizației. Vezi [Folosește Lolly în organizația ta](/info/organisation.html).
+:::
+
 ## Găsește ceva ce ai salvat
 
 1. Apasă **Acasă** din stânga sus a instrumentului.
 2. Deschide fila **Proiecte** din partea de sus a ecranului principal (pictograma de folder pe telefon).
 3. Uită-te pe primul ecran. Lucrarea salvată în **Biblioteca mea** e acolo, iar fiecare proiect e un folder. Ca să cauți în toate folderele deodată, tastează în **Caută în toate proiectele…** de la baza ecranului.
 
-Un element e numit după numele de fișier pe care l-ai tastat în panoul de export, sau după instrumentul lui, cum ar fi **QR Code**, dacă n-ai tastat niciunul. Deschide elementul și fiecare setare e înapoi, gata de schimbat și exportat din nou. Ca să păstrezi lucrări noi în acest fel, vezi [Salvarea și continuarea](/info/using.html#saving-continuing).
+Un element este denumit după numele de fișier tastat în panoul de export sau, dacă nu ai tastat unul, după instrumentul lui, precum **QR Code**. Deschide elementul și fiecare setare este înapoi, gata de schimbat și exportat din nou. Ca să păstrezi munca nouă astfel, vezi [Salvare și continuare](/info/using.html#saving-continuing).
 
 ::: note Nu e în Proiecte?
 - S-ar putea să fie în **Coș de gunoi**: vezi [Recuperează ceva ce ai șters](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Foldere care se cuibăresc.** Grupează sesiunile salvate în foldere, și foldere în interiorul altor foldere, cât de adânc vrei. Creează un folder, redenumește-l sau trage o dală peste alt folder ca să-l muți; un fir de breadcrumb te duce înapoi. Sesiunile salvate fără folder apar direct la rădăcina **Proiecte**.
-- <!--i:clock--> **Sortează în felul tău.** **Opțiuni de vizualizare**, butonul cu glisoare din dreapta sus, oferă **Grilă** sau **Listă** și sortează după **Nume**, **Data adăugării**, **Ultima modificare** (implicit), **Dimensiune** și, în interiorul unui folder, **După instrument**. Folderele vin mereu primele, indiferent de sortarea activă - sortarea ordonează doar sesiunile și folderele din propriul lor grup.
-- <!--i:document--> **Depune lucrări noi direct aici.** **Element nou** deschide selectorul comun. Alege **Șabloane** ca să pornești de la un șablon salvat: deschide-l ca să-l editezi, sau folosește **+ Adaugă** ca să salvezi imediat o creație nouă.
-- <!--i:checklist--> **Selecție multiplă (desktop).** Bifează caseta de selecție a unei dale, trage un chenar de selecție peste spațiu gol sau **Shift/Cmd-click**; **clic dreapta** pe o dală pentru meniul ei contextual. Bara de selecție oferă apoi **Randează selecția**, **Mută în…**, **Folder nou**, **Șterge** (ceea ce mută la coșul de gunoi), **Editează împreună** pentru două până la opt sesiuni cu un singur instrument, una lângă alta sub o singură bară laterală, și **Editează ca foaie de calcul**, care deschide o selecție de orice dimensiune sau amestec ca rânduri în grila de loturi.
-- <!--i:download--> **Randează un folder întreg sau o selecție.** **Folder de randare** exportă fiecare sesiune salvată dintr-un folder - inclusiv subfolderele lui - ca un singur `.zip` imbricat. **Randează selecția** face același lucru pentru orice selecție multiplă, iar o singură sesiune se randează direct în propriul fișier. Nu e nevoie de Batch/Pro.
-- <!--i:link--> **Sari direct la lucrarea salvată a unui instrument.** Bifează unul sau mai multe instrumente în galeria de instrumente și alege **Vezi sesiunile** din bara de selecție - Proiecte se deschide arătând doar sesiunile făcute cu acele instrumente, cu un **Șterge** ca să revii la vederea completă.
-- <!--i:link--> **Partajează o sesiune salvată.** Clic dreapta pe o sesiune (pe telefon, apasă **•••** pe dala ei) → **Distribuie linkul** ca să copiezi un link care o redeschide cu aceleași setări; fotografiile de pe dispozitivul tău nu călătoresc odată cu linkul (dialogul complet de partajare: vezi [Partajarea lucrărilor tale](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Redenumește sau copiază una.** Clic dreapta pe o sesiune (pe telefon, apasă **•••** pe dala ei) pentru **Redenumește**, **Duplicat** (o copie în același folder) și **Mută în…**.
+- <!--i:folder--> **Dosare imbricate.** Grupează sesiunile salvate în dosare și dosarele în dosare, cât de adânc vrei. Creează un dosar, redenumește-l sau trage o tilă pe alt dosar ca s-o muți; un breadcrumb te readuce sus. Sesiunile salvate fără dosar apar direct la rădăcina **Projects**.
+- <!--i:clock--> **Sortează în felul tău.** **View options**, butonul cu glisoare din dreapta sus, oferă **Grid** sau **List** și sortează după **Name**, **Date added**, **Last modified** (implicit), **Size** și, într-un dosar, **By tool**. Dosarele vin mereu primele indiferent de sortarea activă - sortarea ordonează doar sesiunile și dosarele din propriul grup.
+- <!--i:document--> **Pune munca nouă direct la loc.** **New asset** deschide selectorul comun. Alege **Templates** ca să pornești de la un șablon salvat: deschide-l pentru editare sau folosește **+ Add** ca să salvezi imediat o creație nouă.
+- <!--i:checklist--> **Selecție multiplă (desktop).** Bifează caseta unei tile, trage o casetă de selecție pe spațiu gol sau **Shift/Cmd-clic**; **clic dreapta** pe o tilă pentru meniul contextual. Bara de selecție oferă apoi **Render selection**, **Move to…**, **New folder**, **Delete** (care mută în Trash), **Edit together** pentru două până la opt sesiuni cu un singur instrument, una lângă alta sub o singură bară laterală, și **Edit as sheet**, care deschide o selecție de orice dimensiune sau amestec ca rânduri în grila batch.
+- <!--i:download--> **Randează un dosar întreg sau o selecție.** **Render folder** exportă fiecare sesiune salvată dintr-un dosar - inclusiv subdosarele - ca un singur `.zip` imbricat. **Render selection** face același lucru pentru orice selecție multiplă, iar o singură sesiune se randează direct în propriul fișier.
+- <!--i:link--> **Sari direct la munca salvată a unui instrument.** Bifează unul sau mai multe instrumente în galeria Tools și alege **View sessions** din bara de selecție - Projects se deschide arătând doar sesiunile făcute cu acele instrumente, cu un **Clear** pentru a reveni la vederea completă.
+- <!--i:link--> **Partajează o sesiune salvată.** Fă clic dreapta pe o sesiune (pe telefon, apasă **•••** pe tila ei) → **Share link** pentru a copia un link care o redeschide cu aceleași setări; imaginile de pe dispozitivul tău nu călătoresc cu un link (dialogul Share complet: vezi [Partajarea muncii tale](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Redenumește sau copiază una.** Fă clic dreapta pe o sesiune (pe telefon, apasă **•••** pe tila ei) pentru **Rename**, **Duplicate** (o copie în același dosar) și **Move to…**.
 
 ![Popover-ul Opțiuni de vizualizare din Proiecte: Aspect cu Grilă și Listă, și Sortează după setat la Ultima modificare, lângă un buton care inversează ordinea](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 Ce revine depinde de cum ai plecat și ce instrument ai folosit:
 
-- **Ai închis fila, sau ai revenit altă dată.** Lucrarea nesalvată dispare, cu excepția [instrumentelor care salvează pe măsură ce lucrezi](#which-tools-save-as-you-work): deschide acea lucrare din **Proiecte**.
-- **Ai reîncărcat pagina în aceeași filă.** Setările tale revin din adresa paginii. În instrumentele care nu salvează pe măsură ce lucrezi, fotografiile și fișierele pe care le-ai adăugat de pe dispozitivul tău, și textul pe un singur rând mai lung de 150 de caractere, nu revin, fiindcă adresa nu le conține.
-- **Ai apăsat Acasă, sau butonul de înapoi din stânga sus.** Dacă ai schimbat ceva de la ultima salvare, descărcare sau copiere, un dialog **Editări nesalvate** te întreabă dacă vrei să salvezi întâi. **Salvează și ieși** salvează lucrarea și te duce la **Proiecte**, sau înapoi la folderul de proiect din care ai deschis lucrarea. **Ieși oricum** îți anulează modificările: un element salvat revine la felul în care l-ai salvat ultima dată, iar o creație pe care n-ai salvat-o niciodată părăsește **Proiecte**. **Anulează** te ține în instrument.
+- **Ai închis fila sau ai revenit altă dată.** Munca nesalvată a dispărut, cu excepția [instrumentelor care salvează pe măsură ce lucrezi](#which-tools-save-as-you-work): deschide acea muncă din **Projects**.
+- **Ai reîncărcat pagina în aceeași filă.** Setările tale revin din adresa paginii. În instrumentele care nu salvează pe măsură ce lucrezi, imaginile și fișierele adăugate de pe dispozitiv și textul pe un rând mai lung de 150 de caractere nu revin, pentru că adresa nu le conține.
+- **Ai apăsat Home sau butonul înapoi din stânga sus.** Dacă ai schimbat ceva de la ultima salvare, descărcare sau copiere, un dialog **Unsaved edits** întreabă dacă să salvezi mai întâi. **Save & leave** salvează munca și te duce în **Projects** sau înapoi în dosarul de proiect din care ai deschis munca. **Leave anyway** renunță la modificări: un element salvat revine la cum l-ai salvat ultima dată, iar o creație pe care nu ai salvat-o părăsește **Projects**. **Cancel** te păstrează în instrument.
 
 Lolly întreabă doar când apeși **Acasă** sau butonul de înapoi într-un instrument. Închiderea filei, reîncărcarea și butonul propriu de înapoi al browserului tău nu întreabă niciodată. Ca să fii sigur, apasă **Salvează ca**, sau **Salvează** din panoul de export, înainte să părăsești un instrument.
+
+Când recuperarea automată nu este disponibilă, o notă de lângă controalele de editare spune ce să păstrezi:
+
+- Într-un instrument care lucrează pe un fișier pe care îl aduci, salvează-ți setările și păstrează și fișierele originale.
+- Într-un instrument de înregistrare sau un utilitar fără acțiunea Save, salvează sau descarcă rezultatul înainte să pleci.
+- Aplicațiile desktop și mobile spun când trebuie să salvezi manual.
+- Într-un collab privat, persoana care a invitat păstrează documentul și istoricul lui, inclusiv modificările celeilalte persoane. Persoana care s-a alăturat lucrează pe o copie temporară și ar trebui să salveze o copie separată înainte să se termine sesiunea.
 
 ::: note Ai plecat fără să salvezi din greșeală?
 În instrumentele care salvează pe măsură ce lucrezi, Istoricul păstrează o copie a modificărilor abandonate. Deschide pagina **Istoric**, găsește-le sub **Changes** și apasă **Deschide ca o copie**. În celelalte instrumente, modificările s-au pierdut.
@@ -84,12 +103,15 @@ Lolly întreabă doar când apeși **Acasă** sau butonul de înapoi într-un in
 ::: details Ce instrumente salvează pe măsură ce lucrezi
 În aplicația web, fiecare instrument care produce un document salvează pe măsură ce lucrezi: Design, Chart, QR Code, Text, Sandbox și restul. Acestea nu salvează:
 
-- instrumentele care lucrează pe un fișier pe care îl aduci tu, cum ar fi Redact, Sign sau Convert Image, pentru că Lolly nu păstrează niciodată o copie a acelui fișier;
-- instrumentele care înregistrează de la camera, microfonul sau ecranul tău, cum ar fi Record, Screen Capture și Voice Recorder;
-- 3D și Darkroom, care preiau un fișier propriu;
-- un instrument fără nimic de schimbat, cum ar fi Countdown.
+- instrumentele care lucrează pe un fișier adus de tine, precum Redact, Sign sau Convert Image, pentru că Lolly nu păstrează niciodată o copie a acelui fișier;
+- instrumentele care înregistrează de la camera, microfonul sau ecranul tău, precum Record, Screen Capture și Voice Recorder;
+- un instrument fără nimic de schimbat, precum Countdown.
 
-În celelalte instrumente, prima ta modificare depune lucrarea în **Proiecte** ca și cum ai fi salvat, iar modificările ulterioare sunt păstrate pe măsură ce lucrezi, odată ce instrumentul a terminat de desenat. Așa că o creație nesalvată rămâne în Proiecte după ce închizi fila și reapare cu modificările ei marcate ca nesalvate. **Ieși oricum** tot le anulează, iar Istoricul păstrează o copie a modificărilor abandonate timp de 30 de zile. Deschiderea din nou a instrumentului din ecranul principal pornește o creație nouă; deschide-o pe cea anterioară din Proiecte.
+În celelalte instrumente, prima ta schimbare arhivează munca în **Projects** ca și cum ai fi salvat, iar schimbările ulterioare sunt păstrate pe măsură ce lucrezi, odată ce instrumentul a terminat de desenat. O creație nesalvată este tot în Projects după ce închizi fila și se redeschide cu modificările marcate ca nesalvate.
+
+**Leave anyway** renunță totuși la acele modificări, iar History păstrează 30 de zile o copie a editărilor aruncate. Redeschiderea instrumentului de pe ecranul principal începe o creație nouă; deschide-o pe cea anterioară din Projects.
+
+3D și Darkroom salvează pe măsură ce lucrezi, dar nu păstrează un fișier încărcat în ele, precum un model 3D sau un LUT. History și **Save** păstrează numele, tipul și dimensiunea fișierului, nu fișierul. Când redeschizi munca, o notă spune ce fișier a fost, iar instrumentul funcționează fără el până îl încarci din nou. Păstrează-ți fișierele originale.
 
 Cu [Sync](/info/sync.html) activat, o creație depusă astfel ajunge pe celelalte dispozitive ale tale ca orice altceva din Proiecte. Versiunile ei rămân pe dispozitivul pe care au fost făcute.
 
@@ -138,7 +160,7 @@ Punctele de control automate se răresc odată cu vechimea: unul pe minut în ul
 
 Când stocarea Istoricului se umple, primele eliminate sunt cele mai vechi puncte de control automate ale creațiilor pe care nu le-ai deschis de 30 de zile. O salvare este întotdeauna păstrată, chiar și atunci: este scrisă ca lucrarea curentă, iar Istoricul spune că această salvare nu este păstrată ca versiune. **Setări → Stocare** arată cât spațiu folosește Istoricul.
 
-Pagina **History** (`#/history`, sau **Open app history** din panou) acoperă fiecare creație din browserul ăsta. Pe un computer, deschide pagina din butonul cu ceas din dreapta sus a ecranului principal sau din **Proiecte**. Pe telefon, mergi la galeria de instrumente de pe ecranul principal, apasă butonul rotund cu logo din dreapta sus și alege **Sesiuni salvate**, care deschide History. Din **Proiecte** elementul respectiv nu face încă nimic.
+Pagina **History** (`#/history`) acoperă fiecare creație din acest browser. Ca s-o deschizi, apasă butonul cu ceas din dreapta sus al ecranului principal sau al **Projects**, alege **Saved sessions** în meniul profilului (pe telefon, butonul rotund cu logo din dreapta sus) sau apasă **Open app history** în panoul History al unui instrument. Aplicațiile desktop și mobile nu au pagină History, deci acolo butonul cu ceas al ecranului principal și **Saved sessions** deschid în schimb **Your recent work**: cele mai recente sesiuni salvate și exporturi, cu un link spre Projects.
 
 - **Recente** listează creațiile tale, cele mai noi primele, cu **Continuă**.
 - **Changes** pune punctele de control, descărcările și rezultatele Convert pe o singură cronologie. O descărcare are **Reopen settings**.
@@ -174,7 +196,7 @@ Autentificările, cheile și fraza de acces pentru sincronizare rămân pe fieca
 ::: details Ce conține fișierul de rezervă
 Fișierul e numit `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (părțile numelui vin din profilul tău și sunt omise dacă nu sunt setate; `<n>` e un contor zilnic ca exporturile din aceeași zi să nu se suprapună). Conține profilul tău, cu folderele, coșul de gunoi, șabloanele și favoritele tale; fiecare sesiune salvată cu miniatura ei; imaginile, fonturile, logourile încărcate și copiile descărcărilor tale; sistemele tale de design; preferințele tale (temă, lățimea barei laterale, statistici locale de activitate); versiunile salvate și rezultatele din Convert; și, din aplicația web, istoricul versiunilor creațiilor tale.
 
-Cache-ul de catalog nu e inclus - se redescarcă singur pe dispozitivul nou. Fiecare parte are o sumă de control, așa că un fișier deteriorat în tranzit e depistat la import, în loc să fie restaurat pe jumătate stricat. Sesiunile salvate se relegă automat la imaginile tale importate. Aplicațiile web, desktop și mobile citesc același fișier; aplicația de terminal își scrie propria copie de rezervă mai simplă, pe care acest format n-o citește. **📦 Export my data & render everything** face același fișier plus o a doua arhivă zip cu fiecare sesiune salvată randată la rezultatul ei. (Specificația completă a formatului: [Transfer de date](/info/data-transfer.html).)
+Cache-ul catalogului nu este inclus - se descarcă singur din nou pe noul dispozitiv. Fiecare parte are sumă de control, deci un fișier deteriorat în tranzit este prins la import, nu restaurat pe jumătate stricat. Sesiunile salvate se relegă automat la imaginile tale importate. Aplicațiile web, desktop și mobile citesc același fișier; aplicația de terminal scrie un backup mai simplu al ei, pe care acest format nu îl citește. **Export my data & render everything** face același fișier plus un al doilea zip cu fiecare sesiune salvată randată în ieșirea ei. (Specificația completă a formatului: [Transferul de date](/info/data-transfer.html).)
 :::
 
 ## Dacă îți ștergi datele de browser
@@ -185,11 +207,13 @@ Cache-ul de catalog nu e inclus - se redescarcă singur pe dispozitivul nou. Fie
 Apasă **Exportă datele mele** sub **Setări → Stocare**, și păstrează fișierul altundeva.
 :::
 
-Când pornește aplicația, Lolly cere browserului să nu-i șteargă stocarea când dispozitivul rămâne fără spațiu. Browserul decide. Sub **Setări → Disponibil offline**, un rând care începe cu **Protected** înseamnă că browserul a fost de acord; „Browserul poate șterge descărcările dacă dispozitivul rămâne fără spațiu” înseamnă că n-a fost, iar **Protejează descărcările** întreabă din nou. Dacă browserul n-a fost de acord, poate șterge atât lucrarea salvată, cât și descărcările când spațiul se termină, așa că păstrează un fișier **Exportă datele mele** recent.
+Când pornește aplicația, Lolly cere browserului să nu-și șteargă stocarea când dispozitivul rămâne fără spațiu, iar browserul decide. În **Settings → Available offline**, o linie care începe cu **Protected** înseamnă că browserul a fost de acord. „The browser may clear downloads if the device runs low on space” înseamnă că nu, iar **Protect downloads** cere din nou.
+
+Dacă browserul nu a fost de acord, poate șterge munca salvată și descărcările când spațiul se termină, deci păstrează un fișier **Export my data** recent.
 
 **Setări → Stocare** arată cât spațiu folosește fiecare tip de date. Rândul ei **Istoric** numără punctele de control automate, previzualizările lor și ciornele de recuperare; **Elimină punctele de control automate mai vechi de 30 de zile** eliberează acel spațiu și păstrează versiunile salvate și cele denumite. **Golește cache-ul** elimină fișierele de catalog descărcate, care se descarcă din nou când e nevoie. **Șterge toate datele mele** îți cere să tastezi un cuvânt, oprește Sync, apoi elimină tot ce păstrează Lolly în acest browser: profilul și setările tale, sesiunile salvate împreună cu istoricul lor și Coșul de gunoi, încărcările, fonturile și sistemele de design, jurnalul de descărcări, rezultatele Convert, modelele AI descărcate și copiile offline. Fișierele pe care le-ai descărcat rămân unde le-ai salvat. Aplicația pornește apoi ca la prima vizită.
 
-![Cardul de stocare pe un ecran de lățimea unui telefon: fiecare categorie de date de pe dispozitiv, numită, cu butonul Clear all my data jos](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Cardul de stocare pe un ecran de lățime telefon: fiecare categorie de date de pe dispozitiv este numită, cu butonul Clear all my data jos](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 În aplicațiile desktop și mobile, sesiunile salvate sunt fișiere în propriul folder de date al aplicației, iar restul e în stocarea proprie a aplicației, așa că ștergerea unui browser web nu le atinge.
 

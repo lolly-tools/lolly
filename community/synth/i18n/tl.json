@@ -1,4 +1,4 @@
 {
   "name": "Synth",
-  "description": "Isang visual instrument na iyong tinutugtog. Apat na eksena ang tumatakbo nang live sa GPU: fluid ink, isang particle swarm na lumilipad papunta sa iyong headline o logo, isang feedback field, at ang sarili mong camera. Nanggagaling ang bawat kulay sa iyong brand palette, at gumagalaw ang larawan ayon sa iyong pointer, sa isang music track at sa isang MIDI controller. Mag-export ng still o ng seamless loop."
+  "description": "Isang visual na instrumentong tinutugtog mo. Apat na scene ang live na tumatakbo sa GPU: fluid ink, particle swarm na lumilipad papunta sa headline o logo mo, feedback field, at sarili mong camera. Bawat kulay ay galing sa palette ng design system, at gumagalaw ang larawan ayon sa pointer mo, music track at MIDI controller. Mag-export ng still o seamless na loop."
 }

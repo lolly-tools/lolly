@@ -1,0 +1,40 @@
+<!--
+  Concept: the five prepared layouts of Present with camera as small 16:9 tiles: Content only, Camera
+  inset, Side by side, Camera full screen and Holding screen.
+  Contract: static fragment scoped under .ply, reads the docs theme tokens with fallbacks, no script, no
+  motion, no network.
+  Sources: the Prepared scene options in shells/web/src/views/present-production/prepared-scenes.ts and
+  the layout table in docs/presenting.md.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ply{--ply-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ply-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ply-ground:hsl(var(--secondary,84.5 55% 92.2%));--ply-paper:hsl(var(--card,0 0% 100%));
+ --ply-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ply-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);
+ --ply-wash:color-mix(in oklab,var(--ply-accent) 12%,var(--ply-paper));
+ color:var(--ply-ink);background:var(--ply-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.ply *{box-sizing:border-box}
+.ply ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.ply li{list-style:none;margin:0;font-size:.82em;font-weight:500;display:flex;flex-direction:column;gap:6px}
+.ply .ply-tile{position:relative;aspect-ratio:16/9;border-radius:6px;background:var(--ply-wash);box-shadow:0 0 0 1px var(--ply-line);overflow:hidden}
+.ply .ply-content{position:absolute;inset:16% 40% 16% 10%;display:flex;flex-direction:column;gap:4px}
+.ply .ply-content i{display:block;height:5px;border-radius:2px;background:var(--ply-accent);opacity:.7}
+.ply .ply-content i+i{opacity:.25;background:var(--ply-ink);width:80%}
+.ply .ply-cam{position:absolute;background:var(--ply-paper);box-shadow:0 0 0 1px var(--ply-line);border-radius:4px}
+.ply .ply-cam::after{content:"";position:absolute;left:50%;top:50%;width:30%;aspect-ratio:1;transform:translate(-50%,-60%);border-radius:50%;background:var(--ply-muted);opacity:.35}
+.ply .ply-black{position:absolute;inset:0;background:#111}
+@container (max-width:560px){.ply ul{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container (max-width:340px){.ply ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+<div class="ply" role="group" aria-label="Five prepared layouts">
+  <ul>
+    <li><span class="ply-tile" role="img" aria-label="Slides fill the picture"><span class="ply-content" style="right:10%"><i></i><i></i><i></i></span></span>Content only</li>
+    <li><span class="ply-tile" role="img" aria-label="Slides with a small camera in the corner"><span class="ply-content"><i></i><i></i><i></i></span><span class="ply-cam" style="right:6%;bottom:10%;width:30%;height:38%"></span></span>Camera inset</li>
+    <li><span class="ply-tile" role="img" aria-label="Slides on the left, a tall camera on the right"><span class="ply-content" style="right:48%"><i></i><i></i><i></i></span><span class="ply-cam" style="right:5%;top:8%;width:38%;height:84%"></span></span>Side by side</li>
+    <li><span class="ply-tile" role="img" aria-label="The camera fills the picture"><span class="ply-cam" style="inset:0;border-radius:0"></span></span>Camera full screen</li>
+    <li><span class="ply-tile" role="img" aria-label="A black picture"><span class="ply-black"></span></span>Holding screen</li>
+  </ul>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ8Gp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnKanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpmZGMyOGM1ZC01ODRjLTQ4ZWEtYjM1YS1kNWJkYTQ2NDYyMzMAAAAESWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTA6MTBaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkN0mZsZW5ndGgZDaJkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIBOssG5BFB/sH2xtyU9fZHaqoO9yaki3CRjotuFiQrSTY3BhZEgAAAAAAAAAAAAAANJqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACeY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xycHJlc2VudGluZy1sYXlvdXRzZGRhdGV4GDIwMjYtMTAtMjNUMDU6NTA6MTAuODE2WmhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALQanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqFjYm9ypmhkYzp0aXRsZXJwcmVzZW50aW5nLWxheW91dHNqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6ZTNmNDYyZDQtMzI0ZS00NmY2LWJhMWItY2VmNDZkMjVlYThkdGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCAwr7EHe018PqgPTB3GH7Rtuo1jeTn38UOdEspydxZ6zaJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCAvgT1e+gzXxVGp2UELsE1ikxoJFoILQwGj0oIccGHQCKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggLLHNRd8dNtGTrn5s8+ChfOQedUP8Bw120ISDz3L96PSiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJianVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIyY2JvctKEWQHhogEmGCGBWQHYMIIB1DCCAXmgAwIBAgIJU1dbP3ME3U77MAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNTQ5MTBaFw0zNjEwMjAwNTUwMTBaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABPiMMYqFOSvYpf3HEO/ArAYKDnjok/SI2CCucPyz4IAhy/6pRV1S93zqpA5D58Bmu0H7OChDmlNGq2mNX1MBtkajcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBS+d7TA6kts57pODAeZrjfcFt5iUTAfBgNVHSMEGDAWgBS+d7TA6kts57pODAeZrjfcFt5iUTAKBggqhkjOPQQDAgNJADBGAiEAu8v2YKN47mDFSeW/mLxfXDhToWScn0jdBU7pih8ky7YCIQDK39bCEZL34bjs1qazNn7z7f0l4vjl8F433kKBOx7v9aD2WEDcAAY3si34UKyyrAgjfxW87JHj/ygZOhKj5Tt0psRCUyhx/Lh1U9/fcoL1MFAmZMbTxvaPxDvDsPf+KtgZX9WE -----END C2PA MANIFEST----- -->

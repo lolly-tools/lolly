@@ -1,4 +1,4 @@
 {
   "name": "Contrasto",
-  "description": "Controlla una coppia testo-sfondo, o tutti gli abbinamenti della tua palette brand, secondo gli standard WCAG 2.1 e APCA, e verifica come appare a chi ha il daltonismo."
+  "description": "Controlla una coppia testo e sfondo, o ogni abbinamento della palette del design system, secondo WCAG 2.1 e APCA, e vedi come appare a chi ha daltonismo."
 }

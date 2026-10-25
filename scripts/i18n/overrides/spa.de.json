@@ -1444,7 +1444,7 @@
   "Start timer": "Timer starten",
   "Stop sharing in your call before returning to the editor.": "Beenden Sie das Teilen in Ihrem Anruf, bevor Sie zum Editor zurückkehren.",
   "Stop {n} of {total}": "Station {n} von {total}",
-  "Summary only - no names or values": "Nur Zusammenfassung – keine Namen oder Werte",
+  "Summary only - no names or values": "Nur Zusammenfassung - keine Namen oder Werte",
   "Tables: CSV / TSV / XLSX": "Tabellen: CSV / TSV / XLSX",
   "Test your clicker": "Presenter testen",
   "Text comparison detail": "Details zum Textvergleich",
@@ -1688,5 +1688,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Noch keine Farbe ist auf eine exakte Druckfarbe festgelegt. Lege eine über die Druckeinstellung einer Farbe in {start} fest.",
   "Ink and paper": "Tinte und Papier",
   "Named colours": "Benannte Farben",
-  "Emphasis": "Betonung"
+  "Emphasis": "Betonung",
+  "Zoom to selection": "Auf Auswahl zoomen"
 }

@@ -2,24 +2,28 @@
 
 _Disemak kali terakhir: 28 September 2026._
 
-Lolly menjana aset daripada templat dan data pada peranti anda, dalam CI atau melalui API pelayan [lolly.work](https://lolly.work). Penyelesaian gabungan ini merangkumi pemaparan automatik serta identiti, dasar dan penghantaran di sekeliling tugas pengeluaran organisasi.
+Jika anda menjana imej daripada templat melalui API hari ini, halaman ini menyatakan bagaimana Lolly melakukan tugas yang sama pada peranti anda sendiri, dalam CI atau pada pelayan anda sendiri.
+
+## Apa yang API perenderan terhos lakukan dengan lebih baik
+
+[Bannerbear](https://www.bannerbear.com/) dan [Placid](https://placid.app/) membungkus perenderan sebagai perkhidmatan terurus, dengan infrastruktur, integrasi dan sokongan sendiri. Anda menghantar permintaan dan orang lain menjalankan pelayan.
 
 ## Di mana kedua-duanya bertindih
 
-[Bannerbear](https://www.bannerbear.com/) dan [Placid](https://placid.app/) menjana imej dan media lain daripada templat melalui API dan integrasi. Lolly menggunakan pendekatan yang sama iaitu templat ditambah input, dengan [mod URL](/info/url-mode.html), [CLI](/info/cli.html), grid kelompok dan titik akhir pelayan sebagai cara menghantar kerja.
+Kedua-duanya menukar templat ditambah input menjadi media. Lolly mengambil input daripada [pautan](/info/url-mode.html), [CLI](/info/cli.html), grid kelompok atau titik akhir pelayan.
 
-## Perkara yang disediakan oleh lolly.work
+## Bagaimana Lolly melakukan tugas yang bertindih
 
-lolly.work ialah perkhidmatan organisasi yang digunakan secara berasingan dalam projek Lolly. Ia menjalankan enjin Lolly di sebalik API, menggunakan keterlihatan alat dan dasar input, serta menyajikan fail yang dipaparkan dan pautan perkongsian bertandatangan. [Perkhidmatan pemaparan boleh pulih](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md)nya menyokong tugas individu dan kelompok, penyerahan idempoten, status, percubaan semula terhad, pembatalan dan output yang dikekalkan. Kerja yang terganggu boleh disambung semula selepas pelayan dimulakan semula apabila storan berterusan dikonfigurasikan.
+Alat yang sama merender pada komputer riba, dalam tugas CI atau pada pelayan, daripada input yang sama. Perenderan setempat dan CI tidak memerlukan perkhidmatan langsung.
 
-Pelayan menggunakan laluan pemaparan SVG/PNG yang pantas dan pekerja Chromium pilihan untuk alat yang memerlukan pelayar. Automasi disahkan dengan token perkhidmatan, dan output yang siap boleh dihantar melalui [penghantaran bertadbir](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) ke destinasi organisasi. Identiti penandatanganan yang dikonfigurasikan mengaktifkan penandatanganan C2PA pada output pelayan yang disokong.
+![Tetapan eksport Batch: nama fail, format lalai, unit, DPI dan bilangan baris untuk dirender](/info/shots/use-batch-toolbar.svg)
+
+Pada pelayan, [Lolly Work](/info/compare.html#what-runs-where) menjalankan enjin Lolly di sebalik API dan menggunakan keterlihatan alat dan dasar input. [Perkhidmatan render boleh dipulihkan](/info/work-renders.html)nya menyokong tugas tunggal dan kelompok, penyerahan idempoten, status, percubaan semula terhad, pembatalan dan output yang dikekalkan, dan kerja yang terganggu disambung semula selepas mula semula apabila storan berterusan dikonfigurasi.
+
+Pelayan mempunyai laluan SVG dan PNG pantas dan pekerja Chromium pilihan untuk alat yang memerlukan pelayar. Automasi log masuk dengan token perkhidmatan, output siap boleh melalui [penghantaran diluluskan](/info/work-delivery.html) ke destinasi organisasi, dan identiti penandatanganan yang dikonfigurasi menambah Content Credentials pada output yang disokong.
 
 ## Siapa yang menjalankan perkhidmatan
 
-Bannerbear dan Placid membungkus pemaparan sebagai perkhidmatan terurus dengan infrastruktur dan integrasi mereka sendiri. Dengan Lolly, individu boleh memaparkan secara setempat atau pasukan boleh mengendalikan lolly.work pada infrastrukturnya sendiri. Kedua-dua repositori Lolly ialah sumber terbuka MPL-2.0; hos kendiri tidak mempunyai caj lesen perisian setiap pemaparan, manakala pengiraan, storan dan operasi tetap menjadi kos yang perlu dirancang.
+Dengan Lolly, individu merender secara setempat, atau pasukan menjalankan Lolly Work pada infrastrukturnya sendiri. Menyerahkan tugas pelayan menghantar inputnya dan aset yang diperlukan kepada instans itu, yang berbeza daripada laluan pada peranti. Perkhidmatan tahan lama memerlukan pangkalan data berterusan dan storan output, dan alat bergantung pelayar memerlukan pekerja Chromium; [Install Lolly Work](/info/work-install.html) menerangkan kedua-duanya.
 
-Tapak awam lolly.work ialah kotak pasir penilaian, bukan komitmen pengehosan pengeluaran. Perkhidmatan yang berkekalan memerlukan pangkalan data dan storan output yang berterusan; alat yang bergantung pada pelayar memerlukan pekerja Chromium. [Panduan pemasangan](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) dan [halaman status](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) menerangkan keperluan itu dan had semasa.
-
-Pemaparan setempat dan CI kekal tersedia tanpa perkhidmatan organisasi. Menghantar tugas pelayan akan menghantar input dan aset yang diperlukan ke instans itu; ini berbeza daripada laluan pada peranti. Lihat [gambaran keseluruhan penyelesaian gabungan](/info/compare.html).
-
-Bannerbear dan Placid ialah tanda dagangan pemilik masing-masing. Halaman ini menerangkan di mana penyelesaian bertindih dan tidak berafiliasi dengan mana-mana daripadanya.
+Bannerbear dan Placid ialah cap dagangan pemiliknya. Halaman ini menerangkan di mana produk bertindih dan tidak bergabung dengan mana-mana daripadanya.

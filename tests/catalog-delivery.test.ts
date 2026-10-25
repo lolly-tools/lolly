@@ -2,10 +2,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { chmodSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { catalogToolFiles, materializeCatalogDelivery, publishCatalogIndexes, retainCatalogDelivery } from '../scripts/materialize-catalog-delivery.ts';
 import { verifyReleaseCatalog } from '../scripts/verify-release-catalog.ts';
 import { catalogFreshness, catalogIndexPath, CATALOG_SIG_ALG, sha256Hex, signCatalogEnvelope, toolDirectoryHash } from '../engine/src/catalog-integrity.ts';
@@ -176,4 +176,66 @@ test('freshness protects legacy floors, sequence adoption and explicit expiry', 
   assert.equal(catalogFreshness({ ...offered, seq: NaN }, null).ok, false);
   assert.equal(catalogFreshness({ ...offered, toolDirs: { demo: '../unsafe' } }, null).ok, false);
   await assert.rejects(toolDirectoryHash({ 'demo/../unsafe': 'a'.repeat(64) }, 'demo'), /invalid signed tool path/);
+});
+
+test('signer minimum sequence only raises the normal sequence and verifies unchanged', async t => {
+  const base = mkdtempSync(join(tmpdir(), 'lolly-catalog-min-seq-'));
+  t.after(() => rmSync(base, { recursive: true, force: true }));
+  const root = join(base, 'build'); fixture(root);
+  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  file(base, 'fixture.key.json', JSON.stringify(await crypto.subtle.exportKey('jwk', pair.privateKey)));
+  const publicKey = JSON.stringify(await crypto.subtle.exportKey('jwk', pair.publicKey));
+  const out = join(root, 'catalog/tools/index.sig.json');
+  const args = ['scripts/sign-catalog.ts', '--tools', join(root, 'tools'), '--index', join(root, 'catalog/tools/index.json'), '--keyfile', join(base, 'fixture.key.json')];
+  const run = (extra: string[] = [], env: NodeJS.ProcessEnv = {}) => spawnSync(process.execPath, [...args, ...extra], {
+    encoding: 'utf8', timeout: 10_000,
+    env: { ...process.env, VITE_CATALOG_PUBLIC_KEY_JWK: publicKey, LOLLY_CATALOG_MIN_SEQ: undefined, ...env },
+  });
+  const sign = async (expected: number, extra: string[] = [], env: NodeJS.ProcessEnv = {}) => {
+    const result = run(extra, env);
+    assert.equal(result.status, 0, result.stderr);
+    const envelope = JSON.parse(readFileSync(out, 'utf8')) as CatalogSignatureEnvelope;
+    assert.equal(envelope.seq, expected);
+    assert.equal((await verifyReleaseCatalog(root, publicKey)).verified, true);
+    assert.equal(catalogFreshness(envelope, { seq: expected, signedAt: envelope.signedAt }).ok, true);
+    return envelope;
+  };
+
+  const first = await sign(1);
+  file(base, 'previous.sig.json', JSON.stringify(first));
+  const previous = ['--previous-envelope', join(base, 'previous.sig.json')];
+  await sign(2);
+  await sign(2, [...previous, '--min-seq', '0']);
+  await sign(2, [...previous, '--min-seq', '1']);
+  await sign(2, [...previous, '--min-seq', '2']);
+  await sign(50, [...previous, '--min-seq', '50']);
+  await sign(51, ['--min-seq', '1']);
+  await sign(100, previous, { LOLLY_CATALOG_MIN_SEQ: '100' });
+  await sign(2, previous, { LOLLY_CATALOG_MIN_SEQ: '0' });
+  await sign(7, [...previous, '--min-seq', '7'], { LOLLY_CATALOG_MIN_SEQ: '100' });
+  await sign(7, [...previous, '--min-seq', '7'], { LOLLY_CATALOG_MIN_SEQ: 'invalid' });
+
+  rmSync(out);
+  await sign(500, ['--min-seq', '500']);
+  await sign(Number.MAX_SAFE_INTEGER, [...previous, '--min-seq', String(Number.MAX_SAFE_INTEGER)]);
+  const exhausted = run(['--min-seq', '0']);
+  assert.notEqual(exhausted.status, 0);
+  assert.match(exhausted.stderr, /Catalog sequence exhausted/);
+  file(base, 'previous.sig.json', JSON.stringify({ ...first, seq: 900 }));
+  const forged = run([...previous, '--min-seq', '1000']);
+  assert.notEqual(forged.status, 0);
+  assert.match(forged.stderr, /Previous catalog envelope did not verify/);
+
+  rmSync(out);
+  for (const value of ['-1', '1.5', 'NaN', 'Infinity', 'abc', '', ' ', '1e3', '0x10', '9007199254740992', '9007199254740993', '9007199254740991.1']) {
+    for (const source of ['flag', 'env']) {
+      const result = source === 'flag' ? run(['--min-seq', value]) : run([], { LOLLY_CATALOG_MIN_SEQ: value });
+      assert.notEqual(result.status, 0, `${source}: ${JSON.stringify(value)}`);
+      assert.match(result.stderr, /--min-seq (?:needs a value|\/ LOLLY_CATALOG_MIN_SEQ must be an integer between 0 and 9007199254740991)/);
+      assert.equal(existsSync(out), false);
+    }
+  }
+  const missing = run(['--min-seq']);
+  assert.notEqual(missing.status, 0);
+  assert.match(missing.stderr, /--min-seq needs a value/);
 });

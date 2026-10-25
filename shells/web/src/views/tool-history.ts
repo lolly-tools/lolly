@@ -32,7 +32,16 @@ export function historyTokenLinks(model: Array<{ id: string; restoreTokenRef?: s
   return Object.fromEntries(fields.map(id => [id, model.find(item => item.id === id)?.restoreTokenRef ?? null]));
 }
 
-/** One undoable edit: an input's value before and after a single gesture. */
+/**
+ * One undoable edit: an input's value before and after a single gesture.
+ *
+ * `before` and `after` are the values themselves, by reference, not copies. Model
+ * values are copy on write (a commit builds a new array and keeps the rows it did not
+ * change), so a kept value never changes afterwards, consecutive steps share every row
+ * they did not touch, and a hundred steps of a large document cost pointers rather than
+ * two hundred copies of the document. Development and test builds freeze what history
+ * keeps, so a write in place fails loudly there (`FREEZE_HISTORY_VALUES`).
+ */
 export interface HistoryEntry {
   id: string;
   /** The input's human name - what the undo/redo toast shows. */
@@ -43,6 +52,13 @@ export interface HistoryEntry {
   /** An atomic command can change several declared inputs together. */
   fields?: string[];
   tokenLinks?: { before: Record<string, string | null>; after: Record<string, string | null> };
+  /**
+   * The input's declared type, as `record` is told it: only a `file` input holds raw
+   * bytes (see `carriesBytes`), so only its values, or those of an entry that does not
+   * say, are walked for them. A command over several inputs says `file` when any of
+   * them is one. Not kept on the stored entry.
+   */
+  inputType?: string;
 }
 
 /** Entries kept before the oldest is dropped. */
@@ -56,14 +72,83 @@ export function cloneValue(v: InputValue): InputValue {
 }
 
 /**
- * Value equality for "did this edit actually change anything". JSON-based, so it
- * compares structurally rather than by reference; an unserialisable value (a
- * cycle, a function) reports NOT equal, which errs toward recording a step
- * rather than silently swallowing one.
+ * Development and test builds freeze every value history is handed. Model values are
+ * copy on write (a commit builds a new array and keeps the rows it did not change), and
+ * history relies on that: a value history keeps must never change afterwards. Freezing
+ * turns any code that writes to a model value in place into a TypeError where a test or
+ * a developer sees it, instead of a corrupted undo step in production. Production
+ * builds skip the walk.
+ */
+export const FREEZE_HISTORY_VALUES = import.meta.env?.PROD !== true;
+
+/**
+ * Deep-freeze a value's arrays and plain objects, in place, and return the value. Anything
+ * else (bytes, a Blob, a class instance) is left alone: freezing a typed array with
+ * elements throws, and an instance is not model data. An object already frozen is taken
+ * as frozen all the way down, so a commit that replaced one row walks that row only.
+ */
+export function freezeValue<T>(v: T): T {
+  if (!v || typeof v !== 'object' || Object.isFrozen(v)) return v;
+  if (!Array.isArray(v)) {
+    const proto: unknown = Object.getPrototypeOf(v);
+    if (proto !== Object.prototype && proto !== null) return v;
+  }
+  Object.freeze(v);
+  for (const child of Array.isArray(v) ? v : Object.values(v)) freezeValue(child);
+  return v;
+}
+
+/** A value as history keeps it: frozen in development and test builds. */
+const kept = (v: InputValue): InputValue => (FREEZE_HISTORY_VALUES ? freezeValue(v) : v);
+
+/** One element as `JSON.stringify` writes it inside an array. */
+const elementJson = (v: unknown): string => JSON.stringify(v) ?? 'null';
+
+/** A value `JSON.stringify` leaves out of an object. */
+const unwritten = (v: unknown): boolean => v === undefined || typeof v === 'function' || typeof v === 'symbol';
+
+function isPlainRecord(v: unknown): v is Record<string, unknown> {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
+  const proto: unknown = Object.getPrototypeOf(v);
+  return proto === Object.prototype || proto === null;
+}
+
+/** Two arrays, row by row: a row that is the same object is the same row, and only a
+ *  row that is not is serialised. */
+function sameRowsJson(a: readonly unknown[], b: readonly unknown[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i] && elementJson(a[i]) !== elementJson(b[i])) return false;
+  return true;
+}
+
+/**
+ * Value equality for "did this edit actually change anything". Structural, not by
+ * reference, and it answers exactly as comparing the two values' JSON would; an
+ * unserialisable value (a cycle, a function) reports NOT equal, which errs toward
+ * recording a step rather than silently swallowing one.
+ *
+ * Identity comes first at every level that costs: the whole value, each row of an
+ * array, and each value of a plain object such as a command's `{ input: value }`
+ * map. A commit keeps the rows it did not change by reference, so an edit to one box
+ * of a large document serialises that box, not the document.
  */
 export function sameValue(a: InputValue, b: InputValue): boolean {
   if (a === b) return true;
-  try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; }
+  try {
+    if (Array.isArray(a) && Array.isArray(b)) return sameRowsJson(a, b);
+    if (isPlainRecord(a) && isPlainRecord(b) && typeof a.toJSON !== 'function' && typeof b.toJSON !== 'function') {
+      const ka = Object.keys(a).filter((k) => !unwritten(a[k]));
+      const kb = Object.keys(b).filter((k) => !unwritten(b[k]));
+      if (ka.length !== kb.length || ka.some((k, i) => k !== kb[i])) return false;
+      return ka.every((k) => {
+        const x = a[k], y = b[k];
+        if (x === y) return true;
+        if (Array.isArray(x) && Array.isArray(y)) return sameRowsJson(x, y);
+        return JSON.stringify(x) === JSON.stringify(y);
+      });
+    }
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch { return false; }
 }
 
 /**
@@ -71,8 +156,13 @@ export function sameValue(a: InputValue, b: InputValue): boolean {
  *
  * Those are NOT recorded: the ref's object URL is revoked when the input is
  * replaced or cleared and there is no durable id to re-resolve from, so a
- * restored entry would point at a dead URL - and deep-cloning megabytes per
+ * restored entry would point at a dead URL - and keeping megabytes alive per
  * entry is wasteful.
+ *
+ * Only a `file` input holds such a ref, so `record` walks a value for bytes only when
+ * its entry is a file input's or does not say what it is (`HistoryEntry.inputType`):
+ * walking every row of a large document on every edit, to find bytes no row can
+ * hold, was one of the whole-document passes each Design edit paid.
  *
  * Note what this does NOT test: the URL. A `blob:`/`data:` URL *without* bytes is
  * fine to record, because an asset ref ({source, id, url}) re-derives its URL
@@ -212,9 +302,11 @@ export function createHistory(opts: { limit?: number; coalesceMs?: number } = {}
   let holding = false;
 
   return {
-    record({ id, label, before, after, collabStamp, fields, tokenLinks }, now) {
+    record({ id, label, before, after, collabStamp, fields, tokenLinks, inputType }, now) {
       if (sameValue(before, after) && sameValue(tokenLinks?.before ?? null, tokenLinks?.after ?? null)) return 'ignored';
-      if (carriesBytes(after) || carriesBytes(before)) return 'ignored';
+      if ((inputType === undefined || inputType === 'file') && (carriesBytes(after) || carriesBytes(before))) return 'ignored';
+      // Kept by reference: for a plain write, the model's own values.
+      kept(before); kept(after);
 
       const last = undoStack[undoStack.length - 1];
       const structural = Array.isArray(before) && Array.isArray(after) && before.length !== after.length;
@@ -222,11 +314,11 @@ export function createHistory(opts: { limit?: number; coalesceMs?: number } = {}
       const decision = structural || bindingChange;
       let outcome: RecordOutcome;
       if (!decision && last && lastRecordId === id && JSON.stringify(last.fields) === JSON.stringify(fields) && (holding || now - lastRecordTime < coalesceMs)) {
-        last.after = cloneValue(after);   // extend the gesture, keep its original `before`
+        last.after = after;   // extend the gesture, keep its original `before`
         if (tokenLinks) last.tokenLinks = { before: last.tokenLinks?.before ?? { ...tokenLinks.before }, after: { ...tokenLinks.after } };
         outcome = 'coalesced';
       } else {
-        undoStack.push({ id, label, before: cloneValue(before), after: cloneValue(after), ...(collabStamp !== undefined ? { collabStamp } : {}), ...(fields ? { fields: [...fields] } : {}), ...(tokenLinks ? { tokenLinks: structuredClone(tokenLinks) } : {}) });
+        undoStack.push({ id, label, before, after, ...(collabStamp !== undefined ? { collabStamp } : {}), ...(fields ? { fields: [...fields] } : {}), ...(tokenLinks ? { tokenLinks: structuredClone(tokenLinks) } : {}) });
         if (undoStack.length > limit) undoStack.shift();
         outcome = 'pushed';
       }

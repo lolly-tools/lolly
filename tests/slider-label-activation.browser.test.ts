@@ -60,6 +60,17 @@ test('slider gestures never activate help or token actions through a wrapping la
     ` });
     await page.waitForSelector('#fixture[data-ready="true"]').catch(error => { throw new Error(errors.join('\n') || String(error)); });
     assert.deepEqual(errors, []);
+    const closeActions = async (): Promise<void> => {
+      await page.keyboard.press('Escape');
+      await page.locator('.input-rule-menu').waitFor({ state: 'detached' });
+      // Touch menus pop a history entry after detaching. Finish that traversal
+      // before reopening a menu, so pending Back calls cannot leave the fixture.
+      await page.evaluate(async () => {
+        const path = '/src/lib/overlay-back.ts';
+        const { overlaysClosed } = await import(path);
+        await overlaysClosed();
+      });
+    };
     for (const id of ['helpFirst', 'actionsFirst', 'unlinked', 'upgraded']) {
       const row = page.locator(`[data-row="${id}"]`);
       const slider = row.getByRole('slider', { name: id, exact: true });
@@ -125,13 +136,11 @@ test('slider gestures never activate help or token actions through a wrapping la
       await page.locator('.input-rule-menu [data-token-choose]').waitFor();
       await page.locator('.input-rule-menu [data-token-choose]').click();
       await page.locator('.input-rule-menu [data-token-options]:not([hidden])').waitFor();
-      await page.keyboard.press('Escape');
-      await page.locator('.input-rule-menu').waitFor({ state: 'detached' });
+      await closeActions();
       await row.locator('.input-rule-actions').focus();
       await page.keyboard.press('Enter');
       await page.locator('.input-rule-menu').waitFor();
-      await page.keyboard.press('Escape');
-      await page.locator('.input-rule-menu').waitFor({ state: 'detached' });
+      await closeActions();
     }
     await page.locator('[data-row="native"] .input-label-text').click();
     assert.equal(await page.locator('[data-row="native"] input').evaluate(el => el === document.activeElement), true);

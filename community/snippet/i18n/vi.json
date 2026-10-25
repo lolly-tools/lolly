@@ -1,6 +1,6 @@
 {
   "name": "Đoạn mã",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Trình bày văn bản trong cửa sổ máy tính, dưới dạng ảnh tĩnh hoặc một tương tác được dàn dựng với gõ chữ, vùng chọn, tự hoàn thành và chuyển động.",
   "inputs.code.label": "Mã",
   "inputs.code.placeholder": "Dán mã của bạn vào đây…",
   "inputs.fileName.label": "Tên tệp",

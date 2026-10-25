@@ -1687,5 +1687,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Nicio culoare nu este încă blocată pe o cerneală exactă. Blochează una din setarea de tipar a unei culori în {start}.",
   "Ink and paper": "Cerneală și hârtie",
   "Named colours": "Culori denumite",
-  "Emphasis": "Accent"
+  "Emphasis": "Accent",
+  "Zoom to selection": "Zoom la selecție"
 }

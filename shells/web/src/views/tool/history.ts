@@ -15,7 +15,7 @@ import { modelToValues } from '../../../../../engine/src/inputs.js';
 import type { InputValue } from '../../../../../engine/src/inputs.js';
 import type { DesignIntent } from '../design-workspace.ts';
 import { escape as escapeText } from '../../utils.ts';
-import { cloneValue, describeRowChange, sameValue } from '../tool-history.ts';
+import { describeRowChange, sameValue } from '../tool-history.ts';
 import { canBatchTool, singleFileInputId } from '../../capabilities.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
@@ -109,7 +109,9 @@ export const applyHistory = (tview: ToolViewCtx, id: string, value: InputValue, 
   tview.applyingHistory = true;
   inputHistory.endGesture(); // an undo/redo ends any gesture - the next edit starts a new step
   try {
-    void runtime.setInput(id, cloneValue(value), { restoreTokenRefs }).catch(error => announce(String(error)));
+    // The kept value itself: history holds values by reference, and model writes are
+    // copy on write, so the model may share it with the entry (see tool-history.ts).
+    void runtime.setInput(id, value, { restoreTokenRefs }).catch(error => announce(String(error)));
   } finally {
     tview.applyingHistory = false;
   }

@@ -18,7 +18,8 @@
  * `info`); a brand value to review is `warn` and one that could not be compared
  * is `info`; a required house rule broken is `error` and an advisory one `warn`;
  * a Verify clue is `warn` (`error` under `strict`, decision D1) and a clue the
- * context explains is `info`.
+ * context explains is `info`; the writing score is `warn` at the strong band and
+ * `info` for every lower band, never `error`, and a check's exit code leaves it out.
  *
  * Pure: no DOM, no clock, no network.
  */
@@ -29,6 +30,7 @@ import type {
 } from '@lolly-tools/core/check-v1';
 import type { DesignFindingV1 } from '@lolly-tools/core';
 import type { BrandFinding } from './brand-check.ts';
+import type { CreationFeedbackWriting } from './creation-feedback.ts';
 import type { ForensicBox, ForensicFinding, ForensicLocation, ForensicReport } from './forensic/types.ts';
 import { designForensicPages, type DesignForensicOptions, type DesignForensicRef } from './forensic/design.ts';
 import { forensicReport } from './forensic/report.ts';
@@ -299,6 +301,43 @@ export function checkFindingsFromHouseRules(
     ...result.findings.map((f) => checkFindingFromHouseRule(f, lookup)),
     ...result.unknown.map(checkFindingFromUnknownHouseRule),
   ];
+}
+
+/** The writing score's finding code. It informs and never counts toward an exit code. */
+export const WRITING_SCORE_CODE = 'verify.writing-score';
+
+/**
+ * The writing score of a Design document (`designWritingScore`) as one `verify`
+ * finding: `warn` at the strong band, `info` for every lower band, never `error`, `strict` or
+ * not. The message carries the engine's own summary sentence. Null when the
+ * document draws no visible text, since there was nothing to score.
+ */
+export function checkFindingFromWritingScore(writing: CreationFeedbackWriting & { hidden?: number }): CheckFindingV1 | null {
+  if (writing.state !== 'scored') return null;
+  const layers = [...new Set(writing.phrases.map((p) => p.layerId))];
+  const evidence: Record<string, string | number | boolean | null> = {
+    score: writing.score,
+    band: writing.band,
+    lexicon: writing.lexicon,
+    textLayers: writing.textLayers,
+    characters: writing.characters,
+    partial: writing.partial,
+  };
+  if (layers.length) evidence.layers = layers.join(',');
+  if (writing.phrases.length) evidence.phrases = writing.phrases.slice(0, 3).map((p) => `"${p.text}" (${p.layerId})`).join('; ');
+  if (writing.hidden) evidence.hiddenLayers = writing.hidden;
+  return {
+    code: WRITING_SCORE_CODE,
+    family: 'verify',
+    severity: writing.band === 'strong' ? 'warn' : 'info',
+    message: `Writing signal (${writing.band}): ${writing.summary}`,
+    ...(writing.band === 'strong' ? { needs: 'review' as const } : {}),
+    evidence: evidence as Evidence,
+    suggestion: writing.band === 'none'
+      ? 'Nothing to act on. The score informs and never changes the exit code.'
+      : 'Revise the flagged phrases in the named layers where they do not read as intended. The score is a signal, not a verdict, and never changes the exit code.',
+    origin: { checker: 'forensic', id: 'writing-score', method: 'original-text' },
+  };
 }
 
 export interface ForensicMapOptions {

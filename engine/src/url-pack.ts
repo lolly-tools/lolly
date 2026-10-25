@@ -64,7 +64,7 @@ const TAG_DEFLATE_B32 = '2';
 // inflate - a decompression bomb must not hang the tab. Both sit far above any real
 // state (even a huge multi-hundred-box layout readable-serialises to a few tens of KB).
 const MAX_TOKEN = 64 * 1024;      // reject an absurdly long z value before decoding
-const MAX_UNPACKED = 256 * 1024;  // abort inflation past this many output bytes
+export const MAX_UNPACKED = 256 * 1024;  // abort inflation past this many output bytes
 
 // --- base64url <-> bytes (URL-safe, unpadded) -------------------------------
 // btoa/atob are globals in browsers and Node 18+. Values are ≤ a few KB, so the

@@ -392,6 +392,16 @@ export function buildToolbar(fc: FcCtx): void {
           });
         }
       }
+      // Which artboard titles show (frame-titles.ts): a device-local view preference
+      // beside the rulers, cycled like the slide transition row below.
+      if (fc.frameCfg) {
+        items.push({
+          label: `${t('Artboard titles')}: ${fc.frameTitles.titleModeLabel(fc.titleMode)}`,
+          icon: icon(SVG.frame),
+          key: 'artboard-titles',
+          run: () => fc.frameTitles.cycleTitleMode(),
+        });
+      }
       items.push(scaleRow, grabRow);
       items.push({
         label: t('Keyboard shortcuts'),

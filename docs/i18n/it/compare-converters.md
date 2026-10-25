@@ -2,16 +2,20 @@
 
 _Ultima verifica: 28 settembre 2026._
 
-Lolly converte i file nel browser, sul tuo dispositivo: da HEIC a JPG, da PNG a SVG, da PDF a immagini e molte altre combinazioni. Consulta [tutti i formati che Lolly può aprire e creare](/info/formats.html) per le conversioni supportate e i loro limiti.
+Se di solito cerchi "HEIC to JPG" o "compress PDF" e carichi il file sul primo sito che compare, Lolly fa la stessa conversione nel tuo browser, sul tuo dispositivo.
+
+## Cosa può fare meglio un sito di conversione
+
+Alcuni siti di conversione gestiscono formati che Lolly non gestisce e non richiedono alcuna configurazione preliminare. Scegli un convertitore in base ai formati e alla fedeltà che ti servono oltre che a dove elabora il file: alcune conversioni mantengono la struttura modificabile e altre appiattiscono il risultato.
 
 ## Dove avviene la conversione
 
-Un convertitore basato su browser può caricare un file per elaborarlo oppure convertirlo in locale. Le utilità di Lolly sul dispositivo elaborano il file in locale, senza account, pubblicità o tracker. Non aggiungono filigrane Lolly né metadati di provenienza. Una volta disponibili gli asset di conversione necessari, possono lavorare offline; la dimensione del file è limitata dalla memoria del dispositivo e dallo specifico lettore del formato.
+Un convertitore nel browser può caricare un file per elaborarlo oppure convertire in locale. Le utility di conversione di Lolly elaborano il file in locale, senza account, pubblicità né tracker, e non aggiungono filigrana di Lolly né Content Credentials. Una volta salvate le risorse di cui una conversione ha bisogno, funzionano offline. La dimensione del file è limitata dalla memoria del dispositivo e dal lettore del formato specifico.
 
-Scegli un convertitore in base ai formati e alla fedeltà di cui hai bisogno, oltre che a dove elabora il file. Alcune conversioni preservano la struttura modificabile, altre appiattiscono il risultato; le pagine sui formati di Lolly descrivono queste differenze.
+![La vista Utilities: Strip Hidden Data, Compress PDF, Convert Image e gli altri lavori sul dispositivo in un unico posto](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+
+[Every format Lolly can open and make](/info/formats.html) elenca le conversioni supportate e i loro limiti, comprese HEIC in JPG, PNG in SVG e PDF in immagini.
 
 ## Quando un team ha bisogno di più
 
-[lolly.work](https://lolly.work) è il servizio per organizzazioni del progetto Lolly, distribuito separatamente. Aggiunge SSO, SCIM, cataloghi condivisi, approvazioni, reportistica e rendering lato server per i flussi di produzione supportati. Entrambe le parti sono open source con licenza MPL-2.0. Un'organizzazione può usarle insieme mentre i suoi membri continuano a usare le utilità sul dispositivo per le conversioni locali.
-
-La distinzione conta per la gestione dei dati: una conversione locale mantiene il file sul dispositivo, mentre scegliere un caricamento condiviso, un rendering lato server o una consegna invia i dati pertinenti ai servizi configurati. La [panoramica della soluzione combinata](/info/compare.html) spiega la separazione.
+I membri di un'organizzazione continuano a usare le utility sul dispositivo per le conversioni locali anche quando l'organizzazione usa Lolly Work. Un caricamento condiviso, un rendering sul server o una consegna è il punto in cui i dati vanno al suo server; [What runs where](/info/compare.html#what-runs-where) spiega la separazione.

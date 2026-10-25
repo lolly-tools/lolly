@@ -2,24 +2,28 @@
 
 _最後核查：2026 年 9 月 28 日。_
 
-Lolly 可在你的裝置上、CI 中或透過 [lolly.work](https://lolly.work) 的伺服器 API，根據模板和資料生成資產。該組合方案既涵蓋自動化渲染，也涵蓋圍繞組織製作任務的身份、策略和交付。
+如果你目前透過 API 從範本生成圖片，本頁說明 Lolly 如何在你自己的裝置上、CI 中或你自己的伺服器上完成同樣的工作。
+
+## 託管渲染 API 做得更好的地方
+
+[Bannerbear](https://www.bannerbear.com/) 與 [Placid](https://placid.app/) 把渲染包裝成託管服務，擁有自己的基礎架構、整合與支援。你送出請求，伺服器由別人運行。
 
 ## 重疊之處
 
-[Bannerbear](https://www.bannerbear.com/) 和 [Placid](https://placid.app/) 透過 API 和整合，根據模板生成影象和其他媒體。Lolly 採用同樣的“模板加輸入”方式，並提供 [URL 模式](/info/url-mode.html)、[CLI](/info/cli.html)、批次網格和伺服器端點作為提交任務的途徑。
+兩者都把範本加輸入變成媒體。Lolly 從[連結](/info/url-mode.html)、[CLI](/info/cli.html)、批次格線或伺服器端點取得輸入。
 
-## lolly.work 提供什麼
+## Lolly 如何完成重疊的工作
 
-lolly.work 是 Lolly 專案中獨立部署的組織服務。它在 API 之後執行 Lolly 引擎，應用工具可見性和輸入策略，並提供渲染後的檔案和簽名的分享連結。其[可恢復渲染服務](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md)支援單個任務和批次任務、冪等提交、狀態、有限次重試、取消以及保留輸出。配置了持久化儲存時，中斷的任務可在伺服器重啟後繼續。
+同一個工具以相同的輸入在筆記型電腦、CI 工作或伺服器上渲染。本機與 CI 渲染完全不需要任何服務。
 
-伺服器使用快速的 SVG/PNG 渲染路徑，以及供需要瀏覽器的工具使用的可選 Chromium 工作程序。自動化透過服務令牌認證，完成的輸出可經[受治理的交付](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md)傳送到組織的目的地。配置簽名身份後，即可對受支援的伺服器輸出進行 C2PA 簽名。
+![Batch 匯出設定：檔名、預設格式、單位、DPI 與要渲染的列數](/info/shots/use-batch-toolbar.svg)
+
+在伺服器上，[Lolly Work](/info/compare.html#what-runs-where) 在 API 後方運行 Lolly 引擎，並套用工具可見度與輸入政策。其[可復原的渲染服務](/info/work-renders.html)支援單一工作與批次、冪等提交、狀態、有上限的重試、取消與保留的輸出，而在設定了持久儲存時，中斷的工作會在重新啟動後繼續。
+
+伺服器有快速的 SVG 與 PNG 路徑，以及供需要瀏覽器的工具使用的選用 Chromium worker。自動化以服務權杖登入，完成的輸出可以經由[核准的交付](/info/work-delivery.html)送到組織的目的地，而已設定的簽署身分會為支援的輸出加入 Content Credentials。
 
 ## 誰來執行服務
 
-Bannerbear 和 Placid 將渲染打包為託管服務，使用各自的基礎設施和整合。使用 Lolly 時，個人可以在本地渲染，團隊也可以在自己的基礎設施上執行 lolly.work。Lolly 的兩個倉庫均以 MPL-2.0 開源；自託管沒有按渲染次數計算的軟體許可費用，但計算、儲存和運維仍是需要規劃的成本。
+使用 Lolly，個人在本機渲染，或團隊在自己的基礎架構上運行 Lolly Work。提交伺服器工作會把它的輸入與必要的素材傳送到該實例，這與裝置端路徑不同。持久的服務需要持久的資料庫與輸出儲存，而依賴瀏覽器的工具需要 Chromium worker；[安裝 Lolly Work](/info/work-install.html) 說明了兩者。
 
-公共 lolly.work 站點是評估用的沙盒環境，並非生產託管承諾。長期執行的服務需要持久化的資料庫和輸出儲存；依賴瀏覽器的工具需要 Chromium 工作程序。[安裝指南](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md)和[狀態頁](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md)說明了這些要求和當前的限制。
-
-本地渲染和 CI 渲染無需組織服務即可使用。提交伺服器任務會將其輸入和所需資產傳送到該例項；這與裝置端路徑不同。參見[組合方案概覽](/info/compare.html)。
-
-Bannerbear 和 Placid 是其各自所有者的商標。本頁說明各方案的重疊之處，與兩者均無關聯。
+Bannerbear 與 Placid 是其擁有者的商標。本頁描述產品重疊之處，與兩者皆無關聯。

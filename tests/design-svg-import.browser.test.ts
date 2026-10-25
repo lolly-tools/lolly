@@ -28,7 +28,7 @@ test('SVG import keeps brand font snapping, fits both text layers and offers Typ
     await page.keyboard.press('Enter');
     await page.getByRole('heading', { name: 'This design uses your brand fonts' }).waitFor();
     assert.match(await page.locator('dialog').innerText(), /Arial/);
-    assert.match(await page.locator('dialog').innerText(), /Make it yours → Type/);
+    assert.match(await page.locator('dialog').innerText(), /Design System Setup → Type/);
     const headline = page.locator('#tool-canvas .lolly-box-text').filter({ hasText: 'Welcome to Northstar' });
     const supportingText = page.locator('#tool-canvas .lolly-box-text').filter({ hasText: 'Make something useful together.' });
     const textMetrics = () => page.locator('#tool-canvas .lolly-box-text').evaluateAll(elements => elements.filter(el => el.textContent?.trim()).map(el => {

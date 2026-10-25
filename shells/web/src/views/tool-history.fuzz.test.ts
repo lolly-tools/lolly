@@ -14,7 +14,9 @@
  *   - an edit that changes something always clears the redo stack;
  *   - undoing everything returns the document to where it started, and redoing
  *     everything returns it to where it was, with identical JSON;
- *   - the editor mutating its own state in place never reaches the history;
+ *   - the editor writes copy on write, as the real one does (a commit builds a new
+ *     array and keeps the rows it did not change), and a write in place to anything
+ *     history was handed fails loudly in a test build, because history freezes it;
  *   - a structural edit (a row added or removed) never merges into another step.
  *
  * The same seeds always produce the same sequences. A failure message gives the
@@ -24,7 +26,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHistory, COALESCE_MS } from './tool-history.ts';
+import { createHistory, COALESCE_MS, FREEZE_HISTORY_VALUES } from './tool-history.ts';
 
 type Box = { id: string; x: number; y: number; text: string };
 type Doc = { boxes: Box[]; title: string; color: string };
@@ -57,9 +59,9 @@ function run(seed: number, steps: number, limit = 100_000) {
   let last: { id: string; time: number; structural: boolean } | null = null;
   const where = (step: number, what: string) => `seed ${seed}, step ${step}: ${what}`;
 
-  /** Make an edit the way the view does: read before, change the live state, record. */
+  /** Make an edit the way the view does: read before, write a new value, record both. */
   function edit(step: number, id: keyof Doc, change: () => void, label: string) {
-    const before = clone(doc[id]);
+    const before = doc[id];
     change();
     const after = doc[id];
     const outcome = history.record({ id, label, before: before as never, after: after as never }, now);
@@ -81,7 +83,7 @@ function run(seed: number, steps: number, limit = 100_000) {
       const e = history.undo();
       if (e) {
         assert.equal(json(doc[e.id as keyof Doc]), json(e.after), where(step, `undo of ${e.id} starts from what it holds now`));
-        (doc as Record<string, unknown>)[e.id] = clone(e.before);
+        (doc as Record<string, unknown>)[e.id] = e.before;
         history.endGesture();
         last = null;
       } else {
@@ -91,7 +93,7 @@ function run(seed: number, steps: number, limit = 100_000) {
       const e = history.redo();
       if (e) {
         assert.equal(json(doc[e.id as keyof Doc]), json(e.before), where(step, `redo of ${e.id} starts from what it holds now`));
-        (doc as Record<string, unknown>)[e.id] = clone(e.after);
+        (doc as Record<string, unknown>)[e.id] = e.after;
         history.endGesture();
         last = null;
       }
@@ -100,15 +102,18 @@ function run(seed: number, steps: number, limit = 100_000) {
       last = null;
     } else if (r < 0.4 && doc.boxes.length) {
       const b = pick(doc.boxes);
-      edit(step, 'boxes', () => { b.x += Math.round(rand() * 40 - 20) || 1; }, 'Move');
+      const dx = Math.round(rand() * 40 - 20) || 1;
+      edit(step, 'boxes', () => { doc.boxes = doc.boxes.map((row) => (row === b ? { ...row, x: row.x + dx } : row)); }, 'Move');
     } else if (r < 0.5) {
-      edit(step, 'boxes', () => { doc.boxes.push({ id: `b${nextBox++}`, x: Math.round(rand() * 500), y: 0, text: 'new' }); }, 'Add');
+      const row = { id: `b${nextBox++}`, x: Math.round(rand() * 500), y: 0, text: 'new' };
+      edit(step, 'boxes', () => { doc.boxes = [...doc.boxes, row]; }, 'Add');
     } else if (r < 0.58 && doc.boxes.length > 1) {
       const i = Math.floor(rand() * doc.boxes.length);
-      edit(step, 'boxes', () => { doc.boxes.splice(i, 1); }, 'Delete');
+      edit(step, 'boxes', () => { doc.boxes = doc.boxes.filter((_, k) => k !== i); }, 'Delete');
     } else if (r < 0.7 && doc.boxes.length) {
       const b = pick(doc.boxes);
-      edit(step, 'boxes', () => { b.text += pick(['a', 'b', ' ', '!']); }, 'Text');
+      const typed = pick(['a', 'b', ' ', '!']);
+      edit(step, 'boxes', () => { doc.boxes = doc.boxes.map((row) => (row === b ? { ...row, text: row.text + typed } : row)); }, 'Text');
     } else if (r < 0.85) {
       edit(step, 'title', () => { doc.title += pick(['x', 'y', 'z']); }, 'Title');
     } else if (r < 0.95) {
@@ -129,12 +134,12 @@ for (const seed of [1, 7, 42, 2026, 99_991]) {
     const end = clone(doc);
     for (let e = history.undo(); e; e = history.undo()) {
       assert.equal(json(doc[e.id as keyof Doc]), json(e.after));
-      (doc as Record<string, unknown>)[e.id] = clone(e.before);
+      (doc as Record<string, unknown>)[e.id] = e.before;
     }
     assert.equal(json(doc), json(start), 'undo all reaches the first state');
     for (let e = history.redo(); e; e = history.redo()) {
       assert.equal(json(doc[e.id as keyof Doc]), json(e.before));
-      (doc as Record<string, unknown>)[e.id] = clone(e.after);
+      (doc as Record<string, unknown>)[e.id] = e.after;
     }
     assert.equal(json(doc), json(end), 'redo all reaches the last state');
   });
@@ -146,19 +151,19 @@ test('a small limit keeps the newest steps, and each still undoes cleanly from w
     assert.ok(history.sizes().undo <= 25);
     for (let e = history.undo(); e; e = history.undo()) {
       assert.equal(json(doc[e.id as keyof Doc]), json(e.after), `seed ${seed}: kept steps stay consistent`);
-      (doc as Record<string, unknown>)[e.id] = clone(e.before);
+      (doc as Record<string, unknown>)[e.id] = e.before;
     }
   }
 });
 
-test('the history never shares objects with the live document', () => {
+test('an editor that writes in place to a recorded value fails loudly in a test build', () => {
+  assert.equal(FREEZE_HISTORY_VALUES, true, 'node tests are a test build');
   const history = createHistory();
-  const boxes: Box[] = [{ id: 'a', x: 0, y: 0, text: 't' }];
-  const before = clone(boxes);
-  boxes[0]!.x = 10;
+  const before: Box[] = [{ id: 'a', x: 0, y: 0, text: 't' }];
+  const boxes = before.map((row) => ({ ...row, x: 10 }));
   history.record({ id: 'boxes', label: 'Move', before: before as never, after: boxes as never }, 0);
-  boxes[0]!.x = 999; // the editor keeps going without recording
-  boxes.push({ id: 'b', x: 1, y: 1, text: 'u' });
+  assert.throws(() => { boxes[0]!.x = 999; }, TypeError, 'a recorded row cannot change underneath history');
+  assert.throws(() => { boxes.push({ id: 'b', x: 1, y: 1, text: 'u' }); }, TypeError, 'nor can a recorded array');
   const e = history.undo()!;
   assert.equal((e.after as unknown as Box[])[0]!.x, 10);
   assert.equal((e.after as unknown as Box[]).length, 1);

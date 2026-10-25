@@ -10,6 +10,13 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.283 creation feedback: house rules and the writing score in one report that informs and never blocks.
+  'CREATION_FEEDBACK_FORMAT', 'CREATION_FEEDBACK_TEXT_LIMIT', 'CREATION_FEEDBACK_VERSION',
+  'CreationFeedbackDeltaV1', 'CreationFeedbackHouseRules', 'CreationFeedbackOpts', 'CreationFeedbackPhrase',
+  'CreationFeedbackReportV1', 'CreationFeedbackSignal', 'CreationFeedbackWriting',
+  'DesignTextSegment', 'DesignVisibleText', 'DesignVisibleTextOpts',
+  'WRITING_SCORE_CODE', 'checkFindingFromWritingScore',
+  'creationFeedback', 'creationFeedbackDelta', 'designVisibleText', 'designWritingScore',
   // Additive 1.262 static-copy findings for layouts declared in legacy Penpot SVG.
   'LayoutFinding', 'PenpotSvgLayout', 'penpotSvgLayoutFindings',
   // Additive 1.262 data conversion choices and the all-worksheets manifest.
@@ -74,6 +81,37 @@ const EXPECTED: readonly string[] = [
   'combinationPolicy',
   'designBrief',
   'designHouseRules',
+  // 1.282 (plan 323): brand skills as design-system assets.
+  'AdmittedBrandSkillV1',
+  'BrandSkillAdmissionV1',
+  'BrandSkillCatalogAssetV1',
+  'BrandSkillCoverageFactsV1',
+  'BrandSkillCoverageRowV1',
+  'BrandSkillCoverageStatusV1',
+  'BrandSkillCoverageV1',
+  'BrandSkillExportInputV1',
+  'BrandSkillExportModeV1',
+  'BrandSkillExportV1',
+  'BrandSkillFindingV1',
+  'BrandSkillFreshnessV1',
+  'BrandSkillHeadingV1',
+  'BrandSkillLinkClassV1',
+  'BrandSkillLinkV1',
+  'ParsedBrandSkillV1',
+  'SvgFamilyMeasureV1',
+  'admitBrandSkill',
+  'baselineBrandSkill',
+  'brandSkillCoverage',
+  'brandSkillCoverageFacts',
+  'brandSkillFilesSize',
+  'brandSkillFreshness',
+  'brandSkillScopeHints',
+  'brandSkillsSection',
+  'classifyBrandSkillLinks',
+  'exportBrandSkillFolder',
+  'measureSvgFamily',
+  'parseBrandSkill',
+  'spreadExemplars',
   // 1.244 (plan 291 W1): check findings from every Design checker, Verify by source geometry, fidelity.
   'CheckFidelityOptions',
   'CheckFidelityResult',
@@ -266,6 +304,8 @@ const EXPECTED: readonly string[] = [
   'DesignRecord', 'MadeWithPreview', 'designRecordCarrier', 'designRecordEnvironment', 'designRecordFrom',
   'designRecordWords', 'pdfKeywords', 'readDesignRecord', 'readDesignRecordXml', 'readFileDesignRecord',
   'themesSelection', 'toolCredit',
+  // Additive 1.282 (plan 323): the brand skills that guided an agent-made export, as words.
+  'guidedByWords',
   // 1.265 (plans/319): theme-group meaning and colourways.
   'readTokenAxes',
   'axisOfKind',

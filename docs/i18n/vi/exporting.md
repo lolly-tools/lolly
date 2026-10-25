@@ -1,8 +1,10 @@
-# Xuất & Định dạng
+# Xuất một tệp
 
-Nhấn **Export** trên nút **Export | Save as** của một công cụ, chọn một định dạng từ menu bên cạnh tên tệp, rồi nhấn **Download**. Một lần tải xuống thông thường được thực hiện ngay trên thiết bị của bạn. Phần phê duyệt của tổ chức và các tùy chọn phân phối được nêu bên dưới.
+Bạn đã làm ra thứ gì đó và nó cần rời Lolly: một PNG cho cuộc trò chuyện, một PDF cho nhà in, một bộ trang mà đồng nghiệp sẽ tiếp tục chỉnh sửa. Nhấn **Export**, nửa trái của viên thuốc **Export | Save**. Chọn định dạng bên cạnh tên tệp, rồi nhấn **Download**. Tệp được tạo trên thiết bị của bạn.
 
-Với hầu hết công việc, một trong ba định dạng là phù hợp:
+Những gì bạn thấy trên canvas là những gì tệp chứa. Menu định dạng chỉ liệt kê những gì công cụ này làm được trong trình duyệt này.
+
+Với hầu hết công việc, một trong ba định dạng là đúng:
 
 | Dành cho | Chọn | Vì sao |
 |---|---|---|
@@ -14,182 +16,195 @@ Với hầu hết công việc, một trong ba định dạng là phù hợp:
 Trước khi gửi, hãy mở nó trên màn hình mà nó được tạo ra để dùng, hoặc in nó ở kích thước thật.
 :::
 
-Phần còn lại của trang này nói về mọi định dạng, kích thước và tùy chọn.
+::: details Phê duyệt và bàn giao với Lolly Work (tùy chọn)
+[Một tổ chức chạy Lolly Work](/info/organisation.html) có thể quản trị những định dạng và cài đặt xuất nào thành viên của mình thấy. Nơi cần phê duyệt, **Request approval** thay cho **Download**. Hãy theo chính sách mà phiên bản của bạn hiển thị.
+
+Lolly Work cũng có thể giao một tệp tới các đích S3, WebDAV và HTTP đã cấu hình, với các bước phê duyệt, biên nhận bàn giao và bản ghi kiểm toán. Gửi một tệp vào quy trình đó là gửi nó tới dịch vụ của tổ chức; một lần tải xuống thông thường ở lại trên thiết bị của bạn. Các đích Send cá nhân và bàn giao của tổ chức được cấu hình riêng.
+
+Đơn vị vận hành thiết lập việc này bằng [hướng dẫn bàn giao của tổ chức](/info/work-delivery.html). Với kết xuất máy chủ và batch xếp hàng, xem [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ## Cách xuất hoạt động
 
-Bản xem trước *chính là* tệp. Khi bạn xuất, host kết xuất canvas đó sang định dạng bạn chọn và đưa cho bạn một tệp tải xuống (hoặc đặt nó vào clipboard). Bộ chọn ẩn đi bất kỳ định dạng nào trình duyệt của bạn không tạo ra được (xem [Video](#video)).
+Khi bạn xuất, canvas của công cụ được kết xuất sang định dạng bạn chọn và trao cho bạn dưới dạng tải xuống, hoặc đặt vào clipboard.
 
-Ba đường đi tạo ra một tệp. Hầu hết công cụ **kết xuất canvas** sang định dạng đã chọn. Các định dạng văn bản và dữ liệu (HTML, MD, TXT, JSON, CSV, ICS, VCF) thay vào đó được **tạo ra từ nội dung của công cụ**, không phải raster hóa từ hình ảnh. Và các tiện ích quyền riêng tư (ví dụ *Strip Hidden Data*) dùng đường thứ ba: tệp *bạn* chọn được biến đổi từng byte trên thiết bị và trả lại thẳng - không canvas, không watermark và không thêm siêu dữ liệu nguồn gốc nào, vì đó đã là tệp của riêng bạn.
+Ba đường tạo ra một tệp. Hầu hết công cụ **kết xuất canvas**. Các định dạng văn bản và dữ liệu (HTML, Markdown, TXT, JSON, CSV, ICS, VCF) được **tạo từ nội dung của công cụ** thay vì vẽ từ ảnh. Các tiện ích riêng tư như *Strip Hidden Data* **biến đổi tệp bạn đã chọn**, trên thiết bị của bạn, và trả lại không có canvas, hình mờ hay siêu dữ liệu thêm vào, vì nó vốn là tệp của chính bạn.
 
-Các thao tác trong bảng xuất:
+![Ba đường xuất hội tụ thành một tệp hoàn chỉnh: kết xuất canvas, tạo văn bản hoặc dữ liệu từ nội dung, hoặc biến đổi một tệp đã chọn trên thiết bị.](/info/diagrams/concepts/three-export-paths.svg)
 
-- <!--i:download--> **Download** - lưu tệp (thao tác chính). Nếu bạn không tìm thấy nó sau đó, xem [Tìm tệp bạn đã tải xuống](/info/find-your-work.html#find-a-file-you-downloaded).
-- <!--i:photos--> **Copy** - đặt hình ảnh vào clipboard để dán thẳng vào Slack, email, một tài liệu. Ở nơi trình duyệt không thể sao chép hình ảnh, nó sẽ tải xuống thay thế và báo cho bạn biết.
-- <!--i:folder--> **Save** - giữ lại thiết kế hiện tại vào Projects chỉ trong một cú nhấp, không hỏi lưu ở đâu; nó không bao giờ tải xuống một tệp. **Save as**, bên cạnh **Export**, sẽ hỏi lưu ở đâu (xem [Lưu và tiếp tục](/info/using.html#saving-continuing)).
-- <!--i:link--> **Share** - mở **hộp thoại Chia sẻ**: một liên kết có thể sao chép để tái tạo thiết kế, các bật/tắt khi truy cập (toàn màn hình, bảng xuất, tải xuống hoặc sao chép khi mở) và tùy chọn **Liên kết ngắn nhất** để đóng gói toàn bộ trạng thái thành một token gọn nhẹ (xem [URL Mode](/info/url-mode.html)).
+Bảng xuất đưa ra các hành động này. Tác giả công cụ chọn cái nào xuất hiện; bộ mặc định là Copy, Download và Save.
 
-(Tác giả của một công cụ chọn những thao tác nào xuất hiện; bộ mặc định là Sao chép, Tải xuống và Lưu.)
+- <!--i:download--> **Download** lưu tệp. Nếu sau đó bạn không tìm thấy, xem [Find a file you downloaded](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copy** đặt ảnh vào clipboard, sẵn sàng dán vào cuộc trò chuyện, email hoặc tài liệu. Nơi trình duyệt không sao chép được ảnh, nó tải xuống thay thế và báo cho bạn.
+- <!--i:folder--> **Save** giữ thiết kế hiện tại trong Projects chỉ bằng một cú nhấp và không bao giờ tải tệp. **Save as**, bên cạnh **Download**, hỏi lưu ở đâu (xem [Saving and continuing](/info/using.html#saving-continuing)).
+- <!--i:link--> **Share** mở hộp thoại Share: một liên kết tái tạo thiết kế, các công tắc khi truy cập (toàn màn hình, bảng xuất, tải xuống hoặc sao chép khi mở) và **Shortest link** tùy chọn nén cả trạng thái thành token gọn (xem [URL Mode](/info/url-mode.html)).
 
 ![Bảng xuất - định dạng, kích thước và các thao tác Sao chép / Tải xuống / Lưu / Chia sẻ](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
-Chia sẻ mở ra trên công cụ, với liên kết đã được dựng sẵn và các nút bật/tắt khi truy cập ở bên dưới.
+Khi một thiết kế nhúng bản kết xuất của công cụ khác, như hộp ảnh Design chứa liên kết QR Code, bản kết xuất lồng được vẽ vào bản xuất của cha. Nó vẫn là vector thật trong SVG và PDF và được điểm ảnh hóa sắc nét trong PNG, JPG và WebP. Bản kết xuất nhúng không có hình mờ và không có nguồn gốc riêng; chỉ tệp hoàn chỉnh có. Bản xuất HTML, Markdown và TXT không chứa được bản kết xuất ghép.
 
-::: details Approvals and delivery with lolly.work (optional)
-Một [tổ chức dùng lolly.work](/info/organisation.html) có thể quản lý các định dạng khả dụng và thiết đặt xuất. Khi cần phê duyệt, ứng dụng có thể hiển thị **Request approval** thay cho **Download**. Hãy làm theo chính sách mà phiên bản của bạn hiển thị.
-
-Dịch vụ cũng hỗ trợ phân phối có quản trị tới các đích S3, WebDAV và HTTP đã cấu hình, với các bước phê duyệt khi được cấu hình, biên nhận phân phối và bản ghi kiểm toán. Việc gửi một tệp vào quy trình đó sẽ chuyển nó đến dịch vụ của tổ chức; các lần tải xuống cục bộ thông thường vẫn ở trên thiết bị. Các đích Send cá nhân và phân phối có quản trị của tổ chức có cấu hình riêng.
-
-Dành cho người vận hành, xem [hướng dẫn phân phối](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Với các lượt kết xuất và lô trên máy chủ được xếp hàng, xem [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
-:::
-
-### Kết xuất nhiều thứ cùng lúc
-
-Một lần xuất là một tệp, nhưng bạn có thể kết xuất **nhiều** tệp trong một lượt - mỗi lượt được đóng gói thành một `.zip`:
-
-- <!--i:folder--> **Projects → Render folder** xuất mọi phiên đã lưu trong một thư mục (và các thư mục con của nó) thành một zip lồng nhau; **Render selection** làm điều tương tự cho bất kỳ lựa chọn nhiều mục nào; một phiên đã lưu đơn lẻ kết xuất thẳng ra tệp riêng của nó. Không cần Batch/Pro - xem [Sử dụng Lolly → Projects](/info/using.html).
-- <!--i:layers--> **Batch (Pro)** kết xuất một lưới các bộ đầu vào - mọi biến thể của một mẫu cùng một lúc.
-
-Một phiên đã lưu cũng có thể được chia sẻ lại như một liên kết công cụ từ Projects (nó tái tạo URL công cụ từ các đầu vào đã lưu), nên một liên kết sẽ mở lại nó với đúng cùng những thiết lập đó.
-
-## Chọn định dạng
+## Chọn một định dạng
 
 Tên tệp và menu định dạng nằm cùng nhau thành một cặp `name.format`, bên dưới **Tải xuống**.
 
 ![Trường tên tệp gắn liền với bộ chọn định dạng, để việc xuất đọc như một cặp name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| Bạn muốn… | Dùng | Vì sao |
+Bắt đầu từ nơi tệp sẽ đến. Mỗi thẻ liệt kê các định dạng phù hợp với đích đó; một công cụ chỉ hiện những cái nó làm được.
+
+::: figure exporting-format-chooser
+Sáu đích đến và các định dạng phù hợp với từng đích.
+:::
+
+Một wordmark đặt bằng kiểu chữ của hệ thống thiết kế xuất ra SVG với mọi chữ cái là đường viền ngoại tuyến, nên một tệp vẫn sắc nét ở cỡ danh thiếp và cỡ bọc tòa nhà.
+
+![Một wordmark nét mảnh giãn rộng đọc Aurora, kiểu tác phẩm vector thuần mà hàng SVG của bảng nói đến](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+
+::: details Mọi định dạng và công dụng của chúng
+| Bạn muốn | Dùng | Vì sao |
 |---|---|---|
-| Logo / hình ảnh sắc nét, co giãn được | **SVG** | Vector - co giãn vô hạn, nhẹ, chỉnh sửa được |
-| Vector cho Office / ứng dụng Windows | **EMF** | Dán vào PowerPoint / Word thành vector chỉnh sửa được; văn bản vẫn sống và có thể sửa, và Google Drive mở nó bằng Google Drawings cho Slides |
-| Vector cho in ấn / ứng dụng thiết kế | **EPS**, hoặc **EPS (CMYK)** | Vector PostScript cho Illustrator / quy trình in ấn |
-| Vector cho máy cắt / máy CAD | **DXF** | Máy cắt laser, máy cắt decal, CNC - đường viền tính bằng milimét |
-| Bản trình chiếu chỉnh sửa được | **PowerPoint** (PPTX) | Văn bản + hình dạng gốc chỉnh sửa được, hình ảnh và vector vẫn trích xuất được |
-| Một khóa đào tạo có thể mang đi | **Export course** | Xem lại nội dung dự án và tạo một gói Website, SCORM hoặc xAPI thử nghiệm có quản lý phiên bản |
-| Tài liệu văn bản chỉnh sửa được | **Word** (DOCX) hoặc **OpenDocument** (ODT) | Đoạn văn và tiêu đề thật mà trình xử lý văn bản có thể tiếp tục chỉnh sửa (Doc Studio) |
-| Ảnh chụp hoặc hình ảnh đa dụng | **PNG** (không mất dữ liệu) hoặc **JPG** (nhỏ hơn) | Raster phổ dụng |
-| Ảnh hiện đại, nhỏ hơn | **WebP** / **AVIF** | Nén tốt hơn, có kênh alpha |
-| In ấn | **PDF**, hoặc **Print PDF** (CMYK) | Kích thước trang thật; CMYK cho in ấn |
-| Raster in ấn cho nhà in | **Print TIFF** (CMYK) | Điểm ảnh DeviceCMYK cho RIP |
-| Hoạt hình cho web | **GIF** | Hoạt động ở mọi nơi, tệp lớn hơn |
-| Hoạt hình đầy đủ màu + kênh alpha thật | **APNG** | PNG hoạt hình - không giới hạn bảng màu, trong suốt thật |
-| Hoạt hình, tệp nhỏ nhất | **Animated WebP** | Đầy đủ màu + alpha, nén tốt hơn GIF hoặc APNG |
-| Vector hoạt hình co giãn được | **Animated SVG** | Tự chứa; lặp trong trình duyệt hoặc `<img>`, không cần codec, mọi kích thước |
-| Video cho mạng xã hội / chia sẻ | **MP4** hoặc **WebM** | Chất lượng trên mỗi byte tốt nhất (xem bên dưới) |
-| Văn bản định dạng phong phú / chữ ký email | **HTML** | Dán định dạng sẵn vào ứng dụng email |
-| Nội dung thuần | **MD** / **TXT** | Chỉ văn bản |
-| Sự kiện lịch | **ICS** | Nhập vào bất kỳ ứng dụng lịch nào |
-| Danh thiếp | **VCF** | Nhập vào Contacts / sổ địa chỉ |
-| Dữ liệu có cấu trúc để nhập lại | **JSON** / **CSV** | Khôi phục nội dung của công cụ nguyên vẹn |
-| Favicon | **ICO** | Biểu tượng trang web đa kích thước (**ZIP** gói nhiều định dạng) |
+| Logo hoặc tác phẩm sắc nét co giãn được | **SVG** | Vector: co giãn được, nhỏ và chỉnh sửa được; hiệu ứng mà bản xuất vector không vẽ được sẽ được nhúng dưới dạng ảnh |
+| Vector cho Office và ứng dụng Windows | **EMF** | Dán vào PowerPoint và Word như vector chỉnh sửa được, với chữ sống; Google Drive mở nó trong Google Drawings |
+| Vector cho in ấn và ứng dụng thiết kế | **EPS**, hoặc **EPS (CMYK)** | Vector PostScript cho Illustrator và quy trình nhà in |
+| Vector cho máy cắt | **DXF** | Máy cắt laser, máy cắt decal vinyl và CNC: đường viền tính bằng milimét |
+| Bộ trang chiếu chỉnh sửa được | **PowerPoint** (PPTX) | Văn bản và hình khối gốc chỉnh sửa được, với ảnh và vector vẫn trích xuất được |
+| Tài liệu văn bản chỉnh sửa được | **Word** (DOCX) hoặc **OpenDocument** (ODT) | Đoạn văn và đề mục thật mà trình soạn văn bản tiếp tục chỉnh sửa được (Doc Studio) |
+| Bố cục cho InDesign | **InDesign IDML (static subset)** | Văn bản, hình chữ nhật, hình bầu dục và ảnh, mỗi artboard một spread (Design) |
+| Tài liệu Penpot chỉnh sửa được | **Penpot** | Board, hình khối, văn bản và token liên kết |
+| Ảnh chụp hoặc ảnh đa dụng | **PNG** (không mất dữ liệu) hoặc **JPG** (nhỏ hơn) | Ảnh điểm phổ quát |
+| Ảnh hiện đại nhỏ hơn | **WebP** hoặc **AVIF** | Nén tốt hơn, có độ trong suốt |
+| In ấn | **PDF**, hoặc **Print PDF** (CMYK) | Đúng khổ trang; CMYK cho máy in |
+| Ảnh điểm cho máy in | **Print TIFF** (CMYK) | Điểm ảnh DeviceCMYK cho RIP |
+| Hoạt ảnh cho web | **GIF** | Phát ở mọi nơi; tệp lớn hơn |
+| Hoạt ảnh với đủ màu và độ trong suốt thật | **APNG** | PNG động: không giới hạn bảng màu |
+| Hoạt ảnh, tệp nhỏ nhất | **Animated WebP** | Đủ màu và độ trong suốt, nhỏ hơn GIF hoặc APNG |
+| Hoạt ảnh vector co giãn được | **Animated SVG** | Tự chứa; lặp trong trình duyệt hoặc `<img>`, ở mọi kích thước (Lottie Ad) |
+| Hoạt ảnh vẫn chỉnh sửa được | **dotLottie** | Hình khối, đường dẫn và khóa biến đổi ngoài từ dòng thời gian của Design |
+| Bàn giao cho Premiere | **Premiere XML + media** | Clip có thời gian và media gốc cho Premiere (Design) |
+| Video cho mạng xã hội và chia sẻ | **MP4** hoặc **WebM** | Chất lượng tốt nhất theo dung lượng tệp (xem [Video](#video)) |
+| Phụ đề | **SRT** hoặc **VTT** | Văn bản có thời gian cho trình phát video (Captions, Audiogram và Record) |
+| Khóa đào tạo | **SCORM (LMS)** | Một trang web có phiên bản, gói SCORM hoặc xAPI (xem [SCORM](#scorm-course-packages)) |
+| Văn bản có định dạng hoặc chữ ký email | **HTML** | Dán có định dạng vào ứng dụng thư |
+| Nội dung thuần | **MD** hoặc **TXT** | Chỉ văn bản |
+| Một sự kiện lịch | **ICS** | Nhập vào mọi ứng dụng lịch |
+| Một danh thiếp liên hệ | **VCF** | Nhập vào sổ địa chỉ |
+| Dữ liệu có cấu trúc để nhập lại | **JSON** hoặc **CSV** | Khứ hồi nội dung của công cụ |
+| Một favicon | **ICO** | Biểu tượng trang nhiều kích thước; **ZIP** gói nhiều định dạng |
+:::
 
-Hàng đầu tiên là trường hợp phổ biến. Một wordmark được đặt bằng font thương hiệu của bạn xuất ra dưới dạng SVG, nơi mỗi chữ cái là một đường path đã được vạch viền chứ không phải pixel, nên nó vẫn sắc nét ở kích thước danh thiếp và ở kích thước bọc tòa nhà từ cùng một tệp.
+### Độ trong suốt
 
-![Một wordmark viết Aurora, mảnh, dãn cách rộng, kiểu tác phẩm vector thuần túy mà hàng SVG trong bảng nói đến](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+Các công cụ hỗ trợ cung cấp công tắc nền trong suốt, như **No BG**. PNG, WebP, AVIF, SVG, APNG và Animated WebP giữ độ trong suốt, còn GIF giữ cạnh cứng. JPG và PDF luôn đục. TIFF được làm phẳng lên nền trắng, hoặc nền đen trên đường HDR mô tả dưới [HDR](#hdr-bright-colours).
 
-## Kích thước & đơn vị in ấn
+## Kích thước và đơn vị in
 
-Theo mặc định, bản xuất dùng kích thước pixel gốc của công cụ. Ở nơi một công cụ hiện **kích thước**, bạn có thể đặt chiều rộng × chiều cao và một **đơn vị**:
+Bản xuất dùng kích thước điểm ảnh gốc của công cụ trừ khi công cụ cung cấp **dimensions**. Khi đó bạn đặt chiều rộng, chiều cao và **unit**:
 
-- **px** (mặc định) - pixel chính xác.
-- **mm · cm · in · pt · pc** - kích thước vật lý/in ấn. Với đơn vị vật lý, bạn cũng đặt **DPI** (mặc định **300** cho in ấn); engine chuyển đổi chính xác theo từng định dạng - **PDF** trở thành một trang thật ở kích thước đó, **raster** kết xuất ở đúng số pixel theo DPI (và nhúng độ phân giải), **SVG** giữ đơn vị vật lý với một viewBox px.
+- **px** (mặc định) là điểm ảnh chính xác.
+- **mm, cm, in, pt** và **pc** là kích thước vật lý. Với đơn vị vật lý bạn cũng đặt **DPI** (mặc định 300). Một **PDF** trở thành trang thật ở kích thước đó, một **ảnh điểm** nhận số điểm ảnh cho DPI đó và ghi lại độ phân giải, và một **SVG** giữ đơn vị vật lý với viewBox tính bằng điểm ảnh.
 
-Để có raster độ phân giải cao hơn, nhập chiều rộng/chiều cao lớn hơn, hoặc chọn một đơn vị vật lý và tăng DPI (pixel = kích thước × DPI). Không có nút bật/tắt tỷ lệ một chạm.
-
-Ví dụ: chiều rộng `210`, chiều cao `297`, đơn vị `mm` → một trang A4.
+Để có ảnh điểm độ phân giải cao hơn, nhập chiều rộng và chiều cao lớn hơn, hoặc chọn đơn vị vật lý và tăng DPI (điểm ảnh = kích thước × DPI). Chiều rộng `210`, chiều cao `297` và đơn vị `mm` tạo một trang A4.
 
 ![Hàng kích thước đặt thành 210 x 297 mm, với trường DPI hiện ra vì đơn vị là vật lý](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
 ## Ảnh tĩnh từ một bố cục có thời lượng
 
-Một **bản dựng có thời lượng** - dòng thời gian [Sequence](/info/using.html#timeline-sequence) trong Design, hoặc bất kỳ artboard nào chạy theo dòng thời gian - là một thứ đang chuyển động, nên khi xuất ảnh tĩnh phải trả lời câu hỏi "tại thời điểm nào?". Quy tắc đúng như bạn nghĩ: **khung hình tại vị trí con trỏ phát**. Đặt con trỏ phát ở đúng chỗ bạn muốn lấy ảnh rồi xuất; những gì bạn thấy chính là những gì được xuất ra.
+Một bố cục có thời gian, như dòng thời gian [Sequence](/info/sequence-editor.html) trong Design, chuyển động, nên bản xuất tĩnh phải chọn một thời điểm: **khung hình tại đầu phát**. Đặt đầu phát ở nơi bạn muốn bức ảnh và xuất.
 
-Khi bạn muốn nhiều hơn một khoảnh khắc, trường **Frames** xuất hiện bên cạnh kích thước đầu ra (chỉ với bố cục có thời lượng, và chỉ với định dạng tĩnh - PNG, JPG, WebP, SVG hoặc PDF). Để nguyên ở `1` cho khung hình tại đầu phát. Tăng lên và bạn sẽ có từng ấy ảnh tĩnh được lấy mẫu tại các khoảng cách đều nhau trên toàn bộ chuỗi cảnh:
+Với nhiều hơn một thời điểm, trường **Frames** xuất hiện bên cạnh kích thước đầu ra. Nó chỉ hiện với bố cục có thời gian và định dạng tĩnh (PNG, JPG, WebP, SVG hoặc PDF). Để ở `1` cho khung hình tại đầu phát. Tăng lên và bạn nhận từng ấy ảnh tĩnh, trải đều trên cả chuỗi:
 
-- **Raster và SVG** trả về dưới dạng một **zip** - `<name>-01.png`, `-02.png` và cứ thế.
-- **PDF** trả về dưới dạng **một tài liệu duy nhất gồm từng ấy trang**.
+- PNG, JPG, WebP và SVG trả về một ZIP: `<name>-01.png`, `-02.png` v.v.
+- PDF trả về một tài liệu với từng ấy trang.
 
-Hữu ích cho một storyboard, một bảng thumbnail, một contact sheet để xem xét lại hoặc một carousel mạng xã hội cắt thẳng từ một bản dựng video.
+Mỗi ảnh tĩnh lấy từ giữa lát của nó trên dòng thời gian, nên khung hình đầu không bao giờ là một lối vào mờ dở và khung cuối không bao giờ là khoảnh khắc trống sau khi mọi clip đã kết thúc.
 
-Việc lấy mẫu được thực hiện tại **điểm giữa** của mỗi khoảng thay vì tại các cạnh, vì khoảnh khắc đầu tiên của một chuỗi cảnh thường là một chuyển cảnh vào chưa kịp hiện rõ và khoảnh khắc cuối là trạng thái sau khi mọi clip đã kết thúc - lấy mẫu tại điểm cuối sẽ tốn hai khung hình của bạn cho những khung gần như trống. Số lượng bị giới hạn ở **64** (một contact sheet là để con người đọc), và bất cứ thứ gì vô nghĩa được nhập vào trường này sẽ quay về `1` thay vì làm hỏng bản xuất. Mỗi khung hình là một ảnh tĩnh bình thường, nên Content Credentials, dấu ấn (imprint), đơn vị vật lý và DPI đều hoạt động y hệt như với một bản xuất đơn.
+::: figure exporting-contact-sheet
+Frames: 4 cắt chuỗi thành bốn lát bằng nhau và lấy điểm giữa của mỗi lát.
+:::
 
-Trường **Khung hình** là cách để có một sheet ngay hôm nay. Engine dành sẵn một tham số URL `cuts` tương ứng, nhưng chưa có shell nào đọc nó từ một liên kết, nên một liên kết chia sẻ luôn mở lại ở khung playhead - xem [URL Mode](/info/url-parameters.html#contact-sheets-cuts).
+Dùng nó cho một storyboard, một bảng liên hệ để xem xét hoặc một carousel mạng xã hội cắt từ một bản dựng video. Số lượng bị giới hạn ở 64, và mọi thứ khác gõ vào ô sẽ quay về `1`. Mỗi khung hình là một ảnh tĩnh bình thường, nên credential, Imprint, đơn vị vật lý và DPI hoạt động như với một bản xuất. Một liên kết xuất, CLI và MCP yêu cầu cùng bảng đó bằng `cuts=` (xem [Contact sheets](/info/url-export.html#contact-sheets)).
 
-## PDF nhiều trang
+## Nhiều tệp cùng lúc
 
-Một số công cụ tạo ra **tài liệu PDF nhiều trang** thay vì một tác phẩm đơn lẻ - một trang bìa, nội dung tự chảy sang bao nhiêu trang cần thiết và một trang cuối, tất cả trong một tệp (xem công cụ *Booklet*). Mỗi trang là một **trang PDF thật sự**, có kích thước đúng theo khung của trang đó, nên người đọc và máy in nhận được các trang thật, không phải một ảnh dài.
+Lolly có ba cách làm việc ở khối lượng lớn, mỗi cách cho một việc khác nhau:
 
-- **Trang tạo từ nội dung.** Thêm các khối văn bản và hình ảnh; các trang mới được tạo tự động khi các khối lấp đầy, và bạn có thể buộc bất kỳ khối nào bắt đầu một trang mới.
-- **Kích thước trang thật.** Chọn A4, US Letter hoặc A5 (dọc - bố cục hai cột được thiết kế cho nó) - mọi trang, và tệp PDF được xuất, kết xuất đúng ở kích thước đó.
+::: cols
+## Một bảng thành một tài liệu
+Công cụ có đầu vào bảng, như **Battlecards**, biến mỗi hàng thành một trang. Dán một bảng từ bảng tính và nhận một PDF. Sửa các hàng trong bảng tính rồi dán lại.
+## Một CSV thành một tệp cho mỗi hàng
+**Batch** (`#/batch`) nhận một CSV và kết xuất một bản xuất cho mỗi hàng: thẻ tên hoặc chứng nhận, mỗi cái một tệp, giao trong một ZIP. Xem [Batch](/info/batch.html#make-many-versions-of-one-design).
+## Nhiều thiết kế một lần chỉnh sửa
+**Multi-edit** mở nhiều phiên đã lưu cạnh nhau để chỉnh sửa y hệt trên các thiết kế khác nhau. Xem [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+:::
 
-PDF nhiều trang là tài liệu RGB và không mang dấu cắt/dấu tràn lề - những thứ đó thuộc về đường dẫn **Print PDF** một trang ở trên. Chúng vẫn mang cùng **siêu dữ liệu PDF/X-4** như mọi bản xuất PDF (khung trang, XMP, ID tài liệu, ý định đầu ra sRGB kèm hồ sơ nhúng), và chúng có tùy chọn **Content Credentials** (bên dưới) - trên công cụ *Booklet* tùy chọn này được chọn sẵn.
+Từ **Projects**, **Render folder** xuất mọi phiên đã lưu trong một thư mục và các thư mục con của nó thành một ZIP lồng nhau, và **Render selection** làm tương tự cho mọi vùng chọn nhiều; một phiên đã lưu kết xuất ra tệp riêng của nó. Một phiên đã lưu cũng có thể được chia sẻ lại dưới dạng liên kết công cụ từ Projects, mở lại với cùng cài đặt.
 
-## Tạo nhiều thứ cùng lúc
+## Các tệp vẫn chỉnh sửa được ở nơi khác
 
-Lolly có ba cách riêng biệt để làm việc trên diện rộng, và chúng giải quyết những công việc khác nhau - chỉnh sửa hàng loạt là một năng lực hạng nhất của nền tảng, không phải thứ mỗi công cụ tự phát minh lại:
+Một số định dạng trao công việc của bạn cho ứng dụng khác dưới dạng nội dung chỉnh sửa được thay vì một bức ảnh.
 
-- <!--i:document--> **Một thiết kế × một bảng các hàng → một tài liệu nhiều trang.** Các công cụ có đầu vào `table` (như *Battlecards*) biến mỗi hàng thành một trang tự động - dán một bảng từ bảng tính của bạn, nhận về một PDF cỡ tập slide. Trình chỉnh sửa hàng loạt thật sự của bạn vẫn là bảng tính: sửa mười hàng ở đó, dán lại lần nữa. Bản thân công cụ không bao giờ quản lý các trang.
-- <!--i:layers--> **Một thiết kế × một tệp dữ liệu → nhiều tệp riêng biệt.** Lưới hàng loạt `/pro` nhận một CSV và kết xuất một bản xuất *cho mỗi hàng* - thẻ tên, chứng chỉ, mỗi thứ một tệp.
-- <!--i:sliders--> **Nhiều tài sản khác nhau, chỉnh sửa song song.** *Multi-edit* mở nhiều phiên đã lưu trong một khung nhìn để chỉnh sửa phối hợp trên các thiết kế riêng biệt.
+### PowerPoint (PPTX)
 
-Quy tắc chung: các hàng cùng một thiết kế thuộc về **một tài liệu** → một công cụ điều khiển bằng bảng; các hàng phải xuất ra **các tệp riêng biệt** → `/pro`; **các thiết kế khác nhau** cần cùng một chỉnh sửa → multi-edit. (Một tùy chọn kết xuất "combine media" đang được lên kế hoạch sẽ nối hai cách đầu lại với nhau - ghép các bản xuất cùng định dạng thành một PDF, một video hoặc một contact sheet để kiểm duyệt.)
+Design, Markdown Slides, Booklet, Doc Studio, Chart, Diagrams, Flow Chart và Agenda xuất bộ trình chiếu PowerPoint, mỗi trang một trang chiếu. Mỗi trang được tách thành các đối tượng gốc, để đồng nghiệp chỉnh sửa bộ trang và lấy tài nguyên ra:
 
-## PowerPoint (PPTX)
-
-Design, Markdown Slides, Booklet, Doc Studio, Chart và Diagrams đều có thể xuất một **bản trình chiếu PowerPoint** - mỗi trang một slide. Mục đích không phải là chụp ảnh màn hình chính xác từng điểm ảnh; mà là để trao cho đồng nghiệp một bản trình chiếu mà họ thực sự có thể **chỉnh sửa và lấy tài sản ra**. Vì vậy mỗi trang được phân rã thành các đối tượng gốc:
-
-- <!--i:font--> **Văn bản** trở thành **hộp văn bản PowerPoint có thể chỉnh sửa** thực sự - với cỡ chữ, màu sắc, độ đậm, in nghiêng và căn chỉnh lấy từ bố cục - nên bạn có thể sửa lỗi gõ hoặc đổi kiểu ngay trong PowerPoint.
-- <!--i:pentool--> **Vector** (logo, biểu tượng, dấu hiệu SUSE) được nhúng dưới dạng **ảnh SVG thật** - chúng luôn sắc nét ở mọi kích cỡ, và PowerPoint thậm chí có thể *Convert to Shape* trên đó.
-- <!--i:photos--> **Hình ảnh** được đưa vào ở độ phân giải gốc dưới dạng ảnh riêng có thể trích xuất (một ảnh hero cắt kiểu `cover` vẫn giữ toàn bộ ảnh phía sau phần cắt, để bạn có thể đóng khung lại), với mọi xử lý trên ảnh (bộ lọc, hòa trộn) được thể hiện trung thực.
-- <!--i:layers--> **Nền, đường viền và các đường kẻ** trở thành hình chữ nhật/đường thẳng thật.
+- <!--i:font--> **Văn bản** trở thành hộp văn bản PowerPoint chỉnh sửa được với cỡ chữ, màu, độ đậm, nghiêng và căn lề của bố cục.
+- <!--i:pentool--> **Vector** như logo và biểu tượng được nhúng dưới dạng ảnh SVG; chúng vẫn sắc nét, và PowerPoint có thể *Convert to Shape* trên chúng.
+- <!--i:photos--> **Ảnh** đến ở độ phân giải gốc dưới dạng ảnh riêng. Một ảnh hero bị cắt giữ ảnh đầy đủ phía sau vùng cắt, và mọi bộ lọc hay chế độ hòa trộn trên đó được nướng vào.
+- <!--i:layers--> **Nền, viền và đường kẻ** trở thành hình chữ nhật và đường thẳng.
 
 ![Bảng xuất với PowerPoint được chọn: mỗi trang một slide, văn bản và hình dạng vẫn chỉnh sửa được](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
-Bố cục chỉ mang tính tương đối theo chủ ý - mục tiêu là **nội dung** trung thực, có thể tái sử dụng, chứ không phải một ảnh chụp màn hình bị khóa cứng. Bất cứ thứ gì walker không thể thể hiện tự nhiên (một vùng có bộ lọc hoặc mặt nạ phức tạp) sẽ được nhúng dưới dạng ảnh để không mất gì. Một bản trình chiếu có một kích thước trang duy nhất, lấy từ trang đầu tiên.
+Bố cục là gần đúng; mục tiêu là nội dung dùng lại được. Mọi thứ mà bộ duyệt không biểu đạt được theo kiểu gốc, như vùng có bộ lọc hay mặt nạ phức tạp, được nhúng dưới dạng ảnh để không mất gì. Một bộ trang có một kích thước trang chiếu, lấy từ trang đầu.
 
-PowerPoint cũng là một lối **vào**. Thả một tệp `.pptx` lên bất kỳ bề mặt tải lên nào và chọn các slide bạn muốn - mỗi slide trở thành một tài sản để đặt, chỉnh màu hoặc xây dựng tiếp. **Markdown Slides** viết một bản trình chiếu mới từ Markdown (và cung cấp một mẫu `.pptx` mang thương hiệu), còn tiện ích **Rebrand** thay đổi giao diện của một bản trình chiếu có sẵn ngay tại chỗ - bảng màu chủ đề, màu và phông chữ cố định - mà không đụng đến biểu đồ, SmartArt hay hiệu ứng động của nó, rồi trả lại một tệp `.pptx`. Xem [Nhập một thiết kế → Bản trình chiếu và tài liệu](/info/design-import.html#decks-and-documents).
+PowerPoint cũng là một lối vào: [Rebrand a deck](/info/rebrand.html) chuyển bộ trang sang hệ thống thiết kế của bạn, và [Import a design](/info/design-import.html) mở một bộ trong Design.
 
-## Penpot
+### Penpot
 
-Bất kỳ công cụ nào xuất được SVG cũng có thể xuất một **tệp Penpot** (`.penpot`) - tài liệu, sẵn sàng để tiếp tục chỉnh sửa trong Penpot chứ không chỉ để xem.
+Hầu hết công cụ xuất SVG cũng xuất một **tệp Penpot** (`.penpot`), sẵn sàng để tiếp tục chỉnh sửa trong Penpot.
 
-- <!--i:layout--> Từ **Design**, mỗi khung hình trở thành một **board** Penpot, mọi hộp trên đó được giữ nguyên thành hình dạng chỉnh sửa được riêng - hình chữ nhật, hình elip, văn bản, hình ảnh hoặc đường path - và kết quả xuất hiện dưới dạng một **component** tái sử dụng được trong bảng Assets, sẵn sàng để kéo ra lại.
-- <!--i:pentool--> Từ một công cụ mà bản dựng của nó là **hình học thuần túy** - các công cụ vector như QR Code, Street Map, Wordmark và Palette Lab - mọi đường path, hình chữ nhật, dòng văn bản và gradient đều được giữ nguyên theo cách tương tự, thành hình dạng chỉnh sửa được riêng.
-- <!--i:font--> Từ một công cụ dàn bản dựng bằng **HTML**, **văn bản vẫn là văn bản** - mỗi dòng là một đối tượng văn bản Penpot chỉnh sửa được riêng, không phải đường viền và không phải ảnh phẳng. Một tác phẩm mà Penpot không có cấu trúc tương ứng - một minh họa phức tạp, một canvas sống - sẽ đi kèm riêng dưới dạng hình ảnh, nên nó không bao giờ làm phẳng văn bản và các hộp xung quanh. Toàn bộ bố cục mà Penpot không thể tách rời trung thực vẫn có thể hiện ra như một hình ảnh duy nhất với độ trung thực đầy đủ, nên không có gì bị bỏ sót.
-- <!--i:palette--> Một màu hoặc phông chữ mà một hình dạng **thừa hưởng từ token thương hiệu** vẫn giữ **liên kết** với token đó trong tệp: đổi token trong bảng Tokens của Penpot thì mọi hình dạng thừa hưởng nó sẽ tô lại màu cùng nhau, còn một màu cố định riêng lẻ vẫn giữ nguyên vị trí. Màu sắc và kiểu chữ của thương hiệu cũng xuất hiện trong bảng **Assets** và toàn bộ tập token thiết kế của nó trong bảng **Tokens** - cùng một tập token DTCG mà bảng màu của chính Lolly sử dụng. Từ đó Penpot giữ bản sao riêng: một chỉnh sửa thực hiện trong bảng Tokens của Penpot quay trở lại thương hiệu thông qua [nhập từ Brand Studio](/info/design-import.html), chứ không tự động.
-
-| Bạn đã tạo | Trong Penpot |
+| Bạn đã làm gì | Trong Penpot |
 |---|---|
-| Văn bản | Đối tượng văn bản chỉnh sửa được - sửa lỗi gõ hoặc đổi kiểu |
-| Hình dạng, đường path, gradient, hình ảnh | Hình dạng vector chỉnh sửa được riêng của chúng |
-| Một màu hoặc phông chữ từ token thương hiệu | Một liên kết token sống - sửa token, mọi hình dạng thừa hưởng nó sẽ theo |
-| Toàn bộ thiết kế | Một component tái sử dụng được trong bảng Assets |
-| Một minh họa phức tạp hoặc canvas sống | Nhúng riêng dưới dạng hình ảnh, nội dung chỉnh sửa được xung quanh nó không bị đụng đến |
+| Văn bản | Đối tượng văn bản chỉnh sửa được: sửa lỗi chính tả hoặc đổi kiểu |
+| Hình khối, đường dẫn, chuyển sắc và ảnh | Hình vector chỉnh sửa được riêng của chúng |
+| Một màu hoặc phông chữ từ token hệ thống thiết kế | Một liên kết token sống: sửa token và mọi hình kế thừa nó theo |
+| Cả thiết kế | Một component dùng lại được trong bảng Assets |
+| Một minh họa phức tạp hoặc canvas trực tiếp | Được nhúng riêng dưới dạng ảnh, nội dung chỉnh sửa được xung quanh không bị động đến |
+
+Từ Design, mỗi khung trở thành một board Penpot. Màu và kiểu chữ của hệ thống thiết kế vào bảng Assets và toàn bộ bộ token của nó vào bảng Tokens. Từ đó Penpot giữ bản sao riêng: một token được sửa trong Penpot quay lại qua việc nhập trong [Design System Setup](/info/brand-studio.html).
 
 ![Bảng xuất với Penpot được chọn: tệp .penpot, và Send to Penpot bên cạnh nút tải xuống](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
-Để mở tệp, khởi động Penpot, chọn một dự án rồi chọn **Import**. Khi đã đăng nhập vào Penpot từ bảng xuất, **Send to Penpot** thực hiện bước đó thay bạn - chọn một dự án ở đó và tệp sẽ đi thẳng vào dự án đó.
+Để mở tệp, khởi động Penpot, chọn một dự án và chọn **Import**. Khi đã đăng nhập Penpot từ bảng xuất, **Send to Penpot** làm bước đó cho bạn.
 
-## SCORM (gói khóa học)
+### Word, OpenDocument và InDesign
 
-Chọn **Export course** từ một công cụ được hỗ trợ, một thư mục dự án hoặc một lựa chọn. Trong Design, chọn **SCORM (LMS)** và Download cũng mở ra quy trình khóa học này. Lolly lưu lại tác phẩm, cho bạn xem lại nội dung và thứ tự khóa học, sau đó mở mô-đun cùng hộp thoại xuất của nó.
+**Doc Studio** xuất **Word** (DOCX) và **OpenDocument** (ODT) với đoạn văn và đề mục thật.
 
-- <!--i:layout--> Chọn bản dựng khả dụng cho mỗi nguồn: trang tĩnh, chuyển động dưới dạng video, âm thanh hoặc một tài nguyên có thể tải xuống. Thêm văn bản bài học gốc và các phương án đọc thay thế trong mô-đun.
-- <!--i:play--> Xem trước trình phát của người học và xem lại phần mô tả cùng phụ đề. Chuyển động được đưa vào dưới dạng video, kể cả hoạt hình im lặng. Hãy xuất một bản ghi hoàn chỉnh trước, khi một công cụ không thể dựng lại nó từ các đầu vào đã lưu.
-- <!--i:file--> Chọn Website, SCORM 1.2, SCORM 2004 4th Edition, hoặc một mục tiêu xAPI thử nghiệm. Kiểm tra nội dung thực tế và dung lượng ZIP, sau đó lưu và tải xuống phiên bản đã kiểm tra.
-- <!--i:check--> Hoàn thành yêu cầu xác nhận mọi bài học bắt buộc và chọn Finish. Trình phát trên website lưu tiến độ trong trình duyệt; một gói LMS kết nối với LMS nhận nó.
+**Design** xuất **InDesign IDML (static subset)**: văn bản, hình chữ nhật, hình bầu dục và ảnh PNG hoặc JPEG, mỗi artboard một spread. Định dạng nội dòng được hỗ trợ vẫn chỉnh sửa được, ảnh đi trong `Links` và tọa độ trở thành điểm InDesign. Việc liên kết lại, thay thế phông chữ và ngắt dòng thay đổi có thể cần chú ý. Hiệu ứng, hoạt ảnh, bài viết ghép và hình học không được hỗ trợ dừng bản xuất kèm báo cáo liệt kê chúng. IDML không bảo toàn tài liệu gốc, nên hãy gửi PDF cho tác phẩm hoàn tất.
+
+### Dòng thời gian: dotLottie và Premiere
+
+Từ dòng thời gian của Design, **dotLottie** ghi một hoạt ảnh vẫn chỉnh sửa được trong các công cụ Lottie; [Lottie animations](/info/sequence-editor.html#lottie-animations) liệt kê những gì nó giữ. **Premiere XML + media** đóng gói clip có thời gian và media gốc của chúng cho Premiere; xem [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange).
+
+### SCORM (gói khóa học)
+
+Xuất khóa học tắt cho đến khi bạn bật **Training and courses** dưới Settings → Preferences → Feature flags.
+
+Rồi chọn **Export course** từ một công cụ được hỗ trợ, một thư mục dự án hoặc một vùng chọn. Trong Design, chọn **SCORM (LMS)** và **Download** mở cùng quy trình khóa học. Lolly lưu công việc, cho bạn xem lại nội dung và thứ tự khóa học, rồi mở module và hộp thoại xuất của nó.
+
+- <!--i:layers--> Chọn một dạng thể hiện cho mỗi nguồn: trang tĩnh, chuyển động dưới dạng video, âm thanh hoặc tài nguyên tải xuống. Thêm văn bản bài học và phương án đọc thay thế trong module.
+- <!--i:clock--> Xem trước trình phát của người học và xem lại mô tả và phụ đề. Chuyển động được đưa vào dưới dạng video, kể cả hoạt ảnh không tiếng.
+- <!--i:document--> Chọn Website, SCORM 1.2, SCORM 2004 4th Edition hoặc đích xAPI thử nghiệm. Kiểm tra nội dung và kích thước ZIP, rồi lưu và tải bản đã kiểm tra.
+- <!--i:check--> Hoàn thành đòi hỏi xác nhận mọi bài học bắt buộc và chọn Finish.
 
 ![Bảng xuất trên một bản trình chiếu Design với SCORM (LMS) được chọn](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
-Gói này bao gồm nội dung hoàn chỉnh của nó và không yêu cầu tài khoản Lolly. Giải nén một Website ZIP lên một máy chủ HTTP(S); nhập một LMS ZIP mà không thay đổi nội dung của nó. Hãy kiểm tra điểm đến dự kiến trước khi phân phối khóa học.
+Gói chứa nội dung hoàn chỉnh và không cần tài khoản Lolly. Đặt ZIP Website lên máy chủ HTTP(S); nhập ZIP LMS nguyên trạng. Hãy kiểm thử đích đến trước khi chia sẻ khóa học. Với khóa học dựng từ nhiều sản phẩm đã lưu, xem [Create a training course](/info/training-creators.html).
 
-Đối với một khóa học được ghép từ nhiều tác phẩm đã lưu, phương tiện đã nhập và tài nguyên, hãy dùng [Tạo một khóa đào tạo](/info/create/training-creators.html). Mô-đun học tập có dàn ý được sắp xếp riêng, các xác nhận bài học rõ ràng, bản xem trước cho người học và lịch sử gói có quản lý phiên bản. Đường dẫn CLI của nó có thể đóng gói phương tiện mà bạn đã xuất trước đó.
+### DXF (tệp cắt)
 
-## DXF (tệp cắt)
+Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding và Wordmark xuất **DXF**, định dạng trao đổi AutoCAD R12 mà máy cắt laser, máy cắt decal vinyl và phần mềm CNC đọc. Hình học được ghi dưới dạng đường viền tính bằng milimét, văn bản được chuyển thành đường viền và màu ánh xạ tới AutoCAD Color Index gần nhất, thứ thường điều khiển thao tác của máy cắt. DXF chỉ là nét vẽ: vùng ảnh chụp hay có bộ lọc không có đường cắt và bị bỏ, kèm cảnh báo. Dùng SVG hoặc PDF để giữ nội dung ảnh điểm.
 
-Các công cụ vector (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, các logo lockup, Diagram Builder) có thể xuất **DXF** - định dạng trao đổi AutoCAD R12 mà máy cắt laser, máy plot vinyl và phần mềm CNC/CAD đọc được. Hình học được ghi thành các **path viền theo milimét** (đường cong được làm phẳng đến một dung sai mịn), văn bản được viền thành path và màu sắc được ánh xạ tới AutoCAD Color Index gần nhất (thường quyết định công cụ/thao tác trên máy cắt). DXF chỉ là line-art - một vùng ảnh chụp hoặc đã lọc filter không có dạng đường cắt và sẽ bị loại bỏ (Lolly sẽ cảnh báo), vì vậy hãy dùng SVG/PDF khi bạn cần giữ lại nội dung raster.
-
-Street Map là trường hợp rõ ràng nhất: toàn bộ thiết kế vốn đã là các nét vẽ, nên mỗi con đường và kênh đào trở thành một đường cắt mà không có gì bị bỏ đi.
+Street Map là trường hợp rõ nhất. Cả thiết kế vốn đã là nét vẽ, nên mọi con đường và kênh đào trở thành đường cắt.
 
 ::: showcase
 ![Bản render Street Map của Paris bằng mực trên nền kem - hình vẽ đường nét thuần túy, nên mọi nét đều giữ nguyên khi đưa vào máy cắt](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
@@ -197,165 +212,196 @@ Street Map là trường hợp rõ ràng nhất: toàn bộ thiết kế vốn �
 Cuộn xuống, và góc nhìn kéo lùi xuyên qua chính hình học đó: bảy đường path, không một pixel nào, mỗi nét sắc nét như tóc ở bất kỳ độ phóng đại nào. Đó chính là tệp mà máy cắt sẽ đọc.
 :::
 
-## SVG hoạt hình
+## In
 
-Các công cụ chuyển động (Animated Ad, Lottie Ad) có thể xuất ra **SVG hoạt hình** - một hoạt ảnh *vector* độc lập, tự chứa. Khác với GIF/APNG/WebP (lấy mẫu từng khung hình thành pixel), một SVG hoạt hình xếp chồng các ảnh chụp vector với keyframe CSS nhúng sẵn, nên nó **thu phóng ở mọi kích cỡ mà không cần codec hay runtime bên ngoài** - nó lặp trong một tab trình duyệt hoặc một thẻ `<img>`. Văn bản vẫn được vẽ đường viền nên hiển thị được ở mọi nơi. Nó dùng chung các tùy chỉnh **Thời lượng**/tốc độ khung hình của các định dạng hoạt hình khác, và (do nặng hơn trên mỗi khung so với bitmap) dùng tốc độ khung hình mặc định thấp hơn.
+**Print PDF** ghi CMYK theo một điều kiện in có tên, mặc định là **Coated FOGRA39**. Ô màu thương hiệu có giá trị mực đã đo được chuyển đổi chính xác; các màu khác dùng chuyển đổi thiết bị chuẩn. **Print TIFF** ghi điểm ảnh DeviceCMYK cho RIP và ghi cùng điều kiện in trong siêu dữ liệu TIFF. Điều khiển Colour profile chi phối cả hai; [Colour profiles](#colour-profiles) có chi tiết.
 
-## Trong suốt
+**Print marks & bleed** có thẻ riêng trên các định dạng in: vùng tràn lề tính bằng milimét cộng chi tiết Crop, Registration, Bleed, Colour bars và Stamp.
 
-Các công cụ hỗ trợ tính năng này cung cấp một nút bật/tắt **nền trong suốt** (ví dụ *No BG*). Tính trong suốt được giữ lại ở PNG, WebP, AVIF, SVG (tĩnh và hoạt hình), APNG và Animated WebP. JPG và PDF luôn không trong suốt, còn TIFF được làm phẳng trên nền trắng (trên nền đen ở đường dẫn HDR - xem bên dưới).
+Một số công cụ dựng **PDF nhiều trang**: một bìa, nội dung chảy sang bao nhiêu trang cần thiết và một trang cuối, như công cụ *Booklet*. Mỗi trang là một trang PDF dọc thật cỡ A4, US Letter hoặc A5, và bạn có thể ép bất kỳ khối nào sang trang mới. Đây là tài liệu RGB không có dấu cắt hay vùng tràn lề, thứ thuộc về Print PDF một trang. Một PDF Design cũng có thể là **Notes handout**: một trang dọc cho mỗi trang chiếu với ghi chú diễn giả bên dưới.
 
-## Không gian màu
+**Trước khi xuất.** Thẻ **Before you export** ở chân bảng cho biết nhà in sắp thấy gì: định dạng, kích thước và vùng tràn lề, vùng cắt và tràn lề, độ phủ mực, số bản in và số trang, kèm một kết luận cạnh tiêu đề. Nó không bao giờ chặn một bản xuất. Design luôn hiện thẻ với các kiểm tra riêng của nó, gồm quy tắc nội bộ của hệ thống thiết kế theo từng lớp và tín hiệu văn phong cho văn bản của tài liệu ([Before you export](/info/design.html#before-you-export)), và thêm các kiểm tra in này khi **Print preflight** bật. Trong các công cụ khác, bật **Print preflight** dưới Settings → Preferences → Feature flags; nó tắt theo mặc định, và một bản triển khai Lolly Work có thể bật nó cho thành viên.
 
-Hai câu hỏi khác nhau, đáng tách riêng: Lolly có thể **đọc và tư duy** trong những không gian màu nào, và nó **ghi ra** những không gian màu nào.
+**Sau khi xuất.** Khi tệp sẵn sàng, Lolly đọc lại nó và so sánh với những gì bạn đã chọn: định dạng, kích thước điểm ảnh hoặc trang, độ dài clip, nền trong suốt, màu CMYK, HDR, Content Credentials và mật khẩu PDF hoặc ZIP. Bất cứ điều gì khác biệt được ghi trên thẻ xuất. Mỗi số đo đến từ tệp, không bao giờ từ cài đặt, và một thuộc tính mà tệp không trả lời được sẽ không được tính là khớp. Dòng lệnh ghi bản so sánh đầy đủ bằng `--export-report` (xem [Render with the CLI](/info/cli-rendering.html)).
 
-**Đọc.** Ở bất cứ nơi nào màu sắc được viết ra - stylesheet của một công cụ, nét vẽ của một SVG được nhập vào, giá trị của một token thiết kế, một bóng đổ hay gradient bên trong CSS shorthand - Lolly đọc toàn bộ từ vựng **CSS Color 4**: `#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, các tên màu CSS và `color()` trong các không gian được định sẵn - `srgb`, `srgb-linear`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d50`, `xyz-d65` - kể cả các thành phần được viết dưới dạng từ khóa `none`. Một trình phân tích duy nhất làm việc này cho toàn bộ nền tảng, nên trình duyệt và mọi walker xuất tệp đều thống nhất về ý nghĩa của một chuỗi màu.
+Các kiểm tra của trình kiểm tra Design và phép so sánh thương hiệu trong Design System Setup là các kiểm tra riêng: chúng nhìn thiết kế, còn hai thẻ này nhìn tệp.
 
-Điều đó quan trọng hơn vẻ ngoài của nó, vì trình duyệt phân giải CSS hiện đại thành CSS hiện đại. Viết `color-mix(in oklab, …)` thì Chrome sẽ tính ra `oklab(…)`; dùng một token thương hiệu được lưu dưới dạng `oklch()` thì đó chính là giá trị nguyên văn mà walker xuất tệp nhìn thấy. Màu sắc ở các dạng đó được đọc đúng thay vì bị bỏ qua - điều mà một walker chỉ hiểu `rgb()` đã từng làm, xuất văn bản có màu thương hiệu thành màu đen, làm mất các bảng có tông màu và đường kẻ bảng, và đọc `oklch(0.7 0.1 200) 0px 2px 4px` như một độ lệch bóng đổ là 0.7 nhân 0.1.
+::: details Chi phí từ bảng giá
+Dưới preflight, một thẻ chi phí biến cùng các con số đếm thành tiền, chỉ dùng giá do ai đó cung cấp. Nó đọc các số đếm đó ngay cả khi chính thẻ preflight tắt. Nó cần hai thứ: một công việc mà bảng giá định giá được (bản in, tờ, diện tích, trang, hàng biến thể hoặc tệp đầu ra, nên một logo PNG thường không bao giờ hiện nó) và một **bảng giá** (rate card), một danh sách giá JSON từ nhà in. Bản dựng mặc định không có và không có cách nạp trong ứng dụng. Bảng giá đến dưới dạng tài nguyên danh mục mà một bản triển khai đi kèm, hoặc qua phần mở rộng bảng giá tùy chọn mà người tự lưu trữ hoặc mặt phẳng điều khiển bật. Không có bảng giá, không có gì hiện ra.
 
-**Tư duy.** Toán học màu sắc diễn ra theo tri giác thay vì trên các kênh thô. Việc suy ra bảng màu, dải màu, hài hòa và độ tương phản chạy trong **OKLCH/OKLab**, và một màu ngoài gamut được đưa vào phạm vi bằng chính thuật toán ánh xạ gamut của CSS Color 4 - giảm chroma kèm kiểm tra khoảng cách tri giác - thay vì cắt kênh, nên một màu sặc sỡ sẽ ổn định ở màu gần nhất mà bạn thực sự chấp nhận được thay vì một màu bị làm phẳng. Gradient nội suy trong không gian bạn chọn (mặc định là OKLab, hoặc `oklch`, `lab`, `lch`, `srgb`, `srgb-linear`, `hsl`, với một hướng di chuyển màu (hue-travel) cho các không gian dạng cực), và việc pha trộn được **premultiplied**, nên một hiệu ứng mờ dần sang trong suốt vẫn giữ đúng màu thay vì tối dần về màu đen trên đường đi. Một bộ nội suy duy nhất phục vụ cả trình xem trước lẫn các walker xuất tệp - đó chính là điều ngăn một gradient hình nón bị pha trộn theo một cách trên màn hình và một cách khác trong tệp xuất ra.
+Mọi con số là một mức giá bạn cung cấp nhân một số lượng Lolly đếm, như `4 plate × €35.00`, và tổng mang theo nguồn của nó: bên phát hành trên thẻ và ngày mà giá đó có hiệu lực. Không có đơn vị tiền mặc định và không có giá giữ chỗ. Những gì tệp nói về chính nó vẫn là lời tường thuật: *"The file says: … Lolly has not verified this."*
 
-**Ghi.** Đầu ra cố tình hẹp hơn đầu vào, vì một tệp phải đọc được bởi bất cứ thứ gì mở nó, và một không gian màu chỉ được *khai báo* khi các con số thực sự đã được chuyển đổi sang không gian đó. Các định dạng màn hình và web được ghi dưới dạng **sRGB** và được gắn nhãn tương ứng; các định dạng in được ghi dưới dạng **CMYK** theo một điều kiện in được đặt tên (bên dưới); và đường dẫn HDR là **Rec.2100 PQ** (ở trên). Một màu có dải gam rộng khi tới bước xuất sẽ được ánh xạ vào sRGB thay vì bị gắn nhãn sai - việc mang `color(display-p3 …)` xuyên suốt vào một tệp vector là một phần mở rộng đã được lên kế hoạch, chưa phải là điều các bản xuất hiện tại làm được. Một gradient được tạo trong OKLab sẽ được *nướng* thành các điểm dừng sRGB thuần khi xuất ra, với các điểm dừng bổ sung chỉ được chèn thêm ở nơi sRGB lệch rõ so với đường cong cảm nhận, vì một `<linearGradient>` trong SVG hay một shading trục trong PDF không có tùy chọn không gian nội suy để mang theo chủ ý đó. Một giá trị được tạo ra, ba trình kết xuất, không hề lệch nhau.
+Khi một con số không tính được, bảng bị rút lại thay vì điền bừa:
 
-## Hồ sơ màu
+- Các dòng mà thẻ không định giá nghĩa là **không có tổng nào**, chỉ có một tiêu đề nói có bao nhiêu dòng chưa định giá.
+- Một số lượng là mức trần mang **"up to"** vào tổng phụ của nó.
+- Giá quá ngày hết hạn chỉ hiện **số đếm** cho đến khi bạn nhấn *Use these rates anyway*; ngày hết hạn khi đó đi cùng con số.
+- Mở qua **liên kết**, tiền vẫn ẩn cho đến khi bạn yêu cầu trên thiết bị này. CLI nhận `--rate-card=<file.json>` như tệp cục bộ và không bao giờ như tham số liên kết.
 
-Để màu sắc tái hiện trung thực trong các ứng dụng quản lý màu (nhà in, Photoshop, trình duyệt), các bản xuất được **gắn kèm hồ sơ màu**:
+Thẻ bị loại khỏi mọi giai đoạn xuất, nên nó không bao giờ đổi tệp. Đó là số học, không phải báo giá; chỉ nhà in của bạn mới báo giá được.
+:::
 
-- **PNG / JPG** mang theo một hồ sơ ICC **sRGB** nhúng sẵn - đúng không gian màu mà bản xem trước thực sự được kết xuất - nên không có gì phải đoán. (Chỉ là gắn nhãn; các pixel không được mã hóa lại.)
-- **PDF in (CMYK)** khai báo một **điều kiện in** đích trong *OutputIntent* của nó (mặc định là *Coated FOGRA39*), cho RIP/nhà in biết mực CMYK của nó cần được đọc như thế nào. Các mẫu màu thương hiệu có giá trị mực đo được sẽ được chuyển đổi chính xác; các màu khác dùng phép chuyển đổi thiết bị chuẩn. Khai báo đó là một *cái tên*: không có hồ sơ CMYK nào đi kèm Lolly, và PDF/X-4 yêu cầu hồ sơ phải được nhúng, nên một điều kiện được đặt tên chỉ ghi ra output intent mà không tuyên bố tuân thủ PDF/X-4. Nạp một hồ sơ CMYK của riêng bạn và chọn dòng **Embed** trong bộ điều khiển Hồ sơ màu thì nó sẽ được nhúng làm *DestOutputProfile* của tệp - lúc đó PDF mới thực sự có thể là PDF/X-4, và sẽ tuyên bố điều đó bất cứ khi nào phần còn lại của tệp cho phép. Ba thứ giữ tuyên bố đó lại trong khi vẫn giữ output intent (một RIP vẫn cần cái đó): tác phẩm RGB mà bước chuyển CMYK không chuyển đổi được, văn bản ghi công ở lề chứng minh `prov` (được vẽ bằng phông chuẩn không được nhúng, và X-4 không có ngoại lệ cho những trường hợp đó) và mật khẩu **Strong**, vì X-4 cấm mã hóa. Điều kiện mà nó khai báo sau đó được đọc ra từ chính hồ sơ đó: một tên đã đăng ký nơi hồ sơ chứng minh được, `Custom` dưới tên riêng của hồ sơ nơi không chứng minh được, để tệp không bao giờ nêu tên một điều kiện in trong khi mang số đo của một điều kiện khác.
-- **TIFF in (CMYK)** ghi các pixel **DeviceCMYK** không gắn nhãn và ghi lại cùng điều kiện in đó như thông tin xuất xứ trong metadata TIFF (*ImageDescription*) thay vì nhúng một hồ sơ. Cùng bộ điều khiển Hồ sơ màu điều khiển cả hai định dạng CMYK - một TIFF hoàn toàn không thể nhúng hồ sơ in, nên dòng **Embed** chỉ ghi lại tên riêng của hồ sơ đó và không gì khác.
-- **TIFF (RGB)** là phiên bản sRGB thuần, không nén - một ảnh raster không mất dữ liệu ở DPI đã chọn, dùng để lưu trữ hoặc chuyển qua lại với trình chỉnh sửa, với thông tin xuất xứ được ghi trong cùng metadata TIFF. Mọi độ trong suốt được làm phẳng trên nền trắng (hồ sơ này không mang kênh alpha). Giống TIFF CMYK, nó chỉ dùng trên máy tính để bàn, vì trình duyệt không thể xem trước TIFF và tải xuống trên di động sẽ vào ngõ cụt.
-- **SVG**, **EMF**, **EPS** và **DXF** là các vector độc lập về độ phân giải và hồ sơ màu, không có hồ sơ nhúng - màu của SVG là sRGB thuần, của EMF và EPS là device RGB (và **EPS (CMYK)** ghi DeviceCMYK thuần) còn **DXF** mang AutoCAD Color Index gần nhất. (SVG, EPS và DXF, giống PDF, vẽ đường viền mọi văn bản thành path vector, nên kết quả vẫn hiển thị được ngay cả khi không cài phông chữ. EMF thì ngược lại, mặc định giữ văn bản SỐNG - các bản ghi văn bản metafile thật vẫn có thể chọn và chỉnh sửa được trong Office và Google Slides, chỉ chuyển về đường viền cho các đoạn định dạng không thể diễn đạt được; tùy chọn "Outline fonts" trong bảng xuất buộc dùng path ở mọi nơi.) **SVG** cũng tái hiện `box-shadow` CSS từ HTML - mỗi bóng đổ ngoài được vẽ phía sau hộp, có độ lệch/lan tỏa và làm mờ Gauss khớp với trình duyệt, còn bóng đổ trong (inset) được vẽ bên trong hộp theo cùng cách.
+## Chuyển động và âm thanh
 
-Việc này diễn ra tự động - không có thiết đặt nào để chỉnh. Ảnh thu nhỏ và bản xem trước bỏ qua nhãn để giữ dung lượng nhỏ. Một hồ sơ *là* một lựa chọn, vì nó thay đổi pixel chứ không chỉ gắn nhãn - xem **HDR** bên dưới.
+### Video
 
-## HDR (màu sáng)
+Các công cụ động xuất **MP4** và **WebM**. Bộ chọn chỉ hiện các container mà trình duyệt này tạo được, và một liên kết `?format=` được chia sẻ yêu cầu cái không tạo được sẽ quay về cái còn lại, với tên tệp khớp. Công cụ động cũng cung cấp **Start after**, giữ canvas đứng yên một lúc để hoạt ảnh và phông chữ ổn định trước khi ghi, và **Duration**, độ dài của clip hoàn chỉnh. **Motion blur** (Off, Draft quality, Standard hoặc High, với **Shutter angle**) làm mờ chuyển động nhanh với cái giá là thời gian kết xuất. Nơi trình duyệt hỗ trợ, **Record live** ghi bản xem trước trên màn hình theo thời gian thực qua chia sẻ màn hình thay thế.
 
-Các bản xuất thông thường là sRGB: trắng là trắng, và một màu thương hiệu bão hòa cũng chỉ sáng bằng độ trắng bình thường của màn hình. Trên một màn hình hỗ trợ HDR, có rất nhiều dư địa sáng phía trên mức đó, và thẻ **HDR** trong bảng xuất tận dụng điều đó - màu thương hiệu và văn bản trắng của bạn được đẩy về phía độ sáng đỉnh để chúng thực sự *phát sáng*, trong khi vùng tối vẫn giữ tối để tạo độ tương phản cho ánh sáng đó.
+![Cài đặt thời gian cho bản xuất động: Start after, Duration, Motion blur với Shutter angle, và Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+
+**Quality** chọn Smaller file, Balanced hoặc Best quality. **Advanced** mở **Codec**, **Frame rate**, **Rate mode** và **Hardware acceleration**. Nơi một công cụ có phụ đề, **Captions** chọn một **Embedded track** hoặc **Sidecar .vtt + .srt** bên cạnh video. Một liên kết mang chất lượng, codec, tốc độ khung hình, thời lượng và độ trễ bắt đầu dưới dạng `vq`, `codec`, `fps`, `seconds` và `wait` ([URL parameters](/info/url-parameters.html)).
+
+Bản xuất video giữ âm thanh của chúng. Một công cụ có thể đặt **music bed** dưới clip: một tài nguyên âm thanh được lặp hoặc cắt theo độ dài clip, với fade, âm lượng và ducking dưới âm thanh của chính cảnh quay. Các công cụ ghi mang âm thanh trực tiếp của chúng vào tệp.
+
+Một bộ trang Design vốn là bộ bấm chuyển vẫn có thể ra đi dưới dạng video. **Export slides as video** trong menu Present mở bảng xuất ở MP4. Mỗi trang chiếu phát trong thời gian dừng của riêng nó, hoặc trong Duration của bảng xuất khi nó không có, và chuyển cảnh của bộ trang phát giữa chúng dưới dạng hòa tan. Bản thân tài liệu không đổi.
+
+### Ảnh động
+
+**GIF** phát ở mọi nơi và phù hợp với trò chuyện và email; nó lớn hơn và ít màu hơn video. **APNG** và **Animated WebP** giữ đủ màu và độ trong suốt. **Lottie Ad** cũng xuất **Animated SVG**: khung hình vector với keyframe CSS nhúng, nên nó co giãn tới mọi kích thước và lặp trong thẻ trình duyệt hoặc `<img>` mà không cần codec. Văn bản của nó được chuyển thành đường viền, và nó dùng tốc độ khung hình mặc định thấp hơn vì mỗi khung nặng hơn ảnh điểm. Tất cả những cái này không có tiếng.
+
+### Âm thanh
+
+Một số công cụ xuất âm thanh riêng. **Voice Recorder** ghi một bản thu từ micro với đồng hồ đo mức trực tiếp và lưu dưới dạng **MP3**, **WAV**, **M4A (AAC)** hoặc **Opus (WebM)**, được mã hóa trên thiết bị của bạn. `wav`, `mp3`, `m4a` và `opus` là các id định dạng bình thường, nên một bản xuất âm thanh chia sẻ và viết tập lệnh được như một PNG.
+
+Bộ chọn tài nguyên chấp nhận nhiều loại âm thanh cho music bed, từ MP3 và FLAC đến MIDI và module tracker; [Formats](/info/formats.html) liệt kê chúng. Một [bài hát Rondocode](/info/rondocode.html) phát ở độ dài mà clip của nó yêu cầu.
+
+## Màu sắc và HDR
+
+Lolly đọc mọi màu CSS hiện đại, tính toán màu theo cảm thụ và ghi mỗi tệp trong một không gian mà người đọc mở được: sRGB cho màn hình, CMYK cho in và Rec.2100 PQ cho HDR. [Colour in the engine](/info/colour-engine.html) giải thích cách làm. Một tài liệu Design đặt **Wide colour / HDR** theo quy tắc riêng của nó, mô tả trong [Wide colour and HDR editing](/info/hdr-editing.html).
+
+### Hồ sơ màu
+
+Bản xuất được gắn một hồ sơ màu, để các ứng dụng quản lý màu như nhà in, Photoshop và trình duyệt đọc màu như bạn đã thấy. Việc này diễn ra tự động; hình thu nhỏ và bản xem trước bỏ qua thẻ để giữ nhỏ.
+
+- **PNG và JPG** mang hồ sơ ICC **sRGB** nhúng, không gian mà bản xem trước được vẽ. Điểm ảnh được gắn thẻ, không mã hóa lại.
+- **Print PDF (CMYK)** khai báo điều kiện in trong *OutputIntent*, cho nhà in biết các mực CMYK của nó được hiểu thế nào.
+- **Print TIFF (CMYK)** ghi điểm ảnh DeviceCMYK không gắn thẻ và ghi điều kiện in trong siêu dữ liệu TIFF. TIFF không nhúng được hồ sơ máy in, nên hàng **Embed** chỉ ghi tên hồ sơ đó.
+- **TIFF (RGB)** là anh em sRGB không nén cho lưu trữ hoặc khứ hồi trình chỉnh sửa. Nó làm phẳng độ trong suốt lên nền trắng. Cả hai TIFF chỉ có trên máy tính, vì trình duyệt không xem trước được TIFF.
+- **SVG**, **EMF**, **EPS** và **DXF** là vector không có hồ sơ nhúng: màu của SVG là sRGB, EMF và EPS dùng RGB thiết bị, **EPS (CMYK)** ghi DeviceCMYK và DXF dùng AutoCAD Color Index. SVG, EPS và DXF chuyển văn bản thành đường viền. EMF giữ văn bản sống và chỉnh sửa được trong Office và Google Slides, chỉ chuyển về đường viền cho các đoạn mà định dạng không biểu đạt được; tùy chọn **Outline fonts** của bảng xuất ép dùng đường viền ở mọi nơi. SVG cũng tái tạo đổ bóng hộp CSS, trong và ngoài.
+
+::: details PDF/X-4 và hồ sơ máy in của riêng bạn
+Không hồ sơ CMYK nào đi kèm Lolly. Một điều kiện in có tên ghi output intent mà không tuyên bố tuân thủ PDF/X-4, vì PDF/X-4 muốn hồ sơ được nhúng.
+
+Nạp hồ sơ CMYK của riêng bạn và chọn hàng **Embed** của nó trong điều khiển Colour profile. Nó được nhúng làm *DestOutputProfile* của tệp, và PDF tuyên bố PDF/X-4 bất cứ khi nào phần còn lại của tệp cho phép. Điều kiện in mà nó khai báo được đọc từ hồ sơ đó: một tên đã đăng ký nơi hồ sơ chứng minh được, hoặc `Custom` dưới tên riêng của hồ sơ.
+
+Ba điều giữ lại tuyên bố trong khi vẫn giữ output intent: tác phẩm RGB mà lượt CMYK không chuyển đổi được, văn bản ghi công lề thử `prov` (vẽ bằng phông chuẩn không được nhúng) và mật khẩu **Strong**, vì PDF/X-4 cấm mã hóa. Mọi PDF cũng mang siêu dữ liệu PDF/X-4: hộp trang, XMP, ID tài liệu và output intent sRGB cùng hồ sơ của nó.
+:::
+
+### HDR (màu sáng)
+
+Đây là thẻ **HDR** của bảng xuất, làm sáng tác phẩm thông thường cho màn hình HDR. Giữ bản gốc HDR qua chỉnh sửa là tính năng khác: [Wide colour and HDR editing](/info/hdr-editing.html).
+
+Một bản xuất thông thường là sRGB: một màu thương hiệu bão hòa sáng bằng màu trắng thông thường của màn hình. Màn hình HDR có khoảng dư phía trên đó. Thẻ **HDR** đẩy màu thương hiệu và chữ trắng của bạn lên gần độ sáng đỉnh, trong khi vùng tối vẫn tối và cho ánh sáng độ tương phản.
 
 ![Thẻ HDR trong bảng xuất, đã bật, với các núm White / Reach / Dark lift / Focus hiện ra phía dưới](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Định dạng.** Các định dạng raster có chỗ để mang tín hiệu: **PNG**, **JPG**, **AVIF** và **TIFF**. (Không phải WebP - nó là 8-bit và không có đường giải mã HDR hoạt động, nên một WebP PQ sẽ chỉ trông tối đi. Vector và PDF hoàn toàn không có mô hình HDR.)
-- **Tắt theo mặc định**, khác với gắn thẻ màu - nó thay đổi điểm ảnh, nên là tùy chọn tự bật. Tích vào thẻ, hoặc truyền `hdr=1` trong liên kết chia sẻ.
-- **Những gì thực sự được ghi.** Điểm ảnh được mã hóa lại thành **Rec.2100 PQ** - dải màu gốc BT.2020 với đường cong truyền SMPTE ST 2084 (PQ) - và vùng chứa mang theo tín hiệu tương ứng để một ứng dụng có quản lý màu biết cách đọc chúng: một **hồ sơ ICC v4 kèm thẻ `cicp`** được tạo ra (JPG, TIFF), một **khối `cICP`** (PNG) hoặc một hộp `colr` được viết lại (AVIF). Độ tăng cường được điều khiển dựa trên **độ sáng cảm quan (OKLab)**, nên các màu ở mức trung bình trở lên được đẩy lên đỉnh còn màu tối được làm dịu thay vì bị cháy sáng, và nó giữ nguyên sắc độ - một màu xanh lá thương hiệu sẽ sáng hơn, không ngả sang màu bạc hà.
-- **Các nút chỉnh.** Bốn nút, hiện ra khi thẻ được bật: **White** (trần độ sáng đỉnh, 400–2000 nit), **Reach** (độ tỏa xuống các sắc độ thấp hơn đến đâu), **Dark lift** (các vùng tối được làm sáng lên bao nhiêu - `0` giữ chúng tối) và **Focus** (độ phong phú màu sắc mà việc tăng cường giữ lại). Chúng đi cùng trong cùng một tham số như một giá trị đã tinh chỉnh ở dạng gọn - `hdr=1600-60-0-50` nghĩa là White 1600, Reach 60, Dark lift 0, Focus 50 - nên một hiệu ứng đã tinh chỉnh có thể tái lập được từ liên kết.
-- **Nơi bạn sẽ thấy nó.** Các trình xem có quản lý màu trên màn hình HDR: Preview / Quick Look / Safari trên thiết bị Apple, Chrome trên màn hình HDR. Trên một màn hình SDR thông thường, tệp vẫn hiển thị như một hình ảnh bình thường.
-- **Cần biết trước khi đăng tải.** Nhiều nền tảng **mã hóa lại** những gì bạn tải lên và loại bỏ tín hiệu HDR - mạng xã hội, ứng dụng nhắn tin, một số CMS - điều này có thể khiến hình ảnh trông tối hoặc nhạt màu. Hãy dùng HDR ở nơi bạn kiểm soát được điểm đến (một trang web bạn tự xây dựng, một màn hình video, một bản trình chiếu trên màn hình sáng), không phải như mặc định cho mọi thứ.
-- **Trong suốt.** PNG và AVIF giữ kênh alpha; JPG luôn không trong suốt như thường lệ. Đường dẫn **TIFF** làm phẳng nền thành **đen**, không phải nền trắng như đường dẫn SDR - trong PQ, trắng là mã 10.000 nit, nên làm phẳng nền thành trắng sẽ tạo vầng sáng chói lóa quanh mọi cạnh.
-- **Cùng những byte đó từ terminal.** `--hdr=1` cùng với `--export=png` hoặc `--export=jpg` ghi ra PNG Rec.2100 PQ 16-bit và JPEG gain-map ISO 21496-1 trên [CLI](/info/cli.html) cũng vậy, từ cùng bộ mã hóa của engine chứ không phải từ trình duyệt - nên một công cụ gốc `<svg>` tạo ra tệp HDR mà không có Chromium ở bất kỳ đâu trong đường dẫn, và tệp PNG giống hệt từng byte so với tệp của web shell. AVIF và TIFF hiện vẫn chỉ xuất được từ web shell.
+- **Định dạng.** PNG, JPG, AVIF và TIFF. WebP là 8-bit và không có đường giải mã HDR hoạt động, còn vector và PDF không có mô hình HDR.
+- **Tắt theo mặc định**, vì nó đổi điểm ảnh. Đánh dấu thẻ, hoặc truyền `hdr=1` trong liên kết chia sẻ.
+- **Các núm.** **White** (trần độ sáng đỉnh, 400 đến 2000 nit), **Reach** (ánh sáng lan xuống các tông bao xa), **Dark lift** (vùng tối sáng lên bao nhiêu; `0` giữ chúng tối) và **Focus** (phần đẩy giữ lại bao nhiêu độ phong phú màu). Chúng đi như một giá trị: `hdr=1600-60-0-50` là White 1600, Reach 60, Dark lift 0 và Focus 50.
+- **Những gì được ghi.** PNG nhận Rec.2100 PQ 16-bit với chunk `cICP`. JPG là JPEG gain-map ISO 21496-1: một ảnh SDR thường cộng một gain map nối thêm. AVIF nhận hộp `colr` được ghi lại. TIFF nhận điểm ảnh PQ với hồ sơ ICC v4 được tạo mang thẻ `cicp`, và làm phẳng lên nền đen, vì trắng là mã 10.000 nit trong PQ và sẽ tạo quầng quanh mọi cạnh. Phần đẩy theo độ sáng cảm thụ (OKLab) và giữ sắc độ, nên màu xanh thương hiệu sáng hơn, không nhạt như bạc hà.
+- **Nơi ánh sáng hiện ra.** Trình xem quản lý màu trên màn hình HDR: Preview, Quick Look và Safari trên thiết bị Apple, hoặc Chrome trên màn hình HDR. Màn hình SDR hiện ảnh bình thường.
+- **Trước khi giao.** Nhiều nền tảng mã hóa lại bản tải lên và bỏ tín hiệu HDR, có thể khiến ảnh tối hoặc bạc màu. Hãy dùng HDR nơi bạn kiểm soát đích đến, như trang của riêng bạn, tường video hoặc bộ trang trên màn hình sáng.
+- **Từ terminal.** `--hdr=1` với `--export=png` hoặc `--export=jpg` ghi cùng PNG và JPEG gain-map trên [CLI](/info/cli.html), từ cùng bộ mã hóa engine, không có trình duyệt trên đường. AVIF và TIFF hiện vẫn là bản xuất web.
 
-## Video
+## Những gì đi cùng tệp của bạn
 
-Các công cụ hoạt hình xuất chuyển động dưới dạng **MP4**, **WebM** hoặc **GIF** - và, nếu có, **APNG**, **Animated WebP** hoặc **SVG hoạt hình** dạng vector (ở trên). Vùng chứa video nào bạn thấy phụ thuộc vào trình duyệt của bạn - bộ chọn chỉ hiển thị những gì nó thực sự có thể ghi lại được:
+Một tệp hoàn chỉnh có thể mang nhiều bản ghi bên cạnh bức ảnh. Một số đi bên cạnh điểm ảnh và biến mất khi tệp được lưu lại hoặc bị lột; hai dấu nằm ngay trong điểm ảnh.
 
-| Trình duyệt | Hiển thị |
-|---|---|
-| Safari / iOS | **MP4** |
-| Firefox | **WebM** |
-| Chrome / Edge 126+ / Android | **MP4 và WebM** |
-| Chrome cũ hơn | **WebM** |
+::: figure exporting-what-travels
+Mỗi bản ghi nằm ở đâu, có bật theo mặc định không và tham số liên kết nào điều khiển từng cái.
+:::
 
-GIF hoạt động ở mọi nơi (rất phù hợp cho trò chuyện/email; dung lượng lớn hơn và ít màu hơn video). Các công cụ hoạt hình cũng cung cấp **Wait** (số giây để hoạt ảnh ổn định trước khi ghi) và **Duration** (độ dài đoạn clip).
-
-> Một liên kết `?format=…` được chia sẻ, yêu cầu một container mà trình duyệt của bạn không ghi được, sẽ tự động chuyển sang container còn lại một cách êm ái, và tên tệp khớp với container đã ghi được.
-
-**Âm thanh.** Các bản xuất video không im lặng. Một công cụ có thể đặt một **nền nhạc** dưới đoạn clip - một tài sản âm thanh từ danh mục, được lặp hoặc cắt cho khớp độ dài clip, kèm hiệu ứng mờ dần vào/ra, âm lượng và tự động hạ âm lượng dưới âm thanh riêng của cảnh quay - và các công cụ ghi hình mang nguyên âm thanh trực tiếp của cảnh quay vào tệp. **MP4** và **WebM** giữ track âm thanh đã trộn; GIF và các định dạng ảnh hoạt hình (APNG, Animated WebP, Animated SVG) vốn dĩ không có âm thanh.
-
-## Âm thanh
-
-Một số công cụ xuất **âm thanh riêng**, không chỉ là một track trong video. **Voice Recorder** ghi lại giọng nói qua micro với đồng hồ đo mức tín hiệu trực tiếp và gợi ý nhẹ nhàng, sau đó lưu dưới dạng **MP3** (mặc định, được chuyển mã ngay trong trình duyệt của bạn) hoặc theo vùng chứa gốc của nó - **M4A** (AAC), **OGG** hoặc **WebM** (Opus), tùy vào định dạng trình duyệt của bạn ghi được. Cũng như mọi thứ khác, việc mã hóa diễn ra ngay trên thiết bị của bạn - không có gì được tải lên.
-
-Âm thanh bạn *đưa vào* cũng đa dạng không kém. Bộ chọn tài sản chấp nhận **MP3**, **WAV**, **OGG**/**Opus**, **M4A**/**AAC** và **FLAC** (giữ nguyên byte và giải mã trên thiết bị), **MIDI** (`.mid` - được chuyển đổi khi nhập thành một track tổng hợp nhỏ gọn trên thiết bị) và **module tracker** - **MOD**, **XM**, **IT**, **S3M**, **STM**, **MTM** (giải mã trên thiết bị bởi một trình phát đi kèm, chỉ vài kilobyte dữ liệu nhạc). Bất kỳ tệp nào trong số này đều có thể trở thành **nền nhạc** dưới một bản xuất video, hoặc phát trong trình phát nền của Neurospicy Mode.
-
-Âm thanh *là* một phần của quy trình `format=` / `--export=` bên dưới: `wav`, `mp3`, `m4a` và `opus` là các id định dạng bình thường, nên một bản xuất chỉ có âm thanh cũng dễ chia sẻ và dễ dùng bằng script như một PNG. Kết quả ra chỉ có âm thanh, không có hình ảnh.
-
-## Xuất xứ & hình mờ
-
-Ở nơi định dạng hỗ trợ, các bản xuất mang theo **siêu dữ liệu xuất xứ** - phần mềm, nguồn, tên công cụ và dòng ghi công trong hồ sơ của bạn - được nhúng theo cách tự nhiên của định dạng (PNG iTXt, JPEG EXIF, PDF info, `<metadata>` của SVG, comment của GIF). Đây chỉ là thông tin tác quyền; không có gì được tải lên. Các công cụ **Experimental** còn đóng thêm một hình mờ hiển thị được, do host áp dụng nên không thể bị xóa bằng cách chỉnh sửa công cụ.
-
-**Lolly Imprint.** Các bản xuất raster còn mang theo **hình mờ pixel vô hình** riêng của Lolly - *Lolly Imprint* - **bật theo mặc định**, giống như Content Credentials. Trong khi thông tin xác thực và siêu dữ liệu xuất xứ đi kèm *bên cạnh* pixel và sẽ mất đi khi lưu lại, chụp màn hình hoặc xóa metadata, thì Imprint sống *bên trong* pixel và tồn tại qua việc nén lại - nên một bản sao của ảnh vẫn có thể được nhận diện là do Lolly tạo ra sau này. Đây là một dấu hiệu bền vững, không phải một đảm bảo mật mã học, và nó chỉ mang tính hiện diện (không chứa dữ liệu cá nhân nào). Nó có mặt trong **PNG, JPG, WebP, AVIF, TIFF và BMP**, và trong các ảnh raster do Lolly kết xuất được ghép vào một **PDF hoặc PPTX** - không bao giờ có trong một ảnh mà *bạn* đã nhúng vào, chỉ trong những gì chính Lolly kết xuất. Bỏ chọn thẻ **Lolly Imprint** trong bảng xuất để bỏ qua, hoặc truyền `imprint=0` trong một liên kết chia sẻ. (Khả năng tồn tại của AVIF qua việc mã hóa lại chưa được hiệu chỉnh; việc phát hiện trong PDF/PPTX chỉ bao phủ các ảnh raster do Lolly nhúng.) [/verify](/verify) phát hiện nó ngay trên thiết bị - xem [Content Credentials Identity](/info/content-credentials-identity.html#the-lolly-imprint).
-
-**Thông tin xác thực bền vững.** Bên cạnh Imprint còn có một dấu thứ hai, nặng hơn: **Durable credential**, dùng một mô hình mạng nơ-ron trên thiết bị (định dạng TrustMark) để ghi id của Lolly *vào* pixel, để liên kết "làm bằng Lolly" tồn tại qua việc xóa metadata, mã hóa lại và được các công cụ nhận biết TrustMark đọc lại, cũng như chính Lolly. Nó **tắt theo mặc định** - khác với Imprint thuần JavaScript, nó tốn một lượt xử lý mạng nơ-ron cho mỗi lần xuất cộng thêm một lần tải mô hình duy nhất, nên đây là một lựa chọn bật thêm có chủ ý chứ không phải một khoản phí âm thầm. Chỉ dành cho raster (**PNG, JPG, WebP, AVIF, TIFF**), được tick trong bảng xuất hoặc truyền dưới dạng `durable=1` trong một liên kết chia sẻ. Trên các ứng dụng máy tính để bàn và di động, thẻ này bị ẩn hẳn thay vì hiển thị như một thao tác vô nghĩa, vì không có nguồn nào để tải mô hình khi ngoại tuyến.
-
-**Content protection.** Trong bảng xuất, **Licence** bạn cấp, **Source credits** của bất cứ thứ gì bạn đặt vào, *Password protect*, **C2PA Credentials**, **Lolly Imprint** và **Durable credential** gộp lại thành một nhóm **Content protection** thu gọn, tùy theo định dạng, để các tùy chọn xuất xứ, quyền và bảo vệ của một tệp nằm cùng một chỗ. Nhóm này chỉ hiển thị các thẻ áp dụng được cho định dạng đã chọn. Nó tự mở ra khi một liên kết hoặc tài liệu đã lưu đã khai báo sẵn licence, hoặc khi một nguồn cần bạn quyết định.
-
-**Licence.** Chọn cách người khác có thể sử dụng tác phẩm của bạn: *None (all rights reserved)* theo mặc định, hoặc CC0 1.0, Public Domain Mark 1.0, hoặc một trong các licence Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Tên licence và một liên kết đến văn bản của nó được ghi vào metadata licence của tệp (EXIF, XMP và RIFF ở những định dạng có các trường đó) và vào Content Credential của tệp. Lựa chọn này được lưu cùng tài liệu và đi theo trong một liên kết chia sẻ dưới dạng `licence=`. Lolly ghi lại licence bạn đã chọn. Nó không kiểm tra hay thực thi các điều khoản. Một công cụ có trường licence riêng, như Claim, giữ nguyên trường đó thay vì hiển thị thêm bộ chọn thứ hai. Các dấu in cố tình *không* nằm trong đó: chúng là hình học sản xuất in ấn chứ không phải bảo vệ, nên **Print marks & bleed** - phép đo bleed theo milimét cùng Crop, Registration, Bleed, Colour bars và Stamp details - vẫn giữ thẻ cấp cao nhất riêng trên các định dạng in.
+Bảng xuất gập **Licence**, **Source credits**, *Password protect*, **C2PA Credentials**, **Lolly Imprint** và **Durable credential** thành một nhóm **Content protection** chỉ hiện các thẻ mà định dạng đã chọn dùng được. Nó tự mở khi một liên kết hoặc tài liệu đã khai báo giấy phép, hoặc khi một nguồn cần bạn quyết định. Thẻ **Design system** ở ngoài nhóm, hiện trên mọi bản xuất.
 
 ![Nhóm Content protection được mở trên một bản xuất PNG, chỉ hiển thị các thẻ áp dụng được cho nó](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
-**Trước khi xuất (kiểm tra tiền chế bản in).** Bật **Print preflight** (`export-preflight`) trong cờ tính năng thuộc Hồ sơ của bạn - mặc định là **tắt**, để một cá nhân xuất một PNG cho tin nhắn trò chuyện không bao giờ bị bất ngờ bởi các phát hiện tiền chế bản in, và mặt bằng điều khiển của một triển khai ([lolly.work](https://lolly.work)) có thể đặt mặc định bật cho thành viên của mình - và một thẻ **Before you export** xuất hiện ở cuối bảng, ngay phía trên các nút bấm, bất cứ khi nào các quy tắc in có điều gì đúng để nói về công việc: định dạng, kích thước và bleed, rồi đến vùng trim và bleed, độ phủ mực, số lượng bản kẽm và số trang, kèm một kết luận bên cạnh tiêu đề của nó. Nó nằm dưới mọi thiết đặt vì đó là một phát biểu *về* các thiết đặt đó chứ không phải là một thiết đặt khác - và nó không bao giờ chặn việc xuất. Nó cho bạn biết một nhà in sắp nhìn thấy điều gì.
+### Nguồn gốc & hình mờ
 
-**Chi phí, tính toán từ bảng giá của bạn.** Bên dưới phần preflight - cuối cùng, vẫn phía trên các nút bấm - là một thẻ chuyển những con số đếm đó thành tiền, và chỉ luôn từ mức giá do ai đó cung cấp. Nó đọc bất cứ thứ gì bước preflight đã đếm được, dù thẻ preflight có được bật hay không, và nó cần hai điều đúng cùng lúc: công việc có thứ gì đó mà một bảng giá có thể định giá được (bản kẽm, tờ in, diện tích, số trang, các dòng biến thể hoặc tệp đầu ra - nên một PNG logo đơn giản sẽ không bao giờ hiển thị nó), **và** có một **bảng giá** (rate card) hiện diện. Một bảng giá là danh sách giá dạng JSON từ nhà in của bạn. Một bản dựng mặc định không mang theo bảng giá nào và không có cách nào trong ứng dụng để nạp một bảng: nó chỉ đến dưới dạng một tài sản danh mục mà một triển khai cung cấp, hoặc qua tiện ích mở rộng bảng giá tùy chọn mà một người tự lưu trữ hoặc mặt bằng điều khiển bật lên. Không có bảng giá, không có gì được hiển thị - không lời nhắc, không bảng trống.
+Nơi định dạng có trường, bản xuất mang **siêu dữ liệu nguồn gốc**: phần mềm, nguồn, tên công cụ và dòng ghi công hồ sơ của bạn, được ghi vào PNG iTXt, JPEG EXIF, thông tin PDF, `<metadata>` của SVG hoặc chú thích GIF. Nó chỉ ghi quyền tác giả, và không có gì được tải lên. Các công cụ **Experimental** cũng đóng hình mờ nhìn thấy, do host áp dụng để chỉnh sửa công cụ không gỡ được dấu.
 
-Quy tắc mà toàn bộ tính năng này dựa vào là **nó không bao giờ tự bịa ra tiền**. Mỗi con số là một mức giá bạn cung cấp nhân với một số lượng mà Lolly đếm được - `4 plate × €35.00` - và tổng số luôn mang theo nguồn của chính nó trong cùng câu với con số đó: nhà phát hành ghi trên thẻ, và ngày mà thẻ nói mức giá của nó có hiệu lực từ đó. Không có đơn vị tiền tệ mặc định, không có giá trị giữ chỗ và không có số 0 nào thay cho một mức giá còn thiếu. Những gì tệp tự nói về chính nó luôn ở dạng lời dẫn gián tiếp: *"Tệp ghi: … Lolly chưa xác minh điều này."*
+**Lolly Imprint** là hình mờ điểm ảnh vô hình, **bật theo mặc định**. Credential và siêu dữ liệu đi bên cạnh điểm ảnh và mất khi lưu lại, chụp màn hình hoặc lột siêu dữ liệu. Imprint nằm trong điểm ảnh và bền hơn việc nén lại, nên một bản sao vẫn được nhận ra là do Lolly làm. Nó là gợi ý chứ không phải đảm bảo mật mã, và không mang dữ liệu cá nhân. Nó đi trong JPEG XL, PNG, JPG, WebP, AVIF, TIFF và BMP, và trong các ảnh điểm Lolly kết xuất vào PDF hay PPTX, không bao giờ trong ảnh bạn nhúng. Bỏ chọn **Lolly Imprint** hoặc truyền `imprint=0` để bỏ Imprint. Khả năng AVIF sống sót qua mã hóa lại chưa được hiệu chỉnh. [Verify](/verify) phát hiện nó trên thiết bị của bạn; xem [The Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
 
-Và khi không thể tính toán một cách trung thực, bảng làm việc **biến mất** thay vì suy giảm thành một con số xám mờ hoặc điền ẩu:
+**Durable credential** ghi id của Lolly vào điểm ảnh bằng mô hình nơ-ron trên thiết bị theo định dạng TrustMark, để liên kết "made with Lolly" bền hơn việc lột siêu dữ liệu và mã hóa lại, và các công cụ biết TrustMark đọc được. Nó **tắt theo mặc định**, vì tốn một lượt nơ-ron cho mỗi bản xuất và một lần tải mô hình. Nó bao gồm PNG, JPG, WebP, AVIF và TIFF; đánh dấu trong bảng hoặc truyền `durable=1`. Ứng dụng máy tính và di động ẩn thẻ này, vì chúng không có nguồn gốc để tải mô hình khi ngoại tuyến.
 
-- Các dòng mà bảng giá không định giá được nghĩa là **không có tổng số nào cả** - chỉ có một dòng tiêu đề nói có bao nhiêu dòng chưa được định giá. Một tổng số một phần không phải là một câu trả lời nhỏ hơn, mà là một câu trả lời sai.
-- Một số lượng là một giới hạn trên chứ không phải một con số chính xác sẽ mang theo **"up to"** vào tổng phụ của nó, để một giới hạn không bao giờ bị biến thành một con số cố định.
-- Các mức giá đã quá hạn hiệu lực chỉ hiển thị **số lượng**, cho đến khi bạn nhấn *Use these rates anyway* - và khi đó ngày hết hạn sẽ đi kèm con số, để một tổng số đã lỗi thời không thể bị đọc như một tổng số hiện hành.
-- Khi mở qua một **liên kết**, tiền vẫn ẩn cho đến khi bạn yêu cầu xem trên thiết bị này. Cả thẻ lẫn thao tác hiển thị đó không bao giờ đi theo một URL - cùng lý do mà CLI nhận `--rate-card=<file.json>` như một cờ tệp cục bộ chứ không bao giờ như một tham số liên kết.
+**Licence.** Chọn cách người khác được dùng tác phẩm của bạn: *None (all rights reserved)* theo mặc định, CC0 1.0, Public Domain Mark 1.0, hoặc giấy phép Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Tên giấy phép và liên kết tới bản tóm tắt của nó đi vào siêu dữ liệu giấy phép của tệp (EXIF, XMP và RIFF nơi định dạng có) và Content Credential. Lựa chọn được lưu cùng tài liệu và đi trong liên kết dưới dạng `licence=`. Lolly ghi giấy phép bạn chọn; nó không kiểm tra hay thực thi các điều khoản. Một công cụ có trường giấy phép riêng, như Claim, giữ trường đó thay thế.
 
-Thẻ này là chrome, không bao giờ là nội dung: nó bị loại bỏ khỏi mọi bước xuất tệp, nên không thể làm dịch chuyển một pixel nào của tệp bạn tải xuống. Và đó là phép tính số học, không phải một báo giá - chỉ nhà in của bạn mới có thể cho bạn một báo giá thực sự.
+### Bản ghi hệ thống thiết kế
 
-**Bản kết xuất được ghép.** Khi một công cụ nhúng đầu ra của một công cụ khác (ví dụ một *Event Name Badge* nhúng một *QR Code*), bản kết xuất lồng bên trong được nội tuyến vào bản xuất của công cụ cha - nó vẫn là **vector thật** trong SVG và PDF, và được raster hóa sắc nét trong PNG/JPG/WebP. Thành phần con được nhúng chỉ là bước trung gian: nó *không* có hình mờ và *không* có xuất xứ riêng; chỉ tài sản hoàn thiện của công cụ cha mới có. (Ghép chỉ áp dụng cho SVG và các định dạng raster; HTML/MD/TXT không thể được ghép.)
+Một bản xuất ghi lại hệ thống thiết kế đã tạo tệp: tên, phiên bản đã phát hành mà nó được vẽ từ đó (khi đó không phải phiên bản đang làm việc) và [colourway](/info/colourways.html) nó được vẽ. Mọi lựa chọn chủ đề khác mà hệ thống thiết kế khai báo, như mật độ, được ghi theo cùng cách. Lựa chọn sáng hay tối bị bỏ, vì bức ảnh đã cho thấy cái nào được dùng.
 
-## Bảo vệ bằng mật khẩu
+**Bạn thấy bản ghi trước khi bất cứ gì được ghi.** Thẻ **Design system**, đánh dấu sẵn, hiện đúng những từ mà tệp sẽ mang, như *Records: Acme · Colourway: Beach*, và mô tả như nó sẽ đọc. Tên của hệ thống thiết kế là bất cứ gì chủ sở hữu gõ, nên thẻ hiện nó như đã viết. Bỏ chọn thẻ để bỏ bản ghi khỏi bản xuất đó. Bảng tài liệu của Design liệt kê cùng các từ đó dưới *Embedded in exports*.
 
-Hai loại khóa độc lập, đều hoàn toàn trên thiết bị.
+**Mô tả nêu colourway bên cạnh công cụ.** Khi thẻ được đánh dấu, *"Made with https://lolly.tools : Chart"* trở thành *"Made with https://lolly.tools : Chart (Beach colourway)"*. Tên riêng của hệ thống thiết kế ở lại trong bản ghi, không trong mô tả. Mô tả không có tên công cụ, hoặc mô tả mà công cụ viết từ đầu vào của chính nó, được giữ nguyên. Một công cụ bỏ qua colourway qua `tokenAxes` không ghi cái nào, và ghi công thử PDF (dấu in `prov`) theo cùng quy tắc.
 
-**PDF open-password** - thẻ *Password protect* (Bảo vệ bằng mật khẩu) trong bảng xuất cung cấp hai cấp độ khi đã nhập mật khẩu:
+**Brand skills đã dẫn dắt một tác tử.** Khi một tác tử tạo tác phẩm và nêu tên [brand skills](/info/brand-skills.html) nó đã đọc và theo, bản ghi cũng liệt kê từng skill kèm bản sửa đổi, như *Guided by: acme-brand 1.0*. Các từ này nghĩa là skill đã dẫn dắt công việc. Chúng không phải kiểm tra: Lolly không kiểm thử tác phẩm với một skill. Chỉ lời khai của chính tác tử mới thêm danh sách, hiện nay nghĩa là tham số `brandSkills` của `lolly_render` trên [máy chủ MCP](/info/mcp.html), nên một tác phẩm làm trong ứng dụng hoặc từ liên kết chia sẻ không mang cái nào. Content Credential giữ danh sách dưới dạng `brandSkills`, một giá trị JSON với id, tên, bản sửa đổi và giá trị băm SHA-256 của mỗi skill. Gói XMP và siêu dữ liệu SVG giữ cùng giá trị dưới dạng `lolly:BrandSkills`, một PDF được ghi từ bản ghi thêm một từ khóa cho mỗi skill và mô tả giữ nguyên. Một skill nội bộ được ghi bằng id, tên, bản sửa đổi và giá trị băm, không bao giờ bằng văn bản của nó. Cùng các công tắc đó bỏ danh sách cùng phần còn lại của bản ghi: thẻ **Design system**, `_madewith=0`, `--no-madewith` và `madeWith: false`. Khi máy chủ MCP vẽ tệp trong trình duyệt (PDF, JPEG và các định dạng khác mà đường không trình duyệt của nó không ghi được), siêu dữ liệu của chính tệp không giữ danh sách và chỉ Content Credential mới giữ được. Truyền `c2pa` để giữ bản ghi; không có credential, bản kết xuất cảnh báo rằng brand skills chưa được ghi lại.
 
-![Thẻ Password protect được mở rộng trên một bản xuất PDF, với trường mật khẩu và hai cấp khóa](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+**Đọc lại bản ghi.** [Verify](/verify) liệt kê bản ghi dưới dạng **Design system** trong chi tiết credential của tệp và mọi brand skills dưới dạng **Guided by**. *Recreate with these settings* mở lại công cụ ở phiên bản và colourway đã ghi. Liên kết mở với hệ thống thiết kế đã ghi khi thiết bị này có một hệ thống cùng id và tên; nếu không nó mở với hệ thống thiết kế đang dùng của bạn.
 
-- **Weak** - một mật khẩu 40-bit đơn giản (RC4). Chỉ là rào cản nhẹ, không phải bảo vệ thực sự: mật khẩu của nó có thể đi trong một liên kết chia sẻ (ở dạng văn bản thuần). Chỉ dành cho `pdf` RGB.
-- **Strong** - AES-256 (PDF 2.0). Mật khẩu được nhập khi xuất và **không bao giờ** được đặt vào liên kết. Strong cũng áp dụng cho **PDF Print / CMYK** và cho **từng PDF bên trong một zip hàng loạt** (hộp thoại xác nhận hàng loạt sẽ thu thập mật khẩu). Vì PDF/X-4 cấm mã hóa, một PDF Print bị khóa bằng Strong vẫn giữ CMYK, dấu cắt và output-intent nhưng mất tuyên bố tuân thủ PDF/X-4.
+::: details Cái gì được ghi ở đâu, và lần chạy nào bỏ bản ghi
+| Ở đâu | Cái gì được ghi |
+|---|---|
+| Content Credential | `designSystem` (id), `designSystemLabel`, `designVersion` và `themes` trong khẳng định `tools.lolly.export`, mỗi giá trị là văn bản thuần; `themes` là một danh sách JSON các lựa chọn |
+| PNG, JPEG, WebP và JXL | Cùng bốn giá trị dưới dạng thuộc tính `lolly:` của gói XMP trong tệp, trong không gian tên `https://lolly.tools/ns/export/1.0/` |
+| SVG | Cùng các thuộc tính `lolly:` bên trong khối `<metadata>` |
+| PDF | Từ khóa như *Design system: Acme* và *Colourway: Beach* |
+| Mọi định dạng có trường mô tả | Mô tả, với colourway bên cạnh công cụ |
 
-Cả hai cấp độ đều loại trừ lẫn nhau với Content Credentials (một PDF được mã hóa không thể mang chứng nhận).
+Thẻ chỉ xuất hiện khi có gì để ghi và định dạng giữ được bản ghi. CSV, JSON, tệp lịch và các định dạng văn bản hay dữ liệu khác không giữ siêu dữ liệu, và EPS, EMF, DXF cùng BMP không có trường cho bản ghi. HTML, Markdown và CSS chỉ giữ bản ghi trong Content Credential của chúng, nên với chúng thẻ không hiện dòng mô tả và ẩn khi **C2PA Credentials** tắt. Một trường mà hệ thống thiết kế không cung cấp thì ở ngoài tệp.
 
-**Tải xuống có khóa (toàn bộ zip + phòng thủ theo chiều sâu)** - một bản xuất **ZIP** (định dạng *ZIP* trong bảng xuất, gộp nhiều định dạng của một công cụ), một lượt tải **thư mục** (Projects → Download) hoặc **lưới hàng loạt** đều có thể khóa toàn bộ zip bằng một mật khẩu, ở hai cấp độ:
+Một liên kết chia sẻ tắt bản ghi bằng `_madewith=0` ([URL parameters](/info/url-parameters.html)); dòng lệnh nhận `--no-madewith`, `lolly_render` của [máy chủ MCP](/info/mcp.html) nhận `madeWith: false`, và bảng xuất của ứng dụng terminal có hàng **Design system**. Dòng lệnh in các từ mà một tệp hoàn chỉnh mang ra lỗi chuẩn, cho một lần kết xuất công cụ và cho mỗi tệp mà `lolly run` xuất từ một phiên Design đã lưu, và một lần kết xuất MCP in chúng bên cạnh tệp, cả hai đều đọc lại từ tệp. Một PNG mà dòng lệnh vẽ không có trình duyệt không mang siêu dữ liệu tệp, nên bản ghi của nó chỉ đi trong credential. Các tiện ích trên thiết bị không thêm siêu dữ liệu nào.
 
-- **Weak** - **ZipCrypto** truyền thống, chỉ mang tính răn đe. Mật khẩu của nó có thể xuất hiện trong liên kết chia sẻ `?password=`.
-- **Strong** - mã hóa **AES-256**. Được nhập khi xuất, không bao giờ đặt vào liên kết.
+Các lượt chạy không có thẻ **Design system** bỏ bản ghi: một lượt chạy Batch, một thư mục xuất từ Projects và một bản xuất bộ sưu tập 3D, và trong ứng dụng terminal là batch CSV, bản xuất thư mục hoặc vùng chọn Projects và chế độ render-everything. Hãy xuất một tệp từ công cụ để ghi hệ thống thiết kế.
+:::
 
-Cùng một thẻ *Password protect* (Bảo vệ bằng mật khẩu) trong bảng xuất điều khiển cả khóa PDF lẫn khóa ZIP. Một mật khẩu duy nhất bảo vệ **mọi** thành phần - hình ảnh, SVG, tất cả, kể cả PDF (chỉ có container zip mới bảo vệ được các file không phải PDF, vốn không có khóa riêng). Và đây là **phòng thủ theo chiều sâu**: bất kỳ PDF nào bên trong *cũng* được khóa AES-256 riêng bằng cùng mật khẩu, nên một PDF vẫn bị khóa ngay cả sau khi zip được giải nén. Hộp thoại xuất hiện khi bạn bắt đầu tải xuống; để trống mật khẩu nghĩa là không khóa.
+### Content Credentials (C2PA)
 
-**Liên kết chia sẻ có mật khẩu** - bất kỳ liên kết chia sẻ nào cũng có thể được mã hóa sao cho khi mở, người nhận phải nhập mật khẩu. Toàn bộ trạng thái liên kết được mã hóa AES-256 bằng khóa suy ra từ mật khẩu (PBKDF2); chỉ có bản mã được truyền đi, nên **mật khẩu không bao giờ nằm trong liên kết** và việc giải mã diễn ra **ngay trên trình duyệt của người nhận** - máy chủ phục vụ liên kết chỉ thấy bản mã trong URL, không bao giờ thấy mật khẩu và không bao giờ thấy thiết kế đã giải mã. Bật tính năng này trong hộp thoại **Share** (Chia sẻ). Một liên kết đã mã hóa chỉ có thể *mở* được trong Lolly (không thể nhúng như một hình ảnh, vì đường dẫn đó không thể hiện hộp thoại nhập mật khẩu). Xem [URL Mode → Encrypted links](/info/url-mode.html).
+Bản xuất có thể mang **Content Credentials**: một manifest [C2PA](https://c2pa.org) có chữ ký ghi lại điều gì đã tạo ra tệp, khi nào và ở đâu, gắn với giá trị băm các byte của tệp để mọi chỉnh sửa sau đó đều phát hiện được. Đặc tả do C2PA công bố, và Lolly ghi các manifest chuẩn mà bất kỳ trình đọc C2PA nào cũng kiểm tra được.
 
-## Content Credentials (C2PA)
+![Thẻ C2PA Credentials, đã đánh dấu, với thời hạn credential cạnh hộp kiểm](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-Các bản xuất có thể mang **Content Credentials** - một manifest [C2PA](https://c2pa.org) đã ký được nhúng vào file, ghi lại theo cách chống giả mạo rằng file được tạo bằng Lolly và chưa bị thay đổi kể từ đó. Đây là phiên bản theo chuẩn hóa của siêu dữ liệu nguồn gốc nói trên: một tuyên bố mật mã học (cái gì tạo ra file, khi nào, bởi ai và ở đâu) được gắn với hash của các byte trong file, nên bất kỳ chỉnh sửa nào sau đó đều có thể bị phát hiện bởi trình xem hỗ trợ C2PA. Chuẩn này do [Content Authenticity Initiative](https://contentauthenticity.org) (Adobe, BBC, Microsoft, Nikon và những hãng khác) quản lý, vì vậy các chứng nhận mà Lolly ghi cũng chính là loại mà máy ảnh, tòa soạn và bộ công cụ sáng tạo đang áp dụng.
-
-![Thẻ C2PA Credentials, đã được tích sẵn, với thời hạn chứng nhận bên cạnh](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
-
-- **Định dạng.** Mọi container hỗ trợ nhúng C2PA: **PDF** (cả RGB và Print), **PNG / Animated PNG**, **JPG**, **GIF**, **SVG**, **TIFF** (RGB và Print), **WebP** (tĩnh và động), **AVIF**, **MP4**, **WebM** và các container âm thanh **MP3**, **WAV**, **M4A** và **OGG/Opus** - vì vậy một đoạn ghi âm hoặc giọng nói tổng hợp cũng mang cùng chứng nhận như một bức ảnh. Một gói **ZIP** đóng dấu riêng cho từng thành phần được hỗ trợ, và đây cũng là nơi một **Animated SVG** nhận được chứng nhận (bên trong nó chỉ là một tài liệu SVG thông thường; bản xuất Animated SVG trực tiếp không có thẻ riêng). MP4, AVIF và M4A dùng liên kết BMFF của chuẩn còn MP3 dùng ánh xạ ID3v2, nên `c2patool` và các trình xem hỗ trợ C2PA khác xác minh được chúng; **WebM** và **OGG/Opus** chưa có ánh xạ C2PA chuẩn hóa, nên Lolly mang manifest dưới dạng tệp đính kèm Matroska và trường OpusTags tương ứng, được chính trình xác minh (và CLI) của Lolly kiểm tra. (`ico`, `eps`, `emf`, `dxf`, `bmp`, `pptx`, các định dạng Office và các định dạng văn bản/dữ liệu không có container C2PA.)
-- **Bật theo mặc định.** Thẻ **C2PA Credentials** trong bảng xuất được chọn sẵn cho gần như mọi công cụ - bỏ chọn để bỏ qua chứng nhận cho một lần xuất riêng lẻ (hoặc truyền `c2pa=off` trong liên kết chia sẻ). Một công cụ có thể từ chối hoàn toàn trong manifest của nó.
-- **Những gì được ghi lại.** Công cụ và ứng dụng đã tạo file, thời điểm ký, môi trường xuất (họ engine trình duyệt + họ hệ điều hành - cố tình chỉ ở mức thô, không bao giờ là dấu vân tay) và - chỉ khi *Profile → Use my details* được bật - tên và email của bạn với tư cách tác giả tác phẩm.
-- **Những gì người nhận thấy.** Các công cụ kiểm tra content credentials (ứng dụng Adobe, `c2patool`, contentcredentials.org/verify) sẽ đọc manifest và hiển thị tuyên bố. Vì Lolly ký bằng một khóa được tạo **ngay trên thiết bị của bạn** - không phải chứng chỉ từ danh sách tin cậy - các trình xem sẽ báo đây là chứng nhận *chưa được xác minh*. Cấu trúc và bằng chứng chống giả mạo là có thật; chỉ có danh tính người ký là chưa được một tổ chức xác thực bảo chứng. Để nâng cấp điều đó, bạn có thể đăng ký một **danh tính đã xác minh** (Profile → Content Credentials): một chứng chỉ ngắn hạn từ Lolly CA gắn email của bạn với các bản xuất trong khi khóa ký vẫn không bao giờ rời khỏi thiết bị của bạn - xem [Content Credentials Identity](/info/content-credentials-identity.html).
-- **Kiểm tra một file.** Lolly cũng xác minh chứng nhận của chính mình: thả bất kỳ file nào vào [/verify](/verify) (hoặc chạy `lolly validate <file>` trong CLI) để nhận báo cáo trên thiết bị - nổi bật là việc file có thực sự được tạo bằng Lolly và chưa bị thay đổi kể từ đó hay không. Giao diện Verify trên web đọc được nhiều hơn cả chứng nhận: nó gắn cờ **nội dung do AI tạo**, phát hiện **Lolly Imprint**, kiểm tra chữ ký **SEAL** và (tùy chọn) watermark pixel của bên thứ ba, đồng thời phát hiện **dữ liệu ẩn** - tất cả đều trên thiết bị, không tải lên đâu cả. Xem [Content Credentials Identity → Beyond the credential](/info/content-credentials-identity.html#beyond-the-credential-what-else-verify-shows).
-- **Quyền riêng tư.** Mọi thứ diễn ra trên thiết bị của bạn: khóa ký được tạo riêng cho lần xuất đó và không bao giờ rời khỏi trình duyệt, không có gì được tải lên và tuyên bố chỉ chứa những gì siêu dữ liệu nguồn gốc đã có sẵn. Các tiện ích quyền riêng tư (biến đổi trên thiết bị đối với *chính* file của bạn) không bao giờ thêm chứng nhận, và *Strip Hidden Data* sẽ xóa manifest C2PA giống như bất kỳ siêu dữ liệu nhúng nào khác.
-- **Tương tác.** Đối với PDF, Content Credentials và **bảo vệ bằng mật khẩu** (ở cấp độ nào - xem ở trên) loại trừ lẫn nhau (một PDF đã mã hóa không thể mang tệp đính kèm chứng nhận). Chứng nhận được thêm vào như bước cuối cùng trên các byte đã hoàn thiện - sau khi đóng dấu DPI/EXIF/hồ sơ màu, siêu dữ liệu PDF/X và dấu in.
+- **Bật theo mặc định.** Thẻ **C2PA Credentials** được chọn sẵn cho gần như mọi công cụ. Bỏ chọn cho một bản xuất, hoặc truyền `c2pa=off` trong liên kết. Một công cụ có thể từ chối trong manifest của nó.
+- **Định dạng.** PDF (RGB và Print), PNG và APNG, JPG, GIF, SVG, TIFF (RGB và Print), WebP (tĩnh và động), AVIF, MP4, WebM, các container âm thanh MP3, WAV, M4A, OGG/Opus và FLAC, cùng HTML, Markdown và CSS. Một ZIP đóng dấu từng thành phần được hỗ trợ, đó là cách một Animated SVG có credential. MP4, AVIF và M4A dùng ràng buộc BMFF chuẩn và MP3 dùng ánh xạ ID3v2 của nó, nên `c2patool` và các trình đọc khác xác minh được. WebM và OGG/Opus chưa có ánh xạ chuẩn, nên Lolly mang manifest dưới dạng tệp đính kèm Matroska và trường OpusTags, mà trình xác minh riêng của Lolly kiểm tra. ICO, EPS, EMF, DXF, BMP, PPTX, các định dạng Office và các định dạng văn bản và dữ liệu khác không có container C2PA.
+- **Nó ghi gì.** Công cụ và ứng dụng đã tạo tệp, thời điểm ký, shell đã xuất, [hệ thống thiết kế và colourway](#the-design-system-record) khi thẻ **Design system** được đánh dấu, và dấu vân tay của các đầu vào đang hoạt động. Văn bản đầu vào, trường gắn hồ sơ, điều khiển không hoạt động, phiên bản trình duyệt và chi tiết hệ điều hành bị bỏ. Tên và email của bạn chỉ xuất hiện làm tác giả khi **Use my details to create** bật dưới Settings → Preferences → Your details. Các nguồn mà bản xuất đặt vào đi dưới dạng thành phần: [tác phẩm được ghi công](#source-credits) như emoji, và [bài hát Rondocode](/info/rondocode.html#songs-in-the-credential) trong bản xuất video hoặc âm thanh.
+- **Người nhận thấy gì.** Các công cụ C2PA như ứng dụng Adobe, `c2patool` và contentcredentials.org/verify đọc manifest và hiện khẳng định. Lolly ký bằng khóa tạo trên thiết bị của bạn, không phải chứng chỉ từ danh sách tin cậy, nên các trình xem báo credential là *unverified*: cấu trúc và dấu vết can thiệp là thật, người ký thì không được bảo chứng. Để đổi điều đó, đăng ký một **verified identity** dưới Settings → Preferences → Content Credentials; xem [Content Credentials Identity](/info/content-credentials-identity.html).
+- **Kiểm tra một tệp.** Thả bất kỳ tệp nào lên [Verify](/verify), hoặc chạy `lolly validate <file>`, để có báo cáo trên thiết bị mở đầu bằng việc Lolly có tạo tệp không và nó có thay đổi kể từ đó không. Verify cũng nhìn ngoài credential; xem [What Verify checks](/info/what-verify-checks.html).
+- **Quyền riêng tư.** Khóa ký được tạo cho bản xuất và không bao giờ rời thiết bị, và khẳng định chỉ chứa những gì siêu dữ liệu nguồn gốc vốn đã mang. Các tiện ích riêng tư biến đổi tệp của chính bạn không thêm credential, và *Strip Hidden Data* gỡ manifest C2PA như mọi siêu dữ liệu khác. Tiện ích Rondocode tạo âm thanh mới, nên nó ký những gì nó ghi ([Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility)).
+- **Tương tác.** Một PDF có mật khẩu không thể mang Content Credentials, ở cả hai mức. Credential được thêm sau cùng, lên các byte hoàn chỉnh, sau DPI, EXIF, hồ sơ màu, siêu dữ liệu PDF/X và dấu in.
 
 ### Ghi công nguồn
 
-Một bản xuất đặt vào tác phẩm của người khác cũng ghi lại nguồn đó trong chứng nhận. Một emoji lấy từ một bộ đã ghim là trường hợp thường gặp hằng ngày: tác phẩm, người tạo ra nó, giấy phép, các byte chính xác đến từ đâu và điều gì đã thay đổi - tất cả đều đi theo tệp. Dòng **Source credits** trong bảng xuất cho biết các nguồn yêu cầu gì đối với việc phân phối trước khi bạn tải xuống, và sau khi tải xuống nó đọc lại các byte đã phân phối trước khi báo rằng ghi công đã có trong tệp. Một giấy phép yêu cầu bạn phải chọn, chẳng hạn một glyph CC BY-SA đã đổi màu mà bạn sắp chia sẻ, sẽ nhận được một thẻ cho biết các lối ra; việc tải xuống không bao giờ bị chặn. [Quyền sáng tạo và ghi công](/info/creative-rights.html) có đầy đủ các thuật ngữ, các giấy phép đã xem xét và những gì luôn thuộc về bạn.
+Một bản xuất đặt tác phẩm của người khác ghi nguồn đó trong credential. Emoji vẽ từ bộ emoji đã chọn là trường hợp thường gặp: tác phẩm, người tạo, giấy phép, nơi các byte chính xác đến từ đâu và điều gì đã đổi đều đi cùng tệp. Văn bản trong một công cụ có mẫu là SVG giữ emoji của hệ thống, nên không có gì được ghi công ở đó. Hàng **Source credits** cho biết các nguồn yêu cầu gì từ việc phân phối trước khi bạn tải, và sau khi tải nó đọc lại các byte đã giao trước khi nói rằng phần ghi công đã có trong tệp. Một giấy phép yêu cầu bạn chọn, như một glyph CC BY-SA đã nhuộm lại mà bạn sắp chia sẻ, nhận một thẻ với các lựa chọn; việc tải không bao giờ bị chặn. [Creative rights and credits](/info/creative-rights.html) có cách diễn đạt, các giấy phép đã xem xét và những gì vẫn thuộc về bạn.
+
+## Bảo vệ bằng mật khẩu
+
+Hai loại khóa, đều làm trên thiết bị của bạn. Thẻ *Password protect* của bảng xuất điều khiển cả hai.
+
+![Thẻ Password protect được mở rộng trên một bản xuất PDF, với trường mật khẩu và hai cấp khóa](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+
+**Mật khẩu mở PDF** có hai mức khi bạn gõ mật khẩu:
+
+- **Weak**: RC4 40-bit, một biện pháp răn đe hơn là bảo vệ. Mật khẩu của nó có thể đi trong liên kết chia sẻ, dưới dạng văn bản thường. Chỉ `pdf` RGB.
+- **Strong**: AES-256 (PDF 2.0). Gõ khi xuất và không bao giờ đặt trong liên kết. Nó cũng áp dụng cho Print PDF và cho mỗi PDF trong một ZIP batch. Một Print PDF khóa Strong giữ CMYK, dấu in và output intent nhưng bỏ tuyên bố PDF/X-4.
+
+**ZIP có khóa** bao gồm một bản xuất ZIP, một thư mục tải xuống từ Projects hoặc một batch, với một mật khẩu ở hai mức: **Weak** (ZipCrypto, một biện pháp răn đe; có thể đi trong liên kết `?password=`) hoặc **Strong** (AES-256, gõ khi xuất, không bao giờ trong liên kết). Mật khẩu bảo vệ mọi thành phần, và mọi PDF bên trong cũng được khóa AES-256 riêng, nên vẫn khóa sau khi ZIP được giải nén. Lời nhắc xuất hiện khi việc tải bắt đầu; mật khẩu trống nghĩa là không khóa.
+
+**Liên kết chia sẻ có mật khẩu** hỏi người nhận mật khẩu trước khi mở. Toàn bộ trạng thái liên kết được mã hóa AES-256 dưới một khóa dẫn xuất từ mật khẩu (PBKDF2), nên chỉ bản mã đi và việc giải mã diễn ra trong trình duyệt của người nhận. Máy chủ phục vụ liên kết không bao giờ thấy mật khẩu hay thiết kế. Bật nó trong hộp thoại **Share**. Một liên kết mã hóa chỉ mở trong Lolly, không bao giờ như một ảnh nhúng. Xem [URL Mode](/info/url-mode.html).
 
 ## Trên điện thoại
 
-Các điều khiển xuất nằm sau nút **Export** nổi, mở ra bảng **Export** (Xuất) - cùng các định dạng, kích thước, sao chép, tải xuống và chia sẻ, được tối ưu cho thao tác chạm.
+Các điều khiển xuất nằm sau nút **Export** nổi, mở tấm **Export**: cùng định dạng, kích thước, sao chép, tải xuống và chia sẻ, được dựng cho cảm ứng.
 
-## Tham chiếu định dạng
+## Id định dạng cho liên kết và CLI
 
-Mọi id mà host có thể kết xuất, được nhóm lại. Đây cũng là các giá trị cho tham số URL `format=` và cờ CLI `--export=` - xem [URL Mode](/info/url-mode.html) và [CLI](/info/cli.html). Menu của một công cụ chỉ hiển thị các định dạng mà công cụ đó có thể tạo ra, nên nó luôn ngắn hơn danh sách này.
+Đây là các giá trị cho tham số URL `format=` và cờ CLI `--export=` (xem [URL parameters](/info/url-parameters.html) và [CLI](/info/cli.html)). Menu của một công cụ chỉ hiện các định dạng công cụ đó làm được, nên luôn ngắn hơn danh sách này.
 
 | Loại | Id |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Ảnh điểm | `png` · `jpg`/`jpeg` · `webp` · `avif` · `jxl` · `jxl-lossless` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
 | Vector | `svg` · `svgz` (SVG nén gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (tệp cắt) |
-| Trang & tài liệu | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (gói khóa học SCORM, một tệp zip) · `penpot` (tệp thiết kế Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Chuyển động | `gif` · `apng` (PNG hoạt hình) · `webp-anim` (WebP hoạt hình) · `svg-anim` (SVG hoạt hình) · `webm` · `mp4` |
-| Âm thanh | `wav` · `mp3` · `m4a` · `opus` |
-| Văn bản & dữ liệu | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (bảng màu GIMP) |
-| Gói | `zip` |
+| Trang và tài liệu | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (tệp thiết kế Penpot) · `scorm` (gói khóa học, một ZIP) |
+| Chuyển động | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
+| Âm thanh | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Văn bản và dữ liệu | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (bảng màu GIMP) |
+| Gói và bộ đóng gói | `zip` · `rpm` và `tar.gz` (bản kết xuất được niêm phong vào gói Linux) |
 
-Một vài id khác đến từ **hook xuất riêng của công cụ** thay vì đường dẫn render dùng chung: `ase` (Adobe Swatch Exchange, từ Palette Lab), `exr` và `hdr` (các raster dải động cao của Darkroom) và `ttf` / `otf` / `woff` (Font Convert). Chúng chọn định dạng theo cùng cách - bộ chọn, `format=`, `--export=` - chỉ là các byte được xây dựng bởi chính công cụ. Font Convert là ngoại lệ duy nhất: nó biến đổi một file font *do bạn* cung cấp, nên không có gì để một URL trần render cả.
+Một vài id đến từ mã xuất riêng của công cụ: `ase` (Adobe Swatch Exchange, từ Palette Lab) và `exr` cùng `hdr` (ảnh điểm dải động cao, từ Darkroom). **Convert Font** ghi `ttf`, `otf` và `woff` từ tệp phông chữ bạn cung cấp, nên một liên kết trần không có gì để nó kết xuất.
