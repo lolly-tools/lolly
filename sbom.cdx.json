@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:b2ff05bb-4ea4-4aab-8933-da30dc631349",
+  "serialNumber": "urn:uuid:a90eedfd-107e-4e29-808f-2fe5b5d7eee3",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-25T06:38:14.878Z",
+    "timestamp": "2026-10-25T07:28:43.359Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -11116,10 +11116,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/rust-ini@0.21.3",
+      "bom-ref": "pkg:cargo/rust-ini@0.21.1",
       "name": "rust-ini",
-      "version": "0.21.3",
-      "purl": "pkg:cargo/rust-ini@0.21.3",
+      "version": "0.21.1",
+      "purl": "pkg:cargo/rust-ini@0.21.1",
       "scope": "required",
       "licenses": [
         {
@@ -11131,7 +11131,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "796e8d2b6696392a43bea58116b667fb4c29727dc5abd27d6acf338bb4f688c7"
+          "content": "4e310ef0e1b6eeb79169a1171daf9abcb87a2e17c03bee2c4bb100b55c75409f"
         }
       ],
       "properties": [
@@ -13458,10 +13458,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-plugin-deep-link@2.6.1",
+      "bom-ref": "pkg:cargo/tauri-plugin-deep-link@2.6.2",
       "name": "tauri-plugin-deep-link",
-      "version": "2.6.1",
-      "purl": "pkg:cargo/tauri-plugin-deep-link@2.6.1",
+      "version": "2.6.2",
+      "purl": "pkg:cargo/tauri-plugin-deep-link@2.6.2",
       "scope": "required",
       "licenses": [
         {
@@ -13471,7 +13471,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ac7a92a46ab5c88f44532ca50906d6e448a948d4ddf8c5376ab125e3260f736"
+          "content": "1b3c64e24ebcbc63aaa2d88a9c51e2507084b46620baf39ecb0baa0738a08bb4"
         }
       ],
       "properties": [
@@ -15023,6 +15023,33 @@
         {
           "alg": "SHA-256",
           "content": "b2b9c52859a94554803ccd4a24b98f74148ebc73b90676d783f3490b1bff9d72"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/trim-in-place@0.1.8",
+      "name": "trim-in-place",
+      "version": "0.1.8",
+      "purl": "pkg:cargo/trim-in-place@0.1.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "daa60874b45b168f67f3f9ba1ee821ad77144d6fa19cef1cd1874a7450a948da"
         }
       ],
       "properties": [
