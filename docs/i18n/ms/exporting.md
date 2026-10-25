@@ -1,8 +1,10 @@
-# Eksport & Format
+# Eksport fail
 
-Tekan **Export** pada pil **Export | Save as** sesebuah tool, pilih format daripada menu di sebelah nama fail, kemudian tekan **Download**. Muat turun biasa dibuat pada peranti anda. Kelulusan organisasi dan pilihan penghantaran diterangkan di bawah.
+Anda telah membuat sesuatu dan ia perlu meninggalkan Lolly: PNG untuk sembang, PDF untuk pencetak, dek yang rakan sekerja akan terus sunting. Tekan **Export**, separuh kiri pil **Export | Save**. Pilih format di sebelah nama fail, kemudian tekan **Download**. Fail dibuat pada peranti anda.
 
-Untuk kebanyakan kerja, salah satu daripada tiga format berikut adalah tepat:
+Apa yang anda lihat pada kanvas ialah apa yang fail mengandungi. Menu format hanya menyenaraikan apa yang boleh dibuat alat ini dalam pelayar ini.
+
+Untuk kebanyakan tugas, salah satu daripada tiga format sesuai:
 
 | For | Choose | Because |
 |---|---|---|
@@ -14,182 +16,195 @@ Untuk kebanyakan kerja, salah satu daripada tiga format berikut adalah tepat:
 Sebelum anda menghantarnya, buka pada skrin yang menjadi tujuannya, atau cetak pada saiz sebenarnya.
 :::
 
-Selebihnya halaman ini merangkumi setiap format, saiz dan opsyen.
+::: details Kelulusan dan penghantaran dengan Lolly Work (pilihan)
+[Organisasi yang menjalankan Lolly Work](/info/organisation.html) boleh mentadbir format dan tetapan eksport yang dilihat ahlinya. Di mana kelulusan diperlukan, **Request approval** menggantikan **Download**. Ikuti dasar yang ditunjukkan instans anda.
+
+Lolly Work juga boleh menghantar fail ke destinasi S3, WebDAV dan HTTP yang dikonfigurasi, dengan langkah kelulusan, resit penghantaran dan rekod audit. Menyerahkan fail untuk aliran kerja itu menghantarnya ke perkhidmatan organisasi; muat turun biasa kekal pada peranti anda. Destinasi Send peribadi dan penghantaran organisasi dikonfigurasi secara berasingan.
+
+Pengendali menyediakan ini dengan [organisation delivery guide](/info/work-delivery.html). Untuk render pelayan dan kelompok yang beratur, lihat [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ## Cara Eksport Berfungsi
 
-Pratonton itu *ialah* fail itu sendiri. Apabila anda mengeksport, hos merender kanvas itu kepada format yang anda pilih dan memberikan anda satu muat turun (atau meletakkannya pada papan keratan anda). Pemilih itu menyembunyikan mana-mana format yang tidak dapat dihasilkan oleh pelayar anda (lihat [Video](#video)).
+Apabila anda mengeksport, kanvas alat dirender kepada format yang anda pilih dan diserahkan kepada anda sebagai muat turun, atau diletakkan pada papan keratan.
 
-Tiga laluan menghasilkan fail. Kebanyakan alat **merender kanvas** kepada format yang dipilih. Format teks dan data (HTML, MD, TXT, JSON, CSV, ICS, VCF) pula **dijana daripada kandungan alat**, bukan dirasterkan daripada gambar. Dan utiliti privasi (contohnya *Strip Hidden Data*) menggunakan laluan ketiga: fail yang *anda* pilih diubah bait demi bait pada peranti dan diserahkan semula terus - tiada kanvas, tiada tera air dan tiada metadata provenans ditambah, kerana ia sudah pun fail anda sendiri.
+Tiga laluan menghasilkan fail. Kebanyakan alat **merender kanvas**. Format teks dan data (HTML, Markdown, TXT, JSON, CSV, ICS, VCF) **dijana daripada kandungan alat** dan bukan dilukis daripada gambar. Utiliti privasi seperti *Strip Hidden Data* **mengubah fail yang anda pilih**, pada peranti anda, dan menyerahkannya kembali tanpa kanvas, tera air atau metadata tambahan, kerana ia sudah menjadi fail anda sendiri.
 
-Tindakan pada panel eksport:
+![Tiga laluan eksport bertemu pada fail siap: render kanvas, jana teks atau data daripada kandungan, atau ubah fail pilihan pada peranti.](/info/diagrams/concepts/three-export-paths.svg)
 
-- <!--i:download--> **Muat turun** - simpan fail (tindakan utama). Jika anda tidak dapat mencarinya selepas itu, lihat [Cari fail yang anda muat turun](/info/find-your-work.html#find-a-file-you-downloaded).
-- <!--i:photos--> **Salin** - letakkan imej pada papan keratan anda untuk ditampal terus ke dalam Slack, e-mel, atau satu dokumen. Jika pelayar tidak dapat menyalin imej, ia memuat turun sebaliknya dan memberitahu anda.
-- <!--i:folder--> **Simpan** - simpan reka bentuk semasa ke dalam Projek dalam satu klik, tanpa bertanya lokasi; ia tidak sekali-kali memuat turun satu fail. **Simpan sebagai**, di sebelah **Eksport**, bertanya lokasi (lihat [Menyimpan dan menyambung](/info/using.html#saving-continuing)).
-- <!--i:link--> **Kongsi** - membuka **Share dialog**: satu pautan yang boleh disalin yang menghasilkan semula reka bentuk itu, togol semasa lawatan (skrin penuh, panel eksport, muat turun- atau salin-semasa-buka) dan **Shortest link** pilihan yang memampatkan seluruh keadaan ke dalam satu token padat (lihat [URL Mode](/info/url-mode.html)).
+Panel eksport menawarkan tindakan ini. Pengarang alat memilih yang mana muncul; set lalai ialah Copy, Download dan Save.
 
-(Pembuat alat memilih yang mana antara ini dipaparkan; set lalai ialah Copy, Download dan Save.)
+- <!--i:download--> **Download** menyimpan fail. Jika anda tidak menjumpainya selepas itu, lihat [Find a file you downloaded](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copy** meletakkan imej pada papan keratan anda, sedia ditampal ke dalam sembang, e-mel atau dokumen. Di mana pelayar tidak boleh menyalin imej, ia memuat turun sebaliknya dan memberitahu anda.
+- <!--i:folder--> **Save** menyimpan reka bentuk semasa dalam Projects dengan satu klik dan tidak pernah memuat turun fail. **Save as**, di sebelah **Download**, bertanya di mana (lihat [Saving and continuing](/info/using.html#saving-continuing)).
+- <!--i:link--> **Share** membuka dialog Share: pautan yang menghasilkan semula reka bentuk, togol semasa lawatan (skrin penuh, panel eksport, muat turun atau salin semasa dibuka) dan **Shortest link** pilihan yang memadatkan seluruh keadaan ke dalam token padat (lihat [URL Mode](/info/url-mode.html)).
 
 ![Panel eksport - format, saiz dan tindakan Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
-Share dibuka di atas alat, dengan pautan yang telah dibina dan togol semasa lawatan di bawahnya.
+Apabila reka bentuk membenamkan render alat lain, seperti kotak imej Design yang memegang pautan QR Code, render bersarang dilukis ke dalam eksport induk. Ia kekal vektor sebenar dalam SVG dan PDF dan dirasterkan dengan tajam dalam PNG, JPG dan WebP. Render terbenam tidak mendapat tera air dan tiada asal-usul sendiri; hanya fail siap yang mendapatnya. Eksport HTML, Markdown dan TXT tidak boleh memegang render tergubah.
 
-::: details Kelulusan dan penghantaran dengan lolly.work (pilihan)
-[Organisasi yang menggunakan lolly.work](/info/organisation.html) boleh mengawal format yang tersedia dan tetapan eksport. Jika kelulusan diperlukan, apl boleh memaparkan **Request approval** sebagai ganti **Download**. Ikut dasar yang dipaparkan oleh instans anda.
-
-Perkhidmatan ini juga menyokong penghantaran terkawal ke destinasi S3, WebDAV dan HTTP yang dikonfigurasikan, dengan langkah kelulusan jika dikonfigurasikan, resit penghantaran dan rekod audit. Menghantar fail untuk aliran kerja itu bermakna menghantarnya kepada perkhidmatan organisasi; muat turun tempatan biasa kekal pada peranti. Destinasi Send peribadi dan penghantaran organisasi terkawal mempunyai konfigurasi yang berasingan.
-
-Untuk pengendali, lihat [panduan penghantaran](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Untuk render pelayan yang beratur dan kelompok, lihat [Kelompok dan automasi CLI](/info/cli-automation.html#organisation-jobs-with-lolly-work).
-:::
-
-### Merender Banyak Sekali Gus
-
-Satu eksport ialah satu fail, tetapi anda boleh merender **banyak** dalam satu larian - setiap satu diserahkan sebagai satu `.zip`:
-
-- <!--i:folder--> **Projects → Render folder** mengeksport setiap sesi tersimpan dalam satu folder (dan sub-foldernya) sebagai satu zip bersarang; **Render selection** melakukan perkara yang sama untuk mana-mana pilihan pelbagai; satu sesi tersimpan tunggal terus dirender kepada failnya sendiri. Batch/Pro tidak diperlukan - lihat [Using Lolly → Projects](/info/using.html).
-- <!--i:layers--> **Batch (Pro)** merender grid set input - setiap varian satu templat sekali gus.
-
-Sesi tersimpan juga boleh dikongsi semula sebagai pautan alat daripada Projects (ia membina semula URL alat daripada input yang disimpan), jadi pautan itu akan membukanya semula dengan tetapan yang sama tepat.
-
-## Memilih Format
+## Pilih format
 
 Nama fail dan menu format terletak bersama sebagai satu pasangan `name.format`, di bawah **Muat turun**.
 
 ![Medan nama fail bergabung dengan pemilih format, jadi eksport dibaca sebagai satu pasangan name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| You want… | Use | Why |
+Mulakan dari tempat fail itu akan pergi. Setiap kad menyenaraikan format yang sesuai untuk destinasi itu; alat hanya menunjukkan yang boleh dibuatnya.
+
+::: figure exporting-format-chooser
+Enam destinasi dan format yang sesuai untuk setiap satu.
+:::
+
+Logotaip yang ditetapkan dalam muka sistem reka bentuk anda dieksport sebagai SVG dengan setiap huruf sebagai laluan bergaris luar, jadi satu fail kekal tajam pada saiz kad perniagaan dan pada saiz pembungkus bangunan.
+
+![Logotaip jarak lebar garis halus berbunyi Aurora, jenis karya vektor tulen yang menjadi perkara baris SVG dalam jadual](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+
+::: details Setiap format dan untuk apa
+| Anda mahu | Gunakan | Sebab |
 |---|---|---|
-| Logo / karya seni tajam yang boleh diskalakan | **SVG** | Vektor - boleh diskalakan tanpa had, kecil, boleh disunting; kesan yang tidak dapat digambar oleh eksport vektor dibenamkan sebagai imej |
-| Vektor untuk aplikasi Office / Windows | **EMF** | Ditampal sebagai vektor boleh disunting ke dalam PowerPoint / Word; teks kekal langsung dan boleh disunting, dan Google Drive membukanya dalam Google Drawings untuk Slides |
-| Vektor untuk cetakan / aplikasi reka bentuk | **EPS**, atau **EPS (CMYK)** | Vektor PostScript untuk aliran kerja Illustrator / akhbar cetak |
-| Vektor untuk mesin pemotong / CAD | **DXF** | Pemotong laser, plotter vinil, CNC - laluan garis luar dalam milimeter |
-| Dek slaid yang boleh disunting | **PowerPoint** (PPTX) | Teks + bentuk boleh disunting secara asli, dengan imej dan vektor kekal boleh diekstrak |
-| Kursus latihan mudah alih | **Export course** | Semak kandungan projek dan bina pakej Website, SCORM atau xAPI eksperimen yang berversi |
-| Dokumen teks yang boleh disunting | **Word** (DOCX) atau **OpenDocument** (ODT) | Perenggan dan tajuk sebenar yang boleh terus disunting oleh pemproses kata (Doc Studio) |
+| Logo atau karya tajam yang diskalakan | **SVG** | Vektor: boleh diskala, kecil dan boleh disunting; kesan yang tidak dapat dilukis eksport vektor dibenamkan sebagai imej |
+| Vektor untuk apl Office dan Windows | **EMF** | Ditampal sebagai vektor boleh sunting ke dalam PowerPoint dan Word, dengan teks langsung; Google Drive membukanya dalam Google Drawings |
+| Vektor untuk cetakan dan apl reka bentuk | **EPS**, atau **EPS (CMYK)** | Vektor PostScript untuk Illustrator dan aliran kerja mesin cetak |
+| Vektor untuk mesin pemotong | **DXF** | Pemotong laser, plotter vinil dan CNC: laluan garis luar dalam milimeter |
+| Dek slaid boleh sunting | **PowerPoint** (PPTX) | Teks dan bentuk boleh sunting asli, dengan imej dan vektor kekal boleh diekstrak |
+| Dokumen teks boleh sunting | **Word** (DOCX) atau **OpenDocument** (ODT) | Perenggan dan tajuk sebenar yang boleh terus disunting pemproses perkataan (Doc Studio) |
+| Reka letak untuk InDesign | **InDesign IDML (static subset)** | Teks, segi empat, bujur dan imej, satu hamparan bagi setiap artboard (Design) |
+| Dokumen Penpot boleh sunting | **Penpot** | Papan, bentuk, teks dan token berpaut |
 | Foto atau imej serba guna | **PNG** (tanpa kehilangan) atau **JPG** (lebih kecil) | Raster sejagat |
-| Imej moden yang lebih kecil | **WebP** / **AVIF** | Mampatan lebih baik, alfa |
-| Cetakan | **PDF**, atau **Print PDF** (CMYK) | Saiz halaman sebenar; CMYK untuk akhbar cetak |
-| Raster cetakan untuk akhbar cetak | **Print TIFF** (CMYK) | Piksel DeviceCMYK untuk RIP |
-| Animasi untuk web | **GIF** | Berfungsi di mana-mana, fail lebih besar |
-| Animasi dengan warna penuh + alfa sebenar | **APNG** | PNG beranimasi - tiada had palet, ketelusan sebenar |
-| Animasi, fail paling kecil | **Animated WebP** | Warna penuh + alfa, mampatan lebih baik daripada GIF atau APNG |
-| Vektor beranimasi yang boleh diskalakan | **Animated SVG** | Berdikari; bergelung dalam pelayar atau `<img>`, tiada kodek, sebarang saiz |
-| Video untuk media sosial / perkongsian | **MP4** atau **WebM** | Kualiti-setiap-bait terbaik (lihat di bawah) |
-| Teks kaya / tandatangan e-mel | **HTML** | Ditampal berformat ke dalam klien e-mel |
-| Kandungan biasa | **MD** / **TXT** | Teks sahaja |
-| Acara kalendar | **ICS** | Diimport ke dalam mana-mana aplikasi kalendar |
-| Kad kenalan | **VCF** | Diimport ke dalam Kenalan / buku alamat |
-| Data berstruktur untuk diimport semula | **JSON** / **CSV** | Pusing-ulang kandungan alat |
-| Favicon | **ICO** | Ikon laman pelbagai saiz (**ZIP** menggabungkan beberapa format) |
+| Imej moden lebih kecil | **WebP** atau **AVIF** | Mampatan lebih baik, dengan ketelusan |
+| Cetakan | **PDF**, atau **Print PDF** (CMYK) | Saiz halaman sebenar; CMYK untuk mesin cetak |
+| Raster cetakan untuk mesin cetak | **Print TIFF** (CMYK) | Piksel DeviceCMYK untuk RIP |
+| Beranimasi untuk web | **GIF** | Dimainkan di mana-mana; fail lebih besar |
+| Beranimasi dengan warna penuh dan ketelusan sebenar | **APNG** | PNG beranimasi: tiada had palet |
+| Beranimasi, fail terkecil | **Animated WebP** | Warna penuh dan ketelusan, lebih kecil daripada GIF atau APNG |
+| Vektor beranimasi yang diskalakan | **Animated SVG** | Serba lengkap; berulang dalam pelayar atau `<img>`, pada sebarang saiz (Lottie Ad) |
+| Animasi yang kekal boleh disunting | **dotLottie** | Bentuk, laluan dan kunci transformasi luar daripada garis masa Design |
+| Penyerahan Premiere | **Premiere XML + media** | Klip bermasa dan media asal untuk Premiere (Design) |
+| Video untuk sosial dan perkongsian | **MP4** atau **WebM** | Kualiti terbaik untuk saiz fail (lihat [Video](#video)) |
+| Kapsyen | **SRT** atau **VTT** | Teks bermasa untuk pemain video (Captions, Audiogram dan Record) |
+| Kursus latihan | **SCORM (LMS)** | Laman web berversi, pakej SCORM atau xAPI (lihat [SCORM](#scorm-course-packages)) |
+| Teks kaya atau tandatangan e-mel | **HTML** | Ditampal berformat ke dalam klien mel |
+| Kandungan biasa | **MD** atau **TXT** | Teks sahaja |
+| Acara kalendar | **ICS** | Diimport ke mana-mana apl kalendar |
+| Kad hubungan | **VCF** | Diimport ke buku alamat |
+| Data berstruktur untuk diimport semula | **JSON** atau **CSV** | Pergi-balik kandungan alat |
+| Favicon | **ICO** | Ikon tapak berbilang saiz; **ZIP** membungkus beberapa format |
+:::
 
-Baris pertama ialah kes yang paling biasa. Wordmark yang ditaip dalam fon jenama anda dieksport sebagai SVG, di mana setiap huruf ialah laluan bergaris luar dan bukannya piksel, jadi ia kekal tajam pada saiz kad perniagaan dan pada saiz pembalut bangunan daripada fail yang sama.
+### Ketelusan
 
-![Wordmark bergaris nipis berjarak luas berbunyi Aurora, jenis artwork vektor tulen yang menjadi maksud baris SVG dalam jadual](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+Alat yang menyokongnya menawarkan togol latar telus, seperti **No BG**. PNG, WebP, AVIF, SVG, APNG dan Animated WebP mengekalkan ketelusan, dan GIF mengekalkan tepi keras. JPG dan PDF sentiasa legap. TIFF diratakan ke atas putih, atau ke atas hitam pada laluan HDR yang diterangkan di bawah [HDR](#hdr-bright-colours).
 
-## Saiz & Unit Cetak
+## Saiz dan unit cetakan
 
-Secara lalai, eksport menggunakan saiz piksel asli alat tersebut. Jika sesuatu alat mendedahkan **dimensi**, anda boleh menetapkan lebar × tinggi dan **unit**:
+Eksport menggunakan saiz piksel asli alat melainkan alat menawarkan **dimensions**. Kemudian anda menetapkan lebar, tinggi dan **unit**:
 
-- **px** (lalai) - piksel tepat.
-- **mm · cm · in · pt · pc** - saiz fizikal/cetak. Dengan unit fizikal, anda juga menetapkan **DPI** (lalai **300** untuk cetakan); enjin menukar dengan betul mengikut format - **PDF** menjadi halaman sebenar pada saiz tersebut, **raster** dirender pada bilangan piksel yang betul untuk DPI tersebut (dan membenamkan resolusi), **SVG** mengekalkan unit fizikal dengan viewBox px.
+- **px** (lalai) ialah piksel tepat.
+- **mm, cm, in, pt** dan **pc** ialah saiz fizikal. Dengan unit fizikal anda juga menetapkan **DPI** (300 secara lalai). **PDF** menjadi halaman sebenar pada saiz itu, **raster** mendapat bilangan piksel untuk DPI itu dan merekodkan resolusi, dan **SVG** mengekalkan unit fizikal dengan viewBox piksel.
 
-Untuk mendapatkan raster beresolusi lebih tinggi, masukkan lebar/tinggi yang lebih besar, atau pilih unit fizikal dan naikkan DPI (piksel = saiz × DPI). Tiada togol skala satu-klik.
-
-Contoh: lebar `210`, tinggi `297`, unit `mm` → satu halaman A4.
+Untuk raster resolusi lebih tinggi, masukkan lebar dan tinggi lebih besar, atau pilih unit fizikal dan naikkan DPI (piksel = saiz × DPI). Lebar `210`, tinggi `297` dan unit `mm` membuat halaman A4.
 
 ![Baris dimensi ditetapkan kepada 210 kali 297 mm, dengan medan DPI didedahkan kerana unit adalah fizikal](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
 ## Gambar Diam Daripada Komposisi Bermasa
 
-**Komposisi berwaktu** - garis masa [Sequence](/info/using.html#timeline-sequence) dalam Design, atau mana-mana artboard dipacu garis masa - ialah sesuatu yang bergerak, jadi eksport statik perlu menjawab "detik yang mana?". Peraturannya seperti yang dijangka: **bingkai pada kepala main**. Letakkan kepala main di tempat anda mahukan gambar itu dan eksport; apa yang anda lihat itulah yang terhasil.
+Gubahan bermasa, seperti garis masa [Sequence](/info/sequence-editor.html) dalam Design, bergerak, jadi eksport pegun mesti memilih satu saat: **bingkai pada kepala main**. Letakkan kepala main di tempat anda mahu gambar dan eksport.
 
-Apabila anda mahukan lebih daripada satu detik, medan **Frames** akan muncul di sebelah saiz output (hanya untuk komposisi bermasa, dan hanya untuk format gambar diam - PNG, JPG, WebP, SVG atau PDF). Biarkannya pada `1` untuk bingkai playhead. Naikkannya dan anda akan mendapat sebanyak itu gambar diam yang disampel pada selang sama rata sepanjang keseluruhan urutan:
+Untuk lebih daripada satu saat, medan **Frames** muncul di sebelah saiz output. Ia hanya ditunjukkan untuk gubahan bermasa dan format pegun (PNG, JPG, WebP, SVG atau PDF). Biarkan pada `1` untuk bingkai kepala main. Naikkan dan anda mendapat sebanyak itu gambar pegun, tersebar sekata merentasi seluruh jujukan:
 
-- **Raster and SVG** dikembalikan sebagai satu **zip** - `<name>-01.png`, `-02.png` dan seterusnya.
-- **PDF** dikembalikan sebagai **satu dokumen dengan bilangan halaman sebanyak itu**.
+- PNG, JPG, WebP dan SVG kembali sebagai satu ZIP: `<name>-01.png`, `-02.png` dan seterusnya.
+- PDF kembali sebagai satu dokumen dengan sebanyak itu halaman.
 
-Berguna untuk papan cerita, helaian lakaran kecil, helaian kenalan untuk semakan atau karusel media sosial yang dipotong terus daripada suntingan video.
+Setiap gambar pegun datang dari tengah kepingannya pada garis masa, jadi bingkai pertama tidak pernah kemasukan separuh pudar dan yang terakhir tidak pernah saat kosong selepas setiap klip tamat.
 
-Persampelan diambil pada **titik tengah** setiap selang dan bukan pada tepinya, kerana detik pertama sesuatu urutan selalunya ialah peralihan masuk yang belum pudar masuk lagi dan detik terakhir ialah keadaan selepas setiap klip berakhir - persampelan pada titik hujung akan membazirkan dua daripada bingkai anda pada bingkai yang hampir kosong. Bilangannya dihadkan pada **64** (helaian kenalan adalah untuk dibaca oleh manusia), dan sebarang input yang tidak masuk akal ditaip ke dalam medan tersebut akan kembali kepada `1` dan bukannya menggagalkan eksport. Setiap bingkai ialah gambar diam biasa, jadi Content Credentials, imprint, unit fizikal dan DPI semuanya berkelakuan sama seperti untuk satu eksport tunggal.
+::: figure exporting-contact-sheet
+Frames: 4 memotong jujukan kepada empat keping sama dan mengambil tengah setiap satu.
+:::
 
-Medan **Frames** ialah cara untuk mendapatkan helaian itu pada masa ini. Enjin mengekalkan parameter URL `cuts` yang sepadan, tetapi tiada shell yang membacanya daripada pautan lagi, jadi pautan yang dikongsi sentiasa dibuka semula pada bingkai playhead - lihat [URL Mode](/info/url-parameters.html#contact-sheets-cuts).
+Gunakannya untuk papan cerita, helaian sentuh semakan atau karusel sosial yang dipotong daripada suntingan video. Kiraan dihadkan pada 64, dan apa-apa lain yang ditaip ke dalam medan kembali kepada `1`. Setiap bingkai ialah gambar pegun biasa, jadi kredensial, Imprint, unit fizikal dan DPI berkelakuan seperti untuk satu eksport. Pautan eksport, CLI dan MCP meminta helaian yang sama dengan `cuts=` (lihat [Contact sheets](/info/url-export.html#contact-sheets)).
 
-## PDF Berbilang Halaman
+## Banyak fail sekali gus
 
-Sesetengah alat membina **dokumen PDF berbilang halaman** dan bukannya satu karya seni tunggal - kulit depan, kandungan yang mengalir ke seberapa banyak halaman yang diperlukan dan halaman belakang, semuanya dalam satu fail (lihat alat *Booklet*). Setiap halaman ialah **halaman PDF sebenar** yang bersaiz mengikut kotak halaman tersebut, jadi pembaca dan pencetak mendapat halaman sebenar, bukan satu imej panjang.
+Lolly mempunyai tiga cara bekerja dalam kuantiti, masing-masing untuk tugas berbeza:
 
-- **Pages from content.** Tambah blok teks dan imej; halaman baharu dicipta secara automatik apabila blok itu dipenuhkan, dan anda boleh memaksa mana-mana blok untuk memulakan halaman baharu.
-- **Real page sizes.** Pilih A4, US Letter atau A5 (potret - susun atur dua lajur dibina untuknya) - setiap halaman, dan PDF yang dieksport, dirender pada saiz tersebut dengan tepat.
+::: cols
+## Jadual menjadi satu dokumen
+Alat dengan input jadual, seperti **Battlecards**, menukar setiap baris menjadi halaman. Tampal jadual daripada hamparan anda dan dapatkan satu PDF. Baiki baris dalam hamparan dan tampal semula.
+## CSV menjadi satu fail bagi setiap baris
+**Batch** (`#/batch`) mengambil CSV dan merender satu eksport bagi setiap baris: lencana nama atau sijil, satu fail setiap satu, dihantar dalam ZIP. Lihat [Batch](/info/batch.html#make-many-versions-of-one-design).
+## Beberapa reka bentuk mendapat satu suntingan
+**Multi-edit** membuka beberapa sesi tersimpan bersebelahan untuk sentuhan akhir yang sama merentasi reka bentuk berbeza. Lihat [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+:::
 
-PDF berbilang halaman ialah dokumen RGB dan tidak membawa tanda potong/limpah - itu kepunyaan laluan **Print PDF** satu halaman di atas. Ia tetap membawa **metadata PDF/X-4** yang sama seperti setiap eksport PDF (kotak halaman, XMP, ID dokumen, hasrat output sRGB dengan profil terbenam), dan ia menawarkan **Content Credentials** (di bawah) - pada alat *Booklet* pilihan ini sudah dipratanda.
+Daripada **Projects**, **Render folder** mengeksport setiap sesi tersimpan dalam folder dan sub-foldernya sebagai satu ZIP bersarang, dan **Render selection** melakukan perkara yang sama untuk sebarang pilihan berbilang; satu sesi tersimpan dirender ke failnya sendiri. Sesi tersimpan juga boleh dikongsi semula sebagai pautan alat daripada Projects, yang membukanya semula dengan tetapan yang sama.
 
-## Menghasilkan Banyak Perkara Sekali Gus
+## Fail yang kekal boleh disunting di tempat lain
 
-Lolly mempunyai tiga cara berbeza untuk bekerja secara pukal, dan ia menyelesaikan tugas yang berbeza - penyuntingan berkelompok ialah keupayaan kelas pertama platform ini, bukan sesuatu yang dicipta semula oleh setiap alat:
+Sesetengah format menyerahkan kerja anda kepada aplikasi lain sebagai kandungan boleh sunting dan bukan gambar.
 
-- <!--i:document--> **One design × a table of rows → one multi-page document.** Alat dengan input `table` (seperti *Battlecards*) menukar setiap baris menjadi satu halaman secara automatik - tampal jadual daripada hamparan anda, dapatkan PDF bersaiz dek. Penyunting berkelompok sebenar anda kekal sebagai hamparan itu: betulkan sepuluh baris di sana, tampal semula. Alat itu sendiri tidak pernah menguruskan halaman.
-- <!--i:layers--> **One design × a data file → many separate files.** Grid berkelompok `/pro` mengambil CSV dan merender satu eksport *bagi setiap baris* - lencana nama, sijil, satu fail bagi setiap satu.
-- <!--i:sliders--> **Many different assets, edited side by side.** *Multi-edit* membuka beberapa sesi tersimpan dalam satu paparan untuk suntingan sentuhan-akhir yang diselaraskan merentasi reka bentuk yang berlainan.
+### PowerPoint (PPTX)
 
-Petua umum: baris reka bentuk yang sama yang tergolong dalam **satu dokumen** → alat dipacu jadual; baris yang mesti dihantar sebagai **fail berasingan** → `/pro`; **reka bentuk berlainan** yang memerlukan pelarasan yang sama → multi-edit. (Satu pilihan render "combine media" yang dirancang akan menghubungkan dua yang pertama - menggabungkan eksport format sama menjadi satu PDF, satu video atau satu helaian kenalan pruf.)
+Design, Markdown Slides, Booklet, Doc Studio, Chart, Diagrams, Flow Chart dan Agenda mengeksport dek PowerPoint, satu slaid bagi setiap halaman. Setiap halaman dipisahkan menjadi objek asli, supaya rakan sekerja boleh menyunting dek dan mengambil aset daripadanya:
 
-## PowerPoint (PPTX)
-
-Design, Markdown Slides, Booklet, Doc Studio, Chart dan Diagrams boleh mengeksport **dek PowerPoint** - satu slaid setiap halaman. Intinya bukan tangkapan skrin sepiksel-sempurna; sebaliknya untuk memberikan rakan sekerja dek yang benar-benar boleh mereka **sunting dan keluarkan aset daripadanya**. Justeru setiap halaman diuraikan kepada objek asli:
-
-- <!--i:font--> **Teks** menjadi kotak teks **PowerPoint sebenar yang boleh disunting** - dengan saiz fon, warna, ketebalan, italik dan penjajaran daripada susun atur - jadi anda boleh membetulkan taip salah atau menggaya semula dalam PowerPoint.
-- <!--i:pentool--> **Vektor** (logo, ikon, tanda SUSE) dibenamkan sebagai **gambar SVG sebenar** - kekal tajam pada sebarang saiz, dan PowerPoint malah boleh *Convert to Shape* ke atasnya.
-- <!--i:photos--> **Imej** dibawa masuk pada resolusi asalnya sebagai gambar boleh diekstrak tersendiri (hero yang dipotong `cover` mengekalkan imej penuh di sebalik potongan, jadi anda boleh membingkai semula), dengan sebarang olahan pada imej (penapis, campuran) dibakar dengan setia.
-- <!--i:layers--> **Latar belakang, sempadan dan garisan** menjadi bentuk segi empat/garis sebenar.
+- <!--i:font--> **Teks** menjadi kotak teks PowerPoint boleh sunting dengan saiz fon, warna, berat, italik dan penjajaran reka letak.
+- <!--i:pentool--> **Vektor** seperti logo dan ikon dibenamkan sebagai gambar SVG; ia kekal tajam, dan PowerPoint boleh *Convert to Shape* padanya.
+- <!--i:photos--> **Imej** datang pada resolusi asli sebagai gambar tersendiri. Hero yang dipotong mengekalkan imej penuh di belakang potongan, dan sebarang penapis atau adunan padanya dibakar masuk.
+- <!--i:layers--> **Latar, sempadan dan garis** menjadi bentuk segi empat dan garisan.
 
 ![Panel eksport dengan PowerPoint dipilih: satu slaid setiap halaman, teks dan bentuk kekal boleh disunting](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
-Susun atur adalah anggaran mengikut reka bentuk - matlamatnya ialah **kandungan** yang setia dan boleh diguna semula, bukan tangkapan skrin yang terkunci. Apa-apa yang tidak dapat dinyatakan secara asli oleh walker (kawasan bertapis atau bertopeng kompleks) dibenamkan sebagai gambar supaya tiada apa hilang. Satu dek mempunyai satu saiz slaid, diambil daripada halaman pertama.
+Reka letak adalah anggaran; matlamatnya ialah kandungan boleh guna semula. Apa-apa yang tidak dapat diungkapkan pejalan secara asli, seperti kawasan bertapis atau bertopeng yang kompleks, dibenamkan sebagai gambar supaya tiada apa-apa hilang. Dek mempunyai satu saiz slaid, diambil daripada halaman pertama.
 
-PowerPoint juga merupakan satu cara **masuk**. Jatuhkan fail `.pptx` pada mana-mana permukaan muat naik dan pilih slaid yang anda mahukan - setiap satu menjadi aset untuk diletakkan, digred atau dibina semula. **Markdown Slides** menulis dek baharu daripada Markdown (dan turut memberikan templat `.pptx` berjenama), manakala utiliti **Rebrand** menukar tema dek sedia ada di tempatnya - palet tema, warna dan fon yang dikodkan keras - tanpa menyentuh carta, SmartArt atau animasinya, lalu mengembalikan fail `.pptx`. Lihat [Import reka bentuk → Dek dan dokumen](/info/design-import.html#decks-and-documents).
+PowerPoint juga jalan masuk: [Rebrand a deck](/info/rebrand.html) memindahkan dek ke sistem reka bentuk anda, dan [Import a design](/info/design-import.html) membukanya dalam Design.
 
-## Penpot
+### Penpot
 
-Mana-mana alat yang boleh mengeksport SVG turut boleh mengeksport **fail Penpot** (`.penpot`) - dokumen itu, sedia untuk terus disunting dalam Penpot dan bukan sekadar untuk dilihat.
+Kebanyakan alat yang mengeksport SVG juga mengeksport **fail Penpot** (`.penpot`), sedia untuk terus disunting dalam Penpot.
 
-- <!--i:layout--> Daripada **Design**, setiap bingkai menjadi **board** Penpot, setiap kotak di dalamnya dibawa masuk sebagai bentuknya sendiri yang boleh disunting - segi empat tepat, elips, teks, imej atau laluan - dan hasilnya tiba sebagai **komponen** boleh guna semula dalam panel Assets, sedia untuk diseret keluar semula.
-- <!--i:pentool--> Daripada alat yang penjanaannya berupa **geometri biasa** - alat vektor seperti QR Code, Street Map, Wordmark dan Palette Lab - setiap laluan, segi empat tepat, larian teks dan gradien dibawa masuk dengan cara yang sama, sebagai bentuknya sendiri yang boleh disunting.
-- <!--i:font--> Daripada alat yang menyusun penjanaannya dalam **HTML**, **teks kekal sebagai teks** - satu objek teks Penpot yang boleh disunting bagi setiap baris, bukan garis luar dan bukan gambar rata. Sekeping karya seni yang Penpot tiada binaan untuknya - ilustrasi kompleks, kanvas langsung - turut serta secara berasingan sebagai imej, jadi ia tidak sekali-kali meratakan teks dan kotak di sekelilingnya. Seluruh susun atur yang Penpot tidak dapat pisahkan dengan setia pun masih boleh terhasil sebagai satu gambar dengan kesetiaan penuh, jadi tiada apa yang tercicir.
-- <!--i:palette--> Warna atau fon yang diwarisi bentuk daripada **token jenama** kekal **terpaut** kepada token itu dalam fail: ubah token dalam panel Tokens Penpot dan setiap bentuk yang mewarisinya turut mengecat semula bersama, manakala warna literal sekali sahaja kekal betul-betul di tempatnya. Warna dan tipografi jenama turut mendarat dalam panel **Assets** serta set token reka bentuk penuhnya dalam panel **Tokens** - set token DTCG yang sama yang digunakan oleh palet Lolly sendiri. Penpot menyimpan salinannya sendiri daripada situ: suntingan yang dibuat dalam panel Tokens-nya kembali ke jenama melalui [import Brand Studio](/info/design-import.html), bukan dengan sendirinya.
-
-| Apa yang anda hasilkan | Dalam Penpot |
+| Apa yang anda buat | Dalam Penpot |
 |---|---|
-| Teks | Objek teks boleh disunting - betulkan kesilapan taip atau ubah gaya |
-| Bentuk, laluan, gradien, imej | Bentuk vektor mereka sendiri yang boleh disunting |
-| Warna atau fon daripada token jenama | Pautan token langsung - sunting token, setiap bentuk yang mewarisinya turut mengikut |
+| Teks | Objek teks boleh sunting: baiki salah taip atau ubah gaya |
+| Bentuk, laluan, kecerunan dan imej | Bentuk vektor boleh sunting tersendiri |
+| Warna atau fon daripada token sistem reka bentuk | Pautan token langsung: sunting token dan setiap bentuk yang mewarisinya mengikut |
 | Keseluruhan reka bentuk | Komponen boleh guna semula dalam panel Assets |
-| Ilustrasi kompleks atau kanvas langsung | Dibenamkan secara berasingan sebagai imej, kandungan boleh disunting di sekelilingnya tidak tersentuh |
+| Ilustrasi kompleks atau kanvas langsung | Dibenamkan sendiri sebagai imej, kandungan boleh sunting di sekelilingnya tidak disentuh |
+
+Daripada Design, setiap bingkai menjadi papan Penpot. Warna dan tipografi sistem reka bentuk mendarat dalam panel Assets dan set token penuhnya dalam panel Tokens. Penpot menyimpan salinannya sendiri dari situ: token yang disunting dalam Penpot kembali melalui import dalam [Design System Setup](/info/brand-studio.html).
 
 ![Panel eksport dengan Penpot dipilih: fail .penpot, dan Send to Penpot di sebelah muat turun](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
-Untuk membukanya, mulakan Penpot, pilih projek dan pilih **Import**. Apabila log masuk ke Penpot daripada panel eksport, **Send to Penpot** melakukan langkah itu untuk anda - pilih projek di sana dan fail terus masuk ke dalamnya.
+Untuk membuka fail, mulakan Penpot, pilih projek dan pilih **Import**. Apabila log masuk ke Penpot daripada panel eksport, **Send to Penpot** melakukan langkah itu untuk anda.
 
-## SCORM (pakej kursus)
+### Word, OpenDocument dan InDesign
 
-Pilih **Export course** daripada alat yang disokong, folder projek atau satu pilihan. Dalam Design, memilih **SCORM (LMS)** dan Download turut membuka aliran kerja kursus ini. Lolly menyimpan ciptaan itu, membenarkan anda menyemak kandungan dan susunan kursus, kemudian membuka modul itu dan dialog eksportnya.
+**Doc Studio** mengeksport **Word** (DOCX) dan **OpenDocument** (ODT) dengan perenggan dan tajuk sebenar.
 
-- <!--i:layout--> Pilih rendisi yang tersedia bagi setiap sumber: halaman statik, gerakan sebagai video, audio atau sumber boleh muat turun. Tambah teks pelajaran asli dan alternatif bacaan dalam modul itu.
-- <!--i:play--> Pratonton pemain pelajar dan semak penerangan serta kapsyen. Gerakan disertakan sebagai video, termasuk animasi senyap. Eksport rakaman siap terlebih dahulu apabila sesuatu alat tidak dapat menghasilkannya semula daripada input tersimpan.
-- <!--i:file--> Pilih Website, SCORM 1.2, SCORM 2004 4th Edition, atau sasaran xAPI eksperimen. Semak kandungan sebenar dan saiz ZIP, kemudian simpan dan muat turun versi yang telah disemak.
-- <!--i:check--> Penyelesaian memerlukan pengakuan bagi setiap pelajaran yang diperlukan dan memilih Finish. Pemain laman web menyimpan kemajuan dalam pelayar; pakej LMS menyambung kepada LMS penerimanya.
+**Design** mengeksport **InDesign IDML (static subset)**: teks, segi empat, bujur dan imej PNG atau JPEG, satu hamparan bagi setiap artboard. Pemformatan sebaris yang disokong kekal boleh sunting, imej dibawa dalam `Links` dan koordinat menjadi titik InDesign. Pemautan semula, penggantian fon dan pembungkusan yang berubah mungkin memerlukan perhatian. Kesan, animasi, cerita tergubah dan geometri yang tidak disokong menghentikan eksport dengan laporan yang menyenaraikannya. IDML tidak mengekalkan dokumen asal, jadi hantar PDF untuk karya siap.
+
+### Garis masa: dotLottie dan Premiere
+
+Daripada garis masa Design, **dotLottie** menulis animasi yang kekal boleh disunting dalam alat Lottie; [Lottie animations](/info/sequence-editor.html#lottie-animations) menyenaraikan apa yang dikekalkannya. **Premiere XML + media** membungkus klip bermasa dan media asalnya untuk Premiere; lihat [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange).
+
+### SCORM (pakej kursus)
+
+Eksport kursus mati sehingga anda menghidupkan **Training and courses** di bawah Settings → Preferences → Feature flags.
+
+Kemudian pilih **Export course** daripada alat yang disokong, folder projek atau pilihan. Dalam Design, memilih **SCORM (LMS)** dan **Download** membuka aliran kerja kursus yang sama. Lolly menyimpan kerja, membolehkan anda menyemak kandungan dan susunan kursus, kemudian membuka modul dan dialog eksportnya.
+
+- <!--i:layers--> Pilih rendisi bagi setiap sumber: halaman pegun, gerakan sebagai video, audio atau sumber boleh muat turun. Tambah teks pelajaran dan alternatif bacaan dalam modul.
+- <!--i:clock--> Pratonton pemain pelajar dan semak keterangan serta kapsyen. Gerakan disertakan sebagai video, termasuk animasi senyap.
+- <!--i:document--> Pilih Website, SCORM 1.2, SCORM 2004 4th Edition atau sasaran xAPI eksperimen. Semak kandungan dan saiz ZIP, kemudian simpan dan muat turun versi yang disemak.
+- <!--i:check--> Penyiapan memerlukan pengakuan setiap pelajaran wajib dan memilih Finish.
 
 ![Panel eksport pada satu dek Design dengan SCORM (LMS) dipilih](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
-Pakej itu mengandungi kandungan siapnya sendiri dan tidak memerlukan akaun Lolly. Ekstrak ZIP Website ke atas hos HTTP(S); import ZIP LMS tanpa mengubah kandungannya. Uji destinasi yang dimaksudkan sebelum mengedarkan kursus itu.
+Pakej memegang kandungan siapnya dan tidak memerlukan akaun Lolly. Letakkan ZIP Website pada hos HTTP(S); import ZIP LMS tanpa perubahan. Uji destinasi sebelum anda berkongsi kursus. Untuk kursus yang dibina daripada beberapa ciptaan tersimpan, lihat [Create a training course](/info/training-creators.html).
 
-Bagi kursus yang dihimpun daripada beberapa ciptaan tersimpan, media yang diimport dan sumber, gunakan [Cipta kursus latihan](/info/create/training-creators.html). Modul pembelajaran itu mempunyai rangka tersusunnya sendiri, pengakuan pelajaran yang jelas, pratonton pelajar dan sejarah pakej berversi. Laluan CLI-nya boleh membungkus media yang telah anda eksport.
+### DXF (fail potong)
 
-## DXF (fail potong)
+Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding dan Wordmark mengeksport **DXF**, format pertukaran AutoCAD R12 yang dibaca pemotong laser, plotter vinil dan perisian CNC. Geometri ditulis sebagai laluan garis luar dalam milimeter, teks digariskan luar dan warna dipetakan kepada AutoCAD Color Index terdekat, yang biasanya memacu operasi pemotong. DXF hanyalah seni garis: kawasan fotografi atau bertapis tiada laluan potong dan digugurkan, dengan amaran. Gunakan SVG atau PDF untuk mengekalkan kandungan raster.
 
-Alat vektor (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, logo lockup, Diagram Builder) boleh mengeksport **DXF** - format pertukaran AutoCAD R12 yang dibaca oleh pemotong laser, plotter vinil dan perisian CNC/CAD. Geometri ditulis sebagai laluan outline **dalam milimeter** (lengkung diratakan kepada toleransi halus), teks di-outline menjadi laluan dan warna dipetakan kepada AutoCAD Color Index yang terdekat (yang biasanya menentukan alat/operasi pada sesuatu pemotong). DXF hanya untuk line-art - kawasan fotografik atau yang ditapis tiada bentuk cut-path dan akan digugurkan (Lolly memberi amaran), jadi gunakan SVG/PDF apabila anda perlu mengekalkan kandungan raster.
-
-Street Map adalah kes paling jelas: keseluruhan reka bentuk sudah pun berupa lejang, jadi setiap jalan dan terusan menjadi laluan potong tanpa apa-apa untuk digugurkan.
+Street Map ialah kes yang paling jelas. Seluruh reka bentuk sudah berupa lejang, jadi setiap jalan dan terusan menjadi laluan potong.
 
 ::: showcase
 ![Render Street Map bagi Paris dalam dakwat pada krim - seni garis tulen, jadi setiap lejang terselamat dalam perjalanan ke pemotong](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
@@ -197,165 +212,196 @@ Street Map adalah kes paling jelas: keseluruhan reka bentuk sudah pun berupa lej
 Tatal, dan kamera menarik diri kembali melalui geometri sebenar: tujuh laluan, tiada piksel di mana-mana, setiap lejang setajam rerambut pada sebarang zum. Itulah fail yang sama yang dibaca oleh pemotong.
 :::
 
-## SVG Beranimasi
+## Cetakan
 
-Alat gerakan (Animated Ad, Lottie Ad) boleh mengeksport **SVG Beranimasi** - animasi *vektor* yang lengkap dengan sendirinya. Tidak seperti GIF/APNG/WebP (yang mensampel setiap bingkai kepada piksel), SVG beranimasi menyusun tangkapan vektor bertindan dengan keyframe CSS terbenam, jadi ia **berskala kepada sebarang saiz tanpa kodek dan tanpa masa jalan luaran** - ia mengulang dalam tab pelayar atau `<img>`. Teks kekal bergaris supaya ia dipaparkan di mana-mana. Ia berkongsi kawalan **Duration**/kadar bingkai formats beranimasi, dan (kerana lebih berat per bingkai berbanding bitmap) menggunakan kadar bingkai lalai yang lebih rendah.
+**Print PDF** menulis CMYK terhadap keadaan mesin cetak bernama, **Coated FOGRA39** secara lalai. Swatch jenama dengan nilai dakwat yang diukur ditukar dengan tepat; warna lain menggunakan penukaran peranti piawai. **Print TIFF** menulis piksel DeviceCMYK untuk RIP dan merekodkan keadaan mesin cetak yang sama dalam metadata TIFF-nya. Kawalan Colour profile memacu kedua-duanya; [Colour profiles](#colour-profiles) mempunyai butirannya.
 
-## Ketelusan
+**Print marks & bleed** mempunyai kadnya sendiri pada format cetakan: bleed dalam milimeter serta Crop, Registration, Bleed, Colour bars dan Stamp details.
 
-Alat yang menyokongnya menawarkan togol **latar belakang telus** (cth. *No BG*). Ketelusan dikekalkan oleh PNG, WebP, AVIF, SVG (statik dan beranimasi), APNG dan Animated WebP. JPG dan PDF sentiasa legap, dan TIFF diratakan pada putih (pada hitam pada laluan HDR - lihat di bawah).
+Sesetengah alat membina **PDF berbilang halaman**: muka depan, kandungan yang mengalir ke sebanyak mana halaman yang diperlukan dan halaman belakang, seperti dalam alat *Booklet*. Setiap halaman ialah halaman PDF potret sebenar dalam A4, US Letter atau A5, dan anda boleh memaksa mana-mana blok ke halaman baharu. Ini ialah dokumen RGB tanpa tanda potong atau bleed, yang milik Print PDF satu halaman. PDF Design juga boleh menjadi **Notes handout**: halaman potret bagi setiap slaid dengan nota penuturnya di bawah.
 
-## Ruang warna
+**Before you export.** Kad **Before you export** di kaki panel menyatakan apa yang kedai cetak akan lihat: format, saiz dan bleed, kawasan trim dan bleed, litupan dakwat, bilangan plat dan bilangan halaman, dengan keputusan di sebelah tajuknya. Ia tidak pernah menyekat eksport. Design sentiasa menunjukkan kad dengan semakannya sendiri, termasuk peraturan dalaman sistem reka bentuk lapisan demi lapisan dan isyarat penulisan bagi teks dokumen ([Before you export](/info/design.html#before-you-export)), dan menambah semakan cetakan ini apabila **Print preflight** hidup. Dalam alat lain, hidupkan **Print preflight** di bawah Settings → Preferences → Feature flags; ia mati secara lalai, dan penempatan Lolly Work boleh menghidupkannya untuk ahlinya.
 
-Dua soalan berbeza, wajar dikekalkan berasingan: ruang warna yang Lolly boleh **baca dan fikirkan**, dan yang mana ia **tulis**.
+**After you export.** Setelah fail sedia, Lolly membacanya semula dan membandingkannya dengan apa yang anda pilih: format, saiz piksel atau halaman, panjang klip, latar telus, warna CMYK, HDR, Content Credentials dan kata laluan PDF atau ZIP. Apa-apa yang berbeza ditulis pada kad eksport. Setiap ukuran datang daripada fail, tidak pernah daripada tetapan, dan sifat yang tidak dapat dijawab fail tidak dikira sebagai padanan. Baris perintah menulis perbandingan penuh dengan `--export-report` (lihat [Render with the CLI](/info/cli-rendering.html)).
 
-**Membaca.** Di mana-mana warna ditulis - helaian gaya alat, cat SVG yang diimport, nilai token reka bentuk, bayang atau kecerunan di dalam ringkasan CSS - Lolly membaca keseluruhan kosa kata **CSS Color 4**: `#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, warna bernama CSS dan `color()` dalam ruang yang ditakrifkan terlebih dahulu - `srgb`, `srgb-linear`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d50`, `xyz-d65` - termasuk komponen yang ditulis sebagai kata kunci `none`. Satu penghurai melakukan ini untuk keseluruhan platform, jadi pelayar dan setiap walker eksport bersetuju tentang maksud rentetan warna.
+Semakan inspektor Design dan perbandingan jenama dalam Design System Setup ialah semakan berasingan: ia melihat reka bentuk, manakala dua kad ini melihat fail.
 
-Itu penting lebih daripada bunyinya, kerana pelayar menyelesaikan CSS moden kepada CSS moden. Tulis `color-mix(in oklab, …)` dan Chrome mengira `oklab(…)`; guna token jenama yang disimpan sebagai `oklch()` dan itulah nilai literal yang dilihat oleh walker eksport. Warna dalam bentuk-bentuk itu dibaca dengan betul dan bukannya digugurkan - itulah yang dilakukan oleh walker yang hanya memahami `rgb()`, mengeksport teks berwarna jenama sebagai hitam, kehilangan panel bertona dan garisan jadual serta membaca `oklch(0.7 0.1 200) 0px 2px 4px` sebagai anjakan bayang 0.7 dengan 0.1.
+::: details Kos daripada kad kadar
+Di bawah preflight, kad kos menukar kiraan yang sama kepada wang, menggunakan hanya harga yang dibekalkan seseorang. Ia membaca kiraan itu walaupun kad preflight sendiri mati. Ia memerlukan dua perkara: tugas yang boleh dihargakan senarai harga (plat, helaian, kawasan, halaman, baris varian atau fail output, jadi PNG logo biasa tidak pernah menunjukkannya) dan **kad kadar**, senarai harga JSON daripada pencetak anda. Binaan lalai tidak membawa satu dan tiada cara dalam apl untuk memuatkannya. Kad kadar tiba sebagai aset katalog yang dihantar penempatan, atau melalui sambungan kad kadar pilihan yang dihidupkan oleh orang yang menghos sendiri atau satah kawalan. Tanpa kad kadar, tiada apa-apa ditunjukkan.
 
-**Pemikiran.** Matematik warna berlaku secara perseptual dan bukannya pada saluran mentah. Terbitan palet, ramp, harmoni dan kontras berjalan dalam **OKLCH/OKLab**, dan warna out-of-gamut dibawa ke dalam julat oleh algoritma gamut-mapping milik CSS Color 4 sendiri - pengurangan chroma dengan semakan jarak perseptual - dan bukannya dengan clipping saluran, supaya warna terang mendarat pada warna terdekat yang benar-benar akan anda terima dan bukannya warna yang diratakan. Gradient diinterpolasi dalam ruang yang anda pilih (OKLab secara lalai, atau `oklch`, `lab`, `lch`, `srgb`, `srgb-linear`, `hsl`, dengan arah hue-travel bagi yang polar), dan pencampuran bersifat **premultiplied**, jadi satu fade ke lutsinar kekal pada warna yang betul dan bukannya menggelap ke arah hitam di tengah jalan. Satu interpolator melayani kedua-dua walker pratonton dan eksport - itulah yang menghalang sesuatu gradient conic daripada dicampur satu cara pada skrin dan cara lain dalam fail yang dieksport.
+Setiap angka ialah kadar yang anda bekalkan didarab kuantiti yang dikira Lolly, seperti `4 plate × €35.00`, dan jumlah membawa sumbernya: pengeluar pada kad dan tarikh kadarnya. Tiada mata wang lalai dan tiada harga pemegang tempat. Apa yang dinyatakan fail tentang dirinya kekal sebagai pertuturan dilaporkan: *"The file says: … Lolly has not verified this."*
 
-**Menulis.** Output sengaja dibuat lebih sempit daripada input, kerana fail perlu dapat dibaca oleh apa jua yang membukanya, dan ruang hanya *diisytiharkan* pada output apabila nombor benar-benar ditukar ke dalamnya. Format skrin dan web ditulis sebagai **sRGB** dan diberi tag sedemikian; format cetak ditulis sebagai **CMYK** terhadap syarat akhbar bernama (di bawah); dan laluan HDR ialah **Rec.2100 PQ** (di atas). Warna julat-luas yang sampai ke eksport dipetakan ke dalam sRGB dan bukannya disalah-labelkan - membawa `color(display-p3 …)` terus ke dalam fail vektor adalah lanjutan yang dirancang, bukan sesuatu yang didakwa dilakukan oleh eksport hari ini. Kecerunan yang dicipta dalam OKLab *dibakar* menjadi hentian sRGB biasa semasa keluar, dengan hentian tambahan dimasukkan hanya di mana sRGB akan jelas menyimpang daripada lengkung perseptual, kerana `<linearGradient>` SVG dan pembayangan aksial PDF tiada tetapan ruang-interpolasi untuk membawa niat itu. Satu nilai yang dicipta, tiga penerap, tiada lencongan.
+Apabila angka tidak dapat dikira, jadual ditarik balik dan bukan diisi:
 
-## Profil warna
+- Baris yang tidak dihargakan kad bermakna **tiada jumlah langsung**, hanya tajuk yang menyatakan berapa banyak tidak berharga.
+- Kuantiti yang merupakan siling membawa **"up to"** ke subjumlahnya.
+- Kadar melepasi tarikh sah-hingga menunjukkan **kiraan sahaja** sehingga anda menekan *Use these rates anyway*; tarikh tamat kemudian menyertai angka.
+- Dibuka melalui **pautan**, wang kekal tersembunyi sehingga anda memintanya pada peranti ini. CLI mengambil `--rate-card=<file.json>` sebagai fail setempat dan tidak pernah sebagai parameter pautan.
 
-Supaya warna dihasilkan semula dengan setia dalam aplikasi terurus-warna (kedai cetak, Photoshop, pelayar), eksport **ditag dengan profil warna**:
+Kad dilucutkan daripada setiap peringkat eksport, jadi ia tidak pernah mengubah fail. Ia aritmetik, bukan sebut harga; hanya pencetak anda boleh memberi sebut harga.
+:::
 
-- **PNG / JPG** membawa profil ICC **sRGB** terbenam - ruang warna yang mana pratonton sebenarnya dirender - supaya tiada apa yang perlu diteka. (Sekadar tag; piksel tidak dikod semula.)
-- **PDF Cetak (CMYK)** mengisytiharkan **syarat akhbar** sasaran dalam *OutputIntent*-nya (lalai *Coated FOGRA39*), memberitahu RIP/kedai cetak bagaimana dakwat CMYK-nya sepatutnya dibaca. Swatch jenama dengan nilai dakwat yang diukur ditukar dengan tepat; warna lain menggunakan penukaran peranti standard. Isytihar itu ialah *nama*: tiada profil CMYK yang dihantar bersama Lolly, dan PDF/X-4 mahukan profil terbenam, jadi syarat bernama menulis niat output tanpa mendakwa pematuhan PDF/X-4. Muatkan profil CMYK anda sendiri dan pilih baris **Embed**-nya dalam kawalan Profil warna dan ia dibenamkan sebagai *DestOutputProfile* fail itu - pada ketika itu PDF benar-benar boleh menjadi PDF/X-4, dan mendakwanya bila-bila sahaja selebihnya fail membenarkan. Tiga perkara menahan dakwaan itu sambil mengekalkan niat output (RIP masih mahukannya): seni RGB yang tidak dapat ditukar oleh laluan CMYK, teks kredit margin-bukti `prov` (dilukis dalam fon standard yang tidak dibenamkan, dan X-4 tidak mengecualikannya) dan kata laluan **Strong**, kerana X-4 melarang penyulitan. Syarat yang diisytiharkan kemudian dibaca daripada profil itu: nama berdaftar apabila profil membuktikan satu, `Custom` di bawah nama profil itu sendiri apabila tidak, supaya fail tidak boleh menamakan satu syarat akhbar sambil membawa ukuran syarat lain.
-- **TIFF Cetak (CMYK)** menulis piksel **DeviceCMYK** tanpa tag dan merekodkan syarat akhbar yang sama sebagai provenans dalam metadata TIFF-nya (*ImageDescription*) dan bukannya membenamkan profil. Kawalan Profil-warna yang sama memacu kedua-dua format CMYK - TIFF langsung tidak boleh membenamkan profil akhbar, jadi baris **Embed** merekodkan nama profil itu sendiri di situ dan tidak lebih.
-- **TIFF (RGB)** ialah rakan sRGB biasa, tidak dimampat - raster tanpa kehilangan pada DPI pilihan untuk arkib atau pergi-balik penyunting, dengan provenans direkod dalam metadata TIFF yang sama. Sebarang ketelusan diratakan pada putih (profil ini tidak membawa alfa). Seperti TIFF CMYK, ia hanya untuk desktop, kerana pelayar tidak dapat pratonton TIFF dan muat turun mudah alih terhenti.
-- **SVG**, **EMF**, **EPS** dan **DXF** ialah vektor tak bergantung resolusi dan profil tanpa profil terbenam - warna SVG ialah sRGB biasa, EMF dan EPS ialah RGB peranti (dan **EPS (CMYK)** menulis DeviceCMYK naif) dan **DXF** membawa AutoCAD Color Index yang terhampir. (SVG, EPS dan DXF, seperti PDF, menggariskan sebarang teks kepada laluan vektor, jadi hasilnya dirender walaupun fon tidak dipasang. EMF sebaliknya mengekalkan teks LIVE secara lalai - rekod teks metafail sebenar yang kekal boleh dipilih dan disunting dalam Office dan Google Slides, kembali kepada garisan hanya untuk lejang yang tidak dapat dinyatakan oleh format itu; pilihan "Outline fonts" panel eksport memaksa laluan di mana-mana.) **SVG** juga menghasilkan semula `box-shadow` CSS daripada HTML - setiap bayang luar dilukis di belakang kotak, anjakan/sebaran dan kabur-Gaussian sepadan dengan pelayar, dan bayang inset dilukis di dalamnya dengan cara yang sama.
+## Gerakan dan bunyi
 
-Ini automatik - tiada tetapan untuk diusik. Lakaran kecil dan pratonton melangkau tag itu supaya kekal kecil. Satu profil *memang* satu pilihan, kerana ia menukar piksel dan bukan sekadar melabelkannya - lihat **HDR** di bawah.
+### Video
 
-## HDR (warna terang)
+Alat beranimasi mengeksport **MP4** dan **WebM**. Pemilih hanya menunjukkan bekas yang boleh dibuat pelayar ini, dan pautan `?format=` dikongsi yang meminta satu yang tidak boleh dibuat kembali kepada yang lain, dengan nama fail yang sepadan. Alat beranimasi juga menawarkan **Start after**, yang menahan kanvas pegun seketika supaya animasi dan fon mantap sebelum merakam, dan **Duration**, panjang klip siap. **Motion blur** (Off, Draft quality, Standard atau High, dengan **Shutter angle**) mengaburkan gerakan pantas dengan kos masa render. Di mana pelayar menyokongnya, **Record live** merakam pratonton pada skrin dalam masa nyata melalui kongsi skrin sebaliknya.
 
-Eksport biasa adalah sRGB: putih adalah putih, dan warna jenama tepu secerah putih biasa skrin. Pada paparan berkeupayaan HDR ada banyak ruang di atas itu, dan kad **HDR** dalam panel eksport menggunakannya - warna jenama anda dan teks putih dinaikkan ke arah kecerahan puncak supaya benar-benar *bersinar*, sementara kawasan gelap kekal gelap dan memberi kontras kepada sinaran itu.
+![Tetapan masa untuk eksport beranimasi: Start after, Duration, Motion blur dengan Shutter angle-nya, dan Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+
+**Quality** memilih Smaller file, Balanced atau Best quality. **Advanced** membuka **Codec**, **Frame rate**, **Rate mode** dan **Hardware acceleration**. Di mana alat mempunyai kapsyen, **Captions** memilih **Embedded track** atau **Sidecar .vtt + .srt** di sebelah video. Pautan membawa kualiti, kodek, kadar bingkai, tempoh dan kelewatan mula sebagai `vq`, `codec`, `fps`, `seconds` dan `wait` ([URL parameters](/info/url-parameters.html)).
+
+Eksport video mengekalkan bunyinya. Alat boleh meletakkan **lapik muzik** di bawah klip: aset audio yang diulang atau dipangkas kepada panjang klip, dengan pudar, kelantangan dan ducking di bawah bunyi rakaman sendiri. Alat rakaman membawa audio langsungnya ke dalam fail.
+
+Dek Design yang kekal dek klik masih boleh keluar sebagai video. **Export slides as video** dalam menu Present membuka helaian eksport pada MP4. Setiap slaid dimainkan untuk dwell sendiri, atau untuk Duration helaian eksport apabila ia tiada, dan peralihan slaid dek dimainkan antaranya sebagai larut. Dokumen itu sendiri tidak berubah.
+
+### Imej beranimasi
+
+**GIF** dimainkan di mana-mana dan sesuai untuk sembang dan e-mel; ia lebih besar dan mempunyai lebih sedikit warna daripada video. **APNG** dan **Animated WebP** mengekalkan warna penuh dan ketelusan. **Lottie Ad** juga mengeksport **Animated SVG**: bingkai vektor dengan bingkai kunci CSS terbenam, jadi ia diskalakan kepada sebarang saiz dan berulang dalam tab pelayar atau `<img>` tanpa kodek. Teksnya digariskan luar, dan ia menggunakan kadar bingkai lalai lebih rendah kerana setiap bingkai lebih berat daripada bitmap. Semua ini senyap.
+
+### Audio
+
+Sesetengah alat mengeksport bunyi sahaja. **Voice Recorder** merakam ambilan mikrofon dengan meter paras langsung dan menyimpannya sebagai **MP3**, **WAV**, **M4A (AAC)** atau **Opus (WebM)**, dikodkan pada peranti anda. `wav`, `mp3`, `m4a` dan `opus` ialah id format biasa, jadi eksport audio sama boleh dikongsi dan diskrip seperti PNG.
+
+Pemilih aset menerima pelbagai audio untuk lapik muzik, daripada MP3 dan FLAC hingga MIDI dan modul tracker; [Formats](/info/formats.html) menyenaraikannya. [Lagu Rondocode](/info/rondocode.html) dimainkan pada panjang apa pun yang diminta kliipnya.
+
+## Warna dan HDR
+
+Lolly membaca setiap warna CSS moden, melakukan matematik warna secara persepsi dan menulis setiap fail dalam ruang yang boleh dibuka pembaca: sRGB untuk skrin, CMYK untuk cetakan dan Rec.2100 PQ untuk HDR. [Colour in the engine](/info/colour-engine.html) menerangkan caranya. Dokumen Design yang ditetapkan kepada **Wide colour / HDR** mengikut peraturannya sendiri, diterangkan dalam [Wide colour and HDR editing](/info/hdr-editing.html).
+
+### Profil warna
+
+Eksport ditandakan dengan profil warna, supaya apl terurus warna seperti kedai cetak, Photoshop dan pelayar membaca warna seperti yang anda lihat. Ini berlaku secara automatik; lakaran kecil dan pratonton melangkau teg untuk kekal kecil.
+
+- **PNG dan JPG** membawa profil ICC **sRGB** terbenam, ruang tempat pratonton dilukis. Piksel ditandakan, tidak dikod semula.
+- **Print PDF (CMYK)** mengisytiharkan keadaan mesin cetaknya dalam *OutputIntent*, memberitahu kedai cetak bagaimana dakwat CMYK-nya dimaksudkan untuk dibaca.
+- **Print TIFF (CMYK)** menulis piksel DeviceCMYK tanpa teg dan merekodkan keadaan mesin cetak dalam metadata TIFF. TIFF tidak boleh membenamkan profil mesin cetak, jadi baris **Embed** hanya merekodkan nama profil itu.
+- **TIFF (RGB)** ialah adik sRGB tanpa mampatan untuk arkib atau pergi-balik penyunting. Ia meratakan ketelusan ke atas putih. Kedua-dua TIFF hanya untuk desktop, kerana pelayar tidak boleh membuat pratonton TIFF.
+- **SVG**, **EMF**, **EPS** dan **DXF** ialah vektor tanpa profil terbenam: warna SVG ialah sRGB, EMF dan EPS menggunakan RGB peranti, **EPS (CMYK)** menulis DeviceCMYK dan DXF menggunakan AutoCAD Color Index. SVG, EPS dan DXF menggariskan luar teks kepada laluan. EMF mengekalkan teks langsung dan boleh disunting dalam Office dan Google Slides, kembali kepada garis luar hanya untuk larian yang tidak dapat diungkapkan format; pilihan **Outline fonts** panel eksport memaksa laluan di mana-mana. SVG juga menghasilkan semula bayang kotak CSS, dalam dan luar.
+
+::: details PDF/X-4 dan profil mesin cetak anda sendiri
+Tiada profil CMYK dihantar bersama Lolly. Keadaan mesin cetak bernama menulis niat output tanpa mendakwa pematuhan PDF/X-4, kerana PDF/X-4 mahu profil dibenamkan.
+
+Muatkan profil CMYK anda sendiri dan pilih baris **Embed**-nya dalam kawalan Colour profile. Ia dibenamkan sebagai *DestOutputProfile* fail, dan PDF mendakwa PDF/X-4 apabila selebihnya fail membenarkan. Keadaan mesin cetak yang diisytiharkannya dibaca daripada profil itu: nama berdaftar di mana profil membuktikan satu, atau `Custom` di bawah nama profil sendiri.
+
+Tiga perkara menahan dakwaan sambil mengekalkan niat output: karya RGB yang tidak dapat ditukar oleh laluan CMYK, teks kredit margin bukti `prov` (dilukis dalam fon piawai yang tidak dibenamkan) dan kata laluan **Strong**, kerana PDF/X-4 melarang penyulitan. Setiap PDF juga membawa metadata PDF/X-4: kotak halaman, XMP, ID dokumen dan niat output sRGB dengan profilnya.
+:::
+
+### HDR (warna terang)
+
+Ini ialah kad **HDR** panel eksport, yang menerangkan karya biasa untuk skrin HDR. Mengekalkan asal HDR melalui penyuntingan ialah ciri berbeza: [Wide colour and HDR editing](/info/hdr-editing.html).
+
+Eksport biasa ialah sRGB: warna jenama tepu seterang putih biasa skrin. Paparan HDR mempunyai ruang di atas itu. Kad **HDR** meningkatkan warna jenama dan teks putih anda ke arah kecerahan puncak, manakala kawasan gelap kekal gelap dan memberi pancaran kontrasnya.
 
 ![Kad HDR dalam panel eksport, dihidupkan, dengan dail White / Reach / Dark lift / Focus didedahkan di bawahnya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Format.** Format raster yang mempunyai ruang untuk membawa isyarat: **PNG**, **JPG**, **AVIF** dan **TIFF**. (Bukan WebP - ia 8-bit tanpa laluan nyahkod HDR yang berfungsi, jadi WebP PQ akan kelihatan gelap sahaja. Vektor dan PDF langsung tiada model HDR.)
-- **Dimatikan secara lalai**, tidak seperti penandaan warna - ia mengubah piksel, jadi ia bersifat sertai-sendiri. Tanda kad itu, atau hantar `hdr=1` dalam pautan perkongsian.
-- **Apa yang sebenarnya ditulis.** Piksel dikod semula kepada **Rec.2100 PQ** - warna primer BT.2020 dengan lengkung pemindahan SMPTE ST 2084 (PQ) - dan bekas itu membawa isyarat yang sepadan supaya aplikasi terurus warna tahu untuk membacanya begitu: **profil ICC v4 dengan tag `cicp`** yang dijana (JPG, TIFF), **cebisan `cICP`** (PNG) atau kotak `colr` yang ditulis semula (AVIF). Peningkatan ini dikawal berdasarkan **kecerahan persepsi (OKLab)**, jadi warna pertengahan-ke-atas ditingkatkan ke puncak dan warna gelap ditenangkan dan bukannya terlebih dedah, dan ia mengekalkan hue - hijau jenama menjadi lebih terang, bukan bertukar warna pudina.
-- **Kawalan.** Empat, didedahkan apabila kad dihidupkan: **White** (siling kecerahan puncak, 400–2000 nit), **Reach** (sejauh mana ke bawah nada cahaya itu merebak), **Dark lift** (sebanyak mana kawasan gelap dicerahkan - `0` mengekalkannya gelap) dan **Focus** (sebanyak mana kekayaan warna yang dikekalkan oleh peningkatan itu). Ia menaiki param yang sama sebagai nilai terlaras padat - `hdr=1600-60-0-50` ialah White 1600, Reach 60, Dark lift 0, Focus 50 - jadi rupa terlaras boleh dihasilkan semula daripada pautan.
-- **Di mana anda akan melihatnya.** Pemapar terurus warna pada paparan HDR: Preview / Quick Look / Safari pada peranti Apple, Chrome pada monitor HDR. Pada skrin SDR biasa, fail itu masih dipaparkan sebagai imej biasa.
-- **Ketahui sebelum anda menghantarnya.** Banyak platform **mengekod semula** apa yang anda muat naik dan membuang isyarat HDR - rangkaian sosial, aplikasi pemesejan, sesetengah CMS - yang boleh menyebabkan imej kelihatan gelap atau pudar. Gunakan HDR di tempat anda mengawal destinasi (laman yang anda bina, dinding video, dek pada panel terang), bukan sebagai lalai untuk semua benda.
-- **Ketelusan.** PNG dan AVIF mengekalkan alfa mereka; JPG legap seperti biasa. Laluan **TIFF** meratakan ke atas **hitam**, bukan putih seperti laluan SDR - dalam PQ, putih ialah kod 10,000 nit, jadi meratakan ke atasnya akan mengelilingi setiap tepi dengan halo yang menyilaukan.
-- **Bait yang sama daripada terminal.** `--hdr=1` bersama `--export=png` atau `--export=jpg` turut menulis PNG Rec.2100 PQ 16-bit dan JPEG peta gandaan ISO 21496-1 pada [CLI](/info/cli.html), daripada pengekod enjin yang sama dan bukannya pelayar - jadi alat asli `<svg>` menghasilkan fail HDR tanpa sebarang Chromium di mana-mana dalam laluan itu, dan PNG itu sama bait dengan PNG cengkerang web. AVIF dan TIFF kekal sebagai eksport cengkerang web buat masa ini.
+- **Format.** PNG, JPG, AVIF dan TIFF. WebP ialah 8-bit tanpa laluan nyahkod HDR yang berfungsi, dan vektor serta PDF tidak mempunyai model HDR.
+- **Mati secara lalai**, kerana ia mengubah piksel. Tanda kad, atau hantar `hdr=1` dalam pautan kongsi.
+- **Dail.** **White** (siling kecerahan puncak, 400 hingga 2000 nit), **Reach** (sejauh mana pancaran tersebar ke bawah nada), **Dark lift** (berapa banyak kawasan gelap bertambah cerah; `0` mengekalkannya gelap) dan **Focus** (berapa banyak kekayaan warna dikekalkan peningkatan). Ia dibawa sebagai satu nilai: `hdr=1600-60-0-50` ialah White 1600, Reach 60, Dark lift 0 dan Focus 50.
+- **Apa yang ditulis.** PNG mendapat Rec.2100 PQ 16-bit dengan ketulan `cICP`. JPG ialah JPEG peta gandaan ISO 21496-1: gambar SDR biasa ditambah peta gandaan yang dilampirkan. AVIF mendapat kotak `colr` yang ditulis semula. TIFF mendapat piksel PQ dengan profil ICC v4 yang dijana membawa teg `cicp`, dan diratakan ke atas hitam, kerana putih ialah kod 10,000 nit dalam PQ dan akan mengitari setiap tepi dengan halo. Peningkatan mengikut kecerahan persepsi (OKLab) dan mengekalkan rona, jadi hijau jenama menjadi lebih terang, bukan berwarna pudina.
+- **Di mana pancaran kelihatan.** Pemapar terurus warna pada paparan HDR: Preview, Quick Look dan Safari pada peranti Apple, atau Chrome pada monitor HDR. Skrin SDR menunjukkan imej biasa.
+- **Sebelum anda menghantar.** Banyak platform mengekod semula muat naik dan membuang isyarat HDR, yang boleh meninggalkan imej gelap atau pudar. Gunakan HDR di mana anda mengawal destinasi, seperti tapak anda sendiri, dinding video atau dek pada panel terang.
+- **Daripada terminal.** `--hdr=1` dengan `--export=png` atau `--export=jpg` menulis PNG dan JPEG peta gandaan yang sama pada [CLI](/info/cli.html), daripada pengekod enjin yang sama, tanpa pelayar dalam laluan. AVIF dan TIFF kekal eksport web buat masa ini.
 
-## Video
+## Apa yang dibawa bersama fail anda
 
-Alat beranimasi mengeksport gerakan sebagai **MP4**, **WebM** atau **GIF** - dan, di mana ditawarkan, **APNG**, **Animated WebP** atau **Animated SVG** vektor (di atas). Bekas video mana yang anda lihat bergantung pada pelayar anda - pemilih hanya menunjukkan apa yang benar-benar boleh direkodnya:
+Fail siap boleh membawa beberapa rekod di samping gambar. Sesetengah mengiringi piksel dan hilang apabila fail disimpan semula atau dilucutkan; dua tanda hidup dalam piksel itu sendiri.
 
-| Pelayar | Menunjukkan |
-|---|---|
-| Safari / iOS | **MP4** |
-| Firefox | **WebM** |
-| Chrome / Edge 126+ / Android | **MP4 dan WebM** |
-| Chrome lebih lama | **WebM** |
+::: figure exporting-what-travels
+Di mana setiap rekod berada, sama ada ia hidup secara lalai dan parameter pautan mana mengawal setiap satu.
+:::
 
-GIF berfungsi di mana-mana (bagus untuk sembang/e-mel; lebih besar dan warna lebih rendah daripada video). Alat beranimasi juga mendedahkan **Wait** (saat untuk membenarkan animasi menetap sebelum merekod) dan **Duration** (panjang klip).
-
-> Satu pautan kongsi `?format=…` yang meminta satu bekas yang tidak dapat dirakam oleh pelayar anda beralih dengan licin kepada bekas yang satu lagi, dan nama fail itu sepadan dengan bekas yang sebenarnya dirakam.
-
-**Bunyi.** Eksport video tidak senyap. Alat boleh meletakkan **latar muzik** di bawah klip - aset audio daripada katalog, diulang atau dipotong kepada panjang klip, dengan fade-in/out, kelantangan dan pengurangan automatik di bawah bunyi rakaman sendiri - dan alat rakaman membawa audio langsung rakaman mereka terus ke dalam fail. **MP4** dan **WebM** mengekalkan trek bercampur; GIF dan format imej beranimasi (APNG, Animated WebP, Animated SVG) senyap secara semula jadi.
-
-## Audio
-
-Sesetengah alat mengeksport **audio dengan sendirinya**, bukan sekadar sebagai trek video. **Voice Recorder** menangkap rakaman mikrofon dengan meter aras langsung dan bimbingan lembut, kemudian menyimpannya sebagai **MP3** (lalai, ditranskod dalam pelayar anda) atau dalam bekas asalnya - **M4A** (AAC), **OGG** atau **WebM** (Opus), yang mana sahaja direkod oleh pelayar anda. Seperti segala-galanya yang lain, pengekodan berlaku pada peranti anda - tiada apa dimuat naik.
-
-Audio yang anda *bawa masuk* sama luasnya. Pemilih aset menerima **MP3**, **WAV**, **OGG**/**Opus**, **M4A**/**AAC** dan **FLAC** (dikekalkan bait-demi-bait dan dinyahkod pada peranti), **MIDI** (`.mid` - ditukar semasa import kepada trek sintesizer kecil pada peranti) dan **modul tracker** - **MOD**, **XM**, **IT**, **S3M**, **STM**, **MTM** (dinyahkod pada peranti oleh pemain terbina, beberapa kilobait data lagu). Mana-mana daripada ini boleh menjadi **latar muzik** di bawah eksport video, atau dimainkan dalam pemain ambien Neurospicy Mode.
-
-Audio *memang* sebahagian daripada saluran paip `format=` / `--export=` di bawah: `wav`, `mp3`, `m4a` dan `opus` ialah id format biasa, jadi eksport audio-sahaja boleh dikongsi dan diskrip sama seperti PNG. Apa yang keluar hanyalah bunyi sahaja, tiada gambar.
-
-## Provenans & tera air
-
-Di mana format menyokongnya, eksport membawa **metadata provenans** - perisian, sumber, nama alat dan baris kredit profil anda - terbenam secara asli (PNG iTXt, JPEG EXIF, maklumat PDF, `<metadata>` SVG, komen GIF). Ia hanya kepengarangan; tiada apa dimuat naik. Alat **Experimental** turut mencap tera air kelihatan, digunakan oleh hos supaya tidak boleh dibuang dengan menyunting alat itu.
-
-**Lolly Imprint.** Eksport raster juga membawa **tera air piksel tidak kelihatan** Lolly sendiri - *Lolly Imprint* - **dihidupkan secara lalai**, sama seperti Content Credentials. Di mana kredensial dan metadata provenans mengembara *bersebelahan* dengan piksel dan hilang apabila disimpan semula, ditangkap skrin atau metadata ditanggalkan, Imprint hidup *di dalam* piksel dan terselamat daripada mampatan semula - jadi salinan imej masih boleh dikenali sebagai buatan-Lolly kemudian. Ia petunjuk tahan lama, bukan jaminan kriptografi, dan ia hanya-kehadiran (tidak membawa sebarang data peribadi). Ia menumpang **PNG, JPG, WebP, AVIF, TIFF dan BMP**, dan dalam raster terenderkan-Lolly yang digubah ke dalam **PDF atau PPTX** - tidak pernah dalam imej yang *anda* benamkan, hanya dalam apa yang Lolly sendiri render. Nyahtanda kad **Lolly Imprint** dalam panel eksport untuk melangkauinya, atau lalukan `imprint=0` dalam pautan kongsi. (Ketahanan AVIF melalui pengekodan semula belum ditentukur; pengesanan PDF/PPTX meliputi raster Lolly yang dibenamkan.) [/verify](/verify) mengesannya pada peranti - lihat [Content Credentials Identity](/info/content-credentials-identity.html#the-lolly-imprint).
-
-**Kredensial tahan lama.** Tanda kedua, lebih berat, terletak di sebelah Imprint: **Durable credential**, yang menggunakan model neural pada peranti (format TrustMark) untuk menulis id Lolly *ke dalam* piksel supaya pautan "dibuat dengan Lolly" terselamat daripada penanggalan metadata, pengekodan semula dan pembacaan semula oleh alat yang menyedari TrustMark serta alat Lolly sendiri. Ia **dimatikan secara lalai** - tidak seperti Imprint JavaScript tulen, ia mengambil kos laluan neural bagi setiap eksport ditambah muat turun model sekali sahaja, jadi ia pilih-masuk yang disengajakan dan bukan cukai senyap. Raster sahaja (**PNG, JPG, WebP, AVIF, TIFF**), ditandakan dalam panel eksport atau dilalukan sebagai `durable=1` dalam pautan kongsi. Pada aplikasi desktop dan mudah alih kad itu disembunyikan terus dan bukan ditunjukkan sebagai tiada-operasi, kerana tiada asal untuk mengambil model itu secara luar talian.
-
-**Perlindungan kandungan.** Pada panel eksport, **Lesen** yang anda berikan, **Kredit sumber** bagi apa jua yang anda letakkan, *Password protect*, **C2PA Credentials**, **Lolly Imprint** dan **Kelayakan tahan lama** dilipat menjadi satu kumpulan **Perlindungan kandungan** yang runtuh dan sedar-format, supaya opsyen provenans, hak dan perlindungan sesuatu fail hidup di satu tempat. Kumpulan itu hanya menunjukkan kad yang terpakai untuk format yang dipilih. Ia terbuka dengan sendirinya apabila satu pautan atau dokumen tersimpan sudah mengisytiharkan satu lesen, atau apabila satu sumber memerlukan keputusan daripada anda.
-
-**Lesen.** Pilih bagaimana orang lain boleh menggunakan karya anda: *Tiada (semua hak terpelihara)* secara lalai, atau CC0 1.0, Public Domain Mark 1.0, atau salah satu lesen Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Nama lesen dan satu pautan kepada akta (deed) berkenaan ditulis ke dalam metadata lesen fail itu (EXIF, XMP dan RIFF di mana format itu mempunyai medan tersebut) dan ke dalam Content Credential-nya. Pilihan itu disimpan bersama dokumen dan turut serta dalam pautan kongsi sebagai `licence=`. Lolly menulis lesen yang anda pilih. Ia tidak menyemak atau menguatkuasakan syarat-syaratnya. Satu alat dengan medan lesennya sendiri, seperti Claim, mengekalkan medan itu dan bukannya memaparkan pemilih kedua. Tanda cetak sengaja *tidak* di dalamnya: ia geometri pengeluaran cetak dan bukan perlindungan, jadi **Tanda cetak & bleed** - ukuran bleed dalam milimeter ditambah Crop, Registration, Bleed, Colour bars dan Stamp details - mengekalkan kad peringkat atasnya sendiri pada format cetak.
+Panel eksport melipat **Licence**, **Source credits**, *Password protect*, **C2PA Credentials**, **Lolly Imprint** dan **Durable credential** ke dalam satu kumpulan **Content protection** yang hanya menunjukkan kad yang boleh digunakan format yang dipilih. Ia terbuka sendiri apabila pautan atau dokumen sudah mengisytiharkan lesen, atau apabila sumber memerlukan keputusan daripada anda. Kad **Design system** kekal di luar kumpulan, kelihatan pada setiap eksport.
 
 ![Kumpulan Content protection dibuka pada eksport PNG, menunjukkan hanya kad yang terpakai kepadanya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
-**Sebelum anda eksport (praterbang cetak).** Hidupkan **Print preflight** (`export-preflight`) dalam bendera ciri Profil anda - ia **dimatikan secara lalai**, jadi individu yang mengeksport PNG untuk mesej sembang tidak pernah diserang tiba-tiba oleh dapatan pracetak, dan bidang kawalan penggunaan ([lolly.work](https://lolly.work)) boleh menetapkannya lalai hidup untuk ahlinya - dan kad **Before you export** muncul di kaki panel, sejurus di atas butang, apabila peraturan cetak mempunyai sesuatu yang benar untuk dikatakan tentang kerja itu: format, saiz dan bleed, kemudian kawasan trim dan bleed, liputan dakwat, kiraan plat dan kiraan halaman, dengan keputusan di sebelah tajuknya. Ia terletak di bawah setiap tetapan kerana ia satu kenyataan *tentang* tetapan itu dan bukan satu lagi daripadanya - dan ia tidak pernah menyekat eksport. Ia memberitahu anda apa yang bakal dilihat oleh kedai cetak.
+### Asal-usul & tera air
 
-**Kos, dikira daripada kad kadar anda.** Di bawah praterbang - paling akhir, masih di atas butang - terletak kad yang menukar kiraan yang sama itu menjadi wang, dan hanya sekali daripada harga yang seseorang berikan kepadanya. Ia membaca apa jua yang dikira oleh laluan praterbang, sama ada kad praterbang itu sendiri dihidupkan atau tidak, dan ia memerlukan dua perkara supaya benar: kerja itu mempunyai sesuatu yang senarai harga boleh harga langsung (plat, helaian, luas, halaman, baris varian atau fail output - jadi logo PNG biasa tidak akan menunjukkannya), **dan** **kad kadar** hadir. Kad kadar ialah senarai harga JSON daripada pencetak anda. Binaan lalai tidak membawa satu pun dan tiada cara dalam-apl untuk memuatkannya: ia tiba sama ada sebagai aset katalog yang dihantar oleh penggunaan, atau melalui sambungan kad-kadar pilihan yang dihidupkan oleh penghos-sendiri atau bidang kawalan. Tanpa kad kadar, tiada apa ditunjukkan - bukan gesaan, bukan jadual kosong.
+Di mana format mempunyai medan, eksport membawa **metadata asal-usul**: perisian, sumber, nama alat dan baris kredit profil anda, ditulis ke dalam PNG iTXt, JPEG EXIF, maklumat PDF, SVG `<metadata>` atau komen GIF. Ia hanya merekodkan kepengarangan, dan tiada apa-apa dimuat naik. Alat **Experimental** juga mencap tera air yang kelihatan, dikenakan oleh hos supaya menyunting alat tidak boleh membuang tanda itu.
 
-Peraturan yang membina keseluruhan perkara ini ialah **ia tidak pernah mencipta wang**. Setiap angka ialah kadar yang anda berikan didarab dengan kuantiti yang dikira Lolly - `4 plate × €35.00` - dan jumlah itu menamakan sumbernya sendiri dalam ayat yang sama dengan angka itu: pengeluar yang dinamakan kad, dan tarikh yang kata kad itu kadarnya dari. Tiada mata wang lalai, tiada pemegang tempat dan tiada sifar berdiri untuk harga yang hilang. Apa yang dikatakan fail tentang dirinya kekal sebagai pertuturan yang dilaporkan: *"Fail berkata: … Lolly belum mengesahkan ini."*
+**Lolly Imprint** ialah tera air piksel tidak kelihatan, **hidup secara lalai**. Kredensial dan metadata mengiringi piksel dan hilang apabila disimpan semula, ditangkap skrin atau metadata dilucutkan. Imprint hidup dalam piksel dan bertahan melalui pemampatan semula, jadi salinan masih boleh dikenali sebagai buatan Lolly. Ia petunjuk dan bukan jaminan kriptografi, dan ia tidak membawa data peribadi. Ia dibawa dalam JPEG XL, PNG, JPG, WebP, AVIF, TIFF dan BMP, dan dalam raster yang dirender Lolly ke dalam PDF atau PPTX, tidak pernah dalam imej yang anda benamkan. Nyahtanda **Lolly Imprint** atau hantar `imprint=0` untuk tidak menyertakan Imprint. Kebertahanan AVIF melalui pengekodan semula belum ditentukur. [Verify](/verify) mengesannya pada peranti anda; lihat [The Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
 
-Dan apabila ia tidak dapat mengira dengan jujur, jadual kerja **hilang** dan bukannya merosot menjadi angka kelabu atau yang diisi:
+**Durable credential** menulis id Lolly ke dalam piksel dengan model saraf pada peranti dalam format TrustMark, supaya pautan "dibuat dengan Lolly" bertahan melalui pelucutan metadata dan pengekodan semula dan boleh dibaca oleh alat yang mengenali TrustMark. Ia **mati secara lalai**, kerana ia memerlukan satu laluan saraf bagi setiap eksport dan muat turun model sekali sahaja. Ia meliputi PNG, JPG, WebP, AVIF dan TIFF; tandakannya dalam panel atau hantar `durable=1`. Apl desktop dan mudah alih menyembunyikan kad, kerana ia tidak mempunyai asal untuk mengambil model secara luar talian.
 
-- Baris yang tidak diberi harga oleh kad bermaksud **tiada jumlah langsung** - hanya tajuk utama yang menyatakan berapa banyak yang tidak diberi harga. Jumlah separa bukanlah jawapan yang lebih kecil, ia jawapan yang salah.
-- Kuantiti yang merupakan siling dan bukan kiraan tepat membawa **"up to"** terus ke dalam jumlah kecilnya, jadi sempadan tidak pernah dibersihkan menjadi angka rata.
-- Kadar yang lepas tarikh sah-hinggnya menunjukkan **kiraan sahaja**, sehingga anda menekan *Use these rates anyway* - dan kemudian tarikh tamat tempoh menumpang bersama angka itu, supaya jumlah yang luput tidak boleh dibaca sebagai jumlah semasa.
-- Dibuka melalui **pautan**, wang kekal tersembunyi sehingga anda memintanya pada peranti ini. Kad itu mahupun pendedahan itu tidak pernah mengembara dalam URL - sebab yang sama CLI menerima `--rate-card=<file.json>` sebagai bendera fail tempatan dan tidak pernah sebagai parameter pautan.
+**Licence.** Pilih bagaimana orang lain boleh menggunakan kerja anda: *None (all rights reserved)* secara lalai, CC0 1.0, Public Domain Mark 1.0, atau lesen Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Nama lesen dan pautan ke deed-nya masuk ke dalam metadata lesen fail (EXIF, XMP dan RIFF di mana format mempunyainya) dan Content Credential-nya. Pilihan disimpan bersama dokumen dan dibawa dalam pautan sebagai `licence=`. Lolly menulis lesen yang anda pilih; ia tidak menyemak atau menguatkuasakan terma. Alat dengan medan lesennya sendiri, seperti Claim, mengekalkan medan itu sebaliknya.
 
-Kad itu adalah krom, bukan sesekali kandungan: ia ditanggalkan daripada setiap peringkat eksport, jadi ia tidak boleh menggerakkan satu piksel pun fail yang anda muat turun. Dan ia aritmetik, bukan sebut harga - hanya pencetak anda boleh memberi anda satu.
+### Rekod sistem reka bentuk
 
-**Render tergubah.** Apabila satu alat membenamkan output alat lain (cth. *Event Name Badge* membenamkan *QR Code*), render bersarang itu disebarkan ke dalam eksport induk - ia kekal sebagai **vektor sebenar** dalam SVG dan PDF dan raster dengan tajam dalam PNG/JPG/WebP. Anak yang dibenamkan itu adalah perantaraan: ia *tidak* mendapat tera air dan *tidak* mendapat provenans tersendiri; hanya aset induk yang siap yang mendapatnya. (Komposisi meliputi SVG dan format raster; HTML/MD/TXT tidak boleh digubah.)
+Eksport merekodkan sistem reka bentuk yang membuat fail: namanya, versi diterbitkan tempat ia dilukis (apabila itu bukan versi kerja) dan [colourway](/info/colourways.html) tempat ia dilukis. Mana-mana pilihan tema lain yang diisytiharkan sistem reka bentuk, seperti ketumpatan, direkodkan dengan cara yang sama. Pilihan cerah atau gelap ditinggalkan, kerana gambar sudah menunjukkan yang mana digunakan.
 
-## Perlindungan kata laluan
+**Anda melihat rekod sebelum apa-apa ditulis.** Kad **Design system**, ditanda secara lalai, menunjukkan perkataan tepat yang akan dibawa fail, seperti *Records: Acme · Colourway: Beach*, dan keterangan seperti yang akan dibaca. Nama sistem reka bentuk ialah apa sahaja yang ditaip pemiliknya, jadi kad menunjukkannya seperti yang ditulis. Nyahtanda kad untuk tidak menyertakan rekod daripada eksport itu. Panel dokumen Design menyenaraikan perkataan yang sama di bawah *Embedded in exports*.
 
-Dua jenis kunci yang berasingan, kedua-duanya sepenuhnya di peranti.
+**Keterangan memberi colourway di sebelah alat.** Dengan kad ditanda, *"Made with https://lolly.tools : Chart"* menjadi *"Made with https://lolly.tools : Chart (Beach colourway)"*. Nama sistem reka bentuk sendiri kekal dalam rekod, bukan keterangan. Keterangan tanpa nama alat, atau yang ditulis alat daripada inputnya sendiri, dibiarkan seperti sedia ada. Alat yang mengabaikan colourway melalui `tokenAxes` tidak merekodkan apa-apa, dan kredit bukti PDF (tanda cetak `prov`) mengikut peraturan yang sama.
 
-**Kata laluan buka PDF** - kad *Password protect* dalam panel eksport menawarkan dua peringkat setelah kata laluan ditaip:
+**Kemahiran jenama yang membimbing ejen.** Apabila ejen membuat karya dan menamakan [brand skills](/info/brand-skills.html) yang dibaca dan diikutinya, rekod juga menyenaraikan setiap kemahiran dengan semakannya, seperti *Guided by: acme-brand 1.0*. Perkataan itu bermakna kemahiran membimbing kerja. Ia bukan semakan: Lolly tidak menguji karya terhadap kemahiran. Hanya kenyataan ejen sendiri menambah senarai, yang hari ini bermakna hujah `brandSkills` bagi `lolly_render` [pelayan MCP](/info/mcp.html), jadi karya yang dibuat dalam apl atau daripada pautan kongsi tidak membawa mana-mana. Content Credential memegang senarai sebagai `brandSkills`, satu nilai JSON dengan id, nama, semakan dan cincangan SHA-256 setiap kemahiran. Paket XMP dan metadata SVG memegang nilai yang sama sebagai `lolly:BrandSkills`, PDF yang ditulis daripada rekod mendapat satu kata kunci bagi setiap kemahiran dan keterangan kekal seperti sedia ada. Kemahiran dalaman direkodkan mengikut id, nama, semakan dan cincangannya, tidak pernah mengikut teksnya. Suis yang sama tidak menyertakan senarai bersama baki rekod: kad **Design system**, `_madewith=0`, `--no-madewith` dan `madeWith: false`. Apabila pelayan MCP melukis fail dalam pelayar (PDF, JPEG dan format lain yang tidak boleh ditulis laluan tanpa pelayarnya), metadata fail sendiri tidak memegang senarai dan hanya Content Credential boleh memegangnya. Hantar `c2pa` untuk mengekalkan rekod; tanpa kredensial render memberi amaran bahawa kemahiran jenama tidak direkodkan.
 
-![Kad Password protect dikembangkan pada eksport PDF, dengan medan kata laluan dan dua peringkat kunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+**Membaca rekod semula.** [Verify](/verify) menyenaraikan rekod sebagai **Design system** dalam butiran kredensial fail dan sebarang kemahiran jenama sebagai **Guided by**. *Recreate with these settings* membuka semula alat dalam versi dan colourway yang direkodkan. Pautan dibuka dengan sistem reka bentuk yang direkodkan apabila peranti ini memegang satu dengan id dan nama yang sama; jika tidak ia dibuka dengan sistem reka bentuk aktif anda.
 
-- **Weak** - kata laluan ringkas 40-bit (RC4). Penghalang ringan, bukan perlindungan sebenar: kata laluannya boleh dibawa dalam pautan kongsi (teks jelas). Hanya `pdf` RGB.
-- **Strong** - AES-256 (PDF 2.0). Kata laluannya ditaip semasa eksport dan **tidak sekali-kali** diletakkan dalam pautan. Strong juga terpakai pada **PDF Print / CMYK** dan pada **setiap PDF di dalam zip kelompok** (kotak dialog pengesahan kelompok mengumpul kata laluan itu). Kerana PDF/X-4 melarang penyulitan, PDF Print yang dikunci Strong mengekalkan CMYK, tanda dan niat outputnya tetapi menggugurkan tuntutan pematuhan PDF/X-4.
+::: details Apa ditulis di mana, dan larian mana tidak menyertakan rekod
+| Di mana | Apa yang ditulis |
+|---|---|
+| Content Credential | `designSystem` (id), `designSystemLabel`, `designVersion` dan `themes` dalam penegasan `tools.lolly.export`, masing-masing nilai teks biasa; `themes` ialah senarai JSON pilihan |
+| PNG, JPEG, WebP dan JXL | Empat nilai yang sama sebagai sifat `lolly:` paket XMP fail, dalam ruang nama `https://lolly.tools/ns/export/1.0/` |
+| SVG | Sifat `lolly:` yang sama dalam blok `<metadata>` |
+| PDF | Kata kunci seperti *Design system: Acme* dan *Colourway: Beach* |
+| Setiap format dengan medan keterangan | Keterangan, dengan colourway di sebelah alat |
 
-Kedua-dua peringkat itu saling eksklusif dengan Content Credentials (PDF yang disulitkan tidak boleh membawa kelayakan itu).
+Kad muncul hanya apabila ada sesuatu untuk direkodkan dan format boleh memegang rekod. CSV, JSON, fail kalendar dan format teks atau data lain tidak memegang metadata, dan EPS, EMF, DXF dan BMP tidak mempunyai medan untuk rekod. HTML, Markdown dan CSS memegang rekod hanya dalam Content Credential mereka, jadi bagi mereka kad tidak menunjukkan baris keterangan dan bersembunyi semasa **C2PA Credentials** mati. Medan yang tidak diberikan sistem reka bentuk kekal di luar fail.
 
-**Muat turun yang dikunci (keseluruhan zip + pertahanan berlapis)** - eksport **ZIP** (format *ZIP* pada panel eksport, yang menggabungkan beberapa format sesuatu alat), muat turun **folder** (Projects → Download) atau **grid kelompok** boleh mengunci keseluruhan zip dengan satu kata laluan, pada dua peringkat:
+Pautan kongsi mematikan rekod dengan `_madewith=0` ([URL parameters](/info/url-parameters.html)); baris perintah menerima `--no-madewith`, `lolly_render` [pelayan MCP](/info/mcp.html) menerima `madeWith: false`, dan panel eksport apl terminal mempunyai baris **Design system**. Baris perintah mencetak perkataan yang dibawa fail siap pada ralat piawai, bagi render alat dan bagi setiap fail yang dieksport `lolly run` daripada sesi Design tersimpan, dan render MCP mencetaknya di sebelah fail, kedua-duanya dibaca semula daripada fail. PNG yang dilukis baris perintah tanpa pelayar tidak membawa metadata fail, jadi rekodnya dibawa dalam kredensial sahaja. Utiliti pada peranti tidak menambah metadata langsung.
 
-- **Weak** - **ZipCrypto** tradisional, penghalang sahaja. Kata laluannya boleh dibawa dalam pautan kongsi `?password=`.
-- **Strong** - penyulitan **AES-256**. Ditaip semasa eksport, tidak sekali-kali diletakkan dalam pautan.
+Larian tanpa kad **Design system** tidak menyertakan rekod: larian Batch, folder yang dieksport daripada Projects dan eksport koleksi 3D, dan dalam apl terminal kelompok CSV, eksport folder atau pilihan Projects dan paparan render-everything. Eksport satu fail daripada alat untuk merekodkan sistem reka bentuk.
+:::
 
-Kad *Password protect* yang sama dalam panel eksport menggerakkan kunci PDF dan ZIP. Satu kata laluan melindungi **setiap** ahli - imej, SVG, semuanya, termasuk PDF (hanya bekas zip yang boleh melindungi fail bukan PDF, yang tiada kunci sendiri). Dan ia **defense-in-depth**: mana-mana PDF di dalamnya *juga* dikunci AES-256 secara individu dengan kata laluan yang sama, jadi PDF kekal terkunci walaupun selepas zip dibongkar. Prompt muncul apabila anda memulakan muat turun; kata laluan kosong bermakna tiada kunci.
+### Content Credentials (C2PA)
 
-**Pautan kongsi berkunci kata laluan** - mana-mana pautan kongsi boleh disulitkan supaya membukanya meminta kata laluan daripada penerima. Keseluruhan keadaan pautan itu disulitkan AES-256 di bawah kunci yang diterbitkan daripada kata laluan (PBKDF2); hanya teks sifer yang dibawa, jadi **kata laluan tidak sekali-kali berada dalam pautan** dan penyahsulitan berlaku **di dalam pelayar penerima** - pelayan yang menyajikan pautan itu hanya melihat teks sifer dalam URL, tidak sekali-kali kata laluan dan tidak sekali-kali reka bentuk yang telah dinyahsulit. Hidupkannya dalam kotak dialog **Share**. Pautan yang disulitkan hanya boleh *dibuka* dalam Lolly (ia tidak boleh dibenamkan sebagai imej, kerana laluan itu tidak boleh menggesa). Lihat [URL Mode → Encrypted links](/info/url-mode.html).
+Eksport boleh membawa **Content Credentials**: manifes [C2PA](https://c2pa.org) bertandatangan yang merekodkan apa yang membuat fail, bila dan di mana, terikat kepada cincangan bait fail supaya sebarang suntingan kemudian dapat dikesan. Spesifikasi diterbitkan oleh C2PA, dan Lolly menulis manifes piawai yang boleh diperiksa oleh mana-mana pembaca C2PA.
 
-## Content Credentials (C2PA)
+![Kad C2PA Credentials, ditanda, dengan hayat kredensial di sebelah kotak semak](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-Eksport boleh membawa **Content Credentials** - manifes [C2PA](https://c2pa.org) bertandatangan yang dibenamkan dalam fail, merekodkan, secara terbukti-usik, bahawa fail itu dibuat dengan Lolly dan tidak diubah sejak itu. Ia adalah versi piawaian bagi metadata provenans di atas: tuntutan kriptografi (apa yang membuat fail itu, bila, oleh siapa dan di mana) yang diikat kepada cincang bait fail itu, jadi apa-apa suntingan kemudian dapat dikesan oleh pemapar yang mesra-C2PA. Piawaian ini dikendalikan oleh [Content Authenticity Initiative](https://contentauthenticity.org) (Adobe, BBC, Microsoft, Nikon dan lain-lain), jadi kelayakan yang sama yang ditulis oleh Lolly adalah kelayakan yang sedang digunapakai oleh kamera, bilik berita dan suite kreatif.
-
-![Kad C2PA Credentials, sudah ditanda, dengan jangka hayat kelayakan di sebelahnya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
-
-- **Format.** Setiap bekas dengan pembenaman C2PA: **PDF** (RGB dan Print), **PNG / Animated PNG**, **JPG**, **GIF**, **SVG**, **TIFF** (RGB dan Print), **WebP** (statik dan animasi), **AVIF**, **MP4**, **WebM** dan bekas audio **MP3**, **WAV**, **M4A** dan **OGG/Opus** - jadi klip suara yang dirakam atau disintesis dihantar dengan kelayakan yang sama seperti sesebuah gambar. Bundel **ZIP** mencap setiap ahli yang disokong secara berasingan, dan di situlah juga **Animated SVG** memperoleh miliknya (ia hanyalah dokumen SVG biasa di bawahnya; eksport Animated SVG langsung tidak menawarkan kad tersendiri). MP4, AVIF dan M4A menggunakan pengikatan BMFF spesifikasi itu dan MP3 pula pemetaan ID3v2-nya, jadi `c2patool` dan pemapar mesra-C2PA yang lain dapat mengesahkannya; **WebM** dan **OGG/Opus** belum mempunyai pemetaan C2PA piawai lagi, jadi Lolly membawa manifes itu sebagai lampiran Matroska dan medan OpusTags masing-masing, yang disemak oleh pengesah Lolly sendiri (dan CLI). (`ico`, `eps`, `emf`, `dxf`, `bmp`, `pptx`, format Office dan format teks/data tiada bekas C2PA.)
-- **Hidup secara lalai.** Kad **C2PA Credentials** dalam panel eksport sudah dipratanda untuk hampir setiap alat - nyahtanda untuk melangkau kelayakan itu pada satu-satu eksport (atau lulus `c2pa=off` dalam pautan kongsi). Sesebuah alat boleh menarik diri sepenuhnya dalam manifesnya.
-- **Apa yang direkodkan.** Alat dan aplikasi yang membuat fail itu, masa penandatanganan, permukaan eksport (keluarga enjin pelayar + keluarga OS - kasar secara sengaja, tidak sekali-kali cap jari) dan - hanya apabila *Profile → Use my details* dihidupkan - nama dan e-mel anda sebagai pengarang karya itu.
-- **Apa yang dilihat oleh penerima.** Alat pemeriksa content-credentials (aplikasi Adobe, `c2patool`, contentcredentials.org/verify) akan membaca manifes itu dan memaparkan tuntutan tersebut. Kerana Lolly menandatangani dengan kunci yang dijana **pada peranti anda** - bukan sijil daripada senarai amanah - pemapar melaporkannya sebagai kelayakan yang *tidak disahkan*. Struktur dan bukti-usiknya adalah sebenar; identiti penandatangan sahaja yang tidak dijamin oleh mana-mana pihak berkuasa. Untuk menaik taraf itu, anda boleh mendaftarkan **identiti tersahih** (Profile → Content Credentials): sijil berjangka pendek daripada Lolly CA mengikat e-mel anda kepada eksport anda sementara kunci penandatanganan itu tetap tidak sekali-kali meninggalkan peranti anda - lihat [Content Credentials Identity](/info/content-credentials-identity.html).
-- **Menyemak sesuatu fail.** Lolly turut mengesahkan kelayakannya sendiri: jatuhkan mana-mana fail pada [/verify](/verify) (atau jalankan `lolly validate <file>` dalam CLI) untuk laporan di peranti - diketuai oleh sama ada fail itu sememangnya dibuat dengan Lolly dan tidak berubah sejak itu. Paparan Verify web membaca jauh melebihi kelayakan itu: ia menandakan **kandungan janaan AI**, mengesan **Lolly Imprint**, menyemak tandatangan **SEAL** dan (opt-in) tera air piksel pihak ketiga serta mendedahkan **data tersembunyi** - kesemuanya di peranti, tiada apa yang dimuat naik. Lihat [Content Credentials Identity → Beyond the credential](/info/content-credentials-identity.html#beyond-the-credential-what-else-verify-shows).
-- **Privasi.** Semuanya berlaku pada peranti anda: kunci penandatanganan dicipta untuk eksport itu dan tidak sekali-kali meninggalkan pelayar, tiada apa dimuat naik dan tuntutan itu hanya mengandungi apa yang metadata provenans sudah bawa. Utiliti privasi (transformasi di peranti bagi fail anda *sendiri*) tidak sekali-kali menambah kelayakan, dan *Strip Hidden Data* akan mengeluarkan manifes C2PA seperti mana-mana metadata terbenam yang lain.
-- **Interaksi.** Bagi PDF, Content Credentials dan **perlindungan kata laluan** (mana-mana peringkat - lihat di atas) saling eksklusif (PDF yang disulitkan tidak boleh membawa lampiran kelayakan itu). Kelayakan itu ditambah sebagai langkah terakhir ke atas bait yang telah siap - selepas cap DPI/EXIF/profil warna, metadata PDF/X dan tanda cetak.
+- **Hidup secara lalai.** Kad **C2PA Credentials** dipilih awal untuk hampir setiap alat. Nyahtanda untuk satu eksport, atau hantar `c2pa=off` dalam pautan. Alat boleh memilih keluar dalam manifesnya.
+- **Format.** PDF (RGB dan Print), PNG dan APNG, JPG, GIF, SVG, TIFF (RGB dan Print), WebP (pegun dan beranimasi), AVIF, MP4, WebM, bekas audio MP3, WAV, M4A, OGG/Opus dan FLAC, serta HTML, Markdown dan CSS. ZIP mencap setiap ahli yang disokong, itulah cara Animated SVG mendapat satu. MP4, AVIF dan M4A menggunakan pengikatan BMFF piawai dan MP3 pemetaan ID3v2-nya, jadi `c2patool` dan pembaca lain mengesahkannya. WebM dan OGG/Opus belum mempunyai pemetaan piawai, jadi Lolly membawa manifes sebagai lampiran Matroska dan medan OpusTags, yang disemak oleh pengesah Lolly sendiri. ICO, EPS, EMF, DXF, BMP, PPTX, format Office dan format teks serta data lain tidak mempunyai bekas C2PA.
+- **Apa yang direkodkan.** Alat dan apl yang membuat fail, masa penandatanganan, shell yang mengeksportnya, [sistem reka bentuk dan colourway](#the-design-system-record) semasa kad **Design system** ditanda, dan cap jari input aktif. Teks input, medan terikat profil, kawalan tidak aktif, versi pelayar dan butiran sistem pengendalian ditinggalkan. Nama dan e-mel anda muncul sebagai pengarang hanya apabila **Use my details to create** hidup di bawah Settings → Preferences → Your details. Sumber yang diletakkan eksport dibawa sebagai ramuan: [karya yang dikreditkan](#source-credits) seperti emoji, dan [lagu Rondocode](/info/rondocode.html#songs-in-the-credential) dalam eksport video atau audio.
+- **Apa yang dilihat penerima.** Alat C2PA seperti apl Adobe, `c2patool` dan contentcredentials.org/verify membaca manifes dan menunjukkan tuntutan. Lolly menandatangani dengan kunci yang dibuat pada peranti anda, bukan sijil daripada senarai kepercayaan, jadi pemapar melaporkan kredensial *unverified*: struktur dan bukti pengusikan adalah sebenar, penandatangan tidak dijamin. Untuk mengubahnya, daftar **verified identity** di bawah Settings → Preferences → Content Credentials; lihat [Content Credentials Identity](/info/content-credentials-identity.html).
+- **Menyemak fail.** Letakkan mana-mana fail pada [Verify](/verify), atau jalankan `lolly validate <file>`, untuk laporan pada peranti yang bermula dengan sama ada Lolly membuat fail dan sama ada ia berubah sejak itu. Verify juga melihat di luar kredensial; lihat [What Verify checks](/info/what-verify-checks.html).
+- **Privasi.** Kunci penandatanganan dibuat untuk eksport dan tidak pernah meninggalkan peranti anda, dan tuntutan hanya memegang apa yang sudah dibawa metadata asal-usul. Utiliti privasi yang mengubah fail anda sendiri tidak menambah kredensial, dan *Strip Hidden Data* membuang manifes C2PA seperti metadata lain. Utiliti Rondocode membuat audio baharu, jadi ia menandatangani apa yang ditulisnya ([Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility)).
+- **Interaksi.** PDF berkata laluan tidak boleh membawa Content Credentials, pada kedua-dua peringkat. Kredensial ditambah terakhir, di atas bait siap, selepas DPI, EXIF, profil warna, metadata PDF/X dan tanda cetak.
 
 ### Kredit sumber
 
-Eksport yang meletakkan karya orang lain turut merekodkan sumber itu dalam kredensial. Emoji yang diambil daripada set yang disematkan ialah kes harian: karya itu, penciptanya, lesen, dari mana bait sebenarnya berasal dan apa yang berubah semuanya mengembara bersama fail. Baris **Kredit sumber** dalam panel eksport menyatakan apa yang diminta oleh sumber-sumber itu daripada penyerahan sebelum anda memuat turun, dan selepas muat turun ia membaca semula bait yang diserahkan sebelum ia menyatakan kredit itu ada dalam fail. Lesen yang meminta anda membuat pilihan, seperti glif CC BY-SA yang diwarnakan semula yang bakal anda kongsi, mendapat satu kad berserta jalan keluarnya; muat turun tidak pernah disekat. [Hak kreatif dan kredit](/info/creative-rights.html) mengandungi perkataan itu, lesen yang disemak dan apa yang kekal milik anda.
+Eksport yang meletakkan kerja orang lain merekodkan sumber itu dalam kredensial. Emoji yang dilukis daripada set emoji pilihan ialah kes harian: karya, penciptanya, lesen, dari mana bait tepat datang dan apa yang berubah semuanya dibawa bersama fail. Teks dalam alat yang templatnya SVG mengekalkan emoji sistem sendiri, jadi tiada apa-apa dikreditkan di situ. Baris **Source credits** menyatakan apa yang diminta sumber daripada penghantaran sebelum anda memuat turun, dan selepas muat turun ia membaca semula bait yang dihantar sebelum menyatakan kredit ada dalam fail. Lesen yang meminta anda memilih, seperti glif CC BY-SA yang diwarnakan semula yang akan anda kongsi, mendapat kad dengan pilihan; muat turun tidak pernah disekat. [Creative rights and credits](/info/creative-rights.html) mempunyai perkataan, lesen yang disemak dan apa yang kekal milik anda.
+
+## Perlindungan kata laluan
+
+Dua jenis kunci, kedua-duanya dibuat pada peranti anda. Kad *Password protect* panel eksport memacu kedua-duanya.
+
+![Kad Password protect dikembangkan pada eksport PDF, dengan medan kata laluan dan dua peringkat kunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+
+**Kata laluan buka PDF** mempunyai dua peringkat sebaik anda menaip kata laluan:
+
+- **Weak**: RC4 40-bit, penghalang dan bukan perlindungan. Kata laluannya boleh dibawa dalam pautan kongsi, dalam teks jelas. `pdf` RGB sahaja.
+- **Strong**: AES-256 (PDF 2.0). Ditaip semasa eksport dan tidak pernah diletakkan dalam pautan. Ia juga digunakan pada Print PDF dan pada setiap PDF dalam ZIP kelompok. Print PDF berkunci Strong mengekalkan CMYK, tanda dan niat outputnya tetapi menggugurkan dakwaan PDF/X-4.
+
+**ZIP berkunci** meliputi eksport ZIP, muat turun folder daripada Projects atau kelompok, dengan satu kata laluan pada dua peringkat: **Weak** (ZipCrypto, penghalang; ia boleh dibawa dalam pautan `?password=`) atau **Strong** (AES-256, ditaip semasa eksport, tidak pernah dalam pautan). Kata laluan melindungi setiap ahli, dan sebarang PDF di dalamnya juga dikunci dengan AES-256 sendiri, jadi ia kekal berkunci selepas ZIP dibuka. Gesaan muncul apabila muat turun bermula; kata laluan kosong bermakna tiada kunci.
+
+**Pautan kongsi berpagar kata laluan** meminta kata laluan penerima sebelum ia dibuka. Seluruh keadaan pautan disulitkan dengan AES-256 di bawah kunci yang diperoleh daripada kata laluan (PBKDF2), jadi hanya teks sifir dibawa dan penyahsulitan berlaku dalam pelayar penerima. Pelayan yang menghidangkan pautan tidak pernah melihat kata laluan atau reka bentuk. Hidupkan dalam dialog **Share**. Pautan tersulit dibuka hanya dalam Lolly, tidak pernah sebagai imej terbenam. Lihat [URL Mode](/info/url-mode.html).
 
 ## Pada telefon
 
-Kawalan eksport berada di sebalik butang terapung **Eksport**, yang membuka helaian **Eksport** - format, saiz, salin, muat turun dan kongsi yang sama, disaiz untuk sentuhan.
+Kawalan eksport berada di sebalik butang **Export** terapung, yang membuka helaian **Export**: format, saiz, salin, muat turun dan kongsi yang sama, bersaiz untuk sentuhan.
 
-## Rujukan format
+## Id format untuk pautan dan CLI
 
-Setiap id yang boleh dirender oleh hos, dikumpulkan. Ini juga menjadi nilai untuk parameter URL `format=` dan bendera CLI `--export=` - lihat [URL Mode](/info/url-mode.html) dan [CLI](/info/cli.html). Menu sesuatu alat hanya memaparkan format yang boleh dihasilkan oleh alat itu, jadi ia sentiasa lebih pendek daripada senarai ini.
+Ini ialah nilai untuk parameter URL `format=` dan bendera CLI `--export=` (lihat [URL parameters](/info/url-parameters.html) dan [CLI](/info/cli.html)). Menu alat hanya menunjukkan format yang boleh dibuat alat itu, jadi ia sentiasa lebih pendek daripada senarai ini.
 
 | Jenis | Id |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `jxl` · `jxl-lossless` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
 | Vektor | `svg` · `svgz` (SVG digzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (fail potong) |
-| Halaman & dokumen | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (pakej kursus SCORM, fail zip) · `penpot` (fail reka bentuk Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Gerakan | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
-| Audio | `wav` · `mp3` · `m4a` · `opus` |
-| Teks & data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (palet GIMP) |
-| Gabungan | `zip` |
+| Halaman dan dokumen | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (fail reka bentuk Penpot) · `scorm` (pakej kursus, ZIP) |
+| Gerakan | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Teks dan data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (palet GIMP) |
+| Bundle dan pakej | `zip` · `rpm` dan `tar.gz` (render dimeteraikan ke dalam pakej Linux) |
 
-Beberapa id lagi datang daripada **cangkuk eksport alat itu sendiri** dan bukan laluan render kongsi: `ase` (Adobe Swatch Exchange, daripada Palette Lab), `exr` dan `hdr` (raster julat dinamik tinggi Darkroom) dan `ttf` / `otf` / `woff` (Font Convert). Ia memilih format dengan cara yang sama - pemilih, `format=`, `--export=` - hanya bait itu yang dibina oleh alat itu sendiri. Font Convert adalah satu-satunya pengecualian: ia mentransformasikan fail fon yang *anda* sendiri bekalkan, jadi tiada apa untuk URL kosong papar.
+Beberapa id datang daripada kod eksport alat sendiri: `ase` (Adobe Swatch Exchange, daripada Palette Lab) dan `exr` serta `hdr` (raster julat dinamik tinggi, daripada Darkroom). **Convert Font** menulis `ttf`, `otf` dan `woff` daripada fail fon yang anda bekalkan, jadi pautan kosong tiada apa-apa untuk dirender.

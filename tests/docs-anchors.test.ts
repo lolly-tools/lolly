@@ -20,7 +20,11 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BUILT = join(ROOT, 'shells/web/public/info');
-const DOORS = ['start', 'create', 'build', 'manage', 'operate', 'trust'];
+/** The folders English pages are built into: each manifest section's `prefix`. The
+ *  reader sees the pathway names (Start, Create, Automate, Manage, Deploy, Trust);
+ *  the folders keep their own names, so this follows the manifest, not the labels. */
+const DOORS: string[] = (JSON.parse(readFileSync(join(ROOT, 'docs/manifest.json'), 'utf-8')) as
+  { sections: Array<{ prefix: string }> }).sections.map((s) => s.prefix);
 const MOVES: Record<string, Record<string, { slug: string; anchor: string }>> =
   JSON.parse(readFileSync(join(ROOT, 'docs/section-moves.json'), 'utf-8'));
 
@@ -88,6 +92,24 @@ test('every same-site section link in the English docs points at a real section'
     }
   }
   assert.deepEqual([...new Set(dead)], [], 'Repair the link or add a docs/section-moves.json entry for a section that moved.');
+});
+
+test('every old path that forwards to a section lands on a real one', { skip }, () => {
+  // manifest `aliasAnchors`: a retired page (the provider live-verify runbooks) whose
+  // redirect opens one section of the page that took over its content.
+  const pages = (JSON.parse(readFileSync(join(ROOT, 'docs/manifest.json'), 'utf-8')) as
+    { pages: Array<{ path: string; aliasAnchors?: Record<string, string> }> }).pages;
+  const dead: string[] = [];
+  let checked = 0;
+  for (const page of pages) for (const [alias, anchor] of Object.entries(page.aliasAnchors ?? {})) {
+    checked++;
+    const stub = join(BUILT, `${alias}.html`);
+    const target = existsSync(stub) ? REFRESH.exec(readFileSync(stub, 'utf-8'))?.[1] : undefined;
+    if (target !== `/info/${page.path}.html#${anchor}`) { dead.push(`${alias}: forwards to ${target ?? 'nothing'}`); continue; }
+    if (!idsOf(`${page.path}.html`).has(anchor)) dead.push(`${alias}: no id "${anchor}" on ${page.path}.html`);
+  }
+  assert.ok(checked > 0, 'expected at least one old path with a section anchor');
+  assert.deepEqual(dead, [], 'Point the aliasAnchors entry at a section the page has.');
 });
 
 test('no English docs page repeats an id', { skip }, () => {

@@ -1,6 +1,6 @@
 {
   "name": "اسنپٹ",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "متن کو ڈیسک ٹاپ ونڈو میں، ساکن تصویر کے طور پر، یا ٹائپنگ، انتخاب، آٹو کمپلیٹ اور حرکت والے ہدایت یافتہ تعامل کے طور پر پیش کریں۔",
   "inputs.code.label": "کوڈ",
   "inputs.code.placeholder": "اپنا کوڈ یہاں پیسٹ کریں…",
   "inputs.fileName.label": "فائل کا نام",

@@ -43,8 +43,10 @@ test('one report checks every theme named, and each brand and Verify finding say
   const report = await checkFile(bytes, 'themes.json', { ...base, themes: ['light', 'dark'] });
   assert.equal(report.families.brand.state, 'ran');
   assert.match(report.families.brand.reason ?? '', /In the light theme: .* In the dark theme: /);
-  const themed = report.findings.filter((f) => f.family === 'brand' || f.family === 'verify');
+  // The writing score reads words, which no theme changes: it is scored once, with no theme on the finding.
+  const themed = report.findings.filter((f) => (f.family === 'brand' || f.family === 'verify') && f.code !== 'verify.writing-score');
   for (const f of themed) assert.ok(f.theme === 'light' || f.theme === 'dark', `${f.code} carries its theme`);
+  assert.deepEqual(report.findings.filter((f) => f.code === 'verify.writing-score').map((f) => f.theme), [undefined]);
   const unresolved = report.findings.filter((f) => f.code === 'brand.token-link.unresolved');
   assert.deepEqual(unresolved.map((f) => [f.theme, f.layerId]), [['dark', 't2']]);
   assert.match(unresolved[0]!.message, /fg \{color\.role\.quiet\}/);

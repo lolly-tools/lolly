@@ -204,6 +204,9 @@ export const paintFonts = async (bedit: BrandEditorCtx): Promise<void> => {
   // before these faces resolved, so the starter's own SUSE and SUSE Mono were
   // offered as things to add. The faces are known now: repaint the row.
   if (bedit.stageOpen) bedit.compareStage.paintStagePins();
+  // The Tokens room tells a face of the person's own from a starter one by these
+  // same installed families, so it repaints once they are known.
+  bedit.tokensPanel?.render();
 };
 export function seedFonts(bedit: BrandEditorCtx): void {
   bedit.fontFamilies = [];

@@ -36,7 +36,7 @@
  * There is no currency, rate or price in this module, and none may be added.
  */
 import { t, tRaw } from '../i18n.ts';
-import { escape } from '../utils.ts';
+import { escape, safeHref } from '../utils.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { PREFLIGHT_FLAG, isFlagOnSync } from '../feature-flags.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
@@ -60,6 +60,15 @@ export interface PreflightRow {
   readonly id: string;
   readonly text: string;
   readonly action?: { label: string; run: () => Promise<void> };
+  /** A short lead line above the text (a layer name, a band), escaped. */
+  readonly title?: string;
+  /** Short supporting lines under the text (a flagged phrase and its layer), escaped. */
+  readonly details?: readonly string[];
+  /**
+   * A place to read more, as an ordinary link. `prepare` runs on activation before
+   * the browser follows `href`, and the dialog closes, so the page it opens is in view.
+   */
+  readonly link?: { label: string; href: string; prepare?: () => void };
 }
 
 /** One label/value line. Same anatomy as the /valid view's `fact()`. */
@@ -223,10 +232,14 @@ export function preflightView(report: PreflightReport | null | undefined, ctx: P
   //
   // `refuse.output-file-size` is emitted unconditionally by the engine's registry,
   // so `gaps` is never 0 in practice and the "counted" leg is the one that can be.
-  // Four strings, inside the plan's 8-12 chrome-string budget.
+  // With something to fix and something not checked, the things to know still get
+  // their number when there are any: a house rule's advisory notes would otherwise
+  // show only inside the card. Five strings, inside the plan's 8-12 budget.
   const verdict = fix > 0
     ? (gaps > 0
-      ? t('{fix} to fix, {gaps} not checked', { fix, gaps })
+      ? (know > 0
+        ? t('{fix} to fix, {know} to know, {gaps} not checked', { fix, know, gaps })
+        : t('{fix} to fix, {gaps} not checked', { fix, gaps }))
       : t('{fix} to fix, {know} to know', { fix, know }))
     : gaps > 0
       ? t('{know} counted, {gaps} not checked', { know, gaps })
@@ -313,8 +326,11 @@ const METAPHOR_BY_ID: Record<string, IconName> = {
   'design.text.contrast-low': 'palette',
   'design.text.contrast-review': 'palette',
   'design.font.unembeddable': 'keyboard',
+  'writing.score': 'transcript',
+  'creation.hidden': 'eyeOff',
 };
 const METAPHOR_BY_PREFIX: ReadonlyArray<readonly [string, IconName]> = [
+  ['house-rule', 'shapes'],
   ['count.pages.', 'document'],
   ['plates.', 'layers'],
   ['input.', 'keyboard'],
@@ -346,7 +362,11 @@ export function preflightBodyHtml(view: PreflightView): string {
         + icon(metaphorIcon(r.id), { className: 'preflight-finding-metaphor' })
         + `<span class="preflight-finding-badge">${icon(statusIcon(r.tone), { className: 'preflight-finding-badge-icon' })}</span>`
         + `</span>`
-        + `<span class="preflight-finding-text">${escape(r.text)}${r.action ? `<button type="button" class="btn preflight-fix" data-preflight-fix="${escape(r.id)}">${escape(r.action.label)}</button>` : ''}</span>`
+        + `<span class="preflight-finding-text">${r.title ? `<span class="preflight-finding-title">${escape(r.title)}</span>` : ''}${escape(r.text)}`
+        + (r.details?.length ? `<ul class="preflight-finding-details">${r.details.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>` : '')
+        // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated on the next line
+        + (r.link && safeHref(r.link.href) ? `<a class="preflight-finding-link" href="${escape(r.link.href)}" data-preflight-link="${escape(r.id)}">${escape(r.link.label)}</a>` : '')
+        + `${r.action ? `<button type="button" class="btn preflight-fix" data-preflight-fix="${escape(r.id)}">${escape(r.action.label)}</button>` : ''}</span>`
         + `</li>`).join('')}</ul>`
     : '';
   return facts + rows;
@@ -380,6 +400,16 @@ export function openPreflightModal(): void {
   });
   handle.el.querySelector('[data-preflight-close]')?.addEventListener('click', () => handle.close());
   handle.el.addEventListener('click', async event => {
+    // A link reads more somewhere else: get the page ready, close the dialog, let the browser follow the link.
+    const anchor = (event.target as Element).closest<HTMLAnchorElement>('[data-preflight-link]');
+    // A modified click opens a new tab, which an in-memory handoff cannot reach: leave it to the browser.
+    if (anchor && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)) return;
+    if (anchor) {
+      const link = currentView?.rows.find(row => row.id === anchor.dataset.preflightLink)?.link;
+      try { link?.prepare?.(); } catch { /* the link still opens the page */ }
+      handle.close();
+      return;
+    }
     const button = (event.target as Element).closest<HTMLButtonElement>('[data-preflight-fix]');
     const action = currentView?.rows.find(row => row.id === button?.dataset.preflightFix)?.action;
     if (!button || button.disabled || !action) return;

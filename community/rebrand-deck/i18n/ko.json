@@ -1,6 +1,6 @@
 {
-  "name": "Theme swap",
-  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
+  "name": "테마 바꾸기",
+  "description": "이 기기에서 PowerPoint 덱의 테마, 색상, 글꼴을 바꿔요. 리브랜드는 이보다 더 많은 일을 해요.",
   "a11yLabel": "{{fileName}}용 덱 리브랜딩",
   "inputs.source.label": "PowerPoint 파일",
   "inputs.source.help": ".pptx 파일이에요. 기기에서 읽히며 업로드되지 않아요.",

@@ -1,5 +1,5 @@
 {
   "name": "Mörkrum",
-  "description": "Ett proffsigt mörkrum för fotogradering: filmlooks, tredjeparts .cube-LUT:ar, designsystemets färgbehandlingar och avslutande textur - baka sedan in ditt utseende som en LUT som valfri redigerare kan använda. Öppnar även en Photoshop- eller GIMP-fil som lager: positionera, blanda och dölj varje lager, gradera kompositen och exportera platta bilder eller en lagerindelad PSD.",
+  "description": "Gradera foton och video med filmlooks, Adobe XMP-förinställningar, .cube-LUT:ar och designsystemets färger. Återanvänd en look via LUT-export eller Gradera en video. Öppnar Photoshop- och GIMP-lager för placering, blandning och bildexport.",
   "featured.blurb": "Grada foton med filmlooks, LUT:ar och dina varumärkesfärger"
 }

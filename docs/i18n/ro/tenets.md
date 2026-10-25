@@ -27,3 +27,7 @@ Atribuire, proveniență, confidențialitate și consimțământ
 creativitate și încredere în mijlocul infinitului
 
 oricine poate crea, la orice scară, oriunde
+
+## De ce
+
+### [Pentru că stăm pe umerii giganților](/info/trust/shoulders-of-giants.html)

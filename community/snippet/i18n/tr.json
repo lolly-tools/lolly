@@ -1,6 +1,6 @@
 {
   "name": "Kod Parçası",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Metni bir masaüstü penceresinde, durağan görsel olarak ya da yazma, seçim, otomatik tamamlama ve hareket içeren kurgulanmış bir etkileşim olarak göster.",
   "inputs.code.label": "Kod",
   "inputs.code.placeholder": "Kodunu buraya yapıştır…",
   "inputs.fileName.label": "Dosya adı",

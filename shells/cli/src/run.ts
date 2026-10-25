@@ -785,11 +785,11 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     // backing buffer may be larger than the file, and `.buffer` would write the slack.
     let buf = Buffer.from(bytes);
     // WITHOUT --output, a transform streams to stdout like every other path in this
-    // shell (contract section 11: docs/cli.md always claimed it did; the code instead wrote
-    // `<name>-clean.svg` into the working directory and printed nothing, so a pipeline
-    // that piped it got an empty stream and a surprise file). `--filename=<name>` is
-    // how you ask for a named file without naming a path; the hook's own suggestion is
-    // used for it only when you do.
+    // shell (contract section 11: the CLI guide, now docs/cli-files.md, always said
+    // so; the code instead wrote `<name>-clean.svg` into the working directory and
+    // printed nothing, so a pipeline that piped it got an empty stream and a surprise
+    // file). `--filename=<name>` is how you ask for a named file without naming a
+    // path; the hook's own suggestion is used for it only when you do.
     const dest = outputPath || (filenameFlag ? resolve(process.cwd(), filenameFlag) : null);
     // export.file's ONE legal container change: fonts. When a transform's output is an
     // sfnt/WOFF and the requested name asks for a DIFFERENT font container, convert it
@@ -943,7 +943,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // two identical invocations no longer produce identical bytes. `--no-provenance` is
   // the one word that buys determinism back (and `--c2pa=off` / `--imprint=0` are the
   // per-mark spellings); `smoke` and `batch` apply it themselves, being machine paths
-  // where reproducibility is the point. docs/cli.md says all of this beside the
+  // where reproducibility is the point. docs/cli-automation.md says all of this beside the
   // byte-reproducibility table.
   const bareRender = isOn(params['no-provenance']);
   if (bareRender && (c2pa?.on || imprint === true || durable)) {
@@ -2127,7 +2127,7 @@ const scrubCtl = cleanControlChars;
  *
  * Named `--rate-card`, never `--rate`/`--rates` - url-mode's reserved `profile` already
  * collides between `--profile` (the user-profile JSON) and `--press-profile` (the CMYK
- * condition); a third overloaded word is exactly the trip hazard docs/cli.md warns of.
+ * condition); a third overloaded word is exactly the trip hazard docs/cli-rendering.md describes.
  *
  * Unlike `--user-profile`, a missing/invalid/refused card WARNS and CONTINUES: the card
  * is not required to render, and this phase only LOADS and validates it - the cost output

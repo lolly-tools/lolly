@@ -1,8 +1,10 @@
-# Ekspor & Format
+# Ekspor file
 
-Tekan **Export** pada pil **Export | Save as** sebuah tool, pilih format dari menu di samping nama file, lalu tekan **Download**. Unduhan biasa dibuat di perangkat Anda. Persetujuan organisasi dan opsi pengiriman dijelaskan di bawah.
+Anda sudah membuat sesuatu dan ia perlu meninggalkan Lolly: PNG untuk chat, PDF untuk percetakan, deck yang akan terus disunting rekan. Tekan **Export**, bagian kiri pil **Export | Save**. Pilih format di samping nama file, lalu tekan **Download**. File dibuat di perangkat Anda.
 
-Untuk sebagian besar pekerjaan, salah satu dari tiga format berikut sudah tepat:
+Apa yang Anda lihat di kanvas adalah isi file. Menu format hanya mencantumkan apa yang dapat dibuat alat ini di browser ini.
+
+Untuk sebagian besar pekerjaan, salah satu dari tiga format tepat:
 
 | For | Choose | Because |
 |---|---|---|
@@ -14,182 +16,195 @@ Untuk sebagian besar pekerjaan, salah satu dari tiga format berikut sudah tepat:
 Sebelum Anda mengirimkannya, buka di layar yang menjadi tujuannya, atau cetak pada ukuran aslinya.
 :::
 
-Sisa halaman ini membahas setiap format, ukuran dan opsi.
+::: details Persetujuan dan pengiriman dengan Lolly Work (opsional)
+[Organisasi yang menjalankan Lolly Work](/info/organisation.html) dapat mengatur format dan pengaturan ekspor mana yang dilihat anggotanya. Bila persetujuan diperlukan, **Request approval** menggantikan **Download**. Ikuti kebijakan yang ditampilkan instans Anda.
+
+Lolly Work juga dapat mengirim file ke tujuan S3, WebDAV, dan HTTP yang dikonfigurasi, dengan langkah persetujuan, tanda terima pengiriman, dan catatan audit. Mengajukan file untuk alur kerja itu mengirimnya ke layanan organisasi; unduhan biasa tetap di perangkat Anda. Tujuan Send pribadi dan pengiriman organisasi dikonfigurasi secara terpisah.
+
+Operator menyiapkan ini dengan [organisation delivery guide](/info/work-delivery.html). Untuk render dan batch server yang diantre, lihat [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ## Cara kerja ekspor
 
-Pratinjau *adalah* file itu sendiri. Saat Anda mengekspor, host merender kanvas tersebut ke format yang Anda pilih dan memberikan Anda sebuah unduhan (atau menaruhnya di clipboard Anda). Pemilih menyembunyikan format apa pun yang tidak dapat dihasilkan browser Anda (lihat [Video](#video)).
+Saat Anda mengekspor, kanvas alat dirender ke format yang Anda pilih dan diserahkan kepada Anda sebagai unduhan, atau ditaruh di clipboard.
 
-Ada tiga jalur yang menghasilkan file. Sebagian besar alat **merender kanvas** ke format yang dipilih. Format teks dan data (HTML, MD, TXT, JSON, CSV, ICS, VCF) sebaliknya **dihasilkan dari konten alat**, bukan dirasterisasi dari gambar. Dan utilitas privasi (misalnya *Strip Hidden Data*) menggunakan jalur ketiga: file yang *Anda* pilih ditransformasikan byte demi byte di perangkat dan langsung dikembalikan - tanpa kanvas, tanpa watermark, dan tanpa metadata provenans yang ditambahkan, karena itu memang sudah file Anda sendiri.
+Tiga jalur menghasilkan file. Sebagian besar alat **merender kanvas**. Format teks dan data (HTML, Markdown, TXT, JSON, CSV, ICS, VCF) **dihasilkan dari konten alat**, bukan digambar dari gambar. Utilitas privasi seperti *Strip Hidden Data* **mentransformasi file yang Anda pilih**, di perangkat Anda, dan mengembalikannya tanpa kanvas, watermark, atau metadata tambahan, karena sudah merupakan file Anda sendiri.
 
-Aksi-aksi pada panel ekspor:
+![Tiga jalur ekspor bertemu pada file jadi: render kanvas, hasilkan teks atau data dari konten, atau transformasi file terpilih di perangkat.](/info/diagrams/concepts/three-export-paths.svg)
 
-- <!--i:download--> **Unduh** - simpan file (aksi utama). Jika Anda tidak dapat menemukannya setelahnya, lihat [Temukan berkas yang Anda unduh](/info/find-your-work.html#find-a-file-you-downloaded).
-- <!--i:photos--> **Salin** - taruh gambar di clipboard Anda untuk ditempel langsung ke Slack, email, atau dokumen. Jika browser tidak dapat menyalin gambar, ia akan mengunduh sebagai gantinya dan memberi tahu Anda.
-- <!--i:folder--> **Simpan** - simpan desain saat ini ke Proyek dalam satu klik, tanpa menanyakan lokasi; ini tidak pernah mengunduh sebuah file. **Simpan sebagai**, di samping **Ekspor**, menanyakan lokasi (lihat [Menyimpan dan melanjutkan](/info/using.html#saving-continuing)).
-- <!--i:link--> **Bagikan** - membuka **Share dialog**: sebuah tautan yang dapat disalin yang mereproduksi desain, sakelar saat kunjungan (layar penuh, panel ekspor, unduh- atau salin-saat-dibuka) dan **Shortest link** opsional yang memadatkan seluruh state ke dalam token ringkas (lihat [URL Mode](/info/url-mode.html)).
+Panel ekspor menawarkan aksi-aksi ini. Pembuat alat memilih mana yang muncul; set default adalah Copy, Download, dan Save.
 
-(Pembuat alat memilih mana dari opsi ini yang muncul; set default-nya adalah Copy, Download, dan Save.)
+- <!--i:download--> **Download** menyimpan file. Jika Anda tidak dapat menemukannya sesudahnya, lihat [Find a file you downloaded](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copy** menaruh gambar di clipboard Anda, siap ditempel ke chat, email, atau dokumen. Bila browser tidak dapat menyalin gambar, ia mengunduh sebagai gantinya dan memberi tahu Anda.
+- <!--i:folder--> **Save** menyimpan desain saat ini di Projects dengan satu klik dan tidak pernah mengunduh file. **Save as**, di samping **Download**, menanyakan tujuannya (lihat [Saving and continuing](/info/using.html#saving-continuing)).
+- <!--i:link--> **Share** membuka dialog Share: tautan yang mereproduksi desain, sakelar saat kunjungan (layar penuh, panel ekspor, unduh atau salin saat dibuka), dan **Shortest link** opsional yang memadatkan seluruh status menjadi token ringkas (lihat [URL Mode](/info/url-mode.html)).
 
 ![Panel ekspor - format, ukuran, dan aksi Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
-Share terbuka di atas alat, dengan tautan yang sudah dibuat dan sakelar saat kunjungan di bawahnya.
+Bila desain menyematkan render alat lain, seperti kotak gambar Design yang memuat tautan QR Code, render bersarang itu digambar ke dalam ekspor induk. Ia tetap vektor sejati di SVG dan PDF dan dirasterisasi dengan tajam di PNG, JPG, dan WebP. Render yang disematkan tidak mendapat watermark dan tidak ada provenansi sendiri; hanya file jadi yang mendapatkannya. Ekspor HTML, Markdown, dan TXT tidak dapat memuat render gabungan.
 
-::: details Persetujuan dan pengiriman dengan lolly.work (opsional)
-[Organisasi yang memakai lolly.work](/info/organisation.html) dapat mengatur format yang tersedia dan pengaturan ekspor. Jika persetujuan diperlukan, aplikasi dapat menampilkan **Request approval** sebagai pengganti **Download**. Ikuti kebijakan yang ditampilkan oleh instans Anda.
-
-Layanan ini juga mendukung pengiriman terkelola ke tujuan S3, WebDAV, dan HTTP yang dikonfigurasi, dengan langkah persetujuan jika dikonfigurasi, tanda terima pengiriman, dan catatan audit. Mengirim file ke alur kerja tersebut berarti mengirimkannya ke layanan organisasi; unduhan lokal biasa tetap berada di perangkat. Tujuan Send pribadi dan pengiriman organisasi terkelola memiliki konfigurasi terpisah.
-
-Untuk operator, lihat [panduan pengiriman](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md). Untuk render server yang diantrekan dan batch, lihat [Batch dan otomatisasi CLI](/info/cli-automation.html#organisation-jobs-with-lolly-work).
-:::
-
-### Merender banyak sekaligus
-
-Satu ekspor menghasilkan satu file, tetapi Anda dapat merender **banyak** sekaligus dalam satu proses - masing-masing dikirimkan sebagai satu `.zip`:
-
-- <!--i:folder--> **Projects → Render folder** mengekspor setiap sesi tersimpan dalam sebuah folder (dan sub-foldernya) sebagai satu zip bersarang; **Render selection** melakukan hal yang sama untuk seleksi ganda apa pun; satu sesi tersimpan tunggal langsung dirender ke filenya sendiri. Tidak perlu Batch/Pro - lihat [Menggunakan Lolly → Projects](/info/using.html).
-- <!--i:layers--> **Batch (Pro)** merender grid dari sekumpulan input - setiap varian dari satu template sekaligus.
-
-Sesi tersimpan juga dapat dibagikan ulang sebagai tautan alat dari Projects (ia merekonstruksi URL alat dari input yang tersimpan), sehingga tautan tersebut membuka kembali dengan pengaturan yang persis sama.
-
-## Memilih format
+## Pilih format
 
 Nama file dan menu format berada bersama sebagai satu pasangan `name.format`, di bawah **Unduh**.
 
 ![Bidang nama file menyatu dengan pemilih format, sehingga ekspor terbaca sebagai satu pasangan name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| You want… | Use | Why |
+Mulai dari ke mana file akan pergi. Setiap kartu mencantumkan format yang cocok untuk tujuan itu; alat hanya menampilkan yang dapat dibuatnya.
+
+::: figure exporting-format-chooser
+Enam tujuan dan format yang cocok untuk masing-masing.
+:::
+
+Wordmark yang diset dengan huruf design system Anda diekspor sebagai SVG dengan setiap huruf sebagai path kontur, sehingga satu file tetap tajam pada ukuran kartu nama dan pada ukuran pembungkus gedung.
+
+![Wordmark bertebar lebar setipis rambut bertuliskan Aurora, jenis karya vektor murni yang dibahas baris SVG pada tabel](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+
+::: details Setiap format dan kegunaannya
+| Anda ingin | Gunakan | Mengapa |
 |---|---|---|
-| Logo / karya seni tajam yang dapat diskalakan | **SVG** | Vektor - dapat diskalakan tanpa batas, kecil, dapat diedit; sebuah efek yang tidak dapat digambar oleh ekspor vektor disematkan sebagai gambar |
-| Vektor untuk aplikasi Office / Windows | **EMF** | Ditempel sebagai vektor yang dapat diedit ke PowerPoint / Word; teks tetap hidup dan dapat diedit, dan Google Drive membukanya di Google Drawings untuk Slides |
-| Vektor untuk cetak / aplikasi desain | **EPS**, atau **EPS (CMYK)** | Vektor PostScript untuk Illustrator / alur kerja percetakan |
-| Vektor untuk mesin potong / CAD | **DXF** | Pemotong laser, plotter vinil, CNC - jalur garis luar dalam milimeter |
-| Slide deck yang dapat diedit | **PowerPoint** (PPTX) | Teks + bentuk yang dapat diedit secara native, dengan gambar dan vektor tetap dapat diekstraksi |
-| Kursus pelatihan yang portabel | **Export course** | Tinjau konten proyek dan bangun paket Website, SCORM, atau xAPI eksperimental yang diberi versi |
-| Dokumen teks yang dapat diedit | **Word** (DOCX) atau **OpenDocument** (ODT) | Paragraf dan judul asli yang dapat terus diedit oleh pengolah kata (Doc Studio) |
+| Logo atau karya tajam yang dapat diskalakan | **SVG** | Vektor: dapat diskalakan, kecil, dan dapat disunting; efek yang tidak dapat digambar ekspor vektor disematkan sebagai gambar |
+| Vektor untuk aplikasi Office dan Windows | **EMF** | Ditempel sebagai vektor yang dapat disunting ke PowerPoint dan Word, dengan teks hidup; Google Drive membukanya di Google Drawings |
+| Vektor untuk cetak dan aplikasi desain | **EPS**, atau **EPS (CMYK)** | Vektor PostScript untuk Illustrator dan alur kerja percetakan |
+| Vektor untuk mesin potong | **DXF** | Pemotong laser, plotter vinil, dan CNC: path kontur dalam milimeter |
+| Deck slide yang dapat disunting | **PowerPoint** (PPTX) | Teks dan bentuk native yang dapat disunting, dengan gambar dan vektor tetap dapat diekstrak |
+| Dokumen teks yang dapat disunting | **Word** (DOCX) atau **OpenDocument** (ODT) | Paragraf dan judul nyata yang dapat terus disunting pengolah kata (Doc Studio) |
+| Tata letak untuk InDesign | **InDesign IDML (static subset)** | Teks, persegi panjang, oval, dan gambar, satu spread per artboard (Design) |
+| Dokumen Penpot yang dapat disunting | **Penpot** | Board, bentuk, teks, dan token tertaut |
 | Foto atau gambar serbaguna | **PNG** (lossless) atau **JPG** (lebih kecil) | Raster universal |
-| Gambar modern yang lebih kecil | **WebP** / **AVIF** | Kompresi lebih baik, alpha |
-| Cetak | **PDF**, atau **Print PDF** (CMYK) | Ukuran halaman sebenarnya; CMYK untuk percetakan |
-| Raster cetak untuk percetakan | **Print TIFF** (CMYK) | Piksel DeviceCMYK untuk RIP |
-| Animasi untuk web | **GIF** | Bekerja di mana saja, file lebih besar |
-| Animasi dengan warna penuh + alpha nyata | **APNG** | PNG animasi - tanpa batas palet, transparansi sejati |
-| Animasi, ukuran file terkecil | **Animated WebP** | Warna penuh + alpha, kompresi lebih baik daripada GIF atau APNG |
-| Vektor animasi yang dapat diskalakan | **Animated SVG** | Mandiri; berulang di browser atau `<img>`, tanpa codec, ukuran berapa pun |
-| Video untuk sosial / berbagi | **MP4** atau **WebM** | Kualitas terbaik per-byte (lihat di bawah) |
-| Teks kaya / tanda tangan email | **HTML** | Ditempel terformat ke klien email |
-| Konten polos | **MD** / **TXT** | Teks saja |
+| Gambar modern yang lebih kecil | **WebP** atau **AVIF** | Kompresi lebih baik, dengan transparansi |
+| Cetak | **PDF**, atau **Print PDF** (CMYK) | Ukuran halaman sebenarnya; CMYK untuk mesin cetak |
+| Raster cetak untuk mesin cetak | **Print TIFF** (CMYK) | Piksel DeviceCMYK untuk RIP |
+| Animasi untuk web | **GIF** | Diputar di mana-mana; file lebih besar |
+| Animasi dengan warna penuh dan transparansi nyata | **APNG** | PNG animasi: tanpa batas palet |
+| Animasi, file terkecil | **Animated WebP** | Warna penuh dan transparansi, lebih kecil dari GIF atau APNG |
+| Vektor animasi yang dapat diskalakan | **Animated SVG** | Mandiri; berulang di browser atau `<img>`, pada ukuran apa pun (Lottie Ad) |
+| Animasi yang tetap dapat disunting | **dotLottie** | Bentuk, path, dan kunci transformasi luar dari garis waktu Design |
+| Serah terima Premiere | **Premiere XML + media** | Klip bertempo dan media asli untuk Premiere (Design) |
+| Video untuk sosial dan berbagi | **MP4** atau **WebM** | Kualitas terbaik untuk ukuran file (lihat [Video](#video)) |
+| Teks keterangan | **SRT** atau **VTT** | Teks bertempo untuk pemutar video (Captions, Audiogram, dan Record) |
+| Kursus pelatihan | **SCORM (LMS)** | Situs web berversi, paket SCORM atau xAPI (lihat [SCORM](#scorm-course-packages)) |
+| Teks kaya atau tanda tangan email | **HTML** | Ditempel berformat ke klien email |
+| Konten polos | **MD** atau **TXT** | Hanya teks |
 | Acara kalender | **ICS** | Diimpor ke aplikasi kalender mana pun |
-| Kartu kontak | **VCF** | Diimpor ke Contacts / buku alamat |
-| Data terstruktur untuk diimpor ulang | **JSON** / **CSV** | Bolak-balik konten alat |
-| Favicon | **ICO** | Ikon situs multi-ukuran (**ZIP** menggabungkan beberapa format) |
+| Kartu kontak | **VCF** | Diimpor ke buku alamat |
+| Data terstruktur untuk diimpor ulang | **JSON** atau **CSV** | Bolak-balik konten alat |
+| Favicon | **ICO** | Ikon situs multi-ukuran; **ZIP** mengemas beberapa format |
+:::
 
-Baris pertama adalah kasus yang paling umum. Wordmark yang disusun dalam font brand Anda diekspor sebagai SVG, di mana setiap huruf adalah jalur bergaris luar, bukan piksel, sehingga tetap tajam pada ukuran kartu nama maupun pada ukuran pembungkus gedung dari file yang sama.
+### Transparansi
 
-![Wordmark hairline dengan tracking lebar bertuliskan Aurora, jenis karya seni vektor murni yang dibahas pada baris SVG di tabel](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+Alat yang mendukungnya menawarkan sakelar latar transparan, seperti **No BG**. PNG, WebP, AVIF, SVG, APNG, dan Animated WebP mempertahankan transparansi, dan GIF mempertahankan tepi keras. JPG dan PDF selalu buram. TIFF diratakan ke putih, atau ke hitam pada jalur HDR yang dijelaskan di bawah [HDR](#hdr-bright-colours).
 
-## Ukuran & unit cetak
+## Ukuran dan satuan cetak
 
-Secara default ekspor menggunakan ukuran piksel native alat. Jika sebuah alat menyediakan **dimensions**, Anda dapat mengatur lebar × tinggi dan sebuah **unit**:
+Ekspor memakai ukuran piksel asli alat kecuali alat menawarkan **dimensions**. Maka Anda menetapkan lebar, tinggi, dan **unit**:
 
-- **px** (default) - piksel eksak.
-- **mm · cm · in · pt · pc** - ukuran fisik/cetak. Dengan unit fisik Anda juga mengatur **DPI** (default **300** untuk cetak); engine mengonversi dengan benar per format - **PDF** menjadi halaman sebenarnya pada ukuran tersebut, **raster** dirender pada jumlah piksel yang tepat untuk DPI tersebut (dan menyematkan resolusinya), **SVG** mempertahankan unit fisik dengan viewBox px.
+- **px** (default) adalah piksel persis.
+- **mm, cm, in, pt**, dan **pc** adalah ukuran fisik. Dengan satuan fisik Anda juga menetapkan **DPI** (default 300). **PDF** menjadi halaman sebenarnya pada ukuran itu, **raster** mendapat jumlah piksel untuk DPI tersebut dan mencatat resolusinya, dan **SVG** mempertahankan satuan fisik dengan viewBox piksel.
 
-Untuk mendapatkan raster beresolusi lebih tinggi, masukkan lebar/tinggi yang lebih besar, atau pilih unit fisik dan naikkan DPI (piksel = ukuran × DPI). Tidak ada sakelar skala satu klik.
-
-Contoh: lebar `210`, tinggi `297`, unit `mm` → halaman A4.
+Untuk raster beresolusi lebih tinggi, masukkan lebar dan tinggi yang lebih besar, atau pilih satuan fisik dan naikkan DPI (piksel = ukuran × DPI). Lebar `210`, tinggi `297`, dan satuan `mm` menghasilkan halaman A4.
 
 ![Baris dimensi diatur ke 210 kali 297 mm, dengan bidang DPI terlihat karena unitnya fisik](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
 ## Gambar diam dari komposisi berwaktu
 
-**Komposisi berwaktu** - timeline [Sequence](/info/using.html#timeline-sequence) di Design, atau artboard mana pun yang digerakkan timeline - adalah hal yang bergerak, sehingga ekspor diam harus menjawab "momen yang mana?". Aturannya seperti yang Anda duga: **bingkai pada playhead**. Tempatkan playhead di momen yang Anda inginkan lalu ekspor; apa yang Anda lihat itulah yang dihasilkan.
+Komposisi bertempo, seperti garis waktu [Sequence](/info/sequence-editor.html) di Design, bergerak, jadi ekspor diam harus memilih satu momen: **bingkai pada playhead**. Letakkan playhead di tempat Anda menginginkan gambar dan ekspor.
 
-Ketika Anda menginginkan lebih dari satu momen, bidang **Frames** muncul di samping ukuran output (hanya untuk komposisi berwaktu, dan hanya untuk format diam - PNG, JPG, WebP, SVG, atau PDF). Biarkan pada `1` untuk frame playhead. Naikkan nilainya dan Anda mendapatkan sejumlah gambar diam yang diambil sampel pada interval yang sama di seluruh sequence:
+Untuk lebih dari satu momen, field **Frames** muncul di samping ukuran keluaran. Ia hanya tampil untuk komposisi bertempo dan format diam (PNG, JPG, WebP, SVG, atau PDF). Biarkan `1` untuk bingkai playhead. Naikkan dan Anda mendapatkan sebanyak itu gambar diam, tersebar merata di seluruh sekuens:
 
-- **Raster and SVG** kembali sebagai satu **zip** - `<name>-01.png`, `-02.png`, dan seterusnya.
-- **PDF** kembali sebagai **satu dokumen dengan sejumlah halaman tersebut**.
+- PNG, JPG, WebP, dan SVG kembali sebagai satu ZIP: `<name>-01.png`, `-02.png`, dan seterusnya.
+- PDF kembali sebagai satu dokumen dengan sebanyak itu halaman.
 
-Berguna untuk storyboard, lembar thumbnail, contact sheet untuk peninjauan, atau carousel media sosial yang dipotong langsung dari editan video.
+Setiap gambar diam diambil dari tengah potongan garis waktunya, jadi bingkai pertama tidak pernah berupa pemunculan yang setengah memudar dan yang terakhir tidak pernah momen kosong setelah semua klip berakhir.
 
-Sampel diambil pada **titik tengah** setiap interval, bukan pada tepinya, karena momen pertama sebuah sequence sering kali adalah transisi masuk yang belum selesai memudar dan momen terakhir adalah keadaan setelah setiap klip berakhir - sampel pada titik ujung akan menghabiskan dua frame Anda untuk frame yang hampir kosong. Jumlahnya dibatasi hingga **64** (contact sheet dibuat untuk dibaca manusia), dan apa pun yang tidak masuk akal yang diketik ke dalam bidang tersebut kembali ke `1` alih-alih menggagalkan ekspor. Setiap frame adalah gambar diam biasa, sehingga Content Credentials, imprint, unit fisik, dan DPI semuanya berperilaku persis seperti pada ekspor tunggal.
+::: figure exporting-contact-sheet
+Frames: 4 memotong sekuens menjadi empat bagian sama dan mengambil bagian tengah tiap bagian.
+:::
 
-Bidang **Frames** adalah cara untuk mendapatkan lembar itu saat ini. Engine mencadangkan parameter URL `cuts` yang sesuai, tetapi belum ada shell yang membacanya dari tautan, sehingga tautan yang dibagikan selalu terbuka kembali pada frame playhead - lihat [URL Mode](/info/url-parameters.html#contact-sheets-cuts).
+Gunakan untuk storyboard, contact sheet tinjauan, atau karusel sosial yang dipotong dari suntingan video. Jumlahnya dibatasi 64, dan apa pun lain yang diketik di field kembali ke `1`. Setiap bingkai adalah gambar diam biasa, jadi kredensial, Imprint, satuan fisik, dan DPI berperilaku seperti pada satu ekspor. Tautan ekspor, CLI, dan MCP meminta lembar yang sama dengan `cuts=` (lihat [Contact sheets](/info/url-export.html#contact-sheets)).
 
-## PDF multi-halaman
+## Banyak file sekaligus
 
-Beberapa alat membangun **dokumen PDF multi-halaman**, bukan satu karya tunggal - sampul, konten yang mengalir ke sebanyak mungkin halaman yang dibutuhkan, dan halaman belakang, semuanya dalam satu file (lihat alat *Booklet*). Setiap halaman adalah **halaman PDF sejati** yang berukuran sesuai kotak halaman tersebut, sehingga pembaca dan pencetak mendapat halaman nyata, bukan satu gambar panjang.
+Lolly memiliki tiga cara bekerja dalam volume, masing-masing untuk pekerjaan berbeda:
 
-- **Pages from content.** Tambahkan blok teks dan gambar; halaman baru dibuat secara otomatis seiring blok terisi, dan Anda dapat memaksa blok mana pun untuk memulai halaman baru.
-- **Real page sizes.** Pilih A4, US Letter, atau A5 (potret - tata letak dua kolom dibuat untuk ini) - setiap halaman, dan PDF yang diekspor, dirender pada ukuran itu persis.
+::: cols
+## Tabel menjadi satu dokumen
+Alat dengan input tabel, seperti **Battlecards**, mengubah setiap baris menjadi halaman. Tempel tabel dari spreadsheet Anda dan dapatkan satu PDF. Perbaiki baris di spreadsheet dan tempel lagi.
+## CSV menjadi satu file per baris
+**Batch** (`#/batch`) menerima CSV dan merender satu ekspor untuk setiap baris: tanda pengenal atau sertifikat, satu file masing-masing, dikirim dalam ZIP. Lihat [Batch](/info/batch.html#make-many-versions-of-one-design).
+## Beberapa desain mendapat satu suntingan
+**Multi-edit** membuka beberapa sesi tersimpan berdampingan untuk sentuhan akhir yang sama di berbagai desain. Lihat [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+:::
 
-PDF multi-halaman adalah dokumen RGB dan tidak membawa tanda potong/bleed - itu milik jalur **Print PDF** satu halaman di atas. Namun mereka membawa **metadata PDF/X-4** yang sama seperti setiap ekspor PDF (kotak halaman, XMP, ID dokumen, output intent sRGB dengan profil tertanam), dan menawarkan **Content Credentials** (di bawah) - pada alat *Booklet* opsi ini sudah terpilih sejak awal.
+Dari **Projects**, **Render folder** mengekspor setiap sesi tersimpan dalam folder dan sub-foldernya sebagai satu ZIP bersarang, dan **Render selection** melakukan hal yang sama untuk multi-pilihan mana pun; satu sesi tersimpan dirender ke file-nya sendiri. Sesi tersimpan juga dapat dibagikan lagi sebagai tautan alat dari Projects, yang membukanya kembali dengan pengaturan yang sama.
 
-## Membuat banyak hal sekaligus
+## File yang tetap dapat disunting di tempat lain
 
-Lolly memiliki tiga cara berbeda untuk bekerja dalam volume besar, dan masing-masing menyelesaikan pekerjaan yang berbeda - penyuntingan batch adalah kemampuan kelas satu dari platform, bukan sesuatu yang diciptakan ulang oleh setiap alat:
+Beberapa format menyerahkan karya Anda ke aplikasi lain sebagai konten yang dapat disunting, bukan gambar.
 
-- <!--i:document--> **One design × a table of rows → one multi-page document.** Alat dengan input `table` (seperti *Battlecards*) mengubah setiap baris menjadi halaman secara otomatis - tempel tabel dari spreadsheet Anda, dapatkan PDF sebesar deck. Editor batch Anda yang sesungguhnya tetaplah spreadsheet: perbaiki sepuluh baris di sana, tempel lagi. Alat itu sendiri tidak pernah mengelola halaman.
-- <!--i:layers--> **One design × a data file → many separate files.** Grid batch `/pro` mengambil CSV dan merender satu ekspor *per baris* - lencana nama, sertifikat, masing-masing satu file.
-- <!--i:sliders--> **Many different assets, edited side by side.** *Multi-edit* membuka beberapa sesi tersimpan dalam satu tampilan untuk penyesuaian terkoordinasi di berbagai desain yang berbeda.
+### PowerPoint (PPTX)
 
-Aturan praktis: baris dari desain yang sama yang termasuk dalam **satu dokumen** → alat berbasis tabel; baris yang harus dikirim sebagai **file terpisah** → `/pro`; **desain yang berbeda** yang membutuhkan penyesuaian yang sama → multi-edit. (Opsi render "combine media" yang direncanakan akan menjembatani dua yang pertama - menggabungkan ekspor berformat sama menjadi satu PDF, satu video, atau contact sheet untuk proofing.)
+Design, Markdown Slides, Booklet, Doc Studio, Chart, Diagrams, Flow Chart, dan Agenda mengekspor deck PowerPoint, satu slide per halaman. Setiap halaman dibongkar menjadi objek native, sehingga rekan dapat menyunting deck dan mengambil aset darinya:
 
-## PowerPoint (PPTX)
-
-Design, Markdown Slides, Booklet, Doc Studio, Chart dan Diagrams dapat mengekspor **deck PowerPoint** - satu slide per halaman. Intinya bukan tangkapan layar yang sempurna piksel; melainkan memberi rekan kerja deck yang benar-benar dapat **diedit dan diambil asetnya**. Jadi setiap halaman diurai menjadi objek native:
-
-- <!--i:font--> **Teks** menjadi **kotak teks PowerPoint yang benar-benar dapat diedit** - dengan ukuran font, warna, ketebalan, kemiringan dan perataan dari tata letak - sehingga Anda dapat memperbaiki typo atau mengubah gaya di PowerPoint.
-- <!--i:pentool--> **Vektor** (logo, ikon, tanda SUSE) disematkan sebagai **gambar SVG asli** - tetap tajam pada ukuran berapa pun, dan PowerPoint bahkan bisa *Convert to Shape* pada gambar tersebut.
-- <!--i:photos--> **Gambar** dibawa masuk pada resolusi aslinya sebagai gambar yang dapat diekstraksi sendiri (hero yang dipotong `cover` menyimpan gambar penuh di balik potongan tersebut, sehingga Anda dapat membingkai ulang), dengan setiap perlakuan pada gambar (filter, blend) dipanggang secara akurat.
-- <!--i:layers--> **Latar belakang, garis tepi dan garis** menjadi bentuk persegi/garis yang benar-benar ada.
+- <!--i:font--> **Teks** menjadi kotak teks PowerPoint yang dapat disunting dengan ukuran font, warna, ketebalan, italic, dan perataan tata letak.
+- <!--i:pentool--> **Vektor** seperti logo dan ikon disematkan sebagai gambar SVG; tetap tajam, dan PowerPoint dapat *Convert to Shape* padanya.
+- <!--i:photos--> **Gambar** datang dengan resolusi asli sebagai gambar tersendiri. Hero yang dipotong mempertahankan gambar penuh di balik potongan, dan filter atau blend padanya dipanggang masuk.
+- <!--i:layers--> **Latar, batas, dan garis** menjadi bentuk persegi panjang dan garis.
 
 ![Panel ekspor dengan PowerPoint dipilih: satu slide per halaman, teks dan bentuk tetap dapat diedit](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
-Tata letak memang dibuat perkiraan - tujuannya adalah **konten** yang setia dan dapat digunakan kembali, bukan tangkapan layar yang terkunci. Apa pun yang tidak dapat diekspresikan secara native oleh walker (area dengan filter atau mask kompleks) disematkan sebagai gambar sehingga tidak ada yang hilang. Satu dek memiliki satu ukuran slide, diambil dari halaman pertama.
+Tata letak bersifat perkiraan; tujuannya konten yang dapat dipakai ulang. Apa pun yang tidak dapat dinyatakan walker secara native, seperti area berfilter atau bermasker yang rumit, disematkan sebagai gambar agar tidak ada yang hilang. Deck memiliki satu ukuran slide, diambil dari halaman pertama.
 
-PowerPoint juga menjadi jalan **masuk**. Jatuhkan `.pptx` ke permukaan unggah mana pun dan pilih slide yang Anda inginkan - masing-masing menjadi aset untuk ditempatkan, digradasi, atau dikembangkan lebih lanjut. **Markdown Slides** menulis deck baru dari Markdown (dan menyediakan templat `.pptx` bermerek), dan utilitas **Rebrand** mengubah tema deck yang sudah ada di tempat - palet tema, warna dan font yang di-hardcode - tanpa menyentuh chart, SmartArt, atau animasinya, lalu mengembalikan `.pptx`. Lihat [Impor desain → Deck dan dokumen](/info/design-import.html#decks-and-documents).
+PowerPoint juga jalan masuk: [Rebrand a deck](/info/rebrand.html) memindahkan deck ke design system Anda, dan [Import a design](/info/design-import.html) membukanya di Design.
 
-## Penpot
+### Penpot
 
-Alat mana pun yang dapat mengekspor SVG juga dapat mengekspor **file Penpot** (`.penpot`) - dokumennya, siap untuk terus diedit di Penpot, bukan sekadar dilihat.
-
-- <!--i:layout--> Dari **Design**, setiap bingkai menjadi **board** Penpot, setiap kotak di dalamnya ikut terbawa sebagai bentuknya sendiri yang dapat diedit - persegi, elips, teks, gambar, atau jalur - dan hasilnya muncul sebagai **komponen** yang dapat digunakan kembali di panel Assets, siap diseret keluar lagi.
-- <!--i:pentool--> Dari alat yang hasil render-nya berupa **geometri murni** - alat vektor seperti QR Code, Street Map, Wordmark dan Palette Lab - setiap jalur, persegi, baris teks dan gradien ikut terbawa dengan cara yang sama, sebagai bentuknya sendiri yang dapat diedit.
-- <!--i:font--> Dari alat yang menyusun render-nya dalam **HTML**, **teks tetap menjadi teks** - satu objek teks Penpot yang dapat diedit per baris, bukan garis luar dan bukan gambar datar. Karya seni yang tidak memiliki konstruk di Penpot - ilustrasi kompleks, kanvas langsung - ikut serta sendiri sebagai gambar, sehingga teks dan kotak di sekitarnya tidak pernah diratakan. Keseluruhan tata letak yang tidak dapat dipisahkan Penpot secara setia tetap bisa muncul sebagai satu gambar dengan fidelitas penuh, sehingga tidak ada yang pernah hilang.
-- <!--i:palette--> Warna atau font yang oleh sebuah bentuk **diwarisi dari token merek** tetap **tertaut** ke token itu di dalam file: ubah token di panel Tokens Penpot dan setiap bentuk yang mewarisinya ikut dicat ulang bersama, sementara warna literal satu kali tetap persis di tempatnya. Warna dan tipografi merek juga masuk ke panel **Assets**, dan seluruh set token desainnya masuk ke panel **Tokens** - set token DTCG yang sama yang digunakan palet Lolly sendiri. Penpot menyimpan salinannya sendiri dari sana: perubahan yang dibuat di panel Tokens-nya kembali ke merek melalui [impor Brand Studio](/info/design-import.html), bukan dengan sendirinya.
+Sebagian besar alat yang mengekspor SVG juga mengekspor **file Penpot** (`.penpot`), siap disunting terus di Penpot.
 
 | Yang Anda buat | Di Penpot |
 |---|---|
-| Teks | Objek teks yang dapat diedit - perbaiki salah ketik atau gaya ulang |
-| Bentuk, jalur, gradien, gambar | Bentuk vektornya sendiri yang dapat diedit |
-| Warna atau font dari token merek | Tautan token langsung - edit tokennya, setiap bentuk yang mewarisinya ikut menyesuaikan |
-| Seluruh desain | Komponen yang dapat digunakan kembali di panel Assets |
-| Ilustrasi kompleks atau kanvas langsung | Disematkan sendiri sebagai gambar, konten yang dapat diedit di sekitarnya tidak tersentuh |
+| Teks | Objek teks yang dapat disunting: perbaiki salah ketik atau ubah gayanya |
+| Bentuk, path, gradien, dan gambar | Bentuk vektor yang dapat disunting masing-masing |
+| Warna atau font dari token design system | Tautan token hidup: sunting token dan setiap bentuk yang mewarisinya mengikuti |
+| Seluruh desain | Komponen yang dapat dipakai ulang di panel Assets |
+| Ilustrasi rumit atau kanvas hidup | Disematkan sendiri sebagai gambar, konten yang dapat disunting di sekitarnya tidak tersentuh |
+
+Dari Design, setiap bingkai menjadi board Penpot. Warna dan tipografi design system masuk ke panel Assets dan set tokennya yang lengkap ke panel Tokens. Penpot menyimpan salinannya sendiri dari sana: token yang disunting di Penpot kembali melalui impor di [Design System Setup](/info/brand-studio.html).
 
 ![Panel ekspor dengan Penpot dipilih: file .penpot, dan Send to Penpot di samping unduhan](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
-Untuk membukanya, jalankan Penpot, pilih sebuah proyek dan pilih **Import**. Setelah masuk ke Penpot dari panel ekspor, **Send to Penpot** melakukan langkah itu untuk Anda - pilih proyek di sana dan file langsung masuk ke dalamnya.
+Untuk membuka file, mulai Penpot, pilih proyek, dan pilih **Import**. Bila login ke Penpot dari panel ekspor, **Send to Penpot** melakukan langkah itu untuk Anda.
 
-## SCORM (paket kursus)
+### Word, OpenDocument, dan InDesign
 
-Pilih **Export course** dari alat yang didukung, sebuah folder proyek, atau sebuah seleksi. Di Design, memilih **SCORM (LMS)** dan Download juga membuka alur kerja kursus ini. Lolly menyimpan kreasinya, membiarkan Anda meninjau konten dan urutan kursus, lalu membuka modul beserta dialog ekspornya.
+**Doc Studio** mengekspor **Word** (DOCX) dan **OpenDocument** (ODT) dengan paragraf dan judul nyata.
 
-- <!--i:layout--> Pilih rendisi yang tersedia untuk setiap sumber: halaman diam, gerak sebagai video, audio, atau sumber daya yang dapat diunduh. Tambahkan teks pelajaran native dan alternatif bacaan di dalam modul.
-- <!--i:play--> Pratinjau pemutar pembelajar dan tinjau deskripsi serta teks tertutup (caption). Gerak disertakan sebagai video, termasuk animasi bisu. Ekspor rekaman jadi terlebih dahulu ketika sebuah alat tidak bisa membuatnya ulang dari input tersimpan.
-- <!--i:file--> Pilih Website, SCORM 1.2, SCORM 2004 4th Edition, atau target xAPI eksperimental. Periksa konten sebenarnya dan ukuran ZIP, lalu simpan dan unduh versi yang sudah diperiksa.
-- <!--i:check--> Penyelesaian mengharuskan setiap pelajaran wajib diakui dan memilih Finish. Pemutar situs web menyimpan progres di browser; paket LMS terhubung ke LMS penerimanya.
+**Design** mengekspor **InDesign IDML (static subset)**: teks, persegi panjang, oval, dan gambar PNG atau JPEG, satu spread per artboard. Pemformatan inline yang didukung tetap dapat disunting, gambar ikut dalam `Links`, dan koordinat menjadi poin InDesign. Penautan ulang, penggantian font, dan pembungkusan yang berubah mungkin perlu diperhatikan. Efek, animasi, cerita gabungan, dan geometri yang tidak didukung menghentikan ekspor dengan laporan yang mencantumkannya. IDML tidak mempertahankan dokumen asli, jadi kirim PDF untuk karya jadi.
+
+### Garis waktu: dotLottie dan Premiere
+
+Dari garis waktu Design, **dotLottie** menulis animasi yang tetap dapat disunting di alat Lottie; [Lottie animations](/info/sequence-editor.html#lottie-animations) mencantumkan apa yang dipertahankannya. **Premiere XML + media** mengemas klip bertempo dan media aslinya untuk Premiere; lihat [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange).
+
+### SCORM (paket kursus)
+
+Ekspor kursus mati sampai Anda mengaktifkan **Training and courses** di Settings → Preferences → Feature flags.
+
+Lalu pilih **Export course** dari alat yang didukung, folder proyek, atau pilihan. Di Design, memilih **SCORM (LMS)** dan **Download** membuka alur kerja kursus yang sama. Lolly menyimpan pekerjaan, memungkinkan Anda meninjau konten dan urutan kursus, lalu membuka modul dan dialog ekspornya.
+
+- <!--i:layers--> Pilih rendisi untuk setiap sumber: halaman diam, gerak sebagai video, audio, atau sumber daya yang dapat diunduh. Tambahkan teks pelajaran dan alternatif bacaan di modul.
+- <!--i:clock--> Pratinjau pemutar pelajar dan tinjau deskripsi serta teks keterangan. Gerak disertakan sebagai video, termasuk animasi senyap.
+- <!--i:document--> Pilih target Website, SCORM 1.2, SCORM 2004 4th Edition, atau xAPI eksperimental. Periksa konten dan ukuran ZIP, lalu simpan dan unduh versi yang telah diperiksa.
+- <!--i:check--> Penyelesaian mensyaratkan pengakuan atas setiap pelajaran wajib dan memilih Finish.
 
 ![Panel ekspor pada sebuah deck Design dengan SCORM (LMS) dipilih](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
-Paketnya menyertakan konten jadinya dan tidak membutuhkan akun Lolly. Ekstrak ZIP Website ke host HTTP(S); impor ZIP LMS tanpa mengubah isinya. Uji tujuan yang dimaksud sebelum mendistribusikan kursus tersebut.
+Paket menyimpan konten jadinya dan tidak memerlukan akun Lolly. Taruh ZIP Website di host HTTP(S); impor ZIP LMS tanpa diubah. Uji tujuan sebelum membagikan kursus. Untuk kursus yang dibangun dari beberapa karya tersimpan, lihat [Create a training course](/info/training-creators.html).
 
-Untuk kursus yang dirakit dari beberapa kreasi tersimpan, media yang diimpor, dan sumber daya, gunakan [Buat kursus pelatihan](/info/create/training-creators.html). Modul pembelajaran memiliki kerangka urutan, pengakuan pelajaran eksplisit, pratinjau pembelajar, dan riwayat paket berversi miliknya sendiri. Jalur CLI-nya dapat mengemas media yang sudah Anda ekspor sebelumnya.
+### DXF (file potong)
 
-## DXF (file potong)
+Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding, dan Wordmark mengekspor **DXF**, format pertukaran AutoCAD R12 yang dibaca pemotong laser, plotter vinil, dan perangkat lunak CNC. Geometri ditulis sebagai path kontur dalam milimeter, teks dikonturkan, dan warna dipetakan ke AutoCAD Color Index terdekat, yang biasanya menentukan operasi pemotong. DXF hanya seni garis: area fotografis atau berfilter tidak memiliki path potong dan dibuang, dengan peringatan. Gunakan SVG atau PDF untuk mempertahankan konten raster.
 
-Alat vektor (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, logo lockup, Diagram Builder) dapat mengekspor **DXF** - format interchange AutoCAD R12 yang dibaca oleh laser cutter, vinyl plotter dan software CNC/CAD. Geometri ditulis sebagai outline **path dalam milimeter** (kurva diratakan hingga toleransi halus), teks di-outline menjadi path dan warna dipetakan ke AutoCAD Color Index terdekat (yang biasanya menentukan alat/operasi pada sebuah cutter). DXF hanya untuk line-art - sebuah area fotografis atau yang difilter tidak memiliki bentuk cut-path dan akan dihilangkan (Lolly memperingatkan), jadi gunakan SVG/PDF saat Anda perlu mempertahankan konten raster.
-
-Street Map adalah kasus paling jelas: seluruh desain sudah berupa stroke, sehingga setiap jalan dan kanal menjadi cut path tanpa ada yang perlu dibuang.
+Street Map adalah kasus paling jelas. Seluruh desainnya sudah berupa goresan, jadi setiap jalan dan kanal menjadi path potong.
 
 ::: showcase
 ![Render Street Map Paris dalam tinta di atas krem - line art murni, sehingga setiap stroke selamat sampai ke mesin pemotong](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
@@ -197,165 +212,196 @@ Street Map adalah kasus paling jelas: seluruh desain sudah berupa stroke, sehing
 Gulir, dan kamera mundur menembus geometri sebenarnya: tujuh path, tidak ada piksel di mana pun, setiap stroke tetap tajam sehalus rambut pada zoom berapa pun. Itulah file yang sama yang dibaca oleh mesin pemotong.
 :::
 
-## SVG Animasi
+## Cetak
 
-Alat gerak (Animated Ad, Lottie Ad) dapat mengekspor **SVG Animasi** - animasi *vektor* yang mandiri. Berbeda dengan GIF/APNG/WebP (yang mengambil sampel setiap frame menjadi piksel), SVG animasi menumpuk snapshot vektor dengan keyframe CSS yang disematkan, sehingga **berskala ke ukuran berapa pun tanpa codec dan tanpa runtime eksternal** - animasi ini berputar di tab browser atau `<img>`. Teks tetap di-outline sehingga dapat dirender di mana saja. Format ini berbagi kontrol **Durasi** / frame rate dengan format animasi lainnya, dan (karena lebih berat per frame dibanding bitmap) menggunakan frame rate default yang lebih rendah.
+**Print PDF** menulis CMYK terhadap kondisi cetak bernama, **Coated FOGRA39** secara default. Swatch brand dengan nilai tinta terukur dikonversi persis; warna lain memakai konversi perangkat standar. **Print TIFF** menulis piksel DeviceCMYK untuk RIP dan mencatat kondisi cetak yang sama dalam metadata TIFF-nya. Kontrol Colour profile menggerakkan keduanya; [Colour profiles](#colour-profiles) memuat detailnya.
 
-## Transparansi
+**Print marks & bleed** memiliki kartu sendiri pada format cetak: bleed dalam milimeter ditambah detail Crop, Registration, Bleed, Colour bars, dan Stamp.
 
-Alat yang mendukungnya menawarkan toggle **latar belakang transparan** (misalnya *No BG*). Transparansi dipertahankan oleh PNG, WebP, AVIF, SVG (diam dan animasi), APNG dan Animated WebP. JPG dan PDF selalu buram, dan TIFF diratakan ke putih (ke hitam pada jalur HDR - lihat di bawah).
+Beberapa alat membangun **PDF multi-halaman**: sampul, konten yang mengalir ke sebanyak halaman yang dibutuhkan, dan halaman belakang, seperti pada alat *Booklet*. Setiap halaman adalah halaman PDF potret sejati dalam A4, US Letter, atau A5, dan Anda dapat memaksa blok mana pun ke halaman baru. Ini adalah dokumen RGB tanpa tanda potong atau bleed, yang merupakan milik Print PDF satu halaman. PDF Design juga dapat berupa **Notes handout**: halaman potret untuk setiap slide dengan catatan pembicaranya di bawah.
 
-## Ruang warna
+**Before you export.** Kartu **Before you export** di dasar panel menyatakan apa yang akan dilihat percetakan: format, ukuran dan bleed, area trim dan bleed, cakupan tinta, jumlah plat, dan jumlah halaman, dengan vonis di samping judulnya. Ia tidak pernah memblokir ekspor. Design selalu menampilkan kartu dengan pemeriksaannya sendiri, termasuk aturan baku design system layer demi layer dan sinyal tulisan untuk teks dokumen ([Before you export](/info/design.html#before-you-export)), dan menambahkan pemeriksaan cetak ini bila **Print preflight** aktif. Pada alat lain, aktifkan **Print preflight** di Settings → Preferences → Feature flags; ia mati secara default, dan deployment Lolly Work dapat mengaktifkannya untuk anggotanya.
 
-Dua pertanyaan berbeda, yang perlu dipisahkan: ruang warna mana yang dapat **dibaca dan dipahami** Lolly, dan ruang warna mana yang **ditulisnya**.
+**After you export.** Setelah file siap, Lolly membacanya kembali dan membandingkannya dengan pilihan Anda: format, ukuran piksel atau halaman, panjang klip, latar transparan, warna CMYK, HDR, Content Credentials, dan kata sandi PDF atau ZIP. Apa pun yang berbeda ditulis di kartu ekspor. Setiap pengukuran berasal dari file, tidak pernah dari pengaturan, dan properti yang tidak dapat dijawab file tidak dihitung sebagai cocok. Baris perintah menulis perbandingan lengkap dengan `--export-report` (lihat [Render with the CLI](/info/cli-rendering.html)).
 
-**Membaca.** Di mana pun warna ditulis - stylesheet sebuah alat, paint SVG yang diimpor, nilai design token, shadow atau gradient di dalam CSS shorthand - Lolly membaca kosakata **CSS Color 4** secara penuh: `#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, nama warna CSS dan `color()` dalam ruang yang telah ditentukan - `srgb`, `srgb-linear`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d50`, `xyz-d65` - termasuk komponen yang ditulis sebagai kata kunci `none`. Satu parser melakukan ini untuk seluruh platform, sehingga browser dan setiap walker ekspor sepakat tentang arti sebuah string warna.
+Pemeriksaan inspector Design dan perbandingan brand di Design System Setup adalah pemeriksaan terpisah: mereka melihat desain, sementara kedua kartu ini melihat file.
 
-Itu lebih penting dari kedengarannya, karena browser mengubah CSS modern menjadi CSS modern. Tulis `color-mix(in oklab, …)` dan Chrome menghitung `oklab(…)`; gunakan brand token yang disimpan sebagai `oklch()` dan itulah nilai literal yang dilihat walker ekspor. Warna dalam bentuk-bentuk itu dibaca dengan benar, bukan dibuang - yang mana itulah yang dilakukan walker yang hanya memahami `rgb()`, mengekspor teks berwarna brand sebagai hitam, kehilangan panel yang bertint dan garis tabel serta membaca `oklch(0.7 0.1 200) 0px 2px 4px` sebagai offset shadow 0.7 kali 0.1.
+::: details Biaya dari kartu tarif
+Di bawah preflight, kartu biaya mengubah hitungan yang sama menjadi uang, hanya dengan harga yang diberikan seseorang. Ia membaca hitungan itu bahkan saat kartu preflight sendiri mati. Ia memerlukan dua hal: pekerjaan yang dapat dihargai daftar harga (plat, lembar, luas, halaman, baris varian, atau file keluaran, jadi PNG logo biasa tidak pernah menampilkannya) dan **rate card**, daftar harga JSON dari percetakan Anda. Build default tidak membawa satu pun dan tidak ada cara memuatnya di aplikasi. Rate card tiba sebagai aset katalog yang dikirim deployment, atau melalui ekstensi rate-card opsional yang dinyalakan pengelola sendiri atau control plane. Tanpa rate card, tidak ada yang ditampilkan.
 
-**Pemikiran.** Matematika warna terjadi secara perseptual, bukan pada channel mentah. Derivasi palet, ramp, harmoni dan kontras berjalan dalam **OKLCH/OKLab**, dan warna out-of-gamut dibawa ke dalam rentang oleh algoritme gamut-mapping milik CSS Color 4 sendiri - reduksi chroma dengan pemeriksaan jarak perseptual - bukan dengan clipping channel, sehingga warna cerah mendarat pada warna terdekat yang benar-benar akan Anda terima, bukan warna yang diratakan. Gradient diinterpolasi dalam ruang yang Anda pilih (OKLab secara default, atau `oklch`, `lab`, `lch`, `srgb`, `srgb-linear`, `hsl`, dengan arah hue-travel untuk yang polar), dan pencampuran bersifat **premultiplied**, jadi sebuah fade ke transparan tetap pada warna yang benar, bukan menggelap ke arah hitam di tengah jalan. Satu interpolator melayani baik walker preview maupun ekspor - itulah yang mencegah sebuah gradient conic ter-blend dengan satu cara di layar dan cara lain di file yang diekspor.
+Setiap angka adalah tarif yang Anda berikan dikali kuantitas yang dihitung Lolly, seperti `4 plate × €35.00`, dan totalnya membawa sumbernya: penerbit pada kartu dan tanggal tarif itu berasal. Tidak ada mata uang default dan tidak ada harga placeholder. Apa yang dikatakan file tentang dirinya sendiri tetap berupa kutipan tidak langsung: *"The file says: … Lolly has not verified this."*
 
-**Menulis.** Output secara sengaja lebih sempit daripada input, karena file harus dapat dibaca oleh apa pun yang membukanya, dan sebuah ruang hanya *dideklarasikan* pada output ketika angkanya benar-benar dikonversi ke dalamnya. Format layar dan web ditulis sebagai **sRGB** dan ditandai demikian; format cetak ditulis sebagai **CMYK** terhadap kondisi press bernama (di bawah); dan jalur HDR adalah **Rec.2100 PQ** (di atas). Warna wide-gamut yang mencapai ekspor dipetakan ke sRGB, bukan diberi label salah - membawa `color(display-p3 …)` ke dalam file vektor adalah ekstensi yang direncanakan, bukan sesuatu yang diklaim dilakukan oleh ekspor saat ini. Gradient yang dibuat dalam OKLab *dipanggang* menjadi stop sRGB biasa saat keluar, dengan stop tambahan disisipkan hanya di tempat sRGB akan terlihat menyimpang dari kurva perseptual, karena `<linearGradient>` SVG dan shading axial PDF tidak memiliki pengaturan ruang interpolasi untuk membawa maksud tersebut. Satu nilai yang dibuat, tiga renderer, tanpa penyimpangan.
+Bila angka tidak dapat dihitung, tabel ditarik alih-alih diisi:
 
-## Profil warna
+- Baris yang tidak dihargai kartu berarti **tidak ada total sama sekali**, hanya judul yang menyatakan berapa yang belum berharga.
+- Kuantitas yang merupakan batas atas membawa **"up to"** ke subtotalnya.
+- Tarif yang melewati tanggal berlakunya hanya menampilkan **counts only** sampai Anda menekan *Use these rates anyway*; tanggal kedaluwarsa kemudian ikut bersama angka.
+- Bila dibuka melalui **tautan**, uang tetap tersembunyi sampai Anda memintanya di perangkat ini. CLI menerima `--rate-card=<file.json>` sebagai file lokal dan tidak pernah sebagai parameter tautan.
 
-Agar warna direproduksi secara akurat di aplikasi yang mengelola warna (percetakan, Photoshop, browser), ekspor **ditandai dengan profil warna**:
+Kartu dibuang dari setiap tahap ekspor, jadi tidak pernah mengubah file. Ini aritmetika, bukan penawaran; hanya percetakan Anda yang dapat menawarkan.
+:::
 
-- **PNG / JPG** membawa profil ICC **sRGB** yang disematkan - ruang warna tempat pratinjau sebenarnya dirender - sehingga tidak ada yang perlu ditebak. (Hanya penandaan; piksel tidak dikodekan ulang.)
-- **PDF Cetak (CMYK)** mendeklarasikan **kondisi press** target dalam *OutputIntent*-nya (default *Coated FOGRA39*), memberi tahu RIP/percetakan bagaimana tinta CMYK-nya harus dibaca. Swatch brand dengan nilai tinta terukur dikonversi secara tepat; warna lain menggunakan konversi perangkat standar. Deklarasi itu adalah sebuah *nama*: tidak ada profil CMYK yang dikirimkan bersama Lolly, dan PDF/X-4 menginginkan profil disematkan, sehingga kondisi bernama menulis output intent tanpa mengklaim kesesuaian PDF/X-4. Muat profil CMYK Anda sendiri dan pilih baris **Embed**-nya pada kontrol Profil warna, dan profil itu disematkan sebagai *DestOutputProfile* file - pada titik itu PDF dapat benar-benar menjadi PDF/X-4, dan mengklaimnya kapan pun sisa file mengizinkan. Tiga hal menahan klaim tersebut sambil tetap mempertahankan output intent (RIP tetap menginginkannya): artwork RGB yang tidak dapat dikonversi oleh proses CMYK, teks kredit margin bukti `prov` (digambar dalam font standar yang tidak disematkan, dan X-4 tidak membuat pengecualian untuk itu) dan kata sandi **Strong**, karena X-4 melarang enkripsi. Kondisi yang dideklarasikannya kemudian dibaca dari profil tersebut: nama terdaftar di mana profil membuktikan satu, `Custom` dengan nama profil itu sendiri di mana tidak, sehingga file tidak akan pernah menyebut satu kondisi press sambil membawa pengukuran kondisi lain.
-- **TIFF Cetak (CMYK)** menulis piksel **DeviceCMYK** tanpa tanda dan mencatat kondisi press yang sama sebagai provenans dalam metadata TIFF-nya (*ImageDescription*) alih-alih menyematkan profil. Kontrol Profil warna yang sama menggerakkan kedua format CMYK - TIFF sama sekali tidak dapat menyematkan profil press, sehingga baris **Embed** hanya mencatat nama profil itu sendiri di sana dan tidak lebih.
-- **TIFF (RGB)** adalah saudara sRGB yang polos dan tidak terkompresi - raster lossless pada DPI yang dipilih untuk pengarsipan atau bolak-balik dengan editor, dengan provenans dicatat di metadata TIFF yang sama. Transparansi apa pun diratakan ke putih (profil ini tidak membawa alpha). Seperti TIFF CMYK, ini hanya untuk desktop, karena browser tidak dapat mempratinjau TIFF dan unduhan mobile menemui jalan buntu.
-- **SVG**, **EMF**, **EPS** dan **DXF** adalah vektor yang independen dari resolusi dan profil tanpa profil yang disematkan - warna SVG adalah sRGB polos, EMF dan EPS adalah device RGB (dan **EPS (CMYK)** menulis DeviceCMYK apa adanya) dan **DXF** membawa AutoCAD Color Index terdekat. (SVG, EPS dan DXF, seperti PDF, meng-outline teks apa pun menjadi path vektor, sehingga hasilnya tetap dirender bahkan ketika font tidak terpasang. EMF sebaliknya menjaga teks tetap LIVE secara default - rekaman teks metafile asli yang tetap dapat dipilih dan diedit di Office dan Google Slides, hanya kembali ke outline untuk baris yang tidak dapat diekspresikan format tersebut; opsi "Outline fonts" pada panel ekspor memaksa path di mana pun.) **SVG** juga mereproduksi `box-shadow` CSS dari HTML - setiap shadow luar digambar di belakang kotak, offset/spread dan Gaussian-blur agar sesuai dengan browser, dan inset shadow digambar di dalamnya dengan cara yang sama.
+## Gerak dan suara
 
-Ini otomatis - tidak ada pengaturan untuk diutak-atik. Thumbnail dan pratinjau melewati tanda ini agar tetap kecil. Satu profil *memang* menjadi pilihan, karena ia mengubah piksel, bukan sekadar melabelinya - lihat **HDR** di bawah.
+### Video
 
-## HDR (warna terang)
+Alat beranimasi mengekspor **MP4** dan **WebM**. Pemilih hanya menampilkan kontainer yang dapat dibuat browser ini, dan tautan `?format=` bersama yang meminta kontainer yang tidak dapat dibuat beralih ke yang lain, dengan nama file yang sesuai. Alat beranimasi juga menawarkan **Start after**, yang menahan kanvas diam sesaat agar animasi dan font stabil sebelum merekam, dan **Duration**, panjang klip jadi. **Motion blur** (Off, Draft quality, Standard, atau High, dengan **Shutter angle**) mengaburkan gerakan cepat dengan biaya waktu render. Bila browser mendukungnya, **Record live** merekam pratinjau di layar secara waktu nyata melalui berbagi layar sebagai gantinya.
 
-Ekspor biasa adalah sRGB: putih adalah putih, dan warna brand yang jenuh sama terangnya dengan putih normal layar. Pada tampilan yang mendukung HDR terdapat banyak ruang lebih di atas itu, dan kartu **HDR** pada panel ekspor menggunakannya - warna brand Anda dan teks putih ditingkatkan menuju kecerahan puncak sehingga benar-benar *bersinar*, sementara area gelap tetap gelap dan memberi kontras pada kilau tersebut.
+![Pengaturan waktu untuk ekspor beranimasi: Start after, Duration, Motion blur dengan Shutter angle-nya, dan Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+
+**Quality** memilih Smaller file, Balanced, atau Best quality. **Advanced** membuka **Codec**, **Frame rate**, **Rate mode**, dan **Hardware acceleration**. Bila alat memiliki teks keterangan, **Captions** memilih **Embedded track** atau **Sidecar .vtt + .srt** di samping video. Tautan membawa kualitas, codec, frame rate, durasi, dan jeda mulai sebagai `vq`, `codec`, `fps`, `seconds`, dan `wait` ([URL parameters](/info/url-parameters.html)).
+
+Ekspor video mempertahankan suaranya. Alat dapat menaruh **music bed** di bawah klip: aset audio yang diulang atau dipotong sepanjang klip, dengan fade, volume, dan ducking di bawah suara rekaman itu sendiri. Alat perekam membawa audio langsungnya ke file.
+
+Deck Design yang tetap berupa deck klik masih dapat keluar sebagai video. **Export slides as video** di menu Present membuka lembar ekspor pada MP4. Setiap slide diputar selama dwell-nya sendiri, atau selama Duration lembar ekspor bila tidak punya, dan transisi slide deck diputar di antaranya sebagai dissolve. Dokumennya sendiri tidak berubah.
+
+### Gambar animasi
+
+**GIF** diputar di mana-mana dan cocok untuk chat dan email; ukurannya lebih besar dan warnanya lebih sedikit daripada video. **APNG** dan **Animated WebP** mempertahankan warna penuh dan transparansi. **Lottie Ad** juga mengekspor **Animated SVG**: bingkai vektor dengan keyframe CSS tersemat, sehingga dapat diskalakan ke ukuran apa pun dan berulang di tab browser atau `<img>` tanpa codec. Teksnya dikonturkan, dan memakai frame rate default yang lebih rendah karena setiap bingkai lebih berat daripada bitmap. Semuanya senyap.
+
+### Audio
+
+Beberapa alat mengekspor suara saja. **Voice Recorder** merekam rekaman mikrofon dengan pengukur level langsung dan menyimpannya sebagai **MP3**, **WAV**, **M4A (AAC)**, atau **Opus (WebM)**, dienkode di perangkat Anda. `wav`, `mp3`, `m4a`, dan `opus` adalah id format biasa, jadi ekspor audio sama mudah dibagikan dan diskrip seperti PNG.
+
+Pemilih aset menerima beragam audio untuk music bed, dari MP3 dan FLAC hingga MIDI dan modul tracker; [Formats](/info/formats.html) mencantumkannya. [Lagu Rondocode](/info/rondocode.html) diputar pada panjang berapa pun yang diminta kliknya.
+
+## Warna dan HDR
+
+Lolly membaca setiap warna CSS modern, melakukan matematika warna secara perseptual, dan menulis setiap file dalam ruang yang dapat dibuka pembaca: sRGB untuk layar, CMYK untuk cetak, dan Rec.2100 PQ untuk HDR. [Colour in the engine](/info/colour-engine.html) menjelaskan caranya. Dokumen Design yang diatur ke **Wide colour / HDR** mengikuti aturannya sendiri, dijelaskan di [Wide colour and HDR editing](/info/hdr-editing.html).
+
+### Profil warna
+
+Ekspor ditandai dengan profil warna, sehingga aplikasi yang terkelola warna seperti percetakan, Photoshop, dan browser membaca warna seperti yang Anda lihat. Ini terjadi otomatis; thumbnail dan pratinjau melewati tag agar tetap kecil.
+
+- **PNG dan JPG** membawa profil ICC **sRGB** tersemat, ruang tempat pratinjau digambar. Piksel ditandai, bukan dienkode ulang.
+- **Print PDF (CMYK)** mendeklarasikan kondisi cetaknya di *OutputIntent*, memberi tahu percetakan bagaimana tinta CMYK-nya dimaksudkan untuk dibaca.
+- **Print TIFF (CMYK)** menulis piksel DeviceCMYK tanpa tag dan mencatat kondisi cetak di metadata TIFF-nya. TIFF tidak dapat menyematkan profil cetak, jadi baris **Embed** hanya mencatat nama profil itu.
+- **TIFF (RGB)** adalah saudara sRGB tanpa kompresi untuk arsip atau bolak-balik editor. Ia meratakan transparansi ke putih. Kedua TIFF hanya untuk desktop, karena browser tidak dapat mempratinjau TIFF.
+- **SVG**, **EMF**, **EPS**, dan **DXF** adalah vektor tanpa profil tersemat: warna SVG adalah sRGB, EMF dan EPS memakai RGB perangkat, **EPS (CMYK)** menulis DeviceCMYK, dan DXF memakai AutoCAD Color Index. SVG, EPS, dan DXF mengonturkan teks menjadi path. EMF mempertahankan teks hidup dan dapat disunting di Office dan Google Slides, kembali ke kontur hanya untuk run yang tidak dapat dinyatakan format; opsi **Outline fonts** pada panel ekspor memaksa path di mana-mana. SVG juga mereproduksi bayangan kotak CSS, di dalam dan di luar.
+
+::: details PDF/X-4 dan profil cetak Anda sendiri
+Tidak ada profil CMYK yang dikirim bersama Lolly. Kondisi cetak bernama menulis output intent tanpa mengklaim kesesuaian PDF/X-4, karena PDF/X-4 menghendaki profil disematkan.
+
+Muat profil CMYK Anda sendiri dan pilih baris **Embed**-nya di kontrol Colour profile. Ia disematkan sebagai *DestOutputProfile* file, dan PDF mengklaim PDF/X-4 selama sisa file mengizinkan. Kondisi cetak yang dideklarasikannya dibaca dari profil itu: nama terdaftar bila profil membuktikannya, atau `Custom` di bawah nama profil sendiri.
+
+Tiga hal menahan klaim sambil mempertahankan output intent: karya RGB yang tidak dapat dikonversi oleh proses CMYK, teks kredit proof-margin `prov` (digambar dalam font standar yang tidak disematkan), dan kata sandi **Strong**, karena PDF/X-4 melarang enkripsi. Setiap PDF juga membawa metadata PDF/X-4: kotak halaman, XMP, ID dokumen, dan output intent sRGB beserta profilnya.
+:::
+
+### HDR (warna cerah)
+
+Ini adalah kartu **HDR** panel ekspor, yang mencerahkan karya biasa untuk layar HDR. Mempertahankan aslinya yang HDR selama penyuntingan adalah fitur lain: [Wide colour and HDR editing](/info/hdr-editing.html).
+
+Ekspor biasa adalah sRGB: warna brand yang jenuh secerah putih normal layar. Layar HDR memiliki ruang di atas itu. Kartu **HDR** mendorong warna brand dan teks putih Anda menuju kecerahan puncak, sementara area gelap tetap gelap dan memberi kontras pada cahayanya.
 
 ![Kartu HDR di panel ekspor, dinyalakan, dengan dial White / Reach / Dark lift / Focus terungkap di bawahnya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Format.** Format raster yang punya tempat untuk membawa sinyal: **PNG**, **JPG**, **AVIF** dan **TIFF**. (Bukan WebP - formatnya 8-bit tanpa jalur decode HDR yang berfungsi, jadi WebP PQ hanya akan terlihat gelap. Vektor dan PDF sama sekali tidak punya model HDR.)
-- **Mati secara default**, berbeda dari penandaan warna - ia mengubah piksel, jadi sifatnya opt-in. Centang kartu, atau sertakan `hdr=1` di tautan berbagi.
-- **Apa yang sebenarnya ditulis.** Piksel dikodekan ulang ke **Rec.2100 PQ** - primer BT.2020 dengan kurva transfer SMPTE ST 2084 (PQ) - dan kontainer membawa sinyal yang sesuai sehingga aplikasi yang mengelola warna tahu cara membacanya: profil **ICC v4 dengan tag `cicp`** yang dihasilkan (JPG, TIFF), sebuah **chunk `cICP`** (PNG), atau kotak `colr` yang ditulis ulang (AVIF). Peningkatan ini digerbangi oleh **kecerahan perseptual (OKLab)**, sehingga warna menengah ke atas dipacu ke puncak dan warna gelap ditenangkan alih-alih dibuat pecah, dan bersifat mempertahankan corak - hijau merek jadi lebih terang, bukan seperti mint.
-- **Kenop pengatur.** Empat, terungkap saat kartu diaktifkan: **White** (batas kecerahan puncak, 400-2000 nit), **Reach** (seberapa jauh cahaya menyebar ke nada bawah), **Dark lift** (seberapa banyak warna gelap dicerahkan - `0` mempertahankan kegelapannya) dan **Focus** (seberapa banyak kekayaan warna yang dipertahankan peningkatan ini). Semuanya dibawa dalam parameter yang sama sebagai nilai terkalibrasi ringkas - `hdr=1600-60-0-50` berarti White 1600, Reach 60, Dark lift 0, Focus 50 - sehingga tampilan yang dikalibrasi dapat direproduksi dari tautannya.
-- **Di mana Anda akan melihatnya.** Penampil yang mengelola warna di layar HDR: Preview / Quick Look / Safari di perangkat Apple, Chrome di monitor HDR. Di layar SDR biasa, file tetap tampil sebagai gambar normal.
-- **Ketahui sebelum Anda kirim.** Banyak platform **mengkodekan ulang** apa yang Anda unggah dan menghapus sinyal HDR - jejaring sosial, aplikasi pesan, beberapa CMS - yang dapat membuat gambar terlihat gelap atau pudar. Gunakan HDR di tempat Anda mengendalikan tujuannya (situs yang Anda bangun, video wall, deck di panel terang), bukan sebagai default untuk semuanya.
-- **Transparansi.** PNG dan AVIF mempertahankan alpha-nya; JPG selalu opak. Jalur **TIFF** diratakan ke atas **hitam**, bukan putih seperti jalur SDR - dalam PQ, putih adalah kode 10.000-nit, sehingga meratakan ke atasnya akan membuat setiap tepi berhalo menyilaukan.
-- **Byte yang sama dari terminal.** `--hdr=1` dengan `--export=png` atau `--export=jpg` menulis PNG Rec.2100 PQ 16-bit dan JPEG gain-map ISO 21496-1 di [CLI](/info/cli.html) juga, dari encoder engine yang sama, bukan dari browser - sehingga alat yang native `<svg>` menghasilkan file HDR tanpa Chromium sama sekali di jalurnya, dan PNG-nya identik byte demi byte dengan milik shell web. AVIF dan TIFF untuk saat ini tetap menjadi ekspor shell web.
+- **Format.** PNG, JPG, AVIF, dan TIFF. WebP adalah 8-bit tanpa jalur dekode HDR yang berfungsi, dan vektor serta PDF tidak memiliki model HDR.
+- **Mati secara default**, karena mengubah piksel. Centang kartu, atau berikan `hdr=1` di tautan berbagi.
+- **Dial.** **White** (batas kecerahan puncak, 400 hingga 2000 nit), **Reach** (seberapa jauh ke bawah nada cahaya menyebar), **Dark lift** (seberapa banyak bagian gelap dicerahkan; `0` mempertahankannya gelap), dan **Focus** (seberapa banyak kekayaan warna yang dipertahankan dorongan). Semuanya ikut sebagai satu nilai: `hdr=1600-60-0-50` adalah White 1600, Reach 60, Dark lift 0, dan Focus 50.
+- **Apa yang ditulis.** PNG mendapat Rec.2100 PQ 16-bit dengan chunk `cICP`. JPG adalah JPEG gain-map ISO 21496-1: gambar SDR biasa ditambah gain map yang ditambahkan. AVIF mendapat kotak `colr` yang ditulis ulang. TIFF mendapat piksel PQ dengan profil ICC v4 yang dihasilkan membawa tag `cicp`, dan diratakan ke hitam, karena putih adalah kode 10.000 nit dalam PQ dan akan membuat halo di setiap tepi. Dorongan mengikuti kecerahan perseptual (OKLab) dan mempertahankan hue, jadi hijau brand menjadi lebih cerah, bukan seperti mint.
+- **Di mana cahayanya tampak.** Penampil terkelola warna pada layar HDR: Preview, Quick Look, dan Safari di perangkat Apple, atau Chrome di monitor HDR. Layar SDR menampilkan gambar normal.
+- **Sebelum Anda mengirim.** Banyak platform mengenkode ulang unggahan dan membuang sinyal HDR, yang dapat membuat gambar gelap atau pucat. Gunakan HDR di tempat Anda mengendalikan tujuannya, seperti situs Anda sendiri, video wall, atau deck pada panel terang.
+- **Dari terminal.** `--hdr=1` dengan `--export=png` atau `--export=jpg` menulis PNG dan JPEG gain-map yang sama di [CLI](/info/cli.html), dari encoder engine yang sama, tanpa browser di jalurnya. AVIF dan TIFF tetap ekspor web untuk saat ini.
 
-## Video
+## Apa yang ikut dengan file Anda
 
-Alat animasi mengekspor gerakan sebagai **MP4**, **WebM** atau **GIF** - dan, jika tersedia, **APNG**, **Animated WebP** atau **SVG Animasi** vektor (di atas). Kontainer video mana yang Anda lihat bergantung pada browser Anda - pemilih hanya menampilkan apa yang benar-benar dapat direkamnya:
+File jadi dapat membawa beberapa catatan di samping gambar. Sebagian berada di samping piksel dan hilang saat file disimpan ulang atau dilucuti; dua tanda hidup di dalam piksel itu sendiri.
 
-| Browser | Menampilkan |
-|---|---|
-| Safari / iOS | **MP4** |
-| Firefox | **WebM** |
-| Chrome / Edge 126+ / Android | **MP4 dan WebM** |
-| Chrome lama | **WebM** |
+::: figure exporting-what-travels
+Di mana setiap catatan berada, apakah aktif secara default, dan parameter tautan mana yang mengendalikan masing-masing.
+:::
 
-GIF berfungsi di mana saja (bagus untuk chat/email; lebih besar dan warnanya lebih sedikit dibanding video). Alat animasi juga menampilkan **Wait** (detik untuk membiarkan animasi mengendap sebelum perekaman) dan **Duration** (panjang klip).
-
-> Sebuah tautan berbagi `?format=…` yang meminta sebuah kontainer yang tidak dapat direkam browser Anda akan mundur secara mulus ke kontainer lainnya, dan nama file akan sesuai dengan kontainer yang benar-benar direkam.
-
-**Suara.** Ekspor video tidak bisu. Sebuah alat dapat meletakkan **musik latar** di bawah klip - aset audio dari katalog, diulang atau dipotong sesuai panjang klip, dengan fade-in/out, volume dan ducking otomatis di bawah suara asli rekaman - dan alat perekaman membawa audio langsung rekamannya langsung ke dalam file. **MP4** dan **WebM** mempertahankan trek yang telah dicampur; GIF dan format gambar animasi (APNG, Animated WebP, SVG Animasi) secara alami bisu.
-
-## Audio
-
-Beberapa alat mengekspor **audio saja**, bukan hanya sebagai trek video. **Voice Recorder** merekam pengambilan mic dengan meter level langsung dan panduan yang lembut, lalu menyimpannya sebagai **MP3** (default, ditranskode di browser Anda) atau dalam kontainer aslinya - **M4A** (AAC), **OGG** atau **WebM** (Opus), tergantung mana yang direkam browser Anda. Seperti hal lainnya, pengodean terjadi di perangkat Anda - tidak ada yang diunggah.
-
-Audio yang Anda *bawa masuk* juga sama luasnya. Pemilih aset menerima **MP3**, **WAV**, **OGG**/**Opus**, **M4A**/**AAC** dan **FLAC** (disimpan byte-demi-byte dan didekode di perangkat), **MIDI** (`.mid` - dikonversi saat impor menjadi trek synth kecil di perangkat) dan **modul tracker** - **MOD**, **XM**, **IT**, **S3M**, **STM**, **MTM** (didekode di perangkat oleh pemutar bawaan, hanya beberapa kilobyte data lagu). Semua ini dapat menjadi **musik latar** di bawah ekspor video, atau diputar di pemutar ambient Neurospicy Mode.
-
-Audio *memang* menjadi bagian dari pipeline `format=` / `--export=` di bawah: `wav`, `mp3`, `m4a` dan `opus` adalah id format biasa, sehingga ekspor khusus audio sama mudah dibagikan dan discript-kan seperti PNG. Yang keluar hanyalah suara saja, tanpa gambar.
-
-## Provenans & watermark
-
-Di mana format mendukungnya, ekspor membawa **metadata provenans** - perangkat lunak, sumber, nama alat dan baris kredit profil Anda - disematkan secara native (PNG iTXt, JPEG EXIF, info PDF, `<metadata>` SVG, komentar GIF). Ini hanya kepenulisan; tidak ada yang diunggah. Alat **Experimental** juga menambahkan watermark yang terlihat, diterapkan oleh host sehingga tidak dapat dihapus dengan mengedit alat.
-
-**Lolly Imprint.** Ekspor raster juga membawa **watermark piksel tak terlihat** milik Lolly sendiri - *Lolly Imprint* - **aktif secara default**, sama seperti Content Credentials. Di mana kredensial dan metadata provenans berjalan *bersama* piksel dan hilang saat penyimpanan ulang, tangkapan layar atau penghapusan metadata, Imprint hidup *di dalam* piksel dan bertahan dari kompresi ulang - sehingga salinan gambar masih dapat dikenali sebagai buatan Lolly nanti. Ini adalah petunjuk yang tahan lama, bukan jaminan kriptografis, dan hanya bersifat kehadiran (tidak membawa data pribadi apa pun). Ia hadir di **PNG, JPG, WebP, AVIF, TIFF dan BMP**, dan di raster yang dirender Lolly yang disusun ke dalam **PDF atau PPTX** - tidak pernah pada gambar yang *Anda* sematkan, hanya pada apa yang dirender Lolly sendiri. Hapus centang kartu **Lolly Imprint** di panel ekspor untuk melewatinya, atau sertakan `imprint=0` pada tautan berbagi. (Ketahanan AVIF melalui pengodean ulang belum dikalibrasi; deteksi PDF/PPTX mencakup raster Lolly yang disematkan.) [/verify](/verify) mendeteksinya di perangkat - lihat [Identitas Content Credentials](/info/content-credentials-identity.html#the-lolly-imprint).
-
-**Kredensial tahan lama.** Tanda kedua yang lebih berat berdampingan dengan Imprint: **Durable credential**, yang menggunakan model neural di perangkat (format TrustMark) untuk menulis id Lolly *ke dalam* piksel sehingga tautan "made with Lolly" bertahan dari penghapusan metadata, pengodean ulang dan pembacaan ulang oleh alat yang mengenal TrustMark maupun oleh Lolly sendiri. Ini **nonaktif secara default** - tidak seperti Imprint murni-JavaScript, ini membutuhkan proses neural per ekspor ditambah unduhan model satu kali, sehingga ini adalah opt-in yang disengaja, bukan pajak diam-diam. Hanya raster (**PNG, JPG, WebP, AVIF, TIFF**), dicentang di panel ekspor atau disertakan sebagai `durable=1` pada tautan berbagi. Pada aplikasi desktop dan mobile, kartu ini disembunyikan sepenuhnya alih-alih ditampilkan sebagai tidak berfungsi, karena tidak ada origin untuk mengambil model secara offline.
-
-**Perlindungan konten.** Di panel ekspor, **Lisensi** yang Anda berikan, **Kredit sumber** dari apa pun yang Anda tempatkan, *Password protect*, **C2PA Credentials**, **Lolly Imprint** dan **Kredensial tahan lama** dilipat menjadi satu grup **Perlindungan konten** yang diciutkan dan menyesuaikan format, sehingga opsi provenans, hak, dan perlindungan sebuah file berada di satu tempat. Grup ini hanya menampilkan kartu yang berlaku untuk format yang dipilih. Grup ini terbuka dengan sendirinya ketika sebuah tautan atau dokumen tersimpan sudah menyatakan sebuah lisensi, atau ketika sebuah sumber memerlukan keputusan dari Anda.
-
-**Lisensi.** Pilih bagaimana orang lain boleh menggunakan karya Anda: *Tidak ada (semua hak dilindungi)* sebagai default, atau CC0 1.0, Public Domain Mark 1.0, atau salah satu lisensi Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Nama lisensi dan sebuah tautan ke deed-nya dituliskan ke dalam metadata lisensi file (EXIF, XMP dan RIFF di mana format memiliki field tersebut) dan ke dalam Content Credential-nya. Pilihan ini disimpan bersama dokumen dan ikut dalam tautan berbagi sebagai `licence=`. Lolly menuliskan lisensi yang Anda pilih. Lolly tidak memeriksa atau menegakkan ketentuannya. Sebuah tool dengan field lisensinya sendiri, seperti Claim, mempertahankan field tersebut alih-alih menampilkan pemilih kedua. Tanda cetak dengan sengaja *tidak* ada di dalamnya: itu adalah geometri produksi cetak, bukan perlindungan, sehingga **Tanda cetak & bleed** - pengukuran bleed dalam milimeter ditambah Crop, Registration, Bleed, Colour bars dan Stamp details - mempertahankan kartu tingkat atasnya sendiri pada format cetak.
+Panel ekspor melipat **Licence**, **Source credits**, *Password protect*, **C2PA Credentials**, **Lolly Imprint**, dan **Durable credential** ke dalam satu grup **Content protection** yang hanya menampilkan kartu yang dapat dipakai format terpilih. Ia terbuka sendiri bila tautan atau dokumen sudah mendeklarasikan lisensi, atau bila sumber memerlukan keputusan dari Anda. Kartu **Design system** tetap di luar grup, terlihat pada setiap ekspor.
 
 ![Grup Content protection dibuka pada ekspor PNG, menampilkan hanya kartu yang berlaku untuknya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
-**Sebelum Anda mengekspor (preflight cetak).** Aktifkan **Print preflight** (`export-preflight`) di feature flag Profil Anda - ini **nonaktif secara default**, sehingga individu yang mengekspor PNG untuk pesan chat tidak pernah dikejutkan oleh temuan prepress, dan control plane sebuah deployment ([lolly.work](https://lolly.work)) dapat mengaktifkannya secara default untuk anggotanya - dan kartu **Before you export** muncul di bagian bawah panel, tepat di atas tombol, kapan pun aturan cetak memiliki sesuatu yang benar untuk disampaikan tentang pekerjaan tersebut: format, ukuran dan bleed, lalu area trim dan bleed, cakupan tinta, jumlah plate dan jumlah halaman, dengan verdict di samping judulnya. Kartu ini berada di bawah setiap pengaturan karena ini adalah pernyataan *tentang* pengaturan tersebut, bukan pengaturan lain - dan tidak pernah memblokir ekspor. Kartu ini memberi tahu Anda apa yang akan segera dilihat oleh percetakan.
+### Provenansi & watermark
 
-**Biaya, dihitung dari rate card Anda.** Di bawah preflight - paling akhir, masih di atas tombol - terdapat kartu yang mengubah hitungan yang sama menjadi uang, dan hanya dari harga yang benar-benar diberikan seseorang kepadanya. Kartu ini membaca apa pun yang dihitung oleh proses preflight, baik kartu preflight sendiri diaktifkan atau tidak, dan membutuhkan dua hal agar benar: pekerjaan tersebut memiliki sesuatu yang dapat diberi harga oleh daftar harga (plate, lembar, luas, halaman, baris varian atau file output - sehingga PNG logo biasa tidak akan pernah menampilkannya), **dan** sebuah **rate card** tersedia. Rate card adalah daftar harga JSON dari percetakan Anda. Build default tidak membawa satu pun dan tidak memiliki cara di dalam aplikasi untuk memuatnya: rate card hadir baik sebagai aset katalog yang dikirimkan sebuah deployment, atau melalui ekstensi rate card opsional yang diaktifkan oleh self-hoster atau control plane. Tanpa rate card, tidak ada yang ditampilkan - bukan prompt, bukan tabel kosong.
+Bila format memiliki fieldnya, ekspor membawa **metadata provenansi**: perangkat lunak, sumber, nama alat, dan baris kredit profil Anda, ditulis ke PNG iTXt, JPEG EXIF, info PDF, `<metadata>` SVG, atau komentar GIF. Ia hanya mencatat kepenulisan, dan tidak ada yang diunggah. Alat **Experimental** juga menstempel watermark yang terlihat, diterapkan oleh host sehingga menyunting alat tidak dapat menghapus tandanya.
 
-Aturan yang menjadi dasar seluruh hal ini adalah bahwa ini **tidak pernah mengarang uang**. Setiap angka adalah tarif yang Anda berikan dikalikan kuantitas yang dihitung Lolly - `4 plate × €35.00` - dan totalnya menyebutkan sumbernya sendiri dalam kalimat yang sama dengan angkanya: penerbit yang disebutkan kartu, dan tanggal yang menurut kartu tersebut merupakan asal tarifnya. Tidak ada mata uang default, tidak ada placeholder dan tidak ada nol yang mewakili harga yang hilang. Apa yang dikatakan file tentang dirinya sendiri tetap menjadi ucapan yang dilaporkan: *"File tersebut mengatakan: … Lolly belum memverifikasi ini."*
+**Lolly Imprint** adalah watermark piksel tak terlihat, **aktif secara default**. Kredensial dan metadata ikut di samping piksel dan hilang saat disimpan ulang, ditangkap layar, atau metadata dilucuti. Imprint hidup di piksel dan bertahan melewati kompresi ulang, sehingga salinan masih dapat dikenali sebagai buatan Lolly. Ini petunjuk, bukan jaminan kriptografis, dan tidak membawa data pribadi. Ia ikut dalam JPEG XL, PNG, JPG, WebP, AVIF, TIFF, dan BMP, dan dalam raster yang dirender Lolly ke PDF atau PPTX, tidak pernah dalam gambar yang Anda sematkan. Hapus centang **Lolly Imprint** atau berikan `imprint=0` untuk tidak menyertakan Imprint. Ketahanan AVIF melewati pengenkodean ulang belum dikalibrasi. [Verify](/verify) mendeteksinya di perangkat Anda; lihat [The Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
 
-Dan ketika tidak dapat menghitung secara jujur, tabel kerja **menghilang** alih-alih terdegradasi menjadi angka yang diabukan atau diisi begitu saja:
+**Durable credential** menulis id Lolly ke dalam piksel dengan model neural di perangkat dalam format TrustMark, sehingga tautan "made with Lolly" bertahan melewati pelucutan metadata dan pengenkodean ulang dan dapat dibaca alat yang mengenal TrustMark. Ia **mati secara default**, karena memakan satu lintasan neural per ekspor dan unduhan model satu kali. Ia mencakup PNG, JPG, WebP, AVIF, dan TIFF; centang di panel atau berikan `durable=1`. Aplikasi desktop dan seluler menyembunyikan kartunya, karena tidak memiliki origin untuk mengambil model secara offline.
 
-- Baris yang tidak diberi harga oleh kartu berarti **tidak ada total sama sekali** - hanya judul yang menyatakan berapa banyak baris yang tidak diberi harga. Jumlah parsial bukanlah jawaban yang lebih kecil, itu adalah jawaban yang salah.
-- Kuantitas yang merupakan batas atas alih-alih jumlah pasti membawa **"hingga"** ke dalam subtotalnya, sehingga sebuah batas tidak pernah dicuci menjadi angka pasti.
-- Tarif yang telah melewati tanggal valid-until-nya hanya menampilkan **jumlah saja**, sampai Anda menekan *Use these rates anyway* - dan kemudian tanggal kedaluwarsa menyertai angka tersebut, sehingga total yang sudah kedaluwarsa tidak dapat dibaca sebagai yang berlaku saat ini.
-- Dibuka melalui **tautan**, uang tetap tersembunyi sampai Anda memintanya di perangkat ini. Baik kartu maupun pengungkapan itu tidak pernah berjalan dalam URL - alasan yang sama mengapa CLI mengambil `--rate-card=<file.json>` sebagai flag file lokal dan tidak pernah sebagai parameter tautan.
+**Licence.** Pilih bagaimana orang lain boleh memakai karya Anda: *None (all rights reserved)* secara default, CC0 1.0, Public Domain Mark 1.0, atau lisensi Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Nama lisensi dan tautan ke deed-nya masuk ke metadata lisensi file (EXIF, XMP, dan RIFF bila format memilikinya) dan Content Credential-nya. Pilihan disimpan bersama dokumen dan ikut dalam tautan sebagai `licence=`. Lolly menulis lisensi yang Anda pilih; ia tidak memeriksa atau menegakkan ketentuannya. Alat dengan field lisensi sendiri, seperti Claim, mempertahankan field itu.
 
-Kartu ini adalah chrome, bukan konten: kartu ini dihapus dari setiap tahap ekspor, sehingga tidak dapat menggerakkan satu piksel pun dari file yang Anda unduh. Dan ini adalah perhitungan, bukan penawaran - hanya percetakan Anda yang dapat memberikannya kepada Anda.
+### Catatan design system
 
-**Render tersusun.** Ketika sebuah alat menyematkan output alat lain (misalnya *Event Name Badge* menyematkan *QR Code*), render yang bersarang disatukan ke dalam ekspor induknya - tetap menjadi **vektor sejati** dalam SVG dan PDF dan dirasterisasi secara tajam dalam PNG/JPG/WebP. Anak yang disematkan adalah perantara: ia *tidak* mendapat watermark dan *tidak* mendapat provenans miliknya sendiri; hanya aset induk yang selesai yang mendapatkannya. (Komposisi mencakup SVG dan format raster; HTML/MD/TXT tidak dapat disusun.)
+Ekspor mencatat design system yang membuat file: namanya, versi terbit tempat file digambar (bila bukan versi kerja), dan [colourway](/info/colourways.html) tempat file digambar. Pilihan tema lain yang dideklarasikan design system, seperti kepadatan, dicatat dengan cara yang sama. Pilihan terang atau gelap tidak disertakan, karena gambar sudah menunjukkan yang mana yang dipakai.
 
-## Perlindungan kata sandi
+**Anda melihat catatan sebelum apa pun ditulis.** Kartu **Design system**, tercentang secara default, menampilkan kata-kata persis yang akan dibawa file, seperti *Records: Acme · Colourway: Beach*, dan deskripsi sebagaimana akan terbaca. Nama design system adalah apa pun yang diketik pemiliknya, jadi kartu menampilkannya sebagaimana ditulis. Hapus centang kartu untuk tidak menyertakan catatan dalam ekspor itu. Panel dokumen Design mencantumkan kata-kata yang sama di bawah *Embedded in exports*.
 
-Dua jenis kunci independen, keduanya sepenuhnya on-device.
+**Deskripsi menyebut colourway di samping alat.** Dengan kartu tercentang, *"Made with https://lolly.tools : Chart"* menjadi *"Made with https://lolly.tools : Chart (Beach colourway)"*. Nama design system sendiri tetap di catatan, bukan di deskripsi. Deskripsi tanpa nama alat, atau yang ditulis alat dari inputnya sendiri, dibiarkan apa adanya. Alat yang mengabaikan colourway melalui `tokenAxes` tidak mencatat satu pun, dan kredit proof PDF (tanda cetak `prov`) mengikuti aturan yang sama.
 
-**Kata sandi buka PDF** - kartu *Password protect* di panel ekspor menawarkan dua tingkat setelah kata sandi diketik:
+**Brand skill yang memandu agen.** Bila agen membuat karya dan menyebut [brand skills](/info/brand-skills.html) yang dibaca dan diikutinya, catatan juga mencantumkan setiap skill beserta revisinya, seperti *Guided by: acme-brand 1.0*. Kata-kata itu berarti skill memandu pekerjaan. Itu bukan pemeriksaan: Lolly tidak menguji karya terhadap skill. Hanya pernyataan agen sendiri yang menambahkan daftar, yang saat ini berarti argumen `brandSkills` pada `lolly_render` milik [server MCP](/info/mcp.html), jadi karya yang dibuat di aplikasi atau dari tautan berbagi tidak membawa satu pun. Content Credential menyimpan daftar sebagai `brandSkills`, satu nilai JSON dengan id, nama, revisi, dan hash SHA-256 tiap skill. Paket XMP dan metadata SVG menyimpan nilai yang sama sebagai `lolly:BrandSkills`, PDF yang ditulis dari catatan mendapat satu kata kunci per skill, dan deskripsi tetap seperti semula. Skill internal dicatat menurut id, nama, revisi, dan hash-nya, tidak pernah menurut teksnya. Sakelar yang sama membuang daftar bersama sisa catatan: kartu **Design system**, `_madewith=0`, `--no-madewith`, dan `madeWith: false`. Bila server MCP menggambar file di browser (PDF, JPEG, dan format lain yang tidak dapat ditulis jalur tanpa browsernya), metadata file sendiri tidak menyimpan daftar dan hanya Content Credential yang dapat. Berikan `c2pa` untuk mempertahankan catatan; tanpa kredensial render memperingatkan bahwa brand skill tidak dicatat.
 
-![Kartu Password protect yang diperluas pada ekspor PDF, dengan bidang kata sandi dan dua tingkat kunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+**Membaca catatan kembali.** [Verify](/verify) mencantumkan catatan sebagai **Design system** dalam detail kredensial file dan brand skill apa pun sebagai **Guided by**. *Recreate with these settings* membuka kembali alat pada versi dan colourway yang dicatat. Tautan terbuka dengan design system yang dicatat bila perangkat ini memiliki satu dengan id dan nama yang sama; jika tidak, terbuka dengan design system aktif Anda.
 
-- **Weak** - kata sandi sederhana 40-bit (RC4). Penghalang ringan, bukan perlindungan sungguhan: kata sandinya bisa ikut dalam tautan berbagi (teks polos). Hanya `pdf` RGB.
-- **Strong** - AES-256 (PDF 2.0). Kata sandinya diketik saat ekspor dan **tidak pernah** dimasukkan ke tautan. Strong juga berlaku untuk **PDF Print / CMYK** dan untuk **setiap PDF di dalam zip batch** (dialog konfirmasi batch mengumpulkan kata sandinya). Karena PDF/X-4 melarang enkripsi, PDF Print yang dikunci Strong tetap mempertahankan CMYK, tanda cetak dan output-intent-nya tetapi kehilangan klaim kesesuaian PDF/X-4.
+::: details Apa yang ditulis di mana, dan proses mana yang tidak menyertakan catatan
+| Di mana | Apa yang ditulis |
+|---|---|
+| Content Credential | `designSystem` (id), `designSystemLabel`, `designVersion`, dan `themes` dalam assertion `tools.lolly.export`, masing-masing nilai teks biasa; `themes` adalah daftar JSON dari pilihan |
+| PNG, JPEG, WebP, dan JXL | Empat nilai yang sama sebagai properti `lolly:` pada paket XMP file, dalam namespace `https://lolly.tools/ns/export/1.0/` |
+| SVG | Properti `lolly:` yang sama di dalam blok `<metadata>` |
+| PDF | Kata kunci seperti *Design system: Acme* dan *Colourway: Beach* |
+| Setiap format dengan field deskripsi | Deskripsi, dengan colourway di samping alat |
 
-Kedua tingkat saling eksklusif dengan Content Credentials (PDF terenkripsi tidak bisa membawa kredensial).
+Kartu muncul hanya bila ada yang dicatat dan format dapat memuat catatan. CSV, JSON, file kalender, dan format teks atau data lain tidak memuat metadata, dan EPS, EMF, DXF, dan BMP tidak memiliki field untuk catatan. HTML, Markdown, dan CSS memuat catatan hanya di Content Credential-nya, jadi untuk mereka kartu tidak menampilkan baris deskripsi dan bersembunyi saat **C2PA Credentials** mati. Field yang tidak diberikan design system tidak masuk ke file.
 
-**Unduhan terkunci (seluruh-zip + defense-in-depth)** - ekspor **ZIP** (format *ZIP* di panel ekspor, yang menggabungkan beberapa format tool sekaligus), unduhan **folder** (Projects → Download) atau **grid batch** dapat mengunci seluruh zip dengan satu kata sandi, pada dua tingkat:
+Tautan berbagi mematikan catatan dengan `_madewith=0` ([URL parameters](/info/url-parameters.html)); baris perintah menerima `--no-madewith`, `lolly_render` milik [server MCP](/info/mcp.html) menerima `madeWith: false`, dan panel ekspor aplikasi terminal memiliki baris **Design system**. Baris perintah mencetak kata-kata yang dibawa file jadi ke standard error, untuk render alat dan untuk setiap file yang diekspor `lolly run` dari sesi Design tersimpan, dan render MCP mencetaknya di samping file, keduanya dibaca kembali dari file. PNG yang digambar baris perintah tanpa browser tidak membawa metadata file, jadi catatannya ikut hanya dalam kredensial. Utilitas di perangkat tidak menambahkan metadata sama sekali.
 
-- **Weak** - **ZipCrypto** tradisional, sekadar penghalang. Kata sandinya bisa ikut dalam tautan berbagi `?password=`.
-- **Strong** - enkripsi **AES-256**. Diketik saat ekspor, tidak pernah dimasukkan ke tautan.
+Proses tanpa kartu **Design system** tidak menyertakan catatan: proses Batch, folder yang diekspor dari Projects, dan ekspor koleksi 3D, dan di aplikasi terminal ekspor batch CSV, folder atau pilihan Projects, dan tampilan render-everything. Ekspor satu file dari alat untuk mencatat design system.
+:::
 
-Kartu *Password protect* yang sama di panel ekspor menggerakkan kunci PDF dan ZIP. Satu kata sandi melindungi **setiap** anggota - gambar, SVG, semuanya, termasuk PDF (hanya kontainer zip yang dapat melindungi file non-PDF, yang tidak punya kunci sendiri). Dan ini **defense-in-depth**: PDF apa pun di dalamnya *juga* dikunci AES-256 secara individual dengan kata sandi yang sama, sehingga PDF tetap terkunci bahkan setelah zip dibongkar. Prompt muncul saat Anda memulai unduhan; kata sandi kosong berarti tanpa kunci.
+### Content Credentials (C2PA)
 
-**Tautan berbagi berpagar kata sandi** - tautan berbagi apa pun dapat dienkripsi sehingga membukanya meminta kata sandi dari penerima. Seluruh state tautan dienkripsi AES-256 dengan kunci yang diturunkan dari kata sandi (PBKDF2); hanya ciphertext yang berpindah, jadi **kata sandi tidak pernah ada di tautan** dan dekripsi terjadi **di peramban penerima** - server yang menyajikan tautan hanya melihat ciphertext di URL, tidak pernah kata sandi dan tidak pernah desain yang sudah didekripsi. Aktifkan di dialog **Share**. Tautan terenkripsi hanya bisa *dibuka* di Lolly (tidak bisa disematkan sebagai gambar, karena jalur itu tidak bisa meminta kata sandi). Lihat [URL Mode → Encrypted links](/info/url-mode.html).
+Ekspor dapat membawa **Content Credentials**: manifes [C2PA](https://c2pa.org) bertanda tangan yang mencatat apa yang membuat file, kapan, dan di mana, terikat pada hash byte file sehingga setiap suntingan sesudahnya dapat terdeteksi. Spesifikasinya diterbitkan oleh C2PA, dan Lolly menulis manifes standar yang dapat diperiksa pembaca C2PA mana pun.
 
-## Content Credentials (C2PA)
+![Kartu C2PA Credentials, tercentang, dengan masa berlaku kredensial di samping kotak centang](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-Ekspor dapat membawa **Content Credentials** - manifes [C2PA](https://c2pa.org) yang ditandatangani dan disematkan dalam file, yang mencatat, dengan cara yang tahan perubahan, bahwa file tersebut dibuat dengan Lolly dan belum diubah sejak itu. Ini adalah versi standar dari metadata provenans di atas: klaim kriptografis (apa yang membuat file, kapan, oleh siapa dan di mana) yang terikat pada hash byte file, sehingga perubahan berikutnya dapat dideteksi oleh penampil yang mendukung C2PA. Standar ini dikelola oleh [Content Authenticity Initiative](https://contentauthenticity.org) (Adobe, BBC, Microsoft, Nikon dan lainnya), jadi kredensial yang ditulis Lolly sama dengan yang mulai diadopsi kamera, ruang redaksi dan suite kreatif.
-
-![Kartu C2PA Credentials, sudah tercentang, dengan masa berlaku kredensial di sampingnya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
-
-- **Format.** Setiap kontainer dengan penyematan C2PA: **PDF** (RGB dan Print), **PNG / Animated PNG**, **JPG**, **GIF**, **SVG**, **TIFF** (RGB dan Print), **WebP** (diam dan animasi), **AVIF**, **MP4**, **WebM** dan kontainer audio **MP3**, **WAV**, **M4A** dan **OGG/Opus** - jadi klip suara rekaman atau sintesis dikirim dengan kredensial yang sama seperti gambar. Bundel **ZIP** menstempel setiap anggota yang didukung secara individual, yang juga menjadi cara **Animated SVG** mendapatkannya (di baliknya ini hanyalah dokumen SVG biasa; ekspor Animated SVG langsung tidak menawarkan kartunya sendiri). MP4, AVIF dan M4A menggunakan pengikatan BMFF dari spesifikasi dan MP3 memakai pemetaan ID3v2-nya, sehingga `c2patool` dan penampil lain yang mendukung C2PA dapat memverifikasinya; **WebM** dan **OGG/Opus** belum punya pemetaan C2PA baku, jadi Lolly membawa manifesnya sebagai lampiran Matroska dan bidang OpusTags secara berturutan, yang diperiksa oleh verifier Lolly sendiri (dan CLI). (`ico`, `eps`, `emf`, `dxf`, `bmp`, `pptx`, format Office serta format teks/data tidak memiliki kontainer C2PA.)
-- **Aktif secara default.** Kartu **C2PA Credentials** di panel ekspor sudah terpilih untuk hampir semua tool - hilangkan centangnya untuk melewati kredensial pada satu ekspor (atau sertakan `c2pa=off` di tautan berbagi). Sebuah tool bisa memilih keluar sepenuhnya di manifesnya.
-- **Apa yang dicatat.** Tool dan aplikasi yang membuat file, waktu penandatanganan, permukaan ekspor (keluarga mesin peramban + keluarga OS - sengaja kasar, tidak pernah menjadi sidik jari) dan - hanya ketika *Profile → Use my details* aktif - nama dan email Anda sebagai pembuat karya.
-- **Apa yang dilihat penerima.** Tool pemeriksa content credentials (aplikasi Adobe, `c2patool`, contentcredentials.org/verify) akan membaca manifes dan menampilkan klaimnya. Karena Lolly menandatangani dengan kunci yang dibuat **di perangkat Anda** - bukan sertifikat dari daftar tepercaya - penampil melaporkannya sebagai kredensial *tidak terverifikasi*. Struktur dan bukti anti-rusaknya nyata; hanya identitas penanda tangan yang tidak dijamin oleh otoritas mana pun. Untuk meningkatkannya, Anda dapat mendaftarkan **identitas terverifikasi** (Profile → Content Credentials): sertifikat berumur pendek dari Lolly CA mengikat email Anda ke ekspor Anda sementara kunci penandatanganan tetap tidak pernah meninggalkan perangkat Anda - lihat [Content Credentials Identity](/info/content-credentials-identity.html).
-- **Memeriksa file.** Lolly juga memverifikasi kredensialnya sendiri: jatuhkan file apa pun di [/verify](/verify) (atau jalankan `lolly validate <file>` di CLI) untuk laporan on-device - berjudul apakah file benar-benar dibuat dengan Lolly dan tidak berubah sejak itu. Tampilan Verify web membaca jauh melampaui kredensial: menandai **konten hasil AI**, mendeteksi **Lolly Imprint**, memeriksa tanda tangan **SEAL** dan (opsional) watermark piksel pihak ketiga serta menampilkan **data tersembunyi** - semua on-device, tidak ada yang diunggah. Lihat [Content Credentials Identity → Beyond the credential](/info/content-credentials-identity.html#beyond-the-credential-what-else-verify-shows).
-- **Privasi.** Semuanya terjadi di perangkat Anda: kunci penandatanganan dibuat untuk ekspor tersebut dan tidak pernah meninggalkan peramban, tidak ada yang diunggah dan klaimnya hanya berisi apa yang sudah dibawa metadata provenans. Utilitas privasi (transformasi on-device pada file Anda *sendiri*) tidak pernah menambahkan kredensial, dan *Strip Hidden Data* akan menghapus manifes C2PA seperti metadata tersemat lainnya.
-- **Interaksi.** Untuk PDF, Content Credentials dan **perlindungan kata sandi** (tingkat mana pun - lihat di atas) saling eksklusif (PDF terenkripsi tidak bisa membawa lampiran kredensial). Kredensial ditambahkan sebagai langkah terakhir di atas byte final - setelah penandaan DPI/EXIF/profil warna, metadata PDF/X dan tanda cetak.
+- **Aktif secara default.** Kartu **C2PA Credentials** sudah terpilih untuk hampir setiap alat. Hapus centang untuk satu ekspor, atau berikan `c2pa=off` di tautan. Alat dapat menolak di manifesnya.
+- **Format.** PDF (RGB dan Print), PNG dan APNG, JPG, GIF, SVG, TIFF (RGB dan Print), WebP (diam dan animasi), AVIF, MP4, WebM, kontainer audio MP3, WAV, M4A, OGG/Opus, dan FLAC, serta HTML, Markdown, dan CSS. ZIP menstempel setiap anggota yang didukung, begitulah Animated SVG mendapatkannya. MP4, AVIF, dan M4A memakai pengikatan BMFF standar dan MP3 pemetaan ID3v2-nya, sehingga `c2patool` dan pembaca lain memverifikasinya. WebM dan OGG/Opus belum memiliki pemetaan standar, jadi Lolly membawa manifes sebagai lampiran Matroska dan field OpusTags, yang diperiksa verifier Lolly sendiri. ICO, EPS, EMF, DXF, BMP, PPTX, format Office, dan format teks atau data lain tidak memiliki kontainer C2PA.
+- **Apa yang dicatat.** Alat dan aplikasi yang membuat file, waktu penandatanganan, shell yang mengekspornya, [design system dan colourway](#the-design-system-record) selama kartu **Design system** tercentang, dan sidik jari input aktif. Teks input, field terikat profil, kontrol tidak aktif, versi browser, dan detail sistem operasi tidak disertakan. Nama dan email Anda muncul sebagai pembuat hanya bila **Use my details to create** aktif di Settings → Preferences → Your details. Sumber yang ditempatkan ekspor ikut sebagai ingredient: [karya berkredit](#source-credits) seperti emoji, dan [lagu Rondocode](/info/rondocode.html#songs-in-the-credential) dalam ekspor video atau audio.
+- **Apa yang dilihat penerima.** Alat C2PA seperti aplikasi Adobe, `c2patool`, dan contentcredentials.org/verify membaca manifes dan menampilkan klaimnya. Lolly menandatangani dengan kunci yang dibuat di perangkat Anda, bukan sertifikat dari daftar kepercayaan, sehingga penampil melaporkan kredensial *unverified*: struktur dan bukti perusakan nyata, penandatangannya tidak dijamin. Untuk mengubahnya, daftarkan **verified identity** di Settings → Preferences → Content Credentials; lihat [Content Credentials Identity](/info/content-credentials-identity.html).
+- **Memeriksa file.** Letakkan file apa pun di [Verify](/verify), atau jalankan `lolly validate <file>`, untuk laporan di perangkat yang membuka dengan apakah Lolly yang membuat file dan apakah file berubah sejak itu. Verify juga melihat di luar kredensial; lihat [What Verify checks](/info/what-verify-checks.html).
+- **Privasi.** Kunci penandatanganan dibuat untuk ekspor dan tidak pernah meninggalkan perangkat Anda, dan klaim hanya memuat apa yang sudah dibawa metadata provenansi. Utilitas privasi yang mentransformasi file Anda sendiri tidak menambahkan kredensial, dan *Strip Hidden Data* menghapus manifes C2PA seperti metadata lain. Utilitas Rondocode membuat audio baru, jadi ia menandatangani apa yang ditulisnya ([Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility)).
+- **Interaksi.** PDF berkata sandi tidak dapat membawa Content Credentials, pada kedua tingkat. Kredensial ditambahkan terakhir, di atas byte jadi, setelah DPI, EXIF, profil warna, metadata PDF/X, dan tanda cetak.
 
 ### Source credits
 
-Ekspor yang menempatkan karya milik orang lain juga mencatat sumber itu di dalam kredensialnya. Emoji yang diambil dari set yang dipasangkan (pinned) adalah kasus sehari-hari: karya, penciptanya, lisensinya, dari mana byte yang persis itu berasal, dan apa yang berubah, semuanya ikut bersama file tersebut. Baris **Source credits** pada panel ekspor menyatakan apa yang diminta sumber-sumber itu untuk pengiriman ini sebelum Anda mengunduh, dan setelah pengunduhan baris ini membaca kembali byte yang dikirimkan sebelum menyatakan kreditnya ada di dalam file. Lisensi yang meminta Anda memilih, seperti glyph CC BY-SA yang diwarnai ulang dan akan Anda bagikan, mendapat sebuah kartu berisi jalan keluarnya; unduhannya tidak pernah diblokir. [Hak kreatif dan kredit](/info/creative-rights.html) memuat istilah-istilahnya, lisensi yang telah ditinjau, dan apa yang tetap menjadi milik Anda.
+Ekspor yang menempatkan karya orang lain mencatat sumber itu dalam kredensial. Emoji yang digambar dari set emoji terpilih adalah kasus sehari-hari: karya, pembuatnya, lisensi, asal byte persisnya, dan apa yang berubah semuanya ikut bersama file. Teks pada alat yang templatnya SVG mempertahankan emoji sistem sendiri, jadi tidak ada yang dikreditkan di sana. Baris **Source credits** menyatakan apa yang diminta sumber dari pengiriman sebelum Anda mengunduh, dan setelah unduhan ia membaca kembali byte yang dikirim sebelum menyatakan bahwa kredit ada dalam file. Lisensi yang meminta Anda memilih, seperti glyph CC BY-SA yang diwarnai ulang yang akan Anda bagikan, mendapat kartu dengan opsi; unduhan tidak pernah diblokir. [Creative rights and credits](/info/creative-rights.html) memuat kata-katanya, lisensi yang ditinjau, dan apa yang tetap milik Anda.
+
+## Perlindungan kata sandi
+
+Dua jenis kunci, keduanya dibuat di perangkat Anda. Kartu *Password protect* pada panel ekspor menggerakkan keduanya.
+
+![Kartu Password protect yang diperluas pada ekspor PDF, dengan bidang kata sandi dan dua tingkat kunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+
+**Kata sandi buka PDF** memiliki dua tingkat begitu Anda mengetik kata sandi:
+
+- **Weak**: RC4 40-bit, penangkal, bukan perlindungan. Kata sandinya dapat ikut dalam tautan berbagi, sebagai teks biasa. Hanya `pdf` RGB.
+- **Strong**: AES-256 (PDF 2.0). Diketik saat ekspor dan tidak pernah ditaruh di tautan. Berlaku juga untuk Print PDF dan setiap PDF dalam ZIP batch. Print PDF yang dikunci Strong mempertahankan CMYK, tanda, dan output intent tetapi membuang klaim PDF/X-4.
+
+**ZIP terkunci** mencakup ekspor ZIP, unduhan folder dari Projects, atau batch, dengan satu kata sandi pada dua tingkat: **Weak** (ZipCrypto, penangkal; dapat ikut dalam tautan `?password=`) atau **Strong** (AES-256, diketik saat ekspor, tidak pernah di tautan). Kata sandi melindungi setiap anggota, dan PDF di dalamnya juga dikunci dengan AES-256 sendiri, sehingga tetap terkunci setelah ZIP dibuka. Perintah muncul saat unduhan dimulai; kata sandi kosong berarti tanpa kunci.
+
+**Tautan berbagi dengan gerbang kata sandi** meminta penerima memasukkan kata sandi sebelum terbuka. Seluruh status tautan dienkripsi dengan AES-256 di bawah kunci yang diturunkan dari kata sandi (PBKDF2), sehingga hanya ciphertext yang ikut dan dekripsi terjadi di browser penerima. Server yang melayani tautan tidak pernah melihat kata sandi atau desain. Aktifkan di dialog **Share**. Tautan terenkripsi hanya terbuka di Lolly, tidak pernah sebagai gambar tersemat. Lihat [URL Mode](/info/url-mode.html).
 
 ## Di ponsel
 
-Kontrol ekspor berada di balik tombol mengambang **Ekspor**, yang membuka lembar **Ekspor** - format, ukuran, salin, unduh dan berbagi yang sama, dibuat pas untuk sentuhan.
+Kontrol ekspor berada di balik tombol **Export** mengambang, yang membuka sheet **Export**: format, ukuran, salin, unduh, dan berbagi yang sama, berukuran untuk sentuhan.
 
-## Referensi format
+## Id format untuk tautan dan CLI
 
-Setiap id yang dapat dirender host, dikelompokkan. Ini juga menjadi nilai untuk parameter URL `format=` dan flag CLI `--export=` - lihat [URL Mode](/info/url-mode.html) dan [CLI](/info/cli.html). Menu sebuah tool hanya menampilkan format yang dapat dibuat tool tersebut, sehingga selalu lebih pendek daripada daftar ini.
+Ini adalah nilai untuk parameter URL `format=` dan flag CLI `--export=` (lihat [URL parameters](/info/url-parameters.html) dan [CLI](/info/cli.html)). Menu alat hanya menampilkan format yang dapat dibuat alat itu, jadi selalu lebih pendek dari daftar ini.
 
 | Jenis | Id |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
-| Vektor | `svg` · `svgz` (SVG ter-gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (file potong) |
-| Halaman & dokumen | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (paket kursus SCORM, sebuah zip) · `penpot` (file desain Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Gerak | `gif` · `apng` (PNG animasi) · `webp-anim` (WebP animasi) · `svg-anim` (SVG animasi) · `webm` · `mp4` |
-| Audio | `wav` · `mp3` · `m4a` · `opus` |
-| Teks & data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (palet GIMP) |
-| Bundel | `zip` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `jxl` · `jxl-lossless` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Vektor | `svg` · `svgz` (SVG gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (file potong) |
+| Halaman dan dokumen | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (file desain Penpot) · `scorm` (paket kursus, sebuah ZIP) |
+| Gerak | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Teks dan data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (palet GIMP) |
+| Bundel dan paket | `zip` · `rpm` dan `tar.gz` (render disegel ke paket Linux) |
 
-Ada beberapa id lagi yang berasal dari **hook ekspor milik tool itu sendiri**, bukan dari jalur render bersama: `ase` (Adobe Swatch Exchange, dari Palette Lab), `exr` dan `hdr` (raster high-dynamic-range milik Darkroom) dan `ttf` / `otf` / `woff` (Font Convert). Cara memilih formatnya sama - pemilih, `format=`, `--export=` - hanya byte-nya yang dibuat oleh tool tersebut. Font Convert adalah satu-satunya pengecualian: ia mengubah file font yang Anda pasok sendiri, jadi tidak ada yang bisa dirender oleh URL polos.
+Beberapa id berasal dari kode ekspor alat sendiri: `ase` (Adobe Swatch Exchange, dari Palette Lab) serta `exr` dan `hdr` (raster rentang dinamis tinggi, dari Darkroom). **Convert Font** menulis `ttf`, `otf`, dan `woff` dari file font yang Anda berikan, jadi tautan kosong tidak memiliki apa pun untuk dirender.

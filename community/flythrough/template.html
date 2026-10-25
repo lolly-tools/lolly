@@ -619,10 +619,15 @@
     var t0 = null, resumeAfterDrive = false;
     function loop() {
       if (disposed || !alive()) return;
+      // A detached canvas is a dead preview. The epoch above only moves when this
+      // tool paints AGAIN, so a one-shot render (a gallery look, a batch row) whose
+      // stage was removed kept this loop drawing for the rest of the session.
+      if (!canvas.isConnected) { disposeAll(); return; }
       if (canvas.__lollyFrameDriven) { raf = requestAnimationFrame(loop); return; }
       if (resumeAfterDrive) { t0 = null; resumeAfterDrive = false; }
       raf = requestAnimationFrame(function (ts) {
         if (disposed || !alive()) return;
+        if (!canvas.isConnected) { disposeAll(); return; }
         if (t0 === null) t0 = ts;
         var elapsed = (ts - t0) / 1000;
         var p = (cfg.duration <= 0) ? 0 : (elapsed / cfg.duration);
@@ -731,24 +736,24 @@
     renderFrame(0);
     if (!disposed) loop();
 
-    window.__lollyFly = {
-      dispose: function () {
-        disposed = true;
-        if (raf) cancelAnimationFrame(raf);
-        for (var i = 0; i < layerMeshes.length; i++) {
-          var L = layerMeshes[i];
-          try {
-            L.front.geometry.dispose(); L.front.material.dispose(); L.shadow.material.dispose();
-            for (var k = 0; k < L.solids.length; k++) { L.solids[k].geometry.dispose(); L.solids[k].material.dispose(); }
-          } catch (e) {}
-        }
-        for (var j = 0; j < textures.length; j++) { try { textures[j].dispose(); } catch (e) {} }
-        try { if (floorMesh) { floorMesh.geometry.dispose(); floorMesh.material.dispose(); } if (floorTex) floorTex.dispose(); } catch (e) {}
-        try { if (measSvg && measSvg.parentNode) measSvg.parentNode.removeChild(measSvg); } catch (e) {}
-        try { renderer.dispose(); } catch (e) {}
-        try { renderer.forceContextLoss(); } catch (e) {}
+    function disposeAll() {
+      if (disposed) return;
+      disposed = true;
+      if (raf) cancelAnimationFrame(raf);
+      for (var i = 0; i < layerMeshes.length; i++) {
+        var L = layerMeshes[i];
+        try {
+          L.front.geometry.dispose(); L.front.material.dispose(); L.shadow.material.dispose();
+          for (var k = 0; k < L.solids.length; k++) { L.solids[k].geometry.dispose(); L.solids[k].material.dispose(); }
+        } catch (e) {}
       }
-    };
+      for (var j = 0; j < textures.length; j++) { try { textures[j].dispose(); } catch (e) {} }
+      try { if (floorMesh) { floorMesh.geometry.dispose(); floorMesh.material.dispose(); } if (floorTex) floorTex.dispose(); } catch (e) {}
+      try { if (measSvg && measSvg.parentNode) measSvg.parentNode.removeChild(measSvg); } catch (e) {}
+      try { renderer.dispose(); } catch (e) {}
+      try { renderer.forceContextLoss(); } catch (e) {}
+    }
+    window.__lollyFly = { dispose: disposeAll };
   }
 })();
 </script>

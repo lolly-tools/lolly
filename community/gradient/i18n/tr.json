@@ -1,6 +1,6 @@
 {
   "name": "Gradyan",
-  "description": "Marka renklerinden yumuşak, mesh tarzı gradyanlar. Renk noktalarını doğrudan tuval üzerinde sürükle ya da Kayma özelliğini aç, döngüyü WebM, MP4 veya GIF olarak dışa aktar.",
+  "description": "Tasarım sistemi renk örneklerinden gradyan oluşturmanın beş yolu: yumuşak radyal Blend, keskin SVG olarak gerçek bir Coons yaması ağı (Subdivide) veya pürüzsüz bir raster (Mesh), serbest Warp noktaları ve hareketli Flow dalgaları. Her şeyi doğrudan tuval üzerinde sürükle; durağan görselleri ya da kesintisiz video döngülerini dışa aktar.",
   "a11yLabel": "{{count}} rengi harmanlayan mesh gradyan",
   "inputs.count.label": "Renk noktaları",
   "inputs.color1.label": "Renk 1 (taban)",

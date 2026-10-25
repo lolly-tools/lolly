@@ -40,6 +40,7 @@ import { escape } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import { canGoBack, getPrevView } from '../lib/back-nav.ts';
 import { navigateTo } from '../nav.ts';
+import { flushAddressWrites } from '../lib/url-state.ts';
 import { homeFabEl, homeFabHtml } from './home-fab.ts';
 
 import { homeHref, navigateHome } from '../lib/home-destination.ts';
@@ -185,6 +186,7 @@ export interface MountBackPillOpts {
 
 /** Perform the back step for an already-rendered pill. */
 function leave(el: HTMLElement): void {
+  flushAddressWrites(); // the entry being left keeps the latest state of its view
   if (el.dataset.backPill === 'history' && window.history.length > 1) {
     window.history.back();
     return;

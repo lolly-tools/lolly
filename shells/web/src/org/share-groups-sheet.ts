@@ -113,7 +113,7 @@ export function openShareGroupSheet(opts: ShareGroupSheetOptions = {}): void {
       const controls = el('div', 'share-access-controls');
       if (row.role !== 'owner' && isOwner() && !row.fresh) {
         const id = `${findId}-mgr-${row.id}`;
-        const box = el('input');
+        const box = el('input', 'field-check');
         box.type = 'checkbox';
         box.id = id;
         box.checked = managers.has(row.id);

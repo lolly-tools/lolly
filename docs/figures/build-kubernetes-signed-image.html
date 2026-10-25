@@ -1,0 +1,81 @@
+<!--
+  Concept: From a reviewed commit to running pods: the signed frontend is made in protected jobs, then the image build only verifies (no network) and packages it on nginx-unprivileged, and the chart runs two web pods with MCP and CA opt-in.
+  Band Contract: static fragment scoped under .ksi, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network, so the complete figure renders with JS disabled and in both themes.
+  Sources: deploy/docker/web.Dockerfile (verify and runtime stages), .github/workflows/release-frontend.yml, deploy/docker/README.md, deploy/helm/values.yaml.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by
+  Andy Fitzsimon on 2026-10-23. The C2PA signature added at bank time is the first provenance record
+  of this file.
+-->
+<style>
+.ksi{--ksi-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ksi-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ksi-ground:hsl(var(--secondary,84.5 55% 92.2%));--ksi-paper:hsl(var(--card,0 0% 100%));
+ --ksi-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ksi-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --ksi-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--ksi-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --ksi-wash:color-mix(in oklab,var(--ksi-accent) 12%,var(--ksi-paper));
+ --ksi-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--ksi-ink);background:var(--ksi-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.ksi *{box-sizing:border-box}
+.ksi ul,.ksi ol{list-style:none;margin:0;padding:0}
+.ksi li{list-style:none;margin:0;font-size:inherit}
+.ksi p{margin:0}
+.ksi code{font:500 .8em/1.3 var(--ksi-mono);background:var(--ksi-soft);border-radius:5px;padding:.08em .32em;white-space:nowrap}
+.ksi b{font-weight:600}
+.ksi .ksi-cap{font:600 11px/1.3 var(--ksi-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ksi-muted)}
+.ksi .ksi-card{background:var(--ksi-paper);border-radius:16px;box-shadow:0 0 0 1px var(--ksi-line);padding:14px}
+.ksi .ksi-title{font-weight:600;font-size:1.02rem;line-height:1.2}
+.ksi .ksi-note{font-size:.84rem;color:var(--ksi-muted)}
+.ksi .ksi-tag{display:inline-block;font:600 11px/1.2 var(--ksi-mono);letter-spacing:.03em;padding:3px 8px;border-radius:999px;background:var(--ksi-wash);color:var(--ksi-ink)}
+.ksi .ksi-tag.ksi-solid{background:var(--ksi-accent);color:var(--ksi-on-accent)}
+.ksi .ksi-down{display:flex;justify-content:center;padding:6px 0}
+.ksi .ksi-down i{display:block;width:2px;height:18px;background:var(--ksi-line);position:relative}
+.ksi .ksi-down i::after{content:"";position:absolute;left:-5px;bottom:-6px;border:6px solid transparent;border-top-color:var(--ksi-muted);border-bottom:0}
+.ksi .ksi-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;counter-reset:none}
+.ksi .ksi-steps>li{display:grid;gap:7px;align-content:start;position:relative}
+.ksi .ksi-steps>li:not(:last-child)::after{content:"";position:absolute;right:-9px;top:22px;border:5px solid transparent;border-left:6px solid var(--ksi-muted);border-right:0;z-index:1}
+.ksi .ksi-keys{background:var(--ksi-wash)}
+.ksi .ksi-title code{white-space:normal;word-break:break-word}
+.ksi .ksi-sub{display:grid;gap:4px;font-size:.82rem;line-height:1.3}
+.ksi .ksi-sub li{padding-left:12px;position:relative}
+.ksi .ksi-sub li::before{content:"";position:absolute;left:0;top:.5em;width:5px;height:5px;border-radius:50%;background:var(--ksi-muted)}
+.ksi .ksi-flag{font-size:.8rem;display:grid;gap:4px;justify-items:start}
+.ksi .ksi-pods{display:flex;flex-wrap:wrap;gap:5px}
+.ksi .ksi-pods li{font:600 11px/1 var(--ksi-mono);padding:6px 8px;border-radius:8px;box-shadow:inset 0 0 0 1.5px var(--ksi-line);color:var(--ksi-muted)}
+.ksi .ksi-pods li.ksi-on{background:var(--ksi-accent);color:var(--ksi-on-accent);box-shadow:none}
+.ksi .ksi-band{margin-top:12px;text-align:center;font-size:.86rem;color:var(--ksi-muted)}
+@container (max-width:760px){.ksi .ksi-steps{grid-template-columns:minmax(0,1fr)}.ksi .ksi-steps>li:not(:last-child)::after{right:auto;left:22px;top:auto;bottom:-9px;border:5px solid transparent;border-top:6px solid var(--ksi-muted);border-bottom:0}}
+</style>
+<div class="ksi">
+<ol class="ksi-steps">
+<li class="ksi-card">
+<p class="ksi-cap">1 · Source</p>
+<p class="ksi-title">A reviewed commit</p>
+<p class="ksi-note">The exact source the release names.</p>
+</li>
+<li class="ksi-card ksi-keys">
+<p class="ksi-cap">2 · Signed frontend</p>
+<p class="ksi-title"><code>release-frontend.yml</code></p>
+<ul class="ksi-sub"><li>Sign the source catalog</li><li>Compile with only the public pin</li><li>Sign the output catalog and a receipt</li></ul>
+<p class="ksi-flag"><span class="ksi-tag ksi-solid">keys live here</span> in protected jobs</p>
+</li>
+<li class="ksi-card">
+<p class="ksi-cap">3 · verify stage</p>
+<p class="ksi-title">No network</p>
+<ul class="ksi-sub"><li>The receipt and every file</li><li>The signed catalog</li><li>Source, profile and public pin</li><li>The WebGPU release gate</li></ul>
+</li>
+<li class="ksi-card">
+<p class="ksi-cap">4 · runtime stage</p>
+<p class="ksi-title"><code>nginx-unprivileged</code></p>
+<ul class="ksi-sub"><li>uid 101, port 8080</li><li>The security headers on every response</li></ul>
+</li>
+<li class="ksi-card">
+<p class="ksi-cap">5 · Cluster</p>
+<p class="ksi-title">Chart pods</p>
+<ul class="ksi-pods"><li class="ksi-on">web</li><li class="ksi-on">web</li><li>mcp</li><li>ca</li></ul>
+<p class="ksi-note">MCP and CA are optional.</p>
+</li>
+</ol>
+<p class="ksi-band"><span class="ksi-tag">image build</span> steps 3 and 4 run no compiler and never receive a private key</p>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ+Wp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnTanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo0YWZlZGNhNS01OWI0LTRiZTgtYmZhNC1mOWMxMDBhMmM4MzAAAAAESGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjoyNzozOFoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRZyZmxlbmd0aBkNrmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggZre9INT35z/BC3etilTGc28b09hTcSec53Ey3Xkej45jcGFkSAAAAAAAAAAAAAAA3mp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAKpjYm9yp2dzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHgdYnVpbGQta3ViZXJuZXRlcy1zaWduZWQtaW1hZ2VkZGF0ZXgYMjAyNi0xMC0yM1QwNjoyNzozOC4wMTRaaGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAtxqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACrWNib3KmaGRjOnRpdGxleB1idWlsZC1rdWJlcm5ldGVzLXNpZ25lZC1pbWFnZWppbnN0YW5jZUlEeC11cm46dXVpZDowMGYwOGY2ZC1mMDRkLTQxYTItYjU1Yy05M2QwZTFlODZkMzd0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIMmNpvlvwC62x5kmqjnPT6ISEDjc8Tc5wQjBc/s8RVmoomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIEg5J2f/bN25ErEVcGPRwdZMRwCI6jzOaRi1XISP0cPMomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCDnsXRpkj0MDGKntbXCDdtvcqhUT02bvvpLPG7x8rbRg6JjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmBqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjBjYm9y0oRZAd+iASYYIYFZAdYwggHSMIIBeaADAgECAglcY3L0IgLZeU4wCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA2MjYzOFoXDTM2MTAyMDA2MjczOFowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE4u3QlqFWGoH0TDqT0/MdMFgCT3dz+s69vANzOo/2VetEIXSXuUHQjdGE7AgUgPnzAzj7nmjG6lwDzntLS/tenKNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFKgxc2sTmI767M6MN7TD23K/mIGNMB8GA1UdIwQYMBaAFKgxc2sTmI767M6MN7TD23K/mIGNMAoGCCqGSM49BAMCA0cAMEQCIEauibj1XtbkRRPPmhFPyiW7z2mSug4bClPzXhNVEbcbAiA83NnVaF+juXnRiH8+0nlv0BLHG1aaRz8m/mG/9kQsQaD2WEA1lkkdi4wUN4VZxzplb87bkQEF02GRc1ugD/fFCCS5WTqL+yPf6D35u/IiyVDetN0kh9JM1HUiw2t59HsZKiTY -----END C2PA MANIFEST----- -->

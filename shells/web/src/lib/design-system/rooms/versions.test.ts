@@ -223,11 +223,18 @@ test('the name field is the gate: an unslugifiable name cannot be published', as
   const buttons = [...el.querySelectorAll<HTMLButtonElement>('[data-ds-v-publish]')];
   assert.equal(buttons.length, 2, 'publish-and-activate, and publish only');
   assert.ok(buttons.every(b => b.disabled), 'a blank name publishes nothing');
-  assert.match(el.querySelector('[data-ds-v-slugline]')!.textContent!, /letters or numbers/);
+  // Untouched, the blank field says what the name is for rather than shouting.
+  const line = el.querySelector<HTMLElement>('[data-ds-v-slugline]')!;
+  assert.match(line.textContent!, /by its name/);
+  assert.equal(line.classList.contains('is-error'), false, 'no error before anything is typed');
+  assert.equal(input.getAttribute('aria-invalid'), 'false');
 
   input.value = '!!!';
   input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
   assert.ok(buttons.every(b => b.disabled), 'and neither does punctuation');
+  assert.match(line.textContent!, /letters or numbers/);
+  assert.equal(line.classList.contains('is-error'), true);
+  assert.equal(input.getAttribute('aria-invalid'), 'true');
 
   input.value = 'Jupiter 2';
   input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
@@ -674,7 +681,7 @@ test('the mounted panel reads the head and the active system for the strip, and 
   assert.ok(strip, 'the publish form carries the strip');
   assert.match(strip.textContent!, /Acme/);
   assert.match(strip.textContent!, /Editable head/);
-  assert.match(strip.textContent!, /Read-only\. Start can make an editable copy\./);
+  assert.match(strip.textContent!, /Read-only\. Design System Setup can make an editable copy\./);
   assert.deepEqual(writes, [], 'reading the context publishes nothing');
   room.teardown();
 });

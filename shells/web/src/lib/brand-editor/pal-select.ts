@@ -19,6 +19,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
 import { playSfx } from '../sfx.ts';
 import type { SelectTile } from '../design-system/palette-select.ts';
+import { duplicateSwatches } from '../design-system/palette-duplicate.ts';
 import { ROLE_IDS, assignRole, roleLabel } from '../design-system/roles.ts';
 import type { RoleId } from '../design-system/roles.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
@@ -204,6 +205,33 @@ export const copySelectionValues = (bedit: BrandEditorCtx): void => {
     () => announce(t('Copy failed - your browser blocked clipboard access'), { assertive: true }),
   );
 };
+/**
+ * Duplicate: each selected colour gets a copy of its own right after it, under
+ * the same heading, so a person can step a shade lighter or a little more
+ * chroma without losing the colour it came from. One undo entry for the lot.
+ * One copy opens straight in the swatch editor, which is where that step is
+ * taken; several stay selected for the bar's next action.
+ */
+export const duplicateSelection = (bedit: BrandEditorCtx): void => {
+  const { palMount, palSel } = bedit;
+  const items = selectedSwatches(bedit).filter(s => s.kind !== 'semantic');
+  if (!items.length) return;
+  const shown = [...(palMount?.querySelectorAll<HTMLElement>('[data-reorder-row]') ?? [])].map(el => el.dataset.reorderRow ?? '').filter(Boolean);
+  let made: string[][] = [];
+  bulkWrite(bedit, items.length === 1 ? tRaw('Duplicate {name}', { name: items[0]!.name }) : tRaw('Duplicate {n} swatches', { n: items.length }), t('Before duplicating swatches'), () => {
+    made = duplicateSwatches(bedit.doc, items, { ctx: bedit.state.editContext(), shown }).paths;
+  });
+  if (!made.length) return;
+  if (made.length === 1) {
+    palSel.clear(); syncPalSelect(bedit);
+    bedit.swatchEditor.openSwatchAt(made[0]!);
+    announce(`${tRaw('{name} duplicated', { name: items[0]!.name })} ${t('Undo with Control Z.')}`);
+    return;
+  }
+  palSel.set(made.map(path => path.join('␟')));
+  syncPalSelect(bedit);
+  announce(`${tRaw('{n} colours duplicated', { n: made.length })} ${t('Undo with Control Z.')}`);
+};
 /** The Move-to menu's rows: every heading the pane is showing right now, plus
  *  the door to a new one. Built at open time with textContent because the
  *  names are the person's own group headings. */
@@ -338,6 +366,7 @@ export function wireBulkBar(bedit: BrandEditorCtx): void {
     if (role) { bedit.palSelect.giveSelectionRoles(role.dataset.beBulkRole as RoleId); return; }
     const dl = el.closest<HTMLElement>('[data-be-bulk-dl]');
     if (dl) { void bedit.palSelect.downloadSelection(dl.dataset.beBulkDl as SwatchExportFormat); return; }
+    if (el.closest('[data-be-bulk-dup]')) { bedit.palSelect.duplicateSelection(); return; }
     if (el.closest('[data-be-bulk-copy]')) bedit.palSelect.copySelectionValues();
   });
   // No confirm dialog: undo is the safety net (plan 97 section 3 principle 3). The
@@ -542,6 +571,7 @@ export function palSelectOps(bedit: BrandEditorCtx) {
     giveSelectionRoles: bindOp(bedit, giveSelectionRoles),
     downloadSelection: bindOp(bedit, downloadSelection),
     copySelectionValues: bindOp(bedit, copySelectionValues),
+    duplicateSelection: bindOp(bedit, duplicateSelection),
     fillMoveMenu: bindOp(bedit, fillMoveMenu),
     askNewGroup: bindOp(bedit, askNewGroup),
     openBulkMenu: bindOp(bedit, openBulkMenu),

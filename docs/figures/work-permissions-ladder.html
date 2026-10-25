@@ -1,0 +1,93 @@
+<!--
+  Concept: the Lolly Work role ladder, each role adding to the one below, with grants evaluated over the roles and deny winning.
+  Band Contract: static fragment scoped under .lwf, reads the docs theme tokens (light, dark and
+  brand via --secondary, --card, --card-foreground and --primary, with fallbacks), no script, no
+  motion, no network. Narrow containers stack the flow vertically.
+  Sources: docs/work/permissions.md and server/src/rbac/evaluate.ts in lolly-work.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23 for the Lolly Work guides (docs plan 322). The C2PA signature added at bank time is
+  the first provenance record of this file.
+-->
+<style>
+.lwf{--lwf-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--lwf-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --lwf-ground:hsl(var(--secondary,84.5 55% 92.2%));--lwf-paper:hsl(var(--card,0 0% 100%));
+ --lwf-accent:hsl(var(--primary,176.5 89.5% 11.2%));--lwf-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --lwf-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--lwf-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --lwf-yes:#0b6b45;--lwf-warn:#8a5a00;--lwf-no:#a43427;--lwf-off:#5b6770;
+ color:var(--lwf-ink);background:var(--lwf-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .lwf{--lwf-yes:#7ddc97;--lwf-warn:#f0c060;--lwf-no:#ef9275;--lwf-off:#a9b4bc}
+.lwf *{box-sizing:border-box}
+.lwf ol,.lwf ul{list-style:none;margin:0;padding:0}
+.lwf li{list-style:none;margin:0;font-size:inherit}
+.lwf p{margin:0}
+.lwf.lwf b{font-weight:600;color:inherit}
+.lwf.lwf code{font-family:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86em;color:inherit;background:var(--lwf-soft);border-radius:4px;padding:0 .25em}
+.lwf-stack{display:flex;flex-direction:column;gap:10px}
+.lwf-cap{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--lwf-muted);font-weight:600}
+.lwf-node{background:var(--lwf-paper);border-radius:14px;box-shadow:0 0 0 1px var(--lwf-line);padding:10px 12px;
+ display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.lwf-node>b{font-size:.95rem}
+.lwf-node>span{font-size:.82rem;color:var(--lwf-muted)}
+.lwf-node.is-accent{background:var(--lwf-accent);color:var(--lwf-on-accent);box-shadow:none}
+.lwf-node.is-accent>span,.lwf-node.is-accent code{color:inherit;opacity:.88}
+.lwf.lwf .lwf-node.is-accent code{background:transparent}
+.lwf-node.is-muted{background:transparent;box-shadow:0 0 0 1px var(--lwf-line)}
+.lwf-node.is-muted>b{color:var(--lwf-muted)}
+.lwf-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.lwf-flow{display:flex;align-items:stretch;gap:6px}
+.lwf-flow>li{display:flex;align-items:stretch;gap:6px;flex:1 1 0;min-width:0}
+.lwf-arr{width:22px;height:22px;flex:none;align-self:center;color:var(--lwf-muted)}
+.lwf-arr path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lwf-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:8px}
+.lwf-side>li{background:var(--lwf-soft);border-radius:12px;padding:8px 12px;font-size:.84rem;display:flex;flex-direction:column;gap:2px}
+.lwf-side>li>span{color:var(--lwf-muted)}
+.lwf-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:12px}
+.lwf-col{background:var(--lwf-paper);border-radius:14px;box-shadow:0 0 0 1px var(--lwf-line);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.lwf-col-h{display:flex;align-items:center;gap:8px;font-weight:600}
+.lwf-dot{width:11px;height:11px;border-radius:50%;flex:none;background:var(--lwf-off)}
+.is-yes>.lwf-col-h .lwf-dot,.lwf-chip.is-yes::before{background:var(--lwf-yes)}
+.is-warn>.lwf-col-h .lwf-dot,.lwf-chip.is-warn::before{background:var(--lwf-warn)}
+.is-off>.lwf-col-h .lwf-dot,.lwf-chip.is-off::before{background:var(--lwf-off)}
+.lwf-chip.is-no::before{background:var(--lwf-no)}
+.lwf-col ul{display:flex;flex-direction:column;gap:6px;font-size:.86rem}
+.lwf-col li{padding-inline-start:14px;position:relative}
+.lwf-col li::before{content:"";position:absolute;inset-inline-start:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--lwf-line)}
+.lwf-ladder{display:flex;flex-direction:column;gap:6px}
+.lwf-band{background:var(--lwf-accent);color:var(--lwf-on-accent);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.lwf-band>span{font-size:.84rem;opacity:.88}
+.lwf.lwf .lwf-band code{background:transparent}
+.lwf-rung{display:flex;gap:6px}
+.lwf-step{flex:1;min-width:0;background:var(--lwf-paper);border-radius:12px;box-shadow:0 0 0 1px var(--lwf-line);padding:8px 12px;
+ display:grid;grid-template-columns:minmax(5.5rem,7.5rem) 1fr;gap:4px 10px;align-items:baseline}
+.lwf-step>b{font-family:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86rem}
+.lwf-step>span{font-size:.84rem;color:var(--lwf-muted)}
+.lwf-step.is-muted{background:transparent}
+.lwf-split{display:grid;grid-template-columns:1fr minmax(9.5rem,.8fr) 1fr;gap:10px;align-items:stretch}
+.lwf-panel{background:var(--lwf-paper);border-radius:14px;box-shadow:0 0 0 1px var(--lwf-line);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.lwf-panel ul{display:flex;flex-direction:column;gap:6px;font-size:.86rem}
+.lwf-panel li{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.lwf-panel li>span{color:var(--lwf-muted);font-size:.82rem;text-align:end}
+.lwf-panel li.is-plain{justify-content:flex-start;padding-inline-start:14px;position:relative}
+.lwf-panel li.is-plain::before{content:"";position:absolute;inset-inline-start:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--lwf-line)}
+.lwf-panel-h{font-weight:600}
+.lwf-wire{display:flex;flex-direction:column;justify-content:center;gap:8px}
+.lwf-wire>li{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--lwf-muted)}
+.lwf-wire>li.is-back{flex-direction:row-reverse;text-align:end}
+.lwf-wire>li.is-back .lwf-arr{transform:scaleX(-1)}
+.lwf-chip{display:inline-flex;align-items:center;gap:6px;font-size:.8rem}
+.lwf-chip::before{content:"";width:8px;height:8px;border-radius:50%;flex:none}
+@container (max-width:560px){
+ .lwf-flow{flex-direction:column}
+ .lwf-flow>li{flex-direction:column;align-items:stretch}
+ .lwf-flow .lwf-arr{transform:rotate(90deg);align-self:center}
+ .lwf-split{grid-template-columns:1fr}
+ .lwf-wire>li,.lwf-wire>li.is-back{flex-direction:row;text-align:start}
+ .lwf-wire .lwf-arr{transform:rotate(90deg)}
+ .lwf-wire>li.is-back .lwf-arr{transform:rotate(-90deg)}
+ .lwf-step{grid-template-columns:1fr}
+ .lwf-rung{flex-direction:column}
+}
+</style>
+<div class="lwf lwf-permissions-ladder"><div class="lwf-stack"><div class="lwf-ladder"><div class="lwf-band"><b>Grants</b><span>Any matching deny wins, then any matching allow, then the role default.</span></div><ol class="lwf-stack" style="gap:6px"><li class="lwf-rung"><div class="lwf-step"><b>owner</b><span>deployment configuration, provider credentials, publishing out, SCIM and service tokens</span></div></li><li class="lwf-rung"><div class="lwf-step"><b>admin</b><span>catalog, policy, grants, links, projects, server renders, invitations</span></div></li><li class="lwf-rung"><div class="lwf-step"><b>approver</b><span>act on approvals</span></div><div class="lwf-step"><b>author</b><span>submit assets</span></div></li><li class="lwf-rung"><div class="lwf-step"><b>member</b><span>use tools, save and share, export, deliver, make links</span></div></li><li class="lwf-rung"><div class="lwf-step"><b>viewer</b><span>read, join live rooms, comment</span></div></li><li class="lwf-rung"><div class="lwf-step is-muted"><b>guest</b><span>nothing: access comes only from the link</span></div></li></ol></div></div></div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ7Gp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnGanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo0MTgzMDViZS1mZGJjLTRiMzktYjhjOC0zYmMxMjY5MjdiNjkAAAAEQWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjo1Nzo1NVoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GR8AZmxlbmd0aBkNnmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggsnf+r+YasFwmssisZLbXL44+93IYI/eOL8bZNu+M9hBjcGFkSAAAAAAAAAAAAAAA12p1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAKNjYm9yp2dzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHd3b3JrLXBlcm1pc3Npb25zLWxhZGRlcmRkYXRleBgyMDI2LTEwLTIzVDA2OjU3OjU1LjQ3M1poYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAAC1Wp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKmY2JvcqZoZGM6dGl0bGV3d29yay1wZXJtaXNzaW9ucy1sYWRkZXJqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6NTc5YjNmZGMtMmMwOS00YWJmLTk1MDctYTVjZmJlMTk2Yjc1dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCAvhB+dKw2QGR4oDvDImWz+1p5DRBZ5U55VFS1GNOGGYKJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCAQcLYftRs/XpGXRQ2ZAtfm8d+fVRX1T6jeubvDJ/mMEKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFgg9CgBREMjkuMKdOF2Mi2nhn6CMlxw/+NcGl2PhfHniWSiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJhanVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIxY2JvctKEWQHgogEmGCGBWQHXMIIB0zCCAXmgAwIBAgIJTgAtCQhpCAKcMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNjU2NTVaFw0zNjEwMjAwNjU3NTVaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABEy/9SOU2NmOna82/CpqXcjibTXjjBjLS0YTSQKiOrw+Zs/Y1vhzvQP18Di/Y8Di5CJbD4DIKs/TsLYuWFl8uHCjcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBSe+13wMz9nYsPe/VQqmGOUXn2CvTAfBgNVHSMEGDAWgBSe+13wMz9nYsPe/VQqmGOUXn2CvTAKBggqhkjOPQQDAgNIADBFAiAWgJhfLp19LkPZByfV6cLbxffzH52ke4FoRqgxWV1VMgIhAMAu7rVtA8wyFTUvXFkHTXaxs8KuG6hkqOKBuObvmU07oPZYQF4VbDIvHTlUZd/9qFI/A0qVy6JI1ag8hCBAKRC9o5+/eFyCyQGGUp7Q7f7gt3d6mIF1qy10ihoPBgCJGSgaz/0= -----END C2PA MANIFEST----- -->

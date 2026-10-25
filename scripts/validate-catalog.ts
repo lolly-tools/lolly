@@ -118,6 +118,9 @@ import { RESERVED } from '../engine/src/url-mode.ts';
 import { APP_PATH_WORDS } from '../engine/src/tool-url.ts';
 // The slide master rules beyond the schema (plans/275 section 2.7), pure so a test runs them too.
 import { libraryStructureIds, slideMasterProblems } from './lib/slide-master-rules.ts';
+// Brand skills (plan 323): the catalog record's one reader, and the engine's admission.
+import { validateBrandSkillMeta, type BrandSkillMetaV1 } from '../packages/core/src/brand-skill-v1.ts';
+import { admitBrandSkill } from '../engine/src/brand-skill.ts';
 // The masters build, so a library edit that was not rebuilt fails here and not only in a test.
 import { LIBRARY_FILE as SLIDE_LIBRARY_FILE, planWrites as planSlideMasterWrites } from './build-slide-masters.ts';
 // `canvas.*Field` → sub-field-id existence. The schema closes the canvas key SET;
@@ -1603,6 +1606,50 @@ for (const asset of assetsIndex.assets) {
         if (/style="/.test(body)) errors.push(`[asset ${asset.id}] themable icon has an inline style attribute`);
         if (/\bstroke[-\w]*\s*[:=]/.test(body)) errors.push(`[asset ${asset.id}] themable icon has stroke styling (fills only)`);
       }
+    }
+  }
+}
+
+// ─── Brand skills (plan 323) ──────────────────────────────────────────────────
+//
+// A `skill` asset is a brand's standards for one discipline. Its record (`meta.skill`)
+// must read, its files must pass the same admission an upload does (no scripts, text
+// references only, within the limits) and its Agent Skills name must be unique in the
+// pack, because agents and exported folders address a skill by that name.
+{
+  const names = new Map<string, string>();
+  for (const asset of assetsIndex.assets) {
+    if (asset.type !== 'skill') continue;
+    const where = `[asset ${asset.id}] skill`;
+    const meta = (asset.meta as { skill?: unknown } | undefined)?.skill;
+    const problems = validateBrandSkillMeta(meta);
+    if (problems.length) { for (const problem of problems) errors.push(`${where}: ${problem}`); continue; }
+    const record = meta as BrandSkillMetaV1;
+    if (!/^[a-z0-9]+\/skill\/[a-z0-9][a-z0-9-]*$/.test(asset.id)) errors.push(`${where}: id must read <namespace>/skill/<slug>`);
+    if (asset.tier !== 'core') errors.push(`${where}: tier must be core, so the skill is offline wherever its design system is`);
+    if (!asset.license) errors.push(`${where}: license is required, so the skill does not travel as "not recorded"`);
+    const other = names.get(record.name);
+    if (other) errors.push(`${where}: name "${record.name}" is already used by ${other}`);
+    names.set(record.name, asset.id);
+    const entry = (asset.formats ?? []).find((f: { format: string }) => f.format === 'md');
+    if (!entry || asset.formats.length !== 1) { errors.push(`${where}: formats must hold exactly one md entry (references go in meta.skill.files)`); continue; }
+    const entryPath = catalogUrlPath(entry.url);
+    if (!existsSync(entryPath)) continue; // the asset loop above already reports a missing file
+    const files: Record<string, Uint8Array> = { 'SKILL.md': readFileSync(entryPath) };
+    let filesOk = true;
+    for (const file of record.files ?? []) {
+      const abs = catalogUrlPath(file.url);
+      if (!existsSync(abs)) { errors.push(`${where}: reference ${file.path} url "${file.url}" does not exist on disk`); filesOk = false; continue; }
+      const bytes = readFileSync(abs);
+      const actual = `sha256-${createHash('sha256').update(bytes).digest('base64')}`;
+      if (file.checksum !== actual || file.size !== bytes.length) errors.push(`${where}: reference ${file.path} checksum or size stale - run \`pnpm run build:catalog\``);
+      files[file.path] = bytes;
+    }
+    if (!filesOk) continue;
+    const admitted = await admitBrandSkill(files);
+    if (!admitted.ok) errors.push(`${where}: refused (${admitted.code}): ${admitted.reason}`);
+    else for (const finding of admitted.skill.parsed.findings) {
+      if (finding.severity === 'warning') warnings.push(`${where}: ${finding.message}${finding.line ? ` (line ${finding.line})` : ''}`);
     }
   }
 }

@@ -1,39 +1,60 @@
-# Configuration guide
+# Profiles, brands and tool configuration
 
-Everything that shapes *what a Lolly instance is* - which brand it wears, which tools it exposes, what each tool is allowed to do - is configuration held in files, not settings buried in an app. This guide is the map of those files and the commands that act on them.
+This page is for whoever decides what a Lolly instance is: which brand it wears, which tools it offers, what each tool may do and how people's own switches behave. All of that lives in files you can read and review, not in settings buried in an app. Each section below gives the file and the command that acts on that file.
 
 ## Profiles: brand + tool set
 
-A **profile** binds a set of tool packs to a brand catalog. `profiles.json` at the repo root declares them:
+A **profile** binds a set of tool packs to a brand catalog. `profiles.json` at the repository root declares them:
 
 ```json
 {
   "default": "suse",
   "profiles": {
     "suse":        { "label": "SUSE",  "tools": ["community", "brands/suse/tools"], "exclude": ["rebrand-deck", "street-map"], "assets": ["community/emoji-packs"], "catalog": "brands/suse/catalog" },
-    "lolly-start": { "label": "Lolly Start (blank brand)", "tools": ["community", "brands/lolly-start/tools"], "assets": ["community/emoji-packs"], "catalog": "brands/lolly-start/catalog" }
+    "lolly-start": { "label": "Lolly Start (blank brand)", "tools": ["community", "brands/lolly-start/tools"], "assets": ["community/emoji-packs"], "catalog": "brands/lolly-start/catalog" },
+    "lolly-demo":  { "label": "Lolly Demo", "tools": ["community", "brands/lolly-demo/tools"], "assets": ["community/emoji-packs"], "catalog": "brands/lolly-demo/catalog" }
   }
 }
 ```
 
-Content lives in the packs and nowhere else: there is no `tools/` or `catalog/` directory at the repo root, and nothing to switch. A profile is **resolved per process**:
+`lolly-demo` is [Lolly Demo](/info/lolly-demo.html), the brand lolly.tools and the published images ship. `lolly-start` is the blank starter, and the one a public clone and CI use. `suse` needs the private pack, which a public clone does not have.
+
+A profile is chosen per command, not switched globally. Content lives in the packs and nowhere else, so there is no `tools/` or `catalog/` directory at the repository root to switch:
 
 ```bash
-pnpm run profile                        # which brand does this checkout resolve to, and from where
-pnpm run profile suse                   # what would that profile resolve to
+pnpm run profile                              # which profile this checkout resolves to, and why
+pnpm run profile lolly-demo                   # what that profile would resolve to
 LOLLY_PROFILE=lolly-start pnpm run dev:web    # run one command under another brand
-pnpm run build:catalog --profile=suse   # or name it on a catalog script
+pnpm run build:catalog --profile=lolly-demo   # or name it on a catalog script
 ```
 
-`packages/node-shell/src/content-roots.ts` is the resolver every script, shell and service asks. Precedence: an explicit `--profile=<name>`, then `LOLLY_PROFILE`, then `profiles.json`'s `default`, then the first profile whose packs are all on disk - which is what makes a public clone with no `brands/suse` land on `lolly-start` by itself. It answers "where does tool `<id>` live" (`toolFile`, `listToolFiles`, `readToolManifest`) and "where is the catalog" (`catalogFile`) against the profile's roots, **later roots winning on id collisions**, so a brand pack can override a community tool of the same id. The optional `exclude` list drops tool ids from *this* profile after that merge - a community tool one brand would rather not ship stays available to every other profile, and an id that isn't there is warned about, not fatal.
+::: figure configuration-profile-resolution
+How a command finds its profile, and what the profile hands back. The first rule that applies wins.
+:::
 
-A profile's optional `assets` list mounts **shared asset roots**, which is how one file can belong to every brand at once. A shared root is a directory holding its own `index.json` plus its files: those entries are appended to the brand's asset index, and their urls are the profile-independent `/catalog/packs/<rootName>/<file>`. `community/emoji-packs/` is the one this repository ships. It holds the complete Twemoji Color emoji set as a single 15.7 MB on-demand bundle, both profiles list it, and `suse` and `lolly-start` therefore serve the same file with no copy in either catalog. `readAssetIndex()` is the merged index every Node reader asks for, the dev server assembles the same merge per request, and `materializeInto` writes each root to `catalog/packs/<name>/` with the merged index beside it. Shared roots are additive: an asset id claimed by two roots is refused rather than resolved by order, and a root that is not on disk is skipped rather than treated as a missing pack, so a build that does not carry a shared root still resolves everything else.
+`packages/node-shell/src/content-roots.ts` is the resolver every script, shell and service asks. It takes the first of these that applies:
 
-One copy survives, because a browser still fetches `/tools/<id>/…` and `/catalog/…` over HTTP: `materializeInto(dest)` writes a real `tools/` + `catalog/` tree, and that is what a `dist/` build, an RPM payload or a Docker image carries. Nothing materialises anything into your working tree, so an edit to a tool is an edit in its pack, committed there.
+1. an explicit `--profile=<name>`;
+2. `LOLLY_PROFILE`;
+3. a `.lolly-profile` file at the repository root (written by `setup.sh --profile=<name>`), if that profile's packs are on disk;
+4. the `default` in `profiles.json`, if its packs are on disk;
+5. the first profile whose packs are all on disk, which is how a public clone with no `brands/suse` resolves to `lolly-start` by itself.
+
+The resolver then answers "where does tool `<id>` live" (`toolFile`, `listToolFiles`, `readToolManifest`) and "where is the catalog" (`catalogFile`) from the profile's roots. **Later roots win on id collisions**, so a brand pack can override a community tool with the same id. The optional `exclude` list drops tool ids from this profile after that merge: a community tool one brand would rather not ship stays available to every other profile, and an id that is not there gives a warning, not an error.
+
+::: details Shared asset roots, and the one copy a build writes
+A profile's optional `assets` list mounts **shared asset roots**, which is how one file belongs to every brand at once. A shared root is a directory holding its own `index.json` plus its files. Its entries are appended to the brand's asset index, and their addresses are the profile-independent `/catalog/packs/<rootName>/<file>`.
+
+`community/emoji-packs/` is the one this repository ships. It holds seven emoji sets (Twemoji Color, OpenMoji Color and Black, Fluent Flat and High Contrast, Noto Color and Blobmoji Color), each as one on-demand bundle. All three profiles list it, so every brand serves the same files with no copy in any catalog.
+
+`readAssetIndex()` is the merged index every Node reader asks for, and the dev server assembles the same merge per request. Shared roots are additive: an asset id claimed by two roots is refused rather than settled by order, and a root that is not on disk is skipped rather than treated as a missing pack, so a build without a shared root still resolves everything else.
+
+One copy is written, because a browser still fetches `/tools/<id>/…` and `/catalog/…` over HTTP. `materializeInto(dest)` writes a real `tools/` and `catalog/` tree, each shared root to `catalog/packs/<name>/` and the merged index to `catalog/assets/index.json`. That tree is what a `dist/` build, an RPM payload or a container image carries. Nothing is written into your working tree, so a tool edit is an edit in its pack, committed there.
+:::
 
 ## Brand packs
 
-A brand pack is a directory (`brands/<name>/`) with a `catalog/` and optionally its own `tools/`. A pack can live in this repository (as `brands/lolly-start/` does) or be mounted from its own repository as a git submodule - which is how the one private pack, `brands/suse`, stays out of public clones, so an instance without access to it simply falls back to `lolly-start`. See [Build Guide » Getting the source](/info/build-guide.html) for checking one out.
+A brand pack is a directory (`brands/<name>/`) with a `catalog/` and, optionally, its own `tools/`. A pack can live in this repository, as `brands/lolly-start/` and `brands/lolly-demo/` do, or be mounted from its own repository as a git submodule. That is how the one private pack, `brands/suse`, stays out of public clones; an instance without it falls back to `lolly-start`. [Get the source](/info/contributing-setup.html#the-private-suse-pack) covers checking one out, and [Brand architectures](/info/brand-architectures.html) covers how parent brands, sub-brands and companions relate.
 
 Stand a new pack up from a design-tokens export:
 
@@ -41,11 +62,50 @@ Stand a new pack up from a design-tokens export:
 pnpm run ingest:brand <source> --name <brand> [--label "Label"] [--register|--activate]
 ```
 
-`<source>` is any container Penpot / Tokens Studio export the same DTCG document in - a monolithic `tokens.json`, a one-file-per-set directory, or a `project.penpot` archive. The extracted document is written to `catalog/assets/<ns>/tokens/brand.json` as the pack's core-tier `tokens` asset, where `<ns>` is `<brand>` with hyphens stripped (an asset id can't carry `-` in its first segment, so `--name acme-co` yields `assets/acmeco/…`). Ingest also *derives* the pack's photo-treatment and icon-theme palette documents under `catalog/assets/<ns>/palette/`, so uploaded photos get on-brand washes and themable icons get colour pairings out of the box (icon themes are skipped when the palette has no accent). `--register` upserts the pack into `profiles.json`; `--activate` also builds and validates the catalog for it and prints the `LOLLY_PROFILE=<brand>` line that selects it (nothing is switched globally); `--out` picks a different destination and `--force` overwrites an existing pack. See [Design Tokens](/info/design-tokens.html) for the token model and [Quickstart](/info/quickstart.html) for the end-user brand flow.
+`<source>` is any container Penpot or Tokens Studio exports the same DTCG document in: a single `tokens.json`, a one-file-per-set directory or a `project.penpot` archive.
+
+- The extracted document is written to `catalog/assets/<ns>/tokens/brand.json` as the pack's core-tier `tokens` asset. `<ns>` is `<brand>` with hyphens removed, because an asset id cannot carry `-` in its first segment, so `--name acme-co` gives `assets/acmeco/…`.
+- Ingest also derives the pack's photo-treatment and icon-theme palette documents under `catalog/assets/<ns>/palette/`, so uploaded photos get on-brand washes and themable icons get colour pairings from the start. Icon themes are skipped when the palette has no accent.
+- `--register` adds the pack to `profiles.json`. `--activate` also builds and validates its catalog and prints the `LOLLY_PROFILE=<brand>` line that selects it; nothing is switched globally. `--out` picks another destination and `--force` overwrites an existing pack.
+
+[Design Tokens](/info/design-tokens.html) covers the token model. People set up their own design system in the app with [Design System Setup](/info/brand-studio.html).
 
 ### Brand lock
 
-A brand's tokens asset can be marked read-only (`brandLock` on its index entry). The SUSE pack ships locked; `lolly-start` stays open. The lock protects that design system's material. People can still create, select and edit their own local systems, or make an editable copy of a locked system. `isLocked()` follows the selected system, and `installUserTokens` refuses edits to locked material while allowing creation and sync writes to a separate record. Tools and exports use the selected design system.
+A brand's tokens asset can be marked read-only with `brandLock` on its index entry. The SUSE pack ships locked; `lolly-start` and Lolly Demo stay open, so people can hide, edit and reset their own copy.
+
+The lock protects that design system's material. People can still create, select and edit their own local systems or make an editable copy of a locked one. `isLocked()` follows the selected system, and `installUserTokens` refuses edits to locked material while allowing creation and sync writes to a separate record. Tools and exports use the selected design system.
+
+## Supplied and local design systems
+
+**Settings → Design systems** labels the deployment's default system **Managed by this instance** when its tokens asset sets `brandLock` (a desktop app with no instance says **Managed by this app**). People can use a managed system but cannot change its colours, type or logos. Without the lock, the system reads **Came with this app**, or **From this instance** in an app connected to the deployment.
+
+Expand **Catalogue source** to see the supplied tokens asset, its namespace, the last-known origin and the known version or checksum. Cached or unavailable material is labelled. **Lolly instance → Design-system source** opens the same explanation.
+
+A catalogue can offer design systems beside its own. List them as `companionDesignSystems` in its `assets/index.json`, each with a `tokens` asset id and a `label`:
+
+```json
+"companionDesignSystems": [{ "tokens": "lolly/tokens/brand", "label": "Lolly Starter" }]
+```
+
+Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as a local system the person can edit, reset to the original or remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A locked catalogue (`brandLock`) offers no companions.
+
+On Lolly Work, an authenticated administrator can follow **Manage instance design systems** to inspect server sources and preview a change of default or a retirement. Stopping a connect download leaves the mounted catalogue available. A newer server advertises revisions: safe views refresh on focus or reconnect, while an open tool or an editable local copy gets a notice and keeps its work. Older servers keep their existing refresh behaviour.
+
+### Removing a catalogue design system
+
+A system imported into the browser is a separate local copy. Removing that copy changes this browser or device only, and cannot delete files on a host. If the copy was active, the supplied system becomes active again; the removal dialog says which one before you confirm. Catalogue assets, personal sessions and uploads remain, and the supplied system's colours, type and logos can stay visible after the local copy has gone.
+
+To change or remove a design system the server supplies:
+
+::: timeline
+- <!--i:folder--> **Change the source.** Update the content profile in `profiles.json` and its brand pack. For a neutral instance, select `lolly-start`. For a custom catalogue, remove the unwanted asset entries and files from the pack and replace any token or tool references that still need them. Keep permanent asset ids assigned to their original assets.
+- <!--i:checklist--> **Rebuild and validate every profile** with `pnpm run build:catalog:all` and `pnpm run validate:catalog:all`.
+- <!--i:upload--> **Rebuild and redeploy** with the intended `LOLLY_PROFILE`, and deploy the complete output, catalogue included. Replace the old deployment files so removed assets are no longer served.
+- <!--i:globe--> **Purge and reload.** Purge any host or CDN cache for the changed catalogue files, then reload Lolly while online so it fetches the new catalogue. Check the supplied system's name and **Catalogue source** again, and refresh any downloaded offline copy before testing offline.
+:::
+
+Assets that saved sessions reference can stay cached for those sessions. An instance's administrator controls the deployment's files; the browser's **Remove** action only manages local copies.
 
 ## Capability gating (per tool)
 
@@ -55,78 +115,68 @@ Each `tool.json` declares the host capabilities it needs (`schemas/tool.schema.j
 network · filesystem · clipboard · camera · microphone · screen · ffmpeg · wasm · capture · compose
 ```
 
-A shell that can't provide a capability **disables** the tool rather than letting it fail - an `ffmpeg` tool is unavailable in the web PWA; a `microphone`/`camera` recording tool is unavailable in the headless CLI; a `capture` tool offers a browser add-on on Chromium and is marked desktop-only elsewhere. `screen` is *display* capture the user grants in browser-native UI (picking a screen, window or tab, via `host.recorder`) - distinct from `capture`, which rasterises a URL the tool itself names. This is how one catalog serves web, desktop and CLI without per-shell tool lists. `network` access is additionally **allowlisted** - a tool declares which hosts it may reach, and `host.net` enforces it.
+A shell that cannot provide a capability **disables** the tool rather than letting it fail. An `ffmpeg` tool is unavailable in the web app; a `microphone` or `camera` recording tool is unavailable in the headless CLI; a `capture` tool offers a browser add-on on Chromium and is marked desktop-only elsewhere. That is how one catalog serves web, desktop and CLI without per-shell tool lists.
 
-Notice the badge: URL Screenshot declares `capture`, the browser cannot provide it alone, so the tile offers the add-on instead of vanishing.
+`screen` is display capture the person grants in the browser's own picker (a screen, window or tab, through `host.recorder`). It differs from `capture`, which rasterises a web address the tool itself gives. `network` access is also **allowlisted**: a tool declares which hosts it may reach, and `host.net` refuses every other host.
+
+URL Screenshot declares `capture`, which a plain browser cannot provide alone, so its tile offers the add-on instead of vanishing:
 
 ![The URL Screenshot tile in the Utilities gallery, carrying an Add-on badge because its capture capability is unmet in a plain browser](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2000&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22url-shot%22%5D&tolerance=0.03&dark=1&filename=fq-capability-addon-badge)
 
-## Curating what users see
+## Curating what people see
 
-Two mechanisms narrow the catalog without forking it:
+Two mechanisms narrow the catalog without forking the catalog itself.
 
-- **Per-instance tool set** - point each instance at a different profile (or a brand pack with a curated `tools/` root) so marketing, sales and IT can each see a different library from one codebase.
-- **Per-user feature flags** - surfaced in each person's Profile view, stored on their profile (so they sync). The gallery-category and Batch flags default to **on** (they show/hide whole gallery categories and the Batch entry), as do **Neurospicy Mode** (the focus-music player), the **Jelly effects** UI switch and **Private collab** (`private-collab`, the peer-to-peer working-together feature, wearing a beta pill). Two are opt-in and default to **off**: **Strip metadata from uploads**, the privacy flag described below, and **Print preflight** (`export-preflight`), which puts the *Before you export* prepress card - bleed, resolution, ink coverage, plate counts - above the Download button. Preflight stays off by default on purpose: someone exporting a PNG for a chat message should never be ambushed by prepress findings, and the card never blocks an export either way. The category and Batch flags are purely personal preferences. Five of them - Neurospicy, Jelly effects, Private collab, Strip metadata from uploads and Print preflight - can additionally be **governed** by an optional deployment control plane ([lolly.work](https://lolly.work)), which sets the default applied when the user hasn't chosen and can hide the switch entirely; a hidden flag's governed default wins over a stored user value. Print preflight also honours the older `export.preflight` instance capability, which reads as governance defaulting the flag on, so an instance that granted it keeps the card for members who haven't chosen. None of them ever gate output formats or any API surface. See [Lolly for Operators](/info/operators.html) for the governance model around this.
+**A tool set per instance.** Point each instance at a different profile, or at a brand pack with a curated `tools/` root, so marketing, sales and IT each see a different library from one codebase.
 
-  ![Every feature flag as its own switch, with the gallery categories on and Strip metadata off](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
+**Switches per person.** **Settings → Feature flags** holds them, stored on each person's profile so they sync. None of them ever gates an output format or any API.
 
-  **Strip metadata from uploads** is the privacy one of those two opt-ins: turn it on and images uploaded to Assets are scrubbed of EXIF, location (GPS) and other embedded metadata on import. Content Credentials (C2PA provenance) are *always* preserved either way - a signed or AI-generated image keeps its credential whether the flag is on or off.
+| Switch | Default | An organisation can govern it |
+|---|---|---|
+| Gallery categories: Tools for Everyone, Designer Tools, Event Kit, Offline Utilities | On | No |
+| Connectors: one per send destination, such as Google Drive, Dropbox or S3 | On | No |
+| Private collab (`private-collab`), the peer-to-peer working-together feature, in beta | On | Yes |
+| Neurospicy Mode, the focus-music player (its switch is in **Settings → Accessibility**) | On | Yes |
+| Jelly effects | Off | Yes |
+| Wobbly windows, and its mesh curve | Off | Yes |
+| Strip metadata from uploads | Off | Yes |
+| Print preflight (`export-preflight`) | Off | Yes |
+| Performance UI and Performance HUD | Off | No |
+| Training and courses | Off | No |
+
+Turning a connector off withdraws that destination everywhere it is offered. Nearby discovery, which lets Lolly devices on the same network find each other when starting a collab, has no switch in this list; it is on by default, and an organisation can govern it too.
+
+**Strip metadata from uploads** scrubs EXIF, location (GPS) and other embedded metadata from images uploaded to Assets. Content Credentials are always kept either way, so a signed or AI-generated image keeps its credential whether the switch is on or off.
+
+**Print preflight** puts the *Before you export* prepress card (bleed, resolution, ink coverage, plate counts) above the Download button. It stays off by default so someone exporting a PNG for a chat message never meets prepress findings, and the card never blocks an export. It also honours the older `export.preflight` instance capability, which reads as governance defaulting the switch on, so members of an instance that granted it keep the card until they choose.
+
+An optional organisation control plane, [Lolly Work](/info/work-governance.html), can govern the switches marked Yes. It sets the default used when a person has not chosen, and it can hide the switch entirely; a hidden switch's governed default wins over a stored personal value.
+
+![Every feature flag as its own switch, with the gallery categories on and Strip metadata off](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
 
 ## Maturity & watermarking
 
-A tool's `status` controls trust signalling, enforced by the engine, not by convention:
+A tool's `status` controls how much trust it signals, enforced by the engine rather than by convention:
 
-- `experimental` - every export is automatically watermarked by the host (the tool can't remove it), so work-in-progress can't be mistaken for finished output.
-- `community` - no watermark, but flagged as community-maintained rather than brand-approved. The most-used value in the shipped packs.
-- `official` - brand-approved, no watermark.
+- `experimental`: exports are watermarked by default, so work in progress cannot be mistaken for finished output. The engine sets that default, and the tool's own code cannot remove the watermark. The code that calls the export can turn it off for one export (`watermark: false`), and on-device utilities (`privacy: "on-device"`) never carry one.
+- `community`: no watermark, but flagged as community-maintained rather than brand-approved.
+- `official`: brand-approved, no watermark. The most-used value in `community/`.
 
-Promote a tool by changing one field in its manifest. The status is not an internal note: every surface shows it, so a reader knows what they are picking up before they open it.
+Promote a tool by changing one field in its manifest. Every surface shows the status, so a reader knows what they are picking up before opening the tool.
 
-![A gallery tile carrying the Experimental status badge that its manifest sets, the same field that forces a watermark on every export](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2400&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22voice-recorder%22%5D&tolerance=0.03&dark=1&filename=fq-experimental-badge)
+![A gallery tile carrying the Experimental status badge that its manifest sets, the same field that turns the export watermark on by default](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2400&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22voice-recorder%22%5D&tolerance=0.03&dark=1&filename=fq-experimental-badge)
 
-## Catalog build & validation
+The manifest is the source of truth, and each brand's `catalog/tools/index.json` is generated from the manifests. `validate:catalog` checks the schemas, asset checksums, file existence, `bindToProfile` fields, palette references and `replacedBy` chains, and fails CI when the generated index drifts from the manifests. After any `tool.json` or asset edit, rebuild and validate with the commands in [Publish and localize a tool](/info/tool-publishing.html). Tool and asset ids are permanent contracts: version in the manifest, never rename the path.
 
-The manifest is the source of truth; `catalog/tools/index.json` is **generated** and must not drift.
+## Organisation policy with Lolly Work
 
-```bash
-pnpm run build:catalog     # index.json + asset checksums + preview bundle
-pnpm run validate:catalog  # schema + invariants: checksums, file existence,
-                          #   bindToProfile fields, palette refs, replacedBy chains
-```
+Content profiles and brand packs configure what a build ships. Optional **Lolly Work** adds policy for the running organisation: OIDC identity and SCIM provisioning, group permissions, managed profile fields, tool-input restrictions, selected feature flags and export settings. It also configures shared catalogs, projects, approvals, delivery and usage reporting. Personal preferences do not override controls labelled **Managed by your organisation**.
 
-`validate:catalog` fails CI if the generated index drifts from the manifests, so run `build:catalog` after any `tool.json` or asset edit. Tool and asset **IDs are permanent contracts** - version in the manifest, never rename the path.
-
-## Engine & runtime knobs
-
-Most runtime behaviour is fixed contract rather than deploy-time config, but two things stand out:
-
-- **Engine version** - `ENGINE_VERSION` in `engine/src/version.ts` (read the live value there; `engine/CHANGELOG.md` tracks every minor). The capability bridge is additive-only within a major, so shells and tools built against an older minor keep working. See [Host API](/info/host-api.html).
-- **Hook budgets** - `HOOK_BUDGET_MS` in `engine/src/runtime.ts` time-boxes async tool hooks (`onInit` 5s, `onInput` 2s, export hooks 5–10s). It's exported for tests; async overruns are abandoned, sync overruns only logged (hooks are not a sandbox - see [Threat model: what is not a boundary](/info/threat-model.html#what-is-not-a-boundary)).
-
-## Organisation policy with lolly.work
-
-Content profiles and brand packs configure what a build ships. Optional **lolly.work** adds policy for the running organisation instance: OIDC identity and SCIM provisioning, group permissions, managed profile fields, tool-input restrictions, selected feature flags and export settings. It also configures shared catalogs, projects, approvals, delivery and usage reporting. Personal preferences do not override controls labelled **Managed by your organisation**.
-
-Keep that service's configuration in its own deployment. See its [configuration](https://github.com/lolly-tools/lolly-work/blob/main/docs/configuration.md) and [governance](https://github.com/lolly-tools/lolly-work/blob/main/docs/governance.md) guides, plus [Deployment](/info/deployment.html#organisation-services-with-lolly-work) for how it sits alongside this app. Static builds continue to use the settings on this page without needing an organisation service.
+Keep that service's configuration in its own deployment. See its [configuration](/info/work-configuration.html) and [governance](/info/work-governance.html) guides, and [Choose a deployment](/info/deployment.html#organisation-services-with-lolly-work) for how it sits beside this app. Static builds keep using the settings on this page without an organisation service.
 
 ## The services' own config
 
-- **CA service** reads `services/ca/.env` for provider credentials and certificate policy (`CA_CERT_DAYS` default 30, `CA_CERT_MAX_DAYS` default 365, allowed day set). Policy stays server-side; see the [Content Credentials Identity](/info/content-credentials-identity.html) operator runbook.
-- **MCP server** needs an access token (OAuth or bearer) unless the operator opens it with `LOLLY_MCP_ALLOW_ANONYMOUS=1`. A hosted server keeps a daily CPU and data-transfer budget (`LOLLY_BUDGET_CPU_SECONDS_PER_DAY`, `LOLLY_BUDGET_EGRESS_MB_PER_DAY`) and a PNG area cap (`LOLLY_MCP_MAX_RASTER_PIXELS`). Self-hosting, the limits and the tool surface are covered in [MCP Server](/info/mcp.html).
+- **CA service** reads `services/ca/.env` for provider credentials and certificate policy (`CA_CERT_DAYS` default 30, `CA_CERT_MAX_DAYS` default 365 and the allowed day set). Policy stays on the server; see [Content Credentials identity](/info/content-credentials-identity.html).
+- **MCP server** needs an access token (OAuth or bearer) unless the operator opens it with `LOLLY_MCP_ALLOW_ANONYMOUS=1`. A hosted server keeps a daily CPU and data-transfer budget (`LOLLY_BUDGET_CPU_SECONDS_PER_DAY`, `LOLLY_BUDGET_EGRESS_MB_PER_DAY`), a PNG area cap (`LOLLY_MCP_MAX_RASTER_PIXELS`) and request, answer and image size limits (`LOLLY_MCP_REQUEST_MAX_BYTES`, `LOLLY_MCP_RESPONSE_MAX_BYTES`, `LOLLY_MCP_MAX_IMAGE_BYTES`). [MCP server](/info/mcp.html) covers self-hosting, the limits and the tool surface.
 
-
-## Supplied and local design systems
-
-**Profile > Design systems > Catalogue source** shows the supplied tokens asset, its namespace, last-known origin and known version/checksum. Cached or unavailable material is labelled. Removing an imported or local copy changes this browser/device only. The confirmation shows the fallback; catalogue assets, personal sessions and uploads remain. **Lolly instance > Design-system source** opens the same explanation.
-
-On a static host, change the source profile or catalogue, rebuild and validate every affected profile (`pnpm run build:catalog:all` and `pnpm run validate:catalog:all`), rebuild the web shell and redeploy. Refresh the catalogue afterwards. Removing a local copy cannot change the deployment's catalogue.
-
-A catalogue can also offer design systems beside its own. List them as `companionDesignSystems` in its `assets/index.json`, each with a `tokens` asset id and a `label`:
-
-```json
-"companionDesignSystems": [{ "tokens": "lolly/tokens/brand", "label": "Lolly Starter" }]
-```
-
-Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter that every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as an editable local system that the person can remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A locked catalogue (`brandLock`) offers no companions.
-
-On Lolly Work, an authenticated administrator can follow **Manage instance design systems** to inspect server sources and preview a default change or retirement. Stopping a connect download leaves the mounted catalogue available. A newer server advertises revisions: safe views refresh on focus or reconnect, while an open tool or editable local copy receives a notice and keeps its work. Older servers retain their existing refresh behaviour.
+The engine version and the time limits on tool hooks are fixed by the engine rather than set per deployment; [Host API](/info/host-api.html) and [Tool hooks](/info/tool-hooks.html) cover them.

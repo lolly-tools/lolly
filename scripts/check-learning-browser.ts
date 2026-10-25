@@ -8,6 +8,7 @@ import { chromium } from 'playwright';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { strFromU8, unzipSync } from 'fflate';
 import { stampLearningShot } from './lib/learning-shot-credential.ts';
+import { turnOnLearning } from './lib/learning-feature-on.ts';
 
 const url = process.argv.find((a) => a.startsWith('--url='))?.slice(6) || 'http://127.0.0.1:5173';
 const shots = process.argv.includes('--shots');
@@ -20,6 +21,7 @@ try {
   });
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  await turnOnLearning(page, url);
   await page.goto(`${url}/#/learning`);
   await page.getByLabel('Course title', { exact: true }).fill('Linux onboarding');
   await page.getByRole('button', { name: 'Add lesson', exact: true }).click();

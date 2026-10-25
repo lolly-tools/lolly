@@ -6,6 +6,37 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.285.0
+
+- `checkDesignHouseRules`: the `logo-surface` finding's message gives each logo's display name from `opts.catalog.assets` (`DesignBriefCatalogV1`), in quotes, and falls back to the asset id when the catalog gives no name or no catalog is passed. The choices read as one plain list, "use A, B or C". The finding's `value` and `expected` keep the raw asset ids, so `lolly check` and MCP `lolly_check` (which pass catalog facts with names) show names in `message` while `evidence` and `suggestion` still carry the ids. Nothing else in the result changes.
+- `creationFeedback` already hands its `catalog` option to the checker, so its logo findings read the same way when the caller supplies one. The web shell's Before you export card now supplies the asset names from its asset index.
+
+## 1.284.0
+
+- `checkDesignHouseRules` leaves out every layer Design does not draw: a layer with its own `hidden` flag (as before), and now a layer on a hidden artboard or inside a hidden group or layout container, at any depth, read from `designHierarchyIndex`, the hierarchy Design paints from. A hidden layer is also no longer read as the surface under another layer, or as an accent strip along a rounded shape. `lolly check` and MCP `lolly_check` therefore stop reporting brand findings on undrawn layers; the result shape is unchanged.
+- `creationFeedback` passes the boxes straight to the checker: the copy it made to mark those layers hidden is gone, and its house-rule findings are unchanged.
+
+## 1.283.0
+
+Follows 1.282.0 (brand skills, PR #499), which merges first.
+
+- `creationFeedback(boxes, rules, doc, opts)` returns one report for a Design document that informs a person or an agent while they make it and never blocks anything. It holds the house-rule findings (`checkDesignHouseRules` against the design system's rules, `brandSystemOf(doc).rules` when `rules` is undefined) and the writing score for the text the document draws (`analyzeTextSignals(text, { source: 'digital' })`: score, band, the engine's own summary sentence, the signals and the strongest flagged phrases, each with its layer id). A plain `summary` says what to revise. Rules of the `BRAND_RULE_KINDS` are left to the Usage room's examples; a kind no checker knows is listed in `unknown`.
+- `designVisibleText(boxes, opts)` reads the words a Design document draws in reading order, one segment per layer, with markup dropped and composed stories read from `textDocument`. Hidden layers, members of a hidden artboard and members of a hidden group are left out and counted. Text past 65,536 characters is left out whole layers at a time and marked partial. `designWritingScore` scores those words.
+- `creationFeedbackDelta(before, after, touched)` is the compact answer after one edit: the score and band (with the previous ones), house-rule findings on the touched layers that are new or say something new, how many earlier ones no longer apply, and flagged phrases in those layers.
+- `checkFindingFromWritingScore(writing)` maps the score to one `verify.writing-score` check finding (`WRITING_SCORE_CODE`): `warn` at the strong band, `info` below it, never `error`. `lolly check` adds it for a document and leaves it out of the exit code.
+- Pure and deterministic: no DOM, clock, network or randomness.
+## 1.282.0
+
+- Brand skills (plan 323): a brand's standards for one discipline, written as an Agent Skill and carried as a design-system asset of the new type `skill`. The catalog record is the asset's `meta.skill` (`BrandSkillMetaV1` in `@lolly-tools/core/brand-skill-v1`): an Agent Skills `name`, `description`, `discipline`, `audience` (`public` or `internal`), `status`, the brand's own `skillRevision`, and optional `appliesTo` (tools, categories, formats, media and asset families), owner, review date and reference files.
+- `parseBrandSkill`, `admitBrandSkill`, `classifyBrandSkillLinks`, `brandSkillCoverage`, `exportBrandSkillFolder`, `brandSkillFreshness` and `baselineBrandSkill` read, admit, map, export and generate brand skills. Admission refuses scripts, files inside the skill other than text references, traversal, malformed UTF-8 and files over the tool-skill limits, with a reason; it never strips a file silently. An export changes the brand's body only where a link target is rewritten and lists each rewrite in a `lolly.json` companion.
+- The coverage map is fixed pattern work with no model: colour values against the tokens, font names against the declared families, and lines that point at a house rule kind. Its rows say `agree`, `conflict`, `not-in-tokens`, `checked` or `guidance-only`.
+- `designBrief` gains a `skills` section (the index without bodies, plus the generated baseline's name) and `coverage.skills`. `DesignBriefAssetV1` gains an optional `skill` index row.
+- `@lolly-tools/core/skill-frontmatter-v1` reads Agent Skills frontmatter for tool skills and brand skills alike; the tool-skill reader now uses it, keeping its `lolly-` name prefix.
+- `measureSvgFamily` and `spreadExemplars` measure an SVG asset family and pick an even spread of exemplars, for the draft conformance profile an asset-making skill exports with.
+- Exports record which brand skill revisions guided an agent-made piece: `ExportOpts.brandSkills` and `ExportMeta.brandSkills` (`ExportBrandSkill`: `id`, `name`, `revision` and `sha256` as bare lowercase hex). The runtime copies the list into the auto-assembled meta under the design-system record's switch and never adds one of its own, so `_madewith=0`, `--no-madewith`, MCP `madeWith: false` and the export panel's **Design system** card leave the list out too. The record says "Guided by" and is not a check.
+- The list reaches every carrier of the design-system record except the description: a `brandSkills` canonical JSON key in the `tools.lolly.export` assertion, a `lolly:BrandSkills` XMP and SVG property, and one `Guided by: <name> <revision>` PDF keyword per skill. `designRecordWords` ends in `Guided by: …` (`skills: false` leaves the skills out), and `guidedByWords`, `brandSkillRecords` and `parseBrandSkills` read and bound the list: at most 16 entries, one per id, malformed entries dropped. `readDesignRecord`, `readDesignRecordXml` and `readFileDesignRecord` return `brandSkills`; Verify shows them as **Guided by**. With no skills every output is byte-identical to before.
+- MCP `lolly_render` takes `brandSkills`, the names of the brand skills the agent read and followed. The server resolves each against the profile (public skills only on a hosted server) and fails on an unknown name with the list of available names. On the browser tier only the Content Credential can carry the list, and the render warns when none is stamped.
+
 ## 1.281.0
 
 - `PaletteSwatch` (and the SDK's `ColorPaletteSwatch`, for `host.color.paletteExport` and `paletteExportBytes`) gains three optional fields: `css`, the colour as authored; `cmyk`, a locked CMYK build in percentages; and `spot`, a locked spot ink (`name`, `book`, `finish`).
@@ -51,6 +82,10 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 
 - `host.media.trim` takes optional `output` (`clip`, `poster` or `contact-sheet`), `image`, `sheetFrames`, `rotate`, `cut` (`exact`, `reencode` or `keyframe`), `maxShortEdge` and `targetBytes`. Shells that predate them ignore the fields; the Trim tool refuses a poster or contact sheet from such a shell instead of returning a clip. An `exact` MP4 or MOV cut between key frames stays a copy with an edit list, as before; `reencode` re-encodes the picture so nothing before the start is kept. A size limit keeps a copy that already fits and never encodes above the source's own bitrate.
 - `MediaTrimResult.report` says what happened to each source track (copied byte for byte, re-encoded with stable reason codes, or left out) and what was checked on the written bytes: sound against picture, which way up the picture is, declared colour information, displayed size and a size limit's outcome. `hiddenLeadIn` gives the picture a copy keeps before its start for players to skip. A track the user kept is never left out silently; the web shell refuses with the reason instead.
+
+## 1.273.0
+
+- No separate entry. The `host.media.trim` changes first made under this number are listed under 1.275.0.
 
 ## 1.274.0
 
@@ -124,12 +159,12 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 
 ## 1.262.0
 
+- Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.
 - Design layouts state one participation rule for hidden and timed members. Only a hidden member, its hidden owners and absolute placement leave flex or grid flow. Start, duration, lane, cuts, Enter, Exit, build steps and keyframes are paint-time state, so a timed member keeps its slot at every playhead position and build step, and timing edits do no layout work.
 - A hidden layout container keeps its stored size instead of collapsing Hug sizing around the members hidden with it, matching hidden groups. Visible layouts are unchanged.
 
 ## 1.261.0
 
-- Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.
 - Add managed certificate enrollment, CSR and key proof validation, independently configured issuer trust, and signed certificate status checks. Existing certificate APIs keep their supported signatures.
 - Add optional personal-data sharing metadata. Generated share links review declared personal and profile-bound fields while raw URL parsing and CLI input contracts keep their existing behavior.
 - Extend signed catalog resource verification to published previews and dependent tool files.

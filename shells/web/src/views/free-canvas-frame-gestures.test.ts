@@ -259,6 +259,17 @@ test('DURING a drag the frame page element tracks the pointer, and its clip roun
 // each of these leans on is pinned in tests/free-canvas-math.test.ts; what is pinned HERE
 // is the wiring - that the gesture reaches the helper and commits ONE model write.
 
+/** The pointer resting over the stage with no button down. The artboard under it shows its
+ *  title (frame-titles.ts), which is the canvas route to an artboard a full-bleed box covers. */
+async function hoverAt(f: Fixture, x: number, y: number): Promise<void> {
+  const e = new W.MouseEvent('pointermove', { bubbles: true, cancelable: true, clientX: x, clientY: y });
+  Object.defineProperty(e, 'pointerId', { value: 1 });
+  Object.defineProperty(e, 'pointerType', { value: 'mouse' });
+  Object.defineProperty(e, 'buttons', { value: 0 });
+  f.canvasEl.dispatchEvent(e);
+  await settle();
+}
+
 /** Two 400×300 artboards side by side, each with one child, plus a loose box. */
 const DECK = (): Box[] => ([
   { id: 'f1', kind: 'frame', x: 100, y: 100, w: 400, h: 300, order: 0, bg: '#ffffff' },
@@ -522,6 +533,8 @@ test('A10: a frame label shows its NAME, and a double-click renames it', async (
   const f = mount(DECK());
   try {
     await settle();
+    f.select(['f1', 'f2']);   // a selected artboard shows its title
+    await settle();
     const tabs = () => [...f.stageEl.querySelectorAll<HTMLElement>('.fc-frame-label')];
     assert.deepEqual(tabs().map((el) => el.textContent), ['Artboard 1', 'Artboard 2'],
       'unnamed artboards fall back to their 1-based place in the page order');
@@ -548,6 +561,8 @@ test('A10: F2 and Enter reach the rename from the keyboard, and hand the focus b
   // shortcut is live again.
   const f = mount(DECK());
   try {
+    await settle();
+    f.select(['f1']);
     await settle();
     const tab = () => f.stageEl.querySelector<HTMLElement>('.fc-frame-label')!;
     assert.equal(tab().getAttribute('aria-keyshortcuts'), 'F2 Enter', 'and it says so');
@@ -578,6 +593,7 @@ test('A10: F2 and Enter reach the rename from the keyboard, and hand the focus b
 test('A10: Escape cancels a rename and writes nothing', async () => {
   const f = mount(DECK());
   try {
+    f.select(['f1']);
     await settle();
     const before = f.writes();
     const tab = f.stageEl.querySelector<HTMLElement>('.fc-frame-label')!;
@@ -594,9 +610,9 @@ test('A10: Escape cancels a rename and writes nothing', async () => {
 test('A10: a double TAP on a frame tab opens the rename prompt, where no dblclick arrives', async () => {
   const f = mount(DECK());
   try {
-    await settle();
+    await hoverAt(f, 800, 250);   // hovering the second artboard reveals its title
     const tap = (at: number): void => {
-      const tab = f.stageEl.querySelectorAll<HTMLElement>('.fc-frame-label')[1]!;
+      const tab = f.stageEl.querySelector<HTMLElement>('.fc-frame-label[data-frame-id="f2"]')!;
       const e = new W.MouseEvent('pointerdown', { bubbles: true, cancelable: true, clientX: 0, clientY: 0, button: 0 });
       Object.defineProperty(e, 'pointerId', { value: 2 });
       Object.defineProperty(e, 'pointerType', { value: 'touch' });
@@ -676,7 +692,7 @@ test('A13: a marquee that encloses an artboard whole DOES take it', async () => 
 test('dragging an artboard label moves its frame and members in one commit', async () => {
   const f = mount(SEED());
   try {
-    await settle();
+    await hoverAt(f, 400, 300);
     const label = f.stageEl.querySelector<HTMLElement>('.fc-frame-label')!;
     const before = f.writes();
     label.dispatchEvent(pointerEvent('pointerdown', 100, 80));
@@ -693,7 +709,7 @@ test('dragging an artboard label moves its frame and members in one commit', asy
 test('clicking an artboard label without moving creates no history entry', async () => {
   const f = mount(SEED());
   try {
-    await settle(); const before = f.writes();
+    await hoverAt(f, 400, 300); const before = f.writes();
     f.stageEl.querySelector<HTMLElement>('.fc-frame-label')!.dispatchEvent(pointerEvent('pointerdown', 100, 80));
     f.canvasEl.dispatchEvent(pointerEvent('pointerup', 100, 80));
     await settle(); assert.equal(f.writes(), before);
@@ -706,7 +722,7 @@ test('locked and read-only artboard labels select without moving their content',
     const boxes = SEED(); boxes[0]!.locked = locked;
     const f = mount(boxes, () => locked);
     try {
-      await settle(); const before = f.writes();
+      await hoverAt(f, 400, 300); const before = f.writes();
       f.stageEl.querySelector<HTMLElement>('.fc-frame-label')!.dispatchEvent(pointerEvent('pointerdown', 100, 80));
       f.canvasEl.dispatchEvent(pointerEvent('pointermove', 150, 110));
       f.canvasEl.dispatchEvent(pointerEvent('pointerup', 150, 110));
@@ -715,4 +731,65 @@ test('locked and read-only artboard labels select without moving their content',
       assert.equal(f.writes(), before);
     } finally { f.destroy(); }
   }
+});
+
+const titleIds = (f: Fixture): string[] =>
+  [...f.stageEl.querySelectorAll<HTMLElement>('.fc-frame-label')].map((el) => el.dataset.frameId || '');
+
+test('titles: by default only the selection, the artboard holding it and the hovered artboard have one', async () => {
+  const f = mount(DECK());
+  try {
+    await settle();
+    assert.deepEqual(titleIds(f), [], 'at rest no artboard shows a title');
+    f.select(['a1']);
+    await settle();
+    assert.deepEqual(titleIds(f), ['f1'], 'a selected row keeps the title of the artboard holding it');
+    await hoverAt(f, 800, 250);
+    assert.deepEqual(titleIds(f), ['f1', 'f2'], 'the artboard under the pointer adds its title, in page order');
+    f.stageEl.dispatchEvent(new W.MouseEvent('pointerleave'));
+    await settle();
+    assert.deepEqual(titleIds(f), ['f1']);
+  } finally { f.destroy(); }
+});
+
+test('titles: the view preference chooses Always, Selected and hovered, or Off', async () => {
+  const store = new Map<string, string>();
+  (globalThis as Record<string, unknown>).localStorage = {
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => { store.set(k, v); },
+  };
+  try {
+    store.set('lolly-design-artboard-titles', 'always');
+    const f = mount(DECK());
+    try {
+      await settle();
+      assert.deepEqual(titleIds(f), ['f1', 'f2'], 'Always titles every artboard on screen');
+    } finally { f.destroy(); }
+    store.set('lolly-design-artboard-titles', 'off');
+    const g = mount(DECK());
+    try {
+      g.select(['f1']);
+      await settle();
+      assert.deepEqual(titleIds(g), [], 'Off shows none, even for the selection');
+    } finally { g.destroy(); }
+  } finally { delete (globalThis as Record<string, unknown>).localStorage; }
+});
+
+test('PageDown, PageUp, Home and End step through the artboards in page order', async () => {
+  const f = mount(DECK());
+  try {
+    await settle();
+    key('PageDown'); await settle();
+    assert.deepEqual(titleIds(f), ['f1'], 'with nothing selected PageDown starts at the first artboard');
+    key('PageDown'); await settle();
+    assert.deepEqual(titleIds(f).filter((id) => f.stageEl.querySelector('.fc-frame-label.is-active[data-frame-id="' + id + '"]')), ['f2']);
+    key('PageDown'); await settle();
+    assert.ok(f.stageEl.querySelector('.fc-frame-label.is-active[data-frame-id="f2"]'), 'it stops at the last artboard');
+    key('Home'); await settle();
+    assert.ok(f.stageEl.querySelector('.fc-frame-label.is-active[data-frame-id="f1"]'));
+    key('End'); await settle();
+    assert.ok(f.stageEl.querySelector('.fc-frame-label.is-active[data-frame-id="f2"]'));
+    key('PageUp'); await settle();
+    assert.ok(f.stageEl.querySelector('.fc-frame-label.is-active[data-frame-id="f1"]'));
+  } finally { f.destroy(); }
 });

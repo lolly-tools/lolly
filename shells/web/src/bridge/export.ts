@@ -72,7 +72,7 @@ import { paintSvgToPdf, svgFlips, type SvgFlips } from './export-pdf-svg.ts';
 import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRun, runPaint } from './export-pdf-text-paint.ts';
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
-import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
+import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, DtoRenderOpts, ImprintState, Rgba } from './export-shared.ts';
@@ -899,7 +899,7 @@ async function renderRaster(node: Element, format: string, opts: ExportOpts): Pr
   // serialise them inside the SVG foreignObject. Restore immediately after so
   // the canvas stays clean. The live node MUST be passed (not a clone) so that
   // dom-to-image reads computed styles from elements that are in the document.
-  const restore = await swapBlobUrls(node);
+  const restore = await swapBlobUrls(node, opts.thumbnail ? await thumbnailClone(node, dtoOpts, d.node.w) : undefined);
   // WebKit's dom-to-image capture paints an offset box-shadow as a CENTRED halo
   // (measured IoU 0.715), untransformed elements included - so Safari raster
   // exports of offset shadows were simply wrong. drop-shadow() captures
@@ -2770,7 +2770,7 @@ async function drawHtmlVectors(pdf: any, node: Element, ox: number, oy: number, 
     // via ::details-content, which computed style does not expose (display, visibility
     // and content-visibility all read "visible" on the hidden subtree, and it reports a
     // real getBoundingClientRect). So the walker drew it: the export preflight card on
-    // /info/authoring-tools rendered its collapsed Format/Size rows straight through
+    // /info/build/authoring-tools rendered its collapsed Format/Size rows straight through
     // the buttons below it. `content-visibility: hidden` set by an author is the same
     // class of skip, and is caught here too.
     if (isPaintSkipped(el, style)) return;

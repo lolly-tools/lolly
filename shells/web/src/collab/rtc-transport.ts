@@ -676,7 +676,7 @@ export function inviteFromToken(token: string, skin: TokenSkin | 'auto' = 'auto'
 }
 
 /**
- * A pasted/scanned reply token to the `CollabAnswer` the ceremony's
+ * A pasted (or reply-link) reply token to the `CollabAnswer` the ceremony's
  * `answer` event takes.
  *
  * The answer record carries connection material only (the codec spends no

@@ -30,6 +30,7 @@ import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import type { DesignRasterResult } from '../shells/web/src/lib/webgpu/design-page.ts';
 import { compareInBrowser, type FidelityStats, type RegionStats } from './helpers/design-fidelity.ts';
 import { createDesignGpuFixture, type DesignGpuCase } from './helpers/design-webgpu-fixture.ts';
+import { settledScreenshot } from './helpers/settled-screenshot.ts';
 
 interface WorkerResult extends DesignRasterResult { ok: true; png: Uint8Array }
 interface FillProbe {
@@ -367,7 +368,9 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
     await page.goto(url); await page.evaluate(() => document.fonts.ready);
     faces.set(url, await page.evaluate(() => [...document.fonts].map(f => `${f.family} ${f.style} ${f.weight} ${f.status}`)));
     // Transparent where the page paints nothing (outside a rounded or elliptical frame), as the GPU leaves those pixels.
-    const capture = () => page.screenshot({ clip: { x: 0, y: 0, width, height }, omitBackground: true });
+    // Each capture waits for a presented frame; only Chromium's empty-surface refusal is retried (helpers/settled-screenshot.ts).
+    const capture = () => settledScreenshot(page, { clip: { x: 0, y: 0, width, height }, omitBackground: true },
+      { onRetry: (attempt, error) => t.diagnostic(`${url}: capture ${attempt} refused (${error.message.split('\n')[0]}); retrying after the next frame`) });
     let shot = await capture(), previous: Buffer | undefined;
     for (let tries = 0; !previous?.equals(shot); tries++) {
       assert.ok(tries < 8, `${url} settles into a stable screenshot`);

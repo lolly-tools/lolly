@@ -1,0 +1,70 @@
+<!--
+  Concept: what leaves a person's device, in three situations: ordinary use (nothing they make),
+  calling one of the optional services (exactly what they send, for that call) and working in their
+  organisation's Lolly Work instance (what the organisation configures). The middle card lists each
+  optional service with the setting that turns it off.
+  Band Contract: static fragment scoped under .ssm, reads the docs theme tokens with fallbacks
+  (light/dark/brand via --card/--card-foreground/--secondary/--primary), no script, no motion, no
+  network. Stacks into one column in a narrow container.
+  Sources: docs/server-surface.md (component table and per-service sections), which cites
+  services/mcp, services/ca, services/penpot and the deploy configuration.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5) for the plan 322 docs rewrite
+  directed by Andy Fitzsimon, 2026-10-23. The C2PA signature added at bank time is the first
+  provenance record of this file.
+-->
+<style>
+.ssm{--ssm-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ssm-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ssm-ground:hsl(var(--secondary,84.5 55% 92.2%));--ssm-paper:hsl(var(--card,0 0% 100%));
+ --ssm-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ssm-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --ssm-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--ssm-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ color:var(--ssm-ink);background:var(--ssm-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.ssm *{box-sizing:border-box}
+.ssm ul{list-style:none;margin:0;padding:0}
+.ssm li{list-style:none;margin:0;font-size:inherit}
+.ssm p{margin:0}
+.ssm-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr) minmax(0,.95fr);gap:12px}
+.ssm-card{background:var(--ssm-paper);border-radius:16px;box-shadow:0 0 0 1px var(--ssm-line);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ssm-cap{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ssm-muted)}
+.ssm-big{font-weight:700;font-size:1.02rem;line-height:1.2}
+.ssm-flow{display:flex;align-items:center;gap:6px;font-size:.78rem;flex-wrap:wrap}
+.ssm-box{padding:6px 9px;border-radius:10px;background:var(--ssm-soft);font-weight:600}
+.ssm-box--accent{background:var(--ssm-accent);color:var(--ssm-on-accent)}
+.ssm-flow svg{width:1.1rem;height:1.1rem;flex:none;fill:none;stroke:var(--ssm-accent);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ssm .ssm-kept{margin-top:auto;padding-top:8px;border-top:1px solid var(--ssm-line);font-size:.76rem;color:var(--ssm-muted)}
+.ssm-kept b{color:var(--ssm-ink);font-weight:600}
+.ssm-svc{display:flex;flex-direction:column;gap:5px}
+.ssm .ssm-svc li{display:block;padding:6px 8px;border-radius:9px;background:var(--ssm-soft);font-size:.8rem}
+.ssm-svc b{font-weight:600;display:block}
+.ssm-off{display:block;font-size:.68rem;color:var(--ssm-muted);overflow-wrap:anywhere;margin-top:1px}
+.ssm-off code{font-size:inherit;background:none;padding:0;color:inherit}
+.ssm-list{display:flex;flex-direction:column;gap:4px}
+.ssm .ssm-list li{font-size:.8rem}
+.ssm-dev{display:flex;flex-direction:column;gap:6px;font-size:.8rem}
+.ssm-dev .ssm-box--accent{align-self:flex-start}
+.ssm-in{display:flex;align-items:flex-start;gap:6px;font-size:.76rem;color:var(--ssm-muted)}
+.ssm-in svg{width:1rem;height:1rem;flex:none;margin-top:1px;fill:none;stroke:var(--ssm-accent);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ssm-list li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ssm-accent);margin-inline-end:7px;vertical-align:.12em}
+@container (max-width:640px){.ssm-grid{grid-template-columns:minmax(0,1fr)}}
+</style><div class="ssm" role="group" aria-label="What leaves your device: nothing in ordinary use, exactly what you send to an optional service, and what your organisation configures in Lolly Work"><div class="ssm-grid">
+<section class="ssm-card"><p class="ssm-cap">Ordinary use</p><p class="ssm-big">Nothing you make leaves</p>
+<div class="ssm-dev"><span class="ssm-box ssm-box--accent">Your device</span><span>Edit, render, export and verify</span></div>
+<p class="ssm-in"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15M6 13l6 6 6-6"/></svg><span>Tools, fonts and models download to the device and carry nothing of yours</span></p>
+<p class="ssm-kept"><b>Kept:</b> on your device, until you delete it</p></section>
+<section class="ssm-card"><p class="ssm-cap">A service you call</p><p class="ssm-big">Exactly what you send, for that call</p>
+<ul class="ssm-svc">
+<li><b>MCP endpoint</b><span class="ssm-off">leave it out</span></li>
+<li><b>Hot-link render</b><span class="ssm-off"><code>LOLLY_DISABLE_RENDER_GET=1</code></span></li>
+<li><b>MCP private files</b><span class="ssm-off">off unless <code>LOLLY_MCP_PRIVATE_FILES=1</code></span></li>
+<li><b>Agent invitation relay</b><span class="ssm-off"><code>LOLLY_DISABLE_AGENT_CONNECTOR=1</code></span></li>
+<li><b>Certificate service</b><span class="ssm-off">leave it out; exports sign anonymously</span></li>
+<li><b>Image pass-through</b><span class="ssm-off"><code>LOLLY_DISABLE_IMAGE_PROXY=1</code></span></li>
+<li><b>Penpot pass-through</b><span class="ssm-off">leave it out</span></li>
+</ul>
+<p class="ssm-kept"><b>Kept:</b> no content after the call, apart from relay invitations in memory and, when private files are on, temporary files for up to an hour</p></section>
+<section class="ssm-card"><p class="ssm-cap">Your organisation</p><p class="ssm-big">What your organisation configures</p>
+<p class="ssm-flow"><span class="ssm-box ssm-box--accent">Your device</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg><span class="ssm-box">Lolly Work</span></p>
+<ul class="ssm-list"><li>Sign-in and policy</li><li>Shared projects and uploads</li><li>Work collabs and approvals</li><li>Server renders and delivery</li><li>Audit and usage telemetry</li></ul>
+<p class="ssm-kept"><b>Kept:</b> under your operator's retention and backup policy</p></section>
+</div></div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ+mp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnUanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpkMzliMjcyYi1iYjY3LTQ4NmEtYmJmNy0zMTBjMWI3ZGYwNTYAAAAEU2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNzo1NzoxNVoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRheZmxlbmd0aBkNsmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggjEZDauJvAAAHbuhbyREk8yEvrJTAkSZadNAKGJ3iVV1jcGFkSAAAAAAAAAAAAAAA6Wp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAALVjYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHJzZXJ2ZXItc3VyZmFjZS1tYXBkZGF0ZXgYMjAyNi0xMC0yM1QwNzo1NzoxNS4wOTNaamRpbWVuc2lvbnNrMjQgw5cgMjQgcHhoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAAC0Gp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKhY2JvcqZoZGM6dGl0bGVyc2VydmVyLXN1cmZhY2UtbWFwamluc3RhbmNlSUR4LXVybjp1dWlkOmVkMTEzMzE3LTg3ZDYtNDdlYy1hOTczLTQ5YzkxZjRiM2NkY3RjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg6y51QANtfac/s6NveBbyJrDre2XaI8ZZi8NRtCfibEOiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgg2HuAUmapUVu4/uQf+sguQdJISA6dCY9QnLan9XWh30CiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIAN4E8Deq381XM3vbbSCOc0xX74Q7B4yhup3TVYJXb/WomN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYmp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMmNib3LShFkB4aIBJhghgVkB2DCCAdQwggF5oAMCAQICCWFGe969pm7lPDAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDc1NjE1WhcNMzYxMDIwMDc1NzE1WjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAT2JMxdv/uAohbS5l8wB6oajLUBe/SeKZYp2cxFCB0lZUQ9aPILU6AUEiIbEXrQQ7BP03hu7TBeTHzLmk+JlcG8o3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUv+nAtcwWpEUHWwOyo/Q8Kbtq3WowHwYDVR0jBBgwFoAUv+nAtcwWpEUHWwOyo/Q8Kbtq3WowCgYIKoZIzj0EAwIDSQAwRgIhAJetnkcGIXetpaWB44b4EliGqYOx8FiQEY6S521QY6TYAiEA8H/8UlIakNXKchlLphW7kq4HZ1kwvXpbwUY+S1iBxMOg9lhADOtIZzryXuBlXrwGp4lq65QylJwxjQdqewRYcfsb1FfCfwa9YJUZBU0HBr2Fw2YYUzesjrlLBoFrgCmWAPWVsw== -----END C2PA MANIFEST----- -->

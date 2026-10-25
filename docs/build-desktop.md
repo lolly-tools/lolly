@@ -1,12 +1,8 @@
 # Build the desktop app
 
-Set up and package the Tauri desktop shell.
+This page is for a developer who wants to run the desktop app from source or package it for macOS, Windows or Linux. The desktop app is a Tauri shell around the web app's own code (see [One source, three apps](/info/build-guide.html#one-source-three-apps)), so you need a checkout from [Get the source](/info/contributing-setup.html) plus a Rust toolchain.
 
-Part of [Build Guide](/info/build-guide.html).
-
-## Desktop app (macOS / Windows / Linux)
-
-### Prerequisites
+## Prerequisites
 
 <!--l:rust-->**Rust toolchain:**
 
@@ -15,11 +11,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 rustup update
 ```
 
-<!--l:tauri-->**Tauri CLI (Node package - installed per-shell):**
+<!--l:tauri-->**Tauri CLI.** It is a Node package installed with the desktop shell's own dependencies, which are a separate pnpm project:
 
 ```bash
-cd shells/tauri-desktop
-pnpm install
+pnpm -C shells/tauri-desktop install
 ```
 
 **Platform build tools:**
@@ -27,12 +22,73 @@ pnpm install
 | Platform | Required |
 |---|---|
 | macOS | Xcode Command Line Tools (`xcode-select --install`) |
-| Windows | Microsoft C++ Build Tools or Visual Studio with C++ workload |
+| Windows | Microsoft C++ Build Tools, or Visual Studio with the C++ workload |
 | Linux | `build-essential`, `libgtk-3-dev`, `libwebkit2gtk-4.1-dev`, `libayatana-appindicator3-dev`, `libsoup-3.0-dev`, `libssl-dev` |
 
-Full list: https://tauri.app/start/prerequisites/
+Tauri keeps the full list at <https://tauri.app/start/prerequisites/>.
 
-### Icons
+## Development
+
+```bash
+pnpm run dev:desktop
+```
+
+Tauri opens a native window with the Vite dev server running behind it, and hot reload works. Storage uses the filesystem override (`bridge-overrides/state.ts`): saved work goes to `<AppData>/saved-state/`, where `<AppData>` is the app's data directory for the identifier `tools.lolly.Desktop`, for example `~/Library/Application Support/tools.lolly.Desktop/` on macOS.
+
+## Production build
+
+Each platform's build ships one brand, chosen with `LOLLY_PROFILE`:
+
+| Build | Profile | What a new person sees |
+|---|---|---|
+| macOS | `lolly-demo` | Lolly Demo, the brand lolly.tools serves, with Lolly Starter on the device to switch to or edit |
+| Windows and Linux | `lolly-start` | The blank starter brand |
+
+Lolly Starter reaches the Mac app because Lolly Demo's asset index lists it as a companion design system. Without `LOLLY_EMBED_CATALOG`, the desktop build takes its default seed, which is also `lolly-demo`.
+
+Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` from your private credential store. They sign the catalog embedded in the app; operating-system code signing uses a separate identity. Then, from the repository root:
+
+```bash
+export LOLLY_PROFILE=lolly-demo     # macOS
+# export LOLLY_PROFILE=lolly-start  # Windows and Linux
+export LOLLY_EMBED_CATALOG=profile
+pnpm run build:desktop
+```
+
+The build runs in this order:
+
+::: timeline
+- <!--i:seal--> **Build and sign the frontend.** The web app's code is compiled with the Tauri bridge modules, and the catalog embedded in it is signed.
+- <!--i:photos--> **Build the Quick Look extensions** (macOS only), which give Lolly files a thumbnail and a preview in Finder.
+- <!--i:code--> **Build the native CLI sidecar**, which gives the app a `lolly` command of its own.
+- <!--i:box--> **Compile and package the app** into the installers below.
+:::
+
+| Platform | Artifact | Location |
+|---|---|---|
+| macOS | `.app` and `.dmg` | `src-tauri/target/release/bundle/macos/` and `bundle/dmg/` |
+| Windows | `.msi` and an `.exe` NSIS installer | `src-tauri/target/release/bundle/` |
+| Linux | `.deb`, `.rpm` and `.AppImage` | `src-tauri/target/release/bundle/` |
+
+The complete macOS package needs macOS 13.5 or later, the minimum for its bundled Node CLI runtime. Set `APPLE_SIGNING_IDENTITY` for a Developer ID build, then notarise and staple the app and DMG before you distribute them.
+
+Public builds, workflows, download buckets and package services use a public brand: `lolly-demo` for the Mac app and `lolly-start` for Windows and Linux, never the private `suse` pack.
+
+::: details A private build from the SUSE pack
+For an authorised private SUSE build, mount `brands/suse` and set `LOLLY_PROFILE=suse` with `LOLLY_EMBED_CATALOG=profile`. Use a separate app identifier, such as `tools.lolly.SUSE.Desktop`, so its state and cached CLI catalog do not share the public edition's directory, and match the Quick Look extension identifiers to it on macOS. RPM source preparation also needs `rpm/make-sources.sh --private --out <private-build-directory>` and CLI resources built for the target Linux architecture. Source archives leave out macOS extended-attribute files. Keep the sources and packages in private storage.
+:::
+
+## Intel Macs
+
+Use the `.github/workflows/macos-intel.yml` workflow. It builds the pinned ONNX Runtime 1.28.0 from source, checks API 28 and bundles the resulting x86_64 library with the app. The matching Node CLI and native SVG addon are built on the Intel runner. The collected app still needs distribution signing and notarisation.
+
+To rebuild with the same runtime, supply `runtime_run_id` from an earlier successful Intel build and `runtime_sha256` for its bundled `libonnxruntime.dylib`. The workflow checks that digest, the x86_64 architecture, the runtime version and the API before reuse. Leave both empty to compile the runtime again.
+
+## Cross-compilation
+
+Tauri does not cross-compile out of the box, so build each platform on its own operating system. The repository's release path builds the Linux packages in containers with the scripts in `shells/tauri-desktop/release/` (`build-deb.sh`, `build-rpm.sh`, `build-flatpak.sh` and `build-arch.sh`; the README there gives the order). GitHub workflows cover specific targets: `macos-intel.yml`, `linux-arm64.yml`, `linux-rpm.yml`, `flatpak.yml` and `desktop-extra.yml` (the Windows installers). [Linux packages](/info/build-obs.html) maps each Linux format to its recipe.
+
+## Icons
 
 Production icons are committed under `src-tauri/icons/`. To regenerate the fallback sizes from new artwork:
 
@@ -41,77 +97,12 @@ cd shells/tauri-desktop
 npx @tauri-apps/cli icon path/to/icon-1024.png
 ```
 
-This writes all required sizes and formats (`32x32.png`, `128x128.png`, `128x128@2x.png`, `icon.icns`, `icon.ico`, etc.) to `src-tauri/icons/`.
+That writes every required size and format (`32x32.png`, `128x128.png`, `128x128@2x.png`, `icon.icns`, `icon.ico` and the rest) to `src-tauri/icons/`. The macOS bundle also carries a branded asset catalog and document icon; keep them consistent with any replacement artwork.
 
-The macOS bundle also carries the branded asset catalog and document icon. Keep these consistent with any replacement artwork.
+::: details What the desktop app guards at runtime
+These are behaviours of the built app rather than build steps.
 
-### Development
-
-From the repository root:
-
-```bash
-pnpm run dev:desktop
-```
-
-Inside `shells/tauri-desktop`, `pnpm run dev` does the same.
-
-Tauri opens a native window. The Vite dev server runs in the background; hot reload works. The state bridge uses the filesystem override (`bridge-overrides/state.ts`) - saved states go to `<AppData>/saved-state/`, where `<AppData>` is the app's data directory under the identifier `tools.lolly.Desktop` (for example `~/Library/Application Support/tools.lolly.Desktop/` on macOS).
-
-### Production build
-
-Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` through your private credential store. These sign the catalog embedded in the app; operating-system code signing uses a separate identity.
-
-From the repository root:
-
-```bash
-export LOLLY_PROFILE=lolly-start
-export LOLLY_EMBED_CATALOG=profile
-pnpm run build:desktop
-```
-
-Inside `shells/tauri-desktop`, `pnpm run build` does the same, with the same two variables set.
-
-Tauri first builds and signs its frontend, builds the native CLI sidecar, and builds the Quick Look extensions on macOS. It then compiles and packages the application. Output:
-
-| Platform | Artifact | Location |
-|---|---|---|
-| macOS | `.app` + `.dmg` | `src-tauri/target/release/bundle/macos/` and `bundle/dmg/` |
-| Windows | `.msi` + `.exe` NSIS installer | `src-tauri/target/release/bundle/` |
-| Linux | `.deb` + `.AppImage` | `src-tauri/target/release/bundle/` |
-
-The complete macOS package requires macOS 13.5 or later, matching the bundled Node CLI runtime. Set `APPLE_SIGNING_IDENTITY` for a Developer ID build, then notarise and staple the app and DMG before distribution.
-
-For Intel Macs, use `.github/workflows/macos-intel.yml`. It builds the pinned ONNX Runtime 1.28.0 from source, verifies API 28, and bundles the resulting x86_64 library with the application. The matching Node CLI and native SVG addon are built on the Intel runner. The collected app still needs distribution signing and notarisation.
-
-For a rebuild using the same runtime, supply `runtime_run_id` from a previous successful Intel build and `runtime_sha256` for its bundled `libonnxruntime.dylib`. The workflow checks that digest, the x86_64 architecture, runtime version and API before reuse. Leave both inputs empty to compile the runtime again.
-
-For an authorised private SUSE build, mount `brands/suse` and set `LOLLY_PROFILE=suse` with `LOLLY_EMBED_CATALOG=profile`. Use a separate app identifier, such as `tools.lolly.SUSE.Desktop`, so its state and cached CLI catalog do not share the public edition's directory. Match the Quick Look extension identifiers to that app identifier on macOS. RPM source preparation additionally requires `rpm/make-sources.sh --private --out <private-build-directory>` and CLI resources built for the target Linux architecture. Source archives omit macOS extended-attribute files. Keep the sources and packages in private storage. Public workflows, S3 download buckets and OBS must continue using `lolly-start`.
-
-### Cross-compilation
-
-Tauri does not support cross-compilation out of the box. Build each platform on its native OS, or use a CI matrix (GitHub Actions `macos-latest` / `windows-latest` / `ubuntu-latest`).
-
----
-
-[Back to Build Guide](/info/build-guide.html).
-
-
-### Website reads and delivered files
-
-The Website source reads public HTTP and HTTPS pages anonymously. It resolves
-and pins public addresses for each page, redirect, stylesheet and image read;
-local and private addresses are refused. The page redirect stays with the same
-party. Missing resources can leave a partial import, while a refused network
-address stops the import. Existing signed-in screen capture is separate from
-website reading.
-
-Desktop file events keep an open descriptor until the client consumes the file.
-Hot-folder files must be regular direct children of the selected directory;
-links and files outside that directory are refused. Custody and event queues
-are bounded to 256 entries, and individual files have a 256 MiB read limit.
-Replacing a folder with invalid settings keeps the previous watcher active.
-
-Renderer endpoint adverts are written through a private temporary file and an
-atomic replacement. Node clients require a bounded regular advert owned by the
-current user with owner-only permissions on Unix. A stale or unsuitable advert
-is ignored, allowing the normal renderer selection to continue.
+- **Website reads.** The Website source reads public HTTP and HTTPS pages anonymously. It resolves and pins public addresses for each page, redirect, stylesheet and image read, and refuses local and private addresses. A page redirect stays with the same party. A missing resource can leave a partial import, while a refused network address stops the import. Signed-in screen capture is a separate feature.
+- **Hot folders.** File events keep an open descriptor until the client consumes the file. Files must be regular, direct children of the selected folder; links and files outside it are refused. Custody and event queues hold at most 256 entries, and each file has a 256 MiB read limit. Replacing a folder with invalid settings keeps the previous watcher running.
+- **Renderer adverts.** The app writes the advert that tells local clients where its renderer listens through a private temporary file and an atomic replace. Node clients accept only a bounded, regular advert owned by the current user, with owner-only permissions on Unix. A stale or unsuitable advert is ignored, and normal renderer selection continues.
+:::

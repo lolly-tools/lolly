@@ -351,8 +351,13 @@ export function classifyVectorShot(c: VectorShotComparison, t: ShotThresholds = 
   if (c.oldText === undefined || c.oldBytes === undefined) {
     return { kind: 'new', flags, pixelDiff: null, sizeDelta: null };
   }
-  const sizeDelta = c.oldBytes > 0 ? (c.newBytes - c.oldBytes) / c.oldBytes : null;
-  const unchanged = stripSvgC2pa(c.oldText) === stripSvgC2pa(c.newText);
+  // Like with like. A committed baseline carries its Content Credentials (about 2.7 KB
+  // of <metadata>) and a fresh capture is compared BEFORE it is stamped, so measuring
+  // the old file whole made every small vector look 50-65% smaller than its baseline.
+  const oldText = stripSvgC2pa(c.oldText);
+  const oldContentBytes = c.oldBytes > 0 ? new TextEncoder().encode(oldText).byteLength : 0;
+  const sizeDelta = oldContentBytes > 0 ? (c.newBytes - oldContentBytes) / oldContentBytes : null;
+  const unchanged = oldText === stripSvgC2pa(c.newText);
   if (!unchanged && sizeDelta !== null && Math.abs(sizeDelta) > t.sizeDeltaFrac) flags.push('size-jump');
   return { kind: unchanged ? 'unchanged' : 'changed', flags, pixelDiff: null, sizeDelta };
 }

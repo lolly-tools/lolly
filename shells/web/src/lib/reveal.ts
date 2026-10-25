@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * staggerReveal - the gallery's entrance cascade, made reusable for any freshly-shown
- * set of items: a profile section expanding, or a catalog group opening. Each item
+ * set of items: a platform panel expanding, or a catalog group opening. Each item
  * animates in with a stepped delay (the CSS `.reveal-item` rule → shared `card-in`
  * keyframes) and a soft "shuffle" cue plays under it.
  *
@@ -57,10 +57,12 @@ export function staggerReveal(items: Element[], { step = 14, max = 160, sound = 
   if (sound) playSfx('shuffle');
 }
 
-// Platform/capabilities panels and profile cards cascade on open. Each <details>
-// keeps its items in a known body wrapper.
-const SECTION_CLASSES = ['plat-section', 'profile-collapse'];
-const SECTION_BODIES = '.plat-section-body, .profile-collapse-body';
+// Platform/capabilities panels cascade on open. Each <details> keeps its items in a
+// known body wrapper. The collapsible section card (the tool sidebar's sections, the
+// Assets inspector's and the Settings cards) folds open instead, with no cascade
+// (parts/disclosure.css): a second motion inside a growing card is what made the card shake.
+const SECTION_CLASSES = ['plat-section'];
+const SECTION_BODIES = '.plat-section-body';
 
 /** The items to cascade inside an opened section: a grid of cards if the body wraps one
  *  (capabilities/platform), otherwise the body's own direct children. */
@@ -86,9 +88,10 @@ export function installGlobalReveal(): void {
   document.addEventListener('toggle', (e) => {
     const d = e.target;
     if (!(d instanceof HTMLDetailsElement) || !d.open) return;
-    // Input disclosures animate with their open state, before the asynchronous
-    // toggle event. A second row cascade would restart their fade after first paint.
-    if (d.classList.contains('input-section')) {
+    // Input disclosures and Settings cards animate with their open state, before the
+    // asynchronous toggle event. A row cascade on top would restart their fade after
+    // first paint, so they keep only the cue.
+    if (d.classList.contains('input-section') || d.classList.contains('profile-collapse')) {
       if (!d.closest('[data-reveal-sound="off"]')) playSfx('shuffle');
       return;
     }

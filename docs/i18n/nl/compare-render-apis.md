@@ -2,24 +2,28 @@
 
 _Laatst gecontroleerd: 28 september 2026._
 
-Lolly genereert assets uit sjablonen en data op je apparaat, in CI of via de server-API van [lolly.work](https://lolly.work). De gecombineerde oplossing dekt geautomatiseerd renderen, evenals de identiteit, het beleid en de aflevering rond de productiejobs van een organisatie.
+Als je vandaag via een API afbeeldingen uit sjablonen genereert, zegt deze pagina hoe Lolly dezelfde klus doet op je eigen apparaat, in CI of op je eigen server.
+
+## Wat gehoste render-API's beter doen
+
+[Bannerbear](https://www.bannerbear.com/) en [Placid](https://placid.app/) verpakken rendering als beheerde diensten, met hun eigen infrastructuur, integraties en support. Jij stuurt een verzoek en iemand anders draait de servers.
 
 ## Waar ze overlappen
 
-[Bannerbear](https://www.bannerbear.com/) en [Placid](https://placid.app/) genereren afbeeldingen en andere media uit sjablonen via API's en integraties. Lolly hanteert dezelfde aanpak van een sjabloon plus invoer, met [URL-modus](/info/url-mode.html), de [CLI](/info/cli.html), een batchraster en serverendpoints als manieren om werk in te dienen.
+Beide maken van een sjabloon plus inputs media. Lolly neemt de inputs uit een [link](/info/url-mode.html), de [CLI](/info/cli.html), een batchraster of een servereindpunt.
 
-## Wat lolly.work biedt
+## Hoe Lolly de overlappende klus doet
 
-lolly.work is de afzonderlijk uitgerolde organisatieservice in het Lolly-project. Het draait de Lolly-engine achter een API, past zichtbaarheid van tools en invoerbeleid toe en levert gerenderde bestanden en ondertekende deellinks. De [herstelbare renderservice](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md) ondersteunt afzonderlijke jobs en batches, idempotente indiening, status, begrensde nieuwe pogingen, annulering en bewaarde outputs. Onderbroken werk kan na een herstart van de server worden hervat wanneer persistente opslag is geconfigureerd.
+Dezelfde tool rendert op een laptop, in een CI-job of op een server, uit dezelfde inputs. Lokaal en CI-rendering hebben helemaal geen dienst nodig.
 
-De server gebruikt een snel SVG/PNG-renderpad en een optionele Chromium-worker voor tools die een browser nodig hebben. Automatisering authenticeert met servicetokens, en voltooide output kan via [beheerde aflevering](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) naar organisatiebestemmingen worden gestuurd. Een geconfigureerde ondertekeningsidentiteit maakt C2PA-ondertekening mogelijk op ondersteunde serveroutput.
+![Exportinstellingen van Batch: bestandsnaam, standaardformaat, eenheden, DPI en het aantal te renderen rijen](/info/shots/use-batch-toolbar.svg)
+
+Op een server draait [Lolly Work](/info/compare.html#what-runs-where) de Lolly-engine achter een API en past het toolzichtbaarheid en inputbeleid toe. De [herstelbare renderdienst](/info/work-renders.html) ondersteunt losse jobs en batches, idempotente indiening, status, begrensde pogingen, annulering en bewaarde uitvoer, en onderbroken werk hervat na een herstart wanneer persistente opslag is geconfigureerd.
+
+De server heeft een snel SVG- en PNG-pad en een optionele Chromium-worker voor tools die een browser nodig hebben. Automatisering meldt zich aan met servicetokens, afgeronde uitvoer kan via [goedgekeurde bezorging](/info/work-delivery.html) naar organisatiebestemmingen gaan, en een geconfigureerde ondertekeningsidentiteit voegt Content Credentials toe aan ondersteunde uitvoer.
 
 ## Wie de service draait
 
-Bannerbear en Placid bieden renderen aan als beheerde services met hun eigen infrastructuur en integraties. Met Lolly kan een individu lokaal renderen of een team lolly.work op eigen infrastructuur beheren. Beide Lolly-repositories zijn open source onder MPL-2.0; zelfhosting kent geen softwarelicentiekosten per render, terwijl rekenkracht, opslag en operations kosten blijven waarmee je rekening moet houden.
+Met Lolly rendert een individu lokaal, of draait een team Lolly Work op zijn eigen infrastructuur. Een serverjob indienen stuurt zijn inputs en vereiste assets naar die instantie, wat anders is dan het pad op het apparaat. Een duurzame dienst heeft een persistente database en uitvoeropslag nodig, en tools die van de browser afhangen hebben de Chromium-worker nodig; [Install Lolly Work](/info/work-install.html) beschrijft beide.
 
-De openbare lolly.work-site is een evaluatiesandbox, geen productiehostingtoezegging. Een duurzame service vraagt om een persistente database en outputopslag; tools die van een browser afhankelijk zijn, hebben de Chromium-worker nodig. De [installatiegids](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) en de [statuspagina](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) beschrijven die vereisten en de huidige beperkingen.
-
-Lokaal en CI-renderen blijven beschikbaar zonder de organisatieservice. Het indienen van een serverjob stuurt de invoer en de benodigde assets naar die instantie; dit verschilt van het pad op het apparaat. Zie het [overzicht van de gecombineerde oplossing](/info/compare.html).
-
-Bannerbear en Placid zijn handelsmerken van hun eigenaren. Deze pagina beschrijft waar de oplossingen overlappen en is niet verbonden aan een van beide.
+Bannerbear en Placid zijn handelsmerken van hun eigenaren. Deze pagina beschrijft waar de producten overlappen en is niet verbonden aan een van beide.

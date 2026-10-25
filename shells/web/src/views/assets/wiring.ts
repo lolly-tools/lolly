@@ -289,6 +289,18 @@ export function wire(cat: CatCtx): void {
       return;
     }
 
+    // Show puts the role colours where the card was. Hide takes them from above the
+    // card, so the page scrolls by what left and the card stays under the pointer.
+    const reveal = target.closest<HTMLElement>('[data-swatch-reveal]');
+    if (reveal) {
+      const top = reveal.getBoundingClientRect().top, hiding = cat.showSwatches;
+      cat.sections.setShowSwatches(!hiding);
+      const next = body.querySelector<HTMLElement>('[data-swatch-reveal]');
+      if (next && hiding) window.scrollBy(0, next.getBoundingClientRect().top - top);
+      if (e.detail === 0) next?.focus({ preventScroll: true });
+      return;
+    }
+
     if (target.closest('.cat-showhidden')) { cat.showHidden = !cat.showHidden; updateRouteParams({ hidden: cat.showHidden ? '' : null }); cat.sections.rerender(); return; }
 
     // A swatch card opens that swatch's details, like any other asset card.

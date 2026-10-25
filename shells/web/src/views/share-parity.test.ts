@@ -27,7 +27,9 @@ function fnBody(name: string): string {
 }
 
 test('address and Share read result controls through the same function', () => {
-  assert.match(fnBody('syncUrl'), /collectExportParams\(actionsEl\)/);
+  // syncUrl and the settled paint write both build the address in writeAddress.
+  assert.match(fnBody('syncUrl'), /return writeAddress\(tview\);/);
+  assert.match(fnBody('writeAddress'), /collectExportParams\(actionsEl\)/);
   assert.match(fnBody('buildShareParams'), /collectExportParams\(exportScope\)/);
 });
 

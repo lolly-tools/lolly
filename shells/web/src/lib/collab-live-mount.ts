@@ -122,6 +122,7 @@ import { registerCollabSessionSource } from './collab-session-source.ts';
 import type { CollabConnection, CollabSeed } from './collab-mount.ts';
 import type { CollabSessionHandle, CollabStream } from './collab-session.ts';
 import { isCapturableCollabHistory } from './collab-history.ts';
+import { flushAddressWrites } from './url-state.ts';
 import type { P2PCollabHistory } from '../collab/rtc-history.ts';
 import type { WebStateAPI } from '../bridge/state.ts';
 // TYPE-ONLY, all four, and that matters rather than being just tidy: this module is on the
@@ -412,6 +413,8 @@ function browserEnvironment(): LiveMountEnvironment {
   return {
     currentQuery() {
       if (typeof window === 'undefined') return '';
+      // The address wins over the seed in mergeSeedQuery, so it must hold the latest edit.
+      flushAddressWrites();
       if (window.location.search) return window.location.search.slice(1);
       const at = window.location.hash.indexOf('?');
       return at >= 0 ? window.location.hash.slice(at + 1) : '';

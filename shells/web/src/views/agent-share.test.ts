@@ -371,3 +371,50 @@ test('embedded actual guidance has a fixed size bound', async () => {
   assert.ok(instructions.length < 15_000);
   assert.match(instructions, /Excerpt ends here/);
 });
+
+test('brand skills ride as links on this instance, the overall brand skill first, with name and revision (plan 323)', async () => {
+  const guide = guidance();
+  const brandSkills = [
+    { name: 'lolly-demo-brand', label: 'Lolly Demo brand standards', discipline: 'brand' as const, revision: '1.0', url: 'http://localhost/catalog/assets/lolly/skills/brand/SKILL.md' },
+    { name: 'lolly-demo-photography', label: 'Lolly Demo photography', discipline: 'photography' as const, revision: '1.0', url: 'http://localhost/catalog/assets/lolly/skills/photography/SKILL.md' },
+  ];
+  const text = agentGuidanceInstructions({ ...guide, skill: await guide.skill(), brandSkills }, []);
+  assert.match(text, /Brand skills from the active design system/);
+  assert.match(text, /- Lolly Demo brand standards \(lolly-demo-brand, revision 1\.0\): http:\/\/localhost\/catalog\/assets\/lolly\/skills\/brand\/SKILL\.md/);
+  assert.ok(text.indexOf('lolly-demo-brand') < text.indexOf('lolly-demo-photography'), 'the order the host gave is kept');
+  // A skill with no shareable URL (one held on this device) never reaches the text.
+  const local = agentGuidanceInstructions({ ...guide, skill: await guide.skill(), brandSkills: [{ ...brandSkills[0]!, url: 'blob:http://localhost/x' }] }, []);
+  assert.doesNotMatch(local, /Brand skills from|blob:/);
+  // No brand skills, no section, and the tool excerpt budget is unchanged.
+  assert.doesNotMatch(agentGuidanceInstructions({ ...guide, skill: await guide.skill() }, []), /Brand skills from/);
+  const bounded = agentGuidanceInstructions({ ...guide, skill: skill('darkroom', '1.2.3', 'x'.repeat(60_000)), brandSkills }, []);
+  assert.match(bounded, /Excerpt ends here/);
+  assert.ok(bounded.length < 15_000);
+});
+
+test('the copy press reads the guidance host\'s brand skills, and a failing lookup copies without them', async () => {
+  const copied: string[] = [];
+  const guide: AgentGuidanceHost = { ...guidance(), brandSkillLinks: async () => [{ name: 'acme-brand', label: 'Acme', discipline: 'brand', revision: '2', url: 'https://acme.example/catalog/assets/acme/skills/brand/SKILL.md' }] };
+  const doc = { inputs: {}, toolVersion: guide.toolVersion, agentGuidance: guide };
+  const section = buildAgentShareSection({ baseParts: [], copy: async text => { copied.push(text); }, document: () => doc })!;
+  document.body.appendChild(section);
+  try {
+    section.querySelector('button')!.click(); await tick(); await tick();
+    assert.match(copied[0]!, /- Acme \(acme-brand, revision 2\): https:\/\/acme\.example\//);
+    guide.brandSkillLinks = async () => { throw new Error('catalog unavailable'); };
+    section.querySelector('button')!.click(); await tick(); await tick();
+    assert.equal(copied.length, 2);
+    assert.doesNotMatch(copied[1]!, /Brand skills from/);
+  } finally { section.remove(); }
+});
+
+test('a live invitation carries the same brand skill links as the guidance handoff', async context => {
+  const fixture = invitationFixture(context);
+  const guide = guidance('design', '1.0.0'); guide.documentId = 'doc:share';
+  fixture.editor.toolVersion = '1.0.0'; fixture.editor.adapter = 'layers';
+  guide.skill = async () => skill('design', '1.0.0');
+  guide.brandSkillLinks = async () => [{ name: 'lolly-demo-motion', label: 'Lolly Demo motion', discipline: 'motion', revision: '1.0', url: 'http://localhost/catalog/assets/lolly/skills/motion/SKILL.md' }];
+  const unset = installAgentGuidance(fixture.runtime, guide); context.after(unset);
+  const result = await fixture.host.create('edit', 'Designer');
+  assert.match(result.instructions, /lolly-demo-motion, revision 1\.0\): http:\/\/localhost\/catalog\/assets\/lolly\/skills\/motion\/SKILL\.md/);
+});

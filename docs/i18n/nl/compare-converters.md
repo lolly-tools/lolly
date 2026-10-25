@@ -2,16 +2,20 @@
 
 _Laatst gecontroleerd: 28 september 2026._
 
-Lolly converteert bestanden in de browser op je eigen apparaat: HEIC naar JPG, PNG naar SVG, PDF naar afbeeldingen en veel andere combinaties. Zie [elk formaat dat Lolly kan openen en maken](/info/formats.html) voor de ondersteunde conversies en hun beperkingen.
+Als je gewoonlijk zoekt op "HEIC to JPG" of "compress PDF" en het bestand uploadt naar de site die bovenaan komt, doet Lolly dezelfde conversie in je browser, op je eigen apparaat.
+
+## Wat een converterwebsite beter kan
+
+Sommige converterwebsites verwerken formaten die Lolly niet kent, en hebben vooraf niets nodig. Kies een converter op de formaten en getrouwheid die je nodig hebt en op waar hij het bestand verwerkt: sommige conversies behouden bewerkbare structuur en andere platten het resultaat af.
 
 ## Waar de conversie plaatsvindt
 
-Een browsergebaseerde converter kan een bestand uploaden voor verwerking of lokaal converteren. De utilities van Lolly op het apparaat verwerken het bestand lokaal, zonder account, advertenties of trackers. Ze voegen geen Lolly-watermerk of herkomstmetadata toe. Zodra de benodigde conversie-assets beschikbaar zijn, kunnen ze offline werken; de bestandsgrootte wordt begrensd door het geheugen van het apparaat en de specifieke formaatlezer.
+Een converter in de browser kan een bestand voor verwerking uploaden of lokaal converteren. De conversiehulpprogramma's van Lolly verwerken het bestand lokaal, zonder account, advertenties of trackers, en voegen geen Lolly-watermerk of Content Credentials toe. Zodra de assets die een conversie nodig heeft zijn opgeslagen, werken ze offline. De bestandsgrootte wordt begrensd door het geheugen van het apparaat en de specifieke formaatlezer.
 
-Kies een converter op basis van de formaten en de getrouwheid die je nodig hebt, en niet alleen op basis van waar het bestand wordt verwerkt. Sommige conversies behouden bewerkbare structuur, andere platten het resultaat af; de formaatpagina's van Lolly beschrijven die verschillen.
+![De weergave Utilities: Strip Hidden Data, Compress PDF, Convert Image en de andere klussen op het apparaat op één plek](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+
+[Elk formaat dat Lolly kan openen en maken](/info/formats.html) noemt de ondersteunde conversies en hun grenzen, waaronder HEIC naar JPG, PNG naar SVG en PDF naar afbeeldingen.
 
 ## Wanneer een team meer nodig heeft
 
-[lolly.work](https://lolly.work) is de afzonderlijk uitgerolde organisatieservice van het Lolly-project. Het voegt SSO, SCIM, gedeelde catalogi, goedkeuringen, rapportage en serverrendering toe voor ondersteunde productieworkflows. Beide onderdelen zijn open source onder MPL-2.0. Een organisatie kan ze samen gebruiken terwijl haar leden de utilities op het apparaat blijven gebruiken voor lokale conversies.
-
-Het onderscheid is belangrijk voor gegevensverwerking: een lokale conversie houdt het bestand op het apparaat, terwijl de keuze voor een gedeelde upload, serverrendering of aflevering de relevante gegevens naar de geconfigureerde services stuurt. Het [overzicht van de gecombineerde oplossing](/info/compare.html) legt de scheiding uit.
+De leden van een organisatie blijven de hulpprogramma's op het apparaat gebruiken voor lokale conversies, ook wanneer de organisatie Lolly Work draait. Een gedeelde upload, serverrender of bezorging is het punt waar gegevens naar haar server gaan; [Wat waar draait](/info/compare.html#what-runs-where) legt de scheiding uit.

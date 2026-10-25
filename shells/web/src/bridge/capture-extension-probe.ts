@@ -6,7 +6,7 @@
  * WHY IT IS A SEPARATE FILE. The extension sets `window.__lollyCapture` at
  * document_start, so detection is two property reads and costs nothing. But the
  * DECISION is made at boot (`bridge/index.ts` picks the extension impl vs the
- * stub before the lazy `host.capture` facade exists, and the Design System studio
+ * stub before the lazy `host.capture` facade exists, and Design System Setup
  * decides whether the Website source tile exists at all), while the TRANSPORT it
  * gates - the postMessage relay, the request/reply plumbing, the site-read
  * decoder - is only ever used behind a user gesture. Importing the probe from the
@@ -30,6 +30,9 @@ export interface LollyCaptureFlag {
    * separate announcement rather than one version number for both.
    */
   siteProtocol?: number;
+  /** Version of the vector screenshot (`spec.vector`) this extension answers.
+   *  Absent before 0.5.0, which answers screenshots only. */
+  vectorProtocol?: number;
 }
 
 declare global {
@@ -41,6 +44,16 @@ declare global {
 
 /** The site-read shape this build speaks. Bump in lockstep with inpage.js. */
 export const SITE_PROTOCOL = 1;
+
+/** The vector screenshot shape this build speaks. Bump in lockstep with inpage.js. */
+export const VECTOR_PROTOCOL = 1;
+
+/** Synchronous detection of the vector screenshot (an extension 0.5.0 or later). */
+export function hasVectorCapture(): boolean {
+  if (typeof window === 'undefined') return false;
+  const flag = window.__lollyCapture;
+  return !!flag && typeof flag === 'object' && flag.vectorProtocol === VECTOR_PROTOCOL;
+}
 
 /** Synchronous, zero-cost detection - the extension sets this at document_start. */
 export function hasCaptureExtension(): boolean {

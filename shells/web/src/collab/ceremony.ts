@@ -283,7 +283,7 @@ export type CreateAnswerResult =
   | { readonly ok: false; readonly detail?: string };
 
 /**
- * Applying the peer's answer. `retryable` is the section 11.25 concession: a mis-scanned or
+ * Applying the peer's answer. `retryable` is the section 11.25 concession: a mis-pasted or
  * truncated reply must send the inviter back to waiting with a note, NOT end a ceremony
  * the humans are still working. Everything else is a local stack failure.
  */
@@ -415,7 +415,7 @@ export type CeremonyEvent =
   | { readonly type: 'invite' }
   /** acceptor: a decoded invite arrived (link, paste, QR scan, share sheet). */
   | { readonly type: 'accept'; readonly invite: CollabInvite }
-  /** inviter: a decoded answer arrived (paste, QR scan, `#/join-reply` handoff section 11.25). */
+  /** inviter: a decoded answer arrived (paste, `#/join-reply` handoff section 11.25, nearby, rendezvous). */
   | { readonly type: 'answer'; readonly answer: CollabAnswer }
   /**
    * Either: the peer declared its `CANVAS_OP_VERSION` in band (the ops-channel hello).

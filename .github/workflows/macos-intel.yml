@@ -31,6 +31,9 @@ jobs:
     with:
       target: tauri-desktop
       platform: macos
+      # The Mac app ships Lolly Demo, with the blank Lolly Starter as a companion
+      # design system (brands/lolly-demo/catalog/assets/index.json).
+      profile: lolly-demo
       public_key_jwk: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
       connector_origins: ${{ vars.VITE_CONNECTOR_ORIGINS }}
       ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
@@ -45,7 +48,7 @@ jobs:
     env:
       LOLLY_RELEASE_FRONTEND_PHASE: verified-artifact
       VITE_CATALOG_PUBLIC_KEY_JWK: ${{ vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
-      LOLLY_PROFILE: lolly-start
+      LOLLY_PROFILE: lolly-demo
       LOLLY_EMBED_CATALOG: profile
       ONNXRUNTIME_NODE_INSTALL_CUDA: skip
       NODE_OPTIONS: --max-old-space-size=6144
@@ -135,7 +138,7 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: release-source-catalog-tauri-desktop
-          path: brands/lolly-start/catalog/tools
+          path: brands/lolly-demo/catalog/tools
 
       - name: Download signed frontend
         if: needs.frontend.result == 'success'

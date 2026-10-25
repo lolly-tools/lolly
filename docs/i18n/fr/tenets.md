@@ -27,3 +27,7 @@ Attribution, provenance, confidentialité & consentement
 créativité & confiance parmi l'infini
 
 n'importe qui peut créer, à n'importe quelle échelle, n'importe où
+
+## Pourquoi
+
+### [Parce que nous sommes sur les épaules de géants](/info/trust/shoulders-of-giants.html)

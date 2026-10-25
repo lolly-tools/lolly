@@ -138,10 +138,11 @@ export function openSessionRules(opts: {
     search.setAttribute('aria-label', t('Find an input'));
     const showAll = document.createElement('input');
     showAll.type = 'checkbox';
+    showAll.className = 'field-check';
     const allLabel = document.createElement('label');
     allLabel.className = 'dr-check sr-help';
     allLabel.append(showAll, document.createTextNode(t('Show settings for other content types')));
-    const selectedOnly = document.createElement('input'); selectedOnly.type = 'checkbox'; selectedOnly.checked = !!opts.inputId;
+    const selectedOnly = document.createElement('input'); selectedOnly.type = 'checkbox'; selectedOnly.className = 'field-check'; selectedOnly.checked = !!opts.inputId;
     const selectedLabel = document.createElement('label'); selectedLabel.className = 'dr-check sr-help'; selectedLabel.append(selectedOnly, document.createTextNode(t('Show editable inputs only')));
     const sourceValues = Object.fromEntries(opts.runtime.getModel().map((i) => [i.id, i.value]));
     let visibleFields = fields;
@@ -203,6 +204,7 @@ export function openSessionRules(opts: {
         label.className = 'dr-check sr-select';
         const check = document.createElement('input');
         check.type = 'checkbox';
+        check.className = 'field-check';
         check.dataset.sourceInput = source.id;
         check.checked = selected(field);
         const reason = sessionInputReason(source);
@@ -316,6 +318,7 @@ export function openSessionRules(opts: {
               optionLabel.className = 'dr-check';
               const allowed = document.createElement('input');
               allowed.type = 'checkbox';
+              allowed.className = 'field-check';
               allowed.checked = field.input.options!.some((o) => o.value === option.value);
               allowed.onchange = () => {
                 field.input.options = allowed.checked

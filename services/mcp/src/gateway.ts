@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The single (req, res) handler mounted both on Vercel (api/mcp/[...path].js, via
- * vercel-entry.ts) and by the standalone HTTP server (http.ts). It routes:
+ * The single (req, res) handler mounted by the standalone HTTP server (http.ts),
+ * which is what a container runs, and by the Vercel function adapter
+ * (api/mcp/[...path].js, via vercel-entry.ts). It routes:
  *
  *   OPTIONS *                                     → CORS preflight
  *   GET  …/tool/<id>.<ext>                         → public render      (render-get.ts)
@@ -38,6 +39,7 @@ import { LIVE_LIMITS } from '@lolly-tools/core';
 import type { WriteObserver } from '../../shared/http-lifecycle.mjs';
 import { deliveryHeaders, deliveryResponse } from './delivery-http.ts';
 import { bearerPrincipal, privateFileScopeEnabled, resultFiles, type ResultFiles } from './result-files.ts';
+import { hostedDeployment, hostedRequestMaxBytes, hostedResponseMaxBytes, isHostedServer } from './hosted.ts';
 
 const CORS: Record<string, string> = {
   'access-control-allow-origin': '*',
@@ -47,10 +49,9 @@ const CORS: Record<string, string> = {
   'access-control-expose-headers': 'WWW-Authenticate, ETag, Content-Disposition, Content-Length',
 };
 
-export const MCP_BODY_MAX = 32 * 1024 * 1024; // room for base64 transform inputs
-/** Vercel refuses a function response over 4.5 MB with a bare platform error, so
- *  on Vercel a larger JSON-RPC answer is replaced by one the agent can act on. */
-export const VERCEL_MCP_RESPONSE_MAX = 4_400_000;
+/** The request body a local server reads: room for base64 transform inputs. A hosted
+ *  server reads up to `LOLLY_MCP_REQUEST_MAX_BYTES` instead (hosted.ts). */
+export const MCP_BODY_MAX = 32 * 1024 * 1024;
 export const OAUTH_BODY_MAX = 64 * 1024;
 const RATE_WINDOW_MS = 60_000;
 
@@ -108,7 +109,7 @@ export function readBody(req: IncomingMessage, maxBytes = MCP_BODY_MAX): Promise
 export function publicOrigin(env: NodeJS.ProcessEnv): string {
   const configured = env.LOLLY_MCP_PUBLIC_ORIGIN?.trim();
   if (!configured) {
-    if (env.VERCEL || env.LOLLY_MCP_HOSTED === '1' || env.NODE_ENV === 'production') {
+    if (hostedDeployment(env)) {
       throw new Error('LOLLY_MCP_PUBLIC_ORIGIN is required in hosted/production mode');
     }
     const port = env.PORT == null || env.PORT.trim() === '' ? 8790 : Number(env.PORT);
@@ -251,6 +252,12 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
   const budget = options.budget ?? createUsageBudget(env, namespace, options.onWrite);
   const open = openAccess(env);
   const files = options.resultFiles ?? resultFiles;
+  // A hosted server reads requests and sends answers up to its size settings; a
+  // larger answer is replaced by one the agent can act on. A local server keeps
+  // its own request room and sends any size.
+  const hosted = isHostedServer(env);
+  const requestMax = hosted ? hostedRequestMaxBytes(env) : MCP_BODY_MAX;
+  const responseMax = hosted ? hostedResponseMaxBytes(env) : Number.POSITIVE_INFINITY;
   return async (req, rawResponse) => {
     const res = deliveryResponse(req, rawResponse);
     const method = req.method || 'GET';
@@ -310,7 +317,7 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
       const response = await dispatch(message, { invitedLive: true, protocolVersion: typeof req.headers['mcp-protocol-version'] === 'string' ? req.headers['mcp-protocol-version'] : undefined });
       if (!response) { await budget.record(0); res.writeHead(202, { ...CORS, 'cache-control': 'no-store' }); res.end(); return; }
       let body = JSON.stringify(response);
-      if (env.VERCEL && Buffer.byteLength(body) > VERCEL_MCP_RESPONSE_MAX) body = JSON.stringify(ok(message.id ?? null, { isError: true, content: [{ type: 'text', text: 'Read fewer layers or fields, or request a smaller preview. This result exceeds the hosted response limit.' }] }));
+      if (Buffer.byteLength(body) > responseMax) body = JSON.stringify(ok(message.id ?? null, { isError: true, content: [{ type: 'text', text: 'Read fewer layers or fields, or request a smaller preview. This result exceeds the hosted response limit.' }] }));
       await budget.record(Buffer.byteLength(body));
       res.writeHead(200, { ...CORS, 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(body); return;
     }
@@ -421,7 +428,7 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
       const spent = await overBudget(budget);
       if (spent) return send(res, spent);
       let raw: string;
-      try { raw = await readBody(req, MCP_BODY_MAX); }
+      try { raw = await readBody(req, requestMax); }
       catch (error) {
         if (error instanceof BodyTooLargeError) {
           res.writeHead(413, { ...CORS, 'content-type': 'application/json' });
@@ -452,9 +459,9 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env, options: { o
       if (!response) { await budget.record(0); res.writeHead(202, CORS); res.end(); return; } // notification
       const status = modern && response.error ? response.error.code === ERR.METHOD_NOT_FOUND ? 404 : new Set<number>([ERR.HEADER_MISMATCH, ERR.MISSING_CAPABILITY, ERR.UNSUPPORTED_VERSION, ERR.INVALID_PARAMS]).has(response.error.code) ? 400 : 200 : 200;
       let body = JSON.stringify(response);
-      if (env.VERCEL && Buffer.byteLength(body) > VERCEL_MCP_RESPONSE_MAX) {
+      if (Buffer.byteLength(body) > responseMax) {
         const mb = (Buffer.byteLength(body) / 1e6).toFixed(1);
-        const message = `The result is ${mb} MB, over the ${VERCEL_MCP_RESPONSE_MAX / 1e6} MB this hosted endpoint can return. Ask for svg, a smaller size, or run Lolly locally for large files.`;
+        const message = `The result is ${mb} MB, over the ${(responseMax / 1e6).toFixed(1)} MB this hosted endpoint can return. Ask for svg, a smaller size, or run Lolly locally for large files.`;
         // A tool call answers with a tool error the agent reads; anything else with a JSON-RPC error.
         body = JSON.stringify(msg.method === 'tools/call'
           ? ok(response.id ?? null, { content: [{ type: 'text', text: message }], isError: true })

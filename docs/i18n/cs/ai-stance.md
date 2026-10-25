@@ -1,6 +1,6 @@
 # Náš postoj k AI
 
-Lolly vznikla uprostřed největší změny ve způsobu tvorby médií od dob knihtisku, a to lidmi, kteří z AI nejsou ani vyděšení, ani nadšení bez dechu. Tato stránka jasně formuluje postoj projektu a ke každému tvrzení přidává mechanismus, který ho vynucuje, abys mohl ověřit, ne jen věřit.
+Lolly vznikla uprostřed největší změny ve vytváření médií od knihtisku, lidmi, kteří nejsou ani vyděšení z AI, ani bez dechu nadšení z technologie. Zde je postoj projektu s mechanismem za každým závazkem, abys mohl ověřovat, místo abys věřil.
 
 > "Pijeme, jako by kohoutek měl každou chvíli vyschnout. Nevyschne - dnešní AI je to nejhorší, čím kdy bude. Pokud tu potopu přežijeme, nebude to hromaděním toho, co je v té rezavé nádrži dole na kopci, plné sedimentu. Bude to zavlažováním a rekultivací ***naší*** vlastní půdy pro prosperující budoucnost."
 >
@@ -8,31 +8,29 @@ Lolly vznikla uprostřed největší změny ve způsobu tvorby médií od dob kn
 
 ![Supercelární bouře propukající nad usedlostí v australském vnitrozemí - nádrž a kůlny dole, povodňová voda už protíná koryta suchou pastvinou](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} vygenerovaný obrázek %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} a %act{exported to WebP} jako %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Ověřit nyní](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} vygenerovaný obrázek %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} a %act{exported to WebP} jako %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Ověřit nyní](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
-Abychom byli přesní, protože tahle stránka tvrdí, že na přesnosti záleží: obrázek výše je vygenerovaný, ne vyfocený. Na tu usedlost nemířil žádný fotoaparát, protože žádná taková usedlost neexistuje. Popisuje region Queensland v Austrálii, zadaný ze Spojeného království, vygenerovaný v datacentru ve Spojených státech. Snaží se být věrný místu, aniž by byl jeho záznamem, a tohle rozlišení je celý důvod, proč to jeho Content Credentials zaznamenávají.
+Přesně řečeno, protože tato stránka tvrdí, že na přesnosti záleží: obrázek výše je vygenerovaný, ne vyfotografovaný. Na tu usedlost nebyl namířen žádný fotoaparát, protože žádná usedlost neexistuje. Popisuje regionální Queensland v Austrálii, zadaný ze Spojeného království, vygenerovaný v datacentru ve Spojených státech. Pokouší se být věrný místu, aniž by byl jeho záznamem, a právě tento rozdíl je celým důvodem, proč obrázek nese Content Credentials.
 
-Takhle to vypadá, když si to ověříš. V souboru přežije devět kroků: pět zaznamenal Google při generování a vodoznačení obrázku, čtyři pak Lolly při otevření, vytvoření, označení a konverzi verze na této stránce. Lolly nic negenerovala a její záznam to tak i uvádí.
+Takto to vypadá, když soubor zkontroluješ. V souboru přežilo devět kroků: pět zaznamenal Google, když obrázek generoval a označil vodoznakem, a čtyři zaznamenala Lolly, když verzi na této stránce otevřela, vytvořila, označila a převedla. Lolly nic negenerovala a její záznam to říká.
 
 ![Historie změn, kterou Lolly zpětně vyčte z hotového souboru - pět kroků zaznamenal Google, čtyři pak Lolly, s výsledkem ve WebP na této stránce](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-Andyho metafora pro povodeň je tato: postoj nedostatku vůči AI - vsadit vše na pár vyvolených, dnes se okrádat a starat se později - znamená pít zkaženou vodu z nádrže, zatímco se spouští déšť a povodňová voda se žene přes pláně přímo k tobě. Generovaný obsah se brzy stane efektivně nekonečným. Když se něco stane nekonečným, jeho hodnota se přesune na to, co kolem něj zůstává vzácné: důvěru, provenanci, soudržnost značky a lidský úsudek. Lolly není větší kýbl na tu povodeň. Je to zavlažování - kanály, které vodu usměrňují, a půda, kde věci skutečně rostou.
+V Andyho obrazu je postoj nedostatku vůči AI jako pít zkaženou vodu z nádrže, zatímco po pláních se žene povodeň. Generovaného obsahu bude prakticky nekonečně. Když se něco stane nekonečným, jeho hodnota se přesune k tomu, co zůstává kolem vzácné: důvěra, provenience, soudržnost značky a lidský úsudek. Lolly není větší kbelík pro povodeň. Je to zavlažování: kanály, které vodu usměrňují, a půda, kde věci skutečně rostou.
 
 ## Postoj v pěti závazcích
 
-- <!--i:layers--> **AI je vítaná jako vstup, nikdy jako vydávání se za někoho jiného.** Agenti jsou plnohodnotní uživatelé Lolly: spouštějí stejné nástroje jako lidé, přes [server MCP](/info/mcp.html) a [režim URL](/info/url-mode.html), v přesně stejných omezeních. Nástroj, který nemůže vydat zdroj mimo značku pro člověka, ho nemůže vydat ani pro agenta - zábrany je jedno, kdo hází míčem. Co žádný agent dělat nesmí, je vydávat svůj výstup za něco, čím není.
-- <!--i:shieldcheck--> **AI se sama deklaruje.** Když pixely vygenerovala AI, export to říká: strojově čitelné tvrzení v Content Credentials souboru a viditelný odznak GEN AI, kdykoli to někdo ověří. Lolly také čte a zobrazuje deklarace AI u souborů vytvořených jinde a označuje, kdy je pravděpodobně přítomný vodoznak SynthID - přičemž čte deklaraci, ne samotný vodoznak. Stejné pravidlo váže vlastní přepisovač textu Lolly fungující na zařízení: každá věta, kterou napíše, nese veřejný statistický vodoznak ve výběru slov, zveřejněný tady i v samotném nástroji, takže text napsaný modelem zůstává sebedeklarující i jako čistě textová kopie - a kdokoli si to může ověřit na stránce [Ověření](/info/verify-yourself.html). Toto schéma je veřejné z podstaty: ověření pro každého, tajemství pro nikoho. Publikum si zaslouží vědět, jak média vznikla - tahle věta se objevuje na naší stránce [Inkluzivní design](/info/inclusive-design.html) jako etický závazek, a právě tohle ho dělá skutečným. A když jsou média, která jsi označil jako vytvořená AI, umístěná do návrhu, vlastní certifikát exportu to říká taky: složená značka původu a podepsané, strojově čitelné oznámení o AI.
-- <!--i:check--> **Původ je ve výchozím stavu zapnutý.** Exporty nesou [Content Credentials](/info/content-credentials-identity.html) ve výchozím stavu, ne jako skryté nastavení. Řetězec pokrývá úpravy a přísady, takže historie díla cestuje s ním. Můžeš si to [ověřit sám](/info/verify-yourself.html) u jakéhokoli souboru, který Lolly vytvoří.
-- <!--i:people--> **Lidé zůstávají autory.** Každý vstup je nakonec rozhodnutí, spuštěné někde člověkem, bez ohledu na to, kolik systémů nebo odboček bylo potřeba, aby se sem dostalo. Agent může rozhodnutí donést daleko. Nemůže ho vytvořit. Slova, obrázek, paleta, volba, která vyžadovala úsudek: nástroje ten úsudek škálují, nenahrazují ho. Zdlouhavé části jsou to, co se automatizuje: kontrola shody se značkou, opakovaný export v každé velikosti, ruční lokalizace. Co zůstává, je autorství.
-- <!--i:globe--> **Kanály, ne nádrže.** Dnešní modely jsou podlaha, ne strop, takže odmítáme stavět cokoli, jehož hodnota závisí na hromadění přístupu k nim. Jádro je open source, vykresluje na tvém vlastním zařízení a funguje offline. Neexistuje žádný příkop modelu, žádný měřič využití, žádný byznys založený na nedostatku připnutý k samotné povodni. Trvalou investicí je infrastruktura kolem vody - a právě tuto infrastrukturu rozdáváme zdarma.
+- <!--i:layers--> **AI je vítána jako vstup, nikdy jako zosobnění.** Agenti jsou plnohodnotní uživatelé Lolly: spouštějí stejné nástroje jako lidé, přes [server MCP](/info/mcp.html) a [režim URL](/info/url-mode.html), v přesně stejných omezeních. Co agent nesmí, je vydávat svůj výstup za něco, čím není. Tu hranici vede [Vstup, ne zosobnění](/info/input-not-impersonation.html).
+- <!--i:shieldcheck--> **AI se přihlásí k sobě.** Když pixely vygenerovala AI, export to říká: strojově čitelné tvrzení v Content Credentials souboru a viditelný odznak GEN AI, když soubor někdo ověřuje. Když se do návrhu umístí médium, které jsi deklaroval jako vytvořené AI, vlastní credential exportu to říká také: složená značka původu a podepsané strojově čitelné oznámení AI. Lolly také čte a zobrazuje oznámení AI souborů vytvořených jinde a označí, když je pravděpodobně přítomen vodoznak SynthID, přičemž čte oznámení, ne samotný vodoznak. Stejné pravidlo váže vlastní přepisovač Lolly na zařízení: každá věta, kterou napíše, nese veřejný statistický vodoznak ve volbě slov, zveřejněný zde i v nástroji, takže text, který napsal model, zůstává sebehlásící i jako prostá textová kopie a kdokoli jej může ve [Verify](/#/verify) zkontrolovat ([jak kontrola funguje](/info/what-verify-checks.html#text-reworded-by-lolly)). Schéma je veřejné záměrně: ověřování pro všechny, tajemství pro nikoho. Publikum si zaslouží vědět, jak bylo médium vytvořeno.
+- <!--i:check--> **Provenience je ve výchozím stavu zapnutá.** Exporty nesou [Content Credentials](/info/content-credentials-identity.html) ve výchozím stavu, ne jako zakopané nastavení. Řetěz pokrývá úpravy a ingredience, takže historie díla putuje s dílem. Na jakémkoli souboru, který Lolly vytvoří, to můžeš [ověřit sám](/info/verify-yourself.html).
+- <!--i:people--> **Lidé zůstávají autory.** Slova, obraz, paleta, rozhodnutí, které vyžadovalo úsudek: nástroje tento úsudek škálují a nikdy nenahrazují osobu. Automatizuje se to únavné: kontrola značky, opětovný export v každé velikosti, ruční lokalizace. Zbývá autorství.
+- <!--i:globe--> **Kanály, ne kbelíky.** Dnešní modely jsou podlaha, ne strop, takže odmítáme stavět cokoli, jehož hodnota závisí na hromadění přístupu k nim. Engine je open source, vykresluje na tvém vlastním zařízení a funguje offline. Žádný modelový příkop, žádný měřič používání, žádný obchod s nedostatkem připojený k samotné povodni. Trvalá investice je infrastruktura kolem vody - a tu rozdáváme zdarma.
 
 ## O lidské rozhodnutí tu jde především
 
-Buďme naprosto jasní v tom, co stojí pod každým z výše uvedených závazků.
+Jednotlivci utvářejí zemi a naši historii. Jejich volby, činěné po jedné, se stávají světem, v němž žijeme my ostatní. Jejich činy ten svět dělají. Takhle se kdy cokoli stalo.
 
-Jednotlivci formují zemi i naši historii. Jejich rozhodnutí, dělaná jedno po druhém, se stávají světem, ve kterém žijeme všichni ostatní. Tvoří ho jejich činy. Není to sentiment, je to prostě způsob, jakým se kdy cokoliv stalo.
-
-Proto posilujeme lidské rozhodování a nekompromitujeme ho. Právo volby. Vlastní jednání. Autonomie. Schopnost rozhodnout se a jednat, a aby ten čin byl tvůj.
+Proto posilujeme lidské rozhodování a nikdy v tom nepřistoupíme na kompromis. Právo volby. Jednání. Autonomie. Schopnost rozhodnout se a jednat, a aby ten čin byl tvůj.
 
 Nástroje tady zvětšují to, co se rozhodl člověk. Nerozhodují za něj a nikdy ho tiše nenahrazují. Tam, kde rozhodnutí nese automatizace, záznam pořád vede zpátky k člověku, který ho spustil, ať už prošel jakýmkoli počtem systémů a odboček.
 
@@ -42,9 +40,9 @@ Ctíme to od začátku do konce a zaznamenáváme to: kvůli historii, kvůli od
 
 AI tu nikdy nepotřebuješ. Pokud si ji zvolíš, platí tři věci:
 
-- <!--i:people--> **Máš to pod kontrolou.** AI pomáhá jen když o to požádáš, a jen s částí, na kterou ukážeš. Nic se nerozhoduje za tebe.
-- <!--i:check--> **Přestává to stát.** Pokud ti AI jednou pomůže něco vytvořit, výsledek je tvůj. Použít to znovu je zdarma, ať už to potřebuješ kolikrát chceš.
-- <!--i:shieldcheck--> **Zůstává to poctivé.** Část vytvořená AI to uvádí, a to, co vytvoříš, nese tvé jméno místo předstírání, že jsi někdo jiný. Dokonce i vestavěná nápověda funguje takhle: [Ask Lolly](/info/ask.html) odpovídá vlastní větou z manuálu a odkazem, nikdy vymyšlenou odpovědí.
+- <!--i:people--> **Ty máš kontrolu.** AI pomáhá jen tehdy, když o to požádáš, a jen s dílem, na které ji nasměruješ. Nic se nerozhoduje za tebe.
+- <!--i:check--> **Přestává to stát.** Pokud AI pomůže něco vytvořit jednou, výsledek je tvůj. Použít ho znovu je zdarma, kolikrát výsledek potřebuješ.
+- <!--i:shieldcheck--> **Zůstává to poctivé.** Dílo vytvořené AI to říká a to, co vytvoříš, nese tvé jméno, místo aby předstíralo, že je od někoho jiného. I vestavěná nápověda funguje takto: [Ask Lolly](/info/ask.html) odpovídá větou samotné příručky a odkazem, nikdy vymyšlenou odpovědí.
 
 ## Co tohle není
 
@@ -54,4 +52,4 @@ AI tu nikdy nepotřebuješ. Pokud si ji zvolíš, platí tři věci:
 
 ## Ověř si tyto závazky sám
 
-Každý závazek výše je vynucen v otevřeném kódu, ne v PDF s politikou: cesta provenience, značení GEN AI i garance bez trackerů - to všechno má testy, a stránka [Verify It Yourself](/info/verify-yourself.html) tě provede tím, jak si tvrzení ověřit na skutečném exportu. Pokud najdeš místo, kde se kód a tahle stránka rozcházejí, chyba je v kódu.
+Každý závazek výše je vynucen v otevřené kódové základně, ne v PDF politiky: cesta proveniencie, označování GEN AI a záruka bez trackerů se dodávají s testy a stránka [Ověř si to sám](/info/verify-yourself.html) tě provede ověřením tvrzení na skutečném exportu.

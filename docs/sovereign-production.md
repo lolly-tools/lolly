@@ -1,81 +1,101 @@
 # Sovereign creative production
 
-Sovereign creative production means the making of a file happens on hardware you control, under software you can read, with no third party in the path: the render, the export, the signature and the verification all execute on the device holding the file.
+Sovereign creative production means the making of a file happens on hardware you control, under software you can read, with no third party in the path: the render, the export, the signature and the verification all run on the device holding the file. This page is for a security reviewer or public-sector buyer asking whether Lolly can work that way, and every claim on it can be checked in an afternoon.
 
-Two different things currently get called sovereignty, and the distinction decides which questions you still have to ask. One is contractual: a hosting arrangement with commitments about where data rests, who may access it and under what conditions. That answers a real question, and it is a clause someone else honours on your behalf. The other is architectural: the content never leaves the device, so residency, retention and third-party access do not arise for it, because there is no copy on anyone's disk to locate, retain or hand over. This page is about the second kind, and only in the parts that are checkable today. It is the operator's reading of the landing page's plainest line, "[yours to make, yours to keep](/info/index.html)".
+Two different things get called sovereignty, and the difference decides which questions you still have to ask.
+
+::: cols
+## Contractual sovereignty
+
+- A hosting arrangement with commitments about where data rests, who may access it and under what conditions.
+- It answers a real question.
+- It is a clause someone else honours on your behalf.
+
+## Architectural sovereignty
+
+- The content never leaves the device.
+- Residency, retention and third-party access do not arise for that content.
+- There is no copy on anyone's disk to locate, retain or hand over.
+:::
+
+This page is about the second kind, and only the parts that are checkable today. It is the operator's reading of the landing page's plainest line, "[yours to make, yours to keep](/info/index.html)".
 
 ## Local rendering needs no server
 
-A standalone Lolly deployment can be a static web application. Editing, rendering, downloading and the app's Verify view run on-device once their tools and assets are available. Optional services are inventoried on [Server Surface](/info/server-surface.html).
+A standalone Lolly deployment can be a static web app. Editing, rendering, downloading and the app's Verify view run on the device once their tools and assets are there. [Server surface](/info/server-surface.html) inventories the optional services.
 
-An organisation can add **lolly.work** on infrastructure it controls for SSO, policy, shared projects and assets, work collabs, approvals and delivery. That is still self-hosted Lolly, but its shared content and records live on servers. Its optional render jobs also run on those servers. Decide which workflows need local-only processing and which may use organisation infrastructure; the choice changes retention, access and backup responsibilities.
+An organisation can add **Lolly Work** on infrastructure it controls, for single sign-on, policy, shared projects and assets, work collabs, approvals and delivery. That is still self-hosted Lolly, but its shared content and records live on servers, and its optional render jobs run there too. Decide which workflows need local-only processing and which may use organisation infrastructure, because the choice changes retention, access and backup responsibilities.
 
-Standalone Lolly has no usage-reporting backend. lolly.work offers configurable telemetry and a separate audit log. `tests/no-trackers.test.ts` checks for third-party tracking SDKs; it does not prohibit an organisation's own reporting. See [Privacy](/info/privacy.html#organisation-services-with-lolly-work) and lolly.work's [security overview](https://github.com/lolly-tools/lolly-work/blob/main/docs/security-platform.md).
+Standalone Lolly has no usage-reporting backend. Lolly Work offers configurable telemetry and a separate audit log. `tests/no-trackers.test.ts` checks for third-party tracking SDKs; it does not forbid an organisation's own reporting. See [Privacy](/info/privacy.html#organisation-services-with-lolly-work) and Lolly Work's [security overview](/info/work-security-platform.html).
 
 ## Choose the network services your workflow needs
 
-The complete list of what the app can fetch or send lives in the [privacy policy's network table](/info/privacy.html#every-network-request-the-app-can-make). It is a table because each row carries four facts: what it is, what actually leaves the device, the act that triggers it and what happens when an operator blocks it. The rows cover catalogue sync, a tool that needs live data, Google Fonts, ICC press profiles, internet radio, a URL you ask a tool to capture, the SEAL signature check, deep-scan detector models and a remote instance you point the shell at. Read the table rather than a summary of it - the specifics are the point, and each row gives its host.
+The complete list of what the app can fetch or send is the [privacy policy's network table](/info/privacy.html#every-network-request-the-app-can-make). It is a table because each row carries four facts: what it is, what actually leaves the device, the act that triggers the request and what happens when an operator blocks the request. The rows cover catalogue sync, a tool that needs live data, Google Fonts, ICC press profiles, internet radio, a web address you ask a tool to capture, the SEAL signature check, deep-scan detector models and a remote instance you point the app at. Read the table rather than a summary; each row gives its host.
 
-Connecting to a lolly.work instance also enables its sign-in, policy refresh and selected shared services. Telemetry events and collaboration updates can travel during use without a separate click for every request. Keep the instance and any identity, storage or asset providers inside the boundary your deployment needs; offline local rendering does not make those services work without a connection.
+Two properties of that table matter more than any single row:
 
-Two properties of that table matter more than any single row. Every fixed host in it is also the app's Content-Security-Policy allowlist, which the browser enforces, so the list is the boundary the app is held to rather than a description of current behaviour. And `tests/security-headers.test.ts` pins that policy across both places it is expressed in the repo - `vercel.json` and `deploy/docker/nginx.conf` - so one copy cannot silently lose a directive. There were three until 2026-08; the third, `shells/web/vercel.json`, was a config nothing deployed from, which is how it managed to ship a stale CSP for months, and the test now pins it deleted rather than trusting the next reader to know it was dead.
+- **The list is the boundary.** Every fixed host in it is also the app's Content-Security-Policy allowlist, which the browser enforces, so the list is what the app is held to, not a description of what it happens to do today.
+- **Every copy is pinned.** Tests pin that policy across every copy the repository ships (`tests/security-headers.test.ts` for the hosted configuration and the container and RPM nginx files, `tests/yunohost-package.test.ts` for the YunoHost package), so one copy cannot quietly lose a directive.
 
-Tools are held to the same shape from the other side. `host.net` is the only way a tool reaches a network, it is gated by an allowlist the tool's own manifest declares, and it is fail-closed: no capability or no allowlist means every fetch rejects before any I/O. `tests/net-allowlist-conformance.test.ts` proves that against the shared module every shell uses.
+Tools are held to the same rule from the other side. `host.net` is the only way a tool reaches a network. It is gated by an allowlist in the tool's own manifest, and it fails closed: with no capability or no allowlist, every fetch is refused before any I/O. `tests/net-allowlist-conformance.test.ts` proves that against the shared module every shell uses.
+
+Connecting to a Lolly Work instance also turns on its sign-in, policy refresh and chosen shared services, and telemetry events and collaboration updates can travel during use without a click for each request. Keep the instance and any identity, storage or asset providers inside the boundary your deployment needs; offline local rendering does not make those services work without a connection.
 
 ## Air-gapped deployment, and how updates arrive
 
-The web build is plain static files, so the air-gapped path is the simple one rather than a special edition. Serve `shells/web/dist/` from any static host, CDN or internal file server with a catch-all rewrite to `index.html`, and add the four security headers [Deployment](/info/deployment.html) lists. Once loaded, the PWA keeps working offline, and **Profile → Available offline** turns best-effort caching into a guarantee: the app, the tools, the catalogue and the docs are downloaded ahead of a disconnection, with a progress bar and per-part sizes.
+The web build is plain static files, so the air-gapped path is the simple one, not a special edition: serve it from an internal host with the six security headers, as [Choose a deployment](/info/deployment.html#any-static-host-including-air-gapped) sets out. Once loaded, **Settings → Available offline** turns best-effort caching into a guarantee, downloading the app, the tools, the catalogue and the docs ahead of a disconnection.
 
-For a cluster, the repository ships three Dockerfiles and a Helm chart. One brand profile is baked into the web image at build time (`--build-arg LOLLY_PROFILE=…`), so the running container reads nothing at serve time - no pack to mount, no runtime configuration, no secret. Pods run non-root with capabilities dropped and a read-only root filesystem by default, and the MCP and CA components are off unless you enable them.
+For a cluster, the repository ships signed container images and a Helm chart ([Run on Kubernetes](/info/build-kubernetes.html)). One brand profile is fixed in the web image when it is built, so the running container reads nothing at serve time: no pack to mount, no runtime configuration, no secret. Pods run as non-root with capabilities dropped and a read-only root filesystem by default, and MCP and CA stay off unless you turn them on.
 
-Updates in that model arrive the way any other controlled artefact does, and they split in two:
+Updates arrive the way any other controlled artefact does, in two separate streams:
 
-- **The app** is rebuilt and redistributed on your cadence - a new static bundle to the internal host, or a new binary through your MDM. Nothing self-updates across the gap.
-- **The tools** are data, so shipping one never redeploys the app. Merge the tool directory into the catalogue your instance serves, run `pnpm run build:catalog` and `pnpm run validate:catalog`, and clients pick it up on their next sync. Manage that directory as a Git repository if you want review and an audit trail, which is an option rather than a requirement.
+- **The app** is rebuilt and redistributed on your schedule: a new static bundle to the internal host, or a new binary through your device management. Nothing updates itself across the gap.
+- **The tools** are data, so shipping one never redeploys the app. Merge the tool directory into the catalogue your instance serves, rebuild the catalog ([Publish and localize a tool](/info/tool-publishing.html)), and clients pick it up on their next sync. Keep that directory in Git if you want review and an audit trail; it is an option, not a requirement.
 
-For organisation services inside a restricted network, deploy lolly.work with reachable internal identity, storage and asset providers. Its [deployment guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/deployment.md) covers that topology. Work collabs and shared saves need the service connection even when local tools are prepared for offline use.
+For organisation services inside a restricted network, deploy Lolly Work with reachable internal identity, storage and asset providers; its [deployment guide](/info/work-deployment.html) covers that topology. Work collabs and shared saves need the service connection even when local tools are ready for offline use.
 
 ## Signing happens on the device
 
-Exports carry Content Credentials by default, and the signing key never transits a service. The default signer is an anonymous keypair minted per export inside the page, used once and dropped. An enrolled identity's device key is generated **non-extractable** and kept in IndexedDB, so the code can ask it to sign but never read it, and the optional CA issues a short-lived certificate binding that public key to a verified identity. Turn the CA off and exports still sign, anonymously, which is the default anyway.
+Exports carry Content Credentials by default, and the signing key never passes through a service. The default signer is an anonymous key pair made per export inside the page, used once and dropped. An enrolled identity's device key is generated **non-extractable** and kept in IndexedDB, so code can ask it to sign but never read it, and the optional CA issues a short-lived certificate binding that public key to a verified identity. Turn the CA off and exports still sign, anonymously, which is the default anyway.
 
 An organisation that wants to be its own root of trust has three supported routes, set out in [Signing from the terminal](/info/cli-signing.html):
 
-- **Your existing enterprise CA.** Content Credentials are ES256, so ask for the ordinary S/MIME-shaped certificate: EC P-256, `keyUsage: digitalSignature`, `extendedKeyUsage: emailProtection`, address in the subjectAltName. That is the C2PA certificate profile, and it is a shape most enterprise CAs already issue.
-- **Your own instance of the Lolly CA.** `services/ca` is a small Node service you can run yourself; the root private key is a deployment secret you hold, and the chart takes an existing Kubernetes Secret so it never has to be chart-managed.
-- **Self-signed**, for closed loops where you distribute your own root.
+- **Your existing enterprise CA.** Content Credentials are ES256, so ask for the ordinary S/MIME-shaped certificate: EC P-256, `keyUsage: digitalSignature`, `extendedKeyUsage: emailProtection`, and the address in the subjectAltName. That is the C2PA certificate profile, and most enterprise CAs already issue that kind of certificate.
+- **Your own instance of the Lolly CA.** `services/ca` is a small Node service you can run yourself. The root private key is a deployment secret you hold, and the chart takes an existing Kubernetes Secret, so the chart never has to manage the key.
+- **Self-signed,** for closed loops where you distribute your own root.
 
-Verification is pinned the same way. `--trust-anchor=./corp-root.pem` and `$LOLLY_TRUST_ANCHOR` pin your roots, `--no-default-anchors` drops the built-in sets so only your pins count, and every verdict prints the anchor set that produced it. The engineering detail is in [Content Credentials - Engineering](/info/content-credentials-engineering.html).
+Verification is pinned the same way. `--trust-anchor=./corp-root.pem` and `$LOLLY_TRUST_ANCHOR` pin your roots, and `--no-default-anchors` drops the built-in sets so only your pins count. Every verdict prints the anchor set behind the verdict. [Content Credentials engineering](/info/content-credentials-engineering.html) has the detail.
 
-Server renders in lolly.work use the service's configured signing identity when available, rather than the user's on-device key. Its operator owns that key and certificate chain; verification must trust the relevant root. See lolly.work's [Content Credentials guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md).
+Server renders in Lolly Work use the service's configured signing identity when one is available, not the person's on-device key. Its operator owns that key and certificate chain, and verification must trust the relevant root. See Lolly Work's [Content Credentials guide](/info/work-c2pa.html).
 
 ## The tools and the brand are files you hold
 
-A tool is a directory: a manifest, a template, optional styles, optional hooks. A brand pack is a directory of assets with permanent ids and a design-tokens document. Neither is a database row in a service, and both are ordinary version-controlled content, so what ships is what was reviewed. Which tools a given instance exposes is configuration - profiles and brand packs - rather than a code change.
+A tool is a directory: a manifest, a template, optional styles and optional hooks. A brand pack is a directory of assets with permanent ids and a design-tokens document. Neither is a database row in a service, and both are ordinary version-controlled content, so what ships is what was reviewed. Which tools an instance offers is [configuration](/info/configuration.html), profiles and brand packs, not a code change.
 
-Exports are ordinary files too. PNG, SVG, PDF, WebP, TIFF and the rest open in software with no connection to this project and keep working if the project stops existing.
+Exports are ordinary files too. PNG, SVG, PDF, WebP, TIFF and the rest open in software with no connection to this project, and keep working if the project stops existing.
 
 ## Check it in an afternoon
 
-None of the above asks for trust. [Verify It Yourself](/info/verify-yourself.html) is the full procedure list, with the exact commands and the output you should see; three of them speak directly to this page.
+None of the above asks for trust. [Verify It Yourself](/info/verify-yourself.html) is the full list of procedures, with the exact commands and the output you should see. Four speak directly to this page:
 
-1. **Watch the network.** Open the app with DevTools on the Network tab and use a tool - type a URL into QR Code, change colours, export a PNG. What you type appears in no request at all.
-2. **Pull the plug.** Load the app, open a tool or two, then go offline and reload. Rendering and export keep working. An app that needs a server to do the work fails this check on the first render.
-3. **Enumerate the server surface.** Compare the enabled services with [Server Surface](/info/server-surface.html) and, where deployed, lolly.work's API and configuration. Include its database, asset providers and render worker in the review.
-
-A fourth one is worth running if you are evaluating for an air-gapped site: turn on **Profile → Available offline**, disconnect the machine entirely and do a full day's work on it.
+::: timeline
+- <!--i:globe--> **Watch the network.** Open the app with DevTools on the Network tab and use a tool: type an address into QR Code, change colours, export a PNG. What you type appears in no request at all.
+- <!--i:pause--> **Pull the plug.** Load the app, open a tool or two, then go offline and reload. Rendering and export keep working. An app that needs a server to do the work fails this check on the first render.
+- <!--i:server--> **Enumerate the server surface.** Compare the services you run with [Server surface](/info/server-surface.html) and, where deployed, Lolly Work's API and configuration, including its database, asset providers and render worker.
+- <!--i:clock--> **Work a day offline.** For an air-gapped site, turn on **Settings → Available offline**, disconnect the machine entirely and do a full day's work.
+:::
 
 ## What a security review usually asks
 
 | The question | Where the answer lives |
 |---|---|
-| What runs server-side? | [Server Surface](/info/server-surface.html) - optional integrations and the separately deployed lolly.work service |
-| What leaves the device, and when? | the [privacy policy's network table](/info/privacy.html#every-network-request-the-app-can-make) |
-| What is the trust boundary, and what is out of scope? | [Threat Model](/info/threat-model.html) |
+| What runs server-side? | [Server surface](/info/server-surface.html): optional integrations and the separately deployed Lolly Work service |
+| What leaves the device, and when? | The [privacy policy's network table](/info/privacy.html#every-network-request-the-app-can-make) |
+| What is the trust boundary, and what is out of scope? | [Threat model](/info/threat-model.html) |
 | Which cryptography, and how is it tested? | [Security & Verification](/info/security.html) |
-| How do we host it ourselves, or without a network? | [Deployment](/info/deployment.html) |
+| How do we host it ourselves, or without a network? | [Choose a deployment](/info/deployment.html) |
 | Who signs, and can we be our own root? | [Signing from the terminal](/info/cli-signing.html) |
-| What is the project's actual maturity? | [Adoption & Governance](/info/adoption-governance.html) |
+| What is the project's actual maturity? | [Adoption & Governance](/info/adoption-governance.html#status) |
 
 ## Origin
 
@@ -83,16 +103,16 @@ Lolly is built inside SUSE, a European infrastructure company with more than thr
 
 ## Limits
 
-- **The security has not been externally audited.** The cryptography and file parsers are undergoing SUSE's infrastructure hardening and are not certified by an independent party; [Adoption & Governance](/info/adoption-governance.html) states that status, along with the fact that this is a closed-pilot prototype. Where a contract calls for certified assurance, deploy Lolly as one layer of defence in depth.
-- **The supply chain today is ordinary.** The build is npm and your own CI. Building through the Open Build Service, with artifacts delivered by the SUSE Application Collection, is stated as an aim on the [FAQ](/info/index.html) and is not a property of what ships now.
-- **The hosted MCP endpoint is server-side, and optional.** Full-format rendering for AI agents drives a headless browser, so that endpoint runs as a hosted service and is not an offline component. It stores nothing persistent, requires OAuth 2.1 or an operator-held token, and removing it leaves the app unaffected. The public hot-link render route that ships inside the same function is live on lolly.tools; an operator's own instance can switch it off (`LOLLY_DISABLE_RENDER_GET=1`, returning 404). The on-device shells stay the air-gapped path.
-- **Hooks are trusted code.** A tool's optional `hooks.js` runs with the host bridge injected but, in a browser shell, in the page's own realm - closure-scope injection rather than isolation, as `engine/src/runtime.ts` says at the site. A manifest can opt into a Worker with `isolate: true`. Run tools you have reviewed, and gate a shared catalogue through review.
+- **The security has not been externally audited.** No independent party has certified the cryptography or the file parsers; [Adoption & Governance](/info/adoption-governance.html#status) gives the status. Where a contract calls for certified assurance, deploy Lolly as one layer of defence in depth.
+- **The supply chain today is conventional.** The build installs npm packages, and you can run it in your own CI. Release images are signed with cosign and carry SBOM and SLSA provenance attestations you can check by digest ([published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images)), and the repository commits a CycloneDX SBOM (`sbom.cdx.json`). Building through the Open Build Service, with artifacts delivered by the SUSE Application Collection, is an aim stated on the [FAQ](/info/faq.html), not a property of what ships now ([Linux packages](/info/build-obs.html) has the current recipes).
+- **The hosted MCP endpoint is server-side, and optional.** Full-format rendering for AI agents drives a headless browser, so that endpoint runs as a hosted service, not an offline component. It stores nothing persistent, and removing it leaves the app unaffected. An operator can require OAuth 2.1 or an operator-held token; the public endpoint on lolly.tools is open with no token, and its calls are limited per address and per day. The public render route in the same service is live on lolly.tools, and an operator's own instance can switch it off (`LOLLY_DISABLE_RENDER_GET=1`, which returns 404). The on-device apps stay the air-gapped path.
+- **Hooks are trusted code.** A tool's optional `hooks.js` runs with the host bridge injected but, in a browser, in the page's own realm: closure-scope injection rather than isolation, as `engine/src/runtime.ts` says at the site. A manifest can opt into a Worker with `isolate: true`. Run tools you have reviewed, and put a shared catalogue through review. [Threat model](/info/threat-model.html) owns the detail.
 - **Content Credentials are tamper-evident.** They detect alteration cryptographically and offline. They do not prevent it, and that is exactly what makes fully offline verification possible.
-- **An operator owns its server records.** Hosting access logs can include IP, path and timestamp. A lolly.work deployment also holds the content and records of its enabled shared services, including audit history. Set retention and backup policies for those copies; the device's Clear all my data control does not erase them.
+- **An operator owns its server records.** Hosting access logs can include IP, path and timestamp. A Lolly Work deployment also holds the content and records of its enabled shared services, including audit history. Set retention and backup policies for those copies; the device's **Clear all my data** control does not erase them.
 
 ## Related
 
-- [Constraints](/info/constraints.html) - the brand rules living in the tool rather than in each file.
-- [Determinism](/info/determinism.html) - the same render on your own hardware as in anyone else's browser.
-- [Reproducibility](/info/reproducibility.html) - the inputs travelling as text you keep.
-- [Server Surface](/info/server-surface.html), [Deployment](/info/deployment.html) and [Verify It Yourself](/info/verify-yourself.html) - the inventory, the runbook and the procedures to check all of it.
+- [Constraints](/info/constraints.html): the brand rules live in the tool rather than in each file.
+- [Determinism](/info/determinism.html): the same render on your own hardware as in anyone else's browser.
+- [Reproducibility](/info/reproducibility.html): the inputs travel as text you keep.
+- [Server surface](/info/server-surface.html), [Choose a deployment](/info/deployment.html) and [Verify It Yourself](/info/verify-yourself.html): the inventory, the deployment guide and the procedures that check each claim.

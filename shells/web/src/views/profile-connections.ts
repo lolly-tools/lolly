@@ -154,7 +154,7 @@ const staysConnectedNote = (): string => (isTauriShell() ? t('Stays connected on
  *  is the home, and the re-render unchecks the rest. Absent for the publish tier. */
 function homeToggleHtml(kind: string, home: string | undefined, persisted: boolean): string {
   if (!isExportHomeKind(kind) || !persisted) return '';
-  return `<label class="pconn-home"><input type="checkbox" data-pconn-home="${escape(kind)}"${home === kind ? ' checked' : ''}> ${t('Make this my export home')}</label>`;
+  return `<label class="pconn-home"><input type="checkbox" class="field-check" data-pconn-home="${escape(kind)}"${home === kind ? ' checked' : ''}> ${t('Make this my export home')}</label>`;
 }
 
 /** What a live connection remembers, shown under its account name. */
@@ -163,7 +163,7 @@ const rememberedNote = (kind: string, conn: ProviderConnection): string => (!con
     : staysConnectedNote());
 
 const persistHtml = (kind: string): string =>
-  `<label class="pconn-persist"><input type="checkbox" data-pconn-persist="${escape(kind)}"> ${stayConnectedLabel()}</label>`;
+  `<label class="pconn-persist"><input type="checkbox" class="field-check" data-pconn-persist="${escape(kind)}"> ${stayConnectedLabel()}</label>`;
 const disconnectHtml = (kind: string): string =>
   `<button type="button" class="btn-link-danger" data-pconn-disconnect="${escape(kind)}">${t('Disconnect')}</button>`;
 

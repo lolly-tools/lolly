@@ -1,4 +1,4 @@
 # Lolly - Teks halaman pendaratan
 
-Alat kreatif percuma, dengan peraturan anda sendiri.
-Cipta fail media bertaraf studio: tiada akaun, tiada kad, peribadi dan 100% sumber terbuka.
+Alat kreatif percuma, dengan peraturan anda.
+Cipta fail media bertaraf studio: tanpa akaun, tanpa kad, peribadi dan sumber terbuka.

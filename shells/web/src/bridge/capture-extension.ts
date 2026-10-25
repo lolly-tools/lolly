@@ -8,9 +8,13 @@
  * window.postMessage (its isolated content script relays to the background service
  * worker, which opens one inactive tab and closes it again).
  *
- * Two readings ride the same relay:
+ * Three readings ride the same relay:
  *   - `host.capture.page()` → a PNG of the page (DevTools Protocol).
- *   - the Design System studio's website source → the page's markup, stylesheet
+ *   - `host.capture.vector()` → the page walked into SVG geometry in the tab by the
+ *     extension's packaged page-walk script, with a screenshot and the tab's bytes;
+ *     capture/finish-in-app.ts outlines the text and scores it here. A walk that
+ *     fails or scores badly falls back to the PNG, typed as the raster it is.
+ *   - Design System Setup's website source → the page's markup, stylesheet
  *     text and a few icon/logo files, which `lib/design-system/extract-site.ts`
  *     parses into a census ON DEVICE (plan 97 section 9).
  *
@@ -28,9 +32,11 @@ import type { CaptureAPI, AssetRef } from '@lolly-tools/core/host-v1';
 // (bridge/index.ts's impl choice) can ask "is it here?" without pulling this
 // module's transport into the boot chunk. Re-exported below, so importers of
 // THIS module - which want the transport anyway - see no change.
-import { SITE_PROTOCOL, hasCaptureExtension, hasSiteCapture } from './capture-extension-probe.ts';
+import { SITE_PROTOCOL, hasCaptureExtension, hasSiteCapture, hasVectorCapture } from './capture-extension-probe.ts';
+import { VECTOR_SHOT_MAX_DISTANCE } from '@lolly-tools/node-shell/page-text';
+import type { WalkCapture } from '../capture/finish-in-app.ts';
 
-export { SITE_PROTOCOL, hasCaptureExtension, hasSiteCapture };
+export { SITE_PROTOCOL, hasCaptureExtension, hasSiteCapture, hasVectorCapture };
 export type { LollyCaptureFlag } from './capture-extension-probe.ts';
 
 /** The result message the extension's content script posts back. */
@@ -40,6 +46,8 @@ interface CaptureResultMessage {
   id: string;
   ok?: boolean;
   dataUrl?: string;
+  /** The vector reading (`spec.vector`), in the shape the extension's background sends. */
+  vector?: WalkCapture;
   error?: string;
 }
 
@@ -51,8 +59,62 @@ function isCaptureResult(m: unknown): m is CaptureResultMessage {
 
 let _seq = 0;
 
+/** One request over the relay, answered by the extension's result message. */
+function request(spec: Record<string, unknown>): Promise<CaptureResultMessage> {
+  return new Promise<CaptureResultMessage>((resolve, reject) => {
+    const id = `cap${++_seq}`;
+    const cleanup = () => {
+      clearTimeout(timer);
+      window.removeEventListener('message', onMessage);
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('Capture timed out - the Lolly extension did not respond.'));
+    }, 90000);
+    function onMessage(event: MessageEvent): void {
+      if (event.source !== window) return;
+      const m: unknown = event.data;
+      if (!isCaptureResult(m) || m.id !== id) return;
+      cleanup();
+      if (m.ok) resolve(m);
+      else reject(new Error(m.error || 'Page capture failed.'));
+    }
+    window.addEventListener('message', onMessage);
+    window.postMessage({ source: 'lolly-capture/page', type: 'capture', id, spec }, '*');
+  });
+}
+
 export function createExtensionCaptureAPI(): CaptureAPI {
-  return {
+  const api: CaptureAPI = {
+    async vector(spec) {
+      if (spec.isolation) throw new Error('The extension does not provide isolated public page capture.');
+      try {
+        const m = await request({ ...spec, vector: true });
+        if (m.vector) {
+          const [{ finishWalkCapture }, { createTextAPI }] = await Promise.all([
+            import('../capture/finish-in-app.ts'),
+            import('./text.ts'),
+          ]);
+          const fin = await finishWalkCapture(m.vector, createTextAPI());
+          if (fin.distance <= VECTOR_SHOT_MAX_DISTANCE) {
+            return {
+              source: 'remote',
+              id: `capture-vector:${spec.url}`,
+              type: 'vector',
+              format: 'svg',
+              url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(fin.svg)}`,
+              width: Math.round(fin.width),
+              height: Math.round(fin.height),
+              meta: { capturedFrom: spec.url, method: 'page-walk', distance: fin.distance, ...fin.stats },
+            };
+          }
+          console.warn(`[capture] page walk differed from the page in ${Math.round(fin.distance * 100)}% of the frame; using the screenshot`);
+        }
+      } catch (e) {
+        console.warn('[capture] vector reading failed; using the screenshot:', (e as Error)?.message);
+      }
+      return api.page(spec);
+    },
     page(spec) {
       if (spec.isolation) return Promise.reject(new Error('The extension does not provide isolated public page capture.'));
       return new Promise<AssetRef>((resolve, reject) => {
@@ -94,6 +156,7 @@ export function createExtensionCaptureAPI(): CaptureAPI {
       });
     },
   };
+  return api;
 }
 
 // ─── Site read ────────────────────────────────────────────────────────────────

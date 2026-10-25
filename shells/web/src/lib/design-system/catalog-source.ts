@@ -6,7 +6,6 @@ import { networkStatus } from '../../catalog/sync.ts';
 import { isTauriShell } from '../instance-choice.ts';
 import { stripTokensSuffix, type DesignSystemRecord, type DesignSystemRegistry } from './registry.ts';
 import { pickHeadAssetId } from '../../../../../engine/src/design-version.ts';
-import { STARTER_TOKENS_ID } from './starter.ts';
 
 /** Preview the incoming source without changing the current connection. Loaded
  *  pack assets remain part of the catalogue; removing a record is not Leave. */
@@ -34,13 +33,14 @@ export async function removalFallback(registry: DesignSystemRegistry, id: string
   }
 }
 
-/** Where the catalogue's design system comes from. The starter that every build
- *  carries is bundled with the app; it read "Managed by this instance" on
- *  lolly.tools, where there is no instance (plan 320 S10). A deployment that serves
- *  a design system of its own manages that one. */
-export function catalogSourceLabel(record?: Pick<DesignSystemRecord, 'headId'>): string {
-  if (getInstanceBase()) return t('Managed by this instance');
-  return isTauriShell() || record?.headId === STARTER_TOKENS_ID ? t('Bundled with this app') : t('Managed by this instance');
+/** Where the catalogue's design system comes from. Managed means read-only: a
+ *  catalogue that sets brandLock supplies a system people can see and use but
+ *  not edit, and the row says who manages that system. Any other supplied system (Lolly
+ *  Demo, the starter, a deployment's unlocked brand) is the person's to hide,
+ *  edit and reset, so the row only says where it came from (Andy, 2026-10-20). */
+export function catalogSourceLabel(record?: Pick<DesignSystemRecord, 'locked'>): string {
+  if (record?.locked) return getInstanceBase() || !isTauriShell() ? t('Managed by this instance') : t('Managed by this app');
+  return getInstanceBase() ? t('From this instance') : t('Came with this app');
 }
 
 export function catalogSourceHtml(record: DesignSystemRecord, adminHref?: string | null): string {
@@ -53,7 +53,7 @@ export function catalogSourceHtml(record: DesignSystemRecord, adminHref?: string
   return `<details class="ds-row-origin">
     <summary>${t('Catalogue source')}</summary>
     <dl>
-      <dt>${t('Supplied by')}</dt><dd>${escapeHtml(instance || (networkStatus.offline ? t('Last-known origin unavailable') : catalogSourceLabel(record)))}</dd>
+      <dt>${t('Supplied by')}</dt><dd>${escapeHtml(instance || (networkStatus.offline ? t('Last-known origin unavailable') : t('This app')))}</dd>
       <dt>${t('Tokens asset')}</dt><dd>${escapeHtml(record.headId || t('Not available yet'))}</dd>
       ${namespace ? `<dt>${t('Asset namespace')}</dt><dd>${escapeHtml(namespace)}</dd>` : ''}
       ${record.catalog?.version ? `<dt>${t('Version')}</dt><dd>${escapeHtml(record.catalog.version)}</dd>` : ''}
@@ -62,7 +62,7 @@ export function catalogSourceHtml(record: DesignSystemRecord, adminHref?: string
     ${networkStatus.offline ? `<p>${t('Cached catalogue. The instance could not be reached for a refresh.')}</p>` : ''}
     ${record.catalog?.available === false ? `<p>${t('No selected tokens asset is available. Refresh the catalogue or ask the administrator to check its source.')}</p>` : ''}
     <p>${t('Removing a local copy does not remove these catalogue assets.')}</p>
-    <a href="/info/operate/deployment.html#removing-a-catalogue-design-system">${t('How to change the supplied design system')}</a>
+    <a href="/info/manage/profiles-and-brands.html#removing-a-catalogue-design-system">${t('How to change the supplied design system')}</a>
     ${adminLink}
   </details>`;
 }

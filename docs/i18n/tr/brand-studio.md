@@ -1,346 +1,363 @@
-# Brand Studio
+# Design System Setup
 
-`#/start` adresindeki **Brand Studio**, markanı şekillendirdiğin tek yerdir - logoları, renkleri, tipografisi, belirteçlerinin geri kalanı ve tuttuğu dosyalar. Burada bir kez ayarla, her araç, sayfa ve dışa aktarım *incelemeyle değil, yapısı gereği* onu izler.
+Logon, renklerin ve yazı tiplerin tek yerde durmalı ki her araç, sayfa ve dışa aktarma onlarla çizsin. O yer, `#/start` adresindeki **Design System Setup**'tır ve sloganı ne için olduğunu söyler: *Make it yours*.
 
-Değişiklikler yaptığın anda **uygulamanın tamamında canlı olarak** önizlenir, böylece bir rengin ya da yazı tipinin her yere nasıl yansıdığını, onaylamadan önce görebilirsin. Hepsi cihaz üzerinde gerçekleşir: marka dosyaların ve belirteçlerin cihazından asla çıkmaz (bir Google Font seçmek, bir onay iletişim kutusundan sonra o tek aile yazı tipini Google'dan bir kez getirir) ve marka tek bir [brand pack](#move-a-brand-between-devices) dosyası içinde taşınır.
+Elinde ne varsa onunla başla. Bir logo bırak ve Lolly renklerini okur. Bir yazı tipi seç ya da şirketinin lisansladığı yazı tipi dosyasını bırak. Her değişiklik uygulamanın tamamında hemen görünür. Logon, yazı tiplerin ve token'ların bu cihazda kalır. Bir Google Font seçmek dışarıya uzanan tek adımdır: Lolly önce sorar, sonra aileyi bir kez getirir.
 
-> **Burası düzenleyici. Dashboard ise aynadır.** Dashboard'daki (`#/d`) **Design system** sekmesi markanı salt okunur olarak *gösterir*; onu burada, `#/start`'ta *düzenlersin*. Daha sonra bir rengi değiştirmek istersen Brand Studio'ya geri dön.
+Doğru göründüğünde tasarım sistemine bir ad ver ve **Export** düğmesine bas. Saklayacağın, başka bir cihazda açacağın ya da bir meslektaşına vereceğin tek bir `.lolly` dosyası alırsın. [Settings](/info/dashboard.html#design-system) etkin sistemi salt okunur gösterir ve kapağı düzenleme için buraya geri bağlanır.
+
+## Beş dakikada kendine ait yap
+
+::: timeline
+- <!--i:upload--> **Logon'u bırak** **Logos** içindeki bırakma alanına. Lolly şeklini ve renklerini okur.
+- <!--i:palette--> **Bu renkleri kullan.** Logonun ana rengi birincil rengin olur ve logodan koyu bir nötr metin rengin olur.
+- <!--i:font--> **Type** içinde **bir yazı tipi seç**: bir Google Font ya da sahip olduğun bir yazı tipi dosyası.
+- <!--i:pentool--> **Sisteme ad ver.** İlk düzenlemen kendi tasarım sistemini oluşturur ve Lolly adını bir kez sorar.
+- <!--i:download--> **Export**, sistemin tamamını tek bir `LollyBrand-….lolly` dosyası olarak yazar.
+:::
+
+Üst bilgi hangi tasarım sistemini **Editing** yaptığını gösterir ve adı istediğin zaman değiştirebileceğin bir alandır. İlk düzenlemen **What is this design system called?** diye sorduğunda, logon yazıyı hecelediyse logondaki sözcükler doldurulur. **Save name** adı korur; **Not now** sen üst bilgiye bir tane yazana kadar yer tutucuyu korur. Ad, sistemi Settings'te ve geçiş yaparken etiketler ve **Export**'un yazdığı dosyanın adı olur.
 
 ## Odalar
 
-Stüdyo, kenarda dikey bir rayda listelenen bir dizi **oda**dan oluşur - adım değil. Hiçbir şey numaralandırılmamıştır, hiçbiri başka bir şeye bağlı değildir ve hangisine gelirsen gel geçerlidir:
+Stüdyo, yanda bir raydaki odalardan oluşur; sabit bir sıra yoktur: hiçbir şey numaralı değildir ve hiçbir şey başka bir şeyi beklemez. Telefonda ray, üst bilginin altında bir çip şeridi olur.
 
-- **Overview** - merkez oda. Şu anda ne var, tek bakışta, her odaya açılan bir kapıyla birlikte.
-- **Colours** - renkleri teker teker ekle, rol ata ya da tek bir renkten bütün bir palet üret.
-- **Type** - uygulamanın, araçlarının ve her dışa aktarımın okuduğu dört yazı tipi.
-- **Logos** - markaların, her yönelim ve işlemde.
-- **Tokens** - köşe yarıçapı, boşluk, gölgeler ve sistemin geri kalanı.
-- **Files** - markanın tuttuğu görsel, ses ve hareket dosyaları.
+![Stüdyonun oda rayı: Overview, Colours, Type, Logos, Tokens, Files ve Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
-Telefonda aynı liste, başlığın altına sabitlenmiş yatay bir çip şeridine dönüşür. Oda değiştirmek hiçbir şeyi yeniden yüklemez - düzenleyici tüm panellerini yüklü tutar ve yalnızca istediğini gösterir.
+| Oda | Orada ne yaparsın | Bağlantı anahtarı |
+|---|---|---|
+| **Overview** | Sistemin neleri tuttuğunu, her odaya bir kapıyla gör | `overview` |
+| **Colours** | Renk ekle, onlara rol ver, ton ve palet kur | `color` |
+| **Type** | Uygulamanın, araçların ve her dışa aktarmanın okuduğu dört yazı tipini seç | `type` |
+| **Logos** | İşaretlerini her yönde ve işlemde yerleştir | `logos` |
+| **Tokens** | Köşeler, aralık, gölgeler ve adlandırılmış diğer her değer | `tokens` |
+| **Files** | Markanın tuttuğu görsel, ses ve hareket dosyaları | `catalogue` |
+| **Usage & rules** | Markanın uyguladığı kurallar, gerçek örnekler üzerinde denetlenir | `usage` |
 
-`#/start?area=<key>` ile bir odaya **derin bağlantı** ver. Anahtarlar: `overview`, `color` *(URL'de ABD yazımına dikkat)*, `type`, `logos`, `tokens`, `catalogue` (Files odası - panel anahtarı kalıcı bir sözleşmedir, bu yüzden URL eski adı korur) ve `versions`. `?tab=` aynı şey için uzun süredir var olan takma addır ve hâlâ çözümlenir, böylece eski bağlantılar ve yer imleri çalışmaya devam eder; tanınmayan her şey çıkmaz sokağa girmek yerine Overview'ı açar.
+Bir odaya `#/start?area=<key>` ile bağlan. Files odası `catalogue` anahtarını korur, çünkü bir oda anahtarı kalıcı bir sözleşmedir ve `?tab=` eski bir takma ad olarak hâlâ çalışır. Bilinmeyen bir anahtar Overview'ı açar.
 
-**Rayın altına** sabitlenmiş olanlar, tek bir odaya değil bütün tasarım sistemine ait eylemlerdir:
-
-- **Add from…** - bir markayı bir dosyadan, PDF'ten, görselden, yazı tipinden ya da bir web sitesinden getirmek için kaynak seçici. Aşağıda bkz. [Bring a brand in](#bring-a-brand-in).
-- **Tray** - bir taramanın bulduğu ama henüz uygulanmamış adaylar. Bir tarama gerçekten bir şey tutana kadar gizli kalır, tuttuğunda bir sayı taşır; o satırda Add'e basana kadar içindeki hiçbir şey markanı değiştirmez.
-- **Export** - bütün markayı tek bir `LollyBrand-….lolly` olarak yazar.
-- **Tokens (.json)** - bir depo, bir derleme adımı ya da başka bir belirteç aracı için, tek başına düz tasarım-belirteçleri belgesi.
-- **Restore brand settings** - bir içe aktarmadan ya da marka ayarlarının değiştirilmesinden önce kaydedilen bir kontrol noktasına dön.
-- **Versions** - tasarım sisteminin adlandırılmış kopyalarını yayınla, etkinleştir ve geri yükle. Yayınlanacak kendi bir şeyin olana kadar gizlidir (ya da bir `?area=versions` bağlantısı onu adıyla istemedikçe).
-
-![Stüdyo oda rayı - Overview, Colours, Type, Logos, Tokens ve Files](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+**Rayın altı**, tek bir oda yerine tüm sistemin eylemlerini tutar. **Add from…** bir markayı içeri getirir ([Bring a brand in](#bring-a-brand-in)) ve **Tray** bir taramanın bulduğu ama henüz eklemediğin şeyleri tutar. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** ve **Restore brand settings** sistemi saklar ve taşır ([Keep and move your design system](#keep-and-move-your-design-system)). Her biri üzerinde işlem yapacağı bir şey olduğunda görünür.
 
 ## Overview
 
-Overview ilk odadır ve iki yüzü vardır.
+Henüz hiçbir şey seçilmemişken Overview başlamak için dört yol sunar. **Start from a reference** bir logo, ekran görüntüsü, web sayfası veya tasarım dosyası için kaynak seçiciyi açar; **Pick a colour**, **Choose a face** ve **Add a logo** bu denetimleri doğrudan açar. Birini açmak hiçbir şey yazmaz ve **Explore the tools** en baştan oradadır.
 
-**Henüz hiçbir şey seçilmemişken** **Sana özel yap** yazar. **Referansla başla**, bir logo, ekran görüntüsü, web sayfası ya da tasarım dosyası için kaynak seçiciyi açar. **Bir renk seç**, **Bir yüz seç** ve **Logo ekle**, kendi mevcut kontrollerini doğrudan açar. Her yol bir seçimle başlar; birini açmak hiçbir şey yazmaz. **Araçları keşfet** hemen kullanılabilir.
+Herhangi bir şey sana ait olduğunda Overview, kendi sayılarının önde olduğu elindekileri gösterir. Colours renk sayısını, miras alınan renklerin göründüğü yerde soluk bir `· N starter` ile verir; şeridi önce renklerini, sonra bir ince çizgiyi, sonra soluk starter renkleri koyar. Type role göre okunur (*Inter for headings*, altındaki satırda *Starter for the rest*). Logos kaç yuvanın dolu olduğunu söyler (veya **Not set**), Tokens köşe yarıçapını gösterir ve Files kitaplık boşken **Nothing yet** der. Her blok kendi odasını açar.
 
-Bir şey senin olduğu anda, aynı oda **elinde ne olduğunu** gösterir, önce yaptığın sayılar gelir. Colours, tasarım sisteminin taşıdığı renk sayısını okur ve yalnızca gösterilen kalıtsal renkler olduğunda soluk bir `· N starter` ekler; yanındaki şerit önce senin seçtiğin renkleri, sonra ince bir çizgi ve soluk starter olanları koyar. Type role göre okur (*başlıklar için Inter*, altında *geri kalanı için Starter · SUSE, SUSE Mono*). Logos kaç yuvanın dolu olduğunu okur, ya da **Ayarlanmadı**. Tokens köşe yarıçapını taşır, onu taşımadan önce *starter* olarak etiketlenir. Files, kitaplık boşken **Henüz bir şey yok** der. Her blok kendi odasına açılan bir kapıdır. Burada sayılar vardır, asla bir ilerleme çubuğu ve asla bir bitirme kartı yoktur - bu stüdyoda kimseye borç yoktur.
+### Starter ve seninkiler
+
+**Starter**, seçilmek yerine uygulamayla gelen her şey için kullanılan sözcüktür. Yeni bir kurulum hiç renk taşımaz; yalnızca mürekkepten kâğıda tek bir nötr rampa taşır, böylece yüzeyler, metin ve ince çizgiler kimse bir şeye karar vermeden render edilebilir. Aynı sözcük her odada miras alınan malzemeyi işaretler.
+
+::: cols
+## Starter
+
+- Uygulamayla geldi: mürekkepten kâğıda nötrler, starter yazı tipleri, varsayılan köşe yarıçapı.
+- Soluk, bir **Starter** etiketiyle ve tonsuz.
+- Renklerin olarak sayılmaz. Nötrler **Tokens** içinde **Neutrals · starter · 9** olarak yaşar ve **Open** onları Colours içinde tek bir katlanmış grup olarak gösterir (`#/start?area=color&group=neutral`).
+- Bir starter renge dayanan rol *"Starter Paper stands in"* olarak okunur ve seçicisinde **Choose…** vardır.
+
+## Seninkiler
+
+- Senin seçtiğin veya kurduğun.
+- Tam güçte ve bir yazı tipi kurduğun yerde tonlu bir kart.
+- Overview'da ve Tokens'ta sayılır.
+- Başka bir rolü izleyen bir rol, birincil rengin adını tekrarlamak yerine **↳ follows Primary** olarak okunur.
+:::
+
+Miras alınan malzeme asla kesikli bir kenarlıkla çizilmez, çünkü burada kesikli kenarlık bir bırakma hedefi demektir.
 
 ## Logos
 
-Marka dosyalarının bulunduğu klasörü en üstteki bırakma bölgesine boşaltarak başla: **"Drop marks here, or choose several at once"**, elindeki dosyaların tümünü tek seferde alır. Her dosya şekli ve mürekkebi için okunur, ardından ne düşündüğünü söyleyen bir çip olarak **Waiting for a slot** altında sıraya girer - *"Looks like the Horizontal primary"*, dayandığı ölçümle birlikte, ve bir **Place** düğmesi (o yuva zaten doluysa **Replace**). Emin olmadığında çip bunu açıkça söyler ve bunun yerine sekizinin tümünü listeleyen **Change slot**'u sunar. Bir şeye basana kadar hiçbir şey yerleştirilmez.
+İşaretlerin klasörünü en üstteki bırakma alanına boşalt: **"Drop marks here, or choose several at once"** elindeki kadar dosya alır. Her dosya şekli ve mürekkebi için okunur, sonra **Waiting for a slot** altında neye benzediğini söyleyen bir çip olarak bekler; örneğin *"Looks like the Horizontal primary"*, kullandığı ölçümle ve bir **Place** düğmesiyle (yuva doluysa **Replace**). Emin olmadığı yerde çip bunu söyler ve sekizini de listeleyen **Change slot** sunar. Sen bir şeye basana kadar hiçbir şey yerleştirilmez.
 
-O sırada iki şey olur. Fazla boş kenar boşluğu olan bir marka önce bir **kırpma önerisi** alır - yanıtla ya da Escape'e bas, orijinal dosya dokunulmadan girer. Ve bir markanın boş bir kardeş yuvayı doldurabileceği durumlarda oda, türetilmiş **mono** ya da **reverse** sürümünü *Generated* olarak işaretlenmiş kendi çipinde sunar; o yuvayı başka bir şekilde doldurursan bu çip yeniden kaybolur.
+Fazladan boş kenar boşluğu olan bir işaret önce bir kırpma önerisi alır; yanıtla ya da Escape'e bas ve özgünü dokunulmadan girer. Bir işaretin boş bir kardeş yuvayı doldurabildiği yerde oda türetilmiş **mono** veya **reverse** sürümü *Generated* işaretli bir çip olarak sunar.
 
-Onun altında her markanın son bulduğu ızgara yer alır - **yönelim × işlem** yuvaları:
+Her işaret, **yön** ve **işlem** başına bir olan sekiz isteğe bağlı yuvadan oluşan bir ızgarada sona erer:
 
-- **Orientations:** Horizontal (bir satırda kelime işareti + sembol) ve Vertical (üst üste, kare ve dikey alanlar için).
-- **Treatments:** Primary, Primary reverse (koyu arka planlar için), Mono (tek renk) ve Mono reverse.
+- **Yönler:** Horizontal (bir satırda logotype ve sembol) ve Vertical (kare ve uzun alanlar için yığılmış).
+- **İşlemler:** Primary, Primary reverse (koyu arka planlar için), Mono (tek renk) ve Mono reverse.
 
-Bu, sekiz isteğe bağlı yuva demek. Bir PNG, SVG, JPEG ya da WebP eklemek için bir yuvaya tıkla; değiştirmek için dolu bir yuvaya tıkla. Her yuva isteğe bağlıdır ve her şey bu cihazda kalır.
+Henüz işareti olmayan bir grup tek satıra katlanır; yuvalarını görmek için aç. Bir PNG, SVG, JPEG veya WebP eklemek için bir yuvaya tıkla ya da işareti değiştirmek için dolu bir yuvaya tıkla. Her şey bu cihazda kalır.
 
-![Logo matrisi - üstte her yönelim, kendi kesikli çizgili yuvası olan her işlem, hepsi isteğe bağlı](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
+![Horizontal ve Vertical açık logo yuvaları: her işlem kendi yuvasıdır ve her yuva isteğe bağlıdır](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails%3Anth-of-type%281%29%3Esummary%3Bclick%3A.be-logo-identity%3Edetails%3Anth-of-type%282%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
-- **Custom marks** - markanın kendi adlandırdığı markaları (bir simge, bir arma, bir favicon) **Custom marks** altında ekle; ona bir ad ver ve bir dosya seç.
-- **More identities** - bir alt marka, ürün ya da etkinlik kendi tam logo setine sahip olabilir. **+ Add another logo**'yu kullan ve ona bir ad ver; ana setin sadece "Your logo"dur.
-- **Bir SVG yükle, Lolly renklerini okusun.** Yepyeni bir kurulumda, logodan aldığı birincil rengi sessizce ayarlar ve bunu belirtir. Mevcut bir markada ise rengi bunun yerine bir öneri olarak sunar - *"Found in the logo: #…"* yanında bir **Birincil olarak kullan** düğmesiyle - Colours odasında, orada kabul edebilir ya da reddedebilirsin.
+- **Custom marks**, markanın bir simge, arma veya favicon gibi kendi adıyla çağırdığı işaretlerdir.
+- **More identities.** Bir alt marka, ürün veya etkinliğin kendi tam seti olabilir: **+ Add another logo** ve sete bir ad ver. Ana setin "Your logo"dur. Bir logo kimliğinin ne zaman doğru blok olduğunu [Brand architectures](/info/brand-architectures.html) gösterir.
+- **Lolly logonun renklerini okur.** Bırakma alanının altındaki ve yine Colours'un en üstündeki bir kart logonun renklerini listeler ve en güçlü renk zaten seçili olarak (asla dışa aktarıldığı beyaz değil) **Which is the main colour?** diye sorar. **Use these colours** onları paletine ekler, ana rengi birincil rengin yapar ve logonun kâğıtta okunan koyu bir nötrü varsa onu metin rengi yapar. **Not now** onları Tray içinde bırakır. Yepyeni bir kurulumda en olası yanıt hemen uygulanır ve kart **Undo** veya başka bir ana renk sunar. Bir SVG tam renkleri verir; bir PNG, JPEG veya WebP işaretin gerçek payını kaplayan renkleri verir.
 
 ## Colours
 
-Oda, tasarım sistemiyle birlikte büyür. Henüz ihtiyaç duymadığın hiçbir şey sayfada değildir, bu yüzden ilk ziyaret tek bir karardır ve geri kalanı palet büyüdükçe gelir.
+Oda tasarım sistemiyle birlikte büyür: ilk ziyaret tek bir karardır ve gerisi palet gibi gelir.
 
 ### İlk renk
 
-Kendi rengi olmayan bir tasarım sistemi, tek bir ortalanmış sütunda açılır: **Start with one colour**, büyük bir canlı çip, bir alan ve rollerin, tonların ve baskı ayarlarının sistem büyüdükçe geleceğini söyleyen sessiz bir satır.
+Kendi rengi olmayan bir sistem tek bir büyük çip ve tek bir alanla açılır; rollerin, tonların ve baskı ayarlarının sistem büyüdükçe geleceğini söyleyen bir satır eşlik eder.
 
-- **Çip seçicidir.** Ona bas, stüdyonun kendi OKLCH kartı çipin üzerinde açılır, alanın o an tuttuğu şeyle başlar: bir ad, çark, dört kadran, alfa ve **Şu şekilde saklanır**, altta **İptal** ve **Renk ekle** ile birlikte. Bir kadranı sürüklemek çipi boyar ve alanı yeniden yazar, **Renk ekle**'ye basana kadar hiçbir şey tasarım sistemine ulaşmaz.
-- **Alan her gösterimi kabul eder** - `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` ya da düz bir renk adı - ve bütün bir renk *listesi* yapıştırmak, teker teker ekleyebileceğin bir çip sırasına dönüşür.
-- **Yanında iki kapı daha var.** Damlalık (birine sahip bir tarayıcıda) ekrandan bir renk alır, **Bir görselden renk al** ise bu cihazdaki bir ekran görüntüsünü ya da fotoğrafı okur ve bulduğu renkleri sunar.
-- **Ekle asla devre dışı değildir.** Alanda okunabilir hiçbir şey yokken seçiciyi açar, boş bir basışın genelde anlamı budur; ayrıştıramadığı bir metin, ölü bir düğme yerine alanın altında bunu söyleyen bir satır alır.
+- **Çip seçicidir.** **Pick a colour** düğmesine bas ve stüdyonun OKLCH kartı alanın tuttuğuyla tohumlanmış olarak açılır: bir ad, tekerlek, dört kadran, alfa ve **Stored as**; altta **Cancel** ve **Add colour** vardır. Sen **Add colour** düğmesine basana kadar sisteme hiçbir şey ulaşmaz.
+- **Alan her gösterimi alır**: `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` veya bir renk adı. Bir liste yapıştır; tek tek veya **Add all** ile eklenecek bir çip satırı olur.
+- **İki yol daha.** **Pick a colour from the screen** tarayıcıda varsa damlalığı kullanır ve **Take colours from an image** bu cihazdaki bir ekran görüntüsünü veya fotoğrafı okur.
+- **Add asla devre dışı değildir.** Alan boşken seçiciyi açar; okuyamadığı metin için alanın altında bunu söyleyen bir satır çıkar.
 
-İlk renk **Birincil** olur, ekleme işlemine yanıt veren çip de bunu söyler - *"Birincil artık Vivid Violet"* - yanında **İnce ayar** ile birlikte.
+İlk rengin **birincil** olur ve bir çip bunu doğrular, örneğin *"Primary is now Vivid Violet"*, rengi ayarlamak için **Fine-tune** ile.
 
-![Henüz hiçbir şey seçilmemiş Colours odası - büyük bir canlı çip, bir alan ve daha sonra neyin geleceğine dair bir satır](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
-
-### Starter
-
-**Starter**, seçilmek yerine uygulamayla birlikte gelen her şey için kullanılan kelimedir. Yepyeni bir kurulum hiçbir renk taşımaz: sahip olduğu tek şey nötr bir tondur, kağıt üzerinde mürekkep, böylece kimse henüz hiçbir şeye karar vermeden yüzeyler, metin ve ince çizgiler render edilir. Bu nötrler bir iskeledir, bu yüzden renk olarak sayılmazlar ve palet bölmesinde çizilmezler. [Tokens](#tokens) odasında **Nötrler · başlangıç · 9** olarak yaşarlar, onları Colours bölmesinde katlanmış, etiketli tek bir grup olarak gösteren bir **Aç** ile birlikte (`#/start?area=color&group=neutral`).
-
-Aynı kelime her odada geçerlidir: bir starter renk üzerinde duran bir rol *"Starter Paper stands in"* olarak okunur ve seçicisi **Seç…** sunar; bir starter yüz **Starter** etiketi taşır ve tonlanmaz; bir starter köşe yarıçapı Overview'da etiketlenir. Kalıtsal malzeme asla kesikli bir kenarlıkla çizilmez, çünkü burada kesikli bir kenarlık bir bırakma hedefi anlamına gelir.
 
 ### Palet büyüdükçe
 
-Renklerin, geniş bir ekranda bir **In context** önizlemesinin yanında durur, daha küçük ekranlarda ise onun üzerinde yığılır. Önizleme, paletini kullanan bir poster, grafik ya da arayüz kartı gösterebilir. Starter renkler kendi katlanabilir gruplarında kalır, eklediğin renklerden ayrı.
+Renkler geniş ekranda bir **In context** önizlemesinin yanında, daha küçük ekranda üstünde durur. Önizleme paletinde bir poster, grafik veya arayüz kartı gösterir. Starter renkler kendi katlanan gruplarında kalır.
 
-Tek tek renkler ya da bir ton seti ekle, rollerini ata ve ihtiyaç duyduğunda gelişmiş bölümleri aç. Renk çizelgesi, gradyanlar ve indirme denetimleri paletle birlikte kalır.
+![Lolly Demo üzerinde Colours odası: katlanan gruplarda palet, adı ve hex değeriyle her renk ve altta indirme hapı](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![Bir renk eklendikten sonra Colours odası, paletiyle ve canlı bir kompozisyon önizlemesiyle](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
-### Roller - araçların okuduğu
+### Roller: araçların okuduğu
 
-**Roles**, renk örneklerinin üstündeki katmandır: her araçta ve dışa aktarımda hangi rengin hangi görevi oynadığı. Roller isteğe bağlıdır (üç bağımsız renkten oluşan ve rolsüz bir tasarım sistemi de gayet iyidir), herhangi bir renk örneği bir rol alabilir ve kontrast okuması yüzeye karşı, önce APCA olmak üzere ölçülür.
+**Roles**, her araçta ve dışa aktarmada hangi rengin hangi rolü oynadığını söyler. İsteğe bağlıdır (üç serbest renk ve rol olmaması mükemmel bir sistemdir), her renk bir rol alabilir ve kontrast göstergesi yüzeye karşı ölçülür, önce APCA. Her rol satırı tam güçte kendi bir rengi, yerine geçen bir starter rengi veya **↳ follows Primary** gösterir.
 
-Bir satır üç kayıttan birinde okunur, böylece şerit kimsenin almadığı bir kararı asla iddia etmez:
+Palette tonlar olduğunda şerit, bir aracın okuyabileceği yedi rolün hepsini gösterir: Primary, Secondary, Surface, Text, Muted, Edge ve On primary. On primary birincil renkten türetilir, **Derived** yazar ve seçicisi yoktur.
 
-- rolü tam güçte kendi rengiyle karşılayan bir renk;
-- **Starter *Paper* stands in** - soluk, seçicisinde **Seç…** ile;
-- **↳ Birincili izler** - rol, kendi rengi yerine birincil üzerinden çözülür.
+Uygulamanın kendi vurgusu varsayılan olarak tasarım sistemini izler. Bu, **Settings → Appearance** içindeki **Interface follows the design system** ayarıdır; ayarı kapatmak uygulamanın arayüzünü nötr bırakır, araçlar, tuvaller ve dışa aktarmalar iki durumda da tasarım sistemini izler.
 
-Palet tonlara sahip olduğunda, şerit bir aracın okuyabileceği yedi yuvanın tümüne büyür: Birincil, İkincil, Yüzey, Metin, Soluk, Kenar ve Birincil üzerinde. Birincil üzerinde, birincilden türetilir, **Türetildi** olarak okunur ve seçici taşımaz.
+**Colourways.** Bir tasarım sistemi, her biri parça başına seçilen birkaç öncü renk tutabilir. Lolly her colourway'i korur ama bu oda henüz birini yazamaz: bir colourway token dosyasında yazılır. Colourway'leri olan bir sistemde her colourway'in kendi birincil ve ikincil rengi ve colourway'ler arka planı tonladığında kendi yüzeyi gerekir; bu yüzden bu roller renk örneği düzenleyicisinde ayarlı kalır. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) gerçek işlerde colourway'leri gösterir ve [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) biçimi içerir.
 
-**Uygulamanın kendi vurgusu bir tercihtir, bir token değil.** Varsayılan olarak arayüz tasarım sistemini izler ve arayüz vurgusu birincil rengi alır. Bu, [profilinde](/info/profile.html) bir Görünüm ayarıdır - **Arayüz tasarım sistemini izler** - ve onu kapatmak arayüzü nötr bırakır. Araçlar, tuvaller ve dışa aktarımlar her iki durumda da etkilenmez, yazı tipleri ve köşe yarıçapı ise ayar açık ya da kapalı olsun tasarım sistemini izler.
+### Daha fazla renk bul
 
-### Uzman kanatlar
+Üç araç birincil rengin üzerine kurulur. İlk ikisi yalnızca önerir; üçüncüsü değişikliği inceledikten sonra paleti değiştirir.
 
-Kompozisyon önizlemesinin ve renk rollerinin altında dört katlanmış bölüm bulunur. İstediğini aç; her biri `#/start?area=color&focus=<wing>` olarak derin bağlantı verilebilir, bu da oda başka ne gösteriyor olursa olsun onu açar:
+::: cols
+## Explore shades & harmonies
 
-- **Explore shades & harmonies** (`focus=generate`) - bir renkten tam bir ton setine. Aşağıda anlatılıyor.
-- **Shade curves** (`focus=curves`) - bir tonu nokta nokta yeniden şekillendir. Lightness, chroma ve hue her biri L / C / H ile değiştirilen kendi eğrisine sahiptir ve sürüklerken alttaki tonlar canlı olarak yeniden pişirilir.
-- **Contrast** (`focus=contrast`) - **Contrast-lock**, seçtiğin bir arka plana karşı APCA hedeflerini tutturmak için bir tonu yeniden tonlar, her adım kendi hue ve chroma'sını korur; **Rotate hue**, bütün tonu tekerlek etrafında topluca döndürür, her ton kendi lightness ve chroma'sını korur.
-- **Print** (`focus=print`) - birincil rengin baskıda ne olacağı: otomatik ekran değeri ya da bunun yerine sabitlenmiş bir CMYK derlemesi ya da adlandırılmış bir spot mürekkep.
+Bir **Starting colour**, bir **Scheme** (Mono, Complement, Analogous veya Triad) ve kaç **Shades** (3 ila 20, varsayılan 5) seç. **Fine-tune** arayüz yoğunluğunu, kontrastı ve marka üzerindeki metni ayarlar. Eklemek için bir tona tıkla ya da bir grup için **Add 5 shades** seç. Renklerin ve rollerin kalır.
 
-### Bir renk, bütün bir palet
+## Find matching colours
 
-**Explore shades & harmonies** içinde bir **Starting colour** seç. Lolly, motorun her yerde kullandığı aynı algısal renk matematiğini (OKLCH) kullanarak eşleşen tonlar önerir. Önerileri ayarla:
+Bir **Harmony** seç: Complementary, Adjacent, Triad, Tetrad veya Analogous (2 ila 5 **Accents** ve 10° ila 45° **Angle** ile). Her adayın üretilmiş bir adı ve renk başına bir basışla **+ Add** düğmesi vardır.
 
-- **Scheme** - Mono, Complement, Analogous ya da Triad - ikincil rengin birincil renkle nasıl ilişkilendiğini belirler.
-- **Shades** - 3 ile 20 arasında bir kaydırıcı (varsayılan 5), her tonun kaç adım üreteceğini denetler.
-- **Fine-tune** (katlanmış) - **UI intensity** (Muted / Deep), **Contrast** (Comfort / High) ve **Text on brand** (Auto / Light / Dark).
+## Rebuild the whole palette
 
-Başlangıç rengini ve denetimleri değiştirmek yalnızca önerileri değiştirir. O rengi eklemek için bir tona tıkla, ya da bir grup eklemek için **5 ton ekle** (sayı, Shades ayarını izler). Mevcut renkler ve roller yerinde kalır. Geri al, eklemeyi kaldırır.
+Neyin değişip neyin kaldığının incelenmesinden sonra paleti tek bir başlangıç renginden değiştirir. Önce bir kontrol noktası alınır ve sonrasında **Undo** sunulur.
+:::
 
-**Birincil**, **Nötr** ve **İkincil** satırları önerilen tonları gösterir. Açık ve koyu örnekleri ve kontrast okumalarını incelemek için **Theme preview**'i aç. Önerilen tema çapalarını ayarlamak için orada bir Nötr ya da İkincil adımı seç. Bütün paletin yeniden oluşturulması, aşağıda ayrı, gözden geçirilen bir eylem olarak kalır.
+Üçü de motorla aynı algısal renk matematiğini (OKLCH) kullanır. **Explore shades & harmonies** içinde **Primary**, **Neutral** ve **Secondary** satırları önerilen tonları gösterir ve **Theme preview** açık ve koyu örnekleri kontrast okumalarıyla gösterir.
 
 ![Ayrı ekleme denetimleriyle ve ayrı bir Theme preview ile üç önerilen ton grubu](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1400&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-preview&format=svg&walker=1&dark=1&filename=bs-colour-ramps)
-
-### Paletini oluştur (uyum üretici)
-
-**Find matching colours** içinde, uyum üretici birincil renkten eşleşen vurgu renkleri önerir. Bir **Uyum** seç - **Tamamlayıcı**, **Komşu**, **Üçlü**, **Dörtlü** ya da **Analog** (kendi **Vurgular** sayısını, 2 ila 5 arası, ve 10°-45° arasında bir ton **Açısı** getirir) - ve her aday, otomatik oluşturulmuş okunabilir bir adla ve bir **+ Ekle** düğmesiyle gelir. Birini eklemek o rengi paletine anında koyar, bir basış bir token'a karşılık gelir. **In context**, eklediğin renkleri örnek kompozisyonlar üzerinde önizler.
 
 ![Üretilen vurgular, her biri bir renk örneği, otomatik oluşturulmuş bir ad, hex kodu ve bir Ekle düğmesiyle](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### Üretilen bir paleti onaylamak
 
-Önerilen bir rengi ya da ton grubunu eklemek paletinin geri kalanını korur. Tam bir değişiklik için **Rebuild the whole palette…**'i aç ve **Preview full rebuild**'e bas. İnceleme değişiklikleri açıklar: kaç rolün atadığın gibi kaldığı, kendin eklediğin kaç rengin korunduğu, kaç ton eğrisinin yeniden çıpalandığı, kaç baskı kilidinin yeniden sabitlendiği, kaç gizli tonun gizli kaldığı, kaç gradyan durağının rengini koruduğu.
+**Rebuild the whole palette…** bölümünü aç ve **Preview full rebuild** düğmesine bas. İnceleme kaç rolün atadığın gibi kaldığını, kaç renginin korunduğunu ve kaç ton eğrisinin, baskı kilidinin, gizli tonun ve gradyan durağının yeniden sabitlendiğini ya da korunduğunu sayar. **Apply rebuilt palette** uygular; **Cancel** hiçbir şeyi değiştirmez. Sonrasında kart odak üzerindeyken **Undo** sunar ve değişimden önce alınan kontrol noktası sistemin tamamını geri yükler.
 
-O karttaki **Apply rebuilt palette** onu onaylar; **İptal** vazgeçer ve hiçbir şeyi değiştirmez. Çalıştıktan sonra kart, odak zaten üzerinde olan bir **Geri al** sunar - ve değişimden *önce* bütün tasarım sisteminin bir kontrol noktası alınır, böylece "eski haline getir" kayıp bir öğleden sonra değil bir geri yükleme olur.
+Colourway'li bir sistem, yeniden kurmada her colourway'i korur. Kurallı colourway yeni başlangıç rengini izler ve diğer her colourway kendi renklerini, adını, sırasını ve ayarlarını korur. İnceleme hangi colourway'in izlediğini ve hangilerinin renklerini koruduğunu listeler. Lolly, colourway'lerini düzenleyemeyeceği bir biçimde kodlayan bir sistemi yeniden kurmaz; kart nedenini söyler ve hiçbir şey değişmez.
 
-### Palet, çizelge ve her renk örneği
+### Uzman bölümleri
 
-Palet, tasarım sisteminin renklerini katlanabilir gruplarda listeler, her biri kendi **+ Ekle** denetimiyle. Çalışmanı düzenlemek için gruplar oluştur ve yeniden adlandır. Bir rol asla ikinci bir kutucuk oluşturmaz: bir token bir kutucuktur, bir rolün işaret ettiği kutucuk ise bunun yerine küçük bir köşe işareti taşır (**P**, **S**, **Su**, **T**). Kutucukların altında, **Renk tablosu** aynı renk örneklerinin iki görünümüyle açılır: **Tekerlek** (OKLCH tekerleği - yeniden renklendirmek için bir noktayı sürükle, düzenlemek için bir noktaya tıkla ya da yeni bir renk örneği koymak için boş alana tıkla) ve görüntülenebilir aralığın gerçekte nerede bittiğini gösteren **Gamut** tablosu. `#/start?area=color&focus=chart`, kartı `?wheel`'in her zaman yaptığı gibi doğrudan açar.
+Önizlemenin ve rollerin altında dört katlanmış bölüm durur. Her biri `#/start?area=color&focus=<name>` ile doğrudan açılır:
+
+- **Explore shades & harmonies** (`focus=generate`), yukarıda anlatıldı.
+- **Shade curves** (`focus=curves`) bir rampayı nokta nokta yeniden şekillendirir; ayrı açıklık, kroma ve ton eğrileriyle (L / C / H) ve sen sürükledikçe yeniden çizilen tonlarla.
+- **Contrast** (`focus=contrast`): **Contrast-lock** bir rampayı seçtiğin bir arka plana karşı APCA hedeflerine ulaşacak şekilde yeniden tonlar ve **Rotate hue** tüm rampayı tekerlek boyunca çevirir.
+- **Print** (`focus=print`) birincil rengin baskıda neye dönüşeceğini ayarlar: otomatik değeri, sabitlenmiş bir CMYK derlemesi veya adlandırılmış bir spot mürekkep.
+
+### Palet ve her örnek
+
+Palet renklerini, her birinin kendi **+ Add** düğmesi olan katlanan gruplarda listeler. Grupları istediğin gibi oluştur ve yeniden adlandır. Bir rol asla ikinci bir karo oluşturmaz: bir rolün işaret ettiği karo bunun yerine küçük bir işaret taşır (**P**, **S**, **Su**, **T**). Karoların altındaki **Colour chart** aynı renkleri OKLCH **Wheel** üzerinde (yeniden renklendirmek için bir noktayı sürükle, örnek eklemek için boş alana tıkla) ve görüntülenebilir aralığın nerede bittiğini gösteren **Gamut** grafiğinde gösterir. `#/start?area=color&focus=chart` grafiği doğrudan açar.
 
 ![Palet bölmesi, her grup katlanabilir, indirme hapı alt kenarda park etmiş](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![OKLCH çarkı - açı ton, dıştaki mesafe doygunluk ve griler yan tarafta bir açıklık rayında ilerliyor](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
-Düzenleyicisini açmak için herhangi bir renk örneğine tıkla:
+Düzenleyicisini açmak için bir örneğe tıkla:
 
-- Onu **Yeniden adlandır**.
-- **Rengi ayarla** - seçici algısal **OKLCH** kaydırıcılarıyla açılır, **Hex**, **HSL**, **RGB** ve **CMYK** modlarıyla; değer alanı hangi uzay etkinse ondan okur *ve* ona yazar, böylece bir hex yapıştırabilir ya da mürekkep yüzdeleri yazabilirsin. CMYK girmenin *ekran* rengini dönüşüm yoluyla ayarladığını unutma - kesin mürekkepleri sabitlemek için aşağıdaki baskı kilidini kullan.
-- **Şu şekilde saklanır** - renk örneğinin nasıl kalıcı hale getirileceğini seç: **LCH** (varsayılan - algısal, geniş gamut, düzenleme için en iyi seçim), Hex, RGB ya da HSL. Kesin bir eski hex'i sabitlemen ya da bir sRGB değeriyle eşleştirmen gerektiğinde bunu geçersiz kıl.
-- **Şu olarak kullan** - Roller paneline geri dönmeden bu renk örneğine marka rollerinden birini doğrudan ver. (Bir rolün kendi kutucuğu bunu sunmaz - bir rol bir rol alamaz.)
-- **Baskı ikameleri** (katlanmış) - rengin baskı davranışını kilitle:
-  - **CMYK** - otomatik sRGB→CMYK dönüşümünü kesin mürekkep değerleriyle (C/M/Y/K, 0-100) geçersiz kılmak için **Otomatik**'ten **Kilitli**'ye geçir.
-  - **Spot renk** - renk örneğini bir spot renge kilitlemek için **Yok**'tan **Ayarlandı**'ya geçir; bir **Ad** ver (örn. `PANTONE 186 C`), isteğe bağlı bir **Kitap** ve mürekkep hiç mürekkep değilse - bir yaldız, bir kabartma ya da gömme baskı, bir spot vernik, yumuşak dokunuş ya da bir kesim, katlama ya da delikleme için isteğe bağlı bir **Bitiş** (varsayılan olarak Sıradan mürekkep).
-- **Diğer uzaylarda** (katlanmış) - aynı fikrin genişletilmişi: her satır bu renk örneğinin ifade edilebileceği bir uzaydır, ya kanonik değerden türetilmiş ya da senin tarafından yazılmış, yazılmış olan dışa aktarımda kazanır.
+- Örneği **yeniden adlandır**.
+- OKLCH sürgüleriyle ya da **Hex**, **HSL**, **RGB** veya **CMYK** içinde **rengi ayarla**. Değer alanı etkin uzayda okur ve yazar. Buradaki CMYK ekran rengini dönüşümle ayarlar; tam mürekkepleri sabitlemek için **Print substitutes** kullan.
+- **Stored as** örneğin nasıl kaydedileceğini seçer: **LCH** (varsayılan, algısal ve geniş gamut), Hex, RGB veya HSL.
+- **Use as** örneğe doğrudan bir rol verir. Rolü temizlemek için vurgulanmış bir role yeniden bas.
+- **Print substitutes** (katlanmış): **CMYK** değerini **Auto**'dan tam mürekkep değerlerine kilitle ya da bir **Name** (örneğin `PANTONE 186 C`), isteğe bağlı bir **Book** ve folyo, kabartma, çukur, spot vernik, soft touch veya bir kalıp kesimi, kırım ya da perforasyon için bir **Finish** ile bir **Spot colour** ayarla. Bir CMYK PDF veya TIFF dışa aktardığında bir baskı makinesi bu kilitleri kullanır; bkz. [Colour profiles](/info/exporting.html#colour-profiles).
+- **In other spaces** (katlanmış): renk uzayı başına, türetilmiş veya senin yazdığın bir değer ve yazılmış olan dışa aktarmada kazanır.
 
-Bu baskı kilitleri, bir CMYK PDF ya da TIFF dışa aktardığında bir matbaanın kullandığı şeydir - bkz. [Dışa aktarma](/info/exporting.html#colour-profiles).
+**Bir örneği silmek** güvenlidir. Türetilmiş tonlar ve tema rolleri gizlenir; böylece onları okuyan hiçbir şey bozulmaz, eklediğin renkler ise kaldırılır.
 
-**Bir renk örneğini silmek** güvenlidir: türetilmiş ton adımları ve tema rolleri *gizlenir* (alttaki token çözülmeye devam eder, böylece hiçbir şey akış aşağısında bozulmaz), kendin eklediğin renkler ise tamamen kaldırılır.
+::: details Birçok örnekle çalışmak
+Her örneğin bir sürükleme tutamağı vardır. Bir grup içinde yeniden sıralamak için sürükle ya da tutamağa odaklan, Space'e bas, ok tuşlarını kullan ve bırakmak için yeniden Space'e bas; Escape iptal eder. Renkleri gruplar arasında taşımak için düzenleyicinin **Group** denetimini kullan ya da birkaçını seç ve **Move to** kullan.
 
-### Çok sayıda renk örneğiyle çalışmak
+Seçim için bir mod gerekmez. Çubuk ilk seçili karoyla belirir ve sonuncuyla kaybolur.
 
-Her renk örneğinin ayrı bir sürükleme tutamacı vardır. Renkleri kendi grubu içinde yeniden sıralamak için sürükle, ya da odakla, Space'e bas, ok tuşlarını kullan ve bırakmak için tekrar Space'e bas. Escape iptal eder. Sıra, stüdyoyu yeniden açtığında korunur ve geri alınabilir. Renkleri gruplar arasında taşımak için renk örneği düzenleyicisinin **Grup** denetimini kullan ya da birkaç rengi seçip **Taşı**'yı kullan. Token adları ve rol referansları sağlam kalır.
+- **Boş alanda sürükle** bir dikdörtgen çizmek için; dokunduğu her karo gruplar boyunca seçime katılır. Katlanmış bir bölüm hiçbir şey eklemez.
+- **Shift ile tıkla** okuma sırasında bir aralık alır, **Cmd/Ctrl ile tıkla** bir karoyu açıp kapatır ve düz bir tıklama düzenleyiciyi açar.
+- Her grup başlığında **Select all** vardır ve bir karo odaktayken **Cmd-A** sahip olduğun her rengi alır, asla bir starter rengi değil.
+- Izgaranın tek bir sekme durağı vardır: oklar gezdirir, Shift-oklar genişletir, Space açıp kapatır, Delete kaldırır ve Escape temizler. Bir kanalı hafifçe oynatmak için önce `l`, `c` veya `h` tuşuna bas.
+- Dokunmatik ekranda bir seçim başlatmak için bir karoya basılı tut, sonra eklemek için dokun.
 
-Palet bölmesinde seçim bir jesttir, bir mod değil. Önce basılacak bir düğme yoktur, çubuk ilk seçilen kutucukla gelir ve sonuncuyla gider.
-
-- **Bölmenin boş alanında sürükleyerek** bir dikdörtgen çiz: dokunduğu her kutucuk, grup sınırlarını aşarak seçime katılır. Katlanmış bir bölüm hiçbir şey katmaz, hiç hareket etmeyen bir sürükleme ise seçimi temizler.
-- **Shift-click**, aralığı okuma sırasına göre alır; **Cmd/Ctrl-click** bir kutucuğu değiştirir; düz bir tıklama yine de o kutucuğun düzenleyicisini açar.
-- Her grup başlığı bir **Tümünü seç** taşır ve bir kutucuk odaktayken **Cmd-A**, tasarım sisteminin sahip olduğu her rengi alır - asla bir starter renk değil.
-- Izgaranın tek bir sekme durağı vardır. Oklar üzerinde gezinir, Shift-oklar seçimi genişletir, Space bir kutucuğu değiştirir, Delete seçimi kaldırır ve Escape onu temizler. (Oklar yalnızca odağı taşır: bir kanalı kaydırmak için önce `l`, `c` ya da `h`'ye bas, okuma bunu söyler.)
-- Dokunmatik bir ekranda dikdörtgen yoktur. Bir seçim başlatmak için bir kutucuğa bas ve tut, sonra eklemek için dokun; grup başına **Tümünü seç** gerisini getirir.
-
-Çubuğun kendisi **{n} seçili** okur, ardından **Taşı** (mevcut bir grup, ya da menü içinde adlandırdığın yeni bir grup), **Bir rol ver** (seçili her renk sırayla bir sonraki rolü alır, böylece dört kutucuk tek basışta dört rolün tamamını doldurur), **İndir** (seçimi altı palet biçiminden herhangi birinde), **Değerleri kopyala** (her renk için, saklandığı gösterimde bir satır) ve **Sil**. Taşı ve Bir rol ver, palette taşınacak tonlar olduğunda görünür. Tek bir Ctrl/Cmd-Z, kırk öğelik bir taşımayı, bir rol dağıtımını, bir silmeyi - bütün bir toplu eylemi geri alır - ve bir silme neyi koruduğunu söyler, çünkü bir seçim bu odanın kaldırmadığı kutucuklara da ulaşır.
+Çubuk **{n} selected** yazar, sonra **Move to**, **Give a role** (her renk sırayla bir sonraki rolü alır), **Download** (seçim, altı palet biçiminden herhangi birinde), **Duplicate** (her birinin, orijinalden sonra yerleştirilen bir kopyası), **Copy values** ve **Delete**. Tek bir kopya doğrudan düzenleyicide açılır; birkaçı seçili kalır. Tek bir Cmd/Ctrl-Z toplu bir eylemin tamamını geri alır.
+:::
 
 ### Gradyanlar
 
-İsteğe bağlı bir **Gradyanlar** paneli, arka planlar ve vurgular için paletten karışım token'ları oluşturur. Tasarım sistemin gradyan kullanmıyorsa tamamen atla. Her gradyanın bir önizlemesi, adlandırılmış durakları (2-8) ve bir açısı vardır. Kilit davranış: **bir durak bir renk örneğine referans verir**, o yüzden o renk örneğini yeniden renklendir ve gradyan onu izler. İnterpolasyon temiz karışımlar için OKLCH'de çalışır. Çalıştırmayı kısaltmak için bir durağı sil.
+İsteğe bağlı **Gradients** paneli paletten karışım token'ları kurar. Her gradyanın bir önizlemesi, 2 ila 8 adlandırılmış durağı ve bir açısı vardır. Bir durak bir örneği işaret eder; örneği yeniden renklendirirsen gradyan izler. Karışımlar OKLCH içinde çalışır.
 
-### Paleti başka bir yere taşı
-
-Palet bölmesinin alt kenarında park etmiş yüzen hap, bütün paleti **Tasarım belirteçleri (JSON)**, **CSS değişkenleri**, **CSS sınıfları**, **SCSS değişkenleri**, bir **GIMP palette (.gpl)** ya da bir **Adobe Swatch Exchange (.ase)** olarak indirir - böylece tasarım sistemi doğrudan Illustrator, Figma, GIMP ya da bir stil sayfasına düşer. Bölmenin kaydırma alanının dışında oturur, böylece palet ne kadar kaydırılırsa kaydırılsın yerini korur ve palet tonlara sahip olduğunda görünür. (Paleti [Varlıklar](/info/using.html#assets-your-library)'dan da indirebilirsin.)
+Palet indirmeleri (tasarım token'ları, CSS, SCSS, GIMP ve Adobe Swatch Exchange) tonlar olduğunda paletin altındaki bir hapta durur. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) her biçimi anlatır.
 
 ## Tip
 
-Bu oda da aynı şekilde büyür. Kendi yüzü olmadan tek bir kart ve tek bir karardır: bugün ona hizmet eden yüzde okuma boyutunda ayarlanmış **Birincil**, adın yanında bir **Starter** etiketi, dolu bir **Bir yüz seç** ve *"Birini seçene kadar hiçbir şey kurulmaz."* satırı. Kartın altında *"Başlıklar, kod ve italik, sen onları seçene kadar birincili izler"* yazar, **Ayrı ayrı seç** ise ziyaretin geri kalanı için diğer üç kartı ortaya çıkarır.
+Kendi yazı tipi olmadığında oda tek bir karttır: bugün onu sunan yazı tipiyle okuma boyutunda ayarlı **Primary**, bir **Starter** etiketi, bir **Choose a face** düğmesi ve *"Nothing installs until you choose one."* satırı. Headings, code ve italic sen seçene kadar birincili izler; **Choose them separately** kartlarını gösterir.
 
 ![Henüz bir yüz seçilmemiş Type odası - okuma boyutunda bir kart, üzerinde bir Starter etiketi ve dolu bir Bir yüz seç](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
-Bir yüz seç, oda **dört rol kartına**, Fonts listesine ve canlı numuneye açılır. Dört yüz, uygulamanın, araçlarının ve her dışa aktarımın gerçekte okuduğu yüzlerdir:
+Bir yazı tipi seç ve oda dört rol kartına, Fonts listesine ve canlı bir örneğe açılır:
 
-- **Birincil** - gövde metni, düğmeler ve her araç.
-- **Başlıklar** - `h1`/`h2` için gösterim yüzü.
-- **Kod** - kod ve veri için tek aralıklı bir yüz.
-- **İtalik** - vurgu, alıntı ve ara sözler için gerçek bir italik eşlik.
+- **Primary**: gövde metni, düğmeler ve her araç.
+- **Headings**: `h1` ve `h2` için görüntüleme yazı tipi.
+- **Code**: kod ve veri için tek aralıklı bir yazı tipi.
+- **Italic**: vurgu, alıntılar ve yan notlar için gerçek bir italik.
 
-Başlıklar, kod ve italik, sen onları atayana kadar birincile geri döner, böylece tek yüzlü bir tasarım sistemi burada hiçbir karar gerektirmez.
-
-**Bir ton, onu senin seçtiğin anlamına gelir.** Bir kart yalnızca o yüzü kurduğun yerde tonlanır. Bir starter yüz, paletin kalıtsal gruplarının taşıdığı aynı **Starter** etiketini, soluk kayıtta ve tonsuz taşır; kimsenin seçmediği bir rol ise, sanki seçilmiş gibi birincilin adını tekrarlamak yerine **↳ Birincili izler** olarak okunur. Düğme, kendi yüzünde **Değiştir**, her yerde başka **Bir yüz seç** yazar. Bir kart üzerindeki hiçbir şey bir şey onaylamaz: düğme, o role kapsamlanmış **karşılaştırma sahnesini** açar.
+Bir kart yalnızca o yazı tipini kurduğun yerde tonludur ve düğmesi kendi yazı tipinde **Change**, her yerde **Choose a face** yazar. Bir karttaki hiçbir şey bir şey uygulamaz: düğme o rol için karşılaştırma sahnesini açar.
 
 ![Ortaya çıkan dört rol kartı - her biri kendine hizmet eden yüzde ayarlanmış, kimsenin seçmediği yerde bir Starter etiketiyle ve İtalik'in Birincili izlemesiyle](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Karşılaştırma sahnesi
 
+Sahne odanın içinde, bastığın kartın altında açılır ve kartlar tek satırlık bir şeride katlanır; böylece sahne bir telefonun ilk ekranında görünür. Escape iptal eder ve odağı karta geri verir.
+
+1. Kartta **Choose a face** düğmesine bas.
+2. Bir aile adı yaz ve **Preview** düğmesine bas ya da alanın altındaki altı **Pinned** aileden birine bas.
+3. **Use this face** düğmesine bas.
+
 ![Kartının altında açılan karşılaştırma sahnesi, arama satırı, sabitlenmiş aileler ve tek satırlık bir şeride katlanmış kartlarla](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dtype%26focus%3Dstage&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-type-stage)
 
-Sahne bir iletişim kutusunda değil, **odanın içinde, satır içinde** ve bastığın kartın hemen altında açılır. Açıkken kartlar rol ve yüzden oluşan tek satırlık bir şeride katlanır, böylece sahne telefonda bile ilk ekrandadır. Escape iptal eder ve klavyeyi onu açtığın karta geri verir.
+**Onay bir kez sorulur.** Bir önizleme Google Fonts'a ilk kez ulaştığında bir iletişim kutusu açıklar: *Google aile adını ve IP adresini öğrenir. Dosya sonra bu cihazda tutulur ve çevrimdışı kullanılır. Bu, stüdyoda üçüncü bir tarafa ulaşan tek adımdır.* **Fetch from Google** devam eder ve hatırlanır. **Cancel**, kartı kendi **Fetch from Google** düğmesiyle *"Not fetched. Nothing was sent to Google."* diye okunur bırakır.
 
-Bir yüz seçmek üç basıştır:
-
-1. Kartta **Bir yüz seç**.
-2. Bir aile adı yaz ve **Önizleme**'ye bas - ya da alanın altındaki altı **Sabitli** aileden birine, her birine bir kez, bas. Kart, henüz görmediğin bir yüzün yerine geçen arayüz yüzü yerine, numunenin olacağı yerde bir iskelet çubuğuyla, zaten yükleniyor halde görünür.
-3. **Bu yüzü kullan**.
-
-**Onay yalnızca bir kez, yaptığın basışta sorulur.** Bir önizleme ilk kez Google Fonts'a ulaştığında, bir iletişim kutusu ne olacağını söyler: *Google, aile adını ve IP adresini öğrenir. Dosya sonra bu cihazda tutulur ve çevrimdışı kullanılır. Bu, stüdyodaki üçüncü bir tarafa ulaşan tek adımdır.* **Google'dan getir** devam eder ve hatırlanır. **İptal**, kartı *"Getirilmedi. Google'a hiçbir şey gönderilmedi."* demeye bırakır, kendi canlı **Google'dan getir**'iyle birlikte, böylece fikrini değiştirmek kartın kendisinde tek bir basıştır. Hiçbir kart asla ölü bir düğme göstermez: hangi durumda olursa olsun, tek bir birincili sonraki adımın ne olduğunu söyler.
-
-**Sahneye bir font dosyası bırak**, anında önizlenir - kendi makinenden **TTF**, **OTF** ya da **WOFF**, zaten sahip olduğun lisanslı bir kurumsal yazı tipi için yoldur bu. O bırakma bölgesi, odadaki tek dosya kapısıdır.
-
-Her iki durumda da yüz bu cihazda kalır, uygulamada, araçlarında ve her dışa aktarımda görüntülenir, sonsuza dek çevrimdışıdır ve tasarım sistemi dosyasında seyahat eder - render zamanında hiçbir şey getirilmez. Google Fonts'taki her şey açık bir lisans (OFL/Apache/UFL) altında gönderilir.
+Zaten sahip olduğun lisanslı bir yazı tipini önizlemek için **sahneye bir yazı tipi dosyası bırak** (TTF, OTF veya WOFF). Her iki durumda da yazı tipi bu cihazda kalır, uygulamada, araçlarda ve her dışa aktarmada çevrimdışı render edilir ve tasarım sistemi dosyasında taşınır. Google Fonts üzerindeki her şey açık bir lisansla (OFL, Apache veya UFL) gelir.
 
 ### Bu cihazdaki fontlar
 
-**Yazı tipleri** paneli, bu cihazın tuttuğu her yüzü ve hizmet ettiği rolü listeler. Eklediğin yüzler **Tasarım sisteminde** altında öne çıkar, her biri rolleriyle ve bir silme ile birlikte, Birincil'e hizmet eden ise rozeti taşır. Starter yüzler tek bir katlanmış satırda arkadan gelir - *"Starter · SUSE, SUSE Mono · Birincil ve Kod'a hizmet ediyor, sen seçene kadar"* - soluk, silmesiz ve terfi ettirilecek hiçbir şey olmadan, çünkü ikisi de kimsenin verdiği bir karar değildir. **Bir yüz ekle**, aynı karşılaştırma sahnesini kapsamsız açar.
-
-Alttaki **Yazı rolleri** paneli, her rolün canlı bir numunesini gösterir - birincilde gövde ve arayüz, üst başlıklar için isteğe bağlı bir gösterim yüzü, vurgu için bir italik, kod ve veri için bir mono - her birinin yanında aile ve durumuyla birlikte (*Inter*, *SUSE · starter*, *SUSE · Birincili izler*), böylece bütün set bir bakışta okunabilir.
+**Fonts** paneli bu cihazdaki her yazı tipini ve hizmet ettiği rolü listeler. Eklediğin yazı tipleri **In the design system** altında, her biri rolleri ve bir silme düğmesiyle öne geçer. Starter yazı tipleri tek bir soluk, katlanmış satırda gelir. **Add a face** herhangi bir rol için karşılaştırma sahnesini açar. **Type roles** paneli her rolün ailesi ve durumuyla, örneğin *Inter* veya *Inter · follows Primary*, canlı bir örneğini gösterir.
 
 ## Token'lar
 
-Tasarım sisteminin geri kalanı, koda dokunmadan düzenlenebilir:
+Token'lar tasarım sisteminin ardındaki adlandırılmış değerlerdir: renkler, yazı tipleri, logolar, köşeler ve aralık. Araçlar onları adlarıyla okur; bu yüzden burada yapılan bir değişiklik her araca bir anda ulaşır.
 
-![Tokens odası - bir köşe yarıçapı kaydırıcısı ile boşluk, boyutlandırma, gölgeler ve sistemin geri kalanı](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
+![Tokens odası: sistemden bir örnek ve dosya eylemleriyle başlık, her token türünü sayan karolar, ardından kontrast göstergeleriyle renk çiftleri](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
-- **Yuvarlatılmış köşeler** - uygulama genelinde kartların, düğmelerin ve panellerin izlediği tek bir yarıçap kaydırıcısı (0-1.5rem).
-- **Neutrals** - yepyeni bir kurulumun geldiği kağıt-üzerinde-mürekkep tonu, dokuz adımıyla ve Colours bölmesine bir **Aç** ile **Nötrler · başlangıç · 9** olarak listelenir. Starter nötrlerin yönetildiği tek yerdir ve *starter* etiketi, kalıtsal olmak yerine ton üretildiği anda gider.
-- **Daha fazla token** - **aralık**, **boyutlandırma**, **kontur genişliği**, **opaklık**, **döndürme**, düz **sayılar** ve **gölgeler** ekle ve düzenle. Bir tür seç, adlandır (*Gutter, Card shadow…*) ve değerini ayarla. Bunlar standart [tasarım token'ları](/info/design-tokens.html) (DTCG) olarak saklanır ve tasarım sistemiyle birlikte seyahat eder.
+- **Başlık**, kendi sisteminden bir örnek verir (*Primary is Spearmint, #033633*) ve dosya eylemlerini: **Download** (sistemin tamamı tasarım token'ları olarak ya da palet beş başka biçimde), **Copy CSS** ve bir JSON dosyasını geri okumak için **Add from…**.
+- **Karolar**, her token türünü sayar ve bölümüne atlar: Colours, Type, Logos, Shape and spacing, More ve All tokens. Overview'ın yaptığı gibi senin olanı sayarlar. Telefonda karolar yana kayar.
+- **Colours**, araçların bir araya getirdiği çiftlerle (yüzeyde metin, birincilde, yüzeyde soluk) açık ve koyuda bir APCA göstergesiyle başlar ve bir çift yetersiz kaldığında **Weak contrast** işaretler. Sonra her renk grubu: bir satır çip olarak rampa, değeri ve araçların kullandığı başvuruyla diğer renkler; örneğin `{color.brand.spearmint}`. Başvuruyu kopyalamak için bir başvuruya bas. **Edit in Colours** bir grubu Colours odasında açar.
+- **Type** ve **Logos**, kendine ait olanlar olduğunda **Edit in Type** ve **Edit in Logos** ile her rol ve her logo yuvası için yazı tipini listeler.
+- **Shape and spacing**, **Rounded corners** (`shape.radius`) ve **Spacing rhythm** (`space.base`) tutar. Her biri sürgüyü oynatana kadar *Lolly default*, sonra *Yours* okunur, hemen kaydeder ve geri alınabilir.
+- **More tokens**, standart [tasarım token'ları](/info/design-tokens.html) olarak saklanan aralık, boyutlandırma, çizgi kalınlığı, opaklık, döndürme, düz sayılar ve gölgeler ekler.
+- **App appearance (advanced)**, Lolly'nin kendi ekranlarının kullandığı renkleri, boyutları ve gölgeleri listeler ve **Inspect every token (advanced)** her değişikliği önce inceleme için göstererek saklanan her değeri arar ve düzenler.
+
+İçinde hiçbir şey olmayan bir bölüm boşluğu doldurmanın yolunu sunar: **Pick a colour**, **Choose a face** veya **Add a logo**.
 
 ## Dosyalar
 
-Markanın tuttuğu dosyaları - logolar hariç - buraya bırak: **vektör**, **görsel**, **ses** ve **hareket** (video, Lottie, animasyonlu) varlıkları. [Varlıklar](/info/using.html#assets-your-library) görünümüne düşerler, bölümlere ayrılmış ve her aracın varlık seçicisinde hazır halde. Her şey bu cihazda kalır. (Rayda oda **Dosyalar** olarak etiketlenir; URL anahtarı `catalogue` olarak kalır, çünkü bir panel anahtarı kalıcı bir sözleşmedir.)
+Markanın tuttuğu dosyaları, logolar dışında bırak: **vector**, **image**, **audio** ve **motion** dosyaları (video, Lottie ve animasyonlar). [Assets](/info/using.html#assets-your-library) içinde bölümlere ayrılmış olarak görünürler, her aracın varlık seçicisinde hazırdırlar ve bu cihazda kalırlar.
+
+## Usage & rules
+
+**Usage & rules**, markanın seçimlerini işe koyar: insanların neyi değiştirebileceği, neyin sabit kaldığı ve Lolly'nin neyi denetleyebileceği.
+
+![Lolly Demo üzerinde Usage & rules: Add your first rule içeren boş bir Brand rules kartı, sonra örnekleri render edilmeye hazır Try your brand in use](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+
+**Brand rules** kurallarını listeler. **Add rule** (veya **Add your first rule**) kısa bir form açar:
+
+- *Beacon accents* gibi kendi sözcüklerinle bir **Rule name**;
+- **Check**: **Colour choices**, **Font choices**, **Fixed artwork** veya **Text length**; rol için kendi adınla kullandığı marka rolüyle;
+- uygulandığı **Example** (Poster, Title slide, Content slide veya Chart), **Mode** ve **Required** mi **Advisory** mi olduğu;
+- **Reviewed by**, sonra **Save draft** veya **Approve & save**.
+
+Onay, bu cihazdaki kendi kararını kaydeder. Onaylı zorunlu kurallar yeniden kullanılabilir posteri kısıtlar ve denetimler yalnızca örnek PNG'leri kapsar; başka hiçbir aracı değiştirmezler.
+
+Bir tasarım sisteminin token dosyasında getirdiği kurallar, örneğin onaylı renk eşleşmeleri, metin ağırlığı ve hizalama ya da yüzey başına bir logo, burada **Checked in Design** olarak listelenir. Design bunları dışa aktarma panelinin **Before you export** kartında katman katman denetler ve `lolly check` kayıtlı bir Design belgesi için aynısını yapar ([Before you export](/info/design.html#before-you-export)). Bu derlemenin denetleyicisi olmayan bir kural sağlandığı gibi tutulur ve **Unchecked** olarak işaretlenir.
+
+**Try your brand in use**, **Render & check examples** ile geçerli düzeltmeden dört örnek render eder. Başlık, destekleyici metin ve slayt metni için bir **Brand mode** ve **Try your own text** seç. Her örnek neyin ölçüldüğünü **See checks & sources** ve **Download check report** ile bildirir ve **Make reusable poster**, sabit düzeni ve onaylı girdi seçimleri dosyayla birlikte giden bir `.lolly` indirir. Örnekler yereldir: bir denetim çalıştırmak hiçbir şeyi yayımlamaz veya onaylamaz.
+
+Sabit bir markayla gelen bir derleme, aynı kuralları ve örnekleri salt okunur olarak *This brand is set* altında gösterir.
 
 ## Bir marka getir
 
-Rayın altındaki **Şuradan ekle…**, iki aşamalı bir seçici açar. İlk aşama neyin *olduğunu* sorar, hangi biçim olduğunu değil:
+Rayın altındaki **Add from…**, hangi biçimde olduğunu değil, elinde ne olduğunu soran bir seçici açar:
 
-- **Design tokens or a design file** - DTCG ya da Tokens Studio JSON, bir Penpot projesi, bir **token seti zip'i**, bir Lolly tasarım sistemi paketi ya da bir SVG.
-- **PDF** - renkleri, işaretleri ve gömülü yazı tipleri için bu cihazda okunan bir sunum ya da bir kılavuz dosyası.
-- **Logo veya ekran görüntüsü** - bir görsel, bu cihazda okunan önerilen bir palet olur. Hiçbir şey yüklenmez. Bu, resimdeki yazı tipini ya da yerleşimi değil, renkleri okur.
-- **Saved web page** - bir HTML dosyası ve CSS dosyalarını seç, ya da HTML veya CSS yapıştır. Toplam 20 dosyaya ve 2 MB'a kadar. Yalnızca sağlanan metin okunur; bağlantılı kaynaklar getirilmez ve betikler çalışmaz. Bu yol, uzantı ya da masaüstü uygulaması olmadan da çalışır.
-- **Yazı tipi dosyası** - TTF, OTF ya da WOFF. Yüzün kurulduğu Type odasını açar.
-- **Web sitesi** - renkleri ve tipi için okunan tek bir sayfa. Bu kutucuk yalnızca bir sayfayı gerçekten okuyabilen bir cihazda görünür, çünkü kimsenin basamayacağı bir şeyi reklam eden devre dışı bir kutucuk, hiç kutucuk olmamasından daha kötüdür. Göründüğü yerde hangi okuyucunun kullanıldığını açıkça söyler: bu cihazda uygulama tarafından getirilir, ya da sen olarak oturum açmış halde, bir arka plan sekmesinde tarayıcı eklentisi üzerinden okunur. Bir URL adlandırmak alanı yalnızca *önceden doldurur* - getirme düğmesi rızadır, bu yüzden birinin sana gönderdiği bir bağlantı bir okumayı asla kendiliğinden başlatamaz.
+- **Design tokens or a design file**: DTCG veya Tokens Studio JSON, bir Penpot projesi, token kümelerinin bir zip'i, bir Lolly tasarım sistemi paketi veya bir SVG.
+- **PDF**: bir sunum veya yönergeler dosyası, renkleri, işaretleri ve gömülü yazı tipleri için bu cihazda okunur.
+- **Logo or screenshot**: bir görsel, bu cihazda okunan önerilen bir palet olur. Renkleri okur, yazı tipini veya düzeni değil.
+- **Saved web page**: bir HTML dosyası ve CSS dosyaları ya da yapıştırılmış HTML veya CSS; en fazla 20 dosya ve 2 MB. Yalnızca sağladığın metin okunur: bağlı kaynaklar getirilmez ve betikler çalışmaz.
+- **Font file**: TTF, OTF veya WOFF. Yazı tipinin kurulduğu Type odasını açar.
+- **Website**: bir sayfa, renkleri ve yazısı için okunur. Bu karo yalnızca bir sayfayı okuyabilen cihazda görünür ve hangi okuyucuyu kullandığını söyler: bu cihazdaki uygulama veya arka plan sekmesinde, sen olarak oturum açmış tarayıcı uzantısı. Bir URL'yi adlandırmak yalnızca alanı doldurur; getir düğmesine basmak onaydır.
 
-Tasarım dosyası kaynağını seç ve ikinci aşama aşağıdaki karttır: kabul edilen biçimler tercih sırasına göre simge kutucukları olarak öne çıkar ve bütün kart tek bir bırakma hedefidir - herhangi bir yerine tıkla ya da üzerine bir dosya sürükle. Bir dosyayı doğrudan stüdyoya da bırakabilirsin.
+Tasarım dosyası kaynağını seç; sonraki kart kabul edilen biçimleri simge karoları olarak listeler ve kartın tamamı tek bir bırakma hedefidir. Bir dosyayı doğrudan stüdyonun üzerine de bırakabilirsin.
 
 ![İçe aktarma kartı - kabul edilen biçimler simge kutucukları olarak öne çıkar ve bütün kart tek bir bırakma hedefidir](/t/url-shot?url=%2F%23%2Fstart%3Fsource%3Dfile&width=1440&height=900&dpi=192&waitMs=1600&css=.start-import-modal%20.modal-msg%2C.start-import-modal%20.modal-title%7Bdisplay%3Anone%7D&cropSelector=.start-import-drop&walker=1&format=svg&dark=1&filename=bs-brand-import-formats)
 
-Her tasarım dosyasının sana verdiği:
+- Bir **Lolly design-system pack** (`.lolly` veya eski bir `.zip`) tek adımda kurulur.
+- Bir **Penpot** dışa aktarması (`.penpot`) tasarım token'larını getirir.
+- Bir **Design Tokens** (W3C DTCG) veya **Tokens Studio** dosyası (`.json`) token'larını getirir.
+- Bir **plain SVG** seçeceğin renkler için taranır; ilki birincil rengin olur.
 
-- bir **Lolly design-system** paketi (`.lolly`; eski `.zip` hâlâ kabul edilir) - tek adımda kurulur;
-- bir **Penpot** dışa aktarımı (`.penpot`) - tasarım token'larını çeker;
-- bir **Design Tokens** dosyası (`.json`) - W3C DTCG;
-- bir **Tokens Studio** dosyası (`.json`) - Tokens Studio;
-- düz bir **SVG** (`.svg`) - Lolly renklerini tarar ve hangilerini tutacağını seçmene izin verir, ilki birincilin olur.
+### Bir başvuruyu incele
 
-Bir logo/ekran görüntüsü, web sitesi ya da kaydedilmiş sayfa **Size önerilen tasarım sistemi**'ni açar. Önerilen renkleri kullanan bir örneğe bak, gerekirse farklı bir **Ana renk** seç ve sistemi adlandır. **Bu tasarım sistemini kullanın**, üretilen açık ve koyu paletleri uygular ve Overview'a döner. Mevcut yazı tipleri yerinde kalır. Bu, etkin sistemin renklerini ve diğer token ayarlarını değiştirir. Önce bir kontrol noktasının başarılı olması gerekir; **Marka ayarlarını geri yükle** önceki ayarları kurtarır.
+Bir logo, ekran görüntüsü, web sitesi veya kayıtlı sayfa **Try these colours** açar: önerilen renklerde bir örnek, değiştirebileceğin bir **Main colour** ve yeni bir sistem için bir ad. Bir kutu uygulamanın ne yaptığını sıralar: etkin token ayarlarını oluşturulan palet ve varsayılan stillerle **değiştirir**, yazı tiplerini ve kitaplık dosyalarını **korur** ve önceki sistem **kurtarılabilir**. **Apply suggested settings**, bir kontrol noktasından sonra açık ve koyu paletleri uygular ve **Restore brand settings** eski ayarları geri getirebilir. **Change reference** başka bir kaynak seçer.
 
-**Kaynak detayları ve bireysel seçimler**, ne okunduğunu, algılanan yazı tipi adlarını ve önizlemenin metin/eylem kontrastını gösterir. Ayrıca **Listedeki öğeleri ayrı ayrı seçin** ve **Tasarım bağlamını indir**'i sunar. JSON raporu gözlemleri, önerilen token'ları ve kaynak bilgisini taşır; kaydedilen HTML/CSS, sağlanan metnin bir SHA-256'sını içerir. Ham sayfa metni içermez ve imzalı bir Content Credential değildir. Yazı tipi adları önerilerdir: yazı tiplerini seçmek ve kurmak için yer, Type olarak kalır.
+**Palette, source details and individual choices**, nelerin okunduğunu, bulunan yazı tipi adlarını ve önizlemenin kontrastını gösterir. Yazı tipi adları yalnızca öneridir; yazı tipini kurduğun yer yine Type'tır. Kaynak ayrıntıları, gözlemlenen yerde tipografiyi, boşlukları, dolguyu ve köşe değerlerini içerebilir; aksi hâlde **Not observed** etiketlenir. Kayıtlı bir sayfa veya yerel bir web sitesi okuması, sayfanın kullanmayabileceği bildirilmiş stilleri bildirir ve tarayıcı uzantısı görünür öğelerden bir örnekten ölçülmüş stilleri bildirebilir. Bunlar gözlemlerdir: hiçbir şey kurulmaz ve kaynak aralığı asla seninkinin yerini almaz. **Choose individual items in the tray** tek tek öğeleri tutar ve **Download design context** gözlemlerin, önerilen token'ların ve kaynak bilgisinin (sağlanan HTML veya CSS'in SHA-256 değeriyle) bir JSON raporunu kaydeder. Rapor ham sayfa metni içermez ve imzalı bir Content Credential değildir.
 
-PDF ve diğer tasarım dosyası içe aktarımları mevcut inceleme denetimlerini korur. **Tepsi**'de tutulan öğeler, o tür malzemenin sahibi olan oda üzerinden eklenene kadar hiçbir şeyi değiştirmez.
+PDF ve tasarım dosyası içe aktarmaları kendi inceleme denetimlerini korur. **Tray** içindeki öğeler, o tür malzemenin sahibi odada ekleyene kadar hiçbir şeyi değiştirmez. `#/start?source=<kind>` seçiciyi bir kaynakta açar (`file`, `pdf`, `image`, `font`, `url`, `page`) ve `?import` düz listeyi açar.
 
-`#/start?source=<kind>`, seçiciyi belirli bir kaynakta açar (`file`, `pdf`, `image`, `font`, `url`, `page`) ve `?import` onu düz listede açar.
+### Bir görünüm bul ve karşılaştır
 
-## Bir markayı cihazlar arasında taşı
+Overview'dan ya da Settings'teki tasarım sistemi listesinden **Find a look** aç. Bu cihazda kayıtlı sistemlere ve birkaç yeniden kullanılabilir Lolly örneğine göz at ve ada, renk etiketine veya bildirilmiş yazı tipine göre ara. **Closest to my current palette**, ölçülen renk benzerliğine göre sıralar; eşleşen yazı tipleri beraberlikleri bozar; bir kalite puanı değildir.
 
-Rayın altındaki **Export**, tek bir **`LollyBrand-….lolly`** yazar - token'ların, fontların, logoların ve tema tercihin, geri dönüşte doğrulanan bir bütünlük manifestiyle birlikte. 1.0.7'den önceki web sürümleri aynı yükü `.zip` olarak adlandırıyordu; bu eski yazım hâlâ kabul edilir. Yanında, **Token'lar (.json)**, düz tasarım-token'ları belgesini tek başına yazar: font yok, logo yok, sadece token'lar, bir deponun, bir CI adımının ya da başka bir token'lar aracının gerçekte okuduğu şey.
-
-Birini geri getirmek **Şuradan ekle… → Tasarım token'ları ya da bir tasarım dosyası**'dır (yukarıda), ya da stüdyoya bir sürükle-bırak. Bir meslektaşın sana bir marka vermesinin ya da onu ikinci bir kuruluma taşımanın yolu budur - hesap yok, bulut yok. Komut satırından bir marka getirmek için bunun yerine [`ingest:brand`](/info/configuration.html#brand-packs)'e bak.
-
-## Önceki ayarları geri yükle
-
-Rayın altındaki **Marka ayarlarını geri yükle**'yi seç, tarihli bir kontrol noktası belirle, sonra **Geri yükle**'ye bas. Bu, etkin marka için renkleri, yazı tipi ayarlarını ve diğer marka token'larını geri yükler. Yazı tipi ve görsel dosyaları oldukları gibi kalır.
-
-Lolly, kontrol noktasını uygulamadan önce mevcut ayarlarını **Before restore** olarak kaydeder. Geri yüklemeyi tersine çevirmek için, tarayıcıyı kapatıp yeniden açtıktan sonra bile, o kontrol noktasını seç. Son 20 kontrol noktası bu cihazda tutulur. Depolama okunamıyorsa ya da mevcut ayarlar kaydedilemiyorsa, iletişim kutusu yeniden deneyebilmen için sorunu bildirir.
-
-## Sürümler
-
-**Versions**, rayın alt kısmında, bir tasarım sisteminin hareketli bir hedef olmaktan çıktığı yerdir. Birini yayınla ve bu cihazda tutulan **kalıcı, adlandırılmış bir kopya** elde et: bundan sonra asla değişmez, bu yüzden onu sabitleyen bir araç aynı şeyi çizmeye devam eder. Panel, yayınlanacak kendine ait bir şey olana kadar gizli kalır, bu yüzden asla yayınlamayan bir stüdyo bu kontrolleri hiç görmez.
-
-Herhangi bir şeye basmadan önce bilmen gereken üç şey var, ve panel bu üçünü de basmadan önce söyler, sonra değil:
-
-- **Bir sürüm kalıcıdır.** Henüz silme yok, bu yüzden panel yalan söyleyen bir düğme sunmak yerine neyin tutulduğunu ve tutulmaya devam ettiğini belirtir.
-- **Kaldırmalar uyumluluk kartına öncülük eder.** Eklenen ve değiştirilen tokenlar haberdir; *kaldırılan* bir tane bir aracı bozan şeydir, bu yüzden önce o adlandırılır ve ne olduğu söylenir.
-- **Yayınlamak geri alınamaz; geri yükleme geri alınabilir.** *Restore latest from this version*, başa yapılan sıradan bir düzenlemedir, bu yüzden stüdyonun geri alma yığınına gider ve panel sana hemen **Undo**'yu sunar.
-
-**Sadece Yayımla** veya **Yayımla ve etkinleştir** seçebilirsin - fark, araçların ve uygulamanın bundan sonra o sürümü mü izleyeceği yoksa en güncel düzenlemeni mi izlemeye devam edeceği. **Yeniden en güncel hâli izle**, her düzenlemeyi yapıldığı anda canlıya alır. `#/start?area=versions` paneli doğrudan açar.
-
-## Marka sabit olduğunda
-
-Bazı yapılar, SUSE Brand gibi **kilitli bir tasarım sistemi** ile gelir. Onu açmak, **Make an editable copy** ve **Switch** ile birlikte salt okunur bir not gösterir. Orijinal renkleri, yazı tipleri ve token'ları sağlam kalır. Kilitli sistem cihazdaki ilk sistem olsa bile, kendi yerel sistemlerin düzenlenebilir kalır. Profile'da, **Aç** bir sistemi seçer ve stüdyosunu açar; **Make a new one**, yerel bir sistem oluşturur ve onu, ad alanı odaklanmış halde `#/start`'ta açar.
-
-## Bundan sonra nereye
-
-- **[Lolly'yi kullanma](/info/using.html)** - tuval, kaydetme, projeler ve Varlıklar.
-- **[Tasarım Tokenleri](/info/design-tokens.html)** - markanın ifade edildiği token modeli.
-- **[Dışa aktarma ve formatlar](/info/exporting.html)** - baskı birimleri, CMYK ve markanın dışa aktarıldığı formatlar.
-
-
-## Bir görünüm bul ve karşılaştır
-
-**Bir görünüm bul**'u Overview'dan ya da Profile'daki tasarım sistemi listesinden aç. Bu cihazda kaydedilmiş sistemlere ve birkaç yeniden kullanılabilir Lolly örneğine göz at. Ada, renk etiketine ya da beyan edilen yazı tipine göre ara. **Mevcut paletime en yakın**, ölçülen renk benzerliğine göre sıralar, eşleşen yazı tipi aileleri beraberlikleri bozar; bu bir kalite puanı değildir.
-
-Bir görünümü incelemek için birini, karşılaştırmak için ikisini seç. İnceleme düğmesi küçük bir ekranda da kullanılabilir kalır. Bir görünümü seçmek hiçbir şeyi değiştirmez. **Bu kaydedilen sistemi kullan**, mevcut tasarım sistemi kayıt defteri içinde geçiş yapar. **Bu renkleri kullan**, mevcut yazı tiplerini koruyarak bir örneği olağan kontrol noktası ve kurulum akışı üzerinden uygular. **Marka ayarlarını geri yükle**, önceki görünümü kurtarabilir.
-
-**Detaylar ve tasarım bağlamı** altında, kaydedilen sistemlerin düzenlenebilir **Etiketleri ara**'sı ve bir bağlam indirmesi vardır. Örnekler orijinal Lolly renk tariflerini kullanır; uzaktan kazınmış bir ilham koleksiyonu ya da gerekli bir hesap yoktur.
+Bir görünümü incelemek için birini, yan yana karşılaştırmak için ikisini seç. Seçmek hiçbir şeyi değiştirmez. **Use this saved system** ona geçer ve **Use these colours** bir örneğin renklerini olağan kontrol noktasından geçirerek uygular, yazı tiplerini korur. **Restore brand settings** önceki görünümü geri getirir. Kayıtlı sistemlerin **Details and design context** altında düzenlenebilir **Search tags** değerleri vardır. Örnekler özgün Lolly renk tarifleridir; kazınmış bir koleksiyon ve hesap yoktur.
 
 ![Herhangi bir renk sistemini uygulamadan önce Sunroom ve Orchard'ı yan yana karşılaştır.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
-Karşılaştırma, her iki paleti de birlikte görünür tutar. Bir görünümü incelemek, **Bu renkleri kullan** ya da **Bu kaydedilen sistemi kullan**'ı seçene kadar hiçbir şeyi değiştirmez.
+## Tasarım sistemini sakla ve taşı
 
-## Kaynak kanıtını oku
+### Bir markayı cihazlar arasında taşı
 
-Kaynak incelemesinin isteğe bağlı detayları, gözlemlendiği yerlerde tipografiyi, boşlukları, dolguyu ve köşe değerlerini gösterir. Kaydedilen HTML/CSS ve doğal web sitesi okumaları, render edilen sayfa tarafından kullanılmayabilecek bildirimleri raporlar. Tarayıcı eklentisi, görünür alanı ve tarayıcı renk tercihiyle birlikte, görünür öğelerin sınırlı bir örnekleminden ölçülen stilleri raporlayabilir. Eski eklentiler hâlâ bildirilen stillerle çalışır. Eksik alanlar **Gözlemlenmedi** der.
+**Export**, tek bir **`LollyBrand-….lolly`** dosyası yazar: token'ların, yazı tiplerin, logoların ve tema tercihin; geri girerken denetlenen bir bütünlük bildirimiyle. 1.0.7 öncesi web sürümleri aynı dosyayı `.zip` olarak adlandırıyordu ve bu yazım hâlâ kabul edilir. **Tokens (.json)** düz tasarım token'ları belgesini, yazı tipi veya logo olmadan, bir depo, bir derleme adımı veya başka bir token aracı için tek başına yazar.
 
-Bunlar gözlemlerdir, otomatik stil ayarları değil. Yazı tipi dosyaları bir referans taraması tarafından getirilmez ya da kurulmaz, ve kaynak boşluğu kendi boşluğunun yerini sessizce almaz. Sayılar örnekteki tekrarları tanımlar, güveni ya da kaliteyi değil.
+Birini geri getirmek için **Add from… → Design tokens or a design file** kullan ya da dosyayı stüdyonun üzerine bırak. Bir meslektaşın sana bir marka bu şekilde verir veya bir markayı ikinci bir kuruluma böyle taşırsın; hesap yok, bulut yok. Bir markayı komut satırından getirmek için bkz. [`ingest:brand`](/info/configuration.html#brand-packs).
 
-## Bir kompozisyonu tasarım sistemine göre kontrol et
+**Fonts for Linux (.rpm)**, eklediğin yazı tiplerini kurulabilir bir RPM'de paketler. Bunlardan herhangi birini kendin yüklediysen Lolly önce onları yeniden dağıtabileceğini onaylamanı ister.
 
-Design'da **Dışa aktar**'ı aç, sonra **Dışa aktarmadan önce**'yi. Kontrol, render ile aynı etkin tasarım sistemi sürümünü kullanır. Yazılmış renkleri, token takma adlarını, yazı tipi seçimlerini ve görsel varlık kimliklerini karşılaştırır. Özel değerler kasıtlı olabilir; beyan edilen marka varlıklarının dışındaki bir görsel, yasaklı bir görsel değil, bir inceleme öğesidir.
+### Önceki ayarları geri yükle
 
-Somut bir renk ya da yazı tipi önerisi mevcut olduğunda, düğmesi yalnızca o katmanı değiştirir. Olağan **Geri al**, orijinal değeri geri yükler. Kilitli ya da değiştirilmiş katmanlar eski bir öneri tarafından üzerine yazılmaz. Eksik kaynak kanıtı bir eşleşmeden ayrı kalır. Render edilen kontrast ve metin yerleşimi, mevcut yerleşik kontroller tarafından denetlenir. Gradyanlar, efektler, iç içe araç içeriği, haklar ve öznel kalite marka karşılaştırması tarafından değerlendirilmez. Kontroller İndir'i engellemez.
+**Restore brand settings** seç, tarihli bir kontrol noktası seç ve **Restore** düğmesine bas. Etkin marka için renkleri, yazı ayarlarını ve diğer token'ları geri yükler; yazı tipi ve görsel dosyaları olduğu gibi kalır. Lolly önce geçerli ayarlarını **Before restore** olarak kaydeder; böylece tarayıcıyı kapattıktan sonra bile bir geri yüklemeyi tersine çevirebilirsin. En son 20 kontrol noktası bu cihazda tutulur.
 
-## Tasarım bağlamını yerel olarak kullan
+### Sürümler
 
-**Tasarım bağlamını indir**, token belgesini, çözülmüş renkleri, beyan edilen yazı tipi ailelerini, varlık kimliklerini, kaydedildiği yerlerde kaynak kanıtını, kapsamı ve açık kuralları içerir. Yazı tipi dosyalarını ya da sahiplik kanıtını içermez. Referans incelemesi ayrıca önerilen token'larını ve gözlemlerini de içerir.
+Yayımlanmış bir sürüm, bu cihazda tutulan **kalıcı, adlandırılmış bir kopyadır**. Asla değişmez; bu yüzden onu sabitleyen bir araç veya bağlantı (`designv` ile) aynı şeyi çizmeye devam eder. Kendine ait bir şeyi olan bir sistem, rayın altında sessiz bir **Versions & publishing** bağlantısı gösterir; ilk yayımlamandan sonra **Versions** girişi olur. `#/start?area=versions` onu doğrudan açar.
 
-CLI, bir sunucu olmadan her iki indirmeyi de okuyabilir:
+- **Bir sürüm kalıcıdır.** Henüz silme yok ve panel bunu söyler.
+- **Kaldırmalar uyumluluk kartına öncülük eder**, çünkü bir aracı bozan şey kaldırılmış bir token'dır.
+- **Yayımlama geri alınamaz; geri yükleme alınabilir.** *Restore latest from this version* sıradan bir düzenlemedir ve hemen **Undo** sunulur.
 
-```bash
-lolly system import ./lolly-design-context.json
-lolly system context --output=design-context.json
-lolly system check ./design-inputs.json --file=design-context.json
-```
+**Publish only** araçların izlediğini değiştirmeden bir sürümü tutar; **Publish and make active** araçların ve uygulamanın o sürümü izlemesini sağlar. **Follow the latest again**, her düzenlemeyi yaptığın anda yayına alır.
 
-`system check`, bir `boxes` dizisine sahip Design girdilerini ya da derlenmiş bir Design belgesini kabul eder. Kompozisyonu değiştirmeden önerilen düzeltmeleri raporlar. Tarayıcı yerleşimini ya da render edilen kontrastı ölçemez. Mevcut MCP kaynağı **lolly://design-context**, yapılandırılmış yerel MCP süreci üzerinden etkin sistemin bağlamını sunar; yeni bir barındırılan hizmete ya da API anahtarına gerek yoktur.
+## Tasarım sistemlerini yönet
+
+Sistemleri değiştirmek, eklemek veya kaldırmak için **Settings → Preferences → Design systems** aç. **Open** bir sistemi seçer ve burada açar; **Make a new one** yerel bir sistem oluşturur ve ad alanı hazır olarak açar. Aynı anda tüm cihaz için bir sistem etkindir. Bir markanın kendi tasarım sistemine ne zaman ihtiyaç duyduğuna karar vermeye [Brand architectures](/info/brand-architectures.html) yardım eder.
+
+**Bir sistemin nereden geldiği.** Bir dağıtımın kataloğunun sağladığı sistem **Came with this app** ya da bir örneğe bağlı uygulamada **From this instance** okunur. Kimin sağladığını, token varlığını ve ad alanını ve bilinen sürümü veya sağlama toplamını görmek için **Catalogue source** bölümünü genişlet; bir yenileme başarısız olursa önbellekteki malzeme etiketlenir.
+
+**Yönetilen sistemler salt okunurdur.** Kataloğu sistemi kilitlediğinde bir sistem **Managed by this instance** (ya da örneksiz masaüstü uygulamasında **Managed by this app**) okunur. Onu kullanabilir ve indirebilirsin ve burada açmak **Make an editable copy** ve **Switch** ile salt okunur bir not gösterir. Yönetilen sistem önce gelmiş olsa bile kendi yerel sistemlerin düzenlenebilir kalır. Tek sabit markalı bir derleme, Design System Setup'ı markanın token'ları ve okunacak kullanım kurallarıyla *This brand is set* üzerinde açar.
+
+**Sağlanan diğer her sistem** lolly.tools üzerindeki Lolly Demo ve Lolly Starter dahil gizlemek, düzenlemek ve sıfırlamak için **senindir**. Birini düzenlemek adını korur ve satırı **Edited here** olarak işaretler ve menüsündeki **Reset to original** bu cihazda yapılan değişiklikleri atar. Boş starter istisnadır: oradaki ilk değişiklik kendi tasarım sistemini başlatır, bu yüzden Lolly yeni sisteme ne ad vereceğini bir kez sorar. Kendi sisteminin neyin yerini aldığını [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) gösterir.
+
+### Bir tasarım sistemini kaldırma
+
+Bir sistemin menüsünden **Remove** seç; onay, sonrasında hangi sistemin etkin olacağını söyler. Kayıtlı oturumlar, yüklemeler ve başka bir sistemle paylaşılan malzeme kalır.
+
+Sağlanan bir sistemi kaldırmak onu yalnızca gizler: katalog varlıkları kalır, **Bring back** onu yeniden gösterir ve diğer her şeyi kaldırırsan kendiliğinden geri döner. İçe aktarılmış veya düzenlenmiş bir kopyayı kaldırmak sağlanan sistemi, logolarını veya yazı tiplerini kaldırmaz ve kopya etkinse sağlanan sistem yeniden etkin olur. Etkin barındırılan bir kopyayı kaldırmak yalnızca o kopyanın bağlantısını temizler; ayrıca seçilen bir örnek seçili kalır.
+
+Bir sunucunun sağladığını değiştirmek yöneticinin görevidir: işletmesi kaynak kataloğu değiştirir ve yeniden dağıtır ya da bir Lolly Work yöneticisi bir sunucu değişikliğini inceler ve uygular. Buradaki düzenlemeler yerel kalır. Bkz. [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) ve [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+
+## Tasarım bağlamını uygulamanın dışında kullan
+
+**Download design context**, token belgesini, çözümlenmiş renkleri, bildirilmiş yazı tipi ailelerini, varlık kimliklerini, kaydedildiği yerde kaynak kanıtını, kapsamı ve açık kuralları kaydeder; yazı tipi dosyası ve sahiplik kanıtı olmadan. Komut satırı dosyayı sunucusuz okur: `lolly system import` onu terminalin tasarım sistemi yapar ve `lolly system check` Design girdilerini kayıtlı bağlama göre denetler. İçe aktarmayı [Bring your design system](/info/cli.html#bring-your-design-system), denetimi [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) kapsar ve bir MCP istemcisi aynı özeti `lolly://design-context` adresinden okur ([MCP Server](/info/mcp.html)).
+
+## Bundan sonra nereye
+
+- **[Using Lolly](/info/using.html)**: araçlar, kaydetme, paylaşma ve Assets.
+- **[Brand architectures](/info/brand-architectures.html)**: bölümlerin, ürünlerin, onaylı markaların, müşterilerin ve sezonların tasarım sistemlerine, colourway'lere ve logo kimliklerine nasıl eşlendiği.
+- **[Design Tokens](/info/design-tokens.html)**: markanın yazıldığı token modeli.
+- **[Export a file](/info/exporting.html)**: baskı birimleri, CMYK ve markanın render edildiği biçimler.

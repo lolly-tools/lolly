@@ -4,24 +4,28 @@
    matter when Vite injects this chunk at runtime. Do not rely on load order. */
 @layer views {
 /* ─── Dashboard view (#/d) - the read-only instrument panel ──────────────────
-   Layout + the pieces unique to this view (device hero, palette ink-ribbon,
-   storage glance, capability disclosure). The card/section chrome (.plat-*,
+   Layout + the pieces unique to this view (device hero, storage glance,
+   capability disclosure, the token chips). The Design system tab's read has
+   its own sheet, design-issue.css. The card/section chrome (.plat-*,
    .cap-feat) and the catalogue tiles (.cat-*) come from platform.css /
    components.css, which this view also loads. */
 
-.dashboard-view { overflow-y: auto; }
+/* One side gutter for the panels and the Settings header, so the Design system
+   column and the header share their left edge at every width. */
+.dashboard-view { overflow-y: auto; --dash-gutter: clamp(1rem, 3.2vw, 3rem); }
+@media (max-width: 560px) { .dashboard-view { --dash-gutter: 1rem; } }
 .dashboard-view .dash-layout {
   width: 100%;
   max-width: 100vw;      /* full-bleed - the instrument panel earns the whole screen */
   margin: 0 auto;
-  padding: 3.25rem clamp(1rem, 3.2vw, 3rem) 5rem; /* top clears the fixed "Tools" pill; sides scale with width */
+  padding: 3.25rem var(--dash-gutter) 5rem; /* top clears the fixed "Tools" pill; sides scale with width */
 }
+/* The Design system tab is a read, so it keeps to one column under the header. */
+.dashboard-view .dash-panel[data-dash-panel="brand"] { width: min(1080px, 100%); margin-inline: auto; }
 
 /* Mono is the instrument typeface here - labels, readouts, hex. */
 .dashboard-view .dash-dev-stat-label,
-.dashboard-view .dash-dev-stat-value.is-mono,
-.dashboard-view .dash-readout,
-.dashboard-view .dash-readout-hex { font-family: var(--font-mono); }
+.dashboard-view .dash-dev-stat-value.is-mono { font-family: var(--font-mono); }
 
 /* ── Entrance cascade - one ladder over the back-link, header and each section.
    armViewEnter() stamps --enter-i on every .tools-home/.plat-header/.plat-section
@@ -32,7 +36,8 @@
   .dashboard-view.is-entering .plat-header,
   .dashboard-view.is-entering .dash-tabs,
   .dashboard-view.is-entering .plat-section,
-  .dashboard-view.is-entering .dash-foot {
+  .dashboard-view.is-entering .dash-foot,
+  .dashboard-view.is-entering :is(.ds-strip, .ds-issue-cover, .ds-issue-page) {
     animation: card-in var(--enter-dur) var(--enter-ease) backwards;
     animation-delay: calc(var(--enter-i, 0) * 0.05s);
   }
@@ -192,130 +197,6 @@
 .dash-bento .dash-card .dash-sec-head { margin-bottom: 0.7rem; }
 
 
-/* ── Brand hero - the Design-system tab's opening statement. A read-only card
-   that WEARS the loaded brand: surface, text and edge come from the --brand-*
-   slots applyBrandVars paints onto the section (see dashboard.ts), and every
-   use keeps a shell-token fallback so an unbranded install (or a doc with no
-   semantic slots) reads perfectly in both themes. Full border or none - never
-   a one-sided stripe. */
-.dash-hero {
-  padding: clamp(1.5rem, 3.2vw, 2.4rem);
-  background: var(--brand-surface, hsl(var(--card)));
-  color: var(--brand-text, hsl(var(--card-foreground)));
-  border: 1px solid var(--brand-edge, transparent);
-  border-radius: calc(var(--radius) * 1.25);
-}
-.dash-hero-main { display: flex; flex-wrap: wrap; align-items: stretch; gap: 1.4rem clamp(1.4rem, 3.5vw, 3rem); }
-.dash-hero-id { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: .7rem; }
-.dash-hero-eyebrow {
-  font-family: var(--font-mono); font-size: calc(.6rem * var(--a11y-fs)); font-weight: 600;
-  text-transform: uppercase; letter-spacing: .18em;
-  color: var(--brand-muted, hsl(var(--muted-foreground)));
-}
-/* The horizontal-primary mark, when installed - an <img>, theme-aware (the
-   reverse form is preferred on dark-leaning themes; see the hero hydration). */
-.dash-hero-logo { display: block; max-height: 52px; max-width: min(320px, 100%); width: auto; height: auto; margin-top: .2rem; }
-.dash-hero-name {
-  margin: 0; min-height: 1.1em;
-  font-family: var(--font-brand);
-  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
-  font-weight: 700; letter-spacing: -.02em; line-height: 1.08;
-  color: var(--brand-text, hsl(var(--foreground)));
-  overflow-wrap: anywhere;
-}
-.dash-hero-status { margin: 0; max-width: 52ch; font-size: calc(.86rem * var(--a11y-fs)); line-height: 1.6; color: var(--brand-muted, hsl(var(--muted-foreground))); }
-.dash-hero-status strong { color: var(--brand-text, hsl(var(--foreground))); }
-/* The one action on the whole tab - dressed in the brand's own primary. NOT
-   aliased onto buttons.css's .btn--primary list (component audit rec 2): the
-   fill here is `var(--brand-primary, hsl(var(--primary)))`, a real delta (the
-   brand-var indirection the rest of the shared list doesn't carry), not just
-   duplicated decoration - folding it in would drop brand-var override on the
-   dashboard's one hero CTA. */
-.dash-hero-cta {
-  display: inline-flex; align-items: center; gap: .5rem;
-  margin-top: .45rem; padding: .62rem 1.1rem;
-  border-radius: var(--radius); text-decoration: none; white-space: nowrap;
-  font-size: calc(.84rem * var(--a11y-fs)); font-weight: 650;
-  background: var(--brand-primary, hsl(var(--primary)));
-  color: var(--brand-on-primary, hsl(var(--primary-foreground)));
-  box-shadow: var(--edge-faint);
-  transition: transform var(--dur-1) ease, box-shadow var(--dur-1) ease;
-}
-.dash-hero-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 18px hsl(0 0% 0% / .18), var(--edge-faint); }
-.dash-hero-cta:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-.dash-hero-cta-arrow { transition: transform var(--dur-1) ease; }
-.dash-hero-cta:hover .dash-hero-cta-arrow,
-.dash-hero-cta:focus-visible .dash-hero-cta-arrow { transform: translateX(3px); }
-
-/* The primary field - a generous swatch of the brand's lead colour, and the
-   hero's quiet instrument: hover (or focus) brightens a mono hex · oklch
-   readout; click copies the hex (wireCopyButtons). The inset hairline keeps a
-   near-white primary legible on a pale surface. */
-.dash-hero-primary {
-  flex: 0 1 300px; min-width: min(240px, 100%); min-height: 150px;
-  display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: .6rem;
-  position: relative; padding: 1rem 1.1rem; border: 0; cursor: pointer;
-  text-align: left; font: inherit;
-  border-radius: var(--radius);
-  background: var(--brand-primary, hsl(var(--primary)));
-  color: var(--brand-on-primary, hsl(var(--primary-foreground)));
-  box-shadow: var(--edge-faint);
-  transition: box-shadow var(--dur-1) ease;
-}
-.dash-hero-primary:hover { box-shadow: var(--edge-strong), 0 6px 20px hsl(0 0% 0% / .14); }
-.dash-hero-primary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-.dash-hero-primary-label { font-size: calc(.62rem * var(--a11y-fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .16em; opacity: .85; }
-.dash-hero-primary-code {
-  font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: .01em;
-  min-height: 1em; opacity: .7; overflow-wrap: anywhere;
-  transition: opacity var(--dur-1) ease;
-}
-.dash-hero-primary:hover .dash-hero-primary-code,
-.dash-hero-primary:focus-visible .dash-hero-primary-code { opacity: 1; }
-.dash-hero-primary.is-copied::after {
-  content: '✓ copied'; position: absolute; top: .85rem; right: .95rem;
-  font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em;
-}
-
-/* The faces in force - each name set in its own face; the hairline is the
-   brand's own edge where one is declared. */
-.dash-hero-type {
-  display: flex; flex-wrap: wrap; gap: .9rem 2.4rem;
-  margin-top: clamp(1.1rem, 2.4vw, 1.6rem); padding-top: 1.1rem;
-  border-top: 1px solid var(--brand-edge, hsl(var(--border)));
-}
-.dash-hero-face { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
-.dash-hero-face strong { font-size: calc(1.3rem * var(--a11y-fs)); font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
-.dash-hero-face em {
-  font-style: normal; font-family: var(--font-mono);
-  font-size: calc(.6rem * var(--a11y-fs)); text-transform: uppercase; letter-spacing: .14em;
-  color: var(--brand-muted, hsl(var(--muted-foreground)));
-}
-
-
-/* ── Type-in-motion tile. */
-.dash-typedemo .dash-sec-head { margin-bottom: 0.8rem; }
-/* The tile is a query container so its specimen can go two-up when it's wide enough
-   (see the @container rule in type-demo.css). On desktop the showcase claims its own
-   full-width bento row, which gives the mono + SUSE faces room to sit side by side. */
-.dash-typedemo { container-type: inline-size; }
-@media (min-width: 781px) { .dash-bento > .dash-typedemo { flex-basis: 100%; } }
-
-/* Type facts - the compact figures under the live specimen (they carry what the old
-   Typography reference panel showed: variable/static, weights, styles, source). */
-.dash-type-facts {
-  list-style: none; margin: .9rem 0 0; padding: .9rem 0 0;
-  border-top: 1px solid hsl(var(--border));
-  display: flex; flex-direction: column; gap: .55rem;
-}
-.dash-type-facts li { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .6rem; }
-.dash-type-fam { font-size: calc(.95rem * var(--a11y-fs)); font-weight: 600; }
-.dash-type-meta { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
-.dash-type-src { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground) / .85); margin-left: auto; }
-.dash-type-manage { justify-content: flex-end; }
-.dash-type-manage a { font-size: var(--fs-xs); color: hsl(var(--primary)); text-decoration: none; }
-.dash-type-manage a:hover { text-decoration: underline; }
-
 /* ── Sound card (the shared sound switch injects its own styles; the theme
    picker moved to #/profile's Appearance panel). */
 .dash-sound-mount { margin-top: .1rem; }
@@ -423,79 +304,11 @@
 .dash-store-dot { width: .7rem; height: .7rem; border-radius: var(--ui-radius-choice); flex: 0 0 auto; box-shadow: var(--ui-edge-strong); }
 .dash-store-note { margin: .85rem 0 0; font-size: calc(.74rem * var(--a11y-fs)); color: var(--ui-color-text-muted); line-height: 1.5; }
 
-/* ── Colour palette - the compact ink ribbon. Each family is a labelled row of
-   thin bars; hover/focus drives the mono readout, click copies the hex. */
-.dash-ribbon { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; margin: 0 0 1rem; }
-.dash-ink-group { display: flex; flex-direction: column; gap: .45rem; flex: 1 1 200px; min-width: 0; }
-.dash-ink-group-label {
-  display: flex; align-items: center; gap: .4rem;
-  font-size: calc(.6rem * var(--a11y-fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
-  color: hsl(var(--muted-foreground));
-}
-.dash-ink-group-n { font-size: calc(.58rem * var(--a11y-fs)); font-weight: 600; padding: .02rem .38rem; border-radius: var(--radius-pill); background: hsl(var(--muted)); letter-spacing: 0; }
-.dash-ink-row { display: flex; gap: var(--sp-1); height: 46px; border-radius: 8px; overflow: hidden; box-shadow: inset 0 0 0 1px hsl(var(--border) / .55); }
-.dash-ink {
-  position: relative; flex: 1 1 0; min-width: 13px; padding: 0; border: 0; cursor: pointer;
-  background: var(--ink, hsl(var(--muted))); transition: box-shadow var(--dur-1);
-}
-.dash-ink.is-transparent {
-  background-color: hsl(var(--card));
-  background-image: conic-gradient(hsl(var(--muted-foreground) / .25) 25%, transparent 0 50%, hsl(var(--muted-foreground) / .25) 0 75%, transparent 0);
-  background-size: 10px 10px;
-}
-.dash-ink:hover, .dash-ink:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px hsl(0 0% 100% / .92), inset 0 0 0 3px hsl(0 0% 0% / .32);
-  z-index: 1;
-}
-/* A tiny cap-dot marks an ink with measured (exact) CMYK. */
-.dash-ink.is-measured::after {
-  content: ''; position: absolute; top: 3px; left: 50%; transform: translateX(-50%);
-  width: 4px; height: 4px; border-radius: var(--radius-round);
-  background: hsl(0 0% 100% / .85); box-shadow: 0 0 0 1px hsl(0 0% 0% / .28);
-}
-.dash-ink.is-copied::before {
-  content: '✓'; position: absolute; inset: 0; display: grid; place-content: center;
-  color: #fff; font-size: var(--fs-xs); font-weight: 700; background: hsl(0 0% 0% / .45);
-}
-
-.dash-readout {
-  display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
-  padding: .55rem .8rem; min-height: 2.5rem;
-  background: hsl(var(--muted) / .5); border: 1px solid hsl(var(--border)); border-radius: var(--radius);
-  font-size: var(--fs-md);
-}
-.dash-readout-swatch { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: var(--radius-sm); background: hsl(var(--muted)); box-shadow: var(--edge); }
-.dash-readout-swatch.is-transparent {
-  background-image: conic-gradient(hsl(var(--muted-foreground) / .25) 25%, transparent 0 50%, hsl(var(--muted-foreground) / .25) 0 75%, transparent 0);
-  background-size: 9px 9px;
-}
-.dash-readout-name { font-weight: 600; font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif); }
-.dash-readout-hex { color: hsl(var(--foreground)); }
-.dash-readout-cmyk { color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif); }
-.dash-readout-cmyk.is-measured { color: hsl(var(--primary)); font-weight: 600; }
-.dash-readout:not(.is-active) .dash-readout-hex,
-.dash-readout:not(.is-active) .dash-readout-cmyk { display: none; }
-.dash-readout:not(.is-active) .dash-readout-swatch { opacity: .5; }
-
-/* All values - the classic swatch grid, disclosed on demand (no figure hidden). */
-.dash-values { margin: 1rem 0 0; border-top: 1px solid hsl(var(--border)); }
-.dash-values-summary {
-  list-style: none; cursor: pointer; display: flex; align-items: center; gap: .5rem;
-  padding: .85rem 0 .1rem; font-size: var(--fs-xs); font-weight: 700;
-  text-transform: uppercase; letter-spacing: .06em; color: hsl(var(--muted-foreground));
-}
-.dash-values-summary::-webkit-details-marker { display: none; }
-.dash-values-summary:hover { color: hsl(var(--foreground)); }
-.dash-values-n { font-size: calc(.62rem * var(--a11y-fs)); padding: .05rem .4rem; border-radius: var(--radius-pill); background: hsl(var(--muted)); letter-spacing: 0; }
-.dash-values-summary .plat-section-chev { margin-left: auto; width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); transition: transform var(--dur-1) ease; }
-.dash-values[open] .dash-values-summary .plat-section-chev { transform: rotate(90deg); }
-.dash-values-body { padding: .4rem 0 .2rem; }
-
-/* ── Brand tokens - read-only chips for the brand's non-colour primitives
+/* ── Tokens - read-only chips for the design system's non-colour primitives
    (corner radius, spacing, opacity, shadows, gradients …), each with a tiny
-   true-to-value preview. The section renders hidden and only appears once the
-   async hydration finds any (see dashboard.ts). Full borders - never a stripe. */
+   true-to-value preview, on the Design system tab's Tokens page
+   (views/dashboard/brand.ts, which leaves the page out when there are none).
+   Full borders - never a stripe. */
 .dash-token-grid {
   list-style: none; margin: 0; padding: 0;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .7rem;
@@ -516,7 +329,7 @@
   max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 /* Kind previews - every inline value is validated before it reaches a style
-   attribute (see studioPreview in dashboard.ts). The radius square wears its
+   attribute (see studioPreview in views/dashboard/brand.ts). The radius square wears its
    own border-radius; the bar/rule take their real length/thickness (clamped);
    the alpha chip layers the brand primary over a checkerboard at the token's
    opacity; the needle points at the rotation; shadow/gradient render verbatim. */
@@ -816,24 +629,12 @@
   .dash-cap-modal-card { max-height: 86vh; overflow: auto; }
 }
 
-/* ── Reference panels (typography / themes / print) - collapsible <details>. */
-.dash-ref-grid { display: grid; gap: 1.1rem; margin: 0 0 1.1rem; }
-.dash-ref-grid > .plat-section { margin: 0; }
-
 .dash-foot { margin: 0; max-width: none; }
 
-/* Shared focus ring for the disclosure summaries here. */
-.dash-values-summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: var(--radius); }
-
 @media (prefers-reduced-motion: reduce) {
-  .dash-ink, .dash-values-summary .plat-section-chev { transition: none; }
   .dash-cap-card { transition: none; }
   .dash-cap-grid[data-build] .dash-cap-item { opacity: 1; animation: none; }
   .dash-cap-modal[open] { animation: none; }
-  .dash-hero-cta, .dash-hero-cta-arrow, .dash-hero-primary, .dash-hero-primary-code { transition: none; }
-  .dash-hero-cta:hover { transform: none; }
-  .dash-hero-cta:hover .dash-hero-cta-arrow,
-  .dash-hero-cta:focus-visible .dash-hero-cta-arrow { transform: none; }
 }
 
 /* Narrow: tighten the accordion head + card padding. */
@@ -845,11 +646,9 @@
 }
 
 @media (max-width: 560px) {
-  .dashboard-view .dash-layout { padding: 3rem 1rem 4rem; }
+  .dashboard-view .dash-layout { padding: 3rem var(--dash-gutter) 4rem; }
   .dash-section { padding: 1.1rem; }
   .dash-dev-hero { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-  .dash-hero-primary { min-height: 112px; }
-  .dash-hero-logo { max-height: 40px; }
 }
 
 /* ── Universal drop front door (lib/drop-router.ts) ─────────────────────────

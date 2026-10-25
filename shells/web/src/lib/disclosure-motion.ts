@@ -76,3 +76,84 @@ export function foldBody(body: HTMLElement, open: boolean, apply: (open: boolean
     for (const animation of animations) animation.cancel();
   });
 }
+
+/** How long after a section opens a change in its height still eases, in milliseconds. */
+const SETTLE_WINDOW = 1500;
+interface Settling { since: number; height: number; animation?: Animation; changes: MutationObserver }
+const settling = new WeakMap<HTMLElement, Settling>();
+let settleInstalled = false;
+
+/**
+ * A section that fills in after it opens (a Settings card mounts its body on first
+ * open; the Assets inspector reads some sections late) changes height while or after
+ * the fold motion runs, and a plain reflow jumps. For a short while after a
+ * collapsible section card opens, a change in its body's height plays as the same
+ * block-size motion, from the height it had to the height it has now. Content
+ * changes are caught by a MutationObserver, which runs before the next frame is
+ * drawn, so the first frame of new content is already the start of the motion.
+ * Other size changes (an image arriving) are caught a frame later by a
+ * ResizeObserver. Later changes (a field growing as someone types) are left alone.
+ * Reduce motion skips it, as does a host without the observers or the Web
+ * Animations API. Idempotent; call once at boot.
+ */
+export function installFoldSettle(): void {
+  if (settleInstalled || typeof document === 'undefined' || typeof ResizeObserver === 'undefined' || typeof MutationObserver === 'undefined') return;
+  settleInstalled = true;
+
+  const ease = (body: HTMLElement, state: Settling, measured?: number): void => {
+    // A running ease starts the next one from where it has got to.
+    const reached = state.animation ? body.getBoundingClientRect().height : null;
+    state.animation?.cancel();
+    state.animation = undefined;
+    const to = measured ?? body.getBoundingClientRect().height;
+    const from = reached ?? state.height;
+    state.height = to;
+    if (Math.abs(to - from) < 1 || from === 0 || prefersReducedMotion() || typeof body.animate !== 'function') return;
+    const style = getComputedStyle(body);
+    const animation = body.animate(
+      [{ height: `${from}px`, overflow: 'clip' }, { height: `${to}px`, overflow: 'clip' }],
+      { duration: ms(style, '--fold-size-duration', 180), easing: style.getPropertyValue('--fold-easing').trim() || 'ease-out' },
+    );
+    state.animation = animation;
+    animation.addEventListener('finish', () => { if (state.animation === animation) state.animation = undefined; });
+  };
+  const live = (body: HTMLElement): Settling | null => {
+    const state = settling.get(body);
+    if (!state) return null;
+    if (performance.now() - state.since <= SETTLE_WINDOW) return state;
+    stop(body);
+    return null;
+  };
+
+  const resized = new ResizeObserver(entries => {
+    for (const entry of entries) {
+      const body = entry.target as HTMLElement;
+      const state = live(body);
+      if (!state || state.animation) continue; // this module's own motion is resizing the body
+      const height = entry.borderBoxSize?.[0]?.blockSize ?? body.getBoundingClientRect().height;
+      // While the fold itself is opening, its transition runs to the body's live height.
+      if (performance.now() - state.since < ms(getComputedStyle(body), '--fold-size-duration', 180)) { state.height = height; continue; }
+      ease(body, state, height);
+    }
+  });
+  const stop = (body: HTMLElement): void => {
+    const state = settling.get(body);
+    state?.animation?.cancel();
+    state?.changes.disconnect();
+    settling.delete(body);
+    resized.unobserve(body);
+  };
+
+  document.addEventListener('toggle', event => {
+    const section = event.target;
+    if (!(section instanceof HTMLDetailsElement) || !section.matches('details.section-card, details.input-section')) return;
+    const body = section.querySelector<HTMLElement>(':scope > .section-card-body, :scope > .input-section-body');
+    if (!body) return;
+    stop(body);
+    if (!section.open) return;
+    const changes = new MutationObserver(() => { const state = live(body); if (state) ease(body, state); });
+    settling.set(body, { since: performance.now(), height: body.getBoundingClientRect().height, changes });
+    resized.observe(body);
+    changes.observe(body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'open'] });
+  }, true);
+}

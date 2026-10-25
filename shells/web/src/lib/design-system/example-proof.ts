@@ -12,11 +12,11 @@ import { renderedFontRuns } from '../../bridge/font-coverage.ts';
 import { brandFontStack } from '../../brand-vars.ts';
 import { getTool, renderRowToBlob } from '../../pro/render-export.ts';
 import { createDraftHost } from './draft-host.ts';
-import { brandExample, type ExampleText } from './brand-examples.ts';
+import { brandExample, textContrastCheck, type ExampleCheck, type ExampleText } from './brand-examples.ts';
 import { prepareDesignTool } from '../design-tool-compile.ts';
 import type { CompiledDesignTool } from '../../../../../engine/src/design-tool/compiler.ts';
 
-export interface ExampleCheck { label: string; state: 'pass' | 'fail' | 'unknown'; detail: string }
+export type { ExampleCheck } from './brand-examples.ts';
 export interface ExampleFont { family: string; weight: string; text: string; files: Array<{ sha256: string; variations: string[] }>; missing: number | null }
 const digest = (value: unknown): Promise<string> => sha256Hex(new TextEncoder().encode(JSON.stringify(value)));
 
@@ -94,13 +94,13 @@ export async function renderBrandExample(base: HostV1, doc: unknown, system: Bra
     node.style.setProperty('--font-display', 'var(--font-brand)');
     await document.fonts.ready;
     const observed = await fontFacts(node, base, signal);
-    fonts = observed.fonts; checks = [...observed.checks, layoutFacts(node)];
+    const boxes = Array.isArray(inputs.boxes) ? inputs.boxes as Array<Record<string, unknown>> : (example.values.boxes as Array<Record<string, unknown>> | undefined) ?? [];
+    fonts = observed.fonts; checks = [...observed.checks, layoutFacts(node), ...(example.titleId ? [textContrastCheck(boxes)] : [])];
     const facts: BrandFacts = {};
     if (!fonts.length || observed.checks.some(check => check.state !== 'pass')) delete facts.type;
     else if (fonts.every(font => font.family.toLowerCase() === example.family.toLowerCase())) facts.type = { value: example.family };
     else facts.type = { value: [...new Set(fonts.map(font => font.family))].join(', ') };
     if (example.titleId) {
-      const boxes = Array.isArray(inputs.boxes) ? inputs.boxes as Array<Record<string, unknown>> : [];
       const accent = boxes.find(box => box.id === (id === 'brand-poster' ? example.titleId : example.accentId));
       if (accent) facts.accent = { value: accent[id === 'brand-poster' ? 'fg' : 'bg'] };
       const title = node.querySelector(`[data-box-id="${example.titleId}"] .lolly-box-text`);

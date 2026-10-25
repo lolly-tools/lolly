@@ -13,6 +13,7 @@ import { textStyleResolver } from '../engine/src/text-styles.ts';
 import { expandQuery } from '../engine/src/url-pack.ts';
 import { parseUrlState } from '../engine/src/url-mode.ts';
 import { journeyDiagnostics } from './helpers/journey-diagnostics.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 const origin = process.env.LOLLY_EXPORT_TEST_URL;
 const manifest = JSON.parse(readFileSync(new URL('../community/design/tool.json', import.meta.url), 'utf8'));
 async function select(page: Page, start: number, end = start): Promise<void> {
@@ -141,7 +142,7 @@ test('Design text edits, formats, pastes, composes, creates and reopens through 
     assert.equal(lastStory.paragraphs[0]!.paragraph!.composition, 'balanced'); assert.ok(lastStory.paragraphs[0]!.paragraph!.shortLastLine!.enabled);
     await page.keyboard.press('Escape'); assert.equal(await page.locator('[data-native-text-editor]').count(), 1);
     await page.locator('.fc-composed-bar').getByRole('button', { name: 'Done', exact: true }).click();
-    const shared = parseUrlState(await expandQuery(new URL(page.url()).search), manifest); assert.equal(JSON.parse(shared.values.textDocument as string).stories[0].source, savedSource);
+    const shared = parseUrlState(await expandQuery(new URL(await settledUrl(page)).search), manifest); assert.equal(JSON.parse(shared.values.textDocument as string).stories[0].source, savedSource);
     await page.reload(); await page.locator('[data-composed-text]').first().waitFor(); assert.equal((await model(page)).document.stories[0]!.source, savedSource);
     await page.locator('#tool-canvas [data-box-id="box"] .lolly-box-text').dblclick(); await settle(page); await select(page, savedSource.length);
     const imeClient = await context.newCDPSession(page);

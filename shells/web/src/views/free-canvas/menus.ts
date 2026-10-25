@@ -506,7 +506,7 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
     // define components (countPenpotComponents peeks the zip), so a file
     // without a design system never shows a control that would do nothing.
     '<label class="fc-import-templates" hidden>' +
-    '<input type="checkbox" checked><span></span></label>' +
+    '<input type="checkbox" class="field-check" checked><span></span></label>' +
     '<div class="fc-import-status" role="status" aria-live="polite"></div>';
   panel.addEventListener('pointerdown', (e) => e.stopPropagation());
   stageEl.appendChild(panel);

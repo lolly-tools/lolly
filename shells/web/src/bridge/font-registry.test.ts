@@ -86,7 +86,9 @@ test('coverageCount ranks faces by how much of the run they can draw', () => {
 
 // ── pickFaces ────────────────────────────────────────────────────────────────
 
-type Face = Parameters<typeof pickFaces>[0][number];
+// The registry's own face shape: pickFaces is generic over any face with a weight,
+// a style and a range, and these cases also tell faces apart by asset id.
+type Face = { assetId: string; staticUrl: string; weight: string; style: string; unicodeRange: string };
 const face = (o: Partial<Face>): Face => ({
   assetId: 'a', staticUrl: '', weight: '400', style: 'normal', unicodeRange: '', ...o,
 } as Face);

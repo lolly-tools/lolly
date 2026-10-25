@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Leads: the Brand Studio's view of a design system's colourways (plans/319 A2).
+ * Leads: Design System Setup's view of a design system's colourways (plans/319 A2).
  *
  * Every word a person reads says colourway. The studio's code calls the colour
  * that fills the primary role in one colourway its LEAD, because that is the

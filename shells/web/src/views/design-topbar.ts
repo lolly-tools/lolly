@@ -92,6 +92,13 @@ export interface DesignTopbarOpts {
   zoom: {
     fitAll(): void;
     fitArtboard(): void;
+    /**
+     * Frame the current selection (the Shift+2 verb). OPTIONAL: absent, the zoom menu
+     * has no such row. `hasSelection` is a live read that greys the row while nothing is
+     * selected; absent, the row is always offered.
+     */
+    fitSelection?(): void;
+    hasSelection?(): boolean;
     /** Multiply the current zoom (0.8 out, 1.25 in), about the stage centre. */
     zoomBy(f: number): void;
     /** Zoom to an absolute ratio (0.5 === 50%). */
@@ -191,6 +198,7 @@ const GLYPH = {
   redo: icon('redo'),
   fitAll: icon('fitAll'),
   fitArtboard: icon('fitArtboard'),
+  zoomSelection: icon('zoomIn'),
   timeline: icon('timeline'),
 };
 
@@ -578,6 +586,15 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     }));
     rows.push({ label: t('Fit all'), glyph: GLYPH.fitAll, run: () => opts.zoom.fitAll() });
     rows.push({ label: t('Fit artboard'), glyph: GLYPH.fitArtboard, disabled: !opts.hasFrames(), run: () => opts.zoom.fitArtboard() });
+    const fitSelection = opts.zoom.fitSelection;
+    if (fitSelection) {
+      rows.push({
+        label: t('Zoom to selection'),
+        glyph: GLYPH.zoomSelection,
+        disabled: opts.zoom.hasSelection?.() === false,
+        run: () => fitSelection(),
+      });
+    }
     return rows;
   }
 

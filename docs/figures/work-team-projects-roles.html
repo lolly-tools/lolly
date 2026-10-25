@@ -1,0 +1,93 @@
+<!--
+  Concept: the five Lolly Work project roles, each adding to the one below, with the workspace role and deny grants applied on top.
+  Band Contract: static fragment scoped under .lwf, reads the docs theme tokens (light, dark and
+  brand via --secondary, --card, --card-foreground and --primary, with fallbacks), no script, no
+  motion, no network. Narrow containers stack the flow vertically.
+  Sources: docs/work/team-projects.md (People and roles).
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23 for the Lolly Work guides (docs plan 322). The C2PA signature added at bank time is
+  the first provenance record of this file.
+-->
+<style>
+.lwf{--lwf-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--lwf-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --lwf-ground:hsl(var(--secondary,84.5 55% 92.2%));--lwf-paper:hsl(var(--card,0 0% 100%));
+ --lwf-accent:hsl(var(--primary,176.5 89.5% 11.2%));--lwf-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --lwf-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--lwf-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --lwf-yes:#0b6b45;--lwf-warn:#8a5a00;--lwf-no:#a43427;--lwf-off:#5b6770;
+ color:var(--lwf-ink);background:var(--lwf-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .lwf{--lwf-yes:#7ddc97;--lwf-warn:#f0c060;--lwf-no:#ef9275;--lwf-off:#a9b4bc}
+.lwf *{box-sizing:border-box}
+.lwf ol,.lwf ul{list-style:none;margin:0;padding:0}
+.lwf li{list-style:none;margin:0;font-size:inherit}
+.lwf p{margin:0}
+.lwf.lwf b{font-weight:600;color:inherit}
+.lwf.lwf code{font-family:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86em;color:inherit;background:var(--lwf-soft);border-radius:4px;padding:0 .25em}
+.lwf-stack{display:flex;flex-direction:column;gap:10px}
+.lwf-cap{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--lwf-muted);font-weight:600}
+.lwf-node{background:var(--lwf-paper);border-radius:14px;box-shadow:0 0 0 1px var(--lwf-line);padding:10px 12px;
+ display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.lwf-node>b{font-size:.95rem}
+.lwf-node>span{font-size:.82rem;color:var(--lwf-muted)}
+.lwf-node.is-accent{background:var(--lwf-accent);color:var(--lwf-on-accent);box-shadow:none}
+.lwf-node.is-accent>span,.lwf-node.is-accent code{color:inherit;opacity:.88}
+.lwf.lwf .lwf-node.is-accent code{background:transparent}
+.lwf-node.is-muted{background:transparent;box-shadow:0 0 0 1px var(--lwf-line)}
+.lwf-node.is-muted>b{color:var(--lwf-muted)}
+.lwf-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.lwf-flow{display:flex;align-items:stretch;gap:6px}
+.lwf-flow>li{display:flex;align-items:stretch;gap:6px;flex:1 1 0;min-width:0}
+.lwf-arr{width:22px;height:22px;flex:none;align-self:center;color:var(--lwf-muted)}
+.lwf-arr path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lwf-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:8px}
+.lwf-side>li{background:var(--lwf-soft);border-radius:12px;padding:8px 12px;font-size:.84rem;display:flex;flex-direction:column;gap:2px}
+.lwf-side>li>span{color:var(--lwf-muted)}
+.lwf-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:12px}
+.lwf-col{background:var(--lwf-paper);border-radius:14px;box-shadow:0 0 0 1px var(--lwf-line);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.lwf-col-h{display:flex;align-items:center;gap:8px;font-weight:600}
+.lwf-dot{width:11px;height:11px;border-radius:50%;flex:none;background:var(--lwf-off)}
+.is-yes>.lwf-col-h .lwf-dot,.lwf-chip.is-yes::before{background:var(--lwf-yes)}
+.is-warn>.lwf-col-h .lwf-dot,.lwf-chip.is-warn::before{background:var(--lwf-warn)}
+.is-off>.lwf-col-h .lwf-dot,.lwf-chip.is-off::before{background:var(--lwf-off)}
+.lwf-chip.is-no::before{background:var(--lwf-no)}
+.lwf-col ul{display:flex;flex-direction:column;gap:6px;font-size:.86rem}
+.lwf-col li{padding-inline-start:14px;position:relative}
+.lwf-col li::before{content:"";position:absolute;inset-inline-start:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--lwf-line)}
+.lwf-ladder{display:flex;flex-direction:column;gap:6px}
+.lwf-band{background:var(--lwf-accent);color:var(--lwf-on-accent);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.lwf-band>span{font-size:.84rem;opacity:.88}
+.lwf.lwf .lwf-band code{background:transparent}
+.lwf-rung{display:flex;gap:6px}
+.lwf-step{flex:1;min-width:0;background:var(--lwf-paper);border-radius:12px;box-shadow:0 0 0 1px var(--lwf-line);padding:8px 12px;
+ display:grid;grid-template-columns:minmax(5.5rem,7.5rem) 1fr;gap:4px 10px;align-items:baseline}
+.lwf-step>b{font-family:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86rem}
+.lwf-step>span{font-size:.84rem;color:var(--lwf-muted)}
+.lwf-step.is-muted{background:transparent}
+.lwf-split{display:grid;grid-template-columns:1fr minmax(9.5rem,.8fr) 1fr;gap:10px;align-items:stretch}
+.lwf-panel{background:var(--lwf-paper);border-radius:14px;box-shadow:0 0 0 1px var(--lwf-line);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.lwf-panel ul{display:flex;flex-direction:column;gap:6px;font-size:.86rem}
+.lwf-panel li{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.lwf-panel li>span{color:var(--lwf-muted);font-size:.82rem;text-align:end}
+.lwf-panel li.is-plain{justify-content:flex-start;padding-inline-start:14px;position:relative}
+.lwf-panel li.is-plain::before{content:"";position:absolute;inset-inline-start:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--lwf-line)}
+.lwf-panel-h{font-weight:600}
+.lwf-wire{display:flex;flex-direction:column;justify-content:center;gap:8px}
+.lwf-wire>li{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--lwf-muted)}
+.lwf-wire>li.is-back{flex-direction:row-reverse;text-align:end}
+.lwf-wire>li.is-back .lwf-arr{transform:scaleX(-1)}
+.lwf-chip{display:inline-flex;align-items:center;gap:6px;font-size:.8rem}
+.lwf-chip::before{content:"";width:8px;height:8px;border-radius:50%;flex:none}
+@container (max-width:560px){
+ .lwf-flow{flex-direction:column}
+ .lwf-flow>li{flex-direction:column;align-items:stretch}
+ .lwf-flow .lwf-arr{transform:rotate(90deg);align-self:center}
+ .lwf-split{grid-template-columns:1fr}
+ .lwf-wire>li,.lwf-wire>li.is-back{flex-direction:row;text-align:start}
+ .lwf-wire .lwf-arr{transform:rotate(90deg)}
+ .lwf-wire>li.is-back .lwf-arr{transform:rotate(-90deg)}
+ .lwf-step{grid-template-columns:1fr}
+ .lwf-rung{flex-direction:column}
+}
+</style>
+<div class="lwf lwf-team-projects-roles"><div class="lwf-stack"><div class="lwf-ladder"><div class="lwf-band"><b>Workspace role and deny grants</b><span>A workspace viewer cannot save, and a deny on <code>session.edit</code> or <code>project.manage</code> still holds.</span></div><ol class="lwf-stack" style="gap:6px"><li class="lwf-rung"><div class="lwf-step"><b>owner</b><span>hand the project on</span></div></li><li class="lwf-rung"><div class="lwf-step"><b>manager</b><span>rename, visibility, archive, people and invitations, delete any session</span></div></li><li class="lwf-rung"><div class="lwf-step"><b>editor</b><span>create and save sessions, delete their own; every member of a project group</span></div></li><li class="lwf-rung"><div class="lwf-step"><b>commenter</b><span>comment, never change artwork</span></div></li><li class="lwf-rung"><div class="lwf-step"><b>viewer</b><span>open, read revisions, comment unless turned off</span></div></li></ol></div></div></div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ8Gp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnKanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpkZDA5MGM4Yy0wNDJiLTQzODEtYjVkNC0yZDM4NWU3YjgwY2YAAAAEQ2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjo1Nzo1NVoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GR5gZmxlbmd0aBkNomRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFgg7L6e9vhpPZnW28gFwafsQHtbn1tBq2Mt3zw0lRMk4ppjcGFkSAAAAAAAAAAAAAAA2Wp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAKVjYm9yp2dzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHgYd29yay10ZWFtLXByb2plY3RzLXJvbGVzZGRhdGV4GDIwMjYtMTAtMjNUMDY6NTc6NTUuNTE1WmhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALXanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqhjYm9ypmhkYzp0aXRsZXgYd29yay10ZWFtLXByb2plY3RzLXJvbGVzamluc3RhbmNlSUR4LXVybjp1dWlkOmU3YjA3N2ZhLTBmYTAtNDY1ZS04YzlhLTliZjI2YTQ3Mjc1ZnRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggL4QfnSsNkBkeKA7wyJls/taeQ0QWeVOeVRUtRjThhmCiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggSUWglfDMNWui8T8dKtKxZ9kdgOJJ6GWXSjZTKDWuXvCiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIFgdlZtfzRSEq8CGo0NqDVrO9jsK7hMSUtf7MjWNJipfomN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYWp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMWNib3LShFkB4KIBJhghgVkB1zCCAdMwggF5oAMCAQICCUScfJndfQzAiDAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDY1NjU1WhcNMzYxMDIwMDY1NzU1WjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQRtSCWmTar/XUyalQqpNfl1Pitj4N2LS8/xHSmGcaZ2Rg1iVN2CzceRjF2U68zkBdmuNj3C/FW4qJJTt4yYa2go3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUHChrPPa6hPKkssHKxXueHhIWjIgwHwYDVR0jBBgwFoAUHChrPPa6hPKkssHKxXueHhIWjIgwCgYIKoZIzj0EAwIDSAAwRQIhANrewKcu2bixM2p/Vwe8g3YpwOWWQmkaIeML3CtNbsG1AiASmESdEDMRaTwf0r7GW+svlvA56CG8ZadSVwkuJXaaqKD2WECklV0WRW0UvPpia7QPMFiC1YJ70gPMqz3WLR/HgIr5S+ZjPKlV5LpDHdTVh/rH5O44tKqRFqjmh5q4zsp+DbVq -----END C2PA MANIFEST----- -->

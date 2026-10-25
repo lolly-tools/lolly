@@ -1,31 +1,41 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The Profile view's "Design systems" card (plans/186 section 5): one row per
- * design system on this device with its source line, compact brand specimen and
- * active tick. The card only switches/opens/removes systems; their name and
- * actual brand work live together in the Start studio.
+ * The Profile view's "Design systems" card (plans/186 section 5): one compact
+ * row per design system on this device. Each row leads with a cover in the
+ * system's own look (cover.ts), then its name, where it came from and a line
+ * of facts: colours, typefaces, colourways and size. The card only
+ * switches/opens/removes systems; their name and actual brand work live
+ * together in the Start studio.
  *
  * The card is the only place a person manages the list; switching itself is
  * lib/design-system/switch.ts's ordered sweep, called from here with the profile
  * route so the view remounts and this card re-renders with the new active tick.
+ * A switch made elsewhere (the account menu) re-renders the card in place.
+ * mountDesignSystemsCard returns the function that detaches the card's window
+ * and document listeners; the Profile view calls it when the route changes.
  * "From an instance" (section 3.6) is a later milestone and is not rendered
  * until it works - never a door that opens on nothing.
  */
-import { brandSpecimenHtml, specimenInk, type BrandPreview } from './brand-specimen.ts';
+import type { BrandPreview } from './brand-specimen.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { isTauriShell } from '../instance-choice.ts';
 import { escape } from '../../utils.ts';
 import { icon } from '../icons.ts';
 import { confirmDialog, promptDialog } from '../../components/confirm-dialog.ts';
-import { createTokenSet } from '@lolly/engine';
-import { withoutLeadColours } from './leads.ts';
-import { brandFontStack, tokenValueToHex, SWATCH_INK } from '../../brand-vars.ts';
 import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
 import { hideShippedDesignSystem, prepareDesignSystemRemoval, removeAndSwitchDesignSystem } from './remove-coordinator.ts';
-import { switchDesignSystem, type SwitchHost } from './switch.ts';
-import { showUndoToast } from '../undo-toast.ts';
-import { catalogSourceHtml, catalogSourceLabel } from './catalog-source.ts';
+import { resetDesignSystem, resetKind } from './reset.ts';
+import { DESIGN_SYSTEM_CHANGED_EVENT, switchDesignSystem, type SwitchHost } from './switch.ts';
+import { DESIGN_SYSTEMS_LISTED_EVENT } from './list-event.ts';
+import { switchWithUndo } from './switch-undo.ts';
+import { catalogSourceHtml } from './catalog-source.ts';
+import { sourceLine } from './source-line.ts';
+import { looksFromColours, monogramOf, readDesignSystemPreview, type DesignSystemPreview } from './preview.ts';
+import { coverHtml, wireCoverImages } from './cover.ts';
+
+export { sourceLine };
+export { previewOf } from './preview.ts';
 
 export type CardHost = ManageHost & SwitchHost;
 
@@ -59,34 +69,6 @@ function pickDesignSystemFile(): Promise<File | null> {
   });
 }
 
-/** What a row says under its label. Plain sentences, "design system" not "brand". */
-export function sourceLine(record: DesignSystemRecord, now = Date.now()): string {
-  const s = record.source;
-  switch (s.kind) {
-    case 'shipped': return catalogSourceLabel(record);
-    case 'local':
-      if (s.from === 'app') return t('Came with this app');
-      if (s.from === 'shipped') return t('Edited here');
-      return s.forkedFrom ? t('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
-    case 'file': return s.publisher ? t('From a file by {publisher}', { publisher: s.publisher }) : t('From a file');
-    case 'hosted': {
-      const host = s.instance.replace(/^https?:\/\//, '');
-      const when = s.lastSyncedAt ? relativeTime(now - s.lastSyncedAt) : null;
-      if (s.stale) return t('Hosted at {host}. Update available when online', { host });
-      return when ? t('Hosted at {host}. Synced {when}', { host, when }) : t('Hosted at {host}', { host });
-    }
-  }
-}
-
-function relativeTime(ms: number): string {
-  const m = Math.max(0, Math.round(ms / 60000));
-  if (m < 2) return t('just now');
-  if (m < 60) return t('{n} min ago', { n: m });
-  const h = Math.round(m / 60);
-  if (h < 48) return t('{n} h ago', { n: h });
-  return t('{n} days ago', { n: Math.round(h / 24) });
-}
-
 /** "3.2 MB" for a row; '' below a kilobyte so the shipped row and an empty new
  *  system carry no size at all. */
 function bytesLabel(n: number | undefined): string {
@@ -97,57 +79,72 @@ function bytesLabel(n: number | undefined): string {
 
 export type { BrandPreview } from './brand-specimen.ts';
 
-/** A tiny, safe specimen from a system's own head document. It deliberately
- * loads only JSON already on-device; font files remain owned by the registry
- * and the browser simply falls back if a face has not been registered yet. */
-export async function previewOf(host: CardHost, record: DesignSystemRecord): Promise<BrandPreview> {
-  const fallback = "'SUSE', ui-sans-serif, system-ui, sans-serif";
-  try {
-    const blob = record.headId ? await host.assets._getBlob(record.headId) : null;
-    const current = !blob && (await host.designSystems.activeId()) === record.id;
-    const doc = blob && blob.size <= 2 * 1024 * 1024 ? JSON.parse(await blob.text()) : current ? await host.tokens?.raw?.() : null;
-    const tokens = createTokenSet(doc);
-    // A colourway's own colours (plans/319) repeat the roles they fill, and the
-    // canonical lead's dark ones would count again in a light specimen.
-    const colors = withoutLeadColours(tokens.colors())
-      .map(token => tokenValueToHex(token.value))
-      .filter((value): value is string => !!value)
-      .filter((value, i, all) => all.indexOf(value) === i);
-    const font = brandFontStack(tokens.resolve('font.brand'), fallback) ?? fallback;
-    const dark = specimenInk(colors[0] ?? '#172b29') === SWATCH_INK.light;
-    const variants = dark ? ['vertical-primary-reverse', 'vertical-primary'] : ['vertical-primary', 'vertical-primary-reverse'];
-    let logoUrl: string | undefined;
-    for (const variant of variants) {
-      const id = tokens.resolve(`asset.logo.${variant}`);
-      if (typeof id !== 'string' || !id || id.startsWith('{')) continue;
-      try {
-        const asset = await host.assets.get(id);
-        if (asset.url) { logoUrl = asset.url; break; }
-      } catch { /* No usable logo: retain the geometric specimen. */ }
-    }
-    return { font, colors: colors.slice(0, 6), colorCount: colors.length, logoUrl };
-  } catch { return { font: fallback, colors: [] }; }
-}
+/** What a row is drawn from: a full preview, or (the component library's demo
+ *  rows) only a font and some colours, with the rest derived here. */
+export type RowPreview = BrandPreview & Partial<DesignSystemPreview>;
+
+/** Previews read for one mounted card, keyed `${id}|${headId}` (preview.ts). */
+type PreviewCache = Map<string, Promise<DesignSystemPreview>>;
 
 /** "1 colour", "16 colours": the card read "1 colours" (plan 320 S10). */
 function colourCount(n: number): string {
   return t(n === 1 ? '{n} colour' : '{n} colours', { n });
 }
 
+/** The row's facts, in order: colours, up to three typefaces, colourways when
+ *  there is a choice of them, and the size on this device. A system whose head
+ *  could not be read shows its size alone, never "0 colours". */
+function factsOf(preview: RowPreview, size: string): string[] {
+  if (preview.unread) return size ? [size] : [];
+  const facts = [colourCount(preview.colorCount ?? preview.colors.length)];
+  const families = (preview.families ?? []).slice(0, 3);
+  if (families.length) facts.push(families.join(', '));
+  const ways = preview.colourways ?? 0;
+  if (ways >= 2) facts.push(t('{n} colourways', { n: ways }));
+  if (size) facts.push(size);
+  return facts;
+}
+
+/** Read the previews four at a time, so a long list does not start every blob read at once. */
+async function readPreviews(host: CardHost, records: readonly DesignSystemRecord[], cache?: PreviewCache): Promise<DesignSystemPreview[]> {
+  const out: DesignSystemPreview[] = [];
+  for (let at = 0; at < records.length; at += 4) {
+    out.push(...await Promise.all(records.slice(at, at + 4).map(record => readDesignSystemPreview(host, record, cache))));
+  }
+  return out;
+}
+
 /** `canHide`: the shipped row may be removed (hidden) because the build is not
  *  locked and another system is on the device to fall back to. */
-export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: BrandPreview, adminHref?: string | null, opts: { canHide?: boolean } = {}): string {
+export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: RowPreview, adminHref?: string | null, opts: { canHide?: boolean } = {}): string {
   const active = r.id === activeId;
   const removable = r.source.kind !== 'shipped' || (!!opts.canHide && !r.locked);
-  const size = bytesLabel(bytes);
+  // The switch's name is what the row shows: the "Use" pill, then the system's
+  // name, so a person who says "Click Use" with voice control reaches the switch.
+  const idPart = r.id.replace(/[^\w-]/g, '_');
+  const useId = `ds-row-use-${idPart}`;
+  const labelId = `ds-row-label-${idPart}`;
+  const cover = preview.unread ? '<span class="ds-cover ds-cover--row is-pending" aria-hidden="true"></span>' : coverHtml({
+    ...preview,
+    looks: preview.looks ?? looksFromColours(preview.colors),
+    logos: preview.logos ?? (preview.logoUrl ? { light: preview.logoUrl } : {}),
+    monogram: preview.monogram ?? monogramOf(r.label),
+    display: preview.display ?? preview.font,
+  }, 'row', { active });
+  // Each fact keeps its separator on its own line end, so a wrapped line never opens on a dot.
+  const list = factsOf(preview, bytesLabel(bytes));
+  const facts = list.map((f, i) => `<span class="ds-row-fact">${escape(f)}${i < list.length - 1 ? '<span aria-hidden="true"> ·</span>' : ''}</span>`).join(' ');
   return `
     <article class="ds-row${active ? ' is-active' : ' is-switchable'}" data-ds-row="${escape(r.id)}" aria-label="${escape(r.label)}">
-      ${active ? '' : `<button type="button" class="ds-row-hit" data-ds-act="switch" aria-label="${escape(tRaw('Switch to {name}', { name: r.label }))}"></button>`}
-      ${brandSpecimenHtml(r.label, preview, active)}
+      ${active ? '' : `<button type="button" class="ds-row-hit" data-ds-act="switch" aria-labelledby="${useId} ${labelId}"></button>`}
+      <span class="ds-row-cover">${cover}</span>
       <div class="ds-row-main">
-        <h3 class="ds-row-label">${escape(r.label)}${r.locked ? `<span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 14 })}</span>` : ''}</h3>
+        <div class="ds-row-head">
+          <h3 class="ds-row-label" id="${labelId}">${escape(r.label)}${r.locked ? `<span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 14 })}</span>` : ''}</h3>
+          ${active ? `<span class="ds-row-active">${icon('check', { size: 14 })} ${t('Active')}</span>` : `<span class="ds-row-use" id="${useId}">${t('Use')}</span>`}
+        </div>
         <span class="ds-row-source">${escape(sourceLine(r))}</span>
-        <span class="ds-row-facts">${colourCount(preview.colorCount ?? preview.colors.length)}${size ? ` <span>·</span> ${escape(size)}` : ''}</span>
+        <span class="ds-row-facts">${facts}</span>
         ${catalogSourceHtml(r, adminHref)}
       </div>
       <div class="ds-row-actions">
@@ -156,13 +153,15 @@ export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, by
         ${removable || r.locked ? `<details class="ds-row-more"><summary aria-label="${escape(tRaw('More actions for {name}', { name: r.label }))}">${icon('menu', { size: 16 })}</summary><div class="ds-row-menu">
           ${r.source.kind === 'hosted' ? `<button type="button" data-ds-act="refresh">${icon('refresh', { size: 16 })}${t('Check for updates')}</button>` : ''}
           ${r.locked ? `<button type="button" data-ds-act="fork">${icon('duplicate', { size: 16 })}${t('Make an editable copy')}</button>` : ''}
+          ${resetKind(r) ? `<button type="button" data-ds-act="reset">${icon('undo', { size: 16 })}${t('Reset to original')}</button>` : ''}
           ${removable ? `<button type="button" class="ds-row-remove" data-ds-act="remove">${icon('trash', { size: 16 })}${t('Remove')}</button>` : ''}
         </div></details>` : '<span class="ds-row-more-placeholder" aria-hidden="true"></span>'}
       </div>
     </article>`;
 }
 
-export async function renderDesignSystemsCard(body: HTMLElement, host: CardHost): Promise<void> {
+/** Render the card body. `cache` is the mounted card's own (mountDesignSystemsCard). */
+export async function renderDesignSystemsCard(body: HTMLElement, host: CardHost, cache?: PreviewCache): Promise<void> {
   const sizesOf = (host.assets as { _designMaterialSizes?(): Promise<Record<string, number>> })._designMaterialSizes;
   const [all, records, activeId, sizes] = await Promise.all([
     host.designSystems.list(),
@@ -171,7 +170,7 @@ export async function renderDesignSystemsCard(body: HTMLElement, host: CardHost)
     sizesOf ? sizesOf.call(host.assets).catch(() => ({} as Record<string, number>)) : Promise.resolve({} as Record<string, number>),
   ]);
   const adminHref = (await import('../../org/index.ts')).orgAdminHref();
-  const previews = await Promise.all(records.map(record => previewOf(host, record)));
+  const previews = await readPreviews(host, records, cache);
   // The shipped row can go while something else stays; a removed one can come back.
   const canHide = records.some(r => r.source.kind !== 'shipped');
   const hiddenShipped = records.some(r => r.source.kind === 'shipped') ? null : all.find(r => r.source.kind === 'shipped' && !r.locked) ?? null;
@@ -186,9 +185,23 @@ export async function renderDesignSystemsCard(body: HTMLElement, host: CardHost)
       <button type="button" class="btn" data-ds-act="file">${icon('upload', { size: 14 })} ${t('Open or import a file')}</button>
       <button type="button" class="btn" data-ds-act="instance">${icon('globe', { size: 14 })} ${t('From an instance')}</button>
     </div>`;
-  body.querySelectorAll<HTMLImageElement>('.ds-preview-logo').forEach(img => {
-    img.addEventListener('error', () => img.remove(), { once: true });
+  wireCoverImages(body);
+}
+
+/** While an action runs every control reads as unavailable but keeps its focus:
+ *  `aria-disabled`, never `disabled`, which would drop the focus to the page. */
+function markBusy(body: HTMLElement, on: boolean): void {
+  body.querySelectorAll<HTMLElement>('[data-ds-act], details.ds-row-more > summary').forEach(el => {
+    if (on) el.setAttribute('aria-disabled', 'true');
+    else el.removeAttribute('aria-disabled');
   });
+}
+
+/** Forget the previews of these systems, so their next render reads their heads again. */
+function dropPreviews(cache: PreviewCache, ids: ReadonlyArray<string | null | undefined>): void {
+  for (const key of [...cache.keys()]) {
+    if (ids.some(id => id && key.startsWith(`${id}|`))) cache.delete(key);
+  }
 }
 
 /** A one-line status under the rows, replacing the last one. Plain text: the
@@ -199,21 +212,130 @@ function announce(body: HTMLElement, text: string): void {
   el.textContent = text;
 }
 
-/** Mount the card body and wire its actions. Re-renders itself after every action. */
-export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void {
+/**
+ * Open a row's More actions menu on the side with room. It opens downward, and
+ * on a row near the foot of the card the card's clip would cut it off, so it
+ * then opens upward when there is more room above.
+ */
+function placeMenu(menu: HTMLDetailsElement): void {
+  const list = menu.querySelector<HTMLElement>('.ds-row-menu');
+  const summary = menu.querySelector<HTMLElement>('summary');
+  const view = menu.ownerDocument.defaultView;
+  if (!list || !summary || !view) return;
+  delete list.dataset.up;
+  let clip: HTMLElement | null = menu.parentElement;
+  while (clip && clip !== menu.ownerDocument.body) {
+    const style = view.getComputedStyle(clip);
+    if ([style.overflow, style.overflowX, style.overflowY].some(v => v && v !== 'visible')) break;
+    clip = clip.parentElement;
+  }
+  const bounds = clip && clip !== menu.ownerDocument.body ? clip.getBoundingClientRect() : { top: 0, bottom: view.innerHeight };
+  const box = list.getBoundingClientRect();
+  if (box.bottom <= bounds.bottom) return;
+  const at = summary.getBoundingClientRect();
+  if (at.top - bounds.top > bounds.bottom - at.bottom) list.dataset.up = '';
+}
+
+/**
+ * Mount the card body and wire its actions. Re-renders itself after every
+ * action. Returns the function that detaches the card's window and document
+ * listeners, for the view's teardown.
+ */
+export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): () => void {
   let busy = true;
+  const cache: PreviewCache = new Map();
+
+  // A switch made somewhere else (the account menu, the Settings strip) moves the
+  // active tick. The card re-renders in place when it is idle, keeping the focus
+  // on the same control; an action of its own re-renders when it finishes.
+  let refreshing = false;
+  let refreshAgain = false;
+  let staleWhileBusy = false;
+  const refresh = (): void => {
+    staleWhileBusy = false;
+    if (refreshing) { refreshAgain = true; return; }
+    refreshing = true;
+    const current = document.activeElement;
+    const focused = current && body.contains(current) ? current.closest<HTMLElement>('[data-ds-act]') : null;
+    const act = focused?.dataset.dsAct;
+    const row = focused?.closest<HTMLElement>('[data-ds-row]')?.dataset.dsRow;
+    void renderDesignSystemsCard(body, host, cache).catch(() => { /* keep the last usable rows */ }).finally(() => {
+      refreshing = false;
+      if (act && body.isConnected && !body.contains(document.activeElement)) {
+        const actions = [...body.querySelectorAll<HTMLElement>('[data-ds-act]')];
+        const inRow = actions.filter(el => el.closest<HTMLElement>('[data-ds-row]')?.dataset.dsRow === row);
+        (inRow.find(el => el.dataset.dsAct === act) ?? inRow[0] ?? actions.find(el => el.dataset.dsAct === act))?.focus();
+      }
+      if (refreshAgain && body.isConnected && !busy) { refreshAgain = false; refresh(); }
+    });
+  };
+  const onChanged = (e: Event): void => {
+    if (!body.isConnected) { detach(); return; }
+    const was = body.querySelector<HTMLElement>('.ds-row.is-active')?.dataset.dsRow;
+    dropPreviews(cache, [was, (e as CustomEvent<{ id?: string } | undefined>).detail?.id]);
+    if (busy) { staleWhileBusy = true; return; }
+    refresh();
+  };
+  // Companions seeded after the first sync: new rows, the same active system.
+  const onListed = (): void => {
+    if (!body.isConnected) { detach(); return; }
+    if (busy) { staleWhileBusy = true; return; }
+    refresh();
+  };
+
   body.setAttribute('aria-busy', 'true');
   announce(body, t('Loading design systems…'));
-  void renderDesignSystemsCard(body, host).catch(() => { body.innerHTML = `<p class="profile-appearance-sub">${isTauriShell() ? t('Design systems are unavailable on this device.') : t('Design systems are unavailable in this browser.')}</p>`; }).finally(() => { busy = false; body.removeAttribute('aria-busy'); });
+  void renderDesignSystemsCard(body, host, cache).catch(() => { body.innerHTML = `<p class="profile-appearance-sub">${isTauriShell() ? t('Design systems are unavailable on this device.') : t('Design systems are unavailable in this browser.')}</p>`; }).finally(() => {
+    busy = false;
+    body.removeAttribute('aria-busy');
+    if (staleWhileBusy && body.isConnected) refresh();
+  });
+
+  // A row's "More actions" menu is a <details>. Escape and a press anywhere
+  // else close it, as they close the app's other menus, and opening one row's
+  // menu closes another's. The listeners go with the card.
+  const closeMenus = (except?: Element | null): void => {
+    body.querySelectorAll<HTMLDetailsElement>('details.ds-row-more[open]').forEach(menu => { if (menu !== except) menu.open = false; });
+  };
+  body.addEventListener('toggle', (e) => {
+    const menu = e.target as HTMLDetailsElement | null;
+    if (menu?.matches?.('details.ds-row-more') && menu.open) { closeMenus(menu); placeMenu(menu); }
+  }, true);
+  const onKey = (e: KeyboardEvent): void => {
+    if (!body.isConnected) { detach(); return; }
+    const open = body.querySelector<HTMLDetailsElement>('details.ds-row-more[open]');
+    if (e.key !== 'Escape' || !open) return;
+    e.preventDefault();
+    e.stopPropagation();
+    open.open = false;
+    open.querySelector<HTMLElement>('summary')?.focus();
+  };
+  const onPress = (e: Event): void => {
+    if (!body.isConnected) { detach(); return; }
+    if (!(e.target as Element | null)?.closest?.('details.ds-row-more')) closeMenus();
+  };
+  const detach = (): void => {
+    document.removeEventListener('keydown', onKey, true);
+    document.removeEventListener('pointerdown', onPress, true);
+    window.removeEventListener(DESIGN_SYSTEM_CHANGED_EVENT, onChanged);
+    window.removeEventListener(DESIGN_SYSTEMS_LISTED_EVENT, onListed);
+  };
+  document.addEventListener('keydown', onKey, true);
+  document.addEventListener('pointerdown', onPress, true);
+  window.addEventListener(DESIGN_SYSTEM_CHANGED_EVENT, onChanged);
+  window.addEventListener(DESIGN_SYSTEMS_LISTED_EVENT, onListed);
 
   body.addEventListener('click', async (e) => {
-    const btn = (e.target as Element).closest<HTMLElement>('[data-ds-act]');
+    const target = e.target as Element;
+    // A row menu stays shut while an action runs; its items are blocked below.
+    if (busy && target.closest?.('details.ds-row-more > summary')) { e.preventDefault(); return; }
+    const btn = target.closest<HTMLElement>('[data-ds-act]');
     if (!btn || busy) return;
     const act = btn.dataset.dsAct;
     const id = btn.closest<HTMLElement>('[data-ds-row]')?.dataset.dsRow;
     busy = true;
     body.setAttribute('aria-busy', 'true');
-    body.querySelectorAll<HTMLButtonElement>('button').forEach(button => { button.disabled = true; });
+    markBusy(body, true);
     const loading = act === 'switch' || act === 'studio' ? t('Loading design system…') : t('Working…');
     announce(body, loading);
     try {
@@ -226,12 +348,7 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
       if (act === 'switch' && id) {
         // Say what changed and offer the way back (plan 320 M5): the switch
         // repaints every tool, so a silent one reads as nothing happening.
-        const previous = await host.designSystems.active();
-        const { record } = await switchDesignSystem(host, id, { route: 'profile', previous });
-        showUndoToast({
-          message: tRaw('Using {name}.', { name: record.label }),
-          undo: async () => { await switchDesignSystem(host, previous.id, { route: 'profile' }); },
-        });
+        await switchWithUndo(host, id, { route: 'profile' });
         return; // the remount re-renders this card
       }
       if (act === 'studio' && id) {
@@ -269,8 +386,20 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
         const res = await removeAndSwitchDesignSystem(host, id, reviewed, { route: 'profile' });
         const status = res.catalogStatus === 'cached'
           ? t('Removed from this device. The catalogue could not refresh; cached material remains until you reconnect.')
-          : t('Removed. “{name}” is active.', { name: res.fallback.label });
+          : res.wasActive ? t('Removed. “{name}” is active.', { name: res.fallback.label }) : t('Removed.');
         announce(body, status + (res.kept ? ' ' + t('{n} shared assets were kept.', { n: res.kept }) : ''));
+      }
+      if (act === 'reset' && id) {
+        const record = await host.designSystems.get(id);
+        const ok = await confirmDialog({
+          title: t('Reset “{name}”?', { name: record?.label ?? id }),
+          message: t('Changes made here are discarded and “{name}” goes back to how it came with this app. Saved sessions and personal uploads stay.', { name: record?.label ?? id }),
+          confirmLabel: t('Reset'),
+          danger: true,
+        });
+        if (!ok) return;
+        const original = await resetDesignSystem(host, id, { route: 'profile' });
+        announce(body, t('“{name}” is back to the original.', { name: original.label }));
       }
       if (act === 'refresh' && id) {
         const { refreshHostedDesignSystem } = await import('./hosted.ts');
@@ -335,8 +464,11 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
       const note = body.querySelector<HTMLElement>('.ds-note')?.textContent ?? '';
       if (body.isConnected) {
         const restoreFocus = body.contains(document.activeElement) || document.activeElement === document.body;
-        await renderDesignSystemsCard(body, host).catch(() => { /* retain the last usable rows */ });
-        body.querySelectorAll<HTMLButtonElement>('button').forEach(button => { button.disabled = false; });
+        // An action can change a head under the same id (reset, a hosted update).
+        cache.clear();
+        staleWhileBusy = false;
+        await renderDesignSystemsCard(body, host, cache).catch(() => { /* retain the last usable rows */ });
+        markBusy(body, false);
         if (note && note !== loading) announce(body, note);
         else body.querySelector('.ds-note')?.remove();
         if (restoreFocus) {
@@ -350,4 +482,5 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
       body.removeAttribute('aria-busy');
     }
   });
+  return detach;
 }

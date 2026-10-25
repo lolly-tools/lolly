@@ -46,6 +46,24 @@ export interface Metrics {
   sr: DOMRect;
   scale: number;
 }
+/** The painted canvas by id (stage.ts, `canvasIndex`). */
+export interface CanvasIndex {
+  /** The first `.lolly-box[data-box-id]` per id, in document order: what `querySelector` returns. */
+  boxes: Map<string, HTMLElement>;
+  /** The first `.lolly-frame-page[data-frame-id]` per id. */
+  frames: Map<string, HTMLElement>;
+  /** Every `.lolly-box[data-box-id]` in document order, for the accessibility stamps' walk. */
+  list: HTMLElement[];
+  /** Further boxes that repeat an id already in `boxes`, so a stamp reaches every one. */
+  repeats: Map<string, HTMLElement[]>;
+  /** Ids the selectors were asked for since the build and did not find (a group row has
+   *  no element), so a miss scans once per paint rather than once per frame. */
+  noBox: Set<string>;
+  noFrame: Set<string>;
+  /** One element of the build. A paint that threw part way replaces the canvas with no
+   *  paint signal; this leaving the document is how the index notices. */
+  probe: HTMLElement | null;
+}
 export type HandleName = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
 /** One entry of a `canvas.addKinds` list - a "kind" the add-box menu can create. */

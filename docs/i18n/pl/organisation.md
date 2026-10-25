@@ -1,6 +1,6 @@
 # Używaj Lolly w swojej organizacji
 
-Twoja organizacja może uruchomić własną instancję Lolly: tę samą aplikację, z narzędziami i systemem projektowym, które wybrała, a czasem z logowaniem. Ta strona pokazuje, jak do niej dotrzeć i co się zmienia, gdy to zrobisz.
+Twoja organizacja może prowadzić własne Lolly: tę samą aplikację z narzędziami i systemami projektowymi, które wybrała. Ta strona pokazuje, jak do niej dotrzeć, jak się zalogować i co się zmienia po zalogowaniu.
 
 ::: note Czego potrzebujesz od swojej organizacji
 Adresu internetowego jej Lolly albo pliku instalacyjnego `.lolly`, który przygotowała twoja organizacja. Samo lolly.tools nie łączy się z żadną organizacją.
@@ -8,13 +8,15 @@ Adresu internetowego jej Lolly albo pliku instalacyjnego `.lolly`, który przygo
 
 ## W przeglądarce
 
-Otwórz adres, który podała ci twoja organizacja. Jeśli strona poprosi cię o zalogowanie, naciśnij **Zaloguj się** i postępuj zgodnie ze stroną logowania, którą otworzy. Potem działa to jak każde Lolly, z narzędziami i systemem projektowym twojej organizacji.
+Otwórz adres podany przez organizację. Jeśli strona prosi o zalogowanie, naciśnij **Sign in** i postępuj według otwartej strony logowania. Potem działa jak każde Lolly, z narzędziami i systemami projektowymi Twojej organizacji.
 
-Przeglądarka nie ma ustawienia, które pozwala przełączyć się na inne Lolly, więc otwieraj własny adres swojej organizacji, a nie lolly.tools.
+Możesz też zacząć od lolly.tools: otwórz **Settings**, na karcie **Lolly instance** naciśnij **Open a workspace**, wpisz adres i naciśnij **Open this instance**. Przeglądarka przechodzi na własny adres Twojej organizacji, ponieważ przeglądarka nie może załadować narzędzi innego Lolly z lolly.tools.
+
+![Karta Lolly instance w Settings, na której otwierasz przestrzeń roboczą organizacji lub zmieniasz źródło narzędzi aplikacji](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
 ## W aplikacji desktopowej lub mobilnej
 
-Przy pierwszym uruchomieniu aplikacja pyta: **Skąd Lolly ma pobierać swoje narzędzia?**
+Aplikacja startuje z wbudowanymi narzędziami. Aby się połączyć, otwórz **Settings** i naciśnij **Change** na karcie **Lolly instance**. Arkusz pyta **Where should Lolly get its tools?**
 
 1. Wybierz **Połącz się z instancją Lolly**.
 2. Wpisz adres internetowy swojej organizacji i naciśnij **Sprawdź i połącz**.
@@ -23,23 +25,61 @@ Przy pierwszym uruchomieniu aplikacja pyta: **Skąd Lolly ma pobierać swoje nar
 
 Narzędzia z połączonej instancji działają z takim samym zaufaniem jak własne narzędzia aplikacji, więc łącz się tylko z instancją, której ufasz. Twoja organizacja może zamiast tego wysłać ci plik instalacyjny `.lolly`, który połączy aplikację za ciebie.
 
-Aby przełączyć się później, otwórz **Ustawienia**: karta **Instancja Lolly** ma przyciski **Zmień** i **Opuść**.
+Aby przełączyć później, użyj ponownie **Change** lub **Leave** na tej samej karcie.
 
-## Logowanie kodem
+### Logowanie kodem
 
-Jeśli logowanie na tym urządzeniu jest niewygodne, a Lolly twojej organizacji to oferuje, naciśnij **Zaloguj się kodem na innym urządzeniu**. Lolly pokaże krótki kod i adres: otwórz ten adres na telefonie lub komputerze, na którym jesteś już zalogowany, i wpisz tam kod. Kod jest ważny przez około dziesięć minut.
+W aplikacjach komputerowych i mobilnych ekran logowania oferuje też krótki kod, gdy Lolly Twojej organizacji obsługuje logowanie kodem. Naciśnij **Open sign-in in browser**, zaloguj się i zatwierdź tam kod. Albo otwórz pokazany adres na telefonie lub komputerze, na którym już jesteś zalogowany, i wpisz kod. Kod ważny jest około dziesięciu minut.
 
 ## Co jest tam inaczej
 
-- **Niektóre kontrolki są ustawione za ciebie.** Kontrolka, którą zarządza twoja organizacja, pokazuje **Zarządzane przez** i nazwę organizacji, albo **Zarządzane przez Twoją organizację**. Kontrolki ustalonej nie można zmienić, menu może oferować tylko część swoich opcji, a linia zaczynająca się od **Ustawione przez** może wskazywać, jaka reguła obowiązuje i dlaczego. Niektóre kontrolki w ogóle się nie pojawiają.
-- **Wymienione są tylko jej narzędzia.** Narzędzie, którego twoja organizacja nie oferuje, w ogóle się nie pojawia.
-- **Współdzielone projekty.** Jeśli twoja organizacja udostępnia ci projekty, **Projekty** pokazują kafelek **Projekty zespołu**.
-- **Niektóre eksporty mogą wymagać zatwierdzenia.** Tam, gdzie twoja organizacja wymaga zatwierdzenia, **Poproś o zatwierdzenie** zajmuje miejsce **Pobierz**, a narzędzie może oferować mniej formatów.
-- **Twoje własne zapisy** pozostają na tym urządzeniu, chyba że włączysz [Synchronizację](/info/sync.html), tak jak wszędzie w Lolly.
+- **Niektóre kontrolki są ustawione za Ciebie.** Kontrolka objęta nadzorem organizacji pokazuje **Managed by** i nazwę organizacji albo **Managed by your organisation**. Stałej kontrolki nie można zmienić, menu może oferować tylko część wyborów, a linia zaczynająca się od **Set by** może podać, jaka reguła obowiązuje i dlaczego. Niektóre kontrolki w ogóle nie są pokazywane.
+- **Niektóre systemy projektowe są zablokowane.** System projektowy dostarczony przez organizację pokazuje kłódkę i pozostaje tylko do odczytu. Aby wypróbować zmiany, utwórz edytowalną kopię w **Settings → Preferences → Design systems**.
+- **Wymienione są tylko jej narzędzia.** Narzędzie, którego organizacja nie oferuje, w ogóle nie jest pokazywane.
+- **Wspólne projekty.** Jeśli organizacja udostępnia Ci projekty, **Projects** pokazuje kafelek **Team projects**. Te sesje żyją na serwerze organizacji. Otwórz jedną, aby nad nią pracować, lub rozpocznij [collab roboczy](/info/collaborate.html#work-collabs-with-lolly-work-optional) z **Share**, gdy jest dostępny.
+- **Niektóre eksporty mogą wymagać zatwierdzenia.** Tam, gdzie organizacja wymaga zatwierdzenia, **Request approval** zajmuje miejsce **Download**, a narzędzie może oferować mniej formatów.
+
+### Co gdzie zostaje
+
+::: cols
+## Na tym urządzeniu
+
+- Twoje własne zapisy, chyba że włączysz [Sync](/info/sync.html)
+- Systemy projektowe, które sam stworzyłeś
+- Wszystko, co zrobisz i pobierzesz
+
+## Na serwerze Twojej organizacji
+
+- Tożsamość logowania i informacje o urządzeniu
+- Wspólne projekty, współdzielone sesje i edycje na żywo w collabie roboczym
+- Zasoby wgrywane do wspólnej biblioteki
+- Prośby o zatwierdzenie i zatwierdzone dostarczenia
+- Zdarzenia użycia, jeśli organizacja je włącza
+:::
+
+[Privacy](/info/privacy.html#organisation-services-with-lolly-work) wymienia, co serwer przechowuje i kto kontroluje te dane.
+
+## Co dodaje Lolly Work
+
+Serwer Twojej organizacji uruchamia **Lolly Work**, oprogramowanie organizacyjne tego samego projektu open source. Aplikacja nie potrzebuje ani konta Work, ani Lolly Work, gdy używasz jej samodzielnie.
+
+::: details Co może dodać Lolly Work
+Twoja organizacja hostuje [Lolly Work](https://github.com/lolly-tools/lolly-work) obok Lolly i wybiera, które funkcje włączyć:
+
+- **Logowanie i dostęp.** Jednokrotne logowanie organizacji, uprawnienia oparte na grupach i zarządzane pola profilu. Administratorzy mogą tworzyć i dezaktywować konta przez SCIM.
+- **Wspólna praca.** Wspólne projekty, współdzielone sesje i [collaby robocze](/info/collaborate.html#work-collabs-with-lolly-work-optional), z edycją na żywo przez serwer organizacji.
+- **Wspólna biblioteka zasobów.** Wgrane zasoby, kolekcje i połączone biblioteki, z regułami dostępu, wersjami i przeglądem.
+- **Przegląd i dostarczanie.** Kroki zatwierdzania, zarządzane linki z wygaśnięciem lub unieważnieniem oraz dostarczanie do miejsc dozwolonych przez organizację.
+- **Administracja.** Raportowanie użycia według polityki telemetrii instancji oraz zapis audytu działań objętych nadzorem.
+
+Jeśli konfigurujesz usługę, zacznij od [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Publiczne demo pod [lolly.work](https://lolly.work) to piaskownica; do pracy, którą chcesz zachować, użyj własnego adresu organizacji.
+:::
 
 ## Opuszczanie
 
-**Opuść**, na karcie **Instancja Lolly** w **Ustawieniach**, usuwa system projektowy, narzędzia i katalog twojej organizacji. Twoja własna praca pozostaje. Wszystko, co stworzyłeś jej narzędziami, nie otworzy się ponownie, dopóki nie połączysz się z powrotem, a wszystko, co zapisałeś do organizacji, zostaje przy organizacji. W przeglądarce pod własnym adresem twojej organizacji nie ma niczego do opuszczenia: otwórz zamiast tego inny adres.
+**Leave** na karcie **Lolly instance** w **Settings** usuwa system projektowy, narzędzia i katalog Twojej organizacji. Twoja własna praca zostaje. Wszystko, co zrobiłeś jej narzędziami, nie otworzy się ponownie, dopóki się nie połączysz.
+
+Wszystko, co zapisałeś w organizacji, zostaje przy organizacji, według jej zasad dostępu i retencji. Opuszczenie lub wyczyszczenie tego urządzenia nie usuwa tej kopii na serwerze. W przeglądarce pod własnym adresem organizacji nie ma czego opuszczać: otwórz zamiast tego inny adres.
 
 ## Kogo pytać
 

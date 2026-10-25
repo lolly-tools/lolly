@@ -13,7 +13,10 @@ import { createAssetsAPI } from '../../bridge/assets.ts';
 import { createTokensAPI, USER_TOKENS_ID } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
 import { readCompanionDesignSystems, seedCompanionDesignSystems, type CompanionHost } from './companions.ts';
-import { removeDesignSystem } from './manage.ts';
+import { removeDesignSystem, renameDesignSystem } from './manage.ts';
+import { DESIGN_SYSTEMS_LISTED_EVENT } from './list-event.ts';
+import { resetDesignSystem, resetKind } from './reset.ts';
+import { installUserTokens } from '../../bridge/tokens.ts';
 import { readDesignSystemIdentity } from '../../../../../engine/src/design-system.ts';
 import bundledStarter from '../../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json' with { type: 'json' };
 
@@ -98,7 +101,7 @@ test('lolly.tools gets Lolly Starter beside Lolly Demo: editable, removable, not
   assert.ok(made);
   assert.equal(made.label, 'Lolly Starter');
   assert.equal(made.id, 'lolly-starter');
-  assert.deepEqual(made.source, { kind: 'local', from: 'app' });
+  assert.deepEqual(made.source, { kind: 'local', from: 'app', companion: { tokens: 'lolly/tokens/brand', label: 'Lolly Starter' } });
   assert.equal(made.locked, false);
   assert.deepEqual((await r.registry.visible()).map(x => x.label), ['Lolly Demo', 'Lolly Starter']);
   assert.equal(await r.registry.activeId(), 'shipped', 'seeding never switches');
@@ -114,6 +117,24 @@ test('a companion is seeded once: a second sync adds nothing, and a removed one 
   await removeDesignSystem(r.host as unknown as Parameters<typeof removeDesignSystem>[0], 'lolly-starter');
   assert.equal((await seed(r.host)).length, 0);
   assert.deepEqual((await r.registry.visible()).map(x => x.id), ['shipped']);
+});
+
+test('seeding tells a view already showing the list, once, and only when it added a system', async () => {
+  const r = await rig({ catalog: DEMO });
+  const g = globalThis as { window?: EventTarget };
+  const had = 'window' in g ? g.window : undefined;
+  const page = new EventTarget();
+  let heard = 0;
+  page.addEventListener(DESIGN_SYSTEMS_LISTED_EVENT, () => { heard++; });
+  g.window = page;
+  try {
+    assert.equal((await seed(r.host)).length, 1);
+    assert.equal(heard, 1, 'the first visit announces Lolly Starter');
+    assert.equal((await seed(r.host)).length, 0);
+    assert.equal(heard, 1, 'a later sync that adds nothing stays quiet');
+  } finally {
+    if (had === undefined) delete g.window; else g.window = had;
+  }
 });
 
 test('a locked build gets no companion, and nor does a catalog naming its own system', async () => {
@@ -138,4 +159,56 @@ test('a companion held in the catalog is copied from its own document', async ()
   // One that cannot be read yet is left for the next sync, not marked done.
   assert.deepEqual(await seed(r.host, [{ tokens: 'missing/tokens/brand', label: 'Missing' }]), []);
   assert.deepEqual(await r.registry.seeded(), ['acme/tokens/brand']);
+});
+
+// Andy, 2026-10-20: Lolly Demo and Lolly Starter are the person's to hide, edit and reset.
+test('Reset puts an edited Lolly Starter back: the starter document and name, same id and place', async () => {
+  const r = await rig({ catalog: DEMO, logos: ['lolly/logo/primary'] });
+  const [made] = await seed(r.host);
+  assert.equal(resetKind(made!), 'companion');
+  await renameDesignSystem(r.host as never, 'lolly-starter', 'Acme');
+  await installUserTokens(r.host as never, { color: { brand: { acme: { $type: 'color', $value: '#ff0000' } } } }, { system: 'lolly-starter', label: 'Acme' });
+  await r.assets._uploadUserAsset({ id: 'user/ds/lolly-starter/logo/primary', type: 'vector', format: 'svg', blob: new Blob(['<svg/>']), version: '1.0.0' });
+  await r.assets._uploadUserAsset({ id: 'user/raster/1700000000000-photo', type: 'raster', format: 'png', blob: new Blob(['p']), version: '1.0.0' });
+
+  const back = await resetDesignSystem(r.host as never, 'lolly-starter');
+  assert.equal(back.id, 'lolly-starter');
+  assert.equal(back.label, 'Lolly Starter');
+  assert.equal(back.createdAt, made!.createdAt, 'it keeps its place in the list');
+  assert.deepEqual(back.source, made!.source);
+  const doc = JSON.parse(await (await r.assets._getBlob(back.headId))!.text());
+  assert.deepEqual(doc.base.color, bundledStarter.base.color, "the starter's palette again");
+  assert.equal(doc.color?.brand?.acme, undefined, 'the edit is gone');
+  assert.deepEqual(readDesignSystemIdentity(doc), { id: 'lolly-starter', label: 'Lolly Starter' });
+  const ids = (await r.assets._exportUserAssets()).map(row => row.id);
+  assert.ok(!ids.includes('user/ds/lolly-starter/logo/primary'), 'material added here is cleared');
+  assert.ok(ids.includes('user/raster/1700000000000-photo'), 'personal uploads stay');
+  assert.equal(await r.registry.activeId(), 'shipped', 'an inactive system stays inactive');
+});
+
+test('Reset on an edited Lolly Demo removes the edit and brings the original back, active', async () => {
+  const r = await rig({ catalog: DEMO });
+  await seed(r.host);
+  assert.equal(resetKind((await r.registry.get('shipped'))!), null, 'the original itself has nothing to reset');
+  await installUserTokens(r.host as never, { color: { brand: { mint: { $type: 'color', $value: '#000000' } } } });
+  const edited = (await r.registry.get('default'))!;
+  assert.deepEqual(edited.source, { kind: 'local', from: 'shipped' });
+  assert.equal(edited.label, 'Lolly Demo', 'an edit keeps the name');
+  assert.equal(await r.registry.activeId(), 'default');
+  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'lolly-starter'], 'the edit stands in for the original');
+
+  const back = await resetDesignSystem(r.host as never, 'default');
+  assert.equal(back.id, 'shipped');
+  assert.equal(await r.registry.get('default'), null);
+  assert.equal(await r.registry.activeId(), 'shipped');
+  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['lolly-starter', 'shipped']);
+});
+
+test('a system made here, a file, a hosted one and a locked one have no Reset', () => {
+  const base = { id: 'x', label: 'X', ns: 'user/ds/x/', headId: 'user/ds/x/tokens/brand', locked: false, createdAt: 0, lastUsedAt: 0 };
+  assert.equal(resetKind({ ...base, source: { kind: 'local' } }), null);
+  assert.equal(resetKind({ ...base, source: { kind: 'file', signature: 'unsigned' } }), null);
+  assert.equal(resetKind({ ...base, source: { kind: 'hosted', instance: 'https://a.example', packUrl: null, signature: 'verified' } }), null);
+  assert.equal(resetKind({ ...base, locked: true, source: { kind: 'local', from: 'app' } }), null);
+  assert.equal(resetKind({ ...base, source: { kind: 'local', from: 'app' } }), 'companion');
 });

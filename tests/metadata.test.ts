@@ -11,6 +11,7 @@ import { readFileSync } from 'node:fs';
 import {
   buildExportMeta, designRecordOf, designRecordEnvironment, designRecordWords, designRecordXml, readDesignRecord,
   readDesignRecordXml, parseThemeChoices, pdfKeywords, themesSelection, toolCredit,
+  brandSkillRecords, designRecordFrom, guidedByWords, parseBrandSkills,
 } from '../engine/src/metadata.ts';
 import { addColourway, liftToColourways } from '../engine/src/colourway.ts';
 
@@ -236,4 +237,88 @@ test('design record: PDF keywords name the record after the keywords a PDF alway
   const m = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, {}, null, { snapshot: snapshotOf(colourwayDoc(), { version: '2026-10' }) });
   assert.deepEqual(pdfKeywords(m), ['Lolly', 'https://lolly.tools/t/chart', 'Design system: Acme', 'Design version: 2026-10', 'Colourway: Persimmon']);
   assert.deepEqual(pdfKeywords(null), []);
+});
+
+// ─── The brand skills record (plan 323) ──────────────────────────────────────
+
+const BRAND = { id: 'acme/skill/brand', name: 'acme-brand', revision: '1.0', sha256: '0f'.repeat(32) };
+const PHOTO = { id: 'acme/skill/photography', name: 'acme-photography', revision: '1.2', sha256: 'ab'.repeat(32) };
+
+test('brand skills: absent, empty or null leaves every meta byte-identical', async () => {
+  const before = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, ANDY, null, { snapshot: snapshotOf(colourwayDoc()) });
+  for (const brandSkills of [undefined, null, []]) {
+    const m = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, ANDY, null, { snapshot: snapshotOf(colourwayDoc()), brandSkills });
+    assert.equal(JSON.stringify(m), JSON.stringify(before), String(brandSkills));
+    assert.equal('brandSkills' in m, false);
+    assert.deepEqual(pdfKeywords(m), pdfKeywords(before));
+    assert.deepEqual(designRecordEnvironment(m), designRecordEnvironment(before));
+    assert.deepEqual(designRecordXml(m), designRecordXml(before));
+  }
+});
+
+test('brand skills: recorded beside the design-system record, never in the description', async () => {
+  const m = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, ANDY, null, { snapshot: snapshotOf(colourwayDoc()), brandSkills: [BRAND, PHOTO] });
+  assert.deepEqual(m.brandSkills, [BRAND, PHOTO], 'in the order the agent named them');
+  assert.equal(m.description, 'Made with https://lolly.tools : Chart (Persimmon colourway) by Andy Fitzsimon');
+  assert.deepEqual(designRecordFrom(m).brandSkills, [BRAND, PHOTO]);
+  assert.equal(designRecordWords(m), 'Acme · Colourway: Persimmon · Guided by: acme-brand 1.0, acme-photography 1.2');
+  assert.equal(designRecordWords(m, { skills: false }), 'Acme · Colourway: Persimmon');
+  assert.equal(guidedByWords(m.brandSkills), 'acme-brand 1.0, acme-photography 1.2');
+  // A host with no design system still records the skills an agent was handed.
+  const bare = await buildExportMeta(hostWith({}), { name: 'Chart' }, {}, null, { brandSkills: [BRAND] });
+  assert.deepEqual(bare.brandSkills, [BRAND]);
+  assert.equal('designSystem' in bare, false);
+  assert.equal(designRecordWords(bare), 'Guided by: acme-brand 1.0');
+});
+
+test('brand skills: the credential key is one canonical JSON string that reads back', async () => {
+  const m = await buildExportMeta(hostWith({}), { name: 'Chart' }, {}, null, { snapshot: snapshotOf(colourwayDoc(), { version: '2026-10' }), brandSkills: [BRAND] });
+  const env = designRecordEnvironment(m);
+  assert.deepEqual(Object.keys(env), ['designSystem', 'designSystemLabel', 'designVersion', 'themes', 'brandSkills']);
+  assert.equal(env.brandSkills, `[{"id":"acme/skill/brand","name":"acme-brand","revision":"1.0","sha256":"${'0f'.repeat(32)}"}]`);
+  for (const v of Object.values(env)) assert.equal(typeof v, 'string', 'Verify keeps only scalar values');
+  assert.deepEqual(readDesignRecord(env), { designSystem: m.designSystem, designVersion: '2026-10', themes: m.themes, brandSkills: [BRAND] });
+  assert.deepEqual(readDesignRecord({ brandSkills: env.brandSkills }), { brandSkills: [BRAND] }, 'skills alone are a record');
+});
+
+test('brand skills: the lolly:BrandSkills property and the PDF keywords', async () => {
+  const meta = { designSystem: { id: 'acme', label: 'Acme' }, brandSkills: [BRAND, PHOTO] };
+  const xml = designRecordXml(meta);
+  assert.equal(xml.length, 3);
+  assert.match(xml[2]!, /^<lolly:BrandSkills>\[\{"id":"acme\/skill\/brand",.*\}\]<\/lolly:BrandSkills>$/);
+  assert.deepEqual(readDesignRecordXml(xml.join('')), meta);
+  const m = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, {}, null, { snapshot: snapshotOf(colourwayDoc(), { version: '2026-10' }), brandSkills: [BRAND, PHOTO] });
+  assert.deepEqual(pdfKeywords(m), [
+    'Lolly', 'https://lolly.tools/t/chart', 'Design system: Acme', 'Design version: 2026-10', 'Colourway: Persimmon',
+    'Guided by: acme-brand 1.0', 'Guided by: acme-photography 1.2',
+  ]);
+});
+
+test('brand skills: a list is bounded and shape-checked on the way in and on the way back', () => {
+  assert.deepEqual(parseBrandSkills('not json'), []);
+  assert.deepEqual(parseBrandSkills('{"id":"acme/skill/brand"}'), []);
+  assert.deepEqual(parseBrandSkills('x'.repeat(9000)), []);
+  assert.deepEqual(parseBrandSkills(null), []);
+  const bad = [
+    { ...BRAND, id: '../etc/passwd' },
+    { ...BRAND, id: 'Acme/Skill' },
+    { ...BRAND, name: 'Acme Brand' },
+    { ...BRAND, revision: '1.0 <b>' },
+    { ...BRAND, sha256: 'xyz' },
+    { ...BRAND, sha256: 'ab'.repeat(31) },
+    { id: 'acme/skill/no-hash', name: 'acme-x', revision: '1' },
+    'acme-brand', null, 7,
+  ];
+  assert.deepEqual(brandSkillRecords([...bad, BRAND]), [BRAND], 'each malformed entry is dropped, the good one kept');
+  // A digest prefix and upper case are normalised; a repeated id keeps the first.
+  assert.deepEqual(brandSkillRecords([{ ...BRAND, sha256: `sha256:${'0F'.repeat(32)}` }, { ...BRAND, revision: '2.0' }]), [BRAND]);
+  const many = Array.from({ length: 40 }, (_, i) => ({ ...BRAND, id: `acme/skill/s${i}` }));
+  assert.equal(brandSkillRecords(many).length, 16);
+  assert.ok(JSON.stringify(brandSkillRecords(many)).length <= 8192, 'the longest list written still reads back');
+  assert.equal(parseBrandSkills(JSON.stringify(brandSkillRecords(many))).length, 16);
+  // A hand-built meta cannot write a malformed entry into a credential or a file.
+  assert.deepEqual(designRecordEnvironment({ brandSkills: [{ ...BRAND, sha256: 'nope' }] }), {});
+  assert.deepEqual(designRecordXml({ brandSkills: [{ ...BRAND, id: '<x>' }] }), []);
+  assert.equal(readDesignRecord({ brandSkills: '[{"id":"<x>"}]' }), null);
+  assert.equal(readDesignRecordXml('<lolly:BrandSkills>[1,2]</lolly:BrandSkills>'), null);
 });

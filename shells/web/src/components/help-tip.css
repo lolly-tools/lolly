@@ -36,12 +36,16 @@
   }
   .help-tip-host {
     position: relative;
+
+
   }
+
+    .help-tip-pop a{color: color-mix(in srgb, var(--ui-color-border-default) 70%, var(--ui-color-text-muted));}
   .help-tip-pop {
     position: absolute;
     left: 0;
     right: 0;
-  
+
     top: calc(100% + var(--sp-1));
     margin: 0;
     z-index: var(--ui-layer-overlay);
@@ -52,12 +56,13 @@
     background: hsl(var(--popover-foreground) / 1);
     animation: slide-up var(--dur-3) ease forwards;
     color: hsl(var(--popover));
-    border: 1px solid hsl(var(--border));
+    border: 0;
     box-shadow: var(--ui-elevation-floating);
     font-size: var(--fs-xs);
     font-weight: 400;
     line-height: 1.4;
     letter-spacing: 0;
+    min-width:256px;
     text-transform: none;
     white-space: normal;
   }

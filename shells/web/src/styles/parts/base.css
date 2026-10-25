@@ -204,6 +204,30 @@ em, i, cite { font-family: var(--font-italic, var(--font-brand)); }
   outline: none;
 }
 
+/* ─── Unclaimed links ───────────────────────────────────────────────────────
+   A link no sheet claims used to draw in the browser's own blue, then visited
+   purple: the Start header's "Switch", the Learning empty state, a Settings
+   blurb's "How it works". It gets the house text link instead, the voice of the
+   components library's `.cl-text-link`: the action colour, and a hairline
+   underline that clears descenders, tints from the text and goes full strength
+   on hover.
+   Both selectors stay at zero specificity (`:where()`, and a `:not()` whose
+   argument is a `:where()`), so a sheet that already styles its links wins
+   untouched. The exemptions are the tool canvas and the offscreen render
+   stages, the same boxes the reduced-motion blocks above spare: a link inside a
+   render is the person's output, and an export must not change because the
+   chrome around it did. */
+:where(a:any-link):not(:where(.tool-canvas, #tool-content, #tool-canvas, .pro-export-canvas, .me-scale, .me-canvas) *) {
+  color: var(--ui-color-action-primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .22em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition: text-decoration-color var(--dur-1);
+}
+:where(a:any-link:hover):not(:where(.tool-canvas, #tool-content, #tool-canvas, .pro-export-canvas, .me-scale, .me-canvas) *) {
+  text-decoration-color: currentColor;
+}
+
 /* ─── App shell ─────────────────────────────────────────────────────────── */
 
 /* Ghost nav buttons */

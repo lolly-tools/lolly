@@ -13,7 +13,9 @@
  * Absent fields take the Design renderer's own defaults, because that is what paints:
  * text weight 700, text alignment centre, stroke width 0. Paint order is array order, so
  * "the surface under a layer" is the topmost earlier layer of the same artboard that
- * covers most of it, then the artboard's own fill.
+ * covers most of it, then the artboard's own fill. A layer Design does not draw is left
+ * out: one with its own `hidden` flag, or one whose artboard, group or layout container
+ * is hidden at any depth, read from the same hierarchy Design paints from.
  *
  * A finding is a review item with the rule's `requirement`, never a verdict on its own:
  * which findings block is the caller's decision. A rule whose kind this build does not
@@ -29,6 +31,7 @@ import { stripAssetModifiers } from './photo-treatment.ts';
 import { AUTO_ASSET_THEME, parseThemedAssetId } from './icon-theme.ts';
 import { buildSurfaceVariantTable, pickSurfaceVariant, surfaceColourResolver, surfaceUnderDesignLayer, type SurfaceVariantTableV1 } from './surface-variant.ts';
 import { parseDesignText } from './design-text.ts';
+import { designHierarchyIndex } from './design-hierarchy.ts';
 
 /** The layer-level rule kinds this module checks. */
 export const DESIGN_HOUSE_RULE_KINDS = [
@@ -53,7 +56,10 @@ export interface HouseRuleFinding {
 export interface DesignHouseRuleOpts {
   /** The token theme the document is composed in, for alias colours. */
   theme?: string;
-  /** Catalog facts (`DesignBriefCatalogV1`): the logo set stands in when a logo rule names none. */
+  /**
+   * Catalog facts (`DesignBriefCatalogV1`): the logo set stands in when a logo rule names
+   * none, and a logo finding's message calls each logo by its asset `name`.
+   */
   catalog?: unknown;
   /**
    * The document's canvas background (Design's `background` input), which a document
@@ -121,6 +127,8 @@ const NUMERIC_TEXT = /^[\s\d.,:;%+\-/#()x×]+$/i;
 interface Layout {
   rows: Row[];
   frames: Map<string, Row>;
+  /** Whether Design leaves this row undrawn: see `hiddenTest`. */
+  hidden: (row: Row) => boolean;
   /** Per artboard id ('' for none): the largest text size and how many texts share that size. */
   largest: Map<string, { size: number; count: number }>;
   tokens: ReturnType<typeof createTokenSet>;
@@ -177,7 +185,7 @@ function surfaceUnder(layout: Layout, index: number, own: boolean): Surface | nu
   const board = artboardOf(row);
   for (let i = index - 1; i >= 0; i--) {
     const under = layout.rows[i]!;
-    if (isHidden(under) || under.kind === 'frame' || under.kind === 'path' || artboardOf(under) !== board) continue;
+    if (layout.hidden(under) || under.kind === 'frame' || under.kind === 'path' || artboardOf(under) !== board) continue;
     if (!covers(under, row)) continue;
     const paint = paintOf(layout, under);
     if (paint === 'clear') continue;
@@ -276,8 +284,30 @@ export function combinationPolicy(doc: unknown, theme?: string): Pairings {
   return { byBackground, names };
 }
 
+/** A row is undrawn when its own flag, or that of any artboard, group or layout container owning the row, is set. */
+function hiddenTest(rows: Row[]): (row: Row) => boolean {
+  const flags = designHierarchyIndex(rows).flags;
+  return (row) => isHidden(row) || flags.get(row.id == null ? '' : String(row.id))?.hidden === true;
+}
+
 const label = (name: string): string => name.charAt(0).toUpperCase() + name.slice(1);
+/** Values for a field an agent reads (`value`, `expected`): comma-separated. */
 const list = (values: readonly string[]): string => values.join(', ');
+/** Choices in a sentence a person reads: "A, B or C", with no comma before the last. */
+const orList = (values: readonly string[]): string =>
+  values.length > 1 ? `${values.slice(0, -1).join(', ')} or ${values[values.length - 1]}` : (values[0] ?? '');
+
+/** Each catalog asset's display name by id (`DesignBriefCatalogV1.assets`). An asset with no name is left out. */
+function catalogAssetNames(catalog: unknown): Map<string, string> {
+  const names = new Map<string, string>();
+  const assets = record(catalog) && Array.isArray(catalog.assets) ? catalog.assets : [];
+  for (const asset of assets) {
+    if (!record(asset) || typeof asset.id !== 'string' || typeof asset.name !== 'string') continue;
+    const name = asset.name.trim();
+    if (name && !names.has(asset.id)) names.set(asset.id, name);
+  }
+  return names;
+}
 
 /** Check boxes against the house rules among `rules`. Rules of other kinds are left alone. */
 export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc: unknown, opts: DesignHouseRuleOpts = {}): DesignHouseRuleResult {
@@ -287,12 +317,13 @@ export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc:
   const rows = Array.isArray(boxes) ? boxes.filter(record) : [];
   const layout: Layout = {
     rows,
+    hidden: hiddenTest(rows),
     frames: new Map(rows.filter((r) => r.kind === 'frame' && typeof r.id === 'string').map((r) => [r.id as string, r])),
     tokens: createTokenSet(doc, { theme: opts.theme }),
     largest: new Map(),
   };
   for (const row of rows) {
-    if (isHidden(row) || !textOf(row).trim() || row.kind === 'image') continue;
+    if (layout.hidden(row) || !textOf(row).trim() || row.kind === 'image') continue;
     const key = artboardOf(row) ?? '';
     const size = num(row.fontSize, 0);
     const top = layout.largest.get(key);
@@ -301,7 +332,7 @@ export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc:
   }
   let pairings: Pairings | null = null;
   const catalogLogos = record(opts.catalog) && record(opts.catalog.logos) ? opts.catalog.logos : {};
-  const layers = rows.slice(0, 5000).map((row, index) => ({ row, index })).filter(({ row }) => !isHidden(row) && typeof row.id === 'string' && row.id);
+  const layers = rows.slice(0, 5000).map((row, index) => ({ row, index })).filter(({ row }) => !layout.hidden(row) && typeof row.id === 'string' && row.id);
   const texts = layers.filter(({ row }) => textOf(row).trim() && row.kind !== 'image');
 
   for (const rule of Array.isArray(rules) ? rules : []) {
@@ -422,7 +453,7 @@ export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc:
         const [x, y, w, h] = [num(row.x, 0), num(row.y, 0), num(row.w, 0), num(row.h, 0)];
         for (let i = index + 1; i < layout.rows.length && i < 5000; i++) {
           const strip = layout.rows[i]!;
-          if (isHidden(strip) || strip.kind === 'frame' || strip.kind === 'image' || textOf(strip).trim() || artboardOf(strip) !== artboardOf(row)) continue;
+          if (layout.hidden(strip) || strip.kind === 'frame' || strip.kind === 'image' || textOf(strip).trim() || artboardOf(strip) !== artboardOf(row)) continue;
           const fill = colourOf(layout, valueText(strip.bg));
           if (!fill || !accent(fill) || num(strip.opacity, 1) <= 0) continue;
           const [sx, sy, sw, sh] = [num(strip.x, 0), num(strip.y, 0), num(strip.w, 0), num(strip.h, 0)];
@@ -460,6 +491,14 @@ export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc:
       // so a `?theme=auto` logo is judged on the mark it takes there.
       const readColour = surfaceColourResolver(layout.tokens);
       let table: SurfaceVariantTableV1 | null = null;
+      // The message gives each logo's catalog name, or its id when the catalog gives none.
+      // `value` and `expected` keep the ids, which agents act on.
+      let names: Map<string, string> | null = null;
+      const logoName = (id: string): string => {
+        names ??= catalogAssetNames(opts.catalog);
+        const name = names.get(id);
+        return name ? `“${name}”` : id;
+      };
       for (const { row, index } of layers) {
         const raw = valueText(row.image) || (record(row.image) && typeof row.image.id === 'string' ? row.image.id : '');
         const resolved = aliasPath(raw) ? layout.tokens.resolve(aliasPath(raw)!) : raw;
@@ -479,7 +518,8 @@ export function checkDesignHouseRules(boxes: unknown, rules: BrandRuleV1[], doc:
         }
         const allowed = kind === 'photo' ? photo : kind === 'dark' ? dark : light;
         if (allowed.length && !allowed.includes(id)) {
-          add(row, 'image', id, list(allowed), `The logo ${id} sits on a ${kind === 'photo' ? 'photograph' : `${kind} surface`}; use ${list(allowed)}.`);
+          const choices = [...new Set(allowed.map(logoName))];
+          add(row, 'image', id, list(allowed), `The logo ${logoName(id)} sits on a ${kind === 'photo' ? 'photograph' : `${kind} surface`}; use ${orList(choices)}.`);
         }
       }
     }

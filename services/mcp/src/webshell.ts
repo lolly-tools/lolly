@@ -45,6 +45,16 @@ export async function webShellBase(): Promise<string> {
   return (await served).base;
 }
 
+/**
+ * Whether a web shell is ready to drive without building one: `LOLLY_WEB_BASE`,
+ * or a built shell at `LOLLY_WEB_DIST` (else the monorepo's shells/web/dist).
+ * A hosted server never builds the shell on demand, so this is its test.
+ */
+export function webShellReady(env: Record<string, string | undefined> = process.env): boolean {
+  if (env.LOLLY_WEB_BASE) return true;
+  return existsSync(join(env.LOLLY_WEB_DIST || join(REPO_ROOT, 'shells', 'web', 'dist'), 'index.html'));
+}
+
 /** Tear down the served shell (no-op for a remote LOLLY_WEB_BASE). */
 export async function closeWebShell(): Promise<void> {
   const s = served;

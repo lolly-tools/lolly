@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import type { LoadedTool } from '../../../../engine/src/loader.ts';
@@ -99,4 +100,73 @@ test('shared project reads honour source refusals and never browse another proje
   } finally { remove(); }
   const refused = registerSessionSource({ label: 'Workspace', listProjects: async () => [], readProjects: async () => ({ ok: false, status: 403 }), listSessions: async () => [], fetchSession: async () => null });
   try { await assert.rejects(createSiteToolCall(host().value)('lolly_read_project', {}), /refused \(403\)/); } finally { refused(); }
+});
+
+/** A mounted Design tool whose editor stub applies patches to the model, as the live session does. */
+function designSite(boxes: Array<Record<string, unknown>>) {
+  const f = host();
+  const tokens = JSON.parse(readFileSync(new URL('../../../../tests/fixtures/design-brief/tokens.json', import.meta.url), 'utf8'));
+  (f.value as unknown as { tokens: unknown }).tokens = { snapshot: async () => ({ document: tokens, system: null, version: 'latest', selection: {} }) };
+  const tool = { manifest: { id: 'design', name: 'Design', version: '1.0.0', status: 'community', description: 'Design',
+    inputs: [{ id: 'boxes', type: 'blocks', label: 'Layers', default: [] }], render: { width: 100, height: 100, formats: ['svg'] } } } as unknown as LoadedTool;
+  const model = [{ id: 'boxes', value: boxes }];
+  const requests: Array<{ method: string; params: Record<string, unknown> }> = [];
+  const removeTool = publishSiteTool({ tool, host: f.value, model: () => model as never, slot: () => undefined, folder: () => null, readOnly: () => false, current: () => true });
+  const removeEditor = publishSiteEditor({ close() {}, state: () => ({ closed: false, connected: true, paused: false }), request: async (method, params) => {
+    requests.push({ method, params });
+    if (method === 'document.get') return { documentId: 'doc-1', revision: 'r1', rows: model[0]!.value.slice(0, 1) };
+    if (method === 'document.apply') {
+      const patches = (params.layerPatches ?? []) as Array<{ id: string; set: Record<string, unknown> }>;
+      model[0]!.value = model[0]!.value.map((row) => ({ ...row, ...(patches.find((p) => p.id === row.id)?.set ?? {}) }));
+      return { documentId: 'doc-1', changed: patches.length > 0, changedIds: patches.map((p) => p.id), revision: 'r2', currentRevision: 'r2', layers: model[0]!.value.length, label: String(params.label) };
+    }
+    return null;
+  } });
+  return { call: createSiteToolCall(f.value), requests, remove: () => { removeEditor(); removeTool(); } };
+}
+
+const STRONG_COPY =
+  "In today's fast-paced world, it's important to delve into the rich tapestry of innovation. As an AI language model, I hope this helps! " +
+  'Let me know if you have any other questions. This is a testament to our commitment, and it underscores the pivotal, transformative role we play in the ever-evolving landscape.';
+const designBoard = (): Array<Record<string, unknown>> => [
+  { id: 'a1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#ffffff' },
+  { id: 'title', frame: 'a1', kind: 'text', x: 100, y: 100, w: 1600, h: 100, fontSize: 28, weight: '400', align: 'left', fg: '#13294b', text: 'Quarterly results' },
+  { id: 'body', frame: 'a1', kind: 'text', x: 100, y: 300, w: 1600, h: 300, fontSize: 28, weight: '400', align: 'left', fg: '#13294b', text: 'Revenue grew in every region.' },
+];
+
+test('an applied change answers with creation feedback for the layers it touched, and never refuses', async () => {
+  clearSiteToolSources({ name: 'tool' });
+  const site = designSite(designBoard());
+  try {
+    const result = await site.call('lolly_apply_document_changes', { documentId: 'doc-1', ifRevision: 'r1', transactionId: 't1', label: 'Rewrite body',
+      layerPatches: [{ id: 'body', set: { text: STRONG_COPY, align: 'center' } }] }) as { changed: boolean; feedback: { summary: string; writing: { band: string; score: number; previousScore: number }; findings: Array<{ layerId: string }>; phrases: Array<{ layerId: string }> } };
+    assert.equal(result.changed, true, 'the edit went through');
+    assert.equal(result.feedback.writing.band, 'strong');
+    assert.ok(result.feedback.writing.score > result.feedback.writing.previousScore);
+    assert.ok(result.feedback.findings.length > 0 && result.feedback.findings.every((f) => f.layerId === 'body'), 'only the touched layer');
+    assert.ok(result.feedback.phrases.every((p) => p.layerId === 'body'));
+    assert.match(result.feedback.summary, /Guidance to act on, not a gate\.$/);
+    // A change that did nothing carries no feedback.
+    const idle = await site.call('lolly_apply_document_changes', { documentId: 'doc-1', ifRevision: 'r2', transactionId: 't2', label: 'Nothing', layerPatches: [] }) as Record<string, unknown>;
+    assert.equal(idle.feedback, undefined);
+  } finally { site.remove(); }
+});
+
+test('lolly_check_document returns the whole report through the editor, read-only', async () => {
+  clearSiteToolSources({ name: 'tool' });
+  const site = designSite([...designBoard(), { id: 'draft', frame: 'a1', kind: 'text', x: 100, y: 700, w: 1600, h: 100, text: STRONG_COPY, hidden: true }]);
+  try {
+    const report = await site.call('lolly_check_document', { documentId: 'doc-1' }) as { documentId: string; revision: string; format: string; houseRules: { state: string }; writing: { band: string; state: string }; hidden: { layers: number }; summary: string };
+    assert.equal(report.documentId, 'doc-1');
+    assert.equal(report.revision, 'r1');
+    assert.equal(report.format, 'lolly-creation-feedback');
+    assert.equal(report.houseRules.state, 'checked');
+    assert.equal(report.writing.state, 'scored');
+    assert.notEqual(report.writing.band, 'strong', 'the hidden draft is left out');
+    assert.equal(report.hidden.layers, 1);
+    assert.match(report.summary, /This feedback informs; it never blocks an export\.$/);
+    assert.deepEqual(site.requests.map((r) => r.method), ['document.get'], 'reading feedback changes nothing');
+  } finally { site.remove(); }
+  clearSiteToolSources({ name: 'tool' });
+  await assert.rejects(createSiteToolCall(host().value)('lolly_check_document', {}), /Open a Design document/);
 });

@@ -6751,6 +6751,29 @@ test('destroying a CLOSED panel leaves nothing of the clock behind', () => {
   h.stageEl.remove();
 });
 
+test('a seek made before the first paint is applied when the content paints', () => {
+  // The `_t=` deep link: the panel opens and seeks while the canvas is still empty,
+  // and the first content paint reaches no runtime subscriber, so only the paint
+  // signal can put the boxes in their pose.
+  const h = mount([clip('one', 0, 3), clip('two', 3, 3)]);
+  try {
+    clockOf(h).seek(4);
+    paintSequence(h, 6000, {
+      one: { 'data-t-start': '0', 'data-t-dur': '3000' },
+      two: { 'data-t-start': '3000', 'data-t-dur': '3000', 'data-t-enter': 'fade', 'data-t-enter-ms': '2000' },
+    });
+    assert.equal(painted(h, 'one').classList.contains(OFF_CLASS), false, 'precondition: a fresh paint is at rest');
+    h.canvasEl.dispatchEvent(new dom.window.CustomEvent('lolly-canvas-painted'));
+    assert.ok(painted(h, 'one').classList.contains(OFF_CLASS), 'the scene the playhead has passed is hidden');
+    assert.ok(painted(h, 'two').style.opacity !== '', 'and the scene under the playhead is mid-fade');
+
+    // A closed panel has released the canvas, and a paint must not take it back.
+    h.panel.setOpen(false);
+    h.canvasEl.dispatchEvent(new dom.window.CustomEvent('lolly-canvas-painted'));
+    assert.equal(h.canvasEl.querySelectorAll(`.${OFF_CLASS}`).length, 0, 'a paint re-poses an open timeline only');
+  } finally { h.teardown(); }
+});
+
 // ── plans/179 T11: honest labels ─────────────────────────────────────────────
 
 test('a bar/chip says what it IS - never a bare "Clip"', () => {

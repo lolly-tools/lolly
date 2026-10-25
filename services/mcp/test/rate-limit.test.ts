@@ -48,13 +48,14 @@ test('Redis REST limiter uses atomic EVAL and hashes the raw subject', async () 
 test('hosted gateways require the durable pair and fail closed when it is unavailable', async () => {
   // No store and no opt-in: the limiter is constructed (the function boots) but
   // admits nothing - every consume is "unavailable", which the gateway maps to 503.
-  const unconfigured = createRateLimiter({ VERCEL: '1' });
+  const unconfigured = createRateLimiter({ LOLLY_MCP_HOSTED: '1' });
   await assert.rejects(unconfigured.consume('render', '10.0.0.1', 1, 60_000), /no durable rate limiter is configured/i);
   assert.throws(
     () => createRateLimiter({ LOLLY_RATE_LIMIT_REST_URL: 'https://limit.example.test' }),
     /configured together/,
   );
-  assert.doesNotThrow(() => createRateLimiter({ VERCEL: '1', LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT: '1' }));
+  assert.doesNotThrow(() => createRateLimiter({ LOLLY_MCP_HOSTED: '1', LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT: '1' }));
+  await assert.rejects(createRateLimiter({ NODE_ENV: 'production' }).consume('render', '10.0.0.1', 1, 60_000), /no durable rate limiter is configured/i);
 
   const limiter = new RedisRestRateLimiter({
     url: 'https://limit.example.test',

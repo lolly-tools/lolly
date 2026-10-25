@@ -16,10 +16,11 @@
  *   · A single artboard that IS the export frame is left alone too (the FIT_SNAP dead
  *     zone): the union then differs from the canvas only by fitCanvas's own gutter, and
  *     a transform for a sub-5% move would make isZoomed() true for nothing.
- *   · The zoom-out floor still clamps a HAND zoom-out at MIN_ABS. A computed fit is the
- *     one thing allowed past it - without that carve-out a 3-slide deck's Fit-all clamps
- *     at 20% of native and cuts the last slide in half, i.e. the floor forbids the view
- *     it just calculated.
+ *   · The zoom-out floor still clamps a HAND zoom-out at MIN_ABS. A computed fit is
+ *     allowed past it - without that carve-out a 3-slide deck's Fit-all clamps at 20% of
+ *     native and cuts the last slide in half, i.e. the floor forbids the view it just
+ *     calculated - and so is a page whose model extent needs more room (review N1),
+ *     down to a hard stop of 2% of native pixels.
  *
  * Driven through the real controller in jsdom, which reports zero rects, so the stage,
  * the canvas and the artboard pages are given stubbed rects. The canvas stub is
@@ -45,6 +46,7 @@ type Rect = { x: number; y: number; w: number; h: number };
 
 // The module's own constants, restated so that changing one is a visible test change.
 const FIT_MARGIN = 0.94, SEL_MARGIN = 0.85, MIN_ABS = 0.2;
+const FIT_FLOOR = 0.05, ABS_FLOOR = 0.02, PAGE_MARGIN = 0.5;
 const NATIVE_W = 1920;          // the export width the zoom floor/ceiling are absolute against
 const FITTED_W = 960;           // what the canvas measures at Fit → fitAbs 0.5, so the floor is 0.4
 const STAGE_W = 1000, STAGE_H = 700;
@@ -76,7 +78,7 @@ function transformOf(outer: HTMLElement): { scale: number; tx: number; ty: numbe
  * track the live transform so a second measurement after a zoom reads what the browser
  * would report. onFit stands in for tool.ts's fitCanvas.
  */
-function mount(pages: Rect[], sel: Rect | null = null) {
+function mount(pages: Rect[], sel: Rect | null = null, extent: Rect | null = null, fittedW = FITTED_W) {
   const stage = document.createElement('div');
   const outer = document.createElement('div');
   const canvas = document.createElement('div');
@@ -87,7 +89,7 @@ function mount(pages: Rect[], sel: Rect | null = null) {
   let fits = 0;
   const live = () => transformOf(outer);
   stubRect(stage, () => ({ x: 0, y: 0, w: STAGE_W, h: STAGE_H }));
-  stubRect(canvas, () => { const { scale } = live(); return { x: 0, y: 0, w: FITTED_W * scale, h: (FITTED_W * 9 / 16) * scale }; });
+  stubRect(canvas, () => { const { scale } = live(); return { x: 0, y: 0, w: fittedW * scale, h: (fittedW * 9 / 16) * scale }; });
   // outer keeps jsdom's zero rect on purpose: captureOrigin then puts the wrapper's
   // natural top-left at client (0,0), so a point at Fit-coordinate X is drawn at
   // tx + X * scale - the mapping the "does it actually fit" assertions below use.
@@ -102,8 +104,13 @@ function mount(pages: Rect[], sel: Rect | null = null) {
     return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
   };
 
+  // The overlay's content answer carries the page's whole extent beside the fit target,
+  // in client px at the live transform, exactly as free-canvas's queryRect does.
   const nav = setupStageNav(stage, outer, canvas, NATIVE_W, () => { fits++; }, undefined, undefined, undefined, {
-    contentRect: () => unionOf(pages),
+    contentRect: () => {
+      const r = unionOf(pages);
+      return r && extent ? { ...r, extent: unionOf([extent])! } : r;
+    },
     selectionRect: () => (sel ? unionOf([sel]) : null),
   });
   return {
@@ -281,6 +288,148 @@ test('the zoom-out floor still clamps a HAND zoom-out at MIN_ABS', () => {
     assert.ok(near(scale, floor, 1e-9), `zoom-out stops at the floor (${floor}), got ${scale}`);
     press('-');
     assert.ok(near(transformOf(h.outer).scale, floor, 1e-9), 'and stays there');
+  } finally { h.teardown(); }
+});
+
+// ── the page floor (review N1) ─────────────────────────────────────────────────
+//
+// MIN_ABS stops a hand zoom-out at 20% of native pixels, which on a large document is
+// nowhere near far enough to see it whole. The overlay now reports the page's model
+// extent beside the fit target, and a hand may zoom out until that extent fills
+// PAGE_MARGIN of the band, down to the hard stop.
+
+test('a large page lets a HAND zoom-out pass MIN_ABS until the whole page fills half the band', () => {
+  // One artboard (inside the FIT_SNAP dead zone, so no Fit-all widens anything) and a
+  // layer parked 8000 px out on the pasteboard.
+  const h = mount([{ x: 0, y: 0, w: 960, h: 540 }], null, { x: 0, y: 0, w: 8000, h: 540 });
+  try {
+    const want = PAGE_MARGIN * Math.min(STAGE_W / 8000, STAGE_H / 540);
+    assert.ok(want < MIN_ABS / (FITTED_W / NATIVE_W), 'precondition: the page needs more than MIN_ABS allows');
+    for (let i = 0; i < 30; i++) press('-');
+    assert.ok(near(transformOf(h.outer).scale, want, 1e-9), `stops with the page at half the band (${want}), got ${transformOf(h.outer).scale}`);
+  } finally { h.teardown(); }
+});
+
+test('the hard stop is 2% of native pixels, however large the page', () => {
+  const h = mount([{ x: 0, y: 0, w: 960, h: 540 }], null, { x: 0, y: 0, w: 200_000, h: 540 });
+  try {
+    for (let i = 0; i < 40; i++) press('-');
+    const fitAbs = FITTED_W / NATIVE_W;
+    const { scale } = transformOf(h.outer);
+    assert.ok(near(scale, ABS_FLOOR / fitAbs, 1e-9), `stops at ${ABS_FLOOR / fitAbs}, got ${scale}`);
+    assert.ok(near(scale * fitAbs, ABS_FLOOR, 1e-9), 'which is 2% absolute');
+  } finally { h.teardown(); }
+});
+
+test('a page that already fits keeps the MIN_ABS floor - a small document zooms out no further', () => {
+  const h = mount([{ x: 0, y: 0, w: 960, h: 540 }], null, { x: 0, y: 0, w: 960, h: 540 });
+  try {
+    for (let i = 0; i < 12; i++) press('-');
+    const floor = MIN_ABS / (FITTED_W / NATIVE_W);
+    assert.ok(near(transformOf(h.outer).scale, floor, 1e-9), `the plain floor (${floor}) still wins`);
+  } finally { h.teardown(); }
+});
+
+test('Fit all may now frame a wide deck down to 2% absolute (it stopped at 5% of Fit)', () => {
+  // At fitAbs 0.5, 5% of Fit is 2.5% absolute and 2% absolute is 4% of Fit.
+  const wide = 20_900;
+  const want = FIT_MARGIN * Math.min(STAGE_W / wide, STAGE_H / 540);
+  assert.ok(want < FIT_FLOOR && want > ABS_FLOOR / (FITTED_W / NATIVE_W), 'precondition: between the two stops');
+  const h = mount([{ x: 0, y: 0, w: 960, h: 540 }, { x: wide - 960, y: 0, w: 960, h: 540 }]);
+  try {
+    h.nav.fit();
+    assert.ok(near(transformOf(h.outer).scale, want), `framed whole at ${want}, got ${transformOf(h.outer).scale}`);
+  } finally { h.teardown(); }
+});
+
+test('the hard stop never rises above the old one - a canvas already shown small keeps 5% of Fit', () => {
+  // fitAbs 0.1: 2% absolute would be 20% of Fit, so the old 5%-of-Fit stop stands.
+  const fittedW = 192;
+  const wide = 30_000;
+  const want = FIT_MARGIN * Math.min(STAGE_W / wide, STAGE_H / 540);
+  assert.ok(want < FIT_FLOOR, 'precondition: the deck wants more than either stop');
+  const h = mount([{ x: 0, y: 0, w: 960, h: 540 }, { x: wide - 960, y: 0, w: 960, h: 540 }], null, null, fittedW);
+  try {
+    h.nav.fit();
+    assert.ok(near(transformOf(h.outer).scale, FIT_FLOOR), `clamped at ${FIT_FLOOR}, got ${transformOf(h.outer).scale}`);
+  } finally { h.teardown(); }
+});
+
+// ── Shift+0 and pointer-anchored keys (review section 3) ─────────────────────────
+
+test('Shift+0 is 100%, matched on the physical key whatever the layout types', () => {
+  for (const key of [')', '=', '0']) {   // US, German and French AZERTY readings of Shift+Digit0
+    const h = mount([{ x: 0, y: 0, w: 960, h: 540 }]);
+    try {
+      const e = press(key, { code: 'Digit0', shiftKey: true });
+      assert.equal(e.defaultPrevented, true, `Shift+0 typing '${key}' is the canvas's key`);
+      const { scale } = transformOf(h.outer);
+      assert.ok(near(scale * FITTED_W / NATIVE_W, 1, 1e-9), `100% of native pixels (got scale ${scale})`);
+    } finally { h.teardown(); }
+  }
+  const chord = mount([{ x: 0, y: 0, w: 960, h: 540 }]);
+  try {
+    for (const mods of [{ metaKey: true }, { ctrlKey: true }, { altKey: true }]) {
+      const e = press(')', { code: 'Digit0', shiftKey: true, ...mods });
+      assert.equal(e.defaultPrevented, false, `${JSON.stringify(mods)} Shift+0 belongs to the browser`);
+    }
+    assert.equal(chord.outer.style.transform, '', 'and the view did not move');
+  } finally { chord.teardown(); }
+});
+
+/**
+ * Give the wrapper a real size, so the pan clamp (non-editor stages keep an edge of the
+ * wrapper reachable) has room and the translation a zoom computes is what shows.
+ */
+function roomy(h: ReturnType<typeof mount>): ReturnType<typeof mount> {
+  for (const k of ['offsetWidth', 'offsetHeight']) Object.defineProperty(h.outer, k, { configurable: true, value: 5000 });
+  return h;
+}
+/** A mouse resting at (x, y) over `target` (the stage by default). */
+function hover(h: ReturnType<typeof mount>, x: number, y: number, target: Element = h.stage): void {
+  target.dispatchEvent(new dom.window.MouseEvent('pointermove', { clientX: x, clientY: y, bubbles: true }));
+}
+/** The translation a zoom by `f` about client point (px, py) gives from the identity view. */
+const about = (f: number, px: number, py: number) => ({ tx: px - px * f, ty: py - py * f });
+
+test('+ and - zoom about the pointer while it rests over the stage', () => {
+  const h = roomy(mount([{ x: 0, y: 0, w: 960, h: 540 }]));
+  try {
+    hover(h, 200, 300);
+    press('=');
+    const t = transformOf(h.outer), want = about(1.25, 200, 300);
+    assert.ok(near(t.scale, 1.25) && near(t.tx, want.tx) && near(t.ty, want.ty),
+      `the point under the pointer stays put (${JSON.stringify(t)})`);
+  } finally { h.teardown(); }
+});
+
+test('+ and - fall back to the band centre: no pointer, a pointer left, or one over a panel or column', () => {
+  const centre = about(1.25, STAGE_W / 2, STAGE_H / 2);
+  const cases: Array<[string, (h: ReturnType<typeof mount>) => void]> = [
+    ['no pointer yet', () => undefined],
+    ['the pointer left the stage', (h) => { hover(h, 200, 300); h.stage.dispatchEvent(new dom.window.MouseEvent('pointerleave')); }],
+    ['the pointer is over a floating panel', (h) => {
+      const panel = document.createElement('div'); panel.className = 'fc-panel'; h.stage.append(panel);
+      hover(h, 200, 300, panel);
+    }],
+  ];
+  for (const [what, arrange] of cases) {
+    const h = roomy(mount([{ x: 0, y: 0, w: 960, h: 540 }]));
+    try {
+      arrange(h);
+      press('=');
+      const t = transformOf(h.outer);
+      assert.ok(near(t.tx, centre.tx) && near(t.ty, centre.ty), `${what}: about the centre (${JSON.stringify(t)})`);
+    } finally { h.teardown(); }
+  }
+  // Over a docked column the pointer is outside the visible band, so the band's centre.
+  const h = roomy(mount([{ x: 0, y: 0, w: 960, h: 540 }]));
+  try {
+    h.stage.style.setProperty('--stage-reserve-left', '232px');
+    hover(h, 100, 300);
+    press('=');
+    const t = transformOf(h.outer), want = about(1.25, 232 + (STAGE_W - 232) / 2, STAGE_H / 2);
+    assert.ok(near(t.tx, want.tx) && near(t.ty, want.ty), `over the navigator column: the band centre (${JSON.stringify(t)})`);
   } finally { h.teardown(); }
 });
 

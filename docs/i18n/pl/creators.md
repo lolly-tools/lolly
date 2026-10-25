@@ -1,60 +1,75 @@
-# Lolly dla twórców
+# Create
 
-Wypełniasz kilka pól i na wyjściu masz gotowy plik, z czcionkami, kolorami i układem ustalonymi już na twoim urządzeniu. Publikujesz w kilka minut, a wygląda to tak, jakbyś spędził nad tym godziny, a ponieważ reguły marki są wbudowane w narzędzie, to nigdy nie twoje nazwisko widnieje pod plikiem niezgodnym z marką. Wybierz poniżej ścieżkę, która pasuje do tego, co robisz dzisiaj.
+Wypełniasz kilka pól i wychodzi gotowy plik, z czcionkami, kolorami i układem już ustalonymi, na Twoim urządzeniu. Ponieważ reguły marki są w narzędziu, nigdy nie Twoje nazwisko stoi pod plikiem niezgodnym z marką. Wybierz ścieżkę odpowiednią do tego, co dziś robisz.
 
-Jesteś jednym ogniwem sztafety: deweloper może rozbudować narzędzie, z którego korzystasz, w cały potok, a kolega może uruchomić je samoobsługowo, więc [Cykl życia kampanii](/info/overview.html#the-lifecycle-of-a-campaign) śledzi jeden zasób przez wszystkie trzy pary rąk.
-
-Pierwszy raz tutaj? Zacznij od **[Zrób coś w 60 sekund](/info/make-something.html)** i wróć, gdy będziesz wiedzieć, w którą stronę chcesz pójść głębiej. [Pytania i odpowiedzi](/info/faq.html) opisuje, o co ludzie pytają, zanim zaufają darmowemu narzędziu. [Jak Lolly wypada na tle innych](/info/positioning.html) to szczery przegląd tego, kiedy warto sięgnąć po coś innego.
+Jesteś tu nowy? Zacznij od **[Make your first file](/info/make-something.html)**. [How Lolly works](/info/how-lolly-works.html) pokazuje, jak narzędzie, którego używasz, może też działać ze skryptu lub z telefonu współpracownika, a [Questions & answers](/info/faq.html) odpowiada na to, o co ludzie pytają, zanim zaufają darmowemu narzędziu.
 
 ## Twórz
 
-Wybierz narzędzie, wypełnij kilka pól i pobierz gotowy plik. Albo otwórz płótno Design i ułóż wszystko odręcznie: tak czy inaczej kolory, typografia i odstępy pochodzą z twojej marki, a nie z pamięci, i nic nie wymaga konta.
+Wybierz narzędzie i wypełnij je albo ułóż stronę swobodnie na kanwie Design.
 
-- **[Zrób coś w 60 sekund](/info/make-something.html)** - trzy krótkie przewodniki bez niczego do skonfigurowania, jeśli nigdy wcześniej nie otwierałeś Lolly.
-- **[Korzystanie z Lolly](/info/using.html)** - płótno, elementy sterujące, zapisywanie, Projekty i użycie na telefonie: jak zachowuje się sama aplikacja.
-- **[Brand Studio](/info/brand-studio.html)** - kiedy logotypy, kolory i typografia powinny być twoje, a nie domyślne.
-- **[Zaimportuj projekt](/info/design-import.html)** - gdy grafika już istnieje jako plik `.fig`, `.penpot`, `.ai`, `.idml` lub SVG, a ty chcesz mieć ją do edycji, a nie spłaszczoną.
-- **[Widoki narzędziowe](/info/utilities.html)** - arkusz kalkulacyjny, konwerter, Colour Lab, ekstraktor PDF i Script audio, do zadań, które nie są renderowaniem narzędzia.
-- **[Rozszerzenie do przeglądarki](/info/extension.html)** - przechwyć żywą stronę internetową i wykorzystaj ją jako zasób we własnych projektach.
-- **[Wyszukiwanie](/info/search.html)** - jedno pole, które sięga do twoich narzędzi, zapisanych prac, katalogu i ustawień.
-- **[Ask Lolly](/info/ask.html)** - wpisz pytanie i otrzymaj pasujący fragment tych przewodników, wraz z linkiem prosto do niego.
-- **[Dashboard](/info/dashboard.html)** - co potrafi to urządzenie, twój system projektowy w trybie tylko do odczytu i szybki rzut oka na przestrzeń dyskową.
-- **[Twoje ulubione](/info/favourites.html)** - oznacz gwiazdką to, czego używasz często, aby otrzymało własny kafelek nad siatką.
-- **[Profile](/info/profile.html)** - dane, którymi wstępnie wypełniają się narzędzia, oraz cztery przełączniki dostępności, które wyciszają aplikację, nie ruszając ani piksela w tym, co eksportujesz.
+- **[Make your first file](/info/make-something.html)** - jedna krótka lekcja bez żadnej konfiguracji: kod QR, pobrany i zapisany jako edytowalna kopia.
+- **[Using Lolly](/info/using.html)** - kanwa, kontrolki, zapisywanie, Projects i użycie na telefonie: jak zachowuje się sama aplikacja.
+- **[Templates](/info/templates.html)** - zacznij od zapisanego układu zamiast pustego narzędzia.
+- **[Text in Design](/info/text-composition.html)** - nagłówki, tekst płynący i typografia dopasowana do swojego pola.
+- **[3D Studio](/info/3d-studio.html)** - grafika SVG i modele 3D ułożone, oświetlone i wyrenderowane jako jedna scena.
+- **[Utilities](/info/utilities.html)** - napraw plik na swoim urządzeniu: udostępnij go bezpiecznie, porównaj dwie wersje, zmień format, wydobądź słowa lub sprawdź kolor.
+- **[Browser extension](/info/extension.html)** - zrób zrzut ekranu żywej strony internetowej z aplikacji webowej albo odczytaj witrynę, aby zacząć system projektowy.
+
+## Spraw, by było Twoje
+
+Twój system projektowy decyduje, jak wygląda każde narzędzie.
+
+- **[Design System Setup](/info/brand-studio.html)** - logo, kolory, typografia i reszta, ustawione raz w `#/start`.
+- **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - warianty kolorystyczne na prawdziwej pracy i przełączanie na własny system projektowy.
+- **[Brand architectures](/info/brand-architectures.html)** - kilka systemów projektowych albo jeden z kilkoma wariantami kolorystycznymi dla jednej organizacji.
+- **[Import a design](/info/design-import.html)** - plik `.fig`, `.penpot`, `.ai`, `.idml` lub SVG otwarty jako edytowalny układ, a nie płaski obraz.
+- **[Rebrand a deck](/info/rebrand.html)** - prezentacja PowerPoint przeniesiona na Twój system projektowy, z nietkniętymi wykresami i animacjami.
+- **[Share a design with rules](/info/create-a-tool.html)** - zamień układ w narzędzie, które wypełniają inni.
+
+## Znajdź i zachowaj swoją pracę
+
+- **[Find and recover your work](/info/find-your-work.html)** - dokąd trafił zapisany, pobrany lub niezapisany plik.
+- **[Search](/info/search.html)** i **[Ask Lolly](/info/ask.html)** - jedno pole na Twoje narzędzia, zapisaną pracę, zasoby i ustawienia oraz odpowiedzi z tych przewodników.
+- **[Settings](/info/dashboard.html)** - co potrafi to urządzenie, Twój system projektowy tylko do odczytu i Twoja pamięć.
+- **[Your favourites](/info/favourites.html)** i **[Profiles](/info/profile.html)** - narzędzia z gwiazdką, dane, którymi narzędzia się wstępnie wypełniają, i przełączniki dostępności.
+- **[Sync your devices](/info/sync.html)** - ta sama praca na komputerze i telefonie, przez magazyn, który wybierzesz.
 
 ## Animuj
 
-Tekst, który się porusza, sceny na osi czasu i ruch, który pozostaje zgodny z marką. Eksport animacji jest komponowany klatka po klatce ze sterowanego zegara, a nie nagrywany z ekranu, więc synchronizacja nigdy nie ucieka, a ten sam link renderuje ten sam klip o dowolnej długości.
+Tekst, który się porusza, sceny na osi czasu i ruch zgodny z marką. Eksport ruchu jest rysowany klatka po klatce z sterowanego zegara, a nie nagrywany z ekranu, więc ten sam link daje ten sam klip.
 
-- **[Animowanie](/info/animating.html)** - klatki kluczowe, prawdziwa głębia i kamera sceny, by przelecieć nad wynikiem.
-- **[Edytor sekwencji](/info/sequence-editor.html)** - sama oś czasu: klipy, ścieżki nakładek, przycinanie i dzielenie, przejścia oraz miks dźwięku.
-- **[Eksportowanie i formaty](/info/exporting.html)** - część panelu eksportu dotycząca wideo, GIF i animowanego PNG, gdy ruch jest już dopracowany.
+- **[Animating](/info/animating.html)** - klatki kluczowe, prawdziwa głębia i kamera sceny.
+- **[The sequence editor](/info/sequence-editor.html)** - klipy, ścieżki nakładek, przycinanie i dzielenie, przejścia i miks audio.
+- **[Wide Colour and HDR](/info/hdr-editing.html)** - kolor poza zwykłym zakresem, na ekranach i w formatach, które potrafią pokazać dodatkowy zakres.
 
-## Nagrywaj
+## Nagrywaj i prezentuj
 
-Nagraj czyste ujęcie z odliczaniem, miernikiem poziomu i łagodnym doradztwem, albo zamień notatkę głosową w gotowe wideo, które porusza się razem z dźwiękiem. Nie ma jeszcze osobnej strony Record: mieści się ona w sekcji osi czasu strony Korzystanie z Lolly.
+Nagraj czyste ujęcie z odliczaniem i miernikiem poziomu albo stań przed własnymi slajdami.
 
-- **[Korzystanie z Lolly](/info/using.html#timeline-sequence)** - nagrywanie lektora bezpośrednio na osi czasu, gdzie zapisywane jest ujęcie i jak trafia ono do miksu.
-- **[Zrób swój pierwszy plik](/info/make-something.html#other-first-projects)** - audiogram, na wypadek gdy wolisz być usłyszany, niż widziany.
-- **[Widoki narzędziowe](/info/utilities.html)** - Script audio, gdy słowa powstają najpierw, a głos dochodzi później.
-
-## Prezentuj
-
-Nałóż kamerę, logo i swoje imię i nazwisko na prezentację Design lub Countdown, z prywatnymi elementami sterującymi w osobnym oknie.
-
-- **[Prezentowanie z kamerą](/info/presenting.html)** - kadrowanie, zapisane sceny, udostępnianie widzom, nagrywanie lokalne oraz obecne ograniczenia wersji próbnej.
+- **[The Design timeline](/info/design.html#timeline-sequence)** - nagrywanie lektora prosto na oś czasu.
+- **[Make your first file](/info/make-something.html#other-first-projects)** - audiogram, gdy wolisz być słyszany niż widziany.
+- **[Presenting with camera](/info/presenting.html)** - Twoja kamera, logo i imię nad prezentacją lub Countdown, z prywatnymi kontrolkami w osobnym oknie.
+- **[Live pages that take the clicker](/info/interactive-pages.html)** i **[Agenda screens](/info/agenda.html)** - strony i programy dla sali.
 
 ## Współpracuj
 
-Dwie osoby, dwa urządzenia, jedna sesja, edytowana na żywo. Zeskanuj kod przy stole, a oba ekrany będą trzymać tę samą pracę, bez konta i bez serwera pośrodku - a nawet bez internetu, gdy oba urządzenia są w tej samej sieci.
+Dwie osoby, dwa urządzenia, jeden projekt, edytowany na żywo, bez konta i bez serwera pośrodku.
 
-- **[Wspólna praca](/info/collaborate.html)** - jak rozpocząć sesję, co wędruje między urządzeniami i co się dzieje, gdy sieć zanika.
-- **[Korzystanie z Lolly](/info/using.html#sharing-your-work)** - cichsze sposoby na przekazanie pracy dalej: link udostępniający, który niesie cały stan, albo jeden plik `.lolly`.
+- **[Working together](/info/collaborate.html)** - prywatne collaby między urządzeniami i collaby robocze przez Lolly Work Twojej organizacji.
+- **[Using Lolly](/info/using.html#sharing-your-work)** - link udostępniania, który niesie cały stan, albo jeden plik `.lolly`.
+- **[Use Lolly at your organisation](/info/organisation.html)** - logowanie, wspólne projekty i zarządzane ustawienia, gdy organizacja prowadzi Lolly Work.
 
 ## Publikuj
 
-Wyślij to tam, gdzie było potrzebne: link niosący cały projekt, wierny drukowi PDF, wideo, prezentację albo folder wariantów. To samo źródło tworzy każdy z nich, więc budujesz to raz.
+Wyślij tam, gdzie o to poproszono: link, PDF wierny wydrukowi, wideo, prezentację lub folder wariantów, wszystko z tego samego źródła.
 
-- **[Eksportowanie i formaty](/info/exporting.html)** - jednostki druku, DPI, spady i znaczniki cięcia, wideo, przebiegi wsadowe i sam panel eksportu.
-- **[Każdy format, który Lolly potrafi otworzyć i utworzyć](/info/formats.html)** - pełna lista wejść i wyjść, z prostą kartą opisową za każdym znacznikiem.
-- **[Transfer danych](/info/data-transfer.html)** - paczka kopii zapasowej, do przenoszenia wszystkiego, co stworzyłeś, na inne urządzenie.
+- **[Export a file](/info/exporting.html)** - jednostki druku, spady i znaczniki cięcia, wideo, przebiegi wsadowe i panel eksportu.
+- **[Every format Lolly can open and make](/info/formats.html)** - pełna lista wejść i wyjść.
+- **[Creative rights and credits](/info/creative-rights.html)** - licencje tego, czego użyłeś, i uznania autorstwa, które podróżują z plikiem.
+
+## Scenariusze dla zespołów i porównania
+
+- **Dla Twojego zespołu:** [sprzedaż](/info/sales.html), [marketing](/info/marketing.html), [redakcja](/info/press.html) i [dział prawny](/info/legal.html).
+- **[How Lolly compares](/info/positioning.html)** - w czym Lolly jest dobre i kiedy sięgnąć po coś innego.
+- **[Lolly compared, tool by tool](/info/compare.html)** - Canva, Adobe, Figma, Penpot, portale marek, API renderujące i internetowe konwertery.

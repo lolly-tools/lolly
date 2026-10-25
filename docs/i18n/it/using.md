@@ -1,27 +1,213 @@
 # Usare Lolly
 
-Una guida pratica per *usare* davvero l'app - aprire uno strumento, lavorare sul canvas, esportare, salvare e condividere. Tutto qui gira **sul tuo dispositivo**: nessun account, nessun caricamento, e nessuna connessione a internet necessaria per le schermate che hai già aperto.
+Hai Lolly aperto e vuoi creare qualcosa, conservarlo e inviarlo. Questa pagina percorre quel ciclo: apri uno strumento, cambia ciò che ti lascia cambiare, salva il risultato e condividilo come link o come file.
 
-> Sei nuovo qui? La [Guida rapida](/info/quickstart.html) ti fa creare qualcosa in pochi minuti, e [Lolly per gli operatori](/info/operators.html) copre l'installazione e la distribuzione dell'app; questa pagina riguarda come guidarla una volta aperta.
+Tutto qui gira sul tuo dispositivo, senza account, e continua a funzionare offline una volta scaricati gli strumenti e le risorse che ti servono. Per avviarsi, l'app richiede un browser o un'app con WebGPU; [Supported environments](/info/supported-environments.html) elenca quelli testati.
 
-## Aprire uno strumento
+## Orientarsi
 
-La schermata iniziale è la **galleria** - tutti gli strumenti, raggruppati per categoria. Fai clic su una card per iniziare qualcosa di nuovo in quello strumento; [il lavoro salvato](#saving-continuing) si riapre da **Progetti**. Usa il campo di ricerca per filtrare per nome - oppure la [Ricerca](/info/search.html) dalla barra in fondo alle sei schermate di elenco (la galleria, Utility, Progetti, Risorse, la Dashboard e Impostazioni), che raggiunge il tuo lavoro salvato, le tue risorse e le tue impostazioni oltre agli strumenti. Dentro uno strumento la barra si fa da parte per lasciare spazio ai comandi dello strumento.
+::: figure using-app-map
+La schermata iniziale: quattro schede in alto e la barra in basso. Uno strumento, una volta aperto, mostra i suoi controlli accanto a un'anteprima live.
+:::
+
+In alto nella schermata iniziale corrono quattro schede: **Tools**, **Utilities**, **Assets** e **Projects**. Gli strumenti sono ciò con cui crei, le Utility sono banchi di lavoro per compiti come convertire, controllare o ripulire un file, Assets è la tua libreria e Projects contiene ciò che hai salvato.
+
+La barra in basso contiene **Open**, **Settings**, un campo di ricerca, **Verify** e **What?**. Compare in Tools, Utilities, Assets, Projects, Settings e nelle guide che leggi nell'app, e si fa da parte quando uno strumento è aperto. [Search](/info/search.html) raggiunge da quel campo i tuoi strumenti, il lavoro salvato, le risorse e le impostazioni. [Ask Lolly](/info/ask.html) risponde a una domanda scritta con la sezione corrispondente di queste guide.
+
+Fai clic su una scheda per iniziare qualcosa di nuovo in quello strumento. Il lavoro salvato si riapre invece da **Projects**.
 
 ![Una card della galleria con navigazione di esempio e un'azione Nuovo](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
-Ogni strumento è una vista divisa: i **controlli** da un lato, un'**anteprima** dal vivo (il canvas) dall'altro. Cambia un controllo qualsiasi e l'anteprima si aggiorna all'istante.
+Ogni strumento è una vista divisa: i **controlli** da un lato e un'**anteprima** live dall'altro. Cambia un controllo e l'anteprima lo segue subito, e ciò che vedi è ciò che viene esportato.
 
 ![La vista divisa di uno strumento - la pila di controlli a sinistra, e il grafico a barre raggruppate in tempo reale che disegna a destra](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-> Alcuni strumenti (come **Design**) si aprono invece come **canvas libero** - una superficie priva di cornice, a manipolazione diretta, dove trascini, ridimensioni, ruoti e agganci riquadri di testo, forme e immagini e fai doppio clic per modificare il testo sul posto. Esporta attraverso lo stesso percorso di rendering di ogni altro strumento, quindi il canvas *è* il file. Consulta [Il canvas libero](#the-free-canvas-design) più sotto.
+**Design** è l'eccezione. Si apre come tela libera di box che trascini, ridimensioni e in cui scrivi, con una propria barra superiore, una timeline e controlli per i deck. [Design: the free canvas](/info/design.html) è la sua guida.
 
-Due modi per plasmare la griglia e renderla quella che vuoi tu:
+## Cambia ciò che lo strumento ti lascia cambiare
 
-- <!--i:star--> **Metti una stella su ciò che usi.** Aggiungi una ★ a una card e ottiene un riquadro tutto suo in una striscia sopra la griglia - vedi [I tuoi preferiti](/info/favourites.html).
-- <!--i:eyeoff--> **Nascondi uno strumento che non usi mai.** Fai clic destro su una card (oppure selezionane diverse e usa la barra di selezione) → **Nascondi strumento**. Sparisce dalla griglia, e da ciò che trovi digitando nella griglia; un riquadro grigio **Mostra strumenti nascosti (N)** proprio in fondo li rivela di nuovo, attenuati, ciascuno con **Mostra strumento** nel proprio menu. Nascondere riguarda solo la tua griglia - lo strumento si apre comunque da un link salvato o da un preferito, e per tutti gli altri resta esattamente dov'era.
+Uno strumento mostra solo gli input pensati per variare. Il suo autore ha già fissato colori, layout, tipografia e logica, quindi tutto ciò che crei rispetta le sue regole. Gli input includono testo, cursori, selettori di colore, menu a tendina, date, selettori di immagini e gruppi di righe ripetute, e alcuni stanno in sezioni richiudibili.
 
-![La fine della griglia Tools con gli strumenti nascosti rivelati: la card attenuata di QR Code Generator, e accanto il riquadro grigio che l'ha riportata in vista, che ora recita Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-bulk%3D%22hide%22%5D%3Bwait%3A300%3Bclick%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+![La colonna dei controlli di uno strumento - un campo di testo, i selettori di colore e uno slider e nient'altro, perché il resto l'autore ha scelto di bloccarlo](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+
+**Fai clic sul design per trovare il suo controllo.** Fai clic su qualsiasi elemento dell'anteprima e il controllo corrispondente riceve il focus e scorre in vista. In un gruppo di righe ripetute si apre la riga esatta su cui hai fatto clic.
+
+**Clear changes**, sopra i controlli, riporta ogni input al suo valore predefinito.
+
+**Scelte del design system.** Quando il tuo design system offre più di una colourway, un aspetto chiaro e uno scuro o un'altra scelta di tema, una sezione **Design system** sotto i controlli le contiene. Una scelta compare solo quando cambia questo strumento, quindi un'utility per file non mostra alcuna sezione. Ogni colourway è un punto nei propri colori, chiaro e scuro sono due pulsanti e ogni altra scelta è un elenco.
+
+La scelta appartiene a questo pezzo. Viaggia nel link e nella sessione salvata, ogni colore collegato al design system la segue e i colori dell'app stessa restano invariati. Design mostra le stesse scelte nella scheda **Canvas** dell'Inspector. Uno strumento i cui colori sono il suo contenuto può restare sulla colourway canonica, e allora non offre punti di colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) mostra le colourway su lavoro reale.
+
+### Zoom e spostamento dell'anteprima
+
+L'anteprima mostra sempre esattamente ciò che verrà esportato.
+
+- **Zoom:** Cmd/Ctrl + scorrimento o pizzico su un trackpad, centrato sul puntatore. Da tastiera, `0` o `Shift+1` adatta tutto, `1` o `Shift+0` imposta il 100% e `Shift+2` adatta la selezione. `+` / `−` fanno zoom attorno al puntatore quando si trova sull'area di lavoro, altrimenti attorno al centro.
+- **Spostamento:** tieni premuto **Space** e trascina, oppure trascina con il tasto centrale del mouse. I semplici clic restano liberi per fare clic sulle parti del design.
+- **Tocco:** pizzica per fare zoom, trascina per spostare e tocca due volte per adattare.
+- **HUD dello zoom:** tieni premuta la spirale di Lolly nell'angolo per aprire `−`, **Fit** e `+`. Un tocco breve sulla spirale apre comunque il menu del tuo profilo.
+
+In Design, **Fit all** include gli artboard e i livelli liberi. Puoi ridurre manualmente lo zoom sotto il 20% finché l'intera pagina occupa metà della vista. Il limite inferiore è il minore tra il 5% della normale scala Fit e il 2% di zoom assoluto.
+
+Un cambio di dimensione dell'output riporta sempre la vista a un adattamento pulito.
+
+![L'HUD dello zoom aperto dalla spirale nell'angolo della tela - meno, Fit, più, poi gli interruttori di tema e suono e la maniglia che lo sposta](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+
+### Annulla e ripeti
+
+**Cmd/Ctrl-Z** torna indietro e **Cmd/Ctrl-Shift-Z** (o **Cmd/Ctrl-Y**) va avanti. La stessa coppia è presente come pulsanti **Undo** e **Redo** sopra i controlli (in Design sono nella barra superiore), e ciascuno si disattiva quando non c'è più nulla da annullare. Un messaggio indica quale input ogni annullamento ha ripristinato, con un pulsante **Redo** nel messaggio.
+
+- **Un trascinamento è un solo passaggio.** Modifiche ripetute a un controllo entro mezzo secondo si fondono, quindi trascinare un cursore lungo tutto il suo intervallo è un unico annullamento.
+- **Vengono conservati gli ultimi 100 passaggi.** Una nuova modifica dopo un annullamento svuota la pila in avanti.
+- **In una casella di testo**, Cmd/Ctrl-Z appartiene al campo, carattere per carattere. Lolly interviene per cursori, menu a tendina, colori e interruttori.
+- **Scegliere un file** in un campo file non è un passaggio, perché quei byte vengono tenuti solo per questa sessione.
+
+In una [collaborazione](/info/collaborate.html) live la tua cronologia resta tua: una modifica dell'altro dispositivo non finisce mai nella tua pila. L'annullamento dura finché non lasci lo strumento o ricarichi. Per qualcosa di più vecchio, gli strumenti che salvano mentre lavori conservano le versioni precedenti in **History**; vedi [Go back to an earlier version](/info/find-your-work.html#go-back-to-an-earlier-version).
+
+### Camera live
+
+Gli effetti dello strumento **Filter** (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art e Glitch) mostrano un pulsante **Go live** dove è disponibile una camera. Attivalo e l'effetto segue la tua webcam fotogramma per fotogramma, e un'esportazione di animazione registra il risultato come GIF, WebM o MP4. I fotogrammi vengono elaborati sul tuo dispositivo e la camera viene rilasciata nel momento in cui ti fermi o lasci lo strumento. Ogni selettore di immagini ha anche **Take a photo** per un singolo fotogramma.
+
+## Salvare e continuare
+
+Per conservare il lavoro, premi **Save**, la spunta accanto a **Export** sulla pillola di rendering. Il lavoro nuovo va in **My library**, quello salvato in precedenza viene aggiornato dov'è e non viene scaricato nulla. Il pannello di esportazione ha lo stesso pulsante **Save**.
+
+Per scegliere dove va, premi **Save as**, accanto a **Download** nel pannello di esportazione. In **Save to a project**, lascia selezionato **My library** o scegli un progetto (**＋ New project…** ne crea uno), poi premi **Save**; **Save as a template** conserva il design come [template](/info/templates.html), un punto di partenza per nuovi documenti. In Design, **Save as** è nel menu Lolly; su un telefono premi **•••**, poi **File menu**, poi **Save as**.
+
+![La pillola di rendering in due metà: Export, con una freccia in su che apre il pannello di esportazione, e Save, con una spunta che salva sul posto](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+
+::: timeline
+- <!--i:check--> Premi **Save** sulla pillola di rendering, oppure **Save as** per scegliere un progetto.
+- <!--i:folder--> L'elemento va in **My library**, o nel progetto che hai scelto.
+- <!--i:home--> Più tardi, premi **Home** in alto a sinistra e apri la scheda **Projects**.
+- <!--i:document--> Apri l'elemento. Ogni impostazione è tornata, pronta per essere modificata ed esportata di nuovo.
+:::
+
+Gli elementi prendono il nome dal nome file che hai digitato nel pannello di esportazione, o altrimenti dal loro strumento, come **QR Code**. Un file ottenuto con **Download** è una copia finita; per modificarlo più tardi, apri l'elemento salvato in Projects.
+
+I salvataggi personali restano su questo dispositivo, nel browser o nell'app da cui hai salvato, a meno che tu non attivi [Sync](/info/sync.html). Se qualcosa non è dove te lo aspetti, [Find and recover your work](/info/find-your-work.html) tratta ogni caso, da una scheda chiusa ai dati del browser cancellati.
+
+::: details Progetti di team con Lolly Work (facoltativo)
+Se la tua [organizzazione usa Lolly Work](/info/organisation.html), accedi alla sua istanza e apri **Projects → Team projects** per le sessioni condivise con te. L'organizzazione imposta accesso e conservazione, e il suo servizio Lolly Work conserva quelle sessioni. Una sessione condivisa entra nella sua collab live all'apertura quando la tua organizzazione consente la modifica live; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) spiega i passaggi.
+
+La tua libreria personale resta separata. Accedere su un altro dispositivo ti dà il lavoro di team, mentre i salvataggi personali richiedono comunque Sync o un backup per spostarsi.
+:::
+
+## Condividere il tuo lavoro
+
+Un design esce come link o come file. **Share** nei controlli di esportazione apre una finestra che offre entrambi, e **Share link** su una sessione salvata in Projects apre la stessa finestra per quella sessione.
+
+::: cols
+## Un link
+
+- Porta ogni input nell'indirizzo, quindi il link riproduce il design.
+- Lascia fuori le immagini e i file aggiunti da questo dispositivo, i testi molto lunghi e gli elenchi molto grandi.
+- Si apre in qualsiasi browser, quindi puoi aggiungerlo ai preferiti, incollarlo o inserirlo in un commit.
+
+## Un file .lolly
+
+- Porta la sessione salvata con le immagini e i file presenti su questo dispositivo, e può portare anche lo strumento e il design system.
+- Trattiene la grafica del catalogo con licenza, a meno che tu non scelga di includere i file.
+- Si apre in Lolly: fai doppio clic, usa **Open** o trascinalo sull'app.
+:::
+
+### Il link
+
+Il link pronto da copiare si trova in cima alla finestra, con **Copy** e un pulsante **QR** che apre lo strumento QR Code sul link. Sotto il link, **Link options** contiene:
+
+- **Open in the installed app** trasforma il link in un indirizzo `lolly://` per Comandi rapidi, launcher e automazioni, con ogni parametro invariato.
+- **Shortest link** comprime un design lungo in un token compatto e mostra il risparmio in caratteri. È sempre disponibile anche la forma leggibile.
+- **Password-protect this link** cifra il link sul tuo dispositivo con AES-256. La password non fa mai parte del link.
+- **Pin this tool version** aggiunge il flag `_v`, così un aggiornamento successivo dello strumento non può cambiare ciò che il link renderizza.
+- **When the recipient opens the link…** sceglie schermo intero, il pannello di esportazione già espanso, un download all'apertura (`&export`) o una copia negli appunti (`&copy`).
+- **Copy credit** copia una didascalia "Made with Lolly" insieme al link, per un post o una slide.
+
+Quando uno strumento contiene campi personali, come il tuo nome, **Review personal fields** tiene ciascuno fuori dal link finché non spunti quel campo. [URL mode](/info/url-mode.html) tratta tutto ciò che un link può portare.
+
+**La finestra dice cosa un link non può portare.** Un'immagine o un file aggiunti da questo dispositivo, un valore di testo molto lungo e un elenco molto grande non entrano in un indirizzo. Ognuno viene contato mentre il link viene costruito. Se qualcosa ha dovuto essere scartato, la finestra lo elenca e ti indirizza all'opzione file, invece di consegnarti un link che si apre con un'immagine mancante. Un link che è solo lungo riceve una nota più lieve con il numero di caratteri.
+
+**Alcuni strumenti fanno del link l'intero prodotto.** Jump Page raccoglie i tuoi link in un'unica pagina da distribuire: un link in bio, un intervento, una vetrina. Nulla è ospitato e dietro la pagina non c'è alcun account, perché la pagina è il link. Un visitatore la vede a tutta larghezza, un link per scena mentre scorre.
+
+![Jump Page nell'editor: la scena del titolo nella parte superiore della pagina, con le scene dei link sotto](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+
+::: details Link gestiti dall'organizzazione con Lolly Work
+Per una condivisione che richiede scadenza, revoca o password, Lolly Work offre link gestiti a sessioni condivise, strumenti e risorse del catalogo. Si risolvono attraverso il servizio dell'organizzazione e seguono le sue regole di accesso. Sono separati dai link autonomi descritti sopra, e revocarne uno non può richiamare un file che qualcuno ha già scaricato. [Rendering and sharing](/info/manage/sharing.html) elenca i tipi di link e i permessi.
+:::
+
+### Il file .lolly
+
+**Download .lolly**, nella sezione **Editable file** della finestra Share, scrive il design corrente come un unico file. Porta la sessione salvata con le immagini e i file presenti su questo dispositivo, e con esso viaggia anche la normale grafica del catalogo. Un file obsoleto o non disponibile resta un riferimento esterno invece di sparire. Prima di salvare, la finestra mostra la dimensione del file, quanti file incorpora, quanti ne referenzia e se lo strumento è incluso. Dove il tuo dispositivo ha un foglio di condivisione, **Send to…** gli passa direttamente il file (AirDrop, una condivisione Android).
+
+**Download project (.lolly)**, nel menu di una cartella in **Projects**, scrive un'intera cartella, così qualcun altro può proseguire con ogni sessione della cartella. Le sessioni batch restano escluse, e l'avviso dice quante. **Download originals**, nello stesso menu, scrive uno zip semplice di ogni elemento come file a sé.
+
+Tre cose spetta a te decidere prima che un file parta:
+
+- **Se il tuo nome è incluso.** Il tuo nome, l'email e l'organizzazione vengono scritti solo quando **Use my details to create** è attivo nel [tuo profilo](/info/profile.html). Se è disattivato, il file registra solo che è stato creato con Lolly, e quando.
+- **Se la grafica trattenuta è inclusa.** La grafica con licenza, quella bloccata dal brand e le opere del catalogo la cui licenza non è mai stata registrata restano fuori per impostazione predefinita. Se il design ne usa qualcuna, la finestra dice quante e offre *Download without them* o *Include and download*, perché includerle consegna i file a chiunque apra il `.lolly`. Il `CREDITS.txt` del file elenca cosa è stato incluso e cosa no, con il motivo; [Creative rights and credits](/info/creative-rights.html) spiega le regole.
+- **Se lo strumento è incluso.** **Include the tool** impacchetta i file dello strumento stesso, così il design si apre su un dispositivo che non ha quello strumento. Parte spuntato per uno strumento personalizzato, come un fork, e non spuntato per uno strumento che il catalogo firmato elenca. In una build senza catalogo firmato, ogni strumento conta come personalizzato.
+
+**Aprirne uno.** Nelle app desktop e mobile, fai doppio clic o tocca un `.lolly`, scegli **Open with Lolly** o invialo a Lolly dal foglio di condivisione. Nell'app web, premi **Open** o trascina il file su Lolly. Ogni percorso legge prima il manifest del file e ne mostra dimensione, contenuto e cosa succederà, prima che venga scritto qualsiasi cosa.
+
+Se il file porta uno strumento che non hai, **Trust this tool?** mostra lo strumento e il suo autore, e dice che aprirlo esegue sul tuo dispositivo il codice dello strumento stesso. **Trust & install** procede. Se rifiuti, il lavoro viene comunque salvato in Projects, in attesa del giorno in cui aggiungerai lo strumento. Uno strumento il cui codice è distribuito come modulo non può ancora essere installato in questo modo e viene respinto allo stesso modo.
+
+::: details Cosa contiene un .lolly e come funziona l'apertura
+`.lolly` è l'estensione dei bundle di Lolly, e il `format` nel suo `manifest.json` dice cosa contiene:
+
+- Un **design condiviso** (`lolly-share`) contiene una sessione salvata, i suoi file incorporati e una ricevuta per tutto ciò che si risolve ancora per riferimento. Può portare anche lo strumento e il design system. Aprirlo aggiunge un nuovo Project e non sovrascrive mai una sessione.
+- Un **progetto condiviso** (`lolly-share`, tipo `project`) contiene una cartella di Projects: le sue sottocartelle, ogni sessione al loro interno con la sua miniatura e le immagini archiviate lì. Aprirlo aggiunge una copia dell'intera cartella. Ogni sessione viaggia come `sessions/<key>.json` con la sua miniatura in `thumbs/`. Un Lolly precedente ai file di progetto ti chiede di aggiornarti.
+- Un **pacchetto di design system** (`lolly-brand`) contiene token e può contenere font, loghi, versioni pubblicate e risorse conservate. Aprire il pacchetto aggiunge un design system separato con nome e lo rende attivo.
+- Un **pacchetto di workspace o istanza** è un `lolly-brand` con strumenti dichiarati, risorse del catalogo e, facoltativamente, un indirizzo di istanza. Caricarne uno sostituisce l'unico overlay di workspace caricato prima, e l'anteprima elenca quegli effetti a livello di dispositivo.
+
+Un backup completo del dispositivo non è un `.lolly`. Resta un `LollyTools-….zip` (formato `lolly-backup`) e si ripristina da **Settings → Storage → Import data…**. Anche una cartella di strumento compressa resta un `.zip`. [Data transfer](/info/data-transfer.html) è il riferimento del formato.
+
+Un `.lolly` è un normale zip. Rinominalo `.zip` per guardarci dentro: le tue immagini sono in `assets/uploads/`, la grafica del catalogo in `assets/catalog/`, `manifest.json` elenca ogni file e un README dice cos'è il file.
+
+macOS, Windows, Linux, iOS e Android registrano tutti il formato, i file manager desktop lo mostrano come documento Lolly e GNOME Files può mostrare la miniatura propria di una sessione salvata. L'apertura da Design System Setup consiglia l'azione per il design system quando un design condiviso ne porta uno, ma non nasconde mai **Open shared design**.
+
+Un documento passato da un'altra app su iOS o Android è limitato a 48 MB, perché il passaggio copia i suoi byte oltre il confine dell'app, e l'app lo dice. **Open** dentro Lolly non ha questo limite, quindi usalo per un bundle più grande.
+
+Dopo la tua conferma, Lolly decomprime e verifica il bundle una sola volta. Le risorse vanno nella tua libreria, abbinate tramite checksum così un file già presente sul dispositivo viene riutilizzato. Le sessioni vanno in Projects con nuovi id, quindi lo stesso file può essere aperto due volte; una sessione il cui strumento manca resta lì in attesa. I file oltre 100 MB vengono segnalati come grandi, e l'anteprima avvisa quando l'archiviazione del browser segnala meno spazio libero di quello che serve al file. Ogni parte coperta da controllo di integrità viene verificata prima che qualsiasi cosa venga confermata, e una copia danneggiata viene rifiutata senza lasciare nulla.
+:::
+
+Un link e un file consegnano entrambi un'istantanea. Per la modifica live, [Working together](/info/collaborate.html) tratta le collab private tra due dispositivi e le collab di lavoro facoltative tramite Lolly Work.
+
+## Risorse - la tua libreria
+
+**Assets** (`#/a`) raccoglie tutto ciò che i tuoi strumenti possono usare: loghi del brand, immagini, audio e animazioni, raggruppati per tipo, insieme ai tuoi file. I tuoi caricamenti sono conservati sul tuo dispositivo. Un'organizzazione che usa Lolly Work può anche fornire un catalogo condiviso con le proprie regole di accesso; vedi [Use Lolly at your organisation](/info/organisation.html).
+
+![Risorse, con i campioni e i font del brand, e i tuoi caricamenti](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+
+- <!--i:upload--> **Porta i tuoi file.** Trascina un'immagine, un SVG, una clip audio, un video, un Lottie, un PDF o un deck PowerPoint sull'area di caricamento, oppure fai clic per scegliere. Arriva subito in Assets e nel selettore di risorse di ogni strumento. Un PDF di più pagine o un `.pptx` chiede quali pagine o slide tenere, e ognuna diventa una risorsa SVG. Un'immagine che aggiungi dentro uno strumento viene conservata com'è arrivata in **My images**, quindi una Content Credential su di essa continua a verificarsi, e solo un file molto grande chiede se ridimensionarlo. **Settings → Storage** mostra quanto contiene **My images**. Non c'è alcun limite oltre allo spazio del tuo dispositivo. Per eliminare i dati EXIF e GPS man mano che le immagini entrano, attiva **Strip metadata from uploads** in **Settings → Feature flags**; le Content Credentials vengono conservate in ogni caso.
+- <!--i:star--> **Preferisci ciò che usi.** Metti una stella a una risorsa o a un campione di colore del brand e si fissa in cima a ogni selettore.
+- <!--i:folder--> **Riordina.** Sposta una risorsa in un altro gruppo, nascondi una risorsa condivisa del brand che non usi (**Show hidden** la riporta) o elimina i tuoi caricamenti. La stessa barra di selezione di Projects agisce su un'intera selezione.
+- <!--i:layers--> **Stacca un video dal suo sfondo.** Apri i dettagli di un video, o fai clic destro sulla sua scheda in un selettore di risorse, e scegli **Remove background…**. Un **On-device model** ritaglia un soggetto da una scena complessa; un **Colour key** rimuove uno sfondo uniformemente illuminato come un green screen, con **Tolerance**, **Softness** e **Spill removal** per il bordo, e non richiede alcun download. **Resolution** (360, 480, 720 o 1080p, mai oltre la sorgente) scambia dettaglio con velocità. Il ritaglio, un WebP animato o un PNG con vera trasparenza, viene salvato accanto all'originale, e la Content Credential della sorgente viaggia con lui come ingrediente. [Generated once, rendered the same](/info/ai-features.html) spiega perché resta una semplice modifica.
+
+### Porta la tua palette e i tuoi font ovunque
+
+Il pannello **Swatches** in Assets mostra i colori di cui è fatto il tuo brand: i suoi colori di brand, i colori che hai aggiunto, le sue rampe e il suo spettro. I colori di ruolo che Lolly tiene per l'interfaccia (testo, superfici, bordi, colori guida delle colourway e copie di un colore del brand con un altro nome) restano dietro una scheda grigia **Show colour roles** in fondo al pannello.
+
+Ogni colore è una scheda come qualsiasi altra risorsa. Fai clic su uno per aprirne i dettagli, selezionane alcuni per scaricare solo quelli, oppure scarica l'intera palette nel formato che legge il tuo altro strumento:
+
+- <!--i:code--> **Design tokens (JSON)**, **CSS variables** o **CSS classes**, per un foglio di stile o una build. Un colore più ampio di sRGB mantiene il suo valore ampio: il CSS lo imposta dopo l'esadecimale, e il JSON mantiene l'esadecimale insieme al colore ampio, alla composizione CMYK e all'inchiostro spot.
+- <!--i:palette--> **Adobe Swatch Exchange (.ase)**, per Illustrator o Photoshop. Un colore bloccato su una composizione CMYK arriva come quel campione CMYK, un inchiostro spot come campione spot con nome e un colore più ampio di sRGB come Lab.
+- <!--i:pentool--> **Palette GIMP (.gpl)**, per GIMP o Inkscape, e **SCSS variables**, entrambi in sRGB.
+
+![Il pannello Swatches - i cinque pulsanti di download della palette in alto, poi ogni colore del brand come chip che apre i suoi dettagli](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+Seleziona i colori con il punto su ogni scheda: Shift-clic su un secondo punto per tutto ciò che sta in mezzo, trascina un riquadro tra gli spazi oppure premi Cmd/Ctrl+A con una scheda in focus. La barra offre **Download as…** negli stessi sei formati, **Copy hex** e **Favourite**. Prima di scegliere un formato, il menu elenca ogni colore che nessun formato può contenere (Transparent non ha alcun colore), quali formati salvano un colore ampio come il suo ripiego sRGB (SCSS e GIMP) e quali portano i valori CMYK e spot (JSON e .ase). Fai clic destro su una scheda per le stesse azioni su un solo colore.
+
+I dettagli di un colore riempiono l'anteprima con il colore e aprono **Linked values** (la sua composizione CMYK o l'inchiostro spot, qualsiasi valore definito per un particolare spazio o macchina da stampa e il suo design token), **Every notation** (esadecimale, OKLCH, Display-P3 e il resto, ciascuno con un pulsante di copia), **Plotted on a colour space**, **Tones** e **Readability**. I tasti freccia scorrono la palette, **Copy link** condivide il colore stesso e **Open in Colour Lab** lo porta oltre.
+
+Il pannello **Fonts** elenca le famiglie del tuo brand con un **download** per ciascuna, da installare in locale o consegnare a una tipografia.
+
+## Rendi la griglia tua
+
+- <!--i:star--> **Preferisci ciò che usi.** Fai clic destro su una scheda e scegli **Add to favourites**, e ottiene un riquadro grande in una striscia sopra la griglia. [Your favourites](/info/favourites.html) tratta la striscia.
+- <!--i:eyeoff--> **Nascondi uno strumento che non usi mai.** Fai clic destro su una scheda, o selezionane diverse, e scegli **Hide tool**. Esce dalla griglia e da ciò che trova la digitazione nella griglia. Un riquadro grigio **Show hidden tools (N)** alla fine li mostra di nuovo, attenuati, ciascuno con **Unhide tool** nel suo menu. Nascondere cambia solo la tua griglia: lo strumento si apre ancora da un link o da un segnalibro.
+- <!--i:clock--> **I tuoi strumenti, per primi.** Una volta che hai lavoro salvato in tre strumenti diversi, una riga **Yours** di chip sopra la griglia parte con i tuoi preferiti e gli strumenti recenti.
+- <!--i:sliders--> **Disponila a modo tuo.** **View options** imposta il layout (**Grid**, **Card** o **List**), dimensione e densità delle schede, l'ordinamento e un filtro per categoria.
+
+![La fine della griglia Tools con gli strumenti nascosti mostrati: la scheda Wordmark attenuata e, accanto, il riquadro grigio che li ha rimessi in vista, che ora riporta Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -31,26 +217,26 @@ gallery under a caption about its bottom. `press:` with no `on=` goes to the
 keyboard, and the End key with focus on the just-clicked box scrolls the
 document; the walker then anchors the body walk to that band.
 The tile reads "HIDE hidden tools" in the shot, not "Show" - it is a toggle and
-the recipe has just pressed it. The alt says so rather than quoting the resting
+the recipe has just pressed the tile. The alt says so rather than quoting the resting
 label the prose above already gives.
-There is no standalone per-card "hide" button
-(unlike the always-visible fav/pin corner icons) - Hide only exists inside a
-tile's right-click menu or the bulk bar, both confirmed in views/gallery.ts.
-The recipe goes the bulk-bar route since it needs no `|right` context-menu
-step: tick the card (`[data-select="qr-code"]`, the same checkbox hook the
-selection bullet under Projects uses), click the bar's Hide button
-(`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
-confirmed in lib/bulk-bar.ts), then click the grey reveal tile
-(`.gtile--hiddenbox`, confirmed in gallery.ts).
+The recipe hides nothing itself. The lolly-demo catalog the captures pin
+ships Wordmark hidden (`defaultHiddenTools` in its assets index.json), so a
+fresh profile already has one hidden tool and the recipe only clicks the grey
+reveal tile (`.gtile--hiddenbox`, confirmed in gallery.ts). It used to tick
+the QR Code card and press the bulk bar's Hide button first; under lolly-demo
+that published Wordmark dimmed and QR Code not, under a caption naming QR
+Code, so the steps were dropped rather than relied on. QR Code was hidden
+in that run too: the End scroll had left the pointer over its card, and a
+hovered hidden card lifts its dimming (gallery.css), so it read as a normal
+tool. The closing `hover:` puts the pointer back on the reveal tile, which
+keeps every revealed card dimmed.
 -->
 
-Per agire su più card contemporaneamente, spunta la casella di ogni card, trascina un riquadro di selezione sullo spazio vuoto oppure usa **Shift/Cmd-click**, e appare una barra di selezione flottante. **Quello che offre la barra di selezione** cambia un po' da vista a vista, perché non ogni azione ha senso ovunque:
+**Agisci su più schede insieme.** Spunta la casella di ogni scheda, trascina un riquadro di selezione su uno spazio vuoto oppure fai Shift/Cmd-clic, e compare una barra con ciò che quella vista consente:
 
-- **Strumenti / Utility:** Preferito (o Rimuovi dai preferiti), Nascondi (o Mostra), Disponibile offline (o Rimuovi dall'offline), **Visualizza sessioni** (apre Progetti mostrando solo le sessioni create con quegli strumenti) e Copia link quando è selezionata esattamente una card.
-- **Risorse:** Preferito e Nascondi si applicano a qualsiasi selezione; Duplica, Scarica ed Elimina compaiono solo quando ogni elemento selezionato è un tuo caricamento - un asset condiviso del sistema di design è un contratto permanente, quindi questi tre restano disattivati anche in blocco.
-- **Progetti:** vedi [Trova e recupera il tuo lavoro](/info/find-your-work.html#find-something-you-saved).
-
-> Una trappola di etichette: **Visualizza sessioni** esiste solo quando qualcosa è *selezionato*. Il clic destro su una singola card non selezionata offre invece **N sessioni salvate**, che apre un elenco delle sessioni salvate di quello strumento, dove un'eliminazione sposta la sessione nel Cestino, invece di portarti in Progetti.
+- **Tools e Utilities:** Favourite, Hide, Available offline, **View sessions** (Projects, che mostra solo le sessioni create con quegli strumenti) e Copy link per una singola scheda.
+- **Assets:** Favourite e Hide per qualsiasi selezione. Duplicate, Download e Delete compaiono solo quando ogni elemento selezionato è un tuo caricamento, perché una risorsa condivisa del design system è un contratto permanente.
+- **Projects:** vedi [Find and recover your work](/info/find-your-work.html#find-something-you-saved).
 
 ![La barra di selezione della galleria per due strumenti, con Disponibile offline, Visualizza sessioni, Preferito e Nascondi](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
@@ -70,409 +256,37 @@ already exist, and build-docs-shots.ts gives every shot a fresh
 storage-seeding hook.
 -->
 
-### Chiedi a Lolly
-
-Quando preferisci chiedere invece di cercare, **Chiedi a Lolly** (`#/ask`) prende una domanda scritta e restituisce **alla lettera** la sezione corrispondente di questa documentazione - le parole stesse delle guide, non un riassunto e non una generazione - citando la pagina da cui proviene e con accanto un link **Apri nella documentazione**. Sotto la risposta ci sono i punti dell'app che corrispondono alla stessa domanda: uno strumento, un'impostazione, un progetto salvato, ognuno come un pulsante che ti porta semplicemente lì.
-
-La trascrizione è memoria di sessione: fai una domanda di approfondimento e il filo si costruisce mentre procedi, poi ricarica la pagina e riparte da zero. I risultati di ricerca portano in fondo una riga **Chiedi a Lolly: *la tua domanda*** - sotto i risultati concreti trovati dagli altri gruppi - che passa la domanda direttamente, così puoi iniziare nella barra e finire qui.
-
-## Il canvas (anteprima)
-
-L'anteprima mostra sempre esattamente ciò che verrà esportato.
-
-**Desktop**
-
-- **Zoom:** scorri con Cmd/Ctrl, oppure pizzica sul trackpad - lo zoom si centra sul puntatore.
-- **Spostamento (pan):** tieni premuto **Spazio** e trascina, oppure trascina con il **pulsante centrale del mouse**. (I clic semplici restano liberi per cliccare sulle parti del design.)
-- **Tastiera:** `0` = adatta alla finestra · `1` = 100% · `+` / `−` = zoom.
-- **HUD dello zoom:** il piccolo controllo `−  NN%  +  Fit` nell'angolo. Fai clic sulla percentuale per alternare tra Adatta ↔ 100%.
-
-![L'HUD dello zoom nell'angolo del canvas - meno, la percentuale dal vivo, più, Fit, poi gli interruttori di tema e audio](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
-
-**Tocco**
-
-- **Pizzica** per lo zoom, **trascina** per spostarti, **tocca due volte** per tornare all'adattamento. Sul canvas libero, due dita su un oggetto selezionato scalano, ruotano e spostano invece la selezione (vedi [Ridimensionare, scalare e ruotare](#resize-scale-and-rotate)).
-
-**Clic per saltare a un controllo:** fai clic su un elemento qualsiasi del design e l'input corrispondente nella barra laterale riceve il focus e scorre fino a essere visibile - per un gruppo di righe ripetibili apre esattamente la riga su cui hai cliccato, così modificare ciò che vedi è a un tocco di distanza.
-
-Un cambio di dimensione riporta sempre la vista a un adattamento pulito.
-
-### Il canvas libero (Design)
-
-Gli strumenti a canvas libero aggiungono una superficie di lavoro *intorno* all'area di disegno, come il tavolo di montaggio di un designer:
-
-- **Preparazione fuori canvas.** Trascina un riquadro oltre il bordo della cornice e resta completamente **visibile e selezionabile** - parcheggia gli elementi di lato mentre organizzi la composizione, poi trascinali di nuovo dentro. Tutto ciò che si trova fuori dalla cornice viene **sfumato dolcemente**, così l'area di esportazione si distingue sempre a colpo d'occhio, e la cornice mantiene la sua ombra per segnare esattamente dove inizia il file.
-- **Solo la cornice viene esportata.** Il file esportato è delimitato dall'area di disegno - qualsiasi cosa resti fuori (o la parte di un riquadro che sporge oltre il bordo) viene semplicemente ritagliata dall'output, sia nei formati raster sia in quelli vettoriali.
-- **Rimpicciolisci oltre Adatta** (fino al 20%) per vedere l'intero tavolo di montaggio quando hai preparato elementi molto fuori dalla cornice.
-- **Area di disegno ridimensionabile.** Cambiare le dimensioni di esportazione ridimensiona la cornice sul posto; i riquadri mantengono le loro posizioni, così puoi reinquadrare un layout intorno al contenuto esistente.
-- **Prima di esportare.** La sezione Documento dell'ispettore controlla la struttura dei livelli salvata, poi legge il canvas assestato per individuare testo tagliato e contrasto di colore piatto. Chiede anche allo stesso registro di font usato dal tracciamento contorni SVG/PDF se ogni riga di testo ha byte di font incorporabili; gli sfondi a immagine e a gradiente vengono segnalati come controlli visivi invece di ricevere un punteggio di contrasto inventato.
-
-![La tela libera di Design - l'artboard con il pasteboard circostante](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
-
-**Capovolgi una selezione.** Clicca con il tasto destro su un riquadro qualsiasi e scegli **Capovolgi orizzontalmente** o **Capovolgi verticalmente** per specchiarlo sul posto, oppure premi `Shift+H` / `Shift+V` da tastiera - Shift, perché una `V` semplice è lo strumento Puntatore. Ogni riquadro selezionato si specchia sul proprio asse in un unico passaggio di annullamento, e lo specchiamento è una trasformazione vera, quindi rimane nell'SVG, nel PDF e nel PNG esportati e non solo sulla tela.
-
-### Ridimensionare, scalare e ruotare
-
-Seleziona un oggetto, poi trascina una maniglia per cambiarne la dimensione, oppure la maniglia rotonda sotto la selezione per ruotare l'oggetto. Un trascinamento di dimensione funziona in due modalità:
-
-- **Ridimensiona**, l'impostazione predefinita, cambia solo il riquadro. Il testo si riadatta alla nuova dimensione, mentre dimensione del carattere, spessore del tratto, raggio degli angoli ed effetti restano come erano.
-- **Scala** ingrandisce o riduce l'intero oggetto con il suo contenuto: dimensione del carattere, tratto, raggio degli angoli, ombra, sfocatura, spaziatura interna ed esterna cambiano tutti nella stessa misura.
-
-Premi `K` per attivare o disattivare Scala. Senza tastiera, scegli **Modalità Scala** nel menu Lolly, oppure tieni premuto il pulsante **Puntatore** sulla barra degli strumenti (o fai clic destro su di esso) e scegli **Scala**; su uno schermo touch anche la barra dell'oggetto ha un interruttore Scala. Finché Scala è attiva, il pulsante Puntatore mostra l'icona di Scala e ogni maniglia ha un punto al centro. `V` o **Escape** torna a Ridimensiona e mantiene la selezione. Scala è disattivata ogni volta che si apre un documento, così nessuno scala i tratti per sbaglio. Ogni scalatura è un solo passo di annullamento, con l'etichetta **Scala**.
-
-**Scalare con un numero.** Con Scala attiva, o con più oggetti selezionati, fai clic sull'indicatore nella barra dell'oggetto per aprire il popover **Scala**. Digita una percentuale, oppure una larghezza o un'altezza e gli altri due valori si adeguano, scegli sulla griglia 3 x 3 il punto che resta fermo e scegli **Applica**. Il risultato è un solo passo di annullamento, senza bisogno di trascinare. Con Scala disattivata, più oggetti cambiano solo dimensione e posizione.
-
-**Più oggetti.** Una selezione di più oggetti ha maniglie sui bordi oltre che agli angoli. Un trascinamento d'angolo cambia larghezza e altezza liberamente finché ogni oggetto della selezione è dritto o ruotato di quarti di giro interi e la selezione non contiene gruppi né cerchi. Altrimenti la selezione mantiene le proporzioni: le sue maniglie mostrano il cursore di scala e, mentre trascini, l'indicatore aggiunge **Proporzionale**. Mentre ridimensioni o scali, una piccola etichetta accanto alla selezione mostra la dimensione, o la percentuale in modalità Scala.
-
-**I tasti che tieni premuti durante un trascinamento** hanno effetto non appena li premi o li rilasci (anche il foglio delle scorciatoie, `?`, li elenca):
-
-| Tieni premuto | Ridimensionare o scalare | Ruotare | Spostare |
-|---|---|---|---|
-| **Shift** | Mantiene le proporzioni (Scala lo fa sempre) | Ruota a scatti di 15 gradi | Nessun cambiamento |
-| **Alt** (Option) | Lavora dal centro | Ruota liberamente | Disattiva lo snap e la griglia |
-| **Cmd/Ctrl** | Disattiva lo snap e la griglia | Ruota liberamente | Disattiva lo snap e la griglia |
-
-Senza tasti premuti, una rotazione viene attirata ai 15 gradi più vicini quando arriva a 4 gradi da essi. Le aree di disegno non ruotano, quindi non hanno la maniglia di rotazione.
-
-**Afferra in qualsiasi punto del bordo.** Non serve colpire una maniglia con precisione. Ogni lato di una selezione è una striscia di ridimensionamento per tutta la sua lunghezza, e con mouse o penna c'è una zona di rotazione appena fuori da ogni angolo. Il puntatore mostra cosa farà un trascinamento, ruotato in base alla selezione. Una pressione in una striscia o in una zona diventa un ridimensionamento o una rotazione solo quando inizi a trascinare, quindi un semplice clic continua a selezionare, aggiungere alla selezione o deselezionare come prima. Un oggetto bloccato non ha maniglie, strisce o zone.
-
-**Gli oggetti piccoli restano spostabili.** Su un oggetto largo 25 pixel dello schermo o meno, le maniglie centrali che affollerebbero gli angoli si nascondono e le altre maniglie si spostano un po' all'esterno del contorno, così una pressione sull'oggetto lo sposta. A 10 pixel o meno spariscono anche le maniglie d'angolo, e una linea sottile mantiene una maniglia a ciascun estremo. Anche una pressione subito accanto a una linea sottile o a un oggetto minuscolo, lontano dalle sue maniglie, sposta l'oggetto.
-
-**Aree di presa grandi.** Su uno schermo touch le zone di presa sono grandi: ogni zona d'angolo è un quarto della larghezza e dell'altezza della selezione sullo schermo, mantenuta tra 24 e 44 pixel, e ogni zona laterale copre il tratto tra due angoli. Quando la selezione è troppo piccola per questo, le zone si spostano all'esterno del suo contorno, così una pressione al centro sposta ancora la selezione. La zona sotto il puntatore, o sotto un dito appoggiato, è ombreggiata. Per avere le stesse zone con mouse o penna, attiva **Aree di presa grandi** nel menu Lolly. L'impostazione resta solo su questo dispositivo.
-
-**Due dita su una selezione.** Su uno schermo touch, appoggia due dita su un oggetto selezionato: pizzica per scalare la selezione, ruota per girarla oppure muovi entrambe le dita per trasportarla. Qualunque cosa facciano le due dita conta come un solo passo di annullamento. Con Scala attiva, un pizzico scala anche il contenuto; con Scala disattivata, il pizzico ridimensiona la selezione in proporzione. Una rotazione viene attirata ai 15 gradi più vicini quando è vicina, e uno spostamento a due dita non aggancia mai. Due dita in qualsiasi altro punto continuano a fare zoom e pan della vista, e un tocco con due dita continua ad aprire il menu. Il primo dito deve cadere sulla selezione e il secondo deve seguire rapidamente, sulla selezione o appena fuori dal suo bordo. Se la selezione contiene un'area di disegno o un oggetto bloccato, copre la maggior parte della vista o supera il bordo della vista, due dita fanno invece zoom e pan.
-
-### Livelli e Ispettore
-
-In **Livelli**, ogni area di disegno è un gruppo genitore comprimibile. Seleziona il suo nome per saltare lì, espandi i suoi livelli e seleziona o riordina gli oggetti all'interno di quell'area di disegno. Passa a **Pagine** per le miniature e l'ordine delle pagine. Le frecce spostano lungo l'elenco dei livelli; Sinistra torna all'intestazione dell'area di disegno.
-
-L'**Ispettore** mette prima i controlli di testo o immagine per l'oggetto selezionato. Usa i chip delle opzioni per scelte rapide ed espandi **Advanced** per i dettagli di stile. Su telefono, apri **Ispettore** da **Altre azioni**. I controlli si aprono in un foglio; Escape o Indietro lo chiude mantenendo la selezione.
-
-### Disegnare le tue forme (la penna)
-
-Riquadri, cerchi e cornici arrotondate coprono la maggior parte dei layout. Quando ti serve una forma che non è in quell'elenco, disegnala: il pulsante **Penna** della barra (o il tasto `P`) ti mette in modalità disegno. Tre tasti singoli spostano tra le modalità - **`V`** torna al Puntatore, **`P`** per la Penna, **`N`** per lo strumento nodi (**Modifica punti**) - e il Puntatore è sempre la via d'uscita da qualunque modalità tu sia.
-
-![La barra degli strumenti del canvas libero: una maniglia di trascinamento, il menu Lolly, poi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards e Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
-
-- **Fai clic** per posizionare un punto. Con il tipo di curva predefinito, **fai clic e trascina** per estrarre le maniglie di quel punto, ed è così che disegni una curva invece di un angolo - tieni premuto **Alt** mentre fai clic per ottenere invece un angolo netto. (Con gli altri tipi di curva ogni punto posizionato è un angolo e il trascinamento non fa nulla; vedi **Tipo di spline** più sotto.)
-- I punti si agganciano all'area di disegno e agli altri riquadri mentre li posizioni, tracciando le stesse guide di un normale trascinamento. Alt sopprime la griglia mentre disegni, e sia la griglia sia i bordi mentre poi trascini un punto.
-- **Fai clic sul primo punto** per chiudere il tracciato e finire in una sola mossa. Altrimenti premi **Invio**, fai doppio clic o cambia semplicemente strumento - il disegno viene mantenuto, non buttato via.
-- **Esc** agisce un gradino alla volta: la prima pressione abbandona il disegno e non scrive nulla, la seconda esce dalla penna.
-- **Canc** mentre disegni elimina l'ultimo punto che hai posizionato.
-
-Il risultato è un normale riquadro sul canvas. Spostalo, ridimensionalo, ruotalo, raggruppalo, allinealo, riordinalo, dagli un riempimento, un gradiente, un'ombra o un'opacità - un tracciato si comporta come ogni altro riquadro, e nessuno di quei controlli lo tratta in modo diverso.
-
-Arriva anche già colorato. Il primo tracciato che disegni prende il riempimento e il tratto che il tuo brand assegna a un tracciato, e da lì in poi ogni nuovo tracciato prende **quello che hai usato per ultimo** - imposta un riempimento una volta e continua a disegnare, invece di ricolorare ogni forma. (In uno strumento il cui brand non dice nulla sui tracciati, un tracciato disegnato prende il tratto del colore con cui l'hai visto disegnare, così non è mai invisibile.)
-
-**Modificare di nuovo i punti.** Fai doppio clic sulla forma (o usa **Modifica punti** sulla barra dell'oggetto) e i punti ricompaiono. Trascina un punto per spostarlo, trascina una maniglia per riorientarla, fai clic in un punto qualsiasi della curva per inserire un punto, seleziona con un rettangolo un gruppo di punti e premi Canc per rimuovere quelli selezionati. Un tracciato mantiene sempre almeno due punti, quindi non puoi cancellarlo per sbaglio fino a farlo sparire.
-
-Il **Tipo di spline** decide che genere di curva passa per i tuoi punti, ed è la scelta che vale la pena capire:
-
-| Tipo | Cosa fa |
-|---|---|
-| **Fluido (auto)** | L'impostazione predefinita. Calcola da sé la lunghezza delle maniglie, così un semplice clic-clic-clic dà una curva davvero fluida senza dover armeggiare con le maniglie. Se imposti una maniglia, questa fissa la *direzione* e la curva mantiene il controllo della lunghezza. |
-| **Maniglie Bezier** | La penna classica. Le maniglie sono i punti di controllo, e inserire un punto non sposta mai la curva. |
-| **Attraverso i punti** | Passa esattamente per ogni punto che hai posizionato, senza maniglie. |
-| **B-spline** | Scorre vicino ai punti invece che attraverso di essi, per una forma più morbida. |
-| **Linee rette** | Una polilinea. |
-
-Passare un tracciato esistente a un tipo che calcola da sé le maniglie chiede prima conferma, perché le lunghezze delle maniglie che hai impostato non si possono recuperare - passare a **Maniglie Bezier** è sempre senza perdite. Durante il disegno non c'è nessuna richiesta: il cambio si applica direttamente alla bozza, e le maniglie che avevi già estratto se ne vanno con esso. Nei tipi che controllano le proprie maniglie, inserire un punto modifica leggermente la curva; con **Maniglie Bezier** no.
-
-Ogni punto porta anche una regola di continuità, mostrata dalla sua forma sul canvas - quadrato per **Angolo** (le maniglie si muovono in modo indipendente), tondo per **Fluido** (le maniglie restano allineate), tondo con un anello per **Simmetrico** (allineate e di uguale lunghezza). Impostala per i punti selezionati e la curva la rispetta immediatamente.
-
-![Due tracciati a penna renderizzati direttamente da un link: una curva a S con il solo tratto e una macchia chiusa e riempita](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22curve%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A140%2C%22y%22%3A180%2C%22w%22%3A800%2C%22h%22%3A420%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A14%2C%22path%22%3A%221!cubic!0_.02!.85!!!.25!-.45!s_.5!.5!-.22!.32!.22!-.32!y_.98!.12!-.25!.45!!!s%22%7D%2C%7B%22id%22%3A%22blob%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A340%2C%22y%22%3A620%2C%22w%22%3A400%2C%22h%22%3A320%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23d1e7ff%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A6%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!catmull-rom!1_.5!0_1!.42_.78!1_.22!1_0!.42%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=pen-path-geometry)
-
-Un tracciato disegnato viaggia nel link come tutto il resto, quindi una forma che disegni si riapre da un link di condivisione e si renderizza in modo identico dalla CLI. Nulla di esso dipende dall'editor.
-
-### Combinare le forme (operazioni sui tracciati)
-
-Seleziona due o più forme, fai **clic destro** sul canvas (tocco con due dita su touch) e il menu offre le operazioni che ti aspetti da un programma di disegno:
-
-- **Unione** le fonde in un'unica forma, mantenendo il colore di quella più in alto.
-- **Sottrai** ritaglia dalla forma in basso tutto ciò che sta sopra.
-- **Interseca** mantiene solo la sovrapposizione.
-- **Escludi** mantiene tutto tranne la sovrapposizione.
-
-Altre tre agiscono su una forma singola: **Contorno tratto…** trasforma un tratto in una forma riempita dello stesso contorno (utile quando vuoi mantenere uno spessore esattamente com'è stato disegnato), **Offset tracciato…** allarga la silhouette verso l'esterno o, con un numero negativo, la restringe verso l'interno e **Semplifica** ricostruisce un tracciato con meno segmenti a parità di forma.
-
-![Una mezzaluna e un anello con un buco vero, entrambi prodotti da Sottrai](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=path-ops-boolean-result)
-
-Il risultato è un nuovo tracciato che puoi continuare a modificare con la penna. I buchi sono buchi veri - un controllo **Regola di riempimento** nel pannello del tratto decide se i contorni sovrapposti si riempiono (*non-zero*) o bucano (*even-odd*).
-
-Due cose che queste operazioni deliberatamente non fanno. **Rifiutano invece di distruggere**: chiedi di intersecare due forme che non si sovrappongono e ti viene detto che non c'è nulla da mantenere, e nulla cambia. E i riquadri di testo e immagine non hanno un contorno su cui lavorare, quindi vengono lasciati stare invece di essere approssimati dalla loro cornice. Un risultato combinato viene memorizzato come semplici curve Bezier, che è quello che fa anche un programma di disegno - il tipo di spline originale non sopravvive all'operazione.
-
-### Scene 3D
-
-Scegli **Scena 3D** dal menu di aggiunta sulla barra degli strumenti e trascina una cornice: 3D Studio si apre subito sul nuovo riquadro, e quello che imposti lì torna sul canvas. In ogni altro senso un riquadro di scena è un riquadro normale. Spostalo, ridimensionalo, ruotalo, dagli un'ombra, mettilo su una diapositiva o sulla timeline, e si comporta come tutti gli altri.
-
-**Un riquadro di scena conserva la ricetta, non un'immagine.** Un riquadro immagine contiene un file già renderizzato; un riquadro di scena contiene un'unica impostazione, la scena stessa, scritta come la query di link propria di 3D Studio, con ogni valore ancora al predefinito dello studio omesso. Ecco perché una scena pesa circa cento byte invece dei pochi kilobyte che costa una ricetta intera, perché la stessa stringa funziona sia in un link di condivisione sia nella porta dell'editor, e perché un nuovo controllo dello studio non richiede alcuna modifica in Design. È anche il motivo per cui il riquadro si ri-renderizza alla dimensione e nel momento richiesti dal documento, invece di essere ingrandito a partire da un'immagine presa in precedenza. Le immagini che una scena usa restano asset e viaggiano per id, quindi un caricamento dentro una scena finisce in un file `.lolly` insieme al resto del documento.
-
-**Modificala nello studio.** Seleziona il riquadro e l'Ispettore mostra una sezione **Scena 3D**: una riga che indica di cosa è fatta la scena, una seconda che indica il suo studio di illuminazione una volta che ne hai scelto uno, e un pulsante, **Modifica in 3D Studio**. Il pulsante apre lo studio sulla scena di quel riquadro con tutti i controlli che ha lo strumento. Applica, e la scena modificata viene riscritta come un unico passaggio, così un annulla riporta il riquadro alla scena da cui sei partito; chiudi lo studio senza applicare e nulla cambia. Tutto il resto del riquadro - la sua posizione sull'area di disegno, quanto è grande, la sua ombra, quando arriva su una diapositiva - resta nelle sezioni che ha sempre usato. Un riquadro di scena non porta un'immagine propria né una didascalia: la sua immagine viene dallo studio, e anche le sue parole si impostano lì.
-
-**Una scena dal vivo, un poster su ogni altro riquadro.** Ogni riquadro 3D in un documento mostra un poster: un'immagine ferma della scena, disegnata fuori schermo attraverso il pool di rendering condiviso, alla dimensione occupata dal riquadro. Un documento con venti scene costa un solo contesto di disegno, non venti. Seleziona un riquadro di scena e diventa l'unica scena dal vivo del documento; deselezionalo e il fotogramma che era a schermo diventa il suo poster, così nulla salta. Solo una scena è dal vivo alla volta, e selezionare due riquadri di scena insieme lascia entrambi come poster. In questa versione la scena dal vivo serve per guardare, non per orbitare: cambia una scena tramite **Modifica in 3D Studio**. Un dispositivo che non può aprire un contesto grafico in virgola mobile mantiene il poster e spiega perché dentro il riquadro invece di mostrare un rettangolo vuoto, e il resto del documento non ne risente. Aprire un documento Design senza alcun riquadro 3D non carica alcun codice 3D.
-
-**Sulla timeline**, un riquadro di scena segue la testina come una clip video: il suo inizio, il taglio d'inizio e la velocità muovono la scena lungo la propria animazione, e la durata della scena è quella impostata in 3D Studio, quindi accorciare un riquadro mostra meno scena invece di velocizzarla. Solo il riquadro di scena selezionato è dal vivo; ogni altro è un'immagine ferma, e un'immagine ferma non si può scorrere.
-
-**In un'esportazione**, ogni scena viene disegnata di nuovo alla dimensione richiesta dal file, tramite lo stesso renderer usato dallo studio. Un video renderizza un fotogramma per scena a ogni momento; un PNG, SVG o PDF incorpora un'immagine per riquadro alla dimensione in pixel propria del riquadro. Niente viene fotografato dallo schermo, quindi un'esportazione non dipende da quale riquadro avevi selezionato. Una scena che non si può disegnare fa fallire l'esportazione e ti dice perché, con le parole stesse dello studio.
-
-**Condividere una scena costruita sopra un tuo caricamento.** Un link di condivisione di un documento Design porta con sé, dentro una scena così com'è, un id di caricamento locale al dispositivo, mentre un riquadro immagine lo azzera. Quindi una scena la cui grafica o il cui modello è un file che hai caricato mostra il predefinito dello studio per quell'immagine sul dispositivo di un'altra persona, a meno che il documento non viaggi come file `.lolly`, che porta con sé i byte.
-
-## Timeline (Sequence)
-
-**Sequence** è la timeline di Design: aggiunge il *tempo* al canvas libero. Ogni riquadro può iniziare in un momento preciso, durare per una certa lunghezza e animarsi in entrata e in uscita, e una timeline agganciata sotto l'area di disegno è dove li disponi. Aprila e c'è già una sequenza in riproduzione - una card di titolo, una clip, una card finale, un lower-third e un tappeto musicale - così il modello è visibile prima ancora che tu cambi qualcosa.
-
-![La timeline di Sequence: il transport, il righello, una corsia di overlay, la riga di sequenza magnetica con le sue clip e i chip di giunzione, e la striscia Sempre attivo](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
-
-Ci sono due tipi di riga, e la differenza è tutta l'idea:
-
-- La **riga di sequenza** è *magnetica*. Le clip stanno una dopo l'altra senza spazi vuoti, e trascinarne una riordina la successione invece di lasciare un buco. Elimina una clip e le altre si richiudono. Questa è la tua spina dorsale.
-- Le **corsie di sovrapposizione** sono libere. Un lower-third, un logo, una didascalia - qualsiasi cosa fluttui sopra la spina dorsale con un tempo tutto suo - ottiene la propria corsia e il proprio inizio.
-- Sotto di esse, **Sempre attivo** raccoglie i riquadri senza alcuna temporizzazione: scenografia che è semplicemente presente per tutta la durata. Il `+` su un elemento lo promuove su una corsia; **Rendi sempre attivo** lo rimanda indietro.
-
-![Il piano di lavoro: la tavola da disegno in primo piano al centro, la barra strumenti a sinistra e l'HUD dello zoom nell'angolo](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
-
-Aprire la timeline le assegna la tastiera, così Spazio e i tasti freccia guidano la testina invece della pagina - e poiché si apre da sola su una composizione che ha già una temporizzazione, questo vale dal momento in cui Sequence si carica.
-
-> **[L'editor di sequenza](/info/sequence-editor.html)** approfondisce le quattro cose che decidono se il montaggio nel tempo risulta prevedibile: quale clip modifica un clic sul canvas, i fantasmi in onion-skin delle clip vicine, l'ambito della divisione e l'Unione che annulla un taglio e il ritaglio (comprese le scorciatoie da tastiera). Premi `?` con la timeline attiva per il foglio delle scorciatoie.
-
-**Montaggio.** Trascina il centro di una clip per spostarla o riordinarla, trascina a pochi pixel da uno dei due estremi per ritagliarla e premi **Dividi alla testina** (o `S`) per tagliare una clip in due. La divisione richiede una clip con una **Lunghezza** reale e la testina un po' all'interno, quindi una clip senza fine definita (il tappeto musicale, per dirne una) non si può dividere. **Aggancia ai bordi** è attivo per impostazione predefinita e si aggancia ai bordi delle clip, alla testina e ai secondi interi, con Alt per ignorarlo. Ogni trascinamento è un unico passo di annullamento, e l'anteprima del trascinamento fa gli stessi calcoli della conferma, quindi quello che vedi mentre trascini è quello che ottieni.
-
-Seleziona una clip e l'ispettore ti offre le stesse modifiche sotto forma di numeri: **Lunghezza**, **Taglia inizio** (quanto dentro la sorgente comincia), **Velocità** come una serie di moltiplicatori fissi da ×0,25 a ×4, **Anima in entrata** / **Anima in uscita** con le loro durate e **Disattiva audio clip**. Una clip sulla riga magnetica non ha un campo **Inizio**, ed è voluto - l'ordine appartiene alla riga, quindi la sposti trascinandola.
-
-**Le transizioni** sono preset, non fotogrammi chiave: Dissolvenza, Pop, Crescita, Salita, Caduta, i quattro Scorrimenti, Zoom avanti e indietro, Inclinazione, Planata, Rotazione, Deriva o **Taglio (nessuna animazione)**. Le distanze si adattano all'oggetto, quindi lo stesso preset funziona bene sia su una card a tutto schermo sia su un piccolo badge. Tra due clip adiacenti sulla riga di sequenza c'è un **pulsante di giunzione**: fai clic e scegli **Taglio** o **Dissolvenza incrociata**, che si applica subito e si chiude. Riapri lo stesso pulsante per cambiare la **Lunghezza (ms)** e premi **Fatto**. Una dissolvenza incrociata viene memorizzata come una dissolvenza in uscita di una clip e una in entrata della successiva, e la dissolvenza vera e propria viene ricavata da quella coppia: la prima clip continua a essere riprodotta oltre il taglio e sfuma in uscita, mentre la successiva sfuma in entrata sotto di essa. L'anteprima e il file seguono la stessa regola, quindi quello che vedi alla giunzione è quello che esporti.
-
-**Suono.** Aggiungi una clip **Audio** e vive sulla timeline come qualsiasi altra clip: forma d'onda, ritaglio, silenziamento. (Il tappeto generato incluso nella sessione predefinita è l'unica eccezione - viene sintetizzato al momento dell'esportazione, quindi la sua barra resta piatta e silenziosa finché non renderizzi.) Premi il microfono per **registrare una voce fuori campo** direttamente sulla timeline, con un conto alla rovescia e un misuratore di livello, e la ripresa viene salvata come tuo asset nel punto in cui hai iniziato. Premi la fotocamera accanto per **registrare un video** allo stesso modo: la ripresa viene ritagliata alla dimensione di esportazione dell'artboard mentre registra, così il piccolo riquadro con la tua immagine mostra esattamente ciò che finisce nella sequenza alla testina, a piena inquadratura - il modo per raccogliere la clip di un collega da un link condiviso. Musica, dialoghi e la colonna sonora di una clip finiscono tutti nel mix esportato. (La **traccia audio** del pannello di esportazione è un'altra cosa: un unico tappeto steso sotto l'intera clip, con dissolvenza e ducking. Le due convivono.)
-
-**La striscia audio.** Seleziona qualsiasi clip che porta suono e si apre una striscia compatta sotto la timeline: un fader di **Volume**, **Pan** per la posizione stereo, un **EQ** a tre bande (**Basso**, **Medi**, **Alto**), un controllo di **Intonazione** che trasporta in semitoni mantenendo il carattere della voce, e **Normalizza volume**, che porta la clip alla sonorità di trasmissione (BS.1770) così una nota vocale bassa e una traccia alta restano a livello. Dove si incontrano due clip, **Dissolvenza incrociata** fonde la giunzione invece di tagliare. Uno slot **Effetto** esegue un'elaborazione sul dispositivo sulla clip - **Pulizia vocale** toglie il rumore d'ambiente e il sibilo da una registrazione. Anche i cambi di velocità mantengono l'intonazione: una clip rallentata o accelerata viene stirata nel tempo, non suona come uno scoiattolo. A ogni missaggio l'esportazione abbassa la musica sotto il parlato man mano che questo va e viene e mantiene l'intero programma sotto un limitatore di picco reale, così nulla clippa in uscita; una forma d'onda che avrebbe clippato viene disegnata con un avviso nel punto in cui accade.
-
-![La timeline con la clip musicale selezionata: la sua striscia corre lungo il fondo con Velocità, Dissolvenze, Volume, Pan, EQ, Intonazione, Normalizza volume e lo slot Effetto](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
-
-**Renderizzarla.** Un'esportazione in movimento è un **composito deterministico**, non una registrazione dello schermo - ogni fotogramma viene decodificato, disegnato e codificato a un istante esatto, quindi il file non dipende dalla capacità della tua macchina di stare al passo, e non c'è un limite pratico di fotogrammi su MP4 o WebM. La durata la stabilisce la lunghezza della timeline, a meno che tu non ne digiti una. Le Content Credentials vengono apposte come in ogni altra esportazione. Un'esportazione statica ti dà il fotogramma alla testina, oppure un intero provino a contatto dal campo **Fotogrammi** accanto alla dimensione di output - vedi [Esportazione](/info/exporting.html#stills-from-a-timed-composition).
-
-Qualche limite da tenere a mente: una sequenza è limitata a un'ora, GIF e PNG animato mettono in buffer i propri fotogrammi e quindi restano brevi, una clip riprodotta più velocemente o più lentamente mantiene la propria intonazione (la striscia audio la stira nel tempo, e un controllo di **Intonazione** trasporta in semitoni mantenendo il carattere della voce) e **Registra dal vivo** è nascosto qui perché il compositore è la strada migliore.
-
-**Oltre i preset: fotogrammi chiave, profondità e una camera.** Una transizione anima una clip al suo arrivo e alla sua uscita. Per posare un riquadro *all'interno* di una clip - farlo scorrere, dissolverlo, sfocarlo, sollevarlo dalla pagina e riassestarlo - aggiungi fotogrammi chiave: seleziona la clip, premi **+Fotogramma chiave** (il rombo nel gruppo di strumenti della timeline, il rombo nella barra oggetto della tela, oppure `K`), e la posizione della testina di riproduzione decide quale posa scrive la tua prossima modifica. Lo stesso sistema di fotogrammi chiave dà a ogni composizione temporizzata una **camera** che si avvicina, panoramica e mette a fuoco, e trasforma un SVG piatto in una pila di livelli tra cui puoi volare. **[Animare](/info/animating.html)** è la guida completa.
-
-Lo strumento Design ha la stessa timeline, così puoi temporizzare un layout senza passare a un altro strumento, ed esporta anche il movimento.
-
-## Presentare
-
-Per posizionare la tua fotocamera, un logo e una didascalia con il tuo nome sopra l'immagine del pubblico, usa **Present with camera**. I suoi controlli privati, le scene salvate, i passaggi di condivisione e registrazione sono trattati in [Presentare con la fotocamera](/info/presenting.html). I normali controlli del deck qui sotto restano disponibili tramite **Presenta**.
-
-Un documento Design fatto di **aree di disegno** è già una presentazione. Apri il **menu Lolly** sulla barra degli strumenti e scegli **Presenta** - l'ultima voce - e ogni area di disegno diventa una slide a schermo intero, nell'ordine in cui le aree di disegno stanno sul canvas. La presentazione gira su una copia delle aree di disegno renderizzate, quindi l'editor sottostante non viene mai toccato e uscendo torni esattamente dov'eri.
-
-- **Avanza** con **Space**, `→`, **Page Down** o un clic sulla striscia sul bordo destro dello schermo; torna indietro con `←`, **Page Up** o la striscia sul bordo sinistro. **Home** e **End** saltano alla prima e all'ultima slide. Una piccola barra di controlli sfuma in vista ogni volta che muovi il puntatore e si nasconde di nuovo quando ti fermi.
-- **Overview** (`O` o il pulsante griglia) dispone tutti gli artboard in una sola volta, nella disposizione che hai dato loro sulla tela; clicca su uno per aprirlo.
-- **Passi di rivelazione.** Fai clic destro su un riquadro e scegli **Reveal at step 1**, **2** o **3** invece del predefinito **Always visible**. Quel riquadro allora attende finché non avanzi al suo passo, così una slide può arrivare a pezzi; i riquadri che condividono un numero arrivano insieme.
-- **Speaker view** (`S`) apre una seconda finestra con la slide corrente, quella successiva, le tue note per quella slide e un orologio in corso. Se il browser blocca il pop-up, ripiega su un pannello sopra la presentazione. Le note sono impostate per artboard e non compaiono mai sulla slide stessa.
-- `B` mantiene uno schermo nero (qualsiasi tasto riporta la slide), `F` torna a schermo intero e **Escape** toglie un livello alla volta: dalla panoramica torna alla presentazione, dalla presentazione torna all'editor.
-- **Kiosk.** Assegna a un artboard una **Length** e la presentazione si ferma lì per quella durata, poi avanza da sola dietro una sottile barra di avanzamento; `K` (o il pulsante di pausa, che compare solo una volta che qualcosa ha una durata) la ferma e la riavvia. Aggiungi `kiosk` al link e la presentazione ricomincia dall'inizio una volta arrivata alla fine, il che è ciò che la rende segnaletica digitale.
-
-- **Pile di sotto-diapositive.** Fai clic destro su un'area di disegno e scegli **Impila sotto la diapositiva precedente** e diventa un passaggio di quella diapositiva invece di una diapositiva a sé: la panoramica mostra una sola card, la presentazione attraversa la pila in ordine, e la riga **Pila** dell'ispettore dice a quale diapositiva appartiene.
-- **Morph.** Quando due diapositive consecutive portano entrambe un riquadro con lo stesso nome di **Abbinamento Morphing** (clic destro su un riquadro, oppure la riga **Abbinamento Morphing** dell'ispettore - `hero`, per esempio), la transizione sposta quel riquadro da dov'era a dov'è, ridimensionandolo e ricolorandolo lungo il percorso, invece di tagliare. Una transizione **Morph** per l'intera presentazione fa lo stesso per ogni coppia abbinata.
-- **Narrazione.** Le **Note del relatore** di ogni area di disegno possono essere lette ad alta voce. Nella sezione **Documento** dell'ispettore scegli una **Voce**, facoltativamente una seconda voce da **Fondi con**, la **Velocità** di lettura, e un **Attacco** e una **Coda** in millisecondi intorno a ogni diapositiva; attiva **Mostra sottotitoli durante la presentazione** e le parole compaiono mentre vengono pronunciate. La voce viene eseguita sul tuo dispositivo. Le stesse note diventano il filmato in un'esportazione video, l'audio reale delle diapositive in un'esportazione PowerPoint, e il filmato narrato dentro un [pacchetto SCORM](/info/create/exporting.html#scorm-course-packages).
-
-![La sezione Documento dell'ispettore: Voce, Fondi con, Velocità, Attacco, Coda e Mostra sottotitoli durante la presentazione](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
-
-La presentazione è anche un link. `?present` la apre direttamente, `s=` sceglie la diapositiva - una posizione, l'id di un'area di disegno o `id.step` per un passo di costruzione - e l'indirizzo si aggiorna mentre ti sposti, così quello che invii è la diapositiva su cui sei. Per gli autori di strumenti: quei parametri sono documentati nella pagina [Modalità URL](/info/url-parameters.html#reserved-parameters).
+**View sessions** compare solo quando qualcosa è selezionato. Se invece fai clic destro su una singola scheda non selezionata, offre **N saved sessions**, un elenco delle sessioni salvate di quello strumento in cui un'eliminazione sposta la sessione nel Cestino.
 
 ## Su telefono
 
-Su schermi stretti il layout si riorganizza su una colonna:
+Su uno schermo stretto il layout diventa a una colonna:
 
-- I **controlli diventano un foglio** in alto con una **maniglia di trascinamento** sul bordo inferiore. Trascina la maniglia per ridimensionarlo - si aggancia a **intravisto / metà / pieno** - oppure **tocca** la maniglia per alternare tra compresso ↔ espanso. L'anteprima riempie lo spazio sottostante e resta visibile mentre modifichi.
-- Un pulsante flottante **Esporta** apre il foglio di esportazione - tutti i controlli di formato, dimensione, copia, salvataggio e download in un unico posto. Chiudilo toccando lo sfondo.
+- I **controlli diventano un pannello** in alto, con una maniglia di trascinamento sul bordo inferiore. Trascina la maniglia per agganciarlo a **peek**, **half** o **full**, oppure toccala per comprimere ed espandere. L'anteprima occupa lo spazio sotto e resta in vista mentre modifichi.
+- Un pulsante **Export** fluttuante apre il pannello di esportazione: formato, dimensione, copia, salvataggio e download in un unico posto. Tocca lo sfondo per chiudere il pannello.
 
 ![Uno strumento su uno schermo largo come un telefono - i controlli come foglio in alto, la palette generata che riempie l'anteprima sotto e la pillola di rendering che fluttua in basso al centro](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
-## Controlli (input)
-
-Gli strumenti espongono solo gli input pensati per variare - tutto il resto (colori, layout, tipografia, logica) è bloccato dall'autore dello strumento, così qualsiasi cosa tu crei rispetta le regole che ha stabilito. Gli input includono testo, slider, selettori di colore, menu a tendina, date, selettori di immagini e gruppi di righe ripetibili. Alcuni sono raggruppati in sezioni comprimibili.
-
-![La colonna dei controlli di uno strumento - un campo di testo, i selettori di colore e uno slider e nient'altro, perché il resto l'autore ha scelto di bloccarlo](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
-
-**Reset:** *Annulla modifiche* riporta ogni input ai suoi valori predefiniti.
-
-### Annulla e ripeti
-
-**Cmd/Ctrl-Z** torna indietro di un passo e **Cmd/Ctrl-Shift-Z** (o **Cmd/Ctrl-Y**) va di nuovo avanti. La stessa coppia si trova come pulsanti **Annulla** e **Ripeti** nella riga sopra i controlli - sul canvas libero stanno invece sulla barra degli strumenti - e ciascuno si disattiva quando non c'è più nulla da recuperare. Ogni passo dice cos'era: annulla un colore e un piccolo messaggio nomina l'input appena ripristinato, con dentro un pulsante **Ripeti** per tornare indietro.
-
-- **Un trascinamento è un solo passo.** Le modifiche ripetute allo stesso controllo entro mezzo secondo si fondono, così tirare uno slider per tutta la sua corsa è un unico annullamento invece di duecento.
-- **Vengono conservati gli ultimi 100 passi** - i più vecchi cadono dal fondo. Fare una nuova modifica dopo aver annullato svuota la pila in avanti, come succede ovunque.
-- **Mentre il cursore è dentro un campo di testo**, Cmd/Ctrl-Z appartiene al campo stesso, carattere per carattere. Lolly prende il comando per i controlli che non hanno un annullamento proprio utile: slider, menu a tendina, colori e interruttori.
-- **Scegliere un file** in un input **file** non è un passo - quei byte sono tenuti solo per la sessione, quindi non ci sarebbe nulla da rimettere a posto.
-
-In una [collaborazione](/info/collaborate.html) dal vivo, la cronologia resta solo tua. Una modifica proveniente dall'altro dispositivo non finisce mai sulla tua pila, quindi annulla può recuperare solo qualcosa che hai fatto tu.
-
-L'annulla arriva indietro solo fino all'inizio di questa visita; gli strumenti che salvano mentre lavori conservano anche le versioni precedenti sotto **Cronologia**, accanto ad **Annulla** (vedi [Torna a una versione precedente](/info/find-your-work.html#go-back-to-an-earlier-version)).
-
-## I tuoi dati e la tua foto
-
-**Impostazioni** (in alto a destra nella galleria, che mostra il tuo nome una volta impostato) contiene il tuo nome, i tuoi dati di contatto e una **foto** opzionale. Gli strumenti che richiedono quei campi li precompilano automaticamente - impostali una volta e la tua firma email, i lockup e i badge si completano da soli. Puoi comunque sovrascrivere qualsiasi campo per singola sessione. Attiva **Usa i miei dati per creare** così i tuoi dati viaggiano come autore su ciò che esporti.
-
-La tua foto e i tuoi dati vivono **solo su questo dispositivo**. Un profilo può essere più di te soltanto - un team o un ruolo che indossi di tanto in tanto. Consulta **[Profili](/info/profile.html)** per il quadro completo, incluso come mantenerne più di uno.
-
-## Salvare e continuare
-
-Per conservare il tuo lavoro, premi **Salva come**, il segno di spunta accanto a **Esporta**. In **Save to a project**, lascia selezionata **La mia libreria** o scegli un progetto (**＋ Nuovo progetto…** ne crea uno), poi premi **Salva**. Salvare di nuovo aggiorna lo stesso elemento invece di crearne una copia. In Design, **Salva come** si trova nel menu sotto il logo Lolly; su telefono, premi **•••**, poi **Menu file**, poi **Salva come**.
-
-Il pulsante **Salva** nel pannello di esportazione fa la stessa cosa con un clic e non scarica mai un file: il lavoro nuovo va in La mia libreria, e il lavoro che avevi già salvato viene aggiornato dove si trova.
-
-Per tornare più tardi, premi **Home** in alto a sinistra, poi apri la scheda **Progetti** (un'icona a forma di cartella su telefono). I salvataggi in La mia libreria si trovano nella sua prima schermata; un progetto lì è una cartella. Gli elementi prendono il nome del file che hai digitato nel pannello di esportazione, oppure quello del loro strumento, come **QR Code**. Aprine uno e ogni impostazione è lì, pronta da modificare ed esportare di nuovo.
-
-Il lavoro salvato resta su questo dispositivo, nel browser o nell'app da cui l'hai salvato, a meno che tu non attivi la [Sincronizzazione](/info/sync.html). Un file che ottieni con **Scarica** è una copia finita; per modificarlo più tardi, apri l'elemento salvato in Progetti. Se qualcosa non è dove te lo aspetti, vedi [Trova e recupera il tuo lavoro](/info/find-your-work.html).
-
-![La pillola di rendering divisa in due metà - una freccia verso l'alto che apre il pannello di esportazione, e un segno di spunta etichettato Salva come che apre il foglio di salvataggio](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
-
-## Progetti
-
-**Progetti**, la scheda **Progetti** in cima alla schermata iniziale, contiene tutto ciò che hai salvato, nelle cartelle che crei. Trovare, ordinare e cercare il tuo lavoro lì, e ripristinare un elemento dal **Cestino**, sono trattati in [Trova e recupera il tuo lavoro](/info/find-your-work.html#find-something-you-saved).
-
-
-## Condividere il tuo lavoro
-
-Un design esce in uno di due modi: come link o come file. La finestra di dialogo Condividi offre entrambi. Aprila con **Condividi** nei controlli di esportazione; **Condividi link** su una sessione salvata in Progetti apre la stessa finestra per quella sessione.
-
-### Il link
-
-Ogni input viene catturato nell'URL della pagina, quindi un link *è* il design. In cima alla finestra c'è il link pronto da copiare, con sotto due sezioni compresse.
-
-- **Link options** contiene **Open in the installed app** (cambia il campo in un URI `lolly://` per Shortcuts, launcher e automazioni, con ogni parametro invariato), **Shortest link** (un design grande produce un URL lungo, quindi questo comprime l'intero stato in un token compatto e ti mostra il risparmio in caratteri; la forma leggibile resta comunque sempre disponibile), **Password-protect this link** (AES-256 sull'intero link, con la password che non ci finisce mai dentro) e **Pin this tool version** - il flag `_v`, che inchioda il link alla versione dello strumento che stai guardando, così un aggiornamento successivo non può cambiare ciò che renderizza.
-- **Link behaviour** è cosa succede quando il destinatario lo apre: schermo intero, il pannello di esportazione già espanso, download all'apertura con `&export` o copia negli appunti con `&copy`.
-
-Incolla il link a un collega, salvalo nei preferiti o mettilo in un commit. (Dettagli completi: [Modalità URL](/info/url-mode.html).)
-
-**Alcuni strumenti fanno del link l'intero prodotto.** Jump Page riunisce i tuoi link in un'unica pagina da distribuire - un link bio, un intervento a una conferenza, una vetrina. Non c'è niente da ospitare e nessun account dietro: la pagina è il link, quindi si apre tanto velocemente quanto l'URL viaggia. Nell'editor vedi la pagina finita accanto ai campi; chi apre il link la riceve a tutta larghezza, una scena per link man mano che scorre.
-
-![Jump Page nell'editor: la scena del titolo nella parte superiore della pagina, con le scene dei link sotto](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
-
-**La finestra di dialogo dice cosa un link non può portare con sé.** Tre cose non stanno in un URL: un'immagine o un file che hai aggiunto da questo dispositivo, un valore di testo molto lungo o un elenco molto grande. Ognuna viene conteggiata mentre il link viene costruito. Se qualcosa è dovuto restare fuori, la finestra lo dice e ti indirizza al file qui sotto, invece di consegnarti un link che si apre senza l'immagine. Un link semplicemente *lungo* riceve una nota più leggera con il suo conteggio di caratteri, dato che la compressione può ancora salvare la lunghezza.
-
-### Il file .lolly
-
-`.lolly` è l'estensione del pacchetto portatile di Lolly, non una promessa che ogni file contenga la stessa cosa. Il `format` in `manifest.json` è l'autorità. L'app legge prima quel piccolo manifesto e mostra dimensione, contenuto e azione prima di scrivere qualsiasi cosa:
-
-- Un **design condiviso** (`lolly-share`) contiene una sessione salvata di uno strumento, i suoi file incorporati e una ricevuta per tutto ciò che si risolve ancora per riferimento. Può anche portare con sé lo strumento e il sistema di design usati per crearlo. Aprirlo aggiunge un nuovo Progetto; non sovrascrive mai una sessione esistente.
-- Un **progetto condiviso** (`lolly-share` con il tipo `project`) contiene una cartella da Progetti: le sue sottocartelle, ogni sessione salvata archiviata al loro interno, la miniatura di ciascuna sessione e le immagini archiviate lì. Aprirlo aggiunge una copia dell'intera cartella a Progetti; nulla di già presente viene sostituito. Un Lolly precedente all'esistenza dei file di progetto non può leggerne uno e chiede di aggiornare.
-- Un **pacchetto di sistema di design** (`lolly-brand`) contiene token e può contenere font, loghi, versioni pubblicate e risorse trattenute. Aprirlo lo aggiunge come sistema di design a sé, con un proprio nome, e poi passa a esso; i sistemi già presenti sul dispositivo restano.
-- Uno **spazio di lavoro del brand / pacchetto istanza** è un `lolly-brand` con strumenti dichiarati, asset di catalogo e, facoltativamente, un indirizzo di istanza. Il controllo preliminare elenca questi effetti a livello di dispositivo perché caricarlo sostituisce l'unica sovrapposizione di spazio di lavoro caricata in precedenza.
-
-Un **backup completo di dispositivo/profilo non è un `.lolly`**. Resta un `LollyTools-….zip` con formato `lolly-backup`, e si ripristina tramite **Impostazioni → Spazio di archiviazione → Importa dati…**, che prende anche una copia che la Sincronizzazione conserva nel tuo storage. Anche una cartella di strumento zippata semplice resta `.zip`. In altre parole, i bundle di sessione e di sistema di design possiedono `.lolly`; i flussi di backup e di archivio sciolto no.
-
-**Download .lolly**, nella finestra di dialogo Condividi dello strumento in cui stai lavorando, scrive il design attuale come pacchetto di design condiviso. Porta con sé la sessione salvata insieme alle immagini e ai file disponibili su questo dispositivo. Viaggia anche l'opera del catalogo ordinaria. L'opera con licenza viene trattenuta a meno che tu non la includa esplicitamente, e un file obsoleto o non disponibile resta un riferimento esterno invece di sparire. La ricevuta preparata mostra la dimensione reale del `.lolly`, il conteggio dei file incorporati, il conteggio dei riferimenti esterni e se lo strumento è incluso. Dove il tuo dispositivo ha un menu di condivisione, **Invia a…** passa quel file direttamente a esso (AirDrop, una condivisione Android) invece di salvarlo su disco.
-
-**Download project (.lolly)**, nel menu di una cartella dentro **Progetti**, scrive quella cartella come progetto condiviso, così qualcun altro può aprirla e continuare con ogni sessione che contiene. Ogni sessione viaggia come parte a sé (`sessions/<key>.json`, con la sua miniatura sotto `thumbs/`), l'albero delle cartelle è elencato in `manifest.json`, e i caricamenti e le opere di catalogo viaggiano secondo le stesse regole di un singolo design condiviso. Le sessioni batch non sono sessioni di uno strumento e restano indietro; l'avviso dice quante. **Scarica gli originali**, accanto ad essa, resta invariato: un semplice zip di ogni elemento come proprio file.
-
-Un `.lolly` è un normale zip. Rinominalo `.zip` e aprilo: le tue immagini sono sotto `assets/uploads/` e le opere del catalogo sotto `assets/catalog/`, ciascuna con il suo nome e la sua estensione reali, `manifest.json` le elenca tutte e un README in cima dice cos'è il file.
-
-Tre cose spetta a te deciderle prima che parta:
-
-- **Se il tuo nome viene incluso.** Il tuo nome, la tua email e la tua organizzazione vengono scritti nel file solo quando **Use my details to create** è attivo nel tuo profilo. Con questa opzione disattivata, il file registra solo che è stato creato con Lolly e quando - niente su di te.
-- **Se l'immagine sotto licenza viene inclusa.** Gli asset con licenza e vincolati al brand vengono trattenuti per impostazione predefinita. Se il design ne usa qualcuno, la finestra di dialogo indica quanti sono e offre due pulsanti - *Download without them* o *Include and download* - perché includerli consegna i file veri e propri a chiunque apra il `.lolly`.
-- **Se lo strumento viene incluso.** **Include the tool** impacchetta i file dello strumento stesso insieme al design, così si apre su un dispositivo che non ha quello strumento. Arriva selezionata per uno strumento personalizzato - un fork o uno strumento di brand privato che il destinatario probabilmente non ha - e deselezionata per uno strumento elencato nel catalogo firmato, poiché la sua copia proviene dalla stessa fonte. (Su una build senza catalogo firmato, ogni strumento conta come personalizzato e la casella parte selezionata.)
-
-**Aprirne uno.** Su un'app desktop o mobile installata, fai doppio clic o tocca un `.lolly`, scegli **Open with Lolly**, oppure invialo a Lolly dal menu di condivisione di sistema. macOS, Windows, Linux, iOS e Android registrano tutti il formato; i gestori file desktop lo mostrano come un documento Lolly (e GNOME Files può mostrare la miniatura propria di una sessione salvata). Nell'app web, usa **Apri** oppure trascina il file su Lolly. Ogni porta usa lo stesso controllo preliminare basato prima di tutto sul manifesto. Aprire da Brand Studio consiglia l'azione di sistema di design quando un design condiviso ne porta uno, ma non rietichetta mai il file né nasconde **Open shared design**.
-
-Un documento iOS o Android consegnato da un'altra app è limitato a 48 MB, perché il passaggio nativo deve copiare i suoi byte oltre il confine tra le app. L'app mobile lo dice invece di ignorare in silenzio un file troppo grande. **Apri** dentro Lolly non usa quel passaggio; è la strada da provare per un pacchetto più grande.
-
-Dopo la conferma, il lettore selezionato decomprime e verifica il pacchetto una sola volta. Gli asset di un design condiviso vanno nella tua libreria, la sua sessione va in Progetti e il suo strumento si apre quando disponibile. Le sessioni di un progetto condiviso vanno in Progetti sotto una nuova copia delle sue cartelle, con nuovi id così lo stesso file può essere aperto due volte, e la cartella si apre; una sessione il cui strumento manca su questo dispositivo attende lì. Un asset già presente sul dispositivo viene abbinato tramite checksum e riutilizzato. Un pacchetto di sistema di design viene memorizzato nel proprio namespace prima che l'app passi a esso. I file oltre i 100 MB sono segnalati come grandi, e il controllo preliminare avvisa quando lo spazio di archiviazione del browser indica meno spazio libero di quello richiesto dal payload dichiarato. Ogni parte coperta da integrità viene verificata prima che l'operazione venga confermata; una copia danneggiata viene rifiutata e la destinazione appena creata viene ripristinata.
-
-Se il file porta uno strumento che non hai, Lolly chiede prima che quello strumento possa girare: **Ti fidi di questo strumento?** ne indica il nome e l'autore e dice chiaramente che aprirlo esegue il codice dello strumento sul tuo dispositivo, con **Fidati e installa** come via per procedere. Rifiuta e il lavoro condiviso viene comunque salvato nei tuoi progetti, in attesa del giorno in cui aggiungerai lo strumento. (Un tipo di strumento non si può ancora caricare da fuori - quello il cui codice arriva come modulo - e viene respinto allo stesso modo.)
-
-Un link e un file consegnano entrambi un'istantanea. Per lavorare sulla stessa sessione *nello stesso momento* insieme a qualcun altro - due dispositivi, nessun server, nessuna connessione a internet se siete sulla stessa rete - vedi [Lavorare insieme](/info/collaborate.html).
-
-## Camera dal vivo (strumenti reattivi al movimento)
-
-Ogni **Filtro** foto - Halftone, Scanline, Posterize, Voronoi cells, Colour treatment, Pixel stretch e Imperfections - mostra un pulsante **Vai in diretta** dove è disponibile una fotocamera. Attivalo e l'effetto segue la tua webcam fotogramma per fotogramma, così reagisce al movimento; puoi registrare il risultato in GIF, WebM o MP4. I fotogrammi vengono letti ed elaborati **sul tuo dispositivo** e non lo lasciano mai, e la fotocamera viene rilasciata nel momento in cui fermi o lasci lo strumento. (Anche qualsiasi selettore di immagini ha **Scatta una foto** per catturare un singolo fotogramma come immagine sul dispositivo.)
-
-## Le mie immagini
-
-Quando uno strumento ti permette di aggiungere un'immagine dal tuo dispositivo, questa viene conservata esattamente come è arrivata - così una Content Credential che porta con sé si verifica ancora - e salvata nella tua libreria personale **Le mie immagini** (sotto **Impostazioni → Spazio di archiviazione**). Solo un file davvero enorme chiede se tenerlo o ridimensionarlo. Riutilizzala in qualsiasi strumento. Per ripulire EXIF/GPS mentre le immagini entrano, attiva **Rimuovi i metadati dai file caricati** nel tuo profilo. Non c'è un tetto: la libreria è interamente locale ed è limitata solo dallo spazio del tuo dispositivo - gestisci o elimina le immagini da lì.
-
-## Risorse - la tua libreria
-
-**Risorse** (`#/a`, oppure il segmento **Risorse** dello switch Strumenti · Utility · Risorse · Progetti in cima a ogni vista di elenco) raccoglie tutto ciò a cui i tuoi strumenti possono attingere - loghi di brand, immagini, audio e animazioni, raggruppati per tipo - ed è anche dove vivono i **tuoi file creativi**. Nessun server, nessuna console di amministrazione, nessuna pull request: è tutto sul tuo dispositivo.
-
-![Risorse, con i campioni e i font del brand, e i tuoi caricamenti](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
-
-- <!--i:upload--> **Porta dentro i tuoi file.** Trascina qualsiasi immagine, SVG, clip audio, video, Lottie, PDF o presentazione PowerPoint nell'area di caricamento - o fai clic per scegliere - e arriva subito in Risorse, pronto nel selettore di asset di ogni strumento. Un PDF multipagina o un file `.pptx` chiede quali pagine o diapositive mantenere - ognuna diventa un asset SVG. Importa quanto vuoi; non esce mai dal tuo dispositivo.
-- <!--i:star--> **Metti tra i preferiti ciò che usi spesso.** ★ un asset (o un colore del marchio) e viene fissato in cima a ogni selettore, così il tuo logo o colore abituale è a un clic di distanza.
-- <!--i:folder--> **Metti in ordine.** Ricategorizza un asset in un altro gruppo, nascondi un asset di marchio condiviso che non usi (con **Mostra nascosti** per recuperarlo) o elimina direttamente i tuoi caricamenti. Lo stesso gesto di selezione multipla e la stessa barra di azione flottante di Progetti funzionano anche qui, quindi tutto questo si può fare su un'intera selezione alla volta.
-- <!--i:layers--> **Stacca un video dal suo sfondo.** Apri i dettagli di un video o fai clic destro sulla sua card in un qualsiasi selettore di asset, e scegli **Rimuovi sfondo…** per salvare un'alternativa trasparente - un WebP o PNG animato con canale alfa reale. Scegli un **Metodo**: un **Modello sul dispositivo** ritaglia un soggetto da una scena affollata, oppure una **Chiave colore** ritaglia uno sfondo uniforme e ben illuminato come uno schermo verde o una parete semplice, con **Tolleranza**, **Morbidezza** e **Rimozione della sbavatura** per regolare il bordo. La chiave colore non richiede alcun download di modello né rete, quindi **Rimuovi sfondo** è disponibile su qualsiasi video ed è spesso più pulita su riprese nitide. Un controllo di **Risoluzione** (360, 480, 720 o 1080p, mai oltre la sorgente) scambia dettaglio con un file più piccolo e veloce. Viene eseguita come attività in background sul tuo dispositivo. Il ritaglio finito viene salvato accanto all'originale come proprio asset, e il Content Credential del video sorgente viaggia insieme come ingrediente. (Vedi [Generato una volta, renderizzato allo stesso modo](/info/ai-features.html) per capire perché rimuovere uno sfondo resta una semplice modifica.)
-
-### Porta la tua palette e i tuoi font ovunque
-
-Il pannello **Campioni** di Risorse fa più che mostrare - fai clic su un colore per copiarlo, oppure **scarica l'intera palette del brand** nel formato che parla il tuo altro strumento:
-
-- <!--i:code--> **Design token (JSON)**, **variabili CSS** o **classi CSS** - inserisci il brand direttamente in un foglio di stile o in una build;
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)** - caricalo in Illustrator o Photoshop;
-- <!--i:pentool--> **Palette GIMP (.gpl)** - per GIMP o Inkscape.
-
-![Il pannello Campioni - i cinque pulsanti di download della palette in alto, poi ogni colore del brand come chip copiabile](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
-
-Il pannello **Font** elenca i caratteri del tuo brand con un **download** accanto a ciascuno, per installarli localmente o consegnarli a una tipografia. (La stanza Colori del [Brand Studio](/info/brand-studio.html) offre lo stesso download della palette.)
-
-Gli asset sono una metà del percorso aperto e fai-da-te; l'altra è **creare i tuoi strumenti** - il canvas libero (Design, descritto sopra) ti permette di costruirne uno visivamente, senza scrivere codice.
-
-## Suoni e accessibilità
-
-Lolly punta a essere comodo da usare per tutti. L'interfaccia è navigabile da tastiera, i controlli personalizzati hanno etichette appropriate per gli screen reader e l'anteprima dal vivo di ogni strumento è esposta come una singola immagine etichettata che descrive cosa sta creando.
-
-Un delicato strato di **suoni assistivi** conferma quello che fai - l'arrivo nella galleria, una verifica delle Content Credentials valida o non valida, la chiusura di un pannello, il cambio di un filtro. È **disattivato per impostazione predefinita**: attiva **Suono** ovunque compaia l'interruttore (il popover delle opzioni di ogni vista, oppure **Impostazioni**), e la scelta viene ricordata.
-
-Quattro impostazioni di comfort facoltative stanno sotto **Impostazioni → Accessibilità**: **Riduci il movimento** (elimina le transizioni e i fronzoli dell'app), **Nascondi le anteprime colorate** (card della galleria pacate, con sole icone e testo, e miniature dei progetti più tranquille), **Contrasto elevato** (bordi, testo e anelli di focus più marcati) e **Testo grande** (caratteri dell'app più grandi - etichette, menu, testo dei pulsanti). Tutte e quattro calmano l'app *attorno* al tuo lavoro: non entrano mai nel canvas di uno strumento e non cambiano un pixel di ciò che esporti, e ciascuna è disattivata finché non la attivi tu. Dettagli completi in [Il tuo profilo → Accessibilità](/info/profile.html#accessibility).
-
-Accanto all'interruttore Suono c'è la **Modalità Neurospicy** - una traccia di sottofondo opzionale e rilassante per la concentrazione, che suona piano mentre lavori. Attivarla apre un piccolo **dock del player** nell'angolo in basso che ti segue in tutta l'app; da lì puoi cercare e scegliere una traccia, saltare avanti e indietro, regolare il volume e ridurre a icona o chiudere il player. L'elenco delle tracce copre alcune categorie - brani procedurali *Lolly Sings*, loop e beat ambientali, i tuoi audio caricati e una manciata di stazioni **radio** internet dal vivo (queste richiedono una connessione; tutto il resto suona offline). È **disattivata per impostazione predefinita** e, come il Suono, viene ricordata tra sessioni e dispositivi. Disattivare il Suono silenzia anche la traccia di concentrazione.
-
-## Archiviazione e privacy
-
-Lolly conserva il tuo lavoro sul tuo dispositivo: nello storage proprio di questo browser nell'app web, e nello storage proprio dell'app nelle app desktop e mobili. Cosa viene conservato, cosa rimuove **Cancella tutti i miei dati** e cosa porta con sé la cancellazione dei dati del browser sono in [Trova e recupera il tuo lavoro](/info/find-your-work.html#if-you-clear-your-browser-data); l'[Informativa sulla privacy](/info/privacy.html) elenca tutto ciò che l'app scarica o invia, e [Superficie server](/info/server-surface.html) i componenti server facoltativi.
-
-## Passare a un altro dispositivo
-
-Per portare il tuo lavoro su un secondo computer o telefono, usa la Sincronizzazione, un file di backup o un file `.lolly`. [Sposta il tuo lavoro su un altro dispositivo](/info/find-your-work.html#move-your-work-to-another-device) confronta i tre e illustra **Esporta i miei dati** e **Importa dati…**.
-
-## Importare un design (Figma, Penpot, Illustrator, InDesign)
-
-Puoi portare un design esistente in Lolly e continuare a lavorarci: apri **Design**, fai clic su **Importa un design** nella barra degli strumenti del canvas e scegli un **.fig** o SVG di Figma, un **.penpot** di Penpot, un **.ai** / **.pdf** di Illustrator o un **.idml** di InDesign. I livelli diventano riquadri modificabili sul canvas libero - il testo resta riscrivibile, le immagini finiscono in **Le mie immagini** e la tipografia e i colori si conformano alle variabili globali di brand - poi il risultato si salva, si condivide e si renderizza come qualsiasi altra sessione. L'analisi avviene interamente sul tuo dispositivo. Dettagli completi: **[Importare un design](/info/design-import.html)**.
-
-## Esportare
-
-Consulta **[Esportazione e formati](/info/exporting.html)** per la storia completa - scegliere un formato, la dimensione di output e le unità di stampa, la trasparenza, il video e copia/condivisione. In breve: scegli un formato, imposta la dimensione se ti serve e **Scarica** (oppure **Copia** negli appunti).
-
-## Modalità Batch (Pro)
-
-Per gli utenti avanzati, **Batch** (collegato dalla galleria, protetto dietro il feature flag Pro, attivo per impostazione predefinita) renderizza molte varianti insieme - una griglia dove ogni riga è un insieme di input, esportati tutti insieme. Ideale per localizzare una card in una dozzina di lingue o generare ogni variante di dimensione in un solo passaggio. Compila le righe digitando, incollando direttamente da un foglio di calcolo o importando un CSV (puoi anche esportarne uno), e imposta formato, dimensione e nome del file di output per ogni riga. Salva un'intera griglia come **sessione batch** con nome che si riapre dalla galleria, e scarica ogni riga come un unico `.zip`.
-
-![La barra degli strumenti Batch - nome dello zip, unità, DPI e il formato che ogni riga eredita, con Sessioni e Rendi a destra](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
-
-Batch serve per generare **molte varianti di un template** in una volta sola. Per rirenderizzare sessioni che hai **già salvato**, usa **Progetti → Renderizza cartella / Renderizza selezione** (vedi [Trova e recupera il tuo lavoro](/info/find-your-work.html#find-something-you-saved)) - non serve Pro.
-
-## Modificare affiancato (Multi-edit)
-
-Batch sono molte varianti di *un solo* design. **Multi-Edit** è l'altra metà del lavoro: più design salvati **diversi** aperti contemporaneamente, così una modifica si applica a tutti loro. Seleziona tra **due e otto** sessioni salvate in **Progetti** e scegli **Modifica insieme** dalla barra di selezione; si aprono come card dal vivo affiancate su `#/multi?s=<slot>,<slot>…`. Ogni card è un render reale di quella sessione, non una miniatura salvata, quindi ciò che vedi è ciò che verrà esportato.
-
-Un'unica barra laterale guida il tutto:
-
-- <!--i:sliders--> In testa ci sono i **Condivisi** - ogni input che due o più delle sessioni selezionate dichiarano nello *stesso modo* (stesso id, stesso tipo, stessi vincoli - la stessa regola di fusione che la griglia batch usa sulle sue colonne). Modifica un controllo condiviso una volta e il valore si propaga a ogni sessione che lo dichiara, dal vivo su ogni card. Due sessioni dello stesso strumento condividono tutto; due strumenti diversi condividono solo gli input che hanno in comune.
-- <!--i:document--> Sotto, **una card compressa per sessione** con tutti gli input propri di quella sessione, con la stessa fedeltà della barra laterale dello strumento - selettori di asset, gruppi di righe ripetibili, campi di colore - più un blocco di esportazione compatto: **Formato**, **W** / **H**, **Unità**, **DPI** e il proprio **Scarica**. Quel pulsante Scarica salva prima la sessione e poi la renderizza attraverso il consueto percorso di esportazione della sessione, così il file porta lo stesso nome, formato e Content Credentials che avrebbe direttamente dallo strumento.
-- <!--i:search--> **Filtra i campi…** in cima restringe i controlli su *tutte* le card in una volta - ed è così che arrivi al "titolo" in otto sessioni senza doverlo cercare scorrendo.
-
-Fai clic su un canvas qualsiasi (o premi Invio su di esso) e la card di quella sessione nella barra laterale si apre e scorre fino a essere visibile. **Salva tutto** riscrive ogni sessione nel proprio slot. **Scarica tutto** salva prima, poi renderizza l'intero gruppo attraverso la stessa pipeline di **Renderizza selezione** di Progetti - un solo zip, con il blocco con password facoltativo offerto lungo la strada.
-
-Due limiti dichiarati apertamente. Il tetto da due a otto è reale: ogni card monta il proprio runtime dal vivo, e quello è il numero che resta reattivo - un link che ne chiede di più (o che chiede una sessione che non esiste più) lo dice invece di caricarsi a metà. E il link nomina i *tuoi* slot salvati, quindi riapre quel gruppo su questo dispositivo; non è un link di condivisione.
-
-Quando la selezione è più grande di otto, mescola strumenti o comprende immagini oltre alle sessioni, la via di fuga è **Modifica come foglio** nella stessa barra di selezione: apre l'intera selezione come **righe nella griglia batch** (`#/pro?s=…`), senza limiti di dimensione e senza la regola dello stesso strumento. Le cartelle restano fuori da entrambe - hanno un proprio percorso di apertura nella griglia. ([Ricerca](/info/search.html) è l'unica cosa che qui ancora non arriva: Multi-edit è l'unica vista che la barra di ricerca non conosce.)
-
-## Offline e installazione
-
-Lolly è una PWA. Continua a funzionare **offline** nelle schermate che hai già aperto, e **L'app**, sotto **Impostazioni → Disponibile offline**, scarica il resto - installala dalla barra degli indirizzi del tuo browser (o *Aggiungi alla schermata Home* su mobile) per un'esperienza a schermo intero, simile a un'app. Si aggiorna da sola quando torni online.
-
-Sugli aggiornamenti: se una vista non si carica subito dopo un aggiornamento (un pannello vuoto, un "failed to fetch" nell'angolo), ricarica la pagina una volta - l'app recupera la nuova versione senza problemi e il tuo lavoro salvato, le sessioni e il marchio restano intatti; solo un'immagine che hai aggiunto e mai salvato potrebbe dover essere aggiunta di nuovo. Salva tutto sul tuo dispositivo, non nella pagina.
-
-Design e Darkroom possono mantenere la precisione originale dell'immagine con l'editing **Wide colour / HDR**, incluso il video di Sequence. I campioni di brand possono portare valori sRGB e P3 separati. Vedi [Editing colore ampio e HDR](/info/hdr-editing.html) per le scelte di output e i limiti attuali.
-
-
-### Live pages that take the clicker
-
-Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).
+## Impostazioni, suono e comfort
+
+**Settings**, in fondo alla schermata iniziale, contiene i tuoi dati, i tuoi design system, l'accessibilità, l'archiviazione e i download offline. [Settings](/info/dashboard.html) mappa ogni scheda.
+
+- **I tuoi dati e la tua foto** compilano qualsiasi strumento pensato per usarli, come una firma email o un badge. [Profiles](/info/profile.html) li descrive.
+- **Accessibility** ha quattro interruttori di comfort: **Reduce motion**, **Hide colourful previews**, **High contrast** e **Large text**. Cambiano l'app attorno al tuo lavoro, mai la tela di uno strumento né un'esportazione.
+- **Sound** riproduce lievi suoni di assistenza per ciò che fai, e **Neurospicy Mode** riproduce una traccia calma per concentrarsi. Entrambi sono disattivati finché non li attivi, in **Settings → Accessibility** o nel menu del profilo.
+- **Available offline** scarica il resto dell'app, i tuoi strumenti, il catalogo e le guide prima che tu perda la connessione. Lolly è un'app web che puoi installare: usa il pulsante di installazione del browser, o *Add to Home Screen* su un telefono, per ottenere un'app a schermo intero che si aggiorna da sola quando torni online.
+- **Storage** mostra cosa Lolly conserva su questo dispositivo. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) spiega cosa rimuove la cancellazione, e l'[Informativa sulla privacy](/info/privacy.html) elenca tutto ciò che l'app scarica o invia.
+
+::: note Se una vista non si carica dopo un aggiornamento
+Un pannello vuoto o un messaggio "failed to fetch" subito dopo un aggiornamento di solito si risolve con un solo ricaricamento. Il lavoro salvato, le sessioni e i design system non vengono toccati, perché sono conservati sul tuo dispositivo. Solo un'immagine che hai aggiunto e mai salvato potrebbe dover essere aggiunta di nuovo.
+:::
+
+## Dove andare adesso
+
+- **[Design: la tela libera](/info/design.html)**: la tela, le forme, la timeline e la presentazione di un deck.
+- **[Batch e Multi-edit](/info/batch.html)**: molte versioni di un design, o più design salvati modificati insieme.
+- **[Esporta un file](/info/exporting.html)**: scegliere formato, dimensione, unità di stampa, trasparenza e video.
+- **[Import a design](/info/design-import.html)**: porta un file Figma, Penpot, Illustrator o InDesign in Design e continua a modificarlo.
+- **[Template](/info/templates.html)**: punti di partenza salvati per uno strumento.
+- **[Wide Colour e HDR](/info/hdr-editing.html)**: mantieni la precisione originale delle immagini in Design e Darkroom.
+- **[Find and recover your work](/info/find-your-work.html)**: dove si trova tutto e come spostarlo su un altro dispositivo.

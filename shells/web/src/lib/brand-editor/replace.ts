@@ -39,8 +39,7 @@ export const undoLast = (bedit: BrandEditorCtx): boolean => {
   bedit.state.persist(true);
   playSfx('click');
   announce(tRaw('Undone: {action}', { action: prev.label }));
-  const undo = bedit.ramps.$<HTMLButtonElement>('[data-be-undo]');
-  if (undo) { undo.hidden = undoStack.length === 0; undo.textContent = tRaw('Undo: {action}', { action: undoStack.at(-1)?.label ?? '' }); }
+  for (const undo of bedit.root.querySelectorAll<HTMLButtonElement>('[data-be-undo]')) { undo.hidden = undoStack.length === 0; undo.textContent = tRaw('Undo: {action}', { action: undoStack.at(-1)?.label ?? '' }); }
   return true;
 };
 export const countLeaves = (_bedit: BrandEditorCtx, node: unknown): number =>

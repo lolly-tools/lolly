@@ -1,68 +1,81 @@
 # Verifique você mesmo
 
-As páginas de privacidade e segurança do Lolly fazem afirmações: sem análise, sem rastreamento, arquivos que nunca saem do dispositivo, um único cookie em todo o sistema. Esta página é diferente: ela não pede que você acredite em nada disso. É uma lista de procedimentos, cada um com o comando ou caminho de clique exato e o resultado que você verá. Toda afirmação aqui é refutável em minutos, a maioria sem instalar nada.
+Toda promessa neste site pode ser verificada, sem conta. A maioria das verificações precisa apenas de um navegador; as demais precisam de um terminal e uma cópia do código-fonte. Se uma verificação abaixo não der o resultado mostrado, isso é um bug ou uma promessa quebrada, e queremos saber: veja [If a check fails](#if-a-check-fails).
 
-Se alguma verificação nesta página não produzir o resultado mostrado, isso é um bug ou uma promessa quebrada. [Reporte](#if-a-check-fails) de qualquer forma, e vamos tratar com a gravidade que uma promessa quebrada merece.
+Comece pela mais rápida: solte um arquivo no Verify. Depois vá além: observe a rede enquanto usa uma ferramenta, desconecte a tomada e continue trabalhando, conte os cookies e leia o código-fonte.
+
+Essas verificações cobrem o Lolly por si só. Se a sua organização executa o Lolly Work, ele acrescenta login, conteúdo compartilhado, telemetria configurada e registros de auditoria; confira-os com [Server Surface](/info/server-surface.html) e com a [seção da organização da política de privacidade](/info/privacy.html#organisation-services-with-lolly-work).
 
 ## Veja funcionando, em dez segundos
 
-Antes dos procedimentos, o resultado. Abra [`/verify`](/#/verify) e solte um arquivo nele - sem upload, sem conta, sem esperar por um servidor. Aqui está verificando a [tempestade de Queensland gerada](/info/ai-stance.html) da nossa página de posicionamento sobre IA: uma imagem do Gemini que o Lolly abriu, redimensionou e exportou. Cada selo abaixo foi calculado no dispositivo, a partir dos próprios bytes do arquivo.
+Abra [`/verify`](/#/verify) e solte um arquivo na página. Não há envio, conta nem espera por um servidor. Aqui ele verifica a [tempestade de Queensland gerada](/info/ai-stance.html) de Our AI Stance: uma imagem que o Gemini gerou, que o Lolly abriu, marcou e converteu. Todos os selos foram calculados no dispositivo, a partir dos próprios bytes do arquivo.
 
 ![Verify em uma tela largura de telefone - a imagem da tempestade, um veredito verde Made with Lolly e os selos de credencial intacta e bytes inalterados empilhados abaixo dela](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 
-O veredito não é um único selo, mas uma pequena pilha deles, cada um um fato independente:
+O veredito é um pequeno monte de selos, cada um um fato independente:
 
-- <!--i:lock--> **Made with Lolly** - a credencial está intacta *e* registra uma exportação do Lolly.
-- <!--i:seal--> **A credencial está intacta** - o manifesto C2PA assinado é interpretado e sua própria assinatura de claim é verificada.
-- <!--i:hash--> **Os bytes não mudaram** - o hash do arquivo ainda corresponde ao que foi assinado. Altere um pixel e este selo muda.
-- <!--i:sparkle--> **GEN AI** - uma máquina fez esses pixels, e o arquivo diz isso. O Lolly lê essa afirmação de volta em vez de escondê-la.
+- <!--i:lock--> **Made with Lolly**: a credencial está intacta *e* registra uma exportação do Lolly.
+- <!--i:seal--> **The credential is intact**: o manifesto C2PA assinado é analisado e a assinatura da própria declaração é verificada.
+- <!--i:hash--> **The bytes have not changed**: o hash do arquivo ainda corresponde ao que foi assinado. Altere um pixel e este selo vira.
+- <!--i:sparkle--> **GEN AI**: uma máquina criou estes pixels, e o arquivo diz isso. O Lolly lê essa declaração de volta em vez de esconder o fato.
 
-E todo o histórico viaja com o arquivo. Nove etapas sobrevivem aqui - cinco que o Google registrou ao gerar e marcar com watermark a imagem, depois quatro que o Lolly registrou ao abrir, marcar e converter a cópia nesta página - lidas diretamente dos bytes, no seu dispositivo, e renderizadas como uma linha do tempo. É a mesma imagem, verificada da mesma forma, que a linha do tempo C2PA na [página de posicionamento sobre IA](/info/ai-stance.html).
+Todo o histórico viaja com o arquivo. Nove etapas sobrevivem aqui: cinco que o Google registrou ao gerar e marcar com marca d'água a imagem, depois quatro que o Lolly registrou ao abrir, marcar e converter a cópia desta página. O Verify as lê direto dos bytes e as desenha como uma linha do tempo.
 
 ![O histórico de alterações que o Verify lê de volta da imagem da tempestade - cinco etapas registradas pelo Google, depois quatro pelo Lolly, terminando no WebP nesta página](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-Nada disso é a promessa de confiança, no entanto - isso é a demonstração. O resto desta página é a promessa de confiança: cada selo acima é reproduzível, e aqui está como você reproduz as garantias por trás deles.
+Essa é a demonstração. As verificações abaixo são as garantias por baixo dela, e cada uma é reproduzível. [Content Credentials](/info/content-credentials-identity.html) explica cada veredito.
 
 ## No seu navegador, sem ferramentas necessárias
 
-**1. Observe a rede.** Abra o [lolly.tools](https://lolly.tools), abra as DevTools do seu navegador (F12), mude para a aba **Network** e use uma ferramenta - digite uma URL em [QR Code](/t/qr-code), mude cores, exporte um PNG. Toda requisição permanece em `lolly.tools`: o app shell, os próprios arquivos da ferramenta, os ativos do catálogo. Nenhum host de analytics, nenhum beacon de CDN, nenhum serviço de fontes, nenhum endpoint de "relatório de erros". O que você digita em uma ferramenta não aparece em **nenhuma requisição** - a renderização é local.
+::: timeline
+- <!--i:globe--> **1. Observe a rede.** Abra o [lolly.tools](https://lolly.tools), abra o DevTools do seu navegador (F12), vá para **Network** e use uma ferramenta: digite um endereço web no [QR Code](/t/qr-code), mude as cores, exporte um PNG. Toda requisição fica em `lolly.tools`: o shell do app, os arquivos da própria ferramenta e os recursos do catálogo. Não há host de análise de uso, beacon de CDN, serviço de fontes nem endpoint de relatório de erros. O que você digita em uma ferramenta aparece em **nenhuma requisição**, porque a renderização é local.
+- <!--i:eyeoff--> **2. Desconecte a tomada.** Carregue o app e abra uma ou duas ferramentas, depois fique offline (modo avião, ou DevTools → Network → Offline) e recarregue. A galeria e todas as ferramentas que você abriu continuam funcionando, inclusive a renderização e a exportação nos formatos que você usou. Os arquivos de uma ferramenta e o codificador de um formato ficam em cache na primeira vez que você os usa, então use uma ferramenta uma vez online antes de testá-la offline. Esta é a verificação isolada mais forte desta página: um software que liga para casa não sobrevive a ter o cabo cortado.
+- <!--i:check--> **3. Conte os cookies.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. A lista está vazia: o app não define cookies. Cole `document.cookie` no console e você obtém `""`. O cadastro opcional na CA define um cookie `HttpOnly` de curta duração, `lolly_ca_state`, restrito a `/api/ca`, que o `document.cookie` não consegue mostrar. Uma instância do Lolly Work usa os próprios cookies de login; compare-os com [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+- <!--i:layers--> **4. Leia o seu próprio armazenamento.** No mesmo painel, tudo o que o Lolly guarda está diante de você: algumas dezenas de chaves simples de `localStorage` (tema, idioma, largura da barra lateral, configurações de som e de visualização, e uma cópia em cache do índice público do catálogo de ferramentas) e os seus próprios documentos no IndexedDB. Todo valor é uma string ou JSON legível, sem nada ofuscado. Limpar os dados do site remove esses registros locais, mas não um backup do Sync nem registros mantidos por uma instância do Lolly Work. **Settings → Storage → Clear all my data** faz o mesmo de dentro do app, e você pode ver os armazenamentos e caches se esvaziarem.
+- <!--i:lock--> **5. Confira se o contato de divulgação existe.** [`/.well-known/security.txt`](/.well-known/security.txt) responde com um bloco de contato [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), não com uma página HTML.
+:::
 
-As exceções honestas - todas opt-in, iniciadas pelo usuário e visíveis na mesma aba Network quando acontecem: adicionar uma **Google Font** no editor de marca busca aquela família específica na Google, após um diálogo de consentimento que informa exatamente isso, uma vez, antes da primeira busca; clicar em um **preset de perfil ICC de impressão** busca aquele perfil no registro público do ICC em color.org; tocar o **rádio** integrado opcional transmite da estação; inserir um local no **Meeting Planner** consulta esse lugar no serviço de geocodificação da open-meteo para suas coordenadas e fuso horário, uma vez por cidade (as respostas são salvas no seu dispositivo), e o campo carrega esse aviso bem onde você digita; e o **URL Screenshot** necessariamente carrega a URL que você digitou - essa é sua função, e você observa isso acontecer. Uma ferramenta que declara uma capacidade de rede só pode buscar dos hosts que seu manifesto permite, e esse mecanismo é fail-closed; nenhuma ferramenta atualmente publicada declara uma, então a Content-Security-Policy imposta pelo navegador é a fronteira que de fato mantém a lista acima restrita aos seus hosts. A [política de privacidade](/info/privacy.html) mantém a tabela canônica de tudo isso; sua regra permanente é que um contato de rede fora dessa tabela não acontece.
+::: details O que mais você pode ver na aba Network
+Alguns recursos só acessam a rede quando você os usa, e cada um é visível na mesma aba:
 
-**2. Desligue o cabo.** Carregue o app e abra uma ou duas ferramentas, depois fique offline - modo avião, ou DevTools → Network → Offline. Recarregue. A galeria e cada ferramenta que você abriu continuam funcionando, incluindo renderização e exportação nos formatos que você usou - os arquivos de uma ferramenta e o codificador de um formato são armazenados em cache na primeira vez que você os usa, então use uma ferramenta uma vez online antes de testá-la offline. Essa é a verificação mais forte desta página: software que liga para casa não sobrevive ao corte do cabo.
+- adicionar uma **Google Font** no Design System Setup busca essa única família no Google, depois de uma caixa de consentimento que avisa isso, uma vez, antes da primeira busca;
+- clicar em uma **predefinição de perfil de impressão ICC** busca esse perfil no registro público do ICC em color.org;
+- tocar o **rádio** integrado opcional transmite a partir da estação;
+- digitar um local no **Meeting Planner** consulta esse lugar no serviço de geocodificação do open-meteo para obter as coordenadas e o fuso horário, uma vez por cidade (as respostas ficam salvas no seu dispositivo), e o campo avisa isso onde você digita;
+- o **URL Screenshot** carrega o endereço que você digitou, porque esse é o trabalho dele, e você vê isso acontecer.
 
-**3. Conte os cookies.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. A lista está vazia - o app não define nenhum cookie. Ou cole `document.cookie` no console: você obtém `""`. (O único cookie em todo o sistema, `lolly_ca_state`, dura no máximo dez minutos durante um login de identidade opcional - excluído no momento em que o login é concluído - é restrito a `/api/ca` e é `HttpOnly`: a [política de privacidade](/info/privacy.html) o descreve com precisão.)
-
-**4. Leia seu próprio armazenamento.** No mesmo painel Application: tudo que o Lolly guarda é inspecionável bem à sua frente - cerca de duas dezenas de chaves simples de `localStorage` (tema, idioma, largura da barra lateral, configurações de som e de exibição, mais uma cópia em cache do índice público do catálogo de ferramentas), e seus próprios documentos no IndexedDB. Todo valor é uma string legível ou JSON - nada é ofuscado, nada é codificado para dificultar a leitura. Limpar os dados do site no navegador remove tudo isso, e o Lolly não guarda nenhuma cópia do lado do servidor; **Configurações → Armazenamento → Limpar todos os meus dados** faz o mesmo de dentro do app, e você pode observar os stores e caches esvaziarem neste painel.
-
-**5. Verifique se o contato de divulgação existe.** [`/.well-known/security.txt`](/.well-known/security.txt) responde com um bloco de contato [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), não uma página HTML.
+Uma ferramenta que declara uma capacidade de rede só pode buscar nos hosts que o manifesto dela permite, e essa verificação falha de forma segura. Nenhuma ferramenta incluída hoje declara uma, então é a Content-Security-Policy aplicada pelo navegador que mantém a lista acima restrita a seus hosts. A [política de privacidade](/info/privacy.html) mantém a tabela canônica de tudo isso, incluindo o tráfego de instâncias gerenciadas, como atualizações de política e relatórios ativados.
+:::
 
 ## Em um terminal
 
-**6. O endpoint de renderização responde apenas com dados públicos.** O único recurso do servidor que coloca entradas digitadas pelo usuário em uma URL - renderizações por hot-link - está ativo aqui, e a [política de privacidade](/info/privacy.html) explica o que isso significa para as entradas que você coloca em um link:
+**6. O endpoint de renderização responde apenas com dados públicos.** O único recurso de servidor que coloca entradas digitadas em uma URL, as renderizações por hotlink, está ativo aqui. A [política de privacidade](/info/privacy.html) diz o que isso significa para as entradas que você coloca em um link.
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-A opção é por implantação (`LOLLY_DISABLE_RENDER_GET=1`): em uma instância que a define, a mesma sondagem retorna `404` - essa diferença é a flag funcionando, não uma inconsistência.
+Cada implantação escolhe (`LOLLY_DISABLE_RENDER_GET=1`): em uma instância que a define, a mesma sondagem retorna `404`. Essa diferença é a configuração funcionando, não uma inconsistência.
 
-**7. A superfície do servidor é enumerável.** [Server Surface](/info/server-surface.html) lista cada rota do lado do servidor que existe, com a regra permanente de que um endpoint fora dessa página não faz parte do Lolly. Faça `curl` nelas; não há mais nada a encontrar.
+**7. Verifique os serviços que a sua implantação ativa.** [Server Surface](/info/server-surface.html) lista os serviços opcionais e leva às referências detalhadas deles. Para o Lolly Work, inclua suas APIs autenticadas, a conexão de colaboração, o armazenamento e os provedores configurados. Uma sondagem do lolly.tools público não testa uma instância privada de organização.
+
+Se você executa a sua própria instância, [Delivery deployment](/info/deploy-delivery.html) traz as verificações de lançamento dela: integridade de modelos, a sondagem de borda e a lista de amostras, versões de exibição, o gateway de download privado e o catálogo assinado em um navegador.
+
 
 ## No código-fonte
 
-Tudo acima ainda poderia ser encenação se o código implantado fosse diferente do código público. Então verifique o código - a implantação é construída a partir do [repositório público](https://github.com/lolly-tools/lolly):
+Tudo o que foi dito acima ainda poderia ser teatro se o código implantado fosse diferente do código público. Então verifique o código. A implantação é compilada a partir do [repositório público](https://github.com/lolly-tools/lolly):
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
-**8. Nenhum rastreador, nenhum SDK de analytics, em lugar nenhum.** Pesquise o código que é publicado - o engine, cada shell (incluindo a extensão do navegador, os overrides da bridge do Tauri e o service worker), as funções do servidor e os pacotes de ferramentas - pelos suspeitos de sempre:
+**8. Nenhum rastreador e nenhum SDK de análise de uso, em lugar nenhum.** Procure no código que é distribuído (o motor, todos os shells, inclusive a extensão de navegador, as sobreposições da ponte do Tauri e o service worker, as funções de servidor e os pacotes de ferramentas) pelos suspeitos de sempre:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
   -e googletagmanager -e google-analytics -e posthog -e mixpanel -e hotjar \
   -e sentry.io -e segment.com -e '@vercel/analytics' \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
@@ -70,10 +83,12 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' 
 # (no output)
 ```
 
-**9. Nenhum resolvedor DNS de terceiros.** A verificação SEAL do Verify nunca roteia buscas através de um provedor DNS-over-HTTPS - o app web simplesmente não tem resolvedor:
+Esta busca procura SDKs de rastreamento de terceiros. Ela não mostra a ausência de relatórios de uso do próprio projeto: o Lolly Work oferece telemetria da organização e um log de auditoria separado, com política e testes próprios.
+
+**9. Nenhum resolvedor DNS de terceiros.** A verificação SEAL do Verify nunca envia uma consulta por um provedor DNS-over-HTTPS, porque o app não tem resolvedor:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
   -e cloudflare-dns.com -e dns.google -e /dns-query \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
   shells/web/public/sw.js services packages api community brands/*/tools
@@ -82,23 +97,25 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
 #  bans them)
 ```
 
-**10. O serviço de certificados não retém nada.** A CA de identidade não tem log de emissão - nem seu e-mail, nem um timestamp, nem um webhook. A ausência é verificável com grep:
+**10. O serviço de certificados não mantém log de emissão.** A CA de identidade não guarda log do que emitiu nem inventário de identidades: nenhuma linha em stdout, nenhum webhook, nenhum armazenamento de certificados. A ausência pode ser buscada:
 
 ```bash
 grep -rn logIssuance services/ca api/ca
 # (no output)
 ```
 
-## Imposto por testes, não por promessas
+A CA mantém, sim, estado de trabalho de curta duração: os buckets de limite de taxa guardam chaves de IP e e-mail com hash durante a janela deles, e o armazenamento de admissão de uma implantação gerenciada guarda um identificador com chave e um digest da requisição por no máximo dez minutos. [Content Credentials engineering](/info/content-credentials-engineering.html#protocol) traz o detalhe.
 
-As três verificações de código-fonte acima não são uma auditoria única - elas estão fixadas na suíte de testes, então não podem apodrecer silenciosamente. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) falha a build se:
+## Garantido por testes
 
-- qualquer SDK de analytics ou rastreamento aparecer em qualquer lugar do código-fonte publicado que ele varre - app, engine, servidor, extensão e código de pacotes de ferramentas igualmente,
-- qualquer resolvedor DNS-over-HTTPS de terceiros aparecer nesse código-fonte,
-- o log de emissão da CA reaparecer - no código-fonte **ou** no bundle de servidor gerado,
-- a política de privacidade perder suas declarações legalmente exigidas (controlador nomeado, base legal, direito de reclamação).
+As verificações de código acima não são uma auditoria única: elas estão fixadas na suíte de testes, para que não apodreçam em silêncio. O [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) confere uma lista de nomes de rastreadores mais longa que a busca acima e quebra a compilação se:
 
-Execute-os você mesmo no clone (Node 22.18+; não é necessário `pnpm install` para este arquivo):
+- qualquer SDK de análise de uso ou rastreamento aparecer em qualquer parte do código distribuído que ele examina, no código do app, do motor, do servidor, da extensão e dos pacotes de ferramentas;
+- qualquer resolvedor DNS-over-HTTPS de terceiros aparecer nesse código;
+- o log de emissão da CA voltar, no código-fonte **ou** no pacote de servidor gerado;
+- a política de privacidade perder as declarações exigidas por lei (controlador nomeado, base legal, direito de reclamar).
+
+Execute-os você mesmo no clone (Node 22.18 ou posterior; este arquivo não precisa de `pnpm install`):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -110,14 +127,12 @@ node --test tests/no-trackers.test.ts
 
 O conjunto completo (`pnpm install && pnpm test`) executa mais alguns milhares, incluindo os testes adversariais de criptografia descritos em [Segurança e Verificação](/info/security.html).
 
-## O que você não consegue verificar de fora - dito claramente
+## O que você não consegue verificar de fora
 
-Uma página como esta conquista confiança nomeando seus próprios limites:
-
-- **Logs de acesso da hospedagem.** Qualquer servidor que responde a uma requisição pode registrar a requisição - IP, caminho, timestamp. Você não pode verificar o que um host retém ou não, e nós também não, além do comportamento documentado do nosso provedor. É exatamente por isso que a arquitetura mantém seu conteúdo totalmente fora da rede: o que nunca sai do seu dispositivo não pode ser registrado por ninguém.
-- **Que a implantação executa este código.** Você pode verificar que o código-fonte está limpo e que o comportamento implantado corresponde a ele (as verificações acima cobrem ambas as pontas), mas atestação em nível binário de uma implantação web não é algo que a plataforma web oferece. As mitigações são o repositório público, os testes impostos e a verificação offline - uma implantação adulterada que liga para casa falha imediatamente nas verificações 1 e 2.
-- **Os hooks de ferramentas não são isolados (sandboxed) por padrão.** A lógica opcional de uma ferramenta é executada revisada, no próprio realm da página; toda ferramenta em lolly.tools é first-party e revisada antes de ser publicada. O isolamento por Worker agora é oferecido como opt-in por ferramenta - uma ferramenta cujo manifesto define `isolate: true` executa seus hooks fora da thread principal - então o que você não consegue verificar de fora está diminuindo, mas o caminho padrão ainda é no mesmo realm e a revisão ainda é o controle. Isso é declarado, não ocultado - veja a seção de [limites de design](/info/security.html), que sempre disse isso.
+- **Logs de acesso da hospedagem.** Qualquer servidor que responde a uma requisição pode registrá-la: endereço IP, caminho e horário. Uma sondagem externa não consegue estabelecer por quanto tempo os logs são mantidos. O operador controla o registro, a rotação e as exportações, e deve divulgar essas escolhas. A renderização local mantém as edições comuns no seu dispositivo; a renderização opcional no servidor e os serviços de espaço de trabalho compartilhado têm os fluxos de dados separados que a política de privacidade descreve.
+- **Que a implantação executa este código.** Você pode verificar que o código-fonte está limpo e que o comportamento implantado corresponde a ele, e as verificações acima fazem as duas coisas. A atestação em nível de binário de uma implantação web não é algo que a plataforma web ofereça. As mitigações são o repositório público, os testes aplicados e a verificação offline: uma implantação adulterada que liga para casa falha nas verificações 1 e 2 ao mesmo tempo.
+- **Hooks de ferramentas.** A lógica opcional de uma ferramenta integrada é revisada, e não isolada em sandbox: ela roda na página, a menos que a ferramenta opte por um Worker. Toda ferramenta do lolly.tools é própria e revisada antes de ser distribuída. O [Threat Model](/info/threat-model.html#trust-boundaries) expõe onde os hooks rodam e o que os limita.
 
 ## Se uma verificação falhar
 
-Uma discrepância entre esta página e o comportamento observado é um relatório de segurança, e realmente preferimos ouvir sobre isso do que não: [fitzy+security@suse.com](mailto:fitzy+security@suse.com), o botão **Report a vulnerability** em qualquer [repositório lolly-tools](https://github.com/lolly-tools) ou o contato em [`/.well-known/security.txt`](/.well-known/security.txt). Divulgação coordenada e crédito ao relator são a política permanente - [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md) tem os detalhes.
+Uma diferença entre esta página e o que você observa é um relatório de segurança. Envie-o pelos canais privados em [Security & Verification](/info/security.html#reporting-a-vulnerability). Praticamos a divulgação coordenada e damos crédito a quem relata.

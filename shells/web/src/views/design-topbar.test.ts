@@ -333,6 +333,33 @@ test('the NN% button opens a menu of stops that zoom to an absolute ratio', () =
   f.bar.destroy();
 });
 
+test('the zoom menu offers Zoom to selection when the host can frame one, greyed with nothing selected', () => {
+  let selected = false;
+  const zoomCalls: string[] = [];
+  const g = fixture({
+    zoom: {
+      fitAll: () => {}, fitArtboard: () => {}, zoomBy: () => {}, zoomTo: () => {},
+      actual: () => 1, subscribe: () => () => {},
+      fitSelection: () => { zoomCalls.push('fitSelection'); },
+      hasSelection: () => selected,
+    },
+  });
+  click(g.at('zoom-level'));
+  let rows = g.rows();
+  assert.deepEqual(rows.map(r => r.textContent), ['50%', '100%', '200%', '400%', 'Fit all', 'Fit artboard', 'Zoom to selection']);
+  assert.equal(rows[6]!.getAttribute('aria-disabled'), 'true', 'nothing selected: greyed');
+  click(rows[6]!);
+  assert.deepEqual(zoomCalls, [], 'a greyed row refuses the press');
+  if (g.menu()) click(g.at('zoom-level'));
+  selected = true;
+  click(g.at('zoom-level'));
+  rows = g.rows();
+  assert.equal(rows[6]!.getAttribute('aria-disabled'), null, 'a selection: live, read when the menu opens');
+  click(rows[6]!);
+  assert.deepEqual(zoomCalls, ['fitSelection']);
+  g.bar.destroy();
+});
+
 test('the zoom stops are numerals, written identically in the menu and the readout', () => {
   const f = fixture();
   click(f.at('zoom-level'));

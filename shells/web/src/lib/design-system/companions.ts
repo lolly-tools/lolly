@@ -18,6 +18,7 @@
 import { STARTER_TOKENS_ID, starterSeed, type StarterHost } from './starter.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
 import type { DesignSystemRecord } from './registry.ts';
+import { DESIGN_SYSTEMS_LISTED_EVENT } from './list-event.ts';
 
 /** One `companionDesignSystems` entry of a catalog's assets index. */
 export interface CompanionDesignSystem {
@@ -43,7 +44,9 @@ export function readCompanionDesignSystems(value: unknown): CompanionDesignSyste
 
 export type CompanionHost = ManageHost & StarterHost;
 
-async function companionDoc(host: CompanionHost, tokens: string): Promise<Record<string, unknown> | null> {
+/** The document a companion starts from: the catalog's own tokens asset, or the
+ *  starter. Null when it cannot be read yet. Reset (reset.ts) reads the same. */
+export async function companionDoc(host: CompanionHost, tokens: string): Promise<Record<string, unknown> | null> {
   // The starter reads the catalog's own copy first and the bundled one otherwise.
   if (tokens === STARTER_TOKENS_ID) return starterSeed(host);
   try {
@@ -61,10 +64,18 @@ async function exclusively<T>(fn: () => Promise<T>): Promise<T> {
 
 /**
  * Give this device each companion it has not had yet. Returns the records made.
- * Never switches: the active system stays what it was.
+ * Never switches: the active system stays what it was. A view already showing
+ * the list hears of the new records through DESIGN_SYSTEMS_LISTED_EVENT, since
+ * on a first visit the seeding finishes after that view has read the list.
  */
 export async function seedCompanionDesignSystems(host: CompanionHost, companions: CompanionDesignSystem[]): Promise<DesignSystemRecord[]> {
   if (!companions.length) return [];
+  const made = await seedEach(host, companions);
+  if (made.length && typeof window !== 'undefined') window.dispatchEvent(new Event(DESIGN_SYSTEMS_LISTED_EVENT));
+  return made;
+}
+
+function seedEach(host: CompanionHost, companions: CompanionDesignSystem[]): Promise<DesignSystemRecord[]> {
   return exclusively(async () => {
     const registry = host.designSystems;
     registry.bust();
@@ -76,7 +87,7 @@ export async function seedCompanionDesignSystems(host: CompanionHost, companions
       if (done.has(companion.tokens) || companion.tokens === shipped.headId) continue;
       const doc = await companionDoc(host, companion.tokens);
       if (!doc) continue; // not readable yet; the next sync tries again
-      const record = await createDesignSystem(host, { label: companion.label, seedDoc: doc, source: { kind: 'local', from: 'app' } });
+      const record = await createDesignSystem(host, { label: companion.label, seedDoc: doc, source: { kind: 'local', from: 'app', companion: { tokens: companion.tokens, label: companion.label } } });
       await registry.markSeeded(companion.tokens, true);
       made.push(record);
     }

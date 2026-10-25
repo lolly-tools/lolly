@@ -3,30 +3,25 @@
  * Device, design system, capabilities and activity sections within Settings.
  * The former #/d and #/dashboard routes still mount this renderer. Personal
  * preferences use the profile renderer, with the same heading and navigation.
- * Design system editing lives at #/start; this view reads the active system.
  *
- * The layout is deliberate: the brand hero leads (full-width, never
- * collapsible), then the bento of instrument tiles (palette wheel, type in
- * motion), the palette ink-ribbon, the brand-token chips and the print
- * reference, with THIS DEVICE (the live machine readout people find
- * genuinely interesting), the full capability map, and activity/storage on
- * the other tabs. Each primary section folds to its title bar with a soft
- * click. Apart from the
- * sound switch, everything here is a snapshot of what this session currently
- * knows.
+ * Four tabs, one panel each. The Design system tab is a read of the active
+ * design system, rendered by views/dashboard/brand.ts: a cover in the system's
+ * own look, then a page each for its colour, type, logos, colourways, tokens
+ * and print reference, refreshed in place when the active system changes.
+ * Editing lives at #/start. This device holds the live machine readout, sound
+ * and storage; Capabilities holds the searchable capability map; Activity holds
+ * the catalogue summary and the person's own counters, sessions and exports.
+ * Apart from the sound switch and the design-system switch, everything here is
+ * a snapshot of what this session currently knows.
  *
  * Data sources (single sources of truth, imported, never duplicated):
- *   brand     → the active design system (lib/design-system/active.ts) + host.tokens resolve/raw,
- *               read-only: the hero's name/logo/primary and the token chips
- *   device    → lib/device-info.ts        (live session snapshot)
- *   activity  → metrics.ts + lib/activity-summary.ts
- *   storage   → navigator.storage + host.state / host.assets measurers
- *   palette   → lib/live-palette.ts (host.tokens, falls back to src/palette.ts) via lib/swatches.ts
- *   catalogue → window.__toolIndex + /catalog/assets/index.json
- *   caps      → lib/capabilities-data.ts
- *   CMYK      → engine/src/color.ts (CMYK_CONDITIONS)
- *   fonts     → the LIVE --font-brand/--font-mono vars (lib/type-demo.ts
- *               loadedFaces - brand/user fonts included)
+ *   design system → views/dashboard/brand.ts (lib/design-system/issue-model.ts
+ *                   over host.tokens and lib/live-palette.ts)
+ *   device        → lib/device-info.ts        (live session snapshot)
+ *   activity      → metrics.ts + lib/activity-summary.ts
+ *   storage       → navigator.storage + host.state / host.assets measurers
+ *   catalogue     → window.__toolIndex + /catalog/assets/index.json
+ *   caps          → lib/capabilities-data.ts
  */
 
 import { bindDisclosureUrl, updateRouteParams } from '../lib/url-state.ts';
@@ -39,27 +34,15 @@ import { armViewEnter } from '../view-enter.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { icon } from '../lib/icons.ts';
 import { createRecentStack } from '../lib/recent-stack.ts';
-import { renderPaletteWheel, wirePaletteWheel } from '../lib/palette-wheel.ts';
-import { renderBrandSeal, sealColors } from '../lib/brand-seal.ts';
-import { renderTypeDemo, wireTypeDemo, loadedFaces } from '../lib/type-demo.ts';
-import type { LiveFace } from '../lib/type-demo.ts';
 import { catalogSummaryBody, hydrateCatalogAssets } from '../lib/catalog-summary.ts';
 import type { CatalogTool } from '../lib/catalog-summary.ts';
-import type { PaletteEntry } from '../palette.ts';
-import { livePalette } from '../lib/live-palette.ts';
-import { groupPalette, swatch, isTransparent, inkText, isLockedInk } from '../lib/swatches.ts';
-import { currentTheme, logoRefsForTheme } from '../theme.ts';
+import { currentTheme } from '../theme.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
-import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, hexToOklch, formatOklch, createTokenSet } from '@lolly/engine';
 import { getMetrics } from '../metrics.ts';
 import { renderActivity } from '../lib/activity-summary.ts';
 import { collectDevice, renderDeviceCards, renderDeviceStat, wireDeviceLive, fmtBytes } from '../lib/device-info.ts';
 import { settingsNavHtml, wireSettingsNav } from '../components/settings-nav.ts';
 import { soundSwitchHtml, wireSoundSwitch } from '../components/sound-toggle.ts';
-import { activeDesignSystemLabel, isUserDesignSystemActive } from '../lib/design-system/active.ts';
-import { applyBrandVars, brandRadiusValue, tokenValueToHex } from '../brand-vars.ts';
-import { listStudioTokens, formatStudioValue, gradientCss } from '../lib/token-studio.ts';
-import type { StudioToken } from '../lib/token-studio.ts';
 import type { ExportEntry } from '../lib/export-history.ts';
 import { attachDropRouter } from '../lib/drop-router.ts';
 import type { PickerHost } from './picker.ts';
@@ -73,6 +56,7 @@ import { mountProfileFab } from '../components/profile-menu.ts';
 // literal in this file, so the spotlight settings provider and applyDeepLink
 // read the same single source (dashboard-registry.test.ts pins it both ways).
 import { DASH_SECTIONS, dashFlag } from '../lib/dashboard-registry.ts';
+import { brandPanelHtml, mountBrandPanel, readBrandPanelInput } from './dashboard/brand.ts';
 
 /** A compact personal shelf needs the catalogue's display name when it has one, but the
  * lightweight dashboard index deliberately only promises the smaller CatalogTool shape. */
@@ -100,8 +84,8 @@ const SEARCH_GLYPH = icon('search');
 
 // ── Primary tabs ─────────────────────────────────────────────────────────────
 // The dashboard splits into four tabbed panels. Every section keeps its own
-// id / data-flag / classes, so all the existing wiring (brand hydration,
-// device probe, storage, type demo, deep links) works unchanged whichever tab
+// id / data-flag / classes, so all the existing wiring (the design system's
+// logo files, device probe, storage, deep links) works unchanged whichever tab
 // is showing. Inactive panels are `hidden`, not removed. The `key` doubles as
 // the ?tab= deep-link value and the /b · /brand alias target (Design system).
 const DASH_TAB_KEYS = new Set(DASH_SECTIONS.filter(section => !section.flag).map(section => section.tab));
@@ -114,17 +98,16 @@ function panel(key: string, active: string, inner: string): string {
 
 // A collapsible primary section: the whole card folds to its title bar,
 // reusing the reference-panel <details> chrome (.plat-section-summary /
-// .plat-section-body handle the chevron rotation + padding). `half` sizes it
-// for the two-up palette/catalogue row. `iconSlot`/`chipsSlot` render
+// .plat-section-body handle the chevron rotation + padding). `iconSlot`/`chipsSlot` render
 // EMPTY hooks (data-dash-collapse-icon/-chips) instead of real content: some
 // callers' icon/facts are only known after an async client-side probe (see
 // collectDevice()), so they hydrate in later exactly like the hero stats do.
 function collapse(o: {
-  id: string; title: string; body: string; desc?: string; flag?: string; open?: boolean; half?: boolean; cls?: string;
+  id: string; title: string; body: string; desc?: string; flag?: string; open?: boolean; cls?: string;
   iconSlot?: boolean; chipsSlot?: boolean;
 }): string {
   return `
-    <details class="plat-section dash-collapse${o.half ? ' dash-collapse--half' : ''}${o.cls ? ' ' + o.cls : ''}" id="${o.id}"${
+    <details class="plat-section dash-collapse${o.cls ? ' ' + o.cls : ''}" id="${o.id}"${
       o.flag ? ` data-flag="${escape(o.flag)}"` : ''}${o.open === false ? '' : ' open'}>
       <summary class="plat-section-summary dash-collapse-summary">
         ${o.iconSlot ? `<span class="dash-collapse-icon" data-dash-collapse-icon aria-hidden="true"></span>` : ''}
@@ -145,233 +128,6 @@ function sectionHead(title: string, id: string, desc = ''): string {
   return `<div class="dash-sec-head"><h2 id="${id}" class="dash-sec-title">${escape(title)}</h2>${
     desc ? `<p class="dash-sec-desc">${desc}</p>` : ''
   }</div>`;
-}
-
-// ── Brand hero: the Design-system tab's opening statement, a READ-ONLY card
-// that literally wears the loaded brand. Its surface/text/edge come from the
-// brand's semantic slots (applyBrandVars paints --brand-* onto the section
-// just after first paint; every consumer in dashboard.css keeps a
-// shell-token fallback, so an unbranded install, or a brand with no semantic
-// slots like SUSE's, reads perfectly in both themes). The name, logo,
-// primary colour and status line hydrate async (IDB reads); when the
-// catalogue isn't locked, a single CTA points at #/start, where the brand is
-// actually adjusted. Never collapsible: this is the one section that must
-// always show.
-function brandHero(): string {
-  const { brand, mono } = loadedFaces();
-  const faces = ([
-    brand ? { face: brand, cssVar: '--font-brand', role: t('Primary typeface') } : null,
-    mono ? { face: mono, cssVar: '--font-mono', role: t('Mono typeface') } : null,
-  ] as Array<{ face: LiveFace; cssVar: string; role: string } | null>)
-    .filter(Boolean) as Array<{ face: LiveFace; cssVar: string; role: string }>;
-  return `
-    <section class="plat-section dash-section dash-hero" id="dash-brand" aria-label="${escape(t('Your brand'))}" data-flag="${escape(dashFlag('dash-brand'))}">
-      <div class="dash-hero-main">
-        <div class="dash-hero-id">
-          <span class="dash-hero-eyebrow">${t('The brand in force')}</span>
-          <img class="dash-hero-logo" data-hero-logo alt="" hidden>
-          <h2 class="dash-hero-name" id="dash-brand-h" data-hero-name>&nbsp;</h2>
-          <p class="dash-hero-status" id="dash-brand-status">${t('Loading…')}</p>
-          <a class="dash-hero-cta" href="#/start" data-hero-cta hidden>${t('Adjust your brand')} <span class="dash-hero-cta-arrow" aria-hidden="true">→</span></a>
-        </div>
-        <button type="button" class="dash-hero-primary" data-hero-primary data-copy="" aria-label="${escape(t('Primary colour - click to copy its value'))}">
-          <span class="dash-hero-primary-label">${t('Primary')}</span>
-          <code class="dash-hero-primary-code" data-hero-primary-code></code>
-        </button>
-      </div>
-      ${faces.length ? `
-      <div class="dash-hero-type">
-        ${faces.map(({ face, cssVar, role }) => `
-          <span class="dash-hero-face" style="font-family:var(${cssVar})">
-            <strong>${escape(face.label)}</strong>
-            <em>${escape(role)}</em>
-          </span>`).join('')}
-      </div>` : ''}
-    </section>`;
-}
-
-// ── Brand tokens: read-only chips for the brand's non-colour primitives, the
-// corner radius plus anything lib/token-studio.ts manages (spacing, sizing,
-// stroke, opacity, rotation, numbers, shadows, gradients). Rendered hidden
-// and filled by the async brand hydration; a doc carrying none of these keeps
-// the whole section off the page.
-function tokensSection(): string {
-  return `
-    <section class="plat-section dash-section dash-tokens" id="dash-tokens" data-flag="${escape(dashFlag('dash-tokens'))}" hidden>
-      ${sectionHead(t('Brand tokens'), 'dash-tokens-h', tRaw('The primitives the tokens document carries - shape, space, effects - exactly as tools consume them. Adjusted at {link}.', { link: `<a href="#/start?tab=tokens">${t('Start')}</a>` }))}
-      <ul class="dash-token-grid" data-token-grid></ul>
-    </section>`;
-}
-
-// A CSS length as this page will render into a style attribute - same
-// defence-in-depth stance as brand-vars.ts's RADIUS_RE, widened to allow the
-// negative offsets a shadow may carry. Anything else simply drops its preview.
-const TOKEN_LEN_RE = /^-?\d+(\.\d+)?(px|rem|em)$/;
-
-/** One read-only token chip: kind-specific preview · name over kind · value. */
-function tokenChip(o: { name: string; kind: string; value: string; preview: string }): string {
-  return `
-    <li class="dash-token">
-      <span class="dash-token-preview" aria-hidden="true">${o.preview}</span>
-      <span class="dash-token-text">
-        <span class="dash-token-name">${escape(o.name)}</span>
-        <span class="dash-token-kind">${escape(t(o.kind))}</span>
-      </span>
-      ${o.value ? `<code class="dash-token-value">${escape(o.value)}</code>` : ''}
-    </li>`;
-}
-
-/** A studio token's tiny visual: bar / rule / translucency / needle / shadow /
- *  gradient. Values come from an untrusted imported doc and land in a style
- *  attribute, so every branch validates before it renders. A chip whose value
- *  can't be shown safely just shows none. `resolve` answers gradient stops'
- *  `{path}` alias colours (gradientCss re-validates whatever it returns). */
-function studioPreview(tok: StudioToken, resolve?: (ref: string) => unknown): string {
-  const raw = tok.raw;
-  const len = typeof raw === 'string' && TOKEN_LEN_RE.test(raw.trim()) ? raw.trim() : null;
-  switch (tok.kind) {
-    case 'spacing':
-    case 'sizing':
-      return len ? `<span class="dash-token-bar"><i style="width:${escape(len)}"></i></span>` : '';
-    case 'stroke':
-      return len ? `<span class="dash-token-rule"><i style="height:${escape(len)}"></i></span>` : '';
-    case 'opacity': {
-      const n = typeof raw === 'number' && Number.isFinite(raw) ? Math.min(1, Math.max(0, raw)) : null;
-      return n == null ? '' : `<span class="dash-token-alpha"><i style="opacity:${n}"></i></span>`;
-    }
-    case 'rotation': {
-      const n = typeof raw === 'number' && Number.isFinite(raw) ? Math.round(raw * 100) / 100 : null;
-      return n == null ? '' : `<span class="dash-token-rot"><i style="transform:rotate(${n}deg)"></i></span>`;
-    }
-    case 'shadow': {
-      const css = shadowCss(raw);
-      return css ? `<span class="dash-token-shadow" style="box-shadow:${escape(css)}"></span>` : '';
-    }
-    case 'gradient': {
-      const css = gradientCss(raw, tok.angle, { resolve, space: 'oklch' });
-      return css ? `<span class="dash-token-grad" style="background:${escape(css)}"></span>` : '';
-    }
-    default:
-      return ''; // number - the value line carries it
-  }
-}
-
-/** A DTCG shadow $value ({ color, offsetX, offsetY, blur, spread } strings) as
- *  a safe CSS box-shadow, or null when its colour or any offset is unusable. */
-function shadowCss(raw: unknown): string | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const r = raw as Record<string, unknown>;
-  const dim = (v: unknown): string | null =>
-    typeof v === 'string' && TOKEN_LEN_RE.test(v.trim()) ? v.trim() : null;
-  const color = tokenValueToHex(r.color);
-  if (!color) return null;
-  return `${dim(r.offsetX) ?? '0px'} ${dim(r.offsetY) ?? '0px'} ${dim(r.blur) ?? '0px'} ${dim(r.spread) ?? '0px'} ${color}`;
-}
-
-/** A studio token's display value - the contract's formatter first, else the
- *  raw string/number itself (shadows/gradients read from their preview). */
-function studioValue(tok: StudioToken): string {
-  const formatted = formatStudioValue(tok);
-  if (formatted) return formatted;
-  return typeof tok.raw === 'string' ? tok.raw : typeof tok.raw === 'number' ? String(tok.raw) : '';
-}
-
-/** A computed `rgb()`/`rgba()` colour → #rrggbb (the hover-code fallback when
- *  the brand declares no semantic primary and the chip shows the shell accent). */
-function cssRgbToHex(css: string): string | null {
-  const m = /^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/.exec(css.trim());
-  if (!m) return null;
-  const h = (n: string) => Math.min(255, +n).toString(16).padStart(2, '0');
-  return `#${h(m[1]!)}${h(m[2]!)}${h(m[3]!)}`;
-}
-
-// ── Palette: the compact "ink ribbon" ──────────────────────────────────────
-// Every colour as one thin bar, grouped by family; hover/focus drives a single
-// mono readout (the instrument), click copies the hex. No value is lost - the
-// full name/hex/CMYK grid is one click away under "All values".
-function inkBar(c: PaletteEntry): string {
-  const trans = isTransparent(c.hex);
-  const measured = isLockedInk(c);
-  const hex = trans ? 'transparent' : c.hex;
-  const cmyk = trans ? t('no ink') : inkText(c);
-  return `<button type="button" class="dash-ink${trans ? ' is-transparent' : ''}${measured ? ' is-measured' : ''}"${
-    trans ? '' : ` style="--ink:${escape(c.hex)}"`
-  } data-copy="${escape(hex)}" data-name="${escape(c.label)}" data-hex="${escape(hex)}" data-cmyk="${escape(cmyk)}"${
-    measured ? ' data-measured="1"' : ''
-  } aria-label="${escape(c.label)} - ${escape(hex)}${measured ? `, ${escape(t('exact CMYK ink'))}` : ''} (${escape(t('click to copy'))})" title="${escape(c.label)} · ${escape(hex)}"></button>`;
-}
-
-function inkGroup(label: string, cols: readonly PaletteEntry[], count = false): string {
-  return `
-    <div class="dash-ink-group">
-      <span class="dash-ink-group-label">${escape(label)}${count ? `<span class="dash-ink-group-n">${cols.length}</span>` : ''}</span>
-      <div class="dash-ink-row">${cols.map(inkBar).join('')}</div>
-    </div>`;
-}
-
-function paletteSection(palette: readonly PaletteEntry[]): string {
-  const { brand, spectrum, ramps } = groupPalette(palette);
-  const measuredCount = palette.filter(isLockedInk).length;
-
-  const ribbon = `
-    <div class="dash-ribbon" data-ribbon>
-      ${inkGroup(t('Brand'), brand)}
-      ${spectrum.length ? inkGroup(t('Spectrum'), spectrum, true) : ''}
-      ${ramps.map(([fam, cols]) => inkGroup(fam, cols, true)).join('')}
-    </div>
-    <div class="dash-readout" data-readout aria-live="polite">
-      <span class="dash-readout-swatch" data-ro-swatch aria-hidden="true"></span>
-      <span class="dash-readout-name" data-ro-name>${t('Hover or focus a colour')}</span>
-      <code class="dash-readout-hex" data-ro-hex></code>
-      <span class="dash-readout-cmyk" data-ro-cmyk></span>
-    </div>`;
-
-  // Full values, disclosed on demand: the classic grouped swatch grid so no
-  // hex / CMYK figure is ever hidden, only tucked away.
-  const fullGrid = `
-    <details class="dash-values">
-      <summary class="dash-values-summary">${t('All values')}<span class="dash-values-n">${palette.length}</span>${COLLAPSE_CHEV}</summary>
-      <div class="dash-values-body">
-        <div class="plat-legend">
-          <span class="plat-legend-item"><span class="plat-chip-flag is-static">CMYK</span> ${t('exact ink substitution')}</span>
-          <span class="plat-legend-item"><span class="plat-chip-flag is-static">SPOT</span> ${t('named spot colour, its CMYK equivalent substituted at export')}</span>
-          <span class="plat-legend-item"><span class="plat-swatch-cmyk is-generic">${t('RGB→CMYK (generic)')}</span> ${t('generic conversion at export')}</span>
-        </div>
-        <h3 class="plat-ramp-title">${t('Brand colours')}</h3>
-        <div class="plat-swatch-grid">${brand.map(swatch).join('')}</div>
-        ${spectrum.length ? `<h3 class="plat-ramp-title">${t('Spectrum')} <span class="plat-ramp-count">${spectrum.length}</span></h3>
-        <p class="plat-ramp-note">${t('Secondary palette for infographics, charts &amp; data viz - it expands the colour wheel but does <strong>not</strong> replace brand colours.')}</p>
-        <div class="plat-swatch-grid">${spectrum.map(swatch).join('')}</div>` : ''}
-        ${ramps.map(([fam, cols]) => `<h3 class="plat-ramp-title">${escape(fam)} <span class="plat-ramp-count">${cols.length}</span></h3>
-        <div class="plat-swatch-grid">${cols.map(swatch).join('')}</div>`).join('')}
-      </div>
-    </details>`;
-
-  return collapse({
-    id: 'dash-palette',
-    flag: dashFlag('dash-palette'),
-    title: t('Colour palette'),
-    desc: t('Shown in every colour picker. <strong>{n} of {total}</strong> carry a locked ink value (CMYK or spot), substituted directly into CMYK PDF exports - the tick on a bar marks one.', { n: measuredCount, total: palette.length }),
-    body: `${ribbon}${fullGrid}`,
-    half: true,
-  });
-}
-
-// Copy-to-clipboard for ink bars, the full-values swatch chips AND the hero's
-// primary field (its data-copy hydrates in async; the handler reads the dataset
-// at click time, so wiring before hydration is fine).
-function wireCopyButtons(root: ParentNode): void {
-  root.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard?.writeText(btn.dataset.copy!);
-        btn.classList.add('is-copied');
-        setTimeout(() => btn.classList.remove('is-copied'), 900);
-      } catch {
-        /* clipboard blocked - no-op */
-      }
-    });
-  });
 }
 
 // ── Capabilities: grouped; each card POPS its detail open in a dialog ────────
@@ -520,64 +276,6 @@ async function capabilitiesSection(): Promise<string> {
   });
 }
 
-// ── Reference panels (collapsible) ──────────────────────────────────────────
-function refPanel(flag: string, defaultOpen: boolean, id: string, title: string, body: string): string {
-  return `
-    <details class="plat-section dash-ref" id="${id}" data-flag="${escape(flag)}"${defaultOpen ? ' open' : ''}>
-      <summary class="plat-section-summary"><h2 class="plat-section-title">${escape(title)}</h2>${COLLAPSE_CHEV}</summary>
-      <div class="plat-section-body">${body}</div>
-    </details>`;
-}
-
-// A compact "type facts" strip for the Type-in-motion tile: the fonts IN
-// FORCE, resolved from the live --font-brand / --font-mono vars (platform
-// defaults, the brand's font tokens, or a user-installed primary, whatever is
-// actually set), with each row rendered in its own face. "Manage fonts"
-// points at the Start studio's Type step, where fonts are added and the
-// primary is chosen.
-function typeFacts(): string {
-  const { brand, mono } = loadedFaces();
-  const rootStyle = getComputedStyle(document.documentElement);
-  const rows = ([
-    brand ? { face: brand, role: t('Brand · UI & body'), cssVar: '--font-brand' } : null,
-    mono ? { face: mono, role: t('Mono · code & data'), cssVar: '--font-mono' } : null,
-  ] as Array<{ face: LiveFace; role: string; cssVar: string } | null>).filter(Boolean) as Array<{ face: LiveFace; role: string; cssVar: string }>;
-  return `
-    <ul class="dash-type-facts">
-      ${rows.map(({ face, role, cssVar }) => `
-        <li>
-          <span class="dash-type-fam" style="font-family:var(${cssVar})">${escape(face.label)}</span>
-          <span class="dash-type-meta">${escape(role)} · wght ${face.axis.min}–${face.axis.max}</span>
-          <code class="dash-type-src">${escape(`${cssVar}: ${rootStyle.getPropertyValue(cssVar).trim()}`)}</code>
-        </li>`).join('')}
-      <li class="dash-type-manage"><a href="#/start?tab=type">${t('Manage fonts')} →</a></li>
-    </ul>`;
-}
-
-// Reuses the shared swatch() tile (chip + name + hex + ink readout, same as
-// the "All values" grid below) instead of a bespoke list: a locked-ink brand
-// colour should look identical wherever it's shown.
-function printBody(palette: readonly PaletteEntry[]): string {
-  const locked = palette.filter((c) => isLockedInk(c) && !isTransparent(c.hex));
-  return `
-    <p class="plat-section-desc">${t('Brand colours locked to an exact ink value (CMYK or spot) - substituted directly into CMYK PDF exports instead of a generic sRGB→CMYK conversion.')}</p>
-    ${locked.length
-      ? `<div class="plat-swatch-grid">${locked.map(swatch).join('')}</div>`
-      : `<p class="cat-empty">${t("No brand colours are locked to an exact ink yet - pin one from a swatch's print lock in the Design system tab above.")}</p>`}
-    <p class="plat-section-desc">${t('Press conditions a CMYK PDF can declare in its <code>OutputIntent</code>. Selected per-export via the <code>colorProfile</code> option; raster &amp; on-screen output stays sRGB.')}</p>
-    <table class="plat-table">
-      <thead><tr><th>${t('Profile key')}</th><th>${t('Identifier')}</th><th>${t('Condition')}</th></tr></thead>
-      <tbody>
-        ${Object.entries(CMYK_CONDITIONS).map(([key, c]) => `
-          <tr${key === DEFAULT_CMYK_CONDITION ? ' class="is-default"' : ''}>
-            <td><code>${escape(key)}</code>${key === DEFAULT_CMYK_CONDITION ? `<span class="plat-pill">${t('default')}</span>` : ''}</td>
-            <td>${escape(c.identifier)}</td>
-            <td>${escape(c.info)}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>`;
-}
-
 // ── Storage glance (read-only mirror of the Profile meter) ──────────────────
 type DashHost = HostV1 & {
   state: HostV1['state'] & { sizes?: () => Promise<Record<string, number>> };
@@ -688,41 +386,9 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
   const toolCount = tools.length;
   const metrics = getMetrics();
 
-  const capsHtml = await capabilitiesSection();
-
-  // The active brand's palette (SUSE's measured inks, or whichever catalog
-  // is mounted), not the tokenless PALETTE fallback, so this page always
-  // shows the profile that's actually running. See lib/live-palette.ts.
-  const palette = await livePalette(host);
-
-  // The whole palette on the wheel, each dot labelled with its canonical
-  // scale-token name (jungle-6, pine-2, persimmon-5), not the display label
-  // ("Jungle 6"). The tint ramps (jungle-1..8, pine-1..8, ...) are what carry
-  // those numbered tokens, so they're plotted too, not just the base
-  // colours. The palette aliases some hexes (base Persimmon IS persimmon-5,
-  // base Jungle IS jungle-4), so dedup by hex: a same-family scale token
-  // supersedes its bare base name (persimmon becomes persimmon-5), while a
-  // cross-family alias keeps its distinct brand name (Mint is #90ebcd, which
-  // is also pine-6; it stays "mint"). 'transparent' has no hue to plot, so
-  // it's skipped.
-  const tokenName = (label: string): string => label.toLowerCase().replace(/\s+/g, '-'); // "Jungle 6" → "jungle-6"
-  const familyOf = (name: string): string => name.replace(/-\d+$/, '');                  // "jungle-6" → "jungle"
-  const isScaleToken = (name: string): boolean => /-\d+$/.test(name);
-  const byHex = new Map<string, { hex: string; label: string }>();
-  for (const c of palette) {
-    if (isTransparent(c.hex)) continue;
-    const key = c.hex.toLowerCase();
-    const name = tokenName(c.label);
-    const prev = byHex.get(key);
-    if (!prev) { byHex.set(key, { hex: c.hex, label: name }); continue; }
-    // Base colours list first, so a same-family scale token (persimmon-5)
-    // arriving after its bare base (persimmon) upgrades it; a cross-family
-    // alias (pine-6 vs mint) does not.
-    if (isScaleToken(name) && !isScaleToken(prev.label) && familyOf(name) === prev.label) {
-      byHex.set(key, { hex: c.hex, label: name });
-    }
-  }
-  const wheelColors = [...byHex.values()];
+  // The capability map and the design system's read land together, so the
+  // tab waits for the slower of the two and no longer.
+  const [capsHtml, brandInput] = await Promise.all([capabilitiesSection(), readBrandPanelInput(host)]);
 
   viewEl.innerHTML = `
     ${backHomeHtml()}
@@ -771,28 +437,7 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
           </div>
         `)}
 
-        ${panel('brand', initialTab, `
-          ${brandHero()}
-          <section class="plat-section dash-section dash-lock" id="dash-lock" data-flag="${escape(dashFlag('dash-lock'))}" hidden></section>
-          <div class="dash-bento">
-            <section class="plat-section dash-section dash-card" id="dash-palette-wheel" data-flag="${escape(dashFlag('dash-palette-wheel'))}">
-              ${sectionHead(t('Palette on the wheel'), 'dash-wheel-h', t('Every brand colour plotted by hue (the angle) and chroma (distance out from the centre). Greys have no hue, so they ride the rail beside it, by lightness. Hover a dot to read it.'))}
-              ${renderPaletteWheel(wheelColors)}
-            </section>
-            <section class="plat-section dash-section dash-card dash-typedemo" id="dash-typedemo" data-flag="${escape(dashFlag('dash-typedemo'))}">
-              ${sectionHead(t('Type in motion'), 'dash-typedemo-h', t('The faces in force - the fonts loaded on this device, live. The axes themselves are the animation.'))}
-              ${renderTypeDemo()}
-              ${typeFacts()}
-            </section>
-          </div>
-          ${paletteSection(palette)}
-          ${tokensSection()}
-          ${refPanel(dashFlag('dash-print'), false, 'dash-print', t('Print & CMYK'), printBody(palette))}
-          <p class="plat-note dash-foot" role="note">
-            ${tRaw('This section shows your active design system. Edit it in {start}, or change theme and sound in {profile}.', { start: `<a href="#/start">${t('Start')}</a>`, profile: `<a href="#/settings">${t('Preferences')}</a>` })}
-            ${' '}${tRaw('Building the UI? Browse the shell’s primitives & views in the {link}.', { link: `<a href="#/components">${t('Component library')}</a>` })}
-          </p>
-        `)}
+        ${panel('brand', initialTab, brandPanelHtml(brandInput))}
 
         ${panel('caps', initialTab, capsHtml)}
 
@@ -832,14 +477,14 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
       </div>
     </div>`;
 
-  // Include the read-only foot note (now inside the Design system panel) in
-  // the reveal ladder so it settles in with that panel's other sections
+  // Include the read-only foot note and the Design system tab's strip, cover and
+  // pages in the reveal ladder so they settle in with the other sections
   // instead of snapping in at full opacity beneath the cascade.
-  armViewEnter(viewEl, '.tools-home, .settings-header, .plat-section, .dash-foot');
+  armViewEnter(viewEl, '.tools-home, .settings-header, .plat-section, .dash-foot, .ds-strip, .ds-issue-cover, .ds-issue-page');
   mountBackPill(viewEl);
   mountHomeFab(viewEl);
-  // The dashboard renders your brand read-only; a theme flip here checks it in
-  // light, dark and brand without a trip to the profile.
+  // The Design system tab reads the active system; a theme flip here checks it
+  // in light, dark and brand without a trip to the profile.
   mountThemeFab(viewEl.querySelector('.gallery-topright'), host);
   mountProfileFab(viewEl.querySelector('.gallery-topright'), host);
   attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
@@ -872,177 +517,17 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
   };
   selectTab(initialTab);
 
-  // The brand hero + token chips, hydrated just after first paint instead of
-  // blocking it (IDB reads: brand discovery, tokens, the raw doc). Everything
-  // here READS: the hero's only affordances are the #/start CTA and a
-  // copy-to-clipboard on the primary field, so there is nothing to tear down.
-  // Guarded after every await: a route change mid-read must not paint a
-  // detached node.
-  void (async () => {
-    const hero = viewEl.querySelector<HTMLElement>('#dash-brand');
-    if (!hero || !viewEl.contains(hero)) return;
-    const tokensApi = host.tokens as {
-      resolve?(ref: string): Promise<unknown>;
-      raw?(): Promise<unknown>;
-      isLocked?(): Promise<boolean>;
-    } | undefined;
-
-    // Dress the hero in the brand's own semantic slots: applyBrandVars
-    // resolves color.semantic.* onto the section as --brand-* custom
-    // properties. Every consumer in dashboard.css keeps a shell-token
-    // fallback, so a doc without semantic slots (SUSE's) or no doc at all
-    // reads perfectly in both themes.
-    void applyBrandVars(hero, host as Parameters<typeof applyBrandVars>[1]).catch(() => { /* cosmetic */ });
-
-    // Name + status: the tokens asset's metadata (a user install's own
-    // label, else the catalogue asset's name with its "... tokens" suffix
-    // trimmed for display: "SUSE Brand Design Tokens" reads as "SUSE" up here).
-    let rec: { id: string; name?: string; meta?: Record<string, unknown> } | null = null;
-    try {
-      rec = (await (host.assets as unknown as {
-        _findMetaByType?(t: string): Promise<{ id: string; name?: string; meta?: Record<string, unknown> } | null>;
-      })._findMetaByType?.('tokens')) ?? null;
-    } catch { /* discovery unavailable - show the unbranded pathway */ }
-    const locked = await tokensApi?.isLocked?.().catch(() => false) ?? false;
-    // Who owns what is running, and what they called it (plans/186 section 3.3).
-    // The label is null on a device with no registry yet, which is what keeps the
-    // asset's own trimmed name below as the answer there.
-    const mine = await isUserDesignSystemActive(host).catch(() => false);
-    const recordLabel = await activeDesignSystemLabel(host).catch(() => null);
-    if (!viewEl.contains(hero)) return;
-
-    const metaId = rec?.id ?? '';
-    const metaName = typeof rec?.meta?.name === 'string' && rec.meta.name ? rec.meta.name : rec?.name ?? '';
-    const nameEl = hero.querySelector<HTMLElement>('[data-hero-name]');
-    if (nameEl) {
-      nameEl.textContent = recordLabel
-        || metaName.replace(/\s+(brand\s+)?(design\s+)?tokens$/i, '').trim()
-        || t('Your brand');
-    }
-
-    const statusEl = hero.querySelector<HTMLElement>('#dash-brand-status');
-    if (statusEl) {
-      statusEl.innerHTML = locked
-        ? t('This build ships with a fixed brand - every tool, page and export already wears it.')
-        : mine
-          ? t('Your brand is installed - every tool, page and export wears it.')
-          : metaId
-            ? (isTauriShell() ? t('Running the catalogue’s built-in brand. Make it yours - pick a colour and Lolly derives the rest. It stays on this device.') : t('Running the catalogue’s built-in brand. Make it yours - pick a colour and Lolly derives the rest. It stays in this browser.'))
-            : t('This install is unbranded. Pick one colour and Lolly derives the ramps, themes and every semantic slot - <strong>make it yours</strong>.');
-    }
-    // The one action: adjust the brand at Start. A locked catalogue's brand
-    // is part of its identity, so the CTA never shows there (the status line
-    // above is the fixed-brand note).
-    const cta = hero.querySelector<HTMLElement>('[data-hero-cta]');
-    if (cta) cta.hidden = locked;
-
-    // A locked brand gets a seal instead of a disabled-looking editor: a
-    // metal disc struck in the brand's own inks, padlocked. It only exists
-    // when the catalogue's tokens asset is authoritative (brandLock, see
-    // bridge/tokens.ts), which is also the only case where the editor at
-    // #/start refuses to open.
-    const lockEl = viewEl.querySelector<HTMLElement>('#dash-lock');
-    if (lockEl && locked) {
-      const brandLabel = nameEl?.textContent?.trim() || t('This brand');
-      lockEl.innerHTML = `
-        ${renderBrandSeal(sealColors(palette))}
-        <div class="dash-lock-text">
-          <h2 class="dash-lock-title">${escape(t('Brand locked'))}</h2>
-          <p class="dash-lock-desc">${t('<span class="dash-lock-brand">{brand}</span> ships with this build and is authoritative - its colours, type and tokens come from the catalogue and cannot be edited on this device. Every tool, page and export already wears it.', { brand: brandLabel })}</p>
-        </div>`;
-      lockEl.hidden = false;
-    }
-
-    // The horizontal-primary logo, when the brand carries one, resolved from
-    // its asset token to the stored asset's url and rendered via <img>, so an
-    // uploaded SVG's markup is drawn, never executed. Dark prefers the reverse
-    // form and Brand the on-brand form, each falling back in the order
-    // logoRefsForTheme gives. The bridge owns the object URL (its cache), so
-    // nothing here revokes it.
-    try {
-      const refs = logoRefsForTheme(currentTheme());
-      for (const ref of refs) {
-        const id = await tokensApi?.resolve?.(ref);
-        if (typeof id !== 'string' || !id || id.startsWith('{')) continue;
-        const asset = await host.assets.get(id).catch(() => null);
-        if (!viewEl.contains(hero)) break;
-        if (!asset?.url) continue; // stale token / missing asset - try the next form
-        const img = hero.querySelector<HTMLImageElement>('[data-hero-logo]');
-        if (img) { img.src = asset.url; img.hidden = false; }
-        break;
-      }
-    } catch { /* no logo installed - the name carries the hero */ }
-
-    // The primary field's quiet instrument line: hex + oklch, plus
-    // click-to-copy (wireCopyButtons reads data-copy at click time).
-    // Resolved from the brand's semantic primary; when the doc declares
-    // none, read the chip's painted fallback (the shell accent) so the
-    // readout always tells the truth.
-    const chip = hero.querySelector<HTMLButtonElement>('[data-hero-primary]');
-    if (chip && viewEl.contains(chip)) {
-      let hex: string | null = null;
-      try { hex = tokenValueToHex(await tokensApi?.resolve?.('{color.semantic.primary}')); } catch { /* fall through */ }
-      if (!hex) hex = cssRgbToHex(getComputedStyle(chip).backgroundColor);
-      if (hex && viewEl.contains(chip)) {
-        const o = hexToOklch(hex);
-        const code = chip.querySelector<HTMLElement>('[data-hero-primary-code]');
-        if (code) code.textContent = o ? `${hex} · ${formatOklch(o)}` : hex;
-        chip.dataset.copy = hex;
-        chip.title = tRaw('Primary · {hex} (click to copy)', { hex });
-      }
-    }
-
-    // Brand tokens: the read-only chip grid, the corner radius (same token
-    // the Start studio's slider writes) plus every studio-managed primitive
-    // in the raw doc. A doc carrying none keeps the section hidden entirely.
-    try {
-      const radius = await tokensApi?.resolve?.('{shape.radius}').then(v => brandRadiusValue(v)).catch(() => null) ?? null;
-      let studio: StudioToken[] = [];
-      let resolveTok: ((ref: string) => unknown) | undefined;
-      try {
-        const doc = await tokensApi?.raw?.();
-        if (doc) {
-          studio = listStudioTokens(doc);
-          // Gradient stops may alias palette swatches - resolve against the
-          // same doc, in the theme the page is showing.
-          const set = createTokenSet(doc, { theme: currentTheme() === 'dark' ? 'dark' : 'light' });
-          resolveTok = (ref: string) => set.resolve(ref);
-        }
-      } catch { /* no readable doc - chips fall back to radius alone */ }
-      const chips = [
-        ...(radius ? [tokenChip({
-          name: t('Corner radius'), kind: 'shape', value: radius,
-          preview: `<span class="dash-token-shape" style="border-radius:${escape(radius)}"></span>`,
-        })] : []),
-        ...studio.map(tok => tokenChip({ name: tok.name, kind: tok.kind, value: studioValue(tok), preview: studioPreview(tok, resolveTok) })),
-      ];
-      const sec = viewEl.querySelector<HTMLElement>('#dash-tokens');
-      const grid = sec?.querySelector<HTMLElement>('[data-token-grid]');
-      if (sec && grid && chips.length && viewEl.contains(sec)) {
-        grid.innerHTML = chips.join('');
-        sec.hidden = false;
-      }
-    } catch { /* tokens unreadable - the section stays hidden */ }
-  })();
+  // The Design system tab: copy, contents links, the logo files after first
+  // paint, and an in-place refresh when the active design system changes.
+  const brand = mountBrandPanel(viewEl.querySelector<HTMLElement>('[data-dash-panel="brand"]')!, host, brandInput);
+  {
+    const prev = (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup;
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { prev?.(); brand.teardown(); };
+  }
 
   // Deep-link: switch to the owning tab, then open + scroll to any panel/group
   // whose flag is in the hash query.
   if (flags.size) applyDeepLink(viewEl, flags, selectTab);
-
-  // Copy-to-clipboard for ink bars AND the full-values swatch chips.
-  wireCopyButtons(viewEl);
-
-  // Palette readout: hover/focus an ink bar → update the mono instrument line.
-  wireReadout(viewEl);
-  // Signature pieces: the palette wheel's hub readout + the variable-type motion.
-  wirePaletteWheel(viewEl);
-  // wireTypeDemo returns a teardown (stops its rAF sweep + IntersectionObserver); chain it
-  // onto the view's _cleanup so the sweep can't outlive the dashboard after a route change.
-  const stopTypeDemo = wireTypeDemo(viewEl);
-  {
-    const prev = (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup;
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { prev?.(); stopTypeDemo(); };
-  }
 
   // The Sound box drives the real sfx + Neurospicy state (self-contained control).
   wireSoundSwitch(viewEl, host as unknown as Parameters<typeof wireSoundSwitch>[1]);
@@ -1383,7 +868,7 @@ function applyDeepLink(viewEl: HTMLElement, flags: Set<string>, selectTab?: (key
     // hidden panel has no layout box, so scrollIntoView on it would be a no-op.
     const panelKey = (target as HTMLElement).closest<HTMLElement>('[data-dash-panel]')?.dataset.dashPanel;
     if (panelKey && selectTab) selectTab(panelKey);
-    // Sections above the target (palette wheel, catalogue summary) mount
+    // Sections above the target (the logo files, catalogue summary) mount
     // async and keep growing the page for up to ~1.5s after this runs,
     // shoving the target down, so a one-shot scroll lands on its
     // pre-expansion spot. Re-land on a short repeating beat while the
@@ -1396,37 +881,6 @@ function applyDeepLink(viewEl: HTMLElement, flags: Set<string>, selectTab?: (key
     const again = (): void => { land(); if (++n < 12) setTimeout(again, 130); };
     setTimeout(again, 130);
   }
-}
-
-// Palette readout instrument - one shared mono line driven by whichever ink bar
-// is hovered or focused. Delegated so it survives nothing (static markup) and
-// costs one listener pair.
-function wireReadout(viewEl: HTMLElement): void {
-  const ribbon = viewEl.querySelector<HTMLElement>('[data-ribbon]');
-  const readout = viewEl.querySelector<HTMLElement>('[data-readout]');
-  if (!ribbon || !readout) return;
-  const sw = readout.querySelector<HTMLElement>('[data-ro-swatch]');
-  const name = readout.querySelector<HTMLElement>('[data-ro-name]');
-  const hex = readout.querySelector<HTMLElement>('[data-ro-hex]');
-  const cmyk = readout.querySelector<HTMLElement>('[data-ro-cmyk]');
-  const show = (el: Element | null) => {
-    const btn = (el as Element | null)?.closest<HTMLElement>('.dash-ink');
-    if (!btn) return;
-    const trans = btn.classList.contains('is-transparent');
-    if (sw) {
-      sw.style.background = trans ? '' : btn.style.getPropertyValue('--ink');
-      sw.classList.toggle('is-transparent', trans);
-    }
-    if (name) name.textContent = btn.dataset.name || '';
-    if (hex) hex.textContent = btn.dataset.hex || '';
-    if (cmyk) {
-      cmyk.textContent = btn.dataset.cmyk || '';
-      cmyk.classList.toggle('is-measured', btn.dataset.measured === '1');
-    }
-    readout.classList.add('is-active');
-  };
-  ribbon.addEventListener('pointerover', (e) => show(e.target as Element));
-  ribbon.addEventListener('focusin', (e) => show(e.target as Element));
 }
 
 // Keep the live device rows (viewport, orientation) current while mounted.

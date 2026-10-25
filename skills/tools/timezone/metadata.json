@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "timezone",
-  "toolVersion": "1.1.0",
-  "toolVersionRange": "1.1.0",
+  "toolVersion": "1.1.1",
+  "toolVersionRange": "1.1.1",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "8c7838cd4041619e6480985cd15df2923bf7ca8342425408d6049ca39ba792e1",
+      "sha256": "275eee7695d35e1cc897bbe72a5c46e3176b50eb0ab4e9b19bd4d1ad3d6b894a",
       "bytes": 2659
     },
     "reference/inputs.json": {

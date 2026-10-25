@@ -8,8 +8,9 @@ import { readColumnPref, writeColumnPref } from './shared.ts';
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
-import { replaceRouteUrl, routeParams, updateRouteParams } from '../../lib/url-state.ts';
-import { copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
+import { replaceRouteUrl, routeParams, settledWrite, updateRouteParams, type SettledWrite } from '../../lib/url-state.ts';
+import { endCanvasCost, startCanvasCost } from '../../lib/canvas-feedback.ts';
+import { addressPointer, copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
 import { encodeAddressModelParam } from '../../lib/url-budget.ts';
 import type { FontStyleSlice } from '../../bridge/text-svg.ts';
 import { fontCoversText } from '../../bridge/font-coverage-load.ts';
@@ -31,7 +32,7 @@ import { isTauriMobileShell, isTauriShell } from '../../lib/instance-choice.ts';
 import { tauriInvoke } from '../../lib/nearby-boot.ts';
 import { announce } from '../../a11y.ts';
 import { edgeDockCollapsed, isDocked, onDockChange } from '../../lib/edge-dock.ts';
-import { AUTO_PACK_MIN, BROWSER_TARGET, costUrlState } from '../../lib/url-budget.ts';
+import { AUTO_PACK_MIN, BROWSER_TARGET, costUrlState, LINK_CONTENT_MAX } from '../../lib/url-budget.ts';
 import { makeLollyVehicle } from '../tool-lolly-vehicle.ts';
 import type { Unit } from '../../../../../engine/src/units.js';
 import { navigateTo } from '../../nav.ts';
@@ -82,7 +83,7 @@ import type { MotionCaptureOpts } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
 import { discardUnsavedWork, leftEntryHref, localDocument, recordedClipBytes, rewriteLeftEntry, syncEntryMark } from '../tool-leave.ts';
 import { showUnsavedDialog } from '../tool-leave-dialog.ts';
-import { unfileSession } from '../tool-revision-history.ts';
+import { localHistorySlot, unfileSession } from '../tool-revision-history.ts';
 import { historySettled } from '../../lib/overlay-back.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 
@@ -113,27 +114,117 @@ export function markSessionSaved(tview: ToolViewCtx): void {
   tview.canvasEl?.dispatchEvent(new Event('lolly-session-status'));
   tview.renderSaveBtn?.classList.remove('is-unsaved');
 }
-export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
-  // A framed tool (`?iframe`) never rewrites its address: the page around it owns the link.
-  if (isIframeMode()) return;
-  const { TOOL_URL_BASE, actionsEl, barSeq, dirtyParams, runtime, templateSeededIds } = tview;
-  actionsEl?.dispatchEvent(new Event('lolly:share-change'));
-  if (dirtyId) dirtyParams.add(dirtyId);
+/** Paints must stay quiet this long before the address is written (ms). */
+const ADDRESS_SETTLE_MS = 400;
+/** One settled address write per mounted tool, dropped with the mount. */
+const settledAddress = new WeakMap<ToolViewCtx, SettledWrite>();
 
-  // Ambient URL-budget gauge: the SHARE-link cost of the current edit (reads the cost
-  // model, NOT this address bar - different serializations), so it updates even before
-  // the first edit of an encrypted link. Pure + synchronous; the packed refine is
-  // deferred inside the gauge and never blocks this tick.
-  if (tview.urlGauge) {
-    const gaugeBase = `${location.origin}${TOOL_URL_BASE}?`;
-    tview.urlGauge.update(
-      costUrlState(
-        { model: runtime.getModel(), exportParts: collectExportParams(actionsEl), tokenSelection: runtime.tokenSelection },
-        { base: gaugeBase, target: BROWSER_TARGET }
-      ),
-      gaugeBase
-    );
+/**
+ * The paint's address write. A paint used to rewrite the address on every frame, and
+ * each write encodes the whole document for the Share meter and again for the address,
+ * then replaces an address that grows with the document. Now it is written once the
+ * paints settle, and an open Share panel still hears of every change. The mount's first
+ * write goes out at once: it puts back the opened link's workspace keys and moves a
+ * boot `#/tool/<id>` address to its path form. Share, export and leaving the page flush
+ * a waiting write (lib/url-state.ts).
+ */
+export function scheduleSyncUrl(tview: ToolViewCtx): void {
+  if (isIframeMode() || tview.mountLifecycle.disposed) return;
+  tview.actionsEl?.dispatchEvent(new Event('lolly:share-change'));
+  if (tview.barSeq.v === 0) {
+    writeAddress(tview);
+    return;
   }
+  let write = settledAddress.get(tview);
+  if (!write) {
+    write = settledWrite(() => writeAddress(tview), ADDRESS_SETTLE_MS);
+    settledAddress.set(tview, write);
+    tview.mountLifecycle.add('settled address write', write.cancel);
+  }
+  write.schedule();
+}
+
+/** Write the address now. Returns false when the browser refused the write. */
+export function syncUrl(tview: ToolViewCtx, dirtyId?: string): boolean {
+  // A framed tool (`?iframe`) never rewrites its address: the page around it owns the link.
+  if (isIframeMode()) return true;
+  tview.actionsEl?.dispatchEvent(new Event('lolly:share-change'));
+  if (dirtyId) tview.dirtyParams.add(dirtyId);
+  return writeAddress(tview);
+}
+
+/**
+ * The Share buttons' meter: the SHARE-link cost of the current edit (it reads the cost
+ * model, NOT this address bar, a different serialization), so it updates even before
+ * the first edit of an encrypted link. Costing encodes the whole document, so a meter
+ * that is not on screen is costed when it next shows.
+ */
+function costShareMeter(tview: ToolViewCtx): void {
+  const { TOOL_URL_BASE, actionsEl, runtime, urlGauge } = tview;
+  if (!urlGauge) return;
+  const gaugeBase = `${location.origin}${TOOL_URL_BASE}?`;
+  urlGauge.update(
+    costUrlState(
+      { model: runtime.getModel(), exportParts: collectExportParams(actionsEl), tokenSelection: runtime.tokenSelection },
+      { base: gaugeBase, target: BROWSER_TARGET }
+    ),
+    gaugeBase
+  );
+}
+
+/** A write that went through carried the live model, so a waiting settled write has
+ *  nothing newer to add and is dropped. */
+function dropSettling(tview: ToolViewCtx, written: boolean): boolean {
+  if (written) settledAddress.get(tview)?.cancel();
+  return written;
+}
+
+/** Closes one address write's span in the `url-sync` lab lane (lib/canvas-feedback.ts). */
+function closeUrlSync(started: number, written: boolean): boolean {
+  endCanvasCost('url-sync', started);
+  return written;
+}
+
+/** The content length at which a pack of this document was refused, per mount. */
+const packRefusedAt = new WeakMap<ToolViewCtx, number>();
+/** A large document waiting for its first saved copy, per mount: stops the wait. */
+const slotWatch = new WeakMap<ToolViewCtx, () => void>();
+
+/**
+ * The saved copy a reload of this browser entry restores (views/tool-session-open.ts
+ * resumes a remembered slot over the address): the slot automatic history has written
+ * and remembered here, while it keeps writing edits. Null before the first draft or
+ * save, and for a live collab, which keeps its own route.
+ */
+function durableSlot(tview: ToolViewCtx): string | null {
+  if (tview.collabHandle || tview.ephemeralState) return null;
+  const api = tview.actionsApi;
+  if (!api?.history?.keepsEdits()) return null;
+  const slot = api.getSlot?.() ?? tview.slot ?? null;
+  return slot && localHistorySlot(tview.host.state, tview.tool.manifest) === slot ? slot : null;
+}
+
+/** A document too large to carry that has no saved copy yet: write the pointer as soon
+ *  as automatic history remembers one (it writes `slot` into the address when it does). */
+function watchForSlot(tview: ToolViewCtx): void {
+  if (slotWatch.has(tview) || tview.mountLifecycle.disposed) return;
+  const check = (): void => {
+    if (!durableSlot(tview)) return;
+    stop();
+    scheduleSyncUrl(tview);
+  };
+  const stop = (): void => { window.removeEventListener('lolly:url-state', check); slotWatch.delete(tview); };
+  window.addEventListener('lolly:url-state', check);
+  slotWatch.set(tview, stop);
+  tview.mountLifecycle.add('address pointer slot watch', stop);
+}
+
+/** Build the address from the live model and replace the current one. */
+function writeAddress(tview: ToolViewCtx): boolean {
+  // -1, and inert, outside a lab run.
+  const started = startCanvasCost();
+  const { TOOL_URL_BASE, actionsEl, barSeq, dirtyParams, runtime, templateSeededIds } = tview;
+  tview.urlGauge?.costWhenShown(() => costShareMeter(tview));
 
   if (runtime.manifest.render.urlSync === false && tview.userHasMadeChanges) {
     const params = new URLSearchParams();
@@ -141,8 +232,7 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
     const slot = tview.actionsApi?.getSlot?.() ?? tview.slot;
     if (slot) params.set('slot', slot);
     ++barSeq.v;
-    replaceRouteUrl(TOOL_URL_BASE + (params.size ? `?${params}` : ''));
-    return;
+    return closeUrlSync(started, dropSettling(tview, replaceRouteUrl(TOOL_URL_BASE + (params.size ? `?${params}` : ''))));
   }
 
   // A password-protected (`zx`) link stays ENCRYPTED in the address bar until the
@@ -154,8 +244,7 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
     const params = new URLSearchParams(tview.encLinkQuery);
     copyWorkspaceParams(params, routeParams());
     ++barSeq.v;
-    replaceRouteUrl(`${TOOL_URL_BASE}?${params}`);
-    return;
+    return closeUrlSync(started, dropSettling(tview, replaceRouteUrl(`${TOOL_URL_BASE}?${params}`)));
   }
 
   const params = new URLSearchParams();
@@ -189,26 +278,49 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
     if (output.has(key)) params.set(key, output.get(key)!);
   }
 
+  // A document too large to carry leaves the address (perf review C1 step 3, S7): the
+  // address keeps its workspace, `_view` and the saved copy's `slot`, so pinch, pan and
+  // edit writes stay small. A reload resumes that copy; Share offers its link for this
+  // device and the .lolly file. Without a saved copy yet the document stays put.
+  const content = packableContent(params).toString();
+  const pointer = addressPointer(params, { contentLength: content.length, maxContent: LINK_CONTENT_MAX, refusedAt: packRefusedAt.get(tview), slot: durableSlot(tview) });
+  if (pointer !== null) {
+    ++barSeq.v;
+    return closeUrlSync(started, dropSettling(tview, replaceRouteUrl(`${TOOL_URL_BASE}?${pointer}`)));
+  }
+  const tooLarge = content.length > LINK_CONTENT_MAX;
+  if (tooLarge) watchForSlot(tview);
+
   const qs = params.toString();
   // Bump the shared guard on EVERY write (not just when we pack) so a later,
   // possibly sub-threshold, syncUrl invalidates any pack still in flight from an
   // earlier large state - otherwise that stale pack could resolve afterward and
   // overwrite this bar with the old state.
   const seq = ++barSeq.v;
-  replaceRouteUrl(qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
+  const written = replaceRouteUrl(qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
 
   // Auto-switch to the packed form once the readable query gets long enough to
   // risk the ~2000-char URL ceiling. The readable write above already arrived, so
   // simple links stay readable/editable and only large states get compressed -
   // and only if packing is available AND genuinely shorter. Async + seq-guarded so
   // a slow pack from an older keystroke can never clobber a newer bar.
-  if (qs.length >= AUTO_PACK_MIN && isPackAvailable()) {
+  if (qs.length >= AUTO_PACK_MIN && !tooLarge && isPackAvailable()) {
     // `_themes` stays readable beside the token: the web token bridge reads it plain.
-    const packedParams = packableContent(params);
-    packQuery(packedParams.toString())
+    packQuery(content)
       .then((token) => {
       const { TOOL_URL_BASE, barSeq } = tview;
-        if (token == null || seq !== barSeq.v) return; // unavailable, or superseded
+        if (token == null) {
+          // The pack refused a document this large: from here the address is the pointer.
+          packRefusedAt.set(tview, content.length);
+          const now = new URLSearchParams(params);
+          copyWorkspaceParams(now, routeParams()); // the view may have moved while it packed
+          const late = addressPointer(now, { contentLength: content.length, maxContent: LINK_CONTENT_MAX, refusedAt: content.length, slot: durableSlot(tview) });
+          if (late === null) watchForSlot(tview);
+          else if (seq === barSeq.v) { ++barSeq.v; replaceRouteUrl(`${TOOL_URL_BASE}?${late}`); }
+          return;
+        }
+        packRefusedAt.delete(tview);
+        if (seq !== barSeq.v) return; // superseded
         const latest = new URLSearchParams({ [PACK_PARAM]: token });
         copyWorkspaceParams(latest, routeParams());
         copyBesidePackParams(latest, params);
@@ -220,6 +332,7 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
         /* keep the readable URL already written */
       });
   }
+  return closeUrlSync(started, dropSettling(tview, written));
 }
 export function markUserDirty(tview: ToolViewCtx, id?: string): void {
   const { dirtyParams } = tview;
@@ -1530,9 +1643,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                 options: DESIGN_INTENT_OPTIONS,
               },
               zoom: {
-                fitAll: () => {
-                  tview.stageZoom?.fit();
-                },
+                fitAll: () => tview.stageZoom?.fit(),
                 // Deliberately the overlay's own focus path (`fc-focus-rect`), not a rect this
                 // view converts: the overlay owns the canvas→client mapping, and the navigator
                 // and the timeline already frame artboards through exactly this door.
@@ -1540,6 +1651,8 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                   const id = design.activeFrameId();
                   if (id) design.artboard.focus(id);
                 },
+                fitSelection: () => tview.stageZoom?.fitSelection(),
+                hasSelection: () => design.selection.get().length > 0,
                 zoomBy: (f) => {
                   tview.stageZoom?.zoomBy(f);
                 },
@@ -2066,6 +2179,7 @@ export function sessionOps(tview: ToolViewCtx) {
     markSessionDirty: bindOp(tview, markSessionDirty),
     markSessionSaved: bindOp(tview, markSessionSaved),
     syncUrl: bindOp(tview, syncUrl),
+    scheduleSyncUrl: bindOp(tview, scheduleSyncUrl),
     markUserDirty: bindOp(tview, markUserDirty),
     openRevisions: bindOp(tview, openRevisions),
     openBulk: bindOp(tview, openBulk),

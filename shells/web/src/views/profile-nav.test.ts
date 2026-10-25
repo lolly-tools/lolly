@@ -83,8 +83,8 @@ test('NAV_SECTIONS order IS the page order, and every card carries a summary val
     assert.ok(PROFILE_SRC.includes(`summaryRow('${s.id}'`), `${s.id}'s header goes through summaryRow()`);
   }
   assert.ok(
-    PROFILE_SRC.includes('class="profile-summary-value" data-summary='),
-    'summaryRow emits the value span the summaries are filled through',
+    PROFILE_SRC.includes('class="profile-summary-value section-card-value" data-summary='),
+    'summaryRow emits the value span the summaries are filled through, in the collapsible card\'s value slot',
   );
   assert.equal(
     PROFILE_SRC.split('${summaryRow(').length - 1,

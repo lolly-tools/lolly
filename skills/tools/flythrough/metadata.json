@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "flythrough",
-  "toolVersion": "0.2.3",
-  "toolVersionRange": "0.2.3",
+  "toolVersion": "0.2.4",
+  "toolVersionRange": "0.2.4",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,7 +10,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "c9528a82905a65d92ce3389203dfdcb7d4c7df4ddbf4407e8309c80db176891f",
+      "sha256": "eae0a08b0a08360f8ba2491ccefe635259766e2cce227553483ec65bf9622f2c",
       "bytes": 2049
     },
     "reference/inputs.json": {

@@ -241,7 +241,7 @@ function setLogoGroup(set: Rec, group: Rec | null): void {
  * for tests.
  *
  * The Logos room writes its tokens straight into the stored head, while the
- * brand studio edits a copy of that document it read when it opened. Its next
+ * Design System Setup edits a copy of that document it read when it opened. Its next
  * save grafts the stored logo groups on first (saveWithStoredLogos), so a
  * colour edit made after an upload cannot put back the logo tokens the studio
  * opened with.
@@ -323,7 +323,7 @@ async function userDoc(host: LogoHost): Promise<Rec> {
 }
 
 /**
- * The brand studio's save: `doc` with the STORED head's logo groups grafted on,
+ * Design System Setup's save: `doc` with the STORED head's logo groups grafted on,
  * handed to `write`, as one step in the same queue the Logos room's writes use
  * (logo-ownership.ts `withLogoHeadLock`). Reading the head and writing it
  * separately let an upload written in between be overwritten.

@@ -3,6 +3,7 @@
 import './template-motion-preview.css';
 import { captureNeutralPinned } from './capture-neutral.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
+import { onStartupMotionResume, startupMotionHeld } from './startup-motion.ts';
 import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
@@ -28,7 +29,7 @@ export function armTemplateMotion(root: HTMLElement, opts: {
   let visible: IntersectionObserver | undefined;
   let brandSignature = '';
   const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
-  const autoAllowed = () => !perfUiOn() && !motionPreference.matches && !prefersReducedMotion() && !document.hidden && !captureNeutralPinned();
+  const autoAllowed = () => !perfUiOn() && !motionPreference.matches && !prefersReducedMotion() && !document.hidden && !captureNeutralPinned() && !startupMotionHeld();
   const stop = (): void => {
     epoch++;
     cancelAnimationFrame(frame);
@@ -117,6 +118,11 @@ export function armTemplateMotion(root: HTMLElement, opts: {
   root.addEventListener('click', click, true);
   document.addEventListener('visibilitychange', visibility);
   motionPreference.addEventListener('change', stop);
+  // A card the pointer or focus rested on while the startup check held motion starts once it settles.
+  const unhold = onStartupMotionResume(() => {
+    const card = [...root.querySelectorAll<HTMLElement>(opts.card)].find(el => el.matches(':hover, :focus-within'));
+    if (card) void start(card);
+  });
   // Brand edits/theme switches invalidate a mounted preview just as they do a poster.
   const brandObserver = new MutationObserver(() => {
     const ticket = epoch;
@@ -129,7 +135,7 @@ export function armTemplateMotion(root: HTMLElement, opts: {
   const observer = new MutationObserver(() => { if (!root.isConnected) destroy(); else if (selected?.hidden) stop(); });
   observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
   const destroy = () => {
-    disposed = true; stop(); observer.disconnect(); brandObserver.disconnect();
+    disposed = true; stop(); observer.disconnect(); brandObserver.disconnect(); unhold();
     unsubscribePerf();
     root.removeEventListener('pointerover', over); root.removeEventListener('focusin', over);
     root.removeEventListener('pointerout', leave); root.removeEventListener('focusout', leave);

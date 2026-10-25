@@ -11,6 +11,34 @@ const output = process.env.LOLLY_DESIGN_TOOL_TEST_OUTPUT || '/tmp/lolly-design-t
 const skip = origin ? false : 'Serve the web shell and set LOLLY_DESIGN_TOOL_TEST_URL.';
 const browserType = process.env.LOLLY_DESIGN_TOOL_TEST_BROWSER === 'webkit' ? webkit : chromium;
 
+/**
+ * Content Credentials for the one docs baseline this test writes. Every file in docs/shots/
+ * carries one (tests/docs-shot-credentials.test.ts holds the corpus to it), and the shots
+ * pipeline only stamps what it captures itself, so this shot is stamped here. Imported
+ * lazily so a plain run never loads the C2PA stack; a signing failure keeps the shot and
+ * says so, as the pipeline does.
+ */
+async function stampDesignRulesShot(svg: string): Promise<Uint8Array> {
+  const bytes = new TextEncoder().encode(svg);
+  try {
+    const [{embedC2pa},{buildExportC2paOpts}] = await Promise.all([import('../engine/src/index.ts'),import('../packages/node-shell/src/c2pa-opts.ts')]);
+    const row = (id: string, value: unknown) => ({id,type:'text',value,isDirty:true,label:id});
+    const root = /<svg[^>]*>/.exec(svg)?.[0] ?? '';
+    const size = (name: string) => Math.round(Number(new RegExp(`\\b${name}="([\\d.]+)`).exec(root)?.[1] ?? 0));
+    return await embedC2pa(bytes,'svg',buildExportC2paOpts({
+      surface:'docs',
+      manifest:{id:'design-rules-inputs',name:'Design rules inputs'},
+      model:[row('source','tests/design-tool.browser.test.ts (LOLLY_DESIGN_TOOL_SHOTS=1)'),row('frame','.dr-panel')] as never,
+      format:'svg',
+      ...(size('width') && size('height') ? {dims:{width:size('width'),height:size('height'),unit:'px' as const,dpi:96}} : {}),
+      days:365,
+    }));
+  } catch (e) {
+    console.warn(`design-rules-inputs: Content Credentials not attached - ${(e as Error).message}`);
+    return bytes;
+  }
+}
+
 test('designer UI produces one portable tool; clean reader exports offline and pins revisions', {skip,timeout:180_000}, async () => {
   await mkdir(output, {recursive:true});
   const browser = await browserType.launch({headless:true});
@@ -54,11 +82,14 @@ test('designer UI produces one portable tool; clean reader exports offline and p
     await author.screenshot({path:`${output}/author-rules.png`});
     if (process.env.LOLLY_DESIGN_TOOL_SHOTS) {
       const svg = await author.evaluate(async () => {
+        // The panel is taller than its frame now. Frame the end of the panel, where the
+        // presentation the designer just picked sits below the common-name rows.
+        document.querySelector('[data-presentation]')?.scrollIntoView({block:'end'});
         const path = '/src/bridge/export-svg-walker.ts'; const bridge = '/src/bridge/index.ts'; const shared = '/src/bridge/export-shared.ts';
         const [{renderSvgFromHtml},{createBridge},{setExportHost}] = await Promise.all([import(path),import(bridge),import(shared)]); setExportHost(await createBridge());
         return (await renderSvgFromHtml(document.querySelector('.dr-panel')!,{format:'svg',convertPaths:true,embedMeta:false})).text();
       });
-      await writeFile('docs/shots/design-rules-inputs.svg',svg);
+      await writeFile('docs/shots/design-rules-inputs.svg',await stampDesignRulesShot(svg));
     }
     await author.locator('.dr-toolbar [data-mode="preview"]').click();
     await author.locator('#design-rules-preview-canvas').getByText('Sam Rivera',{exact:true}).waitFor();

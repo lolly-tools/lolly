@@ -5,6 +5,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { parse } from 'yaml';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const workflowDir = path.join(repoRoot, '.github', 'workflows');
@@ -59,4 +60,75 @@ test('downloaded CI executables are verified before execution and caches bind th
   const c2paDigest = ci.match(/C2PATOOL_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
   assert.ok(c2paDigest);
   assert.match(ci, new RegExp(`key: c2patool-[^\\n]*-${c2paDigest}`));
+
+  // cargo-audit is a verified release binary in CI and in the nightly and release-tag audit, never a build.
+  const advisories = readFileSync(path.join(workflowDir, 'dependency-audit.yml'), 'utf8');
+  const cargoAuditDigests = [ci, advisories].map((text) => {
+    assert.match(text, /echo "\$CARGO_AUDIT_LINUX_X64_SHA256 {2}[^\n]+" \| sha256sum --check/, 'cargo-audit is not checked before execution');
+    assert.doesNotMatch(text, /cargo install cargo-audit/);
+    return text.match(/CARGO_AUDIT_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
+  });
+  assert.ok(cargoAuditDigests[0], 'cargo-audit digest is not pinned');
+  assert.equal(cargoAuditDigests[1], cargoAuditDigests[0], 'both workflows pin the same cargo-audit release');
+});
+
+test('ffmpeg is a pinned release whose archive and cached binaries are verified, not an apt package', () => {
+  const ci = readFileSync(path.join(workflowDir, 'ci.yml'), 'utf8');
+  assert.doesNotMatch(ci, /apt-get install[^\n]*\bffmpeg\b/, 'ffmpeg comes from the pinned release, not apt');
+  const archive = ci.match(/FFMPEG_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
+  assert.ok(archive, 'ffmpeg archive digest is not pinned');
+  assert.match(ci, /echo "\$FFMPEG_LINUX_X64_SHA256 {2}\$archive" \| sha256sum --check/, 'ffmpeg archive is not checked before extraction');
+  assert.match(ci, new RegExp(`key: ffmpeg-[^\\n]*-${archive}\\n`), 'the ffmpeg cache key does not bind the archive digest');
+  // A cache hit skips the download, so the cached binaries are checked on every run before anything executes them.
+  for (const variable of ['FFMPEG_BIN_SHA256', 'FFPROBE_BIN_SHA256']) assert.match(ci, new RegExp(`${variable}: '[0-9a-f]{64}'`), variable);
+  const check = ci.split('- name: Check ffmpeg and put it on PATH')[1]?.split('\n      - name: ')[0] ?? '';
+  const verify = check.indexOf('sha256sum --check'), firstRun = check.indexOf('"$ff/ffmpeg" -hide_banner');
+  assert.ok(verify > 0 && firstRun > verify, 'cached ffmpeg runs before its binaries are verified');
+  assert.ok(check.indexOf('>> "$GITHUB_PATH"') > firstRun, 'ffmpeg reaches PATH before its capability check');
+});
+
+test('every CI apt install has short command limits, bounded retries and mirror failover', () => {
+  const ci = parse(readFileSync(path.join(workflowDir, 'ci.yml'), 'utf8')) as {
+    jobs: Record<string, { steps: { name?: string; run?: string; 'timeout-minutes'?: number }[] }>;
+  };
+  const installs = new Set<string>();
+  for (const [job, { steps }] of Object.entries(ci.jobs)) {
+    for (const step of steps) {
+      const run = step.run ?? '';
+      if (!/apt-get\s|install-deps\s/.test(run)) continue;
+      const label = `${job}: ${step.name}`;
+      installs.add(run);
+      assert.ok(step['timeout-minutes'] && step['timeout-minutes'] <= 20, `${label}: missing bounded step timeout`);
+      const retry = run.match(/for attempt in 1 2 3 4; do([\s\S]*?)\n\s*done/);
+      assert.ok(retry, `${label}: missing four-attempt retry loop`);
+      const body = retry[1] ?? '';
+      assert.match(body, /if \[ "\$attempt" -gt 1 \]; then\s+sudo timeout -k 10 120 dpkg --configure -a \|\| true\s+if \[ -f \/etc\/apt\/apt-mirrors\.txt \]; then/, `${label}: retries must repair dpkg and switch mirrors`);
+      assert.match(body, /printf 'https:\/\/archive\.ubuntu\.com\/ubuntu\/\\tpriority:1\\nhttps:\/\/security\.ubuntu\.com\/ubuntu\/\\tpriority:2\\nhttp:\/\/azure\.archive\.ubuntu\.com\/ubuntu\/\\tpriority:3\\n' \|\s+sudo tee \/etc\/apt\/apt-mirrors\.txt > \/dev\/null\s+fi\s+fi\s+if sudo timeout -k 15 90 apt-get update &&/, `${label}: mirror failover must precede the next update`);
+      for (const line of run.split('\n').filter((line) => /apt-get\s|install-deps\s/.test(line))) {
+        assert.ok(body.includes(line), `${label}: apt command outside retry loop`);
+        assert.match(line, /sudo timeout -k 15 (?:90 apt-get update|180 apt-get install|180 "\$node_bin" \S+ install-deps)\b/, `${label}: apt command lacks a short root timeout`);
+      }
+      assert.match(body, /; then (?:exit 0|break); fi/, `${label}: missing success path`);
+      assert.match(body, /echo "::warning::[^"\n]+ install attempt \$attempt failed or stalled"/, `${label}: missing per-attempt warning`);
+      assert.match(body, /sleep 10/, `${label}: missing retry delay`);
+      assert.match(run, /exit 1/, `${label}: exhausted retries must fail`);
+    }
+  }
+  assert.ok(installs.size >= 6, 'expected Chromium, Firefox/WebKit, nginx, Poppler, Tauri and qpdf installs');
+});
+
+test('the preview web workflow is dispatch-only and its downloaded registry tool is the release one, verified before use', () => {
+  const read = (name: string) => readFileSync(path.join(workflowDir, name), 'utf8');
+  const preview = read('preview-web.yml');
+  assert.deepEqual(Object.keys((parse(preview) as { on: object }).on), ['workflow_dispatch']);
+  const digest = (text: string) => text.match(/CRANE_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
+  const version = (text: string) => text.match(/CRANE_VERSION: '([^']+)'/)?.[1];
+  assert.ok(digest(preview));
+  assert.equal(digest(preview), digest(read('release-images.yml')));
+  assert.equal(version(preview), version(read('release-images.yml')));
+  const install = preview.split('- name: Install the pinned registry tool')[1]?.split('\n      - name: ')[0] ?? '';
+  assert.ok(install.indexOf('sha256sum --check') > install.indexOf('curl') && install.indexOf('tar -xzf') > install.indexOf('sha256sum --check'));
+  // The only local workflow it calls is the signed frontend builder.
+  const calls = [...preview.matchAll(/^\s*uses:\s*(\.\/\S+)/gm)].map((match) => match[1]);
+  assert.deepEqual(calls, ['./.github/workflows/release-frontend.yml']);
 });

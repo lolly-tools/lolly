@@ -11,6 +11,7 @@ import type { BrandEditorHandle } from '../../lib/brand-editor.ts';
 import type { TokenRoleProposal } from '../../lib/brand-propose.ts';
 import type { OverviewRoom } from '../../lib/design-system/rooms/overview.ts';
 import type { UsageRoom } from '../../lib/design-system/rooms/usage.ts';
+import type { SkillsRoom } from '../../lib/design-system/rooms/skills.ts';
 import type { VersionsRoom, mountVersionsRoom } from '../../lib/design-system/rooms/versions.ts';
 import type { mountCheckpointRecovery } from '../../lib/design-system/checkpoint-recovery.ts';
 import type { ColorTokenRow } from '../../lib/design-system/sources/file.ts';
@@ -67,6 +68,9 @@ export interface StartCtx {
   overviewPanel: HTMLElement;
   usagePanel: HTMLElement;
   usage: UsageRoom | null;
+  /** The Skills room (plan 323): mounted the first time it is opened. */
+  skillsPanel: HTMLElement;
+  skills: SkillsRoom | null;
   versionsPanel: HTMLElement;
   versionsBtn: HTMLButtonElement | null;
   versionsLink: HTMLButtonElement | null;
@@ -92,6 +96,8 @@ export interface StartCtx {
   recovery: ReturnType<typeof mountCheckpointRecovery> | null;
   unsubTray: (() => void) | null;
   unsubBeat: (() => void) | null;
+  /** Removes the resize listener that keeps --ds-sticky-top in step with the room chips. */
+  unsubStickyTop: (() => void) | null;
   trayToggle: HTMLButtonElement | null;
   trayCountEl: HTMLElement | null;
   pdfPicks: PdfLogoPick[];

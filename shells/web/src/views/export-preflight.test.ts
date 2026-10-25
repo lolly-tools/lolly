@@ -114,6 +114,22 @@ test('the verdict states what there is to fix, and carries no counts of things',
   assert.equal(counted.verdict, '1 to fix, 1 to know');
 });
 
+test('the verdict keeps the things to know when something is also not checked', () => {
+  // A required house rule broken, two advisory notes, and a contrast review: the
+  // notes keep their number in the summary rather than showing only inside the card.
+  const v = preflightView(null, {
+    ...CTX,
+    additionalRows: [
+      { id: 'house-rule.0.headline-case', tone: 'warn', text: 'Capitals.' },
+      { id: 'house-rule.1.body-align', tone: 'note', text: 'Centred.' },
+      { id: 'house-rule.2.logo-surface', tone: 'note', text: 'Logo.' },
+      { id: 'design.text.contrast-review', tone: 'gap', text: 'Review visually.' },
+    ],
+  });
+  assert.equal(v.verdict, '1 to fix, 2 to know, 1 not checked');
+  assert.equal(v.tone, 'fix');
+});
+
 test('a gap is toned as a gap and counted separately from a measurement', () => {
   const v = preflightView(report([
     { id: 'plates.process', severity: 'info', message: 'four plates', count: { kind: 'processPlates', value: 4, unit: 'plate', bound: 'ceiling', basis: 't' } },
@@ -290,4 +306,29 @@ test('body text is escaped, so a hostile brand ink name cannot inject markup', (
   ]), CTX));
   assert.doesNotMatch(html, /<img/);
   assert.match(html, /&lt;img/);
+});
+
+test('a row can carry escaped supporting lines and a plain link, and the link is only a link', () => {
+  const html = preflightBodyHtml(preflightView(null, { ...CTX, additionalRows: [{
+    id: 'writing.score', tone: 'note', title: 'Writing signal: <Weak>', text: 'A few weak signals were found.',
+    details: ['“<img src=x>” in “Body”'],
+    link: { label: 'Open the text in Verify', href: '#/verify', prepare: () => {} },
+  }] }));
+  assert.match(html, /<span class="preflight-finding-title">Writing signal: &lt;Weak&gt;<\/span>A few weak signals were found\./);
+  assert.match(html, /<ul class="preflight-finding-details"><li>“&lt;img src=x&gt;” in “Body”<\/li><\/ul>/);
+  assert.match(html, /<a class="preflight-finding-link" href="#\/verify" data-preflight-link="writing.score">Open the text in Verify<\/a>/);
+  assert.doesNotMatch(html, /<img/);
+  assert.doesNotMatch(html, /<button/, 'a link row adds no button');
+  assert.equal(metaphorIcon('writing.score'), 'transcript');
+  assert.equal(metaphorIcon('house-rule.0.align-left'), 'shapes');
+});
+
+test('a row link with a script or data scheme is left out', () => {
+  for (const href of ['javascript:alert(1)', 'data:text/html,x', '//evil.test/']) {
+    const html = preflightBodyHtml(preflightView(null, { ...CTX, additionalRows: [{
+      id: 'writing.score', tone: 'note', title: 'Writing signal', text: 'Signals were found.',
+      link: { label: 'Open', href, prepare: () => {} },
+    }] }));
+    assert.doesNotMatch(html, /preflight-finding-link/, href);
+  }
 });

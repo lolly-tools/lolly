@@ -59,7 +59,7 @@ importa.
 
 ## Estimulación reducida y aumentada
 
-![The Neurospicy player docked over the app: track title and transport, separate Music and Effects volumes, and the Atmosphere mixer with Wind, Birdsong and Crickets raised](/t/url-shot?url=%2F%23%2F%3Fneuro%3Dplayer&width=1440&height=1000&dpi=192&waitMs=3200&css=%5Bdata-dock-viz-slot%5D%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23neuro-dock&dark=1&filename=incl-neuro-player)
+![The Neurospicy player docked over the app: track title and transport, separate Music and Effects volumes, and the Atmosphere mixer with Wind, Birdsong and Crickets raised](/t/url-shot?url=%2F%23%2F%3Fneuro%3Dplayer&width=1440&height=1700&dpi=192&waitMs=3200&css=%5Bdata-viz-canvas%5D%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-sec-head%3D%22atmosphere%22%5D%3Bwait%3A500&format=png&cropSelector=%23neuro-dock&dark=1&filename=incl-neuro-player)
 
 ![The visualiser open over the app, painting the music as a full-motion field, with its own transport and volume controls](/t/url-shot?url=%2F%23%2F%3Fneuro%3Dviz&width=1440&height=900&dpi=96&waitMs=2000&waitSelector=.audio-dock%5Bdata-demo-settled%5D&walker=1&format=svg&cropSelector=.audio-dock&css=.audio-dock%20*%7Bbackdrop-filter%3Anone%21important%7D&dark=1&filename=incl-neuro-viz)
 
@@ -108,9 +108,10 @@ adapta en ambas direcciones, siempre de forma opcional:
 
 ## Inclusión cultural
 
-- <!--i:palette--> La marca neutral de partida no asume nada sobre quién eres;
-  Lolly existe para que tu propia identidad, paleta y tipografía sustituyan a
-  las nuestras en minutos.
+- <!--i:palette--> lolly.tools se abre en [Lolly Demo](/info/lolly-demo.html), el
+  propio sistema de diseño de demostración de Lolly, con el neutral Lolly Starter
+  a un solo interruptor de distancia; Lolly existe para que tu propia identidad,
+  paleta y tipografía sustituyan a las nuestras en minutos.
 - <!--i:pentool--> La tipografía se trata como una superficie cultural: las
   fuentes subidas y las de Google se modelan con conformado de texto correcto en
   todas las escrituras, para que los nombres, los diacríticos y el texto no
@@ -127,7 +128,12 @@ adapta en ambas direcciones, siempre de forma opcional:
   puntos de contacto de red están enumerados en la
   [Política de privacidad](/info/privacy.html). Las preferencias de
   accesibilidad e idioma se guardan en tu propio perfil, en tu dispositivo: una
-  discapacidad o un idioma nunca son telemetría.
+  discapacidad o un idioma nunca son telemetría. La app de Lolly no envía
+  telemetría, y nadie debería tener que entregar sus datos. Un servidor Lolly
+  Work, que una organización ejecuta para sus miembros, puede almacenar eventos
+  de uso formados por etiquetas, como el id de una herramienta, en el nivel que
+  fije la organización, y esos eventos nunca llevan ajustes de accesibilidad ni
+  de idioma; consulta [Telemetría y paneles](/info/work-telemetry.html).
 - <!--i:shieldcheck--> **Procedencia honesta.** Las exportaciones pueden llevar
   Content Credentials, y el contenido generado por IA se etiqueta como tal.
   Creemos que las audiencias merecen saber cómo se hizo un contenido, y que los

@@ -31,6 +31,9 @@
  *   --out <path>         envelope destination   (default: sibling index.sig.json of --index)
  *   --materialize        publish immutable URLs in an extracted build
  *   --previous-envelope <path> carry a verified published sequence floor
+ *   --min-seq <n>        raise the computed sequence to at least n (default: 0)
+ *                        or set LOLLY_CATALOG_MIN_SEQ; the flag takes precedence.
+ *                        Must be an integer from 0 to Number.MAX_SAFE_INTEGER.
  *   --retain <build>     retain a reviewed previous immutable inventory
  *   --expires-at <ISO>   optional expiry; omitted catalogs work offline indefinitely
  *
@@ -72,6 +75,7 @@ interface Args {
   outPath: string | null;
   materialize: boolean;
   previousEnvelope: string | null;
+  minSeq: number;
   retain: string | null;
   expiresAt: string | null;
 }
@@ -85,9 +89,11 @@ function parseArgs(argv: string[]): Args {
     outPath: null,
     materialize: false,
     previousEnvelope: null,
+    minSeq: 0,
     retain: null,
     expiresAt: null,
   };
+  let minSeq = process.env.LOLLY_CATALOG_MIN_SEQ;
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i];
     const next = (): string => {
@@ -102,12 +108,19 @@ function parseArgs(argv: string[]): Args {
     else if (flag === '--out') args.outPath = resolve(next());
     else if (flag === '--materialize') args.materialize = true;
     else if (flag === '--previous-envelope') args.previousEnvelope = resolve(next());
+    else if (flag === '--min-seq') minSeq = next();
     else if (flag === '--retain') args.retain = resolve(next());
     else if (flag === '--expires-at') {
       args.expiresAt = next();
       if (!Number.isFinite(Date.parse(args.expiresAt)) || Date.parse(args.expiresAt) <= Date.now()) throw new Error('--expires-at must be a future ISO timestamp');
     }
     else throw new Error(`unknown flag ${flag}`);
+  }
+  if (minSeq !== undefined) {
+    if (!/^\d+$/.test(minSeq) || !Number.isSafeInteger(Number(minSeq))) {
+      throw new Error(`--min-seq / LOLLY_CATALOG_MIN_SEQ must be an integer between 0 and ${Number.MAX_SAFE_INTEGER}`);
+    }
+    args.minSeq = Number(minSeq);
   }
   return args;
 }
@@ -279,6 +292,7 @@ async function run(args: Args): Promise<void> {
     seq = (previous.seq ?? 0) + 1;
     if (!Number.isSafeInteger(seq)) throw new Error('Catalog sequence exhausted');
   }
+  seq = Math.max(seq, args.minSeq);
   const assetPath = join(dirname(args.indexPath), '../assets/index.json');
   const slimPath = join(dirname(args.indexPath), 'index.slim.json');
   const unsigned: UnsignedCatalogEnvelope = {

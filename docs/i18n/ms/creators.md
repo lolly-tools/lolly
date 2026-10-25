@@ -1,60 +1,75 @@
-# Lolly untuk Pencipta
+# Cipta
 
-Anda isikan beberapa medan dan fail siap pun terhasil, dengan fon, warna dan susun atur yang sudah ditentukan pada peranti anda sendiri. Anda menghasilkannya dalam beberapa minit tetapi ia kelihatan seperti mengambil masa berjam-jam, dan kerana peraturan jenama sudah terbina dalam alat itu, bukan nama anda yang tercatat pada fail yang menyimpang daripada jenama. Pilih laluan di bawah yang sepadan dengan apa yang anda lakukan hari ini.
+Anda mengisi beberapa medan dan fail siap keluar, dengan fon, warna dan reka letak yang sudah diputuskan, pada peranti anda sendiri. Oleh kerana peraturan jenama ada dalam alat, bukan nama anda pada fail yang tersasar daripada jenama. Pilih lorong yang sepadan dengan apa yang anda lakukan hari ini.
 
-Anda ialah satu peringkat dalam larian berganti-ganti: seorang pembangun boleh mengembangkan alat yang anda guna menjadi satu saluran paip, dan seorang rakan sekerja boleh menjalankannya secara layan diri, jadi [Kitaran hayat kempen](/info/overview.html#the-lifecycle-of-a-campaign) mengikuti satu aset melalui ketiga-tiga pasangan tangan itu.
-
-Baru di sini? Mulakan dengan **[Buat sesuatu dalam 60 saat](/info/make-something.html)** dan kembali semula sebaik sahaja anda tahu bahagian mana yang anda mahu terokai dengan lebih mendalam. [Soalan & jawapan](/info/faq.html) merangkumi apa yang orang tanya sebelum mereka mempercayai alat percuma. [Bagaimana Lolly dibandingkan](/info/positioning.html) ialah penjelasan jujur tentang bila anda patut menggunakan sesuatu yang lain.
+Baru di sini? Mulakan dengan **[Buat fail pertama anda](/info/make-something.html)**. [How Lolly works](/info/how-lolly-works.html) menunjukkan bagaimana alat yang anda gunakan juga boleh berjalan daripada skrip atau telefon rakan sekerja, dan [Questions & answers](/info/faq.html) meliputi apa yang orang tanya sebelum mereka mempercayai alat percuma.
 
 ## Cipta
 
-Pilih satu alat, isikan beberapa medan dan muat turun fail siap. Atau buka kanvas Reka Bentuk dan susun aturnya secara bebas: apa jua caranya, warna, jenis huruf dan jarak datang daripada jenama anda dan bukan daripada ingatan, dan tiada satu pun memerlukan akaun.
+Pilih alat dan isikannya, atau susun halaman dengan bebas pada kanvas Design.
 
-- **[Buat sesuatu dalam 60 saat](/info/make-something.html)** - tiga panduan ringkas tanpa apa-apa persediaan, jika anda belum pernah membuka Lolly sebelum ini.
-- **[Menggunakan Lolly](/info/using.html)** - kanvas, kawalan, penyimpanan, Projects dan penggunaan telefon: cara aplikasi itu sendiri berkelakuan.
-- **[Studio Jenama](/info/brand-studio.html)** - apabila logo, warna dan jenis huruf patut menjadi milik anda dan bukannya lalai.
-- **[Import reka bentuk](/info/design-import.html)** - apabila karya seni sudah wujud sebagai fail `.fig`, `.penpot`, `.ai`, `.idml` atau SVG dan anda mahukannya boleh disunting dan bukan diratakan.
-- **[Paparan utiliti](/info/utilities.html)** - hamparan, penukar, Colour Lab, pengekstrak PDF dan Script audio, untuk kerja yang bukan renderan alat.
-- **[Sambungan Pelayar](/info/extension.html)** - tangkap halaman web langsung dan guna semula sebagai aset dalam reka bentuk anda sendiri.
-- **[Carian](/info/search.html)** - satu medan yang menjangkau alat anda, kerja tersimpan anda, katalog dan tetapan anda.
-- **[Tanya Lolly](/info/ask.html)** - taip satu soalan dan dapatkan bahagian panduan ini yang sepadan, berserta pautan terus ke dalamnya.
-- **[Papan Pemuka](/info/dashboard.html)** - apa yang peranti ini boleh lakukan, sistem reka bentuk anda dalam mod baca sahaja dan pandangan sepintas lalu pada storan.
-- **[Kegemaran anda](/info/favourites.html)** - bintangkan apa yang kerap anda guna supaya ia mendapat jubin tersendiri di atas grid.
-- **[Profil](/info/profile.html)** - butiran yang menjadi sumber pra-isi alat dan empat suis kebolehcapaian yang menenangkan aplikasi tanpa menggerakkan sepiksel pun apa yang anda eksport.
+- **[Buat fail pertama anda](/info/make-something.html)** - satu pelajaran ringkas tanpa apa-apa untuk disediakan: kod QR, dimuat turun dan disimpan sebagai salinan boleh sunting.
+- **[Using Lolly](/info/using.html)** - kanvas, kawalan, penyimpanan, Projects dan penggunaan telefon: cara apl itu sendiri berfungsi.
+- **[Templates](/info/templates.html)** - mulakan daripada reka letak tersimpan dan bukan alat kosong.
+- **[Text in Design](/info/text-composition.html)** - tajuk, teks mengalir dan teks yang muat dalam kotaknya.
+- **[3D Studio](/info/3d-studio.html)** - karya seni SVG dan model 3D disusun, disinari dan dirender sebagai satu adegan.
+- **[Utilities](/info/utilities.html)** - baiki fail pada peranti anda: kongsi dengan selamat, bandingkan dua versi, tukar formatnya, ambil perkataannya atau semak warna.
+- **[Browser extension](/info/extension.html)** - tangkap skrin halaman web langsung daripada apl web, atau baca tapak untuk memulakan sistem reka bentuk.
+
+## Jadikan milik anda
+
+Sistem reka bentuk anda menentukan rupa setiap alat.
+
+- **[Design System Setup](/info/brand-studio.html)** - logo, warna, tipografi dan selebihnya, ditetapkan sekali di `#/start`.
+- **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourway pada kerja sebenar, dan bertukar ke sistem reka bentuk anda sendiri.
+- **[Brand architectures](/info/brand-architectures.html)** - beberapa sistem reka bentuk, atau satu dengan beberapa colourway, untuk satu organisasi.
+- **[Import a design](/info/design-import.html)** - fail `.fig`, `.penpot`, `.ai`, `.idml` atau SVG dibuka sebagai reka letak boleh sunting dan bukan gambar rata.
+- **[Rebrand a deck](/info/rebrand.html)** - dek PowerPoint dipindahkan ke sistem reka bentuk anda, carta dan animasi kekal.
+- **[Share a design with rules](/info/create-a-tool.html)** - tukar reka letak menjadi alat yang diisi orang lain.
+
+## Cari dan simpan kerja anda
+
+- **[Find and recover your work](/info/find-your-work.html)** - ke mana perginya fail yang disimpan, dimuat turun atau tidak disimpan.
+- **[Search](/info/search.html)** dan **[Ask Lolly](/info/ask.html)** - satu medan untuk alat, kerja tersimpan, aset dan tetapan anda, serta jawapan daripada panduan ini.
+- **[Settings](/info/dashboard.html)** - apa yang boleh dilakukan peranti ini, sistem reka bentuk anda baca sahaja dan storan anda.
+- **[Your favourites](/info/favourites.html)** dan **[Profiles](/info/profile.html)** - alat berbintang, butiran yang diisi awal oleh alat dan suis kebolehcapaian.
+- **[Sync your devices](/info/sync.html)** - kerja yang sama pada komputer dan telefon anda, melalui storan yang anda pilih.
 
 ## Animasi
 
-Teks yang bergerak, adegan pada garis masa dan gerakan yang kekal menepati jenama. Eksport gerakan digubah bingkai demi bingkai daripada jam yang dipacu dan bukannya dirakam daripada skrin, jadi masa tidak pernah menyimpang dan pautan yang sama menghasilkan klip yang sama pada sebarang panjang.
+Teks yang bergerak, adegan pada garis masa dan gerakan yang kekal selari dengan jenama. Eksport gerakan dilukis bingkai demi bingkai daripada jam terpacu dan bukan dirakam daripada skrin, jadi pautan yang sama menghasilkan klip yang sama.
 
-- **[Animasi](/info/animating.html)** - bingkai kunci, kedalaman sebenar dan kamera adegan untuk terbang melepasi hasilnya.
-- **[Editor jujukan](/info/sequence-editor.html)** - garis masa itu sendiri: klip, lorong lapisan, potong dan pisah, peralihan dan campuran audio.
-- **[Eksport & Format](/info/exporting.html)** - bahagian video, GIF dan PNG beranimasi pada panel eksport, sebaik sahaja gerakan sudah betul.
+- **[Animating](/info/animating.html)** - bingkai kunci, kedalaman sebenar dan kamera adegan.
+- **[The sequence editor](/info/sequence-editor.html)** - klip, lorong tindihan, trim dan pisah, peralihan dan campuran audio.
+- **[Wide Colour and HDR](/info/hdr-editing.html)** - warna di luar julat biasa, pada skrin dan dalam format yang boleh menunjukkan julat tambahan.
 
-## Rakam
+## Rakam dan bentang
 
-Rakam satu ambilan yang bersih dengan kiraan masuk, meter aras dan bimbingan lembut, atau tukar nota suara menjadi video siap yang bergerak seiring bunyi. Belum ada halaman Rakam yang berasingan lagi: Menggunakan Lolly membawanya, dalam bahagian garis masa.
+Rakam satu ambilan bersih dengan kiraan masuk dan meter paras, atau letakkan diri anda di hadapan slaid anda.
 
-- **[Menggunakan Lolly](/info/using.html#timeline-sequence)** - merakam alih suara terus ke garis masa, di mana ambilan itu disimpan dan bagaimana ia sampai ke campuran.
-- **[Buat fail pertama anda](/info/make-something.html#other-first-projects)** - audiogram, untuk ketika anda lebih suka didengar daripada dilihat.
-- **[Paparan utiliti](/info/utilities.html)** - Script audio, apabila kata-kata datang dahulu dan suara menyusul kemudian.
-
-## Membentangkan
-
-Letakkan kamera, logo dan nama anda di atas satu dek Design atau Countdown, dengan kawalan peribadi dalam satu tetingkap berasingan.
-
-- **[Membentangkan dengan kamera](/info/presenting.html)** - framing, adegan tersimpan, perkongsian penonton, rakaman tempatan dan batasan percubaan semasa.
+- **[The Design timeline](/info/design.html#timeline-sequence)** - merakam suara latar terus ke garis masa.
+- **[Buat fail pertama anda](/info/make-something.html#other-first-projects)** - audiogram, apabila anda lebih suka didengar daripada dilihat.
+- **[Presenting with camera](/info/presenting.html)** - kamera, logo dan nama anda di atas dek atau Countdown, dengan kawalan peribadi dalam tetingkap berasingan.
+- **[Live pages that take the clicker](/info/interactive-pages.html)** dan **[Agenda screens](/info/agenda.html)** - halaman dan atur cara untuk bilik.
 
 ## Kerjasama
 
-Dua orang, dua peranti, satu sesi, disunting secara langsung. Imbas satu kod merentasi meja dan kedua-dua skrin memaparkan kerja yang sama, tanpa akaun dan tanpa pelayan di tengah-tengah - malah tanpa internet langsung apabila kedua-dua peranti berada pada rangkaian yang sama.
+Dua orang, dua peranti, satu reka bentuk, disunting secara langsung, tanpa akaun dan tanpa pelayan di tengah.
 
-- **[Bekerja bersama](/info/collaborate.html)** - memulakan satu sesi, apa yang bergerak antara peranti dan apa yang berlaku apabila rangkaian terputus.
-- **[Menggunakan Lolly](/info/using.html#sharing-your-work)** - cara yang lebih senyap untuk menyerahkan kerja: pautan kongsi yang membawa seluruh keadaan, atau satu fail `.lolly`.
+- **[Working together](/info/collaborate.html)** - collab peribadi antara peranti, dan collab kerja melalui Lolly Work organisasi anda.
+- **[Using Lolly](/info/using.html#sharing-your-work)** - pautan kongsi yang membawa keseluruhan keadaan, atau satu fail `.lolly`.
+- **[Use Lolly at your organisation](/info/organisation.html)** - log masuk, projek pasukan dan tetapan terurus, apabila organisasi anda menjalankan Lolly Work.
 
 ## Terbit
 
-Hantarkannya ke tempat yang diminta: pautan yang membawa reka bentuk itu, PDF setepat cetakan, video, satu dek atau folder varian. Sumber yang sama menghasilkan setiap satunya, jadi anda hanya membinanya sekali.
+Hantar ke tempat yang diminta: pautan, PDF tepat cetakan, video, dek atau folder varian, semuanya daripada sumber yang sama.
 
-- **[Eksport & Format](/info/exporting.html)** - unit cetakan, DPI, bleed dan tanda potong, video, larian kelompok dan panel eksport itu sendiri.
-- **[Setiap format yang Lolly boleh buka dan hasilkan](/info/formats.html)** - senarai masuk-keluar yang lengkap, dengan kad berbahasa mudah di sebalik setiap cip.
-- **[Pemindahan Data](/info/data-transfer.html)** - bungkusan sandaran, untuk memindahkan segala yang telah anda hasilkan ke peranti lain.
+- **[Export a file](/info/exporting.html)** - unit cetakan, bleed dan tanda potong, video, larian kelompok dan panel eksport.
+- **[Every format Lolly can open and make](/info/formats.html)** - senarai penuh masuk dan keluar.
+- **[Creative rights and credits](/info/creative-rights.html)** - lesen apa yang anda gunakan, dan kredit yang dibawa bersama fail.
+
+## Buku panduan pasukan dan perbandingan
+
+- **Untuk pasukan anda:** [jualan](/info/sales.html), [pemasaran](/info/marketing.html), [bilik berita](/info/press.html) dan [undang-undang](/info/legal.html).
+- **[How Lolly compares](/info/positioning.html)** - apa yang Lolly mahir lakukan, dan bila perlu mencari yang lain.
+- **[Lolly compared, tool by tool](/info/compare.html)** - Canva, Adobe, Figma, Penpot, portal jenama, API perenderan dan penukar dalam talian.

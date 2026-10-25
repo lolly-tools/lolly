@@ -7,6 +7,8 @@ import { join } from 'node:path';
 import { DOCS_ROOT, readRegistry, validateRegistry } from '../docs/navigation.ts';
 import { publicWorkMarkdown } from '../docs/work-pages.ts';
 import { buildWorkBundle, sha256 } from '../scripts/export-work-docs.ts';
+import { lowerForConsole } from '../docs/work-console.ts';
+import { readVersionFacts } from '../docs/version-tokens.ts';
 import { syncDocsNavigation } from '../scripts/sync-docs-navigation.ts';
 
 const registry = readRegistry();
@@ -20,6 +22,9 @@ test('the approved sections share one generated registry and canonical entrance'
   const duplicate = structuredClone(registry);
   duplicate.pages[1]!.aliases.push(registry.pages[0]!.path);
   assert.throws(() => validateRegistry(duplicate), /overwrite/);
+  const anchored = structuredClone(registry);
+  anchored.pages[1]!.aliasAnchors = { 'not-an-old-path': 'top' };
+  assert.throws(() => validateRegistry(anchored), /Section anchor/);
 });
 
 test('all imported Work guides keep their console identities and original screenshot bytes', () => {
@@ -27,11 +32,18 @@ test('all imported Work guides keep their console identities and original screen
   const tracked = new Set(execFileSync('git', ['ls-files'], { cwd: DOCS_ROOT, encoding: 'utf8' }).trim().split('\n'));
   for (const source of Object.values(bundle.sourcePaths)) assert.ok(tracked.has(source), source + ' must ship in a plain clone');
   const guides = registry.pages.filter(p => p.work);
-  assert.equal(guides.length, 68);
+  assert.equal(guides.length, 63);
   const index = JSON.parse(bundle.files['docs.json']!.toString());
   const entries = index.sections.flatMap((s: { docs: Array<{ slug: string; path: string }> }) => s.docs);
   assert.deepEqual(entries.map((p: { slug: string }) => p.slug).sort(), guides.map(p => p.work!.slug).sort());
-  for (const p of guides) assert.ok(bundle.files[p.work!.path]!.equals(readFileSync(join(DOCS_ROOT, 'docs', p.src))), p.work!.path);
+  // Each guide is its source lowered to the console's plain Markdown (tests/docs-work-console.test.ts).
+  const facts = readVersionFacts();
+  const figureUrl = (id: string) => existsSync(join(DOCS_ROOT, 'docs/figures', id + '.svg')) ? `${registry.canonical}/figures/${id}.svg`
+    : existsSync(join(DOCS_ROOT, 'docs/figures', id + '.html')) ? `${registry.canonical}/figures/${id}.html` : null;
+  for (const p of guides) {
+    const lowered = lowerForConsole(readFileSync(join(DOCS_ROOT, 'docs', p.src), 'utf8'), { facts, figureUrl, where: 'docs/' + p.src });
+    assert.equal(bundle.files[p.work!.path]!.toString('utf8'), lowered, p.work!.path);
+  }
   for (const [path, entry] of Object.entries(registry.workImport.files)) {
     if (/\.(svg|pem)$/.test(path)) assert.equal(sha256(bundle.files[path]!), entry.sha256, path);
   }

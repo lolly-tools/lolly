@@ -11,7 +11,7 @@
  * colour (`oklch()`), a `conic-gradient()`, and any wide-gamut interpolated
  * gradient as a ShadingType 1 (function-based) shading driven by a FunctionType 4
  * function. Without a Type 4 evaluator the shading is dropped, `scn` clears the
- * fill, and a colour-heavy page - the Brand Studio colours tab is the reference
+ * fill, and a colour-heavy page - Design System Setup's colours tab is the reference
  * case - prints as a white ghost of itself.
  *
  * WHERE this lives: the SHELL, next to the rest of the PDF byte work. The pure engine

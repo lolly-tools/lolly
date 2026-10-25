@@ -99,3 +99,13 @@ test('textThumbModel: AI-flavoured text yields bucketed runs and a score; plain 
   assert.ok(h.runs.every((r) => r.bucket == null));
   assert.equal(h.size, 'xl');
 });
+
+test('textThumbModel with signals off (a brand skill): the head of the text, no marks, no score', () => {
+  const ai = "In today's ever-evolving landscape it's important to note that we must delve into the "
+    + 'rich tapestry of modern tools. A robust and seamless approach will foster a holistic workflow.';
+  const m = textThumbModel(ai, ai.length, { signals: false });
+  assert.equal(m.score, 0);
+  assert.equal(m.band, 'none');
+  assert.ok(m.runs.every((r) => r.bucket == null), 'no heat marks on the brand team\'s text');
+  assert.ok(m.runs[0]!.text.startsWith("In today's"), 'the excerpt is the head of the text');
+});

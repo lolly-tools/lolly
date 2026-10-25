@@ -1,6 +1,6 @@
 {
   "name": "Schnipsel",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Präsentieren Sie Text in einem Desktop-Fenster, als Standbild oder als gesteuerte Interaktion mit Tippen, Auswahl, Autovervollständigung und Bewegung.",
   "inputs.code.label": "Code",
   "inputs.code.placeholder": "Fügen Sie Ihren Code hier ein…",
   "inputs.fileName.label": "Dateiname",

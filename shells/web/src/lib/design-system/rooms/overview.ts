@@ -196,7 +196,9 @@ function isWorthExporting(
   // Same test the starter split uses, applied to the swatch a role points at:
   // a key the starter never had, or one whose colour has been changed since.
   return Object.values(roleAssignments(doc))
-    .filter(r => starter.get(r.key) !== current.get(r.key)).length > 1;
+    // A role pointing at a key the palette no longer shows (every colour hidden) is
+    // not a decision about a colour, so it does not count.
+    .filter(r => current.has(r.key) && starter.get(r.key) !== current.get(r.key)).length > 1;
 }
 
 /**

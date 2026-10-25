@@ -27,3 +27,7 @@ Přisuzování, provenience, soukromí a souhlas
 kreativita a důvěra uprostřed nekonečna
 
 kdokoli může tvořit, v jakémkoli měřítku, kdekoli
+
+## Proč
+
+### [Protože stojíme na ramenou obrů](/info/trust/shoulders-of-giants.html)

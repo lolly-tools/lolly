@@ -1,88 +1,86 @@
 # Hoe Lolly zich verhoudt
 
-Wat Lolly doet dat de creatieve tools van vandaag niet doen, en wat het bewust aan hen overlaat.
-
-Voor de tool-voor-tool-versie, één pagina elk voor Canva, Adobe, Figma, render-API's en online converters, zie [Lolly vergeleken, tool voor tool](/info/compare.html). Elke pagina vermeldt wat de andere tool beter doet en wat Lolly in plaats daarvan doet.
-
-> **Pilootstatus:** Lolly is een prototype in een gesloten piloot, geen af product, en de beveiliging ervan ondergaat momenteel de strikte infrastructuurverharding van SUSE, ter voorbereiding op enterprise-schaal. De pagina [Adoption & Governance](/info/adoption-governance.html#status) beschrijft de huidige stand van zaken.
+Lolly bestaat uit twee delen van één open-sourceproject. **Lolly** is de engine, apps en tools om op je apparaat te maken, bewerken, omzetten en exporteren, zonder account. **Lolly Work** is de organisatieserver, op je eigen infrastructuur gedraaid, voor aanmelden, gedeelde projecten, goedkeuringen en serverrendering. Beide zijn MPL-2.0. Deze pagina vergelijkt het paar met de andere manieren waarop mensen bestanden ontwerpen, besturen en produceren.
 
 ## De tools van vandaag
 
-Elke ring hieronder scoort hoe volledig een productklasse een capaciteit levert **zoals vandaag uitgeleverd** - niet zoals vermarkt - waarbij elke klasse wordt beoordeeld op zijn beste vertegenwoordiger. Lolly wordt met hetzelfde mes beoordeeld: het krijgt de enige rode ring op het bord, voor volwassenheid. Open een rijnaam voor de redenering achter de scores. Kolommen zijn gesorteerd op de rij Overall completeness bovenaan - het gemiddelde van de gescoorde rijen, met de spend-rij uitgesloten.
+Elke ring scoort hoe volledig een productklasse een capability levert, waarbij elke klasse op zijn beste vertegenwoordiger wordt gescoord. De kolom Lolly dekt Lolly en Lolly Work samen, en elke rij zegt welk deel wat levert. Open een rijnaam voor de redenering achter zijn score. Kolommen zijn gesorteerd op de rij Overall completeness bovenaan: het gemiddelde van de gescoorde rijen, met de uitgavenrij uitgesloten.
 
 ::: figure positioning-comparison
-Volledigheid van functionaliteit bij de creatieve tools van vandaag, onderzocht in augustus 2026. Score: 0 afwezig, 25 workaround-niveau, 50 echt maar beperkt of gedeeltelijk, 75 sterk met kanttekeningen, 100 kerncompetentie.
+Capabilityvergelijking: concurrentieonderzoek en scores van augustus 2026; dekking van Lolly + Lolly Work beoordeeld op 28 september 2026. Scoring: 0 afwezig, 25 noodoplossing, 50 echt maar afgeschermd of gedeeltelijk, 75 sterk met kanttekeningen, 100 kerncompetentie.
 :::
 
-**Opmerkingen bij de scores.** De scores van Lolly gaan uit van de juistheid van de gepubliceerde claims, en dat is waarom volwassenheid zijn enige rode ring is: gesloten piloot, beveiligingsverharding in uitvoering, nog niets geaudit. Onderzoek verplaatste verschillende cellen.
+::: details Scoringsnotities
+Beschikbare functies en productierijpheid zijn gescheiden. Lolly is uitgebracht: versie 1.0 verscheen als open source op 30 augustus 2026, de beveiliging is nog niet onafhankelijk geaudit en het bewijs van adoptie is enkele maanden oud ([Adoption & Governance](/info/adoption-governance.html#status) bevat de huidige stand). Single sign-on, goedkeuringen of serverrendering hebben stelt geen productietrackrecord vast, dus de volwassenheidsscore weerspiegelt dat. De scores van concurrenten behouden hun gedateerde review van augustus.
 
-Canva wordt per rij beoordeeld op zijn beste familielid, omdat het Affinity en Cavalry bezit (beide weggegeven in oktober 2025). Offline en on-device renderen scoren 75 dankzij Affinity - een desktopsuite die nog steeds een geverifieerd account vereist en telemetrie meedraagt, de aftrek die Adobe ook krijgt - terwijl de eigen offlinemodus van Canva alleen vooraf gesynchroniseerde ontwerpen bewerkt, op één apparaat, met een beperkt venster. Autofill scoort 50: reëel maar Enterprise-gebonden, asynchroon, alleen tekst en afbeeldingen. De massagenerering van Figma steeg van 25 naar 50 toen Buzz spreadsheet-fill uitbracht (gratis bèta, augustus 2026).
+Eén regel beheerst het bord. Volle punten (100), bij rijen die je inhoud of identiteit raken, vereisen een capability die je kunt gebruiken zonder account en zonder cloudvoorwaarde; rijen over het product zelf, zoals volwassenheid en gebruiksgemak, zijn uitgezonderd. Die regel kost Adobe punten bij Content Credentials: de breedste geleverde implementatie (Photoshop, Lightroom, Premiere, Firefly) ondertekent lokaal en in de cloud, maar nooit zonder Adobe-account en -identiteit, dus 75. Ze begrenst de render-API's bij massageneratie en automatisering om dezelfde reden.
 
-Eén regel bepaalt het bord: Full (100), op rijen die je content of identiteit raken, vereist een capaciteit die je zonder account en zonder cloud-voorwaarde kunt gebruiken; rijen die het product zelf beschrijven (volwassenheid, gebruiksgemak) zijn vrijgesteld. Het kost Adobe punten op provenance: het breedst uitgeleverde C2PA (Photoshop, Lightroom, Premiere, Firefly) signeert lokaal en in de cloud, maar nooit zonder een Adobe-account en -identiteit, dus 75. Het beperkt de render-API's op massagenerering en automatisering om dezelfde reden.
+Canva wordt per rij gescoord op zijn beste familielid, aangezien het Affinity en Cavalry bezit (beide in oktober 2025 weggegeven). Offline en rendering op het apparaat scoren 75 via Affinity, een desktopsuite die nog steeds een geverifieerd account nodig heeft en telemetrie bevat, de aftrek die Adobe ook krijgt; de eigen offlinemodus van Canva bewerkt alleen vooraf gesynchroniseerde ontwerpen, op één apparaat, voor een beperkte periode. Autofill scoort 50: het is echt maar Enterprise-afgeschermd en asynchroon, en vult alleen tekst en afbeeldingen. De massageneratie van Figma steeg van 25 naar 50 toen Buzz spreadsheetvulling uitbracht (een gratis bèta, augustus 2026).
 
-De provenance-score 75 van Lolly weerspiegelt on-device offline signeren: architecturaal sterker maar ongeaudit, en een apparaatsleutel leest in standaardvalidators als ongeverifieerd totdat een identiteit of de eigen CA van een organisatie ervoor instaat. De 50 van Penpot komt binnen via de officiële Lolly Export-plugin: dezelfde engine-signering, opt-in, expliciet aangeduid als afkomstig van Lolly. Penpot krijgt ook de enige buiten-schaal-ring van het bord, 90 op on-device renderen - browsercanvas, opslaan naar je eigen soevereine cloud (zelfs een laptop), privé-export; alleen de serverstap scheidt het van Lolly. Cloudinary krijgt zijn eigen kolom: een mediapipeline (DAM, transform-API, CDN), en de enige cloudkolom die C2PA uitlevert (50, omdat fl_c2pa signeert bij levering en dus geleverd-door-Cloudinary attesteert, niet gemaakt-door-jou).
+De Content Credentials-score van 75 van Lolly dekt ondertekening op het apparaat en serverondertekening door Lolly Work met een geconfigureerde organisatie-identiteit; een verificator moet de ondertekenaar nog steeds vertrouwen ([Content Credentials Identity](/info/content-credentials-identity.html)). De 50 van Penpot komt via de eigen exportplug-in van Lolly voor Penpot: dezelfde engine-ondertekening, opt-in en bekendgemaakt als van Lolly. Penpot scoort 90 op rendering op het apparaat: een browsercanvas met een opslagdoel op zijn server, die zelf gehost kan worden. Cloudinary krijgt een eigen kolom voor zijn assetbibliotheek, transformatie-API en CDN; de review van augustus gaf zijn bezorgondertekening 50.
 
-Live samenwerking loopt andersom: Figma zet de schaalbenchmark (200 bewerkers) en de pairwise, air-gapped P2P van Lolly scoort Partial. Prijs is een schatting, als zodanig gelabeld: rekenwerk op listprijs bij realistische mixen van seats, met opzet ruim, bedoeld voor schaal, niet voor inkoop. Render-API's krijgen 75 op beperkingen: templates vastgezet, geen laag voor merkgovernance.
+De live samenwerking van Lolly omvat directe privécollabs tussen twee apparaten en geauthenticeerde werkcollabs via Lolly Work, met gedeelde bewerkingen, cursors en opgeslagen teamsessies. De score Partial weerspiegelt de huidige work-implementatie met één node en korte operationele geschiedenis, niet de afwezigheid van teambewerking. Prijsschattingen zijn gedateerde rekenvoorbeelden op basis van catalogusprijzen voor de orde van grootte, geen inkoop.
+:::
 
-Het gat: niets dat vandaag wordt uitgeleverd is constraints-first en offline zonder account en zonder server in het renderpad, en niemand heeft de account-clausule overgenomen. Lolly levert nu zijn eigen open canvas - **Design**, een direct-manipulatie vrij canvas - maar kleuren, typografie en assets erop volgen de merkglobals, dus zelfs vrije opmaak blijft constraints-first.
+## Wanneer je naar Lolly grijpt
 
-Wat Lolly nog steeds **niet** is, is een onbeperkte ontwerpsuite; ontwerpers blijven Illustrator en Figma gebruiken voor maatwerk - en wanneer dat werk een beheerste, reproduceerbare asset moet worden, brengt [Import a design](/info/design-import.html) van de Design-tool het afgeronde Figma-, Penpot-, Illustrator-, InDesign- of PDF-bestand als bewerkbare, merkconforme vakken op het canvas.
+::: cols
+## Grijp naar Lolly wanneer
 
-![Het vrije canvas van Design, waar de kleuren, lettertypen en assets die worden aangeboden het merk zelf zijn](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+- Hetzelfde soort bestand telkens opnieuw nodig is: evenementtegels, badges, certificaten, meldingen, socialmediakaarten
+- Veel bestanden uit één sjabloon en een tabel met waarden komen, in [Batch](/info/batch.html#make-many-versions-of-one-design) of de CLI
+- De kleuren, typografie en assets binnen het design system moeten blijven, zelfs op een open canvas
+- Een afgerond Figma-, Penpot-, Illustrator-, InDesign- of PDF-ontwerp bewerkbaar en herhaalbaar moet worden ([Een ontwerp importeren](/info/design-import.html))
+- De bestanden op je eigen apparaten of servers moeten worden gemaakt
 
-## Gebruik het voor
+## Grijp naar iets anders wanneer
 
-- Snel genereren van geoperationaliseerde creatieve assets (event tiles, badges, signatures, alerts)
-- Vrije vormgeving op het open canvas (Design) wanneer de onderdelen - kleuren, type, iconen, afbeeldingen - conform de merkglobals moeten blijven
-- Een afgerond Figma-, Penpot-, Illustrator-, InDesign- of PDF-ontwerp binnenhalen (de Import a design van de Design-tool) zodat het deterministisch bewerkt, beheerd en opnieuw gerenderd kan worden in elk Lolly-formaat
-- One-to-many "vul drie velden in, krijg het afgeronde asset"-flows - inclusief bulkruns vanuit een spreadsheet/CSV in het `/pro` batchgrid (plak of importeer rijen, één afgerond asset per rij, download als zip)
-- Altijd-actieve, terugkerende branded output
-- Zaken waarbij centrale controle over merkexpressie belangrijker is dan expressieve vrijheid
+- Het werk gedetailleerde fotoretouchering of illustratie is
+- Je een applicatie-interface ontwerpt en prototypet
+- Je op dag één een grote voorraad en sjabloonbibliotheek nodig hebt
+- Je een beheerde dienst met een lang trackrecord op schaal nodig hebt
+:::
 
-Deck Studio is een goede maatstaf voor het plafond hier: een hele slidedeck gedeclareerd als data, live opgemaakt op het canvas en geëxporteerd als een native bewerkbare PowerPoint.
+Geïmporteerde ontwerpen en gedeelde designtokens laten een team Lolly combineren met gespecialiseerde applicaties, terwijl Lolly Work gedeelde assets, review en bezorging beheert.
 
-![Deck Studio in de split view - de slides van de deck als blokken opgesomd links, de opgemaakte deck gerenderd rechts](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Een heel diadeck toont het plafond: in **Markdown Slides** wordt een deck als gegevens gedeclareerd, live opgemaakt en geëxporteerd als een native, bewerkbaar PowerPoint-bestand.
 
-## Gebruik het niet voor
+![Markdown Slides in de gesplitste weergave: de dia's van het deck als blokken links opgesomd, het opgemaakte deck rechts gerenderd](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-- Op maat gemaakte of vlaggenschip hero-content (billboards, grote video's)
-- Uniek campagnewerk dat echt een designer nodig heeft
-- Ideevorming die volledig aan het merksysteem moet ontsnappen - Lolly's open canvas conformeert kleuren, type en assets nog steeds aan de merkglobals, en dat is precies het punt
+## De regels zitten in de tool
+
+Lolly zet herbruikbare merkregels in de tool: kleuren, lettertypen, afloopmarges, tussenruimte en toegestane inputs. Het sjabloon legt de delen vast die een ontvanger niet mag wijzigen. Lolly Work voegt groepstoegang en inputbeleid rond dat sjabloon toe, met goedkeuringsketens voor catalogusinzendingen en bezorging.
+
+Een tool één keer controleren maakt herhaalbare productie makkelijker, omdat elke uitvoer zijn lay-outregels erft. Tekst, geüploade beelden en gebruiksrechten kunnen nog controle nodig hebben, en Lolly Work levert daarvoor gedeelde catalogi en goedkeuringsstappen. Voor het creatieve team is de tool een vangrail: je brengt nog steeds de gegevens, de tekst en de afbeelding, en de tool houdt elk resultaat on-brand.
+
+![De hele taak van de producent: de woorden typen. Typografie, kleur en tussenruimte zijn vastgelegd toen de tool werd gemaakt](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+
+Drie andere dingen onderscheiden deze aanpak:
+
+- **Het eindbestand, uit inputs.** Invoer erin, afgerond bestand eruit, zonder "sla het nu op vanuit je ontwerptool en werk het bij".
+- **Tools componeren tools.** Eén tool kan de render van een andere tool insluiten in één afgerond bestand, zonder codekoppeling ertussen.
+- **Open tot op de bodem.** De engine is open source, en tools, assets en designtokens zijn bestanden die je in versiebeheer kunt houden of in Lolly Work kunt beheren, geen rijen in de database van iemand anders.
+
+Gedurfd ontwerp overleeft de vangrails. Deze stadskaart van postkwaliteit bestaat uit echte vectorpaden voor wegen en water, vanuit een keuzelijst en twee kleurvelden die niet buiten het design system kunnen worden gericht:
+
+![De grachtengordel en het wegennet van Amsterdam van rand tot rand getekend in de eigen inkt van het design system, elke lijn geplaatst door het sjabloon in plaats van met de hand](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
 ## Innoveer probabilistisch, schaal deterministisch
 
-De meeste "AI creative"-pitches plaatsen het model aan de verkeerde kant van een oude grens. Schrijvers en verluchters hebben al vastgesteld waar die ligt: je werkt losjes aan de schets, waar alles geprobeerd kan worden en niets vastligt, en dan ga je naar de drukpers, die intimiderend is juist omdat die zich vastlegt. De schetsen waren waar de kunst zat. De pers was hoe die reisde. Twee instrumenten, twee taken, elk vindingrijk op zijn eigen manier, en het gedrukte werk kon vertrouwd worden omdat de pers zijn belofte hield bij elke afdruk.
+De meeste pitches voor "AI creative" zetten het model aan de verkeerde kant van een oude scheidslijn. Kopiisten en verluchters bepaalden waar die loopt. Je werkt los aan de schets, waar alles kan worden geprobeerd en niets wordt vastgelegd. Dan ga je naar de drukpers, die wel vastlegt. In de schetsen zat de kunst, en de pers was hoe ze reisde, en het gedrukte werk kon worden vertrouwd omdat de pers bij elke afdruk zijn belofte hield.
 
-Lolly is de pers, niet de schets. Breng wat je wilt naar de ideevorming - een model, een designer, een servet - maar het moment dat een idee veel assets moet worden, gaat het door iets dat elke keer hetzelfde rendert, vanuit input die iedereen kan terugleren. Daar gaat de vergelijking hierboven eigenlijk over: niet wie de betere generator heeft, maar wie de vastgelegde stap reproduceerbaar maakt.
+Lolly is de pers. Breng wat je wilt naar de ideeën, een model, een ontwerper of een ruwe tekening, maar op het moment dat een idee veel bestanden moet worden, gaat het door iets dat elke keer op dezelfde manier rendert, uit inputs die iedereen kan teruglezen. De vergelijking hierboven gaat eigenlijk over wie die vastgelegde stap herhaalbaar maakt.
 
 > Vertrouw het creatieve proces, schaal met precisie.
 
-## De regels leven in de tool en zijn templates
+## Voor altijd gratis
 
-Elke andere tool op het bord produceert een *bestand*, en een bestand kan pas achteraf bekeken worden. Lolly verplaatst de merkregels **één stap stroomopwaarts**. Exacte hexcodes, gelicentieerde lettertypebestanden, afloopmarges, tussenruimte - dat alles staat hardgecodeerd in de HTML en CSS van de tool, zodat de template *geen* asset buiten het merk kan afleveren. De lay-out zelf handhaaft dit.
+**Als het op je apparaat rendert, is het voor altijd gratis.** De engine, de shells, de tools en de formaten zijn open source, en een uitgebrachte versie kan niet worden teruggenomen. Lolly Work is ook open source. Een organisatie betaalt voor de infrastructuur en het beheer die ze kiest, zonder softwarelicentiekosten per gebruiker of per render voor zelf hosten. [Vragen en antwoorden](/info/faq.html) vertelt het verhaal achter de belofte.
 
-Dus het ding dat de moeite waard is om naar te kijken, is de **tool**, niet elk bestand dat hij maakt. Zet de tool goed neer, en elk asset dat hij ooit produceert is on-brand door constructie. Hoe je je werk controleert, en wie dat doet, blijft aan jou; Lolly maakt het gecontroleerde ding kleiner en de output sneller om te maken.
+## Waar je inhoud staat
 
-Dit is de verandering die de deterministische engine daadwerkelijk levert. Voor het creatieve team is het een guard-rail, geen vervanging - je gooit nog steeds de bal (de data, de tekst, de afbeelding) en de code is de bumperlane die elke worp uit de goot houdt.
+Het creatieve werk van Lolly kan draaien op hardware die jij bezit, en de designtokens, lettertypen, logo's en tools zijn bestanden die je kunt houden. Met Lolly Work staan gedeelde projecten, assets, beleid en auditrecords in opslag die je organisatie configureert. [Vertrouwen](/info/trust.html) legt uit waarom dat ertoe doet, en het [Privacybeleid](/info/privacy.html) en [Verify It Yourself](/info/verify-yourself.html) laten je de bewering controleren in plaats van ons op ons woord te geloven.
 
-![De hele taak van de producer: type de woorden. Type, kleur en spatiëring waren vastgelegd toen de tool werd gemaakt](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+## Tool voor tool
 
-## Wat dit uniek biedt
-
-- **Wild ontwerppotentieel veilig geleverd in context.** Tools kunnen avontuurlijke ontwerpideeën uitdrukken binnen hardgecodeerde guard-rails.
-
-- **Software-gedefinieerde contentautomatisering die het eindasset teruggeeft.** Input → definitief bestand. Geen "sla het nu op vanuit je ontwerptool en verwerk het na".
-- **Tools stellen tools samen.** Eén tool kan de render van een andere tool insluiten en teruggeven als onderdeel van één afgerond asset, zonder tool-tot-tool codekoppeling - een primitief dat geen enkel open-canvas- of DAM-templatingproduct op het bord biedt.
-- **Leveranciersneutraliteit.** Volledige controle over functies en kosten. Open-source engine. Tools en assets zijn git-getrackte content, niet vastgezet in een SaaS-database.
-
-Het eerste van die twee wordt het meest onderschat. Een posterkwaliteit stadsplattegrond, getekend als echte vector weg- en waterpaden, vanuit een dropdown en twee kleurvelden die niet buiten het merk gewezen kunnen worden:
-
-![Amsterdams grachtenring en wegennet getekend van rand tot rand in de eigen inkt van het merk, elke lijn geplaatst door het template in plaats van met de hand](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
-
-## Contentsoevereiniteit
-
-Er is een naam voor waar de vorige sectie op neerkomt: soevereiniteit. Je mediapipeline draait op hardware die je bezit. Je merk - de tokens, de lettertypen, de logo's, de tools die ze handhaven - leeft in bestanden die jij vasthoudt, in versiebeheer dat jij beheert, niet in de database van een leverancier met een exportknop. Renderen gebeurt op het apparaat voor je neus, dus een asset gaat nooit via een derde partij om te bestaan, en het hele pad van input naar afgerond bestand is open source en inspecteerbaar. Als elke SaaS-ontwerpleverancier morgen zou verdwijnen, zou een Lolly-deployment het niet merken.
-
-Dit is belangrijk voor iedereen wiens werk een abonnement zou moeten overleven: van de ouder wiens fotoboek net zo goed op die laptop leeft als de publieke instantie wiens merkbibliotheek onder aanbestedingsregels valt. Voor organisaties - publieke instanties, gereguleerde sectoren, iedereen wiens merk een strategisch bezit is in plaats van een decoratie - is "waar leeft onze content en wie kan die uitschakelen" een governancevraag, geen voorkeur. Soevereiniteit is hier een eigenschap van de architectuur in plaats van een hostingfunctie toegevoegd voor compliance, en de pagina's [Privacybeleid](/info/privacy.html) en [Verify It Yourself](/info/verify-yourself.html) bestaan zodat je die claim kunt controleren in plaats van aannemen.
-
-Onder dit alles ligt één belofte, geformuleerd als een verplichting in plaats van een functie: **als het rendert op jouw apparaat, is het voor altijd gratis.** De engine, de shells, de tools, de formaten - het hele on-device creatieve pad is open source en blijft dat. Die belofte heeft een mechanisme: een versie die is uitgebracht, is gelicentieerd zodat die niet teruggenomen kan worden, en er bestaat geen contributorovereenkomst die het werk later opnieuw zou kunnen licentiëren. De hele grens past in één zin: alles wat op jouw apparaat rendert, is voor altijd gratis en open source; het coördineren van mensen en machines over een netwerk is de taak van een apart controlevlak, [lolly.work](https://lolly.work).
+[Lolly vergeleken, tool voor tool](/info/compare.html) vergelijkt Lolly met Canva, Adobe, Figma, Penpot, merkportalen, render-API's en online converters, één pagina elk, en zet uiteen [wat waar draait](/info/compare.html#what-runs-where).

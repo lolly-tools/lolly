@@ -1,6 +1,6 @@
 {
   "name": "스니펫",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "텍스트를 데스크톱 창에 보여 주거나, 정지 이미지로 만들거나, 입력, 선택, 자동 완성, 모션이 있는 연출된 인터랙션으로 만들어요.",
   "inputs.code.label": "코드",
   "inputs.code.placeholder": "여기에 코드를 붙여넣으세요…",
   "inputs.fileName.label": "파일명",

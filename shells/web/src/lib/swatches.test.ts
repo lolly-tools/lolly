@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * swatches.ts - the Brand Studio tile's role mark takes the swatch ink.
+ * swatches.ts - the Design System Setup tile's role mark takes the swatch ink.
  *
  * The mark (P, S, Su, T) is a label drawn on the user's colour. It used to be
  * measured twice, by two rules: a WCAG ratio in the palette grid and an OKLCH
