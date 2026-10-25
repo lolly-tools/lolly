@@ -48,6 +48,9 @@ async function artifact(root: string): Promise<void> {
   writeFrontendReceipt(root, source, 'web', 'lolly-start', privateMaterial, publicMaterial);
 }
 
+// GitHub expression text, built so it is not mistaken for a template string.
+const gh = (body: string): string => '$' + `{{ ${body} }}`;
+
 test('image verifier runs without dependencies or signing keys and rejects changed artifact inventories', async t => {
   const directory = mkdtempSync(join(tmpdir(), 'lolly-image-verification-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
@@ -93,7 +96,7 @@ test('web compilation and signing have separate jobs and complete artifact trans
   assert.equal(compile.environment, undefined);
   assert.ok(!JSON.stringify(compile).includes('LOLLY_CATALOG_SIGNING_KEY'));
   for (const job of [workflow.jobs['source-catalog'], workflow.jobs['sign-artifact']]) {
-    assert.equal(job.environment, 'release-catalog-signing');
+    assert.equal(job.environment, gh('inputs.signing_environment'));
     for (const step of job.steps) assert.doesNotMatch(step.run ?? '', /\b(?:npm|pnpm|cargo|vite|tauri|docker)\b/);
   }
   for (const job of [compile, workflow.jobs['sign-artifact']]) {

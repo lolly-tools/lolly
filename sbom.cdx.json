@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:dae03c88-01d5-48bc-8bc2-7fe185d238bd",
+  "serialNumber": "urn:uuid:a90eedfd-107e-4e29-808f-2fe5b5d7eee3",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-25T06:39:18.136Z",
+    "timestamp": "2026-10-25T07:28:43.359Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -9069,10 +9069,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/ort-sys@2.0.0-rc.13",
+      "bom-ref": "pkg:cargo/ort-sys@2.0.0-rc.15",
       "name": "ort-sys",
-      "version": "2.0.0-rc.13",
-      "purl": "pkg:cargo/ort-sys@2.0.0-rc.13",
+      "version": "2.0.0-rc.15",
+      "purl": "pkg:cargo/ort-sys@2.0.0-rc.15",
       "scope": "required",
       "licenses": [
         {
@@ -9082,7 +9082,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf211e3776eea6aec988552fa118dd746d70e1b1e5e244058d1c98015f3e5872"
+          "content": "8d22b0417f1838db5a3ac0b3f98dfe39f6fb73624aa0a27c6bbb5040b9c7db2b"
         }
       ],
       "properties": [
@@ -9094,10 +9094,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/ort@2.0.0-rc.13",
+      "bom-ref": "pkg:cargo/ort@2.0.0-rc.15",
       "name": "ort",
-      "version": "2.0.0-rc.13",
-      "purl": "pkg:cargo/ort@2.0.0-rc.13",
+      "version": "2.0.0-rc.15",
+      "purl": "pkg:cargo/ort@2.0.0-rc.15",
       "scope": "required",
       "licenses": [
         {
@@ -9107,7 +9107,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4336a1e2b38848325241c72889086886004e589b7c74f335e60a8e8db5138a0b"
+          "content": "37c87aa7a90b7ff3e0fe36cccd475df8d67f15f07f4d6c370c4b38464232813c"
         }
       ],
       "properties": [

@@ -14,9 +14,32 @@ on:
         required: false
         type: string
         default: ''
+      # The release pin. Required for the release environment (it must equal the
+      # repository variable LOLLY_RELEASE_PUBLIC_KEY_JWK). Must be empty for the
+      # preview environment, whose pin comes only from its own variable.
       public_key_jwk:
-        required: true
+        required: false
         type: string
+        default: ''
+      # Exactly two values are accepted; plan refuses anything else before any
+      # job enters an environment. The default is the release environment.
+      signing_environment:
+        required: false
+        type: string
+        default: release-catalog-signing
+      # An exact 40-hex commit. When set it must be an ancestor of origin/main and
+      # every job builds it. Empty keeps the caller's own commit. The preview
+      # environment requires it.
+      source:
+        required: false
+        type: string
+        default: ''
+      # Raise the catalog sequence floor for the final signing (first preview
+      # catalog only), through scripts/sign-catalog.ts --min-seq.
+      min_seq:
+        required: false
+        type: string
+        default: ''
       ca_enrollment_trust_json:
         required: false
         type: string
@@ -36,15 +59,28 @@ on:
         required: false
         type: string
         default: lolly-start
-    # The release key is an environment secret of release-catalog-signing. GitHub only
+    # The release key is an environment secret of release-catalog-signing and the
+    # preview key is an environment secret of preview-catalog-signing. GitHub only
     # hands an environment secret to a called workflow when the caller passes it by
     # name, and an unpassed secret is an empty string with no error (runs 40079348093
-    # and 40105124697). So every caller passes it, and the two signing jobs, which name
-    # the environment, receive the environment's value, which takes precedence over a
-    # repository secret of the same name. Required, so a caller that forgets fails.
+    # and 40105124697). So each caller passes, by name, the one key for the
+    # environment it signs in: release callers LOLLY_CATALOG_SIGNING_KEY, preview-web.yml
+    # LOLLY_PREVIEW_CATALOG_SIGNING_KEY. The signing job that names that environment
+    # receives the environment's value. Neither is required, because each caller
+    # passes only one; a missing key still stops the run, since sign-catalog.ts
+    # refuses to sign without one.
     secrets:
       LOLLY_CATALOG_SIGNING_KEY:
-        required: true
+        required: false
+      LOLLY_PREVIEW_CATALOG_SIGNING_KEY:
+        required: false
+    outputs:
+      public_key_jwk:
+        description: The checked public pin this frontend was built and signed for
+        value: ${{ jobs.source-catalog.outputs.pin }}
+      source:
+        description: The commit every job built
+        value: ${{ jobs.plan.outputs.source }}
 
 permissions:
   contents: read
@@ -52,23 +88,86 @@ permissions:
 env:
   LOLLY_PROFILE: ${{ inputs.profile }}
   LOLLY_EMBED_CATALOG: profile
-  VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.public_key_jwk }}
   LOLLY_RELEASE_PLATFORM: ${{ inputs.platform }}
 
 jobs:
-  source-catalog:
+  # Runs in no environment and holds no key. It is the only place that decides
+  # which environment a run may enter and which commit it builds.
+  plan:
     runs-on: ubuntu-24.04
-    environment: release-catalog-signing
+    outputs:
+      source: ${{ steps.plan.outputs.source }}
     steps:
+      - name: Check the environment, commit and sequence inputs
+        env:
+          SIGNING_ENVIRONMENT: ${{ inputs.signing_environment }}
+          SOURCE_INPUT: ${{ inputs.source }}
+          PIN_INPUT: ${{ inputs.public_key_jwk }}
+          MIN_SEQ: ${{ inputs.min_seq }}
+        run: |
+          set -euo pipefail
+          case "$SIGNING_ENVIRONMENT" in
+            release-catalog-signing) ;;
+            preview-catalog-signing)
+              [[ "$SOURCE_INPUT" =~ ^[a-f0-9]{40}$ ]] || { echo '::error::The preview environment needs an exact 40-hex source commit'; exit 1; }
+              test -z "$PIN_INPUT" || { echo '::error::The preview pin comes from its environment variable, never from a caller'; exit 1; }
+              test "$GITHUB_REF" = refs/heads/main || { echo '::error::The preview environment signs only from main'; exit 1; }
+              ;;
+            *) echo '::error::Unknown signing environment'; exit 1 ;;
+          esac
+          if [ -n "$SOURCE_INPUT" ]; then [[ "$SOURCE_INPUT" =~ ^[a-f0-9]{40}$ ]]; fi
+          if [ -n "$MIN_SEQ" ]; then [[ "$MIN_SEQ" =~ ^[1-9][0-9]{0,14}$ ]]; fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ inputs.source || github.sha }}
+          fetch-depth: 0
           persist-credentials: false
           submodules: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '26'
           package-manager-cache: false
+      - name: Require an ancestor of main, and the release pin for the release environment
+        id: plan
+        env:
+          SIGNING_ENVIRONMENT: ${{ inputs.signing_environment }}
+          SOURCE_INPUT: ${{ inputs.source }}
+          PIN: ${{ inputs.public_key_jwk }}
+          RELEASE_PIN: ${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}
+        run: |
+          set -euo pipefail
+          source="${SOURCE_INPUT:-$GITHUB_SHA}"
+          test "$(git rev-parse HEAD)" = "$source"
+          if [ -n "$SOURCE_INPUT" ]; then git merge-base --is-ancestor "$source" refs/remotes/origin/main; fi
+          # Every native and app build keeps the release pin (the preview pin is checked in its own environment).
+          if [ "$SIGNING_ENVIRONMENT" = release-catalog-signing ]; then node scripts/check-signing-scope.ts; fi
+          echo "source=$source" >> "$GITHUB_OUTPUT"
+
+  source-catalog:
+    needs: plan
+    runs-on: ubuntu-24.04
+    environment: ${{ inputs.signing_environment }}
+    outputs:
+      pin: ${{ steps.scope.outputs.pin }}
+    env:
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.signing_environment == 'preview-catalog-signing' && vars.LOLLY_PREVIEW_PUBLIC_KEY_JWK || inputs.public_key_jwk }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.plan.outputs.source }}
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+      - name: Check the signing scope
+        id: scope
+        env:
+          SIGNING_ENVIRONMENT: ${{ inputs.signing_environment }}
+          PIN: ${{ env.VITE_CATALOG_PUBLIC_KEY_JWK }}
+          RELEASE_PIN: ${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}
+        run: node scripts/check-signing-scope.ts
       - name: Check frontend target and release qualification
         env:
           FRONTEND_TARGET: ${{ inputs.target }}
@@ -77,9 +176,15 @@ jobs:
           node scripts/webgpu-release-gate.ts --scope "$scope"
           mkdir -p node_modules/@lolly-tools
           ln -s ../../packages/node-shell node_modules/@lolly-tools/node-shell
-      - name: Sign source catalog
+      - name: Sign source catalog (release key)
+        if: inputs.signing_environment == 'release-catalog-signing'
         env:
           LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+        run: node scripts/sign-catalog.ts
+      - name: Sign source catalog (preview key)
+        if: inputs.signing_environment == 'preview-catalog-signing'
+        env:
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_PREVIEW_CATALOG_SIGNING_KEY }}
         run: node scripts/sign-catalog.ts
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -88,12 +193,14 @@ jobs:
           if-no-files-found: error
 
   compile:
-    needs: source-catalog
+    needs: [plan, source-catalog]
     runs-on: ubuntu-24.04
+    env:
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ needs.source-catalog.outputs.pin }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ needs.plan.outputs.source }}
           persist-credentials: false
           submodules: false
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -131,13 +238,15 @@ jobs:
           if-no-files-found: error
 
   sign-artifact:
-    needs: compile
+    needs: [plan, source-catalog, compile]
     runs-on: ubuntu-24.04
-    environment: release-catalog-signing
+    environment: ${{ inputs.signing_environment }}
+    env:
+      VITE_CATALOG_PUBLIC_KEY_JWK: ${{ inputs.signing_environment == 'preview-catalog-signing' && vars.LOLLY_PREVIEW_PUBLIC_KEY_JWK || inputs.public_key_jwk }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ needs.plan.outputs.source }}
           persist-credentials: false
           submodules: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
@@ -152,19 +261,40 @@ jobs:
         with:
           name: release-frontend-input-${{ inputs.target }}
           path: release-frontend
-      - name: Sign frontend catalog
+      - name: Check the signing scope
         env:
+          SIGNING_ENVIRONMENT: ${{ inputs.signing_environment }}
+          PIN: ${{ env.VITE_CATALOG_PUBLIC_KEY_JWK }}
+          RELEASE_PIN: ${{ vars.LOLLY_RELEASE_PUBLIC_KEY_JWK }}
+        run: node scripts/check-signing-scope.ts
+      - name: Sign frontend catalog (release key)
+        if: inputs.signing_environment == 'release-catalog-signing'
+        env:
+          MIN_SEQ: ${{ inputs.min_seq }}
           LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
-        run: node scripts/sign-catalog.ts --tools release-frontend/tools --index release-frontend/catalog/tools/index.json --out release-frontend/catalog/tools/index.sig.json --materialize
+        run: node scripts/sign-catalog.ts --tools release-frontend/tools --index release-frontend/catalog/tools/index.json --out release-frontend/catalog/tools/index.sig.json --materialize ${MIN_SEQ:+--min-seq "$MIN_SEQ"}
+      - name: Sign frontend catalog (preview key)
+        if: inputs.signing_environment == 'preview-catalog-signing'
+        env:
+          MIN_SEQ: ${{ inputs.min_seq }}
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_PREVIEW_CATALOG_SIGNING_KEY }}
+        run: node scripts/sign-catalog.ts --tools release-frontend/tools --index release-frontend/catalog/tools/index.json --out release-frontend/catalog/tools/index.sig.json --materialize ${MIN_SEQ:+--min-seq "$MIN_SEQ"}
       - name: Verify signed catalog
         run: node scripts/verify-release-catalog.ts --root release-frontend
       - name: Prepare web delivery files
         if: inputs.target == 'web'
         run: node scripts/build-delivery.ts --root release-frontend
-      - name: Sign frontend receipt
+      - name: Sign frontend receipt (release key)
+        if: inputs.signing_environment == 'release-catalog-signing'
         env:
           FRONTEND_TARGET: ${{ inputs.target }}
           LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
+        run: node scripts/release-frontend-receipt.ts "$FRONTEND_TARGET" release-frontend
+      - name: Sign frontend receipt (preview key)
+        if: inputs.signing_environment == 'preview-catalog-signing'
+        env:
+          FRONTEND_TARGET: ${{ inputs.target }}
+          LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_PREVIEW_CATALOG_SIGNING_KEY }}
         run: node scripts/release-frontend-receipt.ts "$FRONTEND_TARGET" release-frontend
       - name: Verify frontend receipt
         env:

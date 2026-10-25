@@ -29,6 +29,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 
+use ort::environment::Environment;
 use ort::session::Session;
 use ort::value::Tensor;
 use rand::Rng;
@@ -68,6 +69,23 @@ fn engines() -> &'static EngineMap {
     ENGINES.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
+/// The one ONNX Runtime environment for this process. ort rc.14 stopped creating
+/// a global environment on first use, and a second `ort::init().build()` in the
+/// same process fails, so it is built once here and kept: `reword_clear` drops a
+/// cached session, and loading the model again needs the same environment. A
+/// failed build is not cached, so the next call tries again, as rc.13 did.
+static ORT_ENV: Mutex<Option<Environment>> = Mutex::new(None);
+
+fn ort_env() -> Result<Environment, String> {
+    let mut slot = ORT_ENV.lock().map_err(|_| "ort environment lock poisoned".to_string())?;
+    if let Some(env) = slot.as_ref() {
+        return Ok(env.clone());
+    }
+    let env = ort::init().build().map_err(|e| format!("ort environment: {e}"))?;
+    *slot = Some(env.clone());
+    Ok(env)
+}
+
 fn model_root(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(app
         .path()
@@ -84,7 +102,7 @@ fn engine_for(root: &Path) -> Result<Arc<Engine>, String> {
     }
     let tokenizer = Tokenizer::from_file(root.join("tokenizer.json"))
         .map_err(|e| format!("load tokenizer: {e}"))?;
-    let session = Session::builder()
+    let session = Session::builder(&ort_env()?)
         .map_err(|e| format!("ort builder: {e}"))?
         .commit_from_file(root.join("onnx").join("model_q4.onnx"))
         .map_err(|e| format!("load model: {e}"))?;

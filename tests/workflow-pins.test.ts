@@ -116,3 +116,19 @@ test('every CI apt install has short command limits, bounded retries and mirror 
   }
   assert.ok(installs.size >= 6, 'expected Chromium, Firefox/WebKit, nginx, Poppler, Tauri and qpdf installs');
 });
+
+test('the preview web workflow is dispatch-only and its downloaded registry tool is the release one, verified before use', () => {
+  const read = (name: string) => readFileSync(path.join(workflowDir, name), 'utf8');
+  const preview = read('preview-web.yml');
+  assert.deepEqual(Object.keys((parse(preview) as { on: object }).on), ['workflow_dispatch']);
+  const digest = (text: string) => text.match(/CRANE_LINUX_X64_SHA256: '([0-9a-f]{64})'/)?.[1];
+  const version = (text: string) => text.match(/CRANE_VERSION: '([^']+)'/)?.[1];
+  assert.ok(digest(preview));
+  assert.equal(digest(preview), digest(read('release-images.yml')));
+  assert.equal(version(preview), version(read('release-images.yml')));
+  const install = preview.split('- name: Install the pinned registry tool')[1]?.split('\n      - name: ')[0] ?? '';
+  assert.ok(install.indexOf('sha256sum --check') > install.indexOf('curl') && install.indexOf('tar -xzf') > install.indexOf('sha256sum --check'));
+  // The only local workflow it calls is the signed frontend builder.
+  const calls = [...preview.matchAll(/^\s*uses:\s*(\.\/\S+)/gm)].map((match) => match[1]);
+  assert.deepEqual(calls, ['./.github/workflows/release-frontend.yml']);
+});
