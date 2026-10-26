@@ -104,7 +104,7 @@ url = "2"
 # there is exactly one reactor in the process).
 [target.'cfg(target_os = "linux")'.dependencies]
 ashpd = { version = "0.13", features = ["screenshot", "wallpaper", "settings"] }
-zbus = { version = "5", default-features = false, features = ["tokio"] }
+zbus = { version = "6", default-features = false, features = ["tokio"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 # Already used by Wry; give the popup its own script controller while retaining
