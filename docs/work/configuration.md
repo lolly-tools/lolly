@@ -689,6 +689,71 @@ see [account lifecycle operations](account-lifecycle.md#siem-projection-format).
 | `batchSize` | `200` | events per POST (1-1000) |
 | `intervalSeconds` | `30` | forwarding cadence (>= 5) |
 
+## `featureFlags`
+
+Unset by default. Work's own governance then decides every feature flag
+([feature flags](governance.md#feature-flags)), and nothing about flags leaves the instance.
+`ofrep` connects your organisation's flag service through the OpenFeature Remote Evaluation
+Protocol (OFREP). That service then decides the default of the flags it lists, person by
+person, and Work's own settings become the fallback. The web app still reads one resolved
+value per flag from Work and never contacts the flag service, so the app needs no vendor
+software.
+
+```json
+"featureFlags": {
+  "ofrep": {
+    "url": "https://flags.example.org",
+    "flags": ["export-preflight", "private-collab"],
+    "keyPrefix": "lolly.",
+    "timeoutMs": 500,
+    "cacheSeconds": 30
+  }
+}
+```
+
+| Key | Default | What it does |
+|---|---|---|
+| `url` | required | the service's base URL; Work posts to `<url>/ofrep/v1/evaluate/flags/<key>`. HTTPS in production; plain HTTP only to a loopback address on an evaluation instance |
+| `flags` | every flag but `ai` | the governed flag ids the service decides. Managed AI is never offered to a flag service |
+| `keyPrefix` | none | text put before the flag id to form the service's flag key: with `lolly.`, Work asks for `lolly.export-preflight` |
+| `timeoutMs` | `500` | time allowed for one request, from 50 to 5000 milliseconds |
+| `cacheSeconds` | `30` | how long one answer is reused for the same flag, groups and role, from 1 to 3600 |
+| `contextGroups` | every group | when set, only these group names are sent; a person's other groups stay in Work |
+| `targetingKey` | `"none"` | `"cohort"` adds a `targetingKey` for a service that requires one; **What Work sends** explains the key |
+| `auth` | `"bearer"` | how `LW_OFREP_TOKEN` travels: `Authorization: Bearer`, or `X-API-Key` with `"api-key"` |
+
+An unknown key, a flag id Work does not govern or a value out of range stops the server at
+start, so a typo cannot leave a flag quietly ungoverned.
+
+**What Work sends.** One `POST` per flag, with this body and nothing else about the person:
+
+```json
+{ "context": { "groups": ["design", "pilot"], "role": "author" } }
+```
+
+`groups` are the person's groups, sorted and narrowed by `contextGroups`; `role` is their
+Work role. No email address, name, account id or session travels. Some services refuse an
+evaluation without a `targetingKey`. With `targetingKey: "cohort"`, Work sends a key made
+from a hash of the same groups and role. Everyone with that combination shares the key, so
+the key identifies no person, and a percentage rollout splits people by combination rather
+than one by one.
+
+**When the service fails.** Each of these leaves the flag on Work's own setting: a timeout,
+a refused connection, an error status, an unknown flag, a refused credential, an answer that
+is not `true` or `false`, and an answer that cannot be read. Work's setting means the
+person's group rules, then the setting for everyone, then the app's built-in default. An
+answer with no value, or with reason `DISABLED`, also keeps Work's setting without counting
+as an error. After a timeout, a connection failure or a server error Work asks again in 5
+seconds, or after the service's `Retry-After` up to one minute; every other answer is reused
+for `cacheSeconds`. `lw_ofrep_evaluation_errors_total{flag,reason}` counts each fallback and
+`lw_ofrep_requests_total{flag}` counts requests ([monitoring](operations.md#monitoring)). The
+console's Feature flags page shows the service, the flags it decides and its last answer.
+
+**Which services.** flagd and GO Feature Flag support OFREP. For another service, check that
+the service, or a relay in front of the service, answers
+`POST /ofrep/v1/evaluate/flags/{key}`. The Work test suite includes a check against flagd
+0.18.1.
+
 ## `catalogProviders`
 
 Server-side catalog connectors use `network.providers` for outbound requests.
@@ -759,6 +824,7 @@ instead ([hiding tags](catalog.md#hiding-tags)).
 | `LW_SMTP_PASSWORD` | with `notify.smtp.user` | the relay password (AUTH PLAIN) |
 | `LW_WEBHOOK_SECRET` | with `notify.webhook` | HMAC key signing every outbound webhook event |
 | `LW_SIEM_SECRET` | with `siem.url` | HMAC key signing every forwarded audit batch |
+| `LW_OFREP_TOKEN` | with `featureFlags.ofrep`, when the flag service asks for a credential | sent to the flag service as a bearer token, or as `X-API-Key` with `featureFlags.ofrep.auth: "api-key"`. The Helm chart reads it from `secrets.ofrepToken` or from the same key in `existingSecret` |
 | `LW_RENDER_WORKER_SECRET` | with a render worker | shared HMAC key; must match the worker |
 | `LW_C2PA_SIGNING_KEY` | to sign exports | PKCS#8 private-key PEM |
 | `LW_CATALOG_SIGNING_KEY` | when the shell pins a catalog key | ECDSA P-256 private key (PKCS#8 PEM or private JWK JSON) that signs each caller's tool index, tool file digests and verified optional media resources at `/catalog/tools/index.sig.json`. Unset: the catalog is served unsigned and that path answers 404, even when the pack carries a build-time signature, because that envelope can never match the index served per caller |
