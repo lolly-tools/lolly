@@ -16,7 +16,7 @@ and [documentation index](https://github.com/lolly-tools/lolly-work/blob/v1.1.2/
 |---|---|
 | Lolly product version | 1.1.2 |
 | Work application | 1.1.2 |
-| Work Helm chart | 0.3.3; appVersion 1.1.2 |
+| Work Helm chart | 0.3.3 in the source, never published under that number; appVersion 1.1.2. The chart now carries the release version and is first published as 1.1.3 |
 | Lolly source | fe27a843813b0a653c648e6db078ae8f982b2654 |
 | Engine | 1.281.0 |
 | Tool-author core | 1.5.0 |
