@@ -338,7 +338,10 @@ test('the preview workflow can never reach the release environment or release se
   assert.equal(frontend.with.source, gh('inputs.source'));
   // Main only, like the environment's deployment branch rule.
   assert.equal(workflow.jobs['source-qualification'].if, "github.ref == 'refs/heads/main'");
-  assert.ok(workflow.jobs['web-release-gate'].needs.includes('source-qualification'));
+  // The WebGPU gate runs inside the qualification job, so nothing is signed before it has passed.
+  const gate = workflow.jobs['source-qualification'].steps.findIndex((step: any) => step.run === 'node scripts/webgpu-release-gate.ts --scope web');
+  assert.ok(gate > 0, 'source-qualification asks the WebGPU release gate');
+  assert.equal(workflow.jobs['web-release-gate'], undefined);
   for (const id of ['web-frontend', 'web-image', 'publish']) assert.ok(JSON.stringify(workflow.jobs[id].needs).includes('source-qualification'), id);
   assert.equal(workflow.permissions.contents, 'read');
   assert.equal(workflow.permissions.packages, undefined);
