@@ -2104,7 +2104,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Run Lolly Work on AWS or on MulgaDC Spinifex: one VM, managed PostgreSQL and S3, EKS with the chart, or an immutable openSUSE host, with the issues a Spinifex test run found.",
+      "description": "Run Lolly Work on AWS or on MulgaDC Spinifex: one VM, managed PostgreSQL and S3, EKS with the chart or the Lolly appliance, behind a load balancer if you like, with the issues two Spinifex test runs found.",
       "work": {
         "slug": "aws-compatible",
         "path": "aws-compatible.md",

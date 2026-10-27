@@ -6,25 +6,28 @@ your own data centre or at the edge. The same AWS command line tool, Terraform o
 files and Kubernetes tools work on both. On Spinifex you point them at its endpoints instead
 of Amazon's.
 
-> **Review draft.** This guide records a full test run on a Spinifex sandbox on 26 and 27
-> October 2026, with AWS CLI v2.38. The sandbox ran a Spinifex release older than v1.21, so
-> some of the [known issues](#known-issues) may already be fixed in current releases. The
-> steps are being reviewed with MulgaDC and re-run on a current release.
+> **Review draft.** This guide records two test runs on a Spinifex sandbox with AWS CLI
+> v2.38: a full run on 26 and 27 October 2026, and a re-run on the afternoon of 27 October
+> with current Lolly Work, a load balancer and a render load test. At the re-run the sandbox
+> still behaved like a Spinifex release older than v1.21 (a dry-run `CopyImage` still created
+> an image), so some of the [known issues](#known-issues) may already be fixed in current
+> releases. Re-test each workaround on your release. The steps are being reviewed with MulgaDC.
 
 ## Choose a shape
 
-All four shapes passed the same acceptance on Spinifex: the first owner signs in, members
-see the tool catalogue, a project is created, renders finish with their evidence, and the
-instance comes back after a restart.
+All four shapes passed the same acceptance on Spinifex in both runs: the first owner signs
+in, members see the tool catalogue, a project is created, renders finish with their
+evidence, and the instance comes back after a restart.
 
 | Shape | What runs where | Choose it when |
 |---|---|---|
 | **One VM** | An EC2 virtual machine runs the [ready-made package](ready-made-package.md): Work, PostgreSQL, the web app and Caddy in Docker Compose | You want the fewest moving parts |
 | **One VM with managed services** | The same VM, with the database on RDS PostgreSQL and files on S3 | You want database backups and file storage handled by the cloud |
 | **Kubernetes** | The [Work chart](platform-deployment.md) on an EKS cluster, with RDS and S3 | You already run Kubernetes, or want render workers that scale |
-| **Immutable appliance** (preview) | openSUSE Leap 16.1 Immutable with K3s and Work, as your own machine image | You want a host that updates itself in snapshots and rolls back |
+| **Lolly appliance** (preview) | openSUSE Leap 16.1 Immutable with K3s, Work and its own PostgreSQL, imported as your own machine image | You want a host that updates itself in snapshots and rolls back |
 
-Render output was byte-for-byte identical between the Kubernetes and appliance runs.
+Render output was byte-for-byte identical between the Kubernetes and appliance runs, and
+between the two VM shapes, although each pair ran different Work builds.
 
 ## Point the AWS tools at Spinifex
 
@@ -56,13 +59,13 @@ aws sts get-caller-identity
 aws s3 ls
 ```
 
-Set the region explicitly in every tool and configuration file. On the sandbox, a virtual
-machine's metadata service reported its availability zone (`us-west-1-az2`) as its region, so
-SDKs that read the region from the machine picked the wrong one.
+Set the region explicitly in every tool and configuration file. On the sandbox, in both runs,
+a virtual machine's metadata service reported its availability zone (`us-west-1-az2`) as its
+region, so SDKs that read the region from the machine picked the wrong one.
 
 Certificates on Spinifex services (the database, the registry) are signed by the
-installation's own certificate authority. Inside a Spinifex virtual machine, download it
-from the metadata service:
+installation's own certificate authority. Inside a Spinifex virtual machine, download that
+certificate from the metadata service:
 
 ```bash
 curl -fsS http://169.254.169.254/spinifex/ca.pem -o spinifex-ca.pem
@@ -78,8 +81,9 @@ the file.
    your administrators' addresses.
 2. Install Docker. **Before the first start, set Docker's MTU to the instance's.** Spinifex
    virtual machines use an MTU of 1442, and Docker's default of 1500 makes large downloads
-   inside containers stall. [Hosts on a network with an MTU below 1500](ready-made-package.md)
-   has the setting.
+   inside containers stall. In the re-run, a 145 MB download from inside a container still
+   timed out at Docker's default and finished in seconds at 1442.
+   [Hosts on a network with an MTU below 1500](ready-made-package.md) has the setting.
 3. Follow [Install the ready-made package](ready-made-package.md) from **Write the
    installation folder** onwards.
 
@@ -98,17 +102,18 @@ aws rds create-db-instance --db-instance-identifier lolly-work \
   --vpc-security-group-ids "$DB_SECURITY_GROUP"
 ```
 
-Leave out `--publicly-accessible`: Spinifex refuses it with a generic error.
+Leave out `--publicly-accessible`: Spinifex refuses that flag with a generic error. In the
+re-run the database was available about four minutes after the request.
 
 Work connects with full certificate verification. Put the Spinifex certificate authority
-where the server container can read it, and set the connection to verify the host name:
+where the server container can read the file, and set the connection to verify the host name:
 
 ```text
 DATABASE_URL=postgres://lollyadmin:<password>@<database endpoint>:5432/lolly?sslmode=verify-full
 NODE_EXTRA_CA_CERTS=/app/spinifex-ca.pem
 ```
 
-In the test run, Work applied all 64 migrations on the managed database over TLS 1.3.
+In the first run, Work applied all 64 migrations on the managed database over TLS 1.3.
 
 **Files.** Create a bucket and a user that can reach that bucket only:
 
@@ -139,16 +144,104 @@ Give Work the bucket in `instance.json` and the user's key as the secret
 ```
 
 On AWS, leave out `endpoint`. Some S3-compatible stores, including Spinifex releases before
-v1.21, drop an object's content type and metadata. Work detects this when it starts and keeps
-that information in small records of its own, so uploaded images still display;
-[stores that drop object metadata](configuration.md#blobs) explains how.
+v1.21, drop an object's content type and metadata. Work checks the store when it starts and
+logs what it found. On the sandbox the log read:
+
+```text
+[lolly-work] s3 blobs: the store drops content types and metadata; keeping them in .lolly-meta/ records beside each blob
+```
+
+Work then keeps that information in small records of its own, so uploaded images still
+display: in the re-run, uploaded PNG and SVG files came back byte for byte with their own
+content types. A store that keeps metadata logs `the store keeps content types and metadata`
+instead. [Stores that drop object metadata](configuration.md#blobs) explains the records.
+
+## Put a load balancer in front
+
+An Application Load Balancer can end HTTPS for Work with a certificate from ACM. The re-run
+put one in front of **One VM with managed services**.
+
+1. **Certificate.** Import your certificate, its key and its chain into ACM. On the sandbox,
+   `aws acm request-certificate --validation-method DNS` for the load balancer's own name
+   stayed in `PENDING_VALIDATION` with an empty validation record, so the re-run imported a
+   certificate instead:
+
+   ```bash
+   aws acm import-certificate --certificate fileb://work.crt \
+     --private-key fileb://work.key --certificate-chain fileb://chain.crt
+   ```
+
+2. **A plain HTTP port for the load balancer.** In the installation folder, add a site to the
+   `Caddyfile` that serves Work over HTTP on its own port, publish that port in `compose.yaml`
+   (`- 8080:8080` under the `caddy` service's `ports`), and allow port 8080 into the instance
+   only from the load balancer's security group:
+
+   ```text
+   :8080 {
+     reverse_proxy server:8787
+   }
+   ```
+
+3. **Load balancer, target group and listener.** A single subnet was accepted on the sandbox.
+   Check the target with Work's `/healthz`:
+
+   ```bash
+   aws elbv2 create-load-balancer --name lolly-work --type application \
+     --scheme internet-facing --subnets "$SUBNET" --security-groups "$LB_SECURITY_GROUP"
+   aws elbv2 create-target-group --name lolly-work --protocol HTTP --port 8080 \
+     --vpc-id "$VPC" --target-type instance --health-check-path /healthz
+   aws elbv2 register-targets --target-group-arn "$TARGET_GROUP" --targets Id="$INSTANCE",Port=8080
+   aws elbv2 create-listener --load-balancer-arn "$LOAD_BALANCER" --protocol HTTPS --port 443 \
+     --certificates CertificateArn="$CERTIFICATE" \
+     --default-actions Type=forward,TargetGroupArn="$TARGET_GROUP"
+   ```
+
+4. **The address.** Point your domain at the load balancer's DNS name, and use that domain as
+   Work's domain when you write the installation folder.
+
+In the re-run the listener served TLS 1.3 and HTTP/2 with the imported certificate, and the
+target was healthy within seconds. Live collaboration worked through the load balancer: two
+people joined one session over WebSocket, both with an HTTP/1.1 upgrade and over HTTP/2, an
+edit reached the other seat in 173 ms (median of 20, measured from outside the cloud), and
+the sockets stayed open through 90 idle seconds.
+
+**Client addresses.** Spinifex's load balancer adds no `X-Forwarded-For` or
+`X-Forwarded-Proto` header, and passes on an `X-Forwarded-For` header that the client sent.
+Work therefore sees every request arrive from the load balancer's address, and its
+per-address [rate limits](configuration.md#ratelimit) apply to all users together: by
+default 10 sign-in requests, refilled at one every five seconds, and 120 automation
+requests, refilled at two a second, shared by everyone. Do not raise `trustedProxyHops` to
+reach past the load balancer, because a client could then choose its own address. Until the
+load balancer forwards client addresses, either size the `auth` and `automation` buckets for
+your whole user base, knowing that a larger `auth` bucket also allows more password guesses,
+or let people reach Caddy directly. On AWS, the load balancer adds the client's address to
+`X-Forwarded-For`; with Caddy between the load balancer and Work, add the VPC range to
+Caddy's `trusted_proxies` and set `trustedProxyHops` to `2`.
+
+## Render capacity
+
+The re-run sent 300 durable render jobs through the load balancer from outside the cloud:
+one-page SVG and PNG renders of tools without hooks, on a 4 vCPU, 8 GiB instance running the
+ready-made package with RDS and S3, and the server's own renderer (no Chromium worker). Each
+job was submitted, polled until done and its output downloaded. The automation bucket was
+raised for the test, because every request came from one address.
+
+| Jobs at once | Renders per second | Time per job, median | Time per job, 95th percentile | Queue and render on the server, 95th percentile | Server CPU |
+|---|---|---|---|---|---|
+| 10 | 13.4 | 610 ms | 856 ms | 251 ms | about 1.2 cores |
+| 25 | 17.9 | 1,249 ms | 1,783 ms | 1,025 ms | about 1.6 cores |
+
+All 600 jobs succeeded. With the default buckets, the same 300 jobs from one address used up
+the automation bucket within seconds and then ran at about 0.4 renders a second, limited by
+the rate limit rather than the server.
 
 ## Kubernetes
 
-1. **Create the cluster.** An EKS cluster on Spinifex is K3s underneath. Create it and a node
-   group in the usual way, with two roles: one for the cluster and one for the nodes, which
-   needs `AmazonEKSWorkerNodePolicy`, `AmazonEKS_CNI_Policy` and
-   `AmazonEC2ContainerRegistryReadOnly`. The node group's role flag is `--node-role`:
+1. **Create the cluster.** An EKS cluster on Spinifex is K3s underneath (K3s 1.32 on Alpine
+   Linux in both runs). Create the cluster and a node group in the usual way, with two roles:
+   one for the cluster and one for the nodes, which needs `AmazonEKSWorkerNodePolicy`,
+   `AmazonEKS_CNI_Policy` and `AmazonEC2ContainerRegistryReadOnly`. The node group's role
+   flag is `--node-role`:
 
    ```bash
    aws eks create-cluster --name lolly --kubernetes-version 1.32 \
@@ -159,8 +252,8 @@ that information in small records of its own, so uploaded images still display;
    aws eks update-kubeconfig --name lolly
    ```
 
-   On the sandbox the cluster was active in about 90 seconds and a two-node group in about 90
-   more. `kubectl` authenticates through `aws eks get-token`, as on AWS.
+   In the first run the cluster was active in about 90 seconds and a two-node group in about
+   90 more. `kubectl` authenticates through `aws eks get-token`, as on AWS.
 2. **Let the nodes reach the database.** Allow port 5432 into the database's security group
    from the node group's security group. Without that rule the chart's migration Job times
    out.
@@ -168,59 +261,94 @@ that information in small records of its own, so uploaded images still display;
    from GitHub's registry by digest; nothing more is needed. To use your own ECR registry,
    copy the images by digest and refer to them by the registry's internal name,
    `<account>.dkr.ecr.<region>.spinifex.internal/<repository>@<digest>`. The `repositoryUri`
-   that ECR returns is not trusted by the nodes yet. Image signatures cannot be copied into
-   ECR yet, so verify each image's signature at GitHub's registry before you copy the image.
+   that ECR returns is not reliable for the nodes: in the re-run the address in it rotated
+   between four gateway addresses, the nodes trusted one of them and pulls through the other
+   three failed certificate verification. Image signatures cannot be copied into ECR yet, so
+   verify each image's signature at GitHub's registry before you copy the image.
 4. **Install the chart.** Follow [Install on Kubernetes](platform-deployment.md) with an
    external database. Mount the Spinifex certificate authority as described in the chart's
    [PostgreSQL certificate verification](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/POSTGRES-TLS.md),
    and add the `blobs` block from **One VM with managed services** to the instance
    configuration. Production mode needs a catalogue generation; see
-   [what production mode needs from a pack](configuration.md#instance).
-5. **Check readiness.** `kubectl -n lolly get pods` should show Work ready. If it is not,
-   `/readyz` answers with `checks` that say which condition is holding it back.
+   [what production mode needs from a pack](configuration.md#instance). In the re-run,
+   production mode with the image's demo pack, `catalogPublicationGeneration: 1` and a
+   catalogue signing key in `LW_CATALOG_SIGNING_KEY` was ready 35 seconds after
+   `helm install` started.
+5. **Check readiness.** `kubectl -n lolly get pods` should show Work ready. If Work is not
+   ready, `/readyz` answers with `checks` that say which condition is holding readiness back.
 
-## Immutable appliance (preview)
+## Lolly appliance (preview)
 
-A Lolly appliance image is in progress, and once released this section becomes one import
-step. Until then, the test run proves each part:
+The [Lolly appliance](https://github.com/lolly-tools/lolly-work/tree/main/deploy/appliance)
+is a disk image that boots into a working Work: openSUSE Leap 16.1 Immutable, K3s, Work in
+production mode, its own PostgreSQL, HTTPS with the machine's own certificate and Cockpit for
+the host. It is built on the Leap 16.1 release candidate. Spinifex does not offer
+`ImportImage` or `ImportSnapshot`, so bring the image in through a volume and a snapshot:
 
-1. **Bring in the image.** Spinifex does not offer `ImportImage` or `ImportSnapshot`. From any
-   Linux instance, write the openSUSE Leap 16.1 Immutable raw image onto a new volume,
-   snapshot the volume and register the snapshot:
-   `aws ec2 register-image --boot-mode uefi --architecture x86_64` with the snapshot as the
-   root device.
-2. **Configure the first boot.** Leap Immutable reads Combustion or Ignition at first boot. On
-   the sandbox, a configuration volume attached at launch was not seen, while the same
-   configuration on a partition of the boot disk was. Put the `combustion/script` (SSH key,
-   host name) on a partition labelled `ignition` on the boot volume before you take the snapshot.
-3. **Install K3s.** Use Work's [K3s kit](https://github.com/lolly-tools/lolly-work/tree/main/deploy/suse),
-   which handles transactional hosts: the first run stages the SELinux policy in a new
-   snapshot and asks for a reboot, and the second run installs K3s.
-4. **Deploy Work.** Place a `HelmChart` manifest for the Work chart in
-   `/var/lib/rancher/k3s/server/manifests/`, and K3s installs the chart. On the sandbox, Work was
-   ready 80 seconds after the manifest was written, and the whole node used about 1.2 GB of memory with
-   SELinux enforcing.
+1. **Get the x86_64 raw disk.** Build `lolly-appliance-<version>-x86_64.raw` with the
+   appliance's `build.sh` on an x86_64 Linux host, or take the compressed raw disk from
+   Work's CI build, and check it against `SHA256SUMS`.
+2. **Write the disk onto a new 20 GiB volume** from any Linux instance in the same zone. On a
+   new volume, `conv=sparse` skips the empty blocks; in the re-run that wrote the disk in under
+   a minute, where writing every block ran at about 30 MB/s:
+
+   ```bash
+   zstd -dc lolly-appliance-<version>-x86_64.raw.zst | dd of=/dev/vdb bs=4M conv=sparse,fsync
+   ```
+
+3. **Configure the first boot.** The appliance reads a Combustion script (your SSH key and
+   options such as the owner's email) from its own small partition labelled `ignition`. On the
+   sandbox a configuration volume attached at launch was not seen, while this partition was.
+   With mtools, on the written volume:
+
+   ```bash
+   mmd -i /dev/vdb3 ::combustion
+   mcopy -i /dev/vdb3 script ::combustion/script
+   ```
+
+   [Configure the first boot](https://github.com/lolly-tools/lolly-work/tree/main/deploy/appliance#configure-the-first-boot)
+   has an example script and the options.
+4. **Snapshot, register and launch.** Detach the volume, snapshot the volume, and register the
+   snapshot with `aws ec2 register-image --boot-mode uefi --architecture x86_64
+   --root-device-name /dev/sda1` and the snapshot as the root device. Set the disk size when
+   you launch, for example 40 GB on a `c6a.large`: adding `--virtualization-type`,
+   `--ena-support` and a volume size to `register-image` gave a generic
+   `InvalidParameterValue` on the sandbox.
+5. **Sign in.** `lolly-appliance owner-link` over SSH prints the owner's one-time setup link.
+   Cockpit answers only from local networks, so reach port 9090 through an SSH tunnel.
+
+In the re-run, root SSH answered 61 seconds after launch and Work's `/readyz` about 150
+seconds after launch (138 seconds after the kernel started). After a reboot Work was ready 91
+seconds after the kernel started. The machine used 1.5 GiB of its 3.8 GiB of memory. K3s set
+its container network's MTU to 1392 by itself, so the appliance needs no MTU setting. The
+first run built the same stack by hand from the plain Leap image and Work's
+[K3s kit](https://github.com/lolly-tools/lolly-work/tree/main/deploy/suse); the appliance
+now does those steps at first boot.
 
 ## Known issues
 
-Each item was found in the test run and reported to MulgaDC. Re-test on your Spinifex release
-before you rely on a workaround.
+Each item was found on the sandbox and checked again in the re-run. Re-test on your Spinifex
+release before you rely on a workaround.
 
 | Issue | What you see | Workaround | Report |
 |---|---|---|---|
 | Container MTU | Large downloads inside Docker containers stall | Set Docker's MTU to 1442 | [spinifex#1291](https://github.com/mulgadc/spinifex/issues/1291) |
-| ECR address not trusted by nodes | Pods fail to pull from ECR with a certificate error | Use the `<account>.dkr.ecr.<region>.spinifex.internal` name | [spinifex#1287](https://github.com/mulgadc/spinifex/issues/1287) |
-| Image signatures cannot be copied into ECR | `cosign copy` fails | Verify at GitHub's registry, then copy by digest | [spinifex#1288](https://github.com/mulgadc/spinifex/issues/1288) |
+| ECR address not trusted by nodes | Pods fail to pull from three of the four addresses `repositoryUri` returns, with a certificate error | Use the `<account>.dkr.ecr.<region>.spinifex.internal` name | [spinifex#1287](https://github.com/mulgadc/spinifex/issues/1287) |
+| Image signatures cannot be copied into ECR | `cosign copy` fails with `MANIFEST_INVALID` | Verify at GitHub's registry, then copy by digest | [spinifex#1288](https://github.com/mulgadc/spinifex/issues/1288) |
 | Metadata reports the zone as the region | SDKs on a VM use the wrong region | Set the region explicitly | [spinifex#1286](https://github.com/mulgadc/spinifex/issues/1286) |
-| Database errors lose their detail | A refused `create-db-instance` gives a generic message | Leave out `--publicly-accessible` | [spinifex#1289](https://github.com/mulgadc/spinifex/issues/1289) |
+| Errors lose their detail | A refused `create-db-instance` or `register-image` gives a generic message | Leave out `--publicly-accessible`; keep `register-image` to the flags above | [spinifex#1289](https://github.com/mulgadc/spinifex/issues/1289) |
 | Snapshots cannot be deleted | Deleting a snapshot fails, and its volume then counts as in use | Avoid snapshots you will need to remove; ask your Spinifex administrator to clear them | [spinifex#1292](https://github.com/mulgadc/spinifex/issues/1292) |
+| Load balancer forwards no client address | Work sees every user at the load balancer's address, so rate limits are shared | Size the rate-limit buckets for all users, or skip the load balancer | Not reported yet |
 | S3 drops content type and metadata | None in Work, which keeps its own records | Not needed; fixed in Predastore v1.21 | Fixed upstream |
+| S3 drops stored headers such as `Cache-Control` | None in Work, which serves files itself | Not needed | [predastore#194](https://github.com/mulgadc/predastore/issues/194) |
 | Bucket CORS | Not needed by Work today | None | [predastore#193](https://github.com/mulgadc/predastore/issues/193) |
 
 MulgaDC fixed two further reports within hours of filing (`GetUser` without a user name, and
-`CopyImage` honouring `--dry-run`); both are in Spinifex v1.23.0.
+`CopyImage` honouring `--dry-run`); both are in Spinifex v1.23.0. The sandbox had not been
+upgraded at the re-run, so neither fix could be confirmed there.
 
 ## Not tested yet
 
-Spinifex load balancers with certificates in front of Work, render workers scaling under
-load, several Work replicas, restoring the managed database from a backup, and GPU capacity.
+The Chromium render worker and render workers scaling under load, several Work replicas,
+restoring the managed database from a backup, certificates issued by ACM through DNS
+validation, network load balancers, GPU capacity, and any Spinifex release from v1.21 on.
