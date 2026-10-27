@@ -157,8 +157,8 @@ async function ask(io: InstanceKeyIO): Promise<Answer> {
     return { kind: 'unanswered' };
   }
   try {
-    // A redirect is refused above; this also refuses an answer from anywhere else.
-    if (response.url && new URL(response.url).origin !== io.origin) return { kind: 'unanswered' };
+    // `redirect: 'error'` above means the answer comes from the address asked, and
+    // nothing else; the response's own address is not read (token-url-guard.test.ts).
     if ([404, 405, 410].includes(response.status)) return { kind: 'none' };
     if (!response.ok) return { kind: 'unanswered' };
     if (!/\bjson\b/i.test(response.headers.get('content-type') ?? '')) return { kind: 'none' };

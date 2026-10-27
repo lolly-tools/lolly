@@ -102,7 +102,6 @@ test('no answer falls back to the saved key unchanged, and never to a new one', 
     () => json({ ...third.doc, keyId: instance.keyId }),
     () => new Response('{', { headers: { 'content-type': 'application/json' } }),
     () => json({ ...third.doc, padding: 'x'.repeat(5000) }),
-    () => { const r = json(third.doc); Object.defineProperty(r, 'url', { value: 'https://elsewhere.example' + INSTANCE_KEY_PATH }); return r; },
   ];
   for (const answer of unanswered) {
     const withSaved = io(answer, savedOf(instance));
@@ -233,4 +232,15 @@ test('offline, the saved key verifies the saved catalog; after a rotation the ol
   const fresh = catalog(await envelope(rotated, rotated.keyId, 3), selector(() => json(rotated.doc), savedOf(instance)).keyFor);
   fresh.seed(saved);
   assert.equal((await fetchSignedCatalogSnapshot(fresh.io)).envelope.keyId, rotated.keyId);
+});
+
+test('the key request refuses redirects, so the answer comes from the address asked', async () => {
+  let seen: RequestInit | undefined;
+  await resolveInstanceCatalogKey({
+    origin: 'https://work.example',
+    fetch: async (_url, init) => { seen = init; throw new TypeError('offline'); },
+    load: async () => null, save: async () => {}, forget: async () => {},
+  });
+  assert.equal(seen?.redirect, 'error');
+  assert.equal(seen?.credentials, 'same-origin');
 });
