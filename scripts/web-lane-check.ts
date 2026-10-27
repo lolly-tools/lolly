@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium, type Page } from 'playwright';
 import { waitForExport } from '../packages/node-shell/src/export-wait.ts';
 import { waitForShellStartup } from '../packages/node-shell/src/shell-startup.ts';
-import { SOFTWARE_WEBGPU_ARGS } from '../packages/node-shell/src/webgpu-launch.ts';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const TOOL = 'qr-code';
 const MIN_CARDS = 10;
@@ -47,7 +47,7 @@ export async function check(base: string, out: string): Promise<void> {
   mkdirSync(out, { recursive: true });
   const report: Record<string, unknown> = { base: origin, toolId: TOOL };
   const pageErrors: string[] = [];
-  const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL || undefined, args: [...SOFTWARE_WEBGPU_ARGS] });
+  const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL || undefined, args: webGpuLaunchArgs('software') });
   let page: Page | undefined;
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block', acceptDownloads: true });
