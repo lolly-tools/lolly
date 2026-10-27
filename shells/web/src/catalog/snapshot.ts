@@ -19,7 +19,11 @@ export interface CatalogSnapshot {
 export interface AcceptedCatalog { watermark: CatalogWatermark; snapshot: CatalogSnapshot; }
 export interface CatalogSnapshotIO {
   fetch(path: string, init: RequestInit): Promise<Response>;
+  /** The build-time key. */
   publicKey: CryptoKey;
+  /** The key for one envelope, when more than the build-time key may verify
+   *  (catalog/instance-key.ts createCatalogKeySelector). Absent: `publicKey`. */
+  keyFor?(envelope: CatalogSignatureEnvelope): Promise<CryptoKey>;
   read(scope: string): Promise<AcceptedCatalog | null>;
   latest?(): Promise<AcceptedCatalog | null>;
   /** Must check freshness and write snapshot + floor in one durable transaction. */
@@ -54,6 +58,8 @@ async function catalogText(response: Response): Promise<string> {
 }
 
 const refuse = (reason: string): never => { throw new CatalogTrustError(`Catalog refused: ${reason}`); };
+const keyFor = (io: CatalogSnapshotIO, envelope: CatalogSignatureEnvelope): Promise<CryptoKey> =>
+  io.keyFor ? io.keyFor(envelope) : Promise.resolve(io.publicKey);
 
 function assetChecksums(text: string, catalogScope?: string): void {
   const reason = assetIndexIntegrity(JSON.parse(text), catalogScope);
@@ -63,7 +69,7 @@ function assetChecksums(text: string, catalogScope?: string): void {
 /** Even durable local copies are checked against the pinned identity before reuse. */
 async function checkedOffline(io: CatalogSnapshotIO, previous: AcceptedCatalog): Promise<CatalogSnapshot> {
   const snapshot = previous.snapshot, envelope = snapshot.envelope;
-  const verified = await verifyEnvelopeSignature(envelope, io.publicKey);
+  const verified = await verifyEnvelopeSignature(envelope, await keyFor(io, envelope));
   if (!verified.ok) refuse(verified.reason!);
   const current = await io.read(envelope.catalogScope ?? 'public');
   const fresh = catalogFreshness(envelope, current?.watermark ?? previous.watermark, io.now?.());
@@ -110,7 +116,7 @@ export async function fetchSignedCatalogSnapshot(io: CatalogSnapshotIO): Promise
       const envelope = response.status === 304 && latest ? latest.snapshot.envelope
         : response.ok ? JSON.parse(await catalogText(response)) as CatalogSignatureEnvelope : null;
       if (!envelope) throw new Error(`Catalog signature request failed (HTTP ${response.status})`);
-      const verified = await verifyEnvelopeSignature(envelope, io.publicKey);
+      const verified = await verifyEnvelopeSignature(envelope, await keyFor(io, envelope));
       if (!verified.ok) refuse(verified.reason ?? 'the signature does not verify');
       const scope = envelope.catalogScope ?? 'public';
       const accepted = await io.read(scope);

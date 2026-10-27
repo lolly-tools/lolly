@@ -50,7 +50,7 @@ If the feature is about producing bytes rather than showing a screen, skip the v
 
 **`org/`**: the single seam through which an *optional* deployment control plane talks to this shell. On a plain deployment such as the public lolly.tools, `initOrg()` probes once, finds nothing, resolves to `null` and remembers that, and the shell behaves as though the module were absent: no gate, no banner, an empty field-policy registry.
 
-**`catalog/`**: just two files. `sync.ts` fetches and diffs the tool and asset manifests against IndexedDB on boot, tolerates network failure by falling back to cache, and routes every fetch through `lib/instance.ts` so a remote instance syncs the same way. `integrity.ts` is the web wiring for the engine's signed-catalogue check, inert unless the build pins `VITE_CATALOG_PUBLIC_KEY_JWK`, and fail-closed when it does.
+**`catalog/`**: just two files. `sync.ts` fetches and diffs the tool and asset manifests against IndexedDB on boot, tolerates network failure by falling back to cache, and routes every fetch through `lib/instance.ts` so a remote instance syncs the same way. `integrity.ts` is the web wiring for the engine's signed-catalogue check, inert unless the build pins `VITE_CATALOG_PUBLIC_KEY_JWK`, and fail-closed when it does. `instance-key.ts` lets a web app served by a Lolly Work instance also accept that instance's catalogue key, read from the same address and bound to the envelope's key ID.
 
 ## The big files
 
