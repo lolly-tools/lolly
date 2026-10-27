@@ -462,7 +462,7 @@ test('the preview guard differs from the release guard by exactly the lane rule'
   assert.match(lane, /actions\/workflows\/ci\.yml\/runs\?branch=main&event=push&status=success&per_page=100/);
   assert.match(lane, /select\(\.path == "\.github\/workflows\/ci\.yml" and \.event == "push" and \.head_branch == "main" and \.conclusion == "success"\)/);
   assert.match(lane, /git rev-list --first-parent --max-count=50 "\$EXPECTED_SOURCE"/);
-  assert.match(lane, /git show "\$CI_SOURCE:scripts\/deploy-lane\.ts" > "\$RUNNER_TEMP\/deploy-lane\.ts"/);
+  assert.match(lane, /if \[\[ "\$CI_SOURCE" != "\$EXPECTED_SOURCE" \]\]; then\n {4}git show "\$CI_SOURCE:scripts\/deploy-lane\.ts" > "\$RUNNER_TEMP\/deploy-lane\.ts"/);
   assert.match(lane, /node "\$RUNNER_TEMP\/deploy-lane\.ts" qualify "\$CI_SOURCE" "\$EXPECTED_SOURCE" "\$RUNNER_TEMP\/deploy-lane\.json"/);
   assert.doesNotMatch(lane, /scripts\/deploy-lane\.ts"? qualify|node scripts\//, 'never the source checkout\'s own copy');
 

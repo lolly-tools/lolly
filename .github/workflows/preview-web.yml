@@ -95,8 +95,11 @@ jobs:
               if [[ -n "$CI_RUN" ]]; then CI_SOURCE=$commit; break; fi
             done
             if [[ -z "$CI_RUN" ]]; then echo "::error::No successful full main CI run on the source or its last 50 first-parent ancestors"; exit 1; fi
-            git show "$CI_SOURCE:scripts/deploy-lane.ts" > "$RUNNER_TEMP/deploy-lane.ts"
-            node "$RUNNER_TEMP/deploy-lane.ts" qualify "$CI_SOURCE" "$EXPECTED_SOURCE" "$RUNNER_TEMP/deploy-lane.json"
+            # The source's own run may have finished since the first lookup; then no lane is needed.
+            if [[ "$CI_SOURCE" != "$EXPECTED_SOURCE" ]]; then
+              git show "$CI_SOURCE:scripts/deploy-lane.ts" > "$RUNNER_TEMP/deploy-lane.ts"
+              node "$RUNNER_TEMP/deploy-lane.ts" qualify "$CI_SOURCE" "$EXPECTED_SOURCE" "$RUNNER_TEMP/deploy-lane.json"
+            fi
           fi
           # Lane rule end.
           [[ "$CI_RUN" =~ ^[1-9][0-9]*$ ]]
