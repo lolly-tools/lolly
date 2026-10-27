@@ -4,9 +4,8 @@
 # A main commit whose changes since its newest fully qualified ancestor are all
 # docs, or all docs and web shell UI, may ship to the preview once the matching
 # job here has passed on it, instead of waiting about 40 minutes for ci.yml.
-# preview-web.yml and the preview deploy tool read two jobs by name: "docs lane"
-# for a docs change and "web lane" (which needs the docs lane) for a web shell
-# change. These jobs test the whole source tree rather than a diff, so a pass
+# The preview deploy tool reads two jobs by name: "docs lane" for a docs change
+# and "web lane" (which needs the docs lane) for a web shell change. These jobs test the whole source tree rather than a diff, so a pass
 # holds whichever base the deploy compares against. ci.yml still runs on every
 # push, releases still need it, and nothing here ever stands in for it on a release.
 #

@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import fs from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -415,65 +415,82 @@ test('the preview web build keeps the release build arguments, connector origins
   );
 });
 
-test('the preview workflow runs the same normal main CI check as the release candidate workflow', () => {
-  const guard = (name: string) => workflowText(name).match(/node --input-type=module <<'JS'\n([\s\S]*?)\n\s+JS\n/)?.[1]?.replace(/^ +/gm, '');
-  assert.ok(guard('preview-web.yml'));
-  assert.equal(guard('preview-web.yml'), guard('deployment-suse.yml'));
-  assert.match(workflowText('preview-web.yml'), /event=push&branch=main&status=success/);
-});
+// Build at merge (2026-10-27). preview-web.yml builds a main commit as soon as it is merged, while ci.yml runs,
+// and refuses only a source whose own main CI run already failed. Qualification (green full CI, or a fast
+// lane above one) moved to the deploy tool, which reads it at every deploy before the node is touched.
+// Releases keep the exact-commit guard: deployment-suse.yml is untouched by this rule.
+const previewGateStep = (name: string) => {
+  const step = (workflowYaml('preview-web.yml').jobs['source-qualification'].steps as { name?: string; run?: string }[]).find(item => item.name === name);
+  assert.ok(step?.run, name);
+  return step.run;
+};
 
-// Fast deploy lanes (scripts/deploy-lane.ts, 2026-10-27). The preview guard is the release guard plus one
-// rule: a source without a successful full main CI run of its own may bind the newest first-parent ancestor
-// that has one, when the base's own lane script finds the change inside a fast lane and the lane job passed.
-test('the preview guard differs from the release guard by exactly the lane rule', () => {
-  const bind = (name: string): string => {
-    const steps = workflowYaml(name).jobs['source-qualification'].steps as { name?: string; run?: string }[];
-    const matches = steps.filter(step => /^Bind the (?:source|candidate) to its completed normal main CI/.test(step.name ?? ''));
-    assert.equal(matches.length, 1, name);
-    return matches[0]!.run!;
-  };
-  const preview = bind('preview-web.yml'), release = bind('deployment-suse.yml');
-  const LANE = /# Lane rule begin\.[\s\S]*?# Lane rule end\.\n/;
-  const lane = preview.match(LANE)?.[0];
-  assert.ok(lane, 'the preview guard marks its lane rule');
-  assert.equal(preview.match(new RegExp(LANE, 'g'))?.length, 1);
-  assert.doesNotMatch(release, /Lane rule|deploy-lane|fast-lanes|CI_SOURCE/);
-
-  // From the run lookup to the end, the preview guard is the release guard, bound to CI_SOURCE.
-  const tail = (text: string) => text.slice(text.indexOf('gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN"'));
-  assert.ok(tail(release).length > 500);
-  assert.equal(tail(preview).replace('EXPECTED_SOURCE="$CI_SOURCE" node --input-type=module', 'node --input-type=module'), tail(release));
-  assert.equal(tail(preview).split('EXPECTED_SOURCE="$CI_SOURCE"').length, 2, 'only the inventory check takes CI_SOURCE');
-
-  // Outside the lane rule, CI_SOURCE is the source and CI_RUN is its own exact successful run, as before.
-  const head = preview.slice(0, preview.indexOf(tail(preview))).replace(lane, '');
-  assert.deepEqual(head.trim().split('\n').filter(line => !line.startsWith('#')), [
+test('the preview build gate needs a clean ancestor of main, then refuses only a completed CI failure', () => {
+  const workflow = workflowYaml('preview-web.yml');
+  const names = (workflow.jobs['source-qualification'].steps as { name?: string }[]).map(step => step.name);
+  assert.deepEqual(names.filter(Boolean), ['Require a clean ancestor of main', 'Refuse a source whose own main CI run failed',
+    'Ask the WebGPU release gate; a refusal fails the preview']);
+  assert.deepEqual(previewGateStep('Require a clean ancestor of main').trim().split('\n'), [
     'set -euo pipefail',
     '[[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]',
     'test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"',
     'git merge-base --is-ancestor "$EXPECTED_SOURCE" refs/remotes/origin/main',
     'test -z "$(git status --porcelain)"',
-    'CI_RUN=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$EXPECTED_SOURCE&event=push&branch=main&status=success&per_page=1" --jq \'.workflow_runs[0].id // empty\')',
-    'CI_SOURCE=$EXPECTED_SOURCE',
-    '[[ "$CI_RUN" =~ ^[1-9][0-9]*$ ]]',
-    'export CI_RUN',
   ]);
+  // Every build says which gate it passed; a deploy tool from before this rule refuses the field.
+  const push = (workflow.jobs.publish.steps as { run?: string }[]).find(step => /crane push/.test(step.run ?? ''))!.run!;
+  assert.match(push, /candidateRuntimeQualified: false, sourceGate: "not-failed"\}' > "\$receipts\/release\.json"/);
+  // The lolly.tools watcher dispatches builds at merge only while the workflow carries this marker.
+  assert.match(workflowText('preview-web.yml'), /^# auto-ship: build-at-merge$/m);
+  // The release guard stays where it was, and no preview code borrows it any more.
+  assert.match(workflowText('deployment-suse.yml'), /Candidate requires its exact successful normal main CI run/);
+  assert.doesNotMatch(workflowText('preview-web.yml'), /normal-ci|CI_SOURCE|Lane rule|deploy-lane/);
+});
 
-  // The lane rule runs only without that run, finds the base among successful main pushes on the
-  // source's first-parent line, and hands the decision to the base's own copy of the lane script.
-  assert.match(lane, /\nif \[\[ -z "\$CI_RUN" \]\]; then\n/);
-  assert.match(lane, /actions\/workflows\/ci\.yml\/runs\?branch=main&event=push&status=success&per_page=100/);
-  assert.match(lane, /select\(\.path == "\.github\/workflows\/ci\.yml" and \.event == "push" and \.head_branch == "main" and \.conclusion == "success"\)/);
-  assert.match(lane, /git rev-list --first-parent --max-count=50 "\$EXPECTED_SOURCE"/);
-  assert.match(lane, /if \[\[ "\$CI_SOURCE" != "\$EXPECTED_SOURCE" \]\]; then\n {4}git show "\$CI_SOURCE:scripts\/deploy-lane\.ts" > "\$RUNNER_TEMP\/deploy-lane\.ts"/);
-  assert.match(lane, /node "\$RUNNER_TEMP\/deploy-lane\.ts" qualify "\$CI_SOURCE" "\$EXPECTED_SOURCE" "\$RUNNER_TEMP\/deploy-lane\.json"/);
-  assert.doesNotMatch(lane, /scripts\/deploy-lane\.ts"? qualify|node scripts\//, 'never the source checkout\'s own copy');
+test('the preview build gate, run against GitHub run listings', t => {
+  const script = previewGateStep('Refuse a source whose own main CI run failed');
+  const repository = 'lolly-tools/lolly', source = 'a'.repeat(40);
+  const run = (id: number, status: string, conclusion: string | null, over: Record<string, unknown> = {}) => ({
+    id, run_attempt: 1, status, conclusion, path: '.github/workflows/ci.yml', event: 'push', head_branch: 'main', head_sha: source,
+    repository: { full_name: repository }, head_repository: { full_name: repository }, ...over });
+  const cases: [string, unknown, string | null][] = [
+    ['no run yet', { workflow_runs: [] }, 'none'],
+    ['queued', { workflow_runs: [run(1, 'queued', null)] }, 'pending'],
+    ['running', { workflow_runs: [run(1, 'in_progress', null)] }, 'pending'],
+    ['green', { workflow_runs: [run(1, 'completed', 'success')] }, 'green'],
+    ['cancelled by a newer push', { workflow_runs: [run(1, 'completed', 'cancelled')] }, 'cancelled'],
+    ['failed, then green on a second push', { workflow_runs: [run(2, 'completed', 'success'), run(1, 'completed', 'failure')] }, 'green'],
+    ['failed', { workflow_runs: [run(1, 'completed', 'failure')] }, null],
+    ['timed out', { workflow_runs: [run(1, 'completed', 'timed_out')] }, null],
+    ['failed while a re-run waits', { workflow_runs: [run(2, 'queued', null), run(1, 'completed', 'failure')] }, null],
+    ['a fork failure does not count', { workflow_runs: [run(1, 'completed', 'failure', { head_repository: { full_name: 'fork/lolly' } })] }, 'none'],
+    ['another commit does not count', { workflow_runs: [run(1, 'completed', 'failure', { head_sha: 'b'.repeat(40) })] }, 'none'],
+    ['a pull request run does not count', { workflow_runs: [run(1, 'completed', 'failure', { event: 'pull_request' })] }, 'none'],
+    ['malformed listing', { message: 'Not Found' }, null],
+    ['malformed run', { workflow_runs: [run(0, 'completed', 'success')] }, null],
+    ['overfull listing', { workflow_runs: Array.from({ length: 100 }, (_, i) => run(i + 1, 'in_progress', null)) }, null],
+  ];
+  const directory = mkdtempSync(join(tmpdir(), 'lolly-preview-gate-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  for (const [name, listing, ci] of cases) {
+    const root = mkdtempSync(join(directory, 'case-'));
+    writeFileSync(join(root, 'listing.json'), JSON.stringify(listing));
+    const fake = `gh() { [[ "$1" == api && "$2" == "repos/${repository}/actions/workflows/ci.yml/runs?head_sha=${source}&event=push&branch=main&per_page=100" ]] && cat "$RUNNER_TEMP/listing.json"; }\n`;
+    const result = spawnSync('bash', ['-c', fake + script], { encoding: 'utf8', timeout: 10_000, env: {
+      PATH: process.env.PATH, RUNNER_TEMP: root, EXPECTED_SOURCE: source, GITHUB_REPOSITORY: repository } });
+    assert.equal(result.status === 0, ci !== null, `${name}: ${result.stderr}`);
+    if (ci === null) { assert.equal(existsSync(join(root, 'source-gate.json')), false, name); continue; }
+    const record = JSON.parse(readFileSync(join(root, 'source-gate.json'), 'utf8'));
+    assert.deepEqual([record.version, record.rule, record.source, record.ci], [2, 'not-failed', source, ci], name);
+  }
+});
 
-  // No release workflow can take a lane.
+test('no release workflow can take a lane or build before its CI passes', () => {
   const directory = new URL('../.github/workflows/', import.meta.url);
   for (const file of readdirSync(directory).filter(name => /\.ya?ml$/.test(name))) {
-    if (file === 'preview-web.yml' || file === 'fast-lanes.yml') continue;
+    if (file === 'fast-lanes.yml') continue;
     assert.doesNotMatch(workflowText(file), /deploy-lane|fast-lanes|LANE_JOB|docs lane|web lane/, `${file} references a fast lane`);
+    if (file !== 'preview-web.yml') assert.doesNotMatch(workflowText(file), /not-failed|build-at-merge/, `${file} builds at merge`);
   }
 });
 
