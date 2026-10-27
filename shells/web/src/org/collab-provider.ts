@@ -42,6 +42,7 @@ import {
   withoutHeldKeys,
 } from './collab-protocol.ts';
 import { createWorkClaims } from './collab-claims.ts';
+import { PAIRING_SPIKE_BUILD, pairedSocketCtor } from '../lib/pairing-spike.ts';
 import { claimCoversOp } from '@lolly-tools/core/canvas-interaction-v1';
 import type { CanvasClaimCapability } from '../lib/canvas-interaction.ts';
 import type {
@@ -1060,7 +1061,9 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
       return;
     }
     if (ended) return;
-    const Ctor = opts.socket ?? (globalThis as { WebSocket?: CollabSocketCtor }).WebSocket;
+    // SPIKE, plan 324 section 8: a paired server's socket rides the pinned Rust client.
+    const paired = PAIRING_SPIKE_BUILD ? pairedSocketCtor(endpointInfo.url) as CollabSocketCtor | null : null;
+    const Ctor = opts.socket ?? paired ?? (globalThis as { WebSocket?: CollabSocketCtor }).WebSocket;
     if (!Ctor) {
       reason = 'no-websocket';
       dead = true;

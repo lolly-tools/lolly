@@ -12,6 +12,9 @@ mod native_frame;
 mod native_transport;
 mod nearby;
 mod oauth;
+// SPIKE, plan 324 section 8. Compiled only with `--features pairing-spike`.
+#[cfg(feature = "pairing-spike")]
+mod pairing_spike;
 mod presentation_windows;
 #[cfg(feature = "presentation-probe")]
 mod presentation_probe;
@@ -77,7 +80,14 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
         }
     }
     let windows = presentation_windows::prepare(&mut context);
-    tauri::Builder::default()
+    #[cfg(feature = "pairing-spike")]
+    pairing_spike::pair_from_env();
+    let builder = tauri::Builder::default();
+    // SPIKE, plan 324 section 8: the pinned-certificate proxy scheme. Absent from
+    // every build without the `pairing-spike` feature.
+    #[cfg(feature = "pairing-spike")]
+    let builder = builder.register_asynchronous_uri_scheme_protocol(pairing_spike::SCHEME, pairing_spike::handle);
+    builder
         // Remember only spatial state. VISIBLE is deliberately excluded: a saved
         // visible window must never make a D-Bus --search-provider launch flash.
         // The plugin also rejects a position that intersects no current monitor.

@@ -135,6 +135,10 @@ pub fn main_commands<R: Runtime>(
         if invoke.message.command().starts_with("webgpu_qualification_") {
             return crate::webgpu_qualification::route(invoke);
         }
+        #[cfg(feature = "pairing-spike")]
+        if invoke.message.command().starts_with("pairing_spike_") {
+            return crate::pairing_spike::route(invoke);
+        }
         handler(invoke)
     }
 }
