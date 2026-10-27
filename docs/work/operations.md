@@ -229,6 +229,138 @@ on loopback without one.
 `null`, or to a mirror you run, where outbound traffic is restricted; see
 [configuration](configuration.md).
 
+## OpenTelemetry export
+
+A platform team that runs its own observability stack can have Work push traces,
+metrics and logs to an OpenTelemetry Collector or any backend that accepts OTLP.
+Export is off until you set an endpoint. With no endpoint, Work starts no timer,
+opens no connection and sends nothing; an instance nobody configured behaves exactly
+as it did before.
+
+Work speaks OTLP over HTTP. Point it at the collector's HTTP port, usually 4318:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.observability.svc:4318
+OTEL_SERVICE_NAME=lolly-work            # the default when unset
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=production
+```
+
+With the Helm chart, set the `otel` values instead. The chart turns them into the same
+variables on the server container only; the migrate Job and the render worker export
+nothing.
+
+```yaml
+otel:
+  enabled: true
+  endpoint: http://otel-collector.observability.svc:4318
+  resourceAttributes:
+    deployment.environment.name: production
+  # A backend that wants an API key: a Secret key holding the whole
+  # OTEL_EXPORTER_OTLP_HEADERS value, never the key itself in values.
+  headersSecret: { name: otlp-auth, key: headers }
+```
+
+Elsewhere, set the variables in the server's environment: under `environment:` in
+Compose, or in the unit or shell that starts the server.
+
+### Variables Work reads
+
+| Variable | Default | What |
+|---|---|---|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | none: export off | base URL; Work adds `/v1/traces`, `/v1/metrics` and `/v1/logs` |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, `_METRICS_ENDPOINT`, `_LOGS_ENDPOINT` | none | one signal's full URL, used as given. Setting only one sends only that signal |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` (and per signal) | `http/protobuf` | `http/protobuf` or `http/json`. `grpc` is refused with a warning at boot |
+| `OTEL_EXPORTER_OTLP_HEADERS` (and per signal) | none | `key=value` pairs, comma separated, values percent-encoded. Sent with every export and never printed |
+| `OTEL_EXPORTER_OTLP_COMPRESSION` (and per signal) | `none` | `gzip` or `none` |
+| `OTEL_EXPORTER_OTLP_TIMEOUT` (and per signal) | `10000` | milliseconds per export request |
+| `OTEL_EXPORTER_OTLP_CERTIFICATE`, `_CLIENT_CERTIFICATE`, `_CLIENT_KEY` (and per signal) | none | file paths: a CA bundle to trust, and a client certificate and key for mutual TLS |
+| `OTEL_SERVICE_NAME` | `lolly-work` | `service.name`; wins over a `service.name` in the resource attributes |
+| `OTEL_RESOURCE_ATTRIBUTES` | none | extra resource attributes, `key=value` pairs |
+| `OTEL_TRACES_EXPORTER`, `OTEL_METRICS_EXPORTER`, `OTEL_LOGS_EXPORTER` | `otlp` | `none` turns one signal off |
+| `OTEL_SDK_DISABLED` | `false` | `true` turns all export off, whatever else is set |
+| `OTEL_TRACES_SAMPLER`, `OTEL_TRACES_SAMPLER_ARG` | `parentbased_always_on` | `always_on`, `always_off`, `traceidratio` and their `parentbased_` forms; the argument is the ratio |
+| `OTEL_PROPAGATORS` | `tracecontext` | `none` stops Work reading an incoming `traceparent` |
+| `OTEL_BSP_*`, `OTEL_BLRP_*` | 2048 queued, batches of 512, every 5 s for spans and 1 s for logs | the span and log batch settings from the OpenTelemetry specification |
+| `OTEL_METRIC_EXPORT_INTERVAL`, `OTEL_METRIC_EXPORT_TIMEOUT` | `60000`, `30000` | how often the metrics are read and sent |
+| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | `cumulative` | `delta` for a backend that needs deltas; `lowmemory` is read as `delta` |
+
+A setting Work cannot follow prints one warning line at boot, giving the variable and
+never a header value. The boot line lists each signal's endpoint without user
+information or query.
+
+Work sends protobuf by default because the OpenTelemetry default is protobuf and some
+vendors' direct intakes accept nothing else. JSON is there for a collector you want
+to read by eye. Work does not send gRPC: a collector accepts both HTTP encodings on
+port 4318, and refusing at boot is clearer than sending HTTP to a gRPC port.
+
+### What is sent
+
+| Signal | Contents |
+|---|---|
+| Traces | one server span per HTTP request, named by method and route pattern (`GET /api/v1/users/:id`), with `http.request.method`, `http.route`, `http.response.status_code`, `url.scheme` and `network.protocol.version`. A 5xx answer marks the span as an error with `error.type` set to the status. Under it, a span per database statement with `db.system.name`, `db.operation.name` and `db.collection.name` (the table), and a `render` span with the tool id, the output format and whether a render worker is configured. A render the durable queue runs is a trace of its own |
+| Metrics | the series `GET /metrics` serves, with the same names, labels and help text: counters as monotonic sums, gauges as gauges. Alerts written against `/metrics`, such as the [monitoring](#monitoring) list, can use the same names |
+| Logs | the server's structured log records: the message, its level, the method, route, status and duration of an access line, and an error's type. A record made during a traced request carries that request's trace and span ids |
+
+Each export also carries a resource: `service.name`, `service.version`,
+`service.instance.id` (random per process), the `telemetry.sdk.*` and
+`process.runtime.*` attributes, and your `OTEL_RESOURCE_ATTRIBUTES`. Work adds no host
+name; a home server's host name is often a person's name. Add `host.name` yourself if
+you want one.
+
+Logs follow `LW_LOG_HTTP` and `LW_LOG_FORMAT`: the per-request access record is sent
+only when the access line is on. Boot and background messages go to stdout only.
+
+### What is never sent
+
+Work's [telemetry](telemetry.md) rules apply to this export too: nothing about
+identity leaves the instance. Each exported attribute comes from a fixed list in the
+server. A value read from a request is kept only when it belongs to a known set (the
+HTTP method) or follows a naming rule (a tool id, a format).
+
+- No URL path and no query string. A span carries the route pattern, so
+  `/api/v1/users/:id` and never the id.
+- No header, cookie, session, bearer token, client address or user agent.
+- No request or response body, and no database statement text or parameter.
+- No error message. An error travels as its type, such as `RENDER_BUSY` or
+  `TypeError`; the message stays in the stdout log.
+- No incoming `tracestate`.
+- No user id, email address or display name anywhere.
+
+Work's test suite runs the export against a capturing receiver, sends requests that
+carry emails, cookies, bearer tokens, forwarded addresses, query values, bodies and
+user ids, and fails if any of them appears in the bytes of any export, in either
+encoding.
+
+### Delivery and back-pressure
+
+A finished span or log record joins a bounded queue; the request does not wait for
+the export. Encoding and sending happen on a timer, one request at a time per signal.
+A record that arrives at a full queue is dropped. Work retries a 429, 502, 503 or 504
+with backoff inside the export timeout; any other refusal drops the batch. Both
+cases count:
+
+| Series | Meaning |
+|---|---|
+| `lw_otlp_exported_total{signal}` | spans, data points or log records the receiver accepted |
+| `lw_otlp_dropped_total{signal,reason}` | items lost, with `reason` `queue_full` or `export_failed` |
+
+These appear on `/metrics` and in the exported metrics, only while export is on. The
+first failed export prints a warning, then at most one every five minutes.
+
+On `SIGTERM` Work drains live rooms as before, then sends what is queued and a last
+metric reading, within five seconds, before it exits.
+
+Three consequences to plan for:
+
+- **The metrics read the database.** The gauges are collected at each export interval,
+  as they are at each Prometheus scrape. A database that scales to zero does not
+  sleep while metric export is on.
+- **An incoming `traceparent` is honoured.** A request that arrives with one continues
+  that trace and follows its sampled flag under the default sampler. Strip or replace
+  the header at your ingress if outside callers should not choose what is sampled.
+- **Health checks are requests.** Probes of `/healthz` and `/readyz` produce spans;
+  drop them in the collector if you do not want them.
+
 ## Blob growth and version retention
 
 Every version of an instance asset keeps its own bytes, and the default

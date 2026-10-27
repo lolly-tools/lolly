@@ -125,6 +125,11 @@ may read the metrics, and only on an evaluation instance with no proxy: in produ
 route is registered before sign-in checks, so no other route can shadow `/metrics`. Which gauges
 to alert on is in [operations](operations.md#monitoring).
 
+The same series can also be pushed over OTLP to a platform team's OpenTelemetry
+Collector, beside traces and logs. That export is off unless an endpoint is set, and it
+carries no usage events and nothing about identity; see
+[OpenTelemetry export](operations.md#opentelemetry-export).
+
 ## Related
 
 - The authoritative record of governed actions: [audit log](audit.md)
