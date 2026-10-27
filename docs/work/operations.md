@@ -212,6 +212,7 @@ Gauges worth an alert:
 | `lw_process_resident_memory_bytes` | it climbs across a render-heavy day |
 | `lw_blob_stored_bytes` | it nears 10 GiB with `driver="pg"`: see [blob offload trigger](#blob-offload-trigger) |
 | `lw_blob_read_bytes_total` | `increase()` over 30 days nears 100 GiB with `driver="pg"` |
+| `lw_ofrep_evaluation_errors_total` | its `rate()` stays above zero while `featureFlags.ofrep` is set: people are getting Work's own flag settings, not your flag service's. The `reason` label (`timeout`, `network`, `unauthorized`, `not_found`, `rate_limited`, `server`, ...) says why; compare with `lw_ofrep_requests_total` |
 
 `lw_origin_bytes_total{class}` counts the response body bytes the server wrote, after
 compression, by each route's delivery class (`public-immutable`, `public-revalidate`,
