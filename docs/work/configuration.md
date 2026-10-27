@@ -801,6 +801,21 @@ supports tool rendering; qualify preview behavior with the paired shell release.
 | `LW_LOG_FORMAT` | `text` | `json` writes one JSON object per log line (and turns the http access line on) for a log pipeline |
 | `LW_LOG_HTTP` | off | `1` writes an access line per request in text mode: request id, method, route label, status, ms |
 
+### OpenTelemetry
+
+The standard OpenTelemetry variables turn on OTLP export of traces, metrics and logs.
+Nothing is exported until `OTEL_EXPORTER_OTLP_ENDPOINT` (or a per-signal endpoint) is
+set. The full list, what is sent and what never is are in
+[OpenTelemetry export](operations.md#opentelemetry-export).
+
+| Var | Default | What |
+|---|---|---|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | - | the collector's OTLP/HTTP base URL, usually port 4318 |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` | or `http/json`; gRPC is not supported |
+| `OTEL_EXPORTER_OTLP_HEADERS` | - | `key=value` pairs sent with each export, often an API key |
+| `OTEL_SERVICE_NAME` | `lolly-work` | the `service.name` resource attribute |
+| `OTEL_SDK_DISABLED` | `false` | `true` turns every signal off |
+
 ### Serverless entrypoint
 
 The serverless function entrypoint (`api/_lib/bootstrap.ts`) reads these; the standalone server
