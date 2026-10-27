@@ -1,5 +1,10 @@
 # lolly-web RPM
 
+**Not maintained.** The spec is still at 1.0.7 and has never been built or published.
+Use the signed web image (`ghcr.io/lolly-tools/lolly-web`) or a static bundle instead.
+The package comes back once openSUSE OBS becomes the primary build system; until then
+treat this directory as reference material.
+
 Packages the Lolly web shell (`shells/web`) as a self-hostable static PWA for
 RPM distributions (openSUSE Tumbleweed / Leap, Fedora, RHEL and friends).
 
