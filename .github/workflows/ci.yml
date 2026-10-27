@@ -311,6 +311,13 @@ jobs:
       # Every apt command runs as `sudo timeout`, so the root `timeout` can stop
       # apt-get and its download helpers. A stopped attempt can leave dpkg half
       # configured, so each retry runs `dpkg --configure -a` first.
+      # The three installs every browser partition waits on (Chromium's
+      # libraries here, Firefox and WebKit, and Poppler) allow 75 seconds an
+      # attempt instead of 180. A healthy one fetches in 1 to 3 seconds and
+      # finishes in under 30, but in about a fifth of partitions (9 of 40 in
+      # October 2026) the Azure mirror trickled until the limit, and the retry
+      # through archive.ubuntu.com then took seconds. With eight partitions,
+      # most runs had at least one such stall, and it was the longest wait.
       - name: Install Chromium (browser and security shards)
         if: matrix.shard == 'browser' || matrix.shard == 'security'
         timeout-minutes: 20
@@ -331,7 +338,7 @@ jobs:
               fi
             fi
             if sudo timeout -k 15 90 apt-get update &&
-              sudo timeout -k 15 180 "$node_bin" node_modules/playwright-core/cli.js install-deps chromium &&
+              sudo timeout -k 15 75 "$node_bin" node_modules/playwright-core/cli.js install-deps chromium &&
               timeout -k 15 180 pnpm run install:browser; then exit 0; fi
             echo "::warning::Chromium install attempt $attempt failed or stalled"
             sleep 10
@@ -402,10 +409,11 @@ jobs:
       # from apt. A healthy run of this step takes 23 to 30 seconds. The image
       # already drops an idle mirror connection after 15 seconds, but on
       # 2026-10-23 the Azure mirror kept trickling data, so one attempt held the
-      # step until its 600-second command limit. Each attempt is now bounded at a
-      # few minutes, and every retry puts archive.ubuntu.com ahead of the Azure
-      # mirror in the image's own failover list (/etc/apt/apt-mirrors.txt, lowest
-      # priority first). Packages an earlier attempt finished stay in apt's cache.
+      # step until its 600-second command limit. Each attempt now allows 75
+      # seconds for the packages, and every retry puts archive.ubuntu.com ahead
+      # of the Azure mirror in the image's own failover list
+      # (/etc/apt/apt-mirrors.txt, lowest priority first). Packages an earlier
+      # attempt finished stay in apt's cache.
       - name: Install Firefox and WebKit for geometry qualification
         if: matrix.shard == 'browser' && matrix.partition == '2/8'
         timeout-minutes: 15
@@ -422,7 +430,7 @@ jobs:
               fi
             fi
             if sudo timeout -k 15 90 apt-get update &&
-              sudo timeout -k 15 180 "$node_bin" node_modules/playwright/cli.js install-deps firefox webkit &&
+              sudo timeout -k 15 75 "$node_bin" node_modules/playwright/cli.js install-deps firefox webkit &&
               timeout -k 15 180 "$node_bin" node_modules/playwright/cli.js install firefox webkit; then exit 0; fi
             echo "::warning::Firefox and WebKit install attempt $attempt failed or stalled"
             sleep 10
@@ -554,7 +562,7 @@ jobs:
               fi
             fi
             if sudo timeout -k 15 90 apt-get update &&
-              sudo timeout -k 15 180 apt-get install -y --no-install-recommends poppler-utils; then exit 0; fi
+              sudo timeout -k 15 75 apt-get install -y --no-install-recommends poppler-utils; then exit 0; fi
             echo "::warning::Poppler install attempt $attempt failed or stalled"
             sleep 10
           done
