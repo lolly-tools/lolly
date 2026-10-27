@@ -208,6 +208,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Configure your first Work instance | [work/customer-setup.md](work/customer-setup.md) |
 | How a Work deployment fits together | [work/deployment.md](work/deployment.md) |
 | Run Work on UpCloud or Evroc | [work/cloud-deployment.md](work/cloud-deployment.md) |
+| Run Work on AWS or MulgaDC Spinifex | [work/aws-compatible.md](work/aws-compatible.md) |
 | WebAssembly and Kubewarden choices | [work/wasm-deployment.md](work/wasm-deployment.md) |
 | Admission policy with Kubewarden | [work/admission-policy.md](work/admission-policy.md) |
 | Work instance configuration | [work/configuration.md](work/configuration.md) |

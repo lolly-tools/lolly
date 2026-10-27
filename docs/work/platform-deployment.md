@@ -194,11 +194,11 @@ then add the repository and pick an exact chart version:
 ```bash
 helm repo add lolly-work https://github.com/lolly-tools/lolly-work/releases/download/helm-index
 helm repo update lolly-work
-helm show chart lolly-work/lolly-work --version 0.3.3
+helm show chart lolly-work/lolly-work --version %work{chart}
 ```
 
 In the production command, replace the local `deploy/helm` argument with
-`lolly-work/lolly-work --version 0.3.3` and keep your reviewed values, configuration
+`lolly-work/lolly-work --version %work{chart}` and keep your reviewed values, configuration
 and Secret references. Check the chart's Sigstore bundle and source record, as
 [official installation routes](official-installations.md#release-verification)
 describes, before you apply the chart.

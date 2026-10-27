@@ -7,7 +7,7 @@
  *
  * ```json
  * { "schemaVersion": 1, "command": "validate", "ok": true, "engine": "1.92.0",
- *   "cli": "0.1.0", "result": {…}, "warnings": [], "error": null }
+ *   "cli": "1.1.2", "result": {…}, "warnings": [], "error": null }
  * ```
  *
  * Three rules, frozen at GA:
