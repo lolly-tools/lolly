@@ -27,9 +27,7 @@ One question decides most of the choice: will other people use this instance? Tr
   is one Helm command, with sample people and memory storage.
 - **One Linux server for a small team?** The [ready-made package](ready-made-package.md)
   brings Work, PostgreSQL, the matching web app and automatic HTTPS, with email and
-  password sign-in. For now it pins the 1.1.1 web app, which shows no tools in a
-  browser, so plan on its console and API until the package moves to a newer web
-  app. If you would rather write your own configuration, run
+  password sign-in. If you would rather write your own configuration, run
   [Compose from source](install.md#5-container-compose) or
   [Node and systemd](install.md#6-bare-metal-systemd).
 - **Already run YunoHost?** [Install the Lolly Work app](install.md#7-yunohost)
