@@ -11,7 +11,7 @@ import { assessJobs, BROWSER_PARTITIONS, browserPartitionJobs, classifyChanges, 
   inspectScope, PREVIOUS_BROWSER_PARTITIONS, PROVIDER_WINDOW_MS, PUBLIC_JOBS, qualify, RELEASE_JOBS, selectTier, touchesDependencies,
   validateScope, WORKFLOW } from '../scripts/ci-qualification.ts';
 import type { Change, Identity, Job, Lane, Scope } from '../scripts/ci-qualification.ts';
-import { BROWSER_PARTITION_COUNT } from '../scripts/browser-partitions.ts';
+import { BROWSER_ENGINE_PARTITION, BROWSER_PARTITION_COUNT, BROWSER_PARTITION_DUTY_MS } from '../scripts/browser-partitions.ts';
 import { PUBLIC_READY_UI_FILES } from '../scripts/run-public-ready-ui.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -297,19 +297,15 @@ test('fast tests start before long suites, share exact steps, and preserve all o
   assert.deepEqual(light.map(value => value.shard), ['unit:engine', 'unit:web', 'tools']);
   assert.deepEqual([...new Set(heavy.map(value => value.shard))], ['browser', 'tauri', 'conformance', 'fuzz:regression']);
   const shards = [...fast.strategy!.matrix.include as typeof light, ...light, ...heavy];
-  assert.equal(shards.length, 8 + BROWSER_PARTITION_COUNT);
-  assert.equal(new Set(shards.map(value => value.artifact)).size, 8 + BROWSER_PARTITION_COUNT);
-  // The workflow runs the partition planner's count, which the trusted policy accepts: the current count or,
-  // until the workflow moves to the current count, the previous one.
-  assert.ok([BROWSER_PARTITIONS, PREVIOUS_BROWSER_PARTITIONS].includes(BROWSER_PARTITION_COUNT));
+  assert.equal(shards.length, 16); assert.equal(new Set(shards.map(value => value.artifact)).size, 16);
+  // The workflow, the partition planner and the trusted policy agree on one browser runner count.
+  assert.equal(BROWSER_PARTITION_COUNT, BROWSER_PARTITIONS);
   assert.deepEqual(shards.filter(value => value.shard === 'browser').map(value => value.partition),
-    Array.from({ length: BROWSER_PARTITION_COUNT }, (_, index) => `${index + 1}/${BROWSER_PARTITION_COUNT}`));
+    Array.from({ length: BROWSER_PARTITIONS }, (_, index) => `${index + 1}/${BROWSER_PARTITIONS}`));
   // Only a pull request in the docs-and-tests lane leaves the heavy tier out; every other lane, unknown included, keeps the heavy tier.
   assert.match(select.run!, /if \[ "\$GITHUB_EVENT_NAME" = pull_request \] && \[ "\$LANE" = docs-and-tests \]; then\n\s+heavy=skip/);
   const heavyNames = heavy.map(value => value.partition ? `test (browser ${value.partition})` : `test (${value.shard})`);
-  const current = browserPartitionJobs(BROWSER_PARTITIONS), ran = browserPartitionJobs(BROWSER_PARTITION_COUNT);
-  assert.deepEqual([...heavyNames, 'test (browser)'].sort(),
-    HEAVY_JOBS.flatMap(name => name === current[0] ? ran : current.includes(name) ? [] : [name]).sort());
+  assert.deepEqual([...heavyNames, 'test (browser)'].sort(), [...HEAVY_JOBS].sort());
   assert.equal(workflow.jobs['browser-gate']!.if, expression("!cancelled() && needs.deployment-scope.outputs.heavy-tier != 'skip'"));
   for (const name of ['public-ready']) {
     const needs = workflow.jobs[name]!.needs as string[];
@@ -318,6 +314,22 @@ test('fast tests start before long suites, share exact steps, and preserve all o
   }
   assert.ok((workflow.jobs['release-ready']!.needs as string[]).includes('test-fast'));
   assert.ok((workflow.jobs['release-ready']!.needs as string[]).includes('test'));
+});
+
+test('each browser conformance step runs in one current partition, and the planner counts its time', () => {
+  interface Step { name?: string; if?: string }
+  const workflow = parse(readFileSync(join(root, WORKFLOW), 'utf8')) as { jobs: Record<string, { steps: Step[] }> };
+  const gated = workflow.jobs.test!.steps.flatMap(step => {
+    const match = /matrix\.partition == '(\d+)\/(\d+)'/.exec(step.if ?? '');
+    return match ? [{ name: step.name, index: Number(match[1]), count: Number(match[2]) }] : [];
+  });
+  assert.ok(gated.length >= 4, 'geometry, Firefox and WebKit, cross-engine geometry and drawing steps');
+  for (const step of gated) assert.equal(step.count, BROWSER_PARTITION_COUNT, step.name ?? 'unnamed step');
+  const timed = gated.filter(step => /geometry|Firefox|drawing/i.test(step.name ?? ''));
+  assert.deepEqual([...new Set(timed.map(step => String(step.index)))].sort(), Object.keys(BROWSER_PARTITION_DUTY_MS).sort());
+  // The files pinned for Firefox and WebKit go to the one runner that installs those builds.
+  const engines = gated.filter(step => /Firefox and WebKit/.test(step.name ?? ''));
+  assert.ok(engines.length >= 2 && engines.every(step => step.index === BROWSER_ENGINE_PARTITION));
 });
 
 test('a run from before the browser runner count changed qualifies with its own complete partitions', () => {

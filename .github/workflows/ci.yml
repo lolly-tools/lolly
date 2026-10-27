@@ -128,7 +128,7 @@ jobs:
       # The long test matrix is chosen here from the trusted lane above. Only a
       # pull request in the docs-and-tests lane (every change is documentation
       # content, a test or a reviewed baseline: classifyDocsAndTests in
-      # scripts/ci-qualification.ts) leaves out the heavy tier: the four WebGPU
+      # scripts/ci-qualification.ts) leaves out the heavy tier: the eight WebGPU
       # browser partitions and their gate, Tauri, conformance (qpdf and
       # c2patool) and fuzz regression. Every main push, every other pull request
       # and any run whose lane is missing or unknown keeps every shard. This
@@ -143,10 +143,14 @@ jobs:
             {"shard": "unit:web", "artifact": "unit-web", "timeout": 30},
             {"shard": "tools", "artifact": "tools", "timeout": 15}]
           HEAVY_SHARDS: >-
-            [{"shard": "browser", "artifact": "browser-1", "partition": "1/4", "timeout": 105},
-            {"shard": "browser", "artifact": "browser-2", "partition": "2/4", "timeout": 105},
-            {"shard": "browser", "artifact": "browser-3", "partition": "3/4", "timeout": 105},
-            {"shard": "browser", "artifact": "browser-4", "partition": "4/4", "timeout": 105},
+            [{"shard": "browser", "artifact": "browser-1", "partition": "1/8", "timeout": 90},
+            {"shard": "browser", "artifact": "browser-2", "partition": "2/8", "timeout": 90},
+            {"shard": "browser", "artifact": "browser-3", "partition": "3/8", "timeout": 90},
+            {"shard": "browser", "artifact": "browser-4", "partition": "4/8", "timeout": 90},
+            {"shard": "browser", "artifact": "browser-5", "partition": "5/8", "timeout": 90},
+            {"shard": "browser", "artifact": "browser-6", "partition": "6/8", "timeout": 90},
+            {"shard": "browser", "artifact": "browser-7", "partition": "7/8", "timeout": 90},
+            {"shard": "browser", "artifact": "browser-8", "partition": "8/8", "timeout": 90},
             {"shard": "tauri", "artifact": "tauri", "timeout": 40},
             {"shard": "conformance", "artifact": "conformance", "timeout": 25},
             {"shard": "fuzz:regression", "artifact": "fuzz-regression", "timeout": 15}]
@@ -307,6 +311,13 @@ jobs:
       # Every apt command runs as `sudo timeout`, so the root `timeout` can stop
       # apt-get and its download helpers. A stopped attempt can leave dpkg half
       # configured, so each retry runs `dpkg --configure -a` first.
+      # The three installs every browser partition waits on (Chromium's
+      # libraries here, Firefox and WebKit, and Poppler) allow 75 seconds an
+      # attempt instead of 180. A healthy one fetches in 1 to 3 seconds and
+      # finishes in under 30, but in about a fifth of partitions (9 of 40 in
+      # October 2026) the Azure mirror trickled until the limit, and the retry
+      # through archive.ubuntu.com then took seconds. With eight partitions,
+      # most runs had at least one such stall, and it was the longest wait.
       - name: Install Chromium (browser and security shards)
         if: matrix.shard == 'browser' || matrix.shard == 'security'
         timeout-minutes: 20
@@ -327,7 +338,7 @@ jobs:
               fi
             fi
             if sudo timeout -k 15 90 apt-get update &&
-              sudo timeout -k 15 180 "$node_bin" node_modules/playwright-core/cli.js install-deps chromium &&
+              sudo timeout -k 15 75 "$node_bin" node_modules/playwright-core/cli.js install-deps chromium &&
               timeout -k 15 180 pnpm run install:browser; then exit 0; fi
             echo "::warning::Chromium install attempt $attempt failed or stalled"
             sleep 10
@@ -352,7 +363,10 @@ jobs:
       # Every browser partition runs the WebGPU check: it also exports the
       # software adapter and the required flag that the later browser steps use.
       # The geometry and drawing conformance runs below do not depend on a
-      # partition's test files, so each runs in one partition, not in all four.
+      # partition's test files, so each runs in one partition, not in every one.
+      # Their measured time is `partitionDutyMs` in
+      # scripts/data/browser-test-durations.json, so the partitions that run
+      # them are given fewer test files and all eight finish together.
       - name: Require WebGPU conformance
         if: matrix.shard == 'browser'
         env:
@@ -367,7 +381,7 @@ jobs:
           pnpm run test:webgpu
 
       - name: Require geometry conformance
-        if: matrix.shard == 'browser' && matrix.partition == '1/4'
+        if: matrix.shard == 'browser' && matrix.partition == '1/8'
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
           LOLLY_BROWSER_CHANNEL: chromium
@@ -381,8 +395,8 @@ jobs:
       # The Firefox and WebKit builds Playwright downloads (about 190 MB) come
       # from this cache, keyed by the exact revisions playwright-core pins, so
       # `playwright install` below downloads them only when Playwright moves.
-      - name: Cache Firefox and WebKit (browser 2/4)
-        if: matrix.shard == 'browser' && matrix.partition == '2/4'
+      - name: Cache Firefox and WebKit (browser 2/8)
+        if: matrix.shard == 'browser' && matrix.partition == '2/8'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
@@ -395,12 +409,13 @@ jobs:
       # from apt. A healthy run of this step takes 23 to 30 seconds. The image
       # already drops an idle mirror connection after 15 seconds, but on
       # 2026-10-23 the Azure mirror kept trickling data, so one attempt held the
-      # step until its 600-second command limit. Each attempt is now bounded at a
-      # few minutes, and every retry puts archive.ubuntu.com ahead of the Azure
-      # mirror in the image's own failover list (/etc/apt/apt-mirrors.txt, lowest
-      # priority first). Packages an earlier attempt finished stay in apt's cache.
+      # step until its 600-second command limit. Each attempt now allows 75
+      # seconds for the packages, and every retry puts archive.ubuntu.com ahead
+      # of the Azure mirror in the image's own failover list
+      # (/etc/apt/apt-mirrors.txt, lowest priority first). Packages an earlier
+      # attempt finished stay in apt's cache.
       - name: Install Firefox and WebKit for geometry qualification
-        if: matrix.shard == 'browser' && matrix.partition == '2/4'
+        if: matrix.shard == 'browser' && matrix.partition == '2/8'
         timeout-minutes: 15
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
@@ -415,7 +430,7 @@ jobs:
               fi
             fi
             if sudo timeout -k 15 90 apt-get update &&
-              sudo timeout -k 15 180 "$node_bin" node_modules/playwright/cli.js install-deps firefox webkit &&
+              sudo timeout -k 15 75 "$node_bin" node_modules/playwright/cli.js install-deps firefox webkit &&
               timeout -k 15 180 "$node_bin" node_modules/playwright/cli.js install firefox webkit; then exit 0; fi
             echo "::warning::Firefox and WebKit install attempt $attempt failed or stalled"
             sleep 10
@@ -423,7 +438,7 @@ jobs:
           exit 1
 
       - name: Require one geometry answer in Chromium, Firefox and WebKit
-        if: matrix.shard == 'browser' && matrix.partition == '2/4'
+        if: matrix.shard == 'browser' && matrix.partition == '2/8'
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
           LOLLY_BROWSER_CHANNEL: chromium
@@ -547,14 +562,14 @@ jobs:
               fi
             fi
             if sudo timeout -k 15 90 apt-get update &&
-              sudo timeout -k 15 180 apt-get install -y --no-install-recommends poppler-utils; then exit 0; fi
+              sudo timeout -k 15 75 apt-get install -y --no-install-recommends poppler-utils; then exit 0; fi
             echo "::warning::Poppler install attempt $attempt failed or stalled"
             sleep 10
           done
           exit 1
 
       - name: Require drawing fidelity against the Design renderer
-        if: matrix.shard == 'browser' && matrix.partition == '3/4'
+        if: matrix.shard == 'browser' && matrix.partition == '3/8'
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
           LOLLY_FIDELITY_REPORT: artifacts/drawing-fidelity-report.json
@@ -759,12 +774,13 @@ jobs:
     needs: [deployment-scope, public-ready-ui]
     if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
-    # Per shard, in minutes. Passing runs take about 15 (unit:engine), 11
-    # (unit:web) and 21 to 33 (a browser partition) at the 90th percentile.
+    # Per shard, in minutes. Passing runs take about 15 (unit:engine) and 11
+    # (unit:web) at the 90th percentile. Four browser partitions took 21 to 33
+    # each; with eight, the tests in each take about 12.
     # A shard that installs packages adds those step limits: a browser
     # partition allows 20 (Chromium) + 5 + 5 (ffmpeg and its check) + 10
     # (Poppler) for its installs, plus 15 for Firefox and WebKit in partition 2,
-    # 34 for its tests and 7 for checkout, with 9 to spare.
+    # 23 for its tests and conformance steps and 7 for checkout, with 5 to spare.
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
