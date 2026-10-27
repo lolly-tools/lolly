@@ -1108,6 +1108,7 @@ checked against.
 | Route | Action | Notes |
 |---|---|---|
 | `GET /catalog/*` | per access mode | pack blobs, lifecycle-gated |
+| `GET /api/v1/catalog/public-key` | public | the public half of `LW_CATALOG_SIGNING_KEY`: `{ version: 1, alg, keyId, publicKey: { kty, crv, x, y } }`, revalidated on every read; `404 CATALOG_SIGNING_OFF` without a key, `503 CATALOG_SIGNING_UNAVAILABLE` when the key does not load. The web app at `/` reads the route from its own address only ([the catalogue key](operations.md#the-catalogue-key)) |
 | `GET /api/v1/catalog/assets` | per access mode | one page of the caller's feed: `q`, `source`, `section`, `collection`, `tag`, `type`, `cursor`, `limit`; returns `{ assets, total, nextCursor, facets, version }` ([large catalogs](catalog.md#large-catalogs)) |
 | `GET /api/v1/catalog/assets/*` | member; visible asset | inspect source facts, organisation fields and text-index status without returning extracted words |
 | `GET /api/v1/catalog/search` | `catalog.read` | live fan-out to search-capable providers |

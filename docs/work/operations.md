@@ -106,6 +106,48 @@ the sign-in gate and locked inputs while the instance looked governed.
 `LW_ALLOW_STALE_SHELL=1` turns the refusal into a loud warning; use it knowingly and
 briefly.
 
+#### The catalogue key
+
+A release web app has the publisher's catalogue key built in and refuses any catalogue
+that key did not sign. Work signs each person's catalogue with this instance's own key,
+`LW_CATALOG_SIGNING_KEY`, because each person sees a different set of tools. From Lolly
+1.1.3, the web app reads the public half of the instance key from
+`GET /api/v1/catalog/public-key` at the address that served the web app, and accepts a
+catalogue signed with that key. Nothing in the web app is patched or rebuilt.
+
+- **Same address only.** The web app takes the instance key only from the address that
+  served its own code. Whoever runs that address already decides which code the web app
+  runs, so believing that address about its catalogue key trusts nobody new. A web app on
+  lolly.tools, on any other static host, or inside the desktop and mobile apps never asks
+  for the key and keeps the key built into its release.
+- **Only for that key.** The instance key verifies only a catalogue that carries its key
+  ID. A catalogue signed by any other key, or not signed at all, is refused as before.
+- **One operator per address.** A proxy that sends this address's `/api/` paths to a
+  service run by someone else would let that party offer a key. Serve Work and its web
+  app from an address you alone operate.
+- **No key, no catalogue.** With `LW_CATALOG_SIGNING_KEY` unset the route answers 404,
+  as a server from before 1.1.3 does, and the web app refuses the catalogue. A key that
+  does not load answers 503, and the server log says why without printing the key.
+
+**Rotating the key.** Set a new `LW_CATALOG_SIGNING_KEY` and restart. A web app reads the
+public key again each time the catalogue syncs, so it takes the new key at its next sync,
+and from then on a catalogue signed with the old key is refused. A browser that has not
+synced since the restart keeps the old key until its next sync.
+
+**Offline.** Each browser saves the last key it read for this address beside the
+catalogue it accepted. Offline, or while the route gives no answer, the browser checks
+the saved catalogue against the saved key. A 404 from the route removes the saved key.
+
+**Older web apps.** A web app from before 1.1.3 does not read the route. Serve one built
+with this instance's public key, or use the ready-made package, whose first start writes
+the instance key into the web app it installs.
+
+**The desktop and mobile apps** keep the key built into each app when connected to an
+instance, so this instance's own catalogue reaches only an app built with this instance's
+key. Pairing an app with a server, which is planned, can carry the key ID beside the
+server's certificate fingerprint, so the app can check the key it reads against one it
+was given in person.
+
 ## Backup and restore
 
 The database holds durable records and, with `blobs.driver: "pg"`, stored asset
@@ -163,6 +205,7 @@ dump on an existing cluster.
 | `LW_METRICS_TOKEN` | Update the scraper |
 | `LW_RENDER_WORKER_SECRET` | Rotate the application and the worker together |
 | `LW_C2PA_SIGNING_KEY` | New signatures use the new identity; old exports stay verifiable against the old chain |
+| `LW_CATALOG_SIGNING_KEY` | Restart with the new key. A web app from Lolly 1.1.3 takes the new public key at its next catalogue sync ([the catalogue key](#the-catalogue-key)). A web app built with the old public key refuses the catalogue until it is built with the new one |
 
 Generate each secret once (`openssl rand -hex 32`), keep it in your platform's secret
 manager and rotate it only as planned.
