@@ -238,6 +238,34 @@ test('hosted Tauri workflows consume an independently signed frontend', () => {
   }
 });
 
+test('sign-catalog with explicit --tools and --index never resolves the active profile', async t => {
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-release-test-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const tools = join(dir, 'tools');
+  mkdirSync(join(tools, 'demo'), { recursive: true });
+  writeFileSync(join(tools, 'demo', 'tool.json'), JSON.stringify({ id: 'demo' }));
+  writeFileSync(join(tools, 'demo', 'template.html'), '<svg></svg>');
+  const index = join(dir, 'index.json');
+  writeFileSync(index, JSON.stringify({ tools: [{ id: 'demo' }] }));
+  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const out = join(dir, 'index.sig.json');
+  // A key-holding job carries no private pack, so the profile it names cannot resolve.
+  const run = spawnSync(process.execPath, [
+    fileURLToPath(new URL('../scripts/sign-catalog.ts', import.meta.url)),
+    '--tools', tools, '--index', index, '--out', out,
+  ], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      LOLLY_PROFILE: 'no-such-profile',
+      LOLLY_CATALOG_SIGNING_KEY: JSON.stringify(await crypto.subtle.exportKey('jwk', pair.privateKey)),
+      VITE_CATALOG_PUBLIC_KEY_JWK: JSON.stringify(await crypto.subtle.exportKey('jwk', pair.publicKey)),
+    },
+  });
+  assert.equal(run.status, 0, run.stderr);
+  assert.equal((await verifyCatalogEnvelope(JSON.parse(readFileSync(out, 'utf8')), readFileSync(index), pair.publicKey)).ok, true);
+});
+
 test('web container verifies signed artifacts using only public material', () => {
   const source = readFileSync(new URL('../deploy/docker/web.Dockerfile', import.meta.url), 'utf8');
   const instructions = source.replace(/^\s*#.*$/gm, '').replace(/\\\n\s*/g, ' ');
