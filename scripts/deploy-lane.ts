@@ -24,11 +24,12 @@
  * deployment-suse.yml and the release workflows keep their exact-commit guard.
  *
  * Whoever enforces a lane computes the lane from Git; a label or a commit message never decides the lane.
- * The preview deploy tool in lolly-work enforces it, at deploy time, with a Python port tested against the
- * same cases (tests/fixtures/deploy-lane/cases.json). Until 2026-10-27 preview-web.yml also ran the base
- * commit's copy of this file before it built. It now builds each commit as soon as it reaches main and
- * refuses only a source whose own CI failed, so the lane decision is the deploy tool's alone. This file stays the
- * reference the port is tested against, and the way to see a commit's lane by hand.
+ * The preview deploy tool in lolly-work enforces it at deploy time, with a Python port tested against the
+ * same cases (tests/fixtures/deploy-lane/cases.json). lolly.ing's private build gate runs the base
+ * commit's copy of this file for the Lolly commit a Work commit pins, the way ci.yml runs its trusted base
+ * policy. Until 2026-10-27 preview-web.yml did the same before it built a lolly.tools image; it now builds
+ * each commit as soon as it reaches main and refuses only a source whose own CI failed, so for lolly.tools
+ * the deploy tool's port decides alone.
  *
  * It imports Node built-ins only, so a copy taken out of any commit runs on its own.
  *
