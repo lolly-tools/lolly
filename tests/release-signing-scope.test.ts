@@ -419,6 +419,61 @@ test('the preview workflow runs the same normal main CI check as the release can
   assert.match(workflowText('preview-web.yml'), /event=push&branch=main&status=success/);
 });
 
+// Fast deploy lanes (scripts/deploy-lane.ts, 2026-10-27). The preview guard is the release guard plus one
+// rule: a source without a successful full main CI run of its own may bind the newest first-parent ancestor
+// that has one, when the base's own lane script finds the change inside a fast lane and the lane job passed.
+test('the preview guard differs from the release guard by exactly the lane rule', () => {
+  const bind = (name: string): string => {
+    const steps = workflowYaml(name).jobs['source-qualification'].steps as { name?: string; run?: string }[];
+    const matches = steps.filter(step => /^Bind the (?:source|candidate) to its completed normal main CI/.test(step.name ?? ''));
+    assert.equal(matches.length, 1, name);
+    return matches[0]!.run!;
+  };
+  const preview = bind('preview-web.yml'), release = bind('deployment-suse.yml');
+  const LANE = /# Lane rule begin\.[\s\S]*?# Lane rule end\.\n/;
+  const lane = preview.match(LANE)?.[0];
+  assert.ok(lane, 'the preview guard marks its lane rule');
+  assert.equal(preview.match(new RegExp(LANE, 'g'))?.length, 1);
+  assert.doesNotMatch(release, /Lane rule|deploy-lane|fast-lanes|CI_SOURCE/);
+
+  // From the run lookup to the end, the preview guard is the release guard, bound to CI_SOURCE.
+  const tail = (text: string) => text.slice(text.indexOf('gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN"'));
+  assert.ok(tail(release).length > 500);
+  assert.equal(tail(preview).replace('EXPECTED_SOURCE="$CI_SOURCE" node --input-type=module', 'node --input-type=module'), tail(release));
+  assert.equal(tail(preview).split('EXPECTED_SOURCE="$CI_SOURCE"').length, 2, 'only the inventory check takes CI_SOURCE');
+
+  // Outside the lane rule, CI_SOURCE is the source and CI_RUN is its own exact successful run, as before.
+  const head = preview.slice(0, preview.indexOf(tail(preview))).replace(lane, '');
+  assert.deepEqual(head.trim().split('\n').filter(line => !line.startsWith('#')), [
+    'set -euo pipefail',
+    '[[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]',
+    'test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"',
+    'git merge-base --is-ancestor "$EXPECTED_SOURCE" refs/remotes/origin/main',
+    'test -z "$(git status --porcelain)"',
+    'CI_RUN=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$EXPECTED_SOURCE&event=push&branch=main&status=success&per_page=1" --jq \'.workflow_runs[0].id // empty\')',
+    'CI_SOURCE=$EXPECTED_SOURCE',
+    '[[ "$CI_RUN" =~ ^[1-9][0-9]*$ ]]',
+    'export CI_RUN',
+  ]);
+
+  // The lane rule runs only without that run, finds the base among successful main pushes on the
+  // source's first-parent line, and hands the decision to the base's own copy of the lane script.
+  assert.match(lane, /\nif \[\[ -z "\$CI_RUN" \]\]; then\n/);
+  assert.match(lane, /actions\/workflows\/ci\.yml\/runs\?branch=main&event=push&status=success&per_page=100/);
+  assert.match(lane, /select\(\.path == "\.github\/workflows\/ci\.yml" and \.event == "push" and \.head_branch == "main" and \.conclusion == "success"\)/);
+  assert.match(lane, /git rev-list --first-parent --max-count=50 "\$EXPECTED_SOURCE"/);
+  assert.match(lane, /git show "\$CI_SOURCE:scripts\/deploy-lane\.ts" > "\$RUNNER_TEMP\/deploy-lane\.ts"/);
+  assert.match(lane, /node "\$RUNNER_TEMP\/deploy-lane\.ts" qualify "\$CI_SOURCE" "\$EXPECTED_SOURCE" "\$RUNNER_TEMP\/deploy-lane\.json"/);
+  assert.doesNotMatch(lane, /scripts\/deploy-lane\.ts"? qualify|node scripts\//, 'never the source checkout\'s own copy');
+
+  // No release workflow can take a lane.
+  const directory = new URL('../.github/workflows/', import.meta.url);
+  for (const file of readdirSync(directory).filter(name => /\.ya?ml$/.test(name))) {
+    if (file === 'preview-web.yml' || file === 'fast-lanes.yml') continue;
+    assert.doesNotMatch(workflowText(file), /deploy-lane|fast-lanes|LANE_JOB|docs lane|web lane/, `${file} references a fast lane`);
+  }
+});
+
 test('each preview run is titled with its source, which the deploy tool binds by', () => {
   assert.equal(workflowYaml('preview-web.yml')['run-name'], `Preview web ${gh('inputs.source')}`);
 });

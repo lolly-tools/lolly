@@ -245,6 +245,52 @@ the heavy entries out of the test matrix rather than skipping a matrix job, so
 every reported job name stays exact; `test (browser)` and `release-ready` report
 as skipped.
 
+### Fast deploy lanes for the lolly.tools preview
+
+The lanes above decide what CI runs on a pull request. Two deploy lanes decide
+something narrower: how soon the lolly.tools preview may ship a commit that is
+already on `main`, before that commit's own full `ci.yml` run has finished.
+They never apply to a release, and `deployment-suse.yml` and the release
+workflows keep their exact-commit check.
+
+The base is the newest first-parent ancestor whose full `ci.yml` push run on
+`main` passed. Every path that differs between the base and the commit decides
+the lane, computed from Git by each enforcer:
+
+- **docs**: every change is under `docs/` (pages, translations, shots, figures,
+  the registry and the `/info` builder) or is one of the two pages rendered from
+  outside it (`README.md`, `engine/text-composition.md`). It needs the
+  `docs lane` job of `.github/workflows/fast-lanes.yml`: the tests that read the
+  docs, the docs nav and wording gates and the `/info` build.
+- **web**: every change is under `docs/` or `shells/web/`, apart from the
+  exclusions below. It needs the `web lane` job, which needs the docs lane as
+  well as the web typecheck, the changed-file lint, the UI copy, comment, house
+  rules, locale and maintainability gates, the `unit:web` shard in two parts,
+  the production build with both budgets, the security shard and one real
+  Chromium run that opens the gallery, opens the QR code tool and exports a PNG.
+- Everything else waits for the full run, as before.
+
+The web lane leaves out, and so sends to the full run: dependency manifests and
+lockfiles; the web build inputs (`vite.config.js`, the tsconfigs, `build/`,
+`index.html`, the models manifest and the RPM files); everything in
+`shells/web/public/` except static images, fonts, audio and video, so the service
+worker, its pages, scripts and `.well-known/`; `main.ts`; the bridge (stored
+formats, the export path the CLI and MCP drive, the Tauri shells' base);
+`capture/`, `catalog/`, `collab/`, `org/`, `ext/`, `vendor/`, `ca-root.ts` and
+the personal sync modules; and any file whose name carries a security word
+(the public-ready list plus signing, provenance, migration, CSP, OAuth and the
+service worker). `docs/supported-environments.md` and `docs/parser-inventory.md`
+always need the full run, because release and security gates read them. Test
+files never ship, so they take the lane of the changes beside them.
+
+A lane never overrides a full run that has already failed on the commit.
+`preview-web.yml` enforces the lane with the copy of `scripts/deploy-lane.ts`
+from the base commit, and the preview deploy tool in lolly-work carries a
+Python port tested against the same cases in
+`tests/fixtures/deploy-lane/cases.json`; a deploy needs both to agree. To see
+the lane of a commit, run
+`node scripts/deploy-lane.ts classify <base> <commit>`.
+
 ### Dependency advisories and cooldown
 
 The `npm audit (high+critical)` job inventories every lockfile and checks the

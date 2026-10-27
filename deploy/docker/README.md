@@ -272,8 +272,12 @@ digest: set `image.digest` to the digest listed in the release's `images.json`.
 
 `preview-web.yml` ships the lolly.tools web shell without waiting for a reviewer.
 It is dispatch-only and runs from `main` only. It takes an exact `source` commit,
-which must be an ancestor of `main` and have a successful `ci.yml` push run on
-`main`, and it applies the same WebGPU gate as the release image. It calls
+which must be an ancestor of `main` with a successful `ci.yml` push run on `main`
+of its own, or sit in a fast deploy lane above a commit that has one (see
+"Fast deploy lanes" in `CONTRIBUTING.md`), and it applies the same WebGPU gate as
+the release image. For a lane, the run binds the base commit's full CI run and
+uploads `deploy-lane.json` beside `normal-ci-source.json`: the base, the lane,
+the changed-path digest and the `fast-lanes.yml` job that passed on the source. It calls
 `release-frontend.yml` with `signing_environment: preview-catalog-signing`, builds
 the web image from the signed frontend, and publishes it to
 `ghcr.io/lolly-tools/lolly-web-preview` by digest only. It never writes `latest`
@@ -293,6 +297,10 @@ What it does not change for releases:
 - The connector origins, CA-enrollment trust, live relay and profile come from the
   same variables as the release build.
 - The preview image is not cosign-signed. Its labels say it is a preview.
+- The fast deploy lanes are the preview's only. `deployment-suse.yml` still binds
+  the candidate's own successful `ci.yml` run, and
+  `tests/release-signing-scope.test.ts` fails if the two guards differ by more
+  than the lane rule.
 
 One-time setup (repository settings, not workflow code). Do these in order, all
 before the first dispatch of `preview-web.yml`:
