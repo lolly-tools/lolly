@@ -222,6 +222,7 @@ where you can.
 | cert-manager | in practice | TLS; an annotation example is in `values.yaml` |
 | Keycloak or any OIDC provider | yes, for single sign-on | any OIDC provider works; `idp.displayName` is the label people see |
 | kube-prometheus-stack | optional | ServiceMonitor template included; `/metrics` needs a token |
+| OpenTelemetry Collector | optional | `otel` values send traces, metrics and logs over OTLP/HTTP; off by default ([details](operations.md#opentelemetry-export)) |
 | Node.js base image | yes | default Node 26 Alpine; SUSE BCI `bci/nodejs:24-base` is the separately qualified alternative |
 | S3-compatible object store | optional | only for the S3 catalog provider |
 | Chromium worker image | optional | built in the repository from `workers/render` |

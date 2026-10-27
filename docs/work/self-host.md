@@ -89,7 +89,7 @@ its checks are recorded.
 |---|---|
 | **Work server image**: `ghcr.io/lolly-tools/lolly-work-server:1.1.2` | Compose and Kubernetes; Linux `amd64` and `arm64` manifests |
 | **Optional render worker**: `ghcr.io/lolly-tools/lolly-work-render-worker:1.1.2` | Browser-based server rendering; configure its authenticated HTTPS transport separately |
-| **Helm chart** 0.3.3: `deploy/helm` in the source code | Work 1.1.2 on an existing Kubernetes platform. No packaged chart is published yet |
+| **Helm chart** %work{chart}: `deploy/helm` in the source code | Work 1.1.2 on an existing Kubernetes platform. The chart carries the release version; the packaged chart is first published as 1.1.3, with the 1.1.3 release |
 | **Source code** on the Work release page | Node and systemd installs, local evaluation, deployment recipes and custom image builds |
 | **[Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh)** | The complete server with host accounts; follow the package's version notes |
 | **[Lolly web app 1.1.1](https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz)** | The browser app that matches a Work installation. Work 1.1.2 keeps this archive because Lolly 1.1.2 published no new one. On its own, this archive is a static web app |
