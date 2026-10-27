@@ -322,7 +322,7 @@ jobs:
 
   # The only job with packages: write. It runs no npm, no compiler and no repository
   # script: it checks the archive it was handed, pushes it by digest with a
-  # pinned registry tool and reads it back.
+  # pinned registry tool, signs that digest keylessly and reads it back.
   publish:
     name: Publish the preview web image by digest
     needs: [source-qualification, web-image]
@@ -331,6 +331,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+      # Keyless signing exchanges this workflow's OIDC identity for a short-lived
+      # Sigstore certificate, as release images do. No signing key exists here.
+      id-token: write
     defaults:
       run:
         shell: bash
@@ -368,6 +371,10 @@ jobs:
           tar -xzf "$RUNNER_TEMP/crane.tar.gz" -C "$bin" crane
           echo "$bin" >> "$GITHUB_PATH"
 
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: v3.0.6
+
       - name: Push by digest only
         run: |
           set -euo pipefail
@@ -380,6 +387,13 @@ jobs:
           # A digest reference carries no tag: nothing here can write latest or a version tag.
           crane push "$RUNNER_TEMP/preview/lolly-preview-web.tar" "$repository@$digest"
           test "$(crane digest "$repository@$digest")" = "$digest"
+          # One verification rule for every image: a preview digest is signed too. The
+          # certificate names this workflow, so a release policy, which names the
+          # release workflows, never accepts a preview image.
+          identity="$GITHUB_SERVER_URL/$GITHUB_WORKFLOW_REF"
+          COSIGN_YES=true cosign sign "$repository@$digest"
+          cosign verify "$repository@$digest" \
+            --certificate-identity "$identity" --certificate-oidc-issuer https://token.actions.githubusercontent.com > /dev/null
           crane config "$repository@$digest" | jq -e --arg source "$EXPECTED_SOURCE" '.config.Labels["org.opencontainers.image.revision"] == $source'
           # Receipts in the shape the preview deploy command already reads, under the preview artifact name.
           receipts="$RUNNER_TEMP/receipt"
@@ -395,6 +409,8 @@ jobs:
             echo "### Preview web image"
             echo
             echo "    $repository@$digest"
+            echo
+            echo "Signed keylessly by \`$identity\`."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

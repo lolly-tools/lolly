@@ -383,6 +383,19 @@ test('only the preview publish job can write packages, runs no npm, and pushes b
   assert.match(text, /org\.opencontainers\.image\.title=lolly-web-preview/);
 });
 
+test('the preview publish job signs the pushed digest keylessly, under its own workflow identity', () => {
+  const workflow = workflowYaml('preview-web.yml');
+  const holders = Object.entries<any>(workflow.jobs).filter(([, job]) => job.permissions?.['id-token'] === 'write').map(([id]) => id);
+  assert.deepEqual(holders, ['publish'], 'only the publish job can mint a signing identity');
+  const steps = workflow.jobs.publish.steps;
+  assert.ok(steps.some((step: any) => /^sigstore\/cosign-installer@[0-9a-f]{40}$/.test(step.uses ?? '')), 'cosign comes from the pinned installer');
+  const push: string = steps.find((step: any) => /crane push/.test(step.run ?? '')).run;
+  assert.ok(push.indexOf('cosign sign "$repository@$digest"') > push.indexOf('crane push'), 'the signature is made after the push, by digest');
+  assert.match(push, /identity="\$GITHUB_SERVER_URL\/\$GITHUB_WORKFLOW_REF"/);
+  assert.match(push, /cosign verify "\$repository@\$digest" \\\n\s+--certificate-identity "\$identity" --certificate-oidc-issuer https:\/\/token\.actions\.githubusercontent\.com/);
+  assert.doesNotMatch(push, /cosign sign[^\n]*--key/, 'no signing key');
+});
+
 test('the preview web build keeps the release build arguments, connector origins, CA trust and live relay', () => {
   const release = workflowYaml('deployment-suse.yml').jobs['web-frontend'].with;
   const preview = workflowYaml('preview-web.yml').jobs['web-frontend'].with;
