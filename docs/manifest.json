@@ -2129,6 +2129,23 @@
       }
     },
     {
+      "slug": "work-admission-policy",
+      "title": "Admission policy with Kubewarden",
+      "src": "work/admission-policy.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/admission-policy",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "What Work pods need from an admission policy, a ready Kubewarden policy set pinned by digest, a preflight check and how the set was qualified.",
+      "work": {
+        "slug": "admission-policy",
+        "path": "admission-policy.md",
+        "icon": "overview"
+      }
+    },
+    {
       "slug": "work-security-platform",
       "title": "Lolly Work security overview",
       "src": "work/security-platform.md",
@@ -2830,6 +2847,23 @@
       "work": {
         "slug": "operations",
         "path": "operations.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-metrics",
+      "title": "Metrics and alerts",
+      "src": "work/metrics.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/metrics",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Every metric Work exports on /metrics with its type and labels, the suggested Prometheus alerts and the Grafana dashboard the Helm chart can install.",
+      "work": {
+        "slug": "metrics",
+        "path": "metrics.md",
         "icon": "audit"
       }
     },

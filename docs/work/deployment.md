@@ -142,6 +142,12 @@ that owns the schema.
   until a worker exists. The details for turning it on are below.
 - **Behind an ingress, set `config.rateLimit.trustedProxyHops: 1`**, or per-address
   limits see only the ingress.
+- **Alerts and a dashboard are optional.** `metrics.prometheusRule.enabled` installs
+  suggested alerts as a `PrometheusRule`, and `metrics.grafanaDashboard.enabled` a
+  Grafana dashboard for the sidecar. Both are off by default and read only what
+  `/metrics` exports ([metrics and alerts](metrics.md)). For admission policy, the
+  repository carries a [Kubewarden policy set](admission-policy.md) that you apply
+  separately.
 
 ::: details Turning on the render worker
 When you enable the worker, also set `config.render.worker.url` to the worker Service
