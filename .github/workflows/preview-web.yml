@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
     inputs:
       source:
-        description: Exact 40-hex commit to ship; it must be an ancestor of main and have its successful CI push run on main
+        description: Exact 40-hex commit to ship; an ancestor of main with its own successful CI push run on main, or within a fast lane of one (scripts/deploy-lane.ts)
         required: true
         type: string
       min_seq:
@@ -69,16 +69,39 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      - name: Bind the source to its completed normal main CI
+      - name: Bind the source to its completed normal main CI, or to a fast lane above one
         run: |
           set -euo pipefail
           [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
           git merge-base --is-ancestor "$EXPECTED_SOURCE" refs/remotes/origin/main
           test -z "$(git status --porcelain)"
-          # The exact successful push run of ci.yml on main for this commit. The checks below are the
-          # same code deployment-suse.yml runs, and tests/release-signing-scope.test.ts keeps them identical.
+          # The exact successful push run of ci.yml on main for this commit. The checks after the lane
+          # rule are the same code deployment-suse.yml runs, bound to CI_SOURCE, and
+          # tests/release-signing-scope.test.ts keeps them identical.
           CI_RUN=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$EXPECTED_SOURCE&event=push&branch=main&status=success&per_page=1" --jq '.workflow_runs[0].id // empty')
+          CI_SOURCE=$EXPECTED_SOURCE
+          # Lane rule begin. The only difference from deployment-suse.yml's guard. Without a successful
+          # full CI run of its own, the source may still ship when its newest first-parent ancestor with
+          # one (CI_SOURCE) differs from it only inside a fast lane, and that lane's job in
+          # fast-lanes.yml passed on the source. scripts/deploy-lane.ts decides, read from CI_SOURCE
+          # itself, so a change to the rules applies only once it has passed full CI.
+          if [[ -z "$CI_RUN" ]]; then
+            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=main&event=push&status=success&per_page=100" \
+              --jq '.workflow_runs[] | select(.path == ".github/workflows/ci.yml" and .event == "push" and .head_branch == "main" and .conclusion == "success") | "\(.head_sha) \(.id)"' \
+              > "$RUNNER_TEMP/main-ci-successes.txt"
+            for commit in $(git rev-list --first-parent --max-count=50 "$EXPECTED_SOURCE"); do
+              CI_RUN=$(awk -v commit="$commit" '$1 == commit { print $2; exit }' "$RUNNER_TEMP/main-ci-successes.txt")
+              if [[ -n "$CI_RUN" ]]; then CI_SOURCE=$commit; break; fi
+            done
+            if [[ -z "$CI_RUN" ]]; then echo "::error::No successful full main CI run on the source or its last 50 first-parent ancestors"; exit 1; fi
+            # The source's own run may have finished since the first lookup; then no lane is needed.
+            if [[ "$CI_SOURCE" != "$EXPECTED_SOURCE" ]]; then
+              git show "$CI_SOURCE:scripts/deploy-lane.ts" > "$RUNNER_TEMP/deploy-lane.ts"
+              node "$RUNNER_TEMP/deploy-lane.ts" qualify "$CI_SOURCE" "$EXPECTED_SOURCE" "$RUNNER_TEMP/deploy-lane.json"
+            fi
+          fi
+          # Lane rule end.
           [[ "$CI_RUN" =~ ^[1-9][0-9]*$ ]]
           export CI_RUN
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN" > "$RUNNER_TEMP/normal-ci-run.json"
@@ -89,7 +112,7 @@ jobs:
             process.stdout.write(String(attempt));
           ')
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN/attempts/$ci_attempt/jobs?per_page=100" > "$RUNNER_TEMP/normal-ci-jobs.json"
-          node --input-type=module <<'JS'
+          EXPECTED_SOURCE="$CI_SOURCE" node --input-type=module <<'JS'
           import {readFileSync,writeFileSync} from 'node:fs';
           const root=process.env.RUNNER_TEMP;
           const run=JSON.parse(readFileSync(root+'/normal-ci-run.json'));
@@ -114,7 +137,10 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: preview-main-ci-source-attempt-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/normal-ci-source.json
+          # normal-ci-source.json describes CI_SOURCE's run; deploy-lane.json exists only for a lane.
+          path: |
+            ${{ runner.temp }}/normal-ci-source.json
+            ${{ runner.temp }}/deploy-lane.json
           if-no-files-found: error
           retention-days: 14
 
