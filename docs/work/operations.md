@@ -195,7 +195,7 @@ replica and any rollback deployment kept elsewhere, before any of them takes tra
 
 ```
 GET /healthz     unauthenticated, cheap - liveness (the process answers)
-GET /readyz      unauthenticated - readiness: the store answers `select 1` (503 while it cannot); the Helm chart's readinessProbe
+GET /readyz      unauthenticated - readiness, the Helm chart's readinessProbe: 503 until the store answers, the catalog is prepared and, in production, migrations and setup checks pass; `checks` in the body says which one is holding it back
 GET /metrics     Prometheus; loopback-only unless LW_METRICS_TOKEN is set
 ```
 

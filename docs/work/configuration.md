@@ -101,6 +101,13 @@ When upgrading a server that recorded the earlier raw-file pin identity, provisi
 higher positive `catalogPublicationGeneration` for the reviewed release once. Keep the
 existing fence and sequence history; deleting them would remove rollback protection.
 
+**What production mode needs from a pack.** A positive generation, from one of two places: set
+`catalogPublicationGeneration`, or mount a pack whose `catalog/tools/index.sig.json` carries a
+signed sequence and set `catalogPublicKey` to the key that verifies the signature. The demo pack in the
+image is unsigned, so production with the demo pack needs `catalogPublicationGeneration: 1`.
+Without either, `/readyz` answers `503` with `"catalog": "failed"` and the log says which
+condition failed; restart after fixing the configuration.
+
 Under a non-`open` access mode, a `shellDir` that is missing or predates the `org/`
 governance module **stops boot**. `LW_ALLOW_STALE_SHELL=1` downgrades that refusal to a warning
 in evaluation only; production still refuses the old shell.
@@ -287,7 +294,7 @@ default, and suggests the password tick for `example.com` addresses:
 | `uploads.readyTtlHours` | `24` | how long a finished upload can be named after it finished; at most 720. A catalog submission removes its upload sooner |
 | `uploads.fileTtlHours` | `168` | how long a finished file reference can be read and named after it finished (a week); at most 720. Its owner can delete it sooner |
 
-Both blocks take whole numbers above zero, each cap no larger than the budget above it:
+Both blocks take whole numbers above zero, and the caps nest:
 `maxFileBytes` no larger than `projectBudgetBytes` (or `ownerBudgetBytes`), and that no larger
 than `instanceBudgetBytes`. Anything else is refused at startup. Budgets count finished files
 and unfinished uploads that have not expired, each at its size plus 4096 bytes for its database
@@ -513,6 +520,19 @@ reads as missing rather than refused. Where the store supports it, add a lifecyc
 (`AbortIncompleteMultipartUpload`) that removes incomplete multipart uploads after a day: a
 server that stops during an upload leaves its parts behind, and the store keeps them, and bills
 for them, until they are removed.
+
+**Stores that drop object metadata**
+
+Some S3-compatible stores keep neither an object's content type nor its `x-amz-meta-*` headers,
+and serve every object as `application/octet-stream`; Predastore releases before v1.21 are one
+example. Browsers then refuse to display uploaded images. When it starts, Work writes a small
+object under the prefix (`<prefix>/.lolly-probe-<uuid>`), reads the object back, deletes the probe
+and logs the result; if that probe cannot run, the first write tries again. On such a store each blob gets a small JSON record
+beside the blob, at `<prefix>/.lolly-meta/<blobId>`, holding its size, SHA-256, content type and ETag.
+Reads use the record whenever the object's own headers carry no digest, and ignore a record whose
+ETag no longer matches the object, so a record left from earlier bytes is never applied to newer
+ones. Deleting a blob deletes its record. The records sit under the same prefix, so the
+permissions above cover them.
 :::
 
 ## `delivery`

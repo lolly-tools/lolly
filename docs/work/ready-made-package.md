@@ -43,6 +43,22 @@ Use an account allowed to run Docker, or prefix later Docker commands with `sudo
 Configure a stateful host firewall as well as UpCloud's stateless one, and keep SSH
 limited to your actual administrator networks.
 
+**Hosts on a network with an MTU below 1500.** Some clouds run their machines on an
+overlay network whose interface MTU is below 1500; MulgaDC Spinifex guests use 1442,
+for example. Docker's bridges default to 1500, so large TLS downloads from inside a
+container stall while the same download from the host works. The first start's
+archive download then hangs. Check the MTU of the host's main interface with
+`ip link`. When it is below 1500, give Docker the same value before the first start,
+in `/etc/docker/daemon.json`, merged into any settings already there:
+
+```json
+{ "mtu": 1442, "default-network-opts": { "bridge": { "com.docker.network.driver.mtu": "1442" } } }
+```
+
+Use your interface's value in place of 1442, then run `sudo systemctl restart docker`.
+The first key covers Docker's default bridge and the second covers the network
+Compose creates for the instance.
+
 ## Write the installation folder
 
 Choose the owner's email. By default the package uses built-in email and password

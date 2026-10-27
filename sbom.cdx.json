@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:94d406f2-193e-43cf-86d5-3270159353a0",
+  "serialNumber": "urn:uuid:90d3edba-0dc7-4c90-8a4f-37a476498322",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-25T15:07:42.068Z",
+    "timestamp": "2026-10-27T07:40:58.858Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -23802,20 +23802,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.12.3",
+      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.12.4",
       "name": "@tauri-apps/cli",
-      "version": "2.12.3",
-      "purl": "pkg:npm/%40tauri-apps/cli@2.12.3",
+      "version": "2.12.4",
+      "purl": "pkg:npm/%40tauri-apps/cli@2.12.4",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "Apache-2.0 OR MIT"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "7fbfcbb18ef84956f50a198e3f0d5a8cea718a2d064b30c082658745c8bc25462eb9a8b4e2b5ec49b1686e9981d2c3f60dd96f303fc1e59a2d127f0638631152"
+          "content": "248f5b1dfb9d4912629063ab8db5c49ba463cf3be62ae2dcf898b1075344f21373424365082202de94c44b7bb2a6447d9711ebb1bc737274b0848d88c4142987"
         }
       ],
       "properties": [
@@ -32296,6 +32291,26 @@
         {
           "alg": "SHA-512",
           "content": "21fb4b13ca6126174d44818d115e09082bdf35272865055f71768df1342ba2958626d38772efa2001f691dcb86be611bfe475dc342c17bf8d2f33b5d0bac5d89"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vite@8.3.5",
+      "name": "vite",
+      "version": "8.3.5",
+      "purl": "pkg:npm/vite@8.3.5",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cf56298e2789f60d1e6d3990a4b06ffe8abd13717d10894e7beecb6a15bc4ab1372d3886dee7414545d03a56173fd6fe202daada9847795c63f711a5c37e0e11"
         }
       ],
       "properties": [
