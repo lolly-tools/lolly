@@ -24,16 +24,17 @@
  * deployment-suse.yml and the release workflows keep their exact-commit guard.
  *
  * Whoever enforces a lane computes the lane from Git; a label or a commit message never decides the lane.
- * preview-web.yml runs the copy of this file from the base commit, the way ci.yml runs its trusted base
- * policy, so a change to these rules applies only once a commit carrying it has passed full CI. The
- * preview deploy tool in lolly-work carries a Python port, tested against the same cases
- * (tests/fixtures/deploy-lane/cases.json), and a deploy needs both to agree.
+ * The preview deploy tool in lolly-work enforces it at deploy time, with a Python port tested against the
+ * same cases (tests/fixtures/deploy-lane/cases.json). lolly.ing's private build gate runs the base
+ * commit's copy of this file for the Lolly commit a Work commit pins, the way ci.yml runs its trusted base
+ * policy. Until 2026-10-27 preview-web.yml did the same before it built a lolly.tools image; it now builds
+ * each commit as soon as it reaches main and refuses only a source whose own CI failed, so for lolly.tools
+ * the deploy tool's port decides alone.
  *
- * The workflow copies this file out of the base commit into a temporary directory and runs it there, so
- * it imports Node built-ins only.
+ * It imports Node built-ins only, so a copy taken out of any commit runs on its own.
  *
  *   node scripts/deploy-lane.ts classify <base> <source>          # print the lane and its reasons
- *   node scripts/deploy-lane.ts qualify <base> <source> <out.json> # the preview-web.yml guard
+ *   node scripts/deploy-lane.ts qualify <base> <source> <out.json> # the full rule, lane job included
  */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -261,9 +262,9 @@ export interface LaneRecord {
 }
 
 /**
- * The guard preview-web.yml runs when the source has no successful full CI run of its own. The base comes
- * from the workflow (the newest first-parent ancestor with one); this checks it, classifies the change
- * and requires the lane job. Any refusal throws.
+ * The whole lane rule for a source with no successful full CI run of its own. The caller supplies the base
+ * (the newest first-parent ancestor with one); this checks it, classifies the change and requires the lane
+ * job. Any refusal throws.
  */
 export async function qualify(base: string, source: string, repository: string, provider: Provider = github, root = process.cwd()): Promise<LaneRecord> {
   need(SHA.test(base) && SHA.test(source) && base !== source, 'A lane needs a base that differs from the source');
