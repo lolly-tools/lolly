@@ -3,7 +3,7 @@
 
 import { readFileSync } from 'node:fs';
 
-export const BROWSER_PARTITION_COUNT = 4;
+export const BROWSER_PARTITION_COUNT = 8;
 
 // These entry checks used to run on every runner before the same files ran again
 // in their assigned partition. Keep them early without changing their ownership.
@@ -21,17 +21,30 @@ export function browserExecutionFiles(files: readonly string[]): string[] {
     || (a < b ? -1 : a > b ? 1 : 0));
 }
 
-interface BrowserTimings {
+/** Measured durations that decide how the browser files are spread over the runners. */
+export interface BrowserTiming {
+  /** Median duration of each test file. A file that is not listed counts as the profile's default. */
+  durationMs: Readonly<Record<string, number>>;
+  /**
+   * Median duration of the CI steps one runner takes on besides its files (the geometry conformance,
+   * cross-engine geometry and drawing fidelity steps in ci.yml), keyed by partition index.
+   */
+  partitionDutyMs: Readonly<Record<string, number>>;
+}
+interface BrowserTimings extends BrowserTiming {
   schemaVersion: number;
   defaultDurationMs: number;
-  durationMs: Record<string, number>;
 }
 const TIMINGS = JSON.parse(readFileSync(new URL('./data/browser-test-durations.json', import.meta.url), 'utf8')) as BrowserTimings;
+const record = (value: unknown): value is Record<string, number> => !!value && typeof value === 'object' && !Array.isArray(value);
 if (TIMINGS.schemaVersion !== 1 || !Number.isSafeInteger(TIMINGS.defaultDurationMs) || TIMINGS.defaultDurationMs <= 0
-  || !TIMINGS.durationMs || typeof TIMINGS.durationMs !== 'object' || Array.isArray(TIMINGS.durationMs)
-  || Object.values(TIMINGS.durationMs).some((value) => !Number.isSafeInteger(value) || value <= 0)) {
+  || !record(TIMINGS.durationMs) || Object.values(TIMINGS.durationMs).some((value) => !Number.isSafeInteger(value) || value <= 0)
+  || !record(TIMINGS.partitionDutyMs) || Object.entries(TIMINGS.partitionDutyMs).some(([index, value]) =>
+    !/^[1-9][0-9]*$/.test(index) || Number(index) > BROWSER_PARTITION_COUNT || !Number.isSafeInteger(value) || value <= 0)) {
   throw new Error('invalid browser timing profile');
 }
+/** The partitions that run a fixed CI step besides their files, and how long that step takes. */
+export const BROWSER_PARTITION_DUTY_MS: Readonly<Record<string, number>> = Object.freeze({ ...TIMINGS.partitionDutyMs });
 
 export interface BrowserPartition { index: number; count: number }
 export interface TestCounts {
@@ -57,9 +70,12 @@ export interface BrowserPartitionReport extends BrowserPartitionMetadata {
 }
 
 export function parseBrowserPartition(value: string): BrowserPartition {
-  const match = /^([1-4])\/4$/.exec(value);
-  if (!match) throw new Error('browser partition must be 1/4, 2/4, 3/4 or 4/4');
-  return { index: Number(match[1]), count: BROWSER_PARTITION_COUNT };
+  const match = /^([1-9][0-9]*)\/([1-9][0-9]*)$/.exec(value);
+  const index = Number(match?.[1]);
+  if (!match || Number(match[2]) !== BROWSER_PARTITION_COUNT || index > BROWSER_PARTITION_COUNT) {
+    throw new Error(`browser partition must be 1/${BROWSER_PARTITION_COUNT} to ${BROWSER_PARTITION_COUNT}/${BROWSER_PARTITION_COUNT}`);
+  }
+  return { index, count: BROWSER_PARTITION_COUNT };
 }
 
 function uniqueFiles(value: unknown, label: string): string[] {
@@ -79,18 +95,23 @@ function uniqueFiles(value: unknown, label: string): string[] {
 export function browserPartitionFiles(
   files: readonly string[],
   partition: BrowserPartition,
-  durations: Readonly<Record<string, number>> = TIMINGS.durationMs,
+  timing: BrowserTiming = TIMINGS,
 ): string[] {
   parseBrowserPartition(`${partition.index}/${partition.count}`);
   const sorted = uniqueFiles([...files], 'browser inventory').sort();
   const weight = (file: string): number => {
-    const value = Object.hasOwn(durations, file) ? durations[file]! : TIMINGS.defaultDurationMs;
+    const value = Object.hasOwn(timing.durationMs, file) ? timing.durationMs[file]! : TIMINGS.defaultDurationMs;
     if (!Number.isFinite(value) || value <= 0) throw new Error(`invalid browser duration: ${file}`);
     return value;
   };
   const ordered = sorted.map((file) => ({ file, duration: weight(file) }))
     .sort((a, b) => b.duration - a.duration || (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
-  const bins = Array.from({ length: partition.count }, () => ({ files: [] as string[], duration: 0 }));
+  // A runner that also runs a fixed conformance step starts with that step's time, so it takes fewer files.
+  const bins = Array.from({ length: partition.count }, (_, index) => {
+    const duty = Object.hasOwn(timing.partitionDutyMs, String(index + 1)) ? timing.partitionDutyMs[String(index + 1)]! : 0;
+    if (!Number.isFinite(duty) || duty < 0) throw new Error(`invalid browser partition duty: ${index + 1}`);
+    return { files: [] as string[], duration: duty };
+  });
   // Put the longest files on the lightest runner. Timings affect order only:
   // new files use the default weight and deleted files never enter the inventory.
   for (const { file, duration } of ordered) {
@@ -128,6 +149,7 @@ export function validateBrowserPartitionReports(
   reports: readonly BrowserPartitionReport[],
   source: string,
   selectedPartition?: BrowserPartition,
+  timing: BrowserTiming = TIMINGS,
 ): string[] {
   if (!/^[0-9a-f]{40}$/.test(source)) throw new Error('browser report source must be a Git commit');
   const expectedPartitions = selectedPartition
@@ -147,7 +169,7 @@ export function validateBrowserPartitionReports(
     if (seenPartitions.has(partition.index)) throw new Error('duplicate browser partition report');
     seenPartitions.add(partition.index);
     const files = uniqueFiles(report.files, 'planned browser files');
-    sameFiles(files, browserPartitionFiles(inventory, partition), 'planned browser files');
+    sameFiles(files, browserPartitionFiles(inventory, partition, timing), 'planned browser files');
     if (!Array.isArray(report.summaries)) throw new Error('browser file summaries are missing');
     const completed = uniqueFiles(report.summaries.map((summary) => summary?.file), 'completed browser files');
     sameFiles(completed, files, 'completed browser files');
@@ -156,7 +178,7 @@ export function validateBrowserPartitionReports(
     observed.push(...completed);
   }
   uniqueFiles(observed, 'combined browser files');
-  const expectedFiles = selectedPartition ? browserPartitionFiles(inventory, selectedPartition) : [...inventory];
+  const expectedFiles = selectedPartition ? browserPartitionFiles(inventory, selectedPartition, timing) : [...inventory];
   sameFiles(observed, expectedFiles, 'combined browser files');
   return observed.sort();
 }

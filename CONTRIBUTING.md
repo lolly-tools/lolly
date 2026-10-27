@@ -185,8 +185,8 @@ compatibility check and fresh provider evidence.
 | Check | Scope | Required results |
 |---|---|---|
 | `public-ready` | Eligible web UI source and canonical UI token changes | Secret history, typecheck, production build and bundle budget, contracts, security, catalog validation, all-tool render check, custom static security rules, deployment scope and focused UI tests |
-| `release-ready` | Every change except a docs-and-tests pull request | All public-ready checks plus engine, web and tool units, all four browser shards and their execution gate, Tauri, conformance, regression fuzzing, API bundle drift, the rendering action and the dependency audit |
-| docs-and-tests (a tier of `qualification`, with no job of its own) | A pull request whose every change is under `docs/`, a test, a reviewed baseline or one of the two generated READMEs | All release-ready checks except the four browser shards, their execution gate, Tauri, conformance and regression fuzzing |
+| `release-ready` | Every change except a docs-and-tests pull request | All public-ready checks plus engine, web and tool units, all eight browser shards and their execution gate, Tauri, conformance, regression fuzzing, API bundle drift, the rendering action and the dependency audit |
+| docs-and-tests (a tier of `qualification`, with no job of its own) | A pull request whose every change is under `docs/`, a test, a reviewed baseline or one of the two generated READMEs | All release-ready checks except the eight browser shards, their execution gate, Tauri, conformance and regression fuzzing |
 | `qualification` | Every change | Needs every other CI job, then requires the selected tier and a fresh scan of every job in the same attempt |
 
 ### The fast UI tier
@@ -325,19 +325,31 @@ workflow edit also requires release-ready.
 
 ### Browser shard balance
 
-Browser test files are assigned to the four runners by measured duration,
+Browser test files are assigned to the eight runners by measured duration,
 longest first onto the runner with the least assigned time; each runner stays
 serial within its own partition. `scripts/data/browser-test-durations.json`
 holds median file durations from complete CI runs and records their run IDs,
-attempts and source commits. New files get a ten-second estimate and removed
+attempts and source commits. Its `partitionDutyMs` holds the measured time of
+the conformance steps that only one runner takes on (geometry on runner 1,
+Firefox and WebKit geometry on runner 2, drawing fidelity on runner 3); those
+runners start with that time already assigned, so they take fewer files and
+all eight finish together. New files get a ten-second estimate and removed
 files are ignored. The discovered inventory, never the timing profile, decides
 which tests run, and the coverage gate uses the same assignment function, so a
 stale estimate can reduce balance but never coverage. Refresh the profile from
 complete successful `browser-coverage.json` artifact sets, taking the median
-`summaries[].durationMs` per file and recording the contributing runs.
+`summaries[].durationMs` per file and the median duration of each conformance
+step, and recording the contributing runs.
+
+The runner count lives in `scripts/browser-partitions.ts` and, for the job names,
+in `scripts/ci-qualification.ts`, which accepts the previous count's job names as
+well. A pull request and the main push that merges it are qualified by their
+base's policy, so a new count has to be accepted there and merged before the
+workflow uses the new count. `tests/ci-qualification-contract.test.ts` keeps the two counts
+and `.github/workflows/ci.yml` in step.
 
 The coverage gate still requires every discovered file to finish exactly once at the
-checked-out source, all four complete reports and the exact reviewed skips, so a
+checked-out source, all eight complete reports and the exact reviewed skips, so a
 timing estimate cannot excuse a missing, failed or cancelled test. Each runner warms
 the source and production Design shells and checks its WebGPU adapter. Within a
 partition the entry checks listed in `scripts/browser-partitions.ts` (the theme,
