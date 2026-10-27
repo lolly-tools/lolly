@@ -209,9 +209,11 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | How a Work deployment fits together | [work/deployment.md](work/deployment.md) |
 | Run Work on UpCloud or Evroc | [work/cloud-deployment.md](work/cloud-deployment.md) |
 | WebAssembly and Kubewarden choices | [work/wasm-deployment.md](work/wasm-deployment.md) |
+| Admission policy with Kubewarden | [work/admission-policy.md](work/admission-policy.md) |
 | Work instance configuration | [work/configuration.md](work/configuration.md) |
 | Configure Work export signing | [work/c2pa.md](work/c2pa.md) |
 | Keep Lolly Work running | [work/operations.md](work/operations.md) |
+| Metrics and alerts | [work/metrics.md](work/metrics.md) |
 | Build a verified instance pack | [work/instance-pack-production.md](work/instance-pack-production.md) |
 | Check a deployment before production | [work/production-readiness.md](work/production-readiness.md) |
 | Shell deployment workflow | [work/shell-deployment-workflow.md](work/shell-deployment-workflow.md) |

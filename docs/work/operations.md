@@ -220,8 +220,11 @@ compression, by each route's delivery class (`public-immutable`, `public-revalid
 it shows how much traffic a CDN in front could take, since a CDN may serve only the
 public classes. HEAD, 204 and 304 answers count nothing.
 
-The Helm chart's ServiceMonitor needs `metricsToken`, because `/metrics` answers only
-on loopback without one.
+The Helm chart's ServiceMonitor needs `metricsToken`, because without a token
+`/metrics` answers only on an evaluation instance's loopback address.
+[Metrics and alerts](metrics.md) lists every metric with its type and labels, and
+covers the suggested alerts and the Grafana dashboard the chart can install, both off
+by default.
 
 **Outbound traffic for models.** When Work serves the web app, a request for
 `/models/...` that the web app folder cannot answer is passed to

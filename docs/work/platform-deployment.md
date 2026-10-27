@@ -266,4 +266,6 @@ Release developers who build images with SUSE BCI and Podman should read the
 and the [application update guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/APP-UPDATES.md).
 Optional WebAssembly policy and worker tracks are in
 [WebAssembly and Kubewarden choices](wasm-deployment.md); neither adds a requirement
-to a private install.
+to a private install. A cluster that enforces admission policy with Kubewarden can
+apply the [policy set for Work's pods](admission-policy.md), and a cluster with
+Prometheus can install the [suggested alerts and dashboard](metrics.md).
