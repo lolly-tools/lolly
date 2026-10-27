@@ -56,8 +56,9 @@ Each card has four lines: what crosses the boundary, what checks it, the test th
 ::: details 4. The catalogue origin and the loader
 - **What crosses:** tool files fetched from the deployment's `/tools/` and `/catalog/` paths.
 - **What checks it:** `build:web:release` requires a private signing JWK and the matching public JWK, signs the catalogue, verifies the result and passes the public key into the build. `assertEnvelopeTrusted` and `assertFileIntegrity` in `engine/src/loader.ts` (with `engine/src/catalog-integrity.ts`) then authenticate every fetched file before the runtime compiles it, and a signed file that is missing is fatal. Both Tauri release builds run the same wrapper (`build:desktop:frontend:release` and `build:mobile:frontend:release`, from each shell's `beforeBuildCommand`).
-- **Proof:** `tests/catalog-integrity.test.ts`, `tests/catalog-release.test.ts`.
-- **What we accept:** plain development builds support an unsigned catalogue and show a label on screen, because no deployment key belongs in the repository (`scripts/build-release-web.ts`, `shells/web/src/catalog/integrity.ts`).
+- **The instance key:** a web app served by a Lolly Work instance also accepts that instance's catalogue key, read from `GET /api/v1/catalog/public-key` on the address that served the web app, and only for envelopes that carry its key ID (`shells/web/src/catalog/instance-key.ts`). Static hosts, the desktop and mobile apps and a web app pointed at an instance on another address use the build-time key alone. Every failure leaves the build-time key as the only key.
+- **Proof:** `tests/catalog-integrity.test.ts`, `tests/catalog-release.test.ts`, `shells/web/src/catalog/instance-key.test.ts`.
+- **What we accept:** plain development builds support an unsigned catalogue and show a label on screen, because no deployment key belongs in the repository (`scripts/build-release-web.ts`, `shells/web/src/catalog/integrity.ts`). Whoever operates the address that serves the web app can choose its catalogue key, which is no more than that operator's existing control of the web app's code. An address whose `/api/` paths are run by a different party from its scripts would widen that, so a Work instance and its web app need one operator ([the catalogue key](/info/work-operations.html#the-catalogue-key)).
 :::
 
 ::: details 5. A tool carried in a .lolly file
