@@ -7,9 +7,11 @@ import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import { assessJobs, classifyChanges, classifyDocsAndTests, DOCS_AND_TESTS_JOBS, hash, HEAVY_JOBS, inspectScope, PROVIDER_WINDOW_MS,
-  PUBLIC_JOBS, qualify, RELEASE_JOBS, selectTier, touchesDependencies, validateScope, WORKFLOW } from '../scripts/ci-qualification.ts';
+import { assessJobs, BROWSER_PARTITIONS, browserPartitionJobs, classifyChanges, classifyDocsAndTests, DOCS_AND_TESTS_JOBS, hash, HEAVY_JOBS,
+  inspectScope, PREVIOUS_BROWSER_PARTITIONS, PROVIDER_WINDOW_MS, PUBLIC_JOBS, qualify, RELEASE_JOBS, selectTier, touchesDependencies,
+  validateScope, WORKFLOW } from '../scripts/ci-qualification.ts';
 import type { Change, Identity, Job, Lane, Scope } from '../scripts/ci-qualification.ts';
+import { BROWSER_PARTITION_COUNT } from '../scripts/browser-partitions.ts';
 import { PUBLIC_READY_UI_FILES } from '../scripts/run-public-ready-ui.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -295,12 +297,19 @@ test('fast tests start before long suites, share exact steps, and preserve all o
   assert.deepEqual(light.map(value => value.shard), ['unit:engine', 'unit:web', 'tools']);
   assert.deepEqual([...new Set(heavy.map(value => value.shard))], ['browser', 'tauri', 'conformance', 'fuzz:regression']);
   const shards = [...fast.strategy!.matrix.include as typeof light, ...light, ...heavy];
-  assert.equal(shards.length, 12); assert.equal(new Set(shards.map(value => value.artifact)).size, 12);
-  assert.deepEqual(shards.filter(value => value.shard === 'browser').map(value => value.partition), ['1/4', '2/4', '3/4', '4/4']);
+  assert.equal(shards.length, 8 + BROWSER_PARTITION_COUNT);
+  assert.equal(new Set(shards.map(value => value.artifact)).size, 8 + BROWSER_PARTITION_COUNT);
+  // The workflow runs the partition planner's count, which the trusted policy accepts: the current count or,
+  // until the workflow moves to the current count, the previous one.
+  assert.ok([BROWSER_PARTITIONS, PREVIOUS_BROWSER_PARTITIONS].includes(BROWSER_PARTITION_COUNT));
+  assert.deepEqual(shards.filter(value => value.shard === 'browser').map(value => value.partition),
+    Array.from({ length: BROWSER_PARTITION_COUNT }, (_, index) => `${index + 1}/${BROWSER_PARTITION_COUNT}`));
   // Only a pull request in the docs-and-tests lane leaves the heavy tier out; every other lane, unknown included, keeps the heavy tier.
   assert.match(select.run!, /if \[ "\$GITHUB_EVENT_NAME" = pull_request \] && \[ "\$LANE" = docs-and-tests \]; then\n\s+heavy=skip/);
   const heavyNames = heavy.map(value => value.partition ? `test (browser ${value.partition})` : `test (${value.shard})`);
-  assert.deepEqual([...heavyNames, 'test (browser)'].sort(), [...HEAVY_JOBS].sort());
+  const current = browserPartitionJobs(BROWSER_PARTITIONS), ran = browserPartitionJobs(BROWSER_PARTITION_COUNT);
+  assert.deepEqual([...heavyNames, 'test (browser)'].sort(),
+    HEAVY_JOBS.flatMap(name => name === current[0] ? ran : current.includes(name) ? [] : [name]).sort());
   assert.equal(workflow.jobs['browser-gate']!.if, expression("!cancelled() && needs.deployment-scope.outputs.heavy-tier != 'skip'"));
   for (const name of ['public-ready']) {
     const needs = workflow.jobs[name]!.needs as string[];
@@ -309,6 +318,28 @@ test('fast tests start before long suites, share exact steps, and preserve all o
   }
   assert.ok((workflow.jobs['release-ready']!.needs as string[]).includes('test-fast'));
   assert.ok((workflow.jobs['release-ready']!.needs as string[]).includes('test'));
+});
+
+test('a run from before the browser runner count changed qualifies with its own complete partitions', () => {
+  const current = browserPartitionJobs(BROWSER_PARTITIONS), previous = browserPartitionJobs(PREVIOUS_BROWSER_PARTITIONS);
+  assert.deepEqual(previous, ['test (browser 1/4)', 'test (browser 2/4)', 'test (browser 3/4)', 'test (browser 4/4)']);
+  assert.ok(current.every(name => RELEASE_JOBS.includes(name) && HEAVY_JOBS.includes(name)));
+  assert.ok(!DOCS_AND_TESTS_JOBS.some(name => current.includes(name) || previous.includes(name)));
+  const before = () => [...jobs().filter(value => !current.includes(value.name)), ...previous.map((name, index) => job(name, 200 + index))];
+  const result = assessJobs(run(), page(before()), id, scope(false), 'release-ready');
+  assert.equal(result.ready, true);
+  assert.ok(previous.every(name => result.required.includes(name)) && !result.required.some(name => current.includes(name)));
+  assert.equal(result.required.length, RELEASE_JOBS.length - current.length + previous.length);
+  assert.equal(assessJobs(run(), page(jobs()), id, scope(false), 'release-ready').required.filter(name => current.includes(name)).length, BROWSER_PARTITIONS);
+  // Every previous partition must be listed and succeed; a run with jobs from both layouts is refused.
+  assert.equal(assessJobs(run(), page(before().filter(value => value.name !== previous[3])), id, scope(false), 'release-ready').ready, false);
+  const pending = before().map(value => value.name === previous[1] ? { ...value, status: 'in_progress', conclusion: null } : value);
+  assert.equal(assessJobs(run(), page(pending), id, scope(false), 'release-ready').ready, false);
+  const failed = before().map(value => value.name === previous[2] ? { ...value, conclusion: 'failure' } : value);
+  assert.throws(() => assessJobs(run(), page(failed), id, scope(false), 'release-ready'), /test \(browser 3\/4\)/);
+  assert.throws(() => assessJobs(run(), page([...jobs(), job(previous[0]!, 300)]), id, scope(false), 'release-ready'), /Mixed browser runner layouts/);
+  // A run whose current partitions are only partly listed is not ready, whatever the other jobs did.
+  assert.equal(assessJobs(run(), page(jobs().filter(value => value.name !== current[7])), id, scope(false), 'release-ready').ready, false);
 });
 
 test('browser reports and skip reports are named by run so a failed-only rerun can gate', () => {
