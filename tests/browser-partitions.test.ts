@@ -11,6 +11,8 @@ import {
   type BrowserPartitionReport,
   type BrowserTiming,
   type TestSummary,
+  BROWSER_ENGINE_FILES,
+  BROWSER_ENGINE_PARTITION,
   BROWSER_ENTRY_POINT_FILES,
   BROWSER_PARTITION_COUNT,
   BROWSER_PARTITION_DUTY_MS,
@@ -150,6 +152,26 @@ test('measured long files are spread across runners without dropping new or reta
   }
   for (const invalid of [-1, NaN, Infinity]) {
     assert.throws(() => browserPartitionFiles(files, { index: 1, count }, { durationMs, partitionDutyMs: { 2: invalid } }), /duty/);
+  }
+});
+
+test('files that need the Firefox and WebKit builds always go to the runner that installs them', () => {
+  for (const file of BROWSER_ENGINE_FILES) {
+    assert.ok(inventory.includes(file), file);
+    assert.ok(browserPartitionFiles(inventory, { index: BROWSER_ENGINE_PARTITION, count }).includes(file), file);
+  }
+  const files = Array.from({ length: 16 }, (_, index) => `tests/${String(index).padStart(2, '0')}.test.ts`);
+  const timing = { durationMs: { [files[0]!]: 100_000 }, partitionDutyMs: {} };
+  // Without the pin the longest file would take the first runner; with the pin it goes to runner 5 whatever its weight.
+  assert.ok(browserPartitionFiles(files, { index: 1, count }, timing, {}).includes(files[0]!));
+  const pinned = indexes.map((index) => browserPartitionFiles(files, { index, count }, timing, { [files[0]!]: 5 }));
+  assert.ok(pinned[4]!.includes(files[0]!));
+  assert.deepEqual(pinned.flat().sort(), files);
+  // A pin for a file outside the inventory changes nothing; a pin to a runner that does not exist is refused.
+  assert.deepEqual(browserPartitionFiles(files, { index: 2, count }, timing, { 'tests/absent.test.ts': 2 }),
+    browserPartitionFiles(files, { index: 2, count }, timing, {}));
+  for (const index of [0, count + 1, 1.5]) {
+    assert.throws(() => browserPartitionFiles(files, { index: 1, count }, timing, { [files[3]!]: index }), /pin/);
   }
 });
 

@@ -11,7 +11,7 @@ import { assessJobs, BROWSER_PARTITIONS, browserPartitionJobs, classifyChanges, 
   inspectScope, PREVIOUS_BROWSER_PARTITIONS, PROVIDER_WINDOW_MS, PUBLIC_JOBS, qualify, RELEASE_JOBS, selectTier, touchesDependencies,
   validateScope, WORKFLOW } from '../scripts/ci-qualification.ts';
 import type { Change, Identity, Job, Lane, Scope } from '../scripts/ci-qualification.ts';
-import { BROWSER_PARTITION_COUNT, BROWSER_PARTITION_DUTY_MS } from '../scripts/browser-partitions.ts';
+import { BROWSER_ENGINE_PARTITION, BROWSER_PARTITION_COUNT, BROWSER_PARTITION_DUTY_MS } from '../scripts/browser-partitions.ts';
 import { PUBLIC_READY_UI_FILES } from '../scripts/run-public-ready-ui.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -327,6 +327,9 @@ test('each browser conformance step runs in one current partition, and the plann
   for (const step of gated) assert.equal(step.count, BROWSER_PARTITION_COUNT, step.name ?? 'unnamed step');
   const timed = gated.filter(step => /geometry|Firefox|drawing/i.test(step.name ?? ''));
   assert.deepEqual([...new Set(timed.map(step => String(step.index)))].sort(), Object.keys(BROWSER_PARTITION_DUTY_MS).sort());
+  // The files pinned for Firefox and WebKit go to the one runner that installs those builds.
+  const engines = gated.filter(step => /Firefox and WebKit/.test(step.name ?? ''));
+  assert.ok(engines.length >= 2 && engines.every(step => step.index === BROWSER_ENGINE_PARTITION));
 });
 
 test('a run from before the browser runner count changed qualifies with its own complete partitions', () => {

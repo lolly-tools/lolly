@@ -13,6 +13,17 @@ export const BROWSER_ENTRY_POINT_FILES = [
   'tests/open-route.browser.test.ts',
 ] as const;
 
+/**
+ * Files with a case that runs whenever Playwright's own Firefox or WebKit build is installed, and skips otherwise.
+ * Only the runner that runs the cross-engine geometry step installs those builds (partition 2 in ci.yml), so these
+ * files are always assigned to that runner. On any other runner the case would skip, and the reviewed skip list
+ * refuses a skip it does not list.
+ */
+export const BROWSER_ENGINE_PARTITION = 2;
+export const BROWSER_ENGINE_FILES = ['shells/web/src/bridge/export-svg-mask.test.ts'] as const;
+const PINNED: Readonly<Record<string, number>> = Object.freeze(Object.fromEntries(
+  BROWSER_ENGINE_FILES.map((file) => [file, BROWSER_ENGINE_PARTITION])));
+
 /** Run entry checks first, then the remaining assigned files alphabetically. */
 export function browserExecutionFiles(files: readonly string[]): string[] {
   const priority = new Map<string, number>(BROWSER_ENTRY_POINT_FILES.map((file, index) => [file, index]));
@@ -96,6 +107,7 @@ export function browserPartitionFiles(
   files: readonly string[],
   partition: BrowserPartition,
   timing: BrowserTiming = TIMINGS,
+  pinned: Readonly<Record<string, number>> = PINNED,
 ): string[] {
   parseBrowserPartition(`${partition.index}/${partition.count}`);
   const sorted = uniqueFiles([...files], 'browser inventory').sort();
@@ -112,9 +124,17 @@ export function browserPartitionFiles(
     if (!Number.isFinite(duty) || duty < 0) throw new Error(`invalid browser partition duty: ${index + 1}`);
     return { files: [] as string[], duration: duty };
   });
+  // A file that needs what only one runner installs goes to that runner first.
+  for (const { file, duration } of ordered) {
+    if (!Object.hasOwn(pinned, file)) continue;
+    const index = pinned[file]!;
+    if (!Number.isSafeInteger(index) || index < 1 || index > partition.count) throw new Error(`invalid browser pin: ${file}`);
+    bins[index - 1]!.files.push(file); bins[index - 1]!.duration += duration;
+  }
   // Put the longest files on the lightest runner. Timings affect order only:
   // new files use the default weight and deleted files never enter the inventory.
   for (const { file, duration } of ordered) {
+    if (Object.hasOwn(pinned, file)) continue;
     const bin = bins.reduce((best, next) => next.duration < best.duration ? next : best);
     bin.files.push(file); bin.duration += duration;
   }

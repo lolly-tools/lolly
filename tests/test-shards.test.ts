@@ -3,7 +3,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { classifyTest, discoverTests, shardInventory, SHARDS } from '../scripts/run-test-suite.ts';
-import { BROWSER_ENTRY_POINT_FILES, BROWSER_PARTITION_COUNT, browserExecutionFiles, browserPartitionFiles } from '../scripts/browser-partitions.ts';
+import { readFileSync } from 'node:fs';
+import { BROWSER_ENGINE_FILES, BROWSER_ENTRY_POINT_FILES, BROWSER_PARTITION_COUNT, browserExecutionFiles, browserPartitionFiles } from '../scripts/browser-partitions.ts';
 
 test('test shards are exhaustive, disjoint, deterministic and non-empty', () => {
   const all = discoverTests();
@@ -25,6 +26,17 @@ test('test shards are exhaustive, disjoint, deterministic and non-empty', () => 
   assert.deepEqual(browserFiles.sort(), inventory.browser);
   assert.equal(new Set(browserFiles).size, inventory.browser.length);
   for (const file of BROWSER_ENTRY_POINT_FILES) assert.equal(browserFiles.filter(value => value === file).length, 1);
+});
+
+test('every browser file that looks for an installed Firefox or WebKit build runs where those builds are installed', () => {
+  // A case gated on `executablePath()` of the Firefox or WebKit build skips on a runner without that build,
+  // and only one browser runner installs those builds, so such a file has to be listed in BROWSER_ENGINE_FILES.
+  const engine = /(?<![-\w])(?:webkit|firefox)(?![-\w])/;
+  const found = shardInventory().browser.filter((file) => {
+    const source = readFileSync(file, 'utf8');
+    return /executablePath\(\)/.test(source) && engine.test(source);
+  });
+  assert.deepEqual(found, [...BROWSER_ENGINE_FILES].sort());
 });
 
 test('transport-specific tests stay in their intended shard', () => {

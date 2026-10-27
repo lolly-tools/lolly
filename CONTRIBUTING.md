@@ -333,7 +333,9 @@ attempts and source commits. Its `partitionDutyMs` holds the measured time of
 the conformance steps that only one runner takes on (geometry on runner 1,
 Firefox and WebKit geometry on runner 2, drawing fidelity on runner 3); those
 runners start with that time already assigned, so they take fewer files and
-all eight finish together. New files get a ten-second estimate and removed
+all eight finish together. A file with a case that runs only when Playwright's
+own Firefox or WebKit build is installed (`BROWSER_ENGINE_FILES`) always goes
+to runner 2, the one that installs those builds. New files get a ten-second estimate and removed
 files are ignored. The discovered inventory, never the timing profile, decides
 which tests run, and the coverage gate uses the same assignment function, so a
 stale estimate can reduce balance but never coverage. Refresh the profile from
