@@ -564,10 +564,14 @@ jobs:
       - name: Check browser qualification for the web-only image
         run: node scripts/webgpu-release-gate.ts --scope web
 
+      # release-frontend.yml hands the web frontend over as one zstd tar (scripts/artifact-archive.ts).
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: release-frontend-web
-          path: ${{ runner.temp }}/lolly-signed-web
+          name: release-frontend-web.tar.zst
+          path: ${{ runner.temp }}/lolly-signed-web-archive
+
+      - name: Unpack the signed frontend
+        run: node scripts/artifact-archive.ts unpack "$RUNNER_TEMP/lolly-signed-web-archive/release-frontend-web.tar.zst" "$RUNNER_TEMP/lolly-signed-web"
 
       - name: Verify the frontend artifact against the reviewed source
         env:

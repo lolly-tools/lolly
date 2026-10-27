@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync, existsSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gunzipSync, brotliDecompressSync } from 'node:zlib';
-import { prepareStaticDelivery, retainHashedRelease, nginxDeliveryMaps } from '../scripts/build-delivery.ts';
+import { precompressStaticDelivery, prepareStaticDelivery, prepareStaticDeliveryParallel, retainHashedRelease, nginxDeliveryMaps } from '../scripts/build-delivery.ts';
 import { publicStaticDeliveryClass } from '../packages/core/src/delivery-v1.ts';
 
 test('build compression preserves decoded bytes and yields deterministic wire validators', () => {
@@ -31,6 +31,41 @@ test('build compression preserves decoded bytes and yields deterministic wire va
     writeFileSync(join(root, 'Outfit-latin[wght].woff2'), 'font');
     prepareStaticDelivery(root);
     assert.match(readFileSync(join(root, '.delivery-etags.conf'), 'utf8'), /Outfit-latin\[wght\]/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+test('parallel compression writes byte for byte the files and validators of the serial pass', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'lolly-delivery-parallel-'));
+  const tree = (dir: string): Record<string, string> => Object.fromEntries(readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile())
+    .map(entry => { const path = join(entry.parentPath, entry.name); return [path.slice(dir.length), `${statSync(path).mtimeMs === 0 ? 'epoch' : 'written'} ${readFileSync(path).toString('base64')}`]; })
+    .sort((x, y) => x[0]!.localeCompare(y[0]!)));
+  try {
+    const seed = (dir: string) => {
+      mkdirSync(join(dir, '_app'), { recursive: true });
+      mkdirSync(join(dir, 'info'), { recursive: true });
+      for (let i = 0; i < 24; i++) writeFileSync(join(dir, '_app', `chunk-${i}.js`), `export const n${i} = ${JSON.stringify('lolly '.repeat(400 + i))};\n`);
+      writeFileSync(join(dir, 'index.html'), '<!doctype html><title>x</title>'.repeat(80));
+      writeFileSync(join(dir, 'info', 'index.html'), '<p>docs</p>'.repeat(300));
+      writeFileSync(join(dir, 'random.wasm'), Buffer.from(Array.from({ length: 4096 }, (_, i) => (i * 7919) % 251)));
+      writeFileSync(join(dir, 'small.json'), '{}');
+    };
+    const serial = join(root, 'serial'), parallel = join(root, 'parallel');
+    seed(serial); seed(parallel);
+    const one = prepareStaticDelivery(serial);
+    const many = await prepareStaticDeliveryParallel(parallel);
+    assert.deepEqual(many, one);
+    assert.ok(one.compressed > 40);
+    assert.deepEqual(tree(parallel), tree(serial));
+
+    // A sibling made before the bytes changed is never used.
+    const scratch = join(root, 'scratch'), stale = join(root, 'stale'), fresh = join(root, 'fresh');
+    mkdirSync(scratch); seed(stale); seed(fresh);
+    const made = await precompressStaticDelivery(stale, scratch, 3);
+    assert.equal(made.size, 27);
+    for (const dir of [stale, fresh]) writeFileSync(join(dir, '_app', 'chunk-3.js'), 'changed '.repeat(500));
+    prepareStaticDelivery(stale, { precompressed: made });
+    prepareStaticDelivery(fresh);
+    assert.deepEqual(tree(stale), tree(fresh));
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 test('previous hash families survive a release and collisions cannot overwrite published bytes', () => {

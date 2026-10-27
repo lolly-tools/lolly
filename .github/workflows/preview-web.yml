@@ -44,6 +44,8 @@ env:
   CRANE_LINUX_X64_SHA256: '0ab7a1d6932a213aed964ce97666c3077fe691c8606413674a8b3e0b9ec4cda0'
 
 jobs:
+  # Also asks the WebGPU release gate, which had a job of its own: one runner instead of two.
+  # source-catalog asks the same gate again before it signs anything.
   source-qualification:
     name: Reviewed main CI source
     if: github.ref == 'refs/heads/main'
@@ -59,15 +61,23 @@ jobs:
       EXPECTED_SOURCE: ${{ inputs.source }}
       GH_TOKEN: ${{ github.token }}
     steps:
+      # Full history for the ancestry and lane checks, which read commits and trees only, plus
+      # the three files the WebGPU gate reads. Git fetches any other blob it needs on demand.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.source }}
           fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            /scripts/webgpu-release-gate.ts
+            /shells/web/src/main.ts
+            /docs/supported-environments.md
+          sparse-checkout-cone-mode: false
           persist-credentials: false
           submodules: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: '26'
           package-manager-cache: false
       - name: Bind the source to its completed normal main CI, or to a fast lane above one
         run: |
@@ -134,6 +144,8 @@ jobs:
           if(!succeeded || expectedSkips>2 || (publicReadySkipped && !releaseReady)) throw Error('Invalid normal CI success inventory');
           writeFileSync(root+'/normal-ci-source.json',JSON.stringify({version:1,source:run.head_sha,ciRun:run.id,ciAttempt:run.run_attempt,workflow:run.path,jobCount:jobs.length},null,2));
           JS
+      - name: Ask the WebGPU release gate; a refusal fails the preview
+        run: node scripts/webgpu-release-gate.ts --scope web
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: preview-main-ci-source-attempt-${{ github.run_attempt }}
@@ -144,34 +156,11 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  web-release-gate:
-    name: WebGPU release gate (web shell image)
-    needs: [source-qualification]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    defaults:
-      run:
-        shell: bash
-    env:
-      VITE_CONNECTOR_ORIGINS: ${{ vars.VITE_CONNECTOR_ORIGINS }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ inputs.source }}
-          persist-credentials: false
-          submodules: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: '26'
-          package-manager-cache: false
-      - name: Ask the gate; a refusal fails the preview
-        run: node scripts/webgpu-release-gate.ts --scope web
-
   # The same inputs as deployment-suse.yml's web-frontend, with the preview
   # environment. The connector origins, CA-enrollment trust and live relay must
   # stay equal to the release build's (tests/release-signing-scope.test.ts).
   web-frontend:
-    needs: [source-qualification, web-release-gate]
+    needs: [source-qualification]
     uses: ./.github/workflows/release-frontend.yml
     with:
       target: web
@@ -191,7 +180,7 @@ jobs:
   # writes the image to an archive; the publish job below pushes that archive.
   web-image:
     name: Preview web image build (no registry write)
-    needs: [source-qualification, web-release-gate, web-frontend]
+    needs: [source-qualification, web-frontend]
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
@@ -254,8 +243,11 @@ jobs:
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: release-frontend-web
-          path: ${{ runner.temp }}/lolly-signed-web
+          name: release-frontend-web.tar.zst
+          path: ${{ runner.temp }}/lolly-signed-web-archive
+
+      - name: Unpack the signed frontend
+        run: node scripts/artifact-archive.ts unpack "$RUNNER_TEMP/lolly-signed-web-archive/release-frontend-web.tar.zst" "$RUNNER_TEMP/lolly-signed-web"
 
       - name: Verify the frontend artifact against the reviewed source
         env:
@@ -332,10 +324,12 @@ jobs:
           echo "sha256=$(sha256sum "$RUNNER_TEMP/lolly-preview-web.tar" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
           echo "image_id=$(docker image inspect --format '{{ .Id }}' "lolly-preview-web:$EXPECTED_SOURCE")" >> "$GITHUB_OUTPUT"
 
+      # The image archive is already compressed layers: upload it as is, not inside a zip.
+      # Its artifact is named after the file, lolly-preview-web.tar.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: preview-web-image
           path: ${{ runner.temp }}/lolly-preview-web.tar
+          archive: false
           if-no-files-found: error
           retention-days: 3
 
@@ -370,7 +364,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: preview-web-image
+          name: lolly-preview-web.tar
           path: ${{ runner.temp }}/preview
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
