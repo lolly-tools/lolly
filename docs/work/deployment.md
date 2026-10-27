@@ -251,7 +251,10 @@ both Rancher-managed distributions: **RKE2** for the datacenter (etcd, ingress-n
 CIS and FIPS posture) and **K3s** for the edge. An install, Traefik ingress through
 the cluster's default class, the sign-in gate, the catalog and renders were checked
 live on K3s v1.35 in August 2026; the pinned K3s operator path in
-`deploy/suse/k3s.lock.json` uses v1.34.12+k3s1. K3s puts no API ceiling on this
+`deploy/suse/k3s.lock.json` (amd64) and `deploy/suse/k3s.arm64.lock.json` (arm64) uses
+v1.34.12+k3s1. The operator path also installs on transactional hosts such as openSUSE
+Leap 16.1 Immutable: its first run stages SUSE's `k3s-selinux` policy in a new snapshot
+and asks for a reboot, and its second run installs K3s. K3s puts no API ceiling on this
 workload. Its limits are operational:
 
 - **Datastore.** K3s defaults to SQLite, which suits a single server node. A
