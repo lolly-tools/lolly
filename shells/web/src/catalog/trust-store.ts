@@ -36,3 +36,16 @@ export async function acceptCatalogSnapshot(origin: string, scope: string, snaps
     throw error;
   }
 }
+
+/** The Work instance key saved for this origin (catalog/instance-key.ts), so an
+ *  offline device can still verify the catalog it accepted with that key. */
+const instanceKeyKey = (origin: string): string => `catalog-instance-key-v1:${origin}`;
+export async function readInstanceKey(origin: string): Promise<unknown> {
+  return (await openDB()).get('profile', instanceKeyKey(origin));
+}
+export async function saveInstanceKey(origin: string, record: unknown): Promise<void> {
+  await (await openDB()).put('profile', record, instanceKeyKey(origin));
+}
+export async function forgetInstanceKey(origin: string): Promise<void> {
+  await (await openDB()).delete('profile', instanceKeyKey(origin));
+}

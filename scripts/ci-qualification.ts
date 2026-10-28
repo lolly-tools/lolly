@@ -13,14 +13,27 @@ export const WORKFLOW = '.github/workflows/ci.yml';
 export const PUBLIC_JOBS = ['secret history scan', 'typecheck', 'build + bundle budget', 'test (contracts)',
   'test (security)', 'validate catalog', 'smoke (render every tool)', 'opengrep (custom rules + new findings)',
   'deployment scope', 'test (public-ready UI)'] as const;
-export const RELEASE_JOBS = [...PUBLIC_JOBS, 'test (unit:engine)', 'test (unit:web)', 'test (tools)',
-  'test (browser 1/4)', 'test (browser 2/4)', 'test (browser 3/4)', 'test (browser 4/4)', 'test (browser)',
+/**
+ * The browser suite runs on this many runners, one job each, called `test (browser <n>/<count>)`. A pull request
+ * and the main push that merges it are qualified by the policy of their base, so a new count is accepted here,
+ * and merged, before the workflow uses the new count. A run of the workflow from before the change has the
+ * previous count's partition jobs, which are accepted in place of the current ones when all of them are listed
+ * and succeed. Remove the previous count once main no longer runs those jobs. scripts/browser-partitions.ts
+ * holds the count the workflow runs; tests/ci-qualification-contract.test.ts keeps the two and ci.yml in step.
+ */
+export const BROWSER_PARTITIONS = 8;
+export const PREVIOUS_BROWSER_PARTITIONS = 4;
+export function browserPartitionJobs(count: number): string[] {
+  return Array.from({ length: count }, (_, index) => `test (browser ${index + 1}/${count})`);
+}
+export const RELEASE_JOBS: readonly string[] = [...PUBLIC_JOBS, 'test (unit:engine)', 'test (unit:web)', 'test (tools)',
+  ...browserPartitionJobs(BROWSER_PARTITIONS), 'test (browser)',
   'test (tauri)', 'test (conformance)', 'test (fuzz:regression)', 'api bundle drift', 'render-action self-test',
-  'npm audit (high+critical)'] as const;
+  'npm audit (high+critical)'];
 /** The heavy tier a docs-and-tests pull request leaves out. Every main push still runs all of these. */
-export const HEAVY_JOBS = ['test (browser 1/4)', 'test (browser 2/4)', 'test (browser 3/4)', 'test (browser 4/4)',
-  'test (browser)', 'test (tauri)', 'test (conformance)', 'test (fuzz:regression)'] as const;
-export const DOCS_AND_TESTS_JOBS = RELEASE_JOBS.filter(name => !(HEAVY_JOBS as readonly string[]).includes(name));
+export const HEAVY_JOBS: readonly string[] = [...browserPartitionJobs(BROWSER_PARTITIONS),
+  'test (browser)', 'test (tauri)', 'test (conformance)', 'test (fuzz:regression)'];
+export const DOCS_AND_TESTS_JOBS = RELEASE_JOBS.filter(name => !HEAVY_JOBS.includes(name));
 export type Tier = 'public-ready' | 'release-ready' | 'docs-and-tests';
 /** Which test tier a change needs. Only `full` runs the heavy tier on a pull request. */
 export type Lane = 'public-ready' | 'docs-and-tests' | 'full';
@@ -248,8 +261,14 @@ export function assessJobs(runValue: unknown, pages: unknown[], id: Identity, sc
       need(job.status !== 'completed' || job.conclusion === 'success', `Completed job did not succeed: ${job.name}`);
     }
   }
+  // A run of the workflow from before the browser runner count changed has the previous partition jobs.
+  const current = browserPartitionJobs(BROWSER_PARTITIONS), previous = browserPartitionJobs(PREVIOUS_BROWSER_PARTITIONS);
+  const listed = (names: string[]) => jobs.some(job => names.includes(job.name));
+  need(!(listed(current) && listed(previous)), 'Mixed browser runner layouts');
+  const partitions = listed(previous) ? previous : current;
+  const tierJobs: readonly string[] = tier === 'public-ready' ? PUBLIC_JOBS : tier === 'docs-and-tests' ? DOCS_AND_TESTS_JOBS : RELEASE_JOBS;
   // The docs-and-tests tier has no aggregator job of its own: release-ready is skipped for that lane.
-  const required: string[] = [...(tier === 'public-ready' ? PUBLIC_JOBS : tier === 'docs-and-tests' ? DOCS_AND_TESTS_JOBS : RELEASE_JOBS),
+  const required: string[] = [...tierJobs.flatMap(name => name === current[0] ? partitions : current.includes(name) ? [] : [name]),
     ...(aggregate && tier !== 'docs-and-tests' ? [tier] : [])];
   return { ready: required.every(name => jobs.some(job => job.name === name && job.status === 'completed' && job.conclusion === 'success')), jobs, required };
 }

@@ -7,9 +7,11 @@ import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import { assessJobs, classifyChanges, classifyDocsAndTests, DOCS_AND_TESTS_JOBS, hash, HEAVY_JOBS, inspectScope, PROVIDER_WINDOW_MS,
-  PUBLIC_JOBS, qualify, RELEASE_JOBS, selectTier, touchesDependencies, validateScope, WORKFLOW } from '../scripts/ci-qualification.ts';
+import { assessJobs, BROWSER_PARTITIONS, browserPartitionJobs, classifyChanges, classifyDocsAndTests, DOCS_AND_TESTS_JOBS, hash, HEAVY_JOBS,
+  inspectScope, PREVIOUS_BROWSER_PARTITIONS, PROVIDER_WINDOW_MS, PUBLIC_JOBS, qualify, RELEASE_JOBS, selectTier, touchesDependencies,
+  validateScope, WORKFLOW } from '../scripts/ci-qualification.ts';
 import type { Change, Identity, Job, Lane, Scope } from '../scripts/ci-qualification.ts';
+import { BROWSER_ENGINE_PARTITION, BROWSER_PARTITION_COUNT, BROWSER_PARTITION_DUTY_MS } from '../scripts/browser-partitions.ts';
 import { PUBLIC_READY_UI_FILES } from '../scripts/run-public-ready-ui.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -295,8 +297,11 @@ test('fast tests start before long suites, share exact steps, and preserve all o
   assert.deepEqual(light.map(value => value.shard), ['unit:engine', 'unit:web', 'tools']);
   assert.deepEqual([...new Set(heavy.map(value => value.shard))], ['browser', 'tauri', 'conformance', 'fuzz:regression']);
   const shards = [...fast.strategy!.matrix.include as typeof light, ...light, ...heavy];
-  assert.equal(shards.length, 12); assert.equal(new Set(shards.map(value => value.artifact)).size, 12);
-  assert.deepEqual(shards.filter(value => value.shard === 'browser').map(value => value.partition), ['1/4', '2/4', '3/4', '4/4']);
+  assert.equal(shards.length, 16); assert.equal(new Set(shards.map(value => value.artifact)).size, 16);
+  // The workflow, the partition planner and the trusted policy agree on one browser runner count.
+  assert.equal(BROWSER_PARTITION_COUNT, BROWSER_PARTITIONS);
+  assert.deepEqual(shards.filter(value => value.shard === 'browser').map(value => value.partition),
+    Array.from({ length: BROWSER_PARTITIONS }, (_, index) => `${index + 1}/${BROWSER_PARTITIONS}`));
   // Only a pull request in the docs-and-tests lane leaves the heavy tier out; every other lane, unknown included, keeps the heavy tier.
   assert.match(select.run!, /if \[ "\$GITHUB_EVENT_NAME" = pull_request \] && \[ "\$LANE" = docs-and-tests \]; then\n\s+heavy=skip/);
   const heavyNames = heavy.map(value => value.partition ? `test (browser ${value.partition})` : `test (${value.shard})`);
@@ -309,6 +314,44 @@ test('fast tests start before long suites, share exact steps, and preserve all o
   }
   assert.ok((workflow.jobs['release-ready']!.needs as string[]).includes('test-fast'));
   assert.ok((workflow.jobs['release-ready']!.needs as string[]).includes('test'));
+});
+
+test('each browser conformance step runs in one current partition, and the planner counts its time', () => {
+  interface Step { name?: string; if?: string }
+  const workflow = parse(readFileSync(join(root, WORKFLOW), 'utf8')) as { jobs: Record<string, { steps: Step[] }> };
+  const gated = workflow.jobs.test!.steps.flatMap(step => {
+    const match = /matrix\.partition == '(\d+)\/(\d+)'/.exec(step.if ?? '');
+    return match ? [{ name: step.name, index: Number(match[1]), count: Number(match[2]) }] : [];
+  });
+  assert.ok(gated.length >= 4, 'geometry, Firefox and WebKit, cross-engine geometry and drawing steps');
+  for (const step of gated) assert.equal(step.count, BROWSER_PARTITION_COUNT, step.name ?? 'unnamed step');
+  const timed = gated.filter(step => /geometry|Firefox|drawing/i.test(step.name ?? ''));
+  assert.deepEqual([...new Set(timed.map(step => String(step.index)))].sort(), Object.keys(BROWSER_PARTITION_DUTY_MS).sort());
+  // The files pinned for Firefox and WebKit go to the one runner that installs those builds.
+  const engines = gated.filter(step => /Firefox and WebKit/.test(step.name ?? ''));
+  assert.ok(engines.length >= 2 && engines.every(step => step.index === BROWSER_ENGINE_PARTITION));
+});
+
+test('a run from before the browser runner count changed qualifies with its own complete partitions', () => {
+  const current = browserPartitionJobs(BROWSER_PARTITIONS), previous = browserPartitionJobs(PREVIOUS_BROWSER_PARTITIONS);
+  assert.deepEqual(previous, ['test (browser 1/4)', 'test (browser 2/4)', 'test (browser 3/4)', 'test (browser 4/4)']);
+  assert.ok(current.every(name => RELEASE_JOBS.includes(name) && HEAVY_JOBS.includes(name)));
+  assert.ok(!DOCS_AND_TESTS_JOBS.some(name => current.includes(name) || previous.includes(name)));
+  const before = () => [...jobs().filter(value => !current.includes(value.name)), ...previous.map((name, index) => job(name, 200 + index))];
+  const result = assessJobs(run(), page(before()), id, scope(false), 'release-ready');
+  assert.equal(result.ready, true);
+  assert.ok(previous.every(name => result.required.includes(name)) && !result.required.some(name => current.includes(name)));
+  assert.equal(result.required.length, RELEASE_JOBS.length - current.length + previous.length);
+  assert.equal(assessJobs(run(), page(jobs()), id, scope(false), 'release-ready').required.filter(name => current.includes(name)).length, BROWSER_PARTITIONS);
+  // Every previous partition must be listed and succeed; a run with jobs from both layouts is refused.
+  assert.equal(assessJobs(run(), page(before().filter(value => value.name !== previous[3])), id, scope(false), 'release-ready').ready, false);
+  const pending = before().map(value => value.name === previous[1] ? { ...value, status: 'in_progress', conclusion: null } : value);
+  assert.equal(assessJobs(run(), page(pending), id, scope(false), 'release-ready').ready, false);
+  const failed = before().map(value => value.name === previous[2] ? { ...value, conclusion: 'failure' } : value);
+  assert.throws(() => assessJobs(run(), page(failed), id, scope(false), 'release-ready'), /test \(browser 3\/4\)/);
+  assert.throws(() => assessJobs(run(), page([...jobs(), job(previous[0]!, 300)]), id, scope(false), 'release-ready'), /Mixed browser runner layouts/);
+  // A run whose current partitions are only partly listed is not ready, whatever the other jobs did.
+  assert.equal(assessJobs(run(), page(jobs().filter(value => value.name !== current[7])), id, scope(false), 'release-ready').ready, false);
 });
 
 test('browser reports and skip reports are named by run so a failed-only rerun can gate', () => {

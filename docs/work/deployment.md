@@ -142,6 +142,12 @@ that owns the schema.
   until a worker exists. The details for turning it on are below.
 - **Behind an ingress, set `config.rateLimit.trustedProxyHops: 1`**, or per-address
   limits see only the ingress.
+- **Alerts and a dashboard are optional.** `metrics.prometheusRule.enabled` installs
+  suggested alerts as a `PrometheusRule`, and `metrics.grafanaDashboard.enabled` a
+  Grafana dashboard for the sidecar. Both are off by default and read only what
+  `/metrics` exports ([metrics and alerts](metrics.md)). For admission policy, the
+  repository carries a [Kubewarden policy set](admission-policy.md) that you apply
+  separately.
 
 ::: details Turning on the render worker
 When you enable the worker, also set `config.render.worker.url` to the worker Service
@@ -222,6 +228,7 @@ where you can.
 | cert-manager | in practice | TLS; an annotation example is in `values.yaml` |
 | Keycloak or any OIDC provider | yes, for single sign-on | any OIDC provider works; `idp.displayName` is the label people see |
 | kube-prometheus-stack | optional | ServiceMonitor template included; `/metrics` needs a token |
+| OpenTelemetry Collector | optional | `otel` values send traces, metrics and logs over OTLP/HTTP; off by default ([details](operations.md#opentelemetry-export)) |
 | Node.js base image | yes | default Node 26 Alpine; SUSE BCI `bci/nodejs:24-base` is the separately qualified alternative |
 | S3-compatible object store | optional | only for the S3 catalog provider |
 | Chromium worker image | optional | built in the repository from `workers/render` |
@@ -244,7 +251,10 @@ both Rancher-managed distributions: **RKE2** for the datacenter (etcd, ingress-n
 CIS and FIPS posture) and **K3s** for the edge. An install, Traefik ingress through
 the cluster's default class, the sign-in gate, the catalog and renders were checked
 live on K3s v1.35 in August 2026; the pinned K3s operator path in
-`deploy/suse/k3s.lock.json` uses v1.34.12+k3s1. K3s puts no API ceiling on this
+`deploy/suse/k3s.lock.json` (amd64) and `deploy/suse/k3s.arm64.lock.json` (arm64) uses
+v1.34.12+k3s1. The operator path also installs on transactional hosts such as openSUSE
+Leap 16.1 Immutable: its first run stages SUSE's `k3s-selinux` policy in a new snapshot
+and asks for a reboot, and its second run installs K3s. K3s puts no API ceiling on this
 workload. Its limits are operational:
 
 - **Datastore.** K3s defaults to SQLite, which suits a single server node. A

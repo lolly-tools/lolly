@@ -106,7 +106,7 @@ test('every CI apt install has short command limits, bounded retries and mirror 
       assert.match(body, /printf 'https:\/\/archive\.ubuntu\.com\/ubuntu\/\\tpriority:1\\nhttps:\/\/security\.ubuntu\.com\/ubuntu\/\\tpriority:2\\nhttp:\/\/azure\.archive\.ubuntu\.com\/ubuntu\/\\tpriority:3\\n' \|\s+sudo tee \/etc\/apt\/apt-mirrors\.txt > \/dev\/null\s+fi\s+fi\s+if sudo timeout -k 15 90 apt-get update &&/, `${label}: mirror failover must precede the next update`);
       for (const line of run.split('\n').filter((line) => /apt-get\s|install-deps\s/.test(line))) {
         assert.ok(body.includes(line), `${label}: apt command outside retry loop`);
-        assert.match(line, /sudo timeout -k 15 (?:90 apt-get update|180 apt-get install|180 "\$node_bin" \S+ install-deps)\b/, `${label}: apt command lacks a short root timeout`);
+        assert.match(line, /sudo timeout -k 15 (?:90 apt-get update|(?:75|180) apt-get install|(?:75|180) "\$node_bin" \S+ install-deps)\b/, `${label}: apt command lacks a short root timeout`);
       }
       assert.match(body, /; then (?:exit 0|break); fi/, `${label}: missing success path`);
       assert.match(body, /echo "::warning::[^"\n]+ install attempt \$attempt failed or stalled"/, `${label}: missing per-attempt warning`);
