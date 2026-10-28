@@ -358,8 +358,8 @@ a workaround.
 | Container MTU | Large downloads inside Docker containers stall | Set Docker's MTU to 1442 | [spinifex#1291](https://github.com/mulgadc/spinifex/issues/1291): fix merged, still seen on 28 October |
 | ECR address not trusted by nodes | Pods fail to pull from three of the four addresses `repositoryUri` returns, with a certificate error | Use the `<account>.dkr.ecr.<region>.services.internal` name | [spinifex#1287](https://github.com/mulgadc/spinifex/issues/1287): fix merged, still seen on 28 October |
 | Metadata reports the zone as the region | SDKs on a VM use the wrong region | Set the region explicitly | [spinifex#1286](https://github.com/mulgadc/spinifex/issues/1286): fix due in v1.24.0 |
-| `register-image --ena-support` | A generic `InvalidParameterValue` | Leave the flag out | Not reported yet |
-| Load balancer forwards no client address | Work sees every user at the load balancer's address, so rate limits are shared | Size the rate-limit buckets for all users, or skip the load balancer | Not reported yet |
+| `register-image --ena-support` | A generic `InvalidParameterValue` | Leave the flag out | [spinifex#1322](https://github.com/mulgadc/spinifex/issues/1322) |
+| Load balancer forwards no client address | Work sees every user at the load balancer's address, so rate limits are shared | Size the rate-limit buckets for all users, or skip the load balancer | [spinifex#1321](https://github.com/mulgadc/spinifex/issues/1321) |
 | S3 drops stored headers such as `Cache-Control` | None in Work, which serves files itself | Not needed | [predastore#194](https://github.com/mulgadc/predastore/issues/194): fix due in the next release |
 | Bucket CORS | Not needed by Work today | None | [predastore#193](https://github.com/mulgadc/predastore/issues/193) |
 
