@@ -39,3 +39,14 @@ test('multi-file opening must bind a multiple file input', () => {
   assert.equal(assetOpenErrors({ openWith: [intent], inputs: [{ id: 'files', type: 'file', multiple: true }] }).length, 0);
   assert.equal(assetOpenErrors({ openWith: [intent], inputs: [{ id: 'files', type: 'asset' }] }).length, 1);
 });
+
+test('Write opens one plain text or Markdown file using the text editor adapter', () => {
+  const manifest = JSON.parse(readFileSync(new URL('../../../community/write/tool.json', import.meta.url), 'utf8'));
+  assert.equal(validateTool(manifest).valid, true);
+  const text = { id: 'notes', type: 'text', format: 'md' } as AssetRef;
+  assert.deepEqual(assetOpenChoices([manifest], [text]).map(choice => choice.tool.id), ['write']);
+  assert.deepEqual(assetOpenChoices([manifest], [text, text]), []);
+  assert.deepEqual(assetOpenChoices([manifest], [{ ...text, format: 'yaml' }]), []);
+  manifest.openWith[0].multiple = true;
+  assert.equal(validateTool(manifest).valid, false);
+});

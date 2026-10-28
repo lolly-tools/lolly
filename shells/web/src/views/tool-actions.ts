@@ -144,7 +144,7 @@ function renderActions(
       // Leaving the view protects the last edits and stops the controller, as the full bar's dispose does.
       dispose: (): void => { void ta.automaticHistory?.flush(); ta.automaticHistory?.dispose(); },
     };
-    if (!el) return kept;
+    if (!el) return { ...kept, save: ta.saving.performSave, quickSaveFolder: ta.saving.quickSaveFolder };
     el.innerHTML = `<div class="export-action-buttons">${ta.saving.saveBtnHtml()}${ta.copyUrlBtn}</div>`;
     el.querySelector<HTMLButtonElement>('[data-action="save"]')!.addEventListener(
       'click',

@@ -10,12 +10,15 @@ import { JSDOM } from 'jsdom';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 
 const dom = new JSDOM('<!doctype html><body></body>', { url: 'https://instance.test/#/p?team=p', pretendToBeVisual: true });
-for (const key of ['window', 'document', 'location', 'HTMLElement', 'HTMLAnchorElement', 'Element', 'Node', 'MutationObserver', 'CustomEvent', 'getComputedStyle', 'AbortController', 'localStorage']) {
+for (const key of ['window', 'document', 'location', 'HTMLElement', 'HTMLAnchorElement', 'HTMLDialogElement', 'Element', 'Node', 'MutationObserver', 'CustomEvent', 'getComputedStyle', 'AbortController', 'localStorage']) {
   Reflect.set(globalThis, key, Reflect.get(dom.window, key));
 }
 Reflect.set(globalThis, 'requestAnimationFrame', (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0));
 Reflect.set(globalThis, 'ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
 Reflect.set(globalThis, 'IntersectionObserver', class { observe() {} unobserve() {} disconnect() {} takeRecords() { return []; } });
+
+dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new dom.window.Event('close')); };
 
 const { registerSessionSource } = await import('../lib/session-source.ts');
 const { mountTeamProjectView } = await import('./team-project-view.ts');
@@ -61,4 +64,57 @@ test('a search inside a folder stays in its subtree, and the crumbs carry their 
   assert.doesNotMatch(got.tiles.s2!, /In /);
   assert.match(got.tiles.s3!, /In Campaign \/ Drafts$/);
   assert.deepEqual(got.crumbs, [['Projects', null], ['Team', '']]);
+});
+
+test('shared text-file creation retries placement without creating another document', async () => {
+  const creates: import('../lib/session-source.ts').TeamSessionWrite[] = [], moves: string[] = [];
+  const remove = registerSessionSource({ label: 'Workspace', fetchSession: async () => null,
+    listProjects: async () => [{ id: 'p', name: 'Team', myRole: 'editor' }], listSessions: async () => [],
+    write: { projectOptions: () => ({ canCreate: true, groups: [] }), createProject: async () => ({ kind: 'error', status: 403 }),
+      createSession: async (_project, input) => { creates.push(input); return { kind: 'saved', id: 'new-text', rev: 1 }; },
+      updateSession: async () => ({ kind: 'error', status: 403 }) },
+  });
+  let refused = true;
+  globalThis.fetch = async (url, init) => {
+    if (String(url).endsWith('/folders')) return Response.json({ folders });
+    if (init?.method === 'PUT') { moves.push(String(url)); return new Response('', { status: refused ? 503 : 204 }); }
+    return new Response('', { status: 404 });
+  };
+  const container = document.createElement('div'); document.body.replaceChildren(container);
+  const stop = mountTeamProjectView(container, { host: {} as HostV1, projectId: 'p', create: false, tab: 'sessions', folderId: 'a', toolName: id => id,
+    beforeNavigate() {}, isMounted: () => container.isConnected });
+  try {
+    for (let i = 0; i < 200 && !container.querySelector('.folder-grid, .team-project-empty'); i++) await new Promise(resolve => setTimeout(resolve, 5));
+    container.dispatchEvent(new dom.window.CustomEvent('lolly:team-file-create'));
+    const dialog = document.querySelector<HTMLDialogElement>('dialog')!;
+    dialog.querySelector<HTMLInputElement>('[data-file-name]')!.value = 'Campaign.md';
+    dialog.querySelector<HTMLSelectElement>('[data-file-type]')!.value = 'markdown';
+    const submit = () => dialog.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+    submit();
+    for (let i = 0; i < 200 && !dialog.querySelector('[data-file-error]')!.textContent; i++) await new Promise(resolve => setTimeout(resolve, 5));
+    assert.equal(creates.length, 1);
+    assert.equal(creates[0]!.toolId, 'write');
+    assert.equal(creates[0]!.inputs.language, 'markdown');
+    assert.equal(creates[0]!.meta!.label, 'Campaign.md');
+    refused = false; submit();
+    for (let i = 0; i < 200 && dialog.isConnected; i++) await new Promise(resolve => setTimeout(resolve, 5));
+    assert.equal(creates.length, 1);
+    assert.equal(moves.length, 2);
+    assert.ok(moves.every(url => url.includes('new-text')));
+  } finally { stop(); remove(); }
+});
+
+test('a shared project viewer has no New file action', async () => {
+  const remove = registerSessionSource({ label: 'Workspace', fetchSession: async () => null,
+    listProjects: async () => [{ id: 'p', name: 'Team', myRole: 'viewer' }], listSessions: async () => [] });
+  globalThis.fetch = async () => Response.json({ folders });
+  const container = document.createElement('div'); document.body.replaceChildren(container);
+  const stop = mountTeamProjectView(container, { host: {} as HostV1, projectId: 'p', create: false, tab: 'sessions', toolName: id => id,
+    beforeNavigate() {}, isMounted: () => container.isConnected });
+  try {
+    for (let i = 0; i < 200 && !container.querySelector('.folder-grid, .team-project-empty'); i++) await new Promise(resolve => setTimeout(resolve, 5));
+    assert.ok(![...container.querySelectorAll('button')].some(button => button.textContent === 'New file'));
+    container.dispatchEvent(new dom.window.CustomEvent('lolly:team-file-create'));
+    assert.equal(document.querySelector('dialog'), null);
+  } finally { stop(); remove(); }
 });

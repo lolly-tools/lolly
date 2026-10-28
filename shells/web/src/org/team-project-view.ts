@@ -33,6 +33,7 @@ import { mountInviteLinkControl } from '../components/invite-link-control.ts';
 import { projectInviteLinks } from './project-invite-links.ts';
 import { showProjectInviteLink } from './project-sharing.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
+import { openNewFileDialog } from '../lib/project-text-file.ts';
 import { mountProjectAgentsPanel } from './project-agents-panel.ts';
 
 interface ProjectViewOptions {
@@ -68,7 +69,9 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   let clearAgents: (() => void) | undefined;
   let clearPresence: (() => void) | undefined;
   let clearInvite: (() => void) | undefined, invitation: BodyPopoverHandle | undefined;
+  let createFileAction: (() => void) | undefined, closeNewFile: (() => void) | undefined;
   let createFolderAction: (() => void) | undefined;
+  container.addEventListener('lolly:team-file-create', () => createFileAction?.(), { signal: abort.signal });
   container.addEventListener('lolly:team-folder-create', () => createFolderAction?.(), { signal: abort.signal });
   const current = () => !disposed && container.isConnected && opts.isMounted() && source === getSessionSource();
   const node = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] => {
@@ -94,7 +97,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   const failure = (status: number, retry: () => void) => {
     body.replaceChildren(node('p', teamOpenMessage(status), 'team-project-notice'), button(tRaw('Try again'), retry));
   };
-  if (!source) { body.append(node('p', tRaw('Sign in to your workspace to open shared projects.'), 'team-project-notice')); return () => { disposed = true; abort.abort(); }; }
+  if (!source) { body.append(node('p', tRaw('Sign in to your workspace to open shared projects.'), 'team-project-notice')); return () => { closeNewFile?.(); disposed = true; abort.abort(); }; }
   if (opts.create) {
     const writer = source.write;
     body.append(node('h2', tRaw('New team project')), node('p', tRaw('Create a shared folder for your team’s sessions. Choose people after creating the project.'), 'team-project-notice'));
@@ -113,7 +116,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
   async function load(message?: string): Promise<void> {
     if (!source || !current()) return;
     const my = ++ticket;
-    createFolderAction = undefined;
+    createFolderAction = undefined; createFileAction = undefined; closeNewFile?.();
     clearToolbar?.(); clearToolbar = undefined;
     clearPreviews?.(); clearPreviews = undefined;
     clearAssetPreview?.(); clearAssetPreview = undefined;
@@ -145,7 +148,8 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (current()) notice.textContent = ok ? tRaw('Link copied') : tRaw('Could not copy. Try again.');
     }); }, false, 'link'); actions.append(copy);
     const canWrite = canWriteProject(project.myRole) && orgConfig()?.can?.['session.edit'] !== false;
-    const canCreateSession = canWrite && orgConfig()?.can?.['session.create'] !== false;
+    const canCreateSession = canWrite && orgConfig()?.can?.['session.create'] !== false && source.write?.projectOptions().canSave !== false;
+    if (source.write && canCreateSession && opts.tab === 'sessions') actions.append(button(tRaw('New file'), () => createFileAction?.(), false, 'filePlus'));
     if (source.write && canCreateSession) actions.append(button(tRaw('New session'), () => showNewSession(), true, 'filePlus'));
     if (canWrite) actions.append(button(tRaw('New folder'), () => createFolderAction?.(), false, 'folderPlus'));
     if (isManagerPlus(projectRole)) actions.append(button(tRaw('Rename'), () => { void (async () => {
@@ -199,6 +203,20 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     setBreadcrumbs([{ name: project.name, href: teamFolderHref(project.id), folder: null }, ...chain.map(entry => ({ name: entry.name, href: teamFolderHref(project.id, entry.id), folder: entry.id }))]);
     if (folder) head.querySelector('h2')!.textContent = folder.name;
     if (canOrganize) createFolderAction = showNewFolder;
+    if (source.write && canCreateSession && (!folderId || canOrganize)) createFileAction = () => {
+      closeNewFile?.();
+      let savedId: string | undefined;
+      closeNewFile = openNewFileDialog(async (file, stillWanted) => {
+        if (!savedId) {
+          const saved = await source.write!.createSession(projectId, { toolId: 'write', inputs: file.inputs, meta: { label: file.name } });
+          if (saved.kind !== 'saved') throw new Error(saved.kind === 'file-error' ? saved.message : teamOpenMessage(saved.kind === 'error' ? saved.status : 409));
+          savedId = saved.id;
+        }
+        if (!stillWanted()) return;
+        if (folderId) await moveTeamFolderItem(projectId, folderId, 'session', savedId);
+        if (stillWanted()) await open(savedId, notice);
+      }, () => current() && my === ticket);
+    };
     if (opts.assetId) {
       const file = assets.files.find(file => file.id === opts.assetId);
       if (file) {
@@ -237,6 +255,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       current: () => current() && my === ticket, reload: message => { void load(message); },
       duplicate: (id, kind, place) => duplicateProjectItem({ projectId, id, kind, folderId: place?.folderId !== undefined ? place.folderId : folderId, folders, writer: source?.write,
         name: place?.name || grid.querySelector<HTMLElement>(`[data-ref="${CSS.escape(id)}"] .tile-title`)?.textContent || id, current: () => current() && my === ticket }),
+      createFile: createFileAction, createFolder: createFolderAction,
       notice: message => { if (current() && my === ticket) notice.textContent = message; }, sessionAction,
     });
     async function sessionAction(action: string, id: string, tile: HTMLElement | null): Promise<boolean | undefined> {
@@ -331,5 +350,5 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
       if (!got.ok && current()) notice.textContent = teamOpenMessage(got.status);
     } finally { opening = false; }
   }
-  return () => { disposed = true; ++ticket; clearToolbar?.(); clearPresence?.(); clearActions?.(); clearAgents?.(); clearAssetPreview?.(); clearPreviews?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
+  return () => { closeNewFile?.(); disposed = true; ++ticket; clearToolbar?.(); clearPresence?.(); clearActions?.(); clearAgents?.(); clearAssetPreview?.(); clearPreviews?.(); clearInvite?.(); invitation?.close(); window.clearInterval(timer); abort.abort(); };
 }
