@@ -9,8 +9,9 @@
 # one that still needs its api-bundle regenerated) is never merged here; it
 # simply waits, and the weekly routine picks it up. The one artifact a bump PR is
 # forgiven for is the SBOM, which no Dependabot branch can carry: ci.yml warns
-# instead of failing there, and sbom-refresh.yml regenerates it on main after the
-# merge. See those two files for the reasoning.
+# instead of failing there, and after the merge sbom-refresh.yml proposes the
+# regenerated file as an auto-merging pull request. See those two files for the
+# reasoning.
 #
 # ── PREREQUISITES (both required for this to do anything) ─────────────────────
 #   1. Repo setting "Allow auto-merge" = ON.        (already enabled 2026-08-14)

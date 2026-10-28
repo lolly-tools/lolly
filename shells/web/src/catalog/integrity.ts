@@ -12,6 +12,12 @@
  * index.json that doesn't match its signed hash throws, and the signed envelope
  * + imported key are exposed (getToolIntegrity) for loadTool call sites to pass
  * as `integrity` opts so per-tool-file digests are enforced before hooks run.
+ *
+ * One more key can verify, and only in one place: a web app served by a Lolly Work
+ * instance accepts that instance's own catalog key, read from the same origin, for
+ * envelopes carrying its keyId (catalog/instance-key.ts has the rules). Everywhere
+ * else, static hosts and the desktop and mobile apps included, the pinned key is
+ * the only key, as before.
  */
 
 // The verifier itself is DYNAMICALLY imported (see `crypto()` below), not because
@@ -22,7 +28,7 @@
 // so the import has to be the lazy one. Both public functions below are already
 // async, so the await is invisible to callers.
 import type { ToolIntegrityOpts } from '../../../../engine/src/loader.ts';
-import { instanceFetch, instancePath } from '../lib/instance.ts';
+import { getInstanceBase, instanceFetch, instancePath } from '../lib/instance.ts';
 import type { CatalogSnapshot } from './snapshot.ts';
 import { CatalogRefusedError, isAccessRefused, noteCatalogRefused } from '../lib/catalog-access.ts';
 
@@ -73,12 +79,20 @@ async function load(): Promise<{ snapshot: CatalogSnapshot; integrity: ToolInteg
     return null;
   }
   const publicKey = await (await crypto()).importSpkiOrJwkPublicKey(PINNED_KEY);
-  const [{ fetchSignedCatalogSnapshot }, { readAcceptedCatalog, readLatestAcceptedCatalog, acceptCatalogSnapshot }] = await Promise.all([
-    import('./snapshot.ts'), import('./trust-store.ts'),
+  const [{ fetchSignedCatalogSnapshot }, store, instanceKeys] = await Promise.all([
+    import('./snapshot.ts'), import('./trust-store.ts'), import('./instance-key.ts'),
   ]);
   const origin = new URL(instancePath('/catalog/tools/index.sig.json'), globalThis.location?.href ?? 'http://localhost/').origin;
+  // A fresh selector per load, so each sync reads the instance key again and a
+  // rotated key takes effect on the next sync.
+  const keyFor = instanceKeys.createCatalogKeySelector({
+    pinned: publicKey,
+    pinnedKeyId: await instanceKeys.keyIdOf(publicKey),
+    instanceKey: sameOriginInstanceKey(instanceKeys, store),
+  });
   const snapshot = await fetchSignedCatalogSnapshot({
     publicKey,
+    keyFor,
     fetch: async (path, init) => {
       const resp = await instanceFetch(instancePath(path + (path.includes('?') ? '&' : '?') + 'paged=1'), init);
       if (isAccessRefused(resp.status)) {
@@ -87,12 +101,31 @@ async function load(): Promise<{ snapshot: CatalogSnapshot; integrity: ToolInteg
       }
       return resp;
     },
-    read: scope => readAcceptedCatalog(origin, scope),
-    latest: () => readLatestAcceptedCatalog(origin),
-    accept: (scope, pair) => acceptCatalogSnapshot(origin, scope, pair),
+    read: scope => store.readAcceptedCatalog(origin, scope),
+    latest: () => store.readLatestAcceptedCatalog(origin),
+    accept: (scope, pair) => store.acceptCatalogSnapshot(origin, scope, pair),
   });
   markAcceptedCatalog(snapshot);
-  return { snapshot, integrity: { envelope: snapshot.envelope, publicKey } };
+  return { snapshot, integrity: { envelope: snapshot.envelope, publicKey: await keyFor(snapshot.envelope) } };
+}
+
+/** The instance key reader for this page, or null when the page may use only the
+ *  pinned key: inside the desktop and mobile apps, or with an instance on another
+ *  origin. The Tauri bridge object is checked for presence alone, because the apps
+ *  on Windows and Android serve their bundled copy from an http origin. */
+function sameOriginInstanceKey(
+  keys: typeof import('./instance-key.ts'), store: typeof import('./trust-store.ts'),
+): (() => Promise<import('./instance-key.ts').InstanceCatalogKey | null>) | null {
+  const pageOrigin = globalThis.location?.origin ?? null;
+  const tauri = (globalThis as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined;
+  if (!pageOrigin || !keys.instanceKeyAllowed({ pageOrigin, instanceBase: getInstanceBase(), tauri })) return null;
+  return () => keys.resolveInstanceCatalogKey({
+    origin: pageOrigin,
+    fetch: (url, init) => fetch(url, init),
+    load: store.readInstanceKey,
+    save: store.saveInstanceKey,
+    forget: store.forgetInstanceKey,
+  });
 }
 
 /** Recovery clears the refusal badge only after a complete authenticated pair. */

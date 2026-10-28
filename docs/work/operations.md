@@ -106,6 +106,48 @@ the sign-in gate and locked inputs while the instance looked governed.
 `LW_ALLOW_STALE_SHELL=1` turns the refusal into a loud warning; use it knowingly and
 briefly.
 
+#### The catalogue key
+
+A release web app has the publisher's catalogue key built in and refuses any catalogue
+that key did not sign. Work signs each person's catalogue with this instance's own key,
+`LW_CATALOG_SIGNING_KEY`, because each person sees a different set of tools. From Lolly
+1.1.3, the web app reads the public half of the instance key from
+`GET /api/v1/catalog/public-key` at the address that served the web app, and accepts a
+catalogue signed with that key. Nothing in the web app is patched or rebuilt.
+
+- **Same address only.** The web app takes the instance key only from the address that
+  served its own code. Whoever runs that address already decides which code the web app
+  runs, so believing that address about its catalogue key trusts nobody new. A web app on
+  lolly.tools, on any other static host, or inside the desktop and mobile apps never asks
+  for the key and keeps the key built into its release.
+- **Only for that key.** The instance key verifies only a catalogue that carries its key
+  ID. A catalogue signed by any other key, or not signed at all, is refused as before.
+- **One operator per address.** A proxy that sends this address's `/api/` paths to a
+  service run by someone else would let that party offer a key. Serve Work and its web
+  app from an address you alone operate.
+- **No key, no catalogue.** With `LW_CATALOG_SIGNING_KEY` unset the route answers 404,
+  as a server from before 1.1.3 does, and the web app refuses the catalogue. A key that
+  does not load answers 503, and the server log says why without printing the key.
+
+**Rotating the key.** Set a new `LW_CATALOG_SIGNING_KEY` and restart. A web app reads the
+public key again each time the catalogue syncs, so it takes the new key at its next sync,
+and from then on a catalogue signed with the old key is refused. A browser that has not
+synced since the restart keeps the old key until its next sync.
+
+**Offline.** Each browser saves the last key it read for this address beside the
+catalogue it accepted. Offline, or while the route gives no answer, the browser checks
+the saved catalogue against the saved key. A 404 from the route removes the saved key.
+
+**Older web apps.** A web app from before 1.1.3 does not read the route. Serve one built
+with this instance's public key, or use the ready-made package, whose first start writes
+the instance key into the web app it installs.
+
+**The desktop and mobile apps** keep the key built into each app when connected to an
+instance, so this instance's own catalogue reaches only an app built with this instance's
+key. Pairing an app with a server, which is planned, can carry the key ID beside the
+server's certificate fingerprint, so the app can check the key it reads against one it
+was given in person.
+
 ## Backup and restore
 
 The database holds durable records and, with `blobs.driver: "pg"`, stored asset
@@ -163,6 +205,7 @@ dump on an existing cluster.
 | `LW_METRICS_TOKEN` | Update the scraper |
 | `LW_RENDER_WORKER_SECRET` | Rotate the application and the worker together |
 | `LW_C2PA_SIGNING_KEY` | New signatures use the new identity; old exports stay verifiable against the old chain |
+| `LW_CATALOG_SIGNING_KEY` | Restart with the new key. A web app from Lolly 1.1.3 takes the new public key at its next catalogue sync ([the catalogue key](#the-catalogue-key)). A web app built with the old public key refuses the catalogue until it is built with the new one |
 
 Generate each secret once (`openssl rand -hex 32`), keep it in your platform's secret
 manager and rotate it only as planned.
@@ -195,7 +238,7 @@ replica and any rollback deployment kept elsewhere, before any of them takes tra
 
 ```
 GET /healthz     unauthenticated, cheap - liveness (the process answers)
-GET /readyz      unauthenticated - readiness: the store answers `select 1` (503 while it cannot); the Helm chart's readinessProbe
+GET /readyz      unauthenticated - readiness, the Helm chart's readinessProbe: 503 until the store answers, the catalog is prepared and, in production, migrations and setup checks pass; `checks` in the body says which one is holding it back
 GET /metrics     Prometheus; loopback-only unless LW_METRICS_TOKEN is set
 ```
 
@@ -212,6 +255,7 @@ Gauges worth an alert:
 | `lw_process_resident_memory_bytes` | it climbs across a render-heavy day |
 | `lw_blob_stored_bytes` | it nears 10 GiB with `driver="pg"`: see [blob offload trigger](#blob-offload-trigger) |
 | `lw_blob_read_bytes_total` | `increase()` over 30 days nears 100 GiB with `driver="pg"` |
+| `lw_ofrep_evaluation_errors_total` | its `rate()` stays above zero while `featureFlags.ofrep` is set: people are getting Work's own flag settings, not your flag service's. The `reason` label (`timeout`, `network`, `unauthorized`, `not_found`, `rate_limited`, `server`, ...) says why; compare with `lw_ofrep_requests_total` |
 
 `lw_origin_bytes_total{class}` counts the response body bytes the server wrote, after
 compression, by each route's delivery class (`public-immutable`, `public-revalidate`,
@@ -219,14 +263,149 @@ compression, by each route's delivery class (`public-immutable`, `public-revalid
 it shows how much traffic a CDN in front could take, since a CDN may serve only the
 public classes. HEAD, 204 and 304 answers count nothing.
 
-The Helm chart's ServiceMonitor needs `metricsToken`, because `/metrics` answers only
-on loopback without one.
+The Helm chart's ServiceMonitor needs `metricsToken`, because without a token
+`/metrics` answers only on an evaluation instance's loopback address.
+[Metrics and alerts](metrics.md) lists every metric with its type and labels, and
+covers the suggested alerts and the Grafana dashboard the chart can install, both off
+by default.
 
 **Outbound traffic for models.** When Work serves the web app, a request for
 `/models/...` that the web app folder cannot answer is passed to
 `instance.modelOrigin`, `https://lolli.li` by default, for any visitor. Set it to
 `null`, or to a mirror you run, where outbound traffic is restricted; see
 [configuration](configuration.md).
+
+## OpenTelemetry export
+
+A platform team that runs its own observability stack can have Work push traces,
+metrics and logs to an OpenTelemetry Collector or any backend that accepts OTLP.
+Export is off until you set an endpoint. With no endpoint, Work starts no timer,
+opens no connection and sends nothing; an instance nobody configured behaves exactly
+as it did before.
+
+Work speaks OTLP over HTTP. Point it at the collector's HTTP port, usually 4318:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.observability.svc:4318
+OTEL_SERVICE_NAME=lolly-work            # the default when unset
+OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=production
+```
+
+With the Helm chart, set the `otel` values instead. The chart turns them into the same
+variables on the server container only; the migrate Job and the render worker export
+nothing.
+
+```yaml
+otel:
+  enabled: true
+  endpoint: http://otel-collector.observability.svc:4318
+  resourceAttributes:
+    deployment.environment.name: production
+  # A backend that wants an API key: a Secret key holding the whole
+  # OTEL_EXPORTER_OTLP_HEADERS value, never the key itself in values.
+  headersSecret: { name: otlp-auth, key: headers }
+```
+
+Elsewhere, set the variables in the server's environment: under `environment:` in
+Compose, or in the unit or shell that starts the server.
+
+### Variables Work reads
+
+| Variable | Default | What |
+|---|---|---|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | none: export off | base URL; Work adds `/v1/traces`, `/v1/metrics` and `/v1/logs` |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, `_METRICS_ENDPOINT`, `_LOGS_ENDPOINT` | none | one signal's full URL, used as given. Setting only one sends only that signal |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` (and per signal) | `http/protobuf` | `http/protobuf` or `http/json`. `grpc` is refused with a warning at boot |
+| `OTEL_EXPORTER_OTLP_HEADERS` (and per signal) | none | `key=value` pairs, comma separated, values percent-encoded. Sent with every export and never printed |
+| `OTEL_EXPORTER_OTLP_COMPRESSION` (and per signal) | `none` | `gzip` or `none` |
+| `OTEL_EXPORTER_OTLP_TIMEOUT` (and per signal) | `10000` | milliseconds per export request |
+| `OTEL_EXPORTER_OTLP_CERTIFICATE`, `_CLIENT_CERTIFICATE`, `_CLIENT_KEY` (and per signal) | none | file paths: a CA bundle to trust, and a client certificate and key for mutual TLS |
+| `OTEL_SERVICE_NAME` | `lolly-work` | `service.name`; wins over a `service.name` in the resource attributes |
+| `OTEL_RESOURCE_ATTRIBUTES` | none | extra resource attributes, `key=value` pairs |
+| `OTEL_TRACES_EXPORTER`, `OTEL_METRICS_EXPORTER`, `OTEL_LOGS_EXPORTER` | `otlp` | `none` turns one signal off |
+| `OTEL_SDK_DISABLED` | `false` | `true` turns all export off, whatever else is set |
+| `OTEL_TRACES_SAMPLER`, `OTEL_TRACES_SAMPLER_ARG` | `parentbased_always_on` | `always_on`, `always_off`, `traceidratio` and their `parentbased_` forms; the argument is the ratio |
+| `OTEL_PROPAGATORS` | `tracecontext` | `none` stops Work reading an incoming `traceparent` |
+| `OTEL_BSP_*`, `OTEL_BLRP_*` | 2048 queued, batches of 512, every 5 s for spans and 1 s for logs | the span and log batch settings from the OpenTelemetry specification |
+| `OTEL_METRIC_EXPORT_INTERVAL`, `OTEL_METRIC_EXPORT_TIMEOUT` | `60000`, `30000` | how often the metrics are read and sent |
+| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | `cumulative` | `delta` for a backend that needs deltas; `lowmemory` is read as `delta` |
+
+A setting Work cannot follow prints one warning line at boot, giving the variable and
+never a header value. The boot line lists each signal's endpoint without user
+information or query.
+
+Work sends protobuf by default because the OpenTelemetry default is protobuf and some
+vendors' direct intakes accept nothing else. JSON is there for a collector you want
+to read by eye. Work does not send gRPC: a collector accepts both HTTP encodings on
+port 4318, and refusing at boot is clearer than sending HTTP to a gRPC port.
+
+### What is sent
+
+| Signal | Contents |
+|---|---|
+| Traces | one server span per HTTP request, named by method and route pattern (`GET /api/v1/users/:id`), with `http.request.method`, `http.route`, `http.response.status_code`, `url.scheme` and `network.protocol.version`. A 5xx answer marks the span as an error with `error.type` set to the status. Under it, a span per database statement with `db.system.name`, `db.operation.name` and `db.collection.name` (the table), and a `render` span with the tool id, the output format and whether a render worker is configured. A render the durable queue runs is a trace of its own |
+| Metrics | the series `GET /metrics` serves, with the same names, labels and help text: counters as monotonic sums, gauges as gauges. Alerts written against `/metrics`, such as the [monitoring](#monitoring) list, can use the same names |
+| Logs | the server's structured log records: the message, its level, the method, route, status and duration of an access line, and an error's type. A record made during a traced request carries that request's trace and span ids |
+
+Each export also carries a resource: `service.name`, `service.version`,
+`service.instance.id` (random per process), the `telemetry.sdk.*` and
+`process.runtime.*` attributes, and your `OTEL_RESOURCE_ATTRIBUTES`. Work adds no host
+name; a home server's host name is often a person's name. Add `host.name` yourself if
+you want one.
+
+Logs follow `LW_LOG_HTTP` and `LW_LOG_FORMAT`: the per-request access record is sent
+only when the access line is on. Boot and background messages go to stdout only.
+
+### What is never sent
+
+Work's [telemetry](telemetry.md) rules apply to this export too: nothing about
+identity leaves the instance. Each exported attribute comes from a fixed list in the
+server. A value read from a request is kept only when it belongs to a known set (the
+HTTP method) or follows a naming rule (a tool id, a format).
+
+- No URL path and no query string. A span carries the route pattern, so
+  `/api/v1/users/:id` and never the id.
+- No header, cookie, session, bearer token, client address or user agent.
+- No request or response body, and no database statement text or parameter.
+- No error message. An error travels as its type, such as `RENDER_BUSY` or
+  `TypeError`; the message stays in the stdout log.
+- No incoming `tracestate`.
+- No user id, email address or display name anywhere.
+
+Work's test suite runs the export against a capturing receiver, sends requests that
+carry emails, cookies, bearer tokens, forwarded addresses, query values, bodies and
+user ids, and fails if any of them appears in the bytes of any export, in either
+encoding.
+
+### Delivery and back-pressure
+
+A finished span or log record joins a bounded queue; the request does not wait for
+the export. Encoding and sending happen on a timer, one request at a time per signal.
+A record that arrives at a full queue is dropped. Work retries a 429, 502, 503 or 504
+with backoff inside the export timeout; any other refusal drops the batch. Both
+cases count:
+
+| Series | Meaning |
+|---|---|
+| `lw_otlp_exported_total{signal}` | spans, data points or log records the receiver accepted |
+| `lw_otlp_dropped_total{signal,reason}` | items lost, with `reason` `queue_full` or `export_failed` |
+
+These appear on `/metrics` and in the exported metrics, only while export is on. The
+first failed export prints a warning, then at most one every five minutes.
+
+On `SIGTERM` Work drains live rooms as before, then sends what is queued and a last
+metric reading, within five seconds, before it exits.
+
+Three consequences to plan for:
+
+- **The metrics read the database.** The gauges are collected at each export interval,
+  as they are at each Prometheus scrape. A database that scales to zero does not
+  sleep while metric export is on.
+- **An incoming `traceparent` is honoured.** A request that arrives with one continues
+  that trace and follows its sampled flag under the default sampler. Strip or replace
+  the header at your ingress if outside callers should not choose what is sampled.
+- **Health checks are requests.** Probes of `/healthz` and `/readyz` produce spans;
+  drop them in the collector if you do not want them.
 
 ## Blob growth and version retention
 

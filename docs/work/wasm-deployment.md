@@ -10,7 +10,7 @@ WebAssembly components.
 
 | Role | Approach to use | What Lolly provides now |
 |---|---|---|
-| Kubernetes admission policy | Rancher-managed Kubewarden, with signed policies distributed as OCI artifacts | Evaluation guidance. Lolly installs no controller and enforces no policy |
+| Kubernetes admission policy | Rancher-managed Kubewarden, with signed policies distributed as OCI artifacts | What Work's pods need, as data, and a [ready policy set](admission-policy.md) you apply. Lolly installs no controller and the chart enforces no policy |
 | Portable application tool | The WebAssembly Component Model, WIT interfaces and a pinned WASI version | Not built. The browser Wasm files Lolly ships today are not deployable WASI components |
 | Component hosting on Kubernetes | A qualified SpinKube install, or a containerd and runwasi handler with an explicit RuntimeClass and node selection | A platform reference only; the Work chart has no Wasm RuntimeClass setting |
 | Component hosting on a small Linux machine | A bounded host worker with explicit capabilities | Not built |
@@ -32,7 +32,8 @@ Start in audit mode, with curated image verification policies:
 - the [secure supply chain guidance](https://docs.kubewarden.io/admission-controller/1.38/en/howtos/security-hardening/secure-supply-chain.html)
   for policy and image provenance;
 - Lolly's own publisher identity, configured separately from the Application Collection
-  publisher.
+  publisher. The [Kubewarden policy set for Work](admission-policy.md) carries it, with
+  the pod requirements and a preflight check.
 
 Before you enforce anything, show that a qualified release is accepted and that an
 unsigned, altered or wrongly attributed release is rejected. Test controller and
