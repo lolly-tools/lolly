@@ -1,3 +1,4 @@
+import { mountToolTextWorkspace } from '../tool-text-workspace.ts';
 import { readColumnPref, writeColumnPref } from './shared.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
@@ -596,14 +597,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
   }
 }
 /** Live editing: the runtime subscriptions, the canvas edit tools and the collab wiring. */export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
-  if (tview.runtime.getHydrated().includes('data-text-workspace') && tview.contentEl?.parentElement) {
-    const { mountTextWorkspace } = await import('../text.ts');
-    if (tview.mountLifecycle.disposed) return;
-    const content = tview.contentEl;
-    content.style.display = 'none';
-    const cleanup = await mountTextWorkspace({ container: content.parentElement!, runtime: tview.runtime, host: tview.host, onDirty: tview.session.markUserDirty, history: tview.actionsApi?.history, meta: (read) => { tview.documentMeta = read; } });
-    tview.mountLifecycle.add('text-workspace', () => { cleanup(); content.style.removeProperty('display'); });
-  }
+  await mountToolTextWorkspace(tview);
   const { TOOL_URL_BASE, actionsApi, actionsEl, backPillOpts, barSeq, brandVarsReady, canBulk, canSaveSession, canvasEditInput, canvasEl, collabHandle, contentEl, deckEditInput, deckLayout, docEditInput, documentLayout, editorLayout, fixedCanvasMode, frameCfg, hasTemplates, isPresent, mountLifecycle, nativeH, nativeW, outerEl, pagesCfg, pagesMode, presentAddress, profileToggle, renderFab, runtime, slot, soundToggle, stageEl, templateMeta, templateParam, templateSeededIds, themeToggle, toolId, transcribeSpec, urlFlags, urlHeight, urlWidth, viewEl } = tview;
   const documentId = `doc:${globalThis.crypto.randomUUID()}`;
   const { mountToolAgentGuidance, mountToolAgentInvitations, finishToolAgentShare } = await import('../tool-agent-guidance.ts');
@@ -697,18 +691,19 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
   // leaves the button disabled with a "Saved" label for its own navigate-away caller,
   // so we restore it here and clear the unsaved cue, briefly holding "Saved" as
   // confirmation before reverting to "Save".
-  if (tview.renderSaveBtn && actionsApi?.save) {
-    const saveLabel = tview.renderSaveBtn.querySelector<HTMLElement>('[data-save-label]');
+  if (canSaveSession && actionsApi?.save) {
+    const saveButton = tview.renderSaveBtn ?? document.createElement('button');
+    const saveLabel = saveButton.querySelector<HTMLElement>('[data-save-label]');
     // The button's "Saved" confirmation + amber-cue clear, shared by the quick save below
     // and the Save dialog's save-to-library path.
     const flashSaved = (): void => {
-      delete tview.renderSaveBtn!.dataset.saving;
-      tview.renderSaveBtn!.disabled = false;
+      delete saveButton.dataset.saving;
+      saveButton.disabled = false;
       tview.session.markSessionSaved(); // drop the amber unsaved cue
-      tview.renderSaveBtn!.classList.add('is-just-saved');
+      saveButton.classList.add('is-just-saved');
       setTimeout(() => {
         if (saveLabel) saveLabel.textContent = t('Save');
-        tview.renderSaveBtn!.classList.remove('is-just-saved');
+        saveButton.classList.remove('is-just-saved');
       }, 1500);
     };
     // The "Save as…" dialog (plan 114): file into a PROJECT, or save the doc as a reusable
@@ -716,7 +711,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
     // as and the Design menu's Save as rows do. Everything the dialog does is injected
     // here, where host / runtime / stores / the Share vehicle are all in scope.
     openSaveAs = async (focus?: 'project' | 'template'): Promise<void> => {
-      if (tview.renderSaveBtn!.dataset.saving) return; // mid-save
+      if (saveButton.dataset.saving) return; // mid-save
       if (document.querySelector('dialog.save-dialog')) return; // already open
       const [
         { openSaveDialog },
@@ -802,7 +797,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
           folderStore.list().then((fs) => fs.map((f) => ({ id: f.id, name: f.name }))),
         createFolder: (name) => folderStore.create(name).then((f) => ({ id: f.id, name: f.name })),
         saveToLibrary: async (folderId) => {
-          const ok = await actionsApi!.save!(tview.renderSaveBtn, { folderId });
+          const ok = await actionsApi!.save!(saveButton, { folderId });
           if (ok) flashSaved();
           return ok;
         },
@@ -867,12 +862,12 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
     // The pill's Save (and Cmd+S, and the Design rail's Save icon, which click it) is a
     // quick save: the same folder rule as the export sheet's Save, no dialog.
     const quickSave = async (): Promise<void> => {
-      if (tview.renderSaveBtn!.dataset.saving) return; // mid-save
+      if (saveButton.dataset.saving) return; // mid-save
       const folderId = await actionsApi!.quickSaveFolder?.();
-      const ok = await actionsApi!.save!(tview.renderSaveBtn, folderId ? { folderId } : undefined);
+      const ok = await actionsApi!.save!(saveButton, folderId ? { folderId } : undefined);
       if (ok) flashSaved();
     };
-    tview.renderSaveBtn.addEventListener('click', () => {
+    saveButton.addEventListener('click', () => {
       void quickSave();
     });
   }

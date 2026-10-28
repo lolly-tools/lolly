@@ -62,6 +62,7 @@ const handWritten: Fixture[] = [
   { id: 'wordmark', selector: 'input[data-input-id="text"], [data-input-id="text"] input', key: 'text', first: 'Autumn', second: 'Winter', strict: true },
   // Tools whose document has no sidebar control.
   { id: 'design', selector: '[data-topbar="name"]', key: '__label', first: 'Autumn deck', second: 'Winter deck' },
+  { id: 'write', selector: '[data-editor] textarea', key: 'body', first: 'Autumn notes', second: 'Winter notes' },
   { id: 'text-helper', selector: '[data-editor] textarea', key: 'body', first: 'Autumn notes', second: 'Winter notes', before: '[data-mode="text"]' },
 ];
 /** The export sheet's file name: a tracked document setting every export bar has. */

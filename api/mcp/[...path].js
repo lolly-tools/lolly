@@ -23,7 +23,7 @@ function assetOpenErrors(manifest) {
     if (seen.has(intent.id)) errors.push({ path, message: "opening intent ids must be unique" });
     seen.add(intent.id);
     if (intent.binding.kind === "text") {
-      if (manifest.id !== "text-helper" || intent.multiple) errors.push({ path, message: "the text editor adapter requires Text and one source" });
+      if (!["text-helper", "write"].includes(manifest.id ?? "") || intent.multiple) errors.push({ path, message: "the text editor adapter requires Text or Write and one source" });
       continue;
     }
     if (intent.binding.kind === "canvas" || intent.binding.kind === "timeline") {

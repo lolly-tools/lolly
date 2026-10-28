@@ -31,6 +31,7 @@ import {
   type TextHandoff,
   type TextSource,
 } from '../lib/text-handoff.ts';
+import { projectTextFile } from '../lib/project-text-file.ts';
 import { syntaxLanguageForFile } from '../lib/syntax-preview.ts';
 import { readTextFile, saveTextAsset } from './text/files.ts';
 import { openAllActions, openAction, runAction, runAiAction } from './text/actions.ts';
@@ -48,6 +49,8 @@ export async function mountTextWorkspace(options: {
   /** The tool view's automatic-history controller (plan 277 P4): the same one every
    *  document tool gets, so drafts, checkpoints and History behave as they do there. */
   history?: AutomaticHistory;
+  writing?: boolean;
+  saveProject?: () => Promise<void>;
   /** Hands the tool view what the saved record takes from this workspace: the title,
    *  and the editor's text, which runs up to 180 ms ahead of the `body` input. */
   meta?: (read: () => Record<string, unknown>) => void;
@@ -65,7 +68,8 @@ export async function mountTextWorkspace(options: {
   } catch {
     /* Older sessions have no source information. */
   }
-  root.innerHTML = workspaceMarkup(`text-${crypto.randomUUID()}`);
+  if (options.writing && !source.name) source = { ...source, name: 'Untitled.txt', format: 'txt' };
+  root.innerHTML = workspaceMarkup(`text-${crypto.randomUUID()}`, options.writing);
   const privacy = container
     .closest('.tool-stage')
     ?.querySelector<HTMLElement>('.on-device-badge--float');
@@ -119,7 +123,7 @@ export async function mountTextWorkspace(options: {
       : 'Whole text';
     query(ctx, '[data-scope]').classList.toggle('has-selection', !!range);
     query<HTMLButtonElement>(ctx, '[data-copy]').disabled = empty;
-    query<HTMLButtonElement>(ctx, '[data-save]').disabled = empty;
+    query<HTMLButtonElement>(ctx, '[data-save-project]').disabled = !options.saveProject;
     query<HTMLButtonElement>(ctx, '[data-undo]').disabled = !editor.document.canUndo;
     query<HTMLButtonElement>(ctx, '[data-redo]').disabled = !editor.document.canRedo;
     const language = query<HTMLSelectElement>(ctx, '[data-language]').value || 'auto';
@@ -131,7 +135,7 @@ export async function mountTextWorkspace(options: {
         `${words} ${words === 1 ? 'word' : 'words'} · ${characters} ${characters === 1 ? 'character' : 'characters'} · ${current.text.split('\n').length} ${current.text.includes('\n') ? 'lines' : 'line'}`;
       if (root.dataset.wrapManual !== 'true') {
         const wrap =
-          (language === 'auto' ? detectCodeLanguage(current.text.slice(0, 8000)) : language) ===
+          options.writing || (language === 'auto' ? detectCodeLanguage(current.text.slice(0, 8000)) : language) ===
           'plain';
         editor.wrap(wrap);
         query<HTMLInputElement>(ctx, '[data-wrap]').checked = wrap;
@@ -328,7 +332,11 @@ export async function mountTextWorkspace(options: {
       ? `${ctx.source.origin ?? 'Assets'}${ctx.source.writable ? '' : ' · Read-only source; save a copy'}`
       : 'Working draft';
     query(ctx, '[data-save] span').textContent =
-      ctx.source.assetId && ctx.source.writable ? 'Save changes' : 'Save';
+      ctx.source.assetId && ctx.source.writable ? 'Save changes' : options.writing ? 'Save to Assets' : 'Save';
+    const filename = root.querySelector<HTMLInputElement>('[data-write-name]');
+    if (filename) filename.value = ctx.source.name ?? 'Untitled.txt';
+    const format = root.querySelector<HTMLSelectElement>('[data-write-format]');
+    if (format) format.value = /\.(md|markdown)$/i.test(ctx.source.name ?? '') || value('language') === 'markdown' ? 'markdown' : 'plain';
   };
   const mode = async (next: string, remember = true, focus = false): Promise<void> => {
     if (remember && value('workspaceMode') !== next) write('workspaceMode', next);
@@ -426,7 +434,7 @@ export async function mountTextWorkspace(options: {
       : (ctx.source.name ?? 'text.txt');
     const canReplace = !result && ctx.source.assetId && ctx.source.writable;
     const modal = mountModal(
-      `<form><h2>${icon('document', { className: 'text-icon' })}${canReplace ? 'Save changes' : 'Save text'}</h2><p class="text-muted">${canReplace ? 'Update the file you opened from Assets. Its project references keep working.' : `Save a text asset in Assets${ctx.source.folderId ? ' and the source project' : ''}.`}</p><label class="text-save-name">Filename <input data-name value="${esc(defaultName)}"></label><p role="status" data-message class="text-form-error"></p><footer class="text-dialog-footer"><button type="button" class="btn btn--ghost" data-close>Cancel</button>${canReplace ? '<button type="button" class="btn btn--ghost" data-copy>Save a copy</button><button type="submit" class="btn btn--primary" data-replace>Save changes</button>' : '<button type="submit" class="btn btn--primary" data-copy>Save to Assets</button>'}</footer></form>`,
+      `<form><h2>${icon('document', { className: 'text-icon' })}${canReplace ? 'Save changes' : 'Save text'}</h2><p class="text-muted">${canReplace ? 'Update the file you opened from Assets. Its project references keep working.' : `Save a text asset in Assets${ctx.source.folderId ? ' and the source project' : ''}.`}</p><label class="text-save-name">Filename <input data-name value="${esc(defaultName)}"></label><p role="status" data-message class="text-form-error"></p><footer class="text-dialog-footer"><button type="button" class="btn btn--ghost" data-close>Cancel</button>${!result && options.saveProject ? '<button type="button" class="btn btn--ghost" data-project>Save to Projects</button>' : ''}${canReplace ? '<button type="button" class="btn btn--ghost" data-copy>Save a copy</button><button type="submit" class="btn btn--primary" data-replace>Save changes</button>' : '<button type="submit" class="btn btn--primary" data-copy>Save to Assets</button>'}</footer></form>`,
       {
         className: 'modal text-action-dialog',
         ariaLabel: 'Save text',
@@ -434,6 +442,16 @@ export async function mountTextWorkspace(options: {
       }
     );
     modal.el.querySelector('[data-close]')!.addEventListener('click', () => modal.close());
+    modal.el.querySelector('[data-project]')?.addEventListener('click', async () => {
+      const name = modal.el.querySelector<HTMLInputElement>('[data-name]')!.value.trim().replace(/[\\/]/g, '-');
+      if (!name) { modal.el.querySelector('[data-message]')!.textContent = 'Enter a filename.'; return; }
+      ctx.source = { ...ctx.source, name };
+      write('source', JSON.stringify(ctx.source));
+      showSource();
+      modal.close();
+      try { await flush(); await options.saveProject?.(); }
+      catch (error) { ctx.status(String(error)); }
+    });
     let saving = false;
     const run = async (replace: boolean): Promise<void> => {
       if (saving) return;
@@ -520,7 +538,7 @@ export async function mountTextWorkspace(options: {
         else if (button.hasAttribute('data-adjust') && ctx.result) {
           const op = ctx.operations.find((item) => item.id === ctx.result?.operation);
           if (op) openAction(ctx, op, true);
-        } else if (button.hasAttribute('data-markdown')) await markdownPreview(ctx);
+        } else if (button.hasAttribute('data-markdown')) await markdownPreview(ctx, options.writing);
         else if (button.hasAttribute('data-all')) openAllActions(ctx);
         else if (button.dataset.op) {
           const operation = ctx.operations.find((op) => op.id === button.dataset.op);
@@ -547,6 +565,9 @@ export async function mountTextWorkspace(options: {
             allowUpload: true,
           });
           if (ref) await openDocument(await readTextAsset(host, ref));
+        } else if (button.hasAttribute('data-save-project')) {
+          await flush();
+          await options.saveProject?.();
         } else if (button.hasAttribute('data-save')) save();
         else if (button.hasAttribute('data-save-result')) save(true);
         else if (button.hasAttribute('data-copy')) await copy(editor.document.value.text);
@@ -639,6 +660,22 @@ export async function mountTextWorkspace(options: {
     },
     { signal: abort.signal }
   );
+  if (options.writing) {
+    const updateName = (): void => {
+      const input = query<HTMLInputElement>(ctx, '[data-write-name]');
+      const format = query<HTMLSelectElement>(ctx, '[data-write-format]').value;
+      const file = projectTextFile(input.value.trim().replace(/^\.+$/, 'Untitled') || 'Untitled', format);
+      ctx.source = { ...ctx.source, name: file.name, format: format === 'markdown' ? 'md' : 'txt' };
+      write('source', JSON.stringify(ctx.source));
+      write('language', format);
+      editor.language(format);
+      query<HTMLSelectElement>(ctx, '[data-language]').value = format;
+      editor.wrap(true);
+      showSource();
+    };
+    query(ctx, '[data-write-name]').addEventListener('change', updateName, { signal: abort.signal });
+    query(ctx, '[data-write-format]').addEventListener('change', updateName, { signal: abort.signal });
+  }
   const unsub = runtime.subscribe(() => {
     const current = value('body');
     if (current !== editor.document.value.text && persistTimer === undefined) {
@@ -670,7 +707,8 @@ export async function mountTextWorkspace(options: {
       if (event.key.toLowerCase() === 's') {
         event.preventDefault();
         event.stopPropagation();
-        save();
+        if (options.writing) void flush().then(() => options.saveProject?.()).catch(error => ctx.status(String(error)));
+        else save();
       }
     },
     { signal: abort.signal }
@@ -680,7 +718,7 @@ export async function mountTextWorkspace(options: {
   if (pending) load(pending);
   else
     void mode(
-      value('workspaceMode') || (editor.document.value.text ? 'text' : 'characters'),
+      options.writing ? 'text' : value('workspaceMode') || (editor.document.value.text ? 'text' : 'characters'),
       false
     );
   showSource();

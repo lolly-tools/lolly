@@ -4,6 +4,7 @@ import { t } from '../i18n.ts';
 import { learningEnabled } from '../lib/learning-feature.ts';
 import { icon } from '../lib/icons.ts';
 import { actionButtonContent } from '../components/action-button.ts';
+import { menuItemHtml } from '../lib/context-menu.ts';
 import { FOLDER_ICON } from '../folder-tiles.ts';
 
 const FOLDER_PLUS_ICON = icon('folderPlus', { strokeWidth: 1.8 });
@@ -19,6 +20,7 @@ export function listCreateBtns(isUncat = false, hasBlueprints = false): string {
     `<button type="button" class="btn btn--labelled projects-create-btn" data-create-btn="${kind}">${glyph}<span class="btn-label">${escapeHtml(label)}</span></button>`;
   return [
     isUncat ? '' : btn('folder', FOLDER_PLUS_ICON, t('New folder')),
+    btn('file', FILE_PLUS_ICON, t('New file')),
     btn('tool', FILE_PLUS_ICON, t('New asset')),
     !isUncat && hasBlueprints ? btn('template', TEMPLATE_ICON, t('New project from a blueprint')) : '',
   ].join('');
@@ -35,6 +37,7 @@ export function emptyFolderHtml(isUncat: boolean): string {
       <p class="projects-blank-title">${isUncat ? t('Nothing is uncategorised') : t('This folder is empty')}</p>
       <p class="projects-blank-sub">${isUncat ? t('Sessions you save without filing them are kept here.') : t('Add your first creation, or group work in a sub-folder.')}</p>
       <div class="projects-blank-actions">
+        <button type="button" class="btn projects-render projects-create-btn" data-create-btn="file">${FILE_PLUS_ICON}<span>${t('New file')}</span></button>
         <button type="button" class="btn projects-render projects-create-btn" data-create-btn="tool">${FILE_PLUS_ICON}<span>${t('New asset')}</span></button>
         ${isUncat ? '' : `<button type="button" class="btn btn--labelled projects-create-btn" data-create-btn="folder">${FOLDER_PLUS_ICON}<span>${t('New folder')}</span></button>`}
       </div>
@@ -47,4 +50,16 @@ export function projectLearningActionsHtml(folderId: string | null, batchFrom: s
   const course = learningEnabled() && folderId ? `<button type="button" class="btn btn--labelled projects-create-btn" data-course-folder="${escapeHtml(folderId)}">${actionButtonContent(t('Export course'), 'graduationCap')}</button>` : '';
   const learning = learningEnabled() ? `<a class="btn btn--labelled projects-create-btn" href="#/learning${query}">${actionButtonContent(t('Create learning module'), 'graduationCap')}</a>` : '';
   return `${course}${learning}<a href="#/batch${query}" class="btn btn--labelled projects-batch-btn" title="${escapeHtml(t('Batch'))}">${actionButtonContent(t('Batch'), 'table')}</a>`;
+}
+
+/** The background creation menu shares the toolbar's file and folder actions. */
+export function projectBackgroundMenu(hasTemplates: boolean, canPaste: boolean): string {
+  return [
+    menuItemHtml('new-folder', FOLDER_PLUS_ICON, t('New folder')),
+    menuItemHtml('new-file', FILE_PLUS_ICON, t('New file')),
+    menuItemHtml('new-asset', FILE_PLUS_ICON, t('New asset')),
+    hasTemplates ? menuItemHtml('new-from-template', TEMPLATE_ICON, t('New project from a blueprint…')) : '',
+    canPaste ? menuItemHtml('paste', icon('checklist', { strokeWidth: 1.9 }), t('Paste')) : '',
+    menuItemHtml('select-all', icon('circleCheck', { strokeWidth: 1.9 }), t('Select all')),
+  ].join('');
 }

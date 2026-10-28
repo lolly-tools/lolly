@@ -2,7 +2,7 @@
 import { updateRouteParams } from '../lib/url-state.ts';
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
-import { handleProjectTextAction, projectAssetMenu } from './projects-asset-actions.ts';
+import { handleProjectTextAction, projectAssetMenu, removeProjectAsset } from './projects-asset-actions.ts';
 import { mountLocalProjectAsset, localProjectAssetHref, setProjectViewTitle } from './projects-asset-view.ts';
 /**
  * Projects view (route /p and /p/<folderId>).
@@ -30,6 +30,7 @@ import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { learningEnabled } from '../lib/learning-feature.ts';
 import { icon } from '../lib/icons.ts';
+import { openNewLocalTextFile } from '../lib/project-text-file.ts';
 import { groupSelectionInFolder } from './projects-folder-create.ts';
 import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
 import type { Folder, FolderItem, TrashEntry, ProjectTemplate } from '../folders.ts';
@@ -74,7 +75,7 @@ import type { ModalHandle } from '../components/modal.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { mountActionToolbar, actionButtonContent } from '../components/action-button.ts';
-import { listCreateBtns as createButtonsHtml, emptyFolderHtml, projectLearningActionsHtml } from './projects-create.ts';
+import { listCreateBtns as createButtonsHtml, emptyFolderHtml, projectLearningActionsHtml, projectBackgroundMenu } from './projects-create.ts';
 import { applyProjectsLayout, projectLayoutAttrs } from './projects-layout.ts';
 import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, projectsGridAttrs, projectsViewFromUrl, readProjectsViewPrefs, writeProjectsViewPrefs, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
@@ -212,7 +213,6 @@ const CUT_ICON = icon('scissors', { strokeWidth: 1.9 });
 const PASTE_ICON = icon('checklist', { strokeWidth: 1.9 });
 const DOWNLOAD_ICON = icon('download', { strokeWidth: 1.9 });
 const TEMPLATE_ICON = icon('layersStack', { strokeWidth: 1.8 });
-const SELECT_ALL_ICON = icon('circleCheck', { strokeWidth: 1.9 });
 // lucide "users" - the team-projects create tile (shown only when a control plane
 // registers a session source; see lib/session-source.ts).
 const TEAM_ICON = icon('users', { strokeWidth: 1.9 });
@@ -275,6 +275,7 @@ export async function mountProjects(
   const teamMoves: TeamTransferDeps = { host, store, trash, mounted: () => mounted, selection: () => selected, refresh: async () => { if (mounted) { await reload(); render(); } } };
   const sharedProjectId = shared.projectId, sharedFolder = shared.active;
   const sharedProjectsHtml = (q = '') => shared.rootHtml(q, viewMode === 'list', listHeadHtml(), projectsGridAttrs(), sortBy, sortRev);
+  let closeNewFile: (() => void) | undefined;
   let overlayModal: ModalHandle<any> | null = null;      // the move-picker / new-folder-name dialog, if open
   let releaseSearch: (() => void) | null = null;         // the shell search-bar claim (set in boot, below)
   let featuredHandle: FeaturedRowHandle | null = null; // the Uncategorised preview ribbon (drift/coverflow/grip), if mounted
@@ -583,6 +584,7 @@ export async function mountProjects(
     // Card copy says "project" for the thing the user made (plans/163 F14) - the
     // stored record stays a session everywhere in the code.
     const createFolder = actionTile('folder', FOLDER_PLUS_ICON, t('New folder'), t('Group related projects'));
+    const createFile = actionTile('file', FILE_PLUS_ICON, t('New file'), t('Write a text or Markdown file'));
     const createTool = actionTile('tool', FILE_PLUS_ICON, t('New asset'), t('Start a new project'));
     // Only TOP-LEVEL folders at the root; nested folders show inside their parent.
     const topFolders = sortFolders(childFolders(folders, null));
@@ -629,7 +631,7 @@ export async function mountProjects(
           so the place answers to it. Grid mode only - the list table has its own
           header row - and pointless when the grid IS only the library. */ ''}
         ${!list && loose.length && topFolders.length ? `<h2 class="projects-sec-label">${t('My library')}</h2>` : ''}
-        ${looseTiles}${createFolder}${createTool}${blueprintTile()}${templatesRootTile()}${trashTile}
+        ${looseTiles}${createFolder}${createFile}${createTool}${blueprintTile()}${templatesRootTile()}${trashTile}
       </div>
       ${recentExports.length ? `
         <section class="projects-exports folder-exports">
@@ -1019,7 +1021,7 @@ export async function mountProjects(
     bulkHtml: () => bulkMenuHtml(),
     // Right-click on empty canvas (WP-13): the file-manager background menu. Not
     // in results mode - "New folder" there would have no clear home.
-    backgroundHtml: () => query ? '' : backgroundMenuHtml(),
+    backgroundHtml: () => query || sharedFolder ? '' : backgroundMenuHtml(),
     onAction: (act, tgt, kind) => { void (kind === 'background' ? onBackgroundAction(act) : onMenuAction(act, tgt)); },
   });
 
@@ -1144,6 +1146,10 @@ export async function mountProjects(
           if (sharedFolder) { shared.createFolder(); return; }
           const name = await promptFolderName();
           if (name && mounted) { await store.create(name, currentFolderTarget()); await reload(); render(); }
+        } else if (kind === 'file') {
+          closeNewFile?.();
+          if (sharedFolder) shared.createFile();
+          else closeNewFile = openNewLocalTextFile(host as ProjectsHost, currentFolderTarget(), () => mounted, armReturn);
         } else if (kind === 'template') void openBlueprintChooser();
         else startCreateTool();
         return;
@@ -1154,6 +1160,7 @@ export async function mountProjects(
       if (create) {
         const kind = create.dataset.create;
         if (kind === 'folder') startCreateFolder(create);
+        else if (kind === 'file') { closeNewFile?.(); closeNewFile = openNewLocalTextFile(host as ProjectsHost, currentFolderTarget(), () => mounted, armReturn); }
         else if (kind === 'team') openTeamProjects(teamDoor);
         else if (kind === 'template') void openBlueprintChooser();
         else startCreateTool();
@@ -1546,14 +1553,7 @@ export async function mountProjects(
 
   /** The background menu (WP-13): what a right-click on empty canvas offers. */
   function backgroundMenuHtml(): string {
-    const canPaste = !!clipboard?.items.length;
-    return [
-      menuItem('new-folder', FOLDER_PLUS_ICON, t('New folder')),
-      menuItem('new-asset', FILE_PLUS_ICON, t('New asset')),
-      templates.length ? menuItem('new-from-template', TEMPLATE_ICON, t('New project from a blueprint…')) : '',
-      canPaste ? menuItem('paste', PASTE_ICON, t('Paste')) : '',
-      menuItem('select-all', SELECT_ALL_ICON, t('Select all')),
-    ].join('');
+    return projectBackgroundMenu(templates.length > 0, !!clipboard?.items.length);
   }
   async function onBackgroundAction(act: string): Promise<void> {
     if (act === 'new-folder') {
@@ -1566,6 +1566,10 @@ export async function mountProjects(
       if (!name || !mounted) return;
       await store.create(name, currentFolderTarget());
       await reload(); render();
+    }
+    else if (act === 'new-file') {
+      if (sharedFolder) { shared.createFile(); return; }
+      closeNewFile?.(); closeNewFile = openNewLocalTextFile(host as ProjectsHost, currentFolderTarget(), () => mounted, armReturn);
     }
     else if (act === 'new-asset') startCreateTool();
     else if (act === 'new-from-template') await openBlueprintChooser();
@@ -1680,18 +1684,7 @@ export async function mountProjects(
     const owner = ownerByRef.get(ref);
     if (!owner) return;
     const name = String(imageRefs.get(ref)?.meta?.name ?? ref.split('/').pop() ?? ref);
-    await store.removeItem(owner.id, ref);
-    if (!mounted) return;
-    await reload(); render();
-    announce(t('Removed from project'));
-    showUndoToast({
-      message: tRaw('Removed "{name}" from the project. It is still in Assets.', { name }),
-      undo: async () => {
-        await store.addItem(owner.id, { type: 'image', ref });
-        if (!mounted) return;
-        await reload(); render();
-      },
-    });
+    await removeProjectAsset(store, owner.id, ref, name, () => mounted, async () => { await reload(); render(); });
   }
 
   // Asset pages share the folder's route and survive refresh and browser history.
@@ -2885,7 +2878,8 @@ export async function mountProjects(
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
   // NB tileSelect.destroy() is not optional: its mousedown is bound to viewEl (#view), which
   // the router REUSES for every route - leave it bound and the next mount stacks another.
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; clearRootToolbar?.(); disposeAssetPreview?.(); shared.dispose(); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; clearRootToolbar?.(); disposeAssetPreview?.(); shared.dispose(); window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); closeNewFile?.();
+    overlayModal?.close(); releaseSearch?.(); };
   await reload();
   void sweepTrash();   // age out trash entries past the 30-day retention (silent)
   // A stale /p/<id> deep link to a deleted folder falls back to root.

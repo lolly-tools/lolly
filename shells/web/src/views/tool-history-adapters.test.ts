@@ -45,16 +45,16 @@ function classes(tools: Iterable<ToolManifest>): Record<'A' | 'B' | 'C' | 'D', s
 }
 const counts = (ids: Record<'A' | 'B' | 'C' | 'D', string[]>) => ({ A: ids.A.length, B: ids.B.length, C: ids.C.length, D: ids.D.length });
 
-test('community: 50 document tools, 2 with a side file, 13 file utilities and 3 recording tools', () => {
+test('community: 51 document tools, 2 with a side file, 13 file utilities and 3 recording tools', () => {
   const ids = classes(community.values());
-  assert.deepEqual(counts(ids), { A: 50, B: 2, C: 13, D: 3 }, JSON.stringify(ids));
+  assert.deepEqual(counts(ids), { A: 51, B: 2, C: 13, D: 3 }, JSON.stringify(ids));
   assert.deepEqual(ids.B, ['3d', 'darkroom']);
   assert.deepEqual(ids.C, ['annotate', 'claim', 'clean', 'compress-pdf', 'convert-image', 'font-convert', 'pages', 'rebrand-deck', 'redact', 'scan-code', 'sign', 'strip-data', 'trim']);
   assert.deepEqual(ids.D, ['record', 'screencap', 'voice-recorder']);
   // Sandbox took its Save action away and is still filed like every tool (Andy,
   // 27 September 2026); jump and Text have no export; icon, url-shot and the blocks
   // tools used to be refused by the old capability and field-type checks.
-  for (const id of ['sandbox', 'jump', 'text-helper', 'countdown-timer', 'doc-studio', 'icon', 'url-shot', 'calendar-ics', 'diagram-builder', 'meeting-planner']) {
+  for (const id of ['sandbox', 'jump', 'text-helper', 'write', 'countdown-timer', 'doc-studio', 'icon', 'url-shot', 'calendar-ics', 'diagram-builder', 'meeting-planner']) {
     assert.ok(ids.A.includes(id), `${id} is a document tool`);
   }
 });
