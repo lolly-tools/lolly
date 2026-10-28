@@ -14,6 +14,21 @@
 # pushes in one job with packages: write. This file splits build (no registry
 # write) from publish (no npm, no compiler). tests/release-signing-scope.test.ts
 # keeps the two builds' arguments identical.
+#
+# Build at merge, deploy at qualification (2026-10-27). The lolly.tools watcher
+# dispatches this workflow as soon as a commit reaches main, so the image builds
+# while ci.yml runs instead of after it. The source gate therefore refuses only a
+# source whose own main CI run has already failed. A pending or missing CI run is
+# accepted, and so the preview catalog key signs builds of reviewed main commits
+# before their CI finishes. Andy chose that for the preview sites. Qualification
+# moved to the deploy tool (lolly-work deploy/preview, preview_mac.qualification),
+# which reads the commit's own green CI run, or a fast lane above one, every time
+# it deploys, after binding the build and before the node is touched. Every
+# receipt says which gate its build passed ("sourceGate": "not-failed" in
+# release.json); a deploy tool from before this rule refuses that field, so it can
+# never deploy such a build. Releases keep their exact-commit guard
+# (deployment-suse.yml), and a preview digest is still never a release.
+# auto-ship: build-at-merge
 name: Preview web image
 # The deploy tool finds a run by this title: head_sha is main's head at dispatch, while
 # source may be any reviewed ancestor of it.
@@ -23,7 +38,7 @@ on:
   workflow_dispatch:
     inputs:
       source:
-        description: Exact 40-hex commit to ship; it must be an ancestor of main and have its successful CI push run on main
+        description: Exact 40-hex commit to build; an ancestor of main whose own main CI push run has not failed. The deploy tool checks qualification before it deploys
         required: true
         type: string
       min_seq:
@@ -44,8 +59,12 @@ env:
   CRANE_LINUX_X64_SHA256: '0ab7a1d6932a213aed964ce97666c3077fe691c8606413674a8b3e0b9ec4cda0'
 
 jobs:
+  # The build gate. It refuses a source that is not a clean ancestor of main or whose own main
+  # CI run has already failed, and a WebGPU gate refusal; it accepts a CI run that is still
+  # going (build at merge, see the header). source-catalog asks the WebGPU gate again before
+  # it signs anything.
   source-qualification:
-    name: Reviewed main CI source
+    name: Main source whose CI has not failed
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -59,93 +78,66 @@ jobs:
       EXPECTED_SOURCE: ${{ inputs.source }}
       GH_TOKEN: ${{ github.token }}
     steps:
+      # Full history for the ancestry check, which reads commits only, plus the three files
+      # the WebGPU gate reads.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.source }}
           fetch-depth: 0
-          persist-credentials: false
-          submodules: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: '24'
-          package-manager-cache: false
-      - name: Bind the source to its completed normal main CI
-        run: |
-          set -euo pipefail
-          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
-          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
-          git merge-base --is-ancestor "$EXPECTED_SOURCE" refs/remotes/origin/main
-          test -z "$(git status --porcelain)"
-          # The exact successful push run of ci.yml on main for this commit. The checks below are the
-          # same code deployment-suse.yml runs, and tests/release-signing-scope.test.ts keeps them identical.
-          CI_RUN=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$EXPECTED_SOURCE&event=push&branch=main&status=success&per_page=1" --jq '.workflow_runs[0].id // empty')
-          [[ "$CI_RUN" =~ ^[1-9][0-9]*$ ]]
-          export CI_RUN
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN" > "$RUNNER_TEMP/normal-ci-run.json"
-          ci_attempt=$(node --input-type=module -e '
-            import {readFileSync} from "node:fs";
-            const {run_attempt:attempt}=JSON.parse(readFileSync(process.env.RUNNER_TEMP+"/normal-ci-run.json"));
-            if(!Number.isSafeInteger(attempt) || attempt<1) throw Error("Invalid normal CI attempt");
-            process.stdout.write(String(attempt));
-          ')
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN/attempts/$ci_attempt/jobs?per_page=100" > "$RUNNER_TEMP/normal-ci-jobs.json"
-          node --input-type=module <<'JS'
-          import {readFileSync,writeFileSync} from 'node:fs';
-          const root=process.env.RUNNER_TEMP;
-          const run=JSON.parse(readFileSync(root+'/normal-ci-run.json'));
-          const inventory=JSON.parse(readFileSync(root+'/normal-ci-jobs.json'));
-          if(!Number.isSafeInteger(run.id) || run.id<1 || String(run.id)!==process.env.CI_RUN || run.path!=='.github/workflows/ci.yml' || run.event!=='push' || run.head_branch!=='main' || run.head_sha!==process.env.EXPECTED_SOURCE || run.repository?.full_name!==process.env.GITHUB_REPOSITORY || run.head_repository?.full_name!==process.env.GITHUB_REPOSITORY || run.status!=='completed' || run.conclusion!=='success' || !Number.isSafeInteger(run.run_attempt) || run.run_attempt<1) throw Error('Candidate requires its exact successful normal main CI run');
-          const jobs=inventory.jobs;
-          if(!Array.isArray(jobs) || !jobs.length || jobs.length>100 || inventory.total_count!==jobs.length) throw Error('Incomplete normal CI job inventory');
-          // Main pushes skip public-ready when the change is too broad for it. That skip
-          // is accepted only beside a successful release-ready, which needs every tier
-          // and refuses a public-ready skip on an eligible change.
-          const ids=new Set(),names=new Set(); let succeeded=0,expectedSkips=0,publicReadySkipped=false,releaseReady=false;
-          for(const job of jobs) {
-            const expectedSkip=job.conclusion==='skipped' && (job.name==='verified instance shell' || job.name==='public-ready');
-            if(!Number.isSafeInteger(job.id) || job.id<1 || ids.has(job.id) || job.run_id!==run.id || typeof job.name!=='string' || !job.name.length || job.name.length>256 || names.has(job.name) || job.status!=='completed' || (job.conclusion!=='success' && !expectedSkip)) throw Error('Normal CI job did not complete successfully');
-            ids.add(job.id); names.add(job.name);
-            if(job.conclusion==='success') { succeeded++; if(job.name==='release-ready') releaseReady=true; }
-            else { expectedSkips++; if(job.name==='public-ready') publicReadySkipped=true; }
-          }
-          if(!succeeded || expectedSkips>2 || (publicReadySkipped && !releaseReady)) throw Error('Invalid normal CI success inventory');
-          writeFileSync(root+'/normal-ci-source.json',JSON.stringify({version:1,source:run.head_sha,ciRun:run.id,ciAttempt:run.run_attempt,workflow:run.path,jobCount:jobs.length},null,2));
-          JS
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: preview-main-ci-source-attempt-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/normal-ci-source.json
-          if-no-files-found: error
-          retention-days: 14
-
-  web-release-gate:
-    name: WebGPU release gate (web shell image)
-    needs: [source-qualification]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    defaults:
-      run:
-        shell: bash
-    env:
-      VITE_CONNECTOR_ORIGINS: ${{ vars.VITE_CONNECTOR_ORIGINS }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ inputs.source }}
+          filter: blob:none
+          sparse-checkout: |
+            /scripts/webgpu-release-gate.ts
+            /shells/web/src/main.ts
+            /docs/supported-environments.md
+          sparse-checkout-cone-mode: false
           persist-credentials: false
           submodules: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '26'
           package-manager-cache: false
-      - name: Ask the gate; a refusal fails the preview
+      - name: Require a clean ancestor of main
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          git merge-base --is-ancestor "$EXPECTED_SOURCE" refs/remotes/origin/main
+          test -z "$(git status --porcelain)"
+      # The rule the deploy tool's lane check also applies (preview_lane.require_no_full_failure):
+      # a successful run passes; otherwise any completed run that ended in anything but success
+      # or cancellation refuses. A run still going, a cancelled run or no run yet is accepted.
+      - name: Refuse a source whose own main CI run failed
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$EXPECTED_SOURCE&event=push&branch=main&per_page=100" > "$RUNNER_TEMP/source-ci-runs.json"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const root=process.env.RUNNER_TEMP, source=process.env.EXPECTED_SOURCE, repository=process.env.GITHUB_REPOSITORY;
+          const listing=JSON.parse(readFileSync(root+'/source-ci-runs.json','utf8'));
+          if(!Array.isArray(listing.workflow_runs) || listing.workflow_runs.length>=100) throw Error('Unreadable or overfull CI run listing for the source');
+          const runs=listing.workflow_runs.filter(run=>run.path==='.github/workflows/ci.yml' && run.event==='push' && run.head_branch==='main' && run.head_sha===source && run.repository?.full_name===repository && run.head_repository?.full_name===repository);
+          for(const run of runs) if(!Number.isSafeInteger(run.id) || run.id<1 || !Number.isSafeInteger(run.run_attempt) || run.run_attempt<1 || typeof run.status!=='string') throw Error('Malformed CI run for the source');
+          const green=runs.some(run=>run.status==='completed' && run.conclusion==='success');
+          const failed=runs.filter(run=>run.status==='completed' && run.conclusion!=='success' && run.conclusion!=='cancelled');
+          if(!green && failed.length) throw Error(`ci.yml run ${failed[0].id} on ${source} concluded ${failed[0].conclusion}: no preview build for a commit whose CI failed`);
+          const ci=green?'green':runs.some(run=>run.status!=='completed')?'pending':runs.length?'cancelled':'none';
+          writeFileSync(root+'/source-gate.json',JSON.stringify({version:2,rule:'not-failed',source,ci,ciRuns:runs.map(run=>({id:run.id,attempt:run.run_attempt,status:run.status,conclusion:run.conclusion??null}))},null,2));
+          console.log(`Source ${source}: main CI ${ci}. The deploy tool checks qualification before it deploys.`);
+          JS
+      - name: Ask the WebGPU release gate; a refusal fails the preview
         run: node scripts/webgpu-release-gate.ts --scope web
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: preview-source-gate-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/source-gate.json
+          if-no-files-found: error
+          retention-days: 14
 
   # The same inputs as deployment-suse.yml's web-frontend, with the preview
   # environment. The connector origins, CA-enrollment trust and live relay must
   # stay equal to the release build's (tests/release-signing-scope.test.ts).
   web-frontend:
-    needs: [source-qualification, web-release-gate]
+    needs: [source-qualification]
     uses: ./.github/workflows/release-frontend.yml
     with:
       target: web
@@ -165,7 +157,7 @@ jobs:
   # writes the image to an archive; the publish job below pushes that archive.
   web-image:
     name: Preview web image build (no registry write)
-    needs: [source-qualification, web-release-gate, web-frontend]
+    needs: [source-qualification, web-frontend]
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
@@ -228,8 +220,11 @@ jobs:
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: release-frontend-web
-          path: ${{ runner.temp }}/lolly-signed-web
+          name: release-frontend-web.tar.zst
+          path: ${{ runner.temp }}/lolly-signed-web-archive
+
+      - name: Unpack the signed frontend
+        run: node scripts/artifact-archive.ts unpack "$RUNNER_TEMP/lolly-signed-web-archive/release-frontend-web.tar.zst" "$RUNNER_TEMP/lolly-signed-web"
 
       - name: Verify the frontend artifact against the reviewed source
         env:
@@ -306,10 +301,12 @@ jobs:
           echo "sha256=$(sha256sum "$RUNNER_TEMP/lolly-preview-web.tar" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
           echo "image_id=$(docker image inspect --format '{{ .Id }}' "lolly-preview-web:$EXPECTED_SOURCE")" >> "$GITHUB_OUTPUT"
 
+      # The image archive is already compressed layers: upload it as is, not inside a zip.
+      # Its artifact is named after the file, lolly-preview-web.tar.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: preview-web-image
           path: ${{ runner.temp }}/lolly-preview-web.tar
+          archive: false
           if-no-files-found: error
           retention-days: 3
 
@@ -322,7 +319,7 @@ jobs:
 
   # The only job with packages: write. It runs no npm, no compiler and no repository
   # script: it checks the archive it was handed, pushes it by digest with a
-  # pinned registry tool and reads it back.
+  # pinned registry tool, signs that digest keylessly and reads it back.
   publish:
     name: Publish the preview web image by digest
     needs: [source-qualification, web-image]
@@ -331,6 +328,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+      # Keyless signing exchanges this workflow's OIDC identity for a short-lived
+      # Sigstore certificate, as release images do. No signing key exists here.
+      id-token: write
     defaults:
       run:
         shell: bash
@@ -341,7 +341,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: preview-web-image
+          name: lolly-preview-web.tar
           path: ${{ runner.temp }}/preview
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
@@ -368,6 +368,10 @@ jobs:
           tar -xzf "$RUNNER_TEMP/crane.tar.gz" -C "$bin" crane
           echo "$bin" >> "$GITHUB_PATH"
 
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: v3.0.6
+
       - name: Push by digest only
         run: |
           set -euo pipefail
@@ -380,6 +384,13 @@ jobs:
           # A digest reference carries no tag: nothing here can write latest or a version tag.
           crane push "$RUNNER_TEMP/preview/lolly-preview-web.tar" "$repository@$digest"
           test "$(crane digest "$repository@$digest")" = "$digest"
+          # One verification rule for every image: a preview digest is signed too. The
+          # certificate names this workflow, so a release policy, which names the
+          # release workflows, never accepts a preview image.
+          identity="$GITHUB_SERVER_URL/$GITHUB_WORKFLOW_REF"
+          COSIGN_YES=true cosign sign "$repository@$digest"
+          cosign verify "$repository@$digest" \
+            --certificate-identity "$identity" --certificate-oidc-issuer https://token.actions.githubusercontent.com > /dev/null
           crane config "$repository@$digest" | jq -e --arg source "$EXPECTED_SOURCE" '.config.Labels["org.opencontainers.image.revision"] == $source'
           # Receipts in the shape the preview deploy command already reads, under the preview artifact name.
           receipts="$RUNNER_TEMP/receipt"
@@ -389,12 +400,16 @@ jobs:
           test "$image_id" = "$IMAGE_ID"
           jq -n --arg source "$EXPECTED_SOURCE" --arg id "$image_id" --arg digest "$repository@$digest" \
             '{imageId: $id, digest: $digest, platform: "linux/amd64", source: $source}' > "$receipts/web.json"
+          # sourceGate: this build passed the build-at-merge gate, not a qualification. The deploy
+          # tool reads qualification itself, and one from before this rule refuses the field.
           jq -n --arg source "$EXPECTED_SOURCE" --arg run "$GITHUB_RUN_ID" --argjson attempt "$GITHUB_RUN_ATTEMPT" --slurpfile web "$receipts/web.json" \
-            '{source: $source, runId: $run, runAttempt: $attempt, neutralProfile: true, images: {web: $web[0]}, candidateRuntimeQualified: false}' > "$receipts/release.json"
+            '{source: $source, runId: $run, runAttempt: $attempt, neutralProfile: true, images: {web: $web[0]}, candidateRuntimeQualified: false, sourceGate: "not-failed"}' > "$receipts/release.json"
           {
             echo "### Preview web image"
             echo
             echo "    $repository@$digest"
+            echo
+            echo "Signed keylessly by \`$identity\`."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

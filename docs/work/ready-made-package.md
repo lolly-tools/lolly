@@ -9,9 +9,11 @@ sign-in for the first owner.
 It suits a fresh VM, an UpCloud server, a private server or a Dokploy host. It
 carries no private brand pack and no production-instance configuration.
 
-::: warning Use the console and API for now
-The current package pins Work 1.1.1 and the Lolly 1.1.1 web app. In a browser, that web app shows no tools: it has the publisher's catalogue key built in, so it refuses the catalogue this installation signs for each person. Browser use of this package is not qualified. The [reference qualification](../deploy/marketplaces/QUALIFICATION.md) ran its checks through the API, and the console at `/admin` works.
-:::
+The package pins Work 1.1.1 and the matching Lolly 1.1.1 web app. The web app has the
+publisher's catalogue key built in, while Work signs each person's catalogue with a key
+this installation creates. On first start, setup gives the installed web app the
+installation's key instead, so a signed-in browser lists the tools. Before this step
+the web app refused the catalogue and showed no tools.
 
 Which upstream sources the package uses, and which architectures have passed, is in
 [official installation routes](official-installations.md).
@@ -42,6 +44,22 @@ sudo docker compose version
 Use an account allowed to run Docker, or prefix later Docker commands with `sudo`.
 Configure a stateful host firewall as well as UpCloud's stateless one, and keep SSH
 limited to your actual administrator networks.
+
+**Hosts on a network with an MTU below 1500.** Some clouds run their machines on an
+overlay network whose interface MTU is below 1500; MulgaDC Spinifex guests use 1442,
+for example. Docker's bridges default to 1500, so large TLS downloads from inside a
+container stall while the same download from the host works. The first start's
+archive download then hangs. Check the MTU of the host's main interface with
+`ip link`. When it is below 1500, give Docker the same value before the first start,
+in `/etc/docker/daemon.json`, merged into any settings already there:
+
+```json
+{ "mtu": 1442, "default-network-opts": { "bridge": { "com.docker.network.driver.mtu": "1442" } } }
+```
+
+Use your interface's value in place of 1442, then run `sudo systemctl restart docker`.
+The first key covers Docker's default bridge and the second covers the network
+Compose creates for the instance.
 
 ## Write the installation folder
 
@@ -89,8 +107,8 @@ curl --fail https://work.example.com/healthz
 ```
 
 The first start downloads a 724 MB archive, checks its full checksum, extracts the
-matching web app and neutral pack to disk and creates a persistent
-catalogue-signing key. The download streams to disk rather than into container
+matching web app and neutral pack to disk, creates a persistent catalogue-signing
+key and gives the web app that key. The download streams to disk rather than into container
 memory, and a slow one can take several minutes. Allow at least 6 GB free for
 extraction, copied content and container layers, plus room for database growth,
 backups and kept releases. Caddy gets its HTTPS certificate once DNS and the
@@ -117,6 +135,7 @@ A healthy API alone does not finish the job. Before anyone stores work:
 
 ::: timeline
 - <!--i:usercheck--> **Owner.** Open `/admin`, sign in and confirm the owner role in **Customer setup**.
+- <!--i:monitor--> **The web app.** Sign in at the instance's address and check that the gallery lists the tools.
 - <!--i:folder--> **A project.** Create and save a project, then reload the page and open the project again.
 - <!--i:people--> **A member.** Invite a second member and check a sample output.
 - <!--i:lock--> **Privacy.** Confirm a request that is not signed in cannot fetch the gated catalogue or a private project.

@@ -27,9 +27,7 @@ One question decides most of the choice: will other people use this instance? Tr
   is one Helm command, with sample people and memory storage.
 - **One Linux server for a small team?** The [ready-made package](ready-made-package.md)
   brings Work, PostgreSQL, the matching web app and automatic HTTPS, with email and
-  password sign-in. For now it pins the 1.1.1 web app, which shows no tools in a
-  browser, so plan on its console and API until the package moves to a newer web
-  app. If you would rather write your own configuration, run
+  password sign-in. If you would rather write your own configuration, run
   [Compose from source](install.md#5-container-compose) or
   [Node and systemd](install.md#6-bare-metal-systemd).
 - **Already run YunoHost?** [Install the Lolly Work app](install.md#7-yunohost)
@@ -91,7 +89,7 @@ its checks are recorded.
 |---|---|
 | **Work server image**: `ghcr.io/lolly-tools/lolly-work-server:1.1.2` | Compose and Kubernetes; Linux `amd64` and `arm64` manifests |
 | **Optional render worker**: `ghcr.io/lolly-tools/lolly-work-render-worker:1.1.2` | Browser-based server rendering; configure its authenticated HTTPS transport separately |
-| **Helm chart** 0.3.3: `deploy/helm` in the source code | Work 1.1.2 on an existing Kubernetes platform. No packaged chart is published yet |
+| **Helm chart** %work{chart}: `deploy/helm` in the source code | Work 1.1.2 on an existing Kubernetes platform. The chart carries the release version; the packaged chart is first published as 1.1.3, with the 1.1.3 release |
 | **Source code** on the Work release page | Node and systemd installs, local evaluation, deployment recipes and custom image builds |
 | **[Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh)** | The complete server with host accounts; follow the package's version notes |
 | **[Lolly web app 1.1.1](https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz)** | The browser app that matches a Work installation. Work 1.1.2 keeps this archive because Lolly 1.1.2 published no new one. On its own, this archive is a static web app |

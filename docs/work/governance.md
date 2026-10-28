@@ -133,8 +133,8 @@ keeps every field your organisation has no opinion about.
 
 ## Feature flags
 
-Work governs the shell's per-person feature toggles it knows about, for the whole instance,
-with two settings per flag:
+Work governs the shell's per-person feature toggles it knows about, with two settings per
+flag for the whole instance and the same two settings for any group you choose:
 
 | Setting | Values | Meaning |
 |---|---|---|
@@ -159,7 +159,52 @@ gate. The `off` and `hide` combination is how a seasonal surprise ships dark: st
 the default on the day, and it appears without ever having shown a switch.
 
 **Managed AI** is different: it is a service execution switch with a deployment approval
-ceiling, and it has no personal override. See [Manage organisation AI policy](ai-policy.md).
+ceiling, and it has no personal override. It also takes no group rules and is never offered
+to a flag service. See [Manage organisation AI policy](ai-policy.md).
+
+### Group rules
+
+A group rule sets either setting for the members of one group, on top of the setting for
+everyone. Use one to let a team pilot a feature: set the flag Off and Hidden for everyone,
+then add a rule that sets it On and Shown for the pilot group. Nobody else sees a switch, and
+the pilot team can turn the feature off for themselves.
+
+For one person, Work works out each setting in this order:
+
+1. A rule for a group the person is in wins over the setting for everyone.
+2. When several of the person's groups have rules, Off wins over On and Hidden wins over
+   Shown. The order the rules were added in makes no difference, the same way a deny wins
+   among grants.
+3. Without a matching rule, the setting for everyone applies, and then the shell's built-in
+   default.
+
+A rule may set only the default or only the toggle; the setting it leaves out stays the one
+for everyone. Group names match exactly as the identity provider or Work holds them,
+including letter case, and `*` is not a group. Each flag holds up to 100 rules, one per group.
+
+In the console, open **Group rules** on a flag's card to add, change or remove a rule. Known
+groups are suggested, and any group name can be typed. Connected apps pick up the change on
+their next poll.
+
+`PUT /api/v1/policy/flags/:flagId` takes the rules as `groups`, a list of
+`{ "group": "pilot", "default": "on", "visibility": "show" }` entries in which `default` and
+`visibility` are optional; a rule's `visibility` may be `show`, which the setting for everyone
+never stores. A request without `groups` keeps the stored rules, so an older script that sets
+only the two settings for everyone cannot drop them, and `"groups": []` removes them all. A
+second rule for the same group, a rule on `ai` or more than 100 rules answer `400`. Every save
+is audited as `policy.flag.edit`, and the policy-as-code document carries the rules in each
+flag's `groups`.
+
+### Your own flag service
+
+With `featureFlags.ofrep` set in `instance.json`, your organisation's flag service decides
+the default of the flags it lists, through OpenFeature (OFREP). It sees only the person's
+groups and role. The settings on this page are then the fallback whenever the service does
+not answer, and the toggle setting always stays Work's. The shell keeps reading one value per
+flag from Work, so it never contacts the flag service. The console shows a **Flag service**
+card with the service's address, its request and fallback counts and its last answer, and
+marks each flag the service decides. [Configuration](configuration.md#featureflags) lists
+what is sent and how failures are handled.
 
 ## Policy-as-code
 
@@ -171,7 +216,8 @@ logically equal states hash the same:
 - approval chains;
 - catalog-provider **configuration and exposure** (never credentials, runtime state or the
   enable switch);
-- feature-flag governance;
+- feature-flag governance, group rules included. A flag without rules exports as before, so
+  an earlier export hashes the same;
 - your catalog metadata **definitions** (`catalogFields`), the fields you file assets under
   ([catalog](catalog.md#org-defined-metadata)). The per-asset values are not policy and never
   appear in the document;

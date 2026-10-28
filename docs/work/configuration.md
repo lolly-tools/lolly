@@ -101,6 +101,13 @@ When upgrading a server that recorded the earlier raw-file pin identity, provisi
 higher positive `catalogPublicationGeneration` for the reviewed release once. Keep the
 existing fence and sequence history; deleting them would remove rollback protection.
 
+**What production mode needs from a pack.** A positive generation, from one of two places: set
+`catalogPublicationGeneration`, or mount a pack whose `catalog/tools/index.sig.json` carries a
+signed sequence and set `catalogPublicKey` to the key that verifies the signature. The demo pack in the
+image is unsigned, so production with the demo pack needs `catalogPublicationGeneration: 1`.
+Without either, `/readyz` answers `503` with `"catalog": "failed"` and the log says which
+condition failed; restart after fixing the configuration.
+
 Under a non-`open` access mode, a `shellDir` that is missing or predates the `org/`
 governance module **stops boot**. `LW_ALLOW_STALE_SHELL=1` downgrades that refusal to a warning
 in evaluation only; production still refuses the old shell.
@@ -287,7 +294,7 @@ default, and suggests the password tick for `example.com` addresses:
 | `uploads.readyTtlHours` | `24` | how long a finished upload can be named after it finished; at most 720. A catalog submission removes its upload sooner |
 | `uploads.fileTtlHours` | `168` | how long a finished file reference can be read and named after it finished (a week); at most 720. Its owner can delete it sooner |
 
-Both blocks take whole numbers above zero, each cap no larger than the budget above it:
+Both blocks take whole numbers above zero, and the caps nest:
 `maxFileBytes` no larger than `projectBudgetBytes` (or `ownerBudgetBytes`), and that no larger
 than `instanceBudgetBytes`. Anything else is refused at startup. Budgets count finished files
 and unfinished uploads that have not expired, each at its size plus 4096 bytes for its database
@@ -513,6 +520,19 @@ reads as missing rather than refused. Where the store supports it, add a lifecyc
 (`AbortIncompleteMultipartUpload`) that removes incomplete multipart uploads after a day: a
 server that stops during an upload leaves its parts behind, and the store keeps them, and bills
 for them, until they are removed.
+
+**Stores that drop object metadata**
+
+Some S3-compatible stores keep neither an object's content type nor its `x-amz-meta-*` headers,
+and serve every object as `application/octet-stream`; Predastore releases before v1.21 are one
+example. Browsers then refuse to display uploaded images. When it starts, Work writes a small
+object under the prefix (`<prefix>/.lolly-probe-<uuid>`), reads the object back, deletes the probe
+and logs the result; if that probe cannot run, the first write tries again. On such a store each blob gets a small JSON record
+beside the blob, at `<prefix>/.lolly-meta/<blobId>`, holding its size, SHA-256, content type and ETag.
+Reads use the record whenever the object's own headers carry no digest, and ignore a record whose
+ETag no longer matches the object, so a record left from earlier bytes is never applied to newer
+ones. Deleting a blob deletes its record. The records sit under the same prefix, so the
+permissions above cover them.
 :::
 
 ## `delivery`
@@ -669,6 +689,71 @@ see [account lifecycle operations](account-lifecycle.md#siem-projection-format).
 | `batchSize` | `200` | events per POST (1-1000) |
 | `intervalSeconds` | `30` | forwarding cadence (>= 5) |
 
+## `featureFlags`
+
+Unset by default. Work's own governance then decides every feature flag
+([feature flags](governance.md#feature-flags)), and nothing about flags leaves the instance.
+`ofrep` connects your organisation's flag service through the OpenFeature Remote Evaluation
+Protocol (OFREP). That service then decides the default of the flags it lists, person by
+person, and Work's own settings become the fallback. The web app still reads one resolved
+value per flag from Work and never contacts the flag service, so the app needs no vendor
+software.
+
+```json
+"featureFlags": {
+  "ofrep": {
+    "url": "https://flags.example.org",
+    "flags": ["export-preflight", "private-collab"],
+    "keyPrefix": "lolly.",
+    "timeoutMs": 500,
+    "cacheSeconds": 30
+  }
+}
+```
+
+| Key | Default | What it does |
+|---|---|---|
+| `url` | required | the service's base URL; Work posts to `<url>/ofrep/v1/evaluate/flags/<key>`. HTTPS in production; plain HTTP only to a loopback address on an evaluation instance |
+| `flags` | every flag but `ai` | the governed flag ids the service decides. Managed AI is never offered to a flag service |
+| `keyPrefix` | none | text put before the flag id to form the service's flag key: with `lolly.`, Work asks for `lolly.export-preflight` |
+| `timeoutMs` | `500` | time allowed for one request, from 50 to 5000 milliseconds |
+| `cacheSeconds` | `30` | how long one answer is reused for the same flag, groups and role, from 1 to 3600 |
+| `contextGroups` | every group | when set, only these group names are sent; a person's other groups stay in Work |
+| `targetingKey` | `"none"` | `"cohort"` adds a `targetingKey` for a service that requires one; **What Work sends** explains the key |
+| `auth` | `"bearer"` | how `LW_OFREP_TOKEN` travels: `Authorization: Bearer`, or `X-API-Key` with `"api-key"` |
+
+An unknown key, a flag id Work does not govern or a value out of range stops the server at
+start, so a typo cannot leave a flag quietly ungoverned.
+
+**What Work sends.** One `POST` per flag, with this body and nothing else about the person:
+
+```json
+{ "context": { "groups": ["design", "pilot"], "role": "author" } }
+```
+
+`groups` are the person's groups, sorted and narrowed by `contextGroups`; `role` is their
+Work role. No email address, name, account id or session travels. Some services refuse an
+evaluation without a `targetingKey`. With `targetingKey: "cohort"`, Work sends a key made
+from a hash of the same groups and role. Everyone with that combination shares the key, so
+the key identifies no person, and a percentage rollout splits people by combination rather
+than one by one.
+
+**When the service fails.** Each of these leaves the flag on Work's own setting: a timeout,
+a refused connection, an error status, an unknown flag, a refused credential, an answer that
+is not `true` or `false`, and an answer that cannot be read. Work's setting means the
+person's group rules, then the setting for everyone, then the app's built-in default. An
+answer with no value, or with reason `DISABLED`, also keeps Work's setting without counting
+as an error. After a timeout, a connection failure or a server error Work asks again in 5
+seconds, or after the service's `Retry-After` up to one minute; every other answer is reused
+for `cacheSeconds`. `lw_ofrep_evaluation_errors_total{flag,reason}` counts each fallback and
+`lw_ofrep_requests_total{flag}` counts requests ([monitoring](operations.md#monitoring)). The
+console's Feature flags page shows the service, the flags it decides and its last answer.
+
+**Which services.** flagd and GO Feature Flag support OFREP. For another service, check that
+the service, or a relay in front of the service, answers
+`POST /ofrep/v1/evaluate/flags/{key}`. The Work test suite includes a check against flagd
+0.18.1.
+
 ## `catalogProviders`
 
 Server-side catalog connectors use `network.providers` for outbound requests.
@@ -739,9 +824,10 @@ instead ([hiding tags](catalog.md#hiding-tags)).
 | `LW_SMTP_PASSWORD` | with `notify.smtp.user` | the relay password (AUTH PLAIN) |
 | `LW_WEBHOOK_SECRET` | with `notify.webhook` | HMAC key signing every outbound webhook event |
 | `LW_SIEM_SECRET` | with `siem.url` | HMAC key signing every forwarded audit batch |
+| `LW_OFREP_TOKEN` | with `featureFlags.ofrep`, when the flag service asks for a credential | sent to the flag service as a bearer token, or as `X-API-Key` with `featureFlags.ofrep.auth: "api-key"`. The Helm chart reads it from `secrets.ofrepToken` or from the same key in `existingSecret` |
 | `LW_RENDER_WORKER_SECRET` | with a render worker | shared HMAC key; must match the worker |
 | `LW_C2PA_SIGNING_KEY` | to sign exports | PKCS#8 private-key PEM |
-| `LW_CATALOG_SIGNING_KEY` | when the shell pins a catalog key | ECDSA P-256 private key (PKCS#8 PEM or private JWK JSON) that signs each caller's tool index, tool file digests and verified optional media resources at `/catalog/tools/index.sig.json`. Unset: the catalog is served unsigned and that path answers 404, even when the pack carries a build-time signature, because that envelope can never match the index served per caller |
+| `LW_CATALOG_SIGNING_KEY` | when the shell pins a catalog key | ECDSA P-256 private key (PKCS#8 PEM or private JWK JSON) that signs each caller's tool index, tool file digests and verified optional media resources at `/catalog/tools/index.sig.json`. Its public half is served at `GET /api/v1/catalog/public-key`, so a web app from Lolly 1.1.3 served at `/` accepts the catalogue without a rebuild ([the catalogue key](operations.md#the-catalogue-key)). Unset: the catalog is served unsigned, both paths answer 404, and the signature path does so even when the pack carries a build-time signature, because that envelope can never match the index served per caller |
 | `LW_BLOBS_S3_CREDENTIAL` | with `blobs.driver: s3` | `<accessKeyId>:<secretAccessKey>` for the blob bucket |
 | `<credentialRef>` | per config-managed provider or delivery destination | resolved at boot, never persisted |
 
@@ -780,6 +866,21 @@ supports tool rendering; qualify preview behavior with the paired shell release.
 | `NODE_ENV` | - | `production` makes secret checks fail-closed |
 | `LW_LOG_FORMAT` | `text` | `json` writes one JSON object per log line (and turns the http access line on) for a log pipeline |
 | `LW_LOG_HTTP` | off | `1` writes an access line per request in text mode: request id, method, route label, status, ms |
+
+### OpenTelemetry
+
+The standard OpenTelemetry variables turn on OTLP export of traces, metrics and logs.
+Nothing is exported until `OTEL_EXPORTER_OTLP_ENDPOINT` (or a per-signal endpoint) is
+set. The full list, what is sent and what never is are in
+[OpenTelemetry export](operations.md#opentelemetry-export).
+
+| Var | Default | What |
+|---|---|---|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | - | the collector's OTLP/HTTP base URL, usually port 4318 |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` | or `http/json`; gRPC is not supported |
+| `OTEL_EXPORTER_OTLP_HEADERS` | - | `key=value` pairs sent with each export, often an API key |
+| `OTEL_SERVICE_NAME` | `lolly-work` | the `service.name` resource attribute |
+| `OTEL_SDK_DISABLED` | `false` | `true` turns every signal off |
 
 ### Serverless entrypoint
 

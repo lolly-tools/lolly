@@ -1,0 +1,235 @@
+# SPDX-License-Identifier: MPL-2.0
+# Fast deploy lanes for the lolly.tools preview (scripts/deploy-lane.ts).
+#
+# A main commit whose changes since its newest fully qualified ancestor are all
+# docs, or all docs and web shell UI, may ship to the preview once the matching
+# job here has passed on it, instead of waiting about 40 minutes for ci.yml.
+# The preview deploy tool and lolly.ing's build gate read two jobs by name: "docs
+# lane" for a docs change and "web lane" (which needs the docs lane) for a web
+# shell change. These jobs test the whole source tree rather than a diff, so a pass
+# holds whichever base the deploy compares against. ci.yml still runs on every
+# push, releases still need it, and nothing here ever stands in for it on a release.
+#
+# Pull requests run this workflow too, so a change to these lanes is exercised
+# before the change reaches main. Only a push run on main counts for a deploy.
+name: Fast lanes
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**', 'shells/web/**', 'README.md', 'engine/text-composition.md']
+  pull_request:
+    paths: ['docs/**', 'shells/web/**', 'README.md', 'engine/text-composition.md', '.github/workflows/fast-lanes.yml',
+            'scripts/deploy-lane.ts', 'scripts/fast-lane-tests.ts', 'scripts/web-lane-check.ts']
+
+permissions:
+  contents: read
+
+# A newer push to a pull request cancels its run. A main push is never
+# cancelled, so every main commit keeps its own result for a deploy to read.
+concurrency:
+  group: fast-lanes-${{ github.ref }}-${{ github.event_name == 'push' && github.sha || 'pr' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# onnxruntime-node's postinstall tries a CUDA download on Linux runners (see ci.yml).
+env:
+  ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+
+jobs:
+  # Every test that reads the docs, the docs wording gates and the /info build.
+  docs:
+    name: docs lane
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          cache: pnpm
+      - name: Install pinned dependencies
+        timeout-minutes: 5
+        run: pnpm install --frozen-lockfile
+      - name: Tests that read the docs
+        run: node scripts/fast-lane-tests.ts docs
+      - name: Docs nav completeness
+        run: pnpm run check:docs-nav
+      - name: Build the /info site
+        run: pnpm run build:info
+      - name: Docs wording gate (sources and built pages)
+        run: node scripts/check-docs-vernacular.ts
+
+  # Static checks of the web shell: its typecheck, the changed-file lint and the
+  # wording, CSS and locale gates the full typecheck job also runs.
+  web-checks:
+    name: web lane checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          cache: pnpm
+      - name: Install pinned dependencies
+        timeout-minutes: 5
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck the web shell and its tests
+        run: pnpm exec tsc -p shells/web && pnpm exec tsc -p shells/web/tsconfig.tests.json
+      - name: No new first-party Biome diagnostics
+        run: pnpm run lint:changed --all
+      - name: UI copy wording gate
+        run: pnpm run check:ui-copy
+      - name: Code comment wording gate
+        run: pnpm run check:code-comments
+      - name: CSS house rules ratchet
+        run: pnpm run check:house-rules
+      - name: Locale innerHTML markup allowlist
+        run: pnpm run check:locale-markup
+      - name: Web shell maintainability no-growth ratchet
+        run: pnpm run check:maintainability
+
+  # The unit:web shard of scripts/run-test-suite.ts, split across two runners.
+  web-unit:
+    name: web lane unit (${{ matrix.part }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        part: ['1/2', '2/2']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          cache: pnpm
+      - name: Install pinned dependencies
+        timeout-minutes: 5
+        run: pnpm install --frozen-lockfile
+      - name: Web unit tests
+        run: node scripts/fast-lane-tests.ts web-unit ${{ matrix.part }}
+
+  # The production build with its budgets, the security shard, and one real
+  # browser: the built lolly-demo shell boots in Chromium with software WebGPU,
+  # shows the gallery, opens a tool and exports one PNG (scripts/web-lane-check.ts).
+  web-browser:
+    name: web lane build and browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      LOLLY_PROFILE: lolly-demo
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browsers
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          cache: pnpm
+      - name: Install pinned dependencies
+        timeout-minutes: 5
+        run: pnpm install --frozen-lockfile
+      - name: Production build (info site, cards and web shell)
+        run: pnpm run build:web
+      - name: Bundle budget
+        run: pnpm run check:bundle
+      - name: Docs size budget
+        run: pnpm run check:docs-size
+      # The same cached, scoped Chromium and retried install as ci.yml's browser
+      # and security shards; the comments there explain each part.
+      - name: Cache Chromium
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: .browsers
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('node_modules/playwright-core/package.json') }}
+      - name: Install Chromium
+        timeout-minutes: 15
+        run: |
+          node_bin="$(command -v node)"
+          for attempt in 1 2 3 4; do
+            if [ "$attempt" -gt 1 ]; then
+              sudo timeout -k 10 120 dpkg --configure -a || true
+              if [ -f /etc/apt/apt-mirrors.txt ]; then
+                printf 'https://archive.ubuntu.com/ubuntu/\tpriority:1\nhttps://security.ubuntu.com/ubuntu/\tpriority:2\nhttp://azure.archive.ubuntu.com/ubuntu/\tpriority:3\n' |
+                  sudo tee /etc/apt/apt-mirrors.txt > /dev/null
+              fi
+            fi
+            if sudo timeout -k 15 90 apt-get update &&
+              sudo timeout -k 15 180 "$node_bin" node_modules/playwright-core/cli.js install-deps chromium &&
+              timeout -k 15 180 pnpm run install:browser; then exit 0; fi
+            echo "::warning::Chromium install attempt $attempt failed or stalled"
+            sleep 10
+          done
+          exit 1
+      - name: Permit the locked Chromium sandbox on this runner
+        run: |
+          set -euo pipefail
+          node scripts/ci-chromium-userns.ts > "$RUNNER_TEMP/lolly-ci-chromium.profile"
+          sudo install -o root -g root -m 0644 "$RUNNER_TEMP/lolly-ci-chromium.profile" /etc/apparmor.d/lolly-ci-chromium
+          sudo apparmor_parser -r /etc/apparmor.d/lolly-ci-chromium
+      - name: Security shard (headers, CSP, integrity, sanitising)
+        env:
+          LOLLY_WEBGPU_TEST_ADAPTER: swiftshader
+        run: pnpm run test:security
+      - name: Serve the production build
+        run: |
+          mkdir -p artifacts
+          pnpm --dir shells/web preview --host 127.0.0.1 --port 4188 --strictPort > artifacts/preview-server.log 2>&1 &
+          for attempt in $(seq 1 40); do
+            if curl --silent --fail http://127.0.0.1:4188/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat artifacts/preview-server.log
+          exit 1
+      - name: Gallery, one tool and one export in Chromium
+        env:
+          LOLLY_BROWSER_CHANNEL: chromium
+        run: node scripts/web-lane-check.ts http://127.0.0.1:4188 artifacts/web-lane-check
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: web-lane-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # The job a deploy reads for the web lane. It needs every web job and the docs
+  # lane, and passes only when all of them passed.
+  web:
+    name: web lane
+    needs: [docs, web-checks, web-unit, web-browser]
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every lane job
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<<"$NEEDS"
+          jq -e 'length == 4 and all(.[]; .result == "success")' <<<"$NEEDS" > /dev/null
