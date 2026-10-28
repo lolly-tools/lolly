@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:90d3edba-0dc7-4c90-8a4f-37a476498322",
+  "serialNumber": "urn:uuid:667550b8-844d-485f-8725-777ad173d148",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-27T07:40:58.858Z",
+    "timestamp": "2026-10-28T02:21:06.300Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -19397,22 +19397,22 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40anthropic-ai/sdk@0.135.0",
+      "bom-ref": "pkg:npm/%40anthropic-ai/sdk@1.1.0",
       "name": "@anthropic-ai/sdk",
-      "version": "0.135.0",
-      "purl": "pkg:npm/%40anthropic-ai/sdk@0.135.0",
+      "version": "1.1.0",
+      "purl": "pkg:npm/%40anthropic-ai/sdk@1.1.0",
       "scope": "excluded",
       "licenses": [
         {
           "license": {
-            "id": "MIT"
+            "id": "Apache-2.0"
           }
         }
       ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "596add2f9ec9854e4aa329e94e3b7d1972ba93bb9df673f0daec3f4eb9fea015e1eacd0aa6384071c5999b6431c34f004581b5503423e620be24ee368f5aedfe"
+          "content": "3a9fdf28cb1f5701427ce6dcf3b95e2ce1653911344633af2f34733c25962c8ed6c3a6e86e9291e989980bc65882e95187e9b66bfdffeb55545e858716d09723"
         }
       ],
       "properties": [
