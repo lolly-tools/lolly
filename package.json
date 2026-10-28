@@ -195,7 +195,7 @@
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^1.1.0",
-    "@biomejs/biome": "^2.5.15",
+    "@biomejs/biome": "^2.6.2",
     "@lolly-tools/core": "workspace:*",
     "@lolly-tools/node-shell": "workspace:*",
     "@lolly/engine": "workspace:*",
