@@ -1671,6 +1671,28 @@
         }
       },
       "path": "work-avatar/SKILL.md"
+    },
+    {
+      "version": 1,
+      "toolId": "write",
+      "toolVersion": "1.0.0",
+      "toolVersionRange": "1.0.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "24e69e705ef062bbd30fc3b07013aff4476d94df3595ee65a43cfda76105d81e",
+          "bytes": 1647
+        },
+        "reference/inputs.json": {
+          "sha256": "895937bff07648d2c6e17164478b03a387473cc827fedb0998bde9e5ee16a025",
+          "bytes": 423
+        }
+      },
+      "path": "write/SKILL.md"
     }
   ]
 }

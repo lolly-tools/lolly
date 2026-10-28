@@ -110,4 +110,5 @@ On-device file utilities: bytes in, bytes out. Most take the user's own file
 | `trim` | Trim | utility | mp4, webm, gif, m4a, opus, wav, jpg, png | - | - | Cut, turn or shrink an audio or video clip, take a poster frame or contact sheet, mute it or extract its audio on you… |
 | `url-shot` | URL Screenshot | utility | png, jpg, webp, svg, penpot, pdf, webm, mp4, avif, tiff, gif | - | capture | Any web page, at any scroll depth, with custom CSS. |
 | `voice-recorder` | Voice Recorder | utility | png, svg, penpot, mp3, wav, m4a, opus | - | microphone | Record a voice note with a live level meter and gentle coaching, then save it as MP3. |
+| `write` | Write | utility | html | - | - | Write and edit plain text or Markdown. |
 <!-- /GEN:tools-utilities -->
