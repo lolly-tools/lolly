@@ -163602,7 +163602,7 @@ var init_font_subset_wasm = __esm({
   "packages/node-shell/src/font-subset-wasm.ts"() {
     "use strict";
     init_font_subset_policy();
-    SKERA_POLICY = "skera-0.8.0/retain-gids/notdef/all-layout/all-names/v1";
+    SKERA_POLICY = "skera-0.9.0/retain-gids/notdef/all-layout/all-names/v1";
     MAX_FONT_BYTES4 = 32 * 1024 * 1024;
   }
 });
