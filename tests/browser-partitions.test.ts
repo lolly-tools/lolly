@@ -9,8 +9,13 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
   type BrowserPartitionReport,
+  type BrowserTiming,
   type TestSummary,
+  BROWSER_ENGINE_FILES,
+  BROWSER_ENGINE_PARTITION,
   BROWSER_ENTRY_POINT_FILES,
+  BROWSER_PARTITION_COUNT,
+  BROWSER_PARTITION_DUTY_MS,
   browserExecutionFiles,
   browserPartitionFiles,
   parseBrowserPartition,
@@ -19,14 +24,20 @@ import {
 import { checkBrowserReports, validateBrowserSkips } from '../scripts/check-browser-partitions.ts';
 
 const source = 'a'.repeat(40);
-const inventory = Array.from({ length: 12 }, (_, index) => `tests/${String(index).padStart(2, '0')}.test.ts`);
+const count = BROWSER_PARTITION_COUNT;
+const indexes = Array.from({ length: count }, (_, index) => index + 1);
+// The files the timing profile measured: an inventory the size of the real one, so the partitions that also run a
+// conformance step still receive files. Small fixtures below pass an equal timing with no conformance steps.
+const profile = JSON.parse(readFileSync(new URL('../scripts/data/browser-test-durations.json', import.meta.url), 'utf8')) as BrowserTiming;
+const inventory = Object.keys(profile.durationMs).sort();
+const equal: BrowserTiming = { durationMs: {}, partitionDutyMs: {} };
 const summary = (): TestSummary => ({
   success: true, durationMs: 10,
   counts: { tests: 1, passed: 1, failed: 0, cancelled: 0, skipped: 0, todo: 0 },
 });
 function reports(): BrowserPartitionReport[] {
-  return [1, 2, 3, 4].map((index) => {
-    const partition = { index, count: 4 };
+  return indexes.map((index) => {
+    const partition = { index, count };
     const files = browserPartitionFiles(inventory, partition);
     return {
       schemaVersion: 1, shard: 'browser', source, partition, files,
@@ -35,22 +46,26 @@ function reports(): BrowserPartitionReport[] {
   });
 }
 
-test('four browser partitions cover every file once regardless of input order', () => {
-  const partitions = [1, 2, 3, 4].map((index) => browserPartitionFiles(inventory, { index, count: 4 }));
+test('the browser partitions cover every file once regardless of input order', () => {
+  assert.equal(count, 8);
+  const partitions = indexes.map((index) => browserPartitionFiles(inventory, { index, count }));
   assert.deepEqual(partitions.flat().sort(), inventory);
   assert.equal(new Set(partitions.flat()).size, inventory.length);
   for (const [index, files] of partitions.entries()) {
     assert.ok(files.length > 0);
-    assert.deepEqual(browserPartitionFiles([...inventory].reverse(), { index: index + 1, count: 4 }), files);
+    assert.deepEqual(browserPartitionFiles([...inventory].reverse(), { index: index + 1, count }), files);
   }
   assert.deepEqual(validateBrowserPartitionReports(inventory, reports().reverse(), source), inventory);
 });
 
 test('partition configuration refuses invalid ranges, duplicate paths and empty selections', () => {
-  for (const value of ['0/4', '5/4', '1/3', '1', '01/4', '1/4/2']) assert.throws(() => parseBrowserPartition(value));
-  assert.throws(() => browserPartitionFiles([...inventory, inventory[0]!], { index: 1, count: 4 }), /duplicate/);
-  assert.throws(() => browserPartitionFiles(['../outside.test.ts'], { index: 1, count: 4 }), /invalid/);
-  assert.throws(() => browserPartitionFiles(['tests/one.test.ts'], { index: 4, count: 4 }), /empty/);
+  for (const value of ['0/8', '9/8', '1/4', '4/4', '1', '01/8', '1/8/2', '-1/8', '1/08']) {
+    assert.throws(() => parseBrowserPartition(value), /browser partition must be/, value);
+  }
+  assert.deepEqual(parseBrowserPartition('8/8'), { index: 8, count: 8 });
+  assert.throws(() => browserPartitionFiles([...inventory, inventory[0]!], { index: 1, count }), /duplicate/);
+  assert.throws(() => browserPartitionFiles(['../outside.test.ts'], { index: 1, count }), /invalid/);
+  assert.throws(() => browserPartitionFiles(['tests/one.test.ts'], { index: count, count }), /empty/);
 });
 
 test('entry checks lead only their assigned files, including partial inventories and new files', () => {
@@ -68,8 +83,9 @@ test('entry checks lead only their assigned files, including partial inventories
 for (const outcome of ['success', 'failure', 'exception', 'exit', 'cancelled'] as const) {
   test(`ordered browser launcher preserves isolation, preloads and reports for ${outcome}`, () => {
     const directory = mkdtempSync(path.join(tmpdir(), 'lolly-browser-launcher-'));
-    const files = ['e.test.ts', 'a.test.ts'];
-    const fixtureInventory = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map(name => `${name}.test.ts`);
+    // With equal weights the files go round the eight runners in order, so a and i share partition 1.
+    const files = ['i.test.ts', 'a.test.ts'];
+    const fixtureInventory = 'abcdefghijklmnop'.split('').map(name => `${name}.test.ts`);
     const launcher = fileURLToPath(new URL('../scripts/run-browser-files.ts', import.meta.url));
     const prefix = `import test, {after} from 'node:test'; import assert from 'node:assert/strict';
       import { appendFileSync, mkdirSync, rmSync } from 'node:fs';
@@ -85,7 +101,7 @@ for (const outcome of ['success', 'failure', 'exception', 'exit', 'cancelled'] a
     try {
       writeFileSync(path.join(directory, 'package.json'), '{"type":"module"}\n');
       writeFileSync(path.join(directory, 'preload.mjs'), 'globalThis.fixturePreload = true;\n');
-      writeFileSync(path.join(directory, 'e.test.ts'), prefix + "test('serial barrier', async () => { await new Promise(resolve => setTimeout(resolve, 50)); });\ntest('skipped case', {skip: 'fixture absent'}, () => {});\n");
+      writeFileSync(path.join(directory, 'i.test.ts'), prefix + "test('serial barrier', async () => { await new Promise(resolve => setTimeout(resolve, 50)); });\ntest('skipped case', {skip: 'fixture absent'}, () => {});\n");
       writeFileSync(path.join(directory, 'a.test.ts'), prefix + body);
       const childEnv = { ...process.env };
       delete childEnv.NODE_TEST_CONTEXT;
@@ -93,7 +109,7 @@ for (const outcome of ['success', 'failure', 'exception', 'exit', 'cancelled'] a
         cwd: directory, encoding: 'utf8', env: { ...childEnv, FIXTURE_BROWSER_ENV: 'inherited',
           LOLLY_SKIP_REPORT: path.join(directory, 'test-skips.json'),
           LOLLY_TEST_COVERAGE_REPORT: path.join(directory, 'browser-coverage.json'),
-          LOLLY_TEST_COVERAGE_METADATA: JSON.stringify({schemaVersion: 1, shard: 'browser', source, partition: {index: 1, count: 4}, files}),
+          LOLLY_TEST_COVERAGE_METADATA: JSON.stringify({schemaVersion: 1, shard: 'browser', source, partition: {index: 1, count}, files}),
         },
       });
       assert.equal(result.status, outcome === 'success' ? 0 : 1, result.stderr + result.stdout);
@@ -107,32 +123,76 @@ for (const outcome of ['success', 'failure', 'exception', 'exit', 'cancelled'] a
       assert.equal(report.source, source);
       assert.equal(report.runSummary?.success, outcome === 'success');
       const skips = JSON.parse(readFileSync(path.join(directory, 'test-skips.json'), 'utf8')) as {skips: {file: string; fullName: string; reason: string}[]};
-      assert.deepEqual(skips.skips.map(row => [row.file, row.fullName, row.reason]), [['e.test.ts', 'skipped case', 'fixture absent']]);
+      assert.deepEqual(skips.skips.map(row => [row.file, row.fullName, row.reason]), [['i.test.ts', 'skipped case', 'fixture absent']]);
       assert.equal(report.runSummary?.counts.skipped, 1);
-      if (outcome === 'success') assert.deepEqual(validateBrowserPartitionReports(fixtureInventory, [report], source, {index: 1, count: 4}), [...files].sort());
-      else assert.throws(() => validateBrowserPartitionReports(fixtureInventory, [report], source, {index: 1, count: 4}), /successfully|cancelled|inventory/);
+      if (outcome === 'success') assert.deepEqual(validateBrowserPartitionReports(fixtureInventory, [report], source, {index: 1, count}, equal), [...files].sort());
+      else assert.throws(() => validateBrowserPartitionReports(fixtureInventory, [report], source, {index: 1, count}, equal), /successfully|cancelled|inventory/);
     } finally { rmSync(directory, {recursive: true, force: true}); }
   });
 }
 
 test('measured long files are spread across runners without dropping new or retaining deleted files', () => {
-  const files = Array.from({ length: 16 }, (_, index) => `tests/${String(index).padStart(2, '0')}.test.ts`);
-  // Alphabetical round-robin puts these four long files on the same runner.
-  const durations = Object.fromEntries(files.map((file, index) => [file, index % 4 === 0 ? 100_000 : 1000]));
-  durations['tests/deleted.test.ts'] = 1_000_000;
-  const partitions = [1, 2, 3, 4].map((index) => browserPartitionFiles(files, { index, count: 4 }, durations));
+  const files = Array.from({ length: 32 }, (_, index) => `tests/${String(index).padStart(2, '0')}.test.ts`);
+  // Alphabetical round-robin puts these eight long files on the same runner.
+  const durationMs = Object.fromEntries(files.map((file, index) => [file, index % 4 === 0 ? 100_000 : 1000]));
+  durationMs['tests/deleted.test.ts'] = 1_000_000;
+  const timing = { durationMs, partitionDutyMs: {} };
+  const partitions = indexes.map((index) => browserPartitionFiles(files, { index, count }, timing));
   assert.deepEqual(partitions.flat().sort(), files);
-  const totals = partitions.map((part) => part.reduce((sum, file) => sum + durations[file]!, 0));
-  assert.deepEqual(totals, [103_000, 103_000, 103_000, 103_000]);
+  const totals = partitions.map((part) => part.reduce((sum, file) => sum + durationMs[file]!, 0));
+  assert.deepEqual(totals, indexes.map(() => 103_000));
   for (const [index, selected] of partitions.entries()) {
-    assert.deepEqual(browserPartitionFiles([...files].reverse(), { index: index + 1, count: 4 }, durations), selected);
+    assert.deepEqual(browserPartitionFiles([...files].reverse(), { index: index + 1, count }, timing), selected);
   }
   const withNew = [...files, 'tests/new.test.ts'];
-  const observed = [1, 2, 3, 4].flatMap((index) => browserPartitionFiles(withNew, { index, count: 4 }, durations));
+  const observed = indexes.flatMap((index) => browserPartitionFiles(withNew, { index, count }, timing));
   assert.deepEqual(observed.sort(), withNew.sort());
   for (const invalid of [0, -1, NaN, Infinity]) {
-    assert.throws(() => browserPartitionFiles(files, { index: 1, count: 4 }, { [files[0]!]: invalid }), /duration/);
+    assert.throws(() => browserPartitionFiles(files, { index: 1, count }, { durationMs: { [files[0]!]: invalid }, partitionDutyMs: {} }), /duration/);
   }
+  for (const invalid of [-1, NaN, Infinity]) {
+    assert.throws(() => browserPartitionFiles(files, { index: 1, count }, { durationMs, partitionDutyMs: { 2: invalid } }), /duty/);
+  }
+});
+
+test('files that need the Firefox and WebKit builds always go to the runner that installs them', () => {
+  for (const file of BROWSER_ENGINE_FILES) {
+    assert.ok(inventory.includes(file), file);
+    assert.ok(browserPartitionFiles(inventory, { index: BROWSER_ENGINE_PARTITION, count }).includes(file), file);
+  }
+  const files = Array.from({ length: 16 }, (_, index) => `tests/${String(index).padStart(2, '0')}.test.ts`);
+  const timing = { durationMs: { [files[0]!]: 100_000 }, partitionDutyMs: {} };
+  // Without the pin the longest file would take the first runner; with the pin it goes to runner 5 whatever its weight.
+  assert.ok(browserPartitionFiles(files, { index: 1, count }, timing, {}).includes(files[0]!));
+  const pinned = indexes.map((index) => browserPartitionFiles(files, { index, count }, timing, { [files[0]!]: 5 }));
+  assert.ok(pinned[4]!.includes(files[0]!));
+  assert.deepEqual(pinned.flat().sort(), files);
+  // A pin for a file outside the inventory changes nothing; a pin to a runner that does not exist is refused.
+  assert.deepEqual(browserPartitionFiles(files, { index: 2, count }, timing, { 'tests/absent.test.ts': 2 }),
+    browserPartitionFiles(files, { index: 2, count }, timing, {}));
+  for (const index of [0, count + 1, 1.5]) {
+    assert.throws(() => browserPartitionFiles(files, { index: 1, count }, timing, { [files[3]!]: index }), /pin/);
+  }
+});
+
+test('a runner with a conformance step takes correspondingly fewer test files', () => {
+  const files = Array.from({ length: 80 }, (_, index) => `tests/${String(index).padStart(2, '0')}.test.ts`);
+  const durationMs = Object.fromEntries(files.map((file) => [file, 10_000]));
+  const timing = { durationMs, partitionDutyMs: { 1: 60_000, 3: 20_000 } };
+  const partitions = indexes.map((index) => browserPartitionFiles(files, { index, count }, timing));
+  assert.deepEqual(partitions.flat().sort(), files);
+  // 800 s of files and 80 s of steps over eight runners: 110 s each, the step included.
+  assert.deepEqual(partitions.map((part) => part.length), [5, 11, 9, 11, 11, 11, 11, 11]);
+  const loads = partitions.map((part, index) => part.length * 10_000 + (timing.partitionDutyMs[(index + 1) as 1 | 3] ?? 0));
+  assert.deepEqual(loads, indexes.map(() => 110_000));
+  // The measured profile lists only real partitions, and each conformance step ci.yml runs has a time there.
+  assert.deepEqual(Object.keys(BROWSER_PARTITION_DUTY_MS).sort(), ['1', '2', '3']);
+  const real = indexes.map((index) => browserPartitionFiles(inventory, { index, count }));
+  const load = (part: string[], index: number) => part.reduce((sum, file) => sum + profile.durationMs[file]!, 0)
+    + (BROWSER_PARTITION_DUTY_MS[String(index + 1)] ?? 0);
+  const measured = real.map(load);
+  const longest = Math.max(...Object.values(profile.durationMs));
+  assert.ok(Math.max(...measured) - Math.min(...measured) <= longest, 'no runner is a whole file behind another');
 });
 
 const invalidReports: [string, (value: BrowserPartitionReport[]) => void, RegExp][] = [
@@ -161,8 +221,8 @@ for (const [name, change, reason] of invalidReports) {
 
 test('each partition can check its complete report without weakening the aggregate', () => {
   const value = reports();
-  assert.deepEqual(validateBrowserPartitionReports(inventory, [value[1]!], source, parseBrowserPartition('2/4')), value[1]!.files);
-  assert.throws(() => validateBrowserPartitionReports(inventory, [value[0]!], source, parseBrowserPartition('2/4')), /unexpected/);
+  assert.deepEqual(validateBrowserPartitionReports(inventory, [value[1]!], source, parseBrowserPartition('2/8')), value[1]!.files);
+  assert.throws(() => validateBrowserPartitionReports(inventory, [value[0]!], source, parseBrowserPartition('2/8')), /unexpected/);
   assert.throws(() => validateBrowserPartitionReports(inventory, value, 'not-a-commit'), /commit/);
 });
 
@@ -191,8 +251,8 @@ test('artifact aggregation requires paired reports and rejects missing, duplicat
   };
   try {
     write();
-    assert.deepEqual(checkBrowserReports(directory, inventory, [], source), { reports: 4, files: 12, skips: 0 });
-    rmSync(path.join(directory, 'partition-4'), { recursive: true });
+    assert.deepEqual(checkBrowserReports(directory, inventory, [], source), { reports: count, files: inventory.length, skips: 0 });
+    rmSync(path.join(directory, `partition-${count}`), { recursive: true });
     assert.throws(() => checkBrowserReports(directory, inventory, [], source), /missing or extra/);
     write();
     rmSync(path.join(directory, 'partition-2/test-skips.json'));
@@ -218,12 +278,12 @@ for (const failing of [false, true]) {
   test(`real serial reporter records entry files and ${failing ? 'rejects failed execution' : 'complete execution'}`, () => {
     const directory = mkdtempSync(path.join(tmpdir(), 'lolly-partition-reporter-'));
     try {
-      const files = ['a.test.js', 'e.test.js'];
-      const fixtureInventory = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((name) => `${name}.test.js`);
+      const files = ['a.test.js', 'i.test.js'];
+      const fixtureInventory = 'abcdefghijklmnop'.split('').map((name) => `${name}.test.js`);
       writeFileSync(path.join(directory, 'package.json'), '{"type":"module"}\n');
       writeFileSync(path.join(directory, 'shared.js'), "import test from 'node:test'; test('shared helper case', () => {});\n");
       writeFileSync(path.join(directory, 'a.test.js'), "import './shared.js'; import test from 'node:test'; test('fixture case', { skip: 'fixture absent' }, () => {});\n");
-      writeFileSync(path.join(directory, 'e.test.js'), failing
+      writeFileSync(path.join(directory, 'i.test.js'), failing
         ? "import './shared.js'; import test from 'node:test'; test('failed case', () => { throw new Error('expected failure'); });\n"
         : "import './shared.js';\n");
       const reporter = fileURLToPath(new URL('./reporters/skip-identities.ts', import.meta.url));
@@ -235,7 +295,7 @@ for (const failing of [false, true]) {
           ...childEnv,
           LOLLY_SKIP_REPORT: path.join(directory, 'test-skips.json'),
           LOLLY_TEST_COVERAGE_REPORT: path.join(directory, 'browser-coverage.json'),
-          LOLLY_TEST_COVERAGE_METADATA: JSON.stringify({ schemaVersion: 1, shard: 'browser', source, partition: { index: 1, count: 4 }, files }),
+          LOLLY_TEST_COVERAGE_METADATA: JSON.stringify({ schemaVersion: 1, shard: 'browser', source, partition: { index: 1, count }, files }),
         },
       });
       assert.equal(result.status, failing ? 1 : 0, result.stderr + result.stdout);
@@ -246,8 +306,8 @@ for (const failing of [false, true]) {
       assert.equal(skips.skips.length, 1);
       assert.equal(skips.skips[0]?.file, 'a.test.js');
       assert.equal(report.runSummary?.counts.skipped, skips.skips.length);
-      if (failing) assert.throws(() => validateBrowserPartitionReports(fixtureInventory, [report], source, { index: 1, count: 4 }), /successfully/);
-      else assert.deepEqual(validateBrowserPartitionReports(fixtureInventory, [report], source, { index: 1, count: 4 }), files);
+      if (failing) assert.throws(() => validateBrowserPartitionReports(fixtureInventory, [report], source, { index: 1, count }, equal), /successfully/);
+      else assert.deepEqual(validateBrowserPartitionReports(fixtureInventory, [report], source, { index: 1, count }, equal), files);
     } finally { rmSync(directory, { recursive: true, force: true }); }
   });
 }

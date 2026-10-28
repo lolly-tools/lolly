@@ -67,7 +67,7 @@ Expected outcome: their behaviour must be preserved, and the adapter must report
 Expected outcome: datasets, encodings and accessibility metadata must survive every step, two concurrent edits to one payload must produce the documented outcome and no step may turn the chart into a string or a flattened image (R14, C1). The collaboration row value is a string, a number, a boolean or null, so a chart must travel as its own payload record (`packages/core/src/canvas-op-v1.ts`, `schemas/canvas-op.schema.json`). The mechanism is specified in [Source rows, payloads and patches](source-and-patches.html).
 
 **14. Second coordinate domain.** Design's `3d` layer carries its scene as a URL-encoded string inside a scalar field today (`community/design/tool.json`).
-Expected outcome: that scene must become a typed payload record referenced by the row, without breaking the frozen blocks wire order and without breaking an already shared link (R1, `schemas/blocks-wire-order.json`).
+Expected outcome: that scene must become a typed payload record referenced by the row, without breaking the frozen blocks wire order and without breaking an already shared link (R1, `schemas/blocks-wire-order.json`). The record must declare its length unit and its up axis, so that a GLB or USDZ export states the real size without a guess ([Source rows, payloads and patches](source-and-patches.html)).
 
 ### Concurrent merges (R1, C2)
 
