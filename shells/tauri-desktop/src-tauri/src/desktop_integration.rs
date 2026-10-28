@@ -687,17 +687,17 @@ pub mod dbus {
         fn get_result_metas(
             &self,
             ids: Vec<String>,
-        ) -> Vec<HashMap<String, zbus::zvariant::OwnedValue>> {
+        ) -> Vec<HashMap<String, zbus::OwnedVariant>> {
             ids.iter()
                 .filter_map(|id| self.index.0.iter().find(|r| &r.id == id))
                 .map(|row| {
-                    let mut m: HashMap<String, zbus::zvariant::OwnedValue> = HashMap::new();
-                    let put = |m: &mut HashMap<_, zbus::zvariant::OwnedValue>,
+                    let mut m: HashMap<String, zbus::OwnedVariant> = HashMap::new();
+                    let put = |m: &mut HashMap<_, zbus::OwnedVariant>,
                                k: &str,
                                v: &str| {
                         m.insert(
                             k.to_string(),
-                            zbus::zvariant::Value::from(v.to_string()).try_into().unwrap(),
+                            zbus::Variant::from(v.to_string()).try_into().unwrap(),
                         );
                     };
                     put(&mut m, "id", &row.id);
@@ -728,7 +728,7 @@ pub mod dbus {
         index: Index,
     }
 
-    type KMatch = (String, String, String, i32, f64, HashMap<String, zbus::zvariant::OwnedValue>);
+    type KMatch = (String, String, String, i32, f64, HashMap<String, zbus::OwnedVariant>);
 
     #[zbus::interface(name = "org.kde.krunner1")]
     impl KRunner {
@@ -797,30 +797,30 @@ pub mod dbus {
             let search = GnomeSearch { app: app.clone(), index: index.clone() };
             let krunner = KRunner { app: app.clone(), index };
             let desktop1 = Desktop1 { app: app.clone() };
-            let build = zbus::connection::Builder::session()
-                .and_then(|b| b.name("tools.lolly.Desktop.SearchProvider"))
-                .and_then(|b| b.serve_at("/tools/lolly/Desktop/SearchProvider", search))
-                .and_then(|b| b.serve_at("/tools/lolly/Desktop/SearchProvider", krunner));
-            match build {
-                Ok(b) => match b.build().await {
-                    Ok(conn) => {
-                        // Second well-known name on the same connection.
-                        let served = conn
-                            .object_server()
-                            .at("/org/lolly/Desktop1", desktop1)
-                            .await
-                            .is_ok();
-                        let named =
-                            conn.request_name("org.lolly.Desktop1").await.is_ok();
-                        if !(served && named) {
-                            eprintln!("[desktop] org.lolly.Desktop1 not fully served");
-                        }
-                        // Keep the connection alive for the app's lifetime.
-                        std::mem::forget(conn);
+            // zbus 6 builder setters cannot fail; a missing bus or a refused name
+            // surfaces from build().
+            let built = zbus::connection::Builder::session()
+                .name("tools.lolly.Desktop.SearchProvider")
+                .serve_at("/tools/lolly/Desktop/SearchProvider", search)
+                .serve_at("/tools/lolly/Desktop/SearchProvider", krunner)
+                .build()
+                .await;
+            match built {
+                Ok(conn) => {
+                    // Second well-known name on the same connection. `at` hands the
+                    // interface back as Some when one of that name is already there.
+                    let served = matches!(
+                        conn.object_server().at("/org/lolly/Desktop1", desktop1).await,
+                        Ok(None)
+                    );
+                    let named = conn.request_name("org.lolly.Desktop1").await.is_ok();
+                    if !(served && named) {
+                        eprintln!("[desktop] org.lolly.Desktop1 not fully served");
                     }
-                    Err(e) => eprintln!("[desktop] dbus unavailable: {e}"),
-                },
-                Err(e) => eprintln!("[desktop] dbus setup failed: {e}"),
+                    // Keep the connection alive for the app's lifetime.
+                    std::mem::forget(conn);
+                }
+                Err(e) => eprintln!("[desktop] dbus unavailable: {e}"),
             }
         });
     }
