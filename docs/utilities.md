@@ -6,6 +6,8 @@ Sometimes you do not need a new design. You need a file fixed: a photo in the wr
 
 ## Find the right utility
 
+- <!--i:document--> **Write a text or Markdown file:** [Write](/t/write). Start with **New file** in Projects, including its background menu, or open Write from Utilities. **Save to Projects** keeps an editable document; **Save to Assets** and **Download** make text files. Text also offers **Save to Projects** beside its asset save.
+
 - <!--i:shieldcheck--> **Share a file safely:** [Prepare for sharing, Strip Hidden Data and Redact](#share-a-file-safely).
 - <!--i:search--> **See what changed between two versions:** [Compare](#see-what-changed).
 - <!--i:convert--> **Change a format or a size:** [Convert, Compress, Convert Image and Convert Font](#change-a-format-or-a-size).

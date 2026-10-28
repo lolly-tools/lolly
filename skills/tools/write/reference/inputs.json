@@ -1,0 +1,26 @@
+[
+  {
+    "id": "body",
+    "type": "longtext",
+    "label": "Text",
+    "default": ""
+  },
+  {
+    "id": "source",
+    "type": "longtext",
+    "label": "Source information (JSON)",
+    "default": "{}"
+  },
+  {
+    "id": "language",
+    "type": "text",
+    "label": "Syntax language",
+    "default": "plain"
+  },
+  {
+    "id": "workspaceMode",
+    "type": "text",
+    "label": "Workspace mode",
+    "default": "text"
+  }
+]

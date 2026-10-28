@@ -104,7 +104,7 @@ export async function openAssetsWith(host: HostV1, choice: AssetOpenChoiceV1, re
   if (actual.intent.binding.kind === 'text') {
     const { openTextHandoff, readTextAsset } = await import('./text-handoff.ts');
     const source = await readTextAsset(host, refs[0]!);
-    if (request === generation && isCurrent()) openTextHandoff(source);
+    if (request === generation && isCurrent()) openTextHandoff(source, tool.manifest.id === 'write' ? 'write' : 'text-helper');
     return;
   }
   const values = await openingInputValues(host, tool.manifest, actual, refs);
