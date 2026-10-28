@@ -1265,9 +1265,10 @@ jobs:
       # manifest - it cannot carry a regenerated artifact, and nobody can add one to
       # its branch without taking the PR over by hand. Failing here would park every
       # bump forever (or, worse, train us to merge red). So on a dependabot[bot] PR
-      # the drift is reported as a warning and the job carries on; main repairs itself
-      # straight after the merge via .github/workflows/sbom-refresh.yml, which
-      # regenerates and commits sbom.cdx.json on push.
+      # the drift is reported as a warning and the job carries on. After the merge,
+      # .github/workflows/sbom-refresh.yml regenerates sbom.cdx.json on main and
+      # proposes it as an auto-merging pull request; main's own run stays red on
+      # this step until that pull request lands.
       #
       # For every other actor this is still a hard failure: a human who touches a
       # lockfile commits the regenerated SBOM alongside it, same as before.
@@ -1282,7 +1283,7 @@ jobs:
           fi
           git --no-pager diff --stat -- sbom.cdx.json
           if [ "$SBOM_DRIFT_ADVISORY" = 'true' ]; then
-            echo "::warning title=SBOM drift (advisory for Dependabot)::sbom.cdx.json is stale for this bump. sbom-refresh.yml regenerates and commits it on main once this merges."
+            echo "::warning title=SBOM drift (advisory for Dependabot)::sbom.cdx.json is stale for this bump. sbom-refresh.yml proposes the regenerated file as an auto-merging pull request once this merges."
             exit 0
           fi
           echo "::error title=SBOM drift::sbom.cdx.json is stale. Run pnpm run build:sbom and commit the result."
@@ -1309,7 +1310,7 @@ jobs:
           fi
           git --no-pager diff --stat -- THIRD-PARTY-NOTICES.md shells/web/public/THIRD-PARTY-LICENSES.txt
           if [ "$NOTICES_DRIFT_ADVISORY" = 'true' ]; then
-            echo "::warning title=Notices drift (advisory for Dependabot)::the third-party notices are stale for this bump. sbom-refresh.yml regenerates and commits them on main once this merges."
+            echo "::warning title=Notices drift (advisory for Dependabot)::the third-party notices are stale for this bump. sbom-refresh.yml proposes the regenerated notices as an auto-merging pull request once this merges."
             exit 0
           fi
           echo "::error title=Notices drift::THIRD-PARTY-NOTICES.md or THIRD-PARTY-LICENSES.txt is stale. Run pnpm run build:licenses and commit the result."
