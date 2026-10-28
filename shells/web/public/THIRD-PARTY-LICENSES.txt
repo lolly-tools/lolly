@@ -706,7 +706,7 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 --------------------------------------------------------------------------------
-harfbuzzjs 1.6.3
+harfbuzzjs 1.6.4
 SPDX-License-Identifier: MIT
 Copyright: Copyright (c) 2019-2026 The harfbuzzjs project authors
 
@@ -778,7 +778,7 @@ ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 --------------------------------------------------------------------------------
-mediabunny 1.61.6
+mediabunny 1.62.1
 SPDX-License-Identifier: MPL-2.0 (elected from "MPL-2.0")
 Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
 
@@ -1157,7 +1157,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 
 --------------------------------------------------------------------------------
-@mediabunny/flac-encoder 1.61.6
+@mediabunny/flac-encoder 1.62.1
 SPDX-License-Identifier: MPL-2.0 (elected from "MPL-2.0")
 Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
 
