@@ -1108,6 +1108,7 @@ checked against.
 | Route | Action | Notes |
 |---|---|---|
 | `GET /catalog/*` | per access mode | pack blobs, lifecycle-gated |
+| `GET /api/v1/catalog/public-key` | public | the public half of `LW_CATALOG_SIGNING_KEY`: `{ version: 1, alg, keyId, publicKey: { kty, crv, x, y } }`, revalidated on every read; `404 CATALOG_SIGNING_OFF` without a key, `503 CATALOG_SIGNING_UNAVAILABLE` when the key does not load. The web app at `/` reads the route from its own address only ([the catalogue key](operations.md#the-catalogue-key)) |
 | `GET /api/v1/catalog/assets` | per access mode | one page of the caller's feed: `q`, `source`, `section`, `collection`, `tag`, `type`, `cursor`, `limit`; returns `{ assets, total, nextCursor, facets, version }` ([large catalogs](catalog.md#large-catalogs)) |
 | `GET /api/v1/catalog/assets/*` | member; visible asset | inspect source facts, organisation fields and text-index status without returning extracted words |
 | `GET /api/v1/catalog/search` | `catalog.read` | live fan-out to search-capable providers |
@@ -1330,7 +1331,7 @@ audit, the fleet of installed apps, setup checks and the static files the server
 | Route | Action | Notes |
 |---|---|---|
 | `GET /healthz` | public | `{ ok, name, accessMode, appUrl? }` - liveness |
-| `GET /readyz` | public | `{ ok, store }` - readiness. `503` while the store cannot answer or the mounted catalog is not prepared yet, and in production also while migrations are pending or the setup checks fail |
+| `GET /readyz` | public | `{ ok, store, checks }` - readiness. `503` while the store cannot answer or the mounted catalog is not prepared yet, and in production also while migrations are pending or the setup checks fail. `checks` gives each condition as a fixed word, with no error text: `store` (`ok`, `unreachable`), `catalog` (`ok`, `preparing`, `failed`) and, in production, `migrations` (`ok`, `pending`, `unknown`) and `setup` (`ok`, `incomplete`, `unknown`). A `failed` catalog does not recover without a restart; the server log says why |
 | `GET /metrics` | token | Prometheus. With `LW_METRICS_TOKEN` set, the bearer token is required. Without one, only loopback may read it, and only on an evaluation instance with no proxy: in production, behind `proxyAuth` or with `rateLimit.trustedProxyHops` above `0`, a request without the token gets `404`, from loopback too |
 | `GET /api/v1/alerts` | `telemetry.view` | `{ alerts: [{ id, kind, level, month, value, threshold, title, detail, href }] }`: alerts the server raises for administrators, shown as the console banner. Today only the [blob offload trigger](operations.md#blob-offload-trigger) |
 

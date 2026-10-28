@@ -120,6 +120,26 @@ The counterexample is stated in the plan: glTF declares `extensionsUsed` and `ex
 
 An extension's content travels as package parts under the integrity map, never as manifest keys (R10). The reason is in `shells/web/src/lib/lolly-pack.ts`: the writer rebuilds the manifest from typed fields on every save, so an unknown manifest key is dropped. A part is the safer carrier because the integrity map already covers and verifies it. The carry itself does not exist yet: `LollyBuildInput` takes only typed fields, so a part a reader did not interpret is not written back today. [Packaging, identity and migration](packaging.html) specifies the collision, ownership and collection rules for those parts, and the retained package state that has to join the read to the next write (C7).
 
+## A third requiredness class, proposed for review
+
+glTF gives a document two lists, so each extension is either required or only used. The `Profiles` schema that OpenUSD added in release 26.08 gives each capability claim one of three degradation classes: `hard`, `soft` or `enhancement`. A consumer without a `hard` capability produces an incorrect result. A `soft` capability can be replaced or reduced. An `enhancement` improves a result that is already correct without the capability.
+
+The two lists have no place for the middle class, and the rules above need one. A host must never claim a feature it does not support, but an operation that can run in a reduced form should not have to refuse. The rondocode utility already works this way for one medium: a part the render cannot play is named with its reason (`rondo.part.sing`), and silence is never presented as a complete render.
+
+This section proposes a third state for review. It adds no field, and nothing goes into `packages/core` or `schemas/`.
+
+| State | Nearest USD class | What a host without the feature does for the affected operation |
+|---|---|---|
+| Required | `hard` | Refuses the operation by name (R10). |
+| Degrades | `soft` | Runs the operation in a reduced form. A finding says which feature is missing and how the output is reduced, and the output never claims the feature. |
+| Used | `enhancement` | Runs the operation without the feature. The receipt lists the feature as not applied. |
+
+The state belongs to the operation and the output target, as requiredness does above, and never to the whole document. One feature can therefore have different states for different targets. The studio lights of a 3D scene are an example. They are required for a PNG render. For a USDZ file viewed in AR Quick Look, which lights a model from the camera's surroundings, they are a candidate for the degrades state, and the finding would state that the lights did not travel.
+
+The finding uses the one finding entry that every other finding table uses ([operations and outcomes](operations.html)). USD also separates usage claims, which the authoring tool writes, from compatibility claims, which an audit step writes. This model already makes the same split between the features a document declares and a `ConformanceReportV1` ([conformance and fidelity](conformance.html)).
+
+USD calls a named set of capabilities a `profile`. This model calls such a set a conformance suite, because the word already means a content profile, a colour profile and the user profile in this tree (`docs/glossary.md`).
+
 ## The four gates
 
 Four independent gates decide whether a document can be read and run here. Each already exists or is proposed, and each refuses at its own boundary.
@@ -179,6 +199,7 @@ The check also found a context the five classes do not name. The patched rondoco
 - **Q6, whether the specification is public from the first draft.** Decided on 2026-10-16: yes, published under `/info/` with the draft notice at the head of every chapter. An open extension model that independent publishers are invited into is hard to review in private. Evidence that would reopen it: a reason to keep the drafts private until the pilots pass. The [status chapter](status.html) records the decision.
 
 - **The opaque-origin frame as an execution context.** The Sandbox utility (`community/sandbox/template.html`) and the patched rondocode editor run code a person supplies inside a frame with an opaque origin: no access to the shell's storage, cookies or session, and a small message protocol as the only channel back. The frame is not one of the five classes, and the receipt rule (R15) needs a name for the frame. Default: name it as a sixth class, `frame`, with the frame's sandbox flags and message protocol as its stated powers. Evidence that would change the default: a reason to fold the frame into `strict-worker`, whose powers are a proxied host rather than a message protocol. The rondocode utility already records `frame` as the execution class in the Content Credentials of files its editor makes (plan 301), so the default is in use while the question stays open.
+- **A third requiredness class.** Proposed on 2026-10-26 and open for review. Default: adopt the three states in [the proposal above](#a-third-requiredness-class-proposed-for-review), and choose between a state on each requirement (the USD form) and a third list beside `extensionsUsed` and `extensionsRequired` (the glTF form) when the first extension needs to declare the degrades state. Evidence that would change the default: an operation whose reduced output a reader cannot tell apart from a correct one, so that a finding is not enough protection.
 
 Q1 is carried in [conformance and fidelity](conformance.html). Q2 and Q3 are carried in [constraints, authority and local choice](policy.html). Q4 is carried in [operations and outcomes](operations.html).
 

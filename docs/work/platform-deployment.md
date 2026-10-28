@@ -194,11 +194,11 @@ then add the repository and pick an exact chart version:
 ```bash
 helm repo add lolly-work https://github.com/lolly-tools/lolly-work/releases/download/helm-index
 helm repo update lolly-work
-helm show chart lolly-work/lolly-work --version 0.3.3
+helm show chart lolly-work/lolly-work --version %work{chart}
 ```
 
 In the production command, replace the local `deploy/helm` argument with
-`lolly-work/lolly-work --version 0.3.3` and keep your reviewed values, configuration
+`lolly-work/lolly-work --version %work{chart}` and keep your reviewed values, configuration
 and Secret references. Check the chart's Sigstore bundle and source record, as
 [official installation routes](official-installations.md#release-verification)
 describes, before you apply the chart.
@@ -266,4 +266,6 @@ Release developers who build images with SUSE BCI and Podman should read the
 and the [application update guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/APP-UPDATES.md).
 Optional WebAssembly policy and worker tracks are in
 [WebAssembly and Kubewarden choices](wasm-deployment.md); neither adds a requirement
-to a private install.
+to a private install. A cluster that enforces admission policy with Kubewarden can
+apply the [policy set for Work's pods](admission-policy.md), and a cluster with
+Prometheus can install the [suggested alerts and dashboard](metrics.md).

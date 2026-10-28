@@ -20,13 +20,31 @@
 # everyone else - a human who edits a lockfile still commits the SBOM with it.
 #
 # WHAT IT DOES
-# Regenerates sbom.cdx.json on main and, if it changed, commits just that file
-# back to main with GITHUB_TOKEN. A commit pushed with GITHUB_TOKEN does NOT
-# trigger workflows, which is what we want here: no CI run, and no chance of this
-# job retriggering itself. The trade is that the refresh commit is not itself
-# gated by CI - acceptable because the commit is machine-generated, one path wide,
-# and reproducible by anyone running `pnpm run build:sbom`.
+# Regenerates sbom.cdx.json and the third-party notices on main and, if they
+# moved, proposes them as ONE pull request from chore/sbom-refresh-auto with
+# auto-merge on. It used to commit straight to main with GITHUB_TOKEN, but main
+# is protected (the `qualification` check is required and only admins bypass
+# it), so that push was refused and main stayed red until someone opened the
+# refresh by hand (#576, #579). The pull request runs CI like any other change
+# and auto-merge lands it once `qualification` passes. Each run rebuilds the
+# branch from the newest main, and a run that finds main already current closes
+# a stale proposal.
 #
+# THE TOKEN, AND WHAT TO CREATE BEFORE THE FIRST RUN
+# GitHub does not start workflows for a branch pushed or a pull request opened
+# with GITHUB_TOKEN, so the proposal would never get its required check. The
+# push and the pull request therefore use a GitHub App installation token. It is
+# the same App lolly-work's lolly-repin.yml uses:
+#   1. A GitHub App owned by the lolly-tools organisation, no webhook,
+#      repository permissions Contents read and write and Pull requests read
+#      and write (Metadata read is added automatically), nothing else.
+#   2. Installed on lolly-tools/lolly (and lolly-tools/lolly-work).
+#   3. Two repository secrets on this repository:
+#        LOLLY_AUTOMATION_APP_CLIENT_ID     the App's Client ID
+#        LOLLY_AUTOMATION_APP_PRIVATE_KEY   the whole .pem private key
+# Without them the run fails at the proposal step and names the missing one.
+# The token is narrowed to this repository with those two permissions.
+
 # TRIGGERS
 # Path-filtered to the generator's actual inputs, so an ordinary docs or source
 # push to main does not pay for a pnpm install. If an input is ever missed, the
@@ -56,10 +74,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pull-requests: write
 
-# Never cancel a run that may be mid-commit, and never run two at once: a second
-# push queues behind the first, then regenerates on top of its result.
+# Never cancel a run that may be mid-push, and never run two at once: a second
+# push queues behind the first, then rebuilds the proposal on the newer main.
 concurrency:
   group: sbom-refresh
   cancel-in-progress: false
@@ -73,6 +92,8 @@ jobs:
   refresh:
     name: regenerate sbom.cdx.json and the third-party notices
     runs-on: ubuntu-latest
+    env:
+      BRANCH: chore/sbom-refresh-auto
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -96,40 +117,89 @@ jobs:
       - name: Install (workspaces)
         run: pnpm install --frozen-lockfile
 
-      # Regenerate, and commit only if the file actually moved. A direct push to
-      # main can land between the checkout and our push, so a rejected push
-      # resets to the new main and regenerates there rather than force-pushing
-      # over it. Three attempts, then fail loudly - a persistent rejection is a
-      # real signal, not something to loop on.
-      - name: Regenerate the SBOM and commit it if it moved
+      - name: Regenerate the SBOM and the third-party notices
+        id: regen
         run: |
-          set -uo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for attempt in 1 2 3; do
-            pnpm run build:sbom || exit 1
-            pnpm run build:licenses || exit 1
-            if git diff --quiet -- sbom.cdx.json THIRD-PARTY-NOTICES.md shells/web/public/THIRD-PARTY-LICENSES.txt; then
-              echo "sbom.cdx.json and the third-party notices already match the dependency graph - nothing to commit."
-              exit 0
-            fi
+          set -euo pipefail
+          pnpm run build:sbom
+          pnpm run build:licenses
+          if git diff --quiet -- sbom.cdx.json THIRD-PARTY-NOTICES.md shells/web/public/THIRD-PARTY-LICENSES.txt; then
+            echo "sbom.cdx.json and the third-party notices already match the dependency graph."
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
             git --no-pager diff --stat -- sbom.cdx.json THIRD-PARTY-NOTICES.md shells/web/public/THIRD-PARTY-LICENSES.txt
-            git add sbom.cdx.json THIRD-PARTY-NOTICES.md shells/web/public/THIRD-PARTY-LICENSES.txt
-            git commit --file=- <<'MSG' || exit 1
-          SBOM: regenerate after a dependency change landed on main
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
 
-          Generated by .github/workflows/sbom-refresh.yml (pnpm run build:sbom).
-          The committed CycloneDX SBOM is derived from the lockfiles, so a bump
-          that only touches a lockfile leaves it stale. This restores it, which
-          keeps the audit job's drift gate meaningful for the next PR.
+      - name: Close a proposal main no longer needs
+        if: steps.regen.outputs.changed == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          open=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh pr close "$open" --repo "$GITHUB_REPOSITORY" --comment "Not needed any more: main's SBOM and notices match the dependency graph at $GITHUB_SHA."
+          fi
+
+      - name: Require the automation App secrets
+        if: steps.regen.outputs.changed == 'true'
+        env:
+          CLIENT_ID: ${{ secrets.LOLLY_AUTOMATION_APP_CLIENT_ID }}
+          PRIVATE_KEY: ${{ secrets.LOLLY_AUTOMATION_APP_PRIVATE_KEY }}
+        run: |
+          missing=''
+          [ -n "$CLIENT_ID" ] || missing="$missing LOLLY_AUTOMATION_APP_CLIENT_ID"
+          [ -n "$PRIVATE_KEY" ] || missing="$missing LOLLY_AUTOMATION_APP_PRIVATE_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error title=SBOM refresh App secrets missing::Add the repository secret(s)$missing. main is protected, and a pull request opened with GITHUB_TOKEN never starts CI, so the refresh needs the App. Until then run pnpm run build:sbom and pnpm run build:licenses and open the pull request by hand. The header of .github/workflows/sbom-refresh.yml says how to create the App."
+            exit 1
+          fi
+
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        if: steps.regen.outputs.changed == 'true'
+        id: app
+        with:
+          client-id: ${{ secrets.LOLLY_AUTOMATION_APP_CLIENT_ID }}
+          private-key: ${{ secrets.LOLLY_AUTOMATION_APP_PRIVATE_KEY }}
+          repositories: lolly
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open or refresh the pull request, with auto-merge
+        if: steps.regen.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          APP_SLUG: ${{ steps.app.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          bot_id=$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git switch --quiet -c "$BRANCH"
+          git add sbom.cdx.json THIRD-PARTY-NOTICES.md shells/web/public/THIRD-PARTY-LICENSES.txt
+          git commit --quiet --file=- <<MSG
+          chore: regenerate the SBOM and notices after ${GITHUB_SHA:0:9}
+
+          Generated by .github/workflows/sbom-refresh.yml (pnpm run build:sbom
+          and pnpm run build:licenses). The committed CycloneDX SBOM and the
+          notices are derived from the lockfiles, so a bump that only touches a
+          lockfile leaves them stale and CI's drift gate fails on main.
           MSG
-            if git push origin HEAD:main; then
-              echo "Committed refreshed SBOM and notices to main (attempt ${attempt})."
-              exit 0
-            fi
-            echo "::notice::main moved under us; rebuilding on the new tip (attempt ${attempt})."
-            git fetch origin main
-            git reset --hard origin/main
-          done
-          echo "::error title=SBOM refresh could not push::main kept moving; run pnpm run build:sbom and pnpm run build:licenses and commit the results by hand."
-          exit 1
+          # The token reaches git only for this push, as a masked header, never in .git/config.
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::$auth"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+            push --force "https://github.com/$GITHUB_REPOSITORY.git" "HEAD:refs/heads/$BRANCH"
+          cat > "$RUNNER_TEMP/body.md" <<BODY
+          Regenerates \`sbom.cdx.json\` and the third-party notices on main at \`$GITHUB_SHA\`. A dependency change landed without them, so CI's drift gate fails on main until this merges.
+
+          Made by \`.github/workflows/sbom-refresh.yml\` with \`pnpm run build:sbom\` and \`pnpm run build:licenses\`, nothing else. Auto-merge is on: it lands once \`qualification\` passes. A later run rebuilds this branch from the newest main, or closes it once main is current.
+          BODY
+          open=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh pr edit "$open" --repo "$GITHUB_REPOSITORY" --title "chore: regenerate the SBOM and notices after ${GITHUB_SHA:0:9}" --body-file "$RUNNER_TEMP/body.md"
+          else
+            open=$(gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$BRANCH" --title "chore: regenerate the SBOM and notices after ${GITHUB_SHA:0:9}" --body-file "$RUNNER_TEMP/body.md" | sed 's#.*/##')
+          fi
+          gh pr merge "$open" --repo "$GITHUB_REPOSITORY" --auto --merge

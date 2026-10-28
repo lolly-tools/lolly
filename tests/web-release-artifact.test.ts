@@ -99,11 +99,31 @@ test('web compilation and signing have separate jobs and complete artifact trans
     assert.equal(job.environment, gh('inputs.signing_environment'));
     for (const step of job.steps) assert.doesNotMatch(step.run ?? '', /\b(?:npm|pnpm|cargo|vite|tauri|docker)\b/);
   }
-  for (const job of [compile, workflow.jobs['sign-artifact']]) {
-    const upload = job.steps.find((step: any) => step.uses?.startsWith('actions/upload-artifact'));
-    assert.equal(upload.with['include-hidden-files'], true);
-  }
+  // Each hand-over is one tar from scripts/artifact-archive.ts (hidden files, modification times and
+  // nothing but files and directories), uploaded as is. Native targets keep their zipped directory.
   const final = workflow.jobs['sign-artifact'].steps;
+  const runs = (steps: any[]) => steps.map((step: any) => step.run ?? '');
+  const uploads = (steps: any[]) => steps.filter((step: any) => step.uses?.startsWith('actions/upload-artifact'));
+  assert.ok(runs(compile.steps).some(run => run.startsWith('node scripts/artifact-archive.ts pack "shells/$FRONTEND_TARGET/dist" ')));
+  assert.deepEqual(uploads(compile.steps).map((step: any) => step.with.archive), [false]);
+  const unpack = runs(final).findIndex(run => run.startsWith('node scripts/artifact-archive.ts unpack ') && run.endsWith(' release-frontend'));
+  const firstKey = final.findIndex((step: any) => /secrets\./.test(JSON.stringify(step)));
+  assert.ok(unpack >= 0 && unpack < firstKey, 'the compiled frontend is unpacked and checked before any key is used');
+  const [native, web] = uploads(final);
+  assert.equal(native.if, "inputs.target != 'web'");
+  assert.equal(native.with['include-hidden-files'], true);
+  assert.equal(web.if, "inputs.target == 'web'");
+  assert.equal(web.with.archive, false);
+  assert.equal(web.with.path, gh('runner.temp') + '/release-frontend-web.tar.zst');
+  const packWeb = final.findIndex((step: any) => step.run === 'node scripts/artifact-archive.ts pack release-frontend "$RUNNER_TEMP/release-frontend-web.tar.zst"');
+  assert.ok(packWeb > final.findIndex((step: any) => step.name === 'Verify frontend receipt'), 'the signed and verified tree is what gets packed');
+  for (const file of ['deployment-suse.yml', 'preview-web.yml']) {
+    const job = parse(readFileSync(join(repo, '.github/workflows', file), 'utf8')).jobs['web-image'];
+    const download = job.steps.findIndex((step: any) => step.uses?.startsWith('actions/download-artifact') && step.with.name === 'release-frontend-web.tar.zst');
+    const open = job.steps.findIndex((step: any) => step.run === 'node scripts/artifact-archive.ts unpack "$RUNNER_TEMP/lolly-signed-web-archive/release-frontend-web.tar.zst" "$RUNNER_TEMP/lolly-signed-web"');
+    const verify = job.steps.findIndex((step: any) => step.name === 'Verify the frontend artifact against the reviewed source');
+    assert.ok(download >= 0 && open === download + 1 && verify === open + 1, file);
+  }
   const delivery = final.findIndex((step: any) => step.run?.includes('build-delivery.ts'));
   const receipt = final.findIndex((step: any) => step.run?.includes('release-frontend-receipt.ts') && step.env?.LOLLY_CATALOG_SIGNING_KEY);
   assert.ok(delivery >= 0 && receipt > delivery);

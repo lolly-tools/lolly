@@ -81,11 +81,13 @@ interface Args {
 }
 
 function parseArgs(argv: string[]): Args {
-  const args: Args = {
+  // indexPath stays null until the flags are read: the profile default resolves the
+  // active pack, which a signing job given --tools and --index may not have on disk.
+  const args: Omit<Args, 'indexPath'> & { indexPath: string | null } = {
     genKey: false,
     keyfile: null,
     toolsDir: null,
-    indexPath: catalogFile('tools/index.json'),
+    indexPath: null,
     outPath: null,
     materialize: false,
     previousEnvelope: null,
@@ -122,7 +124,7 @@ function parseArgs(argv: string[]): Args {
     }
     args.minSeq = Number(minSeq);
   }
-  return args;
+  return { ...args, indexPath: args.indexPath ?? catalogFile('tools/index.json') };
 }
 
 async function genKey(): Promise<void> {
