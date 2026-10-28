@@ -540,7 +540,7 @@ const MANIFEST: {
     }),
     {
       name: 'Skera font subsetter and Rust dependencies',
-      version: '0.7.0 (pinned Cargo.lock)',
+      version: '0.9.0 (pinned Cargo.lock)',
       spdx: '(MIT OR Apache-2.0) AND Unicode-3.0',
       copyright: 'Individual crate authors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/skera/skera.wasm',
