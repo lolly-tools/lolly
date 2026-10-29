@@ -46,18 +46,17 @@ Configure a stateful host firewall as well as UpCloud's stateless one, and keep 
 limited to your actual administrator networks.
 
 **Hosts on a network with an MTU below 1500.** Some clouds run their machines on an
-overlay network whose interface MTU is below 1500; MulgaDC Spinifex guests use 1442,
-for example. Docker's bridges default to 1500, so large TLS downloads from inside a
+overlay network whose interface MTU is below 1500. Docker's bridges default to 1500, so large TLS downloads from inside a
 container stall while the same download from the host works. The first start's
 archive download then hangs. Check the MTU of the host's main interface with
 `ip link`. When it is below 1500, give Docker the same value before the first start,
 in `/etc/docker/daemon.json`, merged into any settings already there:
 
 ```json
-{ "mtu": 1442, "default-network-opts": { "bridge": { "com.docker.network.driver.mtu": "1442" } } }
+{ "mtu": 1450, "default-network-opts": { "bridge": { "com.docker.network.driver.mtu": "1450" } } }
 ```
 
-Use your interface's value in place of 1442, then run `sudo systemctl restart docker`.
+Use your interface's value in place of 1450, then run `sudo systemctl restart docker`.
 The first key covers Docker's default bridge and the second covers the network
 Compose creates for the instance.
 

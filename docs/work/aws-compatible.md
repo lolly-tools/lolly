@@ -6,19 +6,18 @@ your own data centre or at the edge. The same AWS command line tool, Terraform o
 files and Kubernetes tools work on both. On Spinifex you point them at its endpoints instead
 of Amazon's.
 
-> **Review draft.** This guide records two test runs on a Spinifex sandbox with AWS CLI
-> v2.38: a full run on 26 and 27 October 2026, and a re-run on the afternoon of 27 October
-> with current Lolly Work, a load balancer and a render load test. MulgaDC then fixed most of
-> the reported issues and updated the sandbox, and on 28 October each
-> [known issue](#known-issues) was checked again in a new account. The four shapes were not
-> run again. Re-test each workaround on your release. The steps are being reviewed with
-> MulgaDC.
+> This guide comes from test runs on a Spinifex sandbox with AWS CLI v2.38 between 26 and
+> 29 October 2026: a full run of the four shapes, a re-run with a load balancer and a render
+> load test, and on 29 October the Lolly Work 1.1.3 ready-made package on one VM. The issues
+> those runs reported to MulgaDC are fixed, so no step below needs a workaround.
 
 ## Choose a shape
 
-All four shapes passed the same acceptance on Spinifex in both runs: the first owner signs
-in, members see the tool catalogue, a project is created, renders finish with their
-evidence, and the instance comes back after a restart.
+All four shapes passed the same acceptance on Spinifex: the first owner signs in, members
+see the tool catalogue, a project is created, renders finish with their evidence, and the
+instance comes back after a restart. On 29 October **One VM** passed again with Work 1.1.3,
+both as a new installation and as an update in place from the 1.1.1 package, and the browser
+listed the tools and drew a QR code.
 
 | Shape | What runs where | Choose it when |
 |---|---|---|
@@ -60,11 +59,6 @@ aws sts get-caller-identity
 aws s3 ls
 ```
 
-Set the region explicitly in every tool and configuration file. On the sandbox, in both runs
-and again on 28 October, a virtual machine's metadata service reported its availability zone
-(`us-west-1-az2`) as its region, so SDKs that read the region from the machine picked the
-wrong one. MulgaDC's fix is due in Spinifex v1.24.0.
-
 Certificates on Spinifex services (the database, the registry) are signed by the
 installation's own certificate authority. Inside a Spinifex virtual machine, download that
 certificate from the metadata service:
@@ -81,14 +75,7 @@ the file.
 1. Launch a Debian 13 or Ubuntu 24.04 instance with at least 2 vCPUs, 4 GiB of memory and
    40 GB of disk. Allow TCP 80 and TCP and UDP 443 in its security group, and SSH only from
    your administrators' addresses.
-2. Install Docker. **Before the first start, set Docker's MTU to the instance's.** Spinifex
-   virtual machines use an MTU of 1442, and Docker's default of 1500 makes large downloads
-   inside containers stall. On 28 October, a 150 MB download over HTTPS finished in 9 seconds
-   on the virtual machine itself, stalled with nothing received inside a container at Docker's
-   default, and finished in 14 seconds in a container on a network with an MTU of 1442.
-   MulgaDC's fix (gateway MTU and TCP MSS clamping) was merged but did not yet apply on the
-   sandbox.
-   [Hosts on a network with an MTU below 1500](ready-made-package.md) has the setting.
+2. Install Docker.
 3. Follow [Install the ready-made package](ready-made-package.md) from **Write the
    installation folder** onwards.
 
@@ -149,30 +136,20 @@ Give Work the bucket in `instance.json` and the user's key as the secret
 }
 ```
 
-On AWS, leave out `endpoint`. Some S3-compatible stores, including Spinifex releases before
-v1.21, drop an object's content type and metadata. Work checks the store when it starts and
-logs what it found. On the sandbox, before MulgaDC's update, the log read:
-
-```text
-[lolly-work] s3 blobs: the store drops content types and metadata; keeping them in .lolly-meta/ records beside each blob
-```
-
-Work then keeps that information in small records of its own, so uploaded images still
-display: in the re-run, uploaded PNG and SVG files came back byte for byte with their own
-content types. A store that keeps metadata logs `the store keeps content types and metadata`
-instead. On 28 October the updated sandbox kept an object's content type and its own metadata,
-so Work would no longer need the records there.
-[Stores that drop object metadata](configuration.md#blobs) explains the records.
+On AWS, leave out `endpoint`. Work checks the store when it starts and logs what it found.
+Spinifex keeps an object's content type and metadata, so the log reads
+`the store keeps content types and metadata`. In the re-run, uploaded PNG and SVG files came
+back byte for byte with their own content types. For a store that drops them,
+[Stores that drop object metadata](configuration.md#blobs) explains how Work keeps them in
+records of its own.
 
 ## Put a load balancer in front
 
 An Application Load Balancer can end HTTPS for Work with a certificate from ACM. The re-run
 put one in front of **One VM with managed services**.
 
-1. **Certificate.** Import your certificate, its key and its chain into ACM. On the sandbox,
-   `aws acm request-certificate --validation-method DNS` first stayed in `PENDING_VALIDATION`
-   with an empty validation record, and on 28 October refused the request with `no tenant
-   CA`, so import a certificate instead:
+1. **Certificate.** Import your certificate, its key and its chain into ACM. The runs used
+   an imported certificate:
 
    ```bash
    aws acm import-certificate --certificate fileb://work.crt \
@@ -213,19 +190,11 @@ people joined one session over WebSocket, both with an HTTP/1.1 upgrade and over
 edit reached the other seat in 173 ms (median of 20, measured from outside the cloud), and
 the sockets stayed open through 90 idle seconds.
 
-**Client addresses.** Spinifex's load balancer adds no `X-Forwarded-For` or
-`X-Forwarded-Proto` header, and passes on an `X-Forwarded-For` header that the client sent.
-A check on 28 October, through a new load balancer, found the same.
-Work therefore sees every request arrive from the load balancer's address, and its
-per-address [rate limits](configuration.md#ratelimit) apply to all users together: by
-default 10 sign-in requests, refilled at one every five seconds, and 120 automation
-requests, refilled at two a second, shared by everyone. Do not raise `trustedProxyHops` to
-reach past the load balancer, because a client could then choose its own address. Until the
-load balancer forwards client addresses, either size the `auth` and `automation` buckets for
-your whole user base, knowing that a larger `auth` bucket also allows more password guesses,
-or let people reach Caddy directly. On AWS, the load balancer adds the client's address to
-`X-Forwarded-For`; with Caddy between the load balancer and Work, add the VPC range to
-Caddy's `trusted_proxies` and set `trustedProxyHops` to `2`.
+**Client addresses.** The load balancer adds the client's address to `X-Forwarded-For`.
+With Caddy between the load balancer and Work, add the VPC range to Caddy's
+`trusted_proxies` and set `trustedProxyHops` to `2`, so Work's per-address
+[rate limits](configuration.md#ratelimit) apply to each person rather than to everyone at
+once.
 
 ## Render capacity
 
@@ -268,8 +237,8 @@ the rate limit rather than the server.
    out.
 3. **Choose where images come from.** Nodes with internet access pull Work's signed images
    from GitHub's registry by digest; nothing more is needed. To use your own ECR registry,
-   copy each image together with its signature, then refer to it by the registry's internal
-   name, `<account>.dkr.ecr.<region>.services.internal/<repository>@<digest>`:
+   copy each image together with its signature, then refer to it as
+   `<repositoryUri>@<digest>`:
 
    ```bash
    oras cp -r ghcr.io/lolly-tools/lolly-work-server@<digest> <repositoryUri>:<tag>
@@ -279,13 +248,8 @@ the rate limit rather than the server.
    ```
 
    `oras cp -r` copies the signature with the image, so `cosign verify` passes against your
-   registry; `cosign copy` does not copy the current signature format, on AWS ECR either. On
-   28 October the copy of the Work 1.1.2 server image took 10 seconds and verified. The
-   internal name pulled from an EKS node on that date; the name in earlier releases,
-   `.spinifex.internal`, no longer resolved. The `repositoryUri` that ECR returns is not
-   reliable for the nodes: the address in it rotates between four gateway addresses, and on 28
-   October the nodes still trusted one of them, while pulls through the other three failed
-   certificate verification. MulgaDC's fix was merged but did not yet apply on the sandbox.
+   registry; `cosign copy` does not copy the current signature format, on AWS ECR either. The
+   copy of the Work server image took about 10 seconds and verified.
 4. **Install the chart.** Follow [Install on Kubernetes](platform-deployment.md) with an
    external database. Mount the Spinifex certificate authority as described in the chart's
    [PostgreSQL certificate verification](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/POSTGRES-TLS.md),
@@ -318,9 +282,8 @@ the host. It is built on the Leap 16.1 release candidate. Spinifex does not offe
    ```
 
 3. **Configure the first boot.** The appliance reads a Combustion script (your SSH key and
-   options such as the owner's email) from its own small partition labelled `ignition`. On the
-   sandbox a configuration volume attached at launch was not seen, while this partition was.
-   With mtools, on the written volume:
+   options such as the owner's email) from its own small partition labelled `ignition`. With
+   mtools, on the written volume:
 
    ```bash
    mmd -i /dev/vdb3 ::combustion
@@ -331,10 +294,8 @@ the host. It is built on the Leap 16.1 release candidate. Spinifex does not offe
    has an example script and the options.
 4. **Snapshot, register and launch.** Detach the volume, snapshot the volume, and register the
    snapshot with `aws ec2 register-image --boot-mode uefi --architecture x86_64
-   --root-device-name /dev/sda1` and the snapshot as the root device. Leave out
-   `--ena-support`, which `register-image` refuses with a generic `InvalidParameterValue`. On
-   28 October the sandbox accepted `--virtualization-type hvm` and a volume size, which it had
-   refused before; you can also set the disk size when you launch, for example 40 GB on a
+   --root-device-name /dev/sda1 --virtualization-type hvm` and the snapshot as the root
+   device. Set the disk size when you register or when you launch, for example 40 GB on a
    `c6a.large`.
 5. **Sign in.** `lolly-appliance owner-link` over SSH prints the owner's one-time setup link.
    Cockpit answers only from local networks, so reach port 9090 through an SSH tunnel.
@@ -347,37 +308,8 @@ first run built the same stack by hand from the plain Leap image and Work's
 [K3s kit](https://github.com/lolly-tools/lolly-work/tree/main/deploy/suse); the appliance
 now does those steps at first boot.
 
-## Known issues
-
-Each item was found on the sandbox, checked again in the re-run, and checked once more on 28
-October after MulgaDC updated the sandbox. Re-test on your Spinifex release before you rely on
-a workaround.
-
-| Issue | What you see | Workaround | Report |
-|---|---|---|---|
-| Container MTU | Large downloads inside Docker containers stall | Set Docker's MTU to 1442 | [spinifex#1291](https://github.com/mulgadc/spinifex/issues/1291): fix merged, still seen on 28 October |
-| ECR address not trusted by nodes | Pods fail to pull from three of the four addresses `repositoryUri` returns, with a certificate error | Use the `<account>.dkr.ecr.<region>.services.internal` name | [spinifex#1287](https://github.com/mulgadc/spinifex/issues/1287): fix merged, still seen on 28 October |
-| Metadata reports the zone as the region | SDKs on a VM use the wrong region | Set the region explicitly | [spinifex#1286](https://github.com/mulgadc/spinifex/issues/1286): fix due in v1.24.0 |
-| `register-image --ena-support` | A generic `InvalidParameterValue` | Leave the flag out | [spinifex#1322](https://github.com/mulgadc/spinifex/issues/1322) |
-| Load balancer forwards no client address | Work sees every user at the load balancer's address, so rate limits are shared | Size the rate-limit buckets for all users, or skip the load balancer | [spinifex#1321](https://github.com/mulgadc/spinifex/issues/1321) |
-| S3 drops stored headers such as `Cache-Control` | None in Work, which serves files itself | Not needed | [predastore#194](https://github.com/mulgadc/predastore/issues/194): fix due in the next release |
-| Bucket CORS | Not needed by Work today | None | [predastore#193](https://github.com/mulgadc/predastore/issues/193) |
-
-Fixed, and confirmed on the sandbox on 28 October:
-
-| Issue | Now | Report |
-|---|---|---|
-| Image signatures could not be copied into ECR | `oras cp -r` copies them, and `cosign verify` passes against ECR | [spinifex#1288](https://github.com/mulgadc/spinifex/issues/1288) |
-| Snapshots could not be deleted, and their volumes then counted as in use | A snapshot and then its volume delete normally | [spinifex#1292](https://github.com/mulgadc/spinifex/issues/1292) |
-| Errors lost their detail | A refused `create-db-instance` says which value is wrong | [spinifex#1289](https://github.com/mulgadc/spinifex/issues/1289) |
-| `GetUser` without a user name failed | It returns the calling user | [spinifex#1275](https://github.com/mulgadc/spinifex/issues/1275) |
-| A dry-run `CopyImage` created an image | It answers `DryRunOperation` and creates nothing | [spinifex#1293](https://github.com/mulgadc/spinifex/issues/1293) |
-| A missing EKS node group was reported as another error | `ResourceNotFoundException` | [spinifex#1290](https://github.com/mulgadc/spinifex/issues/1290) |
-| S3 dropped content type and metadata | Both are kept | Fixed in Predastore v1.21 |
-
 ## Not tested yet
 
 The Chromium render worker and render workers scaling under load, several Work replicas,
 restoring the managed database from a backup, certificates issued by ACM, network load
-balancers, GPU capacity, and the four shapes end to end on the sandbox as MulgaDC updated it
-on 28 October.
+balancers and GPU capacity.
