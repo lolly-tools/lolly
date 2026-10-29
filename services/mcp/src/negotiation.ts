@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Per-request negotiation and HTTP mirrors for MCP 2026-07-28. */
 import { ERR, fail, type JsonRpcRequest, type JsonRpcResponse } from './protocol.ts';
+import pkg from '../package.json' with { type: 'json' };
 
 export const PROTOCOL_VERSION = '2026-07-28';
 export const LEGACY_VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26'];
 export const SUPPORTED_VERSIONS = [PROTOCOL_VERSION, ...LEGACY_VERSIONS];
 export const VERSION_META = 'io.modelcontextprotocol/protocolVersion';
 export const CAPABILITIES_META = 'io.modelcontextprotocol/clientCapabilities';
-export const SERVER_INFO = { name: 'lolly-mcp', version: '0.2.0' } as const;
+/** Clients see the Lolly release this server ships in, read from its package.json, which
+ *  tests/release-version-sync.test.ts keeps equal to the app's release version. */
+export const SERVER_INFO = { name: 'lolly-mcp', version: pkg.version } as const;
 export const CAPABILITIES = { tools: {}, resources: {}, prompts: {} };
 export const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
 
