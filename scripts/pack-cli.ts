@@ -40,13 +40,14 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
-  chmodSync, copyFileSync, cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync,
+  chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync,
   writeFileSync,
 } from 'node:fs';
 import { availableParallelism, tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { satisfiesRange } from '../engine/src/semver-range.ts';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(REPO, 'dist', 'cli-pack');
@@ -113,6 +114,20 @@ out natively for SVG-first tools. The heavier paths are optional on purpose:
 - \`sharp\`, \`@napi-rs/canvas\`, \`onnxruntime-node\` and \`@huggingface/transformers\`
   install as optional dependencies. Without them the commands that need them refuse by
   name instead of failing halfway.
+- npm 11 holds dependency install scripts until you allow them, and two of the
+  on-device ML packages need theirs: \`onnxruntime-node\` fetches its native runtime and
+  \`protobufjs\` finishes its own setup. The install ends by listing them as skipped.
+  To allow both for a global install:
+
+  \`\`\`bash
+  npm i -g @lolly-tools/cli --allow-scripts=onnxruntime-node,protobufjs
+  \`\`\`
+
+  Or keep the setting with \`npm config set allow-scripts=onnxruntime-node,protobufjs
+  --location=user\`. Inside a project, \`npm install-scripts approve onnxruntime-node
+  protobufjs\` records the approval in its package.json. Without them the ML commands
+  (text recognition, background removal, depth and the AI checks) refuse by name, and
+  everything else works.
 - HTML-layout raster, PDF and video use an installed Lolly desktop renderer first,
   then Chromium: \`lolly install-browser\`. Pin one with
   \`LOLLY_RENDERER=desktop|chromium\`.
@@ -199,6 +214,33 @@ for (const dir of FIRST_PARTY) {
 // a-stub rule), which is a much better install than a gigabyte of native wheels.
 for (const name of Object.keys(optionalDependencies)) delete dependencies[name];
 
+// One onnxruntime-node per install. @huggingface/transformers pins onnxruntime-node to an
+// exact version, and the workspace forces our copy onto that version with a pnpm override
+// (pnpm-workspace.yaml) that an npm consumer never sees. Published as a caret range, ours
+// resolved to the newest 1.x beside the pinned one, so 0.1.0 installed two native runtimes.
+// Declaring the exact version the parent asks for lets npm keep one copy. A parent that
+// stops pinning, or a pin outside the workspace range, stops the pack instead of guessing.
+const PIN_TO_PARENT: Record<string, string> = { 'onnxruntime-node': '@huggingface/transformers' };
+for (const [name, parent] of Object.entries(PIN_TO_PARENT)) {
+  const block = name in optionalDependencies ? optionalDependencies : dependencies;
+  const ours = block[name];
+  if (ours === undefined) continue;
+  // Node's own lookup from node-shell: its node_modules first, then the hoisted root.
+  const parentJson = ['packages/node-shell/node_modules', 'node_modules']
+    .map(dir => join(REPO, dir, parent, 'package.json'))
+    .find(path => existsSync(path));
+  if (!parentJson) throw new Error(`${parent} is not installed; run pnpm install before packing.`);
+  const parentPkg = readJson(parentJson);
+  const wanted = (parentPkg.dependencies as Record<string, string> | undefined)?.[name];
+  if (!wanted || !/^\d+\.\d+\.\d+$/.test(wanted)) {
+    throw new Error(`${parent} no longer pins ${name} to an exact version (${wanted ?? 'absent'}). Review PIN_TO_PARENT.`);
+  }
+  if (!satisfiesRange(wanted, ours)) {
+    throw new Error(`${parent} pins ${name} ${wanted}, outside the workspace range ${ours}. Make the workspace agree first.`);
+  }
+  block[name] = wanted;
+}
+
 const cliPkg = readJson(join(REPO, 'shells', 'cli', 'package.json')) as { version: string; license: string };
 const VERSION = cliPkg.version;
 
@@ -206,10 +248,18 @@ const VERSION = cliPkg.version;
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(PKG, { recursive: true });
 cpSync(join(REPO, 'packages/node-shell/wasm/jxl'), join(PKG, 'wasm/jxl'), { recursive: true });
-cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(PKG, 'wasm/adobe-psd'), { recursive: true });
-cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(PKG, 'wasm/layout-kernel'), {
-  recursive: true, filter: (source) => basename(source) !== 'target',
-});
+// The PSD and layout modules ship their .wasm, README and licence files only. The Rust
+// crate beside each one (src/, the Cargo files, the toolchain pin, vendored crates and the
+// test fixtures) is how the .wasm is rebuilt, and nothing an install loads reads those
+// files. 0.1.0 carried the whole crate.
+const RUST_ONLY_DIRS = new Set(['src', 'vendor', 'fixtures', 'target']);
+const RUST_ONLY_FILES = new Set(['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.npmignore']);
+const runtimeOnly = (source: string): boolean => {
+  const name = basename(source);
+  return statSync(source).isDirectory() ? !RUST_ONLY_DIRS.has(name) : !RUST_ONLY_FILES.has(name);
+};
+cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(PKG, 'wasm/adobe-psd'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(PKG, 'wasm/layout-kernel'), { recursive: true, filter: runtimeOnly });
 
 const result = await build({
   // The output NAMES matter: shells/cli/src/tui.ts starts the TUI by looking for
