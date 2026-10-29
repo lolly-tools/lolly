@@ -36,7 +36,7 @@ const COMPLETE = [
   '| macOS app (WKWebView) | Supported | 26 | Metal | run 4 |',
   '| iOS and iPadOS app (WKWebView) | Supported | 26 | Metal | run 5 |',
   '| Windows app (WebView2) | Supported | 141 | D3D12 | run 6 |',
-  '| Linux app (WebKitGTK) | Not supported | 2.50 | none | run 7 |',
+  '| Linux app (WebKitGTK) | Supported | 2.52 | Vulkan | run 7 |',
   '| Android app (WebView) | Supported | 153 | Vulkan | run 8 |',
 ].join('\n');
 const pendingFrom = (first: number): string => COMPLETE.split('\n').map((row, index) => index >= first ? row.replace(/(?:Not supported(?:: no adapter)?|Supported)/, 'Pending: runtime not qualified') : row).join('\n');
@@ -192,6 +192,19 @@ test('the standalone gate keeps the full hold unless its exact CLI selects a qua
     assert.match(web.stdout, /WebGPU release gate \(web\).*3 required environments/);
     for (const args of [['--scope', 'all'], ['--scope', 'native'], ['--scope', 'web', '--extra']]) assert.equal(run(args).status, 1);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('a packaged app row must say Supported, while a browser may publish Not supported', () => {
+  const linuxRefused = COMPLETE.replace('| Linux app (WebKitGTK) | Supported |', '| Linux app (WebKitGTK) | Not supported: no WebGPU API |');
+  for (const scope of ['linux', 'all'] as const) {
+    const problems = supportedEnvironmentProblems(linuxRefused, scope);
+    assert.equal(problems.length, 1, scope);
+    assert.match(problems[0]!, /Linux app \(WebKitGTK\): .*not "Supported"; a packaged app ships only where its webview passes/);
+  }
+  assert.deepEqual(supportedEnvironmentProblems(linuxRefused, 'windows'), [], 'another platform reads only its own row');
+  assert.deepEqual(supportedEnvironmentProblems(linuxRefused, 'web'), [], 'web scope reads only the browser rows');
+  // Firefox's published "Not supported: no adapter" is an answer for the web release.
+  assert.deepEqual(supportedEnvironmentProblems(COMPLETE, 'web'), []);
 });
 
 test('each packaged app needs only its own row, and the default scope keeps every row', () => {

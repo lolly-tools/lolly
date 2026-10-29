@@ -48,13 +48,14 @@ test('signed frontend entrypoints refuse before signing when WebGPU qualificatio
     assert.match(result.stderr, /Release refused[\s\S]*supported-environments\.md/, target);
     assert.equal(existsSync(marker), false, `${target} must refuse before signing`);
   }
-  const rows = REQUIRED_WEBGPU_TARGETS.map(({ name }) => `| ${name} | Not supported | none | fixture |`);
+  // A browser may publish Not supported; a packaged app's row must say Supported.
+  const rows = REQUIRED_WEBGPU_TARGETS.map(({ name, app }) => `| ${name} | ${app ? 'Supported' : 'Not supported'} | none | fixture |`);
   writeFileSync(join(dir, 'docs', 'supported-environments.md'), rows.slice(1).join('\n'));
   const partial = run('web');
   assert.equal(partial.status, 1);
   assert.match(partial.stderr, /no row for Chrome and Edge/);
   assert.equal(existsSync(marker), false, 'partial qualification still refuses before signing');
-  const webQualified = rows.map((row, index) => index < 3 ? row : row.replace('Not supported', 'Pending: runtime not qualified'));
+  const webQualified = rows.map((row, index) => index < 3 ? row : row.replace('Supported', 'Pending: runtime not qualified'));
   writeFileSync(join(dir, 'docs', 'supported-environments.md'), webQualified.join('\n'));
   assert.equal(run('web').status, 77, 'web-only qualification reaches signing for the web artifact');
   unlinkSync(marker);
@@ -66,7 +67,7 @@ test('signed frontend entrypoints refuse before signing when WebGPU qualificatio
   }
   // Each packaged app needs only its own row (Andy, 2026-10-15): a published macOS app
   // result lets a Mac frontend reach signing while every other platform stays held.
-  const macQualified = rows.map((row, index) => index < 4 ? row : row.replace('Not supported', 'Pending: runtime not qualified'));
+  const macQualified = rows.map((row, index) => index < 4 ? row : row.replace('Supported', 'Pending: runtime not qualified'));
   writeFileSync(join(dir, 'docs', 'supported-environments.md'), macQualified.join('\n'));
   assert.equal(run('tauri-desktop', { LOLLY_RELEASE_PLATFORM: 'macos' }).status, 77, 'a Mac frontend reaches signing');
   unlinkSync(marker);
