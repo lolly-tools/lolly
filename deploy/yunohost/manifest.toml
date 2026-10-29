@@ -15,7 +15,7 @@ name = "Lolly"
 description.en = "Make on-brand images, PDFs, video, audio and documents on your own device, from your own brand"
 description.fr = "Créez des visuels, PDF, vidéos, sons et documents à votre marque, sur votre appareil"
 
-version = "1.1.3~ynh1"
+version = "1.1.3~ynh2"
 
 maintainers = ["Andy Fitzsimon"]
 
@@ -46,8 +46,10 @@ ram.runtime = "50M"
     type = "domain"
     # The web build resolves its assets, its service worker scope and its clean
     # routes (/d, /t/<id>, /info/...) from the domain root. A sub-path would need a
-    # different build, so the app takes a whole domain.
-    full_domain = true
+    # different build, so the app takes a whole domain. YunoHost infers that from
+    # this manifest: one domain question, no path question and a main permission
+    # whose url is a string ("/"). There is no full_domain key: YunoHost 13 refuses
+    # unknown option fields, and 12 never read it.
 
     [install.init_main_permission]
     help.en = "Who may open Lolly on this domain. The app itself has no accounts: everyone who can reach it works on their own device."
@@ -63,7 +65,7 @@ ram.runtime = "50M"
     # docs, and the on-device ML models served from lolli.li rather than bundled -
     # the same shape the desktop app ships. Built and published by
     # scripts/yunohost-release.ts; see deploy/yunohost/README.md.
-    url = "https://lolli.li/lolly-web-1.1.3-ynh1.tar.gz"
+    url = "https://lolli.li/lolly-web-1.1.3-ynh2.tar.gz"
     sha256 = "1ff9a26889d10984ce377e6890283859a9ba7bca2981d8df1e49e572e792925d"
     format = "tar.gz"
     in_subdir = false
