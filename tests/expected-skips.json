@@ -3308,7 +3308,14 @@
     },
     {
       "file": "tests/rebrand-theme.test.ts",
-      "fullName": "SUSE grounds Brand colour on its jungle with pine ink, since its primary is the Dark ground",
+      "fullName": "SUSE grounds Brand colour on its Jungle primary with pine ink",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "a pack whose primary is its Dark ground grounds Brand colour on its secondary hue",
       "reason": "the SUSE pack is not in this checkout",
       "capability": "brand:suse",
       "owner": "tests"
