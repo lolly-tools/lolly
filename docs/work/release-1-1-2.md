@@ -1,6 +1,6 @@
 # Release 1.1.2: Lolly and Work
 
-This is the current release. Work 1.1.2 pairs the Work server and render worker with
+The current release is [1.1.3](release-1-1-3.md). Work 1.1.2 pairs the Work server and render worker with
 [Lolly 1.1.2](https://github.com/lolly-tools/lolly/releases/tag/v1.1.2), built from
 Lolly source `fe27a843813b0a653c648e6db078ae8f982b2654`. It is published as
 [Work v1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2).

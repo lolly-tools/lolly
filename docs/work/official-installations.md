@@ -14,7 +14,7 @@ identify the upstream packages.
 
 | Route | Upstream source | Current state |
 |---|---|---|
-| Server and optional worker | Public `ghcr.io/lolly-tools/lolly-work-server` and `lolly-work-render-worker` | Signed 1.1.2 images (current) and 1.1.1 images are published for amd64 and arm64. The ready-made package's 1.1.1 server passes container qualification in CI on amd64 and arm64. The render worker's arm64 image has no runtime qualification |
+| Server and optional worker | Public `ghcr.io/lolly-tools/lolly-work-server` and `lolly-work-render-worker` | Signed %work{version} images (current), 1.1.2 and 1.1.1 images are published for amd64 and arm64. The ready-made package's 1.1.1 server passes container qualification in CI on amd64 and arm64. The render worker's arm64 image has no runtime qualification |
 | Helm and Rancher | [Work chart](https://github.com/lolly-tools/lolly-work/tree/main/deploy/helm) | The chart carries the release version, the same number as Work and the Lolly apps. Its HTTP publication workflow is prepared; the first publication is planned as 1.1.3, with the Lolly 1.1.3 release, and the repository address goes live then. Artifact Hub registration and badges follow that publication |
 | Ready-made package (VM or private server) | [Shared distribution package](https://github.com/lolly-tools/lolly-work/tree/main/deploy/marketplaces) | Pins the 1.1.1 server, the complete matching neutral web app and PostgreSQL. On first start the web app is given the installation's catalogue key, so a signed-in browser lists the tools; [a browser check with a matched 1.1.2 pair](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md) passed on MulgaDC Spinifex, including a reboot and an update from the 1.1.1 package. Record a fresh acceptance for each target |
 | UpCloud | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/upcloud) plus the ready-made package | [Ubuntu 24.04 amd64 reference for 1.1.1](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md#upcloud-reference-for-111): fresh install, public HTTPS, built-in owner and member sign-in, a checked SVG, reboot and an independent application restore passed. An upgrade across versions and recovery on a second host are open. **Not ready as a module:** no recorded acceptance has used the infrastructure module to create the machine; its own checks validate the configuration only |
@@ -62,8 +62,9 @@ mirrored package is registered and qualified.
 ## Release verification
 
 Each Work release publishes receipts for its images, source and signatures: the current
-[Work 1.1.2 release](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2)
-and the previous [Work 1.1.1 release](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1).
+[Work %work{version} release](https://github.com/lolly-tools/lolly-work/releases/tag/v%work{version})
+and the earlier [Work 1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2) and
+[Work 1.1.1](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1) releases.
 The ready-made package reuses the 1.1.1 release and its checksum-verified, signed Lolly
 web archive. It downloads that archive from `lolli.li` on first installation and fetches
 models from the same place when someone uses them, so it needs network access;
@@ -76,6 +77,7 @@ each source with your own copy.
 
 | Release | Image | Signing identity |
 |---|---|---|
+| 1.1.3 | server and worker | `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/v1.1.3` |
 | 1.1.2 | server and worker | `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/v1.1.2` |
 | 1.1.1 | server | the same workflow at `refs/heads/main` |
 | 1.1.1 | worker | the same workflow at `refs/tags/v1.1.1` |

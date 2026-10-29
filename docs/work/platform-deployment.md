@@ -19,9 +19,9 @@ Application Collection subscription is required.
   namespace for every command below; the examples assume you have.
 - **Images.** Multi-architecture images (amd64 and arm64) are published to
   `ghcr.io/lolly-tools/lolly-work-server` and `...-render-worker` for each reviewed
-  `v*` release. The 1.1.2 images are public and need no registry credentials. Pin
+  `v*` release. The %work{version} images are public and need no registry credentials. Pin
   their digests for production; the
-  [1.1.2 release notes](release-1-1-2.md#images-and-qualification) list them.
+  [1.1.3 release notes](release-1-1-3.md#images-and-qualification) say where they are recorded.
 - **One collaboration owner.** Work keeps one writable collaboration owner, so run
   one application replica. Separate render workers can scale once you have tested
   the workload. A redundant cluster does not route rooms or fail over the
@@ -37,8 +37,8 @@ To run your own registry or a disconnected mirror, build the image yourself only
 you need to:
 
 ```bash
-docker build -f deploy/compose/Dockerfile -t <registry>/lolly-work-server:1.1.2 .
-docker push <registry>/lolly-work-server:1.1.2
+docker build -f deploy/compose/Dockerfile -t <registry>/lolly-work-server:%work{version} .
+docker push <registry>/lolly-work-server:%work{version}
 ```
 
 The optional render worker needs a second image, built the same way from
@@ -52,7 +52,7 @@ The optional render worker needs a second image, built the same way from
 # Name the release lolly-work: Helm prefixes every object with it, so the Service
 # is then called lolly-work and the checks below work unchanged.
 helm install lolly-work deploy/helm -f deploy/helm/values-eval.yaml \
-  --set image.repository=ghcr.io/lolly-tools/lolly-work-server --set image.tag=1.1.2
+  --set image.repository=ghcr.io/lolly-tools/lolly-work-server --set image.tag=%work{version}
 ```
 
 You get an in-memory store (a restart is a factory reset), passwordless sample
@@ -96,7 +96,7 @@ directly. Browser sign-in and links need `instance.baseUrl` to match:
 
 ```bash
 helm upgrade lolly-work deploy/helm -f deploy/helm/values-eval.yaml \
-  --set image.repository=ghcr.io/lolly-tools/lolly-work-server --set image.tag=1.1.2 \
+  --set image.repository=ghcr.io/lolly-tools/lolly-work-server --set image.tag=%work{version} \
   --set config.instance.baseUrl=http://<node-or-lb-ip>
 ```
 

@@ -5,13 +5,13 @@ their own devices. Work adds the parts a team shares: one sign-in, shared projec
 governed library of brand assets, server renders, links you can turn off, approvals and an
 audit trail.
 
-The current release is Work 1.1.2, published on 2026-10-20 and paired with Lolly 1.1.2. The
-[release notes](release-1-1-2.md) list the exact component versions. This page groups what
+The current release is Work %work{version}, paired with Lolly %work{version}. The
+[release notes](release-1-1-3.md) list the exact component versions. This page groups what
 the release does into three lists: ready to use, worth checking against your own systems
 first and not built yet.
 
 ::: figure work-status-capabilities
-What Work 1.1.2 does, what to check on your own systems before you rely on it and what is not built.
+What Work %work{version} does, what to check on your own systems before you rely on it and what is not built.
 :::
 
 ## Ready to use
@@ -68,7 +68,7 @@ contract, so run these checks before you rely on an integration.
 - **Delivery.** The S3 adapter has been checked live against an S3-compatible host. WebDAV
   and signed HTTPS have wire tests and opt-in checks that have not yet run against a real
   receiver. Brandfolder and Cloudinary are fixture-tested.
-- **Release artifacts.** Work 1.1.2 ships signed server and render-worker images for Linux
+- **Release artifacts.** Work %work{version} ships signed server and render-worker images for Linux
   amd64 and arm64, and its release record does not claim native arm64 runtime
   qualification. Choose and verify the image digests, client and worker versions, registry
   access and any `imagePullSecrets` before you install.
