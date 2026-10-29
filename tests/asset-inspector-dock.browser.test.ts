@@ -46,6 +46,7 @@ test('asset inspector resizes, collapses and keeps the complete journey readable
     const initialPreview = (await page.locator('.cat-details-preview').boundingBox())!.width;
     await grip.focus(); await page.keyboard.press('Home');
     await page.waitForFunction(() => document.querySelector('.cat-details')?.classList.contains('is-inspector-collapsed'));
+    assert.equal(await dialog.locator(':scope > .cat-details-header > .cat-details-close').count(), 1, 'Close stays in the top row when details collapse');
     assert.ok((await page.locator('.cat-details-preview').boundingBox())!.width > initialPreview + 250);
     await page.keyboard.press('ArrowLeft');
     assert.equal(await grip.getAttribute('aria-valuenow'), '300'); await noOverflow();
@@ -65,6 +66,7 @@ test('asset inspector resizes, collapses and keeps the complete journey readable
     await grip.focus(); await page.keyboard.press('Home'); await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForFunction(() => !document.querySelector('.cat-details')?.classList.contains('is-inspector-collapsed'));
     assert.equal(await grip.isVisible(), false); assert.equal(await dialog.evaluate(node => node.classList.contains('is-inspector-collapsed')), false);
+    assert.equal(await dialog.locator(':scope > .cat-details-header > .cat-details-close').count(), 1, 'Close stays in the top row on a phone');
     await page.locator('.valid-steps').scrollIntoViewIfNeeded(); await noOverflow();
     assert.ok((await page.locator('.cat-details-close').boundingBox())!.y >= 0);
     await page.evaluate(() => document.documentElement.setAttribute('data-a11y-text', 'large')); await noOverflow();
