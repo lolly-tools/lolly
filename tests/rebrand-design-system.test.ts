@@ -354,7 +354,8 @@ test('swatch roles over the starter and SUSE token sets: text is ink, surface is
     assert.deepEqual(inks, ['color.semantic.text'], `${name}: the one generic ink is the text colour`);
     if (name === 'suse') {
       assert.equal(byPath.get('color.semantic.text')?.hex, '#0c322c', 'SUSE text is pine');
-      assert.equal(byPath.get('color.semantic.on-primary')?.hex, '#ffffff', 'SUSE on-primary is white');
+      // Pine on Jungle since plan 319 A9: the same hex as the text, still filed as ink for the primary only.
+      assert.equal(byPath.get('color.semantic.on-primary')?.hex, '#0c322c', 'SUSE on-primary is pine');
     }
   }
 });

@@ -7,14 +7,14 @@ You may not need to install anything: [lolly.tools](/) runs in a current browser
 | Your device | Get | Version |
 |---|---|---|
 | Mac with Apple silicon (M1 and later) | [`lolly-latest.dmg`](https://lolli.li/lolly-latest.dmg) | %download{macos} |
-| Mac with Intel | [`lolly-latest-x64.dmg`](https://lolli.li/lolly-latest-x64.dmg) | %download{macos-intel} |
+| Mac with Intel (last build, no updates) | [`Lolly_1.1.0_x64.dmg`](https://lolli.li/Lolly_1.1.0_x64.dmg) | %download{macos-intel} |
 | iPhone and iPad | **Lolly Tools** on the [App Store](https://apps.apple.com/app/id6804131681) | 1.1.1 |
 | Android | [`lolly-latest.apk`](https://lolli.li/lolly-latest.apk) | %download{android} |
 | Windows | [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe) | %download{windows} |
 | Linux | [Flatpak, RPM, `.deb`, Arch or AppImage](#linux) | 1.1.0 |
 | Your own server | [YunoHost](#yunohost) or [a container image](#a-container-image) | 1.1.1 and 1.1.2 |
 
-lolly.tools always has the newest version. The 1.1.0 builds stay at 1.1.0 until each platform's web view passes the WebGPU check that later versions need. Every file links straight to `lolli.li`: a `lolly-latest.*` link always points at the newest build, and versioned files beside it never change. You can [check any file](#checking-what-you-downloaded) against the published checksums.
+lolly.tools always has the newest version. The 1.1.0 builds stay at 1.1.0 until each platform's web view passes the WebGPU check that later versions need. Intel Macs are not supported after 1.1.0, so the Intel build stays at 1.1.0 for good. Every file links straight to `lolli.li`: a `lolly-latest.*` link always points at the newest build, and versioned files beside it never change. You can [check any file](#checking-what-you-downloaded) against the published checksums.
 
 ::: note Updates
 Signed system repositories (openSUSE OBS, Flathub) are planned. Until they land, a direct `.rpm`, `.deb`, `.flatpak` bundle or AppImage does not update itself, so check back here for a newer build. The Arch repository updates through pacman, and the App Store keeps the iPhone and iPad app current.
@@ -22,13 +22,13 @@ Signed system repositories (openSUSE OBS, Flathub) are planned. Until they land,
 
 ## Mac
 
-**Apple silicon and Intel, `.dmg`. macOS 13.5 or later.**
+**Apple silicon, `.dmg`. macOS 13.5 or later.**
 
-Download the disk image, open it and drag Lolly to Applications. The current downloads are version %download{macos} for Apple silicon and %download{macos-intel} for Intel. The app carries its own engine and tool catalogue, and its bundled terminal tools need the same macOS version.
+Download the disk image, open it and drag Lolly to Applications. The current download is version %download{macos}. The app carries its own engine and tool catalogue, and its bundled terminal tools need the same macOS version.
 
 - **Apple silicon:** [`lolly-latest.dmg`](https://lolli.li/lolly-latest.dmg), version %download{macos}.
-- **Intel:** [`lolly-latest-x64.dmg`](https://lolli.li/lolly-latest-x64.dmg), version %download{macos-intel}.
-- **Versioned:** `https://lolli.li/Lolly_<version>_aarch64.dmg` and `https://lolli.li/Lolly_<version>_x64.dmg`, pinned and never overwritten.
+- **Versioned:** `https://lolli.li/Lolly_<version>_aarch64.dmg`, pinned and never overwritten.
+- **Intel, last build:** [`Lolly_1.1.0_x64.dmg`](https://lolli.li/Lolly_1.1.0_x64.dmg), version %download{macos-intel}. Intel Macs are not supported after 1.1.0: this build stays downloadable and gets no updates.
 
 ## iPhone and iPad
 
@@ -57,7 +57,7 @@ Download [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe) (an NSIS instal
 
 ## Linux
 
-Every Linux build is version 1.1.0, x86_64 unless the section says otherwise. Pick the one for your distribution:
+Every Linux build is version 1.1.0, x86_64 unless the section says otherwise. Newer versions are held back from Linux because WebKitGTK, the web view the Linux app uses, has no WebGPU yet ([supported environments](/info/supported-environments.html)). Pick the one for your distribution:
 
 | You run | Get |
 |---|---|

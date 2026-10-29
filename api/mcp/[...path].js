@@ -146624,7 +146624,7 @@ import { basename, dirname as dirname2, join as join2, relative, resolve as reso
 function loadProfiles(root2) {
   const path = join2(root2, "profiles.json");
   if (!existsSync2(path)) {
-    throw new Error(`content-roots: no profiles.json at ${root2} - is this a Lolly checkout?`);
+    throw new Error(`content-roots: no profiles.json at ${root2}. Set LOLLY_ROOT to a Lolly checkout or to a directory that holds tools/ and catalog/.`);
   }
   return JSON.parse(readFileSync(path, "utf8"));
 }

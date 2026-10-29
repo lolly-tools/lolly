@@ -79,7 +79,7 @@ const TARGETS: Target[] = [
     arch: 'x86_64',
     key: 'darwin-x86_64',
     artifact: null,
-    note: 'No Intel Mac build is produced today. Add one, or leave Intel users on manual downloads.',
+    note: 'Intel Macs are not supported after 1.1.0.',
   },
   {
     target: 'linux',

@@ -71,7 +71,10 @@ test('install.md reads the Mac versions from the downloads source', () => {
   const install = read('docs/install.md');
   for (const id of ['macos', 'macos-intel']) assert.ok(install.includes(`%download{${id}}`), `install.md should state the ${id} version as %download{${id}}`);
   const expanded = expandVersionTokens(install, facts, 'docs/install.md');
-  assert.ok(expanded.includes(`version ${facts.downloads.macos} for Apple silicon`));
+  assert.ok(expanded.includes(`The current download is version ${facts.downloads.macos}.`));
+  // 1.1.0 is the last Intel build (Andy, 2026-10-29): its tile stays pinned there.
+  assert.equal(facts.downloads['macos-intel'], '1.1.0');
+  assert.ok(expanded.includes('version 1.1.0. Intel Macs are not supported after 1.1.0'));
 });
 
 test('every version token in the docs sources resolves', () => {

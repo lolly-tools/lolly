@@ -186,18 +186,13 @@ test('every lolly.tools build uses the ship target profile; the Mac app ships lo
   assert.match(reusable, /^ {2}LOLLY_PROFILE: \$\{\{ inputs\.profile \}\}$/m);
   assert.equal(reusable.match(/brands\/\$\{\{ inputs\.profile \}\}\/catalog\/tools/g)?.length, 2);
   assert.doesNotMatch(reusable, /brands\/lolly-start\//);
-  // The packaged apps call the same workflow. The Mac app ships Lolly Demo, with the
-  // blank Lolly Starter as a companion design system (Andy, 2026-10-20); the others
-  // keep the workflow's lolly-start default.
-  for (const app of ['desktop-extra', 'linux-rpm', 'flatpak', 'ios-release', 'linux-arm64', 'macos-intel']) {
+  // The packaged apps built in CI call the same workflow and keep its lolly-start
+  // default. The Apple silicon Mac app, which ships Lolly Demo, is built outside CI,
+  // and Intel Macs are not built after 1.1.0 (Andy, 2026-10-29).
+  for (const app of ['desktop-extra', 'linux-rpm', 'flatpak', 'ios-release', 'linux-arm64']) {
     const caller = read(`.github/workflows/${app}.yml`);
     assert.match(caller, /uses: \.\/\.github\/workflows\/release-frontend\.yml/, `${app} no longer calls release-frontend.yml`);
-    if (app === 'macos-intel') {
-      assert.deepEqual([...caller.matchAll(/^ +profile: ([a-z0-9-]+)$/gm)].map(m => m[1]), ['lolly-demo'], 'the Mac app passes lolly-demo, once');
-      assert.doesNotMatch(caller, /lolly-start/, 'no Mac step may fall back to lolly-start');
-    } else {
-      assert.doesNotMatch(caller, /^ +profile: /m, `${app} must not pass a profile`);
-    }
+    assert.doesNotMatch(caller, /^ +profile: /m, `${app} must not pass a profile`);
   }
   // The web build's origin guard: the ship profile canonicalises to the target's domain.
   const target = shipTargets().find(t => t.name === 'lolly-public');

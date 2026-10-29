@@ -84,5 +84,6 @@ jobs:
             artifacts/native-webgpu/conformance.json
             artifacts/native-webgpu/*.log
             artifacts/native-webgpu/WEBGPU-QUALIFICATION-BUILD-NOT-FOR-RELEASE.txt
-          retention-days: 7
+          # The 8 October receipts expired after a week; keep evidence long enough to cite.
+          retention-days: 30
           if-no-files-found: error

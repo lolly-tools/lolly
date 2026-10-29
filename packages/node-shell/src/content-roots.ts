@@ -117,7 +117,7 @@ interface ProfilesFile { default: string; profiles: Record<string, Profile> }
 function loadProfiles(root: string): ProfilesFile {
   const path = join(root, 'profiles.json');
   if (!existsSync(path)) {
-    throw new Error(`content-roots: no profiles.json at ${root} - is this a Lolly checkout?`);
+    throw new Error(`content-roots: no profiles.json at ${root}. Set LOLLY_ROOT to a Lolly checkout or to a directory that holds tools/ and catalog/.`);
   }
   return JSON.parse(readFileSync(path, 'utf8')) as ProfilesFile;
 }
