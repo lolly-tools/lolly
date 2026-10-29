@@ -79,20 +79,20 @@ projects across. Keep the original app until you are satisfied.
 Which package versions have passed their checks is recorded in
 [official installation routes](official-installations.md).
 
-::: details Downloads for 1.1.2
-The [Work release page](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2)
+::: details Downloads for %work{version}
+The [Work release page](https://github.com/lolly-tools/lolly-work/releases/tag/v%work{version})
 has the published files, exact source, image digests, checksums and qualification
 results. Treat a release target as ready only when its file is published there and
 its checks are recorded.
 
 | Package | Use it for |
 |---|---|
-| **Work server image**: `ghcr.io/lolly-tools/lolly-work-server:1.1.2` | Compose and Kubernetes; Linux `amd64` and `arm64` manifests |
-| **Optional render worker**: `ghcr.io/lolly-tools/lolly-work-render-worker:1.1.2` | Browser-based server rendering; configure its authenticated HTTPS transport separately |
-| **Helm chart** %work{chart}: `deploy/helm` in the source code | Work 1.1.2 on an existing Kubernetes platform. The chart carries the release version; the packaged chart is first published as 1.1.3, with the 1.1.3 release |
+| **Work server image**: `ghcr.io/lolly-tools/lolly-work-server:%work{version}` | Compose and Kubernetes; Linux `amd64` and `arm64` manifests |
+| **Optional render worker**: `ghcr.io/lolly-tools/lolly-work-render-worker:%work{version}` | Browser-based server rendering; configure its authenticated HTTPS transport separately |
+| **Helm chart** %work{chart}: `deploy/helm` in the source code, and the published chart | Work %work{version} on an existing Kubernetes platform. The chart carries the release version; 1.1.3 is its first publication |
 | **Source code** on the Work release page | Node and systemd installs, local evaluation, deployment recipes and custom image builds |
 | **[Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh)** | The complete server with host accounts; follow the package's version notes |
-| **[Lolly web app 1.1.1](https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz)** | The browser app that matches a Work installation. Work 1.1.2 keeps this archive because Lolly 1.1.2 published no new one. On its own, this archive is a static web app |
+| **[Lolly web app 1.1.3](https://lolli.li/lolly-web-1.1.3-ynh1.tar.gz)** | The browser app that matches a Work installation. Served by Work 1.1.3, it takes the installation's catalogue key and shows its tools. On its own, this archive is a static web app |
 
 The Work YunoHost archive is an input to the YunoHost installer. It leaves out the
 demo pack and the deployment recipes, so use the source download for a manual
