@@ -40,13 +40,14 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
-  chmodSync, copyFileSync, cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync,
+  chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync,
   writeFileSync,
 } from 'node:fs';
 import { availableParallelism, tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { satisfiesRange } from '../engine/src/semver-range.ts';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(REPO, 'dist', 'cli-pack');
@@ -113,6 +114,20 @@ out natively for SVG-first tools. The heavier paths are optional on purpose:
 - \`sharp\`, \`@napi-rs/canvas\`, \`onnxruntime-node\` and \`@huggingface/transformers\`
   install as optional dependencies. Without them the commands that need them refuse by
   name instead of failing halfway.
+- npm 11 holds dependency install scripts until you allow them, and two of the
+  on-device ML packages need theirs: \`onnxruntime-node\` fetches its native runtime and
+  \`protobufjs\` finishes its own setup. The install ends by listing them as skipped.
+  To allow both for a global install:
+
+  \`\`\`bash
+  npm i -g @lolly-tools/cli --allow-scripts=onnxruntime-node,protobufjs
+  \`\`\`
+
+  Or keep the setting with \`npm config set allow-scripts=onnxruntime-node,protobufjs
+  --location=user\`. Inside a project, \`npm install-scripts approve onnxruntime-node
+  protobufjs\` records the approval in its package.json. Without them the ML commands
+  (text recognition, background removal, depth and the AI checks) refuse by name, and
+  everything else works.
 - HTML-layout raster, PDF and video use an installed Lolly desktop renderer first,
   then Chromium: \`lolly install-browser\`. Pin one with
   \`LOLLY_RENDERER=desktop|chromium\`.
@@ -199,6 +214,33 @@ for (const dir of FIRST_PARTY) {
 // a-stub rule), which is a much better install than a gigabyte of native wheels.
 for (const name of Object.keys(optionalDependencies)) delete dependencies[name];
 
+// One onnxruntime-node per install. @huggingface/transformers pins onnxruntime-node to an
+// exact version, and the workspace forces our copy onto that version with a pnpm override
+// (pnpm-workspace.yaml) that an npm consumer never sees. Published as a caret range, ours
+// resolved to the newest 1.x beside the pinned one, so 0.1.0 installed two native runtimes.
+// Declaring the exact version the parent asks for lets npm keep one copy. A parent that
+// stops pinning, or a pin outside the workspace range, stops the pack instead of guessing.
+const PIN_TO_PARENT: Record<string, string> = { 'onnxruntime-node': '@huggingface/transformers' };
+for (const [name, parent] of Object.entries(PIN_TO_PARENT)) {
+  const block = name in optionalDependencies ? optionalDependencies : dependencies;
+  const ours = block[name];
+  if (ours === undefined) continue;
+  // Node's own lookup from node-shell: its node_modules first, then the hoisted root.
+  const parentJson = ['packages/node-shell/node_modules', 'node_modules']
+    .map(dir => join(REPO, dir, parent, 'package.json'))
+    .find(path => existsSync(path));
+  if (!parentJson) throw new Error(`${parent} is not installed; run pnpm install before packing.`);
+  const parentPkg = readJson(parentJson);
+  const wanted = (parentPkg.dependencies as Record<string, string> | undefined)?.[name];
+  if (!wanted || !/^\d+\.\d+\.\d+$/.test(wanted)) {
+    throw new Error(`${parent} no longer pins ${name} to an exact version (${wanted ?? 'absent'}). Review PIN_TO_PARENT.`);
+  }
+  if (!satisfiesRange(wanted, ours)) {
+    throw new Error(`${parent} pins ${name} ${wanted}, outside the workspace range ${ours}. Make the workspace agree first.`);
+  }
+  block[name] = wanted;
+}
+
 const cliPkg = readJson(join(REPO, 'shells', 'cli', 'package.json')) as { version: string; license: string };
 const VERSION = cliPkg.version;
 
@@ -206,10 +248,26 @@ const VERSION = cliPkg.version;
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(PKG, { recursive: true });
 cpSync(join(REPO, 'packages/node-shell/wasm/jxl'), join(PKG, 'wasm/jxl'), { recursive: true });
-cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(PKG, 'wasm/adobe-psd'), { recursive: true });
-cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(PKG, 'wasm/layout-kernel'), {
-  recursive: true, filter: (source) => basename(source) !== 'target',
-});
+// The PSD, layout, geometry and font subset modules ship their .wasm, README and licence
+// files only. The Rust crate beside each one (src/, the Cargo files, the toolchain pin, vendored crates and the
+// test fixtures) is how the .wasm is rebuilt, and nothing an install loads reads those
+// files. 0.1.0 carried the whole crate.
+const RUST_ONLY_DIRS = new Set(['src', 'vendor', 'fixtures', 'target']);
+const RUST_ONLY_FILES = new Set(['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.npmignore', '.gitignore']);
+const runtimeOnly = (source: string): boolean => {
+  const name = basename(source);
+  return statSync(source).isDirectory() ? !RUST_ONLY_DIRS.has(name) : !RUST_ONLY_FILES.has(name);
+};
+cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(PKG, 'wasm/adobe-psd'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(PKG, 'wasm/layout-kernel'), { recursive: true, filter: runtimeOnly });
+// The geometry kernels (geometry-host-node.ts, loaded for every render's host.geom) and
+// Skera (fonts.ts, host.fonts subsetting) are read from ../wasm/<module>/ beside the
+// bundle like the two above. 0.1.0 left both out, so every packaged render fell back to
+// the TypeScript geometry reference with a warning and font subsetting refused.
+// portable-math needs no copy: the engine embeds its bytes (geom/portable-math-wasm.ts).
+// pixel-kernel needs none either: nothing the CLI runs imports pixel-kernel.ts.
+cpSync(join(REPO, 'packages/node-shell/wasm/geometry-kernel'), join(PKG, 'wasm/geometry-kernel'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/skera'), join(PKG, 'wasm/skera'), { recursive: true, filter: runtimeOnly });
 
 const result = await build({
   // The output NAMES matter: shells/cli/src/tui.ts starts the TUI by looking for
@@ -372,15 +430,40 @@ if (!listed.ok || !Array.isArray(listed.result?.tools) || listed.result.tools.le
   throw new Error('list --json returned no tools against LOLLY_ROOT');
 }
 
+// A module the package should carry but does not shows up as a warning, not a failure:
+// geometry falls back to the TypeScript reference and says "<module> is not installed".
+// So every render below is also read for that sentence.
+const notInstalled = (step: string, stderr: string): void => {
+  const line = stderr.split('\n').find(l => /not installed/.test(l));
+  if (line) throw new Error(`${step}: the package is missing a module it loads: ${line.trim()}`);
+};
+const render = (step: string, args: string[]): void => {
+  const r = runCaptured(LOLLY, args, SMOKE, { LOLLY_ROOT: REPO });
+  if (r.status !== 0) throw new Error(`${step} exited ${r.status}: ${r.stderr.slice(0, 400)}`);
+  notInstalled(step, r.stderr);
+};
+
 // A real render, all the way to a file on disk.
 const qr = join(SMOKE, 'qr.svg');
-run(LOLLY, ['qr-code', '--url=https://example.com', '--export=svg', `--output=${qr}`], SMOKE, { LOLLY_ROOT: REPO });
+render('qr-code', ['qr-code', '--url=https://example.com', '--export=svg', `--output=${qr}`]);
 const svg = readFileSync(qr, 'utf8');
 // The CLI writes a standalone document, so the XML declaration comes first and <svg>
 // follows it.
 if (!/^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b/.test(svg)) {
   throw new Error(`qr.svg is not an SVG document: ${JSON.stringify(svg.slice(0, 60))}`);
 }
+
+// A render that clips: Diagram Builder outlines its connector and card strokes through
+// host.geom.stroke, whose round joins go through the clipping kernel when it loads.
+const diagram = join(SMOKE, 'diagram.svg');
+render('diagram-builder', ['diagram-builder', '--export=svg', `--output=${diagram}`]);
+if (!/<path\b/.test(readFileSync(diagram, 'utf8'))) throw new Error('diagram.svg holds no paths');
+
+// Skera, outside the checkout: subset a TrueType face to Basic Latin.
+const ttf = join(REPO, 'shells/web/public/fonts/Outfit[wght].ttf');
+const subset = join(SMOKE, 'subset.ttf');
+render('font-convert', ['font-convert', `--source=${ttf}`, '--target=ttf', '--subset=latin', `--output=${subset}`]);
+if (statSync(subset).size >= statSync(ttf).size) throw new Error('font-convert --subset=latin did not make a smaller font');
 
 // The local JXL worker and WASM must resolve outside the checkout, without sharp.
 if (binding) {
@@ -453,7 +536,7 @@ if (binding) {
 }
 
 rmSync(SMOKE, { recursive: true, force: true });
-console.log('smoke: --version, list --json, a rendered SVG, a two-job rebrand compile, the exit-3 refusal, and tui - all ok');
+console.log('smoke: --version, list --json, rendered SVGs with every kernel loaded, a font subset, a two-job rebrand compile, the exit-3 refusal, and tui - all ok');
 console.log(`packed → ${relative(REPO, OUT)}`);
 console.log(`  @lolly-tools/cli@${VERSION}  ${tgzName}`);
 console.log(`  tarball ${(statSync(tgz).size / 1024 / 1024).toFixed(1)} MB · unpacked ${(unpacked / 1024 / 1024).toFixed(1)} MB · ${listing.length} files · no tools, no catalog`);
