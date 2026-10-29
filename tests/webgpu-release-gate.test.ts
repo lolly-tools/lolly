@@ -289,9 +289,11 @@ test('the published matrix permits web, Mac and iOS artifacts and keeps the othe
   for (const platform of ['android', 'linux', 'windows'] as const) assert.equal(webGpuReleaseProblems(undefined, platform).length, 1, platform);
   const problems = webGpuReleaseProblems();
   assert.equal(problems.length, 3);
-  for (const environment of ['Windows', 'Linux', 'Android']) {
+  for (const environment of ['Windows', 'Android']) {
     assert.ok(problems.some(problem => problem.startsWith(environment) && problem.includes('Pending: physical runtime not qualified')));
   }
+  // Linux publishes a tested answer, and an app row that is not Supported still holds the package.
+  assert.ok(problems.some(problem => problem.startsWith('Linux') && problem.includes('Not supported: WebKitGTK has no WebGPU')));
   const table = readFileSync(new URL('../docs/supported-environments.md', import.meta.url), 'utf8');
   assert.match(table, /macOS 27, Apple M4/);
   assert.match(table, /do not establish support for the\nsame browsers on Windows, Linux, Android, iOS/);

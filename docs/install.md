@@ -57,7 +57,7 @@ Download [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe) (an NSIS instal
 
 ## Linux
 
-Every Linux build is version 1.1.0, x86_64 unless the section says otherwise. Pick the one for your distribution:
+Every Linux build is version 1.1.0, x86_64 unless the section says otherwise. Newer versions are held back from Linux because WebKitGTK, the web view the Linux app uses, has no WebGPU yet ([supported environments](/info/supported-environments.html)). Pick the one for your distribution:
 
 | You run | Get |
 |---|---|
