@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MPL-2.0
+import DOMPurify from 'dompurify';
 import { icon } from '../../lib/icons.ts';
 import { mountModal } from '../../components/modal.ts';
 import { mountBodyPopover, pointAnchor } from '../../components/body-popover.ts';
 import { menuItemHtml } from '../../lib/context-menu.ts';
 import { query, selectionForAction, type TextContext } from './context.ts';
-export async function markdownPreview(ctx: TextContext): Promise<void> {
+export async function markdownPreview(ctx: TextContext, wholeDocument = false): Promise<void> {
   const { mdToHtml } = await import('../../lib/markdown.ts');
-  const current = selectionForAction(ctx);
+  const current = wholeDocument ? ctx.editor.document.value : selectionForAction(ctx);
   const modal = mountModal(
     '<h2>Markdown preview</h2><article data-preview></article><button class="btn" data-close>Close</button>',
     { className: 'modal text-action-dialog', ariaLabel: 'Markdown preview' }
   );
-  modal.el.querySelector('[data-preview]')!.innerHTML = mdToHtml(current.text);
+  modal.el.querySelector('[data-preview]')!.innerHTML = DOMPurify.sanitize(mdToHtml(current.text));
   modal.el.querySelector('[data-close]')!.addEventListener('click', () => modal.close());
 }
 export function downloadText(ctx: TextContext, text: string, name: string): void {

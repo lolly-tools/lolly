@@ -1,0 +1,78 @@
+{
+  "id": "write",
+  "name": "Write",
+  "description": "Write and edit plain text or Markdown. Keep editable files in Projects, save copies to Assets, or download your text.",
+  "version": "1.0.0",
+  "engineVersion": "^1.242.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": [
+    "write",
+    "writing",
+    "text",
+    "markdown",
+    "notes",
+    "editor"
+  ],
+  "a11yLabel": "Write - plain text and Markdown editor",
+  "render": {
+    "width": 1100,
+    "height": 820,
+    "formats": [
+      "html"
+    ],
+    "export": false,
+    "layout": "canvas",
+    "urlSync": false,
+    "sidebar": false
+  },
+  "inputs": [
+    {
+      "id": "body",
+      "type": "longtext",
+      "label": "Text",
+      "default": ""
+    },
+    {
+      "id": "source",
+      "type": "longtext",
+      "label": "Source information (JSON)",
+      "default": "{}"
+    },
+    {
+      "id": "language",
+      "type": "text",
+      "label": "Syntax language",
+      "default": "plain"
+    },
+    {
+      "id": "workspaceMode",
+      "type": "text",
+      "label": "Workspace mode",
+      "default": "text"
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "exportFile": true
+  },
+  "openWith": [
+    {
+      "id": "write",
+      "order": 5,
+      "types": [
+        "text"
+      ],
+      "formats": [
+        "txt",
+        "md",
+        "markdown"
+      ],
+      "binding": {
+        "kind": "text"
+      }
+    }
+  ]
+}

@@ -31,6 +31,8 @@ interface Options {
   canDownload?: boolean;
   /** The view's breadcrumbs: a link with data-team-folder takes dropped items. */
   crumbs?: HTMLElement;
+  createFile?(): void;
+  createFolder?(): void;
   current(): boolean; reload(message?: string): void; notice(message: string): void;
   /** Copy an item under a new identity, into `folderId` when given, else beside the original. */
   duplicate(id: string, kind: string, opts?: { name?: string; folderId?: string | null }): Promise<void>;
@@ -117,9 +119,13 @@ export function mountTeamProjectActions(o: Options): () => void {
     bulkHtml: () => (organize ? menuItemHtml('move', icon('move'), tRaw('Move to folder')) : '') + clipRows()
       + ([...selected].every(id => kind(id) === 'team-session') ? menuItemHtml('copy-local', icon('duplicate'), tRaw('Copy to my projects')) : '')
       + ([...selected].every(canDelete) ? menuItemHtml('delete', icon('trash'), tRaw('Delete'), { danger: true }) : ''),
-    backgroundHtml: () => (canPasteInto(o.folderId) ? menuItemHtml('paste', icon('checklist'), tRaw('Paste')) : '') + menuItemHtml('select-all', icon('check'), tRaw('Select all')),
+    backgroundHtml: () => (o.createFile ? menuItemHtml('new-file', icon('filePlus'), tRaw('New file')) : '')
+      + (o.createFolder ? menuItemHtml('new-folder', icon('folderPlus'), tRaw('New folder')) : '')
+      + (canPasteInto(o.folderId) ? menuItemHtml('paste', icon('checklist'), tRaw('Paste')) : '') + menuItemHtml('select-all', icon('check'), tRaw('Select all')),
     onAction: (action, target) => {
-      if (action === 'select-all') setRefs(new Set(tiles().map(t => t.dataset.ref!)));
+      if (action === 'new-file') o.createFile?.();
+      else if (action === 'new-folder') o.createFolder?.();
+      else if (action === 'select-all') setRefs(new Set(tiles().map(t => t.dataset.ref!)));
       else if (action === 'paste' || action === 'paste-into') void paste(action === 'paste-into' && target ? target.ref : o.folderId);
       else void run(action, target ? [target.ref] : [...selected]);
     },

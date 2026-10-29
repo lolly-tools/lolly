@@ -143,6 +143,8 @@ export const TRANSFORM_PARAMS: Readonly<Record<string, Readonly<Record<string, s
   // No file input: the hook transforms the text in `body`, which is empty by default,
   // and the default operation returns it unchanged, so upper case proves a change.
   'text-helper': { body: 'Lolly smoke sample', operation: 'upper' },
+  // Write starts with an empty document; exercise its Markdown file output.
+  write: { body: '# Lolly smoke sample', language: 'markdown' },
 };
 
 /**
@@ -150,6 +152,7 @@ export const TRANSFORM_PARAMS: Readonly<Record<string, Readonly<Record<string, s
  * bytes to check. Returns an error sentence, or null when the output is right.
  */
 export const TRANSFORM_EXPECT: Readonly<Record<string, (bytes: Uint8Array) => string | null>> = {
+  write: bytes => new TextDecoder().decode(bytes) === '# Lolly smoke sample' ? null : 'Write did not preserve the Markdown source.',
   'text-helper': bytes => {
     const text = new TextDecoder().decode(bytes);
     return text === 'LOLLY SMOKE SAMPLE' ? null : `expected the upper-case sample text, got "${text.slice(0, 40)}"`;

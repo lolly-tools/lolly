@@ -118,6 +118,7 @@ export function createSharedProjectsView(door: TeamProjectsDoor, view: HTMLEleme
   function beforeRender(): void { ++generation; clearFolder?.(); clearPreviews?.(); clearMenus?.(); clearFolder = clearPreviews = clearMenus = undefined; }
   return {
     projectId, active, create, refresh, beforeRender,
+    createFile(): void { view.querySelector('[data-shared-folder]')?.dispatchEvent(new CustomEvent('lolly:team-file-create')); },
     createFolder(): void { view.querySelector('[data-shared-folder]')?.dispatchEvent(new CustomEvent('lolly:team-folder-create')); },
     folders(items: readonly Folder[]): void { localFolders = items; },
     async shareFolder(id: string): Promise<void> {

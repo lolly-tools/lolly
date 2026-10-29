@@ -25,9 +25,9 @@ export function takeTextHandoff(): TextHandoff | null {
   pending = null;
   return value;
 }
-export function openTextHandoff(value: TextHandoff): void {
+export function openTextHandoff(value: TextHandoff, toolId: 'text-helper' | 'write' = 'text-helper'): void {
   pending = value;
-  navigateTo(`#/tool/text-helper?slot=text-${crypto.randomUUID()}`);
+  navigateTo(`#/tool/${toolId}?slot=text-${crypto.randomUUID()}`);
 }
 export function wireTextHandoffs(root: HTMLElement, afterCleanup?: () => void): () => void {
   const onClick = (event: MouseEvent): void => {
@@ -84,7 +84,8 @@ export async function readTextAsset(
 export async function openAssetInText(
   host: HostV1,
   ref: AssetRef,
-  folderId?: string
+  folderId?: string,
+  toolId: 'text-helper' | 'write' = 'text-helper'
 ): Promise<void> {
-  openTextHandoff(await readTextAsset(host, ref, folderId));
+  openTextHandoff(await readTextAsset(host, ref, folderId), toolId);
 }

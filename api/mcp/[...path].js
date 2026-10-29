@@ -23,7 +23,7 @@ function assetOpenErrors(manifest) {
     if (seen.has(intent.id)) errors.push({ path, message: "opening intent ids must be unique" });
     seen.add(intent.id);
     if (intent.binding.kind === "text") {
-      if (manifest.id !== "text-helper" || intent.multiple) errors.push({ path, message: "the text editor adapter requires Text and one source" });
+      if (!["text-helper", "write"].includes(manifest.id ?? "") || intent.multiple) errors.push({ path, message: "the text editor adapter requires Text or Write and one source" });
       continue;
     }
     if (intent.binding.kind === "canvas" || intent.binding.kind === "timeline") {
@@ -163602,7 +163602,7 @@ var init_font_subset_wasm = __esm({
   "packages/node-shell/src/font-subset-wasm.ts"() {
     "use strict";
     init_font_subset_policy();
-    SKERA_POLICY = "skera-0.8.0/retain-gids/notdef/all-layout/all-names/v1";
+    SKERA_POLICY = "skera-0.9.0/retain-gids/notdef/all-layout/all-names/v1";
     MAX_FONT_BYTES4 = 32 * 1024 * 1024;
   }
 });
