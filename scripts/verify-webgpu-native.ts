@@ -24,6 +24,25 @@ export function assertDesktopDependencies(desktop: readonly RegistryPackage[], p
   for (const row of probe) assert.ok(desktop.some(pin => pin.name === row.name && pin.version === row.version && pin.checksum === row.checksum),
     `Native probe differs from desktop lock: ${row.name} ${row.version}.`);
 }
+/** The crates the probe fixture names directly; everything else comes in through the lock. */
+export const FIXTURE_DIRECT_CRATES = ['tauri', 'tauri-build', 'serde_json'] as const;
+/**
+ * Pin the fixture's direct dependencies to the versions the desktop lock carries.
+ * The probe must run the runtime the app ships, so the lock is the source and the
+ * committed fixture pins are only a starting point: hard-coded pins went stale with
+ * each dependency bump and refused every run before the corpus started.
+ */
+export function pinFixtureToLock(toml: string, desktop: readonly RegistryPackage[]): string {
+  let out = toml;
+  for (const name of FIXTURE_DIRECT_CRATES) {
+    const versions = [...new Set(desktop.filter(row => row.name === name).map(row => row.version))];
+    assert.equal(versions.length, 1, `The desktop lock must carry exactly one ${name} version (found ${versions.join(', ') || 'none'}).`);
+    const pattern = new RegExp(`((?:^|\\n)${name}\\s*=\\s*(?:\\{[^\\n]*version\\s*=\\s*)?")=[^"\\n]+(")`);
+    assert.ok(pattern.test(out), `The probe fixture must name ${name} with an exact version.`);
+    out = out.replace(pattern, `$1=${versions[0]}$2`);
+  }
+  return out;
+}
 /** Configuration overrides must not become evidence for default runtime preferences. */
 export function runtimeOverrides(env: NodeJS.ProcessEnv): Record<string, string> {
   return Object.fromEntries(Object.entries(env).filter(([key, value]) => value && /^(?:WEBVIEW2_|WEBKIT_|LIBGL_|MESA_|VK_|ANGLE_)/i.test(key))) as Record<string, string>;
@@ -106,8 +125,9 @@ export async function qualifyNative(): Promise<number> {
     await cp(join(repo, 'shells/tauri-desktop/src-tauri/icons/icon.ico'), join(crate, 'icons/icon.ico'));
     const lock = await readFile(join(repo, 'shells/tauri-desktop/src-tauri/Cargo.lock'), 'utf8');
     const pinned = registryPackages(lock);
-    const fixture = await readFile(join(crate, 'Cargo.toml'), 'utf8');
-    for (const name of ['tauri', 'tauri-build', 'serde_json']) {
+    const fixture = pinFixtureToLock(await readFile(join(crate, 'Cargo.toml'), 'utf8'), pinned);
+    await writeFile(join(crate, 'Cargo.toml'), fixture);
+    for (const name of FIXTURE_DIRECT_CRATES) {
       const version = new RegExp(`(?:^|\\n)${name}\\s*=\\s*(?:\\{[^\\n]*version\\s*=\\s*)?"=([^"\\n]+)"`).exec(fixture)?.[1];
       assert.ok(version && pinned.some(row => row.name === name && row.version === version), `Probe must pin ${name} from the desktop lock.`);
     }

@@ -59,8 +59,9 @@
  * be that entry's name exactly (case and spacing aside), so versions go in a column of
  * their own. A looser match let one environment's result stand in for another's: a
  * "Chrome on Android" row answered for the Android app. Rows for other environments are
- * allowed and ignored. "Not supported" is a tested, published answer; a blank,
- * "pending" or "not run" is not. Web scope does not qualify browsers on operating
+ * allowed and ignored. For a browser, "Not supported" is a tested, published answer;
+ * a blank, "pending" or "not run" is not. A packaged app's row must say "Supported",
+ * in every scope that includes that app. Web scope does not qualify browsers on operating
  * systems absent from the table's version/platform and evidence columns. There is
  * no environment-variable override, and an unknown scope always refuses.
  */
@@ -73,16 +74,22 @@ const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 /** Where the supported-environment table is published (the /info docs source). */
 export const SUPPORTED_ENVIRONMENTS_PATH = 'docs/supported-environments.md';
 
-export interface WebGpuTarget { name: string; matches(environment: string): boolean }
+/**
+ * `app` marks a packaged app's webview. A browser row may publish "Not supported"
+ * (the web release still serves the browsers that pass), but an app row must say
+ * "Supported": an app whose only webview cannot open a tool is not a release, and a
+ * published "Not supported" let a Linux package through that could not start a tool.
+ */
+export interface WebGpuTarget { name: string; app: boolean; matches(environment: string): boolean }
 
 /** A first-column cell as a name: emphasis and code marks dropped, spacing and case folded. */
 function environmentName(cell: string): string {
   return cell.replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
-function exactly(name: string): WebGpuTarget {
+function exactly(name: string, app = false): WebGpuTarget {
   const wanted = environmentName(name);
-  return { name, matches: (cell) => environmentName(cell) === wanted };
+  return { name, app, matches: (cell) => environmentName(cell) === wanted };
 }
 
 /**
@@ -94,11 +101,11 @@ export const REQUIRED_WEBGPU_TARGETS: readonly WebGpuTarget[] = [
   exactly('Chrome and Edge (Chromium)'),
   exactly('Firefox'),
   exactly('Safari (WebKit)'),
-  exactly('macOS app (WKWebView)'),
-  exactly('iOS and iPadOS app (WKWebView)'),
-  exactly('Windows app (WebView2)'),
-  exactly('Linux app (WebKitGTK)'),
-  exactly('Android app (WebView)'),
+  exactly('macOS app (WKWebView)', true),
+  exactly('iOS and iPadOS app (WKWebView)', true),
+  exactly('Windows app (WebView2)', true),
+  exactly('Linux app (WebKitGTK)', true),
+  exactly('Android app (WebView)', true),
 ];
 
 /** A packaged app's platform. Each one's packages need only that platform's row. */
@@ -162,7 +169,9 @@ export function supportedEnvironmentProblems(markdown: string, scope: WebGpuRele
     if (matching.length > 1) { problems.push(`${matching.length} rows for ${target.name}; publish one`); continue; }
     const row = matching[0]!;
     const result = row[1] ?? '';
-    if (!/^(?:not\s+)?supported\b/i.test(result)) {
+    if (target.app) {
+      if (!/^supported\b/i.test(result)) problems.push(`${target.name}: the result column says "${result}", not "Supported"; a packaged app ships only where its webview passes`);
+    } else if (!/^(?:not\s+)?supported\b/i.test(result)) {
       problems.push(`${target.name}: the result column says "${result}", not "Supported" or "Not supported"`);
     }
   }
@@ -187,7 +196,7 @@ export function assertWebGpuReleaseAllowed(root = REPO, scope: WebGpuReleaseScop
     ...problems.map((problem) => `  - ${problem}`),
     `Run the WebGPU conformance on each target and publish ${SUPPORTED_ENVIRONMENTS_PATH} with one row per environment:`,
     ...targetsForScope(scope).map((target) => `  - ${target.name}`),
-    'The first column of each row is the environment name exactly as listed, and the second starts with "Supported" or "Not supported". See scripts/webgpu-release-gate.ts.',
+    'The first column of each row is the environment name exactly as listed. The second starts with "Supported", or for a browser "Not supported". See scripts/webgpu-release-gate.ts.',
   ].join('\n'));
 }
 
