@@ -115,13 +115,13 @@ node scripts/gen-engine-modules.ts
 The existing wording checks still inspect the working tree. A local pass does not
 qualify a release.
 
-The bot pull request is opened and refreshed with the workflow token, and GitHub
-does not start workflows for changes made with that token. To merge it, close and
-reopen it (which runs CI and the required `qualification` check), then merge it
-like any other pull request. It changes only the two generated READMEs, so it
-qualifies in the docs-and-tests lane. Each later push to main rebuilds its branch
-from the newest main, so it never conflicts and needs another close and reopen
-before merging. When main already matches, the workflow closes it.
+The bot pull request is opened and refreshed with the lolly-automation GitHub
+App's token, so CI and the required `qualification` check run on it like on any
+other pull request, and auto-merge lands it once they pass. Nobody needs to close
+and reopen it. It changes only the generated READMEs and the `api/` bundles, so it
+qualifies in the lane its changed paths select. Each later push to main rebuilds
+its branch from the newest main, so it never conflicts. When main already matches,
+the workflow closes it.
 
 ```bash
 pnpm test          # the full suite: tests/ plus the co-located suites
