@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# The app takes a whole domain (full_domain), so only the domain can change here;
+# The app takes a whole domain, so only the domain can change here;
 # $path stays "/". New values are in $domain, old ones in $old_domain.
 
 source _common.sh

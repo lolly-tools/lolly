@@ -21,7 +21,7 @@ This directory is developed inside the [Lolly repository](https://github.com/lol
 ## Shape
 
 - **Static.** The package unpacks a prebuilt web build and serves it with nginx. No application service or database; YunoHost stores the package settings, and users' work stays on their devices.
-- **Whole domain.** The build resolves assets, the offline service worker and clean routes from the domain root (`full_domain = true`).
+- **Whole domain.** The build resolves assets, the offline service worker and clean routes from the domain root. YunoHost infers the whole-domain requirement from the manifest: a domain question, no path question and `main.url = "/"`.
 - **Same default headers as lolly.tools.** `conf/security-headers.inc` renders the hosted deployment's policy by default. The configuration panel can add specific storage origins to `connect-src`; the saved setting survives upgrades. See [the admin guide](doc/ADMIN.md#allow-your-own-nextcloud-webdav-or-s3-server). The YunoHost tests in `tests/` check the default policy and configured additions.
 - **Models from lolli.li.** The on-device ML models are fetched on first use from the project's release host, as the desktop app does, instead of adding 1.2 GB to the download.
 

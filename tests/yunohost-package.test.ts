@@ -38,8 +38,13 @@ test('manifest: packaging format 2, helpers 2.1, whole-domain static app', () =>
   assert.match(manifest, /^packaging_format = 2$/m);
   assert.match(manifest, /^id = "lolly"$/m);
   assert.match(manifest, /^helpers_version = "2\.1"$/m);
-  assert.match(manifest, /^\s*full_domain = true$/m, 'the web build only works at a domain root');
+  // The web build only works at a domain root. YunoHost infers a whole-domain app from one
+  // domain question, no path question and a string main.url; an explicit full_domain key is
+  // refused by YunoHost 13 (unknown option field), so it must not come back.
+  assert.match(manifest, /^\s*type = "domain"$/m);
+  assert.doesNotMatch(manifest, /^\s*type = "path"$/m);
   assert.match(manifest, /^\s*main\.url = "\/"$/m);
+  assert.doesNotMatch(manifest, /full_domain\s*=/, 'YunoHost 13 refuses an unknown full_domain option field');
   assert.match(manifest, /^license = "MPL-2\.0"$/m);
   // No install question the scripts do not consume: there is nothing to configure.
   assert.doesNotMatch(manifest, /\[install\.(admin|password|path)\]/);
@@ -170,7 +175,7 @@ test('nginx: only placeholders YunoHost substitutes, and the .inc suffix that ke
   assert.match(nginx, /include \/etc\/nginx\/conf\.d\/__DOMAIN__\.d\/__APP__\.headers\.inc;/);
   assert.match(read('scripts/_common.sh'), /headers_inc="\/etc\/nginx\/conf\.d\/\$domain\.d\/\$app\.headers\.inc"/);
   assert.match(nginx, /include conf\.d\/yunohost_panel\.conf\.inc;/, 'the portal overlay include is what puts the YunoHost button on app pages');
-  // No sub-path markers: the manifest says full_domain, so a stray
+  // No sub-path markers: the app takes a whole domain, so a stray
   // `#sub_path_only` line would be dead text pretending to be a feature.
   assert.doesNotMatch(nginx, /#(sub|root)_path_only/);
   // `types` inside a location replaces the inherited table, so mime.types must
@@ -225,7 +230,7 @@ test('package: the files YunoHost and its catalog expect', () => {
   }
   assert.equal(read('LICENSE'), readFileSync(join(ROOT, 'LICENSE'), 'utf8'), 'the package licence is the project licence');
   assert.match(read('tests.toml'), /^test_format = 1\.0$/m);
-  assert.match(read('tests.toml'), /install\.subdir/, 'full_domain apps exclude the sub-path install test');
+  assert.match(read('tests.toml'), /install\.subdir/, 'whole-domain apps exclude the sub-path install test');
   // Nothing stray in the package root: it is mirrored whole into the app repo.
   const allowed = new Set(['LICENSE', 'README.md', 'conf', 'doc', 'manifest.toml', 'config_panel.toml', 'scripts', 'tests.toml']);
   for (const entry of readdirSync(PKG)) assert.ok(allowed.has(entry), `unexpected ${entry} in deploy/yunohost/`);
