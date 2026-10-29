@@ -51,5 +51,5 @@ test('the real desktop manifest patches resolve to directories in this checkout'
   const { fileURLToPath } = await import('node:url');
   const dir = fileURLToPath(new URL('../shells/tauri-desktop/src-tauri/', import.meta.url));
   const section = desktopPatches(readFileSync(join(dir, 'Cargo.toml'), 'utf8'), dir);
-  for (const path of section.matchAll(/path = "([^"]+)"/g)) assert.ok(existsSync(join(path[1]!, 'Cargo.toml')), path[1]);
+  for (const path of section.matchAll(/path = "([^"]+)"/g)) assert.ok(existsSync(join(path[1]!, 'Cargo.toml')), path[1]!);
 });
