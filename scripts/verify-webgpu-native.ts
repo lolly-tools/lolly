@@ -43,6 +43,26 @@ export function pinFixtureToLock(toml: string, desktop: readonly RegistryPackage
   }
   return out;
 }
+/**
+ * The desktop manifest's `[patch.crates-io]` section, with each path made absolute so
+ * the probe crate in its scratch directory builds the same patched crates the app
+ * does (the app patches glib to a vendored copy). Without it the probe resolved the
+ * registry glib and was refused as differing from the desktop lock.
+ */
+export function desktopPatches(desktopToml: string, desktopDir: string): string {
+  const lines = desktopToml.split('\n');
+  const start = lines.findIndex(line => line.trim() === '[patch.crates-io]');
+  if (start < 0) return '';
+  const body: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^\s*\[/.test(line)) break;
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+    const entry = /^(\s*[\w-]+\s*=\s*\{.*\bpath\s*=\s*")([^"]+)(".*)$/.exec(line);
+    assert.ok(entry, `The probe carries only path patches from the desktop manifest: ${line.trim()}`);
+    body.push(`${entry[1]}${resolve(desktopDir, entry[2]!).replace(/\\/g, '/')}${entry[3]}`);
+  }
+  return body.length ? `\n[patch.crates-io]\n${body.join('\n')}\n` : '';
+}
 /** Configuration overrides must not become evidence for default runtime preferences. */
 export function runtimeOverrides(env: NodeJS.ProcessEnv): Record<string, string> {
   return Object.fromEntries(Object.entries(env).filter(([key, value]) => value && /^(?:WEBVIEW2_|WEBKIT_|LIBGL_|MESA_|VK_|ANGLE_)/i.test(key))) as Record<string, string>;
@@ -113,7 +133,7 @@ export async function qualifyNative(): Promise<number> {
     }
     const inputs = ['tests/webgpu-lut.browser.test.ts', 'tests/helpers/lut-cases.ts', 'tests/helpers/webgpu-local-receiver.ts',
       'tests/helpers/webgpu-browser.ts', 'tests/fixtures/webgpu-tauri/src/main.rs', 'tests/fixtures/webgpu-tauri/Cargo.toml',
-      'tests/fixtures/webgpu-tauri/tauri.conf.json', 'shells/tauri-desktop/src-tauri/icons/32x32.png',
+      'tests/fixtures/webgpu-tauri/tauri.conf.json', 'shells/tauri-desktop/src-tauri/Cargo.toml', 'shells/tauri-desktop/src-tauri/icons/32x32.png',
       'shells/tauri-desktop/src-tauri/icons/icon.ico', 'scripts/verify-webgpu-native.ts', 'scripts/verify-webgpu.ts'];
     receipt.sourceFiles = Object.fromEntries(await Promise.all(inputs.map(async path => [path, hash(await readFile(join(repo, path)))])));
     const crate = join(output, 'crate'), target = join(output, 'target');
@@ -126,7 +146,8 @@ export async function qualifyNative(): Promise<number> {
     const lock = await readFile(join(repo, 'shells/tauri-desktop/src-tauri/Cargo.lock'), 'utf8');
     const pinned = registryPackages(lock);
     const fixture = pinFixtureToLock(await readFile(join(crate, 'Cargo.toml'), 'utf8'), pinned);
-    await writeFile(join(crate, 'Cargo.toml'), fixture);
+    const desktopDir = join(repo, 'shells/tauri-desktop/src-tauri');
+    await writeFile(join(crate, 'Cargo.toml'), fixture + desktopPatches(await readFile(join(desktopDir, 'Cargo.toml'), 'utf8'), desktopDir));
     for (const name of FIXTURE_DIRECT_CRATES) {
       const version = new RegExp(`(?:^|\\n)${name}\\s*=\\s*(?:\\{[^\\n]*version\\s*=\\s*)?"=([^"\\n]+)"`).exec(fixture)?.[1];
       assert.ok(version && pinned.some(row => row.name === name && row.version === version), `Probe must pin ${name} from the desktop lock.`);

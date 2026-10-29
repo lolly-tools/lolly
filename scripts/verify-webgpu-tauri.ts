@@ -8,7 +8,7 @@ import { closeSync, openSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { arch, cpus, release } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { pinFixtureToLock, registryPackages } from './verify-webgpu-native.ts';
+import { desktopPatches, pinFixtureToLock, registryPackages } from './verify-webgpu-native.ts';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
 if (process.platform !== 'darwin') throw new Error('This qualification requires the macOS Tauri WKWebView runtime.');
@@ -33,7 +33,9 @@ const stack = Object.fromEntries(['tauri', 'tauri-build', 'wry', 'tao', 'serde_j
   assert.equal(versions.length, 1, `Desktop lock must carry exactly one ${name} version.`);
   return [name, versions[0]];
 }));
-await writeFile(join(crate, 'Cargo.toml'), pinFixtureToLock(await readFile(join(crate, 'Cargo.toml'), 'utf8'), registryPackages(lock)));
+const desktopDir = join(repo, 'shells/tauri-desktop/src-tauri');
+await writeFile(join(crate, 'Cargo.toml'), pinFixtureToLock(await readFile(join(crate, 'Cargo.toml'), 'utf8'), registryPackages(lock))
+  + desktopPatches(await readFile(join(desktopDir, 'Cargo.toml'), 'utf8'), desktopDir));
 await writeFile(join(crate, 'Cargo.lock'), lock);
 function cargo(args: string[], name: string) {
   const log = openSync(join(output, `${name}.log`), 'w');
