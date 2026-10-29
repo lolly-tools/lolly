@@ -248,18 +248,26 @@ const VERSION = cliPkg.version;
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(PKG, { recursive: true });
 cpSync(join(REPO, 'packages/node-shell/wasm/jxl'), join(PKG, 'wasm/jxl'), { recursive: true });
-// The PSD and layout modules ship their .wasm, README and licence files only. The Rust
-// crate beside each one (src/, the Cargo files, the toolchain pin, vendored crates and the
+// The PSD, layout, geometry and font subset modules ship their .wasm, README and licence
+// files only. The Rust crate beside each one (src/, the Cargo files, the toolchain pin, vendored crates and the
 // test fixtures) is how the .wasm is rebuilt, and nothing an install loads reads those
 // files. 0.1.0 carried the whole crate.
 const RUST_ONLY_DIRS = new Set(['src', 'vendor', 'fixtures', 'target']);
-const RUST_ONLY_FILES = new Set(['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.npmignore']);
+const RUST_ONLY_FILES = new Set(['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.npmignore', '.gitignore']);
 const runtimeOnly = (source: string): boolean => {
   const name = basename(source);
   return statSync(source).isDirectory() ? !RUST_ONLY_DIRS.has(name) : !RUST_ONLY_FILES.has(name);
 };
 cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(PKG, 'wasm/adobe-psd'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(PKG, 'wasm/layout-kernel'), { recursive: true, filter: runtimeOnly });
+// The geometry kernels (geometry-host-node.ts, loaded for every render's host.geom) and
+// Skera (fonts.ts, host.fonts subsetting) are read from ../wasm/<module>/ beside the
+// bundle like the two above. 0.1.0 left both out, so every packaged render fell back to
+// the TypeScript geometry reference with a warning and font subsetting refused.
+// portable-math needs no copy: the engine embeds its bytes (geom/portable-math-wasm.ts).
+// pixel-kernel needs none either: nothing the CLI runs imports pixel-kernel.ts.
+cpSync(join(REPO, 'packages/node-shell/wasm/geometry-kernel'), join(PKG, 'wasm/geometry-kernel'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/skera'), join(PKG, 'wasm/skera'), { recursive: true, filter: runtimeOnly });
 
 const result = await build({
   // The output NAMES matter: shells/cli/src/tui.ts starts the TUI by looking for
@@ -422,15 +430,40 @@ if (!listed.ok || !Array.isArray(listed.result?.tools) || listed.result.tools.le
   throw new Error('list --json returned no tools against LOLLY_ROOT');
 }
 
+// A module the package should carry but does not shows up as a warning, not a failure:
+// geometry falls back to the TypeScript reference and says "<module> is not installed".
+// So every render below is also read for that sentence.
+const notInstalled = (step: string, stderr: string): void => {
+  const line = stderr.split('\n').find(l => /not installed/.test(l));
+  if (line) throw new Error(`${step}: the package is missing a module it loads: ${line.trim()}`);
+};
+const render = (step: string, args: string[]): void => {
+  const r = runCaptured(LOLLY, args, SMOKE, { LOLLY_ROOT: REPO });
+  if (r.status !== 0) throw new Error(`${step} exited ${r.status}: ${r.stderr.slice(0, 400)}`);
+  notInstalled(step, r.stderr);
+};
+
 // A real render, all the way to a file on disk.
 const qr = join(SMOKE, 'qr.svg');
-run(LOLLY, ['qr-code', '--url=https://example.com', '--export=svg', `--output=${qr}`], SMOKE, { LOLLY_ROOT: REPO });
+render('qr-code', ['qr-code', '--url=https://example.com', '--export=svg', `--output=${qr}`]);
 const svg = readFileSync(qr, 'utf8');
 // The CLI writes a standalone document, so the XML declaration comes first and <svg>
 // follows it.
 if (!/^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b/.test(svg)) {
   throw new Error(`qr.svg is not an SVG document: ${JSON.stringify(svg.slice(0, 60))}`);
 }
+
+// A render that clips: Diagram Builder outlines its connector and card strokes through
+// host.geom.stroke, whose round joins go through the clipping kernel when it loads.
+const diagram = join(SMOKE, 'diagram.svg');
+render('diagram-builder', ['diagram-builder', '--export=svg', `--output=${diagram}`]);
+if (!/<path\b/.test(readFileSync(diagram, 'utf8'))) throw new Error('diagram.svg holds no paths');
+
+// Skera, outside the checkout: subset a TrueType face to Basic Latin.
+const ttf = join(REPO, 'shells/web/public/fonts/Outfit[wght].ttf');
+const subset = join(SMOKE, 'subset.ttf');
+render('font-convert', ['font-convert', `--source=${ttf}`, '--target=ttf', '--subset=latin', `--output=${subset}`]);
+if (statSync(subset).size >= statSync(ttf).size) throw new Error('font-convert --subset=latin did not make a smaller font');
 
 // The local JXL worker and WASM must resolve outside the checkout, without sharp.
 if (binding) {
@@ -503,7 +536,7 @@ if (binding) {
 }
 
 rmSync(SMOKE, { recursive: true, force: true });
-console.log('smoke: --version, list --json, a rendered SVG, a two-job rebrand compile, the exit-3 refusal, and tui - all ok');
+console.log('smoke: --version, list --json, rendered SVGs with every kernel loaded, a font subset, a two-job rebrand compile, the exit-3 refusal, and tui - all ok');
 console.log(`packed → ${relative(REPO, OUT)}`);
 console.log(`  @lolly-tools/cli@${VERSION}  ${tgzName}`);
 console.log(`  tarball ${(statSync(tgz).size / 1024 / 1024).toFixed(1)} MB · unpacked ${(unpacked / 1024 / 1024).toFixed(1)} MB · ${listing.length} files · no tools, no catalog`);
