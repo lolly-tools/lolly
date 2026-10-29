@@ -100,6 +100,10 @@ test('Lolly site tools discover tools and edit the mounted document through visi
     await tile.locator('.cat-tile-open').click();
     const inspector = page.locator('dialog.cat-details');
     await inspector.locator('.cat-edit-toolbar').waitFor();
+    const headerRect = await inspector.locator('.cat-details-header').boundingBox();
+    const previewRect = await inspector.locator('.cat-details-preview').boundingBox();
+    assert.ok(headerRect && previewRect && headerRect.y + headerRect.height <= previewRect.y + 1, 'editing controls reserve space above the asset');
+    assert.equal(await inspector.locator('.cat-edit-tool').first().isVisible(), false, 'editing actions start collapsed');
     await inspector.locator('[data-inspector-section="credentials"] > summary').click();
     assert.equal(await inspector.locator('.cat-inspector-scroll > details').last().getAttribute('data-inspector-section'), 'checks');
     const provenance = await inspector.locator('.cat-details-provenance').boundingBox(), sharing = await inspector.locator('.cat-details-actions').boundingBox();
@@ -134,13 +138,10 @@ test('Lolly site tools discover tools and edit the mounted document through visi
     assert.equal(await page.locator('dialog.cat-details .cat-inspect-theme').isVisible(), true);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${origin}/#/a?asset=${encodeURIComponent(uploaded.items[0]!.id)}`);
+    await page.locator('dialog.cat-details .cat-edit-heading').click();
     const crop = page.locator('dialog.cat-details .cat-edit-tool[data-act="crop"]');
     const cropBox = await crop.boundingBox(); assert.ok(cropBox);
-    await page.touchscreen.tap(cropBox.x + 18, cropBox.y + cropBox.height / 2);
-    assert.equal(await crop.getAttribute('aria-expanded'), 'true');
-    assert.equal(await page.locator('.cat-crop-work').count(), 0);
-    const arrow = await crop.locator('.cat-edit-arrow').boundingBox(); assert.ok(arrow);
-    await page.touchscreen.tap(arrow.x + arrow.width / 2, arrow.y + arrow.height / 2);
+    await page.touchscreen.tap(cropBox.x + cropBox.width / 2, cropBox.y + cropBox.height / 2);
     await page.locator('.cat-crop-work').waitFor();
     assert.deepEqual(errors, []);
     const plain = await browser.newContext({ serviceWorkers: 'block' });

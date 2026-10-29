@@ -79,4 +79,5 @@
   .cat-inspector { min-height: 0; }
   .cat-inspector-head { position: sticky; top: 0; z-index: 3; background: var(--ui-color-surface-canvas); }
   .cat-inspector-collapse { display: none; }
+  .cat-details:has(> .cat-details-header) .cat-inspector-head { position: static; }
 }

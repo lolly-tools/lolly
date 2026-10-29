@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Editing controls on the preview, with sharing and file actions in the sidebar. */
+/** Editing controls in the inspector header, with sharing and file actions in the sidebar. */
+import { wireMenuNavigation } from '../../components/menu-navigation.ts';
 import { createThemeToggle } from '../../components/theme-toggle.ts';
 import { t } from '../../i18n.ts';
 import { icon } from '../../lib/icons.ts';
@@ -46,12 +47,14 @@ export function editingHtml(dt: DetailsCtx): string {
     { act: 'humanize', label: t('Fix characters'), glyph: icon('wrench'), available: dt.isTextAsset && !dt.isSkillAsset },
     { act: 'copy-text', label: t('Copy text'), glyph: icon('duplicate'), available: dt.isTextAsset },
   ];
-  return `<div class="cat-edit-toolbar" role="group" aria-label="${escapeText(t('Edit and transform'))}">
-    <span class="cat-edit-heading">${t('Edit')}</span>
-    ${actions.filter(a => a.available).map(a => `<button type="button" class="cat-edit-tool cat-act-${a.act}" data-act="${a.act}" aria-label="${escapeText(a.label)}" title="${escapeText(a.disabled ? t('No compatible tool is available') : a.label)}"${a.disabled ? ' disabled' : ''}${a.menu ? ' aria-haspopup="menu"' : ''}>
-      <span class="cat-edit-glyph" aria-hidden="true">${a.glyph}</span><span class="cat-edit-label">${escapeText(a.label)}</span><span class="cat-edit-arrow" aria-hidden="true">${CHEVRON_RIGHT}</span>
-    </button>`).join('')}
-  </div>`;
+  return `<details class="cat-edit-toolbar">
+    <summary class="btn cat-edit-heading" aria-haspopup="menu" aria-expanded="false">${PENCIL_ICON}<span>${t('Edit')}</span>${icon('chevronDown')}</summary>
+    <div class="cat-edit-menu" role="menu" aria-label="${escapeText(t('Edit and transform'))}">
+      ${actions.filter(a => a.available).map(a => `<button type="button" role="menuitem" class="cat-edit-tool cat-act-${a.act}" data-act="${a.act}" aria-label="${escapeText(a.label)}" title="${escapeText(a.disabled ? t('No compatible tool is available') : a.label)}"${a.disabled ? ' disabled' : ''}${a.menu ? ' aria-haspopup="menu"' : ''}>
+        <span class="cat-edit-glyph" aria-hidden="true">${a.glyph}</span><span class="cat-edit-label">${escapeText(a.label)}</span>${a.menu ? `<span class="cat-edit-arrow" aria-hidden="true">${CHEVRON_RIGHT}</span>` : ''}
+      </button>`).join('')}
+    </div>
+  </details>`;
 }
 
 export function sidebarHtml(dt: DetailsCtx): string {
@@ -84,30 +87,35 @@ export function sidebarHtml(dt: DetailsCtx): string {
   </div>`;
 }
 
-/** Touch reveals a label first; the arrow runs the action. Keyboard activation is direct. */
+/** Menu rows run directly on touch, pointer and keyboard activation. */
 export function handleEditingClick(dt: DetailsCtx, e: MouseEvent): boolean {
-  const target = e.target as HTMLElement;
-  const tool = target.closest<HTMLButtonElement>('.cat-edit-tool');
-  dt.dlg.querySelectorAll<HTMLElement>('.cat-edit-tool.is-expanded').forEach(b => {
-    if (b !== tool) { b.classList.remove('is-expanded'); b.removeAttribute('aria-expanded'); }
-  });
+  const tool = (e.target as HTMLElement).closest<HTMLButtonElement>('.cat-edit-tool');
   if (!tool) return false;
   if (tool.disabled) return true;
-  const touch = (e as PointerEvent).pointerType === 'touch' || (e as PointerEvent).pointerType === 'pen'
-    || (e.detail > 0 && matchMedia('(hover: none)').matches);
-  if (touch && !(tool.classList.contains('is-expanded') && target.closest('.cat-edit-arrow'))) {
-    tool.classList.toggle('is-expanded');
-    tool.setAttribute('aria-expanded', String(tool.classList.contains('is-expanded')));
-    return true;
+  if (!tool.hasAttribute('aria-haspopup')) {
+    const menu = dt.dlg.querySelector<HTMLDetailsElement>('.cat-edit-toolbar');
+    if (menu) menu.open = false;
   }
-  tool.classList.remove('is-expanded');
-  tool.removeAttribute('aria-expanded');
   return false;
 }
 
 export function wireControls(dt: DetailsCtx): void {
   const { dlg, host } = dt;
-  dlg.querySelector('.cat-edit-toolbar')?.addEventListener('pointerdown', e => e.stopPropagation());
+  const menu = dlg.querySelector<HTMLDetailsElement>('.cat-edit-toolbar');
+  const trigger = menu?.querySelector<HTMLElement>('summary');
+  if (menu && trigger) {
+    wireMenuNavigation(menu);
+    menu.addEventListener('toggle', () => trigger.setAttribute('aria-expanded', String(menu.open)));
+    trigger.addEventListener('keydown', event => {
+      if (event.key !== 'ArrowDown') return;
+      event.preventDefault();
+      menu.open = true;
+      menu.querySelector<HTMLElement>('.cat-edit-tool:not(:disabled)')?.focus();
+    });
+    dlg.addEventListener('pointerdown', event => {
+      if (!menu.contains(event.target as Node)) menu.open = false;
+    });
+  }
   const preview = dlg.querySelector<HTMLElement>('.cat-details-preview');
   if (!preview) return;
   let bar = preview.querySelector<HTMLElement>('.cat-stage-bar');

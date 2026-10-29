@@ -412,9 +412,11 @@ export function buildSheet(dt: DetailsCtx): void {
   cat.detailsOpening = true;
   try { cat.sections.closeDetails(); } finally { cat.detailsOpening = false; }
   const content = `
-      <button type="button" class="cat-details-close" data-act="close" aria-label="${escapeText(t('Close'))}">×</button>
-      <div class="cat-details-preview${zoomable ? ' is-zoomable' : ''}">
+      <header class="cat-details-header">
         ${dt.controls.editingHtml()}
+        <button type="button" class="cat-details-close" data-act="close" aria-label="${escapeText(t('Close'))}">×</button>
+      </header>
+      <div class="cat-details-preview${zoomable ? ' is-zoomable' : ''}">
         <span class="cat-unsaved-pill" data-unsaved hidden>${t('Edits not saved')}</span>
         ${nav.prev ? `<button type="button" class="cat-details-nav cat-details-prev" data-nav="prev" aria-label="${escapeText(t('Previous asset'))}">${CHEVRON_LEFT}</button>` : ''}
         ${nav.next ? `<button type="button" class="cat-details-nav cat-details-next" data-nav="next" aria-label="${escapeText(t('Next asset'))}">${CHEVRON_RIGHT}</button>` : ''}
@@ -1606,7 +1608,9 @@ export function wireSheetEvents(dt: DetailsCtx): void {
 
 /** Escape exits the active inspection layer even when a hidden control lost focus. */
 export function dismissLayer(dt: DetailsCtx): void {
-  if (dt.dCard) dt.panels.closeEditCard();
+  const menu = dt.dlg.querySelector<HTMLDetailsElement>('.cat-edit-toolbar[open]');
+  if (menu) { menu.open = false; menu.querySelector<HTMLElement>('summary')?.focus(); }
+  else if (dt.dCard) dt.panels.closeEditCard();
   else if (dt.inlineCrop) dt.inlineCrop();
   else if (dt.inlineRetouch) { if (!dt.inlineRetouch.busy()) dt.inlineRetouch.exit(); }
   else if (dt.inlineVideoEdit) { if (!dt.inlineVideoEdit.busy()) dt.inlineVideoEdit.exit(); }

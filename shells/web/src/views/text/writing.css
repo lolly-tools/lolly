@@ -1,0 +1,45 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+.write-workspace .text-document-toolbar { flex-wrap: wrap; }
+.write-workspace .text-document-toolbar > .text-row { flex: 1; justify-content: flex-end; }
+.write-workspace [data-writer-view][aria-expanded="true"] { background: var(--ui-color-selection-surface); border-color: var(--ui-color-selection-border); }
+.write-pane { min-width: 0; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-canvas); overflow: hidden; }
+.write-pane-header { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-control-inline); padding: var(--ui-space-control-inline); border-bottom: 1px solid var(--ui-color-border-default); background: var(--ui-color-surface-muted); }
+.write-pane-header .text-tabs > button { padding-inline: var(--ui-space-control-inline); }
+.write-pane > [role="tabpanel"] { padding: var(--ui-space-panel); max-height: 42rem; overflow: auto; overflow-wrap: anywhere; }
+.write-preview > :first-child { margin-top: 0; }
+.write-preview h1 { font-size: var(--ui-type-heading); margin-block: var(--ui-space-panel); }
+.write-preview h2, .write-preview h3 { margin-block: var(--ui-space-panel) var(--ui-space-control-inline); }
+.write-preview img { max-width: 100%; height: auto; }
+.write-preview table { border-collapse: collapse; display: block; max-width: 100%; overflow: auto; }
+.write-preview td, .write-preview th { border: 1px solid var(--ui-color-border-default); padding: var(--ui-space-control-inline); }
+.write-preview pre { white-space: pre; overflow: auto; background: var(--ui-color-surface-muted); padding: var(--ui-space-panel); border-radius: var(--ui-radius-control); }
+.write-preview blockquote { margin-inline: 0; padding-inline-start: var(--ui-space-panel); border-inline-start: 3px solid var(--ui-color-selection-border); }
+.write-plain-preview { white-space: pre-wrap; }
+.write-stats { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--ui-space-control-inline); }
+.write-stats > div { padding: var(--ui-space-control-inline); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
+.write-stats dt { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
+.write-stats dd { margin: 0; font-size: var(--ui-type-lead); font-weight: 600; }
+.write-legend { display: flex; flex-wrap: wrap; gap: var(--ui-space-control-inline); margin-block: var(--ui-space-panel); font-size: var(--ui-type-caption); }
+.write-mark { color: var(--ui-color-text-default); background: var(--ui-color-selection-surface); border-bottom: 2px solid var(--ui-color-selection-border); padding: 0 .15em; }
+.write-mark--hard { border-bottom-width: 3px; }
+.write-mark--very-hard { border-bottom-width: 4px; }
+.write-mark--adverb { border-bottom-style: dotted; }
+.write-mark--passive { border-bottom-style: double; border-bottom-width: 4px; }
+.write-mark--simpler { background: var(--ui-color-surface-muted); }
+.write-review { margin-block: var(--ui-space-panel); }
+.write-review summary { cursor: pointer; min-height: var(--ui-size-target); align-content: center; }
+.write-review > div { white-space: pre-wrap; max-height: 18rem; overflow: auto; padding: var(--ui-space-control-inline); border: 1px solid var(--ui-color-border-default); }
+.write-issues { padding: 0; list-style: none; display: grid; gap: var(--ui-space-panel); }
+.write-issue { padding: var(--ui-space-panel); background: var(--ui-color-surface-muted); border-radius: var(--ui-radius-control); }
+.write-issue blockquote { margin: var(--ui-space-control-inline) 0; border-inline-start: 2px solid var(--ui-color-selection-border); padding-inline-start: var(--ui-space-control-inline); font-style: italic; }
+.write-issue p { font-size: var(--ui-type-caption); }
+.write-issue .btn { white-space: normal; text-align: start; }
+.write-limit { border-inline-start: 3px solid var(--ui-color-selection-border); padding-inline-start: var(--ui-space-control-inline); }
+@media (min-width:900px) {
+  .write-workspace.has-writing-pane .text-work-area { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .write-workspace.has-writing-pane.has-result .text-result { grid-column: 1 / -1; }
+}
+@media (max-width:600px) {
+  .write-pane > [role="tabpanel"] { padding: var(--ui-space-control-inline); max-height: 30rem; }
+  .write-pane-header { flex-wrap: wrap; }
+}

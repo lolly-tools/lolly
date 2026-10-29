@@ -108,8 +108,8 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   const layout = () => {
     const shut = desktop.matches && collapsed;
     dialog.classList.toggle('is-inspector-collapsed', shut); dialog.style.setProperty('--cat-inspector-width', `${actual()}px`);
-    const closeHost = shut ? rail : titleRow;
-    if (close && close.parentElement !== closeHost) { const focused = document.activeElement === close; if (shut) rail.prepend(close); else titleRow.append(close); if (focused) close.focus({ preventScroll: true }); }
+    const closeHost = dialog.querySelector<HTMLElement>(':scope > .cat-details-header') ?? (shut ? rail : titleRow);
+    if (close && close.parentElement !== closeHost) { const focused = document.activeElement === close; if (closeHost === rail) closeHost.prepend(close); else closeHost.append(close); if (focused) close.focus({ preventScroll: true }); }
     body.inert = shut; header.inert = shut; rail.inert = !shut;
     toggle.setAttribute('aria-expanded', String(!shut)); expand.setAttribute('aria-expanded', String(!shut));
     splitter?.sync();

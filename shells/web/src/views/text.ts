@@ -39,6 +39,8 @@ import { mountLogResults } from './text/logs.ts';
 import { mountTextInspection } from './text/inspection.ts';
 import { showResult } from './text/results.ts';
 import { query, type TextContext } from './text/context.ts';
+import { mountWriterTools, type WriterTools } from './text/writing.ts';
+import { mountWriterLayout, type WriterLayout } from './text/writing-layout.ts';
 import { t } from '../i18n.ts';
 import './text/text.css';
 export async function mountTextWorkspace(options: {
@@ -85,6 +87,8 @@ export async function mountTextWorkspace(options: {
     },
   });
   let ctx: TextContext;
+  let writer: WriterTools | undefined;
+  let writerLayout: WriterLayout | undefined;
   const automatic: AutomaticHistory | undefined = options.history;
   let ignore = false,
     persistTimer: ReturnType<typeof setTimeout> | undefined;
@@ -113,6 +117,8 @@ export async function mountTextWorkspace(options: {
   const selected = (): void => {
     if (!ctx) return;
     const current = ctx.editor.document.value;
+    writer?.refresh();
+    writerLayout?.refresh();
     const range = current.end - current.start;
     const empty = !current.text.length;
     root.dataset.empty = String(empty);
@@ -223,7 +229,7 @@ export async function mountTextWorkspace(options: {
       ai: (task) => runAiAction(ctx, task),
     },
     presentation: {
-      markdown: () => markdownPreview(ctx),
+      markdown: async () => { if (writer) writer.show('preview'); else await markdownPreview(ctx); },
       logs: (el) => mountLogResults(ctx, el),
       inspect: (el) => mountTextInspection(ctx, el),
     },
@@ -337,6 +343,7 @@ export async function mountTextWorkspace(options: {
     if (filename) filename.value = ctx.source.name ?? 'Untitled.txt';
     const format = root.querySelector<HTMLSelectElement>('[data-write-format]');
     if (format) format.value = /\.(md|markdown)$/i.test(ctx.source.name ?? '') || value('language') === 'markdown' ? 'markdown' : 'plain';
+    writer?.refresh();
   };
   const mode = async (next: string, remember = true, focus = false): Promise<void> => {
     if (remember && value('workspaceMode') !== next) write('workspaceMode', next);
@@ -538,7 +545,7 @@ export async function mountTextWorkspace(options: {
         else if (button.hasAttribute('data-adjust') && ctx.result) {
           const op = ctx.operations.find((item) => item.id === ctx.result?.operation);
           if (op) openAction(ctx, op, true);
-        } else if (button.hasAttribute('data-markdown')) await markdownPreview(ctx, options.writing);
+        } else if (button.hasAttribute('data-markdown')) await ctx.presentation.markdown();
         else if (button.hasAttribute('data-all')) openAllActions(ctx);
         else if (button.dataset.op) {
           const operation = ctx.operations.find((op) => op.id === button.dataset.op);
@@ -670,7 +677,7 @@ export async function mountTextWorkspace(options: {
       write('language', format);
       editor.language(format);
       query<HTMLSelectElement>(ctx, '[data-language]').value = format;
-      editor.wrap(true);
+      editor.wrap(query<HTMLInputElement>(ctx, '[data-wrap]').checked);
       showSource();
     };
     query(ctx, '[data-write-name]').addEventListener('change', updateName, { signal: abort.signal });
@@ -722,6 +729,10 @@ export async function mountTextWorkspace(options: {
       false
     );
   showSource();
+  if (options.writing) {
+    writer = mountWriterTools(ctx);
+    writerLayout = mountWriterLayout(ctx);
+  }
   selected();
   return () => {
     void flush();
