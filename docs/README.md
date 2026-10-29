@@ -196,6 +196,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Sovereign creative production | [sovereign-production.md](sovereign-production.md) |
 | Deploy | [operate.md](operate.md) |
 | Run Lolly Work | [work/self-host.md](work/self-host.md) |
+| Release 1.1.3 | [work/release-1-1-3.md](work/release-1-1-3.md) |
 | Release 1.1.2 | [work/release-1-1-2.md](work/release-1-1-2.md) |
 | Past releases | [work/past-releases.md](work/past-releases.md) |
 | Lolly Work architecture | [work/overview.md](work/overview.md) |

@@ -1883,6 +1883,23 @@
       }
     },
     {
+      "slug": "work-release-1-1-3",
+      "title": "Release 1.1.3",
+      "src": "work/release-1-1-3.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-1-3",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The current release: Work 1.1.3 paired with Lolly 1.1.3, what Lolly 1.1.3 needs from Work, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.",
+      "work": {
+        "slug": "release-1-1-3",
+        "path": "release-1-1-3.md",
+        "icon": "overview"
+      }
+    },
+    {
       "slug": "work-release-1-1-2",
       "title": "Release 1.1.2",
       "src": "work/release-1-1-2.md",
@@ -1892,7 +1909,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The current release: Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Work, changes since 1.1.1, migrations, images and YunoHost packaging.",
+      "description": "Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Work, changes since 1.1.1, migrations, images and YunoHost packaging.",
       "work": {
         "slug": "release-1-1-2",
         "path": "release-1-1-2.md",
@@ -3088,8 +3105,8 @@
   "workImport": {
     "repository": "https://github.com/lolly-tools/lolly-work",
     "commit": "36414f800798deb30d0cf7c6e6712d0205c6931d",
-    "version": "1.1.2",
-    "chart": "1.1.2",
+    "version": "1.1.3",
+    "chart": "1.1.3",
     "files": {
       "README.md": {
         "source": "work/README.md",
