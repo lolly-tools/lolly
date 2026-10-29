@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   native:
+    if: false  # TEMPORARY: the Windows and Linux jobs are already running in 40872326507
     name: Default runtime (${{ matrix.runtime }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 35
@@ -111,10 +112,12 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 11.26.0
-          run_install: false
+      # pnpm/action-setup cannot verify the darwin-x64 pnpm binary against the lock;
+      # macos-intel.yml installs the pinned version the same way.
+      - name: Install the pinned package manager
+        run: |
+          npm install --global --prefix "$RUNNER_TEMP/lolly-pnpm" pnpm@11.26.0
+          echo "$RUNNER_TEMP/lolly-pnpm/bin" >> "$GITHUB_PATH"
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4
         with:
           toolchain: 1.96.0
