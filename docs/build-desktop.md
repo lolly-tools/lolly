@@ -80,13 +80,11 @@ For an authorised private SUSE build, mount `brands/suse` and set `LOLLY_PROFILE
 
 ## Intel Macs
 
-Use the `.github/workflows/macos-intel.yml` workflow. It builds the pinned ONNX Runtime 1.28.0 from source, checks API 28 and bundles the resulting x86_64 library with the app. The matching Node CLI and native SVG addon are built on the Intel runner. The collected app still needs distribution signing and notarisation.
-
-To rebuild with the same runtime, supply `runtime_run_id` from an earlier successful Intel build and `runtime_sha256` for its bundled `libonnxruntime.dylib`. The workflow checks that digest, the x86_64 architecture, the runtime version and the API before reuse. Leave both empty to compile the runtime again.
+The Mac app is built for Apple silicon only. Intel Macs are not supported after 1.1.0, the last Intel build, which stays downloadable from the [install page](/info/install.html) and gets no updates.
 
 ## Cross-compilation
 
-Tauri does not cross-compile out of the box, so build each platform on its own operating system. The repository's release path builds the Linux packages in containers with the scripts in `shells/tauri-desktop/release/` (`build-deb.sh`, `build-rpm.sh`, `build-flatpak.sh` and `build-arch.sh`; the README there gives the order). GitHub workflows cover specific targets: `macos-intel.yml`, `linux-arm64.yml`, `linux-rpm.yml`, `flatpak.yml` and `desktop-extra.yml` (the Windows installers). [Linux packages](/info/build-obs.html) maps each Linux format to its recipe.
+Tauri does not cross-compile out of the box, so build each platform on its own operating system. The repository's release path builds the Linux packages in containers with the scripts in `shells/tauri-desktop/release/` (`build-deb.sh`, `build-rpm.sh`, `build-flatpak.sh` and `build-arch.sh`; the README there gives the order). GitHub workflows cover specific targets: `linux-arm64.yml`, `linux-rpm.yml`, `flatpak.yml` and `desktop-extra.yml` (the Windows installers). [Linux packages](/info/build-obs.html) maps each Linux format to its recipe.
 
 ## Icons
 

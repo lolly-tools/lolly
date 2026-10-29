@@ -32,15 +32,6 @@ test('macOS signing preserves the JIT entitlement required by the bundled Node C
   assert.doesNotMatch(entitlements, /disable-library-validation|allow-unsigned-executable-memory/);
 });
 
-test('Intel macOS signing permits the Node runtime executable page transitions', () => {
-  const workflow = readFileSync('.github/workflows/macos-intel.yml', 'utf8');
-  assert.match(workflow, /entitlements:"\.\.\/macos\/IntelEntitlements\.plist"/);
-  const entitlements = readFileSync('shells/tauri-desktop/macos/IntelEntitlements.plist', 'utf8');
-  assert.match(entitlements, /<key>com\.apple\.security\.cs\.allow-jit<\/key>\s*<true\s*\/>/);
-  assert.match(entitlements, /<key>com\.apple\.security\.cs\.allow-unsigned-executable-memory<\/key>\s*<true\s*\/>/);
-  assert.doesNotMatch(entitlements, /disable-library-validation|disable-executable-page-protection/);
-});
-
 test('Flatpak preserves the injected Node executable instead of rewriting its ELF sections', () => {
   const manifest = readFileSync('shells/tauri-desktop/flatpak/tools.lolly.Desktop.yml', 'utf8');
   const module = manifest.slice(manifest.indexOf('  - name: lolly\n'));

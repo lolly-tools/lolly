@@ -574,7 +574,7 @@ test('the web shell and every Tauri app build still go through the gate', () => 
   // RPM job, which runs the wrapper outside tauri build, states that platform too.
   const platforms: Record<string, string> = {
     'flatpak.yml': 'linux', 'linux-arm64.yml': 'linux', 'linux-rpm.yml': 'linux',
-    'desktop-extra.yml': 'windows', 'macos-intel.yml': 'macos', 'ios-release.yml': 'ios',
+    'desktop-extra.yml': 'windows', 'ios-release.yml': 'ios',
   };
   for (const [file, platform] of Object.entries(platforms)) {
     const callers = Object.values(workflowJobs(file)).filter((job) => (job as { uses?: string }).uses === './.github/workflows/release-frontend.yml');
@@ -587,7 +587,7 @@ test('the web shell and every Tauri app build still go through the gate', () => 
   assert.match(frontend, /releaseGateScope\(parseReleaseFrontend\(process\.env\.FRONTEND_TARGET\)\)[\s\S]*node scripts\/webgpu-release-gate\.ts --scope "\$scope"/);
   // Each packaging workflow builds the app through tauri (whose beforeBuildCommand is
   // the wrapper) or runs the wrapper itself, and none empties beforeBuildCommand.
-  for (const file of ['flatpak.yml', 'linux-arm64.yml', 'linux-rpm.yml', 'desktop-extra.yml', 'macos-intel.yml', 'ios-release.yml']) {
+  for (const file of ['flatpak.yml', 'linux-arm64.yml', 'linux-rpm.yml', 'desktop-extra.yml', 'ios-release.yml']) {
     const text = Object.values(workflowJobs(file)).map(jobText).join('\n');
     assert.match(text, /tauri (?:ios )?build|build:frontend:release/, file);
     assert.doesNotMatch(text, /beforeBuildCommand/, `${file} must not replace the gated beforeBuildCommand`);

@@ -218,10 +218,6 @@ test('the Mac app ships Lolly Demo and Lolly Starter; mobile keeps Lolly Start',
   assert.match(desktop, /seedProfile: SEED_PROFILE,/);
   const mobile = readFileSync(new URL('../shells/tauri-mobile/vite.config.js', import.meta.url), 'utf8');
   assert.match(mobile, /seedProfile: 'lolly-start',/);
-  const mac = readFileSync(new URL('../.github/workflows/macos-intel.yml', import.meta.url), 'utf8');
-  assert.match(mac, /^ {6}profile: lolly-demo$/m, 'the signed Mac frontend is built from lolly-demo');
-  assert.match(mac, /^ {6}LOLLY_PROFILE: lolly-demo$/m, 'the Mac bundle verifies the frontend receipt against lolly-demo');
-  assert.match(mac, /path: brands\/lolly-demo\/catalog\/tools/, 'the signed source catalog is downloaded into the brand it was signed for');
   // The companion that makes switching possible is declared by the seed brand itself.
   const demo = JSON.parse(readFileSync(new URL('../brands/lolly-demo/catalog/assets/index.json', import.meta.url), 'utf8')) as {
     companionDesignSystems?: Array<{ tokens: string; label: string }>;

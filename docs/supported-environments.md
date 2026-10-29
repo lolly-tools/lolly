@@ -25,10 +25,11 @@ The page must be served over HTTPS, or from a local development server on `local
 ## Not supported
 
 - The Linux app: the WebKitGTK web view it uses has no WebGPU. On Linux you can try the web app in Chrome or Firefox, though neither has been checked on Linux yet.
+- The Mac app on an Intel Mac: from 1.1.3 the Mac app needs Apple silicon. 1.1.0 is the last Intel build and gets no updates.
 
 ## Not checked yet
 
-- The Windows and Android apps, and the Mac app on an Intel Mac, on real hardware
+- The Windows and Android apps on real hardware
 - The same browsers on Windows, Linux, Android, iOS, Intel Macs or other graphics hardware
 :::
 
@@ -48,6 +49,8 @@ same browsers on Windows, Linux, Android, iOS, Intel Macs or other GPUs.
 | Windows app (WebView2) | Pending: physical runtime not qualified | WebView2 155.0.4283.62 on a GitHub-hosted Windows Server 2025 virtual machine with no GPU (see Recorded evidence) | No adapter on that machine | 29 October 2026: the WebGPU API is present and no adapter is returned. A machine with no GPU does not answer for Windows hardware, so the row stays pending |
 | Linux app (WebKitGTK) | Not supported: WebKitGTK has no WebGPU | WebKitGTK 2.52.6, the version Ubuntu 24.04 ships; the release notes for 2.52.6, 2.54.0 and 2.54.2 do not mention WebGPU | None: the WebGPU API is absent | 8 and 29 October 2026: the Tauri web view has no WebGPU API at all. The library lacks the API, so the result does not depend on the GPU or the machine |
 | Android app (WebView) | Pending: physical runtime not qualified | Android 11 on a device; Android 16 (API 36) in the emulator (see Recorded evidence) | No adapter on either | 15 October 2026: Android 11 has no adapter. 29 October 2026: the emulator's WebView 133 has the API and no adapter. Android 12 or later on a real device has not been checked |
+
+The Mac app needs Apple silicon. Intel Macs are not supported from 1.1.3, so the macOS app row speaks for Apple silicon only.
 
 A pending row means the check has not passed on real hardware, not that the app fails. A packaged app is released only once its own row says supported, which is why the Windows, Linux and Android builds on the [install page](/info/install.html) stay at 1.1.0. The Linux app stays there until a WebKitGTK release carries WebGPU.
 
@@ -76,7 +79,7 @@ The 29 October 2026 checks ran the same corpus in the same Tauri fixture on GitH
 | Linux | WebKitGTK 2.52.6; Ubuntu 24.04, Xvfb display, no GPU | `148c230fee9b6d7cb14b8598e7b256df9dd2759237ae130a1c44a3f57311fb80` |
 | Intel Mac | WKWebView 20621.3.11.11.3; macOS 15.7.9 on x86_64, Apple paravirtual graphics with Metal 2 | `a3793a8d28c27fc93bf86d00cb47511b12d1bced57321baeba90bcb6a9b53f9f` |
 
-The Intel Mac run has no WebGPU API: that macOS 15 web view predates WebGPU. It says nothing about an Intel Mac on a newer macOS, which has not been checked.
+The Intel Mac run has no WebGPU API: that macOS 15 web view predates WebGPU. Intel Macs are not supported from 1.1.3, so no further Intel check is planned.
 
 Retained conformance reports have these SHA-256 digests:
 
