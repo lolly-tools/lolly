@@ -84,6 +84,20 @@ function sourceOf(system: RebrandDesignSystemV1, tokensFile: string, withDark = 
 const STARTER = sourceOf(STARTER_DESIGN_SYSTEM, STARTER_TOKENS);
 const SUSE_SYSTEM = await profileDesignSystem('suse');
 const SUSE = SUSE_SYSTEM ? sourceOf(SUSE_SYSTEM, SUSE_TOKENS) : null;
+/**
+ * SUSE as its light look stood before 2026-10-29, when Pine was the primary and
+ * Jungle the secondary. Jungle is the primary in both looks now (plan 319 A9), so
+ * this keeps a real pack whose primary is its Dark ground under test.
+ */
+const SUSE_PINE_LED: ThemeSourceV1 | null = SUSE ? {
+  ...SUSE,
+  colors: {
+    ...SUSE.colors,
+    'color.semantic.primary': SUSE.colors['color.brand.pine'] ?? '#0c322c',
+    'color.semantic.on-primary': SUSE.colors['color.brand.white'] ?? '#ffffff',
+    'color.semantic.secondary': SUSE.colors['color.brand.jungle'] ?? '#30ba78',
+  },
+} : null;
 
 const norm = (hex: string): string => hex.trim().toLowerCase().replace(/^#/, '').slice(0, 6);
 
@@ -157,6 +171,7 @@ for (const [name, source] of [['starter', STARTER], ['SUSE', SUSE]] as const) {
     const light = themedColors(source, null);
     const brand = themedColors(source, choice.theme);
     const primary = norm(source.colors['color.semantic.primary'] ?? '');
+    const ink = brand.colors['color.semantic.text'] ?? '';
     let moved = 0;
     for (const archetype of source.master.archetypes) {
       const ground = archetype.background?.tokenPath;
@@ -164,8 +179,10 @@ for (const [name, source] of [['starter', STARTER], ['SUSE', SUSE]] as const) {
       const before = light.colors[ground];
       const after = brand.colors[ground];
       assert.ok(after, `${archetype.id} has a ground under Brand`);
-      // A ground already in a brand hue (SUSE's jungle section) stays; every plain ground takes the primary.
+      // A ground already in a brand hue stays, and so does a pale panel the Brand ink
+      // still reads on (SUSE's main-point card, Pine on Pine 8); every other plain ground takes the primary.
       if (norm(before ?? '') === norm(source.colors['color.semantic.secondary'] ?? '')) continue;
+      if (norm(after) === norm(before ?? '') && contrastRatio(ink, after) >= 4.5) continue;
       assert.equal(norm(after), primary, `${archetype.id} ground ${ground}`);
       moved += 1;
     }
@@ -259,10 +276,21 @@ for (const [name, source] of [['starter', STARTER], ['SUSE', SUSE]] as const) {
   });
 }
 
-test('SUSE grounds Brand colour on its jungle with pine ink, since its primary is the Dark ground', (t) => {
+test('SUSE grounds Brand colour on its Jungle primary with pine ink', (t) => {
   if (!SUSE) return t.skip('the SUSE pack is not in this checkout');
   const brand = deckThemeChoices(SUSE).find((one) => one.id === 'brand');
   assert.ok(brand, 'SUSE offers a Brand colour theme');
+  assert.equal(brandGroundPath(brand.theme), 'color.semantic.primary');
+  assert.equal(norm(brand.swatches.ground), '30ba78');
+  assert.equal(norm(brand.swatches.ink), '0c322c');
+  assert.ok(contrastRatio(brand.swatches.ink, brand.swatches.ground) >= 4.5);
+});
+
+test('a pack whose primary is its Dark ground grounds Brand colour on its secondary hue', (t) => {
+  if (!SUSE_PINE_LED) return t.skip('the SUSE pack is not in this checkout');
+  const brand = deckThemeChoices(SUSE_PINE_LED).find((one) => one.id === 'brand');
+  assert.ok(brand, 'a Brand colour theme is still offered');
+  assert.equal(brandGroundPath(brand.theme), 'color.semantic.secondary');
   assert.equal(norm(brand.swatches.ground), '30ba78');
   assert.equal(norm(brand.swatches.ink), '0c322c');
   assert.ok(contrastRatio(brand.swatches.ink, brand.swatches.ground) >= 4.5);
@@ -348,14 +376,14 @@ test('a look theme\'s deck ground is read from the look: a dark look puts the de
 });
 
 test('a Brand ground takes the stored theme\'s hue, never a hue the caller holds', (t) => {
-  if (!SUSE) return t.skip('the SUSE pack is not in this checkout');
-  const brand = deckThemeChoices(SUSE).find((one) => one.id === 'brand')?.theme;
+  if (!SUSE_PINE_LED) return t.skip('the SUSE pack is not in this checkout');
+  const brand = deckThemeChoices(SUSE_PINE_LED).find((one) => one.id === 'brand')?.theme;
   assert.ok(brand);
   assert.equal(brandGroundPath(brand), 'color.semantic.secondary');
   assert.equal(brandGroundPath(null), 'color.semantic.primary');
-  const dark = buildDeckTheme('dark', SUSE)?.theme;
-  const layout = SUSE.master.archetypes.find((one) => one.variants?.dark)?.id ?? 'content';
-  const placed = slideGroundPlan({ layout, ground: 'brand' }, SUSE.master, dark, { hue: 'color.brand.persimmon' });
+  const dark = buildDeckTheme('dark', SUSE_PINE_LED)?.theme;
+  const layout = SUSE_PINE_LED.master.archetypes.find((one) => one.variants?.dark)?.id ?? 'content';
+  const placed = slideGroundPlan({ layout, ground: 'brand' }, SUSE_PINE_LED.master, dark, { hue: 'color.brand.persimmon' });
   assert.equal(placed.groundPath, 'color.semantic.primary', 'the hue option is read no more');
 });
 
