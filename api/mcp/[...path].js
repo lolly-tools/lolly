@@ -170747,13 +170747,52 @@ function fail(id3, code, message, data) {
   return { jsonrpc: "2.0", id: id3, error: { code, message, ...data !== void 0 ? { data } : {} } };
 }
 
+// services/mcp/package.json
+var package_default = {
+  name: "@lolly/mcp-server",
+  version: "1.1.3",
+  private: true,
+  description: "Lolly MCP server - exposes the on-brand tool catalog + render path to AI agents over the Model Context Protocol. Runtime deps: node:http + jsdom + @resvg/resvg-js + playwright-core (Tier B, Chromium via `pnpm run install:browser`) + @lolly/engine.",
+  license: "MPL-2.0",
+  type: "module",
+  main: "src/index.ts",
+  engines: {
+    node: ">=22.18.0"
+  },
+  bin: {
+    "lolly-mcp": "./bin/lolly-mcp.ts"
+  },
+  scripts: {
+    start: "node bin/lolly-mcp.ts",
+    "start:http": "node src/http.ts",
+    "install:browser": "node scripts/install-browser.ts",
+    inspector: "mcp-inspector node bin/lolly-mcp.ts",
+    "inspector:cli": "mcp-inspector --cli node bin/lolly-mcp.ts",
+    test: 'node --test "test/**/*.test.ts"'
+  },
+  dependencies: {
+    "@lolly/engine": "workspace:*",
+    "@resvg/resvg-js": "^2.6.2",
+    jsdom: "26.1.0",
+    "@lolly-tools/core": "workspace:*",
+    "@lolly-tools/node-shell": "workspace:*",
+    ws: "^8.22.0"
+  },
+  optionalDependencies: {
+    "playwright-core": "^1.49.0"
+  },
+  devDependencies: {
+    "@modelcontextprotocol/inspector": "^2.12.0"
+  }
+};
+
 // services/mcp/src/negotiation.ts
 var PROTOCOL_VERSION = "2026-07-28";
 var LEGACY_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26"];
 var SUPPORTED_VERSIONS = [PROTOCOL_VERSION, ...LEGACY_VERSIONS];
 var VERSION_META = "io.modelcontextprotocol/protocolVersion";
 var CAPABILITIES_META = "io.modelcontextprotocol/clientCapabilities";
-var SERVER_INFO = { name: "lolly-mcp", version: "0.2.0" };
+var SERVER_INFO = { name: "lolly-mcp", version: package_default.version };
 var CAPABILITIES = { tools: {}, resources: {}, prompts: {} };
 var object = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 function validRequest(value) {

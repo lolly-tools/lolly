@@ -34,6 +34,10 @@ Lolly is completely free and open source. It is licensed under the **Mozilla Pub
   catalog and render path to AI agents (list, describe, build a link, render, transform,
   redact, verify) under the same rules as the app.
 
+### New in 1.1.3
+
+**The readable one** makes things easier to read: the Settings Design system tab reads like a magazine and a strip of covers switches systems, lolly.tools offers Lolly Starter beside Lolly Demo, `#/start` is now Design System Setup, and design systems can carry brand skills for agents. Design's Before you export card reports house rules and a writing signal without blocking anything, large Design documents need far less work per frame, Projects can create text and Markdown files for the new Write utility, URL Screenshot's SVGs are geometry, and the documentation was rewritten for readers. It is the first release where the apps, the CLI and terminal app, Lolly Work, its Helm chart and the packages all carry the same number. Read the [1.1.3 release notes](releases/1.1.3.md) for the full list, the behaviour changes and the known limits.
+
 ### New in 1.1.2
 
 **The Colourway one** brings colourways: a design system can hold several lead colours, and each piece of work chooses one from a new Design system section in the tool sidebar. Exports record the design system and colourway that made them. Design gains Scale mode and two-finger transforms, the on-device utilities gain clip preparation, images to PDF, Read and extract and font subsetting, and the export card checks the delivered file. Read the [1.1.2 release notes](releases/1.1.2.md) for the full list, the behaviour changes and the known limits.
