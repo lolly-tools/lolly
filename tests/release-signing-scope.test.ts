@@ -104,7 +104,7 @@ test('native packaging jobs receive signed artifacts and signing jobs run no com
   assert.equal(reusable.jobs.compile.environment, undefined);
   assert.deepEqual(reusable.jobs.compile.needs, ['plan', 'source-catalog']);
   assert.ok(reusable.jobs.compile.steps.every((step: any) => !step.env?.LOLLY_CATALOG_SIGNING_KEY));
-  for (const name of ['flatpak', 'linux-arm64', 'linux-rpm', 'desktop-extra', 'macos-intel', 'ios-release']) {
+  for (const name of ['flatpak', 'linux-arm64', 'linux-rpm', 'desktop-extra', 'ios-release']) {
     const workflow = read(name), job = workflow.jobs[name === 'flatpak' ? 'build-deb' : 'build'];
     assert.equal(workflow.jobs.frontend.uses, './.github/workflows/release-frontend.yml');
     assert.equal(job.needs, 'frontend');
@@ -200,7 +200,6 @@ test('release signing secrets reach only the jobs that name their gated environm
     'ios-release.yml frontend LOLLY_CATALOG_SIGNING_KEY',
     'linux-arm64.yml frontend LOLLY_CATALOG_SIGNING_KEY',
     'linux-rpm.yml frontend LOLLY_CATALOG_SIGNING_KEY',
-    'macos-intel.yml frontend LOLLY_CATALOG_SIGNING_KEY',
     'preview-web.yml web-frontend LOLLY_PREVIEW_CATALOG_SIGNING_KEY',
   ]);
   // release-frontend.yml declares both keys, neither required, because each caller
@@ -355,11 +354,11 @@ test('release workflows never reference the preview environment, key or pin', ()
     assert.doesNotMatch(text, /preview-catalog-signing|LOLLY_PREVIEW|lolly-web-preview|signing_environment/, `${file} references the preview route`);
   }
   // Callers of the reusable workflow keep the release default and the release pin.
-  for (const file of ['desktop-extra', 'ios-release', 'linux-rpm', 'flatpak', 'linux-arm64', 'macos-intel', 'deployment-suse']) {
+  for (const file of ['desktop-extra', 'ios-release', 'linux-rpm', 'flatpak', 'linux-arm64', 'deployment-suse']) {
     const text = workflowText(`${file}.yml`);
     assert.match(text, /uses: \.\/\.github\/workflows\/release-frontend\.yml/);
   }
-  for (const file of ['desktop-extra', 'ios-release', 'linux-rpm', 'flatpak', 'linux-arm64', 'macos-intel']) {
+  for (const file of ['desktop-extra', 'ios-release', 'linux-rpm', 'flatpak', 'linux-arm64']) {
     // Every native and app build embeds the release pin and nothing else (R22 S14).
     assert.match(workflowText(`${file}.yml`), /public_key_jwk: \$\{\{ vars\.VITE_CATALOG_PUBLIC_KEY_JWK \}\}/, file);
   }

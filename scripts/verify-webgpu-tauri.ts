@@ -8,6 +8,7 @@ import { closeSync, openSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { arch, cpus, release } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { desktopPatches, pinFixtureToLock, registryPackages } from './verify-webgpu-native.ts';
 
 const repo = fileURLToPath(new URL('../', import.meta.url));
 if (process.platform !== 'darwin') throw new Error('This qualification requires the macOS Tauri WKWebView runtime.');
@@ -25,9 +26,16 @@ const packages = (source: string) => source.split('[[package]]').slice(1).map(bl
   checksum: /\nchecksum = "([^"]+)"/.exec(block)?.[1],
 })).filter(row => row.checksum);
 const pinned = packages(lock);
-for (const [name, version] of [['tauri', '2.12.1'], ['tauri-build', '2.7.1'], ['wry', '0.57.0'], ['tao', '0.37.1'], ['serde_json', '1.0.151']]) {
-  assert.ok(pinned.some(row => row.name === name && row.version === version), `Desktop lock must retain ${name} ${version}.`);
-}
+// The webview stack the app ships, read from the lock rather than a hard-coded list
+// that refused every run after a dependency bump.
+const stack = Object.fromEntries(['tauri', 'tauri-build', 'wry', 'tao', 'serde_json'].map(name => {
+  const versions = [...new Set(pinned.filter(row => row.name === name).map(row => row.version))];
+  assert.equal(versions.length, 1, `Desktop lock must carry exactly one ${name} version.`);
+  return [name, versions[0]];
+}));
+const desktopDir = join(repo, 'shells/tauri-desktop/src-tauri');
+await writeFile(join(crate, 'Cargo.toml'), pinFixtureToLock(await readFile(join(crate, 'Cargo.toml'), 'utf8'), registryPackages(lock))
+  + desktopPatches(await readFile(join(desktopDir, 'Cargo.toml'), 'utf8'), desktopDir));
 await writeFile(join(crate, 'Cargo.lock'), lock);
 function cargo(args: string[], name: string) {
   const log = openSync(join(output, `${name}.log`), 'w');
@@ -49,7 +57,7 @@ const { TAURI_CSP } = await import(join(repo, 'shells/tauri-shared/vite-csp.mjs'
 const hash = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).digest('hex');
 await writeFile(join(output, 'environment.json'), JSON.stringify({ date: new Date().toISOString(), node: process.version,
   os: release(), arch: arch(), cpu: cpus()[0]?.model, webKitFramework: version.stdout.trim(),
-  desktopLockSha256: hash(lock), binarySha256: hash(await readFile(binary)), cspSha256: hash(TAURI_CSP), resolved,
+  desktopLockSha256: hash(lock), stack, binarySha256: hash(await readFile(binary)), cspSha256: hash(TAURI_CSP), resolved,
   nonpersistent: true, visibleWindow: true, backgroundThrottling: 'disabled-for-probe',
   cspApplication: 'Exact shared shell policy in the fixture HTML meta tag; native fixture config csp/devCsp are null.',
   scope: 'Actual pinned Tauri/Wry WKWebView; localhost fixture with the shared shell CSP and unchanged full GPU corpus. The full installed product, tauri protocol, older macOS and other native platforms are not qualified.' }, null, 2) + '\n');

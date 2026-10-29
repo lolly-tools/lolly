@@ -31,8 +31,11 @@ changes, run the marker command against that directory too. Retain
 `WEBGPU-QUALIFICATION-BUILD-NOT-FOR-RELEASE.txt` with the evidence and never
 upload the binary as a product or updater artifact.
 
-The macOS wrapper copies the current desktop `Cargo.lock` and verifies the
-fixture's exact Tauri, tauri-build, Wry, Tao and serde_json versions. Cargo
+The macOS wrapper copies the current desktop `Cargo.lock`, reads the Tauri,
+tauri-build, Wry, Tao and serde_json versions from that lock, and pins the
+fixture's direct dependencies to them, so a dependency bump in the app moves
+the probe with it. The versions in the committed `Cargo.toml` are only a
+starting point. Cargo
 metadata resolves the probe root offline. Every resolved registry package
 version and checksum must appear in the desktop lock before the frozen
 `--locked --offline` build. A missing cache entry or changed pin fails the

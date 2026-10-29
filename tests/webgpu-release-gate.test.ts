@@ -36,7 +36,7 @@ const COMPLETE = [
   '| macOS app (WKWebView) | Supported | 26 | Metal | run 4 |',
   '| iOS and iPadOS app (WKWebView) | Supported | 26 | Metal | run 5 |',
   '| Windows app (WebView2) | Supported | 141 | D3D12 | run 6 |',
-  '| Linux app (WebKitGTK) | Not supported | 2.50 | none | run 7 |',
+  '| Linux app (WebKitGTK) | Supported | 2.52 | Vulkan | run 7 |',
   '| Android app (WebView) | Supported | 153 | Vulkan | run 8 |',
 ].join('\n');
 const pendingFrom = (first: number): string => COMPLETE.split('\n').map((row, index) => index >= first ? row.replace(/(?:Not supported(?:: no adapter)?|Supported)/, 'Pending: runtime not qualified') : row).join('\n');
@@ -194,6 +194,19 @@ test('the standalone gate keeps the full hold unless its exact CLI selects a qua
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('a packaged app row must say Supported, while a browser may publish Not supported', () => {
+  const linuxRefused = COMPLETE.replace('| Linux app (WebKitGTK) | Supported |', '| Linux app (WebKitGTK) | Not supported: no WebGPU API |');
+  for (const scope of ['linux', 'all'] as const) {
+    const problems = supportedEnvironmentProblems(linuxRefused, scope);
+    assert.equal(problems.length, 1, scope);
+    assert.match(problems[0]!, /Linux app \(WebKitGTK\): .*not "Supported"; a packaged app ships only where its webview passes/);
+  }
+  assert.deepEqual(supportedEnvironmentProblems(linuxRefused, 'windows'), [], 'another platform reads only its own row');
+  assert.deepEqual(supportedEnvironmentProblems(linuxRefused, 'web'), [], 'web scope reads only the browser rows');
+  // Firefox's published "Not supported: no adapter" is an answer for the web release.
+  assert.deepEqual(supportedEnvironmentProblems(COMPLETE, 'web'), []);
+});
+
 test('each packaged app needs only its own row, and the default scope keeps every row', () => {
   const rows: Record<string, string> = {
     macos: 'macOS app (WKWebView)', ios: 'iOS and iPadOS app (WKWebView)', android: 'Android app (WebView)',
@@ -276,9 +289,11 @@ test('the published matrix permits web, Mac and iOS artifacts and keeps the othe
   for (const platform of ['android', 'linux', 'windows'] as const) assert.equal(webGpuReleaseProblems(undefined, platform).length, 1, platform);
   const problems = webGpuReleaseProblems();
   assert.equal(problems.length, 3);
-  for (const environment of ['Windows', 'Linux', 'Android']) {
+  for (const environment of ['Windows', 'Android']) {
     assert.ok(problems.some(problem => problem.startsWith(environment) && problem.includes('Pending: physical runtime not qualified')));
   }
+  // Linux publishes a tested answer, and an app row that is not Supported still holds the package.
+  assert.ok(problems.some(problem => problem.startsWith('Linux') && problem.includes('Not supported: WebKitGTK has no WebGPU')));
   const table = readFileSync(new URL('../docs/supported-environments.md', import.meta.url), 'utf8');
   assert.match(table, /macOS 27, Apple M4/);
   assert.match(table, /do not establish support for the\nsame browsers on Windows, Linux, Android, iOS/);
@@ -559,7 +574,7 @@ test('the web shell and every Tauri app build still go through the gate', () => 
   // RPM job, which runs the wrapper outside tauri build, states that platform too.
   const platforms: Record<string, string> = {
     'flatpak.yml': 'linux', 'linux-arm64.yml': 'linux', 'linux-rpm.yml': 'linux',
-    'desktop-extra.yml': 'windows', 'macos-intel.yml': 'macos', 'ios-release.yml': 'ios',
+    'desktop-extra.yml': 'windows', 'ios-release.yml': 'ios',
   };
   for (const [file, platform] of Object.entries(platforms)) {
     const callers = Object.values(workflowJobs(file)).filter((job) => (job as { uses?: string }).uses === './.github/workflows/release-frontend.yml');
@@ -572,7 +587,7 @@ test('the web shell and every Tauri app build still go through the gate', () => 
   assert.match(frontend, /releaseGateScope\(parseReleaseFrontend\(process\.env\.FRONTEND_TARGET\)\)[\s\S]*node scripts\/webgpu-release-gate\.ts --scope "\$scope"/);
   // Each packaging workflow builds the app through tauri (whose beforeBuildCommand is
   // the wrapper) or runs the wrapper itself, and none empties beforeBuildCommand.
-  for (const file of ['flatpak.yml', 'linux-arm64.yml', 'linux-rpm.yml', 'desktop-extra.yml', 'macos-intel.yml', 'ios-release.yml']) {
+  for (const file of ['flatpak.yml', 'linux-arm64.yml', 'linux-rpm.yml', 'desktop-extra.yml', 'ios-release.yml']) {
     const text = Object.values(workflowJobs(file)).map(jobText).join('\n');
     assert.match(text, /tauri (?:ios )?build|build:frontend:release/, file);
     assert.doesNotMatch(text, /beforeBuildCommand/, `${file} must not replace the gated beforeBuildCommand`);

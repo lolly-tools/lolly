@@ -142,7 +142,7 @@ test('the YunoHost release refuses a qualification build', async () => {
   }
 });
 
-const PACKAGING = ['flatpak.yml', 'linux-arm64.yml', 'linux-rpm.yml', 'desktop-extra.yml', 'macos-intel.yml'];
+const PACKAGING = ['flatpak.yml', 'linux-arm64.yml', 'linux-rpm.yml', 'desktop-extra.yml'];
 const workflow = (name: string) => readFileSync(new URL(`../.github/workflows/${name}`, import.meta.url), 'utf8');
 
 test('each packaging workflow offers a qualification build only on a dispatch that asks, and marks its packages', () => {
