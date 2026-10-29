@@ -100,11 +100,13 @@ url = "2"
 # Linux desktop integration (plans/174): XDG portals (colour picker, wallpaper,
 # accent read) + the GNOME/KRunner search providers and org.lolly.Desktop1 bus.
 # ashpd's default `tokio` feature rides the same runtime tauri already embeds;
-# zbus matches ashpd's major with the tokio executor (async-io default OFF so
-# there is exactly one reactor in the process).
+# zbus runs on the tokio executor (default-rt OFF, so there is exactly one
+# reactor in the process). zbus 6 puts the object server and #[interface]
+# behind its `service` feature. ashpd 0.13 still uses zbus 5, so both majors
+# are in the graph; no zbus type crosses between the two.
 [target.'cfg(target_os = "linux")'.dependencies]
 ashpd = { version = "0.13", features = ["screenshot", "wallpaper", "settings"] }
-zbus = { version = "5", default-features = false, features = ["tokio"] }
+zbus = { version = "6", default-features = false, features = ["tokio", "service"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 # Already used by Wry; give the popup its own script controller while retaining
