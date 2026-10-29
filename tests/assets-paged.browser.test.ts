@@ -73,7 +73,9 @@ test('shared Assets pages retain selections, exact filters, file choice and meta
     await page.getByRole('button', { name: 'Save metadata', exact: true }).click();
     await page.getByText('Metadata saved.', { exact: true }).waitFor();
     assert.deepEqual(writes, [{ fields: { region: 'APAC' } }]);
-    await page.getByRole('button', { name: 'Read text', exact: true }).click();
+    // Editing actions live in the inspector's collapsed Edit menu.
+    await page.locator('.cat-details .cat-edit-toolbar > summary').click();
+    await page.getByRole('menuitem', { name: 'Read text', exact: true }).click();
     await page.getByText('Review text for shared search', { exact: true }).waitFor();
     assert.equal(writes.length, 1, 'extracting text performs no curation write');
     await page.getByLabel('Reviewed search text', { exact: true }).fill('Reviewed Zephyr campaign');

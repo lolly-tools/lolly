@@ -1695,6 +1695,13 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/text/presentation.ts': 3,
   'views/text/logs.ts': 1,
   'views/text/inspection.ts': 1,
+  // Write's companion pane: the pane skeleton interpolates only a randomUUID id, the empty
+  // preview is static, the Markdown preview is DOMPurify-sanitized, and checksMarkup
+  // escapeHtml()s every slice of the user's text, advice and replacement (kinds and labels
+  // are a fixed set, the rest are numbers).
+  'views/text/writing.ts': 4,
+  // The fullscreen bar is static markup.
+  'views/text/writing-layout.ts': 1,
   // Inert template comparison of already hydrated tool markup; never mounted.
   'views/canvas-translation.ts': 2,
   // Detached, inert engine HTML/style parsing; source/DOM geometry must agree before mutation.
