@@ -1913,6 +1913,7 @@
         {
           "id": "x",
           "label": "Tilt",
+          "symbol": "↕",
           "default": -6,
           "min": -180,
           "max": 180,
@@ -1921,6 +1922,7 @@
         {
           "id": "y",
           "label": "Turn",
+          "symbol": "↔",
           "default": -16,
           "min": -180,
           "max": 180,
@@ -1929,6 +1931,7 @@
         {
           "id": "z",
           "label": "Lean",
+          "symbol": "↻",
           "default": -7,
           "min": -180,
           "max": 180,
