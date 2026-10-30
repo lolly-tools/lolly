@@ -65,8 +65,8 @@ test('a design system that chose faces beyond the starter opens on all four role
     userFontFamilies: [],
     resolvedFaces: { brand: 'SUSE', display: 'Outfit', mono: 'SUSE Mono', italic: '' },
   });
-  assert.equal(r.faces.brand.starter, true, 'SUSE is the starter\'s own face');
   assert.equal(r.faces.display.starter, false, 'Outfit is the design system\'s choice');
+  assert.equal(r.faces.brand.starter, false, 'and so is its SUSE, though the starter wears it too');
   assert.equal(typeBeat(r), 1);
   // The same document read against itself as the starter stays at the first decision.
   const self = reportOwnership({ doc: starterish, starterDoc: starterish, palette: { colors: [], starter: [] }, userFontFamilies: [] });

@@ -72,8 +72,10 @@ export interface FaceState {
   /** Only on `follows`: the role this one defers to. */
   follows?: FontRole;
   /** Only on `inherited`, and only when the caller passed the starter document:
-   *  whether the face is the blank starter's own (true) or a choice the design
-   *  system made beyond it (false), such as Lolly Demo's Outfit headings. */
+   *  whether the face came with the blank starter (true) or is the design
+   *  system's own (false). A system that chose any face beyond the starter's, as
+   *  Lolly Demo chose Outfit for headings, owns all of its faces: one that happens
+   *  to match the starter's is still that system's choice. */
   starter?: boolean;
 }
 
@@ -332,6 +334,9 @@ export function reportOwnership(input: OwnershipInput): OwnershipReport {
     const state = faceState(role, doc, userFamilies, resolvedFaces[role] ?? '', starterDoc);
     faces[role] = state;
     if (state.state === 'own') ownFaces++;
+  }
+  if (FONT_ROLES.some(role => faces[role].starter === false)) {
+    for (const role of FONT_ROLES) if (faces[role].starter) faces[role] = { ...faces[role], starter: false };
   }
 
   const logos: Record<string, 'own' | 'empty'> = {};
