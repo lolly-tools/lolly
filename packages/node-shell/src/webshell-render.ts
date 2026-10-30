@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { forwardedExportRoute } from './export-route.ts';
 import { observeProductionInputs, type ProductionBrowserOptions } from './production-browser.ts';
 import { serializeMotionParams } from '../../../engine/src/motion-sampling.ts';
 /**
@@ -597,6 +598,9 @@ async function renderViaChromiumShell(
   let waiting: ExportWait | undefined;
   try {
     const page = await ctx.newPage();
+    // The internal export route override travels to the page, which routes Design stills itself (plan 326).
+    const route = forwardedExportRoute();
+    if (route) await page.addInitScript(([key, value]: string[]) => { try { localStorage.setItem(key!, value!); } catch { /* storage blocked */ } }, ['lolly.exportRoute', route]);
     const observeInputs = await observeProductionInputs(page, toolId, dims.productionInputIds ?? []);
     debug.attach(page);
     waiting = await waitForExport(page, format);

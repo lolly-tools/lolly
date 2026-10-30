@@ -1119,6 +1119,21 @@ export async function createCliBridge(
  * path. The hidden sibling is never in the exported bytes: only the `<svg>` is.
  */
 const NON_DRAWABLE = new Set(['script', 'style', 'template', 'link', 'meta']);
+/**
+ * What a Design page drawn from the operations hands back to run.ts, which stamps the
+ * credential (plan 326): the route that drew it, through `onExportRoute`, and each
+ * credentialed picture's manifest, into `ingredientSink`. Both survive the runtime's
+ * copies of the options because they are references.
+ */
+async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-tools/core/host-v1').IngredientCredential[]): Promise<void> {
+  const o = opts as { ingredientSink?: import('@lolly-tools/core/host-v1').IngredientCredential[]; onExportRoute?: (record: import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord) => void };
+  const { nodeOperationsRoute } = await import('@lolly-tools/node-shell/export-route');
+  o.onExportRoute?.(nodeOperationsRoute());
+  for (const ingredient of ingredients) {
+    if (o.ingredientSink && !o.ingredientSink.some((p) => p.activeLabel === ingredient.activeLabel)) o.ingredientSink.push(ingredient);
+  }
+}
+
 function rootSvgOf(node: Element | null): Element | null {
   let cur: Element | null = node;
   for (let depth = 0; cur && depth < 8; depth++) {
@@ -1187,7 +1202,7 @@ function rootSvgOf(node: Element | null): Element | null {
       if (format === 'pdf' && opts.sourceDocument?.toolId === 'design') {
         const { designOpsPdfNode, DESIGN_PDF_BROWSER_REQUIRED } = await import('@lolly-tools/node-shell/design-ops-pdf');
         const page = await designOpsPdfNode(node, opts as import('@lolly-tools/node-shell/pdf-finishing').PdfFinishingOpts, host, { repoRoot: REPO_ROOT });
-        if (page && 'pdf' in page) return page.pdf;
+        if (page && 'pdf' in page) { await noteDesignOps(opts, page.ingredients); return page.pdf; }
         throw Object.assign(new Error(`This Design document needs a browser engine for PDF because ${page && 'reason' in page ? page.reason : 'it is not a Design document'}`), { code: DESIGN_PDF_BROWSER_REQUIRED });
       }
       let designOpsReason: string | undefined;
@@ -1197,6 +1212,7 @@ function rootSvgOf(node: Element | null): Element | null {
         const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
         const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
         if (page && 'svg' in page) {
+          await noteDesignOps(opts, page.ingredients);
           const bytes = new TextEncoder().encode(page.svg);
           return new Blob([format === 'svgz' ? gzip(bytes) as BlobPart : bytes], { type: 'image/svg+xml' });
         }

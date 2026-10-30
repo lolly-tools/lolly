@@ -10,17 +10,19 @@
  * the CLI escalates to the browser tier, which draws the page through the web shell.
  */
 import { toCssLength, toCssPx, parseDimension } from '@lolly/engine';
-import type { ExportOpts, HostV1 } from '@lolly-tools/core/host-v1';
+import type { ExportOpts, HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
 import type { DesignPageSvg } from '../../../engine/src/design-page-svg.ts';
 import { designOpsNodeHost } from './design-ops-host.ts';
+import { nodeExportRouteChoice } from './export-route.ts';
 
 /**
  * The page the operations draw for `node`, or the reason the page needs the browser
  * tier. Null when the export is not a Design page at all.
  */
-export async function designOpsSvgNode(node: Element | null | undefined, opts: ExportOpts, host: HostV1, ctx: { repoRoot: string }): Promise<{ svg: string } | { reason: string } | null> {
+export async function designOpsSvgNode(node: Element | null | undefined, opts: ExportOpts, host: HostV1, ctx: { repoRoot: string }): Promise<{ svg: string; ingredients: IngredientCredential[] } | { reason: string } | null> {
   const doc = opts.sourceDocument;
   if (doc?.toolId !== 'design') return null;
+  if (nodeExportRouteChoice() === 'legacy') return { reason: 'the compatibility route is forced (LOLLY_EXPORT_ROUTE=legacy)' };
   const frameId = node?.getAttribute?.('data-frame-id');
   if (!frameId) return { reason: 'the export is not a single frame (name one with --s)' };
   if (opts.watermark) return { reason: 'the export carries a watermark' };
@@ -46,7 +48,6 @@ export async function designOpsSvgNode(node: Element | null | undefined, opts: E
     return { reason: `the drawing could not be compiled (${error instanceof Error ? error.message : String(error)})` };
   }
   if (page.findings.length) return { reason: `the page holds features the drawing operations do not carry yet: ${[...new Set(page.findings.map((f) => `${f.feature} (${f.id})`))].join(', ')}` };
-  // The web shell records a credentialed picture's manifest as an ingredient of the export's; this path cannot yet.
-  if (use.credentialed()) return { reason: 'a picture carries Content Credentials that only the browser tier records as an ingredient' };
-  return { svg: page.svg };
+  // A credentialed picture's manifest rides the export's credential as an ingredient, as on the web shell.
+  return { svg: page.svg, ingredients: use.ingredients() };
 }
