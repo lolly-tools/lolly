@@ -933,6 +933,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // and the shared-tray option carries no markup at all.
   'lib/brand-editor.ts': 1,
   'lib/brand-editor/type.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/colourways.ts': 1,   // 2026-10-30: the Colourways row; every name, id and colour is escapeText()d
   'lib/brand-editor/swatch-editor.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/state.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts

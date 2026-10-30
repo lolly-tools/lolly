@@ -204,10 +204,10 @@
       },
       {
         "value": "scene",
-        "label": "Use the object rotation"
+        "label": "Use Turn and tilt"
       }
     ],
-    "help": "Words read best square to the lens. The object rotation under Camera applies when you choose it."
+    "help": "Words read best square to the lens. Turn and tilt under Shape applies when you choose it."
   },
   {
     "id": "wordTracking",
@@ -1012,21 +1012,49 @@
         }
       }
     ],
-    "help": "Words are one region and take colour A."
+    "help": "Words are one region and take colour A. A two-colour SVG takes colours A and B in the order it draws them, so choosing an icon starts from its own two colours."
   },
   {
     "id": "colorA",
     "label": "Colour A",
     "type": "color",
     "default": "{color.semantic.secondary}",
-    "section": "Look"
+    "section": "Look",
+    "showIf": [
+      {
+        "materialMode": "pair"
+      },
+      {
+        "source": [
+          "primitive",
+          "model",
+          "text",
+          "collection",
+          "arrangement"
+        ]
+      }
+    ]
   },
   {
     "id": "colorB",
     "label": "Colour B",
     "type": "color",
     "default": "{color.semantic.primary}",
-    "section": "Look"
+    "section": "Look",
+    "showIf": [
+      {
+        "materialMode": "pair"
+      },
+      {
+        "source": [
+          "primitive",
+          "model",
+          "text",
+          "collection",
+          "arrangement"
+        ]
+      }
+    ]
   },
   {
     "id": "finishA",
@@ -1806,13 +1834,14 @@
   },
   {
     "id": "rotation",
-    "label": "Object rotation",
+    "label": "Turn and tilt",
     "type": "vector",
-    "section": "Camera",
+    "section": "Shape",
     "fields": [
       {
         "id": "x",
-        "label": "X",
+        "label": "Tilt",
+        "symbol": "↕",
         "default": -6,
         "min": -180,
         "max": 180,
@@ -1820,7 +1849,8 @@
       },
       {
         "id": "y",
-        "label": "Y",
+        "label": "Turn",
+        "symbol": "↔",
         "default": -16,
         "min": -180,
         "max": 180,
@@ -1828,28 +1858,35 @@
       },
       {
         "id": "z",
-        "label": "Z",
+        "label": "Lean",
+        "symbol": "↻",
         "default": -7,
         "min": -180,
         "max": 180,
         "step": 1
       }
     ],
-    "showIf": {
-      "controls": "expert",
-      "source": [
-        "primitive",
-        "artwork",
-        "model",
-        "collection"
-      ]
-    }
+    "showIf": [
+      {
+        "source": [
+          "primitive",
+          "artwork",
+          "model",
+          "collection"
+        ]
+      },
+      {
+        "source": "text",
+        "wordPose": "scene"
+      }
+    ],
+    "help": "Turns and tilts the object. It stays standing on the floor. Turn object above the preview does the same by dragging."
   },
   {
     "id": "position",
     "label": "Object position",
     "type": "vector",
-    "section": "Camera",
+    "section": "Shape",
     "fields": [
       {
         "id": "x",
@@ -1890,7 +1927,7 @@
     "id": "transform",
     "label": "Object scale",
     "type": "vector",
-    "section": "Camera",
+    "section": "Shape",
     "fields": [
       {
         "id": "scale",

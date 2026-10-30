@@ -5,7 +5,7 @@ description: "Operate the Lolly Agenda tool (agenda) using its declared inputs a
 
 # Agenda
 
-Tool ID: `agenda`. Tool version: `1.3.1`. Engine range: `^1.216.0`.
+Tool ID: `agenda`. Tool version: `1.4.0`. Engine range: `^1.216.0`.
 
 Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.
 
@@ -21,13 +21,17 @@ Required host APIs: none. Device capabilities: none.
 | --- | --- | --- |
 | title | text |  |
 | subtitle | text |  |
+| logo | asset |  |
 | sessions | table | ss |
 | layout | select | ly |
 | style | select |  |
+| backdrop | select |  |
+| motion | select |  |
 | now | datetime-local |  |
 | tz | text |  |
 | showSpeakers | boolean |  |
 | showRooms | boolean |  |
+| brandLogo | boolean |  |
 | compact | boolean |  |
 | plenaryLabel | text |  |
 | nowLabel | text |  |
@@ -36,18 +40,15 @@ Required host APIs: none. Device capabilities: none.
 | trackFilter | text |  |
 | eventDay | date |  |
 | message | text |  |
-| backdrop | select |  |
-| motion | select |  |
 | distance | select |  |
-| clockMode | select |  |
-| pptxMode | select |  |
 | dwell | number |  |
 | panSpeed | number |  |
-| logo | asset |  |
 | backgroundImage | asset |  |
 | backgroundIntensity | number |  |
 | variation | number |  |
 | strictPalette | boolean |  |
+| clockMode | select |  |
+| pptxMode | select |  |
 | kitVideo | boolean |  |
 | eventId | text |  |
 | sceneOrder | longtext |  |

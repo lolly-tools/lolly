@@ -3,7 +3,7 @@
     "id": "title",
     "label": "Event",
     "type": "text",
-    "default": "Northwind Summit 2026",
+    "default": "Candyland 2027",
     "maxLength": 90,
     "placeholder": "e.g. Northwind Summit 2026",
     "help": "Printed at the head of every layout, and used as the exported file name."
@@ -12,10 +12,17 @@
     "id": "subtitle",
     "label": "Venue or strapline",
     "type": "text",
-    "default": "Riverside Conference Centre",
+    "default": "Brisbane Convention Center",
     "maxLength": 120,
     "placeholder": "e.g. Riverside Conference Centre",
     "help": "One line under the event name. A venue, a city, or the line the programme is sold on."
+  },
+  {
+    "id": "logo",
+    "label": "Event logo",
+    "type": "asset",
+    "allowUpload": true,
+    "help": "Leave empty to use the design system's logo, in the version made for the chosen background."
   },
   {
     "id": "sessions",
@@ -41,13 +48,13 @@
           "2026-10-14",
           "09:00",
           "09:45",
-          "Building in the open",
+          "Opening keynote: building in the open",
           "Maya Lindqvist",
           "",
           "Auditorium",
           "keynote",
           "Doors open at 08:30",
-          "northwind-2026-1"
+          "agenda-conference-day-1"
         ],
         [
           "2026-10-14",
@@ -59,31 +66,31 @@
           "Hall A",
           "session",
           "",
-          "northwind-2026-2"
+          "agenda-conference-day-2"
         ],
         [
           "2026-10-14",
           "10:00",
           "10:45",
-          "Containers without the drama",
+          "Shipping containers without the drama",
           "Tomás Herrera",
           "Platform",
           "Hall B",
           "session",
           "",
-          "northwind-2026-3"
+          "agenda-conference-day-3"
         ],
         [
           "2026-10-14",
           "10:00",
           "11:30",
-          "Your first accessible component",
+          "Workshop: your first accessible component",
           "Priya Nair",
           "Practice",
           "Studio 1",
           "workshop",
           "Bring a laptop",
-          "northwind-2026-4"
+          "agenda-conference-day-4"
         ],
         [
           "2026-10-14",
@@ -95,7 +102,7 @@
           "Foyer",
           "break",
           "",
-          "northwind-2026-5"
+          "agenda-conference-day-5"
         ],
         [
           "2026-10-14",
@@ -107,19 +114,19 @@
           "Hall A",
           "session",
           "",
-          "northwind-2026-6"
+          "agenda-conference-day-6"
         ],
         [
           "2026-10-14",
           "11:15",
           "12:00",
-          "Observability on a budget",
+          "Observability on a small budget",
           "Jonas Weber",
           "Platform",
           "Hall B",
           "session",
           "",
-          "northwind-2026-7"
+          "agenda-conference-day-7"
         ],
         [
           "2026-10-14",
@@ -131,19 +138,31 @@
           "Foyer",
           "break",
           "",
-          "northwind-2026-8"
+          "agenda-conference-day-8"
         ],
         [
           "2026-10-14",
           "13:00",
           "13:45",
-          "Contrast and the people who need it",
+          "Colour, contrast and the people who need it",
           "Ingrid Sorensen",
           "Design",
           "Hall A",
           "session",
           "",
-          "northwind-2026-9"
+          "agenda-conference-day-9"
+        ],
+        [
+          "2026-10-14",
+          "13:00",
+          "13:45",
+          "Rolling back without the panic",
+          "Sam Oyelaran",
+          "Platform",
+          "Hall B",
+          "session",
+          "",
+          "agenda-conference-day-10"
         ],
         [
           "2026-10-14",
@@ -155,7 +174,7 @@
           "Auditorium",
           "keynote",
           "",
-          "northwind-2026-10"
+          "agenda-conference-day-11"
         ],
         [
           "2026-10-14",
@@ -167,7 +186,7 @@
           "Foyer",
           "social",
           "Everyone welcome",
-          "northwind-2026-11"
+          "agenda-conference-day-12"
         ]
       ]
     },
@@ -444,7 +463,7 @@
     "id": "style",
     "label": "Programme style",
     "type": "select",
-    "default": "editorial",
+    "default": "festival",
     "options": [
       {
         "value": "editorial",
@@ -482,6 +501,87 @@
     "help": "All styles keep the active design system's type and track colours. Night gives foyer screens a dark background; Minimal uses less ink on paper."
   },
   {
+    "id": "backdrop",
+    "label": "Background",
+    "type": "select",
+    "default": "depth",
+    "options": [
+      {
+        "value": "silk",
+        "label": "Silk field"
+      },
+      {
+        "value": "planes",
+        "label": "Colour planes"
+      },
+      {
+        "value": "paper",
+        "label": "Paper and ink"
+      },
+      {
+        "value": "clear",
+        "label": "Clear surface"
+      },
+      {
+        "value": "luminous",
+        "label": "Luminous"
+      },
+      {
+        "value": "contours",
+        "label": "Contours"
+      },
+      {
+        "value": "pattern",
+        "label": "Brand pattern"
+      },
+      {
+        "value": "depth",
+        "label": "Soft depth"
+      },
+      {
+        "value": "image",
+        "label": "Image"
+      }
+    ]
+  },
+  {
+    "id": "motion",
+    "label": "Motion",
+    "type": "select",
+    "default": "broadcast",
+    "options": [
+      {
+        "value": "off",
+        "label": "Still"
+      },
+      {
+        "value": "calm",
+        "label": "Calm"
+      },
+      {
+        "value": "expressive",
+        "label": "Expressive"
+      },
+      {
+        "value": "broadcast",
+        "label": "Broadcast"
+      },
+      {
+        "value": "editorial",
+        "label": "Editorial"
+      },
+      {
+        "value": "cascade",
+        "label": "Cascade"
+      },
+      {
+        "value": "slide",
+        "label": "Slide across"
+      }
+    ],
+    "help": "How each scene arrives. Calm fades in, Editorial rises slowly, Expressive springs up, Broadcast wipes in from the side, Cascade drops the cards in one by one and Slide across moves from scene to scene. Video and animated slide exports play the same motion."
+  },
+  {
     "id": "now",
     "label": "Reference time",
     "type": "datetime-local",
@@ -492,7 +592,7 @@
     "id": "tz",
     "label": "Time zone",
     "type": "text",
-    "default": "",
+    "default": "Europe/London",
     "maxLength": 60,
     "placeholder": "e.g. Europe/Berlin",
     "help": "Choose an IANA zone such as Europe/London for screens and calendar exports. Legacy links with a blank zone keep floating event times."
@@ -512,6 +612,14 @@
     "type": "boolean",
     "default": true,
     "section": "What to show"
+  },
+  {
+    "id": "brandLogo",
+    "label": "Design system logo",
+    "type": "boolean",
+    "default": true,
+    "section": "What to show",
+    "help": "Use a logo from the active design system when no event logo is chosen. Turn off to leave the logo out."
   },
   {
     "id": "compact",
@@ -590,80 +698,6 @@
     "help": "Optional welcome, intermission or closing message."
   },
   {
-    "id": "backdrop",
-    "label": "Background",
-    "type": "select",
-    "default": "depth",
-    "section": "Presentation",
-    "options": [
-      {
-        "value": "silk",
-        "label": "Silk field"
-      },
-      {
-        "value": "planes",
-        "label": "Colour planes"
-      },
-      {
-        "value": "paper",
-        "label": "Paper and ink"
-      },
-      {
-        "value": "clear",
-        "label": "Clear surface"
-      },
-      {
-        "value": "luminous",
-        "label": "Luminous"
-      },
-      {
-        "value": "contours",
-        "label": "Contours"
-      },
-      {
-        "value": "pattern",
-        "label": "Brand pattern"
-      },
-      {
-        "value": "depth",
-        "label": "Soft depth"
-      },
-      {
-        "value": "image",
-        "label": "Image"
-      }
-    ]
-  },
-  {
-    "id": "motion",
-    "label": "Motion",
-    "type": "select",
-    "default": "calm",
-    "section": "Presentation",
-    "options": [
-      {
-        "value": "off",
-        "label": "Still"
-      },
-      {
-        "value": "calm",
-        "label": "Calm"
-      },
-      {
-        "value": "expressive",
-        "label": "Expressive"
-      },
-      {
-        "value": "broadcast",
-        "label": "Broadcast"
-      },
-      {
-        "value": "editorial",
-        "label": "Editorial"
-      }
-    ]
-  },
-  {
     "id": "distance",
     "label": "Reading distance",
     "type": "select",
@@ -681,44 +715,6 @@
       {
         "value": "hall",
         "label": "Across a hall"
-      }
-    ]
-  },
-  {
-    "id": "clockMode",
-    "label": "Video time",
-    "type": "select",
-    "default": "snapshot",
-    "section": "Presentation",
-    "options": [
-      {
-        "value": "snapshot",
-        "label": "Snapshot at reference time"
-      },
-      {
-        "value": "evergreen",
-        "label": "Evergreen programme"
-      },
-      {
-        "value": "rehearsal",
-        "label": "Rehearsal from reference time"
-      }
-    ]
-  },
-  {
-    "id": "pptxMode",
-    "label": "PowerPoint content",
-    "type": "select",
-    "default": "editable",
-    "section": "Presentation",
-    "options": [
-      {
-        "value": "editable",
-        "label": "Editable text and shapes"
-      },
-      {
-        "value": "animated",
-        "label": "Embedded video and readable slides"
       }
     ]
   },
@@ -743,14 +739,6 @@
     "step": 5,
     "section": "Presentation",
     "help": "Pixels per second at 1080p. Text holds at both ends."
-  },
-  {
-    "id": "logo",
-    "label": "Event logo",
-    "type": "asset",
-    "section": "Presentation",
-    "allowUpload": true,
-    "help": "Choose the brand logo variant that belongs on the selected surface."
   },
   {
     "id": "backgroundImage",
@@ -787,11 +775,49 @@
     "section": "Presentation"
   },
   {
+    "id": "clockMode",
+    "label": "Video time",
+    "type": "select",
+    "default": "snapshot",
+    "section": "Export",
+    "options": [
+      {
+        "value": "snapshot",
+        "label": "Snapshot at reference time"
+      },
+      {
+        "value": "evergreen",
+        "label": "Evergreen programme"
+      },
+      {
+        "value": "rehearsal",
+        "label": "Rehearsal from reference time"
+      }
+    ]
+  },
+  {
+    "id": "pptxMode",
+    "label": "PowerPoint content",
+    "type": "select",
+    "default": "editable",
+    "section": "Export",
+    "options": [
+      {
+        "value": "editable",
+        "label": "Editable text and shapes"
+      },
+      {
+        "value": "animated",
+        "label": "Embedded video and readable slides"
+      }
+    ]
+  },
+  {
     "id": "kitVideo",
     "label": "Include video in event kit",
     "type": "boolean",
     "default": false,
-    "section": "Presentation",
+    "section": "Export",
     "help": "ZIP includes the programme, room screens, contact sheet, PDF, poster and calendar. Enable this to include one programme MP4. Rooms share the same source revision."
   },
   {

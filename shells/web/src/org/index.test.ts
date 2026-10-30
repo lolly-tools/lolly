@@ -1165,7 +1165,7 @@ test('home view: every link that asks for Tools uses #/tools, never the bare add
   const toolFeature = readdirSync(new URL('../views/tool/', import.meta.url))
     .filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'))
     .map((f) => read(`../views/tool/${f}`));
-  const views = [read('../views/tool.ts'), ...toolFeature, read('../views/valid.ts')].join('\n');
+  const views = [read('../views/tool.ts'), ...toolFeature, read('../views/valid.ts'), read('../views/valid-made-from.ts')].join('\n');
   const hrefs = [...views.matchAll(/href="([^"]*)"[^>]*>\$\{t\('(?:Browse all tools|Back to all tools|Explore the tools here)'\)\}/g)]
     .map((m) => m[1]);
   assert.equal(hrefs.length, 5, 'the tool view and Verify carry five links back to the tools');

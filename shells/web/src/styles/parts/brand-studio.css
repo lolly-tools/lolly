@@ -950,7 +950,7 @@ background-image:
    .ds-roles-chip. The chosen chip is the colourway the strip below edits. */
 .be-leads { display: grid; gap: .6rem; margin-block-end: .9rem; }
 .be-leads-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
-.be-leads-title { font-size: calc(.74rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-leads-title { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
 .be-leads-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .be-lead {
   display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 12px 4px 6px;
@@ -962,7 +962,7 @@ span.be-lead { cursor: default; }
 button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-lead[aria-pressed="true"] { background: hsl(var(--primary) / .16); font-weight: 700; }
 .be-lead:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-.be-lead-dot { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; box-shadow: var(--edge-faint); }
+.be-lead-dot { flex: 0 0 auto; width: 24px; height: 24px; border-radius: var(--radius-round); box-shadow: var(--edge-faint); }
 .be-lead-badge { font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground)); }
 .be-lead-add { display: grid; gap: .4rem; }
 .be-lead-add-hint { margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
