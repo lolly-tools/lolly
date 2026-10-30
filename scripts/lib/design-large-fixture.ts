@@ -13,7 +13,9 @@
  *   D1-pages   the D1 rows split across 10 pages, five artboards on each
  *   D1-motion  D1 plus 8 videos and 8 Lottie clips
  *   D2         5,000 objects in the D1 mix
- *   D3         20,000 objects in the D1 mix
+ *   D3         20,000 layers in all, the editor's ceiling (DESIGN_HIERARCHY_LIMITS.layers):
+ *              19,950 objects in the D1 mix plus the 50 artboards. A document over the
+ *              ceiling is refused and never paints.
  *   W1         1,900 rows in all, just under a lolly-work room's 2,000-box limit
  *
  * Pictures, videos and clips are referenced as uploads (`user/media/...`). The generator
@@ -72,7 +74,7 @@ const VIDEOS = 8, CLIPS = 8;
 const BASE_MIX = { text: 1100, shape: 500, image: 200, path: 100, connector: 50, group: 50 } as const;
 type Kind = keyof typeof BASE_MIX;
 const BASE_OBJECTS = 2000;
-const OBJECTS: Record<DesignFixtureName, number> = { D1: 2000, 'D1-pages': 2000, 'D1-motion': 2000, D2: 5000, D3: 20000, W1: 1900 - ARTBOARDS };
+const OBJECTS: Record<DesignFixtureName, number> = { D1: 2000, 'D1-pages': 2000, 'D1-motion': 2000, D2: 5000, D3: 20000 - ARTBOARDS, W1: 1900 - ARTBOARDS };
 const DEFAULT_SEED = 20261023;
 
 const PALETTE = ['#0f2a3f', '#1f6f5c', '#30ba78', '#f3c13a', '#e4572e', '#7d5ba6', '#2c7be5', '#f2f0eb', '#ffffff', '#dfe7ef'];

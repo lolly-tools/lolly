@@ -17,6 +17,7 @@ import type { Bounds, CanvasIndex, HandleName, Metrics, Point, Rect } from './sh
 import { bindOp, type FcCtx } from './context.ts';
 import { fieldFocusToken } from '../../lib/collab-field-focus.ts';
 import { endCanvasCost, startCanvasCost } from '../../lib/canvas-feedback.ts';
+import { setHidden } from '../../lib/steady-dom.ts';
 
 /** How long the view rests after a pan or zoom before the full sync it put off. */
 export const VIEW_SETTLE_MS = 150;
@@ -202,11 +203,12 @@ export function positionFrameScrim(fc: FcCtx): void {
   // With artboards in the doc the canvas rect is just the pasteboard - dimming
   // outside it would mark a false "export frame" (each artboard's own page
   // surface + shadow is the cue, and exports are per-artboard; plans/141 WP-B).
+  // Every frame of a pan: see lib/steady-dom.ts for why `hidden` is written only on a change.
   if (frameCfg && fc.select.getBoxes().some((b) => b && String(b[cfg.kindField]) === frameCfg.frameKind)) {
-    frameScrim.hidden = true;
+    setHidden(frameScrim, true);
     return;
   }
-  frameScrim.hidden = false;
+  setHidden(frameScrim, false);
   const m = fc.stage.metrics();
   const wh = fc.helpers.canvasWH();
   const tl = fc.stage.nativeToStage(0, 0, m);

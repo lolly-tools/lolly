@@ -37,7 +37,12 @@
  *   node scripts/bench-design-navigation.ts --url=http://127.0.0.1:5188 --fixture=D1 --cpu=1,4 --json=/abs/report.json
  * Without --url the build in LOLLY_WEB_DIST (or shells/web/dist) is served on a loopback port.
  * Other options: --phases=open,idle,... --repeat=N --headed --screenshots=/abs/dir,
- * --profile=/abs/dir with --profile-phases=idle,... for a CPU profile of each named phase.
+ * --profile=/abs/dir with --profile-phases=idle,... for a CPU profile of each named phase,
+ * --trace=/abs/dir with --trace-phases=pan,... for a Chrome trace of each named phase; the
+ * phase row then carries `trace`, the summed time of each rendering step per thread kind
+ * (style, layout, pre-paint, paint, layerize, commit, raster, GPU), so a frame's cost can be
+ * read beyond the main thread's script time, and `restyled`, the elements each style recalc
+ * touched (a count that machine load does not move). --trace-categories=a,b adds categories.
  *
  * The rAF sampler keeps a frame loop running, so idle numbers are frames the page was
  * asked for, not frames it would draw on its own. CPU throttling is a lab multiplier,
@@ -48,7 +53,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { arch, cpus, loadavg, platform } from 'node:os';
 import { dirname, join } from 'node:path';
-import { chromium, type CDPSession, type Page } from 'playwright';
+import { chromium, type Browser, type CDPSession, type Page } from 'playwright';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import type { CanvasCostSample, CanvasFeedbackSample } from '../shells/web/src/lib/canvas-feedback.ts';
 import { serveCanvasBuild } from './lib/canvas-browser-server.ts';
@@ -71,6 +76,10 @@ const repeat = Number(option('repeat') ?? 1);
 const output = option('json'), screenshots = option('screenshots');
 // --profile=/abs/dir records a CDP CPU profile of each phase named in --profile-phases (default idle).
 const profileDir = option('profile'), profilePhases = list(option('profile-phases') ?? 'idle');
+// --trace=/abs/dir records a Chrome trace of each phase named in --trace-phases (default pan);
+// --trace-categories adds categories, such as
+// disabled-by-default-devtools.timeline.invalidationTracking for why each element restyled.
+const traceDir = option('trace'), tracePhases = list(option('trace-phases') ?? 'pan'), traceExtra = list(option('trace-categories'));
 const headed = process.argv.includes('--headed');
 if (screenshots) mkdirSync(screenshots, { recursive: true });
 assert.ok(fixtures.every(name => DESIGN_FIXTURES.includes(name)), `--fixture takes ${DESIGN_FIXTURES.join(', ')}`);
@@ -87,6 +96,33 @@ function distribution(values: number[]) {
     max: round(sorted.at(-1) ?? null), sum: round(values.reduce((sum, n) => sum + n, 0)) };
 }
 const git = (...args: string[]) => { try { return execFileSync('git', args, { encoding: 'utf8' }).trim(); } catch { return null; } };
+
+/** The trace events summed per rendering step, by the kind of thread they ran on. */
+const TRACE_STEPS: Record<string, string> = {
+  UpdateLayoutTree: 'style', Layout: 'layout', PrePaint: 'prePaint', Paint: 'paint', Layerize: 'layerize',
+  'Commit': 'commit', UpdateLayer: 'updateLayer', RasterTask: 'raster', 'ImageDecodeTask': 'decode',
+  'GpuTask': 'gpu', 'ProxyMain::BeginMainFrame': 'beginMainFrame', 'DrawFrame': 'drawFrame',
+  FunctionCall: 'script', EvaluateScript: 'script', TimerFire: 'script', FireAnimationFrame: 'animationFrame', EventDispatch: 'event',
+};
+type TraceEvent = { name: string; ph: string; dur?: number; pid: number; tid: number; args?: { name?: string; elementCount?: number } };
+function summariseTrace(events: TraceEvent[]) {
+  const threads = new Map<string, string>();
+  for (const event of events) if (event.ph === 'M' && event.name === 'thread_name') threads.set(`${event.pid}:${event.tid}`, event.args?.name ?? '');
+  const kind = (thread: string) => /CrRendererMain/.test(thread) ? 'main' : /Compositor$/.test(thread) ? 'compositor'
+    : /TileWorker|RasterWorker/.test(thread) ? 'raster' : /CrGpuMain|GPU|Viz/.test(thread) ? 'gpu' : 'other';
+  const sums: Record<string, Record<string, number>> = {};
+  const restyles: number[] = [];
+  for (const event of events) {
+    if (event.name === 'UpdateLayoutTree' && event.ph === 'X') restyles.push((event.args as { elementCount?: number } | undefined)?.elementCount ?? 0);
+    const step = TRACE_STEPS[event.name];
+    if (!step || event.ph !== 'X' || !event.dur) continue;
+    const where = kind(threads.get(`${event.pid}:${event.tid}`) ?? '');
+    const bucket = sums[where] ?? {};
+    sums[where] = bucket;
+    bucket[step] = Math.round(((bucket[step] ?? 0) + event.dur / 1000) * 100) / 100;
+  }
+  return { ...sums, restyled: { recalcs: restyles.length, elements: restyles.reduce((sum, n) => sum + n, 0), largest: Math.max(0, ...restyles) } };
+}
 
 /** Installed before any app script: counters, the frame sampler and the observers. */
 function instrument(): void {
@@ -214,6 +250,11 @@ async function wheelBurst(page: Page, cdp: CDPSession, at: { x: number; y: numbe
   return { wheelEvents: sent, wheelMs, gesture: [startedAt, await page.evaluate(() => performance.now())] as [number, number] };
 }
 
+/**
+ * A key on the canvas, never on a focused control: the stage navigation leaves its keys
+ * to a focused button, and a clicked artboard title keeps focus, so Shift+2 after a title
+ * click would otherwise do nothing and the editing phases would run at Fit all.
+ */
 async function press(page: Page, key: string) {
   await page.evaluate(() => { (document.activeElement as HTMLElement | null)?.blur?.(); });
   await page.keyboard.press(key);
@@ -361,7 +402,7 @@ function probeRow(fixture: DesignFixture): string {
 }
 
 type PhaseResult = Record<string, unknown>;
-interface RunContext { page: Page; cdp: CDPSession; fixture: DesignFixture; cpu: number; band: ReturnType<typeof marqueeBand>; probe: string }
+interface RunContext { page: Page; cdp: CDPSession; fixture: DesignFixture; cpu: number; band: ReturnType<typeof marqueeBand>; probe: string; browser: Browser }
 
 /** One measured phase: the window opens, `act` runs, the window closes and is summarised. */
 async function measure(ctx: RunContext, name: PhaseName, act: () => Promise<PhaseResult>) {
@@ -370,6 +411,8 @@ async function measure(ctx: RunContext, name: PhaseName, act: () => Promise<Phas
   const before = await cdpMetrics(cdp);
   const profiling = !!profileDir && profilePhases.includes(name);
   if (profiling) { await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 500 }); await cdp.send('Profiler.start'); }
+  const tracing = !!traceDir && tracePhases.includes(name);
+  if (tracing) await ctx.browser.startTracing(page, { categories: ['devtools.timeline', 'disabled-by-default-devtools.timeline', 'cc', 'gpu', 'viz', 'benchmark', ...traceExtra] });
   const since = await openWindow(page);
   let extra: PhaseResult = {}, error: string | null = null;
   try { extra = await act(); } catch (caught) {
@@ -380,6 +423,13 @@ async function measure(ctx: RunContext, name: PhaseName, act: () => Promise<Phas
     const { profile } = await cdp.send('Profiler.stop');
     mkdirSync(profileDir!, { recursive: true });
     writeFileSync(join(profileDir!, `${ctx.fixture.name}-cpu${ctx.cpu}-${name}.cpuprofile`), JSON.stringify(profile));
+  }
+  let trace: ReturnType<typeof summariseTrace> | null = null;
+  if (tracing) {
+    const bytes = await ctx.browser.stopTracing();
+    mkdirSync(traceDir!, { recursive: true });
+    writeFileSync(join(traceDir!, `${ctx.fixture.name}-cpu${ctx.cpu}-${name}.json`), bytes);
+    trace = summariseTrace((JSON.parse(bytes.toString('utf8')) as { traceEvents: TraceEvent[] }).traceEvents);
   }
   const after = await cdpMetrics(cdp);
   // Outside the measured window: a screenshot is work the page did not ask for.
@@ -410,6 +460,7 @@ async function measure(ctx: RunContext, name: PhaseName, act: () => Promise<Phas
       nodes: after.Nodes, jsHeapUsedMiB: Math.round((after.JSHeapUsedSize ?? 0) / 1048576 * 10) / 10, jsEventListeners: after.JSEventListeners },
     counters: sampled.counters,
     lanes,
+    ...(trace ? { trace } : {}),
     pointer: Object.fromEntries(['pointer-preview', 'pointer-commit'].map(lane => {
       const samples = feedback.filter(sample => sample.lane === lane);
       return [lane, { applied: distribution(samples.map(sample => sample.appliedMs)), opportunity: distribution(samples.map(sample => sample.opportunityMs)), samples }];
@@ -421,6 +472,7 @@ async function measure(ctx: RunContext, name: PhaseName, act: () => Promise<Phas
   console.log(`  ${name.padEnd(15)} ${error ? `FAILED ${error}` : 'ok'} | ${result.gestureFrames ? 'gesture' : 'phase'} frames p50/p95/p99 ${shown.p50}/${shown.p95}/${shown.p99} ms, >33ms ${shown.over33}` +
     ` | LoAF ${loaf.length} | replaceState ${sampled.counters.replaceState} | qs ${sampled.counters.querySelector}+${sampled.counters.querySelectorAll}` +
     ` | chrome-sync ${lane('chrome-sync').count}x p95 ${lane('chrome-sync').p95} | url-sync ${lane('url-sync').count}x | load ${result.load.after}`);
+  if (trace) console.log(`    trace ${Object.entries(trace).map(([where, steps]) => `${where}: ${Object.entries(steps).map(([step, n]) => `${step} ${Math.round(n)}`).join(', ')}`).join(' | ')}`);
   return result;
 }
 
@@ -429,7 +481,7 @@ async function frameArtboard(page: Page, artboard: string): Promise<void> {
   await press(page, 'Escape'); await press(page, 'Shift+Digit1'); await settle(page);
   await page.locator(`.fc-frame-label[data-frame-id="${artboard}"]`).click();
   await settle(page, 300, 10_000);
-  await page.keyboard.press('Shift+Digit2'); await settle(page);
+  await press(page, 'Shift+Digit2'); await settle(page);
 }
 
 async function runPhases(ctx: RunContext): Promise<object[]> {
@@ -535,7 +587,7 @@ async function runPhases(ctx: RunContext): Promise<object[]> {
       await page.locator(`.fc-frame-label[data-frame-id="${focusBoard}"]`).click(); await settle(page, 300, 10_000);
     }
     const from = await zoomOf(page);
-    await page.keyboard.press('Shift+Digit2');
+    await press(page, 'Shift+Digit2');
     const quiet = await settle(page, 400, 30_000);
     return { zoomFrom: from, zoomTo: await zoomOf(page), settleMs: Math.round(quiet.ms) };
   });
@@ -561,7 +613,7 @@ async function runPhases(ctx: RunContext): Promise<object[]> {
     await settle(page, 400, 30_000);
     const selected = await outlineCount(page);
     assert.ok(selected >= 10, `the marquee selected ${selected} layers`);
-    await page.keyboard.press('Shift+Digit2'); await settle(page, 400, 30_000);
+    await press(page, 'Shift+Digit2'); await settle(page, 400, 30_000);
     const target = await hittableLayer(page, ctx.band.ids);
     assert.ok(target, 'a selected layer the pointer can reach');
     await dragRuns(page, target); edits += 6;
@@ -688,7 +740,7 @@ try {
         const mediaStart = Date.now();
         const media = await storeMedia(page, fixtureMedia(name));
         const fixture = designLargeFixture(name, { media });
-        const ctx: RunContext = { page, cdp, fixture, cpu, band: marqueeBand(fixture, 50), probe: probeRow(fixture) };
+        const ctx: RunContext = { page, cdp, fixture, cpu, band: marqueeBand(fixture, 50), probe: probeRow(fixture), browser };
         if (pass === 0 && cpu === rates[0]) {
           report.fixtures.push({ name, seed: fixture.seed, counts: fixture.counts, pages: fixture.pages.length, rowsJsonBytes: JSON.stringify(fixture.boxes).length, media: Object.keys(media).length, mediaMs: Date.now() - mediaStart });
         }

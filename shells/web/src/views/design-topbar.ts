@@ -51,6 +51,7 @@ import { isTypingTarget } from '../lib/typing-target.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { attachShareMeter } from '../lib/url-budget-gauge.ts';
 import type { NarrationActions } from './design-ports.ts';
+import { setText } from '../lib/steady-dom.ts';
 
 /**
  * Every capability the bar needs, injected. Nothing is imported from the editor:
@@ -750,7 +751,8 @@ export function mountDesignTopbar(opts: DesignTopbarOpts): DesignTopbar {
     const pct = Number.isFinite(abs) && abs > 0 ? Math.round(abs * 100) : 100;
     // A numeral and a sign, not prose - no catalog row to translate.
     const span = zoomBtn.querySelector('.dtb-label');
-    if (span) span.textContent = `${pct}%`;
+    // Every frame of a pan or zoom: see lib/steady-dom.ts for why this never replaces the node.
+    if (span) setText(span, `${pct}%`);
   }
   const unsubZoom = opts.zoom.subscribe(setZoomLabel);
 

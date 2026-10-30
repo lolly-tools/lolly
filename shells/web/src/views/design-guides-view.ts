@@ -16,6 +16,7 @@ import {
   type GuideLayout,
   type GuideView,
 } from './design-guides-shared.ts';
+import { setHidden } from '../lib/steady-dom.ts';
 
 interface ViewState {
   g: GuideContext;
@@ -193,7 +194,8 @@ function paintAllLines(state: ViewState, layout: GuideLayout): void {
 function paint(state: ViewState): void {
   const { g, view } = state;
   if (g.destroyed) return;
-  view.root.hidden = !g.visible;
+  // Every frame of a pan: see lib/steady-dom.ts for why `hidden` is written only on a change.
+  setHidden(view.root, !g.visible);
   if (!g.visible) {
     g.opts.stageEl.style.removeProperty('--stage-rulers-bottom');
     g.opts.stageEl.style.removeProperty('--stage-rulers-right');
