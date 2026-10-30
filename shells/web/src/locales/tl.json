@@ -10331,5 +10331,7 @@
   "Photos": "Mga Larawan",
   "Add data": "Magdagdag ng data",
   "Make default": "Gawing default",
-  "{name} is now the default": "Default na ngayon ang {name}"
+  "{name} is now the default": "Default na ngayon ang {name}",
+  "Text, fingerprinted": "Teksto, bilang fingerprint",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Ang tinipang teksto ay itinatala lamang bilang fingerprint, kaya wala sa file ang mismong mga salita."
 }

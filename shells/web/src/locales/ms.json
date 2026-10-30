@@ -10331,5 +10331,7 @@
   "Photos": "Foto",
   "Add data": "Tambah data",
   "Make default": "Jadikan lalai",
-  "{name} is now the default": "{name} kini menjadi lalai"
+  "{name} is now the default": "{name} kini menjadi lalai",
+  "Text, fingerprinted": "Teks, sebagai cap jari",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Teks yang ditaip hanya direkodkan sebagai cap jari, jadi perkataannya tiada dalam fail."
 }

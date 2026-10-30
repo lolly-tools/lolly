@@ -1688,5 +1688,7 @@
   "Photos": "Fotky",
   "Add data": "Přidat data",
   "Make default": "Nastavit jako výchozí",
-  "{name} is now the default": "{name} je nyní výchozí"
+  "{name} is now the default": "{name} je nyní výchozí",
+  "Text, fingerprinted": "Text, uložený jako otisk",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Napsaný text se ukládá jen jako otisk, takže samotná slova v souboru nejsou."
 }

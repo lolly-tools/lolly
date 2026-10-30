@@ -1824,5 +1824,7 @@
   "Photos": "Foto",
   "Add data": "Aggiungi dati",
   "Make default": "Imposta come predefinito",
-  "{name} is now the default": "{name} è ora il predefinito"
+  "{name} is now the default": "{name} è ora il predefinito",
+  "Text, fingerprinted": "Testo, come impronta",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Il testo digitato è registrato solo come impronta, quindi le parole non sono nel file."
 }

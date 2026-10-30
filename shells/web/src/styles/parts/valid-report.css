@@ -24,6 +24,8 @@
   .valid-location-service { margin: 0 0 var(--ui-space-panel); font-size: var(--ui-type-label); color: var(--ui-color-text-muted); }
   .valid-recreate { margin-top: var(--ui-space-control-inline); }
   .valid-recreate-absent { margin: var(--ui-space-control-inline) 0 0; font-size: var(--ui-type-label); color: var(--ui-color-text-muted); }
+  .valid-input-fingerprint { color: var(--ui-color-text-muted); font-style: italic; }
+  .valid-input-note { margin: var(--ui-space-control-inline) 0 0; font-size: var(--ui-type-label); color: var(--ui-color-text-muted); }
   .verify-view .platform-layout.valid-layout { padding-top: calc(var(--chrome-top, 0.75rem) + var(--chrome-h, 2.6rem) + max(1rem, var(--ui-space-page))); }
   .verify-view .valid-layout .plat-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--ui-space-control-inline) var(--ui-space-page); margin: 0 0 var(--ui-space-page); }
   .verify-view .valid-layout .plat-title {font-weight:250; position: static; grid-column: 1; width: auto; height: auto; padding: 0; margin: 0; overflow: visible; clip-path: none; white-space: normal; border: 0; font-size: calc(clamp(1.65rem, 3vw, 2.15rem) * var(--a11y-fs)); line-height: 1.15; }

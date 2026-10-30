@@ -1693,5 +1693,7 @@
   "Photos": "Foto",
   "Add data": "Tambah data",
   "Make default": "Jadikan default",
-  "{name} is now the default": "{name} sekarang menjadi default"
+  "{name} is now the default": "{name} sekarang menjadi default",
+  "Text, fingerprinted": "Teks, sebagai sidik",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Teks yang diketik hanya dicatat sebagai sidik, jadi kata-katanya tidak ada di berkas."
 }

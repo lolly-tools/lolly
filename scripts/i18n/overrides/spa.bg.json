@@ -1824,5 +1824,7 @@
   "Photos": "Снимки",
   "Add data": "Добави данни",
   "Make default": "Направи по подразбиране",
-  "{name} is now the default": "{name} вече е по подразбиране"
+  "{name} is now the default": "{name} вече е по подразбиране",
+  "Text, fingerprinted": "Текст, записан като отпечатък",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Въведеният текст се записва само като отпечатък, затова самите думи не са във файла."
 }

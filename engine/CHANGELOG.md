@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.287.0
+
+- `summarizeInputDigests` (the inputs an export credential records) gives each choice a person made from a tool's own options as a readable value again: `select`, `number` (with its unit, as `summarizeInputs` writes it), `boolean` and `color`. Typed inputs (`text`, `longtext`, `url`, `date`, `time`, `datetime-local`) stay `sha256:` fingerprints, as the October 2026 change (engine 1.259) made every input, so their words are still not in the file. Profile-bound fields and inactive controls are still left out.
+- New `CREDENTIAL_READABLE_TYPES` export names those four types, so the Node credential builder (`packages/node-shell/src/c2pa-opts.ts`) records the same values as the runtime.
+- The web shell's Verify "Made from" panel shows a fingerprint as "Text, fingerprinted" with one line saying why, instead of printing the hash, and Recreate with these settings no longer writes a fingerprint into a text field.
+
 ## 1.286.0
 
 - `rights-profiles`: ISC is a reviewed licence. Its one condition is the same as MIT's (the copyright line and the permission notice travel with copies), so its profile asks the same of each use and a runtime use asks nothing. `normaliseLicence` reads `ISC` and `ISC License`. `RIGHTS_RULES_VERSION` moves to `rights-rules-2026-10-30.1`, so evaluation fingerprints and recorded decisions made under the old rules no longer match, which is the intended review step.

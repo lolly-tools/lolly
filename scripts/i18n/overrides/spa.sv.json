@@ -1686,5 +1686,7 @@
   "Photos": "Foton",
   "Add data": "Lägg till data",
   "Make default": "Gör till standard",
-  "{name} is now the default": "{name} är nu standard"
+  "{name} is now the default": "{name} är nu standard",
+  "Text, fingerprinted": "Text, som fingeravtryck",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Inskriven text sparas bara som ett fingeravtryck, så själva orden finns inte i filen."
 }

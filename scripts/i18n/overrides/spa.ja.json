@@ -1694,5 +1694,7 @@
   "Photos": "写真",
   "Add data": "データを追加",
   "Make default": "デフォルトにする",
-  "{name} is now the default": "{name}をデフォルトにしました"
+  "{name} is now the default": "{name}をデフォルトにしました",
+  "Text, fingerprinted": "テキスト（フィンガープリント）",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "入力したテキストはフィンガープリントとしてのみ記録されるため、文字そのものはファイルに含まれません。"
 }

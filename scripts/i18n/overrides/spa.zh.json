@@ -1695,5 +1695,7 @@
   "Photos": "照片",
   "Add data": "添加数据",
   "Make default": "设为默认",
-  "{name} is now the default": "{name} 现在是默认"
+  "{name} is now the default": "{name} 现在是默认",
+  "Text, fingerprinted": "文字（指纹）",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "输入的文字仅以指纹形式记录，因此文件中没有文字本身。"
 }

@@ -10331,5 +10331,7 @@
   "Photos": "照片",
   "Add data": "新增資料",
   "Make default": "設為預設",
-  "{name} is now the default": "{name} 現在是預設"
+  "{name} is now the default": "{name} 現在是預設",
+  "Text, fingerprinted": "文字（指紋）",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "輸入的文字只以指紋形式記錄，因此檔案中沒有文字本身。"
 }

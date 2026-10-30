@@ -1694,5 +1694,7 @@
   "Photos": "Fotos",
   "Add data": "Añadir datos",
   "Make default": "Establecer como predeterminado",
-  "{name} is now the default": "{name} es ahora el predeterminado"
+  "{name} is now the default": "{name} es ahora el predeterminado",
+  "Text, fingerprinted": "Texto, como huella",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "El texto escrito solo se registra como huella, así que las palabras no están en el archivo."
 }

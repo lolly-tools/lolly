@@ -1822,5 +1822,7 @@
   "Photos": "Zdjęcia",
   "Add data": "Dodaj dane",
   "Make default": "Ustaw jako domyślny",
-  "{name} is now the default": "{name} jest teraz domyślny"
+  "{name} is now the default": "{name} jest teraz domyślny",
+  "Text, fingerprinted": "Tekst, jako odcisk",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Wpisany tekst jest zapisywany tylko jako odcisk, więc samych słów nie ma w pliku."
 }

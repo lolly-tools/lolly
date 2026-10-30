@@ -1154,6 +1154,7 @@ const EXPECTED: readonly string[] = [
   'StudioLookValues',
   'StudioRef',
   'suggestRebrandTheme',
+  'CREDENTIAL_READABLE_TYPES',
   'summarizeInputs',
   'textFacts',
   'toCSV',

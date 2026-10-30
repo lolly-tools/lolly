@@ -1692,5 +1692,7 @@
   "Photos": "Fotografii",
   "Add data": "Adaugă date",
   "Make default": "Setează ca implicit",
-  "{name} is now the default": "{name} este acum implicit"
+  "{name} is now the default": "{name} este acum implicit",
+  "Text, fingerprinted": "Text, ca amprentă",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Textul introdus este înregistrat doar ca amprentă, deci cuvintele nu sunt în fișier."
 }

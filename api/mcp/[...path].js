@@ -4083,7 +4083,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.285.0";
+    ENGINE_VERSION = "1.286.0";
   }
 });
 
@@ -11214,11 +11214,16 @@ function modelForHooks(model2) {
 async function summarizeInputDigests(model2, { maxEntries = 24 } = {}) {
   const values = modelToValues([...model2]);
   const eligible = model2.filter((item2) => item2 && SUMMARISABLE_TYPES.has(item2.type) && !item2.bindToProfile && matchesShowIf(item2.showIf, values));
+  const readable2 = summarizeInputs(eligible.filter((item2) => CREDENTIAL_READABLE_TYPES.has(item2.type)), { maxEntries: Infinity });
   const out = {};
   for (const item2 of eligible) {
     if (Object.keys(out).length >= maxEntries) break;
     const value = flattenValue(item2.value);
     if (!["string", "number", "boolean"].includes(typeof value) || !String(value).trim()) continue;
+    if (CREDENTIAL_READABLE_TYPES.has(item2.type)) {
+      if (readable2[item2.id] !== void 0) out[item2.id] = readable2[item2.id];
+      continue;
+    }
     try {
       out[item2.id] = `sha256:${await sha256Hex(new TextEncoder().encode(JSON.stringify([item2.type, value, item2.unit ?? ""])))}`;
     } catch {
@@ -11260,7 +11265,7 @@ function deriveExportFilename(manifest, values) {
   }
   return parts.length ? parts.join("-").slice(0, 80).replace(/-+$/, "") : null;
 }
-var DEFAULT_FILE_MAX_BYTES, SUMMARISABLE_TYPES, TEXT_VALUE_CAP;
+var DEFAULT_FILE_MAX_BYTES, SUMMARISABLE_TYPES, TEXT_VALUE_CAP, CREDENTIAL_READABLE_TYPES;
 var init_inputs = __esm({
   "engine/src/inputs.ts"() {
     "use strict";
@@ -11282,6 +11287,7 @@ var init_inputs = __esm({
       "datetime-local"
     ]);
     TEXT_VALUE_CAP = 4e3;
+    CREDENTIAL_READABLE_TYPES = /* @__PURE__ */ new Set(["select", "number", "boolean", "color"]);
   }
 });
 
@@ -144348,6 +144354,7 @@ __export(src_exports, {
   CREATION_FEEDBACK_FORMAT: () => CREATION_FEEDBACK_FORMAT,
   CREATION_FEEDBACK_TEXT_LIMIT: () => CREATION_FEEDBACK_TEXT_LIMIT,
   CREATION_FEEDBACK_VERSION: () => CREATION_FEEDBACK_VERSION,
+  CREDENTIAL_READABLE_TYPES: () => CREDENTIAL_READABLE_TYPES,
   CSS_DPI: () => CSS_DPI,
   CSS_TO_PSD_BLEND: () => CSS_TO_PSD_BLEND,
   CUBE_MAX_N: () => CUBE_MAX_N,
@@ -171406,9 +171413,10 @@ function buildExportC2paOpts(o) {
   const name = manifest.name || manifest.id;
   const values = modelToValues([...model2]);
   const eligible = new Set(Object.keys(summarizeInputs(model2.filter((item2) => matchesShowIf(item2.showIf, values)))));
+  const readable2 = summarizeInputs(model2.filter((item2) => eligible.has(item2.id) && CREDENTIAL_READABLE_TYPES.has(item2.type)));
   const inputs = Object.fromEntries(model2.filter((item2) => eligible.has(item2.id)).map((item2) => [
     item2.id,
-    `sha256:${createHash4("sha256").update(JSON.stringify([item2.type, flattenValue(item2.value), item2.unit ?? ""])).digest("hex")}`
+    CREDENTIAL_READABLE_TYPES.has(item2.type) && readable2[item2.id] !== void 0 ? readable2[item2.id] : `sha256:${createHash4("sha256").update(JSON.stringify([item2.type, flattenValue(item2.value), item2.unit ?? ""])).digest("hex")}`
   ]));
   const unit2 = dims.unit || "px";
   const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit2 !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit2} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
