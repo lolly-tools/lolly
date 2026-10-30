@@ -503,11 +503,12 @@ test('the viz stays the ambient backdrop (no inline reparent) and right-click op
   dock.destroy();
 });
 
-test('the visualiser menu carries brand themes + presets + transition timing, all delegating', async () => {
+test('the visualiser menu carries brand themes + brand influence + presets + transition timing, all delegating', async () => {
   let enabled = true;
   let picked = '';
   let theme = 't1';
   let timing = '0';
+  let influence = 'strong';
   const richViz = {
     supported: () => true,
     getAnalyser: () => null,
@@ -524,6 +525,9 @@ test('the visualiser menu carries brand themes + presets + transition timing, al
     transitions: () => [{ id: '0', name: 'Off' }, { id: '20', name: '20s' }],
     currentTransition: () => timing,
     selectTransition: (id: string) => { timing = id; },
+    influences: () => [{ id: 'off', name: 'Off' }, { id: 'subtle', name: 'Subtle' }, { id: 'strong', name: 'Strong' }, { id: 'full', name: 'Full' }],
+    currentInfluence: () => influence,
+    selectInfluence: (id: string) => { influence = id; },
   };
   const host = makeHost({ viz: richViz }, true);
   const dock = createAudioDock({ host, capabilities: { music: true, viz: true }, mount: document.body });
@@ -536,15 +540,21 @@ test('the visualiser menu carries brand themes + presets + transition timing, al
   assert.deepEqual(themePills, ['Jungle', 'Waterhole'], 'brand-tint colour-scheme pills built');
   const transitionPills = [...menu.querySelectorAll<HTMLElement>('[data-viz-transition]')].map((b) => b.textContent);
   assert.deepEqual(transitionPills, ['Off', '20s'], 'transition-timing pills built');
+  const influencePills = [...menu.querySelectorAll<HTMLElement>('[data-viz-influence]')].map((b) => b.textContent);
+  assert.deepEqual(influencePills, ['Off', 'Subtle', 'Strong', 'Full'], 'brand influence pills built');
+  assert.equal(menu.querySelector('[data-viz-influence="strong"]')!.getAttribute('aria-pressed'), 'true', 'the current influence reads as pressed');
   const presetRows = [...menu.querySelectorAll<HTMLElement>('[data-viz-preset]')].map((b) => b.dataset.vizPreset);
   assert.deepEqual(presetRows, ['a', 'b'], 'preset rows built');
 
   menu.querySelector<HTMLButtonElement>('[data-viz-preset="b"]')!.click();
   assert.equal(picked, 'b', 'preset selection delegates');
   menu.querySelector<HTMLButtonElement>('[data-viz-theme="t2"]')!.click();
-  assert.equal(theme, 't2', 'theme (brand influence) delegates');
+  assert.equal(theme, 't2', 'brand colour theme delegates');
   menu.querySelector<HTMLButtonElement>('[data-viz-transition="20"]')!.click();
   assert.equal(timing, '20', 'transition timing delegates');
+  menu.querySelector<HTMLButtonElement>('[data-viz-influence="full"]')!.click();
+  assert.equal(influence, 'full', 'brand influence delegates');
+  assert.equal(menu.querySelector('[data-viz-influence="full"]')!.getAttribute('aria-pressed'), 'true', 'and the menu marks the new level');
 
   const toggle = menu.querySelector<HTMLButtonElement>('[data-viz-toggle]')!;
   assert.equal(toggle.hidden, false);

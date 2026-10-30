@@ -29,6 +29,7 @@ import type {
   DockVizPreset,
   DockVizTheme,
   DockVizTransition,
+  DockVizInfluence,
 } from './types.ts';
 import { DOCK_CSS, DOCK_STYLE_ID } from './styles.ts';
 
@@ -166,6 +167,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   let vizPresets: DockVizPreset[] = [];
   let vizThemes: DockVizTheme[] = [];
   let vizTransitions: DockVizTransition[] = [];
+  let vizInfluences: DockVizInfluence[] = [];
   // The narration block collapses from its own header (like Tracks/Atmosphere). Session
   // state, matching the sections (which also don't persist across reloads).
   let narrBlockOpen = opts.openSections?.narration ?? true;
@@ -289,6 +291,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       </div>
       <div class="audio-dock-vizmenu-label" data-viz-theme-label hidden>Brand colour</div>
       <div class="audio-dock-viz-themes" data-viz-themes role="group" aria-label="Brand colour scheme"></div>
+      <div class="audio-dock-vizmenu-label" data-viz-influence-label hidden>Brand influence</div>
+      <div class="audio-dock-viz-transitions" data-viz-influences role="group" aria-label="Brand influence on artist presets"></div>
       <div class="audio-dock-vizmenu-label" data-viz-transition-label hidden>Timing</div>
       <div class="audio-dock-viz-transitions" data-viz-transitions role="group" aria-label="Preset transition timing"></div>
       <div class="audio-dock-vizmenu-label" data-viz-preset-label hidden>Preset</div>
@@ -321,6 +325,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   const volRange = q<HTMLInputElement>('[data-vol-range]');
   const vizThemesEl = q<HTMLElement>('[data-viz-themes]')!;
   const vizTransitionsEl = q<HTMLElement>('[data-viz-transitions]')!;
+  const vizInfluencesEl = q<HTMLElement>('[data-viz-influences]')!;
   const vizPresetsEl = q<HTMLElement>('[data-viz-presets]')!;
   const vizSearchEl = q<HTMLInputElement>('[data-viz-search]')!;
   const vizMenu = q<HTMLElement>('[data-vizmenu]')!;
@@ -817,6 +822,15 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       `<button type="button" class="audio-dock-pill${t.id === cur ? ' is-on' : ''}" data-viz-transition="${esc(t.id)}" aria-pressed="${t.id === cur}">${esc(t.name)}</button>`,
     ).join('');
   }
+  function paintVizInfluences(): void {
+    const cur = host.viz?.currentInfluence?.() ?? '';
+    const label = q<HTMLElement>('[data-viz-influence-label]');
+    if (label) label.hidden = !vizInfluences.length;
+    if (!vizInfluences.length) { vizInfluencesEl.innerHTML = ''; return; }
+    vizInfluencesEl.innerHTML = vizInfluences.map((t) =>
+      `<button type="button" class="audio-dock-pill${t.id === cur ? ' is-on' : ''}" data-viz-influence="${esc(t.id)}" aria-pressed="${t.id === cur}">${esc(t.name)}</button>`,
+    ).join('');
+  }
   function paintVizPresets(query = ''): void {
     const cur = host.viz?.currentPreset?.() ?? '';
     const label = q<HTMLElement>('[data-viz-preset-label]');
@@ -837,8 +851,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     for (const b of vizPresetsEl.querySelectorAll<HTMLElement>('[data-viz-preset]')) {
       b.setAttribute('aria-current', String(b.dataset.vizPreset === curP));
     }
-    const mark = (el: HTMLElement, attr: 'vizTheme' | 'vizTransition', cur: string): void => {
-      for (const b of el.querySelectorAll<HTMLElement>(`[data-${attr === 'vizTheme' ? 'viz-theme' : 'viz-transition'}]`)) {
+    const mark = (el: HTMLElement, attr: 'vizTheme' | 'vizTransition' | 'vizInfluence', cur: string): void => {
+      for (const b of el.querySelectorAll<HTMLElement>(`[data-${attr === 'vizTheme' ? 'viz-theme' : attr === 'vizTransition' ? 'viz-transition' : 'viz-influence'}]`)) {
         const on = b.dataset[attr] === cur;
         b.classList.toggle('is-on', on);
         b.setAttribute('aria-pressed', String(on));
@@ -846,6 +860,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     };
     mark(vizThemesEl, 'vizTheme', host.viz?.currentTheme?.() ?? '');
     mark(vizTransitionsEl, 'vizTransition', host.viz?.currentTransition?.() ?? '');
+    mark(vizInfluencesEl, 'vizInfluence', host.viz?.currentInfluence?.() ?? '');
   }
   async function rebuildVisualiser(): Promise<void> {
     if (!hasRichViz() || !host.viz) return;
@@ -857,6 +872,10 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     if (typeof host.viz.transitions === 'function') {
       try { const t = await Promise.resolve(host.viz.transitions()); if (!destroyed) vizTransitions = t; } catch { /* keep */ }
       paintVizTransitions();
+    }
+    if (typeof host.viz.influences === 'function') {
+      try { const t = await Promise.resolve(host.viz.influences()); if (!destroyed) vizInfluences = t; } catch { /* keep */ }
+      paintVizInfluences();
     }
     if (typeof host.viz.presets === 'function') {
       try { const p = await Promise.resolve(host.viz.presets()); if (!destroyed) vizPresets = p; } catch { /* keep */ }
@@ -1437,6 +1456,12 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     const b = (e.target as HTMLElement).closest?.<HTMLElement>('[data-viz-theme]');
     if (!b) return;
     host.viz?.selectTheme?.(b.dataset.vizTheme ?? '');
+    markVizCurrent();
+  });
+  vizInfluencesEl.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest?.<HTMLElement>('[data-viz-influence]');
+    if (!b) return;
+    host.viz?.selectInfluence?.(b.dataset.vizInfluence ?? '');
     markVizCurrent();
   });
   vizTransitionsEl.addEventListener('click', (e) => {

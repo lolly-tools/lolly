@@ -156,6 +156,12 @@ export interface DockVizTransition {
   name: string;
 }
 
+/** How strongly the brand palette colours a host's artist presets (Off to Full). */
+export interface DockVizInfluence {
+  id: string;
+  name: string;
+}
+
 /**
  * The visualiser adapter. TWO tiers, both driven from the shell's ONE canvas:
  *
@@ -217,6 +223,10 @@ export interface DockViz {
   transitions?(): DockVizTransition[] | Promise<DockVizTransition[]>;
   currentTransition?(): string;
   selectTransition?(id: string): void;
+  /** How strongly the brand palette colours artist presets, for the settings menu. */
+  influences?(): DockVizInfluence[] | Promise<DockVizInfluence[]>;
+  currentInfluence?(): string;
+  selectInfluence?(id: string): void;
   /** A brand silhouette to sit centred over the visualiser (plans/147): the brand's
    *  MONO-REVERSE logo (a one-colour, dark-background mark), per orientation. The shell
    *  paints it under `mix-blend-mode: difference` - the silhouette reads over any preset
