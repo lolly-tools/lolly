@@ -30,8 +30,6 @@ import { tRaw } from '../i18n.ts';
 import { assembleAnimatedSvg } from '../lib/svg-anim-core.ts';
 import { recTransition } from '../lib/transitions.ts';
 import { suspendNodeRasters, drainNodeRasters } from '../lib/clip-thumbs.ts';
-import { RASTER_DEFAULT_SCALE } from './export-scale.ts';
-import { applyRasterBackdrop } from './export-backdrop.ts';
 import { subtreePaintsNothing } from './export-pdf-leaf.ts';
 import { videoMimeCandidates, AUDIO_FRAME_HEADROOM, videoBitrate, videoFramePlan, bppForQuality, codecAdjustedBitrate, LIVE_BITS_PER_PIXEL } from './video-mime.ts';
 import { bedDuckEnvelope, scheduleGainEvents } from './audio-envelope.ts';
@@ -58,7 +56,7 @@ import type { CornerRadii, CornerPair } from '../../../../engine/src/css-box.ts'
 import { n2, parseCssColorFull, resolveRadii, parseCssColor, objectPositionFractions, parseCssLen } from './export-css.ts';
 import { renderPptx, sourceAuthorOf } from './export-pptx.ts';
 import { domToRichDoc, domToDocBlocks } from './doc-blocks.ts';
-import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngXmp, insertPngCicp, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
+import { insertWebpMeta, insertAvifExif, iccWanted, insertPngPhys, insertPngMeta, insertPngIcc, patchJpegDpi, insertJpegExif, insertJpegXmp, insertJpegIcc, setAvifCicp, injectSvgMeta, inflateBytes, deflateBytes, withGifComment } from './export-image-meta.ts';
 import { pureRotationDeg, buildCmykPaletteMap, cmykKey, applyTextTransform, drawSvgPathToPdf, withPdfRotation, withPdfMatrix, pdfApplyClip, withPdfAlpha, pdfFillCssBackground, clipOuterShadowsOfTranslucentBox, pdfRoundedRect, pdfGradientSpec, fillPdfShading, withPdfRoundedClip, sampleGradientMidpoint, borderDashArray, withPdfClipRect, assignSpotResourceNames, substitutePdfRgb, convertShadingsToCmyk, OVERPRINT_GS_DEFS, paletteHitKey } from './export-pdf-vector.ts';
 import { paintDesignGroupPage } from './export-group-compositing.ts';
 import type { PaletteHit, BrandPaletteEntry } from './export-pdf-vector.ts';
@@ -75,9 +73,12 @@ import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
-import type { WebHost, ExportOpts, ExportDims, DtoRenderOpts, ImprintState, Rgba } from './export-shared.ts';
+import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
 import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
 import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
+import { finishPng, durableEmbedCanvas } from './export-raster-finish.ts';
+import { rasterStyle, coverRasterStyle } from './export-raster-style.ts';
+import { DESIGN_STILL_RASTER_FORMATS, designExportRouteFields } from '../../../../engine/src/design-export-route.ts';
 import { outlineSvgTextRuns } from './export-svg-text-runs.ts';
 import { buildLinearGradientEl, buildRadialGradientEl } from './export-gradients.ts';
 import { assertExportReady, browserExportProgress } from './export-progress.ts';
@@ -351,6 +352,8 @@ async function renderPreparedFormat(node: Element, format: string, opts: ExportO
   // path can flip `applied`, and read by stampC2pa AFTER. `want` gates whether any
   // Lolly-rendered raster gets marked at all.
   opts._imprintSink = { want: !!opts.imprint, applied: false };
+  // Which renderer drew this file is decided per format render, like the sink above.
+  opts._exportRoute = undefined;
   // Collect componentOf ingredients from walker-inlined bitmaps ONLY when we will
   // stamp - a preview/thumbnail render never pays to decode + C2PA-scan embedded
   // images. Populated by the SVG/PDF walker (before its canvas re-encode), read below.
@@ -550,6 +553,12 @@ async function renderFormatDispatch(node: Element, format: string, opts: ExportO
   opts = request.opts;
   if (request.samples) return renderSequenceCutSheet(node, format, opts);
   if (wantsDeepExport(format,opts)) return (await import('./export-deep.ts')).renderDesignOrFrame(node,format,opts,_host);
+  // A Design still is routed once (plan 326): the GPU page renderer when it carries the
+  // page, else the browser renderer below, which the route re-enters with its record set.
+  // A session thumbnail is a preview with no credential, so it skips the route.
+  if (!opts._exportRoute && !opts.thumbnail && opts.sourceDocument?.toolId === 'design' && DESIGN_STILL_RASTER_FORMATS.includes(format)) {
+    return (await import('./export-route.ts')).routeDesignStill(node, format, opts, { compatibility: () => renderFormatDispatch(node, format, opts) });
+  }
   switch (format) {
     case 'idml': case 'premiere-xml': case 'lottie':
       return (await import('./export-structural.ts')).renderStructuralExport(format, opts, _host);
@@ -865,25 +874,6 @@ async function gainMapJpeg(canvas: HTMLCanvasElement, opts: ExportOpts, d: { dpi
 // through to the engine default (so a plain `hdr=1` looks exactly as before).
 
 
-// Neural DURABLE embed for a standalone raster canvas - the async, opt-in
-// counterpart to the sync imprintCanvas. Lazy-imports the encoder runner so ORT
-// + the ~tens-of-MB model stay out of the boot budget. Best-effort: a no-op
-// (pixels untouched) when opts.durable is off, or the encoder model isn't
-// installed / the encode faults. Container chokepoints (PDF/PPTX raster) stay
-// imprint-only for now - folding an async neural pass into the SYNC
-// imprintEmbedCanvas is future work (see plans/28-durable-content-credentials.md).
-async function durableEmbedCanvas(canvas: HTMLCanvasElement, opts: ExportOpts): Promise<void> {
-  if (!opts.durable) return;
-  try {
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-    const { embedLollyDurable } = await import('../lib/trustmark-embed.ts');
-    const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const marked = await embedLollyDurable(id.data, canvas.width, canvas.height, { reservedId: opts.durableId });
-    if (marked) { id.data.set(marked); ctx.putImageData(id, 0, 0); }
-  } catch { /* best-effort; never break an export over the durable pass */ }
-}
-
 // Default JPEG encode quality. The browser default (0.92) leaves visible ringing
 // around text and hard edges; 0.97 clears it for a modest size increase.
 const JPEG_QUALITY = 0.97;
@@ -961,17 +951,10 @@ async function renderRaster(node: Element, format: string, opts: ExportOpts): Pr
     // its own arrayBuffer()→Blob round-trip - three full multi-MB copies for a
     // high-DPI PNG.) Insertion order is preserved, so the output is byte-identical.
     // HDR overrides the colour profile with Rec.2100 PQ (its cicp tag is the HDR
-    // signal); PNG also gets a cICP chunk.
+    // signal); PNG also gets a cICP chunk (export-png-finish.ts, shared with the GPU route).
+    if (format === 'png') return await finishPng(blob, opts, d.dpi, hdrOn);
     const icc = hdrOn ? pqBt2020IccProfile() : (iccWanted(opts) ? iccProfileBytes(opts.colorProfile) : null);
-    if (format === 'png' && (d.dpi > 0 || opts.meta || icc || hdrOn)) {
-      let bytes = new Uint8Array(await blob.arrayBuffer());
-      if (d.dpi > 0) bytes = (insertPngPhys(bytes, d.dpi) || bytes) as Uint8Array<ArrayBuffer>;
-      bytes = insertPngMeta(bytes, opts.meta) as Uint8Array<ArrayBuffer>;
-      bytes = insertPngXmp(bytes, opts.meta) as Uint8Array<ArrayBuffer>;
-      if (hdrOn) bytes = insertPngCicp(bytes, HDR_PQ_CICP) as Uint8Array<ArrayBuffer>;
-      if (icc) bytes = await insertPngIcc(bytes, icc, hdrOn ? 'Rec2100 PQ' : 'sRGB') as Uint8Array<ArrayBuffer>;
-      blob = new Blob([bytes], { type: 'image/png' });
-    } else if (format === 'jpeg' && (d.dpi > 0 || opts.meta || icc)) {
+    if (format === 'jpeg' && (d.dpi > 0 || opts.meta || icc)) {
       let bytes = new Uint8Array(await blob.arrayBuffer());
       bytes = patchJpegDpi(bytes, d.dpi) as Uint8Array<ArrayBuffer>;
       bytes = insertJpegExif(bytes, opts.meta) as Uint8Array<ArrayBuffer>;
@@ -1465,54 +1448,6 @@ async function pressConditionLabel(profile: string | undefined): Promise<string 
 }
 
 // Can this environment both PRODUCE and DELIVER a DeviceCMYK TIFF? Memoised.
-// dom-to-image options: render the node at its native CSS size then scale it up
-// (via CSS transform) to the target output resolution. The target is the
-// requested dimension converted to pixels at the chosen DPI; if none was
-// requested we fall back to the canvas at its default 2× scale.
-// `root` is the export node: a one-artboard export keeps that page's own fill under a
-// transparent request (bridge/export-backdrop.ts).
-function rasterStyle(d: ExportDims, opts: ExportOpts, root?: Element): DtoRenderOpts {
-  const requested = (opts.width != null && opts.width !== '') || (opts.height != null && opts.height !== '');
-  // The default factor is stated in bridge/export-scale.ts, because preflight has to
-  // report the pixel count this line will produce and a second literal is how the
-  // two drift apart.
-  const scale = opts.scale ?? RASTER_DEFAULT_SCALE;
-  const targetW = requested ? toPixels(d.w, d.dpi) : Math.round(d.node.w * scale);
-  const targetH = requested ? toPixels(d.h, d.dpi) : Math.round(d.node.h * scale);
-  const renderScale = targetW / d.node.w;
-  const result: DtoRenderOpts = {
-    width: targetW,
-    height: targetH,
-    style: {
-      transform: `scale(${renderScale})`,
-      transformOrigin: 'top left',
-      width: `${d.node.w}px`,
-      height: `${d.node.h}px`,
-    },
-  };
-  applyRasterBackdrop(result, opts.background, root);
-  return result;
-}
-
-// dom-to-image options that stretch the node to exactly cover a target pixel box
-// (the bleed box) - non-uniform scale, matching the PDF's scale-to-bleed. Used by
-// the print-finished CMYK TIFF; any transparency is flattened onto the white sheet
-// by the CMYK pass, so the background is immaterial here.
-function coverRasterStyle(d: ExportDims, opts: ExportOpts, targetW: number, targetH: number, root?: Element): DtoRenderOpts {
-  const result: DtoRenderOpts = {
-    width: targetW,
-    height: targetH,
-    style: {
-      transform: `scale(${targetW / d.node.w}, ${targetH / d.node.h})`,
-      transformOrigin: 'top left',
-      width: `${d.node.w}px`,
-      height: `${d.node.h}px`,
-    },
-  };
-  applyRasterBackdrop(result, opts.background, root);
-  return result;
-}
-
 async function renderSvg(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   // SVG is the one export format that can express a frosted panel: the walker
   // reconstructs `backdrop-filter: blur()` by cloning, clipping and blurring the
@@ -1971,6 +1906,8 @@ function c2paEnvironment(format: string, opts: ExportOpts, dimensions?: string):
     ...designRecordEnvironment(opts.meta),
     format: String(format),
     surface: 'web',
+    // Which renderer drew a Design page and its version (plan 326); absent elsewhere.
+    ...designExportRouteFields(opts._exportRoute),
     date: new Date().toISOString(),
     ...(dimensions ? { dimensions } : {}),
     ...(inputs ? { inputs } : {}),

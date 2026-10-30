@@ -15,6 +15,7 @@ import type { Profile } from '@lolly-tools/core/host-v1';
 // one edge dragged the whole control plane onto the preload set of every visit for
 // a read that answers null on any deployment without one (see org/governance.ts).
 import { orgFlagGovernance } from './org/governance.ts';
+import { parseDesignExportRouteChoice, type DesignExportRouteChoice } from '../../../engine/src/design-export-route.ts';
 
 export interface FeatureFlag {
   id: string;
@@ -173,6 +174,31 @@ export const PERFORMANCE_UI_FLAG: FeatureFlag = {
   default: false,
   info: 'Simplifies the interface to paint faster on lower-powered devices: turns off decorative effects, plays previews only when you ask, and limits background downloads. It never changes anything you make - your exports are identical either way.',
 };
+
+// Internal, opt-IN (default OFF) and deliberately without a profile row (plan 326): lets
+// an admitted Design still raster be drawn by the GPU page renderer from the same
+// drawing operations the screen draws, instead of the browser's own renderer. Any
+// failure on that route falls back to the browser renderer without a word to the
+// person; the reason goes to the log. A control plane can default it on for internal
+// builds through the ordinary governance read; `lolly.exportRoute` in this device's
+// storage (auto, ops or legacy) overrides both, for tests and the browser render tier.
+export const EXPORT_GPU_FLAG: FeatureFlag = {
+  id: 'export-gpu-raster',
+  label: 'GPU drawing for Design image exports',
+  default: false,
+};
+
+/** Storage key for the internal export route override (`auto`, `ops` or `legacy`). */
+export const EXPORT_ROUTE_KEY = 'lolly.exportRoute';
+
+/** The export route this device asks for: the stored override first, then the flag. */
+export function exportRouteChoice(): DesignExportRouteChoice {
+  try {
+    const stored = parseDesignExportRouteChoice(localStorage.getItem(EXPORT_ROUTE_KEY));
+    if (stored) return stored;
+  } catch { /* storage blocked: the flag decides */ }
+  return isFlagOnSync(EXPORT_GPU_FLAG) ? 'ops' : 'auto';
+}
 
 const PERF_UI_CHANGE = 'lolly:perf-ui-change';
 

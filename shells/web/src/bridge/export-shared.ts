@@ -137,6 +137,10 @@ export interface ExportOpts {
    *  so an embedded asset's origin still rides the export's manifest. Created only
    *  under c2pa; deduped against opts.ingredients by activeLabel after dispatch. */
   _ingredientSink?: IngredientCredential[];
+  /** Internal: which renderer drew this Design export and its version (plan 326),
+   *  recorded as `route` and `renderer` in the credential's export assertion. Reset
+   *  for every format render; set by the route that drew the page. */
+  _exportRoute?: import('../../../../engine/src/design-export-route.ts').DesignExportRouteRecord;
   /** Internal: source ingredients (no credential of their own) known only once the
    *  render has run or the caller has rendered them: a rondocode song the sequence mix
    *  played, or a song the export bar rendered into the soundtrack (plan 301). A caller
