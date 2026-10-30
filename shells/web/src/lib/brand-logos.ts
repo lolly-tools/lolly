@@ -29,7 +29,7 @@
 
 import { designMaterialOf, designSystemNamespace } from '../../../../engine/src/design-system.ts';
 import { installUserTokens } from '../bridge/tokens.ts';
-import { activeHeadId, activeMaterialSystem } from './design-system/active.ts';
+import { activeHeadId, activeMaterialSystem, isUserDesignSystemActive } from './design-system/active.ts';
 import { ensureOwnLogos, withLogoHeadLock, type LogoOwnershipHost } from './design-system/logo-ownership.ts';
 import { LEGACY_NS } from './design-system/namespace.ts';
 import type { UserFontsHost } from '../user-fonts.ts';
@@ -143,6 +143,9 @@ export interface LogoSlot {
   bytes: number;
   /** True for a user-named variant (not one of the 8 matrix slots). */
   custom: boolean;
+  /** The shipped design system's own mark, read from the catalog: it can be replaced,
+   *  and nothing here may delete it, because it is not the person's file. */
+  shipped?: boolean;
 }
 
 // PNG / JPEG / SVG / WebP, up to 4 MB - a logo, not a hero photo.
@@ -302,7 +305,7 @@ export function logoTokensOf(doc: unknown): LogoTokenRef[] {
 }
 
 // ── Bridge-backed I/O ─────────────────────────────────────────────────────────
-type LogoHost = UserFontsHost;
+type LogoHost = UserFontsHost & { assets: CatalogBlobs };
 
 /**
  * The active design system's stored head document, or null when it has none yet.
@@ -315,6 +318,21 @@ export async function readActiveHeadDoc(host: { assets: { _getBlob(id: string): 
     if (blob) { const parsed = JSON.parse(await blob.text()); if (isRec(parsed)) return parsed; }
   } catch { /* no/corrupt doc - the caller starts from empty */ }
   return null;
+}
+
+/** The shipped design system's own document (the catalog's tokens asset), or null. */
+async function readShippedDoc(host: LogoHost): Promise<Rec | null> {
+  try {
+    const meta = await host.assets._findMetaByType?.('tokens', { catalogOnly: true });
+    const blob = meta?.id ? await host.assets._getBlob?.(meta.id, { fetchIfMissing: true }) : null;
+    if (blob) { const parsed = JSON.parse(await blob.text()); if (isRec(parsed)) return parsed; }
+  } catch { /* no catalog document - the room shows empty slots */ }
+  return null;
+}
+/** The two catalog reads the shipped fallback needs; a host without them shows empty slots. */
+interface CatalogBlobs {
+  _findMetaByType?(type: string, opts?: { catalogOnly?: boolean }): Promise<{ id?: string } | null>;
+  _getBlob?(id: string, opts?: { fetchIfMissing?: boolean }): Promise<Blob | null>;
 }
 
 /** The user's installed tokens doc, or an empty doc when none is installed yet. */
@@ -394,6 +412,19 @@ export async function listLogos(host: LogoHost): Promise<LogoSlot[]> {
     if (filled.has(key)) continue;
     filled.add(key);
     out.push(slotOf(r, parsed.identity, parsed.variant, r.blob));
+  }
+  // While the shipped design system is active the person has no head document of
+  // their own, so its marks are only in the catalog's document. A slot still empty
+  // after their own marks shows the shipped mark instead of "Not set".
+  if (!(await isUserDesignSystemActive(host))) {
+    for (const ref of logoTokensOf(await readShippedDoc(host))) {
+      const key = `${ref.identity}/${ref.variant}`;
+      if (filled.has(key) || designMaterialOf(ref.id)) continue;
+      const blob = await host.assets._getBlob?.(ref.id, { fetchIfMissing: true }).catch(() => null);
+      if (!blob) continue;
+      filled.add(key);
+      out.push({ ...slotOf({ id: ref.id }, ref.identity, ref.variant, blob), shipped: true });
+    }
   }
   return out;
 }

@@ -260,3 +260,32 @@ test('installLogo refuses cross-shape collisions in the asset.logo namespace', a
   const slots = await listLogos(host);
   assert.deepEqual(slots.map(s => `${s.identity}/${s.variant}`).sort(), ['default/crest', 'sub-brand/acme']);
 });
+
+test('while the shipped system is active, empty slots show its catalog marks, and the person\'s own still win', async () => {
+  const host = memoryHost();
+  const catalog = new Map<string, Blob>([
+    // Layered, like the real Lolly Demo document: the logo group sits in its base set.
+    ['lolly/tokens/demo', new Blob([JSON.stringify({ $themes: [{ name: 'light', selectedTokenSets: { base: 'source' } }], base: { asset: { logo: {
+      'horizontal-primary': { $type: 'asset', $value: 'lolly/logo/horizontal' },
+      'vertical-primary': { $type: 'asset', $value: 'lolly/logo/primary' },
+    } } } })])],
+    ['lolly/logo/horizontal', new Blob(['<svg/>'], { type: 'image/svg+xml' })],
+    ['lolly/logo/primary', new Blob(['<svg/>'], { type: 'image/svg+xml' })],
+  ]);
+  const assets = host.assets as typeof host.assets & Record<string, unknown>;
+  const ownBlob = assets._getBlob as (id: string) => Promise<Blob | null>;
+  assets._findMetaByType = async (_type: string, opts?: { catalogOnly?: boolean }) => (opts?.catalogOnly ? { id: 'lolly/tokens/demo' } : null);
+  assets._getBlob = async (id: string) => (await ownBlob(id)) ?? catalog.get(id) ?? null;
+
+  const shipped = await listLogos(host);
+  assert.deepEqual(shipped.map(s => [s.variant, s.assetId, s.shipped]).sort(),
+    [['horizontal-primary', 'lolly/logo/horizontal', true], ['vertical-primary', 'lolly/logo/primary', true]]);
+  for (const s of shipped) URL.revokeObjectURL(s.url);
+
+  await installLogo(host, 'horizontal-primary', png('mine.png'));
+  const mixed = await listLogos(host);
+  const horizontal = mixed.find(s => s.variant === 'horizontal-primary')!;
+  assert.equal(horizontal.shipped, undefined, 'an uploaded mark replaces the shipped one');
+  assert.equal(mixed.find(s => s.variant === 'vertical-primary')?.shipped, true, 'and the other slot keeps the shipped mark');
+  for (const s of mixed) URL.revokeObjectURL(s.url);
+});

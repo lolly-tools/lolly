@@ -260,7 +260,8 @@ export async function readOverview(host: OverviewHost): Promise<OverviewModel> {
     palette: { colors: swatches.map(s => ({ key: s.path ?? '', value: s.value })), starter: starterRefs },
     userFontFamilies: brandFontFamilies(),
     resolvedFaces: { brand: families[0], display: families[1], mono: families[2], italic: families[3] },
-    logoSlots: logos.map(l => ({ variant: l.variant, filled: true })),
+    // A shipped mark belongs to the design system, not to the person.
+    logoSlots: logos.filter(l => !l.shipped).map(l => ({ variant: l.variant, filled: true })),
   });
   const starter = new Map(starterRefs.map(r => [r.key, r.value]));
   // The strip's two halves, in palette order. A role leaf is absent from the

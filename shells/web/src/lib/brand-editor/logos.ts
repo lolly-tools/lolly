@@ -54,7 +54,7 @@ export const logoTile = (_bedit: BrandEditorCtx, v: string, identity: string, sl
   // (brand-studio.css) - the same construction the shared dropzone uses.
   return `<div class="be-logo-slot${slot ? ' is-filled' : ''}" data-be-logo="${escapeText(v)}" data-treatment="${treatment ?? 'custom'}">
         <div class="be-logo-slot-head"><span class="be-logo-slot-name">${escapeText(name)}</span>
-          ${slot ? `<button type="button" class="be-logo-del" data-logo-del="${escapeText(v)}" data-identity="${escapeText(identity)}" aria-label="${escapeText(tRaw('Remove the {name} mark', { name }))}">&#x2715;</button>` : ''}</div>
+          ${slot && !slot.shipped ? `<button type="button" class="be-logo-del" data-logo-del="${escapeText(v)}" data-identity="${escapeText(identity)}" aria-label="${escapeText(tRaw('Remove the {name} mark', { name }))}">&#x2715;</button>` : ''}</div>
         <label class="be-logo-drop" data-file-drop data-drop-label="${escapeText(slot ? t('Drop to replace') : t('Drop to add'))}">
           ${body}
           <input type="file" class="be-logo-file visually-hidden" data-logo-file="${escapeText(v)}" data-identity="${escapeText(identity)}" accept="image/png,image/jpeg,image/svg+xml,image/webp" aria-label="${escapeText(tRaw('Replace the {name} mark', { name }))}">
