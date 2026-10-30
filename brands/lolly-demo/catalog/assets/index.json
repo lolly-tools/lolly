@@ -1381,7 +1381,7 @@
       "name": "Photo Colour Treatments",
       "description": "Colour treatments for photo assets, derived from Opal: greyscale and soft duotone washes.",
       "type": "palette",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "palette",
@@ -1391,8 +1391,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/opal-photo-treatments.json",
-          "checksum": "sha256-43ciKuF7DB7j0+LZFi+/59VHn+F3ovB6j0fbIUhhQVI=",
-          "size": 1881
+          "checksum": "sha256-z6mXKy7tBlYUTsfnz0YLLFITMUpHl6/Z37YXLWrKYYc=",
+          "size": 1923
         }
       ]
     },
@@ -1401,7 +1401,7 @@
       "name": "Icon Duo Themes",
       "description": "Colour pairings for themable two-colour icons (c1 accent, c2 base), derived from Opal.",
       "type": "palette",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "tier": "on-demand",
       "tags": [
         "palette",
