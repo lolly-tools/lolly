@@ -45,7 +45,7 @@ import { icon, hasIcon } from './icons.ts';
 import { mountViz, type VizHandle } from './butterchurn-viz.ts';
 import { VIZ_PRESETS, vizPresetById, defaultVizPresetId } from './viz-presets.ts';
 import {
-  stockPresetIndex, loadStockPreset, readBrandTint,
+  stockPresetIndex, loadStockPreset, readBrandTint, writeBrandTint, BRAND_TINTS,
   type BrandTint, type StockPresetInfo,
 } from './viz-stock.ts';
 import { vizSchemes, vizSchemeById, type VizScheme } from './viz-schemes.ts';
@@ -53,7 +53,7 @@ import { CYCLE_CHOICES, loadCycleSeconds, saveCycleSeconds } from './viz-cycle.t
 import type { VizPalette, VizPaletteHost } from './viz-palette.ts';
 import type {
   DockHost, DockNowPlaying, DockSource, DockSources, DockAtmosphere, DockViz,
-  DockRepeat, DockVolume, DockAttribution, DockVizPreset, DockVizTheme, DockVizTransition,
+  DockRepeat, DockVolume, DockAttribution, DockVizPreset, DockVizTheme, DockVizTransition, DockVizInfluence,
   DockBrandMark,
 } from '@lolly-tools/audio-dock';
 
@@ -335,6 +335,20 @@ class NeuroDockViz implements DockViz {
     this.schemeId = sc.id;
     try { localStorage.setItem(SCHEME_KEY, sc.id); } catch { /* best-effort */ }
     this.handle?.setPalette(sc.palette);
+  }
+
+  // ── brand influence (how strongly the palette colours artist presets) ─────────
+  influences(): DockVizInfluence[] {
+    return BRAND_TINTS.map((t) => ({ id: t, name: t[0]!.toUpperCase() + t.slice(1) }));
+  }
+  currentInfluence(): string { return this.brandTint; }
+  selectInfluence(id: string): void {
+    const tint = BRAND_TINTS.find((t) => t === id);
+    if (!tint || tint === this.brandTint) return;
+    this.brandTint = tint;
+    writeBrandTint(tint);
+    // An artist preset is blended when it loads, so the one on screen loads again.
+    if (this.isStock(this.presetId)) void this.applyStock(this.presetId);
   }
 
   // ── transitions (preset auto-cycle timing) ──────────────────────────────────
