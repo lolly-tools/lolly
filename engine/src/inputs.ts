@@ -873,7 +873,21 @@ export function modelForHooks(model: InputModelItem[]): InputModelItem[] {
   });
 }
 
-/** Scalar input fingerprints for export credentials. */
+/**
+ * The input types an export credential records as readable values: choices a
+ * person made from the tool's own options (menus, numbers, switches, colours).
+ * Every other recorded type is free text a person typed (titles, names, notes,
+ * links, dates), and those travel only as a fingerprint.
+ */
+export const CREDENTIAL_READABLE_TYPES: ReadonlySet<string> = new Set(['select', 'number', 'boolean', 'color']);
+
+/**
+ * The active scalar inputs for an export credential: a readable value for each
+ * choice (see CREDENTIAL_READABLE_TYPES, formatted as summarizeInputs does, a
+ * number with its unit) and a `sha256:` fingerprint of everything typed, so the
+ * text itself never rides in the file. Profile-bound fields and inactive
+ * controls are left out.
+ */
 export async function summarizeInputDigests(
   model: readonly InputModelItem[],
   { maxEntries = 24 }: { maxEntries?: number } = {},
@@ -881,11 +895,16 @@ export async function summarizeInputDigests(
   const values = modelToValues([...model]);
   const eligible = model.filter(item => item && SUMMARISABLE_TYPES.has(item.type)
     && !item.bindToProfile && matchesShowIf(item.showIf, values));
+  const readable = summarizeInputs(eligible.filter(item => CREDENTIAL_READABLE_TYPES.has(item.type)), { maxEntries: Infinity });
   const out: Record<string, string> = {};
   for (const item of eligible) {
     if (Object.keys(out).length >= maxEntries) break;
     const value = flattenValue(item.value);
     if (!['string', 'number', 'boolean'].includes(typeof value) || !String(value).trim()) continue;
+    if (CREDENTIAL_READABLE_TYPES.has(item.type)) {
+      if (readable[item.id] !== undefined) out[item.id] = readable[item.id]!;
+      continue;
+    }
     try {
       out[item.id] = `sha256:${await sha256Hex(new TextEncoder().encode(JSON.stringify([item.type, value, item.unit ?? ''])))}`;
     } catch { /* optional enrichment */ }

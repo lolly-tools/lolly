@@ -1691,5 +1691,7 @@
   "Ink and paper": "油墨與紙張",
   "Named colours": "命名色彩",
   "Emphasis": "強調",
-  "Zoom to selection": "縮放至選取範圍"
+  "Zoom to selection": "縮放至選取範圍",
+  "Text, fingerprinted": "文字（指紋）",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "輸入的文字只以指紋形式記錄，因此檔案中沒有文字本身。"
 }

@@ -10327,5 +10327,7 @@
   "To send the whole creation, share it on your network below.": "पूरी रचना भेजने के लिए इसे नीचे अपने नेटवर्क पर साझा करें।",
   "To share it as a link, reduce some elements.": "इसे लिंक के रूप में साझा करने के लिए कुछ तत्व घटाएँ।",
   "This creation is too large for a link.": "यह रचना लिंक के लिए बहुत बड़ी है।",
-  "The link above opens it only on this device.": "ऊपर का लिंक इसे केवल इसी डिवाइस पर खोलता है।"
+  "The link above opens it only on this device.": "ऊपर का लिंक इसे केवल इसी डिवाइस पर खोलता है।",
+  "Text, fingerprinted": "टेक्स्ट, फ़िंगरप्रिंट के रूप में",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "टाइप किया गया टेक्स्ट केवल फ़िंगरप्रिंट के रूप में दर्ज होता है, इसलिए शब्द फ़ाइल में नहीं होते।"
 }

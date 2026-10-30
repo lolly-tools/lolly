@@ -1820,5 +1820,7 @@
   "Ink and paper": "Inchiostro e carta",
   "Named colours": "Colori con nome",
   "Emphasis": "Enfasi",
-  "Zoom to selection": "Zoom sulla selezione"
+  "Zoom to selection": "Zoom sulla selezione",
+  "Text, fingerprinted": "Testo, come impronta",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Il testo digitato è registrato solo come impronta, quindi le parole non sono nel file."
 }

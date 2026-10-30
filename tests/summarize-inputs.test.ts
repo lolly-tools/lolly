@@ -100,15 +100,22 @@ test('caps the number of entries', () => {
   assert.equal(Object.keys(out).length, 5);
 });
 
-test('export input fingerprints contain hashes instead of scalar values', async () => {
+test('export credentials record choices readably and typed text as a fingerprint', async () => {
   const model = [item({ id: 'copy', type: 'longtext', value: 'Example text for a credential' }),
-    item({ id: 'count', type: 'number', value: 12, unit: 'mm' })];
+    item({ id: 'count', type: 'number', value: 12, unit: 'mm' }),
+    item({ id: 'look', type: 'select', value: 'depth' }),
+    item({ id: 'glow', type: 'boolean', value: true }),
+    item({ id: 'ink', type: 'color', value: '#033633' }),
+    item({ id: 'site', type: 'url', value: 'https://example.com/private' }),
+    item({ id: 'day', type: 'date', value: '2026-10-14' })];
   const out = await summarizeInputDigests(model);
-  assert.deepEqual(Object.keys(out), ['copy', 'count']);
-  for (const value of Object.values(out)) assert.match(value, /^sha256:[a-f0-9]{64}$/);
+  assert.deepEqual(Object.keys(out), ['copy', 'count', 'look', 'glow', 'ink', 'site', 'day']);
+  assert.deepEqual([out.count, out.look, out.glow, out.ink], ['12 mm', 'depth', 'true', '#033633'], 'menus, numbers, switches and colours read as themselves');
+  for (const id of ['copy', 'site', 'day']) assert.match(out[id]!, /^sha256:[a-f0-9]{64}$/, `${id} is typed, so only its fingerprint travels`);
   assert.equal(JSON.stringify(out).includes('Example text'), false);
+  assert.equal(JSON.stringify(out).includes('example.com'), false);
   assert.deepEqual(await summarizeInputDigests(model), out);
-  assert.notEqual((await summarizeInputDigests([item({ id: 'count', type: 'number', value: 13, unit: 'mm' })])).count, out.count);
+  assert.notEqual((await summarizeInputDigests([item({ id: 'copy', type: 'longtext', value: 'Other text' })])).copy, out.copy);
 });
 
 test('export input fingerprints exclude profile fields and inactive controls', async () => {

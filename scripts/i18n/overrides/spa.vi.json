@@ -1689,5 +1689,7 @@
   "Ink and paper": "Mực và giấy",
   "Named colours": "Màu có tên",
   "Emphasis": "Nhấn mạnh",
-  "Zoom to selection": "Thu phóng tới phần đã chọn"
+  "Zoom to selection": "Thu phóng tới phần đã chọn",
+  "Text, fingerprinted": "Văn bản, dạng dấu vân tay",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Văn bản đã nhập chỉ được ghi dưới dạng dấu vân tay, nên bản thân các từ không có trong tệp."
 }

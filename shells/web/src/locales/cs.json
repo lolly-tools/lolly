@@ -10327,5 +10327,7 @@
   "To send the whole creation, share it on your network below.": "Chcete-li odeslat celé dílo, sdílejte jej níže ve své síti.",
   "To share it as a link, reduce some elements.": "Chcete-li jej sdílet jako odkaz, zmenšete počet prvků.",
   "This creation is too large for a link.": "Toto dílo je na odkaz příliš velké.",
-  "The link above opens it only on this device.": "Odkaz výše jej otevře jen v tomto zařízení."
+  "The link above opens it only on this device.": "Odkaz výše jej otevře jen v tomto zařízení.",
+  "Text, fingerprinted": "Text, uložený jako otisk",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Napsaný text se ukládá jen jako otisk, takže samotná slova v souboru nejsou."
 }

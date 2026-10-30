@@ -1818,5 +1818,7 @@
   "Ink and paper": "Mürekkep ve kâğıt",
   "Named colours": "Adlandırılmış renkler",
   "Emphasis": "Vurgu",
-  "Zoom to selection": "Seçime yakınlaştır"
+  "Zoom to selection": "Seçime yakınlaştır",
+  "Text, fingerprinted": "Metin, parmak izi olarak",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Yazılan metin yalnızca parmak izi olarak kaydedilir, bu yüzden sözcüklerin kendisi dosyada yoktur."
 }

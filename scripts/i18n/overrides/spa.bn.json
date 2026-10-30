@@ -1690,5 +1690,7 @@
   "Ink and paper": "কালি ও কাগজ",
   "Named colours": "নামযুক্ত রং",
   "Emphasis": "জোর",
-  "Zoom to selection": "নির্বাচনে জুম করুন"
+  "Zoom to selection": "নির্বাচনে জুম করুন",
+  "Text, fingerprinted": "লেখা, ফিঙ্গারপ্রিন্ট হিসেবে",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "টাইপ করা লেখা শুধু ফিঙ্গারপ্রিন্ট হিসেবে রেকর্ড হয়, তাই শব্দগুলো ফাইলে থাকে না।"
 }

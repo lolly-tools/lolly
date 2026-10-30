@@ -1818,5 +1818,7 @@
   "Ink and paper": "Фарба й папір",
   "Named colours": "Іменовані кольори",
   "Emphasis": "Акцент",
-  "Zoom to selection": "Масштабувати до вибору"
+  "Zoom to selection": "Масштабувати до вибору",
+  "Text, fingerprinted": "Текст, як відбиток",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Введений текст записується лише як відбиток, тож самих слів у файлі немає."
 }

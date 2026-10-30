@@ -10327,5 +10327,7 @@
   "To send the whole creation, share it on your network below.": "За да изпратите цялата творба, споделете я по-долу в мрежата си.",
   "To share it as a link, reduce some elements.": "За да я споделите като връзка, намалете някои елементи.",
   "This creation is too large for a link.": "Тази творба е твърде голяма за връзка.",
-  "The link above opens it only on this device.": "Връзката по-горе я отваря само на това устройство."
+  "The link above opens it only on this device.": "Връзката по-горе я отваря само на това устройство.",
+  "Text, fingerprinted": "Текст, записан като отпечатък",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Въведеният текст се записва само като отпечатък, затова самите думи не са във файла."
 }

@@ -1692,5 +1692,7 @@
   "Ink and paper": "Ink at papel",
   "Named colours": "Mga pinangalanang kulay",
   "Emphasis": "Diin",
-  "Zoom to selection": "I-zoom sa pinili"
+  "Zoom to selection": "I-zoom sa pinili",
+  "Text, fingerprinted": "Teksto, bilang fingerprint",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Ang tinipang teksto ay itinatala lamang bilang fingerprint, kaya wala sa file ang mismong mga salita."
 }

@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.286.0
+
+- `summarizeInputDigests` (the inputs an export credential records) gives each choice a person made from a tool's own options as a readable value again: `select`, `number` (with its unit, as `summarizeInputs` writes it), `boolean` and `color`. Typed inputs (`text`, `longtext`, `url`, `date`, `time`, `datetime-local`) stay `sha256:` fingerprints, as the October 2026 change (engine 1.259) made every input, so their words are still not in the file. Profile-bound fields and inactive controls are still left out.
+- New `CREDENTIAL_READABLE_TYPES` export names those four types, so the Node credential builder (`packages/node-shell/src/c2pa-opts.ts`) records the same values as the runtime.
+- The web shell's Verify "Made from" panel shows a fingerprint as "Text, fingerprinted" with one line saying why, instead of printing the hash, and Recreate with these settings no longer writes a fingerprint into a text field.
+
 ## 1.285.0
 
 - `checkDesignHouseRules`: the `logo-surface` finding's message gives each logo's display name from `opts.catalog.assets` (`DesignBriefCatalogV1`), in quotes, and falls back to the asset id when the catalog gives no name or no catalog is passed. The choices read as one plain list, "use A, B or C". The finding's `value` and `expected` keep the raw asset ids, so `lolly check` and MCP `lolly_check` (which pass catalog facts with names) show names in `message` while `evidence` and `suggestion` still carry the ids. Nothing else in the result changes.

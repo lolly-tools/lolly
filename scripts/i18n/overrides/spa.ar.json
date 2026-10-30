@@ -1825,5 +1825,7 @@
   "Ink and paper": "الحبر والورق",
   "Named colours": "ألوان مسمّاة",
   "Emphasis": "التأكيد",
-  "Zoom to selection": "تكبير إلى التحديد"
+  "Zoom to selection": "تكبير إلى التحديد",
+  "Text, fingerprinted": "نص، مسجّل كبصمة",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "يُسجَّل النص المكتوب كبصمة فقط، لذا فإن الكلمات نفسها ليست في الملف."
 }

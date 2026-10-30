@@ -77,8 +77,8 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1787,
-      "largestFunctionLines": 1730,
+      "lines": 1789,
+      "largestFunctionLines": 1740,
       "importFanIn": 1,
       "importFanOut": 66,
       "typeEscapes": 8
@@ -105,17 +105,17 @@
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1545,
+      "lines": 1611,
       "largestFunctionLines": 1571,
       "importFanIn": 1,
-      "importFanOut": 66,
+      "importFanOut": 67,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2689,
-      "largestFunctionLines": 1929,
+      "lines": 2657,
+      "largestFunctionLines": 1915,
       "importFanIn": 3,
-      "importFanOut": 55,
+      "importFanOut": 56,
       "typeEscapes": 1
     }
   },

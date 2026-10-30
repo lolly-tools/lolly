@@ -48,6 +48,8 @@ import { wireTextHandoffs } from '../lib/text-handoff.ts';
 // the change-history `section` builder) that would otherwise shadow the import.
 import { icon as glyph, type IconName } from '../lib/icons.ts';
 import { t, tRaw } from '../i18n.ts';
+import { inputsDigestHtml, seedValuesFromDigest } from './valid-made-from.ts';
+export { inputsDigestHtml };
 // The WP-F async-job foundation: the watermark work is heavy and long, so it runs
 // as a registered job with the global toast owning progress and cancel, rather
 // than as an in-view bar that dies with the view. See the deep-scan job section below.
@@ -193,45 +195,6 @@ function checkRow(c: Check, i = 0): string {
 function fact(label: string, value: unknown, icon: IconName): string {
   if (value == null || value === '') return '';
   return `<div class="valid-fact"><dt><span class="valid-fact-ic" aria-hidden="true">${svgIcon(icon)}</span><span>${escape(label)}</span></dt><dd>${escape(String(value))}</dd></div>`;
-}
-
-// The scalar-input digest recorded by the writer's tools.lolly.export assertion
-// (env.inputs) - "what this was made from": the colours, sizes, toggles and short
-// text the tool rendered with. Boxed as its own panel (matching change-history/
-// assertion-log) and placed ABOVE change history so an inspected asset tells its
-// "what it's made from" story before its "what happened to it" story. Empty in →
-// nothing rendered (so panelsBlock silently drops this column when there's no digest).
-// `recreate` (the /verify path only - the catalog/gallery callers pass none) adds
-// the "Recreate with these settings" CTA: the anchor's plain href opens a blank
-// session as the fallback; mountValid's delegated [data-recreate] handler upgrades
-// the click into a digest-seeded link (lib/seed-url.ts). Settings-honest wording:
-// the digest is scalar-only, so this reopens the recorded settings, not a clone.
-export function inputsDigestHtml(
-  inputs: Record<string, string> | undefined,
-  recreate?: { toolId: string; toolName: string; fileIndex: number },
-  /** The recorded tool NAME when it did not resolve against this build's index
-   *  (plans/143 V1): a verified Lolly file opened on another instance still gets
-   *  a door - an honest line plus the gallery - instead of a silent dead end at
-   *  the exact moment the file has made someone curious. */
-  missingTool?: string,
-): string {
-  const entries = inputs ? Object.entries(inputs).filter(([, v]) => v != null && v !== '') : [];
-  if (!entries.length) return '';
-  const isColor = (v: string): boolean => /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v.trim());
-  const rows = entries.map(([k, v]) => {
-    const sw = isColor(v) ? `<span class="valid-input-swatch" style="background:${escape(v)}" aria-hidden="true"></span>` : '';
-    return `<div class="valid-input-row"><dt>${escape(k)}</dt><dd>${sw}<span>${escape(v)}</span></dd></div>`;
-  }).join('');
-  const cta = recreate ? `
-      <a class="btn valid-recreate" href="#/tool/${escape(recreate.toolId)}"
-         data-recreate="${recreate.fileIndex}" data-recreate-tool="${escape(recreate.toolId)}">${t('Recreate with these settings in {tool}', { tool: recreate.toolName })}</a>` : missingTool ? `
-      <p class="valid-recreate-absent">${t('Made with the {tool} tool, which is not in this catalogue.', { tool: missingTool })}</p>
-      <a class="btn valid-recreate" href="/#/tools">${t('Explore the tools here')}</a>` : '';
-  return `
-    <div class="valid-inputs valid-panel">
-      <h3>${svgIcon('sparkle')}<span>${t('Made from')}</span></h3>
-      <dl class="valid-input-list">${rows}</dl>${cta}
-    </div>`;
 }
 
 // ── Script (a synthetic-voice step's recorded text) ─────────────────────────
@@ -1812,6 +1775,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
 
   return `
     <div class="valid-result ${state.cls}" data-actions-index="${fileIndex}">
+      ${/* A file made on this device leads with that: it is the most certain thing the report can say, and the way back to the document. */ ''}${mine ? mineNote(mine) : ''}
       <div class="valid-top">
         <div class="valid-hero">
           <div class="valid-hero-title">
@@ -1850,7 +1814,6 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
       </div>` : ''}
       </div>
       ${notesHtml(notes, fileIndex)}
-      ${mine ? mineNote(mine) : ''}
       ${claimPanelHtml(fileIndex, report.format, fileName, report.found)}
       ${watermarkNote(watermark)}
       ${imprintRescanBlock(fileIndex, report.format, fileName, !!watermark?.present, report.madeWithLolly)}
@@ -3227,11 +3190,8 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
 
   // "Recreate with these settings in <tool>" - turn the credential's scalar-input
   // digest back into a seeded tool link (lib/seed-url.ts - the same URL shape a
-  // share of that look produces). The digest stores every value as a display
-  // string (engine summarizeInputs): numbers may carry a unit ("12 mm"), booleans
-  // are 'true'/'false' - coerce them per the manifest's input types before
-  // seeding, or serializeUrlState would mis-encode them (a truthy 'false' string
-  // serialises as boolean ON). Failure falls back to the anchor's blank-session href.
+  // share of that look produces), read back per input type by seedValuesFromDigest.
+  // Failure falls back to the anchor's blank-session href.
   async function recreateFromDigest(a: HTMLAnchorElement): Promise<void> {
     const toolId = a.dataset.recreateTool || '';
     const inputs = activeDigests[Number(a.dataset.recreate)];
@@ -3240,18 +3200,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
       const [{ getTool }, { toolSeedHref }] = await Promise.all([import('../bridge/tool-loader.ts'), import('../lib/seed-url.ts')]);
       const { manifest } = await getTool(toolId);
       const typeById = new Map(manifest.inputs.map((inp) => [inp.id, inp.type]));
-      const values: Record<string, unknown> = {};
-      for (const [k, v] of Object.entries(inputs ?? {})) {
-        const type = typeById.get(k);
-        if (type === 'number') {
-          const n = parseFloat(v);          // drops a trailing unit ("12 mm" → 12)
-          if (!Number.isNaN(n)) values[k] = n;
-        } else if (type === 'boolean') {
-          values[k] = v === 'true';
-        } else {
-          values[k] = v;
-        }
-      }
+      const values = seedValuesFromDigest(inputs, typeById);
       // The design version and theme choices the credential records (plans/319) reopen
       // with the settings; the design system joins only when this device holds the same one.
       window.location.hash = await recreateHrefFor(await toolSeedHref(toolId, values), activeReports[Number(a.dataset.recreate)], host);

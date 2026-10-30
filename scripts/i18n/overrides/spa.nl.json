@@ -1682,5 +1682,7 @@
   "Ink and paper": "Inkt en papier",
   "Named colours": "Benoemde kleuren",
   "Emphasis": "Nadruk",
-  "Zoom to selection": "Inzoomen op selectie"
+  "Zoom to selection": "Inzoomen op selectie",
+  "Text, fingerprinted": "Tekst, als vingerafdruk",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Getypte tekst wordt alleen als vingerafdruk vastgelegd, dus de woorden zelf staan niet in het bestand."
 }

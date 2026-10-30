@@ -13,7 +13,7 @@
  * reads the file as trusted.
  */
 import { createHash } from 'node:crypto';
-import { summarizeInputs, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps, designRecordEnvironment, designRecordFrom, extractC2paStore, readDesignRecord, readFileDesignRecord, verifyC2pa } from '@lolly/engine';
+import { summarizeInputs, CREDENTIAL_READABLE_TYPES, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps, designRecordEnvironment, designRecordFrom, extractC2paStore, readDesignRecord, readFileDesignRecord, verifyC2pa } from '@lolly/engine';
 import { modelToValues, flattenValue } from '../../../engine/src/inputs.ts';
 import type { embedC2pa, C2paSigner, DesignRecord } from '@lolly/engine';
 import type { ExportMeta, Profile } from '@lolly-tools/core/host-v1';
@@ -87,9 +87,14 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
   const name = manifest.name || manifest.id;
   const values = modelToValues([...model]);
   const eligible = new Set(Object.keys(summarizeInputs(model.filter(item => matchesShowIf(item.showIf, values)))));
+  // Choices read as themselves and typed text as a fingerprint, as the runtime's
+  // summarizeInputDigests records them.
+  const readable = summarizeInputs(model.filter(item => eligible.has(item.id) && CREDENTIAL_READABLE_TYPES.has(item.type)));
   const inputs = Object.fromEntries(model.filter(item => eligible.has(item.id)).map(item => [
     item.id,
-    `sha256:${createHash('sha256').update(JSON.stringify([item.type, flattenValue(item.value), item.unit ?? ''])).digest('hex')}`,
+    CREDENTIAL_READABLE_TYPES.has(item.type) && readable[item.id] !== undefined
+      ? readable[item.id]!
+      : `sha256:${createHash('sha256').update(JSON.stringify([item.type, flattenValue(item.value), item.unit ?? ''])).digest('hex')}`,
   ]));
   const unit = dims.unit || 'px';
   const sizeLine = (typeof dims.width === 'number' && dims.width > 0 && typeof dims.height === 'number' && dims.height > 0)

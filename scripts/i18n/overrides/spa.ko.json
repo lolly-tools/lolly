@@ -1820,5 +1820,7 @@
   "Ink and paper": "잉크와 종이",
   "Named colours": "이름 있는 색상",
   "Emphasis": "강조",
-  "Zoom to selection": "선택 항목에 맞게 확대/축소"
+  "Zoom to selection": "선택 항목에 맞게 확대/축소",
+  "Text, fingerprinted": "텍스트, 지문으로 기록",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "입력한 텍스트는 지문으로만 기록되므로 단어 자체는 파일에 없습니다."
 }

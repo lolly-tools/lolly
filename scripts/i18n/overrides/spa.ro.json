@@ -1688,5 +1688,7 @@
   "Ink and paper": "Cerneală și hârtie",
   "Named colours": "Culori denumite",
   "Emphasis": "Accent",
-  "Zoom to selection": "Zoom la selecție"
+  "Zoom to selection": "Zoom la selecție",
+  "Text, fingerprinted": "Text, ca amprentă",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Textul introdus este înregistrat doar ca amprentă, deci cuvintele nu sunt în fișier."
 }

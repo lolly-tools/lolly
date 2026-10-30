@@ -1820,5 +1820,7 @@
   "Ink and paper": "Мастило и хартия",
   "Named colours": "Именувани цветове",
   "Emphasis": "Акцент",
-  "Zoom to selection": "Мащабиране до селекцията"
+  "Zoom to selection": "Мащабиране до селекцията",
+  "Text, fingerprinted": "Текст, записан като отпечатък",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Въведеният текст се записва само като отпечатък, затова самите думи не са във файла."
 }

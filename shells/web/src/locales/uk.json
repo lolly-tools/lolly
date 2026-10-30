@@ -10327,5 +10327,7 @@
   "To send the whole creation, share it on your network below.": "Щоб надіслати всю роботу, поділіться нею нижче у своїй мережі.",
   "To share it as a link, reduce some elements.": "Щоб поділитися нею як посиланням, зменште кількість елементів.",
   "This creation is too large for a link.": "Ця робота завелика для посилання.",
-  "The link above opens it only on this device.": "Посилання вище відкриває її лише на цьому пристрої."
+  "The link above opens it only on this device.": "Посилання вище відкриває її лише на цьому пристрої.",
+  "Text, fingerprinted": "Текст, як відбиток",
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Введений текст записується лише як відбиток, тож самих слів у файлі немає."
 }
