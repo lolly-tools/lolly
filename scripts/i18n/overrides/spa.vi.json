@@ -1691,5 +1691,7 @@
   "Emphasis": "Nhấn mạnh",
   "Zoom to selection": "Thu phóng tới phần đã chọn",
   "Photos": "Ảnh",
-  "Add data": "Thêm dữ liệu"
+  "Add data": "Thêm dữ liệu",
+  "Make default": "Đặt làm mặc định",
+  "{name} is now the default": "{name} giờ là mặc định"
 }

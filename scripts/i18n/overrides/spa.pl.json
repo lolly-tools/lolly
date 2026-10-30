@@ -1820,5 +1820,7 @@
   "Emphasis": "Wyróżnienie",
   "Zoom to selection": "Powiększ do wyboru",
   "Photos": "Zdjęcia",
-  "Add data": "Dodaj dane"
+  "Add data": "Dodaj dane",
+  "Make default": "Ustaw jako domyślny",
+  "{name} is now the default": "{name} jest teraz domyślny"
 }

@@ -1827,5 +1827,7 @@
   "Emphasis": "التأكيد",
   "Zoom to selection": "تكبير إلى التحديد",
   "Photos": "الصور",
-  "Add data": "إضافة بيانات"
+  "Add data": "إضافة بيانات",
+  "Make default": "اجعله الافتراضي",
+  "{name} is now the default": "أصبح {name} الافتراضي"
 }

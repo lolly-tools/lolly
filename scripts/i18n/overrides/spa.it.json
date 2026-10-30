@@ -1822,5 +1822,7 @@
   "Emphasis": "Enfasi",
   "Zoom to selection": "Zoom sulla selezione",
   "Photos": "Foto",
-  "Add data": "Aggiungi dati"
+  "Add data": "Aggiungi dati",
+  "Make default": "Imposta come predefinito",
+  "{name} is now the default": "{name} è ora il predefinito"
 }

@@ -1694,5 +1694,7 @@
   "Emphasis": "Diin",
   "Zoom to selection": "I-zoom sa pinili",
   "Photos": "Mga Larawan",
-  "Add data": "Magdagdag ng data"
+  "Add data": "Magdagdag ng data",
+  "Make default": "Gawing default",
+  "{name} is now the default": "Default na ngayon ang {name}"
 }

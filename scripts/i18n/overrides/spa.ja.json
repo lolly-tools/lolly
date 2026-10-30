@@ -1692,5 +1692,7 @@
   "Emphasis": "強調",
   "Zoom to selection": "選択範囲にズーム",
   "Photos": "写真",
-  "Add data": "データを追加"
+  "Add data": "データを追加",
+  "Make default": "デフォルトにする",
+  "{name} is now the default": "{name}をデフォルトにしました"
 }

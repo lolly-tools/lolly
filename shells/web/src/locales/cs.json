@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "Toto dílo je na odkaz příliš velké.",
   "The link above opens it only on this device.": "Odkaz výše jej otevře jen v tomto zařízení.",
   "Photos": "Fotky",
-  "Add data": "Přidat data"
+  "Add data": "Přidat data",
+  "Make default": "Nastavit jako výchozí",
+  "{name} is now the default": "{name} je nyní výchozí"
 }

@@ -1691,5 +1691,7 @@
   "Emphasis": "زور",
   "Zoom to selection": "انتخاب پر زوم کریں",
   "Photos": "تصاویر",
-  "Add data": "ڈیٹا شامل کریں"
+  "Add data": "ڈیٹا شامل کریں",
+  "Make default": "ڈیفالٹ بنائیں",
+  "{name} is now the default": "{name} اب ڈیفالٹ ہے"
 }

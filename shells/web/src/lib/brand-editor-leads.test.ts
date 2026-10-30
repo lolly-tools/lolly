@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The real Colours room on a design system with three colourways (plans/319 A2).
+ * The real Colours room on a design system with three colourways (plans/319 A2),
+ * and the Colourways row that creates and edits them (A3).
  *
  * Run directly:
  *   node --import ./tests/css-stub.mjs --test "shells/web/src/lib/brand-editor-leads.test.ts"
@@ -12,7 +13,9 @@
  * lead in both modes and no other lead, and Rebuild palette keeps every lead and
  * says so in its review. Where the room cannot do something on a system with
  * leads (rebuild a file that encodes its colourways its own way, clear a lead's
- * own role from "Use as"), it says why on screen. The harness is
+ * own role from "Use as"), it says why on screen. The A3 test drives the row: add
+ * a colourway from a palette colour, edit its roles in each mode, rename, copy,
+ * make the copy the default, remove one and undo. The harness is
  * brand-editor.test.ts's: a jsdom page, a fake host that stores what the editor
  * saves, and the editor's own DOM.
  */
@@ -242,6 +245,87 @@ test('the room says why it cannot: a refused rebuild shows its reason, and a lea
     assert.equal(root.querySelector<HTMLElement>('[data-be-undo]')?.hidden ?? true, true, 'no undo step for a change that did not happen');
     // A role every lead shares stays an ordinary toggle.
     for (const role of ['surface', 'text']) assert.equal(root.querySelector(`[data-be-useas="${role}"]`)?.getAttribute('aria-disabled'), null, role);
+  } finally {
+    editor?.teardown();
+    h.restore();
+  }
+});
+
+test('the Colourways row adds a colourway from a palette colour, edits it, and renames, copies, promotes and removes', async () => {
+  const { single } = fixture();
+  const h = harness(structuredClone(single), single);
+  const { dom, root, $, click, settle, tiles } = h;
+  const stripColour = (role: string): string => $(`[data-be-role="${role}"] .be-role-sw`).style.getPropertyValue('--sw');
+  const chips = (): string[] => [...root.querySelectorAll<HTMLElement>('[data-be-lead]')].map(c => `${c.dataset.beLead}${c.getAttribute('aria-pressed') === 'true' ? '*' : ''}`);
+  const leadsOf = (): Array<[string, string, boolean]> => listLeads(h.state.installed).map(l => [l.id, l.name, l.canonical]);
+  let editor: Awaited<ReturnType<typeof import('./brand-editor.ts')['mountBrandEditor']>> | undefined;
+  try {
+    const { mountBrandEditor } = await import('./brand-editor.ts');
+    editor = await mountBrandEditor(root, h.host); await settle(() => tiles() > 0);
+
+    // One lead: shown as the system's own colour, next to Add, with nothing to manage yet.
+    assert.equal(root.querySelectorAll('.be-leads-row .be-lead').length, 1);
+    assert.deepEqual(chips(), [], 'the only lead is not a choice');
+    assert.equal(root.querySelector('[data-be-lead-act]'), null);
+    const canonicalPrimary = stripColour('primary');
+
+    // Add: the palette's own colours are the starting points.
+    click('[data-be-lead-add]');
+    const picks = [...root.querySelectorAll<HTMLElement>('[data-be-lead-pick]')];
+    assert.ok(picks.length > 0, 'the palette offers its colours');
+    const hex = picks.find(p => p.dataset.beLeadPick !== canonicalPrimary)!.dataset.beLeadPick!;
+    picks.find(p => p.dataset.beLeadPick === hex)!.click();
+    await settle(() => listLeads(h.state.installed).length === 2);
+    const [canonical, added] = listLeads(h.state.installed);
+    assert.equal(canonical.canonical, true);
+    assert.deepEqual(chips(), [canonical.id, `${added.id}*`], 'the new colourway is the one being edited');
+    assert.equal(root.querySelector('[data-be-lead-pick]'), null, 'the picker closes');
+    assert.equal(stripColour('primary'), added.colours.light.primary, 'the strip shows the new colourway');
+    assert.match($('[data-be-undo]').textContent ?? '', /added/);
+
+    // A role picked now is the new colourway's own, not the default's.
+    const coral = walkSwatches(h.state.installed, 'light').find(s => s.hex && s.kind !== 'semantic' && s.hex !== added.colours.light.secondary)!;
+    const sel = $<HTMLSelectElement>('[data-be-role-pick="secondary"]');
+    sel.value = coral.key;
+    sel.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    await settle(() => colorToHex(resolveIn(h.state.installed, added.id, 'light', 'secondary')) === coral.hex);
+    assert.equal(colorToHex(resolveIn(h.state.installed, added.id, 'light', 'secondary')), coral.hex);
+    assert.equal(resolveIn(h.state.installed, canonical.id, 'light', 'secondary'), resolveIn(single, canonical.id, 'light', 'secondary'), 'the default keeps its secondary');
+
+    // Dark shows that colourway's dark colours; Light goes back.
+    click('[data-be-lead-mode="dark"]');
+    assert.equal(stripColour('primary'), colorToHex(resolveIn(h.state.installed, added.id, 'dark', 'primary')));
+    click('[data-be-lead-mode="light"]');
+
+    // Rename.
+    const name = $<HTMLInputElement>('[data-be-lead-name]');
+    name.value = 'Harbour';
+    name.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    await settle(() => listLeads(h.state.installed)[1]?.name === 'Harbour');
+    assert.deepEqual(leadsOf()[1], [added.id, 'Harbour', false], 'the name changes, the id stays');
+
+    // Duplicate, then make the copy the default.
+    click('[data-be-lead-act="duplicate"]');
+    await settle(() => listLeads(h.state.installed).length === 3);
+    const copy = listLeads(h.state.installed)[2];
+    assert.equal(copy.name, 'Harbour 2');
+    assert.deepEqual(copy.colours, listLeads(h.state.installed)[1].colours, 'the copy looks the same');
+    click('[data-be-lead-act="canonical"]');
+    await settle(() => listLeads(h.state.installed)[0]?.id === copy.id);
+    assert.equal(root.querySelector('[data-be-lead-act="canonical"]'), null, 'the default is not offered again');
+    assert.equal(root.querySelector('[data-be-lead-act="remove"]'), null, 'and cannot be removed');
+
+    // Remove Harbour: choose it, then Remove; the room goes back to the default.
+    click(`[data-be-lead="${added.id}"]`);
+    click('[data-be-lead-act="remove"]');
+    await settle(() => listLeads(h.state.installed).length === 2);
+    assert.deepEqual(leadsOf().map(l => l[0]), [copy.id, canonical.id]);
+    assert.deepEqual(chips(), [`${copy.id}*`, canonical.id]);
+
+    // Undo brings it back.
+    click('[data-be-undo]');
+    await settle(() => listLeads(h.state.installed).length === 3);
+    assert.ok(leadsOf().some(l => l[0] === added.id));
   } finally {
     editor?.teardown();
     h.restore();

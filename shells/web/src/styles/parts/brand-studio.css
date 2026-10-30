@@ -945,6 +945,34 @@ background-image:
    below 640px (the phone) and at the 507px stacked width, two across a desktop
    split's main column. */
 .be-roles-strip { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+/* The Colourways row (lib/brand-editor/colourways.ts) heads the roles wing: one
+   chip per colourway, its lead colour as the dot, chosen as a tinted fill like
+   .ds-roles-chip. The chosen chip is the colourway the strip below edits. */
+.be-leads { display: grid; gap: .6rem; margin-block-end: .9rem; }
+.be-leads-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.be-leads-title { font-size: calc(.74rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.be-leads-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.be-lead {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 12px 4px 6px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  font: inherit; font-size: var(--fs-sm); cursor: pointer; transition: background var(--dur-1);
+}
+span.be-lead { cursor: default; }
+button.be-lead:hover { background: hsl(var(--muted) / .7); }
+.be-lead[aria-pressed="true"] { background: hsl(var(--primary) / .16); font-weight: 700; }
+.be-lead:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.be-lead-dot { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; box-shadow: var(--edge-faint); }
+.be-lead-badge { font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground)); }
+.be-lead-add { display: grid; gap: .4rem; }
+.be-lead-add-hint { margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.be-lead-picks { display: flex; flex-wrap: wrap; gap: 6px; }
+.be-lead-pick { width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--radius-sm); box-shadow: var(--edge-faint); cursor: pointer; }
+.be-lead-pick:hover { transform: scale(1.08); }
+.be-lead-pick:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.be-lead-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.be-lead-rename .field-input { width: 12rem; max-width: 100%; }
+.be-lead-note { margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
 .be-role { display: flex; align-items: center; gap: .6rem; min-width: 0; padding: var(--sp-6) var(--sp-6); border: 0; box-shadow: var(--ui-elevation-control); border-radius: calc(var(--radius) * .86); background: hsl(var(--background)); }
 .be-role.is-unset { border-style: solid; opacity: .75; }
 /* A slot filled by a colour NOBODY CHOSE - the starter's, standing in, or the

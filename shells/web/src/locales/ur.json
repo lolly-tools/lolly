@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "یہ تخلیق لنک کے لیے بہت بڑی ہے۔",
   "The link above opens it only on this device.": "اوپر والا لنک اسے صرف اسی آلے پر کھولتا ہے۔",
   "Photos": "تصاویر",
-  "Add data": "ڈیٹا شامل کریں"
+  "Add data": "ڈیٹا شامل کریں",
+  "Make default": "ڈیفالٹ بنائیں",
+  "{name} is now the default": "{name} اب ڈیفالٹ ہے"
 }

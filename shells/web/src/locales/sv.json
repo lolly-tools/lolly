@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "Den här skapelsen är för stor för en länk.",
   "The link above opens it only on this device.": "Länken ovan öppnar den bara på den här enheten.",
   "Photos": "Foton",
-  "Add data": "Lägg till data"
+  "Add data": "Lägg till data",
+  "Make default": "Gör till standard",
+  "{name} is now the default": "{name} är nu standard"
 }

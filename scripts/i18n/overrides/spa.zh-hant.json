@@ -1693,5 +1693,7 @@
   "Emphasis": "強調",
   "Zoom to selection": "縮放至選取範圍",
   "Photos": "照片",
-  "Add data": "新增資料"
+  "Add data": "新增資料",
+  "Make default": "設為預設",
+  "{name} is now the default": "{name} 現在是預設"
 }

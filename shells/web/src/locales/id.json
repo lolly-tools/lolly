@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "Karya ini terlalu besar untuk sebuah tautan.",
   "The link above opens it only on this device.": "Tautan di atas membukanya hanya di perangkat ini.",
   "Photos": "Foto",
-  "Add data": "Tambah data"
+  "Add data": "Tambah data",
+  "Make default": "Jadikan default",
+  "{name} is now the default": "{name} sekarang menjadi default"
 }

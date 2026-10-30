@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "此作品太大，无法用链接分享。",
   "The link above opens it only on this device.": "上方的链接只会在本设备上打开它。",
   "Photos": "照片",
-  "Add data": "添加数据"
+  "Add data": "添加数据",
+  "Make default": "设为默认",
+  "{name} is now the default": "{name} 现在是默认"
 }

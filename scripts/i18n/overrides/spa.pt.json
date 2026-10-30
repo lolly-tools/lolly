@@ -1691,5 +1691,7 @@
   "Emphasis": "Ênfase",
   "Zoom to selection": "Zoom na seleção",
   "Photos": "Fotos",
-  "Add data": "Adicionar dados"
+  "Add data": "Adicionar dados",
+  "Make default": "Tornar padrão",
+  "{name} is now the default": "{name} agora é o padrão"
 }

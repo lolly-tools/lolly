@@ -1820,5 +1820,7 @@
   "Emphasis": "Акцент",
   "Zoom to selection": "Масштабувати до вибору",
   "Photos": "Фото",
-  "Add data": "Додати дані"
+  "Add data": "Додати дані",
+  "Make default": "Зробити типовим",
+  "{name} is now the default": "{name} тепер типовий"
 }

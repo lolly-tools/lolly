@@ -1686,5 +1686,7 @@
   "Emphasis": "Zdůraznění",
   "Zoom to selection": "Přiblížit na výběr",
   "Photos": "Fotky",
-  "Add data": "Přidat data"
+  "Add data": "Přidat data",
+  "Make default": "Nastavit jako výchozí",
+  "{name} is now the default": "{name} je nyní výchozí"
 }

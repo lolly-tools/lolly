@@ -1820,5 +1820,7 @@
   "Emphasis": "Vurgu",
   "Zoom to selection": "Seçime yakınlaştır",
   "Photos": "Fotoğraflar",
-  "Add data": "Veri ekle"
+  "Add data": "Veri ekle",
+  "Make default": "Varsayılan yap",
+  "{name} is now the default": "{name} artık varsayılan"
 }

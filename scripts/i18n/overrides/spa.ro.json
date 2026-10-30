@@ -1690,5 +1690,7 @@
   "Emphasis": "Accent",
   "Zoom to selection": "Zoom la selecție",
   "Photos": "Fotografii",
-  "Add data": "Adaugă date"
+  "Add data": "Adaugă date",
+  "Make default": "Setează ca implicit",
+  "{name} is now the default": "{name} este acum implicit"
 }

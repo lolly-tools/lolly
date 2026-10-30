@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "Masyadong malaki ang likhang ito para sa isang link.",
   "The link above opens it only on this device.": "Binubuksan lang ito ng link sa itaas sa device na ito.",
   "Photos": "Mga Larawan",
-  "Add data": "Magdagdag ng data"
+  "Add data": "Magdagdag ng data",
+  "Make default": "Gawing default",
+  "{name} is now the default": "Default na ngayon ang {name}"
 }

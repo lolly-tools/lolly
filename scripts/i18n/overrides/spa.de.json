@@ -1691,5 +1691,7 @@
   "Emphasis": "Betonung",
   "Zoom to selection": "Auf Auswahl zoomen",
   "Photos": "Fotos",
-  "Add data": "Daten hinzufügen"
+  "Add data": "Daten hinzufügen",
+  "Make default": "Als Standard festlegen",
+  "{name} is now the default": "{name} ist jetzt der Standard"
 }

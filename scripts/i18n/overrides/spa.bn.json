@@ -1692,5 +1692,7 @@
   "Emphasis": "জোর",
   "Zoom to selection": "নির্বাচনে জুম করুন",
   "Photos": "ফটো",
-  "Add data": "ডেটা যোগ করুন"
+  "Add data": "ডেটা যোগ করুন",
+  "Make default": "ডিফল্ট করুন",
+  "{name} is now the default": "{name} এখন ডিফল্ট"
 }

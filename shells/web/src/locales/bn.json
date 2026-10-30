@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "এই রচনা লিংকের জন্য অনেক বড়।",
   "The link above opens it only on this device.": "উপরের লিংক এটি শুধু এই ডিভাইসে খোলে।",
   "Photos": "ফটো",
-  "Add data": "ডেটা যোগ করুন"
+  "Add data": "ডেটা যোগ করুন",
+  "Make default": "ডিফল্ট করুন",
+  "{name} is now the default": "{name} এখন ডিফল্ট"
 }

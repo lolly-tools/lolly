@@ -1691,5 +1691,7 @@
   "Emphasis": "Penekanan",
   "Zoom to selection": "Perbesar ke pilihan",
   "Photos": "Foto",
-  "Add data": "Tambah data"
+  "Add data": "Tambah data",
+  "Make default": "Jadikan default",
+  "{name} is now the default": "{name} sekarang menjadi default"
 }

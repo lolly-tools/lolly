@@ -358,6 +358,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       ${/* Roles are an assignment layer over the swatches that already exist -
             a design system of three loose colours with no roles is valid. */''}
       <details class="be-wing be-roles"><summary class="be-wing-head"><span class="be-wing-title">${t("Colour roles")}</span><span class="be-wing-sub">${t("Choose what tools use")}</span></summary><div class="be-wing-body">
+        <div class="be-leads" data-be-leads></div>
         <div data-be-roles></div>
       </div></details>
 

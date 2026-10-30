@@ -91,6 +91,7 @@ import { palSelectOps } from './brand-editor/pal-select.ts';
 import { gridOps } from './brand-editor/grid.ts';
 import { addColorOps } from './brand-editor/add-color.ts';
 import { rolesOps } from './brand-editor/roles.ts';
+import { colourwaysOps } from './brand-editor/colourways.ts';
 import { typeOps } from './brand-editor/type.ts';
 import { compareStageOps } from './brand-editor/compare-stage.ts';
 import { logosOps } from './brand-editor/logos.ts';
@@ -196,6 +197,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   bedit.grid = gridOps(bedit);
   bedit.addColor = addColorOps(bedit);
   bedit.roles = rolesOps(bedit);
+  bedit.colourways = colourwaysOps(bedit);
   bedit.type = typeOps(bedit);
   bedit.compareStage = compareStageOps(bedit);
   bedit.logos = logosOps(bedit);
@@ -530,6 +532,8 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   const rolesMount = bedit.ramps.$('[data-be-roles]') as HTMLElement | null; bedit.rolesMount = rolesMount as BrandEditorCtx['rolesMount'];
 
   bedit.roles.wireRolesStrip();
+  // The colourway the strip edits, chosen above it (plans/319 A3).
+  bedit.colourways.wireColourways();
 
   await bedit.roles.wireUseAs();
 

@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "هذا العمل أكبر من أن يتسع له رابط.",
   "The link above opens it only on this device.": "الرابط أعلاه يفتحه على هذا الجهاز فقط.",
   "Photos": "الصور",
-  "Add data": "إضافة بيانات"
+  "Add data": "إضافة بيانات",
+  "Make default": "اجعله الافتراضي",
+  "{name} is now the default": "أصبح {name} الافتراضي"
 }

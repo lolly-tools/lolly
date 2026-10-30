@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "Tác phẩm này quá lớn để dùng liên kết.",
   "The link above opens it only on this device.": "Liên kết ở trên chỉ mở nó trên thiết bị này.",
   "Photos": "Ảnh",
-  "Add data": "Thêm dữ liệu"
+  "Add data": "Thêm dữ liệu",
+  "Make default": "Đặt làm mặc định",
+  "{name} is now the default": "{name} giờ là mặc định"
 }

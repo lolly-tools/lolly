@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "Diese Kreation ist zu groß für einen Link.",
   "The link above opens it only on this device.": "Der Link oben öffnet sie nur auf diesem Gerät.",
   "Photos": "Fotos",
-  "Add data": "Daten hinzufügen"
+  "Add data": "Daten hinzufügen",
+  "Make default": "Als Standard festlegen",
+  "{name} is now the default": "{name} ist jetzt der Standard"
 }

@@ -1684,5 +1684,7 @@
   "Emphasis": "Betoning",
   "Zoom to selection": "Zooma till markering",
   "Photos": "Foton",
-  "Add data": "Lägg till data"
+  "Add data": "Lägg till data",
+  "Make default": "Gör till standard",
+  "{name} is now the default": "{name} är nu standard"
 }

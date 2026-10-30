@@ -1691,5 +1691,7 @@
   "Emphasis": "Penekanan",
   "Zoom to selection": "Zum ke pilihan",
   "Photos": "Foto",
-  "Add data": "Tambah data"
+  "Add data": "Tambah data",
+  "Make default": "Jadikan lalai",
+  "{name} is now the default": "{name} kini menjadi lalai"
 }

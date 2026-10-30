@@ -1822,5 +1822,7 @@
   "Emphasis": "Utheving",
   "Zoom to selection": "Zoom til utvalg",
   "Photos": "Bilder",
-  "Add data": "Legg til data"
+  "Add data": "Legg til data",
+  "Make default": "Gjør til standard",
+  "{name} is now the default": "{name} er nå standard"
 }

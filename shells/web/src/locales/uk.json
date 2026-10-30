@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "Ця робота завелика для посилання.",
   "The link above opens it only on this device.": "Посилання вище відкриває її лише на цьому пристрої.",
   "Photos": "Фото",
-  "Add data": "Додати дані"
+  "Add data": "Додати дані",
+  "Make default": "Зробити типовим",
+  "{name} is now the default": "{name} тепер типовий"
 }

@@ -10329,5 +10329,7 @@
   "This creation is too large for a link.": "Ta praca jest zbyt duża na link.",
   "The link above opens it only on this device.": "Powyższy link otwiera ją tylko na tym urządzeniu.",
   "Photos": "Zdjęcia",
-  "Add data": "Dodaj dane"
+  "Add data": "Dodaj dane",
+  "Make default": "Ustaw jako domyślny",
+  "{name} is now the default": "{name} jest teraz domyślny"
 }

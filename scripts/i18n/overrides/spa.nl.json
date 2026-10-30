@@ -1684,5 +1684,7 @@
   "Emphasis": "Nadruk",
   "Zoom to selection": "Inzoomen op selectie",
   "Photos": "Foto's",
-  "Add data": "Gegevens toevoegen"
+  "Add data": "Gegevens toevoegen",
+  "Make default": "Als standaard instellen",
+  "{name} is now the default": "{name} is nu de standaard"
 }

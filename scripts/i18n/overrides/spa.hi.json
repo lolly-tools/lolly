@@ -1692,5 +1692,7 @@
   "Emphasis": "ज़ोर",
   "Zoom to selection": "चयन पर ज़ूम करें",
   "Photos": "फ़ोटो",
-  "Add data": "डेटा जोड़ें"
+  "Add data": "डेटा जोड़ें",
+  "Make default": "डिफ़ॉल्ट बनाएं",
+  "{name} is now the default": "{name} अब डिफ़ॉल्ट है"
 }

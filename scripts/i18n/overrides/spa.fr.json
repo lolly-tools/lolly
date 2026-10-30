@@ -1692,5 +1692,7 @@
   "Emphasis": "Accentuation",
   "Zoom to selection": "Zoomer sur la sélection",
   "Photos": "Photos",
-  "Add data": "Ajouter des données"
+  "Add data": "Ajouter des données",
+  "Make default": "Définir par défaut",
+  "{name} is now the default": "{name} est désormais par défaut"
 }
