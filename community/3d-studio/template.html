@@ -4,6 +4,7 @@
       <div class="studio-group" role="group" aria-label="Pointer mode">
         <button type="button" data-studio-orbit aria-pressed="true" title="Drag to orbit the camera; arrow keys turn it" aria-label="Orbit"><span class="studio-label-full">Orbit</span><span class="studio-label-short">Orbit</span></button>
         {{#if _arrangement}}<button type="button" data-studio-move aria-pressed="false" title="Drag objects to move them; arrow keys nudge, comma and full stop turn, brackets select" aria-label="Move objects"><span class="studio-label-full">Move objects</span><span class="studio-label-short">Objects</span></button>{{/if}}
+        <button type="button" data-studio-turn aria-pressed="false" title="Drag sideways to turn {{#if _arrangement}}the selected object{{else}}the object{{/if}} on the floor and up or down to tilt it; arrow keys turn and tilt, comma and full stop lean" aria-label="Turn object"><span class="studio-label-full">Turn object</span><span class="studio-label-short">Turn</span></button>
         <button type="button" data-studio-lights aria-pressed="false" title="Drag a light around the subject; arrow keys turn it, plus and minus change its distance, brackets select" aria-label="Move lights"><span class="studio-label-full">Move lights</span><span class="studio-label-short">Lights</span></button>
       </div>
       <div class="studio-group" role="group" aria-label="Framing">

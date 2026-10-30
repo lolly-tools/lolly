@@ -2,7 +2,7 @@
   "id": "bouncing-icon",
   "name": "Bouncing icon",
   "category": "Promotion",
-  "description": "An icon crouches, jumps and comes down again under soft light, with the studio orbiting gently as it goes. Swap in your own SVG under Start.",
+  "description": "An icon crouches, jumps and comes down again under soft light. Swap in your own SVG under Start.",
   "values": {
     "studio": "soft",
     "drama": 0.45,
@@ -11,8 +11,6 @@
     "motionAmount": 1,
     "motionRest": 0.2,
     "duration": 3,
-    "lightMotion": "orbit",
-    "lightMotionAmount": 0.3,
     "cameraMotion": "still",
     "camera": {
       "azimuth": 22,
@@ -27,6 +25,7 @@
     "primitive": "badge",
     "materialMode": "pair",
     "finishA": "satin",
-    "finishB": "enamel"
+    "finishB": "enamel",
+    "lightMotion": "still"
   }
 }

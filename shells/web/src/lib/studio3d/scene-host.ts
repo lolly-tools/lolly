@@ -127,6 +127,8 @@ export interface StudioSceneHost<Surface, Camera, Point> {
   view: (camera: Partial<StudioSceneV1['camera']>) => void;
   /** Preview an object at a new position while it is dragged. */
   moveObject: (row: number, position: StudioVector3) => void;
+  /** Preview an object at a new rotation, in degrees, while it is turned; row 0 is a lone subject. */
+  turnObject: (row: number, rotation: StudioVector3) => void;
   /** Preview a light at a new position while it is dragged. */
   moveLight: (index: number, position: StudioVector3) => void;
   /** The placeable light whose handle is nearest a point in normalised device coordinates. */

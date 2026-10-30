@@ -13,8 +13,6 @@
     "atmosphereForms": "copies",
     "atmosphereSpread": 0.7,
     "atmosphereCount": 8,
-    "lightMotion": "orbit",
-    "lightMotionAmount": 0.3,
     "duration": 8,
     "cameraMotion": "keys",
     "cameraEase": "smooth",
@@ -54,6 +52,7 @@
     "source": "text",
     "words": "Hello",
     "wordWeight": 800,
-    "wordPose": "front"
+    "wordPose": "front",
+    "lightMotion": "still"
   }
 }
