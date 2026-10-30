@@ -365,14 +365,22 @@ details.section-card > .section-card-body,
            instead of folding. */
         min-block-size: 0;
         /* The summary's focus ring can make the outer section overflow visible. */
-        overflow: clip;
+        overflow: var(--fold-overflow, clip);
         transition: block-size var(--fold-size-duration) var(--fold-easing), opacity var(--fold-fade-duration) var(--fold-easing), content-visibility var(--fold-size-duration) allow-discrete;
       }
       :is(.input-section, details.section-card)[open]::details-content {
         block-size: auto;
       }
-      :is(.input-section, details.section-card)[open]:has(.help-tip-btn:hover, .help-tip-btn:focus-visible, .help-tip-pop:not([hidden]), .color-picker-field.is-open)::details-content {
-        overflow: visible;
+      /* An open help tip or colour picker may hang outside an open section. The
+         condition sits on the section and reaches its ::details-content through a
+         custom property: a :has() in front of the pseudo-element made Chromium's
+         shared :has() invalidation set "every descendant", which restyled the whole
+         page on every chrome change while a large Design document panned. Each
+         section resets the property, so a closed section inside an open one keeps
+         its clip. */
+      :is(.input-section, details.section-card) { --fold-overflow: clip; }
+      :is(.input-section, details.section-card)[open]:has(.help-tip-btn:hover, .help-tip-btn:focus-visible, .help-tip-pop:not([hidden]), .color-picker-field.is-open) {
+        --fold-overflow: visible;
       }
     }
   }

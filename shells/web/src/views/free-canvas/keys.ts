@@ -18,6 +18,7 @@ import type { CtxTopBand, Metrics, Rect, StageBox } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { enterWebBox, mountWebFrames } from '../../lib/design-web-mount.ts';
+import { setText } from '../../lib/steady-dom.ts';
 
 /** The chrome the context bar's row must dodge. Held for the life of a box gesture, and
  *  across the view-only syncs of a pan or zoom (`hold`): neither moves this chrome, and
@@ -93,11 +94,12 @@ export function positionCtxBar(fc: FcCtx,
   const first = boxes[idx[0]!];
   const r = liveRects?.get(idx[0]!) || boxRect(first, cfg);
   const read = ctxbar.querySelector('[data-cx-readout]');
+  // Written through setText: a drag updates it every frame (lib/steady-dom.ts).
   if (read)
-    read.textContent = fc.selectionTransform.transformReadout(liveRects) ??
+    setText(read, fc.selectionTransform.transformReadout(liveRects) ??
       (idx.length > 1
         ? t('{n} selected', { n: idx.length })
-        : `${Math.round(r.x)}, ${Math.round(r.y)}  ·  ${Math.round(r.w)}×${Math.round(r.h)}${r.rot ? '  ·  ' + Math.round(r.rot) + '°' : ''}`);
+        : `${Math.round(r.x)}, ${Math.round(r.y)}  ·  ${Math.round(r.w)}×${Math.round(r.h)}${r.rot ? '  ·  ' + Math.round(r.rot) + '°' : ''}`));
 }
 export function updateToolbarState(fc: FcCtx, _count: number): void {
   // Nothing hard-disabled - align-to-canvas works on a single box; arrange/delete

@@ -310,8 +310,12 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
    specific). The row must always read as one pill: flat internal joins, the last
    VISIBLE segment carries the right cap. */
 .tool-actions .export-dims .dim-unit { border-radius: 0 var(--radius) var(--radius) 0; }
-.tool-actions .export-dims:has(.dim-dpi:not([style*="none"])) .dim-unit { border-radius: 0; }
-.export-dims:has(.dim-dpi:not([style*="none"])) .dim-dpi {
+/* Keyed on `data-dpi-hidden` (views/export-dimension-fields.ts), never on `[style]`: a
+   `style` attribute inside any :has() makes every inline style write on the page check
+   the :has() ancestors, and with html:has() rules that restyles the whole document on
+   each frame of a canvas pan. */
+.tool-actions .export-dims:has(.dim-dpi:not([data-dpi-hidden])) .dim-unit { border-radius: 0; }
+.export-dims:has(.dim-dpi:not([data-dpi-hidden])) .dim-dpi {
   border-radius: 0 var(--radius) var(--radius) 0;         /* …but the DPI segment when it's shown */
 }
 /* The focused segment's (ring-coloured) border sits above its neighbours' edges. */

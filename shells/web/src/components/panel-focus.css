@@ -12,12 +12,24 @@
 }
 
 :where(.lp-scroll:has(.lp-sec:focus-within)) .lp-sec:not(:focus-within) > .lp-sec-head,
-:where(.lp-scroll:has(.lp-sec:focus-within)) .lp-rows > :not(:focus-within),
 :where(.tool-actions:focus-within) > :not(:where(.export-options-group)):not(:focus-within),
 :where(.tool-actions:focus-within) > .export-options-group > :not(:focus-within),
 :where(.tool-actions > .export-file-group:focus-within) > :not(:focus-within),
 :where(.docked-panel-body:focus-within) > :not(:focus-within) {
   opacity: 0.7;
+}
+/* The rows recede through a style query, not through
+   `:where(.lp-scroll:has(.lp-sec:focus-within)) .lp-rows > :not(:focus-within)`.
+   Chromium keeps one invalidation set for every :has() in the stylesheets, and a
+   rule whose last compound has no class, id, tag or attribute makes that set
+   "every descendant". Then each change that might flip any :has() on <html>,
+   <body> or the stage (a chrome node added, a hidden flag set) restyled the whole
+   page: 7,000 elements a frame while a large Design document panned. The :has()
+   now ends on `.lp-rows`, and the rows read the flag it sets. Same selector
+   weight and the same place in the cascade as before. */
+:where(.lp-scroll:has(.lp-sec:focus-within)) .lp-rows { --lp-recede: 1; }
+@container style(--lp-recede: 1) {
+  .lp-rows > :not(:focus-within) { opacity: 0.7; }
 }
 
 /* Swatches keep their actual colour; only their labels recede. An open picker
@@ -26,17 +38,41 @@
   > :has(.color-trigger, .color-popover:not([hidden])) {
   opacity: 1;
 }
-.lp-scroll:has(.lp-sec:focus-within) .lp-rows > :not(:focus-within):has(.color-trigger)
-  :is(.lp-label, .fc-row-lbl, .color-trigger-name),
-.lp-scroll:has(.lp-sec:focus-within) .lp-rows > :not(:focus-within):has(.color-trigger)
-  > span:first-child {
-  opacity: 0.7;
+/* The same flags carry the labels: a row holding a swatch or an open picker says
+   so on itself (a :has() on the row's own compound restyles only the row), and
+   the labels read it with the rows' flag. `span` after a :has() would have put
+   every span in the document into that shared set. :nth-child(n) keeps the open
+   picker's rule level with the receding one, so the later rule still wins. */
+.lp-rows > :has(.color-trigger) { --lp-swatch-row: 1; }
+.lp-rows > :has(.color-popover:not([hidden])) { --lp-picker-open: 1; }
+@container style(--lp-recede: 1) and style(--lp-swatch-row: 1) {
+  .lp-rows > :not(:focus-within) :is(.lp-label, .fc-row-lbl, .color-trigger-name),
+  .lp-rows > :not(:focus-within) > span:first-child {
+    opacity: 0.7;
+  }
 }
-.lp-scroll:has(.lp-sec:focus-within) .lp-rows > :has(.color-popover:not([hidden]))
-  :is(.lp-label, .fc-row-lbl, .color-trigger-name),
-.lp-scroll:has(.lp-sec:focus-within) .lp-rows > :has(.color-popover:not([hidden]))
-  > span:first-child {
-  opacity: 1;
+@container style(--lp-recede: 1) and style(--lp-picker-open: 1) {
+  .lp-rows > :nth-child(n) :is(.lp-label, .fc-row-lbl, .color-trigger-name),
+  .lp-rows > :nth-child(n) > span:first-child {
+    opacity: 1;
+  }
+}
+/* Firefox has no style queries yet and no shared :has() set, so it keeps the
+   original rules. Chromium and WebKit never read this block. */
+@supports (-moz-appearance: none) {
+  :where(.lp-scroll:has(.lp-sec:focus-within)) .lp-rows > :not(:focus-within) { opacity: 0.7; }
+  .lp-scroll:has(.lp-sec:focus-within) .lp-rows > :not(:focus-within):has(.color-trigger)
+    :is(.lp-label, .fc-row-lbl, .color-trigger-name),
+  .lp-scroll:has(.lp-sec:focus-within) .lp-rows > :not(:focus-within):has(.color-trigger)
+    > span:first-child {
+    opacity: 0.7;
+  }
+  .lp-scroll:has(.lp-sec:focus-within) .lp-rows > :has(.color-popover:not([hidden]))
+    :is(.lp-label, .fc-row-lbl, .color-trigger-name),
+  .lp-scroll:has(.lp-sec:focus-within) .lp-rows > :has(.color-popover:not([hidden]))
+    > span:first-child {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

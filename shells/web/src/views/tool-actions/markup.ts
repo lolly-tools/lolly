@@ -89,7 +89,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
                 title="Units for width & height. Physical units (mm/cm/in/pt) export at the right size for print - PDF as a true page, raster at the chosen DPI.">
           ${UNITS.map((u) => `<option value="${u}" ${u === initUnit ? 'selected' : ''}>${u}</option>`).join('')}
         </select>
-        <label class="dim-dpi" data-dpi-field style="display:${initUnit === 'px' ? 'none' : 'inline-flex'}"
+        <label class="dim-dpi" data-dpi-field${initUnit === 'px' ? ' data-dpi-hidden' : ''} style="display:${initUnit === 'px' ? 'none' : 'inline-flex'}"
                title="Raster resolution for physical units (ignored for vector formats).">
           <input type="number" data-action="export-dpi" value="${initDpi}" min="36" max="1200" step="1" aria-label="DPI">
           <span>DPI</span>

@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { DESIGN_FIXTURES, countRows, designLargeFixture, fixtureMedia, lottieClip, marqueeBand, mixFor } from '../scripts/lib/design-large-fixture.ts';
 import type { FixtureMediaRef, FixtureRow } from '../scripts/lib/design-large-fixture.ts';
 import { decodeAuthoredPath } from '../engine/src/geom/authored-url.ts';
+import { DESIGN_HIERARCHY_LIMITS } from '../engine/src/design-hierarchy.ts';
 
 const manifest = JSON.parse(readFileSync(new URL('../community/design/tool.json', import.meta.url), 'utf8')) as { inputs: Array<{ id: string; fields?: Array<{ id: string; options?: Array<{ value: string }> }> }> };
 const boxFields = manifest.inputs.find(input => input.id === 'boxes')!.fields!;
@@ -23,7 +24,8 @@ test('each fixture has the size and mix the review specifies', () => {
     D1: { objects: 2000, text: 1100, shape: 500, image: 200, path: 100, connector: 50, group: 50 },
     'D1-motion': { objects: 2016, image: 200, video: 8, lottie: 8 },
     D2: { objects: 5000 },
-    D3: { objects: 20000, text: 11000, group: 500 },
+    // The editor's ceiling is 20,000 layers with the artboards counted (DESIGN_HIERARCHY_LIMITS).
+    D3: { rows: 20000, objects: 19950, text: 10973, group: 499 },
     W1: { rows: 1900 },
   } as const;
   for (const [name, wanted] of Object.entries(expect)) {
@@ -31,6 +33,9 @@ test('each fixture has the size and mix the review specifies', () => {
     for (const [key, value] of Object.entries(wanted)) assert.equal(counts[key], value, `${name} ${key}`);
     assert.equal(counts.frame, 50, `${name} artboards`);
   }
+  // A document over the ceiling is refused by the renderer and never paints, which a
+  // benchmark would read as a hang.
+  for (const name of DESIGN_FIXTURES) assert.ok(designLargeFixture(name).boxes.length <= DESIGN_HIERARCHY_LIMITS.layers, `${name} fits the layer ceiling`);
   assert.deepEqual(mixFor(2000), { text: 1100, shape: 500, image: 200, path: 100, connector: 50, group: 50 });
   assert.equal(Object.values(mixFor(1850)).reduce((sum, n) => sum + n, 0), 1850);
   const shapes = designLargeFixture('D1').boxes.filter(row => row.kind === 'box');

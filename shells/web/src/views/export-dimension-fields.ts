@@ -42,6 +42,18 @@ export function exportPixelSize(
   return { width: width || height, height: height || width };
 }
 
+/**
+ * Show or hide the DPI segment. The stylesheet's `:has()` rounding reads
+ * `data-dpi-hidden`, never the inline style: an attribute selector on `style` inside any
+ * `:has()` makes every inline style write in the document (the canvas chrome writes
+ * dozens a frame while the view moves) schedule a `:has()` check on the ancestors, and
+ * `html:has(...)` then restyles the whole page.
+ */
+function showDpiField(el: HTMLElement, shown: boolean): void {
+  el.style.display = shown ? 'inline-flex' : 'none';
+  el.toggleAttribute('data-dpi-hidden', !shown);
+}
+
 function field<T extends Element>(root: ParentNode, action: string): T | null {
   return root.querySelector<T>(`[data-action="${action}"]`);
 }
@@ -68,7 +80,7 @@ export function applyExportDimensionFields(
     unitEl.value = unit;
     effectiveUnit = unit;
     const dpiField = root.querySelector<HTMLElement>('[data-dpi-field]');
-    if (dpiField) dpiField.style.display = unit === 'px' ? 'none' : 'inline-flex';
+    if (dpiField) showDpiField(dpiField, unit !== 'px');
   }
 
   if (widthEl && (width ?? 0) > 0) widthEl.value = String(width);
@@ -86,5 +98,5 @@ export function convertExportDimensionFields(root: ParentNode, from: string, to:
     if (input && value > 0) input.value = String(roundIn(convertLength(value, from, to), to));
   }
   const dpiField = root.querySelector<HTMLElement>('[data-dpi-field]');
-  if (dpiField) dpiField.style.display = to === 'px' ? 'none' : 'inline-flex';
+  if (dpiField) showDpiField(dpiField, to !== 'px');
 }
