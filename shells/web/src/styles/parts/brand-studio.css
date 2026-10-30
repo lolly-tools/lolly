@@ -680,6 +680,10 @@ background-image:
    neutral card so a one-colour dark mark still shows. */
 .be-logo-slot[data-treatment$="reverse"] .be-logo-art { background: hsl(var(--foreground)); padding: .5rem; }
 .be-logo-slot[data-treatment="mono"] .be-logo-art { background: hsl(var(--muted) / .5); padding: .5rem; }
+/* Primary and mono marks are drawn for light grounds. On the dark theme the slot gives
+   them one (the foreground token is the dark theme's light ink), the way a reverse
+   mark gets a dark ground above, so a dark wordmark is not lost on a dark card. */
+:root[data-theme="dark"] .be-logo-slot:is([data-treatment="primary"], [data-treatment="mono"]) .be-logo-art { background-color: hsl(var(--foreground)); }
 /* "Not set", in the muted register - the slot says what it is rather than
    drawing a 1.6rem "+" that reads as an instruction (plan 182 section 4.2). */
 .be-logo-empty { font-size: var(--fs-sm); font-weight: 500; color: hsl(var(--muted-foreground) / .8); }
