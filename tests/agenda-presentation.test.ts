@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
@@ -104,4 +105,65 @@ test('a render language override reaches hook copy and portable output without c
  await r.export({},'html');
  assert.equal(exportedLang,'es');
  assert.notEqual((await host.profile.get()).lang,'es');
+});
+
+// The motion presets: every part settles before the thumbnail frame (2 s), cards
+// arrive after the heading, a preset with an exit is gone at the scene's end so a
+// loop meets its own start, and Still never moves.
+const presentation = await readFile(new URL('../community/agenda/presentation.js', import.meta.url), 'utf8');
+const motionSource = presentation.slice(presentation.indexOf('var AG_MOTIONS'), presentation.indexOf('// === lolly:shared backdrop-shaders'));
+const motion: any = vm.createContext({ Math }); vm.runInContext(motionSource, motion);
+test('motion presets settle, stagger and leave at the loop point', () => {
+  const presets = Object.keys(motion.AG_MOTIONS);
+  assert.deepEqual(presets, ['calm', 'editorial', 'expressive', 'broadcast', 'cascade', 'slide']);
+  const manifest = JSON.parse(readFileSync(new URL('../community/agenda/tool.json', import.meta.url), 'utf8'));
+  const options = manifest.inputs.find((i: any) => i.id === 'motion').options.map((o: any) => o.value);
+  assert.deepEqual([...options].sort(), ['off', ...presets].sort(), 'every preset is offered, and nothing else');
+  for (const preset of presets) {
+    for (const part of [-1, 0, 1, 2, 3, 4]) {
+      const pose = motion.agMotionPose(preset, 2, 12, part, 3);
+      assert.deepEqual([pose.opacity, Math.round(pose.x * 1e6) || 0, Math.round(pose.y * 1e6) || 0, pose.scale, pose.clip], [1, 0, 0, 1, 1], `${preset} part ${part} settled at 2 s`);
+    }
+    const early = (part: number) => motion.agMotionPose(preset, 0.1, 12, part, 3);
+    assert.ok(early(3).opacity <= early(0).opacity, `${preset}: a later card is no further along than the heading`);
+    const m = motion.AG_MOTIONS[preset];
+    if (m.exit) {
+      const end = motion.agMotionPose(preset, 12, 12, m.carousel ? -1 : 1, 3);
+      assert.equal(end.opacity, 0, `${preset} has left by the end of its scene`);
+    }
+  }
+  assert.deepEqual({ ...motion.agMotionPose('off', 0, 12, 0, 3) }, { opacity: 1, x: 0, y: 0, scale: 1, clip: 1 });
+});
+
+// A colourway switch recolours the programme: the accent, the first track and the
+// dark styles' background follow the chosen colourway's lead colours, read through
+// the document's own selection.
+test('a colourway switch recolours the accent, the first track and the dark background', async () => {
+  const leads: Record<string, Record<string, string>> = {
+    spearmint: { primary: '#033633', secondary: '#0a8a57' },
+    spring: { primary: '#da1889', secondary: '#7a8a2a' },
+  };
+  const tokens = {
+    resolve: async (ref: string, opts: { selection?: Record<string, string> } = {}) => {
+      const lead = leads[opts.selection?.colourway ?? 'spearmint']!;
+      const path = ref.replace(/[{}]/g, '');
+      return ({ 'color.semantic.primary': lead.primary, 'color.semantic.secondary': lead.secondary, 'color.semantic.surface': '#ffffff', 'color.semantic.text': '#14181f' } as Record<string, string>)[path] ?? '';
+    },
+    colors: async () => [{ path: 'color.spectrum.orange', value: '#e8892b' }, { path: 'color.spectrum.teal', value: '#1aa3a3' }],
+    get: async () => ({}),
+  };
+  const host = { ...baseHost(), tokens } as any;
+  const r = await createRuntime(tool, host, { sessions: { columns, rows: [row] }, style: 'night' });
+  const accent = () => /--ag-accent:(#[0-9a-f]{6})/i.exec(r.getHydrated())![1]!.toLowerCase();
+  const paper = () => /--ag-paper:(#[0-9a-f]{6})/i.exec(r.getHydrated())![1]!.toLowerCase();
+  // Spearmint's lead is too dark to glow, so its partner is the accent, and the lead
+  // itself is the night background.
+  assert.equal(accent(), '#0a8a57');
+  assert.equal(paper(), '#033633');
+  assert.equal(doc(r).palette.tracks[0], '#0a8a57');
+  await r.setTokenSelection({ colourway: 'spring' });
+  assert.equal(accent(), '#da1889', 'the Spring lead becomes the accent');
+  assert.equal(doc(r).palette.tracks[0], '#da1889', 'and the first track');
+  assert.notEqual(paper(), '#033633', 'the night background follows the colourway');
+  assert.ok(parseInt(paper().slice(1, 3), 16) > parseInt(paper().slice(3, 5), 16), 'a deep shade of the pink lead');
 });

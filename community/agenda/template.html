@@ -1,7 +1,7 @@
 {{#if isPresentation}}
-<main data-portable-root data-presentation class="ag-screen ag-look-{{programmeStyle}}" style="--ag-paper:{{paperColor}};--ag-ink:{{inkColor}};--ag-muted:{{mutedColor}};--ag-rule:{{ruleColor}};--ag-accent:{{accentColor}}">
+<main data-portable-root data-presentation class="ag-screen ag-look-{{programmeStyle}}" style="--ag-paper:{{paperColor}};--ag-ink:{{inkColor}};--ag-muted:{{mutedColor}};--ag-rule:{{ruleColor}};--ag-accent:{{accentColor}};--ag-accent-ink:{{accentInk}}">
 <script type="application/json" data-ag-document>{{{agendaDocument}}}</script>
-{{#if logo}}<img data-ag-logo src="{{asset logo}}" alt="{{headingText}}">{{/if}}
+{{#if logo}}<img data-ag-logo src="{{asset logo}}" alt="{{headingText}}">{{else}}{{#if brandLogoUrl}}<img data-ag-logo src="{{brandLogoUrl}}" alt="{{headingText}}">{{/if}}{{/if}}
 {{#if backgroundImage}}<img data-ag-background src="{{asset backgroundImage}}" alt="">{{/if}}
 {{#each days}}{{#each sessions}}{{#if image}}<img data-ag-session-image="{{id}}" src="{{image}}" alt="">{{/if}}{{/each}}{{/each}}
 <canvas class="ag-backdrop" aria-hidden="true"></canvas>
@@ -11,7 +11,7 @@
 </section>
 </main>
 {{else}}
-<main data-portable-root data-presentation class="ag-screen ag-legacy ag-look-{{programmeStyle}}" style="--ag-paper:{{paperColor}};--ag-ink:{{inkColor}};--ag-muted:{{mutedColor}};--ag-rule:{{ruleColor}};--ag-accent:{{accentColor}}">
+<main data-portable-root data-presentation class="ag-screen ag-legacy ag-look-{{programmeStyle}}" style="--ag-paper:{{paperColor}};--ag-ink:{{inkColor}};--ag-muted:{{mutedColor}};--ag-rule:{{ruleColor}};--ag-accent:{{accentColor}};--ag-accent-ink:{{accentInk}}">
 <script type="application/json" data-ag-document>{{{agendaDocument}}}</script>
 <canvas class="ag-backdrop" aria-hidden="true"></canvas><div class="ag-live"></div><section class="ag-fallback">
 {{!-- Agenda.
@@ -22,13 +22,14 @@
      sheet's own width, in container units), so the same layout holds at A4, at
      a poster size and on a 1080p screen. --}}
 <div class="ag-root{{#if isCompact}} ag-compact{{/if}} ag-mode-{{mode}} ag-style-{{programmeStyle}}"
-     style="--ag-paper:{{paperColor}};--ag-ink:{{inkColor}};--ag-muted:{{mutedColor}};--ag-rule:{{ruleColor}};--ag-accent:{{accentColor}};--ag-flag:{{flagColor}}">
+     style="--ag-paper:{{paperColor}};--ag-ink:{{inkColor}};--ag-muted:{{mutedColor}};--ag-rule:{{ruleColor}};--ag-accent:{{accentColor}};--ag-accent-ink:{{accentInk}};--ag-flag:{{flagColor}}">
 
   {{#if error}}
   <p class="ag-error">{{error}}</p>
   {{else}}
 
   <header class="ag-head">
+    {{#if logo}}<img class="ag-head-logo" src="{{asset logo}}" alt="">{{else}}{{#if brandLogoUrl}}<img class="ag-head-logo" src="{{brandLogoUrl}}" alt="">{{/if}}{{/if}}
     {{#if headingText}}<h1 class="ag-title">{{headingText}}</h1>{{/if}}
     {{#if subtitleText}}<p class="ag-sub">{{subtitleText}}</p>{{/if}}
     {{#if hasTracks}}
