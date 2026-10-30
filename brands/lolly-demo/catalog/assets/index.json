@@ -69,7 +69,8 @@
         "logo",
         "lolly",
         "mark",
-        "primary"
+        "primary",
+        "on-light"
       ],
       "formats": [
         {
@@ -116,7 +117,8 @@
         "logo",
         "lolly",
         "mark",
-        "mono"
+        "mono",
+        "on-light"
       ],
       "formats": [
         {
@@ -214,7 +216,8 @@
         "lolly",
         "wordmark",
         "horizontal",
-        "on-brand"
+        "on-brand",
+        "on-dark"
       ],
       "formats": [
         {

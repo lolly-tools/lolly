@@ -37,7 +37,7 @@ import { aiModelSlot } from '../tsig-model-note.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import { photoTreatmentSwatch } from '../../lib/photo-treatment-swatch.ts';
-import { CHECK_ICON, emojiPackMeta, isTwoColourIcon } from './shared.ts';
+import { CHECK_ICON, emojiPackMeta, tileGround } from './shared.ts';
 import type { AiSignalsNote, RewordUiState } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 
@@ -550,7 +550,7 @@ export function assetTile(cat: CatCtx, ref: AssetRef): string {
       <div class="cat-tile${fav ? ' is-fav' : ''}${hidden ? ' is-hidden-asset' : ''}${sel ? ' is-selected' : ''}" data-id="${escapeText(ref.id)}" draggable="true">
         <button type="button" class="cat-check" data-select="${escapeText(ref.id)}" aria-pressed="${sel}" aria-label="${escapeText(tRaw('Select {name}', { name }))}" title="${escapeText(t('Select'))}">${CHECK_ICON}</button>
         <button type="button" class="cat-tile-open" data-open="${escapeText(ref.id)}" data-describedby="${escapeText(assetDetailsId(ref))}"${cat.catLayout === 'grid' ? '' : ` aria-describedby="${escapeText(assetDetailsId(ref))}"`} aria-label="${escapeText(tRaw('View {name} details', { name }))}">
-          <span class="cat-tile-fig${isTwoColourIcon(ref) ? ' cat-tile-fig--duo' : ''}">${thumbHtml(cat, ref, true)}</span>
+          <span class="cat-tile-fig${tileGround(ref) ? ` cat-tile-fig--${tileGround(ref)}` : ''}">${thumbHtml(cat, ref, true)}</span>
           <span class="cat-tile-cap">
             <span class="cat-tile-name" title="${escapeText((() => {
               const added = assetAddedAt(ref);

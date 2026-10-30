@@ -40,7 +40,8 @@
         "logo",
         "lolly",
         "mark",
-        "primary"
+        "primary",
+        "on-light"
       ],
       "formats": [
         {
@@ -87,7 +88,8 @@
         "logo",
         "lolly",
         "mark",
-        "mono"
+        "mono",
+        "on-light"
       ],
       "formats": [
         {
