@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
@@ -104,4 +105,32 @@ test('a render language override reaches hook copy and portable output without c
  await r.export({},'html');
  assert.equal(exportedLang,'es');
  assert.notEqual((await host.profile.get()).lang,'es');
+});
+
+// The motion presets: every part settles before the thumbnail frame (2 s), cards
+// arrive after the heading, a preset with an exit is gone at the scene's end so a
+// loop meets its own start, and Still never moves.
+const presentation = await readFile(new URL('../community/agenda/presentation.js', import.meta.url), 'utf8');
+const motionSource = presentation.slice(presentation.indexOf('var AG_MOTIONS'), presentation.indexOf('// === lolly:shared backdrop-shaders'));
+const motion: any = vm.createContext({ Math }); vm.runInContext(motionSource, motion);
+test('motion presets settle, stagger and leave at the loop point', () => {
+  const presets = Object.keys(motion.AG_MOTIONS);
+  assert.deepEqual(presets, ['calm', 'editorial', 'expressive', 'broadcast', 'cascade', 'slide']);
+  const manifest = JSON.parse(readFileSync(new URL('../community/agenda/tool.json', import.meta.url), 'utf8'));
+  const options = manifest.inputs.find((i: any) => i.id === 'motion').options.map((o: any) => o.value);
+  assert.deepEqual([...options].sort(), ['off', ...presets].sort(), 'every preset is offered, and nothing else');
+  for (const preset of presets) {
+    for (const part of [-1, 0, 1, 2, 3, 4]) {
+      const pose = motion.agMotionPose(preset, 2, 12, part, 3);
+      assert.deepEqual([pose.opacity, Math.round(pose.x * 1e6) || 0, Math.round(pose.y * 1e6) || 0, pose.scale, pose.clip], [1, 0, 0, 1, 1], `${preset} part ${part} settled at 2 s`);
+    }
+    const early = (part: number) => motion.agMotionPose(preset, 0.1, 12, part, 3);
+    assert.ok(early(3).opacity <= early(0).opacity, `${preset}: a later card is no further along than the heading`);
+    const m = motion.AG_MOTIONS[preset];
+    if (m.exit) {
+      const end = motion.agMotionPose(preset, 12, 12, m.carousel ? -1 : 1, 3);
+      assert.equal(end.opacity, 0, `${preset} has left by the end of its scene`);
+    }
+  }
+  assert.deepEqual({ ...motion.agMotionPose('off', 0, 12, 0, 3) }, { opacity: 1, x: 0, y: 0, scale: 1, clip: 1 });
 });

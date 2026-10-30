@@ -117,6 +117,49 @@ function agCalendar(sessions, title, createdAt) {
   }).join('\r\n') + '\r\n';
 }
 // === /lolly:shared agenda-clock ===
+// How each motion preset brings a scene in and takes it out. Seconds, except rise
+// (pixels at 1080p, negative drops from above) and shift (a fraction of the frame
+// width). `from` is the opacity a part starts at; `back` overshoots and settles.
+var AG_MOTIONS = {
+  calm: { enter: 0.6, stagger: 0.08, rise: 8, from: 0.85 },
+  editorial: { enter: 1.1, stagger: 0.16, rise: 18, exit: 0.5 },
+  expressive: { enter: 0.7, stagger: 0.12, rise: 34, grow: 0.08, back: true, exit: 0.4 },
+  broadcast: { enter: 0.4, stagger: 0.07, shift: -0.03, wipe: true, exit: 0.3 },
+  cascade: { enter: 0.55, stagger: 0.22, rise: -46, back: true, exit: 0.35 },
+  slide: { enter: 0.8, stagger: 0.06, shift: 0.02, carousel: true, exit: 0.6 },
+};
+var agEase = function (p) { return 1 - Math.pow(1 - p, 3); };
+var agBack = function (p) { var c = 1.70158; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+
+/**
+ * The pose of one part of a scene at `local` seconds into a scene `duration` long.
+ * Part -1 is the scene as a whole (the carousel moves it); 0 is the heading and the
+ * cards follow. A programme of one scene still leaves and returns at its loop point,
+ * so an exported loop has no jump.
+ */
+function agMotionPose(preset, local, duration, part, sceneCount) {
+  var m = AG_MOTIONS[preset];
+  var rest = { opacity: 1, x: 0, y: 0, scale: 1, clip: 1 };
+  if (!m) return rest;
+  var clamp = function (v) { return Math.max(0, Math.min(1, v)); };
+  var leave = m.exit && sceneCount >= 1 ? clamp((duration - local) / m.exit) : 1;
+  if (part < 0) {
+    if (!m.carousel) return rest;
+    var inn = agEase(clamp(local / m.enter));
+    return { opacity: Math.min(inn, leave), x: (1 - inn) * 0.12 - (1 - leave) * 0.12, y: 0, scale: 1, clip: 1 };
+  }
+  var p = clamp((local - part * m.stagger) / m.enter);
+  var eased = m.back ? agBack(p) : agEase(p);
+  var from = m.from === undefined ? 0 : m.from;
+  return {
+    opacity: Math.min(from + (1 - from) * agEase(p), m.carousel ? 1 : leave),
+    x: (1 - eased) * (m.shift || 0),
+    y: (1 - eased) * (m.rise || 0) - (m.carousel ? 0 : (1 - leave) * 12),
+    scale: 1 - (1 - eased) * (m.grow || 0),
+    clip: m.wipe ? agEase(p) : 1,
+  };
+}
+
 // === lolly:shared backdrop-shaders - generated from community/_shared/backdrop-shaders.js; edit there and run pnpm run sync:shared ===
     var FLUX_HEADER = `#version 300 es
 precision highp float;
@@ -344,6 +387,10 @@ void main() {
     var c = el('article', 'ag-screen-card');
     c.dataset.session = s.id;
     c.style.setProperty('--track', s.colour);
+    // Type that sits on the track colour itself (the Festival cards) picks the
+    // paler or darker ink by the colour's luminance.
+    var tc = /^#[0-9a-f]{6}$/i.test(s.colour || '') ? [1, 3, 5].map(function (i) { return parseInt(s.colour.slice(i, i + 2), 16); }) : null;
+    if (tc) c.style.setProperty('--track-ink', 0.2126 * tc[0] + 0.7152 * tc[1] + 0.0722 * tc[2] > 150 ? '#14181f' : '#ffffff');
     var info = [s.status !== 'scheduled' && tr(s.status), s.stateLabel, s.rawDate, s.timeText, data.showRooms && s.room]
       .filter(Boolean)
       .join(' · ');
@@ -543,10 +590,22 @@ void main() {
     });
     var scene = live.firstElementChild;
     if (scene) {
-      var a = still ? 1 : 0.85 + 0.15 * Math.min(1, at.local / (data.motion === 'editorial' ? 1.2 : data.motion === 'broadcast' ? .35 : .6));
-      scene.style.opacity = String(a);
-      scene.style.transform =
-        'translateY(' + (1 - a) * (data.motion === 'broadcast' || data.motion === 'expressive' ? 30 : data.motion === 'editorial' ? 14 : 8) * scale + 'px)';
+      // The heading enters first and each card after it, so a scene builds rather
+      // than appears. The pose is a function of the scene's own clock, so a video
+      // frame, a thumbnail and the live screen agree.
+      var parts = [scene.querySelector('.ag-screen-head'), scene.querySelector('.ag-screen-message')]
+        .concat(Array.from(scene.querySelectorAll('.ag-screen-card')))
+        .filter(Boolean);
+      var whole = agMotionPose(still ? 'off' : data.motion, at.local, at.scene.duration, -1, scenes.length);
+      scene.style.opacity = String(whole.opacity);
+      scene.style.transform = 'translateX(' + whole.x * width + 'px)';
+      parts.forEach(function (part, i) {
+        var pose = agMotionPose(still ? 'off' : data.motion, at.local, at.scene.duration, i, scenes.length);
+        part.style.opacity = String(pose.opacity);
+        part.style.transform =
+          'translate(' + pose.x * width + 'px,' + pose.y * scale + 'px) scale(' + pose.scale + ')';
+        part.style.clipPath = pose.clip < 1 ? 'inset(0 ' + (100 - pose.clip * 100).toFixed(2) + '% 0 0)' : '';
+      });
     }
     drawBackground(still ? 0 : t, at.total);
   }

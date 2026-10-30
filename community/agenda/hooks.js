@@ -79,6 +79,37 @@ function agCalendar(sessions, title, createdAt) {
   }).join('\r\n') + '\r\n';
 }
 // === /lolly:shared agenda-clock ===
+// === lolly:shared brand-logo - generated from community/_shared/brand-logo.js; edit there and run pnpm run sync:shared ===
+// Resolve only slots declared by the active design system. Catalogue tags describe
+// available artwork; they do not say which identity the person selected.
+async function resolveBrandLogo(dark, mono) {
+  if (!host.tokens || !host.tokens.resolve || !host.assets || !host.assets.get) return null;
+  var suffix = dark ? '-reverse' : '';
+  var treatments = mono ? ['mono', 'primary'] : ['primary', 'mono'];
+  for (var t = 0; t < treatments.length; t++) {
+    for (var o = 0; o < 2; o++) {
+      var variant = (o ? 'vertical-' : 'horizontal-') + treatments[t] + suffix;
+      try {
+        var id = await host.tokens.resolve('{asset.logo.' + variant + '}');
+        if (typeof id !== 'string' || !id.trim() || id.indexOf('{') !== -1) continue;
+        var asset = await host.assets.get(id);
+        if (asset && typeof asset.url === 'string' && asset.url) return asset;
+      } catch { /* Try another declared slot on the same background. */ }
+    }
+  }
+  return null;
+}
+
+var _lastBrandLogoWarning = '';
+function brandLogoWarning(missing) {
+  var message = missing
+    ? 'A logo for this background is unavailable in the active design system. Add a matching mark in Logos, or turn off the logo.'
+    : '';
+  if (message && message !== _lastBrandLogoWarning && host.log) host.log('warn', message);
+  _lastBrandLogoWarning = message;
+  return message;
+}
+// === /lolly:shared brand-logo ===
 
 /* global host */
 /**
@@ -232,6 +263,11 @@ function hueOf(c) {
 }
 
 // Rec.709 luminance, the same test the certificate uses to pick a logo side.
+/** True when dark type reads better than white on this colour. */
+function isLight(h) {
+  var c = rgb(hex(h, '#000000'));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] > 150;
+}
 function isDark(h) {
   var c = rgb(h);
   return (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) < 140;
@@ -373,7 +409,13 @@ async function resolvePalette() {
         };
         // The semantic hues come after the spectrum: a design system with a full
         // spectrum leads with it, and a blank one still gets two real colours.
-        take(await token('color.semantic.primary'));
+        var primary = await token('color.semantic.primary');
+        var primaryHex = hex(primary, '');
+        if (primaryHex && isDark(primaryHex)) {
+          var pc = rgb(primaryHex);
+          if (0.2126 * pc[0] + 0.7152 * pc[1] + 0.0722 * pc[2] < 70) out.brandDark = primaryHex;
+        }
+        take(primary);
         take(await token('color.semantic.secondary'));
         out.paper = hex(await token('color.semantic.surface'), PAPER_FALLBACK);
         out.ink = hex(await token('color.semantic.text'), INK_FALLBACK);
@@ -886,9 +928,11 @@ function boardJson(sessions, tracks, plenary, palette, frozen) {
 
 function build(model, args, palette) {
   var style = ['editorial', 'minimal', 'night', 'swiss', 'broadcast', 'gallery', 'festival', 'quiet'].indexOf(args.style) >= 0 ? args.style : 'editorial';
+  // The dark looks sit on the design system's own dark colour when it has one (its
+  // primary, when that is dark enough to carry pale type), else on darkened ink.
   if (['night','broadcast','festival'].indexOf(style) >= 0) palette = {
     tracks: palette.tracks,
-    paper: mix(isDark(palette.paper) ? palette.paper : palette.ink, '#000000', 0.25),
+    paper: palette.brandDark || mix(isDark(palette.paper) ? palette.paper : palette.ink, '#000000', 0.25),
     ink: '#f4f6f8',
   };
   var plenary = wordOf(model, 'plenaryLabel', 'Plenary');
@@ -1070,6 +1114,7 @@ function build(model, args, palette) {
     mutedColor: mix(palette.ink, palette.paper, 0.42),
     ruleColor: mix(palette.ink, palette.paper, 0.82),
     accentColor: palette.tracks[0] || palette.ink,
+    accentInk: isLight(palette.tracks[0] || palette.ink) ? '#14181f' : '#ffffff',
     flagColor: isDark(palette.paper) ? '#ffba99' : '#9a3412',
   };
 }
@@ -1101,6 +1146,12 @@ async function compute(model, lang) {
       }
     }
     var result = build(model, args, palette);
+    // With no event logo chosen, the design system's own logo heads the programme,
+    // in the version made for this background.
+    var brand = !args.logo && args.brandLogo !== false && result.paperColor
+      ? await resolveBrandLogo(isDark(result.paperColor === 'transparent' ? palette.paper : result.paperColor), false)
+      : null;
+    result.brandLogoUrl = brand ? brand.url : '';
     return result;
   } catch (err) {
     var exportIssue = agText('This programme could not be laid out. Check the dates and times in the table.',_lang);

@@ -1200,3 +1200,215 @@ body[data-lolly-portable] .ag-screen {
 
 .ag-contact-item .ag-title-text { display:block; width:auto; max-width:100%; overflow-wrap:anywhere; white-space:normal; }
 .ag-contact-item .ag-card-title { overflow:visible; }
+
+/* ── Composition (1.4) ──────────────────────────────────────────────────────
+   The overview's cards spread through the space under the heading instead of
+   gathering in its middle, and the moment layouts (spotlight, intermission,
+   starting soon, close) read as one large statement across a room. */
+.ag-layout-overview:not(.ag-narrow) .ag-scene-list,
+.ag-layout-rooms:not(.ag-narrow) .ag-scene-list {
+  align-content: space-evenly;
+}
+.ag-layout-departures .ag-scene-list,
+.ag-layout-board .ag-scene-list,
+.ag-layout-chapters .ag-scene-list {
+  justify-content: flex-start;
+  padding-top: calc(12px * var(--ag-scale));
+}
+.ag-layout-spotlight .ag-scene-list,
+.ag-layout-intermission .ag-scene-list,
+.ag-layout-soon .ag-scene-list {
+  justify-content: center;
+}
+.ag-layout-spotlight .ag-card-title,
+.ag-layout-intermission .ag-card-title {
+  font-size: calc(var(--ag-type) * 2.2);
+  line-height: 1.06;
+}
+.ag-layout-intermission .ag-screen-card,
+.ag-layout-soon .ag-screen-card {
+  padding: calc(56px * var(--ag-scale));
+}
+.ag-layout-soon .ag-screen-message {
+  font-family: var(--font-display, var(--font-brand, Arial, sans-serif));
+  font-size: calc(var(--ag-type) * 2.1);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin-block: auto calc(28px * var(--ag-scale)) !important;
+}
+.ag-layout-closing .ag-scene {
+  justify-content: center;
+}
+.ag-layout-closing .ag-screen-head {
+  padding: calc(64px * var(--ag-scale));
+}
+.ag-layout-closing .ag-screen-head h1 {
+  font-size: calc(var(--ag-type) * 2.6);
+}
+.ag-layout-closing .ag-scene-list {
+  flex: none;
+}
+.ag-layout-closing .ag-empty {
+  font-size: calc(var(--ag-type) * 0.9);
+  padding-inline: calc(64px * var(--ag-scale));
+}
+/* A ribbon shown at an ordinary frame keeps whole words: the type follows the
+   narrower of the frame's height and width. */
+.ag-ribbon .ag-screen-head h1 {
+  font-size: min(20cqh, 5.2cqw);
+  overflow-wrap: normal;
+  hyphens: auto;
+}
+.ag-ribbon .ag-card-title {
+  font-size: min(28cqh, 6.5cqw);
+}
+.ag-ribbon .ag-card-meta,
+.ag-ribbon .ag-card-detail {
+  font-size: min(12cqh, 2.6cqw);
+}
+/* The printed programme carries the logo above its title. */
+.ag-head-logo {
+  align-self: flex-start;
+  height: calc(44 * var(--ag-u));
+  width: auto;
+  max-width: calc(280 * var(--ag-u));
+  object-fit: contain;
+  margin-bottom: calc(10 * var(--ag-u));
+}
+
+/* ── Styles (1.4) ───────────────────────────────────────────────────────────
+   Each style is a different idea, not a tint of the same cards. */
+/* Swiss: no cards, a flush column of ruled rows, large tight type and one
+   colour bar for the heading. */
+.ag-look-swiss .ag-screen-head {
+  background: transparent;
+  padding-inline: 0;
+  border-bottom: calc(10px * var(--ag-scale)) solid var(--ag-accent);
+  border-radius: 0;
+}
+.ag-look-swiss .ag-screen-head h1 {
+  font-size: calc(var(--ag-type) * 1.9);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.ag-look-swiss .ag-kicker {
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 700;
+}
+.ag-look-swiss .ag-screen-card {
+  background: transparent;
+  padding-inline: 0;
+  border-top: max(2px, calc(2px * var(--ag-scale))) solid var(--ag-ink);
+  border-radius: 0;
+}
+.ag-look-swiss .ag-scene-list {
+  gap: calc(10px * var(--ag-scale));
+}
+.ag-look-swiss .ag-track-label {
+  background: transparent;
+  padding: 0;
+  font-weight: 700;
+  color: var(--track, var(--ag-accent));
+}
+.ag-look-swiss.ag-screen:before {
+  background: var(--ag-paper);
+}
+.ag-look-swiss .ag-backdrop {
+  display: none;
+}
+/* Broadcast: a heading bar in the accent colour, a coloured strip on each
+   card and capitals for the times, like a channel's lower thirds. */
+.ag-look-broadcast .ag-screen-head {
+  background: var(--ag-accent);
+  color: var(--ag-accent-ink, #ffffff);
+  border-radius: calc(6px * var(--ag-scale));
+}
+.ag-look-broadcast .ag-screen-card {
+  background: color-mix(in srgb, var(--ag-paper) 82%, #ffffff);
+  border-left: calc(12px * var(--ag-scale)) solid var(--track, var(--ag-accent));
+  border-radius: calc(6px * var(--ag-scale));
+}
+.ag-look-broadcast .ag-card-title {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.ag-look-broadcast .ag-screen-footer > span {
+  background: var(--ag-accent);
+  color: var(--ag-accent-ink, #ffffff);
+}
+/* Gallery: wall labels. Centred, light type, hairlines and a great deal of air. */
+.ag-look-gallery .ag-screen-head {
+  background: transparent;
+  padding-block: calc(36px * var(--ag-scale)) calc(24px * var(--ag-scale));
+}
+.ag-look-gallery .ag-screen-head h1 {
+  font-size: calc(var(--ag-type) * 1.6);
+  font-weight: 300;
+  letter-spacing: 0;
+}
+.ag-look-gallery .ag-screen-card {
+  background: color-mix(in srgb, var(--ag-paper) 70%, transparent);
+  border: 0;
+  border-top: max(1px, calc(1px * var(--ag-scale))) solid var(--ag-rule);
+  border-radius: 0;
+  text-align: center;
+}
+.ag-look-gallery .ag-card-detail {
+  justify-content: center;
+}
+.ag-look-gallery .ag-track-label {
+  background: transparent;
+  border: max(1px, calc(1px * var(--ag-scale))) solid currentColor;
+  border-radius: 999px;
+}
+/* Festival: every card in its own track colour, chunky type and round corners. */
+.ag-look-festival .ag-screen-card {
+  background: var(--track, var(--ag-accent));
+  color: var(--track-ink, #ffffff);
+  box-shadow: 0 calc(10px * var(--ag-scale)) 0 color-mix(in srgb, var(--track, var(--ag-accent)) 55%, #000000);
+}
+.ag-look-festival .ag-track-label {
+  background: color-mix(in srgb, #ffffff 22%, transparent);
+  color: inherit;
+}
+.ag-look-festival .ag-screen-head {
+  background: var(--ag-ink);
+  color: var(--ag-paper);
+}
+.ag-look-festival .ag-screen-head h1 {
+  font-size: calc(var(--ag-type) * 1.7);
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}
+/* Quiet: no surfaces at all, generous leading and muted metadata. */
+.ag-look-quiet .ag-screen-head,
+.ag-look-quiet .ag-screen-card {
+  background: transparent;
+}
+.ag-look-quiet .ag-screen-card {
+  padding-block: calc(16px * var(--ag-scale));
+}
+.ag-look-quiet .ag-card-title {
+  font-weight: 500;
+}
+.ag-look-quiet .ag-card-meta,
+.ag-look-quiet .ag-card-detail {
+  color: var(--ag-muted);
+}
+.ag-look-quiet .ag-track-label {
+  background: transparent;
+  padding: 0;
+}
+.ag-look-quiet .ag-track-label:before {
+  content: "";
+  display: inline-block;
+  width: 0.6em;
+  height: 0.6em;
+  margin-inline-end: 0.4em;
+  border-radius: 50%;
+  background: var(--track, var(--ag-accent));
+}
