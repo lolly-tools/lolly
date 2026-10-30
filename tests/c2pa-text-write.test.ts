@@ -83,9 +83,10 @@ test('the five text formats keep their fixed slots; nothing displaced an old slo
   assert.deepEqual(list.slice(h, h + 5), ['html', 'js', 'css', 'md', 'html-fragment']);
   // The pre-2.4 slots keep their exact positions - shells key export formats off
   // this list, so an id may only ever join the end (flac is the post-text addition,
-  // appended after the text block rather than beside the audio group, for that reason).
+  // appended after the text block rather than beside the audio group, for that reason;
+  // svgz followed it in engine 1.289).
   assert.deepEqual(list.slice(0, h), ['pdf', 'pdf-cmyk', 'png', 'apng', 'jpg', 'jpeg', 'gif', 'svg', 'tiff', 'cmyk-tiff', 'webp', 'mp4', 'avif', 'm4a', 'webm', 'mp3', 'wav', 'ogg', 'opus']);
-  assert.deepEqual(list.slice(h + 5), ['flac']);
+  assert.deepEqual(list.slice(h + 5), ['flac', 'svgz']);
   assert.ok(Object.isFrozen(C2PA_FORMATS));
 });
 

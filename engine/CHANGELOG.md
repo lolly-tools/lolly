@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.289.0
+
+- `runtime.export` snapshots the authored Design document (`ExportOpts.sourceDocument`) for the still raster formats too (`png`, `jpg`/`jpeg`, `webp`, `avif`, `tiff`, `cmyk-tiff`, `bmp`, `ico`, `jxl`, `jxl-lossless`), taken at the same moment as the SVG and PDF snapshot, before `beforeExport`. A shell's export route can then read the rows the screen draws (plan 326). The web shell keeps every raster HDR request on the writer it had: the snapshot alone never moves a still raster onto the deep Design route.
+- New `design-export-route.ts`: the route vocabulary the web and Node shells share. `DesignExportRoute` is `gpu`, `operations` or `compatibility`; `designExportRouteFields` gives the two flat keys a credential's `tools.lolly.export` assertion records, `route` and `renderer` (the renderer's versioned identity); `designGpuRefusals` lists what a still raster request asks for that the GPU route does not draw; `parseDesignExportRouteChoice` reads the internal `auto`/`ops`/`legacy` override. Not re-exported from `index.ts`.
+- SVGZ carries Content Credentials. `embedC2pa(bytes, 'svgz')` decompresses the SVG, places the manifest with the SVG placer and compresses it again, so the hard binding covers the SVG the file decompresses to; `C2PA_FORMATS` gains `svgz`, appended last. `verifyC2pa` reads a gzip member that holds an SVG (bounded at 64 MiB decompressed) and reports `format: 'svgz'`. The C2PA specification defines the SVG embedding and no compressed form, and `c2patool` refuses `.svgz` as an unsupported type; it reads the same credential once the file is decompressed.
+
 ## 1.287.0
 
 - `summarizeInputDigests` (the inputs an export credential records) gives each choice a person made from a tool's own options as a readable value again: `select`, `number` (with its unit, as `summarizeInputs` writes it), `boolean` and `color`. Typed inputs (`text`, `longtext`, `url`, `date`, `time`, `datetime-local`) stay `sha256:` fingerprints, as the October 2026 change (engine 1.259) made every input, so their words are still not in the file. Profile-bound fields and inactive controls are still left out.
