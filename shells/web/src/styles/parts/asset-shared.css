@@ -143,13 +143,15 @@
 /* Artwork drawn for one surface gets that surface when the chrome is the other way
    round (views/assets/shared.ts tileGround). A two-colour icon's default pairing is a
    dark base under a bright accent, and a logo tagged on-light is dark ink: both read
-   on light. A logo tagged on-dark is light ink. The foreground token is the light ink
-   of the dark theme and the dark ink of the light one, so one rule serves both. A
-   chosen icon pairing that needs a ground of its own sets it inline (wiring.ts
-   retheemeGroup, from its previewBg). */
-:root[data-theme="dark"] .cat-tile-fig--duo,
-:root[data-theme="dark"] .cat-tile-fig--on-light,
-:root[data-theme="light"] .cat-tile-fig--on-dark { background: hsl(var(--foreground)); }
+   on light. A logo tagged on-dark is light ink. light-dark() follows the colour scheme
+   the chrome actually uses, so a dark Brand theme counts as dark too. The ground goes
+   on the thumbnail, which fills the figure, so the checker and the selected tint
+   underneath are untouched where no ground is needed. The foreground token is the
+   light ink of a dark scheme and the dark ink of a light one. A chosen icon pairing
+   that needs a ground of its own sets it inline (wiring.ts retheemeGroup, previewBg). */
+.cat-tile-fig--duo .cat-thumb,
+.cat-tile-fig--on-light .cat-thumb { background-color: light-dark(transparent, hsl(var(--foreground))); }
+.cat-tile-fig--on-dark .cat-thumb { background-color: light-dark(hsl(var(--foreground)), transparent); }
 .cat-thumb { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 /* Fill the fixed 4/3 box absolutely. A percentage/max height can't resolve against the
    aspect-ratio-derived (indefinite) height of a grid item, so a portrait image overflows

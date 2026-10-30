@@ -676,14 +676,15 @@ background-image:
 
 
      .be-logo-art img { max-width: 100%; max-height: 100%; object-fit: contain; }
-/* Reverse marks (primary-reverse, mono-reverse) read on dark; plain mono on a
-   neutral card so a one-colour dark mark still shows. */
+/* Reverse marks (primary-reverse, mono-reverse) read on dark; plain mono gets a
+   neutral card below, so a one-colour dark mark still shows. */
 .be-logo-slot[data-treatment$="reverse"] .be-logo-art { background: hsl(var(--foreground)); padding: .5rem; }
-.be-logo-slot[data-treatment="mono"] .be-logo-art { background: hsl(var(--muted) / .5); padding: .5rem; }
-/* Primary and mono marks are drawn for light grounds. On the dark theme the slot gives
-   them one (the foreground token is the dark theme's light ink), the way a reverse
-   mark gets a dark ground above, so a dark wordmark is not lost on a dark card. */
-:root[data-theme="dark"] .be-logo-slot:is([data-treatment="primary"], [data-treatment="mono"]) .be-logo-art { background-color: hsl(var(--foreground)); }
+/* Primary and mono marks are drawn for light grounds. On a dark colour scheme (the
+   dark theme, or a dark Brand theme) the slot gives them one, the way a reverse mark
+   gets a dark ground above, so a dark wordmark is not lost on a dark card. The
+   foreground token is the light ink of a dark scheme. */
+.be-logo-slot[data-treatment="primary"] .be-logo-art { background-color: light-dark(transparent, hsl(var(--foreground))); }
+.be-logo-slot[data-treatment="mono"] .be-logo-art { background: light-dark(hsl(var(--muted) / .5), hsl(var(--foreground))); padding: .5rem; }
 /* "Not set", in the muted register - the slot says what it is rather than
    drawing a 1.6rem "+" that reads as an instruction (plan 182 section 4.2). */
 .be-logo-empty { font-size: var(--fs-sm); font-weight: 500; color: hsl(var(--muted-foreground) / .8); }
