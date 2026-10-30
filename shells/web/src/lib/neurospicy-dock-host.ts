@@ -59,7 +59,10 @@ import type {
 
 /** The web shell's full host satisfies both what the transport needs (NeurospicyHost)
  *  and the token slice the visualiser palette reads (VizPaletteHost). */
-type MusicHost = NeurospicyHost & VizPaletteHost;
+type MusicHost = NeurospicyHost & VizPaletteHost & {
+  /** Reads the design system's declared logo slots for the brand mark. */
+  tokens?: { resolve?(ref: string): Promise<unknown> };
+};
 
 /** Friendly section labels for the picker groups, in the engine's canonical order
  *  (NEURO_CATEGORY_ORDER). The dock renders groups in first-seen order, and listLoops
@@ -168,6 +171,14 @@ class NeuroDockViz implements DockViz {
   private brandMarkCache: DockBrandMark | null | undefined;
   async brandMark(): Promise<DockBrandMark | null> {
     if (this.brandMarkCache !== undefined) return this.brandMarkCache;
+    // The design system's own slots come first: the logos it declares for a dark
+    // background in one colour, wide and stacked. Lolly Demo's are its reversed
+    // wordmark and its reversed mark, whose ids name no orientation.
+    const declared = await this.declaredMark();
+    if (declared) {
+      this.brandMarkCache = declared;
+      return declared;
+    }
     const cands: Array<{ id: string; url: string }> = [];
     try {
       const users = this.host.assets._listUserAssets ? await this.host.assets._listUserAssets() : [];
@@ -199,6 +210,21 @@ class NeuroDockViz implements DockViz {
     const vertical = monoRev.find((c) => isV(c.id))?.url ?? null;
     this.brandMarkCache = (horizontal || vertical) ? { horizontal, vertical } : null;
     return this.brandMarkCache;
+  }
+
+  /** The mono-reverse logos the active design system declares, or null when it declares none. */
+  private async declaredMark(): Promise<DockBrandMark | null> {
+    const slot = async (name: string): Promise<string | null> => {
+      try {
+        const id = await this.host.tokens?.resolve?.(`{asset.logo.${name}}`);
+        if (typeof id !== 'string' || !id.trim() || id.includes('{')) return null;
+        const ref = await this.host.assets.get(id);
+        return ref?.url || null;
+      } catch { return null; }
+    };
+    const horizontal = await slot('horizontal-mono-reverse');
+    const vertical = await slot('vertical-mono-reverse');
+    return horizontal || vertical ? { horizontal, vertical } : null;
   }
 
   // ── on/off ──────────────────────────────────────────────────────────────────
