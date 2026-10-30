@@ -1376,8 +1376,8 @@ body[data-lolly-portable] .ag-screen {
   color: inherit;
 }
 .ag-look-festival .ag-screen-head {
-  background: var(--ag-ink);
-  color: var(--ag-paper);
+  background: transparent;
+  padding-inline: 0;
 }
 .ag-look-festival .ag-screen-head h1 {
   font-size: calc(var(--ag-type) * 1.7);
