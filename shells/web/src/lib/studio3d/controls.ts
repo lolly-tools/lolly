@@ -45,7 +45,7 @@ export interface StudioControls {
   selectedLight?: number;
   render(quality: 'preview'): void;
 }
-const FOCUSABLE = ['fit', 'fit-selected', 'reset', 'focus', 'auto-focus', 'move', 'lights', 'orbit', 'add', 'add-key', 'go-key', 'play'];
+const FOCUSABLE = ['fit', 'fit-selected', 'reset', 'focus', 'auto-focus', 'move', 'turn', 'lights', 'orbit', 'add', 'add-key', 'go-key', 'play'];
 
 function commit(entry: StudioControls, ...edits: { id: string; value: unknown }[]): void {
   const focused = document.activeElement;
@@ -69,6 +69,7 @@ function picking(entry: StudioControls, value: boolean): void {
   if (value) {
     moving(entry, false);
     lighting(entry, false);
+    turning(entry, false);
   }
   entry.canvas.style.cursor = value ? 'crosshair' : arranging(entry) || relighting(entry) ? 'move' : 'grab';
   entry.marker.querySelector('[data-studio-focus]')?.setAttribute('aria-pressed', String(value));
@@ -78,9 +79,13 @@ function picking(entry: StudioControls, value: boolean): void {
 function arranging(entry: StudioControls): boolean {
   return entry.canvas.dataset.moveObject === 'true';
 }
+function turnsObject(entry: StudioControls): boolean {
+  return entry.canvas.dataset.turnObject === 'true';
+}
 /** The Orbit button reads pressed whenever no other pointer mode is on. */
 function reflectModes(entry: StudioControls): void {
-  const orbit = !arranging(entry) && !relighting(entry) && entry.canvas.dataset.pickFocus !== 'true';
+  const orbit =
+    !arranging(entry) && !relighting(entry) && !turnsObject(entry) && entry.canvas.dataset.pickFocus !== 'true';
   entry.marker.querySelector('[data-studio-orbit]')?.setAttribute('aria-pressed', String(orbit));
 }
 function relighting(entry: StudioControls): boolean {
@@ -98,7 +103,11 @@ function selectedLight(entry: StudioControls): number {
 /** Light mode: drags orbit a light about the subject; keys turn it and change its distance. */
 function lighting(entry: StudioControls, value: boolean): void {
   entry.canvas.dataset.moveLight = String(value);
-  if (value) entry.canvas.dataset.moveObject = 'false';
+  if (value) {
+    entry.canvas.dataset.moveObject = 'false';
+    entry.canvas.dataset.turnObject = 'false';
+    entry.marker.querySelector('[data-studio-turn]')?.setAttribute('aria-pressed', 'false');
+  }
   entry.canvas.style.cursor = value ? 'move' : 'grab';
   entry.marker.querySelector('[data-studio-lights]')?.setAttribute('aria-pressed', String(value));
   entry.marker.querySelector('[data-studio-move]')?.setAttribute('aria-pressed', String(arranging(entry)));
@@ -115,7 +124,10 @@ function lighting(entry: StudioControls, value: boolean): void {
 /** Move mode: drags and arrow keys move the selected object; orbit gestures pause. */
 function moving(entry: StudioControls, value: boolean): void {
   entry.canvas.dataset.moveObject = String(value);
-  if (value) lighting(entry, false);
+  if (value) {
+    lighting(entry, false);
+    turning(entry, false);
+  }
   entry.canvas.style.cursor = value ? 'move' : 'grab';
   entry.marker.querySelector('[data-studio-move]')?.setAttribute('aria-pressed', String(value));
   entry.handle.highlight(value && entry.recipe.objects ? activeObject(entry) : null);
@@ -127,6 +139,53 @@ function moving(entry: StudioControls, value: boolean): void {
       ? 'Drag an object to move it. Arrow keys nudge, comma and full stop turn, brackets select. Escape finishes.'
       : ''
   );
+}
+/**
+ * Turn mode: a sideways drag turns the object on the floor and an up or down drag tilts
+ * it; arrow keys do the same and comma and full stop lean the object sideways. In an
+ * arrangement the drag acts on the object under the pointer, else the selected one.
+ * Orbit gestures pause.
+ */
+function turning(entry: StudioControls, value: boolean): void {
+  entry.canvas.dataset.turnObject = String(value);
+  if (value) {
+    entry.canvas.dataset.moveObject = 'false';
+    entry.canvas.dataset.moveLight = 'false';
+    entry.marker.querySelector('[data-studio-move]')?.setAttribute('aria-pressed', 'false');
+    entry.marker.querySelector('[data-studio-lights]')?.setAttribute('aria-pressed', 'false');
+    entry.handle.showLightHandles(null);
+  }
+  entry.canvas.style.cursor = value ? 'grab' : arranging(entry) || relighting(entry) ? 'move' : 'grab';
+  entry.marker.querySelector('[data-studio-turn]')?.setAttribute('aria-pressed', String(value));
+  entry.handle.highlight(value && entry.recipe.objects ? activeObject(entry) : null);
+  reflectModes(entry);
+  if (entry.ready) entry.render('preview');
+  note(
+    entry,
+    value
+      ? 'Drag sideways to turn and up or down to tilt. Arrow keys turn and tilt, comma and full stop lean. Escape finishes.'
+      : ''
+  );
+}
+/** The rotation, in degrees, of an arrangement row or of the lone subject (row 0). */
+function rotationOf(entry: StudioControls, row: number): StudioVector3 {
+  const transform = entry.recipe.objects ? entry.recipe.objects[row]?.transform : entry.recipe.transform;
+  return [...(transform?.rotation ?? [0, 0, 0])] as StudioVector3;
+}
+/** An angle kept in -180 to 180, whole degrees. */
+const wrapDegrees = (angle: number): number => {
+  const turned = ((((angle + 180) % 360) + 360) % 360) - 180;
+  return Math.round(turned === -180 && angle > 0 ? 180 : turned);
+};
+/** The saved edit for a turned object: the row's rotation, or the subject's Turn and tilt. */
+function turnEdits(entry: StudioControls, row: number, rotation: StudioVector3): { id: string; value: unknown }[] {
+  const [x, y, z] = rotation.map(wrapDegrees) as StudioVector3;
+  if (entry.recipe.objects) return [studioObjectEdit(entry.inputValues, row, { rotX: x, rotY: y, rotZ: z })];
+  // Words face the camera until they are given the object's pose, so a turn gives them one.
+  const pose = entry.inputValues.source === 'text' && entry.inputValues.wordPose !== 'scene'
+    ? [{ id: 'wordPose', value: 'scene' }]
+    : [];
+  return [{ id: 'rotation', value: { x, y, z } }, ...pose];
 }
 function activeObject(entry: StudioControls): number {
   try {
@@ -188,6 +247,14 @@ export function wireStudioGestures(entry: StudioControls): void {
     current: StudioVector3;
     moved: boolean;
   } | null = null;
+  let turn: {
+    row: number;
+    x: number;
+    y: number;
+    from: StudioVector3;
+    current: StudioVector3;
+    moved: boolean;
+  } | null = null;
   const cancel = () => {
     start = null;
     pose = null;
@@ -198,6 +265,10 @@ export function wireStudioGestures(entry: StudioControls): void {
     if (lightDrag) {
       entry.handle.moveLight(lightDrag.index, lightDrag.from);
       lightDrag = null;
+    }
+    if (turn) {
+      entry.handle.turnObject(turn.row, turn.from);
+      turn = null;
     }
     entry.handle.view(entry.recipe.camera);
     if (entry.ready) entry.render('preview');
@@ -230,6 +301,18 @@ export function wireStudioGestures(entry: StudioControls): void {
       lightDrag = { index, x: e.clientX, y: e.clientY, from, current: from, moved: false };
       note(entry, `${lightName(entry, index)} selected.`);
       entry.render('preview');
+      entry.canvas.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      return;
+    }
+    if (turnsObject(entry)) {
+      const row = entry.recipe.objects
+        ? (entry.handle.pick(box.width / box.height, nx, ny)?.index ?? activeObject(entry))
+        : 0;
+      const from = rotationOf(entry, row);
+      turn = { row, x: e.clientX, y: e.clientY, from, current: from, moved: false };
+      if (entry.recipe.objects) entry.handle.highlight(row);
+      entry.canvas.style.cursor = 'grabbing';
       entry.canvas.setPointerCapture(e.pointerId);
       e.preventDefault();
       return;
@@ -271,6 +354,20 @@ export function wireStudioGestures(entry: StudioControls): void {
   });
   entry.canvas.addEventListener('pointermove', (e) => {
     if (!entry.ready) return;
+    if (turn) {
+      const dx = e.clientX - turn.x,
+        dy = e.clientY - turn.y;
+      if (!turn.moved && Math.hypot(dx, dy) < 3) return;
+      turn.moved = true;
+      turn.current = [
+        Math.max(-180, Math.min(180, turn.from[0] + dy * 0.4)),
+        turn.from[1] + dx * 0.5,
+        turn.from[2],
+      ];
+      entry.handle.turnObject(turn.row, turn.current);
+      entry.render('preview');
+      return;
+    }
     if (lightDrag) {
       const dx = e.clientX - lightDrag.x,
         dy = e.clientY - lightDrag.y;
@@ -308,6 +405,15 @@ export function wireStudioGestures(entry: StudioControls): void {
   entry.canvas.addEventListener('pointerup', () => {
     const clicked = start && !pose ? start.hit : null;
     start = null;
+    if (turn) {
+      const { row, moved, current } = turn;
+      turn = null;
+      entry.canvas.style.cursor = 'grab';
+      const edits = moved ? turnEdits(entry, row, current) : [];
+      if (entry.recipe.objects && row !== activeObject(entry)) edits.unshift(studioObjectSelect(entry.inputValues, row));
+      if (edits.length) commit(entry, ...edits);
+      return;
+    }
     if (lightDrag) {
       const { index, moved, current } = lightDrag;
       lightDrag = null;
@@ -334,17 +440,37 @@ export function wireStudioGestures(entry: StudioControls): void {
   entry.canvas.addEventListener('pointercancel', cancel);
   entry.canvas.addEventListener('studio-reset-gesture', cancel);
   entry.canvas.addEventListener('lostpointercapture', () => {
-    if (start || drag || lightDrag) cancel();
+    if (start || drag || lightDrag || turn) cancel();
   });
   entry.canvas.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       picking(entry, false);
       moving(entry, false);
       lighting(entry, false);
+      turning(entry, false);
       cancel();
       return;
     }
     if (!entry.ready || !entry.options.setInput) return;
+    if (turnsObject(entry)) {
+      const row = entry.recipe.objects ? activeObject(entry) : 0;
+      const [x, y, z] = rotationOf(entry, row);
+      const step = e.shiftKey ? 15 : 5;
+      const turned: Record<string, StudioVector3> = {
+        ArrowLeft: [x, y - step, z],
+        ArrowRight: [x, y + step, z],
+        ArrowUp: [Math.max(-180, x - step), y, z],
+        ArrowDown: [Math.min(180, x + step), y, z],
+        ',': [x, y, z + step],
+        '.': [x, y, z - step],
+      };
+      const next = turned[e.key];
+      if (!next) return;
+      e.preventDefault();
+      e.stopPropagation();
+      commit(entry, ...turnEdits(entry, row, next));
+      return;
+    }
     if (relighting(entry)) {
       const index = selectedLight(entry),
         position = entry.recipe.lights[index]?.position;
@@ -481,10 +607,15 @@ export function syncStudioControls(entry: StudioControls): void {
     lighting(entry, !relighting(entry));
     entry.canvas.focus({ preventScroll: true });
   });
+  button('[data-studio-turn]', () => {
+    turning(entry, !turnsObject(entry));
+    entry.canvas.focus({ preventScroll: true });
+  });
   button('[data-studio-orbit]', () => {
     picking(entry, false);
     moving(entry, false);
     lighting(entry, false);
+    turning(entry, false);
     entry.canvas.focus({ preventScroll: true });
   });
   const add = button('[data-studio-add]', () => entry.options.addObjects?.());
@@ -555,6 +686,7 @@ export function syncStudioControls(entry: StudioControls): void {
   picking(entry, false);
   // A repaint keeps a mode and its overlay on the newly selected object or light.
   if (relighting(entry)) lighting(entry, true);
+  else if (turnsObject(entry)) turning(entry, true);
   else if (arranging(entry) && entry.recipe.objects) moving(entry, true);
   else if (arranging(entry)) moving(entry, false);
   reflectModes(entry);

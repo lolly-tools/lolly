@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-28T14:40:30.598Z",
+  "generatedAt": "2026-10-30T18:36:51.719Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -14602,7 +14602,7 @@
       "id": "3d-studio",
       "name": "3D Studio",
       "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls.",
-      "version": "0.8.2",
+      "version": "0.9.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -14643,7 +14643,7 @@
           "id": "bouncing-icon",
           "name": "Bouncing icon",
           "category": "Promotion",
-          "description": "An icon crouches, jumps and comes down again under soft light, with the studio orbiting gently as it goes. Swap in your own SVG under Start."
+          "description": "An icon crouches, jumps and comes down again under soft light. Swap in your own SVG under Start."
         },
         {
           "id": "icon-backdrop",

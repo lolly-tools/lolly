@@ -100,6 +100,89 @@ function studioOverridesAfter(values, changedId) {
   return next === raw ? null : next;
 }
 
+const NAMED_PAINTS = { black: '#000000', white: '#ffffff' };
+
+/** A paint as #rrggbb, 'none', or null when this reader cannot tell what it is. */
+function paintHex(value) {
+  const v = String(value || '').trim().toLowerCase();
+  if (v === 'none' || v === 'transparent') return 'none';
+  if (NAMED_PAINTS[v]) return NAMED_PAINTS[v];
+  const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/.exec(v);
+  if (short) return `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`;
+  return /^#[0-9a-f]{6}$/.test(v) ? v : null;
+}
+
+/**
+ * The solid colours an SVG paints, in the order it first paints them, which is the order
+ * the studio numbers its material slots (fill before stroke, document order, a group's
+ * paint inherited, black when nothing is set). Null when a paint is not a plain colour,
+ * so the caller leaves the materials alone rather than guess.
+ */
+function svgPaints(source) {
+  const text = String(source).replace(/<!--[\s\S]*?-->/g, '');
+  const rules = {};
+  for (const style of text.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi))
+    for (const rule of style[1].matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+      const fill = /(?:^|;)\s*fill\s*:\s*([^;]+)/i.exec(rule[2]);
+      const stroke = /(?:^|;)\s*stroke\s*:\s*([^;]+)/i.exec(rule[2]);
+      for (const selector of rule[1].split(',')) {
+        const name = /^\s*\.([\w-]+)\s*$/.exec(selector);
+        if (name) rules[name[1]] = { fill: fill?.[1], stroke: stroke?.[1] };
+      }
+    }
+  const own = (attrs, prop) => {
+    const style = /\sstyle\s*=\s*"([^"]*)"/i.exec(attrs);
+    const inline = style && new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`, 'i').exec(style[1]);
+    if (inline) return inline[1];
+    const attr = new RegExp(`\\s${prop}\\s*=\\s*"([^"]*)"`, 'i').exec(attrs);
+    if (attr) return attr[1];
+    const cls = /\sclass\s*=\s*"([^"]*)"/i.exec(attrs);
+    for (const name of cls ? cls[1].split(/\s+/) : []) if (rules[name]?.[prop]) return rules[name][prop];
+    return undefined;
+  };
+  const shapes = new Set(['path', 'rect', 'circle', 'ellipse', 'polygon', 'polyline', 'line']);
+  const stack = [{ fill: '#000000', stroke: 'none' }];
+  const order = [];
+  for (const tag of text.replace(/<defs[\s\S]*?<\/defs>/gi, '').matchAll(/<(\/?)([a-zA-Z][\w:-]*)([^>]*?)(\/?)>/g)) {
+    const [, closing, name, attrs, selfClosing] = tag;
+    if (closing) {
+      if (name === 'g' || name === 'svg') stack.pop();
+      continue;
+    }
+    const parent = stack[stack.length - 1];
+    const paint = {
+      fill: own(attrs, 'fill') ?? parent.fill,
+      stroke: own(attrs, 'stroke') ?? parent.stroke,
+    };
+    if ((name === 'g' || name === 'svg') && !selfClosing) stack.push(paint);
+    if (!shapes.has(name)) continue;
+    for (const value of [paint.fill, paint.stroke]) {
+      const hex = paintHex(value);
+      if (hex === null) return null;
+      if (hex !== 'none' && !order.includes(hex)) order.push(hex);
+    }
+  }
+  return order;
+}
+
+/**
+ * Colours A and B from a one- or two-colour SVG, as a colour pair, so a two-tone icon
+ * arrives as two colours the reader can change. Artwork with more colours keeps its
+ * own materials. Null when there is nothing to set.
+ */
+async function artworkPair(ref) {
+  if (!ref || typeof ref !== 'object' || typeof host.assets.bytes !== 'function') return null;
+  let text;
+  try {
+    text = new TextDecoder().decode(await host.assets.bytes(ref));
+  } catch {
+    return null;
+  }
+  const paints = svgPaints(text);
+  if (!paints || !paints.length || paints.length > 2) return null;
+  return { materialMode: 'pair', colorA: paints[0], colorB: paints[1] ?? paints[0] };
+}
+
 async function compute(model, changedId) {
   const values = {};
   for (let i = 0; i < model.length; i++) values[model[i].id] = model[i].value;
@@ -203,6 +286,17 @@ async function compute(model, changedId) {
       })
     );
     if (normalizeRows) patch[key] = rows;
+  }
+  // A new SVG, or a switch to a colour pair, starts from the artwork's own colours.
+  if (
+    values.source === 'artwork' &&
+    (changedId === 'artwork' || (changedId === 'materialMode' && values.materialMode === 'pair'))
+  ) {
+    const raw = model.find((input) => input.id === 'artwork')?.value;
+    const pair = await artworkPair(typeof raw === 'string' && raw ? await host.assets.get(raw) : raw);
+    if (pair)
+      for (const [key, value] of Object.entries(pair))
+        if (values[key] !== value) patch[key] = values[key] = value;
   }
   const overrides = changedId ? studioOverridesAfter(values, changedId) : null;
   if (overrides !== null) {

@@ -884,6 +884,23 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     this.frameKey = '';
   }
 
+  /**
+   * Preview an object at a new rotation while it is turned; the saved value changes on
+   * release. A lone subject is row 0, and its rotation is the scene's own transform.
+   */
+  turnObject(row: number, rotation: [number, number, number]): void {
+    const instance = this.recipe?.objects
+      ? this.instances.find((candidate) => candidate.row === row)
+      : this.instances[0];
+    if (!this.recipe || !instance || this.hold) return;
+    const spec = { ...instance.spec, transform: { ...instance.spec.transform, rotation } };
+    instance.spec = spec;
+    this.recipe = this.recipe.objects
+      ? { ...this.recipe, objects: this.recipe.objects.map((object, i) => (i === row ? spec : object)) }
+      : { ...this.recipe, transform: spec.transform };
+    this.frameKey = '';
+  }
+
   /** A sphere per placeable light in its own colour, a line to the target, and a ring on the selection. */
   private buildLightHandles(recipe: StudioSceneV1): { group: THREE.Group; dispose(): void } {
     const group = new THREE.Group();

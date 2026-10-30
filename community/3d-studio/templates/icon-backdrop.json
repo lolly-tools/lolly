@@ -13,8 +13,6 @@
     "atmosphereForms": "copies",
     "atmosphereSpread": 0.7,
     "atmosphereCount": 8,
-    "lightMotion": "orbit",
-    "lightMotionAmount": 0.3,
     "duration": 8,
     "cameraMotion": "keys",
     "cameraEase": "smooth",
@@ -55,6 +53,7 @@
     "primitive": "badge",
     "materialMode": "pair",
     "finishA": "satin",
-    "finishB": "enamel"
+    "finishB": "enamel",
+    "lightMotion": "still"
   }
 }
