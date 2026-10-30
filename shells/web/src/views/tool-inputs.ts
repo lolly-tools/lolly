@@ -49,7 +49,9 @@ import {
 import { canSkipInputsRebuild, staticInputControl } from './inputs-sync.ts';
 import { dragTravel } from '../lib/pointer-wrap.ts';
 import { jellyActive, jellyEnabled } from '../lib/jelly.ts';
-import { BANDS, bandMeta, resolveBands, sectionGlyph, type Band } from '../lib/section-bands.ts';
+import { BANDS, bandMeta, labelledBands, resolveBands, sectionGlyph, type Band } from '../lib/section-bands.ts';
+import { deferredHandle } from '../lib/deferred-handle.ts';
+import { assetRefInModel } from '../lib/model-asset-ref.ts';
 import { installTablePaste } from '../lib/table-paste.ts';
 import { splitMarkdownIntoBlocks } from '../lib/markdown.ts';
 import { playSliderTick, playScrubTick } from '../lib/sfx.ts';
@@ -73,7 +75,6 @@ import {
 } from './block-tree.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import { brandFontFamilies } from '../user-fonts.ts';
-import { storeUserUpload, askLollyIntent } from './picker.ts';
 import { mountSidebarLiveControls } from './live-controls.ts';
 import { mountCurvePlots, wireDateTimePickers } from './tool-input-enhancers.ts';
 
@@ -90,10 +91,10 @@ import type { Runtime } from '../../../../engine/src/runtime.ts';
 import { assetInputThumbnail } from './inputs-asset-thumb.ts';
 // The same enhancer the picker and catalog grids use - an audio slot starts as an
 // honest glyph and upgrades in place once its peaks are measured.
-import { mountAudioThumbs } from './picker.ts';
 import { asRow, type BlockRow } from './tool-types.ts';
 import { cappedFileRef, fileInputCap, fileToRef } from '../lib/file-input-ref.ts';
 import type { WebToolHost, PanelEl, EmbedDescribe, FlatpickrHost } from './tool.ts';
+
 
 // The id scope for one emoji table's artwork, so no two roots walked into this
 // document mint the same placement id. The canvas keeps the default scope `e`;
@@ -383,6 +384,8 @@ function makeBlocksDropper({
     }
     if (!files.length) return;
     const made: Record<string, InputValue>[] = [];
+    // The upload path lives with the asset picker, which loads on first use.
+    const { storeUserUpload } = await import('./picker.ts');
     for (const file of files) {
       if (signal?.aborted) return;
       try {
@@ -638,7 +641,7 @@ export function renderInputs(
     // or a catalog text/boilerplate asset. Not on a locked input.
     const dataSrcBtn =
       !locks && input.dataSource && (input.control === 'textarea' || input.control === 'text-input')
-        ? `<button type="button" class="input-data-src" data-data-source="${escape(input.id)}" title="Add data from a file or your library" aria-label="Add data">${icon('filePlus', { size: 13, strokeWidth: 2 })} Add Data</button>`
+        ? `<button type="button" class="input-data-src" data-data-source="${escape(input.id)}" aria-label="${t('Add data')}">${icon('filePlus', { size: 13, strokeWidth: 2 })} ${t('Add')}</button>`
         : '';
     const label = `<span class="input-label">${labelText}${lockChip}${ht ? ht.button : ''}${dataSrcBtn}</span>`;
     // Always-visible fine print between label and control - the consent-gate
@@ -770,6 +773,7 @@ export function renderInputs(
     });
     rowModel = runs.flatMap((r) => r.items);
   }
+  const showBandLabel = labelledBands(rowModel.map((i) => [bandOf(i.section ?? null), i.section ?? null] as const));
   let pillbarOpen = false; // a run of consecutive `display:'pill'` booleans, wrapped
   const isPillInput = (i: InputModelItem): boolean =>
     i.control === 'checkbox' && i.display === 'pill';
@@ -789,7 +793,7 @@ export function renderInputs(
     if (band !== openBand) {
       closePillbar();
       if (openSection !== null) { parts.push('</div></details>'); openSection = null; }
-      parts.push(`<p class="lp-band-label">${escape(bandMeta(band).title)}</p>`);
+      if (showBandLabel.has(band)) parts.push(`<p class="lp-band-label">${t(bandMeta(band).title)}</p>`);
       openBand = band;
     }
     if (sec !== openSection) {
@@ -928,6 +932,7 @@ export function renderInputs(
         const curVal = input.value as AssetRef | null;
         const curToolUrl = asStr(asRow(curVal?.meta as InputValue | undefined).toolUrl);
         if (curToolUrl && host.compose?.renderUrl) {
+          const { askLollyIntent } = await import('./picker.ts');
           const intent = await askLollyIntent(
             asStr(asRow(curVal?.meta as InputValue | undefined).name)
           );
@@ -2036,6 +2041,7 @@ export function renderInputs(
       // live Lolly render offers "edit it" before "replace it".
       const curToolUrl = asStr(asRow(asRow(cur).meta).toolUrl);
       if (curToolUrl && host.compose?.renderUrl) {
+        const { askLollyIntent } = await import('./picker.ts');
         const intent = await askLollyIntent(asStr(asRow(asRow(cur).meta).name));
         if (!intent) return;
         if (intent === 'edit') {
@@ -2469,30 +2475,16 @@ export function renderInputs(
   // in-flight decodes, and a panel re-render must not leave a previous one measuring
   // into a detached node.
   el._audioThumbs?.destroy();
-  el._audioThumbs = mountAudioThumbs(
+  // The enhancer lives with the asset picker, so the picker loads only for a panel that
+  // shows an audio slot. The handle is live at once: destroy() before the import
+  // resolves stops the mount from happening at all.
+  el._audioThumbs = el.querySelector('[data-audio-thumb]') ? deferredHandle(import('./picker.ts').then(({ mountAudioThumbs }) => mountAudioThumbs(
     el,
     host,
-    // The slot already HAS its resolved ref (the runtime's resolveAssetRefs ran before
-    // this render), so the ref comes straight off the model - the enhancer never has to
-    // reach a catalog this panel has no access to. Blocks nest their own asset fields,
-    // so the walk covers array values too.
-    (id) => {
-      for (const item of model) {
-        const v = item.value as unknown;
-        if (v && typeof v === 'object' && (v as AssetRef).id === id) return v as AssetRef;
-        if (Array.isArray(v)) {
-          for (const row of v) {
-            for (const cell of Object.values((row ?? {}) as Record<string, unknown>)) {
-              if (cell && typeof cell === 'object' && (cell as AssetRef).id === id)
-                return cell as AssetRef;
-            }
-          }
-        }
-      }
-      return undefined;
-    },
+    // The slot already HAS its resolved ref, so the enhancer never reaches a catalog.
+    (id) => assetRefInModel(model, id),
     () => el.isConnected
-  );
+  ))) : undefined;
 
   // NOTE: legacy rows are given their stable ids at MOUNT (lib/row-id.ts's
   // migrateBlockRowIds, called from views/tool.ts) - deliberately not from here.

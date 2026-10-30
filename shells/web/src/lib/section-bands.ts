@@ -98,6 +98,28 @@ export function isBandHead(band: Band, sections: readonly string[]): boolean {
   return sections.length === 1 && normalise(sections[0]!) === normalise(bandMeta(band).title);
 }
 
+/**
+ * The bands whose label is worth drawing, given each row's band and section (null for
+ * the unsectioned opening run). A label tells the reader something only between bands:
+ * a panel with one band (most tools, all Content) gets none, and a band holding nothing
+ * but a section of its own name ("Layout" alone) would say that word twice.
+ */
+export function labelledBands(rows: ReadonlyArray<readonly [Band, string | null]>): Set<Band> {
+  const sections = new Map<Band, Set<string | null>>();
+  for (const [band, section] of rows) {
+    if (!sections.has(band)) sections.set(band, new Set());
+    sections.get(band)!.add(section);
+  }
+  const out = new Set<Band>();
+  if (sections.size < 2) return out;
+  for (const [band, names] of sections) {
+    const named = [...names].filter((n): n is string => n !== null);
+    if (named.length === names.size && isBandHead(band, named)) continue;
+    out.add(band);
+  }
+  return out;
+}
+
 /** The sections a tool declares, regrouped into ladder order. Order WITHIN a band
  *  is the manifest's own, so an author still decides what comes first. */
 export function orderSections(sections: readonly string[]): string[] {

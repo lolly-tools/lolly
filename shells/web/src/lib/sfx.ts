@@ -36,7 +36,7 @@
  *    MOTION, not audio, so it is not what silences sounds here.)
  */
 
-export type SfxName = 'click' | 'pickup' | 'drop' | 'delete' | 'toggle' | 'navigate' | 'shutter' | 'shuffle' | 'coverflow' | 'gallery' | 'save' | 'saveProfile' | 'whoosh' | 'vacuum' | 'fanfare' | 'twinkle' | 'shimmer' | 'ding' | 'victory' | 'braaam' | 'sign' | 'warn' | 'ghost' | 'shoo' | 'reel' | 'aperture' | 'scribble' | 'waveform' | 'flick' | 'optIn' | 'optOut' | 'byebye' | 'key' | 'slider' | 'scrub' | 'select' | 'hydraulicOpen' | 'hydraulicClose' | 'verify' | 'dashboard' | 'newSession' | 'leaveSession' | 'whisper' | 'crystal' | 'land';
+export type SfxName = 'click' | 'pickup' | 'drop' | 'delete' | 'toggle' | 'navigate' | 'shutter' | 'shuffle' | 'coverflow' | 'gallery' | 'save' | 'saveProfile' | 'whoosh' | 'vacuum' | 'fanfare' | 'twinkle' | 'shimmer' | 'ding' | 'victory' | 'braaam' | 'sign' | 'warn' | 'ghost' | 'shoo' | 'reel' | 'aperture' | 'scribble' | 'waveform' | 'flick' | 'optIn' | 'optOut' | 'byebye' | 'key' | 'slider' | 'scrub' | 'tick' | 'select' | 'hydraulicOpen' | 'hydraulicClose' | 'verify' | 'dashboard' | 'newSession' | 'leaveSession' | 'whisper' | 'crystal' | 'land';
 
 /** localStorage mirror of the mute flag ('1' muted / '0' on). Canonical store is the profile. */
 const MUTE_KEY = 'lolly:sfxMuted';
@@ -180,6 +180,15 @@ export function playSliderTick(): void {
   _lastSliderTick = now;
   playSfx('slider');
 }
+// One tick per item a selection gains or loses. A marquee can catch a dozen tiles in a
+// frame, so the cap keeps a fast sweep a ratchet rather than a buzz.
+let _lastSelectTick = 0;
+export function playSelectTick(): void {
+  const now = nowMs();
+  if (now - _lastSelectTick < 45) return;
+  _lastSelectTick = now;
+  playSfx('tick');
+}
 let _lastScrubTick = 0;
 export function playScrubTick(): void {
   const now = nowMs();
@@ -285,7 +294,7 @@ function isSfxName(v: string | undefined): v is SfxName {
     || v === 'save' || v === 'saveProfile' || v === 'whoosh' || v === 'vacuum' || v === 'fanfare'
     || v === 'twinkle' || v === 'shimmer' || v === 'ding' || v === 'victory' || v === 'braaam' || v === 'warn' || v === 'ghost'
     || v === 'shoo' || v === 'reel' || v === 'aperture' || v === 'scribble' || v === 'waveform' || v === 'flick'
-    || v === 'optIn' || v === 'optOut' || v === 'byebye' || v === 'key' || v === 'slider' || v === 'scrub'
+    || v === 'optIn' || v === 'optOut' || v === 'byebye' || v === 'key' || v === 'slider' || v === 'scrub' || v === 'tick'
     || v === 'select' || v === 'hydraulicOpen' || v === 'hydraulicClose' || v === 'verify' || v === 'dashboard' || v === 'newSession' || v === 'leaveSession'
     || v === 'whisper' || v === 'crystal' || v === 'land';
 }
@@ -294,6 +303,9 @@ function isSfxName(v: string | undefined): v is SfxName {
 function cueForTarget(el: Element): SfxName {
   const tagged = el.closest<HTMLElement>('[data-sfx]');
   if (tagged && isSfxName(tagged.dataset.sfx)) return tagged.dataset.sfx as SfxName;
+  // A tile's selection dot (Assets, Projects, the gallery) ticks rather than clicks, the
+  // same tick the marquee and Shift-range make in lib/tile-select.ts.
+  if (el.closest('[data-select]')) return 'tick';
   // The shared confirm dialog's destructive button (confirm-dialog.ts, danger:true) - 
   // fires the "gone" cue at the moment of confirmation, everywhere it's used.
   if (el.closest('.modal-danger')) return 'delete';

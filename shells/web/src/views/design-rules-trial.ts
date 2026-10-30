@@ -2,13 +2,13 @@
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { DesignToolDraftV1 } from '@lolly-tools/core/design-tool-v1';
 import type { ToolManifest } from '@lolly/engine';
-import { readLollyFile, extractBundledTool } from '../lib/lolly-pack.ts';
 import { mountModal } from '../components/modal.ts';
 import { mountRulesPreview } from './design-rules-preview.ts';
 import { t } from '../i18n.ts';
 
 /** Try the actual downloaded bytes while the unsaved authoring master stays mounted. */
 export async function tryDesignToolFile(file:File, host:HostV1):Promise<void> {
+  const { readLollyFile, extractBundledTool } = await import('../lib/lolly-pack.ts');
   const parsed=await readLollyFile(new Uint8Array(await file.arrayBuffer()));const bundle=extractBundledTool(parsed);
   if(!bundle)throw new Error('This file contains no reusable tool.');
   const manifest=JSON.parse(new TextDecoder().decode(bundle.files['tool.json'])) as ToolManifest;

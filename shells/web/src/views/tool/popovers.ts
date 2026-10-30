@@ -12,7 +12,6 @@ import type { InputModelItem, InputValue } from '../../../../../engine/src/input
 import { escape as escapeText } from '../../utils.ts';
 import { tRaw } from '../../i18n.ts';
 import { colorFieldHtml, fixedContainingBlockOrigin, wireColorField } from '../../components/color-field.ts';
-import { askLollyIntent } from '../picker.ts';
 import { asRow } from '../tool-types.ts';
 import { asStr, openEmbedEditor } from '../tool-inputs.ts';
 import type { WebToolHost } from './shared.ts';
@@ -127,6 +126,9 @@ export async function openAssetPickerInline(tview: ToolViewCtx, input: InputMode
   const curVal = input.value as AssetRef | null;
   const curToolUrl = asStr(asRow(curVal?.meta as InputValue | undefined).toolUrl);
   if (curToolUrl && tview.host.compose?.renderUrl) {
+    // The picker module is the whole asset browser, so it loads on demand, never on
+    // the way to the tool's first paint.
+    const { askLollyIntent } = await import('../picker.ts');
     const intent = await askLollyIntent(
       asStr(asRow(curVal?.meta as InputValue | undefined).name)
     );

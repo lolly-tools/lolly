@@ -118,7 +118,7 @@ export function uploadsSectionHtml(cat: CatCtx, items: AssetRef[]): string {
         <span class="cat-group-chevron">${CHEVRON}</span>
         <span class="cat-group-icon">${categoryGlyph('uploads')}</span>
         <span class="cat-group-title">${t('Your uploads')}</span>
-        <span class="cat-group-count">${items.length}</span>
+        ${items.length ? `<span class="cat-group-count">${items.length}</span>` : ''}
       </button>
       <div class="cat-group-body">
         ${dropzone}

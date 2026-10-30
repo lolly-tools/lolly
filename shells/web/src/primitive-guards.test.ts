@@ -259,9 +259,9 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'views/tool-actions/format-rules.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   // Back to 6, 2026-08-15: the URL-budget gauge ring (briefly a 7th inline SVG)
   // moved out of views/tool.ts the same day it arrived.
-  'views/tool/stage-layout.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  // 3 -> 2, 2026-10-30: the on-device badge's shield is icon('shield') now.
+  'views/tool/stage-layout.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/tool/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/tool/history.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
 };
 
 test('R3 (rec 5): inline 24×24 Lucide glyphs only shrink - new icons go through lib/icons.ts', () => {

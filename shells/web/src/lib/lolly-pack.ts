@@ -37,6 +37,7 @@ import { base64ToBytes, bytesToBin } from '../../../../engine/src/bytes.ts';
 import { resolveSessionUserAsset, rebaseImportedAssetPins } from './session-asset-versions.ts';
 import { prepareLollyEmoji } from './lolly-emoji.ts';
 import { zipAsync } from './zip.ts';
+import { LOLLY_MIME, LOLLY_EXT } from './lolly-file-type.ts';
 import {
   type BundleEntry,
   README_NAME,
@@ -95,9 +96,7 @@ export const LOLLY_PROJECT_TOOL_ID = 'lolly-project';
 /** Bounds on one project file, so a hostile archive cannot mint unbounded records. */
 export const LOLLY_MAX_PROJECT_SESSIONS = 2000;
 export const LOLLY_MAX_PROJECT_FOLDERS = 500;
-/** The `+zip` structured suffix (RFC 6839) advertises the container to OS/tooling. */
-export const LOLLY_MIME = 'application/vnd.lolly+zip';
-export const LOLLY_EXT = '.lolly';
+export { LOLLY_MIME, LOLLY_EXT } from './lolly-file-type.ts';
 /** The sender's design system, as the DTCG document their studio holds. An additive part
  *  (readers before it simply see no `designSystem` in the manifest), so the file also
  *  carries the brand a session was made under - Design System Setup's "Add from a

@@ -33,6 +33,7 @@
  */
 
 import { nearestInDirection, type ArrowKey } from './arrow-nav.ts';
+import { playSelectTick } from './sfx.ts';
 
 /** How the view exposes its grid + selection store to the gestures. */
 export interface TileSelectAdapter {
@@ -128,7 +129,22 @@ const DRAG_SLOP = 5;
 /** Both grids mark a tile's selection dot with `data-select` - the shared convention. */
 const DOT = '[data-select]';
 
-export function wireTileSelect(a: TileSelectAdapter): TileSelect {
+export function wireTileSelect(adapter: TileSelectAdapter): TileSelect {
+  // Every gesture below changes the selection through setRefs or clear, so the tick an
+  // item makes as it joins or leaves a selection is played here, once, for both grids.
+  const a: TileSelectAdapter = {
+    ...adapter,
+    setRefs(refs) {
+      const before = adapter.current();
+      adapter.setRefs(refs);
+      if (refs.size !== before.size || [...refs].some((r) => !before.has(r))) playSelectTick();
+    },
+    clear() {
+      const had = adapter.current().size > 0;
+      adapter.clear();
+      if (had) playSelectTick();
+    },
+  };
   // The origin of a Shift-range: the last dot clicked plainly, or the last tile a
   // marquee box caught. Null until the user selects something (a Shift-click with no
   // anchor is just a plain click).

@@ -448,9 +448,9 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
         ${showAside && !isIframeMode() ? `<button type="button" class="fullscreen-toggle-float" id="fullscreen-toggle-float" data-tip-below data-tip-align="start" data-tip="${escapeText(t('Expand sidebar'))}" aria-label="${escapeText(t('Expand sidebar'))}">${icon('arrowRight')}</button>` : ''}
         ${
           hideSidebar && onDevice && toolId !== 'rondocode' && !isIframeMode()
-            ? `<div class="on-device-badge on-device-badge--float" title="${escapeText(t('This tool runs entirely in your browser. Your file is never uploaded.'))}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span>${t('Runs on your device - nothing is uploaded')}</span>
+            ? `<div class="on-device-badge on-device-badge--float">
+          ${icon('shield')}
+          <span>${t('Runs entirely on your device')}</span>
         </div>`
             : ''
         }

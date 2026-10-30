@@ -185,7 +185,6 @@ const FILE_INTO_KEY = 'lolly:fileInto';
 // switching to Cover Flow in the gallery carries over here.
 
 const FOLDER_PLUS_ICON = icon('folderPlus', { strokeWidth: 1.8 });
-const FILE_PLUS_ICON = icon('filePlus', { strokeWidth: 1.8 });
 const BACK_ICON = icon('chevronLeft');
 const RENDER_ICON = icon('play');
 const COURSE_ICON = icon('graduationCap', { strokeWidth: 1.9 });
@@ -581,11 +580,9 @@ export async function mountProjects(
     if (query) return shell(t('Projects'), 'projects', sharedProjectsHtml(query) + searchBodyHtml());
     if (toolsFilter.length) return shell(t('Projects'), 'projects', toolsBodyHtml());
     const loose = sortSessions(uncategorised());
-    // Card copy says "project" for the thing the user made (plans/163 F14) - the
-    // stored record stays a session everywhere in the code.
-    const createFolder = actionTile('folder', FOLDER_PLUS_ICON, t('New folder'), t('Group related projects'));
-    const createFile = actionTile('file', FILE_PLUS_ICON, t('New file'), t('Write a text or Markdown file'));
-    const createTool = actionTile('tool', FILE_PLUS_ICON, t('New asset'), t('Start a new project'));
+    // New folder, New file and New asset live in the toolbar above the grid only. The
+    // grid used to repeat all three as tiles, so a first visit showed every create
+    // action twice and nothing else.
     // Only TOP-LEVEL folders at the root; nested folders show inside their parent.
     const topFolders = sortFolders(childFolders(folders, null));
     const folderTiles = topFolders.map(f => shared.folderTile(f, folderTileOpts(f))).join('');
@@ -631,7 +628,7 @@ export async function mountProjects(
           so the place answers to it. Grid mode only - the list table has its own
           header row - and pointless when the grid IS only the library. */ ''}
         ${!list && loose.length && topFolders.length ? `<h2 class="projects-sec-label">${t('My library')}</h2>` : ''}
-        ${looseTiles}${createFolder}${createFile}${createTool}${blueprintTile()}${templatesRootTile()}${trashTile}
+        ${looseTiles}${blueprintTile()}${templatesRootTile()}${trashTile}
       </div>
       ${recentExports.length ? `
         <section class="projects-exports folder-exports">

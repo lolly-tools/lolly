@@ -81,6 +81,7 @@ import { designOpsSvg, renderDesignOpsPdf } from './export-design-ops.ts';
 import { outlineSvgTextRuns } from './export-svg-text-runs.ts';
 import { buildLinearGradientEl, buildRadialGradientEl } from './export-gradients.ts';
 import { assertExportReady, browserExportProgress } from './export-progress.ts';
+import { _exportNotice } from './export-notice.ts';
 
 export { videoSupport, cmykTiffSupport, tiffSupport } from './format-support.ts';
 export { _host, __setDomToImageForTest, fontMetricsPx } from './export-shared.ts';
@@ -108,13 +109,9 @@ type Rgb = [number, number, number];
 // `_host` - the download button is disabled for the duration of one export, so a
 // single sink is never shared between two concurrent runs. NOT part of HostV1 and
 // never serialized; a null sink (nobody listening) simply drops the notice.
-export let _exportNoticeSink: ((msg: string) => void) | null = null;
-export function _setExportNoticeSink(fn: ((msg: string) => void) | null): void { _exportNoticeSink = fn; }
-/** Surface one export-status line to the user through the registered sink (aria-live
- *  announce + the export card's [data-export-degraded] note), or nothing when no sink
- *  is registered (a direct caller). Lets a format module - e.g. the .penpot export's
- *  report - reach the person, not only host.log (plans/222 item B). */
-export function _exportNotice(msg: string): void { if (msg) _exportNoticeSink?.(msg); }
+// The sink itself lives in export-notice.ts, a leaf the tool view can load without
+// loading this module and its format writers.
+export { _exportNotice, _setExportNoticeSink } from './export-notice.ts';
 
 /**
  * The one place a Blob becomes a browser download: a transient object-URL anchor.
@@ -450,7 +447,7 @@ async function renderSequenceStage(node: Element, format: 'mp4' | 'webm' | 'gif'
   const h = _host;
   const seqHost = h ? {
     log: (l: string, m: string) => { h.log?.(l as 'debug' | 'info' | 'warn' | 'error', m); },
-    notice: (m: string) => { _exportNoticeSink?.(m); },
+    notice: (m: string) => { _exportNotice(m); },
     assets: h.assets,
     codec: h.codec,
   } : null;
@@ -4820,12 +4817,12 @@ export async function renderVideo(node: Element, opts: ExportOpts, preferred: st
   if (fps !== reqFps) {
     _host?.log?.('warn', `Video frame rate lowered to ${fps}fps to keep the whole ${(durationMs / 1000).toFixed(1)}s clip inside the frame buffer.`);
     // ...and report it where a person will actually see it (host.log is console-only).
-    _exportNoticeSink?.(`Exported at ${fps} fps (lowered from ${reqFps} to fit this length).`);
+    _exportNotice(`Exported at ${fps} fps (lowered from ${reqFps} to fit this length).`);
   }
   if (plan.truncated) {
     const msg = `Video truncated to ${plan.clipSec.toFixed(1)}s of the requested ${(durationMs / 1000).toFixed(1)}s. The export is the start of the clip and stays in step with its audio.`;
     _host?.log?.('warn', msg);
-    _exportNoticeSink?.(msg);   // ClipPlan.truncated's contract: surface it visibly.
+    _exportNotice(msg);   // ClipPlan.truncated's contract: surface it visibly.
   }
 
   // Phase 1: render all frames sequentially through the shared FrameSource.

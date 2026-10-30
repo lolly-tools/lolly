@@ -24,10 +24,11 @@ export function mount(cat: CatCtx): void {
     cat.sourceSelection = id; updateRouteParams({ sourceNode: id === 'all' ? null : id }); cat.sections.renderBody();
   }, () => { if (cat.sourcePrefsKey) void cat.host.state.save(cat.sourcePrefsKey, { expanded: [...cat.sourceExpanded].slice(0, 256) }).catch(() => {}); });
   const actions = document.createElement('div'); actions.className = 'asset-source-actions';
-  const projects = document.createElement('a'); projects.href = '#/projects'; projects.className = 'btn btn--labelled btn--ghost'; setActionButtonContent(projects, t('Browse projects'), 'folder'); actions.append(projects);
+  // Projects is a source in the tree above and a tab in the top bar, so the rail does
+  // not offer a third way there.
   if (cat.sourceCanManage) { const manage = document.createElement('a'); manage.href = `${getInstanceBase() || ''}/admin/#/providers`; manage.className = 'btn btn--labelled btn--ghost'; setActionButtonContent(manage, t('Manage connections'), 'link'); actions.append(manage); }
   if (focusedId) root.querySelector<HTMLElement>(`[data-source-node="${CSS.escape(focusedId)}"]`)?.focus();
-  root.append(actions);
+  if (actions.childElementCount) root.append(actions);
   const selectedStatus = cat.sourceStatuses.find(s => JSON.stringify([s.id]) === cat.sourceSelection);
   if (selectedStatus && selectedStatus.status !== 'current') { const note = document.createElement('p'); note.className = 'asset-source-health'; note.setAttribute('role', 'status'); note.textContent = t(selectedStatus.status === 'unavailable' ? 'This source is unavailable. Other sources can still be browsed.' : selectedStatus.status === 'pending' ? 'This source is syncing.' : 'Showing the last available listing. File access is checked when opened.'); if (selectedStatus.lastSyncedAt) note.title = new Date(selectedStatus.lastSyncedAt).toLocaleString(); root.append(note); }
   if (cat.sourceSelection !== 'all') { const clear = document.createElement('button'); clear.type = 'button'; clear.className = 'btn btn--ghost btn--sm'; clear.textContent = t('All sources'); clear.addEventListener('click', () => { cat.sourceSelection = 'all'; updateRouteParams({ sourceNode: null }); cat.sections.renderBody(); mount(cat); }); root.append(clear); }

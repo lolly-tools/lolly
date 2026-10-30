@@ -19,7 +19,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import type { BrowserType } from 'playwright';
 
-import { bandMeta, isBandHead, orderSections, resolveBands, sectionGlyph } from './section-bands.ts';
+import { labelledBands, bandMeta, isBandHead, orderSections, resolveBands, sectionGlyph } from './section-bands.ts';
 
 test('the decision column names are in the vocabulary, in the bands the spec gives them', () => {
   const bands = resolveBands(['Objects', 'Decision', 'Colours', 'Fonts', 'Background', 'Layout', 'Position']);
@@ -158,4 +158,16 @@ test('the band head draws as the band rule with the caret on the section carets\
   } finally {
     await browser.close();
   }
+});
+
+test('a band label is drawn only between bands, and never over a section of its own name', () => {
+  // One band (most tools: every row is Content) - no label at all.
+  assert.deepEqual([...labelledBands([['content', null], ['content', 'Setup']])], []);
+  // Two bands - both labelled.
+  assert.deepEqual([...labelledBands([['content', null], ['style', 'Colours']])].sort(), ['content', 'style']);
+  // A band holding only a section named like the band ("Layout" alone) keeps the
+  // section head and drops the label, which would repeat the word.
+  assert.deepEqual([...labelledBands([['content', null], ['layout', 'Layout']])], ['content']);
+  // The same section beside unsectioned rows of that band still gets the label.
+  assert.deepEqual([...labelledBands([['content', null], ['layout', null], ['layout', 'Layout']])].sort(), ['content', 'layout']);
 });

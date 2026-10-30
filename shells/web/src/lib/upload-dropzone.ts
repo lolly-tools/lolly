@@ -61,7 +61,7 @@ export function mountUploadDropzone(container: HTMLElement, host: PickerHost, op
       <span class="updz-icon" aria-hidden="true">${UPLOAD_ICON}</span>
       <span class="updz-copy">
         <span class="updz-text">${t('Add files')}</span>
-        <span class="updz-hint">${opts.hint ? escape(opts.hint) : t('drag & drop, tap or click')}</span>
+        ${opts.hint ? `<span class="updz-hint">${escape(opts.hint)}</span>` : ''}
       </span>
     </label>${opts.allowUrl ? `
     <div class="updz-url">

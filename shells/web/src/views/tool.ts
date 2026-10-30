@@ -142,6 +142,34 @@ export async function mountTool(
   }
 }
 
+/**
+ * Start fetching, all at once, the lazy modules every tool mount goes on to import one
+ * after another. Each later `await import(...)` then finds its module already loaded or
+ * in flight, so a cold open pays roughly one round trip for the set instead of one per
+ * step (a direct link to a tool measured about twenty in a row before this). Every
+ * entry here is imported again, unconditionally, by the mount itself; nothing is
+ * awaited, and a failure is left for that later import to report.
+ */
+function warmMountModules(): void {
+  void Promise.all([
+    import('../lib/installed-tools.ts'),
+    import('../lib/template-source.ts'),
+    import('../lib/template-ref.ts'),
+    import('../lib/user-templates.ts'),
+    import('../lib/emoji-runtime-style.ts'),
+    import('../bridge/production-observer.ts'),
+    import('../bridge/tool-apis.ts'),
+    import('../../../../engine/src/emoji-pack.ts'),
+    import('../../../../engine/src/color-face.ts'),
+    import('./anim-transport.ts'),
+    import('./framing-overlay.ts'),
+    import('./export-share.ts'),
+    import('../lib/rules-entrypoints.ts'),
+    import('./session-rules.ts'),
+    import('../lib/rules-launch.ts'),
+  ]).catch(() => { /* the mount's own import reports a failure */ });
+}
+
 async function mountToolInto(
   tview: ToolViewCtx,
   viewEl: ViewEl,
@@ -150,6 +178,7 @@ async function mountToolInto(
   urlParams: string | null | undefined
 ): Promise<void> {
   tview.openCard = null;
+  warmMountModules();
   tview.history = historyOps(tview);
   tview.designSystem = designSystemOps(tview);
   tview.stageLayout = stageLayoutOps(tview);

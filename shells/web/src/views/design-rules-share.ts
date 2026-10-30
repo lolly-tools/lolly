@@ -7,7 +7,6 @@ import { DesignSourceReviewError } from '../lib/design-tool-source.ts';
 import { prepareDesignTool, designToolRights, DesignPreparationError } from '../lib/design-tool-compile.ts';
 import { preflightDesignTool } from '../lib/design-tool-preflight.ts';
 import { getDesignPublication, restoreDesignPublication, compiledDesignDigest, nextDesignVersion } from '../lib/design-tool-publication.ts';
-import { buildLollyFile, readLollyFile } from '../lib/lolly-pack.ts';
 import { lollyBytesLabel } from '../lib/lolly-intake.ts';
 import { escape as e } from '../utils.ts';
 import { t } from '../i18n.ts';
@@ -71,6 +70,7 @@ export function createRulesShare(opts: {
         if (cached?.digest === digest) ready = cached;
         else {
           const files = Object.fromEntries(Object.entries(compiled.files).map(([key,value])=>[key,typeof value === 'string' ? new TextEncoder().encode(value) : value]));
+          const { buildLollyFile, readLollyFile } = await import('../lib/lolly-pack.ts');
           const result = await buildLollyFile({kind:'tool',session:null,toolId:candidate.id,toolVersion:candidate.version,name:`${candidate.name}-${candidate.version}`,userAssets:[],toolCredits:JSON.parse(String(compiled.files['compilation.json'])).dependencies.map((d:{credit?:string})=>d.credit).filter(Boolean).join('\n\n'),tool:{id:candidate.id,version:candidate.version,trust:'custom',files}});
           await readLollyFile(new Uint8Array(await result.blob.arrayBuffer()));
           ready = {digest,blob:result.blob,filename:result.filename};

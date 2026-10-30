@@ -372,9 +372,10 @@ test('the Templates doors are navigation, and neither accepts a drop', () => {
   assert.doesNotMatch(rendered, /data-create=/, 'and it never reads as a create action');
 });
 
-test('the three root tiles come out of ONE builder (plans/245)', () => {
-  assert.match(VIEW, /actionTile\('folder', FOLDER_PLUS_ICON, t\('New folder'\)/, 'New folder');
-  assert.match(VIEW, /actionTile\('tool', FILE_PLUS_ICON, t\('New asset'\)/, 'New asset');
+test('the root tiles come out of ONE builder, and create actions live only in the toolbar (plans/245)', () => {
+  // New folder, New file and New asset were tiles on the root grid AND buttons in the
+  // toolbar above it, so an empty Projects view showed each create action twice.
+  assert.doesNotMatch(VIEW, /actionTile\('(folder|file|tool)', /, 'no create tile on the root grid');
   const tile = bodyAfter(WIRING, 'export function templatesRootTile(): string');
   assert.match(tile, /actionTile\('templates', TEMPLATE_ICON, t\('Templates'\)/, 'and Templates, same builder');
   assert.doesNotMatch(tile, /folder-tile|tile-cover|tile-meta|tile-title/, 'no bespoke markup is left behind');

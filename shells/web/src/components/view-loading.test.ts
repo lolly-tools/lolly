@@ -103,3 +103,20 @@ test('a request from the view being left does not follow into the next one', asy
   newer.close();
   assert.deepEqual(placed, []);
 });
+
+test('the boot screen is the only loader on a cold open', async () => {
+  const view = document.createElement('main');
+  view.id = 'view';
+  view.innerHTML = '<p class="loading">Loading…</p>';
+  document.body.append(view);
+  try {
+    const loading = beginViewLoading(0);
+    await pause(5);
+    assert.equal(card(), null, 'no card over index.html\'s own spinner and word');
+    loading.close();
+  } finally { view.remove(); }
+  const later = beginViewLoading(0);
+  await pause(5);
+  try { assert.ok(card()?.open, 'once a view has replaced the boot screen, a slow mount gets the card'); }
+  finally { later.close(); }
+});
