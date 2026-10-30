@@ -1689,5 +1689,7 @@
   "Ink and paper": "Dakwat dan kertas",
   "Named colours": "Warna bernama",
   "Emphasis": "Penekanan",
-  "Zoom to selection": "Zum ke pilihan"
+  "Zoom to selection": "Zum ke pilihan",
+  "Make default": "Jadikan lalai",
+  "{name} is now the default": "{name} kini menjadi lalai"
 }

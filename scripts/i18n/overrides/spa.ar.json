@@ -1825,5 +1825,7 @@
   "Ink and paper": "الحبر والورق",
   "Named colours": "ألوان مسمّاة",
   "Emphasis": "التأكيد",
-  "Zoom to selection": "تكبير إلى التحديد"
+  "Zoom to selection": "تكبير إلى التحديد",
+  "Make default": "اجعله الافتراضي",
+  "{name} is now the default": "أصبح {name} الافتراضي"
 }

@@ -1684,5 +1684,7 @@
   "Ink and paper": "Inkoust a papír",
   "Named colours": "Pojmenované barvy",
   "Emphasis": "Zdůraznění",
-  "Zoom to selection": "Přiblížit na výběr"
+  "Zoom to selection": "Přiblížit na výběr",
+  "Make default": "Nastavit jako výchozí",
+  "{name} is now the default": "{name} je nyní výchozí"
 }

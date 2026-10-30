@@ -1820,5 +1820,7 @@
   "Ink and paper": "Blekk og papir",
   "Named colours": "Navngitte farger",
   "Emphasis": "Utheving",
-  "Zoom to selection": "Zoom til utvalg"
+  "Zoom to selection": "Zoom til utvalg",
+  "Make default": "Gjør til standard",
+  "{name} is now the default": "{name} er nå standard"
 }

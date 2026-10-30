@@ -10327,5 +10327,7 @@
   "To send the whole creation, share it on your network below.": "पूरी रचना भेजने के लिए इसे नीचे अपने नेटवर्क पर साझा करें।",
   "To share it as a link, reduce some elements.": "इसे लिंक के रूप में साझा करने के लिए कुछ तत्व घटाएँ।",
   "This creation is too large for a link.": "यह रचना लिंक के लिए बहुत बड़ी है।",
-  "The link above opens it only on this device.": "ऊपर का लिंक इसे केवल इसी डिवाइस पर खोलता है।"
+  "The link above opens it only on this device.": "ऊपर का लिंक इसे केवल इसी डिवाइस पर खोलता है।",
+  "Make default": "डिफ़ॉल्ट बनाएं",
+  "{name} is now the default": "{name} अब डिफ़ॉल्ट है"
 }

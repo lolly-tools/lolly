@@ -1690,5 +1690,7 @@
   "Ink and paper": "কালি ও কাগজ",
   "Named colours": "নামযুক্ত রং",
   "Emphasis": "জোর",
-  "Zoom to selection": "নির্বাচনে জুম করুন"
+  "Zoom to selection": "নির্বাচনে জুম করুন",
+  "Make default": "ডিফল্ট করুন",
+  "{name} is now the default": "{name} এখন ডিফল্ট"
 }

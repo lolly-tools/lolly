@@ -1682,5 +1682,7 @@
   "Ink and paper": "Bläck och papper",
   "Named colours": "Namngivna färger",
   "Emphasis": "Betoning",
-  "Zoom to selection": "Zooma till markering"
+  "Zoom to selection": "Zooma till markering",
+  "Make default": "Gör till standard",
+  "{name} is now the default": "{name} är nu standard"
 }

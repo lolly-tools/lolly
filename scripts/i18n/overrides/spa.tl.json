@@ -1692,5 +1692,7 @@
   "Ink and paper": "Ink at papel",
   "Named colours": "Mga pinangalanang kulay",
   "Emphasis": "Diin",
-  "Zoom to selection": "I-zoom sa pinili"
+  "Zoom to selection": "I-zoom sa pinili",
+  "Make default": "Gawing default",
+  "{name} is now the default": "Default na ngayon ang {name}"
 }

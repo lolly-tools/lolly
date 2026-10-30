@@ -1690,5 +1690,7 @@
   "Ink and paper": "Encre et papier",
   "Named colours": "Couleurs nommées",
   "Emphasis": "Accentuation",
-  "Zoom to selection": "Zoomer sur la sélection"
+  "Zoom to selection": "Zoomer sur la sélection",
+  "Make default": "Définir par défaut",
+  "{name} is now the default": "{name} est désormais par défaut"
 }

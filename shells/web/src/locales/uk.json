@@ -10327,5 +10327,7 @@
   "To send the whole creation, share it on your network below.": "Щоб надіслати всю роботу, поділіться нею нижче у своїй мережі.",
   "To share it as a link, reduce some elements.": "Щоб поділитися нею як посиланням, зменште кількість елементів.",
   "This creation is too large for a link.": "Ця робота завелика для посилання.",
-  "The link above opens it only on this device.": "Посилання вище відкриває її лише на цьому пристрої."
+  "The link above opens it only on this device.": "Посилання вище відкриває її лише на цьому пристрої.",
+  "Make default": "Зробити типовим",
+  "{name} is now the default": "{name} тепер типовий"
 }

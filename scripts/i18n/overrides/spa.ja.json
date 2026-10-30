@@ -1690,5 +1690,7 @@
   "Ink and paper": "インクと紙",
   "Named colours": "名前付きカラー",
   "Emphasis": "強調",
-  "Zoom to selection": "選択範囲にズーム"
+  "Zoom to selection": "選択範囲にズーム",
+  "Make default": "デフォルトにする",
+  "{name} is now the default": "{name}をデフォルトにしました"
 }

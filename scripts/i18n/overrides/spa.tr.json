@@ -1818,5 +1818,7 @@
   "Ink and paper": "Mürekkep ve kâğıt",
   "Named colours": "Adlandırılmış renkler",
   "Emphasis": "Vurgu",
-  "Zoom to selection": "Seçime yakınlaştır"
+  "Zoom to selection": "Seçime yakınlaştır",
+  "Make default": "Varsayılan yap",
+  "{name} is now the default": "{name} artık varsayılan"
 }

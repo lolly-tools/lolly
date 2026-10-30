@@ -1689,5 +1689,7 @@
   "Ink and paper": "Tinte und Papier",
   "Named colours": "Benannte Farben",
   "Emphasis": "Betonung",
-  "Zoom to selection": "Auf Auswahl zoomen"
+  "Zoom to selection": "Auf Auswahl zoomen",
+  "Make default": "Als Standard festlegen",
+  "{name} is now the default": "{name} ist jetzt der Standard"
 }

@@ -1818,5 +1818,7 @@
   "Ink and paper": "Фарба й папір",
   "Named colours": "Іменовані кольори",
   "Emphasis": "Акцент",
-  "Zoom to selection": "Масштабувати до вибору"
+  "Zoom to selection": "Масштабувати до вибору",
+  "Make default": "Зробити типовим",
+  "{name} is now the default": "{name} тепер типовий"
 }

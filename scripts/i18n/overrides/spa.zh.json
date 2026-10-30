@@ -1691,5 +1691,7 @@
   "Ink and paper": "油墨与纸张",
   "Named colours": "命名颜色",
   "Emphasis": "强调",
-  "Zoom to selection": "缩放至所选内容"
+  "Zoom to selection": "缩放至所选内容",
+  "Make default": "设为默认",
+  "{name} is now the default": "{name} 现在是默认"
 }

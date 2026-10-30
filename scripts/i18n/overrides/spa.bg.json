@@ -1820,5 +1820,7 @@
   "Ink and paper": "Мастило и хартия",
   "Named colours": "Именувани цветове",
   "Emphasis": "Акцент",
-  "Zoom to selection": "Мащабиране до селекцията"
+  "Zoom to selection": "Мащабиране до селекцията",
+  "Make default": "Направи по подразбиране",
+  "{name} is now the default": "{name} вече е по подразбиране"
 }

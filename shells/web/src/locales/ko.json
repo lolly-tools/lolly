@@ -10327,5 +10327,7 @@
   "To send the whole creation, share it on your network below.": "작품 전체를 보내려면 아래에서 네트워크에 공유하세요.",
   "To share it as a link, reduce some elements.": "링크로 공유하려면 일부 요소를 줄이세요.",
   "This creation is too large for a link.": "이 작품은 링크로 보내기에 너무 큽니다.",
-  "The link above opens it only on this device.": "위 링크는 이 기기에서만 엽니다."
+  "The link above opens it only on this device.": "위 링크는 이 기기에서만 엽니다.",
+  "Make default": "기본값으로 설정",
+  "{name} is now the default": "{name}이(가) 이제 기본값입니다"
 }

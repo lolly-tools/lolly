@@ -1689,5 +1689,7 @@
   "Ink and paper": "Tinta e papel",
   "Named colours": "Cores nomeadas",
   "Emphasis": "Ênfase",
-  "Zoom to selection": "Zoom na seleção"
+  "Zoom to selection": "Zoom na seleção",
+  "Make default": "Tornar padrão",
+  "{name} is now the default": "{name} agora é o padrão"
 }

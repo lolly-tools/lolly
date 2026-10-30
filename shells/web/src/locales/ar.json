@@ -10327,5 +10327,7 @@
   "To send the whole creation, share it on your network below.": "لإرسال العمل كاملاً، شاركه على شبكتك أدناه.",
   "To share it as a link, reduce some elements.": "لمشاركته كرابط، قلّل بعض العناصر.",
   "This creation is too large for a link.": "هذا العمل أكبر من أن يتسع له رابط.",
-  "The link above opens it only on this device.": "الرابط أعلاه يفتحه على هذا الجهاز فقط."
+  "The link above opens it only on this device.": "الرابط أعلاه يفتحه على هذا الجهاز فقط.",
+  "Make default": "اجعله الافتراضي",
+  "{name} is now the default": "أصبح {name} الافتراضي"
 }

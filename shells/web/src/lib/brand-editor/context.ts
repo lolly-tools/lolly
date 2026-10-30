@@ -31,6 +31,7 @@ import type { palSelectOps } from './pal-select.ts';
 import type { gridOps } from './grid.ts';
 import type { addColorOps } from './add-color.ts';
 import type { rolesOps } from './roles.ts';
+import type { colourwaysOps } from './colourways.ts';
 import type { typeOps } from './type.ts';
 import type { compareStageOps } from './compare-stage.ts';
 import type { logosOps } from './logos.ts';
@@ -63,8 +64,8 @@ export interface BrandEditorCtx {
   analogAngle: number;
   currentTheme: string;
   /** The lead (colourway option id, plans/319) the room reads and writes, or
-   *  null for the canonical lead. Null until the Colours room offers a lead
-   *  switcher; read it through `bedit.state.editContext()`. */
+   *  null for the canonical lead. Set by the Colourways row (colourways.ts);
+   *  read it through `bedit.state.editContext()`. */
   currentLead: string | null;
   curves: RampCurves;
   curveAnchorPrimary: string;
@@ -190,6 +191,8 @@ export interface BrandEditorCtx {
   addedSwatch: { path: string[]; name: string } | null;
   addColorMount: HTMLElement;
   rolesMount: HTMLElement;
+  /** The Colourways row at the head of the Colour roles wing (colourways.ts). */
+  leadsMount: HTMLElement | null;
   rolesStrip: { render: () => void; } | null;
   useasRow: HTMLElement | null;
   fontErr: HTMLElement | null;
@@ -265,6 +268,7 @@ export interface BrandEditorCtx {
   grid: ReturnType<typeof gridOps>;
   addColor: ReturnType<typeof addColorOps>;
   roles: ReturnType<typeof rolesOps>;
+  colourways: ReturnType<typeof colourwaysOps>;
   type: ReturnType<typeof typeOps>;
   compareStage: ReturnType<typeof compareStageOps>;
   logos: ReturnType<typeof logosOps>;

@@ -10327,5 +10327,7 @@
   "To send the whole creation, share it on your network below.": "Çalışmanın tamamını göndermek için aşağıda ağınızda paylaşın.",
   "To share it as a link, reduce some elements.": "Bağlantı olarak paylaşmak için bazı öğeleri azaltın.",
   "This creation is too large for a link.": "Bu çalışma bir bağlantı için çok büyük.",
-  "The link above opens it only on this device.": "Yukarıdaki bağlantı onu yalnızca bu cihazda açar."
+  "The link above opens it only on this device.": "Yukarıdaki bağlantı onu yalnızca bu cihazda açar.",
+  "Make default": "Varsayılan yap",
+  "{name} is now the default": "{name} artık varsayılan"
 }
