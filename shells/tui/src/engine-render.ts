@@ -19,7 +19,8 @@ import { getProfile } from './store.ts';
 // The same allowlisted-fetch module every shell builds host.net from (the web
 // bridge re-exports this one) - one matcher, no drift.
 import { createNetAPI } from '@lolly-tools/node-shell/net';
-import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
+import type { HostV1, IngredientCredential, Profile } from '@lolly-tools/core/host-v1';
+import type { DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
 import type { JSDOM } from 'jsdom';
 
 export type Runtime = Awaited<ReturnType<typeof createRuntime>>;
@@ -155,7 +156,9 @@ export async function exportToFile(
   // The design-system record (plans/319): the export panel's Design system row sets it
   // per export, so the runtime's own exports and the Tier-B URL read one switch.
   if (typeof dims.madeWith === 'boolean') runtime.setMadeWith(dims.madeWith);
-  const write = async (bytes: Uint8Array, viaWebShell = false): Promise<number> => {
+  /** A Design page the Node bridge drew from the operations: its route and the credentialed pictures it drew (plan 326). */
+  type DrawnHere = { pictures: IngredientCredential[]; route: DesignExportRouteRecord | null };
+  const write = async (bytes: Uint8Array, viaWebShell = false, drawn?: DrawnHere): Promise<number> => {
     // Optionally stamp Content Credentials (C2PA) as the LAST byte operation - same rule
     // as the CLI/web. NEVER on transform utilities (strip-data's whole job is to REMOVE
     // metadata). Ephemeral on-device cert; a clean warn-and-continue on any failure.
@@ -181,7 +184,8 @@ export async function exportToFile(
           // Same reason as the CLI: this shell stamps here rather than in
           // host.export.render, so the emoji artwork the render placed has to be
           // handed over explicitly or its licence would go unrecorded.
-          ingredients: runtime.emojiIngredients(),
+          ingredients: [...runtime.emojiIngredients(), ...(drawn?.pictures ?? [])],
+          route: drawn?.route ?? null,
         }));
       } catch { /* non-fatal - write the unstamped bytes */ }
     }
@@ -221,14 +225,17 @@ export async function exportToFile(
     const u = dims.unit || 'px';
     const qual = (v: number | undefined): string | number | undefined =>
       (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
-    const opts: { width?: string | number; height?: string | number; dpi?: number } = { width: qual(dims.width), height: qual(dims.height) };
+    const drawn: DrawnHere = { pictures: [], route: null };
+    const opts: { width?: string | number; height?: string | number; dpi?: number; ingredientSink: IngredientCredential[]; onExportRoute: (record: DesignExportRouteRecord) => void } = {
+      width: qual(dims.width), height: qual(dims.height), ingredientSink: drawn.pictures, onExportRoute: (record) => { drawn.route = record; },
+    };
     if (u !== 'px' && dims.dpi) opts.dpi = dims.dpi;
     const query = currentQuery(runtime);
     try {
       const blob = await runtime.export(canvas, fmt, opts);
       const bytes = new Uint8Array(await blob.arrayBuffer());
       assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt, bytes });
-      return write(bytes);
+      return write(bytes, false, drawn);
     } catch (error) {
       // HTML artwork needs the same vector walker used by web and CLI exports.
       // A failed hook or an intervening edit cannot be retried as a fresh render.

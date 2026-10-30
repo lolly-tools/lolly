@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Outlined RGB Design pages from authored drawing operations, with the shared PDF finishing pass. */
 import { parseDimension, pdfKeywords, toPoints } from '@lolly/engine';
-import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
 import { designPagesPdf } from '../../../engine/src/design-page-svg.ts';
 import type { PrintGeometry } from '../../../engine/src/print-marks.ts';
 import { designOpsNodeHost } from './design-ops-host.ts';
 import { finishPdfX, printGeometryForSize, provenanceLabels, encryptPdfStrong } from './pdf-finishing.ts';
 import type { PdfFinishingOpts } from './pdf-finishing.ts';
+import { nodeExportRouteChoice } from './export-route.ts';
 
 /** A declared admission failure can use the browser tier; finishing/security errors cannot. */
 export const DESIGN_PDF_BROWSER_REQUIRED = 'DESIGN_PDF_BROWSER_REQUIRED';
@@ -20,12 +21,14 @@ class PdfFinishingError extends Error {
 }
 
 export async function designOpsPdfNode(node: Element | null | undefined, opts: PdfFinishingOpts & { text?: string }, host: HostV1,
-  ctx: { repoRoot: string }): Promise<{ pdf: Blob } | { reason: string } | null> {
+  ctx: { repoRoot: string }): Promise<{ pdf: Blob; ingredients: IngredientCredential[] } | { reason: string } | null> {
   const doc = opts.sourceDocument;
   if (doc?.toolId !== 'design') return null;
+  if (nodeExportRouteChoice() === 'legacy') return { reason: 'the compatibility route is forced (LOLLY_EXPORT_ROUTE=legacy)' };
   // The runtime snapshots authored values before the hook composes stories. Keep that job with its browser owner.
   if (String(doc.values.textDocument ?? '').trim()) return { reason: 'the document composes text stories' };
   if (opts.watermark) return { reason: 'the export carries a watermark' };
+  // The 40-bit encryptor is the web shell's (export-pdf-rc4.ts); the browser tier draws such a page from the operations too.
   if (opts.password) return { reason: 'the export carries a standard password' };
   if (opts.convertPaths === false || opts.text === 'live') return { reason: 'the export keeps its words as live text' };
   const pages = node?.matches?.('[data-pdf-page]') ? [node] : Array.from(node?.querySelectorAll?.('[data-pdf-page]') ?? []);
@@ -58,7 +61,6 @@ export async function designOpsPdfNode(node: Element | null | undefined, opts: P
     return { reason: `the drawing could not be compiled (${error instanceof Error ? error.message : String(error)})` };
   }
   if (!out.pdf) return { reason: `a page holds features the drawing operations or PDF do not carry yet: ${[...new Set(out.findings.map((f) => `${f.feature} (${f.id})`))].join(', ')}` };
-  if (use.credentialed()) return { reason: 'a picture carries Content Credentials that only the browser tier records as an ingredient' };
   const bleed = parseDimension(opts.bleed);
   const hasGeo = (bleed ? toPoints(bleed) : 0) > 0 || opts.cropMarks || opts.registrationMarks || opts.bleedMarks || opts.colorBars || opts.provenance;
   try {
@@ -69,7 +71,7 @@ export async function designOpsPdfNode(node: Element | null | undefined, opts: P
     // Encryption is last. The caller must skip its C2PA update on encrypted bytes.
     const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
     host.log?.('info', `Design PDF export: ${ids.length} pages drawn from the drawing operations without a browser.`);
-    return { pdf };
+    return { pdf, ingredients: use.ingredients() };
   } catch (error) {
     throw new PdfFinishingError(error);
   }

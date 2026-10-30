@@ -17,11 +17,20 @@ import { parseFontFamilies, resolveVectorFont } from './font-registry.ts';
 import type { DesignPageSvg, DesignPageSvgHost, DesignPdfPlacement } from '../../../../engine/src/design-page-svg.ts';
 import type { PrintGeometry } from '../../../../engine/src/print-marks.ts';
 import { textStrikeMetrics } from './text-drawing-facts.ts';
+import { COMPATIBILITY_VECTOR_RENDERER, designOperationsRenderer, type DesignExportRoute } from '../../../../engine/src/design-export-route.ts';
+import { DESIGN_DRAW_VERSION } from '../../../../engine/src/design-draw.ts';
+import { exportRouteChoice } from '../feature-flags.ts';
 
 const log = (message: string): void => { _host?.log?.('info', message); };
 
+/** Which renderer drew a Design page, for the export's credential (plan 326). */
+function recordRoute(opts: ExportOpts, route: Extract<DesignExportRoute, 'operations' | 'compatibility'>): void {
+  opts._exportRoute = { route, renderer: route === 'operations' ? designOperationsRenderer(DESIGN_DRAW_VERSION) : COMPATIBILITY_VECTOR_RENDERER };
+}
+
 /** Why a page is drawn by the walker, as one sentence. */
-function walkerBecause(reason: string): null {
+function walkerBecause(opts: ExportOpts, reason: string): null {
+  recordRoute(opts, 'compatibility');
   log(`Design SVG export: drawn by the DOM walker because ${reason}.`);
   return null;
 }
@@ -58,8 +67,11 @@ function colorResolver(node: Element): (css: string) => string | null {
 const MOTION = /\.(json|lottie|mp4|m4v|mov|webm)($|\?|#)/i;
 const SOUND = /\.(mp3|wav|ogg|m4a|flac)($|\?|#)/i;
 
-/** What the engine needs from this shell to draw `node`'s pages: shaping, outlines, pictures, fonts and colours. */
-function pageHost(node: Element, opts: ExportOpts, text: NonNullable<NonNullable<typeof _host>['text']>, assets: NonNullable<typeof _host>['assets']): DesignPageSvgHost {
+/**
+ * What the engine needs from this shell to draw `node`'s pages: shaping, outlines, pictures,
+ * fonts and colours. A credentialed picture's manifest goes into `opts._ingredientSink`.
+ */
+export function pageHost(node: Element, opts: ExportOpts, text: NonNullable<NonNullable<typeof _host>['text']>, assets: NonNullable<typeof _host>['assets']): DesignPageSvgHost {
   const metrics = new Map<string, Promise<TextFontMetricsV1 | undefined>>();
   const shaper = createHostTextShaper({
     toPath: (o) => text.toPath(o),
@@ -128,12 +140,13 @@ const findingList = (findings: ReadonlyArray<{ feature: string; id: string }>): 
 export async function designOpsSvg(node: Element, opts: ExportOpts): Promise<Blob | null> {
   const doc = opts.sourceDocument;
   if (doc?.toolId !== 'design') return null;
+  if (exportRouteChoice() === 'legacy') return walkerBecause(opts, 'the compatibility route is forced');
   const frameId = node.getAttribute('data-frame-id');
-  if (!frameId) return walkerBecause('the export is not a single frame');
+  if (!frameId) return walkerBecause(opts, 'the export is not a single frame');
   // The watermark is an overlay the export adds to the live page, which the walker draws.
-  if (opts.watermark) return walkerBecause('the export carries a watermark');
+  if (opts.watermark) return walkerBecause(opts, 'the export carries a watermark');
   const text = _host?.text;
-  if (!text || !_host?.assets) return walkerBecause('this shell has no text or asset host');
+  if (!text || !_host?.assets) return walkerBecause(opts, 'this shell has no text or asset host');
   const d = exportDims(node, opts);
   const { designPageSvg } = await import('../../../../engine/src/design-page-svg.ts');
   let page: DesignPageSvg;
@@ -144,9 +157,10 @@ export async function designOpsSvg(node: Element, opts: ExportOpts): Promise<Blo
       meta: opts.meta,
     });
   } catch (error) {
-    return walkerBecause(`the drawing could not be compiled (${error instanceof Error ? error.message : String(error)})`);
+    return walkerBecause(opts, `the drawing could not be compiled (${error instanceof Error ? error.message : String(error)})`);
   }
-  if (page.findings.length) return walkerBecause(`the page holds features the drawing operations do not carry yet: ${findingList(page.findings)}`);
+  if (page.findings.length) return walkerBecause(opts, `the page holds features the drawing operations do not carry yet: ${findingList(page.findings)}`);
+  recordRoute(opts, 'operations');
   log(`Design SVG export: frame ${frameId} drawn from the drawing operations.`);
   return new Blob([page.svg], { type: 'image/svg+xml' });
 }
@@ -159,12 +173,11 @@ export async function designOpsSvg(node: Element, opts: ExportOpts): Promise<Blo
 export async function designOpsPdf(pageEls: readonly Element[], opts: ExportOpts, place: DesignPdfPlacement): Promise<Uint8Array | null> {
   const doc = opts.sourceDocument;
   if (doc?.toolId !== 'design') return null;
-  const why = (reason: string) => { log(`Design PDF export: drawn by the DOM walker because ${reason}.`); return null; };
+  const why = (reason: string) => { recordRoute(opts, 'compatibility'); log(`Design PDF export: drawn by the DOM walker because ${reason}.`); return null; };
+  if (exportRouteChoice() === 'legacy') return why('the compatibility route is forced');
   const ids = pageEls.map((el) => el.getAttribute('data-frame-id'));
   if (!ids.length || ids.some((id) => !id)) return why('a page is not a Design frame');
   if (opts.watermark) return why('the export carries a watermark');
-  // The standard password is set as the walker's document is built; the strong tier encrypts finished bytes and composes.
-  if (opts.password) return why('the export carries a standard password');
   if (opts.convertPaths === false) return why('the export keeps its words as live text');
   const text = _host?.text;
   if (!text || !_host?.assets) return why('this shell has no text or asset host');
@@ -188,6 +201,7 @@ export async function designOpsPdf(pageEls: readonly Element[], opts: ExportOpts
     return why(`the drawing could not be compiled (${error instanceof Error ? error.message : String(error)})`);
   }
   if (!out.pdf) return why(`a page holds features the drawing operations or PDF do not carry yet: ${findingList(out.findings)}`);
+  recordRoute(opts, 'operations');
   log(`Design PDF export: ${ids.length} page${ids.length === 1 ? '' : 's'} drawn from the drawing operations.`);
   return out.pdf;
 }
@@ -208,6 +222,13 @@ export interface DesignPdfFinishing<Labels> {
 export async function renderDesignOpsPdf<Labels>(pageEls: Element[], opts: ExportOpts, use: DesignPdfFinishing<Labels>): Promise<Blob | null> {
   const bleedPt = (() => { const b = parseDimension(opts.bleed); return b ? toPoints(b) : 0; })();
   const hasGeo = bleedPt > 0 || Boolean(opts.cropMarks) || Boolean(opts.registrationMarks) || Boolean(opts.bleedMarks) || Boolean(opts.colorBars) || Boolean(opts.provenance);
+  // The walker locks a document with the standard password only when it has no print
+  // geometry, and then skips the finishing pass; the operations follow the same rule.
+  if (opts.password && hasGeo && opts.sourceDocument?.toolId === 'design') {
+    recordRoute(opts, 'compatibility');
+    log('Design PDF export: drawn by the DOM walker because the export carries a standard password and print geometry.');
+    return null;
+  }
   const geos: (PrintGeometry | null)[] = [];
   const bytes = await designOpsPdf(pageEls, opts, (frame) => {
     const w = toPoints({ value: frame.width, unit: 'px' }), h = toPoints({ value: frame.height, unit: 'px' });
@@ -216,6 +237,13 @@ export async function renderDesignOpsPdf<Labels>(pageEls: Element[], opts: Expor
     return g ? { size: g.page, artwork: g.artwork } : { size: { w, h } };
   });
   if (!bytes) return null;
+  if (opts.password) {
+    // The 40-bit tier is a final pass over finished bytes (export-pdf-rc4.ts), as the
+    // walker's writer applies it; like the walker, the locked document skips PDF/X.
+    _host?.log?.('info', 'pdf: password-locked export - skipping PDF/X finishing (pdf-lib cannot rewrite an encrypted document)');
+    const { encryptPdfRc4 } = await import('./export-pdf-rc4.ts');
+    return new Blob([await encryptPdfRc4(bytes, opts.password, ['print']) as BlobPart], { type: 'application/pdf' });
+  }
   return await use.finish(bytes, opts, hasGeo
     ? { intentKind: 'srgb', geos, space: 'rgb', labels: use.labels(opts.meta) }
     : { intentKind: 'srgb' });

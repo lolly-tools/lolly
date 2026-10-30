@@ -1,8 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { ExportOpts } from './export-shared.ts';
 import type { HdrBoostOptions } from '../../../../engine/src/hdr.ts';
+import { DESIGN_STILL_RASTER_FORMATS } from '../../../../engine/src/design-export-route.ts';
+/**
+ * A still raster Design export carries the authored document too (plan 326), but an HDR
+ * one keeps the writer it had before that snapshot existed: the 16-bit PNG or gain-map
+ * JPEG in renderRaster, not the per-box deep plates. So the snapshot alone never moves a
+ * raster onto the deep route; a tool's own float frame still does.
+ */
 export function wantsDeepExport(format:string,opts:ExportOpts):boolean {
-  return !!opts.deepFrame || opts.sourceDocument?.toolId === 'design' && (opts.sourceDocument.values.editingRange === 'hdr' || !!opts.hdr) && !['mp4','webm','gif','apng','webp-anim','svg-anim','lottie','html'].includes(format);
+  return !!opts.deepFrame || opts.sourceDocument?.toolId === 'design' && !DESIGN_STILL_RASTER_FORMATS.includes(format) && (opts.sourceDocument.values.editingRange === 'hdr' || !!opts.hdr) && !['mp4','webm','gif','apng','webp-anim','svg-anim','lottie','html'].includes(format);
 }
 
 export function hdrTune(opts: ExportOpts): Partial<HdrBoostOptions> {

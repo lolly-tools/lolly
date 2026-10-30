@@ -27,6 +27,7 @@ import type { Signer, Exclusion, EmbedOptions, PlaceResult } from './c2pa.ts';
 // Runtime-light: gainmap-jpeg's only value imports are bytes.ts + jpeg-segments.ts
 // (GainMapMeta is type-only), so this pulls no pixel machinery into the C2PA path.
 import { repairMpfOffsets } from './gainmap-jpeg.ts';
+import { gunzip, gzip } from './gzip.ts';
 
 const te = new TextEncoder();
 
@@ -1810,8 +1811,22 @@ const CONTAINERS: Record<string, Container> = {
   flac: { place: placeFlac, mime: 'audio/flac' },
 };
 
-/** Formats embedC2pa can stamp (plus 'pdf'/'pdf-cmyk' via embedC2paInPdf). */
-export const C2PA_FORMATS = Object.freeze(['pdf', 'pdf-cmyk', ...Object.keys(CONTAINERS)]);
+/**
+ * Formats embedC2pa can stamp (plus 'pdf'/'pdf-cmyk' via embedC2paInPdf, and 'svgz'
+ * through the SVG placer under its gzip wrapper). Append-only: 'svgz' joined last.
+ */
+export const C2PA_FORMATS = Object.freeze(['pdf', 'pdf-cmyk', ...Object.keys(CONTAINERS), 'svgz']);
+
+/**
+ * SVGZ is a gzip member around SVG text, with no framing of its own (gzip.ts). The C2PA
+ * specification defines the SVG embedding (a `c2pa:manifest` element in `<metadata>`,
+ * Appendix A) and no compressed variant, so the credential is written into the SVG and
+ * the SVG is compressed again: the hard binding covers the SVG bytes, and decompressing
+ * the file gives back exactly the document that was signed. A reader that decompresses
+ * first (Lolly's verifier, or `gunzip` before `c2patool`) reads a valid credential.
+ */
+export const SVGZ_C2PA_MAX_SVG_BYTES = 64 * 1024 * 1024;
+
 
 /**
  * Re-attach an ALREADY-BUILT C2PA manifest store (verbatim JUMBF, as returned by
@@ -1826,6 +1841,7 @@ export const C2PA_FORMATS = Object.freeze(['pdf', 'pdf-cmyk', ...Object.keys(CON
 export function attachC2paStore(bytes: Uint8Array, format: string, store: Uint8Array): Uint8Array {
   if (!(bytes instanceof Uint8Array)) throw new Error('C2PA attach: bytes must be a Uint8Array');
   if (!(store instanceof Uint8Array)) throw new Error('C2PA attach: store must be a Uint8Array');
+  if (String(format || '').toLowerCase() === 'svgz') return gzip(attachC2paStore(gunzip(bytes, { maxOutputBytes: SVGZ_C2PA_MAX_SVG_BYTES }), 'svg', store));
   const container = CONTAINERS[String(format || '').toLowerCase()];
   if (!container) throw new Error(`C2PA attach: no container for format '${format}'`);
   return container.place(bytes, store).out;
@@ -1846,6 +1862,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   if (!(bytes instanceof Uint8Array)) throw new Error('C2PA embed: bytes must be a Uint8Array');
   const fmt = String(format || '').toLowerCase();
   if (fmt === 'pdf' || fmt === 'pdf-cmyk') return embedC2paInPdf(bytes, opts);
+  if (fmt === 'svgz') return gzip(await embedC2pa(gunzip(bytes, { maxOutputBytes: SVGZ_C2PA_MAX_SVG_BYTES }), 'svg', opts));
   const container = CONTAINERS[fmt];
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === 'bmff';

@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.289.0
+
+- `runtime.export` snapshots the authored Design document (`ExportOpts.sourceDocument`) for the still raster formats too (`png`, `jpg`/`jpeg`, `webp`, `avif`, `tiff`, `cmyk-tiff`, `bmp`, `ico`, `jxl`, `jxl-lossless`), taken at the same moment as the SVG and PDF snapshot, before `beforeExport`. A shell's export route can then read the rows the screen draws (plan 326). The web shell keeps every raster HDR request on the writer it had: the snapshot alone never moves a still raster onto the deep Design route.
+- New `design-export-route.ts`: the route vocabulary the web and Node shells share. `DesignExportRoute` is `gpu`, `operations` or `compatibility`; `designExportRouteFields` gives the two flat keys a credential's `tools.lolly.export` assertion records, `route` and `renderer` (the renderer's versioned identity); `designGpuRefusals` lists what a still raster request asks for that the GPU route does not draw; `parseDesignExportRouteChoice` reads the internal `auto`/`ops`/`legacy` override. Not re-exported from `index.ts`.
+- SVGZ carries Content Credentials. `embedC2pa(bytes, 'svgz')` decompresses the SVG, places the manifest with the SVG placer and compresses it again, so the hard binding covers the SVG the file decompresses to; `C2PA_FORMATS` gains `svgz`, appended last. `verifyC2pa` reads a gzip member that holds an SVG (bounded at 64 MiB decompressed) and reports `format: 'svgz'`. The C2PA specification defines the SVG embedding and no compressed form, and `c2patool` refuses `.svgz` as an unsupported type; it reads the same credential once the file is decompressed.
+
 ## 1.288.0
 
 - Design stroke position and per-side stroke widths (new module `design-stroke.ts`). A row's `strokeAlign` is `inside`, `center` or `outside`; empty keeps the default every document drew before (inside for a box, centred for a pen path), and a board always strokes inside its page. `strokeTop`, `strokeRight`, `strokeBottom` and `strokeLeft` override `strokeW` per side on a rectangle, rounded box, pill or board; empty uses the width and 0 hides the side. The geometry is the CSS border model, which Penpot 2.19 also draws. New barrel exports `designStrokeAlign`, `designStrokeSides` and `designStrokeOutset` read the fields as the Design renderer does.

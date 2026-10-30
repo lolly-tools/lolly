@@ -44,7 +44,8 @@ import { createCliBridge, applyBrandVars, CLI_CAPABILITIES } from './bridge.ts';
 // address, this reads the rendered pages. Same meaning as the web shell's fan-out.
 import { pickFramePage } from './frame-page.ts';
 import { isOn, rightsMode } from './args.ts';
-import type { HostV1, Profile, ExportOpts } from '@lolly-tools/core/host-v1';
+import type { HostV1, Profile, ExportOpts, IngredientCredential } from '@lolly-tools/core/host-v1';
+import { DESIGN_STILL_RASTER_FORMATS, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
 import { note, warn, writeOut, isStrict } from './output.ts';
 import { settleThemeChoices } from './token-axes-report.ts';
 import { EXIT, usageError, unavailableHere, refused, authError } from './exit-codes.ts';
@@ -187,6 +188,10 @@ type CliExportOpts = ExportOpts & import('@lolly-tools/node-shell/pdf-finishing'
   /** Reported per run the svg branch could not outline (see the bridge). */
   onTextFallback?: (run: { text: string; reason: string }) => void;
   hdr?: { targets?: readonly string[]; peakNits?: number; reach?: number; lift?: number; richness?: number };
+  /** A Design page drawn here from the drawing operations reports its route (plan 326). */
+  onExportRoute?: (record: import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord) => void;
+  /** Credentialed pictures that page drew, for the post-stamp's ingredients (plan 326). */
+  ingredientSink?: import('@lolly-tools/core/host-v1').IngredientCredential[];
 };
 
 /** Brand semantic slots offered to the HDR view transform as boost targets. The
@@ -1038,6 +1043,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // detection floor. Reported, never silently dropped - but as a note, not a warning,
   // unless the caller explicitly asked for the mark (see the provenance block above).
   let imprintFloorSkip = false;
+  // A Design page drawn here from the drawing operations: its route and the credentialed pictures it drew (plan 326).
+  const opsIngredients: IngredientCredential[] = [];
+  const routed: { record?: DesignExportRouteRecord } = {};
 
   if (isCaptureTool(tool.manifest)) {
     // Capture tools (url-shot): drive the scoped Chromium straight at the target URL - 
@@ -1178,6 +1186,10 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     }
     const textFallbacks: Array<{ text: string; reason: string }> = [];
     exportOpts.onTextFallback = (run) => textFallbacks.push(run);
+    // A Design page this shell draws from the operations hands back its route and any
+    // credentialed picture's manifest, which the stamp below records (plan 326).
+    exportOpts.ingredientSink = opsIngredients;
+    exportOpts.onExportRoute = (record) => { routed.record = record; };
 
     const dims = {
       productionInputIds: productionContract?.requirements.filter(r => r.kind === 'input').map(r => r.location),
@@ -1230,6 +1242,8 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     };
     const viaRaster = async (): Promise<Buffer> => {
       const { renderRaster } = await import('./raster.ts');
+      // A Design still is routed by the browser tier's own page (plan 326); one log line records that.
+      if (tool.manifest.id === 'design' && DESIGN_STILL_RASTER_FORMATS.includes(targetFormat.toLowerCase())) host.log('info', (await import('@lolly-tools/node-shell/export-route')).nodeRasterRoute(targetFormat));
       const res = await renderRaster({
         runtime, dom, manifest: tool.manifest, format: targetFormat, dims,
         emoji: { emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam },
@@ -1496,7 +1510,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
           // carrying the set's own licence and creator. host.export.render ignores
           // opts.ingredients on this shell (the CLI stamps here, as the last byte
           // operation), so the runtime's record has to be handed over explicitly.
-          ingredients: runtime.emojiIngredients(),
+          ingredients: [...runtime.emojiIngredients(), ...opsIngredients],
+          // Which renderer drew a Design page here (plan 326); none for the other paths.
+          route: routed.record ?? null,
           // Absent = the ephemeral self-signed signer, unchanged. Present, the
           // credential carries the identity's x5chain and its certificate window.
           ...(identity ? { signer: identity.signer, signerValidity: { notBefore: identity.notBefore, notAfter: identity.notAfter } } : {}),

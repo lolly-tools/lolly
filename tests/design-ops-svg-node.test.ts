@@ -110,7 +110,7 @@ test('Design SVGZ is gzip of the same operations SVG, including metadata and phy
   }
 });
 
-test('SVG and SVGZ refuse composed snapshots and retain all other whole-page admission reasons', async () => {
+test('SVG and SVGZ refuse composed snapshots, retain all other whole-page admission reasons and record credentialed pictures', async () => {
   const dom = new JSDOM('<div data-frame-id="cover"><span>editor</span><span>controls</span></div>');
   try {
     const bridge = await createCliBridge({ dom: dom as never });
@@ -135,8 +135,18 @@ test('SVG and SVGZ refuse composed snapshots and retain all other whole-page adm
     const signed = await embedC2pa(encodePng(4, 4, () => [30, 140, 80, 255]), 'png', { title: 'Source picture', claimGenerator: 'Lolly test' });
     bridge.assets = { ...bridge.assets, get: async () => ({ source: 'library', id: 'pictures/signed', url: 'source.png', type: 'raster', format: 'png' }), bytes: async () => signed };
     node.innerHTML = '<span>editor</span><span>controls</span>';
-    const opts = { ...doc([...boxes, { ...picture, image: 'pictures/signed' }]), c2pa: false };
-    for (const format of ['svg', 'svgz']) await assert.rejects(() => bridge.export.render(node, format as ExportFormat, opts), /Content Credentials/);
+    // A credentialed picture no longer sends the page to the browser tier (plan 326): its own
+    // manifest is handed back as a componentOf ingredient for the CLI's stamp, with the route.
+    for (const format of ['svg', 'svgz']) {
+      const ingredientSink: Array<{ relationship?: string; activeLabel: string }> = [];
+      let route: unknown;
+      const opts = { ...doc([...boxes, { ...picture, image: 'pictures/signed' }]), c2pa: false, ingredientSink, onExportRoute: (record: unknown) => { route = record; } };
+      const blob = await bridge.export.render(node, format as ExportFormat, opts as Parameters<HostV1['export']['render']>[2]);
+      assert.ok(blob.size > 0, `${format}: drawn without a browser`);
+      assert.equal(ingredientSink.length, 1, `${format}: the picture's manifest is recorded once`);
+      assert.equal(ingredientSink[0]!.relationship, 'componentOf');
+      assert.deepEqual(route, { route: 'operations', renderer: 'design-draw-v0' });
+    }
   } finally {
     dom.window.close();
   }
@@ -252,8 +262,9 @@ test('a recorded hook failure cannot become an SVG/SVGZ browser fallback or writ
   }
 });
 
-test('Design SVG, SVGZ and PDF receive detached authored snapshots before hooks, without inferred page sizes', async () => {
-  for (const format of ['svg', 'svgz', 'pdf']) {
+test('Design SVG, SVGZ, PDF and still rasters receive detached authored snapshots before hooks, without inferred page sizes', async () => {
+  // The still rasters joined in engine 1.289 (plan 326), so the export route can read the rows the screen draws.
+  for (const format of ['svg', 'svgz', 'pdf', 'png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff', 'cmyk-tiff', 'bmp', 'ico', 'jxl', 'jxl-lossless']) {
     const value = createMockHost();
     let captured: Parameters<HostV1['export']['render']>[2];
     value.export.render = async (_node, _format, opts) => { captured = opts; return new Blob(['page']); };

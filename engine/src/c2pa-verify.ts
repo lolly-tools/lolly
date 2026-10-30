@@ -56,6 +56,7 @@ import { C2PA_CHECK } from './c2pa-verdict.ts';
 import { concatBytes, asBufferSource, sha256, bytesToHex as hexOf } from './bytes.ts';
 import { parseCertificate, signedBy, normalizeRsaSpki, type ParsedCertificate } from './x509-read.ts';
 import { equalDer, validateManagedCredential, type EnrollmentTrustBundle } from './enrollment.ts';
+import { gunzip } from './gzip.ts';
 // Structural extraction (CBOR/JUMBF decoding, per-container manifest sniffing,
 // ingredient prep) lives in c2pa-extract.ts - this file is the crypto core only:
 // X.509/trust-chain walking and the actual COSE/hash verification. See that
@@ -360,7 +361,8 @@ export interface C2paReport {
   // leg without claiming the whole file.
   partsMadeWithLolly: boolean;
   delivered: boolean;
-  format: SniffFormat | null;
+  /** The container read, or 'svgz' for a gzip member around an SVG (verified as the SVG it decompresses to). */
+  format: SniffFormat | 'svgz' | null;
   checks: C2paCheck[];
   reason?: string;
   claim?: C2paClaim;
@@ -611,6 +613,17 @@ function readAiDisclosure(content: Uint8Array): C2paAiDisclosure | undefined {
   } catch { return undefined; }
 }
 
+/** Decompressed SVGZ bytes reach this size at most before verification gives up on them. */
+const SVGZ_MAX_DOCUMENT_BYTES = 64 * 1024 * 1024;
+
+/** The SVG inside a gzip member, or null when the bytes are not gzip or do not hold an SVG. */
+function svgzDocument(bytes: Uint8Array): Uint8Array | null {
+  if (bytes.length < 18 || bytes[0] !== 0x1f || bytes[1] !== 0x8b) return null;
+  let inner: Uint8Array;
+  try { inner = gunzip(bytes, { maxOutputBytes: SVGZ_MAX_DOCUMENT_BYTES }); } catch { return null; }
+  return sniffFormat(inner) === 'svg' ? inner : null;
+}
+
 /**
  * Verify a file's Content Credentials entirely on-device. Sniffs the
  * container (pdf/png/jpeg/gif/svg/tiff/webp) from magic bytes.
@@ -665,6 +678,11 @@ export async function verifyC2pa(
   { trustAnchors, externalManifest, enrollmentTrust, enrollmentCrls }: { trustAnchors?: Uint8Array[]; externalManifest?: Uint8Array; enrollmentTrust?: EnrollmentTrustBundle; enrollmentCrls?: Record<string, Uint8Array> } = {},
 ): Promise<C2paReport> {
   if (!(bytes instanceof Uint8Array)) throw new Error('verifyC2pa: bytes must be a Uint8Array');
+  // SVGZ: the credential rides in the SVG the gzip member holds (embedC2pa 'svgz'), so
+  // the binding is checked against the decompressed document. Bounded like any untrusted
+  // decompression; a gzip member that holds anything but SVG is read as no container at all.
+  const svg = svgzDocument(bytes);
+  if (svg) return { ...(await verifyC2pa(svg, { trustAnchors, externalManifest, enrollmentTrust, enrollmentCrls })), format: 'svgz' };
   const checks: C2paCheck[] = [];
   const fail = (code: string, explanation: string): void => { checks.push({ code, ok: false, explanation }); };
   const pass = (code: string, explanation: string): void => { checks.push({ code, ok: true, explanation }); };

@@ -96,14 +96,18 @@ test('live text, composed stories, standard passwords, watermark and unsupported
   assert.match(await reason(options({ sourceDocument: { toolId: 'design', values: { boxes: withPicture } } })), /image-unread.*image/);
 });
 
-test('a credentialed picture is handed whole to the browser even when the caller disables final signing', async () => {
+test('a credentialed picture is drawn here and its manifest handed back as an ingredient, even when the caller disables final signing', async () => {
   const png = encodePng(4, 4, () => [30, 140, 80, 255]);
   const signed = await embedC2pa(png, 'png', { title: 'Source picture', claimGenerator: 'Lolly test' });
   assert.ok(extractC2paStore(signed));
   const pictures = { ...host, assets: { get: async () => ({ id: 'pictures/signed', url: 'source.png', type: 'image' }), bytes: async () => signed } } as unknown as HostV1;
   const opts = options({ c2pa: false, sourceDocument: { toolId: 'design', values: { boxes: [...rows, { id: 'image', kind: 'image', frame: 'a', x: 300, y: 150, w: 80, h: 80, image: 'pictures/signed' }] } } });
   const out = await designOpsPdfNode(pageNode(), opts, pictures, { repoRoot: ROOT });
-  assert.ok(out && 'reason' in out && out.reason.includes('Content Credentials'));
+  // Plan 326: the web shell's ops host and walker record the picture's own manifest as a
+  // componentOf ingredient, and this shell now does the same instead of escalating.
+  assert.ok(out && 'pdf' in out, out && 'reason' in out ? out.reason : 'no page');
+  assert.equal(out.ingredients.length, 1);
+  assert.equal(out.ingredients[0]!.relationship, 'componentOf');
 });
 
 test('the CLI delivers a marked, credentialed outlined Design PDF while its browser endpoints are unavailable', async () => {

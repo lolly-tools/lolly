@@ -30,6 +30,7 @@ import { resolveTokenBinding } from './token-binding.ts';
  */
 
 import { assertDesignValues, designExportSize } from './design-tool/policy.ts';
+import { DESIGN_STILL_RASTER_FORMATS } from './design-export-route.ts';
 import { missingRequires, type HostApiName } from '@lolly-tools/core';
 import type { EmojiStyleV1 } from '@lolly-tools/core';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
@@ -2059,7 +2060,8 @@ export async function createRuntime(
       }
       if (['lottie', 'idml', 'premiere-xml'].includes(format) || format === 'html' && tool.manifest.id === 'design') opts = { ...opts, width: opts.width ?? tool.manifest.render?.width, height: opts.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
       // A Design SVG, SVGZ or PDF page can be drawn from the authored document (plan 295, P3d); the size stays the caller's.
-      else if ((format === 'svg' || format === 'svgz' || format === 'pdf') && tool.manifest.id === 'design') opts = { ...opts, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
+      // A still raster carries the same snapshot (plan 326), so the shell's route can read the rows the screen draws.
+      else if ((format === 'svg' || format === 'svgz' || format === 'pdf' || DESIGN_STILL_RASTER_FORMATS.includes(format)) && tool.manifest.id === 'design') opts = { ...opts, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
       if (tool.manifest.designTool) {
         if (tool.manifest.designTool.sourceTool && extras.__lollySourceError) throw new Error(String(extras.__lollySourceError));
         if (tool.manifest.designTool.sourceTool) {

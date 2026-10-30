@@ -630,6 +630,7 @@ test('every stampable format is round-tripped by SOME suite, none silently untes
     html: 'tests/c2pa-text-write.test.ts', js: 'tests/c2pa-text-write.test.ts',
     css: 'tests/c2pa-text-write.test.ts', md: 'tests/c2pa-text-write.test.ts',
     'html-fragment': 'tests/c2pa-text-write.test.ts',
+    svgz: 'tests/c2pa-svgz.test.ts',
   };
   const here = new Set(CASES.map(([fmt]) => fmt));
   const orphans = C2PA_FORMATS.filter((fmt) => !here.has(fmt) && !ELSEWHERE[fmt]);

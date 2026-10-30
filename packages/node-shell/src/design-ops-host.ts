@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Node font and picture facts for the same Design drawing pipeline as the web shell. */
-import { extractC2paStore } from '@lolly/engine';
-import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { extractC2paStore, prepareC2paIngredientFromStore } from '@lolly/engine';
+import type { HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
 import type { TextMeasureFontsV1 } from '@lolly-tools/core/text-measure-v1';
 import type { DesignPageSvgHost } from '../../../engine/src/design-page-svg.ts';
 import { firstFontFamily, tokenFontStack } from './pptx-deck.ts';
@@ -23,11 +23,16 @@ async function fontsOf(host: HostV1): Promise<TextMeasureFontsV1 | undefined> {
 }
 
 
-/** No credentialed picture is admitted unless a shell can preserve its ingredient record. */
-export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string }, outlined = true): Promise<{ drawing: DesignPageSvgHost; credentialed: () => boolean } | null> {
+/**
+ * A credentialed picture's own manifest travels as a `componentOf` ingredient of the
+ * export's, as the web shell's page host and the DOM walker record it (plan 326), so the
+ * page no longer needs the browser tier for that alone. `ingredients()` lists them,
+ * once each by active manifest; one the engine cannot prepare is left out, as on the web.
+ */
+export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string }, outlined = true): Promise<{ drawing: DesignPageSvgHost; ingredients: () => IngredientCredential[] } | null> {
   const text = host.text;
   if (!text) return null;
-  let credentialed = false;
+  const ingredients: IngredientCredential[] = [];
   const picture = async (ref: string) => {
     if (ref.includes('?')) return null;
     const asset = await host.assets.get(ref).catch(() => null);
@@ -38,7 +43,11 @@ export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string },
     if (type === 'lottie' || type === 'video' || MOTION.test(asset.url) || meta?.animated === true || (Array.isArray(meta?.tags) && meta.tags.includes('animated'))) return { media: 'motion' as const };
     const bytes = await host.assets.bytes?.(asset).catch(() => null);
     if (!bytes) return null;
-    try { if (extractC2paStore(bytes)) credentialed = true; } catch { /* not a credentialed bitmap */ }
+    try {
+      const store = extractC2paStore(bytes);
+      const ingredient = store && prepareC2paIngredientFromStore(store.store, store.format);
+      if (ingredient && !ingredients.some((p) => p.activeLabel === ingredient.activeLabel)) ingredients.push({ ...ingredient, relationship: 'componentOf' } as IngredientCredential);
+    } catch { /* not a credentialed bitmap */ }
     return { bytes };
   };
 
@@ -51,6 +60,6 @@ export async function designOpsNodeHost(host: HostV1, ctx: { repoRoot: string },
       picture,
       ...(fonts ? { fonts } : {}),
     },
-    credentialed: () => credentialed,
+    ingredients: () => [...ingredients],
   };
 }

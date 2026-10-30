@@ -17,6 +17,7 @@ import { summarizeInputs, CREDENTIAL_READABLE_TYPES, matchesShowIf, ENGINE_VERSI
 import { modelToValues, flattenValue } from '../../../engine/src/inputs.ts';
 import type { embedC2pa, C2paSigner, DesignRecord } from '@lolly/engine';
 import type { ExportMeta, Profile } from '@lolly-tools/core/host-v1';
+import { designExportRouteFields, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
 
 /** The (unexported-by-name) options bag `embedC2pa` accepts. */
 export type ExportC2paOpts = NonNullable<Parameters<typeof embedC2pa>[2]>;
@@ -78,6 +79,12 @@ export interface BuildExportC2paOpts {
    * every existing export. Engine's `C2PA_SPEC_VERSION` is the value to pass.
    */
   specVersion?: ExportC2paOpts['specVersion'];
+  /**
+   * Which renderer drew a Design page in this shell and its version (plan 326), written
+   * as the same `route` and `renderer` keys the web shell writes. Absent for every
+   * export outside the route selector, so their credentials are unchanged.
+   */
+  route?: DesignExportRouteRecord | null;
 }
 
 /** Build the embedC2pa options for a shell export, INCLUDING author from the profile. */
@@ -117,6 +124,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
       surface,
       format, tool: name,
       ...designRecordEnvironment(o.meta),
+      ...designExportRouteFields(o.route),
       date: new Date().toISOString(),
       ...(sizeLine ? { dimensions: sizeLine } : {}),
       ...(Object.keys(inputs).length ? { inputs } : {}),
