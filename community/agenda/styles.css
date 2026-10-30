@@ -1412,3 +1412,17 @@ body[data-lolly-portable] .ag-screen {
   border-radius: 50%;
   background: var(--track, var(--ag-accent));
 }
+.ag-ribbon .ag-kicker {
+  font-size: min(9cqh, 1.6cqw);
+}
+.ag-ribbon .ag-has-logo {
+  padding-inline-end: 0;
+}
+.ag-ribbon .ag-brand-logo {
+  position: static;
+  order: -1;
+  align-self: flex-start;
+  height: min(14cqh, 4.5cqw);
+  max-width: 100%;
+  margin-bottom: 2cqh;
+}
