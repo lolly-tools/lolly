@@ -10333,5 +10333,8 @@
   "Make default": "डिफ़ॉल्ट बनाएं",
   "{name} is now the default": "{name} अब डिफ़ॉल्ट है",
   "Text, fingerprinted": "टेक्स्ट, फ़िंगरप्रिंट के रूप में",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "टाइप किया गया टेक्स्ट केवल फ़िंगरप्रिंट के रूप में दर्ज होता है, इसलिए शब्द फ़ाइल में नहीं होते।"
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "टाइप किया गया टेक्स्ट केवल फ़िंगरप्रिंट के रूप में दर्ज होता है, इसलिए शब्द फ़ाइल में नहीं होते।",
+  "Stroke per side": "हर किनारे का अलग स्ट्रोक",
+  "Inside": "अंदर",
+  "Outside": "बाहर"
 }

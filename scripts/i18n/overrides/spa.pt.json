@@ -1695,5 +1695,8 @@
   "Make default": "Tornar padrão",
   "{name} is now the default": "{name} agora é o padrão",
   "Text, fingerprinted": "Texto, como impressão digital",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "O texto digitado é registado apenas como impressão digital, por isso as palavras não estão no ficheiro."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "O texto digitado é registado apenas como impressão digital, por isso as palavras não estão no ficheiro.",
+  "Stroke per side": "Traçado por lado",
+  "Inside": "Dentro",
+  "Outside": "Fora"
 }

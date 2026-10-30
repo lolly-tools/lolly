@@ -10333,5 +10333,8 @@
   "Make default": "اجعله الافتراضي",
   "{name} is now the default": "أصبح {name} الافتراضي",
   "Text, fingerprinted": "نص، مسجّل كبصمة",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "يُسجَّل النص المكتوب كبصمة فقط، لذا فإن الكلمات نفسها ليست في الملف."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "يُسجَّل النص المكتوب كبصمة فقط، لذا فإن الكلمات نفسها ليست في الملف.",
+  "Stroke per side": "حد لكل جانب",
+  "Inside": "داخل",
+  "Outside": "خارج"
 }

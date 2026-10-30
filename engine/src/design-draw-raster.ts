@@ -405,6 +405,10 @@ const dashPattern = (dash: unknown): dash is [number, number] => Array.isArray(d
 function strokeFill(op: DrawOp, tolerance: number, measureTolerance: number, findings: DesignRasterFinding[]): DesignRasterFill | null | undefined {
   const reject = (feature: string): null => { findings.push({ id: op.id.slice(0, 256), feature }); return null; };
   const s = op.op === 'shape' ? op.stroke : undefined;
+  // Per-side widths, a box stroke centred or outside its frame, and a pen stroke kept to
+  // one side of its outline move the fill or clip the stroke, which this renderer does
+  // not draw yet, so the page goes to a renderer that does.
+  if (s && typeof s === 'object' && (s.sides !== undefined || (op.op === 'shape' && (op.shape.kind === 'path' ? s.align !== undefined : s.align === 'center' || s.align === 'outside')))) return reject('raster-stroke-position');
   if (op.op !== 'shape' || !s || typeof s !== 'object' || !keys(s, ['color', 'opacity', 'width', 'cap', 'join', 'dash', 'align'])) return reject('raster-stroke');
   if (s.dash !== undefined && (op.shape.kind !== 'path' || !dashPattern(s.dash))) return reject('raster-dash');
   const rgb = typeof s.color === 'string' ? rgbOf(s.color) : null;

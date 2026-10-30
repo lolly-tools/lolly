@@ -113,6 +113,25 @@ Three more work on a single shape. **Outline stroke…** turns a stroke into a f
 
 The result is a new path you can keep editing with the pen, stored as plain Bezier curves, so the original spline type does not carry over. Holes are real holes: the **Fill rule** control on the stroke panel decides whether overlapping contours fill (*non-zero*) or punch through (*even-odd*). The operations refuse rather than destroy: ask to intersect two shapes that don't overlap and nothing changes. Text and image boxes have no outline, so they are left alone.
 
+## Strokes
+
+A box, a picture, a board and a pen path can each carry a stroke: a colour, a width and a style (solid, dashed or dotted). The stroke rows sit under **Fill** in the Inspector, and the **Stroke** button on the object bar opens them.
+
+**Position** places the stroke on the outline: **Inside**, **Centre** or **Outside**. A box is stroked inside unless you choose otherwise, so its outer edge stays where you drew it, and a pen path is stroked centred on its curve. With a centred or outside stroke the fill, the picture and the text stay inside the stroke's inner edge, and the selection outline stays on the box's own edge. An open path has no inside, so it is always stroked centred. A board's stroke always stays inside the page, because the page edge is the export edge.
+
+**Stroke per side.** On a rectangle, a rounded box, a pill or a board, the toggle beside the width shows four widths: **Top**, **Right**, **Bottom** and **Left**. Set one side to 0 to hide that side, which gives you a divider or an underline without a second shape. The toggle only shows or hides the four cells and never changes a value. While the sides differ, the width reads **Mixed**; type a width there to set all four sides at once. Colour, position and style stay shared by every side, and rounded corners curve with the widths beside them, as a CSS border does. Ellipses, circles and pen paths draw one width all round.
+
+How the formats carry a stroke:
+
+| Format | Position | Per side |
+|---|---|---|
+| SVG, PDF, PNG and the other pictures | Exact. A pen path's inside or outside stroke is drawn twice as wide and clipped to one side of the outline. | A solid stroke is exact, as one shape between the stroke's outer and inner edges. A dashed or dotted one is drawn as dashes along each side in SVG and solid in PDF. |
+| Penpot | Inside, centre and outside travel as Penpot's stroke alignment. A board is always `inner`. | Penpot 2.19 or later reads the four widths natively. Penpot 2.18 draws the top width all round, and Penpot 2.17 or earlier refuses a file that carries widths per side. |
+| PowerPoint | PowerPoint draws a line centred on the shape's edge. Centre is exact; outside moves the shape out by half the width, which puts PowerPoint's line outside the box; inside keeps the centred line older exports wrote. | The stroke becomes a separate shape (the ring between the outer and inner edges), over a shape with no line. |
+| dotLottie | Lottie strokes are centred, so an outside box stroke or a pen path stroked inside or outside is refused with a message. | Refused with a message. |
+
+A translucent centred stroke shows the page through its inner half, rather than the fill, on the canvas and in every export. When you import a Penpot file, each stroke keeps its alignment and its widths per side, and a Figma file's `strokeAlign` and individual stroke weights come across the same way.
+
 ## 3D scenes and tools inside a design
 
 A box can hold more than a picture. Both kinds below keep a recipe rather than a rendered image, so they redraw at whatever size and moment the document asks for, and an update to the source reaches every design that uses the source.

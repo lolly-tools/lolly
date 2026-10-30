@@ -1696,5 +1696,8 @@
   "Make default": "Définir par défaut",
   "{name} is now the default": "{name} est désormais par défaut",
   "Text, fingerprinted": "Texte, en empreinte",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Le texte saisi n’est enregistré que sous forme d’empreinte : les mots eux-mêmes ne sont pas dans le fichier."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Le texte saisi n’est enregistré que sous forme d’empreinte : les mots eux-mêmes ne sont pas dans le fichier.",
+  "Stroke per side": "Contour par côté",
+  "Inside": "Intérieur",
+  "Outside": "Extérieur"
 }

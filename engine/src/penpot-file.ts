@@ -44,6 +44,7 @@ import { clamp } from './clamp.ts';
 import { readTokenAxes } from './token-axes.ts';
 import { compileDesignRow, type DrawPaint } from './design-draw.ts';
 import { designDrawPenpot, isPenpotPrimitiveRow } from './design-draw-penpot.ts';
+import { designStrokeAlign, designStrokeHasSides, designStrokeSides, designStrokeSidesApply, strokeSidesEqual } from './design-stroke.ts';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -133,8 +134,11 @@ export interface PenpotIrFill {
 export interface PenpotIrStroke {
   color: string;
   opacity?: number;
+  /** The widest side when `sides` is set. */
   width: number;
   alignment?: 'center' | 'inner' | 'outer';
+  /** Per-side widths `[top, right, bottom, left]` of a rectangle or board, set only when they differ (Penpot 2.19). */
+  sides?: [number, number, number, number];
   style?: 'solid' | 'dashed' | 'dotted';
   dash?: number;
   gap?: number;
@@ -514,17 +518,42 @@ function fillRecord(f: PenpotIrFill, media: Map<string, PenpotMedia>, warn: (s: 
   if (!c) return null;
   return { fillColor: c.hex, fillOpacity: r4(op * c.alpha) };
 }
+/**
+ * Per-side stroke widths (Penpot 2.19, issue 9854): `stroke-width-top`, `-right`,
+ * `-bottom` and `-left` on the stroke record (common/src/app/common/types/shape.cljc
+ * `schema:stroke-attrs`), with `stroke-width` kept equal to the top width as Penpot's own
+ * `materialize-stroke-side-widths` keeps it (types/stroke.cljc), which is what an older
+ * renderer draws. Penpot reads the four as per-side only when they differ, so they are
+ * written only then.
+ *
+ * GATING. The archive keeps the 2.17 `version` and `migrations` pin. That is safe for the
+ * migrator: 2.19 still declares file version 67 and runs only migrations the file does not
+ * list (0025 to 0033); of those, 0028 clamps the side widths at zero, 0030 drops the
+ * `stroke-per-side` flag this writer never writes, and 0031 moves stroke-width tokens this
+ * writer never binds. Penpot 2.18 accepts the four keys (its schema carries them behind a
+ * flag that is off) and draws `stroke-width`, the top width. Penpot 2.17 and earlier close
+ * the stroke schema without them and refuse the archive. So the keys travel only on a
+ * stroke whose sides really differ: every other document writes the same bytes as before,
+ * and a per-side stroke, which no older Penpot could draw, needs Penpot 2.19.
+ */
 function strokeRecord(s: PenpotIrStroke): Rec | null {
   const c = parsePenpotColor(s.color);
   const w = fin(s.width);
   if (!c || !(w > 0)) return null;
+  const sides = s.sides && s.sides.length === 4 && s.sides.every((v) => Number.isFinite(v)) ? s.sides.map((v) => r4(Math.max(0, v))) : null;
   const rec: Rec = {
     strokeColor: c.hex,
     strokeOpacity: r4(clamp(fin(s.opacity, 1), 0, 1) * c.alpha),
-    strokeWidth: r4(w),
+    strokeWidth: sides ? sides[0]! : r4(w),
     strokeAlignment: s.alignment === 'inner' || s.alignment === 'outer' ? s.alignment : 'center',
     strokeStyle: s.style === 'dashed' || s.style === 'dotted' ? s.style : 'solid',
   };
+  if (sides) {
+    rec.strokeWidthTop = sides[0]!;
+    rec.strokeWidthRight = sides[1]!;
+    rec.strokeWidthBottom = sides[2]!;
+    rec.strokeWidthLeft = sides[3]!;
+  }
   if (s.dash != null && s.dash > 0) rec.strokeDash = r4(s.dash);
   if (s.gap != null && s.gap > 0) rec.strokeGap = r4(s.gap);
   if (s.capStart && STROKE_CAPS.has(s.capStart)) rec.strokeCapStart = s.capStart;
@@ -1264,13 +1293,24 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
     if (bgBlur > 0) base.backgroundBlur = bgBlur;
     return { opacity, rotation: rot };
   };
+  // Stroke position maps to Penpot's alignment: inside is `inner`, centre is `center` and
+  // outside is `outer`. A row with no position of its own keeps the `center` this writer
+  // has always written (the frozen producer contract; a board is `inner` below), and text
+  // keeps `center`, since a Penpot text stroke outlines the glyphs, not the box. Per-side
+  // widths ride on a rectangle or a board.
+  const ALIGNMENT = { inside: 'inner', center: 'center', outside: 'outer' } as const;
   const strokeOf = (b: Box): PenpotIrStroke[] => {
     const sc = color(b.stroke);
-    const sw = fin(b.strokeW);
+    const kind = str(b.kind);
+    const sides = kind !== 'text' && designStrokeSidesApply(b) && designStrokeHasSides(b) ? designStrokeSides(b) : null;
+    const sw = sides && !strokeSidesEqual(sides) ? Math.max(...sides) : sides ? sides[0] : fin(b.strokeW);
     if (!sc || !(sw > 0)) return [];
     const p = parsePenpotColor(sc);
     if (!p) return [];
-    const st: PenpotIrStroke = { color: p.hex, opacity: p.alpha, width: sw, alignment: 'center' };
+    const authored = str(b.strokeAlign);
+    const st: PenpotIrStroke = { color: p.hex, opacity: p.alpha, width: sw,
+      alignment: kind !== 'text' && (authored === 'inside' || authored === 'center' || authored === 'outside') ? ALIGNMENT[designStrokeAlign(b)] : 'center' };
+    if (sides && !strokeSidesEqual(sides)) st.sides = sides;
     const dashKind = str(b.strokeDash);
     if (dashKind === 'dashed' || dashKind === 'dotted') {
       st.style = dashKind;
@@ -1347,7 +1387,8 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
         media.push(m);
         shape = {
           ...base, type: 'image', media: m.id, keepAspectRatio: str(b.fit) !== 'fill',
-          strokes: strokeOf(b), radius: str(b.shape) === 'rounded' ? fin(b.radius) : str(b.shape) === 'pill' ? Math.min(w, h) / 2 : 0,
+          // Penpot draws per-side widths on rectangles and boards only; a picture's stroke uses the widest side all round.
+          strokes: strokeOf(b).map(({ sides: _sides, ...stroke }) => stroke), radius: str(b.shape) === 'rounded' ? fin(b.radius) : str(b.shape) === 'pill' ? Math.min(w, h) / 2 : 0,
           flipX: b.flipH === true, flipY: b.flipV === true,
         };
       }
@@ -1369,6 +1410,8 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
         if (res?.ok && res.d) ds.push(res.d);
       }
       if (!ds.length) return null;
+      // An open path has no inside, so its stroke stays centred whatever the position says.
+      const closed = dec.value.every((src) => src.closed === true);
       // Box-local → page, baking rotation/mirroring into the data (Penpot path content is page-space-final).
       let m: PenpotMatrix = { a: 1, b: 0, c: 0, d: 1, e: x, f: y };
       const rot = fin(b.rot);
@@ -1381,18 +1424,23 @@ export function boxesToPenpotDoc(boxesIn: unknown, o: BoxesToPenpotOptions): Pen
       const subs = transformSubpaths(parseSvgPath(ds.join(' ')), m);
       const bb = subpathBounds(subs);
       if (!bb) return null;
-      shape = { ...base, type: 'path', d: subpathsToD(subs), x: bb.x, y: bb.y, w: Math.max(0.01, bb.w), h: Math.max(0.01, bb.h), rotation: 0, fills: fillsOf(b, w, h), strokes: strokeOf(b) };
+      shape = { ...base, type: 'path', d: subpathsToD(subs), x: bb.x, y: bb.y, w: Math.max(0.01, bb.w), h: Math.max(0.01, bb.h), rotation: 0, fills: fillsOf(b, w, h),
+        strokes: strokeOf(b).map((stroke) => (closed ? stroke : { ...stroke, alignment: 'center' as const })) };
     } else {
       const shapeKind = str(b.shape);
       const fills = fillsOf(b, w, h);
       const strokes = strokeOf(b);
       const paints = fills.map(primitiveDrawPaint);
-      if (paints.every((paint): paint is DrawPaint => paint !== null) && isPenpotPrimitiveRow(b, shapeKind, fills.some(fill => !!fill.gradient))) {
+      // The native primitive reading draws one centred stroke; a stroke placed elsewhere, or
+      // with its own width on each side, keeps this producer's own record, which carries both.
+      const placed = strokes.some((stroke) => stroke.sides || (stroke.alignment && stroke.alignment !== 'center'));
+      if (!placed && paints.every((paint): paint is DrawPaint => paint !== null) && isPenpotPrimitiveRow(b, shapeKind, fills.some(fill => !!fill.gradient))) {
         const stroke = strokes[0];
         const op = compileDesignRow(b as DesignBoxRowV1, { x: 0, y: 0 }, { semantics: 'penpot-compat', penpotCompat: {
           capture: { geometry: { x, y, w, h }, ...effectCapture, shapeKind },
           fills: paints,
           ...(stroke ? { stroke: { color: stroke.color, opacity: stroke.opacity, width: stroke.width,
+
             ...(stroke.capStart ? { cap: stroke.capStart } : {}) } } : {}),
         } });
         if (op.op !== 'shape') throw new Error('Penpot primitive compilation did not produce a shape.');

@@ -10333,5 +10333,8 @@
   "Make default": "Đặt làm mặc định",
   "{name} is now the default": "{name} giờ là mặc định",
   "Text, fingerprinted": "Văn bản, dạng dấu vân tay",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Văn bản đã nhập chỉ được ghi dưới dạng dấu vân tay, nên bản thân các từ không có trong tệp."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Văn bản đã nhập chỉ được ghi dưới dạng dấu vân tay, nên bản thân các từ không có trong tệp.",
+  "Stroke per side": "Nét theo từng cạnh",
+  "Inside": "Bên trong",
+  "Outside": "Bên ngoài"
 }

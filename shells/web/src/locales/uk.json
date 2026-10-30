@@ -10333,5 +10333,8 @@
   "Make default": "Зробити типовим",
   "{name} is now the default": "{name} тепер типовий",
   "Text, fingerprinted": "Текст, як відбиток",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Введений текст записується лише як відбиток, тож самих слів у файлі немає."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Введений текст записується лише як відбиток, тож самих слів у файлі немає.",
+  "Stroke per side": "Обведення для кожного боку",
+  "Inside": "Всередині",
+  "Outside": "Зовні"
 }

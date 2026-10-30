@@ -439,6 +439,84 @@ function tiltDeg(v) { return f2(clamp(num(v, 0), -TILT_MAX, TILT_MAX)); }
 // board and the same board under a camera would disagree about the vanishing point.
 var TILT_PERSPECTIVE = 1200;
 
+// ── stroke position and per-side widths ─────────────────────────────────────
+//
+// `strokeAlign` places a stroke on its outline: 'inside', 'center' or 'outside'. Empty keeps the default every document drew before the field existed: a
+// box's stroke is a CSS border inside the box, and a pen path's is centred on the curve.
+// A board's stroke always stays inside its page, because the page edge is the export
+// edge. An own-property lookup, the same rule as every enum whitelist in this file.
+var STROKE_ALIGNS = { inside: 1, center: 1, outside: 1 };
+function strokeAlignOf(b) {
+  var kind = String(b && b.kind);
+  if (kind === 'frame') return 'inside';
+  var a = b.strokeAlign == null ? '' : String(b.strokeAlign);
+  if (Object.prototype.hasOwnProperty.call(STROKE_ALIGNS, a)) return a;
+  return kind === 'path' ? 'center' : 'inside';
+}
+// How far past the outline a stroke reaches, as a fraction of its width.
+function strokeOutFraction(align) { return align === 'outside' ? 1 : align === 'center' ? 0.5 : 0; }
+
+// Per-side widths apply to a rectangle-like outline (a rectangle, rounded box, pill or
+// board). An ellipse, a circle and a pen path draw one width all round.
+function strokeSidesApply(b) {
+  if (String(b && b.kind) === 'path') return false;
+  var s = b.shape == null ? '' : String(b.shape);
+  return s !== 'ellipse' && s !== 'circle';
+}
+function strokeSideOf(v, fallback) {
+  if (v == null) return fallback;
+  var s = String(v).trim();
+  if (s === '') return fallback;
+  var n = parseFloat(s);
+  return isFinite(n) ? clamp(n, 0, 400) : fallback;
+}
+// The stroke widths [top, right, bottom, left] in px. An empty side uses `strokeW` (0
+// hides a side), so a box with no side of its own reads four copies of its one width,
+// exactly as it always drew.
+function strokeSidesOf(b) {
+  var w = num(b.strokeW, 0);
+  if (!strokeSidesApply(b)) return [w, w, w, w];
+  return [strokeSideOf(b.strokeTop, w), strokeSideOf(b.strokeRight, w), strokeSideOf(b.strokeBottom, w), strokeSideOf(b.strokeLeft, w)];
+}
+function strokeSidesEqual(s) { return s[0] === s[1] && s[0] === s[2] && s[0] === s[3]; }
+function strokeSidesMax(s) { return Math.max(s[0], s[1], s[2], s[3]); }
+
+// How far a box's stroke pushes its border box out past its own frame, [top, right,
+// bottom, left] in px. All zero for an inside stroke, a path, a bare box or no stroke,
+// which is every document written before `strokeAlign` existed. The frame placement of a
+// member box and the clip polygon read this too, so all three agree on where the box is.
+function strokeOutsetOf(b) {
+  if (!b || String(b.kind) === 'path' || String(b.kind) === 'frame' || isBareBox(b)) return [0, 0, 0, 0];
+  var frac = strokeOutFraction(strokeAlignOf(b));
+  if (!frac || !safeColor(b.stroke, '')) return [0, 0, 0, 0];
+  var s = strokeSidesOf(b);
+  if (!(strokeSidesMax(s) > 0)) return [0, 0, 0, 0];
+  return [Math.max(0, s[0]) * frac, Math.max(0, s[1]) * frac, Math.max(0, s[2]) * frac, Math.max(0, s[3]) * frac];
+}
+
+// The CSS border declarations for a stroke of these widths: the one-line shorthand every
+// uniform stroke has always written, or the colour and style with four widths.
+function strokeBorderCss(sides, dash, color) {
+  if (strokeSidesEqual(sides)) return 'border:' + (Math.round(sides[0] * 100) / 100) + 'px ' + dash + ' ' + color + ';';
+  return 'border-style:' + dash + ';border-color:' + color + ';border-width:' +
+    f2(sides[0]) + 'px ' + f2(sides[1]) + 'px ' + f2(sides[2]) + 'px ' + f2(sides[3]) + 'px;';
+}
+
+// The corner radii of a box whose border box grows by `out` past its frame, as CSS
+// `border-radius`. A sharp corner stays sharp; a rounded corner grows by the stroke on
+// each axis so the curve stays parallel to the outline, the CSS border rule Penpot's
+// renderer also follows. The radius is first fitted to the box as CSS fits it.
+function grownRadiusCss(b, w, h, out) {
+  var shape = String(b.shape == null ? '' : b.shape);
+  if (shape === 'ellipse' || shape === 'circle') return '50%';
+  var r = shape === 'pill' ? Math.min(w, h) / 2 : shape === 'rounded' ? Math.min(Math.max(0, num(b.radius, 0)), w / 2, h / 2) : 0;
+  if (!(r > 0)) return radiusFor(b.shape, b.radius);
+  if (out[0] === out[1] && out[0] === out[2] && out[0] === out[3]) return f2(r + out[0]) + 'px';
+  // Corners clockwise from the top left: across, then down.
+  return f2(r + out[3]) + 'px ' + f2(r + out[1]) + 'px ' + f2(r + out[1]) + 'px ' + f2(r + out[3]) + 'px / ' +
+    f2(r + out[0]) + 'px ' + f2(r + out[0]) + 'px ' + f2(r + out[2]) + 'px ' + f2(r + out[2]) + 'px';
+}
+
 function boxCss(b, grad) {
   var x = Math.round(num(b.x, 0));
   var y = Math.round(num(b.y, 0));
@@ -487,8 +565,15 @@ function boxCss(b, grad) {
   var bare = isBareBox(b);
   var fill = (String(b.kind) === 'path' || bare) ? 'transparent' : safeColor(b.bg, 'transparent');
   var blend = Object.prototype.hasOwnProperty.call(BLENDS, String(b.blend)) ? String(b.blend) : '';
+  // A centred or outside stroke grows the border box past the frame, so the padding box
+  // (where the fill, the picture and the words sit) keeps its place: the box is drawn
+  // `out` larger on each side, and every other reader of the frame stays on x/y/w/h.
+  var out = strokeOutsetOf(b);
+  var grown = out[0] > 0 || out[1] > 0 || out[2] > 0 || out[3] > 0;
   var css =
-    'left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px;' +
+    (grown
+      ? 'left:' + f2(x - out[3]) + 'px;top:' + f2(y - out[0]) + 'px;width:' + f2(w + out[1] + out[3]) + 'px;height:' + f2(h + out[0] + out[2]) + 'px;'
+      : 'left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px;') +
     (tf ? 'transform:' + tf + ';' : '') +
     (op !== 1 ? 'opacity:' + op + ';' : '') +
     (blend ? 'mix-blend-mode:' + blend + ';' : '') +
@@ -502,18 +587,27 @@ function boxCss(b, grad) {
     // again. Inline rather than in styles.css so the CLI and the export walkers, which read
     // this string, agree with the browser.
     (String(b.kind) === 'path' ? 'overflow:visible;' : '') +
-    'border-radius:' + radiusFor(b.shape, b.radius) + ';' +
+    'border-radius:' + (grown ? grownRadiusCss(b, w, h, out) : radiusFor(b.shape, b.radius)) + ';' +
     'justify-content:' + (H_JUSTIFY[b.align] || 'center') + ';' +
     'align-items:' + (V_ALIGN[b.valign] || 'center') + ';';
-  // Stroke on a non-path box → a CSS border. box-sizing is border-box, so this is
-  // an INSIDE stroke; the design importer pre-inflates center/outer-aligned rects
-  // so the painted edge lands where the source authored it. Path boxes stroke the
+  // Stroke on a non-path box → a CSS border, with box-sizing border-box. An inside stroke
+  // is the border itself; a centred or outside one is the same border on the grown box
+  // above, so the stroke reaches half or all of its width past the frame. Per-side widths
+  // are the border's own four widths, which is how CSS draws them. Path boxes stroke the
   // SVG path itself (pathHtmlFor), never the div.
-  var sw = num(b.strokeW, 0);
+  var sides = strokeSidesOf(b);
   var sc = safeColor(b.stroke, '');
-  if (String(b.kind) !== 'path' && !bare && sc && sw > 0) {
+  if (String(b.kind) !== 'path' && !bare && sc && strokeSidesMax(sides) > 0) {
     var dash = String(b.strokeDash) === 'dashed' ? 'dashed' : String(b.strokeDash) === 'dotted' ? 'dotted' : 'solid';
-    css += 'border:' + (Math.round(sw * 100) / 100) + 'px ' + dash + ' ' + sc + ';';
+    css += strokeBorderCss([Math.max(0, sides[0]), Math.max(0, sides[1]), Math.max(0, sides[2]), Math.max(0, sides[3])], dash, sc);
+  }
+  if (grown) {
+    // The fill covers the box inside the stroke's inner edge: exactly the frame for an
+    // outside stroke, and the frame less half the stroke for a centred one.
+    css += 'background-clip:padding-box;';
+    // Turn and mirror about the frame's centre, which an uneven stroke moves off the
+    // centre of the grown box.
+    if (out[1] !== out[3] || out[0] !== out[2]) css += 'transform-origin:' + f2(out[3] + w / 2) + 'px ' + f2(out[0] + h / 2) + 'px;';
   }
   // Backdrop blur ("frosted glass") - blurs whatever is painted BEHIND the box, as
   // opposed to `blur`, which blurs the box's own paint. Boxes only: a path box's
@@ -1225,29 +1319,63 @@ function pathHtmlFor(b) {
   // offset to the pixel grid, so a pad of 0.5 (a 1 px round-capped stroke) or sw/2·√2 (a
   // square cap) moved the whole drawn path off its own coordinates by up to half a pixel.
   // A whole-pixel pad is never snapped, and a larger pad only grows the margin.
+  //
+  // STROKE POSITION. SVG only strokes centred, so on a closed outline an inside or an
+  // outside stroke is drawn at twice the width and clipped: to the shape for inside, to
+  // everything but the shape for outside, the method Penpot's own SVG renderer uses. An
+  // open path has no inside, so it stays centred whatever the field says. An inside
+  // stroke never reaches past the curve and needs no pad; an outside one reaches a whole
+  // width out, so its pad is that of a stroke twice as wide.
+  var align = strokeAlignOf(b);
+  var closedAll = srcs.length > 0;
+  for (var ci = 0; ci < srcs.length; ci++) if (srcs[ci].closed !== true) closedAll = false;
+  var placed = (align === 'inside' || align === 'outside') && !!stroke && sw > 0 && closedAll && !heads ? align : '';
   var reach = Math.max(cap === 'square' ? Math.SQRT2 / 2 : 0.5, join === 'miter' ? MITER_LIMIT / 2 : 0.5);
-  var pad = Math.ceil(Math.max(stroke && sw > 0 ? sw * reach : 0, headReach));
+  var strokeReach = !stroke || !(sw > 0) || placed === 'inside' ? 0 : sw * reach * (placed === 'outside' ? 2 : 1);
+  var pad = Math.ceil(Math.max(strokeReach, headReach));
   var vw = f2(w + pad * 2), vh = f2(h + pad * 2), o = f2(-pad);
+  var strokeAttrs = stroke && sw > 0
+    ? ' stroke="' + esc(stroke) + '" stroke-width="' + esc(f2(placed ? sw * 2 : sw)) +
+      '" stroke-linejoin="' + esc(join) + '" stroke-linecap="' + esc(cap) + '"' +
+      (join === 'miter' ? ' stroke-miterlimit="' + esc(MITER_LIMIT) + '"' : '') +
+      (dash ? ' stroke-dasharray="' + esc(dash) + '"' : '')
+    : '';
+  var body;
+  if (placed) {
+    // The clip's id hashes everything it draws, so two copies of one drawing in a page
+    // share an id only when they share the geometry.
+    var cid = 'lly-sp-' + strokeClipHash(placed + '|' + rule + '|' + vw + '|' + vh + '|' + d);
+    var frameRect = 'M' + f2(o - 1) + ' ' + f2(o - 1) + 'H' + f2(o + vw + 1) + 'V' + f2(o + vh + 1) + 'H' + f2(o - 1) + 'Z ';
+    body = '<defs><clipPath id="' + esc(cid) + '"><path d="' + esc(placed === 'outside' ? frameRect + d : d) +
+      '" clip-rule="' + esc(placed === 'outside' ? 'evenodd' : rule) + '"></path></clipPath></defs>' +
+      '<path d="' + esc(d) + '" fill="' + esc(fill) + '" fill-rule="' + esc(rule) + '"></path>' +
+      '<path d="' + esc(d) + '" fill="none"' + strokeAttrs + ' clip-path="url(#' + esc(cid) + ')"></path>';
+  } else {
+    body = '<path d="' + esc(d) + '" fill="' + esc(fill) + '" fill-rule="' + esc(rule) + '"' + strokeAttrs + '></path>';
+  }
   // Everything interpolated is esc()'d even though each value is already reduced to a
   // validated colour, a whitelisted keyword or a number: the extra is emitted through
   // {{{ }}}, which bypasses Handlebars' escaping, so the escape has to happen here.
   return '<svg class="lolly-box-path" width="' + esc(vw) + '" height="' + esc(vh) +
     '" viewBox="' + esc(o) + ' ' + esc(o) + ' ' + esc(vw) + ' ' + esc(vh) + '" preserveAspectRatio="none"' +
     (pad ? ' style="inset:auto;left:' + esc(o) + 'px;top:' + esc(o) + 'px;width:' + esc(vw) + 'px;height:' + esc(vh) + 'px"' : '') +
-    '>' +
-    '<path d="' + esc(d) + '" fill="' + esc(fill) + '" fill-rule="' + esc(rule) + '"' +
-    (stroke && sw > 0
-      ? ' stroke="' + esc(stroke) + '" stroke-width="' + esc(f2(sw)) +
-        '" stroke-linejoin="' + esc(join) + '" stroke-linecap="' + esc(cap) + '"' +
-        (join === 'miter' ? ' stroke-miterlimit="' + esc(MITER_LIMIT) + '"' : '') +
-        (dash ? ' stroke-dasharray="' + esc(dash) + '"' : '')
-      : '') +
-    '></path>' +
+    '>' + body +
     // The heads follow the shaft so they paint over its end, and they are NOT esc()'d:
     // they are engine-built SVG fragments, not values - the engine escapes the one thing
     // in them that came from the box (the colour), exactly as it does for a connector.
     heads +
     '</svg>';
+}
+
+// FNV-1a over a string, in base 36: a short id that is the same wherever the same
+// drawing is made, so ids stay stable across renders and shells.
+function strokeClipHash(str) {
+  var h = 0x811c9dc5;
+  for (var i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(36);
 }
 
 function rot2(px, py, deg) {
@@ -1281,9 +1409,12 @@ function clipCss(b, byId) {
     var cs = [[-mw / 2, -mh / 2], [mw / 2, -mh / 2], [mw / 2, mh / 2], [-mw / 2, mh / 2]];
     for (var j = 0; j < 4; j++) { var w2 = rot2(cs[j][0], cs[j][1], mrot); world.push([mcx + w2[0], mcy + w2[1]]); }
   }
+  // A centred or outside stroke grows the element past the frame (boxCss), and the
+  // polygon is placed against the element's own top left.
+  var out = strokeOutsetOf(b);
   var poly = world.map(function (p) {
     var lc = rot2(p[0] - bcx, p[1] - bcy, -brot);
-    return f2(lc[0] + bw / 2) + 'px ' + f2(lc[1] + bh / 2) + 'px';
+    return f2(lc[0] + bw / 2 + out[3]) + 'px ' + f2(lc[1] + bh / 2 + out[0]) + 'px';
   }).join(',');
   return 'clip-path:polygon(' + poly + ');';
 }
@@ -2303,17 +2434,20 @@ function frameGroupsFor(boxes, ext) {
     // pushes in by border-width on every side. So a child authored at frame-local (lx,ly)
     // would paint at (lx+bw, ly+bw) - a persistent strokeW-px drift off the model
     // coordinate that selection chrome, live drag and connectors all anchor at. We cancel
-    // it by subtracting the border width (frameBW) from each child's frame-local origin
+    // it by subtracting the border widths (frameBL, frameBT) from each child's frame-local origin
     // below, so painted position == model position for any strokeW. (An edge-flush child's
     // stroke-band is then covered/clipped by the inside stroke - the correct semantics of
     // an inside stroke - instead of the whole child sliding inward.)
-    var fsw = num(fb.strokeW, 0);
+    // Per-side widths are the border's own four widths; the left and top ones are what
+    // the containing block is pushed in by, so they are what a member is pulled back by.
+    var fsides = strokeSidesOf(fb);
     var fsc = safeColor(fb.stroke, '');
-    var frameBW = (fsc && fsw > 0) ? (Math.round(fsw * 100) / 100) : 0;
-    var frameBorder = frameBW > 0
-      ? 'box-sizing:border-box;border:' + frameBW + 'px ' +
-        (String(fb.strokeDash) === 'dashed' ? 'dashed' : String(fb.strokeDash) === 'dotted' ? 'dotted' : 'solid') +
-        ' ' + fsc + ';'
+    var fstroked = !!fsc && strokeSidesMax(fsides) > 0;
+    var frameBL = fstroked ? (Math.round(Math.max(0, fsides[3]) * 100) / 100) : 0;
+    var frameBT = fstroked ? (Math.round(Math.max(0, fsides[0]) * 100) / 100) : 0;
+    var frameBorder = fstroked
+      ? 'box-sizing:border-box;' + strokeBorderCss([Math.max(0, fsides[0]), Math.max(0, fsides[1]), Math.max(0, fsides[2]), Math.max(0, fsides[3])],
+        (String(fb.strokeDash) === 'dashed' ? 'dashed' : String(fb.strokeDash) === 'dotted' ? 'dotted' : 'solid'), fsc)
       : '';
     // A board wears the same PAINT a box does (plan 179 A3/A4). The inspector has always
     // offered an artboard a gradient, a picture, opacity, a blend, a corner radius and a
@@ -2354,11 +2488,16 @@ function frameGroupsFor(boxes, ext) {
       if (String(cb.frame == null ? '' : cb.frame) !== fid) continue; // scratch / other frame omitted
       if (isHiddenBox(cb)) continue;                                  // hidden: not drawn, not exported
       // Frame-local position OVERRIDES the global left/top already in boxStyle[j]: a
-      // later same-property declaration wins in an inline style attribute. frameBW cancels
-      // the inside border's containing-block inset (see the frameBorder note above) so the
-      // child paints at its model coordinate, not model+strokeW.
-      var lx = Math.round(num(cb.x, 0)) - fx - frameBW;
-      var ly = Math.round(num(cb.y, 0)) - fy - frameBW;
+      // later same-property declaration wins in an inline style attribute. frameBL and
+      // frameBT cancel the inside border's containing-block inset (see the frameBorder note
+      // above) so the child paints at its model coordinate, not model+strokeW. A child
+      // whose own stroke is centred or outside is drawn grown past its frame (boxCss), so
+      // its element starts that much further up and to the left.
+      var cout = strokeOutsetOf(cb);
+      var lx = Math.round(num(cb.x, 0)) - fx - frameBL;
+      var ly = Math.round(num(cb.y, 0)) - fy - frameBT;
+      if (cout[3]) lx = f2(lx - cout[3]);
+      if (cout[0]) ly = f2(ly - cout[0]);
       // Presentation build step (plan 112): a positive `build` makes this child a
       // fragment revealed on advance; the presenter reads data-build. Empty = always shown.
       var cbBuild = Number(cb.build);
@@ -2823,10 +2962,27 @@ function deckElementFor(cb, byId, lx, ly) {
   if (shp === 'rounded') rect.radius = num(cb.radius, 0);
   else if (shp === 'pill') rect.radius = Math.min(cw, ch) / 2;
   else if (shp === 'ellipse' || shp === 'circle') rect.geom = 'ellipse';
-  var sw = num(cb.strokeW, 0);
   var sc = safeColor(cb.stroke, '');
+  // PowerPoint draws a shape's line centred on its edge, one width all round. A centred
+  // stroke is exactly that; an outside stroke moves the shape out by half the width, so
+  // the line lands outside the box; per-side widths travel as a shape of their own (see
+  // deckStrokeBand). An inside stroke keeps the centred line older exports wrote.
+  var dsides = strokeSidesOf(cb);
+  var sw = strokeSidesMax(dsides);
+  var band = null;
   // A translucent box's outline takes the same alpha as its fill.
-  if (sc && sw > 0) rect.line = deckLineOf(op < 1 ? (deckAlphaHex(cb.stroke, op) || sc) : sc, sw, cb);
+  if (sc && sw > 0) {
+    var lineColor = op < 1 ? (deckAlphaHex(cb.stroke, op) || sc) : sc;
+    var dalign = strokeAlignOf(cb);
+    if (!strokeSidesEqual(dsides)) band = deckStrokeBand(cb, lx, ly, cw, ch, dsides, dalign, lineColor);
+    else {
+      if (dalign === 'outside') {
+        rect.x = f2(lx - sw / 2); rect.y = f2(ly - sw / 2); rect.w = f2(cw + sw); rect.h = f2(ch + sw);
+        if (rect.radius > 0) rect.radius = f2(rect.radius + sw / 2);
+      }
+      rect.line = deckLineOf(lineColor, sw, cb);
+    }
+  }
   // A linear gradient (plan 291 M4) travels as its spec, with the box's mirror and
   // opacity beside it; the exporter lowers it to a gradFill with one alpha per stop.
   // boxCss paints the flat fill under the gradient, so a box with both is two
@@ -2844,9 +3000,68 @@ function deckElementFor(cb, byId, lx, ly) {
       under.fill = base;
     }
     rect.fill = gfill;
+    if (band) return under ? [deckTurn(under, cb), deckTurn(rect, cb), deckTurn(band, cb)] : [deckTurn(rect, cb), deckTurn(band, cb)];
     return under ? [deckTurn(under, cb), deckTurn(rect, cb)] : deckTurn(rect, cb);
   }
-  return deckTurn(rect, cb);
+  return band ? [deckTurn(rect, cb), deckTurn(band, cb)] : deckTurn(rect, cb);
+}
+
+// One rounded rectangle as SVG path data in cubics, from eight corner radii (each corner
+// across then down, clockwise from the top left). Clockwise on screen, or the other way
+// round when `back` is set, so a hole winds against its outline.
+function deckRoundRectD(x, y, w, h, c, back) {
+  var k = 0.5522847498307936;
+  var pts = [];
+  var tl = c[0] > 0 && c[1] > 0, tr = c[2] > 0 && c[3] > 0, br = c[4] > 0 && c[5] > 0, bl = c[6] > 0 && c[7] > 0;
+  // Clockwise: each step is a line to a point, or a corner as [control, control, end].
+  pts.push(['M', x + (tl ? c[0] : 0), y]);
+  pts.push(['L', x + w - (tr ? c[2] : 0), y]);
+  if (tr) pts.push(['C', x + w - c[2] + c[2] * k, y, x + w, y + c[3] - c[3] * k, x + w, y + c[3]]);
+  pts.push(['L', x + w, y + h - (br ? c[5] : 0)]);
+  if (br) pts.push(['C', x + w, y + h - c[5] + c[5] * k, x + w - c[4] + c[4] * k, y + h, x + w - c[4], y + h]);
+  pts.push(['L', x + (bl ? c[6] : 0), y + h]);
+  if (bl) pts.push(['C', x + c[6] - c[6] * k, y + h, x, y + h - c[7] + c[7] * k, x, y + h - c[7]]);
+  pts.push(['L', x, y + (tl ? c[1] : 0)]);
+  if (tl) pts.push(['C', x, y + c[1] - c[1] * k, x + c[0] - c[0] * k, y, x + c[0], y]);
+  if (!back) {
+    return pts.map(function (p) { return p[0] + p.slice(1).map(f2).join(' '); }).join(' ') + ' Z';
+  }
+  // Walk the same outline backwards: each segment's end becomes the next start.
+  var out = [], at = pts[pts.length - 1];
+  var endOf = function (p) { return [p[p.length - 2], p[p.length - 1]]; };
+  var cur = endOf(at);
+  out.push('M' + f2(cur[0]) + ' ' + f2(cur[1]));
+  for (var i = pts.length - 1; i > 0; i--) {
+    var seg = pts[i], prev = endOf(pts[i - 1]);
+    if (seg[0] === 'C') out.push('C' + [seg[3], seg[4], seg[1], seg[2], prev[0], prev[1]].map(f2).join(' '));
+    else out.push('L' + f2(prev[0]) + ' ' + f2(prev[1]));
+  }
+  return out.join(' ') + ' Z';
+}
+
+// A per-side stroke as a deck element of its own: PowerPoint draws one line width all
+// round, so the stroke travels as the ring between its outer and inner edges, filled
+// with the stroke colour, the CSS border geometry boxCss draws. The element's frame is
+// the box grown evenly by the widest outside reach, so it turns about the box's own centre.
+function deckStrokeBand(cb, lx, ly, cw, ch, sides, align, color) {
+  var o = strokeOutFraction(align), i = 1 - o;
+  // A mirror swaps the sides it turns over, since the band is drawn already mirrored.
+  var t = Math.max(0, sides[0]), r = Math.max(0, sides[1]), b = Math.max(0, sides[2]), l = Math.max(0, sides[3]);
+  if (boolVal(cb.flipH, false)) { var sl = l; l = r; r = sl; }
+  if (boolVal(cb.flipV, false)) { var st = t; t = b; b = st; }
+  var m = Math.max(t, r, b, l) * o;
+  var shp = String(cb.shape);
+  var rad = shp === 'pill' ? Math.min(cw, ch) / 2 : shp === 'rounded' ? Math.min(Math.max(0, num(cb.radius, 0)), cw / 2, ch / 2) : 0;
+  var across = [l, r, r, l], down = [t, t, b, b], outer = [], inner = [];
+  for (var c = 0; c < 4; c++) {
+    var ox = rad > 0 ? rad + across[c] * o : 0, oy = rad > 0 ? rad + down[c] * o : 0;
+    outer.push(ox, oy);
+    inner.push(Math.max(0, ox - across[c]), Math.max(0, oy - down[c]));
+  }
+  var d = deckRoundRectD(m - l * o, m - t * o, cw + (l + r) * o, ch + (t + b) * o, outer, false);
+  var iw = cw - (l + r) * i, ih = ch - (t + b) * i;
+  if (iw > 0 && ih > 0) d += ' ' + deckRoundRectD(m + l * i, m + t * i, iw, ih, inner, true);
+  return { t: 'path', x: f2(lx - m), y: f2(ly - m), w: f2(cw + 2 * m), h: f2(ch + 2 * m), d: d, fill: color };
 }
 
 // Build the whole deck model, or undefined when no frame exists (same gate as

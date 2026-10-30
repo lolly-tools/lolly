@@ -52,7 +52,7 @@ function validatePaint(fills: DrawPaint[], stroke?: DrawStroke): void {
   }
   if (!stroke) return;
   validColor(stroke.color, stroke.opacity);
-  if (!Number.isFinite(stroke.width) || stroke.width <= 0 || stroke.align || stroke.dash || stroke.join
+  if (!Number.isFinite(stroke.width) || stroke.width <= 0 || stroke.align || stroke.sides || stroke.dash || stroke.join
     || (stroke.cap !== undefined && stroke.cap !== 'round' && stroke.cap !== 'square')) {
     throw new Error('Penpot primitives need a solid centered stroke.');
   }
@@ -119,7 +119,8 @@ export function designDrawPenpot(op: DrawShapeOp): PenpotIrRect | PenpotIrCircle
         stops: fill.stops.map(stop => ({ ...stop })),
       } };
     }),
-    strokes: op.stroke ? [{ color: op.stroke.color, opacity: op.stroke.opacity ?? 1, width: op.stroke.width, alignment: 'center' as const,
+    strokes: op.stroke ? [{ color: op.stroke.color, opacity: op.stroke.opacity ?? 1, width: op.stroke.width,
+      alignment: 'center' as const,
       ...(op.stroke.cap ? { capStart: op.stroke.cap, capEnd: op.stroke.cap } : {}) }] : [],
   };
   return op.shape.kind === 'ellipse' ? { ...base, type: 'circle' } : { ...base, type: 'rect', radius: op.shape.radius };

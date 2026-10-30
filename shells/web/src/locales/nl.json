@@ -10333,5 +10333,8 @@
   "Make default": "Als standaard instellen",
   "{name} is now the default": "{name} is nu de standaard",
   "Text, fingerprinted": "Tekst, als vingerafdruk",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Getypte tekst wordt alleen als vingerafdruk vastgelegd, dus de woorden zelf staan niet in het bestand."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Getypte tekst wordt alleen als vingerafdruk vastgelegd, dus de woorden zelf staan niet in het bestand.",
+  "Stroke per side": "Lijn per zijde",
+  "Inside": "Binnen",
+  "Outside": "Buiten"
 }

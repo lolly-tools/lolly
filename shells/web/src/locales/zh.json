@@ -10333,5 +10333,8 @@
   "Make default": "设为默认",
   "{name} is now the default": "{name} 现在是默认",
   "Text, fingerprinted": "文字（指纹）",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "输入的文字仅以指纹形式记录，因此文件中没有文字本身。"
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "输入的文字仅以指纹形式记录，因此文件中没有文字本身。",
+  "Stroke per side": "按边描边",
+  "Inside": "内侧",
+  "Outside": "外侧"
 }

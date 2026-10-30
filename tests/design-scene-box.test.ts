@@ -155,7 +155,7 @@ test('the add menu offers a 3D scene whose seed is a scene box', () => {
 test('scene is field 101 of design:boxes and the wire-order pin ratcheted with it', () => {
   const current: string[] = boxesField.fields.map((f: { id: string }) => f.id);
   const pinned = wireOrder.inputs['design:boxes']!;
-  assert.equal(current.length, 158, 'pageId follows the existing layout fields');
+  assert.equal(current.length, 163, 'the stroke position and per-side widths follow pageId');
   assert.equal(current[113], 'tokenLinks');
   assert.deepEqual(current.slice(114, 117), ['web', 'webView', 'webLoad'], 'plan 288: the web page box fields follow');
   assert.deepEqual(current.slice(117, 121), ['webCss', 'webHideCookies', 'interact', 'interactOpts']);
@@ -168,6 +168,8 @@ test('scene is field 101 of design:boxes and the wire-order pin ratcheted with i
     'layoutAbsolute', 'layoutSelf', 'layoutJustifySelf', 'layoutRow', 'layoutColumn',
     'layoutRowSpan', 'layoutColumnSpan', 'layoutArea', 'layoutX', 'layoutY', 'layoutAngle',
     'pageId',
+    // Stroke position and per-side widths, appended after every existing wire field.
+    'strokeAlign', 'strokeTop', 'strokeRight', 'strokeBottom', 'strokeLeft',
   ], 'plan 305: layout fields are appended after every existing wire field');
   assert.equal(current[103], 'textStory');
   assert.equal(current[104], 'textFrame');

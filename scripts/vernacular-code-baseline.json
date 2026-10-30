@@ -1509,7 +1509,7 @@
   "tests/design-gradient.test.ts": 3,
   "tests/design-hidden-locked.test.ts": 1,
   "tests/design-kit-templates.test.ts": 2,
-  "tests/design-map.test.ts": 3,
+  "tests/design-map.test.ts": 2,
   "tests/design-narration.test.ts": 1,
   "tests/design-path.test.ts": 6,
   "tests/design-pptx.test.ts": 1,

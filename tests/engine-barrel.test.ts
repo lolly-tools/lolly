@@ -10,6 +10,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.288 stroke position and per-side widths, read as the Design renderer reads them.
+  'DesignStrokeAlign', 'DesignStrokeSides', 'designStrokeAlign', 'designStrokeOutset', 'designStrokeSides',
   // Additive 1.283 creation feedback: house rules and the writing score in one report that informs and never blocks.
   'CREATION_FEEDBACK_FORMAT', 'CREATION_FEEDBACK_TEXT_LIMIT', 'CREATION_FEEDBACK_VERSION',
   'CreationFeedbackDeltaV1', 'CreationFeedbackHouseRules', 'CreationFeedbackOpts', 'CreationFeedbackPhrase',

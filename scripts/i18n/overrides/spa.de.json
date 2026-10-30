@@ -1695,5 +1695,8 @@
   "Make default": "Als Standard festlegen",
   "{name} is now the default": "{name} ist jetzt der Standard",
   "Text, fingerprinted": "Text, als Fingerabdruck",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Eingegebener Text wird nur als Fingerabdruck gespeichert, die Wörter selbst sind also nicht in der Datei."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Eingegebener Text wird nur als Fingerabdruck gespeichert, die Wörter selbst sind also nicht in der Datei.",
+  "Stroke per side": "Kontur pro Seite",
+  "Inside": "Innen",
+  "Outside": "Außen"
 }

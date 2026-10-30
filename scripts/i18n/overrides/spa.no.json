@@ -1826,5 +1826,8 @@
   "Make default": "Gjør til standard",
   "{name} is now the default": "{name} er nå standard",
   "Text, fingerprinted": "Tekst, som fingeravtrykk",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Skrevet tekst lagres bare som et fingeravtrykk, så selve ordene er ikke i filen."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Skrevet tekst lagres bare som et fingeravtrykk, så selve ordene er ikke i filen.",
+  "Stroke per side": "Strek per side",
+  "Inside": "Innenfor",
+  "Outside": "Utenfor"
 }

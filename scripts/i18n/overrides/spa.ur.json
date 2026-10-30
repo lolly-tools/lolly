@@ -1695,5 +1695,8 @@
   "Make default": "ڈیفالٹ بنائیں",
   "{name} is now the default": "{name} اب ڈیفالٹ ہے",
   "Text, fingerprinted": "متن، فنگر پرنٹ کے طور پر",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "لکھا ہوا متن صرف فنگر پرنٹ کے طور پر محفوظ ہوتا ہے، اس لیے الفاظ فائل میں نہیں ہوتے۔"
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "لکھا ہوا متن صرف فنگر پرنٹ کے طور پر محفوظ ہوتا ہے، اس لیے الفاظ فائل میں نہیں ہوتے۔",
+  "Stroke per side": "ہر طرف کی الگ لکیر",
+  "Inside": "اندر",
+  "Outside": "باہر"
 }

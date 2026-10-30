@@ -12,8 +12,9 @@
  */
 import { AVERAGE_GLYPH_EM } from './deck-compile.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
-import { pictureRect, type DesignDrawPage, type DrawArea, type DrawBox, type DrawClip, type DrawImageOp, type DrawOp, type DrawPaint, type DrawPicture, type DrawPose, type DrawShadow, type DrawShape, type DrawShapeOp, type DrawStroke, type DrawTextOp, type DrawWords } from './design-draw.ts';
+import { paddingArea, pictureRect, type DesignDrawPage, type DrawArea, type DrawBox, type DrawClip, type DrawImageOp, type DrawOp, type DrawPaint, type DrawPicture, type DrawPose, type DrawShadow, type DrawShape, type DrawShapeOp, type DrawStroke, type DrawTextOp, type DrawWords } from './design-draw.ts';
 import { toSvgPathData } from './geom/path.ts';
+import { outlineAreaContour, strokeCentreArea, strokeRing, strokeRingContours } from './design-stroke.ts';
 
 export interface DesignDrawSvgOpts {
   /** Turns an image reference into something an `image` element can draw. */
@@ -106,6 +107,8 @@ function opacityAttr(op: { opacity: number }): string {
 
 /** A shape's outline at `box`, as markup with `paint` attributes. */
 function outlineSvg(shape: Exclude<DrawShape, { kind: 'path' }>, box: DrawBox, paint: string): string {
+  // Corners that differ from one another (a per-side stroke's edges) are a path of their own.
+  if (shape.kind === 'rect' && shape.corners) return `<path d="${toSvgPathData([outlineAreaContour({ box, shape })], 2)}" ${paint}/>`;
   if (shape.kind === 'ellipse') {
     return `<ellipse cx="${round2(box.x + box.w / 2)}" cy="${round2(box.y + box.h / 2)}" rx="${round2(box.w / 2)}" ry="${round2(box.h / 2)}" ${paint}/>`;
   }
@@ -197,6 +200,21 @@ function strokeAttrs(stroke: DrawStroke | undefined): string {
 
 function rectOrEllipse(op: DrawShapeOp, fill: string, stroke: DrawStroke | undefined, fillOpacity?: number): string {
   const box = op.box;
+  if (op.shape.kind !== 'path' && (stroke?.sides || stroke?.align === 'center' || stroke?.align === 'outside')) {
+    // Design's centred, outside or per-side border: the fill covers the box inside the
+    // stroke's inner edge, a uniform stroke runs along its centre line, and per-side
+    // widths paint the ring between the two edges.
+    const fillPaint = `fill="${fill}"${fillOpacity !== undefined && fillOpacity < 1 ? ` fill-opacity="${round2(fillOpacity)}"` : ''}`;
+    // An inside border paints over a fill that covers the whole box, as CSS clips it to the border box.
+    const area = stroke.align === 'center' || stroke.align === 'outside' ? paddingArea(box, op.shape, stroke) : { box, shape: op.shape };
+    const under = fill === 'none' || area.box.w <= 0 || area.box.h <= 0 ? '' : outlineSvg(area.shape, area.box, fillPaint);
+    if (stroke.sides) {
+      const ring = strokeRing(box, op.shape, stroke.align ?? 'inside', stroke.sides);
+      return under + `<path d="${toSvgPathData(strokeRingContours(ring), 2)}" fill-rule="evenodd"${colorPaint('fill', stroke.color, stroke.opacity)}/>`;
+    }
+    const centre = strokeCentreArea(box, op.shape, stroke.align ?? 'inside', stroke.width);
+    return under + outlineSvg(centre.shape, centre.box, `fill="none"${strokeAttrs(stroke)}`);
+  }
   if (stroke?.align === 'inside' && op.shape.kind !== 'path') {
     // A CSS border: the fill covers the whole box and the stroke's centre line runs half
     // its width inside the edge, following the corner radius less that half width.
@@ -223,13 +241,30 @@ function shapeSvg(op: DrawShapeOp, opts: DesignDrawSvgOpts): string {
     const fill = first ? svgEscape(first.color) : 'none';
     const rule = op.shape.evenOdd ? ' fill-rule="evenodd"' : '';
     const fade = first?.opacity !== undefined && first.opacity < 1 ? ` fill-opacity="${round2(first.opacity)}"` : '';
-    return `<path d="${svgEscape(toSvgPathData(op.shape.contours, opts.pathDecimals ?? 2))}" fill="${fill}"${fade}${rule}${strokeAttrs(op.stroke)}/>`;
+    const d = svgEscape(toSvgPathData(op.shape.contours, opts.pathDecimals ?? 2));
+    const s = op.stroke;
+    if (s && (s.align === 'inside' || s.align === 'outside')) {
+      // SVG strokes only centred: twice the width, clipped to the shape for inside and to
+      // everything but the shape for outside, as the canvas draws the stroke.
+      const b = op.box, m = Math.max(b.w, b.h) + s.width * 8 + 1;
+      const frame = `M${round2(b.x - m)} ${round2(b.y - m)}H${round2(b.x + b.w + m)}V${round2(b.y + b.h + m)}H${round2(b.x - m)}Z `;
+      const clip = `<clipPath clipPathUnits="userSpaceOnUse"><path d="${s.align === 'outside' ? frame + d : d}" clip-rule="${s.align === 'outside' || op.shape.evenOdd ? 'evenodd' : 'nonzero'}"/></clipPath>`;
+      const id = `sk${contentId(clip)}`;
+      return `<defs>${clip.replace('<clipPath ', `<clipPath id="${id}" `)}</defs><path d="${d}" fill="${fill}"${fade}${rule}/>`
+        + `<path d="${d}" fill="none"${strokeAttrs({ ...s, width: s.width * 2 })} clip-path="url(#${id})"/>`;
+    }
+    return `<path d="${d}" fill="${fill}"${fade}${rule}${strokeAttrs(s)}/>`;
   }
   const last = op.fills[op.fills.length - 1];
   if (last && last.kind !== 'color') {
     const g = gradient(last);
     const first = op.fills[0];
-    const under = op.fills.length > 1 && first?.kind === 'color' ? rectOrEllipse(op, svgEscape(first.color), undefined, first.opacity) : '';
+    const ringed = !!op.stroke && (!!op.stroke.sides || op.stroke.align === 'center' || op.stroke.align === 'outside');
+    const area = ringed && (op.stroke!.align === 'center' || op.stroke!.align === 'outside') ? paddingArea(op.box, op.shape, op.stroke) : ringed ? { box: op.box, shape: op.shape } : null;
+    const under = op.fills.length > 1 && first?.kind === 'color'
+      ? area ? (area.box.w > 0 && area.box.h > 0 ? outlineSvg(area.shape, area.box, `fill="${svgEscape(first.color)}"${first.opacity !== undefined && first.opacity < 1 ? ` fill-opacity="${round2(first.opacity)}"` : ''}`) : '')
+        : rectOrEllipse(op, svgEscape(first.color), undefined, first.opacity)
+      : '';
     return `${g.defs}${under}${rectOrEllipse(op, g.paint, op.stroke)}`;
   }
   return rectOrEllipse(op, last ? svgEscape(last.color) : 'none', op.stroke, last?.opacity);
@@ -301,9 +336,12 @@ function wordsSvg(op: DrawOp, words: DrawWords): string {
   const m = layout.measure;
   const box = op.box;
   const border = op.op === 'shape' && op.stroke?.align === 'inside' ? Math.min(op.stroke.width, box.w / 2, box.h / 2) : 0;
-  const inner = { x: box.x + border, y: box.y + border, w: Math.max(0, box.w - border * 2), h: Math.max(0, box.h - border * 2) };
-  const shape: Exclude<DrawShape, { kind: 'path' }> = op.op === 'shape' && op.shape.kind === 'ellipse' ? { kind: 'ellipse' }
+  let inner = { x: box.x + border, y: box.y + border, w: Math.max(0, box.w - border * 2), h: Math.max(0, box.h - border * 2) };
+  let shape: Exclude<DrawShape, { kind: 'path' }> = op.op === 'shape' && op.shape.kind === 'ellipse' ? { kind: 'ellipse' }
     : { kind: 'rect', radius: op.op === 'shape' && op.shape.kind === 'rect' ? Math.max(0, op.shape.radius - border) : 0 };
+  if (op.op === 'shape' && op.shape.kind !== 'path' && op.stroke && (op.stroke.sides || op.stroke.align === 'center' || op.stroke.align === 'outside')) {
+    ({ box: inner, shape } = paddingArea(box, op.shape, op.stroke));
+  }
   const features = [
     ...(words.spec.ligatures === false || m.tracking !== 0 ? ['"liga" 0', '"clig" 0'] : []),
     ...(words.spec.alternates ? ['"salt" 1'] : []),

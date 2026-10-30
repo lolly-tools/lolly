@@ -1826,5 +1826,8 @@
   "Make default": "기본값으로 설정",
   "{name} is now the default": "{name}이(가) 이제 기본값입니다",
   "Text, fingerprinted": "텍스트, 지문으로 기록",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "입력한 텍스트는 지문으로만 기록되므로 단어 자체는 파일에 없습니다."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "입력한 텍스트는 지문으로만 기록되므로 단어 자체는 파일에 없습니다.",
+  "Stroke per side": "변별 선",
+  "Inside": "안쪽",
+  "Outside": "바깥쪽"
 }

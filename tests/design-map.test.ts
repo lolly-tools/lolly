@@ -651,16 +651,20 @@ test('penpotShapeToNode: drop shadow maps to kind-appropriate shadow fields', ()
 });
 
 // ── Penpot strokes (non-path shapes → CSS-border fields) ─────────────────────
-test('penpotShapeToNode: stroke maps colour/width/dash; center alignment inflates', () => {
+test('penpotShapeToNode: stroke maps colour/width/dash; alignment is the stroke position', () => {
   const base = { id: 'r', type: 'rect', selrect: { x: 10, y: 10, width: 100, height: 50 }, fills: [{ fillColor: '#ffffff' }] };
   const n = penpotShapeToNode({ ...base, strokes: [{ strokeColor: '#f23ae5', strokeWidth: 4, strokeAlignment: 'center', strokeStyle: 'solid' }] }) as any;
   assert.equal(n.stroke, '#f23ae5');
   assert.equal(n.strokeW, 4);
   assert.equal(n.strokeDash, '');
-  // center → inflate by sw/2 per side so the inside border lands on the authored edge
-  assert.deepEqual([n.x, n.y, n.w, n.h], [8, 8, 104, 54]);
+  // The box keeps Penpot's own geometry and the stroke keeps its position.
+  assert.deepEqual([n.x, n.y, n.w, n.h, n.strokeAlign], [10, 10, 100, 50, 'center']);
   const inner = penpotShapeToNode({ ...base, strokes: [{ strokeColor: '#000', strokeWidth: 2, strokeAlignment: 'inner' }] }) as any;
-  assert.deepEqual([inner.x, inner.y, inner.w, inner.h], [10, 10, 100, 50]); // no inflation
+  assert.deepEqual([inner.x, inner.y, inner.w, inner.h, inner.strokeAlign], [10, 10, 100, 50, 'inside']);
+  const outer = penpotShapeToNode({ ...base, strokes: [{ strokeColor: '#000', strokeWidth: 2, strokeAlignment: 'outer' }] }) as any;
+  assert.deepEqual([outer.x, outer.y, outer.w, outer.h, outer.strokeAlign], [10, 10, 100, 50, 'outside']);
+  // Absent alignment is Penpot's own default, centre.
+  assert.equal((penpotShapeToNode({ ...base, strokes: [{ strokeColor: '#000', strokeWidth: 2 }] }) as any).strokeAlign, 'center');
   const dotted = penpotShapeToNode({ ...base, strokes: [{ strokeColor: '#000', strokeWidth: 1, strokeAlignment: 'inner', strokeStyle: 'dotted', strokeOpacity: 0.5 }] }) as any;
   assert.equal(dotted.strokeDash, 'dotted');
   assert.equal(dotted.stroke, '#00000080'); // #rgb shorthand expands before the alpha suffix
@@ -1341,7 +1345,8 @@ test('penpotShapeToNode + penpotGroupToSvg: unequal corner radii route via the r
   const eq = penpotShapeToNode({ ...base, r1: 10, r2: 10, r3: 10, r4: 10 }) as any;
   assert.equal(eq.kind, 'box');
   assert.equal(eq.shape, 'rounded');
-  assert.equal(eq.radius, 11); // 10 + center-stroke inflation of 1, as before
+  assert.equal(eq.radius, 10); // the centred stroke keeps the authored radius
+  assert.equal(eq.strokeAlign, 'center');
   const eqDefault = penpotShapeToNode({ ...base, r2: undefined, r3: undefined, r4: undefined, r1: 10 }) as any;
   assert.equal(eqDefault.shape, 'rounded');
   // Group bake: unequal → <path d>, equal → the unchanged <rect rx>.

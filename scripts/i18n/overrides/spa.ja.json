@@ -1696,5 +1696,8 @@
   "Make default": "デフォルトにする",
   "{name} is now the default": "{name}をデフォルトにしました",
   "Text, fingerprinted": "テキスト（フィンガープリント）",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "入力したテキストはフィンガープリントとしてのみ記録されるため、文字そのものはファイルに含まれません。"
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "入力したテキストはフィンガープリントとしてのみ記録されるため、文字そのものはファイルに含まれません。",
+  "Stroke per side": "辺ごとの線",
+  "Inside": "内側",
+  "Outside": "外側"
 }

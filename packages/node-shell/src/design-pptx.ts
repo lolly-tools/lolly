@@ -60,6 +60,7 @@ import { imageDimensions, neutralSlideMaster, slotOrdinalOf, withSlideLayoutComp
 import { bgIsDark } from '@lolly/engine';
 import { decodeAuthoredPaths } from '../../../engine/src/geom/authored-url.ts';
 import { contourArea, toSvgPathData, type Contour } from '../../../engine/src/geom/path.ts';
+import { deckStrokeBand, deckStrokePlan } from './design-pptx-stroke.ts';
 import { toCubics } from '../../../engine/src/geom/spline.ts';
 import { deltaEOkSrgb } from '../../../engine/src/brand-derive.ts';
 import { compileDesignRow } from '../../../engine/src/design-draw.ts';
@@ -900,6 +901,18 @@ async function lowerLayer(
   siblings: ReadonlySet<string>,
 ): Promise<void> {
   if (hidden(row)) return;
+  // A stroke PowerPoint cannot draw where Design does (outside, or per side) lowers as
+  // the nearest shapes it can draw; the row in its place carries neither field.
+  const placed = deckStrokePlan(row);
+  if (placed) {
+    await lowerLayer(ctx, sink, placed.row, origin, binding, masterStyle, master, siblings);
+    const hit = placed.band ? ctx.palette.resolve(row.stroke) : null;
+    if (placed.band && hit && !hidden(placed.row) && !inexpressible(placed.row, siblings)) {
+      sink.shapes.push(deckStrokeBand(row, placed.band, origin, hit.hex, foldAlpha(hit.alpha, opacityOf(row))));
+      ctx.notes.add('a stroke with its own width on each side was drawn as a shape of its own in the deck');
+    }
+    return;
+  }
   const limit = inexpressible(row, siblings);
   if (limit) {
     ctx.notes.add(`${limit} was left out of the deck; this lowering emits flat, axis-aligned objects with a solid fill`);
