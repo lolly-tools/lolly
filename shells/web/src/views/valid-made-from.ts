@@ -4,7 +4,7 @@
  * records menu, number, switch and colour choices as readable values and typed
  * text as a `sha256:` fingerprint (engine summarizeInputDigests).
  */
-import { escape } from '../utils.ts';
+import { escape as escapeText } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon as glyph } from '../lib/icons.ts';
 
@@ -39,15 +39,15 @@ export function inputsDigestHtml(
   // Typed text travels as a fingerprint (engine summarizeInputDigests), so the row
   // reads "Text, fingerprinted" and keeps the hash itself for hover, not as the value.
   const rows = entries.map(([k, v]) => {
-    if (isFingerprint(v)) return `<div class="valid-input-row"><dt>${escape(k)}</dt><dd><span class="valid-input-fingerprint" title="${escape(v)}">${t('Text, fingerprinted')}</span></dd></div>`;
-    const sw = isColor(v) ? `<span class="valid-input-swatch" style="background:${escape(v)}" aria-hidden="true"></span>` : '';
-    return `<div class="valid-input-row"><dt>${escape(k)}</dt><dd>${sw}<span>${escape(v)}</span></dd></div>`;
+    if (isFingerprint(v)) return `<div class="valid-input-row"><dt>${escapeText(k)}</dt><dd><span class="valid-input-fingerprint" title="${escapeText(v)}">${t('Text, fingerprinted')}</span></dd></div>`;
+    const sw = isColor(v) ? `<span class="valid-input-swatch" style="background:${escapeText(v)}" aria-hidden="true"></span>` : '';
+    return `<div class="valid-input-row"><dt>${escapeText(k)}</dt><dd>${sw}<span>${escapeText(v)}</span></dd></div>`;
   }).join('');
   const fingerprinted = entries.some(([, v]) => isFingerprint(v))
     ? `<p class="valid-input-note">${t('Typed text is recorded only as a fingerprint, so the words themselves are not in the file.')}</p>` : '';
   const cta = recreate ? `
-      <a class="btn valid-recreate" href="#/tool/${escape(recreate.toolId)}"
-         data-recreate="${recreate.fileIndex}" data-recreate-tool="${escape(recreate.toolId)}">${t('Recreate with these settings in {tool}', { tool: recreate.toolName })}</a>` : missingTool ? `
+      <a class="btn valid-recreate" href="#/tool/${escapeText(recreate.toolId)}"
+         data-recreate="${recreate.fileIndex}" data-recreate-tool="${escapeText(recreate.toolId)}">${t('Recreate with these settings in {tool}', { tool: recreate.toolName })}</a>` : missingTool ? `
       <p class="valid-recreate-absent">${t('Made with the {tool} tool, which is not in this catalogue.', { tool: missingTool })}</p>
       <a class="btn valid-recreate" href="/#/tools">${t('Explore the tools here')}</a>` : '';
   return `

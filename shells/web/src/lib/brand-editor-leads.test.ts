@@ -277,14 +277,15 @@ test('the Colourways row adds a colourway from a palette colour, edits it, and r
     picks.find(p => p.dataset.beLeadPick === hex)!.click();
     await settle(() => listLeads(h.state.installed).length === 2);
     const [canonical, added] = listLeads(h.state.installed);
+    assert.ok(canonical && added, 'a default and the new colourway');
     assert.equal(canonical.canonical, true);
     assert.deepEqual(chips(), [canonical.id, `${added.id}*`], 'the new colourway is the one being edited');
     assert.equal(root.querySelector('[data-be-lead-pick]'), null, 'the picker closes');
-    assert.equal(stripColour('primary'), added.colours.light.primary, 'the strip shows the new colourway');
+    assert.equal(stripColour('primary'), added.colours.light!.primary, 'the strip shows the new colourway');
     assert.match($('[data-be-undo]').textContent ?? '', /added/);
 
     // A role picked now is the new colourway's own, not the default's.
-    const coral = walkSwatches(h.state.installed, 'light').find(s => s.hex && s.kind !== 'semantic' && s.hex !== added.colours.light.secondary)!;
+    const coral = walkSwatches(h.state.installed, 'light').find(s => s.hex && s.kind !== 'semantic' && s.hex !== added.colours.light!.secondary)!;
     const sel = $<HTMLSelectElement>('[data-be-role-pick="secondary"]');
     sel.value = coral.key;
     sel.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
@@ -308,8 +309,9 @@ test('the Colourways row adds a colourway from a palette colour, edits it, and r
     click('[data-be-lead-act="duplicate"]');
     await settle(() => listLeads(h.state.installed).length === 3);
     const copy = listLeads(h.state.installed)[2];
+    assert.ok(copy, 'the copy is the third colourway');
     assert.equal(copy.name, 'Harbour 2');
-    assert.deepEqual(copy.colours, listLeads(h.state.installed)[1].colours, 'the copy looks the same');
+    assert.deepEqual(copy.colours, listLeads(h.state.installed)[1]!.colours, 'the copy looks the same');
     click('[data-be-lead-act="canonical"]');
     await settle(() => listLeads(h.state.installed)[0]?.id === copy.id);
     assert.equal(root.querySelector('[data-be-lead-act="canonical"]'), null, 'the default is not offered again');

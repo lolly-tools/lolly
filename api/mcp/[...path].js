@@ -4083,7 +4083,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.286.0";
+    ENGINE_VERSION = "1.287.0";
   }
 });
 
@@ -36984,7 +36984,7 @@ var RIGHTS_RULES_VERSION, NO_CREDIT, CC_BY_CREDIT, REVIEWED, RECOGNISED, PROFILE
 var init_rights_profiles = __esm({
   "engine/src/rights-profiles.ts"() {
     "use strict";
-    RIGHTS_RULES_VERSION = "rights-rules-2026-09-13.2";
+    RIGHTS_RULES_VERSION = "rights-rules-2026-10-30.1";
     NO_CREDIT = {
       creator: false,
       title: false,
@@ -37190,6 +37190,37 @@ var init_rights_profiles = __esm({
         citation: "MIT License, the permission-notice condition"
       },
       {
+        // ISC License, https://opensource.org/license/isc-license-txt
+        // One condition, the same as MIT's in shorter words: permission is granted
+        // "provided that the above copyright notice and this permission notice appear
+        // in all copies". So a distributed copy carries the copyright line and the
+        // permission text, and a runtime use distributes nothing and asks nothing.
+        id: "ISC",
+        name: "ISC License",
+        url: "https://opensource.org/license/isc-license-txt",
+        reviewed: true,
+        profileVersion: "isc-2026-10-30",
+        conditions: ["NoticeRetention"],
+        obligation: "notice",
+        roleObligations: { runtime: "none", reference: "none" },
+        attribution: {
+          creator: true,
+          title: false,
+          copyrightNotice: true,
+          licenceNameAndLink: true,
+          sourceLink: false,
+          modificationIndication: false
+        },
+        courtesyCredit: false,
+        shareAlike: false,
+        compatibleOutputLicences: [],
+        redistributeSource: "permitted-with-notices",
+        noticeRequired: true,
+        retainSuppliedNotices: true,
+        limits: [],
+        citation: "ISC License, the permission-notice condition"
+      },
+      {
         // SIL Open Font License 1.1,
         // https://openfontlicense.org/open-font-license-official-text/
         // The permission block covers the FONT SOFTWARE. Condition 2 asks that a
@@ -37278,6 +37309,8 @@ var init_rights_profiles = __esm({
       "apache-2": "Apache-2.0",
       mit: "MIT",
       "mit license": "MIT",
+      isc: "ISC",
+      "isc license": "ISC",
       "ofl-1.1": "OFL-1.1",
       "ofl 1.1": "OFL-1.1",
       ofl: "OFL-1.1",
@@ -41905,8 +41938,9 @@ function parseSvgPath(d) {
         break;
       case "S":
         for (let i = 0; i + 3 < nums.length && !overflow; i += 4) {
-          const r1x = lastCmd === "C" || lastCmd === "S" ? 2 * cx2 - lastCpx : cx2;
-          const r1y = lastCmd === "C" || lastCmd === "S" ? 2 * cy3 - lastCpy : cy3;
+          const smooth = i > 0 || lastCmd === "C" || lastCmd === "S";
+          const r1x = smooth ? 2 * cx2 - lastCpx : cx2;
+          const r1y = smooth ? 2 * cy3 - lastCpy : cy3;
           const x2 = ax(i), y2 = ay(i + 1);
           const x = ax(i + 2), y = ay(i + 3);
           cubic(r1x, r1y, x2, y2, x, y);
@@ -41931,8 +41965,9 @@ function parseSvgPath(d) {
         break;
       case "T":
         for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
-          const qx1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cx2 - lastCpx : cx2;
-          const qy1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cy3 - lastCpy : cy3;
+          const smooth = i > 0 || lastCmd === "Q" || lastCmd === "T";
+          const qx1 = smooth ? 2 * cx2 - lastCpx : cx2;
+          const qy1 = smooth ? 2 * cy3 - lastCpy : cy3;
           const x = ax(i), y = ay(i + 1);
           const x1 = cx2 + 2 / 3 * (qx1 - cx2), y1 = cy3 + 2 / 3 * (qy1 - cy3);
           const x2 = x + 2 / 3 * (qx1 - x), y2 = y + 2 / 3 * (qy1 - y);
