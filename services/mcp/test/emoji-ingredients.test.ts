@@ -146,3 +146,17 @@ test('a render with no recorded source carries an empty rights answer, not an in
   assert.equal(result.rights.creditsInFile, false);
   assert.deepEqual(result.rights.issues, []);
 });
+
+test('an MCP stamp records a Design page drawn from the operations: its credentialed picture and its route (plan 326)', async () => {
+  const { embedC2pa, prepareC2paIngredientFromStore, extractC2paStore } = await import('../../../engine/src/index.ts');
+  const signed = await embedC2pa(png(), 'png', { title: 'Source picture', claimGenerator: 'Lolly test' });
+  const store = extractC2paStore(signed)!;
+  const picture = { ...prepareC2paIngredientFromStore(store.store, store.format)!, relationship: 'componentOf' as const };
+  const opts = { c2pa: { on: true, days: null } };
+  const stamped = await stampC2pa(png(), 'png', manifest, {}, opts, [], null, { pictures: [picture as never], route: { route: 'operations', renderer: 'design-draw-v0' } });
+  const report = await verifyC2pa(stamped);
+  assert.equal(report.state, 'valid');
+  assert.equal(report.environment?.route, 'operations');
+  assert.equal(report.environment?.renderer, 'design-draw-v0');
+  assert.ok((report.ingredients ?? []).some((i) => i.relationship === 'componentOf' && i.credentialed), 'the picture\'s own credential is carried');
+});

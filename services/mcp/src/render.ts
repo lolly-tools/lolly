@@ -23,7 +23,9 @@ import {
 import type { C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
-import type { ExportBrandSkill, ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1 } from '@lolly-tools/core/host-v1';
+import type { ExportBrandSkill, ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
+import type { DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
+
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
@@ -49,6 +51,9 @@ import {
   BrowserJobQueue, BrowserQueueFullError, BrowserQueueTimeoutError, browserQueueOptions,
 } from './browser-jobs.ts';
 import { installBrowserEgressPolicy } from './egress.ts';
+
+/** A Design page the Node bridge drew from the operations: its route and the credentialed pictures it drew (plan 326). */
+export interface DrawnHere { pictures: IngredientCredential[]; route: DesignExportRouteRecord | null }
 
 export { closeWebShell };
 
@@ -521,7 +526,7 @@ async function renderTierA(
   emoji: EmojiRequest,
   productionContract?: import('@lolly/engine').ProductionSpec,
   tokenSelection?: Record<string, string>,
-): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null }> {
+): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; drawn: DrawnHere; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null }> {
   return withHost(profile, async (dom, host) => {
     const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
     let productionInputs: Record<string, string> | undefined;
@@ -534,8 +539,10 @@ async function renderTierA(
       };
     }
     let blob: Blob;
+    // The bridge hands back what it drew from the operations, for the stamp at the end of `render`.
+    const drawn: DrawnHere = { pictures: [], route: null };
     try {
-      blob = await runtime.export(canvas as unknown as Element, fmt as ExportFormat, opts);
+      blob = await runtime.export(canvas as unknown as Element, fmt as ExportFormat, { ...opts, ingredientSink: drawn.pictures, onExportRoute: (record: DesignExportRouteRecord) => { drawn.route = record; } } as ExportOpts);
     } catch (e) {
       // A deep-format refusal ("this render has no float pixels behind it") is a
       // CLIENT-side answer about the request, not a server fault. Without this it
@@ -560,6 +567,7 @@ async function renderTierA(
       bytes,
       mime: blob.type || mimeForFormat(fmt),
       ingredients: runtime.emojiIngredients(),
+      drawn,
       // The same evaluation the CLI and the app make, from the same rules, over
       // the sources this render placed. The audience stays unknown: an agent
       // asking for a file has said nothing about where it goes.
@@ -933,6 +941,8 @@ export async function stampC2pa(
   ingredients: C2paSourceIngredient[] = [],
   /** The design-system record the file's own metadata carries (plans/319), for the credential. */
   meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'> | null = null,
+  /** What a browser-free render drew from the operations: its credentialed pictures and its route (plan 326). */
+  drawn: DrawnHere | null = null,
 ): Promise<Uint8Array> {
   // The shared node-shell payload (dimensions, inputs digest, date, author gate),
   // so an MCP-made asset inspects as richly as a CLI/TUI/browser-made one.
@@ -948,7 +958,8 @@ export async function stampC2pa(
     // One componentOf source ingredient per distinct glyph this render placed,
     // carrying the pack's own licence, creator and the exact bytes it came from.
     // Without it an MCP export that drew CC BY artwork records no licence for it.
-    ...(ingredients.length ? { ingredients } : {}),
+    ...(ingredients.length || drawn?.pictures.length ? { ingredients: [...ingredients, ...(drawn?.pictures ?? [])] } : {}),
+    route: drawn?.route ?? null,
   });
   return embedC2pa(bytes, fmt as ExportFormat, opts);
 }
@@ -969,7 +980,7 @@ export async function credentialAndRecord(
   out: { bytes: Uint8Array; tier: string },
   o: {
     fmt: string; exportFmt: string; deliveredFormat: string; manifest: ToolManifest; values: Record<string, unknown>;
-    merged: RenderOpts; placed: C2paSourceIngredient[]; recorded: ExportMeta | null; sampled: boolean; warnings: string[];
+    merged: RenderOpts; placed: C2paSourceIngredient[]; recorded: ExportMeta | null; sampled: boolean; warnings: string[]; drawn?: DrawnHere | null;
   },
 ): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null }> {
   let bytes = out.bytes;
@@ -986,7 +997,7 @@ export async function credentialAndRecord(
   const record: Recorded | null = skills.length ? { ...(inFile ?? {}), brandSkills: skills } : inFile;
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
-    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record); stamped = true; }
+    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
     o.warnings.push(`Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
@@ -1107,6 +1118,8 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
   // The emoji artwork a browser-free render placed. Tier B stamps inside the web
   // shell, which records its own, so this stays empty there.
   let placed: C2paSourceIngredient[] = [];
+  // What a browser-free render drew from the drawing operations (plan 326), for the same stamp.
+  let drawn: DrawnHere | null = null;
   // What those sources ask of a delivery, for the same tier and the same reason.
   let evaluation: RightsEvaluationV1 | null = null;
   // The metadata a browser-free render embedded, for the credential below.
@@ -1120,6 +1133,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     try {
       const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji, productionContract, st.tokenSelection);
       placed = r.ingredients;
+      drawn = r.drawn;
       evaluation = r.rights;
       recorded = r.meta;
       warnings.push(...r.warnings);
@@ -1134,6 +1148,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
       if (o.noBrowser) throw e;
       warnings.push(`Browser-free path unavailable (${(e as Error).message}); trying the browser tier.`);
       placed = [];
+      drawn = null;
       evaluation = null;
       out = { ...(await renderTierB(toolId, q, exportFmt, merged)), tier: 'B' };
     }
@@ -1205,7 +1220,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
   const songsIn = out.tier.startsWith('B') && AUDIO_BEARING.has(exportFmt) ? await songIngredientsIn(out.bytes) : [];
   if (songsIn.length) placed = [...placed, ...songsIn];
   const finished = await credentialAndRecord(out, {
-    fmt, exportFmt, deliveredFormat, manifest: tool.manifest, values, merged, placed, recorded, sampled, warnings,
+    fmt, exportFmt, deliveredFormat, manifest: tool.manifest, values, merged, placed, recorded, sampled, warnings, drawn,
   });
   bytes = finished.bytes;
   const songs = songsIn.length ? { expected: songsIn.map((i) => i.title), recorded: await recordedSongs(bytes) } : null;

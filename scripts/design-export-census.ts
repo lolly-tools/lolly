@@ -67,7 +67,7 @@ async function censusDocument(corpus: string, source: string, values: Record<str
     let drawing: Awaited<ReturnType<typeof designPageDrawing>>;
     try { drawing = await designPageDrawing(values, f.id, host, { dpi: 96 }); } catch (error) { errors.push(`${source}#${f.id}: ${(error as Error).message}`); continue; }
     const compileMs = performance.now() - started;
-    const svg = [...new Set(drawing.findings.map((x) => x.feature))];
+    const svg: string[] = [...new Set(drawing.findings.map((x) => x.feature))];
     if (composes) svg.push('composed-story');
     const pdf = [...new Set([...svg, ...designDrawPdfFindings(drawing.page, drawing.pictures).map((x) => x.feature)])];
     const admitStart = performance.now();
