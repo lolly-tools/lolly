@@ -42,6 +42,12 @@ Every screen layout reads the same sessions: **Programme overview**, **Departure
 
 Two clocks run a screen. The event clock decides which sessions are happening; the presentation clock decides which scene and title position to show. Set the event's time zone so a screen elsewhere uses the event's time. With no zone, times float and follow the screen's own clock. **Reference time** fixes one moment for review.
 
+**Programme style** changes how the programme is drawn, not only its tint. **Editorial** uses tinted track cards, **Minimal** uses ink and rules, and **Night** sets the programme on the design system's own dark colour. **Swiss** drops the cards for ruled rows under a colour bar, **Broadcast** adds a heading bar and a track strip on each card, **Gallery** centres light type like wall labels, **Festival** fills each card with its track colour, and **Quiet** keeps only type and small track dots.
+
+**Motion** sets how each scene arrives. **Calm** fades in, **Editorial** rises slowly, **Expressive** springs up, **Broadcast** wipes in from the side, **Cascade** drops the cards in one by one and **Slide across** moves from scene to scene. The heading arrives first and each card after it, and scenes leave before the next one starts, so an exported loop has no jump. **Still** turns all of this off, and so does the system's reduced-motion setting.
+
+With no **Event logo** chosen, the design system's logo heads every screen and printed programme, in the version made for the chosen background. Turn off **Design system logo** under What to show to leave it out.
+
 **Background** offers Silk field, Colour planes, Paper and ink, Clear surface, Luminous, Contours, Brand pattern and Soft depth, all in the design system's colours, with reproducible intensity and variation. **Use only design system colours** turns off the blended shader treatment. Gallery and spotlight layouts can show session photos, and an optional background image keeps solid surfaces behind the text. Reading surfaces stay opaque, and one export clock drives both background and text.
 
 ## Video and its clocks
