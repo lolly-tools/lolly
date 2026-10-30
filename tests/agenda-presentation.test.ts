@@ -134,3 +134,36 @@ test('motion presets settle, stagger and leave at the loop point', () => {
   }
   assert.deepEqual({ ...motion.agMotionPose('off', 0, 12, 0, 3) }, { opacity: 1, x: 0, y: 0, scale: 1, clip: 1 });
 });
+
+// A colourway switch recolours the programme: the accent, the first track and the
+// dark styles' background follow the chosen colourway's lead colours, read through
+// the document's own selection.
+test('a colourway switch recolours the accent, the first track and the dark background', async () => {
+  const leads: Record<string, Record<string, string>> = {
+    spearmint: { primary: '#033633', secondary: '#0a8a57' },
+    spring: { primary: '#da1889', secondary: '#7a8a2a' },
+  };
+  const tokens = {
+    resolve: async (ref: string, opts: { selection?: Record<string, string> } = {}) => {
+      const lead = leads[opts.selection?.colourway ?? 'spearmint']!;
+      const path = ref.replace(/[{}]/g, '');
+      return ({ 'color.semantic.primary': lead.primary, 'color.semantic.secondary': lead.secondary, 'color.semantic.surface': '#ffffff', 'color.semantic.text': '#14181f' } as Record<string, string>)[path] ?? '';
+    },
+    colors: async () => [{ path: 'color.spectrum.orange', value: '#e8892b' }, { path: 'color.spectrum.teal', value: '#1aa3a3' }],
+    get: async () => ({}),
+  };
+  const host = { ...baseHost(), tokens } as any;
+  const r = await createRuntime(tool, host, { sessions: { columns, rows: [row] }, style: 'night' });
+  const accent = () => /--ag-accent:(#[0-9a-f]{6})/i.exec(r.getHydrated())![1]!.toLowerCase();
+  const paper = () => /--ag-paper:(#[0-9a-f]{6})/i.exec(r.getHydrated())![1]!.toLowerCase();
+  // Spearmint's lead is too dark to glow, so its partner is the accent, and the lead
+  // itself is the night background.
+  assert.equal(accent(), '#0a8a57');
+  assert.equal(paper(), '#033633');
+  assert.equal(doc(r).palette.tracks[0], '#0a8a57');
+  await r.setTokenSelection({ colourway: 'spring' });
+  assert.equal(accent(), '#da1889', 'the Spring lead becomes the accent');
+  assert.equal(doc(r).palette.tracks[0], '#da1889', 'and the first track');
+  assert.notEqual(paper(), '#033633', 'the night background follows the colourway');
+  assert.ok(parseInt(paper().slice(1, 3), 16) > parseInt(paper().slice(3, 5), 16), 'a deep shade of the pink lead');
+});

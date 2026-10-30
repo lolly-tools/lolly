@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-30T18:54:08.518Z",
+  "generatedAt": "2026-10-30T19:20:11.851Z",
   "tools": [
     {
       "id": "3d",
@@ -355,8 +355,8 @@
         "pptx",
         "zip"
       ],
-      "width": 1920,
-      "height": 1080,
+      "width": 1080,
+      "height": 1920,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5h4\" /><path d=\"M3 12h4\" /><path d=\"M3 19h4\" /><rect x=\"10\" y=\"3\" width=\"5\" height=\"7.5\" rx=\"1\" /><rect x=\"17\" y=\"3\" width=\"4\" height=\"4.5\" rx=\"1\" /><rect x=\"10\" y=\"13.5\" width=\"5\" height=\"4.5\" rx=\"1\" /><rect x=\"17\" y=\"10.5\" width=\"4\" height=\"7.5\" rx=\"1\" /></svg>",
       "preview": "/catalog/previews/agenda.svg",

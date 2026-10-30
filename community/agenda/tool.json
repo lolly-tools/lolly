@@ -43,8 +43,8 @@
       "Advanced presentation": "sliders",
       "Export": "download"
     },
-    "width": 1920,
-    "height": 1080,
+    "width": 1080,
+    "height": 1920,
     "formats": [
       "pdf",
       "pdf-cmyk",
@@ -85,7 +85,7 @@
       "id": "title",
       "label": "Event",
       "type": "text",
-      "default": "Northwind Summit 2026",
+      "default": "Candyland 2027",
       "maxLength": 90,
       "placeholder": "e.g. Northwind Summit 2026",
       "help": "Printed at the head of every layout, and used as the exported file name."
@@ -94,7 +94,7 @@
       "id": "subtitle",
       "label": "Venue or strapline",
       "type": "text",
-      "default": "Riverside Conference Centre",
+      "default": "Brisbane Convention Center",
       "maxLength": 120,
       "placeholder": "e.g. Riverside Conference Centre",
       "help": "One line under the event name. A venue, a city, or the line the programme is sold on."
@@ -130,13 +130,13 @@
             "2026-10-14",
             "09:00",
             "09:45",
-            "Building in the open",
+            "Opening keynote: building in the open",
             "Maya Lindqvist",
             "",
             "Auditorium",
             "keynote",
             "Doors open at 08:30",
-            "northwind-2026-1"
+            "agenda-conference-day-1"
           ],
           [
             "2026-10-14",
@@ -148,31 +148,31 @@
             "Hall A",
             "session",
             "",
-            "northwind-2026-2"
+            "agenda-conference-day-2"
           ],
           [
             "2026-10-14",
             "10:00",
             "10:45",
-            "Containers without the drama",
+            "Shipping containers without the drama",
             "Tomás Herrera",
             "Platform",
             "Hall B",
             "session",
             "",
-            "northwind-2026-3"
+            "agenda-conference-day-3"
           ],
           [
             "2026-10-14",
             "10:00",
             "11:30",
-            "Your first accessible component",
+            "Workshop: your first accessible component",
             "Priya Nair",
             "Practice",
             "Studio 1",
             "workshop",
             "Bring a laptop",
-            "northwind-2026-4"
+            "agenda-conference-day-4"
           ],
           [
             "2026-10-14",
@@ -184,7 +184,7 @@
             "Foyer",
             "break",
             "",
-            "northwind-2026-5"
+            "agenda-conference-day-5"
           ],
           [
             "2026-10-14",
@@ -196,19 +196,19 @@
             "Hall A",
             "session",
             "",
-            "northwind-2026-6"
+            "agenda-conference-day-6"
           ],
           [
             "2026-10-14",
             "11:15",
             "12:00",
-            "Observability on a budget",
+            "Observability on a small budget",
             "Jonas Weber",
             "Platform",
             "Hall B",
             "session",
             "",
-            "northwind-2026-7"
+            "agenda-conference-day-7"
           ],
           [
             "2026-10-14",
@@ -220,19 +220,31 @@
             "Foyer",
             "break",
             "",
-            "northwind-2026-8"
+            "agenda-conference-day-8"
           ],
           [
             "2026-10-14",
             "13:00",
             "13:45",
-            "Contrast and the people who need it",
+            "Colour, contrast and the people who need it",
             "Ingrid Sorensen",
             "Design",
             "Hall A",
             "session",
             "",
-            "northwind-2026-9"
+            "agenda-conference-day-9"
+          ],
+          [
+            "2026-10-14",
+            "13:00",
+            "13:45",
+            "Rolling back without the panic",
+            "Sam Oyelaran",
+            "Platform",
+            "Hall B",
+            "session",
+            "",
+            "agenda-conference-day-10"
           ],
           [
             "2026-10-14",
@@ -244,7 +256,7 @@
             "Auditorium",
             "keynote",
             "",
-            "northwind-2026-10"
+            "agenda-conference-day-11"
           ],
           [
             "2026-10-14",
@@ -256,7 +268,7 @@
             "Foyer",
             "social",
             "Everyone welcome",
-            "northwind-2026-11"
+            "agenda-conference-day-12"
           ]
         ]
       },
@@ -533,7 +545,7 @@
       "id": "style",
       "label": "Programme style",
       "type": "select",
-      "default": "editorial",
+      "default": "festival",
       "options": [
         {
           "value": "editorial",
@@ -618,7 +630,7 @@
       "id": "motion",
       "label": "Motion",
       "type": "select",
-      "default": "calm",
+      "default": "broadcast",
       "options": [
         {
           "value": "off",
@@ -662,7 +674,7 @@
       "id": "tz",
       "label": "Time zone",
       "type": "text",
-      "default": "",
+      "default": "Europe/London",
       "maxLength": 60,
       "placeholder": "e.g. Europe/Berlin",
       "help": "Choose an IANA zone such as Europe/London for screens and calendar exports. Legacy links with a blank zone keep floating event times."

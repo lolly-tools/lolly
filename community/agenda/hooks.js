@@ -389,6 +389,29 @@ async function resolvePalette() {
         hues.push(hue);
         picked.push(h);
       };
+      var token = async function (path) {
+        if (!host.tokens.resolve) return '';
+        try {
+          var v = await host.tokens.resolve('{' + path + '}');
+          return (typeof v === 'string' && v) ? v : '';
+        } catch (e) { return ''; }
+      };
+      // The colourway leads. Its primary and secondary are read first, through the
+      // document's chosen colourway, so a colourway switch recolours the accent,
+      // the first tracks and the dark styles; the spectrum then fills the remaining
+      // tracks without repeating a hue the colourway already uses.
+      var lead = hex(await token('color.semantic.primary'), '');
+      var partner = hex(await token('color.semantic.secondary'), '');
+      var luma = function (h) { var c = rgb(h); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+      var grey = function (h) { var c = rgb(h), top = Math.max(c[0], c[1], c[2]); return top === 0 || (top - Math.min(c[0], c[1], c[2])) / top < 0.18; };
+      // The accent glows behind the programme and fills its bars, so a lead too dark
+      // or too grey to glow hands the job to its partner.
+      var glows = function (h) { return h && !grey(h) && luma(h) >= 60 && luma(h) <= 210; };
+      out.accent = glows(lead) ? lead : glows(partner) ? partner : '';
+      if (lead) out.brandDark = luma(lead) < 70 ? lead : mix(lead, '#000000', 0.72);
+      take(out.accent);
+      take(lead);
+      take(partner);
       if (host.tokens.colors) {
         var swatches = (await host.tokens.colors()) || [];
         for (var i = 0; i < swatches.length; i++) {
@@ -400,26 +423,8 @@ async function resolvePalette() {
           take(s.value);
         }
       }
-      if (host.tokens.resolve) {
-        var token = async function (path) {
-          try {
-            var v = await host.tokens.resolve('{' + path + '}');
-            return (typeof v === 'string' && v) ? v : '';
-          } catch (e) { return ''; }
-        };
-        // The semantic hues come after the spectrum: a design system with a full
-        // spectrum leads with it, and a blank one still gets two real colours.
-        var primary = await token('color.semantic.primary');
-        var primaryHex = hex(primary, '');
-        if (primaryHex && isDark(primaryHex)) {
-          var pc = rgb(primaryHex);
-          if (0.2126 * pc[0] + 0.7152 * pc[1] + 0.0722 * pc[2] < 70) out.brandDark = primaryHex;
-        }
-        take(primary);
-        take(await token('color.semantic.secondary'));
-        out.paper = hex(await token('color.semantic.surface'), PAPER_FALLBACK);
-        out.ink = hex(await token('color.semantic.text'), INK_FALLBACK);
-      }
+      out.paper = hex(await token('color.semantic.surface'), PAPER_FALLBACK);
+      out.ink = hex(await token('color.semantic.text'), INK_FALLBACK);
       if (picked.length) {
         // Top up a short palette from the fallback ramp - through the same three
         // tests - so a six-track programme never repeats a hue while a two-track
@@ -928,10 +933,12 @@ function boardJson(sessions, tracks, plenary, palette, frozen) {
 
 function build(model, args, palette) {
   var style = ['editorial', 'minimal', 'night', 'swiss', 'broadcast', 'gallery', 'festival', 'quiet'].indexOf(args.style) >= 0 ? args.style : 'editorial';
-  // The dark looks sit on the design system's own dark colour when it has one (its
-  // primary, when that is dark enough to carry pale type), else on darkened ink.
+  // The dark looks sit on the colourway's own dark: its lead when that is dark
+  // enough to carry pale type, else a deep shade of the lead; darkened ink when the
+  // design system has no lead colour.
   if (['night','broadcast','festival'].indexOf(style) >= 0) palette = {
     tracks: palette.tracks,
+    accent: palette.accent,
     paper: palette.brandDark || mix(isDark(palette.paper) ? palette.paper : palette.ink, '#000000', 0.25),
     ink: '#f4f6f8',
   };
@@ -1113,8 +1120,8 @@ function build(model, args, palette) {
     inkColor: palette.ink,
     mutedColor: mix(palette.ink, palette.paper, 0.42),
     ruleColor: mix(palette.ink, palette.paper, 0.82),
-    accentColor: palette.tracks[0] || palette.ink,
-    accentInk: isLight(palette.tracks[0] || palette.ink) ? '#14181f' : '#ffffff',
+    accentColor: palette.accent || palette.tracks[0] || palette.ink,
+    accentInk: isLight(palette.accent || palette.tracks[0] || palette.ink) ? '#14181f' : '#ffffff',
     flagColor: isDark(palette.paper) ? '#ffba99' : '#9a3412',
   };
 }
