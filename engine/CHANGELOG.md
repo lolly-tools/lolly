@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.286.0
+
+- `rights-profiles`: ISC is a reviewed licence. Its one condition is the same as MIT's (the copyright line and the permission notice travel with copies), so its profile asks the same of each use and a runtime use asks nothing. `normaliseLicence` reads `ISC` and `ISC License`. `RIGHTS_RULES_VERSION` moves to `rights-rules-2026-10-30.1`, so evaluation fingerprints and recorded decisions made under the old rules no longer match, which is the intended review step.
+- `parseSvgPath`: a smooth curve repeated without its letter (`s1.5 2 4 2 4-2 4-2`, and the same for `t`) now reflects the previous control point on every repeat, as SVG specifies. The repeat used to start from the current point, which put a corner in the middle of the curve: Lucide's smile came out as a V. Everything that reads path data through this parser (PDF and PPTX drawing, the raster and Lottie drawers, `host.geom`) draws such curves smoothly now.
+
 ## 1.285.0
 
 - `checkDesignHouseRules`: the `logo-surface` finding's message gives each logo's display name from `opts.catalog.assets` (`DesignBriefCatalogV1`), in quotes, and falls back to the asset id when the catalog gives no name or no catalog is passed. The choices read as one plain list, "use A, B or C". The finding's `value` and `expected` keep the raw asset ids, so `lolly check` and MCP `lolly_check` (which pass catalog facts with names) show names in `message` while `evidence` and `suggestion` still carry the ids. Nothing else in the result changes.

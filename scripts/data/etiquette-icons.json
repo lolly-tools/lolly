@@ -1,0 +1,1579 @@
+{
+  "$comment": "Lolly Demo's Etiquette icons as two-tone source. Each glyph is the web shell's registry drawing (shells/web/src/lib/icons.ts, the 'registry' key) with its strokes sorted into the base (class c2, the object) and the accent (class c1, the detail that carries the meaning). node scripts/build-etiquette-icons.ts outlines every stroke with the engine and writes brands/lolly-demo/catalog/assets/lolly/icons/<slug>.svg plus the lolly/icons/<slug> index rows. A slug is a permanent asset id: never rename one.",
+  "stroke": 2,
+  "icons": [
+    {
+      "slug": "lolly",
+      "name": "Lolly",
+      "registry": "lollipop",
+      "tags": [
+        "lollipop",
+        "tools",
+        "mark"
+      ],
+      "base": [
+        "<circle cx=\"15\" cy=\"9\" r=\"7\"/>",
+        "<path d=\"m10 14-7 7\"/>"
+      ],
+      "accent": [
+        "<path d=\"M15 5a4 4 0 0 0 0 8 2 2 0 0 0 0-4\"/>"
+      ],
+      "lucide": false
+    },
+    {
+      "slug": "search",
+      "name": "Search",
+      "registry": "search",
+      "tags": [
+        "find",
+        "magnifier",
+        "lookup"
+      ],
+      "base": [
+        "<circle cx=\"11\" cy=\"11\" r=\"8\"/>"
+      ],
+      "accent": [
+        "<path d=\"m21 21-4.3-4.3\"/>"
+      ]
+    },
+    {
+      "slug": "download",
+      "name": "Download",
+      "registry": "download",
+      "tags": [
+        "arrow",
+        "save",
+        "export"
+      ],
+      "base": [
+        "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/>"
+      ],
+      "accent": [
+        "<path d=\"m7 10 5 5 5-5\"/>",
+        "<path d=\"M12 15V3\"/>"
+      ]
+    },
+    {
+      "slug": "shield-check",
+      "name": "Shield Check",
+      "registry": "shieldCheck",
+      "tags": [
+        "verify",
+        "security",
+        "trust"
+      ],
+      "base": [
+        "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/>"
+      ],
+      "accent": [
+        "<path d=\"m9 12 2 2 4-4\"/>"
+      ]
+    },
+    {
+      "slug": "smile",
+      "name": "Smile",
+      "registry": "smile",
+      "tags": [
+        "face",
+        "happy",
+        "emoji"
+      ],
+      "base": [
+        "<circle cx=\"12\" cy=\"12\" r=\"10\"/>"
+      ],
+      "accent": [
+        "<path d=\"M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01\"/>"
+      ]
+    },
+    {
+      "slug": "calendar",
+      "name": "Calendar",
+      "registry": "calendar",
+      "tags": [
+        "date",
+        "event",
+        "schedule"
+      ],
+      "base": [
+        "<rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\"/>",
+        "<path d=\"M3 10h18\"/>"
+      ],
+      "accent": [
+        "<path d=\"M8 2v4\"/>",
+        "<path d=\"M16 2v4\"/>"
+      ]
+    },
+    {
+      "slug": "code",
+      "name": "Code",
+      "registry": "code",
+      "tags": [
+        "developer",
+        "programming",
+        "brackets"
+      ],
+      "base": [
+        "<path d=\"M16 18l6-6-6-6\"/>",
+        "<path d=\"M8 6l-6 6 6 6\"/>"
+      ],
+      "accent": [
+        "<path d=\"M14 4l-4 16\"/>"
+      ]
+    },
+    {
+      "slug": "clipboard",
+      "name": "Clipboard",
+      "registry": "clipboard",
+      "tags": [
+        "paste",
+        "notes",
+        "copy"
+      ],
+      "base": [
+        "<path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/>"
+      ],
+      "accent": [
+        "<rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\"/>"
+      ]
+    },
+    {
+      "slug": "help",
+      "name": "Help",
+      "registry": "help",
+      "tags": [
+        "question",
+        "support",
+        "faq"
+      ],
+      "base": [
+        "<circle cx=\"12\" cy=\"12\" r=\"10\"/>"
+      ],
+      "accent": [
+        "<path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"/>",
+        "<path d=\"M12 17h.01\"/>"
+      ]
+    },
+    {
+      "slug": "info",
+      "name": "Info",
+      "registry": "info",
+      "tags": [
+        "information",
+        "about",
+        "details"
+      ],
+      "base": [
+        "<circle cx=\"12\" cy=\"12\" r=\"10\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 16v-4\"/>",
+        "<path d=\"M12 8h.01\"/>"
+      ]
+    },
+    {
+      "slug": "warning",
+      "name": "Warning",
+      "registry": "alert",
+      "tags": [
+        "alert",
+        "caution",
+        "danger"
+      ],
+      "base": [
+        "<path d=\"M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 9v4\"/>",
+        "<path d=\"M12 17h.01\"/>"
+      ]
+    },
+    {
+      "slug": "gauge",
+      "name": "Gauge",
+      "registry": "dashboard",
+      "tags": [
+        "dashboard",
+        "speed",
+        "meter"
+      ],
+      "base": [
+        "<path d=\"M3.34 19a10 10 0 1 1 17.32 0\"/>"
+      ],
+      "accent": [
+        "<path d=\"m12 14 4-4\"/>"
+      ]
+    },
+    {
+      "slug": "home",
+      "name": "Home",
+      "registry": "home",
+      "tags": [
+        "house",
+        "start",
+        "building"
+      ],
+      "base": [
+        "<path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/>"
+      ]
+    },
+    {
+      "slug": "pin",
+      "name": "Pin",
+      "registry": "pin",
+      "tags": [
+        "pushpin",
+        "keep",
+        "attach"
+      ],
+      "base": [
+        "<path d=\"M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 17v5\"/>"
+      ]
+    },
+    {
+      "slug": "circle-check",
+      "name": "Circle Check",
+      "registry": "circleCheck",
+      "tags": [
+        "done",
+        "success",
+        "complete"
+      ],
+      "base": [
+        "<circle cx=\"12\" cy=\"12\" r=\"10\"/>"
+      ],
+      "accent": [
+        "<path d=\"m9 12 2 2 4-4\"/>"
+      ]
+    },
+    {
+      "slug": "history",
+      "name": "History",
+      "registry": "history",
+      "tags": [
+        "clock",
+        "undo",
+        "past"
+      ],
+      "base": [
+        "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/>",
+        "<path d=\"M3 3v5h5\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 7v5l4 2\"/>"
+      ]
+    },
+    {
+      "slug": "graduation-cap",
+      "name": "Graduation Cap",
+      "registry": "graduationCap",
+      "tags": [
+        "education",
+        "learning",
+        "school"
+      ],
+      "base": [
+        "<path d=\"M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0z\"/>",
+        "<path d=\"M6 12.5V16a6 3 0 0 0 12 0v-3.5\"/>"
+      ],
+      "accent": [
+        "<path d=\"M22 10v6\"/>"
+      ]
+    },
+    {
+      "slug": "external-link",
+      "name": "External Link",
+      "registry": "externalLink",
+      "tags": [
+        "open",
+        "arrow",
+        "outbound",
+        "website"
+      ],
+      "base": [
+        "<path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"/>"
+      ],
+      "accent": [
+        "<path d=\"M15 3h6v6\"/>",
+        "<path d=\"M10 14 21 3\"/>"
+      ]
+    },
+    {
+      "slug": "pen",
+      "name": "Pen",
+      "registry": "pen",
+      "tags": [
+        "edit",
+        "write",
+        "signature"
+      ],
+      "base": [
+        "<path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 20h9\"/>"
+      ]
+    },
+    {
+      "slug": "folder-move",
+      "name": "Move to Folder",
+      "registry": "move",
+      "tags": [
+        "arrow",
+        "import",
+        "file",
+        "organise"
+      ],
+      "base": [
+        "<path d=\"M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.7.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8\"/>"
+      ],
+      "accent": [
+        "<path d=\"M2 13h10\"/>",
+        "<path d=\"m9 16 3-3-3-3\"/>"
+      ]
+    },
+    {
+      "slug": "trash",
+      "name": "Trash",
+      "registry": "trash",
+      "tags": [
+        "delete",
+        "remove",
+        "bin"
+      ],
+      "base": [
+        "<path d=\"M3 6h18\"/>",
+        "<path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/>"
+      ],
+      "accent": [
+        "<path d=\"M10 11L10 17\"/>",
+        "<path d=\"M14 11L14 17\"/>"
+      ]
+    },
+    {
+      "slug": "copy",
+      "name": "Copy",
+      "registry": "duplicate",
+      "tags": [
+        "duplicate",
+        "clone",
+        "paste"
+      ],
+      "base": [
+        "<rect x=\"9\" y=\"9\" width=\"11\" height=\"11\" rx=\"2\"/>"
+      ],
+      "accent": [
+        "<path d=\"M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\"/>"
+      ]
+    },
+    {
+      "slug": "url",
+      "name": "URL",
+      "registry": "share",
+      "tags": [
+        "link",
+        "hyperlink",
+        "share",
+        "web"
+      ],
+      "base": [
+        "<path d=\"M9 17H7A5 5 0 0 1 7 7h2\"/>",
+        "<path d=\"M15 7h2a5 5 0 1 1 0 10h-2\"/>"
+      ],
+      "accent": [
+        "<path d=\"M8 12L16 12\"/>"
+      ]
+    },
+    {
+      "slug": "folder-plus",
+      "name": "Folder Plus",
+      "registry": "folderPlus",
+      "tags": [
+        "new",
+        "add",
+        "create"
+      ],
+      "base": [
+        "<path d=\"M4 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.7.9H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2Z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 11L12 17\"/>",
+        "<path d=\"M9 14L15 14\"/>"
+      ]
+    },
+    {
+      "slug": "file-plus",
+      "name": "File Plus",
+      "registry": "filePlus",
+      "tags": [
+        "new",
+        "add",
+        "document"
+      ],
+      "base": [
+        "<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\"/>",
+        "<path d=\"M14 2v5h5\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 11L12 17\"/>",
+        "<path d=\"M9 14L15 14\"/>"
+      ]
+    },
+    {
+      "slug": "folder-shared",
+      "name": "Shared Folder",
+      "registry": "folderUsers",
+      "tags": [
+        "team",
+        "people",
+        "users",
+        "group"
+      ],
+      "base": [
+        "<path d=\"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"9\" cy=\"11\" r=\"2\"/>",
+        "<path d=\"M5.5 17v-1a3.5 3.5 0 0 1 7 0v1M15 9a2 2 0 0 1 0 4M18 17v-1a3 3 0 0 0-2-2.8\"/>"
+      ]
+    },
+    {
+      "slug": "package",
+      "name": "Package",
+      "registry": "package",
+      "tags": [
+        "parcel",
+        "delivery",
+        "shipping",
+        "box"
+      ],
+      "base": [
+        "<path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"/>",
+        "<path d=\"m3.3 7 8.7 5 8.7-5\"/>",
+        "<path d=\"M12 22V12\"/>"
+      ],
+      "accent": [
+        "<path d=\"m7.5 4.27 9 5.15\"/>"
+      ]
+    },
+    {
+      "slug": "hexagon",
+      "name": "Hexagon",
+      "registry": "hexagon",
+      "tags": [
+        "shape",
+        "nut",
+        "polygon"
+      ],
+      "base": [
+        "<path d=\"M21 16.05V7.95a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4a2 2 0 0 0-1 1.73v8.1a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73Z\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"12\" cy=\"12\" r=\"3\"/>"
+      ]
+    },
+    {
+      "slug": "megaphone",
+      "name": "Megaphone",
+      "registry": "megaphone",
+      "tags": [
+        "announce",
+        "marketing",
+        "broadcast"
+      ],
+      "base": [
+        "<path d=\"m3 11 18-5v12L3 14v-3z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M11.6 16.8a3 3 0 1 1-5.8-1.6\"/>"
+      ]
+    },
+    {
+      "slug": "images",
+      "name": "Images",
+      "registry": "photos",
+      "tags": [
+        "photos",
+        "gallery",
+        "album"
+      ],
+      "base": [
+        "<rect x=\"6\" y=\"2\" width=\"16\" height=\"16\" rx=\"2\"/>",
+        "<path d=\"M18 22H4a2 2 0 0 1-2-2V6\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"12\" cy=\"8\" r=\"2\"/>",
+        "<path d=\"m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18\"/>"
+      ]
+    },
+    {
+      "slug": "shapes",
+      "name": "Shapes",
+      "registry": "shapes",
+      "tags": [
+        "geometry",
+        "triangle",
+        "square",
+        "circle"
+      ],
+      "base": [
+        "<rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/>",
+        "<circle cx=\"17.5\" cy=\"17.5\" r=\"3.5\"/>"
+      ],
+      "accent": [
+        "<path d=\"M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z\"/>"
+      ]
+    },
+    {
+      "slug": "pen-tool",
+      "name": "Pen Tool",
+      "registry": "penTool",
+      "tags": [
+        "vector",
+        "bezier",
+        "draw",
+        "nib"
+      ],
+      "base": [
+        "<path d=\"M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z\"/>",
+        "<path d=\"m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18\"/>"
+      ],
+      "accent": [
+        "<path d=\"m2.3 2.3 7.286 7.286\"/>",
+        "<circle cx=\"11\" cy=\"11\" r=\"2\"/>"
+      ]
+    },
+    {
+      "slug": "film",
+      "name": "Film",
+      "registry": "filmStrip",
+      "tags": [
+        "video",
+        "movie",
+        "cinema",
+        "reel"
+      ],
+      "base": [
+        "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/>",
+        "<path d=\"M7 3v18\"/>",
+        "<path d=\"M3 12h18\"/>",
+        "<path d=\"M17 3v18\"/>"
+      ],
+      "accent": [
+        "<path d=\"M3 7.5h4\"/>",
+        "<path d=\"M3 16.5h4\"/>",
+        "<path d=\"M17 7.5h4\"/>",
+        "<path d=\"M17 16.5h4\"/>"
+      ]
+    },
+    {
+      "slug": "palette",
+      "name": "Palette",
+      "registry": "palette",
+      "tags": [
+        "colour",
+        "color",
+        "paint",
+        "art"
+      ],
+      "base": [
+        "<path d=\"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"13.5\" cy=\"6.5\" r=\".5\"/>",
+        "<circle cx=\"17.5\" cy=\"10.5\" r=\".5\"/>",
+        "<circle cx=\"8.5\" cy=\"7.5\" r=\".5\"/>",
+        "<circle cx=\"6.5\" cy=\"12.5\" r=\".5\"/>"
+      ]
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "registry": "font",
+      "tags": [
+        "font",
+        "text",
+        "typography",
+        "letter"
+      ],
+      "base": [
+        "<path d=\"M12 4v16\"/>",
+        "<path d=\"M9 20h6\"/>"
+      ],
+      "accent": [
+        "<path d=\"M4 7V4h16v3\"/>"
+      ]
+    },
+    {
+      "slug": "image-upload",
+      "name": "Image Upload",
+      "registry": "uploadImage",
+      "tags": [
+        "picture",
+        "import",
+        "add"
+      ],
+      "base": [
+        "<path d=\"M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7\"/>",
+        "<circle cx=\"9\" cy=\"9\" r=\"2\"/>"
+      ],
+      "accent": [
+        "<path d=\"m14 19.5 3-3 3 3\"/>",
+        "<path d=\"M17 22.5v-6\"/>"
+      ]
+    },
+    {
+      "slug": "grid",
+      "name": "Grid",
+      "registry": "grid",
+      "tags": [
+        "apps",
+        "tiles",
+        "layout",
+        "categories"
+      ],
+      "base": [
+        "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/>",
+        "<rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/>",
+        "<rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/>"
+      ],
+      "accent": [
+        "<rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/>"
+      ]
+    },
+    {
+      "slug": "globe",
+      "name": "Globe",
+      "registry": "globe",
+      "tags": [
+        "world",
+        "web",
+        "international",
+        "language"
+      ],
+      "base": [
+        "<circle cx=\"12\" cy=\"12\" r=\"10\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20\"/>",
+        "<path d=\"M2 12h20\"/>"
+      ]
+    },
+    {
+      "slug": "stamp",
+      "name": "Stamp",
+      "registry": "stamp",
+      "tags": [
+        "approve",
+        "seal",
+        "imprint"
+      ],
+      "base": [
+        "<path d=\"M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5a2.5 2.5 0 0 0-.73-1.77Z\"/>",
+        "<path d=\"M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13\"/>"
+      ],
+      "accent": [
+        "<path d=\"M5 22h14\"/>"
+      ]
+    },
+    {
+      "slug": "box",
+      "name": "Box",
+      "registry": "box",
+      "tags": [
+        "package",
+        "parcel",
+        "shipping"
+      ],
+      "base": [
+        "<path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M3.3 7 12 12l8.7-5\"/>",
+        "<path d=\"M12 22V12\"/>"
+      ]
+    },
+    {
+      "slug": "hammer",
+      "name": "Hammer",
+      "registry": "hammer",
+      "tags": [
+        "build",
+        "tool",
+        "construction"
+      ],
+      "base": [
+        "<path d=\"m18 15 4-4\"/>",
+        "<path d=\"m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5\"/>"
+      ],
+      "accent": [
+        "<path d=\"m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9\"/>"
+      ]
+    },
+    {
+      "slug": "flask",
+      "name": "Flask",
+      "registry": "flask",
+      "tags": [
+        "lab",
+        "science",
+        "experiment",
+        "beta"
+      ],
+      "base": [
+        "<path d=\"M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2\"/>",
+        "<path d=\"M8.5 2h7\"/>"
+      ],
+      "accent": [
+        "<path d=\"M6.453 15h11.094\"/>"
+      ]
+    },
+    {
+      "slug": "users",
+      "name": "Users",
+      "registry": "users",
+      "tags": [
+        "team",
+        "people",
+        "group",
+        "community"
+      ],
+      "base": [
+        "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/>",
+        "<circle cx=\"9\" cy=\"7\" r=\"4\"/>"
+      ],
+      "accent": [
+        "<path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/>",
+        "<path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/>"
+      ]
+    },
+    {
+      "slug": "sun",
+      "name": "Sun",
+      "registry": "sunburst",
+      "tags": [
+        "weather",
+        "day",
+        "bright",
+        "light"
+      ],
+      "base": [
+        "<circle cx=\"12\" cy=\"12\" r=\"4\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 2v2\"/>",
+        "<path d=\"M12 20v2\"/>",
+        "<path d=\"m4.93 4.93 1.41 1.41\"/>",
+        "<path d=\"m17.66 17.66 1.41 1.41\"/>",
+        "<path d=\"M2 12h2\"/>",
+        "<path d=\"M20 12h2\"/>",
+        "<path d=\"m6.34 17.66-1.41 1.41\"/>",
+        "<path d=\"m19.07 4.93-1.41 1.41\"/>"
+      ]
+    },
+    {
+      "slug": "badge-check",
+      "name": "Badge Check",
+      "registry": "badgeCheck",
+      "tags": [
+        "verified",
+        "approved",
+        "certified"
+      ],
+      "base": [
+        "<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\"/>"
+      ],
+      "accent": [
+        "<path d=\"m9 12 2 2 4-4\"/>"
+      ]
+    },
+    {
+      "slug": "image",
+      "name": "Image",
+      "registry": "image",
+      "tags": [
+        "picture",
+        "landscape",
+        "gallery"
+      ],
+      "base": [
+        "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"9\" cy=\"9\" r=\"2\"/>",
+        "<path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/>"
+      ]
+    },
+    {
+      "slug": "music",
+      "name": "Music",
+      "registry": "music",
+      "tags": [
+        "note",
+        "tune",
+        "sound"
+      ],
+      "base": [
+        "<path d=\"M9 18V5l12-2v13\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"6\" cy=\"18\" r=\"3\"/>",
+        "<circle cx=\"18\" cy=\"16\" r=\"3\"/>"
+      ]
+    },
+    {
+      "slug": "file",
+      "name": "File",
+      "registry": "document",
+      "tags": [
+        "document",
+        "page",
+        "paper"
+      ],
+      "base": [
+        "<path d=\"M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M14 3v5h5\"/>"
+      ]
+    },
+    {
+      "slug": "eye",
+      "name": "Eye",
+      "registry": "eye",
+      "tags": [
+        "view",
+        "visible",
+        "see",
+        "preview"
+      ],
+      "base": [
+        "<path d=\"M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"12\" cy=\"12\" r=\"3\"/>"
+      ]
+    },
+    {
+      "slug": "eye-off",
+      "name": "Eye Off",
+      "registry": "eyeOff",
+      "tags": [
+        "hidden",
+        "invisible",
+        "private"
+      ],
+      "base": [
+        "<path d=\"M10.2 5.2A11 11 0 0 1 12 5c7 0 11 7 11 7a19 19 0 0 1-3.4 4.3\"/>",
+        "<path d=\"M6.9 7A19 19 0 0 0 1 12s4 7 11 7a11 11 0 0 0 4.4-.9\"/>",
+        "<path d=\"M9.9 9.9a3 3 0 0 0 4.2 4.2\"/>"
+      ],
+      "accent": [
+        "<path d=\"M3 3 21 21\"/>"
+      ]
+    },
+    {
+      "slug": "link",
+      "name": "Link",
+      "registry": "link",
+      "tags": [
+        "chain",
+        "url",
+        "connect"
+      ],
+      "base": [
+        "<path d=\"M11 6l1-1a4 4 0 0 1 6 6l-1 1\"/>",
+        "<path d=\"M13 18l-1 1a4 4 0 0 1-6-6l1-1\"/>"
+      ],
+      "accent": [
+        "<path d=\"M9 15 15 9\"/>"
+      ]
+    },
+    {
+      "slug": "clock",
+      "name": "Clock",
+      "registry": "clock",
+      "tags": [
+        "time",
+        "hour",
+        "schedule"
+      ],
+      "base": [
+        "<circle cx=\"12\" cy=\"12\" r=\"9\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 7.5V12l3.5 2\"/>"
+      ]
+    },
+    {
+      "slug": "user-check",
+      "name": "User Check",
+      "registry": "userCheck",
+      "tags": [
+        "approved",
+        "member",
+        "verified"
+      ],
+      "base": [
+        "<path d=\"M14 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/>",
+        "<circle cx=\"8\" cy=\"8\" r=\"4\"/>"
+      ],
+      "accent": [
+        "<path d=\"M15 11.5l2.2 2.2 4.3-4.3\"/>"
+      ]
+    },
+    {
+      "slug": "tag",
+      "name": "Tag",
+      "registry": "tag",
+      "tags": [
+        "label",
+        "price",
+        "category"
+      ],
+      "base": [
+        "<path d=\"M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"7.5\" cy=\"7.5\" r=\"1.5\"/>"
+      ]
+    },
+    {
+      "slug": "award",
+      "name": "Award",
+      "registry": "seal",
+      "tags": [
+        "medal",
+        "prize",
+        "seal",
+        "badge"
+      ],
+      "base": [
+        "<circle cx=\"12\" cy=\"9\" r=\"6\"/>"
+      ],
+      "accent": [
+        "<path d=\"M9 14.2 8 22l4-2.5 4 2.5-1-7.8\"/>"
+      ]
+    },
+    {
+      "slug": "mail",
+      "name": "Mail",
+      "registry": "mail",
+      "tags": [
+        "email",
+        "envelope",
+        "message"
+      ],
+      "base": [
+        "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/>"
+      ],
+      "accent": [
+        "<path d=\"m3 7 9 6 9-6\"/>"
+      ]
+    },
+    {
+      "slug": "building",
+      "name": "Building",
+      "registry": "building",
+      "tags": [
+        "office",
+        "company",
+        "business"
+      ],
+      "base": [
+        "<path d=\"M4 22V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v18\"/>",
+        "<path d=\"M15 9h4a1 1 0 0 1 1 1v12\"/>",
+        "<path d=\"M4 22h16\"/>"
+      ],
+      "accent": [
+        "<path d=\"M8 7h2\"/>",
+        "<path d=\"M8 11h2\"/>",
+        "<path d=\"M8 15h2\"/>"
+      ]
+    },
+    {
+      "slug": "cpu",
+      "name": "CPU",
+      "registry": "cpu",
+      "tags": [
+        "chip",
+        "processor",
+        "hardware"
+      ],
+      "base": [
+        "<rect x=\"7\" y=\"7\" width=\"10\" height=\"10\" rx=\"1.5\"/>"
+      ],
+      "accent": [
+        "<path d=\"M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3\"/>"
+      ]
+    },
+    {
+      "slug": "lock",
+      "name": "Lock",
+      "registry": "lock",
+      "tags": [
+        "secure",
+        "private",
+        "password"
+      ],
+      "base": [
+        "<rect x=\"4.5\" y=\"10.5\" width=\"15\" height=\"10\" rx=\"2\"/>",
+        "<circle cx=\"12\" cy=\"15.2\" r=\"1.1\"/>"
+      ],
+      "accent": [
+        "<path d=\"M8 10.5V7.5a4 4 0 0 1 8 0v3\"/>"
+      ]
+    },
+    {
+      "slug": "map-pin",
+      "name": "Map Pin",
+      "registry": "mapPin",
+      "tags": [
+        "location",
+        "place",
+        "marker"
+      ],
+      "base": [
+        "<path d=\"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"12\" cy=\"10\" r=\"3\"/>"
+      ]
+    },
+    {
+      "slug": "camera",
+      "name": "Camera",
+      "registry": "camera",
+      "tags": [
+        "picture",
+        "shoot",
+        "snapshot"
+      ],
+      "base": [
+        "<path d=\"M3 8a2 2 0 0 1 2-2h2l1.5-2h7L19 6h0a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"12\" cy=\"13\" r=\"3.5\"/>"
+      ]
+    },
+    {
+      "slug": "sparkles",
+      "name": "Sparkles",
+      "registry": "aiSpark",
+      "tags": [
+        "ai",
+        "magic",
+        "generate",
+        "new"
+      ],
+      "base": [
+        "<path d=\"M12 2.5l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M19 15v3.5M17.25 16.75h3.5\"/>",
+        "<path d=\"M5 3.5v3M3.5 5h3\"/>"
+      ]
+    },
+    {
+      "slug": "checklist",
+      "name": "Checklist",
+      "registry": "checklist",
+      "tags": [
+        "tasks",
+        "todo",
+        "list",
+        "done"
+      ],
+      "base": [
+        "<path d=\"M9 6h11M9 12h11M9 18h11\"/>"
+      ],
+      "accent": [
+        "<path d=\"m3 6 1.3 1.3L6.5 5\"/>",
+        "<path d=\"m3 12 1.3 1.3 2.2-2.3\"/>",
+        "<path d=\"m3 18 1.3 1.3 2.2-2.3\"/>"
+      ]
+    },
+    {
+      "slug": "watermark",
+      "name": "Watermark",
+      "registry": "imprint",
+      "tags": [
+        "imprint",
+        "waves",
+        "pattern"
+      ],
+      "base": [
+        "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2.5\"/>"
+      ],
+      "accent": [
+        "<path d=\"M6.5 13.5c1.8-3 3.6-3 5.5 0s3.7 3 5.5 0\"/>",
+        "<path d=\"M6.5 9.5c1.8-2.4 3.6-2.4 5.5 0s3.7 2.4 5.5 0\"/>"
+      ]
+    },
+    {
+      "slug": "crop",
+      "name": "Crop",
+      "registry": "crop",
+      "tags": [
+        "trim",
+        "frame",
+        "edit"
+      ],
+      "base": [
+        "<path d=\"M6.13 1 6 16a2 2 0 0 0 2 2h15\"/>"
+      ],
+      "accent": [
+        "<path d=\"M1 6.13 16 6a2 2 0 0 1 2 2v15\"/>"
+      ]
+    },
+    {
+      "slug": "blend",
+      "name": "Blend",
+      "registry": "opacity",
+      "tags": [
+        "overlap",
+        "venn",
+        "opacity",
+        "mix"
+      ],
+      "base": [
+        "<circle cx=\"9\" cy=\"9\" r=\"7\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"15\" cy=\"15\" r=\"7\"/>"
+      ]
+    },
+    {
+      "slug": "sliders",
+      "name": "Sliders",
+      "registry": "sliders",
+      "tags": [
+        "adjust",
+        "settings",
+        "controls",
+        "mixer"
+      ],
+      "base": [
+        "<path d=\"M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3\"/>"
+      ],
+      "accent": [
+        "<path d=\"M1 14h6M9 8h6M17 16h6\"/>"
+      ]
+    },
+    {
+      "slug": "table",
+      "name": "Table",
+      "registry": "table",
+      "tags": [
+        "grid",
+        "spreadsheet",
+        "data",
+        "rows"
+      ],
+      "base": [
+        "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/>",
+        "<path d=\"M12 3v18\"/>"
+      ],
+      "accent": [
+        "<path d=\"M3 9h18\"/>",
+        "<path d=\"M3 15h18\"/>"
+      ]
+    },
+    {
+      "slug": "layers",
+      "name": "Layers",
+      "registry": "layers",
+      "tags": [
+        "stack",
+        "sheets",
+        "levels"
+      ],
+      "base": [
+        "<path d=\"M12 2 2 7l10 5 10-5z\"/>"
+      ],
+      "accent": [
+        "<path d=\"m2 17 10 5 10-5\"/>",
+        "<path d=\"m2 12 10 5 10-5\"/>"
+      ]
+    },
+    {
+      "slug": "mic",
+      "name": "Microphone",
+      "registry": "mic",
+      "tags": [
+        "record",
+        "microphone",
+        "talk"
+      ],
+      "base": [
+        "<rect x=\"9\" y=\"2\" width=\"6\" height=\"12\" rx=\"3\"/>",
+        "<path d=\"M12 18v3M8 21h8\"/>"
+      ],
+      "accent": [
+        "<path d=\"M5 11a7 7 0 0 0 14 0\"/>"
+      ]
+    },
+    {
+      "slug": "speak",
+      "name": "Speak",
+      "registry": "speech",
+      "tags": [
+        "talk",
+        "say",
+        "announce"
+      ],
+      "base": [
+        "<path d=\"M8.8 20v-4.1l1.9.2a2.3 2.3 0 0 0 2.164-2.1V8.3A5.37 5.37 0 0 0 2 8.25c0 2.8.656 3.95 1 4.8a.2.2 0 0 1 .2.2v3.5\"/>"
+      ],
+      "accent": [
+        "<path d=\"M19.8 17.8a7.5 7.5 0 0 0 .003-10.603\"/>",
+        "<path d=\"M17 15a3.5 3.5 0 0 0-.025-4.975\"/>"
+      ]
+    },
+    {
+      "slug": "chat",
+      "name": "Chat",
+      "registry": "transcript",
+      "tags": [
+        "messages",
+        "conversation",
+        "talk",
+        "comments"
+      ],
+      "base": [
+        "<path d=\"M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Z\"/>"
+      ],
+      "accent": [
+        "<path d=\"M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1\"/>"
+      ]
+    },
+    {
+      "slug": "monitor",
+      "name": "Monitor",
+      "registry": "monitor",
+      "tags": [
+        "screen",
+        "display",
+        "desktop",
+        "computer"
+      ],
+      "base": [
+        "<rect x=\"2\" y=\"3\" width=\"20\" height=\"13\" rx=\"2\"/>"
+      ],
+      "accent": [
+        "<path d=\"M8 21h8M12 16v5\"/>"
+      ]
+    },
+    {
+      "slug": "volume",
+      "name": "Volume",
+      "registry": "volumeOn",
+      "tags": [
+        "sound",
+        "speaker",
+        "loud"
+      ],
+      "base": [
+        "<polygon points=\"11 5 6 9 2 9 2 15 6 15 11 19 11 5\"/>"
+      ],
+      "accent": [
+        "<path d=\"M15.54 8.46a5 5 0 0 1 0 7.07\"/>",
+        "<path d=\"M19.07 4.93a10 10 0 0 1 0 14.14\"/>"
+      ]
+    },
+    {
+      "slug": "mute",
+      "name": "Mute",
+      "registry": "volumeOff",
+      "tags": [
+        "volume",
+        "silent",
+        "sound"
+      ],
+      "base": [
+        "<polygon points=\"11 5 6 9 2 9 2 15 6 15 11 19 11 5\"/>"
+      ],
+      "accent": [
+        "<path d=\"M22 9L16 15\"/>",
+        "<path d=\"M16 9L22 15\"/>"
+      ]
+    },
+    {
+      "slug": "refresh",
+      "name": "Refresh",
+      "registry": "refresh",
+      "tags": [
+        "reload",
+        "sync",
+        "update"
+      ],
+      "base": [
+        "<path d=\"M21 12a9 9 0 1 1-2.64-6.36\"/>"
+      ],
+      "accent": [
+        "<polyline points=\"21 3 21 9 15 9\"/>"
+      ]
+    },
+    {
+      "slug": "repeat",
+      "name": "Repeat",
+      "registry": "repeat",
+      "tags": [
+        "cycle",
+        "again",
+        "sync"
+      ],
+      "base": [
+        "<path d=\"M21 13v2a4 4 0 0 1-4 4H3\"/>",
+        "<polyline points=\"7 23 3 19 7 15\"/>"
+      ],
+      "accent": [
+        "<path d=\"M3 11V9a4 4 0 0 1 4-4h14\"/>",
+        "<polyline points=\"17 1 21 5 17 9\"/>"
+      ]
+    },
+    {
+      "slug": "upload",
+      "name": "Upload",
+      "registry": "upload",
+      "tags": [
+        "arrow",
+        "import",
+        "send"
+      ],
+      "base": [
+        "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/>"
+      ],
+      "accent": [
+        "<path d=\"M12 3v12\"/>",
+        "<path d=\"m17 8-5-5-5 5\"/>"
+      ]
+    },
+    {
+      "slug": "scissors",
+      "name": "Scissors",
+      "registry": "scissors",
+      "tags": [
+        "cut",
+        "trim",
+        "clip"
+      ],
+      "base": [
+        "<path d=\"M8.12 8.12 12 12\"/>",
+        "<path d=\"M20 4 8.12 15.88\"/>",
+        "<path d=\"M14.8 14.8 20 20\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"6\" cy=\"6\" r=\"3\"/>",
+        "<circle cx=\"6\" cy=\"18\" r=\"3\"/>"
+      ]
+    },
+    {
+      "slug": "animation",
+      "name": "Animation",
+      "registry": "animate",
+      "tags": [
+        "motion",
+        "easing",
+        "curve",
+        "graph"
+      ],
+      "base": [
+        "<path d=\"M4 4v16h16\"/>"
+      ],
+      "accent": [
+        "<path d=\"M7 17c6.5 0 3.5-10 10-10\"/>"
+      ]
+    },
+    {
+      "slug": "unlink",
+      "name": "Unlink",
+      "registry": "unlink",
+      "tags": [
+        "chain",
+        "disconnect",
+        "broken",
+        "url"
+      ],
+      "base": [
+        "<path d=\"m18.84 12.25 1.72-1.71a5 5 0 0 0-7.07-7.07l-1.71 1.72\"/>",
+        "<path d=\"m5.17 11.75-1.71 1.71a5 5 0 0 0 7.07 7.07l1.71-1.71\"/>"
+      ],
+      "accent": [
+        "<path d=\"M8 2v3\"/>",
+        "<path d=\"M2 8h3\"/>",
+        "<path d=\"M16 19v3\"/>",
+        "<path d=\"M19 16h3\"/>"
+      ]
+    },
+    {
+      "slug": "cloud-rain",
+      "name": "Cloud Rain",
+      "registry": "cloudRain",
+      "tags": [
+        "weather",
+        "shower",
+        "wet",
+        "forecast"
+      ],
+      "base": [
+        "<path d=\"M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2\"/>"
+      ],
+      "accent": [
+        "<path d=\"M16 14v6\"/>",
+        "<path d=\"M8 14v6\"/>",
+        "<path d=\"M12 16v6\"/>"
+      ]
+    },
+    {
+      "slug": "cloud-lightning",
+      "name": "Cloud Lightning",
+      "registry": "cloudLightning",
+      "tags": [
+        "weather",
+        "storm",
+        "thunder",
+        "bolt"
+      ],
+      "base": [
+        "<path d=\"M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973\"/>"
+      ],
+      "accent": [
+        "<path d=\"m13 12-3 5h4l-3 5\"/>"
+      ]
+    },
+    {
+      "slug": "bird",
+      "name": "Bird",
+      "registry": "bird",
+      "tags": [
+        "animal",
+        "nature",
+        "wildlife",
+        "flight"
+      ],
+      "base": [
+        "<path d=\"M16 7h.01\"/>",
+        "<path d=\"M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20\"/>",
+        "<path d=\"m20 7 2 .5-2 .5\"/>",
+        "<path d=\"M10 18v3\"/>",
+        "<path d=\"M14 17.75V21\"/>"
+      ],
+      "accent": [
+        "<path d=\"M7 18a6 6 0 0 0 3.84-10.61\"/>"
+      ]
+    },
+    {
+      "slug": "wind-chimes",
+      "name": "Wind Chimes",
+      "registry": "chimes",
+      "tags": [
+        "sound",
+        "bell",
+        "ambient"
+      ],
+      "base": [
+        "<path d=\"M4 4h16\"/>",
+        "<path d=\"M7 4v9\"/>",
+        "<path d=\"M11 4v12\"/>",
+        "<path d=\"M15 4v8\"/>",
+        "<path d=\"M19 4v11\"/>"
+      ],
+      "accent": [
+        "<circle cx=\"13\" cy=\"19.5\" r=\"2\"/>",
+        "<path d=\"M13 16v1.5\"/>"
+      ]
+    },
+    {
+      "slug": "coffee",
+      "name": "Coffee",
+      "registry": "coffee",
+      "tags": [
+        "cup",
+        "drink",
+        "break",
+        "cafe"
+      ],
+      "base": [
+        "<path d=\"M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1\"/>"
+      ],
+      "accent": [
+        "<path d=\"M10 2v2\"/>",
+        "<path d=\"M14 2v2\"/>",
+        "<path d=\"M6 2v2\"/>"
+      ]
+    },
+    {
+      "slug": "city",
+      "name": "City",
+      "registry": "city",
+      "tags": [
+        "building",
+        "office",
+        "urban",
+        "skyline"
+      ],
+      "base": [
+        "<path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z\"/>",
+        "<path d=\"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2\"/>",
+        "<path d=\"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2\"/>"
+      ],
+      "accent": [
+        "<path d=\"M10 6h4\"/>",
+        "<path d=\"M10 10h4\"/>",
+        "<path d=\"M10 14h4\"/>",
+        "<path d=\"M10 18h4\"/>"
+      ]
+    },
+    {
+      "slug": "train",
+      "name": "Train",
+      "registry": "train",
+      "tags": [
+        "rail",
+        "transport",
+        "travel",
+        "commute"
+      ],
+      "base": [
+        "<path d=\"M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z\"/>",
+        "<path d=\"m8 19-2 3\"/>",
+        "<path d=\"m16 19 2 3\"/>"
+      ],
+      "accent": [
+        "<path d=\"M8 3.1V7a4 4 0 0 0 8 0V3.1\"/>",
+        "<path d=\"m9 15-1-1\"/>",
+        "<path d=\"m15 15 1-1\"/>"
+      ]
+    },
+    {
+      "slug": "keyboard",
+      "name": "Keyboard",
+      "registry": "keyboard",
+      "tags": [
+        "typing",
+        "keys",
+        "input",
+        "computer"
+      ],
+      "base": [
+        "<rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\"/>"
+      ],
+      "accent": [
+        "<path d=\"M10 8h.01\"/>",
+        "<path d=\"M12 12h.01\"/>",
+        "<path d=\"M14 8h.01\"/>",
+        "<path d=\"M16 12h.01\"/>",
+        "<path d=\"M18 8h.01\"/>",
+        "<path d=\"M6 8h.01\"/>",
+        "<path d=\"M7 16h10\"/>",
+        "<path d=\"M8 12h.01\"/>"
+      ]
+    }
+  ]
+}

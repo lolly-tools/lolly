@@ -19,7 +19,7 @@ import {
 } from '../engine/src/rights-profiles.ts';
 
 test('the rules version is pinned and every profile records its own version and citation', () => {
-  assert.equal(RIGHTS_RULES_VERSION, 'rights-rules-2026-09-13.2');
+  assert.equal(RIGHTS_RULES_VERSION, 'rights-rules-2026-10-30.1');
   const profiles = licenceProfiles();
   assert.deepEqual([...profiles].map((p) => p.id).sort(), profiles.map((p) => p.id), 'profiles come back sorted by id');
   for (const profile of profiles) {
@@ -33,6 +33,7 @@ test('the rules version is pinned and every profile records its own version and 
     'CC-BY-SA-4.0',
     'CC-PDDC',
     'CC0-1.0',
+    'ISC',
     'MIT',
     'OFL-1.1',
   ]);
@@ -51,6 +52,8 @@ test('every spelling found in this tree reaches one identifier, with the origina
     ['Apache-2.0', 'Apache-2.0'],
     ['Apache 2.0', 'Apache-2.0'],
     ['MIT', 'MIT'],
+    ['ISC', 'ISC'],
+    ['isc license', 'ISC'],
     ['OFL-1.1', 'OFL-1.1'],
     ['OFL', 'OFL-1.1'],
     ['CC-BY-SA-4.0', 'CC-BY-SA-4.0'],
@@ -158,6 +161,13 @@ test('the reviewed rules match their citations', () => {
   assert.equal(mit.obligation, 'notice');
   assert.equal(mit.noticeRequired, true);
   assert.equal(mit.attribution.sourceLink, false);
+
+  // ISC: the same notice condition as MIT, so the same obligations.
+  const isc = licenceProfile('ISC')!;
+  assert.equal(isc.obligation, 'notice');
+  assert.equal(isc.noticeRequired, true);
+  assert.equal(roleObligation(isc, 'runtime'), 'none');
+  assert.deepEqual(isc.attribution, mit.attribution);
 
   // OFL 1.1: rendering text asks nothing; redistributing the binary asks for the notice.
   const ofl = licenceProfile('OFL-1.1')!;

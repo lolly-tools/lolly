@@ -736,7 +736,7 @@ const MANIFEST: {
       version: '(icon path data)',
       spdx: 'ISC',
       copyright: '© Lucide Contributors (portions © Cole Bemis, Feather, MIT)',
-      files: 'all 27 tools/*/icon.svg',
+      files: 'all 27 tools/*/icon.svg, the web shell icon registry (shells/web/src/lib/icons.ts) and Lolly Demo\'s two-tone Etiquette icons (brands/lolly-demo/catalog/assets/lolly/icons/*.svg, outlined from the registry drawings)',
       text: LUCIDE_TEXT,
       where: 'web',
     },

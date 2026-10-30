@@ -14403,7 +14403,7 @@ SOFTWARE.
 ### Lucide (icon path data)
 
 - SPDX-License-Identifier: `ISC`
-- Files: `all 27 tools/*/icon.svg`
+- Files: `all 27 tools/*/icon.svg, the web shell icon registry (shells/web/src/lib/icons.ts) and Lolly Demo's two-tone Etiquette icons (brands/lolly-demo/catalog/assets/lolly/icons/*.svg, outlined from the registry drawings)`
 - Copyright: © Lucide Contributors (portions © Cole Bemis, Feather, MIT)
 
 ```text

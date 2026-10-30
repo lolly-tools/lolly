@@ -59,7 +59,7 @@ Lolly nu spune niciodată „copyright verified”, „legally safe”, „fully
 - **Când elimini metadate.** Curățarea îți spune câte credite de sursă nu mai poartă fișierul, oferă textul de credit și oferă un fișier curat cu creditele într-un fișier separat. Octeții curățați nu sunt niciodată re-ștampilați.
 
 ::: details Licențele pe care le-a revizuit Lolly
-Versiunea regulilor `rights-rules-2026-09-13.2`. Fiecare regulă a fost citită din textul juridic propriu al licenței, iar secțiunea din care a venit este citată aici și lângă regulă în `engine/src/rights-profiles.ts`. O versiune și o adaptare locală sunt păstrate așa cum au fost înregistrate: o declarație CC BY 3.0 își păstrează propria versiune în loc să fie raportată ca 4.0 pentru că selectorul aplicației preferă 4.0.
+Versiunea regulilor `rights-rules-2026-10-30.1`. Fiecare regulă a fost citită din textul juridic propriu al licenței, iar secțiunea din care a venit este citată aici și lângă regulă în `engine/src/rights-profiles.ts`. O versiune și o adaptare locală sunt păstrate așa cum au fost înregistrate: o declarație CC BY 3.0 își păstrează propria versiune în loc să fie raportată ca 4.0 pentru că selectorul aplicației preferă 4.0.
 
 | Licență | Ce cere de la o folosire pe care o poate face Lolly | Citit din |
 |---|---|---|

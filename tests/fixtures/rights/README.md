@@ -112,7 +112,7 @@ a person still decides what to do with the result.
   (`requested-attribution`).
 
 The rules version these expectations were written against is
-`rights-rules-2026-09-13.2` (`RIGHTS_RULES_VERSION` in
+`rights-rules-2026-10-30.1` (`RIGHTS_RULES_VERSION` in
 `engine/src/rights-profiles.ts`). Bumping it does not by itself invalidate a
 file here; a changed answer does, and then the citation is the thing to argue
 with.

@@ -43,6 +43,9 @@ export async function retheemeGroup(cat: CatCtx, group: HTMLElement, themeId: st
     const ref = id ? cat.assetById.get(id) : null;
     const img = tile.querySelector<HTMLImageElement>('.cat-thumb');
     if (!ref || !img || !isThemable(ref)) return;
+    // A pairing whose light colours need a dark ground gives that ground as previewBg.
+    const fig = img.closest<HTMLElement>('.cat-tile-fig--duo');
+    if (fig) fig.style.background = th?.previewBg ?? '';
     if (!th) { img.src = ref.url; return; }   // back to base
     try {
       let base = iconSvgCache.get(id!);

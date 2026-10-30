@@ -59,7 +59,7 @@ Hindi kailanman sinasabi ng Lolly na "copyright verified", "legally safe", "full
 - **Kapag nag-alis ka ng metadata.** Sinasabi ng Stripping kung ilang source credit ang hindi na dala ng file, iniaalok ang credit text at iniaalok ang malinis na file na ang mga credit ay nasa hiwalay na file. Hindi kailanman muling tinatatakan ang mga hinubdang byte.
 
 ::: details Ang mga lisensyang nasuri ng Lolly
-Rules version `rights-rules-2026-09-13.2`. Bawat rule ay binasa mula sa sariling legal na teksto ng lisensya, at binabanggit dito at sa tabi ng rule sa `engine/src/rights-profiles.ts` ang seksyong pinagmulan nito. Ang bersyon at port ay iniingatan gaya ng naitala: ang CC BY 3.0 na deklarasyon ay nag-iingat ng sarili nitong bersyon sa halip na iulat bilang 4.0 dahil mas gusto ng chooser ng app ang 4.0.
+Rules version `rights-rules-2026-10-30.1`. Bawat rule ay binasa mula sa sariling legal na teksto ng lisensya, at binabanggit dito at sa tabi ng rule sa `engine/src/rights-profiles.ts` ang seksyong pinagmulan nito. Ang bersyon at port ay iniingatan gaya ng naitala: ang CC BY 3.0 na deklarasyon ay nag-iingat ng sarili nitong bersyon sa halip na iulat bilang 4.0 dahil mas gusto ng chooser ng app ang 4.0.
 
 | Lisensya | Ano ang hinihingi nito sa paggamit na kayang gawin ng Lolly | Binasa mula sa |
 |---|---|---|

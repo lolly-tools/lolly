@@ -59,7 +59,7 @@ Lolly nigdy nie mówi "copyright verified", "legally safe", "fully cleared" ani 
 - **Gdy usuwasz metadane.** Usuwanie mówi, ile uznań źródeł plik już nie niesie, oferuje tekst uznania i oferuje czysty plik z uznaniami w osobnym pliku. Usunięte bajty nigdy nie są ponownie stemplowane.
 
 ::: details Licencje, które Lolly sprawdziło
-Wersja reguł `rights-rules-2026-09-13.2`. Każda reguła została odczytana z samego tekstu prawnego licencji, a sekcja, z której pochodzi, jest tu przywołana i obok reguły w `engine/src/rights-profiles.ts`. Wersja i port są zachowywane tak, jak zapisano: deklaracja CC BY 3.0 zachowuje swoją wersję, zamiast być zgłaszana jako 4.0 dlatego, że selektor aplikacji woli 4.0.
+Wersja reguł `rights-rules-2026-10-30.1`. Każda reguła została odczytana z samego tekstu prawnego licencji, a sekcja, z której pochodzi, jest tu przywołana i obok reguły w `engine/src/rights-profiles.ts`. Wersja i port są zachowywane tak, jak zapisano: deklaracja CC BY 3.0 zachowuje swoją wersję, zamiast być zgłaszana jako 4.0 dlatego, że selektor aplikacji woli 4.0.
 
 | Licencja | Czego wymaga od użycia, które Lolly może wykonać | Odczytano z |
 |---|---|---|

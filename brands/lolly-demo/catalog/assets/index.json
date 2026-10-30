@@ -1411,10 +1411,2355 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/opal-icon-themes.json",
-          "checksum": "sha256-Jqy9LbGvt7ETwtq3bMlPMmlX1B3uTJ8aZX56xLVnVPo=",
-          "size": 947
+          "checksum": "sha256-MR8/eAdmTcT2CZPh+4nnn9KzMljKJ3QliPbAfxGAdOI=",
+          "size": 1161
         }
       ]
+    },
+    {
+      "id": "lolly/icons/lolly",
+      "name": "Lolly",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "lollipop",
+        "tools",
+        "mark"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/lolly.svg",
+          "checksum": "sha256-3rQw8ZbwBJKhNkgqGj6FjJxbKwasnYlVtcOXyvo4Q2c=",
+          "size": 2693
+        }
+      ]
+    },
+    {
+      "id": "lolly/icons/search",
+      "name": "Search",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "find",
+        "magnifier",
+        "lookup"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/search.svg",
+          "checksum": "sha256-YnSrsRHE7NDqxpazFERDM9pYY16tPGQHOMF44hyfvkM=",
+          "size": 1513
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/download",
+      "name": "Download",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "arrow",
+        "save",
+        "export"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/download.svg",
+          "checksum": "sha256-RSkQYY5V27Xy1GMIskeUfAWplWGuin+Mc6gG/fo3uNE=",
+          "size": 1214
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/shield-check",
+      "name": "Shield Check",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "verify",
+        "security",
+        "trust"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/shield-check.svg",
+          "checksum": "sha256-ZA8RrVpvdhiK2hn8kGiNIHnji9lPRK+K3FVTiI4U/bI=",
+          "size": 1896
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/smile",
+      "name": "Smile",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "face",
+        "happy",
+        "emoji"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/smile.svg",
+          "checksum": "sha256-T06ux+xSNs1arohnB9JPb+zIR9ELMgNNLMdOp7Rpwbk=",
+          "size": 2184
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/calendar",
+      "name": "Calendar",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "date",
+        "event",
+        "schedule"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/calendar.svg",
+          "checksum": "sha256-PnnKqPtk3NCdNazRCfdqIDT/rou+SK9XLBtE23aHN3A=",
+          "size": 1584
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/code",
+      "name": "Code",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "developer",
+        "programming",
+        "brackets"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/code.svg",
+          "checksum": "sha256-LMkTKB8e+fT2NvVPXUtO7OcAdNriro4Db+WQkwnhueA=",
+          "size": 911
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/clipboard",
+      "name": "Clipboard",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "paste",
+        "notes",
+        "copy"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/clipboard.svg",
+          "checksum": "sha256-/w3RL37noIQjX64ZbRwUmVfXIHzCJTcSUJ+2xYD5LEs=",
+          "size": 2010
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/help",
+      "name": "Help",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "question",
+        "support",
+        "faq"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/help.svg",
+          "checksum": "sha256-P6jhPMgyBE6UTz4gxNfMskzuqMau6CaJhypVp7CWjvk=",
+          "size": 2505
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/info",
+      "name": "Info",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "information",
+        "about",
+        "details"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/info.svg",
+          "checksum": "sha256-dSKu2U5wZbTVdJ/VxEOY2lYXoovfxuJByvMrIX9QtXo=",
+          "size": 1568
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/warning",
+      "name": "Warning",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "alert",
+        "caution",
+        "danger"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/warning.svg",
+          "checksum": "sha256-YCMuimw26ffipLREeXIYnCANzYyhA+6LssVHu0bw9Uc=",
+          "size": 2611
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/gauge",
+      "name": "Gauge",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "dashboard",
+        "speed",
+        "meter"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/gauge.svg",
+          "checksum": "sha256-Ypt5WQ8dsD2WSr2mYOO95FjM10axT1mvRU/fphN56j8=",
+          "size": 1418
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/home",
+      "name": "Home",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "house",
+        "start",
+        "building"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/home.svg",
+          "checksum": "sha256-sPL9psMBhs1WlzJCenuTTDoNRbnAG6ryP5gxFNQ3ciM=",
+          "size": 2353
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/pin",
+      "name": "Pin",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "pushpin",
+        "keep",
+        "attach"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/pin.svg",
+          "checksum": "sha256-A6fqJoD+AqrO5BzFKz/RlhpmI+N0tsC8Dxh3IGmsIAQ=",
+          "size": 3497
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/circle-check",
+      "name": "Circle Check",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "done",
+        "success",
+        "complete"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/circle-check.svg",
+          "checksum": "sha256-si6HUfa4e8PS+Ch4Mu/xnGd/ieWrYnZ6ckDGiGm62+c=",
+          "size": 1587
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/history",
+      "name": "History",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "clock",
+        "undo",
+        "past"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/history.svg",
+          "checksum": "sha256-UCOatrHkSfq2c4qx7R+E970dCFZVHz11EvErAyUg1Vg=",
+          "size": 1814
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/graduation-cap",
+      "name": "Graduation Cap",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "education",
+        "learning",
+        "school"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/graduation-cap.svg",
+          "checksum": "sha256-HY9iTO0Ret7nnzTju0URxKk9CL2MDBEoAQJNURLutNc=",
+          "size": 2300
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/external-link",
+      "name": "External Link",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "open",
+        "arrow",
+        "outbound",
+        "website"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/external-link.svg",
+          "checksum": "sha256-N157igNVM4VVpzjUx4n8U9qBrpKD/qmGCWwT8V9BenQ=",
+          "size": 1464
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/pen",
+      "name": "Pen",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "edit",
+        "write",
+        "signature"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/pen.svg",
+          "checksum": "sha256-JSS0Z9c2tYic4FJPgEsElooWMsuECgSW+M/fq5iXi80=",
+          "size": 1166
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/folder-move",
+      "name": "Move to Folder",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "arrow",
+        "import",
+        "file",
+        "organise"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/folder-move.svg",
+          "checksum": "sha256-jQRmoOeJwj1Wxpdbb5nf3ogb1nFXo2JxMmb+wYS7eOE=",
+          "size": 2198
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/trash",
+      "name": "Trash",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "delete",
+        "remove",
+        "bin"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/trash.svg",
+          "checksum": "sha256-FBJbdAAL++K9rSU5LCGdou3Ug8KxIeWNwc70lZUZZ60=",
+          "size": 1733
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/copy",
+      "name": "Copy",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "duplicate",
+        "clone",
+        "paste"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/copy.svg",
+          "checksum": "sha256-03dNeqYtrkMxZo+Dc2NyibPQfG5yHjlqk2V5sA8M7tk=",
+          "size": 2362
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/url",
+      "name": "URL",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "link",
+        "hyperlink",
+        "share",
+        "web"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/url.svg",
+          "checksum": "sha256-JYlKdVhwwjlXR8Lep8hv0XEkoMHK90sj5mB+yJJTjbU=",
+          "size": 1644
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/folder-plus",
+      "name": "Folder Plus",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "new",
+        "add",
+        "create"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/folder-plus.svg",
+          "checksum": "sha256-3H4e4IA64iVI8CgaocsoVoLYZmUOIfcW6GrAQo9OAWc=",
+          "size": 2345
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/file-plus",
+      "name": "File Plus",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "new",
+        "add",
+        "document"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/file-plus.svg",
+          "checksum": "sha256-rzfuKTXJDow5GyD8TzrsLByWpUAH+kgNb5vVc8dkS+0=",
+          "size": 1460
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/folder-shared",
+      "name": "Shared Folder",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "team",
+        "people",
+        "users",
+        "group"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/folder-shared.svg",
+          "checksum": "sha256-JIdgkEmefT3ecKSkd/y3ogPCcW/kCf6SrGB/BxYLfPw=",
+          "size": 4845
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/package",
+      "name": "Package",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "parcel",
+        "delivery",
+        "shipping",
+        "box"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/package.svg",
+          "checksum": "sha256-Bzh43OpUZX2m4GOJCeq+mOcmiDSmRPJZ5oxMzfI3aAQ=",
+          "size": 2394
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/hexagon",
+      "name": "Hexagon",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "shape",
+        "nut",
+        "polygon"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/hexagon.svg",
+          "checksum": "sha256-jkeaxobpQ//49HgWPubU9VkKA4ncRrSpbWZqJ+B4/9k=",
+          "size": 3849
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/megaphone",
+      "name": "Megaphone",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "announce",
+        "marketing",
+        "broadcast"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/megaphone.svg",
+          "checksum": "sha256-r+u6/PY8JZaRlnpIYUE+xPMbwENE7ZxoNCS9pt8PygU=",
+          "size": 1581
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/images",
+      "name": "Images",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "photos",
+        "gallery",
+        "album"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/images.svg",
+          "checksum": "sha256-Jwn/7UO9fTwrEzWSoZ+NbmatjGaiflcrVbx7KiYj4Ww=",
+          "size": 3940
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/shapes",
+      "name": "Shapes",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "geometry",
+        "triangle",
+        "square",
+        "circle"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/shapes.svg",
+          "checksum": "sha256-lafcDOc0a5tdq6S9YOu8DojUuwpMcYgMr/3tSNdxUao=",
+          "size": 3121
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/pen-tool",
+      "name": "Pen Tool",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "vector",
+        "bezier",
+        "draw",
+        "nib"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/pen-tool.svg",
+          "checksum": "sha256-p4IuQ//1LaXn8t/fdreRh18tqnPyAiqH2B2Vf3HVbDs=",
+          "size": 3204
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/film",
+      "name": "Film",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "video",
+        "movie",
+        "cinema",
+        "reel"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/film.svg",
+          "checksum": "sha256-QQ5oGNHjG8Jbr9NEWKzmRWA+VxWG1m5jTzw2FZ3/qJc=",
+          "size": 2033
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/palette",
+      "name": "Palette",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "colour",
+        "color",
+        "paint",
+        "art"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/palette.svg",
+          "checksum": "sha256-41HvUR/sFJbPbeevy+k596mDDqfP6aGeBhgfhbJgvD8=",
+          "size": 4814
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/type",
+      "name": "Type",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "font",
+        "text",
+        "typography",
+        "letter"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/type.svg",
+          "checksum": "sha256-jf5UmdxuaruM0PsHckYJSfpytSp8rpa4VWmfd7Qrpgw=",
+          "size": 520
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/image-upload",
+      "name": "Image Upload",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "picture",
+        "import",
+        "add"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/image-upload.svg",
+          "checksum": "sha256-tgbJjxQVmMq2w3V4ga0YqRlF1eRu2PsdjrgXVofO0WU=",
+          "size": 2581
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/grid",
+      "name": "Grid",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "apps",
+        "tiles",
+        "layout",
+        "categories"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/grid.svg",
+          "checksum": "sha256-kszQWyPSduOBFVkGxEJz5Sq6OEUpj37C2Dwg3DL1XWc=",
+          "size": 5087
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/globe",
+      "name": "Globe",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "world",
+        "web",
+        "international",
+        "language"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/globe.svg",
+          "checksum": "sha256-SMQb6Urszso66NBOOdExV+7sMDLNxHJnkpnhBmQFPVU=",
+          "size": 2388
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/stamp",
+      "name": "Stamp",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "approve",
+        "seal",
+        "imprint"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/stamp.svg",
+          "checksum": "sha256-f3I8V4vmEfYAX+NjKrFI/vEhmZARCqspdbruUUinRsA=",
+          "size": 2870
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/box",
+      "name": "Box",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "package",
+        "parcel",
+        "shipping"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/box.svg",
+          "checksum": "sha256-liUzVdnhF9jszJxe50CrdGm1lN8OxXhzlnfZ/XVwycI=",
+          "size": 2890
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/hammer",
+      "name": "Hammer",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "build",
+        "tool",
+        "construction"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/hammer.svg",
+          "checksum": "sha256-AW5ifapkcadEnQnJ66sOgMdeaT/eGUuzjEMzMZyT6bc=",
+          "size": 2933
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/flask",
+      "name": "Flask",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "lab",
+        "science",
+        "experiment",
+        "beta"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/flask.svg",
+          "checksum": "sha256-9+coZROoWg/IFEHJK6wTVmIzSw6boMlKc2ZzTflxOcw=",
+          "size": 2365
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/users",
+      "name": "Users",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "team",
+        "people",
+        "group",
+        "community"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/users.svg",
+          "checksum": "sha256-/Bw2WQRsE73L7Un1Df2I9sOUEGTE3WSHDwEeCqpLFMc=",
+          "size": 3313
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/sun",
+      "name": "Sun",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "weather",
+        "day",
+        "bright",
+        "light"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/sun.svg",
+          "checksum": "sha256-4RYnc73oT62v00oBDjJKqRKdLipVM0pwJuWWpR31XDM=",
+          "size": 2605
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/badge-check",
+      "name": "Badge Check",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "verified",
+        "approved",
+        "certified"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/badge-check.svg",
+          "checksum": "sha256-RJjrjXKyKKLxUC7kHii5nt5UrzJHI7XfacLavEls9II=",
+          "size": 5718
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/image",
+      "name": "Image",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "picture",
+        "landscape",
+        "gallery"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/image.svg",
+          "checksum": "sha256-u2rcPH/ag46pryjInjUEyBApPc5Dp/+AtZiszHSGpl4=",
+          "size": 2990
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/music",
+      "name": "Music",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "note",
+        "tune",
+        "sound"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/music.svg",
+          "checksum": "sha256-19pb3ybDPOjIrGo5gO4Q/jJq7mYfRXbjRG3PvXIJAWg=",
+          "size": 2757
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/file",
+      "name": "File",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "document",
+        "page",
+        "paper"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/file.svg",
+          "checksum": "sha256-k5pSGZD4iE5t6A9XDfIOIxn0Sm8id/SdAndruCC/FOs=",
+          "size": 1290
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/eye",
+      "name": "Eye",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "view",
+        "visible",
+        "see",
+        "preview"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/eye.svg",
+          "checksum": "sha256-FgIxi22q65JfxjnERxSVHwM/GMXRuxexh3CF46IDgdk=",
+          "size": 2350
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/eye-off",
+      "name": "Eye Off",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "hidden",
+        "invisible",
+        "private"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/eye-off.svg",
+          "checksum": "sha256-UEChUlza+smOKYgHPA8NgRMeVxF5GeboK04KhC0UblY=",
+          "size": 3342
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/link",
+      "name": "Link",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "chain",
+        "url",
+        "connect"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/link.svg",
+          "checksum": "sha256-4Dyxltr8tTJ9GO6xgj9uQ5q8qsynVc0YhLGTmese61s=",
+          "size": 2052
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/clock",
+      "name": "Clock",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "time",
+        "hour",
+        "schedule"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/clock.svg",
+          "checksum": "sha256-4Qso2A0i+9HvNH9C/zleuVjfLi/0OK6UxUPNPW+pZjM=",
+          "size": 1523
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/user-check",
+      "name": "User Check",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "approved",
+        "member",
+        "verified"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/user-check.svg",
+          "checksum": "sha256-KFtxPZZshqLms64KEaBRMxJSPmmYdU420nvD7Z80AEo=",
+          "size": 2285
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/tag",
+      "name": "Tag",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "label",
+        "price",
+        "category"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/tag.svg",
+          "checksum": "sha256-thBQwOVeSjwPZGRYZLGql88sSp2qwdSThfq24kPZIZ0=",
+          "size": 2248
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/award",
+      "name": "Award",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "medal",
+        "prize",
+        "seal",
+        "badge"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/award.svg",
+          "checksum": "sha256-+iKCCx+kViETUHYy3mNKtsPl7EZzoiaZ9ZKAkYuSvQ8=",
+          "size": 1764
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/mail",
+      "name": "Mail",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "email",
+        "envelope",
+        "message"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/mail.svg",
+          "checksum": "sha256-0E4317AYZNqfyAR2ysO+PBqwKMxd7iNJlsW447LQp3o=",
+          "size": 1602
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/building",
+      "name": "Building",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "office",
+        "company",
+        "business"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/building.svg",
+          "checksum": "sha256-3EUd/FNXBWAPHMt69qBhemUlVkq/NWEzJfO5H/y4Z4k=",
+          "size": 1060
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/cpu",
+      "name": "CPU",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "chip",
+        "processor",
+        "hardware"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/cpu.svg",
+          "checksum": "sha256-tabqqwPqoLx8H60Bb7B7vGstqTWtC5Yu0Ojpr8fZ5d0=",
+          "size": 2270
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/lock",
+      "name": "Lock",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "secure",
+        "private",
+        "password"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/lock.svg",
+          "checksum": "sha256-fFDR7JWqw18SLT86ajhejh+rLAEoYSrX1H5u7z4Eq90=",
+          "size": 3798
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/map-pin",
+      "name": "Map Pin",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "location",
+        "place",
+        "marker"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/map-pin.svg",
+          "checksum": "sha256-ffCfXZU+8eBghQvACc1zvIETuPdo/q0V2mD36JvEPIY=",
+          "size": 2205
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/camera",
+      "name": "Camera",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "picture",
+        "shoot",
+        "snapshot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/camera.svg",
+          "checksum": "sha256-JzCeM7q8smv4br6sPdmf8GR3+efsgo/abeTMt3ryg8c=",
+          "size": 2754
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/sparkles",
+      "name": "Sparkles",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "ai",
+        "magic",
+        "generate",
+        "new"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/sparkles.svg",
+          "checksum": "sha256-xWC1j0oDACdi52TphHGKvuzCf4j92sXwQaU/dq/A9kU=",
+          "size": 1425
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/checklist",
+      "name": "Checklist",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "tasks",
+        "todo",
+        "list",
+        "done"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/checklist.svg",
+          "checksum": "sha256-0RT5bErLSet8JrJ/Cf628b5XFXffhhcIBm5rGBVOUyw=",
+          "size": 1365
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/watermark",
+      "name": "Watermark",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "imprint",
+        "waves",
+        "pattern"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/watermark.svg",
+          "checksum": "sha256-8SAmgKi7TfhDK5HtugJqvtOm24EryVMkFAQwhFeZcBE=",
+          "size": 2323
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/crop",
+      "name": "Crop",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "trim",
+        "frame",
+        "edit"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/crop.svg",
+          "checksum": "sha256-YTzHLt4bVVZ7uoKNVD0rDVrnUDvOK6vn6ZfGdmcxWQ0=",
+          "size": 1105
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/blend",
+      "name": "Blend",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "overlap",
+        "venn",
+        "opacity",
+        "mix"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/blend.svg",
+          "checksum": "sha256-U+uyIQ+R3ojgI9k4vH3Sdy5/VeVNwR5jxWsGJW6kRVM=",
+          "size": 2458
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/sliders",
+      "name": "Sliders",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "adjust",
+        "settings",
+        "controls",
+        "mixer"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/sliders.svg",
+          "checksum": "sha256-lB+PPrgczZ4WQ7dWQgU9f/qJE+W8S3NR8Ug5gjUv9rc=",
+          "size": 1184
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/table",
+      "name": "Table",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "grid",
+        "spreadsheet",
+        "data",
+        "rows"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/table.svg",
+          "checksum": "sha256-jPUQHfocW5mnDZZ1yjCuk5EZzXJQEr4xZi2XJikBkOg=",
+          "size": 1605
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/layers",
+      "name": "Layers",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "stack",
+        "sheets",
+        "levels"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/layers.svg",
+          "checksum": "sha256-hEwgnQvGb87UEUqNbPUAjOm/HDhCfT/UNWc/UlLRfdA=",
+          "size": 1025
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/mic",
+      "name": "Microphone",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "record",
+        "microphone",
+        "talk"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/mic.svg",
+          "checksum": "sha256-qmx/U2NugRdoWGdVQ08oXls8XpsTHa3VQeiI67fuuRU=",
+          "size": 2217
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/speak",
+      "name": "Speak",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "talk",
+        "say",
+        "announce"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/speak.svg",
+          "checksum": "sha256-flCfaip6+w278/h+ZJ6ePZ/iQZRUUxIXV2GZgqWOeRU=",
+          "size": 3214
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/chat",
+      "name": "Chat",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "messages",
+        "conversation",
+        "talk",
+        "comments"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/chat.svg",
+          "checksum": "sha256-9nLCzsarCp/qU5QngOJqo08npa+5eKtjWl3i4uwwys0=",
+          "size": 2056
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/monitor",
+      "name": "Monitor",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "screen",
+        "display",
+        "desktop",
+        "computer"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/monitor.svg",
+          "checksum": "sha256-aA//ph3aO1kJ1aM4PcWCah6mC03lLPm2NHVKaUakqAY=",
+          "size": 1538
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/volume",
+      "name": "Volume",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "sound",
+        "speaker",
+        "loud"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/volume.svg",
+          "checksum": "sha256-3icHcAeutcEDpauBJO4sD6E4xZLxC5rXZ9pJs5Ne4aE=",
+          "size": 1523
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/mute",
+      "name": "Mute",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "volume",
+        "silent",
+        "sound"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/mute.svg",
+          "checksum": "sha256-2FKOZDGG3t5kHhx3/ixh/XUHX7htvh0AOnbICvuFAmc=",
+          "size": 966
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/refresh",
+      "name": "Refresh",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "reload",
+        "sync",
+        "update"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/refresh.svg",
+          "checksum": "sha256-S6IOIClSGsDY6XDCVPkd3W9x1MGwykTQHJR1lMcUBg0=",
+          "size": 1705
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/repeat",
+      "name": "Repeat",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "cycle",
+        "again",
+        "sync"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/repeat.svg",
+          "checksum": "sha256-5ZgWJiowZ5upVm07CyddWuGx6LBYcNsFyTz8sl3+ze4=",
+          "size": 1484
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/upload",
+      "name": "Upload",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "arrow",
+        "import",
+        "send"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/upload.svg",
+          "checksum": "sha256-VS531gnSrr2PLF/mC2sEnvi+2uYPbEm2uF0duZPq3bA=",
+          "size": 1308
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/scissors",
+      "name": "Scissors",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "cut",
+        "trim",
+        "clip"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/scissors.svg",
+          "checksum": "sha256-AvElDQiFdpvlM71BrscEhzH68s9YnBXASp0bOzqJZtA=",
+          "size": 2922
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/animation",
+      "name": "Animation",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "motion",
+        "easing",
+        "curve",
+        "graph"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/animation.svg",
+          "checksum": "sha256-uaMMbtx32wwZAsFuKiVTApcS1qB5cSN2aK2mvucDC/k=",
+          "size": 694
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/unlink",
+      "name": "Unlink",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "chain",
+        "disconnect",
+        "broken",
+        "url"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/unlink.svg",
+          "checksum": "sha256-MEbXurfxnA3dUlzAz5XHmOXN0XT2FEwVI1B3nAxi9vA=",
+          "size": 2409
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/cloud-rain",
+      "name": "Cloud Rain",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "weather",
+        "shower",
+        "wet",
+        "forecast"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/cloud-rain.svg",
+          "checksum": "sha256-IIGIoEZpBk1gldziEc+RNPA0oJ2InBCYERzK5XDQ1Tc=",
+          "size": 2296
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/cloud-lightning",
+      "name": "Cloud Lightning",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "weather",
+        "storm",
+        "thunder",
+        "bolt"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/cloud-lightning.svg",
+          "checksum": "sha256-n60DGJpupVeFBIRZsKXjLYkGJNZyT3OuBuaakUTuxDQ=",
+          "size": 2362
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/bird",
+      "name": "Bird",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "animal",
+        "nature",
+        "wildlife",
+        "flight"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/bird.svg",
+          "checksum": "sha256-tfX+n0LZSH+PXMnQjRKhOq9t5UDMTdlGvyxGSzIulkI=",
+          "size": 2525
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/wind-chimes",
+      "name": "Wind Chimes",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "sound",
+        "bell",
+        "ambient"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/wind-chimes.svg",
+          "checksum": "sha256-ORmsOT3fVOcck3tZL2szleEWMqTfD3GYFDSBF2jYsjU=",
+          "size": 1814
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/coffee",
+      "name": "Coffee",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "cup",
+        "drink",
+        "break",
+        "cafe"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/coffee.svg",
+          "checksum": "sha256-6DDNdg5xHvBytbhIVN/h+pBCqyTjRK8jdyPou8yc56A=",
+          "size": 1867
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/city",
+      "name": "City",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "building",
+        "office",
+        "urban",
+        "skyline"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/city.svg",
+          "checksum": "sha256-isP/SYb/aWtU9gk0NJYW2ubjfBnhxsGdiOTgnqJe6Zo=",
+          "size": 2460
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/train",
+      "name": "Train",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "rail",
+        "transport",
+        "travel",
+        "commute"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/train.svg",
+          "checksum": "sha256-F0m4PdUrDNMRyE4BJoz0EevjD+mrDyGdB9MIZEFQs9k=",
+          "size": 2414
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
+    },
+    {
+      "id": "lolly/icons/keyboard",
+      "name": "Keyboard",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "etiquette",
+        "typing",
+        "keys",
+        "input",
+        "computer"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/icons/keyboard.svg",
+          "checksum": "sha256-Og4MMOpv14wI2+w3koZRx26pqbjy6JjPRgoJS4y6GPQ=",
+          "size": 2332
+        }
+      ],
+      "license": "ISC",
+      "attribution": "Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License."
     },
     {
       "id": "lolly/skill/brand",

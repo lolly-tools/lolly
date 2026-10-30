@@ -59,7 +59,7 @@ Lolly ne dit jamais « copyright verified », « legally safe », « fully clear
 - **Quand tu retires des métadonnées.** Le nettoyage te dit combien de crédits de sources le fichier ne porte plus, propose le texte du crédit et propose un fichier propre avec les crédits dans un fichier séparé. Les octets nettoyés ne sont jamais réestampillés.
 
 ::: details Les licences que Lolly a relues
-Version des règles `rights-rules-2026-09-13.2`. Chaque règle a été lue dans le texte juridique propre de la licence, et la section dont elle vient est citée ici et à côté de la règle dans `engine/src/rights-profiles.ts`. Une version et un port sont conservés tels que consignés : une déclaration CC BY 3.0 garde sa propre version au lieu d'être déclarée en 4.0 parce que le sélecteur de l'application préfère la 4.0.
+Version des règles `rights-rules-2026-10-30.1`. Chaque règle a été lue dans le texte juridique propre de la licence, et la section dont elle vient est citée ici et à côté de la règle dans `engine/src/rights-profiles.ts`. Une version et un port sont conservés tels que consignés : une déclaration CC BY 3.0 garde sa propre version au lieu d'être déclarée en 4.0 parce que le sélecteur de l'application préfère la 4.0.
 
 | Licence | Ce qu'elle demande pour un usage que Lolly peut faire | Lu dans |
 |---|---|---|

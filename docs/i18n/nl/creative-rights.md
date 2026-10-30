@@ -59,7 +59,7 @@ Lolly zegt nooit "auteursrecht geverifieerd", "juridisch veilig", "volledig vrij
 - **Wanneer je metadata verwijdert.** Strippen zegt hoeveel bronvermeldingen het bestand niet meer draagt, biedt de vermeldingstekst aan en biedt een schoon bestand aan met de vermeldingen in een apart bestand. Gestripte bytes worden nooit opnieuw gestempeld.
 
 ::: details De licenties die Lolly heeft beoordeeld
-Regelsversie `rights-rules-2026-09-13.2`. Elke regel is gelezen uit de eigen juridische tekst van de licentie, en het gedeelte waaruit ze kwam wordt hier vermeld en naast de regel in `engine/src/rights-profiles.ts`. Een versie en een port worden bewaard zoals vastgelegd: een CC BY 3.0-verklaring behoudt haar eigen versie in plaats van als 4.0 te worden gemeld omdat de keuzelijst van de app 4.0 verkiest.
+Regelsversie `rights-rules-2026-10-30.1`. Elke regel is gelezen uit de eigen juridische tekst van de licentie, en het gedeelte waaruit ze kwam wordt hier vermeld en naast de regel in `engine/src/rights-profiles.ts`. Een versie en een port worden bewaard zoals vastgelegd: een CC BY 3.0-verklaring behoudt haar eigen versie in plaats van als 4.0 te worden gemeld omdat de keuzelijst van de app 4.0 verkiest.
 
 | Licentie | Wat ze vraagt van een gebruik dat Lolly kan maken | Gelezen uit |
 |---|---|---|

@@ -8,7 +8,7 @@ import type { CreativeClassificationV1, CreativeUseRoleV1, UseContextV1 } from '
  * decisions a person recorded against the old rules instead of carrying them
  * forward. Bump it in the same commit as any rule or profile edit.
  */
-export const RIGHTS_RULES_VERSION = 'rights-rules-2026-09-13.2';
+export const RIGHTS_RULES_VERSION = 'rights-rules-2026-10-30.1';
 
 /** What a licence asks of one use: nothing, a credit, or a notice text kept verbatim. */
 export type RoleObligationV1 = 'none' | 'attribution' | 'notice';
@@ -26,7 +26,7 @@ export interface AttributionPartsV1 {
 /**
  * A use the licence does not cover. Every stated field must match the use for
  * the limit to apply, so an empty limit list means the profile forbids nothing.
- * All seven reviewed profiles carry an empty list; NC and ND conditions belong
+ * All eight reviewed profiles carry an empty list; NC and ND conditions belong
  * here once their exact texts have been reviewed.
  */
 export interface LicenceLimitV1 {
@@ -312,6 +312,37 @@ const REVIEWED: LicenceProfileV1[] = [
     citation: 'MIT License, the permission-notice condition',
   },
   {
+    // ISC License, https://opensource.org/license/isc-license-txt
+    // One condition, the same as MIT's in shorter words: permission is granted
+    // "provided that the above copyright notice and this permission notice appear
+    // in all copies". So a distributed copy carries the copyright line and the
+    // permission text, and a runtime use distributes nothing and asks nothing.
+    id: 'ISC',
+    name: 'ISC License',
+    url: 'https://opensource.org/license/isc-license-txt',
+    reviewed: true,
+    profileVersion: 'isc-2026-10-30',
+    conditions: ['NoticeRetention'],
+    obligation: 'notice',
+    roleObligations: { runtime: 'none', reference: 'none' },
+    attribution: {
+      creator: true,
+      title: false,
+      copyrightNotice: true,
+      licenceNameAndLink: true,
+      sourceLink: false,
+      modificationIndication: false,
+    },
+    courtesyCredit: false,
+    shareAlike: false,
+    compatibleOutputLicences: [],
+    redistributeSource: 'permitted-with-notices',
+    noticeRequired: true,
+    retainSuppliedNotices: true,
+    limits: [],
+    citation: 'ISC License, the permission-notice condition',
+  },
+  {
     // SIL Open Font License 1.1,
     // https://openfontlicense.org/open-font-license-official-text/
     // The permission block covers the FONT SOFTWARE. Condition 2 asks that a
@@ -526,6 +557,8 @@ const ALIASES = new Map<string, string>(Object.entries({
   'apache-2': 'Apache-2.0',
   mit: 'MIT',
   'mit license': 'MIT',
+  isc: 'ISC',
+  'isc license': 'ISC',
   'ofl-1.1': 'OFL-1.1',
   'ofl 1.1': 'OFL-1.1',
   ofl: 'OFL-1.1',

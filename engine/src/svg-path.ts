@@ -216,8 +216,10 @@ export function parseSvgPath(d: string): SubPath[] {
         break;
       case 'S':
         for (let i = 0; i + 3 < nums.length && !overflow; i += 4) {
-          const r1x = (lastCmd === 'C' || lastCmd === 'S') ? 2 * cx - lastCpx : cx;
-          const r1y = (lastCmd === 'C' || lastCmd === 'S') ? 2 * cy - lastCpy : cy;
+          // A repeated pair (implicit S) follows a curve too, so it reflects as well.
+          const smooth = i > 0 || lastCmd === 'C' || lastCmd === 'S';
+          const r1x = smooth ? 2 * cx - lastCpx : cx;
+          const r1y = smooth ? 2 * cy - lastCpy : cy;
           const x2  = ax(i),     y2 = ay(i + 1);
           const x   = ax(i + 2), y  = ay(i + 3);
           cubic(r1x, r1y, x2, y2, x, y);
@@ -236,8 +238,9 @@ export function parseSvgPath(d: string): SubPath[] {
         break;
       case 'T':
         for (let i = 0; i + 1 < nums.length && !overflow; i += 2) {
-          const qx1 = (lastCmd === 'Q' || lastCmd === 'T') ? 2 * cx - lastCpx : cx;
-          const qy1 = (lastCmd === 'Q' || lastCmd === 'T') ? 2 * cy - lastCpy : cy;
+          const smooth = i > 0 || lastCmd === 'Q' || lastCmd === 'T';
+          const qx1 = smooth ? 2 * cx - lastCpx : cx;
+          const qy1 = smooth ? 2 * cy - lastCpy : cy;
           const x   = ax(i), y = ay(i + 1);
           const x1  = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
           const x2  = x  + 2 / 3 * (qx1 - x),  y2 = y  + 2 / 3 * (qy1 - y);

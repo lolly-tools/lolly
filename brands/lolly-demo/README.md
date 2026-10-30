@@ -50,6 +50,16 @@ handoff with one named owner.
   theme shows before the reverse form. The vertical slots keep the square swirl
   mark. The three wordmark files are this pack's own and carry no credentials
   yet.
+- **Etiquette, in two tones.** 89 of Lolly's own Etiquette icons
+  (`lolly/icons/*`) in the two-colour form SUSE's icons use: a Spearmint base and
+  a Green Apple accent, fill-only, tagged `themable` so the asset view and the
+  pickers offer every Opal pairing in `lolly/palette/opal-icon-themes`. They are
+  generated, never hand-edited: `scripts/data/etiquette-icons.json` sorts each
+  registry drawing's strokes into base and accent, and
+  `node scripts/build-etiquette-icons.ts` outlines the strokes with the engine,
+  writes the files and the index rows (`--check` reports drift). The drawings are
+  Lucide's (ISC), so each row carries that licence and credit; the lolly glyph is
+  Lolly's own.
 - **Shared rows, byte for byte.** The Lolly marks (`lolly/logo/primary`,
   `reverse`, `mono` and `mono-reverse`), the demo
   assets (`lolly/demo/*`, including `lolly/demo/lolly-spin`, which community

@@ -59,7 +59,7 @@ Lolly không bao giờ nói "copyright verified", "legally safe", "fully cleared
 - **Khi bạn gỡ siêu dữ liệu.** Việc lột cho bạn biết tệp không còn mang bao nhiêu phần ghi công nguồn, đưa văn bản ghi công và đề nghị một tệp sạch với phần ghi công trong một tệp riêng. Byte đã lột không bao giờ được đóng dấu lại.
 
 ::: details Các giấy phép Lolly đã xem xét
-Phiên bản quy tắc `rights-rules-2026-09-13.2`. Mỗi quy tắc được đọc từ chính văn bản pháp lý của giấy phép, và phần nó lấy từ đó được trích dẫn ở đây và cạnh quy tắc trong `engine/src/rights-profiles.ts`. Phiên bản và cổng được giữ như đã ghi: một khai báo CC BY 3.0 giữ phiên bản riêng của nó thay vì bị báo là 4.0 vì bộ chọn của ứng dụng ưa 4.0.
+Phiên bản quy tắc `rights-rules-2026-10-30.1`. Mỗi quy tắc được đọc từ chính văn bản pháp lý của giấy phép, và phần nó lấy từ đó được trích dẫn ở đây và cạnh quy tắc trong `engine/src/rights-profiles.ts`. Phiên bản và cổng được giữ như đã ghi: một khai báo CC BY 3.0 giữ phiên bản riêng của nó thay vì bị báo là 4.0 vì bộ chọn của ứng dụng ưa 4.0.
 
 | Giấy phép | Điều nó đòi ở một việc dùng mà Lolly có thể thực hiện | Đọc từ |
 |---|---|---|

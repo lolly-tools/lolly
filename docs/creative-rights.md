@@ -59,7 +59,7 @@ Lolly never says "copyright verified", "legally safe", "fully cleared" or "right
 - **When you remove metadata.** Stripping tells you how many source credits the file no longer carries, offers the credit text and offers a clean file with the credits in a separate file. Stripped bytes are never restamped.
 
 ::: details The licences Lolly has reviewed
-Rules version `rights-rules-2026-09-13.2`. Each rule was read from the licence's own legal text, and the section it came from is cited here and next to the rule in `engine/src/rights-profiles.ts`. A version and a port are kept as recorded: a CC BY 3.0 declaration keeps its own version rather than being reported as 4.0 because the app's chooser prefers 4.0.
+Rules version `rights-rules-2026-10-30.1`. Each rule was read from the licence's own legal text, and the section it came from is cited here and next to the rule in `engine/src/rights-profiles.ts`. A version and a port are kept as recorded: a CC BY 3.0 declaration keeps its own version rather than being reported as 4.0 because the app's chooser prefers 4.0.
 
 | Licence | What it asks of a use Lolly can make | Read from |
 |---|---|---|
@@ -69,6 +69,7 @@ Rules version `rights-rules-2026-09-13.2`. Each rule was read from the licence's
 | CC-PDDC | Nothing. What is recorded is the assertion itself and who made it, because a certification is one party's statement rather than proof. | [The dedication and certification](https://creativecommons.org/licenses/publicdomain/) paragraphs |
 | Apache License 2.0 | The notices from the source and the NOTICE file's attribution text travel with a distributed work. A runtime use asks nothing. A licence that asks for a notice text and a work that carries none is reported as a gap. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), section 4, conditions 1 to 4 |
 | MIT | The copyright line and the permission notice travel with copies and substantial portions. Runtime and reference uses ask nothing. | [MIT](https://opensource.org/license/mit), the permission-notice condition |
+| ISC | The same as MIT, in shorter words: the copyright line and the permission notice travel with copies. Runtime and reference uses ask nothing. | [ISC](https://opensource.org/license/isc-license-txt), the permission-notice condition |
 | SIL OFL 1.1 | Rendering text with the font asks nothing of the text. Passing the font file on carries the licence, the copyright notice and the reserved-name rule. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), conditions 2, 3 and 5; the [OFL FAQ](https://openfontlicense.org/ofl-faq/) on documents |
 
 **Recorded, not interpreted.** CC BY-NC, CC BY-ND and the NC-SA and NC-ND combinations are recognised, their conditions are listed and no rule here reads them. They report `licence.unknown` with a line naming the conditions. A commercial context cannot be read off a price or an account, and each combined text needs its own review before a rule reads that text.

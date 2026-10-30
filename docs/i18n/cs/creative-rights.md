@@ -59,7 +59,7 @@ Lolly nikdy neříká "copyright verified", "legally safe", "fully cleared" ani 
 - **Když odstraňuješ metadata.** Odstranění ti řekne, kolik uvedení zdrojů soubor již nenese, nabídne text uvedení a nabídne čistý soubor s uvedením v samostatném souboru. Odstraněné bajty se nikdy znovu neoznačují.
 
 ::: details Licence, které Lolly přezkoumala
-Verze pravidel `rights-rules-2026-09-13.2`. Každé pravidlo bylo přečteno z vlastního právního textu licence a oddíl, z něhož pochází, je zde citován i u pravidla v `engine/src/rights-profiles.ts`. Verze a port se uchovávají tak, jak byly zaznamenány: deklarace CC BY 3.0 si drží vlastní verzi, místo aby se hlásila jako 4.0 jen proto, že volič aplikace upřednostňuje 4.0.
+Verze pravidel `rights-rules-2026-10-30.1`. Každé pravidlo bylo přečteno z vlastního právního textu licence a oddíl, z něhož pochází, je zde citován i u pravidla v `engine/src/rights-profiles.ts`. Verze a port se uchovávají tak, jak byly zaznamenány: deklarace CC BY 3.0 si drží vlastní verzi, místo aby se hlásila jako 4.0 jen proto, že volič aplikace upřednostňuje 4.0.
 
 | Licence | Co žádá od použití, které Lolly může provést | Čteno z |
 |---|---|---|

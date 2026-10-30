@@ -330,6 +330,10 @@ export const isThemable = (ref: AssetRef): boolean => {
   const tags = ref.meta?.tags as string[] | undefined;
   return Boolean(tags?.includes('themable') || tags?.includes('illustration'));
 };
+// Just the two-colour icons: their default pairing is drawn for a light surface, so a
+// tile shows them on one in dark chrome (asset-shared.css, .cat-tile-fig--duo).
+export const isTwoColourIcon = (ref: AssetRef): boolean =>
+  Boolean((ref.meta?.tags as string[] | undefined)?.includes('themable'));
 
 // Sentinel "theme" = the asset's own bytes, unchanged. Downloading the original
 // keeps any embedded Content Credential intact byte-for-byte; a recolour changes

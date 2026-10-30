@@ -136,9 +136,9 @@ test('the fingerprint is a pinned value for pinned inputs', () => {
   // version moves or when a recorded fact changes, which is the review step;
   // they must not move because the digest was computed differently.
   const golden: [number, string, string][] = [
-    [0, 'sha256:8912d336c14bdfcacd096e9f7fe854f35b525b02da6c28467706b6df7606d20d', 'sha256:d1bd2233e53e5a9fca5a8051d50bc400063f3b2f55fa1084d69f090961b8aebd'],
-    [7, 'sha256:2e874d03ada0df8b269bdc20f774c4c5d9bff67f62de0c92e62dc36397fe27a3', 'sha256:a290ff766b8ed4db7405b2385f648bc86b11931ee8f4b36e52e9960efeaa6faa'],
-    [40, 'sha256:a36870d0e16c2341fc0ed1069a5dc49ab00aed77cd725b1b6f6562e5b9210267', 'sha256:630e54776fcc8c8be2649dc7e75d141eca3ebba0e04d63c3448a0c56ce0a3e1c'],
+    [0, 'sha256:add14aecd33d29258ac2c22e02e43f68ae683f3b4ce07ff957803909985fb3da', 'sha256:4e45aba09ca68bfe1d597567ae6289f165e80d09dbda2b69f46106718f559545'],
+    [7, 'sha256:7acf469210241f066cf453703504dbb74219a9504b4fc71f20b518a9e1ee001d', 'sha256:f172ac8f0dad0dce65b80e5fdeec30ef7c21db9e5db4ac1b2d2f6fffd79cfbd8'],
+    [40, 'sha256:18a812e759960bfaef13776cac9e7e9cbe5f0b3ce27b38158a0cc086009403b3', 'sha256:725bf1638649d2917d1892e5016e57afb46e834c67b1bc9a95b782e1bffc5a0f'],
   ];
   for (const [pad, expected, situation] of golden) {
     const work: CreativeWorkRecordV1 = {

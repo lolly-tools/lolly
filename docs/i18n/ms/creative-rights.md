@@ -59,7 +59,7 @@ Lolly tidak pernah menyatakan "copyright verified", "legally safe", "fully clear
 - **Apabila anda membuang metadata.** Pelucutan memberitahu anda berapa banyak kredit sumber yang tidak lagi dibawa fail, menawarkan teks kredit dan menawarkan fail bersih dengan kredit dalam fail berasingan. Bait yang dilucutkan tidak pernah dicap semula.
 
 ::: details Lesen yang telah disemak Lolly
-Versi peraturan `rights-rules-2026-09-13.2`. Setiap peraturan dibaca daripada teks undang-undang lesen itu sendiri, dan bahagian asalnya dipetik di sini dan di sebelah peraturan dalam `engine/src/rights-profiles.ts`. Versi dan port dikekalkan seperti yang direkodkan: pengisytiharan CC BY 3.0 mengekalkan versinya sendiri dan bukan dilaporkan sebagai 4.0 kerana pemilih apl lebih suka 4.0.
+Versi peraturan `rights-rules-2026-10-30.1`. Setiap peraturan dibaca daripada teks undang-undang lesen itu sendiri, dan bahagian asalnya dipetik di sini dan di sebelah peraturan dalam `engine/src/rights-profiles.ts`. Versi dan port dikekalkan seperti yang direkodkan: pengisytiharan CC BY 3.0 mengekalkan versinya sendiri dan bukan dilaporkan sebagai 4.0 kerana pemilih apl lebih suka 4.0.
 
 | Lesen | Apa yang diminta daripada penggunaan yang boleh dibuat Lolly | Dibaca daripada |
 |---|---|---|

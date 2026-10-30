@@ -49,6 +49,17 @@ test('quadratic Q is normalized to cubic', () => {
   assert.ok(Math.abs(seg.x2 - 4) < 1e-9);
 });
 
+test('an implicit repeat of S or T reflects the previous control point', () => {
+  // Lucide's smile mouth: the second pair of the one s command continues the curve,
+  // so its first control point is the mirror of 9.5,16 about 12,16.
+  const [smile] = parseSvgPath('M8 14s1.5 2 4 2 4-2 4-2');
+  assert.deepEqual(smile!.segments[2], { op: 'C', x1: 14.5, y1: 16, x2: 16, y2: 14, x: 16, y: 14 });
+  // The same written as two S commands parses identically.
+  assert.deepEqual(parseSvgPath('M8 14s1.5 2 4 2s4-2 4-2'), parseSvgPath('M8 14s1.5 2 4 2 4-2 4-2'));
+  // And a repeated t reflects the quadratic control point it follows.
+  assert.deepEqual(parseSvgPath('M0 0q5 5 10 0t10 0 10 0'), parseSvgPath('M0 0q5 5 10 0t10 0t10 0'));
+});
+
 test('multiple subpaths (holed glyph) yield multiple entries', () => {
   const sp = parseSvgPath('M0 0 L10 0 L10 10 Z M2 2 L4 2 L4 4 Z');
   assert.equal(sp.length, 2);

@@ -1,43 +1,49 @@
 {
   "name": "Icon Duo Themes",
-  "description": "Colour pairings for themable two-colour icons, derived from the brand palette: c1 = accent, c2 = base. 'brand' is the default pairing. previewBg is the surface a light pairing needs behind it to stay visible in pickers/previews.",
+  "description": "Colour pairings for Lolly Demo's two-colour Etiquette icons, from the Opal palette: c1 = accent, c2 = base. Green leads, so 'brand' (Green Apple on Spearmint) is the default pairing and the fills every icon file carries. previewBg is the surface a light pairing needs behind it to stay visible in pickers and previews.",
   "themes": [
     {
       "id": "brand",
-      "label": "Brand",
-      "c1": "#da1889",
-      "c2": "#000000"
+      "label": "Green Apple",
+      "c1": "#50c369",
+      "c2": "#033633"
     },
     {
       "id": "tint",
-      "label": "Tint",
-      "c1": "#ffb9da",
-      "c2": "#da1889"
+      "label": "Pandanus",
+      "c1": "#ace1ad",
+      "c2": "#008657"
     },
     {
-      "id": "green",
-      "label": "Green",
-      "c1": "#50c369",
-      "c2": "#234d2b"
+      "id": "fuchsia",
+      "label": "Fuchsia",
+      "c1": "#da1889",
+      "c2": "#09141a"
     },
     {
       "id": "ember",
-      "label": "Ember",
-      "c1": "#c55123",
-      "c2": "#380c00"
+      "label": "Outback",
+      "c1": "#ee9138",
+      "c2": "#72251c"
     },
     {
       "id": "indigo",
-      "label": "Indigo",
+      "label": "Jacaranda",
       "c1": "#7476e0",
       "c2": "#1f1f48"
     },
     {
+      "id": "lagoon",
+      "label": "Lagoon",
+      "c1": "#5fcaff",
+      "c2": "#1a85c4"
+    },
+    {
       "id": "paper",
-      "label": "Paper",
+      "label": "Sugar",
       "c1": "#ffffff",
-      "c2": "#f0f0f0",
-      "previewBg": "#000000"
+      "c2": "#ace1ad",
+      "previewBg": "#033633"
     }
   ]
 }
