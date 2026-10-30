@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.290.0
+
+- Ten keyframe channels for appearance (new module `kf-look.ts`), appended to the `kf` vocabulary after `v`: `cl ca cb` fill colour and `ll la lb` stroke colour as OKLab L, a and b; `lw` stroke width and `cr` corner radius in px; `ts te` trim start and end as a fraction of the stroke's length. Each replaces the box's own field for its segment, like `z`, `w` and `h`. A colour key writes all three of its channels, so interpolation is component-wise in OKLab; the colour quantum is 0.00001, which round-trips every 8-bit sRGB colour. A reader older than 1.290 skips the new tokens and keeps the rest of the keyframe. No existing token changes meaning.
+- `KF_MAX_CHARS` moves from 49 152 to 73 728, re-derived from the widest keyframe (283 characters with every channel at its widest spelling).
+- New barrel exports: `KF_LOOK_CHANNELS`, `KF_FILL_CHANNELS`, `KF_STROKE_CHANNELS`, `KF_LOOK_VARS` (the `--lolly-kf-*` custom properties a posed box carries), `isKfLookChannel`, `kfLookUsed`, `kfLookPose`, `kfLookVars`, `kfColourKey`, `kfColourCss`, `kfOklabOf`, `kfTrimSpan` and `kfOutlinePath`.
+- dotLottie writes native animated fill and stroke colour, stroke width, rectangle corner radius and trim paths on shape layers; colour keys are sampled once per output frame so the file keeps the OKLab blend. It refuses appearance keys on an image or Lottie clip, by name.
+
 ## 1.289.0
 
 - `runtime.export` snapshots the authored Design document (`ExportOpts.sourceDocument`) for the still raster formats too (`png`, `jpg`/`jpeg`, `webp`, `avif`, `tiff`, `cmyk-tiff`, `bmp`, `ico`, `jxl`, `jxl-lossless`), taken at the same moment as the SVG and PDF snapshot, before `beforeExport`. A shell's export route can then read the rows the screen draws (plan 326). The web shell keeps every raster HDR request on the writer it had: the snapshot alone never moves a still raster onto the deep Design route.

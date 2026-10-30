@@ -10,6 +10,11 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.290 appearance keyframes: fill and stroke colour, stroke width, corner radius and trim.
+  'KF_FILL_CHANNELS', 'KF_LOOK_CHANNELS', 'KF_LOOK_VARS', 'KF_STROKE_CHANNELS',
+  'KfLookVarOpts', 'KfOklab', 'KfOutlineShape', 'KfTrimSpan',
+  'isKfLookChannel', 'kfColourCss', 'kfColourKey', 'kfLookPose', 'kfLookUsed', 'kfLookVars',
+  'kfOklabOf', 'kfOutlinePath', 'kfTrimSpan',
   // Additive 1.288 stroke position and per-side widths, read as the Design renderer reads them.
   'DesignStrokeAlign', 'DesignStrokeSides', 'designStrokeAlign', 'designStrokeOutset', 'designStrokeSides',
   // Additive 1.283 creation feedback: house rules and the writing score in one report that informs and never blocks.

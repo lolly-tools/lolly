@@ -69,6 +69,30 @@ import { clamp } from './clamp.ts';
  * replace rule is generalised to the whole pose: a keyed channel replaces the
  * base pose, and the base is the value wherever no token is authored. There is
  * no sensible additive reading of a focal length.
+ *
+ * ## Appearance channels (1.290, plans/328)
+ *
+ * Ten channels describe what a box LOOKS like rather than where it is, and every one
+ * is ABSOLUTE (it replaces the box's own field for its segment, the `z`/`w`/`h` rule):
+ *
+ * - `cl ca cb` - the FILL colour (the box's `bg`), as OKLab L, a and b.
+ * - `ll la lb` - the STROKE ("line") colour (the box's `stroke`), as OKLab L, a and b.
+ * - `lw` - the stroke width in px (`strokeW`; per-side widths follow it in proportion).
+ * - `cr` - the corner radius in px (`radius`).
+ * - `ts te` - trim start and trim end: the part of the stroke that is drawn, as a
+ *   fraction of its length (draw-on lines). `ts > te` draws the same span reversed.
+ *
+ * A colour is three numeric channels rather than a token of its own so that it rides
+ * the sparse per-channel evaluator unchanged: interpolating L, a and b component-wise
+ * IS perceptual interpolation, which a blend in sRGB is not. A colour key always
+ * mentions all three. The quantum is 0.00001, which round-trips every 8-bit sRGB colour
+ * exactly; the colour's alpha is the base colour's and is not keyed. Wire example:
+ * `t0_cl0.62796_ca0.22486_cb0.12585*t1200_eo_cl0.45201_ca-0.03246_cb-0.31153`.
+ *
+ * No new name starts with `e` (the ease tokens) and none is an older name followed by
+ * digits, so a reader that predates them skips each one as junk and keeps the rest of
+ * the keyframe. The DOM-free helpers that turn these numbers into paint live in
+ * kf-look.ts.
  */
 
 // ─── channels ────────────────────────────────────────────────────────────────
@@ -87,7 +111,12 @@ import { clamp } from './clamp.ts';
  * pixel. It rides this grammar (rather than its own field) so split/trim/join
  * rebase volume keys exactly as they rebase pose keys, with zero extra code.
  */
-export const KF_CHANNELS = ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h', 'v'] as const;
+export const KF_CHANNELS = [
+  'x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h', 'v',
+  // 1.290 (plans/328): the appearance channels, appended at the tail for the reason
+  // `w`/`h` were. Fill colour, stroke colour (OKLab), stroke width, corner radius, trim.
+  'cl', 'ca', 'cb', 'll', 'la', 'lb', 'lw', 'cr', 'ts', 'te',
+] as const;
 
 export type KfChannel = (typeof KF_CHANNELS)[number];
 
@@ -158,6 +187,14 @@ export const KF_CLAMPS = Object.freeze({
   h: [0, 16384],
   // Clip volume multiplier: silent to a 2x boost, the gain field's own range.
   v: [0, 2],
+  // OKLab: L is 0..1 and a, b stay inside ±0.5 for every colour a screen can show.
+  cl: [0, 1], ca: [-0.5, 0.5], cb: [-0.5, 0.5],
+  ll: [0, 1], la: [-0.5, 0.5], lb: [-0.5, 0.5],
+  // Stroke width, the `strokeW` field's own 0..400; corner radius, the w/h backstop.
+  lw: [0, 400],
+  cr: [0, 16384],
+  // Trim, as a fraction of the stroke's length.
+  ts: [0, 1], te: [0, 1],
 } as const) satisfies Readonly<Record<KfChannel, readonly [number, number]>>;
 
 /**
@@ -180,6 +217,13 @@ export const KF_QUANTA = Object.freeze({
   f: 0.01, p: 0.01,
   w: 0.01, h: 0.01,
   v: 0.001,
+  // 0.00001 is the coarsest decimal OKLab step at which every 8-bit sRGB colour comes
+  // back as itself (tests/kf-look.test.ts walks the cube). At 0.0001 a dark channel
+  // drifts by one step, because the conversion back cubes and then subtracts.
+  cl: 0.00001, ca: 0.00001, cb: 0.00001,
+  ll: 0.00001, la: 0.00001, lb: 0.00001,
+  lw: 0.01, cr: 0.01,
+  ts: 0.0001, te: 0.0001,
 } as const) satisfies Readonly<Record<KfChannel, number>>;
 
 /** Bezier control points quantise finer than px (section 4.6). */
@@ -200,10 +244,10 @@ export const KF_MAX_KEYS = 256;
  * `KF_MAX_KEYS` rather than picked: the two caps have to be mutually
  * satisfiable or the module produces a wire it then mangles. The widest a
  * single keyframe can serialise to is `t` at its cap (8) + the separator + the
- * widest custom bezier (32) + all 15 channels at the widest spelling their
- * clamp and quantum allow (125) + one separator per channel (15) = 181 chars,
- * so a full-density track is 256 × 181 + 255 = 46 591.
- * 49 152 (48 KiB) clears that, which is what makes the section 4.6 round-trip law
+ * widest custom bezier (32) + all 25 channels at the widest spelling their
+ * clamp and quantum allow (217) + one separator per channel (25) = 283 chars,
+ * so a full-density track is 256 × 283 + 255 = 72 703.
+ * 73 728 (72 KiB) clears that, which is what makes the section 4.6 round-trip law
  * `parse(serialise(parse(s))) === parse(s)` hold BY CONSTRUCTION for every
  * input: the key cap dominates, so `serialiseKf` can never hand back a string
  * `parseKf` would truncate. `tests/keyframes.test.ts` re-derives the 174 from
@@ -211,13 +255,15 @@ export const KF_MAX_KEYS = 256;
  * re-derive this constant then, don't paper over it. It has already happened
  * once, which is why the test exists: `w`/`h` (plans/104 section 5.2, P1) added two
  * channels worth 20 chars per key, i.e. 5 120 chars of full-density track, and
- * 40 960 stopped dominating. `v` (plans/165) later added 7 more per key and the
- * headroom absorbed it - 2 561 chars now remain under the 48 KiB cap.
+ * 40 960 stopped dominating. `v` (plans/165) later added 7 more per key, which the
+ * headroom absorbed. The ten appearance channels (plans/328) added 102 chars per
+ * key, 26 112 chars of full-density track, and the cap moved from 48 KiB to 72 KiB,
+ * which leaves 1 025 chars of headroom.
  *
  * (Plan section 5.1 said 8 KB, written before anyone measured a full-pose track: at
  * 8 KB a 256-key camera track loses ~148 of its keyframes on the way out.)
  */
-export const KF_MAX_CHARS = 49152;
+export const KF_MAX_CHARS = 73728;
 
 /** `t` is clamped to this (MAX_TIME_S · 1000). */
 export const KF_MAX_TIME_MS = 3_600_000;

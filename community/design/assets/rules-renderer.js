@@ -539,6 +539,12 @@ function boxCss(b, grad) {
   // `out` larger on each side, and every other reader of the frame stays on x/y/w/h.
   var out = strokeOutsetOf(b);
   var grown = out[0] > 0 || out[1] > 0 || out[2] > 0 || out[3] > 0;
+  // Appearance keyframes (plans/328): null on every box whose track keys none of them,
+  // and then every expression below is the one that shipped.
+  var look = (String(b.kind) === 'path' || bare) ? null : kfLookOf(b);
+  if (look && look.fill) fill = kfVar(KF_LOOK_VAR.fill, fill);
+  var radius = grown ? grownRadiusCss(b, w, h, out) : radiusFor(b.shape, b.radius);
+  if (look && look.radius && kfRadiusShape(b.shape)) radius = kfRadiusCss(b, out, grown);
   var css =
     (grown
       ? 'left:' + f2(x - out[3]) + 'px;top:' + f2(y - out[0]) + 'px;width:' + f2(w + out[1] + out[3]) + 'px;height:' + f2(h + out[0] + out[2]) + 'px;'
@@ -556,7 +562,7 @@ function boxCss(b, grad) {
     // again. Inline rather than in styles.css so the CLI and the export walkers, which read
     // this string, agree with the browser.
     (String(b.kind) === 'path' ? 'overflow:visible;' : '') +
-    'border-radius:' + (grown ? grownRadiusCss(b, w, h, out) : radiusFor(b.shape, b.radius)) + ';' +
+    'border-radius:' + radius + ';' +
     'justify-content:' + (H_JUSTIFY[b.align] || 'center') + ';' +
     'align-items:' + (V_ALIGN[b.valign] || 'center') + ';';
   // Stroke on a non-path box → a CSS border, with box-sizing border-box. An inside stroke
@@ -566,9 +572,28 @@ function boxCss(b, grad) {
   // SVG path itself (pathHtmlFor), never the div.
   var sides = strokeSidesOf(b);
   var sc = safeColor(b.stroke, '');
-  if (String(b.kind) !== 'path' && !bare && sc && strokeSidesMax(sides) > 0) {
+  // A keyed stroke width moves the border of an INSIDE stroke only: a centred or outside
+  // stroke grows the box past its frame by its width, and a width that tweened would have
+  // to move the frame with it every frame (plans/328 leaves those at their own width).
+  var keyedWidth = !!(look && look.width && !grown);
+  if (String(b.kind) !== 'path' && !bare && sc && (strokeSidesMax(sides) > 0 || keyedWidth)) {
     var dash = String(b.strokeDash) === 'dashed' ? 'dashed' : String(b.strokeDash) === 'dotted' ? 'dotted' : 'solid';
-    css += strokeBorderCss([Math.max(0, sides[0]), Math.max(0, sides[1]), Math.max(0, sides[2]), Math.max(0, sides[3])], dash, sc);
+    var clean = [Math.max(0, sides[0]), Math.max(0, sides[1]), Math.max(0, sides[2]), Math.max(0, sides[3])];
+    if (kfTrimBox(b, look)) {
+      // The outline is drawn by kfTrimBoxHtml instead of a border, and the padding keeps
+      // the box's content exactly where the border kept it.
+      css += 'padding:' + (keyedWidth ? kfVar(KF_LOOK_VAR.width, f2(clean[0]) + 'px') : f2(clean[0]) + 'px') + ';';
+    } else if (look && (look.stroke || keyedWidth)) {
+      var ref = num(b.strokeW, 0) > 0 ? num(b.strokeW, 0) : strokeSidesMax(clean);
+      var wv = kfVar(KF_LOOK_VAR.width, f2(ref) + 'px');
+      var widths = !keyedWidth
+        ? f2(clean[0]) + 'px ' + f2(clean[1]) + 'px ' + f2(clean[2]) + 'px ' + f2(clean[3]) + 'px'
+        : strokeSidesEqual(clean) ? wv
+          : clean.map(function (v) { return 'calc(' + wv + ' * ' + (ref > 0 ? Math.round(v / ref * 10000) / 10000 : 1) + ')'; }).join(' ');
+      css += 'border-style:' + dash + ';border-color:' + (look.stroke ? kfVar(KF_LOOK_VAR.stroke, sc) : sc) + ';border-width:' + widths + ';';
+    } else {
+      css += strokeBorderCss(clean, dash, sc);
+    }
   }
   if (grown) {
     // The fill covers the box inside the stroke's inner edge: exactly the frame for an
@@ -1120,7 +1145,12 @@ function dashArrayToAttr(nums) {
 // A path box's inline <svg>, or '' for every other kind. Pure/string-only like
 // mediaHtmlFor, so the CLI emits identical markup.
 function pathHtmlFor(b) {
-  if (String(b.kind) !== 'path') return '';
+  if (String(b.kind) !== 'path') {
+    // The one other thing this slot draws: a box shape whose track keys a trim has its
+    // outline drawn here, first in the box, in place of the CSS border (plans/328).
+    var boxLook = kfLookOf(b);
+    return kfTrimBox(b, boxLook) ? kfTrimBoxHtml(b, boxLook) : '';
+  }
   // A BOUND path is a connector: its shape is the route between two live rects, in CANVAS
   // coordinates, and a box <svg> can only draw inside its own frame. So it is drawn by
   // lineLayerFor() instead and nothing is emitted here - see the plan 96 P3 block below.
@@ -1189,6 +1219,14 @@ function pathHtmlFor(b) {
   var fill = b.bg == null || String(b.bg).trim() === '' ? 'none' : safeColor(b.bg, 'none');
   var stroke = b.stroke == null || String(b.stroke).trim() === '' ? '' : safeColor(b.stroke, '');
   var sw = clamp(num(b.strokeW, 0), 0, 400);
+  // Appearance keyframes (plans/328). The stroke ones need a stroke colour to act on;
+  // a trim cannot carry arrowheads (they would hang off the ends of a line half drawn).
+  // `lw` is the one that keys the stroke into existence from a width of 0, which is why
+  // `stroked` below replaces every `sw > 0` test that decides whether a stroke is drawn.
+  var look = kfLookOf(b);
+  var lookWidth = !!(look && look.width && stroke);
+  var lookTrim = !!(look && look.trim && stroke && headKind(b.headStart) === 'none' && headKind(b.headEnd) === 'none');
+  var stroked = sw > 0 || lookWidth;
   var rule = FILL_RULES[String(b.fillRule)] ? String(b.fillRule) : 'nonzero';
   // Stroke decoration. Every one defaults to what this hook used to hard-code, so an
   // existing shape's markup is unchanged: round cap, round join, no dash array.
@@ -1207,7 +1245,7 @@ function pathHtmlFor(b) {
   var headStart = headKind(b.headStart);
   var headEnd = headKind(b.headEnd);
   var authored = parseDashArrayText(b.strokeDashArray);
-  var wantHeads = !!stroke && sw > 0 && (headStart !== 'none' || headEnd !== 'none');
+  var wantHeads = !!stroke && stroked && (headStart !== 'none' || headEnd !== 'none');
   var wantFit = !!authored && boolVal(b.dashFit, false);
   var sole = (srcs.length === 1 && soleNodes) ? srcs[0] : null;
   var curves = null;
@@ -1298,29 +1336,59 @@ function pathHtmlFor(b) {
   var align = strokeAlignOf(b);
   var closedAll = srcs.length > 0;
   for (var ci = 0; ci < srcs.length; ci++) if (srcs[ci].closed !== true) closedAll = false;
-  var placed = (align === 'inside' || align === 'outside') && !!stroke && sw > 0 && closedAll && !heads ? align : '';
+  var placed = (align === 'inside' || align === 'outside') && !!stroke && stroked && closedAll && !heads ? align : '';
   var reach = Math.max(cap === 'square' ? Math.SQRT2 / 2 : 0.5, join === 'miter' ? MITER_LIMIT / 2 : 0.5);
-  var strokeReach = !stroke || !(sw > 0) || placed === 'inside' ? 0 : sw * reach * (placed === 'outside' ? 2 : 1);
+  // A keyed width pads for the widest it reaches, so the outer <svg> never clips it.
+  var padW = lookWidth ? Math.max(sw, clamp(look.maxWidth, 0, 400)) : sw;
+  var strokeReach = !stroke || !stroked || placed === 'inside' ? 0 : padW * reach * (placed === 'outside' ? 2 : 1);
   var pad = Math.ceil(Math.max(strokeReach, headReach));
   var vw = f2(w + pad * 2), vh = f2(h + pad * 2), o = f2(-pad);
-  var strokeAttrs = stroke && sw > 0
+  var strokeAttrs = stroke && stroked
     ? ' stroke="' + esc(stroke) + '" stroke-width="' + esc(f2(placed ? sw * 2 : sw)) +
       '" stroke-linejoin="' + esc(join) + '" stroke-linecap="' + esc(cap) + '"' +
       (join === 'miter' ? ' stroke-miterlimit="' + esc(MITER_LIMIT) + '"' : '') +
-      (dash ? ' stroke-dasharray="' + esc(dash) + '"' : '')
+      (dash && !lookTrim ? ' stroke-dasharray="' + esc(dash) + '"' : '')
     : '';
+  // The keyed paint, as inline style over those attributes (style outranks a
+  // presentation attribute). Every part is '' unless the track keys that channel.
+  var fillStyle = look && look.fill ? 'fill:' + kfVar(KF_LOOK_VAR.fill, fill) + ';' : '';
+  var strokeStyle = '';
+  if (stroke && stroked) {
+    if (look && look.stroke) strokeStyle += 'stroke:' + kfVar(KF_LOOK_VAR.stroke, stroke) + ';';
+    if (lookWidth || lookTrim) {
+      var wBase = lookWidth ? kfVar(KF_LOOK_VAR.width, f2(sw) + 'px') : f2(sw) + 'px';
+      var wMul = (placed ? ' * 2' : '') + (lookTrim ? ' * ' + kfVar(KF_LOOK_VAR.trimOn, '1') : '');
+      strokeStyle += 'stroke-width:' + (wMul ? 'calc(' + wBase + wMul + ')' : wBase) + ';';
+    }
+    if (lookTrim) strokeStyle += 'stroke-dasharray:' + kfVar(KF_LOOK_VAR.trim, 'none') + ';stroke-dashoffset:' + kfVar(KF_LOOK_VAR.trimOffset, '0') + ';';
+  }
+  var styleAttr = function (css) { return css ? ' style="' + esc(css) + '"' : ''; };
   var body;
-  if (placed) {
+  if (lookTrim) {
+    // A TRIMMED stroke is drawn per contour, each with a pathLength of 1, so a trim of
+    // 0.25 draws the first quarter of every contour (Lottie's "simultaneously"); the fill
+    // stays one path so a hole is still a hole. A dash pattern is set aside: the trim is
+    // the dash. An inside or outside stroke keeps its clip, as below.
+    var tcid = placed ? 'lly-sp-' + strokeClipHash(placed + '|' + rule + '|' + vw + '|' + vh + '|' + d) : '';
+    var tFrame = 'M' + f2(o - 1) + ' ' + f2(o - 1) + 'H' + f2(o + vw + 1) + 'V' + f2(o + vh + 1) + 'H' + f2(o - 1) + 'Z ';
+    body = (placed ? '<defs><clipPath id="' + esc(tcid) + '"><path d="' + esc(placed === 'outside' ? tFrame + d : d) +
+      '" clip-rule="' + esc(placed === 'outside' ? 'evenodd' : rule) + '"></path></clipPath></defs>' : '') +
+      '<path d="' + esc(d) + '" fill="' + esc(fill) + '" fill-rule="' + esc(rule) + '"' + styleAttr(fillStyle) + '></path>';
+    for (var ti = 0; ti < ds.length; ti++) {
+      body += '<path class="lolly-trim" d="' + esc(ds[ti]) + '" pathLength="1" fill="none"' + strokeAttrs + styleAttr(strokeStyle) +
+        (placed ? ' clip-path="url(#' + esc(tcid) + ')"' : '') + '></path>';
+    }
+  } else if (placed) {
     // The clip's id hashes everything it draws, so two copies of one drawing in a page
     // share an id only when they share the geometry.
     var cid = 'lly-sp-' + strokeClipHash(placed + '|' + rule + '|' + vw + '|' + vh + '|' + d);
     var frameRect = 'M' + f2(o - 1) + ' ' + f2(o - 1) + 'H' + f2(o + vw + 1) + 'V' + f2(o + vh + 1) + 'H' + f2(o - 1) + 'Z ';
     body = '<defs><clipPath id="' + esc(cid) + '"><path d="' + esc(placed === 'outside' ? frameRect + d : d) +
       '" clip-rule="' + esc(placed === 'outside' ? 'evenodd' : rule) + '"></path></clipPath></defs>' +
-      '<path d="' + esc(d) + '" fill="' + esc(fill) + '" fill-rule="' + esc(rule) + '"></path>' +
-      '<path d="' + esc(d) + '" fill="none"' + strokeAttrs + ' clip-path="url(#' + esc(cid) + ')"></path>';
+      '<path d="' + esc(d) + '" fill="' + esc(fill) + '" fill-rule="' + esc(rule) + '"' + styleAttr(fillStyle) + '></path>' +
+      '<path d="' + esc(d) + '" fill="none"' + strokeAttrs + styleAttr(strokeStyle) + ' clip-path="url(#' + esc(cid) + ')"></path>';
   } else {
-    body = '<path d="' + esc(d) + '" fill="' + esc(fill) + '" fill-rule="' + esc(rule) + '"' + strokeAttrs + '></path>';
+    body = '<path d="' + esc(d) + '" fill="' + esc(fill) + '" fill-rule="' + esc(rule) + '"' + strokeAttrs + styleAttr(fillStyle + strokeStyle) + '></path>';
   }
   // Everything interpolated is esc()'d even though each value is already reduced to a
   // validated colour, a whitelisted keyword or a number: the extra is emitted through
@@ -1757,11 +1825,15 @@ function startSeconds(b) {
 // 'v' is CLIP VOLUME (plans/165 WP-3) - audio automation riding the same grammar.
 // 'w'/'h' are the keyed SIZE (plans/104 section 5.2) - absent from this table until
 // 2026-09-01, which silently dropped keyed sizes on every re-serialise.
-var KF_CHANNEL_ORDER = ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h', 'v'];
+// The ten after it are the APPEARANCE channels (plans/328): fill colour cl/ca/cb and
+// stroke colour ll/la/lb in OKLab, stroke width lw, corner radius cr, trim ts/te.
+var KF_CHANNEL_ORDER = ['x', 'y', 'z', 's', 'r', 'rx', 'ry', 'o', 'b', 'f', 'a', 'p', 'w', 'h', 'v',
+  'cl', 'ca', 'cb', 'll', 'la', 'lb', 'lw', 'cr', 'ts', 'te'];
 // The same names LONGEST-FIRST, which is what makes 'rx-8' channel rx at −8 rather than
 // channel r followed by junk. No channel is named 'e', so an ease token can never be read
 // as a channel.
-var KF_CHANNELS_BY_LEN = ['rx', 'ry', 'a', 'b', 'f', 'h', 'o', 'p', 'r', 's', 'v', 'w', 'x', 'y', 'z'];
+var KF_CHANNELS_BY_LEN = ['ca', 'cb', 'cl', 'cr', 'la', 'lb', 'll', 'lw', 'rx', 'ry', 'te', 'ts',
+  'a', 'b', 'f', 'h', 'o', 'p', 'r', 's', 'v', 'w', 'x', 'y', 'z'];
 // `z` spans ±12000 on the WIRE, which is NOT the z field's own −300…900: one kf grammar
 // carries both a box's lift and the CAMERA's dolly, and camZ is the only zoom control
 // there is. The field clamp still governs the z FIELD - see data-t-z below.
@@ -1769,10 +1841,14 @@ var KF_CLAMPS = {
   x: [-100000, 100000], y: [-100000, 100000], z: [-12000, 12000], s: [0.01, 100],
   r: [-3600, 3600], rx: [-180, 180], ry: [-180, 180], o: [0, 1], b: [0, 300],
   f: [-3000, 3000], a: [0, 1], p: [50, 12000], w: [0, 16384], h: [0, 16384], v: [0, 2],
+  cl: [0, 1], ca: [-0.5, 0.5], cb: [-0.5, 0.5], ll: [0, 1], la: [-0.5, 0.5], lb: [-0.5, 0.5],
+  lw: [0, 400], cr: [0, 16384], ts: [0, 1], te: [0, 1],
 };
 var KF_QUANTA = {
   x: 0.01, y: 0.01, z: 0.01, s: 0.001, r: 0.01, rx: 0.01, ry: 0.01,
   o: 0.001, b: 0.01, f: 0.01, a: 0.001, p: 0.01, w: 0.01, h: 0.01, v: 0.001,
+  cl: 0.00001, ca: 0.00001, cb: 0.00001, ll: 0.00001, la: 0.00001, lb: 0.00001,
+  lw: 0.01, cr: 0.01, ts: 0.0001, te: 0.0001,
 };
 // The eight named curves, by their wire token: linear, ease-in, ease-out, ease-in-out,
 // overshoot, anticipate, smooth, snappy. 'eh' (hold) is an ease too but has no points.
@@ -1793,7 +1869,7 @@ var KF_MAX_KEYS = 256;   // parse caps - a blocks sub-field has no length limit 
 // truncated a max-density track ~6 KB before the engine would have - the two
 // sides reading different keyframes off the same string. The pin-test corpus
 // carries a track between the two old caps so a re-divergence fails loudly.
-var KF_MAX_CHARS = 49152;
+var KF_MAX_CHARS = 73728;
 var KF_NUM = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/; // no exponent, no '+', no NaN/Infinity
 var KF_T = /^t(-?(?:\d+(?:\.\d+)?|\.\d+))$/;
 var KF_EB = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
@@ -1899,6 +1975,123 @@ function kfAttr(v) {
     wire.push(parts.join('_'));
   }
   return wire.join('*');
+}
+
+// ── plans/328: appearance keyframes ─────────────────────────────────────────────
+//
+// A track may key a box's fill colour, stroke colour, stroke width, corner radius and
+// trim. The hook never writes a keyed VALUE: it only writes the paint those channels
+// replace as `var(<name>, <authored>)`, and the shell's applier poses the box by
+// setting the custom property alone. Removing the property puts the box back exactly,
+// and a box whose track keys none of them is emitted byte-identically to before.
+// The names are TRANSCRIBED from engine/src/kf-look.ts KF_LOOK_VARS (pinned by
+// tests/kf-look-hook.test.ts), as are the outline paths below (kfOutlinePath).
+var KF_LOOK_VAR = {
+  fill: '--lolly-kf-fill', stroke: '--lolly-kf-stroke', width: '--lolly-kf-sw', radius: '--lolly-kf-r',
+  trim: '--lolly-kf-trim', trimOffset: '--lolly-kf-trim-off', trimOn: '--lolly-kf-trim-on',
+};
+
+// Which appearance channels a box's track keys, read off the canonical wire kfAttr
+// writes; null when it keys none (every box before plans/328), and every caller below
+// changes nothing on a null. A frame never carries a track (see timeAttrsFor).
+function kfLookOf(b) {
+  if (!b || b.kf == null || b.kf === '' || String(b.kind) === 'frame') return null;
+  var wire = kfAttr(b.kf);
+  if (!wire) return null;
+  var out = { fill: false, stroke: false, width: false, maxWidth: 0, radius: false, trim: false };
+  var any = false;
+  var toks = wire.split(/[*_]/);
+  for (var i = 0; i < toks.length; i++) {
+    var p = toks[i].slice(0, 2);
+    if (p === 'cl' || p === 'ca' || p === 'cb') out.fill = any = true;
+    else if (p === 'll' || p === 'la' || p === 'lb') out.stroke = any = true;
+    else if (p === 'cr') out.radius = any = true;
+    else if (p === 'ts' || p === 'te') out.trim = any = true;
+    else if (p === 'lw') {
+      out.width = any = true;
+      var n = parseFloat(toks[i].slice(2));
+      if (n > out.maxWidth) out.maxWidth = n;
+    }
+  }
+  return any ? out : null;
+}
+
+function kfVar(name, fallback) { return 'var(' + name + ', ' + fallback + ')'; }
+
+// The box shapes a corner radius applies to: a rectangle (which a keyed radius rounds)
+// and a rounded box. A pill, an ellipse and a circle draw their own curve.
+function kfRadiusShape(shape) {
+  var s = shape == null ? '' : String(shape);
+  return s === '' || s === 'rect' || s === 'rounded';
+}
+
+// The border-radius of a box whose radius is keyed: the authored radius behind the
+// custom property, plus the stroke's outset on a box that grows past its frame (the
+// same per-corner shape grownRadiusCss writes).
+function kfRadiusCss(b, out, grown) {
+  var r = String(b.shape) === 'rounded' ? Math.max(0, num(b.radius, 0)) : 0;
+  var v = kfVar(KF_LOOK_VAR.radius, f2(r) + 'px');
+  if (!grown) return v;
+  var at = function (o) { return o ? 'calc(' + v + ' + ' + f2(o) + 'px)' : v; };
+  if (out[0] === out[1] && out[0] === out[2] && out[0] === out[3]) return at(out[0]);
+  return at(out[3]) + ' ' + at(out[1]) + ' ' + at(out[1]) + ' ' + at(out[3]) + ' / ' +
+    at(out[0]) + ' ' + at(out[0]) + ' ' + at(out[2]) + ' ' + at(out[2]);
+}
+
+// Can a box shape (not a pen path) show a keyed trim? Its outline is drawn as an SVG
+// path in place of the CSS border, so only the stroke the border model and the path
+// agree on qualifies: an inside, solid-coloured stroke of one width, on a box with no
+// picture of its own (a picture fills the whole frame and would cover the outline).
+function kfTrimBox(b, look) {
+  if (!look || !look.trim || String(b.kind) === 'path' || isBareBox(b)) return false;
+  if (!safeColor(b.stroke, '')) return false;
+  if (b.image != null && b.image !== '') return false;
+  if (strokeAlignOf(b) !== 'inside') return false;
+  var sides = strokeSidesOf(b);
+  if (!strokeSidesEqual(sides)) return false;
+  return sides[0] > 0 || look.width;
+}
+
+// The outline a trimmed box shape is stroked along, inset by half the stroke so it stays
+// inside the box as a border does. Starts at the end of the top-left corner (an ellipse
+// at its rightmost point) and runs clockwise. TRANSCRIBED from engine kfOutlinePath.
+function kfOutlinePath(shape, w, h, radius, inset) {
+  var f3 = function (v) { return String(Math.round(v * 1000) / 1000); };
+  var i = Math.max(0, isFinite(inset) ? inset : 0);
+  var W = Math.max(0, w - 2 * i), H = Math.max(0, h - 2 * i);
+  if (shape === 'ellipse' || shape === 'circle') {
+    var rx = W / 2, ry = H / 2, cx = i + rx, cy = i + ry;
+    var a = 'A' + f3(rx) + ' ' + f3(ry) + ' 0 0 1 ';
+    return 'M' + f3(cx + rx) + ' ' + f3(cy) + a + f3(cx) + ' ' + f3(cy + ry) +
+      a + f3(cx - rx) + ' ' + f3(cy) + a + f3(cx) + ' ' + f3(cy - ry) + a + f3(cx + rx) + ' ' + f3(cy) + 'Z';
+  }
+  var outer = shape === 'pill' ? Math.min(w, h) / 2 : (shape === 'rounded' || shape === 'rect') ? Math.max(0, radius) : 0;
+  var r = Math.min(Math.max(0, outer - i), W / 2, H / 2);
+  var x0 = i, y0 = i, x1 = i + W, y1 = i + H;
+  if (!(r > 0)) return 'M' + f3(x0) + ' ' + f3(y0) + 'H' + f3(x1) + 'V' + f3(y1) + 'H' + f3(x0) + 'Z';
+  var arc = function (x, y) { return 'A' + f3(r) + ' ' + f3(r) + ' 0 0 1 ' + f3(x) + ' ' + f3(y); };
+  return 'M' + f3(x0 + r) + ' ' + f3(y0) + 'H' + f3(x1 - r) + arc(x1, y0 + r) + 'V' + f3(y1 - r) + arc(x1 - r, y1) +
+    'H' + f3(x0 + r) + arc(x0, y1 - r) + 'V' + f3(y0 + r) + arc(x0 + r, y0) + 'Z';
+}
+
+// A trimmed box shape's outline: an SVG drawn FIRST inside the box (under its picture and
+// words, as a border is), sized to the frame, with the dash the trim custom properties
+// set over a pathLength of 1. The data-trim-* attributes are the authored outline, which
+// the applier redraws from when a keyed size, radius or stroke width moves it.
+function kfTrimBoxHtml(b, look) {
+  var w = Math.max(1, Math.round(num(b.w, 1)));
+  var h = Math.max(1, Math.round(num(b.h, 1)));
+  var sw = Math.max(0, strokeSidesOf(b)[0]);
+  var shape = String(b.shape == null || b.shape === '' ? 'rect' : b.shape);
+  var r = shape === 'rounded' ? Math.max(0, num(b.radius, 0)) : 0;
+  var sc = safeColor(b.stroke, '');
+  var width = look.width ? kfVar(KF_LOOK_VAR.width, f2(sw) + 'px') : f2(sw) + 'px';
+  var style = 'stroke:' + (look.stroke ? kfVar(KF_LOOK_VAR.stroke, sc) : sc) +
+    ';stroke-width:calc(' + width + ' * ' + kfVar(KF_LOOK_VAR.trimOn, '1') + ')' +
+    ';stroke-dasharray:' + kfVar(KF_LOOK_VAR.trim, 'none') + ';stroke-dashoffset:' + kfVar(KF_LOOK_VAR.trimOffset, '0');
+  return '<svg class="lolly-box-trim" aria-hidden="true" data-trim-shape="' + esc(shape) + '" data-trim-r="' + esc(f2(r)) +
+    '" data-trim-sw="' + esc(f2(sw)) + '" style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none">' +
+    '<path d="' + esc(kfOutlinePath(shape, w, h, r, sw / 2)) + '" pathLength="1" fill="none" stroke-linecap="butt" style="' + esc(style) + '"></path></svg>';
 }
 
 // Author-supplied CSS class tokens for one box (the `cls` field, plan 112 M4).

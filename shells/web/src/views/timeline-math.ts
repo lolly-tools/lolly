@@ -621,6 +621,11 @@ export const KF_NEUTRAL: Readonly<Record<KfChannel, number>> = Object.freeze({
   // {@link KF_POSE_SEED} - seeding a size into every diamond would freeze a value the
   // user never touched into the wire, and worse, would make every keyed box reflow.
   w: 0, h: 0,
+  // The appearance channels (plans/328) are the `w`/`h` case again: their neutral is the
+  // box's OWN fill, stroke, width and radius, which the panel reads off the row
+  // (`kfLookBase`), so 0 here only stands for "unauthored". Trim's neutral is the
+  // whole stroke: start 0, end 1.
+  cl: 0, ca: 0, cb: 0, ll: 0, la: 0, lb: 0, lw: 0, cr: 0, ts: 0, te: 1,
 });
 
 /**
