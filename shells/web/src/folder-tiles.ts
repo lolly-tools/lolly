@@ -11,6 +11,7 @@
  */
 import { escape, safeHref } from './utils.ts';
 import { icon } from './lib/icons.ts';
+import { tRaw } from './i18n.ts';
 
 // Batch-slot helpers are the shared, /pro-free lib module now (finding #13),
 // re-exported here so existing importers (folder-overlay, projects) are unchanged.
@@ -90,10 +91,11 @@ export const CHECK_ICON = icon('check', { size: 13, strokeWidth: 3 });
  * (never nested inside it: an interactive control inside the tile's <button> lets
  * Space/Enter double-fire the open action). Opt-in via the tile builders' `selectable`
  * opt, so the folder overlay / picker (which don't pass it) are unaffected. State is on
- * `aria-pressed`; the caller toggles it + the wrapper's `.is-selected` in place.
+ * `aria-pressed`; the caller toggles it + the wrapper's `.is-selected` in place. The
+ * gallery's tiles draw the same dot through this function.
  */
-function selectToggle(ref: string, kind: string, selected: boolean, name: string): string {
-  return `<button type="button" class="tile-check" data-select="${escape(ref)}" data-kind="${kind}" aria-pressed="${selected ? 'true' : 'false'}" aria-label="Select ${escape(name)}">${CHECK_ICON}</button>`;
+export function selectToggle(ref: string, kind: string | null, selected: boolean, name: string): string {
+  return `<button type="button" class="tile-check" data-select="${escape(ref)}"${kind ? ` data-kind="${kind}"` : ''} aria-pressed="${selected ? 'true' : 'false'}" aria-label="${escape(tRaw('Select {name}', { name }))}">${CHECK_ICON}</button>`;
 }
 
 // ── Badges ──────────────────────────────────────────────────────────────────

@@ -68,6 +68,9 @@ export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
   timer = setTimeout(() => {
     if (closed) return;
     if (otherDialog()) { handle.close(); return; }
+    // A cold open still shows index.html's boot screen (the same mark and the same
+    // word) until the first view mounts; a card over it said "Loading…" twice.
+    if (document.querySelector('#view > p.loading')) { handle.close(); return; }
     const label = t('Loading…');
     // Other chrome uses the same SVG; give this instance its own gradient ids.
     const scope = `view-loading-${++sequence}`;

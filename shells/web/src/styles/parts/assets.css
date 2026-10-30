@@ -603,7 +603,9 @@
 .cat-act-row { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 .cat-details-name { overflow-wrap: anywhere; }
 .cat-details-provenance { margin-bottom: 20px; }
-.cat-inspector-heading, .cat-action-group > summary {
+/* The inspector dock turns each action group into a section card, whose own
+   head sets the padding and type; these rules are for the groups outside it. */
+.cat-inspector-heading, .cat-action-group:not(.section-card) > summary {
   font-size: var(--fs-sm); font-weight: 700; color: hsl(var(--foreground));
 }
 .cat-inspector-heading { margin: 0 0 10px; }
@@ -613,8 +615,8 @@
 .cat-details-provenance .cat-details-cred { margin: 10px 0 0; gap: 10px; }
 .cat-act-verify { font-size: var(--fs-sm); }
 .cat-action-group { width: 100%; }
-.cat-action-group > summary { padding: 8px 0; cursor: pointer; }
-.cat-action-group > summary:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.cat-action-group:not(.section-card) > summary { padding: 8px 0; cursor: pointer; }
+.cat-action-group:not(.section-card) > summary:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
 .cat-action-group .cat-act-row { padding: 4px 0 8px; }
 .cat-details-actions .btn { min-height: 36px; }
 .cat-details-preview { background-color: hsl(var(--background)); }

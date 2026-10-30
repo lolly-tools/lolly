@@ -679,6 +679,13 @@ export const VOICES: Record<SfxName, (ctx: AudioContext, out: AudioNode) => void
   slider(ctx, out) {
     tick(ctx, out, { dur: 0.011, peak: 0.05, freq: 2000 + Math.random() * 700, q: 0.85 });
   },
+  // An item joining or leaving a selection (Assets, Projects, the gallery): a very short,
+  // bright tap with a hint of pitch, so a marquee sweeping across a grid ticks once per
+  // tile like beads on an abacus. Kept under 20 ms so a fast sweep never smears.
+  tick(ctx, out) {
+    tick(ctx, out, { dur: 0.014, peak: 0.12, freq: 3200 + Math.random() * 400, q: 1.4 });
+    blip(ctx, out, { type: 'sine', from: 1850, to: 1700, dur: 0.018, peak: 0.05 });
+  },
   // Dragging a Figma-style number scrub (the export width/height fields, vector scrubs):
   // the "better", more mechanical sibling of the slider tick. A crisp detent tick with a
   // tiny low tonal "notch" under it, so a precision drag clicks through calibrated stops

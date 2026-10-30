@@ -9,7 +9,7 @@ import { frameLuma, coachVideo } from '../lib/video-coach-core.ts';
 import { subscribeRecordPreview } from '../lib/record-preview.ts';
 import { mountRecordingHelp, createTipFlasher, type RecordingHelp } from '../lib/recording-tips.ts';
 import { setAudioTake, saveTakeMp3, saveTakeNative } from '../lib/audio-take.ts';
-import { storeRecordingAsset } from './picker.ts';
+import type { storeRecordingAsset } from './picker.ts';
 import { fmtBytes } from '../lib/device-info.ts';
 import { icon } from '../lib/icons.ts';
 import type { AssetRef, RecordOpts } from '@lolly-tools/core/host-v1';
@@ -502,7 +502,9 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       // if the store refuses (e.g. device quota), so a take is never lost.
       let ref: AssetRef;
       try {
-        ref = await storeRecordingAsset(
+        // The asset store lives with the picker, loaded once there is a take to keep.
+        const { storeRecordingAsset: store } = await import('./picker.ts');
+        ref = await store(
           host as unknown as Parameters<typeof storeRecordingAsset>[0], clip, ext, prevClip?.id, credential ?? undefined,
         );
       } catch (e) {

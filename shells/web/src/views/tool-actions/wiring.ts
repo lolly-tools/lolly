@@ -11,7 +11,7 @@ import { shareUrlState } from '../../lib/share-privacy.ts';
 import { DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, SEPARATING_FORMATS, VIDEO_CODEC_STRINGS, composeSong, frameFilterApplies, generatedSongSpec, selectFramePage } from '@lolly/engine';
 import { announce } from '../../a11y.js';
 import { CENTRE_LOW } from '../../bridge/audio-envelope.ts';
-import { _exportNotice, _setExportNoticeSink } from '../../bridge/export.ts';
+import { _exportNotice, _setExportNoticeSink } from '../../bridge/export-notice.ts';
 import { linkHelpDescriptions, wireHelpTips } from '../../components/help-tip.js';
 import { t, tRaw } from '../../i18n.ts';
 import { DeliveryResult } from '../../lib/delivery-result.ts';

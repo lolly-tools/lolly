@@ -29,7 +29,7 @@ Notes per file:
   `application/vnd.lolly+zip` ("Lolly bundle", glob `*.lolly`, sub-class of
   `application/zip`, zip magic at priority 40 so plain zips keep winning on
   content). The MIME string is the app's canonical `LOLLY_MIME`
-  (`shells/web/src/lib/lolly-pack.ts`); tests guard the two against drift. It
+  (`shells/web/src/lib/lolly-file-type.ts`); tests guard the two against drift. It
   also supplies extension-only definitions for Penpot, Figma and IDML on
   desktops whose shared MIME database does not know them yet. Those foreign
   types have no Lolly icon or magic rule; the `.desktop` entry merely makes the

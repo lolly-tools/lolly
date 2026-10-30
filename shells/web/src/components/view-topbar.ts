@@ -61,7 +61,7 @@ export function viewTopbarHtml(opts: ViewTopbarHtmlOpts): string {
       <div class="gallery-topright">
         ${right}
         <button type="button" class="lang-fab" aria-label="${escape(t('Language'))}" aria-haspopup="menu" aria-expanded="false" title="${escape(t('Language'))}">${LANG_ICON_SVG}</button>
-        <a href="#/settings" class="profile-link${hasAvatar ? ' has-avatar' : ''}" aria-label="${escape(t('Open settings'))}" aria-haspopup="menu" aria-expanded="false">${hasAvatar ? `<img class="profile-link-avatar" src="${escape(profile.headshotUrl!)}" alt="">` : ''}<span class="profile-link-mark" aria-hidden="true">${LOLLY_MARK_SVG}</span><span class="profile-link-name">${escape(profile.firstname || t('Settings'))}</span></a>
+        <a href="#/settings" class="profile-link${hasAvatar ? ' has-avatar' : ''}" aria-label="${escape(t('Open settings'))}" aria-haspopup="menu" aria-expanded="false">${hasAvatar ? `<img class="profile-link-avatar" src="${escape(profile.headshotUrl!)}" alt="">` : ''}<span class="profile-link-mark" aria-hidden="true">${LOLLY_MARK_SVG}</span>${profile.firstname ? `<span class="profile-link-name">${escape(profile.firstname)}</span>` : ''}</a>
         ${popover}
       </div>
     </div>`;

@@ -34,7 +34,7 @@ export const LIB_GROUPS: LibGroup[] = [
   { key: 'logos',         label: 'Logos' },
   { key: 'backgrounds',   label: 'Backgrounds' },
   { key: 'campaign',      label: 'Campaign Photos' },
-  { key: 'photos',        label: 'SUSE Photos' },
+  { key: 'photos',        label: 'Photos' },
   { key: 'headshots',     label: 'Headshots' },
   { key: 'icons',         label: 'Icons' },
   { key: 'illustrations', label: 'Illustrations' },

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Shared editable-file vehicle for the Share dialog and export panel. */
-import { buildLollyFile, creatorFromProfile, LOLLY_MIME, LOLLY_EXT, type LollyLibraryAsset, type LollyToolTrust } from '../lib/lolly-pack.ts';
+import type { LollyLibraryAsset, LollyToolTrust } from '../lib/lolly-pack.ts';
+import { LOLLY_MIME, LOLLY_EXT } from '../lib/lolly-file-type.ts';
 import type { BeamAssetRecord } from '../lib/beam-pack.ts';
 import { ENGINE_VERSION, decodeAssetVersion } from '@lolly/engine';
 import { resolveToolBundle } from '../lib/tool-bundle.ts';
@@ -100,6 +101,8 @@ export function makeLollyVehicle(
     const session = sessionState() ?? null;
     const profile = await host.profile.get().catch(() => null);
     const userAssets = await assets._exportUserAssets();
+    // The packer (zip, C2PA, emoji) loads when someone asks for a .lolly, not with the tool.
+    const { buildLollyFile, creatorFromProfile } = await import('../lib/lolly-pack.ts');
     const creator = creatorFromProfile(profile, { appVersion });
     // Carry the tool's own files only on request - resolving them fetches every file.
     // A resolve failure (missing core files) degrades to a tool-less .lolly, never an error.

@@ -15,7 +15,6 @@ import { prepareSessionTool, sessionToolRights } from '../lib/session-tool-compi
 import { registerRulesEditor, takeRulesRequest, openRegisteredRules } from '../lib/rules-launch.ts';
 import { createRulesShare } from './design-rules-share.ts';
 import { tryDesignToolFile } from './design-rules-trial.ts';
-import { buildLollyFile } from '../lib/lolly-pack.ts';
 import { mountModal } from '../components/modal.ts';
 import { wireReorderList } from '../components/reorder-list.ts';
 import { icon } from '../lib/icons.ts';
@@ -377,6 +376,8 @@ export function openSessionRules(opts: {
               typeof value === 'string' ? new TextEncoder().encode(value) : value,
             ])
           );
+          // The packer (zip, C2PA) loads when rules are shared, not with every tool.
+          const { buildLollyFile } = await import('../lib/lolly-pack.ts');
           const result = await buildLollyFile({
             kind: 'tool',
             session: null,

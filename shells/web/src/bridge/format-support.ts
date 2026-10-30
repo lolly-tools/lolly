@@ -146,7 +146,7 @@ export function probeDurableSupport(opts: {
   if (_durablePending) return _durablePending;
   const base = opts.base ?? MODELS_BASE;
   const cached = opts.cached ?? (async () => {
-    const { durableModelCached } = await import('../lib/model-prefetch.ts');
+    const { durableModelCached } = await import('../lib/model-cache.ts');
     return durableModelCached();
   });
   const reachable = opts.reachable ?? (async (url: string) => {

@@ -56,10 +56,12 @@ test('the language row opens collapsed: the detected language plus one expander'
   assert.equal(el.querySelectorAll('[data-lang]').length, 1, 'one chip only - not the whole wall');
   assert.equal(el.querySelector('[data-lang]')?.getAttribute('data-lang'), 'en');
   assert.equal(el.querySelectorAll('[data-lang-more]').length, 1);
-  // The visible twin of Escape, and page 1's short assurance line with its way
-  // through to the full privacy page.
+  // The visible twin of Escape, and page 1's way through to the full privacy page.
+  // The "stays on this device" assurance is said once, on the Make it yours card,
+  // so the line under the cards is the link alone.
   assert.equal(el.querySelector('.welcome-skip')?.getAttribute('data-choice'), 'dismiss');
-  assert.match(el.querySelector('.welcome-privacy')?.textContent ?? '', /stays on this device/);
+  assert.match(el.querySelector('.welcome-card--brand')?.textContent ?? '', /stays on this device/);
+  assert.equal(el.querySelector('.welcome-privacy')?.textContent?.trim(), 'Private by design');
   assert.equal(el.querySelector('.welcome-privacy-link')?.getAttribute('data-page'), '2');
   el.querySelector<HTMLButtonElement>('.welcome-skip')?.click();
   await settled;

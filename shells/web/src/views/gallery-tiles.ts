@@ -18,7 +18,7 @@ import { icon } from '../lib/icons.ts';
 import { toolSupport } from '../capabilities.ts';
 import { resolveExamples } from '../components/featured-row.ts';
 import { displayFormatOf } from '../lib/featured-render.ts';
-import { CHECK_ICON } from '../folder-tiles.ts';
+import { selectToggle } from '../folder-tiles.ts';
 import { carouselDotsMarkup, carouselNavMarkup } from './gallery-carousel.ts';
 import type { StateEntry } from '@lolly-tools/core/host-v1';
 import type { FeaturedVariant } from '../components/featured-row.ts';
@@ -95,8 +95,7 @@ export const viewFavKey = (id: string): string => `view:${id}`;
  *  `.tile-check` primitive as projects/catalog tiles (folder-tiles.ts), with a
  *  gallery-scoped reveal (gallery.css). `ref` doubles as the tile's selection
  *  key: the tool id, or `view:<id>` for a utility view card. */
-const selectDot = (ref: string, name: string): string =>
-  `<button type="button" class="tile-check" data-select="${escapeHtml(ref)}" aria-pressed="false" aria-label="${escapeHtml(tRaw('Select {name}', { name }))}">${CHECK_ICON}</button>`;
+const selectDot = (ref: string, name: string): string => selectToggle(ref, null, false, name);
 
 const PLUS_ICON = icon('plus');
 // The Tools glyph from the view toggle, for a tool whose index entry has no icon.
@@ -275,7 +274,7 @@ export function cardMarkup(
     // a network fetch, so never broken) so the tile is a real, on-brand card rather
     // than a bare line of text. Decorative duplicate of the name link (tabindex/
     // aria-hidden so AT hears one link).
-    visual = `<a class="gtile-tile gtile-tile--iconled" href="${openHref}" data-new-tool="${escapeHtml(tool.id)}" tabindex="-1" aria-hidden="true">${tool.icon ? `<span class="gtile-tile-icon" aria-hidden="true">${tool.icon}</span>` : ''}<span class="gtile-tile-txt">${t('Open to start')}</span></a>`;
+    visual = `<a class="gtile-tile gtile-tile--iconled" href="${openHref}" data-new-tool="${escapeHtml(tool.id)}" tabindex="-1" aria-hidden="true">${tool.icon ? `<span class="gtile-tile-icon" aria-hidden="true">${tool.icon}</span>` : ''}</a>`;
   }
 
   // Caption sub-line: when the resumable session was last opened or changed, and

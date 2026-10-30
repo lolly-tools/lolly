@@ -26,8 +26,6 @@
  */
 
 import { createDebugLogger, createModelFetcher, type FetchProgress } from './ort.ts';
-import { openDB } from '../bridge/db.ts';
-import { modelStoredFileName } from './model-manifest.ts';
 import type { DownloadProgress } from './offline-manager.ts';
 import {
   UPSCALE_MODEL_STORE, UPSCALE_MODEL_DIR, UPSCALE_MODEL_CACHE_VERSION, UPSCALE_MODEL_FILES,
@@ -39,9 +37,9 @@ import {
 import {
   OCR_MODEL_STORE, OCR_MODEL_DIR, OCR_MODEL_CACHE_VERSION, OCR_MODEL_FILES, ocrModelsFor,
 } from './ocr-models.ts';
-import {
-  DURABLE_ENCODER_BYTES, DURABLE_ENCODER_FILE, DURABLE_MODEL_STORE,
-} from './durable-model.ts';
+import { DURABLE_ENCODER_FILE } from './durable-model.ts';
+import { modelStoreBytes } from './model-cache.ts';
+export { durableCacheBytes, durableModelCached } from './model-cache.ts';
 import {
   SING_FILE_BYTES, SING_MODEL_CACHE_VERSION, SING_MODEL_DIR, SING_MODEL_STORE, SING_PART_BYTES, SING_PART_FILES,
 } from './sing-models.ts';
@@ -197,33 +195,8 @@ export function prefetchSingModels(opts: { signal?: AbortSignal; onProgress?: On
 
 // ─── Measurement (for the /profile storage-reconciliation meter) ──────────────
 //
-// Measures what is ACTUALLY on device in a model store - filled by this prefetch OR
-// by the dialog's own on-demand download - the twin of offline-manager's
-// speechCacheBytes. Reads only the KEYS (filenames, cheap) and sums the roster's
-// exact declared sizes, so it never deserialises the multi-hundred-MB ArrayBuffers
-// just to weigh them. An aux file with no roster entry (the tiny face detector)
-// counts 0 and folds into the meter's honest "Other" remainder.
-//
-// `scoped` counts ONLY the keys the map names. A store with one owner counts every
-// key (the default); the shared 'trustmark-models' store holds two parts' files, so
-// the durable measurement scopes itself to its own encoder and leaves the deep-scan
-// decoders out of its row.
-async function modelStoreBytes(
-  store: string, sizeByFile: Map<string, number>, scoped = false,
-): Promise<{ bytes: number; files: number }> {
-  try {
-    const db = await openDB();
-    const keys = await db.getAllKeys(store);
-    let bytes = 0, files = 0;
-    for (const k of keys) {
-      const size = sizeByFile.get(modelStoredFileName(String(k)));
-      if (size === undefined && scoped) continue;
-      bytes += size ?? 0;
-      files++;
-    }
-    return { bytes, files };
-  } catch { return { bytes: 0, files: 0 }; }
-}
+// Each part's row is modelStoreBytes (lib/model-cache.ts) over its own store, which
+// reads only the keys and sums the roster's declared sizes.
 
 /** Bytes of the staged upscale models currently cached in `upscale-models` IDB. */
 export function upscaleCacheBytes(): Promise<{ bytes: number; files: number }> {
@@ -238,23 +211,6 @@ export function matteCacheBytes(): Promise<{ bytes: number; files: number }> {
   return modelStoreBytes(MATTE_MODEL_STORE, sizeByFile);
 }
 
-/** Bytes of the durable-credential encoder cached in `trustmark-models` IDB. Only
- *  the encoder key is counted - the deep-scan decoders share the store and are the
- *  Verify part's bytes, not this part's. */
-export function durableCacheBytes(): Promise<{ bytes: number; files: number }> {
-  return modelStoreBytes(DURABLE_MODEL_STORE, new Map([[DURABLE_ENCODER_FILE, DURABLE_ENCODER_BYTES]]), true);
-}
-
-/** Is the durable encoder on this device already? Reads only the store's KEYS, so
- *  it never deserialises the ~33 MB blob just to answer - the same trick
- *  trustmark.ts's readiness marker exists for. It cannot see the cache VERSION
- *  (that lives inside the record), so a stale-version entry reads as present and
- *  the next export re-fetches it; the export gate wants "is there a route", not
- *  "are these bytes current". */
-export async function durableModelCached(): Promise<boolean> {
-  const { files } = await durableCacheBytes();
-  return files > 0;
-}
 
 /** Bytes of the singing models cached in `sing-models` IDB, the fp32 fallbacks
  *  included when a song fetched them. */

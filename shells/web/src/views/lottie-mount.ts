@@ -29,9 +29,10 @@
  */
 
 import type { AnimationItem, LottiePlayer } from 'lottie-web';
-import { readLottie, selectLottie, type LottiePackage } from '../../../../engine/src/dotlottie.ts';
+// The dotLottie reader and the edit applier load with the first animation, not with
+// every view that imports this module (the picker, the tool view, Assets).
+import type { LottiePackage } from '../../../../engine/src/dotlottie.ts';
 import { LOTTIE_LIMITS, type LottieAnimation } from '../../../../engine/src/lottie-model.ts';
-import { applyLottieEdits } from '../../../../engine/src/lottie-edit.ts';
 
 interface Entry {
   el: Element;
@@ -82,6 +83,7 @@ export async function fetchLottiePackage(url: string): Promise<LottiePackage> {
       } finally { await reader.cancel(); }
       const bytes = new Uint8Array(size); let offset = 0;
       for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+      const { readLottie } = await import('../../../../engine/src/dotlottie.ts');
       const pkg = readLottie(bytes);
       if (jsonCache.get(url) === p) {
         cacheSizes.set(url, pkg.expandedBytes);
@@ -107,7 +109,9 @@ export async function fetchLottiePackage(url: string): Promise<LottiePackage> {
 }
 
 export async function fetchLottieJson(url: string, animationId?: string): Promise<LottieAnimation> {
-  return selectLottie(await fetchLottiePackage(url), animationId).animation;
+  const pkg = await fetchLottiePackage(url);
+  const { selectLottie } = await import('../../../../engine/src/dotlottie.ts');
+  return selectLottie(pkg, animationId).animation;
 }
 
 function entryFor(el: Element): Entry | null {
@@ -167,6 +171,7 @@ async function mountOne(el: Element, lottie: LottiePlayer, isCurrent: () => bool
   if (prior) destroyEntry(prior); // same node, new asset - remount
 
   if (!isCurrent()) return;
+  const { applyLottieEdits } = await import('../../../../engine/src/lottie-edit.ts');
   const data = await applyLottieEdits(await fetchLottieJson(src, animationId), edits);
   // Re-guard after the await: the paint may have moved on, the node may be
   // orphaned, or a concurrent pass may have mounted this el while we fetched.

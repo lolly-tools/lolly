@@ -106,13 +106,12 @@ function welcomeDoors(withImport: boolean): string {
       </button>` : ''}
       <button type="button" class="welcome-card" data-choice="explore">
         <span class="welcome-card-icon">${icon('eye', { size: 22 })}</span>
-        <span class="welcome-card-kicker">${t('Explore the community tools')}</span>
+        <span class="welcome-card-kicker">${t('Explore the tools')}</span>
         <span class="welcome-card-line">${t('Jump straight in - QR codes, street maps, filters and more, no setup needed.')}</span>
         <span class="welcome-card-cta" aria-hidden="true">${t('Browse the gallery →')}</span>
       </button>
     </div>
     <p class="welcome-privacy">
-      ${t('Everything you make stays on this device.')}
       <button type="button" class="welcome-privacy-link" data-page="2">${t('Private by design')}</button>
     </p>`;
 }

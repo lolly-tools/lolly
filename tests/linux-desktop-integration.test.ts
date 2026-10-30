@@ -14,7 +14,7 @@
  *     and each desktop_ command is reachable (listed in a generate_handler!).
  *  2. shared-mime-info XML - well-formed (parsed here, no xmllint dependency),
  *     declares the canonical MIME + `*.lolly` glob, and the MIME string cannot
- *     drift from LOLLY_MIME in shells/web/src/lib/lolly-pack.ts.
+ *     drift from LOLLY_MIME in shells/web/src/lib/lolly-file-type.ts.
  *  3. .desktop files (linux/ + flatpak/) - [Desktop Entry] first, required keys,
  *     Actions= ids each have a [Desktop Action <id>] block, MimeType lists end
  *     with ';', Exec lines reference the lolly-desktop binary.
@@ -96,7 +96,7 @@ function rel(p: string): string {
 }
 
 /** Read a `export const NAME = '...'` string literal straight from a source file -
- *  importing lolly-pack.ts would drag the whole web-shell module graph into a
+ *  importing the web shell would drag its module graph into a
  *  node:test process for the sake of two constants. A miss FAILS the caller so
  *  the constant cannot silently move out from under this drift guard. */
 function readSourceConst(file: string, name: string): string {
@@ -106,8 +106,8 @@ function readSourceConst(file: string, name: string): string {
   return m![1]!;
 }
 
-const canonicalMime = () => readSourceConst(path.join(WEB_SRC, 'lib/lolly-pack.ts'), 'LOLLY_MIME');
-const canonicalExt = () => readSourceConst(path.join(WEB_SRC, 'lib/lolly-pack.ts'), 'LOLLY_EXT');
+const canonicalMime = () => readSourceConst(path.join(WEB_SRC, 'lib/lolly-file-type.ts'), 'LOLLY_MIME');
+const canonicalExt = () => readSourceConst(path.join(WEB_SRC, 'lib/lolly-file-type.ts'), 'LOLLY_EXT');
 
 // ── Tiny INI parser (freedesktop .desktop / .ini / systemd units) ─────────────
 
@@ -386,10 +386,10 @@ test('mime xml: well-formed and declares the .lolly type + glob', (t) => {
       // Drift trap - any OTHER vnd.lolly MIME string in the XML is a typo'd sibling.
       const strays = [...src.matchAll(/type="(application\/[^"]*lolly[^"]*)"/g)]
         .map((m) => m[1]).filter((v) => v !== mime);
-      assert.deepEqual(strays, [], `${rel(file)} declares a lolly MIME that is not LOLLY_MIME ('${mime}') from shells/web/src/lib/lolly-pack.ts: ${strays.join(', ')}`);
+      assert.deepEqual(strays, [], `${rel(file)} declares a lolly MIME that is not LOLLY_MIME ('${mime}') from shells/web/src/lib/lolly-file-type.ts: ${strays.join(', ')}`);
     }
   }
-  assert.ok(declares, `no mime XML under linux/mime declares <mime-type type="${mime}"> (LOLLY_MIME in shells/web/src/lib/lolly-pack.ts)`);
+  assert.ok(declares, `no mime XML under linux/mime declares <mime-type type="${mime}"> (LOLLY_MIME in shells/web/src/lib/lolly-file-type.ts)`);
   assert.ok(hasGlob, `the ${mime} <mime-type> has no <glob pattern="*${ext}"> - file managers will never match .lolly files`);
 });
 
@@ -639,7 +639,7 @@ test('tauri.conf: bundle.fileAssociations names .lolly with the canonical MIME',
   // Tauri's schema takes bare extensions without the dot.
   const lolly = assocs.find((a) => (a.ext ?? []).some((e) => e.replace(/^\./, '') === 'lolly'));
   assert.ok(lolly, `bundle.fileAssociations exists but no entry covers the 'lolly' extension: ${JSON.stringify(assocs)}`);
-  assert.equal(lolly!.mimeType, canonicalMime(), `fileAssociations mimeType for .lolly must be LOLLY_MIME ('${canonicalMime()}') from shells/web/src/lib/lolly-pack.ts`);
+  assert.equal(lolly!.mimeType, canonicalMime(), `fileAssociations mimeType for .lolly must be LOLLY_MIME ('${canonicalMime()}') from shells/web/src/lib/lolly-file-type.ts`);
 });
 
 // ── 7. systemd example units ──────────────────────────────────────────────────

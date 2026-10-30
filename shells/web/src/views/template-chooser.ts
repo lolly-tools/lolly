@@ -406,7 +406,6 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
         ${tileChromeHtml(null, menuRef)}
         <span class="tmpl-chooser-tile-icon" aria-hidden="true">${icon('filePlus', { size: 22 })}</span>
         <span class="tmpl-chooser-tile-name">${escapeHtml(t('Blank canvas'))}</span>
-        <span class="tmpl-chooser-tile-desc">${escapeHtml(t('Start from scratch.'))}</span>
       </${tag}>`;
     };
 
