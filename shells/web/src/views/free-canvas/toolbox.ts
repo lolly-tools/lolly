@@ -550,6 +550,17 @@ export function buildToolbar(fc: FcCtx): void {
       'fc-btn-pen',
       (b) => fc.penTool.openPenKindMenu(b)
     );
+    // Pencil (Penpot's curve tool, Shift+C): the pen's freehand twin, beside it for the same
+    // reason the Line tool is. A drag draws, the release fits the stroke into an ordinary
+    // editable path box.
+    modeBtns.pencil = toolBtn(fc,
+      t('Pencil (Shift C) - drag to draw a freehand path you can edit afterwards'),
+      SVG.freehand,
+      () => {
+        fc.mode === 'pencil' ? fc.modes.toPointer() : fc.modes.setMode('pencil');
+      },
+      'fc-btn-pencil'
+    );
     // Node tool (Inkscape's N): click a shape to edit its points directly.
     fc.nodeToolBtn = toolBtn(fc, 
       t('Edit points (N) - click a shape to edit its nodes directly'),

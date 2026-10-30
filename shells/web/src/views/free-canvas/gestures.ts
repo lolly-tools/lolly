@@ -96,6 +96,7 @@ export function cancelGesture(fc: FcCtx): void {
     try { fc.canvasEl.releasePointerCapture(pointer); } catch { /* capture already lost */ }
   }
   fc.connectors.endLiveConnectors();
+  if (fc.gesture?.type === 'pencil') fc.pencil.cancel();
   endGesture(fc); fc.chromeSync.renderChrome();
 }
 export function onDblClick(fc: FcCtx, e: MouseEvent): void {
@@ -212,22 +213,11 @@ export function tryPenDrawAt(fc: FcCtx, e: PointerEvent, nat: Point): boolean {
     fc.penTool.penFinishDraw();
     return true;
   }
-  let px = nat.x,
-    py = nat.y;
-  if (fc.gridOn && !e.altKey) {
-    px = fc.stage.gridRound(px);
-    py = fc.stage.gridRound(py);
-  }
-  const snap = snapPoint(
-    px,
-    py,
-    otherAABBs(fc, fc.select.getBoxes(), new Set<number>()) as MathAABB[],
-    fc.helpers.canvasWH(),
-    snapThreshNative(fc),
-    fc.authoringGuides?.snapTargets()
-  );
-  drawGuides(fc, snap.guides);
-  fc.penTool.penPlaceNode(e, { x: snap.x, y: snap.y }, e.altKey);
+  // A press on an open end of an existing path, before anything is drawn, carries that
+  // path on instead of starting a new one (pen-assist.ts).
+  if (!fc.penDraft && fc.penAssist.tryResume(e, nat)) return true;
+  // Grid, guides and the draft's own nodes; or, under Shift, a 15 degree step.
+  fc.penTool.penPlaceNode(e, fc.penAssist.drawPoint(e, nat), e.altKey);
   return true;
 }
 export function tryArmedCreateAt(fc: FcCtx, e: PointerEvent, nat: Point): boolean {
@@ -323,7 +313,7 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent, replay = false):
   const boxes = fc.select.getBoxes();
 
   // Line tool: press starts a line (drag → release attaches to a card or floats free).
-  if (tryLineDrawAt(fc, e, nat)) {
+  if (tryLineDrawAt(fc, e, nat) || fc.pencil.tryPencilAt(e, nat)) {
     e.stopPropagation();
     e.preventDefault();
     return;
@@ -359,7 +349,11 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent, replay = false):
         e.preventDefault();
         return;
       }
-      fc.penHandleSel = new Set<string>();
+      // A plain click makes this handle THE selection, as a plain click on a node does,
+      // so Delete straight after it retracts the handle rather than deleting a node.
+      fc.penHandleSel = new Set([key]);
+      fc.penSel = new Set<number>();
+      fc.ctxSelKey = null;
       fc.penTool.setPathSvgHidden(true);
       beginGesture(fc, e, { type: 'penhandle', origin: nat, index: hh.index, which: hh.which });
       e.stopPropagation();
@@ -384,6 +378,7 @@ export function onCanvasPointerDown(fc: FcCtx, e: PointerEvent, replay = false):
         // plan 96 P3: dragging exactly ONE of the path's two ends is the bind gesture.
         // Two nodes at once is a reshape, and an interior node has no end to attach.
         bindEnd: fc.penTool.bindEndFor(indices),
+        anchor: indices.includes(ni) ? ni : indices[0],
       });
       fc.ctxSelKey = null; // the continuity control reflects the new pick
       fc.chromeSync.renderChrome();
@@ -571,7 +566,7 @@ export function onBackdropPointerDown(fc: FcCtx, e: PointerEvent, replay = false
     e.preventDefault();
     return;
   }
-  if (tryLineDrawAt(fc, e, natBd)) {
+  if (tryLineDrawAt(fc, e, natBd) || fc.pencil.tryPencilAt(e, natBd)) {
     e.stopPropagation();
     e.preventDefault();
     return;
@@ -632,6 +627,9 @@ export function onGestureMove(fc: FcCtx, e: PointerEvent): void {
   if (fc.gesture.type === 'tap') return; // stageNav owns it; only checked on up
   if (fc.gesture.type === 'pinch') fc.pinch.track(e); // either finger, kept from the stage's pinch
   e.preventDefault(); // must be synchronous to suppress scroll/text-select
+  // A pencil stroke wants EVERY sample, not one per frame, so it records them here and
+  // repaints on its own frame (pencil.ts).
+  if (fc.gesture.type === 'pencil') { fc.pencil.sample(e); return; }
   fc.pendingMove = e;
   beginCanvasFeedback(fc.runtime, 'pointer-preview', e.timeStamp);
   if (!fc.moveRaf) fc.moveRaf = requestAnimationFrame(fc.gestures.flushGestureMove);
@@ -720,8 +718,8 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
     }
     const nodes = fc.penDraft.nodes.slice();
     const cur = nodes[i] ?? n; // re-read: the promotion above rebuilds the node array
-    const dx = nat.x - fc.gesture.origin.x,
-      dy = nat.y - fc.gesture.origin.y;
+    // Shift holds the pulled handle to 15 degree steps round its node.
+    const { x: dx, y: dy } = fc.penAssist.pullOffset(nat.x - fc.gesture.origin.x, nat.y - fc.gesture.origin.y, e.shiftKey);
     const at = { ...cur, x: fc.gesture.origin.x, y: fc.gesture.origin.y };
     // Whichever branch runs owns the node's continuity outright: `pullHandles` refuses a
     // `corner` node, and `defaultContinuity` is `'corner'` for every kind except
@@ -742,29 +740,11 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
   }
   if (fc.gesture.type === 'pennode') {
     if (!fc.penEdit) return;
-    // The pointer snaps against sibling boxes and the artboard with the helper and the
-    // `.fc-guides` layer a create or resize drag uses, so a node can be dropped on a
-    // neighbour's edge without a second snapping system existing. Alt suppresses the
-    // snap for a node, as it does for a move.
-    let sx = nat.x,
-      sy = nat.y;
-    if (!e.altKey) {
-      if (fc.gridOn) {
-        sx = fc.stage.gridRound(sx);
-        sy = fc.stage.gridRound(sy);
-      }
-      const snap = snapPoint(
-        sx,
-        sy,
-        otherAABBs(fc, fc.select.getBoxes(), new Set([fc.select.indexOfId(fc.select.getBoxes(), fc.penEdit.id)])) as MathAABB[],
-        fc.helpers.canvasWH(),
-        snapThreshNative(fc),
-        fc.authoringGuides?.snapTargets()
-      );
-      sx = snap.x;
-      sy = snap.y;
-      drawGuides(fc, snap.guides);
-    } else clearGuides(fc);
+    // The pressed node snaps against sibling boxes, the artboard and the path's own still
+    // nodes, with the helper and the `.fc-guides` layer a create or resize drag uses; Alt
+    // suppresses the snap, as it does for a move, and Shift steps the angle from a
+    // neighbouring node instead (pen-assist.ts).
+    const { x: sx, y: sy } = fc.penAssist.nodeDragPoint(fc.gesture, nat, e);
     const fr = fc.penEdit.frame;
     const a = frameToLocal(fr, fc.gesture.origin.x, fc.gesture.origin.y);
     const b = frameToLocal(fr, sx, sy);
@@ -783,9 +763,10 @@ export function applyGestureMove(fc: FcCtx, e: GesturePointer): void {
   if (fc.gesture.type === 'penhandle') {
     if (!fc.penEdit) return;
     // No snapping: a handle is not an object edge, so an alignment guide would be a lie.
-    // `dragHandle` re-applies the node's continuity on EVERY move, which is what
-    // `enforceContinuity` exists for.
-    const loc = frameToLocal(fc.penEdit.frame, nat.x, nat.y);
+    // Shift steps it round its own node. `dragHandle` re-applies the node's continuity on
+    // EVERY move, which is what `enforceContinuity` exists for.
+    const at = fc.penAssist.handleDragPoint(fc.gesture.index, nat, e.shiftKey);
+    const loc = frameToLocal(fc.penEdit.frame, at.x, at.y);
     fc.gesture.moved = true;
     fc.penEdit = {
       ...fc.penEdit,
@@ -1045,6 +1026,11 @@ export function onGestureEnd(fc: FcCtx, e: PointerEvent): void {
   }
   const boxes = fc.select.getBoxes();
 
+  if (g.type === 'pencil') {
+    endGesture(fc);
+    fc.pencil.finish(nat);
+    return;
+  }
   // Pen: placing a node commits NOTHING - the draft is a draft until the path ends, which
   // is what makes the whole drawing one undo step (see `penFinishDraw`).
   if (g.type === 'pendraw') {
@@ -1519,7 +1505,8 @@ export function selectionLocked(fc: FcCtx, boxes: Box[], indices: readonly numbe
   return indices.some((i) => designHierarchyFlags(index, fc.select.idOf(boxes[i], i)).locked);
 }
 /** The gestures a modifier key re-applies mid-drag. */
-const REAPPLY_TYPES = new Set<Gesture['type']>(['move', 'resize', 'rotate', 'gscale', 'grotate']);
+// The pen's three drags read Shift for their 15 degree steps, so they replay too.
+const REAPPLY_TYPES = new Set<Gesture['type']>(['move', 'resize', 'rotate', 'gscale', 'grotate', 'pendraw', 'pennode', 'penhandle']);
 const MODIFIER_KEYS = new Set(['Shift', 'Alt', 'Meta', 'Control']);
 /** Listen for modifier keys for the life of one transform gesture; endGesture removes them. */
 function armModifierKeys(fc: FcCtx): void {
@@ -1589,6 +1576,14 @@ export function onHandlePointerDown(fc: FcCtx, e: PointerEvent, handle: HandleNa
   e.stopPropagation();
   if (e.button > 0) return;
   fc.lastPointerKind = e.pointerType || '';
+  // With the Pen or the Pencil out, every press draws, a press on a handle of the shape
+  // just drawn included: that handle sits on the path's end, which is exactly where a
+  // press carries the path on.
+  if (fc.mode === 'pen' || fc.mode === 'pencil') {
+    const nat = fc.stage.clientToNative(e.clientX, e.clientY);
+    if (tryPenDrawAt(fc, e, nat) || fc.pencil.tryPencilAt(e, nat)) e.preventDefault();
+    return;
+  }
   // Under large grab zones the zone beneath a resize handle takes the press (zones.ts).
   if (handle !== 'rotate' && fc.zones?.handlePress(e)) return;
   const boxes = fc.select.getBoxes();

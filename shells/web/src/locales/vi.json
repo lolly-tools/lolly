@@ -10333,5 +10333,13 @@
   "Make default": "Đặt làm mặc định",
   "{name} is now the default": "{name} giờ là mặc định",
   "Text, fingerprinted": "Văn bản, dạng dấu vân tay",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Văn bản đã nhập chỉ được ghi dưới dạng dấu vân tay, nên bản thân các từ không có trong tệp."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Văn bản đã nhập chỉ được ghi dưới dạng dấu vân tay, nên bản thân các từ không có trong tệp.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Bút chì (Shift C) - kéo để vẽ một đường tự do mà bạn có thể chỉnh sửa sau",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Bút chì đang bật - kéo để vẽ một đường tự do mà bạn có thể chỉnh sửa sau. Nhấn Esc để hoàn tất.",
+  "Freehand path added. Double-click it to edit its points.": "Đã thêm đường vẽ tự do. Nhấp đúp vào đó để chỉnh sửa các điểm.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Đang vẽ tiếp đường này. Nhấp để thêm điểm, Enter để hoàn tất, Esc để giữ nguyên như cũ.",
+  "Handle removed. That side of the point is a corner now.": "Đã xóa tay cầm. Phía đó của điểm giờ là một góc.",
+  "{n} handles removed. Those points are corners now.": "Đã xóa {n} tay cầm. Các điểm đó giờ là góc.",
+  "Pencil tool": "Công cụ bút chì",
+  "While drawing or dragging points: angles in 15 degree steps": "Khi vẽ hoặc kéo điểm: góc theo bước 15 độ"
 }

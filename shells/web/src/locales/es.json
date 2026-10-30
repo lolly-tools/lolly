@@ -10333,5 +10333,13 @@
   "Make default": "Establecer como predeterminado",
   "{name} is now the default": "{name} es ahora el predeterminado",
   "Text, fingerprinted": "Texto, como huella",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "El texto escrito solo se registra como huella, así que las palabras no están en el archivo."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "El texto escrito solo se registra como huella, así que las palabras no están en el archivo.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Lápiz (Shift C) - arrastra para dibujar un trazado a mano alzada que puedes editar después",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Lápiz activo - arrastra para dibujar un trazado a mano alzada que puedes editar después. Esc para terminar.",
+  "Freehand path added. Double-click it to edit its points.": "Trazado a mano alzada añadido. Haz doble clic en él para editar sus puntos.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Continuando este trazado. Haz clic para añadir puntos, Intro para terminar, Esc para dejarlo como estaba.",
+  "Handle removed. That side of the point is a corner now.": "Manejador eliminado. Ese lado del punto ahora es una esquina.",
+  "{n} handles removed. Those points are corners now.": "{n} manejadores eliminados. Esos puntos ahora son esquinas.",
+  "Pencil tool": "Herramienta Lápiz",
+  "While drawing or dragging points: angles in 15 degree steps": "Al dibujar o arrastrar puntos: ángulos en pasos de 15 grados"
 }

@@ -1030,6 +1030,7 @@ html[data-a11y-motion="reduce"] .fc-zone { animation: none; }
 .fc-pen-arm[hidden] { display: none; }
 /* Armed pen / node-edit cursors, matching .fc-arming's vocabulary. */
 .tool-stage.fc-penning { cursor: crosshair; }
+.tool-stage.fc-penciling { cursor: crosshair; }
 .tool-stage.fc-node-editing { cursor: default; }
 /* A max-width capping a list of worded options (corner / smooth / symmetric) - it
    has to follow the type or the wider labels are what gets cut. */
@@ -2025,7 +2026,7 @@ button.fc-readout:empty { display: none; }
    tall tool preview still pans normally on a phone. Full touch pan/pinch for
    the dense editors is the plans/132 wave-2 triage follow-up, not this rule. */
 @media (pointer: coarse) {
-  .tool-stage:is(.fc-arming, .fc-connecting, .fc-lining, .fc-penning, .fc-node-editing, .is-grabbable) {
+  .tool-stage:is(.fc-arming, .fc-connecting, .fc-lining, .fc-penning, .fc-penciling, .fc-node-editing, .is-grabbable) {
     touch-action: none;
   }
 }

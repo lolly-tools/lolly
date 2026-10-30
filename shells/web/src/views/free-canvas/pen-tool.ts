@@ -87,6 +87,7 @@ export function enterPen(fc: FcCtx): void {
 }
 export function exitPen(fc: FcCtx): void {
   const { stageEl } = fc;
+  fc.penAssist.cancelResume();
   fc.penDraft = null;
   fc.penCursor = null;
   fc.penWarm = null;
@@ -111,9 +112,15 @@ export function penPlaceNode(fc: FcCtx, e: PointerEvent, at: Point, corner: bool
   syncPenChrome(fc);
 }
 /** Drop the last placed node (Backspace/Delete while drawing). The last one leaving
- *  ends the draw, because an empty draft is not a draft. */
+ *  ends the draw, because an empty draft is not a draft. A draft carrying on an existing
+ *  path stops at that path's own nodes: one press past the last new node ends the
+ *  continuation and leaves the path as it was. */
 export function penUndoNode(fc: FcCtx): void {
   if (!fc.penDraft) return;
+  if (fc.penContinuing && fc.penDraft.nodes.length <= fc.penAssist.resumeBase()) {
+    penCancelDraw(fc);
+    return;
+  }
   const nodes = fc.penDraft.nodes.slice(0, -1);
   if (!nodes.length) {
     fc.penDraft = null;
@@ -140,9 +147,12 @@ export function penFinishDraw(fc: FcCtx): void {
   fc.penWarm = null;
   fc.gestures.clearGuides();
   if (!draft) {
+    fc.penAssist.cancelResume();
     fc.chromeSync.renderChrome();
     return;
   }
+  // A continued path goes back onto its own box; anything else is a new one.
+  if (fc.penAssist.finishResume(draft)) return;
   if (!commitPathBox(fc, draft)) fc.chromeSync.renderChrome();
 }
 /**
@@ -219,8 +229,10 @@ export function drawnInkHex(fc: FcCtx): string {
     return resolveDrawnInk(null);
   }
 }
-/** Abandon the draw. Nothing was ever written, so there is nothing to undo. */
+/** Abandon the draw. Nothing was ever written, so there is nothing to undo, and a path
+ *  that was being carried on is shown again exactly as it was. */
 export function penCancelDraw(fc: FcCtx): void {
+  fc.penAssist.cancelResume();
   fc.penDraft = null;
   fc.penCursor = null;
   fc.penWarm = null;
@@ -675,8 +687,8 @@ export function openPenNodeMenu(fc: FcCtx, clientX: number, clientY: number): vo
     label: t('Delete the selected points'),
     icon: icon(SVG.trash),
     danger: true,
-    disabled: !fc.penSel.size,
-    run: () => penDeleteSelected(fc),
+    disabled: !fc.penSel.size && !fc.penHandleSel.size,
+    run: () => penDeleteOrRetract(fc),
   });
   fc.popover = document.createElement('div');
   fc.popover.className = 'fc-popover fc-context-menu';
@@ -692,6 +704,12 @@ export function openPenNodeMenu(fc: FcCtx, clientX: number, clientY: number): vo
     Math.max(6, Math.min(clientX - sr.left, sr.width - fc.popover.offsetWidth - 6)) + 'px';
   fc.popover.style.top =
     Math.max(6, Math.min(clientY - sr.top, sr.height - fc.popover.offsetHeight - 6)) + 'px';
+}
+/** Delete the selected nodes, or with only handles selected, retract those handles: the
+ *  one action behind Delete, the bar's bin button and the right-click menu. */
+export function penDeleteOrRetract(fc: FcCtx): void {
+  if (fc.penSel.size) penDeleteSelected(fc);
+  else fc.penAssist.retractSelectedHandles();
 }
 export function penSetContinuity(fc: FcCtx, c: Continuity): void {
   if (!fc.penEdit || !fc.penSel.size) return;
@@ -829,7 +847,7 @@ export function penEditHeadsSvg(fc: FcCtx, contours: AuthoredPath[]): string {
  *  edited path's live outline while node-editing. */
 export function paintPen(fc: FcCtx): void {
   const { penLayer } = fc;
-  if (!fc.penDraft && !fc.penEdit) {
+  if (!fc.penDraft && !fc.penEdit && !fc.pencilStroke) {
     if (penLayer.style.display !== 'none') {
       penLayer.style.display = 'none';
       penLayer.innerHTML = '';
@@ -840,6 +858,12 @@ export function paintPen(fc: FcCtx): void {
   fc.connectors.placeNativeLayer(penLayer, m);
   const sw = 1.6 / (m.scale || 1); // constant SCREEN width at any zoom
   let body = '';
+  if (fc.pencilStroke) {
+    // The Pencil's live trace, as recorded: a polyline, since the fit runs on release.
+    const pts = fc.pencilStroke;
+    const d = pts.map((p, k) => `${k ? 'L' : 'M'}${fc.connectors.cf2(p.x)} ${fc.connectors.cf2(p.y)}`).join('');
+    body += `<path d="${escapeText(d)}" fill="none" stroke="currentColor" stroke-width="${fc.connectors.cf2(sw)}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
   if (fc.penDraft) {
     // The cursor is included as a real node, so the preview is what committing here
     // would actually produce - for a hyperbezier that means the WHOLE run re-solves,
@@ -1207,7 +1231,7 @@ export function buildPenCtxBar(fc: FcCtx, p: AuthoredPath): void {
           ? `<button type="button" class="fc-cbtn${fc.penSelectHandles ? ' is-on' : ''}" data-pen="handlesel" aria-pressed="${fc.penSelectHandles}" data-tip="${escapeText(fc.penSelectHandles ? t('Selecting nodes and control points - click for nodes only') : t('Selecting nodes only - click to include control points'))}" aria-label="${escapeText(t('Include control points in a marquee selection'))}">${icon(SVG.nodes)}</button>`
           : '') +
         `<button type="button" class="fc-cbtn" data-pen="arrange"${selPts >= 2 ? '' : ' disabled'} data-tip="${escapeText(t('Align and distribute the selected points'))}" aria-label="${escapeText(t('Align and distribute the selected points'))}">${icon(SVG.align)}</button>` +
-        `<button type="button" class="fc-cbtn fc-danger" data-pen="del"${selN ? '' : ' disabled'} data-tip="${escapeText(t('Delete the selected points'))}" aria-label="${escapeText(t('Delete the selected points'))}">${icon(SVG.trash)}</button>`) +
+        `<button type="button" class="fc-cbtn fc-danger" data-pen="del"${selN || fc.penHandleSel.size ? '' : ' disabled'} data-tip="${escapeText(t('Delete the selected points'))}" aria-label="${escapeText(t('Delete the selected points'))}">${icon(SVG.trash)}</button>`) +
     '<span class="fc-sep fc-sep-v"></span>' +
     `<button type="button" class="fc-cbtn" data-pen="done" data-tip="${escapeText(drawing ? t('Finish this path (Enter)') : t('Finish editing points (Esc)'))}" aria-label="${escapeText(drawing ? t('Finish this path') : t('Finish editing points'))}">${icon(SVG.penDone)}</button>` +
     `<span class="fc-readout">${escapeText(
@@ -1253,7 +1277,7 @@ export function buildPenCtxBar(fc: FcCtx, p: AuthoredPath): void {
         fc.ctxSelKey = null;
         fc.chromeSync.renderChrome();
       } else if (which === 'arrange') openPenArrangeMenu(fc, b);
-      else if (which === 'del') penDeleteSelected(fc);
+      else if (which === 'del') penDeleteOrRetract(fc);
       else if (which === 'done') {
         if (fc.penDraft) penFinishDraw(fc);
         else endPenEdit(fc);
@@ -1304,6 +1328,7 @@ export function penToolOps(fc: FcCtx) {
     penHandleAt: bindOp(fc, penHandleAt),
     penInsertAt: bindOp(fc, penInsertAt),
     penDeleteSelected: bindOp(fc, penDeleteSelected),
+    penDeleteOrRetract: bindOp(fc, penDeleteOrRetract),
     penPointRefs: bindOp(fc, penPointRefs),
     penArrangeItems: bindOp(fc, penArrangeItems),
     openPenArrangeMenu: bindOp(fc, openPenArrangeMenu),

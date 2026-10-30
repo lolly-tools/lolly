@@ -1824,5 +1824,13 @@
   "Make default": "Varsayılan yap",
   "{name} is now the default": "{name} artık varsayılan",
   "Text, fingerprinted": "Metin, parmak izi olarak",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Yazılan metin yalnızca parmak izi olarak kaydedilir, bu yüzden sözcüklerin kendisi dosyada yoktur."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Yazılan metin yalnızca parmak izi olarak kaydedilir, bu yüzden sözcüklerin kendisi dosyada yoktur.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Kurşun kalem (Shift C) - sonradan düzenleyebileceğin serbest bir yol çizmek için sürükle",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Kurşun kalem açık - sonradan düzenleyebileceğin serbest bir yol çizmek için sürükle. Bitirmek için Esc.",
+  "Freehand path added. Double-click it to edit its points.": "Serbest çizim yolu eklendi. Noktalarını düzenlemek için çift tıkla.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Bu yola devam ediliyor. Nokta eklemek için tıkla, bitirmek için Enter, olduğu gibi bırakmak için Esc.",
+  "Handle removed. That side of the point is a corner now.": "Tutamaç kaldırıldı. Noktanın o tarafı artık bir köşe.",
+  "{n} handles removed. Those points are corners now.": "{n} tutamaç kaldırıldı. Bu noktalar artık köşe.",
+  "Pencil tool": "Kurşun kalem aracı",
+  "While drawing or dragging points: angles in 15 degree steps": "Çizerken veya noktaları sürüklerken: 15 derecelik adımlarla açılar"
 }

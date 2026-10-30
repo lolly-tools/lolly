@@ -1695,5 +1695,13 @@
   "Make default": "ڈیفالٹ بنائیں",
   "{name} is now the default": "{name} اب ڈیفالٹ ہے",
   "Text, fingerprinted": "متن، فنگر پرنٹ کے طور پر",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "لکھا ہوا متن صرف فنگر پرنٹ کے طور پر محفوظ ہوتا ہے، اس لیے الفاظ فائل میں نہیں ہوتے۔"
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "لکھا ہوا متن صرف فنگر پرنٹ کے طور پر محفوظ ہوتا ہے، اس لیے الفاظ فائل میں نہیں ہوتے۔",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "پنسل (Shift C) - فری ہینڈ پاتھ بنانے کے لیے گھسیٹیں جسے آپ بعد میں ترمیم کر سکتے ہیں",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "پنسل آن - فری ہینڈ پاتھ بنانے کے لیے گھسیٹیں جسے آپ بعد میں ترمیم کر سکتے ہیں۔ ختم کرنے کے لیے Esc دبائیں۔",
+  "Freehand path added. Double-click it to edit its points.": "فری ہینڈ پاتھ شامل ہو گیا۔ اس کے پوائنٹس میں ترمیم کے لیے اس پر ڈبل کلک کریں۔",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "یہ پاتھ جاری ہے۔ پوائنٹس شامل کرنے کے لیے کلک کریں، مکمل کرنے کے لیے Enter، پہلے جیسا چھوڑنے کے لیے Esc۔",
+  "Handle removed. That side of the point is a corner now.": "ہینڈل ہٹا دیا گیا۔ پوائنٹ کا وہ حصہ اب ایک کونا ہے۔",
+  "{n} handles removed. Those points are corners now.": "{n} ہینڈلز ہٹا دیے گئے۔ وہ پوائنٹس اب کونے ہیں۔",
+  "Pencil tool": "پنسل ٹول",
+  "While drawing or dragging points: angles in 15 degree steps": "ڈرا کرتے یا پوائنٹس گھسیٹتے وقت: 15 ڈگری کے مراحل میں زاویے"
 }

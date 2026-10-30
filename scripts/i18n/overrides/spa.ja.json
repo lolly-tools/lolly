@@ -1696,5 +1696,13 @@
   "Make default": "デフォルトにする",
   "{name} is now the default": "{name}をデフォルトにしました",
   "Text, fingerprinted": "テキスト（フィンガープリント）",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "入力したテキストはフィンガープリントとしてのみ記録されるため、文字そのものはファイルに含まれません。"
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "入力したテキストはフィンガープリントとしてのみ記録されるため、文字そのものはファイルに含まれません。",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "鉛筆 (Shift C) - ドラッグしてフリーハンドのパスを描きます。あとから編集できます",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "鉛筆が有効 - ドラッグしてフリーハンドのパスを描きます。あとから編集できます。Escで終了。",
+  "Freehand path added. Double-click it to edit its points.": "フリーハンドのパスを追加しました。ダブルクリックすると点を編集できます。",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "このパスの続きを描いています。クリックで点を追加、Enter で完成、Esc で元のままにします。",
+  "Handle removed. That side of the point is a corner now.": "ハンドルを削除しました。点のその側はコーナーになりました。",
+  "{n} handles removed. Those points are corners now.": "{n} 個のハンドルを削除しました。それらの点はコーナーになりました。",
+  "Pencil tool": "鉛筆ツール",
+  "While drawing or dragging points: angles in 15 degree steps": "描画中や点のドラッグ中: 角度を15度ずつに"
 }

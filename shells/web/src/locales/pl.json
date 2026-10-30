@@ -10333,5 +10333,13 @@
   "Make default": "Ustaw jako domyślny",
   "{name} is now the default": "{name} jest teraz domyślny",
   "Text, fingerprinted": "Tekst, jako odcisk",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Wpisany tekst jest zapisywany tylko jako odcisk, więc samych słów nie ma w pliku."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Wpisany tekst jest zapisywany tylko jako odcisk, więc samych słów nie ma w pliku.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Ołówek (Shift C) - przeciągnij, aby narysować odręczną ścieżkę, którą możesz potem edytować",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Ołówek włączony - przeciągnij, aby narysować odręczną ścieżkę, którą możesz potem edytować. Esc, by zakończyć.",
+  "Freehand path added. Double-click it to edit its points.": "Dodano odręczną ścieżkę. Kliknij ją dwukrotnie, aby edytować jej punkty.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Kontynuujesz tę ścieżkę. Kliknij, aby dodać punkty, Enter, aby zakończyć, Esc, aby zostawić ją bez zmian.",
+  "Handle removed. That side of the point is a corner now.": "Usunięto uchwyt. Ta strona punktu jest teraz narożnikiem.",
+  "{n} handles removed. Those points are corners now.": "Usunięte uchwyty: {n}. Te punkty są teraz narożnikami.",
+  "Pencil tool": "Narzędzie Ołówek",
+  "While drawing or dragging points: angles in 15 degree steps": "Podczas rysowania lub przeciągania punktów: kąty co 15 stopni"
 }

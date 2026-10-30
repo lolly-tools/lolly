@@ -46,6 +46,7 @@ export function setMode(fc: FcCtx,
   // the pen is - `pathField` - and no longer on the connectors input it used to write to.
   if (next === 'line' && !cfg.pathField) return;
   if (next === 'pen' && !cfg.pathField) return;
+  if (next === 'pencil' && !cfg.pathField) return;
   if (next === 'create' && !o.kind && !fc.armedKind) return;
   if (next !== 'select') fc.nodeToolActive = false; // any other tool exits the Node tool
   const from = fc.mode;
@@ -63,12 +64,16 @@ export function setMode(fc: FcCtx,
     // nulls `gesture`, so onGestureEnd early-returns on release; the browser auto-releases
     // the pointer capture. Scoped to these two so select-mode move/resize/rotate is
     // untouched (those never coexist with a tool switch), as is pen's own draft handling.
-    if (fc.gesture && (fc.gesture.type === 'create' || fc.gesture.type === 'line')) fc.gestures.endGesture();
+    // A pencil stroke in flight is dropped the same way: it is the stroke's own release
+    // that commits it, and that release now belongs to no gesture.
+    if (fc.gesture && (fc.gesture.type === 'create' || fc.gesture.type === 'line' || fc.gesture.type === 'pencil')) fc.gestures.endGesture();
     if (from === 'create') exitCreate(fc);
     else if (from === 'pen') fc.penTool.exitPen();
     else if (from === 'line') exitLine(fc);
+    else if (from === 'pencil') fc.pencil.exitPencil();
     if (next === 'pen') fc.penTool.enterPen();
     else if (next === 'line') enterLine(fc);
+    else if (next === 'pencil') fc.pencil.enterPencil();
   }
   if (next === 'create') enterCreate(fc, o.kind);
   syncModeUI(fc);
@@ -192,6 +197,7 @@ export function syncModeUI(fc: FcCtx): void {
   flag(modeBtns.create, fc.mode === 'create');
   flag(modeBtns.pen, fc.mode === 'pen');
   flag(modeBtns.line, fc.mode === 'line');
+  flag(modeBtns.pencil, fc.mode === 'pencil');
   flag(fc.nodeToolBtn, fc.nodeToolActive);
   // A tool switch need not repaint the chrome, and only the pointer has grab zones: the
   // handles take their own presses again in any other tool (plan 311, zones.ts).

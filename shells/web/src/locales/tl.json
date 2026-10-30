@@ -10333,5 +10333,13 @@
   "Make default": "Gawing default",
   "{name} is now the default": "Default na ngayon ang {name}",
   "Text, fingerprinted": "Teksto, bilang fingerprint",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Ang tinipang teksto ay itinatala lamang bilang fingerprint, kaya wala sa file ang mismong mga salita."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Ang tinipang teksto ay itinatala lamang bilang fingerprint, kaya wala sa file ang mismong mga salita.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Lapis (Shift C) - i-drag para gumuhit ng freehand na path na mae-edit mo pagkatapos",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Naka-on ang Lapis - i-drag para gumuhit ng freehand na path na mae-edit mo pagkatapos. Esc para matapos.",
+  "Freehand path added. Double-click it to edit its points.": "Naidagdag ang freehand na path. I-double-click ito para i-edit ang mga point nito.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Itinutuloy ang path na ito. I-click para magdagdag ng point, Enter para tapusin, Esc para iwan ito gaya ng dati.",
+  "Handle removed. That side of the point is a corner now.": "Inalis ang handle. Kanto na ngayon ang gilid na iyon ng point.",
+  "{n} handles removed. Those points are corners now.": "Inalis ang {n} handle. Kanto na ngayon ang mga point na iyon.",
+  "Pencil tool": "Tool na lapis",
+  "While drawing or dragging points: angles in 15 degree steps": "Habang gumuguhit o nagda-drag ng point: anggulo nang 15 degree bawat hakbang"
 }

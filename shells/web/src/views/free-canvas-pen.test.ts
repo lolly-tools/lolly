@@ -1749,3 +1749,356 @@ test('the two-finger-tap context menu still works with the pen armed', () => {
   assert.equal(penNodEls(f), 0, 'and the tap placed no node');
   f.destroy();
 });
+
+// ══ wired: the pen's assists and the Pencil ═══════════════════════════════════
+//
+// Shift's 15 degree steps, node snapping, carrying a path on from an open end, retracting
+// handles, undo mid-draw and the freehand Pencil, each through the real overlay. The pure
+// arithmetic is pinned in free-canvas-pen-ops.test.ts and free-canvas-pencil.test.ts;
+// these check that the gestures reach it and commit once.
+
+/** Down, one move, up, with Shift (or Alt) held exactly where asked. */
+function dragWith(
+  f: Fixture, a: [number, number], b: [number, number],
+  o: { downShift?: boolean; moveShift?: boolean; alt?: boolean } = {},
+): void {
+  f.canvasEl.dispatchEvent(pointerEvent('pointerdown', { x: a[0], y: a[1], shift: o.downShift, alt: o.alt }));
+  f.canvasEl.dispatchEvent(pointerEvent('pointermove', { x: b[0], y: b[1], shift: o.moveShift, alt: o.alt }));
+  f.canvasEl.dispatchEvent(pointerEvent('pointerup', { x: b[0], y: b[1], shift: o.moveShift, alt: o.alt }));
+  frames();
+}
+const keyWith = (k: string, mods: { meta?: boolean; shift?: boolean } = {}): void => {
+  dom.window.dispatchEvent(new W.KeyboardEvent('keydown', { key: k, bubbles: true, metaKey: !!mods.meta, shiftKey: !!mods.shift }));
+};
+const angleDeg = (a: { x: number; y: number }, b: { x: number; y: number }): number =>
+  (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
+
+test('Shift while placing holds the new segment to 15 degree steps from the node before it', () => {
+  const f = mount([]);
+  armPen(f);
+  place(f, 200, 200);
+  frames();
+  // 3.7 degrees below horizontal: the step is 0, and the node goes to the projection.
+  dragWith(f, [400, 213], [400, 213], { downShift: true, moveShift: true });
+  // 50 degrees from the last node: the step is 45.
+  const r = (50 * Math.PI) / 180;
+  dragWith(f, [400 + Math.cos(r) * 100, 200 + Math.sin(r) * 100], [400 + Math.cos(r) * 100, 200 + Math.sin(r) * 100], { downShift: true, moveShift: true });
+  key('Enter');
+  frames();
+  const pts = nativeNodes(pathBoxes(f)[0]!);
+  assertClose(pts[1]!, { x: 400, y: 200 }, 2e-3, 'the second node sits level with the first');
+  assert.ok(Math.abs(angleDeg(pts[1]!, pts[2]!) - 45) < 1e-3, `the third segment is at 45 degrees (${angleDeg(pts[1]!, pts[2]!)})`);
+  f.destroy();
+});
+
+test('Shift during the pull holds the handle to 15 degree steps round its node', () => {
+  const f = mount([]);
+  armPen(f);
+  // A pull of (40, 25) is 32 degrees: the step is 30.
+  dragWith(f, [200, 200], [240, 225], { moveShift: true });
+  place(f, 400, 300);
+  frames();
+  key('Enter');
+  frames();
+  const box = pathBoxes(f)[0]!;
+  const n0 = nativeNodes(box)[0]!;
+  const h = nativeHandle(box, 0, 'out')!;
+  assert.ok(Math.abs(angleDeg(n0, h) - 30) < 1e-3, `the out handle leaves at 30 degrees (${angleDeg(n0, h)})`);
+  f.destroy();
+});
+
+test('Shift while dragging a node steps its angle from the still neighbour', () => {
+  const f = mount([cubicBox()]);
+  enterNodeEdit(f, [400, 480]);
+  const commits = f.commits();
+  // Node 1 at (400, 300); its previous neighbour, node 0, is at (300, 500).
+  dragWith(f, [400, 300], [430, 340], { moveShift: true });
+  assert.equal(f.commits() - commits, 1, 'one commit');
+  const pts = nativeNodes(f.boxes()[0]!);
+  assert.ok(Math.abs(angleDeg(pts[0]!, pts[1]!) + 45) < 1e-3, `node 1 is at -45 degrees from node 0 (${angleDeg(pts[0]!, pts[1]!)})`);
+  assertClose(pts[1]!, { x: 300 + 145, y: 500 - 145 }, 0.05, 'and on the projection of the pointer');
+  f.destroy();
+});
+
+test('Shift while dragging a handle steps it round its own node', () => {
+  const f = mount([cubicBox()]);
+  enterNodeEdit(f, [400, 480]);
+  // Node 1's out handle tip is at (440, 300). (70, 30) from the node is 23 degrees: step 30.
+  dragWith(f, [440, 300], [470, 330], { moveShift: true });
+  const box = f.boxes()[0]!;
+  const n1 = nativeNodes(box)[1]!;
+  const h = nativeHandle(box, 1, 'out')!;
+  assert.ok(Math.abs(angleDeg(n1, h) - 30) < 1e-3, `the handle is at 30 degrees (${angleDeg(n1, h)})`);
+  f.destroy();
+});
+
+test('Shift-click on a node still adds it to the selection', () => {
+  const f = mount([cubicBox()]);
+  enterNodeEdit(f, [400, 480]);
+  place(f, 300, 500);
+  frames();
+  f.canvasEl.dispatchEvent(pointerEvent('pointerdown', { x: 500, y: 500, shift: true }));
+  f.canvasEl.dispatchEvent(pointerEvent('pointerup', { x: 500, y: 500, shift: true }));
+  frames();
+  assert.equal(penNodeEls(f).filter((el) => el.classList.contains('is-on')).length, 2, 'both ends are selected');
+  f.destroy();
+});
+
+test('a placed node snaps to the other nodes of the path being drawn', () => {
+  const f = mount([]);
+  armPen(f);
+  place(f, 200, 200);
+  frames();
+  place(f, 400, 300);
+  frames();
+  place(f, 203, 420); // 3px right of the first node's x
+  frames();
+  key('Enter');
+  frames();
+  const pts = nativeNodes(pathBoxes(f)[0]!);
+  assert.ok(Math.abs(pts[2]!.x - 200) < 2e-3, `the third node lines up with the first (${pts[2]!.x})`);
+  assert.ok(Math.abs(pts[2]!.y - 420) < 2e-3, 'and keeps its own y');
+  f.destroy();
+});
+
+test('a dragged node snaps to the path\'s still nodes, and Alt turns that off', () => {
+  // Nodes at (100, 300), (200, 100) and (300, 300): clear of the artboard's 0/500/1000 lines.
+  const f = mount([cubicBox({ x: 100, y: 100 })]);
+  enterNodeEdit(f, [200, 280]);
+  dragWith(f, [200, 100], [204, 296]);
+  let pts = nativeNodes(f.boxes()[0]!);
+  assertClose(pts[1]!, { x: 204, y: 300 }, 2e-3, 'the node landed level with the two ends');
+  dragWith(f, [204, 300], [210, 296], { alt: true });
+  pts = nativeNodes(f.boxes()[0]!);
+  assertClose(pts[1]!, { x: 210, y: 296 }, 2e-3, 'with Alt it goes exactly where the pointer did');
+  f.destroy();
+});
+
+test('pressing an open END with the pen carries that path on, as one commit to the same box', () => {
+  const f = mount([cubicBox()]);
+  const before = structuredClone(f.boxes());
+  const old = nativeNodes(before[0]!);
+  armPen(f);
+  const commits = f.commits();
+  place(f, 500, 500); // node 2, the path's end
+  frames();
+  assert.equal(penNodEls(f), 3, 'the path is now the draft');
+  place(f, 600, 410);
+  frames();
+  assert.equal(f.commits(), commits, 'nothing is written while drawing');
+  key('Enter');
+  frames();
+  assert.equal(f.commits() - commits, 1, 'one write for the whole continuation');
+  const boxes = pathBoxes(f);
+  assert.equal(boxes.length, 1, 'no second box');
+  const box = boxes[0]!;
+  assert.equal(box.id, 'p1', 'the same box, so its id and everything hung on it stay');
+  assert.equal(box.stroke, '#000', 'and its paint');
+  const pts = nativeNodes(box);
+  assert.equal(pts.length, 4);
+  old.forEach((p, i) => { assertClose(pts[i]!, p, 2e-3, `old node ${i} did not move`); });
+  assertClose(pts[3]!, { x: 600, y: 410 }, 2e-3, 'the new node follows the old end');
+  f.undo();
+  assert.deepEqual(f.boxes(), before, 'one undo puts the path back as it was');
+  f.destroy();
+});
+
+test('carrying on from the START puts the new nodes in front of the first one', () => {
+  const f = mount([cubicBox()]);
+  const old = nativeNodes(f.boxes()[0]!);
+  armPen(f);
+  place(f, 300, 500); // node 0, the path's start
+  frames();
+  place(f, 200, 610);
+  frames();
+  key('Enter');
+  frames();
+  const box = pathBoxes(f)[0]!;
+  const p = decoded(box);
+  assert.equal(p.closed, false);
+  const pts = nativeNodes(box);
+  assert.equal(pts.length, 4);
+  assertClose(pts[0]!, { x: 200, y: 610 }, 2e-3, 'the new node is first');
+  old.forEach((q, i) => { assertClose(pts[i + 1]!, q, 2e-3, `old node ${i} follows, in its old order`); });
+  // Reversed and reversed back: the old curve's handles are where they were.
+  const fr = frameOf(box);
+  const n = denormNodes(p, fr.w, fr.h).nodes[2]!;
+  assert.ok(Math.abs(n.hOutX! - 40) < 1e-2 && Math.abs(n.hOutY ?? 0) < 1e-2, 'node 1 kept its outgoing handle');
+  f.destroy();
+});
+
+test('a continuation clicked shut on the far end closes the path', () => {
+  const f = mount([cubicBox()]);
+  armPen(f);
+  place(f, 500, 500);
+  frames();
+  place(f, 400, 610);
+  frames();
+  place(f, 300, 500); // the far end, i.e. the draft's first node
+  frames();
+  const p = decoded(pathBoxes(f)[0]!);
+  assert.equal(p.closed, true);
+  assert.equal(p.nodes.length, 4);
+  f.destroy();
+});
+
+test('Backspace takes back only the new nodes; Escape leaves the path exactly as it was', () => {
+  const f = mount([cubicBox()]);
+  const before = structuredClone(f.boxes());
+  armPen(f);
+  place(f, 500, 500);
+  frames();
+  place(f, 600, 410);
+  frames();
+  const commits = f.commits();
+  key('Backspace');
+  frames();
+  assert.equal(penNodEls(f), 3, 'the new node went, the old three stay');
+  key('Backspace');
+  frames();
+  assert.equal(penNodEls(f), 0, 'one more press ends the continuation');
+  assert.equal(f.commits(), commits, 'having written nothing');
+  assert.deepEqual(f.boxes(), before);
+
+  place(f, 500, 500);
+  frames();
+  place(f, 600, 410);
+  frames();
+  key('Escape');
+  frames();
+  assert.equal(f.commits(), commits, 'Escape writes nothing either');
+  assert.deepEqual(f.boxes(), before);
+  f.destroy();
+});
+
+test('with the pen out, a press on the selected path\'s resize handle carries the path on', () => {
+  const f = mount([]);
+  armPen(f);
+  place(f, 200, 200);
+  frames();
+  place(f, 400, 300);
+  frames();
+  key('Enter');
+  frames();
+  // The path just drawn is selected, so a resize handle sits on its end point.
+  const handle = f.stageEl.querySelector<HTMLElement>('.fc-chrome .fc-handle');
+  assert.ok(handle, 'the new path shows its selection handles');
+  handle!.dispatchEvent(pointerEvent('pointerdown', { x: 400, y: 300 }));
+  f.canvasEl.dispatchEvent(pointerEvent('pointerup', { x: 400, y: 300 }));
+  frames();
+  assert.equal(penNodEls(f), 2, 'the press took up the path rather than resizing the box');
+  place(f, 520, 420);
+  frames();
+  key('Enter');
+  frames();
+  const boxes = pathBoxes(f);
+  assert.equal(boxes.length, 1);
+  assert.equal(decoded(boxes[0]!).nodes.length, 3);
+  f.destroy();
+});
+
+test('a closed path, an interior node and a bound connector are not carried on', () => {
+  const f = mount([squareBox()]);
+  armPen(f);
+  place(f, 300, 300); // a corner of a CLOSED path: an ordinary new node
+  frames();
+  place(f, 360, 360);
+  frames();
+  key('Enter');
+  frames();
+  assert.equal(pathBoxes(f).length, 2, 'a new path, the square untouched');
+  f.destroy();
+  const g = mount([cubicBox()]);
+  armPen(g);
+  place(g, 400, 300); // the middle node of an open path
+  frames();
+  assert.equal(penNodEls(g), 1, 'starts a fresh draft');
+  g.destroy();
+});
+
+test('Delete with a handle selected retracts it and makes that side a corner', () => {
+  const f = mount([cubicBox()]);
+  enterNodeEdit(f, [400, 480]);
+  place(f, 440, 300); // a plain click on node 1's out handle selects it
+  frames();
+  const commits = f.commits();
+  key('Delete');
+  frames();
+  assert.equal(f.commits() - commits, 1, 'one commit');
+  const box = f.boxes()[0]!;
+  const p = decoded(box);
+  assert.equal(p.nodes.length, 3, 'no node was deleted');
+  assert.equal(p.nodes[1]!.hOutX, undefined, 'the out handle is gone');
+  assert.equal(p.nodes[1]!.continuity, 'corner');
+  assertClose(nativeHandle(box, 1, 'in')!, { x: 360, y: 300 }, 2e-3, 'the in handle stayed');
+  f.destroy();
+});
+
+test('undo while drawing takes back the last placed node, not an earlier edit', () => {
+  const f = mount([{ kind: 'box', shape: 'rect', id: 'a', x: 700, y: 700, w: 100, h: 100 } as Box]);
+  armPen(f);
+  for (const [x, y] of P) { place(f, x, y); frames(); }
+  const commits = f.commits();
+  keyWith('z', { meta: true });
+  frames();
+  assert.equal(penNodEls(f), 2);
+  assert.equal(f.commits(), commits);
+  key('Enter');
+  frames();
+  assert.equal(decoded(pathBoxes(f)[0]!).nodes.length, 2);
+  f.destroy();
+});
+
+const pencilBtn = (f: Fixture): HTMLButtonElement | null => f.stageEl.querySelector<HTMLButtonElement>('.fc-btn-pencil');
+
+/** One freehand stroke: down, every sample as its own move, up. */
+function stroke(f: Fixture, pts: Array<[number, number]>): void {
+  const [first, ...rest] = pts;
+  f.canvasEl.dispatchEvent(pointerEvent('pointerdown', { x: first![0], y: first![1] }));
+  for (const [x, y] of rest) f.canvasEl.dispatchEvent(pointerEvent('pointermove', { x, y }));
+  const last = pts[pts.length - 1]!;
+  f.canvasEl.dispatchEvent(pointerEvent('pointerup', { x: last[0], y: last[1] }));
+  frames();
+}
+
+test('the Pencil turns a freehand stroke into one editable path box, in one commit', () => {
+  const f = mount([]);
+  const btn = pencilBtn(f);
+  assert.ok(btn, 'the Pencil sits on the rail when the manifest declares pathField');
+  click(btn!);
+  frames();
+  assert.ok(f.stageEl.classList.contains('fc-penciling'));
+  const pts: Array<[number, number]> = [];
+  for (let i = 0; i <= 60; i++) {
+    const a = (Math.PI * i) / 60;
+    pts.push([300 + Math.cos(a) * 120, 400 - Math.sin(a) * 120]);
+  }
+  const commits = f.commits();
+  stroke(f, pts);
+  assert.equal(f.commits() - commits, 1);
+  const box = pathBoxes(f)[0]!;
+  const p = decoded(box);
+  assert.equal(p.kind, 'cubic', 'Bezier handles, so the result is editable');
+  assert.ok(p.nodes.length >= 2 && p.nodes.length <= 6, `a few nodes (${p.nodes.length})`);
+  for (const [x, y] of pts) {
+    const near = nativeSamples(box, 80).reduce((m, q) => Math.min(m, Math.hypot(q.x - x, q.y - y)), Infinity);
+    assert.ok(near < 3.5, `the curve passes near every sample (${near.toFixed(2)} at ${x.toFixed(0)},${y.toFixed(0)})`);
+  }
+  assert.ok(f.stageEl.classList.contains('fc-penciling'), 'the Pencil stays armed for the next stroke');
+  key('Escape');
+  frames();
+  assert.equal(f.stageEl.classList.contains('fc-penciling'), false, 'Escape puts it down');
+  f.destroy();
+});
+
+test('Shift+C arms the Pencil, and a click with it commits nothing', () => {
+  const f = mount([]);
+  keyWith('C', { shift: true });
+  frames();
+  assert.ok(f.stageEl.classList.contains('fc-penciling'));
+  assert.equal(pencilBtn(f)?.getAttribute('aria-pressed'), 'true');
+  const commits = f.commits();
+  stroke(f, [[400, 400], [400.4, 400.2]]);
+  assert.equal(f.commits(), commits, 'a dab is not a shape');
+  f.destroy();
+});

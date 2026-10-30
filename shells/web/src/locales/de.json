@@ -10333,5 +10333,13 @@
   "Make default": "Als Standard festlegen",
   "{name} is now the default": "{name} ist jetzt der Standard",
   "Text, fingerprinted": "Text, als Fingerabdruck",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Eingegebener Text wird nur als Fingerabdruck gespeichert, die Wörter selbst sind also nicht in der Datei."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Eingegebener Text wird nur als Fingerabdruck gespeichert, die Wörter selbst sind also nicht in der Datei.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Bleistift (Shift C) - ziehen Sie, um einen Freihandpfad zu zeichnen, den Sie danach bearbeiten können",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Bleistift aktiv - ziehen Sie, um einen Freihandpfad zu zeichnen, den Sie danach bearbeiten können. Esc zum Beenden.",
+  "Freehand path added. Double-click it to edit its points.": "Freihandpfad hinzugefügt. Doppelklicken Sie darauf, um seine Punkte zu bearbeiten.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Dieser Pfad wird fortgesetzt. Klicken, um Punkte hinzuzufügen, Eingabetaste zum Abschließen, Esc, um ihn unverändert zu lassen.",
+  "Handle removed. That side of the point is a corner now.": "Griff entfernt. Diese Seite des Punkts ist jetzt eine Ecke.",
+  "{n} handles removed. Those points are corners now.": "{n} Griffe entfernt. Diese Punkte sind jetzt Ecken.",
+  "Pencil tool": "Bleistift-Werkzeug",
+  "While drawing or dragging points: angles in 15 degree steps": "Beim Zeichnen oder Ziehen von Punkten: Winkel in 15-Grad-Schritten"
 }

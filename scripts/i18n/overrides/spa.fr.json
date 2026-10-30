@@ -1696,5 +1696,13 @@
   "Make default": "Définir par défaut",
   "{name} is now the default": "{name} est désormais par défaut",
   "Text, fingerprinted": "Texte, en empreinte",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Le texte saisi n’est enregistré que sous forme d’empreinte : les mots eux-mêmes ne sont pas dans le fichier."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Le texte saisi n’est enregistré que sous forme d’empreinte : les mots eux-mêmes ne sont pas dans le fichier.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Crayon (Shift C) - glisse pour dessiner un tracé à main levée que tu pourras modifier ensuite",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Crayon activé - glisse pour dessiner un tracé à main levée que tu pourras modifier ensuite. Échap pour terminer.",
+  "Freehand path added. Double-click it to edit its points.": "Tracé à main levée ajouté. Double-clique dessus pour modifier ses points.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Suite de ce tracé. Clique pour ajouter des points, Entrée pour terminer, Échap pour le laisser tel quel.",
+  "Handle removed. That side of the point is a corner now.": "Poignée retirée. Ce côté du point est maintenant un angle.",
+  "{n} handles removed. Those points are corners now.": "{n} poignées retirées. Ces points sont maintenant des angles.",
+  "Pencil tool": "Outil Crayon",
+  "While drawing or dragging points: angles in 15 degree steps": "En dessinant ou en faisant glisser des points : angles par pas de 15 degrés"
 }

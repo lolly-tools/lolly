@@ -10,7 +10,7 @@ This page walks the canvas from the first box to a finished deck: the window, sh
 
 The **top bar** starts with **Home**, the **File menu** and the document's name (click the name to rename the document). The middle holds **Undo**, **Redo**, **History**, the zoom controls (with **Fit all** and **Fit artboard**) and toggles for the **Timeline**, the **Navigator** and the **Inspector**. On the right sit **Share**, **Present** and **Export**. On a phone, the less-used buttons move into **More actions**.
 
-The **tool rail** down the side holds the Lolly menu and the tools you draw with: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, then the Timeline, Artboards and Auto-arrange buttons.
+The **tool rail** down the side holds the Lolly menu and the tools you draw with: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, then the Timeline, Artboards and Auto-arrange buttons.
 
 ![The free-canvas tool rail: a drag grip, the Lolly menu, then Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards and Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
@@ -68,17 +68,26 @@ With no key held, a turn is pulled to the nearest 15 degrees once it comes withi
 
 ## Draw your own shapes
 
-Boxes, circles and rounded frames cover most layouts. For any other shape, draw one: the rail's **Pen** button (or `P`) puts you in drawing mode. Three single keys move between modes: `V` for the Pointer, `P` for the Pen and `N` for **Edit points**. The Pointer is always the way out.
+Boxes, circles and rounded frames cover most layouts. For any other shape, draw one: the rail's **Pen** button (or `P`) puts you in drawing mode. Four keys move between modes: `V` for the Pointer, `P` for the Pen, `Shift C` for the **Pencil** and `N` for **Edit points**. The Pointer is always the way out.
 
 - **Click** to place a point. On the default curve type, **click and drag** pulls the point's handles out to make a curve; hold **Alt** as you click for a hard corner. (On the other curve types every point is a corner and a drag does nothing.)
-- Points snap to the artboard and your other boxes as you place them. Alt suppresses the grid while you draw, and both the grid and the edges while you drag a point afterwards.
+- Hold **Shift** as you click and the new segment leaves the point before it at a multiple of 15 degrees, so level, upright and 45 degree lines come out exact. Shift while you drag out a handle steps the handle the same way.
+- Points snap to the artboard, your other boxes and the other points of the same path as you place them, so a point lines up with one you placed earlier. Alt suppresses the grid while you draw, and both the grid and the edges while you drag a point afterwards.
 - **Click your first point** to close the shape. Otherwise press **Enter**, double-click or switch tools, and the drawing is kept.
 - **Escape** works one step at a time: the first press abandons the drawing, the second leaves the pen.
-- **Delete** while drawing drops the last point.
+- **Delete**, or Undo (`⌘ Z` or `Ctrl Z`), while drawing drops the last point.
+
+**Carry on an open path.** With the Pen on, press on either end of an open path and you are drawing that path again: each click adds a point after that end, or in front of the first point when you started from the beginning. Enter keeps the result and Escape leaves the path exactly as it was. The path stays the same box, with its fill, stroke and arrowheads, and one undo puts it back. Delete takes back only the points you added. A closed shape, a line attached to a box and a path with several parts have no free end to carry on.
+
+**Draw freehand with the Pencil.** The rail's **Pencil** button (or `Shift C`) records your stroke while you drag. When you let go, Lolly smooths the stroke into a few points with Bezier handles, keeps the sharp turns as corners, and keeps the curve within a couple of screen pixels of where your hand went. A stroke that ends near its start closes. The result is an ordinary path, with the same paint as a pen path, and you can edit its points afterwards.
 
 The result is an ordinary box. Move, resize, rotate, group, align, restack, fill, shade or fade the path like any other box. The first path takes the fill and stroke your brand gives a path, and each new path after that takes whatever you last used. In a tool whose brand sets nothing for paths, a new path is stroked in the colour you drew with, so the shape is never invisible.
 
 **Edit the points again.** Double-click the shape, or use **Edit points** on the object bar. Drag a point to move it, drag a handle to re-aim the curve, click on the curve to insert a point or drag a box round several points and press Delete. A path always keeps at least two points.
+
+- Hold **Shift** while you drag a point and its angle from the next point along the path that is not moving goes in 15 degree steps. Shift while you drag a handle steps the handle round its own point. Shift as you click still adds a point or a handle to the selection; the steps start once you drag.
+- A dragged point snaps to the artboard, other boxes and the path's other points. Hold Alt to place it freely.
+- Click a handle to select it, then press **Delete** to pull it back onto its point. That side of the point becomes a corner, with no handle pulling the curve. With points selected, Delete removes the points as before.
 
 **Spline type** decides what kind of curve runs through your points:
 

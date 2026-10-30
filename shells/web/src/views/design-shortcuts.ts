@@ -45,7 +45,11 @@ export function designShortcutGroups(
       rows: [
         { keys: 'V', label: t('Pointer tool') },
         { keys: 'P', label: t('Pen tool') },
+        { keys: 'Shift C', label: t('Pencil tool') },
         { keys: 'N', label: t('Edit points') },
+        // Read during a pen drag (free-canvas/pen-assist.ts), not at the press, so Shift-click
+        // keeps adding a point to the selection.
+        { keys: 'Shift', label: t('While drawing or dragging points: angles in 15 degree steps') },
         { keys: 'Enter / F2', label: t('Edit selected text') },
         { keys: 'Esc', label: t('Leave the current mode or selection') },
       ],

@@ -1690,5 +1690,13 @@
   "Make default": "Nastavit jako výchozí",
   "{name} is now the default": "{name} je nyní výchozí",
   "Text, fingerprinted": "Text, uložený jako otisk",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Napsaný text se ukládá jen jako otisk, takže samotná slova v souboru nejsou."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Napsaný text se ukládá jen jako otisk, takže samotná slova v souboru nejsou.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Tužka (Shift C) - tažením nakresli cestu od ruky, kterou můžeš později upravit",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Tužka zapnuta - tažením nakresli cestu od ruky, kterou můžeš později upravit. Esc pro dokončení.",
+  "Freehand path added. Double-click it to edit its points.": "Cesta od ruky přidána. Dvojitým kliknutím na ni upravíš její body.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Pokračuješ v této cestě. Klikáním přidáš body, Enter dokončí, Esc ji nechá tak, jak byla.",
+  "Handle removed. That side of the point is a corner now.": "Úchop odstraněn. Tato strana bodu je teď roh.",
+  "{n} handles removed. Those points are corners now.": "Odstraněno úchopů: {n}. Tyto body jsou teď rohy.",
+  "Pencil tool": "Nástroj tužka",
+  "While drawing or dragging points: angles in 15 degree steps": "Při kreslení nebo tažení bodů: úhly po 15 stupních"
 }

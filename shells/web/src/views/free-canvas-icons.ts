@@ -203,6 +203,9 @@ export const SVG = {
   // pen, which reads as "write/draw freehand" - the one thing this mode does not do;
   // the anchor circle is what says "click to place points" at a glance.
   pen: '<path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/>',
+  // Pencil - the freehand tool: a loose hand-drawn stroke trailing from a pencil tip.
+  // Deliberately not the `pencil` glyph above, which means "edit this box's text".
+  freehand: '<path d="M3 20c2.5-1 3.5-4 6-4s2.5 3 5 3 3-2.5 4.2-4.5"/><path d="m14.5 11.5 5.5-5.5a1.8 1.8 0 0 0-2.5-2.5L12 9l-.8 3.3z"/>',
   // Edit points - a bezier-pen metaphor: three filled anchor squares on a straight path
   // run, with a curved handle joining two hollow control points below (Andy's chosen
   // metaphor, 2026-08-20).

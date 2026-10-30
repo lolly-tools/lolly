@@ -43,6 +43,8 @@ import type { fieldPanelsOps } from './field-panels.ts';
 import type { objectsOps } from './objects.ts';
 import type { opsOps } from './ops.ts';
 import type { penToolOps } from './pen-tool.ts';
+import type { penAssistOps } from './pen-assist.ts';
+import type { pencilOps } from './pencil.ts';
 import type { modesOps } from './modes.ts';
 import type { storyTextOps } from './story-text.ts';
 import type { storyTextPropertiesOps } from './story-text-properties.ts';
@@ -171,6 +173,12 @@ export interface FcCtx {
   PEN_CURVE_PX: 7;
   PEN_PULL_MIN: 3;
   penPullBroken: boolean;
+  /** The existing path a pen draft is carrying on from one of its open ends (pen-assist.ts):
+   *  its box, which end, and the draft as it began, oriented so new nodes append. */
+  penContinuing: { id: string; from: 'start' | 'end'; start: AuthoredPath } | null;
+  /** The Pencil's live stroke in native px, or null when none is being drawn. */
+  pencilStroke: Point[] | null;
+  pencilRaf: number;
   penLastPaint: Box | null;
   penPaintFields: PathPaintFields;
   bgInputId: "background";
@@ -277,7 +285,7 @@ export interface FcCtx {
   wobble: WobbleHandle;
   popover: HTMLDivElement | null;
   arrangeBtn: HTMLButtonElement | null;
-  modeBtns: Record<'select' | 'create' | 'pen' | 'line', HTMLButtonElement | null>;
+  modeBtns: Record<'select' | 'create' | 'pen' | 'line' | 'pencil', HTMLButtonElement | null>;
   nodeToolBtn: HTMLButtonElement | null;
   popoverAnchor: HTMLElement | null;
   HOLD_MS: 420;
@@ -399,6 +407,8 @@ export interface FcCtx {
   objects: ReturnType<typeof objectsOps>;
   ops: ReturnType<typeof opsOps>;
   penTool: ReturnType<typeof penToolOps>;
+  penAssist: ReturnType<typeof penAssistOps>;
+  pencil: ReturnType<typeof pencilOps>;
   modes: ReturnType<typeof modesOps>;
   textEdit: ReturnType<typeof textEditOps>;
   storyText: ReturnType<typeof storyTextOps>;

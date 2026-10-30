@@ -207,7 +207,7 @@ const plainBox = (id: string, x: number, y: number): Box =>
 
 // ── mode entry helpers ────────────────────────────────────────────────────────
 
-const MODES = ['select', 'create', 'pen', 'line'] as const;
+const MODES = ['select', 'create', 'pen', 'line', 'pencil'] as const;
 type Mode = typeof MODES[number];
 
 /** Put the editor into `m` the way a user would: through the rail. */
@@ -215,6 +215,7 @@ function enter(f: Fixture, m: Mode): void {
   if (m === 'select') { click(btn(f, 'fc-btn-pointer')); frames(); return; }
   if (m === 'pen') { click(btn(f, 'fc-btn-pen')); frames(); return; }
   if (m === 'line') { click(btn(f, 'fc-btn-line')); frames(); return; }
+  if (m === 'pencil') { click(btn(f, 'fc-btn-pencil')); frames(); return; }
   // Create: the Add button opens a menu of kinds; the first item arms that kind.
   click(btn(f, 'fc-btn-add'));
   frames();
@@ -232,6 +233,7 @@ function stageMode(f: Fixture): Mode {
   if (c.contains('fc-arming')) on.push('create');
   if (c.contains('fc-penning')) on.push('pen');
   if (c.contains('fc-lining')) on.push('line');
+  if (c.contains('fc-penciling')) on.push('pencil');
   assert.ok(on.length <= 1, `the stage claims to be in ${on.length} modes at once: ${on.join(' + ')}`);
   return on[0] ?? 'select';
 }
@@ -240,6 +242,7 @@ function stageMode(f: Fixture): Mode {
 function railMode(f: Fixture): Mode {
   const map: Array<[Mode, string]> = [
     ['select', 'fc-btn-pointer'], ['create', 'fc-btn-add'], ['pen', 'fc-btn-pen'], ['line', 'fc-btn-line'],
+    ['pencil', 'fc-btn-pencil'],
   ];
   const on = map.filter(([, cls]) => pressed(btn(f, cls))).map(([m]) => m);
   assert.equal(on.length, 1, `exactly one mode button is pressed, not ${on.length} (${on.join(' + ')})`);
@@ -299,7 +302,7 @@ test('Pointer exits node editing too, and node editing keeps the rail on Pointer
 });
 
 test('entering pen or the line tool from node editing leaves node editing', () => {
-  for (const to of ['pen', 'line'] as const) {
+  for (const to of ['pen', 'line', 'pencil'] as const) {
     const f = mount([pathBox()]);
     enterNodeEdit(f);
     enter(f, to);
@@ -400,8 +403,8 @@ test('the Escape ladder: panel, then the mode, then the selection', () => {
   f.destroy();
 });
 
-test('the same ladder holds for the line tool and for armed create', () => {
-  for (const m of ['line', 'create'] as const) {
+test('the same ladder holds for the line tool, the Pencil and armed create', () => {
+  for (const m of ['line', 'pencil', 'create'] as const) {
     const f = mount([plainBox('a', 700, 700)]);
     place(f, 760, 760);                       // a selection to be cleared at the end
     assert.ok(selectionCount(f) > 0, 'a box is selected');

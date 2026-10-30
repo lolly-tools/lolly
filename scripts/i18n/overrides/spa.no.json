@@ -1826,5 +1826,13 @@
   "Make default": "Gjør til standard",
   "{name} is now the default": "{name} er nå standard",
   "Text, fingerprinted": "Tekst, som fingeravtrykk",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Skrevet tekst lagres bare som et fingeravtrykk, så selve ordene er ikke i filen."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Skrevet tekst lagres bare som et fingeravtrykk, så selve ordene er ikke i filen.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Blyant (Shift C) - dra for å tegne en frihåndsbane du kan redigere etterpå",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Blyant på - dra for å tegne en frihåndsbane du kan redigere etterpå. Esc for å avslutte.",
+  "Freehand path added. Double-click it to edit its points.": "Frihåndsbane lagt til. Dobbeltklikk på den for å redigere punktene.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Fortsetter denne banen. Klikk for å legge til punkter, Enter for å fullføre, Esc for å la den være som den var.",
+  "Handle removed. That side of the point is a corner now.": "Håndtak fjernet. Den siden av punktet er nå et hjørne.",
+  "{n} handles removed. Those points are corners now.": "{n} håndtak fjernet. Disse punktene er nå hjørner.",
+  "Pencil tool": "Blyantverktøy",
+  "While drawing or dragging points: angles in 15 degree steps": "Når du tegner eller drar punkter: vinkler i trinn på 15 grader"
 }

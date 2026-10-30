@@ -255,7 +255,7 @@ export interface CanvasCfg {
  * timeline: the docked panel is a second surface alongside the canvas, not a different
  * reading of a canvas press, so it stays a plain toggle and outlives any tool change.
  */
-export type EditorMode = 'select' | 'create' | 'pen' | 'line';
+export type EditorMode = 'select' | 'create' | 'pen' | 'line' | 'pencil';
 
 /** `canvas.connect` - how the editor authors + stores connector edges. */
 export interface ConnectCfg {
@@ -816,6 +816,9 @@ export interface PenNodeGesture extends GestureBase {
   /** plan 96 P3 - which END of the path is being dragged, when exactly one END node is.
    *  Set at press; drives the bind affordance during the drag and the write on drop. */
   bindEnd?: 'start' | 'end';
+  /** The node under the press: the one that snaps and that Shift steps, while the
+   *  rest of `indices` follow it by the same delta. */
+  anchor?: number;
 }
 export interface PenHandleGesture extends GestureBase {
   type: 'penhandle';
@@ -823,6 +826,12 @@ export interface PenHandleGesture extends GestureBase {
   index: number;
   which: 'in' | 'out';
   moved?: boolean;
+}
+// Pencil - one drag records a freehand stroke (in `fc.pencilStroke`), fitted and committed
+// as a path box on release.
+export interface PencilGesture extends GestureBase {
+  type: 'pencil';
+  origin: Point;
 }
 export interface PenMarqueeGesture extends GestureBase {
   type: 'penmarquee';
@@ -851,6 +860,7 @@ export type Gesture =
   | PenNodeGesture
   | PenHandleGesture
   | PenMarqueeGesture
+  | PencilGesture
   | LineGesture
   | PinchGesture;
 export type FilledBaseFields = 'pointerId' | 'startClient';
@@ -869,6 +879,7 @@ export type GestureInit =
   | Omit<PenNodeGesture, FilledBaseFields>
   | Omit<PenHandleGesture, FilledBaseFields>
   | Omit<PenMarqueeGesture, FilledBaseFields>
+  | Omit<PencilGesture, FilledBaseFields>
   | Omit<LineGesture, FilledBaseFields>
   | Omit<PinchGesture, FilledBaseFields>;
 

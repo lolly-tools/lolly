@@ -10333,5 +10333,13 @@
   "Make default": "Als standaard instellen",
   "{name} is now the default": "{name} is nu de standaard",
   "Text, fingerprinted": "Tekst, als vingerafdruk",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Getypte tekst wordt alleen als vingerafdruk vastgelegd, dus de woorden zelf staan niet in het bestand."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Getypte tekst wordt alleen als vingerafdruk vastgelegd, dus de woorden zelf staan niet in het bestand.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Potlood (Shift C) - sleep om een pad uit de vrije hand te tekenen dat je daarna kunt bewerken",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Potlood actief - sleep om een pad uit de vrije hand te tekenen dat je daarna kunt bewerken. Esc om te voltooien.",
+  "Freehand path added. Double-click it to edit its points.": "Pad uit de vrije hand toegevoegd. Dubbelklik erop om de punten te bewerken.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Dit pad wordt voortgezet. Klik om punten toe te voegen, Enter om af te ronden, Esc om het te laten zoals het was.",
+  "Handle removed. That side of the point is a corner now.": "Handvat verwijderd. Die kant van het punt is nu een hoek.",
+  "{n} handles removed. Those points are corners now.": "{n} handvatten verwijderd. Die punten zijn nu hoeken.",
+  "Pencil tool": "Potloodgereedschap",
+  "While drawing or dragging points: angles in 15 degree steps": "Bij tekenen of punten slepen: hoeken in stappen van 15 graden"
 }

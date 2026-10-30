@@ -321,7 +321,8 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
   //   Enter - "commit the thing you are in the middle of", as it commits a text edit;
   //             it finishes the drawn path and leaves point editing.
   //   Delete/Backspace - "remove what is selected", so it drops the last placed node
-  //             while drawing and the selected nodes while editing, never the box.
+  //             while drawing and the selected nodes while editing, never the box. With
+  //             only handles selected it pulls those handles back onto their nodes.
   if ((fc.penDraft || fc.penEdit) && !typingTarget(fc)) {
     if (fc.penDraft) {
       if (e.key === 'Enter') {
@@ -347,6 +348,11 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
       if ((e.key === 'Delete' || e.key === 'Backspace') && fc.penSel.size) {
         e.preventDefault();
         fc.penTool.penDeleteSelected();
+        return;
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && fc.penHandleSel.size) {
+        e.preventDefault();
+        fc.penAssist.retractSelectedHandles();
         return;
       }
       if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
@@ -461,6 +467,13 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
   ) {
     e.preventDefault();
     if (fc.mode !== 'pen') fc.modes.setMode('pen');
+    return;
+  }
+  // Shift+C - the Pencil (Penpot's key for its curve tool). Shift-qualified, so bare C stays
+  // free, and no other chord here reads Shift+C.
+  if (e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === 'c' || e.key === 'C') && cfg.pathField) {
+    e.preventDefault();
+    if (fc.mode !== 'pencil') fc.modes.setMode('pencil');
     return;
   }
   // N - the Node tool (Inkscape's key). Toggles direct node editing on the selection.
@@ -661,7 +674,7 @@ export const onStagePointerMove = (fc: FcCtx, e: any): void => {
     typeof e.clientX === 'number' &&
     !e.buttons
   ) {
-    fc.penCursor = fc.stage.clientToNative(e.clientX, e.clientY);
+    fc.penCursor = fc.penAssist.cursorPoint(fc.stage.clientToNative(e.clientX, e.clientY), !!e.shiftKey);
     fc.penTool.paintPen();
     return;
   }
@@ -749,6 +762,19 @@ export const onDocDown = (fc: FcCtx, e: PointerEvent): void => {
   );
   if (fc.morePanel && !fc.morePanel.contains(e.target as Node) && !companion) fc.document.closeMorePanel();
 };
+/**
+ * Undo while a path is being drawn takes back the last placed point, one point per press,
+ * as Backspace does: the draft is not in the document yet, so the document's own undo
+ * would reach past it to some earlier edit and leave the drawing hanging. Bound in the
+ * capture phase so it runs before the history keys; redo and every other chord pass by.
+ */
+export function onPenUndoKey(fc: FcCtx, e: KeyboardEvent): void {
+  if (fc.disposed || !fc.penDraft || e.isComposing || e.altKey || e.shiftKey) return;
+  if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z' || typingTarget(fc)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  fc.penTool.penUndoNode();
+}
 export function keysOps(fc: FcCtx) {
   return {
     ctxBarBlockers: bindOp(fc, ctxBarBlockers),
@@ -767,6 +793,7 @@ export function keysOps(fc: FcCtx) {
     isMutatingKey: bindOp(fc, isMutatingKey),
     chromeKeysOff: bindOp(fc, chromeKeysOff),
     onKey: bindOp(fc, onKey),
+    onPenUndoKey: bindOp(fc, onPenUndoKey),
     onStageMove: bindOp(fc, onStageMove),
     onStageWheel: bindOp(fc, onStageWheel),
     onStageResize: bindOp(fc, onStageResize),

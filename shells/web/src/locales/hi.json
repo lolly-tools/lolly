@@ -10333,5 +10333,13 @@
   "Make default": "डिफ़ॉल्ट बनाएं",
   "{name} is now the default": "{name} अब डिफ़ॉल्ट है",
   "Text, fingerprinted": "टेक्स्ट, फ़िंगरप्रिंट के रूप में",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "टाइप किया गया टेक्स्ट केवल फ़िंगरप्रिंट के रूप में दर्ज होता है, इसलिए शब्द फ़ाइल में नहीं होते।"
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "टाइप किया गया टेक्स्ट केवल फ़िंगरप्रिंट के रूप में दर्ज होता है, इसलिए शब्द फ़ाइल में नहीं होते।",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "पेंसिल (Shift C) - फ़्रीहैंड पाथ बनाने के लिए खींचें, जिसे आप बाद में संपादित कर सकते हैं",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "पेंसिल चालू - फ़्रीहैंड पाथ बनाने के लिए खींचें, जिसे आप बाद में संपादित कर सकते हैं। खत्म करने के लिए Esc दबाएं।",
+  "Freehand path added. Double-click it to edit its points.": "फ़्रीहैंड पाथ जोड़ा गया। इसके पॉइंट संपादित करने के लिए इस पर डबल-क्लिक करें।",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "यह पाथ आगे बढ़ाया जा रहा है। पॉइंट जोड़ने के लिए क्लिक करें, पूरा करने के लिए Enter, पहले जैसा छोड़ने के लिए Esc।",
+  "Handle removed. That side of the point is a corner now.": "हैंडल हटाया गया। पॉइंट का वह हिस्सा अब एक कोना है।",
+  "{n} handles removed. Those points are corners now.": "{n} हैंडल हटाए गए। वे पॉइंट अब कोने हैं।",
+  "Pencil tool": "पेंसिल टूल",
+  "While drawing or dragging points: angles in 15 degree steps": "ड्रॉ करते या पॉइंट खींचते समय: 15 डिग्री के चरणों में कोण"
 }

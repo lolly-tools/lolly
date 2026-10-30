@@ -1695,5 +1695,13 @@
   "Make default": "Tornar padrão",
   "{name} is now the default": "{name} agora é o padrão",
   "Text, fingerprinted": "Texto, como impressão digital",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "O texto digitado é registado apenas como impressão digital, por isso as palavras não estão no ficheiro."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "O texto digitado é registado apenas como impressão digital, por isso as palavras não estão no ficheiro.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Lápis (Shift C) - arraste para desenhar um caminho à mão livre que você pode editar depois",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Lápis ativo - arraste para desenhar um caminho à mão livre que você pode editar depois. Esc para terminar.",
+  "Freehand path added. Double-click it to edit its points.": "Caminho à mão livre adicionado. Clique duas vezes nele para editar os pontos.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Continuando este caminho. Clique para adicionar pontos, Enter para terminar, Esc para deixá-lo como estava.",
+  "Handle removed. That side of the point is a corner now.": "Alça removida. Esse lado do ponto agora é um canto.",
+  "{n} handles removed. Those points are corners now.": "{n} alças removidas. Esses pontos agora são cantos.",
+  "Pencil tool": "Ferramenta Lápis",
+  "While drawing or dragging points: angles in 15 degree steps": "Ao desenhar ou arrastar pontos: ângulos em passos de 15 graus"
 }

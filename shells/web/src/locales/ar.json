@@ -10333,5 +10333,13 @@
   "Make default": "اجعله الافتراضي",
   "{name} is now the default": "أصبح {name} الافتراضي",
   "Text, fingerprinted": "نص، مسجّل كبصمة",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "يُسجَّل النص المكتوب كبصمة فقط، لذا فإن الكلمات نفسها ليست في الملف."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "يُسجَّل النص المكتوب كبصمة فقط، لذا فإن الكلمات نفسها ليست في الملف.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "قلم الرصاص (Shift C) - اسحب لرسم مسار حر يمكنك تحريره لاحقًا",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "قلم الرصاص مفعّل - اسحب لرسم مسار حر يمكنك تحريره لاحقًا. Esc للإنهاء.",
+  "Freehand path added. Double-click it to edit its points.": "أُضيف مسار حر. انقر عليه نقرًا مزدوجًا لتحرير نقاطه.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "متابعة هذا المسار. انقر لإضافة نقاط، Enter للإنهاء، Esc لتركه كما كان.",
+  "Handle removed. That side of the point is a corner now.": "أُزيل المقبض. أصبح ذلك الجانب من النقطة زاوية الآن.",
+  "{n} handles removed. Those points are corners now.": "أُزيل {n} من المقابض. أصبحت تلك النقاط زوايا الآن.",
+  "Pencil tool": "أداة قلم الرصاص",
+  "While drawing or dragging points: angles in 15 degree steps": "أثناء الرسم أو سحب النقاط: زوايا بخطوات 15 درجة"
 }

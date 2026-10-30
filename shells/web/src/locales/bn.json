@@ -10333,5 +10333,13 @@
   "Make default": "ডিফল্ট করুন",
   "{name} is now the default": "{name} এখন ডিফল্ট",
   "Text, fingerprinted": "লেখা, ফিঙ্গারপ্রিন্ট হিসেবে",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "টাইপ করা লেখা শুধু ফিঙ্গারপ্রিন্ট হিসেবে রেকর্ড হয়, তাই শব্দগুলো ফাইলে থাকে না।"
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "টাইপ করা লেখা শুধু ফিঙ্গারপ্রিন্ট হিসেবে রেকর্ড হয়, তাই শব্দগুলো ফাইলে থাকে না।",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "পেন্সিল (Shift C) - মুক্তহস্তে একটি পাথ আঁকতে টানুন, যা পরে সম্পাদনা করতে পারবেন",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "পেন্সিল চালু - মুক্তহস্তে একটি পাথ আঁকতে টানুন, যা পরে সম্পাদনা করতে পারবেন। শেষ করতে Esc চাপুন।",
+  "Freehand path added. Double-click it to edit its points.": "মুক্তহস্তে আঁকা পাথ যোগ হয়েছে। এর পয়েন্টগুলো সম্পাদনা করতে এতে ডাবল-ক্লিক করুন।",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "এই পাথটি চালিয়ে যাচ্ছেন। পয়েন্ট যোগ করতে ক্লিক করুন, শেষ করতে Enter, আগের মতো রেখে দিতে Esc।",
+  "Handle removed. That side of the point is a corner now.": "হ্যান্ডেল সরানো হয়েছে। পয়েন্টের ওই দিকটি এখন একটি কোণ।",
+  "{n} handles removed. Those points are corners now.": "{n}টি হ্যান্ডেল সরানো হয়েছে। ওই পয়েন্টগুলো এখন কোণ।",
+  "Pencil tool": "পেন্সিল টুল",
+  "While drawing or dragging points: angles in 15 degree steps": "আঁকা বা পয়েন্ট টানার সময়: কোণ 15 ডিগ্রি ধাপে"
 }

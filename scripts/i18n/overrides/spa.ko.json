@@ -1826,5 +1826,13 @@
   "Make default": "기본값으로 설정",
   "{name} is now the default": "{name}이(가) 이제 기본값입니다",
   "Text, fingerprinted": "텍스트, 지문으로 기록",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "입력한 텍스트는 지문으로만 기록되므로 단어 자체는 파일에 없습니다."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "입력한 텍스트는 지문으로만 기록되므로 단어 자체는 파일에 없습니다.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "연필 (Shift C) - 드래그해서 나중에 편집할 수 있는 자유곡선 패스를 그려요",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "연필 켜짐 - 드래그해서 나중에 편집할 수 있는 자유곡선 패스를 그려요. 마치려면 Esc.",
+  "Freehand path added. Double-click it to edit its points.": "자유곡선 패스를 추가했어요. 더블클릭하면 점을 편집할 수 있어요.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "이 패스를 이어 그리는 중이에요. 클릭해서 점을 추가하고, Enter로 마치고, Esc로 원래대로 둬요.",
+  "Handle removed. That side of the point is a corner now.": "핸들을 없앴어요. 점의 그쪽은 이제 모서리예요.",
+  "{n} handles removed. Those points are corners now.": "핸들 {n}개를 없앴어요. 그 점들은 이제 모서리예요.",
+  "Pencil tool": "연필 도구",
+  "While drawing or dragging points: angles in 15 degree steps": "그리거나 점을 끄는 중: 15도 단위 각도"
 }

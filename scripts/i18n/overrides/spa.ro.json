@@ -1694,5 +1694,13 @@
   "Make default": "Setează ca implicit",
   "{name} is now the default": "{name} este acum implicit",
   "Text, fingerprinted": "Text, ca amprentă",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Textul introdus este înregistrat doar ca amprentă, deci cuvintele nu sunt în fișier."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Textul introdus este înregistrat doar ca amprentă, deci cuvintele nu sunt în fișier.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Creion (Shift C) - trage pentru a desena un traseu cu mâna liberă pe care îl poți edita apoi",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Creion activ - trage pentru a desena un traseu cu mâna liberă pe care îl poți edita apoi. Esc pentru a termina.",
+  "Freehand path added. Double-click it to edit its points.": "Traseu cu mâna liberă adăugat. Dă dublu clic pe el pentru a-i edita punctele.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Continui acest traseu. Clic pentru a adăuga puncte, Enter pentru a termina, Esc pentru a-l lăsa cum era.",
+  "Handle removed. That side of the point is a corner now.": "Mâner eliminat. Acea parte a punctului este acum un colț.",
+  "{n} handles removed. Those points are corners now.": "Mânere eliminate: {n}. Acele puncte sunt acum colțuri.",
+  "Pencil tool": "Instrumentul creion",
+  "While drawing or dragging points: angles in 15 degree steps": "La desenare sau la tragerea punctelor: unghiuri în pași de 15 grade"
 }

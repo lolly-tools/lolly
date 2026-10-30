@@ -1697,5 +1697,13 @@
   "Make default": "设为默认",
   "{name} is now the default": "{name} 现在是默认",
   "Text, fingerprinted": "文字（指纹）",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "输入的文字仅以指纹形式记录，因此文件中没有文字本身。"
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "输入的文字仅以指纹形式记录，因此文件中没有文字本身。",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "铅笔 (Shift C) - 拖动以绘制之后可编辑的手绘路径",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "铅笔已启用 - 拖动以绘制之后可编辑的手绘路径。按 Esc 完成。",
+  "Freehand path added. Double-click it to edit its points.": "已添加手绘路径。双击它即可编辑其节点。",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "正在继续绘制此路径。点击添加节点，Enter 完成，Esc 保持原样。",
+  "Handle removed. That side of the point is a corner now.": "已移除手柄。该节点的这一侧现在是尖角。",
+  "{n} handles removed. Those points are corners now.": "已移除 {n} 个手柄。这些节点现在是尖角。",
+  "Pencil tool": "铅笔工具",
+  "While drawing or dragging points: angles in 15 degree steps": "绘制或拖动节点时：角度以 15 度为步长"
 }

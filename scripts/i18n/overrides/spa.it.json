@@ -1826,5 +1826,13 @@
   "Make default": "Imposta come predefinito",
   "{name} is now the default": "{name} è ora il predefinito",
   "Text, fingerprinted": "Testo, come impronta",
-  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Il testo digitato è registrato solo come impronta, quindi le parole non sono nel file."
+  "Typed text is recorded only as a fingerprint, so the words themselves are not in the file.": "Il testo digitato è registrato solo come impronta, quindi le parole non sono nel file.",
+  "Pencil (Shift C) - drag to draw a freehand path you can edit afterwards": "Matita (Shift C) - trascina per disegnare un tracciato a mano libera che potrai modificare dopo",
+  "Pencil on - drag to draw a freehand path you can edit afterwards. Esc to finish.": "Matita attiva - trascina per disegnare un tracciato a mano libera che potrai modificare dopo. Esc per terminare.",
+  "Freehand path added. Double-click it to edit its points.": "Tracciato a mano libera aggiunto. Fai doppio clic per modificarne i punti.",
+  "Carrying on this path. Click to add points, Enter to finish, Esc to leave it as it was.": "Prosegui questo tracciato. Clicca per aggiungere punti, Invio per terminare, Esc per lasciarlo com'era.",
+  "Handle removed. That side of the point is a corner now.": "Maniglia rimossa. Quel lato del punto ora è un angolo.",
+  "{n} handles removed. Those points are corners now.": "{n} maniglie rimosse. Quei punti ora sono angoli.",
+  "Pencil tool": "Strumento matita",
+  "While drawing or dragging points: angles in 15 degree steps": "Mentre disegni o trascini i punti: angoli a scatti di 15 gradi"
 }

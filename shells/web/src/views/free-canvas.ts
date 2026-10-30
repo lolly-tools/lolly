@@ -101,6 +101,8 @@ import { fieldPanelsOps } from './free-canvas/field-panels.ts';
 import { objectsOps } from './free-canvas/objects.ts';
 import { opsOps } from './free-canvas/ops.ts';
 import { penToolOps } from './free-canvas/pen-tool.ts';
+import { penAssistOps } from './free-canvas/pen-assist.ts';
+import { pencilOps } from './free-canvas/pencil.ts';
 import { modesOps } from './free-canvas/modes.ts';
 import { storyTextOps } from './free-canvas/story-text.ts';
 import { storyTextPropertiesOps } from './free-canvas/story-text-properties.ts';
@@ -240,6 +242,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.ops = opsOps(fc);
   fc.layout = layoutOps(fc);
   fc.penTool = penToolOps(fc);
+  fc.penAssist = penAssistOps(fc);
+  fc.pencil = pencilOps(fc);
   fc.modes = modesOps(fc);
   fc.textEdit = textEditOps(fc);
   fc.storyText = storyTextOps(fc);
@@ -726,6 +730,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // not a per-frame state, and reading it live makes the corner flicker back to smooth on
   // any move event that happens to arrive without the modifier.
   fc.penPullBroken = false;
+  fc.penContinuing = null; // the open path a draft carries on, if it began on one's end
+  fc.pencilStroke = null; // the Pencil's live freehand stroke, native px
+  fc.pencilRaf = 0;
   // The paint the user last put on a path, so the NEXT path they draw matches it - the
   // drawing-app convention, and the reason a session of pen work doesn't mean recolouring
   // every shape. Session-only (never persisted, never in the model): it is a memory of an
@@ -1424,11 +1431,12 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.arrangeBtn = null; // popover anchor (captured, not by index)
   /** The mode buttons, captured by buildToolbar - see syncModeUI. Absent ones stay null:
    *  pen and connect are opt-in, so not every tool has all four. */
-  const modeBtns: Record<'select' | 'create' | 'pen' | 'line', HTMLButtonElement | null> = {
+  const modeBtns: Record<'select' | 'create' | 'pen' | 'line' | 'pencil', HTMLButtonElement | null> = {
     select: null,
     create: null,
     pen: null,
     line: null,
+    pencil: null,
   }; fc.modeBtns = modeBtns;
   fc.nodeToolBtn = null; // the Node tool (opt-in, cv.pathField)
   /** The control the open popover belongs to: it owns the trigger's `aria-expanded`,
@@ -1885,6 +1893,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // rect, and the vector walkers' out-of-viewBox geometry never paints.
   canvasEl.classList.add('fc-open-canvas');
   window.addEventListener('keydown', fc.keys.onKey);
+  // Capture phase, so an undo chord mid-drawing reaches the pen before the document's
+  // history does (see onPenUndoKey).
+  window.addEventListener('keydown', fc.keys.onPenUndoKey, true);
   document.addEventListener('paste', fc.textEdit.onGlobalPaste);
   document.addEventListener('copy', fc.modes.onCopy);
   document.addEventListener('cut', fc.modes.onCut);
@@ -2412,6 +2423,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       canvasEl.removeEventListener('contextmenu', fc.menus.onContextMenu);
       canvasEl.removeEventListener('focusin', fc.keys.onBoxFocus);
       window.removeEventListener('keydown', fc.keys.onKey);
+      window.removeEventListener('keydown', fc.keys.onPenUndoKey, true);
+      if (fc.pencilRaf) cancelAnimationFrame(fc.pencilRaf);
       toolbar.removeEventListener('pointerdown', fc.rail.onRailDown);
       toolbar.removeEventListener('pointermove', fc.rail.onRailMove);
       toolbar.removeEventListener('pointerup', fc.rail.onRailUp);
