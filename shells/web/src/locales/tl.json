@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Inalis ang handle. Kanto na ngayon ang gilid na iyon ng point.",
   "{n} handles removed. Those points are corners now.": "Inalis ang {n} handle. Kanto na ngayon ang mga point na iyon.",
   "Pencil tool": "Tool na lapis",
-  "While drawing or dragging points: angles in 15 degree steps": "Habang gumuguhit o nagda-drag ng point: anggulo nang 15 degree bawat hakbang"
+  "While drawing or dragging points: angles in 15 degree steps": "Habang gumuguhit o nagda-drag ng point: anggulo nang 15 degree bawat hakbang",
+  "Stroke per side": "Stroke bawat gilid",
+  "Inside": "Sa loob",
+  "Outside": "Sa labas"
 }

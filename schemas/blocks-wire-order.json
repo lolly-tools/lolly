@@ -198,7 +198,12 @@
       "layoutX",
       "layoutY",
       "layoutAngle",
-      "pageId"
+      "pageId",
+      "strokeAlign",
+      "strokeTop",
+      "strokeRight",
+      "strokeBottom",
+      "strokeLeft"
     ],
     "diagram-builder:nodes": [
       "shape",

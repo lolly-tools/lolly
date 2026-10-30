@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Maniglia rimossa. Quel lato del punto ora è un angolo.",
   "{n} handles removed. Those points are corners now.": "{n} maniglie rimosse. Quei punti ora sono angoli.",
   "Pencil tool": "Strumento matita",
-  "While drawing or dragging points: angles in 15 degree steps": "Mentre disegni o trascini i punti: angoli a scatti di 15 gradi"
+  "While drawing or dragging points: angles in 15 degree steps": "Mentre disegni o trascini i punti: angoli a scatti di 15 gradi",
+  "Stroke per side": "Contorno per lato",
+  "Inside": "Interno",
+  "Outside": "Esterno"
 }

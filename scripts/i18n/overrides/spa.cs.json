@@ -1698,5 +1698,8 @@
   "Handle removed. That side of the point is a corner now.": "Úchop odstraněn. Tato strana bodu je teď roh.",
   "{n} handles removed. Those points are corners now.": "Odstraněno úchopů: {n}. Tyto body jsou teď rohy.",
   "Pencil tool": "Nástroj tužka",
-  "While drawing or dragging points: angles in 15 degree steps": "Při kreslení nebo tažení bodů: úhly po 15 stupních"
+  "While drawing or dragging points: angles in 15 degree steps": "Při kreslení nebo tažení bodů: úhly po 15 stupních",
+  "Stroke per side": "Obrys pro každou stranu",
+  "Inside": "Uvnitř",
+  "Outside": "Vně"
 }

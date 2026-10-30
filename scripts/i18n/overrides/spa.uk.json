@@ -1832,5 +1832,8 @@
   "Handle removed. That side of the point is a corner now.": "Керівну точку видалено. Ця сторона точки тепер кут.",
   "{n} handles removed. Those points are corners now.": "Видалено керівних точок: {n}. Ці точки тепер кути.",
   "Pencil tool": "Інструмент «Олівець»",
-  "While drawing or dragging points: angles in 15 degree steps": "Під час малювання або перетягування точок: кути кроками по 15 градусів"
+  "While drawing or dragging points: angles in 15 degree steps": "Під час малювання або перетягування точок: кути кроками по 15 градусів",
+  "Stroke per side": "Обведення для кожного боку",
+  "Inside": "Всередині",
+  "Outside": "Зовні"
 }

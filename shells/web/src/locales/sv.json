@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Handtaget borttaget. Den sidan av punkten är nu ett hörn.",
   "{n} handles removed. Those points are corners now.": "{n} handtag borttagna. De punkterna är nu hörn.",
   "Pencil tool": "Blyertsverktyg",
-  "While drawing or dragging points: angles in 15 degree steps": "När du ritar eller drar punkter: vinklar i steg om 15 grader"
+  "While drawing or dragging points: angles in 15 degree steps": "När du ritar eller drar punkter: vinklar i steg om 15 grader",
+  "Stroke per side": "Kontur per sida",
+  "Inside": "Inuti",
+  "Outside": "Utanför"
 }

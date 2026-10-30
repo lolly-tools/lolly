@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "ハンドルを削除しました。点のその側はコーナーになりました。",
   "{n} handles removed. Those points are corners now.": "{n} 個のハンドルを削除しました。それらの点はコーナーになりました。",
   "Pencil tool": "鉛筆ツール",
-  "While drawing or dragging points: angles in 15 degree steps": "描画中や点のドラッグ中: 角度を15度ずつに"
+  "While drawing or dragging points: angles in 15 degree steps": "描画中や点のドラッグ中: 角度を15度ずつに",
+  "Stroke per side": "辺ごとの線",
+  "Inside": "内側",
+  "Outside": "外側"
 }

@@ -109,7 +109,8 @@ SVG and PDF exports are not screenshots. The exporter reads each element's compu
 | You write | In the SVG / PDF |
 |---|---|
 | `border` (one width and colour all round), `border-radius`, `dashed`, `dotted` | Kept as a stroke, dash pattern included. |
-| A border that differs per side | Kept as flat edges. A corner radius or dash on a mixed border is lost. |
+| A border that differs per side | In SVG, one solid colour on a rounded or translucent box is kept as one shape with its corners, and one dashed or dotted colour as dashes along each side. Otherwise, and in PDF, it is kept as flat edges: the radius is lost and a dash is drawn solid. |
+| `background-clip: padding-box` | The background colour stays inside the border in SVG. |
 | `outline` | Not exported. Use `border`, or `box-shadow` spread, for a visible ring. |
 | `box-shadow` (outer and `inset`), `text-shadow`, `filter: drop-shadow()` | Kept: native SVG filters, or the shape redrawn; PDF bakes only a blurred shadow. |
 | `filter: blur()` | Kept in SVG. PDF rasterises the element. |

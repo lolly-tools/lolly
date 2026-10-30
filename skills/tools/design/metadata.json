@@ -1,7 +1,7 @@
 {
   "version": 1,
   "toolId": "design",
-  "toolVersion": "1.51.0",
+  "toolVersion": "1.52.0",
   "toolVersionRange": "^1.50.0",
   "skillRevision": "1.0.0",
   "origin": "authored",
@@ -16,8 +16,8 @@
       "bytes": 1088
     },
     "reference/inputs.json": {
-      "sha256": "a57fc5bd6711ee889396ac8d80ef6cba7a91e4b9d12c5aac7e2fafe819f8bedc",
-      "bytes": 81249
+      "sha256": "db29f1eb983057567cbe53b4722ad40783373942b8d620552ab7354d9d0e0710",
+      "bytes": 84535
     },
     "reference/examples.json": {
       "sha256": "67a30a640dd968188a19806c339d7274747807aa6536217a7f31dca6d695f101",

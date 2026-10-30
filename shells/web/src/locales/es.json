@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Manejador eliminado. Ese lado del punto ahora es una esquina.",
   "{n} handles removed. Those points are corners now.": "{n} manejadores eliminados. Esos puntos ahora son esquinas.",
   "Pencil tool": "Herramienta Lápiz",
-  "While drawing or dragging points: angles in 15 degree steps": "Al dibujar o arrastrar puntos: ángulos en pasos de 15 grados"
+  "While drawing or dragging points: angles in 15 degree steps": "Al dibujar o arrastrar puntos: ángulos en pasos de 15 grados",
+  "Stroke per side": "Trazo por lado",
+  "Inside": "Dentro",
+  "Outside": "Fuera"
 }

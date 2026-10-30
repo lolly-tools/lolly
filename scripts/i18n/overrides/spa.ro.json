@@ -1702,5 +1702,8 @@
   "Handle removed. That side of the point is a corner now.": "Mâner eliminat. Acea parte a punctului este acum un colț.",
   "{n} handles removed. Those points are corners now.": "Mânere eliminate: {n}. Acele puncte sunt acum colțuri.",
   "Pencil tool": "Instrumentul creion",
-  "While drawing or dragging points: angles in 15 degree steps": "La desenare sau la tragerea punctelor: unghiuri în pași de 15 grade"
+  "While drawing or dragging points: angles in 15 degree steps": "La desenare sau la tragerea punctelor: unghiuri în pași de 15 grade",
+  "Stroke per side": "Contur pe fiecare latură",
+  "Inside": "Interior",
+  "Outside": "Exterior"
 }

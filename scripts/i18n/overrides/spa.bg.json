@@ -1834,5 +1834,8 @@
   "Handle removed. That side of the point is a corner now.": "Дръжката е премахната. Тази страна на точката вече е ъгъл.",
   "{n} handles removed. Those points are corners now.": "Премахнати дръжки: {n}. Тези точки вече са ъгли.",
   "Pencil tool": "Инструмент Молив",
-  "While drawing or dragging points: angles in 15 degree steps": "При рисуване или влачене на точки: ъгли на стъпки от 15 градуса"
+  "While drawing or dragging points: angles in 15 degree steps": "При рисуване или влачене на точки: ъгли на стъпки от 15 градуса",
+  "Stroke per side": "Контур за всяка страна",
+  "Inside": "Отвътре",
+  "Outside": "Отвън"
 }

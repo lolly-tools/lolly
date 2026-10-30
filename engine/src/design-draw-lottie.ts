@@ -2,6 +2,7 @@
 /** The internal legacy dotLottie vector reading and its operation consumer.
  * Compilation receives resolved paint and the existing pure geometry authority;
  * emission reads only the evaluated operations, with no row, host or asset IO. */
+import { designStrokeSides, strokeSidesEqual } from './design-stroke.ts';
 import type { DrawPaint, DrawShapeOp, DrawShape, DrawBox, DesignDrawCompileOpts } from './design-draw.ts';
 import type { DesignBoxRowV1, GeomAPI } from '@lolly-tools/core';
 import { pathFromSubPaths } from './geom/path.ts';
@@ -27,6 +28,13 @@ export function admitDesignLottieRow(box: Record<string, unknown>): void {
   for (const field of ['shadow', 'blend', 'enter', 'exit', 'hold', 'headStart', 'headEnd', 'split']) if (box[field] && box[field] !== 'none' && box[field] !== 'normal') fail(field);
   if (lottieCompatFlag(box.flipH) || lottieCompatFlag(box.flipV)) fail('mirroring');
   if (lottieCompatNumber(box.strokeW) > 0 && ((box.strokeDash && box.strokeDash !== 'solid') || box.strokeDashArray)) fail('dashed strokes');
+  // A Lottie stroke is centred and one width all round: per-side widths, an outside box
+  // stroke and a pen stroke kept to one side of its outline would all draw elsewhere.
+  if (String(box.stroke ?? '').trim()) {
+    if (!strokeSidesEqual(designStrokeSides(box))) fail('a different stroke width on each side');
+    const align = String(box.strokeAlign ?? '');
+    if (box.kind === 'path' ? align === 'inside' || align === 'outside' : align === 'outside') fail('stroke position');
+  }
 }
 function lottieResolvedPaint(rgba: readonly number[] | null): DrawPaint | null {
   if (rgba === null) return null;

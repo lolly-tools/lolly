@@ -2,7 +2,7 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-  "version": "1.51.0",
+  "version": "1.52.0",
   "engineVersion": "^1.263.0",
   "status": "community",
   "category": "designer",
@@ -2878,6 +2878,124 @@
           "label": "Page ID",
           "default": "",
           "showFor": []
+        },
+        {
+          "id": "strokeAlign",
+          "type": "select",
+          "label": "Stroke position",
+          "default": "",
+          "showFor": [
+            "path",
+            "box",
+            "image"
+          ],
+          "options": [
+            {
+              "value": "",
+              "label": "Shape default"
+            },
+            {
+              "value": "inside",
+              "label": "Inside"
+            },
+            {
+              "value": "center",
+              "label": "Centre"
+            },
+            {
+              "value": "outside",
+              "label": "Outside"
+            }
+          ],
+          "help": "The stroke's position on the outline: inside, centred or outside. Empty keeps the shape's own default, which is inside for a box and centred for a pen path. An open path is always centred, and a board's stroke always stays inside the page."
+        },
+        {
+          "id": "strokeTop",
+          "type": "number",
+          "label": "Top stroke width",
+          "default": "",
+          "min": 0,
+          "max": 400,
+          "showFor": [
+            "box",
+            "image",
+            "frame"
+          ],
+          "showIf": {
+            "shape": [
+              "",
+              "rect",
+              "rounded",
+              "pill"
+            ]
+          },
+          "help": "The stroke width on the top side of a rectangle, rounded box, pill or board, in px. Empty uses the stroke width; 0 hides that side. Colour, position and style stay shared by all four sides."
+        },
+        {
+          "id": "strokeRight",
+          "type": "number",
+          "label": "Right stroke width",
+          "default": "",
+          "min": 0,
+          "max": 400,
+          "showFor": [
+            "box",
+            "image",
+            "frame"
+          ],
+          "showIf": {
+            "shape": [
+              "",
+              "rect",
+              "rounded",
+              "pill"
+            ]
+          },
+          "help": "The stroke width on the right side of a rectangle, rounded box, pill or board, in px. Empty uses the stroke width; 0 hides that side. Colour, position and style stay shared by all four sides."
+        },
+        {
+          "id": "strokeBottom",
+          "type": "number",
+          "label": "Bottom stroke width",
+          "default": "",
+          "min": 0,
+          "max": 400,
+          "showFor": [
+            "box",
+            "image",
+            "frame"
+          ],
+          "showIf": {
+            "shape": [
+              "",
+              "rect",
+              "rounded",
+              "pill"
+            ]
+          },
+          "help": "The stroke width on the bottom side of a rectangle, rounded box, pill or board, in px. Empty uses the stroke width; 0 hides that side. Colour, position and style stay shared by all four sides."
+        },
+        {
+          "id": "strokeLeft",
+          "type": "number",
+          "label": "Left stroke width",
+          "default": "",
+          "min": 0,
+          "max": 400,
+          "showFor": [
+            "box",
+            "image",
+            "frame"
+          ],
+          "showIf": {
+            "shape": [
+              "",
+              "rect",
+              "rounded",
+              "pill"
+            ]
+          },
+          "help": "The stroke width on the left side of a rectangle, rounded box, pill or board, in px. Empty uses the stroke width; 0 hides that side. Colour, position and style stay shared by all four sides."
         }
       ],
       "default": [

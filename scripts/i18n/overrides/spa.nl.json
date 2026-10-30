@@ -1696,5 +1696,8 @@
   "Handle removed. That side of the point is a corner now.": "Handvat verwijderd. Die kant van het punt is nu een hoek.",
   "{n} handles removed. Those points are corners now.": "{n} handvatten verwijderd. Die punten zijn nu hoeken.",
   "Pencil tool": "Potloodgereedschap",
-  "While drawing or dragging points: angles in 15 degree steps": "Bij tekenen of punten slepen: hoeken in stappen van 15 graden"
+  "While drawing or dragging points: angles in 15 degree steps": "Bij tekenen of punten slepen: hoeken in stappen van 15 graden",
+  "Stroke per side": "Lijn per zijde",
+  "Inside": "Binnen",
+  "Outside": "Buiten"
 }

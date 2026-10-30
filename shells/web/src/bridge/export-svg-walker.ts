@@ -31,6 +31,7 @@ import type { CornerRadii, CornerPair } from '../../../../engine/src/css-box.ts'
 import { n2, objectPositionFractions, parseCssColorFull, resolveRadii, rgbaCss, parseCssLen } from './export-css.ts';
 import { injectSvgMeta } from './export-image-meta.ts';
 import { pureRotationDeg, borderDashArray, preserveAspectRatioAlign } from './export-pdf-vector.ts';
+import { drawMixedBorder, drawPaddingBoxFill } from './export-border-band.ts';
 import { imprintCanvas, blobToDataUrl, _host, exportDims, makeRoundedFill, MAX_RASTER_PX, makeSvgRect, fontMetricsPx, getDomToImage, swapBlobUrls } from './export-shared.ts';
 import type { ImprintState, ExportOpts, Rgba } from './export-shared.ts';
 import { buildLinearGradientEl, buildRadialGradientEl, conicFanEl } from './export-gradients.ts';
@@ -1700,7 +1701,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     // escape-hatch above rasterise.
     const bgImgAll = ownPaintRastered ? 'none' : style.backgroundImage;
     const bgRgb = ownPaintRastered ? null : parseCssColorFull(style.backgroundColor);
-    if (bgRgb) g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, rgbaCss(bgRgb)));
+    if (bgRgb && !drawPaddingBoxFill(NS, g, style, { x, y, w, h }, radii, rgbaCss(bgRgb))) g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, rgbaCss(bgRgb)));
     await emitBackgroundLayers(NS, g, defs, style, bgImgAll, x, y, w, h, radii, uniform, () => ++uid, opts.remoteCssImages === true);
 
     // ── Inset box-shadow ──────────────────────────────────────────────────────
@@ -1839,7 +1840,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
         if (dash.round) r.setAttribute('stroke-linecap', 'round');
       }
       g.appendChild(r);
-    } else {
+    } else if (!drawMixedBorder(NS, g, style, { x, y, w, h }, radii, hasRadius, [bT, bR, bB, bL])) {
       const edge = (rect: { rgb: Rgba; el: Element }) => { if (rect.rgb[3] < 1) rect.el.setAttribute('fill-opacity', String(rect.rgb[3])); g.appendChild(rect.el); };
       if (bT.rgb) edge({ rgb: bT.rgb, el: makeSvgRect(NS, x, y, w, bT.bw, 0, rgbStr(bT.rgb)) });
       if (bB.rgb) edge({ rgb: bB.rgb, el: makeSvgRect(NS, x, y + h - bB.bw, w, bB.bw, 0, rgbStr(bB.rgb)) });

@@ -1703,5 +1703,8 @@
   "Handle removed. That side of the point is a corner now.": "ہینڈل ہٹا دیا گیا۔ پوائنٹ کا وہ حصہ اب ایک کونا ہے۔",
   "{n} handles removed. Those points are corners now.": "{n} ہینڈلز ہٹا دیے گئے۔ وہ پوائنٹس اب کونے ہیں۔",
   "Pencil tool": "پنسل ٹول",
-  "While drawing or dragging points: angles in 15 degree steps": "ڈرا کرتے یا پوائنٹس گھسیٹتے وقت: 15 ڈگری کے مراحل میں زاویے"
+  "While drawing or dragging points: angles in 15 degree steps": "ڈرا کرتے یا پوائنٹس گھسیٹتے وقت: 15 ڈگری کے مراحل میں زاویے",
+  "Stroke per side": "ہر طرف کی الگ لکیر",
+  "Inside": "اندر",
+  "Outside": "باہر"
 }

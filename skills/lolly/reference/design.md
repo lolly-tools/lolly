@@ -995,4 +995,9 @@ are timing. Generated from the `boxes` block.
 | `layoutY` | - | number | `""` | layoutY | - |
 | `layoutAngle` | - | number | `""` | layoutAngle | - |
 | `pageId` | - | text | `""` | Page ID | - |
+| `strokeAlign` | - | select | `""` | Stroke position | `""`, `"inside"`, `"center"`, `"outside"` |
+| `strokeTop` | - | number | `""` | Top stroke width | - |
+| `strokeRight` | - | number | `""` | Right stroke width | - |
+| `strokeBottom` | - | number | `""` | Bottom stroke width | - |
+| `strokeLeft` | - | number | `""` | Left stroke width | - |
 <!-- /GEN:design-boxes -->

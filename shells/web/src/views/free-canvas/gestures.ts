@@ -16,7 +16,7 @@ import { announce } from '../../a11y.ts';
 import { isTypingTarget } from '../../lib/typing-target.ts';
 import { beginCanvasFeedback, finishCanvasFeedback, cancelCanvasFeedback } from '../../lib/canvas-feedback.ts';
 import { t } from '../../i18n.ts';
-import { designHierarchyFlags, designHierarchyIndex } from '@lolly/engine';
+import { designHierarchyFlags, designHierarchyIndex, designStrokeOutset } from '@lolly/engine';
 import { boxTransformCss, handleDragPoint, rectsChanged, rotateSnap, transformRules, uniformResize, type BoxPose } from '../free-canvas-transform.ts';
 import { SNAP_PX, boolOf, gesturePointers, ownsPointer } from './shared.ts';
 import type { AABB, GRotateGesture, GScaleGesture, Gesture, GestureInit, GesturePointer, HandleName, Point, Rect } from './shared.ts';
@@ -1457,10 +1457,13 @@ export function applyLiveRect(fc: FcCtx, index: number, r: Rect, k = 1, paint = 
   const w = r.w / kk, h = r.h / kk;
   // r is in GLOBAL native coords; the element positions relative to its page frame.
   const fo = fc.stage.frameOffsetOfEl(el);
-  el.style.left = Math.round(r.x + (r.w - w) / 2 - fo.x) + 'px';
-  el.style.top = Math.round(r.y + (r.h - h) / 2 - fo.y) + 'px';
-  el.style.width = Math.max(1, Math.round(w)) + 'px';
-  el.style.height = Math.max(1, Math.round(h)) + 'px';
+  // A centred or outside stroke draws the element grown past its frame by this much on
+  // each side (the Design renderer's boxCss), so the live element keeps the same reach.
+  const out = box && !isFrameRow(fc, box) ? designStrokeOutset(box) : [0, 0, 0, 0];
+  el.style.left = Math.round(r.x + (r.w - w) / 2 - fo.x) - out[3]! + 'px';
+  el.style.top = Math.round(r.y + (r.h - h) / 2 - fo.y) - out[0]! + 'px';
+  el.style.width = Math.max(1, Math.round(w)) + out[1]! + out[3]! + 'px';
+  el.style.height = Math.max(1, Math.round(h)) + out[0]! + out[2]! + 'px';
   // An artboard's page carries no transform of its own in the render, so only the
   // rotation it always previewed with is written there, never a flip or a tilt that
   // would turn every member riding inside the page.

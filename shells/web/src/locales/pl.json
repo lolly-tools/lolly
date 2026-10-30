@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Usunięto uchwyt. Ta strona punktu jest teraz narożnikiem.",
   "{n} handles removed. Those points are corners now.": "Usunięte uchwyty: {n}. Te punkty są teraz narożnikami.",
   "Pencil tool": "Narzędzie Ołówek",
-  "While drawing or dragging points: angles in 15 degree steps": "Podczas rysowania lub przeciągania punktów: kąty co 15 stopni"
+  "While drawing or dragging points: angles in 15 degree steps": "Podczas rysowania lub przeciągania punktów: kąty co 15 stopni",
+  "Stroke per side": "Obrys dla każdego boku",
+  "Inside": "Wewnątrz",
+  "Outside": "Na zewnątrz"
 }

@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Griff entfernt. Diese Seite des Punkts ist jetzt eine Ecke.",
   "{n} handles removed. Those points are corners now.": "{n} Griffe entfernt. Diese Punkte sind jetzt Ecken.",
   "Pencil tool": "Bleistift-Werkzeug",
-  "While drawing or dragging points: angles in 15 degree steps": "Beim Zeichnen oder Ziehen von Punkten: Winkel in 15-Grad-Schritten"
+  "While drawing or dragging points: angles in 15 degree steps": "Beim Zeichnen oder Ziehen von Punkten: Winkel in 15-Grad-Schritten",
+  "Stroke per side": "Kontur pro Seite",
+  "Inside": "Innen",
+  "Outside": "Außen"
 }

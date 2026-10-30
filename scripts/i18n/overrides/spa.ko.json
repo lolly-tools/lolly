@@ -1834,5 +1834,8 @@
   "Handle removed. That side of the point is a corner now.": "핸들을 없앴어요. 점의 그쪽은 이제 모서리예요.",
   "{n} handles removed. Those points are corners now.": "핸들 {n}개를 없앴어요. 그 점들은 이제 모서리예요.",
   "Pencil tool": "연필 도구",
-  "While drawing or dragging points: angles in 15 degree steps": "그리거나 점을 끄는 중: 15도 단위 각도"
+  "While drawing or dragging points: angles in 15 degree steps": "그리거나 점을 끄는 중: 15도 단위 각도",
+  "Stroke per side": "변별 선",
+  "Inside": "안쪽",
+  "Outside": "바깥쪽"
 }

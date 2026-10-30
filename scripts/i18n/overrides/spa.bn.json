@@ -1704,5 +1704,8 @@
   "Handle removed. That side of the point is a corner now.": "হ্যান্ডেল সরানো হয়েছে। পয়েন্টের ওই দিকটি এখন একটি কোণ।",
   "{n} handles removed. Those points are corners now.": "{n}টি হ্যান্ডেল সরানো হয়েছে। ওই পয়েন্টগুলো এখন কোণ।",
   "Pencil tool": "পেন্সিল টুল",
-  "While drawing or dragging points: angles in 15 degree steps": "আঁকা বা পয়েন্ট টানার সময়: কোণ 15 ডিগ্রি ধাপে"
+  "While drawing or dragging points: angles in 15 degree steps": "আঁকা বা পয়েন্ট টানার সময়: কোণ 15 ডিগ্রি ধাপে",
+  "Stroke per side": "প্রতি পাশে আলাদা স্ট্রোক",
+  "Inside": "ভিতরে",
+  "Outside": "বাইরে"
 }

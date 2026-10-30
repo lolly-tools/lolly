@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Đã xóa tay cầm. Phía đó của điểm giờ là một góc.",
   "{n} handles removed. Those points are corners now.": "Đã xóa {n} tay cầm. Các điểm đó giờ là góc.",
   "Pencil tool": "Công cụ bút chì",
-  "While drawing or dragging points: angles in 15 degree steps": "Khi vẽ hoặc kéo điểm: góc theo bước 15 độ"
+  "While drawing or dragging points: angles in 15 degree steps": "Khi vẽ hoặc kéo điểm: góc theo bước 15 độ",
+  "Stroke per side": "Nét theo từng cạnh",
+  "Inside": "Bên trong",
+  "Outside": "Bên ngoài"
 }

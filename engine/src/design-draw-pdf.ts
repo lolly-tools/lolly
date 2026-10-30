@@ -20,8 +20,9 @@
  */
 import { unzlibSync, zlibSync } from 'fflate';
 
-import { pictureRect, type DesignDrawPage, type DrawArea, type DrawBox, type DrawFinding, type DrawOp, type DrawPaint, type DrawPicture, type DrawShape, type DrawShapeOp, type DrawStop, type DrawStroke } from './design-draw.ts';
+import { paddingArea, pictureRect, type DesignDrawPage, type DrawArea, type DrawBox, type DrawFinding, type DrawOp, type DrawPaint, type DrawPicture, type DrawShape, type DrawShapeOp, type DrawStop, type DrawStroke } from './design-draw.ts';
 import type { Contour } from './geom/path.ts';
+import { outlineAreaContour, strokeCentreArea, strokeRing, strokeRingContours } from './design-stroke.ts';
 import { unfilterPng } from './png-unfilter.ts';
 import { parseSvgPath } from './svg-path.ts';
 
@@ -145,8 +146,14 @@ function ellipsePath(b: DrawBox): string {
 }
 
 function outlinePath(shape: Exclude<DrawShape, { kind: 'path' }>, b: DrawBox): string {
+  // Corners that differ from one another (a per-side stroke's edges) are a path of their own.
+  if (shape.kind === 'rect' && shape.corners) return contoursPath([outlineAreaContour({ box: b, shape })]);
   return shape.kind === 'ellipse' ? ellipsePath(b) : rectPath(b, shape.radius);
 }
+
+/** Whether a box's stroke is Design's centred, outside or per-side border, whose fill sits inside the stroke's inner edge. */
+const ringed = (op: DrawShapeOp): boolean => op.shape.kind !== 'path' && !!op.stroke
+  && (!!op.stroke.sides || op.stroke.align === 'center' || op.stroke.align === 'outside');
 
 function contoursPath(contours: readonly Contour[]): string {
   let out = '';
@@ -391,11 +398,41 @@ export function designDrawPdf(pages: readonly DesignPdfPage[], info: DesignPdfIn
         const fill = op.fills[0]?.kind === 'color' ? op.fills[0] : undefined;
         const path = contoursPath(op.shape.contours);
         const s = op.stroke;
+        if (s && (s.align === 'inside' || s.align === 'outside')) {
+          // PDF strokes only centred: twice the width, clipped to the shape for inside and
+          // to everything but the shape for outside, as the canvas draws the stroke.
+          const b = op.box, m = Math.max(b.w, b.h) + s.width * 8 + 1;
+          const clip = s.align === 'outside'
+            ? `${n(b.x - m)} ${n(b.y - m)} ${n(b.w + 2 * m)} ${n(b.h + 2 * m)} re\n${path}W* n\n`
+            : `${path}${op.shape.evenOdd ? 'W*' : 'W'} n\n`;
+          const under = fill ? `q ${opacityGs(fill.opacity)}${color(fill.color, 'rg')}\n${path}${op.shape.evenOdd ? 'f*' : 'f'}\nQ\n` : '';
+          return `${under}q\n${clip}${opacityGs(undefined, s.opacity)}${strokeOps({ ...s, width: s.width * 2 })}\n${path}S\nQ\n`;
+        }
         const paintOp = fill && s ? (op.shape.evenOdd ? 'B*' : 'B') : fill ? (op.shape.evenOdd ? 'f*' : 'f') : s ? 'S' : 'n';
         return `q ${opacityGs(fill?.opacity, s?.opacity)}${fill ? `${color(fill.color, 'rg')} ` : ''}${s ? strokeOps(s) : ''}\n${path}${paintOp}\nQ\n`;
       }
       const shape = op.shape;
       let out = '';
+      if (ringed(op)) {
+        // Design's centred, outside or per-side border: the fill covers the box inside the
+        // stroke's inner edge, a uniform stroke runs along its centre line, and per-side
+        // widths paint the ring between the two edges.
+        const s = op.stroke!;
+        // An inside border paints over a fill that covers the whole box, as CSS clips it to the border box.
+        const area = s.align === 'center' || s.align === 'outside' ? paddingArea(box, shape, s) : { box, shape };
+        if (area.box.w > 0 && area.box.h > 0) for (const fill of op.fills) {
+          if (fill.kind === 'color') out += `q ${opacityGs(fill.opacity)}${color(fill.color, 'rg')}\n${outlinePath(area.shape, area.box)}f\nQ\n`;
+          else out += `q\n${outlinePath(area.shape, area.box)}W n\n${gradientFill(fill, area.box)}Q\n`;
+        }
+        if (s.sides) {
+          const ring = strokeRing(box, shape, s.align ?? 'inside', s.sides);
+          out += `q ${opacityGs(s.opacity)}${color(s.color, 'rg')}\n${contoursPath(strokeRingContours(ring))}f*\nQ\n`;
+        } else {
+          const centre = strokeCentreArea(box, shape, s.align ?? 'inside', s.width);
+          out += `q ${opacityGs(undefined, s.opacity)}${strokeOps(s)}\n${outlinePath(centre.shape, centre.box)}S\nQ\n`;
+        }
+        return out;
+      }
       for (const fill of op.fills) {
         if (fill.kind === 'color') out += `q ${opacityGs(fill.opacity)}${color(fill.color, 'rg')}\n${outlinePath(shape, box)}f\nQ\n`;
         else out += `q\n${outlinePath(shape, box)}W n\n${gradientFill(fill, box)}Q\n`;
@@ -431,9 +468,10 @@ export function designDrawPdf(pages: readonly DesignPdfPage[], info: DesignPdfIn
       if (!words || !layout?.lines.length) return '';
       const box = op.box;
       const border = op.op === 'shape' && op.stroke?.align === 'inside' ? Math.min(op.stroke.width, box.w / 2, box.h / 2) : 0;
-      const inner = { x: box.x + border, y: box.y + border, w: Math.max(0, box.w - border * 2), h: Math.max(0, box.h - border * 2) };
-      const shape: Exclude<DrawShape, { kind: 'path' }> = op.op === 'shape' && op.shape.kind === 'ellipse' ? { kind: 'ellipse' }
+      let inner = { x: box.x + border, y: box.y + border, w: Math.max(0, box.w - border * 2), h: Math.max(0, box.h - border * 2) };
+      let shape: Exclude<DrawShape, { kind: 'path' }> = op.op === 'shape' && op.shape.kind === 'ellipse' ? { kind: 'ellipse' }
         : { kind: 'rect', radius: op.op === 'shape' && op.shape.kind === 'rect' ? Math.max(0, op.shape.radius - border) : 0 };
+      if (op.op === 'shape' && op.shape.kind !== 'path' && ringed(op)) ({ box: inner, shape } = paddingArea(box, op.shape, op.stroke));
       let out = `q\n${clipTo({ box: inner, shape })}`;
       for (const [li, line] of layout.lines.entries()) {
         for (const [ri, run] of line.runs.entries()) {

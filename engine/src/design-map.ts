@@ -146,6 +146,13 @@ export interface DesignNode {
   strokeDashLen?: number;
   /** Authored gap length in px (Penpot `strokeGap`). 0 = unset. */
   strokeGapLen?: number;
+  /** The stroke's position on the outline: inside, centred or outside. Unset keeps Design's default. */
+  strokeAlign?: 'inside' | 'center' | 'outside';
+  /** Per-side widths of a rectangle-like box, set only when they differ. */
+  strokeTop?: number;
+  strokeRight?: number;
+  strokeBottom?: number;
+  strokeLeft?: number;
   _fillImageId?: string;
   _fillFlip?: string;
   _imageHash?: string | null;
@@ -197,6 +204,11 @@ interface Box {
   strokeDashLen: number;
   strokeGapLen: number;
   bgBlur: number;
+  strokeAlign?: 'inside' | 'center' | 'outside';
+  strokeTop?: number;
+  strokeRight?: number;
+  strokeBottom?: number;
+  strokeLeft?: number;
 }
 
 // ── small numeric helpers (mirrors of tools/design/hooks.js) ──────────
@@ -490,6 +502,14 @@ export function nodeToBox(
     // 1-decimal rounding as `blur`. 0 is off, so a row without the field renders
     // byte-identically to one from before the field existed.
     bgBlur: clamp(round1(num(n.bgBlur, 0)), 0, 300),
+    // Stroke position and per-side widths, present only when the source set them, so a
+    // source without them maps to the same row as before.
+    ...(n.strokeAlign === 'inside' || n.strokeAlign === 'center' || n.strokeAlign === 'outside' ? { strokeAlign: n.strokeAlign } : {}),
+    ...(['strokeTop', 'strokeRight', 'strokeBottom', 'strokeLeft'] as const).reduce<Partial<Box>>((out, key) => {
+      const v = num(n[key], undefined);
+      if (v !== undefined) out[key] = clamp(round2(v), 0, 400);
+      return out;
+    }, {}),
   };
 }
 
@@ -1383,12 +1403,13 @@ function applyPenpotStroke(sh: PenpotShape, node: DesignNode): void {
     if (!cand || typeof cand !== 'object') continue;
     const s = strokeStyleOf(cand);
     if (s === 'none') continue;
-    if (!(num(get(cand, 'strokeWidth'), 0) > 0)) continue;
+    if (!(Math.max(...penpotStrokeSides(cand)) > 0)) continue;
     if (!safeColor(String(get(cand, 'strokeColor') ?? ''), '')) continue;
     st = cand; style = s; break;
   }
   if (!st) return;
-  const sw = num(get(st, 'strokeWidth'), 0);
+  const sides = penpotStrokeSides(st);
+  const sw = Math.max(...sides);
   const col6 = safeColor(String(get(st, 'strokeColor') ?? ''), '');
   const a = Math.round(clamp(num(get(st, 'strokeOpacity'), 1), 0, 1) * 255);
   const full = hexLong(col6);
@@ -1407,13 +1428,25 @@ function applyPenpotStroke(sh: PenpotShape, node: DesignNode): void {
     node.strokeDashLen = round2((d != null && d > 0) ? d : sw + 10);
     node.strokeGapLen = round2((g != null && g > 0) ? g : sw + 10);
   }
-  const alignment = String(get(st, 'strokeAlignment') || 'center');
-  const inflate = alignment === 'outer' ? sw : (alignment === 'inner' ? 0 : sw / 2);
-  if (inflate > 0) {
-    node.x = num(node.x, 0) - inflate; node.y = num(node.y, 0) - inflate;
-    node.w = num(node.w, 0) + 2 * inflate; node.h = num(node.h, 0) + 2 * inflate;
-    if (node.shape === 'rounded') node.radius = num(node.radius, 0) + inflate;
+  // Stroke alignment is Design's stroke position (Penpot defaults to centre when the
+  // field is absent), so the box keeps Penpot's own geometry and the stroke keeps the
+  // source's placement. A picture or a box takes all three.
+  const alignment = String(get(st, 'strokeAlignment') || 'center').replace(/^:/, '');
+  node.strokeAlign = alignment === 'outer' ? 'outside' : alignment === 'inner' ? 'inside' : 'center';
+  // Per-side widths (Penpot 2.19) on a rectangle-like box, written only when they differ:
+  // the main width is then the widest, what a reader that knows no sides draws.
+  if (node.shape !== 'ellipse' && !(sides[0] === sides[1] && sides[0] === sides[2] && sides[0] === sides[3])) {
+    [node.strokeTop, node.strokeRight, node.strokeBottom, node.strokeLeft] = sides.map((v) => Math.round(v * 100) / 100);
   }
+}
+
+// A Penpot stroke's widths [top, right, bottom, left]: each side's own
+// `stroke-width-<side>` (Penpot 2.19), falling back to `stroke-width` as Penpot's
+// `side-width` does (common/src/app/common/types/stroke.cljc).
+function penpotStrokeSides(st: unknown): [number, number, number, number] {
+  const w = Math.max(0, num(get(st, 'strokeWidth') ?? pget(st, 'stroke-width'), 0));
+  const side = (key: string): number => { const v = strokeLen(st, key); return v === undefined ? w : v; };
+  return [side('stroke-width-top'), side('stroke-width-right'), side('stroke-width-bottom'), side('stroke-width-left')];
 }
 
 // Expand #rgb/#rgba shorthand to full length so an alpha suffix can append without
@@ -1799,6 +1832,15 @@ interface FigNode {
   fillPaints?: unknown;
   strokePaints?: unknown;
   strokeWeight?: unknown;
+  /** `CENTER`, `INSIDE` or `OUTSIDE`. */
+  strokeAlign?: unknown;
+  /** Per-side weights: the .fig file's own flag and four `border*Weight` fields, or the REST API's `individualStrokeWeights`. */
+  borderStrokeWeightsIndependent?: unknown;
+  borderTopWeight?: unknown;
+  borderRightWeight?: unknown;
+  borderBottomWeight?: unknown;
+  borderLeftWeight?: unknown;
+  individualStrokeWeights?: { top?: unknown; right?: unknown; bottom?: unknown; left?: unknown } | null;
   fillGeometry?: unknown;
   fontSize?: unknown;
   fontName?: { style?: unknown; family?: unknown } | null;
@@ -1985,7 +2027,41 @@ function figmaNode(node: FigNode, abs: Matrix, blobs: FigBlobs): DesignNode | nu
   if (type === 'ELLIPSE') dn.shape = 'ellipse';
   else if (type === 'ROUNDED_RECTANGLE') { dn.shape = 'rounded'; dn.radius = num(node.cornerRadius, 12); }
   else { const cr = num(node.cornerRadius, 0); if (cr > 0) { dn.shape = 'rounded'; dn.radius = cr; } }
+  applyFigmaStroke(node, dn);
   return dn;
+}
+
+const FIG_ALIGN: Record<string, 'inside' | 'center' | 'outside'> = { INSIDE: 'inside', CENTER: 'center', OUTSIDE: 'outside' };
+
+// A Figma box's topmost visible solid stroke → the box stroke fields: its colour (paint
+// opacity as alpha), its weight, its alignment as the stroke position, and per-side
+// weights on a rectangle when they differ. Each side falls back to `strokeWeight`.
+function applyFigmaStroke(node: FigNode, dn: DesignNode): void {
+  const paints = Array.isArray(node.strokePaints) ? (node.strokePaints as unknown[]) : [];
+  let sp: unknown = null;
+  for (let i = paints.length - 1; i >= 0; i--) {
+    const p = paints[i];
+    if (p && get(p, 'visible') !== false && get(p, 'type') === 'SOLID' && get(p, 'color')) { sp = p; break; }
+  }
+  if (!sp) return;
+  const w = Math.max(0, num(node.strokeWeight, 0));
+  const ind = node.individualStrokeWeights;
+  const independent = node.borderStrokeWeightsIndependent === true || (ind != null && typeof ind === 'object');
+  const side = (own: unknown, rest: unknown): number => Math.max(0, num(own ?? rest, w));
+  const sides = independent && dn.shape !== 'ellipse'
+    ? [side(get(ind, 'top'), node.borderTopWeight), side(get(ind, 'right'), node.borderRightWeight),
+      side(get(ind, 'bottom'), node.borderBottomWeight), side(get(ind, 'left'), node.borderLeftWeight)]
+    : [w, w, w, w];
+  const widest = Math.max(...sides);
+  if (!(widest > 0)) return;
+  const a = Math.round(clamp(num(get(sp, 'opacity'), 1), 0, 1) * 255);
+  dn.stroke = figColorHex(get(sp, 'color')) + (a < 255 ? a.toString(16).padStart(2, '0') : '');
+  dn.strokeW = round2(widest);
+  const align = FIG_ALIGN[String(node.strokeAlign ?? '')];
+  if (align) dn.strokeAlign = align;
+  if (!(sides[0] === sides[1] && sides[0] === sides[2] && sides[0] === sides[3])) {
+    [dn.strokeTop, dn.strokeRight, dn.strokeBottom, dn.strokeLeft] = sides.map(round2);
+  }
 }
 
 /**

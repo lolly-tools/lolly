@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "已移除手柄。该节点的这一侧现在是尖角。",
   "{n} handles removed. Those points are corners now.": "已移除 {n} 个手柄。这些节点现在是尖角。",
   "Pencil tool": "铅笔工具",
-  "While drawing or dragging points: angles in 15 degree steps": "绘制或拖动节点时：角度以 15 度为步长"
+  "While drawing or dragging points: angles in 15 degree steps": "绘制或拖动节点时：角度以 15 度为步长",
+  "Stroke per side": "按边描边",
+  "Inside": "内侧",
+  "Outside": "外侧"
 }

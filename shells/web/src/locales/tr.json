@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Tutamaç kaldırıldı. Noktanın o tarafı artık bir köşe.",
   "{n} handles removed. Those points are corners now.": "{n} tutamaç kaldırıldı. Bu noktalar artık köşe.",
   "Pencil tool": "Kurşun kalem aracı",
-  "While drawing or dragging points: angles in 15 degree steps": "Çizerken veya noktaları sürüklerken: 15 derecelik adımlarla açılar"
+  "While drawing or dragging points: angles in 15 degree steps": "Çizerken veya noktaları sürüklerken: 15 derecelik adımlarla açılar",
+  "Stroke per side": "Kenar başına kontur",
+  "Inside": "İç",
+  "Outside": "Dış"
 }

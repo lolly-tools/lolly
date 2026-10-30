@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Gagang dihapus. Sisi titik itu sekarang menjadi sudut.",
   "{n} handles removed. Those points are corners now.": "{n} gagang dihapus. Titik-titik itu sekarang menjadi sudut.",
   "Pencil tool": "Alat pensil",
-  "While drawing or dragging points: angles in 15 degree steps": "Saat menggambar atau menyeret titik: sudut dengan langkah 15 derajat"
+  "While drawing or dragging points: angles in 15 degree steps": "Saat menggambar atau menyeret titik: sudut dengan langkah 15 derajat",
+  "Stroke per side": "Garis per sisi",
+  "Inside": "Dalam",
+  "Outside": "Luar"
 }

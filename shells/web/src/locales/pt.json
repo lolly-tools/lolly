@@ -10341,5 +10341,8 @@
   "Handle removed. That side of the point is a corner now.": "Alça removida. Esse lado do ponto agora é um canto.",
   "{n} handles removed. Those points are corners now.": "{n} alças removidas. Esses pontos agora são cantos.",
   "Pencil tool": "Ferramenta Lápis",
-  "While drawing or dragging points: angles in 15 degree steps": "Ao desenhar ou arrastar pontos: ângulos em passos de 15 graus"
+  "While drawing or dragging points: angles in 15 degree steps": "Ao desenhar ou arrastar pontos: ângulos em passos de 15 graus",
+  "Stroke per side": "Traçado por lado",
+  "Inside": "Dentro",
+  "Outside": "Fora"
 }

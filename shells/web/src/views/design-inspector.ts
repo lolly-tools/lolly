@@ -1,4 +1,5 @@
 import { webSectionRows } from './design-web-section.ts';
+import { createStrokeRows, STROKE_PLACEMENT_FIELDS } from './design-inspector-stroke.ts';
 import { webInteractRows, wireWebInteract, commitWebInteractColour } from './design-web-interact.ts';
 import { mountTextInspector } from '../lib/text-inspector.ts';
 import { wireWebPlayback } from './design-web-playback.ts';
@@ -414,9 +415,9 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
   look: () => [],
   media: () => [],
   guide: () => [],
-  artboard: (c, m) => [c.labelField, c.wField, c.hField, c.fillField, c.gradField, c.strokeField, c.strokeWField, c.strokeDashField, c.strokeDashArrayField, 'strokeDashLen', 'strokeGapLen', c.clipChildrenField, c.orderField, m.trans],
+  artboard: (c, m) => [c.labelField, c.wField, c.hField, c.fillField, c.gradField, c.strokeField, c.strokeWField, c.strokeDashField, c.strokeDashArrayField, 'strokeDashLen', 'strokeGapLen', ...STROKE_PLACEMENT_FIELDS, c.clipChildrenField, c.orderField, m.trans],
   object: (c, m) => [c.xField, c.yField, c.wField, c.hField, c.rotationField, 'cls', m.hidden, m.locked],
-  fill: (c) => [c.fillField, c.gradField, c.strokeField, c.strokeWField, c.strokeDashField, c.strokeDashArrayField, 'strokeDashLen', 'strokeGapLen'],
+  fill: (c) => [c.fillField, c.gradField, c.strokeField, c.strokeWField, c.strokeDashField, c.strokeDashArrayField, 'strokeDashLen', 'strokeGapLen', ...STROKE_PLACEMENT_FIELDS],
   appearance: (c) => [c.opacityField, c.blendField, c.radiusField, c.shapeField],
   shadow: (c) => [c.shadowField, c.shadowColorField, c.shadowXField, c.shadowYField, c.shadowBlurField],
   tilt: (c) => [c.rxField, c.ryField],
@@ -1388,7 +1389,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   function artboardBody(b: Box): string {
     const w = Math.max(1, dimOf(b, cfg.wField, 1)), h = Math.max(1, dimOf(b, cfg.hField, 1));
-    const sw = Math.max(0, Math.round(clampN(fv(b, cfg.strokeWField), 0, 0, 400)));
     const clipF = frame?.clipChildrenField;
     const orderF = frame?.orderField;
     const labelF = frame?.labelField || F_NAME || 'name';
@@ -1402,7 +1402,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         : '')
       + (cfg.fillField && actions.useAsInput ? doorBtn(t('Use fill as input'), 'input-fill', 'sliders') : '')
       + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', fv(b, cfg.strokeField)) : '')
-      + (cfg.strokeWField ? ctrlRow(FIELD_GLYPH.strokeIc, t('Stroke width'), numCell('', cfg.strokeWField, sw, { name: t('Stroke width'), min: 0, max: 400, unit: 'px' })) : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, [b], selectRow)
+      + (cfg.strokeWField ? strokeUi.rows(cfg.strokeWField, [b], false) : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, [b], selectRow)
       + (clipF ? toggleRow(t('Clip children'), clipF, boolOf(b[clipF], true)) : '')
       + transitionRows(b)
       // Speaker notes moved to the Present section (plans/180), beside the button that
@@ -1451,7 +1451,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + (F_LOCKED ? toggleRow(t('Locked'), F_LOCKED, boolOf(fv(b, F_LOCKED), false)) : '');
   }
 
-  const strokeW = (b: Box): number => Math.max(0, Math.round(clampN(fv(b, cfg.strokeWField), 0, 0, 400)));
+  const strokeUi = createStrokeRows({ model, cfg, ids: () => renderedIds, idOf, numCell, ctrlRow });
 
   function fillBody(b: Box, rows: Box[]): string {
     return (cfg.fillField
@@ -1460,10 +1460,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         differs(rows, cfg.fillField))
       : '')
       + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', fv(b, cfg.strokeField), '', differs(rows, cfg.strokeField)) : '')
-      + (cfg.strokeWField
-        ? ctrlRow(FIELD_GLYPH.strokeIc, t('Stroke width'),
-          numCell('', cfg.strokeWField, agree(rows, strokeW), { name: t('Stroke width'), min: 0, max: 400, unit: 'px' }))
-        : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, rows, selectRow);
+      + (cfg.strokeWField ? strokeUi.rows(cfg.strokeWField, rows, true) : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, rows, selectRow);
   }
 
   const opacityOf = (b: Box): number => Math.round(clampN(fv(b, cfg.opacityField), 100, 0, 100));
@@ -2241,6 +2238,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         const ids = [...renderedIds];
         switch (btn.dataset.act) {
           case 'documentsize': actions.openDocumentSize?.(btn); break;
+          case 'strokesides': strokeUi.toggle(); sync(true); break;
           case 'input-text': actions.useAsInput?.(ids, 'text'); break;
           case 'input-image': actions.useAsInput?.(ids, 'image'); break;
           case 'input-fg': actions.useAsInput?.(ids, 'fg'); break;

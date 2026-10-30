@@ -1704,5 +1704,8 @@
   "Handle removed. That side of the point is a corner now.": "हैंडल हटाया गया। पॉइंट का वह हिस्सा अब एक कोना है।",
   "{n} handles removed. Those points are corners now.": "{n} हैंडल हटाए गए। वे पॉइंट अब कोने हैं।",
   "Pencil tool": "पेंसिल टूल",
-  "While drawing or dragging points: angles in 15 degree steps": "ड्रॉ करते या पॉइंट खींचते समय: 15 डिग्री के चरणों में कोण"
+  "While drawing or dragging points: angles in 15 degree steps": "ड्रॉ करते या पॉइंट खींचते समय: 15 डिग्री के चरणों में कोण",
+  "Stroke per side": "हर किनारे का अलग स्ट्रोक",
+  "Inside": "अंदर",
+  "Outside": "बाहर"
 }

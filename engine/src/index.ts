@@ -1101,6 +1101,9 @@ export { compileRenovated, DECK_RENOVATE_VERSION, AVERAGE_GLYPH_EM, ESTIMATE_LIN
 export type { CompileRenovatedInputV1, CompileRenovatedOptsV1, RenovateDesignSystemV1 } from './deck-compile.ts';
 export { framePreviewSvg, wrapByAverageWidth } from './frame-preview-svg.ts';
 export type { FramePreviewOptsV1 } from './frame-preview-svg.ts';
+// Additive 1.288: where a Design row's stroke sits and its per-side widths, read as the renderer reads them.
+export { designStrokeAlign, designStrokeOutset, designStrokeSides } from './design-stroke.ts';
+export type { DesignStrokeAlign, DesignStrokeSides } from './design-stroke.ts';
 
 // Plan 274 work package 4 follow-ups: the cover-slide test the first pass reads
 // a title slide by, and the hint options a caller narrows the hints with.
