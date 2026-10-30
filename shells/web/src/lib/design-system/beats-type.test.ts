@@ -54,3 +54,21 @@ test('a face installed but holding no role still opens the room', () => {
   assert.equal(typeBeat(r), 0, 'the report alone cannot see an unassigned face');
   assert.equal(typeBeat(r, 1), 1, 'the installed count is the other half of the question');
 });
+
+test('a design system that chose faces beyond the starter opens on all four roles', () => {
+  // Lolly Demo: the starter's SUSE and SUSE Mono, plus Outfit for headings.
+  const demo = { font: { brand: { $value: 'SUSE' }, display: { $value: 'Outfit' }, mono: { $value: 'SUSE Mono' } } };
+  const r = reportOwnership({
+    doc: demo,
+    starterDoc: starterish,
+    palette: { colors: [], starter: [] },
+    userFontFamilies: [],
+    resolvedFaces: { brand: 'SUSE', display: 'Outfit', mono: 'SUSE Mono', italic: '' },
+  });
+  assert.equal(r.faces.brand.starter, true, 'SUSE is the starter\'s own face');
+  assert.equal(r.faces.display.starter, false, 'Outfit is the design system\'s choice');
+  assert.equal(typeBeat(r), 1);
+  // The same document read against itself as the starter stays at the first decision.
+  const self = reportOwnership({ doc: starterish, starterDoc: starterish, palette: { colors: [], starter: [] }, userFontFamilies: [] });
+  assert.equal(typeBeat(self), 0);
+});

@@ -71,6 +71,10 @@ export interface FaceState {
   state: FaceOwnership;
   /** Only on `follows`: the role this one defers to. */
   follows?: FontRole;
+  /** Only on `inherited`, and only when the caller passed the starter document:
+   *  whether the face is the blank starter's own (true) or a choice the design
+   *  system made beyond it (false), such as Lolly Demo's Outfit headings. */
+  starter?: boolean;
 }
 
 /** One colour, in whichever value space its caller reads. `key` is the dotted
@@ -279,7 +283,7 @@ export function radiusValue(doc: unknown): string {
  * distinction nobody can act on.
  */
 function faceState(
-  role: FontRole, doc: unknown, userFamilies: ReadonlySet<string>, resolved: string,
+  role: FontRole, doc: unknown, userFamilies: ReadonlySet<string>, resolved: string, starterDoc: unknown | null,
 ): FaceState {
   const declared = fontRoleFamily(doc, role);
   if (!declared) {
@@ -288,9 +292,11 @@ function faceState(
       ? { family: resolved, state: 'follows', follows }
       : { family: resolved, state: 'unset' };
   }
+  if (userFamilies.has(declared.toLowerCase())) return { family: resolved || declared, state: 'own' };
   return {
     family: resolved || declared,
-    state: userFamilies.has(declared.toLowerCase()) ? 'own' : 'inherited',
+    state: 'inherited',
+    ...(starterDoc ? { starter: fontRoleFamily(starterDoc, role).toLowerCase() === declared.toLowerCase() } : {}),
   };
 }
 
@@ -323,7 +329,7 @@ export function reportOwnership(input: OwnershipInput): OwnershipReport {
   const faces = {} as Record<FontRole, FaceState>;
   let ownFaces = 0;
   for (const role of FONT_ROLES) {
-    const state = faceState(role, doc, userFamilies, resolvedFaces[role] ?? '');
+    const state = faceState(role, doc, userFamilies, resolvedFaces[role] ?? '', starterDoc);
     faces[role] = state;
     if (state.state === 'own') ownFaces++;
   }

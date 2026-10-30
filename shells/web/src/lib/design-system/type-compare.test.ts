@@ -1144,6 +1144,8 @@ test('a face line says which of the four states a role is in', () => {
     { text: 'Inter', tag: '' });
   // Inherited: a real face, chosen by nobody - the family plus the pill.
   assert.deepEqual(faceLine('brand', face(), tRaw), { text: 'SUSE', tag: 'Starter' });
+  assert.deepEqual(faceLine('display', face({ family: 'Outfit', state: 'inherited', starter: false }), tRaw),
+    { text: 'Outfit', tag: 'Design system' }, 'a face the design system chose is not the starter\'s');
   // Follows: the CHAIN, not the resolved family. Restating "SUSE" here is what
   // made three different states look like one.
   assert.deepEqual(faceLine('italic', { family: 'SUSE', state: 'follows', follows: 'brand' }, tRaw),

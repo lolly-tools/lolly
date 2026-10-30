@@ -15,6 +15,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { FONT_ROLES, reportOwnership } from '../design-system/ownership.ts';
 import { typeBeat } from '../design-system/beats-type.ts';
+import { readStarterDoc } from '../design-system/rooms/overview.ts';
 import { TYPE_ROLES, blankFaces, typeRoleActStrings, typeRoleLabel } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
@@ -175,13 +176,17 @@ export const paintFonts = async (bedit: BrandEditorCtx): Promise<void> => {
   const liveDoc = await tokens?.raw().catch(() => null) ?? null;
   if (!root.isConnected) return;
   // FACES ONLY. Two empty palette halves are what stop the read walking both
-  // documents for an answer this room never asks for; face state does not
-  // consult the starter document at all, since a declared family is the
+  // documents for an answer this room never asks for. A declared family is the
   // person's own when it names a face installed HERE and inherited otherwise
-  // (ownership.ts, `faceState`).
+  // (ownership.ts, `faceState`); the starter document is read below only to tell
+  // the blank starter's faces from the design system's own choices.
+  // The starter document only answers whether an inherited face is the blank
+  // starter's or one the design system chose itself (FaceState.starter).
+  const starterDoc = await readStarterDoc(bedit.host).catch(() => null);
+  if (!root.isConnected) return;
   const report = reportOwnership({
     doc: liveDoc,
-    starterDoc: null,
+    starterDoc,
     palette: { colors: [], starter: [] },
     userFontFamilies: bedit.fontFamilies.map(f => f.family),
     resolvedFaces: { brand: bedit.brandFace, display: bedit.displayFamily, mono: bedit.monoFamily, italic: bedit.italicFamily },

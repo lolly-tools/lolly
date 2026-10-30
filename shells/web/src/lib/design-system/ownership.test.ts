@@ -202,8 +202,8 @@ test('a fresh install has two inherited faces and two that follow the primary', 
     resolvedFaces: { brand: 'SUSE', mono: 'SUSE Mono', display: 'SUSE', italic: 'SUSE' },
   });
 
-  assert.deepEqual(report.faces.brand, { family: 'SUSE', state: 'inherited' });
-  assert.deepEqual(report.faces.mono, { family: 'SUSE Mono', state: 'inherited' });
+  assert.deepEqual(report.faces.brand, { family: 'SUSE', state: 'inherited', starter: true });
+  assert.deepEqual(report.faces.mono, { family: 'SUSE Mono', state: 'inherited', starter: true });
   // display and italic fall back through `var(--font-brand)`; mono does NOT -
   // its own tail is the platform mono (brand-vars.ts FONT_SLOTS).
   assert.deepEqual(report.faces.display, { family: 'SUSE', state: 'follows', follows: 'brand' });
@@ -234,7 +234,8 @@ test('a pack\'s built-in face is inherited, not own - nobody uploaded it', () =>
     doc, starterDoc: starter(), userFontFamilies: ['Inter'],
     resolvedFaces: { display: 'Some Pack Face' },
   });
-  assert.deepEqual(report.faces.display, { family: 'Some Pack Face', state: 'inherited' });
+  // Inherited, and the pack's own choice rather than the starter's.
+  assert.deepEqual(report.faces.display, { family: 'Some Pack Face', state: 'inherited', starter: false });
   assert.equal(report.counts.ownFaces, 0);
 });
 

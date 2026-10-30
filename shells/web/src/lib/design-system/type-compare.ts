@@ -687,7 +687,8 @@ export interface FaceLine { text: string; tag: string }
  * What a role card says about its face.
  *
  *   own        the family, and nothing else - it is the person's
- *   inherited  the family plus the Starter pill: a real face, chosen by nobody
+ *   inherited  the family plus a pill: Starter for the blank starter's face, Design
+ *              system for a face the design system chose beyond it
  *   follows    the arrow and the role it defers to (only display/italic can)
  *   unset      mono falls through to the starter mono; anything else that still
  *              resolves to a face is showing a starter one; a role resolving to
@@ -701,7 +702,8 @@ export function faceLine(role: FontRole, face: FaceState, t: TFn): FaceLine {
   const family = String(face?.family ?? '').trim();
   switch (face?.state) {
     case 'own': return { text: family, tag: '' };
-    case 'inherited': return { text: family, tag: t('Starter') };
+    // The design system's own choice (starter: false) is not the blank starter's.
+    case 'inherited': return { text: family, tag: face.starter === false ? t('Design system') : t('Starter') };
     case 'follows': return { text: t('↳ follows Primary'), tag: '' };
     default:
       if (role === 'mono') return { text: t('↳ follows the starter mono'), tag: '' };

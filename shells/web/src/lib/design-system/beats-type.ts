@@ -8,8 +8,9 @@
  *   0  nothing of its own. One card - Primary - with the starter face it is
  *      wearing and one action. No fonts list, no specimen, and the other three
  *      roles behind "Choose them separately".
- *   1  a face of the person's own exists. The four cards, the Fonts panel and
- *      the Type roles specimen.
+ *   1  a face of the person's own exists, or the design system chose faces of its
+ *      own beyond the starter's. The four cards, the Fonts panel and the Type
+ *      roles specimen.
  *
  * WHY A MODULE. The beat is a pure function of the ownership report, so the room
  * can re-ask it after every repaint without keeping a flag that can go stale,
@@ -40,6 +41,12 @@ export type TypeBeat = 0 | 1;
  */
 export function typeBeat(report: OwnershipReport, installedFaces = 0): TypeBeat {
   if (installedFaces > 0) return 1;
-  const own = FONT_ROLES.some((role) => report.faces[role]?.state === 'own');
-  return own ? 1 : 0;
+  // A face of the person's own, or one the design system chose beyond the blank
+  // starter (Lolly Demo's Outfit headings): either way the four roles are not all
+  // following the primary, so the room shows them rather than saying they do.
+  const chosen = FONT_ROLES.some((role) => {
+    const face = report.faces[role];
+    return face?.state === 'own' || (face?.state === 'inherited' && face.starter === false);
+  });
+  return chosen ? 1 : 0;
 }
