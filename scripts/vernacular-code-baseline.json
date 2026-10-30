@@ -503,7 +503,7 @@
   "shells/web/src/bridge/sequence-providers.ts": 21,
   "shells/web/src/bridge/sequence-render-worker.test.ts": 10,
   "shells/web/src/bridge/sequence-render.test.ts": 6,
-  "shells/web/src/bridge/sequence-render.ts": 28,
+  "shells/web/src/bridge/sequence-render.ts": 24,
   "shells/web/src/bridge/sequence-render.worker.ts": 18,
   "shells/web/src/bridge/stacking-order.test.ts": 1,
   "shells/web/src/bridge/stacking-order.ts": 1,

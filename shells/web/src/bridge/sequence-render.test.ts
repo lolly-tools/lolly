@@ -259,8 +259,9 @@ test('contract: every PLANNED layer is photographed clean, and the stage backgro
   // section 5.5: `PlanItem.blur` is the WHOLE blur (authored + kf `b` + DOF) and the executor
   // applies it, so a plate that still carried the element's own filter would blur
   // twice. The stage background is not a planned layer - no PlanItem carries its alpha
-  // or its blur - so it keeps both, exactly as it always kept its opacity.
-  const src = strip(read('./sequence-render.ts'));
+  // or its blur - so it keeps both, exactly as it always kept its opacity. The live
+  // re-shot moved to its own module (plans/328), so the feature is both files.
+  const src = strip(read('./sequence-render.ts')) + strip(read('./sequence-live-raster.ts'));
   assert.match(src, /neutralFilter\?:\s*boolean/, 'the shot can be asked for a clean plate');
   // THE NEUTRALISED SET AND THE READ SET ARE THE SAME SET. `readLayer` splits
   // `styleProp(el, 'filter')` - `el.style.getPropertyValue`, inline by construction - 
@@ -293,14 +294,18 @@ test('contract: every PLANNED layer is photographed clean, and the stage backgro
   // layer's plates are shot with the `<video>` hidden because the decoded frame is
   // composited between them, so a live re-shot that kept it would paint a stale poster
   // under the frame it is about to draw.
-  assert.match(src, /const hide = slideHide\.length \? \[\.\.\.entry\.hide, \.\.\.slideHide\] : entry\.hide;\s*const shot = await rasterBox\(entry\.box, scaleOf\(layerIdx\), hide, \{[\s\S]{0,420}wideColor, opaque: true,\s*neutralFilter: neutralOf\(layerIdx\),\s*neutralClipPath: clipNeutralOf\(layerIdx\),\s*pad: padOf\(layerIdx\),/,
+  assert.match(src, /const hide = slideHide\.length \? \[\.\.\.entry\.hide, \.\.\.slideHide\] : entry\.hide;\s*if \(look\) applyLook\(entry\.box, look, size\);\s*const shot = await raster\(entry\.box, scaleOf\(layerIdx\), hide, \{[\s\S]{0,420}wideColor, opaque: true,\s*neutralFilter: neutralOf\(layerIdx\),\s*neutralClipPath: clipNeutralOf\(layerIdx\),\s*pad: padOf\(layerIdx\),/,
     'the per-frame live plate matches the static one it replaces - the static hide list, plus a posed slide’s off-screen boxes (plans/184 R1)');
   // The `over` slot is the transparent half of that pair, framed identically.
   assert.match(src, /slot === 'over' \? \{ transparentBg: true \} : \{\}/,
     'a video layer\'s second live plate is the transparent one, as its static twin is');
-  assert.match(src, /makeLiveRaster\(\s*liveBoxes, plateScaleOf, padOf, neutralOf, clipNeutralOf, sizeAt, splitShotAt, stage\.totalMs, slideShotAt, deepEditing, temporal \|\| !!capture, releaseLive,\s*\)/,
+  assert.match(src, /makeLiveRaster\(\{\s*boxes: liveBoxes, scaleOf: plateScaleOf, padOf, neutralOf, clipNeutralOf, sizeAt, lookAt, splitAt: splitShotAt,\s*seqMs: stage\.totalMs, slideAt: slideShotAt, wideColor: deepEditing, preciseTime: temporal \|\| !!capture,\s*release: releaseLive, raster: rasterBox, playerFor: lottiePlayerFor,\s*\}\)/,
     'and is handed the same per-layer pad, scale and ownership the static plates were shot at'
-    + ' (plus the split-text window predicate, plans/175 WP-A, and the posed-slide predicate, plans/184 R1)');
+    + ' (plus the split-text window predicate, plans/175 WP-A, the posed-slide predicate, plans/184 R1,'
+    + ' and the keyed appearance, plans/328)');
+  // The keyed paint is on the box for its own shot only.
+  assert.match(src, /\}\)\.finally\(\(\) => \{ if \(look\) clearLook\(entry\.box\); \}\);/,
+    'a restyled box is handed back to its authored paint after every live shot');
   // section 5.4: a camera is a pose over time. `drawItem` already refuses to draw one; the
   // plates loop must refuse to photograph its marker div in the first place.
   assert.match(src, /L\.kind !== 'audio' && L\.kind !== 'camera'/,
@@ -316,8 +321,12 @@ test('contract: the whole render runs inside the authored-DOM scope (plans/104 s
   // `applySplitAt`/`clearSplitUnits` joined at plans/175 WP-A: the live split shots
   // drive unit spans through the SAME applier module, and the render's finally hands
   // them back at rest - a private split writer would be the drift this test prevents.
-  assert.match(src, /import \{\s*OFF_CLASS, applySplitAt, applyTimeToElements, clearSplitUnits, createAuthoredStore, createSequenceTime,\s*isActiveAt, readTiming, stageNativeSize, transitionAt, withAuthoredDom,\s*\} from '\.\/sequence-dom\.ts'/,
+  // The live shots moved to sequence-live-raster.ts (plans/328), which imports
+  // `applySplitAt` from the same applier.
+  assert.match(src, /import \{\s*OFF_CLASS, applyTimeToElements, clearSplitUnits, createAuthoredStore, createSequenceTime,\s*isActiveAt, readTiming, stageNativeSize, transitionAt, withAuthoredDom,\s*\} from '\.\/sequence-dom\.ts'/,
     'the scope comes from the applier that owns the writes, never a local restore');
+  assert.match(strip(read('./sequence-live-raster.ts')), /import \{ applySplitAt \} from '\.\/sequence-dom\.ts';/,
+    'and the live split shots drive the same applier');
   // `createSequenceTime` joined that import at P2: the tilt capture tier poses the live
   // artboard frame by frame through the SAME session the contact sheet uses, from
   // INSIDE the scope above (which stood every other writer down first). A second,

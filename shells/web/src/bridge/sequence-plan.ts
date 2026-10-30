@@ -55,6 +55,7 @@ import {
 } from '@lolly/engine';
 import { clamp } from '@lolly/engine';
 import { sceneAudioTiming } from './scene-audio.ts';
+import { lookOf, tracksLook } from './sequence-look.ts';
 
 // ── clamps (mirroring the tool hook + timeline-math, so nothing can disagree) ──
 
@@ -1218,6 +1219,13 @@ export interface PlanItem {
    * survivable direction.
    */
   m3: KfMatrix3 | null;
+  /**
+   * The keyed APPEARANCE at this instant (plans/328): the fill, stroke, width, radius and
+   * trim channels of the pose, or null on every layer whose track keys none of them. A
+   * layer with one is re-photographed per frame with that paint written on it (the
+   * `sized` precedent): a plate is a picture, and a picture cannot change colour.
+   */
+  look: KfPose | null;
 }
 
 const IDENTITY = { dx: 0, dy: 0, sc: 1, alpha: 1, rot: 0 } as const;
@@ -1479,13 +1487,14 @@ export function sequenceDrawPlan(
       && (moving || layer.z !== 0 || layer.rx !== 0 || layer.ry !== 0 || layer.kf.length > 0);
     // `t` is the SEQUENCE clock; a keyframe track runs on LOCAL box time, unscaled - 
     // the same timebase as enterMs (section 5.1). Speed remaps media, never keyframes.
+    const pose = projecting ? evaluateKf(layer.kf, t - layer.startMs) : null;
     const fold = projecting
       ? foldKfPose({
         view,
         cx: layer.rect.x + layer.rect.w / 2,
         cy: layer.rect.y + layer.rect.h / 2,
         tr: off,
-        pose: evaluateKf(layer.kf, t - layer.startMs),
+        pose: pose ?? {},
         zField: layer.z,
         rxField: layer.rx,
         ryField: layer.ry,
@@ -1516,6 +1525,7 @@ export function sequenceDrawPlan(
       h: fold.h,
       sized: fold.sized,
       m3: fold.m3,
+      look: pose && tracksLook(layer.kf) ? lookOf(pose) : null,
     });
   }
   // section 4.2: paint order IS depth order once anything is lifted. `Array.prototype.sort`

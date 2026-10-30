@@ -190,7 +190,6 @@ import type { HdrBoostOptions } from '@lolly/engine';
 import { activitySpans, createTruePeakLimiter, createLoudnessMeter, normalizeGain, parseFxChain, processFxPcm } from '@lolly/engine';
 // The scene grammar's ms-to-phase conversion, the same one the preview clock uses, so a
 // scene's exported frames and its scrubbed ones are the same picture at the same moment.
-import { designSceneTime } from '../../../../engine/src/design-scene.ts';
 // The compositor photographs the LIVE artboard, and the phase-2 clock has been
 // writing `.seq-off` (display:none) onto every box that is not under the playhead.
 // Without clearing it, every clip except the one being scrubbed rasterises blank.
@@ -202,7 +201,7 @@ import { designSceneTime } from '../../../../engine/src/design-scene.ts';
 // filter, z-index) have to come off the stage for exactly as long - see the wrapper on
 // `renderSequence` below, and plans/104 section 6 point 0.
 import {
-  OFF_CLASS, applySplitAt, applyTimeToElements, clearSplitUnits, createAuthoredStore, createSequenceTime,
+  OFF_CLASS, applyTimeToElements, clearSplitUnits, createAuthoredStore, createSequenceTime,
   isActiveAt, readTiming, stageNativeSize, transitionAt, withAuthoredDom,
 } from './sequence-dom.ts';
 import { poseSlideBoxes, type SlidePose } from '../lib/slide-pose.ts';
@@ -759,32 +758,8 @@ export interface RasterOpts {
   size?: { w: number; h: number };
 }
 
-/**
- * The capture frame one plate shot asks dom-to-image for: canvas size in device px,
- * and the clone transform that places the box inside it.
- *
- * Pure, exported and tested for one reason - `pad` (plans/104 section 5.5) changes the shot's
- * geometry, and "a document that uses no depth exports the same bytes it always did"
- * has to be a pinned property rather than a reading of the diff. At pad 0 both numbers
- * and the transform string are what they have always been.
- *
- * The translate sits INSIDE the scale so the pad stays in ELEMENT px: `scale(S)
- * translate(p,p)` maps a point x to S·(x + p), i.e. the box sits `p·S` device px in
- * from the top-left corner and the plate's origin is `(-p, -p)` in box space.
- */
-export function plateShotFrame(
-  bw: number, bh: number, S: number, pad = 0,
-): { width: number; height: number; transform: string } {
-  // Non-finite / negative pads are simply no pad: this number can arrive from a
-  // budget calculation over hostile attribute values, and a NaN here would size a
-  // canvas to NaN and lose the whole plate.
-  const p = Number.isFinite(pad) && pad > 0 ? pad : 0;
-  return {
-    width: Math.max(1, Math.round((bw + p * 2) * S)),
-    height: Math.max(1, Math.round((bh + p * 2) * S)),
-    transform: p ? `scale(${S}) translate(${p}px, ${p}px)` : `scale(${S})`,
-  };
-}
+export { plateShotFrame } from './sequence-live-raster.ts';
+import { framePlanLookup, makeLiveRaster, plateShotFrame, type LottieScrubber } from './sequence-live-raster.ts';
 
 /** What one layer's plates must be shot at, measured over its WHOLE active window. */
 export interface PlateWindowDemand {
@@ -813,6 +788,8 @@ export interface PlateWindowDemand {
   maxH: number;
   /** True when the layer keys `w`/`h` at any frame: its plate is a per-frame re-capture. */
   sized: boolean;
+  /** True when the layer keys its appearance (plans/328): re-captured per frame too. */
+  restyled?: boolean;
 }
 
 /**
@@ -857,6 +834,7 @@ export function plateWindowDemands(
       }
       const eff = projectDepth(cam, item.resolvedZ).eff;
       if (eff > rec.maxEff) rec.maxEff = eff;
+      if (item.look) rec.restyled = true;
       if (item.sized) {
         rec.sized = true;
         if (item.w > rec.maxW) rec.maxW = item.w;
@@ -1793,7 +1771,7 @@ async function renderSequenceAuthored(
         // The lottie player is not consulted until the loop below, so a lottie layer is
         // priced as if it WILL go live (two plates). Over-counting is safe for a memory
         // budget - and a size tween, like a 3D scene box, goes live for certain.
-        needsLiveRaster: L.kind === 'lottie' || L.kind === 'scene' || (d?.sized ?? false),
+        needsLiveRaster: L.kind === 'lottie' || L.kind === 'scene' || !!(d?.sized || d?.restyled),
       };
     }),
     scale: S,
@@ -1827,7 +1805,7 @@ async function renderSequenceAuthored(
   ]));
   const clipNeutralOf = (idx: number): boolean => clipNeutral.get(idx) ?? false;
   // The DRAW size a size-tweened layer's live plate is shot at, per frame.
-  const sizedLayers = new Set(stage.layers.filter((L) => demands.get(L.idx)?.sized).map((L) => L.idx));
+  const sizedLayers = new Set(stage.layers.filter((L) => demands.get(L.idx)?.sized || demands.get(L.idx)?.restyled).map((L) => L.idx));
   // The stage background's own margin (section 5.5). It joins the memory budget the same way
   // every other plate does - as bytes on a layer the budget can see - rather than as an
   // unpriced extra: a big pull-back can ask for a plate several times the artboard.
@@ -2042,26 +2020,9 @@ async function renderSequenceAuthored(
       // wire - and `structuredClone(job)` - identical to what it was.
       ...(fxCacheBytesOverride == null ? {} : { fxCacheBytes: fxCacheBytesOverride }),
     };
-    // The DRAW size of a size-tweened layer at one output frame. Answered by re-running
-    // the SAME planner the executor runs, over the same layers, grid, totalMs and env - 
-    // never by a second evaluation of the track - so the plate is shot at exactly the
-    // size the draw will place it at. Memoised per frame index because a frame typically
-    // asks for at most one or two layers and the executor walks the grid in order.
-    let sizeCache: { i: number; byIdx: Map<number, { w: number; h: number }> } | null = null;
-    const sizeAt = (idx: number, frameIndex: number, timeMs = usedGrid[frameIndex]): { w: number; h: number } | null => {
-      if (!sizedLayers.has(idx)) return null;
-      if (!sizeCache || sizeCache.i !== timeMs) {
-        const t = timeMs;
-        const byIdx = new Map<number, { w: number; h: number }>();
-        if (t != null) {
-          for (const it of sequenceDrawPlan(stage.layers, t, stage.totalMs, planEnv)) {
-            if (it.sized) byIdx.set(it.layer.idx, { w: it.w, h: it.h });
-          }
-        }
-        sizeCache = { i: timeMs ?? 0, byIdx };
-      }
-      return sizeCache.byIdx.get(idx) ?? null;
-    };
+    // The DRAW size and the keyed look of a re-shot layer at one output frame, read off
+    // the planner the executor runs (see `framePlanLookup`).
+    const { sizeAt, lookAt } = framePlanLookup(stage.layers, stage.totalMs, planEnv, usedGrid, sizedLayers);
     // Which layers animate text units, and whether a given output frame falls inside
     // one of their windows - the live raster keys its memo on the answer, so the
     // steady middle of a split clip is one shot, not nine hundred.
@@ -2094,9 +2055,11 @@ async function renderSequenceAuthored(
       }
       return { t, animating, restKey: Math.abs(restKey) + 1, hide };
     };
-    const liveRaster = makeLiveRaster(
-      liveBoxes, plateScaleOf, padOf, neutralOf, clipNeutralOf, sizeAt, splitShotAt, stage.totalMs, slideShotAt, deepEditing, temporal || !!capture, releaseLive,
-    );
+    const liveRaster = makeLiveRaster({
+      boxes: liveBoxes, scaleOf: plateScaleOf, padOf, neutralOf, clipNeutralOf, sizeAt, lookAt, splitAt: splitShotAt,
+      seqMs: stage.totalMs, slideAt: slideShotAt, wideColor: deepEditing, preciseTime: temporal || !!capture,
+      release: releaseLive, raster: rasterBox, playerFor: lottiePlayerFor,
+    });
     const hybrid = liveBoxes.size > 0;
 
     // ── P2b: the GPU compositor draws tilt (plans/104 section 6.4) ────────────────
@@ -2588,177 +2551,6 @@ async function renderSequenceAuthored(
       resumeThumbs();
     }
   }
-}
-
-// ── the live raster, the one thing the worker cannot do ────────────────────
-
-/** The slice of a lottie-web player the exporter scrubs. */
-interface LottieScrubber { goToAndStop?(v: number, isFrame?: boolean): void; frameRate?: number }
-
-/** The box's own size in stage-native px, measured exactly as `rasterBox` measures it. */
-function boxNativeSize(el: HTMLElement, size: { w: number; h: number } | null): { w: number; h: number } {
-  if (size && size.w > 0 && size.h > 0) return size;
-  return {
-    w: Math.max(1, parseFloat(el.style.width) || el.offsetWidth || 1),
-    h: Math.max(1, parseFloat(el.style.height) || el.offsetHeight || 1),
-  };
-}
-
-/**
- * One frame of a 3D scene box, as a plate (plan 265 milestone 3, decision Q19).
- *
- * A scene's picture does not come from the DOM at all: it is rendered through the studio
- * pool at this moment and handed back as an ImageBitmap. Decision Q19 makes that the ONE
- * path for every export - still, video, batch and pages - because the browser lends about
- * sixteen WebGL contexts and a document may hold twenty scenes, so nothing may depend on a
- * live canvas being mounted, let alone on being in the right state at the right frame.
- *
- * `pad` is the capture margin the layer's static plates were shot with (plans/104 section
- * 5.5). The compositor draws a plate with its origin at (-pad, -pad) in box space, so when
- * there is a margin the scene is drawn INSIDE one rather than stretched across it; with no
- * margin - which is every scene box carrying no blur or shadow - the bitmap goes straight
- * through and nothing is copied.
- *
- * The studio module is reached with an `await import()` so a sequence with no scene box
- * loads no three.js.
- */
-async function sceneLivePlate(
-  marker: Element,
-  box: HTMLElement,
-  size: { w: number; h: number } | null,
-  sourceSec: number,
-  S: number,
-  pad: number,
-): Promise<CanvasImageSource | null> {
-  const { w, h } = boxNativeSize(box, size);
-  const seconds = Number((marker as HTMLElement).dataset?.sceneSeconds);
-  const frame = plateShotFrame(w, h, S, pad);
-  const { designSceneFrame } = await import('./export-design-scenes.ts');
-  return await designSceneFrame(marker, {
-    width: Math.max(1, Math.round(w * S)),
-    height: Math.max(1, Math.round(h * S)),
-    time: designSceneTime(sourceSec * 1000, Number.isFinite(seconds) ? seconds : 0),
-    // The margin is expressed as the finished plate's own size and the inset the scene sits
-    // at inside it, measured HERE with `plateShotFrame` so a scene plate and a photographed
-    // one can never disagree about how big a padded plate is.
-    plate: pad > 0 ? { width: frame.width, height: frame.height, inset: Math.round(pad * S) } : null,
-  });
-}
-
-/**
- * Build the per-frame live-raster function, or `undefined` when no layer needs one.
- *
- * Memoised on the animation's OWN frame number, so a 30 fps export of a 12 fps
- * Lottie rasterises 12 times a second, not 30. A single-entry memo per layer is
- * enough (the grid is monotonic, so repeats are always consecutive) and keeps
- * the cache O(1) instead of growing with the clip. That memo is also what makes
- * the worker's per-frame request cheap: most frames are answered from it without
- * touching lottie-web or dom-to-image at all.
- */
-function makeLiveRaster(
-  boxes: Map<number, { marker: Element | null; box: HTMLElement; hide: Element[] }>,
-  scaleOf: (idx: number) => number,
-  padOf: (idx: number) => number,
-  neutralOf: (idx: number) => boolean,
-  clipNeutralOf: (idx: number) => boolean,
-  /** The layer's DRAW size at that output frame, or null when it keyframes no size. */
-  sizeAt: (idx: number, frameIndex: number, timeMs?: number) => { w: number; h: number } | null,
-  /** Split-text state at that frame (plans/175), or null when the layer splits nothing. */
-  splitAt?: (idx: number, frameIndex: number, timeMs?: number) => { t: number; animating: boolean } | null,
-  /** The sequence's total ms - applySplitAt's open-ended-box authority. */
-  seqMs = 0,
-  /** A posed slide at that frame (plans/184 R1): drives its boxes and names the hidden ones. */
-  slideAt?: (idx: number, frameIndex: number, timeMs?: number) => { t: number; animating: boolean; restKey: number; hide: Element[] } | null,
-  wideColor = false,
-  preciseTime = false,
-  release: (() => void)[] = [],
-): SeqJobIO['lottieAt'] {
-  if (!boxes.size) return undefined;
-  // Keyed by layer AND slot: a video layer's two plates are two different pictures of
-  // the same box (opaque with the media hidden, then transparent), so one memo slot per
-  // layer would answer the `over` request with the `under` shot.
-  const memo = new Map<string, { key: number; shot: CanvasImageSource }>();
-  release.push(() => { for (const value of memo.values()) if (value.shot instanceof ImageBitmap) value.shot.close(); memo.clear(); });
-  return async (layerIdx, frameIndex, sourceSec, slot = 'under', timeMs) => {
-    const entry = boxes.get(layerIdx);
-    if (!entry) return null;
-    const memoKey = `${layerIdx}:${slot}`;
-    const size = sizeAt(layerIdx, frameIndex, timeMs);
-    let key: number;
-    let slideHide: Element[] = [];
-    // A 3D scene box is answered first and by a different route: its picture is rendered,
-    // not photographed, so none of the DOM handling below applies to it. The memo key is
-    // the moment (to the millisecond) and the size, which is the whole of what changes it -
-    // the recipe cannot move during a render, and each layer already has its own slot.
-    const scene = entry.box.matches?.('[data-lolly-scene]')
-      ? entry.box
-      : entry.box.querySelector?.('[data-lolly-scene]');
-    if (scene) {
-      const { w, h } = boxNativeSize(entry.box, size);
-      key = (preciseTime ? sourceSec * 1000 : Math.round(sourceSec * 1000)) * 65537 + Math.round(w * 100) + Math.round(h * 100) * 4093;
-      const held = memo.get(memoKey);
-      if (held && held.key === key) return held.shot;
-      const drawn = await sceneLivePlate(scene, entry.box, size, sourceSec, scaleOf(layerIdx), padOf(layerIdx));
-      if (!drawn) return held?.shot ?? null;
-      if (held?.shot instanceof ImageBitmap) held.shot.close();
-      memo.set(memoKey, { key, shot: drawn });
-      return drawn;
-    }
-    if (entry.box.querySelector('[data-anim-src]')) {
-      const { captureSvgTime } = await import('./sequence-svg-clock.ts');
-      return await captureSvgTime(entry.box, sourceSec, () => rasterBox(entry.box, scaleOf(layerIdx), entry.hide, { wideColor, opaque: true, neutralFilter: neutralOf(layerIdx), neutralClipPath: clipNeutralOf(layerIdx), pad: padOf(layerIdx), ...(size ? { size } : {}) }));
-    }
-    if (entry.marker) {
-      const player = lottiePlayerFor(entry.marker) as LottieScrubber | null;
-      if (!player?.goToAndStop) return null;
-      const rate = Number.isFinite(player.frameRate) && (player.frameRate as number) > 0 ? (player.frameRate as number) : 30;
-      key = preciseTime ? sourceSec * rate : Math.round(sourceSec * rate);
-      // A size tween moves the picture on EVERY frame even when the animation itself
-      // does not, so the memo key has to carry the size too or a stretching Lottie
-      // would be answered from a plate shot at the previous width.
-      if (size) key = key * 4093 + Math.round(size.w * 100) + Math.round(size.h * 100) * 65537;
-      const prev = memo.get(memoKey);
-      if (prev && prev.key === key) return prev.shot;
-      try { player.goToAndStop((preciseTime ? sourceSec : Math.round(sourceSec * rate) / rate) * 1000, false); } catch { return prev?.shot ?? null; }
-    } else {
-      // Size-only: the frame index IS the key, quantised through the size so a track
-      // that holds a value for a second is photographed once rather than thirty times.
-      // A split-text layer (plans/175) joins the same memo: inside an animation window
-      // every frame is its own key; at rest every frame collapses onto one.
-      const split = splitAt?.(layerIdx, frameIndex, timeMs) ?? null;
-      const slide = slideAt?.(layerIdx, frameIndex, timeMs) ?? null;
-      if (!size && !split && !slide) return null;
-      key = size ? Math.round(size.w * 100) + Math.round(size.h * 100) * 65537 : 0;
-      if (split) key = Math.imul(key, 31) + (split.animating ? (preciseTime ? split.t : Math.round(split.t)) + 2 : 1);
-      // A slide mid-transition is its own frame; at rest it is one shot per set of boxes
-      // on screen (a timed box arriving changes the picture without animating anything).
-      if (slide) key = Math.imul(key, 37) + (slide.animating ? (preciseTime ? slide.t : Math.round(slide.t)) * 2 + 1 : slide.restKey * 2);
-      slideHide = slide?.hide ?? [];
-      const prev = memo.get(memoKey);
-      if (prev && prev.key === key) return prev.shot;
-      // Drive the unit spans to this frame's state BEFORE the shot - the box's own
-      // whole-box transition is suppressed by the planner, so this write is the whole
-      // difference between frames inside the window.
-      if (split) applySplitAt(entry.box, split.t, seqMs);
-    }
-    // The SAME shot the static plate for THIS SLOT takes - same hide list, same
-    // filter/clip neutralisation, identically padded, at the identical scale, and
-    // transparent for `over` exactly as the static pair is. A live plate is a drop-in
-    // replacement for the static one on the frames it covers, so any difference in how
-    // it is framed is a jump in the picture.
-    const hide = slideHide.length ? [...entry.hide, ...slideHide] : entry.hide;
-    const shot = await rasterBox(entry.box, scaleOf(layerIdx), hide, {
-      wideColor, opaque: true,
-      neutralFilter: neutralOf(layerIdx),
-      neutralClipPath: clipNeutralOf(layerIdx),
-      pad: padOf(layerIdx),
-      ...(slot === 'over' ? { transparentBg: true } : {}),
-      ...(size ? { size } : {}),
-    });
-    const prev = memo.get(memoKey);
-    if (shot) { memo.set(memoKey, { key, shot }); return shot; }
-    return prev?.shot ?? null;
-  };
 }
 
 // ── the Worker client (modelled on bridge/video-encode.ts) ──────────────────

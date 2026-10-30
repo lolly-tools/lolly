@@ -798,6 +798,17 @@ function fillShape(el: Element, subs: SubPath[], ctx: Ctx, alpha: number): void 
   });
 }
 
+/** The factor a `pathLength` attribute scales dash lengths by: the real length over the stated one, else 1. */
+function pathLengthScale(el: Element): number {
+  const stated = Number(el.getAttribute('pathLength'));
+  const geo = el as Element & { getTotalLength?(): number };
+  if (!(stated > 0) || typeof geo.getTotalLength !== 'function') return 1;
+  try {
+    const real = geo.getTotalLength();
+    return Number.isFinite(real) && real > 0 ? real / stated : 1;
+  } catch { return 1; }
+}
+
 function strokeShape(el: Element, subs: SubPath[], ctx: Ctx, alpha: number): void {
   const s = ctx.scope;
   let paint = paintFor(el, 'stroke', subs, ctx);
@@ -813,9 +824,12 @@ function strokeShape(el: Element, subs: SubPath[], ctx: Ctx, alpha: number): voi
     pdf.setLineCap(s.get(el, 'stroke-linecap') || 'butt');
     pdf.setLineJoin(s.get(el, 'stroke-linejoin') || 'miter');
     pdf.setLineMiterLimit(miter);
-    const dash = (s.get(el, 'stroke-dasharray') || 'none').split(/[\s,]+/).map(parseFloat).filter(v => !Number.isNaN(v));
+    // A `pathLength` restates the dash in fractions of the path (a keyed trim draws a
+    // stroke that way, plans/328), so it is scaled back to the path's own units here.
+    const k = pathLengthScale(el);
+    const dash = (s.get(el, 'stroke-dasharray') || 'none').split(/[\s,]+/).map(parseFloat).filter(v => !Number.isNaN(v)).map(v => v * k);
     if (dash.length && dash.every(v => Number.isFinite(v) && v >= 0) && dash.some(v => v > 0)) {
-      pdf.setLineDashPattern(dash.length % 2 ? [...dash, ...dash] : dash, s.num(el, 'stroke-dashoffset', 0));
+      pdf.setLineDashPattern(dash.length % 2 ? [...dash, ...dash] : dash, s.num(el, 'stroke-dashoffset', 0) * k);
     }
     emitSubpaths(pdf, subs);
     pdf.stroke();

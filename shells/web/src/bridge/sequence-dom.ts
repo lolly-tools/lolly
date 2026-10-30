@@ -89,6 +89,7 @@ import {
 } from '@lolly/engine';
 import { clamp } from '@lolly/engine';
 import { applySceneElements } from './sequence-scenes.ts';
+import { applyLook, clearLook, lookOf, lookWritten, tracksLook } from './sequence-look.ts';
 
 export { MIN_SPEED, MAX_SPEED, MIN_TRANSITION_MS, MAX_TRANSITION_MS };
 
@@ -817,6 +818,9 @@ export function createAuthoredStore(): AuthoredStore {
     rec.lastZIndex = null;
     rec.lastWidth = null;
     rec.lastHeight = null;
+    // The keyed appearance (plans/328) is custom properties on the box; removing them
+    // is the whole restore.
+    clearLook(el);
     // The published pose comes off with the styles that expressed it - here rather
     // than at each of `restore`/`restoreAll`'s call sites, so a writer that stands
     // down for an export (see `withAuthoredDom`) cannot leave an editor drawing chrome
@@ -899,7 +903,7 @@ export function createAuthoredStore(): AuthoredStore {
         height: rec.height,
         written: rec.lastTransform !== null || rec.lastOpacity !== null
           || rec.lastFilter !== null || rec.lastZIndex !== null
-          || rec.lastWidth !== null || rec.lastHeight !== null,
+          || rec.lastWidth !== null || rec.lastHeight !== null || lookWritten(el),
       };
     },
     restore(el) {
@@ -1372,6 +1376,9 @@ function applyFlatTimeToElements(els: HTMLElement[], tMs: number, ctx: ApplyCtx)
     // rank (see `Authored.plane` and the rank pass below).
     const projecting = view !== null && active && projectable
       && (moving || timing.z !== 0 || timing.rx !== 0 || timing.ry !== 0 || timing.kf.length > 0);
+    // Evaluated once and read twice: by the fold, and by the appearance write below.
+    const pose = projecting ? evaluateKf(timing.kf, tMs - timing.start) : null;
+    let lookSize: { w: number; h: number } | null = null;
     if (tr || projecting || hold) {
       const off0 = tr ? recTransition(tr.kind, tr.p, rec.w, rec.h, tr.ease) : REST_TRANSITION;
       const off = hold ? withHold(off0, hold) : off0;
@@ -1383,7 +1390,7 @@ function applyFlatTimeToElements(els: HTMLElement[], tMs: number, ctx: ApplyCtx)
           cx: rec.left + rec.w / 2,
           cy: rec.top + rec.h / 2,
           tr: off,
-          pose: evaluateKf(timing.kf, tMs - timing.start),
+          pose: pose ?? {},
           zField: timing.z,
           rxField: timing.rx,
           ryField: timing.ry,
@@ -1395,6 +1402,7 @@ function applyFlatTimeToElements(els: HTMLElement[], tMs: number, ctx: ApplyCtx)
           dx: off.dx, dy: off.dy, scale: off.sc, rot: off.rot, alpha: off.alpha,
           blur: rec.filterBlur, z: 0, w: rec.w, h: rec.h, sized: false, m3: null,
         };
+      lookSize = { w: fold.w, h: fold.h };
       // THE LAYOUT WRITE (section 5.2, and the header's stated exception). Gated on `sized`,
       // which is only ever true when the track actually mentioned `w`/`h` - so a stage
       // that keyframes position, scale, opacity, blur or depth still issues not one
@@ -1477,6 +1485,13 @@ function applyFlatTimeToElements(els: HTMLElement[], tMs: number, ctx: ApplyCtx)
         ctx.store.restore(el);
       }
     }
+
+    // APPEARANCE KEYFRAMES (plans/328): fill, stroke, width, radius and trim, through the
+    // same gate as every other keyframe channel (projecting), written as custom
+    // properties the box's own paint falls back from. A box whose track keys none of
+    // them never reaches the module, and one that stops being posed is handed back.
+    if (pose && tracksLook(timing.kf)) applyLook(el, lookOf(pose), lookSize);
+    else if (lookWritten(el)) clearLook(el);
 
     // The background plane has no media to drive - the export photographs it as a
     // STILL plate - so it is not offered to the caller's media hook either.
