@@ -910,8 +910,17 @@ export interface KfPoseField {
    */
   base?: KfBaseChannel;
 }
+/** One APPEARANCE row of the Keyframes popup (plans/328): a property and its input. */
+export interface KfLookRow {
+  prop: import('../kf-props.ts').KfProp;
+  el: HTMLInputElement;
+}
 export interface KfLatchRefs {
   id: string;
+  /** The popup's body, whose field diamonds are re-read with the latch (plans/328). */
+  body?: HTMLElement;
+  /** The appearance rows (plans/328), re-read with the pose rows. */
+  look?: KfLookRow[];
   /** "Scene pose" ⇄ "Keyframe @ 0:01.8". */
   state: HTMLElement;
   /** The pose controls - enabled only ON a diamond (except the ones with a `base`). */

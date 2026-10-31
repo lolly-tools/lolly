@@ -13,6 +13,7 @@ import { announce } from '../../a11y.ts';
 import { isTransitionKind } from '../../lib/transitions.ts';
 import { DEFAULT_CLIP_S, MIN_DUR, MIN_TRIM_BAR_PX, boxTiming, deriveDuration, fmtTime, indexOfId, isThroughEdit, isTimed, kfBoxTrack, kfLocalSec, kfTimelineSec, moveOverlay, packSeq, revealTimeSec, rippleOverlays, seqBoxes, setDuration } from '../timeline-math.ts';
 import type { Box } from '../timeline-math.ts';
+import { kfFilterChannels, kfKeysMentioning } from '../kf-props.ts';
 import { isCaptionGroup } from '../timeline-captions.ts';
 import { editedToOriginal, originalToEdited, removedSpansTimeline } from '../transcript-edit.ts';
 import { tickStep, timeToPx } from './shared.ts';
@@ -167,7 +168,9 @@ export function applyBarGeometry(tp: TpCtx, el: HTMLElement, start: number, dur:
  */
 export function syncDiamonds(tp: TpCtx, el: HTMLElement, box: Box, tight: boolean, keyframable: boolean): void {
   const { cfg } = tp;
-  const track = cfg.kfField && keyframable ? kfBoxTrack(box, cfg) : null;
+  // The property filter (plans/328) narrows the strip to the keyframes holding one
+  // group - Fill, Position, Trim - so that property's timing can be read and moved alone.
+  const track = cfg.kfField && keyframable ? kfKeysMentioning(kfBoxTrack(box, cfg), kfFilterChannels(tp.kfFilter)) : null;
   let strip = el.querySelector<HTMLElement>('.tl-kf-strip');
   if (!track?.length) {
     strip?.remove();

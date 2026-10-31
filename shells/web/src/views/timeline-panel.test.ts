@@ -5582,6 +5582,28 @@ test('the CRUD list is the AT route: real labelled controls that each write once
   } finally { closeOverlays(); h.teardown(); }
 });
 
+test('every field diamond is a labelled button that keys only its own property, one commit (plans/328)', async () => {
+  const h = mount(kfScene({ ...clip('a', 0, 3), kf: 't0_x0_s1*t1500_eo_x40_s1' } as Box), 40, ADD_KINDS, KF_CFG);
+  try {
+    h.select(['a']);
+    setGroup(h.root, 'keyframes', true);
+    const btn = (prop: string): HTMLButtonElement => inspAll<HTMLButtonElement>(`.tl-kf-prop[data-prop="${prop}"]`)[0]!;
+    // One per pose row, a real button with a name that says what a press does and when.
+    for (const prop of ['z', 'rx', 'ry', 's', 'o', 'b']) assert.equal(btn(prop)?.tagName, 'BUTTON', prop);
+    assert.equal(btn('b').getAttribute('aria-label'), 'Add a keyframe for Blur at 0:00.0');
+    assert.equal(btn('s').dataset.state, 'key', 'the playhead is on a keyframe that holds scale');
+    assert.equal(btn('b').dataset.state, 'none');
+    btn('b').click();
+    assert.equal(h.commits.length, 1, 'one press, one commit');
+    assert.equal(kfOf(h, 'a'), 't0_x0_s1_b0*t1500_eo_x40_s1', 'blur joins this keyframe and nothing else moves');
+    h.notify(); await frames(3);
+    assert.equal(btn('b').dataset.state, 'key');
+    assert.equal(btn('b').getAttribute('aria-label'), 'Remove the keyframe for Blur at 0:00.0');
+    btn('b').click();
+    assert.equal(kfOf(h, 'a'), 't0_x0_s1*t1500_eo_x40_s1', 'and a second press takes it off again');
+  } finally { closeOverlays(); h.teardown(); }
+});
+
 test('the keyframe curve picker names EVERY preset, and a bezier spelling selects its preset', () => {
   // ONE vocabulary (plans/179 M4): the engine names the curve, `EASINGS` gives that name
   // its word, and the picker seeds from the name rather than from string equality on the

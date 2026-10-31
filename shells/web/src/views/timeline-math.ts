@@ -38,6 +38,7 @@ import {
 import type {
   KfCameraClip, KfCameraView, KfChannel, KfKey, KfPose, KfTrack,
 } from '../../../../engine/src/keyframes.ts';
+import { isKfLookChannel } from '../../../../engine/src/kf-look.ts';
 import { clamp } from '@lolly/engine';
 
 export type { Box };
@@ -168,6 +169,17 @@ export interface TimeCfg {
    */
   rxField?: string;
   ryField?: string;
+  /**
+   * OPTIONAL, on `zField`'s terms (plans/328): the box's own fill, stroke colour, stroke
+   * width, corner radius and shape fields. A keyed appearance channel replaces one of
+   * these for its segment, so keying a property for the first time reads its value here;
+   * a tool that declares none simply offers no appearance diamonds.
+   */
+  fillField?: string;
+  strokeField?: string;
+  strokeWField?: string;
+  radiusField?: string;
+  shapeField?: string;
 }
 
 /** A box's timing, resolved. `start`/`dur` stay null when unauthored (scenery / open-ended). */
@@ -782,8 +794,11 @@ export function kfActiveChannels(
   box: Box | undefined, cfg: TimeCfg, edited?: KfPose | null,
 ): KfChannel[] {
   const used = new Set<KfChannel>(kfChannelsUsed(boxTrack(box, cfg)));
+  // A track that keys only its APPEARANCE (plans/328: one property keyed from its own
+  // diamond) still has no pose, so "+Keyframe" there seeds one, as on an empty track.
+  const lookOnly = used.size > 0 && [...used].every((ch) => isKfLookChannel(ch));
   if (edited) for (const ch of Object.keys(edited) as KfChannel[]) used.add(ch);
-  if (used.size === 0) {
+  if (used.size === 0 || lookOnly) {
     const seed = String(box?.kind ?? '') === 'camera' ? KF_CAMERA_CHANNELS : KF_POSE_SEED;
     for (const ch of seed) used.add(ch);
   }
@@ -858,12 +873,24 @@ export function writeKfPose(
   const box = rows[i]!;
   const track = boxTrack(box, cfg);
   const localMs = kfWriteMs(box, cfg, tSec);
-  const channels = kfActiveChannels(box, cfg, edit);
-  const pose = kfPoseAt(box, cfg, localMs, channels);
-  for (const ch of Object.keys(edit) as KfChannel[]) {
+  const existing = kfKeyAt(track, localMs);
+  const edited = (Object.keys(edit) as KfChannel[]).filter((ch) => {
     const v = edit[ch];
-    if (typeof v !== 'number' || !Number.isFinite(v)) continue;
-    pose[ch] = mode === 'add' ? num(pose[ch], KF_NEUTRAL[ch]) + v : v;
+    return typeof v === 'number' && Number.isFinite(v);
+  });
+  // ON AN EXISTING KEYFRAME an edit writes the channels it touches into that keyframe
+  // and nothing else (plans/328, per-property keyframing). On a track of full poses that
+  // is the same keyframe the full-pose rule wrote; on a keyframe that mentions only some
+  // properties it keeps the others' curves whole, where re-writing every active channel
+  // would pin them there and split their segments in two. A NEW keyframe ("+Keyframe",
+  // the Animate door) is still a full pose over the active set.
+  const channels = existing && edited.length ? edited : kfActiveChannels(box, cfg, edit);
+  const pose: KfPose = existing && edited.length ? { ...existing.v } : {};
+  const at = kfPoseAt(box, cfg, localMs, channels);
+  for (const ch of channels) if (!(ch in pose)) pose[ch] = at[ch]!;
+  for (const ch of edited) {
+    const v = edit[ch] as number;
+    pose[ch] = mode === 'add' ? num(at[ch], KF_NEUTRAL[ch]) + v : v;
   }
   const wire = serialiseKf(upsertKey(track, localMs, pose));
   // IDENTITY when nothing actually changed, and it has to be the ARRAY's identity, not

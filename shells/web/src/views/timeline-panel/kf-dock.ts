@@ -16,7 +16,10 @@ import { EASINGS } from '../../lib/transitions.ts';
 import { KF_CAMERA_CHANNELS, KF_EASE_TOKENS, KF_HOLD_EASE, KF_Z_FIELD_CLAMP, kfEaseCss, kfEaseName, kfEaseToken } from '../../../../../engine/src/keyframes.ts';
 import type { KfTrack } from '../../../../../engine/src/keyframes.ts';
 import { mountEasingEditor } from '../../components/easing-editor.ts';
-import { clearKfTrack, fmtTime, indexOfId, kfBoxTrack, kfDiamondAt, kfFormatChannel, kfKeyAt, kfLocalMs, kfPoseAt, kfSlideMs, kfTimelineSec, kfTrackRetime, kfTrackSetEase, writeKfPose } from '../timeline-math.ts';
+import { clearKfTrack, fmtTime, indexOfId, kfBoxTrack, kfDiamondAt, kfFormatChannel, kfKeyAt, kfLocalMs, kfPoseAt, kfSlideMs, kfTimelineSec, kfTrackSetEase, writeKfPose } from '../timeline-math.ts';
+import { KF_GROUPS, KF_GROUP_CHANNELS, kfFilterChannels, kfKeysMentioning, type KfProp } from '../kf-props.ts';
+import { msToUnit, unitStep, unitSwitch, unitToMs } from '../timeline-units.ts';
+import { projectRate } from '../../../../../engine/src/timebase.ts';
 import type { Box } from '../timeline-math.ts';
 import { KF_Z_SLIDER, clamp, finite } from '../timeline-config.ts';
 import { kfEasePreset } from './shared.ts';
@@ -247,6 +250,9 @@ export function buildKeyframes(tp: TpCtx,
         live.addEventListener('change', () => commitChannel(finite(live.value, 0)));
         wrap.insertBefore(live, el);
       }
+      // The field's own diamond (plans/328): keys THIS property at the playhead and
+      // nothing else, one commit. Depth, tilt, scale, opacity and blur are each a channel.
+      wrap.appendChild(tp.propKeys.propButton(id, f.ch as KfProp));
       poseWrap.appendChild(wrap);
       // `base` only where the tool actually declares the field to fall back to: the
       // commit refuses on a missing `cfg` name, so a control that stayed live off a
@@ -260,12 +266,41 @@ export function buildKeyframes(tp: TpCtx,
     }
   }
 
+  // ── the appearance (plans/328) ────────────────────────────────────────────
+  // Fill, stroke, stroke width, corner radius and trim, each with its own diamond.
+  const look = isCam ? [] : tp.propKeys.buildLookRows(body, id, box);
+
   // ── the list ──────────────────────────────────────────────────────────────
+  // It follows the timeline's property filter (plans/328): with Fill picked, it lists
+  // the keyframes that hold a fill, and retime, duplicate and delete act on the fill
+  // alone, so one property's timing can be moved without the others'.
+  const filterChs = kfFilterChannels(tp.kfFilter);
+  const unit = tp.timeUnit ?? 'ms';
+  const rate = projectRate(tp.opts.projectTime?.rate());
+  const fps = rate.numerator / rate.denominator;
+  const head = document.createElement('div');
+  head.className = 'tl-kf-listhead';
+  const shown = document.createElement('span');
+  shown.className = 'tl-kf-listnote';
+  shown.textContent = filterChs ? t('Showing {group} keyframes', { group: kfGroupLabel(tp.kfFilter) }) : '';
+  head.append(shown, unitSwitch(unit, (next) => {
+    tp.timeUnit = next;
+    tp.inspectorKey = '\u0000';
+    tp.inspectorPane.renderInspector(getBoxes());
+    syncKfLatch(tp);
+    tp.groupPopHost?.querySelector<HTMLElement>('.tl-units-seg[aria-checked="true"]')?.focus();
+  }));
+  body.appendChild(head);
   const list = document.createElement('div');
   list.className = 'tl-kf-list';
   list.setAttribute('role', 'group');
   list.setAttribute('aria-label', t('Keyframes'));
-  for (const k of track) {
+  // The properties every keyframe of this track holds: a keyframe that holds fewer says
+  // which, so a track keyed one property at a time still reads at a glance.
+  const groupsOf = (k: { v: Readonly<Record<string, number | undefined>> }): string[] =>
+    KF_GROUPS.filter((g) => KF_GROUP_CHANNELS[g].some((ch) => typeof k.v[ch] === 'number'));
+  const full = new Set(track.flatMap((k) => groupsOf(k)));
+  for (const k of kfKeysMentioning(track, filterChs)) {
     const at = fmtTime(kfTimelineSec(box, cfg, k.t));
     const row = document.createElement('div');
     row.className = 'tl-kf-row';
@@ -274,20 +309,24 @@ export function buildKeyframes(tp: TpCtx,
     const time = document.createElement('input');
     time.className = 'field-input tl-num tl-kf-time';
     time.type = 'number';
-    // The wire's own quantum is the millisecond (section 4.6), so the grid is milliseconds
-    // and the step is a hundredth of a second - fine enough to place a beat, coarse
-    // enough that the arrow keys are usable.
-    time.step = '10';
+    // The wire's quantum is the millisecond (section 4.6) whatever unit this device reads
+    // times in (plans/328): milliseconds step by ten, seconds by a hundredth, frames by one.
+    time.step = String(unitStep(unit));
     time.min = '0';
-    time.value = String(k.t);
+    time.value = String(msToUnit(k.t, unit, fps));
     // NAMED WITH ITS ROW, exactly as Duplicate and Delete already are. section 8 makes this
     // list the keyboard and screen-reader route to the diamonds (which is what lets
     // the diamonds themselves stay aria-hidden), so a four-key track that tabs as
     // "Keyframe time" four times identifies nothing: the row is the only thing that
     // distinguishes one control from the next, and the row has no label of its own.
-    time.setAttribute('aria-label', t('Keyframe time in milliseconds at {t}', { t: at }));
+    time.setAttribute('aria-label', unit === 'ms'
+      ? t('Keyframe time in milliseconds at {t}', { t: at })
+      : unit === 's'
+        ? t('Keyframe time in seconds at {t}', { t: at })
+        : t('Keyframe time in frames at {t}', { t: at }));
     time.addEventListener('change', () => {
-      tp.keyframes.writeTrack(id, (tr) => kfTrackRetime(tr, k.t, kfSlideMs(finite(time.value, k.t), 0, dur)));
+      const to = kfSlideMs(unitToMs(finite(time.value, msToUnit(k.t, unit, fps)), unit, fps), 0, dur);
+      tp.keyframes.retimeKeyframe(id, k.t, to);
     });
 
     const ease = kfEaseSelect(tp, id, k.t, k.ease, at);
@@ -298,6 +337,13 @@ export function buildKeyframes(tp: TpCtx,
     del.addEventListener('click', () => tp.keyframes.deleteKeyframe(id, k.t));
 
     row.append(time, ease, dup, del);
+    const holds = groupsOf(k);
+    if (holds.length < full.size) {
+      const props = document.createElement('span');
+      props.className = 'tl-kf-holds';
+      props.textContent = holds.map((g) => kfGroupLabel(g)).join(' · ');
+      row.appendChild(props);
+    }
     list.appendChild(row);
   }
   body.appendChild(list);
@@ -347,6 +393,8 @@ export function buildKeyframes(tp: TpCtx,
 
   tp.kfLatch = {
     id,
+    body,
+    look,
     state,
     pose,
     list,
@@ -481,6 +529,7 @@ export function kfEaseSelect(tp: TpCtx, id: string, atMs: number, ease: string, 
 export function syncKfLatch(tp: TpCtx): void {
   const { bars, cfg, getBoxes, selection } = tp;
   if (!cfg.kfField) return;
+  tp.propKeys.notifyKeys();
   const rows = getBoxes();
   const at = tp.keyframes.playheadSec();
   const sel = selection.get();
@@ -542,7 +591,7 @@ export function syncKfLatch(tp: TpCtx): void {
       cfg.zField ? String(box[cfg.zField] ?? '') : ''
     }|${cfg.rxField ? String(box[cfg.rxField] ?? '') : ''}|${
       cfg.ryField ? String(box[cfg.ryField] ?? '') : ''
-    }`;
+    }|${[cfg.fillField, cfg.strokeField, cfg.strokeWField, cfg.radiusField].map((f) => (f ? String(box[f] ?? '') : '')).join('|')}`;
   if (poseKey === tp.kfPoseKey) return;
   tp.kfPoseKey = poseKey;
   for (const f of refs.pose) {
@@ -572,6 +621,9 @@ export function syncKfLatch(tp: TpCtx): void {
       f.slider.title = f.el.title;
     }
   }
+  // The appearance rows and every field diamond follow the same reading (plans/328).
+  if (refs.look?.length) tp.propKeys.syncLookRows(refs.look, refs.id, box, on, readMs);
+  tp.propKeys.syncPropButtons(refs.body);
 }
 /**
  * The CAMERA's channels, re-read on the same tick as the latch (section 8).
@@ -738,6 +790,25 @@ export function resyncGroupPopover(tp: TpCtx, id: string): void {
   g.body.hidden = false;
   tp.groupPopHost.appendChild(g.body);
 }
+/** A property group's name, as the filter menu lists each group. */
+export function kfGroupLabel(group: string): string {
+  switch (group) {
+    case 'position': return t('Position');
+    case 'size': return t('Size');
+    case 'scale': return t('Scale');
+    case 'rotation': return t('Rotation');
+    case 'opacity': return t('Opacity');
+    case 'depth': return t('Depth');
+    case 'tilt': return t('Tilt');
+    case 'blur': return t('Blur');
+    case 'fill': return t('Fill');
+    case 'stroke': return t('Stroke');
+    case 'corner': return t('Corner radius');
+    case 'trim': return t('Path trim');
+    case 'volume': return t('Volume');
+    default: return t('All keyframes');
+  }
+}
 export function kfDockOps(tp: TpCtx) {
   return {
     buildDepthControl: bindOp(tp, buildDepthControl),
@@ -752,5 +823,6 @@ export function kfDockOps(tp: TpCtx) {
     aimGroupPoint: bindOp(tp, aimGroupPoint),
     openGroupPopover: bindOp(tp, openGroupPopover),
     resyncGroupPopover: bindOp(tp, resyncGroupPopover),
+    kfGroupLabel: (group: string) => kfGroupLabel(group),
   };
 }

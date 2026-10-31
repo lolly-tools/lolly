@@ -1,5 +1,7 @@
 import { webSectionRows } from './design-web-section.ts';
 import { createStrokeRows, STROKE_PLACEMENT_FIELDS } from './design-inspector-stroke.ts';
+import { sceneSummary } from './design-inspector-scene.ts';
+import { inspectorKeys } from './design-inspector-keys.ts';
 import { webInteractRows, wireWebInteract, commitWebInteractColour } from './design-web-interact.ts';
 import { mountTextInspector } from '../lib/text-inspector.ts';
 import { wireWebPlayback } from './design-web-playback.ts';
@@ -379,6 +381,8 @@ type Gate =
 /** Everything a number cell may say beyond its label, field and current value. */
 interface NumCellOpts {
   name?: string;
+  /** Markup placed after the cell in the same row (a field diamond, plans/328). */
+  after?: string;
   unit?: string;
   min?: number;
   max?: number;
@@ -565,44 +569,6 @@ function clampN(v: unknown, dflt: number, lo: number, hi: number): number {
  */
 const fv = (b: Box, field: string | undefined): unknown => (field ? b[field] : undefined);
 
-/**
- * WHAT A SCENE FIELD SAYS, in one short line (plan 265 milestone 3, D2).
- *
- * A `kind: '3d'` box stores the 3D Studio's own readable query with every value that
- * matches a studio default left out (see `engine/src/design-scene.ts`), so reading the
- * query IS reading what the author chose - which is the only thing a summary can
- * honestly report from here. This column is mounted against fakes and is handed no tool
- * manifest, so it never claims to know a default: a query that carries nothing reads as
- * "Studio defaults", and an empty field as "Empty scene".
- *
- * The six source words are the studio's wire values, pinned by its own compat suite. A
- * source this table has not met falls through to the wire word itself, so a studio that
- * grows a seventh still reads rather than going blank.
- */
-const SCENE_SOURCE_LABEL: Record<string, () => string> = {
-  primitive: () => t('Shape'),
-  artwork: () => t('Artwork'),
-  model: () => t('Model'),
-  text: () => t('Words'),
-  collection: () => t('Collection'),
-  arrangement: () => t('Arrangement'),
-};
-
-/** A scene asset id as a person can read it: a catalog id says itself, an upload cannot. */
-const sceneAssetLabel = (id: string): string => (id.startsWith('user/') ? t('one of your uploads') : id);
-
-/** The scene's subject and its lighting studio, both empty when the query says nothing. */
-function sceneSummary(query: string): { subject: string; studio: string } {
-  const q = new URLSearchParams(query);
-  const source = (q.get('source') ?? '').trim();
-  const detail = (q.get('words') ?? '').replace(/\s+/g, ' ').trim()
-    || (q.get('primitive') ?? '').trim()
-    || sceneAssetLabel((q.get('artwork') ?? '').trim() || (q.get('modelAsset') ?? '').trim() || '')
-    || '';
-  const parts = [source ? (SCENE_SOURCE_LABEL[source]?.() ?? source) : '', detail.slice(0, 80)].filter(Boolean);
-  return { subject: parts.join(' · '), studio: (q.get('studio') ?? '').trim() };
-}
-
 /** `CSS.escape` where the platform has it (jsdom does not), for a manifest field name. */
 const q = (s: unknown): string =>
   (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') ? CSS.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
@@ -630,6 +596,15 @@ function inspectorFocusKey(scroll: HTMLElement, node: Element | null, q: (value:
     return null;
   }
 
+
+/** Which model field each colour trigger id writes. */
+function colorTarget(cfg: Cfg, id: string): string | undefined {
+  if (id === 'fc-insp-fill') return cfg.fillField;
+  if (id === 'fc-insp-stroke') return cfg.strokeField;
+  if (id === 'fc-insp-fg') return cfg.textColorField;
+  if (id === 'fc-insp-shadow') return cfg.shadowColorField;
+  return undefined;
+}
 
 function wireInspectorSelects(root: HTMLElement, model: ModelPort, ids: string[], write: (field: string | undefined, value: unknown) => void): void {
   wireLayoutControls(root, model, ids);
@@ -1086,7 +1061,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       `<input type="range" class="field-range" data-fld="${escape(field ?? '')}" data-kind="num" data-num="${escape(key)}"`
       + ` min="${min}" max="${max}" value="${at}" aria-label="${escape(label)}"`
       + (value === 'mixed' ? ` aria-valuetext="${escape(t('Mixed'))}"` : '') + '>'
-      + numCell('', field, value, { name: label, min, max, pair: key, ...o }));
+      + numCell('', field, value, { name: label, min, max, pair: key, ...o }) + (o.after ?? ''));
 
   const colorRow = (label: string, id: string, raw: unknown, extra = '', mixed = false): string =>
     `<div class="fc-row"><span>${label}</span><span class="fc-cfield">${colorField(id, raw, label, mixed)}</span>${extra}</div>`;
@@ -1451,15 +1426,16 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + (F_LOCKED ? toggleRow(t('Locked'), F_LOCKED, boolOf(fv(b, F_LOCKED), false)) : '');
   }
 
-  const strokeUi = createStrokeRows({ model, cfg, ids: () => renderedIds, idOf, numCell, ctrlRow });
+  const K = inspectorKeys(actions.keys, cfg, () => renderedIds); // field diamonds (plans/328)
+  const strokeUi = createStrokeRows({ model, cfg, ids: () => renderedIds, idOf, numCell, ctrlRow, keys: K });
 
   function fillBody(b: Box, rows: Box[]): string {
     return (cfg.fillField
-      ? colorRow(t('Fill'), 'fc-insp-fill', fv(b, cfg.fillField),
-        `<button type="button" class="fc-cbtn fc-insp-mini" data-act="gradient">${t('Gradient')}</button>`,
+      ? colorRow(t('Fill'), 'fc-insp-fill', K.shown(b, 'fill', fv(b, cfg.fillField)),
+        `<button type="button" class="fc-cbtn fc-insp-mini" data-act="gradient">${t('Gradient')}</button>${K.diamond('fill')}`,
         differs(rows, cfg.fillField))
       : '')
-      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', fv(b, cfg.strokeField), '', differs(rows, cfg.strokeField)) : '')
+      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', K.shown(b, 'stroke', fv(b, cfg.strokeField)), K.diamond('stroke'), differs(rows, cfg.strokeField)) : '')
       + (cfg.strokeWField ? strokeUi.rows(cfg.strokeWField, rows, true) : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, rows, selectRow);
   }
 
@@ -1470,7 +1446,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const shapeChoices = shapeChoicesFrom(fieldDefs, cfg.shapeField);
     const blend = optionsOf(cfg.blendField);
     const opacity = agree(rows, opacityOf);
-    const radius = agree(rows, radiusOf);
+    const radius = agree(rows, (r) => K.num(r, 'cr', radiusOf(r)));
     return (cfg.opacityField ? sliderRow(FIELD_GLYPH.opacity, t('Opacity'), 'opacity', cfg.opacityField, opacity, opacityOf(b), 0, 100, { unit: '%' }) : '')
       + (cfg.blendField ? iconRow(FIELD_GLYPH.blend, t('Blend mode'),
         `<select class="field-select field-select--sm" data-fld="${escape(cfg.blendField)}" data-kind="str">`
@@ -1481,7 +1457,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         + (blend.length ? blend : BLEND_FALLBACK.map((m) => [m, t(m[0]!.toUpperCase() + m.slice(1).replace('-', ' '))] as [string, string]))
           .map(([v, l]) => opt(v, l, differs(rows, cfg.blendField) ? null : (fv(b, cfg.blendField) ?? 'normal'))).join('')
         + '</select>') : '')
-      + (rows.every(row => kindOf(row) !== 'group') && cfg.radiusField ? sliderRow(FIELD_GLYPH.radius, t('Corner radius'), 'radius', cfg.radiusField, radius, radiusOf(b), 0, 200, { unit: 'px' }) : '')
+      + (rows.every(row => kindOf(row) !== 'group') && cfg.radiusField ? sliderRow(FIELD_GLYPH.radius, t('Corner radius'), 'radius', cfg.radiusField, radius, K.num(b, 'cr', radiusOf(b)), 0, 200, { unit: 'px', after: K.diamond('cr') }) : '')
       + (rows.every(row => kindOf(row) !== 'group') && shapeChoices.length && cfg.shapeField ? segRow(FIELD_GLYPH.shRounded, t('Shape'), segHtml(cfg.shapeField, fv(b, cfg.shapeField) ?? 'rect', shapeChoices, t('Shape'))) : '');
   }
   function shadowBody(b: Box, rows: Box[]): string {
@@ -2097,7 +2073,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       opts.guides?.update(renderedGuideId, { snap: Boolean(value) });
       return;
     }
-    if (!field || !renderedIds.length) return;
+    if (!field || !renderedIds.length || K.route(field, value)) return;
     // A hand-set Enter or Exit on an ARTBOARD is the author overriding the deck, and it
     // has to report it in the same commit - exactly as the timeline's copy of these two
     // selects does (`frameTrans` there). Without the stamp `slideTransition` stayed '',
@@ -2126,15 +2102,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     return rows.length > 0 && rows.every((b) => kindOf(b) === frame.frameKind);
   }
 
-  /** Which model field each colour trigger id writes. */
-  function colorTarget(id: string): string | undefined {
-    if (id === 'fc-insp-fill') return cfg.fillField;
-    if (id === 'fc-insp-stroke') return cfg.strokeField;
-    if (id === 'fc-insp-fg') return cfg.textColorField;
-    if (id === 'fc-insp-shadow') return cfg.shadowColorField;
-    return undefined;
-  }
-
   function wire(): void {
     wireSegs(scroll, (field, v) => {
       // The Appears segments are the one control here that is not a field: they write
@@ -2154,11 +2121,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         const colour = designColorValue(val, model.getInput('editingRange'), detail);
         if (id === 'fc-insp-guide' && renderedGuideId) { opts.guides?.update(renderedGuideId, { color: typeof val === 'object' ? val.value : val }); return; }
         if (id === 'fc-insp-bg') { model.setInput('background', colour); return; }
-        write(colorTarget(id), colour);
+        write(colorTarget(cfg, id), colour);
       },
     });
 
     wireInspectorSelects(scroll, model, [...renderedIds], write);
+    K.wire(scroll);
     wireWebPlayback(scroll, () => parseWebEmbed(String(fv(boxesById(renderedIds)[0] ?? {}, F_WEB) ?? ''), { appOrigin: location.origin }), link => write(F_WEB, link));
     webInteractDispose = wireWebInteract(scroll, model, [...renderedIds], canvasEl);
 
@@ -2557,6 +2525,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   // waits a frame unless this column made the write itself.
   const repaint = oncePerFrame(() => sync());
   const unsubModel = model.subscribe(() => { noteBoxes(); if (writes.active()) repaint.now(); else repaint.schedule(); });
+  const unsubKeys = actions.keys?.subscribe(() => sync(true));
   const unsubSel = selection.onChange(() => sync());
   const unsubGuides = opts.guides?.onChange(() => sync());
   const unsubArt = artboard.onChange(() => sync());
@@ -2651,6 +2620,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       offDock();
       ro?.disconnect();
       unsubModel();
+      unsubKeys?.();
       unsubSel();
       unsubGuides?.();
       unsubArt();

@@ -199,6 +199,8 @@ export interface FcCtx {
   slideMasterStatus: MasterStatus;
   timelinePanel: TimelinePanel | null;
   timelineLoading: boolean;
+  /** The inspector's field-diamond listeners (plans/328), kept across timeline panels. */
+  keyCbs: Set<() => void>;
   timelineLoad: Promise<void> | null;
   timelineWantOpen: boolean;
   timelineBtn: HTMLButtonElement | null;

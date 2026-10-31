@@ -25,6 +25,8 @@ import { FX_PRESETS, parseFxChain, serializeFxChain } from '../../../../../engin
 import { KF_CAMERA_PRESETS, clamp, finite } from '../timeline-config.ts';
 import { animateSummary, canPlayOnce, groupBodySeq, playOnce, setGroupBodySeq } from './shared.ts';
 import type { InspectorGroup, KfPoseField } from './shared.ts';
+import { msToUnit, unitSwitch, unitToMs, type TimeUnit } from '../timeline-units.ts';
+import { projectRate } from '../../../../../engine/src/timebase.ts';
 import { bindOp, type TpCtx } from './context.ts';
 
 /** One group of the clip inspector. Shut by default, always. */
@@ -337,6 +339,17 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
     });
     return el;
   };
+  // The Time segment reads in this device's unit (plans/328): seconds, milliseconds or
+  // frames at the project rate. The model stores seconds whichever is shown.
+  const rate = projectRate(tp.opts.projectTime?.rate());
+  const fps = rate.numerator / rate.denominator;
+  const timeField = (sec: number | null, minSec: number, onCommit: (s: number) => void, placeholder?: string): HTMLInputElement => {
+    const u = tp.timeUnit ?? 's';
+    const el = numField(sec === null ? null : msToUnit(sec * 1000, u, fps), u === 'ms' ? 100 : u === 's' ? 0.1 : 1,
+      msToUnit(minSec * 1000, u, fps), (v) => onCommit(unitToMs(v, u, fps) / 1000), placeholder);
+    el.max = String(msToUnit(MAX_TIME_S * 1000, u, fps));
+    return el;
+  };
   const kindSelect = (value: unknown, onCommit: (v: string) => void): HTMLSelectElement => {
     const el = document.createElement('select');
     el.className = 'field-select tl-select';
@@ -397,6 +410,14 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
   };
 
   const timed = isTimed(box, cfg);
+  // A unit change rebuilds this row (and so every time field) in the new unit.
+  const onUnit = (unit: TimeUnit): void => {
+    tp.timeUnit = unit;
+    tp.inspectorKey = '\u0000';
+    renderInspector(tp, getBoxes());
+    tp.kfDock.syncKfLatch();
+    tp.groupPopHost?.querySelector<HTMLElement>('.tl-units-seg[aria-checked="true"]')?.focus();
+  };
 
   // ── the groups ────────────────────────────────────────────────────────────
   //
@@ -431,13 +452,14 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
     // ?boxes= URL. Both render EMPTY - a 0 would claim the box starts at the top of
     // the sequence, which is a different (and authored) state.
     const hint = t('Type a time to place this on the timeline');
-    const untimedStart = numField(null, 0.1, 0, (v) => tp.rows.promote(id, { start: v }), '-');
+    const untimedStart = timeField(null, 0, (v) => tp.rows.promote(id, { start: v }), '-');
     untimedStart.title = hint;
     timeG.body.appendChild(row(t('Start'), untimedStart));
-    const untimedLen = numField(null, 0.1, MIN_DUR, (v) => tp.rows.promote(id, { dur: v }), '-');
+    const untimedLen = timeField(null, MIN_DUR, (v) => tp.rows.promote(id, { dur: v }), '-');
     untimedLen.title = hint;
     timeG.body.appendChild(row(t('Length'), untimedLen));
     timeG.setSummary([t('Always on')]);
+    timeG.body.appendChild(unitSwitch(tp.timeUnit ?? 's', onUnit));
   } else if (timeG) {
     // ── TIMED ───────────────────────────────────────────────────────────────
     // Numeric start / duration / trim-in.
@@ -445,7 +467,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
     // A seq clip's start is DERIVED by the pack (reorder it to move it), so the field is
     // disabled rather than writable-but-ignored: the old shape committed the unchanged
     // array, which dirtied the session and pushed an empty step onto the undo stack.
-    const startField = numField(timing.start ?? 0, 0.1, 0, (v) => {
+    const startField = timeField(timing.start ?? 0, 0, (v) => {
       tp.helpers.write(moveOverlay(getBoxes(), cfg, id, v));
     });
     if (timing.lane === 'seq') {
@@ -463,7 +485,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
     timeG.body.appendChild(
       row(
         t('Length'),
-        numField(shown.dur, 0.1, MIN_DUR, (v) => {
+        timeField(shown.dur, MIN_DUR, (v) => {
           tp.helpers.write(setDuration(getBoxes(), cfg, id, v, tp.helpers.mediaOf(id).dur, tp.helpers.mediaDur));
         })
       )
@@ -474,7 +496,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
     timeG.body.appendChild(
       row(
         t('Trim in'),
-        numField(timing.clipIn, 0.1, 0, (v) => {
+        timeField(timing.clipIn, 0, (v) => {
           tp.helpers.write(setClipIn(getBoxes(), cfg, id, v, tp.helpers.mediaOf(id).dur, tp.helpers.mediaDur));
         })
       )
@@ -494,6 +516,7 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
       tp.helpers.write(setSpeed(getBoxes(), cfg, id, finite(speed.value, 1), tp.helpers.mediaOf(id).dur, tp.helpers.mediaDur))
     );
     timeG.body.appendChild(row(t('Speed'), speed));
+    timeG.body.appendChild(unitSwitch(tp.timeUnit ?? 's', onUnit));
     // The collapsed reading: where it starts, how long it runs, how fast - the three
     // numbers a clip is identified by. Formatted by timeline-math's own formatters
     // (`fmtTime` / `fmtDur`), the same ones the transport pill and the trim badge use,

@@ -63,6 +63,9 @@ import { menusOps } from './timeline-panel/menus.ts';
 import { keyframesOps } from './timeline-panel/keyframes.ts';
 import { cameraOps } from './timeline-panel/camera.ts';
 import { kfDockOps } from './timeline-panel/kf-dock.ts';
+import { propKeysOps } from './timeline-panel/prop-keys.ts';
+import { readTimeUnit } from './timeline-units.ts';
+import type { InspectorKeysPort } from './design-ports.ts';
 import { inspectorPaneOps } from './timeline-panel/inspector-pane.ts';
 import { thumbsOps } from './timeline-panel/thumbs.ts';
 import { syncingOps } from './timeline-panel/syncing.ts';
@@ -256,6 +259,8 @@ export interface TimelinePanel {
    * Pure: no writes, no DOM mutation, no announce.
    */
   keyframableIds(ids: readonly string[]): string[];
+  /** The Design inspector's field diamonds (plans/328): per-property keyframing at the playhead. */
+  keyPort: InspectorKeysPort;
   /**
    * Park the playhead at an AUTHORED time in seconds - the `_t` deep link's door, and
    * the same seek the ruler makes. A non-finite or negative time parks at 0.
@@ -334,6 +339,7 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
   tp.keyframes = keyframesOps(tp);
   tp.camera = cameraOps(tp);
   tp.kfDock = kfDockOps(tp);
+  tp.propKeys = propKeysOps(tp);
   tp.inspectorPane = inspectorPaneOps(tp);
   tp.thumbs = thumbsOps(tp);
   tp.syncing = syncingOps(tp);
@@ -1243,6 +1249,12 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
 
   /** The pose readout's own memo - see `syncKfLatch` for why the two are separate. */
   tp.kfPoseKey = '\u0000';
+  // Per-property keyframing (plans/328): every keyframe shows until a filter is picked,
+  // and times read in the unit this device last chose.
+  tp.kfFilter = 'all';
+  tp.timeUnit = readTimeUnit();
+  tp.keyListeners = new Set();
+  tp.keySig = '';
 
   /**
    * The pose channels the inspector offers, and the form of each control.
@@ -1803,6 +1815,7 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
     selectAndReveal: tp.rows.selectAndReveal,
     time: () => tp.keyframes.playheadSec(),
     addKeyframe: () => tp.keyframes.addKeyframeAction({ speak: true }),
+    keyPort: tp.propKeys.keyPort(),
     keyframableIds: (ids) => {
       const rows = getBoxes();
       return ids.filter((id) => tp.keyframes.isKeyframable(rows[indexOfId(rows, cfg, id)], id));

@@ -2,7 +2,61 @@
 import { t } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
 import { mountBodyPopover } from '../../components/body-popover.ts';
+import { KF_GROUPS, type KfFilter } from '../kf-props.ts';
 import { bindOp, type TpCtx } from './context.ts';
+
+/**
+ * The property filter (plans/328): one control that narrows every clip's diamond strip,
+ * and the Keyframes popup's list, to the keyframes holding one property group. While a
+ * group is picked the control says which, in words and in its pressed state, so a strip
+ * with fewer diamonds than the track has is never a surprise.
+ */
+function filterControl(tp: TpCtx): HTMLButtonElement {
+  const b = tp.helpers.actionBtn('tl-kf-filter', t('All keyframes'), 'keyframe');
+  const menu = mountBodyPopover(b, (el, pop) => {
+    el.textContent = '';
+    for (const choice of ['all', ...KF_GROUPS] as KfFilter[]) {
+      const item = tp.menus.menuItem(tp.kfDock.kfGroupLabel(choice), choice === tp.kfFilter ? 'check' : 'keyframe', () => {
+        pop.close(true);
+        setKfFilter(tp, choice);
+      });
+      item.setAttribute('role', 'menuitemradio');
+      item.setAttribute('aria-checked', String(choice === tp.kfFilter));
+      if (choice === 'all') item.classList.add('tl-kf-filter-all');
+      el.appendChild(item);
+    }
+    return el.querySelector<HTMLElement>('[aria-checked="true"]');
+  }, { className: 'folder-menu tl-menu tl-kf-filter-menu', ariaLabel: t('Show keyframes for'), position: tp.menus.menuPosition });
+  b.addEventListener('click', () => { if (menu.isOpen()) menu.close(true); else menu.open(); });
+  syncKfFilter(tp, b);
+  return b;
+}
+
+/** Narrow the strips and the Keyframes list to one property group, or show every keyframe. */
+export function setKfFilter(tp: TpCtx, filter: KfFilter): void {
+  if (filter === tp.kfFilter) return;
+  tp.kfFilter = filter;
+  const b = tp.tools.querySelector<HTMLButtonElement>('.tl-kf-filter') ?? tp.root.querySelector<HTMLButtonElement>('.tl-kf-filter');
+  if (b) syncKfFilter(tp, b);
+  tp.rows.restyle(tp.getBoxes());
+  tp.kfLatchKey = '\u0000';
+  tp.inspectorKey = '\u0000';
+  tp.inspectorPane.renderInspector(tp.getBoxes());
+  tp.kfDock.syncKfLatch();
+  announce(filter === 'all' ? t('Showing all keyframes') : t('Showing {group} keyframes', { group: tp.kfDock.kfGroupLabel(filter) }));
+}
+
+function syncKfFilter(tp: TpCtx, b: HTMLButtonElement): void {
+  const on = tp.kfFilter !== 'all';
+  const text = on ? tp.kfDock.kfGroupLabel(tp.kfFilter) : t('All keyframes');
+  const label = b.querySelector('.tl-action-label');
+  if (label) label.textContent = text;
+  const name = on ? t('Showing {group} keyframes', { group: text }) : t('Show keyframes for');
+  b.setAttribute('aria-label', name);
+  b.dataset.tip = name;
+  b.classList.toggle('is-active', on);
+  b.setAttribute('aria-pressed', String(on));
+}
 
 /** Keep common tasks visible and disclose the existing precision controls in place. */
 export function wire(tp: TpCtx): void {
@@ -162,15 +216,16 @@ export function arrange(tp: TpCtx): void {
   const add = tp.helpers.actionBtn('tl-add-compact', t('Add'), 'plus');
   add.dataset.tip = t('Add media, text or a recording');
   const addControls = [...tp.tools.querySelectorAll<HTMLButtonElement>('.tl-add-media,.tl-add-text,.tl-record,.tl-add')];
+  const filter = tp.cfg.kfField ? filterControl(tp) : null;
   const primary = new Set<HTMLElement>([tp.editBtn, tp.mobileToolsBtn, tp.fitBtn, tp.alwaysBtn,
-    ...tp.tools.querySelectorAll<HTMLElement>('.tl-track-size'), ...addControls]);
+    ...tp.tools.querySelectorAll<HTMLElement>('.tl-track-size'), ...addControls, ...(filter ? [filter] : [])]);
   const secondary = [...tp.tools.querySelectorAll<HTMLButtonElement>('button')].filter(button => !primary.has(button) && !button.classList.contains('tl-record-source') && button !== tp.scriptBtn);
   const parking = document.createElement('div'); parking.className = 'tl-tool-parking'; parking.hidden = true;
   tp.root.append(parking);
   for (const button of secondary) parking.append(button);
   for (const button of addControls) button.classList.add('tl-add-source');
   tp.tools.prepend(add);
-  tp.tools.append(tp.editBtn, tp.tools.querySelector('.tl-track-size')!, tp.fitBtn, tp.alwaysBtn, tp.mobileToolsBtn);
+  tp.tools.append(tp.editBtn, ...(filter ? [filter] : []), tp.tools.querySelector('.tl-track-size')!, tp.fitBtn, tp.alwaysBtn, tp.mobileToolsBtn);
   for (const button of tp.tools.querySelectorAll<HTMLButtonElement>('button')) {
     button.dataset.tip ||= button.getAttribute('aria-label') || button.textContent || '';
   }
@@ -223,5 +278,5 @@ export function arrange(tp: TpCtx): void {
 export function close(tp: TpCtx): void { tp.addToolsMenu?.close(); tp.moreToolsMenu?.close(); }
 
 export function toolbarOps(tp: TpCtx) {
-  return { wire: bindOp(tp, wire), sync: bindOp(tp, sync), arrange: bindOp(tp, arrange), close: bindOp(tp, close) };
+  return { wire: bindOp(tp, wire), sync: bindOp(tp, sync), arrange: bindOp(tp, arrange), close: bindOp(tp, close), setKfFilter: bindOp(tp, setKfFilter) };
 }

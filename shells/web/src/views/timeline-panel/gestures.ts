@@ -9,7 +9,7 @@
  */
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
-import { boxTiming, dropIndexAt, edgeZonePx, fmtDelta, fmtDur, fmtTime, groupDropIndex, indexOfId, kfDiamondTimes, kfLocalSec, kfSlideMs, kfTimelineSec, kfTrackDuplicate, kfTrackRetime, moveOverlay, moveOverlays, moveSeqClip, moveSeqClips, restackOverlay, seqBoxes, snapTime, trimClip, trimClips } from '../timeline-math.ts';
+import { boxTiming, dropIndexAt, edgeZonePx, fmtDelta, fmtDur, fmtTime, groupDropIndex, indexOfId, kfDiamondTimes, kfLocalSec, kfSlideMs, kfTimelineSec, moveOverlay, moveOverlays, moveSeqClip, moveSeqClips, restackOverlay, seqBoxes, snapTime, trimClip, trimClips } from '../timeline-math.ts';
 import type { Box, LaneDrop } from '../timeline-math.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { compactDesignViewport, panelStageHeight } from '../../lib/design-panel-layout.ts';
@@ -794,9 +794,8 @@ export function onPointerUp(tp: TpCtx, e: PointerEvent): void {
     if (to !== from) {
       const j = indexOfId(boxes, cfg, g.id);
       const at = j >= 0 ? fmtTime(kfTimelineSec(boxes[j]!, cfg, to)) : '';
-      tp.keyframes.writeTrack(g.id, (track) =>
-        alt ? kfTrackDuplicate(track, from, to) : kfTrackRetime(track, from, to)
-      );
+      // Under a property filter (plans/328) only that group's part of the keyframe moves.
+      tp.keyframes.retimeKeyframe(g.id, from, to, alt);
       announce(
         alt ? t('Keyframe copied to {t}', { t: at }) : t('Keyframe moved to {t}', { t: at })
       );

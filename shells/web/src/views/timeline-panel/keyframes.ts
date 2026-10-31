@@ -9,8 +9,9 @@
  */
 import { t } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
-import type { KfTrack } from '../../../../../engine/src/keyframes.ts';
-import { fmtTime, indexOfId, isTimed, kfBoxTrack, kfDiamondTimes, kfDuplicateMs, kfSeekDiamond, kfTimelineSec, kfTrackDelete, kfTrackDuplicate, kfWriteMs, setKfTrack, writeKfPose } from '../timeline-math.ts';
+import type { KfKey, KfTrack } from '../../../../../engine/src/keyframes.ts';
+import { fmtTime, indexOfId, isTimed, kfBoxTrack, kfDiamondTimes, kfDuplicateMs, kfSeekDiamond, kfTimelineSec, kfTrackDelete, kfTrackDuplicate, kfTrackRetime, kfWriteMs, setKfTrack, writeKfPose } from '../timeline-math.ts';
+import { kfFilterChannels, kfTrackDropChannels, kfTrackMoveChannels } from '../kf-props.ts';
 import type { Box } from '../timeline-math.ts';
 import { bindOp, type TpCtx } from './context.ts';
 
@@ -226,19 +227,32 @@ export function openKeyframeAt(tp: TpCtx, id: string, atMs: number): void {
   tp.kfDock.openGroupPopover('keyframes', id);
   tp.kfDock.syncKfLatch();
 }
-/** Delete one keyframe, from wherever it was asked for. */
+/**
+ * Delete one keyframe, from wherever it was asked for. Under a property filter
+ * (plans/328) only that group's part of the keyframe goes; the rest stays put.
+ */
 export function deleteKeyframe(tp: TpCtx, id: string, atMs: number): void {
-  writeTrack(tp, id, (track) => kfTrackDelete(track, atMs));
+  const chs = kfFilterChannels(tp.kfFilter);
+  writeTrack(tp, id, (track) => (chs ? kfTrackDropChannels(track, atMs, chs) : kfTrackDelete(track, atMs)));
   announce(t('Keyframe deleted'));
 }
-/** Copy one keyframe into the gap after it. */
+/** Copy one keyframe into the gap after it (under a filter, only that group's part). */
 export function duplicateKeyframe(tp: TpCtx, id: string, atMs: number): void {
   const { cfg, getBoxes } = tp;
   const rows = getBoxes();
   const i = indexOfId(rows, cfg, id);
   if (i < 0) return;
   const dur = tp.rows.span(rows[i]!, tp.rows.durationSec()).dur;
-  writeTrack(tp, id, (track) => kfTrackDuplicate(track, atMs, kfDuplicateMs(track, atMs, dur)));
+  writeTrack(tp, id, (track) => retimed(tp, track, atMs, kfDuplicateMs(track, atMs, dur), true));
+}
+/** Move (or copy) one keyframe to `toMs`: the whole keyframe, or the filtered group's part of it. */
+export function retimeKeyframe(tp: TpCtx, id: string, fromMs: number, toMs: number, copy = false): void {
+  writeTrack(tp, id, (track) => retimed(tp, track, fromMs, toMs, copy));
+}
+function retimed(tp: TpCtx, track: KfTrack, fromMs: number, toMs: number, copy: boolean): KfKey[] {
+  const chs = kfFilterChannels(tp.kfFilter);
+  if (chs) return kfTrackMoveChannels(track, fromMs, toMs, chs, copy);
+  return copy ? kfTrackDuplicate(track, fromMs, toMs) : kfTrackRetime(track, fromMs, toMs);
 }
 export function keyframesOps(tp: TpCtx) {
   return {
@@ -253,5 +267,6 @@ export function keyframesOps(tp: TpCtx) {
     openKeyframeAt: bindOp(tp, openKeyframeAt),
     deleteKeyframe: bindOp(tp, deleteKeyframe),
     duplicateKeyframe: bindOp(tp, duplicateKeyframe),
+    retimeKeyframe: bindOp(tp, retimeKeyframe),
   };
 }

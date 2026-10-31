@@ -412,3 +412,38 @@
 .tool-stage[data-design-layout="compact"] .fc-nav.is-collapsed { display: none; }
 .tool-stage[data-design-layout="compact"] .tl-panel { bottom: calc(var(--design-actions-h) + var(--design-viewport-inset, 0px)); }
 .tool-stage[data-design-layout="compact"].is-text-editing .design-compact-actions button:not(.design-text-done) { display: none; }
+
+/* A field's keyframe diamond (plans/328): beside Fill, Stroke, Stroke width and Corner
+   radius while the timeline is open. Hollow and quiet when the property is not
+   animated, hollow in the accent when it is, filled when the playhead is on its key.
+   The same three states as the Keyframes popup's diamonds (timeline.css). */
+.fc-kf-key {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ui-size-control);
+  height: var(--ui-size-control);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.fc-kf-key-glyph {
+  width: calc(11px * var(--a11y-fs));
+  height: calc(11px * var(--a11y-fs));
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.fc-kf-key[data-state="none"] .fc-kf-key-glyph { opacity: 0.6; }
+.fc-kf-key[data-state="animated"],
+.fc-kf-key[data-state="key"] { color: var(--ui-color-action-primary); }
+.fc-kf-key[data-state="key"] .fc-kf-key-glyph { fill: currentColor; }
+.fc-kf-key:hover:not([aria-disabled="true"]) { background: var(--ui-color-surface-muted); }
+.fc-kf-key:hover:not([aria-disabled="true"]) .fc-kf-key-glyph { opacity: 1; }
+.fc-kf-key:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+.fc-kf-key[aria-disabled="true"] { opacity: 0.35; cursor: not-allowed; }

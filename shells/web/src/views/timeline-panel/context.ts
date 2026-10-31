@@ -18,6 +18,9 @@ import type { menusOps } from './menus.ts';
 import type { keyframesOps } from './keyframes.ts';
 import type { cameraOps } from './camera.ts';
 import type { kfDockOps } from './kf-dock.ts';
+import type { propKeysOps } from './prop-keys.ts';
+import type { KfFilter } from '../kf-props.ts';
+import type { TimeUnit } from '../timeline-units.ts';
 import type { inspectorPaneOps } from './inspector-pane.ts';
 import type { thumbsOps } from './thumbs.ts';
 import type { syncingOps } from './syncing.ts';
@@ -172,6 +175,13 @@ export interface TpCtx {
   kfCam: { id: string; fields: KfPoseField[] } | null;
   kfCamKey: string;
   kfPoseKey: string;
+  /** The timeline's property filter (plans/328): which keyframes the strips show. Session state. */
+  kfFilter: KfFilter;
+  /** How keyframe times and the Time segment are shown (plans/328): a chrome preference; null = each surface's own default. */
+  timeUnit: TimeUnit | null;
+  /** The Design inspector's diamond listeners (plans/328), and the answer they last saw. */
+  keyListeners: Set<() => void>;
+  keySig: string;
   KF_POSE_FIELDS: ReadonlyArray<{
     ch: KfChannel;
     label: string;
@@ -243,6 +253,8 @@ export interface TpCtx {
   keyframes: ReturnType<typeof keyframesOps>;
   camera: ReturnType<typeof cameraOps>;
   kfDock: ReturnType<typeof kfDockOps>;
+  /** Per-property keyframing (plans/328): the diamond on one field. */
+  propKeys: ReturnType<typeof propKeysOps>;
   inspectorPane: ReturnType<typeof inspectorPaneOps>;
   thumbs: ReturnType<typeof thumbsOps>;
   syncing: ReturnType<typeof syncingOps>;

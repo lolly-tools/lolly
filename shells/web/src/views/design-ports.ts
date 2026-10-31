@@ -158,8 +158,33 @@ export interface NavigatorActions {
   makeArtboard?(ids: string[]): void;
 }
 
+/**
+ * The field diamonds in the inspector (plans/328): per-property keyframing, answered by
+ * the timeline, which owns the playhead. Every method is a no-op answer (null, 'base')
+ * while the timeline is closed, because the playhead is the arm and has to be visible.
+ */
+export interface InspectorKeysPort {
+  /** The diamond on `prop` of box `id`, or null when none is shown (timeline closed, box not keyframable). */
+  state(id: string, prop: import('./kf-props.ts').KfProp): { state: import('./kf-props.ts').KfPropState; label: string; disabled: boolean } | null;
+  /** Press the diamond on every id: one commit. */
+  toggle(ids: string[], prop: import('./kf-props.ts').KfProp): void;
+  /**
+   * Route a field edit. 'base' (the property is not animated) lets the caller write the
+   * field as always; 'key' means it went into the keyframe at the playhead; 'locked'
+   * means the property is animated and the playhead is on no keyframe, so nothing was
+   * written and the caller says so.
+   */
+  route(ids: string[], prop: import('./kf-props.ts').KfProp, value: unknown): 'key' | 'base' | 'locked';
+  /** The value the property shows at the playhead when animated (a CSS colour or a number), else null. */
+  shown(id: string, prop: import('./kf-props.ts').KfProp): string | number | null;
+  /** `cb` runs when what the diamonds show may have changed. Returns the unsubscribe. */
+  subscribe(cb: () => void): () => void;
+}
+
 /** Verbs the inspector delegates to the overlay. */
 export interface InspectorActions {
+  /** Field diamonds (plans/328), present when the tool has a timeline. */
+  keys?: InspectorKeysPort;
   useAsInput?(ids: string[], property?: 'text' | 'image' | 'fg' | 'fill'): void;
   text?: TextPropertyPort;
   editText?(id: string): void;

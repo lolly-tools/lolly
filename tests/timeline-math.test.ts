@@ -2079,6 +2079,9 @@ test('the neutral table IS what an absent channel composes to (the foldKfPose re
     // Clip volume (plans/165 WP-3): a multiplier, neutral at unity. The visual fold
     // never reads it - it is the audio mix's channel.
     v: 1,
+    // The appearance channels (plans/328) are the `w`/`h` case again: 0 stands for the
+    // box's own paint, which the panel reads off the row. Trim's neutral is the whole stroke.
+    cl: 0, ca: 0, cb: 0, ll: 0, la: 0, lb: 0, lw: 0, cr: 0, ts: 0, te: 1,
   });
 });
 

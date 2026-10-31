@@ -21,10 +21,10 @@
   ],
   "modules": {
     "shells/web/src/bridge/export-svg-walker.ts": {
-      "lines": 1905,
-      "largestFunctionLines": 1669,
+      "lines": 1870,
+      "largestFunctionLines": 1633,
       "importFanIn": 4,
-      "importFanOut": 18,
+      "importFanOut": 19,
       "typeEscapes": 17
     },
     "shells/web/src/bridge/export.ts": {
@@ -70,10 +70,10 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1569,
-      "largestFunctionLines": 2022,
+      "lines": 1557,
+      "largestFunctionLines": 2017,
       "importFanIn": 1,
-      "importFanOut": 29,
+      "importFanOut": 31,
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {

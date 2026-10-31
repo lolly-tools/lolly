@@ -6,6 +6,7 @@
  * it can be read, tested and grown on its own. export.ts imports from here; this
  * file never imports export.ts.
  */
+import { bakeNestedSvgPaint } from './export-svg-bake.ts';
 import { canCarryWatermark, parseDropShadowFilter, splitCssArgs, parseConicGradient, toCssPx, toCssLength, parseClipShape, parseCssMatrix, isAxisAlignedMat, matToSvg, matAboutPivot, isNonAffineTransform, CSS_DPI, parseBoxShadow, roundedRectPath, insetCorners, gaussianShadowRings, uniformRadius, extractC2paStore, prepareC2paIngredientFromStore } from '@lolly/engine';
 import type { Mat2D } from '@lolly/engine';
 import { textStrokeAttrs, canVectoriseText, textBaselineY, applyTextTransform } from './text-svg.ts';
@@ -1877,43 +1878,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       // than mispairing. The PDF walker needs no mirror - it already resolves
       // paints per node from the live DOM (computedPaint); this converges the
       // two walkers.
-      {
-        const SVGNS = 'http://www.w3.org/2000/svg';
-        const PAINT = [
-          ['fill', 'rgb(0, 0, 0)'], ['fill-opacity', '1'], ['fill-rule', 'nonzero'],
-          ['stroke', 'none'], ['stroke-opacity', '1'], ['stroke-width', '1px'],
-          ['stroke-linecap', 'butt'], ['stroke-linejoin', 'miter'],
-          ['stroke-dasharray', 'none'], ['stroke-dashoffset', '0px'],
-          ['stroke-miterlimit', '4'], ['opacity', '1'],
-          ['paint-order', 'normal'], ['vector-effect', 'none'],
-        ] as const;
-        const TEXT = [
-          ['font-family', ''], ['font-size', ''], ['font-weight', '400'],
-          ['font-style', 'normal'], ['letter-spacing', 'normal'],
-          ['text-anchor', 'start'], ['dominant-baseline', 'auto'],
-        ] as const;
-        const STOP = [['stop-color', 'rgb(0, 0, 0)'], ['stop-opacity', '1']] as const;
-        const TEXT_TAGS = new Set(['text', 'tspan', 'textPath']);
-        const srcEls = el.querySelectorAll('*');
-        const cloneEls = clone.querySelectorAll('*');
-        if (srcEls.length === cloneEls.length) {
-          for (let i = 0; i < srcEls.length; i++) {
-            const s = srcEls[i]!;
-            const c = cloneEls[i]!;
-            if (s.namespaceURI !== SVGNS || !(c instanceof SVGElement)) continue;
-            const cs = getComputedStyle(s);
-            const bake = (props: readonly (readonly [string, string])[]): void => {
-              for (const [p, initial] of props) {
-                const v = cs.getPropertyValue(p);
-                if (v && v !== initial) c.style.setProperty(p, v);
-              }
-            };
-            if (s.localName === 'stop') { bake(STOP); continue; }
-            bake(PAINT);
-            if (TEXT_TAGS.has(s.localName)) bake(TEXT);
-          }
-        }
-      }
+      bakeNestedSvgPaint(el, clone);
       // `currentColor` inside the svg resolves against the inherited CSS `color`
       // on screen, but the emitted file is a STANDALONE svg with no HTML
       // ancestors, so there it falls back to the initial value - black. The

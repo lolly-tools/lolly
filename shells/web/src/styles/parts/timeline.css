@@ -822,6 +822,133 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
   color: var(--ui-color-text-muted);
 }
 
+/* ─── Per-property keyframing (plans/328) ────────────────────────────────────────
+   Every pose and appearance row ends in its own DIAMOND: a toggle that keys that one
+   property at the playhead. The label takes the slack so the controls line up at
+   the end of the row whatever their number. Three states, read by fill and colour:
+   hollow and quiet (not animated), hollow in the accent (animated, no key here),
+   filled in the accent (a key here). */
+.tl-group-pop .tl-kf-pose-row { align-items: center; }
+.tl-group-pop .tl-kf-pose-row > .field-label { flex: 1 1 auto; min-width: 0; }
+.tl-kf-prop {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(24px * var(--a11y-fs));
+  height: calc(24px * var(--a11y-fs));
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.tl-kf-prop-glyph {
+  width: calc(11px * var(--a11y-fs));
+  height: calc(11px * var(--a11y-fs));
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.tl-kf-prop[data-state="none"] .tl-kf-prop-glyph { opacity: 0.6; }
+.tl-kf-prop[data-state="animated"] { color: var(--ui-color-action-primary); }
+.tl-kf-prop[data-state="key"] { color: var(--ui-color-action-primary); }
+.tl-kf-prop[data-state="key"] .tl-kf-prop-glyph { fill: currentColor; }
+.tl-kf-prop:hover:not([aria-disabled="true"]) { background: var(--ui-color-surface-muted); }
+.tl-kf-prop:hover:not([aria-disabled="true"]) .tl-kf-prop-glyph { opacity: 1; }
+.tl-kf-prop:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+.tl-kf-prop[aria-disabled="true"] { opacity: 0.35; cursor: not-allowed; }
+/* The appearance rows sit under the pose rows, a hairline between the two kinds. */
+.tl-kf-look {
+  padding-top: 8px;
+  border-top: 1px solid var(--ui-color-border-default);
+}
+.tl-kf-unit {
+  flex: 0 0 auto;
+  font-size: var(--fs-xs);
+  color: var(--ui-color-text-muted);
+}
+.tl-kf-colour {
+  flex: 0 0 auto;
+  width: calc(44px * var(--a11y-fs));
+  height: calc(24px * var(--a11y-fs));
+  padding: 0;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas);
+  cursor: pointer;
+}
+.tl-kf-colour::-webkit-color-swatch-wrapper { padding: 2px; }
+.tl-kf-colour::-webkit-color-swatch { border: 0; border-radius: calc(var(--ui-radius-control) - 2px); }
+.tl-kf-colour::-moz-color-swatch { border: 0; border-radius: calc(var(--ui-radius-control) - 2px); }
+.tl-kf-colour:disabled { opacity: 0.5; cursor: default; }
+/* The list's head: what the property filter is showing, and the time unit. */
+.tl-kf-listhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: calc(24px * var(--a11y-fs));
+}
+.tl-kf-listnote {
+  min-width: 0;
+  font-size: var(--fs-xs);
+  color: var(--ui-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A keyframe that holds only some of the track's properties says which. */
+.tl-kf-holds {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--fs-2xs);
+  color: var(--ui-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The time-unit switch: three segments, one radio group. */
+.tl-units {
+  display: inline-flex;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  padding: 2px;
+  gap: 2px;
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-muted);
+}
+.tl-units-seg {
+  min-width: calc(28px * var(--a11y-fs));
+  height: calc(22px * var(--a11y-fs));
+  padding: 0 6px;
+  border: 0;
+  border-radius: calc(var(--ui-radius-control) - 2px);
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.tl-units-seg:hover { color: var(--ui-color-text-default); }
+.tl-units-seg[aria-checked="true"] {
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  font-weight: 600;
+  box-shadow: var(--ui-edge-strong);
+}
+.tl-units-seg:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+/* The property filter, while it hides keyframes, says so by its pressed state. */
+.tl-kf-filter.is-active {
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-action-primary);
+}
+.tl-kf-filter.is-active svg { opacity: 1; }
+.tl-kf-filter-menu .tl-kf-filter-all { border-bottom: 1px solid var(--ui-color-border-default); }
+
 /* ─── The Camera group (plans/104 section 8) ────────────────────────────────────────
    Five preset moves that each write a whole track, then the pose channels - plus
    Orbit, which is present and inert until tilt lands (P2). The presets wrap rather

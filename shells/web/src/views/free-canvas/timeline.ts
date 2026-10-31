@@ -14,6 +14,7 @@ import type { PickerHost } from '../picker.ts';
 import { num, seedBox } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
 import type { AddKind, OnionTimeDetail } from './shared.ts';
+import type { InspectorKeysPort } from '../design-ports.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 export function watchPoses(fc: FcCtx): void {
@@ -137,6 +138,9 @@ export async function ensureTimeline(fc: FcCtx, open: boolean): Promise<void> {
         },
       });
       fc.timelinePanel.setOpen(fc.timelineWantOpen); // the intent may have flipped mid-load
+      // The inspector's field diamonds (plans/328) follow the panel from here on.
+      fc.timelinePanel.keyPort.subscribe(() => keysChanged(fc));
+      keysChanged(fc);
       // The contextual bar's "+Keyframe" asks the panel for its enabled state and had to
       // stand in for it while the chunk was in flight (see kfCtxHtml). Now that the real
       // rule exists, force ONE rebuild against it - the bar is otherwise only rebuilt
@@ -490,6 +494,7 @@ export function destroyTimeline(fc: FcCtx): void {
     console.error(e);
   }
   fc.timelinePanel = null;
+  keysChanged(fc);
   // Unconditional, even if destroy() above threw: a leaked reserve permanently shrinks
   // the stage for every other tool mounted in this session.
   stageEl.style.removeProperty('--stage-reserve-bottom');
@@ -500,8 +505,34 @@ export function destroyTimeline(fc: FcCtx): void {
     /* stage detached */
   }
 }
+/** Tell the inspector's field diamonds that what they show may have changed. */
+function keysChanged(fc: FcCtx): void {
+  for (const cb of [...fc.keyCbs]) {
+    try { cb(); } catch (e) { console.error(e); }
+  }
+}
+
+/**
+ * The Design inspector's field diamonds (plans/328), as a port that outlives the panel:
+ * the timeline chunk loads lazily and can be torn down, so every call asks the panel
+ * that exists now, and an absent panel answers as a closed one (no diamond, an ordinary
+ * field).
+ */
+export function keysPort(fc: FcCtx): InspectorKeysPort {
+  return {
+    state: (id, prop) => fc.timelinePanel?.keyPort.state(id, prop) ?? null,
+    toggle: (ids, prop) => fc.timelinePanel?.keyPort.toggle(ids, prop),
+    route: (ids, prop, value) => fc.timelinePanel?.keyPort.route(ids, prop, value) ?? 'base',
+    shown: (id, prop) => fc.timelinePanel?.keyPort.shown(id, prop) ?? null,
+    subscribe: (cb) => {
+      fc.keyCbs.add(cb);
+      return () => { fc.keyCbs.delete(cb); };
+    },
+  };
+}
 export function timelineOps(fc: FcCtx) {
   return {
+    keysPort: bindOp(fc, keysPort),
     watchPoses: bindOp(fc, watchPoses),
     isTimedBox: bindOp(fc, isTimedBox),
     anyTimed: bindOp(fc, anyTimed),

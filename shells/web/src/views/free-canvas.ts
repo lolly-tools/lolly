@@ -597,6 +597,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
           // without knowing the unkeyed angle would flatten a board the user had posed.
           rxField: cv.rxField || '',
           ryField: cv.ryField || '',
+          // And the paint a keyed appearance replaces (plans/328), on the same terms.
+          fillField: cfg.fillField || '', strokeField: cfg.strokeField, strokeWField: cfg.strokeWField,
+          radiusField: cfg.radiusField || '', shapeField: cfg.shapeField || '',
         }
       : null; fc.timeCfg = timeCfg;
   // Can this tool import a design AS timed scenes (frames → timeline clips) at all?
@@ -788,6 +791,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // Every branch below is dead on a tool without `timeCfg`: no rail button, no lazy
   // chunk fetch, no stage reserve, no listener.
   fc.timelinePanel = null;
+  fc.keyCbs = new Set();
   fc.timelineLoading = false;
   /** The in-flight chunk load, so a second `ensureTimeline(true)` waits for the first. */
   fc.timelineLoad = null;
@@ -2230,6 +2234,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     useWebPage: (ids) => fc.objects.useWebPage(ids),
     editWebCss: (ids) => { void fc.objects.editWebCss(ids); },
     useAsInput: (ids, property) => { fc.selection = new Set(ids); fc.rules?.expose(property); },
+    ...(timeCfg?.kfField ? { keys: fc.timeline.keysPort() } : {}),
   }; fc.inspectorActions = inspectorActions;
 
   const designPorts: DesignCanvasPorts = {

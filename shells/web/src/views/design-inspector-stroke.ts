@@ -24,6 +24,7 @@ import { escape as escapeHtml } from '../utils.ts';
 import { FIELD_GLYPH, segHtml, svgIcon } from './free-canvas-fields.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import type { ModelPort } from './design-ports.ts';
+import type { InspectorKeys } from './design-inspector-keys.ts';
 
 type CellOpts = { name?: string; unit?: string; min?: number; max?: number; onCommit?(v: number): void };
 type Cell = (label: string, field: string | undefined, value: number | 'mixed', o?: CellOpts) => string;
@@ -52,6 +53,8 @@ export interface StrokeRowsCtx {
   sidesOpen: boolean;
   /** Offer the position control: boxes and paths, but not a board, which always strokes inside its page. */
   position: boolean;
+  /** The width's keyframe diamond and routing (plans/328); absent where there is no timeline. */
+  keys?: InspectorKeys;
 }
 
 const sidesOf = (b: Box): number[] => designStrokeSides(b as Record<string, unknown>).map((v) => Math.max(0, v));
@@ -74,7 +77,7 @@ export function strokeSidesDiffer(b: Box): boolean {
 export function strokeRows(c: StrokeRowsCtx, rows: Box[]): string {
   const sidesAllowed = rows.length > 0 && rows.every((b) => strokeSidesApply(b, c.kindField, c.shapeField));
   // One width, or Mixed: across the selection, or across one row's own four sides.
-  const widths = rows.map((b) => { const s = sidesOf(b); return s.every((v) => v === s[0]) ? Math.round(s[0]!) : NaN; });
+  const widths = rows.map((b) => { const s = sidesOf(b); return s.every((v) => v === s[0]) ? Math.round(c.keys?.num(b, 'lw', s[0]!) ?? s[0]!) : NaN; });
   const width: number | 'mixed' = widths.length && widths.every((v) => v === widths[0]) && Number.isFinite(widths[0]!) ? widths[0]! : 'mixed';
   const label = t('Stroke per side');
   const toggle = sidesAllowed
@@ -82,13 +85,14 @@ export function strokeRows(c: StrokeRowsCtx, rows: Box[]): string {
       + ` aria-label="${escapeHtml(label)}" data-tip="${escapeHtml(label)}">${svgIcon(SIDES_GLYPH)}</button>`
     : '';
   // A width typed here sets every side: the sides go back to following the width.
-  const commitWidth = (v: number): void => c.patchRows((b) => {
+  // An animated width writes its keyframe instead (plans/328), or is refused off one.
+  const commitWidth = (v: number): void => c.keys?.routeProp('lw', v) ? undefined : c.patchRows((b) => {
     const out: Record<string, unknown> = { [c.widthField]: v };
     for (const f of STROKE_SIDE_FIELDS) if (String(b[f] ?? '').trim() !== '') out[f] = '';
     return out;
   });
   let html = c.ctrlRow(FIELD_GLYPH.strokeIc, t('Stroke width'),
-    c.numCell('', c.widthField, width, { name: t('Stroke width'), min: 0, max: 400, unit: 'px', onCommit: commitWidth }) + toggle);
+    c.numCell('', c.widthField, width, { name: t('Stroke width'), min: 0, max: 400, unit: 'px', onCommit: commitWidth }) + toggle + (c.keys?.diamond('lw') ?? ''));
   if (sidesAllowed && c.sidesOpen) {
     const names = [t('Top'), t('Right'), t('Bottom'), t('Left')];
     const cell = (k: number): string => {
@@ -127,6 +131,7 @@ export interface StrokeRowsHost {
   idOf(b: Box, i: number): string;
   numCell: Cell;
   ctrlRow(glyph: string, label: string, html: string): string;
+  keys?: InspectorKeys;
 }
 
 /**
@@ -144,7 +149,7 @@ export function createStrokeRows(host: StrokeRowsHost): { rows(widthField: strin
       const key = rows.map((r, i) => host.idOf(r, i)).join(',');
       if (key !== openFor) { openFor = key; open = rows.some(strokeSidesDiffer); }
       return strokeRows({ widthField, kindField: host.cfg.kindField ?? 'kind', shapeField: host.cfg.shapeField,
-        numCell: host.numCell, ctrlRow: host.ctrlRow, patchRows, sidesOpen: open, position }, rows);
+        numCell: host.numCell, ctrlRow: host.ctrlRow, patchRows, sidesOpen: open, position, ...(host.keys ? { keys: host.keys } : {}) }, rows);
     },
     toggle() { open = !open; },
   };
