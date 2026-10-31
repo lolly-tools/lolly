@@ -84,7 +84,7 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   // it is still data, and a link is the one place a string becomes an action.
   const sourceUrl = typeof record?.sourceUrl === 'string' && /^https?:\/\//i.test(record.sourceUrl) ? record.sourceUrl : '';
   const sourceParts = [
-    isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? t(ref.source === 'remote' ? 'Shared asset' : 'Catalog')),
+    isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? (ref.source === 'remote' ? t('Shared asset') : t('Catalog'))),
     credited ? escapeText(tRaw('credited to {who}', { who: credited })) : '',
     sourceUrl ? `<a href="${escapeText(sourceUrl)}" target="_blank" rel="noopener noreferrer">${t('Original work')}</a>` : '',
   ].filter(Boolean).join(' · ');

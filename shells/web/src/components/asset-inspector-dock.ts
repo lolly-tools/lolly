@@ -61,27 +61,30 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
     section.addEventListener('toggle', remember); cleanups.push(() => section.removeEventListener('toggle', remember));
     return section;
   };
-  const wrap = (node: HTMLElement | null, label: string, id: string, open = false) => {
+  // `title` arrives translated. Each call site spells its title out as a literal string in
+  // its own translate call, which is what the string scanner collects; a title translated
+  // here from a variable would never reach a catalog and would read English everywhere.
+  const wrap = (node: HTMLElement | null, title: string, id: string, open = false) => {
     if (!node) return null;
     const section = document.createElement('details'), summary = document.createElement('summary'), content = document.createElement('div');
-    summary.textContent = t(label); content.className = 'cat-inspector-section-body section-card-body';
+    summary.textContent = title; content.className = 'cat-inspector-section-body section-card-body';
     node.before(section); content.append(node); section.append(summary, content); enhance(section, id, open);
     return section;
   };
   const passport = body.querySelector<HTMLElement>('[data-passport]');
   const provenance = body.querySelector<HTMLElement>('.cat-details-provenance'); provenance?.querySelector('.cat-inspector-heading')?.remove();
-  const credentials = wrap(provenance, 'Origins & credentials', 'credentials');
+  const credentials = wrap(provenance, t('Origins & credentials'), 'credentials');
   // One Details section: the record's rows, and the file's own facts as they are read.
-  const fileDetails = wrap(body.querySelector<HTMLElement>(':scope > .cat-details-meta'), 'Details', 'details', true);
-  const files = body.querySelector<HTMLElement>('[data-asset-files]'); const fileSection = wrap(files, 'Files', 'files', true);
-  const usage = body.querySelector<HTMLElement>('[data-usage]'), usageSection = wrap(usage, 'Used in', 'usage');
-  const text = body.querySelector<HTMLElement>('[data-tsig]'), textSection = wrap(text, 'Text analysis', 'text');
-  const rondo = wrap(body.querySelector<HTMLElement>('.cat-details-rondo'), 'Audio settings', 'audio');
+  const fileDetails = wrap(body.querySelector<HTMLElement>(':scope > .cat-details-meta'), t('Details'), 'details', true);
+  const files = body.querySelector<HTMLElement>('[data-asset-files]'); const fileSection = wrap(files, t('Files'), 'files', true);
+  const usage = body.querySelector<HTMLElement>('[data-usage]'), usageSection = wrap(usage, t('Used in'), 'usage');
+  const text = body.querySelector<HTMLElement>('[data-tsig]'), textSection = wrap(text, t('Text analysis'), 'text');
+  const rondo = wrap(body.querySelector<HTMLElement>('.cat-details-rondo'), t('Audio settings'), 'audio');
   const appearance = [...body.querySelectorAll<HTMLElement>(':scope > .cat-dl-section')];
-  const appearanceSection = appearance.length ? wrap(appearance[0]!, 'Appearance', 'appearance') : null;
+  const appearanceSection = appearance.length ? wrap(appearance[0]!, t('Appearance'), 'appearance') : null;
   for (const node of appearance.slice(1)) appearanceSection?.querySelector('.cat-inspector-section-body')?.append(node);
   for (const [index, section] of [...(actions?.querySelectorAll<HTMLDetailsElement>(':scope > details') ?? [])].entries()) enhance(section, index ? 'file-actions' : 'export');
-  const checks = wrap(passport, 'Checks', 'checks', true);
+  const checks = wrap(passport, t('Checks'), 'checks', true);
   // Sections a sheet writes itself: `<details data-inspector-id>`, kept where they are.
   for (const section of body.querySelectorAll<HTMLDetailsElement>(':scope > details[data-inspector-id]')) enhance(section, section.dataset.inspectorId ?? 'section', section.open);
   const keptActions = actions?.childElementCount ? actions : null; if (!keptActions) actions?.remove();

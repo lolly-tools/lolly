@@ -15,9 +15,13 @@ export function validFields(value: unknown): CatalogField[] {
     && ['text', 'date', 'url', 'select'].includes(field.kind)
     && (field.kind !== 'select' || (Array.isArray(field.options) && field.options.every((option: unknown) => typeof option === 'string')))).slice(0, 100);
 }
-const indexLabel = (value: AssetInspection) => t(({ none: 'No shared text index.', current: 'Reviewed text is searchable for this indexed revision.',
-  stale: 'The source changed. Previously indexed text is excluded from search. Read the current file again.',
-  unverified: 'Existing indexed text has no recorded source revision.' })[value.textIndex?.status ?? 'none']);
+// Each status is spelled out in its own translate call, so the string scanner collects every one.
+const indexLabel = (value: AssetInspection): string => ({
+  none: () => t('No shared text index.'),
+  current: () => t('Reviewed text is searchable for this indexed revision.'),
+  stale: () => t('The source changed. Previously indexed text is excluded from search. Read the current file again.'),
+  unverified: () => t('Existing indexed text has no recorded source revision.'),
+} as Record<string, () => string>)[value.textIndex?.status ?? 'none']?.() ?? t('No shared text index.');
 
 export async function mountSharedMetadata(root: HTMLElement, ref: AssetRef, refresh: () => void, source?: BrowseSource): Promise<void> {
   const id = sharedAssetId(ref); if (!id) return;
@@ -35,20 +39,21 @@ export async function mountSharedMetadata(root: HTMLElement, ref: AssetRef, refr
     const meta = value.meta ?? {}, lifecycle = value.lifecycle, file = inspectedFile(value, ref), role = file?.role ?? ref.meta?.fileRole;
     const facts = element('section'); facts.className = 'cat-shared-facts';
     const list = element('dl'); list.className = 'cat-details-meta';
+    const listing = source ? ({ current: () => t('Current listing'), stale: () => t('Cached listing'), pending: () => t('Syncing'), unavailable: () => t('Unavailable') } as Record<string, () => string>)[source.status]?.() ?? t('Unknown') : t('Not recorded');
     const factsRows: Array<[MetaKey, string, unknown]> = [
-      ['library', 'Library', meta.providerLabel ?? (value.id.startsWith('inst/') ? t('Organisation catalog') : value.provider)],
-      ['sourceId', 'Source ID', value.provider ?? 'instance'], ['indexedVersion', 'Indexed version', value.version],
-      ['sourceModified', 'Source modified', date(value.updatedAt)], ['lastSync', 'Last successful sync', date(source?.lastSyncedAt)],
-      ['listingStatus', 'Listing status', source ? t(({ current: 'Current listing', stale: 'Cached listing', pending: 'Syncing', unavailable: 'Unavailable' })[source.status]) : t('Not recorded')],
-      ['availability', 'Catalog availability', ({ live: t('Available'), scheduled: t('Scheduled'), expired: t('Expired'), revoked: t('Revoked') } as Record<string, string>)[value.state ?? ''] ?? t('Unknown')],
-      ['availableFrom', 'Source available from', date(value.availableFrom ?? lifecycle?.upstream?.availableFrom)],
-      ['availableUntil', 'Source available until', date(value.availableUntil ?? lifecycle?.upstream?.availableUntil)],
-      ['validFrom', 'Organisation valid from', date(lifecycle?.validFrom)], ['validUntil', 'Organisation valid until', date(lifecycle?.validUntil)],
-      ['approval', 'Source approval', meta.providerApproved === true ? t('Approved in source') : meta.providerApproved === false ? t('Not approved in source') : t('Unknown')],
-      ['selectedFile', 'Selected file', file?.name ?? ref.meta?.name], ['fileRole', 'File role', role === 'original' ? t('Original') : role === 'rendition' ? t('Rendition') : t('Unknown')],
+      ['library', t('Library'), meta.providerLabel ?? (value.id.startsWith('inst/') ? t('Organisation catalog') : value.provider)],
+      ['sourceId', t('Source ID'), value.provider ?? 'instance'], ['indexedVersion', t('Indexed version'), value.version],
+      ['sourceModified', t('Source modified'), date(value.updatedAt)], ['lastSync', t('Last successful sync'), date(source?.lastSyncedAt)],
+      ['listingStatus', t('Listing status'), listing],
+      ['availability', t('Catalog availability'), ({ live: t('Available'), scheduled: t('Scheduled'), expired: t('Expired'), revoked: t('Revoked') } as Record<string, string>)[value.state ?? ''] ?? t('Unknown')],
+      ['availableFrom', t('Source available from'), date(value.availableFrom ?? lifecycle?.upstream?.availableFrom)],
+      ['availableUntil', t('Source available until'), date(value.availableUntil ?? lifecycle?.upstream?.availableUntil)],
+      ['validFrom', t('Organisation valid from'), date(lifecycle?.validFrom)], ['validUntil', t('Organisation valid until'), date(lifecycle?.validUntil)],
+      ['approval', t('Source approval'), meta.providerApproved === true ? t('Approved in source') : meta.providerApproved === false ? t('Not approved in source') : t('Unknown')],
+      ['selectedFile', t('Selected file'), file?.name ?? ref.meta?.name], ['fileRole', t('File role'), role === 'original' ? t('Original') : role === 'rendition' ? t('Rendition') : t('Unknown')],
     ];
-    if (meta.providerOriginalsAvailable === false) factsRows.push(['originalAvailability', 'Original availability', t('Unavailable through this connection')]);
-    for (const [key, label, text] of factsRows) list.append(metaRowElement(root.ownerDocument, key, t(label), String(text ?? t('Not recorded'))));
+    if (meta.providerOriginalsAvailable === false) factsRows.push(['originalAvailability', t('Original availability'), t('Unavailable through this connection')]);
+    for (const [key, label, text] of factsRows) list.append(metaRowElement(root.ownerDocument, key, label, String(text ?? t('Not recorded'))));
     facts.append(element('h3', t('Source facts')), list, element('p', t('These are indexed source facts. File access is checked when opened. Source approval does not establish permission for every use.')));
     const details = element('details');
     details.append(element('summary', t('Organisation metadata')), element('p', t('These fields belong to this organisation. Source metadata stays with the connected library.')));

@@ -17,7 +17,7 @@ export function mountAssetViewerDetails(dialog: HTMLDialogElement): void {
   button.addEventListener('click', () => {
     const showing = dialog.classList.toggle('is-showing-details');
     button.setAttribute('aria-expanded', String(showing));
-    button.textContent = t(showing ? 'Back to preview' : 'Details');
+    button.textContent = showing ? t('Back to preview') : t('Details');
   });
   dialog.prepend(button);
 }
