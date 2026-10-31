@@ -22,6 +22,7 @@
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { t } from '../i18n.ts';
 import type { MetaKey } from './meta-rows.ts';
+import { formatMetaInstant, formatWrittenDate } from './meta-dates.ts';
 
 /** One row of the asset's Details list: a stable key (lib/meta-rows.ts), the
  *  translated label and the value. The key, never the label, picks the row's glyph
@@ -121,16 +122,11 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
     } | undefined;
     if (prov) {
       push('importedFrom', t('Imported from'), prov.originalFilename);
-      if (prov.importedAt) {
-        const d = new Date(prov.importedAt);
-        if (!Number.isNaN(d.getTime())) {
-          push('imported', t('Imported'), d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }));
-        }
-      }
+      if (prov.importedAt) push('imported', t('Imported'), formatMetaInstant(prov.importedAt));
       const md = prov.metaDigest ?? {};
       push('author', t('Artist / author'), md.author);
       push('copyright', t('Copyright'), md.copyright);
-      push('taken', t('Captured'), md.captureDate);
+      if (md.captureDate) push('taken', t('Captured'), formatWrittenDate(md.captureDate));
       push('camera', t('Camera'), md.camera);
       push('software', t('Software'), md.software);
       push('keywords', t('Keywords'), md.keywords);
@@ -341,7 +337,7 @@ function addExifFields(exif: Uint8Array, push: Push): void {
   if (lens) push('lens', t('Lens'), lens);
 
   const taken = asStr(sub[0x9003]) || asStr(ifd0[0x0132]);
-  if (taken) push('taken', t('Taken'), formatExifDate(taken));
+  if (taken) push('taken', t('Taken'), formatWrittenDate(taken));
 
   const exp = asNum(sub[0x829a]);
   if (exp && exp > 0) push('exposure', t('Exposure'), formatExposure(exp));
@@ -854,13 +850,6 @@ function orientationLabel(o: number): string {
     8: 'Rotate 90° CCW',
   };
   return map[o] ?? '';
-}
-
-function formatExifDate(s: string): string {
-  // EXIF form "YYYY:MM:DD HH:MM:SS" -> "YYYY-MM-DD HH:MM".
-  const m = s.match(/^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2})/);
-  if (m) return `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}`;
-  return s.trim();
 }
 
 function formatExposure(sec: number): string {

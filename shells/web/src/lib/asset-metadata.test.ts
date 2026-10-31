@@ -25,6 +25,7 @@ import {
   recordedMetadata,
 } from './asset-metadata.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
+import { formatMetaInstant, formatWrittenDate } from './meta-dates.ts';
 
 test('large assets and provider originals of unknown size show recorded facts without downloading the original', async (t) => {
   let downloads = 0;
@@ -61,6 +62,18 @@ test('an upload is read whatever its size: its bytes are already on this device'
   const fields = await extractAssetMetadata({ source: 'user', id: 'user/upload/1800000000000-big', type: 'raster', format: 'png', url: 'blob:https://lolly.tools/big', width: 4000, height: 3000, meta: { bytes: 64_000_000 } });
   assert.deepEqual(reads, ['blob:https://lolly.tools/big']);
   assert.ok(fields.some(field => field.label === 'Format' && field.value === 'PNG'));
+});
+
+test('import and capture dates use the one date style: the camera clock as written, the import as an instant', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () => { throw new Error('offline'); });
+  const importedAt = '2026-10-31T09:15:00.000Z';
+  const fields = await extractAssetMetadata({ source: 'user', id: 'user/upload/1', type: 'data', format: 'bin', url: 'blob:x',
+    meta: { provenance: { importedAt, originalFilename: 'IMG_0412.JPG', metaDigest: { captureDate: '2026:10:12 09:41:07' } } } } as unknown as AssetRef);
+  const value = (key: string) => fields.find(field => field.key === key)?.value;
+  assert.equal(value('taken'), formatWrittenDate('2026:10:12 09:41:07'));
+  assert.match(value('taken') ?? '', /2026/, 'the raw EXIF colon form is not shown');
+  assert.doesNotMatch(value('taken') ?? '', /2026:10:12/);
+  assert.equal(value('imported'), formatMetaInstant(importedAt));
 });
 
 test('leavesOriginalUnread: large and unknown-size provider originals stay unread, uploads never do', () => {

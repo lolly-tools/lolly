@@ -4,10 +4,12 @@ import { inspectCatalogAsset, inspectedFile, saveCatalogFields, saveReviewedText
 import { getInstanceBase } from '../../lib/instance.ts';
 import { t } from '../../i18n.ts';
 import { metaRowElement, type MetaKey } from '../../lib/meta-rows.ts';
+import { formatMetaInstant } from '../../lib/meta-dates.ts';
 import type { BrowseSource } from '../../catalog/browse.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 
-const date = (value: unknown): string => typeof value === 'string' && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString() : t('Not recorded');
+// A source date is an instant a server stamped, shown with its time in the reader's zone.
+const date = (value: unknown): string => (typeof value === 'string' && formatMetaInstant(value, { time: true })) || t('Not recorded');
 export function validFields(value: unknown): CatalogField[] {
   if (!Array.isArray(value)) return [];
   return value.filter((field): field is CatalogField => !!field && typeof field === 'object' && typeof field.id === 'string'
