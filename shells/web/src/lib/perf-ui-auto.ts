@@ -15,9 +15,12 @@
  *     (lib/webgpu/device.ts startupAdapterFacts). Read in memory and dropped; only the
  *     reason code is stored.
  *   - Slowness while the person uses the chrome: passive input listeners open
- *     interaction windows, and either a passive Long Animation Frames observer
- *     (Chromium) or a requestAnimationFrame loop that runs only during interaction
- *     (elsewhere) supplies the frames.
+ *     interaction windows, and a requestAnimationFrame loop that runs only during
+ *     interaction supplies the frames. In Chromium, passive Long Animation Frames and
+ *     long task observers add where the main thread's time went, and each frame
+ *     carries the main-thread time inside it (how late its callback started, plus the
+ *     previous frame's work up to the first task after it), so a late frame on an idle
+ *     main thread can be told from one the main thread made late.
  *
  * Nothing counts in a hidden tab, on a route that is not a browse route (main.ts
  * passes `browseRoute`), right after a route change, or while work is under way: a job
@@ -145,13 +148,13 @@ function toLongFrame(entry: PerformanceEntry): LongFrame {
     duration: entry.duration,
     renderStart: num(e.renderStart),
     styleAndLayoutStart: num(e.styleAndLayoutStart),
-    scripts: Array.isArray(e.scripts) ? e.scripts.map(s => ({ duration: num(s?.duration) })) : [],
+    scripts: Array.isArray(e.scripts) ? e.scripts.map(s => ({ startTime: num(s?.startTime), duration: num(s?.duration) })) : [],
   };
 }
 
-function loafSupported(): boolean {
+function observable(type: string): boolean {
   return typeof PerformanceObserver !== 'undefined'
-    && (PerformanceObserver.supportedEntryTypes ?? []).includes('long-animation-frame');
+    && (PerformanceObserver.supportedEntryTypes ?? []).includes(type);
 }
 
 /**
@@ -159,7 +162,7 @@ function loafSupported(): boolean {
  * at most once, after which everything is already removed.
  */
 export function watchPerfUi(opts: PerfUiAutoOptions, decide: (reason: PerfUiAutoReason) => void): () => void {
-  const path: MeasurePath = loafSupported() ? 'loaf' : 'raf';
+  const path: MeasurePath = observable('long-animation-frame') ? 'loaf' : 'raf';
   const evidence = new PerfEvidence(path);
   const probe = probeOptIn();
   const now = (): number => performance.now();
@@ -170,7 +173,12 @@ export function watchPerfUi(opts: PerfUiAutoOptions, decide: (reason: PerfUiAuto
   let lastSettle = 0;
   let rafId = 0;
   let lastFrame = 0;
+  // When the first task after the previous frame ran: the end of that frame's own
+  // main-thread work, rendering included. 0 until it has run.
+  let lastFrameDone = 0;
   let stopped = false;
+  const channel = path === 'loaf' ? new MessageChannel() : null;
+  if (channel) channel.port1.onmessage = () => { lastFrameDone = now(); };
 
   const eligibleAt = (at: number): boolean => {
     if (document.visibilityState !== 'visible') return false;
@@ -184,7 +192,7 @@ export function watchPerfUi(opts: PerfUiAutoOptions, decide: (reason: PerfUiAuto
     if (at - lastSettle < SETTLE_EVERY_MS) return;
     lastSettle = at;
     const decided = evidence.settle(at);
-    if (probe) console.info('[perf-ui-auto]', path, JSON.stringify(evidence.summary()));
+    if (probe) console.info('[perf-ui-auto]', path, JSON.stringify({ ...evidence.summary(), lateFrames: evidence.lateCounted }));
     if (!decided) return;
     stop();
     decide('slow');
@@ -193,8 +201,19 @@ export function watchPerfUi(opts: PerfUiAutoOptions, decide: (reason: PerfUiAuto
   const frame = (at: number): void => {
     rafId = 0;
     if (stopped || document.visibilityState !== 'visible') { lastFrame = 0; return; }
-    if (lastFrame) evidence.frameInterval(at, at - lastFrame);
+    if (lastFrame) {
+      const interval = at - lastFrame;
+      if (path === 'raf') evidence.frameInterval(at, interval);
+      else {
+        // The previous frame's work counts in full when its first task after has not
+        // run yet: the main thread never came free, so nothing here is the compositor's.
+        const previous = lastFrameDone > lastFrame ? lastFrameDone - lastFrame : interval;
+        evidence.compositorFrame(at, interval, previous + Math.max(0, now() - at));
+      }
+    }
     lastFrame = at;
+    lastFrameDone = 0;
+    channel?.port2.postMessage(0);
     if (at < evidence.openUntil()) rafId = requestAnimationFrame(frame);
     else lastFrame = 0;
     settle(at);
@@ -205,7 +224,7 @@ export function watchPerfUi(opts: PerfUiAutoOptions, decide: (reason: PerfUiAuto
     const discrete = event.type === 'pointerdown' || event.type === 'keydown';
     if (discrete || at - checkedAt >= RECHECK_MS) { eligible = eligibleAt(at); checkedAt = at; }
     evidence.interaction(at, eligible);
-    if (eligible && path === 'raf' && !rafId) rafId = requestAnimationFrame(frame);
+    if (eligible && !rafId) rafId = requestAnimationFrame(frame);
     settle(at);
   };
 
@@ -218,16 +237,26 @@ export function watchPerfUi(opts: PerfUiAutoOptions, decide: (reason: PerfUiAuto
   };
 
   let observer: PerformanceObserver | null = null;
+  let tasks: PerformanceObserver | null = null;
   if (path === 'loaf') {
     observer = new PerformanceObserver(list => {
       const at = now();
+      const entries = list.getEntries();
+      // The work inside every long frame can rule out a late frame, whether or not the
+      // long frame counts itself.
+      const frames = entries.map(toLongFrame);
+      for (const f of frames) evidence.frameWork(f);
       // Delivered just after the frames: work that started since then means they
       // belong to it, so they are dropped and the window closes.
       if (!eligibleAt(at)) { evidence.cut(at); eligible = false; return; }
-      for (const entry of list.getEntries()) evidence.longFrame(toLongFrame(entry));
+      for (const f of frames) evidence.longFrame(f);
       settle(at);
     });
     try { observer.observe({ type: 'long-animation-frame', buffered: false }); } catch { observer = null; }
+    if (observable('longtask')) {
+      tasks = new PerformanceObserver(list => { for (const entry of list.getEntries()) evidence.longTask(entry.startTime, entry.duration); });
+      try { tasks.observe({ type: 'longtask', buffered: false }); } catch { tasks = null; }
+    }
   }
 
   const INPUTS = ['pointerdown', 'pointermove', 'wheel', 'keydown', 'scroll'] as const;
@@ -244,6 +273,9 @@ export function watchPerfUi(opts: PerfUiAutoOptions, decide: (reason: PerfUiAuto
     document.removeEventListener('visibilitychange', onVisibility);
     observer?.disconnect();
     observer = null;
+    tasks?.disconnect();
+    tasks = null;
+    channel?.port1.close();
     if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
     unsubscribe();
   }

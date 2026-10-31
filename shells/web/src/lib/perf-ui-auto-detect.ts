@@ -8,15 +8,24 @@
  *
  *   1. Software rendering. isSoftwareRenderer() reads the facts the WebGPU startup
  *      check already holds (or a WebGL renderer string). No context is created here.
- *   2. Sustained render-bound slowness while the person uses the chrome. PerfEvidence
+ *   2. Sustained slowness drawing the chrome while the person uses the app. PerfEvidence
  *      keeps it per wall-clock second and decides from the latest active seconds.
  *
- * The Performance UI only makes the chrome cheaper to paint, so only slowness it can
- * fix counts: a long frame spent mostly in style, layout and paint, never one spent in
- * script. Where the browser cannot say which (no Long Animation Frames API), slow
- * frame intervals count instead, against stricter numbers. Each number below is
- * explained in place, and every choice leans towards missing a slow device rather
- * than switching a fast one.
+ * The Performance UI only makes the chrome cheaper to draw, so only slowness it can fix
+ * counts. With Long Animation Frames (Chromium) that is two kinds of slow time, added
+ * into the same seconds:
+ *
+ *   - a long frame spent mostly in style, layout and paint, never one spent in script;
+ *   - a late frame while the main thread was idle: frames 50 ms or more apart with no
+ *     long task near them and the main thread busy for at most a quarter of the gap.
+ *     Raster and compositing (the blur and shadows the Performance UI removes) run off
+ *     the main thread, so their cost is never script or rendering work; when they cannot
+ *     keep up, frames simply arrive late while the main thread waits.
+ *
+ * Where the browser cannot say which (no Long Animation Frames API), slow frame
+ * intervals count instead, against stricter numbers. Each number below is explained in
+ * place, and every choice leans towards missing a slow device rather than switching a
+ * fast one.
  */
 
 /** Each input opens or extends an interaction window to this long after the input. */
@@ -41,6 +50,14 @@ export const FINALISE_DELAY_MS = 1000;
 export const RENDER_SHARE_MIN = 0.5;
 /** The script share above which a long frame is never render-bound. */
 export const SCRIPT_SHARE_MAX = 0.25;
+/** A late frame is the compositor's only when the main thread was busy for at most this
+ *  share of the gap: the previous frame's own work plus how late this frame's callback
+ *  started. More than that and the main thread may have made the frame late, which is
+ *  the Long Animation Frames rule's business, or nobody's. */
+export const IDLE_MAIN_SHARE_MAX = 0.25;
+/** A late frame within this much of a long task is not the compositor's either, however
+ *  idle the measured parts looked. */
+export const BUSY_MARGIN_MS = 16;
 /** The decision reads the latest 40 active seconds. */
 export const WINDOW_SECONDS = 40;
 /** The struggling seconds must spread over at least 30 s of wall-clock time, so one
@@ -61,7 +78,8 @@ export type MeasurePath = 'loaf' | 'raf';
 
 export const PATH_RULES: Readonly<Record<MeasurePath, PathRule>> = {
   // Long Animation Frames (Chromium): a quarter of a second lost to render-bound long
-  // frames, in seven of every ten active seconds, over at least 12 of them.
+  // frames or to late frames on an idle main thread, in seven of every ten active
+  // seconds, over at least 12 of them. Late frames get no looser rule of their own.
   loaf: { struggleMs: 250, minSeconds: 12, share: 0.7 },
   // requestAnimationFrame elsewhere cannot tell script from rendering, so it needs half
   // of each second below 20 fps, in eight of every ten seconds, over at least 20.
@@ -76,8 +94,9 @@ export interface LongFrame {
   renderStart: number;
   /** 0 when the frame had no style and layout phase. */
   styleAndLayoutStart: number;
-  /** Scripts of 5 ms or more; forced style and layout inside them counts as script. */
-  scripts: ReadonlyArray<{ duration: number }>;
+  /** Scripts of 5 ms or more; forced style and layout inside them counts as script.
+   *  `startTime` places a script inside the frame (0 when the browser leaves it out). */
+  scripts: ReadonlyArray<{ startTime?: number; duration: number }>;
 }
 
 export type FrameCause = 'render' | 'script' | 'mixed';
@@ -93,6 +112,16 @@ export function classifyLongFrame(frame: LongFrame): FrameCause {
   if (script / duration >= RENDER_SHARE_MIN) return 'script';
   if (render / duration >= RENDER_SHARE_MIN && script / duration <= SCRIPT_SHARE_MAX) return 'render';
   return 'mixed';
+}
+
+/** A frame `interval` ms after the one before, with `mainMs` of main-thread work measured
+ *  inside it: is it late because of the compositor? Only when it is slow (50 ms or more,
+ *  and not a pause) and the main thread was idle for at least three quarters of the gap.
+ *  PerfEvidence also drops it when a long task comes near, or when the work long
+ *  animation frames report inside it passes the same quarter. */
+export function isCompositorLate(interval: number, mainMs: number): boolean {
+  if (!(interval >= SLOW_FRAME_MS) || interval > FRAME_GAP_MS) return false;
+  return mainMs >= 0 && mainMs <= interval * IDLE_MAIN_SHARE_MAX;
 }
 
 /** What a graphics adapter says about itself. Any field may be missing. */
@@ -123,12 +152,14 @@ interface Span { start: number; end: number }
 interface ActiveSecond { at: number; struggling: boolean }
 
 /**
- * Evidence of render-bound slowness, kept per wall-clock second.
+ * Evidence of slowness drawing the chrome, kept per wall-clock second.
  *
- * The wiring reports each input (eligible or not), each long frame (Long Animation
- * Frames) or each frame interval (requestAnimationFrame), and calls settle() now and
- * then. Slow time counts only inside eligible interaction windows. Once settle() has
- * returned true the evidence is done: it never decides again, in either direction.
+ * The wiring reports each input (eligible or not), and either each long frame, each
+ * long task and each frame with the main-thread time inside it (Long Animation
+ * Frames), or each frame interval (requestAnimationFrame elsewhere), and calls settle()
+ * now and then. Slow time counts only inside eligible interaction windows. Once
+ * settle() has returned true the evidence is done: it never decides again, in either
+ * direction.
  */
 export class PerfEvidence {
   readonly path: MeasurePath;
@@ -138,6 +169,18 @@ export class PerfEvidence {
   private nextSecond = 0;
   private active: ActiveSecond[] = [];
   private decided = false;
+  /** Long tasks: the main thread was busy for all of each. */
+  private tasks: Span[] = [];
+  /** The work inside each long animation frame: its scripts and its rendering phase.
+   *  Never a long frame's whole span, which also holds the wait for a rendering update
+   *  the compositor held back: on a device whose compositor cannot keep up, every gap
+   *  between frames that a task starts in shows up as a long frame with no work inside. */
+  private work: Span[] = [];
+  /** Late frames on an idle main thread, in time order, waiting until a long task or
+   *  long frame that would rule them out has had time to arrive. */
+  private late: Span[] = [];
+  /** Late frames counted as the compositor's so far, for the probe log. */
+  lateCounted = 0;
 
   constructor(path: MeasurePath) {
     this.path = path;
@@ -179,10 +222,55 @@ export class PerfEvidence {
     this.addSlow(end - interval, end);
   }
 
+  /** A long task: the main thread was busy from `start` for `duration` ms. */
+  longTask(start: number, duration: number): void {
+    if (this.decided || !(duration > 0)) return;
+    this.tasks.push({ start, end: start + duration });
+  }
+
+  /** The work a long animation frame reports, whatever its cause and whether or not the
+   *  person was interacting: each script, and the rendering phase. */
+  frameWork(frame: LongFrame): void {
+    if (this.decided) return;
+    const end = frame.startTime + frame.duration;
+    if (frame.renderStart > 0 && frame.renderStart < end) this.work.push({ start: frame.renderStart, end });
+    for (const script of frame.scripts) {
+      // A script the browser does not place is taken to fill the frame from its start.
+      const start = script.startTime && script.startTime > 0 ? script.startTime : frame.startTime;
+      if (script.duration > 0) this.work.push({ start, end: start + script.duration });
+    }
+  }
+
+  /** A frame on the Long Animation Frames path, `interval` ms after the one before and
+   *  ending at `end`, with `mainMs` of main-thread work measured inside the gap. A late frame
+   *  on an idle main thread is held, and counts at settle() unless a long task, or long
+   *  frames with work inside it, turn up by then. */
+  compositorFrame(end: number, interval: number, mainMs: number): void {
+    if (this.decided || !isCompositorLate(interval, mainMs)) return;
+    this.late.push({ start: end - interval, end });
+  }
+
   /** Judge every second that is old enough, then decide. True exactly once. */
   settle(now: number): boolean {
     if (this.decided) return false;
-    const limit = Math.floor((now - FINALISE_DELAY_MS) / 1000);
+    // Long frames and long tasks are delivered after the fact, so a late frame is judged
+    // only once it is as old as a second has to be before it is judged.
+    const ready = now - FINALISE_DELAY_MS;
+    while (this.late.length && this.late[0]!.end <= ready) {
+      const f = this.late.shift()!;
+      if (this.tasks.some(b => b.start < f.end + BUSY_MARGIN_MS && b.end > f.start - BUSY_MARGIN_MS)) continue;
+      let work = 0;
+      for (const w of this.work) work += Math.max(0, Math.min(w.end, f.end) - Math.max(w.start, f.start));
+      if (work > (f.end - f.start) * IDLE_MAIN_SHARE_MAX) continue;
+      this.addSlow(f.start, f.end);
+      this.lateCounted += 1;
+    }
+    const keepAfter = ready - FRAME_GAP_MS - BUSY_MARGIN_MS;
+    this.tasks = this.tasks.filter(b => b.end > keepAfter);
+    this.work = this.work.filter(b => b.end > keepAfter);
+    // No second is judged while a late frame that touches it is still waiting.
+    const waiting = this.late.length ? Math.floor(this.late[0]!.start / 1000) : Number.POSITIVE_INFINITY;
+    const limit = Math.min(Math.floor(ready / 1000), waiting);
     if (limit > this.nextSecond) {
       const coverage = new Map<number, number>();
       for (const w of this.windows) {
@@ -206,6 +294,9 @@ export class PerfEvidence {
     this.decided = true;
     this.windows = [];
     this.slow.clear();
+    this.tasks = [];
+    this.work = [];
+    this.late = [];
     return true;
   }
 

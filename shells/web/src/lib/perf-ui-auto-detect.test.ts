@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The automatic Performance UI decision (lib/perf-ui-auto-detect.ts), driven with
- * synthetic frames on a synthetic clock. Pure, so no DOM.
+ * synthetic frames on a synthetic clock: render-bound long frames, late frames on an
+ * idle main thread (the compositor signal), and requestAnimationFrame intervals. Pure,
+ * so no DOM.
  *
  * Run directly:  node --test shells/web/src/lib/perf-ui-auto-detect.test.ts
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  MIN_SPAN_MS, PATH_RULES, PerfEvidence, WARMUP_MS,
-  classifyLongFrame, isSoftwareRenderer, type LongFrame, type MeasurePath,
+  IDLE_MAIN_SHARE_MAX, MIN_SPAN_MS, PATH_RULES, PerfEvidence, SCRIPT_SHARE_MAX, WARMUP_MS,
+  classifyLongFrame, isCompositorLate, isSoftwareRenderer, type LongFrame, type MeasurePath,
 } from './perf-ui-auto-detect.ts';
 
 /** A long frame starting at `start`: `render` ms of style, layout and paint at its end,
@@ -241,4 +243,139 @@ test('hardware renderers, and no facts at all, are not', () => {
   assert.equal(isSoftwareRenderer(null), false);
   assert.equal(isSoftwareRenderer({}), false);
   assert.equal(isSoftwareRenderer({ vendor: '', architecture: '' }), false, 'a browser that withholds the strings');
+});
+
+// ── The compositor signal (Long Animation Frames path): late frames, idle main thread ──
+
+interface CompositorRun {
+  from: number;
+  to: number;
+  /** Gap between frames, in ms. */
+  interval: number;
+  /** Main-thread time the wiring measured inside each gap. */
+  mainMs: number;
+  /** A long task (start, duration) delivered for the frame ending at `end`, if any. */
+  task?: (end: number) => [number, number] | null;
+  /** A long animation frame reported for the gap ending at `end`, if any. */
+  longFrame?: (start: number, end: number) => LongFrame | null;
+}
+
+/** Frames every `interval` ms through each run, inputs every 200 ms, settling once a
+ *  second; long tasks and long frames are delivered 300 ms after their frame, as a
+ *  browser delivers them late. Returns when it decided (or null) and the evidence. */
+function playCompositor(runs: CompositorRun[], until?: number): { decidedAt: number | null; evidence: PerfEvidence } {
+  const evidence = new PerfEvidence('loaf');
+  const events: Array<{ at: number; run: () => void }> = [];
+  for (const r of runs) {
+    for (let t = r.from; t < r.to; t += 200) events.push({ at: t, run: () => { evidence.interaction(t, true); } });
+    for (let end = r.from + r.interval; end < r.to; end += r.interval) {
+      const start = end - r.interval;
+      events.push({ at: end, run: () => { evidence.compositorFrame(end, r.interval, r.mainMs); } });
+      const task = r.task?.(end);
+      if (task) events.push({ at: end + 300, run: () => { evidence.longTask(task[0], task[1]); } });
+      const lf = r.longFrame?.(start, end);
+      if (lf) events.push({ at: end + 300, run: () => { evidence.frameWork(lf); } });
+    }
+  }
+  const end = until ?? Math.max(...runs.map(r => r.to)) + 5000;
+  for (let t = 0; t <= end; t += 1000) events.push({ at: t + 0.5, run: () => {} });
+  events.sort((a, b) => a.at - b.at);
+  let decidedAt: number | null = null;
+  let nextSettle = 0;
+  for (const e of events) {
+    while (nextSettle <= e.at) {
+      if (evidence.settle(nextSettle) && decidedAt === null) decidedAt = nextSettle;
+      nextSettle += 1000;
+    }
+    e.run();
+  }
+  return { decidedAt, evidence };
+}
+
+test('compositor: is a frame late on an idle main thread? 50 ms or more, a quarter or less of it busy', () => {
+  assert.equal(isCompositorLate(70, 5), true);
+  assert.equal(isCompositorLate(50, 12.5), true, 'exactly a quarter busy');
+  assert.equal(isCompositorLate(50, 13), false, 'more than a quarter busy: the main thread may have made it late');
+  assert.equal(isCompositorLate(49, 0), false, 'under 50 ms is not jank a person sees');
+  assert.equal(isCompositorLate(1001, 0), false, 'over a second is a pause, not a frame');
+  assert.equal(isCompositorLate(70, -1), false);
+  assert.equal(isCompositorLate(Number.NaN, 0), false);
+  assert.ok(IDLE_MAIN_SHARE_MAX <= SCRIPT_SHARE_MAX, 'no looser than the share of script a render-bound long frame may hold');
+});
+
+test('compositor: frames 70 ms apart on an idle main thread, through a minute of use, switch after the 30 s span', () => {
+  const { decidedAt, evidence } = playCompositor([{ from: 20_000, to: 80_000, interval: 70, mainMs: 6 }]);
+  assert.ok(decidedAt !== null, 'decided');
+  assert.ok(decidedAt >= 20_000 + MIN_SPAN_MS, `not before 30 s of evidence (decided at ${decidedAt})`);
+  assert.ok(evidence.lateCounted > 0);
+});
+
+test('compositor: long frames that are only the wait for a held-back rendering update do not rule late frames out', () => {
+  // What software compositing with heavy blur produced on this Mac: a long animation frame
+  // spans each gap from the first task after the last frame, with no script and a 1 ms
+  // rendering phase at its very end. The main thread waited; it did not work.
+  const waiting = (start: number, end: number): LongFrame => ({
+    startTime: start + 4, duration: end - start - 3, renderStart: end, styleAndLayoutStart: end, scripts: [],
+  });
+  const { decidedAt } = playCompositor([{ from: 20_000, to: 80_000, interval: 220, mainMs: 12, longFrame: waiting }]);
+  assert.ok(decidedAt !== null);
+});
+
+test('compositor: a busy main thread never counts, however late the frames', () => {
+  // Measured main-thread time over a quarter of each gap (what 20x CPU throttling gives).
+  const measured = playCompositor([{ from: 20_000, to: 200_000, interval: 67, mainMs: 60 }]);
+  assert.equal(measured.decidedAt, null);
+  assert.equal(measured.evidence.lateCounted, 0);
+  // Measured parts look idle, but a long task falls in every gap.
+  const tasks = playCompositor([{ from: 20_000, to: 200_000, interval: 70, mainMs: 5, task: end => [end - 60, 55] }]);
+  assert.equal(tasks.decidedAt, null);
+  assert.equal(tasks.evidence.lateCounted, 0);
+  // Long frames report scripts filling most of each gap.
+  const scripted = playCompositor([{
+    from: 20_000, to: 200_000, interval: 70, mainMs: 5,
+    longFrame: (start, end) => ({ startTime: start, duration: end - start, renderStart: end - 2, styleAndLayoutStart: end - 1, scripts: [{ startTime: start + 2, duration: 40 }] }),
+  }]);
+  assert.equal(scripted.decidedAt, null);
+  assert.equal(scripted.evidence.lateCounted, 0);
+});
+
+test('compositor: a long task delivered after its frame still rules the frame out', () => {
+  const evidence = new PerfEvidence('loaf');
+  for (let t = 20_000; t < 23_000; t += 200) evidence.interaction(t, true);
+  evidence.compositorFrame(21_070, 70, 4);
+  evidence.settle(21_500); // too early to judge: long tasks may still arrive
+  evidence.longTask(21_020, 52); // delivered 800 ms after the frame
+  evidence.settle(25_000);
+  assert.equal(evidence.lateCounted, 0);
+});
+
+test('compositor: short bursts never decide, however bad', () => {
+  const burst = playCompositor([{ from: 20_000, to: 32_000, interval: 90, mainMs: 3 }], 120_000);
+  assert.equal(burst.decidedAt, null, 'twelve bad seconds, then nothing');
+  // Bad seconds among good ones: a burst of late frames every 10 s, two seconds long.
+  const runs: CompositorRun[] = [];
+  for (let from = 20_000; from < 200_000; from += 10_000) {
+    runs.push({ from, to: from + 2000, interval: 90, mainMs: 3 });
+    runs.push({ from: from + 2000, to: from + 10_000, interval: 17, mainMs: 3 });
+  }
+  const scattered = playCompositor(runs);
+  assert.equal(scattered.decidedAt, null, 'two struggling seconds in ten is not seven in ten');
+});
+
+test('compositor: thresholds are the Long Animation Frames ones, never looser', () => {
+  // Four 55 ms late frames a second is 220 ms, under a quarter of each second.
+  const runs: CompositorRun[] = [];
+  for (let s = 20_000; s < 200_000; s += 1000) runs.push({ from: s, to: s + 225, interval: 55, mainMs: 2 }, { from: s + 225, to: s + 1000, interval: 17, mainMs: 2 });
+  assert.equal(playCompositor(runs).decidedAt, null);
+  assert.deepEqual(PATH_RULES.loaf, { struggleMs: 250, minSeconds: 12, share: 0.7 }, 'one rule for both kinds of slow time');
+});
+
+test('compositor: late frames outside interaction, or with ineligible input, are not counted', () => {
+  const evidence = new PerfEvidence('loaf');
+  for (let end = 20_070; end < 120_000; end += 70) {
+    evidence.compositorFrame(end, 70, 4);
+    if (end % 1000 < 70) evidence.settle(end);
+  }
+  evidence.settle(130_000);
+  assert.deepEqual(evidence.summary(), { active: 0, struggling: 0, spanMs: 0 });
 });

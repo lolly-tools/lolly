@@ -299,6 +299,34 @@ test('the watch ends, listeners and all, the moment the person changes the flag 
   }
 });
 
+test('in Chromium the watch also reads long tasks and times every frame, and lets go of all of it', () => {
+  const observed: string[] = [];
+  const disconnected: string[] = [];
+  class FakeObserver {
+    static supportedEntryTypes = ['long-animation-frame', 'longtask'];
+    private type = '';
+    observe(opts: { type: string }): void { this.type = opts.type; observed.push(opts.type); }
+    disconnect(): void { disconnected.push(this.type); }
+  }
+  const real = globalThis.PerformanceObserver;
+  globalThis.PerformanceObserver = FakeObserver as unknown as typeof PerformanceObserver;
+  try {
+    const stop = auto.watchPerfUi({ browseRoute: () => 'gallery' }, () => {});
+    assert.deepEqual(observed.sort(), ['long-animation-frame', 'longtask']);
+    stop();
+    assert.deepEqual(disconnected.sort(), ['long-animation-frame', 'longtask']);
+  } finally {
+    globalThis.PerformanceObserver = real;
+  }
+  // By source: the frame loop runs on both paths, each frame carries its main-thread
+  // time, and the work inside every long frame is recorded before the eligibility check.
+  const src = readFileSync(join(HERE, 'perf-ui-auto.ts'), 'utf8');
+  assert.match(src, /if \(eligible && !rafId\) rafId = requestAnimationFrame\(frame\);/);
+  assert.match(src, /evidence\.compositorFrame\(at, interval, previous \+ Math\.max\(0, now\(\) - at\)\);/);
+  assert.ok(src.indexOf('evidence.frameWork(f)') < src.indexOf('if (!eligibleAt(at)) { evidence.cut(at)'), 'long frames rule late frames out even while ineligible');
+  assert.match(src, /channel\?\.port1\.close\(\);/);
+});
+
 // ── Signal (a), end to end through the real startup check ──────────────────────
 
 test('a software adapter from the WebGPU startup check switches at start-up', async () => {
