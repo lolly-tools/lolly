@@ -122,7 +122,7 @@ export function propLabel(prop: KfProp): string {
 export function refusalText(r: KfLookRefusal): string {
   switch (r) {
     case 'placement': return t('A stroke on or outside the outline keeps its width and is not trimmed.');
-    case 'arrowheads': return t('A line with arrowheads is not trimmed. Remove the arrowheads to trim it.');
+    case 'arrowheads': return t('A line with arrowheads is not trimmed. Remove the arrowheads to trim this line.');
     case 'sides': return t('A trim needs the same stroke width on every side.');
     case 'picture': return t('A box showing a picture is not trimmed.');
     default: return t('Add a fill or a stroke first.');

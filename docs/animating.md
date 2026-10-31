@@ -13,7 +13,9 @@ Everything here runs on your device. Nothing plays on its own: the preview moves
 
 ## A keyframe is a pose at a moment
 
-A keyframe records a box's position, its size, how see-through and how blurred it is, and how far it lifts off the page, all at one instant. Two keyframes make a move, and Lolly fills in everything between them.
+A keyframe records a box's position, its size, how see-through and how blurred it is, and how far it lifts off the page, all at one instant. It can also hold how the box is painted: its **fill colour**, its **stroke colour** and **stroke width**, its **corner radius** and how much of its stroke is drawn (**path trim**, for lines that draw themselves on). Two keyframes make a move, and Lolly fills in everything between them.
+
+Colours change through OKLab, a colour space built to match how people see, so a blend from orange to blue passes through the colours the eye expects instead of a muddy grey band.
 
 **+Keyframe** has two homes and one behaviour:
 
@@ -26,7 +28,7 @@ If the thing you selected has no timing yet, that same press adds it to the time
 
 Each keyframe appears as a **diamond** on the clip's bar. `Alt + ←` and `Alt + →` step the playhead from one diamond to the next.
 
-Nothing else creates a keyframe. Dragging a box, typing in a field or scrubbing the playhead never quietly adds one, so nobody keyframes by accident.
+Apart from **+Keyframe** and the diamond beside a field (see [Key one property at a time](#key-one-property-at-a-time)), nothing creates a keyframe. Dragging a box, typing in a field or scrubbing the playhead never quietly adds one, so nobody keyframes by accident.
 
 A box that has never been animated shows one control instead: **Animate**, in its Keyframes group. Press it and a rest pose is written at the start of the clip, with everything exactly where it already was. From then on the box has a track, and the rest of this page applies to it.
 
@@ -51,7 +53,9 @@ The **Keyframes** panel holds everything one track can be edited with:
 
 - the latch line, saying which keyframe you are on;
 - the pose fields: **Depth**, **Tilt X**, **Tilt Y**, **Scale**, **Opacity** and **Blur** (position, rotation and size are set on the canvas instead);
-- one row per keyframe: its time in milliseconds, its curve, **Duplicate** and **Delete**;
+- the appearance fields the box has: **Fill**, **Stroke**, **Stroke width**, **Corner radius**, **Trim start** and **Trim end**;
+- a diamond at the end of every field, which keys that one property (see below);
+- one row per keyframe: its time, its curve, **Duplicate** and **Delete**. A keyframe that holds only some of the box's properties lists them, such as **Fill · Corner radius**;
 - **Remove N keyframes**, which is how you un-animate a box: the track is the animation;
 - the curve editor, docked at the bottom of the same panel.
 
@@ -62,6 +66,34 @@ Clicking a diamond selects it and opens this panel on that keyframe in one gestu
 The keyframe rows are the keyboard and screen-reader route to the diamonds. Everything a diamond can do by pointer is a labelled button in that list.
 
 ![The Keyframes popup on a choreographed swatch: its diamonds listed with their times, the curve between two of them, and the pose fields for the one the playhead is parked on](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZjNj5pAFMD_Gi8mkjdvPjn0sKLuoWnT7qFJTwR1mpooNMAm6l_f-QBFdLMkLWQPiAwz7803v7w3j_XxUwETjNbZ0aQE4ZIic6nL2zvPXtOt3jqNFUUUMbK1wWrNf5OlZbJLTS7N8kOy99IJcjnfZPssDwp9SNJytwlKfSytfGH0TNmmOi11bjKH3Xa71ybDXa9FkhZ2iIBgNYsyf7XqX8m-0PUAke1iq_-Uv20l9-O8qu_WA80hbpuCm2561nlWlWjdymv09cHcnHx624vbm8azMXh934xYreK2-7te68qExzqLjzOCGHAen2aEsICq-GxeVFyQOIN4LaYlwVCYYgDITEExHh8hPkF89pVIvIY3RmnIGjpyV1tcF0ImclmQCzisOzgU5k9SjeAMAI704IBFBvGOF8orXmwhhP55wQsvsjsvyDhdrUZehjA0MnTAvGdomAAHDgmnJQKEvYNDWx7Kb8074KyWMqIjOEOAg_ziokJHQgsYTr2lIcICo_q3NKzlmToBs1zZawRmAGCosSq1a0J2x4sgofdMyvBChOqdF97yTJ14ISGCxJGXAXhhFCvP9NC-SEI9L9TwggJ750W0HJJQXRwSr3Zu5KVvXjhTtzHTGycZhQ1DQ2X_hka2HFMncJYcCV-O4AwAjmCsdkyPQqYQuefFnnyZZL3zolqOqRMvks6fkI-8DBFiGz6aIdNjO2OCJOK54VN7WIa-uQHyhayQ_fzx_WUBavXtmYoFRJ9fvj7b7U4OOk9an_uoj8XhgpTelFYpJh_pK1_1Ov4JpKvs42AEtdExTMxMdJ2bfH6CaUnNOq-wVOL_yMpf%26w%3D1100%26h%3D1040%26_sel%3Ds4%26_t%3D1.1&width=1440&height=1000&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A320px%21important%7D&drive=click%3A.tl-group%5Bdata-group%3D%22keyframes%22%5D%20.tl-group-head%3Bwait%3A600&cropSelector=.tl-group-pop-body&walker=1&format=svg&dark=1&filename=anim-keyframes-popup)
+
+## Key one property at a time
+
+Every field in the Keyframes popup ends in a small diamond, and so do **Fill**, **Stroke**, **Stroke width** and **Corner radius** in the Design inspector while the timeline is open. The diamond keys that property alone, at the playhead:
+
+- **Hollow and grey**: the property is not animated.
+- **Hollow and coloured**: the property is animated, but not at this instant.
+- **Filled**: the playhead is on a keyframe that holds the property.
+
+Press a hollow diamond and the property's current value is written into the keyframe at the playhead, or into a new keyframe that holds only that property. Press a filled one and the property comes off that keyframe; a keyframe left holding nothing goes. Each press is one undo step, and each diamond is a labelled button, so the keyboard and screen readers reach the same action.
+
+Because each property interpolates only between the keyframes that hold it, a colour can change over the first second while a position moves over three, each with its own curve.
+
+In the Design inspector, a property with no keyframes is an ordinary field: change the fill and the box changes. Once the property is animated, the playhead decides. Parked on a keyframe, an edit writes that keyframe; anywhere else the field shows the value the keyframes give at that moment and refuses an edit, because no keyframe there would hold it.
+
+### Which strokes can be animated
+
+Stroke width and path trim work on a pen path and on a box whose stroke sits inside its outline, the default. A box stroke placed on or outside the outline keeps its width, and a trimmed box draws one stroke width all round, so a box with a different width on each side, a box showing a picture and a line with arrowheads keep their whole stroke; the diamond says why. A trimmed stroke is drawn solid, even when the stroke style is dashed.
+
+## See one property's keyframes
+
+The **All keyframes** control above the tracks narrows every clip's diamonds to one group: **Position**, **Size**, **Scale**, **Rotation**, **Opacity**, **Depth**, **Tilt**, **Blur**, **Fill**, **Stroke**, **Corner radius**, **Path trim** or **Volume**. While a group is picked, the control shows its name, and the Keyframes popup lists only those keyframes.
+
+Dragging, Alt-dragging, duplicating or deleting a diamond then acts on that group alone. Moving a fill key out of a keyframe that also holds a position leaves the position where it was; dropping it onto another keyframe adds it to that one, which keeps its own curve.
+
+## Times in milliseconds, seconds or frames
+
+The keyframe times in the Keyframes popup and the **Time** fields read in the unit you pick from the **ms**, **s** and **fr** switch in either popup. Frames count at the project frame rate. The choice is kept on this device and changes nothing in the document: the link still stores milliseconds.
 
 ## Depth lifts a box off the page
 
@@ -176,10 +208,11 @@ The preview and the file are the same arithmetic, so what you see is what you ge
 
 - **Video**: MP4 or WebM, rendered frame by frame at exact times rather than recorded off the screen. See [Export a file](/info/exporting.html#video).
 - **Animated images**: GIF, APNG and animated WebP come from the same frame-by-frame render.
-- **dotLottie** keeps position, scale, rotation and opacity keys on shapes, paths and still images. It refuses depth, tilt, blur, a camera, text and Motion entrances, exits and While on screen, and says which layer; export video for those. See [Lottie animations](/info/sequence-editor.html#lottie-animations).
+- **dotLottie** keeps position, scale, rotation and opacity keys on shapes, paths and still images, and fill colour, stroke colour, stroke width, corner radius and path trim on shapes and paths, as native Lottie animation. It refuses depth, tilt, blur, a camera, text and Motion entrances, exits and While on screen, and says which layer; export video for those. See [Lottie animations](/info/sequence-editor.html#lottie-animations).
+- **PowerPoint** places each object as it is drawn with no keyframes applied, and the export notes that an animation was left out.
 - **A still** is the frame at the playhead. Park the playhead where the shot looks best and export.
 - **A contact sheet** comes from the **Frames** field beside the output size: raise it and you get that many stills sampled across the sequence; see [stills from a timed composition](/info/exporting.html#stills-from-a-timed-composition).
-- **SVG stays vector.** A posed frame exports as real transforms with real blur and shadow filters, not a picture of a moment.
+- **SVG stays vector.** A posed frame exports as real transforms with real blur and shadow filters, not a picture of a moment. Keyed colours, stroke widths, corner radii and trims export as their values at the playhead.
 - **PDF is partly vector.** Box and text shadows stay vector; the Depth shadow and the content shadow follow the shape of the artwork itself, so a box using either exports as an image embedded in the PDF, as does a blurred one.
 
 A keyframe track is an ordinary part of the design, so it travels in the link: share the URL and the recipient opens the same move. A long one packs itself into the short form (see [URL Mode](/info/url-mode.html)).

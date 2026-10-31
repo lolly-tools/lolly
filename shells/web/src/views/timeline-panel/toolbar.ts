@@ -12,11 +12,11 @@ import { bindOp, type TpCtx } from './context.ts';
  * with fewer diamonds than the track has is never a surprise.
  */
 function filterControl(tp: TpCtx): HTMLButtonElement {
-  const b = tp.helpers.actionBtn('tl-kf-filter', t('All keyframes'), 'keyframe');
+  const b = tp.helpers.actionBtn('tl-kf-filter', t('All keyframes'), 'filterLines');
   const menu = mountBodyPopover(b, (el, pop) => {
     el.textContent = '';
     for (const choice of ['all', ...KF_GROUPS] as KfFilter[]) {
-      const item = tp.menus.menuItem(tp.kfDock.kfGroupLabel(choice), choice === tp.kfFilter ? 'check' : 'keyframe', () => {
+      const item = tp.menus.menuItem(tp.kfDock.kfGroupLabel(choice), 'check', () => {
         pop.close(true);
         setKfFilter(tp, choice);
       });

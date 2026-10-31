@@ -948,6 +948,8 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
 }
 .tl-kf-filter.is-active svg { opacity: 1; }
 .tl-kf-filter-menu .tl-kf-filter-all { border-bottom: 1px solid var(--ui-color-border-default); }
+/* A radio list: the tick marks the group showing, and the others keep its space. */
+.tl-kf-filter-menu [aria-checked="false"] > svg { visibility: hidden; }
 
 /* ─── The Camera group (plans/104 section 8) ────────────────────────────────────────
    Five preset moves that each write a whole track, then the pose channels - plus

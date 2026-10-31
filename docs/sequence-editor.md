@@ -153,12 +153,14 @@ Each instance keeps its own animation choice. Trim, split, duplicate, change spe
 
 Expand a clip with **+**, or choose **Animation layers**, to edit its internal layers: names, visibility, source in and out frames, transform values and keys, easing and static fill and stroke colours. The playhead previews the result. Internal edits apply to this clip only, and **Reset internal edits** restores the original.
 
-Choose **dotLottie** in Export to download the edited sequence as one animation. It supports imported shape animations, nested compositions, embedded still images, solid native shapes, paths and outer transform keys. The project frame rate and in and out range apply.
+Choose **dotLottie** in Export to download the edited sequence as one animation. It supports imported shape animations, nested compositions, embedded still images, solid native shapes, paths and outer transform keys. A native shape or path also keeps its keyed fill colour, stroke colour, stroke width, corner radius and path trim (see [Key one property at a time](/info/animating.html#key-one-property-at-a-time)). The project frame rate and in and out range apply.
 
 ::: details What dotLottie keeps and refuses
 Sources keep their original timing, including fractional frame rates; a new document uses a 30 fps editing grid when the source rate is outside the five project choices. Source keys keep their own frame times and easing. Existing spatial position keys can be edited, but a key cannot be inserted inside a curved spatial path. Animated fill and stroke properties are preserved. For nested time-remapped compositions, selecting a source key does not guess a timeline position; scrub to preview.
 
-Position axes can use different curves in a dotLottie export; anchor and scale axes must use matching curves, or use a movie export. A nested composition reused within one clip stays shared within that clip, and duplicated clips can diverge.
+Position axes can use different curves in a dotLottie export; anchor and scale axes must use matching curves, or use a movie export.
+
+Keyed stroke width and path trim keep their curves. A keyed colour is written as one value per frame, because a Lottie player blends colours differently from Lolly's OKLab blend; every frame of the file still carries Lolly's colour. A path trim reaches the stroke only, as on the canvas. dotLottie refuses colour keys on a shape with no fill or stroke, appearance keys on an image or a Lottie clip, and a trimmed box whose stroke width or corner radius is animated. A nested composition reused within one clip stays shared within that clip, and duplicated clips can diverge.
 
 Font-dependent text, expressions, 3D, masks, mattes, effects and themed appearance are not supported, nor are native text and video from the editor. An unsupported import or export lists the feature and is never silently replaced by a still; use a movie export instead.
 
