@@ -66,3 +66,15 @@ test('installToolApis attaches to per-mount host CLONES, not just the first host
   assert.equal(typeof b.geom?.union, 'function', 'a second host must also get host.geom');
   assert.equal(typeof b.color?.deltaE, 'function', 'a second host must also get host.color');
 });
+
+// A still export decides from the tool whether to pose its clock (bridge/frame-clock.ts
+// holdStillExports). A runtime made without the wrapper let the export entry call the clock
+// after the tool's beforeExport, which drew Chart's first frame over its poster and its
+// animated SVG. Both factories here are the only way to a runtime, so both must wrap.
+test('every runtime the chokepoint makes holds its still exports, knowing whether the tool prepares its own', () => {
+  const src = readFileSync(path.join(srcDir, 'lib', 'mount-runtime.ts'), 'utf8');
+  const made = [...src.matchAll(/\bcreateRuntime\(tool,/g)].length;
+  const held = [...src.matchAll(/holdStillExports\(await createRuntime\(tool,[^;]*\), tool\);/g)].length;
+  assert.equal(made, 2, 'createToolRuntime and createInteractiveToolRuntime');
+  assert.equal(held, made, 'each one is wrapped and handed the tool');
+});

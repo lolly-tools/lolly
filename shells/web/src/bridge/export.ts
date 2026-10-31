@@ -71,7 +71,7 @@ import { backgroundPicture, clipsBackgroundToText, paintLiveRun, paintOutlinedRu
 import { isOwnProfile, resolveEmbeddedProfile } from '../lib/press-profile-embed.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, blobToDataUrl, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks } from './export-shared.ts';
-import { beginFrameClock, renderFrameAt, endFrameClock, holdStillFrame, posedFrame } from './frame-clock.ts';
+import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
 import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, visualLines, mergeDeco, decoFlags, pdfInlineNonText, pseudoDescriptor, type Deco } from './export-svg-walker.ts';
@@ -338,16 +338,11 @@ import { packZip } from './export-zip.ts';
 const C2PA_STAMPABLE = new Set<string>(C2PA_FORMATS);
 
 async function renderFormat(node: Element, format: string, opts: ExportOpts = {}): Promise<Blob> {
-  const presentation = (await import('./presentation.ts')).presentationOf(node);
-  const restore = await presentation?.prepare(format, opts);
-  // A still that reads the page holds a frame-clock tool at its still pose for the whole
-  // render (frame-clock.ts holdStillFrame), so a PDF, SVG or Penpot file never catches a
-  // moment of a preview animation; the rasters pose the clock themselves, at their size.
-  // A payload the engine already built reads no page, and a sequence stage's still is
-  // the frame at its playhead, posed already.
-  const release = opts.dataText == null && !isSequenceStage(node) ? holdStillFrame(node, format) : null;
-  try { return await renderPreparedFormat(node, format, opts); }
-  finally { release?.(); restore?.(); }
+  // A still that reads the page holds a frame-clock tool for the whole render, before a
+  // declared presentation lays it out (frame-clock.ts withStillHold), so a PDF, SVG or
+  // Penpot file never catches a moment of a preview animation or draws over what a tool's
+  // own preparation built. A payload the engine already built reads no page.
+  return withStillHold(node, format, opts, opts.dataText == null, () => renderPreparedFormat(node, format, opts));
 }
 
 async function renderPreparedFormat(node: Element, format: string, opts: ExportOpts = {}): Promise<Blob> {

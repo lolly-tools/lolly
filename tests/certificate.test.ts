@@ -642,6 +642,35 @@ test('a still export held mid-reveal gets the finished sheet, and the reveal wai
   }
 });
 
+// The shell decides per tool whether to call the clock for a still: a tool with a
+// beforeExport hook poses its own (Chart's poster, its SMIL flipbook), and a call would
+// draw over what the hook built. Certificate has no such hook, so its still comes from the
+// clock, before the engine starts the export. This pins both halves through the runtime
+// the web shell wraps.
+test('an export through the runtime gets the finished sheet, because Certificate leaves its still pose to the clock', { skip: SKIP }, async () => {
+  const { holdStillExports } = await import('../shells/web/src/bridge/frame-clock.ts');
+  assert.notEqual(tool.manifest.hooks?.beforeExport, true, 'a beforeExport hook would make the shell leave the pose to it');
+  const frames = (win: any, n: number) => new Promise<void>((done) => {
+    const step = (k: number) => (k ? win.requestAnimationFrame(() => step(k - 1)) : done());
+    step(n);
+  });
+  const still = await liveSheet({ style: 'modern', motion: 'reveal' });
+  const finished = still.styles();
+  still.dom.window.close();
+  for (const format of ['pdf', 'svg']) {
+    const live = await liveSheet({ style: 'modern', motion: 'reveal' }, 'tool-canvas');
+    await frames(live.dom.window, 3);
+    assert.notEqual(live.styles(), finished, `${format}: the preview is mid-reveal when the export starts`);
+    const read: string[] = [];
+    const host = baseHost({ export: { render: async () => { read.push(live.styles()); return new Blob([]); } } });
+    const runtime = holdStillExports(await createRuntime(tool, host, { style: 'modern', motion: 'reveal' }), tool);
+    await runtime.export(live.doc.querySelector('.ct-root'), format, { embedMeta: false, watermark: false });
+    assert.deepEqual(read, [finished], `${format}: the page the export read is the finished certificate`);
+    assert.equal(live.clock.__lollyFrameDriven, false, `${format}: the reveal gets its loop back`);
+    live.dom.window.close();
+  }
+});
+
 // ── Print language ──────────────────────────────────────────────────────────
 
 // Test fixtures only: the shipped table is filled by a reviewed translation
