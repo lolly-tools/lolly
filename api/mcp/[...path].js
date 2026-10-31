@@ -499,6 +499,11 @@ var init_tool_schema = __esm({
               default: false,
               description: "Adds a 'No BG' (transparent background) toggle to the export bar. The engine injects it into the model so hooks can react to it via onInit/onInput."
             },
+            followsCanvasSize: {
+              type: "boolean",
+              default: false,
+              description: "The tool lays itself out for the canvas size (engine 1.293). Every hook receives ctx.canvasSize, the size the shell is making the tool at in CSS pixels (96 per inch): the requested export size when both sides are known, else render.width x render.height; templates read it as {{@canvasSize.width}} and {{@canvasSize.height}}. With this set, a change of size runs onInput with id '__canvasSize', whose patch updates computed values only, and repaints. Without it the runtime only records the size, so the tool renders exactly as before. Raise engineVersion to ^1.293.0 when you set it."
+            },
             c2pa: {
               type: "boolean",
               default: true,
@@ -4083,7 +4088,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.291.0";
+    ENGINE_VERSION = "1.293.0";
   }
 });
 
@@ -10326,6 +10331,15 @@ function toPoints(dim) {
 }
 function toCssPx(dim) {
   return dim.unit === "px" ? dim.value : toInches(dim) * CSS_DPI;
+}
+function canvasSizeOf(width, height, unit2 = "px") {
+  const side2 = (v) => {
+    const dim = typeof v === "number" ? parseDimension(String(v), unit2) : parseDimension(v, unit2);
+    const px3 = dim ? toCssPx(dim) : 0;
+    return Number.isFinite(px3) && px3 > 0 ? px3 : null;
+  };
+  const w = side2(width), h = side2(height);
+  return w !== null && h !== null ? { width: w, height: h } : null;
 }
 function toUnit(dim, unit2) {
   return toInches(dim) * PER_INCH[unit2];
@@ -38386,16 +38400,17 @@ function resolvePaintBindings(html, bindings) {
     return out.length ? ` data-lolly-bind="${out.join(";")}"` : "";
   });
 }
-function hydrate(templateSource, values, { raw = false } = {}) {
+function hydrate(templateSource, values, { raw = false, data } = {}) {
   const key2 = (raw ? "r:" : "h:") + templateSource;
+  const runOpts = data ? { data } : void 0;
   const cached2 = compileCache.get(key2);
   if (cached2) {
     compileCache.delete(key2);
     compileCache.set(key2, cached2);
-    return cached2.compiled(values);
+    return cached2.compiled(values, runOpts);
   }
   const compiled3 = Handlebars.compile(templateSource, { noEscape: raw });
-  const output = compiled3(values);
+  const output = compiled3(values, runOpts);
   const bytes2 = (key2.length + templateSource.length) * 2;
   if (bytes2 <= COMPILE_CACHE_SOURCE_BYTES) {
     while (compileCache.size && (compileCache.size >= COMPILE_CACHE_MAX || compileCacheBytes + bytes2 > COMPILE_CACHE_SOURCE_BYTES)) {
@@ -52802,6 +52817,10 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   const composeMemo = /* @__PURE__ */ new Map();
   let setInputSeq = 0;
   let viewState = opts.viewState ? Object.freeze(structuredClone(opts.viewState)) : void 0;
+  const manifestCanvas = Object.freeze({ width: tool.manifest.render.width, height: tool.manifest.render.height });
+  const toCanvasSize = (size) => size && Number.isFinite(size.width) && Number.isFinite(size.height) && size.width > 0 && size.height > 0 ? Object.freeze({ width: size.width, height: size.height }) : manifestCanvas;
+  let canvasSize = toCanvasSize(opts.canvasSize);
+  const followsCanvasSize = tool.manifest.render?.followsCanvasSize === true;
   const profile2 = await host.profile.get();
   const hookLang = tool.lang || profile2.lang || "en";
   const { userTemplates: _templates, emoji: _emojiPref, trustedSites: _trusted, trustedSitesSeeded: _trustedSeeded, ...profileValues } = profile2;
@@ -52908,7 +52927,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     if (onInit) {
       try {
         const progressive = opts.progressiveInit === true;
-        const patch = await runHook("onInit", (report4) => onInit({ model: modelForHooks(model2), view: viewState, lang: hookLang, host, report: report4, ...progressive ? { progressive } : {} }), applyLatePatch, progressive);
+        const patch = await runHook("onInit", (report4) => onInit({ model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host, report: report4, ...progressive ? { progressive } : {} }), applyLatePatch, progressive);
         if (patch) ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
       } catch (e) {
         hookErrors.push({ hook: "onInit", message: e.message });
@@ -52973,7 +52992,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     return source.subscribe((level2) => {
       if (pending3 || generation !== levelGeneration || destroyed) return;
       pending3 = true;
-      Promise.resolve(onLevel({ level: level2, model: modelForHooks(model2), view: viewState, lang: hookLang, host })).then((patch) => {
+      Promise.resolve(onLevel({ level: level2, model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host })).then((patch) => {
         if (patch && meterUnsub && generation === levelGeneration && !destroyed) {
           ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
           emit();
@@ -53026,12 +53045,15 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     }
     return ctxCache;
   }
+  function templateData() {
+    return { canvasSize };
+  }
   function bindPaint(html) {
     return resolvePaintBindings(html, tokenBindingsOf(model2));
   }
   function getHydrated() {
     const pag = tool.manifest.render?.paginate;
-    const html = pag?.source ? hydratePaginated(pag.source) : bindPaint(hydrate(tool.template, templateContext()));
+    const html = pag?.source ? hydratePaginated(pag.source) : bindPaint(hydrate(tool.template, templateContext(), { data: templateData() }));
     return tool.presentationSource && tool.trustClass !== "remote-untrusted" && tool.trustClass !== "sideloaded-consented" ? html + "<script data-tool-presentation>" + tool.presentationSource.replace(/<\/script/gi, "<\\/script") + "</script>" : html;
   }
   function hydratePaginated(sourceId) {
@@ -53056,15 +53078,15 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         fields: cells.slice(1),
         byColumn
       };
-      const body = bindPaint(hydrate(tool.template, { ...base, page: page3 }));
+      const body = bindPaint(hydrate(tool.template, { ...base, page: page3 }, { data: templateData() }));
       return `<section data-pdf-page class="lolly-page" data-page-index="${index2}">${body}</section>`;
     }).join("");
   }
   function getHydratedString(str11) {
-    return str11 ? hydrate(str11, templateContext()) : "";
+    return str11 ? hydrate(str11, templateContext(), { data: templateData() }) : "";
   }
   function getHydratedText(str11) {
-    return str11 ? hydrate(str11, templateContext(), { raw: true }) : "";
+    return str11 ? hydrate(str11, templateContext(), { raw: true, data: templateData() }) : "";
   }
   let emojiCensus2 = [];
   let emojiReplaced = 0, emojiUnresolved = 0;
@@ -53321,7 +53343,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         const seq = setInputSeq;
         let patch;
         try {
-          patch = await runHook("onInput", (report4) => hooks.onInput({ id: "__emoji", value: null, model: modelForHooks(model2), view: viewState, host, report: report4 }), (late) => {
+          patch = await runHook("onInput", (report4) => hooks.onInput({ id: "__emoji", value: null, model: modelForHooks(model2), view: viewState, canvasSize, host, report: report4 }), (late) => {
             if (generation === emojiStyleGeneration && seq === setInputSeq) applyLatePatch(late);
           });
         } catch (e) {
@@ -53404,7 +53426,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const onFrame = hooks?.onFrame;
       if (!onFrame) return null;
       try {
-        const patch = await onFrame({ frame, model: modelForHooks(model2), view: viewState, lang: hookLang, host });
+        const patch = await onFrame({ frame, model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host });
         if (patch) ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
         return getHydrated();
       } catch (e) {
@@ -53436,6 +53458,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
             model: modelForHooks(model2),
             view: viewState,
             lang: hookLang,
+            canvasSize,
             host,
             report: report4
           }), (late) => {
@@ -53446,6 +53469,46 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           });
           if (seq !== setInputSeq) return;
           if (patch) applyViewPatch(patch);
+        } catch (error2) {
+          host.log("warn", `onInput ${error2.message}`, { toolId: tool.manifest.id });
+        }
+      }
+      if (seq === setInputSeq) emit();
+    },
+    get canvasSize() {
+      return canvasSize;
+    },
+    async setCanvasSize(size) {
+      const next2 = toCanvasSize(size);
+      if (next2.width === canvasSize.width && next2.height === canvasSize.height) return;
+      canvasSize = next2;
+      if (!followsCanvasSize) return;
+      const seq = ++setInputSeq;
+      const applySizePatch = (patch) => {
+        if (!patch || typeof patch !== "object" || Array.isArray(patch)) return;
+        const computed = Object.fromEntries(Object.entries(patch).filter(([id3]) => !inputIds.has(id3)));
+        ({ model: model2, extras } = mergePatch(model2, extras, computed, inputIds));
+      };
+      const onInput = hooks?.onInput;
+      if (onInput) {
+        try {
+          const patch = await runHook("onInput", (report4) => onInput({
+            id: CANVAS_SIZE_INPUT_ID,
+            value: null,
+            model: modelForHooks(model2),
+            view: viewState,
+            lang: hookLang,
+            canvasSize,
+            host,
+            report: report4
+          }), (late) => {
+            if (seq === setInputSeq) {
+              applySizePatch(late);
+              emit();
+            }
+          });
+          if (seq !== setInputSeq) return;
+          if (patch) applySizePatch(patch);
         } catch (error2) {
           host.log("warn", `onInput ${error2.message}`, { toolId: tool.manifest.id });
         }
@@ -53472,7 +53535,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const onInput = hooks?.onInput;
       if (onInput) {
         try {
-          const patch = await runHook("onInput", (report4) => onInput({ id: id3, value: flattenValue(value2), model: modelForHooks(model2), view: viewState, lang: hookLang, host, report: report4 }), applyLatePatch);
+          const patch = await runHook("onInput", (report4) => onInput({ id: id3, value: flattenValue(value2), model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host, report: report4 }), applyLatePatch);
           if (patch) {
             ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
             emit();
@@ -53558,7 +53621,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       if (onInput) {
         for (const { id: id3, value: value2 } of applied) {
           try {
-            const patch = await runHook("onInput", (report4) => onInput({ id: id3, value: value2, model: modelForHooks(model2), view: viewState, lang: hookLang, host, report: report4 }), applyLatePatch);
+            const patch = await runHook("onInput", (report4) => onInput({ id: id3, value: value2, model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host, report: report4 }), applyLatePatch);
             if (patch) ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
           } catch (e) {
             host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
@@ -53618,7 +53681,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       if (onInput) {
         for (const item2 of changed) {
           try {
-            const patch = await runHook("onInput", (report4) => onInput({ id: item2.id, value: flattenValue(item2.value), model: modelForHooks(model2), view: viewState, lang: hookLang, host, report: report4 }), applyLatePatch);
+            const patch = await runHook("onInput", (report4) => onInput({ id: item2.id, value: flattenValue(item2.value), model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host, report: report4 }), applyLatePatch);
             if (patch) ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
           } catch (e) {
             host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
@@ -53661,7 +53724,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       if (onInput) {
         for (const item2 of changed) {
           try {
-            const patch = await runHook("onInput", (report4) => onInput({ id: item2.id, value: flattenValue(item2.value), model: modelForHooks(model2), view: viewState, lang: hookLang, host, report: report4 }), applyLatePatch);
+            const patch = await runHook("onInput", (report4) => onInput({ id: item2.id, value: flattenValue(item2.value), model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host, report: report4 }), applyLatePatch);
             if (patch) ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
           } catch (e) {
             host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
@@ -53679,6 +53742,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
             model: modelForHooks(model2),
             view: viewState,
             lang: hookLang,
+            canvasSize,
             host,
             report: report4
           }), (late) => {
@@ -53731,7 +53795,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const subscribeLive = () => media.subscribe((frame) => {
         if (framePending || livePaused) return;
         framePending = true;
-        Promise.resolve(onFrame({ frame, model: modelForHooks(model2), view: viewState, lang: hookLang, host })).then((patch) => {
+        Promise.resolve(onFrame({ frame, model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host })).then((patch) => {
           if (patch && liveUnsub && generation === liveGeneration) {
             ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
             if (sensorSource) liveCameraShown = true;
@@ -53877,7 +53941,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       }
       const out = await runHook(
         "exportFile",
-        () => exportFileHook({ model: modelForHooks(model2), view: viewState, lang: hookLang, host, opts: opts2 })
+        () => exportFileHook({ model: modelForHooks(model2), view: viewState, lang: hookLang, canvasSize, host, opts: opts2 })
       );
       const placed2 = toolEmoji?.census;
       if (placed2?.length) emojiCensus2 = [...emojiCensus2.filter((source) => !placed2.some((next2) => next2.pack.checksum === source.pack.checksum && next2.assetId === source.assetId)), ...placed2];
@@ -53906,7 +53970,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         if (!tool.presentationSource) throw new Error("The portable presentation runtime is missing. Reload the tool before exporting.");
         if (tool.trustClass === "remote-untrusted" || tool.trustClass === "sideloaded-consented") throw new Error("Interactive HTML export requires a trusted installed tool.");
         opts2 = { ...opts2, portableDocument: {
-          markup: bindPaint(hydrate(tool.template, templateContext())),
+          markup: bindPaint(hydrate(tool.template, templateContext(), { data: templateData() })),
           styles: tool.styles ?? "",
           script: tool.presentationSource,
           title: String(model2.find((i) => i.id === "title")?.value || tool.manifest.name),
@@ -53940,7 +54004,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const beforeExport = hooks?.beforeExport;
       if (beforeExport) {
         try {
-          await runHook("beforeExport", () => beforeExport({ model: modelForHooks(model2), lang: hookLang, node: renderedNode, format, opts: opts2, host }));
+          await runHook("beforeExport", () => beforeExport({ model: modelForHooks(model2), lang: hookLang, canvasSize, node: renderedNode, format, opts: opts2, host }));
         } catch (error2) {
           throw new ExportHookError(error2);
         }
@@ -53956,7 +54020,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           const afterExport = hooks?.afterExport;
           if (!afterExport) return;
           try {
-            await runHook("afterExport", () => afterExport({ model: modelForHooks(model2), lang: hookLang, node: renderedNode, format, opts: opts2, host }));
+            await runHook("afterExport", () => afterExport({ model: modelForHooks(model2), lang: hookLang, canvasSize, node: renderedNode, format, opts: opts2, host }));
           } catch (e) {
             host.log("warn", `afterExport ${e.message}`, { toolId: tool.manifest.id });
           }
@@ -53965,7 +54029,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         try {
           still = await runHook(
             "exportStill",
-            () => exportStill({ model: modelForHooks(model2), lang: hookLang, node: renderedNode, format, opts: opts2, host })
+            () => exportStill({ model: modelForHooks(model2), lang: hookLang, canvasSize, node: renderedNode, format, opts: opts2, host })
           );
         } catch (e) {
           await runAfterExport();
@@ -54110,7 +54174,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         const afterExport = hooks?.afterExport;
         if (afterExport) {
           try {
-            await runHook("afterExport", () => afterExport({ model: modelForHooks(model2), lang: hookLang, node: renderedNode, format, opts: opts2, host }));
+            await runHook("afterExport", () => afterExport({ model: modelForHooks(model2), lang: hookLang, canvasSize, node: renderedNode, format, opts: opts2, host }));
           } catch (e) {
             host.log("warn", `afterExport ${e.message}`, { toolId: tool.manifest.id });
           }
@@ -54530,7 +54594,7 @@ function mergePatch(model2, extras, patch, inputIds) {
   const newModel = hasModelPatch ? model2.map((input) => input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input) : model2;
   return { model: newModel, extras: newExtras };
 }
-var ExportHookError, HOOK_BUDGET_MS, TOKENS_CHANGED_INPUT_ID, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
+var ExportHookError, HOOK_BUDGET_MS, TOKENS_CHANGED_INPUT_ID, CANVAS_SIZE_INPUT_ID, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
 var init_runtime = __esm({
   "engine/src/runtime.ts"() {
     "use strict";
@@ -54572,6 +54636,7 @@ var init_runtime = __esm({
       exportStill: 1e4
     };
     TOKENS_CHANGED_INPUT_ID = "__tokens";
+    CANVAS_SIZE_INPUT_ID = "__canvasSize";
     ALPHA_EXPORT_FORMATS = /* @__PURE__ */ new Set(["jxl", "jxl-lossless", "png", "webp", "avif", "apng", "webp-anim", "gif"]);
     DATA_FORMATS = {
       json: "application/json",
@@ -145828,6 +145893,7 @@ __export(src_exports, {
   canonicalFirst: () => canonicalFirst,
   canonicalJson: () => canonicalJson,
   canonicalValue: () => canonicalValue,
+  canvasSizeOf: () => canvasSizeOf,
   capturePlanRows: () => capturePlanRows,
   captureTextFrames: () => captureTextFrames,
   captureThemeRows: () => captureThemeRows,
@@ -147176,6 +147242,7 @@ var init_src2 = __esm({
     init_trustmark();
     init_trustmark();
     init_contentseal();
+    init_units();
     init_units();
     init_framing();
     init_color2();
@@ -178245,7 +178312,10 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       if (typeof toolId !== "string" || !toolId) throw new Error("compose: missing toolId");
       assertComposeStack(_stack, toolId);
       const childTool = await loadTool(toolId, composeFetchFile);
-      const childRuntime = await createRuntime(childTool, host, inputs, { composeStack: _stack });
+      const childRuntime = await createRuntime(childTool, host, inputs, {
+        composeStack: _stack,
+        canvasSize: canvasSizeOf(width, height, unit2 || "px")
+      });
       const el = w.document.createElement("div");
       el.innerHTML = childRuntime.getHydrated();
       await childRuntime.applyEmojiToDom(el);
@@ -179011,10 +179081,13 @@ async function applyEmojiRequest(runtime, host, request2) {
   });
   return warnings2;
 }
-async function mountAndDraw(dom, host, toolId, values, emoji, tokenSelection) {
+async function mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, canvasSize) {
   const tool = await loadToolCached(toolId);
   await prerenderSongInputs(tool.manifest.inputs ?? [], values, host);
-  const runtime = await createRuntime(tool, host, values, tokenSelection ? { tokenSelection } : void 0);
+  const runtime = await createRuntime(tool, host, values, {
+    ...tokenSelection ? { tokenSelection } : {},
+    ...canvasSize ? { canvasSize } : {}
+  });
   const canvas = dom.window.document.getElementById("canvas");
   if (!canvas) throw new RenderError("render canvas missing");
   followRuntimeSelection(host, runtime.tokenSelection, tokenSelection);
@@ -179041,9 +179114,9 @@ async function browserTierThemeNotes(toolId, profile2, tokenSelection) {
     return themeChoiceNotes(tool.manifest, document2, tokenSelection);
   }, { tokenSelection });
 }
-async function emojiCensus(toolId, values, fmt4, profile2, emoji, tokenSelection) {
+async function emojiCensus(toolId, values, fmt4, profile2, emoji, tokenSelection, canvasSize) {
   return withHost(profile2, async (dom, host) => {
-    const { runtime } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
+    const { runtime } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, canvasSize);
     return {
       ingredients: runtime.emojiIngredients(),
       rights: runtime.rights({ delivery: { format: fmt4, canCarryCredential: C2PA_FORMATS.includes(fmt4) } })
@@ -179073,9 +179146,12 @@ function resolveEmojiSetName(named, sets) {
   }
   return { error: `Unknown emoji set "${raw}". Registered sets: ${registered}.` };
 }
-async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, productionContract, tokenSelection) {
+async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, productionContract, tokenSelection, size = {}) {
   return withHost(profile2, async (dom, host) => {
-    const { runtime, canvas, warnings: warnings2 } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
+    const { runtime, canvas, warnings: warnings2 } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, size.canvas);
+    const root2 = canvas.tagName.toLowerCase() === "svg" ? canvas : canvas.querySelector("svg");
+    const svgSized = !!size.svg && !!root2?.hasAttribute("viewBox");
+    const sized = svgSized ? { ...opts, width: size.svg.width, height: size.svg.height } : opts;
     let productionInputs;
     if (productionContract?.requirements.some((requirement) => requirement.kind === "input")) {
       const { productionInputFacts: productionInputFacts2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
@@ -179090,7 +179166,7 @@ async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, producti
     let blob;
     const drawn = { pictures: [], route: null };
     try {
-      blob = await runtime.export(canvas, fmt4, { ...opts, ingredientSink: drawn.pictures, onExportRoute: (record46) => {
+      blob = await runtime.export(canvas, fmt4, { ...sized, ingredientSink: drawn.pictures, onExportRoute: (record46) => {
         drawn.route = record46;
       } });
     } catch (e) {
@@ -179117,7 +179193,8 @@ async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, producti
       warnings: warnings2,
       // The metadata the export embedded, so the credential stamped below names
       // the same design system and colourway (plans/319).
-      meta: runtime.lastExportMeta
+      meta: runtime.lastExportMeta,
+      svgSized
     };
   }, tokenSelection ? { tokenSelection } : {});
 }
@@ -179131,8 +179208,9 @@ function maxRasterPixelsFor(env, hosted) {
   }
   return hosted ? HOSTED_MAX_RASTER_PIXELS : void 0;
 }
-async function svgToPng(svg, width, background, maxPixels) {
+async function svgToPng(svg, width, background, maxPixels, height) {
   const { Resvg } = await import("@resvg/resvg-js");
+  if (width && width > 0 && height && height > 0) svg = sizeRootSvg(svg, width, height);
   const probe = new Resvg(svg, { font: { loadSystemFonts: false } });
   const iw = probe.width, ih = probe.height;
   if (!(iw > 0) || !(ih > 0)) throw new RenderError("SVG has no rasterisable size");
@@ -179152,6 +179230,10 @@ async function svgToPng(svg, width, background, maxPixels) {
   });
   const img = r5.render();
   return { png: img.asPng(), width: img.width, height: img.height, reduced: areaScale < wantScale && areaScale <= edgeScale };
+}
+function sizeRootSvg(svg, width, height) {
+  const w = Math.max(1, Math.round(width)), h = Math.max(1, Math.round(height));
+  return svg.replace(/<svg\b[^>]*>/, (tag3) => tag3.replace(/\s(width|height)="[^"]*"/g, "").replace(/^<svg\b/, `<svg width="${w}" height="${h}"`));
 }
 async function previewPng(svg) {
   const { rasterInChild: rasterInChild2 } = await Promise.resolve().then(() => (init_raster_child(), raster_child_exports));
@@ -179475,6 +179557,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     madeWith: o.madeWith ?? st.madeWith ?? null
   };
   const profile2 = o.profile ?? {};
+  const canvasSize = canvasSizeOf(merged.width, merged.height, merged.unit || "px");
   const emoji = { emoji: st.emoji, emojifx: st.emojiFx, emojistyle: st.emojiStyle };
   const warnings2 = [];
   if (merged.password && exportFmt === "pdf-cmyk") {
@@ -179492,7 +179575,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     out = { ...await renderTierB(toolId, q, exportFmt, merged), mime: mimeForFormat(deliveredFormat), tier: "B" };
   } else if (TIER_A.has(exportFmt) && !floatScene) {
     try {
-      const r5 = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile2, emoji, productionContract, st.tokenSelection);
+      const r5 = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile2, emoji, productionContract, st.tokenSelection, { canvas: canvasSize });
       placed2 = r5.ingredients;
       drawn = r5.drawn;
       evaluation = r5.rights;
@@ -179509,13 +179592,19 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     }
   } else if (exportFmt === "png" && formats.includes("svg") && !floatScene && values.editingRange !== "hdr") {
     try {
-      const svg = await renderTierA(toolId, values, "svg", exportOpts({ ...merged, width: void 0, height: void 0, unit: "px" }), profile2, emoji, productionContract, st.tokenSelection);
+      const requested = exportOpts(merged);
+      const both = requested.width !== void 0 && requested.height !== void 0;
+      const svg = await renderTierA(toolId, values, "svg", exportOpts({ ...merged, width: void 0, height: void 0, unit: "px" }), profile2, emoji, productionContract, st.tokenSelection, {
+        canvas: canvasSize,
+        ...both ? { svg: { width: requested.width, height: requested.height } } : {}
+      });
       placed2 = svg.ingredients;
       evaluation = svg.rights;
       recorded2 = svg.meta;
       warnings2.push(...svg.warnings);
       const px3 = targetPx(merged.width, merged.unit, merged.dpi);
-      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px3, merged.background, o.maxRasterPixels);
+      const pxH = svg.svgSized ? targetPx(merged.height, merged.unit, merged.dpi) : void 0;
+      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px3, merged.background, o.maxRasterPixels, pxH);
       if (png.reduced) {
         warnings2.push(`PNG reduced to ${png.width} x ${png.height} px to stay within this server's ${o.maxRasterPixels.toLocaleString("en")}-pixel raster limit. Ask for svg for a file that scales to any size.`);
       }
@@ -179544,7 +179633,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
   let bytes2 = out.bytes;
   if (out.tier.startsWith("B") && !evaluation && carriesEmojiParams(q)) {
     try {
-      const census = await emojiCensus(toolId, values, exportFmt, profile2, emoji, st.tokenSelection);
+      const census = await emojiCensus(toolId, values, exportFmt, profile2, emoji, st.tokenSelection, canvasSize);
       placed2 = census.ingredients;
       evaluation = census.rights;
     } catch (e) {
