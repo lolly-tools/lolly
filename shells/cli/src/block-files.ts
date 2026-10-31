@@ -29,7 +29,8 @@
  */
 
 import { open, readFile, stat } from 'node:fs/promises';
-import { basename, extname, resolve } from 'node:path';
+import { homedir } from 'node:os';
+import { basename, extname, join, resolve } from 'node:path';
 import { refused, usageError } from './exit-codes.ts';
 
 /** The parts of a blocks sub-field this module reads. */
@@ -260,6 +261,61 @@ export function fileUrlIn(v: unknown): string | null {
   const ref = v && typeof v === 'object' ? v as { id?: unknown; url?: unknown; original?: { url?: unknown } } : null;
   for (const s of ref ? [ref.id, ref.url, ref.original?.url] : [v]) {
     if (typeof s === 'string' && /^\s*file:/i.test(s)) return s.trim();
+  }
+  return null;
+}
+
+/** A local file that a set of input values points at. */
+export interface LinkLocalFile { inputId: string; fieldId: string | null; value: string }
+
+/**
+ * The first file on this computer that input values point at, for values that
+ * came inside a link: a `file:` URL in an asset input or a blocks row's asset
+ * field, an existing file such an asset gives by path (`~/` is the home folder,
+ * anything else relative to `cwd`), or a file input with a path. Null when the
+ * values point at no local file. The TUI refuses a pasted link that does this, as
+ * `bakeLocalBlockAssets` and the CLI's input reads refuse one.
+ */
+export async function linkLocalFile(
+  manifest: { inputs?: readonly DropInputLike[] },
+  values: Record<string, unknown>,
+  opts: { cwd?: string } = {},
+): Promise<LinkLocalFile | null> {
+  const cwd = opts.cwd ?? process.cwd();
+  const local = async (v: unknown): Promise<string | null> => {
+    const fileUrl = fileUrlIn(v);
+    if (fileUrl) return fileUrl;
+    let id: string | null = null;
+    if (typeof v === 'string') id = v.trim();
+    else if (v && typeof v === 'object') {
+      const ref = v as { id?: unknown; source?: unknown; meta?: { baked?: unknown } };
+      if (typeof ref.id === 'string' && ref.source !== 'remote' && !ref.meta?.baked) id = ref.id.trim();
+    }
+    if (!id || SCHEME.test(id)) return null;
+    const path = id === '~' || id.startsWith('~/') ? join(homedir(), id.slice(1)) : id;
+    return (await existingFile([cwd], path)) ? id : null;
+  };
+  for (const input of manifest.inputs ?? []) {
+    const v = values[input.id];
+    if (v == null) continue;
+    if (input.type === 'file') {
+      for (const ref of Array.isArray(v) ? v : [v]) {
+        const path = ref && typeof ref === 'object' ? (ref as { path?: unknown }).path : null;
+        if (typeof path === 'string' && path) return { inputId: input.id, fieldId: null, value: path };
+      }
+    } else if (input.type === 'asset') {
+      const hit = await local(v);
+      if (hit) return { inputId: input.id, fieldId: null, value: hit };
+    } else if (input.type === 'blocks' && Array.isArray(v)) {
+      const assetFields = (input.fields ?? []).filter((f) => f.type === 'asset');
+      for (const row of v) {
+        if (!row || typeof row !== 'object') continue;
+        for (const f of assetFields) {
+          const hit = await local((row as Record<string, unknown>)[f.id]);
+          if (hit) return { inputId: input.id, fieldId: f.id, value: hit };
+        }
+      }
+    }
   }
   return null;
 }

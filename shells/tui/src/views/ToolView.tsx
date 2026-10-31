@@ -182,7 +182,7 @@ function fmtBytes(n?: number): string {
   return `${(n / 1024 / 1024).toFixed(2)} MB`;
 }
 
-export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: string; query?: string; values?: Record<string, unknown>; bridge: TuiBridge; onBack: () => void }) {
+export function ToolView({ toolId, query, values, fromLink = false, bridge, onBack }: { toolId: string; query?: string; values?: Record<string, unknown>; fromLink?: boolean; bridge: TuiBridge; onBack: () => void }) {
   const { cols, rows } = useTermSize();
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -331,7 +331,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
     setLoading(true);
     (async () => {
       try {
-        const m = await mountTool(toolId, bridge.host, query ?? '', values);
+        const m = await mountTool(toolId, bridge.host, query ?? '', values, { fromLink });
         if (!alive) return;
         setRuntime(m.runtime); setManifest(m.manifest);
         const mdl = m.runtime.getModel() as unknown as ModelItem[];
@@ -418,7 +418,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
     // `values` is in the deps because two desktop-saved sessions of the SAME tool arrive
     // with the same toolId and an empty query - only the values tell them apart. The route
     // hands over one object per open, so its identity changes exactly when the session does.
-  }, [toolId, query, values, bridge.host]);
+  }, [toolId, query, values, fromLink, bridge.host]);
 
   // Close the interactive canvas's jsdom when the whole view unmounts.
   useEffect(() => () => { icRef.current?.destroy(); }, []);
