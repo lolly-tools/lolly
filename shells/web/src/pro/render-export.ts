@@ -14,7 +14,7 @@ import { shareUrlState } from '../lib/share-privacy.ts';
  * (scope-css.ts + render-lifecycle.ts) instead of being hand-copied here, so
  * the batch/compose path can no longer drift from the live view (finding #4).
  */
-import { toCssPx, packQuery, isPackAvailable, PACK_PARAM, withTokenSelection } from '@lolly/engine';
+import { canvasSizeOf, toCssPx, packQuery, isPackAvailable, PACK_PARAM, withTokenSelection } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { csvToMarks } from '../lib/print-marks-csv.ts';
 import { type StudioExportHooks, withStudioExport } from '../lib/studio-export-guard.ts';
@@ -444,7 +444,12 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
   // stage's brand variables alike (documentHosts).
   const selection = rowTokenSelection(row);
   const hosts = documentHosts(withToolNet(thumbAssets ? withThumbAssets(host) : host, tool.manifest), selection);
-  const runtime = await createRuntime(tool, hosts.runtime, seeded, { composeStack, ...(selection ? { tokenSelection: selection } : {}) });
+  // The requested size is the canvas size the hooks lay out for (engine 1.293), the same
+  // CSS pixels the tool view hands a tool for that size; blank keeps the native size.
+  const runtime = await createRuntime(tool, hosts.runtime, seeded, {
+    composeStack, ...(selection ? { tokenSelection: selection } : {}),
+    canvasSize: bothGiven ? canvasSizeOf(width, height, unit || 'px') : null,
+  });
 
   // Export dimension qualified with the unit (px / mm / cm / in / pt) so the
   // engine converts per format; blank falls back to the native canvas size.

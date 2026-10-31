@@ -104,6 +104,11 @@ export function refreshCanvasPreview(ta: ActionsCtx): void {
   ta.preflight.refreshPreflight(); // width / height / unit / DPI all flow through here
   const { width: w, height: h } = ta.dims.previewPx();
   if (!((w ?? 0) > 0 && (h ?? 0) > 0)) return;
+  // The tool's canvas size (engine 1.293) is the export size in CSS px, not the scaled
+  // preview box below: a tool that declares render.followsCanvasSize lays itself out
+  // for that shape, so the preview shows the wall or page the export writes. Any
+  // other tool only has the size recorded, so nothing re-runs or repaints for it.
+  void runtime.setCanvasSize?.({ width: w!, height: h! })?.catch((e: unknown) => console.warn('Canvas size', e));
   // When the artboard FOLLOWS the export size (see artboardFollowsDims) the canvas IS the
   // artboard, not a scaled thumbnail: box coordinates are absolute pixels in the artboard's
   // own space, so the layout box must equal the true (CSS-px) export size and fitCanvas's
