@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Compile a frozen, resolved linear sequence without a player or a DOM. */
 import { kfChannelsUsed, kfEasePoints, parseKf, type KfChannel, type KfTrack } from './keyframes.ts';
+import { kfExportKeys } from './kf-bake.ts';
 import { isKfLookChannel } from './kf-look.ts';
 import { lookFeatureName } from './lottie-look.ts';
 import { admitLottieAnimation, lottieNumber, lottieObject, type LottieAnimation, type LottieObject, type LottieValue } from './lottie-model.ts';
@@ -64,15 +65,17 @@ export function retimeLottie(source: LottieAnimation, fps: number, prefix: strin
   return copy;
 }
 function channel(track: KfTrack, key: KfChannel, fps: number, startMs: number, base: number, multiplier = 1, replace = false): LottieObject {
-  const keys = track.filter(item => item.v[key] !== undefined);
+  // Springs are baked into frame keys and design-system eases resolved (plans/329); every
+  // other key is the authored one, at the same frame as before.
+  const keys = kfExportKeys(track, key, fps, startMs);
   if (!keys.length) return lottieStatic(base);
   const value = (n: number) => replace ? n * multiplier : base + n * multiplier;
   return { a: 1, k: keys.map((item, index) => {
     const next = keys[index + 1];
     const points = key === 'o' ? [0, 0, 1, 1] : kfEasePoints(item.ease) ?? [0, 0, 1, 1];
     return {
-      t: (startMs + item.t) * fps / 1000, s: [value(item.v[key]!)],
-      ...(next ? { e: [value(next.v[key]!)], ...(item.ease === 'eh' ? { h: 1 } : { o: { x: points[0]!, y: points[1]! }, i: { x: points[2]!, y: points[3]! } }) } : {}),
+      t: item.f, s: [value(item.v)],
+      ...(next ? { e: [value(next.v)], ...(item.ease === 'eh' ? { h: 1 } : { o: { x: points[0]!, y: points[1]! }, i: { x: points[2]!, y: points[3]! } }) } : {}),
     };
   }) };
 }

@@ -10,6 +10,12 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.291 spring eases and design-system motion tokens for keyframes.
+  'KF_EASE_REF_MAX', 'KF_SPRING_PRESETS', 'KfEaseKind', 'KfEaseTokenOptions', 'KfSpring', 'KfSpringPresetName',
+  'MotionCurveToken', 'MotionDurationToken', 'MotionTokens',
+  'kfBindEase', 'kfEaseKind', 'kfEaseResolved', 'kfEaseSpring', 'kfEaseSpringName', 'kfEaseTokenPath',
+  'kfEaseTokensSnapshot', 'kfSpring', 'kfSpringSettleMs', 'kfSpringToken',
+  'motionEaseMap', 'readHostMotionTokens', 'readMotionTokens', 'setKfEaseTokens',
   // Additive 1.290 appearance keyframes: fill and stroke colour, stroke width, corner radius and trim.
   'KF_FILL_CHANNELS', 'KF_LOOK_CHANNELS', 'KF_LOOK_VARS', 'KF_STROKE_CHANNELS',
   'KfLookVarOpts', 'KfOklab', 'KfOutlineShape', 'KfTrimSpan',

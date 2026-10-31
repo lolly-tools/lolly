@@ -594,6 +594,23 @@ test('keyframes: the emitted track is the ENGINE\'s canonical serialisation, byt
     // table entry reads as "hook emits less than the engine" only on a user's board.
     't0_w320_h180*t1000_eo_w640_h360_v0.5',
     't0_w99999_h-5*t5_v9',                             // size/volume clamps
+    // Springs and design-system eases (plans/329): the plain and windowed spring, their
+    // clamps and junk rules, and the bound ease with every fallback the engine keeps or drops.
+    't0_esp(600)(15)(1)_x0*t500_x100',
+    't0_esp(99999)(-3)(0.0001)_x0*t9_esp(1.23456)(7.891011)(2.5)_x1',
+    't0_esp(600)(15)(1)(500)(0)(200)_x0*t200_x10',
+    't0_esp(600)(15)(1)(500)(300)(200)_x0',            // a window ending before it starts is junk
+    't0_esp(600)(15)(1)(0.001)(0)(1)_x0',              // a window shorter than 1 ms is junk
+    't0_esp(1)(2)_x0', 't0_esp(1)(2)(3)(4)_x0',        // the wrong number of parameters
+    't0_et(motion.spring.bouncy)esp(400)(15)(1)_x0*t800_x200',
+    't0_et(motion.curve.standard)eb(0.2)(0)(0)(1)_x1',
+    't0_et(motion.curve.standard)eio_x1',              // the default fallback is dropped
+    't0_et(motion.curve.standard)eh_x1',               // hold is never a fallback
+    't0_et(m.x)esp(1)(1)(1)(10)(0)(5)_x1',             // nor is a window
+    't0_et(a)et(b)_x1', 't0_et(a)junk_x1',             // nor a reference or junk
+    't0_et(motion..x)_x1', 't0_et(.x)_x1', 't0_et()_x1', 't0_et(a b)_x1',
+    `t0_et(${'a'.repeat(64)})_x1`, `t0_et(${'a'.repeat(65)})_x1`,
+    `t0_${'et(a)'.repeat(4000)}_x1`,                   // a hostile chain never recurses
     Array.from({ length: 400 }, (_v, i) => `t${i}_x${i}`).join('*'),  // the 256 cap
     't0_x1*'.repeat(3000),                             // the char cap
     // ~42.6 KB: BETWEEN the hook's old hand-derived cap (40 960) and the engine's

@@ -3772,11 +3772,11 @@ function pemToDer(pem) {
   if (!b64) throw new Error("x509: no PEM body found");
   return base64ToBytes(b64);
 }
-function derToPem(der2, label4) {
+function derToPem(der2, label5) {
   const body = btoa(bytesToBin(der2)).replace(/(.{64})/g, "$1\n").trimEnd();
-  return `-----BEGIN ${label4}-----
+  return `-----BEGIN ${label5}-----
 ${body}
------END ${label4}-----
+-----END ${label5}-----
 `;
 }
 function randomSerial() {
@@ -4083,7 +4083,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.290.0";
+    ENGINE_VERSION = "1.291.0";
   }
 });
 
@@ -5257,11 +5257,11 @@ function rgbContains(name, l, c, h) {
   const m2 = name === "p3" ? SRGB_TO_P3 : SRGB_TO_REC2020;
   return inUnitCube(apply32(m2, lin[0], lin[1], lin[2]));
 }
-function resolveGamutSource(limit2) {
-  if (typeof limit2 !== "string") {
-    return typeof limit2?.contains === "function" ? limit2 : NO_GAMUT_SOURCE;
+function resolveGamutSource(limit3) {
+  if (typeof limit3 !== "string") {
+    return typeof limit3?.contains === "function" ? limit3 : NO_GAMUT_SOURCE;
   }
-  const built = Object.hasOwn(BUILTIN_GAMUT_SOURCES, limit2) ? BUILTIN_GAMUT_SOURCES[limit2] : void 0;
+  const built = Object.hasOwn(BUILTIN_GAMUT_SOURCES, limit3) ? BUILTIN_GAMUT_SOURCES[limit3] : void 0;
   return built ?? SRGB_SOURCE;
 }
 function fastRgbContains(src) {
@@ -5314,9 +5314,9 @@ var init_gamut_source = __esm({
     EPS = 1e-6;
     inUnitCube = (rgb3) => rgb3[0] >= -EPS && rgb3[0] <= 1 + EPS && rgb3[1] >= -EPS && rgb3[1] <= 1 + EPS && rgb3[2] >= -EPS && rgb3[2] <= 1 + EPS;
     gamutInputSane = (l, c, h) => l >= -EPS && l <= 1 + EPS && c >= -EPS && Number.isFinite(h);
-    rgbSource = (name, label4) => ({
+    rgbSource = (name, label5) => ({
       id: name,
-      label: label4,
+      label: label5,
       contains: (l, c, h) => gamutInputSane(l, c, h) && rgbContains(name, l, c, h),
       // Additive light has no ink. Answering 0 here would read as "no ink needed",
       // which is a different claim from "the question does not apply".
@@ -5349,27 +5349,27 @@ var init_gamut_source = __esm({
       1.0982735
     ];
     linearP3ToLinearSrgb = (r5, g2, b) => apply32(P3_TO_SRGB, r5, g2, b);
-    gamutSourceId = (limit2) => typeof limit2 === "string" ? limit2 : limit2.id;
+    gamutSourceId = (limit3) => typeof limit3 === "string" ? limit3 : limit3.id;
     GAMUT_PROBE_START = 0.5;
     GAMUT_PROBE_MAX = 4;
   }
 });
 
 // engine/src/gamut.ts
-function inGamut(l, c, h, limit2) {
-  return holds(resolveGamutSource(limit2), l, c, h);
+function inGamut(l, c, h, limit3) {
+  return holds(resolveGamutSource(limit3), l, c, h);
 }
 function oklchGamut(l, c, h) {
   for (const g2 of GAMUTS) if (inGamut(l, c, h, g2)) return g2;
   return "none";
 }
-function gamutWithin(gamut, limit2) {
+function gamutWithin(gamut, limit3) {
   if (gamut === "none") return false;
-  return GAMUTS.indexOf(gamut) <= GAMUTS.indexOf(limit2);
+  return GAMUTS.indexOf(gamut) <= GAMUTS.indexOf(limit3);
 }
-function maxChroma(l, h, limit2 = "srgb") {
+function maxChroma(l, h, limit3 = "srgb") {
   if (!(l > 0) || l >= 1 || !Number.isFinite(h)) return 0;
-  const src = resolveGamutSource(limit2);
+  const src = resolveGamutSource(limit3);
   let lo = 0;
   let hi = GAMUT_PROBE_START;
   let outside = !holds(src, l, hi, h);
@@ -5386,15 +5386,15 @@ function maxChroma(l, h, limit2 = "srgb") {
   }
   return lo;
 }
-function clipToGamut(o, limit2, _mode = "exact") {
-  if (inGamut(o.l, o.c, o.h, limit2)) return o;
-  return { ...o, c: Math.min(o.c, maxChroma(o.l, o.h, limit2)) };
+function clipToGamut(o, limit3, _mode = "exact") {
+  if (inGamut(o.l, o.c, o.h, limit3)) return o;
+  return { ...o, c: Math.min(o.c, maxChroma(o.l, o.h, limit3)) };
 }
-function ceilingGrid(limit2) {
-  const id3 = gamutSourceId(limit2);
+function ceilingGrid(limit3) {
+  const id3 = gamutSourceId(limit3);
   const cached2 = CEILINGS.get(id3);
   if (cached2) return cached2;
-  const src = resolveGamutSource(limit2);
+  const src = resolveGamutSource(limit3);
   const g2 = new Float64Array(GRID_L * GRID_H);
   for (let i = 0; i < GRID_L; i++) {
     const l = i / (GRID_L - 1);
@@ -5403,8 +5403,8 @@ function ceilingGrid(limit2) {
   CEILINGS.set(id3, g2);
   return g2;
 }
-function gamutCeilingPeak(limit2) {
-  const g2 = ceilingGrid(limit2);
+function gamutCeilingPeak(limit3) {
+  const g2 = ceilingGrid(limit3);
   let best = 0, bi = 0, bj = 0;
   for (let i = 0; i < GRID_L; i++) {
     for (let j = 0; j < GRID_H; j++) {
@@ -5492,9 +5492,9 @@ function encodeOklch(l, c, h, encode = "srgb") {
     linearToSrgb(Math.min(1, Math.max(0, lin[2])))
   ];
 }
-function sliceGamutEdge(plane, fixed3, limit2 = "srgb", steps = 96, cMax = SLICE_C_MAX) {
+function sliceGamutEdge(plane, fixed3, limit3 = "srgb", steps = 96, cMax = SLICE_C_MAX) {
   const n8 = Math.max(2, Math.floor(steps));
-  const src = resolveGamutSource(limit2);
+  const src = resolveGamutSource(limit3);
   const pts = [];
   if (plane === "lc") {
     for (let i = 0; i <= n8; i++) {
@@ -5510,9 +5510,9 @@ function sliceGamutEdge(plane, fixed3, limit2 = "srgb", steps = 96, cMax = SLICE
   }
   return pts;
 }
-function sliceGamutRegion(plane, fixed3, limit2 = "srgb", steps = 96, cMax = SLICE_C_MAX) {
+function sliceGamutRegion(plane, fixed3, limit3 = "srgb", steps = 96, cMax = SLICE_C_MAX) {
   const n8 = Math.max(2, Math.floor(steps));
-  const src = resolveGamutSource(limit2);
+  const src = resolveGamutSource(limit3);
   if (plane === "lc") {
     const edge = sliceGamutEdge("lc", fixed3, src, n8, cMax);
     return [[{ x: 0, y: 0 }, { x: 0, y: 1 }, ...edge.slice().reverse()]];
@@ -6442,9 +6442,9 @@ function formatGradientSpec(g2) {
     g2.hue && g2.hue !== "shorter" ? g2.hue : ""
   ].filter(Boolean).join(".");
   const head2 = KIND_SHORT[g2.kind] + (mods ? `.${mods}` : "");
-  const num19 = (n8) => String(Math.round(n8 * 100) / 100);
-  const stops = g2.stops.map((s) => `${wireColor(s.color)}-${num19(clampPos(s.pos))}`);
-  return [head2, num19(normAngle(g2.angle)), ...stops].join("_");
+  const num20 = (n8) => String(Math.round(n8 * 100) / 100);
+  const stops = g2.stops.map((s) => `${wireColor(s.color)}-${num20(clampPos(s.pos))}`);
+  return [head2, num20(normAngle(g2.angle)), ...stops].join("_");
 }
 function gradientSpecStops(g2) {
   const authored = [];
@@ -7749,16 +7749,16 @@ function apcaVerdict(text12, bg) {
 function solveLightnessForApca(hue, chroma, targetLc, bgHex, opts = {}) {
   const h = normHue4(hue);
   const cReq = Math.max(0, chroma);
-  const limit2 = opts.limit ?? "srgb";
+  const limit3 = opts.limit ?? "srgb";
   const wantMag = Math.abs(targetLc);
   const hexAt = (L) => {
     const cl = clamp(L, 0, 1);
-    const c = Math.min(cReq, maxChroma(cl, h, limit2));
+    const c = Math.min(cReq, maxChroma(cl, h, limit3));
     return oklchToHex({ l: cl, c, h });
   };
   const build2 = (L, reachable, sign) => {
     const cl = clamp(L, 0, 1);
-    const chr = Math.min(cReq, maxChroma(cl, h, limit2));
+    const chr = Math.min(cReq, maxChroma(cl, h, limit3));
     const hex3 = oklchToHex({ l: cl, c: chr, h });
     return {
       l: cl,
@@ -7993,9 +7993,9 @@ function makeColorApi() {
       const o = toOklch(color6);
       return o ? oklchGamut(o.l, o.c, o.h) : "none";
     },
-    maxChroma: (l, h, limit2 = "srgb") => maxChroma(l, h, limit2),
+    maxChroma: (l, h, limit3 = "srgb") => maxChroma(l, h, limit3),
     slice: (opts) => oklchSlice(opts),
-    gamutRegion: (plane, fixed3, limit2 = "srgb", steps = 96, cMax = 0.4) => sliceGamutRegion(plane, fixed3, limit2, steps, cMax),
+    gamutRegion: (plane, fixed3, limit3 = "srgb", steps = 96, cMax = 0.4) => sliceGamutRegion(plane, fixed3, limit3, steps, cMax),
     // The perceptual axes themselves. Until 1.69 a tool could ask for ramps and
     // harmonies but could not read a colour's own lightness or chroma. The one
     // conversion every colour tool needs, and the one it had to reimplement.
@@ -9007,8 +9007,8 @@ var init_preflight = __esm({
 function minorUnitExponent(currency, locale) {
   return exponentOf(currencyFormatter(currency, locale), currency);
 }
-function exponentOf(fmt4, currency) {
-  const exp = fmt4.resolvedOptions().maximumFractionDigits;
+function exponentOf(fmt5, currency) {
+  const exp = fmt5.resolvedOptions().maximumFractionDigits;
   if (typeof exp !== "number") throw new CurrencyError(currency);
   return exp;
 }
@@ -9624,10 +9624,10 @@ function readFaces(ext) {
   for (const [target2, raw] of Object.entries(faces)) {
     if (!target2 || !isRec(raw)) continue;
     const v = raw.value;
-    const label4 = raw.label;
+    const label5 = raw.label;
     const value2 = normaliseFaceValue(v);
     if (value2 === null) continue;
-    out.set(target2, { value: value2, ...typeof label4 === "string" && label4 ? { label: label4 } : {} });
+    out.set(target2, { value: value2, ...typeof label5 === "string" && label5 ? { label: label5 } : {} });
   }
   return out;
 }
@@ -9656,13 +9656,13 @@ function writeFace(ns2, target2, face) {
 function colorFaces(canonical3, targets, stored, derive) {
   const out = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const { target: target2, label: label4 } of targets) {
+  for (const { target: target2, label: label5 } of targets) {
     seen.add(target2);
     const override = stored.get(target2);
     const derived = derive(canonical3, target2);
     if (!override) {
       if (derived === null) continue;
-      out.push({ target: target2, value: derived, origin: "auto", ...label4 ? { label: label4 } : {} });
+      out.push({ target: target2, value: derived, origin: "auto", ...label5 ? { label: label5 } : {} });
       continue;
     }
     const drift = derived === null ? void 0 : faceDrift(override.value, derived);
@@ -9670,7 +9670,7 @@ function colorFaces(canonical3, targets, stored, derive) {
       target: target2,
       value: override.value,
       origin: "set",
-      ...label4 || override.label ? { label: label4 ?? override.label } : {},
+      ...label5 || override.label ? { label: label5 ?? override.label } : {},
       ...drift === void 0 ? {} : { drift }
     });
   }
@@ -9770,7 +9770,7 @@ function describeAxes(doc, groups) {
   const root2 = rootAxes(doc);
   const axes = [];
   for (const [group, entries] of groups) {
-    const label4 = groupLabel(group);
+    const label5 = groupLabel(group);
     const fallback = record(root2[group]) ? root2[group] : {};
     let kind = null;
     let rotation = null;
@@ -9808,7 +9808,7 @@ function describeAxes(doc, groups) {
     const options2 = [];
     for (const entry2 of entries) {
       const axis = entryAxis(entry2.raw);
-      const where = `The theme ${entry2.name} in ${label4}`;
+      const where = `The theme ${entry2.name} in ${label5}`;
       if (axis) {
         takeKind(axis.kind, where);
         takeRotation(axis.rotation, where);
@@ -9818,15 +9818,15 @@ function describeAxes(doc, groups) {
       if (window2) option.window = window2;
       options2.push(option);
     }
-    takeKind(fallback.kind, `The document's axis entry for ${label4}`);
-    takeRotation(fallback.rotation, `The document's axis entry for ${label4}`);
+    takeKind(fallback.kind, `The document's axis entry for ${label5}`);
+    takeRotation(fallback.rotation, `The document's axis entry for ${label5}`);
     const marked = options2.filter((o) => o.canonical);
-    if (marked.length > 1) issue2("selection", `${label4} marks ${marked.length} themes as canonical; ${marked[0].name} is effective.`);
+    if (marked.length > 1) issue2("selection", `${label5} marks ${marked.length} themes as canonical; ${marked[0].name} is effective.`);
     let canonical3 = marked[0]?.id;
     if (typeof fallback.canonical === "string") {
-      if (!options2.some((o) => o.id === fallback.canonical)) issue2("selection", `The document's axis entry for ${label4} gives the canonical theme as ${fallback.canonical}, which ${label4} does not declare.`);
+      if (!options2.some((o) => o.id === fallback.canonical)) issue2("selection", `The document's axis entry for ${label5} gives the canonical theme as ${fallback.canonical}, which ${label5} does not declare.`);
       else if (!canonical3) canonical3 = fallback.canonical;
-      else if (canonical3 !== fallback.canonical) issue2("selection", `${label4} marks ${marked[0].name} as canonical but the document's axis entry gives ${fallback.canonical}; ${marked[0].name} is effective.`);
+      else if (canonical3 !== fallback.canonical) issue2("selection", `${label5} marks ${marked[0].name} as canonical but the document's axis entry gives ${fallback.canonical}; ${marked[0].name} is effective.`);
     }
     canonical3 ??= options2[0].id;
     for (const o of options2) o.canonical = o.id === canonical3;
@@ -11945,7 +11945,7 @@ function designToolPolicy(d) {
     presentation: d.presentation,
     inputs: d.inputs,
     choices: d.choices,
-    variants: d.variants.map(({ id: id3, label: label4, width, height }) => ({ id: id3, label: label4, width, height })),
+    variants: d.variants.map(({ id: id3, label: label5, width, height }) => ({ id: id3, label: label5, width, height })),
     defaultVariant: d.defaultVariant,
     formats: d.formats,
     ...d.sourceTool ? { sourceTool: d.sourceTool } : {}
@@ -37463,11 +37463,11 @@ function deliveryChannels(context) {
   }
   return channels;
 }
-function limitMatches(limit2, context, use, classification) {
-  if (limit2.commercial && context.commercial !== true) return false;
-  if (limit2.audiences && !limit2.audiences.includes(context.audience)) return false;
-  if (limit2.classifications && !limit2.classifications.includes(classification)) return false;
-  if (limit2.roles && !limit2.roles.includes(use.role)) return false;
+function limitMatches(limit3, context, use, classification) {
+  if (limit3.commercial && context.commercial !== true) return false;
+  if (limit3.audiences && !limit3.audiences.includes(context.audience)) return false;
+  if (limit3.classifications && !limit3.classifications.includes(classification)) return false;
+  if (limit3.roles && !limit3.roles.includes(use.role)) return false;
   return true;
 }
 function decisionFor(decisions, work, kind, situation) {
@@ -37577,12 +37577,12 @@ function evaluateCreativeUses(input) {
     let obligation = "none";
     if (profile2?.reviewed) {
       obligation = roleObligation(profile2, use.role);
-      for (const limit2 of profile2.limits) {
-        if (!limitMatches(limit2, input.context, use, classification)) continue;
+      for (const limit3 of profile2.limits) {
+        if (!limitMatches(limit3, input.context, use, classification)) continue;
         add3({
           code: "licence.use-not-covered",
           work: work.id,
-          summary: limit2.summary,
+          summary: limit3.summary,
           remedies: [
             { kind: "replace-work", label: "Use a different work" },
             { kind: "separate-permission", label: "Record separate permission" }
@@ -38451,9 +38451,9 @@ var init_template = __esm({
           const safe = mdUrl(url, MD_IMAGE_SCHEMES);
           if (!safe) return alt || whole;
           return `<img class="md-image" src="${park(safe)}" alt="${alt.replace(/"/g, "&quot;")}">`;
-        }).replace(MD_LINK, (_, label4, url) => {
+        }).replace(MD_LINK, (_, label5, url) => {
           const safe = mdUrl(url, MD_LINK_SCHEMES);
-          return safe ? `<a href="${park(safe)}">${label4}</a>` : label4;
+          return safe ? `<a href="${park(safe)}">${label5}</a>` : label5;
         }).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/~~(.+?)~~/g, "<del>$1</del>").replace(/\*([^*\n]+?)\*/g, "<em>$1</em>").replace(/\u0000(\d+)\u0000/g, (_, i) => urls[Number(i)] ?? "");
       };
       const renderRun = (lines) => {
@@ -38724,8 +38724,8 @@ function withVersionIndex(doc, index2) {
 function stripVersionIndex(doc) {
   return withVersionIndex(doc, { versions: [], active: null });
 }
-function slugifyVersion(label4) {
-  const folded = label4.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function slugifyVersion(label5) {
+  const folded = label5.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const slug4 = folded.replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, SLUG_MAX).replace(/-+$/, "");
   return slug4 && isVersionSlug(slug4) ? slug4 : null;
 }
@@ -38879,8 +38879,8 @@ var init_design_version = __esm({
 function isDesignSystemId(v) {
   return typeof v === "string" && v.length <= DESIGN_SYSTEM_ID_MAX && DESIGN_SYSTEM_ID_RE.test(v);
 }
-function slugifyDesignSystemId(label4) {
-  const folded = label4.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function slugifyDesignSystemId(label5) {
+  const folded = label5.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const id3 = folded.replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, DESIGN_SYSTEM_ID_MAX).replace(/-+$/, "");
   return isDesignSystemId(id3) ? id3 : "design-system";
 }
@@ -40533,17 +40533,17 @@ function schemaValidator() {
   if (!validator) validator = new Ajv4({ allErrors: false, strict: true, ownProperties: true }).compile(text_document_v1_schema_default);
   return validator;
 }
-function unique(items2, id3, label4) {
+function unique(items2, id3, label5) {
   const map = /* @__PURE__ */ new Map();
   for (const item2 of items2) {
     const key2 = id3(item2);
-    if (map.has(key2)) error("duplicate-id", `Duplicate ${label4} id: ${key2}`);
+    if (map.has(key2)) error("duplicate-id", `Duplicate ${label5} id: ${key2}`);
     map.set(key2, item2);
   }
   return map;
 }
-function reference(map, id3, label4) {
-  if (id3 !== void 0 && !map.has(id3)) error("missing-reference", `Missing ${label4}: ${id3}`);
+function reference(map, id3, label5) {
+  if (id3 !== void 0 && !map.has(id3)) error("missing-reference", `Missing ${label5}: ${id3}`);
 }
 function checkCharacter(value2, fonts) {
   if (value2?.color !== void 0 && !parseColor(value2.color)) error("text-color", "Text colour must be an explicit supported colour.");
@@ -42053,9 +42053,9 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
     rx2 = rx * rx;
     ry2 = ry * ry;
   }
-  const num19 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
+  const num20 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
   const den = rx2 * y1p2 + ry2 * x1p2;
-  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num19 / den);
+  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num20 / den);
   const cxp = coef * rx * y1p / ry;
   const cyp = -coef * ry * x1p / rx;
   const cx2 = cosP * cxp - sinP * cyp + (x1 + x2) / 2;
@@ -42886,13 +42886,13 @@ function createEmojiToolText(api, text12, selected) {
       let outputSize = 0;
       let x = 0, top = -size, bottom = size * 0.3;
       const parts = [];
-      const num19 = (v) => String(Math.round(v * 1e6) / 1e6);
+      const num20 = (v) => String(Math.round(v * 1e6) / 1e6);
       for (const segment2 of prepared3.segments) {
         if (segment2.kind === "text") {
           if (!font || !text12) throw new Error("The selected face is unavailable for artwork text.");
           const run3 = await text12.toPath({ text: segment2.text, fontUrl: font.url, fontSize: size, variations: font.variations, letterSpacing: spacing, preserveWhitespaceAdvance: true });
           if (run3.notdef) throw new Error("The selected face does not cover this artwork text.");
-          parts.push(`<path transform="translate(${num19(x)} 0)" fill="${fill2}" d="${escapeXml(run3.d)}"/>`);
+          parts.push(`<path transform="translate(${num20(x)} 0)" fill="${fill2}" d="${escapeXml(run3.d)}"/>`);
           x += run3.advanceWidth;
           if (run3.bbox) {
             top = Math.min(top, run3.bbox.y1);
@@ -42900,12 +42900,12 @@ function createEmojiToolText(api, text12, selected) {
           }
         } else if (segment2.kind === "emoji") {
           const m2 = segment2.metrics, y = (m2.descentEm - m2.heightEm) * size;
-          parts.push(segment2.markup.replace(/<svg\b[^>]*>/, (tag3) => tag3.replace(/ (?:width|height|x|y)="[^"]*"/g, "").replace("<svg", `<svg x="${num19(x)}" y="${num19(y)}" width="${num19(m2.widthEm * size)}" height="${num19(m2.heightEm * size)}"`)));
+          parts.push(segment2.markup.replace(/<svg\b[^>]*>/, (tag3) => tag3.replace(/ (?:width|height|x|y)="[^"]*"/g, "").replace("<svg", `<svg x="${num20(x)}" y="${num20(y)}" width="${num20(m2.widthEm * size)}" height="${num20(m2.heightEm * size)}"`)));
           x += m2.advanceEm * size + spacing;
           top = Math.min(top, y);
           bottom = Math.max(bottom, m2.descentEm * size);
         } else {
-          parts.push(`<rect x="${num19(x + size * 0.1)}" y="${num19(-size * 0.75)}" width="${num19(size * 0.7)}" height="${num19(size * 0.8)}" fill="none" stroke="${fill2}" stroke-width="${num19(size * 0.05)}"/>`);
+          parts.push(`<rect x="${num20(x + size * 0.1)}" y="${num20(-size * 0.75)}" width="${num20(size * 0.7)}" height="${num20(size * 0.8)}" fill="none" stroke="${fill2}" stroke-width="${num20(size * 0.05)}"/>`);
           x += size;
         }
         outputSize += parts.at(-1)?.length ?? 0;
@@ -42915,7 +42915,7 @@ function createEmojiToolText(api, text12, selected) {
       sources.set(opts.text, census);
       if (sources.size > 64) sources.delete(sources.keys().next().value);
       const width = Math.max(1, Math.ceil(x + 2)), height = Math.max(1, Math.ceil(bottom - top + 2));
-      return { width, height, baseline: 1 - top, advanceWidth: x, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="-1 ${num19(top - 1)} ${width} ${height}" color="${fill2}">${parts.join("")}</svg>` };
+      return { width, height, baseline: 1 - top, advanceWidth: x, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="-1 ${num20(top - 1)} ${width} ${height}" color="${fill2}">${parts.join("")}</svg>` };
     }
   };
 }
@@ -43204,7 +43204,7 @@ function textLayoutKey(request2) {
 function createTextLayoutCache() {
   const entries = /* @__PURE__ */ new Map();
   let bytes2 = 0;
-  const limit2 = 32 * 1024 * 1024;
+  const limit3 = 32 * 1024 * 1024;
   return {
     remember(key2, dependency, layout2) {
       const id3 = JSON.stringify([key2, dependency]), receipt = JSON.stringify({ key: key2, layout: layout2 });
@@ -43214,8 +43214,8 @@ function createTextLayoutCache() {
         bytes2 -= old.bytes;
         entries.delete(id3);
       }
-      if (size > limit2) return;
-      while (entries.size && (entries.size >= 8 || bytes2 + size > limit2)) {
+      if (size > limit3) return;
+      while (entries.size && (entries.size >= 8 || bytes2 + size > limit3)) {
         const first = entries.keys().next().value;
         bytes2 -= entries.get(first).bytes;
         entries.delete(first);
@@ -43591,8 +43591,8 @@ function spanMarkup(segment2, at) {
   if (segment2.kind === "text") return escapeChars(segment2.text);
   const common = `role="img" data-emoji="${escapeChars(segment2.text)}" data-emoji-at="${at}"`;
   if (segment2.kind === "unresolved") {
-    const label4 = `${segment2.label ?? segment2.text}${EMOJI_UNSET_LABEL}`;
-    return `<span class="${EMOJI_SPAN_CLASS} ${EMOJI_UNSET_CLASS}" ${common} aria-label="${escapeChars(label4)}" data-emoji-why="${escapeXml(segment2.reason)}" style="${PLACEHOLDER_STYLE}">${EMOJI_PLACEHOLDER_SVG}${hiddenText(segment2.text)}</span>`;
+    const label5 = `${segment2.label ?? segment2.text}${EMOJI_UNSET_LABEL}`;
+    return `<span class="${EMOJI_SPAN_CLASS} ${EMOJI_UNSET_CLASS}" ${common} aria-label="${escapeChars(label5)}" data-emoji-why="${escapeXml(segment2.reason)}" style="${PLACEHOLDER_STYLE}">${EMOJI_PLACEHOLDER_SVG}${hiddenText(segment2.text)}</span>`;
   }
   return `<span class="${EMOJI_SPAN_CLASS}" ${common} aria-label="${escapeChars(segment2.label)}" data-emoji-key="${escapeXml(segment2.key)}" data-emoji-sum="${shortSum(segment2.source.canonicalChecksum)}" style="${escapeXml(emojiInlineStyle(segment2.metrics))}">${artworkMarkup(segment2.markup)}${hiddenText(segment2.text)}</span>`;
 }
@@ -44616,9 +44616,9 @@ var init_ogg = __esm({
 
 // engine/src/jpeg-segments.ts
 function readAppId(bytes2, from, to) {
-  const limit2 = Math.min(to, from + JPEG_MAX_APP_ID, bytes2.length);
+  const limit3 = Math.min(to, from + JPEG_MAX_APP_ID, bytes2.length);
   let s = "";
-  for (let i = from; i < limit2; i++) {
+  for (let i = from; i < limit3; i++) {
     const b = bytes2[i];
     if (b < 32 || b > 126) break;
     s += String.fromCharCode(b);
@@ -46123,16 +46123,16 @@ function parsePdf(bin) {
   return { startxref, entries, root: root2, maxNum, infoRaw: infoM ? infoM[0] : null, idRaw: idM ? idM[0] : null };
 }
 function catalogSource(bin, info) {
-  const { num: num19, gen } = info.root;
-  const headRe = new RegExp(`^${num19}\\s+${gen}\\s+obj\\b`);
+  const { num: num20, gen } = info.root;
+  const headRe = new RegExp(`^${num20}\\s+${gen}\\s+obj\\b`);
   let at = -1;
-  const entry2 = info.entries.get(num19);
+  const entry2 = info.entries.get(num20);
   if (entry2 && entry2.type === "n") {
     const i2 = skipWs(bin, entry2.offset);
     if (headRe.test(bin.slice(i2, i2 + 32))) at = i2;
   }
   if (at < 0) {
-    const re = new RegExp(`(?:^|[^0-9])(${num19}\\s+${gen}\\s+obj)\\b`, "g");
+    const re = new RegExp(`(?:^|[^0-9])(${num20}\\s+${gen}\\s+obj)\\b`, "g");
     for (let m2; m2 = re.exec(bin); ) at = m2.index + m2[0].length - m2[1].length;
   }
   if (at < 0) throw new Error("C2PA embed: cannot locate the PDF Catalog object");
@@ -46373,14 +46373,14 @@ function placeGif(gif, manifest) {
     const b = gif[i];
     if (b === 44 || b === 59) break;
     if (b !== 33) throw new Error("C2PA embed: malformed GIF block");
-    const label4 = gif[i + 1];
+    const label5 = gif[i + 1];
     let j = i + 2;
     if (j >= gif.length) throw new Error("C2PA embed: truncated GIF block");
-    if (label4 === 255 || label4 === 1 || label4 === 249) j += 1 + gif[j];
+    if (label5 === 255 || label5 === 1 || label5 === 249) j += 1 + gif[j];
     while (j < gif.length && gif[j] !== 0) j += 1 + gif[j];
     if (j >= gif.length) throw new Error("C2PA embed: truncated GIF sub-blocks");
     j += 1;
-    if (label4 === 255 && String.fromCharCode(...gif.subarray(i + 3, i + 11)) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0) {
+    if (label5 === 255 && String.fromCharCode(...gif.subarray(i + 3, i + 11)) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0) {
       drop = { start: i, end: j };
     }
     i = j;
@@ -46505,15 +46505,15 @@ function placeTiff(tiff, manifest) {
     ]
   };
 }
-function placeRiff(riff, manifest, form, label4) {
+function placeRiff(riff, manifest, form, label5) {
   const fourcc4 = (o) => String.fromCharCode(riff[o], riff[o + 1], riff[o + 2], riff[o + 3]);
-  if (riff.length < 12 || fourcc4(0) !== "RIFF" || fourcc4(8) !== form) throw new Error(`C2PA embed: not a ${label4}`);
+  if (riff.length < 12 || fourcc4(0) !== "RIFF" || fourcc4(8) !== form) throw new Error(`C2PA embed: not a ${label5}`);
   const dv = new DataView(riff.buffer, riff.byteOffset);
   let drop = null;
   for (let i = 12; i + 8 <= riff.length; ) {
     const size = dv.getUint32(i + 4, true);
     const end = i + 8 + size + (size & 1);
-    if (end > riff.length + 1) throw new Error(`C2PA embed: malformed ${label4} chunk`);
+    if (end > riff.length + 1) throw new Error(`C2PA embed: malformed ${label5} chunk`);
     if (fourcc4(i) === "C2PA") drop = { start: i, end: Math.min(end, riff.length) };
     i = end;
   }
@@ -46972,17 +46972,17 @@ function armorIndices(bin, needle, cap) {
   for (let at = bin.indexOf(needle); at >= 0 && out.length < cap; at = bin.indexOf(needle, at + needle.length)) out.push(at);
   return out;
 }
-function stripArmorBlock(bin, label4) {
+function stripArmorBlock(bin, label5) {
   const begins = armorIndices(bin, ARMOR_BEGIN, 2);
   const ends = armorIndices(bin, ARMOR_END, 2);
   if (!begins.length && !ends.length) return bin;
   const begin = begins[0];
   const end = ends[0];
   if (begins.length !== 1 || ends.length !== 1 || end < begin + ARMOR_BEGIN.length) {
-    throw new Error(`C2PA embed: this ${label4} already carries more than one - or a malformed - C2PA manifest block (section A.9.3 allows at most one)`);
+    throw new Error(`C2PA embed: this ${label5} already carries more than one - or a malformed - C2PA manifest block (section A.9.3 allows at most one)`);
   }
   const refuse2 = (what) => {
-    throw new Error(`C2PA embed: this ${label4} quotes the section A.9 armour delimiters ${what} - refusing to delete it, and a second block would make the file unreadable`);
+    throw new Error(`C2PA embed: this ${label5} quotes the section A.9 armour delimiters ${what} - refusing to delete it, and a second block would make the file unreadable`);
   };
   const lineStart = bin.lastIndexOf("\n", begin) + 1;
   const nl = bin.indexOf("\n", end);
@@ -47023,10 +47023,10 @@ function attachC2paStore(bytes2, format, store) {
 }
 async function embedC2pa(bytes2, format, opts = {}) {
   if (!(bytes2 instanceof Uint8Array)) throw new Error("C2PA embed: bytes must be a Uint8Array");
-  const fmt4 = String(format || "").toLowerCase();
-  if (fmt4 === "pdf" || fmt4 === "pdf-cmyk") return embedC2paInPdf(bytes2, opts);
-  if (fmt4 === "svgz") return gzip(await embedC2pa(gunzip(bytes2, { maxOutputBytes: SVGZ_C2PA_MAX_SVG_BYTES }), "svg", opts));
-  const container = CONTAINERS[fmt4];
+  const fmt5 = String(format || "").toLowerCase();
+  if (fmt5 === "pdf" || fmt5 === "pdf-cmyk") return embedC2paInPdf(bytes2, opts);
+  if (fmt5 === "svgz") return gzip(await embedC2pa(gunzip(bytes2, { maxOutputBytes: SVGZ_C2PA_MAX_SVG_BYTES }), "svg", opts));
+  const container = CONTAINERS[fmt5];
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === "bmff";
   const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, specVersion, dates = {}, signer } = opts;
@@ -47448,8 +47448,8 @@ function isoBox(type, ...payloads) {
   out.set(body, 8);
   return out;
 }
-function jumbfSuperbox(uuid, label4, ...children2) {
-  const jumd = isoBox("jumd", uuid, Uint8Array.of(3), te5.encode(label4), Uint8Array.of(0));
+function jumbfSuperbox(uuid, label5, ...children2) {
+  const jumd = isoBox("jumd", uuid, Uint8Array.of(3), te5.encode(label5), Uint8Array.of(0));
   return isoBox("jumb", jumd, ...children2);
 }
 async function coseSign1Detached(signer, payload) {
@@ -47600,7 +47600,7 @@ async function buildC2paManifest({
   const rightsSources = [];
   for (let i = 0; i < ingList.length; i++) {
     const ing = ingList[i];
-    const label4 = ingList.length > 1 ? `c2pa.ingredient.v3__${i + 1}` : "c2pa.ingredient.v3";
+    const label5 = ingList.length > 1 ? `c2pa.ingredient.v3__${i + 1}` : "c2pa.ingredient.v3";
     let ingAssertion;
     if (isSourceIngredient(ing)) {
       ingAssertion = sourceIngredientAssertion(ing);
@@ -47622,12 +47622,12 @@ async function buildC2paManifest({
         }
       };
     }
-    const box4 = jumbfSuperbox(UUID_CBOR_CONTENT, label4, isoBox("cbor", encodeCbor(ingAssertion)));
+    const box4 = jumbfSuperbox(UUID_CBOR_CONTENT, label5, isoBox("cbor", encodeCbor(ingAssertion)));
     const hash = await sha256(box4.subarray(8));
     ingredientBoxes.push(box4);
-    ingredientRefs.push({ url: `self#jumbf=c2pa.assertions/${label4}`, hash });
-    ingredientParamRefs.push({ url: `self#jumbf=c2pa.assertions/${label4}`, alg: "sha256", hash });
-    if (isSourceIngredient(ing) && ing.rights) rightsSources.push(rightsSourceEntry(ing.rights, { url: `self#jumbf=c2pa.assertions/${label4}`, alg: "sha256", hash }));
+    ingredientRefs.push({ url: `self#jumbf=c2pa.assertions/${label5}`, hash });
+    ingredientParamRefs.push({ url: `self#jumbf=c2pa.assertions/${label5}`, alg: "sha256", hash });
+    if (isSourceIngredient(ing) && ing.rights) rightsSources.push(rightsSourceEntry(ing.rights, { url: `self#jumbf=c2pa.assertions/${label5}`, alg: "sha256", hash }));
   }
   const ingredientSteps = ingList.map((ing, i) => {
     const placed2 = relationships[i] === "componentOf";
@@ -47702,9 +47702,9 @@ async function buildC2paManifest({
   const aiBoxes = [];
   const disclosures = aiDisclosure == null ? [] : Array.isArray(aiDisclosure) ? aiDisclosure : [aiDisclosure];
   disclosures.forEach((d, i) => {
-    const label4 = i === 0 ? AI_DISCLOSURE_ASSERTION : `${AI_DISCLOSURE_ASSERTION}__${i}`;
-    const box4 = jumbfSuperbox(UUID_CBOR_CONTENT, label4, isoBox("cbor", encodeCbor(aiDisclosureMap(d))));
-    aiBoxes.push({ label: label4, box: box4 });
+    const label5 = i === 0 ? AI_DISCLOSURE_ASSERTION : `${AI_DISCLOSURE_ASSERTION}__${i}`;
+    const box4 = jumbfSuperbox(UUID_CBOR_CONTENT, label5, isoBox("cbor", encodeCbor(aiDisclosureMap(d))));
+    aiBoxes.push({ label: label5, box: box4 });
     storeBoxes.push(box4);
   });
   for (const box4 of ingredientBoxes) storeBoxes.push(box4);
@@ -50294,11 +50294,11 @@ function extractC2paFromGif(gif) {
     const b = gif[i];
     if (b === 44 || b === 59) break;
     if (b !== 33) throw new Error("malformed GIF block");
-    const label4 = gif[i + 1];
+    const label5 = gif[i + 1];
     let j = i + 2;
     if (j >= gif.length) throw new Error("truncated GIF block");
-    if (label4 === 255 || label4 === 1 || label4 === 249) j += 1 + gif[j];
-    const isC2pa = label4 === 255 && ascii(gif, i + 3, 8) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0;
+    if (label5 === 255 || label5 === 1 || label5 === 249) j += 1 + gif[j];
+    const isC2pa = label5 === 255 && ascii(gif, i + 3, 8) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0;
     const parts = [];
     while (j < gif.length && gif[j] !== 0) {
       const n8 = gif[j];
@@ -50838,18 +50838,18 @@ function readTextVs(bytes2) {
 }
 function extractC2paDetailed(bytes2, format) {
   if (!(bytes2 instanceof Uint8Array)) return null;
-  const fmt4 = format ?? sniffFormat(bytes2);
-  if (!fmt4) return null;
-  if (!Object.hasOwn(TEXT_READERS, fmt4) && !Object.hasOwn(EXTRACTORS, fmt4)) return null;
-  if (Object.hasOwn(TEXT_READERS, fmt4)) {
-    const { fatal, ...rest2 } = TEXT_READERS[fmt4](bytes2);
-    return { ...rest2, ...fatal && !rest2.detail ? { detail: fatal } : {}, format: fmt4 };
+  const fmt5 = format ?? sniffFormat(bytes2);
+  if (!fmt5) return null;
+  if (!Object.hasOwn(TEXT_READERS, fmt5) && !Object.hasOwn(EXTRACTORS, fmt5)) return null;
+  if (Object.hasOwn(TEXT_READERS, fmt5)) {
+    const { fatal, ...rest2 } = TEXT_READERS[fmt5](bytes2);
+    return { ...rest2, ...fatal && !rest2.detail ? { detail: fatal } : {}, format: fmt5 };
   }
   try {
-    const ex = EXTRACTORS[fmt4](bytes2) ?? null;
-    return { store: ex ? ex.manifest : null, format: fmt4 };
+    const ex = EXTRACTORS[fmt5](bytes2) ?? null;
+    return { store: ex ? ex.manifest : null, format: fmt5 };
   } catch (err) {
-    return { store: null, format: fmt4, status: C2PA_TEXT_STATUS.credentialUnreadable, detail: err.message };
+    return { store: null, format: fmt5, status: C2PA_TEXT_STATUS.credentialUnreadable, detail: err.message };
   }
 }
 function collectActionChain(store) {
@@ -51016,7 +51016,7 @@ function collectIngredientRecords(store) {
         } else if (RIGHTS_LABEL.test(ab.label)) {
           try {
             const map = decodeCbor(contentOf(store, ab));
-            if (map instanceof Map) for (const [label4, record46] of rightsEntries(map)) rights.set(label4, record46);
+            if (map instanceof Map) for (const [label5, record46] of rightsEntries(map)) rights.set(label5, record46);
           } catch {
           }
         }
@@ -51030,9 +51030,9 @@ function collectIngredientRecords(store) {
   }
   return out;
 }
-function ingredientRecord(manifest, label4, map) {
+function ingredientRecord(manifest, label5, map) {
   const active = map.get("activeManifest") ?? map.get("c2pa_manifest");
-  const record46 = { manifest, label: label4, credentialed: active instanceof Map };
+  const record46 = { manifest, label: label5, credentialed: active instanceof Map };
   const activeUrl = active instanceof Map ? asText(active.get("url")) : void 0;
   if (activeUrl) record46.activeManifest = activeUrl;
   const relationship = asText(map.get("relationship"));
@@ -51666,8 +51666,8 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
       fail5(C2PA_CHECK.assertionHashedUriMismatch, "malformed assertion reference in the claim");
       continue;
     }
-    const label4 = url.startsWith(HASHED_URI_PREFIX) ? url.slice(HASHED_URI_PREFIX.length) : null;
-    const assertion = label4 && parts.assertions.find((a) => a.label === label4);
+    const label5 = url.startsWith(HASHED_URI_PREFIX) ? url.slice(HASHED_URI_PREFIX.length) : null;
+    const assertion = label5 && parts.assertions.find((a) => a.label === label5);
     if (!assertion) {
       fail5(C2PA_CHECK.assertionMissing, `claim references ${url} but the store has no such assertion`);
       continue;
@@ -54361,13 +54361,13 @@ async function repickSurfaceRefs(model2, inputId, host) {
 }
 async function resolveAssetRefs(model2, host, dropped = [], composeStack = [], toolId = "") {
   if (!model2.some(inputNeedsAssetResolve)) return model2;
-  const resolveOne = async (value2, id3, inputId, label4) => {
+  const resolveOne = async (value2, id3, inputId, label5) => {
     let pin;
     try {
       if (isBakedRef(value2)) {
         const ref2 = value2;
         if (typeof ref2.url === "string" && ref2.url.startsWith("data:")) return ref2;
-        dropped.push({ inputId, label: label4, id: id3, reason: "baked-bytes-lost" });
+        dropped.push({ inputId, label: label5, id: id3, reason: "baked-bytes-lost" });
         return null;
       }
       const decoded = decodeAssetVersion(id3);
@@ -54385,20 +54385,20 @@ async function resolveAssetRefs(model2, host, dropped = [], composeStack = [], t
           id3
         ) : null;
         if (ref2) return ref2;
-        dropped.push({ inputId, label: label4, id: id3, reason: "render-failed" });
+        dropped.push({ inputId, label: label5, id: id3, reason: "render-failed" });
         return null;
       }
       const providerRef = parseProviderRef(id3);
       if (providerRef && providerRef.provider !== "http" && providerRef.provider !== "https") {
         const resolved2 = await host.assets.resolveProvider?.(providerRef) ?? null;
         if (resolved2) return resolved2;
-        dropped.push({ inputId, label: label4, id: id3, reason: "not-found" });
+        dropped.push({ inputId, label: label5, id: id3, reason: "not-found" });
         return null;
       }
       return await host.assets.get(id3);
     } catch (e) {
       host.log("warn", `Failed to resolve asset ${id3}`, { error: String(e) });
-      dropped.push({ inputId, label: label4, id: id3, reason: "not-found" });
+      dropped.push({ inputId, label: label5, id: id3, reason: "not-found" });
       if (pin) return unavailablePinnedAsset(id3, pin, value2);
       return null;
     }
@@ -54651,10 +54651,10 @@ function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palet
     let x = trimL;
     if (palette.length && barStyle === "rgb-swatches") {
       let brandCells = 0;
-      for (const { rgb: rgb3, cmyk, label: label4, spotName } of palette) {
+      for (const { rgb: rgb3, cmyk, label: label5, spotName } of palette) {
         if (brandCells >= bmax) break;
         if (x + bc > maxX) break;
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: rgb3, ink: "rgb", label: label4, spotName, mark: "colorbar", r: cellR });
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: rgb3, ink: "rgb", label: label5, spotName, mark: "colorbar", r: cellR });
         x += bc + bg;
         brandCells += 1;
       }
@@ -54666,11 +54666,11 @@ function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palet
       }
       if (bars.length) x += bgap;
       let brandCells = 0;
-      for (const { rgb: rgb3, cmyk, label: label4, spotName } of palette) {
+      for (const { rgb: rgb3, cmyk, label: label5, spotName } of palette) {
         if (brandCells + 2 > bmax) break;
         if (x + 2 * bc > maxX) break;
-        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: rgb3, ink: "rgb", label: label4, spotName, mark: "colorbar", r: cellR });
-        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb: rgb3, ink: "cmyk", label: label4, spotName, mark: "colorbar", r: cellR });
+        bars.push({ x, y, w: bc, h: bc, cmyk, rgb: rgb3, ink: "rgb", label: label5, spotName, mark: "colorbar", r: cellR });
+        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb: rgb3, ink: "cmyk", label: label5, spotName, mark: "colorbar", r: cellR });
         x += 2 * bc + bg;
         brandCells += 2;
       }
@@ -54882,9 +54882,9 @@ function pqEotfNorm(code) {
   const m1 = 2610 / 16384, m2 = 2523 / 4096 * 128;
   const c1 = 3424 / 4096, c2 = 2413 / 4096 * 32, c3 = 2392 / 4096 * 32;
   const p = code ** (1 / m2);
-  const num19 = Math.max(p - c1, 0);
+  const num20 = Math.max(p - c1, 0);
   const den = c2 - c3 * p;
-  return (num19 / den) ** (1 / m1);
+  return (num20 / den) ** (1 / m1);
 }
 function pqBt2020IccProfile() {
   if (_pqCache) return _pqCache;
@@ -55021,18 +55021,18 @@ function preflight(job) {
     checks
   };
 }
-function safeReportedJob(job, fmt4, rowIndex2) {
+function safeReportedJob(job, fmt5, rowIndex2) {
   try {
-    return reportedJob(job, fmt4, rowIndex2);
+    return reportedJob(job, fmt5, rowIndex2);
   } catch {
     return {
       toolId: "",
-      format: fmt4,
+      format: fmt5,
       ...rowIndex2 === void 0 ? {} : { rowIndex: rowIndex2 },
       stageMounted: false,
       paletteResolved: false,
       settings: {
-        format: fmt4,
+        format: fmt5,
         size: { width: { value: 0, unit: "px" }, height: { value: 0, unit: "px" }, dpi: 0, declaredBy: "manifest", unitDeclared: false },
         bleed: { known: false, why: "not-set" },
         marks: { known: false, why: "not-set" },
@@ -55041,7 +55041,7 @@ function safeReportedJob(job, fmt4, rowIndex2) {
     };
   }
 }
-function reportedJob(job, fmt4, rowIndex2) {
+function reportedJob(job, fmt5, rowIndex2) {
   const dim = (d) => isDim(d) ? { value: d.value, unit: d.unit } : { value: 0, unit: "px" };
   const s = job?.settings;
   const size = {
@@ -55054,10 +55054,10 @@ function reportedJob(job, fmt4, rowIndex2) {
   const bleed = s?.bleed?.known === true ? { known: true, value: isDim(s.bleed.value) ? dim(s.bleed.value) : null } : { known: false, why: s?.bleed?.known === false ? s.bleed.why : "not-set" };
   const marks = s?.marks?.known === true ? { known: true, value: s.marks.value ?? null } : { known: false, why: s?.marks?.known === false ? s.marks.why : "not-set" };
   const pressProfile = s?.pressProfile?.known === true ? { known: true, value: typeof s.pressProfile.value === "string" ? s.pressProfile.value : null } : { known: false, why: s?.pressProfile?.known === false ? s.pressProfile.why : "not-set" };
-  const settings = { format: fmt4, size, bleed, marks, pressProfile };
+  const settings = { format: fmt5, size, bleed, marks, pressProfile };
   return {
     toolId: typeof job?.manifest?.id === "string" && job.manifest.id || "",
-    format: fmt4,
+    format: fmt5,
     ...rowIndex2 === void 0 ? {} : { rowIndex: rowIndex2 },
     ...typeof job?.source === "string" ? { source: job.source } : {},
     ...typeof job?.modelPhase === "string" ? { modelPhase: job.modelPhase } : {},
@@ -55736,21 +55736,21 @@ var init_preflight2 = __esm({
       const weighed = pal.map(swatchTac).filter((x) => x !== null);
       if (weighed.length === 0) return;
       const heaviest = weighed.reduce((a, b) => b.tac > a.tac ? b : a);
-      const { name, limit: limit2 } = tacLimitFor(c);
+      const { name, limit: limit3 } = tacLimitFor(c);
       const cond = name.toUpperCase();
       c.add({
         id: "count.ink-coverage-palette",
         severity: "info",
-        message: `The heaviest brand solid, ${heaviest.name}, is ${heaviest.tac}% total ink under ${cond} (limit ${limit2}%). This is the brand's solid fills only, and a photograph or gradient can lay down more.`,
-        evidence: { swatch: heaviest.name, tac: heaviest.tac, limit: limit2, condition: name, format: c.fmt },
+        message: `The heaviest brand solid, ${heaviest.name}, is ${heaviest.tac}% total ink under ${cond} (limit ${limit3}%). This is the brand's solid fills only, and a photograph or gradient can lay down more.`,
+        evidence: { swatch: heaviest.name, tac: heaviest.tac, limit: limit3, condition: name, format: c.fmt },
         count: { kind: "inkCoverage", value: heaviest.tac, unit: "pct", bound: "exact", basis: "palette.tac" }
       });
-      if (heaviest.tac > limit2) {
+      if (heaviest.tac > limit3) {
         c.add({
           id: "print.ink-over-tac",
           severity: "warn",
-          message: `${heaviest.name} is ${heaviest.tac}% total ink, over the ${limit2}% limit for ${cond}. On press it can fail to dry, set off onto the next sheet, or crack on the fold. Lighten the darkest build, or ask the printer for their ink limit.`,
-          evidence: { swatch: heaviest.name, tac: heaviest.tac, limit: limit2, over: heaviest.tac - limit2, condition: name, format: c.fmt }
+          message: `${heaviest.name} is ${heaviest.tac}% total ink, over the ${limit3}% limit for ${cond}. On press it can fail to dry, set off onto the next sheet, or crack on the fold. Lighten the darkest build, or ask the printer for their ink limit.`,
+          evidence: { swatch: heaviest.name, tac: heaviest.tac, limit: limit3, over: heaviest.tac - limit3, condition: name, format: c.fmt }
         });
       }
     };
@@ -57050,7 +57050,7 @@ function readXmpFields(input, specs) {
   const out = [];
   const namespaces = /* @__PURE__ */ new Map();
   for (const m2 of text12.matchAll(/xmlns:([\w-]+)\s*=\s*["']([^"']+)["']/g)) namespaces.set(m2[1], m2[2]);
-  for (const [fallback, namespace3, property4, group, label4] of specs) {
+  for (const [fallback, namespace3, property4, group, label5] of specs) {
     const prefixes = [...namespaces].filter(([, uri]) => uri === namespace3).map(([prefix]) => prefix);
     if (!namespaces.has(fallback)) prefixes.push(fallback);
     for (const prefix of prefixes) {
@@ -57073,7 +57073,7 @@ function readXmpFields(input, specs) {
           }
         }
         const value2 = xmlValue(raw ?? "");
-        if (value2 && !out.some((f) => f.label === label4 && f.value === value2)) out.push({ label: label4, value: value2, group, source: `XMP/RDF ${tag3}`, ...label4 === "Creator" || label4.startsWith("Contact ") ? { sensitive: true } : {} });
+        if (value2 && !out.some((f) => f.label === label5 && f.value === value2)) out.push({ label: label5, value: value2, group, source: `XMP/RDF ${tag3}`, ...label5 === "Creator" || label5.startsWith("Contact ") ? { sensitive: true } : {} });
       }
     }
   }
@@ -57411,8 +57411,8 @@ function scalar5(dv, e) {
     if (e.type === 4) return dv.getUint32(e.valueOffset, e.le);
     if (e.type === 5) {
       if (e.valueOffset + 8 > dv.byteLength) return null;
-      const num19 = dv.getUint32(e.valueOffset, e.le), den = dv.getUint32(e.valueOffset + 4, e.le);
-      return den ? num19 / den : 0;
+      const num20 = dv.getUint32(e.valueOffset, e.le), den = dv.getUint32(e.valueOffset + 4, e.le);
+      return den ? num20 / den : 0;
     }
   } catch {
   }
@@ -57424,8 +57424,8 @@ function rationals(dv, e, want) {
   for (let i = 0; i < Math.min(e.count, want); i++) {
     const o = e.valueOffset + i * 8;
     if (o + 8 > dv.byteLength) return null;
-    const num19 = dv.getUint32(o, e.le), den = dv.getUint32(o + 4, e.le);
-    out.push(den ? num19 / den : 0);
+    const num20 = dv.getUint32(o, e.le), den = dv.getUint32(o + 4, e.le);
+    out.push(den ? num20 / den : 0);
   }
   return out.length === want ? out : null;
 }
@@ -57470,9 +57470,9 @@ function readExif(bytes2, base, len2, out) {
   else if (b0 === 77 && b1 === 77) le = false;
   else return;
   if (dv.getUint16(2, le) !== 42) return;
-  const push = (label4, value2, group, sensitive = false) => {
+  const push = (label5, value2, group, sensitive = false) => {
     if (value2 == null || value2 === "") return;
-    out.fields.push({ label: label4, value: value2, group, sensitive });
+    out.fields.push({ label: label5, value: value2, group, sensitive });
   };
   const ifd0 = readIfd(dv, dv.getUint32(4, le), le);
   const byTag = /* @__PURE__ */ new Map();
@@ -57943,7 +57943,7 @@ function readGif(bytes2, out) {
 }
 function readWav(bytes2, out) {
   const view = new DataView(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength);
-  const limit2 = Math.min(bytes2.length, view.getUint32(4, true) + 8);
+  const limit3 = Math.min(bytes2.length, view.getUint32(4, true) + 8);
   const tags3 = {
     ISFT: ["Software", "software"],
     IART: ["Artist", "authorship"],
@@ -57952,9 +57952,9 @@ function readWav(bytes2, out) {
     ICMT: ["Comment", "description"],
     ICRD: ["Created", "timestamps"]
   };
-  for (let p = 12; p + 8 <= limit2 && out.fields.length < MAX_FIELDS; ) {
+  for (let p = 12; p + 8 <= limit3 && out.fields.length < MAX_FIELDS; ) {
     const length2 = view.getUint32(p + 4, true), end = p + 8 + length2;
-    if (end > limit2) break;
+    if (end > limit3) break;
     if (length2 >= 4 && matchAscii(bytes2, p, "LIST") && matchAscii(bytes2, p + 8, "INFO")) {
       for (let q = p + 12; q + 8 <= end && out.fields.length < MAX_FIELDS; ) {
         const size = view.getUint32(q + 4, true);
@@ -58311,8 +58311,8 @@ function heifItemPayload(bytes2, store, item2) {
   let o = 0;
   for (const e of item2.extents) {
     const start = e.method === 1 ? store.idat ? store.idat.start + e.offset : -1 : e.offset;
-    const limit2 = e.method === 1 ? store.idat?.end ?? -1 : bytes2.length;
-    if (start < 0 || start + e.length > limit2) return null;
+    const limit3 = e.method === 1 ? store.idat?.end ?? -1 : bytes2.length;
+    if (start < 0 || start + e.length > limit3) return null;
     out.set(bytes2.subarray(start, start + e.length), o);
     o += e.length;
   }
@@ -60272,12 +60272,12 @@ function reportRunEnds(scan2, samples) {
   }
 }
 function runEnd(scan2, outside, inside2) {
-  const limit2 = scan2.tol * RUN_END_SHARE;
+  const limit3 = scan2.tol * RUN_END_SHARE;
   let a = outside.t, b = inside2.t, best = inside2;
   for (let i = 0; i < RUN_END_STEPS && Math.abs(b - a) > 4 * Number.EPSILON; i++) {
     const s = gapAt(scan2, (a + b) / 2);
     if (!s) break;
-    if (s.d <= limit2) {
+    if (s.d <= limit3) {
       best = s;
       b = s.t;
     } else a = s.t;
@@ -62496,10 +62496,10 @@ function offsetPieces(c, distance4, tol) {
   if (!Number.isFinite(distance4) || Math.abs(distance4) < 1e-12) {
     return [{ curve: [...c], dirStart: unitTangent(c, 0), dirEnd: unitTangent(c, 1) }];
   }
-  const limit2 = Math.max(tol, 1e-9);
+  const limit3 = Math.max(tol, 1e-9);
   const out = [];
   for (const [t0, t1] of featureSpans(c)) {
-    offsetSpan(subCubic(c, t0, t1), distance4, limit2, 0, out);
+    offsetSpan(subCubic(c, t0, t1), distance4, limit3, 0, out);
   }
   return out;
 }
@@ -62619,8 +62619,8 @@ function offsetCuspParams(c, d) {
     if (!(t > MIN_SPAN) || !(t < 1 - MIN_SPAN)) continue;
     const speed2 = (((dPoly[4] * t + dPoly[3]) * t + dPoly[2]) * t + dPoly[1]) * t + dPoly[0];
     if (!(speed2 > 0)) continue;
-    const num19 = (a[2] * t + a[1]) * t + a[0];
-    if (Math.abs(1 - d * num19 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
+    const num20 = (a[2] * t + a[1]) * t + a[0];
+    if (Math.abs(1 - d * num20 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
   }
   return out;
 }
@@ -62830,9 +62830,9 @@ function regionProber(region) {
     }
     return best;
   };
-  return (c, limit2 = PROBE_CURVES) => {
+  return (c, limit3 = PROBE_CURVES) => {
     if (!(reach2 > 0)) return [];
-    const order = [...c.curves].map((k, i) => ({ k, i, span: hypot(k[6] - k[0], k[7] - k[1]) })).sort((a, b) => b.span - a.span || a.i - b.i).slice(0, limit2);
+    const order = [...c.curves].map((k, i) => ({ k, i, span: hypot(k[6] - k[0], k[7] - k[1]) })).sort((a, b) => b.span - a.span || a.i - b.i).slice(0, limit3);
     const out = [];
     for (const { k } of order) {
       const tan2 = unitTangent(k, 0.5);
@@ -63059,10 +63059,10 @@ function reparameterise(pts, u, curve) {
   return u.map((t, i) => {
     const p = evalCubic(curve, t), d1 = tangentAt(curve, t), d2 = secondDeriv(curve, t);
     const dx = p.x - pts[i].x, dy = p.y - pts[i].y;
-    const num19 = dx * d1.x + dy * d1.y;
+    const num20 = dx * d1.x + dy * d1.y;
     const den = d1.x * d1.x + d1.y * d1.y + dx * d2.x + dy * d2.y;
     if (Math.abs(den) < 1e-14) return t;
-    return Math.min(1, Math.max(0, t - num19 / den));
+    return Math.min(1, Math.max(0, t - num20 / den));
   });
 }
 function secondDeriv(c, t) {
@@ -68995,6 +68995,188 @@ var init_frame_address = __esm({
   }
 });
 
+// engine/src/kf-spring.ts
+function num5(s) {
+  if (s === void 0 || !NUM_RE2.test(s)) return null;
+  const n8 = Number(s);
+  return Number.isFinite(n8) ? n8 : null;
+}
+function quant(v, q) {
+  const inv = Math.round(1 / q);
+  const n8 = Math.round(v * inv) / inv;
+  return Object.is(n8, -0) ? 0 : n8;
+}
+function limit(v, which) {
+  const [lo, hi, q] = KF_SPRING_LIMITS[which];
+  return quant(clampTo(v, lo, hi), q);
+}
+function kfSpring(stiffness, damping, mass) {
+  return {
+    stiffness: limit(Number.isFinite(stiffness) ? stiffness : 100, "stiffness"),
+    damping: limit(Number.isFinite(damping) ? damping : 15, "damping"),
+    mass: limit(Number.isFinite(mass) ? mass : 1, "mass")
+  };
+}
+function kfSpringToken(sp, win) {
+  const s = kfSpring(sp.stiffness, sp.damping, sp.mass);
+  const head2 = `esp(${fmt(s.stiffness)})(${fmt(s.damping)})(${fmt(s.mass)})`;
+  return win ? `${head2}(${fmt(win.span)})(${fmt(win.from)})(${fmt(win.to)})` : head2;
+}
+function parseKfSpring(tok) {
+  const m2 = SPRING_RE.exec(tok);
+  if (!m2) return null;
+  const k = num5(m2[1]), c = num5(m2[2]), ms = num5(m2[3]);
+  if (k === null || c === null || ms === null) return null;
+  const spring = kfSpring(k, c, ms);
+  if (m2[4] === void 0) return { spring, window: null };
+  const T = num5(m2[4]), a = num5(m2[5]), b = num5(m2[6]);
+  if (T === null || a === null || b === null) return null;
+  const span = limit(T, "window");
+  if (!(span >= 1)) return null;
+  const from = quant(clampTo(a, 0, span), KF_SPRING_LIMITS.window[2]);
+  const to = quant(clampTo(b, 0, span), KF_SPRING_LIMITS.window[2]);
+  if (!(to > from)) return null;
+  return { spring, window: { span, from, to } };
+}
+function kfSpringPresetName(sp) {
+  if (!sp) return "";
+  for (const [name, p] of Object.entries(KF_SPRING_PRESETS)) {
+    if (p.stiffness === sp.stiffness && p.damping === sp.damping && p.mass === sp.mass) return name;
+  }
+  return "";
+}
+function buildTable(sp) {
+  const { stiffness: k, damping: c, mass: m2 } = sp;
+  const dt = KF_SPRING_STEP_MS / 1e3;
+  const half = dt / 2;
+  const acc = (x2, v2) => (k * (1 - x2) - c * v2) / m2;
+  const xs = [0];
+  const vs = [0];
+  let x = 0, v = 0;
+  let settled = false;
+  for (let i = 1; i <= KF_SPRING_MAX_MS; i++) {
+    const a1 = acc(x, v);
+    const x2 = x + half * v, v2 = v + half * a1;
+    const a2 = acc(x2, v2);
+    const x3 = x + half * v2, v3 = v + half * a2;
+    const a3 = acc(x3, v3);
+    const x4 = x + dt * v3, v4 = v + dt * a3;
+    const a4 = acc(x4, v4);
+    x = x + dt / 6 * (v + 2 * v2 + 2 * v3 + v4);
+    v = v + dt / 6 * (a1 + 2 * a2 + 2 * a3 + a4);
+    xs.push(x);
+    vs.push(v / 1e3);
+    if (Math.abs(1 - x) <= SETTLE_X && Math.abs(v) <= SETTLE_V) {
+      settled = true;
+      break;
+    }
+  }
+  let settleMs = xs.length - 1;
+  while (settleMs > 0 && Math.abs(1 - xs[settleMs - 1]) <= SETTLE_SHOWN) settleMs--;
+  return { x: Float64Array.from(xs), v: Float64Array.from(vs), settled, settleMs: Math.max(1, settleMs) };
+}
+function tableOf(sp) {
+  const key2 = `${sp.stiffness}|${sp.damping}|${sp.mass}`;
+  const hit = TABLES.get(key2);
+  if (hit) return hit;
+  const built = buildTable(sp);
+  if (TABLES.size >= TABLE_CACHE_MAX) TABLES.delete(TABLES.keys().next().value);
+  TABLES.set(key2, built);
+  return built;
+}
+function kfSpringPosition(sp, tMs) {
+  if (!(tMs > 0)) return 0;
+  const tab = tableOf(sp);
+  const last = tab.x.length - 1;
+  if (tMs >= last) return tab.settled ? 1 : tab.x[last];
+  const i = Math.floor(tMs);
+  const s = tMs - i;
+  const x0 = tab.x[i], x1 = tab.x[i + 1];
+  if (s === 0) return x0;
+  const v0 = tab.v[i], v1 = tab.v[i + 1];
+  const s2 = s * s, s3 = s2 * s;
+  return (2 * s3 - 3 * s2 + 1) * x0 + (s3 - 2 * s2 + s) * v0 + (-2 * s3 + 3 * s2) * x1 + (s3 - s2) * v1;
+}
+function kfSpringSettleMs(sp) {
+  return tableOf(sp).settleMs;
+}
+function landed(sp, T, tMs) {
+  const xT = kfSpringPosition(sp, T);
+  return kfSpringPosition(sp, tMs) + (1 - xT) * (tMs / T);
+}
+function kfSpringAt(ease, u, spanMs) {
+  if (!(u > 0)) return 0;
+  if (u >= 1) return 1;
+  const { spring, window: window2 } = ease;
+  if (window2) {
+    const T2 = window2.span;
+    const a = landed(spring, T2, window2.from);
+    const b = landed(spring, T2, window2.to);
+    const d = b - a;
+    if (d === 0) return u;
+    return (landed(spring, T2, window2.from + (window2.to - window2.from) * u) - a) / d;
+  }
+  const T = typeof spanMs === "number" && spanMs > 0 && Number.isFinite(spanMs) ? spanMs : kfSpringSettleMs(spring);
+  return landed(spring, T, u * T);
+}
+function subdivideKfSpring(ease, lambda, spanMs) {
+  const { spring } = ease;
+  const win = ease.window ?? {
+    span: limit(typeof spanMs === "number" && spanMs > 0 && Number.isFinite(spanMs) ? spanMs : kfSpringSettleMs(spring), "window"),
+    from: 0,
+    to: 0
+  };
+  const span = Math.max(1, win.span);
+  const from = ease.window ? win.from : 0;
+  const to = ease.window ? win.to : span;
+  const q = KF_SPRING_LIMITS.window[2];
+  const cut = quant(from + (to - from) * lambda, q);
+  const a = landed(spring, span, from), c = landed(spring, span, cut), b = landed(spring, span, to);
+  const left = Math.abs(c - a) < SUBDIVIDE_EPS || !(cut > from) ? null : kfSpringToken(spring, { span, from, to: cut });
+  const right = Math.abs(b - c) < SUBDIVIDE_EPS || !(to > cut) ? null : kfSpringToken(spring, { span, from: cut, to });
+  return { left, right };
+}
+function kfSpringCss(ease, spanMs) {
+  const N2 = 60;
+  const stops = [];
+  for (let i = 0; i <= N2; i++) {
+    const y = i === 0 ? 0 : i === N2 ? 1 : kfSpringAt(ease, i / N2, spanMs);
+    stops.push(fmt(Math.round(y * 1e4) / 1e4));
+  }
+  return `linear(${stops.join(", ")})`;
+}
+var KF_SPRING_LIMITS, KF_SPRING_PRESETS, KF_SPRING_STEP_MS, KF_SPRING_MAX_MS, SETTLE_X, SETTLE_V, SETTLE_SHOWN, SPRING_RE, NUM_RE2, clampTo, fmt, TABLES, TABLE_CACHE_MAX, SUBDIVIDE_EPS;
+var init_kf_spring = __esm({
+  "engine/src/kf-spring.ts"() {
+    "use strict";
+    KF_SPRING_LIMITS = Object.freeze({
+      stiffness: [1, 5e3, 0.1],
+      damping: [0, 500, 0.01],
+      mass: [0.1, 100, 0.01],
+      /** A window's span and ends, ms. */
+      window: [0, 36e5, 0.01]
+    });
+    KF_SPRING_PRESETS = Object.freeze({
+      gentle: Object.freeze({ stiffness: 100, damping: 15, mass: 1 }),
+      quick: Object.freeze({ stiffness: 300, damping: 20, mass: 1 }),
+      bouncy: Object.freeze({ stiffness: 600, damping: 15, mass: 1 }),
+      slow: Object.freeze({ stiffness: 80, damping: 20, mass: 1 })
+    });
+    KF_SPRING_STEP_MS = 1;
+    KF_SPRING_MAX_MS = 3e4;
+    SETTLE_X = 1e-7;
+    SETTLE_V = 1e-5;
+    SETTLE_SHOWN = 1e-3;
+    SPRING_RE = /^esp\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)(?:\(([^()]*)\)\(([^()]*)\)\(([^()]*)\))?$/;
+    NUM_RE2 = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
+    clampTo = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
+    fmt = (v) => String(Object.is(v, -0) ? 0 : v);
+    TABLES = /* @__PURE__ */ new Map();
+    TABLE_CACHE_MAX = 16;
+    SUBDIVIDE_EPS = 1e-4;
+  }
+});
+
 // engine/src/keyframes.ts
 function isKfChannel(v) {
   return typeof v === "string" && CHANNEL_SET.has(v);
@@ -69002,20 +69184,20 @@ function isKfChannel(v) {
 function isKfSafe(s) {
   return typeof s === "string" && KF_CHARSET_RE.test(s);
 }
-function quant(v, q) {
+function quant2(v, q) {
   const inv = Math.round(1 / q);
   const n8 = Math.round(v * inv) / inv;
   return Object.is(n8, -0) ? 0 : n8;
 }
-function num5(s) {
-  if (!NUM_RE2.test(s)) return null;
+function num6(s) {
+  if (!NUM_RE3.test(s)) return null;
   const n8 = Number(s);
   return Number.isFinite(n8) ? n8 : null;
 }
 function snip(s) {
   return s.length > 40 ? `${s.slice(0, 40)}\u2026` : s;
 }
-function fmt(v) {
+function fmt2(v) {
   return String(Object.is(v, -0) ? 0 : v);
 }
 function cubicBezierAt(x1, y1, x2, y2, x) {
@@ -69045,63 +69227,185 @@ function cubicBezierAt(x1, y1, x2, y2, x) {
 }
 function easeFromPoints(x1, y1, x2, y2) {
   const p = [
-    quant(clamp(x1, 0, 1), KF_BEZIER_QUANTUM),
-    quant(clamp(y1, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM),
-    quant(clamp(x2, 0, 1), KF_BEZIER_QUANTUM),
-    quant(clamp(y2, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM)
+    quant2(clamp(x1, 0, 1), KF_BEZIER_QUANTUM),
+    quant2(clamp(y1, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM),
+    quant2(clamp(x2, 0, 1), KF_BEZIER_QUANTUM),
+    quant2(clamp(y2, -KF_BEZIER_Y_MAX, KF_BEZIER_Y_MAX), KF_BEZIER_QUANTUM)
   ];
   for (const tok of KF_EASE_TOKENS) {
     const q = KF_EASE_PRESETS[tok].pts;
     if (q[0] === p[0] && q[1] === p[1] && q[2] === p[2] && q[3] === p[3]) return tok;
   }
-  return `eb(${fmt(p[0])})(${fmt(p[1])})(${fmt(p[2])})(${fmt(p[3])})`;
+  return `eb(${fmt2(p[0])})(${fmt2(p[1])})(${fmt2(p[2])})(${fmt2(p[3])})`;
 }
 function normaliseKfEase(tok) {
   if (typeof tok !== "string" || tok === "") return null;
   if (tok === KF_HOLD_EASE) return KF_HOLD_EASE;
   if (Object.hasOwn(KF_EASE_PRESETS, tok)) return tok;
+  if (tok.startsWith("esp(")) {
+    const sp = parseKfSpring(tok);
+    return sp ? kfSpringToken(sp.spring, sp.window) : null;
+  }
+  if (tok.startsWith("et(")) return normaliseRef(tok);
   const m2 = EB_RE.exec(tok);
   if (!m2) return null;
-  const a = num5(m2[1] ?? ""), b = num5(m2[2] ?? ""), c = num5(m2[3] ?? ""), d = num5(m2[4] ?? "");
+  const a = num6(m2[1] ?? ""), b = num6(m2[2] ?? ""), c = num6(m2[3] ?? ""), d = num6(m2[4] ?? "");
   if (a === null || b === null || c === null || d === null) return null;
   return easeFromPoints(a, b, c, d);
 }
-function easePts(ease) {
-  if (Object.hasOwn(KF_EASE_PRESETS, ease)) return KF_EASE_PRESETS[ease].pts;
-  const hit = EASE_PTS_CACHE.get(ease);
-  if (hit !== void 0) return hit;
-  const norm2 = normaliseKfEase(ease);
-  let pts = null;
-  if (norm2 !== null && norm2 !== KF_HOLD_EASE) {
-    if (Object.hasOwn(KF_EASE_PRESETS, norm2)) pts = KF_EASE_PRESETS[norm2].pts;
-    else {
-      const m2 = EB_RE.exec(norm2);
-      if (m2) {
-        const a = num5(m2[1] ?? ""), b = num5(m2[2] ?? ""), c = num5(m2[3] ?? ""), d = num5(m2[4] ?? "");
-        if (a !== null && b !== null && c !== null && d !== null) pts = Object.freeze([a, b, c, d]);
-      }
+function normaliseConcrete(tok) {
+  if (typeof tok === "string" && tok.startsWith("et(")) return null;
+  const norm2 = normaliseKfEase(tok);
+  if (norm2 === null || norm2 === KF_HOLD_EASE || norm2.startsWith("et(")) return null;
+  if (norm2.startsWith("esp(") && parseKfSpring(norm2)?.window) return null;
+  return norm2;
+}
+function splitRef(tok) {
+  if (!tok.startsWith("et(")) return null;
+  const close = tok.indexOf(")");
+  if (close < 4 || close > 3 + KF_EASE_REF_MAX) return null;
+  const path = tok.slice(3, close);
+  return REF_PATH_RE.test(path) ? { path, rest: tok.slice(close + 1) } : null;
+}
+function normaliseRef(tok) {
+  const ref2 = splitRef(tok);
+  if (!ref2) return null;
+  const { path, rest: rest2 } = ref2;
+  const fb = rest2 === "" ? null : normaliseConcrete(rest2);
+  return fb === null || fb === KF_DEFAULT_EASE ? `et(${path})` : `et(${path})${fb}`;
+}
+function readEaseTokens(map) {
+  const out = /* @__PURE__ */ new Map();
+  if (!map) return out;
+  const entries = map instanceof Map ? [...map.entries()] : Object.entries(map);
+  for (const [path, value2] of entries) {
+    if (typeof path !== "string" || !splitRef(`et(${path})`)) continue;
+    const ease = normaliseConcrete(value2);
+    if (ease !== null) out.set(path, ease);
+  }
+  return out;
+}
+function setKfEaseTokens(map, opts) {
+  EASE_TOKENS = readEaseTokens(map);
+  EASE_MISS = opts?.onMiss;
+  EASE_MISSED.clear();
+  EASE_INFO_CACHE.clear();
+}
+function kfEaseTokensSnapshot() {
+  return Object.fromEntries(EASE_TOKENS);
+}
+function withKfEaseTokens(map, fn) {
+  const prevTokens = EASE_TOKENS, prevMiss = EASE_MISS;
+  EASE_TOKENS = readEaseTokens(map);
+  EASE_INFO_CACHE.clear();
+  try {
+    return fn();
+  } finally {
+    EASE_TOKENS = prevTokens;
+    EASE_MISS = prevMiss;
+    EASE_INFO_CACHE.clear();
+  }
+}
+function concreteInfo(norm2) {
+  if (norm2 === KF_HOLD_EASE) return HOLD_INFO;
+  const preset = PRESET_INFO.get(norm2);
+  if (preset) return preset;
+  if (norm2.startsWith("esp(")) {
+    const sp = parseKfSpring(norm2);
+    return sp ? { kind: "spring", spring: sp } : null;
+  }
+  const m2 = EB_RE.exec(norm2);
+  if (!m2) return null;
+  const a = num6(m2[1] ?? ""), b = num6(m2[2] ?? ""), c = num6(m2[3] ?? ""), d = num6(m2[4] ?? "");
+  if (a === null || b === null || c === null || d === null) return null;
+  return { kind: "bezier", pts: Object.freeze([a, b, c, d]) };
+}
+function resolveRef(norm2) {
+  const ref2 = splitRef(norm2);
+  const path = ref2?.path ?? "";
+  const live2 = EASE_TOKENS.get(path);
+  if (live2 !== void 0) return live2;
+  if (!EASE_MISSED.has(path)) {
+    EASE_MISSED.add(path);
+    try {
+      EASE_MISS?.(path);
+    } catch {
     }
   }
-  if (EASE_PTS_CACHE.size >= 256) EASE_PTS_CACHE.clear();
-  EASE_PTS_CACHE.set(ease, pts);
-  return pts;
+  return normaliseConcrete(ref2?.rest ?? "") ?? KF_DEFAULT_EASE;
+}
+function easeInfo(ease) {
+  const preset = PRESET_INFO.get(ease);
+  if (preset) return preset;
+  const hit = EASE_INFO_CACHE.get(ease);
+  if (hit !== void 0) return hit;
+  const norm2 = normaliseKfEase(ease);
+  let info = null;
+  if (norm2 !== null) info = concreteInfo(norm2.startsWith("et(") ? resolveRef(norm2) : norm2);
+  if (EASE_INFO_CACHE.size >= 256) EASE_INFO_CACHE.clear();
+  EASE_INFO_CACHE.set(ease, info);
+  return info;
+}
+function easePts(ease) {
+  const info = easeInfo(ease);
+  return info?.kind === "bezier" ? info.pts : null;
 }
 function kfEasePoints(ease) {
   if (typeof ease !== "string") return null;
   const p = easePts(ease);
   return p ? [p[0], p[1], p[2], p[3]] : null;
 }
-function kfEaseAt(ease, u) {
+function kfEaseKind(ease) {
+  const norm2 = normaliseKfEase(ease);
+  if (norm2 === null) return null;
+  if (norm2 === KF_HOLD_EASE) return "hold";
+  if (norm2.startsWith("et(")) return "token";
+  return norm2.startsWith("esp(") ? "spring" : "bezier";
+}
+function kfEaseTokenPath(ease) {
+  const norm2 = normaliseKfEase(ease);
+  if (norm2 === null || !norm2.startsWith("et(")) return null;
+  return splitRef(norm2)?.path ?? null;
+}
+function kfEaseResolved(ease) {
+  const norm2 = normaliseKfEase(ease);
+  if (norm2 === null) return KF_DEFAULT_EASE;
+  return norm2.startsWith("et(") ? resolveRef(norm2) : norm2;
+}
+function kfEaseIsSpring(ease) {
+  return typeof ease === "string" && easeInfo(ease)?.kind === "spring";
+}
+function kfEaseSpring(ease) {
+  if (typeof ease !== "string") return null;
+  const info = easeInfo(ease);
+  return info?.kind === "spring" ? { spring: info.spring.spring, window: info.spring.window } : null;
+}
+function kfEaseSpringName(ease) {
+  const norm2 = normaliseKfEase(ease);
+  if (norm2 === null || !norm2.startsWith("esp(")) return "";
+  const sp = parseKfSpring(norm2);
+  return sp && !sp.window ? kfSpringPresetName(sp.spring) : "";
+}
+function kfBindEase(path, fallback) {
+  return normaliseRef(`et(${path})${normaliseConcrete(fallback) ?? ""}`);
+}
+function kfEaseAt(ease, u, spanMs) {
   if (!(u > 0)) return 0;
   if (u >= 1) return 1;
   if (ease === KF_HOLD_EASE) return 0;
-  const p = easePts(ease) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE].pts;
+  const info = easeInfo(ease) ?? DEFAULT_INFO;
+  if (info.kind === "hold") return 0;
+  if (info.kind === "spring") return kfSpringAt(info.spring, u, spanMs);
+  const p = info.pts;
   return cubicBezierAt(p[0], p[1], p[2], p[3], u);
 }
-function kfEaseCss(ease) {
+function kfEaseCss(ease, spanMs) {
   if (ease === KF_HOLD_EASE) return KF_HOLD_CSS;
-  const p = (typeof ease === "string" ? easePts(ease) : null) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE].pts;
-  return `cubic-bezier(${p.map((n8) => fmt(quant(n8, KF_BEZIER_QUANTUM))).join(",")})`;
+  const info = (typeof ease === "string" ? easeInfo(ease) : null) ?? DEFAULT_INFO;
+  if (info.kind === "hold") return KF_HOLD_CSS;
+  if (info.kind === "spring") return kfSpringCss(info.spring, spanMs);
+  const p = info.pts;
+  return `cubic-bezier(${p.map((n8) => fmt2(quant2(n8, KF_BEZIER_QUANTUM))).join(",")})`;
 }
 function kfEaseName(ease) {
   if (typeof ease !== "string") return "";
@@ -69119,7 +69423,7 @@ function kfEaseToken(v) {
   if (direct !== null) return direct;
   const m2 = CSS_BEZIER_RE.exec(s);
   if (m2) {
-    const parts = (m2[1] ?? "").split(",").map((x) => num5(x.trim()));
+    const parts = (m2[1] ?? "").split(",").map((x) => num6(x.trim()));
     if (parts.length === 4 && parts.every((n8) => n8 !== null)) {
       return easeFromPoints(parts[0], parts[1], parts[2], parts[3]);
     }
@@ -69154,14 +69458,20 @@ function subdividedEaseToken(x1, y1, x2, y2) {
   if (!Number.isFinite(x1) || !Number.isFinite(y1) || !Number.isFinite(x2) || !Number.isFinite(y2)) return null;
   if (Math.abs(y1) > KF_BEZIER_Y_MAX || Math.abs(y2) > KF_BEZIER_Y_MAX) return null;
   const q = KF_BEZIER_QUANTUM;
-  if (quant(x1, q) === quant(y1, q) && quant(x2, q) === quant(y2, q)) return "el";
+  if (quant2(x1, q) === quant2(y1, q) && quant2(x2, q) === quant2(y2, q)) return "el";
   return easeFromPoints(x1, y1, x2, y2);
 }
-function subdivideKfEase(ease, lambda) {
-  const tok = (typeof ease === "string" ? normaliseKfEase(ease) : null) ?? KF_DEFAULT_EASE;
-  if (tok === KF_HOLD_EASE) return { left: KF_HOLD_EASE, right: KF_HOLD_EASE };
+function subdivideKfEase(ease, lambda, spanMs) {
+  const orig = (typeof ease === "string" ? normaliseKfEase(ease) : null) ?? KF_DEFAULT_EASE;
+  if (orig === KF_HOLD_EASE) return { left: KF_HOLD_EASE, right: KF_HOLD_EASE };
   const lam = typeof lambda === "number" && Number.isFinite(lambda) ? lambda : 0;
-  if (!(lam > 0) || !(lam < 1)) return { left: tok, right: tok };
+  if (!(lam > 0) || !(lam < 1)) return { left: orig, right: orig };
+  const tok = orig.startsWith("et(") ? resolveRef(orig) : orig;
+  const info = easeInfo(tok);
+  if (info?.kind === "spring") {
+    const halves = subdivideKfSpring(info.spring, lam, spanMs);
+    return { left: halves.left ?? tok, right: halves.right ?? tok };
+  }
   const p = easePts(tok) ?? KF_EASE_PRESETS[KF_DEFAULT_EASE].pts;
   const [x1, y1, x2, y2] = p;
   const s = easeParamAtX(x1, x2, lam);
@@ -69171,14 +69481,14 @@ function subdivideKfEase(ease, lambda) {
   const dx = ax + (bx - ax) * s, dy = ay + (by - ay) * s;
   const ex = bx + (cx2 - bx) * s, ey = by + (cy3 - by) * s;
   const fx = dx + (ex - dx) * s, fy = dy + (ey - dy) * s;
-  const left = (Math.abs(fy) < SUBDIVIDE_EPS || !(fx > 0) ? null : subdividedEaseToken(ax / fx, ay / fy, dx / fx, dy / fy)) ?? tok;
-  const right = (Math.abs(1 - fy) < SUBDIVIDE_EPS || !(fx < 1) ? null : subdividedEaseToken((ex - fx) / (1 - fx), (ey - fy) / (1 - fy), (cx2 - fx) / (1 - fx), (cy3 - fy) / (1 - fy))) ?? tok;
+  const left = (Math.abs(fy) < SUBDIVIDE_EPS2 || !(fx > 0) ? null : subdividedEaseToken(ax / fx, ay / fy, dx / fx, dy / fy)) ?? tok;
+  const right = (Math.abs(1 - fy) < SUBDIVIDE_EPS2 || !(fx < 1) ? null : subdividedEaseToken((ex - fx) / (1 - fx), (ey - fy) / (1 - fy), (cx2 - fx) / (1 - fx), (cy3 - fy) / (1 - fy))) ?? tok;
   return { left, right };
 }
 function channelValue(ch, raw) {
   if (!Number.isFinite(raw)) return null;
   const [lo, hi] = KF_CLAMPS[ch];
-  return quant(clamp(raw, lo, hi), KF_QUANTA[ch]);
+  return quant2(clamp(raw, lo, hi), KF_QUANTA[ch]);
 }
 function normaliseTrack(keys2, onWarn) {
   let src = keys2;
@@ -69235,7 +69545,7 @@ function parseKf(s, opts) {
       warn2?.(`kf: keyframe "${snip(seg4)}" does not start with t<ms>; skipped`);
       continue;
     }
-    const tRaw = num5(tm[1] ?? "");
+    const tRaw = num6(tm[1] ?? "");
     if (tRaw === null) continue;
     const v = {};
     let ease;
@@ -69251,7 +69561,7 @@ function parseKf(s, opts) {
       let matched = false;
       for (const ch of CHANNELS_BY_LENGTH) {
         if (!tok.startsWith(ch)) continue;
-        const n8 = num5(tok.slice(ch.length));
+        const n8 = num6(tok.slice(ch.length));
         if (n8 === null) continue;
         v[ch] = n8;
         matched = true;
@@ -69264,13 +69574,13 @@ function parseKf(s, opts) {
   return normaliseTrack(keys2, warn2);
 }
 function keyToWire(k) {
-  const parts = [`t${fmt(k.t)}`];
+  const parts = [`t${fmt2(k.t)}`];
   if (k.ease !== KF_DEFAULT_EASE) parts.push(k.ease);
   for (const ch of KF_CHANNELS) {
     if (!Object.hasOwn(k.v, ch)) continue;
     const val = k.v[ch];
     if (typeof val !== "number") continue;
-    parts.push(`${ch}${fmt(val)}`);
+    parts.push(`${ch}${fmt2(val)}`);
   }
   return parts.join("_");
 }
@@ -69319,7 +69629,13 @@ function sampleChannel(track, ks, ch, t) {
   if (!(span > 0)) return bv;
   const u = (t - a.t) / span;
   const ease = ch === "o" ? a.ease === KF_HOLD_EASE ? KF_HOLD_EASE : KF_LINEAR_EASE : a.ease;
-  return av + (bv - av) * kfEaseAt(ease, u);
+  const e = kfEaseAt(ease, u, span);
+  const v = av + (bv - av) * e;
+  if ((e < 0 || e > 1) && kfEaseIsSpring(ease)) {
+    const [lo2, hi2] = KF_CLAMPS[ch];
+    return v < lo2 ? lo2 : v > hi2 ? hi2 : v;
+  }
+  return v;
 }
 function evaluateKf(track, tMs, channels) {
   const out = {};
@@ -69584,11 +69900,12 @@ function resolveCamera(cameras, tMs) {
   pose3.p = sanePerspective(pose3.p);
   return pose3;
 }
-var KF_CHANNELS, KF_CAMERA_CHANNELS, CHANNEL_SET, CHANNELS_BY_LENGTH, KF_CLAMPS, KF_Z_FIELD_CLAMP, KF_QUANTA, KF_BEZIER_QUANTUM, KF_BEZIER_Y_MAX, KF_MAX_KEYS, KF_MAX_CHARS, KF_MAX_TIME_MS, KF_MAX_BLUR, KF_CHARSET_RE, KF_EASE_TOKENS, KF_EASE_PRESETS, KF_HOLD_EASE, KF_DEFAULT_EASE, KF_LINEAR_EASE, KF_HOLD_CSS, EB_RE, NUM_RE2, T_RE, CSS_BEZIER_RE, EASE_PTS_CACHE, NAME_TO_TOKEN, SUBDIVIDE_EPS, EMPTY_TRACK, CHANNEL_INDEX, DEFAULT_CAMERA, DEFAULT_PERSPECTIVE, KF_GUARD_U, KF_GUARD_BAND, KF_EFF_MAX, DEG, DOF_K;
+var KF_CHANNELS, KF_CAMERA_CHANNELS, CHANNEL_SET, CHANNELS_BY_LENGTH, KF_CLAMPS, KF_Z_FIELD_CLAMP, KF_QUANTA, KF_BEZIER_QUANTUM, KF_BEZIER_Y_MAX, KF_MAX_KEYS, KF_MAX_CHARS, KF_MAX_TIME_MS, KF_MAX_BLUR, KF_CHARSET_RE, KF_EASE_TOKENS, KF_EASE_PRESETS, KF_HOLD_EASE, KF_DEFAULT_EASE, KF_LINEAR_EASE, KF_HOLD_CSS, EB_RE, REF_PATH_RE, KF_EASE_REF_MAX, NUM_RE3, T_RE, CSS_BEZIER_RE, EASE_TOKENS, EASE_MISS, EASE_MISSED, HOLD_INFO, PRESET_INFO, DEFAULT_INFO, EASE_INFO_CACHE, NAME_TO_TOKEN, SUBDIVIDE_EPS2, EMPTY_TRACK, CHANNEL_INDEX, DEFAULT_CAMERA, DEFAULT_PERSPECTIVE, KF_GUARD_U, KF_GUARD_BAND, KF_EFF_MAX, DEG, DOF_K;
 var init_keyframes2 = __esm({
   "engine/src/keyframes.ts"() {
     "use strict";
     init_clamp();
+    init_kf_spring();
     KF_CHANNELS = [
       "x",
       "y",
@@ -69697,7 +70014,7 @@ var init_keyframes2 = __esm({
     KF_BEZIER_QUANTUM = 1e-3;
     KF_BEZIER_Y_MAX = 10;
     KF_MAX_KEYS = 256;
-    KF_MAX_CHARS = 73728;
+    KF_MAX_CHARS = 92160;
     KF_MAX_TIME_MS = 36e5;
     KF_MAX_BLUR = 300;
     KF_CHARSET_RE = /^[A-Za-z0-9._*()-]*$/;
@@ -69717,14 +70034,23 @@ var init_keyframes2 = __esm({
     KF_LINEAR_EASE = "el";
     KF_HOLD_CSS = "hold";
     EB_RE = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
-    NUM_RE2 = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
+    REF_PATH_RE = /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*$/;
+    KF_EASE_REF_MAX = 64;
+    NUM_RE3 = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
     T_RE = /^t(-?(?:\d+(?:\.\d+)?|\.\d+))$/;
     CSS_BEZIER_RE = /^\s*cubic-bezier\(([^()]*)\)\s*$/i;
-    EASE_PTS_CACHE = /* @__PURE__ */ new Map();
+    EASE_TOKENS = /* @__PURE__ */ new Map();
+    EASE_MISSED = /* @__PURE__ */ new Set();
+    HOLD_INFO = Object.freeze({ kind: "hold" });
+    PRESET_INFO = new Map(
+      KF_EASE_TOKENS.map((tok) => [tok, Object.freeze({ kind: "bezier", pts: KF_EASE_PRESETS[tok].pts })])
+    );
+    DEFAULT_INFO = PRESET_INFO.get(KF_DEFAULT_EASE);
+    EASE_INFO_CACHE = /* @__PURE__ */ new Map();
     NAME_TO_TOKEN = new Map(
       KF_EASE_TOKENS.map((tok) => [KF_EASE_PRESETS[tok].name, tok])
     );
-    SUBDIVIDE_EPS = 1e-4;
+    SUBDIVIDE_EPS2 = 1e-4;
     EMPTY_TRACK = Object.freeze([]);
     CHANNEL_INDEX = /* @__PURE__ */ new WeakMap();
     DEFAULT_CAMERA = Object.freeze({ x: 0, y: 0, z: 0, p: 1200, f: 0, a: 0 });
@@ -69944,7 +70270,7 @@ function samplePresentInteractAuto(options2, tMs, context, flags = {}) {
     if (!next2) return { to: point3.depth, done: false, stopIndex: point3.stopIndex, paused };
     const segmentMs = duration / segments;
     if (left < segmentMs) {
-      const fraction = kfEaseAt(options2.ease, left / segmentMs);
+      const fraction = kfEaseAt(options2.ease, left / segmentMs, segmentMs);
       const to = flags.reducedMotion || point3.y === null || next2.y === null ? point3.depth : clamp3(point3.y + (next2.y - point3.y) * fraction, 0, clamp3(context.scrollMax, 0, PRESENT_INTERACT_MAX_DEPTH));
       return { to, done: false, stopIndex: point3.stopIndex, paused };
     }
@@ -70393,8 +70719,8 @@ function parseBatchCsv(text12) {
       const reserved = RESERVED_HEADERS[h.toLowerCase()];
       if (reserved === "toolId") row.toolId = raw;
       else if (reserved === "width" || reserved === "height" || reserved === "dpi") {
-        const num19 = Number(raw);
-        if (Number.isFinite(num19) && num19 > 0) row[reserved] = num19;
+        const num20 = Number(raw);
+        if (Number.isFinite(num20) && num20 > 0) row[reserved] = num20;
       } else if (reserved) row[reserved] = raw;
       else row.params[h] = raw;
     });
@@ -70818,8 +71144,8 @@ async function pipeThroughTransform(transform2, data) {
 function pickCarryFields(meta) {
   const out = {};
   for (const spec of META_CARRY_FIELDS) {
-    for (const label4 of spec.labels) {
-      const f = meta.fields.find((x) => x.label === label4);
+    for (const label5 of spec.labels) {
+      const f = meta.fields.find((x) => x.label === label5);
       if (f?.value) {
         out[spec.key] = f.value;
         break;
@@ -73147,7 +73473,7 @@ function pdfObjects(b, bin, f, budget3) {
   const endobjAt = forwardSearch(bin, "endobj"), endstreamAt = forwardSearch(bin, "endstream");
   let m2 = re.exec(bin);
   for (let guard = 0; m2 && guard < OUTPUT_MAX_STRUCTURES; guard++) {
-    const num19 = Number(m2[1]), bodyAt = m2.index + m2[0].length;
+    const num20 = Number(m2[1]), bodyAt = m2.index + m2[0].length;
     const next2 = re.exec(bin);
     const nextAt = next2 ? next2.index : bin.length;
     const endobj = endobjAt(bodyAt);
@@ -73179,7 +73505,7 @@ function pdfObjects(b, bin, f, budget3) {
         m2 = re.exec(bin);
       }
     }
-    objects.set(num19, { dict, stream });
+    objects.set(num20, { dict, stream });
     if (stream && /\/Type\s*\/ObjStm\b/.test(dict)) expandObjectStream(dict, stream, objects, f, budget3);
   }
   return objects;
@@ -73332,8 +73658,8 @@ var init_output_facts = __esm({
         else if (type === "acTL" && len2 >= 8) declaredFrames = u32be2(b, d);
         else if (type === "fcTL" && len2 >= 26) {
           fctl++;
-          const num19 = u16be2(b, d + 20), den = u16be2(b, d + 22) || 100;
-          delayMs += num19 / den * 1e3;
+          const num20 = u16be2(b, d + 20), den = u16be2(b, d + 22) || 100;
+          delayMs += num20 / den * 1e3;
         } else if (type === "tEXt" || type === "zTXt" || type === "iTXt" || type === "eXIf") meta = true;
         else if (type === "IEND") {
           ended = true;
@@ -73500,12 +73826,12 @@ var init_output_facts = __esm({
           if (lp & 128) p += 3 * (1 << (lp & 7) + 1);
           p = skipSubBlocks2(b, p + 1);
         } else if (block === 33) {
-          const label4 = b[p] ?? 0;
-          if (label4 === 249 && (b[p + 1] ?? 0) >= 4) {
+          const label5 = b[p] ?? 0;
+          if (label5 === 249 && (b[p + 1] ?? 0) >= 4) {
             transparent ||= ((b[p + 2] ?? 0) & 1) === 1;
             delayCs += u16le(b, p + 3);
-          } else if (label4 === 254) meta = true;
-          else if (label4 === 255 && latin1(b, p + 2, Math.min(b.length, p + 13)) === "XMP DataXMP") meta = true;
+          } else if (label5 === 254) meta = true;
+          else if (label5 === 255 && latin1(b, p + 2, Math.min(b.length, p + 13)) === "XMP DataXMP") meta = true;
           p = skipSubBlocks2(b, p + 1);
         } else break;
       }
@@ -73591,10 +73917,10 @@ var init_output_facts = __esm({
       f.hdr = unknown("not-computable");
       const xres = tags3.get(282);
       if (xres && xres.type === 5) {
-        const off = u327(xres.at), num19 = u327(off), den = u327(off + 4) || 1;
+        const off = u327(xres.at), num20 = u327(off), den = u327(off + 4) || 1;
         const unit2 = value2(296) ?? 2;
-        if (num19 > 0 && unit2 !== 1) {
-          f.dpi = known(round2(unit2 === 3 ? num19 / den * 2.54 : num19 / den));
+        if (num20 > 0 && unit2 !== 1) {
+          f.dpi = known(round2(unit2 === 3 ? num20 / den * 2.54 : num20 / den));
           f.basis.dpi = "tiff.XResolution";
         } else f.dpi = unknown("not-set");
       } else f.dpi = unknown("not-set");
@@ -73899,13 +74225,13 @@ var init_output_facts = __esm({
       const rootNum = catalog ? ref(catalog.dict, "Pages") : null;
       const sizes = [];
       let complete = rootNum !== null;
-      const visit = (num19, inherited3, depth, seen) => {
-        const node = objects.get(num19);
-        if (!node || seen.has(num19) || depth > 64 || sizes.length >= 1e4) {
+      const visit = (num20, inherited3, depth, seen) => {
+        const node = objects.get(num20);
+        if (!node || seen.has(num20) || depth > 64 || sizes.length >= 1e4) {
           complete = false;
           return;
         }
-        seen.add(num19);
+        seen.add(num20);
         const media = boxOf2(node.dict, "MediaBox", objects) ?? inherited3;
         if (/\/Type\s*\/Pages\b/.test(node.dict)) {
           const kids2 = arrayAfter(node.dict, "Kids") ?? "";
@@ -74042,12 +74368,12 @@ function check(c, row) {
   c.checks.push(row);
   if (row.state !== "unchecked" || !row.requested.known) return;
   const why = row.actual.known ? "not-computable" : row.actual.why;
-  const label4 = LABEL[row.property] ?? row.property;
+  const label5 = LABEL[row.property] ?? row.property;
   c.findings.push({
     id: "output.unverified",
     severity: "info",
     needs: why,
-    message: why === "not-computable" ? `This file does not record its ${label4}, so the request was not compared.` : `The ${label4} could not be read from the file, so the request was not compared.`,
+    message: why === "not-computable" ? `This file does not record its ${label5}, so the request was not compared.` : `The ${label5} could not be read from the file, so the request was not compared.`,
     evidence: { property: row.property, basis: row.basis }
   });
 }
@@ -74131,7 +74457,7 @@ async function verifyExport(request2, bytes2) {
     statements: EXPORT_REPORT_STATEMENTS
   };
 }
-var PAGE_FORMATS, VIDEO_FORMATS, PIXEL_FORMATS, ENCRYPTABLE_FORMATS, DPI_CONTAINERS, EXPORT_REPORT_STATEMENTS, isDim2, isNum, known2, notSet, asValue, num6, seconds, LABEL, listable, checkFormat, checkBytes, checkSize, checkPages, checkDpi, checkTiming, checkAlpha, checkColour, checkIcc, checkHdr, checkMetadata, checkCredential, checkEncryption, checkFonts, checkNature, CHECKS2;
+var PAGE_FORMATS, VIDEO_FORMATS, PIXEL_FORMATS, ENCRYPTABLE_FORMATS, DPI_CONTAINERS, EXPORT_REPORT_STATEMENTS, isDim2, isNum, known2, notSet, asValue, num7, seconds, LABEL, listable, checkFormat, checkBytes, checkSize, checkPages, checkDpi, checkTiming, checkAlpha, checkColour, checkIcc, checkHdr, checkMetadata, checkCredential, checkEncryption, checkFonts, checkNature, CHECKS2;
 var init_preflight_output = __esm({
   "engine/src/preflight-output.ts"() {
     "use strict";
@@ -74159,8 +74485,8 @@ var init_preflight_output = __esm({
     known2 = (value2) => ({ known: true, value: value2 });
     notSet = { known: false, why: "not-set" };
     asValue = (f) => f;
-    num6 = (n8) => String(Math.round(n8 * 100) / 100);
-    seconds = (ms) => `${num6(ms / 1e3)} s`;
+    num7 = (n8) => String(Math.round(n8 * 100) / 100);
+    seconds = (ms) => `${num7(ms / 1e3)} s`;
     LABEL = {
       format: "container format",
       bytes: "file size",
@@ -74221,15 +74547,15 @@ var init_preflight_output = __esm({
       }
     };
     checkSize = (c) => {
-      const { req, fmt: fmt4, facts: facts2 } = c;
+      const { req, fmt: fmt5, facts: facts2 } = c;
       const size = req.size;
       const skip = req.archive ? "The file is a ZIP of several outputs, so the requested size was not compared with it." : isNum(req.boards) && req.boards > 1 ? "The requested size describes one board and this export holds several, so it was not compared." : void 0;
       const physicalRequest = !!size && size.width.unit !== "px";
       const page3 = facts2.page;
-      const sheet = size && PRINT_MARK_FORMATS.has(fmt4) ? printSheet(req, size) : null;
-      const svgAsPage = fmt4 === "svg" && !!size && (physicalRequest || page3.known && page3.value.box !== "svg-root");
+      const sheet = size && PRINT_MARK_FORMATS.has(fmt5) ? printSheet(req, size) : null;
+      const svgAsPage = fmt5 === "svg" && !!size && (physicalRequest || page3.known && page3.value.box !== "svg-root");
       let pixels2 = null;
-      if (size && PIXEL_FORMATS.has(fmt4)) {
+      if (size && PIXEL_FORMATS.has(fmt5)) {
         if (sheet) {
           const dpi = physicalRequest ? size.dpi : CSS_DPI;
           const sheetPx = (pt) => Math.max(1, Math.round(pt * dpi / 72));
@@ -74237,11 +74563,11 @@ var init_preflight_output = __esm({
         } else {
           pixels2 = [toPixels(size.width, size.dpi), toPixels(size.height, size.dpi)];
         }
-      } else if (size && fmt4 === "svg" && !svgAsPage) {
+      } else if (size && fmt5 === "svg" && !svgAsPage) {
         pixels2 = [size.width.value, size.height.value];
       }
-      if (PIXEL_FORMATS.has(fmt4) || fmt4 === "svg" || facts2.width.known) {
-        const withSheet = !!sheet && PIXEL_FORMATS.has(fmt4);
+      if (PIXEL_FORMATS.has(fmt5) || fmt5 === "svg" || facts2.width.known) {
+        const withSheet = !!sheet && PIXEL_FORMATS.has(fmt5);
         sizePair(
           c,
           ["width", "height"],
@@ -74249,12 +74575,12 @@ var init_preflight_output = __esm({
           [facts2.width, facts2.height],
           facts2.basis.width ?? "pixel-size",
           1,
-          (a, e) => withSheet ? `The file is ${num6(a[0])} x ${num6(a[1])} pixels; ${num6(e[0])} x ${num6(e[1])} was expected for the requested size with its bleed and marks.` : `The file is ${num6(a[0])} x ${num6(a[1])} pixels; ${num6(e[0])} x ${num6(e[1])} was requested.`,
+          (a, e) => withSheet ? `The file is ${num7(a[0])} x ${num7(a[1])} pixels; ${num7(e[0])} x ${num7(e[1])} was expected for the requested size with its bleed and marks.` : `The file is ${num7(a[0])} x ${num7(a[1])} pixels; ${num7(e[0])} x ${num7(e[1])} was requested.`,
           "output.size-differs",
           pixels2 ? skip : void 0
         );
       }
-      const pageWanted = !!size && (PAGE_FORMATS.has(fmt4) || svgAsPage);
+      const pageWanted = !!size && (PAGE_FORMATS.has(fmt5) || svgAsPage);
       if (!pageWanted && !page3.known) return;
       let expected = null;
       let againstSheet = false;
@@ -74268,7 +74594,7 @@ var init_preflight_output = __esm({
       const pw = page3.known ? { known: true, value: page3.value.width } : page3;
       const ph = page3.known ? { known: true, value: page3.value.height } : page3;
       const unit2 = size && size.width.unit !== "px" ? size.width.unit : "pt";
-      const inUnit = (pt) => unit2 === "mm" ? num6(pt / 72 * 25.4) : unit2 === "cm" ? num6(pt / 72 * 2.54) : unit2 === "in" ? num6(pt / 72) : num6(pt);
+      const inUnit = (pt) => unit2 === "mm" ? num7(pt / 72 * 25.4) : unit2 === "cm" ? num7(pt / 72 * 2.54) : unit2 === "in" ? num7(pt / 72) : num7(pt);
       const unitLabel = unit2 === "mm" || unit2 === "cm" || unit2 === "in" ? unit2 : "pt";
       sizePair(
         c,
@@ -74302,8 +74628,8 @@ var init_preflight_output = __esm({
       }
     };
     checkDpi = (c) => {
-      const { req, facts: facts2, fmt: fmt4 } = c;
-      const want = req.size && req.size.width.unit !== "px" && PIXEL_FORMATS.has(fmt4) && !VIDEO_FORMATS.has(fmt4) && !req.archive ? req.size.dpi : void 0;
+      const { req, facts: facts2, fmt: fmt5 } = c;
+      const want = req.size && req.size.width.unit !== "px" && PIXEL_FORMATS.has(fmt5) && !VIDEO_FORMATS.has(fmt5) && !req.archive ? req.size.dpi : void 0;
       const got = facts2.dpi;
       const requested = want === void 0 ? notSet : known2(want);
       if (!listable(requested, got)) return;
@@ -74316,17 +74642,17 @@ var init_preflight_output = __esm({
       const state = want === void 0 ? "reported" : !got.known ? "unchecked" : Math.abs(got.value - want) <= 0.5 ? "match" : "differs";
       check(c, { property: "dpi", requested, actual: asValue(got), state, basis: facts2.basis.dpi ?? "resolution", ...want === void 0 ? {} : { tolerance: 0.5 } });
       if (state === "differs" && got.known) {
-        c.findings.push({ id: "output.dpi-differs", severity: "warn", message: `The file records ${num6(got.value)} DPI; ${want} was requested, so it will be placed at a different physical size.`, evidence: { actual: got.value, expected: want } });
+        c.findings.push({ id: "output.dpi-differs", severity: "warn", message: `The file records ${num7(got.value)} DPI; ${want} was requested, so it will be placed at a different physical size.`, evidence: { actual: got.value, expected: want } });
       }
     };
     checkTiming = (c) => {
-      const { req, facts: facts2, fmt: fmt4 } = c;
-      const timed = MOTION_FORMATS.has(fmt4) || fmt4 === "webp-anim";
+      const { req, facts: facts2, fmt: fmt5 } = c;
+      const timed = MOTION_FORMATS.has(fmt5) || fmt5 === "webp-anim";
       const want = timed && isNum(req.durationMs) && req.durationMs > 0 && !req.archive ? req.durationMs : void 0;
       const got = facts2.durationMs;
       const requested = want === void 0 ? notSet : known2(want);
       if (listable(requested, got)) {
-        const tolerance = want === void 0 ? 0 : VIDEO_FORMATS.has(fmt4) ? Math.max(120, want * 0.02) : Math.max(250, want * 0.1);
+        const tolerance = want === void 0 ? 0 : VIDEO_FORMATS.has(fmt5) ? Math.max(120, want * 0.02) : Math.max(250, want * 0.1);
         const state2 = want === void 0 ? "reported" : !got.known ? "unchecked" : Math.abs(got.value - want) <= tolerance ? "match" : "differs";
         check(c, { property: "duration", requested, actual: asValue(got), state: state2, basis: facts2.basis.durationMs ?? "timing", ...want === void 0 ? {} : { tolerance: Math.round(tolerance) } });
         if (state2 === "differs" && got.known) {
@@ -75763,26 +76089,26 @@ var init_svg_layers = __esm({
 function budgetError(message) {
   throw new RangeError(`zzfxm: ${message}`);
 }
-function instrumentSampleCount(params2, label4) {
-  if (params2.length > ZZFXM_MAX_INSTRUMENT_PARAMS) budgetError(`${label4} has too many parameters`);
+function instrumentSampleCount(params2, label5) {
+  if (params2.length > ZZFXM_MAX_INSTRUMENT_PARAMS) budgetError(`${label5} has too many parameters`);
   for (let i = 0; i < params2.length; i++) {
     const value2 = params2[i];
     if (value2 === void 0) continue;
     if (typeof value2 !== "number" || !Number.isFinite(value2) || Math.abs(value2) > ZZFXM_MAX_NUMERIC_MAGNITUDE) {
-      budgetError(`${label4} has an invalid parameter`);
+      budgetError(`${label5} has an invalid parameter`);
     }
   }
   const duration = (index2, fallback = 0) => {
     const value2 = params2[index2] ?? fallback;
     if (typeof value2 !== "number" || !Number.isFinite(value2) || value2 < 0) {
-      budgetError(`${label4} has an invalid envelope duration`);
+      budgetError(`${label5} has an invalid envelope duration`);
     }
     return value2;
   };
   const seconds2 = duration(3) + duration(18) + duration(4) + duration(5, 0.1) + duration(16);
   const samples = Math.ceil(seconds2 * zzfxR);
   if (!Number.isSafeInteger(samples) || samples > ZZFXM_MAX_SYNTH_SAMPLES) {
-    budgetError(`${label4} exceeds the ${ZZFXM_MAX_SYNTH_SAMPLES}-sample synth limit`);
+    budgetError(`${label5} exceeds the ${ZZFXM_MAX_SYNTH_SAMPLES}-sample synth limit`);
   }
   return samples;
 }
@@ -77849,13 +78175,13 @@ function chatStructure(text12) {
     }
     if (inFence || line.length > 2e3) return;
     if (/^\s*\d{1,2}[.)]\s/u.test(line)) numberedLine[i] = true;
-    const label4 = CHAT_LABEL_LINE.exec(line);
-    if (label4) {
-      const name = label4[2].trim();
-      const after = label4[3].trim();
+    const label5 = CHAT_LABEL_LINE.exec(line);
+    if (label5) {
+      const name = label5[2].trim();
+      const after = label5[3].trim();
       const words4 = after.split(/\s+/u).filter((w) => new RegExp("\\p{L}", "u").test(w)).length;
       if (!CHAT_LABEL_STOP.test(name) && !CHAT_LABEL_STOP_WORD.test(name) && words4 >= 4 && !/^(?:[`<{[(]|https?:)/u.test(after)) {
-        const from = label4[1] ? line.indexOf(label4[1]) : line.indexOf(name);
+        const from = label5[1] ? line.indexOf(label5[1]) : line.indexOf(name);
         const colon = line.indexOf(":", line.indexOf(name) + name.length);
         const close = /^(?:\*\*|__)/u.test(line.slice(colon + 1)) ? 2 : 0;
         labelSpans.push({ index: start + from, length: colon + 1 + close - from });
@@ -78560,14 +78886,14 @@ var init_text_facts = __esm({
 function humanizeText(input) {
   let text12 = input;
   const changes = [];
-  const apply4 = (re, repl, kind, label4) => {
+  const apply4 = (re, repl, kind, label5) => {
     const g2 = re.flags.includes("g") ? re : new RegExp(re.source, `${re.flags}g`);
     let n8 = 0;
     text12 = text12.replace(g2, () => {
       n8 += 1;
       return repl;
     });
-    if (n8 > 0) changes.push({ kind, label: label4, count: n8 });
+    if (n8 > 0) changes.push({ kind, label: label5, count: n8 });
   };
   let fpCount = 0;
   const fpModels = /* @__PURE__ */ new Set();
@@ -78593,11 +78919,11 @@ function humanizeText(input) {
     parts.push(text12.slice(cursor));
     text12 = parts.join("");
   }
-  for (const [kind, label4, count4] of [
+  for (const [kind, label5, count4] of [
     ["invisible", "Invisible / zero-width characters", hidden4.invisible.length],
     ["tag-char", "Hidden tag characters", hidden4.tags.length],
     ["variation", "Unusual variation selectors", hidden4.variations.length]
-  ]) if (count4) changes.push({ kind, label: label4, count: count4 });
+  ]) if (count4) changes.push({ kind, label: label5, count: count4 });
   apply4(/[\u202d\u202e]/g, "", "bidi", "Bidirectional override characters");
   apply4(/\u2014/g, " - ", "em-dash", 'Em-dashes to " - "');
   apply4(/(?<!\d)\s*–\s*(?!\d)/g, " - ", "en-dash", 'En-dashes to " - "');
@@ -79477,13 +79803,13 @@ function midiToSong(parsed, opts = {}) {
   if (!notes.length) throw new Error("no notes in MIDI");
   if (!division || division & 32768) throw new Error("unsupported MIDI time division (SMPTE)");
   const stepTicks = division / stepsPerQuarter;
-  const quant3 = (tick) => Math.round(tick / stepTicks);
+  const quant4 = (tick) => Math.round(tick / stepTicks);
   const minMidi = notes.reduce((m2, n8) => Math.min(m2, n8.midi), Infinity);
   const K4 = minMidi - 1;
   const baseFreq = 440 * 2 ** ((K4 - 57) / 12);
   const piano = [...PIANO];
   piano[2] = baseFreq;
-  const events = notes.map((n8) => ({ s: quant3(n8.start), e: Math.max(quant3(n8.start) + 1, quant3(n8.end)), z: n8.midi - K4 })).filter((ev) => ev.s < MIDI_MAX_STEPS).sort((a, b) => a.s - b.s || b.z - a.z);
+  const events = notes.map((n8) => ({ s: quant4(n8.start), e: Math.max(quant4(n8.start) + 1, quant4(n8.end)), z: n8.midi - K4 })).filter((ev) => ev.s < MIDI_MAX_STEPS).sort((a, b) => a.s - b.s || b.z - a.z);
   if (!events.length) throw new Error("no notes in MIDI");
   const totalSteps = Math.min(events.reduce((m2, e) => Math.max(m2, e.e), 1), MIDI_MAX_STEPS);
   const voiceEnd = [];
@@ -82871,10 +83197,10 @@ function expandTable(row, pointer2, guard) {
     }
     return { offset: { x: 0, y: 0 }, templates: [checkTemplate(col, cp)], composite: false, pointerOf: () => cp };
   });
-  const label4 = t.label === void 0 ? void 0 : [checkTemplate(t.label, `${p}/label`)];
+  const label5 = t.label === void 0 ? void 0 : [checkTemplate(t.label, `${p}/label`)];
   if (!Array.isArray(t.rows)) throw new Error(`${p}/rows: expected an array of rows.`);
   const divider = checkDivider(t.divider, `${p}/divider`, "y");
-  const spans = [...label4 ? [{ offset: { x: 0, y: 0 }, templates: label4 }] : [], ...columns].flatMap((col) => col.templates.map((tpl) => {
+  const spans = [...label5 ? [{ offset: { x: 0, y: 0 }, templates: label5 }] : [], ...columns].flatMap((col) => col.templates.map((tpl) => {
     const left = col.offset.x + (Number(tpl.x) || 0);
     return { left, right: tpl.w === void 0 ? NaN : left + Number(tpl.w) };
   }));
@@ -82894,7 +83220,7 @@ function expandTable(row, pointer2, guard) {
       cellsPointer = `${rp}/cells`;
     } else throw new Error(`${rp}: a row is an array of cells, or an object with label and cells.`);
     if (cells.length > columns.length) throw new Error(`${cellsPointer}/${columns.length}: the row has ${cells.length} cells for ${columns.length} columns.`);
-    if (labelValue !== void 0 && !label4) throw new Error(`${rp}/label: the table has no label template.`);
+    if (labelValue !== void 0 && !label5) throw new Error(`${rp}/label: the table has no label template.`);
     const origin = { x, y: y + r5 * pitch };
     if (divider && r5 > 0) {
       const dp = `${p}/divider`;
@@ -82904,9 +83230,9 @@ function expandTable(row, pointer2, guard) {
       const y0 = origin.y + optionalNumber(divider.dy, `${dp}/dy`, 0);
       out.push(dividerRow(divider, dp, macroId, row.$in, { i: r5, r: r5 }, { x: x0, y: y0 }, { x: x0 + len2, y: y0 }));
     }
-    if (label4) {
+    if (label5) {
       out.push(...slotRows(
-        label4,
+        label5,
         () => `${p}/label`,
         () => labelValue === void 0 ? void 0 : { value: labelValue, pointer: `${rp}/label` },
         { i: r5, r: r5 },
@@ -83769,7 +84095,7 @@ var init_eps = __esm({
 });
 
 // engine/src/dxf.ts
-function num7(v) {
+function num8(v) {
   if (!Number.isFinite(v)) return "0.0";
   let r5 = Math.round(v * 1e4) / 1e4;
   if (Object.is(r5, -0)) r5 = 0;
@@ -83853,8 +84179,8 @@ function emitDxf(ir, opts = {}) {
       for (const p of pts) {
         g(ent, 0, "VERTEX");
         g(ent, 8, "0");
-        g(ent, 10, num7(MX(p.x)));
-        g(ent, 20, num7(MY(p.y)));
+        g(ent, 10, num8(MX(p.x)));
+        g(ent, 20, num8(MY(p.y)));
         g(ent, 30, "0.0");
       }
       g(ent, 0, "SEQEND");
@@ -83873,8 +84199,8 @@ function emitDxf(ir, opts = {}) {
   g(out, 20, "0.0");
   g(out, 30, "0.0");
   g(out, 9, "$EXTMAX");
-  g(out, 10, num7(Wmm));
-  g(out, 20, num7(Hmm));
+  g(out, 10, num8(Wmm));
+  g(out, 20, num8(Hmm));
   g(out, 30, "0.0");
   g(out, 0, "ENDSEC");
   g(out, 0, "SECTION");
@@ -88138,13 +88464,13 @@ function breakLiteralRuns(text12, weight) {
 function separator(weight) {
   return `{w${weight}|}`;
 }
-function serialiseSegment(text12, fmt4, rowWeight, lineStart) {
-  const emphasis = fmt4.bold && fmt4.italic ? "***" : fmt4.bold ? "**" : fmt4.italic ? "*" : "";
-  const weight = fmt4.bold ? 700 : rowWeight;
+function serialiseSegment(text12, fmt5, rowWeight, lineStart) {
+  const emphasis = fmt5.bold && fmt5.italic ? "***" : fmt5.bold ? "**" : fmt5.italic ? "*" : "";
+  const weight = fmt5.bold ? 700 : rowWeight;
   const attrs = [];
-  if (fmt4.color) attrs.push(fmt4.color);
-  if (fmt4.underline) attrs.push("u");
-  if (fmt4.strike) attrs.push("s");
+  if (fmt5.color) attrs.push(fmt5.color);
+  if (fmt5.underline) attrs.push("u");
+  if (fmt5.strike) attrs.push("s");
   const m2 = /^(\s*)([\s\S]*?)(\s*)$/.exec(text12);
   const lead = m2?.[1] ?? "";
   const core = m2?.[2] ?? text12;
@@ -88189,14 +88515,14 @@ function serialiseRuns(runs2, formatOf, rowWeight) {
   const lines = [[]];
   for (const run3 of runs2) {
     const parts = run3.text.replace(/\r\n?/g, "\n").split("\n");
-    const fmt4 = formatOf(run3);
+    const fmt5 = formatOf(run3);
     parts.forEach((text12, k) => {
       if (k > 0) lines.push([]);
       if (!text12) return;
       const segments = lines[lines.length - 1];
       const last = segments[segments.length - 1];
-      if (last && sameFormat(last.fmt, fmt4)) last.text += text12;
-      else segments.push({ text: text12, fmt: fmt4 });
+      if (last && sameFormat(last.fmt, fmt5)) last.text += text12;
+      else segments.push({ text: text12, fmt: fmt5 });
     });
   }
   return lines.map((segments) => {
@@ -88513,7 +88839,7 @@ function bulletsOf(node) {
 function cellOf(v) {
   return flatten2(str4(v)).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").trim();
 }
-function tableOf(node) {
+function tableOf2(node) {
   const rows2 = (Array.isArray(node.rows) ? node.rows : []).filter(Array.isArray).slice(0, MAX_TABLE_ROWS3);
   if (!rows2.length) return "";
   let cols = 0;
@@ -88571,7 +88897,7 @@ function deckToMarkdown(deck) {
         const bullets = bulletsOf(node);
         if (bullets) blocks.push(bullets);
       } else if (node.type === "table") {
-        const table = tableOf(node);
+        const table = tableOf2(node);
         if (table) blocks.push(table);
       } else if (node.type === "pic") {
         const path = str4(node.media);
@@ -89070,9 +89396,9 @@ function readNumbering(store, parseXml) {
     abstract.set(id3, lvls);
     if (abstract.size > MAX_STYLES) break;
   }
-  for (const num19 of childrenByLocal2(doc.documentElement, "num")) {
-    const numId = attrByLocal2(num19, "numId");
-    const absId = valOf(firstChildByLocal2(num19, "abstractNumId"));
+  for (const num20 of childrenByLocal2(doc.documentElement, "num")) {
+    const numId = attrByLocal2(num20, "numId");
+    const absId = valOf(firstChildByLocal2(num20, "abstractNumId"));
     if (!numId || absId == null) continue;
     const lvls = abstract.get(absId);
     if (lvls) byNumId.set(numId, lvls);
@@ -89287,15 +89613,15 @@ function readParagraph(p, ctx, depth) {
   collectInlines(p, ctx, depth, images, inlines);
   const styleId = valOf(firstChildByLocal2(pPr, "pStyle"));
   const level2 = headingLevel(styleId, pPr, ctx);
-  const num19 = level2 > 0 ? null : readNumPr(pPr);
+  const num20 = level2 > 0 ? null : readNumPr(pPr);
   const text12 = hasText(inlines);
-  if (num19 && text12) {
-    const lvls = ctx.numbering.get(num19.numId);
-    const ordered = lvls?.get(num19.ilvl) ?? lvls?.get(0) ?? false;
+  if (num20 && text12) {
+    const lvls = ctx.numbering.get(num20.numId);
+    const ordered = lvls?.get(num20.ilvl) ?? lvls?.get(0) ?? false;
     if (ctx.openList && ctx.openList.ordered === ordered) {
-      ctx.openList.items.push({ level: num19.ilvl, inlines });
+      ctx.openList.items.push({ level: num20.ilvl, inlines });
     } else {
-      const items2 = [{ level: num19.ilvl, inlines }];
+      const items2 = [{ level: num20.ilvl, inlines }];
       ctx.openList = { ordered, items: items2 };
       pushBlock(ctx, { type: "list", ordered, items: items2 });
     }
@@ -89581,8 +89907,8 @@ var init_docx_read = __esm({
     MAX_RELS = 1e5;
     ELEMENT_NODE3 = 1;
     valOf = (el) => attrByLocal2(el, "val");
-    isOrderedFmt = (fmt4) => {
-      const f = fmt4.trim().toLowerCase();
+    isOrderedFmt = (fmt5) => {
+      const f = fmt5.trim().toLowerCase();
       return f !== "" && f !== "bullet" && f !== "none";
     };
     MAX_CORE_PROP_LEN2 = 2048;
@@ -89885,10 +90211,10 @@ function locateRecords(bytes2) {
         if (seen.has(absoluteAt)) continue;
         let end = -1;
         const nextTag = bin.indexOf("<", at + needle.length);
-        const limit2 = Math.min(at + SEAL_MAX_RECORD_CHARS, bin.length);
+        const limit3 = Math.min(at + SEAL_MAX_RECORD_CHARS, bin.length);
         for (const term of TERMINATORS) {
           const t = bin.indexOf(term, at + needle.length);
-          if (t < 0 || t >= limit2) continue;
+          if (t < 0 || t >= limit3) continue;
           if (nextTag >= 0 && nextTag < t && !needle.startsWith("&")) continue;
           const e = t + term.length;
           if (end < 0 || e < end) end = e;
@@ -90363,12 +90689,12 @@ function chunk(type, data) {
   writeU323(out, 8 + data.length, crc32(out.subarray(4, 8 + data.length)));
   return out;
 }
-function parsePng(bytes2, label4) {
+function parsePng(bytes2, label5) {
   if (!(bytes2 instanceof Uint8Array)) {
-    throw new Error(`packApng: ${label4} is not a Uint8Array`);
+    throw new Error(`packApng: ${label5} is not a Uint8Array`);
   }
   for (let i = 0; i < 8; i++) {
-    if (bytes2[i] !== PNG_SIG2[i]) throw new Error(`packApng: ${label4} has a bad PNG signature`);
+    if (bytes2[i] !== PNG_SIG2[i]) throw new Error(`packApng: ${label5} has a bad PNG signature`);
   }
   const chunks = [];
   let off = 8;
@@ -90376,16 +90702,16 @@ function parsePng(bytes2, label4) {
     const len2 = readU323(bytes2, off);
     const type = String.fromCharCode(bytes2[off + 4], bytes2[off + 5], bytes2[off + 6], bytes2[off + 7]);
     const end = off + 12 + len2;
-    if (end > bytes2.length) throw new Error(`packApng: ${label4} is truncated inside a ${type} chunk`);
+    if (end > bytes2.length) throw new Error(`packApng: ${label5} is truncated inside a ${type} chunk`);
     chunks.push({ type, data: bytes2.subarray(off + 8, off + 8 + len2) });
     off = end;
     if (type === "IEND") break;
   }
   if (!chunks.length || chunks[0].type !== "IHDR" || chunks[0].data.length !== 13) {
-    throw new Error(`packApng: ${label4} does not start with a valid IHDR chunk`);
+    throw new Error(`packApng: ${label5} does not start with a valid IHDR chunk`);
   }
   if (chunks[chunks.length - 1].type !== "IEND") {
-    throw new Error(`packApng: ${label4} has no IEND chunk`);
+    throw new Error(`packApng: ${label5} has no IEND chunk`);
   }
   return chunks;
 }
@@ -90412,15 +90738,15 @@ function packApng(frames, opts = {}) {
   let seq = 0;
   const fctl = (frameIndex) => {
     const raw = Array.isArray(delayMs) ? delayMs[frameIndex] : delayMs;
-    const num19 = Number.isFinite(raw) && raw >= 0 ? Math.min(65535, Math.round(raw)) : 67;
+    const num20 = Number.isFinite(raw) && raw >= 0 ? Math.min(65535, Math.round(raw)) : 67;
     const d = new Uint8Array(26);
     writeU323(d, 0, seq++);
     writeU323(d, 4, width);
     writeU323(d, 8, height);
     writeU323(d, 12, 0);
     writeU323(d, 16, 0);
-    d[20] = num19 >>> 8 & 255;
-    d[21] = num19 & 255;
+    d[20] = num20 >>> 8 & 255;
+    d[21] = num20 & 255;
     d[22] = 1e3 >>> 8 & 255;
     d[23] = 1e3 & 255;
     d[24] = 0;
@@ -90537,9 +90863,9 @@ function concat3(parts) {
   }
   return out;
 }
-function delayToMs(num19, den) {
+function delayToMs(num20, den) {
   const d = den === 0 ? 100 : den;
-  return num19 / d * 1e3;
+  return num20 / d * 1e3;
 }
 function demuxApng(bytes2) {
   if (!(bytes2 instanceof Uint8Array)) throw new Error("demuxApng: input is not a Uint8Array");
@@ -90654,10 +90980,10 @@ function demuxApng(bytes2) {
   }
   return { width: canvasWidth, height: canvasHeight, loops, frames: out };
 }
-function validateGeometry(width, height, label4) {
+function validateGeometry(width, height, label5) {
   if (width < 1 || height < 1 || width > APNG_DEMUX_MAX_DIM || height > APNG_DEMUX_MAX_DIM || width * height > APNG_DEMUX_MAX_PIXELS) {
     throw new Error(
-      `demuxApng: ${label4} ${width}x${height} exceeds ${APNG_DEMUX_MAX_DIM} per side / ${APNG_DEMUX_MAX_PIXELS} pixels`
+      `demuxApng: ${label5} ${width}x${height} exceeds ${APNG_DEMUX_MAX_DIM} per side / ${APNG_DEMUX_MAX_PIXELS} pixels`
     );
   }
 }
@@ -90702,12 +91028,12 @@ function chunk3(fourcc4, payload) {
   out.set(payload, 8);
   return out;
 }
-function parseStillWebp(bytes2, label4) {
+function parseStillWebp(bytes2, label5) {
   const fourcc4 = (o) => String.fromCharCode(bytes2[o], bytes2[o + 1], bytes2[o + 2], bytes2[o + 3]);
   const u327 = (o) => (bytes2[o] | bytes2[o + 1] << 8 | bytes2[o + 2] << 16 | bytes2[o + 3] << 24) >>> 0;
   const u24 = (o) => bytes2[o] | bytes2[o + 1] << 8 | bytes2[o + 2] << 16;
   if (bytes2.length < 12 || fourcc4(0) !== "RIFF" || fourcc4(8) !== "WEBP") {
-    throw new Error(`packWebpAnim: ${label4} is not a WebP (bad RIFF/WEBP signature)`);
+    throw new Error(`packWebpAnim: ${label5} is not a WebP (bad RIFF/WEBP signature)`);
   }
   const imageChunks = [];
   let hasAlpha3 = false, width = 0, height = 0, sawImage = false;
@@ -90716,7 +91042,7 @@ function parseStillWebp(bytes2, label4) {
     const cc = fourcc4(p);
     const size = u327(p + 4);
     const full = 8 + size + (size & 1);
-    if (p + 8 + size > bytes2.length) throw new Error(`packWebpAnim: ${label4} truncated in ${cc}`);
+    if (p + 8 + size > bytes2.length) throw new Error(`packWebpAnim: ${label5} truncated in ${cc}`);
     const q = p + 8;
     if (cc === "VP8X") {
       if (bytes2[q] & 16) hasAlpha3 = true;
@@ -90744,7 +91070,7 @@ function parseStillWebp(bytes2, label4) {
     }
     p += full;
   }
-  if (!sawImage) throw new Error(`packWebpAnim: ${label4} has no VP8/VP8L image data`);
+  if (!sawImage) throw new Error(`packWebpAnim: ${label5} has no VP8/VP8L image data`);
   return { chunks: concatBytes(imageChunks), hasAlpha: hasAlpha3, width, height };
 }
 function packWebpAnim(frames, opts = {}) {
@@ -90935,10 +91261,10 @@ function demuxWebpAnim(bytes2) {
   }
   return { width, height, loops, frames };
 }
-function validateGeometry2(width, height, label4) {
+function validateGeometry2(width, height, label5) {
   if (width < 1 || height < 1 || width > WEBP_DEMUX_MAX_DIM || height > WEBP_DEMUX_MAX_DIM || width * height > WEBP_DEMUX_MAX_PIXELS) {
     throw new Error(
-      `demuxWebpAnim: ${label4} ${width}x${height} exceeds ${WEBP_DEMUX_MAX_DIM} per side / ${WEBP_DEMUX_MAX_PIXELS} pixels`
+      `demuxWebpAnim: ${label5} ${width}x${height} exceeds ${WEBP_DEMUX_MAX_DIM} per side / ${WEBP_DEMUX_MAX_PIXELS} pixels`
     );
   }
 }
@@ -90993,7 +91319,7 @@ function packTiff(pixels2, opts = { width: 0, height: 0 }) {
   const description = opts.description ?? meta.description;
   const enc6 = new TextEncoder();
   const entries = [];
-  const num19 = (tag3, type, n8) => entries.push({ tag: tag3, type, count: 1, n: n8 });
+  const num20 = (tag3, type, n8) => entries.push({ tag: tag3, type, count: 1, n: n8 });
   const asciiTag = (tag3, s) => {
     if (!s) return;
     const a = enc6.encode(String(s));
@@ -91014,19 +91340,19 @@ function packTiff(pixels2, opts = { width: 0, height: 0 }) {
     return d;
   };
   const res = Math.max(1, Math.round(opts.dpi || 72));
-  num19(256, LONG, W);
-  num19(257, LONG, H);
+  num20(256, LONG, W);
+  num20(257, LONG, H);
   entries.push({ tag: 258, type: SHORT, count: spp, data: bps });
-  num19(259, SHORT, 1);
-  num19(262, SHORT, photometric);
+  num20(259, SHORT, 1);
+  num20(262, SHORT, photometric);
   asciiTag(270, description);
-  num19(273, LONG, 0);
-  num19(277, SHORT, spp);
-  num19(278, LONG, H);
-  num19(279, LONG, stripBytes);
+  num20(273, LONG, 0);
+  num20(277, SHORT, spp);
+  num20(278, LONG, H);
+  num20(279, LONG, stripBytes);
   entries.push({ tag: 282, type: RATIONAL, count: 1, data: rational(res, 1) });
   entries.push({ tag: 283, type: RATIONAL, count: 1, data: rational(res, 1) });
-  num19(296, SHORT, 2);
+  num20(296, SHORT, 2);
   asciiTag(305, meta.software);
   asciiTag(315, meta.author);
   if (depth !== 8) {
@@ -91811,11 +92137,11 @@ function padTo5122(n8) {
   return Math.ceil(n8 / BLOCK4) * BLOCK4;
 }
 function readLimit2(value2, fallback, name) {
-  const limit2 = value2 ?? fallback;
-  if (!Number.isSafeInteger(limit2) || limit2 < 0) {
+  const limit3 = value2 ?? fallback;
+  if (!Number.isSafeInteger(limit3) || limit3 < 0) {
     throw new Error(`readTar: ${name} must be a non-negative safe integer`);
   }
-  return limit2;
+  return limit3;
 }
 function isZeroBlock(bytes2, off) {
   for (let i = 0; i < BLOCK4; i++) {
@@ -91830,16 +92156,16 @@ function readName(bytes2, off) {
 }
 function readCString(bytes2, off, len2) {
   let end = off;
-  const limit2 = off + len2;
-  while (end < limit2 && bytes2[end] !== 0) end++;
+  const limit3 = off + len2;
+  while (end < limit3 && bytes2[end] !== 0) end++;
   return new TextDecoder().decode(bytes2.subarray(off, end));
 }
 function parseOctal(bytes2, off, len2) {
   let i = off;
-  const limit2 = off + len2;
-  while (i < limit2 && (bytes2[i] === 32 || bytes2[i] === 0)) i++;
+  const limit3 = off + len2;
+  while (i < limit3 && (bytes2[i] === 32 || bytes2[i] === 0)) i++;
   let value2 = 0;
-  for (; i < limit2; i++) {
+  for (; i < limit3; i++) {
     const c = bytes2[i];
     if (c === 32 || c === 0) break;
     if (c < 48 || c > 55) {
@@ -92754,13 +93080,13 @@ function readAxes(b, t, name) {
   const instances = [];
   for (let i = 0; i < instanceCount; i++) {
     const at = t.off + offset + axisCount * axisSize + i * instanceSize;
-    const label4 = name(u166(b, at));
-    if (!label4) continue;
+    const label5 = name(u166(b, at));
+    if (!label5) continue;
     const coordinates = {};
     axes.forEach((axis, k) => {
       coordinates[axis.tag] = fixed(b, at + 4 + k * 4);
     });
-    instances.push({ name: label4, axes: coordinates });
+    instances.push({ name: label5, axes: coordinates });
   }
   return { axes, instances };
 }
@@ -93124,7 +93450,7 @@ function openXlsx(bytes2) {
   return {
     sheets: () => sheetList().map((s, index2) => ({ name: s.name || `Sheet ${index2 + 1}`, index: index2 })),
     read(opts = {}) {
-      const limit2 = Number.isFinite(opts.limit) && opts.limit > 0 ? Math.floor(opts.limit) : DEFAULT_XLSX_ROW_LIMIT;
+      const limit3 = Number.isFinite(opts.limit) && opts.limit > 0 ? Math.floor(opts.limit) : DEFAULT_XLSX_ROW_LIMIT;
       const chosen = resolveSheet(store, sheetList(), opts.sheet);
       if (!chosen) {
         throw new Error(
@@ -93135,7 +93461,7 @@ function openXlsx(bytes2) {
       if (sheetXml == null) throw new Error("The chosen sheet is missing or too large.");
       shared ??= readSharedStrings(store);
       const formulas = { mode: opts.cells === "formulas" ? "formulas" : "cached", shared: /* @__PURE__ */ new Map(), cells: 0, kept: 0 };
-      const { rows: rows2, truncated } = readSheet(sheetXml, shared, limit2, formulas);
+      const { rows: rows2, truncated } = readSheet(sheetXml, shared, limit3, formulas);
       if (!rows2.length) throw new Error(truncated ? "That sheet is too large to read." : "That sheet has no cells.");
       return {
         rows: rows2,
@@ -93277,7 +93603,7 @@ function collectText(fragment) {
   }
   return decodeXml(text12);
 }
-function readSheet(xml3, shared, limit2, formulas) {
+function readSheet(xml3, shared, limit3, formulas) {
   const grid = /* @__PURE__ */ new Map();
   let maxCol = -1;
   let maxRow = -1;
@@ -93310,7 +93636,7 @@ function readSheet(xml3, shared, limit2, formulas) {
     }
     cursorCol = colIdx + 1;
     if (rowIdx < 0 || colIdx < 0 || colIdx >= MAX_COLS) continue;
-    if (rowIdx >= limit2) {
+    if (rowIdx >= limit3) {
       truncated = true;
       continue;
     }
@@ -93465,10 +93791,10 @@ function shiftFormula(formula, dr, dc) {
     }
     if (!prevIsName && /\d/.test(ch)) {
       NUMBER_AT.lastIndex = i;
-      const num19 = NUMBER_AT.exec(formula)[0];
-      if (formula[i + num19.length] === ":" || formula[i - 1] === ":") return null;
-      out += num19;
-      i += num19.length;
+      const num20 = NUMBER_AT.exec(formula)[0];
+      if (formula[i + num20.length] === ":" || formula[i - 1] === ":") return null;
+      out += num20;
+      i += num20.length;
       continue;
     }
     if (NAME_CHAR.test(ch)) {
@@ -93705,7 +94031,7 @@ function parseDataRows(text12, opts = {}) {
   if (text12.length > MAX_IMPORT_CHARS) {
     throw new Error(`The file is too large to import (over ${Math.round(MAX_IMPORT_CHARS / 1024 / 1024)} MB of text).`);
   }
-  const limit2 = Number.isFinite(opts.limit) && opts.limit > 0 ? Math.floor(opts.limit) : DEFAULT_ROW_LIMIT;
+  const limit3 = Number.isFinite(opts.limit) && opts.limit > 0 ? Math.floor(opts.limit) : DEFAULT_ROW_LIMIT;
   const format = (opts.format || detectFormat(text12)).toLowerCase();
   let header = null;
   let records = [];
@@ -93758,7 +94084,7 @@ function parseDataRows(text12, opts = {}) {
   let truncated = false;
   for (const rec2 of records) {
     if (rec2 == null) continue;
-    if (rows2.length >= limit2) {
+    if (rows2.length >= limit3) {
       truncated = true;
       break;
     }
@@ -94520,12 +94846,12 @@ function collectNavLabels(navHtml, navDir, out) {
         }
         active = { href: attr3(navHtml.slice(tag3.start, tag3.end), "href"), labelStart: tag3.end };
       } else if (active) {
-        const label4 = plainText(navHtml.slice(active.labelStart, tag3.start));
+        const label5 = plainText(navHtml.slice(active.labelStart, tag3.start));
         const resolved2 = resolvePath(navDir, active.href);
-        if (label4.length > EPUB_READ_MAX_TITLE_CHARS) {
+        if (label5.length > EPUB_READ_MAX_TITLE_CHARS) {
           throw new Error(`readEpub: navigation label exceeds ${EPUB_READ_MAX_TITLE_CHARS} characters`);
         }
-        if (resolved2 && label4 && !out.has(resolved2)) out.set(resolved2, label4);
+        if (resolved2 && label5 && !out.has(resolved2)) out.set(resolved2, label5);
         active = void 0;
       }
     }
@@ -94552,7 +94878,7 @@ function firstStartTag(s, name) {
     cursor = tag3.end;
   }
 }
-function matchTags(s, name, max, label4) {
+function matchTags(s, name, max, label5) {
   const out = [];
   let cursor = 0;
   for (; ; ) {
@@ -94560,7 +94886,7 @@ function matchTags(s, name, max, label4) {
     if (!tag3) return out;
     if (!tag3.closing && localName4(tag3.name) === name) {
       out.push(s.slice(tag3.start, tag3.end));
-      if (out.length > max) throw new Error(`readEpub: more than ${max} ${label4}`);
+      if (out.length > max) throw new Error(`readEpub: more than ${max} ${label5}`);
     }
     cursor = tag3.end;
   }
@@ -94616,9 +94942,9 @@ function plainText(s) {
 function localName4(name) {
   return name.slice(name.lastIndexOf(":") + 1);
 }
-function boundedTitle(title, label4) {
+function boundedTitle(title, label5) {
   if (title.length > EPUB_READ_MAX_TITLE_CHARS) {
-    throw new Error(`readEpub: ${label4} exceeds ${EPUB_READ_MAX_TITLE_CHARS} characters`);
+    throw new Error(`readEpub: ${label5} exceeds ${EPUB_READ_MAX_TITLE_CHARS} characters`);
   }
   return title;
 }
@@ -95187,7 +95513,7 @@ var init_docx = __esm({
 });
 
 // engine/src/design-map.ts
-function num8(v, d) {
+function num9(v, d) {
   const x = typeof v === "number" ? v : parseFloat(v);
   return isFinite(x) ? x : d;
 }
@@ -95209,20 +95535,20 @@ function safeColor(v, fallback) {
   return fallback;
 }
 function decomposeMatrix(m2) {
-  const a = num8(m2 && m2.a, 1), b = num8(m2 && m2.b, 0);
-  const c = num8(m2 && m2.c, 0), d = num8(m2 && m2.d, 1);
-  const e = num8(m2 && m2.e, 0), f = num8(m2 && m2.f, 0);
+  const a = num9(m2 && m2.a, 1), b = num9(m2 && m2.b, 0);
+  const c = num9(m2 && m2.c, 0), d = num9(m2 && m2.d, 1);
+  const e = num9(m2 && m2.e, 0), f = num9(m2 && m2.f, 0);
   const rot = Math.atan2(b, a) * 180 / Math.PI;
   const sx = Math.hypot(a, b);
   const sy = sx === 0 ? Math.hypot(c, d) : (a * d - b * c) / sx;
   return { tx: e, ty: f, sx, sy, rot };
 }
 function boxGeomFromBBox(bbox, m2) {
-  const bx = num8(bbox && bbox.x, 0), by = num8(bbox && bbox.y, 0);
-  const bw = num8(bbox && bbox.width, 0), bh = num8(bbox && bbox.height, 0);
-  const a = num8(m2 && m2.a, 1), b = num8(m2 && m2.b, 0);
-  const c = num8(m2 && m2.c, 0), d = num8(m2 && m2.d, 1);
-  const e = num8(m2 && m2.e, 0), f = num8(m2 && m2.f, 0);
+  const bx = num9(bbox && bbox.x, 0), by = num9(bbox && bbox.y, 0);
+  const bw = num9(bbox && bbox.width, 0), bh = num9(bbox && bbox.height, 0);
+  const a = num9(m2 && m2.a, 1), b = num9(m2 && m2.b, 0);
+  const c = num9(m2 && m2.c, 0), d = num9(m2 && m2.d, 1);
+  const e = num9(m2 && m2.e, 0), f = num9(m2 && m2.f, 0);
   const lx = bx + bw / 2, ly = by + bh / 2;
   const cx2 = a * lx + c * ly + e;
   const cy3 = b * lx + d * ly + f;
@@ -95232,7 +95558,7 @@ function boxGeomFromBBox(bbox, m2) {
   return { x: cx2 - w / 2, y: cy3 - h / 2, w, h, rot: dec.rot };
 }
 function mapWeight(weight, font, fonts) {
-  let w = clamp(Math.round(num8(weight, 700) / 100) * 100, 100, 900);
+  let w = clamp(Math.round(num9(weight, 700) / 100) * 100, 100, 900);
   const monoFamily = (fonts && fonts.monoFamily) ?? DEFAULT_FONTS.monoFamily;
   const monoMax = (fonts && fonts.monoMaxWeight) ?? DEFAULT_FONTS.monoMaxWeight;
   if (String(font) === monoFamily && w > monoMax) w = monoMax;
@@ -95287,20 +95613,20 @@ function nodeToBox(node, opts) {
   const seed = SEED[kind === "group" ? "box" : kind];
   const sc = o.seedColors || {};
   const seedBg = kind === "box" ? sc.boxBg ?? seed.bg : kind === "image" ? sc.imageBg ?? seed.bg : seed.bg;
-  const x = Math.round(num8(n8.x, 0));
-  const y = Math.round(num8(n8.y, 0));
-  const w = Math.max(1, Math.round(num8(n8.w, 1)));
-  const h = Math.max(1, Math.round(num8(n8.h, 1)));
-  const rot = round1(num8(n8.rot, 0));
-  const opacity = clamp(Math.round(num8(n8.opacity, 100)), 0, 100);
-  const shape = SHAPES[n8.shape] ? n8.shape : num8(n8.radius, 0) > 0 ? "rounded" : "rect";
-  const radius = Math.max(0, Math.round(num8(n8.radius, shape === "rounded" ? 16 : 0)));
+  const x = Math.round(num9(n8.x, 0));
+  const y = Math.round(num9(n8.y, 0));
+  const w = Math.max(1, Math.round(num9(n8.w, 1)));
+  const h = Math.max(1, Math.round(num9(n8.h, 1)));
+  const rot = round1(num9(n8.rot, 0));
+  const opacity = clamp(Math.round(num9(n8.opacity, 100)), 0, 100);
+  const shape = SHAPES[n8.shape] ? n8.shape : num9(n8.radius, 0) > 0 ? "rounded" : "rect";
+  const radius = Math.max(0, Math.round(num9(n8.radius, shape === "rounded" ? 16 : 0)));
   const bg = has2(n8, "fill") ? safeColor(n8.fill, "") : seedBg;
   const font = mapFontFamily(n8.fontFamily, o.fonts);
   const weight = mapWeight(n8.fontWeight, font, o.fonts);
   const align = mapAlign(n8.textAlign);
-  const fontSize = Math.max(1, Math.round(num8(n8.fontSize, kind === "text" ? 64 : 48)));
-  const lineHeight = num8(n8.lineHeight, seed.lineHeight != null ? seed.lineHeight : 1.12);
+  const fontSize = Math.max(1, Math.round(num9(n8.fontSize, kind === "text" ? 64 : 48)));
+  const lineHeight = num9(n8.lineHeight, seed.lineHeight != null ? seed.lineHeight : 1.12);
   const img = n8.image;
   const image = img && typeof img === "object" && img.id != null && img.id !== "" ? img : null;
   const fit = FITS[n8.fit] ? n8.fit : seed.fit || "contain";
@@ -95328,34 +95654,34 @@ function nodeToBox(node, opts) {
     weight,
     font,
     lineHeight,
-    ...n8.tracking != null ? { tracking: round22(num8(n8.tracking, 0)) } : {},
+    ...n8.tracking != null ? { tracking: round22(num9(n8.tracking, 0)) } : {},
     group: n8.group != null && n8.group !== "" ? String(n8.group) : "",
     clip: "",
-    pad: Math.max(0, Math.round(num8(n8.pad, 8))),
+    pad: Math.max(0, Math.round(num9(n8.pad, 8))),
     shadow: n8.shadow || "none",
     shadowColor: n8.shadowColor ? safeColor(n8.shadowColor, "#00000055") : "#00000055",
-    shadowX: Math.round(num8(n8.shadowX, 0)),
-    shadowY: Math.round(num8(n8.shadowY, 0)),
-    shadowBlur: Math.round(num8(n8.shadowBlur, 10)),
-    blur: clamp(round1(num8(n8.blur, 0)), 0, 300),
+    shadowX: Math.round(num9(n8.shadowX, 0)),
+    shadowY: Math.round(num9(n8.shadowY, 0)),
+    shadowBlur: Math.round(num9(n8.shadowBlur, 10)),
+    blur: clamp(round1(num9(n8.blur, 0)), 0, 300),
     stroke: n8.stroke ? safeColor(n8.stroke, "") : "",
-    strokeW: Math.max(0, num8(n8.strokeW, 0) ?? 0),
+    strokeW: Math.max(0, num9(n8.strokeW, 0) ?? 0),
     strokeDash: n8.strokeDash === "dashed" || n8.strokeDash === "dotted" ? n8.strokeDash : "",
     // Authored dash/gap lengths (Penpot 2.17 PR #9765). Numbers, never strings, so
     // the compact blocks URL form is untouched - it cannot carry a comma or a tilde.
     // 0 keeps the editor's width-proportional synthesis, so an unauthored row is
     // byte-identical to what it produced before these fields existed.
-    strokeDashLen: Math.max(0, round22(num8(n8.strokeDashLen, 0))),
-    strokeGapLen: Math.max(0, round22(num8(n8.strokeGapLen, 0))),
+    strokeDashLen: Math.max(0, round22(num9(n8.strokeDashLen, 0))),
+    strokeGapLen: Math.max(0, round22(num9(n8.strokeGapLen, 0))),
     // Backdrop blur (frosted glass) - CSS backdrop-filter, same 0..300 clamp and
     // 1-decimal rounding as `blur`. 0 is off, so a row without the field renders
     // byte-identically to one from before the field existed.
-    bgBlur: clamp(round1(num8(n8.bgBlur, 0)), 0, 300),
+    bgBlur: clamp(round1(num9(n8.bgBlur, 0)), 0, 300),
     // Stroke position and per-side widths, present only when the source set them, so a
     // source without them maps to the same row as before.
     ...n8.strokeAlign === "inside" || n8.strokeAlign === "center" || n8.strokeAlign === "outside" ? { strokeAlign: n8.strokeAlign } : {},
     ...["strokeTop", "strokeRight", "strokeBottom", "strokeLeft"].reduce((out, key2) => {
-      const v = num8(n8[key2], void 0);
+      const v = num9(n8[key2], void 0);
       if (v !== void 0) out[key2] = clamp(round22(v), 0, 400);
       return out;
     }, {})
@@ -95368,7 +95694,7 @@ function finalizeBoxes(nodes, opts) {
   for (const node of list4) {
     if (node == null) continue;
     const kind = node.kind === "text" ? "text" : node.kind === "image" ? "image" : "box";
-    if (kind !== "text" && num8(node.w, 0) < 1 && num8(node.h, 0) < 1) continue;
+    if (kind !== "text" && num9(node.w, 0) < 1 && num9(node.h, 0) < 1) continue;
     out.push(nodeToBox(node, { id: prefix + out.length, fonts: opts?.fonts, seedColors: opts?.seedColors }));
   }
   return out;
@@ -95517,8 +95843,8 @@ function penpotGradientToSpec(g2, w, h, fillOpacity) {
   const stops = grad && Array.isArray(grad.stops) ? grad.stops : [];
   if (!grad || stops.length < 2) return "";
   const kind = String(grad.type || "") === "radial" ? "rad" : "lin";
-  const dx = (num8(grad.endX, 1) - num8(grad.startX, 0)) * Math.max(1, w);
-  const dy = (num8(grad.endY, 1) - num8(grad.startY, 0)) * Math.max(1, h);
+  const dx = (num9(grad.endX, 1) - num9(grad.startX, 0)) * Math.max(1, w);
+  const dy = (num9(grad.endY, 1) - num9(grad.startY, 0)) * Math.max(1, h);
   const angle = kind === "rad" ? 0 : Math.round((Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360);
   const parts = [];
   const fo = clamp(fillOpacity, 0, 1);
@@ -95526,9 +95852,9 @@ function penpotGradientToSpec(g2, w, h, fillOpacity) {
     const st = raw && typeof raw === "object" ? raw : null;
     const hex62 = safeColor(String(st?.color ?? ""), "");
     if (!hex62) return "";
-    const a = Math.round(clamp(num8(st?.opacity, 1), 0, 1) * fo * 255);
+    const a = Math.round(clamp(num9(st?.opacity, 1), 0, 1) * fo * 255);
     const hex3 = (hex62.replace(/^#/, "") + (a < 255 ? a.toString(16).padStart(2, "0") : "")).toLowerCase();
-    const pos = clamp(Math.round(num8(st?.offset, 0) * 100), 0, 100);
+    const pos = clamp(Math.round(num9(st?.offset, 0) * 100), 0, 100);
     parts.push(`${hex3}-${pos}`);
   }
   return `${kind}.srgb_${angle}_${parts.join("_")}`;
@@ -95536,14 +95862,14 @@ function penpotGradientToSpec(g2, w, h, fillOpacity) {
 function penpotTransformBaked(t) {
   if (!t || typeof t !== "object") return false;
   const m2 = t;
-  return Math.abs(num8(m2.a, 1) - 1) + Math.abs(num8(m2.b, 0)) + Math.abs(num8(m2.c, 0)) + Math.abs(num8(m2.d, 1) - 1) > 1e-3;
+  return Math.abs(num9(m2.a, 1) - 1) + Math.abs(num9(m2.b, 0)) + Math.abs(num9(m2.c, 0)) + Math.abs(num9(m2.d, 1) - 1) > 1e-3;
 }
 function pathDBounds(d) {
   const s = String(d ?? "");
-  const NUM_RE3 = /-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
-  const cmds = s.replace(NUM_RE3, " ").match(/[A-Za-z]/g) || [];
+  const NUM_RE4 = /-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
+  const cmds = s.replace(NUM_RE4, " ").match(/[A-Za-z]/g) || [];
   if (!cmds.length || cmds.some((c) => c !== "M" && c !== "L" && c !== "C" && c !== "Z")) return null;
-  const nums = s.match(NUM_RE3) || [];
+  const nums = s.match(NUM_RE4) || [];
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (let i = 0; i + 1 < nums.length; i += 2) {
     const px3 = parseFloat(nums[i]), py = parseFloat(nums[i + 1]);
@@ -95561,23 +95887,23 @@ function mirrorPenpotGradient(g2, flipX, flipY) {
   const grad = g2;
   const out = { ...grad };
   if (flipX) {
-    out.startX = 1 - num8(grad.startX, 0);
-    out.endX = 1 - num8(grad.endX, 1);
+    out.startX = 1 - num9(grad.startX, 0);
+    out.endX = 1 - num9(grad.endX, 1);
   }
   if (flipY) {
-    out.startY = 1 - num8(grad.startY, 0);
-    out.endY = 1 - num8(grad.endY, 1);
+    out.startY = 1 - num9(grad.startY, 0);
+    out.endY = 1 - num9(grad.endY, 1);
   }
   return out;
 }
 function penpotRoundedRectD(x, y, w, h, r5) {
-  const px3 = (v) => `${Math.max(0, num8(v, 0))}px`;
+  const px3 = (v) => `${Math.max(0, num9(v, 0))}px`;
   const radii2 = cornerRadii({ topLeft: px3(r5[0]), topRight: px3(r5[1]), bottomRight: px3(r5[2]), bottomLeft: px3(r5[3]) }, w, h);
   return roundedRectPath(x, y, w, h, radii2);
 }
 function penpotUnequalCorners(sh) {
-  const r12 = num8(sh.r1, 0);
-  const r26 = num8(sh.r2, r12), r32 = num8(sh.r3, r12), r42 = num8(sh.r4, r12);
+  const r12 = num9(sh.r1, 0);
+  const r26 = num9(sh.r2, r12), r32 = num9(sh.r3, r12), r42 = num9(sh.r4, r12);
   if (r12 === r26 && r12 === r32 && r12 === r42) return null;
   let c = [r12, r26, r32, r42];
   if (sh.flipX === true) c = [c[1], c[0], c[3], c[2]];
@@ -95594,7 +95920,7 @@ function penpotPathContentToD(content2) {
     for (const seg4 of content2) {
       const cmd = String(pget(seg4, "command") ?? "").replace(/^:/, "");
       const p = pget(seg4, "params");
-      const n8 = (k) => num8(pget(p, k), 0);
+      const n8 = (k) => num9(pget(p, k), 0);
       if (cmd === "move-to") parts.push(`M${n8("x")},${n8("y")}`);
       else if (cmd === "line-to") parts.push(`L${n8("x")},${n8("y")}`);
       else if (cmd === "curve-to") parts.push(`C${n8("c1x")},${n8("c1y")},${n8("c2x")},${n8("c2y")},${n8("x")},${n8("y")}`);
@@ -95626,13 +95952,13 @@ function topPenpotStroke(sh) {
     if (!st || typeof st !== "object") continue;
     const style = strokeStyleOf(st);
     if (style === "none") continue;
-    const width = num8(get(st, "strokeWidth"), 0);
+    const width = num9(get(st, "strokeWidth"), 0);
     const color6 = safeColor(get(st, "strokeColor"), "");
     if (width > 0 && color6) {
       const out = {
         color: color6,
         width,
-        opacity: clamp(num8(get(st, "strokeOpacity"), 1), 0, 1),
+        opacity: clamp(num9(get(st, "strokeOpacity"), 1), 0, 1),
         style
       };
       const d = strokeLen(st, "stroke-dash");
@@ -95668,18 +95994,18 @@ function penpotGradientSvgDef(g2, id3, fillOpacity) {
   const grad = g2 && typeof g2 === "object" ? g2 : null;
   const stops = grad && Array.isArray(grad.stops) ? grad.stops : [];
   if (!grad || stops.length < 2) return "";
-  const fo = clamp(num8(fillOpacity, 1), 0, 1);
+  const fo = clamp(num9(fillOpacity, 1), 0, 1);
   const stopEls = [];
   for (const raw of stops) {
     const st = raw && typeof raw === "object" ? raw : null;
     const c = safeColor(String(st?.color ?? ""), "");
     if (!c) return "";
-    const so = Math.round(clamp(num8(st?.opacity, 1), 0, 1) * fo * 1e3) / 1e3;
-    const off = clamp(num8(st?.offset, 0), 0, 1);
+    const so = Math.round(clamp(num9(st?.opacity, 1), 0, 1) * fo * 1e3) / 1e3;
+    const off = clamp(num9(st?.offset, 0), 0, 1);
     stopEls.push(`<stop offset="${off}" stop-color="${c}"${so < 1 ? ` stop-opacity="${so}"` : ""}/>`);
   }
-  const sx = num8(grad.startX, 0), sy = num8(grad.startY, 0);
-  const ex = num8(grad.endX, 1), ey = num8(grad.endY, 1);
+  const sx = num9(grad.startX, 0), sy = num9(grad.startY, 0);
+  const ex = num9(grad.endX, 1), ey = num9(grad.endY, 1);
   if (String(grad.type || "") === "radial") {
     const r5 = Math.max(1e-3, Math.hypot(ex - sx, ey - sy));
     return `<radialGradient id="${id3}" gradientUnits="objectBoundingBox" cx="${sx}" cy="${sy}" r="${r5}">${stopEls.join("")}</radialGradient>`;
@@ -95696,8 +96022,8 @@ function penpotGroupToSvg(group, lookup4) {
   if (String(g2.type || "") !== "group") return "";
   const selRaw = g2.selrect && typeof g2.selrect === "object" ? g2.selrect : g2;
   const sel = selRaw;
-  const vx = num8(sel.x, num8(g2.x, 0)), vy = num8(sel.y, num8(g2.y, 0));
-  const vw = num8(sel.width, num8(g2.width, 0)), vh = num8(sel.height, num8(g2.height, 0));
+  const vx = num9(sel.x, num9(g2.x, 0)), vy = num9(sel.y, num9(g2.y, 0));
+  const vw = num9(sel.width, num9(g2.width, 0)), vh = num9(sel.height, num9(g2.height, 0));
   if (!(vw > 0) || !(vh > 0)) return "";
   let seq = 0;
   let count4 = 0;
@@ -95713,7 +96039,7 @@ function penpotGroupToSvg(group, lookup4) {
       const def = penpotGradientSvgDef(
         mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true),
         id3,
-        num8(gradFill.fillOpacity, 1)
+        num9(gradFill.fillOpacity, 1)
       );
       if (!def) return null;
       defs.push(def);
@@ -95722,18 +96048,18 @@ function penpotGroupToSvg(group, lookup4) {
       const c = safeColor(topFill.fillColor, "");
       if (!c) return null;
       fill2 = c;
-      const fo = clamp(num8(topFill.fillOpacity, 1), 0, 1);
+      const fo = clamp(num9(topFill.fillOpacity, 1), 0, 1);
       if (fo < 1) fillOp = ` fill-opacity="${fo}"`;
     }
     const st = topPenpotStroke(sh);
     const dashAttr = st ? penpotDashArray(String(st.style || "solid"), st.width, st.dash, st.gap) : "";
     const capAttr = st ? penpotLineCap(st) : "";
     const stroke = st ? ` stroke="${st.color}" stroke-width="${st.width}"` + (st.opacity != null && st.opacity < 1 ? ` stroke-opacity="${st.opacity}"` : "") + (dashAttr ? ` stroke-dasharray="${dashAttr}"` : "") + (capAttr ? ` stroke-linecap="${capAttr}"` : "") : "";
-    const op = clamp(num8(sh.opacity, 1), 0, 1);
+    const op = clamp(num9(sh.opacity, 1), 0, 1);
     return ` fill="${fill2}"${fillOp}${stroke}${op < 1 ? ` opacity="${op}"` : ""}`;
   };
   const rotAttr = (sh, cx2, cy3) => {
-    const r5 = num8(sh.rotation, 0);
+    const r5 = num9(sh.rotation, 0);
     return r5 ? ` transform="rotate(${round1(r5)} ${cx2} ${cy3})"` : "";
   };
   const leaf = (sh, type) => {
@@ -95742,13 +96068,13 @@ function penpotGroupToSvg(group, lookup4) {
     const p = paint2(sh);
     if (p == null) return null;
     const sr = sh.selrect && typeof sh.selrect === "object" ? sh.selrect : sh;
-    const x = num8(sr.x, 0), y = num8(sr.y, 0), w = num8(sr.width, 0), h = num8(sr.height, 0);
+    const x = num9(sr.x, 0), y = num9(sr.y, 0), w = num9(sr.width, 0), h = num9(sr.height, 0);
     const bv = (() => {
       const b = sh.blur;
       if (!b || typeof b !== "object") return 0;
       if (get(b, "hidden") === true) return 0;
       if (String(get(b, "type") || "") !== "layer-blur") return 0;
-      const v = num8(get(b, "value"), 0);
+      const v = num9(get(b, "value"), 0);
       return v > 0 ? v : 0;
     })();
     let filterAttr = "";
@@ -95770,7 +96096,7 @@ function penpotGroupToSvg(group, lookup4) {
       if (corners3) {
         return `<path d="${penpotRoundedRectD(x, y, w, h, corners3)}"${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
       }
-      const r12 = num8(sh.r1, 0);
+      const r12 = num9(sh.r1, 0);
       return `<rect x="${x}" y="${y}" width="${w}" height="${h}"${r12 > 0 ? ` rx="${r12}"` : ""}${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
     }
     return null;
@@ -95797,7 +96123,7 @@ function penpotGroupToSvg(group, lookup4) {
       parts.push(frag);
     }
     if (!parts.length) return isRoot ? null : "";
-    const op = clamp(num8(sh.opacity, 1), 0, 1);
+    const op = clamp(num9(sh.opacity, 1), 0, 1);
     const opAttr = !isRoot && op < 1 ? ` opacity="${op}"` : "";
     if (masked && clip4) {
       const cid = `pc${seq++}`;
@@ -95817,12 +96143,12 @@ function penpotShapeToNode(shape, options2 = {}) {
   const type = String(sh.type || "");
   const selRaw = sh.selrect && typeof sh.selrect === "object" ? sh.selrect : sh;
   const sel = selRaw;
-  const x = num8(sel.x, num8(sh.x, 0));
-  const y = num8(sel.y, num8(sh.y, 0));
-  const w = num8(sel.width, num8(sh.width, 0));
-  const h = num8(sel.height, num8(sh.height, 0));
-  const rot = num8(sh.rotation, 0);
-  const shapeOp = num8(sh.opacity, 1);
+  const x = num9(sel.x, num9(sh.x, 0));
+  const y = num9(sel.y, num9(sh.y, 0));
+  const w = num9(sel.width, num9(sh.width, 0));
+  const h = num9(sel.height, num9(sh.height, 0));
+  const rot = num9(sh.rotation, 0);
+  const shapeOp = num9(sh.opacity, 1);
   const fills = Array.isArray(sh.fills) ? sh.fills : [];
   if (type === "group" && options2.preserveHierarchy) return {
     kind: "group",
@@ -95867,7 +96193,7 @@ function penpotShapeToNode(shape, options2 = {}) {
       h,
       rot,
       _fillImageId: String(imgFill.fillImage.id),
-      opacity: clamp(Math.round(shapeOp * num8(imgFill.fillOpacity, 1) * 100), 0, 100),
+      opacity: clamp(Math.round(shapeOp * num9(imgFill.fillOpacity, 1) * 100), 0, 100),
       fit: imgFill.fillImage.keepAspectRatio === false ? "fill" : "cover"
     };
     const flip = (sh.flipX === true ? "x" : "") + (sh.flipY === true ? "y" : "");
@@ -95906,7 +96232,7 @@ function penpotShapeToNode(shape, options2 = {}) {
         _vectorStroke: topPenpotStroke(sh),
         _vectorSize: { w: bw, h: bh, x: bx, y: by },
         // fillOpacity folds into node opacity (uniform over the one fill this branch bakes).
-        opacity: clamp(Math.round(shapeOp * num8((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
+        opacity: clamp(Math.round(shapeOp * num9((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
       };
       applyPenpotShadow(sh, node2);
       applyPenpotBlur(sh, node2);
@@ -95921,14 +96247,14 @@ function penpotShapeToNode(shape, options2 = {}) {
     h,
     rot,
     fill: topFill && topFill.fillColor != null ? String(topFill.fillColor) : "",
-    opacity: clamp(Math.round(shapeOp * num8(topFill && topFill.fillOpacity, 1) * 100), 0, 100)
+    opacity: clamp(Math.round(shapeOp * num9(topFill && topFill.fillOpacity, 1) * 100), 0, 100)
   };
   if (gradFill) {
     const spec = penpotGradientToSpec(
       mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true),
       w,
       h,
-      num8(gradFill.fillOpacity, 1)
+      num9(gradFill.fillOpacity, 1)
     );
     if (spec) {
       node.grad = spec;
@@ -95955,13 +96281,13 @@ function penpotShapeToNode(shape, options2 = {}) {
       _vectorGradient: gradFill ? mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true) : null,
       _vectorStroke: topPenpotStroke(sh),
       _vectorSize: { w, h, x, y },
-      opacity: clamp(Math.round(shapeOp * num8((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
+      opacity: clamp(Math.round(shapeOp * num9((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100)
     };
     applyPenpotShadow(sh, vnode);
     applyPenpotBlur(sh, vnode);
     return vnode;
   }
-  const r12 = num8(sh.r1, 0);
+  const r12 = num9(sh.r1, 0);
   if (r12 > 0) {
     node.shape = "rounded";
     node.radius = r12;
@@ -95991,7 +96317,7 @@ function applyPenpotStroke(sh, node) {
   const sides2 = penpotStrokeSides(st);
   const sw = Math.max(...sides2);
   const col6 = safeColor(String(get(st, "strokeColor") ?? ""), "");
-  const a = Math.round(clamp(num8(get(st, "strokeOpacity"), 1), 0, 1) * 255);
+  const a = Math.round(clamp(num9(get(st, "strokeOpacity"), 1), 0, 1) * 255);
   const full = hexLong(col6);
   node.stroke = full + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(full) ? a.toString(16).padStart(2, "0") : "");
   node.strokeW = Math.round(sw * 100) / 100;
@@ -96009,7 +96335,7 @@ function applyPenpotStroke(sh, node) {
   }
 }
 function penpotStrokeSides(st) {
-  const w = Math.max(0, num8(get(st, "strokeWidth") ?? pget(st, "stroke-width"), 0));
+  const w = Math.max(0, num9(get(st, "strokeWidth") ?? pget(st, "stroke-width"), 0));
   const side2 = (key2) => {
     const v = strokeLen(st, key2);
     return v === void 0 ? w : v;
@@ -96025,10 +96351,10 @@ function applyPenpotShadow(sh, node) {
   const list4 = Array.isArray(sh.shadow) ? sh.shadow : [];
   const s = list4.find((e) => e && typeof e === "object" && String(get(e, "style") || "drop-shadow") === "drop-shadow" && get(e, "hidden") !== true);
   if (!s) return;
-  const x = Math.round(num8(s.offsetX, 0)), y = Math.round(num8(s.offsetY, 0)), blur2 = Math.round(num8(s.blur, 0));
+  const x = Math.round(num9(s.offsetX, 0)), y = Math.round(num9(s.offsetY, 0)), blur2 = Math.round(num9(s.blur, 0));
   if (!x && !y && !blur2) return;
   const hex62 = hexLong(safeColor(String(s.color?.color ?? ""), "#000000"));
-  const a = Math.round(clamp(num8(s.color?.opacity, 1), 0, 1) * 255);
+  const a = Math.round(clamp(num9(s.color?.opacity, 1), 0, 1) * 255);
   node.shadow = node.kind === "text" ? "text" : node.kind === "image" ? "content" : "box";
   node.shadowColor = hex62 + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(hex62) ? a.toString(16).padStart(2, "0") : "");
   node.shadowX = x;
@@ -96040,7 +96366,7 @@ function applyPenpotBlur(sh, node) {
   if (!b || typeof b !== "object") return;
   if (get(b, "hidden") === true) return;
   if (String(get(b, "type") || "") !== "layer-blur") return;
-  const v = num8(get(b, "value"), 0);
+  const v = num9(get(b, "value"), 0);
   if (v > 0) node.blur = v;
 }
 function penpotBackgroundBlurPx(sh) {
@@ -96050,7 +96376,7 @@ function penpotBackgroundBlurPx(sh) {
   if (!entry2) return 0;
   if (get(entry2, "hidden") === true) return 0;
   if (entry2 === own4 && String(get(entry2, "type") || "background-blur") !== "background-blur") return 0;
-  const v = num8(get(entry2, "value"), 0);
+  const v = num9(get(entry2, "value"), 0);
   if (!(v > 0)) return 0;
   return clamp(round1(v * BG_BLUR_SIGMA_A + BG_BLUR_SIGMA_B), 0, 300);
 }
@@ -96067,7 +96393,7 @@ function normalizePenpotExports(raw) {
     const t = String(get(e, "type") ?? "");
     const type = t === "png" ? "png" : t === "jpeg" ? "jpeg" : t === "svg" ? "svg" : null;
     if (!type) continue;
-    const scale = clamp(num8(get(e, "scale"), 1), 0.1, 8);
+    const scale = clamp(num9(get(e, "scale"), 1), 0.1, 8);
     const suffixRaw = get(e, "suffix");
     const suffix = suffixRaw == null ? "" : String(suffixRaw);
     const key2 = `${type}|${scale}|${suffix}`;
@@ -96115,7 +96441,7 @@ function penpotAnimationToTransition(animation) {
     if (dir === "left" || dir === "right" || dir === "up" || dir === "down") enter = "slide-" + dir;
   }
   if (enter === "none") return { enter: "none" };
-  const ms = num8(get(animation, "duration"), void 0);
+  const ms = num9(get(animation, "duration"), void 0);
   return ms === void 0 ? { enter } : { enter, enterMs: Math.round(clamp(ms, FLOW_MIN_MS, FLOW_MAX_MS)) };
 }
 function penpotFlowOrder(boardIds, shapesById, page3) {
@@ -96189,7 +96515,7 @@ function penpotFlowOrder(boardIds, shapesById, page3) {
 }
 function figMatrix(node) {
   const t = node && node.transform || {};
-  return { a: num8(t.m00, 1), b: num8(t.m10, 0), c: num8(t.m01, 0), d: num8(t.m11, 1), e: num8(t.m02, 0), f: num8(t.m12, 0) };
+  return { a: num9(t.m00, 1), b: num9(t.m10, 0), c: num9(t.m01, 0), d: num9(t.m11, 1), e: num9(t.m02, 0), f: num9(t.m12, 0) };
 }
 function matMul3(P, C) {
   return {
@@ -96202,7 +96528,7 @@ function matMul3(P, C) {
   };
 }
 function fig255(v) {
-  return clamp(Math.round(num8(v, 0) * 255), 0, 255);
+  return clamp(Math.round(num9(v, 0) * 255), 0, 255);
 }
 function figColorHex(c) {
   if (!c) return "";
@@ -96223,10 +96549,10 @@ function figAlign(a) {
 function figLineHeight(lh, fontSize) {
   const l = lh;
   if (!l || l.value == null) return null;
-  const v = num8(l.value, 0);
+  const v = num9(l.value, 0);
   if (l.units === "PERCENT") return v / 100;
   if (l.units === "PIXELS" || l.units === "RAW") {
-    const fs = num8(fontSize, 0);
+    const fs = num9(fontSize, 0);
     return fs > 0 ? v / fs : null;
   }
   return null;
@@ -96283,9 +96609,9 @@ function figmaNode(node, abs, blobs) {
   const type = String(node.type || "");
   const size = node.size;
   if (!VISUAL_FIG[type] || !size) return null;
-  const geom = boxGeomFromBBox({ x: 0, y: 0, width: num8(size.x, 0), height: num8(size.y, 0) }, abs);
+  const geom = boxGeomFromBBox({ x: 0, y: 0, width: num9(size.x, 0), height: num9(size.y, 0) }, abs);
   const base = { x: geom.x, y: geom.y, w: geom.w, h: geom.h, rot: geom.rot };
-  const nodeOp = num8(node.opacity, 1);
+  const nodeOp = num9(node.opacity, 1);
   const fills = Array.isArray(node.fillPaints) ? node.fillPaints.filter((p) => p && get(p, "visible") !== false) : [];
   const paint2 = fills.length ? fills[fills.length - 1] ?? null : null;
   if (type === "TEXT") {
@@ -96295,11 +96621,11 @@ function figmaNode(node, abs, blobs) {
       ...base,
       text: figmaTextRuns(node, baseFg),
       fg: baseFg,
-      fontSize: num8(node.fontSize, void 0),
+      fontSize: num9(node.fontSize, void 0),
       fontWeight: figWeight(node.fontName && node.fontName.style),
       fontFamily: node.fontName && node.fontName.family || "",
       textAlign: figAlign(node.textAlignHorizontal),
-      lineHeight: figLineHeight(node.lineHeight, num8(node.fontSize, 16)) || void 0,
+      lineHeight: figLineHeight(node.lineHeight, num9(node.fontSize, 16)) || void 0,
       opacity: clamp(Math.round(nodeOp * 100), 0, 100)
     };
   }
@@ -96309,7 +96635,7 @@ function figmaNode(node, abs, blobs) {
       ...base,
       _imageHash: figImageHash(paint2),
       fit: "cover",
-      opacity: clamp(Math.round(nodeOp * num8(get(paint2, "opacity"), 1) * 100), 0, 100)
+      opacity: clamp(Math.round(nodeOp * num9(get(paint2, "opacity"), 1) * 100), 0, 100)
     };
   }
   if (type === "VECTOR" && blobs && Array.isArray(node.fillGeometry) && node.fillGeometry.length) {
@@ -96321,7 +96647,7 @@ function figmaNode(node, abs, blobs) {
     }).filter(Boolean).join(" ");
     if (d) {
       const sp = Array.isArray(node.strokePaints) ? node.strokePaints.find((p) => p && get(p, "visible") !== false && get(p, "type") === "SOLID" && get(p, "color")) : null;
-      const sw = num8(node.strokeWeight, 0);
+      const sw = num9(node.strokeWeight, 0);
       return {
         kind: "image",
         ...base,
@@ -96329,8 +96655,8 @@ function figmaNode(node, abs, blobs) {
         _vectorPath: d,
         _vectorFill: paint2 && get(paint2, "type") === "SOLID" && get(paint2, "color") ? figColorHex(get(paint2, "color")) : "none",
         _vectorStroke: sp && sw > 0 ? { color: figColorHex(get(sp, "color")), width: sw } : null,
-        _vectorSize: { w: num8(size.x, 0), h: num8(size.y, 0) },
-        opacity: clamp(Math.round(nodeOp * num8(paint2 && get(paint2, "opacity"), 1) * 100), 0, 100)
+        _vectorSize: { w: num9(size.x, 0), h: num9(size.y, 0) },
+        opacity: clamp(Math.round(nodeOp * num9(paint2 && get(paint2, "opacity"), 1) * 100), 0, 100)
       };
     }
   }
@@ -96338,14 +96664,14 @@ function figmaNode(node, abs, blobs) {
     kind: "box",
     ...base,
     fill: paint2 && get(paint2, "type") === "SOLID" && get(paint2, "color") ? figColorHex(get(paint2, "color")) : "",
-    opacity: clamp(Math.round(nodeOp * num8(paint2 && get(paint2, "opacity"), 1) * 100), 0, 100)
+    opacity: clamp(Math.round(nodeOp * num9(paint2 && get(paint2, "opacity"), 1) * 100), 0, 100)
   };
   if (type === "ELLIPSE") dn.shape = "ellipse";
   else if (type === "ROUNDED_RECTANGLE") {
     dn.shape = "rounded";
-    dn.radius = num8(node.cornerRadius, 12);
+    dn.radius = num9(node.cornerRadius, 12);
   } else {
-    const cr = num8(node.cornerRadius, 0);
+    const cr = num9(node.cornerRadius, 0);
     if (cr > 0) {
       dn.shape = "rounded";
       dn.radius = cr;
@@ -96365,10 +96691,10 @@ function applyFigmaStroke(node, dn) {
     }
   }
   if (!sp) return;
-  const w = Math.max(0, num8(node.strokeWeight, 0));
+  const w = Math.max(0, num9(node.strokeWeight, 0));
   const ind = node.individualStrokeWeights;
   const independent = node.borderStrokeWeightsIndependent === true || ind != null && typeof ind === "object";
-  const side2 = (own4, rest2) => Math.max(0, num8(own4 ?? rest2, w));
+  const side2 = (own4, rest2) => Math.max(0, num9(own4 ?? rest2, w));
   const sides2 = independent && dn.shape !== "ellipse" ? [
     side2(get(ind, "top"), node.borderTopWeight),
     side2(get(ind, "right"), node.borderRightWeight),
@@ -96377,7 +96703,7 @@ function applyFigmaStroke(node, dn) {
   ] : [w, w, w, w];
   const widest2 = Math.max(...sides2);
   if (!(widest2 > 0)) return;
-  const a = Math.round(clamp(num8(get(sp, "opacity"), 1), 0, 1) * 255);
+  const a = Math.round(clamp(num9(get(sp, "opacity"), 1), 0, 1) * 255);
   dn.stroke = figColorHex(get(sp, "color")) + (a < 255 ? a.toString(16).padStart(2, "0") : "");
   dn.strokeW = round22(widest2);
   const align = FIG_ALIGN[String(node.strokeAlign ?? "")];
@@ -96415,16 +96741,16 @@ function figmaNodesToNodes(nodeChanges, blobs) {
 function shiftNodesToOrigin(nodes) {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const n8 of nodes) {
-    const x = num8(n8.x, 0), y = num8(n8.y, 0);
+    const x = num9(n8.x, 0), y = num9(n8.y, 0);
     minX = Math.min(minX, x);
     minY = Math.min(minY, y);
-    maxX = Math.max(maxX, x + num8(n8.w, 0));
-    maxY = Math.max(maxY, y + num8(n8.h, 0));
+    maxX = Math.max(maxX, x + num9(n8.w, 0));
+    maxY = Math.max(maxY, y + num9(n8.h, 0));
   }
   if (!isFinite(minX)) return { width: 1080, height: 1080 };
   for (const n8 of nodes) {
-    n8.x = num8(n8.x, 0) - minX;
-    n8.y = num8(n8.y, 0) - minY;
+    n8.x = num9(n8.x, 0) - minX;
+    n8.y = num9(n8.y, 0) - minY;
   }
   return { width: Math.max(1, Math.round(maxX - minX)), height: Math.max(1, Math.round(maxY - minY)) };
 }
@@ -96483,12 +96809,12 @@ function figmaNodesToScenes(nodeChanges, blobs) {
         collect3(child2, nodes);
         if (!nodes.length) continue;
         const geom = boxGeomFromBBox(
-          { x: 0, y: 0, width: num8(child2.size.x, 0), height: num8(child2.size.y, 0) },
+          { x: 0, y: 0, width: num9(child2.size.x, 0), height: num9(child2.size.y, 0) },
           matMul3(pageAbs, figMatrix(child2))
         );
         for (const n8 of nodes) {
-          n8.x = num8(n8.x, 0) - geom.x;
-          n8.y = num8(n8.y, 0) - geom.y;
+          n8.x = num9(n8.x, 0) - geom.x;
+          n8.y = num9(n8.y, 0) - geom.y;
         }
         framed.push({
           at: { x: geom.x, y: geom.y, w: geom.w, h: geom.h },
@@ -96695,16 +97021,16 @@ function collectPenpotComponents(componentJsons, shapesByPage, opts = {}) {
   return { components, externals, localFileId, warnings: warnings2 };
 }
 function slotFor(sh) {
-  const label4 = str5(sh.name);
+  const label5 = str5(sh.name);
   if (str5(sh.type) === "text") {
     const text12 = sh.content ? parsePenpotContent(sh.content).text : "";
-    return text12 ? { kind: "text", label: label4, text: text12 } : { kind: "text", label: label4 };
+    return text12 ? { kind: "text", label: label5, text: text12 } : { kind: "text", label: label5 };
   }
   const fills = Array.isArray(sh.fills) ? sh.fills : [];
   for (const f of fills) {
     if (!isRec4(f)) continue;
     const img = f.fillImage;
-    if (isRec4(img) && img.id != null) return { kind: "image", label: label4, imageId: String(img.id) };
+    if (isRec4(img) && img.id != null) return { kind: "image", label: label5, imageId: String(img.id) };
   }
   return null;
 }
@@ -98868,9 +99194,9 @@ function assertPdfSvgBudgets(nodes) {
     throw new Error(`pdfNodesToSvg: more than ${PDF_SVG_MAX_NODES} nodes`);
   }
   let sourceChars = 0;
-  const charge = (value2, perValueMax, label4) => {
+  const charge = (value2, perValueMax, label5) => {
     if (typeof value2 !== "string") return;
-    if (value2.length > perValueMax) throw new Error(`pdfNodesToSvg: ${label4} exceeds ${perValueMax} characters`);
+    if (value2.length > perValueMax) throw new Error(`pdfNodesToSvg: ${label5} exceeds ${perValueMax} characters`);
     sourceChars += value2.length;
     if (!Number.isSafeInteger(sourceChars) || sourceChars > PDF_SVG_MAX_SOURCE_CHARS) {
       throw new Error(`pdfNodesToSvg: source strings exceed ${PDF_SVG_MAX_SOURCE_CHARS} characters`);
@@ -100138,14 +100464,14 @@ function labPoint(l, c, ang, unit2) {
     y: 0.5 + (l - 0.5) / (2 * unit2)
   };
 }
-function gamutSolid(limit2 = "srgb", hueSteps = 48, lightSteps = 28, embed = "cylinder") {
+function gamutSolid(limit3 = "srgb", hueSteps = 48, lightSteps = 28, embed = "cylinder") {
   const H = Math.max(6, Math.floor(hueSteps));
   const L = Math.max(3, Math.floor(lightSteps));
   const radius = [];
   for (let i = 0; i < L; i++) {
     const l = i / (L - 1);
     const row = [];
-    for (let j = 0; j < H; j++) row.push(maxChroma(l, j / H * 360, limit2));
+    for (let j = 0; j < H; j++) row.push(maxChroma(l, j / H * 360, limit3));
     radius.push(row);
   }
   let maxR = 0;
@@ -100189,7 +100515,7 @@ function gamutSolid(limit2 = "srgb", hueSteps = 48, lightSteps = 28, embed = "cy
       quads.push(...capQuads(radius, L, H, j, x, scaleR));
     }
   }
-  return { limit: limit2, embed, hueSteps: H, lightSteps: L, quads, maxRadius };
+  return { limit: limit3, embed, hueSteps: H, lightSteps: L, quads, maxRadius };
 }
 function capQuads(radius, L, H, j, x, scaleR) {
   const out = [];
@@ -100306,20 +100632,20 @@ function gamutSolidToSvg(projected, opts = {}) {
   const size = opts.size && opts.size > 0 ? opts.size : 512;
   const encode = opts.encode ?? "srgb";
   const dp = Math.max(0, Math.floor(opts.precision ?? 2));
-  const fmt4 = (v) => {
+  const fmt5 = (v) => {
     const n8 = Number.isFinite(v) ? v : 0;
     return parseFloat(n8.toFixed(dp)).toString();
   };
   const polys = [];
   for (const q of projected) {
-    const pts = q.points.map((p) => `${fmt4(p.x * size)},${fmt4(p.y * size)}`).join(" ");
+    const pts = q.points.map((p) => `${fmt5(p.x * size)},${fmt5(p.y * size)}`).join(" ");
     const fill2 = shadedSolidFill(q.oklch, q.shade, encode);
     polys.push(
       `<polygon points="${pts}" fill="${fill2}" stroke="${fill2}" stroke-width="1" stroke-linejoin="round"/>`
     );
   }
-  const bg = opts.background ? `<rect width="${fmt4(size)}" height="${fmt4(size)}" fill="${opts.background}"/>` : "";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${fmt4(size)}" height="${fmt4(size)}" viewBox="0 0 ${fmt4(size)} ${fmt4(size)}">` + bg + polys.join("") + `</svg>`;
+  const bg = opts.background ? `<rect width="${fmt5(size)}" height="${fmt5(size)}" fill="${opts.background}"/>` : "";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${fmt5(size)}" height="${fmt5(size)}" viewBox="0 0 ${fmt5(size)} ${fmt5(size)}">` + bg + polys.join("") + `</svg>`;
 }
 function solidPointOklch(solid, p) {
   if (solid.embed === "landscape") {
@@ -100474,25 +100800,25 @@ var init_image_cloud = __esm({
 });
 
 // engine/src/gamut-axis.ts
-function peakChroma(limit2) {
-  const id3 = gamutSourceId(limit2);
+function peakChroma(limit3) {
+  const id3 = gamutSourceId(limit3);
   const hit = PEAK_CACHE.get(id3);
   if (hit !== void 0) return hit;
-  const coarse = gamutCeilingPeak(limit2);
+  const coarse = gamutCeilingPeak(limit3);
   let best = coarse.c;
   for (let i = -8; i <= 8; i++) {
     const l = coarse.l + i * GAMUT_GRID_STEP.l / 8;
     if (!(l > 0) || l >= 1) continue;
     for (let j = -8; j <= 8; j++) {
-      const c = maxChroma(l, coarse.h + j * GAMUT_GRID_STEP.h / 8, limit2);
+      const c = maxChroma(l, coarse.h + j * GAMUT_GRID_STEP.h / 8, limit3);
       if (c > best) best = c;
     }
   }
   PEAK_CACHE.set(id3, best);
   return best;
 }
-function chromaAxisMax(limit2) {
-  const peak = peakChroma(limit2) * AXIS_HEADROOM;
+function chromaAxisMax(limit3) {
+  const peak = peakChroma(limit3) * AXIS_HEADROOM;
   if (!(peak > 0)) return AXIS_GRAIN;
   const steps = Math.ceil(peak / AXIS_GRAIN - 1e-9);
   return Number((steps * AXIS_GRAIN).toFixed(4));
@@ -100517,8 +100843,8 @@ var init_gamut_axis = __esm({
 });
 
 // engine/src/gamut-tier.ts
-function gamutTierProbe(limit2) {
-  const src = resolveGamutSource(limit2);
+function gamutTierProbe(limit3) {
+  const src = resolveGamutSource(limit3);
   const test = (s) => fastRgbContains(s) ?? ((l, c, h) => s.contains(l, c, h));
   const inside2 = test(src);
   const outer = GAMUT_TIER_LADDER.filter((g2) => g2.id !== src.id).map(test);
@@ -100529,8 +100855,8 @@ function gamutTierProbe(limit2) {
     return BEYOND_TIER;
   };
 }
-function gamutTier(l, c, h, limit2) {
-  return gamutTierProbe(limit2)(l, c, h);
+function gamutTier(l, c, h, limit3) {
+  return gamutTierProbe(limit3)(l, c, h);
 }
 var BEYOND_TIER, GAMUT_TIER_LADDER;
 var init_gamut_tier = __esm({
@@ -101360,14 +101686,14 @@ function spotHealPremultiplied(rgba2, coverage, width, height, opts) {
   }
 }
 function paintedAreas(mask, width, height) {
-  const label4 = new Int32Array(width * height).fill(-1);
+  const label5 = new Int32Array(width * height).fill(-1);
   const areas = [];
   const stack = [];
   for (let start = 0; start < mask.length; start++) {
-    if (!mask[start] || label4[start] !== -1) continue;
+    if (!mask[start] || label5[start] !== -1) continue;
     const id3 = areas.length;
     const area2 = new Uint8Array(width * height);
-    label4[start] = id3;
+    label5[start] = id3;
     stack.push(start);
     while (stack.length) {
       const p = stack.pop();
@@ -101378,8 +101704,8 @@ function paintedAreas(mask, width, height) {
           const nx = x + dx, ny = y + dy;
           if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
           const q = ny * width + nx;
-          if (mask[q] && label4[q] === -1) {
-            label4[q] = id3;
+          if (mask[q] && label5[q] === -1) {
+            label5[q] = id3;
             stack.push(q);
           }
         }
@@ -101563,12 +101889,12 @@ function refineMatte(alpha, rgba2, width, height, opts = {}) {
   const epsilon = opts.epsilon ?? 1e-4;
   const shift = Math.max(-1, Math.min(1, opts.shift ?? 0));
   const contrast3 = Math.max(1, Math.min(10, opts.contrast ?? 1));
-  const limit2 = Math.max(64, opts.limit ?? 1024);
+  const limit3 = Math.max(64, opts.limit ?? 1024);
   let refined = new Float32Array(n8);
   for (let i = 0; i < n8; i++) refined[i] = alpha[i] / 255;
   if (radius > 0 && width > 1 && height > 1) {
     const [gr, gg, gb] = channelsOf(rgba2, n8);
-    const factor = Math.min(1, limit2 / Math.max(width, height));
+    const factor = Math.min(1, limit3 / Math.max(width, height));
     const sw = Math.max(1, Math.round(width * factor)), sh = Math.max(1, Math.round(height * factor));
     const r5 = Math.max(1, Math.round(radius * factor));
     const small = (p) => shrinkPlane(p, width, height, sw, sh);
@@ -102102,7 +102428,7 @@ var init_color_curve = __esm({
 
 // engine/src/color-vision.ts
 function cvdMatrix(type, severity) {
-  const table = TABLES[type];
+  const table = TABLES2[type];
   const s = severity < 0 ? 0 : severity > 1 ? 1 : severity;
   const scaled2 = s * 10;
   const lo = Math.floor(scaled2);
@@ -102141,7 +102467,7 @@ function toGrayscaleHex(hex3) {
   if (!rgba2) return null;
   return toHex(toGrayscale([rgba2[0], rgba2[1], rgba2[2]]));
 }
-var PROTAN, DEUTAN, TRITAN, TABLES, REC709, clamp0111, round255, toHex;
+var PROTAN, DEUTAN, TRITAN, TABLES2, REC709, clamp0111, round255, toHex;
 var init_color_vision = __esm({
   "engine/src/color-vision.ts"() {
     "use strict";
@@ -102218,7 +102544,7 @@ var init_color_vision = __esm({
       // 1.0 - tritanopia
       [1.255528, -0.076749, -0.178779, -0.078411, 0.930809, 0.147602, 4733e-6, 0.691367, 0.3039]
     ];
-    TABLES = {
+    TABLES2 = {
       protan: PROTAN,
       deutan: DEUTAN,
       tritan: TRITAN
@@ -103244,8 +103570,8 @@ function designLayoutRequest(container, children2, tracks) {
     bounds: corners(r5),
     sizing: [mode(r5, "W"), mode(r5, "H")],
     margin: sides(r5, "layoutMargin"),
-    min: [limit(r5, "layoutMinW"), limit(r5, "layoutMinH")],
-    max: [limit(r5, "layoutMaxW"), limit(r5, "layoutMaxH")],
+    min: [limit2(r5, "layoutMinW"), limit2(r5, "layoutMinH")],
+    max: [limit2(r5, "layoutMaxW"), limit2(r5, "layoutMaxH")],
     absolute: on2(r5.layoutAbsolute),
     hidden: on2(r5.hidden),
     align: String(r5.layoutSelf || "auto"),
@@ -103681,7 +104007,7 @@ function remapDesignLayout(rows2, tracks, copies) {
     tracks: tracks.filter((t) => copies.has(String(t.container))).map((t) => ({ ...t, container: copies.get(String(t.container)) }))
   };
 }
-var MAX_LAYOUT_LAYERS, MAX_LAYOUT_TRACKS, MAX_LAYOUT_OWNER_RECORDS, MAX_LAYOUT_SCALAR, MAX_LAYOUT_TEXT_LAYER_CHARS, MAX_LAYOUT_TEXT_DOCUMENT_CHARS, MAX_LAYOUT_TRACKS_PER_AXIS, MAX_LAYOUT_GRID_CELLS, MAX_LAYOUT_GRID_WORK, MAX_LAYOUT_PASSES, MAX_LAYOUT_REFLOW_WORK, MAX_LAYOUT_SOLVER_CACHE_ENTRIES, MAX_LAYOUT_SOLVER_CACHE_BYTES, MAX_LAYOUT_PROJECTION_KEY_CHARS, MAX_LAYOUT_PROJECTIONS, hasDesignLayout, on2, number2, mode, owner, hierarchyOwner, id, isText, inFlow, TIMING_FIELDS, withoutTiming, sides, limit;
+var MAX_LAYOUT_LAYERS, MAX_LAYOUT_TRACKS, MAX_LAYOUT_OWNER_RECORDS, MAX_LAYOUT_SCALAR, MAX_LAYOUT_TEXT_LAYER_CHARS, MAX_LAYOUT_TEXT_DOCUMENT_CHARS, MAX_LAYOUT_TRACKS_PER_AXIS, MAX_LAYOUT_GRID_CELLS, MAX_LAYOUT_GRID_WORK, MAX_LAYOUT_PASSES, MAX_LAYOUT_REFLOW_WORK, MAX_LAYOUT_SOLVER_CACHE_ENTRIES, MAX_LAYOUT_SOLVER_CACHE_BYTES, MAX_LAYOUT_PROJECTION_KEY_CHARS, MAX_LAYOUT_PROJECTIONS, hasDesignLayout, on2, number2, mode, owner, hierarchyOwner, id, isText, inFlow, TIMING_FIELDS, withoutTiming, sides, limit2;
 var init_design_layout = __esm({
   "engine/src/design-layout.ts"() {
     "use strict";
@@ -103727,7 +104053,7 @@ var init_design_layout = __esm({
     ]);
     withoutTiming = (r5) => Object.fromEntries(Object.entries(r5).filter(([k]) => !TIMING_FIELDS.has(k)));
     sides = (r5, prefix) => ["Top", "Right", "Bottom", "Left"].map((k) => number2(r5[prefix + k]));
-    limit = (r5, k) => r5[k] === "" || r5[k] == null ? null : Number(r5[k]);
+    limit2 = (r5, k) => r5[k] === "" || r5[k] == null ? null : Number(r5[k]);
   }
 });
 
@@ -103756,14 +104082,14 @@ function penpotChildrenPaintOrder(shape, shapes2) {
   if (shape.layout !== "flex" && shape.layout !== "grid") return ids2;
   const topFirst = [...ids2].reverse();
   if (shape.layout === "flex" && !String(shape.layoutFlexDir || "row").endsWith("-reverse")) topFirst.reverse();
-  topFirst.sort((a, b) => num9(shapes2[b]?.layoutItemZIndex) - num9(shapes2[a]?.layoutItemZIndex));
+  topFirst.sort((a, b) => num10(shapes2[b]?.layoutItemZIndex) - num10(shapes2[a]?.layoutItemZIndex));
   return topFirst.reverse();
 }
 function topLeft(row) {
-  const w = num9(row.w), h = num9(row.h), angle = num9(row.rot) * Math.PI / 180;
+  const w = num10(row.w), h = num10(row.h), angle = num10(row.rot) * Math.PI / 180;
   return [
-    num9(row.x) + w / 2 - w / 2 * cos(angle) + h / 2 * sin(angle),
-    num9(row.y) + h / 2 - w / 2 * sin(angle) - h / 2 * cos(angle)
+    num10(row.x) + w / 2 - w / 2 * cos(angle) + h / 2 * sin(angle),
+    num10(row.y) + h / 2 - w / 2 * sin(angle) - h / 2 * cos(angle)
   ];
 }
 function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
@@ -103803,10 +104129,10 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
       else {
         row.layoutOwner = parentBox.id;
         row.frame = "";
-        row.layoutAngle = num9(box4.rot) - num9(parentBox.rot);
+        row.layoutAngle = num10(box4.rot) - num10(parentBox.rot);
         if (shape.layoutItemAbsolute === true) {
           const [px3, py] = topLeft(parentBox), [cx2, cy3] = topLeft(box4);
-          const angle = num9(parentBox.rot) * Math.PI / 180;
+          const angle = num10(parentBox.rot) * Math.PI / 180;
           row.layoutX = (cx2 - px3) * cos(angle) + (cy3 - py) * sin(angle);
           row.layoutY = -(cx2 - px3) * sin(angle) + (cy3 - py) * cos(angle);
         }
@@ -103830,7 +104156,7 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
       if (shape.layoutItemAlignSelf) row.layoutSelf = shape.layoutItemAlignSelf;
       const margin = record15(shape.layoutItemMargin);
       SIDES.forEach((side2, i) => {
-        row[`layoutMargin${side2}`] = num9(margin[`m${shape.layoutItemMarginType === "multiple" ? i + 1 : i % 2 + 1}`]);
+        row[`layoutMargin${side2}`] = num10(margin[`m${shape.layoutItemMarginType === "multiple" ? i + 1 : i % 2 + 1}`]);
       });
     }
     if (shape.layout === "flex" || shape.layout === "grid") {
@@ -103839,10 +104165,10 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
       row.layoutWrap = shape.layoutWrapType === "wrap";
       const padding = record15(shape.layoutPadding), gap = record15(shape.layoutGap);
       SIDES.forEach((side2, i) => {
-        row[`layoutPad${side2}`] = num9(padding[`p${shape.layoutPaddingType === "simple" ? i % 2 + 1 : i + 1}`]);
+        row[`layoutPad${side2}`] = num10(padding[`p${shape.layoutPaddingType === "simple" ? i % 2 + 1 : i + 1}`]);
       });
-      row.layoutGapX = num9(gap.columnGap);
-      row.layoutGapY = num9(gap.rowGap);
+      row.layoutGapX = num10(gap.columnGap);
+      row.layoutGapY = num10(gap.rowGap);
       row.layoutAlign = shape.layoutAlignItems || "start";
       row.layoutAlignContent = shape.layoutAlignContent || "stretch";
       row.layoutJustify = shape.layoutJustifyContent || "start";
@@ -103851,7 +104177,7 @@ function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
         for (const [axis, key2] of [["column", "layoutGridColumns"], ["row", "layoutGridRows"]]) {
           const list4 = Array.isArray(shape[key2]) ? shape[key2] : [];
           list4.forEach((track, order) => {
-            const type = String(track.type), value2 = num9(track.value);
+            const type = String(track.type), value2 = num10(track.value);
             if (!["auto", "flex", "percent", "fixed"].includes(type)) add3(box4.id, "penpot.layout.track", `Unsupported Penpot track type: ${type}.`);
             tracks.push({
               id: `${box4.id}:${axis}:${order}`,
@@ -103911,7 +104237,7 @@ function exportPenpotLayout(row, children2, tracks) {
     props.layoutItemHSizing = ppSizing(row.layoutW);
     props.layoutItemVSizing = ppSizing(row.layoutH);
     props.layoutItemMarginType = "multiple";
-    props.layoutItemMargin = Object.fromEntries(SIDES.map((side2, n8) => [`m${n8 + 1}`, num9(row[`layoutMargin${side2}`])]));
+    props.layoutItemMargin = Object.fromEntries(SIDES.map((side2, n8) => [`m${n8 + 1}`, num10(row[`layoutMargin${side2}`])]));
     if (row.layoutAbsolute === true) props.layoutItemAbsolute = true;
     if (row.layoutSelf && row.layoutSelf !== "auto") props.layoutItemAlignSelf = row.layoutSelf;
     for (const [target2, source] of [["layoutItemMinW", "layoutMinW"], ["layoutItemMaxW", "layoutMaxW"], ["layoutItemMinH", "layoutMinH"], ["layoutItemMaxH", "layoutMaxH"]]) {
@@ -103922,9 +104248,9 @@ function exportPenpotLayout(row, children2, tracks) {
   Object.assign(props, {
     layout: row.layout,
     layoutGapType: "multiple",
-    layoutGap: { rowGap: num9(row.layoutGapY), columnGap: num9(row.layoutGapX) },
+    layoutGap: { rowGap: num10(row.layoutGapY), columnGap: num10(row.layoutGapX) },
     layoutPaddingType: "multiple",
-    layoutPadding: Object.fromEntries(SIDES.map((side2, n8) => [`p${n8 + 1}`, num9(row[`layoutPad${side2}`])])),
+    layoutPadding: Object.fromEntries(SIDES.map((side2, n8) => [`p${n8 + 1}`, num10(row[`layoutPad${side2}`])])),
     layoutAlignItems: row.layoutAlign || "start",
     layoutAlignContent: row.layoutAlignContent || "stretch",
     layoutJustifyItems: row.layoutJustifyItems || "start",
@@ -103956,7 +104282,7 @@ function exportPenpotLayout(row, children2, tracks) {
   props.layoutGridCells = cells;
   return props;
 }
-var ROOT, SIDES, sizing, ppSizing, num9, record15;
+var ROOT, SIDES, sizing, ppSizing, num10, record15;
 var init_penpot_layout = __esm({
   "engine/src/penpot-layout.ts"() {
     "use strict";
@@ -103966,7 +104292,7 @@ var init_penpot_layout = __esm({
     SIDES = ["Top", "Right", "Bottom", "Left"];
     sizing = (value2) => value2 === "auto" ? "hug" : value2 === "fill" ? "fill" : "fixed";
     ppSizing = (value2) => value2 === "hug" ? "auto" : value2 === "fill" ? "fill" : "fix";
-    num9 = (value2, fallback = 0) => value2 == null || value2 === "" ? fallback : Number(value2);
+    num10 = (value2, fallback = 0) => value2 == null || value2 === "" ? fallback : Number(value2);
     record15 = (value2) => value2 && typeof value2 === "object" && !Array.isArray(value2) ? value2 : {};
   }
 });
@@ -104217,8 +104543,8 @@ function slideLayoutChoices(slide, plan) {
 }
 function masterLabelWeight(master) {
   for (const a of master.archetypes) {
-    const label4 = a.placeholders.find((p) => p.role === "label" && p.style?.weight);
-    if (label4?.style?.weight) return label4.style.weight;
+    const label5 = a.placeholders.find((p) => p.role === "label" && p.style?.weight);
+    if (label5?.style?.weight) return label5.style.weight;
   }
   return "700";
 }
@@ -106543,11 +106869,11 @@ function verifyFamily(family2, tolerance) {
   };
 }
 function boxPartitions(family2, tolerance) {
-  const limit2 = tolerance * 2;
+  const limit3 = tolerance * 2;
   const parts = [];
   for (const member of family2.members) {
     const box4 = fractionBox(member.object.box, member.frame);
-    const part = parts.find(({ seed }) => Math.abs(seed.x - box4.x) <= limit2 && Math.abs(seed.y - box4.y) <= limit2 && Math.abs(seed.w - box4.w) <= limit2 && Math.abs(seed.h - box4.h) <= limit2);
+    const part = parts.find(({ seed }) => Math.abs(seed.x - box4.x) <= limit3 && Math.abs(seed.y - box4.y) <= limit3 && Math.abs(seed.w - box4.w) <= limit3 && Math.abs(seed.h - box4.h) <= limit3);
     if (part) part.members.push(member);
     else parts.push({ seed: box4, members: [member] });
   }
@@ -110240,8 +110566,8 @@ function clearTextStyle(row) {
   for (const key2 of STYLE_FIELDS2) delete row[key2];
 }
 function roleName(role, ordinal) {
-  const label4 = role.charAt(0).toUpperCase() + role.slice(1);
-  return ordinal > 1 ? `${label4} ${ordinal}` : label4;
+  const label5 = role.charAt(0).toUpperCase() + role.slice(1);
+  return ordinal > 1 ? `${label5} ${ordinal}` : label5;
 }
 function archetypePlaceholders(archetype) {
   return archetype.placeholders;
@@ -111758,18 +112084,18 @@ function hexWithAlpha(hex3, alpha) {
   return `#${base}${Math.round(Math.max(0, alpha) * 255).toString(16).padStart(2, "0")}`;
 }
 function rowName(kind, item2) {
-  const label4 = item2.series ?? item2.groups?.at(-1);
-  return label4 ? `${kind}: ${label4}` : kind;
+  const label5 = item2.series ?? item2.groups?.at(-1);
+  return label5 ? `${kind}: ${label5}` : kind;
 }
 function vectorItemsToRows(items2, place2, opts) {
   const maxRows = opts.maxRows ?? MAX_VECTOR_ROWS_PER_OBJECT;
   const vb = items2.viewBox;
   if (!items2.items.length) return { refused: "empty" };
   if (items2.items.length > maxRows) return { refused: "cap-reached" };
-  const finite7 = [vb.x, vb.y, vb.w, vb.h, place2.x, place2.y, place2.w, place2.h].every(Number.isFinite);
+  const finite8 = [vb.x, vb.y, vb.w, vb.h, place2.x, place2.y, place2.w, place2.h].every(Number.isFinite);
   const spanX = vb.w > 0;
   const spanY = vb.h > 0;
-  if (!finite7 || vb.w < 0 || vb.h < 0 || place2.w < 0 || place2.h < 0 || !spanX && !spanY) return { refused: "unplaceable" };
+  if (!finite8 || vb.w < 0 || vb.h < 0 || place2.w < 0 || place2.h < 0 || !spanX && !spanY) return { refused: "unplaceable" };
   let sx = spanX ? place2.w / vb.w : 1;
   let sy = spanY ? place2.h / vb.h : 1;
   let ox = place2.x;
@@ -111932,8 +112258,8 @@ function vectorRowNameParts(name) {
   const head2 = at >= 0 ? name.slice(0, at) : name;
   const kind = VECTOR_ROW_KIND_WORDS.find((word) => word === head2);
   if (!kind) return void 0;
-  const label4 = at >= 0 ? name.slice(at + 2).trim() : "";
-  return label4 ? { kind, label: label4 } : { kind };
+  const label5 = at >= 0 ? name.slice(at + 2).trim() : "";
+  return label5 ? { kind, label: label5 } : { kind };
 }
 function cropViewBox(vb, crop) {
   const f = (v) => typeof v === "number" && Number.isFinite(v) ? Math.max(-10, Math.min(1, v)) : 0;
@@ -112405,13 +112731,13 @@ function compileFaithful(source, opts = {}) {
       const drawable2 = hasDrawableBytes(object4);
       if (object4.fidelity.state === "unavailable" || !drawable2) {
         const labelId = `${layerId}.label`;
-        const { box: box4, label: label4 } = authorPlaceholder(
+        const { box: box4, label: label5 } = authorPlaceholder(
           base(object4, layerId),
           base(object4, labelId),
           `${kindLabel(object4.kind)} could not be read`,
           { fill: placeholderFill, ink: placeholderInk }
         );
-        layers.push(box4, label4);
+        layers.push(box4, label5);
         produced.push(layerId, labelId);
         placeholderLayerIds.push(layerId, labelId);
         noteFurniture(object4, [layerId, labelId]);
@@ -113900,15 +114226,15 @@ function compileRenovated(input) {
     if (placement2.content !== "text" || placement2.object.kind === "table" || placement2.object.table !== void 0) slot.taken = true;
     if (placement2.content === "placeholder") {
       const labelId = `${id3}.label`;
-      const { box: box4, label: label4 } = authorPlaceholder(
+      const { box: box4, label: label5 } = authorPlaceholder(
         slotGeometry(row, id3, rowStr(row, "name")),
         slotGeometry(row, labelId, `${rowStr(row, "name")} note`),
         placement2.label ?? "Content could not be read",
         style
       );
-      delete label4.role;
+      delete label5.role;
       build2.rows[slot.index] = box4;
-      build2.extras.push(label4);
+      build2.extras.push(label5);
       build2.placeholderLayerIds.push(id3, labelId);
       return [id3, labelId];
     }
@@ -114149,9 +114475,9 @@ function compileRenovated(input) {
     const callouts = [...holders.entries()].filter(([id3, members2]) => members2.length < texts.length && textOnly3(id3));
     if (callouts.length !== 1) return placed2;
     const members = [...callouts[0]?.[1] ?? []].sort((a, b) => a.reading - b.reading);
-    const label4 = cell2.find((slot) => slot.role === "label");
+    const label5 = cell2.find((slot) => slot.role === "label");
     members.forEach((member, k) => {
-      const ids2 = k === 0 && label4 && members.length > 1 && isLabelText(member) ? takeSlot2(build2, label4, member) : body.members.length === 0 ? takeSlot2(build2, body, member) : joinSlot(build2, body, member, false);
+      const ids2 = k === 0 && label5 && members.length > 1 && isLabelText(member) ? takeSlot2(build2, label5, member) : body.members.length === 0 ? takeSlot2(build2, body, member) : joinSlot(build2, body, member, false);
       assigned.set(member.object.id, ids2);
       placed2.add(member);
     });
@@ -114206,11 +114532,11 @@ function compileRenovated(input) {
         if (member.content === "image" || member.content === "placeholder" && needOf(member) === "image") {
           slot = find((s) => s.kind === "image") ?? find((s) => s.role === "body");
         } else {
-          const label4 = find((s) => s.role === "label" && s.kind === "text");
-          const body = label4 ? find((s) => s.role === "body" && s.kind === "text") : void 0;
-          const parts = label4 && body ? headingSplit(member) : void 0;
-          if (label4 && body && parts) {
-            placed2.set(member.object.id, [...takeSlot2(build2, label4, parts.head), ...takeSlot2(build2, body, parts.rest)]);
+          const label5 = find((s) => s.role === "label" && s.kind === "text");
+          const body = label5 ? find((s) => s.role === "body" && s.kind === "text") : void 0;
+          const parts = label5 && body ? headingSplit(member) : void 0;
+          if (label5 && body && parts) {
+            placed2.set(member.object.id, [...takeSlot2(build2, label5, parts.head), ...takeSlot2(build2, body, parts.rest)]);
             return;
           }
           const textAfter = unit2.members.slice(m2 + 1).some((next2) => next2.content === "text");
@@ -114447,8 +114773,8 @@ function compileRenovated(input) {
         }
       } else if (placement2.content === "placeholder") {
         const labelId = `${layerId}.label`;
-        const { box: box4, label: label4 } = authorPlaceholder(base(object4, layerId), base(object4, labelId), placement2.label ?? `${kindLabel(object4.kind)} could not be read`, style);
-        content2.push(box4, label4);
+        const { box: box4, label: label5 } = authorPlaceholder(base(object4, layerId), base(object4, labelId), placement2.label ?? `${kindLabel(object4.kind)} could not be read`, style);
+        content2.push(box4, label5);
         produced.push(layerId, labelId);
         build2.placeholderLayerIds.push(layerId, labelId);
         derivedOf.set(layerId, "placeholder");
@@ -115238,16 +115564,16 @@ function compileRenovated(input) {
     const x0 = rowNum(row, "x");
     const x1 = x0 + rowNum(row, "w");
     const bottom = rowNum(row, "y") + rowNum(row, "h");
-    let limit2 = head2 ? rowNum(head2, "y") + rowNum(head2, "h") - growGap : bottom;
+    let limit3 = head2 ? rowNum(head2, "y") + rowNum(head2, "h") - growGap : bottom;
     for (const other of rows2) {
       if (other === row || other === head2 || other.hidden === true) continue;
       const top = rowNum(other, "y");
       if (top < bottom - 0.5) continue;
       const ox0 = rowNum(other, "x");
       if (ox0 >= x1 || ox0 + rowNum(other, "w") <= x0) continue;
-      limit2 = Math.min(limit2, top - growGap);
+      limit3 = Math.min(limit3, top - growGap);
     }
-    return Math.max(0, round23(limit2 - bottom));
+    return Math.max(0, round23(limit3 - bottom));
   };
   const fitRow = (rows2, row) => {
     if (designTextFit(row).needed <= rowNum(row, "h") + 0.5) return;
@@ -115806,14 +116132,14 @@ function inkIntercept(d, top, bottom) {
   };
   const tokens3 = d.match(/[A-Za-z]|[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g) ?? [];
   let at = { x: 0, y: 0 }, start = at, i = 0, command = "";
-  const num19 = () => {
+  const num20 = () => {
     const v = Number(tokens3[i++]);
     if (!Number.isFinite(v)) throw new Error("number");
     return v;
   };
   const point3 = () => {
-    const x = num19();
-    return { x, y: num19() };
+    const x = num20();
+    return { x, y: num20() };
   };
   try {
     while (i < tokens3.length) {
@@ -115831,8 +116157,8 @@ function inkIntercept(d, top, bottom) {
       }
       let next2;
       if (command === "L") next2 = [point3()];
-      else if (command === "H") next2 = [{ x: num19(), y: at.y }];
-      else if (command === "V") next2 = [{ x: at.x, y: num19() }];
+      else if (command === "H") next2 = [{ x: num20(), y: at.y }];
+      else if (command === "V") next2 = [{ x: at.x, y: num20() }];
       else if (command === "Q") next2 = [point3(), point3()];
       else if (command === "C") next2 = [point3(), point3(), point3()];
       else return void 0;
@@ -116266,12 +116592,12 @@ var init_text_unicode = __esm({
 
 // engine/src/design-text-measure.ts
 function layerWeight(weight, font) {
-  let w = clamp4(Math.round(num10(weight, TEXT_MEASURE_DEFAULTS.weight) / 100) * 100, 100, 900);
+  let w = clamp4(Math.round(num11(weight, TEXT_MEASURE_DEFAULTS.weight) / 100) * 100, 100, 900);
   if (/mono/i.test(font) && w > 800) w = 800;
   return w;
 }
 function borderWidth(strokeW) {
-  const sw = Math.round(num10(strokeW, 0) * 100) / 100;
+  const sw = Math.round(num11(strokeW, 0) * 100) / 100;
   if (!(sw > 0)) return 0;
   return sw < 1 ? 1 : Math.floor(sw);
 }
@@ -116287,21 +116613,21 @@ function settle(spec) {
   if (typeof spec.text !== "string") throw new TextMeasureError("input.invalid", "text must be a string.");
   if (spec.text.length > TEXT_MEASURE_MAX_UNITS)
     throw new TextMeasureError("input.invalid", `text is ${spec.text.length} characters long; a measure takes up to ${TEXT_MEASURE_MAX_UNITS}.`);
-  const width = num10(spec.width, NaN);
+  const width = num11(spec.width, NaN);
   if (!Number.isFinite(width) || width <= 0) throw new TextMeasureError("input.invalid", "width must be a positive number of px.");
-  const height = spec.height === void 0 || spec.height === null ? void 0 : num10(spec.height, NaN);
+  const height = spec.height === void 0 || spec.height === null ? void 0 : num11(spec.height, NaN);
   if (height !== void 0 && (!Number.isFinite(height) || height <= 0)) throw new TextMeasureError("input.invalid", "height must be a positive number of px.");
   if (spec.valign !== void 0 && !VALIGNS2.includes(spec.valign)) throw new TextMeasureError("input.invalid", "valign must be top, middle or bottom.");
   const fonts = spec.fonts && typeof spec.fonts.brand === "string" && spec.fonts.brand.trim() ? spec.fonts : TEXT_MEASURE_DEFAULT_FONTS;
   const token2 = typeof spec.font === "string" && spec.font.trim() ? spec.font.trim() : "sans";
-  const tracking = round24(clamp4(num10(spec.tracking, 0), -100, 400));
+  const tracking = round24(clamp4(num11(spec.tracking, 0), -100, 400));
   const ligatures = spec.ligatures !== false;
   const features = [];
   if (!ligatures || tracking !== 0) features.push("liga=0", "clig=0");
   if (spec.alternates === true) features.push("salt=1");
   const border = borderWidth(spec.strokeW);
   const boxWidth = Math.max(1, Math.round(width));
-  const pad = Math.round(clamp4(num10(spec.pad, TEXT_MEASURE_DEFAULTS.pad), 0, 400));
+  const pad = Math.round(clamp4(num11(spec.pad, TEXT_MEASURE_DEFAULTS.pad), 0, 400));
   return {
     text: spec.text.replace(/\r\n?/g, "\n"),
     fonts,
@@ -116310,8 +116636,8 @@ function settle(spec) {
     weight: layerWeight(spec.weight, token2),
     italic: spec.italic === true,
     plain: spec.plain === true,
-    size: Math.max(1, Math.round(num10(spec.size, TEXT_MEASURE_DEFAULTS.size))),
-    lineHeight: clamp4(num10(spec.lineHeight, TEXT_MEASURE_DEFAULTS.lineHeight), 0.5, 4),
+    size: Math.max(1, Math.round(num11(spec.size, TEXT_MEASURE_DEFAULTS.size))),
+    lineHeight: clamp4(num11(spec.lineHeight, TEXT_MEASURE_DEFAULTS.lineHeight), 0.5, 4),
     pad,
     tracking,
     features,
@@ -116717,7 +117043,7 @@ function textMeasureSpecOfRow(row, fonts) {
   if (fonts) spec.fonts = fonts;
   return spec;
 }
-var TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, TEXT_MEASURE_DEFAULTS, TEXT_MEASURE_MAX_UNITS, EPSILON, VALIGNS2, HANGING, num10, clamp4, round24, bolder, faceKey, PAIR_WORD, ASCII_BREAK_AFTER, isPrintableAscii, isBreakableSpace, DICTIONARY_SCRIPT, UNCOVERED_LIST_MAX, trimHanging, specNum, given;
+var TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS, TEXT_MEASURE_DEFAULTS, TEXT_MEASURE_MAX_UNITS, EPSILON, VALIGNS2, HANGING, num11, clamp4, round24, bolder, faceKey, PAIR_WORD, ASCII_BREAK_AFTER, isPrintableAscii, isBreakableSpace, DICTIONARY_SCRIPT, UNCOVERED_LIST_MAX, trimHanging, specNum, given;
 var init_design_text_measure = __esm({
   "engine/src/design-text-measure.ts"() {
     "use strict";
@@ -116738,7 +117064,7 @@ var init_design_text_measure = __esm({
     EPSILON = 0.01;
     VALIGNS2 = ["top", "middle", "bottom"];
     HANGING = /[\t   -  -  　]/;
-    num10 = (value2, fallback) => {
+    num11 = (value2, fallback) => {
       const n8 = typeof value2 === "number" ? value2 : typeof value2 === "string" ? parseFloat(value2) : NaN;
       return Number.isFinite(n8) ? n8 : fallback;
     };
@@ -116884,6 +117210,48 @@ var init_design_stroke = __esm({
   }
 });
 
+// engine/src/kf-bake.ts
+function kfExportKeys(track, ch, fps, startMs) {
+  const keys2 = track.filter((k) => typeof k.v[ch] === "number");
+  const out = [];
+  const frameOf = (t) => (startMs + t) * fps / 1e3;
+  for (let i = 0; i < keys2.length; i++) {
+    const key2 = keys2[i];
+    const next2 = keys2[i + 1];
+    const value2 = key2.v[ch];
+    const spring = ch !== "o" && next2 !== void 0 && kfEaseIsSpring(key2.ease);
+    if (!spring) {
+      out.push({ f: frameOf(key2.t), ease: kfEaseResolved(key2.ease), v: value2 });
+      continue;
+    }
+    const f0 = frameOf(key2.t), f1 = frameOf(next2.t);
+    const first = Math.floor(f0) + 1, last = Math.ceil(f1) - 1;
+    if (last - first > MAX_BAKED_FRAMES) throw new Error("dotLottie: a spring spans more than 100 000 frames. Shorten it or export video.");
+    const samples = [{ f: f0, ease: KF_LINEAR_EASE, v: value2 }];
+    for (let f = first; f <= last; f++) {
+      const local2 = f * 1e3 / fps - startMs;
+      if (!(local2 > key2.t && local2 < next2.t)) continue;
+      const at = evaluateKf(track, local2, [ch])[ch];
+      if (typeof at === "number") samples.push({ f, ease: KF_LINEAR_EASE, v: at });
+    }
+    for (let j = 0; j < samples.length; j++) {
+      const s = samples[j];
+      const prev = samples[j - 1], after = samples[j + 1];
+      if (prev && after && prev.v === s.v && after.v === s.v) continue;
+      out.push(s);
+    }
+  }
+  return out;
+}
+var MAX_BAKED_FRAMES;
+var init_kf_bake = __esm({
+  "engine/src/kf-bake.ts"() {
+    "use strict";
+    init_keyframes2();
+    MAX_BAKED_FRAMES = 1e5;
+  }
+});
+
 // engine/src/kf-look.ts
 function isKfLookChannel(ch) {
   return typeof ch === "string" && LOOK_SET.has(ch);
@@ -116894,14 +117262,14 @@ function kfLookUsed(track) {
 function kfLookPose(track, tMs) {
   return evaluateKf(track, tMs, KF_LOOK_CHANNELS);
 }
-function quant2(v, q) {
+function quant3(v, q) {
   const inv = Math.round(1 / q);
   const n8 = Math.round(v * inv) / inv;
   return Object.is(n8, -0) ? 0 : n8;
 }
 function kfOklabFromSrgb8(r5, g2, b) {
   const [L, A, B] = linearSrgbToOklab(srgbToLinear(r5 / 255), srgbToLinear(g2 / 255), srgbToLinear(b / 255));
-  return { l: quant2(L, KF_QUANTA.cl), a: quant2(A, KF_QUANTA.ca), b: quant2(B, KF_QUANTA.cb) };
+  return { l: quant3(L, KF_QUANTA.cl), a: quant3(A, KF_QUANTA.ca), b: quant3(B, KF_QUANTA.cb) };
 }
 function kfOklabToSrgb8(l, a, b) {
   const lin = oklabToLinearSrgb(Number.isFinite(l) ? l : 0, Number.isFinite(a) ? a : 0, Number.isFinite(b) ? b : 0);
@@ -117023,17 +117391,17 @@ function lookFeatureName(ch) {
   return ch;
 }
 function channelKeys(track, ch, fps, startMs, map) {
-  const keys2 = track.filter((k) => typeof k.v[ch] === "number");
-  if (keys2.length === 1) return fixed2(map(keys2[0].v[ch]));
+  const keys2 = kfExportKeys(track, ch, fps, startMs);
+  if (keys2.length === 1) return fixed2(map(keys2[0].v));
   return {
     a: 1,
     k: keys2.map((key2, i) => {
       const next2 = keys2[i + 1];
       const pts = kfEasePoints(key2.ease) ?? [0, 0, 1, 1];
       return {
-        t: (startMs + key2.t) * fps / 1e3,
-        s: [map(key2.v[ch])],
-        ...next2 ? { e: [map(next2.v[ch])], ...key2.ease === KF_HOLD_EASE ? { h: 1 } : { o: { x: pts[0], y: pts[1] }, i: { x: pts[2], y: pts[3] } } } : {}
+        t: key2.f,
+        s: [map(key2.v)],
+        ...next2 ? { e: [map(next2.v)], ...key2.ease === KF_HOLD_EASE ? { h: 1 } : { o: { x: pts[0], y: pts[1] }, i: { x: pts[2], y: pts[3] } } } : {}
       };
     })
   };
@@ -117177,6 +117545,7 @@ var init_lottie_look = __esm({
     "use strict";
     init_keyframes2();
     init_kf_look();
+    init_kf_bake();
     fixed2 = (k) => ({ a: 0, k });
     K2 = 0.5522847498;
     GROUP_TRANSFORM = { ty: "tr", p: fixed2([0, 0]), a: fixed2([0, 0]), s: fixed2([100, 100]), r: fixed2(0), o: fixed2(100), sk: fixed2(0), sa: fixed2(0) };
@@ -117207,33 +117576,33 @@ function readLottieJson(bytes2, context) {
   }
   return lottieObject(value2, context);
 }
-function admitLottieAnimation(value2, label4 = "Animation") {
-  const w = lottieNumber(value2.w, `${label4} width`, 1, LOTTIE_LIMITS.dimension);
-  const h = lottieNumber(value2.h, `${label4} height`, 1, LOTTIE_LIMITS.dimension);
-  const fr = lottieNumber(value2.fr, `${label4} frame rate`, 1, 240);
-  const ip = lottieNumber(value2.ip, `${label4} in-point`, -864e3, 864e3);
-  const op = lottieNumber(value2.op, `${label4} out-point`, ip + 1e-6, ip + fr * 3600);
-  if (!Array.isArray(value2.layers)) throw new Error(`${label4}: missing animation layers.`);
-  if (value2.ddd || value2.slots || value2.fonts || value2.chars) throw new Error(`${label4}: 3D, slots and font-dependent animations are not supported. Use video export for this source.`);
+function admitLottieAnimation(value2, label5 = "Animation") {
+  const w = lottieNumber(value2.w, `${label5} width`, 1, LOTTIE_LIMITS.dimension);
+  const h = lottieNumber(value2.h, `${label5} height`, 1, LOTTIE_LIMITS.dimension);
+  const fr = lottieNumber(value2.fr, `${label5} frame rate`, 1, 240);
+  const ip = lottieNumber(value2.ip, `${label5} in-point`, -864e3, 864e3);
+  const op = lottieNumber(value2.op, `${label5} out-point`, ip + 1e-6, ip + fr * 3600);
+  if (!Array.isArray(value2.layers)) throw new Error(`${label5}: missing animation layers.`);
+  if (value2.ddd || value2.slots || value2.fonts || value2.chars) throw new Error(`${label5}: 3D, slots and font-dependent animations are not supported. Use video export for this source.`);
   const assets = value2.assets ?? [];
-  if (!Array.isArray(assets)) throw new Error(`${label4}: invalid assets.`);
-  if (assets.filter((asset2) => asset2 && typeof asset2 === "object" && !Array.isArray(asset2) && typeof asset2.p === "string").length > 1e3) throw new Error(`${label4}: too many image references.`);
+  if (!Array.isArray(assets)) throw new Error(`${label5}: invalid assets.`);
+  if (assets.filter((asset2) => asset2 && typeof asset2 === "object" && !Array.isArray(asset2) && typeof asset2.p === "string").length > 1e3) throw new Error(`${label5}: too many image references.`);
   const byId = /* @__PURE__ */ new Map();
   for (const entry2 of assets) {
-    const asset2 = lottieObject(entry2, `${label4} asset`);
-    if (typeof asset2.id !== "string" || !asset2.id || byId.has(asset2.id)) throw new Error(`${label4}: missing or duplicate asset id.`);
-    if (asset2.fr !== void 0 && asset2.fr !== fr) throw new Error(`${label4}: independently rated precompositions are not supported.`);
+    const asset2 = lottieObject(entry2, `${label5} asset`);
+    if (typeof asset2.id !== "string" || !asset2.id || byId.has(asset2.id)) throw new Error(`${label5}: missing or duplicate asset id.`);
+    if (asset2.fr !== void 0 && asset2.fr !== fr) throw new Error(`${label5}: independently rated precompositions are not supported.`);
     byId.set(asset2.id, asset2);
   }
   let layerCount = 0, keyCount = 0;
   function inspectProperties(object4) {
-    if (typeof object4.ty === "string" && !["gr", "tr", "sh", "rc", "el", "fl", "st", "gf", "gs", "tm"].includes(object4.ty)) throw new Error(`${label4}: unsupported shape operation ${object4.ty}. Export video instead.`);
-    if (typeof object4.x === "string") throw new Error(`${label4}: expressions are not supported.`);
-    if (object4.sid) throw new Error(`${label4}: themed slots are not supported.`);
+    if (typeof object4.ty === "string" && !["gr", "tr", "sh", "rc", "el", "fl", "st", "gf", "gs", "tm"].includes(object4.ty)) throw new Error(`${label5}: unsupported shape operation ${object4.ty}. Export video instead.`);
+    if (typeof object4.x === "string") throw new Error(`${label5}: expressions are not supported.`);
+    if (object4.sid) throw new Error(`${label5}: themed slots are not supported.`);
     if (object4.a === 1 && Array.isArray(object4.k)) {
       keyCount += object4.k.length;
-      if (keyCount > LOTTIE_LIMITS.keys) throw new Error(`${label4}: keyframe limit exceeded.`);
-      for (const key2 of object4.k) lottieNumber(lottieObject(key2, `${label4} keyframe`).t, `${label4} key time`, -864e4, 864e4);
+      if (keyCount > LOTTIE_LIMITS.keys) throw new Error(`${label5}: keyframe limit exceeded.`);
+      for (const key2 of object4.k) lottieNumber(lottieObject(key2, `${label5} keyframe`).t, `${label5} key time`, -864e4, 864e4);
     }
     for (const child2 of Object.values(object4)) {
       if (Array.isArray(child2)) for (const item2 of child2) {
@@ -117243,20 +117612,20 @@ function admitLottieAnimation(value2, label4 = "Animation") {
     }
   }
   function inspectLayers(list4, ancestry) {
-    if (!Array.isArray(list4)) throw new Error(`${label4}: invalid precomposition layers.`);
+    if (!Array.isArray(list4)) throw new Error(`${label5}: invalid precomposition layers.`);
     const parents = /* @__PURE__ */ new Map();
     const indices = /* @__PURE__ */ new Set();
     for (const item2 of list4) {
-      const layer = lottieObject(item2, `${label4} layer`);
-      if (++layerCount > LOTTIE_LIMITS.layers) throw new Error(`${label4}: layer limit exceeded.`);
-      if (typeof layer.ty !== "number" || ![0, 1, 2, 3, 4].includes(layer.ty)) throw new Error(`${label4}: layer ${String(layer.nm ?? layer.ind)} uses unsupported type ${String(layer.ty)}.`);
+      const layer = lottieObject(item2, `${label5} layer`);
+      if (++layerCount > LOTTIE_LIMITS.layers) throw new Error(`${label5}: layer limit exceeded.`);
+      if (typeof layer.ty !== "number" || ![0, 1, 2, 3, 4].includes(layer.ty)) throw new Error(`${label5}: layer ${String(layer.nm ?? layer.ind)} uses unsupported type ${String(layer.ty)}.`);
       if (layer.ddd || layer.ao || layer.tt || layer.td || layer.bm || layer.masksProperties || Array.isArray(layer.ef) && layer.ef.length) {
-        throw new Error(`${label4}: layer ${String(layer.nm ?? layer.ind)} uses 3D, masks, mattes, auto-orientation, blends or effects. Export video instead.`);
+        throw new Error(`${label5}: layer ${String(layer.nm ?? layer.ind)} uses 3D, masks, mattes, auto-orientation, blends or effects. Export video instead.`);
       }
-      for (const field2 of ["ip", "op", "st"]) if (layer[field2] !== void 0) lottieNumber(layer[field2], `${label4} layer ${field2}`, -864e4, 864e4);
-      if (layer.sr !== void 0) lottieNumber(layer.sr, `${label4} stretch`, 1e-4, 1e4);
+      for (const field2 of ["ip", "op", "st"]) if (layer[field2] !== void 0) lottieNumber(layer[field2], `${label5} layer ${field2}`, -864e4, 864e4);
+      if (layer.sr !== void 0) lottieNumber(layer.sr, `${label5} stretch`, 1e-4, 1e4);
       if (typeof layer.ind === "number") {
-        if (indices.has(layer.ind)) throw new Error(`${label4}: duplicate layer index.`);
+        if (indices.has(layer.ind)) throw new Error(`${label5}: duplicate layer index.`);
         indices.add(layer.ind);
         if (typeof layer.parent === "number") parents.set(layer.ind, layer.parent);
       }
@@ -117264,18 +117633,18 @@ function admitLottieAnimation(value2, label4 = "Animation") {
       if (layer.ty === 0 || layer.ty === 2) {
         const id3 = String(layer.refId ?? "");
         const asset2 = byId.get(id3);
-        if (!asset2) throw new Error(`${label4}: missing asset ${id3}.`);
+        if (!asset2) throw new Error(`${label5}: missing asset ${id3}.`);
         if (layer.ty === 0) {
-          if (ancestry.includes(id3) || ancestry.length >= 32) throw new Error(`${label4}: cyclic or excessively nested precomposition ${id3}.`);
+          if (ancestry.includes(id3) || ancestry.length >= 32) throw new Error(`${label5}: cyclic or excessively nested precomposition ${id3}.`);
           inspectLayers(asset2.layers, [...ancestry, id3]);
-        } else if (typeof asset2.p !== "string") throw new Error(`${label4}: image ${id3} has no resource.`);
+        } else if (typeof asset2.p !== "string") throw new Error(`${label5}: image ${id3} has no resource.`);
       }
     }
     for (const id3 of parents.keys()) {
       const seen = /* @__PURE__ */ new Set([id3]);
       let parent = parents.get(id3);
       while (parent !== void 0) {
-        if (!indices.has(parent) || seen.has(parent)) throw new Error(`${label4}: missing or cyclic parent layer.`);
+        if (!indices.has(parent) || seen.has(parent)) throw new Error(`${label5}: missing or cyclic parent layer.`);
         seen.add(parent);
         parent = parents.get(parent);
       }
@@ -117526,16 +117895,16 @@ function retimeLottie(source, fps, prefix) {
   return copy;
 }
 function channel3(track, key2, fps, startMs, base, multiplier = 1, replace = false) {
-  const keys2 = track.filter((item2) => item2.v[key2] !== void 0);
+  const keys2 = kfExportKeys(track, key2, fps, startMs);
   if (!keys2.length) return lottieStatic(base);
   const value2 = (n8) => replace ? n8 * multiplier : base + n8 * multiplier;
   return { a: 1, k: keys2.map((item2, index2) => {
     const next2 = keys2[index2 + 1];
     const points = key2 === "o" ? [0, 0, 1, 1] : kfEasePoints(item2.ease) ?? [0, 0, 1, 1];
     return {
-      t: (startMs + item2.t) * fps / 1e3,
-      s: [value2(item2.v[key2])],
-      ...next2 ? { e: [value2(next2.v[key2])], ...item2.ease === "eh" ? { h: 1 } : { o: { x: points[0], y: points[1] }, i: { x: points[2], y: points[3] } } } : {}
+      t: item2.f,
+      s: [value2(item2.v)],
+      ...next2 ? { e: [value2(next2.v)], ...item2.ease === "eh" ? { h: 1 } : { o: { x: points[0], y: points[1] }, i: { x: points[2], y: points[3] } } } : {}
     };
   }) };
 }
@@ -117629,6 +117998,7 @@ var init_lottie_sequence = __esm({
   "engine/src/lottie-sequence.ts"() {
     "use strict";
     init_keyframes2();
+    init_kf_bake();
     init_kf_look();
     init_lottie_look();
     init_lottie_model();
@@ -118388,7 +118758,7 @@ function dashOf(row, width, cap) {
   const style = rowStr2(row, "strokeDash");
   const f22 = (v) => Math.round(v * 100) / 100;
   if (style === "dashed") {
-    let dash = clampTo(rowNum2(row, "strokeDashLen"), 0, 400), gap = clampTo(rowNum2(row, "strokeGapLen"), 0, 400);
+    let dash = clampTo2(rowNum2(row, "strokeDashLen"), 0, 400), gap = clampTo2(rowNum2(row, "strokeGapLen"), 0, 400);
     if (!(dash > 0)) dash = gap;
     if (!(gap > 0)) gap = dash;
     return dash > 0 && gap > 0 ? [f22(dash), f22(gap)] : [f22(width * 3), f22(width * 2)];
@@ -118507,8 +118877,8 @@ function pictureOf(row, area2, clip4, rounded = { kind: "rect", radius: 0 }) {
   const framing = row.imageFraming;
   if (framing && typeof framing === "object") {
     const f = framing;
-    x = clampTo(leadingNumber(f.x, 50), 0, 100);
-    y = clampTo(leadingNumber(f.y, 50), 0, 100);
+    x = clampTo2(leadingNumber(f.x, 50), 0, 100);
+    y = clampTo2(leadingNumber(f.y, 50), 0, 100);
     zoom = Math.max(1, leadingNumber(f.zoom, 100)) / 100;
   } else {
     const at = OBJPOS.get(String(row.imgpos ?? "").trim());
@@ -118519,8 +118889,8 @@ function pictureOf(row, area2, clip4, rounded = { kind: "rect", radius: 0 }) {
     box: { x: ox + (area2.x - ox) * zoom, y: oy + (area2.y - oy) * zoom, w: area2.w * zoom, h: area2.h * zoom },
     shape: rounded.kind === "ellipse" ? rounded : { kind: "rect", radius: rounded.radius * zoom }
   };
-  const label4 = rowStr2(row, "alt") || rowStr2(row, "name") || "Picture not available here";
-  return { ref: ref2, fit, x, y, zoom, area: area2, element, ...clip4 ? { clip: clip4 } : {}, label: label4 };
+  const label5 = rowStr2(row, "alt") || rowStr2(row, "name") || "Picture not available here";
+  return { ref: ref2, fit, x, y, zoom, area: area2, element, ...clip4 ? { clip: clip4 } : {}, label: label5 };
 }
 function paddingArea(box4, shape, stroke) {
   if (stroke && (stroke.sides || stroke.align === "center" || stroke.align === "outside")) {
@@ -118560,18 +118930,18 @@ function clipOf(row, byId, offset) {
 function shadowOf(row, color6) {
   const target2 = rowStr2(row, "shadow");
   if (target2 === "depth") {
-    const dz = clampTo(rowNum2(row, "z"), -300, 900);
+    const dz = clampTo2(rowNum2(row, "z"), -300, 900);
     const tint2 = color6("#00000055");
-    return tint2 ? { target: "content", dx: 0, dy: Math.round(dz * 0.15 * 100) / 100, blur: Math.round(clampTo(10 + dz * 0.2, 0, 300) * 100) / 100, ...tint2 } : void 0;
+    return tint2 ? { target: "content", dx: 0, dy: Math.round(dz * 0.15 * 100) / 100, blur: Math.round(clampTo2(10 + dz * 0.2, 0, 300) * 100) / 100, ...tint2 } : void 0;
   }
   if (target2 !== "box" && target2 !== "text" && target2 !== "content") return void 0;
   const tint = color6(rowStr2(row, "shadowColor") || "#00000055") ?? color6("#00000055");
   if (!tint) return void 0;
   return {
     target: target2,
-    dx: Math.round(clampTo(rowNum2(row, "shadowX"), -300, 300)),
-    dy: Math.round(clampTo(rowNum2(row, "shadowY"), -300, 300)),
-    blur: Math.round(clampTo(rowNum2(row, "shadowBlur", 10), 0, 300)),
+    dx: Math.round(clampTo2(rowNum2(row, "shadowX"), -300, 300)),
+    dy: Math.round(clampTo2(rowNum2(row, "shadowY"), -300, 300)),
+    blur: Math.round(clampTo2(rowNum2(row, "shadowBlur", 10), 0, 300)),
     ...tint
   };
 }
@@ -118610,7 +118980,7 @@ function effectsOf(row, box4, offset, opts, color6) {
     out.shadow = shadow;
     if (shadow.target === "box") out.outline = outlineOf2(row, box4, opts.semantics === "lottie-compat" || opts.semantics === "penpot-compat" || opts.semantics === "pptx-compat" ? "design" : opts.semantics);
   }
-  const blur2 = clampTo(rowNum2(row, "blur"), 0, 300);
+  const blur2 = clampTo2(rowNum2(row, "blur"), 0, 300);
   if (blur2 > 0) out.blur = Math.round(blur2 * 10) / 10;
   return out;
 }
@@ -118630,7 +119000,7 @@ function compileDesignRow(row, offset, opts = {}) {
   const base = {
     id: rowStr2(row, "id"),
     box: box4,
-    opacity: design ? clampTo(leadingNumber(row.opacity, 100), 0, 100) : rowNum2(row, "opacity", 100),
+    opacity: design ? clampTo2(leadingNumber(row.opacity, 100), 0, 100) : rowNum2(row, "opacity", 100),
     ...rot !== 0 || flipH || flipV ? { pose: { rot, flipH, flipV } } : {},
     ...opts.effects ? effectsOf(row, box4, offset, opts, color6) : {}
   };
@@ -118889,7 +119259,7 @@ async function describeDesignDrawPictures(page3, describe3) {
   for (const op of page3.ops) if (await settle2(op)) kept2.push(op);
   page3.ops = kept2;
 }
-var DESIGN_DRAW_VERSION, authoredColor, strokeWidest, NON_STATIC, DEFAULT_FONT_SIZE, FITS2, OBJPOS, BLENDS2, clampTo;
+var DESIGN_DRAW_VERSION, authoredColor, strokeWidest, NON_STATIC, DEFAULT_FONT_SIZE, FITS2, OBJPOS, BLENDS2, clampTo2;
 var init_design_draw = __esm({
   "engine/src/design-draw.ts"() {
     "use strict";
@@ -118930,7 +119300,7 @@ var init_design_draw = __esm({
       ["right", [100, 50]]
     ]);
     BLENDS2 = /* @__PURE__ */ new Set(["multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]);
-    clampTo = (v, a, b) => v < a ? a : v > b ? b : v;
+    clampTo2 = (v, a, b) => v < a ? a : v > b ? b : v;
   }
 });
 
@@ -121505,8 +121875,8 @@ function lookAmount(look3) {
   return typeof look3.amount === "number" && Number.isFinite(look3.amount) ? (look3.amount < 0 ? 0 : look3.amount > 100 ? 100 : look3.amount) / 100 : 1;
 }
 function lookGrade(look3) {
-  const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
-  return gradeTables(finite7(look3.contrast), finite7(look3.lightness));
+  const finite8 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
+  return gradeTables(finite8(look3.contrast), finite8(look3.lightness));
 }
 function duotoneRamp(look3) {
   return [look3.shadow ?? "#000000", ...look3.mid ? [look3.mid] : [], look3.highlight ?? "#ffffff"].map((c) => {
@@ -121604,9 +121974,9 @@ function photoLookPreviewTable(look3, count4 = 17) {
   if (stops.length < 2) return [];
   const tlut = photoLookToneTable(stops);
   const amount = lookAmount(look3);
-  const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
-  const contrast3 = Math.max(-100, Math.min(100, finite7(look3.contrast)));
-  const light = Math.max(-100, Math.min(100, finite7(look3.lightness))) / 100;
+  const finite8 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
+  const contrast3 = Math.max(-100, Math.min(100, finite8(look3.contrast)));
+  const light = Math.max(-100, Math.min(100, finite8(look3.lightness))) / 100;
   const cf = 259 * (contrast3 + 255) / (255 * (259 - contrast3));
   const graded = (s) => {
     let n8 = s * 255;
@@ -121826,6 +122196,111 @@ var init_pdf_crypto_r6 = __esm({
     subtle9 = globalThis.crypto.subtle;
     ZERO_IV = new Uint8Array(16);
     concat5 = (...parts) => concatBytes(parts);
+  }
+});
+
+// engine/src/motion-tokens.ts
+function label(path) {
+  const leaf = path.split(".").pop() ?? path;
+  return leaf.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim().replace(/^./, (c) => c.toUpperCase());
+}
+function motionDurationMs(value2) {
+  let n8 = null;
+  let unit2 = "ms";
+  if (finite3(value2)) n8 = value2;
+  else if (typeof value2 === "string") {
+    const m2 = /^\s*(\d+(?:\.\d+)?|\.\d+)\s*(ms|s)\s*$/i.exec(value2);
+    if (m2) {
+      n8 = Number(m2[1]);
+      unit2 = (m2[2] ?? "ms").toLowerCase();
+    }
+  } else if (isRecord3(value2) && finite3(value2.value) && (value2.unit === "ms" || value2.unit === "s")) {
+    n8 = value2.value;
+    unit2 = value2.unit;
+  }
+  if (n8 === null || !(n8 >= 0)) return null;
+  const ms = unit2 === "s" ? n8 * 1e3 : n8;
+  return Number.isFinite(ms) && ms <= 36e5 ? Math.round(ms * 100) / 100 : null;
+}
+function bezierEase(value2) {
+  if (!Array.isArray(value2) || value2.length !== 4 || !value2.every(finite3)) return null;
+  const [x1, y1, x2, y2] = value2;
+  if (x1 < 0 || x1 > 1 || x2 < 0 || x2 > 1) return null;
+  return kfEaseToken(`cubic-bezier(${x1},${y1},${x2},${y2})`);
+}
+function springEase(ext) {
+  const own4 = ext?.[TOKEN_EXT];
+  const sp = isRecord3(own4) ? own4.spring : null;
+  if (!isRecord3(sp) || !finite3(sp.stiffness) || !(sp.stiffness > 0)) return null;
+  const mass = finite3(sp.mass) && sp.mass > 0 ? sp.mass : 1;
+  let damping = null;
+  if (finite3(sp.damping) && sp.damping >= 0) damping = sp.damping;
+  else if (finite3(sp.dampingRatio) && sp.dampingRatio >= 0) damping = sp.dampingRatio * 2 * Math.sqrt(sp.stiffness * mass);
+  if (damping === null) return null;
+  return kfSpringToken(kfSpring(sp.stiffness, damping, mass));
+}
+function bindable(path) {
+  return kfBindEase(path) !== null;
+}
+function readMotionTokens(set) {
+  if (!set || typeof set.query !== "function") return EMPTY2();
+  let entries;
+  try {
+    entries = set.query();
+  } catch {
+    return EMPTY2();
+  }
+  const curves2 = [];
+  const durations = [];
+  for (const e of entries) {
+    if (!e || typeof e.path !== "string") continue;
+    const description = typeof e.description === "string" ? e.description : null;
+    const spring = springEase(e.extensions);
+    const transition2 = e.type === "transition" && isRecord3(e.value) ? e.value : null;
+    if (spring || e.type === "cubicBezier" || transition2) {
+      const ease = spring ?? (transition2 ? bezierEase(transition2.timingFunction) : bezierEase(e.value));
+      if (!ease || !bindable(e.path)) continue;
+      curves2.push({
+        path: e.path,
+        label: label(e.path),
+        kind: spring ? "spring" : "curve",
+        ease,
+        durationMs: transition2 ? motionDurationMs(transition2.duration) : null,
+        description
+      });
+      continue;
+    }
+    if (e.type === "duration") {
+      const ms = motionDurationMs(e.value);
+      if (ms !== null) durations.push({ path: e.path, label: label(e.path), ms, description });
+    }
+  }
+  return { curves: curves2, durations };
+}
+function motionEaseMap(tokens3) {
+  const out = {};
+  for (const c of tokens3.curves) out[c.path] = c.ease;
+  return out;
+}
+async function readHostMotionTokens(host) {
+  const api = host.tokens;
+  if (!api || typeof api.get !== "function") return null;
+  try {
+    return readMotionTokens(await api.get());
+  } catch {
+    return EMPTY2();
+  }
+}
+var EMPTY2, isRecord3, finite3;
+var init_motion_tokens = __esm({
+  "engine/src/motion-tokens.ts"() {
+    "use strict";
+    init_token_ext();
+    init_keyframes2();
+    init_kf_spring();
+    EMPTY2 = () => ({ curves: [], durations: [] });
+    isRecord3 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
+    finite3 = (v) => typeof v === "number" && Number.isFinite(v);
   }
 });
 
@@ -122363,7 +122838,7 @@ function inspectPrivateText(text12, rules = [], field2) {
   if (text12.length > PREPARE_MAX_TEXT) throw new Error("Text inspection is limited to 1 MiB per value.");
   const spans = [];
   let truncated = false;
-  const add3 = (start, end, category, label4, rule, uncertain = false, encoding) => {
+  const add3 = (start, end, category, label5, rule, uncertain = false, encoding) => {
     if (end <= start || spans.some((s) => start < s.end && s.start < end)) return;
     if (spans.length >= PREPARE_MAX_FINDINGS) {
       truncated = true;
@@ -122376,16 +122851,16 @@ function inspectPrivateText(text12, rules = [], field2) {
       } catch {
       }
     }
-    spans.push({ start, end, value: value2, category, label: label4, rule, uncertain, ...encoding ? { encoding } : {} });
+    spans.push({ start, end, value: value2, category, label: label5, rule, uncertain, ...encoding ? { encoding } : {} });
   };
   if (field2 && sensitiveField(field2, rules) && text12.trim()) {
     const prefix = /^(?:Bearer|Basic)\s+/i.exec(text12)?.[0].length ?? 0;
     add3(prefix, text12.length, "credential", "Sensitive field", "sensitive-field");
     return { spans, truncated };
   }
-  const match = (pattern, category, label4, rule) => {
+  const match = (pattern, category, label5, rule) => {
     for (const m2 of text12.matchAll(pattern)) {
-      add3(m2.index, m2.index + m2[0].length, category, label4, rule);
+      add3(m2.index, m2.index + m2[0].length, category, label5, rule);
       if (truncated) break;
     }
   };
@@ -122637,7 +123112,7 @@ function enabled(value2) {
 }
 function inspectXml(part, root2, format, budget3) {
   const nodes = officeNodes(root2), path = part.path.split("!/").pop();
-  const add3 = (category, label4, value2, location4 = label4) => {
+  const add3 = (category, label5, value2, location4 = label5) => {
     if (budget3.findings >= 2e3) {
       part.status = "partial";
       if (!part.limitations.includes("The 2,000-finding census limit was reached.")) part.limitations.push("The 2,000-finding census limit was reached.");
@@ -122645,7 +123120,7 @@ function inspectXml(part, root2, format, budget3) {
     }
     if (!value2) return;
     budget3.findings++;
-    part.findings.push({ category, label: label4, value: value2.slice(0, 2048), location: location4.slice(0, 512) });
+    part.findings.push({ category, label: label5, value: value2.slice(0, 2048), location: location4.slice(0, 512) });
   };
   if (/^docProps\/(?:core|app|custom)\.xml$/.test(path)) {
     for (const node of root2.children) {
@@ -122901,19 +123376,19 @@ function openDocxMetadata(bytes2, name, limits = {}) {
       if (path === "docProps/app.xml" && root2.children.some((node) => node.namespace === EXTENDED && node.name === "DigSig")) return unsupported("Extended digital-signature data prevents DOCX metadata cleanup. This file remains inspect-only.");
       const seen = /* @__PURE__ */ new Set(), customNames = /* @__PURE__ */ new Set();
       for (const node of root2.children) {
-        let id3, label4, location4;
+        let id3, label5, location4;
         if (path === "docProps/core.xml") {
           const field2 = CORE[node.name];
           if (!field2 || node.namespace !== field2.namespace) continue;
           if (node.children.length) throw new Error("Unsupported core property value.");
           id3 = `core:${node.name}`;
-          label4 = field2.label;
+          label5 = field2.label;
           location4 = `Property: ${node.name}`;
         } else if (path === "docProps/app.xml") {
           if (node.namespace !== EXTENDED || !Object.hasOwn(EXTENDED_FIELDS, node.name)) continue;
           if (node.children.length || Object.keys(node.attrs).some((key2) => key2 !== "xmlns" && !key2.startsWith("xmlns:"))) throw new Error("Unsupported extended property value.");
           id3 = `app:${node.name}`;
-          label4 = EXTENDED_FIELDS[node.name];
+          label5 = EXTENDED_FIELDS[node.name];
           location4 = `Property: ${node.name}`;
         } else {
           if (node.namespace !== CUSTOM || node.name !== "property") continue;
@@ -122921,17 +123396,17 @@ function openDocxMetadata(bytes2, name, limits = {}) {
           if (customNames.has(node.attrs.name)) throw new Error("Ambiguous custom property name.");
           customNames.add(node.attrs.name);
           id3 = `custom:${Number(node.attrs.pid)}`;
-          label4 = "Custom property";
+          label5 = "Custom property";
           location4 = `Custom property: ${node.attrs.name}`;
         }
         if (seen.has(id3)) throw new Error("Ambiguous property identity.");
         seen.add(id3);
         const kept2 = path !== "docProps/app.xml" ? void 0 : dependent.has(node.name) ? retained : drawings && (node.name === "Application" || node.name === "AppVersion") ? drawn : void 0;
         if (kept2) {
-          kept2.push(label4);
+          kept2.push(label5);
           continue;
         }
-        part.properties.push({ id: id3, part: path, label: label4, location: location4, value: officeText(node), offset: node.start, start: node.start, end: node.end });
+        part.properties.push({ id: id3, part: path, label: label5, location: location4, value: officeText(node), offset: node.start, start: node.start, end: node.end });
         if ([...propertyParts.values()].reduce((n8, p) => n8 + p.properties.length, 0) > 2e3) throw new Error("Property count limit reached.");
       }
     }
@@ -123928,7 +124403,7 @@ function compareVisualSources(request2, signal) {
   const options2 = { alignment: request2.options?.alignment === "fit" ? "fit" : "native", threshold: Number.isFinite(threshold) ? Math.max(0, Math.min(255, Math.round(threshold))) : 0 };
   const limitations = /* @__PURE__ */ new Set(["Previews use nearest-neighbour samples on white, at most 768 pixels per edge. Matching previews do not establish original pixel or structural equality."]);
   let partial = false;
-  const limit2 = (message) => {
+  const limit3 = (message) => {
     partial = true;
     limitations.add(message);
   };
@@ -123941,7 +124416,7 @@ function compareVisualSources(request2, signal) {
     for (const message of source.fidelity?.limitations ?? []) limitations.add(message);
   }
   const total = Math.max(before.totalPages, after.totalPages), pages = [];
-  if (total > MAX_PAGES) limit2("Only the first 12 pages were compared.");
+  if (total > MAX_PAGES) limit3("Only the first 12 pages were compared.");
   let byteEquality = "unknown";
   if (before.bytes && after.bytes) {
     if (Math.max(before.bytes.length, after.bytes.length) > 32 * 1024 * 1024) limitations.add("Byte equality was not checked above 32 MiB.");
@@ -123958,11 +124433,11 @@ function compareVisualSources(request2, signal) {
     const result = { page: page3, kind: "unchanged", width, height, scale, sizeChanged: !!a && !!b && (a.width !== b.width || a.height !== b.height || a.unit !== b.unit), changedPixels: 0, sampledPixels: 0, mask: new Uint8Array(width * height) };
     if (!a && page3 <= before.totalPages || !b && page3 <= after.totalPages || before.fidelity?.level === "unavailable" || after.fidelity?.level === "unavailable") {
       result.kind = "unavailable";
-      limit2("Some pages could not be rendered; they are not treated as absent or equal.");
+      limit3("Some pages could not be rendered; they are not treated as absent or equal.");
     } else if (!a || !b) {
       result.kind = a ? "removed" : "added";
     } else {
-      if (a.unit !== b.unit && options2.alignment === "native") limit2("Source units differ. Native alignment compares numeric sizes, not physical size. Choose fit to compare composition.");
+      if (a.unit !== b.unit && options2.alignment === "native") limit3("Source units differ. Native alignment compares numeric sizes, not physical size. Choose fit to compare composition.");
       const left = renderComparisonPage(a, result, options2.alignment), right = renderComparisonPage(b, result, options2.alignment);
       let x0 = width, y0 = height, x1 = -1, y1 = -1;
       for (let i = 0; i < width * height; i++) {
@@ -124066,12 +124541,12 @@ function withinLimits(tables, budget3) {
       return false;
     }
     chars += table.name.length;
-    for (const label4 of table.columns) {
-      if (typeof label4 !== "string") {
+    for (const label5 of table.columns) {
+      if (typeof label5 !== "string") {
         budget3.limit("Table column labels must be text.");
         return false;
       }
-      chars += label4.length;
+      chars += label5.length;
     }
     for (const row of table.rows) {
       if (!budget3.spend() || row.length > table.columns.length) {
@@ -124106,8 +124581,8 @@ function add(budget3, kind, before, after, left, right) {
   const a = comparisonValue(before), b = comparisonValue(after);
   budget3.add({ kind, ...left ? { before: left, beforeValue: a.text } : {}, ...right ? { after: right, afterValue: b.text } : {}, valueTruncated: a.truncated || b.truncated });
 }
-function rowKeys(table, label4) {
-  const columns = table.columns.map((value2, index2) => value2 === label4 ? index2 : -1).filter((index2) => index2 !== -1);
+function rowKeys(table, label5) {
+  const columns = table.columns.map((value2, index2) => value2 === label5 ? index2 : -1).filter((index2) => index2 !== -1);
   if (columns.length !== 1) return void 0;
   const keys2 = table.rows.map((row) => {
     const value2 = row[columns[0]];
@@ -124520,7 +124995,7 @@ function compareSources(request2, signal) {
     else byteEquality = before.bytes.length === after.bytes.length && before.bytes.every((value2, i) => value2 === after.bytes[i]) ? "equal" : "different";
   }
   for (const source of [before, after]) {
-    for (const limit2 of source.fidelity?.limitations ?? []) budget3.limitations.add(limit2);
+    for (const limit3 of source.fidelity?.limitations ?? []) budget3.limitations.add(limit3);
     if (source.fidelity && source.fidelity.level !== "complete") budget3.limit("A source is incomplete or unavailable. Equality cannot be established.");
   }
   if ([before, after].some((source) => source.fidelity?.level === "unavailable")) {
@@ -124712,15 +125187,15 @@ var choice, field, number5, rows, TEXT_OPERATIONS;
 var init_text_operations = __esm({
   "engine/src/text-operations.ts"() {
     "use strict";
-    choice = (id3, label4, choices2, value2 = choices2[0]) => ({
+    choice = (id3, label5, choices2, value2 = choices2[0]) => ({
       id: id3,
-      label: label4,
+      label: label5,
       type: "select",
       choices: choices2,
       default: value2
     });
-    field = (id3, label4, value2 = "") => ({ id: id3, label: label4, type: "text", default: value2 });
-    number5 = (id3, label4, value2) => ({ id: id3, label: label4, type: "number", default: value2 });
+    field = (id3, label5, value2 = "") => ({ id: id3, label: label5, type: "text", default: value2 });
+    number5 = (id3, label5, value2) => ({ id: id3, label: label5, type: "number", default: value2 });
     rows = [
       ["upper", "UPPERCASE", "Edit", ["case"]],
       ["lower", "lowercase", "Edit", ["case"]],
@@ -124963,9 +125438,9 @@ var init_text_operations = __esm({
       ]
     ];
     TEXT_OPERATIONS = rows.map(
-      ([id3, label4, group, keywords, options2]) => ({
+      ([id3, label5, group, keywords, options2]) => ({
         id: id3,
-        label: label4,
+        label: label5,
         group,
         keywords,
         ...options2 ? { options: options2 } : {}
@@ -125717,11 +126192,11 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
       if (!alphabet.length || alphabet.length > 256)
         throw new Error("Choose 1 to 256 different characters.");
       const length2 = bounded(o.length, 32, 1, 1e4);
-      const limit2 = 256 - 256 % alphabet.length;
+      const limit3 = 256 - 256 % alphabet.length;
       out = "";
       while ([...out].length < length2) {
         for (const b of env.random(Math.min(2e4, length2 * 2))) {
-          if (b < limit2) out += alphabet[b % alphabet.length];
+          if (b < limit3) out += alphabet[b % alphabet.length];
           if ([...out].length === length2) break;
         }
       }
@@ -126088,7 +126563,7 @@ function learningProgress(content2, previous2, action) {
     completed: ready && (same && candidate.completed === true || action.kind === "finish")
   };
 }
-function encodeLearningAttempt(content2, attempt2, limit2 = 4096) {
+function encodeLearningAttempt(content2, attempt2, limit3 = 4096) {
   const quizzes = content2.lessons.flatMap((l) => l.blocks || []).filter((b) => b.quiz);
   const answers = quizzes.map(
     (b) => b.quiz.options.reduce(
@@ -126104,7 +126579,7 @@ function encodeLearningAttempt(content2, attempt2, limit2 = 4096) {
     attempt2.completed ? 1 : 0,
     ...quizzes.length ? [answers] : []
   ]);
-  if (data.length > limit2) throw new Error("Progress exceeds the selected LMS state limit.");
+  if (data.length > limit3) throw new Error("Progress exceeds the selected LMS state limit.");
   return data;
 }
 function decodeLearningAttempt(content2, raw, reduce = learningProgress) {
@@ -126289,9 +126764,9 @@ function learningRenditions(manifest) {
     return [];
   const formats = manifest.render?.formats || [];
   const choices2 = [];
-  const add3 = (kind, options2, label4) => {
+  const add3 = (kind, options2, label5) => {
     const format = options2.find((f) => formats.includes(f));
-    if (format) choices2.push({ kind, format, label: label4 });
+    if (format) choices2.push({ kind, format, label: label5 });
   };
   add3("slides", ["png", "jpg", "jpeg", "webp"], "Still pages");
   add3("video", ["mp4", "webm"], "Video with motion");
@@ -126771,14 +127246,14 @@ function studioCameraPreset(kind, view, amount = 1) {
 function studioCameraKeyFromView(values) {
   const camera = record18(values.camera), target2 = record18(values.target);
   return {
-    azimuth: num11(camera.azimuth, 25),
-    elevation: num11(camera.elevation, 14),
-    fov: num11(camera.fov, 29),
-    zoom: num11(camera.zoom, 1),
-    panX: num11(num11(target2.x, 0) + num11(camera.panX, 0), 0),
-    panY: num11(num11(target2.y, 1.6) + num11(camera.panY, 0), 1.6),
-    panZ: num11(num11(target2.z, 0) + num11(camera.panZ, 0), 0),
-    focusDistance: num11(values.focusDistance, 0)
+    azimuth: num12(camera.azimuth, 25),
+    elevation: num12(camera.elevation, 14),
+    fov: num12(camera.fov, 29),
+    zoom: num12(camera.zoom, 1),
+    panX: num12(num12(target2.x, 0) + num12(camera.panX, 0), 0),
+    panY: num12(num12(target2.y, 1.6) + num12(camera.panY, 0), 1.6),
+    panZ: num12(num12(target2.z, 0) + num12(camera.panZ, 0), 0),
+    focusDistance: num12(values.focusDistance, 0)
   };
 }
 function studioAddCameraKey(values) {
@@ -126810,24 +127285,24 @@ function studioCameraFromKey(values, which) {
     {
       id: "camera",
       value: {
-        azimuth: num11(key2.azimuth, 25),
-        elevation: num11(key2.elevation, 14),
-        fov: num11(key2.fov, 29),
-        zoom: num11(key2.zoom, 1),
-        panX: num11(num11(key2.panX, 0) - num11(target2.x, 0), 0),
-        panY: num11(num11(key2.panY, 1.6) - num11(target2.y, 1.6), 0),
-        panZ: num11(num11(key2.panZ, 0) - num11(target2.z, 0), 0)
+        azimuth: num12(key2.azimuth, 25),
+        elevation: num12(key2.elevation, 14),
+        fov: num12(key2.fov, 29),
+        zoom: num12(key2.zoom, 1),
+        panX: num12(num12(key2.panX, 0) - num12(target2.x, 0), 0),
+        panY: num12(num12(key2.panY, 1.6) - num12(target2.y, 1.6), 0),
+        panZ: num12(num12(key2.panZ, 0) - num12(target2.z, 0), 0)
       }
     },
-    { id: "focusDistance", value: num11(key2.focusDistance, 0) }
+    { id: "focusDistance", value: num12(key2.focusDistance, 0) }
   ];
 }
-var STUDIO_CAMERA_KEY_LIMIT, num11, STUDIO_CAMERA_PRESETS, STUDIO_CAMERA_MOTIONS;
+var STUDIO_CAMERA_KEY_LIMIT, num12, STUDIO_CAMERA_PRESETS, STUDIO_CAMERA_MOTIONS;
 var init_studio3d_camera_path = __esm({
   "engine/src/studio3d-camera-path.ts"() {
     "use strict";
     STUDIO_CAMERA_KEY_LIMIT = 12;
-    num11 = (value2, fallback) => {
+    num12 = (value2, fallback) => {
       const n8 = Number(value2);
       return Number.isFinite(n8) ? Math.round(n8 * 1e3) / 1e3 : fallback;
     };
@@ -126883,8 +127358,8 @@ function studioObjectEdit(values, index2, patch) {
   const bounded2 = {};
   for (const [key2, raw] of Object.entries(patch)) {
     if (!Number.isFinite(raw)) continue;
-    const limit2 = key2 === "scale" ? [0.1, 5] : key2.startsWith("rot") ? [-360, 360] : [-STUDIO_ARRANGEMENT_EXTENT, STUDIO_ARRANGEMENT_EXTENT];
-    bounded2[key2] = Math.round(Math.max(limit2[0], Math.min(limit2[1], raw)) * 1e3) / 1e3;
+    const limit3 = key2 === "scale" ? [0.1, 5] : key2.startsWith("rot") ? [-360, 360] : [-STUDIO_ARRANGEMENT_EXTENT, STUDIO_ARRANGEMENT_EXTENT];
+    bounded2[key2] = Math.round(Math.max(limit3[0], Math.min(limit3[1], raw)) * 1e3) / 1e3;
   }
   return {
     id: "objects",
@@ -127324,9 +127799,9 @@ function enabled3(value2, fallback = false) {
   if (value2 === false || value2 === "false" || value2 === "0") return false;
   return fallback;
 }
-function vector(value2, keys2, defaults2, limit2) {
+function vector(value2, keys2, defaults2, limit3) {
   const v = record21(value2);
-  return keys2.map((key2, i) => number7(v[key2], defaults2[i], -limit2, limit2));
+  return keys2.map((key2, i) => number7(v[key2], defaults2[i], -limit3, limit3));
 }
 function asset(value2) {
   const v = record21(value2);
@@ -128104,7 +128579,7 @@ var init_brand_context = __esm({
     init_design_system();
     init_brand_evidence();
     record24 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    text8 = (v, limit2 = 180) => typeof v === "string" && v.trim() ? v.trim().slice(0, limit2) : void 0;
+    text8 = (v, limit3 = 180) => typeof v === "string" && v.trim() ? v.trim().slice(0, limit3) : void 0;
   }
 });
 
@@ -128130,12 +128605,12 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
   for (const row of rows2.slice(0, 5e3)) {
     if (row.hidden === true || row.hidden === "true") continue;
     const id3 = typeof row.id === "string" ? row.id : "";
-    const label4 = String(row.name || (typeof row.text === "string" ? row.text.slice(0, 40) : "") || id3 || "Layer");
+    const label5 = String(row.name || (typeof row.text === "string" ? row.text.slice(0, 40) : "") || id3 || "Layer");
     const add3 = (field2, kind, status, value2, suggestion, after) => {
       findings.push({
         id: `brand.${kind}.${id3}.${field2}`,
         layerId: id3,
-        label: label4,
+        label: label5,
         field: field2,
         kind,
         status,
@@ -128272,8 +128747,8 @@ function colourOf2(layout2, raw) {
   return hex8(raw);
 }
 function covers(over, row) {
-  const [x, y, w, h] = [num12(row.x, 0), num12(row.y, 0), num12(row.w, 0), num12(row.h, 0)];
-  const [ox, oy, ow, oh] = [num12(over.x, 0), num12(over.y, 0), num12(over.w, 0), num12(over.h, 0)];
+  const [x, y, w, h] = [num13(row.x, 0), num13(row.y, 0), num13(row.w, 0), num13(row.h, 0)];
+  const [ox, oy, ow, oh] = [num13(over.x, 0), num13(over.y, 0), num13(over.w, 0), num13(over.h, 0)];
   const iw = Math.min(x + w, ox + ow) - Math.max(x, ox);
   const ih = Math.min(y + h, oy + oh) - Math.max(y, oy);
   if (iw <= 0 || ih <= 0) return false;
@@ -128291,7 +128766,7 @@ function paintOf2(layout2, row) {
   const parsed = parseColor(resolved2);
   if (!parsed) return null;
   if (parsed.alpha <= 0) return "clear";
-  if (parsed.alpha < 1 || num12(row.opacity, 1) < 1) return null;
+  if (parsed.alpha < 1 || num13(row.opacity, 1) < 1) return null;
   const hex3 = hex8(resolved2);
   return hex3 ? { kind: "color", hex: hex3 } : null;
 }
@@ -128320,8 +128795,8 @@ function isHeadline(layout2, row) {
   if (role) return HEADLINE_ROLES.includes(role);
   const board = artboardOf(row);
   const frame = board ? layout2.frames.get(board) : void 0;
-  const size = num12(row.fontSize, 0);
-  const frameH = frame ? num12(frame.h, 0) : 0;
+  const size = num13(row.fontSize, 0);
+  const frameH = frame ? num13(frame.h, 0) : 0;
   if (frameH > 0 ? size < frameH * HEADLINE_SCALE2 : size < HEADLINE_MIN_PX) return false;
   const largest = layout2.largest.get(board ?? "");
   return !!largest && largest.size === size && largest.count === 1;
@@ -128411,7 +128886,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
   for (const row of rows2) {
     if (layout2.hidden(row) || !textOf7(row).trim() || row.kind === "image") continue;
     const key2 = artboardOf(row) ?? "";
-    const size = num12(row.fontSize, 0);
+    const size = num13(row.fontSize, 0);
     const top = layout2.largest.get(key2);
     if (!top || size > top.size) layout2.largest.set(key2, { size, count: 1 });
     else if (size === top.size) top.count++;
@@ -128527,13 +129002,13 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
           if (!fgNames?.length) continue;
           if (fgNames.some((n8) => policy.text.includes(n8))) continue;
           const graphicOnly = fgNames.some((n8) => policy.graphic.includes(n8));
-          const fg = label(fgNames[0]);
+          const fg = label2(fgNames[0]);
           add3(
             row,
             "fg",
             colour.raw,
             list2(policy.text),
-            `${fg} text on ${label(policy.name)} is not an approved pairing${graphicOnly ? " (approved for graphics only)" : ""}. Text colours approved on ${label(policy.name)}: ${list2(policy.text.map(label))}.`
+            `${fg} text on ${label2(policy.name)} is not an approved pairing${graphicOnly ? " (approved for graphics only)" : ""}. Text colours approved on ${label2(policy.name)}: ${list2(policy.text.map(label2))}.`
           );
         }
       }
@@ -128541,11 +129016,11 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
       checked2++;
       const shapes2 = strings2(p.shapes).length ? strings2(p.shapes) : ROUNDED_SHAPES;
       const neutral = new Set(strings2(p.neutral).map((v) => colourOf2(layout2, v)).filter((v) => !!v));
-      const stripMax = num12(p.stripMax, 12);
+      const stripMax = num13(p.stripMax, 12);
       const rounded = (row) => {
         const shape = typeof row.shape === "string" ? row.shape : "";
         if (!shapes2.includes(shape)) return false;
-        return shape !== "rounded" || num12(row.radius, 0) > 0;
+        return shape !== "rounded" || num13(row.radius, 0) > 0;
       };
       const accent = (hex3) => {
         if (neutral.has(hex3)) return false;
@@ -128555,7 +129030,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
       for (const { row, index: index2 } of layers) {
         if (row.kind === "path" || row.kind === "frame" || !rounded(row)) continue;
         const stroke = colourOf2(layout2, valueText2(row.stroke));
-        if (stroke && num12(row.strokeW, 0) > 0 && !neutral.has(stroke)) {
+        if (stroke && num13(row.strokeW, 0) > 0 && !neutral.has(stroke)) {
           add3(
             row,
             "stroke",
@@ -128564,13 +129039,13 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
             `This rounded shape has a ${valueText2(row.stroke)} border. Carry an accent with a tinted fill${neutral.size ? ", or use a neutral hairline" : ""}.`
           );
         }
-        const [x, y, w, h] = [num12(row.x, 0), num12(row.y, 0), num12(row.w, 0), num12(row.h, 0)];
+        const [x, y, w, h] = [num13(row.x, 0), num13(row.y, 0), num13(row.w, 0), num13(row.h, 0)];
         for (let i = index2 + 1; i < layout2.rows.length && i < 5e3; i++) {
           const strip = layout2.rows[i];
           if (layout2.hidden(strip) || strip.kind === "frame" || strip.kind === "image" || textOf7(strip).trim() || artboardOf(strip) !== artboardOf(row)) continue;
           const fill2 = colourOf2(layout2, valueText2(strip.bg));
-          if (!fill2 || !accent(fill2) || num12(strip.opacity, 1) <= 0) continue;
-          const [sx, sy, sw, sh] = [num12(strip.x, 0), num12(strip.y, 0), num12(strip.w, 0), num12(strip.h, 0)];
+          if (!fill2 || !accent(fill2) || num13(strip.opacity, 1) <= 0) continue;
+          const [sx, sy, sw, sh] = [num13(strip.x, 0), num13(strip.y, 0), num13(strip.w, 0), num13(strip.h, 0)];
           const tol = 2;
           const inside2 = sx >= x - tol && sy >= y - tol && sx + sw <= x + w + tol && sy + sh <= y + h + tol;
           if (!inside2) continue;
@@ -128594,7 +129069,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
       for (const { row } of layers) {
         if (row.kind === "path") continue;
         const style = typeof row.strokeDash === "string" && row.strokeDash ? row.strokeDash : typeof row.strokeDashArray === "string" && row.strokeDashArray.trim() ? "dashed" : "";
-        if (!style || !styles.includes(style) || num12(row.strokeW, 0) <= 0 || !colourOf2(layout2, valueText2(row.stroke))) continue;
+        if (!style || !styles.includes(style) || num13(row.strokeW, 0) <= 0 || !colourOf2(layout2, valueText2(row.stroke))) continue;
         add3(row, "strokeDash", style, "solid", `A ${style} border is reserved for ${meaning}.`);
       }
     } else if (rule.kind === "logo-surface") {
@@ -128647,7 +129122,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
 function designHouseRules(rules) {
   return (rules ?? []).filter((r5) => DESIGN_HOUSE_RULE_KINDS.includes(r5.kind));
 }
-var DESIGN_HOUSE_RULE_KINDS, record26, strings2, num12, valueText2, isHidden, textOf7, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label, list2, orList;
+var DESIGN_HOUSE_RULE_KINDS, record26, strings2, num13, valueText2, isHidden, textOf7, HEADLINE_ROLES, HEADLINE_SCALE2, HEADLINE_MIN_PX, ROUNDED_SHAPES, DESIGN_DEFAULT_WEIGHT, DESIGN_DEFAULT_ALIGN, matches2, NUMERIC_TEXT, artboardOf, label2, list2, orList;
 var init_design_house_rules = __esm({
   "engine/src/design-house-rules.ts"() {
     "use strict";
@@ -128670,7 +129145,7 @@ var init_design_house_rules = __esm({
     ];
     record26 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     strings2 = (v) => Array.isArray(v) ? v.filter((s) => typeof s === "string" && s.length > 0) : [];
-    num12 = (v, fallback) => {
+    num13 = (v, fallback) => {
       const n8 = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
       return Number.isFinite(n8) ? n8 : fallback;
     };
@@ -128686,7 +129161,7 @@ var init_design_house_rules = __esm({
     matches2 = (pattern, value2) => pattern.endsWith("*") ? value2.startsWith(pattern.slice(0, -1)) : pattern === value2;
     NUMERIC_TEXT = /^[\s\d.,:;%+\-/#()x×]+$/i;
     artboardOf = (row) => typeof row.frame === "string" && row.frame ? row.frame : row.kind === "frame" && typeof row.id === "string" ? row.id : void 0;
-    label = (name) => name.charAt(0).toUpperCase() + name.slice(1);
+    label2 = (name) => name.charAt(0).toUpperCase() + name.slice(1);
     list2 = (values) => values.join(", ");
     orList = (values) => values.length > 1 ? `${values.slice(0, -1).join(", ")} or ${values[values.length - 1]}` : values[0] ?? "";
   }
@@ -129215,14 +129690,14 @@ function baselineBrandSkill(source, opts = {}) {
   if (pairs2.length) {
     out.push("## Pairings", "");
     if (combos.from === "derived" && typeof combos.note === "string") out.push(combos.note, "");
-    const label4 = (s) => {
+    const label5 = (s) => {
       const r5 = rec2(s);
       return cell(r5.name ?? r5.slot ?? r5.path ?? r5.value);
     };
     for (const p of pairs2.slice(0, 24)) {
-      const text12 = list4(p.text).map(label4).filter(Boolean);
-      const graphic = list4(p.graphicOnly ?? p.graphic).map(label4).filter(Boolean);
-      out.push(`- On ${label4(p.background)}: text ${text12.join(", ") || "none"}${graphic.length ? `; graphics only ${graphic.join(", ")}` : ""}.`);
+      const text12 = list4(p.text).map(label5).filter(Boolean);
+      const graphic = list4(p.graphicOnly ?? p.graphic).map(label5).filter(Boolean);
+      out.push(`- On ${label5(p.background)}: text ${text12.join(", ") || "none"}${graphic.length ? `; graphics only ${graphic.join(", ")}` : ""}.`);
     }
     out.push("");
   }
@@ -129308,11 +129783,11 @@ function measureSvgFamily(sources) {
     paths: { min: counts[0] ?? 0, median: counts[Math.floor(counts.length / 2)] ?? 0, max: counts[counts.length - 1] ?? 0 }
   };
 }
-function spreadExemplars(ids2, limit2 = 12) {
+function spreadExemplars(ids2, limit3 = 12) {
   const sorted = [...ids2].sort();
-  if (sorted.length <= limit2) return sorted;
-  const step = sorted.length / limit2;
-  return Array.from({ length: limit2 }, (_, i) => sorted[Math.floor(i * step)]);
+  if (sorted.length <= limit3) return sorted;
+  const step = sorted.length / limit3;
+  return Array.from({ length: limit3 }, (_, i) => sorted[Math.floor(i * step)]);
 }
 function brandSkillFilesSize(files) {
   return Object.values(files).reduce((n8, v) => n8 + (typeof v === "string" ? ENCODER.encode(v).length : v.length), 0);
@@ -129787,16 +130262,16 @@ function hiddenTest2(rows2) {
 function designVisibleText(boxes2, opts = {}) {
   const rows2 = (Array.isArray(boxes2) ? boxes2 : []).slice(0, ROW_LIMIT).map((row, index2) => ({ row, index: index2 })).filter((r5) => record29(r5.row));
   const hidden4 = hiddenTest2(rows2.map((r5) => r5.row));
-  const frames = rows2.filter((r5) => r5.row.kind === "frame" && str7(r5.row.id)).sort((a, b) => num13(a.row.order, a.index) - num13(b.row.order, b.index) || num13(a.row.x, 0) - num13(b.row.x, 0) || str7(a.row.id).localeCompare(str7(b.row.id)));
+  const frames = rows2.filter((r5) => r5.row.kind === "frame" && str7(r5.row.id)).sort((a, b) => num14(a.row.order, a.index) - num14(b.row.order, b.index) || num14(a.row.x, 0) - num14(b.row.x, 0) || str7(a.row.id).localeCompare(str7(b.row.id)));
   const frameIds = new Set(frames.map((f) => str7(f.row.id)));
-  const reading = (a, b) => num13(a.row.y, 0) - num13(b.row.y, 0) || num13(a.row.x, 0) - num13(b.row.x, 0) || a.index - b.index;
+  const reading = (a, b) => num14(a.row.y, 0) - num14(b.row.y, 0) || num14(a.row.x, 0) - num14(b.row.x, 0) || a.index - b.index;
   const groups = frames.map((f) => ({
     artboardId: str7(f.row.id),
     members: rows2.filter((r5) => r5.row.kind !== "frame" && str7(r5.row.frame) === str7(f.row.id)).sort(reading)
   }));
   groups.push({ members: rows2.filter((r5) => r5.row.kind !== "frame" && !frameIds.has(str7(r5.row.frame))).sort(reading) });
   const stories = storiesOf(opts.textDocument);
-  const limit2 = Math.max(0, Math.floor(num13(opts.maxChars, CREATION_FEEDBACK_TEXT_LIMIT)));
+  const limit3 = Math.max(0, Math.floor(num14(opts.maxChars, CREATION_FEEDBACK_TEXT_LIMIT)));
   const segments = [];
   const hiddenLayerIds = [];
   let hiddenCount = 0;
@@ -129815,7 +130290,7 @@ function designVisibleText(boxes2, opts = {}) {
       }
       if (truncated) continue;
       const lead = text12 ? JOIN : "";
-      if (text12.length + lead.length + words4.length > limit2) {
+      if (text12.length + lead.length + words4.length > limit3) {
         truncated = true;
         continue;
       }
@@ -129860,7 +130335,7 @@ function designWritingScore(boxes2, opts = {}) {
     }
     return { kind: f.kind, tier: f.tier, label: f.label, ...f.detail ? { detail: f.detail } : {}, heat: f.heat, weight: Math.round(f.weight * 1e3) / 1e3, layerIds };
   });
-  const maxPhrases = Math.max(0, Math.min(20, Math.floor(num13(opts.maxPhrases, DEFAULT_PHRASES))));
+  const maxPhrases = Math.max(0, Math.min(20, Math.floor(num14(opts.maxPhrases, DEFAULT_PHRASES))));
   const phrases = [];
   const seen = /* @__PURE__ */ new Set();
   for (const f of findings) {
@@ -129967,7 +130442,7 @@ function creationFeedbackDelta(before, after, touched) {
   parts.push("Guidance to act on, not a gate.");
   return { summary: parts.join(" "), writing, findings, resolved: resolved2, phrases };
 }
-var CREATION_FEEDBACK_FORMAT, CREATION_FEEDBACK_VERSION, CREATION_FEEDBACK_TEXT_LIMIT, DEFAULT_PHRASES, FINDING_LIMIT, PHRASE_MAX, HIDDEN_ID_LIMIT, ROW_LIMIT, JOIN, NOT_TEXT, record29, str7, truthy2, num13, plural, selfHidden, byStrength, quote, layerList, findingKey;
+var CREATION_FEEDBACK_FORMAT, CREATION_FEEDBACK_VERSION, CREATION_FEEDBACK_TEXT_LIMIT, DEFAULT_PHRASES, FINDING_LIMIT, PHRASE_MAX, HIDDEN_ID_LIMIT, ROW_LIMIT, JOIN, NOT_TEXT, record29, str7, truthy2, num14, plural, selfHidden, byStrength, quote, layerList, findingKey;
 var init_creation_feedback = __esm({
   "engine/src/creation-feedback.ts"() {
     "use strict";
@@ -129989,7 +130464,7 @@ var init_creation_feedback = __esm({
     record29 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     str7 = (v) => typeof v === "string" ? v : "";
     truthy2 = (v) => v === true || v === "true" || v === 1 || v === "1";
-    num13 = (v, fallback) => {
+    num14 = (v, fallback) => {
       const n8 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
     };
@@ -130017,15 +130492,15 @@ var init_types = __esm({
 });
 
 // engine/src/forensic/design.ts
-function num14(value2, fallback) {
+function num15(value2, fallback) {
   const n8 = typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : value2;
   return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
 }
 function designCornerRadius(row) {
   const shape = str8(row.shape);
-  const w = num14(row.w, 0);
-  const h = num14(row.h, 0);
-  if (shape === "rounded") return Math.max(0, num14(row.radius, 0));
+  const w = num15(row.w, 0);
+  const h = num15(row.h, 0);
+  if (shape === "rounded") return Math.max(0, num15(row.radius, 0));
   if (shape === "pill") return Math.min(w, h) / 2;
   return 0;
 }
@@ -130091,9 +130566,9 @@ function drawnLines(row, text12) {
   });
 }
 function estimateLines(row, box4, text12) {
-  const size = Math.max(1, Math.round(num14(row.fontSize, DESIGN_TEXT_DEFAULTS.fontSize)));
-  const lineHeight = clamp7(num14(row.lineHeight, DESIGN_TEXT_DEFAULTS.lineHeight), 0.5, 4);
-  const pad = Math.round(clamp7(num14(row.pad, DESIGN_TEXT_DEFAULTS.pad), 0, 400));
+  const size = Math.max(1, Math.round(num15(row.fontSize, DESIGN_TEXT_DEFAULTS.fontSize)));
+  const lineHeight = clamp7(num15(row.lineHeight, DESIGN_TEXT_DEFAULTS.lineHeight), 0.5, 4);
+  const pad = Math.round(clamp7(num15(row.pad, DESIGN_TEXT_DEFAULTS.pad), 0, 400));
   const align = ["left", "center", "right"].includes(str8(row.align)) ? str8(row.align) : DESIGN_TEXT_DEFAULTS.align;
   const valign = ["top", "middle", "bottom"].includes(str8(row.valign)) ? str8(row.valign) : DESIGN_TEXT_DEFAULTS.valign;
   const inner = Math.max(1, box4.width - 2 * pad);
@@ -130158,30 +130633,30 @@ function designForensicPages(boxes2, opts = {}) {
   }
   const indexed = rows2.map((row, index2) => ({ row, index: index2, id: str8(row.id) }));
   const frames = indexed.filter((r5) => r5.row.kind === "frame").sort(
-    (a, b) => num14(a.row.order, a.index) - num14(b.row.order, b.index) || num14(a.row.x, 0) - num14(b.row.x, 0) || a.id.localeCompare(b.id)
+    (a, b) => num15(a.row.order, a.index) - num15(b.row.order, b.index) || num15(a.row.x, 0) - num15(b.row.x, 0) || a.id.localeCompare(b.id)
   );
   const stories = storyText(opts.textDocument);
-  const cap = Math.round(clamp7(num14(opts.pageCap, PAGE_LIMIT), 1, PAGE_LIMIT));
+  const cap = Math.round(clamp7(num15(opts.pageCap, PAGE_LIMIT), 1, PAGE_LIMIT));
   const groups = [];
   if (frames.length) {
     for (const frame of frames)
       groups.push({
         artboardId: frame.id,
-        origin: { x: num14(frame.row.x, 0), y: num14(frame.row.y, 0) },
-        width: Math.max(0, num14(frame.row.w, 0)),
-        height: Math.max(0, num14(frame.row.h, 0)),
+        origin: { x: num15(frame.row.x, 0), y: num15(frame.row.y, 0) },
+        width: Math.max(0, num15(frame.row.w, 0)),
+        height: Math.max(0, num15(frame.row.h, 0)),
         clip: true,
         members: indexed.filter((r5) => r5.row.kind !== "frame" && r5.id && str8(r5.row.frame) === frame.id)
       });
   } else {
     const members = indexed.filter((r5) => r5.row.kind !== "frame");
-    const extentW = members.reduce((m2, r5) => Math.max(m2, num14(r5.row.x, 0) + num14(r5.row.w, 0)), 0);
-    const extentH = members.reduce((m2, r5) => Math.max(m2, num14(r5.row.y, 0) + num14(r5.row.h, 0)), 0);
+    const extentW = members.reduce((m2, r5) => Math.max(m2, num15(r5.row.x, 0) + num15(r5.row.w, 0)), 0);
+    const extentH = members.reduce((m2, r5) => Math.max(m2, num15(r5.row.y, 0) + num15(r5.row.h, 0)), 0);
     groups.push({
       artboardId: "",
       origin: { x: 0, y: 0 },
-      width: Math.max(0, num14(opts.width, extentW)),
-      height: Math.max(0, num14(opts.height, extentH)),
+      width: Math.max(0, num15(opts.width, extentW)),
+      height: Math.max(0, num15(opts.height, extentH)),
       clip: false,
       members
     });
@@ -130210,16 +130685,16 @@ function designForensicPages(boxes2, opts = {}) {
     const placed2 = [];
     for (const { row, index: index2, id: id3 } of group.members) {
       if (truthy3(row.hidden) || NOT_DRAWN.has(str8(row.kind))) continue;
-      if (num14(row.opacity, 100) <= 0) continue;
+      if (num15(row.opacity, 100) <= 0) continue;
       const box4 = {
-        x: num14(row.x, 0) - group.origin.x,
-        y: num14(row.y, 0) - group.origin.y,
-        width: Math.max(0, num14(row.w, 0)),
-        height: Math.max(0, num14(row.h, 0))
+        x: num15(row.x, 0) - group.origin.x,
+        y: num15(row.y, 0) - group.origin.y,
+        width: Math.max(0, num15(row.w, 0)),
+        height: Math.max(0, num15(row.h, 0))
       };
       if (group.clip && (box4.x >= group.width || box4.y >= group.height || box4.x + box4.width <= 0 || box4.y + box4.height <= 0))
         continue;
-      placed2.push({ row, id: id3, index: index2, box: box4, rotated: num14(row.rot, 0) % 360 !== 0 });
+      placed2.push({ row, id: id3, index: index2, box: box4, rotated: num15(row.rot, 0) % 360 !== 0 });
     }
     const lines = [];
     let rotatedShapes = false;
@@ -130282,7 +130757,7 @@ function designForensicPages(boxes2, opts = {}) {
         if (saturated(fill2)) strips.push({ item: item2, radius, paint: fill2 });
       } else if (kind === "path") {
         const stroke = paintOf3(row.stroke, opts.resolveColor);
-        const weight = num14(row.strokeW, 0);
+        const weight = num15(row.strokeW, 0);
         if (!stroke || weight <= 0 || !saturated(stroke)) continue;
         const b = item2.box;
         if (b.height <= Math.max(2, weight))
@@ -130882,12 +131357,12 @@ async function forensicReport(bytes2, pages, coverage, models = [], additional =
 async function verifyForensicReport(report4, bytes2) {
   try {
     const str11 = (v) => typeof v === "string" && v.length <= 65536;
-    const num19 = (v) => typeof v === "number" && Number.isFinite(v);
-    const unit2 = (v) => num19(v) && v >= 0 && v <= 1;
-    const integer2 = (v, max) => num19(v) && Number.isInteger(v) && v >= 0 && v <= max;
+    const num20 = (v) => typeof v === "number" && Number.isFinite(v);
+    const unit2 = (v) => num20(v) && v >= 0 && v <= 1;
+    const integer2 = (v, max) => num20(v) && Number.isInteger(v) && v >= 0 && v <= max;
     const array = (v, max) => Array.isArray(v) && v.length <= max;
-    const box4 = (b) => b && [b.x, b.y, b.width, b.height].every((n8) => num19(n8) && Math.abs(n8) <= 1e7) && b.width >= 0 && b.height >= 0;
-    const measurement2 = (m2) => m2 && typeof m2 === "object" && !Array.isArray(m2) && Object.keys(m2).length <= 256 && Object.entries(m2).every(([k, v]) => str11(k) && (str11(v) || num19(v) || typeof v === "boolean"));
+    const box4 = (b) => b && [b.x, b.y, b.width, b.height].every((n8) => num20(n8) && Math.abs(n8) <= 1e7) && b.width >= 0 && b.height >= 0;
+    const measurement2 = (m2) => m2 && typeof m2 === "object" && !Array.isArray(m2) && Object.keys(m2).length <= 256 && Object.entries(m2).every(([k, v]) => str11(k) && (str11(v) || num20(v) || typeof v === "boolean"));
     if (report4?.profile !== "lolly/forensic-ai-v1" || report4.version !== FORENSIC_VERSION || ![
       "text",
       "markdown",
@@ -130902,7 +131377,7 @@ async function verifyForensicReport(report4, bytes2) {
     ].includes(report4.format))
       return false;
     if (!array(report4.pages, 100) || new Set(report4.pages.map((p) => p.id)).size !== report4.pages.length || report4.pages.some(
-      (p) => !p || !str11(p.id) || !str11(p.text) || !num19(p.width) || !num19(p.height) || p.width < 0 || p.height < 0 || typeof p.complete !== "boolean" || !["digital", "ocr"].includes(p.source) || !array(p.lines, 1e4) || !array(p.shapes, 1e3) || p.lines.some((l) => !str11(l.text) || !unit2(l.confidence) || !box4(l.box)) || p.shapes.some((s) => !box4(s.box) || !num19(s.radius) || !str11(s.fill))
+      (p) => !p || !str11(p.id) || !str11(p.text) || !num20(p.width) || !num20(p.height) || p.width < 0 || p.height < 0 || typeof p.complete !== "boolean" || !["digital", "ocr"].includes(p.source) || !array(p.lines, 1e4) || !array(p.shapes, 1e3) || p.lines.some((l) => !str11(l.text) || !unit2(l.confidence) || !box4(l.box)) || p.shapes.some((s) => !box4(s.box) || !num20(s.radius) || !str11(s.fill))
     ))
       return false;
     const location4 = (l) => {
@@ -130965,7 +131440,7 @@ function designLayerLookup(boxes2) {
   const frames = /* @__PURE__ */ new Map();
   for (const row of boxes2)
     if (record31(row) && row.kind === "frame" && typeof row.id === "string" && !frames.has(row.id))
-      frames.set(row.id, { x: finite3(row.x), y: finite3(row.y) });
+      frames.set(row.id, { x: finite4(row.x), y: finite4(row.y) });
   boxes2.forEach((row, index2) => {
     if (!record31(row) || typeof row.id !== "string" || !row.id || out.has(row.id)) return;
     const frameId = row.kind === "frame" ? row.id : typeof row.frame === "string" ? row.frame : "";
@@ -130974,12 +131449,12 @@ function designLayerLookup(boxes2) {
       index: index2,
       ...origin ? { artboardId: frameId } : {},
       box: {
-        x: finite3(row.x) - (origin?.x ?? 0),
-        y: finite3(row.y) - (origin?.y ?? 0),
+        x: finite4(row.x) - (origin?.x ?? 0),
+        y: finite4(row.y) - (origin?.y ?? 0),
         // A negative size is the structure check's finding (design.layer.dimension-invalid);
         // here it is clamped, as designForensicPages does, so every box fits the report schema.
-        width: Math.max(0, finite3(row.w)),
-        height: Math.max(0, finite3(row.h))
+        width: Math.max(0, finite4(row.w)),
+        height: Math.max(0, finite4(row.h))
       }
     });
   });
@@ -131203,14 +131678,14 @@ async function verifyDesignDocument(boxes2, opts = {}) {
     coverage: report4.coverage
   };
 }
-var record31, finite3, placeOf, BRAND_FIELD_WORDS, WRITING_SCORE_CODE;
+var record31, finite4, placeOf, BRAND_FIELD_WORDS, WRITING_SCORE_CODE;
 var init_design_check = __esm({
   "engine/src/design-check.ts"() {
     "use strict";
     init_design();
     init_report();
     record31 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    finite3 = (v, fallback = 0) => {
+    finite4 = (v, fallback = 0) => {
       const n8 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
     };
@@ -131353,15 +131828,15 @@ function resultArtboards(boxes2, textDocument2) {
   const stories = storiesOf2(textDocument2);
   const indexed = rows2.map((row, index2) => ({ row, index: index2 }));
   const frames = indexed.filter((r5) => r5.row.kind === "frame" && str9(r5.row.id)).sort(
-    (a, b) => finite4(a.row.order, a.index) - finite4(b.row.order, b.index) || finite4(a.row.x) - finite4(b.row.x) || str9(a.row.id).localeCompare(str9(b.row.id))
+    (a, b) => finite5(a.row.order, a.index) - finite5(b.row.order, b.index) || finite5(a.row.x) - finite5(b.row.x) || str9(a.row.id).localeCompare(str9(b.row.id))
   );
-  const reading = (row) => finite4(row.readingIndex, Number.MAX_SAFE_INTEGER);
+  const reading = (row) => finite5(row.readingIndex, Number.MAX_SAFE_INTEGER);
   let total = 0;
   let budget3 = FIDELITY_MAX_RESULT_LINES;
   let chars = MAX_RESULT_CHARS;
   const textOf11 = (members2) => {
     const lines = members2.filter((m2) => !truthy4(m2.row.hidden)).sort(
-      (a, b) => reading(a.row) - reading(b.row) || finite4(a.row.y) - finite4(b.row.y) || finite4(a.row.x) - finite4(b.row.x) || a.index - b.index
+      (a, b) => reading(a.row) - reading(b.row) || finite5(a.row.y) - finite5(b.row.y) || finite5(a.row.x) - finite5(b.row.x) || a.index - b.index
     ).flatMap((m2) => drawnText(m2.row, stories)).map(normaliseFidelityText).filter(Boolean);
     total += lines.length;
     const kept2 = [];
@@ -131887,7 +132362,7 @@ function checkFidelity(inventory2, boxes2, opts = {}) {
 function boardIndex(boxes2, id3) {
   return Array.isArray(boxes2) ? boxes2.findIndex((row) => record32(row) && row.kind === "frame" && row.id === id3) : -1;
 }
-var FIDELITY_IGNORED_CLASSES, FIDELITY_IGNORED_ROLES, FIDELITY_EDIT_SIMILARITY, FIDELITY_MAX_SOURCE_STRINGS, FIDELITY_MAX_RESULT_LINES, MAX_RESULT_CHARS, MAX_MATCH_WORK, FIDELITY_MAX_EDITS, MAX_EDIT_TEXT, record32, str9, truthy4, finite4, wordsIn, wordsOf2, meaningful, containsPhrase, wordsPresent, SEQUENCE_GAP_LINES, sameWords, slideRef, boardRef;
+var FIDELITY_IGNORED_CLASSES, FIDELITY_IGNORED_ROLES, FIDELITY_EDIT_SIMILARITY, FIDELITY_MAX_SOURCE_STRINGS, FIDELITY_MAX_RESULT_LINES, MAX_RESULT_CHARS, MAX_MATCH_WORK, FIDELITY_MAX_EDITS, MAX_EDIT_TEXT, record32, str9, truthy4, finite5, wordsIn, wordsOf2, meaningful, containsPhrase, wordsPresent, SEQUENCE_GAP_LINES, sameWords, slideRef, boardRef;
 var init_check_fidelity = __esm({
   "engine/src/check-fidelity.ts"() {
     "use strict";
@@ -131913,7 +132388,7 @@ var init_check_fidelity = __esm({
     record32 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     str9 = (v) => typeof v === "string" ? v : "";
     truthy4 = (v) => v === true || v === "true" || v === 1 || v === "1";
-    finite4 = (v, fallback = 0) => {
+    finite5 = (v, fallback = 0) => {
       const n8 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
     };
@@ -132145,7 +132620,7 @@ function translateOutlinePath(d, x, y) {
     for (let c = d.charCodeAt(i); c >= 48 && c <= 57; c = d.charCodeAt(++i)) ;
     return i > from;
   };
-  const num19 = () => {
+  const num20 = () => {
     const from = i;
     if (d.charCodeAt(i) === 45) i++;
     if (!digits()) return null;
@@ -132160,10 +132635,10 @@ function translateOutlinePath(d, x, y) {
       if (d.charCodeAt(i) !== 32) return null;
       i++;
     }
-    const px3 = num19();
+    const px3 = num20();
     if (px3 === null || d.charCodeAt(i) !== 44) return null;
     i++;
-    const py = num19();
+    const py = num20();
     return py === null ? null : [px3, py];
   };
   const at = (px3, py) => `${n5(px3 + x)},${n5(py + y)}`;
@@ -134667,14 +135142,14 @@ function pairLabels(units2, ctx) {
   const pairs2 = [];
   const used = /* @__PURE__ */ new Set();
   const labels = texts.filter((u) => shortLabel(textOf8(ctx.objectOf(u.id)), u.words)).sort((a, b) => a.box.y - b.box.y || compareCodeUnits(a.id, b.id));
-  for (const label4 of labels) {
+  for (const label5 of labels) {
     let best;
     let bestGap = Number.POSITIVE_INFINITY;
     for (const line of texts) {
-      if (line === label4 || used.has(line.id) || line.words <= label4.words || line.box.w <= label4.box.w) continue;
-      const gap = line.box.x - (label4.box.x + label4.box.w);
+      if (line === label5 || used.has(line.id) || line.words <= label5.words || line.box.w <= label5.box.w) continue;
+      const gap = line.box.x - (label5.box.x + label5.box.w);
       if (gap < -0.01 || gap > LABEL_GAP) continue;
-      const level2 = yOverlapShare(label4.box, line.box) >= ROW_OVERLAP || Math.abs(cy(label4.box) - cy(line.box)) <= ROW_CENTRE_TOL;
+      const level2 = yOverlapShare(label5.box, line.box) >= ROW_OVERLAP || Math.abs(cy(label5.box) - cy(line.box)) <= ROW_CENTRE_TOL;
       if (!level2) continue;
       if (gap < bestGap) {
         best = line;
@@ -134683,26 +135158,26 @@ function pairLabels(units2, ctx) {
     }
     if (best) {
       used.add(best.id);
-      pairs2.push({ label: label4, line: best });
+      pairs2.push({ label: label5, line: best });
     }
   }
   const columnOf = (pair) => pairs2.filter((other) => Math.abs(other.label.box.x - pair.label.box.x) <= STACK_EDGE);
   const kept2 = pairs2.filter((pair) => columnOf(pair).length >= 3);
   if (kept2.length === 0) return units2;
   const gone = new Set(kept2.flatMap((pair) => [pair.label.id, pair.line.id]));
-  const rows2 = kept2.map(({ label: label4, line }) => ({
+  const rows2 = kept2.map(({ label: label5, line }) => ({
     id: line.id,
     kind: "text",
-    box: union3(label4.box, line.box),
-    words: label4.words + line.words,
-    maxPt: Math.max(label4.maxPt, line.maxPt),
+    box: union3(label5.box, line.box),
+    words: label5.words + line.words,
+    maxPt: Math.max(label5.maxPt, line.maxPt),
     figure: false,
     numbered: true,
-    dated: label4.dated || line.dated,
+    dated: label5.dated || line.dated,
     iconAbove: false,
     headed: false,
     labelled: true,
-    members: [label4.id, line.id]
+    members: [label5.id, line.id]
   }));
   return [...units2.filter((u) => !gone.has(u.id)), ...rows2];
 }
@@ -135748,8 +136223,8 @@ function chartToolOffer(object4) {
   const header = ["Category", ...series.map((one, i) => one.name ?? `Series ${i + 1}`)];
   const rows2 = [];
   for (let row = 0; row < rowCount; row += 1) {
-    const label4 = categories[row] ?? `Row ${row + 1}`;
-    const cells = [label4, ...series.map((one) => {
+    const label5 = categories[row] ?? `Row ${row + 1}`;
+    const cells = [label5, ...series.map((one) => {
       const value2 = one.values[row];
       return value2 === void 0 || !Number.isFinite(value2) ? "" : String(value2);
     })];
@@ -136565,11 +137040,11 @@ function emptySlot(row) {
   if (kind === "image") return rowStr2(row, "image") === "";
   return false;
 }
-function drawMuted(box4, label4, ctx) {
+function drawMuted(box4, label5, ctx) {
   let out = hatchedBox(box4, ctx.thumbScale !== void 0);
-  if (ctx.thumbScale !== void 0 || label4.trim() === "") return out;
+  if (ctx.thumbScale !== void 0 || label5.trim() === "") return out;
   const size = Math.max(10, Math.min(18, round26(box4.h / 4)));
-  const lines = wrapByAverageWidth(label4, size, box4.w);
+  const lines = wrapByAverageWidth(label5, size, box4.w);
   const x = round26(box4.x + box4.w / 2);
   const baseline = firstBaseline("middle", box4.y, box4.h, size, lines.length, ESTIMATE_LINE_HEIGHT);
   out += `<text x="${x}" y="${baseline}" font-family="${svgEscape(ctx.family)}" font-size="${size}" fill="${LABEL_INK}" text-anchor="middle">`;
@@ -138849,11 +139324,11 @@ function extraRows(id3, pieces, ctx, dark) {
   }
   return out;
 }
-function isRecord3(value2) {
+function isRecord4(value2) {
   return typeof value2 === "object" && value2 !== null && !Array.isArray(value2);
 }
 function readerOf(census, source, view) {
-  if (!isRecord3(census) || !isRecord3(source) || !Array.isArray(source.slides) || !Array.isArray(census.layouts) || !Array.isArray(census.objects)) return () => void 0;
+  if (!isRecord4(census) || !isRecord4(source) || !Array.isArray(source.slides) || !Array.isArray(census.layouts) || !Array.isArray(census.objects)) return () => void 0;
   const deck = source;
   const cen = census;
   const byId = new Map(deck.slides.map((s) => [s.id, s]));
@@ -139371,7 +139846,7 @@ function colourStats(pass, box4, counter) {
   }
   return { samples, dominantShare: samples ? near / samples : 0, distinct: counts.size, ink, otherShare: samples ? other / samples : 0 };
 }
-function label2(on3, gw, gh, eight) {
+function label3(on3, gw, gh, eight) {
   const labels = new Int32Array(gw * gh).fill(-1);
   const stack = new Int32Array(gw * gh);
   const boxes2 = [];
@@ -139551,7 +140026,7 @@ function runPass(pass, page3, maxCandidates) {
   const hRule = new Uint8Array(gw * gh);
   const vRule = new Uint8Array(gw * gh);
   const sparse = new Uint8Array(gw * gh);
-  const pre = label2(on3, gw, gh, true);
+  const pre = label3(on3, gw, gh, true);
   pre.boxes.forEach((b, id3) => {
     const bw = b.x1 - b.x0 + 1;
     const bh = b.y1 - b.y0 + 1;
@@ -139583,7 +140058,7 @@ function runPass(pass, page3, maxCandidates) {
     [hRule, true],
     [vRule, false]
   ]) {
-    const { labels, boxes: boxes2 } = label2(mask, gw, gh, true);
+    const { labels, boxes: boxes2 } = label3(mask, gw, gh, true);
     boxes2.forEach((b, id3) => {
       const len2 = horizontal ? b.x1 - b.x0 + 1 : b.y1 - b.y0 + 1;
       if (len2 < (horizontal ? hMin : vMin)) return;
@@ -139605,11 +140080,11 @@ function runPass(pass, page3, maxCandidates) {
       });
     });
   }
-  const raw = label2(on3, gw, gh, true);
+  const raw = label3(on3, gw, gh, true);
   const rx = Math.max(1, Math.ceil(BLUR_X_SHARE * page3.w / cell2));
   const ry = Math.max(1, Math.ceil(BLUR_Y_SHARE * page3.h / cell2));
   const blurred = dilate(on3, gw, gh, rx, ry);
-  const merged = label2(blurred, gw, gh, false);
+  const merged = label3(blurred, gw, gh, false);
   let cells = cellsSeen + gw * gh * 4;
   if (merged.boxes.length > maxCandidates) {
     return { candidates: [], overflow: true, specks: 0, reads: reads + counter.reads, cells, seen: merged.boxes.length };
@@ -140497,7 +140972,7 @@ function inkAbove(image, area2, under, lineHeight, threshold, maxLines) {
   const minCount = Math.max(1, Math.ceil(cell2 * cell2 / 8));
   for (let c = 0; c < on3.length; c++) on3[c] = (count4[c] ?? 0) >= minCount ? 1 : 0;
   const reach2 = Math.max(1, Math.round(lineHeight / 2 / cell2));
-  const { labels, boxes: boxes2 } = label2(dilate(on3, gw, gh, reach2, reach2), gw, gh, true);
+  const { labels, boxes: boxes2 } = label3(dilate(on3, gw, gh, reach2, reach2), gw, gh, true);
   let best = null;
   for (const [id3, b] of boxes2.entries()) {
     let bx0 = gw;
@@ -141371,12 +141846,12 @@ function groupParagraphs(ordered, starts, medianH, pitch) {
       if (prev && first) {
         const below = line.box.y >= prev.box.y + prev.box.h * 0.5;
         const gap = cy2(line.box) - cy2(prev.box);
-        const limit2 = pitch ? PARAGRAPH_PITCH * pitch : PARAGRAPH_HEIGHTS * medianH;
+        const limit3 = pitch ? PARAGRAPH_PITCH * pitch : PARAGRAPH_HEIGHTS * medianH;
         const ratio = Math.max(line.box.h, prev.box.h) / Math.max(1, Math.min(line.box.h, prev.box.h));
         const sameEdge = Math.abs(line.box.x - prev.box.x) <= tol;
         const hanging = current.items.length === 1 && line.box.x > first.box.x + HANG_MIN * medianH && line.box.x < first.box.x + 4 * medianH;
         const firstIndent = current.items.length === 1 && line.box.x < first.box.x - HANG_MIN * medianH && first.box.x - line.box.x < 3 * medianH && !current.bullet;
-        continues = xOverlap(line.box, prev.box) > 0 && below && gap <= limit2 && ratio <= SIZE_STEP && (sameEdge || hanging && current.bullet || firstIndent);
+        continues = xOverlap(line.box, prev.box) > 0 && below && gap <= limit3 && ratio <= SIZE_STEP && (sameEdge || hanging && current.bullet || firstIndent);
       }
     }
     if (continues && current) {
@@ -141797,15 +142272,15 @@ function parseMotionTiming(raw) {
   if (typeof raw === "string" && raw.length > 131072) throw new Error("Cue description exceeds 128 KiB.");
   const v = typeof raw === "string" ? JSON.parse(raw) : structuredClone(raw);
   if (v?.version !== 1 || !Array.isArray(v.cues) || v.cues.length > 256 || !Array.isArray(v.bindings) || v.bindings.length > 1024) throw new Error("Cue timing requires version 1, at most 256 cues and 1024 bindings.");
-  if (v.tempo && (!(v.tempo.bpm === null || finite5(v.tempo.bpm) && v.tempo.bpm >= 1 && v.tempo.bpm <= 400) || !finite5(v.tempo.offset) || Math.abs(v.tempo.offset) > 3600 || !Number.isInteger(v.tempo.beatsPerBar) || v.tempo.beatsPerBar < 1 || v.tempo.beatsPerBar > 32)) throw new Error("Tempo needs BPM 1-400 or null, a finite offset, and 1-32 beats per bar.");
+  if (v.tempo && (!(v.tempo.bpm === null || finite6(v.tempo.bpm) && v.tempo.bpm >= 1 && v.tempo.bpm <= 400) || !finite6(v.tempo.offset) || Math.abs(v.tempo.offset) > 3600 || !Number.isInteger(v.tempo.beatsPerBar) || v.tempo.beatsPerBar < 1 || v.tempo.beatsPerBar > 32)) throw new Error("Tempo needs BPM 1-400 or null, a finite offset, and 1-32 beats per bar.");
   const ids2 = /* @__PURE__ */ new Set(), targets = /* @__PURE__ */ new Set();
   for (const cue of v.cues) {
-    if (!idOk(cue?.id) || ids2.has(cue.id) || [cue.at, cue.beat, cue.after].filter((x) => x !== void 0).length !== 1 || cue.at !== void 0 && !finite5(cue.at) || cue.beat !== void 0 && !finite5(cue.beat) || cue.after !== void 0 && !idOk(cue.after) || cue.offset !== void 0 && !finite5(cue.offset)) throw new Error("Cues need unique ids and exactly one of at, beat or after.");
+    if (!idOk(cue?.id) || ids2.has(cue.id) || [cue.at, cue.beat, cue.after].filter((x) => x !== void 0).length !== 1 || cue.at !== void 0 && !finite6(cue.at) || cue.beat !== void 0 && !finite6(cue.beat) || cue.after !== void 0 && !idOk(cue.after) || cue.offset !== void 0 && !finite6(cue.offset)) throw new Error("Cues need unique ids and exactly one of at, beat or after.");
     ids2.add(cue.id);
   }
   for (const b of v.bindings) {
     const key2 = `${b?.layerId}:${b?.target}:${b?.keyIndex ?? ""}`;
-    if (!b || !idOk(b.layerId) || !ids2.has(b.cueId) || !["start", "enterEnd", "exitStart", "keyframe"].includes(b.target) || targets.has(key2) || b.offset !== void 0 && !finite5(b.offset) || b.target === "keyframe" && (!Number.isInteger(b.keyIndex) || b.keyIndex < 0)) throw new Error("Invalid or duplicate cue binding.");
+    if (!b || !idOk(b.layerId) || !ids2.has(b.cueId) || !["start", "enterEnd", "exitStart", "keyframe"].includes(b.target) || targets.has(key2) || b.offset !== void 0 && !finite6(b.offset) || b.target === "keyframe" && (!Number.isInteger(b.keyIndex) || b.keyIndex < 0)) throw new Error("Invalid or duplicate cue binding.");
     targets.add(key2);
   }
   resolveCues(v);
@@ -141827,7 +142302,7 @@ function resolveCues(timing) {
       at = timing.tempo.offset + cue.beat * 60 / timing.tempo.bpm;
     }
     at += cue.offset ?? 0;
-    if (!finite5(at) || at < 0 || at > 3600) throw new Error(`Cue ${id3} is outside the one-hour timeline.`);
+    if (!finite6(at) || at < 0 || at > 3600) throw new Error(`Cue ${id3} is outside the one-hour timeline.`);
     pending3.delete(id3);
     times[id3] = at;
     return at;
@@ -141864,12 +142339,12 @@ function compileMotionCues(source, raw) {
       key2.t = (absolute - start) * 1e3;
       continue;
     } else value2 = (binding.target === "enterEnd" ? absolute - start : start + Number(box4.dur) - absolute) * 1e3;
-    if (typeof value2 === "number" && (!finite5(value2) || value2 < 0 || value2 > (field2 === "start" ? 3600 : 36e5))) throw new Error(`Cue creates invalid ${field2} on ${binding.layerId}.`);
+    if (typeof value2 === "number" && (!finite6(value2) || value2 < 0 || value2 > (field2 === "start" ? 3600 : 36e5))) throw new Error(`Cue creates invalid ${field2} on ${binding.layerId}.`);
     box4[field2] = value2;
     if (before !== value2) changes.push({ layerId: binding.layerId, field: field2, before, after: value2 });
   }
   for (const [layerId, track] of tracks) {
-    if (track.some((key2, i) => !finite5(key2.t) || key2.t < 0 || i > 0 && key2.t <= track[i - 1].t)) throw new Error(`Cue reorders keyframes on ${layerId}.`);
+    if (track.some((key2, i) => !finite6(key2.t) || key2.t < 0 || i > 0 && key2.t <= track[i - 1].t)) throw new Error(`Cue reorders keyframes on ${layerId}.`);
     const box4 = byId.get(layerId), before = box4.kf, after = serialiseKf(track);
     box4.kf = after;
     if (before !== after) changes.push({ layerId, field: "kf", before, after });
@@ -141877,13 +142352,13 @@ function compileMotionCues(source, raw) {
   timing.bindings = bindings.map((binding) => ({ ...binding, applied: byId.get(binding.layerId)[fieldOf(binding.target)] }));
   return { boxes: boxes2, timing, times, changes, detached };
 }
-var idOk, finite5, fieldOf;
+var idOk, finite6, fieldOf;
 var init_motion_cues = __esm({
   "engine/src/motion-cues.ts"() {
     "use strict";
     init_keyframes2();
     idOk = (id3) => typeof id3 === "string" && /^[\w-]{1,80}$/.test(id3);
-    finite5 = (n8) => typeof n8 === "number" && Number.isFinite(n8);
+    finite6 = (n8) => typeof n8 === "number" && Number.isFinite(n8);
     fieldOf = (target2) => ({ start: "start", enterEnd: "enterMs", exitStart: "exitMs", keyframe: "kf" })[target2];
   }
 });
@@ -143003,20 +143478,20 @@ var init_token_font_pins = __esm({
 // engine/src/token-edit.ts
 function supportedValue(type, value2) {
   if (typeof value2 === "string" && /^\{[^{}]+\}$/.test(value2)) return true;
-  const finite7 = (v) => typeof v === "number" && Number.isFinite(v);
-  if (type === "number") return finite7(value2);
+  const finite8 = (v) => typeof v === "number" && Number.isFinite(v);
+  if (type === "number") return finite8(value2);
   if (type === "string") return typeof value2 === "string";
   if (type === "color") return !!colorToHex(value2);
   if (type === "fontFamily") return typeof value2 === "string" && !!value2.trim() || Array.isArray(value2) && !!value2.length && value2.every((v) => typeof v === "string" && !!v.trim());
-  if (type === "fontWeight") return finite7(value2) && value2 >= 1 && value2 <= 1e3 || typeof value2 === "string" && /^(?:[1-9]\d{0,2}|1000|thin|hairline|extra-light|ultra-light|light|normal|regular|book|medium|semi-bold|demi-bold|bold|extra-bold|ultra-bold|black|heavy|extra-black|ultra-black)$/.test(value2);
+  if (type === "fontWeight") return finite8(value2) && value2 >= 1 && value2 <= 1e3 || typeof value2 === "string" && /^(?:[1-9]\d{0,2}|1000|thin|hairline|extra-light|ultra-light|light|normal|regular|book|medium|semi-bold|demi-bold|bold|extra-bold|ultra-bold|black|heavy|extra-black|ultra-black)$/.test(value2);
   if (type === "dimension" || type === "duration") {
     const units2 = type === "duration" ? ["ms", "s"] : ["px", "rem", "em", "%", "vh", "vw", "mm", "cm", "in", "pt", "pc"];
     const match = typeof value2 === "string" ? /^([+-]?(?:\d+(?:\.\d*)?|\.\d+))([a-z%]+)$/.exec(value2.trim()) : null;
     const number10 = match ? Number(match[1]) : record36(value2) ? value2.value : null;
     const unit2 = match ? match[2] : record36(value2) ? value2.unit : null;
-    return finite7(number10) && typeof unit2 === "string" && units2.includes(unit2) && (type !== "duration" || number10 >= 0);
+    return finite8(number10) && typeof unit2 === "string" && units2.includes(unit2) && (type !== "duration" || number10 >= 0);
   }
-  if (type === "cubicBezier") return Array.isArray(value2) && value2.length === 4 && value2.every(finite7) && value2[0] >= 0 && value2[0] <= 1 && value2[2] >= 0 && value2[2] <= 1;
+  if (type === "cubicBezier") return Array.isArray(value2) && value2.length === 4 && value2.every(finite8) && value2[0] >= 0 && value2[0] <= 1 && value2[2] >= 0 && value2[2] <= 1;
   if (type === "gradient") return Array.isArray(value2) && value2.length >= 2 && value2.length <= 32 && value2.every((v) => supportedValue("gradientStop", v));
   if (type === "shadow" && Array.isArray(value2)) return !!value2.length && value2.length <= 32 && value2.every((v) => supportedValue("shadow", v));
   if (type === "strokeStyle") return typeof value2 === "string" && ["solid", "dashed", "dotted", "double", "groove", "ridge", "outset", "inset"].includes(value2) || record36(value2) && Array.isArray(value2.dashArray) && value2.dashArray.every((v) => supportedValue("dimension", v)) && ["butt", "round", "square"].includes(String(value2.lineCap));
@@ -143127,7 +143602,7 @@ function reframeSvg(svg, region, width, height, overlay = "") {
   const tag3 = rootTag(svg);
   if (!tag3) throw new Error("Not an SVG document.");
   const kept2 = tag3.attrs.replace(/\s(viewBox|width|height|preserveAspectRatio)\s*=\s*("[^"]*"|'[^']*')/gi, "").replace(/(\sstyle\s*=\s*)(["'])([^"']*)\2/i, (_m, pre, q, css2) => `${pre}${q}${css2.replace(/(^|;)\s*(width|height)\s*:[^;]*/gi, "$1").replace(/^;+|;+(?=;)/g, "")}${q}`).replace(/\s+$/, "");
-  const open3 = `<svg${kept2} viewBox="${fmt2(region.x)} ${fmt2(region.y)} ${fmt2(region.w)} ${fmt2(region.h)}" width="${Math.round(width)}" height="${Math.round(height)}" preserveAspectRatio="none">`;
+  const open3 = `<svg${kept2} viewBox="${fmt3(region.x)} ${fmt3(region.y)} ${fmt3(region.w)} ${fmt3(region.h)}" width="${Math.round(width)}" height="${Math.round(height)}" preserveAspectRatio="none">`;
   const selfClosing = svg[tag3.end - 2] === "/";
   const body = selfClosing ? `${overlay}</svg>` : (() => {
     const close = svg.lastIndexOf("</svg>");
@@ -143154,7 +143629,7 @@ function labelPath(text12, x, y, size) {
   [...text12].forEach((ch, i) => {
     const g2 = GLYPHS2[ch];
     if (!g2) return;
-    d += g2.replace(/([ML])(-?[\d.]+) (-?[\d.]+)/g, (_m, op, gx, gy) => `${op}${fmt2(x + i * adv + Number(gx) * s)} ${fmt2(y + Number(gy) * s)}`);
+    d += g2.replace(/([ML])(-?[\d.]+) (-?[\d.]+)/g, (_m, op, gx, gy) => `${op}${fmt3(x + i * adv + Number(gx) * s)} ${fmt3(y + Number(gy) * s)}`);
   });
   return d;
 }
@@ -143166,20 +143641,20 @@ function gridOverlaySvg(region, spacing, pxPerUnit) {
   for (let x = first(region.x); x <= region.x + region.w + 1e-9 && xs.length < 400; x += spacing) xs.push(x);
   for (let y = first(region.y); y <= region.y + region.h + 1e-9 && ys.length < 400; y += spacing) ys.push(y);
   let lines = "";
-  for (const x of xs) lines += `M${fmt2(x)} ${fmt2(region.y)}V${fmt2(region.y + region.h)}`;
-  for (const y of ys) lines += `M${fmt2(region.x)} ${fmt2(y)}H${fmt2(region.x + region.w)}`;
+  for (const x of xs) lines += `M${fmt3(x)} ${fmt3(region.y)}V${fmt3(region.y + region.h)}`;
+  for (const y of ys) lines += `M${fmt3(region.x)} ${fmt3(y)}H${fmt3(region.x + region.w)}`;
   const digit = 9 * u, pad = 3 * u, charW = 5.5 * (digit / 6);
-  const widest2 = Math.max(...[...xs, ...ys].map((v) => label3(v).length), 1) * charW;
+  const widest2 = Math.max(...[...xs, ...ys].map((v) => label4(v).length), 1) * charW;
   const step = (gap) => Math.max(1, Math.ceil((widest2 + 4 * pad) / gap));
   const everyX = step(spacing), everyY = Math.max(1, Math.ceil((digit + 4 * pad) / spacing));
   let labels = "";
   xs.forEach((x, i) => {
-    if (i % everyX === 0) labels += labelPath(label3(x), x + pad, region.y + pad, digit);
+    if (i % everyX === 0) labels += labelPath(label4(x), x + pad, region.y + pad, digit);
   });
   ys.forEach((y, i) => {
-    if (i % everyY === 0 && y > region.y + digit + 2 * pad) labels += labelPath(label3(y), region.x + pad, y + pad, digit);
+    if (i % everyY === 0 && y > region.y + digit + 2 * pad) labels += labelPath(label4(y), region.x + pad, y + pad, digit);
   });
-  const w = (px3) => fmt2(px3 * u);
+  const w = (px3) => fmt3(px3 * u);
   return `<g data-lolly-view-grid="" fill="none" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"><path d="${lines}" stroke="#000" stroke-opacity=".5" stroke-width="${w(2)}"/><path d="${lines}" stroke="#fff" stroke-opacity=".75" stroke-width="${w(0.75)}"/>` + (labels ? `<path d="${labels}" stroke="#fff" stroke-width="${w(4)}"/><path d="${labels}" stroke="#000" stroke-width="${w(1.4)}"/>` : "") + "</g>";
 }
 function sampleDisc(img, cx2, cy3, radius) {
@@ -143234,13 +143709,13 @@ function nearestSwatch(hex3, swatches) {
   best.verdict = best.deltaE <= 0.02 ? "match" : best.deltaE <= 0.06 ? "close" : "different";
   return best;
 }
-var NUM, fmt2, GLYPHS2, label3, hex24;
+var NUM, fmt3, GLYPHS2, label4, hex24;
 var init_agent_view = __esm({
   "engine/src/agent-view.ts"() {
     "use strict";
     init_brand_derive();
     NUM = "-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?";
-    fmt2 = (v) => String(Math.round(v * 1e3) / 1e3);
+    fmt3 = (v) => String(Math.round(v * 1e3) / 1e3);
     GLYPHS2 = {
       "0": "M1 0L3 0L4 1L4 5L3 6L1 6L0 5L0 1Z",
       "1": "M1 1L2 0L2 6M1 6L3 6",
@@ -143255,7 +143730,7 @@ var init_agent_view = __esm({
       "-": "M0.5 3L3.5 3",
       ".": "M2 5.6L2 6"
     };
-    label3 = (v) => fmt2(Math.round(v * 100) / 100);
+    label4 = (v) => fmt3(Math.round(v * 100) / 100);
     hex24 = (v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0");
   }
 });
@@ -144356,12 +144831,12 @@ function scoreExtract(labels, extract) {
     wordTotal += tw.length;
     const used = /* @__PURE__ */ new Set();
     const positions = [];
-    for (const label4 of truth) {
+    for (const label5 of truth) {
       let best = -1;
       let bestRate = Number.POSITIVE_INFINITY;
       for (const [k, block] of read.entries()) {
         if (used.has(k)) continue;
-        const rate3 = characterErrorRate(label4.text, block.text);
+        const rate3 = characterErrorRate(label5.text, block.text);
         if (rate3 < bestRate) {
           best = k;
           bestRate = rate3;
@@ -144371,9 +144846,9 @@ function scoreExtract(labels, extract) {
       used.add(best);
       matched++;
       positions.push(read[best].order);
-      if (label4.origin) {
+      if (label5.origin) {
         originStated++;
-        if (read[best].origin === label4.origin) originAgreed++;
+        if (read[best].origin === label5.origin) originAgreed++;
       }
     }
     for (let i = 0; i < positions.length; i++) {
@@ -145144,6 +145619,7 @@ __export(src_exports, {
   KF_CLAMPS: () => KF_CLAMPS,
   KF_DEFAULT_EASE: () => KF_DEFAULT_EASE,
   KF_EASE_PRESETS: () => KF_EASE_PRESETS,
+  KF_EASE_REF_MAX: () => KF_EASE_REF_MAX,
   KF_EASE_TOKENS: () => KF_EASE_TOKENS,
   KF_EFF_MAX: () => KF_EFF_MAX,
   KF_FILL_CHANNELS: () => KF_FILL_CHANNELS,
@@ -145159,6 +145635,7 @@ __export(src_exports, {
   KF_MAX_KEYS: () => KF_MAX_KEYS,
   KF_MAX_TIME_MS: () => KF_MAX_TIME_MS,
   KF_QUANTA: () => KF_QUANTA,
+  KF_SPRING_PRESETS: () => KF_SPRING_PRESETS,
   KF_STROKE_CHANNELS: () => KF_STROKE_CHANNELS,
   KF_Z_FIELD_CLAMP: () => KF_Z_FIELD_CLAMP,
   KNOWN_FINISHES: () => KNOWN_FINISHES,
@@ -146118,20 +146595,30 @@ __export(src_exports, {
   joinPageText: () => joinPageText,
   jpegSegmentBody: () => jpegSegmentBody,
   jwkThumbprint: () => jwkThumbprint,
+  kfBindEase: () => kfBindEase,
   kfChannelsUsed: () => kfChannelsUsed,
   kfColourCss: () => kfColourCss,
   kfColourKey: () => kfColourKey,
   kfEaseAt: () => kfEaseAt,
   kfEaseCss: () => kfEaseCss,
+  kfEaseKind: () => kfEaseKind,
   kfEaseName: () => kfEaseName,
   kfEasePoints: () => kfEasePoints,
+  kfEaseResolved: () => kfEaseResolved,
+  kfEaseSpring: () => kfEaseSpring,
+  kfEaseSpringName: () => kfEaseSpringName,
   kfEaseToken: () => kfEaseToken,
+  kfEaseTokenPath: () => kfEaseTokenPath,
+  kfEaseTokensSnapshot: () => kfEaseTokensSnapshot,
   kfLookPose: () => kfLookPose,
   kfLookUsed: () => kfLookUsed,
   kfLookVars: () => kfLookVars,
   kfMatrix3dCss: () => kfMatrix3dCss,
   kfOklabOf: () => kfOklabOf,
   kfOutlinePath: () => kfOutlinePath,
+  kfSpring: () => kfSpring,
+  kfSpringSettleMs: () => kfSpringSettleMs,
+  kfSpringToken: () => kfSpringToken,
   kfTrimSpan: () => kfTrimSpan,
   labSolidUnit: () => labSolidUnit,
   layoutDesignText: () => layoutDesignText,
@@ -146197,6 +146684,7 @@ __export(src_exports, {
   mix32: () => mix32,
   mixOklch: () => mixOklch,
   modeAxis: () => modeAxis,
+  motionEaseMap: () => motionEaseMap,
   motionProductionChecks: () => motionProductionChecks,
   motionReport: () => motionReport,
   motionReviewTimes: () => motionReviewTimes,
@@ -146461,9 +146949,11 @@ __export(src_exports, {
   readExtract: () => readExtract,
   readFaces: () => readFaces,
   readFileDesignRecord: () => readFileDesignRecord,
+  readHostMotionTokens: () => readHostMotionTokens,
   readIdmlSpreads: () => readIdmlSpreads,
   readLicenceExpression: () => readLicenceExpression,
   readLollyDurable: () => readLollyDurable,
+  readMotionTokens: () => readMotionTokens,
   readMpfIndex: () => readMpfIndex,
   readPptx: () => readPptx,
   readPremiereXml: () => readPremiereXml,
@@ -146610,6 +147100,7 @@ __export(src_exports, {
   setColorTarget: () => setColorTarget,
   setDeckTheme: () => setDeckTheme,
   setFontTarget: () => setFontTarget,
+  setKfEaseTokens: () => setKfEaseTokens,
   setObjectText: () => setObjectText,
   setSlideCounts: () => setSlideCounts,
   setSlideGround: () => setSlideGround,
@@ -147088,6 +147579,10 @@ var init_src2 = __esm({
     init_keyframes2();
     init_kf_look();
     init_kf_look();
+    init_keyframes2();
+    init_keyframes2();
+    init_kf_spring();
+    init_motion_tokens();
     init_version();
     init_bytes();
     init_audio_dynamics();
@@ -148565,16 +149060,16 @@ function lineEndOf(ctx, row, key2) {
 }
 function inexpressible(row, byId) {
   const kind = str10(row, "kind") || "box";
-  if (num15(row, "rot") !== 0 && !TURNS.has(kind)) return "a rotated object";
+  if (num16(row, "rot") !== 0 && !TURNS.has(kind)) return "a rotated object";
   if ((bool2(row, "flipH") || bool2(row, "flipV")) && !MIRRORS.has(kind)) return "a flipped object";
-  if (num15(row, "rx") !== 0 || num15(row, "ry") !== 0) return "a perspective tilt";
-  if (num15(row, "opacity", 100) !== 100 && !FOLDS_OPACITY.has(str10(row, "kind") || "box")) return "partial opacity";
+  if (num16(row, "rx") !== 0 || num16(row, "ry") !== 0) return "a perspective tilt";
+  if (num16(row, "opacity", 100) !== 100 && !FOLDS_OPACITY.has(str10(row, "kind") || "box")) return "partial opacity";
   const grad = str10(row, "grad").trim();
   if (grad !== "") {
     if (!linearGradBox(row)) return "a gradient fill";
-    if (num15(row, "opacity", 100) !== 100 && str10(row, "bg").trim() !== "") return "partial opacity";
+    if (num16(row, "opacity", 100) !== 100 && str10(row, "bg").trim() !== "") return "partial opacity";
   }
-  if (num15(row, "blur") > 0 || num15(row, "bgBlur") > 0) return "a blur";
+  if (num16(row, "blur") > 0 || num16(row, "bgBlur") > 0) return "a blur";
   if (BLEND_MODES2.has(str10(row, "blend"))) return "a blend mode";
   if (SHADOW_TARGETS.has(str10(row, "shadow"))) return "a shadow";
   const clip4 = str10(row, "clip").trim();
@@ -148583,14 +149078,14 @@ function inexpressible(row, byId) {
 }
 function linearGradBox(row) {
   const kind = str10(row, "kind") || "box";
-  return kind === "box" && num15(row, "rot") === 0 && isLinearGradSpec(str10(row, "grad"));
+  return kind === "box" && num16(row, "rot") === 0 && isLinearGradSpec(str10(row, "grad"));
 }
 function rotOf(row) {
-  const rot = num15(row, "rot");
+  const rot = num16(row, "rot");
   return rot !== 0 && Number.isFinite(rot) ? { rot } : {};
 }
 function opacityOf(row) {
-  return Math.max(0, Math.min(1, num15(row, "opacity", 100) / 100));
+  return Math.max(0, Math.min(1, num16(row, "opacity", 100) / 100));
 }
 function foldAlpha(alpha, opacity) {
   const a = (alpha ?? 1) * opacity;
@@ -148725,16 +149220,16 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     }
     return;
   }
-  const limit2 = inexpressible(row, siblings);
-  if (limit2) {
-    ctx.notes.add(`${limit2} was left out of the deck; this lowering emits flat, axis-aligned objects with a solid fill`);
+  const limit3 = inexpressible(row, siblings);
+  if (limit3) {
+    ctx.notes.add(`${limit3} was left out of the deck; this lowering emits flat, axis-aligned objects with a solid fill`);
     return;
   }
   if (MOTION_FIELDS.some((field2) => str10(row, field2).trim() !== "")) {
     ctx.notes.add("an animation was left out of the deck, so its objects arrive in place");
   }
   const kind = str10(row, "kind");
-  const geometry3 = { x: num15(row, "x"), y: num15(row, "y"), w: num15(row, "w", 1), h: num15(row, "h", 1) };
+  const geometry3 = { x: num16(row, "x"), y: num16(row, "y"), w: num16(row, "w", 1), h: num16(row, "h", 1) };
   const box4 = {
     x: emu2(geometry3.x - origin.x),
     y: emu2(geometry3.y - origin.y),
@@ -148759,7 +149254,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     }
     const fill3 = fillOf2(ctx, row);
     const strokeHit2 = ctx.palette.resolve(row.stroke);
-    const strokeW2 = num15(row, "strokeW");
+    const strokeW2 = num16(row, "strokeW");
     noteDash(ctx, row);
     const line = strokeHit2 && strokeW2 > 0 ? lineOf(strokeHit2, strokeW2, opacity) : void 0;
     if (line && data.open) {
@@ -148801,9 +149296,9 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
   }
   if (kind === "text") {
     const role = str10(row, "role");
-    const sizePx = num15(row, "fontSize", 0) || (role && master ? roleFontSize(master, role, masterStyle) : 0) || 48;
+    const sizePx = num16(row, "fontSize", 0) || (role && master ? roleFontSize(master, role, masterStyle) : 0) || 48;
     const colour = ctx.palette.resolve(str10(row, "fg") || masterStyle?.fg || masterStyle?.fgTokenPath);
-    const weight = num15(row, "weight", 0) || Number(str10(row, "weight")) || Number(masterStyle?.weight) || DEFAULT_TEXT_WEIGHT;
+    const weight = num16(row, "weight", 0) || Number(str10(row, "weight")) || Number(masterStyle?.weight) || DEFAULT_TEXT_WEIGHT;
     const textAlpha = foldAlpha(colour?.alpha, opacity);
     const run3 = {
       sizePt: Math.round(sizePx * 0.75 * 100) / 100,
@@ -148817,7 +149312,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     if (family2) run3.font = family2;
     const align = ALIGN[str10(row, "align") || masterStyle?.align || ""];
     const anchor = ANCHOR[str10(row, "valign") || masterStyle?.valign || ""];
-    const lineHeight = Math.min(4, Math.max(0.5, num15(row, "lineHeight", DEFAULT_LINE_HEIGHT)));
+    const lineHeight = Math.min(4, Math.max(0.5, num16(row, "lineHeight", DEFAULT_LINE_HEIGHT)));
     const lineSpacingPt = Math.round(lineHeight * sizePx * 0.75 * 100) / 100;
     const text12 = {
       kind: "text",
@@ -148838,7 +149333,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
   }
   const fill2 = fillOf2(ctx, row);
   const strokeHit = ctx.palette.resolve(row.stroke);
-  const strokeW = num15(row, "strokeW");
+  const strokeW = num16(row, "strokeW");
   noteDash(ctx, row);
   const solidMetadata = capturePptxSolidMetadata(row);
   if (solidMetadata && isPptxPrimitiveRow(solidMetadata, origin, geometry3)) {
@@ -148853,7 +149348,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
     sink.shapes.push(designDrawPptx(op));
     return;
   }
-  const shapeKind = str10(row, "shape"), radiusPx = shapeKind === "rounded" ? num15(row, "radius") : 0;
+  const shapeKind = str10(row, "shape"), radiusPx = shapeKind === "rounded" ? num16(row, "radius") : 0;
   const radius = shapeKind === "rounded" ? { radius: emu2(radiusPx) } : {};
   const gradFill = linearGradBox(row) ? gradSpecFill(str10(row, "grad").trim(), { flipH: bool2(row, "flipH"), flipV: bool2(row, "flipV") }) : null;
   const capture = { kind, shapeKind, radius: radiusPx, strokeWidth: strokeW };
@@ -148890,7 +149385,7 @@ async function lowerLayer(ctx, sink, row, origin, binding, masterStyle, master, 
 }
 function noteDash(ctx, row) {
   const dash = str10(row, "strokeDash");
-  if ((dash === "dashed" || dash === "dotted") && num15(row, "strokeW") > 0 && str10(row, "stroke").trim() !== "") {
+  if ((dash === "dashed" || dash === "dotted") && num16(row, "strokeW") > 0 && str10(row, "stroke").trim() !== "") {
     ctx.notes.add("a dashed outline was drawn solid in the deck");
   }
 }
@@ -149036,7 +149531,7 @@ function furnitureShape(ctx, f, master, size) {
   };
 }
 function orderedFrames(frames) {
-  return frames.map((f, index2) => ({ f, index: index2 })).sort((a, b) => num15(a.f.row, "order") - num15(b.f.row, "order") || num15(a.f.row, "x") - num15(b.f.row, "x") || a.index - b.index).map((e) => e.f);
+  return frames.map((f, index2) => ({ f, index: index2 })).sort((a, b) => num16(a.f.row, "order") - num16(b.f.row, "order") || num16(a.f.row, "x") - num16(b.f.row, "x") || a.index - b.index).map((e) => e.f);
 }
 function frameGroundIsDark(row) {
   const bg = typeof row.bg === "string" ? row.bg : "";
@@ -149048,8 +149543,8 @@ async function designFramesToPptx(opts) {
   const frames = visible2.slice(0, MAX_SLIDES3);
   const first = frames[0]?.row;
   const size = {
-    w: Math.max(1, Math.round(first ? num15(first, "w", opts.size?.w ?? 1280) : opts.size?.w ?? 1280)),
-    h: Math.max(1, Math.round(first ? num15(first, "h", opts.size?.h ?? 720) : opts.size?.h ?? 720))
+    w: Math.max(1, Math.round(first ? num16(first, "w", opts.size?.w ?? 1280) : opts.size?.w ?? 1280)),
+    h: Math.max(1, Math.round(first ? num16(first, "h", opts.size?.h ?? 720) : opts.size?.h ?? 720))
   };
   const palette = new Palette(opts.tokens, opts.cssVars);
   const ctx = {
@@ -149100,7 +149595,7 @@ async function designFramesToPptx(opts) {
     }
     const bg = fillOf2(ctx, frameRow);
     if (bg) sink.shapes.push({ kind: "rect", x: 0, y: 0, cx: emu2(size.w), cy: emu2(size.h), fill: bg });
-    const origin = { x: num15(frameRow, "x"), y: num15(frameRow, "y") };
+    const origin = { x: num16(frameRow, "x"), y: num16(frameRow, "y") };
     const ordinalOf = /* @__PURE__ */ new Map();
     if (archetype) {
       for (const row of entry2.layers) {
@@ -149114,7 +149609,7 @@ async function designFramesToPptx(opts) {
       const id3 = str10(row, "id");
       if (id3) siblings.add(id3);
     }
-    const layers = entry2.layers.map((row, index2) => ({ row, index: index2 })).sort((a, b) => num15(a.row, "order") - num15(b.row, "order") || a.index - b.index).map((e) => e.row).slice(0, MAX_LAYERS_PER_SLIDE);
+    const layers = entry2.layers.map((row, index2) => ({ row, index: index2 })).sort((a, b) => num16(a.row, "order") - num16(b.row, "order") || a.index - b.index).map((e) => e.row).slice(0, MAX_LAYERS_PER_SLIDE);
     if (entry2.layers.length > layers.length) {
       ctx.notes.add(`a slide was cut to its first ${MAX_LAYERS_PER_SLIDE} objects`);
     }
@@ -149192,7 +149687,7 @@ function framesOfDesignDoc(doc) {
   }
   return frames;
 }
-var SCHEME_SLOTS, THEME_SLOT_TOKENS2, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num15, str10, bool2, emu2, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
+var SCHEME_SLOTS, THEME_SLOT_TOKENS2, MAX_SLIDES3, MAX_LAYERS_PER_SLIDE, MAX_PICTURE_BYTES, num16, str10, bool2, emu2, TOKEN_PATH_RE, ROLE_PH_TYPE, SLD_NUM_IDX, Palette, SLOT_FILL_GROUPS, ALIGN, ANCHOR, INDENTED_LINE, Notes, addMedia, EXT_OF_MIME, BLEND_MODES2, MOTION_FIELDS, SHADOW_TARGETS, DEFAULT_TEXT_WEIGHT, DEFAULT_TEXT_HEX, DEFAULT_LINE_HEIGHT, LINE_ENDS_OF_HEADS, FOLDS_OPACITY, TURNS, MIRRORS, hidden2, MAX_FALLBACK_PX, FALLBACK_SCALE;
 var init_design_pptx = __esm({
   "packages/node-shell/src/design-pptx.ts"() {
     "use strict";
@@ -149226,7 +149721,7 @@ var init_design_pptx = __esm({
     MAX_SLIDES3 = 500;
     MAX_LAYERS_PER_SLIDE = 1200;
     MAX_PICTURE_BYTES = 32 * 1024 * 1024;
-    num15 = (row, key2, fallback = 0) => {
+    num16 = (row, key2, fallback = 0) => {
       const v = row[key2];
       if (typeof v === "number") return Number.isFinite(v) ? v : fallback;
       if (typeof v === "string" && v.trim() !== "") {
@@ -149517,8 +150012,8 @@ function readRenovationLollyFile(bytes2) {
     if (row?.kind !== "asset" || typeof row.path !== "string" || !row.path) continue;
     const vouched = manifest.integrity?.[row.path];
     if (!files.has(row.path) || !vouched || typeof row.checksum === "string" && row.checksum !== vouched) {
-      const label4 = typeof row.label === "string" && row.label ? row.label : ref2;
-      throw new Error(`This renovation's picture "${label4}" is not covered by the file's integrity map.`);
+      const label5 = typeof row.label === "string" && row.label ? row.label : ref2;
+      throw new Error(`This renovation's picture "${label5}" is not covered by the file's integrity map.`);
     }
   }
   return { manifest, id: id3, name, project, parts, assets, files };
@@ -149535,10 +150030,10 @@ function renovationAssetRow(manifest, ref2) {
   }
   return key2 === ref2 ? void 0 : rows2.find((row) => row.id === key2);
 }
-function readPart(files, manifest, path, label4) {
-  if (!files.has(path) || !manifest.integrity?.[path]) throw new Error(`This renovation is missing its ${label4}.`);
+function readPart(files, manifest, path, label5) {
+  if (!files.has(path) || !manifest.integrity?.[path]) throw new Error(`This renovation is missing its ${label5}.`);
   const value2 = parseJson(files.get(path));
-  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) throw new Error(`The ${label4} of this renovation is unreadable.`);
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) throw new Error(`The ${label5} of this renovation is unreadable.`);
   return value2;
 }
 function bundledToolFiles(contents) {
@@ -149849,8 +150344,8 @@ function fillResources(walk2, res, resDict, depth) {
     }
   }
   for (const [name, ref2] of dictEntries2(ctx, getKey(ctx, resDict, "Properties"))) {
-    const label4 = pdfString(ctx, getKey(ctx, ref2, "Name"));
-    if (label4) res.ocgs[name] = label4;
+    const label5 = pdfString(ctx, getKey(ctx, ref2, "Name"));
+    if (label5) res.ocgs[name] = label5;
   }
   const shading = walk2.decoders.shading ?? pdfShadingOf;
   const pattern = walk2.decoders.pattern ?? pdfPatternOf;
@@ -150634,8 +151129,8 @@ function readPdfStructOrder(doc, pageIndex) {
     if (!d) return;
     const type = nameOf(ctx, d.get(PDFName.of("Type")));
     if (type === "MCR") {
-      const num19 = numOf(ctx, d.get(PDFName.of("MCID")));
-      if (num19 != null) acc.push(num19);
+      const num20 = numOf(ctx, d.get(PDFName.of("MCID")));
+      if (num20 != null) acc.push(num20);
       return;
     }
   };
@@ -151009,8 +151504,8 @@ var init_pdf_read = __esm({
       chars;
       /** True when decoding stopped at the budget, so `chars` is a lower bound. */
       atLeast;
-      constructor(chars, limit2, atLeast = false) {
-        super(atLeast ? `The page content is more than ${limit2} characters, the limit.` : `The page content is ${chars} characters, over the ${limit2} character limit.`);
+      constructor(chars, limit3, atLeast = false) {
+        super(atLeast ? `The page content is more than ${limit3} characters, the limit.` : `The page content is ${chars} characters, over the ${limit3} character limit.`);
         this.name = "PdfPageTooLargeError";
         this.chars = chars;
         this.atLeast = atLeast;
@@ -151385,7 +151880,7 @@ function looseParts(image, box4) {
   if (!columns || columns.bottom < columns.top) return [];
   const { x0, ink, top, bottom } = columns;
   const inkHeight = bottom - top + 1;
-  const limit2 = Math.max(4, LINE_GAP_SPLIT * inkHeight);
+  const limit3 = Math.max(4, LINE_GAP_SPLIT * inkHeight);
   const spans = [];
   let k = 0;
   while (k < ink.length) {
@@ -151401,7 +151896,7 @@ function looseParts(image, box4) {
       }
       let gap = k;
       while (gap < ink.length && !ink[gap]) gap++;
-      if (gap >= ink.length || gap - k > limit2) break;
+      if (gap >= ink.length || gap - k > limit3) break;
       k = gap;
     }
     spans.push([start, end]);
@@ -152579,9 +153074,9 @@ function cardEdgeOf(image, unit2, skip = CARD_SKIP_STRIPS) {
   const meanAt = (side2, d) => {
     const across = side2 === "left" || side2 === "right";
     const at = side2 === "left" ? unit2.x - d : side2 === "right" ? unit2.x + unit2.w + d : side2 === "top" ? unit2.y - d : unit2.y + unit2.h + d;
-    const limit2 = across ? image.width : image.height;
+    const limit3 = across ? image.width : image.height;
     const pos = Math.round(at);
-    if (pos < 0 || pos >= limit2) return null;
+    if (pos < 0 || pos >= limit3) return null;
     const from = Math.max(0, Math.round(across ? unit2.y : unit2.x));
     const to = Math.min(across ? image.height : image.width, Math.round(across ? unit2.y + unit2.h : unit2.x + unit2.w));
     const sum = [0, 0, 0];
@@ -152872,8 +153367,8 @@ function groupUnits(built, base, pageArea, cards, barriers = []) {
   }));
   const rowRules = barriers.filter((r5) => r5.w >= r5.h && middles.some((at, n8) => {
     const next2 = middles[n8 + 1];
-    const label4 = rows2[n8]?.text.pictureBox;
-    return next2 !== void 0 && label4 !== void 0 && r5.y + r5.h / 2 > at && r5.y + r5.h / 2 < next2 && r5.x <= label4.x && r5.x + r5.w >= label4.x + label4.w;
+    const label5 = rows2[n8]?.text.pictureBox;
+    return next2 !== void 0 && label5 !== void 0 && r5.y + r5.h / 2 > at && r5.y + r5.h / 2 < next2 && r5.x <= label5.x && r5.x + r5.w >= label5.x + label5.w;
   }));
   const ruled = rowRules.length * 2 >= rows2.length - 1 && rowRules.length > 0;
   const tableRight = ruled ? Math.max(...rowRules.map((r5) => r5.x + r5.w)) : Number.POSITIVE_INFINITY;
@@ -153244,8 +153739,8 @@ function vectorMaterial(members, ox, oy) {
   const r12 = (n8) => String(Math.round(n8 * 10) / 10);
   const relPath2 = (d) => {
     let k = 0;
-    return d.replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, (num19) => {
-      const v = Number(num19) - (k++ % 2 === 0 ? ox : oy);
+    return d.replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, (num20) => {
+      const v = Number(num20) - (k++ % 2 === 0 ? ox : oy);
       return r12(v);
     });
   };
@@ -154741,12 +155236,12 @@ function vectorTextOf(items2, runs2, readings, opts = {}) {
   return { items: { ...items2, items: next2 }, runs: runs2.length, text: text12, drawn: runs2.length - text12 };
 }
 function glyphRunChunks(run3) {
-  const limit2 = MAX_CHUNK_ASPECT * Math.max(run3.box.h, 1e-6);
-  if (run3.box.w <= limit2 || run3.words.length < 2) return [{ x: run3.box.x, w: run3.box.w }];
+  const limit3 = MAX_CHUNK_ASPECT * Math.max(run3.box.h, 1e-6);
+  if (run3.box.w <= limit3 || run3.words.length < 2) return [{ x: run3.box.x, w: run3.box.w }];
   const chunks = [];
   for (const word of run3.words) {
     const last = chunks[chunks.length - 1];
-    if (last && word.x + word.w - last.x <= limit2) last.w = word.x + word.w - last.x;
+    if (last && word.x + word.w - last.x <= limit3) last.w = word.x + word.w - last.x;
     else chunks.push({ ...word });
   }
   return chunks;
@@ -154817,11 +155312,11 @@ var init_vector_text = __esm({
 });
 
 // packages/node-shell/src/rebrand/source-pptx.ts
-function boundedReader(reader, limit2 = MAX_DECK_LABEL_READS) {
+function boundedReader(reader, limit3 = MAX_DECK_LABEL_READS) {
   let asked = 0;
   return async (frame) => {
     asked += 1;
-    return asked > limit2 ? null : reader(frame);
+    return asked > limit3 ? null : reader(frame);
   };
 }
 function readingOf(lines) {
@@ -156223,7 +156718,7 @@ function pictureDimensions(bytes2) {
   }
   return found && found.width > 0 && found.height > 0 ? found : null;
 }
-function pngInflatesWithin(bytes2, limit2) {
+function pngInflatesWithin(bytes2, limit3) {
   let total = 0;
   const inflater = new Unzlib3((chunk6) => {
     total += chunk6.length;
@@ -156236,7 +156731,7 @@ function pngInflatesWithin(bytes2, limit2) {
         const body = bytes2.subarray(at + 8, Math.min(bytes2.length, at + 8 + length2));
         for (let k = 0; k < body.length; k += INFLATE_STEP2) {
           inflater.push(body.subarray(k, k + INFLATE_STEP2), false);
-          if (total > limit2) return false;
+          if (total > limit3) return false;
         }
       }
       at += 12 + length2;
@@ -156245,7 +156740,7 @@ function pngInflatesWithin(bytes2, limit2) {
   } catch {
     return false;
   }
-  return total <= limit2;
+  return total <= limit3;
 }
 async function decodePipelinePicture(bytes2, mime2) {
   const size = pictureDimensions(bytes2);
@@ -157773,12 +158268,12 @@ function rgbeToFloat(rgbe, o, out, oi) {
 function parseRadianceHeader(bytes2) {
   if (!(bytes2 instanceof Uint8Array) || bytes2.length < 12) return null;
   let p = 0;
-  const limit2 = Math.min(bytes2.length, RADIANCE_MAX_HEADER_BYTES);
+  const limit3 = Math.min(bytes2.length, RADIANCE_MAX_HEADER_BYTES);
   const readLine = () => {
-    if (p >= limit2) return null;
+    if (p >= limit3) return null;
     let end = p;
-    while (end < limit2 && bytes2[end] !== 10) end++;
-    if (end >= limit2) return null;
+    while (end < limit3 && bytes2[end] !== 10) end++;
+    if (end >= limit3) return null;
     let s = "";
     for (let i = p; i < end; i++) s += String.fromCharCode(bytes2[i]);
     p = end + 1;
@@ -158091,11 +158586,11 @@ function nodePathFormat(manifest, format) {
 function needsFloatScene(toolId, editingRange, format, hdr) {
   return toolId === "design" && (editingRange === "hdr" || !!hdr) && !["html", "json", "csv", "ics", "vcf", "md", "txt"].includes(format.toLowerCase());
 }
-function deepFormatMime(fmt4) {
-  return fmt4.toLowerCase() === "exr" ? "image/x-exr" : "image/vnd.radiance";
+function deepFormatMime(fmt5) {
+  return fmt5.toLowerCase() === "exr" ? "image/x-exr" : "image/vnd.radiance";
 }
-function isDeepFormat(fmt4) {
-  const f = fmt4.toLowerCase();
+function isDeepFormat(fmt5) {
+  const f = fmt5.toLowerCase();
   return f === "exr" || f === "hdr";
 }
 function catalogFontDirs() {
@@ -158139,8 +158634,8 @@ function canCarryPrintPrep(format) {
 function printPrepRefusal(format) {
   return `--bleed/--marks cannot be applied to "${format}". Bleed boxes and crop/registration marks are page geometry, and only the page formats carry them: ${[...PRINT_PREP_FORMATS].join(", ")}. Accepting the flags here would give you a file identical to one exported without them, with nothing to say so. Export one of those formats, or drop the flags. No file was written.`;
 }
-function eligibleForResvgPng(fmt4, dims) {
-  return fmt4.toLowerCase() === "png" && !dims.durable && !dims.bleed && !dims.marks;
+function eligibleForResvgPng(fmt5, dims) {
+  return fmt5.toLowerCase() === "png" && !dims.durable && !dims.bleed && !dims.marks;
 }
 async function rasterizeTierAPng(svg, dims, manifest) {
   const { width, height } = pxDims(dims, manifest);
@@ -158242,17 +158737,17 @@ function hdrTune(h) {
   return t;
 }
 async function renderDeepRaster(req) {
-  const fmt4 = req.format.toLowerCase();
-  if (!isDeepFormat(fmt4)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
-  if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt4));
+  const fmt5 = req.format.toLowerCase();
+  if (!isDeepFormat(fmt5)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
+  if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt5));
   const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height);
   const sdr = fromU8Srgb(raster.data, raster.width, raster.height);
   const frame = hdrViewTransform(sdr, {
     targets: req.hdr.targets ?? [],
     ...hdrTune(req.hdr)
   });
-  if (!hasHeadroom(frame)) throw new DeepSourceError(deepSourceRefusal(fmt4, "no-headroom"));
-  if (fmt4 === "hdr") {
+  if (!hasHeadroom(frame)) throw new DeepSourceError(deepSourceRefusal(fmt5, "no-headroom"));
+  if (fmt5 === "hdr") {
     if (req.depth === "float" || req.depth === 16 || req.depth === 8) {
       req.log?.("info", `Note: depth=${req.depth} is not a Radiance .hdr option - RGBE is 8-bit mantissas with one shared exponent per pixel. Wrote RGBE.`);
     }
@@ -158983,8 +159478,8 @@ function fieldValue(ctx, v) {
   if (s != null) return s;
   const n8 = nameOf2(ctx, v);
   if (n8 != null) return n8 === "Off" ? null : n8;
-  const num19 = numOf2(ctx, v);
-  if (num19 != null) return String(num19);
+  const num20 = numOf2(ctx, v);
+  if (num20 != null) return String(num20);
   const arr = arrOf(ctx, v);
   if (arr) return list3(arr.map((x) => strOf(ctx, x) ?? "")) || null;
   return null;
@@ -159046,9 +159541,9 @@ function pageDicts(doc) {
 }
 function scanPdfStructure(doc) {
   const out = [];
-  const add3 = (label4, detail, tone = "") => {
+  const add3 = (label5, detail, tone = "") => {
     const d = clip3(detail);
-    if (d) out.push({ label: label4, detail: d, tone });
+    if (d) out.push({ label: label5, detail: d, tone });
   };
   let ctx;
   try {
@@ -159159,8 +159654,8 @@ async function pdfActiveContent(bytes2) {
   try {
     const [{ loadPdfDocument: loadPdfDocument2 }, { scanPdfStructure: scanPdfStructure2 }] = await Promise.all([Promise.resolve().then(() => (init_pdf_read(), pdf_read_exports)), Promise.resolve().then(() => (init_pdf_structure(), pdf_structure_exports))]);
     const findings = scanPdfStructure2(await loadPdfDocument2(bytes2));
-    const leading2 = (label4) => {
-      const found = findings.find((f) => f.label === label4);
+    const leading2 = (label5) => {
+      const found = findings.find((f) => f.label === label5);
       if (!found) return 0;
       const n8 = /^(\d+)/.exec(found.detail);
       return n8 ? Number(n8[1]) : 1;
@@ -159905,14 +160400,14 @@ async function packageDesign(input, opts = {}) {
   const width = Number(first?.w);
   const height = Number(first?.h);
   const ownLabel = typeof values.__label === "string" && values.__label.trim() ? values.__label.trim() : "";
-  const label4 = opts.label?.trim() || ownLabel || opts.fileStem?.trim() || "Design";
+  const label5 = opts.label?.trim() || ownLabel || opts.fileStem?.trim() || "Design";
   const ownFilename = typeof values.__export_filename === "string" && values.__export_filename ? values.__export_filename : "";
-  const filename = opts.label?.trim() || !ownFilename ? label4 : ownFilename;
+  const filename = opts.label?.trim() || !ownFilename ? label5 : ownFilename;
   const toolVersion = opts.toolVersion ?? await designToolVersion();
   values.__toolId = DESIGN_TOOL_ID;
   if (toolVersion) values.__toolVersion = toolVersion;
   else delete values.__toolVersion;
-  values.__label = label4;
+  values.__label = label5;
   values.__export_filename = filename;
   const sized = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0;
   if (sized && values.__export_width === void 0 && values.__export_height === void 0) {
@@ -159926,13 +160421,13 @@ async function packageDesign(input, opts = {}) {
   const written = await buildDesignLolly({
     session: { values, mediaRefs },
     media,
-    name: label4,
+    name: label5,
     ...toolVersion ? { toolVersion } : {},
     exportedAt,
     zipTime: zipTimeOf(exportedAt)
   });
   const bytes2 = stampZipTimes(written.bytes, exportedAt);
-  const readback = verifyReadback(bytes2, { rows: rows2.length, label: label4, filename, media: [...media.keys()] });
+  const readback = verifyReadback(bytes2, { rows: rows2.length, label: label5, filename, media: [...media.keys()] });
   const exportWidth = Number(values.__export_width);
   const exportHeight = Number(values.__export_height);
   const report4 = {
@@ -159942,7 +160437,7 @@ async function packageDesign(input, opts = {}) {
     sha256: sha256Hex4(bytes2),
     exportedAt,
     tool: { id: "design", ...toolVersion ? { version: toolVersion } : {} },
-    label: label4,
+    label: label5,
     filename,
     size: exportWidth > 0 && exportHeight > 0 ? { width: exportWidth, height: exportHeight, unit: "px" } : null,
     artboards: rows2.filter((r5) => r5.kind === "frame").length,
@@ -160426,8 +160921,8 @@ function readExifFacts(payload) {
   const entries = Math.min(512, Math.max(0, u167(ifd)));
   let x = 0, y = 0, unit2 = 2;
   const rational = (at) => {
-    const offset = u327(at), num19 = u327(offset), den = u327(offset + 4);
-    return num19 > 0 && den > 0 ? num19 / den : 0;
+    const offset = u327(at), num20 = u327(offset), den = u327(offset + 4);
+    return num20 > 0 && den > 0 ? num20 / den : 0;
   };
   for (let k = 0; k < entries; k++) {
     const e = ifd + 2 + k * 12;
@@ -161001,9 +161496,9 @@ async function analyzePdf(bytes2) {
   const { PDFDocument: PDFDocument4, PDFName: PDFName7 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(bytes2, PDF_LOAD_OPTS);
   const findings = [];
-  const add3 = (label4, detail, tone = "") => {
+  const add3 = (label5, detail, tone = "") => {
     const d = detail == null ? "" : String(detail).trim();
-    if (d) findings.push({ label: label4, detail: d, tone });
+    if (d) findings.push({ label: label5, detail: d, tone });
   };
   for (const f of INFO_FIELDS) {
     let v;
@@ -161623,14 +162118,14 @@ function createTextShapeCache() {
       return copyRun(entry2.run, start);
     },
     remember(key2, run3) {
-      const cost = 2 * (key2.length + JSON.stringify(run3).length), limit2 = 16 * 1024 * 1024;
-      if (cost > limit2) return;
+      const cost = 2 * (key2.length + JSON.stringify(run3).length), limit3 = 16 * 1024 * 1024;
+      if (cost > limit3) return;
       const old = entries.get(key2);
       if (old) {
         bytes2 -= old.bytes;
         entries.delete(key2);
       }
-      while (entries.size && (entries.size >= 256 || bytes2 + cost > limit2)) {
+      while (entries.size && (entries.size >= 256 || bytes2 + cost > limit3)) {
         const first = entries.keys().next().value;
         bytes2 -= entries.get(first).bytes;
         entries.delete(first);
@@ -162113,7 +162608,7 @@ function segmentByFace(text12, chain2) {
   }
   return segs;
 }
-function fmt3(n8) {
+function fmt4(n8) {
   return Math.round(n8 * 100) / 100;
 }
 function rootsFor3(root2) {
@@ -162182,7 +162677,7 @@ function transformPath(pathStr, offsetX, offsetY, scale) {
     const out = [];
     for (let i = 0; i + 1 < nums.length; i += 2) {
       out.push(
-        `${fmt3((+nums[i] + offsetX) * scale)},${fmt3(-(+nums[i + 1] + offsetY) * scale)}`
+        `${fmt4((+nums[i] + offsetX) * scale)},${fmt4(-(+nums[i + 1] + offsetY) * scale)}`
       );
     }
     return cmd + out.join(" ");
@@ -162978,8 +163473,8 @@ async function sourceBytes(src, opts = {}) {
   throw new Error("host.raster: unreadable source.");
 }
 async function encodeCanvas(canvas, format, quality) {
-  const fmt4 = format === "jpg" ? "jpeg" : format;
-  const mime2 = `image/${fmt4}`;
+  const fmt5 = format === "jpg" ? "jpeg" : format;
+  const mime2 = `image/${fmt5}`;
   const q = typeof quality === "number" && Number.isFinite(quality) ? Math.max(1, Math.min(100, Math.round(quality <= 1 ? quality * 100 : quality))) : void 0;
   const buf = q === void 0 ? canvas.toBuffer(mime2) : canvas.toBuffer(mime2, q);
   return { bytes: new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength), mime: mime2 };
@@ -163561,10 +164056,10 @@ function readDeepExr(bytes2) {
   if (v.getUint32(0, true) !== 20000630) return null;
   if (bytes2.length > DEEP_MAX_BYTES || (v.getUint32(4, true) & ~1024) !== 2) throw new Error("HDR editing supports single-part scanline OpenEXR.");
   let at = 8;
-  const name = (limit2 = bytes2.length) => {
+  const name = (limit3 = bytes2.length) => {
     const start = at;
-    while (at < limit2 && bytes2[at]) at++;
-    if (at >= limit2 || at - start > 255) throw new Error("Invalid OpenEXR attribute name.");
+    while (at < limit3 && bytes2[at]) at++;
+    if (at >= limit3 || at - start > 255) throw new Error("Invalid OpenEXR attribute name.");
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes2.subarray(start, at++));
   };
   const attrs = /* @__PURE__ */ new Map();
@@ -165173,8 +165668,8 @@ function lottieImageBytes(data) {
 }
 function inlineImages2(animation, members, directory, remaining = LOTTIE_LIMITS.inputBytes) {
   let expanded = new TextEncoder().encode(JSON.stringify(animation)).length;
-  const limit2 = Math.min(LOTTIE_LIMITS.inputBytes, remaining);
-  if (expanded > limit2) throw new Error("Lottie: combined animation resources exceed the expansion budget.");
+  const limit3 = Math.min(LOTTIE_LIMITS.inputBytes, remaining);
+  if (expanded > limit3) throw new Error("Lottie: combined animation resources exceed the expansion budget.");
   for (const asset2 of animation.assets ?? []) {
     if (typeof asset2.p !== "string") continue;
     if (asset2.p.startsWith("data:")) {
@@ -165190,7 +165685,7 @@ function inlineImages2(animation, members, directory, remaining = LOTTIE_LIMITS.
     if (matches3.length !== 1) throw new Error(`Lottie image ${resource}: ${matches3.length ? "ambiguous" : "missing"} packaged resource.`);
     const bytes2 = members.get(matches3[0]);
     expanded += Math.ceil(bytes2.length / 3) * 4;
-    if (expanded > limit2) throw new Error("Lottie: combined animation resources exceed the expansion budget.");
+    if (expanded > limit3) throw new Error("Lottie: combined animation resources exceed the expansion budget.");
     asset2.p = `data:${lottieImageMime(bytes2)};base64,${btoa(bytesToBin(bytes2))}`;
     lottieImageBytes(asset2.p);
     asset2.u = "";
@@ -165320,10 +165815,10 @@ function lottieTracks(layer) {
       const shape = lottieObject(item2, "Shape"), id3 = `${prefix}/${index2}`, name = String(shape.nm || `${shape.ty} ${index2 + 1}`);
       if (shape.ty === "gr") shapes2(shape.it, id3, [...names, name], depth + 1);
       if (shape.ty === "fl" || shape.ty === "st") {
-        const label4 = [...names, name].join(" / ");
-        add3(`${id3}/c`, `${label4}: Color`, shape.c, false, true, true);
-        add3(`${id3}/o`, `${label4}: Opacity`, shape.o, true, true);
-        if (shape.ty === "st") add3(`${id3}/w`, `${label4}: Width`, shape.w, true, true);
+        const label5 = [...names, name].join(" / ");
+        add3(`${id3}/c`, `${label5}: Color`, shape.c, false, true, true);
+        add3(`${id3}/o`, `${label5}: Opacity`, shape.o, true, true);
+        if (shape.ty === "st") add3(`${id3}/w`, `${label5}: Width`, shape.w, true, true);
       }
     });
   }
@@ -165448,9 +165943,9 @@ function parseSequenceMarks(wire) {
       continue;
     }
     if (!["m", "c", "r", "n"].includes(kind ?? "") || result.markers.length >= 256) continue;
-    let label4;
+    let label5;
     try {
-      label4 = decodeURIComponent(text12 ?? "").slice(0, 160);
+      label5 = decodeURIComponent(text12 ?? "").slice(0, 160);
     } catch {
       continue;
     }
@@ -165458,7 +165953,7 @@ function parseSequenceMarks(wire) {
     result.markers.push({
       kind,
       ms,
-      label: label4,
+      label: label5,
       color: /^[a-fA-F0-9]{6}$/.test(color6 ?? "") ? color6.toLowerCase() : "888888",
       ...endMs !== void 0 && endMs > ms ? { endMs } : {}
     });
@@ -165519,10 +166014,12 @@ async function exportDesignLottie(opts, host) {
   };
   const content2 = visible2.filter((box4) => box4.kind !== "frame" && !yes(box4.ignored) && (!frame || String(box4.frame) === String(frame.id)));
   const timed = content2.filter((box4) => box4.lane === "seq" || authoredTime(box4.start));
-  const finite7 = timed.filter((box4) => authoredTime(box4.dur));
-  const durationMs = finite7.length ? Math.max(...finite7.map((box4) => start(box4) + Math.round(clamp10(lottieCompatNumber(box4.dur), 0.1, 3600) * 1e3))) : 5e3;
+  const finite8 = timed.filter((box4) => authoredTime(box4.dur));
+  const durationMs = finite8.length ? Math.max(...finite8.map((box4) => start(box4) + Math.round(clamp10(lottieCompatNumber(box4.dur), 0.1, 3600) * 1e3))) : 5e3;
   const layers = [];
   const fps = lottieCompatNumber(opts.fps, lottieCompatNumber(values.projectFps, 30));
+  const motion = await readHostMotionTokens(host);
+  const eased = (fn) => motion ? withKfEaseTokens(motionEaseMap(motion), fn) : fn();
   const background = opts.background === "transparent" || yes(values.transparentBg) ? null : await paint(frame?.bg ?? values.background, host);
   if (background) layers.push({
     name: "Background",
@@ -165580,7 +166077,7 @@ async function exportDesignLottie(opts, host) {
       layer.h = op.box.h;
       layer.rotation = op.pose?.rot ?? 0;
       layer.opacity = op.opacity / 100;
-      layer.content = { kind: "shape", shapes: animateLottieLook(designDrawLottie(op), {
+      layer.content = { kind: "shape", shapes: eased(() => animateLottieLook(designDrawLottie(op), {
         name: layer.name,
         track: parseKf(layer.kf),
         startMs: layer.startMs,
@@ -165591,11 +166088,11 @@ async function exportDesignLottie(opts, host) {
         shape: box4.kind === "path" ? "path" : String(box4.shape ?? ""),
         radius: String(box4.shape ?? "") === "rounded" ? Math.max(0, lottieCompatNumber(box4.radius, 16)) : 0,
         strokeWidth: op.stroke?.width ?? 0
-      }) };
+      })) };
     }
     layers.push(layer);
   }
-  let animation = compileLottieSequence({ width, height, fps, durationMs, layers });
+  let animation = eased(() => compileLottieSequence({ width, height, fps, durationMs, layers }));
   const range = sequenceRange(parseSequenceMarks(values.sequenceMarks), durationMs);
   if (range.fromMs || range.toMs < durationMs) animation = compileLottieSequence({ width, height, fps, durationMs: range.toMs - range.fromMs, layers: [{ name: "Sequence range", x: 0, y: 0, w: width, h: height, rotation: 0, opacity: 1, startMs: 0, durationMs: range.toMs - range.fromMs, content: { kind: "animation", animation, clipInMs: range.fromMs, speed: 1, fit: "contain" } }] });
   const extras = opts.rights ? attributionCompanion(opts.rights.plan).files.map((file) => ({ name: file.name, bytes: new TextEncoder().encode(file.text) })) : [];
@@ -165618,6 +166115,7 @@ var init_design_lottie = __esm({
     init_lottie_sequence();
     init_lottie_look();
     init_keyframes2();
+    init_motion_tokens();
     init_lottie_edit();
     init_rights_attribution();
     init_rights_companion();
@@ -165651,7 +166149,7 @@ async function exportDesignIdml(opts, host) {
   const boxes2 = Array.isArray(values.boxes) ? values.boxes : [];
   if (boxes2.length > 1e4) throw new Error("IDML export exceeds the item limit.");
   const visible2 = boxes2.filter((b) => !yes2(b.hidden)), frames = visible2.filter((b) => b.kind === "frame");
-  const pages = frames.length ? frames : [{ id: "", w: num16(opts.width, 1920), h: num16(opts.height, 1080), x: 0, y: 0, bg: values.background }];
+  const pages = frames.length ? frames : [{ id: "", w: num17(opts.width, 1920), h: num17(opts.height, 1080), x: 0, y: 0, bg: values.background }];
   if (pages.length > 256) throw new Error("IDML export exceeds the spread limit.");
   const entries = [], encoder5 = new TextEncoder();
   let bytesTotal = 0;
@@ -165687,9 +166185,9 @@ async function exportDesignIdml(opts, host) {
   function guard(box4) {
     const name = String(box4.name || box4.id || "Layer");
     for (const key2 of ["grad", "clip", "path", "pathPaint", "keys", "cls", "imageFraming"]) if (box4[key2]) throw new Error(`${name}: ${key2} is unsupported in IDML export.`);
-    for (const key2 of ["blur", "bgBlur", "rx", "ry", "z"]) if (num16(box4[key2])) throw new Error(`${name}: ${key2} is unsupported in IDML export.`);
+    for (const key2 of ["blur", "bgBlur", "rx", "ry", "z"]) if (num17(box4[key2])) throw new Error(`${name}: ${key2} is unsupported in IDML export.`);
     for (const key2 of ["shadow", "blend", "enter", "exit", "hold"]) if (box4[key2] && !["none", "normal"].includes(String(box4[key2]))) throw new Error(`${name}: ${key2} is unsupported in IDML export.`);
-    if (yes2(box4.flipH) || yes2(box4.flipV) || num16(box4.opacity, 100) !== 100) throw new Error(`${name}: mirroring or transparency is unsupported in IDML export.`);
+    if (yes2(box4.flipH) || yes2(box4.flipV) || num17(box4.opacity, 100) !== 100) throw new Error(`${name}: mirroring or transparency is unsupported in IDML export.`);
     if (box4.start !== void 0 && box4.start !== "") throw new Error(`${name}: timed content needs timeline or video export.`);
     if (box4.group) notes.push(`${name}: group flattened into independent page items.`);
   }
@@ -165697,21 +166195,21 @@ async function exportDesignIdml(opts, host) {
   const spreadRefs = [], storyRefs = [];
   add3("mimetype", "application/vnd.adobe.indesign-idml-package");
   for (const [pageIndex, frame] of pages.entries()) {
-    const width = num16(frame.w, 1920), height = num16(frame.h, 1080);
+    const width = num17(frame.w, 1920), height = num17(frame.h, 1080);
     if (width <= 0 || height <= 0 || width > 3e5 || height > 3e5) throw new Error("IDML page dimensions are invalid.");
     const content2 = visible2.filter((b) => b.kind !== "frame" && (!frames.length || String(b.frame ?? "") === String(frame.id)));
     if (frames.length && pageIndex === 0 && visible2.some((b) => b.kind !== "frame" && !b.frame)) notes.push("Items outside artboards were omitted.");
     const bg = await paint2(frame.bg ?? values.background);
-    if (bg !== "Swatch/None") content2.unshift({ kind: "box", id: "Background", x: num16(frame.x), y: num16(frame.y), w: width, h: height, bg: frame.bg ?? values.background, shape: "rect" });
+    if (bg !== "Swatch/None") content2.unshift({ kind: "box", id: "Background", x: num17(frame.x), y: num17(frame.y), w: width, h: height, bg: frame.bg ?? values.background, shape: "rect" });
     let body = "";
     for (const box4 of content2) {
       opts.signal?.throwIfAborted();
       guard(box4);
       const kind = String(box4.kind || "box");
       if (!["box", "text", "image"].includes(kind)) throw new Error(`${String(box4.id)}: ${kind} is unsupported in IDML export.`);
-      const w = num16(box4.w, 320), h = num16(box4.h, 180), x = num16(box4.x) - num16(frame.x), y = num16(box4.y) - num16(frame.y);
+      const w = num17(box4.w, 320), h = num17(box4.h, 180), x = num17(box4.x) - num17(frame.x), y = num17(box4.y) - num17(frame.y);
       if (w <= 0 || h <= 0 || w > 3e5 || h > 3e5) throw new Error("IDML item dimensions are invalid.");
-      const angle = num16(box4.rot) * Math.PI / 180, a = Math.cos(angle), b = Math.sin(angle);
+      const angle = num17(box4.rot) * Math.PI / 180, a = Math.cos(angle), b = Math.sin(angle);
       const e = x + w / 2 - a * w / 2 + b * h / 2, f = y + h / 2 - b * w / 2 - a * h / 2;
       const transform2 = [a, b, -b, a, e, f].map(number9).join(" ");
       const shape = String(box4.shape || "rect");
@@ -165721,7 +166219,7 @@ async function exportDesignIdml(opts, host) {
         tag3 = "TextFrame";
         const id3 = `story-${++story}`, path2 = `Stories/Story_${id3}.xml`;
         extra = ` ParentStory="${id3}" PreviousTextFrame="n" NextTextFrame="n"`;
-        const color6 = await paint2(box4.fg ?? "#000000"), size = num16(box4.fontSize, 48), weight = num16(box4.weight, num16(box4.fontWeight, 500));
+        const color6 = await paint2(box4.fg ?? "#000000"), size = num17(box4.fontSize, 48), weight = num17(box4.weight, num17(box4.fontWeight, 500));
         const family2 = await familyOf8(box4), align = box4.align === "left" ? "LeftAlign" : box4.align === "right" ? "RightAlign" : "CenterAlign";
         if (![400, 700].includes(weight)) notes.push(`${String(box4.id)}: font weight ${weight} uses ${weight >= 600 ? "Bold" : "Regular"}; choose the exact face in InDesign.`);
         const paras = [];
@@ -165739,7 +166237,7 @@ async function exportDesignIdml(opts, host) {
         add3(path2, wrap2("Story", `<Story Self="${id3}"><StoryPreference StoryOrientation="Horizontal" StoryDirection="LeftToRightDirection" FrameType="TextFrameType"/>${paras.join("")}</Story>`));
         storyRefs.push(path2);
         inside2 += '<TextFramePreference TextColumnCount="1" VerticalJustification="TopAlign"><Properties><InsetSpacing type="list"><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem><ListItem type="unit">0</ListItem></InsetSpacing></Properties></TextFramePreference>';
-        if (box4.valign && box4.valign !== "top" || num16(box4.pad)) notes.push(`${String(box4.id)}: text padding and vertical alignment use IDML defaults.`);
+        if (box4.valign && box4.valign !== "top" || num17(box4.pad)) notes.push(`${String(box4.id)}: text padding and vertical alignment use IDML defaults.`);
       } else if (kind === "image") {
         const ref2 = box4.image;
         if (ref2?.type !== "raster" || !host.assets.bytes) throw new Error(`${String(box4.id)}: IDML image export requires stored raster bytes.`);
@@ -165753,9 +166251,9 @@ async function exportDesignIdml(opts, host) {
         inside2 += `<Image Self="image-${image}" ItemTransform="${[scale, 0, 0, scale, (w - size.w * scale) / 2, (h - size.h * scale) / 2].map(number9).join(" ")}"><Properties><GraphicBounds Left="0" Top="0" Right="${size.w}" Bottom="${size.h}"/></Properties><Link Self="link-${image}" LinkResourceURI="${path2}" LinkResourceFormat="$ID/${ext === "jpg" ? "JPEG" : "PNG"}" StoredState="Normal" LinkClassID="35906" LinkClientID="257" ShowInUI="true" CanEmbed="true" CanPackage="true" ImportPolicy="NoAutoImport" ExportPolicy="NoAutoExport"/></Image>`;
         notes.push(`${String(box4.id)}: image bytes are bundled in Links; InDesign may ask to relink that folder.`);
       }
-      const fill2 = await paint2(box4.bg), stroke = num16(box4.strokeW) ? await paint2(box4.stroke) : "Swatch/None";
+      const fill2 = await paint2(box4.bg), stroke = num17(box4.strokeW) ? await paint2(box4.stroke) : "Swatch/None";
       const points = pathPoints(w, h, tag3 === "Oval");
-      body += `<${tag3} Self="item-${++item2}" Name="${escapeAdobeXml(String(box4.name || box4.id || "Layer"))}" ItemLayer="layer-1" Visible="true" ContentType="${kind === "text" ? "TextType" : kind === "image" ? "GraphicType" : "Unassigned"}" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="${transform2}" FillColor="${fill2}" StrokeColor="${stroke}" StrokeWeight="${number9(num16(box4.strokeW))}"${extra}><Properties><PathGeometry><GeometryPathType PathOpen="false"><PathPointArray>${points}</PathPointArray></GeometryPathType></PathGeometry></Properties>${inside2}</${tag3}>`;
+      body += `<${tag3} Self="item-${++item2}" Name="${escapeAdobeXml(String(box4.name || box4.id || "Layer"))}" ItemLayer="layer-1" Visible="true" ContentType="${kind === "text" ? "TextType" : kind === "image" ? "GraphicType" : "Unassigned"}" AppliedObjectStyle="ObjectStyle/$ID/[None]" ItemTransform="${transform2}" FillColor="${fill2}" StrokeColor="${stroke}" StrokeWeight="${number9(num17(box4.strokeW))}"${extra}><Properties><PathGeometry><GeometryPathType PathOpen="false"><PathPointArray>${points}</PathPointArray></GeometryPathType></PathGeometry></Properties>${inside2}</${tag3}>`;
     }
     const path = `Spreads/Spread_${pageIndex + 1}.xml`;
     spreadRefs.push(path);
@@ -165763,7 +166261,7 @@ async function exportDesignIdml(opts, host) {
   }
   add3("Resources/Graphic.xml", wrap2("Graphic", `<Swatch Self="Swatch/None" Name="$ID/None"/>${[...colors].map(([rgb3, id3]) => `<Color Self="${id3}" Name="${id3}" Model="Process" Space="RGB" ColorValue="${rgb3}"/>`).join("")}`));
   add3("Resources/Styles.xml", wrap2("Styles", '<RootParagraphStyleGroup><ParagraphStyle Self="ParagraphStyle/$ID/[No paragraph style]" Name="$ID/[No paragraph style]"/></RootParagraphStyleGroup><RootCharacterStyleGroup><CharacterStyle Self="CharacterStyle/$ID/[No character style]" Name="$ID/[No character style]"/></RootCharacterStyleGroup><RootObjectStyleGroup><ObjectStyle Self="ObjectStyle/$ID/[None]" Name="$ID/[None]"/></RootObjectStyleGroup>'));
-  add3("Resources/Preferences.xml", wrap2("Preferences", `<DocumentPreference PageWidth="${number9(num16(pages[0]?.w, 1920))}" PageHeight="${number9(num16(pages[0]?.h, 1080))}" FacingPages="false"/>`));
+  add3("Resources/Preferences.xml", wrap2("Preferences", `<DocumentPreference PageWidth="${number9(num17(pages[0]?.w, 1920))}" PageHeight="${number9(num17(pages[0]?.h, 1080))}" FacingPages="false"/>`));
   add3("designmap.xml", xml2(`<?aid style="50" type="document" readerVersion="6.0" featureSet="257" product="16.0(0)"?><Document xmlns:idPkg="${ns}" DOMVersion="16.0" Self="lolly-document" Name="Lolly.indd" ActiveLayer="layer-1" ZeroPoint="0 0" StoryList="${Array.from({ length: story }, (_, i) => `story-${i + 1}`).join(" ")}"><idPkg:Graphic src="Resources/Graphic.xml"/><idPkg:Styles src="Resources/Styles.xml"/><idPkg:Preferences src="Resources/Preferences.xml"/><Layer Self="layer-1" Name="Lolly" Visible="true" Locked="false" Printable="true"/>${spreadRefs.map((p) => `<idPkg:Spread src="${p}"/>`).join("")}${storyRefs.map((p) => `<idPkg:Story src="${p}"/>`).join("")}</Document>`));
   const report4 = [...new Set(notes)];
   host.log("warn", report4.join(" "));
@@ -165774,7 +166272,7 @@ async function exportDesignIdml(opts, host) {
   if (opts.rights?.onReceipt) opts.rights.onReceipt(await checkCompanionReadback(bytes2, opts.rights.plan, opts.rights.fingerprint));
   return new Blob([bytes2], { type: "application/vnd.adobe.indesign-idml-package" });
 }
-var num16, yes2, ns, xml2, wrap2, number9;
+var num17, yes2, ns, xml2, wrap2, number9;
 var init_design_idml = __esm({
   "engine/src/design-idml.ts"() {
     "use strict";
@@ -165786,7 +166284,7 @@ var init_design_idml = __esm({
     init_penpot_file();
     init_rights_attribution();
     init_rights_companion();
-    num16 = (v, fallback = 0) => v == null || v === "" ? fallback : Number.isFinite(Number(v)) ? Number(v) : fallback;
+    num17 = (v, fallback = 0) => v == null || v === "" ? fallback : Number.isFinite(Number(v)) ? Number(v) : fallback;
     yes2 = (v) => v === true || v === "true" || v === 1 || v === "1";
     ns = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging";
     xml2 = (body) => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${body}`;
@@ -165807,8 +166305,8 @@ async function exportDesignPremiere(opts, host) {
   if (values.customCss || values.textDocument || values.sequenceMarks || values.sequenceTiming) throw new Error("Premiere XML exports unprocessed media clips. Export video to retain custom CSS, composed text, markers or sequence timing edits.");
   const boxes2 = Array.isArray(values.boxes) ? values.boxes : [], frames = boxes2.filter((b) => b.kind === "frame" && !yes3(b.hidden));
   if (frames.length > 1 || boxes2.length > 1e4) throw new Error("Premiere XML exports one sequence artboard with at most 10000 clips.");
-  const frame = frames[0], rate3 = { numerator: num17(values.projectFps, 30), denominator: 1 };
-  const width = num17(frame?.w, num17(opts.width, 1920)), height = num17(frame?.h, num17(opts.height, 1080));
+  const frame = frames[0], rate3 = { numerator: num18(values.projectFps, 30), denominator: 1 };
+  const width = num18(frame?.w, num18(opts.width, 1920)), height = num18(frame?.h, num18(opts.height, 1080));
   const encoder5 = new TextEncoder(), entries = [], clips2 = [], sources = [], seen = /* @__PURE__ */ new Map();
   let total = 0;
   const add3 = (name, bytes3) => {
@@ -165824,10 +166322,10 @@ async function exportDesignPremiere(opts, host) {
     const ref2 = box4.image, name = String(box4.name || box4.id || `Clip ${index2 + 1}`);
     if (!ref2 || !["video", "audio", "raster"].includes(ref2.type)) throw new Error(`${name}: render titles, shapes, animations and tool content to media before XML export.`);
     for (const key2 of ["keys", "fx", "grad", "clip", "cls", "imageFraming", "animationEdits"]) if (box4[key2]) throw new Error(`${name}: ${key2} needs rendered video export.`);
-    for (const key2 of ["blur", "bgBlur", "rot", "pitch", "pan", "duck"]) if (num17(box4[key2])) throw new Error(`${name}: ${key2} needs rendered video export.`);
+    for (const key2 of ["blur", "bgBlur", "rot", "pitch", "pan", "duck"]) if (num18(box4[key2])) throw new Error(`${name}: ${key2} needs rendered video export.`);
     for (const key2 of ["enter", "exit", "hold", "shadow", "blend"]) if (box4[key2] && !["none", "normal"].includes(String(box4[key2]))) throw new Error(`${name}: ${key2} needs rendered video export.`);
-    if (num17(box4.speed, 1) !== 1 || num17(box4.opacity, 100) !== 100 || yes3(box4.flipH) || yes3(box4.flipV)) throw new Error(`${name}: speed, opacity and mirroring need rendered video export.`);
-    const start = secondsToFrames(num17(box4.start), rate3), duration2 = secondsToFrames(num17(box4.dur), rate3), clipIn = secondsToFrames(num17(box4.clipIn), rate3);
+    if (num18(box4.speed, 1) !== 1 || num18(box4.opacity, 100) !== 100 || yes3(box4.flipH) || yes3(box4.flipV)) throw new Error(`${name}: speed, opacity and mirroring need rendered video export.`);
+    const start = secondsToFrames(num18(box4.start), rate3), duration2 = secondsToFrames(num18(box4.dur), rate3), clipIn = secondsToFrames(num18(box4.clipIn), rate3);
     if (start < 0 || duration2 <= 0 || clipIn < 0) throw new Error(`${name}: XML export needs explicit nonnegative start/in and a positive duration.`);
     const format = ref2.original?.format ?? ref2.format, extension = extensions2[format];
     if (!extension || !host.assets.bytes) throw new Error(`${name}: unsupported or unavailable source media.`);
@@ -165841,7 +166339,7 @@ async function exportDesignPremiere(opts, host) {
       sources.push({ id: ref2.id, path, mime: format });
     }
     const kind = ref2.type === "audio" ? "audio" : "video", track = kind === "audio" ? audioTrack++ : videoTrack++;
-    clips2.push({ id: `clip-${index2}`, name, kind, track, start, end: start + duration2, in: clipIn, out: clipIn + duration2, path: `file://localhost/${path}`, sourceRate: rate3, width: num17(ref2.width, width), height: num17(ref2.height, height) });
+    clips2.push({ id: `clip-${index2}`, name, kind, track, start, end: start + duration2, in: clipIn, out: clipIn + duration2, path: `file://localhost/${path}`, sourceRate: rate3, width: num18(ref2.width, width), height: num18(ref2.height, height) });
     if (kind === "video" && ref2.type === "video" && !yes3(box4.mute)) {
       clips2.push({ ...clips2.at(-1), id: `clip-${index2}-audio`, kind: "audio", track: audioTrack++ });
       notes.push(`${name}: source audio included on its own track; silent sources can be removed in Premiere.`);
@@ -165859,7 +166357,7 @@ async function exportDesignPremiere(opts, host) {
   if (opts.rights?.onReceipt) opts.rights.onReceipt(await checkCompanionReadback(bytes2, opts.rights.plan, opts.rights.fingerprint));
   return new Blob([bytes2], { type: "application/zip" });
 }
-var num17, yes3, extensions2;
+var num18, yes3, extensions2;
 var init_design_premiere = __esm({
   "engine/src/design-premiere.ts"() {
     "use strict";
@@ -165867,7 +166365,7 @@ var init_design_premiere = __esm({
     init_zip();
     init_rights_attribution();
     init_rights_companion();
-    num17 = (v, fallback = 0) => v == null || v === "" || !Number.isFinite(Number(v)) ? fallback : Number(v);
+    num18 = (v, fallback = 0) => v == null || v === "" || !Number.isFinite(Number(v)) ? fallback : Number(v);
     yes3 = (v) => v === true || v === "true" || v === 1 || v === "1";
     extensions2 = { mp4: "mp4", webm: "webm", mov: "mov", wav: "wav", mp3: "mp3", m4a: "m4a", ogg: "ogg", flac: "flac", png: "png", jpeg: "jpg", jpg: "jpg" };
   }
@@ -166066,16 +166564,16 @@ function designDrawPdf(pages, info = {}) {
     if (known3) return known3;
     const img = pdfImage(picture.bytes, picture.mime);
     if (!img) return null;
-    const num19 = objects.reserve();
+    const num20 = objects.reserve();
     let mask = "";
     if (img.mask) {
       const m2 = objects.reserve();
       objects.stream(m2, img.mask.dict, img.mask.data, img.mask.filter);
       mask = ` /SMask ${m2} 0 R`;
     }
-    objects.stream(num19, img.dict + mask, img.data, img.filter);
-    images.set(picture.bytes, num19);
-    return num19;
+    objects.stream(num20, img.dict + mask, img.data, img.filter);
+    images.set(picture.bytes, num20);
+    return num20;
   };
   for (const item2 of pages) {
     const { page: page3 } = item2;
@@ -166088,11 +166586,11 @@ function designDrawPdf(pages, info = {}) {
       return `/${res.name("gs", `o ${key2}`, () => `<< /ca ${n7(fill2 ?? 1)} /CA ${n7(stroke ?? 1)} >>`)} gs `;
     };
     const shadingFor = (paint3, gray) => {
-      const num19 = objects.reserve();
+      const num20 = objects.reserve();
       const fn = stopsFunction(paint3.stops, gray ? (s) => [s.opacity] : (s) => rgb2(s.color));
       const space = gray ? "/DeviceGray" : "/DeviceRGB";
-      objects.put(num19, paint3.kind === "linear" ? `<< /ShadingType 2 /ColorSpace ${space} /Coords [${[paint3.x1, paint3.y1, paint3.x2, paint3.y2].map(n7).join(" ")}] /Function ${fn} /Extend [true true] >>` : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 0.71] /Function ${fn} /Extend [true true] >>`);
-      return num19;
+      objects.put(num20, paint3.kind === "linear" ? `<< /ShadingType 2 /ColorSpace ${space} /Coords [${[paint3.x1, paint3.y1, paint3.x2, paint3.y2].map(n7).join(" ")}] /Function ${fn} /Extend [true true] >>` : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 0.71] /Function ${fn} /Extend [true true] >>`);
+      return num20;
     };
     const gradientFill = (paint3, box4) => {
       const key2 = JSON.stringify(paint3);
@@ -166207,9 +166705,9 @@ Q
 `;
     const pictureBody = (picture) => {
       const bytes2 = item2.pictures.get(picture.ref);
-      const num19 = bytes2 && picture.natural ? imageObject(bytes2) : null;
-      if (!num19 || !picture.natural) return "";
-      const name = res.name("xobject", `i ${num19}`, () => num19);
+      const num20 = bytes2 && picture.natural ? imageObject(bytes2) : null;
+      if (!num20 || !picture.natural) return "";
+      const name = res.name("xobject", `i ${num20}`, () => num20);
       const r5 = pictureRect(picture, picture.natural);
       const square = picture.element.shape.kind === "rect" && picture.element.shape.radius === 0;
       const own4 = picture.clip && square && picture.zoom >= 1 ? "" : clipTo(picture.element);
@@ -166334,14 +166832,14 @@ var init_design_draw_pdf = __esm({
         this.bodies.push(null);
         return this.bodies.length - 1;
       }
-      put(num19, body) {
-        this.bodies[num19] = enc5.encode(`${num19} 0 obj
+      put(num20, body) {
+        this.bodies[num20] = enc5.encode(`${num20} 0 obj
 ${body}
 endobj
 `);
       }
-      stream(num19, dict, data, filter) {
-        const head2 = enc5.encode(`${num19} 0 obj
+      stream(num20, dict, data, filter) {
+        const head2 = enc5.encode(`${num20} 0 obj
 << ${dict}${filter ? ` /Filter ${filter}` : ""} /Length ${data.length} >>
 stream
 `);
@@ -166350,11 +166848,11 @@ stream
         out.set(head2);
         out.set(data, head2.length);
         out.set(tail, head2.length + data.length);
-        this.bodies[num19] = out;
+        this.bodies[num20] = out;
       }
       /** Content compressed with Flate. */
-      flate(num19, dict, text12) {
-        this.stream(num19, dict, zlibSync(enc5.encode(text12)), "/FlateDecode");
+      flate(num20, dict, text12) {
+        this.stream(num20, dict, zlibSync(enc5.encode(text12)), "/FlateDecode");
       }
       bytes(root2, info) {
         const header = enc5.encode("%PDF-1.7\n%\xE2\xE3\xCF\xD3\n");
@@ -166410,7 +166908,7 @@ ${at}
         return name;
       }
       dict() {
-        const part = (label4, table) => table.size ? ` /${label4} << ${[...table].map(([k, v]) => `/${k} ${typeof v === "number" ? `${v} 0 R` : v}`).join(" ")} >>` : "";
+        const part = (label5, table) => table.size ? ` /${label5} << ${[...table].map(([k, v]) => `/${k} ${typeof v === "number" ? `${v} 0 R` : v}`).join(" ")} >>` : "";
         return `<<${part("ExtGState", this.gs)}${part("XObject", this.xobject)}${part("Shading", this.shading)} >>`;
       }
     };
@@ -166865,7 +167363,7 @@ var init_pdfx2 = __esm({
 // packages/node-shell/src/pdf-finishing.ts
 function brandSwatchPalette(palette) {
   const out = [], seen = /* @__PURE__ */ new Set();
-  for (const { hex: hex3, cmyk, label: label4, spot } of palette ?? []) {
+  for (const { hex: hex3, cmyk, label: label5, spot } of palette ?? []) {
     if (!hex3 || !cmyk && !spot) continue;
     const h = hex3.replace("#", "").toLowerCase();
     if (h.length !== 6) continue;
@@ -166879,7 +167377,7 @@ function brandSwatchPalette(palette) {
     out.push({
       rgb: [r5, g2, b],
       cmyk: spot?.finish ? FINISH_MASK_CMYK : frac,
-      label: label4,
+      label: label5,
       spotName: spot ? spot.finish ? `${spot.name} (${spot.finish})` : spot.name : void 0
     });
   }
@@ -168547,11 +169045,11 @@ function serveDist2() {
     });
   });
 }
-function exportUrl2(base, toolId, query2, fmt4, dims) {
+function exportUrl2(base, toolId, query2, fmt5, dims) {
   const p = new URLSearchParams(query2);
   if (dims.lang) p.set("lang", dims.lang);
   for (const k of EXPORT_URL_RESERVED2) p.delete(k);
-  p.set("format", fmt4);
+  p.set("format", fmt5);
   if (dims.cuts != null && dims.cuts > 1) p.set("cuts", String(dims.cuts));
   serializeMotionParams(p, dims);
   if (dims.sampleTimes !== void 0) p.set("sampletimes", dims.sampleTimes.join(","));
@@ -168624,12 +169122,12 @@ function startDebug() {
       if (!cur) return "";
       return `step "${cur.name}" after ${((Date.now() - cur.at) / 1e3).toFixed(1)}s`;
     },
-    write(label4, failure5) {
+    write(label5, failure5) {
       if (writtenPath !== void 0) return writtenPath;
       const cur = steps[steps.length - 1];
       if (cur) cur.ms = Date.now() - cur.at;
       const lines = [
-        `Lolly Tier-B debug - ${label4}`,
+        `Lolly Tier-B debug - ${label5}`,
         `failed: ${failure5}`,
         "",
         "STEPS (the last one is where it stopped)",
@@ -168642,7 +169140,7 @@ function startDebug() {
         ...network.length ? network.map((l) => `  ${l}`) : ["  (nothing)"],
         ""
       ];
-      const path = tierBDebugConfig.outPath ? `${tierBDebugConfig.outPath}.tier-b-debug.log` : join29(process.cwd(), `lolly-tier-b-debug-${label4.replace(/[^a-z0-9.-]+/gi, "-")}.log`);
+      const path = tierBDebugConfig.outPath ? `${tierBDebugConfig.outPath}.tier-b-debug.log` : join29(process.cwd(), `lolly-tier-b-debug-${label5.replace(/[^a-z0-9.-]+/gi, "-")}.log`);
       try {
         writeFileSync2(path, lines.join("\n"), "utf8");
         writtenPath = path;
@@ -168653,9 +169151,9 @@ function startDebug() {
     }
   };
 }
-function withDebugLog(err, label4, debug) {
+function withDebugLog(err, label5, debug) {
   if (err instanceof Error) err.message = shortenUrls(err.message);
-  const log = debug.write(label4, err instanceof Error ? err.message : String(err));
+  const log = debug.write(label5, err instanceof Error ? err.message : String(err));
   if (log && err instanceof Error && !err.message.includes(log)) {
     err.message += ` Debug log: ${log}`;
   }
@@ -169026,7 +169524,7 @@ async function openLollyViaWebShell(bytes2, opts) {
     throw withDebugLog(err, `open ${opts.name}`, debug);
   }
 }
-async function exportOpenedSession(page3, base, query2, format, dims, debug, label4) {
+async function exportOpenedSession(page3, base, query2, format, dims, debug, label5) {
   const waiting = await waitForExport(page3, format);
   const notes = [];
   const onConsole = (message) => {
@@ -169045,7 +169543,7 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
       throw noFileError("design", format, debug, error2);
     }
     const path = await download.path();
-    if (!path) throw new BrowserError(`The ${format} export of ${label4} yielded no file.`);
+    if (!path) throw new BrowserError(`The ${format} export of ${label5} yielded no file.`);
     const out = new Uint8Array(await readFile26(path));
     const filename = download.suggestedFilename();
     await download.delete().catch(() => {
@@ -169153,13 +169651,13 @@ async function renderDesignViaSession(values, format, dims, opts = {}) {
   return { bytes: result.bytes, mime: result.mime, ...chromiumNotes?.length ? { notes: chromiumNotes } : {} };
 }
 async function renderDesignSessionInChromium(values, format, dims, opts, notes) {
-  const fmt4 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
+  const fmt5 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
   const debug = startDebug();
   assertDurableEncoder(dims, opts.base !== void 0 || Boolean(process.env.LOLLY_WEB_BASE));
   try {
     debug.step("package the document as a session");
-    const label4 = opts.label?.trim() || "Design";
-    const packed = await packageDesignSession(values, { label: label4, ...opts.fill ? { fill: opts.fill } : {} });
+    const label5 = opts.label?.trim() || "Design";
+    const packed = await packageDesignSession(values, { label: label5, ...opts.fill ? { fill: opts.fill } : {} });
     notes.push(...packed.notes);
     debug.step("serve the built web shell");
     const base = (opts.base ?? await webShellBase2()).replace(/\/$/, "");
@@ -169171,7 +169669,7 @@ async function renderDesignSessionInChromium(values, format, dims, opts, notes) 
       const observeInputs = await observeProductionInputs(page3, "design", dims.productionInputIds ?? []);
       debug.attach(page3);
       await seedPageDesignSystem(page3, opts.designSystem);
-      const opened = await openSessionInPage(page3, base, packed.bytes, `${label4}.lolly`, {
+      const opened = await openSessionInPage(page3, base, packed.bytes, `${label5}.lolly`, {
         ...opts.timeoutMs !== void 0 ? { timeoutMs: opts.timeoutMs } : {},
         step: (name) => debug.step(name)
       }).catch((error2) => {
@@ -169179,10 +169677,10 @@ async function renderDesignSessionInChromium(values, format, dims, opts, notes) 
       });
       if (opened.toolId !== "design") throw new BrowserError(`The packaged document opened in ${opened.toolId}, not Design.`);
       const extra = new URLSearchParams(opts.emoji ?? {}).toString();
-      const result = await exportOpenedSession(page3, base, sessionExportQuery(opened.slot, opts.tokenSelection, extra), fmt4, dims, debug, label4);
+      const result = await exportOpenedSession(page3, base, sessionExportQuery(opened.slot, opts.tokenSelection, extra), fmt5, dims, debug, label5);
       dims.onProductionInputs?.(observeInputs(result.bytes));
       notes.push(...result.notes ?? []);
-      const mime2 = MIME4[extname3(result.filename).toLowerCase()] ?? MIME4["." + fmt4] ?? "application/octet-stream";
+      const mime2 = MIME4[extname3(result.filename).toLowerCase()] ?? MIME4["." + fmt5] ?? "application/octet-stream";
       return { bytes: result.bytes, mime: mime2, ...notes.length ? { notes } : {} };
     } finally {
       await ctx.close().catch(() => {
@@ -169190,9 +169688,9 @@ async function renderDesignSessionInChromium(values, format, dims, opts, notes) 
     }
   } catch (err) {
     if (err instanceof Error && err.name === "DesignPackageError") {
-      throw withDebugLog(new BrowserError(`The document could not be packaged for the web shell: ${err.message}`), `design.${fmt4}`, debug);
+      throw withDebugLog(new BrowserError(`The document could not be packaged for the web shell: ${err.message}`), `design.${fmt5}`, debug);
     }
-    throw withDebugLog(err, `design.${fmt4}`, debug);
+    throw withDebugLog(err, `design.${fmt5}`, debug);
   }
 }
 async function designChecksViaSession(bytes2, opts = {}) {
@@ -170367,8 +170865,8 @@ async function imageResolutionFindings(input, opts, lookup4) {
     const raw = typeof row.image === "string" ? row.image : record39(row.image) && typeof row.image.id === "string" ? row.image.id : "";
     if (!raw || /^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("{") || raw.startsWith("/")) continue;
     const ref2 = stripAssetModifiers(raw);
-    const w = finite6(row.w);
-    const h = finite6(row.h);
+    const w = finite7(row.w);
+    const h = finite7(row.h);
     if (w <= 0 || h <= 0) continue;
     const size = await sizeOf3(ref2);
     if (!size) {
@@ -170380,7 +170878,7 @@ async function imageResolutionFindings(input, opts, lookup4) {
     const sx = w / size.w;
     const sy = h / size.h;
     const framing = record39(row.imageFraming) ? row.imageFraming : null;
-    const zoom = framing ? Math.max(1, finite6(framing.zoom, 100)) / 100 : 1;
+    const zoom = framing ? Math.max(1, finite7(framing.zoom, 100)) / 100 : 1;
     const fitted = fit === "none" ? 1 : fit === "scale-down" ? Math.min(1, sx, sy) : fit === "contain" ? Math.min(sx, sy) : Math.max(sx, sy);
     const scale = fitted * zoom;
     if (!(scale > IMAGE_MAX_UPSCALE + 1e-9)) continue;
@@ -170835,7 +171333,7 @@ async function checkFile(bytes2, name, asked = {}) {
     ...designSystem2 !== void 0 ? { designSystem: designSystem2 } : {}
   };
 }
-var EXIT2, FAMILIES, CHECK_MAX_INPUT_BYTES, SURFACE_WORDS, CheckInputError, record39, plural7, finite6, sha2562, zero, familyState, tierMissing, TEXT_MEASURE_CHECK_MAX_UNITS, IMAGE_MAX_UPSCALE, IMAGE_RESOLUTION_MAX_PICTURES, RASTER_FORMATS2, INFORM_ONLY_CODES, isFailed, LAYOUT_COLLECTORS, LINKED_COLOUR_FIELDS, DESIGN_CANVAS_BACKGROUND;
+var EXIT2, FAMILIES, CHECK_MAX_INPUT_BYTES, SURFACE_WORDS, CheckInputError, record39, plural7, finite7, sha2562, zero, familyState, tierMissing, TEXT_MEASURE_CHECK_MAX_UNITS, IMAGE_MAX_UPSCALE, IMAGE_RESOLUTION_MAX_PICTURES, RASTER_FORMATS2, INFORM_ONLY_CODES, isFailed, LAYOUT_COLLECTORS, LINKED_COLOUR_FIELDS, DESIGN_CANVAS_BACKGROUND;
 var init_check = __esm({
   "packages/node-shell/src/check.ts"() {
     "use strict";
@@ -170868,7 +171366,7 @@ var init_check = __esm({
     };
     record39 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     plural7 = (n8, one, many = `${one}s`) => `${n8} ${n8 === 1 ? one : many}`;
-    finite6 = (v, fallback = 0) => {
+    finite7 = (v, fallback = 0) => {
       const n8 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
     };
@@ -172183,8 +172681,8 @@ async function listTools(filter = {}) {
     return true;
   });
   if (filter.limit === void 0) return matches3;
-  const limit2 = Math.min(100, Math.max(1, Math.floor(filter.limit)));
-  return matches3.slice(0, limit2);
+  const limit3 = Math.min(100, Math.max(1, Math.floor(filter.limit)));
+  return matches3.slice(0, limit3);
 }
 var TEMPLATE_ID_RE = /^[a-z0-9-]+$/;
 async function listToolTemplates(toolId) {
@@ -172828,7 +173326,7 @@ function parseSvgDropShadow(filt) {
     "fecomponenttransfer"
   ];
   if (kids2.some((k) => UNEXPECTED.includes(k))) return null;
-  const num19 = (el, attr6, dflt) => {
+  const num20 = (el, attr6, dflt) => {
     const v = Number.parseFloat(el?.getAttribute(attr6) ?? "");
     return Number.isFinite(v) ? v : dflt;
   };
@@ -172839,11 +173337,11 @@ function parseSvgDropShadow(filt) {
     if (!rgb4) return null;
     const sd2 = (ds.getAttribute("stdDeviation") ?? "2").trim().split(/[\s,]+/).map(Number.parseFloat);
     return {
-      dx: num19(ds, "dx", 2),
-      dy: num19(ds, "dy", 2),
+      dx: num20(ds, "dx", 2),
+      dy: num20(ds, "dy", 2),
       stdDeviation: Math.max(...sd2.filter(Number.isFinite), 0),
       rgb: rgb4,
-      alpha: num19(ds, "flood-opacity", 1)
+      alpha: num20(ds, "flood-opacity", 1)
     };
   }
   const blur2 = find("fegaussianblur");
@@ -172853,14 +173351,14 @@ function parseSvgDropShadow(filt) {
   const off = find("feoffset");
   const flood = find("feflood");
   let rgb3 = flood ? parseColor2(flood.getAttribute("flood-color") ?? "#000") : null;
-  const alpha = flood ? num19(flood, "flood-opacity", 1) : 1;
+  const alpha = flood ? num20(flood, "flood-opacity", 1) : 1;
   if (!flood) {
     if (kids2.includes("fecolormatrix")) return null;
     rgb3 = [0, 0, 0];
   }
   if (!rgb3) return null;
   if (!(stdDeviation > 0) && !off) return null;
-  return { dx: num19(off, "dx", 0), dy: num19(off, "dy", 0), stdDeviation, rgb: rgb3, alpha };
+  return { dx: num20(off, "dx", 0), dy: num20(off, "dy", 0), stdDeviation, rgb: rgb3, alpha };
 }
 async function svgDomToIr(svgEl, ctx = {}) {
   const { host, getComputedStyle: getComputedStyle2 } = ctx;
@@ -174372,20 +174870,20 @@ function recolorCss(p) {
 }
 var CAPTURE_DEADLINE_MS = 24e4;
 async function captureUrl(params2, format, dims, opts = {}) {
-  const fmt4 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
+  const fmt5 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
   if (!params2.url) throw new BrowserError("Enter a URL to capture.");
   if (opts.publicOnly) assertPublicHttpUrl(params2.url);
-  if (!["png", "jpg", "pdf", "svg", "webp"].includes(fmt4)) {
+  if (!["png", "jpg", "pdf", "svg", "webp"].includes(fmt5)) {
     throw new BrowserError(`url-shot can't produce "${format}" - use png, jpg, pdf, or svg.`);
   }
-  if (fmt4 === "webp") {
+  if (fmt5 === "webp") {
     throw new BrowserError("WebP capture needs the desktop app - in the terminal use png, jpg, pdf, or svg.");
   }
   const width = Math.max(1, Math.round(dims.width || 1280));
   const height = Math.max(1, Math.round(dims.height || 720));
   const dpr = dims.dpi && dims.dpi > 96 ? dims.dpi / 96 : 1;
   const zoom = Number.isFinite(params2.zoom) && params2.zoom > 0 ? params2.zoom : 1;
-  const svgZoom = fmt4 === "svg" && Math.abs(zoom - 1) > 1e-3 ? zoom : 1;
+  const svgZoom = fmt5 === "svg" && Math.abs(zoom - 1) > 1e-3 ? zoom : 1;
   const lw = Math.max(1, Math.round(width / svgZoom));
   const lh = Math.max(1, Math.round(height / svgZoom));
   const browser = await getBrowser();
@@ -174406,7 +174904,7 @@ async function captureUrl(params2, format, dims, opts = {}) {
     if (params2.initScript) await ctx.addInitScript({ content: params2.initScript });
     const page3 = await ctx.newPage();
     const received = /* @__PURE__ */ new Map();
-    if (fmt4 === "svg") {
+    if (fmt5 === "svg") {
       page3.on("response", (r6) => {
         const kind = r6.request().resourceType();
         if (kind === "font" || kind === "stylesheet") received.set(r6.url(), r6);
@@ -174454,7 +174952,7 @@ async function captureUrl(params2, format, dims, opts = {}) {
       }
     }
     if (params2.actions?.length) await runDriveSteps(page3, params2.actions, params2.driveOpts ?? {});
-    if (fmt4 === "pdf") {
+    if (fmt5 === "pdf") {
       const pdf = await page3.pdf({
         width: `${width}px`,
         height: `${height}px`,
@@ -174469,7 +174967,7 @@ async function captureUrl(params2, format, dims, opts = {}) {
     const clipW = Math.max(1, Math.round(width * (1 - l - r5)));
     const clipH = Math.max(1, Math.round(height * (1 - t - b)));
     const notes = [];
-    if (fmt4 === "svg") {
+    if (fmt5 === "svg") {
       const win = { x: lw * l, y: lh * t, width: lw * (1 - l - r5), height: lh * (1 - t - b) };
       try {
         const shot = await captureVectorShot(page3, {
@@ -174502,18 +175000,18 @@ async function captureUrl(params2, format, dims, opts = {}) {
       width: Math.max(1, Math.round(lw * (1 - l - r5))),
       height: Math.max(1, Math.round(lh * (1 - t - b)))
     };
-    const shotType = fmt4 === "jpg" ? "jpeg" : "png";
+    const shotType = fmt5 === "jpg" ? "jpeg" : "png";
     const png = await page3.screenshot({
       type: shotType,
       ...shotType === "jpeg" ? { quality: 97 } : {},
       clip: clip4
     });
-    if (fmt4 === "svg") {
+    if (fmt5 === "svg") {
       const b64 = Buffer.from(png).toString("base64");
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${clipW}" height="${clipH}" viewBox="0 0 ${clipW} ${clipH}"><image width="${clipW}" height="${clipH}" href="data:image/png;base64,${b64}"/></svg>`;
       return { bytes: new TextEncoder().encode(svg), mime: "image/svg+xml", notes };
     }
-    return { bytes: new Uint8Array(png), mime: fmt4 === "jpg" ? "image/jpeg" : "image/png" };
+    return { bytes: new Uint8Array(png), mime: fmt5 === "jpg" ? "image/jpeg" : "image/png" };
   } catch (e) {
     if (stalled) throw new BrowserError(`${params2.url} stopped answering, so nothing was captured within ${Math.round(deadline / 1e3)}s.`);
     throw e;
@@ -174613,9 +175111,9 @@ function createNodeImagesAPI() {
       const result = await runJxl({ operation: "encode", bytes: new Uint8Array(data2), width: info2.width, height: info2.height, options: { quality, lossless: format === "jxl-lossless" } });
       return { bytes: result.bytes, mime: "image/jxl", width: info2.width, height: info2.height };
     }
-    const fmt4 = format === "jpg" ? "jpeg" : format;
-    const opts = q100(quality) !== void 0 && fmt4 !== "png" ? { quality: q100(quality) } : void 0;
-    const { data, info } = await img.toFormat(fmt4, opts).toBuffer({ resolveWithObject: true });
+    const fmt5 = format === "jpg" ? "jpeg" : format;
+    const opts = q100(quality) !== void 0 && fmt5 !== "png" ? { quality: q100(quality) } : void 0;
+    const { data, info } = await img.toFormat(fmt5, opts).toBuffer({ resolveWithObject: true });
     return {
       bytes: new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
       mime: MIME[info.format] ?? `image/${info.format}`,
@@ -174642,11 +175140,11 @@ function createNodeImagesAPI() {
       if (!meta.width || !meta.height) {
         throw new Error("host.images: these bytes are not a decodable image here.");
       }
-      const fmt4 = (meta.format ?? "").toLowerCase();
+      const fmt5 = (meta.format ?? "").toLowerCase();
       return {
         width: meta.width,
         height: meta.height,
-        mime: MIME[fmt4] ?? (fmt4 ? `image/${fmt4}` : "application/octet-stream"),
+        mime: MIME[fmt5] ?? (fmt5 ? `image/${fmt5}` : "application/octet-stream"),
         // `pages` is how sharp reports multi-frame containers (GIF/APNG/animated WebP).
         // Absent for formats it doesn't page, which is why `animated` is optional.
         ...meta.pages !== void 0 ? { animated: meta.pages > 1 } : {}
@@ -175526,8 +176024,8 @@ function fillResources2(ctx, res, resDict, depth, stack, budget3, images) {
     }
   }
   for (const [name, ref2] of dictEntries3(ctx, getKey2(ctx, resDict, "Properties"))) {
-    const label4 = pdfString2(ctx, getKey2(ctx, ref2, "Name"));
-    if (label4) res.ocgs[name] = label4;
+    const label5 = pdfString2(ctx, getKey2(ctx, ref2, "Name"));
+    if (label5) res.ocgs[name] = label5;
   }
   return res;
 }
@@ -175796,13 +176294,13 @@ function paintBars(cx2, rects, mark, cw, ch) {
   const ink = normaliseInk(mark.color) ?? REDACT_INK_FALLBACK;
   const labelInk = normaliseInk(mark.labelColor) ?? "#ffffff";
   const radius = Math.max(0, Math.round(Number(mark.radius) || 0));
-  const label4 = String(mark.label || "").trim();
+  const label5 = String(mark.label || "").trim();
   const maxLabel = Math.max(1, Math.round(Number(mark.labelMaxSize) || 14));
   cx2.globalAlpha = 1;
   for (const r5 of rects) {
     const shape = inflateForRadius(r5, radius, cw, ch);
     fillRounded(cx2, shape, ink);
-    const lay = label4 ? stampLayout(shape, label4, maxLabel) : null;
+    const lay = label5 ? stampLayout(shape, label5, maxLabel) : null;
     if (lay) {
       cx2.fillStyle = labelInk;
       cx2.textAlign = "center";
@@ -175811,7 +176309,7 @@ function paintBars(cx2, rects, mark, cw, ch) {
       if (mark.labelCanvas) {
         const ah = Math.max(0, Math.min(lay.size * 1.3, shape.h - 2, (shape.w - 2) * mark.labelCanvas.height / mark.labelCanvas.width)), aw = ah * mark.labelCanvas.width / mark.labelCanvas.height;
         cx2.drawImage(mark.labelCanvas, lay.cx - aw / 2, lay.cy - ah / 2, aw, ah);
-      } else cx2.fillText(label4, lay.cx, lay.cy);
+      } else cx2.fillText(label5, lay.cx, lay.cy);
     }
   }
 }
@@ -177121,9 +177619,9 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
     if (!pending3) {
       pending3 = (async () => {
         const meta = assetById.get(lutId);
-        const fmt4 = meta?.formats.find((f) => f.format === "cube") ?? meta?.formats[0];
-        if (!fmt4) return null;
-        return parseLutText(await readFile21(assetFilePath(fmt4.url), "utf8"), lutId);
+        const fmt5 = meta?.formats.find((f) => f.format === "cube") ?? meta?.formats[0];
+        if (!fmt5) return null;
+        return parseLutText(await readFile21(assetFilePath(fmt5.url), "utf8"), lutId);
       })().catch(() => null);
       lutReads.set(lutId, pending3);
     }
@@ -177423,12 +177921,12 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
       if (opts.version && opts.version !== meta.version) throw new Error(`Asset version unavailable: ${baseId} (${opts.version})`);
-      const fmt4 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
-      if (!fmt4) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
-      const localPath2 = assetFilePath(fmt4.url);
+      const fmt5 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
+      if (!fmt5) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
+      const localPath2 = assetFilePath(fmt5.url);
       let buf = await readFile21(localPath2);
       let extraMeta = { name: meta.name, tags: meta.tags };
-      if (meta.type === "palette" && fmt4.format === "json") {
+      if (meta.type === "palette" && fmt5.format === "json") {
         try {
           const parsed = JSON.parse(buf.toString("utf8"));
           extraMeta = { ...extraMeta, ...parsed };
@@ -177448,7 +177946,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
         if (def && (isRasterPhotoLook(def) || def.themes)) {
           const themeKey2 = photoLookThemeKey(def, opts.tokenSelection ?? tokenSelection);
           if (isRasterPhotoLook(def)) {
-            const baked = await bakeCliLook(photoLookCacheKey(`${baseId}:${fmt4.format}`, meta.version ?? "x", def, themeKey2), new Uint8Array(buf), mimeFor(fmt4.format), def, themeKey2);
+            const baked = await bakeCliLook(photoLookCacheKey(`${baseId}:${fmt5.format}`, meta.version ?? "x", def, themeKey2), new Uint8Array(buf), mimeFor(fmt5.format), def, themeKey2);
             if (baked) {
               return {
                 source: "library",
@@ -177457,43 +177955,43 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
                 format: baked.format,
                 url: baked.url,
                 version: meta.version,
-                checksum: fmt4.checksum,
+                checksum: fmt5.checksum,
                 meta: { ...extraMeta, treatment, baseId, ...themeKey2 !== "base" ? { lookTheme: themeKey2 } : {} }
               };
             }
             def = void 0;
           } else def = resolvePhotoLook(def, themeKey2);
         }
-        const dimSrc = fmt4.width && fmt4.height ? fmt4 : meta.formats.find((f) => f.width && f.height);
+        const dimSrc = fmt5.width && fmt5.height ? fmt5 : meta.formats.find((f) => f.width && f.height);
         const w2 = dimSrc?.width, h = dimSrc?.height;
         if (def && w2 && h) {
-          const originalUrl = `data:${mimeFor(fmt4.format)};base64,${buf.toString("base64")}`;
-          const prepared3 = await prepareJxlAsset({ id: id3, source: "library", type: "raster", format: fmt4.format, url: originalUrl }, buf);
+          const originalUrl = `data:${mimeFor(fmt5.format)};base64,${buf.toString("base64")}`;
+          const prepared3 = await prepareJxlAsset({ id: id3, source: "library", type: "raster", format: fmt5.format, url: originalUrl }, buf);
           const href = prepared3.url;
           const svg = wrapRasterWithTreatment({ href, width: w2, height: h, treatment: def });
           return {
             source: "library",
             id: id3,
             type: meta.type,
-            format: fmt4.format,
+            format: fmt5.format,
             url: `data:image/svg+xml;base64,${Buffer.from(svg, "utf8").toString("base64")}`,
             version: meta.version,
-            checksum: fmt4.checksum,
+            checksum: fmt5.checksum,
             original: prepared3.original,
             meta: { ...extraMeta, treatment, baseId }
           };
         }
       }
-      const mime2 = mimeFor(fmt4.format);
+      const mime2 = mimeFor(fmt5.format);
       const url = `data:${mime2};base64,${buf.toString("base64")}`;
       return prepareJxlAsset({
         source: "library",
         id: id3,
         type: meta.type,
-        format: fmt4.format,
+        format: fmt5.format,
         url,
         version: meta.version,
-        checksum: fmt4.checksum,
+        checksum: fmt5.checksum,
         meta: extraMeta
       }, buf);
     },
@@ -177971,17 +178469,17 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       el.innerHTML = childRuntime.getHydrated();
       await childRuntime.applyEmojiToDom(el);
       await applyBrandVars(el, host);
-      const fmt4 = format ?? childTool.manifest.render.formats[0];
+      const fmt5 = format ?? childTool.manifest.render.formats[0];
       const u = unit2 || "px";
       const qual = (v) => typeof v === "number" && v > 0 ? u !== "px" ? `${v}${u}` : v : void 0;
-      const blob = await host.export.render(el, fmt4, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
+      const blob = await host.export.render(el, fmt5, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
       const buf = Buffer.from(await blob.arrayBuffer());
       return prepareJxlAsset({
         source: "remote",
         id: `compose:${toolId}`,
-        type: fmt4 === "svg" ? "vector" : "raster",
-        format: fmt4,
-        url: `data:${mimeFor(fmt4)};base64,${buf.toString("base64")}`
+        type: fmt5 === "svg" ? "vector" : "raster",
+        format: fmt5,
+        url: `data:${mimeFor(fmt5)};base64,${buf.toString("base64")}`
       }, buf);
     },
     // Render a pasted/stored Lolly tool URL to an AssetRef whose id is the
@@ -178601,8 +179099,8 @@ function normFormat(f) {
   const x = String(f ?? "").toLowerCase();
   return x === "jpeg" ? "jpg" : x;
 }
-function mimeForFormat(fmt4) {
-  switch (normFormat(fmt4)) {
+function mimeForFormat(fmt5) {
+  switch (normFormat(fmt5)) {
     case "svg":
       return "image/svg+xml";
     case "png":
@@ -178670,8 +179168,8 @@ function mimeForFormat(fmt4) {
       return "application/octet-stream";
   }
 }
-function isTextFormat(fmt4) {
-  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt4));
+function isTextFormat(fmt5) {
+  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt5));
 }
 function targetPx(width, unit2, dpi) {
   if (!width || width <= 0) return void 0;
@@ -178760,12 +179258,12 @@ async function browserTierThemeNotes(toolId, profile2, tokenSelection) {
     return themeChoiceNotes(tool.manifest, document2, tokenSelection);
   }, { tokenSelection });
 }
-async function emojiCensus(toolId, values, fmt4, profile2, emoji, tokenSelection) {
+async function emojiCensus(toolId, values, fmt5, profile2, emoji, tokenSelection) {
   return withHost(profile2, async (dom, host) => {
     const { runtime } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
     return {
       ingredients: runtime.emojiIngredients(),
-      rights: runtime.rights({ delivery: { format: fmt4, canCarryCredential: C2PA_FORMATS.includes(fmt4) } })
+      rights: runtime.rights({ delivery: { format: fmt5, canCarryCredential: C2PA_FORMATS.includes(fmt5) } })
     };
   }, tokenSelection ? { tokenSelection } : {});
 }
@@ -178792,7 +179290,7 @@ function resolveEmojiSetName(named, sets) {
   }
   return { error: `Unknown emoji set "${raw}". Registered sets: ${registered}.` };
 }
-async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, productionContract, tokenSelection) {
+async function renderTierA(toolId, values, fmt5, opts, profile2, emoji, productionContract, tokenSelection) {
   return withHost(profile2, async (dom, host) => {
     const { runtime, canvas, warnings: warnings2 } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
     let productionInputs;
@@ -178809,7 +179307,7 @@ async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, producti
     let blob;
     const drawn = { pictures: [], route: null };
     try {
-      blob = await runtime.export(canvas, fmt4, { ...opts, ingredientSink: drawn.pictures, onExportRoute: (record46) => {
+      blob = await runtime.export(canvas, fmt5, { ...opts, ingredientSink: drawn.pictures, onExportRoute: (record46) => {
         drawn.route = record46;
       } });
     } catch (e) {
@@ -178818,7 +179316,7 @@ async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, producti
     }
     const bytes2 = new Uint8Array(await blob.arrayBuffer());
     try {
-      assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt4, bytes: bytes2 });
+      assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt5, bytes: bytes2 });
     } catch (e) {
       if (e instanceof RenderIntegrityError) throw new RenderError(e.message);
       throw e;
@@ -178826,13 +179324,13 @@ async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, producti
     return {
       ...productionInputs ? { productionInputs } : {},
       bytes: bytes2,
-      mime: blob.type || mimeForFormat(fmt4),
+      mime: blob.type || mimeForFormat(fmt5),
       ingredients: runtime.emojiIngredients(),
       drawn,
       // The same evaluation the CLI and the app make, from the same rules, over
       // the sources this render placed. The audience stays unknown: an agent
       // asking for a file has said nothing about where it goes.
-      rights: runtime.rights({ delivery: { format: fmt4, canCarryCredential: C2PA_FORMATS.includes(fmt4) } }),
+      rights: runtime.rights({ delivery: { format: fmt5, canCarryCredential: C2PA_FORMATS.includes(fmt5) } }),
       warnings: warnings2,
       // The metadata the export embedded, so the credential stamped below names
       // the same design system and colourway (plans/319).
@@ -178977,10 +179475,10 @@ function carriesEmojiParams(query2) {
   const p = new URLSearchParams(query2);
   return Boolean(p.get("emoji") || p.get("emojifx") || p.get("emojistyle"));
 }
-function exportUrl(base, toolId, query2, fmt4, o) {
+function exportUrl(base, toolId, query2, fmt5, o) {
   const p = new URLSearchParams(query2);
   for (const k of EXPORT_URL_RESERVED) p.delete(k);
-  p.set("format", fmt4);
+  p.set("format", fmt5);
   const unit2 = o.unit || "px";
   if (o.width && o.width > 0) p.set("width", String(o.width));
   if (o.height && o.height > 0) p.set("height", String(o.height));
@@ -179011,10 +179509,10 @@ async function exposeExportPassword(context, password) {
     held = void 0;
   };
 }
-async function renderTierB(toolId, query2, fmt4, o) {
+async function renderTierB(toolId, query2, fmt5, o) {
   return withBrowserJob(async () => {
     const base = await webShellBase();
-    const url = exportUrl(base, toolId, query2, fmt4, o);
+    const url = exportUrl(base, toolId, query2, fmt5, o);
     const designSession = toolId === "design" && !process.env.LOLLY_TOOL_URL_TEMPLATE ? await designSessionOf(query2) : null;
     let browser;
     try {
@@ -179031,7 +179529,7 @@ async function renderTierB(toolId, query2, fmt4, o) {
       await ctx.addInitScript(() => {
         Object.defineProperty(globalThis, "__LOLLY_AI_DISABLED__", { value: true, writable: false, configurable: false });
       });
-      clearPassword = await exposeExportPassword(ctx, fmt4 === "pdf" ? o.password : void 0);
+      clearPassword = await exposeExportPassword(ctx, fmt5 === "pdf" ? o.password : void 0);
       const page3 = await ctx.newPage();
       const inputIds = o.production === void 0 ? [] : parseProductionSpec(o.production).requirements.filter((r5) => r5.kind === "input").map((r5) => r5.location);
       const observeInputs = await observeProductionInputs(page3, toolId, inputIds);
@@ -179041,9 +179539,9 @@ async function renderTierB(toolId, query2, fmt4, o) {
         const opened = await openSessionInPage(page3, base, designSession.bytes, "Design.lolly", { timeoutMs: 12e4 }).catch((error2) => {
           throw new RenderError(`The web shell could not open the document: ${shortenUrls(error2 instanceof Error ? error2.message : String(error2))}`);
         });
-        target2 = exportUrl(base, "design", sessionQuery(opened.slot, query2), fmt4, o);
+        target2 = exportUrl(base, "design", sessionQuery(opened.slot, query2), fmt5, o);
       }
-      waiting = await waitForExport(page3, fmt4);
+      waiting = await waitForExport(page3, fmt5);
       const downloadP = waiting.result;
       await page3.goto(target2, { waitUntil: "commit", timeout: 3e4 });
       let download;
@@ -179057,7 +179555,7 @@ async function renderTierB(toolId, query2, fmt4, o) {
       const bytes2 = await readBoundedDownload(path);
       await download.delete().catch(() => {
       });
-      return { bytes: bytes2, mime: mimeForFormat(fmt4), productionInputs: observeInputs(bytes2) };
+      return { bytes: bytes2, mime: mimeForFormat(fmt5), productionInputs: observeInputs(bytes2) };
     } finally {
       waiting?.dispose();
       clearPassword();
@@ -179070,12 +179568,12 @@ async function designSessionOf(query2) {
   const values = parseUrlState(await expandQuery(query2), tool.manifest).values;
   return packageDesignSession(values, { label: "Design" });
 }
-async function stampC2pa(bytes2, fmt4, manifest, values, o, ingredients = [], meta = null, drawn = null) {
+async function stampC2pa(bytes2, fmt5, manifest, values, o, ingredients = [], meta = null, drawn = null) {
   const opts = buildExportC2paOpts({
     surface: "mcp",
     manifest,
     model: buildInputModel(manifest, { initial: values }),
-    format: fmt4,
+    format: fmt5,
     dims: { width: o.width ?? null, height: o.height ?? null, unit: o.unit ?? null, dpi: o.dpi ?? null },
     days: o.c2pa?.days,
     profile: o.profile,
@@ -179086,7 +179584,7 @@ async function stampC2pa(bytes2, fmt4, manifest, values, o, ingredients = [], me
     ...ingredients.length || drawn?.pictures.length ? { ingredients: [...ingredients, ...drawn?.pictures ?? []] } : {},
     route: drawn?.route ?? null
   });
-  return embedC2pa(bytes2, fmt4, opts);
+  return embedC2pa(bytes2, fmt5, opts);
 }
 async function credentialAndRecord(out, o) {
   let bytes2 = out.bytes;
@@ -179168,14 +179666,14 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
   }
   const q = await expandQuery(query2);
   const st = parseUrlState(q, tool.manifest);
-  const fmt4 = normFormat(o.format ?? st.format ?? formats[0] ?? "svg");
-  if (!supported.has(fmt4) && !isDeepFormat(fmt4)) {
-    throw new RenderError(`Tool "${toolId}" does not support format "${fmt4}". Supported: ${formats.join(", ")} (plus the pro float formats exr, hdr, which need hdr=1)`);
+  const fmt5 = normFormat(o.format ?? st.format ?? formats[0] ?? "svg");
+  if (!supported.has(fmt5) && !isDeepFormat(fmt5)) {
+    throw new RenderError(`Tool "${toolId}" does not support format "${fmt5}". Supported: ${formats.join(", ")} (plus the pro float formats exr, hdr, which need hdr=1)`);
   }
-  const exportFmt = fmt4 === "jpg" && !formats.includes("jpg") ? "jpg" : fmt4;
-  assertMotionRequest(fmt4, st);
-  const sampled = assertSampleRequest(fmt4, st.cuts, st.sampleTimes);
-  const deliveredFormat = sampled ? sampleOutputFormat(fmt4, st.cuts, st.sampleTimes) : fmt4;
+  const exportFmt = fmt5 === "jpg" && !formats.includes("jpg") ? "jpg" : fmt5;
+  assertMotionRequest(fmt5, st);
+  const sampled = assertSampleRequest(fmt5, st.cuts, st.sampleTimes);
+  const deliveredFormat = sampled ? sampleOutputFormat(fmt5, st.cuts, st.sampleTimes) : fmt5;
   if ((sampled || st.motionBlur || st.sequenceRange) && o.noBrowser) throw new RenderError("Timeline samples require the browser render tier.");
   const values = { ...st.values };
   if (o.transparentBg !== void 0) values["transparentBg"] = o.transparentBg;
@@ -179250,7 +179748,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     }
   } else {
     if (o.noBrowser) {
-      throw new RenderError(`Format "${fmt4}" needs the browser render tier, which is not available for this request.`);
+      throw new RenderError(`Format "${fmt5}" needs the browser render tier, which is not available for this request.`);
     }
     out = { ...await renderTierB(toolId, q, exportFmt, merged), tier: "B" };
   }
@@ -179273,7 +179771,7 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
   const songsIn = out.tier.startsWith("B") && AUDIO_BEARING.has(exportFmt) ? await songIngredientsIn(out.bytes) : [];
   if (songsIn.length) placed2 = [...placed2, ...songsIn];
   const finished = await credentialAndRecord(out, {
-    fmt: fmt4,
+    fmt: fmt5,
     exportFmt,
     deliveredFormat,
     manifest: tool.manifest,
@@ -179512,12 +180010,12 @@ var LAYOUT_MAPS = [
 var RESERVED_KEYS = ["__proto__", "constructor", "prototype"];
 var ARCHETYPE_WORDS = `one of ${ARCHETYPE_IDS.join(", ")}, or a layout library id in lower case letters, digits and dashes`;
 var has3 = (list4, value2) => typeof value2 === "string" && list4.includes(value2);
-function isRecord4(value2) {
+function isRecord5(value2) {
   return value2 !== null && typeof value2 === "object" && !Array.isArray(value2);
 }
 function classMapProblems(field2, value2, allowed, out) {
   if (value2 === void 0) return;
-  if (!isRecord4(value2)) {
+  if (!isRecord5(value2)) {
     out.push(`"${field2}" is an object from object class to value`);
     return;
   }
@@ -179528,7 +180026,7 @@ function classMapProblems(field2, value2, allowed, out) {
 }
 function presetProblems(value2) {
   const out = [];
-  if (!isRecord4(value2)) return ["a preset is a JSON object"];
+  if (!isRecord5(value2)) return ["a preset is a JSON object"];
   for (const key2 of Object.keys(value2)) {
     if (!has3(ENGINE_FIELDS, key2) && !has3(PEOPLE_FIELDS, key2)) out.push(`"${key2}" is not a preset field`);
   }
@@ -179540,7 +180038,7 @@ function presetProblems(value2) {
   }
   classMapProblems("actions", value2.actions, PLAN_ACTIONS, out);
   classMapProblems("review", value2.review, REVIEW_STATES, out);
-  if (isRecord4(value2.actions)) {
+  if (isRecord5(value2.actions)) {
     for (const [klass, action] of Object.entries(value2.actions)) {
       if (action === "replace" && has3(OBJECT_CLASSES, klass) && !REPLACEABLE_CLASSES.includes(klass)) {
         out.push(`"actions.${klass}" is replace, and only a logo has a replacement the first pass can name`);
@@ -179549,7 +180047,7 @@ function presetProblems(value2) {
   }
   const layout2 = value2.layout;
   if (layout2 !== void 0) {
-    if (!isRecord4(layout2)) {
+    if (!isRecord5(layout2)) {
       out.push('"layout" is an object');
     } else {
       for (const key2 of Object.keys(layout2)) {
@@ -179558,7 +180056,7 @@ function presetProblems(value2) {
       for (const [field2, keyWords] of LAYOUT_MAPS) {
         const map = layout2[field2];
         if (map === void 0) continue;
-        if (!isRecord4(map)) {
+        if (!isRecord5(map)) {
           out.push(`"layout.${field2}" is an object from ${keyWords} to archetype`);
           continue;
         }
@@ -179577,7 +180075,7 @@ function presetProblems(value2) {
   }
   const logo = value2.logo;
   if (logo !== void 0) {
-    if (!isRecord4(logo)) out.push('"logo" is an object with a "policy"');
+    if (!isRecord5(logo)) out.push('"logo" is an object with a "policy"');
     else {
       if (!has3(LOGO_POLICIES, logo.policy)) out.push(`"logo.policy" takes one of ${LOGO_POLICIES.join(", ")}`);
       if (logo.variantByBackground !== void 0 && typeof logo.variantByBackground !== "boolean") out.push('"logo.variantByBackground" is true or false');
@@ -179596,7 +180094,7 @@ function presetProblems(value2) {
     if (!Array.isArray(value2.lockedColors)) out.push('"lockedColors" is a list');
     else {
       value2.lockedColors.forEach((lock, index2) => {
-        if (!isRecord4(lock) || typeof lock.useId !== "string" || !lock.useId) out.push(`"lockedColors[${index2}].useId" is a colour use id`);
+        if (!isRecord5(lock) || typeof lock.useId !== "string" || !lock.useId) out.push(`"lockedColors[${index2}].useId" is a colour use id`);
         else if (typeof lock.to !== "string" || !HEX_PATTERN.test(lock.to)) out.push(`"lockedColors[${index2}].to" is a colour written #rrggbb`);
         else if (lock.toPath !== void 0 && typeof lock.toPath !== "string") out.push(`"lockedColors[${index2}].toPath" is a token path`);
       });
@@ -179622,7 +180120,7 @@ function toRenovationPreset(entry2) {
   return out;
 }
 function entriesOf(parsed) {
-  if (!isRecord4(parsed)) return null;
+  if (!isRecord5(parsed)) return null;
   if (Array.isArray(parsed.presets)) return parsed.version === PRESET_FILE_VERSION ? parsed.presets : null;
   return typeof parsed.id === "string" ? [parsed] : null;
 }
@@ -179650,7 +180148,7 @@ function sortEntries(entries, where) {
   const bad = [];
   for (const entry2 of entries) {
     const problems = presetProblems(entry2);
-    const id3 = isRecord4(entry2) && typeof entry2.id === "string" ? entry2.id : void 0;
+    const id3 = isRecord5(entry2) && typeof entry2.id === "string" ? entry2.id : void 0;
     if (problems.length > 0) {
       bad.push({ ...where, ...id3 !== void 0 ? { id: id3 } : {}, problems });
       continue;
@@ -179669,7 +180167,7 @@ function sortEntries(entries, where) {
 }
 function packPresetFiles(roots2) {
   const index2 = readAssetIndex(roots2);
-  const assets = (index2.assets ?? []).filter((a) => isRecord4(a) && typeof a.id === "string");
+  const assets = (index2.assets ?? []).filter((a) => isRecord5(a) && typeof a.id === "string");
   return assets.filter((asset2) => asset2.deprecated !== true && asset2.type === "data" && PRESET_ASSET_TAGS.every((tag3) => Array.isArray(asset2.tags) && asset2.tags.includes(tag3))).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0).map((asset2) => {
     let file = null;
     for (const format of asset2.formats ?? []) {
@@ -181376,8 +181874,8 @@ function strongestEvidence(evidence) {
   const first = ranked[0];
   return first ? { text: `${first.signal}: ${String(first.value)}`, signal: first.signal } : { text: "No evidence was recorded.", signal: null };
 }
-function pageOf(all, pageNumber, limit2) {
-  return { total: all.length, page: pageNumber, limit: limit2, items: all.slice((pageNumber - 1) * limit2, pageNumber * limit2) };
+function pageOf(all, pageNumber, limit3) {
+  return { total: all.length, page: pageNumber, limit: limit3, items: all.slice((pageNumber - 1) * limit3, pageNumber * limit3) };
 }
 function responseBytes(result) {
   return Buffer.byteLength(JSON.stringify({ jsonrpc: "2.0", id: null, result }), "utf8");
@@ -181671,7 +182169,7 @@ function planOnlySlides(plan) {
 async function inspectStage(args, ctx) {
   const plan = await readPlanArg(args.plan);
   const pageNumber = readWhole(args.page, "page", 1);
-  const limit2 = readWhole(args.limit, "limit", INSPECT_DEFAULT_LIMIT, INSPECT_MAX_LIMIT);
+  const limit3 = readWhole(args.limit, "limit", INSPECT_DEFAULT_LIMIT, INSPECT_MAX_LIMIT);
   const slideNumber = args.slide === void 0 || args.slide === null ? void 0 : readWhole(args.slide, "slide", 1);
   let known3;
   if (args.file !== void 0 && args.file !== null) {
@@ -181739,22 +182237,22 @@ async function inspectStage(args, ctx) {
         signal: evidence.signal
       };
     });
-    const objects = pageOf(all, pageNumber, limit2);
+    const objects = pageOf(all, pageNumber, limit3);
     const structured2 = { ...base, slide: slideRow, objects, ...known3 ? {} : { note: withoutFile } };
-    const shownTo = Math.min(objects.total, pageNumber * limit2);
-    const shownFrom = Math.min(objects.total, (pageNumber - 1) * limit2 + 1);
+    const shownTo = Math.min(objects.total, pageNumber * limit3);
+    const shownFrom = Math.min(objects.total, (pageNumber - 1) * limit3 + 1);
     const sentence = objects.items.length ? `Slide ${slideNumber} has ${objects.total} objects; showing ${shownFrom} to ${shownTo}.` : `Slide ${slideNumber} has ${objects.total} objects and page ${pageNumber} shows none of them.`;
     return success(sentence, structured2, [], ctx);
   }
   if (known3) {
     const summary = planSummary(plan, known3.source, known3.census);
-    const queue2 = pageOf(reviewQueue(plan, known3.census, known3.source).map(queueRecord), pageNumber, limit2);
-    const slides2 = pageOf(slideStates(plan, known3.source, known3.census).map((state) => ({ ...state })), pageNumber, limit2);
+    const queue2 = pageOf(reviewQueue(plan, known3.census, known3.source).map(queueRecord), pageNumber, limit3);
+    const slides2 = pageOf(slideStates(plan, known3.source, known3.census).map((state) => ({ ...state })), pageNumber, limit3);
     const structured2 = { ...base, summary, queue: queue2, slides: slides2 };
     const sentence = `${known3.deck.name}: ${summary.slides.included} of ${summary.slides.total} slides included, ${queue2.total} queue items and ${summary.review.attention} objects that need attention.`;
     return success(sentence, structured2, [], ctx);
   }
-  const slides = pageOf(planOnlySlides(plan), pageNumber, limit2);
+  const slides = pageOf(planOnlySlides(plan), pageNumber, limit3);
   const structured = { ...base, slides, note: withoutFile };
   return success(`The plan covers ${plan.slides.length} slides; pass slide to list one slide's objects.`, structured, [], ctx);
 }
@@ -181870,13 +182368,13 @@ function rasterMime(bytes2) {
   if (bytes2[0] === 82 && bytes2[1] === 73 && bytes2[8] === 87 && bytes2[9] === 69) return "image/webp";
   return null;
 }
-async function sourceFromBytes(bytes2, mime2, roots2, label4, warnings2 = []) {
+async function sourceFromBytes(bytes2, mime2, roots2, label5, warnings2 = []) {
   if (sniffSvg(bytes2, mime2)) {
     const svg2 = await cleanImageRefs(Buffer.from(bytes2).toString("utf8"), roots2);
     const frame = svgDocumentFrame(svg2);
     if (!frame) return { error: "The SVG has no viewBox or size to measure." };
     if (frame.w * frame.h > 1e12) return { error: "The SVG is too large to look at." };
-    return { svg: svg2, frame, units: "document", label: label4, warnings: warnings2 };
+    return { svg: svg2, frame, units: "document", label: label5, warnings: warnings2 };
   }
   const type = rasterMime(bytes2);
   if (!type) return { error: "Not a PNG, JPEG, GIF, WebP or SVG image." };
@@ -181884,7 +182382,7 @@ async function sourceFromBytes(bytes2, mime2, roots2, label4, warnings2 = []) {
   if (!dims || dims.w < 1 || dims.h < 1) return { error: "The image size could not be read." };
   if (dims.w * dims.h > MAX_SOURCE_PIXELS) return { error: `The image is larger than ${MAX_SOURCE_PIXELS.toLocaleString("en")} pixels.` };
   const svg = rasterAsSvg(type, Buffer.from(bytes2).toString("base64"), dims.w, dims.h);
-  return { svg, frame: { x: 0, y: 0, w: dims.w, h: dims.h }, units: "pixels", label: label4, warnings: warnings2 };
+  return { svg, frame: { x: 0, y: 0, w: dims.w, h: dims.h }, units: "pixels", label: label5, warnings: warnings2 };
 }
 var FALLBACK_MAX_PIXELS = 16e6;
 async function drawRegion(src, region, width, height, overlay, want, ctx) {
@@ -181920,14 +182418,14 @@ function cappedSize(frame, region, maxSide, cap) {
   }
   return size;
 }
-var num18 = (v, dflt, lo, hi) => {
+var num19 = (v, dflt, lo, hi) => {
   const n8 = Number(v);
   return v != null && v !== "" && Number.isFinite(n8) ? Math.min(hi, Math.max(lo, n8)) : dflt;
 };
 var r1 = (v) => Math.round(v * 10) / 10;
 async function lookAt(src, opts, ctx) {
   const region = clampRegion(src.frame, opts.region ?? void 0);
-  const size = cappedSize(src.frame, region, num18(opts.maxSide, 1024, 128, 2048), ctx.areaCap);
+  const size = cappedSize(src.frame, region, num19(opts.maxSide, 1024, 128, 2048), ctx.areaCap);
   const g2 = opts.grid;
   const spacing = g2 === false || g2 === 0 ? 0 : typeof g2 === "number" && g2 > 0 ? Math.max(g2, Math.max(region.w, region.h) / 200) : niceGridSpacing(Math.max(region.w, region.h));
   const img = await drawRegion(src, region, size.width, size.height, gridOverlaySvg(region, spacing, size.pxPerUnit), "png", ctx);
@@ -181943,7 +182441,7 @@ async function lookAt(src, opts, ctx) {
 }
 async function sampleColors(src, opts, ctx) {
   const points = opts.points.slice(0, 500);
-  const radius = num18(opts.radius, 2, 0, 50);
+  const radius = num19(opts.radius, 2, 0, 50);
   if (!points.length) return { radius, samples: [] };
   const xs = points.map((p) => p[0]), ys = points.map((p) => p[1]);
   const box4 = clampRegion(src.frame, {
@@ -181980,14 +182478,14 @@ function sampleLine(s) {
 }
 async function traceSourceEdges(src, opts, ctx) {
   const region = clampRegion(src.frame, opts.region ?? void 0);
-  const size = cappedSize(src.frame, region, num18(opts.maxSide, 1024, 128, 2048), ctx.areaCap);
+  const size = cappedSize(src.frame, region, num19(opts.maxSide, 1024, 128, 2048), ctx.areaCap);
   const img = await pixels(src, region, size.width, size.height, ctx);
   const k = size.pxPerUnit;
   const edges = traceEdges(img, {
-    detail: num18(opts.detail, 50, 0, 100),
-    minLength: num18(opts.minLength, 20, 0, 1e9) * k,
-    simplify: num18(opts.simplify, 2, 0, 1e9) * k,
-    maxLines: num18(opts.maxLines, 50, 1, 500)
+    detail: num19(opts.detail, 50, 0, 100),
+    minLength: num19(opts.minLength, 20, 0, 1e9) * k,
+    simplify: num19(opts.simplify, 2, 0, 1e9) * k,
+    maxLines: num19(opts.maxLines, 50, 1, 500)
   });
   const toDoc = (px3, py) => [r1(region.x + px3 * (region.w / img.width)), r1(region.y + py * (region.h / img.height))];
   const lines = edges.map((e) => {
@@ -184742,9 +185240,9 @@ function tokenRow(token2) {
 function listTokenRows(inspection, query2 = {}) {
   const text12 = query2.query?.trim().toLowerCase() ?? "";
   const matches3 = inspection.tokens.filter((token2) => (!text12 || token2.path.toLowerCase().includes(text12)) && (!query2.type || token2.type === query2.type) && (!query2.set || token2.candidates.some((c) => (c.set ?? "") === query2.set)) && (!query2.issuesOnly || token2.diagnostics.length > 0));
-  const limit2 = clampWhole(query2.limit, TOKEN_REPORT_LIMITS.listDefault, 1, TOKEN_REPORT_LIMITS.listMax);
+  const limit3 = clampWhole(query2.limit, TOKEN_REPORT_LIMITS.listDefault, 1, TOKEN_REPORT_LIMITS.listMax);
   const offset = clampWhole(query2.offset, 0, 0, Number.MAX_SAFE_INTEGER);
-  return { total: matches3.length, offset, limit: limit2, rows: matches3.slice(offset, offset + limit2).map(tokenRow) };
+  return { total: matches3.length, offset, limit: limit3, rows: matches3.slice(offset, offset + limit3).map(tokenRow) };
 }
 function walkTrace(start, byPath, next2, depth) {
   const steps = [];
@@ -186779,12 +187277,12 @@ function exportSettings(args) {
   const h = args.hdr;
   const hdr = h && typeof h === "object" ? (() => {
     const o = h;
-    const num19 = (v, d) => typeof v === "number" && isFinite(v) ? v : d;
+    const num20 = (v, d) => typeof v === "number" && isFinite(v) ? v : d;
     return {
-      peakNits: num19(o.peakNits, HDR_DEFAULTS.peakNits),
-      reach: num19(o.reach, HDR_DEFAULTS.reach),
-      lift: num19(o.lift, HDR_DEFAULTS.lift),
-      richness: num19(o.richness, HDR_DEFAULTS.richness)
+      peakNits: num20(o.peakNits, HDR_DEFAULTS.peakNits),
+      reach: num20(o.reach, HDR_DEFAULTS.reach),
+      lift: num20(o.lift, HDR_DEFAULTS.lift),
+      richness: num20(o.richness, HDR_DEFAULTS.richness)
     };
   })() : void 0;
   const cuts = typeof args.cuts === "number" && args.cuts > 1 ? args.cuts : void 0;
@@ -187218,7 +187716,7 @@ function verifyText(name, report4, headline) {
       lines.push(`  - ${s.title}${facts2 ? ` (${facts2})` : ""} - ${s.asserted}`);
       lines.push(`    ${s.credit}`);
     }
-    for (const limit2 of sources.limits) lines.push(`  ${limit2}`);
+    for (const limit3 of sources.limits) lines.push(`  ${limit3}`);
   }
   return lines.join("\n");
 }
@@ -187451,21 +187949,21 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
           return { content: content2 };
         }
         const b64 = Buffer.from(result.bytes).toString("base64");
-        const fmt4 = normFormat(result.format);
+        const fmt5 = normFormat(result.format);
         const RASTER = ["png", "jpg", "webp", "avif", "gif", "apng"];
-        if (RASTER.includes(fmt4)) {
+        if (RASTER.includes(fmt5)) {
           content2.push({ type: "image", data: b64, mimeType: result.mime });
-        } else if (fmt4 === "svg") {
+        } else if (fmt5 === "svg") {
           try {
             const preview = await previewPng(new TextDecoder().decode(result.bytes));
             content2.push({ type: "image", data: Buffer.from(preview).toString("base64"), mimeType: "image/png" });
           } catch {
           }
           content2.push({ type: "resource", resource: { uri: `${links.renderUrl ?? `lolly://render/${toolId}.svg`}`, mimeType: "image/svg+xml", text: new TextDecoder().decode(result.bytes) } });
-        } else if (isTextFormat(fmt4)) {
-          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt4}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
+        } else if (isTextFormat(fmt5)) {
+          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt5}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
         } else {
-          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt4}`, mimeType: result.mime, blob: b64 } });
+          content2.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt5}`, mimeType: result.mime, blob: b64 } });
         }
         return { content: content2 };
       }
@@ -188598,8 +189096,8 @@ var MemoryRateLimiter = class {
   constructor(now2 = Date.now) {
     this.#now = now2;
   }
-  async consume(scope2, subject, limit2, windowMs) {
-    validateBudget(limit2, windowMs);
+  async consume(scope2, subject, limit3, windowMs) {
+    validateBudget(limit3, windowMs);
     const now2 = this.#now();
     const key2 = digestKey("memory", scope2, subject);
     let bucket = this.#windows.get(key2);
@@ -188614,7 +189112,7 @@ var MemoryRateLimiter = class {
       this.#windows.set(key2, bucket);
     }
     bucket.count += 1;
-    return decision(bucket.count, limit2, bucket.expires - now2);
+    return decision(bucket.count, limit3, bucket.expires - now2);
   }
 };
 var REDIS_LUA = [
@@ -188636,11 +189134,11 @@ var RedisRestRateLimiter = class {
     this.#fetch = options2.fetchImpl ?? fetch;
     this.#onWrite = options2.onWrite;
   }
-  async consume(scope2, subject, limit2, windowMs) {
-    validateBudget(limit2, windowMs);
+  async consume(scope2, subject, limit3, windowMs) {
+    validateBudget(limit3, windowMs);
     const finish2 = this.#onWrite?.();
     try {
-      const result = await this.#consume(scope2, subject, limit2, windowMs);
+      const result = await this.#consume(scope2, subject, limit3, windowMs);
       finish2?.(true);
       return result;
     } catch (error2) {
@@ -188648,7 +189146,7 @@ var RedisRestRateLimiter = class {
       throw error2;
     }
   }
-  async #consume(scope2, subject, limit2, windowMs) {
+  async #consume(scope2, subject, limit3, windowMs) {
     const key2 = `lolly:rl:${digestKey(this.#namespace, scope2, subject)}`;
     let response;
     try {
@@ -188679,7 +189177,7 @@ var RedisRestRateLimiter = class {
     if (!Number.isSafeInteger(count4) || count4 < 1 || !Number.isFinite(ttl)) {
       throw new RateLimitUnavailableError("Durable rate limiter returned invalid counters");
     }
-    return decision(count4, limit2, Math.max(1, ttl));
+    return decision(count4, limit3, Math.max(1, ttl));
   }
 };
 var UnconfiguredRateLimiter = class {
@@ -188687,8 +189185,8 @@ var UnconfiguredRateLimiter = class {
   constructor(reason2) {
     this.reason = reason2;
   }
-  async consume(scope2, subject, limit2, windowMs) {
-    validateBudget(limit2, windowMs);
+  async consume(scope2, subject, limit3, windowMs) {
+    validateBudget(limit3, windowMs);
     throw new RateLimitUnavailableError(this.reason);
   }
 };
@@ -188730,17 +189228,17 @@ function normalizeRestUrl(raw) {
   }
   return url.toString();
 }
-function validateBudget(limit2, windowMs) {
-  if (!Number.isSafeInteger(limit2) || limit2 < 1 || limit2 > 1e6) throw new Error("rate limit must be a positive safe integer");
+function validateBudget(limit3, windowMs) {
+  if (!Number.isSafeInteger(limit3) || limit3 < 1 || limit3 > 1e6) throw new Error("rate limit must be a positive safe integer");
   if (!Number.isSafeInteger(windowMs) || windowMs < 1e3 || windowMs > 24 * 60 * 60 * 1e3) {
     throw new Error("rate-limit window must be between one second and one day");
   }
 }
-function decision(count4, limit2, ttlMs) {
+function decision(count4, limit3, ttlMs) {
   return {
-    ok: count4 <= limit2,
-    retryAfter: count4 <= limit2 ? 0 : Math.max(1, Math.ceil(ttlMs / 1e3)),
-    remaining: Math.max(0, limit2 - count4)
+    ok: count4 <= limit3,
+    retryAfter: count4 <= limit3 ? 0 : Math.max(1, Math.ceil(ttlMs / 1e3)),
+    remaining: Math.max(0, limit3 - count4)
   };
 }
 
@@ -189135,10 +189633,10 @@ async function renderGet(path, query2, opts) {
   if (env.LOLLY_DISABLE_RENDER_GET === "1") return errorResponse(404, "not_found");
   const match = matchRenderGetPath(path);
   if (!match) return errorResponse(404, "not_found");
-  const fmt4 = normFormat(match.ext);
-  const pngRequested = fmt4 === "png";
-  if (!TIER_A.has(fmt4) && !pngRequested) {
-    return errorResponse(400, `Format "${fmt4}" needs the browser render tier, which this public endpoint does not run. Available here: ${[...TIER_A].join(", ")} - plus png for SVG-native tools.`);
+  const fmt5 = normFormat(match.ext);
+  const pngRequested = fmt5 === "png";
+  if (!TIER_A.has(fmt5) && !pngRequested) {
+    return errorResponse(400, `Format "${fmt5}" needs the browser render tier, which this public endpoint does not run. Available here: ${[...TIER_A].join(", ")} - plus png for SVG-native tools.`);
   }
   if (query2.length > MAX_QUERY) return errorResponse(400, `Query too long (max ${MAX_QUERY} characters).`);
   let expanded;
@@ -189171,12 +189669,12 @@ async function renderGet(path, query2, opts) {
   if (!tool) return errorResponse(404, "not_found");
   const dropped = ignoredParams(params2, tool.manifest);
   const canonical3 = canonicalRenderQuery(query2, dropped);
-  if (canonical3 !== query2 || fmt4 !== match.ext) {
+  if (canonical3 !== query2 || fmt5 !== match.ext) {
     if (canonical3.length > MAX_QUERY) return errorResponse(400, `Unknown parameters: ${dropped.join(", ")}.`);
     return {
       status: 308,
       headers: {
-        location: `/tool/${match.toolId}.${fmt4}${canonical3 ? `?${canonical3}` : ""}`,
+        location: `/tool/${match.toolId}.${fmt5}${canonical3 ? `?${canonical3}` : ""}`,
         ...deliveryHeaders("public-bounded", { status: 308, tokenBearing: true }),
         "x-robots-tag": "noindex"
       }
@@ -189185,7 +189683,7 @@ async function renderGet(path, query2, opts) {
   for (const key2 of dropped) params2.delete(key2);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash15("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash15("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt5}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     ...deliveryHeaders("public-bounded", { tokenBearing: true }),
     "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash15("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
@@ -189195,15 +189693,15 @@ async function renderGet(path, query2, opts) {
   };
   if (etagMatches(opts.ifNoneMatch, etag)) return { status: 304, headers: cacheHeaders };
   const ok3 = (rendered2) => {
-    const mime2 = rendered2.mime || mimeForFormat(fmt4);
+    const mime2 = rendered2.mime || mimeForFormat(fmt5);
     return {
       status: 200,
       headers: {
         ...cacheHeaders,
-        "content-type": isTextFormat(fmt4) && !mime2.includes("charset") ? `${mime2}; charset=utf-8` : mime2,
+        "content-type": isTextFormat(fmt5) && !mime2.includes("charset") ? `${mime2}; charset=utf-8` : mime2,
         "content-security-policy": "sandbox",
         "x-content-type-options": "nosniff",
-        "content-disposition": `inline; filename="${match.toolId}.${fmt4}"`
+        "content-disposition": `inline; filename="${match.toolId}.${fmt5}"`
       },
       body: rendered2.bytes
     };
@@ -189252,13 +189750,13 @@ async function renderGet(path, query2, opts) {
   let rendered;
   try {
     const renderParams = new URLSearchParams(params2);
-    if (fmt4 === "ics" && match.toolId === "calendar-ics" && !renderParams.get("meetingTime")) {
+    if (fmt5 === "ics" && match.toolId === "calendar-ics" && !renderParams.get("meetingTime")) {
       const date = new Date(index2.generatedAt);
       if (!Number.isFinite(date.getTime())) throw new RenderError("The catalog has no valid build time for a public calendar.");
       renderParams.set("meetingTime", `${date.toISOString().slice(0, 10)}T09:00`);
     }
-    const result = await render(match.toolId, renderParams.toString(), { format: fmt4, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
-    rendered = { bytes: fmt4 === "ics" ? stableCalendarBytes(result.bytes, index2.generatedAt) : result.bytes, mime: result.mime };
+    const result = await render(match.toolId, renderParams.toString(), { format: fmt5, c2pa: { on: false, days: null }, noBrowser: true, maxRasterPixels: MAX_RASTER_PIXELS });
+    rendered = { bytes: fmt5 === "ics" ? stableCalendarBytes(result.bytes, index2.generatedAt) : result.bytes, mime: result.mime };
   } catch (e) {
     await opts.budget?.record(0);
     closeSlot(etag, slot);
@@ -189822,9 +190320,9 @@ function positiveInt(raw, fallback) {
   const value2 = Number(raw);
   return Number.isSafeInteger(value2) && value2 > 0 ? value2 : fallback;
 }
-async function limited(limiter, scope2, subject, limit2) {
+async function limited(limiter, scope2, subject, limit3) {
   try {
-    const result = await limiter.consume(scope2, subject, limit2, RATE_WINDOW_MS);
+    const result = await limiter.consume(scope2, subject, limit3, RATE_WINDOW_MS);
     return result.ok ? null : {
       status: 429,
       headers: { "retry-after": String(result.retryAfter) },

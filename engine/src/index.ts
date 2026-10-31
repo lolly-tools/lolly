@@ -893,6 +893,15 @@ export {
 // stroke width, corner radius and trim, written as `--lolly-kf-*` custom properties.
 export { KF_LOOK_CHANNELS, KF_FILL_CHANNELS, KF_STROKE_CHANNELS, KF_LOOK_VARS, isKfLookChannel } from './kf-look.ts';
 export { kfLookUsed, kfLookPose, kfLookVars, kfColourKey, kfColourCss, kfOklabOf, kfTrimSpan, kfOutlinePath } from './kf-look.ts';
+// 1.291 (plans/329) - spring eases and design-system motion tokens on the `kf` wire:
+// `esp(k)(c)(m)` springs, `et(<path>)` bindings and the table the shell installs.
+export { KF_EASE_REF_MAX, setKfEaseTokens, kfEaseTokensSnapshot, kfBindEase } from './keyframes.ts';
+export { kfEaseKind, kfEaseTokenPath, kfEaseResolved, kfEaseSpring, kfEaseSpringName } from './keyframes.ts';
+export type { KfEaseKind, KfEaseTokenOptions } from './keyframes.ts';
+export { KF_SPRING_PRESETS, kfSpring, kfSpringToken, kfSpringSettleMs } from './kf-spring.ts';
+export type { KfSpring, KfSpringPresetName } from './kf-spring.ts';
+export { readMotionTokens, readHostMotionTokens, motionEaseMap } from './motion-tokens.ts';
+export type { MotionTokens, MotionCurveToken, MotionDurationToken } from './motion-tokens.ts';
 export type { KfOklab, KfTrimSpan, KfLookVarOpts, KfOutlineShape } from './kf-look.ts';
 export type {
   KfChannel, KfCameraChannel, KfPose, KfEasePresetToken, KfEasePreset, KfEaseSubdivision,
