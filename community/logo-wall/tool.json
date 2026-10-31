@@ -26,7 +26,8 @@
   "hooks": {
     "onInit": true,
     "onInput": true,
-    "beforeExport": true
+    "beforeExport": true,
+    "afterExport": true
   },
   "inputs": [
     {
@@ -76,7 +77,7 @@
       "max": 10,
       "step": 1,
       "default": 4,
-      "help": "How many logos sit in each row."
+      "help": "How many logos sit in each row. An export at another shape, such as a tall 1080 x 1920 or an A4 page, puts fewer or more in each row to fill that shape."
     },
     {
       "id": "gap",
@@ -269,7 +270,7 @@
       "default": 6,
       "section": "Step & repeat",
       "showIf": { "repeat": ["grid", "brick", "checker"] },
-      "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied."
+      "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied. An export at another shape stacks fewer or more rows to fill that shape."
     }
   ]
 }

@@ -201,6 +201,17 @@ lolly run logo-wall --logos-data=sponsors/sponsors.csv --transparentBg=0 --backg
 
 With **Tier sizes** on Step down, the default, each tier below the first puts one more logo in a row than the tier above, so higher tiers read larger. Same size gives every tier the **Columns** setting. Presence, Size % and Balance sizes still apply to each logo inside its tier, and step and repeat ignores tiers. A wall whose logos carry no tier is one even grid, as before. In the app the same **Tier** field is in each logo's block, and a link carries it in the row: `--logos='[{"logo":"acme.svg","tier":"Gold partners"}]'`.
 
+### A wall at another shape
+
+`--width` and `--height` lay the wall out again for the shape you ask for, instead of fitting the 1280 x 720 wall into it with empty bands. Each row takes fewer or more logos, so each logo keeps about the shape it has at 1280 x 720, and the tiers and their headings follow:
+
+```bash
+lolly run logo-wall --logos-data=sponsors/sponsors.csv --width=1080 --height=1920 --output=story.png
+lolly run logo-wall --logos-data=sponsors/sponsors.csv --width=210 --height=297 --unit=mm --output=a4.svg
+```
+
+A tall 1080 x 1920 wall set to 4 columns has 2 in its top row; a 3:1 banner has 5. Padding, spacing and headings keep their size against the whole picture. A step and repeat backdrop stacks fewer or more rows the same way. The app and the TUI do the same when you export at another size, and so does the MCP server for SVG; its PNG keeps the 1280 x 720 shape. An export at 1280 x 720, or at any size of that shape, is the wall exactly as drawn.
+
 ### Steps that read pixels
 
 Four of Logo Wall's steps read pixels: Balance sizes, Trim margins, Remove white backgrounds and tracing an image logo for Render as vector. They run where the shell has a 2D canvas: the app, and this CLI, the TUI and an MCP server you run yourself when `@napi-rs/canvas` is installed. Without one, as on a serverless deployment of the MCP server, the wall still renders and a warning lists each step that was skipped. Render as vector still recolours an SVG logo there, because that needs no pixels.

@@ -134,7 +134,7 @@ export async function renderRaster(opts: {
   // page geometry (PRINT_PREP_FORMATS), so this should be unreachable - it stays so the
   // silent no-op cannot come back if that allowlist ever widens.
   if (!sampled && !floatEditing && eligibleForResvgPng(fmt, dims)) {
-    const svg = await tryRenderSvg(runtime, dom, dims.slide);
+    const svg = await tryRenderSvg(runtime, dom, dims.slide, dims);
     if (svg) {
       // Shared Tier-A rasteriser (node-shell): imprint + physical-unit DPI, identical to the
       // TUI. `imprinted` reflects whether the mark was actually embedded - the imprinted path
@@ -258,8 +258,15 @@ export function restoreToolLinks(model: readonly ModelItem[], initial: Record<st
  * one-slide filter run.ts applied to the DOM-free path has to be applied again here, or a
  * `--s=2 --export=png` of an SVG-native paged tool would quietly rasterise every slide.
  * An address that names nothing throws out of pickFramePage, as it does on the other path.
+ *
+ * `dims` is the size the PNG will be drawn at. It reaches the SVG export as the width
+ * and height an `--export=svg` of the same size gets, so a tool that lays itself out
+ * for the export's shape in beforeExport (Logo Wall) draws the same picture into the
+ * PNG as into the SVG. Only when the drawn root <svg> has a viewBox: without one the
+ * SVG export would make a viewBox of the requested size, where the PNG has always
+ * scaled the tool's own width and height (sizeSvg), and that would change the picture.
  */
-async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null): Promise<string | null> {
+async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null, dims?: RenderDims): Promise<string | null> {
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) return null;
   try {
@@ -273,12 +280,25 @@ async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null)
   // OUTSIDE the try: a bad `--s=` is a usage error the caller must see, not a reason to
   // fall through to the browser tier and render the whole document there.
   const picked = pickFramePage(canvas, slide);
+  const root = picked?.node ?? canvas;
   try {
-    const blob = await runtime.export(picked?.node ?? canvas, 'svg', {});
+    const blob = await runtime.export(root, 'svg', svgExportSize(root, dims));
     return await blob.text();
   } catch {
     return null;
   }
+}
+
+/** The export size tryRenderSvg hands the SVG export: the requested width and height,
+ *  qualified by the unit the way run.ts qualifies them for `--export=svg`, or nothing
+ *  when no size was asked for or the drawn root <svg> has no viewBox (see above). */
+function svgExportSize(root: Element, dims?: RenderDims): { width?: string | number; height?: string | number } {
+  const svg = root.tagName.toLowerCase() === 'svg' ? root : root.querySelector('svg');
+  if (!dims || !svg?.hasAttribute('viewBox')) return {};
+  const unit = dims.unit || 'px';
+  const qual = (v: number | undefined): string | number | undefined => (typeof v === 'number' && v > 0 ? (unit !== 'px' ? `${v}${unit}` : v) : undefined);
+  const width = qual(dims.width), height = qual(dims.height);
+  return width !== undefined && height !== undefined ? { width, height } : {};
 }
 
 /**
@@ -319,7 +339,7 @@ async function renderHdrStill(opts: {
 
   let frame: { data: Uint8Array; width: number; height: number };
   let usedBrowser = false;
-  const svg = await tryRenderSvg(runtime, dom, dims.slide);
+  const svg = await tryRenderSvg(runtime, dom, dims.slide, dims);
   if (svg) {
     const { width, height } = pxDims(dims, manifest);
     frame = await rasterizeSvgToRgba(svg, width, height);

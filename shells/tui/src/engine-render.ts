@@ -111,8 +111,14 @@ function canvasOf(dom: JSDOM): HTMLElement {
  * Render the runtime's CURRENT state to an SVG string, or null when this tool can't
  * produce SVG in a pure-Node shell (HTML-layout tools need a browser engine). Used
  * for the terminal image preview - resvg rasterises the returned SVG.
+ *
+ * `dims` is the size a PNG export will be drawn at. As in the CLI's Tier A
+ * (shells/cli/src/raster.ts), it reaches the SVG export as the width and height an
+ * SVG export of that size gets, so a tool that lays itself out for the export's
+ * shape (Logo Wall) draws the same picture into both, and only when the drawn root
+ * <svg> has a viewBox, so a tool without one keeps the scaling the PNG always had.
  */
-export async function renderSvg(runtime: Runtime, dom: JSDOM): Promise<string | null> {
+export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims): Promise<string | null> {
   try {
     const canvas = canvasOf(dom);
     canvas.innerHTML = runtime.getHydrated();
@@ -120,11 +126,22 @@ export async function renderSvg(runtime: Runtime, dom: JSDOM): Promise<string | 
     // the chosen set like any other canvas. Stated here rather than left to the
     // side effect of the export below, which walks the same node a moment later.
     await runtime.applyEmojiToDom(canvas);
-    const blob = await runtime.export(canvas, 'svg', {});
+    const blob = await runtime.export(canvas, 'svg', svgExportSize(canvas, dims));
     return await blob.text();
   } catch {
     return null;
   }
+}
+
+/** The width and height renderSvg hands the SVG export, qualified by the unit as the
+ *  export path below qualifies them, or nothing (see renderSvg). */
+function svgExportSize(canvas: HTMLElement, dims?: ExportDims): { width?: string | number; height?: string | number } {
+  if (!dims || !canvas.querySelector('svg')?.hasAttribute('viewBox')) return {};
+  const u = dims.unit || 'px';
+  const qual = (v: number | undefined): string | number | undefined =>
+    (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
+  const width = qual(dims.width), height = qual(dims.height);
+  return width !== undefined && height !== undefined ? { width, height } : {};
 }
 
 /** Output size options for an export (mirrors the web/CLI: width/height are values in
@@ -253,7 +270,7 @@ export async function exportToFile(
   //     same fix shells/cli/src/raster.ts made). Only the DURABLE (neural TrustMark)
   //     mark still needs the web shell's export path, so that alone falls through.
   if (!floatScene && modelValues(runtime).editingRange !== 'hdr' && eligibleForResvgPng(fmt, dims)) {
-    const svg = await renderSvg(runtime, dom);
+    const svg = await renderSvg(runtime, dom, dims);
     if (svg) {
       // Shared Tier-A rasteriser (node-shell), identical to the CLI: imprint when asked
       // (a frame below the detection floor returns the plain PNG unmarked, never fails)

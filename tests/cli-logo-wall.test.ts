@@ -13,6 +13,8 @@
  *  - `--logos-file=-` reads one picture's bytes from stdin;
  *  - a CSV's `logo` column may name pictures beside the CSV, and its `tier` column
  *    groups the wall under headings;
+ *  - `--width`/`--height` at another shape (an A4 page, 1080 x 1920) lay the wall
+ *    out for that shape, in the SVG and in the PNG resvg draws from it;
  *  - files given to a tool with no such input, a file that is not a picture and a
  *    missing file are refused with exit 2 before anything is rendered.
  *
@@ -115,6 +117,30 @@ test('a CSV names pictures beside it, and its tier column groups the wall', { sk
   const heads = [...text.matchAll(/<text class="lw-heading"[^>]*>([^<]*)<\/text>/g)].map((m) => m[1]);
   assert.deepEqual(heads, ['Gold partners', 'Silver partners']);
   assert.match(text, /<rect x="0" y="0" width="1280" height="720" fill="#/, '--transparentBg=0 paints the background');
+});
+
+test('an export at another shape fills it, in the SVG and in the PNG drawn from it', { skip: SKIP }, async (t) => {
+  // An A4 page as SVG: the page's own size, and a wall laid out for its shape.
+  const page = await cli(['run', 'logo-wall', 'a.svg', 'b.svg', 'c.svg', 'd.png', 'e.png', '--width=210', '--height=297', '--unit=mm', '--output=a4.svg', '--no-provenance']);
+  ok(page);
+  const svg = await readFile(join(root, 'logos', 'a4.svg'), 'utf8');
+  assert.match(svg, /<svg class="lw-svg"[^>]*width="210mm" height="297mm"/);
+  const [, , w, h] = /viewBox="([^"]+)"/.exec(svg)![1]!.split(' ').map(Number);
+  assert.ok(Math.abs(w! / h! - 210 / 297) < 1e-3, `viewBox ${w} x ${h} has the page's shape`);
+
+  // 1080 x 1920 as PNG: the logos reach the lower part of the picture, where a
+  // letterboxed 16:9 wall would leave it empty.
+  const tall = await cli(['run', 'logo-wall', 'a.svg', 'b.svg', 'c.svg', 'd.png', 'e.png', '--width=1080', '--height=1920', '--output=tall.png', '--no-provenance']);
+  ok(tall);
+  let sharp: typeof import('sharp')['default'];
+  try { sharp = (await import('sharp')).default; } catch { t.skip('sharp unavailable on this platform'); return; }
+  const { data, info } = await sharp(join(root, 'logos', 'tall.png')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  assert.deepEqual([info.width, info.height], [1080, 1920]);
+  let lower = 0;
+  for (let y = Math.round(info.height * 0.75); y < info.height; y++) {
+    for (let x = 0; x < info.width; x++) if (data[(y * info.width + x) * 4 + 3]! > 0) lower++;
+  }
+  assert.ok(lower > 1000, `logos drawn in the lowest quarter (${lower} px)`);
 });
 
 test('files the wall cannot take are refused before anything renders', { skip: SKIP }, async () => {
