@@ -149714,7 +149714,7 @@ var init_design_pptx = __esm({
 function leadingText(bytes2) {
   const head2 = bytes2.subarray(0, SVG_SNIFF_BYTES);
   const utf16 = head2[0] === 255 && head2[1] === 254 ? "utf-16le" : head2[0] === 254 && head2[1] === 255 ? "utf-16be" : null;
-  return new TextDecoder(utf16 ?? "utf-8").decode(head2).replace(/^﻿/, "");
+  return new TextDecoder(utf16 ?? "utf-8").decode(head2);
 }
 function isSvgDocument(bytes2) {
   const s = leadingText(bytes2);

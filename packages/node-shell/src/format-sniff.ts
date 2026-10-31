@@ -73,11 +73,13 @@ export function assertFormatBytes(requested: string, bytes: Uint8Array): void {
  *  Illustrator export puts a DOCTYPE and a block of ENTITY declarations first. */
 export const SVG_SNIFF_BYTES = 64 * 1024;
 
-/** The leading text of a file for `isSvgDocument`, by its byte-order mark. */
+/** The leading text of a file for `isSvgDocument`, decoded by its byte-order
+ *  mark. A TextDecoder drops the mark of its own encoding by default, so the
+ *  text starts at the first character after the mark. */
 function leadingText(bytes: Uint8Array): string {
   const head = bytes.subarray(0, SVG_SNIFF_BYTES);
   const utf16 = head[0] === 0xff && head[1] === 0xfe ? 'utf-16le' : head[0] === 0xfe && head[1] === 0xff ? 'utf-16be' : null;
-  return new TextDecoder(utf16 ?? 'utf-8').decode(head).replace(/^﻿/, '');
+  return new TextDecoder(utf16 ?? 'utf-8').decode(head);
 }
 
 /**
