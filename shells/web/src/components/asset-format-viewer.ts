@@ -6,7 +6,9 @@ import { beginPreviewActivity } from '../lib/preview-activity.ts';
 import { t } from '../i18n.ts';
 import './asset-format-viewer.css';
 export interface AssetFormatViewerHandle { ready: Promise<void>; destroy(): void }
-export function mountAssetFormatViewer(into: HTMLElement, ref: AssetRef, host?: HostV1): AssetFormatViewerHandle {
+/** `onRead` hears the file's bytes once the viewer has read and checked them, so the
+ *  details beside the preview can show what the file says without reading it again. */
+export function mountAssetFormatViewer(into: HTMLElement, ref: AssetRef, host?: HostV1, onRead?: (bytes: Uint8Array) => void): AssetFormatViewerHandle {
   const source = assetViewerSource(ref), controller = new AbortController();
   const endActivity = beginPreviewActivity();
   let dispose: (() => void) | undefined;
@@ -23,6 +25,7 @@ export function mountAssetFormatViewer(into: HTMLElement, ref: AssetRef, host?: 
       const detected = detectedViewerKind(bytes);
       controller.signal.throwIfAborted();
       if (source.kind === 'pdf' && detected !== 'pdf' || source.kind === 'font' && detected !== 'font') throw new Error('The file content does not match its declared format.');
+      try { onRead?.(bytes); } catch { /* the details are a bonus; the preview still mounts */ }
       if (detected === 'vector' || source.kind === 'vector' && source.format === 'svgz') {
         const { mountVectorAssetViewer } = await import('./vector-asset-viewer.ts'); controller.signal.throwIfAborted();
         dispose = mountVectorAssetViewer(frame, bytes, source, controller.signal);

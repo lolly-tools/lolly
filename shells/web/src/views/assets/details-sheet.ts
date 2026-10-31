@@ -26,7 +26,7 @@ import { publishSiteInspection } from '../../lib/site-tools-context.ts';
 import { setSearchBarQuery } from '../../components/search-bar.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { destroyLottiePlayers, lottiePlayerFor, mountLottieMarker } from '../lottie-mount.ts';
-import { extractAssetMetadata, leavesOriginalUnread, recordedMetadata } from '../../lib/asset-metadata.ts';
+import { extractAssetMetadata, leavesOriginalUnread, metadataFromBytes, recordedMetadata } from '../../lib/asset-metadata.ts';
 import { mergeMetaRows, metaRow } from '../../lib/meta-rows.ts';
 import { formatMetaInstant } from '../../lib/meta-dates.ts';
 import { analyzeVerifyText } from '../valid-text.ts';
@@ -559,7 +559,12 @@ export function buildSheet(dt: DetailsCtx): void {
   if (ownsPreview && !ref.meta?._placeholder) {
     dlg.classList.add('has-format-viewer');
     mountAssetViewerDetails(dlg);
-    dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-preview-content')!, ref, cat.host);
+    // The viewer reads the file itself, so the Details list takes the file's own size,
+    // pages and page size from that read rather than fetching the file a second time.
+    const list = dlg.querySelector<HTMLElement>('[data-meta-list]');
+    dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-preview-content')!, ref, cat.host, bytes => {
+      if (list && cat.detailsDialog === dlg) for (const row of mergeMetaRows(list, metadataFromBytes(bytes))) row.classList.add('is-arriving');
+    });
   }
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
   // asset is open, so copy/pasting the URL shares this exact view. Paging

@@ -23,6 +23,7 @@ import {
   extractAssetMetadata,
   leavesOriginalUnread,
   recordedMetadata,
+  metadataFromBytes,
 } from './asset-metadata.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { formatMetaInstant, formatWrittenDate } from './meta-dates.ts';
@@ -46,6 +47,27 @@ test('recorded facts are keyed rows the Details list can show before the file is
     { key: 'fileSize', label: 'File size', value: '689 KB' },
   ]);
   assert.deepEqual(recordedMetadata({ source: 'library', id: 'bare', type: 'vector', url: '' } as unknown as AssetRef), []);
+});
+
+test('a catalog PDF or font shows its recorded size and facts before, and without, a file read', () => {
+  // The web bridge lifts the primary file's formats[].size into meta.size; an entry's
+  // own meta block may add a page count. A PDF or font preview reads the file through
+  // its own viewer, so these rows are all the Details list has until that read finishes.
+  const pdf = { source: 'library', id: 'lolly/guide/brand-book', type: 'data', format: 'pdf', url: 'https://example.test/book.pdf', width: 595, height: 842, meta: { size: 2_400_000, pages: 48 } } as unknown as AssetRef;
+  assert.deepEqual(recordedMetadata(pdf).map(field => [field.key, field.value]), [['dimensions', '595 × 842'], ['pages', '48'], ['fileSize', '2.29 MB']]);
+  const font = { source: 'remote', id: 'ext/dam/face', type: 'font', format: 'woff2', url: 'https://example.test/face.woff2', meta: { provider: 'dam', size: 48_200 } } as unknown as AssetRef;
+  assert.deepEqual(recordedMetadata(font).map(field => [field.key, field.value]), [['fileSize', '47 KB']]);
+  // An upload's own byte count wins over a stale catalog size, and nonsense is no fact.
+  assert.equal(recordedMetadata({ ...pdf, meta: { bytes: 1024, size: 9_999_999 } }).at(-1)?.value, '1 KB');
+  assert.deepEqual(recordedMetadata({ ...font, meta: { size: 'large', pages: 2.5, fps: -1 } } as unknown as AssetRef), []);
+});
+
+test('a viewer\'s own read gives the file size, and for a PDF its pages and page size', () => {
+  const pdf = new TextEncoder().encode('%PDF-1.7\n1 0 obj << /Type /Page /MediaBox [0 0 595.28 841.89] >> endobj\n2 0 obj << /Type /Page >> endobj\n3 0 obj << /Type /Pages /Count 2 >> endobj\n%%EOF');
+  assert.deepEqual(metadataFromBytes(pdf).map(field => [field.key, field.value]), [['pages', '2'], ['dimensions', '595 × 842 pt'], ['fileSize', `${pdf.byteLength} B`]]);
+  const font = new Uint8Array([0x77, 0x4f, 0x46, 0x32, ...new Array(2044).fill(0)]);
+  assert.deepEqual(metadataFromBytes(font).map(field => [field.key, field.value]), [['fileSize', '2 KB']]);
+  assert.deepEqual(metadataFromBytes(new Uint8Array()), []);
 });
 
 test('every extracted row carries the stable key its glyph and rank are chosen by', async (t) => {

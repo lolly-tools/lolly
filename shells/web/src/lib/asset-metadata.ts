@@ -140,18 +140,41 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
 }
 
 /**
- * What the asset's own record states before its file is read: dimensions, length and
- * size. The Details list shows these at once; the read that follows refines the same
- * rows in place rather than adding rows above the ones a person is reading.
+ * What the asset's own record states before its file is read: dimensions, pages,
+ * length, frame rate and size. A catalog record carries its primary file's size and
+ * dimensions (formats[].size, width and height); an entry's own meta block may add a
+ * page count. The Details list shows these at once, for every kind of asset, and so
+ * for the PDFs and fonts whose own viewer reads the file instead of this module; a
+ * read that follows refines the same rows in place rather than adding rows above the
+ * ones a person is reading.
  */
 export function recordedMetadata(ref: AssetRef): MetaField[] {
   const fields: MetaField[] = [];
   const width = ref.width ?? ref.meta?.width, height = ref.height ?? ref.meta?.height;
   if (width && height) fields.push({ key: 'dimensions', label: t('Dimensions'), value: `${width} × ${height}` });
+  const pages = positive(ref.meta?.pages ?? ref.meta?.pageCount);
+  if (pages && Number.isInteger(pages)) fields.push({ key: 'pages', label: t('Pages'), value: String(pages) });
   const duration = metaDurationSec(ref);
   if (duration) fields.push({ key: 'duration', label: t('Duration'), value: formatDuration(duration) });
+  const fps = positive(ref.meta?.fps);
+  if (fps) fields.push({ key: 'frameRate', label: t('Frame rate'), value: `${trimNum(fps)} fps` });
   const size = metaBytes(ref);
   if (size) fields.push({ key: 'fileSize', label: t('File size'), value: formatBytes(size) });
+  return fields;
+}
+
+/**
+ * The facts a file viewer's own read gives for free, for the kinds whose preview
+ * reads the file itself (PDF, font) and so never runs {@link extractAssetMetadata}:
+ * the file's true size, and for a PDF its page count and first page size. A PDF is
+ * known by its own header, not by the format it was declared as. Pure and bounded,
+ * like the readers below.
+ */
+export function metadataFromBytes(bytes: Uint8Array): MetaField[] {
+  const fields: MetaField[] = [];
+  const push: Push = (key, label, value) => { if (value != null && String(value)) fields.push({ key, label, value: String(value) }); };
+  if (latin1(bytes.subarray(0, 1024)).includes('%PDF-')) addPdfText(bytes, push);
+  if (bytes.byteLength > 0) push('fileSize', t('File size'), formatBytes(bytes.byteLength));
   return fields;
 }
 
@@ -213,7 +236,11 @@ async function addLottieFields(ref: AssetRef, push: Push): Promise<void> {
 }
 
 async function addPdfFields(blob: Blob, push: Push): Promise<void> {
-  const bytes = new Uint8Array(await blob.arrayBuffer());
+  addPdfText(new Uint8Array(await blob.arrayBuffer()), push);
+}
+
+function addPdfText(bytes: Uint8Array, push: Push): void {
+  if (bytes.byteLength > PDF_CAP) return;
   const text = latin1(bytes);
   const pages = countPdfPages(text);
   if (pages) push('pages', t('Pages'), String(pages));
@@ -744,9 +771,14 @@ async function decodeDims(blob: Blob): Promise<{ w: number; h: number } | null> 
   return null;
 }
 
-function metaBytes(ref: AssetRef): number | null {
-  const n = Number(ref.meta?.bytes);
+function positive(value: unknown): number | null {
+  const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** The recorded byte length: an upload's `bytes`, or a catalog file's `size` (formats[].size). */
+function metaBytes(ref: AssetRef): number | null {
+  return positive(ref.meta?.bytes) ?? positive(ref.meta?.size);
 }
 
 function metaDurationSec(ref: AssetRef): number | null {
