@@ -293,6 +293,14 @@ test('the helpers read pictures by their bytes and keep the web drop filter', ()
   assert.equal(imageMime('notes.txt', new TextEncoder().encode('hello')), 'application/octet-stream');
   assert.equal(imageMime('notes.png', new TextEncoder().encode('hello')), 'application/octet-stream', 'the name alone is not a picture');
   assert.equal(imageMime('scan.tif', new Uint8Array([0x49, 0x49, 0x2a, 0, 8, 0, 0, 0])), 'image/tiff');
+  // Text that merely starts like a picture is not one: a secrets file must never be baked into an export.
+  for (const text of ['BMW_API_TOKEN=canary-secret-0123456789abcdef', 'GIFT_CARD_TOKEN=canary-secret-0123456789', 'RIFF raff and WEBP notes', 'II*x is not a header']) {
+    assert.equal(imageMime('logo.bmp', new TextEncoder().encode(text)), 'application/octet-stream', text);
+  }
+  const bmp = new Uint8Array(54); bmp.set([0x42, 0x4d]); bmp[14] = 40;
+  assert.equal(imageMime('logo.bin', bmp), 'image/bmp', 'a BITMAPINFOHEADER bitmap');
+  assert.equal(imageMime('logo.bin', new TextEncoder().encode('GIF89a\x01\x00\x01\x00')), 'image/gif');
+  assert.equal(imageMime('logo.bin', new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10])), 'image/jpeg');
   assert.equal(imageMime('logo.svg', ILLUSTRATOR), 'image/svg+xml', 'past a DOCTYPE and ENTITY block');
   assert.equal(imageMime('page.svg', new TextEncoder().encode('<html><body><svg></svg></body></html>')), 'application/octet-stream', 'a page that holds a drawing');
   assert.equal(imageMime('notes.svg', new TextEncoder().encode('draw <svg> here')), 'application/octet-stream', 'text that mentions <svg');

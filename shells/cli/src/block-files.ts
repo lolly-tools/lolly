@@ -80,16 +80,50 @@ const EXT_MIME: Record<string, string> = {
  */
 export function imageMime(name: string, bytes: Uint8Array): string {
   const b = bytes;
-  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'image/png';
-  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
-  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return 'image/gif';
-  if (b[0] === 0x52 && b[1] === 0x49 && b[8] === 0x57 && b[9] === 0x45) return 'image/webp';
-  if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) return EXT_MIME[extname(name).toLowerCase()] === 'image/heic' ? 'image/heic' : 'image/avif';
-  if ((b[0] === 0xff && b[1] === 0x0a) || (b[0] === 0 && b[1] === 0 && b[2] === 0 && b[3] === 0x0c && b[4] === 0x4a && b[5] === 0x58)) return 'image/jxl';
-  if (b[0] === 0x42 && b[1] === 0x4d && b.length >= 26) return 'image/bmp';
-  if ((b[0] === 0x49 && b[1] === 0x49 && b[2] === 0x2a && b[3] === 0) || (b[0] === 0x4d && b[1] === 0x4d && b[2] === 0 && b[3] === 0x2a)) return 'image/tiff';
+  // Whole signatures, not short prefixes: a text file that starts "BM" or "GIF"
+  // (BMW_API_TOKEN=..., GIFT_CARD=...) must never pass for a picture.
+  if (startsWith(b, PNG_SIG)) return 'image/png';
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff && (b[3] ?? 0) >= 0xc0) return 'image/jpeg';
+  if (startsWith(b, ascii('GIF87a')) || startsWith(b, ascii('GIF89a'))) return 'image/gif';
+  if (startsWith(b, ascii('RIFF')) && startsWith(b.subarray(8), ascii('WEBP'))) return 'image/webp';
+  if (startsWith(b.subarray(4), ascii('ftyp')) && HEIF_BRANDS.has(String.fromCharCode(...b.subarray(8, 12)))) {
+    return EXT_MIME[extname(name).toLowerCase()] === 'image/heic' ? 'image/heic' : 'image/avif';
+  }
+  if ((b[0] === 0xff && b[1] === 0x0a) || startsWith(b, JXL_BOX)) return 'image/jxl';
+  if (isBmpHeader(b)) return 'image/bmp';
+  if (isTiffHeader(b)) return 'image/tiff';
   if (isSvgDocument(b)) return 'image/svg+xml';
   return 'application/octet-stream';
+}
+
+const ascii = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0));
+const PNG_SIG = Uint8Array.of(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
+const JXL_BOX = Uint8Array.of(0, 0, 0, 0x0c, 0x4a, 0x58, 0x4c, 0x20, 0x0d, 0x0a, 0x87, 0x0a);
+const HEIF_BRANDS = new Set(['avif', 'avis', 'heic', 'heix', 'hevc', 'hevx', 'mif1', 'msf1']);
+/** The BITMAPINFOHEADER family's sizes: core, info, the v2 to v5 headers and OS/2 v2. */
+const BMP_DIB_SIZES = new Set([12, 40, 52, 56, 64, 108, 124]);
+
+function startsWith(b: Uint8Array, sig: Uint8Array): boolean {
+  if (b.length < sig.length) return false;
+  for (let i = 0; i < sig.length; i++) if (b[i] !== sig[i]) return false;
+  return true;
+}
+const u32le = (b: Uint8Array, at: number): number => (b[at]! | (b[at + 1]! << 8) | (b[at + 2]! << 16) | (b[at + 3]! << 24)) >>> 0;
+const u32be = (b: Uint8Array, at: number): number => ((b[at]! << 24) | (b[at + 1]! << 16) | (b[at + 2]! << 8) | b[at + 3]!) >>> 0;
+
+/** "BM", four reserved bytes that are zero, and a known DIB header size. */
+function isBmpHeader(b: Uint8Array): boolean {
+  if (b.length < 26 || b[0] !== 0x42 || b[1] !== 0x4d) return false;
+  if (b[6] !== 0 || b[7] !== 0 || b[8] !== 0 || b[9] !== 0) return false;
+  return BMP_DIB_SIZES.has(u32le(b, 14));
+}
+
+/** "II*\0" or "MM\0*" with a first directory offset past the 8-byte header. */
+function isTiffHeader(b: Uint8Array): boolean {
+  if (b.length < 8) return false;
+  if (b[0] === 0x49 && b[1] === 0x49 && b[2] === 0x2a && b[3] === 0) return u32le(b, 4) >= 8;
+  if (b[0] === 0x4d && b[1] === 0x4d && b[2] === 0 && b[3] === 0x2a) return u32be(b, 4) >= 8;
+  return false;
 }
 
 /** The leading bytes of a file, enough for `imageMime` to sniff (an SVG's root
