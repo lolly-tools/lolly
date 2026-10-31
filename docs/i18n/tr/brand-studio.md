@@ -33,6 +33,7 @@ Stüdyo, yanda bir raydaki odalardan oluşur; sabit bir sıra yoktur: hiçbir ş
 | **Tokens** | Köşeler, aralık, gölgeler ve adlandırılmış diğer her değer | `tokens` |
 | **Files** | Markanın tuttuğu görsel, ses ve hareket dosyaları | `catalogue` |
 | **Usage & rules** | Markanın uyguladığı kurallar, gerçek örnekler üzerinde denetlenir | `usage` |
+| **Skills** | Markanın insanlar ve ajanlar için yazılı standartları; okumak ve indirmek için | `skills` |
 
 Bir odaya `#/start?area=<key>` ile bağlan. Files odası `catalogue` anahtarını korur, çünkü bir oda anahtarı kalıcı bir sözleşmedir ve `?tab=` eski bir takma ad olarak hâlâ çalışır. Bilinmeyen bir anahtar Overview'ı açar.
 
@@ -117,7 +118,7 @@ Palette tonlar olduğunda şerit, bir aracın okuyabileceği yedi rolün hepsini
 
 Uygulamanın kendi vurgusu varsayılan olarak tasarım sistemini izler. Bu, **Settings → Appearance** içindeki **Interface follows the design system** ayarıdır; ayarı kapatmak uygulamanın arayüzünü nötr bırakır, araçlar, tuvaller ve dışa aktarmalar iki durumda da tasarım sistemini izler.
 
-**Colourways.** Bir tasarım sistemi, her biri parça başına seçilen birkaç öncü renk tutabilir. Lolly her colourway'i korur ama bu oda henüz birini yazamaz: bir colourway token dosyasında yazılır. Colourway'leri olan bir sistemde her colourway'in kendi birincil ve ikincil rengi ve colourway'ler arka planı tonladığında kendi yüzeyi gerekir; bu yüzden bu roller renk örneği düzenleyicisinde ayarlı kalır. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) gerçek işlerde colourway'leri gösterir ve [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) biçimi içerir.
+**Colourways.** Bir tasarım sistemi, her biri parça başına seçilen birkaç öncü renk tutabilir. **Renk rolleri** başındaki **Renk düzenleri** satırı her colourway için bir çip gösterir; kurallı olanda **Varsayılan** yazar. **+ Ekle**, paletin renklerinden birinden yeni bir colourway başlatır. Bir çip seç; rol şeridi, palet ve önizlemeler **Açık** ve **Koyu** anahtarının seçtiği görünümde o colourway'i düzenler. Seçili colourway yeniden adlandırılabilir, çoğaltılabilir, varsayılan yapılabilir veya kaldırılabilir. Colourway'li bir sistemde her colourway'in kendi birincil ve ikincil rengi ve colourway'ler arka planı tonladığında kendi yüzeyi gerekir; bu yüzden bu roller renk örneği düzenleyicisinde ayarlı kalır. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) adımları ve token biçimini içerir, [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) ise gerçek işlerde colourway'leri gösterir.
 
 ### Daha fazla renk bul
 
@@ -273,6 +274,12 @@ Bir tasarım sisteminin token dosyasında getirdiği kurallar, örneğin onaylı
 
 Sabit bir markayla gelen bir derleme, aynı kuralları ve örnekleri salt okunur olarak *This brand is set* altında gösterir.
 
+## Skills
+
+**Skills**, etkin tasarım sisteminin [marka becerilerini](/info/brand-skills.html) listeler: markanın insanlar ve yapay zeka ajanları için, her disiplin başına bir tane yazılı standartları. Her satır disiplini, markanın kendi durumunu (**Taslak** veya **Onaylandı**), becerinin herkese açık mı yoksa dahili mi olduğunu ve revizyonunu verir. Becerinin satırlarını token'larınla karşılaştıran kapsamının yanında okumak için bir satır seç: Lolly'nin neyi denetlediği, neyin çeliştiği, neyin uyduğu ve neyin yalnızca rehber olduğu.
+
+**Beceriyi indir (.zip)**, beceriyi bir ajan aracı için Agent Skills klasörü olarak yazar; katalog bağlantıları bu Lolly'yi gösterir. **Tek dosya olarak kopyala** aynı metni bir sohbet penceresi için panoya koyar. Kendi becerisi olmayan bir tasarım sistemi, Lolly'nin taban çizgisi her okunduğunda token'larından ve ev kurallarından yazdığı bir taban çizgisini listeler. Oda becerileri okur ve asla düzenlemez.
+
 ## Bir marka getir
 
 Rayın altındaki **Add from…**, hangi biçimde olduğunu değil, elinde ne olduğunu soran bir seçici açar:
@@ -315,7 +322,7 @@ Bir görünümü incelemek için birini, yan yana karşılaştırmak için ikisi
 
 **Export**, tek bir **`LollyBrand-….lolly`** dosyası yazar: token'ların, yazı tiplerin, logoların ve tema tercihin; geri girerken denetlenen bir bütünlük bildirimiyle. 1.0.7 öncesi web sürümleri aynı dosyayı `.zip` olarak adlandırıyordu ve bu yazım hâlâ kabul edilir. **Tokens (.json)** düz tasarım token'ları belgesini, yazı tipi veya logo olmadan, bir depo, bir derleme adımı veya başka bir token aracı için tek başına yazar.
 
-Birini geri getirmek için **Add from… → Design tokens or a design file** kullan ya da dosyayı stüdyonun üzerine bırak. Bir meslektaşın sana bir marka bu şekilde verir veya bir markayı ikinci bir kuruluma böyle taşırsın; hesap yok, bulut yok. Bir markayı komut satırından getirmek için bkz. [`ingest:brand`](/info/configuration.html#brand-packs).
+Birini geri getirmek için **Add from… → Design tokens or a design file** kullan ya da dosyayı stüdyonun üzerine bırak. Bir meslektaşın sana bir marka bu şekilde verir veya bir markayı ikinci bir kuruluma böyle taşırsın; hesap yok, bulut yok. Markayı alan kişi başka bir kuruluşta çalışıyorsa başka neyin gönderileceğini [Ortaklarla çalışma](/info/partners.html) anlatır. Bir markayı komut satırından getirmek için bkz. [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)**, eklediğin yazı tiplerini kurulabilir bir RPM'de paketler. Bunlardan herhangi birini kendin yüklediysen Lolly önce onları yeniden dağıtabileceğini onaylamanı ister.
 
@@ -359,5 +366,6 @@ Bir sunucunun sağladığını değiştirmek yöneticinin görevidir: işletmesi
 
 - **[Using Lolly](/info/using.html)**: araçlar, kaydetme, paylaşma ve Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: bölümlerin, ürünlerin, onaylı markaların, müşterilerin ve sezonların tasarım sistemlerine, colourway'lere ve logo kimliklerine nasıl eşlendiği.
+- **[Ortaklarla çalışma](/info/partners.html)**: markanı bir ortakla paylaşmak ve sana verilmiş bir markada çalışmak.
 - **[Design Tokens](/info/design-tokens.html)**: markanın yazıldığı token modeli.
 - **[Export a file](/info/exporting.html)**: baskı birimleri, CMYK ve markanın render edildiği biçimler.

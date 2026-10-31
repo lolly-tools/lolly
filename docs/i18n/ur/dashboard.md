@@ -19,7 +19,7 @@ Preferences ایک لمبا صفحہ ہے جس کے کنارے **settings rail**
 - <!--i:usercheck--> **آپ کی تفصیلات** - آپ کا نام، رابطے کی تفصیلات اور ہیڈ شاٹ، اور **Use my details to create** سوئچ۔ [پروفائلز](/info/profile.html) بتاتا ہے کہ ٹولز انہیں کیسے استعمال کرتے ہیں۔
 - <!--i:seal--> **Content Credentials** - اختیاری تصدیق شدہ شناخت جو آپ کی ایکسپورٹس پر دستخط کرتی ہے۔ دیکھیں [Content Credentials](/info/content-credentials-identity.html)۔
 - <!--i:palette--> **ڈیزائن سسٹمز** - ڈیزائن سسٹمز بدلیں، شامل کریں، چھپائیں یا ہٹائیں۔ [Design System Setup](/info/brand-studio.html#manage-your-design-systems) ہر عمل کا احاطہ کرتا ہے۔
-- <!--i:moon--> **ظاہری شکل** - تھیم (Light، Dark یا Brand، جو ایپ کو آپ کی پیلیٹ میں رنگتا ہے) اور **Interface follows the design system**۔
+- <!--i:moon--> **ظاہری شکل** - تھیم (Light، Dark یا Brand، جو ایپ کو آپ کی پیلیٹ میں رنگتا ہے)، **Your colourway** جب ڈیزائن سسٹم ایک سے زیادہ پیش کرے ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) اور **Interface follows the design system**۔
 - <!--i:sparkle--> **Emoji** - وہ سیٹ جس سے آپ کے ایموجی بنتے ہیں جب آپ کچھ نیا شروع کریں، اس کے آرٹ ورک لائسنس کے ساتھ، اور آپ کی پیلیٹ انہیں کتنا دوبارہ رنگتی ہے (**Off**، **Subtle**، **Strong**، **Full**، **Mono** یا **Duotone**)۔ **Keep skin tones and flags** انہیں ان کے اپنے رنگوں میں رکھتا ہے۔ جو کام آپ پہلے بنا چکے وہ اپنا بنتے وقت کا سیٹ رکھتا ہے۔
 - <!--i:eyeoff--> **رسائی** - چار آرام کے سوئچ، ساتھ Sound اور Neurospicy Mode۔ دیکھیں [رسائی](#accessibility)۔
 - <!--i:link--> **جڑی ہوئی سروسز** - وہ اسٹوریج جو آپ جوڑتے ہیں، مثلاً Dropbox، Google Drive، OneDrive، Nextcloud یا S3، اور **Sync across devices**۔ دیکھیں [اپنی ڈیوائسز Sync کریں](/info/sync.html)۔

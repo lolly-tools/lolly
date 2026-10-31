@@ -13,7 +13,7 @@ Profilen din holder også det du bygger opp mens du arbeider: lagrede økter, op
 | **Location** | By og land. |
 | **Headshot** | Et valgfritt bilde, beskåret til en firkant og beholdt som et lokalt bilde, for verktøy som e-postsignaturer, sitatkort og organisasjonskart. |
 | **Use my details to create** | Én valgfri bryter (den leses som **Using my details** når den er på). Den avgjør om detaljene dine følger med som forfatterkreditt i eksporterte filer og på Batch-kjøringer. Den påvirker ikke forhåndsutfylling; se [How tools use your profile](#how-tools-use-your-profile). |
-| **Preferences** | Temaet ditt, tilgjengelighetsinnstillingene dine og hvilke deler av appen du slo på i **Feature flags**. |
+| **Preferences** | Temaet ditt, fargevarianten din i hvert designsystem, tilgjengelighetsinnstillingene dine og hvilke deler av appen du slo på i **Feature flags**. |
 | **Your work** | Lagrede økter med miniatyrbildene sine, organisert i [Projects](/info/find-your-work.html), de opplastede bildene dine og den lokale aktivitetsstatistikken din. |
 
 Ingenting av det er påkrevd. En blank profil fungerer; fyll bare ut det som sparer deg for å skrive.

@@ -23,6 +23,7 @@
 - **[Design System Setup](/info/brand-studio.html)**: 로고, 색상, 글꼴 등을 `#/start`에서 한 번 설정해요.
 - **[Lolly Demo 사용하기](/info/lolly-demo-in-use.html)**: 실제 작업에서의 컬러웨이와 자신의 디자인 시스템으로 전환하기를 다뤄요.
 - **[브랜드 아키텍처](/info/brand-architectures.html)**: 한 조직의 여러 디자인 시스템, 또는 컬러웨이가 여러 개인 하나의 디자인 시스템을 다뤄요.
+- **[파트너와 함께 일하기](/info/partners.html)** - 브랜드를 파트너와 공유하고, 받은 브랜드 안에서 작업하고, 스폰서 월을 만들어요.
 - **[디자인 가져오기](/info/design-import.html)**: `.fig`, `.penpot`, `.ai`, `.idml`, SVG 파일을 평면 그림이 아닌 편집 가능한 레이아웃으로 열어요.
 - **[덱 리브랜드](/info/rebrand.html)**: 차트와 애니메이션을 그대로 둔 채 PowerPoint 덱을 디자인 시스템으로 옮겨요.
 - **[규칙과 함께 디자인 공유하기](/info/create-a-tool.html)**: 레이아웃을 다른 사람이 채우는 도구로 바꿔요.

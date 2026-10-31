@@ -33,6 +33,7 @@ Studioet er et sett rom i en liste nedover siden, uten fast rekkefølge: ingenti
 | **Tokens** | Hjørner, avstand, skygger og alle andre navngitte verdier | `tokens` |
 | **Files** | Bilde-, lyd- og bevegelsesfilene merkevaren din beholder | `catalogue` |
 | **Usage & rules** | Reglene merkevaren din bruker, kontrollert på ekte eksempler | `usage` |
+| **Skills** | Merkevarens skrevne standarder for folk og agenter, til å lese og laste ned | `skills` |
 
 Lenk til et rom med `#/start?area=<key>`. Rommet Files beholder nøkkelen `catalogue`, fordi en romnøkkel er en permanent kontrakt, og `?tab=` fungerer fortsatt som et eldre alias. En ukjent nøkkel åpner Overview.
 
@@ -117,7 +118,7 @@ Når paletten har nyanser, viser stripen alle de sju rollene et verktøy kan les
 
 Appens egen aksent følger designsystemet som standard. Det er innstillingen **Interface follows the design system** i **Settings → Appearance**; å slå innstillingen av lar appens ramme være nøytral, mens verktøy, lerreter og eksporter følger designsystemet uansett.
 
-**Colourways.** Et designsystem kan holde flere hovedfarger, hver valgt per arbeid. Lolly beholder hver fargevariant, men dette rommet kan ikke forfatte en ennå: en fargevariant skrives i tokenfilen. På et system med fargevarianter trenger hver fargevariant sin egen primær- og sekundærfarge, og sin egen flate når fargevariantene tonet bakgrunnen, så disse rollene forblir satt i fargeprøveredigeringsprogrammet. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) viser fargevarianter på ekte arbeid, og [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) har formatet.
+**Colourways.** Et designsystem kan holde flere hovedfarger, hver valgt per arbeid. Raden **Colourways** øverst i **Colour roles** viser én brikke per fargevariant, med **Default** på den kanoniske. **+ Add** starter en ny fargevariant fra en av palettens farger. Velg en brikke, så redigerer rolleraden, paletten og forhåndsvisningene den fargevarianten, i det utseendet bryteren **Light** og **Dark** velger; den valgte fargevarianten kan gis nytt navn, dupliseres, gjøres til standard eller fjernes. På et system med fargevarianter trenger hver fargevariant sin egen primær- og sekundærfarge, og sin egen flate når fargevariantene tonet bakgrunnen, så disse rollene forblir satt i fargeprøveredigeringsprogrammet. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) har trinnene og tokenformatet, og [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) viser fargevarianter på ekte arbeid.
 
 ### Finn flere farger
 
@@ -273,6 +274,12 @@ Regler et designsystem har med seg i tokenfilen sin, som godkjente fargepar, tek
 
 Et bygg som leveres med en fast merkevare, viser de samme reglene og eksemplene skrivebeskyttet, under *This brand is set*.
 
+## Skills
+
+**Skills** lister det aktive designsystemets [brand skills](/info/brand-skills.html): merkevarens skrevne standarder, én per fagområde, for folk og KI-agenter. Hver rad viser fagområdet, merkevarens egen status (**Draft** eller **Approved**), om ferdigheten er offentlig eller intern, og revisjonen. Velg en rad for å lese ferdigheten ved siden av dekningen, som setter ferdighetens linjer opp mot tokenene dine: hva Lolly kontrollerer, hva som er i konflikt, hva som stemmer og hva som bare er veiledning.
+
+**Download skill (.zip)** skriver ferdigheten som en Agent Skills-mappe for et agentverktøy, med katalogkoblinger som peker til denne Lolly, og **Copy as one file** legger den samme teksten på utklippstavlen for et chattevindu. Et designsystem uten egne ferdigheter lister en grunnlinje som Lolly skriver fra tokenene og husreglene sine hver gang grunnlinjen leses. Rommet leser ferdigheter og redigerer dem aldri.
+
 ## Ta inn en merkevare
 
 **Add from…** nederst i listen åpner en velger som spør hva du har, ikke hvilket format det er:
@@ -315,7 +322,7 @@ Velg ett utseende for å gjennomgå det, eller to for å sammenligne side om sid
 
 **Export** skriver én **`LollyBrand-….lolly`**-fil: tokenene, skriftene, logoene og temainnstillingen din, med et integritetsmanifest som kontrolleres på vei inn igjen. Nettutgivelser før 1.0.7 ga den samme filen navnet `.zip`, og den skrivemåten godtas fortsatt. **Tokens (.json)** skriver det rene designtoken-dokumentet alene, uten skrifter eller logoer, for et repositorium, et byggetrinn eller et annet tokenverktøy.
 
-For å hente en tilbake, bruk **Add from… → Design tokens or a design file**, eller slipp filen på studioet. Slik gir en kollega deg en merkevare, eller slik tar du en med til en andre installasjon, uten konto og uten sky. For å hente inn en merkevare fra kommandolinjen, se [`ingest:brand`](/info/configuration.html#brand-packs).
+For å hente en tilbake, bruk **Add from… → Design tokens or a design file**, eller slipp filen på studioet. Slik gir en kollega deg en merkevare, eller slik tar du en med til en andre installasjon, uten konto og uten sky. [Working with partners](/info/partners.html) forklarer hva annet du bør sende når personen som mottar merkevaren din jobber for en annen organisasjon. For å hente inn en merkevare fra kommandolinjen, se [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** pakker skriftene du la til i en installerbar RPM. Hvis du lastet opp noen av dem selv, ber Lolly deg først bekrefte at du har lov til å videredistribuere dem.
 
@@ -361,3 +368,4 @@ Velg **Remove** fra et systems meny; bekreftelsen sier hvilket system som blir a
 - **[Brand architectures](/info/brand-architectures.html)**: hvordan divisjoner, produkter, støttede merkevarer, kunder og sesonger tilordnes designsystemer, fargevarianter og logoidentiteter.
 - **[Design Tokens](/info/design-tokens.html)**: tokenmodellen merkevaren din er skrevet i.
 - **[Export a file](/info/exporting.html)**: trykkenheter, CMYK og formatene merkevaren din gjengis til.
+- **[Working with partners](/info/partners.html)**: del merkevaren din med en partner, og arbeid i en merkevare du har fått.

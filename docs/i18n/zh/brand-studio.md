@@ -33,6 +33,7 @@
 | **Tokens** | 圆角、间距、阴影以及所有其他命名值 | `tokens` |
 | **Files** | 你的品牌保存的图片、音频和动态文件 | `catalogue` |
 | **Usage & rules** | 你的品牌应用的规则，在真实示例上检查 | `usage` |
+| **Skills** | 品牌为人和代理撰写的标准，可阅读和下载 | `skills` |
 
 用 `#/start?area=<key>` 链接到某个房间。Files 房间保留键 `catalogue`，因为房间键是永久性约定，`?tab=` 仍作为旧别名可用。未知的键会打开 Overview。
 
@@ -117,7 +118,7 @@
 
 应用自己的强调色默认跟随设计系统。这就是 **Settings → Appearance** 中的 **Interface follows the design system** 设置；关闭该设置会让应用的外壳保持中性，而工具、画布和导出无论如何都跟随设计系统。
 
-**配色方案。** 设计系统可以包含多个主色，每件作品各自选择。Lolly 保留每种配色方案，但这个房间目前还无法创作它：配色方案写在令牌文件中。在有配色方案的系统上，每种配色方案都需要自己的主色和次色，当配色方案给背景着色时还需要自己的表面色，所以这些角色在色板编辑器中保持设定。[实际使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了真实作品上的配色方案，[为设计系统添加配色方案](/info/colourways.html#add-colourways-to-a-design-system)介绍了格式。
+**配色方案。** 设计系统可以包含多个主色，每件作品各自选择。**Colourways** 行位于 **Colour roles** 的最上方，每种配色方案显示一个标签，规范的那一种带有 **Default**。**+ Add** 会从调色板中的某个颜色开始一种新的配色方案。选择一个标签，角色条、调色板和预览就会编辑那种配色方案，所用的外观由 **Light** 和 **Dark** 开关决定；所选的配色方案可以重命名、复制、设为默认或移除。在有配色方案的系统上，每种配色方案都需要自己的主色和次色，当配色方案给背景着色时还需要自己的表面色，所以这些角色在色板编辑器中保持设定。[为设计系统添加配色方案](/info/colourways.html#add-colourways-to-a-design-system)介绍了步骤和令牌格式，[实际使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了真实作品上的配色方案。
 
 ### 寻找更多颜色
 
@@ -273,6 +274,12 @@
 
 带有固定品牌的构建版本会在 *This brand is set* 下以只读方式显示同样的规则和示例。
 
+## Skills
+
+**Skills** 列出当前设计系统的[品牌技能](/info/brand-skills.html)：品牌的书面标准，每个领域一份，为人和 AI 代理而写。每一行给出领域、品牌自己的状态（**Draft** 或 **Approved**）、该技能是公开还是内部，以及它的修订版本。选择一行，即可在技能的覆盖范围旁阅读它，覆盖范围把技能的各条规定与你的令牌对照：Lolly 检查什么、什么有冲突、什么一致，以及什么只是指导。
+
+**Download skill (.zip)** 会把技能写成供代理工具使用的 Agent Skills 文件夹，目录链接指向这个 Lolly；**Copy as one file** 则把同样的文字放到剪贴板，方便粘贴到聊天窗口。没有自己技能的设计系统会列出一份基础说明，每次读取时由 Lolly 根据其令牌和内部规范生成。这个房间只读取技能，从不编辑。
+
 ## 导入品牌
 
 侧栏底部的 **Add from…** 打开一个选择器，它问的是你有什么，而不是它是什么格式：
@@ -315,7 +322,7 @@ PDF 和设计文件导入有自己的审阅控制项。**Tray** 中的项目在�
 
 **Export** 写出一个 **`LollyBrand-….lolly`** 文件：你的令牌、字体、徽标和主题偏好，带有一份在导回时会被检查的完整性清单。1.0.7 之前的网页版本把同一个文件命名为 `.zip`，这种写法仍被接受。**Tokens (.json)** 单独写出普通的设计令牌文档，不含字体或徽标，供仓库、构建步骤或其他令牌工具使用。
 
-要导回一个，请使用 **Add from… → Design tokens or a design file**，或把文件拖到工作室上。同事就是这样把品牌交给你的，你也是这样把品牌带到第二次安装的，无需账号，也无需云。要从命令行导入品牌，请参见 [`ingest:brand`](/info/configuration.html#brand-packs)。
+要导回一个，请使用 **Add from… → Design tokens or a design file**，或把文件拖到工作室上。同事就是这样把品牌交给你的，你也是这样把品牌带到第二次安装的，无需账号，也无需云。[与合作伙伴协作](/info/partners.html)介绍了当接收你品牌的人在另一个组织工作时，还需要发送什么。要从命令行导入品牌，请参见 [`ingest:brand`](/info/configuration.html#brand-packs)。
 
 **Fonts for Linux (.rpm)** 把你添加的字体打包成可安装的 RPM。如果其中任何字体是你自己上传的，Lolly 会先要求你确认你有权再分发它们。
 
@@ -359,5 +366,6 @@ PDF 和设计文件导入有自己的审阅控制项。**Tray** 中的项目在�
 
 - **[使用 Lolly](/info/using.html)**：工具、保存、分享和 Assets。
 - **[品牌架构](/info/brand-architectures.html)**：部门、产品、背书品牌、客户和季节如何对应到设计系统、配色方案和徽标标识。
+- **[与合作伙伴协作](/info/partners.html)**：与合作伙伴分享你的品牌，以及在别人交给你的品牌中工作。
 - **[设计令牌](/info/design-tokens.html)**：你的品牌所采用的令牌模型。
 - **[导出文件](/info/exporting.html)**：印刷单位、CMYK，以及你的品牌渲染成的格式。

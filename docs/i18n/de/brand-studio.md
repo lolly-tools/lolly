@@ -33,6 +33,7 @@ Das Studio besteht aus Räumen in einer Leiste an der Seite, in keiner festen Re
 | **Tokens** | Ecken, Abstände, Schatten und jeder andere benannte Wert | `tokens` |
 | **Files** | Die Bild-, Audio- und Bewegungsdateien, die Ihre Marke behält | `catalogue` |
 | **Usage & rules** | Die Regeln, die Ihre Marke anwendet, an echten Beispielen geprüft | `usage` |
+| **Skills** | Die schriftlichen Standards der Marke für Menschen und Agenten, zum Lesen und Herunterladen | `skills` |
 
 Verlinken Sie einen Raum mit `#/start?area=<key>`. Der Raum Files behält den Schlüssel `catalogue`, weil ein Raumschlüssel ein dauerhafter Vertrag ist, und `?tab=` funktioniert weiter als älterer Alias. Ein unbekannter Schlüssel öffnet Overview.
 
@@ -117,7 +118,7 @@ Sobald die Palette Abstufungen hat, zeigt der Streifen alle sieben Rollen, die e
 
 Der eigene Akzent der App folgt standardmäßig dem Designsystem. Das ist die Einstellung **Interface follows the design system** unter **Settings → Appearance**; ist sie aus, bleibt das Chrome der App neutral, während Tools, Arbeitsflächen und Exporte dem Designsystem in beiden Fällen folgen.
 
-**Farbvarianten.** Ein Designsystem kann mehrere Leitfarben enthalten, je Werk gewählt. Lolly behält jede Farbvariante, aber dieser Raum kann noch keine verfassen: Eine Farbvariante wird in der Token-Datei geschrieben. Bei einem System mit Farbvarianten braucht jede Farbvariante eine eigene Primär- und Sekundärfarbe und, wenn sie den Hintergrund tönt, eine eigene Fläche; diese Rollen bleiben daher im Farbfeld-Editor gesetzt. [Lolly Demo im Einsatz](/info/lolly-demo-in-use.html#colourways-on-real-work) zeigt Farbvarianten an echter Arbeit, und [Farbvarianten zu einem Designsystem hinzufügen](/info/colourways.html#add-colourways-to-a-design-system) hat das Format.
+**Farbvarianten.** Ein Designsystem kann mehrere Leitfarben enthalten, je Werk gewählt. Die Zeile **Farbvarianten** am Kopf von **Farbrollen** zeigt einen Chip je Farbvariante, mit **Standard** auf der kanonischen. **+ Hinzufügen** startet eine neue Farbvariante aus einer der Farben der Palette. Wählen Sie einen Chip, und der Rollenstreifen, die Palette und die Vorschauen bearbeiten diese Farbvariante, im Look, den der Schalter **Hell** und **Dunkel** wählt; die gewählte Farbvariante lässt sich umbenennen, duplizieren, zur Standardvariante machen oder entfernen. Bei einem System mit Farbvarianten braucht jede Farbvariante eine eigene Primär- und Sekundärfarbe und, wenn sie den Hintergrund tönt, eine eigene Fläche; diese Rollen bleiben daher im Farbfeld-Editor gesetzt. [Farbvarianten zu einem Designsystem hinzufügen](/info/colourways.html#add-colourways-to-a-design-system) hat die Schritte und das Token-Format, und [Lolly Demo im Einsatz](/info/lolly-demo-in-use.html#colourways-on-real-work) zeigt Farbvarianten an echter Arbeit.
 
 ### Weitere Farben finden
 
@@ -273,6 +274,12 @@ Regeln, die ein Designsystem in seiner Token-Datei mitbringt, etwa freigegebene 
 
 Ein Build, der mit einer festen Marke ausgeliefert wird, zeigt dieselben Regeln und Beispiele schreibgeschützt, unter *This brand is set*.
 
+## Skills
+
+**Skills** listet die [Marken-Skills](/info/brand-skills.html) des aktiven Designsystems: die schriftlichen Standards der Marke, einer je Disziplin, für Menschen und KI-Agenten. Jede Zeile nennt die Disziplin, den eigenen Status der Marke (**Entwurf** oder **Freigegeben**), ob der Skill öffentlich oder intern ist, und seine Revision. Wählen Sie eine Zeile, um den Skill neben seiner Abdeckung zu lesen, die die Zeilen des Skills gegen Ihre Tokens hält: was Lolly prüft, was kollidiert, was übereinstimmt und was nur Orientierung ist.
+
+**Skill herunterladen (.zip)** schreibt den Skill als Agent-Skills-Ordner für ein Agenten-Tool, mit Katalog-Links, die auf dieses Lolly zeigen, und **Als eine Datei kopieren** legt denselben Text für ein Chat-Fenster in die Zwischenablage. Ein Designsystem ohne eigene Skills listet eine Basis, die Lolly bei jedem Lesen aus seinen Tokens und Hausregeln schreibt. Der Raum liest Skills und bearbeitet sie nie.
+
 ## Eine Marke importieren
 
 **Add from…** am Fuß der Leiste öffnet eine Auswahl, die fragt, was Sie haben, nicht welches Format es ist:
@@ -315,7 +322,7 @@ Wählen Sie einen Look zur Prüfung aus oder zwei zum Vergleich nebeneinander. D
 
 **Export** schreibt eine Datei **`LollyBrand-….lolly`**: Ihre Tokens, Schriften, Logos und Design-Einstellung, mit einem Integritätsmanifest, das beim Zurückholen geprüft wird. Web-Releases vor 1.0.7 nannten dieselbe Datei `.zip`, und diese Schreibweise wird weiterhin akzeptiert. **Tokens (.json)** schreibt das einfache Design-Tokens-Dokument für sich, ohne Schriften oder Logos, für ein Repository, einen Build-Schritt oder ein anderes Tokens-Tool.
 
-Um eine zurückzuholen, nutzen Sie **Add from… → Design tokens or a design file** oder legen Sie die Datei auf dem Studio ab. So reicht Ihnen eine Kollegin oder ein Kollege eine Marke, oder so nehmen Sie eine auf eine zweite Installation mit, ohne Konto und ohne Cloud. Um eine Marke über die Kommandozeile einzubringen, siehe [`ingest:brand`](/info/configuration.html#brand-packs).
+Um eine zurückzuholen, nutzen Sie **Add from… → Design tokens or a design file** oder legen Sie die Datei auf dem Studio ab. So reicht Ihnen eine Kollegin oder ein Kollege eine Marke, oder so nehmen Sie eine auf eine zweite Installation mit, ohne Konto und ohne Cloud. [Zusammenarbeit mit Partnern](/info/partners.html) behandelt, was Sie sonst noch senden sollten, wenn die Person, die Ihre Marke erhält, für eine andere Organisation arbeitet. Um eine Marke über die Kommandozeile einzubringen, siehe [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** packt die von Ihnen hinzugefügten Schriften in ein installierbares RPM. Wenn Sie welche selbst hochgeladen haben, bittet Lolly Sie zuerst zu bestätigen, dass Sie sie weitergeben dürfen.
 
@@ -359,5 +366,6 @@ Das Ändern dessen, was ein Server liefert, ist Aufgabe der Administration: Ihr 
 
 - **[Lolly nutzen](/info/using.html)**: die Tools, Speichern, Teilen und Assets.
 - **[Marken-Architekturen](/info/brand-architectures.html)**: wie sich Bereiche, Produkte, mitgetragene Marken, Kunden und Saisons auf Designsysteme, Farbvarianten und Logo-Identitäten abbilden.
+- **[Zusammenarbeit mit Partnern](/info/partners.html)**: Ihre Marke mit einem Partner teilen und in einer Marke arbeiten, die man Ihnen gegeben hat.
 - **[Design-Tokens](/info/design-tokens.html)**: das Token-Modell, in dem Ihre Marke geschrieben ist.
 - **[Eine Datei exportieren](/info/exporting.html)**: Druckeinheiten, CMYK und die Formate, in die Ihre Marke rendert.

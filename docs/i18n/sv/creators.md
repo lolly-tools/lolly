@@ -23,6 +23,7 @@ Ditt designsystem avgör hur varje verktyg ser ut.
 - **[Design System Setup](/info/brand-studio.html)** - logotyper, färger, typografi och resten, inställt en gång på `#/start`.
 - **[Lolly Demo i bruk](/info/lolly-demo-in-use.html)** - färgvarianter på verkligt arbete, och byte till ditt eget designsystem.
 - **[Varumärkesarkitekturer](/info/brand-architectures.html)** - flera designsystem, eller ett med flera färgvarianter, för en organisation.
+- **[Samarbeta med partners](/info/partners.html)** - dela ditt varumärke med en partner, arbeta i ett varumärke du fått och bygg en sponsorvägg.
 - **[Importera en design](/info/design-import.html)** - en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil öppnad som en redigerbar layout i stället för en platt bild.
 - **[Rebrand a deck](/info/rebrand.html)** - en PowerPoint-presentation flyttad till ditt designsystem, med diagram och animationer intakta.
 - **[Dela en design med regler](/info/create-a-tool.html)** - gör en layout till ett verktyg som andra fyller i.

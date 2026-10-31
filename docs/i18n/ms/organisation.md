@@ -75,6 +75,10 @@ Organisasi anda menghoskan [Lolly Work](https://github.com/lolly-tools/lolly-wor
 Jika anda menyediakan perkhidmatan ini, mulakan dengan [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Demo awam di [lolly.work](https://lolly.work) ialah kotak pasir; gunakan alamat organisasi anda sendiri untuk kerja yang perlu anda simpan.
 :::
 
+## Jenama organisasi lain
+
+Rakan kongsi, pelanggan atau penaja mungkin menghantar jenama mereka kepada anda sebagai fail sistem reka bentuk (`.lolly`) dan bukan alamat. Membuka fail seperti itu tidak menyambungkan apl kepada apa-apa: ia menambah sistem reka bentuk mereka di sebelah sistem anda sendiri pada peranti ini. Fail persediaan daripada organisasi anda sendiri berbeza, kerana ia menyambungkan apl kepada Lolly organisasi, dan pratonton menunjukkan apa yang akan dilakukan oleh pembukaan fail sebelum apa-apa berubah. [Working with partners](/info/partners.html) merangkumi kedua-dua pihak dalam bekerja dalam jenama organisasi lain.
+
 ## Meninggalkan
 
 **Leave**, pada kad **Lolly instance** dalam **Settings**, membuang sistem reka bentuk, alat dan katalog organisasi anda. Kerja anda sendiri kekal. Apa-apa yang anda buat dengan alatnya tidak akan dibuka lagi sehingga anda menyambung semula.

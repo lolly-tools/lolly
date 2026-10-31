@@ -19,7 +19,7 @@ Preferences là một trang dài với **thanh cài đặt** dọc bên cạnh v
 - <!--i:usercheck--> **Your details** - tên, thông tin liên hệ và ảnh chân dung của bạn, cùng công tắc **Use my details to create**. [Profiles](/info/profile.html) giải thích cách công cụ dùng chúng.
 - <!--i:seal--> **Content Credentials** - danh tính đã xác minh tùy chọn ký các bản xuất của bạn. Xem [Content Credentials](/info/content-credentials-identity.html).
 - <!--i:palette--> **Design systems** - chuyển, thêm, ẩn hoặc gỡ hệ thống thiết kế. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) đề cập từng hành động.
-- <!--i:moon--> **Appearance** - chủ đề (Light, Dark hoặc Brand, tô ứng dụng bằng bảng màu của bạn) và **Interface follows the design system**.
+- <!--i:moon--> **Appearance** - chủ đề (Light, Dark hoặc Brand, tô ứng dụng bằng bảng màu của bạn), **Your colourway** khi hệ thống thiết kế có nhiều hơn một ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) và **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - bộ mà emoji của bạn được vẽ từ đó khi bạn bắt đầu việc mới, kèm giấy phép tác phẩm, và mức bảng màu của bạn nhuộm lại chúng (**Off**, **Subtle**, **Strong**, **Full**, **Mono** hoặc **Duotone**). **Keep skin tones and flags** để những thứ đó giữ màu riêng. Công việc bạn đã làm giữ bộ nó được làm ra.
 - <!--i:eyeoff--> **Accessibility** - bốn công tắc thoải mái, cộng Sound và Neurospicy Mode. Xem [Accessibility](#accessibility).
 - <!--i:link--> **Connected services** - nơi lưu trữ bạn kết nối, như Dropbox, Google Drive, OneDrive, Nextcloud hoặc S3, và **Sync across devices**. Xem [Sync your devices](/info/sync.html).

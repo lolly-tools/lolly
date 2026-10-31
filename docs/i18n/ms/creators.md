@@ -23,6 +23,7 @@ Sistem reka bentuk anda menentukan rupa setiap alat.
 - **[Design System Setup](/info/brand-studio.html)** - logo, warna, tipografi dan selebihnya, ditetapkan sekali di `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourway pada kerja sebenar, dan bertukar ke sistem reka bentuk anda sendiri.
 - **[Brand architectures](/info/brand-architectures.html)** - beberapa sistem reka bentuk, atau satu dengan beberapa colourway, untuk satu organisasi.
+- **[Working with partners](/info/partners.html)** - kongsi jenama anda dengan rakan kongsi, bekerja dalam jenama yang diberikan kepada anda dan buat dinding penaja.
 - **[Import a design](/info/design-import.html)** - fail `.fig`, `.penpot`, `.ai`, `.idml` atau SVG dibuka sebagai reka letak boleh sunting dan bukan gambar rata.
 - **[Rebrand a deck](/info/rebrand.html)** - dek PowerPoint dipindahkan ke sistem reka bentuk anda, carta dan animasi kekal.
 - **[Share a design with rules](/info/create-a-tool.html)** - tukar reka letak menjadi alat yang diisi orang lain.

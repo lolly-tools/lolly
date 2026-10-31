@@ -13,7 +13,7 @@ Profil anda juga memegang apa yang anda bina semasa bekerja: sesi tersimpan, ime
 | **Location** | Bandar dan negara. |
 | **Headshot** | Foto pilihan, dipotong kepada segi empat sama dan disimpan sebagai imej setempat, untuk alat seperti tandatangan e-mel, kad petikan dan carta organisasi. |
 | **Use my details to create** | Satu suis ikut serta (ia berbunyi **Using my details** sebaik dihidupkan). Ia menentukan sama ada butiran anda dibawa sebagai kredit pengarang dalam fail yang dieksport dan pada larian Batch. Ia tidak menjejaskan pengisian awal; lihat [How tools use your profile](#how-tools-use-your-profile). |
-| **Preferences** | Tema anda, tetapan kebolehcapaian anda dan bahagian apl yang anda hidupkan dalam **Feature flags**. |
+| **Preferences** | Tema anda, colourway anda dalam setiap sistem reka bentuk, tetapan kebolehcapaian anda dan bahagian apl yang anda hidupkan dalam **Feature flags**. |
 | **Your work** | Sesi tersimpan dengan lakaran kecilnya, disusun dalam [Projects](/info/find-your-work.html), imej yang anda muat naik dan statistik aktiviti setempat anda. |
 
 Tiada yang wajib. Profil kosong berfungsi; isi hanya apa yang menjimatkan penaipan anda.

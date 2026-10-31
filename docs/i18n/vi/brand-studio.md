@@ -33,6 +33,7 @@ Studio là một tập các phòng trong thanh dọc bên cạnh, không theo th
 | **Tokens** | Bo góc, khoảng cách, đổ bóng và mọi giá trị có tên khác | `tokens` |
 | **Files** | Các tệp ảnh, âm thanh và chuyển động mà thương hiệu của bạn giữ | `catalogue` |
 | **Usage & rules** | Các quy tắc thương hiệu của bạn áp dụng, được kiểm tra trên ví dụ thật | `usage` |
+| **Skills** | Các tiêu chuẩn thành văn của thương hiệu cho con người và tác tử, để đọc và tải xuống | `skills` |
 
 Liên kết tới một phòng bằng `#/start?area=<key>`. Phòng Files giữ khóa `catalogue`, vì khóa phòng là cam kết vĩnh viễn, và `?tab=` vẫn hoạt động như bí danh cũ. Khóa không xác định mở Overview.
 
@@ -117,7 +118,7 @@ Khi bảng màu có sắc độ, dải hiện cả bảy vai trò mà một côn
 
 Màu nhấn của chính ứng dụng theo hệ thống thiết kế theo mặc định. Đó là cài đặt **Interface follows the design system** trong **Settings → Appearance**; tắt cài đặt để khung ứng dụng trung tính, còn công cụ, canvas và bản xuất theo hệ thống thiết kế dù thế nào.
 
-**Colourways.** Một hệ thống thiết kế có thể giữ nhiều màu dẫn, mỗi màu chọn cho từng tác phẩm. Lolly giữ mọi colourway, nhưng phòng này chưa thể soạn một cái: colourway được viết trong tệp token. Trên hệ thống có colourway, mỗi colourway cần primary và secondary riêng, và surface riêng khi các colourway nhuộm nền, nên các vai trò đó vẫn được đặt trong trình chỉnh ô màu. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) cho thấy colourway trên công việc thật, và [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) có định dạng.
+**Colourways.** Một hệ thống thiết kế có thể giữ nhiều màu dẫn, mỗi màu chọn cho từng tác phẩm. Hàng **Colourways** ở đầu **Colour roles** hiện một chip cho mỗi colourway, với **Default** trên cái chính tắc. **+ Add** tạo một colourway mới từ một trong các màu của bảng màu. Chọn một chip, và dải vai trò, bảng màu cùng các bản xem trước sẽ chỉnh colourway đó, theo diện mạo mà công tắc **Light** và **Dark** chọn; colourway đang chọn có thể được đổi tên, nhân đôi, đặt làm mặc định hoặc gỡ bỏ. Trên hệ thống có colourway, mỗi colourway cần primary và secondary riêng, và surface riêng khi các colourway nhuộm nền, nên các vai trò đó vẫn được đặt trong trình chỉnh ô màu. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) có các bước và định dạng token, và [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) cho thấy colourway trên công việc thật.
 
 ### Tìm thêm màu
 
@@ -273,6 +274,12 @@ Các quy tắc mà một hệ thống thiết kế mang theo trong tệp token c
 
 Một bản dựng đi kèm thương hiệu cố định hiện cùng các quy tắc và ví dụ ở chế độ chỉ đọc, dưới *This brand is set*.
 
+## Skills
+
+**Skills** liệt kê [brand skills](/info/brand-skills.html) của hệ thống thiết kế đang dùng: các tiêu chuẩn thành văn của thương hiệu, mỗi bộ môn một bản, cho con người và tác tử AI. Mỗi hàng cho biết bộ môn, trạng thái riêng của thương hiệu (**Draft** hoặc **Approved**), skill công khai hay nội bộ và bản sửa đổi của nó. Chọn một hàng để đọc skill bên cạnh phần phủ của nó, đặt các dòng của skill đối chiếu với token của bạn: Lolly kiểm tra gì, gì xung đột, gì khớp và gì chỉ là hướng dẫn.
+
+**Download skill (.zip)** ghi skill thành một thư mục Agent Skills cho công cụ tác tử, với các liên kết catalog trỏ về Lolly này, và **Copy as one file** đặt cùng văn bản lên clipboard cho một cửa sổ chat. Một hệ thống thiết kế chưa có skill riêng sẽ liệt kê một bản nền mà Lolly viết từ token và quy tắc nhà của nó mỗi lần bản nền được đọc. Phòng này đọc skill và không bao giờ sửa chúng.
+
 ## Mang một thương hiệu vào
 
 **Add from…** ở chân thanh mở một bộ chọn hỏi bạn có gì, không hỏi định dạng là gì:
@@ -315,7 +322,7 @@ Chọn một diện mạo để xem, hoặc hai để so sánh cạnh nhau. Vi�
 
 **Export** ghi một tệp **`LollyBrand-….lolly`**: token, phông chữ, logo và tùy chọn giao diện của bạn, kèm manifest toàn vẹn được kiểm tra khi đưa lại vào. Các bản web trước 1.0.7 đặt tên cùng tệp là `.zip`, và cách viết đó vẫn được chấp nhận. **Tokens (.json)** ghi riêng tài liệu design token thuần, không phông chữ hay logo, cho một kho mã, một bước dựng hoặc công cụ token khác.
 
-Để đưa một thương hiệu trở lại, dùng **Add from… → Design tokens or a design file**, hoặc thả tệp lên studio. Đó là cách đồng nghiệp trao thương hiệu cho bạn, hoặc cách bạn mang nó sang bản cài thứ hai, không tài khoản và không đám mây. Để đưa thương hiệu vào từ dòng lệnh, xem [`ingest:brand`](/info/configuration.html#brand-packs).
+Để đưa một thương hiệu trở lại, dùng **Add from… → Design tokens or a design file**, hoặc thả tệp lên studio. Đó là cách đồng nghiệp trao thương hiệu cho bạn, hoặc cách bạn mang nó sang bản cài thứ hai, không tài khoản và không đám mây. [Working with partners](/info/partners.html) nói thêm về những gì cần gửi kèm khi người nhận thương hiệu của bạn làm việc cho một tổ chức khác. Để đưa thương hiệu vào từ dòng lệnh, xem [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** đóng gói các phông chữ bạn đã thêm thành một RPM cài được. Nếu bạn tự tải lên bất kỳ cái nào, Lolly yêu cầu bạn xác nhận rằng bạn được phép phân phối lại chúng trước.
 
@@ -359,5 +366,6 @@ Thay đổi những gì máy chủ cung cấp là việc của quản trị viê
 
 - **[Using Lolly](/info/using.html)**: các công cụ, lưu, chia sẻ và Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: các bộ phận, sản phẩm, thương hiệu bảo chứng, khách hàng và mùa được ánh xạ vào hệ thống thiết kế, colourway và danh tính logo thế nào.
+- **[Working with partners](/info/partners.html)**: chia sẻ thương hiệu của bạn với đối tác, và làm việc trong một thương hiệu bạn được trao.
 - **[Design Tokens](/info/design-tokens.html)**: mô hình token mà thương hiệu của bạn được viết trong đó.
 - **[Export a file](/info/exporting.html)**: đơn vị in, CMYK và các định dạng mà thương hiệu của bạn kết xuất ra.

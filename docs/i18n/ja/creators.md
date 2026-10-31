@@ -23,6 +23,7 @@
 - **[Design System Setup](/info/brand-studio.html)** - ロゴ、色、書体などを`#/start`で一度だけ設定します。
 - **[Lolly Demoを使う](/info/lolly-demo-in-use.html)** - 実際の作業でのカラーウェイと、ご自身のデザインシステムへの切り替え。
 - **[ブランドアーキテクチャ](/info/brand-architectures.html)** - 1つの組織に対する、複数のデザインシステム、または複数のカラーウェイを持つ1つのデザインシステム。
+- **[パートナーとの協業](/info/partners.html)** - 自分のブランドをパートナーと共有し、渡されたブランドで作業し、スポンサーウォールを作ります。
 - **[デザインを取り込む](/info/design-import.html)** - `.fig`、`.penpot`、`.ai`、`.idml`、またはSVGファイルを、平面の画像ではなく編集可能なレイアウトとして開きます。
 - **[デッキをリブランドする](/info/rebrand.html)** - PowerPointのデッキを、グラフとアニメーションを保ったままデザインシステムに移します。
 - **[ルール付きでデザインを共有する](/info/create-a-tool.html)** - レイアウトを、他の人が入力するツールに変えます。

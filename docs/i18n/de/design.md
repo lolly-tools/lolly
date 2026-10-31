@@ -10,9 +10,9 @@ Diese Seite führt über die Arbeitsfläche von der ersten Box bis zu einem fert
 
 Die **obere Leiste** beginnt mit **Home**, dem **File menu** und dem Namen des Dokuments (klicken Sie auf den Namen, um das Dokument umzubenennen). In der Mitte sitzen **Undo**, **Redo**, **History**, die Zoom-Steuerung (mit **Fit all** und **Fit artboard**) und Schalter für **Timeline**, **Navigator** und **Inspector**. Rechts folgen **Share**, **Present** und **Export**. Auf einem Smartphone wandern die seltener genutzten Schaltflächen in **More actions**.
 
-Die **Werkzeugleiste** an der Seite enthält das Lolly-Menü und die Werkzeuge, mit denen Sie zeichnen: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, dann die Schaltflächen für Timeline, Artboards und Auto-arrange.
+Die **Werkzeugleiste** an der Seite enthält das Lolly-Menü und die Werkzeuge, mit denen Sie zeichnen: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, dann die Schaltflächen für Timeline, Artboards und Auto-arrange.
 
-![Die Werkzeugleiste der freien Zeichenfläche: ein Ziehgriff, das Lolly-Menü, dann Zeiger, Box hinzufügen, Stift, Punkte bearbeiten, Linie, Zeitleiste, Artboards und Automatisch anordnen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Die Werkzeugleiste der freien Zeichenfläche: ein Ziehgriff, das Lolly-Menü, dann Zeiger, Box hinzufügen, Stift, Bleistift, Punkte bearbeiten, Linie, Zeitleiste, Artboards und Automatisch anordnen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Die Arbeitsfläche funktioniert wie der Montagetisch eines Designers rund um das Artboard:
 
@@ -68,17 +68,26 @@ Ohne gehaltene Taste wird eine Drehung zum nächsten 15-Grad-Wert gezogen, sobal
 
 ## Eigene Formen zeichnen
 
-Boxen, Kreise und abgerundete Rahmen decken die meisten Layouts ab. Für jede andere Form zeichnen Sie eine: Die Schaltfläche **Pen** der Leiste (oder `P`) versetzt Sie in den Zeichenmodus. Drei einzelne Tasten wechseln zwischen den Modi: `V` für den Pointer, `P` für den Pen und `N` für **Edit points**. Der Pointer ist immer der Weg hinaus.
+Boxen, Kreise und abgerundete Rahmen decken die meisten Layouts ab. Für jede andere Form zeichnen Sie eine: Die Schaltfläche **Pen** der Leiste (oder `P`) versetzt Sie in den Zeichenmodus. Vier Tasten wechseln zwischen den Modi: `V` für den Pointer, `P` für den Pen, `Shift C` für den **Pencil** und `N` für **Edit points**. Der Pointer ist immer der Weg hinaus.
 
 - **Klicken** Sie, um einen Punkt zu setzen. Beim Standardkurventyp zieht **Klicken und Ziehen** die Griffe des Punkts heraus und erzeugt eine Kurve; halten Sie beim Klicken **Alt** für eine harte Ecke. (Bei den anderen Kurventypen ist jeder Punkt eine Ecke, und ein Ziehen bewirkt nichts.)
-- Punkte rasten beim Setzen am Artboard und an Ihren anderen Boxen ein. Alt unterdrückt das Raster beim Zeichnen, und beim späteren Ziehen eines Punkts sowohl das Raster als auch die Kanten.
+- Halten Sie beim Klicken **Shift**, und das neue Segment verlässt den vorherigen Punkt in einem Vielfachen von 15 Grad, sodass waagerechte, senkrechte und 45-Grad-Linien exakt werden. Shift beim Herausziehen eines Griffs rastet den Griff genauso ein.
+- Punkte rasten beim Setzen am Artboard, an Ihren anderen Boxen und an den übrigen Punkten desselben Pfads ein, sodass ein Punkt mit einem früher gesetzten fluchtet. Alt unterdrückt das Raster beim Zeichnen, und beim späteren Ziehen eines Punkts sowohl das Raster als auch die Kanten.
 - **Klicken Sie Ihren ersten Punkt an**, um die Form zu schließen. Andernfalls drücken Sie **Enter**, doppelklicken oder wechseln das Werkzeug, und die Zeichnung bleibt erhalten.
 - **Escape** wirkt Schritt für Schritt: Das erste Drücken bricht die Zeichnung ab, das zweite verlässt den Pen.
-- **Delete** verwirft beim Zeichnen den letzten Punkt.
+- **Delete** oder Undo (`⌘ Z` oder `Ctrl Z`) verwirft beim Zeichnen den letzten Punkt.
+
+**Einen offenen Pfad fortsetzen.** Ist der Pen aktiv, drücken Sie auf ein Ende eines offenen Pfads, und Sie zeichnen diesen Pfad weiter: Jeder Klick fügt einen Punkt nach diesem Ende hinzu, oder vor dem ersten Punkt, wenn Sie am Anfang begonnen haben. Enter behält das Ergebnis, und Escape lässt den Pfad genau, wie er war. Der Pfad bleibt dieselbe Box, mit Füllung, Kontur und Pfeilspitzen, und ein Undo stellt ihn wieder her. Delete nimmt nur die Punkte zurück, die Sie hinzugefügt haben. Eine geschlossene Form, eine an eine Box gebundene Linie und ein Pfad mit mehreren Teilen haben kein freies Ende zum Fortsetzen.
+
+**Freihand mit dem Pencil zeichnen.** Die Schaltfläche **Pencil** der Leiste (oder `Shift C`) zeichnet Ihren Strich auf, während Sie ziehen. Lassen Sie los, glättet Lolly den Strich zu wenigen Punkten mit Bezier-Griffen, behält die scharfen Wendungen als Ecken und hält die Kurve auf wenige Bildschirmpixel genau an der Bewegung Ihrer Hand. Ein Strich, der nahe seinem Anfang endet, schließt sich. Das Ergebnis ist ein gewöhnlicher Pfad mit derselben Farbgebung wie ein Pen-Pfad, dessen Punkte Sie danach bearbeiten können.
 
 Das Ergebnis ist eine gewöhnliche Box. Verschieben, skalieren, drehen, gruppieren, ausrichten, umstapeln, füllen, schattieren oder verblassen Sie den Pfad wie jede andere Box. Der erste Pfad übernimmt Füllung und Strich, die Ihre Marke einem Pfad gibt, und jeder weitere neue Pfad übernimmt, was Sie zuletzt verwendet haben. In einem Tool, dessen Marke für Pfade nichts festlegt, erhält ein neuer Pfad einen Strich in der Farbe, mit der Sie gezeichnet haben, sodass die Form nie unsichtbar ist.
 
 **Die Punkte erneut bearbeiten.** Doppelklicken Sie die Form oder nutzen Sie **Edit points** in der Objektleiste. Ziehen Sie einen Punkt, um ihn zu verschieben, ziehen Sie einen Griff, um die Kurve neu auszurichten, klicken Sie auf die Kurve, um einen Punkt einzufügen, oder ziehen Sie ein Rechteck um mehrere Punkte und drücken Sie Delete. Ein Pfad behält immer mindestens zwei Punkte.
+
+- Halten Sie beim Ziehen eines Punkts **Shift**, und sein Winkel zum nächsten, nicht bewegten Punkt des Pfads springt in 15-Grad-Schritten. Shift beim Ziehen eines Griffs lässt den Griff um seinen eigenen Punkt in Schritten rasten. Shift beim Klicken fügt weiterhin einen Punkt oder Griff zur Auswahl hinzu; die Schritte beginnen, sobald Sie ziehen.
+- Ein gezogener Punkt rastet am Artboard, an anderen Boxen und an den übrigen Punkten des Pfads ein. Halten Sie Alt, um ihn frei zu setzen.
+- Klicken Sie einen Griff an, um ihn auszuwählen, und drücken Sie dann **Delete**, um ihn auf seinen Punkt zurückzuziehen. Diese Seite des Punkts wird zur Ecke, ohne Griff, der die Kurve zieht. Sind Punkte ausgewählt, entfernt Delete wie bisher die Punkte.
 
 Der **Spline-Typ** bestimmt, welche Art von Kurve durch Ihre Punkte läuft:
 
@@ -112,6 +121,25 @@ Drei weitere wirken auf eine einzelne Form. **Outline stroke…** verwandelt ein
 ![Eine Mondsichel und ein Ring mit einem echten Loch, beide durch Subtract erzeugt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Das Ergebnis ist ein neuer Pfad, den Sie mit dem Pen weiterbearbeiten können, gespeichert als einfache Bezier-Kurven, sodass der ursprüngliche Spline-Typ nicht erhalten bleibt. Löcher sind echte Löcher: Das Steuerelement **Fill rule** im Strich-Panel entscheidet, ob sich überlappende Konturen füllen (*non-zero*) oder durchstanzen (*even-odd*). Die Operationen lehnen lieber ab, als etwas zu zerstören: Verlangen Sie den Schnitt zweier Formen, die sich nicht überlappen, ändert sich nichts. Text- und Bildboxen haben keine Kontur und bleiben unberührt.
+
+## Konturen
+
+Eine Box, ein Bild, ein Board und ein Pen-Pfad können jeweils eine Kontur tragen: eine Farbe, eine Breite und einen Stil (durchgezogen, gestrichelt oder gepunktet). Die Konturzeilen stehen im Inspector unter **Fill**, und die Schaltfläche **Stroke** der Objektleiste öffnet sie.
+
+**Position** legt die Kontur auf die Umrisslinie: **Innen**, **Zentriert** oder **Außen**. Eine Box wird innen konturiert, sofern Sie nichts anderes wählen, sodass ihr äußerer Rand bleibt, wo Sie ihn gezeichnet haben, und ein Pen-Pfad wird auf seiner Kurve zentriert konturiert. Bei einer zentrierten oder äußeren Kontur bleiben Füllung, Bild und Text innerhalb des inneren Rands der Kontur, und der Auswahlrahmen bleibt am eigenen Rand der Box. Ein offener Pfad hat kein Innen und wird daher immer zentriert konturiert. Die Kontur eines Boards bleibt immer innerhalb der Seite, weil der Seitenrand der Exportrand ist.
+
+**Kontur je Seite.** Bei einem Rechteck, einer abgerundeten Box, einer Pille oder einem Board zeigt der Schalter neben der Breite vier Breiten: **Oben**, **Rechts**, **Unten** und **Links**. Setzen Sie eine Seite auf 0, um sie auszublenden, was Ihnen eine Trennlinie oder Unterstreichung ohne zweite Form gibt. Der Schalter zeigt oder verbirgt nur die vier Felder und ändert nie einen Wert. Solange die Seiten abweichen, steht bei der Breite **Gemischt**; tippen Sie dort eine Breite ein, um alle vier Seiten auf einmal zu setzen. Farbe, Position und Stil bleiben für alle Seiten gemeinsam, und abgerundete Ecken verlaufen mit den Breiten daneben, wie bei einem CSS-Rahmen. Ellipsen, Kreise und Pen-Pfade zeichnen ringsum eine Breite.
+
+Wie die Formate eine Kontur tragen:
+
+| Format | Position | Je Seite |
+|---|---|---|
+| SVG, PDF, PNG und die anderen Bilder | Exakt. Die innere oder äußere Kontur eines Pen-Pfads wird doppelt so breit gezeichnet und auf eine Seite der Umrisslinie beschnitten. | Eine durchgezogene Kontur ist exakt, als eine Form zwischen dem äußeren und inneren Rand der Kontur. Eine gestrichelte oder gepunktete wird in SVG als Striche entlang jeder Seite gezeichnet und in PDF durchgezogen. |
+| Penpot | Innen, zentriert und außen reisen als Penpots Konturausrichtung. Ein Board ist immer `inner`. | Penpot 2.19 oder neuer liest die vier Breiten nativ. Penpot 2.18 zeichnet die obere Breite ringsum, und Penpot 2.17 oder älter weist eine Datei mit Breiten je Seite ab. |
+| PowerPoint | PowerPoint zeichnet eine Linie zentriert auf den Rand der Form. Zentriert ist exakt; außen verschiebt die Form um die halbe Breite nach außen, was PowerPoints Linie außerhalb der Box legt; innen behält die zentrierte Linie, die ältere Exporte schrieben. | Die Kontur wird zu einer eigenen Form (dem Ring zwischen äußerem und innerem Rand) über einer Form ohne Linie. |
+| dotLottie | Lottie-Konturen sind zentriert, daher wird eine äußere Box-Kontur oder ein innen oder außen konturierter Pen-Pfad mit einer Meldung abgewiesen. | Mit einer Meldung abgewiesen. |
+
+Eine durchscheinende zentrierte Kontur zeigt durch ihre innere Hälfte die Seite statt der Füllung, auf der Arbeitsfläche und in jedem Export. Wenn Sie eine Penpot-Datei importieren, behält jede Kontur ihre Ausrichtung und ihre Breiten je Seite, und `strokeAlign` und die einzelnen Konturstärken einer Figma-Datei kommen genauso mit.
 
 ## 3D-Szenen und Tools in einem Design
 

@@ -19,7 +19,7 @@ Preferences एक लंबा पेज है जिसके किनार
 - <!--i:usercheck--> **Your details**: आपका नाम, संपर्क ब्योरा और हेडशॉट, और **Use my details to create** स्विच। [Profiles](/info/profile.html) समझाता है कि टूल उन्हें कैसे उपयोग करते हैं।
 - <!--i:seal--> **Content Credentials**: वैकल्पिक सत्यापित पहचान जो आपके एक्सपोर्ट पर हस्ताक्षर करती है। देखें [Content Credentials](/info/content-credentials-identity.html)।
 - <!--i:palette--> **Design systems**: design system बदलें, जोड़ें, छिपाएँ या हटाएँ। [Design System Setup](/info/brand-studio.html#manage-your-design-systems) हर क्रिया कवर करता है।
-- <!--i:moon--> **Appearance**: थीम (Light, Dark या Brand, जो ऐप को आपके पैलेट में रंगता है) और **Interface follows the design system**।
+- <!--i:moon--> **Appearance**: थीम (Light, Dark या Brand, जो ऐप को आपके पैलेट में रंगता है), **Your colourway** जब design system एक से अधिक दे ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) और **Interface follows the design system**।
 - <!--i:sparkle--> **Emoji**: वह सेट जिससे आपके इमोजी बनते हैं जब आप कुछ नया शुरू करते हैं, उसके आर्टवर्क लाइसेंस सहित, और आपका पैलेट उन्हें कितना रंगता है (**Off**, **Subtle**, **Strong**, **Full**, **Mono** या **Duotone**)। **Keep skin tones and flags** उन्हें अपने रंगों में रखता है। जो काम आप पहले बना चुके हैं वह वही सेट रखता है जिससे बना था।
 - <!--i:eyeoff--> **Accessibility**: चार आराम स्विच, साथ में Sound और Neurospicy Mode। देखें [Accessibility](#accessibility)।
 - <!--i:link--> **Connected services**: आपका जोड़ा स्टोरेज, जैसे Dropbox, Google Drive, OneDrive, Nextcloud या S3, और **Sync across devices**। देखें [Sync your devices](/info/sync.html)।

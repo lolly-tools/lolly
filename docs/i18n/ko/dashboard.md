@@ -19,7 +19,7 @@ Preferences는 옆에 **설정 레일**이 있고 레일 위에 입력하는 대
 - <!--i:usercheck--> **Your details**: 이름, 연락처, 프로필 사진, **Use my details to create** 스위치예요. [프로필](/info/profile.html)이 도구가 이를 쓰는 방식을 설명해요.
 - <!--i:seal--> **Content Credentials**: 내보내기에 서명하는 선택적 검증된 신원이에요. [Content Credentials](/info/content-credentials-identity.html)를 참고하세요.
 - <!--i:palette--> **Design systems**: 디자인 시스템을 전환, 추가, 숨기기 또는 제거해요. [Design System Setup](/info/brand-studio.html#manage-your-design-systems)이 각 동작을 다뤄요.
-- <!--i:moon--> **Appearance**: 테마(Light, Dark, 또는 팔레트로 앱을 칠하는 Brand)와 **Interface follows the design system**이에요.
+- <!--i:moon--> **Appearance**: 테마(Light, Dark, 또는 팔레트로 앱을 칠하는 Brand), 디자인 시스템이 둘 이상을 제공할 때의 **Your colourway**([나만의 컬러웨이 만들기](/info/colourways.html#make-a-colourway-your-own)), **Interface follows the design system**이에요.
 - <!--i:sparkle--> **Emoji**: 새로 시작할 때 이모지를 그리는 세트와 그 아트워크 라이선스, 팔레트가 이를 얼마나 강하게 다시 칠하는지(**Off**, **Subtle**, **Strong**, **Full**, **Mono**, **Duotone**)예요. **Keep skin tones and flags**는 피부색과 국기를 자체 색상으로 둬요. 이미 만든 작업물은 만들 때의 세트를 유지해요.
 - <!--i:eyeoff--> **Accessibility**: 편의 스위치 네 개와 Sound 및 Neurospicy Mode예요. [접근성](#accessibility)을 참고하세요.
 - <!--i:link--> **Connected services**: Dropbox, Google Drive, OneDrive, Nextcloud, S3 같은 연결하는 저장소와 **Sync across devices**예요. [기기 Sync](/info/sync.html)를 참고하세요.

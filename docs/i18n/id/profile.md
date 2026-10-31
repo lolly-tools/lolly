@@ -13,7 +13,7 @@ Profil Anda juga menyimpan apa yang Anda kumpulkan saat bekerja: sesi tersimpan,
 | **Location** | Kota dan negara. |
 | **Headshot** | Foto opsional, dipotong persegi dan disimpan sebagai gambar lokal, untuk alat seperti tanda tangan email, kartu kutipan, dan bagan organisasi. |
 | **Use my details to create** | Satu sakelar ikut serta (berbunyi **Using my details** setelah dinyalakan). Ia menentukan apakah detail Anda ikut sebagai kredit pembuat dalam file ekspor dan pada proses Batch. Ia tidak memengaruhi pengisian otomatis; lihat [How tools use your profile](#how-tools-use-your-profile). |
-| **Preferences** | Tema, pengaturan aksesibilitas Anda, dan bagian aplikasi yang Anda aktifkan di **Feature flags**. |
+| **Preferences** | Tema, colourway Anda di setiap design system, pengaturan aksesibilitas Anda, dan bagian aplikasi yang Anda aktifkan di **Feature flags**. |
 | **Your work** | Sesi tersimpan beserta thumbnail-nya, diatur di [Projects](/info/find-your-work.html), gambar yang Anda unggah, dan statistik aktivitas lokal Anda. |
 
 Tidak ada yang wajib. Profil kosong berfungsi; isi hanya apa yang menghemat ketikan Anda.

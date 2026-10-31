@@ -19,7 +19,7 @@ Preferences, yanda bir **ayarlar rayı** ve rayın üstünde yazdıkça onu filt
 - <!--i:usercheck--> **Your details** - adın, iletişim bilgilerin ve profil fotoğrafın ile **Use my details to create** anahtarı. Araçların bunları nasıl kullandığını [Profiles](/info/profile.html) açıklar.
 - <!--i:seal--> **Content Credentials** - dışa aktarmalarını imzalayan isteğe bağlı doğrulanmış kimlik. Bkz. [Content Credentials](/info/content-credentials-identity.html).
 - <!--i:palette--> **Design systems** - tasarım sistemlerini değiştir, ekle, gizle veya kaldır. Her eylemi [Design System Setup](/info/brand-studio.html#manage-your-design-systems) kapsar.
-- <!--i:moon--> **Appearance** - tema (Light, Dark veya uygulamayı paletinle boyayan Brand) ve **Interface follows the design system**.
+- <!--i:moon--> **Appearance** - tema (Light, Dark veya uygulamayı paletinle boyayan Brand), tasarım sistemi birden fazla sunduğunda **Your colourway** ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) ve **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - yeni bir şey başlattığında emojilerinin çizildiği set, sanat çalışması lisansı ve paletinin onları ne kadar güçlü yeniden renklendirdiği (**Off**, **Subtle**, **Strong**, **Full**, **Mono** veya **Duotone**). **Keep skin tones and flags** onları kendi renklerinde bırakır. Zaten yaptığın iş, yapıldığı seti korur.
 - <!--i:eyeoff--> **Accessibility** - dört rahatlık anahtarı, ayrıca Sound ve Neurospicy Mode. Bkz. [Accessibility](#accessibility).
 - <!--i:link--> **Connected services** - bağladığın depolama; örneğin Dropbox, Google Drive, OneDrive, Nextcloud veya S3 ve **Sync across devices**. Bkz. [Sync your devices](/info/sync.html).

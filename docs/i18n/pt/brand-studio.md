@@ -33,6 +33,7 @@ O estúdio é um conjunto de salas em uma barra lateral, sem ordem fixa: nada é
 | **Tokens** | Cantos, espaçamento, sombras e todos os outros valores nomeados | `tokens` |
 | **Files** | As imagens, o áudio e os arquivos de movimento que a sua marca guarda | `catalogue` |
 | **Usage & rules** | As regras que a sua marca aplica, conferidas em exemplos reais | `usage` |
+| **Skills** | Os padrões escritos da marca para pessoas e agentes, para ler e baixar | `skills` |
 
 Crie um link para uma sala com `#/start?area=<key>`. A sala Files mantém a chave `catalogue`, porque a chave de uma sala é um contrato permanente, e `?tab=` ainda funciona como um apelido mais antigo. Uma chave desconhecida abre o Overview.
 
@@ -117,7 +118,7 @@ Quando a paleta tem tons, a faixa mostra as sete funções que uma ferramenta po
 
 O destaque do próprio app segue o sistema de design por padrão. Essa é a configuração **Interface follows the design system** em **Settings → Appearance**; desativá-la deixa o chrome do app neutro, enquanto ferramentas, canvases e exportações seguem o sistema de design de qualquer forma.
 
-**Variações de cores.** Um sistema de design pode guardar várias cores principais, cada uma escolhida por peça. O Lolly mantém todas as variações de cores, mas esta sala ainda não consegue criar uma: uma variação de cores é escrita no arquivo de tokens. Em um sistema com variações de cores, cada variação precisa da própria primária e secundária, e da própria superfície quando as variações tingem o fundo, então essas funções continuam definidas no editor de amostras. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) mostra variações de cores em trabalhos reais, e [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) traz o formato.
+**Variações de cores.** Um sistema de design pode guardar várias cores principais, cada uma escolhida por peça. A linha **Variações de cor**, no topo de **Papéis de cor**, mostra um chip por variação de cores, com **Padrão** na canônica. **+ Adicionar** cria uma nova variação a partir de uma das cores da paleta. Escolha um chip, e a faixa de funções, a paleta e as prévias passam a editar essa variação, no visual que o seletor **Claro** e **Escuro** define; a variação escolhida pode ser renomeada, duplicada, definida como padrão ou removida. Em um sistema com variações de cores, cada variação precisa da própria primária e secundária, e da própria superfície quando as variações tingem o fundo, então essas funções continuam definidas no editor de amostras. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) traz os passos e o formato de tokens, e [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) mostra variações de cores em trabalhos reais.
 
 ### Encontre mais cores
 
@@ -273,6 +274,12 @@ As regras que um sistema de design traz no arquivo de tokens, como pares de core
 
 Uma compilação que vem com uma marca fixa mostra as mesmas regras e exemplos somente leitura, sob *This brand is set*.
 
+## Skills
+
+**Skills** lista as [brand skills](/info/brand-skills.html) do sistema de design ativo: os padrões escritos da marca, um por disciplina, para pessoas e agentes de IA. Cada linha mostra a disciplina, o status da própria marca (**Rascunho** ou **Aprovado**), se a skill é pública ou interna e a revisão dela. Escolha uma linha para ler a skill ao lado da cobertura, que confronta as linhas da skill com os seus tokens: o que o Lolly verifica, o que conflita, o que concorda e o que é só orientação.
+
+**Baixar skill (.zip)** grava a skill como uma pasta Agent Skills para uma ferramenta de agente, com links de catálogo apontando para este Lolly, e **Copiar como um arquivo** põe o mesmo texto na área de transferência para uma janela de chat. Um sistema de design sem skills próprias lista uma base que o Lolly escreve a partir dos tokens e das regras da casa toda vez que a base é lida. A sala lê as skills e nunca as edita.
+
 ## Trazer uma marca
 
 **Add from…**, no rodapé da barra, abre um seletor que pergunta o que você tem, não qual é o formato:
@@ -315,7 +322,7 @@ Selecione um visual para revisá-lo, ou dois para compará-los lado a lado. Sele
 
 **Export** grava um arquivo **`LollyBrand-….lolly`**: seus tokens, fontes, logotipos e preferência de tema, com um manifesto de integridade conferido na volta. As versões web anteriores à 1.0.7 chamavam o mesmo arquivo de `.zip`, e essa grafia ainda é aceita. **Tokens (.json)** grava sozinho o documento simples de design tokens, sem fontes nem logotipos, para um repositório, uma etapa de compilação ou outra ferramenta de tokens.
 
-Para trazer um de volta, use **Add from… → Design tokens or a design file**, ou solte o arquivo no estúdio. É assim que um colega entrega uma marca a você, ou que você leva uma para uma segunda instalação, sem conta e sem nuvem. Para trazer uma marca pela linha de comando, veja [`ingest:brand`](/info/configuration.html#brand-packs).
+Para trazer um de volta, use **Add from… → Design tokens or a design file**, ou solte o arquivo no estúdio. É assim que um colega entrega uma marca a você, ou que você leva uma para uma segunda instalação, sem conta e sem nuvem. [Working with partners](/info/partners.html) cobre o que mais enviar quando quem recebe a sua marca trabalha para outra organização. Para trazer uma marca pela linha de comando, veja [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** empacota as fontes que você adicionou em um RPM instalável. Se você mesmo enviou alguma delas, o Lolly pede antes que você confirme que pode redistribuí-las.
 
@@ -361,3 +368,4 @@ Mudar o que um servidor fornece é tarefa de administrador: o operador dele alte
 - **[Brand architectures](/info/brand-architectures.html)**: como divisões, produtos, marcas endossadas, clientes e temporadas se encaixam em sistemas de design, variações de cores e identidades de logotipo.
 - **[Design Tokens](/info/design-tokens.html)**: o modelo de tokens em que a sua marca é escrita.
 - **[Export a file](/info/exporting.html)**: unidades de impressão, CMYK e os formatos em que a sua marca é renderizada.
+- **[Working with partners](/info/partners.html)**: compartilhar a sua marca com um parceiro e trabalhar em uma marca que você recebeu.

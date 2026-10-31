@@ -23,6 +23,7 @@
 - **[Design System Setup](/info/brand-studio.html)** - لوگوز، رنگ، ٹائپ اور باقی سب، `#/start` پر ایک بار سیٹ کریں۔
 - **[Lolly Demo کا استعمال](/info/lolly-demo-in-use.html)** - اصل کام پر کلر ویز، اور اپنے ڈیزائن سسٹم پر سوئچ کرنا۔
 - **[Brand architectures](/info/brand-architectures.html)** - ایک تنظیم کے لیے کئی ڈیزائن سسٹم، یا کئی کلر ویز والا ایک۔
+- **[Working with partners](/info/partners.html)** - اپنا برانڈ کسی پارٹنر کے ساتھ شیئر کریں، دیے گئے برانڈ میں کام کریں اور اسپانسر وال بنائیں۔
 - **[Import a design](/info/design-import.html)** - `.fig`، `.penpot`، `.ai`، `.idml` یا SVG فائل جو چپٹی تصویر کے بجائے قابل ترمیم لے آؤٹ کے طور پر کھلے۔
 - **[Rebrand a deck](/info/rebrand.html)** - PowerPoint ڈیک آپ کے ڈیزائن سسٹم پر، چارٹس اور اینیمیشنز برقرار۔
 - **[اصولوں کے ساتھ ڈیزائن شیئر کریں](/info/create-a-tool.html)** - لے آؤٹ کو ایسے ٹول میں بدلیں جسے دوسرے لوگ بھریں۔

@@ -33,6 +33,7 @@
 | **Tokens** | 圓角、間距、陰影與其他每個具名的值 | `tokens` |
 | **Files** | 你的品牌保存的圖片、音訊與動態檔案 | `catalogue` |
 | **Usage & rules** | 你的品牌套用的規則，在實際範例上檢查 | `usage` |
+| **Skills** | 品牌為人員與代理程式撰寫的標準，可閱讀與下載 | `skills` |
 
 以 `#/start?area=<key>` 連結到某個房間。Files 房間保留鍵 `catalogue`，因為房間鍵是永久的契約，而 `?tab=` 仍作為較舊的別名繼續有效。未知的鍵會開啟 Overview。
 
@@ -117,7 +118,7 @@
 
 應用程式自己的強調色預設跟隨設計系統。這就是 **Settings → Appearance** 中的 **Interface follows the design system** 設定；關閉該設定會讓應用程式的外框保持中性，而工具、畫布與匯出無論如何都跟隨設計系統。
 
-**Colourways。** 設計系統可以保存多個主色，每件作品各自選擇。Lolly 保留每一種配色方案，但這個房間目前還無法建立配色方案：配色方案是寫在 token 檔案中的。在有配色方案的系統上，每種配色方案都需要自己的主色與次要色，而在配色方案為背景著色時還需要自己的表面色，所以這些角色仍在色票編輯器中設定。[實際使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了在真實工作上的配色方案，[為設計系統加入配色方案](/info/colourways.html#add-colourways-to-a-design-system)則有格式說明。
+**Colourways。** 設計系統可以保存多個主色，每件作品各自選擇。**Colour roles** 頂端的 **Colourways** 列為每種配色方案顯示一個晶片，標準的那一種標有 **Default**。**+ Add** 會從調色盤的某個色彩開始一種新的配色方案。選擇一個晶片後，角色列、調色盤與預覽就會編輯該配色方案，外觀則依 **Light** 與 **Dark** 切換所選；所選的配色方案可以重新命名、複製、設為預設或移除。在有配色方案的系統上，每種配色方案都需要自己的主色與次要色，而在配色方案為背景著色時還需要自己的表面色，所以這些角色仍在色票編輯器中設定。[為設計系統加入配色方案](/info/colourways.html#add-colourways-to-a-design-system)有步驟與 token 格式，[實際使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)則展示了在真實工作上的配色方案。
 
 ### 找到更多色彩
 
@@ -273,6 +274,12 @@ Token 是設計系統背後的具名值：色彩、字型、標誌、圓角與�
 
 帶有固定品牌的建置版本會在 *This brand is set* 之下，以唯讀方式顯示相同的規則與範例。
 
+## Skills
+
+**Skills** 列出目前設計系統的[品牌技能](/info/brand-skills.html)：品牌的書面標準，每個專業領域一份，供人員與 AI 代理程式使用。每一列顯示專業領域、品牌自己的狀態（**Draft** 或 **Approved**）、技能是公開還是內部，以及它的修訂版。選擇一列即可在涵蓋範圍旁閱讀該技能，涵蓋範圍會把技能的各行與你的 token 對照：Lolly 檢查什麼、什麼衝突、什麼一致，以及什麼只是指引。
+
+**Download skill (.zip)** 會把技能寫成給代理工具使用的 Agent Skills 資料夾，目錄連結指向這個 Lolly；**Copy as one file** 則把同樣的文字放到剪貼簿，方便貼進聊天視窗。沒有自己技能的設計系統會列出一份基準，這份基準由 Lolly 每次讀取時依其 token 與內部規則寫成。這個房間只讀取技能，從不編輯。
+
 ## 匯入品牌
 
 側邊列底部的 **Add from…** 會開啟一個選擇器，詢問你有什麼，而不是它是什麼格式：
@@ -315,7 +322,7 @@ PDF 與設計檔案匯入保留自己的審閱控制項。**Tray** 中的項目�
 
 **Export** 會寫出一個 **`LollyBrand-….lolly`** 檔案：你的 token、字型、標誌與主題偏好，附有在匯入時檢查的完整性 manifest。1.0.7 之前的網頁版本把同一個檔案命名為 `.zip`，而那種寫法仍被接受。**Tokens (.json)** 單獨寫出純設計 token 文件，不含字型或標誌，供儲存庫、建置步驟或另一個 token 工具使用。
 
-若要帶回一個，請使用 **Add from… → Design tokens or a design file**，或把檔案拖放到工作室上。這就是同事把品牌交給你，或你把品牌帶到第二個安裝的方式，不需要帳號，也不需要雲端。若要從命令列帶入品牌，請見 [`ingest:brand`](/info/configuration.html#brand-packs)。
+若要帶回一個，請使用 **Add from… → Design tokens or a design file**，或把檔案拖放到工作室上。這就是同事把品牌交給你，或你把品牌帶到第二個安裝的方式，不需要帳號，也不需要雲端。[與夥伴合作](/info/partners.html)說明當收到你品牌的人任職於另一個組織時，還應該傳送什麼。若要從命令列帶入品牌，請見 [`ingest:brand`](/info/configuration.html#brand-packs)。
 
 **Fonts for Linux (.rpm)** 會把你新增的字型打包成可安裝的 RPM。如果其中有任何字型是你自己上傳的，Lolly 會先要求你確認你可以重新散布它們。
 
@@ -359,5 +366,6 @@ PDF 與設計檔案匯入保留自己的審閱控制項。**Tray** 中的項目�
 
 - **[使用 Lolly](/info/using.html)**：工具、儲存、分享與 Assets。
 - **[品牌架構](/info/brand-architectures.html)**：事業部、產品、背書品牌、客戶與季節如何對應到設計系統、配色方案與標誌身分。
+- **[與夥伴合作](/info/partners.html)**：與夥伴分享你的品牌，以及在別人交給你的品牌中工作。
 - **[設計 Token](/info/design-tokens.html)**：你的品牌所撰寫的 token 模型。
 - **[匯出檔案](/info/exporting.html)**：列印單位、CMYK，以及你的品牌渲染成的格式。

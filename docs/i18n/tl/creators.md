@@ -23,6 +23,7 @@ Ang design system mo ang nagpapasya kung ano ang itsura ng bawat tool.
 - **[Design System Setup](/info/brand-studio.html)** - mga logo, kulay, type at iba pa, itakda nang minsan sa `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - mga colourway sa totoong gawa, at paglipat sa sarili mong design system.
 - **[Brand architectures](/info/brand-architectures.html)** - ilang design system, o isa na may ilang colourway, para sa isang organisasyon.
+- **[Pakikipagtulungan sa mga partner](/info/partners.html)** - ibahagi ang brand mo sa partner, magtrabaho sa brand na ibinigay sa iyo at gumawa ng sponsor wall.
 - **[Import a design](/info/design-import.html)** - isang `.fig`, `.penpot`, `.ai`, `.idml` o SVG file na binubuksan bilang mae-edit na layout sa halip na flat na larawan.
 - **[Rebrand a deck](/info/rebrand.html)** - PowerPoint deck na inilipat sa design system mo, buo ang mga chart at animation.
 - **[Share a design with rules](/info/create-a-tool.html)** - gawing tool ang layout na pupunan ng ibang tao.

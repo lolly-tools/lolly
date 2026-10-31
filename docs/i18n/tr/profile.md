@@ -13,7 +13,7 @@ Profilin ayrıca çalışırken biriktirdiklerini de tutar: kayıtlı oturumlar,
 | **Location** | Şehir ve ülke. |
 | **Headshot** | E-posta imzaları, alıntı kartları ve organizasyon şemaları gibi araçlar için kareye kırpılmış ve yerel görsel olarak tutulan isteğe bağlı bir fotoğraf. |
 | **Use my details to create** | Tek bir isteğe bağlı anahtar (açıldığında **Using my details** yazar). Ayrıntılarının dışa aktarılan dosyalarda ve Batch çalıştırmalarında yazar atfı olarak gidip gitmeyeceğine karar verir. Önceden doldurmayı etkilemez; bkz. [Araçlar profilini nasıl kullanır](#how-tools-use-your-profile). |
-| **Preferences** | Temanın, erişilebilirlik ayarların ve **Feature flags** içinde açtığın uygulama bölümleri. |
+| **Preferences** | Temanın, her tasarım sistemindeki colourway'in, erişilebilirlik ayarların ve **Feature flags** içinde açtığın uygulama bölümleri. |
 | **Your work** | Küçük resimleriyle kayıtlı oturumlar, [Projects](/info/find-your-work.html) içinde düzenlenmiş, yüklenen görsellerin ve yerel etkinlik istatistiklerin. |
 
 Hiçbiri zorunlu değildir. Boş bir profil çalışır; yalnızca yazmaktan seni kurtaranı doldur.

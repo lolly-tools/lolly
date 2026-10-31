@@ -33,6 +33,7 @@ Studio to zestaw pokoi na szynie z boku, w dowolnej kolejności: nic nie jest nu
 | **Tokens** | Rogi, odstępy, cienie i każda inna nazwana wartość | `tokens` |
 | **Files** | Obrazy, audio i pliki ruchu, które przechowuje Twoja marka | `catalogue` |
 | **Usage & rules** | Reguły, które stosuje Twoja marka, sprawdzane na prawdziwych przykładach | `usage` |
+| **Umiejętności** | Spisane standardy marki dla ludzi i agentów, do czytania i pobrania | `skills` |
 
 Do pokoju prowadzi `#/start?area=<key>`. Pokój Files zachowuje klucz `catalogue`, ponieważ klucz pokoju to trwały kontrakt, a `?tab=` nadal działa jako starszy alias. Nieznany klucz otwiera Overview.
 
@@ -117,7 +118,7 @@ Gdy paleta ma odcienie, pasek pokazuje wszystkie siedem ról, które może czyta
 
 Własny akcent aplikacji domyślnie podąża za systemem projektowym. To ustawienie **Interface follows the design system** w **Settings → Appearance**; wyłączenie go zostawia obramowanie aplikacji neutralne, a narzędzia, kanwy i eksporty podążają za systemem projektowym w obu przypadkach.
 
-**Colourways.** System projektowy może mieć kilka kolorów wiodących, wybieranych dla każdej pracy. Lolly zachowuje każdy colourway, ale ten pokój nie potrafi jeszcze żadnego stworzyć: colourway zapisuje się w pliku tokenów. W systemie z colourway każdy colourway potrzebuje własnego koloru podstawowego i drugorzędnego, a własnej powierzchni, gdy colourway barwią tło, więc te role zostają w edytorze próbek. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) pokazuje colourway na prawdziwej pracy, a [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) ma format.
+**Colourways.** System projektowy może mieć kilka kolorów wiodących, wybieranych dla każdej pracy. Wiersz **Warianty kolorystyczne** na początku **Role kolorów** pokazuje po jednym chipie na każdy colourway, a **Domyślny** oznacza ten kanoniczny. **+ Dodaj** tworzy nowy colourway na podstawie jednego z kolorów palety. Wybierz chip, a pasek ról, paleta i podglądy edytują ten colourway, w wyglądzie wybranym przełącznikiem **Jasny** i **Ciemny**; wybranemu colourway można zmienić nazwę, zduplikować go, ustawić jako domyślny lub usunąć. W systemie z colourway każdy colourway potrzebuje własnego koloru podstawowego i drugorzędnego, a własnej powierzchni, gdy colourway barwią tło, więc te role zostają w edytorze próbek. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) zawiera kroki i format tokenów, a [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) pokazuje colourway na prawdziwej pracy.
 
 ### Znajdź więcej kolorów
 
@@ -273,6 +274,12 @@ Reguły, które system projektowy niesie w pliku tokenów, takie jak zatwierdzon
 
 Kompilacja dostarczana ze stałą marką pokazuje te same reguły i przykłady tylko do odczytu, pod *This brand is set*.
 
+## Umiejętności
+
+**Umiejętności** wymienia [brand skills](/info/brand-skills.html) aktywnego systemu projektowego: spisane standardy marki, po jednym na dyscyplinę, dla ludzi i agentów AI. Każdy wiersz podaje dyscyplinę, własny status marki (**Wersja robocza** lub **Zatwierdzone**), informację, czy umiejętność jest publiczna czy wewnętrzna, oraz jej rewizję. Wybierz wiersz, aby przeczytać umiejętność obok jej pokrycia, które zestawia linie umiejętności z Twoimi tokenami: co Lolly sprawdza, co jest sprzeczne, co się zgadza i co jest tylko wskazówką.
+
+**Pobierz umiejętność (.zip)** zapisuje umiejętność jako folder Agent Skills dla narzędzia agenta, z linkami do katalogu wskazującymi na ten Lolly, a **Kopiuj jako jeden plik** kopiuje ten sam tekst do schowka dla okna czatu. System projektowy bez własnych umiejętności wyświetla wersję bazową, którą Lolly zapisuje z jego tokenów i reguł stylu marki za każdym razem, gdy jest ona czytana. Pokój tylko czyta umiejętności i nigdy ich nie edytuje.
+
 ## Wprowadź markę
 
 **Add from…** na dole szyny otwiera selektor, który pyta, co masz, a nie jaki to format:
@@ -315,7 +322,7 @@ Zaznacz jeden wygląd, aby go przejrzeć, lub dwa, aby porównać obok siebie. Z
 
 **Export** zapisuje jeden plik **`LollyBrand-….lolly`**: Twoje tokeny, czcionki, logo i preferencję motywu, z manifestem integralności sprawdzanym przy wczytywaniu z powrotem. Wydania web przed 1.0.7 nazywały ten sam plik `.zip` i ta pisownia nadal jest akceptowana. **Tokens (.json)** zapisuje sam zwykły dokument tokenów projektowych, bez czcionek i logo, dla repozytorium, kroku budowania lub innego narzędzia tokenów.
 
-Aby przywrócić jeden, użyj **Add from… → Design tokens or a design file** albo upuść plik na studio. W ten sposób współpracownik przekazuje Ci markę lub przenosisz ją na drugą instalację, bez konta i bez chmury. Aby wprowadzić markę z wiersza poleceń, zobacz [`ingest:brand`](/info/configuration.html#brand-packs).
+Aby przywrócić jeden, użyj **Add from… → Design tokens or a design file** albo upuść plik na studio. W ten sposób współpracownik przekazuje Ci markę lub przenosisz ją na drugą instalację, bez konta i bez chmury. [Współpraca z partnerami](/info/partners.html) opisuje, co jeszcze wysłać, gdy osoba otrzymująca Twoją markę pracuje dla innej organizacji. Aby wprowadzić markę z wiersza poleceń, zobacz [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** pakuje dodane przez Ciebie czcionki w instalowalny RPM. Jeśli któreś wgrałeś sam, Lolly najpierw prosi o potwierdzenie, że możesz je redystrybuować.
 
@@ -361,3 +368,4 @@ Zmiana tego, co dostarcza serwer, jest zadaniem administratora: jego operator zm
 - **[Brand architectures](/info/brand-architectures.html)**: jak działy, produkty, marki poparte, klienci i sezony mapują się na systemy projektowe, colourway i tożsamości logo.
 - **[Design Tokens](/info/design-tokens.html)**: model tokenów, w którym zapisana jest Twoja marka.
 - **[Export a file](/info/exporting.html)**: jednostki druku, CMYK i formaty, w które renderuje Twoja marka.
+- **[Współpraca z partnerami](/info/partners.html)**: udostępnianie marki partnerowi i praca w marce, którą dostałeś.

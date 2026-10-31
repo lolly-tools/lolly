@@ -23,6 +23,7 @@ Il tuo design system decide l'aspetto di ogni strumento.
 - **[Design System Setup](/info/brand-studio.html)** - loghi, colori, tipografia e il resto, impostati una volta in `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourway su lavoro reale e passaggio al tuo design system.
 - **[Brand architectures](/info/brand-architectures.html)** - più design system, o uno con più colourway, per un'unica organizzazione.
+- **[Working with partners](/info/partners.html)** - condividi il tuo brand con un partner, lavora in un brand che ti è stato dato e crea un muro di sponsor.
 - **[Import a design](/info/design-import.html)** - un file `.fig`, `.penpot`, `.ai`, `.idml` o SVG aperto come layout modificabile e non come immagine piatta.
 - **[Rebrand a deck](/info/rebrand.html)** - un deck PowerPoint portato sul tuo design system, con grafici e animazioni intatti.
 - **[Share a design with rules](/info/create-a-tool.html)** - trasforma un layout in uno strumento che altre persone compilano.

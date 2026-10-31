@@ -13,7 +13,7 @@ Il tuo profilo contiene anche ciò che accumuli mentre lavori: sessioni salvate,
 | **Location** | Città e paese. |
 | **Headshot** | Una foto facoltativa, ritagliata in un quadrato e conservata come immagine locale, per strumenti come firme email, schede di citazione e organigrammi. |
 | **Use my details to create** | Un interruttore opt-in (diventa **Using my details** una volta attivo). Decide se i tuoi dati viaggiano come credito d'autore nei file esportati e nelle esecuzioni Batch. Non influisce sulla precompilazione; vedi [Come gli strumenti usano il tuo profilo](#how-tools-use-your-profile). |
-| **Preferences** | Il tuo tema, le impostazioni di accessibilità e quali parti dell'app hai attivato in **Feature flags**. |
+| **Preferences** | Il tuo tema, la tua colourway in ogni design system, le impostazioni di accessibilità e quali parti dell'app hai attivato in **Feature flags**. |
 | **Your work** | Sessioni salvate con le loro miniature, organizzate in [Projects](/info/find-your-work.html), le tue immagini caricate e le tue statistiche locali di attività. |
 
 Nulla è obbligatorio. Un profilo vuoto funziona; compila solo ciò che ti risparmia la digitazione.

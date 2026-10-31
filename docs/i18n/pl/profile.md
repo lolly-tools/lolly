@@ -13,7 +13,7 @@ Twój profil przechowuje też to, co gromadzisz w trakcie pracy: zapisane sesje,
 | **Location** | Miasto i kraj. |
 | **Headshot** | Opcjonalne zdjęcie, przycięte do kwadratu i zachowane jako lokalny obraz, dla narzędzi takich jak podpisy e-mail, karty cytatów i schematy organizacyjne. |
 | **Use my details to create** | Jeden przełącznik zgody (po włączeniu brzmi **Using my details**). Decyduje, czy Twoje dane podróżują jako podpis autora w wyeksportowanych plikach i w przebiegach Batch. Nie wpływa na wstępne wypełnianie; zobacz [How tools use your profile](#how-tools-use-your-profile). |
-| **Preferences** | Twój motyw, ustawienia dostępności i to, które części aplikacji włączyłeś w **Feature flags**. |
+| **Preferences** | Twój motyw, Twój colourway w każdym systemie projektowym, ustawienia dostępności i to, które części aplikacji włączyłeś w **Feature flags**. |
 | **Your work** | Zapisane sesje z miniaturami, uporządkowane w [Projects](/info/find-your-work.html), Twoje wgrane obrazy i lokalne statystyki aktywności. |
 
 Nic z tego nie jest wymagane. Pusty profil działa; wypełnij tylko to, co oszczędza Ci pisania.

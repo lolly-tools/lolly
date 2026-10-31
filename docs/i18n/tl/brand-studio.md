@@ -33,6 +33,7 @@ Ang studio ay hanay ng mga room sa rail sa gilid, nang walang takdang pagkakasun
 | **Tokens** | Mga sulok, spacing, anino at bawat ibang pinangalanang value | `tokens` |
 | **Files** | Ang mga larawan, audio at motion file na iniingatan ng brand mo | `catalogue` |
 | **Usage & rules** | Ang mga rule na inilalapat ng brand mo, sinusuri sa totoong halimbawa | `usage` |
+| **Skills** | Ang mga nakasulat na pamantayan ng brand para sa mga tao at ahente, na babasahin at ida-download | `skills` |
 
 Mag-link sa room gamit ang `#/start?area=<key>`. Pinapanatili ng Files room ang key na `catalogue`, dahil permanenteng kontrata ang room key, at gumagana pa rin ang `?tab=` bilang mas lumang alias. Ang hindi kilalang key ay nagbubukas ng Overview.
 
@@ -117,7 +118,7 @@ Kapag may mga shade na ang palette, ipinapakita ng strip ang lahat ng pitong rol
 
 Ang sariling accent ng app ay sumusunod sa design system bilang default. Iyon ang setting na **Interface follows the design system** sa **Settings → Appearance**; ang pag-off ng setting ay iniiwang neutral ang chrome ng app, habang ang mga tool, canvas at export ay sumusunod sa design system sa alinmang paraan.
 
-**Mga colourway.** Ang design system ay puwedeng may ilang lead colour, bawat isa ay pinipili bawat piraso. Iniingatan ng Lolly ang bawat colourway, pero hindi pa kayang gawin ng room na ito ang isa: ang colourway ay isinusulat sa token file. Sa system na may mga colourway, kailangan ng bawat colourway ang sarili nitong primary at secondary, at sarili nitong surface kapag tinatint ng mga colourway ang background, kaya nananatiling nakatakda ang mga role na iyon sa swatch editor. Ipinapakita ng [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) ang mga colourway sa totoong gawa, at nasa [Magdagdag ng mga colourway sa design system](/info/colourways.html#add-colourways-to-a-design-system) ang format.
+**Mga colourway.** Ang design system ay puwedeng may ilang lead colour, bawat isa ay pinipili bawat piraso. Iniingatan ng Lolly ang bawat colourway. Ang hanay na **Colourways** sa itaas ng **Colour roles** ay may isang chip bawat colourway, na may **Default** sa canonical. Ang **+ Add** ay nagsisimula ng bagong colourway mula sa isa sa mga kulay ng palette. Pumili ng chip, at ang roles strip, ang palette at ang mga preview ay ine-edit ang colourway na iyon, sa itsurang pinipili ng switch na **Light** at **Dark**; ang napiling colourway ay puwedeng palitan ng pangalan, i-duplicate, gawing default o alisin. Sa system na may mga colourway, kailangan ng bawat colourway ang sarili nitong primary at secondary, at sarili nitong surface kapag tinatint ng mga colourway ang background, kaya nananatiling nakatakda ang mga role na iyon sa swatch editor. Nasa [Magdagdag ng mga colourway sa design system](/info/colourways.html#add-colourways-to-a-design-system) ang mga hakbang at ang token format, at ipinapakita ng [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) ang mga colourway sa totoong gawa.
 
 ### Humanap ng mas maraming kulay
 
@@ -273,6 +274,12 @@ Ang **Try your brand in use** ay nagre-render ng apat na halimbawa mula sa kasal
 
 Ang build na may kasamang nakapirming brand ay nagpapakita ng parehong mga rule at halimbawa na read-only, sa ilalim ng *This brand is set*.
 
+## Skills
+
+Inililista ng **Skills** ang [brand skills](/info/brand-skills.html) ng aktibong design system: ang mga nakasulat na pamantayan ng brand, isa bawat disiplina, para sa mga tao at AI agent. Ang bawat row ay nagbibigay ng disiplina, ang sariling status ng brand (**Draft** o **Approved**), kung pampubliko o internal ang skill at ang revision nito. Pumili ng row para basahin ang skill sa tabi ng coverage nito, na naghahambing ng mga linya ng skill sa mga token mo: ang sinusuri ng Lolly, ang nagkakasalungat, ang nagkakasundo at ang gabay lang.
+
+Isinusulat ng **Download skill (.zip)** ang skill bilang Agent Skills folder para sa agent tool, na ang mga catalog link ay tumuturo sa Lolly na ito, at inilalagay ng **Copy as one file** ang parehong text sa clipboard para sa chat window. Ang design system na walang sariling skill ay naglilista ng baseline na isinusulat ng Lolly mula sa mga token at house rule nito sa tuwing binabasa ang baseline. Nagbabasa ng skill ang room at hindi kailanman nag-e-edit.
+
 ## Magdala ng isang brand
 
 Ang **Add from…** sa paanan ng rail ay nagbubukas ng picker na nagtatanong kung ano ang meron ka, hindi kung anong format ito:
@@ -315,7 +322,7 @@ Pumili ng isang look para i-review ito, o dalawa para ihambing nang magkatabi. W
 
 Ang **Export** ay nagsusulat ng isang **`LollyBrand-….lolly`** file: ang mga token, font, logo at theme preference mo, na may integrity manifest na sinusuri pagbalik. Ang mga web release bago ang 1.0.7 ay pinangalanang `.zip` ang parehong file, at tinatanggap pa rin ang baybay na iyon. Ang **Tokens (.json)** ay nagsusulat ng payak na design-tokens na dokumento nang mag-isa, walang font o logo, para sa repository, build step o ibang tokens tool.
 
-Para ibalik ang isa, gamitin ang **Add from… → Design tokens or a design file**, o i-drop ang file sa studio. Ganito ibinibigay sa iyo ng kasamahan ang brand, o dinadala mo ang isa sa pangalawang install, nang walang account at walang cloud. Para magdala ng brand mula sa command line, tingnan ang [`ingest:brand`](/info/configuration.html#brand-packs).
+Para ibalik ang isa, gamitin ang **Add from… → Design tokens or a design file**, o i-drop ang file sa studio. Ganito ibinibigay sa iyo ng kasamahan ang brand, o dinadala mo ang isa sa pangalawang install, nang walang account at walang cloud. Sinasaklaw ng [Pakikipagtulungan sa mga partner](/info/partners.html) kung ano pa ang ipapadala kapag ang tatanggap ng brand mo ay nagtatrabaho sa ibang organisasyon. Para magdala ng brand mula sa command line, tingnan ang [`ingest:brand`](/info/configuration.html#brand-packs).
 
 Ang **Fonts for Linux (.rpm)** ay nagpa-pack ng mga font na idinagdag mo sa naii-install na RPM. Kung ikaw mismo ang nag-upload ng alinman sa mga ito, hihilingin muna ng Lolly na kumpirmahin mong puwede mong i-redistribute ang mga ito.
 
@@ -359,5 +366,6 @@ Sine-save ng **Download design context** ang token document, mga nareresolbang k
 
 - **[Paggamit ng Lolly](/info/using.html)**: ang mga tool, pag-save, pagbabahagi at Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: kung paano nagmamapa ang mga division, produkto, endorsed brand, kliyente at season sa mga design system, colourway at logo identity.
+- **[Pakikipagtulungan sa mga partner](/info/partners.html)**: pagbabahagi ng brand mo sa partner, at pagtatrabaho sa brand na ibinigay sa iyo.
 - **[Design Tokens](/info/design-tokens.html)**: ang token model na pinagsusulatan ng brand mo.
 - **[Mag-export ng file](/info/exporting.html)**: mga print unit, CMYK at ang mga format na pinagre-renderan ng brand mo.

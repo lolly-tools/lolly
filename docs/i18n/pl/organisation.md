@@ -75,6 +75,10 @@ Twoja organizacja hostuje [Lolly Work](https://github.com/lolly-tools/lolly-work
 Jeśli konfigurujesz usługę, zacznij od [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Publiczne demo pod [lolly.work](https://lolly.work) to piaskownica; do pracy, którą chcesz zachować, użyj własnego adresu organizacji.
 :::
 
+## Marka innej organizacji
+
+Partner, klient lub sponsor może wysłać ci swoją markę jako plik systemu projektowego (`.lolly`), a nie jako adres. Otwarcie takiego pliku niczego nie łączy z aplikacją: dodaje ich system projektowy obok twojego na tym urządzeniu. Plik instalacyjny od twojej własnej organizacji jest inny, bo łączy aplikację z Lolly organizacji, a podgląd pokazuje, co zrobi otwarcie pliku, zanim cokolwiek się zmieni. [Współpraca z partnerami](/info/partners.html) opisuje obie strony pracy w marce innej organizacji.
+
 ## Opuszczanie
 
 **Leave** na karcie **Lolly instance** w **Settings** usuwa system projektowy, narzędzia i katalog Twojej organizacji. Twoja własna praca zostaje. Wszystko, co zrobiłeś jej narzędziami, nie otworzy się ponownie, dopóki się nie połączysz.

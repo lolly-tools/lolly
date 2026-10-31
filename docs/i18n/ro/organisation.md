@@ -75,6 +75,10 @@ Organizația ta găzduiește [Lolly Work](https://github.com/lolly-tools/lolly-w
 Dacă configurezi serviciul, începe cu [Instalare](/info/deployment.html#organisation-services-with-lolly-work). Demo-ul public de la [lolly.work](https://lolly.work) este un sandbox; folosește adresa proprie a organizației tale pentru munca pe care trebuie să o păstrezi.
 :::
 
+## Brandul altei organizații
+
+Un partener, un client sau un sponsor îți poate trimite brandul lui ca fișier de sistem de design (`.lolly`), nu ca adresă. Deschiderea unui astfel de fișier nu conectează aplicația la nimic: adaugă sistemul lor de design lângă al tău, pe acest dispozitiv. Un fișier de configurare de la propria ta organizație este altceva, pentru că conectează aplicația la Lolly-ul organizației, iar previzualizarea arată ce va face deschiderea unui fișier înainte să se schimbe ceva. [Lucrul cu partenerii](/info/partners.html) acoperă ambele părți ale lucrului în brandul altei organizații.
+
 ## Părăsirea
 
 **Leave**, pe cardul **Lolly instance** din **Settings**, elimină sistemul de design, instrumentele și catalogul organizației tale. Munca ta rămâne. Tot ce ai făcut cu instrumentele ei nu se va mai deschide până te reconectezi.

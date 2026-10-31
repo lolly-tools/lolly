@@ -33,6 +33,7 @@ Studioul este un set de camere într-o bară pe margine, fără ordine fixă: ni
 | **Tokens** | Colțuri, spațiere, umbre și orice altă valoare cu nume | `tokens` |
 | **Files** | Imaginile, audio și fișierele de mișcare pe care le păstrează brandul tău | `catalogue` |
 | **Usage & rules** | Regulile pe care le aplică brandul tău, verificate pe exemple reale | `usage` |
+| **Skills** | Standardele scrise ale brandului pentru oameni și agenți, de citit și descărcat | `skills` |
 
 Fă link la o cameră cu `#/start?area=<key>`. Camera Files păstrează cheia `catalogue`, pentru că o cheie de cameră este un contract permanent, iar `?tab=` funcționează în continuare ca alias mai vechi. O cheie necunoscută deschide Overview.
 
@@ -117,7 +118,7 @@ Odată ce paleta are nuanțe, banda arată toate cele șapte roluri pe care le p
 
 Accentul propriu al aplicației urmează implicit sistemul de design. Aceasta este setarea **Interface follows the design system** din **Settings → Appearance**; oprirea ei lasă interfața aplicației neutră, în timp ce instrumentele, canvasurile și exporturile urmează sistemul de design în ambele cazuri.
 
-**Colourway-uri.** Un sistem de design poate conține mai multe culori principale, alese pe piesă. Lolly păstrează fiecare colourway, dar această cameră nu poate crea încă unul: un colourway este scris în fișierul de tokenuri. Într-un sistem cu colourway-uri, fiecare colourway are nevoie de propria primară și secundară și de propria suprafață când colourway-urile nuanțează fundalul, deci acele roluri rămân setate în editorul de mostre. [Lolly Demo în uz](/info/lolly-demo-in-use.html#colourways-on-real-work) arată colourway-uri pe muncă reală, iar [Adaugă colourway-uri unui sistem de design](/info/colourways.html#add-colourways-to-a-design-system) are formatul.
+**Colourway-uri.** Un sistem de design poate conține mai multe culori principale, alese pe piesă. Rândul **Variante de culoare** de la începutul **Roluri de culoare** arată câte un chip pentru fiecare colourway, cu **Implicit** pe cel canonic. **+ Adaugă** începe un colourway nou dintr-o culoare a paletei. Alege un chip, iar banda de roluri, paleta și previzualizările editează acel colourway, în aspectul ales de comutatorul **Luminos** și **Întunecat**; colourway-ul ales poate fi redenumit, duplicat, făcut implicit sau eliminat. Într-un sistem cu colourway-uri, fiecare colourway are nevoie de propria primară și secundară și de propria suprafață când colourway-urile nuanțează fundalul, deci acele roluri rămân setate în editorul de mostre. [Adaugă colourway-uri unui sistem de design](/info/colourways.html#add-colourways-to-a-design-system) are pașii și formatul tokenurilor, iar [Lolly Demo în uz](/info/lolly-demo-in-use.html#colourways-on-real-work) arată colourway-uri pe muncă reală.
 
 ### Găsește mai multe culori
 
@@ -273,6 +274,12 @@ Regulile pe care un sistem de design le aduce în fișierul său de tokenuri, pr
 
 Un build care vine cu un brand fix arată aceleași reguli și exemple doar pentru citire, sub *This brand is set*.
 
+## Skills
+
+**Skills** listează [skillurile de brand](/info/brand-skills.html) ale sistemului de design activ: standardele scrise ale brandului, câte unul pentru fiecare disciplină, pentru oameni și agenți IA. Fiecare rând dă disciplina, starea proprie a brandului (**Ciornă** sau **Aprobat**), dacă skillul este public sau intern și revizia lui. Alege un rând ca să citești skillul lângă acoperirea lui, care pune rândurile skillului față în față cu tokenurile tale: ce verifică Lolly, ce intră în conflict, ce concordă și ce este doar îndrumare.
+
+**Descarcă abilitatea (.zip)** scrie skillul ca folder Agent Skills pentru o unealtă de agent, cu linkuri de catalog către acest Lolly, iar **Copiază ca un singur fișier** pune același text în clipboard pentru o fereastră de chat. Un sistem de design fără skilluri proprii listează un skill de bază pe care Lolly îl scrie din tokenurile și regulile de casă ale sistemului de fiecare dată când baza este citită. Camera citește skillurile și nu le editează niciodată.
+
 ## Adu un brand
 
 **Add from…** la baza barei deschide un selector care întreabă ce ai, nu ce format este:
@@ -315,7 +322,7 @@ Selectează un aspect ca să-l revizuiești sau două ca să le compari alătura
 
 **Export** scrie un singur fișier **`LollyBrand-….lolly`**: tokenurile, fonturile, logourile și preferința de temă, cu un manifest de integritate verificat la reintrare. Versiunile web dinainte de 1.0.7 numeau același fișier `.zip`, iar acea scriere este tot acceptată. **Tokens (.json)** scrie singur documentul simplu de design tokens, fără fonturi sau logouri, pentru un depozit, un pas de build sau alt instrument de tokenuri.
 
-Ca să aduci unul înapoi, folosește **Add from… → Design tokens or a design file** sau plasează fișierul pe studio. Așa îți dă un coleg un brand sau așa duci unul pe o a doua instalare, fără cont și fără cloud. Ca să aduci un brand din linia de comandă, vezi [`ingest:brand`](/info/configuration.html#brand-packs).
+Ca să aduci unul înapoi, folosește **Add from… → Design tokens or a design file** sau plasează fișierul pe studio. Așa îți dă un coleg un brand sau așa duci unul pe o a doua instalare, fără cont și fără cloud. [Lucrul cu partenerii](/info/partners.html) acoperă ce altceva să trimiți când persoana care primește brandul tău lucrează pentru altă organizație. Ca să aduci un brand din linia de comandă, vezi [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** împachetează fonturile adăugate într-un RPM instalabil. Dacă ai încărcat singur vreunul dintre ele, Lolly îți cere mai întâi să confirmi că ai dreptul să le redistribui.
 
@@ -359,5 +366,6 @@ Schimbarea a ce furnizează un server este o sarcină de administrator: operator
 
 - **[Folosirea Lolly](/info/using.html)**: instrumentele, salvarea, partajarea și Assets.
 - **[Arhitecturi de brand](/info/brand-architectures.html)**: cum se mapează diviziile, produsele, brandurile susținute, clienții și sezoanele pe sisteme de design, colourway-uri și identități de logo.
+- **[Lucrul cu partenerii](/info/partners.html)**: partajarea brandului tău cu un partener și lucrul într-un brand primit.
 - **[Design Tokens](/info/design-tokens.html)**: modelul de tokenuri în care este scris brandul tău.
 - **[Exportă un fișier](/info/exporting.html)**: unități de tipar, CMYK și formatele în care randează brandul tău.

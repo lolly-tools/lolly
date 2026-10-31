@@ -19,7 +19,7 @@ Preferences একটি দীর্ঘ পৃষ্ঠা, পাশে এক
 - <!--i:usercheck--> **Your details** - আপনার নাম, যোগাযোগের বিবরণ ও হেডশট, এবং **Use my details to create** সুইচ। টুল সেগুলো কীভাবে ব্যবহার করে তা [Profiles](/info/profile.html)-এ ব্যাখ্যা করা।
 - <!--i:seal--> **Content Credentials** - ঐচ্ছিক যাচাইকৃত পরিচয় যা আপনার এক্সপোর্টে সাইন করে। দেখুন [Content Credentials](/info/content-credentials-identity.html)।
 - <!--i:palette--> **Design systems** - ডিজাইন সিস্টেম বদলান, যোগ করুন, লুকান বা সরান। প্রতিটি অ্যাকশন [Design System Setup](/info/brand-studio.html#manage-your-design-systems)-এ আছে।
-- <!--i:moon--> **Appearance** - থিম (Light, Dark বা Brand, যা অ্যাপকে আপনার প্যালেটে রাঙায়) এবং **Interface follows the design system**।
+- <!--i:moon--> **Appearance** - থিম (Light, Dark বা Brand, যা অ্যাপকে আপনার প্যালেটে রাঙায়), **Your colourway** যখন ডিজাইন সিস্টেম একাধিক দেয় ([কালারওয়ে নিজের করে নিন](/info/colourways.html#make-a-colourway-your-own)) এবং **Interface follows the design system**।
 - <!--i:sparkle--> **Emoji** - নতুন কিছু শুরু করলে আপনার ইমোজি যে সেট থেকে আঁকা হয়, তার শিল্পকর্ম লাইসেন্সসহ, এবং আপনার প্যালেট সেগুলো কতটা পুনরায় রাঙায় (**Off**, **Subtle**, **Strong**, **Full**, **Mono** বা **Duotone**)। **Keep skin tones and flags** সেগুলোকে নিজেদের রঙে রাখে। আপনার আগে করা কাজ যে সেটে বানানো হয়েছিল সেটিই রাখে।
 - <!--i:eyeoff--> **Accessibility** - চারটি আরামের সুইচ, সঙ্গে Sound ও Neurospicy Mode। দেখুন [Accessibility](#accessibility)।
 - <!--i:link--> **Connected services** - আপনার সংযুক্ত করা স্টোরেজ, যেমন Dropbox, Google Drive, OneDrive, Nextcloud বা S3, এবং **Sync across devices**। দেখুন [Sync your devices](/info/sync.html)।

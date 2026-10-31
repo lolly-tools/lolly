@@ -33,6 +33,7 @@ Studion är en uppsättning rum i en rail längs sidan, i ingen fast ordning: in
 | **Tokens** | Hörn, avstånd, skuggor och varje annat namngivet värde | `tokens` |
 | **Files** | Bild-, ljud- och rörelsefilerna ditt varumärke behåller | `catalogue` |
 | **Usage & rules** | Reglerna ditt varumärke tillämpar, kontrollerade på verkliga exempel | `usage` |
+| **Skills** | Varumärkets skrivna riktlinjer för människor och agenter, att läsa och ladda ner | `skills` |
 
 Länka till ett rum med `#/start?area=<key>`. Rummet Files behåller nyckeln `catalogue`, eftersom en rumsnyckel är ett permanent kontrakt, och `?tab=` fungerar fortfarande som ett äldre alias. En okänd nyckel öppnar Overview.
 
@@ -117,7 +118,7 @@ När paletten har nyanser visar bandet alla sju roller ett verktyg kan läsa: Pr
 
 Appens egen accent följer designsystemet som standard. Det är inställningen **Interface follows the design system** i **Settings → Appearance**; att stänga av den lämnar appens gränssnitt neutralt, medan verktyg, ytor och exporter följer designsystemet i båda fallen.
 
-**Färgvarianter.** Ett designsystem kan hålla flera ledfärger, var och en vald per stycke. Lolly behåller varje färgvariant, men det här rummet kan ännu inte skapa en: en färgvariant skrivs i tokenfilen. På ett system med färgvarianter behöver varje färgvariant sin egen primär- och sekundärfärg, och sin egen yta när färgvarianterna färgar bakgrunden, så de rollerna förblir inställda i färgprovsredigeraren. [Lolly Demo i bruk](/info/lolly-demo-in-use.html#colourways-on-real-work) visar färgvarianter på verkligt arbete, och [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) har formatet.
+**Färgvarianter.** Ett designsystem kan hålla flera ledfärger, var och en vald per stycke. Raden **Colourways** överst i **Colour roles** visar en chip per färgvariant, med **Default** på den kanoniska. **+ Add** startar en ny färgvariant från en av palettens färger. Välj en chip, så redigerar rollremsan, paletten och förhandsvisningarna den färgvarianten, i det utseende som växlaren **Light** och **Dark** väljer; den valda färgvarianten kan byta namn, dupliceras, göras till standard eller tas bort. På ett system med färgvarianter behöver varje färgvariant sin egen primär- och sekundärfärg, och sin egen yta när färgvarianterna färgar bakgrunden, så de rollerna förblir inställda i färgprovsredigeraren. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) har stegen och tokenformatet, och [Lolly Demo i bruk](/info/lolly-demo-in-use.html#colourways-on-real-work) visar färgvarianter på verkligt arbete.
 
 ### Hitta fler färger
 
@@ -273,6 +274,12 @@ Regler som ett designsystem medför i sin tokenfil, som godkända färgpar, text
 
 Ett bygge som levereras med ett fast varumärke visar samma regler och exempel skrivskyddade, under *This brand is set*.
 
+## Skills
+
+**Skills** listar det aktiva designsystemets [varumärkesfärdigheter](/info/brand-skills.html): varumärkets skrivna riktlinjer, en per disciplin, för människor och AI-agenter. Varje rad anger disciplinen, varumärkets egen status (**Draft** eller **Approved**), om färdigheten är offentlig eller intern och dess revision. Välj en rad för att läsa färdigheten bredvid dess täckning, som ställer färdighetens rader mot dina tokens: vad Lolly kontrollerar, vad som står i konflikt, vad som stämmer och vad som bara är vägledning.
+
+**Download skill (.zip)** skriver färdigheten som en Agent Skills-mapp för ett agentverktyg, med kataloglänkar som pekar till den här Lolly, och **Copy as one file** lägger samma text på urklipp för ett chattfönster. Ett designsystem utan egna färdigheter listar en baslinje som Lolly skriver från dess tokens och husregler varje gång baslinjen läses. Rummet läser färdigheter och redigerar dem aldrig.
+
 ## Ta in ett varumärke
 
 **Add from…** längst ner i railen öppnar en väljare som frågar vad du har, inte vilket format det är:
@@ -315,7 +322,7 @@ Välj en look för att granska den, eller två för att jämföra sida vid sida.
 
 **Export** skriver en **`LollyBrand-….lolly`**-fil: dina tokens, typsnitt, logotyper och temaval, med ett integritetsmanifest som kontrolleras på vägen tillbaka in. Webbversioner före 1.0.7 kallade samma fil `.zip`, och den stavningen godtas fortfarande. **Tokens (.json)** skriver det rena designtokendokumentet ensamt, utan typsnitt eller logotyper, för ett arkiv, ett byggsteg eller ett annat tokenverktyg.
 
-För att ta tillbaka ett använder du **Add from… → Design tokens or a design file**, eller släpper filen på studion. Så lämnar en kollega över ett varumärke till dig, eller så för du ett till en andra installation, utan konto och utan moln. För att ta in ett varumärke från kommandoraden, se [`ingest:brand`](/info/configuration.html#brand-packs).
+För att ta tillbaka ett använder du **Add from… → Design tokens or a design file**, eller släpper filen på studion. Så lämnar en kollega över ett varumärke till dig, eller så för du ett till en andra installation, utan konto och utan moln. [Samarbeta med partners](/info/partners.html) beskriver vad mer du ska skicka när den som tar emot ditt varumärke arbetar för en annan organisation. För att ta in ett varumärke från kommandoraden, se [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** paketerar typsnitten du lagt till i en installerbar RPM. Om du själv laddat upp något av dem ber Lolly dig först bekräfta att du får vidaredistribuera dem.
 
@@ -359,5 +366,6 @@ Att ändra vad en server tillhandahåller är en administratörsuppgift: dess op
 
 - **[Använda Lolly](/info/using.html)**: verktygen, att spara, dela och Assets.
 - **[Varumärkesarkitekturer](/info/brand-architectures.html)**: hur divisioner, produkter, endorsed brands, kunder och säsonger avbildas på designsystem, färgvarianter och logotypidentiteter.
+- **[Samarbeta med partners](/info/partners.html)**: dela ditt varumärke med en partner och arbeta i ett varumärke du fått.
 - **[Design Tokens](/info/design-tokens.html)**: tokenmodellen ditt varumärke är skrivet i.
 - **[Exportera en fil](/info/exporting.html)**: tryckenheter, CMYK och formaten ditt varumärke renderas till.

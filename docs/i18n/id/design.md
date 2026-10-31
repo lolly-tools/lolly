@@ -10,9 +10,9 @@ Halaman ini menelusuri kanvas dari kotak pertama hingga deck selesai: jendela, m
 
 **Bilah atas** dimulai dengan **Home**, **File menu**, dan nama dokumen (klik nama untuk mengganti nama dokumen). Bagian tengah memuat **Undo**, **Redo**, **History**, kontrol zoom (dengan **Fit all** dan **Fit artboard**), dan sakelar untuk **Timeline**, **Navigator**, dan **Inspector**. Di kanan ada **Share**, **Present**, dan **Export**. Di ponsel, tombol yang lebih jarang dipakai pindah ke **More actions**.
 
-**Rel alat** di sisi memuat menu Lolly dan alat untuk menggambar: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, lalu tombol Timeline, Artboards, dan Auto-arrange.
+**Rel alat** di sisi memuat menu Lolly dan alat untuk menggambar: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, lalu tombol Timeline, Artboards, dan Auto-arrange.
 
-![Rel tool kanvas bebas: pegangan seret, menu Lolly, lalu Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Rel tool kanvas bebas: pegangan seret, menu Lolly, lalu Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Kanvas bekerja seperti pasteboard desainer di sekitar artboard:
 
@@ -68,17 +68,26 @@ Tanpa tombol yang ditahan, putaran ditarik ke 15 derajat terdekat begitu berada 
 
 ## Gambar bentuk Anda sendiri
 
-Kotak, lingkaran, dan bingkai bulat mencakup sebagian besar tata letak. Untuk bentuk lain, gambarlah: tombol **Pen** di rel (atau `P`) membawa Anda ke mode menggambar. Tiga tombol tunggal berpindah antar mode: `V` untuk Pointer, `P` untuk Pen, dan `N` untuk **Edit points**. Pointer selalu menjadi jalan keluar.
+Kotak, lingkaran, dan bingkai bulat mencakup sebagian besar tata letak. Untuk bentuk lain, gambarlah: tombol **Pen** di rel (atau `P`) membawa Anda ke mode menggambar. Empat tombol berpindah antar mode: `V` untuk Pointer, `P` untuk Pen, `Shift C` untuk **Pencil**, dan `N` untuk **Edit points**. Pointer selalu menjadi jalan keluar.
 
 - **Klik** untuk menempatkan titik. Pada tipe kurva default, **klik dan seret** menarik handle titik untuk membuat kurva; tahan **Alt** saat mengeklik untuk sudut keras. (Pada tipe kurva lain setiap titik adalah sudut dan seretan tidak berefek.)
-- Titik menjepret ke artboard dan kotak lain saat Anda menempatkannya. Alt menekan grid saat Anda menggambar, dan grid serta tepi sekaligus saat Anda menyeret titik sesudahnya.
+- Tahan **Shift** saat mengeklik dan segmen baru meninggalkan titik sebelumnya pada kelipatan 15 derajat, sehingga garis datar, tegak, dan 45 derajat keluar tepat. Shift saat menyeret handle keluar menggeser handle dengan cara yang sama.
+- Titik menjepret ke artboard, kotak lain, dan titik lain pada path yang sama saat Anda menempatkannya, sehingga sebuah titik sejajar dengan titik yang Anda tempatkan sebelumnya. Alt menekan grid saat Anda menggambar, dan grid serta tepi sekaligus saat Anda menyeret titik sesudahnya.
 - **Klik titik pertama Anda** untuk menutup bentuk. Jika tidak, tekan **Enter**, klik dua kali, atau ganti alat, dan gambar dipertahankan.
 - **Escape** bekerja satu langkah demi satu: tekanan pertama membatalkan gambar, yang kedua meninggalkan pen.
-- **Delete** saat menggambar menghapus titik terakhir.
+- **Delete**, atau Undo (`⌘ Z` atau `Ctrl Z`), saat menggambar menghapus titik terakhir.
+
+**Lanjutkan path terbuka.** Dengan Pen aktif, tekan salah satu ujung path terbuka dan Anda menggambar path itu lagi: setiap klik menambah titik setelah ujung itu, atau di depan titik pertama bila Anda mulai dari awal. Enter mempertahankan hasilnya dan Escape membiarkan path persis seperti semula. Path tetap kotak yang sama, dengan isian, garis, dan kepala panahnya, dan satu undo mengembalikannya. Delete hanya menarik kembali titik yang Anda tambahkan. Bentuk tertutup, garis yang terpasang pada kotak, dan path dengan beberapa bagian tidak memiliki ujung bebas untuk dilanjutkan.
+
+**Gambar bebas dengan Pencil.** Tombol **Pencil** di rel (atau `Shift C`) merekam goresan Anda selama menyeret. Saat dilepas, Lolly menghaluskan goresan menjadi beberapa titik dengan handle Bezier, mempertahankan belokan tajam sebagai sudut, dan menjaga kurva dalam jarak beberapa piksel layar dari jalur tangan Anda. Goresan yang berakhir dekat awalnya akan menutup. Hasilnya adalah path biasa, dengan cat yang sama seperti path pen, dan Anda dapat menyunting titiknya sesudahnya.
 
 Hasilnya adalah kotak biasa. Pindahkan, ubah ukuran, putar, kelompokkan, ratakan, susun ulang, isi, beri bayangan, atau pudarkan path seperti kotak lain. Path pertama mengambil isian dan garis yang diberikan brand Anda untuk path, dan setiap path baru sesudahnya mengambil apa pun yang terakhir Anda pakai. Pada alat yang brand-nya tidak menetapkan apa pun untuk path, path baru digaris dengan warna yang Anda pakai untuk menggambar, sehingga bentuk tidak pernah tak terlihat.
 
 **Sunting titiknya lagi.** Klik dua kali bentuk, atau gunakan **Edit points** di bilah objek. Seret titik untuk memindahkannya, seret handle untuk mengarahkan ulang kurva, klik pada kurva untuk menyisipkan titik, atau seret kotak mengelilingi beberapa titik dan tekan Delete. Path selalu mempertahankan setidaknya dua titik.
+
+- Tahan **Shift** saat menyeret titik dan sudutnya dari titik berikutnya di path yang tidak bergerak berpindah dalam langkah 15 derajat. Shift saat menyeret handle menggeser handle mengitari titiknya sendiri. Shift saat mengeklik tetap menambah titik atau handle ke pilihan; langkah dimulai begitu Anda menyeret.
+- Titik yang diseret menjepret ke artboard, kotak lain, dan titik lain pada path. Tahan Alt untuk menempatkannya bebas.
+- Klik handle untuk memilihnya, lalu tekan **Delete** untuk menariknya kembali ke titiknya. Sisi titik itu menjadi sudut, tanpa handle yang menarik kurva. Dengan titik terpilih, Delete menghapus titik seperti sebelumnya.
 
 **Tipe spline** menentukan jenis kurva yang melewati titik Anda:
 
@@ -112,6 +121,25 @@ Tiga lagi bekerja pada satu bentuk. **Outline stroke…** mengubah garis menjadi
 ![Bulan sabit dan cincin dengan lubang sungguhan, keduanya dihasilkan oleh Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Hasilnya adalah path baru yang dapat terus Anda sunting dengan pen, disimpan sebagai kurva Bezier biasa, sehingga tipe spline aslinya tidak terbawa. Lubang adalah lubang sungguhan: kontrol **Fill rule** pada panel garis menentukan apakah kontur yang tumpang tindih terisi (*non-zero*) atau berlubang (*even-odd*). Operasi menolak daripada merusak: minta memotong irisan dua bentuk yang tidak tumpang tindih dan tidak ada yang berubah. Kotak teks dan gambar tidak memiliki kontur, jadi dibiarkan.
+
+## Strokes
+
+Kotak, gambar, board, dan path pen masing-masing dapat membawa stroke: warna, lebar, dan gaya (solid, putus-putus, atau titik-titik). Baris stroke berada di bawah **Fill** di Inspector, dan tombol **Stroke** di bilah objek membukanya.
+
+**Position** menempatkan stroke pada kontur: **Inside**, **Centre**, atau **Outside**. Kotak digaris di dalam kecuali Anda memilih lain, sehingga tepi luarnya tetap di tempat Anda menggambarnya, dan path pen digaris di tengah kurvanya. Dengan stroke di tengah atau di luar, isian, gambar, dan teks tetap berada di dalam tepi dalam stroke, dan kontur pilihan tetap di tepi kotak itu sendiri. Path terbuka tidak punya sisi dalam, jadi selalu digaris di tengah. Stroke board selalu berada di dalam halaman, karena tepi halaman adalah tepi ekspor.
+
+**Stroke per sisi.** Pada persegi panjang, kotak bulat, pil, atau board, sakelar di samping lebar menampilkan empat lebar: **Top**, **Right**, **Bottom**, dan **Left**. Setel satu sisi ke 0 untuk menyembunyikan sisi itu, yang memberi Anda pemisah atau garis bawah tanpa bentuk kedua. Sakelar hanya menampilkan atau menyembunyikan empat sel dan tidak pernah mengubah nilai. Selama sisi-sisinya berbeda, lebar terbaca **Mixed**; ketik lebar di sana untuk menyetel keempat sisi sekaligus. Warna, posisi, dan gaya tetap dibagi oleh setiap sisi, dan sudut bulat melengkung mengikuti lebar di sebelahnya, seperti border CSS. Elips, lingkaran, dan path pen menggambar satu lebar di sekelilingnya.
+
+Cara format membawa stroke:
+
+| Format | Position | Per sisi |
+|---|---|---|
+| SVG, PDF, PNG, dan gambar lain | Tepat. Stroke dalam atau luar pada path pen digambar dua kali lebih lebar dan dipotong ke satu sisi kontur. | Stroke solid tepat, sebagai satu bentuk di antara tepi luar dan dalam stroke. Yang putus-putus atau titik-titik digambar sebagai garis putus di sepanjang setiap sisi di SVG dan solid di PDF. |
+| Penpot | Dalam, tengah, dan luar dibawa sebagai penyelarasan stroke Penpot. Board selalu `inner`. | Penpot 2.19 atau lebih baru membaca keempat lebar secara native. Penpot 2.18 menggambar lebar atas di sekelilingnya, dan Penpot 2.17 atau lebih lama menolak file yang membawa lebar per sisi. |
+| PowerPoint | PowerPoint menggambar garis di tengah tepi bentuk. Tengah tepat; luar menggeser bentuk keluar setengah lebar, yang menempatkan garis PowerPoint di luar kotak; dalam mempertahankan garis tengah yang ditulis ekspor lama. | Stroke menjadi bentuk terpisah (cincin di antara tepi luar dan dalam), di atas bentuk tanpa garis. |
+| dotLottie | Stroke Lottie berada di tengah, jadi stroke kotak di luar atau stroke path pen di dalam atau di luar ditolak dengan pesan. | Ditolak dengan pesan. |
+
+Stroke tengah yang tembus pandang menampilkan halaman melalui separuh dalamnya, bukan isian, di kanvas dan di setiap ekspor. Saat Anda mengimpor file Penpot, setiap stroke mempertahankan penyelarasan dan lebar per sisinya, dan `strokeAlign` serta bobot stroke individual file Figma terbawa dengan cara yang sama.
 
 ## Adegan 3D dan alat di dalam desain
 

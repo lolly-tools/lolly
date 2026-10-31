@@ -10,9 +10,9 @@ Bu sayfa tuvali ilk kutudan bitmiş bir sunuma kadar gezdirir: pencere, kutular�
 
 **Üst çubuk**, **Home**, **File menu** ve belgenin adıyla başlar (belgeyi yeniden adlandırmak için ada tıkla). Orta kısım **Undo**, **Redo**, **History**, yakınlaştırma denetimleri (**Fit all** ve **Fit artboard** ile) ve **Timeline**, **Navigator** ile **Inspector** anahtarlarını tutar. Sağda **Share**, **Present** ve **Export** durur. Bir telefonda daha az kullanılan düğmeler **More actions** içine taşınır.
 
-Yanda aşağı doğru uzanan **araç rayı**, Lolly menüsünü ve çizim yaptığın araçları tutar: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, sonra Timeline, Artboards ve Auto-arrange düğmeleri.
+Yanda aşağı doğru uzanan **araç rayı**, Lolly menüsünü ve çizim yaptığın araçları tutar: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, sonra Timeline, Artboards ve Auto-arrange düğmeleri.
 
-![Serbest kanvas araç rayı: bir sürükleme tutamacı, Lolly menüsü, ardından İşaretçi, Bir kutu ekle, Kalem, Noktaları düzenle, Çizgi, Zaman çizelgesi, Çalışma alanları ve Otomatik düzenle](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Serbest kanvas araç rayı: bir sürükleme tutamacı, Lolly menüsü, ardından İşaretçi, Bir kutu ekle, Kalem, Kurşun kalem, Noktaları düzenle, Çizgi, Zaman çizelgesi, Çalışma alanları ve Otomatik düzenle](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Tuval, çalışma alanının etrafında bir tasarımcının masası gibi çalışır:
 
@@ -68,17 +68,26 @@ Hiçbir tuş basılı değilken bir dönüş, 15 derecelik bir değere 4 derece 
 
 ## Kendi şekillerini çiz
 
-Kutular, daireler ve yuvarlatılmış çerçeveler düzenlerin çoğunu kapsar. Başka her şekil için bir tane çiz: raydaki **Pen** düğmesi (veya `P`) seni çizim moduna alır. Üç tek tuş modlar arasında gezdirir: Pointer için `V`, Pen için `P` ve **Edit points** için `N`. Çıkış yolu her zaman Pointer'dır.
+Kutular, daireler ve yuvarlatılmış çerçeveler düzenlerin çoğunu kapsar. Başka her şekil için bir tane çiz: raydaki **Pen** düğmesi (veya `P`) seni çizim moduna alır. Dört tuş modlar arasında gezdirir: Pointer için `V`, Pen için `P`, **Pencil** için `Shift C` ve **Edit points** için `N`. Çıkış yolu her zaman Pointer'dır.
 
 - Bir nokta yerleştirmek için **tıkla**. Varsayılan eğri türünde **tıkla ve sürükle**, bir eğri yapmak için noktanın tutamaklarını çeker; sert bir köşe için tıklarken **Alt** tuşunu basılı tut. (Diğer eğri türlerinde her nokta bir köşedir ve sürükleme bir şey yapmaz.)
-- Noktalar yerleştirirken çalışma alanına ve diğer kutularına yakalanır. Alt, çizerken ızgarayı; sonradan bir noktayı sürüklerken hem ızgarayı hem de kenarları bastırır.
+- **Shift** tuşunu basılı tutarak tıkla; yeni segment, kendinden önceki noktadan 15 derecenin katında çıkar, böylece yatay, dikey ve 45 derecelik çizgiler tam çıkar. Bir tutamağı dışarı sürüklerken Shift, tutamağı aynı şekilde adımlar.
+- Noktalar yerleştirirken çalışma alanına, diğer kutularına ve aynı yolun diğer noktalarına yakalanır; böylece bir nokta daha önce yerleştirdiğinle hizalanır. Alt, çizerken ızgarayı; sonradan bir noktayı sürüklerken hem ızgarayı hem de kenarları bastırır.
 - Şekli kapatmak için **ilk noktana tıkla**. Aksi hâlde **Enter**'a bas, çift tıkla veya araç değiştir; çizim korunur.
 - **Escape** adım adım çalışır: ilk basış çizimi bırakır, ikincisi kalemden çıkar.
-- Çizerken **Delete** son noktayı düşürür.
+- Çizerken **Delete** veya Geri Al (`⌘ Z` ya da `Ctrl Z`) son noktayı düşürür.
+
+**Açık bir yola devam et.** Pen açıkken açık bir yolun iki ucundan birine bas; o yolu yeniden çiziyorsun demektir: her tıklama o uçtan sonra, başlangıçtan başladıysan ilk noktanın önüne bir nokta ekler. Enter sonucu korur, Escape yolu tam olduğu gibi bırakır. Yol aynı kutu olarak kalır; dolgusu, konturu ve ok uçları değişmez ve tek bir geri alma onu eski hâline getirir. Delete yalnızca senin eklediğin noktaları geri alır. Kapalı bir şeklin, bir kutuya bağlı bir çizginin ve birkaç parçalı bir yolun devam ettirilecek serbest ucu yoktur.
+
+**Kurşun kalemle serbest çiz.** Raydaki **Pencil** düğmesi (veya `Shift C`) sürüklerken çizgini kaydeder. Bıraktığında Lolly çizgiyi Bezier tutamaklı birkaç noktaya yumuşatır, keskin dönüşleri köşe olarak korur ve eğriyi elinin gittiği yerden birkaç ekran pikseli içinde tutar. Başlangıcına yakın biten bir çizgi kapanır. Sonuç, bir pen yoluyla aynı boyaya sahip sıradan bir yoldur ve noktalarını sonradan düzenleyebilirsin.
 
 Sonuç sıradan bir kutudur. Yolu diğer her kutu gibi taşı, yeniden boyutlandır, döndür, grupla, hizala, yeniden sırala, doldur, gölgele veya soldur. İlk yol, markanın bir yola verdiği dolguyu ve çizgiyi alır ve sonraki her yeni yol en son kullandığını alır. Markasının yollar için hiçbir şey ayarlamadığı bir araçta yeni bir yol çizdiğin renkle çizilir; böylece şekil asla görünmez olmaz.
 
 **Noktaları yeniden düzenle.** Şekle çift tıkla ya da nesne çubuğunda **Edit points** kullan. Taşımak için bir noktayı sürükle, eğriyi yeniden yönlendirmek için bir tutamağı sürükle, bir nokta eklemek için eğriye tıkla ya da birkaç noktanın etrafına bir kutu sürükle ve Delete'e bas. Bir yol her zaman en az iki nokta tutar.
+
+- Bir noktayı sürüklerken **Shift** tuşunu basılı tutarsan, yolun üzerinde hareket etmeyen sonraki noktaya göre açısı 15 derecelik adımlarla gider. Bir tutamağı sürüklerken Shift, tutamağı kendi noktasının çevresinde adımlar. Shift ile tıklamak yine seçime bir nokta veya tutamak ekler; adımlar sürüklemeyle başlar.
+- Sürüklenen bir nokta çalışma alanına, diğer kutulara ve yolun diğer noktalarına yakalanır. Serbestçe yerleştirmek için Alt tuşunu basılı tut.
+- Bir tutamağı seçmek için tıkla, sonra onu noktasının üzerine geri çekmek için **Delete** bas. Noktanın o tarafı, eğriyi çeken tutamağı olmayan bir köşe olur. Noktalar seçiliyken Delete, noktaları eskisi gibi kaldırır.
 
 **Spline type**, noktalarından hangi tür eğrinin geçeceğine karar verir:
 
@@ -112,6 +121,25 @@ Her nokta ayrıca şekliyle gösterilen bir süreklilik kuralı taşır: **Corne
 ![İkisi de Subtract ile üretilmiş, bir hilal ve gerçek bir deliği olan bir halka](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Sonuç, kalemle düzenlemeye devam edebileceğin, düz Bezier eğrileri olarak saklanan yeni bir yoldur; bu yüzden özgün spline türü taşınmaz. Delikler gerçek deliklerdir: çizgi panelindeki **Fill rule** denetimi, örtüşen konturların doldurulup doldurulmayacağına (*non-zero*) ya da delinip delinmeyeceğine (*even-odd*) karar verir. İşlemler yok etmek yerine reddeder: örtüşmeyen iki şekli kesiştirmeyi istersen hiçbir şey değişmez. Metin ve görsel kutularının çerçevesi yoktur, bu yüzden dokunulmaz.
+
+## Konturlar
+
+Bir kutu, bir resim, bir çalışma alanı ve bir pen yolu her biri bir kontur taşıyabilir: bir renk, bir genişlik ve bir stil (düz, kesik çizgili veya noktalı). Kontur satırları Inspector'da **Fill** altında durur ve nesne çubuğundaki **Kontur** düğmesi onları açar.
+
+**Konum**, konturu anahat üzerinde yerleştirir: **İç**, **Merkez** veya **Dış**. Başka türlü seçmezsen bir kutu içeriden konturlanır; böylece dış kenarı çizdiğin yerde kalır, bir pen yolu ise eğrisinin ortasından konturlanır. Ortalanmış veya dışta bir konturla dolgu, resim ve metin konturun iç kenarının içinde kalır, seçim anahattı ise kutunun kendi kenarında kalır. Açık bir yolun içi yoktur, bu yüzden her zaman ortalanmış konturlanır. Bir çalışma alanının konturu her zaman sayfanın içinde kalır, çünkü sayfa kenarı dışa aktarma kenarıdır.
+
+**Kenar başına kontur.** Bir dikdörtgende, yuvarlatılmış bir kutuda, bir hapta veya bir çalışma alanında genişliğin yanındaki düğme dört genişlik gösterir: **Üst**, **Sağ**, **Alt** ve **Sol**. Bir kenarı 0 yaparak o kenarı gizlersin; böylece ikinci bir şekil olmadan bir ayırıcı veya alt çizgi elde edersin. Düğme yalnızca dört hücreyi gösterir ya da gizler ve hiçbir değeri değiştirmez. Kenarlar farklıyken genişlik **Karışık** yazar; oraya bir genişlik yazarsan dört kenarı birden ayarlarsın. Renk, konum ve stil her kenar için ortak kalır ve yuvarlatılmış köşeler, bir CSS kenarlığında olduğu gibi yanlarındaki genişliklerle kıvrılır. Elipsler, daireler ve pen yolları etrafı boyunca tek bir genişlik çizer.
+
+Biçimlerin konturu nasıl taşıdığı:
+
+| Biçim | Konum | Kenar başına |
+|---|---|---|
+| SVG, PDF, PNG ve diğer resimler | Tam. Bir pen yolunun iç veya dış konturu iki kat geniş çizilir ve anahattın bir tarafına kırpılır. | Düz bir kontur tamdır, konturun dış ve iç kenarları arasında tek bir şekil olarak. Kesik çizgili veya noktalı olan SVG'de her kenar boyunca çizgiler olarak, PDF'de düz çizilir. |
+| Penpot | İç, merkez ve dış, Penpot'un kontur hizası olarak taşınır. Bir çalışma alanı her zaman `inner` olur. | Penpot 2.19 veya sonrası dört genişliği doğrudan okur. Penpot 2.18 üst genişliği her yana çizer ve Penpot 2.17 veya öncesi kenar başına genişlik taşıyan bir dosyayı reddeder. |
+| PowerPoint | PowerPoint bir çizgiyi şeklin kenarına ortalı çizer. Merkez tamdır; dış, şekli genişliğin yarısı kadar dışarı taşır, bu da PowerPoint'un çizgisini kutunun dışına koyar; iç, eski dışa aktarmaların yazdığı ortalı çizgiyi korur. | Kontur ayrı bir şekil olur (dış ve iç kenarlar arasındaki halka), çizgisiz bir şeklin üstünde. |
+| dotLottie | Lottie konturları ortalıdır, bu yüzden dışta bir kutu konturu veya içte ya da dışta konturlanmış bir pen yolu bir iletiyle reddedilir. | Bir iletiyle reddedilir. |
+
+Yarı saydam ortalı bir kontur, tuvalde ve her dışa aktarmada iç yarısından dolguyu değil sayfayı gösterir. Bir Penpot dosyasını içe aktardığında her kontur hizasını ve kenar başına genişliklerini korur; bir Figma dosyasının `strokeAlign` ve tek tek kontur ağırlıkları da aynı şekilde gelir.
 
 ## Bir tasarımın içindeki 3D sahneler ve araçlar
 

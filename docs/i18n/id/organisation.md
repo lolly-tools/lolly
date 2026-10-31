@@ -75,6 +75,10 @@ Organisasi Anda meng-host [Lolly Work](https://github.com/lolly-tools/lolly-work
 Jika Anda menyiapkan layanannya, mulai dengan [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Demo publik di [lolly.work](https://lolly.work) adalah sandbox; gunakan alamat organisasi Anda sendiri untuk pekerjaan yang perlu Anda simpan.
 :::
 
+## Merek organisasi lain
+
+Mitra, klien, atau sponsor dapat mengirimkan brand mereka kepada Anda sebagai file design system (`.lolly`), bukan sebagai alamat. Membuka file semacam itu tidak menyambungkan aplikasi ke apa pun: file itu menambahkan design system mereka di samping milik Anda sendiri di perangkat ini. File penyiapan dari organisasi Anda sendiri berbeda, karena menyambungkan aplikasi ke Lolly organisasi, dan pratinjau menunjukkan apa yang akan dilakukan pembukaan file sebelum ada yang berubah. [Working with partners](/info/partners.html) membahas kedua sisi bekerja dalam brand organisasi lain.
+
 ## Keluar
 
 **Leave**, pada kartu **Lolly instance** di **Settings**, menghapus design system, alat, dan katalog organisasi Anda. Pekerjaan Anda sendiri tetap ada. Apa pun yang Anda buat dengan alat-alatnya tidak akan terbuka lagi sampai Anda menyambung kembali.

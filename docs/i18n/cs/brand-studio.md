@@ -33,6 +33,7 @@ Studio je sada místností v liště po straně, bez pevného pořadí: nic nen�
 | **Tokens** | Rohy, mezery, stíny a každá další pojmenovaná hodnota | `tokens` |
 | **Files** | Obrázky, zvuk a pohybové soubory, které tvá značka uchovává | `catalogue` |
 | **Usage & rules** | Pravidla, která tvá značka uplatňuje, ověřená na skutečných příkladech | `usage` |
+| **Skills** | Psané standardy značky pro lidi a agenty, ke čtení a stažení | `skills` |
 
 Na místnost odkazuj pomocí `#/start?area=<key>`. Místnost Files si ponechává klíč `catalogue`, protože klíč místnosti je trvalý závazek, a `?tab=` stále funguje jako starší alias. Neznámý klíč otevře Overview.
 
@@ -117,7 +118,7 @@ Jakmile má paleta odstíny, pás ukazuje všech sedm rolí, které nástroj mů
 
 Vlastní akcent aplikace ve výchozím stavu následuje designový systém. To je nastavení **Interface follows the design system** v **Settings → Appearance**; vypnutí nastavení nechá chrome aplikace neutrální, zatímco nástroje, plátna a exporty následují designový systém v obou případech.
 
-**Colourways.** Designový systém může držet několik vedoucích barev, každou vybíranou pro jeden kus. Lolly uchovává každý colourway, ale tato místnost zatím žádný vytvořit neumí: colourway se zapisuje v souboru tokenů. V systému s colourways potřebuje každý colourway vlastní primární a sekundární a vlastní povrch, když colourways tónují pozadí, takže tyto role zůstávají nastaveny v editoru vzorků. [Lolly Demo v praxi](/info/lolly-demo-in-use.html#colourways-on-real-work) ukazuje colourways na skutečné práci a [Přidej colourways do designového systému](/info/colourways.html#add-colourways-to-a-design-system) uvádí formát.
+**Colourways.** Designový systém může držet několik vedoucích barev, každou vybíranou pro jeden kus. Řádek **Colourways** na začátku **Colour roles** ukazuje jeden čip na colourway, s **Default** na kanonickém. **+ Add** začne nový colourway z jedné z barev palety. Vyber čip a pás rolí, paleta i náhledy upravují právě tento colourway, v podobě, kterou zvolí přepínač **Light** a **Dark**; vybraný colourway můžeš přejmenovat, duplikovat, udělat z něj výchozí nebo ho odebrat. V systému s colourways potřebuje každý colourway vlastní primární a sekundární a vlastní povrch, když colourways tónují pozadí, takže tyto role zůstávají nastaveny v editoru vzorků. [Přidej colourways do designového systému](/info/colourways.html#add-colourways-to-a-design-system) uvádí postup a formát tokenů a [Lolly Demo v praxi](/info/lolly-demo-in-use.html#colourways-on-real-work) ukazuje colourways na skutečné práci.
 
 ### Najdi další barvy
 
@@ -273,6 +274,12 @@ Pravidla, která designový systém přináší ve svém souboru tokenů, např�
 
 Sestavení dodávané s pevnou značkou ukazuje stejná pravidla a příklady jen pro čtení, pod *This brand is set*.
 
+## Skills
+
+**Skills** vypisuje [dovednosti značky](/info/brand-skills.html) aktivního designového systému: psané standardy značky, jeden na obor, pro lidi i agenty AI. Každý řádek uvádí obor, vlastní stav značky (**Draft** nebo **Approved**), zda je dovednost veřejná, nebo interní, a její revizi. Vyber řádek a přečteš si dovednost vedle jejího pokrytí, které staví řádky dovednosti proti tvým tokenům: co Lolly kontroluje, co je v rozporu, co souhlasí a co je jen vodítko.
+
+**Download skill (.zip)** zapíše dovednost jako složku Agent Skills pro nástroj agenta, s odkazy do katalogu mířícími na tuto Lolly, a **Copy as one file** vloží stejný text do schránky pro okno chatu. Designový systém bez vlastních dovedností uvádí základ, který Lolly napíše z jeho tokenů a domácích pravidel pokaždé, když se základ čte. Místnost dovednosti jen čte a nikdy je neupravuje.
+
 ## Přines vlastní značku
 
 **Add from…** dole na liště otevře výběr, který se ptá, co máš, ne jaký je to formát:
@@ -315,7 +322,7 @@ Vyber jeden vzhled pro prohlédnutí nebo dva pro porovnání vedle sebe. Výbě
 
 **Export** zapíše jeden soubor **`LollyBrand-….lolly`**: tvé tokeny, písma, loga a předvolbu motivu, s manifestem integrity, který se při návratu kontroluje. Webová vydání před 1.0.7 pojmenovala stejný soubor `.zip` a tato podoba se stále přijímá. **Tokens (.json)** zapíše samotný dokument designových tokenů, bez písem a log, pro repozitář, krok sestavení nebo jiný nástroj tokenů.
 
-Chceš-li jednu vrátit, použij **Add from… → Design tokens or a design file** nebo přetáhni soubor na studio. Tak ti kolega předá značku nebo ji přeneseš na druhou instalaci, bez účtu a bez cloudu. Pro přinesení značky z příkazového řádku viz [`ingest:brand`](/info/configuration.html#brand-packs).
+Chceš-li jednu vrátit, použij **Add from… → Design tokens or a design file** nebo přetáhni soubor na studio. Tak ti kolega předá značku nebo ji přeneseš na druhou instalaci, bez účtu a bez cloudu. [Společná práce s partnery](/info/partners.html) popisuje, co dalšího poslat, když člověk, který tvou značku dostává, pracuje pro jinou organizaci. Pro přinesení značky z příkazového řádku viz [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** zabalí písma, která jsi přidal, do instalovatelného RPM. Pokud jsi některé nahrál sám, Lolly tě nejprve požádá o potvrzení, že je smíš redistribuovat.
 
@@ -359,5 +366,6 @@ Změna toho, co server dodává, je úkol správce: jeho provozovatel změní zd
 
 - **[Používání Lolly](/info/using.html)**: nástroje, ukládání, sdílení a Assets.
 - **[Architektury značek](/info/brand-architectures.html)**: jak se divize, produkty, podporované značky, klienti a sezóny mapují na designové systémy, colourways a identity log.
+- **[Společná práce s partnery](/info/partners.html)**: sdílení tvé značky s partnerem a práce ve značce, kterou jsi dostal.
 - **[Design Tokens](/info/design-tokens.html)**: model tokenů, v němž je tvá značka zapsána.
 - **[Export souboru](/info/exporting.html)**: tiskové jednotky, CMYK a formáty, do kterých se tvá značka vykresluje.

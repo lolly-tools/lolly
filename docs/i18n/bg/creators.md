@@ -23,6 +23,7 @@
 - **[Design System Setup](/info/brand-studio.html)**: лога, цветове, шрифт и останалото, задавани веднъж на `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)**: цветови схеми върху реална работа и преминаване към твоята дизайн система.
 - **[Brand architectures](/info/brand-architectures.html)**: няколко дизайн системи или една с няколко цветови схеми за една организация.
+- **[Работа с партньори](/info/partners.html)**: сподели марката си с партньор, работи в марка, която са ти дали, и направи стена на спонсори.
 - **[Import a design](/info/design-import.html)**: файл `.fig`, `.penpot`, `.ai`, `.idml` или SVG, отворен като редактируемо оформление, а не като плоска картина.
 - **[Rebrand a deck](/info/rebrand.html)**: PowerPoint презентация, преместена върху твоята дизайн система, с непокътнати диаграми и анимации.
 - **[Share a design with rules](/info/create-a-tool.html)**: превърни оформление в инструмент, който други хора попълват.

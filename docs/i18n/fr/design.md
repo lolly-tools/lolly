@@ -10,9 +10,9 @@ Cette page parcourt le canevas du premier bloc au deck terminé : la fenêtre, l
 
 La **top bar** commence par **Home**, le **File menu** et le nom du document (clique sur le nom pour renommer le document). Le milieu contient **Undo**, **Redo**, **History**, les contrôles de zoom (avec **Fit all** et **Fit artboard**) et les boutons pour la **Timeline**, le **Navigator** et l'**Inspector**. À droite se trouvent **Share**, **Present** et **Export**. Sur un téléphone, les boutons les moins utilisés passent dans **More actions**.
 
-Le **tool rail** sur le côté contient le menu Lolly et les outils avec lesquels tu dessines : **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, puis les boutons Timeline, Artboards et Auto-arrange.
+Le **tool rail** sur le côté contient le menu Lolly et les outils avec lesquels tu dessines : **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, puis les boutons Timeline, Artboards et Auto-arrange.
 
-![La barre d'outils du canevas libre : une poignée de déplacement, le menu Lolly, puis Pointeur, Ajouter une boîte, Plume, Modifier les points, Ligne, Chronologie, Plans de travail et Rangement automatique](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![La barre d'outils du canevas libre : une poignée de déplacement, le menu Lolly, puis Pointeur, Ajouter une boîte, Plume, Crayon, Modifier les points, Ligne, Chronologie, Plans de travail et Rangement automatique](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Le canevas fonctionne comme la table de travail d'un designer autour du plan de travail :
 
@@ -68,17 +68,26 @@ Sans touche maintenue, une rotation est attirée vers les 15 degrés les plus pr
 
 ## Dessine tes propres formes
 
-Les blocs, les cercles et les cadres arrondis couvrent la plupart des mises en page. Pour toute autre forme, dessines-en une : le bouton **Pen** du rail (ou `P`) te met en mode dessin. Trois touches simples permettent de passer d'un mode à l'autre : `V` pour le Pointer, `P` pour le Pen et `N` pour **Edit points**. Le Pointer est toujours la sortie.
+Les blocs, les cercles et les cadres arrondis couvrent la plupart des mises en page. Pour toute autre forme, dessines-en une : le bouton **Pen** du rail (ou `P`) te met en mode dessin. Quatre touches permettent de passer d'un mode à l'autre : `V` pour le Pointer, `P` pour le Pen, `Shift C` pour le **Pencil** et `N` pour **Edit points**. Le Pointer est toujours la sortie.
 
 - **Clique** pour placer un point. Avec le type de courbe par défaut, **clique et fais glisser** pour tirer les poignées du point et faire une courbe ; maintiens **Alt** en cliquant pour un angle vif. (Avec les autres types de courbe, chaque point est un angle et un glissement ne fait rien.)
-- Les points s'aimantent au plan de travail et à tes autres blocs au moment où tu les places. Alt supprime la grille pendant que tu dessines, et la grille comme les bords pendant que tu fais glisser un point ensuite.
+- Maintiens **Shift** en cliquant et le nouveau segment part du point précédent selon un multiple de 15 degrés, donc les lignes horizontales, verticales et à 45 degrés sont exactes. Shift pendant que tu tires une poignée fait avancer la poignée par paliers identiques.
+- Les points s'aimantent au plan de travail, à tes autres blocs et aux autres points du même tracé au moment où tu les places, donc un point s'aligne sur un point placé plus tôt. Alt supprime la grille pendant que tu dessines, et la grille comme les bords pendant que tu fais glisser un point ensuite.
 - **Clique sur ton premier point** pour fermer la forme. Sinon, appuie sur **Enter**, double-clique ou change d'outil, et le dessin est conservé.
 - **Escape** agit une étape à la fois : le premier appui abandonne le dessin, le second quitte le pen.
-- **Delete** pendant le dessin supprime le dernier point.
+- **Delete**, ou Annuler (`⌘ Z` ou `Ctrl Z`), pendant le dessin supprime le dernier point.
+
+**Poursuis un tracé ouvert.** Avec le Pen actif, appuie sur l'une des extrémités d'un tracé ouvert et tu dessines de nouveau ce tracé : chaque clic ajoute un point après cette extrémité, ou devant le premier point si tu es parti du début. Enter conserve le résultat et Escape laisse le tracé exactement comme il était. Le tracé reste le même bloc, avec son remplissage, son trait et ses pointes de flèche, et un seul Annuler le remet en état. Delete reprend seulement les points que tu as ajoutés. Une forme fermée, une ligne attachée à un bloc et un tracé en plusieurs parties n'ont pas d'extrémité libre à prolonger.
+
+**Dessine à main levée avec le Pencil.** Le bouton **Pencil** du rail (ou `Shift C`) enregistre ton trait pendant que tu fais glisser. Quand tu relâches, Lolly lisse le trait en quelques points avec des poignées de Bézier, garde les virages vifs comme angles, et maintient la courbe à quelques pixels d'écran près de l'endroit où est passée ta main. Un trait qui se termine près de son début se ferme. Le résultat est un tracé ordinaire, avec la même peinture qu'un tracé au stylo, et tu peux ensuite en modifier les points.
 
 Le résultat est un bloc ordinaire. Déplace, redimensionne, fais pivoter, groupe, aligne, réordonne, remplis, ombre ou estompe le tracé comme n'importe quel autre bloc. Le premier tracé prend le remplissage et le trait que ta marque donne à un tracé, et chaque nouveau tracé prend ensuite ce que tu as utilisé en dernier. Dans un outil dont la marque ne définit rien pour les tracés, un nouveau tracé est dessiné dans la couleur avec laquelle tu as dessiné, pour que la forme ne soit jamais invisible.
 
 **Modifie à nouveau les points.** Double-clique sur la forme, ou utilise **Edit points** dans la barre d'objet. Fais glisser un point pour le déplacer, une poignée pour réorienter la courbe, clique sur la courbe pour insérer un point ou fais glisser un cadre autour de plusieurs points et appuie sur Delete. Un tracé garde toujours au moins deux points.
+
+- Maintiens **Shift** pendant que tu fais glisser un point et son angle par rapport au point suivant du tracé qui ne bouge pas avance par paliers de 15 degrés. Shift pendant que tu fais glisser une poignée fait tourner la poignée autour de son propre point par paliers. Shift en cliquant ajoute toujours un point ou une poignée à la sélection ; les paliers commencent quand tu fais glisser.
+- Un point que tu fais glisser s'aimante au plan de travail, aux autres blocs et aux autres points du tracé. Maintiens Alt pour le placer librement.
+- Clique sur une poignée pour la sélectionner, puis appuie sur **Delete** pour la ramener sur son point. Ce côté du point devient un angle, sans poignée qui tire la courbe. Avec des points sélectionnés, Delete supprime les points comme avant.
 
 Le **type de spline** décide du genre de courbe qui passe par tes points :
 
@@ -112,6 +121,25 @@ Trois autres fonctions agissent sur une seule forme. **Outline stroke…** trans
 ![Un croissant et un anneau avec un vrai trou, tous deux produits par Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Le résultat est un nouveau tracé que tu peux continuer de modifier au stylo, stocké sous forme de courbes de Bézier simples, donc le type de spline d'origine n'est pas conservé. Les trous sont de vrais trous : le contrôle **Fill rule** du panneau de trait décide si les contours qui se chevauchent se remplissent (*non-zero*) ou se percent (*even-odd*). Les opérations refusent plutôt que de détruire : demande d'intersecter deux formes qui ne se chevauchent pas et rien ne change. Les blocs de texte et d'image n'ont pas de contour, ils sont donc laissés tels quels.
+
+## Strokes
+
+Un bloc, une image, un plan de travail et un tracé au stylo peuvent chacun porter un trait : une couleur, une largeur et un style (plein, tirets ou pointillés). Les lignes du trait se trouvent sous **Fill** dans l'Inspector, et le bouton **Stroke** de la barre d'objet les ouvre.
+
+**Position** place le trait sur le contour : **Inside**, **Centre** ou **Outside**. Un bloc est tracé à l'intérieur sauf choix contraire, donc son bord extérieur reste là où tu l'as dessiné, et un tracé au stylo est tracé centré sur sa courbe. Avec un trait centré ou extérieur, le remplissage, l'image et le texte restent à l'intérieur du bord interne du trait, et le contour de sélection reste sur le bord propre du bloc. Un tracé ouvert n'a pas d'intérieur, donc il est toujours tracé centré. Le trait d'un plan de travail reste toujours à l'intérieur de la page, parce que le bord de la page est le bord d'export.
+
+**Trait par côté.** Sur un rectangle, un bloc arrondi, une pilule ou un plan de travail, la bascule à côté de la largeur montre quatre largeurs : **Top**, **Right**, **Bottom** et **Left**. Mets un côté à 0 pour le masquer, ce qui donne un séparateur ou un soulignement sans seconde forme. La bascule ne fait qu'afficher ou masquer les quatre cellules et ne change jamais une valeur. Tant que les côtés diffèrent, la largeur affiche **Mixed** ; saisis-y une largeur pour régler les quatre côtés d'un coup. La couleur, la position et le style restent communs à tous les côtés, et les angles arrondis suivent les largeurs voisines, comme le fait une bordure CSS. Les ellipses, les cercles et les tracés au stylo dessinent une seule largeur tout autour.
+
+Comment les formats portent un trait :
+
+| Format | Position | Par côté |
+|---|---|---|
+| SVG, PDF, PNG et les autres images | Exacte. Le trait intérieur ou extérieur d'un tracé au stylo est dessiné deux fois plus large et coupé d'un seul côté du contour. | Un trait plein est exact, sous forme d'une seule forme entre le bord externe et le bord interne du trait. Un trait en tirets ou pointillés est dessiné en tirets le long de chaque côté en SVG et plein en PDF. |
+| Penpot | Intérieur, centre et extérieur voyagent comme l'alignement de trait de Penpot. Un plan de travail est toujours `inner`. | Penpot 2.19 ou plus récent lit nativement les quatre largeurs. Penpot 2.18 dessine la largeur du haut tout autour, et Penpot 2.17 ou plus ancien refuse un fichier qui porte des largeurs par côté. |
+| PowerPoint | PowerPoint dessine une ligne centrée sur le bord de la forme. Centre est exact ; extérieur déplace la forme vers l'extérieur de la moitié de la largeur, ce qui place la ligne de PowerPoint hors du bloc ; intérieur garde la ligne centrée qu'écrivaient les exports plus anciens. | Le trait devient une forme séparée (l'anneau entre les bords externe et interne), au-dessus d'une forme sans ligne. |
+| dotLottie | Les traits Lottie sont centrés, donc un trait extérieur de bloc ou un tracé au stylo tracé à l'intérieur ou à l'extérieur est refusé avec un message. | Refusé avec un message. |
+
+Un trait centré translucide laisse voir la page à travers sa moitié interne, plutôt que le remplissage, sur le canevas et dans chaque export. Quand tu importes un fichier Penpot, chaque trait garde son alignement et ses largeurs par côté, et le `strokeAlign` d'un fichier Figma et ses épaisseurs de trait individuelles passent de la même façon.
 
 ## Scènes 3D et outils dans un design
 

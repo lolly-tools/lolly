@@ -13,7 +13,7 @@ Profilul tău conține și ce acumulezi cât lucrezi: sesiuni salvate, imagini �
 | **Location** | Oraș și țară. |
 | **Headshot** | O fotografie opțională, decupată pătrat și păstrată ca imagine locală, pentru instrumente precum semnăturile de email, cardurile de citate și organigramele. |
 | **Use my details to create** | Un singur comutator opt-in (scrie **Using my details** după ce e activat). Decide dacă detaliile tale călătoresc drept credit de autor în fișierele exportate și în rulările Batch. Nu afectează completarea automată; vezi [Cum folosesc instrumentele profilul tău](#how-tools-use-your-profile). |
-| **Preferences** | Tema, setările de accesibilitate și ce părți ale aplicației ai activat în **Feature flags**. |
+| **Preferences** | Tema, colourway-ul tău în fiecare sistem de design, setările de accesibilitate și ce părți ale aplicației ai activat în **Feature flags**. |
 | **Your work** | Sesiuni salvate cu miniaturile lor, organizate în [Projects](/info/find-your-work.html), imaginile încărcate și statisticile locale de activitate. |
 
 Nimic nu este obligatoriu. Un profil gol funcționează; completează doar ce îți scutește tastarea.

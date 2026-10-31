@@ -23,6 +23,7 @@ Design system Anda menentukan seperti apa setiap alat tampil.
 - **[Design System Setup](/info/brand-studio.html)** - logo, warna, tipografi, dan sisanya, diatur sekali di `#/start`.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourway pada pekerjaan nyata, dan beralih ke design system Anda sendiri.
 - **[Brand architectures](/info/brand-architectures.html)** - beberapa design system, atau satu dengan beberapa colourway, untuk satu organisasi.
+- **[Working with partners](/info/partners.html)** - bagikan brand Anda kepada mitra, bekerja dalam brand yang diberikan kepada Anda, dan buat dinding sponsor.
 - **[Import a design](/info/design-import.html)** - file `.fig`, `.penpot`, `.ai`, `.idml`, atau SVG dibuka sebagai tata letak yang dapat disunting, bukan gambar datar.
 - **[Rebrand a deck](/info/rebrand.html)** - deck PowerPoint dipindahkan ke design system Anda, dengan bagan dan animasi tetap utuh.
 - **[Share a design with rules](/info/create-a-tool.html)** - ubah tata letak menjadi alat yang diisi orang lain.

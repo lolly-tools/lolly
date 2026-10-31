@@ -75,6 +75,10 @@ Din organisation driver [Lolly Work](https://github.com/lolly-tools/lolly-work) 
 Om du sätter upp tjänsten, börja med [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Den publika demon på [lolly.work](https://lolly.work) är en sandlåda; använd din organisations egen adress för arbete du behöver behålla.
 :::
 
+## En annan organisations varumärke
+
+En partner, kund eller sponsor kan skicka dig sitt varumärke som en designsystemfil (`.lolly`) i stället för en adress. Att öppna en sådan fil kopplar appen till ingenting: den lägger till deras designsystem bredvid ditt eget på den här enheten. En installationsfil från din egen organisation är annorlunda, eftersom den kopplar appen till organisationens Lolly, och förhandsvisningen visar vad en fil gör innan något ändras. [Samarbeta med partners](/info/partners.html) beskriver båda sidor av att arbeta i en annan organisations varumärke.
+
 ## Att lämna
 
 **Leave**, på kortet **Lolly instance** i **Settings**, tar bort din organisations designsystem, verktyg och katalog. Ditt eget arbete blir kvar. Allt du gjort med dess verktyg öppnas inte igen förrän du ansluter på nytt.

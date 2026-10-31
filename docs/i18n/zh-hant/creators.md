@@ -23,6 +23,7 @@
 - **[Design System Setup](/info/brand-studio.html)** - 標誌、色彩、字型等等，在 `#/start` 一次設定。
 - **[實際使用 Lolly Demo](/info/lolly-demo-in-use.html)** - 在真實工作上使用配色方案，並切換到你自己的設計系統。
 - **[品牌架構](/info/brand-architectures.html)** - 為一個組織提供多個設計系統，或一個帶有多種配色方案的設計系統。
+- **[與夥伴合作](/info/partners.html)** - 與夥伴分享你的品牌，在別人交給你的品牌中工作，並製作贊助商牆。
 - **[匯入設計](/info/design-import.html)** - 將 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 檔案以可編輯的版面開啟，而不是扁平的圖片。
 - **[重塑簡報品牌](/info/rebrand.html)** - 把 PowerPoint 簡報移到你的設計系統上，圖表與動畫完好無損。
 - **[分享附規則的設計](/info/create-a-tool.html)** - 把版面變成其他人可以填寫的工具。

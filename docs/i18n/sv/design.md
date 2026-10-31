@@ -10,9 +10,9 @@ Den här sidan går igenom ytan från den första rutan till en färdig presenta
 
 **Översta listen** börjar med **Home**, **File menu** och dokumentets namn (klicka på namnet för att döpa om dokumentet). Mitten håller **Undo**, **Redo**, **History**, zoomkontrollerna (med **Fit all** och **Fit artboard**) och växlarna för **Timeline**, **Navigator** och **Inspector**. Till höger sitter **Share**, **Present** och **Export**. På en telefon flyttas de mindre använda knapparna in i **More actions**.
 
-**Verktygsfältet** längs sidan håller Lolly-menyn och verktygen du ritar med: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, sedan knapparna Timeline, Artboards och Auto-arrange.
+**Verktygsfältet** längs sidan håller Lolly-menyn och verktygen du ritar med: **Pointer**, **Add a box**, **Pen**, **Blyertspenna**, **Edit points**, **Line**, sedan knapparna Timeline, Artboards och Auto-arrange.
 
-![Den fria arbetsytans verktygslist: ett draghandtag, Lolly-menyn, sedan Pekare, Lägg till en ruta, Penna, Redigera punkter, Linje, Tidslinje, Ritytor och Ordna automatiskt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Den fria arbetsytans verktygslist: ett draghandtag, Lolly-menyn, sedan Pekare, Lägg till en ruta, Penna, Blyertspenna, Redigera punkter, Linje, Tidslinje, Ritytor och Ordna automatiskt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Ytan fungerar som en designers arbetsbord runt ritytan:
 
@@ -68,17 +68,26 @@ Utan hållen tangent dras en vridning till närmaste 15 grader när den kommer i
 
 ## Rita egna former
 
-Rutor, cirklar och rundade ramar täcker de flesta layouter. För varje annan form ritar du en: knappen **Pen** i verktygsfältet (eller `P`) försätter dig i ritläge. Tre enkla tangenter växlar mellan lägen: `V` för Pointer, `P` för Pen och `N` för **Edit points**. Pointer är alltid vägen ut.
+Rutor, cirklar och rundade ramar täcker de flesta layouter. För varje annan form ritar du en: knappen **Pen** i verktygsfältet (eller `P`) försätter dig i ritläge. Fyra tangenter växlar mellan lägen: `V` för Pointer, `P` för Pen, `Shift C` för **Blyertspenna** och `N` för **Edit points**. Pointer är alltid vägen ut.
 
 - **Klicka** för att placera en punkt. Med standardkurvtypen drar **klicka och dra** ut punktens handtag för att göra en kurva; håll **Alt** medan du klickar för ett hårt hörn. (På de andra kurvtyperna är varje punkt ett hörn och ett drag gör ingenting.)
-- Punkter snäpper mot ritytan och dina andra rutor medan du placerar dem. Alt undertrycker rutnätet medan du ritar, och både rutnätet och kanterna medan du därefter drar en punkt.
+- Håll **Shift** medan du klickar, så lämnar det nya segmentet punkten före i en multipel av 15 grader, och vågräta, lodräta och 45-gradiga linjer blir exakta. Shift medan du drar ut ett handtag stegar handtaget på samma sätt.
+- Punkter snäpper mot ritytan, dina andra rutor och banans egna övriga punkter medan du placerar dem, så en punkt hamnar i linje med en du placerade tidigare. Alt undertrycker rutnätet medan du ritar, och både rutnätet och kanterna medan du därefter drar en punkt.
 - **Klicka på din första punkt** för att sluta formen. Annars trycker du **Enter**, dubbelklickar eller byter verktyg, och ritningen behålls.
 - **Escape** fungerar ett steg i taget: det första trycket överger ritningen, det andra lämnar pennan.
-- **Delete** under ritning tar bort den sista punkten.
+- **Delete**, eller Ångra (`⌘ Z` eller `Ctrl Z`), under ritning tar bort den sista punkten.
+
+**Fortsätt på en öppen bana.** Med Pen på trycker du på någon av ändarna av en öppen bana, och då ritar du den banan igen: varje klick lägger till en punkt efter den änden, eller framför den första punkten när du började från början. Enter behåller resultatet och Escape lämnar banan exakt som den var. Banan förblir samma ruta, med sin fyllning, kontur och pilspetsar, och ett enda ångra sätter tillbaka den. Delete tar bara tillbaka de punkter du lade till. En sluten form, en linje fäst vid en ruta och en bana med flera delar har ingen fri ände att fortsätta på.
+
+**Rita frihand med blyertspennan.** Knappen **Blyertspenna** i verktygsfältet (eller `Shift C`) registrerar ditt drag medan du drar. När du släpper jämnar Lolly ut dragningen till några få punkter med Bezier-handtag, behåller de skarpa vändningarna som hörn och håller kurvan inom ett par skärmpixlar från där din hand gick. Ett drag som slutar nära sin början sluts. Resultatet är en vanlig bana, med samma färg som en penna-bana, och du kan redigera dess punkter efteråt.
 
 Resultatet är en vanlig ruta. Flytta, ändra storlek på, rotera, gruppera, justera, ändra ordning på, fyll, skugga eller tona banan som vilken annan ruta som helst. Den första banan får den fyllning och linje som ditt varumärke ger en bana, och varje ny bana därefter får det du senast använde. I ett verktyg där varumärket inte anger något för banor ritas en ny bana med linje i färgen du ritade med, så formen aldrig är osynlig.
 
 **Redigera punkterna igen.** Dubbelklicka på formen, eller använd **Edit points** i objektfältet. Dra en punkt för att flytta den, dra ett handtag för att rikta om kurvan, klicka på kurvan för att infoga en punkt eller dra en ruta runt flera punkter och tryck Delete. En bana behåller alltid minst två punkter.
+
+- Håll **Shift** medan du drar en punkt, så går dess vinkel från nästa punkt längs banan som inte flyttas i steg om 15 grader. Shift medan du drar ett handtag stegar handtaget runt sin egen punkt. Shift när du klickar lägger fortfarande till en punkt eller ett handtag i markeringen; stegen börjar när du drar.
+- En dragen punkt snäpper mot ritytan, andra rutor och banans övriga punkter. Håll Alt för att placera den fritt.
+- Klicka på ett handtag för att markera det och tryck sedan **Delete** för att dra tillbaka det till sin punkt. Den sidan av punkten blir ett hörn, utan handtag som drar i kurvan. Med punkter markerade tar Delete bort punkterna som förut.
 
 **Spline type** avgör vilken sorts kurva som går genom dina punkter:
 
@@ -112,6 +121,25 @@ Tre till fungerar på en enda form. **Outline stroke…** gör en linje till en 
 ![En halvmåne och en ring med ett riktigt hål, båda skapade med Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Resultatet är en ny bana som du kan fortsätta redigera med pennan, lagrad som vanliga Bézierkurvor, så den ursprungliga splinetypen följer inte med. Hål är riktiga hål: kontrollen **Fill rule** på linjepanelen avgör om överlappande konturer fylls (*non-zero*) eller stansas igenom (*even-odd*). Operationerna vägrar hellre än förstör: be om att skära två former som inte överlappar och ingenting ändras. Text- och bildrutor har ingen kontur, så de lämnas ifred.
+
+## Konturer
+
+En ruta, en bild, en tavla och en penna-bana kan var och en ha en kontur: en färg, en bredd och en stil (heldragen, streckad eller prickad). Konturraderna sitter under **Fill** i Inspector, och knappen **Kontur** i objektfältet öppnar dem.
+
+**Position** placerar konturen på ytterkanten: **Inuti**, **Centrera** eller **Utanför**. En ruta får sin kontur inuti om du inte väljer annat, så dess yttre kant stannar där du ritade den, och en penna-bana får sin kontur centrerad på kurvan. Med en centrerad kontur eller en kontur utanför stannar fyllningen, bilden och texten innanför konturens inre kant, och markeringsramen ligger kvar på rutans egen kant. En öppen bana har ingen insida, så den får alltid en centrerad kontur. En tavlas kontur stannar alltid inne på sidan, eftersom sidkanten är exportkanten.
+
+**Kontur per sida.** På en rektangel, en rundad ruta, en pill eller en tavla visar reglaget bredvid bredden fyra bredder: **Överkant**, **Höger**, **Nederkant** och **Vänster**. Sätt en sida till 0 för att dölja den sidan, vilket ger en avdelare eller en understrykning utan en andra form. Reglaget visar eller döljer bara de fyra cellerna och ändrar aldrig något värde. Medan sidorna skiljer sig läser bredden **Blandad**; skriv en bredd där för att sätta alla fyra sidor på en gång. Färg, position och stil delas av alla sidor, och rundade hörn kröker sig med bredderna bredvid sig, som en CSS-kant gör. Ellipser, cirklar och penna-banor ritas med en bredd runt om.
+
+Så bär formaten en kontur:
+
+| Format | Position | Per sida |
+|---|---|---|
+| SVG, PDF, PNG och de andra bilderna | Exakt. En penna-banas kontur inuti eller utanför ritas dubbelt så bred och klipps till ena sidan av ytterkanten. | En heldragen kontur är exakt, som en form mellan konturens yttre och inre kant. En streckad eller prickad ritas som streck längs varje sida i SVG och heldragen i PDF. |
+| Penpot | Inuti, centrerad och utanför följer med som Penpots konturjustering. En tavla är alltid `inner`. | Penpot 2.19 eller senare läser de fyra bredderna direkt. Penpot 2.18 ritar överkantens bredd runt om, och Penpot 2.17 eller tidigare vägrar en fil som bär bredder per sida. |
+| PowerPoint | PowerPoint ritar en linje centrerad på formens kant. Centrerad är exakt; utanför flyttar formen ut med halva bredden, vilket lägger PowerPoints linje utanför rutan; inuti behåller den centrerade linjen som äldre exporter skrev. | Konturen blir en separat form (ringen mellan yttre och inre kant), över en form utan linje. |
+| dotLottie | Lottie-konturer är centrerade, så en kontur utanför på en ruta eller en penna-banas kontur inuti eller utanför avvisas med ett meddelande. | Avvisas med ett meddelande. |
+
+En genomskinlig centrerad kontur visar sidan genom sin inre hälft, i stället för fyllningen, på arbetsytan och i varje export. När du importerar en Penpot-fil behåller varje kontur sin justering och sina bredder per sida, och en Figma-fils `strokeAlign` och individuella konturvikter följer med på samma sätt.
 
 ## 3D-scener och verktyg i en design
 

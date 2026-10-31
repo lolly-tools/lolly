@@ -33,6 +33,7 @@ Le studio est un ensemble de pièces dans un rail sur le côté, sans ordre fixe
 | **Tokens** | Angles, espacements, ombres et toute autre valeur nommée | `tokens` |
 | **Files** | Les images, fichiers audio et animations que ta marque conserve | `catalogue` |
 | **Usage & rules** | Les règles que ta marque applique, vérifiées sur des exemples réels | `usage` |
+| **Skills** | Les standards écrits de la marque, pour les personnes et les agents, à lire et à télécharger | `skills` |
 
 Renvoie vers une pièce avec `#/start?area=<key>`. La pièce Files garde la clé `catalogue`, car une clé de pièce est un contrat permanent, et `?tab=` fonctionne toujours comme ancien alias. Une clé inconnue ouvre Overview.
 
@@ -117,7 +118,7 @@ Une fois que la palette a des nuances, la bande montre les sept rôles qu'un out
 
 L'accent propre de l'application suit le design system par défaut. C'est le réglage **Interface follows the design system** dans **Settings → Appearance** ; le désactiver laisse l'habillage de l'application neutre, tandis que les outils, canevas et exports suivent le design system dans les deux cas.
 
-**Colourways.** Un design system peut contenir plusieurs couleurs dominantes, chacune choisie par pièce. Lolly conserve chaque colourway, mais cette pièce ne peut pas encore en créer : un colourway s'écrit dans le fichier de tokens. Sur un système avec des colourways, chaque colourway a besoin de son propre primaire et secondaire, et de sa propre surface quand les colourways teintent le fond, donc ces rôles restent définis dans l'éditeur de nuancier. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) montre les colourways sur du vrai travail, et [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) donne le format.
+**Colourways.** Un design system peut contenir plusieurs couleurs dominantes, chacune choisie par pièce. La ligne **Colourways** en tête de **Colour roles** montre une pastille par colourway, avec **Default** sur le colourway canonique. **+ Add** démarre un nouveau colourway à partir d'une des couleurs de la palette. Choisis une pastille, et la bande des rôles, la palette et les aperçus modifient ce colourway, dans l'apparence que choisit le commutateur **Light** et **Dark** ; le colourway choisi peut être renommé, dupliqué, défini comme défaut ou supprimé. Sur un système avec des colourways, chaque colourway a besoin de son propre primaire et secondaire, et de sa propre surface quand les colourways teintent le fond, donc ces rôles restent définis dans l'éditeur de nuancier. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) donne les étapes et le format de tokens, et [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) montre les colourways sur du vrai travail.
 
 ### Trouver d'autres couleurs
 
@@ -273,6 +274,12 @@ Les règles qu'un design system apporte dans son fichier de tokens, comme les as
 
 Un build livré avec une marque figée montre les mêmes règles et exemples en lecture seule, sous *This brand is set*.
 
+## Skills
+
+**Skills** liste les [brand skills](/info/brand-skills.html) du design system actif : les standards écrits de la marque, un par discipline, pour les personnes et les agents IA. Chaque ligne donne la discipline, le statut propre à la marque (**Draft** ou **Approved**), si le skill est public ou interne et sa révision. Choisis une ligne pour lire le skill à côté de sa couverture, qui confronte les lignes du skill à tes tokens : ce que Lolly vérifie, ce qui est en conflit, ce qui concorde et ce qui n'est qu'un conseil.
+
+**Download skill (.zip)** écrit le skill sous forme de dossier Agent Skills pour un outil d'agent, avec des liens de catalogue qui pointent vers ce Lolly, et **Copy as one file** place le même texte dans le presse-papiers pour une fenêtre de discussion. Un design system sans skills propres liste une base que Lolly écrit à partir de ses tokens et de ses règles maison à chaque lecture de la base. La pièce lit les skills et ne les modifie jamais.
+
 ## Faire entrer une marque
 
 **Add from…** au pied du rail ouvre un sélecteur qui demande ce que tu as, pas quel est le format :
@@ -315,7 +322,7 @@ Sélectionne une ambiance pour la relire, ou deux pour les comparer côte à cô
 
 **Export** écrit un fichier **`LollyBrand-….lolly`** : tes tokens, polices, logos et préférence de thème, avec un manifeste d'intégrité vérifié au retour. Les versions web antérieures à la 1.0.7 nommaient le même fichier `.zip`, et cette orthographe est toujours acceptée. **Tokens (.json)** écrit seul le document simple de design tokens, sans polices ni logos, pour un dépôt, une étape de build ou un autre outil de tokens.
 
-Pour en rapatrier un, utilise **Add from… → Design tokens or a design file**, ou dépose le fichier sur le studio. C'est ainsi qu'un collègue te remet une marque, ou que tu en emportes une sur une seconde installation, sans compte et sans cloud. Pour faire entrer une marque depuis la ligne de commande, voir [`ingest:brand`](/info/configuration.html#brand-packs).
+Pour en rapatrier un, utilise **Add from… → Design tokens or a design file**, ou dépose le fichier sur le studio. C'est ainsi qu'un collègue te remet une marque, ou que tu en emportes une sur une seconde installation, sans compte et sans cloud. [Working with partners](/info/partners.html) couvre ce qu'il faut envoyer d'autre quand la personne qui reçoit ta marque travaille pour une autre organisation. Pour faire entrer une marque depuis la ligne de commande, voir [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** emballe les polices que tu as ajoutées dans un RPM installable. Si tu en as importé toi-même, Lolly te demande d'abord de confirmer que tu as le droit de les redistribuer.
 
@@ -359,5 +366,6 @@ Changer ce qu'un serveur fournit est une tâche d'administrateur : son opérateu
 
 - **[Using Lolly](/info/using.html)** : les outils, l'enregistrement, le partage et Assets.
 - **[Brand architectures](/info/brand-architectures.html)** : comment les divisions, produits, marques endossées, clients et saisons se rattachent aux design systems, aux colourways et aux identités de logo.
+- **[Working with partners](/info/partners.html)** : partager ta marque avec un partenaire, et travailler dans une marque qu'on t'a confiée.
 - **[Design Tokens](/info/design-tokens.html)** : le modèle de tokens dans lequel ta marque est écrite.
 - **[Export a file](/info/exporting.html)** : unités d'impression, CMJN et les formats dans lesquels ta marque s'exporte.

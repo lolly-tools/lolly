@@ -13,7 +13,7 @@ Ihr Profil enthält auch, was Sie bei der Arbeit aufbauen: gespeicherte Sitzunge
 | **Location** | Stadt und Land. |
 | **Headshot** | Ein optionales Foto, auf ein Quadrat zugeschnitten und als lokales Bild behalten, für Tools wie E-Mail-Signaturen, Zitatkarten und Organigramme. |
 | **Use my details to create** | Ein Opt-in-Schalter (er heißt **Using my details**, sobald er an ist). Er entscheidet, ob Ihre Angaben als Urheberhinweis in exportierten Dateien und bei Batch-Läufen mitreisen. Das Vorausfüllen beeinflusst er nicht; siehe [Wie Tools Ihr Profil nutzen](#how-tools-use-your-profile). |
-| **Preferences** | Ihr Design, Ihre Einstellungen zur Barrierefreiheit und welche Teile der App Sie in **Feature flags** eingeschaltet haben. |
+| **Preferences** | Ihr Design, Ihre Farbvariante in jedem Designsystem, Ihre Einstellungen zur Barrierefreiheit und welche Teile der App Sie in **Feature flags** eingeschaltet haben. |
 | **Your work** | Gespeicherte Sitzungen mit ihren Vorschaubildern, geordnet in [Projects](/info/find-your-work.html), Ihre hochgeladenen Bilder und Ihre lokalen Aktivitätsstatistiken. |
 
 Nichts davon ist erforderlich. Ein leeres Profil funktioniert; füllen Sie nur aus, was Ihnen Tipparbeit spart.

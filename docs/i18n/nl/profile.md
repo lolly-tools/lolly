@@ -13,7 +13,7 @@ Je profiel bevat ook wat je opbouwt terwijl je werkt: opgeslagen sessies, geüpl
 | **Location** | Stad en land. |
 | **Headshot** | Een optionele foto, bijgesneden tot een vierkant en bewaard als lokale afbeelding, voor tools zoals e-mailhandtekeningen, citaatkaarten en organigrammen. |
 | **Use my details to create** | Eén opt-in-schakelaar (na het aanzetten staat er **Using my details**). Ze bepaalt of je gegevens meereizen als auteursvermelding in geëxporteerde bestanden en bij Batch-runs. Ze heeft geen invloed op vooraf invullen; zie [Hoe tools je profiel gebruiken](#how-tools-use-your-profile). |
-| **Preferences** | Je thema, je toegankelijkheidsinstellingen en welke delen van de app je aanzette in **Feature flags**. |
+| **Preferences** | Je thema, je colourway in elk design system, je toegankelijkheidsinstellingen en welke delen van de app je aanzette in **Feature flags**. |
 | **Your work** | Opgeslagen sessies met hun miniaturen, geordend in [Projects](/info/find-your-work.html), je geüploade afbeeldingen en je lokale activiteitsstatistieken. |
 
 Niets ervan is verplicht. Een leeg profiel werkt; vul alleen in wat je typwerk bespaart.

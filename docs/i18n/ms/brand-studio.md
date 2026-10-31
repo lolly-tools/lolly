@@ -33,6 +33,7 @@ Studio ialah set bilik dalam rel di sisi, tanpa susunan tetap: tiada apa-apa ber
 | **Tokens** | Sudut, jarak, bayang dan setiap nilai bernama lain | `tokens` |
 | **Files** | Fail imej, audio dan gerakan yang disimpan jenama anda | `catalogue` |
 | **Usage & rules** | Peraturan yang digunakan jenama anda, disemak pada contoh sebenar | `usage` |
+| **Skills** | Piawaian bertulis jenama untuk orang dan ejen, untuk dibaca dan dimuat turun | `skills` |
 
 Pautkan ke bilik dengan `#/start?area=<key>`. Bilik Files mengekalkan kunci `catalogue`, kerana kunci bilik ialah kontrak kekal, dan `?tab=` masih berfungsi sebagai alias lama. Kunci tidak diketahui membuka Overview.
 
@@ -117,7 +118,7 @@ Setelah palet mempunyai teduhan, jalur menunjukkan ketujuh-tujuh peranan yang bo
 
 Aksen apl sendiri mengikut sistem reka bentuk secara lalai. Itulah tetapan **Interface follows the design system** dalam **Settings → Appearance**; mematikan tetapan membiarkan chrome apl neutral, manakala alat, kanvas dan eksport mengikut sistem reka bentuk dalam kedua-dua keadaan.
 
-**Colourways.** Sistem reka bentuk boleh memegang beberapa warna utama, masing-masing dipilih bagi setiap karya. Lolly menyimpan setiap colourway, tetapi bilik ini belum boleh mengarang satu: colourway ditulis dalam fail token. Pada sistem dengan colourway, setiap colourway memerlukan primer dan sekunder sendiri, dan permukaan sendiri apabila colourway mewarnai latar, jadi peranan itu kekal ditetapkan dalam penyunting swatch. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada kerja sebenar, dan [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) mempunyai formatnya.
+**Colourways.** Sistem reka bentuk boleh memegang beberapa warna utama, masing-masing dipilih bagi setiap karya. Baris **Skema warna** di kepala **Peranan warna** menunjukkan satu cip bagi setiap colourway, dengan **Lalai** pada yang kanonik. **+ Tambah** memulakan colourway baharu daripada salah satu warna palet. Pilih satu cip, dan jalur peranan, palet dan pratonton menyunting colourway itu, dalam rupa yang dipilih oleh suis **Terang** dan **Gelap**; colourway yang dipilih boleh dinamakan semula, diduakan, dijadikan lalai atau dialih keluar. Pada sistem dengan colourway, setiap colourway memerlukan primer dan sekunder sendiri, dan permukaan sendiri apabila colourway mewarnai latar, jadi peranan itu kekal ditetapkan dalam penyunting swatch. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) mempunyai langkah dan format token, dan [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada kerja sebenar.
 
 ### Cari lebih banyak warna
 
@@ -273,6 +274,12 @@ Peraturan yang dibawa sistem reka bentuk dalam fail tokennya, seperti pasangan w
 
 Binaan yang dihantar dengan jenama tetap menunjukkan peraturan dan contoh yang sama baca sahaja, di bawah *This brand is set*.
 
+## Skills
+
+**Skills** menyenaraikan [brand skills](/info/brand-skills.html) sistem reka bentuk aktif: piawaian bertulis jenama, satu bagi setiap disiplin, untuk orang dan ejen AI. Setiap baris memberikan disiplin, status jenama sendiri (**Draf** atau **Diluluskan**), sama ada kemahiran itu awam atau dalaman, dan semakannya. Pilih satu baris untuk membaca kemahiran di sebelah liputannya, yang meletakkan baris kemahiran itu berhadapan token anda: apa yang Lolly semak, apa yang bercanggah, apa yang selari dan apa yang sekadar panduan.
+
+**Muat turun kemahiran (.zip)** menulis kemahiran sebagai folder Agent Skills untuk alat ejen, dengan pautan katalog menuju ke Lolly ini, dan **Salin sebagai satu fail** meletakkan teks yang sama pada papan keratan untuk tetingkap sembang. Sistem reka bentuk tanpa kemahiran sendiri menyenaraikan garis asas yang Lolly tulis daripada token dan peraturan rumahnya setiap kali garis asas itu dibaca. Bilik ini membaca kemahiran dan tidak pernah menyuntingnya.
+
 ## Bawa masuk satu jenama
 
 **Add from…** di kaki rel membuka pemilih yang bertanya apa yang anda ada, bukan apa formatnya:
@@ -315,7 +322,7 @@ Pilih satu rupa untuk menyemaknya, atau dua untuk dibandingkan bersebelahan. Mem
 
 **Export** menulis satu fail **`LollyBrand-….lolly`**: token, fon, logo dan pilihan tema anda, dengan manifes integriti yang disemak semasa kembali masuk. Keluaran web sebelum 1.0.7 menamakan fail yang sama `.zip`, dan ejaan itu masih diterima. **Tokens (.json)** menulis dokumen token reka bentuk biasa sahaja, tanpa fon atau logo, untuk repositori, langkah binaan atau alat token lain.
 
-Untuk membawa satu kembali, gunakan **Add from… → Design tokens or a design file**, atau letakkan fail pada studio. Begitulah rakan sekerja menyerahkan jenama kepada anda, atau cara anda membawa satu ke pemasangan kedua, tanpa akaun dan tanpa awan. Untuk membawa jenama masuk daripada baris perintah, lihat [`ingest:brand`](/info/configuration.html#brand-packs).
+Untuk membawa satu kembali, gunakan **Add from… → Design tokens or a design file**, atau letakkan fail pada studio. Begitulah rakan sekerja menyerahkan jenama kepada anda, atau cara anda membawa satu ke pemasangan kedua, tanpa akaun dan tanpa awan. [Working with partners](/info/partners.html) merangkumi apa lagi yang perlu dihantar apabila orang yang menerima jenama anda bekerja untuk organisasi lain. Untuk membawa jenama masuk daripada baris perintah, lihat [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** membungkus fon yang anda tambah ke dalam RPM boleh pasang. Jika anda memuat naik mana-mana daripadanya sendiri, Lolly meminta anda mengesahkan bahawa anda boleh mengedarkannya semula dahulu.
 
@@ -361,3 +368,4 @@ Mengubah apa yang dibekalkan pelayan ialah tugas pentadbir: pengendalinya mengub
 - **[Brand architectures](/info/brand-architectures.html)**: bagaimana bahagian, produk, jenama yang disokong, pelanggan dan musim dipetakan kepada sistem reka bentuk, colourway dan identiti logo.
 - **[Design Tokens](/info/design-tokens.html)**: model token tempat jenama anda ditulis.
 - **[Export a file](/info/exporting.html)**: unit cetakan, CMYK dan format yang dirender jenama anda.
+- **[Working with partners](/info/partners.html)**: berkongsi jenama anda dengan rakan kongsi, dan bekerja dalam jenama yang diberikan kepada anda.

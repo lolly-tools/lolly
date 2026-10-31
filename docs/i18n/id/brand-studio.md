@@ -33,6 +33,7 @@ Studio adalah sekumpulan ruangan dalam rel di sisi, tanpa urutan tetap: tidak ad
 | **Tokens** | Sudut, jarak, bayangan, dan setiap nilai bernama lainnya | `tokens` |
 | **Files** | File gambar, audio, dan gerak yang disimpan brand Anda | `catalogue` |
 | **Usage & rules** | Aturan yang diterapkan brand Anda, diperiksa pada contoh nyata | `usage` |
+| **Skills** | Standar tertulis brand untuk manusia dan agen, untuk dibaca dan diunduh | `skills` |
 
 Tautkan ke ruangan dengan `#/start?area=<key>`. Ruangan Files mempertahankan kunci `catalogue`, karena kunci ruangan adalah kontrak permanen, dan `?tab=` tetap berfungsi sebagai alias lama. Kunci yang tidak dikenal membuka Overview.
 
@@ -117,7 +118,7 @@ Begitu palet memiliki shade, strip menampilkan ketujuh peran yang dapat dibaca a
 
 Aksen aplikasi sendiri mengikuti design system secara default. Itulah pengaturan **Interface follows the design system** di **Settings → Appearance**; mematikan pengaturan membiarkan chrome aplikasi netral, sementara alat, kanvas, dan ekspor mengikuti design system dalam kedua kasus.
 
-**Colourways.** Design system dapat memuat beberapa warna utama, masing-masing dipilih per karya. Lolly mempertahankan setiap colourway, tetapi ruangan ini belum dapat menyusunnya: colourway ditulis di file token. Pada sistem dengan colourway, setiap colourway memerlukan primary dan secondary sendiri, dan surface sendiri bila colourway mewarnai latar, sehingga peran-peran itu tetap diatur di editor swatch. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada pekerjaan nyata, dan [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) memuat formatnya.
+**Colourways.** Design system dapat memuat beberapa warna utama, masing-masing dipilih per karya. Baris **Colourways** di bagian atas **Colour roles** menampilkan satu chip per colourway, dengan **Default** pada colourway kanonis. **+ Tambah** memulai colourway baru dari salah satu warna palet. Pilih sebuah chip, dan strip peran, palet, dan pratinjau menyunting colourway itu, dalam tampilan yang dipilih sakelar **Terang** dan **Gelap**; colourway yang dipilih dapat diganti namanya, diduplikasi, dijadikan default, atau dihapus. Pada sistem dengan colourway, setiap colourway memerlukan primary dan secondary sendiri, dan surface sendiri bila colourway mewarnai latar, sehingga peran-peran itu tetap diatur di editor swatch. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) memuat langkah dan format tokennya, dan [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) menunjukkan colourway pada pekerjaan nyata.
 
 ### Temukan lebih banyak warna
 
@@ -273,6 +274,12 @@ Aturan yang dibawa design system dalam file tokennya, seperti pasangan warna yan
 
 Build yang dikirim dengan brand tetap menampilkan aturan dan contoh yang sama secara hanya-baca, di bawah *This brand is set*.
 
+## Skills
+
+**Skills** mencantumkan [brand skills](/info/brand-skills.html) milik design system aktif: standar tertulis brand, satu per disiplin, untuk manusia dan agen AI. Setiap baris memberi disiplin, status brand itu sendiri (**Draf** atau **Disetujui**), apakah skill bersifat publik atau internal, dan revisinya. Pilih sebuah baris untuk membaca skill di samping cakupannya, yang menyandingkan baris-baris skill dengan token Anda: apa yang diperiksa Lolly, apa yang bertentangan, apa yang sejalan, dan apa yang hanya panduan.
+
+**Unduh skill (.zip)** menulis skill sebagai folder Agent Skills untuk alat agen, dengan tautan katalog yang mengarah ke Lolly ini, dan **Salin sebagai satu file** menaruh teks yang sama di papan klip untuk jendela obrolan. Design system tanpa skill sendiri mencantumkan baseline yang ditulis Lolly dari token dan aturan bakunya setiap kali baseline itu dibaca. Ruangan ini membaca skill dan tidak pernah menyuntingnya.
+
 ## Bawa brand masuk
 
 **Add from…** di dasar rel membuka pemilih yang menanyakan apa yang Anda miliki, bukan format apa itu:
@@ -315,7 +322,7 @@ Pilih satu tampilan untuk meninjaunya, atau dua untuk membandingkan berdampingan
 
 **Export** menulis satu file **`LollyBrand-….lolly`**: token, font, logo, dan preferensi tema Anda, dengan manifes integritas yang diperiksa saat dimasukkan kembali. Rilis web sebelum 1.0.7 menamai file yang sama `.zip`, dan ejaan itu masih diterima. **Tokens (.json)** menulis dokumen token desain polos sendiri, tanpa font atau logo, untuk repositori, langkah build, atau alat token lain.
 
-Untuk memasukkannya kembali, gunakan **Add from… → Design tokens or a design file**, atau letakkan file di studio. Begitulah rekan menyerahkan brand kepada Anda, atau Anda membawanya ke instalasi kedua, tanpa akun dan tanpa cloud. Untuk memasukkan brand dari baris perintah, lihat [`ingest:brand`](/info/configuration.html#brand-packs).
+Untuk memasukkannya kembali, gunakan **Add from… → Design tokens or a design file**, atau letakkan file di studio. Begitulah rekan menyerahkan brand kepada Anda, atau Anda membawanya ke instalasi kedua, tanpa akun dan tanpa cloud. [Working with partners](/info/partners.html) membahas apa lagi yang perlu dikirim bila penerima brand Anda bekerja untuk organisasi lain. Untuk memasukkan brand dari baris perintah, lihat [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** mengemas font yang Anda tambahkan ke RPM yang dapat dipasang. Jika Anda sendiri yang mengunggah sebagian, Lolly meminta Anda mengonfirmasi bahwa Anda boleh mendistribusikannya lebih dulu.
 
@@ -359,5 +366,6 @@ Mengubah apa yang disediakan server adalah tugas administrator: operatornya meng
 
 - **[Using Lolly](/info/using.html)**: alat, penyimpanan, berbagi, dan Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: bagaimana divisi, produk, brand yang didukung, klien, dan musim dipetakan ke design system, colourway, dan identitas logo.
+- **[Working with partners](/info/partners.html)**: membagikan brand Anda kepada mitra, dan bekerja dalam brand yang diberikan kepada Anda.
 - **[Design Tokens](/info/design-tokens.html)**: model token tempat brand Anda ditulis.
 - **[Export a file](/info/exporting.html)**: satuan cetak, CMYK, dan format tempat brand Anda dirender.

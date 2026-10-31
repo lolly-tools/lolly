@@ -13,7 +13,7 @@ Ton profil contient aussi ce que tu accumules en travaillant : sessions enregist
 | **Location** | Ville et pays. |
 | **Headshot** | Une photo facultative, recadrée en carré et conservée comme image locale, pour des outils comme les signatures d'e-mail, les cartes de citation et les organigrammes. |
 | **Use my details to create** | Un interrupteur facultatif (il affiche **Using my details** une fois activé). Il décide si tes informations voyagent comme crédit d'auteur dans les fichiers exportés et dans les lots de Batch. Il n'affecte pas le préremplissage ; voir [How tools use your profile](#how-tools-use-your-profile). |
-| **Preferences** | Ton thème, tes réglages d'accessibilité et les parties de l'application que tu as activées dans **Feature flags**. |
+| **Preferences** | Ton thème, ton colourway dans chaque design system, tes réglages d'accessibilité et les parties de l'application que tu as activées dans **Feature flags**. |
 | **Your work** | Les sessions enregistrées avec leurs vignettes, organisées dans [Projects](/info/find-your-work.html), tes images importées et tes statistiques d'activité locales. |
 
 Rien de tout cela n'est obligatoire. Un profil vide fonctionne ; ne remplis que ce qui t'évite de taper.

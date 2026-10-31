@@ -10,9 +10,9 @@ Halaman ini menelusuri kanvas daripada kotak pertama hingga dek siap: tetingkap,
 
 **Bar atas** bermula dengan **Home**, **File menu** dan nama dokumen (klik nama untuk menamakan semula dokumen). Bahagian tengah mengandungi **Undo**, **Redo**, **History**, kawalan zum (dengan **Fit all** dan **Fit artboard**) dan togol untuk **Timeline**, **Navigator** dan **Inspector**. Di kanan terdapat **Share**, **Present** dan **Export**. Pada telefon, butang yang kurang digunakan berpindah ke **More actions**.
 
-**Rel alat** di sisi menyimpan menu Lolly dan alat yang anda gunakan untuk melukis: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, kemudian butang Timeline, Artboards dan Auto-arrange.
+**Rel alat** di sisi menyimpan menu Lolly dan alat yang anda gunakan untuk melukis: **Pointer**, **Add a box**, **Pen**, **Pensel**, **Edit points**, **Line**, kemudian butang Timeline, Artboards dan Auto-arrange.
 
-![Rel alat kanvas bebas: pemegang seret, menu Lolly, kemudian Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Rel alat kanvas bebas: pemegang seret, menu Lolly, kemudian Pointer, Add a box, Pen, Pensel, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Kanvas berfungsi seperti papan tampal pereka di sekeliling artboard:
 
@@ -68,17 +68,26 @@ Tanpa kekunci ditahan, putaran ditarik ke 15 darjah terdekat apabila ia berada d
 
 ## Lukis bentuk anda sendiri
 
-Kotak, bulatan dan bingkai bulat meliputi kebanyakan reka letak. Untuk sebarang bentuk lain, lukis satu: butang **Pen** pada rel (atau `P`) meletakkan anda dalam mod lukisan. Tiga kekunci tunggal bergerak antara mod: `V` untuk Pointer, `P` untuk Pen dan `N` untuk **Edit points**. Pointer sentiasa menjadi jalan keluar.
+Kotak, bulatan dan bingkai bulat meliputi kebanyakan reka letak. Untuk sebarang bentuk lain, lukis satu: butang **Pen** pada rel (atau `P`) meletakkan anda dalam mod lukisan. Empat kekunci bergerak antara mod: `V` untuk Pointer, `P` untuk Pen, `Shift C` untuk **Pensel** dan `N` untuk **Edit points**. Pointer sentiasa menjadi jalan keluar.
 
 - **Klik** untuk meletakkan titik. Pada jenis lengkung lalai, **klik dan seret** menarik pemegang titik keluar untuk membuat lengkung; tahan **Alt** semasa anda klik untuk sudut keras. (Pada jenis lengkung lain setiap titik ialah sudut dan seretan tidak melakukan apa-apa.)
-- Titik melekap pada artboard dan kotak lain anda semasa anda meletakkannya. Alt menindas grid semasa anda melukis, dan kedua-dua grid dan tepi semasa anda menyeret titik selepas itu.
+- Tahan **Shift** semasa anda klik dan segmen baharu meninggalkan titik sebelumnya pada gandaan 15 darjah, jadi garisan mendatar, menegak dan 45 darjah tepat. Shift semasa anda menyeret keluar pemegang melangkah pemegang itu dengan cara yang sama.
+- Titik melekap pada artboard, kotak lain anda dan titik lain pada laluan yang sama semasa anda meletakkannya, jadi satu titik sejajar dengan titik yang anda letakkan tadi. Alt menindas grid semasa anda melukis, dan kedua-dua grid dan tepi semasa anda menyeret titik selepas itu.
 - **Klik titik pertama anda** untuk menutup bentuk. Jika tidak, tekan **Enter**, klik dua kali atau tukar alat, dan lukisan disimpan.
 - **Escape** berfungsi satu langkah pada satu masa: tekanan pertama meninggalkan lukisan, yang kedua meninggalkan pen.
-- **Delete** semasa melukis menggugurkan titik terakhir.
+- **Delete**, atau Undo (`⌘ Z` atau `Ctrl Z`), semasa melukis menggugurkan titik terakhir.
+
+**Sambung laluan terbuka.** Dengan Pen hidup, tekan pada mana-mana hujung laluan terbuka dan anda melukis laluan itu semula: setiap klik menambah titik selepas hujung itu, atau di hadapan titik pertama apabila anda bermula dari awal. Enter menyimpan hasilnya dan Escape membiarkan laluan tepat seperti asalnya. Laluan kekal kotak yang sama, dengan isian, strok dan kepala anak panahnya, dan satu undo mengembalikannya. Delete hanya menarik balik titik yang anda tambah. Bentuk tertutup, garisan yang dipasang pada kotak dan laluan dengan beberapa bahagian tidak mempunyai hujung bebas untuk disambung.
+
+**Lukis bebas dengan Pensel.** Butang **Pensel** pada rel (atau `Shift C`) merekod goresan anda semasa anda menyeret. Apabila anda melepaskan, Lolly melicinkan goresan itu menjadi beberapa titik dengan pemegang Bezier, mengekalkan belokan tajam sebagai sudut, dan mengekalkan lengkung dalam lingkungan beberapa piksel skrin daripada tempat tangan anda bergerak. Goresan yang berakhir berhampiran permulaannya akan tertutup. Hasilnya ialah laluan biasa, dengan cat yang sama seperti laluan pen, dan anda boleh menyunting titiknya selepas itu.
 
 Hasilnya ialah kotak biasa. Gerak, ubah saiz, putar, kumpul, jajar, susun semula, isi, teduh atau pudarkan laluan seperti kotak lain. Laluan pertama mengambil isian dan lejang yang diberikan jenama anda kepada laluan, dan setiap laluan baharu selepas itu mengambil apa sahaja yang anda guna terakhir. Dalam alat yang jenamanya tidak menetapkan apa-apa untuk laluan, laluan baharu dilejang dalam warna yang anda lukis, jadi bentuk tidak pernah tidak kelihatan.
 
 **Sunting titik sekali lagi.** Klik dua kali bentuk, atau gunakan **Edit points** pada bar objek. Seret titik untuk menggerakkannya, seret pemegang untuk mengarah semula lengkung, klik pada lengkung untuk menyisipkan titik atau seret kotak mengelilingi beberapa titik dan tekan Delete. Laluan sentiasa mengekalkan sekurang-kurangnya dua titik.
+
+- Tahan **Shift** semasa anda menyeret satu titik dan sudutnya daripada titik seterusnya di sepanjang laluan yang tidak bergerak berubah dalam langkah 15 darjah. Shift semasa anda menyeret pemegang melangkah pemegang itu mengelilingi titiknya sendiri. Shift semasa anda klik masih menambah titik atau pemegang pada pilihan; langkah bermula sebaik anda menyeret.
+- Titik yang diseret melekap pada artboard, kotak lain dan titik lain pada laluan itu. Tahan Alt untuk meletakkannya dengan bebas.
+- Klik satu pemegang untuk memilihnya, kemudian tekan **Delete** untuk menariknya kembali ke titiknya. Sebelah titik itu menjadi sudut, tanpa pemegang menarik lengkung. Dengan titik dipilih, Delete membuang titik seperti biasa.
 
 **Spline type** menentukan jenis lengkung yang melalui titik anda:
 
@@ -112,6 +121,25 @@ Tiga lagi berfungsi pada satu bentuk. **Outline stroke…** menukar lejang menja
 ![Bulan sabit dan gelang dengan lubang sebenar, kedua-duanya dihasilkan oleh Subtract](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
 Hasilnya ialah laluan baharu yang boleh anda terus sunting dengan pen, disimpan sebagai lengkung Bezier biasa, jadi jenis spline asal tidak dibawa. Lubang ialah lubang sebenar: kawalan **Fill rule** pada panel lejang menentukan sama ada kontur bertindih mengisi (*non-zero*) atau menebuk (*even-odd*). Operasi menolak dan bukan memusnahkan: minta persilangan dua bentuk yang tidak bertindih dan tiada apa-apa berubah. Kotak teks dan imej tidak mempunyai garis luar, jadi ia dibiarkan.
+
+## Strok
+
+Kotak, gambar, papan dan laluan pen masing-masing boleh membawa strok: warna, lebar dan gaya (padu, sengkang atau titik). Baris strok terletak di bawah **Fill** dalam Inspector, dan butang **Strok** pada bar objek membukanya.
+
+**Kedudukan** meletakkan strok pada garis luar: **Dalam**, **Tengah** atau **Luar**. Kotak distrok di dalam melainkan anda memilih sebaliknya, jadi tepi luarnya kekal di tempat anda melukisnya, dan laluan pen distrok di tengah lengkungnya. Dengan strok tengah atau luar, isian, gambar dan teks kekal di dalam tepi dalam strok, dan garis luar pilihan kekal pada tepi kotak itu sendiri. Laluan terbuka tidak mempunyai bahagian dalam, jadi ia sentiasa distrok di tengah. Strok papan sentiasa kekal di dalam halaman, kerana tepi halaman ialah tepi eksport.
+
+**Strok bagi setiap sisi.** Pada segi empat tepat, kotak bulat, pil atau papan, suis di sebelah lebar menunjukkan empat lebar: **Atas**, **Kanan**, **Bawah** dan **Kiri**. Tetapkan satu sisi kepada 0 untuk menyembunyikan sisi itu, yang memberi anda pembahagi atau garis bawah tanpa bentuk kedua. Suis itu hanya menunjukkan atau menyembunyikan empat sel dan tidak pernah mengubah nilai. Selagi sisi berbeza, lebar dipaparkan sebagai **Bercampur**; taip lebar di situ untuk menetapkan keempat-empat sisi serentak. Warna, kedudukan dan gaya kekal dikongsi oleh setiap sisi, dan sudut bulat melengkung bersama lebar di sebelahnya, seperti sempadan CSS. Elips, bulatan dan laluan pen melukis satu lebar di sekelilingnya.
+
+Cara format membawa strok:
+
+| Format | Kedudukan | Bagi setiap sisi |
+|---|---|---|
+| SVG, PDF, PNG dan gambar lain | Tepat. Strok dalam atau luar laluan pen dilukis dua kali ganda lebar dan dipotong pada satu sisi garis luar. | Strok padu adalah tepat, sebagai satu bentuk antara tepi luar dan tepi dalam strok. Strok sengkang atau titik dilukis sebagai sengkang di sepanjang setiap sisi dalam SVG dan padu dalam PDF. |
+| Penpot | Dalam, tengah dan luar dibawa sebagai penjajaran strok Penpot. Papan sentiasa `inner`. | Penpot 2.19 atau lebih baharu membaca keempat-empat lebar secara asli. Penpot 2.18 melukis lebar atas di sekelilingnya, dan Penpot 2.17 atau lebih lama menolak fail yang membawa lebar bagi setiap sisi. |
+| PowerPoint | PowerPoint melukis garisan di tengah tepi bentuk. Tengah adalah tepat; luar menggerakkan bentuk keluar sebanyak separuh lebar, yang meletakkan garisan PowerPoint di luar kotak; dalam mengekalkan garisan tengah yang ditulis oleh eksport lama. | Strok menjadi bentuk berasingan (gelang antara tepi luar dan dalam), di atas bentuk tanpa garisan. |
+| dotLottie | Strok Lottie berada di tengah, jadi strok kotak luar atau laluan pen yang distrok dalam atau luar ditolak dengan mesej. | Ditolak dengan mesej. |
+
+Strok tengah lutsinar menunjukkan halaman melalui separuh dalamnya, bukan isian, pada kanvas dan dalam setiap eksport. Apabila anda mengimport fail Penpot, setiap strok mengekalkan penjajaran dan lebarnya bagi setiap sisi, dan `strokeAlign` fail Figma serta berat strok individu dibawa masuk dengan cara yang sama.
 
 ## Adegan 3D dan alat dalam reka bentuk
 

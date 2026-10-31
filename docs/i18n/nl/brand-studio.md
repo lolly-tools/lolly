@@ -33,6 +33,7 @@ De studio is een set kamers in een balk langs de zijkant, in geen vaste volgorde
 | **Tokens** | Hoeken, tussenruimte, schaduwen en elke andere benoemde waarde | `tokens` |
 | **Files** | De afbeeldingen, audio- en bewegingsbestanden die je merk bewaart | `catalogue` |
 | **Usage & rules** | De regels die je merk toepast, gecontroleerd op echte voorbeelden | `usage` |
+| **Skills** | De geschreven standaarden van het merk voor mensen en agents, om te lezen en te downloaden | `skills` |
 
 Link naar een kamer met `#/start?area=<key>`. De kamer Files behoudt de sleutel `catalogue`, omdat een kamersleutel een blijvend contract is, en `?tab=` werkt nog als oudere alias. Een onbekende sleutel opent Overview.
 
@@ -117,7 +118,7 @@ Zodra het palet tinten heeft, toont de strook alle zeven rollen die een tool kan
 
 Het eigen accent van de app volgt standaard het design system. Dat is de instelling **Interface follows the design system** in **Settings → Appearance**; de instelling uitzetten laat de chrome van de app neutraal, terwijl tools, canvassen en exports in beide gevallen het design system volgen.
 
-**Colourways.** Een design system kan meerdere leadkleuren bevatten, elk per stuk gekozen. Lolly behoudt elke colourway, maar deze kamer kan er nog geen opstellen: een colourway wordt in het tokenbestand geschreven. Op een systeem met colourways heeft elke colourway een eigen primary en secondary nodig, en een eigen surface wanneer de colourways de achtergrond tinten, dus die rollen blijven ingesteld in de swatch-editor. [Lolly Demo in gebruik](/info/lolly-demo-in-use.html#colourways-on-real-work) toont colourways op echt werk, en [Colourways aan een design system toevoegen](/info/colourways.html#add-colourways-to-a-design-system) bevat het formaat.
+**Colourways.** Een design system kan meerdere leadkleuren bevatten, elk per stuk gekozen. De rij **Kleurvarianten** aan het begin van **Kleurrollen** toont één chip per colourway, met **Standaard** op de canonieke. **+ Toevoegen** start een nieuwe colourway vanuit een van de kleuren van het palet. Kies een chip, en de rollenstrook, het palet en de voorvertoningen bewerken die colourway, in de look die de schakelaar **Licht** en **Donker** kiest; de gekozen colourway kan worden hernoemd, gedupliceerd, als standaard ingesteld of verwijderd. Op een systeem met colourways heeft elke colourway een eigen primary en secondary nodig, en een eigen surface wanneer de colourways de achtergrond tinten, dus die rollen blijven ingesteld in de swatch-editor. [Colourways aan een design system toevoegen](/info/colourways.html#add-colourways-to-a-design-system) bevat de stappen en het tokenformaat, en [Lolly Demo in gebruik](/info/lolly-demo-in-use.html#colourways-on-real-work) toont colourways op echt werk.
 
 ### Meer kleuren vinden
 
@@ -273,6 +274,12 @@ Regels die een design system meebrengt in zijn tokenbestand, zoals goedgekeurde 
 
 Een build die met een vast merk wordt geleverd, toont dezelfde regels en voorbeelden alleen-lezen, onder *This brand is set*.
 
+## Skills
+
+**Skills** toont de [merkskills](/info/brand-skills.html) van het actieve design system: de geschreven standaarden van het merk, één per discipline, voor mensen en AI-agents. Elke rij geeft de discipline, de eigen status van het merk (**Concept** of **Goedgekeurd**), of de skill openbaar of intern is en zijn revisie. Kies een rij om de skill te lezen naast zijn dekking, die de regels van de skill afzet tegen je tokens: wat Lolly controleert, wat botst, wat overeenkomt en wat alleen richtlijn is.
+
+**Skill downloaden (.zip)** schrijft de skill als een Agent Skills-map voor een agent-tool, met cataloguslinks die naar deze Lolly wijzen, en **Als één bestand kopiëren** zet dezelfde tekst op het klembord voor een chatvenster. Een design system zonder eigen skills toont een basislijn die Lolly uit zijn tokens en huisregels schrijft telkens wanneer de basislijn wordt gelezen. De kamer leest skills en bewerkt ze nooit.
+
 ## Een merk binnenhalen
 
 **Add from…** onderaan de balk opent een kiezer die vraagt wat je hebt, niet welk formaat het is:
@@ -315,7 +322,7 @@ Selecteer één look om hem te bekijken, of twee om naast elkaar te vergelijken.
 
 **Export** schrijft één bestand **`LollyBrand-….lolly`**: je tokens, lettertypen, logo's en themavoorkeur, met een integriteitsmanifest dat bij het terugbrengen wordt gecontroleerd. Webreleases vóór 1.0.7 noemden hetzelfde bestand `.zip`, en die schrijfwijze wordt nog geaccepteerd. **Tokens (.json)** schrijft het gewone designtokensdocument op zichzelf, zonder lettertypen of logo's, voor een repository, een buildstap of een andere tokentool.
 
-Om er een terug te brengen gebruik je **Add from… → Design tokens or a design file**, of zet je het bestand op de studio. Zo geeft een collega je een merk, of neem je er een mee naar een tweede installatie, zonder account en zonder cloud. Om een merk vanaf de opdrachtregel binnen te halen, zie [`ingest:brand`](/info/configuration.html#brand-packs).
+Om er een terug te brengen gebruik je **Add from… → Design tokens or a design file**, of zet je het bestand op de studio. Zo geeft een collega je een merk, of neem je er een mee naar een tweede installatie, zonder account en zonder cloud. [Samenwerken met partners](/info/partners.html) beschrijft wat je nog meer meestuurt als de ontvanger van je merk voor een andere organisatie werkt. Om een merk vanaf de opdrachtregel binnen te halen, zie [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** pakt de lettertypen die je toevoegde in een installeerbare RPM. Als je er zelf een aantal uploadde, vraagt Lolly je eerst te bevestigen dat je ze mag herdistribueren.
 
@@ -359,5 +366,6 @@ Wijzigen wat een server levert is een taak voor een beheerder: de beheerder wijz
 
 - **[Lolly gebruiken](/info/using.html)**: de tools, opslaan, delen en Assets.
 - **[Merkarchitecturen](/info/brand-architectures.html)**: hoe divisies, producten, gesteunde merken, klanten en seizoenen overeenkomen met design systems, colourways en logo-identiteiten.
+- **[Samenwerken met partners](/info/partners.html)**: je merk delen met een partner en werken in een merk dat je kreeg.
 - **[Design Tokens](/info/design-tokens.html)**: het tokenmodel waarin je merk is geschreven.
 - **[Een bestand exporteren](/info/exporting.html)**: drukeenheden, CMYK en de formaten waarin je merk rendert.

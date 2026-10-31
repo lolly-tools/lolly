@@ -13,7 +13,7 @@ Hawak din ng profile mo ang naiipon mo habang gumagawa: mga naka-save na session
 | **Location** | Lungsod at bansa. |
 | **Headshot** | Opsyonal na litrato, ginupit na parisukat at iniingatan bilang lokal na larawan, para sa mga tool tulad ng email signature, quote card at org chart. |
 | **Use my details to create** | Isang opt-in na switch (nakasulat itong **Using my details** kapag naka-on). Pinapasya nito kung sumasama ang mga detalye mo bilang author credit sa mga na-export na file at sa mga Batch run. Hindi nito naaapektuhan ang pre-fill; tingnan ang [Paano ginagamit ng mga tool ang profile mo](#how-tools-use-your-profile). |
-| **Preferences** | Ang theme mo, mga accessibility setting at kung aling bahagi ng app ang in-on mo sa **Feature flags**. |
+| **Preferences** | Ang theme mo, ang colourway mo sa bawat design system, mga accessibility setting at kung aling bahagi ng app ang in-on mo sa **Feature flags**. |
 | **Your work** | Mga naka-save na session na may thumbnail, nakaayos sa [Projects](/info/find-your-work.html), mga na-upload mong larawan at lokal mong activity stats. |
 
 Walang kinakailangan sa mga ito. Gumagana ang blangkong profile; punan lang ang makakatipid sa pagta-type mo.

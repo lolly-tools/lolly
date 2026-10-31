@@ -75,6 +75,10 @@ Tổ chức của bạn lưu trữ [Lolly Work](https://github.com/lolly-tools/l
 Nếu bạn đang thiết lập dịch vụ, hãy bắt đầu với [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Bản demo công khai tại [lolly.work](https://lolly.work) là một sandbox; hãy dùng địa chỉ riêng của tổ chức cho công việc bạn cần giữ.
 :::
 
+## Thương hiệu của một tổ chức khác
+
+Một đối tác, khách hàng hoặc nhà tài trợ có thể gửi bạn thương hiệu của họ dưới dạng tệp hệ thống thiết kế (`.lolly`) thay vì một địa chỉ. Mở loại tệp đó không kết nối ứng dụng với gì cả: nó thêm hệ thống thiết kế của họ bên cạnh hệ thống của bạn trên thiết bị này. Tệp thiết lập từ chính tổ chức của bạn thì khác, vì nó kết nối ứng dụng với Lolly của tổ chức, và bản xem trước cho thấy việc mở một tệp sẽ làm gì trước khi có gì thay đổi. [Working with partners](/info/partners.html) nói về cả hai phía của việc làm việc trong thương hiệu của một tổ chức khác.
+
 ## Rời đi
 
 **Leave**, trên thẻ **Lolly instance** trong **Settings**, gỡ hệ thống thiết kế, công cụ và danh mục của tổ chức bạn. Công việc của riêng bạn vẫn còn. Mọi thứ bạn làm bằng các công cụ của nó sẽ không mở lại được cho đến khi bạn kết nối lại.
