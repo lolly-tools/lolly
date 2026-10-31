@@ -24,7 +24,7 @@ Første gang du åpner galleriet, tilbyr en kort velkomst de samme valgene: **Ma
 
 ![Rommet Colours i Design System Setup på en ny installasjon: ett levende fargefelt, ett inndatafelt og hele den første beslutningen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Derfra tar sju rom deg så langt du vil, i hvilken som helst rekkefølge: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** og **Rules**. Hver forhåndsvisning i appen oppdateres mens du skriver. [Design System Setup](/info/brand-studio.html) dekker hvert rom.
+Derfra tar åtte rom deg så langt du vil, i hvilken som helst rekkefølge: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** og **Skills**. Hver forhåndsvisning i appen oppdateres mens du skriver. [Design System Setup](/info/brand-studio.html) dekker hvert rom.
 
 Skrifter lagres på enheten din. Velg en Google Font, så lagrer Lolly filen som en merkevareressurs, slik at skriften din følger med uten nett og ingenting hentes når et verktøy tegner.
 

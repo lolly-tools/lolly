@@ -24,7 +24,7 @@ De eerste keer dat je de galerij opent, biedt een korte welkomstboodschap dezelf
 
 ![De kamer Colours van Design System Setup bij een verse installatie: één live chip, één veld en de hele eerste beslissing](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Vanaf daar brengen zeven kamers het zo ver als je wilt, in elke volgorde: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** en **Rules**. Elk voorbeeld in de app wordt bijgewerkt terwijl je typt. [Design System Setup](/info/brand-studio.html) behandelt elke kamer.
+Vanaf daar brengen acht kamers het zo ver als je wilt, in elke volgorde: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** en **Skills**. Elk voorbeeld in de app wordt bijgewerkt terwijl je typt. [Design System Setup](/info/brand-studio.html) behandelt elke kamer.
 
 Lettertypen blijven op je apparaat. Kies een Google Font en Lolly bewaart het bestand als merkasset, zodat je typografie offline meereist en er niets wordt opgehaald wanneer een tool tekent.
 

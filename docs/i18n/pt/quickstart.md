@@ -24,7 +24,7 @@ Na primeira vez que você abre a galeria, uma breve boas-vindas oferece as mesma
 
 ![A sala Colours do Design System Setup em uma instalação nova: uma amostra ao vivo, um campo e toda a primeira decisão](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-A partir daí, sete salas levam você até onde quiser, em qualquer ordem: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** e **Rules**. Todas as prévias do app são atualizadas enquanto você digita. [Design System Setup](/info/brand-studio.html) cobre cada sala.
+A partir daí, oito salas levam você até onde quiser, em qualquer ordem: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** e **Skills**. Todas as prévias do app são atualizadas enquanto você digita. [Design System Setup](/info/brand-studio.html) cobre cada sala.
 
 As fontes ficam no seu dispositivo. Escolha uma Google Font e o Lolly guarda o arquivo como um recurso da marca, então a sua tipografia funciona offline e nada é buscado quando uma ferramenta desenha.
 

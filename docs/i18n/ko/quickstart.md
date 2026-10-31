@@ -24,7 +24,7 @@ lolly.tools는 Lolly 자체의 샘플 디자인 시스템인 **Lolly Demo**로 �
 
 ![새로 설치한 상태의 Design System Setup의 Colours 룸: 실시간 칩 하나, 입력란 하나, 첫 결정의 전부](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-거기서부터 일곱 개의 룸이 원하는 만큼, 어떤 순서로든 이어져요. **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**예요. 앱의 모든 미리보기는 입력하는 대로 업데이트돼요. [Design System Setup](/info/brand-studio.html)에서 각 룸을 다뤄요.
+거기서부터 여덟 개의 룸이 원하는 만큼, 어떤 순서로든 이어져요. **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**, **Skills**예요. 앱의 모든 미리보기는 입력하는 대로 업데이트돼요. [Design System Setup](/info/brand-studio.html)에서 각 룸을 다뤄요.
 
 글꼴은 기기에 보관돼요. Google Font를 고르면 Lolly가 파일을 브랜드 에셋으로 저장하므로, 글꼴이 오프라인에서도 따라다니고 도구가 그릴 때 아무것도 가져오지 않아요.
 

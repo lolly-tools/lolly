@@ -24,7 +24,7 @@ Lần đầu bạn mở thư viện, một lời chào ngắn đưa ra cùng cá
 
 ![Phòng Colours của Design System Setup trên bản cài mới: một chip trực tiếp, một ô nhập và toàn bộ quyết định đầu tiên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Từ đó, bảy phòng đưa nó đi xa tùy ý bạn, theo thứ tự nào cũng được: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** và **Rules**. Mọi bản xem trước trong ứng dụng cập nhật khi bạn gõ. [Design System Setup](/info/brand-studio.html) giới thiệu từng phòng.
+Từ đó, tám phòng đưa nó đi xa tùy ý bạn, theo thứ tự nào cũng được: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** và **Skills**. Mọi bản xem trước trong ứng dụng cập nhật khi bạn gõ. [Design System Setup](/info/brand-studio.html) giới thiệu từng phòng.
 
 Phông chữ được giữ trên thiết bị của bạn. Chọn một Google Font và Lolly lưu tệp như một tài nguyên thương hiệu, nên kiểu chữ của bạn đi cùng ngoại tuyến và không có gì được tải khi một công cụ vẽ.
 

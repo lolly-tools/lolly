@@ -24,7 +24,7 @@ Saat pertama kali membuka galeri, sambutan singkat menawarkan pilihan yang sama:
 
 ![Ruangan Colours di Design System Setup pada instalasi baru: satu chip langsung, satu field, dan keseluruhan keputusan pertama](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Dari sana, tujuh ruangan membawanya sejauh yang Anda mau, dalam urutan apa pun: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, dan **Rules**. Setiap pratinjau di aplikasi diperbarui saat Anda mengetik. [Design System Setup](/info/brand-studio.html) membahas setiap ruangan.
+Dari sana, delapan ruangan membawanya sejauh yang Anda mau, dalam urutan apa pun: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules**, dan **Skills**. Setiap pratinjau di aplikasi diperbarui saat Anda mengetik. [Design System Setup](/info/brand-studio.html) membahas setiap ruangan.
 
 Font disimpan di perangkat Anda. Pilih Google Font dan Lolly menyimpan filenya sebagai aset brand, sehingga tipografi Anda ikut offline dan tidak ada yang diambil saat alat menggambar.
 

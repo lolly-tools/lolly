@@ -24,7 +24,7 @@ lolly.tools **Lolly Demo** में खुलता है, जो Lolly का
 
 ![नई इंस्टॉल पर Design System Setup का Colours रूम: एक लाइव चिप, एक फ़ील्ड और पहले निर्णय का पूरा हिस्सा](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-वहाँ से सात रूम इसे जितना चाहें आगे ले जाते हैं, किसी भी क्रम में: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** और **Rules**। आपके टाइप करते ही ऐप का हर प्रीव्यू अपडेट होता है। [Design System Setup](/info/brand-studio.html) हर रूम को कवर करता है।
+वहाँ से आठ रूम इसे जितना चाहें आगे ले जाते हैं, किसी भी क्रम में: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** और **Skills**। आपके टाइप करते ही ऐप का हर प्रीव्यू अपडेट होता है। [Design System Setup](/info/brand-studio.html) हर रूम को कवर करता है।
 
 फ़ॉन्ट आपके डिवाइस पर रखे जाते हैं। Google Font चुनें और Lolly फ़ाइल को ब्रांड एसेट के रूप में सहेजता है, इसलिए आपका टाइप ऑफ़लाइन साथ चलता है और टूल के बनाते समय कुछ नहीं लाया जाता।
 

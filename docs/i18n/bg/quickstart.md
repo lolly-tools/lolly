@@ -24,7 +24,7 @@ lolly.tools се отваря в **Lolly Demo**, собствената прим
 
 ![Стаята Colours на Design System Setup при нова инсталация: един жив чип, едно поле и цялото първо решение](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Оттам седем стаи го водят докъдето поискаш, в какъвто ред искаш: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** и **Rules**. Всеки преглед в приложението се обновява, докато пишеш. [Design System Setup](/info/brand-studio.html) разглежда всяка стая.
+Оттам осем стаи го водят докъдето поискаш, в какъвто ред искаш: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** и **Skills**. Всеки преглед в приложението се обновява, докато пишеш. [Design System Setup](/info/brand-studio.html) разглежда всяка стая.
 
 Шрифтовете се пазят на устройството ти. Избери Google Font и Lolly запазва файла като ресурс на марката, така че шрифтът ти пътува офлайн и нищо не се изтегля, когато инструмент рисува.
 

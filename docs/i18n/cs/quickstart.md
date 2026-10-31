@@ -24,7 +24,7 @@ Při prvním otevření galerie krátké uvítání nabídne stejné volby: **Ma
 
 ![Místnost Colours v Design System Setup na čerstvé instalaci: jeden živý čip, jedno pole a celé první rozhodnutí](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Odtud tě sedm místností dovede tak daleko, jak chceš, v libovolném pořadí: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** a **Rules**. Každý náhled v aplikaci se aktualizuje při psaní. Každou místnost popisuje [Design System Setup](/info/brand-studio.html).
+Odtud tě osm místností dovede tak daleko, jak chceš, v libovolném pořadí: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** a **Skills**. Každý náhled v aplikaci se aktualizuje při psaní. Každou místnost popisuje [Design System Setup](/info/brand-studio.html).
 
 Písma se uchovávají na tvém zařízení. Vyber Google Font a Lolly uloží soubor jako asset značky, takže tvé písmo cestuje offline a při kreslení nástroje se nic nestahuje.
 

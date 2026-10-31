@@ -24,7 +24,7 @@ La première fois que tu ouvres la galerie, un court message d'accueil propose l
 
 ![La pièce Colours de Design System Setup sur une installation neuve : une pastille en direct, un champ et toute la première décision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-À partir de là, sept pièces te mènent aussi loin que tu veux, dans l'ordre que tu veux : **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** et **Rules**. Chaque aperçu de l'application se met à jour pendant que tu saisis. [Design System Setup](/info/brand-studio.html) couvre chaque pièce.
+À partir de là, huit pièces te mènent aussi loin que tu veux, dans l'ordre que tu veux : **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** et **Skills**. Chaque aperçu de l'application se met à jour pendant que tu saisis. [Design System Setup](/info/brand-studio.html) couvre chaque pièce.
 
 Les polices sont conservées sur ton appareil. Choisis une Google Font et Lolly stocke le fichier comme ressource de marque, de sorte que ta typographie voyage hors ligne et que rien n'est récupéré quand un outil dessine.
 

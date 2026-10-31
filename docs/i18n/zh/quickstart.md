@@ -24,7 +24,7 @@ lolly.tools 默认打开 **Lolly Demo**，即 Lolly 自己的示例设计系统�
 
 ![全新安装后 Design System Setup 的 Colours 房间：一个实时色块、一个字段，以及第一个决定的全部内容](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-从这里开始，七个房间可以按任意顺序，带你想走多远就走多远：**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files** 和 **Rules**。应用中的每个预览都会随你输入而更新。[Design System Setup](/info/brand-studio.html) 介绍了每个房间。
+从这里开始，八个房间可以按任意顺序，带你想走多远就走多远：**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules** 和 **Skills**。应用中的每个预览都会随你输入而更新。[Design System Setup](/info/brand-studio.html) 介绍了每个房间。
 
 字体保存在你的设备上。选一个 Google Font，Lolly 会把字体文件存为品牌素材，所以你的字体可以离线随身携带，工具绘制时不会获取任何内容。
 

@@ -24,7 +24,7 @@
 
 ![غرفة Colours في Design System Setup على تثبيت جديد: شريحة حية واحدة وحقل واحد والقرار الأول كاملاً](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-ومن هناك، تأخذه سبع غرف إلى أي مدى تريد، بأي ترتيب: **Board** و**Colours** و**Type** و**Logos** و**Tokens** و**Files** و**Rules**. تتحدث كل معاينة في التطبيق أثناء الكتابة. يغطي [Design System Setup](/info/brand-studio.html) كل غرفة.
+ومن هناك، تأخذه ثماني غرف إلى أي مدى تريد، بأي ترتيب: **Board** و**Colours** و**Type** و**Logos** و**Tokens** و**Files** و**Rules** و**Skills**. تتحدث كل معاينة في التطبيق أثناء الكتابة. يغطي [Design System Setup](/info/brand-studio.html) كل غرفة.
 
 تُحفظ الخطوط على جهازك. اختر خطاً من Google Fonts فيخزّن Lolly الملف أصلاً من أصول العلامة، فيسافر خطك دون اتصال ولا يُجلب شيء عندما ترسم أداة.
 

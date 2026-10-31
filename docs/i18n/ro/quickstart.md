@@ -24,7 +24,7 @@ Prima dată când deschizi galeria, o scurtă bun venit oferă aceleași alegeri
 
 ![Camera Colours din Design System Setup la o instalare nouă: un chip live, un câmp și toată prima decizie](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-De acolo, șapte camere o duc cât de departe vrei, în orice ordine: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** și **Rules**. Fiecare previzualizare din aplicație se actualizează pe măsură ce tastezi. [Design System Setup](/info/brand-studio.html) acoperă fiecare cameră.
+De acolo, opt camere o duc cât de departe vrei, în orice ordine: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** și **Skills**. Fiecare previzualizare din aplicație se actualizează pe măsură ce tastezi. [Design System Setup](/info/brand-studio.html) acoperă fiecare cameră.
 
 Fonturile sunt păstrate pe dispozitivul tău. Alege un Google Font și Lolly stochează fișierul ca resursă de brand, deci tipografia ta călătorește offline și nu se preia nimic când un instrument desenează.
 

@@ -24,7 +24,7 @@ lolly.tools 會在 **Lolly Demo** 中開啟，這是 Lolly 自己的範例設計
 
 ![全新安裝的 Design System Setup 中的 Colours 房間：一個即時色塊、一個欄位，以及第一個決定的全部](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-從這裡開始，七個房間可依任意順序帶你走到你想要的程度：**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files** 與 **Rules**。你輸入時，應用程式中的每個預覽都會更新。[Design System Setup](/info/brand-studio.html) 涵蓋每個房間。
+從這裡開始，八個房間可依任意順序帶你走到你想要的程度：**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules** 與 **Skills**。你輸入時，應用程式中的每個預覽都會更新。[Design System Setup](/info/brand-studio.html) 涵蓋每個房間。
 
 字型保存在你的裝置上。選擇 Google Font 後，Lolly 會將檔案存為品牌素材，因此你的字型可以離線攜帶，工具繪製時也不會擷取任何內容。
 

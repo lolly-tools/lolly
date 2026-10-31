@@ -24,7 +24,7 @@ Przy pierwszym otwarciu galerii krótkie powitanie oferuje te same wybory: **Mak
 
 ![Pokój Colours w Design System Setup na świeżej instalacji: jeden żywy znacznik, jedno pole i cała pierwsza decyzja](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Stamtąd siedem pokoi zaprowadzi Cię tak daleko, jak chcesz, w dowolnej kolejności: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** i **Rules**. Każdy podgląd w aplikacji aktualizuje się w trakcie pisania. [Design System Setup](/info/brand-studio.html) opisuje każdy pokój.
+Stamtąd osiem pokoi zaprowadzi Cię tak daleko, jak chcesz, w dowolnej kolejności: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** i **Skills**. Każdy podgląd w aplikacji aktualizuje się w trakcie pisania. [Design System Setup](/info/brand-studio.html) opisuje każdy pokój.
 
 Czcionki są przechowywane na Twoim urządzeniu. Wybierz czcionkę Google, a Lolly zapisze plik jako zasób marki, więc Twoja typografia podróżuje offline i nic nie jest pobierane, gdy narzędzie rysuje.
 

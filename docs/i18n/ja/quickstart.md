@@ -24,7 +24,7 @@ lolly.toolsは、Lolly自身のサンプルデザインシステムである**Lo
 
 ![新規インストール時のDesign System SetupのColoursルーム: ライブチップが1つ、入力欄が1つ、最初の決定のすべて](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-そこから先は、7つのルームで、好きな順序で好きなところまで進められます。**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules**です。アプリ内のすべてのプレビューは、入力に合わせて更新されます。各ルームについては[Design System Setup](/info/brand-studio.html)で説明しています。
+そこから先は、8つのルームで、好きな順序で好きなところまで進められます。**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules**、**Skills**です。アプリ内のすべてのプレビューは、入力に合わせて更新されます。各ルームについては[Design System Setup](/info/brand-studio.html)で説明しています。
 
 フォントはお使いのデバイスに保存されます。Googleフォントを選ぶと、Lollyはそのファイルをブランドのアセットとして保存するため、書体はオフラインでも持ち運べ、ツールが描画するときに何かを取得することはありません。
 

@@ -24,7 +24,7 @@ Sa unang beses mong buksan ang gallery, nag-aalok ang maikling welcome ng pareho
 
 ![Ang Colours room ng Design System Setup sa bagong install: isang live na chip, isang field at ang kabuuan ng unang desisyon](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Mula roon, pitong room ang magdadala nito hanggang saan mo gusto, sa anumang pagkakasunod-sunod: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** at **Rules**. Nag-a-update ang bawat preview sa app habang nagta-type ka. Sinasaklaw ng [Design System Setup](/info/brand-studio.html) ang bawat room.
+Mula roon, walong room ang magdadala nito hanggang saan mo gusto, sa anumang pagkakasunod-sunod: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** at **Skills**. Nag-a-update ang bawat preview sa app habang nagta-type ka. Sinasaklaw ng [Design System Setup](/info/brand-studio.html) ang bawat room.
 
 Iniingatan sa device mo ang mga font. Pumili ng Google Font at ise-save ng Lolly ang file bilang brand asset, kaya sumasama offline ang type mo at walang kinukuha kapag gumuguhit ang tool.
 

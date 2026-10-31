@@ -24,7 +24,7 @@ Kali pertama anda membuka galeri, sambutan ringkas menawarkan pilihan yang sama:
 
 ![Bilik Colours dalam Design System Setup pada pemasangan baharu: satu cip langsung, satu medan dan keseluruhan keputusan pertama](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Dari situ, tujuh bilik membawanya sejauh yang anda mahu, dalam sebarang susunan: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** dan **Rules**. Setiap pratonton dalam apl dikemas kini semasa anda menaip. [Design System Setup](/info/brand-studio.html) meliputi setiap bilik.
+Dari situ, lapan bilik membawanya sejauh yang anda mahu, dalam sebarang susunan: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** dan **Skills**. Setiap pratonton dalam apl dikemas kini semasa anda menaip. [Design System Setup](/info/brand-studio.html) meliputi setiap bilik.
 
 Fon disimpan pada peranti anda. Pilih Google Font dan Lolly menyimpan fail sebagai aset jenama, jadi tipografi anda dibawa luar talian dan tiada apa-apa diambil apabila alat melukis.
 

@@ -24,7 +24,7 @@ La prima volta che apri la galleria, un breve benvenuto offre le stesse scelte: 
 
 ![La stanza Colours di Design System Setup su un'installazione nuova: un chip live, un campo e tutta la prima decisione](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Da lì, sette stanze portano la configurazione fin dove vuoi, in qualsiasi ordine: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** e **Rules**. Ogni anteprima nell'app si aggiorna mentre scrivi. [Design System Setup](/info/brand-studio.html) descrive ogni stanza.
+Da lì, otto stanze portano la configurazione fin dove vuoi, in qualsiasi ordine: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** e **Skills**. Ogni anteprima nell'app si aggiorna mentre scrivi. [Design System Setup](/info/brand-studio.html) descrive ogni stanza.
 
 I font restano sul tuo dispositivo. Scegli un Google Font e Lolly salva il file come risorsa del brand, così la tua tipografia viaggia offline e nulla viene scaricato quando uno strumento disegna.
 

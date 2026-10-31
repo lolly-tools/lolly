@@ -24,7 +24,7 @@ lolly.tools **Lolly Demo** میں کھلتا ہے، جو Lolly کا اپنا ن�
 
 ![نئی انسٹالیشن پر Design System Setup کا Colours روم: ایک لائیو چپ، ایک فیلڈ اور پہلے فیصلے کا پورا حصہ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-وہاں سے سات روم اسے جتنا آپ چاہیں آگے لے جاتے ہیں، کسی بھی ترتیب میں: **Board**، **Colours**، **Type**، **Logos**، **Tokens**، **Files** اور **Rules**۔ ایپ میں ہر پری ویو آپ کے ٹائپ کرتے ہی اپ ڈیٹ ہوتا ہے۔ [Design System Setup](/info/brand-studio.html) ہر روم کا احاطہ کرتا ہے۔
+وہاں سے آٹھ روم اسے جتنا آپ چاہیں آگے لے جاتے ہیں، کسی بھی ترتیب میں: **Board**، **Colours**، **Type**، **Logos**، **Tokens**، **Files**، **Rules** اور **Skills**۔ ایپ میں ہر پری ویو آپ کے ٹائپ کرتے ہی اپ ڈیٹ ہوتا ہے۔ [Design System Setup](/info/brand-studio.html) ہر روم کا احاطہ کرتا ہے۔
 
 فونٹس آپ کی ڈیوائس پر رکھے جاتے ہیں۔ Google Font چنیں اور Lolly فائل کو برانڈ ایسیٹ کے طور پر محفوظ کرتا ہے، اس لیے آپ کی ٹائپ آف لائن ساتھ چلتی ہے اور ٹول کے ڈرا کرتے وقت کچھ حاصل نہیں ہوتا۔
 
