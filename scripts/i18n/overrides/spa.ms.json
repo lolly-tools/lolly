@@ -1739,5 +1739,8 @@
   "Keyframe at {t} moved": "Bingkai kunci pada {t} dialihkan",
   "Path handle at {t} moved": "Pemegang laluan pada {t} dialihkan",
   "Path handles retracted": "Pemegang laluan ditarik balik",
-  "This keyframe has no path handles": "Bingkai kunci ini tiada pemegang laluan"
+  "This keyframe has no path handles": "Bingkai kunci ini tiada pemegang laluan",
+  "Your colourway": "Skema warna anda",
+  "{colourway} (design system default)": "{colourway} (lalai sistem reka bentuk)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Skema warna ini menetapkan warna aksen aplikasi dan menjadi permulaan kerja baharu. Kerja yang telah anda buat mengekalkan skema warnanya sendiri."
 }

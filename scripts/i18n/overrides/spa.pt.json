@@ -1739,5 +1739,8 @@
   "Keyframe at {t} moved": "Quadro-chave em {t} movido",
   "Path handle at {t} moved": "Alça da trajetória em {t} movida",
   "Path handles retracted": "Alças da trajetória recolhidas",
-  "This keyframe has no path handles": "Este quadro-chave não tem alças de trajetória"
+  "This keyframe has no path handles": "Este quadro-chave não tem alças de trajetória",
+  "Your colourway": "Seu esquema de cores",
+  "{colourway} (design system default)": "{colourway} (padrão do sistema de design)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Este esquema de cores define a cor de destaque do app e é onde o trabalho novo começa. O trabalho que você já fez mantém o seu."
 }

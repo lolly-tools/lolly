@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Cadrul cheie de la {t} a fost mutat",
   "Path handle at {t} moved": "Mânerul traiectoriei de la {t} a fost mutat",
   "Path handles retracted": "Mânerele traiectoriei au fost retrase",
-  "This keyframe has no path handles": "Acest cadru cheie nu are mânere de traiectorie"
+  "This keyframe has no path handles": "Acest cadru cheie nu are mânere de traiectorie",
+  "Your colourway": "Varianta ta de culoare",
+  "{colourway} (design system default)": "{colourway} (implicită în sistemul de design)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Această variantă de culoare stabilește culoarea de accent a aplicației, iar lucrările noi încep în ea. Lucrările pe care le-ai făcut deja își păstrează propria variantă."
 }

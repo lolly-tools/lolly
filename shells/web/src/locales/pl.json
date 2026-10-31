@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Klatka kluczowa w {t} przesunięta",
   "Path handle at {t} moved": "Uchwyt ścieżki w {t} przesunięty",
   "Path handles retracted": "Uchwyty ścieżki schowane",
-  "This keyframe has no path handles": "Ta klatka kluczowa nie ma uchwytów ścieżki"
+  "This keyframe has no path handles": "Ta klatka kluczowa nie ma uchwytów ścieżki",
+  "Your colourway": "Twój wariant kolorystyczny",
+  "{colourway} (design system default)": "{colourway} (domyślny w systemie projektowym)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Ten wariant kolorystyczny ustala kolor akcentu aplikacji i od niego zaczyna się nowa praca. Praca, którą już zrobiłeś, zachowuje swój."
 }

@@ -1870,5 +1870,8 @@
   "Keyframe at {t} moved": "Ключовият кадър в {t} е преместен",
   "Path handle at {t} moved": "Дръжката на траекторията в {t} е преместена",
   "Path handles retracted": "Дръжките на траекторията са прибрани",
-  "This keyframe has no path handles": "Този ключов кадър няма дръжки на траекторията"
+  "This keyframe has no path handles": "Този ключов кадър няма дръжки на траекторията",
+  "Your colourway": "Твоят цветови вариант",
+  "{colourway} (design system default)": "{colourway} (по подразбиране в дизайн системата)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Този цветови вариант задава акцентния цвят на приложението и с него започва новата работа. Вече направената работа запазва своя."
 }

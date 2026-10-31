@@ -1740,5 +1740,8 @@
   "Keyframe at {t} moved": "Image clé à {t} déplacée",
   "Path handle at {t} moved": "Poignée de trajectoire à {t} déplacée",
   "Path handles retracted": "Poignées de trajectoire rétractées",
-  "This keyframe has no path handles": "Cette image clé n'a pas de poignées de trajectoire"
+  "This keyframe has no path handles": "Cette image clé n'a pas de poignées de trajectoire",
+  "Your colourway": "Ta variante de couleur",
+  "{colourway} (design system default)": "{colourway} (par défaut du design system)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Cette variante de couleur définit la couleur d'accent de l'app, et les nouveaux travaux commencent avec elle. Le travail déjà fait garde la sienne."
 }

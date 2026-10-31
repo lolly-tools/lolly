@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Nyckelbilden vid {t} flyttad",
   "Path handle at {t} moved": "Banhandtaget vid {t} flyttat",
   "Path handles retracted": "Banhandtagen indragna",
-  "This keyframe has no path handles": "Den här nyckelbilden har inga banhandtag"
+  "This keyframe has no path handles": "Den här nyckelbilden har inga banhandtag",
+  "Your colourway": "Din färgvariant",
+  "{colourway} (design system default)": "{colourway} (designsystemets standard)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Den här färgvarianten bestämmer appens accentfärg, och nytt arbete börjar i den. Arbete du redan gjort behåller sin egen."
 }

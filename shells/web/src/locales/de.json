@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Keyframe bei {t} verschoben",
   "Path handle at {t} moved": "Pfad-Griff bei {t} verschoben",
   "Path handles retracted": "Pfad-Griffe eingezogen",
-  "This keyframe has no path handles": "Dieser Keyframe hat keine Pfad-Griffe"
+  "This keyframe has no path handles": "Dieser Keyframe hat keine Pfad-Griffe",
+  "Your colourway": "Ihre Farbvariante",
+  "{colourway} (design system default)": "{colourway} (Standard des Designsystems)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Diese Farbvariante bestimmt die Akzentfarbe der App, und neue Arbeit beginnt darin. Bereits erstellte Arbeit behält ihre eigene."
 }

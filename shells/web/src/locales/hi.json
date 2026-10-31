@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "{t} का कीफ़्रेम खिसकाया गया",
   "Path handle at {t} moved": "{t} का पथ हैंडल खिसकाया गया",
   "Path handles retracted": "पथ हैंडल समेटे गए",
-  "This keyframe has no path handles": "इस कीफ़्रेम में कोई पथ हैंडल नहीं है"
+  "This keyframe has no path handles": "इस कीफ़्रेम में कोई पथ हैंडल नहीं है",
+  "Your colourway": "आपका कलरवे",
+  "{colourway} (design system default)": "{colourway} (डिज़ाइन सिस्टम का डिफ़ॉल्ट)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "यह कलरवे ऐप का एक्सेंट रंग तय करता है, और नया काम इसी में शुरू होता है। पहले बना काम अपना कलरवे रखता है।"
 }

@@ -1732,5 +1732,8 @@
   "Keyframe at {t} moved": "Keyframe op {t} verplaatst",
   "Path handle at {t} moved": "Padhandvat op {t} verplaatst",
   "Path handles retracted": "Padhandvatten ingetrokken",
-  "This keyframe has no path handles": "Deze keyframe heeft geen padhandvatten"
+  "This keyframe has no path handles": "Deze keyframe heeft geen padhandvatten",
+  "Your colourway": "Jouw kleurvariant",
+  "{colourway} (design system default)": "{colourway} (standaard van het ontwerpsysteem)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Deze kleurvariant bepaalt de accentkleur van de app, en nieuw werk begint erin. Werk dat je al maakte houdt zijn eigen kleurvariant."
 }

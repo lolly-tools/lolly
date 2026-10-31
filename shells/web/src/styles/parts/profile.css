@@ -502,6 +502,9 @@
 .profile-view .profile-theme-dots { display: flex; gap: .35rem; margin: .85rem 0; }
 .profile-view .profile-theme-dots span { width: 22px; aspect-ratio: 1; min-width: 0; border-radius: var(--radius); box-shadow: var(--edge); }
 .profile-view .profile-theme-sample { font-size: calc(1.6rem * var(--a11y-fs)); font-weight: 600; }
+/* Your colourway (plans/331, components/colourway-pref.ts): the tool sidebar's colourway
+   row, given the space the card puts between its other groups. */
+.profile-view .profile-colourway { margin-block: var(--sp-7) var(--sp-6); }
 @media (prefers-reduced-motion: reduce) { .profile-view .profile-theme { transition: none; } }
 html[data-a11y-motion="reduce"] .profile-view .profile-theme { transition: none; }
 html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: none; }

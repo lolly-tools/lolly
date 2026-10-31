@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Keyframe di {t} dipindahkan",
   "Path handle at {t} moved": "Gagang lintasan di {t} dipindahkan",
   "Path handles retracted": "Gagang lintasan ditarik kembali",
-  "This keyframe has no path handles": "Keyframe ini tidak punya gagang lintasan"
+  "This keyframe has no path handles": "Keyframe ini tidak punya gagang lintasan",
+  "Your colourway": "Colourway Anda",
+  "{colourway} (design system default)": "{colourway} (default sistem desain)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Colourway ini menentukan warna aksen aplikasi dan menjadi awal pekerjaan baru. Pekerjaan yang sudah Anda buat mempertahankan colourway-nya sendiri."
 }

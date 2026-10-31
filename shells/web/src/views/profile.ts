@@ -270,6 +270,11 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
 
   pv.prefs.wireThemePick();
 
+  // Your colourway (plans/331): lazy, like Emoji, and it fills the Appearance summary in itself.
+  pv.colourwayName = null;
+  pv.colourwayPrefUnsub = null;
+  void pv.prefs.wireColourwayPref();
+
   pv.chrome.wireInstanceCard();
 
   pv.chrome.wireChrome();

@@ -1870,5 +1870,8 @@
   "Keyframe at {t} moved": "Nøkkelbildet ved {t} er flyttet",
   "Path handle at {t} moved": "Banehåndtaket ved {t} er flyttet",
   "Path handles retracted": "Banehåndtakene er trukket inn",
-  "This keyframe has no path handles": "Dette nøkkelbildet har ingen banehåndtak"
+  "This keyframe has no path handles": "Dette nøkkelbildet har ingen banehåndtak",
+  "Your colourway": "Din fargevariant",
+  "{colourway} (design system default)": "{colourway} (standard i designsystemet)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Denne fargevarianten bestemmer appens aksentfarge, og nytt arbeid starter i den. Arbeid du allerede har laget beholder sin egen."
 }
