@@ -10,6 +10,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.293 canvas size: the one conversion every shell hands a tool's hooks and template.
+  'CanvasSize', 'canvasSizeOf',
   // Additive 1.291 path handles: curved travel between positions, its split and the inverse projection.
   'KfHandle', 'KfPathSplit', 'kfPathCurves', 'kfSubdividePath', 'kfUnprojectCentre',
   // Additive 1.290 appearance keyframes: fill and stroke colour, stroke width, corner radius and trim.

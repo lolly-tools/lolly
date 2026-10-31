@@ -212,6 +212,31 @@ test('every size option declares a real export size, and the sheet follows its p
   assert.equal(manifest.render.printMarks, true, 'a certificate is print intent');
 });
 
+test('a typed size of another proportion sizes the type for the canvas, a preset keeps its own', { skip: SKIP }, async () => {
+  assert.equal(tool.manifest.render.followsCanvasSize, true, 'the engine re-runs the sheet when the size changes');
+  const read = (rt: any) => [Number(rt.getHydratedString('{{pageW}}')), Number(rt.getHydratedString('{{pageH}}')), rt.getHydratedString('{{shape}}')];
+  // A4 landscape picked, a story typed in the export bar: the container queries lay
+  // the sheet out as a story, and the name and course are sized for that sheet.
+  const typed = await createRuntime(tool, baseHost(), { pageSize: 'a4-landscape', firstname: 'Ana', lastname: 'Kovac' }, { canvasSize: { width: 1080, height: 1920 } });
+  assert.deepEqual(read(typed), [1080, 1920, 'story']);
+  // The preset again, as the export bar hands it over (A4 in CSS px): the preset's own px.
+  await typed.setCanvasSize({ width: 297 * 96 / 25.4, height: 210 * 96 / 25.4 });
+  assert.deepEqual(read(typed), [1123, 794, 'land']);
+  // The same proportion at another scale is the preset, and so is the manifest's own
+  // size, the canvas a render with no size asked for gets.
+  await typed.setCanvasSize({ width: 2246, height: 1588 });
+  assert.deepEqual(read(typed), [1123, 794, 'land']);
+  for (const [pageSize, want] of [['story', [1080, 1920, 'story']], ['banner', [1200, 400, 'wide']]] as const) {
+    const { rt } = await mount({ pageSize });
+    assert.deepEqual(read(rt), want, `${pageSize} at the manifest's canvas keeps its preset`);
+  }
+  // A sheet drawn at its preset is the sheet 1.1.0 drew: the hydrated markup matches
+  // a mount that was never told a canvas size.
+  const plain = await mount({ pageSize: 'social-square', firstname: 'Ana' });
+  const told = await createRuntime(tool, baseHost(), { pageSize: 'social-square', firstname: 'Ana' }, { canvasSize: { width: 1080, height: 1080 } });
+  assert.equal(told.getHydrated(), plain.html);
+});
+
 test('the layout unit is read off the sheet, never pinned in the markup', { skip: SKIP }, async () => {
   const css = await fetchFile(join('certificate', 'styles.css'));
   assert.match(css, /\.ct-root\s*\{[^}]*container-type:\s*size/,

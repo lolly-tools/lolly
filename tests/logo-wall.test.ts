@@ -14,9 +14,12 @@
  *    same size, and clips at the padding edge;
  *  - tiers group logos in first-appearance order, each under its heading, with
  *    Step down sizing fitting one more logo across each lower tier;
- *  - an export at another shape (1080 x 1920, an A4 page) lays the wall out again
- *    in a frame of that shape and puts the canvas back afterwards, while an export
- *    at the canvas's own shape is the canvas as drawn;
+ *  - a canvas of another shape (engine 1.293's ctx.canvasSize, 1080 x 1920 or an
+ *    A4 page) lays the wall out in a frame of that shape at mount and again when
+ *    the size changes, so the live preview is the wall the export writes;
+ *  - an export at a shape other than the canvas's lays the wall out again in a
+ *    frame of that shape and puts the canvas back afterwards, while an export at
+ *    the canvas's own shape is the canvas as drawn;
  *  - with no canvas the wall still renders and says which steps it skipped;
  *  - text-typed block values ("false", "") read as the words they are, so a
  *    compact share link or a CSV import does not vectorise or hide a logo.
@@ -195,14 +198,14 @@ test('an untiered wall is unchanged by the tier inputs', { skip: SKIP }, async (
  * `after` is the node once the export is done, and `kept` says whether the logo
  * elements the canvas drew are the same elements afterwards.
  */
-async function exportAt(values: Record<string, unknown>, opts: Record<string, unknown>) {
+async function exportAt(values: Record<string, unknown>, opts: Record<string, unknown>, canvasSize?: { width: number; height: number }) {
   const dom = new JSDOM('<!DOCTYPE html><html><body><div id="c"></div></body></html>');
   const node = dom.window.document.getElementById('c')!;
   let written = '';
   const host = baseHost({
     export: { render: async (n: Element) => { written = n.querySelector('svg')!.outerHTML; return new Blob([written]); } },
   });
-  const rt = await createRuntime(tool, host, values as Record<string, InputValue>);
+  const rt = await createRuntime(tool, host, values as Record<string, InputValue>, canvasSize ? { canvasSize } : {});
   node.innerHTML = rt.getHydrated() as string;
   const before = node.innerHTML;
   const drawn = [...node.querySelectorAll('image')];
@@ -212,6 +215,9 @@ async function exportAt(values: Record<string, unknown>, opts: Record<string, un
 }
 
 const viewBoxOf = (svg: string) => /viewBox="([^"]+)"/.exec(svg)![1]!.split(' ').map(Number);
+// A restaged export puts its copies in without the template's line breaks; the
+// markup between the tags is what has to match.
+const tight = (svg: string) => svg.replace(/>\s+</g, '><');
 
 test('an export at another shape lays the wall out again to fill it', { skip: SKIP }, async () => {
   const logos = ['a', 'b', 'c', 'd', 'e'].map((n) => ({ logo: svgLogo(n + '.svg') }));
@@ -267,6 +273,62 @@ test('a backdrop exported at another shape adapts its rows and its clip', { skip
   assert.equal(boxes.length, 6 * 2 + 5 * 3);
   for (const b of boxes) near(b.w, boxes[0]!.w, 'every row the same size');
   assert.equal(r.after, r.before);
+});
+
+test('a canvas of another shape draws the wall the export used to restage', { skip: SKIP }, async () => {
+  assert.equal(tool.manifest.render.followsCanvasSize, true, 'the engine re-runs the wall when the size changes');
+  const logos = ['a', 'b', 'c', 'd', 'e'].map((n) => ({ logo: svgLogo(n + '.svg') }));
+  // A 1.6.0-style export: a 16:9 canvas laid out again for 1080 x 1920 in beforeExport.
+  const restaged = await exportAt({ logos, balance: false }, { width: 1080, height: 1920 });
+  // The canvas told its size at mount draws that wall live, and its export moves nothing.
+  const live = await exportAt({ logos, balance: false }, { width: 1080, height: 1920 }, { width: 1080, height: 1920 });
+  assert.deepEqual(viewBoxOf(live.before), [0, 0, 720, 1280], 'the live canvas is the tall frame');
+  assert.equal(tight(live.written), tight(restaged.written), 'the live wall is the wall the export wrote');
+  assert.equal(live.written, /<svg[\s\S]*<\/svg>/.exec(live.before)![0], 'nothing restaged');
+  assert.ok(live.kept);
+  // A4: tiers and headings on the page, live.
+  const tiered = [
+    { logo: svgLogo('g1.svg'), tier: 'Gold' }, { logo: svgLogo('g2.svg'), tier: 'Gold' },
+    { logo: svgLogo('s1.svg'), tier: 'Silver' }, { logo: svgLogo('s2.svg'), tier: 'Silver' }, { logo: svgLogo('s3.svg'), tier: 'Silver' },
+  ];
+  const a4 = { width: 210 * 96 / 25.4, height: 297 * 96 / 25.4 };
+  const page = await exportAt({ logos: tiered, balance: false }, { width: '210mm', height: '297mm' }, a4);
+  const pageOld = await exportAt({ logos: tiered, balance: false }, { width: '210mm', height: '297mm' });
+  assert.equal(tight(page.written), tight(pageOld.written), 'the A4 page is the page 1.6.0 exported');
+  assert.equal(page.written, /<svg[\s\S]*<\/svg>/.exec(page.before)![0]);
+  assert.deepEqual(headings(page.before), ['Gold', 'Silver']);
+});
+
+test('a change of canvas size lays the wall out again, live', { skip: SKIP }, async () => {
+  const logos = ['a', 'b', 'c', 'd', 'e'].map((n) => ({ logo: svgLogo(n + '.svg') }));
+  const rt = await createRuntime(tool, baseHost(), { logos, balance: false } as Record<string, InputValue>);
+  const wide = rt.getHydrated() as string;
+  assert.deepEqual(viewBoxOf(wide), [0, 0, 1280, 720]);
+  await rt.setCanvasSize({ width: 1080, height: 1920 });
+  const tall = rt.getHydrated() as string;
+  assert.deepEqual(viewBoxOf(tall), [0, 0, 720, 1280]);
+  // Four columns on the wide canvas become two in the tall frame: 3 rows of 2.
+  const boxes = images(tall);
+  const cw = (720 - 96 - 32) / 2;
+  near(boxes[0]!.w, cw, 'cell w');
+  near(boxes[2]!.x, 48, 'third logo starts row 2');
+  // The same shape at another size is the manifest's frame, and back again.
+  await rt.setCanvasSize({ width: 1920, height: 1080 });
+  assert.equal(rt.getHydrated(), wide);
+  await rt.setCanvasSize(null);
+  assert.equal(rt.getHydrated(), wide);
+  rt.destroy();
+});
+
+test('an export at another shape than the canvas still lays the wall out for it', { skip: SKIP }, async () => {
+  const logos = ['a', 'b', 'c'].map((n) => ({ logo: svgLogo(n + '.svg') }));
+  // A tall canvas exported at 16:9 (a batch row asking for a size of its own).
+  const r = await exportAt({ logos, balance: false }, { width: 1920, height: 1080 }, { width: 1080, height: 1920 });
+  assert.deepEqual(viewBoxOf(r.before), [0, 0, 720, 1280]);
+  assert.deepEqual(viewBoxOf(r.written), [0, 0, 1280, 720]);
+  const plain = await exportAt({ logos, balance: false }, {});
+  assert.equal(tight(r.written), tight(/<svg[\s\S]*<\/svg>/.exec(plain.before)![0]), 'the 16:9 wall, as a 16:9 canvas draws it');
+  assert.equal(r.after, r.before, 'the tall canvas is put back');
 });
 
 test('with no canvas the wall renders and names the steps it skipped', { skip: SKIP }, async () => {

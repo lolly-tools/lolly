@@ -569,24 +569,28 @@ export function templateCacheStats() {
  * @param opts.raw  Disable HTML escaping of `{{x}}`. Used for non-HTML data
  *   templates (template.ics/.vcf/.csv), where `{{x}}` must emit the value
  *   verbatim (each format escapes via its own helper: rfcText/csvCell).
+ * @param opts.data  Handlebars data variables, read as `{{@name}}`: the runtime
+ *   passes `canvasSize` (v1.293). A data variable cannot collide with an input id
+ *   or an extra, and `@root` still points at the values.
  * @returns hydrated output
  */
 export function hydrate(
   templateSource: string,
   values: Record<string, unknown>,
-  { raw = false }: { raw?: boolean } = {},
+  { raw = false, data }: { raw?: boolean; data?: Record<string, unknown> } = {},
 ): string {
   const key = (raw ? 'r:' : 'h:') + templateSource;
+  const runOpts = data ? { data } : undefined;
   const cached = compileCache.get(key);
   if (cached) {
     // Mark most-recently-used: delete + re-insert moves it to the end.
     compileCache.delete(key);
     compileCache.set(key, cached);
-    return cached.compiled(values);
+    return cached.compiled(values, runOpts);
   }
   const compiled = Handlebars.compile(templateSource, { noEscape: raw });
   // Compilation is lazy; a malformed template must not occupy retained capacity.
-  const output = compiled(values);
+  const output = compiled(values, runOpts);
   const bytes = (key.length + templateSource.length) * 2;
   if (bytes <= COMPILE_CACHE_SOURCE_BYTES) {
     while (compileCache.size && (compileCache.size >= COMPILE_CACHE_MAX || compileCacheBytes + bytes > COMPILE_CACHE_SOURCE_BYTES)) {

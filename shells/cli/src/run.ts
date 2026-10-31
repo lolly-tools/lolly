@@ -13,7 +13,7 @@ import { resolve, basename, dirname, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
-import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
@@ -870,7 +870,11 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
 
   // The runtime resolves asset refs (catalog ids → AssetRefs with a `format`), which
   // the matchExportFormat default below reads - so it's created before format resolution.
-  const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
+  // `--width`/`--height`/`--unit` are the canvas size the hooks lay out for (engine
+  // 1.293), the same CSS pixels the web shell hands a tool for that size.
+  const runtime = await createRuntime(tool, host, values, {
+    ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection, canvasSize: canvasSizeOf(width, height, unit ?? 'px'),
+  });
   // A `--_themes` choice the tool's `tokenAxes` ignores is said, never dropped silently,
   // and from here on the bridge reads in the option the tool renders in.
   settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);

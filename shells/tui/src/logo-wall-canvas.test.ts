@@ -8,7 +8,10 @@
  *    being skipped with a "needs pixel access" warning;
  *  - a PNG export at 1080 x 1920 is drawn from an SVG laid out for that shape, so
  *    the logos reach the lower part of the picture rather than sitting in a 16:9
- *    band across its middle.
+ *    band across its middle;
+ *  - the canvas size (engine 1.293) follows the link's size at mount and the
+ *    Export panel's size after, so the terminal preview is the wall the export
+ *    writes.
  *
  * Run with: node --test shells/tui/src/logo-wall-canvas.test.ts
  */
@@ -55,4 +58,24 @@ test('the TUI balances, trims and fills an export of another shape', { skip: SKI
     for (let x = 0; x < info.width; x++) if (data[(y * info.width + x) * 4 + 3]! > 0) lower++;
   }
   assert.ok(lower > 1000, `logos drawn in the lowest quarter (${lower} px)`);
+});
+
+test('the preview follows the link\'s size and the Export panel\'s', { skip: SKIP }, async () => {
+  const { createTuiBridge } = await import('./bridge.ts');
+  const { mountTool, renderSvg, setCanvasSizeFrom } = await import('./engine-render.ts');
+  const { host, dom } = await createTuiBridge({});
+  const logos = [320, 60, 200].map((w) => ({ logo: { source: 'remote', id: logo(w), _unresolved: true } }));
+  const viewBox = (svg: string | null) => /viewBox="([^"]+)"/.exec(svg ?? '')?.[1];
+
+  const linked = await mountTool('logo-wall', host, 'w=1080&h=1920', { logos, transparentBg: true });
+  assert.equal(viewBox(await renderSvg(linked.runtime, dom)), '0 0 720 1280', 'a tall link opens tall');
+
+  const { runtime } = await mountTool('logo-wall', host, '', { logos, transparentBg: true });
+  assert.equal(viewBox(await renderSvg(runtime, dom)), '0 0 1280 720');
+  assert.equal(await setCanvasSizeFrom(runtime, { width: 210, height: 297, unit: 'mm' }), true);
+  const [, , w, h] = viewBox(await renderSvg(runtime, dom))!.split(' ').map(Number);
+  assert.ok(Math.abs(w! / h! - 210 / 297) < 1e-3, 'the preview is an A4 page');
+  assert.equal(await setCanvasSizeFrom(runtime, { width: 210, height: 297, unit: 'mm' }), false, 'the same size is a no-op');
+  await setCanvasSizeFrom(runtime, {});
+  assert.equal(viewBox(await renderSvg(runtime, dom)), '0 0 1280 720', 'blank fields are the tool\'s own size');
 });

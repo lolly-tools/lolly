@@ -38,7 +38,7 @@ import { loadAssets } from '../catalog.ts';
 import type { AssetRow } from '../catalog.ts';
 import { filterAssets, assetEmoji, assetDetail } from '../lib/asset-list.ts';
 import { loadFavourites, loadHidden, sortFavouritesFirst } from '../lib/asset-favourites.ts';
-import { mountTool, renderSvg, exportToFile, exportableFormats, currentQuery, modelValues, isTransform, isCaptureTool } from '../engine-render.ts';
+import { mountTool, renderSvg, exportToFile, exportableFormats, currentQuery, modelValues, isTransform, isCaptureTool, setCanvasSizeFrom } from '../engine-render.ts';
 import { madeWithRowText } from '../made-with-row.ts';
 import { matchedExportFormat } from '@lolly-tools/node-shell/raster';
 import type { Runtime, Manifest } from '../engine-render.ts';
@@ -426,6 +426,19 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   useEffect(() => {
     setScroll(s => (sel < s ? sel : sel >= s + visibleInputs ? sel - visibleInputs + 1 : s));
   }, [sel, visibleInputs]);
+
+  // The Export panel's width, height and unit are the canvas size (engine 1.293), as the
+  // web app's export bar is: a tool that lays itself out for the canvas (Logo Wall)
+  // redraws the preview at that shape, so the preview is the file an export writes.
+  useEffect(() => {
+    if (!runtime) return;
+    let alive = true;
+    const w = parseFloat(width), h = parseFloat(height);
+    void setCanvasSizeFrom(runtime, { width: w > 0 ? w : undefined, height: h > 0 ? h : undefined, unit })
+      .then((changed) => { if (alive && changed) setRev(x => x + 1); })
+      .catch(() => { /* a hook failure is the runtime's to report; the preview keeps the last frame */ });
+    return () => { alive = false; };
+  }, [runtime, width, height, unit]);
 
   useEffect(() => {
     // Only tools that emit an <svg> get the half-block raster; transform/capture utilities

@@ -468,9 +468,14 @@ function ctText(text, lang) {
  *
  * 3. SHAPE: the sheet re-lays itself out for its proportion through container
  *    queries in styles.css (banner, landscape, square, portrait, story). The hook
- *    works out the same shape from `pageSize` only to size the name and the
- *    course: one layout unit is a thousandth of the sheet's width, or of a design
- *    box H units tall when the sheet is wider than that box.
+ *    works out the same shape to size the name and the course: one layout unit
+ *    is a thousandth of the sheet's width, or of a design box H units tall when
+ *    the sheet is wider than that box. The sheet is the `pageSize` preset, unless
+ *    the canvas size the engine reports (ctx.canvasSize, engine 1.293) is a
+ *    proportion of its own: someone typed a size, and the container queries lay
+ *    the sheet out for the canvas, so the name and the course are sized for it
+ *    too (see sheetFor). The manifest declares render.followsCanvasSize, so a
+ *    change of size reaches onInput as id '__canvasSize'.
  *
  * 4. FIT is an estimate by character class (CJK is full width, capitals are
  *    wide), because a hook has no font metrics. The template's script measures
@@ -976,14 +981,29 @@ function toPx(value, unit) {
   return Math.round(value);
 }
 
-function build(args, theme, logoUrl, lang) {
+// The sheet's size in px: the preset's, or the canvas's when the canvas is a
+// proportion of its own. A canvas at the manifest's own size is the one nobody
+// chose (a render with no size asked for), and a canvas of the preset's
+// proportion is the preset at another scale, so both keep the preset's px and a
+// sheet drawn at its preset is exactly what it was before the canvas size existed.
+var CANVAS_W = 1123;
+var CANVAS_H = 794;
+function sheetFor(pageW, pageH, canvas) {
+  var w = canvas ? Number(canvas.width) : 0, h = canvas ? Number(canvas.height) : 0;
+  if (!(w > 0) || !(h > 0) || (w === CANVAS_W && h === CANVAS_H)) return { w: pageW, h: pageH };
+  if (Math.abs((w / h) / (pageW / pageH) - 1) < 0.002) return { w: pageW, h: pageH };
+  return { w: Math.round(w), h: Math.round(h) };
+}
+
+function build(args, theme, logoUrl, lang, canvas) {
   var style = pick(STYLES, str(args.style), 'classic');
   var motion = pick(MOTIONS, str(args.motion), 'none');
   var kind = own(KINDS, str(args.certKind)) ? str(args.certKind) : KIND_DEFAULT;
   var pageKey = own(PAGES, str(args.pageSize)) ? str(args.pageSize) : PAGE_DEFAULT;
   var page = PAGES[pageKey];
-  var pageW = toPx(page.w, page.unit);
-  var pageH = toPx(page.h, page.unit);
+  var sheet = sheetFor(toPx(page.w, page.unit), toPx(page.h, page.unit), canvas);
+  var pageW = sheet.w;
+  var pageH = sheet.h;
   var shape = shapeOf(pageW / pageH);
   var unitPx = Math.min(pageW / 1000, pageH / shape.h);
   var sheetW = Math.round(pageW / unitPx);
@@ -1101,7 +1121,7 @@ function logoGround(args, theme) {
   return { dark: isDark(style === 'modern' ? p.panel : p.paper), colourGround: style === 'modern' || style === 'celebration' };
 }
 
-async function compute(model, lang) {
+async function compute(model, lang, canvas) {
   var args = {};
   for (var i = 0; i < model.length; i++) args[model[i].id] = model[i].value;
 
@@ -1123,7 +1143,7 @@ async function compute(model, lang) {
       var asset = await resolveBrandLogo(ground.dark, mono);
       logoUrl = asset ? asset.url : '';
     }
-    result = build(args, theme, logoUrl, printLang);
+    result = build(args, theme, logoUrl, printLang, canvas);
     result._logoWarning = brandLogoWarning(wantLogo && !logoUrl);
   } catch (err) {
     result = blank('This certificate could not be laid out. Check the sheet size and the colours.', printLang);
@@ -1131,12 +1151,13 @@ async function compute(model, lang) {
   return result;
 }
 
-function onInit({ model, lang }) {
-  return compute(model, lang);
+function onInit({ model, lang, canvasSize }) {
+  return compute(model, lang, canvasSize);
 }
 
-function onInput({ id, model, lang }) {
-  // A theme or colourway switch: read the design system again.
+function onInput({ id, model, lang, canvasSize }) {
+  // A theme or colourway switch: read the design system again. A change of canvas
+  // size ('__canvasSize') needs nothing dropped: the sheet is worked out again below.
   if (id === '__tokens') _theme = null;
-  return compute(model, lang);
+  return compute(model, lang, canvasSize);
 }

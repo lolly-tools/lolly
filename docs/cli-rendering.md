@@ -210,7 +210,7 @@ lolly run logo-wall --logos-data=sponsors/sponsors.csv --width=1080 --height=192
 lolly run logo-wall --logos-data=sponsors/sponsors.csv --width=210 --height=297 --unit=mm --output=a4.svg
 ```
 
-A tall 1080 x 1920 wall set to 4 columns has 2 in its top row; a 3:1 banner has 5. Padding, spacing and headings keep their size against the whole picture. A step and repeat backdrop stacks fewer or more rows the same way. The app and the TUI do the same when you export at another size, and so does the MCP server for SVG; its PNG keeps the 1280 x 720 shape. An export at 1280 x 720, or at any size of that shape, is the wall exactly as drawn.
+A tall 1080 x 1920 wall set to 4 columns has 2 in its top row; a 3:1 banner has 5. Padding, spacing and headings keep their size against the whole picture. A step and repeat backdrop stacks fewer or more rows the same way. The app, the TUI and the MCP server lay the wall out the same way, for SVG and PNG alike, and the app's canvas and the TUI's preview show that layout as soon as you set the size. A size of 1280 x 720, or any size of that shape, is the wall exactly as drawn.
 
 ### Steps that read pixels
 

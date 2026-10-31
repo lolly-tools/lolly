@@ -40,7 +40,7 @@ export type {
   InRealmOnlyHookName, HookInitDoneMsg, HookInvokeDoneMsg, HookReportMsg, HookHostCallMsg, HookLogMsg, HookWorkerOut,
   HookWorkerPort, HookWorkerCoreOpts,
 } from './hook-worker-core.ts';
-export type { HookExecutor, Hooks, RuntimeViewState } from './runtime.ts';
+export type { HookExecutor, Hooks, RuntimeViewState, CanvasSize } from './runtime.ts';
 // Emoji (1.196): the runtime draws every emoji in a rendered tree from the
 // chosen pinned pack. TYPES ONLY here on purpose - the pinned Unicode tables are
 // half a megabyte, so the modules themselves stay behind the runtime's dynamic
@@ -129,6 +129,7 @@ export {
   UNITS, CSS_DPI, isUnit, parseDimension,
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
 } from './units.ts';
+export { canvasSizeOf } from './units.ts';
 export {
   frameRect, framingStyle, normalizeFraming, isNeutralFraming, isTilted,
   framingQuad, projectFramingPoint, minZoomForCover, FRAMING_PERSPECTIVE,

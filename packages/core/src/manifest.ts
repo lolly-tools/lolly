@@ -194,6 +194,11 @@ export interface RenderSpec {
    *  formats (pdf-cmyk/cmyk-tiff/eps-cmyk). */
   printMarks?: boolean;
   transparentBg?: boolean;
+  /** The tool lays itself out for the canvas size (engine 1.293). When the size
+   *  changes, the runtime runs `onInput` with `id: '__canvasSize'` and repaints;
+   *  hooks read the size as `ctx.canvasSize`, templates as `@canvasSize`. Without
+   *  it the runtime only records the size. */
+  followsCanvasSize?: boolean;
   c2pa?: boolean;
   /** Marks a device-recording tool (requires `host.recorder` + the matching
    *  `'microphone'`/`'camera'` capability): which record affordance the shell

@@ -54,10 +54,11 @@ When a hook overruns, the runtime applies nothing at first, but the hook keeps r
 | `host` | The host bridge. |
 | `lang` | The language the tool is rendering in, such as `de`; `en` when none is set. |
 | `view` | Local presentation choices, when the shell sets any (below). |
+| `canvasSize` | The size the tool is being made at, `{ width, height }` in CSS pixels (engine v1.293, [below](#when-the-canvas-size-changes)). |
 | `report(patch, { ready })` | `onInit` and `onInput` only: publish an intermediate patch before the hook finishes. A report is ignored once a newer run has started. In `onInit`, `{ ready: true }` tells a view that shows partial renders that the document can be shown as it stands (engine v1.228). |
 | `progressive` | `onInit` only: `true` when a view is showing reported patches as they arrive, so a partial render is worth sending. |
 
-`onInput` also gets `id` and `value`, the input that changed. Three reserved ids mark runs the runtime starts itself: `'__view'` (a view change, below), `'__tokens'` (a theme or colourway change, below) and `'__emoji'`, which runs when the emoji set changes for a tool that drew emoji itself through `host.emoji.renderSvg`, `host.emoji.renderText` or `host.text.layoutRuns`.
+`onInput` also gets `id` and `value`, the input that changed. Four reserved ids mark runs the runtime starts itself: `'__view'` (a view change, below), `'__tokens'` (a theme or colourway change, below), `'__canvasSize'` (a change of canvas size, below) and `'__emoji'`, which runs when the emoji set changes for a tool that drew emoji itself through `host.emoji.renderSvg`, `host.emoji.renderText` or `host.text.layoutRuns`.
 
 ## Reacting to the view and the design system
 
@@ -80,6 +81,26 @@ async function onInput({ id, model, host }) {
 ```
 
 An isolated hook sees the new choice too: before any hook runs under it, the runtime hands the Worker a fresh copy of the design system through the executor's `tokensChanged`. Return a computed colour under a name of its own, never under the id of a declared colour input. Writing that id replaces the input's design-system link with a fixed colour, and the next switch leaves the colour behind. `tests/tool-theme-switch.test.ts` mounts every community tool, switches it live and checks that the render matches a fresh mount in the new choice.
+
+### When the canvas size changes
+
+People choose the size of what they make: a 1080 x 1920 story, an A4 page, a 3:1 banner. Engine v1.293 tells every hook that size as `ctx.canvasSize`, a `{ width, height }` in CSS pixels at 96 per inch, so an A4 page arrives as 793.7 x 1122.5. When nobody asked for a size it is the manifest's `render.width` x `render.height`. The web app reads it from the export size fields, the CLI from `--width`, `--height` and `--unit`, the TUI from its Export panel and the MCP server from the request, and each converts with the engine's `canvasSizeOf`, so every shell hands a tool the same numbers for the same request. Templates read the same size as `{{@canvasSize.width}}` and `{{@canvasSize.height}}` ([Templates and rendering](/info/tool-rendering.html#the-template-templatehtml)).
+
+A tool whose layout follows the shape declares `"render": { "followsCanvasSize": true }`. When the size changes, the runtime runs `onInput` with `id: '__canvasSize'`, then repaints, so the live canvas shows the layout the export writes. As with `'__view'` and `'__tokens'`, the patch from that run can update computed extras but cannot write declared inputs, so the size never reaches the saved inputs, undo, links or collaboration. A tool without the key keeps rendering exactly as before: the runtime records the size for the next run the tool gets for its own reasons, and nothing re-runs or repaints. Declaring the key needs `"engineVersion": "^1.293.0"`.
+
+```js
+function layout(model, size) {
+  // size is absent on an engine older than 1.293: fall back to the manifest's size.
+  var w = size ? size.width : 1280, h = size ? size.height : 720;
+  return { cols: w >= h ? 4 : 2, frameW: w, frameH: h };
+}
+
+function onInit({ model, canvasSize }) { return layout(model, canvasSize); }
+// Every edit, and '__canvasSize' when the size changes, lays out again.
+function onInput({ model, canvasSize }) { return layout(model, canvasSize); }
+```
+
+Do not declare hidden `width` and `height` inputs to get the size. The web shell writes into inputs with those ids, but the size then travels in links and undo, and the CLI warns that `--width` and `--height` shadow them. The export hooks see `ctx.canvasSize` too, beside `ctx.opts.width` and `ctx.opts.height`, the export's own size, which can differ: a batch row or a caller can ask for a size the canvas was never set to. [Logo Wall](/#/tool/logo-wall) is the reference tool: it lays the wall out for the canvas's shape and lays it out again in `beforeExport` only when the export's shape differs.
 
 ## Live input
 

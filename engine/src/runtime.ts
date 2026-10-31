@@ -33,6 +33,7 @@ import { assertDesignValues, designExportSize } from './design-tool/policy.ts';
 import { DESIGN_STILL_RASTER_FORMATS } from './design-export-route.ts';
 import { missingRequires, type HostApiName } from '@lolly-tools/core';
 import type { EmojiStyleV1 } from '@lolly-tools/core';
+import type { CanvasSize } from '@lolly-tools/core';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import { defaultEmojiStyle } from './emoji-default.ts';
 import { emojiSourceIngredients, emojiWorksAndUses, emojiCreditsText } from './emoji-rights.ts';
@@ -259,11 +260,15 @@ export type HookReport = (patch: Record<string, unknown>, opts?: HookReportOpts)
 
 /** The lifecycle context every hook receives. */
 export type RuntimeViewState = Readonly<Record<string, InputValue>>;
+/** The canvas size hooks and templates read (v1.293), re-exported from the SDK. */
+export type { CanvasSize };
 
 interface HookContext {
   /** Local presentation choices, excluded from saved input values. */
   view?: RuntimeViewState;
   lang?: string;
+  /** The canvas size, CSS px (v1.293). See createRuntime's `canvasSize`. */
+  canvasSize?: CanvasSize;
   model: InputModelItem[];
   host: HostV1;
   /** Publish an intermediate onInit/onInput patch. Ignored after a newer run. */
@@ -279,7 +284,7 @@ type OnInputHook = (ctx: HookContext & { id: string; value: InputValue }) => unk
 type OnFrameHook = (ctx: HookContext & { frame: MediaFrame }) => unknown;
 type OnLevelHook = (ctx: HookContext & { level: AudioLevel }) => unknown;
 type ExportLifecycleHook =
-  (ctx: { lang?: string; model: InputModelItem[]; node: unknown; format: string; opts: RuntimeExportOpts; host: HostV1 }) => unknown;
+  (ctx: { lang?: string; canvasSize?: CanvasSize; model: InputModelItem[]; node: unknown; format: string; opts: RuntimeExportOpts; host: HostV1 }) => unknown;
 type ExportFileHook = (ctx: HookContext & { opts: Record<string, unknown> }) => unknown;
 type ExportStillHook = ExportLifecycleHook; // same ctx as beforeExport; returns ExportStillResult | null
 
@@ -322,6 +327,13 @@ export interface Hooks {
  */
 const TOKENS_CHANGED_INPUT_ID = '__tokens';
 
+/**
+ * The `id` an `onInput` hook sees when the canvas size changes (`setCanvasSize`,
+ * v1.293), for a tool that declares `render.followsCanvasSize`. Its patch updates
+ * computed values only, as with `'__view'` and `'__tokens'`.
+ */
+const CANVAS_SIZE_INPUT_ID = '__canvasSize';
+
 /** The mounted-tool API createRuntime resolves to. Shells drive this. */
 export interface Runtime {
   /** The document's token theme choices in force (`_themes`, `__tokenSelection`), or undefined for the defaults. */
@@ -345,6 +357,21 @@ export interface Runtime {
   /** Refresh a local view without changing document inputs or writing storage. */
   setViewState?(values: RuntimeViewState): Promise<void>;
   getViewState?(): RuntimeViewState | undefined;
+  /**
+   * The size the tool is being made at, in CSS px (v1.293): what hooks read as
+   * `ctx.canvasSize` and templates as `@canvasSize`. The manifest's `render.width`
+   * x `render.height` until a shell sets another.
+   */
+  readonly canvasSize: CanvasSize;
+  /**
+   * Tell the tool its canvas size changed (v1.293). `null`, or a size that is not
+   * two positive lengths, goes back to the manifest's size; the same size again does
+   * nothing. A tool that declares `render.followsCanvasSize` gets an `onInput` run
+   * with `id: '__canvasSize'`, whose patch updates computed values only, and a
+   * repaint; any other tool only records the size, so it renders as before. Resolves
+   * once that run is done.
+   */
+  setCanvasSize(size: { width: number; height: number } | null): Promise<void>;
   getModel(): InputModelItem[];
   getHydrated(): string;
   /** Hydrate an arbitrary template string against the same context (e.g. manifest.a11yLabel). */
@@ -586,6 +613,10 @@ export async function createRuntime(
   opts: {
     /** Local presentation state. Leave absent for full-document renders. */
     viewState?: RuntimeViewState;
+    /** The canvas size, CSS px (v1.293), from the export size a shell was asked for
+     *  (`canvasSizeOf`), so onInit lays out once at the right shape. Absent or
+     *  invalid: the manifest's `render.width` x `render.height`. */
+    canvasSize?: { width: number; height: number } | null;
     composeStack?: readonly string[];
     hookExecutor?: HookExecutor;
     /** Let onInit end its own wait (v1.228): a `report(patch, { ready: true })` mounts
@@ -700,6 +731,15 @@ export async function createRuntime(
   // setInput can't overwrite a newer value's render - see setInput below.
   let setInputSeq = 0;
   let viewState = opts.viewState ? Object.freeze(structuredClone(opts.viewState)) : undefined;
+  // The canvas size (v1.293): one frozen object per size, handed to every hook as
+  // `ctx.canvasSize` and to the template as `@canvasSize`. Replaced, never mutated.
+  const manifestCanvas: CanvasSize = Object.freeze({ width: tool.manifest.render.width, height: tool.manifest.render.height });
+  const toCanvasSize = (size: { width: number; height: number } | null | undefined): CanvasSize =>
+    size && Number.isFinite(size.width) && Number.isFinite(size.height) && size.width > 0 && size.height > 0
+      ? Object.freeze({ width: size.width, height: size.height })
+      : manifestCanvas;
+  let canvasSize = toCanvasSize(opts.canvasSize);
+  const followsCanvasSize = tool.manifest.render?.followsCanvasSize === true;
 
   const profile = await host.profile.get();
   const hookLang = tool.lang || profile.lang || 'en';
@@ -874,7 +914,7 @@ export async function createRuntime(
     if (onInit) {
       try {
         const progressive = opts.progressiveInit === true;
-        const patch = await runHook('onInit', report => onInit({ model: modelForHooks(model), view: viewState, lang: hookLang, host, report, ...(progressive ? { progressive } : {}) }), applyLatePatch, progressive);
+        const patch = await runHook('onInit', report => onInit({ model: modelForHooks(model), view: viewState, lang: hookLang, canvasSize, host, report, ...(progressive ? { progressive } : {}) }), applyLatePatch, progressive);
         if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
       } catch (e) {
         // Record the failure (not just log it) so the shell can show a canvas-error
@@ -992,7 +1032,7 @@ export async function createRuntime(
     return source.subscribe((level) => {
       if (pending || generation !== levelGeneration || destroyed) return;
       pending = true;
-      Promise.resolve(onLevel({ level, model: modelForHooks(model), view: viewState, lang: hookLang, host }))
+      Promise.resolve(onLevel({ level, model: modelForHooks(model), view: viewState, lang: hookLang, canvasSize, host }))
         .then((patch) => {
           if (patch && meterUnsub && generation === levelGeneration && !destroyed) {
             ({ model, extras } = mergePatch(model, extras, patch, inputIds)); emit();
@@ -1053,6 +1093,12 @@ export async function createRuntime(
     return ctxCache!;
   }
 
+  // The template's data variables (v1.293): `{{@canvasSize.width}}`. Data, not
+  // values, so the size can never shadow an input or an extra of the same name.
+  function templateData(): Record<string, unknown> {
+    return { canvasSize };
+  }
+
   // Resolve the `data-lolly-paint` markers annotateTemplate left into
   // `data-lolly-bind` token bindings using the model's still-linked colour inputs
   // (plans/222), so an inherited colour survives the flatten-to-hex into the DOM
@@ -1063,7 +1109,7 @@ export async function createRuntime(
 
   function getHydrated(): string {
     const pag = tool.manifest.render?.paginate;
-    const html = pag?.source ? hydratePaginated(pag.source) : bindPaint(hydrate(tool.template, templateContext()));
+    const html = pag?.source ? hydratePaginated(pag.source) : bindPaint(hydrate(tool.template, templateContext(), { data: templateData() }));
     return tool.presentationSource && tool.trustClass !== 'remote-untrusted' && tool.trustClass !== 'sideloaded-consented'
       ? html + '<script data-tool-presentation>' + tool.presentationSource.replace(/<\/script/gi, '<\\/script') + '</script>'
       : html;
@@ -1103,7 +1149,7 @@ export async function createRuntime(
         index, number: index + 1, count,
         first: row[0] ?? '', cells, fields: cells.slice(1), byColumn,
       };
-      const body = bindPaint(hydrate(tool.template, { ...base, page }));
+      const body = bindPaint(hydrate(tool.template, { ...base, page }, { data: templateData() }));
       return `<section data-pdf-page class="lolly-page" data-page-index="${index}">${body}</section>`;
     }).join('');
   }
@@ -1112,13 +1158,13 @@ export async function createRuntime(
   // template (input values + hook extras). Used by shells for things like a
   // live accessible-label summary of the current render (manifest.a11yLabel).
   function getHydratedString(str: string | null | undefined): string {
-    return str ? hydrate(str, templateContext()) : '';
+    return str ? hydrate(str, templateContext(), { data: templateData() }) : '';
   }
 
   // Same context, but WITHOUT HTML escaping - for non-HTML data templates
   // (template.ics/.vcf/.csv). Each data format escapes via its own helper.
   function getHydratedText(str: string): string {
-    return str ? hydrate(str, templateContext(), { raw: true }) : '';
+    return str ? hydrate(str, templateContext(), { raw: true, data: templateData() }) : '';
   }
 
   // ── Emoji: pinned pack artwork over every rendered tree ────────────────────
@@ -1431,7 +1477,7 @@ export async function createRuntime(
         // rejection escaping into the shell and failing the view's mount.
         let patch: unknown;
         try {
-          patch = await runHook('onInput', report => hooks!.onInput!({id:'__emoji', value:null, model:modelForHooks(model), view: viewState, host, report}), late => {
+          patch = await runHook('onInput', report => hooks!.onInput!({id:'__emoji', value:null, model:modelForHooks(model), view: viewState, canvasSize, host, report}), late => {
             if (generation === emojiStyleGeneration && seq === setInputSeq) applyLatePatch(late);
           });
         } catch (e) {
@@ -1508,7 +1554,7 @@ export async function createRuntime(
       const onFrame = hooks?.onFrame;
       if (!onFrame) return null;
       try {
-        const patch = await onFrame({ frame, model: modelForHooks(model), view: viewState, lang: hookLang, host });
+        const patch = await onFrame({ frame, model: modelForHooks(model), view: viewState, lang: hookLang, canvasSize, host });
         if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
         return getHydrated();
       } catch (e) {
@@ -1533,10 +1579,42 @@ export async function createRuntime(
         try {
           const patch = await runHook('onInput', report => onInput({
             id: '__view', value: null, model: modelForHooks(model), view: viewState,
-            lang: hookLang, host, report,
+            lang: hookLang, canvasSize, host, report,
           }), late => { if (seq === setInputSeq) { applyViewPatch(late); emit(); } });
           if (seq !== setInputSeq) return;
           if (patch) applyViewPatch(patch);
+        } catch (error) {
+          host.log('warn', `onInput ${(error as Error).message}`, { toolId: tool.manifest.id });
+        }
+      }
+      if (seq === setInputSeq) emit();
+    },
+
+    get canvasSize() { return canvasSize; },
+    async setCanvasSize(size) {
+      const next = toCanvasSize(size);
+      if (next.width === canvasSize.width && next.height === canvasSize.height) return;
+      canvasSize = next;
+      // A tool that did not ask to follow the size only records it: no hook runs and
+      // nothing repaints, so its render stays exactly what it was.
+      if (!followsCanvasSize) return;
+      const seq = ++setInputSeq;
+      // As with '__view' and '__tokens', the run updates computed values only: the
+      // size is the shell's, so it never reaches saved inputs, undo or a link.
+      const applySizePatch = (patch: unknown): void => {
+        if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return;
+        const computed = Object.fromEntries(Object.entries(patch).filter(([id]) => !inputIds.has(id)));
+        ({ model, extras } = mergePatch(model, extras, computed, inputIds));
+      };
+      const onInput = hooks?.onInput;
+      if (onInput) {
+        try {
+          const patch = await runHook('onInput', report => onInput({
+            id: CANVAS_SIZE_INPUT_ID, value: null, model: modelForHooks(model), view: viewState,
+            lang: hookLang, canvasSize, host, report,
+          }), late => { if (seq === setInputSeq) { applySizePatch(late); emit(); } });
+          if (seq !== setInputSeq) return;
+          if (patch) applySizePatch(patch);
         } catch (error) {
           host.log('warn', `onInput ${(error as Error).message}`, { toolId: tool.manifest.id });
         }
@@ -1572,7 +1650,7 @@ export async function createRuntime(
       const onInput = hooks?.onInput;
       if (onInput) {
         try {
-          const patch = await runHook('onInput', report => onInput({ id, value: flattenValue(value), model: modelForHooks(model), view: viewState, lang: hookLang, host, report }), applyLatePatch);
+          const patch = await runHook('onInput', report => onInput({ id, value: flattenValue(value), model: modelForHooks(model), view: viewState, lang: hookLang, canvasSize, host, report }), applyLatePatch);
           if (patch) {
             ({ model, extras } = mergePatch(model, extras, patch, inputIds));
             emit(); // re-emit with the hook's patch so the final state is correct
@@ -1665,7 +1743,7 @@ export async function createRuntime(
       if (onInput) {
         for (const { id, value } of applied) {
           try {
-            const patch = await runHook('onInput', report => onInput({ id, value, model: modelForHooks(model), view: viewState, lang: hookLang, host, report }), applyLatePatch);
+            const patch = await runHook('onInput', report => onInput({ id, value, model: modelForHooks(model), view: viewState, lang: hookLang, canvasSize, host, report }), applyLatePatch);
             if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
           } catch (e) {
             host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
@@ -1735,7 +1813,7 @@ export async function createRuntime(
       if (onInput) {
         for (const item of changed) {
           try {
-            const patch = await runHook('onInput', report => onInput({ id: item.id, value: flattenValue(item.value), model: modelForHooks(model), view: viewState, lang: hookLang, host, report }), applyLatePatch);
+            const patch = await runHook('onInput', report => onInput({ id: item.id, value: flattenValue(item.value), model: modelForHooks(model), view: viewState, lang: hookLang, canvasSize, host, report }), applyLatePatch);
             if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
           } catch (e) {
             host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
@@ -1787,7 +1865,7 @@ export async function createRuntime(
       if (onInput) {
         for (const item of changed) {
           try {
-            const patch = await runHook('onInput', report => onInput({ id: item.id, value: flattenValue(item.value), model: modelForHooks(model), view: viewState, lang: hookLang, host, report }), applyLatePatch);
+            const patch = await runHook('onInput', report => onInput({ id: item.id, value: flattenValue(item.value), model: modelForHooks(model), view: viewState, lang: hookLang, canvasSize, host, report }), applyLatePatch);
             if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
           } catch (e) {
             host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
@@ -1807,7 +1885,7 @@ export async function createRuntime(
         try {
           const patch = await runHook('onInput', report => onInput({
             id: TOKENS_CHANGED_INPUT_ID, value: null, model: modelForHooks(model), view: viewState,
-            lang: hookLang, host, report,
+            lang: hookLang, canvasSize, host, report,
           }), late => { if (generation === themeGeneration) { applyTokensPatch(late); emit(); } });
           if (generation !== themeGeneration) return;
           if (patch) applyTokensPatch(patch);
@@ -1869,7 +1947,7 @@ export async function createRuntime(
       const subscribeLive = () => media.subscribe((frame) => {
         if (framePending || livePaused) return; // busy, or an export drive owns the canvas → drop
         framePending = true;
-        Promise.resolve(onFrame({ frame, model: modelForHooks(model), view: viewState, lang: hookLang, host }))
+        Promise.resolve(onFrame({ frame, model: modelForHooks(model), view: viewState, lang: hookLang, canvasSize, host }))
           .then((patch) => {
             // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
             // A SENSOR frame drove the render → its essence is now a live camera
@@ -2020,7 +2098,7 @@ export async function createRuntime(
       // Errors (including a HOOK_BUDGET_MS timeout) propagate - the shell shows
       // the transform's failure to the user; there's no degraded fallback here.
       const out = await runHook('exportFile',
-        () => exportFileHook({ model: modelForHooks(model), view: viewState, lang: hookLang, host, opts }),
+        () => exportFileHook({ model: modelForHooks(model), view: viewState, lang: hookLang, canvasSize, host, opts }),
       ) as ExportFileResult | ExportFileResult[] | null | undefined;
       const placed = toolEmoji?.census;
       if (placed?.length) emojiCensus = [...emojiCensus.filter(source => !placed.some(next => next.pack.checksum === source.pack.checksum && next.assetId === source.assetId)), ...placed];
@@ -2054,7 +2132,7 @@ export async function createRuntime(
         if (!tool.presentationSource) throw new Error('The portable presentation runtime is missing. Reload the tool before exporting.');
         if (tool.trustClass === 'remote-untrusted' || tool.trustClass === 'sideloaded-consented') throw new Error('Interactive HTML export requires a trusted installed tool.');
         opts = { ...opts, portableDocument: {
-          markup: bindPaint(hydrate(tool.template, templateContext())), styles: tool.styles ?? '',
+          markup: bindPaint(hydrate(tool.template, templateContext(), { data: templateData() })), styles: tool.styles ?? '',
           script: tool.presentationSource, title: String(model.find(i => i.id === 'title')?.value || tool.manifest.name), lang: hookLang,
         } };
       }
@@ -2091,7 +2169,7 @@ export async function createRuntime(
         // raise user-facing preconditions (e.g. url-shot's "enter a URL"), and
         // exporting an unstaged canvas silently would be worse than failing.
         try {
-          await runHook('beforeExport', () => beforeExport({ model: modelForHooks(model), lang: hookLang, node: renderedNode, format, opts, host }));
+          await runHook('beforeExport', () => beforeExport({ model: modelForHooks(model), lang: hookLang, canvasSize, node: renderedNode, format, opts, host }));
         } catch (error) {
           throw new ExportHookError(error);
         }
@@ -2135,7 +2213,7 @@ export async function createRuntime(
           const afterExport = hooks?.afterExport;
           if (!afterExport) return;
           try {
-            await runHook('afterExport', () => afterExport({ model: modelForHooks(model), lang: hookLang, node: renderedNode, format, opts, host }));
+            await runHook('afterExport', () => afterExport({ model: modelForHooks(model), lang: hookLang, canvasSize, node: renderedNode, format, opts, host }));
           } catch (e) {
             host.log('warn', `afterExport ${(e as Error).message}`, { toolId: tool.manifest.id });
           }
@@ -2143,7 +2221,7 @@ export async function createRuntime(
         let still: ExportStillResult | null | undefined;
         try {
           still = await runHook('exportStill',
-            () => exportStill({ model: modelForHooks(model), lang: hookLang, node: renderedNode, format, opts, host })) as ExportStillResult | null | undefined;
+            () => exportStill({ model: modelForHooks(model), lang: hookLang, canvasSize, node: renderedNode, format, opts, host })) as ExportStillResult | null | undefined;
         } catch (e) {
           await runAfterExport();
           throw e;
@@ -2376,7 +2454,7 @@ export async function createRuntime(
         const afterExport = hooks?.afterExport;
         if (afterExport) {
           try {
-            await runHook('afterExport', () => afterExport({ model: modelForHooks(model), lang: hookLang, node: renderedNode, format, opts, host }));
+            await runHook('afterExport', () => afterExport({ model: modelForHooks(model), lang: hookLang, canvasSize, node: renderedNode, format, opts, host }));
           } catch (e) {
             host.log('warn', `afterExport ${(e as Error).message}`, { toolId: tool.manifest.id });
           }

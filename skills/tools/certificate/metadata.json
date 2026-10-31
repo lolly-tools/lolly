@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "certificate",
-  "toolVersion": "1.1.0",
-  "toolVersionRange": "1.1.0",
+  "toolVersion": "1.2.0",
+  "toolVersionRange": "1.2.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,8 +11,8 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "a3d3e9651dba52be090f1ccb82b61923602d351261a470fa612a09cebddc3884",
-      "bytes": 2260
+      "sha256": "c9bf140cfc6684d7ac589602bb78f460f4b8a97590b6524b4938e286aeb8e91b",
+      "bytes": 2262
     },
     "reference/inputs.json": {
       "sha256": "eacbed19c4c50df06b92d1e4866c68ca33403b048e5d1297375127f298df1372",

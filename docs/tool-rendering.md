@@ -23,6 +23,7 @@ Templates are Handlebars and **logic-less by design**, so people who are not pro
 - `{{value}}` - HTML-escapes by default. Always use this for user input.
 - `{{{value}}}` - raw, no escape. Only for trusted, system-generated HTML.
 - Block helpers: `{{#if}}`, `{{#each}}`, `{{#unless}}`. No arbitrary JS.
+- `{{@canvasSize.width}}` and `{{@canvasSize.height}}` - the size the tool is being made at, in CSS pixels (engine v1.293): the export size someone chose, else the manifest's `render.width` and `render.height`. A tool that prints it declares `render.followsCanvasSize`, so the canvas redraws when the size changes ([When the canvas size changes](/info/tool-hooks.html#when-the-canvas-size-changes)).
 
 `wordmark` is about as small as a template gets: one string, one face, one weight. Everything below came from the link's parameters flowing into `{{ }}` slots.
 

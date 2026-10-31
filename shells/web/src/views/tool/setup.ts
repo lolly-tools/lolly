@@ -15,7 +15,7 @@ import { collabHistoryStamp } from '../../lib/collab-undo.ts';
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
-import { annotateTemplate, diffDocuments, expandQuery, hasEncryptedState, inspectDocument, measureDocument, parseUrlState } from '@lolly/engine';
+import { annotateTemplate, canvasSizeOf, diffDocuments, expandQuery, hasEncryptedState, inspectDocument, measureDocument, parseUrlState } from '@lolly/engine';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import type { InputValue, InputWriteOptions } from '../../../../../engine/src/inputs.js';
 import { buildInputModel, tokenRestoreRefsOf } from '../../../../../engine/src/inputs.ts';
@@ -669,8 +669,19 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   const progressiveInit = !tview.autoExport && !tview.autoCopy && !captureNeutralPinned();
   const { observeProductionExport } = await import('../../bridge/production-observer.ts');
   observeProductionExport(tview.host, toolId, () => tview.runtime?.getModel() ?? []);
+  // The canvas size the tool first lays out for (engine 1.293): the link's or the saved
+  // session's export size, in the same precedence the export bar seeds from, so a tool
+  // that follows the size opens at that shape instead of laying out twice. The bar's
+  // own value (a size select, a remembered export) arrives through refreshCanvasPreview.
+  const sizeFields = tview.tool.manifest.render.dims !== false && !tview.tool.manifest.designTool;
+  const canvasSize = sizeFields ? canvasSizeOf(
+    tview.urlWidth || Number(tview.initialValues.__export_width) || undefined,
+    tview.urlHeight || Number(tview.initialValues.__export_height) || undefined,
+    tview.urlUnit || (tview.initialValues.__export_unit as string | undefined) || 'px',
+  ) : null;
   const runtime: ToolRuntime = await createRuntime(tview.tool, tview.host, tview.initialValues, {
     progressiveInit,
+    canvasSize,
     ...(toolId === 'design' ? { viewState: { pageId: 'page-1' } } : {}),
     tokenSelection: tview.openedSession.url.tokenSelection,
     ...(emojiStyle === undefined ? {} : { emojiStyle }),

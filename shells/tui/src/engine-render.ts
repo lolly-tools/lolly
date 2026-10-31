@@ -4,7 +4,7 @@
  * mountTool → createRuntime; renderSvg turns the current state into an SVG string
  * (for the terminal preview); exportToFile writes a real file via the Node bridge.
  */
-import { loadTool, createRuntime, parseUrlState, serializeUrlState, expandQuery, normalizeLang, embedC2pa, C2PA_FORMATS, readFileDesignRecord } from '@lolly/engine';
+import { loadTool, createRuntime, canvasSizeOf, parseUrlState, serializeUrlState, expandQuery, normalizeLang, embedC2pa, C2PA_FORMATS, readFileDesignRecord } from '@lolly/engine';
 import type { UrlState } from '../../../engine/src/url-mode.ts';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
@@ -61,9 +61,25 @@ export async function mountTool(
   // silently dropped and reset to manifest defaults.
   const reserved = parseUrlState(expanded, tool.manifest);
   const initial = values ? { ...reserved.values, ...values } : reserved.values;
-  const runtime = await createRuntime(tool, host, initial as Parameters<typeof createRuntime>[2]);
+  // The link's size is the canvas size the hooks first lay out for (engine 1.293); the
+  // Export panel's width and height move it from there (setCanvasSizeFrom).
+  const runtime = await createRuntime(tool, host, initial as Parameters<typeof createRuntime>[2], {
+    canvasSize: canvasSizeOf(reserved.width, reserved.height, reserved.unit ?? 'px'),
+  });
   await (await import('./document-emoji.ts')).seedEmoji(runtime,host,reserved,values);
   return { runtime, manifest: tool.manifest, reserved };
+}
+
+/**
+ * Tell the tool the canvas size the Export panel's width, height and unit describe
+ * (engine 1.293), the same CSS pixels the web shell hands it for that size. Both
+ * sides blank or invalid is the tool's own size. A tool that follows the size lays
+ * itself out again. True when the size changed: the caller then repaints the preview.
+ */
+export async function setCanvasSizeFrom(runtime: Runtime, dims: { width?: number; height?: number; unit?: string }): Promise<boolean> {
+  const before = runtime.canvasSize;
+  await runtime.setCanvasSize(canvasSizeOf(dims.width, dims.height, dims.unit || 'px'));
+  return runtime.canvasSize !== before;
 }
 
 /** The current state as a URL query - what a saved session stores + reopens from. */
@@ -170,6 +186,9 @@ export async function exportToFile(
     throw new Error(printPrepRefusal(fmt));
   }
   const transform = isTransform(manifest);
+  // The canvas size is the export's own (engine 1.293), so a tool that lays itself out
+  // for the canvas draws this file at this shape. A no-op when the view already set that size.
+  await setCanvasSizeFrom(runtime, dims);
   // The design-system record (plans/319): the export panel's Design system row sets it
   // per export, so the runtime's own exports and the Tier-B URL read one switch.
   if (typeof dims.madeWith === 'boolean') runtime.setMadeWith(dims.madeWith);
