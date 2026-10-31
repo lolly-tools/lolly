@@ -43,7 +43,10 @@ export const syncPaletteSheet = (start: StartCtx): void => {
 export const syncVersionsEntry = (start: StartCtx): void => {
   const { versionsBtn, versionsLink } = start;
   if (start.activeArea === 'versions') start.versionsOffered = true;
-  if (versionsBtn) versionsBtn.hidden = !start.versionsOffered;
+  if (versionsBtn && versionsBtn.hidden === start.versionsOffered) {
+    versionsBtn.hidden = !start.versionsOffered;
+    start.bar.syncStrip(true); // the strip gained a room, so the ink re-measures
+  }
   // The first publish has to stay one press away, so a system worth exporting
   // that has never published gets the quiet entry instead of the rail one - and
   // drops it again as soon as the rail entry latches on.
@@ -110,6 +113,7 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
     else btn.removeAttribute('aria-current');
     if (on && opts.focus) btn.focus();
   }
+  start.bar.syncStrip();
   overviewPanel.hidden = area !== 'overview';
   start.usagePanel.hidden = area !== 'usage';
   if (area === 'usage') {
@@ -163,17 +167,16 @@ export function openFocus(start: StartCtx, area: StartArea, focus: string): void
 }
 export function wireEditorPanels(start: StartCtx): void {
   const { editorRoot, shell } = start;
-  // Under 900px the room chips pin to the top of the page, so a jump inside a room
-  // (the Tokens room's tiles, a token's detail) has to land below them, not under.
-  // --ds-sticky-top is the chips' height plus a breath; the rooms read it as
-  // scroll-margin-top (styles/parts/start.css).
+  // The bar (and on a desk the room strip under it) pins to the top of the page,
+  // so a jump inside a room (the Tokens room's tiles, a token's detail) has to
+  // land clear of the pinned block. --ds-sticky-top is that block's height plus a
+  // breath; the rooms read it as scroll-margin-top (styles/parts/start.css). On a
+  // phone the rooms sit in the fixed bottom bar, which adds nothing to this block.
   const dsShell = shell.querySelector<HTMLElement>('.ds-shell');
-  const nav = shell.querySelector<HTMLElement>('.ds-room-nav');
-  const narrow = window.matchMedia('(max-width: 899px)');
+  const top = shell.querySelector<HTMLElement>('.ds-top');
   const syncStickyTop = (): void => {
     if (!dsShell?.isConnected) { window.removeEventListener('resize', syncStickyTop); return; }
-    if (nav && narrow.matches) dsShell.style.setProperty('--ds-sticky-top', `${Math.ceil(nav.getBoundingClientRect().height) + 8}px`);
-    else dsShell.style.removeProperty('--ds-sticky-top');
+    if (top) dsShell.style.setProperty('--ds-sticky-top', `${Math.ceil(top.getBoundingClientRect().height) + 8}px`);
   };
   syncStickyTop();
   window.addEventListener('resize', syncStickyTop);

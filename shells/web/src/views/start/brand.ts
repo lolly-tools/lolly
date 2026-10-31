@@ -103,19 +103,25 @@ export async function refreshName(start: StartCtx): Promise<void> {
     return;
   }
   open?.remove();
-  line.after(nameAsk(start, rec, suggestion));
+  // Under the bar, in its own slot: the bar's one line has no room for a form.
+  (viewEl.querySelector<HTMLElement>('[data-start-ds-ask-slot]') ?? line).append(nameAsk(start, rec, suggestion));
 }
 
 function paintNameLine(start: StartCtx, rec: ActiveRecord): void {
   const { focusDsName, viewEl } = start;
   const line = viewEl.querySelector<HTMLElement>('[data-start-ds]');
   if (!line) return;
-  const state = rec.locked ? ` <span class="start-ds-lock">${t('read-only')}</span>` : '';
+  // The bar's title. Switching lives in the bar's More menu now (plan 336 P1).
   line.innerHTML = rec.locked
-    ? `${t('Editing {name}', { name: escapeText(rec.label) })}${state} · <a href="#/profile?focus=design-systems-section">${t('Switch')}</a>`
-    : `${t('Editing')} <input class="start-ds-name" data-start-ds-name value="${escapeText(rec.label)}" aria-label="${escapeText(t('Design system name'))}"> · <a href="#/profile?focus=design-systems-section">${t('Switch')}</a>`;
+    ? `<span class="ds-bar-name-text">${escapeText(rec.label)}</span> <span class="start-ds-lock">${t('read-only')}</span>`
+    : `<input class="start-ds-name" data-start-ds-name value="${escapeText(rec.label)}" maxlength="80" autocomplete="off" spellcheck="false" aria-label="${escapeText(t('Design system name'))}" title="${escapeText(t('Design system name'))}">`;
   line.hidden = false;
   const nameInput = line.querySelector<HTMLInputElement>('[data-start-ds-name]');
+  // Enter keeps the name and Escape puts the old one back; both leave the field.
+  nameInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); nameInput.blur(); }
+    else if (e.key === 'Escape') { e.preventDefault(); nameInput.value = rec.label; nameInput.blur(); }
+  });
   nameInput?.addEventListener('change', async () => {
     const label = nameInput.value.trim();
     if (!label) {

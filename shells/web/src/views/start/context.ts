@@ -7,6 +7,7 @@
  */
 import type { PenpotUsage, TokensExtraction } from '@lolly/engine';
 import type { ModalHandle } from '../../components/modal.ts';
+import type { BodyPopoverHandle } from '../../components/body-popover.ts';
 import type { BrandEditorHandle } from '../../lib/brand-editor.ts';
 import type { TokenRoleProposal } from '../../lib/brand-propose.ts';
 import type { OverviewRoom } from '../../lib/design-system/rooms/overview.ts';
@@ -41,6 +42,7 @@ import type { savedPageOps } from './saved-page.ts';
 import type { sourcesOps } from './sources.ts';
 import type { tokensOps } from './tokens.ts';
 import type { lifecycleOps } from './lifecycle.ts';
+import type { barOps } from './bar.ts';
 
 export interface StartCtx {
   // ---- state (was: closure variables of mountStart) ----
@@ -74,6 +76,7 @@ export interface StartCtx {
   versionsPanel: HTMLElement;
   versionsBtn: HTMLButtonElement | null;
   versionsLink: HTMLButtonElement | null;
+  /** The room strip's nav (a bar at the bottom edge on a phone). */
   railEl: HTMLElement;
   roomBtns: HTMLButtonElement[];
   furnishedOnly: HTMLElement[];
@@ -147,6 +150,11 @@ export interface StartCtx {
   sources: ReturnType<typeof sourcesOps>;
   tokens: ReturnType<typeof tokensOps>;
   lifecycle: ReturnType<typeof lifecycleOps>;
+  bar: ReturnType<typeof barOps>;
+  /** Tears down what the bar wired (the More menu, the strip's listeners). */
+  unsubBar?: (() => void) | null;
+  /** The bar's More menu, so the studio's Escape can leave it to the menu. */
+  moreMenu?: BodyPopoverHandle | null;
 }
 
 /** A module function minus its leading context parameter. */

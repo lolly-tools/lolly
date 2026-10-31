@@ -196,6 +196,8 @@ const BOTTOM_SURFACES: Array<{
   { cls: 'store-selbar',     file: 'styles/parts/profile.css',      keyboard: true },
   { cls: 'be-bulkbar',       file: 'styles/parts/brand-studio.css', keyboard: true, safeVia: '--stu-sheet-h' },
   { cls: 'gallery-footer',   file: 'styles/parts/gallery.css',      keyboard: true, safeVia: 'padding-bottom' },
+  // The studio's room bar on a phone (plan 336): full bleed like the gallery footer.
+  { cls: 'ds-room-nav',      file: 'styles/parts/start-bar.css',    keyboard: true, safeVia: 'padding-bottom' },
   { cls: 'gallery-bulkbar',  file: 'styles/parts/gallery.css',      keyboard: false },
   { cls: 'pro-toast',        file: 'pro/run-overlay.css',           keyboard: false },
   { cls: 'beam-toast',       file: 'components/beam-toast.css',     keyboard: false },
@@ -381,7 +383,7 @@ test('every docs surface behind the fixed chrome row consumes --docs-chrome-clea
 const BOTTOM_ANCHOR_ALLOW: Array<{ file: string; selector: string; why: string }> = [
   {
     file: 'styles/parts/brand-studio.css', selector: '.start > .stu-sheet',
-    why: 'the studio sheet itself: a full-width surface with a background, which SHOULD reach the screen edge. Its own `padding-bottom: var(--safe-bottom)` lifts the contents out of the gesture strip, and its height is the vv-clamped --stu-sheet-h.',
+    why: 'the studio sheet itself: a full-width surface with a background, docked on the studio room bar (bottom: var(--ds-roombar-h), which carries the inset) or reaching the screen edge where there is none. Its own padding-bottom falls back to var(--safe-bottom) there, and its height is the vv-clamped --stu-sheet-h.',
   },
   {
     file: 'styles/parts/brand-studio.css', selector: '.start > .stu-sheet-grip',

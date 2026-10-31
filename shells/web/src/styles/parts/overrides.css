@@ -115,6 +115,7 @@ body > svg:not([style]) {
 .verify-view .chrome-topleft .home-fab,
 .dashboard-view .chrome-topleft .home-fab,
 .start-view .start-back-row .home-fab,
+.start-view .ds-bar-exit .home-fab,
 .lab-back [data-home-fab] { display: none; }
 /* The cluster's own language + theme FABs fold into the same menu wherever a
    profile menu trigger (mountProfileFab's .profile-fab, or mountViewTopbar's

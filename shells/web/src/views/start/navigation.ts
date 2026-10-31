@@ -16,6 +16,7 @@ import { t } from '../../i18n.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { START_ROOMS } from '../../lib/design-system/start-route.ts';
 import { icon } from '../../lib/icons.ts';
+import { helpTip } from '../../components/help-tip.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { IMPORT_FORMATS, ROOM_ICONS } from './shared.ts';
 import { bindOp, type StartCtx } from './context.ts';
@@ -34,94 +35,84 @@ export const wireHomeFab = (start: StartCtx): void => {
 };
 export function renderShell(start: StartCtx): void {
   const { ROOM_LABELS, backPill, homeFab, viewEl } = start;
+  // Where the design system is kept, one tap away beside its name rather than a
+  // line repeated over every room (plan 336 P1). helpTip escapes the text.
+  const kept = helpTip(isTauriShell() ? t('Your design system stays on this device.') : t('Your design system stays in this browser.'));
   viewEl.innerHTML = `
     <div class="start start--studio">
-      <div class="start-back-row">${backPill}${homeFab}</div>
       <div class="gallery-topright start-topright">${langFabHtml()}</div>
-      <header class="start-head">
-        <p class="start-eyebrow">${t('Design System Setup')}</p>
-        <h1 class="start-title">${t('Make it yours')}</h1>
-        <p class="start-sub">${isTauriShell() ? t('Your design system stays on this device.') : t('Your design system stays in this browser.')}</p>
-        <!-- Which design system the studio is editing (plans/186 section 5): filled
-             async from the registry; the link opens the Profile card that switches. -->
-        <p class="start-sub start-ds" data-start-ds hidden></p>
-      </header>
-
-      <div class="ds-shell">
-        <!-- The rail: independent rooms, in no order. A phone gets the same list
-             as a horizontal chip strip pinned under the header. -->
-        <aside class="ds-rail">
-          <nav class="ds-room-nav" aria-label="${escapeText(t('Design system rooms'))}">
-            <ul class="ds-rooms" role="list">
-            ${START_ROOMS.map(
-              (area) => `
-              <li>
-                <button type="button" class="ds-room" id="ds-room-${area}" data-ds-room="${area}"${area === start.activeArea ? ' aria-current="page"' : ''}>
-                  <span class="ds-room-ic" aria-hidden="true">${icon(ROOM_ICONS[area])}</span>
-                  <span class="ds-room-label">${escapeText(ROOM_LABELS[area])}</span>
-                </button>
-              </li>`
-            ).join('')}
-            </ul>
-          </nav>
-          <!-- Foot: whole-system actions. They belong to the studio rather than
-               to any one room, and the transient note rides with them. -->
-          <div class="ds-rail-actions">
-            <!-- Hidden while the studio is empty: the Overview room's own two
-                 doors are showing then, and "Start from a file" opens this very
-                 modal - three ways into one dialog on one screen (plans/163 F2).
-                 It appears with the furnished room, which is where the doors go. -->
-            <button type="button" class="be-btn start-import-cta" data-start-import aria-haspopup="dialog" hidden>
-              <span class="start-import-cta-ic" aria-hidden="true">↓</span> <span>${t('Add from…')}</span></button>
+      <!-- The studio's one bar (plan 336 P1): the way out, the system's name, and
+           the actions that work on the whole system. The rooms follow it as one
+           strip on a desk and as a bar at the bottom edge on a phone (P2). -->
+      <div class="ds-top">
+        <header class="ds-bar">
+          <div class="ds-bar-exit">${backPill}${homeFab}</div>
+          <div class="ds-bar-id help-tip-host">
+            <span class="ds-bar-kicker">${t('Design system')}</span>
+            <!-- Which design system the studio is editing (plans/186 section 5),
+                 filled async from the registry as an inline editable name. -->
+            <span class="ds-bar-name" data-start-ds hidden></span>
+            ${kept.button}${kept.pop}
+          </div>
+          <div class="ds-bar-acts">
             <!-- Hidden until a scan actually keeps something: an empty concept is
                  never advertised (plan 97 section 9). The count rides the subscription. -->
-            <button type="button" class="be-btn ds-tray-toggle" data-start-tray aria-expanded="false" hidden>
-              <span class="ds-tray-toggle-ic" aria-hidden="true">${icon('dock')}</span>
-              <span>${t('Tray')}</span>
+            <button type="button" class="be-btn ds-bar-btn ds-tray-toggle" data-start-tray aria-expanded="false" hidden>
+              <span class="ds-bar-btn-ic" aria-hidden="true">${icon('dock')}</span>
+              <span class="ds-bar-btn-label">${t('Tray')}</span>
               <span class="ds-tray-toggle-n" data-start-tray-n></span></button>
-            <!-- Both exports wait for a system worth exporting (plans/137 B1,
-                 raised by plans/163 F4). An empty studio has nothing to send
-                 anywhere, and offering to export it is a button that can only
-                 disappoint - and one colour in is still nearly empty, which is
-                 why the bar is readOverview's worthExporting rather than its
-                 furnished. data-start-furnished is what refreshFurnished()
-                 reveals, on the same reading the Overview room decides its own
-                 empty state with. -->
-            <button type="button" class="be-btn start-export-btn" data-start-export data-start-furnished data-sfx="whoosh" hidden>
-              <span aria-hidden="true">↑</span> <span>${t('Export')}</span></button>
-            <!-- The pack zip carries fonts, logos and a theme preference; this is
-                 the plain document, for a repo or another tool that reads DTCG. -->
-            <button type="button" class="be-btn start-export-tokens" data-start-export-tokens data-start-furnished hidden>
-              <span aria-hidden="true">↑</span> <span>${t('Tokens (.json)')}</span></button>
-            <!-- Get this brand's fonts onto a Linux box as an installable package
-                 (plan 197 M5). Shell-side because enumerating the brand's fonts uses
-                 host.assets internals a tool hook can't reach; it seals them with
-                 host.export.pack and hands over the .rpm. -->
-            <button type="button" class="be-btn start-get-on-device" data-start-get-on-device data-start-furnished data-sfx="whoosh" hidden>
-              <span aria-hidden="true">${icon('dock')}</span> <span>${t('Fonts for Linux (.rpm)')}</span></button>
-            <!-- Versions (plan 97 section 6a). Hidden until something has actually been
-                 published, or until a link asks for the panel by name (plans/137
-                 B2): the entry used to appear the moment a system EXISTED, which
-                 put publishing on the face of a studio one colour old. It carries
-                 data-ds-room, so the rail's existing click delegate routes it with
-                 no second listener. -->
-            <button type="button" class="be-btn ds-versions-toggle" id="ds-room-versions" data-ds-room="versions" hidden>
-              <span class="ds-versions-toggle-ic" aria-hidden="true">${icon(ROOM_ICONS.versions)}</span>
-              <span>${escapeText(ROOM_LABELS.versions)}</span></button>
-            <!-- The way to a FIRST publish, for a furnished system that has never
-                 published one: a quiet line under the export actions rather than a
-                 fifth peer button, and it stands down the moment the entry above
-                 latches on. Its own listener, not data-ds-room: two elements with
-                 that attribute would both take aria-current, and the versionsBtn
-                 lookup reads the first one in the document. -->
-            <button type="button" class="ds-versions-link" data-ds-versions-link hidden>${t('Versions & publishing')}</button>
-            <!-- Hidden until the studio holds something of its own: before that
-                 there is nothing to restore, and the dialog only said so. -->
-            <button type="button" class="ds-versions-link" data-start-recovery aria-haspopup="dialog" hidden>${t('Restore brand settings')}</button>
-            <span class="ds-rail-note" data-start-note aria-live="polite"></span>
+            <!-- Hidden while the studio is empty: the Board's own doors are showing
+                 then, and "Start from a reference" opens this very modal (plans/163
+                 F2). On a phone it moves into the More menu. -->
+            <button type="button" class="be-btn ds-bar-btn ds-bar-add" data-start-import aria-haspopup="dialog" hidden>
+              <span class="ds-bar-btn-label">${t('Add from…')}</span></button>
+            <!-- Waits for a system worth exporting (plans/137 B1, plans/163 F4): one
+                 colour in is still nearly empty. data-start-furnished is what
+                 refreshFurnished() reveals. -->
+            <button type="button" class="be-cta ds-bar-btn start-export-btn" data-start-export data-start-furnished data-sfx="whoosh" hidden>
+              <span class="ds-bar-btn-ic" aria-hidden="true">${icon('download')}</span>
+              <span class="ds-bar-btn-label">${t('Export')}</span></button>
+            <button type="button" class="ds-bar-more" data-ds-more aria-haspopup="menu" aria-expanded="false"
+              aria-label="${escapeText(t('More actions'))}" title="${escapeText(t('More actions'))}">${icon('menuDots')}</button>
           </div>
-        </aside>
+          <!-- The quieter whole-system actions. Never shown in place: the More menu
+               lists the ones that are not hidden and presses them, so each keeps
+               the listener and the hidden-until-it-applies rule it always had. -->
+          <div class="ds-bar-overflow" data-ds-overflow hidden>
+            <!-- The plain document, for a repo or another tool that reads DTCG. -->
+            <button type="button" data-start-export-tokens data-start-furnished hidden>${t('Tokens (.json)')}</button>
+            <!-- This system's fonts as an installable Linux package (plan 197 M5). -->
+            <button type="button" data-start-get-on-device data-start-furnished data-sfx="whoosh" hidden>${t('Fonts for Linux (.rpm)')}</button>
+            <!-- The way to a FIRST publish, for a furnished system that has never
+                 published one; it stands down once the Versions room joins the
+                 strip. Its own listener, not data-ds-room. -->
+            <button type="button" class="ds-versions-link" data-ds-versions-link hidden>${t('Versions & publishing')}</button>
+            <!-- Hidden until the studio holds something of its own to restore. -->
+            <button type="button" class="ds-versions-link" data-start-recovery aria-haspopup="dialog" hidden>${t('Restore brand settings')}</button>
+            <!-- Switching lives with the list of systems in Settings. -->
+            <a href="#/profile?focus=design-systems-section" data-ds-switch>${t('Design systems')}</a>
+          </div>
+        </header>
+        <!-- The rooms: independent areas in no order, so nothing is numbered and
+             nothing gates on anything else. Versions joins once offered. -->
+        <nav class="ds-room-nav" aria-label="${escapeText(t('Design system rooms'))}">
+          <ul class="ds-rooms" role="list">
+          ${[...START_ROOMS, 'versions' as const].map(
+            (area) => `
+            <li>
+              <button type="button" class="ds-room" id="ds-room-${area}" data-ds-room="${area}"${area === start.activeArea ? ' aria-current="page"' : ''}${area === 'versions' ? ' hidden' : ''}>
+                <span class="ds-room-ic" aria-hidden="true">${icon(ROOM_ICONS[area])}</span>
+                <span class="ds-room-label">${escapeText(ROOM_LABELS[area])}</span>
+              </button>
+            </li>`
+          ).join('')}
+          </ul>
+        </nav>
+        <p class="ds-bar-note" data-start-note aria-live="polite"></p>
+      </div>
+      <div class="ds-ask-slot" data-start-ds-ask-slot></div>
 
+      <div class="ds-shell">
         <div class="ds-main">
           <section class="ds-panel" id="start-panel-overview" data-ds-panel="overview"
             role="region" aria-labelledby="ds-room-overview" hidden></section>

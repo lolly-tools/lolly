@@ -1,0 +1,314 @@
+/* Cascade layer: lazy-loaded with the studio, so it sits in `views` like
+   start.css and keeps a fixed priority whenever Vite injects the chunk. */
+@layer views {
+/*
+ * The studio's bar and its rooms (plan 336 P1, P2) - views/start/navigation.ts
+ * renders them, views/start/bar.ts wires them.
+ *
+ *   Desk (641px and up): one bar, then the rooms as one strip of pills, the two
+ *   pinned together at the top of the page.
+ *   Phone (640px and under): a 48px bar at the top and the rooms as a bar at the
+ *   bottom edge, in thumb reach. The palette sheet, the tray and the bulk bar
+ *   dock above it through --ds-roombar-h (brand-studio.css, tray.css read it).
+ *
+ * The profile button stays where every view has it, fixed at the top right; the
+ * bar holds its space free and centres it on the bar's own line.
+ */
+
+.start.start--studio {
+  --ds-gutter: 22px;
+  --ds-bar-h: max(56px, calc(var(--chrome-h) + 14px));
+  padding-top: 0;
+  padding-inline: var(--ds-gutter);
+}
+
+/* The bar and the strip pin as one block. No backdrop-filter here on a phone:
+   it would make this block the containing block of the fixed room bar inside it. */
+.start.start--studio > .ds-top {
+  position: sticky;
+  top: 0;
+  z-index: 20; /* over the rooms' own panels; the sheets (50+) and the tray (40+) stay above */
+  margin-inline: calc(-1 * var(--ds-gutter));
+  padding-inline: var(--ds-gutter);
+}
+
+.ds-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  min-height: var(--ds-bar-h);
+  padding-top: var(--safe-top);
+  /* The profile button's square, plus a gap, kept free on the physical right
+     (it stays there in RTL too). */
+  padding-right: calc(var(--chrome-h) + var(--sp-6));
+}
+/* The profile cluster sits on the bar's own line, at the bar's own gutter. */
+.start.start--studio > .gallery-topright {
+  top: calc(var(--safe-top) + (var(--ds-bar-h) - var(--chrome-h)) / 2 + var(--vv-top, 0px));
+  right: calc(var(--ds-gutter) + var(--vv-right, 0px));
+}
+
+.ds-bar-exit { flex: none; display: flex; align-items: center; gap: var(--sp-4); }
+.ds-bar-exit .start-back { margin: 0; }
+
+/* The name: the system's own title, editable in place. It reads as a heading at
+   rest and shows its field only on hover and focus. */
+.ds-bar-id {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.ds-bar-kicker {
+  flex: none;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: var(--ui-type-tracking-label);
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.ds-bar-name { min-width: 0; display: flex; align-items: center; gap: var(--sp-3); }
+.ds-bar-name[hidden] { display: none; }
+.ds-bar-name .start-ds-name {
+  width: auto;
+  min-width: 4ch;
+  max-width: 100%;
+  field-sizing: content;
+  padding: var(--sp-2) var(--sp-4);
+  border-color: transparent;
+  background: transparent;
+  font-size: var(--fs-xl);
+  font-weight: 750;
+  letter-spacing: var(--ui-type-tracking-tight);
+  text-overflow: ellipsis;
+}
+.ds-bar-name .start-ds-name:hover { background: var(--ui-color-surface-muted); }
+.ds-bar-name .start-ds-name:focus { border-color: var(--ui-color-border-default); background: var(--ui-color-surface-canvas); }
+.ds-bar-name-text { font-size: var(--fs-xl); font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ds-bar-acts { flex: none; display: flex; align-items: center; gap: var(--sp-4); }
+.ds-bar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  min-height: var(--chrome-h);
+  padding-inline: var(--sp-7);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-md);
+  white-space: nowrap;
+}
+.ds-bar-btn[hidden] { display: none; }
+.ds-bar-btn-ic { display: grid; place-items: center; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.ds-bar-btn-ic svg { width: 100%; height: 100%; }
+.ds-bar-more {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--chrome-h);
+  height: var(--chrome-h);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.ds-bar-more svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.ds-bar-more:hover,
+.ds-bar-more[aria-expanded="true"] { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.ds-bar-more:focus-visible,
+.ds-bar-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.ds-bar-overflow[hidden] { display: none; }
+.ds-tray-toggle-n:empty { display: none; }
+
+/* The transient note (exported, saved, refused) under the bar's end, over the
+   page rather than in the flow, so it never moves the room. */
+.ds-bar-note {
+  position: absolute;
+  top: 100%;
+  right: var(--ds-gutter);
+  z-index: 1;
+  max-width: min(28rem, calc(100% - 2 * var(--ds-gutter)));
+  margin: var(--sp-2) 0 0;
+  padding: var(--sp-3) var(--sp-6);
+  border-radius: var(--radius-pill);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-panel);
+  font-size: var(--fs-sm);
+  color: var(--ui-color-text-default);
+  overflow-wrap: anywhere;
+}
+.ds-bar-note:empty { padding: 0; box-shadow: none; background: none; }
+.ds-bar-note.is-error { color: var(--ui-color-status-danger); font-weight: 600; }
+
+/* ── The rooms ────────────────────────────────────────────────────────────── */
+.ds-rooms {
+  position: relative; /* the ink's ground */
+  list-style: none;
+  margin: 0;
+  padding: var(--sp-2) 0;
+  display: flex;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.ds-rooms::-webkit-scrollbar { display: none; }
+.ds-rooms > li { flex: none; position: relative; }
+.ds-rooms > li:has(> .ds-room[hidden]) { display: none; }
+.ds-room {
+  position: relative;
+  z-index: 1; /* over the ink */
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  min-height: calc(36px * var(--a11y-fs));
+  padding: 0 var(--sp-6);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.ds-room[hidden] { display: none; }
+.ds-room:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+/* The current room reads as a TINTED FILL, never a coloured outline - the house
+   rule for anything with a border-radius. With the ink drawn (bar.ts), the fill
+   is the ink's and it slides between rooms. */
+.ds-room[aria-current="page"] { background: hsl(var(--primary) / .14); color: var(--ui-color-text-default); }
+.ds-rooms[data-ink] .ds-room[aria-current="page"] { background: transparent; }
+.ds-room[aria-current="page"] .ds-room-ic { color: var(--ui-color-action-primary); }
+.ds-room:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.ds-room-ic { flex: none; display: grid; place-items: center; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.ds-room-ic svg { width: 100%; height: 100%; }
+.ds-rooms > .ds-room-ink {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / .14);
+  pointer-events: none;
+  transition: transform var(--dur-2) var(--ease-out), width var(--dur-2) var(--ease-out);
+}
+.ds-rooms > .ds-room-ink[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ds-rooms > .ds-room-ink, .ds-room, .ds-bar-more { transition: none; }
+}
+html[data-a11y-motion="reduce"] .ds-rooms > .ds-room-ink,
+html[data-a11y-motion="reduce"] .ds-room,
+html[data-a11y-motion="reduce"] .ds-bar-more { transition: none; }
+
+@media (pointer: coarse) {
+  .ds-room { min-height: max(44px, calc(36px * var(--a11y-fs))); }
+}
+
+/* ── Desk: the bar and the strip share one frosted band ───────────────────── */
+@media (min-width: 641px) {
+  .start.start--studio > .ds-top {
+    background: hsl(var(--background) / .82);
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    padding-bottom: var(--sp-3);
+    margin-bottom: var(--sp-6);
+  }
+}
+
+/* ── Phone: a 48px bar at the top, the rooms at the bottom edge ─────────────── */
+@media (max-width: 640px) {
+  .start.start--studio {
+    --ds-gutter: 16px;
+    --ds-bar-h: max(48px, calc(var(--chrome-h) + 4px));
+    --ds-room-h: max(44px, calc(40px * var(--a11y-fs)));
+    --ds-roombar-h: calc(var(--ds-room-h) + 2 * var(--sp-3) + var(--safe-bottom));
+    /* The sheets that dock above the room bar leave the home-indicator inset to
+       it; brand-studio.css and tray.css fall back to the inset without one. */
+    --ds-sheet-inset: 0px;
+    padding-bottom: calc(var(--sp-8) + var(--ds-roombar-h));
+  }
+  .start.start--studio:has(> .stu-sheet) { padding-bottom: calc(var(--sp-8) + var(--stu-peek-h, 64px) + var(--ds-roombar-h)); }
+  .start.start--studio:has(> .ds-tray:not([hidden])) { padding-bottom: calc(var(--sp-8) + var(--ds-tray-peek-h, 56px) + var(--ds-roombar-h)); }
+
+  .start.start--studio > .ds-top { margin-bottom: var(--sp-6); }
+  .ds-bar {
+    gap: var(--sp-4);
+    background: hsl(var(--background) / .86);
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    margin-inline: calc(-1 * var(--ds-gutter));
+    padding-left: var(--ds-gutter);
+    padding-right: calc(var(--ds-gutter) + var(--chrome-h) + var(--sp-4));
+  }
+  .ds-bar-kicker,
+  .ds-bar-id .help-tip-btn,
+  .ds-bar-add { display: none; }
+  .ds-bar-name .start-ds-name { font-size: var(--fs-lg); padding-inline: var(--sp-3); }
+  .ds-bar-name-text { font-size: var(--fs-lg); }
+  /* The back pill and Export become squares: the label stays the accessible
+     name, it is only clipped from view. */
+  .ds-bar .back-pill-label,
+  .ds-bar-btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .ds-bar .start-back { width: var(--chrome-h); padding: 0; justify-content: center; }
+  .ds-bar-btn { min-width: var(--chrome-h); padding-inline: var(--sp-4); }
+
+  .ds-room-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: var(--vv-bottom, 0px);
+    z-index: 20;
+    padding: var(--sp-3) var(--sp-4);
+    /* The bar reaches the screen edge; the inset lifts its rooms off the
+       home-indicator strip. */
+    padding-bottom: calc(var(--sp-3) + var(--safe-bottom));
+    background: hsl(var(--background) / .9);
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    box-shadow: var(--ui-edge-faint);
+  }
+  .ds-rooms {
+    padding: 0 var(--sp-2);
+    /* A soft fade at each end says the row scrolls. */
+    mask-image: linear-gradient(to right, transparent, #000 var(--sp-4), #000 calc(100% - var(--sp-7)), transparent);
+  }
+  .ds-room { min-height: var(--ds-room-h); padding: 0 var(--sp-6); }
+  .ds-bar-note { top: calc(100% + var(--sp-2)); }
+}
+
+/* While text is being typed on a phone the soft keyboard owns the bottom edge,
+   so the room bar steps aside, and the sheets come back down to the edge. */
+@media (max-width: 640px) and (pointer: coarse) {
+  .start.start--studio:has(:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), textarea, [contenteditable="true"]):focus) {
+    --ds-roombar-h: 0px;
+    --ds-sheet-inset: var(--safe-bottom);
+  }
+  .start.start--studio:has(:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), textarea, [contenteditable="true"]):focus) .ds-room-nav { display: none; }
+}
+/* The colour pick card is the phone's one bottom sheet while it is up (single
+   owner of the bottom edge, the rule the tray and the palette sheet keep). */
+@media (max-width: 640px) {
+  .start.start--studio:has(.be-editor.is-picksheet:not([hidden])) {
+    --ds-roombar-h: 0px;
+    --ds-sheet-inset: var(--safe-bottom);
+  }
+  .start.start--studio:has(.be-editor.is-picksheet:not([hidden])) .ds-room-nav { display: none; }
+}
+}

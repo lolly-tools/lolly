@@ -142,178 +142,18 @@ html[dir="rtl"] .start-back-row {
   .start-sub { display: none; }
 }
 
-/* ── The studio: a rail of rooms beside the open room ─────────────────────────
-      The rooms are PEERS. There is no order to walk, so there is nothing here
-      that counts, numbers or nudges - an item is either where you are or where
-      you could go.
+/* ── The studio: the open room under the bar ─────────────────────────────────
+      The bar and the rooms live in start-bar.css. The rooms are PEERS: there is
+      no order to walk, so nothing here counts, numbers or nudges.
 
-      Stacking: this takes `.start > *`'s z-index 1, so the rail (15) and the
-      swatch popover (.be-editor, 30) both live in THIS context - the popover
-      paints over the rail, and the palette sheet (a direct child of .start at
-      50) still paints over everything, exactly as before. ───────────────────── */
-.ds-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "rooms" "main" "actions";
-  gap: 14px;
-  align-items: start;
-}
-@media (min-width: 900px) {
-  .ds-shell {
-    grid-template-columns: 13.5rem minmax(0, 1fr);
-    grid-template-areas: "rail main";
-    gap: 20px;
-  }
-}
-
-.ds-rail { min-width: 0; }
-/* Phones: the rail folds to a wrapping chip strip under the header. Only the
-   CHIPS pin (the wayfinding); display:contents makes the nav a grid sibling of
-   the tall room, so its sticky boundary is the whole studio rather than a short
-   rail wrapper. The action buttons remain after the room and scroll normally. */
-@media (max-width: 899px) {
-  .ds-rail { display: contents; }
-  .ds-room-nav {
-    grid-area: rooms;
-    position: sticky;
-    top: 0;
-    z-index: 15; /* under the swatch popover (30) and the palette sheet (50) */
-    padding: 6px 0;
-    background: hsl(var(--background) / 0.92);
-    backdrop-filter: blur(8px);
-  }
-  .ds-main { grid-area: main; }
-  .ds-rail-actions { grid-area: actions; }
-}
-@media (min-width: 900px) {
-  .ds-rail {
-    grid-area: rail;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: sticky;
-    top: 14px;
-    max-height: calc(100dvh - 28px);
-    overflow-y: auto;
-  }
-  .ds-main { grid-area: main; }
-}
-
-.ds-rooms {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-@media (max-width: 899px) {
-  /* Wrap, never scroll: a room chip off the page is a room the user doesn't
-     know exists (and a scroll container clips the focus ring). Two rows on a
-     phone beats six chips with three hidden. */
-  .ds-rooms { flex-direction: row; flex-wrap: wrap; gap: 6px; }
-  .ds-rooms > li { flex: none; }
-}
-
-.ds-room {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 44px;      /* a real touch target on every width */
-  padding: 8px 12px;
-  border: 0;
-  border-radius: var(--radius);
-  background: transparent;
-  color: hsl(var(--muted-foreground));
-  font: inherit;
-  font-size: var(--fs-md);
-  font-weight: 600;
-  text-align: start;
-  cursor: pointer;
-  transition: background var(--dur-1), color var(--dur-1);
-}
-.ds-room:hover { background: hsl(var(--muted) / 0.7); color: hsl(var(--foreground)); }
-/* The current room reads as a TINTED FILL, never a coloured outline - the house
-   rule for anything with a border-radius. */
-.ds-room[aria-current="page"] { background: hsl(var(--primary) / 0.14); color: hsl(var(--foreground)); }
-.ds-room[aria-current="page"] .ds-room-ic { color: hsl(var(--primary)); }
-.ds-room-ic {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: calc(18px * var(--a11y-fs));
-  height: calc(18px * var(--a11y-fs));
-}
-.ds-room-ic svg { width: 100%; height: 100%; }
-.ds-room-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-@media (max-width: 899px) {
-  .ds-room { width: auto; border-radius: var(--radius-pill); padding: 8px 14px; }
-}
-
-/* Foot: the whole-system actions and the transient note. */
-.ds-rail-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid hsl(var(--border));
-}
-@media (min-width: 900px) {
-  .ds-rail-actions { flex-direction: column; align-items: stretch; }
-}
-.ds-rail-actions .be-btn {
-  /* --chrome-h is the shared height of every top-level control (tokens.css). */
-  min-height: var(--chrome-h);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35em;
-  padding-inline: 0.85rem;
-  border-radius: var(--radius);
-  white-space: nowrap;
-}
-/* `hidden` on a foot action has to actually hide it: the display above
-   out-specifies base.css's own [hidden] rule. Four of the five start out hidden
-   now - the tray, both exports and the Versions entry (plans/137 B1) - so one
-   rule for the group beats another per-class exception each time. */
-.ds-rail-actions .be-btn[hidden] { display: none; }
-/* The quiet way to a FIRST publish (plans/137 B2) - text under the export
-   actions rather than a fifth peer button, because until a version exists there
-   is nothing to go and look at. Full 44px tap target all the same. */
-.ds-versions-link {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding-inline: 4px;
-  border: 0;
-  background: none;
-  color: hsl(var(--muted-foreground));
-  font: inherit;
-  font-size: var(--fs-sm);
-  text-align: start;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-.ds-versions-link:hover { color: hsl(var(--foreground)); }
-.ds-versions-link[hidden] { display: none; }
-.ds-rail-note {
-  /* width, not a flex-basis: the foot is a ROW on phones (where 100% width puts
-     the note on its own line) and a COLUMN on desktop (where a 100% basis would
-     be a height). */
-  width: 100%;
-  flex: none;
-  font-size: var(--fs-sm);
-  color: hsl(var(--muted-foreground));
-  overflow-wrap: anywhere;
-}
-.ds-rail-note.is-error { color: hsl(var(--destructive-text)); }
+      Stacking: this takes `.start > *`'s z-index 1, so the swatch popover
+      (.be-editor, 30) lives in THIS context, under the pinned bar (20), and the
+      palette sheet (a direct child of .start at 50) paints over everything. */
+.ds-shell { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
 
 .ds-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
-/* A jump inside a room lands below the pinned room chips on a phone, not under
-   them. --ds-sticky-top is set by views/start/rooms.ts (0 at 900px and up). */
+/* A jump inside a room lands below the pinned bar, not under it.
+   --ds-sticky-top is set by views/start/rooms.ts. */
 .ds-main .tk-sec, .ds-main .tk-adv, .ds-main .tw-detail { scroll-margin-top: var(--ds-sticky-top, 0px); }
 .ds-panel[hidden] { display: none; }
 
@@ -403,7 +243,7 @@ html[dir="rtl"] .start-back-row {
   font-weight: 600;
 }
 /* A face named in its own face: the Type card is a specimen as well as a count. */
-.ds-ov-face { font-weight: 650; }
+.ds-ov-face { font-weight: 650; white-space: nowrap; }
 /* The colourways as small tiles: each lead colour with "Aa" in the ink that
    reads on that colour. The hairline keeps a pale lead visible on a pale card. */
 .ds-ov-ways { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
@@ -437,39 +277,6 @@ html[dir="rtl"] .start-back-row {
 .ds-ov-exit { font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
 
 /* ── The import card, and the modal it now opens in ──────────────────────── */
-/* Import is the inviting way in - bringing your existing brand across is the best
-   first move, so the button wears the house glowing-CTA look (the same brand-
-   coloured gloss as .be-cta.is-active): a top-lit gradient mixed off --primary, a
-   soft glow in the same hue, and a gentle lift + brighter glow on hover. A slow,
-   low-amplitude breathing glow draws the eye without nagging. */
-/* Combined selector (.be-btn.start-import-cta) so this beats .be-btn's own
-   background - same tie-break the glowing CTA uses. */
-.be-btn.start-import-cta {
-  color: hsl(var(--primary-foreground));
-  border-color: hsl(0 0% 100% / .28);
-  background: linear-gradient(163deg,
-    color-mix(in oklab, hsl(var(--primary)), white 12%),
-    color-mix(in oklab, hsl(var(--primary)), black 20%));
-  box-shadow: inset 0 1px 0 hsl(0 0% 100% / .38), 0 3px 12px -5px hsl(var(--primary) / .7);
-  transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
-}
-.start-import-cta .start-import-cta-ic { font-weight: 700; }
-.be-btn.start-import-cta:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(163deg,
-    color-mix(in oklab, hsl(var(--primary)), white 18%),
-    color-mix(in oklab, hsl(var(--primary)), black 14%));
-  box-shadow: inset 0 1px 0 hsl(0 0% 100% / .45), 0 6px 18px -5px hsl(var(--primary) / .95);
-}
-.be-btn.start-import-cta.is-open { transform: none; }
-@media (prefers-reduced-motion: no-preference) {
-  .be-btn.start-import-cta:not(:hover):not(.is-open) { animation: start-import-glow 3s ease-in-out infinite; }
-}
-@keyframes start-import-glow {
-  0%, 100% { box-shadow: inset 0 1px 0 hsl(0 0% 100% / .38), 0 3px 12px -5px hsl(var(--primary) / .55); }
-  50%      { box-shadow: inset 0 1px 0 hsl(0 0% 100% / .38), 0 5px 16px -5px hsl(var(--primary) / .9); }
-}
-
 /* The dialog: wider than the plain .modal so the five format tiles stay on one
    line, and capped so a long result list scrolls inside it rather than growing the
    dialog past the viewport. */
@@ -652,9 +459,6 @@ html[dir="rtl"] .start-back-row {
     min-height: 0;
     grid-template-rows: minmax(0, 1fr); /* the one visible panel (the split) gets the full height */
   }
-  /* The rail is a grid item in a stretched row here, so cap it to the row
-     rather than letting six items decide the page's height. */
-  .start:has(.be[data-active-tab="color"]) .ds-rail { max-height: 100%; }
 }
 
 /* ── SVG colour review (the "no formal tokens - pick which colours to keep"
@@ -952,17 +756,9 @@ html[dir="rtl"] .start-back-row {
    later" can be three controls on a phone. */
 .start-color-actions { flex-wrap: wrap; align-items: center; }
 
-/* ── The tray's rail toggle ──────────────────────────────────────────────────
+/* ── The tray's count, on its toggle in the bar ──────────────────────────────
       Hidden while the tray is empty (views/start.ts owns that), so this only
       styles the state where there is something to see. */
-.ds-tray-toggle[hidden] { display: none; }
-.ds-tray-toggle-ic {
-  display: grid;
-  place-items: center;
-  width: var(--fs-xl);
-  height: var(--fs-xl);
-}
-.ds-tray-toggle-ic svg { width: 100%; height: 100%; }
 .ds-tray-toggle-n {
   min-width: calc(18px * var(--a11y-fs));
   padding: 0 6px;
@@ -976,30 +772,15 @@ html[dir="rtl"] .start-back-row {
 }
 .ds-tray-toggle-n:empty { display: none; }
 
-/* Phones: the foot actions share the line evenly rather than one of them
-   wrapping alone under the others. */
-@media (max-width: 640px) {
-  .ds-rail-actions .be-btn { flex: 1 1 auto; }
-}
-
 /* ── The Versions panel (plan 97 section 6a) ─────────────────────────────────────────
-      A foot-pinned panel, not a room, and it looks like one: the same quiet
-      surface the Overview room uses, no colour of its own, and NO ANIMATION
+      A room that joins the strip once something is published, and it looks
+      like one: the same quiet surface the Board uses, no colour of its own, and NO ANIMATION
       anywhere - there is nothing here worth drawing the eye to, and reduced
       motion then needs no exception because there is no motion to reduce.
 
       The one place colour is spent is the breaking half of the compat card
       (--destructive on the disclosure's own text) and the Active pill (a tinted
       FILL, never a coloured outline - the house rule for anything rounded). */
-.ds-versions-toggle[hidden] { display: none; }
-.ds-versions-toggle-ic {
-  display: grid;
-  place-items: center;
-  width: var(--fs-xl);
-  height: var(--fs-xl);
-}
-.ds-versions-toggle-ic svg { width: 100%; height: 100%; }
-
 .ds-versions { display: flex; flex-direction: column; gap: 14px; }
 .ds-v-loading { margin: 0; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
 .ds-v-title { margin: 0; font-size: calc(17px * var(--a11y-fs)); font-weight: 800; letter-spacing: -0.01em; }

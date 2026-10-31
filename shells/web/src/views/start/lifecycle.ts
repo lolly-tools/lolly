@@ -25,6 +25,9 @@ export const onKey = (start: StartCtx, e: KeyboardEvent): void => {
   // Escape itself (its `cancel` event), but the keydown still bubbles up here -
   // without this guard one press would close the dialog AND leave the studio.
   if (start.importModal || start.looksModal || start.recovery?.el.isConnected || start.usage?.modalOpen() || start.skills?.modalOpen()) return;
+  // The bar's More menu closes itself on this Escape (components/body-popover.ts),
+  // and its listener runs after this one, so the studio must not also leave.
+  if (start.moreMenu?.isOpen()) return;
   // The Esc stack: floating popovers first (they close themselves and
   // stopImmediatePropagation before this handler - the query is a
   // belt-and-braces guard so the sheet never folds under a popover that
@@ -71,6 +74,8 @@ export function wireCleanup(start: StartCtx): void {
     start.unsubBeat = null;
     start.unsubStickyTop?.();
     start.unsubStickyTop = null;
+    start.unsubBar?.();
+    start.unsubBar = null;
     start.trayUi?.teardown();
     start.trayUi = null;
     start.overview?.teardown();

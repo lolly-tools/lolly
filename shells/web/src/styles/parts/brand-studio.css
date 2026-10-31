@@ -1905,7 +1905,7 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
   .start { --stu-sheet-h: 45dvh; } /* pre-first-snap default; per-state below */
   /* Peek = the measured strip row + the home-indicator inset (the sheet hugs
      the viewport bottom, so the strip itself must clear it). */
-  .start[data-stu-sheet="peek"] { --stu-sheet-h: calc(var(--stu-peek-h, 64px) + var(--safe-bottom)); }
+  .start[data-stu-sheet="peek"] { --stu-sheet-h: calc(var(--stu-peek-h, 64px) + var(--ds-sheet-inset, var(--safe-bottom))); }
   /* Clamped against the visible area: the soft keyboard eats the bottom of the
      viewport without shrinking dvh, so an unclamped 50/88dvh sheet would run
      its own free edge under the keyboard. min() is a no-op while --vv-bottom
@@ -1956,27 +1956,30 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
      grip, so the three settle as one movement rather than three; :has() scopes
      it to a mounted sheet, since --stu-sheet-h keeps a value either way. */
   .start:has(> .stu-sheet) .be-bulkbar {
-    bottom: calc(var(--stu-sheet-h) + var(--vv-bottom, 0px) + 12px);
+    bottom: calc(var(--stu-sheet-h) + var(--ds-roombar-h, 0px) + var(--vv-bottom, 0px) + 12px);
     transition: bottom .34s var(--ease-out);
   }
   .start.is-stu-sheet-dragging .be-bulkbar { transition: none; }
   .start[data-palette-visible] > .stu-sheet,
   .start[data-palette-visible] > .stu-sheet-grip { display: none; }
-  .start[data-palette-visible] .be-bulkbar { bottom: calc(12px + var(--safe-bottom) + var(--vv-bottom, 0px)); }
+  .start[data-palette-visible] .be-bulkbar { bottom: calc(12px + var(--ds-roombar-h, var(--safe-bottom)) + var(--vv-bottom, 0px)); }
 
 
   .start > .stu-sheet {
     display: flex;
     flex-direction: column;
     position: fixed;
-    left: 0; right: 0; bottom: 0;
+    left: 0; right: 0;
+    /* Docked on the studio's room bar (start-bar.css), which then owns the
+       home-indicator inset; 0 and the inset itself everywhere else. */
+    bottom: var(--ds-roombar-h, 0px);
     height: var(--stu-sheet-h);
     max-height: 92dvh;
     z-index: 50; /* over the sticky action row (20) and the swatch popover (30) - taps land at peek, where the popover sits above the strip */
     background: hsl(var(--card));
     border-radius: 18px 18px 0 0;
     box-shadow: 0 -10px 34px hsl(var(--foreground) / .18);
-    padding-bottom: var(--safe-bottom);
+    padding-bottom: var(--ds-sheet-inset, var(--safe-bottom));
     /* Clip the body to the rounded edge; the grip is a SIBLING, never cropped. */
     overflow: hidden;
     transition: height .34s var(--ease-out); /* the tool sheet's settle */
@@ -2046,7 +2049,7 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
     justify-content: center;
     position: fixed;
     left: 0; width: 100%;
-    bottom: var(--stu-sheet-h); /* tracks the sheet's free edge */
+    bottom: calc(var(--stu-sheet-h) + var(--ds-roombar-h, 0px)); /* tracks the sheet's free edge */
     transform: translateY(50%);
     height: 30px;               /* generous hit area straddling the edge */
     z-index: 60;                /* above the sheet */

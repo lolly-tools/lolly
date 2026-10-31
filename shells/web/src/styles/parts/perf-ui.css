@@ -60,7 +60,6 @@ html[data-perf-ui] :is(
   .deck-strip__load.is-inviting,
   .mp-flow,
   .spotlight-opt[data-group="ask"].is-active .ask-spark,
-  .be-btn.start-import-cta:not(:hover):not(.is-open),
   .tool-actions [data-action="copy"].copy-armed,
   .ask-send:hover .ask-send-mark [class*="lolly-mark__spin"],
   .ask-send:focus-visible .ask-send-mark [class*="lolly-mark__spin"],
