@@ -120,7 +120,7 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
     if (start.usage) void start.usage.refresh();
     else start.usage = mountUsageRoom(start.usagePanel, { host: start.host, studio: start.studio, changed: () => { start.rooms.refreshFurnished(); start.brand.wireRegistry(); } });
   } else start.usage?.suspend();
-  // Skills (plan 323): mounted on first open, like Usage & rules, so a studio that
+  // Skills (plan 323): mounted on first open, like Rules, so a studio that
   // never opens the room never reads a skill.
   start.skillsPanel.hidden = area !== 'skills';
   if (area === 'skills') {
