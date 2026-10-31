@@ -38,8 +38,8 @@ import { escape } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { mountModal } from '../components/modal.ts';
 import { announce } from '../a11y.ts';
-import { colorFieldHtml } from '../components/color-field.ts';
-import { paletteFieldHtml, wireToolColourFields } from './tool-input-colours.ts';
+import { blockColourFieldHtml, colourInputHtml, paintAutoColours,
+  paletteFieldHtml, wireToolColourFields } from './tool-input-colours.ts';
 import { helpTip, wireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
 import {
   customSliderHtml,
@@ -268,7 +268,7 @@ function syncInputs(
   toolId?: string
 ): InputModelItem[] {
   if (canSkipInputsRebuild(el, model, prevModel)) {
-    patchEditedBlockPreview(el);
+    patchEditedBlockPreview(el); paintAutoColours(el, runtime); // the tool's colours can move without a rebuild
     return model;
   }
   renderInputs(el, model, runtime, host, onDirty, toolId);
@@ -2774,7 +2774,7 @@ function controlHtml(
     case 'color-picker':
       // Shared SUSE colour picker (see components/color-field.js).
       // `swatchesOnly` makes it a palette-restricted picker (no hex/native/alpha).
-      return colorFieldHtml(id, input.value, { swatchesOnly: input.swatchesOnly === true });
+      return colourInputHtml(id, input);
     case 'palette-picker':
       return paletteFieldHtml(id, input);
     case 'asset-picker': {
@@ -3072,7 +3072,7 @@ function controlHtml(
           // into this block's row (see the ':' route in the wiring below).
           return labelled(
             f,
-            colorFieldHtml(fieldId, String(item[f.id] ?? '').trim(), { block: true })
+            blockColourFieldHtml(fieldId, String(item[f.id] ?? '').trim(), f)
           );
         }
 
