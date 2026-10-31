@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-31T16:29:44.535Z",
+  "generatedAt": "2026-10-31T17:19:11.046Z",
   "tools": [
     {
       "id": "3d",
@@ -2154,8 +2154,8 @@
     {
       "id": "certificate",
       "name": "Certificate",
-      "description": "Completion and award certificates from the active design system - one name at a time, or a whole roster from a CSV in Bulk from rows.",
-      "version": "1.0.5",
+      "description": "Completion and award certificates in the active design system and its colourway: four styles, print and social sizes, and motion for sharing - one name at a time, or a whole roster from a CSV in Bulk from rows.",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -2165,7 +2165,9 @@
         "course",
         "completion",
         "print",
-        "roster"
+        "roster",
+        "social",
+        "animation"
       ],
       "added": "2026-08-24",
       "formats": [
@@ -2177,7 +2179,12 @@
         "jpg",
         "webp",
         "tiff",
-        "cmyk-tiff"
+        "cmyk-tiff",
+        "mp4",
+        "webm",
+        "gif",
+        "apng",
+        "webp-anim"
       ],
       "width": 1123,
       "height": 794,
@@ -2187,9 +2194,10 @@
       "personalized": true,
       "examples": [
         {
-          "label": "Course completion",
+          "label": "Classic course completion",
           "values": {
             "certKind": "completion",
+            "style": "classic",
             "firstname": "Ana",
             "lastname": "Kovač",
             "awardtopic": "Container Fundamentals",
@@ -2200,9 +2208,10 @@
           }
         },
         {
-          "label": "Award",
+          "label": "Modern award",
           "values": {
             "certKind": "award",
+            "style": "modern",
             "firstname": "Tomás",
             "lastname": "Herrera",
             "awardtopic": "The 2026 Innovation Award",
@@ -2214,23 +2223,11 @@
           }
         },
         {
-          "label": "Appreciation",
-          "values": {
-            "certKind": "appreciation",
-            "firstname": "Priya",
-            "lastname": "Nair",
-            "awardtopic": "Two years of volunteering",
-            "awarddate": "2026-03-02",
-            "presenter": "Jonas Weber",
-            "presenterTitle": "Community Lead",
-            "company": "Riverside Library"
-          }
-        },
-        {
-          "label": "Achievement on screen",
+          "label": "Minimal achievement, square post",
           "values": {
             "certKind": "achievement",
-            "pageSize": "screen",
+            "style": "minimal",
+            "pageSize": "social-square",
             "firstname": "Lena",
             "lastname": "Fischer",
             "awardtopic": "Top of the 2026 cohort",
@@ -2238,6 +2235,21 @@
             "presenter": "Maya Lindqvist",
             "presenterTitle": "Programme Director",
             "company": "Northwind Institute"
+          }
+        },
+        {
+          "label": "Celebration thank you, portrait post",
+          "values": {
+            "certKind": "appreciation",
+            "style": "celebration",
+            "pageSize": "social-portrait",
+            "firstname": "Priya",
+            "lastname": "Nair",
+            "awardtopic": "Two years of volunteering",
+            "awarddate": "2026-03-02",
+            "presenter": "Jonas Weber",
+            "presenterTitle": "Community Lead",
+            "company": "Riverside Library"
           }
         }
       ],
@@ -2251,7 +2263,7 @@
             {
               "id": "appreciation",
               "name": "Thank you",
-              "description": "Appreciation for time given, rather than a prize won."
+              "description": "Appreciation for time given, rather than a prize won, in full colour."
             },
             {
               "id": "team-of-the-year",
@@ -2269,12 +2281,30 @@
             {
               "id": "workshop",
               "name": "Workshop attendance",
-              "description": "A one-day workshop, signed by the facilitator."
+              "description": "A one-day workshop, signed by the facilitator, in the Minimal style."
             },
             {
               "id": "certification",
               "name": "Certification pass",
-              "description": "An exam pass, with the reference line switched on."
+              "description": "An exam pass in the Modern style, with the reference line switched on."
+            }
+          ]
+        },
+        {
+          "id": "share",
+          "name": "Share a win",
+          "category": "Social",
+          "description": "A certificate sized for a social post, with motion for a video or an animated image.",
+          "presets": [
+            {
+              "id": "story",
+              "name": "Story",
+              "description": "A 9:16 story that draws itself in."
+            },
+            {
+              "id": "landscape-post",
+              "name": "Landscape post",
+              "description": "A 1.91:1 post with a colour panel and a shimmer."
             }
           ]
         }
@@ -2282,107 +2312,107 @@
       "i18n": {
         "ar": {
           "name": "الشهادة",
-          "description": "شهادات إتمام وتقدير من نظام التصميم النشط: اسم واحد في كل مرة، أو قائمة كاملة من ملف CSV في Bulk from rows."
+          "description": "شهادات إتمام وتقدير في نظام التصميم النشط وتشكيلة ألوانه: أربعة أنماط، وأحجام للطباعة ومواقع التواصل، وحركة للمشاركة. اسم واحد في كل مرة، أو قائمة كاملة من ملف CSV في دفعة من الصفوف."
         },
         "bg": {
           "name": "Сертификат",
-          "description": "Сертификати за завършване и награди от активната дизайн система - по едно име или цял списък от CSV в Масово от редове."
+          "description": "Сертификати за завършване и награди в активната дизайн система и нейния цветови вариант: четири стила, размери за печат и за социални мрежи и движение за споделяне - по едно име или цял списък от CSV в Групово от редове."
         },
         "bn": {
           "name": "শংসাপত্র",
-          "description": "সক্রিয় ডিজাইন সিস্টেম থেকে সমাপ্তি ও পুরস্কারের সনদ - একবারে একটি নাম, বা Bulk from rows-এ CSV থেকে পুরো তালিকা।"
+          "description": "সক্রিয় ডিজাইন সিস্টেম ও তার কালারওয়েতে সমাপ্তি ও পুরস্কারের সনদ: চারটি স্টাইল, প্রিন্ট ও সোশ্যাল সাইজ, এবং শেয়ার করার জন্য মোশন - একবারে একটি নাম, বা সারি থেকে বাল্কে CSV থেকে পুরো তালিকা।"
         },
         "cs": {
           "name": "Certifikát",
-          "description": "Certifikáty o absolvování a ocenění z aktivního design systému - po jednom jménu, nebo celý seznam z CSV v Hromadně z řádků."
+          "description": "Certifikáty o absolvování a ocenění v aktivním design systému a jeho barevné variantě: čtyři styly, tiskové velikosti i velikosti pro sociální sítě a pohyb pro sdílení - po jednom jménu, nebo celý seznam z CSV v Hromadně z řádků."
         },
         "de": {
           "name": "Zertifikat",
-          "description": "Teilnahme- und Auszeichnungszertifikate aus dem aktiven Designsystem - einzeln mit einem Namen oder als ganze Liste aus einer CSV unter Batch aus Zeilen."
+          "description": "Abschluss- und Auszeichnungszertifikate im aktiven Designsystem und seiner Farbvariante: vier Stile, Druck- und Social-Formate sowie Bewegung zum Teilen - ein Name nach dem anderen oder eine ganze Liste aus einer CSV unter Massenweise aus Zeilen."
         },
         "es": {
           "name": "Certificado",
-          "description": "Certificados de finalización y de premio del sistema de diseño activo: un nombre cada vez, o toda una lista desde un CSV en Lote desde filas."
+          "description": "Certificados de finalización y de reconocimiento en el sistema de diseño activo y su combinación de color: cuatro estilos, tamaños para imprimir y para redes sociales, y movimiento para compartir. Un nombre cada vez, o toda una lista desde un CSV en En masa desde filas."
         },
         "fr": {
           "name": "Certificat",
-          "description": "Certificats de réussite et de récompense issus du design system actif - un nom à la fois, ou toute une liste depuis un CSV dans Lot depuis des lignes."
+          "description": "Certificats de réussite et de distinction dans le design system actif et sa variante de couleur : quatre styles, formats d'impression et de réseaux sociaux, et animation pour le partage - un nom à la fois, ou toute une liste depuis un CSV dans En masse depuis des lignes."
         },
         "hi": {
           "name": "प्रमाणपत्र",
-          "description": "सक्रिय डिज़ाइन सिस्टम से पूर्णता और पुरस्कार प्रमाणपत्र - एक बार में एक नाम, या Bulk from rows में CSV से पूरी सूची।"
+          "description": "सक्रिय डिज़ाइन सिस्टम और उसके कलरवे में पूर्णता और पुरस्कार प्रमाणपत्र: चार स्टाइल, प्रिंट और सोशल साइज़, और साझा करने के लिए मोशन - एक बार में एक नाम, या पंक्तियों से बल्क में CSV से पूरी सूची।"
         },
         "id": {
           "name": "Sertifikat",
-          "description": "Sertifikat penyelesaian dan penghargaan dari sistem desain aktif: satu nama sekaligus, atau seluruh daftar dari CSV di Bulk from rows."
+          "description": "Sertifikat penyelesaian dan penghargaan dalam sistem desain aktif beserta colourway-nya: empat gaya, ukuran cetak dan media sosial, serta gerakan untuk berbagi - satu nama sekaligus, atau seluruh daftar dari CSV di Massal dari baris."
         },
         "it": {
           "name": "Certificato",
-          "description": "Attestati di completamento e premi dal design system attivo: un nome alla volta, o un intero elenco da un CSV in Bulk from rows."
+          "description": "Attestati di completamento e di merito nel design system attivo e nel suo colourway: quattro stili, formati per stampa e social e movimento per la condivisione, un nome alla volta oppure un intero elenco da un CSV con In blocco da righe."
         },
         "ja": {
           "name": "証明書",
-          "description": "アクティブなデザインシステムから修了証や表彰状を作成します。1人ずつでも、一括(行から作成)で CSV の名簿全体でも対応します。"
+          "description": "有効なデザインシステムとそのカラーウェイで、修了証や表彰状を作成します。4つのスタイル、印刷用と SNS 用のサイズ、共有向けのモーションを備え、1人ずつでも、行から一括作成で CSV の名簿全体でも作れます。"
         },
         "ko": {
           "name": "인증서",
-          "description": "활성 디자인 시스템으로 만드는 수료증과 상장이에요. 이름 하나씩 만들거나, 행 일괄 만들기에서 CSV로 명단 전체를 한 번에 만들 수 있어요."
+          "description": "활성 디자인 시스템과 그 컬러웨이로 만드는 수료증과 상장이에요. 스타일 4가지, 인쇄용과 SNS용 크기, 공유용 모션을 갖췄고, 이름 하나씩 만들거나 행에서 일괄 생성으로 CSV 명단 전체를 한 번에 만들 수 있어요."
         },
         "ms": {
           "name": "Sijil",
-          "description": "Sijil tamat dan anugerah daripada sistem reka bentuk aktif - satu nama pada satu masa, atau seluruh senarai daripada CSV dalam Bulk from rows."
+          "description": "Sijil tamat dan anugerah dalam sistem reka bentuk aktif dan skema warnanya: empat gaya, saiz cetakan dan media sosial, serta gerakan untuk perkongsian - satu nama pada satu masa, atau seluruh senarai daripada CSV dalam Pukal daripada baris."
         },
         "nl": {
           "name": "Certificaat",
-          "description": "Certificaten voor afronding en onderscheiding uit het actieve designsysteem - één naam per keer, of een hele lijst uit een CSV in Bulk vanuit rijen."
+          "description": "Certificaten voor afronding en onderscheiding in het actieve designsysteem en de kleurvariant ervan: vier stijlen, print- en socialformaten en beweging om te delen - één naam per keer, of een hele lijst uit een CSV in Bulk vanuit rijen."
         },
         "no": {
           "name": "Diplom",
-          "description": "Fullførings- og prisbevis fra det aktive designsystemet - ett navn om gangen, eller en hel liste fra en CSV i Bulk fra rader."
+          "description": "Fullførings- og prisbevis i det aktive designsystemet og fargevarianten det bruker: fire stiler, trykk- og sosiale formater og bevegelse for deling - ett navn om gangen, eller en hel liste fra en CSV i Masse fra rader."
         },
         "pl": {
           "name": "Certyfikat",
-          "description": "Certyfikaty ukończenia i nagrody z aktywnego systemu projektowego: po jednym nazwisku albo cała lista z CSV w Wsad z wierszy."
+          "description": "Certyfikaty ukończenia i nagrody w aktywnym systemie projektowym i jego wariancie kolorystycznym: cztery style, rozmiary do druku i do social mediów oraz animacja do udostępniania - po jednym nazwisku albo cała lista z CSV w Zbiorczo z wierszy."
         },
         "pt": {
           "name": "Certificado",
-          "description": "Certificados de conclusão e premiação a partir do sistema de design ativo - um nome por vez, ou uma lista inteira a partir de um CSV em Lote a partir de linhas."
+          "description": "Certificados de conclusão e premiação no sistema de design ativo e no esquema de cores dele: quatro estilos, tamanhos para impressão e redes sociais e movimento para compartilhar - um nome por vez, ou uma lista inteira de um CSV com Em massa a partir de linhas."
         },
         "ro": {
           "name": "Certificat",
-          "description": "Certificate de absolvire și de premiere din sistemul de design activ - un nume pe rând sau o listă întreagă dintr-un CSV în Bulk from rows."
+          "description": "Certificate de absolvire și de premiere în sistemul de design activ și în varianta lui de culoare: patru stiluri, dimensiuni pentru tipar și pentru rețele sociale și mișcare pentru partajare - un nume pe rând sau o listă întreagă dintr-un CSV cu În masă din rânduri."
         },
         "sv": {
           "name": "Diplom",
-          "description": "Intyg om slutförande och utmärkelser från det aktiva designsystemet - ett namn i taget, eller en hel lista från en CSV i Bulk från rader."
+          "description": "Intyg för slutförd utbildning och utmärkelser i det aktiva designsystemet och dess färgvariant: fyra stilar, tryck- och skärmformat samt rörelse för delning - ett namn i taget, eller en hel lista från en CSV i Bulk från rader."
         },
         "tl": {
           "name": "Sertipiko",
-          "description": "Mga certificate ng pagkumpleto at parangal mula sa aktibong design system - isang pangalan kada isa, o buong roster mula sa CSV sa Bulk from rows."
+          "description": "Mga certificate ng pagkumpleto at parangal sa aktibong design system at sa colourway nito: apat na style, laki para sa print at social, at motion para sa pagbabahagi - isang pangalan kada isa, o buong roster mula sa CSV sa Bulk from rows."
         },
         "tr": {
           "name": "Sertifika",
-          "description": "Etkin tasarım sisteminden tamamlama ve ödül sertifikaları: tek tek isim ya da Satırlardan toplu bölümünde bir CSV'den tüm liste."
+          "description": "Etkin tasarım sisteminde ve renk varyantında tamamlama ve ödül sertifikaları: dört stil, baskı ve sosyal medya boyutları ve paylaşım için hareket - tek tek isim ya da Satırlardan toplu bölümünde bir CSV'den tüm liste."
         },
         "uk": {
           "name": "Сертифікат",
-          "description": "Сертифікати про завершення та нагороди з активної дизайн-системи: по одному імені або весь список із CSV у «Пакет із рядків»."
+          "description": "Сертифікати про завершення та нагороди в активній дизайн-системі та її колірному варіанті: чотири стилі, розміри для друку й соцмереж та рух для поширення - по одному імені або весь список із CSV у «Пакет із рядків»."
         },
         "ur": {
           "name": "سرٹیفکیٹ",
-          "description": "فعال ڈیزائن سسٹم سے تکمیل اور اعزاز کے سرٹیفکیٹ: ایک وقت میں ایک نام، یا CSV سے پوری فہرست Bulk from rows میں۔"
+          "description": "فعال ڈیزائن سسٹم اور اس کے کلر وے میں تکمیل اور اعزاز کے سرٹیفکیٹ: چار اسٹائل، پرنٹ اور سوشل سائز، اور شیئر کرنے کے لیے موشن - ایک وقت میں ایک نام، یا CSV سے پوری فہرست Bulk from rows میں۔"
         },
         "vi": {
           "name": "Chứng chỉ",
-          "description": "Chứng nhận hoàn thành và giải thưởng từ hệ thống thiết kế đang dùng - từng tên một, hoặc cả danh sách từ CSV trong Hàng loạt từ các dòng."
+          "description": "Chứng nhận hoàn thành và giải thưởng theo hệ thống thiết kế đang dùng và bảng phối màu của nó: bốn kiểu, kích thước in và mạng xã hội, cùng chuyển động để chia sẻ - từng tên một, hoặc cả danh sách từ CSV trong Hàng loạt từ các dòng."
         },
         "zh-hant": {
           "name": "證書",
-          "description": "從目前的設計系統製作結業與獎項證書：一次一個姓名，或在「依資料列批次製作」中用 CSV 匯入整份名單。"
+          "description": "以目前的設計系統及其配色方案製作結業與獎項證書：四種樣式、列印與社群尺寸，以及分享用的動態效果，一次一個姓名，或在「依資料列批次製作」中用 CSV 匯入整份名單。"
         },
         "zh": {
           "name": "证书",
-          "description": "用当前设计系统生成结业和获奖证书：一次一个姓名，或通过“按行批量生成”从 CSV 生成整份名单。"
+          "description": "用当前设计系统及其配色方案生成结业和获奖证书：四种样式、打印和社交尺寸，以及用于分享的动效，一次一个姓名，或通过“按行批量生成”从 CSV 生成整份名单。"
         }
       }
     },
