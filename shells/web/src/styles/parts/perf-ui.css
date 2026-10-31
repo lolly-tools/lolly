@@ -74,3 +74,11 @@ html[data-perf-ui] :is(
 ) { animation-play-state: paused !important; }
 html[data-perf-ui] :is(.valid-result.is-valid, .valid-result.is-trusted, .valid-result.is-lolly, .valid-result.is-delivered) .valid-hero-icon::after,
 html[data-perf-ui] .valid-ai-flag::after { animation-play-state: paused !important; }
+
+/* The Settings switches (.feature-flag-switch) have a white knob that, on a light track,
+   is told apart only by its drop shadow, which the strip above removes: in a dark theme
+   the checked track is often white as well, so the switch read as one solid white pill.
+   A ring takes the shadow's place. It is an outline, which nothing here strips, and dark
+   enough to stand out from the white knob and from a white or pale track, in either
+   theme and with high contrast on. Over a dark track the knob needs no help. */
+html[data-perf-ui] .profile-view .feature-flag-switch::after { outline: 1px solid rgb(0 0 0 / .55) !important; }
