@@ -9,7 +9,8 @@
  *
  * The decision maths is covered with synthetic frames in perf-ui-auto-detect.test.ts,
  * and with synthetic pressure, battery and calm timelines in
- * perf-ui-auto-temporary.test.ts.
+ * perf-ui-auto-temporary.test.ts. Two tabs sharing the record are covered in
+ * perf-ui-auto-tabs.test.ts.
  *
  * Run directly:  node --test shells/web/src/lib/perf-ui-auto.test.ts
  */
@@ -563,6 +564,8 @@ test('boot starts it only when pending, after load and the welcome, and never fo
   const main = readFileSync(join(HERE, '..', 'main.ts'), 'utf8');
   assert.match(main, /if \(!scriptedExport && perfUiAutoPending\(perfUiHandChoice\)\) onWindowLoad\(\(\) => \{ void welcomeSettled\(\)\.then\(\(\) => import\('\.\/lib\/perf-ui-auto\.ts'\)\)/);
   assert.match(main, /footer === 'search'/, 'browse routes only');
+  assert.match(main, /handChoice: async \(\) => \(await host\.profile\.get\(\)\)\.featureFlags\?\.\[PERFORMANCE_UI_FLAG\.id\] !== undefined/,
+    'each automatic change asks the profile again, for a hand choice made in another tab (perf-ui-auto-tabs.test.ts)');
 });
 
 test('the toast adds no motion of its own: its drain bar already stops under both reduce-motion switches', () => {

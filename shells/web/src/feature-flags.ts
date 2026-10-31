@@ -368,7 +368,7 @@ export function isFlagOn(profile: Profile | null | undefined, flag: FeatureFlag)
 // gallery/catalog/projects popovers - can gate on a flag without awaiting the profile.
 // Hydrated from the profile at boot; kept in sync on each toggle. Defaults ON (like
 // flagEnabled), so an unhydrated mirror still shows opt-out features.
-const FLAG_MIRROR_KEY = 'lolly:featureFlags';
+export const FLAG_MIRROR_KEY = 'lolly:featureFlags';
 
 // In-memory flag overrides - NEVER persisted. The ?neuro demo deep-link
 // (lib/neuro-demo.ts) lights a flag for exactly one page load without touching the

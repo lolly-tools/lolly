@@ -37,8 +37,15 @@
  * framed tool never run it; a test opts an automated browser back in with
  * PERF_UI_AUTO_PROBE_KEY. Every listener and observer is removed once its kind of
  * switching ends, once the person changes the flag, or when stop() is called.
+ *
+ * Every tab of one origin shares the record, and each runs its own watches. So an
+ * automatic change reads the record again just before it writes, and asks the profile
+ * whether the person has chosen by hand since this tab started: an Undo, a Keep or a
+ * hand choice made in another tab always stands. The storage event carries those
+ * choices from the other tabs, and each one ends the matching watch here, as it would
+ * in the tab where it was made.
  */
-import { PERFORMANCE_UI_FLAG, applyPerfUi, setFlagMirror, subscribePerfUi } from '../feature-flags.ts';
+import { FLAG_MIRROR_KEY, PERFORMANCE_UI_FLAG, applyPerfUi, setFlagMirror, subscribePerfUi } from '../feature-flags.ts';
 import { t } from '../i18n.ts';
 import { captureNeutralPinned } from './capture-neutral.ts';
 import { firstRunPromptDue, firstRunPromptShowing, whenFirstRunPrompts } from './first-run-prompts.ts';
@@ -51,7 +58,7 @@ import { PerfEvidence, ROUTE_SETTLE_MS, isSoftwareRenderer, type LongFrame, type
 import { watchConstraints } from './perf-ui-auto-signals.ts';
 import { CONSTRAINT_TIMINGS, scaledTimings } from './perf-ui-auto-temporary.ts';
 import {
-  isConstraintReason, readPerfUiAuto, writePerfUiAuto,
+  PERF_UI_AUTO_KEY, isConstraintReason, readPerfUiAuto, writePerfUiAuto,
   type PerfUiAutoReason, type PerfUiConstraintReason, type PerfUiWeakReason,
 } from './perf-ui-auto-state.ts';
 
@@ -75,6 +82,10 @@ export interface PerfUiAutoOptions {
   /** The current route's name when it is a browse route (the search bar is its footer),
    *  otherwise null. Only browse routes count. */
   browseRoute(): string | null;
+  /** Resolves true once the profile holds a hand choice for the flag. Asked again before
+   *  every automatic change, since the person may have chosen in another tab. Without
+   *  it, only a hand choice made in this tab counts. */
+  handChoice?(): Promise<boolean>;
 }
 
 /** With the probe on, a browser test may also divide the temporary switch's timings by
@@ -119,16 +130,25 @@ function setLook(on: boolean): void {
   try { applyPerfUi(on); } finally { ownChange = false; }
 }
 
-/** Turn the look on for good, for a weak device, store the decision and show the notice. */
+/** Turn the look on for good, for a weak device, store the decision and show the notice.
+ *  Nothing happens when the record, read again now, holds an Undo of this kind or a look
+ *  that is already on: either may come from another tab since this one started. */
 export function switchPerfUiOn(reason: PerfUiWeakReason, at = Date.now()): void {
+  const rec = readPerfUiAuto();
+  if (rec.undone?.weak !== undefined || rec.on) {
+    // On for good already (switched or kept elsewhere): no temporary switch either.
+    if (rec.on?.kind === 'lasting') stopConstraintWatch();
+    return;
+  }
   stopConstraintWatch();
-  writePerfUiAuto({ ...readPerfUiAuto(), on: { kind: 'lasting', reason, at } });
+  writePerfUiAuto({ ...rec, on: { kind: 'lasting', reason, at } });
   setLook(true);
   showPerfUiNotice(reason);
 }
 
 /** Turn the look on for a while, for a constrained device, and show the notice. Nothing
- *  happens when temporary switching was undone here or the look is already on for good. */
+ *  happens when the record, read again now, holds an Undo of temporary switching or a
+ *  look that is on for good, whichever tab wrote the record. */
 export function switchPerfUiTemporarily(reason: PerfUiConstraintReason, at = Date.now()): void {
   const rec = readPerfUiAuto();
   if (rec.undone?.constrained !== undefined || rec.on?.kind === 'lasting') { stopConstraintWatch(); return; }
@@ -157,10 +177,13 @@ function followConstraint(reason: PerfUiConstraintReason): void {
 }
 
 /** Undo: the look goes back, and this device never switches automatically again for
- *  that kind of reason: a weak device, or a constrained one. */
-export function undoPerfUiAuto(at = Date.now()): void {
+ *  that kind of reason: a weak device, or a constrained one. The notice passes the
+ *  reason it described, which decides the kind even when another tab has changed the
+ *  record since (a Keep there turns a temporary switch into a lasting one). */
+export function undoPerfUiAuto(at = Date.now(), reason?: PerfUiAutoReason): void {
   const rec = readPerfUiAuto();
-  const kind = rec.on?.kind === 'temporary' ? 'constrained' : 'weak';
+  const constrained = reason === undefined ? rec.on?.kind === 'temporary' : isConstraintReason(reason);
+  const kind = constrained ? 'constrained' : 'weak';
   if (kind === 'constrained') stopConstraintWatch();
   delete rec.on;
   writePerfUiAuto({ ...rec, undone: { ...rec.undone, [kind]: at } });
@@ -216,7 +239,7 @@ export function showPerfUiNotice(reason: PerfUiAutoReason): void {
   const show = (): void => {
     const toast = showUndoToast({
       message: noticeText(reason),
-      undo: () => { done(); undoPerfUiAuto(); },
+      undo: () => { done(); undoPerfUiAuto(Date.now(), reason); },
       acceptLabel: t('Keep'),
       ...(isConstraintReason(reason) ? { onAccept: () => { done(); keepPerfUiAuto(); } } : {}),
       commit: () => { done(); if (isConstraintReason(reason)) noticeSeen(); else keepPerfUiAuto(); },
@@ -378,6 +401,15 @@ export function watchPerfUi(opts: PerfUiAutoOptions, decide: (reason: PerfUiWeak
   return stop;
 }
 
+/** The flag's value in a copy of the mirror (feature-flags.ts), as a storage event
+ *  carries it; undefined when it holds none or cannot be read. */
+function mirroredPerfUi(raw: string | null): boolean | undefined {
+  try {
+    const value = (JSON.parse(raw ?? '{}') as Record<string, unknown>)[PERFORMANCE_UI_FLAG.id];
+    return typeof value === 'boolean' ? value : undefined;
+  } catch { return undefined; }
+}
+
 /**
  * Boot's entry point, called after window load and the first-run welcome. Shows a
  * notice that was never seen, decides at once on a software renderer, and otherwise
@@ -391,14 +423,26 @@ export async function startPerfUiAuto(opts: PerfUiAutoOptions): Promise<() => vo
   if (first.on?.kind === 'lasting') return () => {};
   // The app cannot run without the startup check, so a failed one means nothing to watch.
   try { await webGpuChecked(); } catch { return () => {}; }
+  const handChoice = (): Promise<boolean> => (opts.handChoice ? opts.handChoice().catch(() => false) : Promise.resolve(false));
   const rec = readPerfUiAuto();
   const weakAllowed = rec.undone?.weak === undefined && !rec.on;
   if (weakAllowed && isSoftwareRenderer(startupAdapterFacts())) {
-    switchPerfUiOn('software');
+    const chosen = await handChoice();
+    if (!chosen) switchPerfUiOn('software');
     return () => {};
   }
+  let stopped = false;
+  /** Make an automatic change once the profile has answered. A hand choice, made in this
+   *  tab or another, ends every watch here instead and changes nothing. */
+  const unlessHandChoice = (change?: () => void): void => {
+    void handChoice().then(chosen => {
+      if (stopped) return;
+      if (chosen) stopAll();
+      else change?.();
+    });
+  };
   let stopWeak = (): void => {};
-  if (weakAllowed) stopWeak = watchPerfUi(opts, reason => { switchPerfUiOn(reason); });
+  if (weakAllowed) stopWeak = watchPerfUi(opts, reason => { unlessHandChoice(() => { switchPerfUiOn(reason); }); });
   if (rec.undone?.constrained === undefined && rec.on?.kind !== 'lasting') {
     const temporary = rec.on?.kind === 'temporary' ? { at: rec.on.at, reason: rec.on.reason } : undefined;
     stopConstraintWatch = watchConstraints({
@@ -409,17 +453,35 @@ export async function startPerfUiAuto(opts: PerfUiAutoOptions): Promise<() => vo
       timings: constraintTimings(),
       probe: probeOptIn(),
     }, decision => {
-      if (decision.kind === 'off') { switchPerfUiBack(); return; }
-      if (decision.kind === 'reason') { followConstraint(decision.reason); return; }
-      // The look is on now, so slowness measured from here would be the simpler look's.
-      // The slowness watch runs again from the next start.
-      stopWeak();
-      switchPerfUiTemporarily(decision.reason);
+      unlessHandChoice(() => {
+        if (decision.kind === 'off') { switchPerfUiBack(); return; }
+        if (decision.kind === 'reason') { followConstraint(decision.reason); return; }
+        // The look is on now, so slowness measured from here would be the simpler look's.
+        // The slowness watch runs again from the next start.
+        stopWeak();
+        switchPerfUiTemporarily(decision.reason);
+      });
     });
   }
+  // Another tab's choices arrive here. An Undo, or a look already on there, ends the
+  // watch of that kind, as the same choice made in this tab would. A change to the
+  // flag's mirror may be a hand choice, which only the profile can confirm.
+  const onStorage = (event: StorageEvent): void => {
+    if (event.key === FLAG_MIRROR_KEY) {
+      if (mirroredPerfUi(event.oldValue) !== mirroredPerfUi(event.newValue)) unlessHandChoice();
+      return;
+    }
+    if (event.key !== null && event.key !== PERF_UI_AUTO_KEY) return;
+    const now = readPerfUiAuto();
+    if (now.undone?.weak !== undefined || now.on) stopWeak();
+    if (now.undone?.constrained !== undefined || now.on?.kind === 'lasting') stopConstraintWatch();
+  };
+  window.addEventListener('storage', onStorage);
   // The person changing the flag by hand ends every watch: their choice outranks these.
   const unsubscribe = subscribePerfUi(() => { if (!ownChange) stopAll(); });
   function stopAll(): void {
+    stopped = true;
+    window.removeEventListener('storage', onStorage);
     unsubscribe();
     stopWeak();
     stopConstraintWatch();
