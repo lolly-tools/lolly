@@ -20,6 +20,7 @@ import { announce } from '../../a11y.ts';
 import { navigateTo } from '../../nav.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { bindOp, type DetailsCtx } from './details-context.ts';
+import { metaRow } from '../../lib/meta-rows.ts';
 
 /** Is this asset a rondocode song? */
 export const isRondoAsset = (ref: AssetRef): boolean => ref.format === 'rondo';
@@ -41,7 +42,7 @@ export function rondoSectionHtml(dt: DetailsCtx): string {
   return `<section class="cat-details-rondo" data-rondo aria-label="${escapeText(t('Song'))}">
       <h3 class="cat-inspector-heading">${t('Song')}</h3>
       <dl class="cat-details-meta">
-        <div><dt>${t('Language')}</dt><dd data-rondo-lang>${escapeText(languageLabel(lang))}</dd></div>
+        ${metaRow('language', t('Language'), escapeText(languageLabel(lang)), 'data-rondo-lang')}
       </dl>
       <p class="cat-rondo-status" data-rondo-status role="status">${t('Rendering the song…')}</p>
       <ul class="cat-rondo-findings" data-rondo-findings hidden></ul>

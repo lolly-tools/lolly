@@ -573,9 +573,17 @@ button.cat-download { font: inherit; cursor: pointer; }
   box-shadow: 0 6px 20px hsl(0 0% 0% / .4), inset 0 0 0 1px hsl(0 0% 100% / .25);
   will-change: transform;
 }
-.cat-details-meta { margin: 0 0 16px; display: grid; gap: var(--sp-3); }
-.cat-details-meta > div { display: grid; grid-template-columns: 92px 1fr; gap: var(--sp-4); align-items: baseline; font-size: var(--fs-lg); }
+.cat-details-meta { --meta-glyph: var(--ui-size-icon-sm); --meta-glyph-indent: calc(var(--meta-glyph) + var(--sp-3)); margin: 0 0 16px; display: grid; gap: var(--sp-3); }
+.cat-details-meta > div { display: grid; grid-template-columns: calc(92px + var(--meta-glyph-indent)) 1fr; gap: var(--sp-4); align-items: baseline; font-size: var(--fs-lg); }
 .cat-details-meta dt { color: hsl(var(--muted-foreground)); font-weight: 600; }
+/* Each label leads with its glyph (lib/meta-rows.ts), in the label's own ink on the
+   small chrome icon scale. The label hangs past the glyph, so the glyphs form one
+   column and a label that wraps lines up under its first word. */
+.cat-details-meta dt:has(> .cat-meta-icon) { padding-inline-start: var(--meta-glyph-indent); text-indent: calc(-1 * var(--meta-glyph-indent)); }
+.cat-meta-icon { display: inline-block; inline-size: var(--meta-glyph); block-size: var(--meta-glyph); margin-inline-end: var(--sp-3); vertical-align: -.2em; text-indent: 0; }
+/* A fact read from the file after the list opened fades in where it belongs. */
+@keyframes cat-meta-arrive { from { opacity: 0; } }
+.cat-details-meta > .is-arriving { animation: cat-meta-arrive var(--dur-2) ease-out; }
 .cat-details-meta dd { margin: 0; word-break: break-word; }
 .cat-details-meta code { font-family: var(--font-mono); font-size: var(--fs-sm); }
 /* Now the SOLE .cat-tag - catalogue-summary's same-named status chip was

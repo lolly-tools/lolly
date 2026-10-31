@@ -30,6 +30,7 @@ import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { learningEnabled } from '../lib/learning-feature.ts';
 import { icon } from '../lib/icons.ts';
+import { metaRow, type MetaKey } from '../lib/meta-rows.ts';
 import { openNewLocalTextFile } from '../lib/project-text-file.ts';
 import { groupSelectionInFolder } from './projects-folder-create.ts';
 import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
@@ -1717,7 +1718,7 @@ export async function mountProjects(
   function openInfoSheet(ref: string): void {
     closeMenu();
     const fmtIso = (iso: string | null | undefined): string => iso ? new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
-    const rows: Array<[string, string]> = [];
+    const rows: Array<[MetaKey, string, string]> = [];
     let title = '';
     const folder = folders.find(f => f.id === ref);
     if (folder) {
@@ -1727,14 +1728,14 @@ export async function mountProjects(
       const sessionSlots = items.filter(i => i.type === 'session').map(i => i.ref);
       const bytes = sessionSlots.reduce((n, slot) => n + (sizes[slot] || 0), 0);
       rows.push(
-        [t('Kind'), t('Folder')],
-        [t('Where'), folderPath(folders, folder.id).slice(0, -1).map(f => f.name).join(' / ') || t('Top level')],
-        [t('Contains'), tRaw('{s} sessions, {i} images, {f} sub-folders', { s: sessionSlots.length, i: items.length - sessionSlots.length, f: subtree.length - 1 })],
-        [t('Size'), bytes ? fmtBytes(bytes) : t('Empty')],
-        [t('Created'), fmtIso(folder.createdAt)],
-        [t('Modified'), fmtIso(folder.updatedAt)],
-        [t('Tags'), (folder.tags ?? []).join(', ')],
-        [t('Favourite'), favourites.has(ref) ? t('Yes') : t('No')],
+        ['kind', t('Kind'), t('Folder')],
+        ['where', t('Where'), folderPath(folders, folder.id).slice(0, -1).map(f => f.name).join(' / ') || t('Top level')],
+        ['contains', t('Contains'), tRaw('{s} sessions, {i} images, {f} sub-folders', { s: sessionSlots.length, i: items.length - sessionSlots.length, f: subtree.length - 1 })],
+        ['fileSize', t('Size'), bytes ? fmtBytes(bytes) : t('Empty')],
+        ['created', t('Created'), fmtIso(folder.createdAt)],
+        ['modified', t('Modified'), fmtIso(folder.updatedAt)],
+        ['tags', t('Tags'), (folder.tags ?? []).join(', ')],
+        ['favourite', t('Favourite'), favourites.has(ref) ? t('Yes') : t('No')],
       );
     } else {
       const e = entryMap.get(ref);
@@ -1742,21 +1743,18 @@ export async function mountProjects(
       title = e.label || e.filename || toolName(e.toolId) || ref;
       const owner = ownerByRef.get(ref);
       rows.push(
-        [t('Kind'), isBatchSlot(ref) ? t('Batch session') : tRaw('{tool} session', { tool: toolName(e.toolId) || e.toolId || '' })],
-        [t('Where'), owner ? folderPath(folders, owner.id).map(f => f.name).join(' / ') : t('Top level')],
-        [t('Size'), sizes[ref] ? fmtBytes(sizes[ref]!) : ''],
-        [t('Added'), fmtIso(e.createdAt)],
-        [t('Modified'), fmtIso(e.updatedAt)],
+        ['kind', t('Kind'), isBatchSlot(ref) ? t('Batch session') : tRaw('{tool} session', { tool: toolName(e.toolId) || e.toolId || '' })],
+        ['where', t('Where'), owner ? folderPath(folders, owner.id).map(f => f.name).join(' / ') : t('Top level')],
+        ['fileSize', t('Size'), sizes[ref] ? fmtBytes(sizes[ref]!) : ''],
+        ['added', t('Added'), fmtIso(e.createdAt)],
+        ['modified', t('Modified'), fmtIso(e.updatedAt)],
         // Recorded when the web app reopens the item in a tool; left out otherwise.
-        [t('Last opened'), fmtIso(e.openedAt)],
-        [t('Favourite'), favourites.has(ref) ? t('Yes') : t('No')],
+        ['lastOpened', t('Last opened'), fmtIso(e.openedAt)],
+        ['favourite', t('Favourite'), favourites.has(ref) ? t('Yes') : t('No')],
       );
     }
-    mountModal<void>(`
-      <div class="trash-dialog-body">
-        <h2>${escape(title)}</h2>
-        <dl class="cat-details-meta">${rows.filter(([, v]) => v).map(([k, v]) => `<div><dt>${escape(k)}</dt><dd>${escape(v)}</dd></div>`).join('')}</dl>
-      </div>`, { className: 'trash-dialog', ariaLabel: t('Info') });
+    mountModal<void>(`<div class="trash-dialog-body"><h2>${escape(title)}</h2>
+      <dl class="cat-details-meta">${rows.filter(([, , v]) => v).map(([key, label, v]) => metaRow(key, label, escape(v))).join('')}</dl></div>`, { className: 'trash-dialog', ariaLabel: t('Info') });
   }
 
   /** Colour + emoji accents for a folder (plans/133 WP-1). */

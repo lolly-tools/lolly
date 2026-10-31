@@ -33,8 +33,19 @@ test('asset inspector resizes, collapses and keeps the complete journey readable
     assert.ok(measured.every(row => row.scroll <= row.client + 1), JSON.stringify(measured));
   };
   try {
+    // A fold stored for the retired Technical details section must not linger.
+    await page.addInitScript(() => { try { localStorage.setItem('lolly:asset-inspector', JSON.stringify({ 'section:technical': 1 })); } catch { /* blocked storage */ } });
     await page.goto(`${origin}/#/a`, { waitUntil: 'domcontentloaded' });
     await page.locator('.cat-remote .cat-tile-open').first().click();
+    // One Details section holds the record's rows and the file's own facts, each label led by a hidden glyph.
+    const details = page.locator('[data-inspector-section="details"]');
+    await details.waitFor();
+    assert.equal(await details.locator('.section-card-title').textContent(), 'Details');
+    assert.equal(await page.locator('[data-inspector-section="technical"]').count(), 0);
+    assert.equal(await details.locator('[data-meta="format"]').count(), 1, 'Format is shown once');
+    const glyphs = await details.locator('dl > div > dt').evaluateAll(dts => dts.map(dt => ({ label: dt.textContent, hidden: dt.querySelector('svg.cat-meta-icon')?.getAttribute('aria-hidden') })));
+    assert.ok(glyphs.length >= 4 && glyphs.every(row => row.label && row.hidden === 'true'), JSON.stringify(glyphs));
+    assert.equal(await page.evaluate(() => localStorage.getItem('lolly:asset-inspector')?.includes('section:technical') ?? false), false);
     const dialog = page.locator('.cat-details'), grip = page.getByRole('separator', { name: 'Resize asset details' });
     await page.getByRole('button', { name: 'Inspect & verify', exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: 'Check Content Credentials', exact: true }).count(), 0);

@@ -158,5 +158,5 @@ test('P10: the gallery caption names the time it shows', () => {
   // The web state bridge hands the recorded open to its readers.
   assert.match(read('bridge/state.ts'), /\.\.\.\(r\.openedAt \? \{ openedAt: r\.openedAt \} : \{\}\)/);
   // Projects shows the same field under the same name.
-  assert.match(read('views/projects.ts'), /\[t\('Last opened'\), fmtIso\(e\.openedAt\)\]/);
+  assert.match(read('views/projects.ts'), /\['lastOpened', t\('Last opened'\), fmtIso\(e\.openedAt\)\]/);
 });

@@ -22,6 +22,7 @@ import {
   lottieMetaFromJson,
   extractAssetMetadata,
   leavesOriginalUnread,
+  recordedMetadata,
 } from './asset-metadata.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 
@@ -34,6 +35,22 @@ test('large assets and provider originals of unknown size show recorded facts wi
     assert.ok(fields.some(field => field.label === 'Format' && field.value === 'PNG'));
   }
   assert.equal(downloads, 0);
+});
+
+test('recorded facts are keyed rows the Details list can show before the file is read', () => {
+  const ref = { source: 'library', id: 'clip', type: 'audio', format: 'opus', url: 'https://example.test/clip.opus', width: 1080, height: 1920, meta: { bytes: 705_536, durationMs: 90_000 } } as unknown as AssetRef;
+  assert.deepEqual(recordedMetadata(ref), [
+    { key: 'dimensions', label: 'Dimensions', value: '1080 × 1920' },
+    { key: 'duration', label: 'Duration', value: '1:30' },
+    { key: 'fileSize', label: 'File size', value: '689 KB' },
+  ]);
+  assert.deepEqual(recordedMetadata({ source: 'library', id: 'bare', type: 'vector', url: '' } as unknown as AssetRef), []);
+});
+
+test('every extracted row carries the stable key its glyph and rank are chosen by', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () => new Response('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"/>'));
+  const fields = await extractAssetMetadata({ source: 'library', id: 'mark', type: 'vector', format: 'svg', url: 'https://example.test/mark.svg' } as AssetRef);
+  assert.deepEqual(fields.map(field => field.key), ['viewBox', 'dimensions', 'fileSize', 'format']);
 });
 
 test('an upload is read whatever its size: its bytes are already on this device', async (t) => {

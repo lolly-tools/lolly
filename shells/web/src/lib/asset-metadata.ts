@@ -21,9 +21,13 @@
  */
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { t } from '../i18n.ts';
+import type { MetaKey } from './meta-rows.ts';
 
-/** One label:value row rendered under the modal's "Details" subheading. */
+/** One row of the asset's Details list: a stable key (lib/meta-rows.ts), the
+ *  translated label and the value. The key, never the label, picks the row's glyph
+ *  and its place in the list. */
 export interface MetaField {
+  key: MetaKey;
   label: string;
   value: string;
 }
@@ -59,10 +63,10 @@ export function leavesOriginalUnread(ref: Pick<AssetRef, 'source' | 'meta'>): bo
 
 export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> {
   const fields: MetaField[] = [];
-  const push = (label: string, value: string | number | null | undefined): void => {
+  const push: Push = (key, label, value) => {
     if (value == null) return;
     const v = String(value).trim();
-    if (v) fields.push({ label, value: v });
+    if (v) fields.push({ key, label, value: v });
   };
 
   const fmt = String(ref.format ?? ref.type ?? '').toUpperCase();
@@ -73,10 +77,7 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
   try {
     // An upload is read whatever its size: its bytes are on this device.
     if (ref.source !== 'user' && ((size !== null && size >= LARGE_ORIGINAL_BYTES) || (ref.meta?.provider && size === null))) {
-      const width = ref.width ?? ref.meta?.width, height = ref.height ?? ref.meta?.height;
-      if (width && height) push(t('Dimensions'), `${width} × ${height}`);
-      const duration = metaDurationSec(ref);
-      if (duration) push(t('Duration'), formatDuration(duration));
+      fields.push(...recordedMetadata(ref).filter(field => field.key !== 'fileSize'));
     } else if (type === 'audio' || type === 'video') {
       if (size == null) size = await headSize(ref.url);
       if (size == null || size <= AV_CAP) {
@@ -89,7 +90,7 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
       } else {
         // Too big to decode safely - still surface the authored duration if any.
         const d = metaDurationSec(ref);
-        if (d) push(t('Duration'), formatDuration(d));
+        if (d) push('duration', t('Duration'), formatDuration(d));
       }
     } else if (type === 'lottie') {
       await addLottieFields(ref, push);
@@ -119,26 +120,42 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
       credentialPresent?: boolean;
     } | undefined;
     if (prov) {
-      push(t('Imported from'), prov.originalFilename);
+      push('importedFrom', t('Imported from'), prov.originalFilename);
       if (prov.importedAt) {
         const d = new Date(prov.importedAt);
         if (!Number.isNaN(d.getTime())) {
-          push(t('Imported'), d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }));
+          push('imported', t('Imported'), d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }));
         }
       }
       const md = prov.metaDigest ?? {};
-      push(t('Artist / author'), md.author);
-      push(t('Copyright'), md.copyright);
-      push(t('Captured'), md.captureDate);
-      push(t('Camera'), md.camera);
-      push(t('Software'), md.software);
-      push(t('Keywords'), md.keywords);
+      push('author', t('Artist / author'), md.author);
+      push('copyright', t('Copyright'), md.copyright);
+      push('taken', t('Captured'), md.captureDate);
+      push('camera', t('Camera'), md.camera);
+      push('software', t('Software'), md.software);
+      push('keywords', t('Keywords'), md.keywords);
     }
   } catch { /* a malformed snapshot never breaks the panel */ }
 
   // Always, last: File size then Format.
-  if (size != null && size > 0) push(t('File size'), formatBytes(size));
-  push(t('Format'), fmt);
+  if (size != null && size > 0) push('fileSize', t('File size'), formatBytes(size));
+  push('format', t('Format'), fmt);
+  return fields;
+}
+
+/**
+ * What the asset's own record states before its file is read: dimensions, length and
+ * size. The Details list shows these at once; the read that follows refines the same
+ * rows in place rather than adding rows above the ones a person is reading.
+ */
+export function recordedMetadata(ref: AssetRef): MetaField[] {
+  const fields: MetaField[] = [];
+  const width = ref.width ?? ref.meta?.width, height = ref.height ?? ref.meta?.height;
+  if (width && height) fields.push({ key: 'dimensions', label: t('Dimensions'), value: `${width} × ${height}` });
+  const duration = metaDurationSec(ref);
+  if (duration) fields.push({ key: 'duration', label: t('Duration'), value: formatDuration(duration) });
+  const size = metaBytes(ref);
+  if (size) fields.push({ key: 'fileSize', label: t('File size'), value: formatBytes(size) });
   return fields;
 }
 
@@ -146,7 +163,7 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
 // Per-type field builders
 // ─────────────────────────────────────────────────────────────────────────────
 
-type Push = (label: string, value: string | number | null | undefined) => void;
+type Push = (key: MetaKey, label: string, value: string | number | null | undefined) => void;
 
 async function addRasterFields(blob: Blob, head: Uint8Array, push: Push): Promise<void> {
   const png = parsePngMeta(head);
@@ -156,15 +173,15 @@ async function addRasterFields(blob: Blob, head: Uint8Array, push: Push): Promis
   let dims: { w: number; h: number } | null = null;
   if (blob.size <= RASTER_DECODE_CAP) dims = await decodeDims(blob);
   if (!dims && png?.width && png?.height) dims = { w: png.width, h: png.height };
-  if (dims) push(t('Dimensions'), `${dims.w} × ${dims.h}`);
+  if (dims) push('dimensions', t('Dimensions'), `${dims.w} × ${dims.h}`);
 
-  if (png?.bitDepth) push(t('Colour depth'), depthLabel(png));
+  if (png?.bitDepth) push('colourDepth', t('Colour depth'), depthLabel(png));
 
   const dpi = png?.dpi ?? jpg?.dpi;
-  if (dpi && dpi > 0) push(t('Resolution'), `${dpi} dpi`);
-  else push(t('Resolution'), `72 dpi (${t('unspecified')})`);
+  if (dpi && dpi > 0) push('resolution', t('Resolution'), `${dpi} dpi`);
+  else push('resolution', t('Resolution'), `72 dpi (${t('unspecified')})`);
 
-  if (png?.hasIcc || jpg?.hasIcc) push(t('ICC profile'), t('Embedded'));
+  if (png?.hasIcc || jpg?.hasIcc) push('iccProfile', t('ICC profile'), t('Embedded'));
 
   if (jpg?.exif) addExifFields(jpg.exif, push);
 }
@@ -173,14 +190,14 @@ function addVectorFields(head: Uint8Array, push: Push): void {
   const text = safeDecode(head);
   const m = parseSvgMeta(text);
   if (!m) return;
-  if (m.viewBox) push(t('viewBox'), m.viewBox);
+  if (m.viewBox) push('viewBox', t('viewBox'), m.viewBox);
   let w = m.width;
   let h = m.height;
   if ((!w || !h) && m.viewBox) {
     const p = m.viewBox.split(/[\s,]+/).map(Number).filter(n => Number.isFinite(n));
     if (p.length === 4) { w = p[2]; h = p[3]; }
   }
-  if (w && h) push(t('Dimensions'), `${trimNum(w)} × ${trimNum(h)}`);
+  if (w && h) push('dimensions', t('Dimensions'), `${trimNum(w)} × ${trimNum(h)}`);
 }
 
 async function addLottieFields(ref: AssetRef, push: Push): Promise<void> {
@@ -193,19 +210,19 @@ async function addLottieFields(ref: AssetRef, push: Push): Promise<void> {
   try { json = await (await fetch(src)).json(); } catch { return; }
   const m = lottieMetaFromJson(json);
   if (!m) return;
-  if (m.width && m.height) push(t('Dimensions'), `${m.width} × ${m.height}`);
-  if (m.durationSec) push(t('Duration'), formatDuration(m.durationSec));
-  if (m.frames != null) push(t('Frames'), String(m.frames));
-  if (m.fps) push(t('Frame rate'), `${trimNum(m.fps)} fps`);
+  if (m.width && m.height) push('dimensions', t('Dimensions'), `${m.width} × ${m.height}`);
+  if (m.durationSec) push('duration', t('Duration'), formatDuration(m.durationSec));
+  if (m.frames != null) push('frames', t('Frames'), String(m.frames));
+  if (m.fps) push('frameRate', t('Frame rate'), `${trimNum(m.fps)} fps`);
 }
 
 async function addPdfFields(blob: Blob, push: Push): Promise<void> {
   const bytes = new Uint8Array(await blob.arrayBuffer());
   const text = latin1(bytes);
   const pages = countPdfPages(text);
-  if (pages) push(t('Pages'), String(pages));
+  if (pages) push('pages', t('Pages'), String(pages));
   const box = firstMediaBox(text);
-  if (box) push(t('Dimensions'), `${trimNum(box.w)} × ${trimNum(box.h)} pt`);
+  if (box) push('dimensions', t('Dimensions'), `${trimNum(box.w)} × ${trimNum(box.h)} pt`);
 }
 
 async function addAudioFields(blob: Blob, push: Push, size: number | null, ref: AssetRef): Promise<void> {
@@ -223,18 +240,18 @@ async function addAudioFields(blob: Blob, push: Push, size: number | null, ref: 
     });
     try {
       try { duration = await input.computeDuration(); } catch { /* keep 0 */ }
-      if (Number.isFinite(duration) && duration > 0) { push(t('Duration'), formatDuration(duration)); gotCore = true; }
+      if (Number.isFinite(duration) && duration > 0) { push('duration', t('Duration'), formatDuration(duration)); gotCore = true; }
 
       let track: Awaited<ReturnType<typeof input.getPrimaryAudioTrack>> = null;
       try { track = await input.getPrimaryAudioTrack(); } catch { /* none */ }
       if (track) {
-        try { const sr = await track.getSampleRate(); if (sr > 0) { push(t('Sample rate'), formatSampleRate(sr)); gotCore = true; } } catch { /* skip */ }
-        try { const ch = await track.getNumberOfChannels(); if (ch > 0) { push(t('Channels'), channelLabel(ch)); gotCore = true; } } catch { /* skip */ }
+        try { const sr = await track.getSampleRate(); if (sr > 0) { push('sampleRate', t('Sample rate'), formatSampleRate(sr)); gotCore = true; } } catch { /* skip */ }
+        try { const ch = await track.getNumberOfChannels(); if (ch > 0) { push('channels', t('Channels'), channelLabel(ch)); gotCore = true; } } catch { /* skip */ }
         let br: number | null = null;
         try { br = await track.getBitrate(); } catch { /* skip */ }
         if ((br == null || br <= 0) && duration > 0 && size && size > 0) br = Math.round((size * 8) / duration);
-        if (br && br > 0) push(t('Bitrate'), formatBitrate(br));
-        try { const codec = await track.getCodec(); if (codec) push(t('Codec'), codecLabel(codec)); } catch { /* skip */ }
+        if (br && br > 0) push('bitrate', t('Bitrate'), formatBitrate(br));
+        try { const codec = await track.getCodec(); if (codec) push('codec', t('Codec'), codecLabel(codec)); } catch { /* skip */ }
       }
 
       let mbTags: { title?: string; artist?: string; album?: string; year?: string; genre?: string } = {};
@@ -262,9 +279,9 @@ async function addAudioFields(blob: Blob, push: Push, size: number | null, ref: 
         const ctx = new AC();
         try {
           const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
-          if (buf.duration > 0) push(t('Duration'), formatDuration(buf.duration));
-          if (buf.sampleRate > 0) push(t('Sample rate'), formatSampleRate(buf.sampleRate));
-          if (buf.numberOfChannels > 0) push(t('Channels'), channelLabel(buf.numberOfChannels));
+          if (buf.duration > 0) push('duration', t('Duration'), formatDuration(buf.duration));
+          if (buf.sampleRate > 0) push('sampleRate', t('Sample rate'), formatSampleRate(buf.sampleRate));
+          if (buf.numberOfChannels > 0) push('channels', t('Channels'), channelLabel(buf.numberOfChannels));
         } finally {
           try { await ctx.close(); } catch { /* ignore */ }
         }
@@ -289,18 +306,18 @@ async function addVideoFields(blob: Blob, push: Push): Promise<void> {
         try {
           const w = await track.getDisplayWidth();
           const h = await track.getDisplayHeight();
-          if (w && h) push(t('Dimensions'), `${w} × ${h}`);
+          if (w && h) push('dimensions', t('Dimensions'), `${w} × ${h}`);
         } catch { /* skip */ }
       }
       let duration = 0;
       try { duration = await input.computeDuration(); } catch { /* keep 0 */ }
-      if (Number.isFinite(duration) && duration > 0) push(t('Duration'), formatDuration(duration));
+      if (Number.isFinite(duration) && duration > 0) push('duration', t('Duration'), formatDuration(duration));
       if (track) {
-        try { const codec = await track.getCodec(); if (codec) push(t('Codec'), codecLabel(codec)); } catch { /* skip */ }
+        try { const codec = await track.getCodec(); if (codec) push('codec', t('Codec'), codecLabel(codec)); } catch { /* skip */ }
         try {
           const stats = await track.computePacketStats(60);
           const fps = stats?.averagePacketRate;
-          if (fps && fps > 0) push(t('Frame rate'), `${formatFps(fps)} fps`);
+          if (fps && fps > 0) push('frameRate', t('Frame rate'), `${formatFps(fps)} fps`);
         } catch { /* skip */ }
       }
     } finally {
@@ -318,42 +335,42 @@ function addExifFields(exif: Uint8Array, push: Push): void {
   const { ifd0, exif: sub, gps } = tags;
 
   const camera = [asStr(ifd0[0x010f]), asStr(ifd0[0x0110])].filter(Boolean).join(' ').trim();
-  if (camera) push(t('Camera'), camera);
+  if (camera) push('camera', t('Camera'), camera);
 
   const lens = asStr(sub[0xa434]);
-  if (lens) push(t('Lens'), lens);
+  if (lens) push('lens', t('Lens'), lens);
 
   const taken = asStr(sub[0x9003]) || asStr(ifd0[0x0132]);
-  if (taken) push(t('Taken'), formatExifDate(taken));
+  if (taken) push('taken', t('Taken'), formatExifDate(taken));
 
   const exp = asNum(sub[0x829a]);
-  if (exp && exp > 0) push(t('Exposure'), formatExposure(exp));
+  if (exp && exp > 0) push('exposure', t('Exposure'), formatExposure(exp));
 
   const fnum = asNum(sub[0x829d]);
-  if (fnum && fnum > 0) push(t('Aperture'), `ƒ/${trimNum(round1(fnum))}`);
+  if (fnum && fnum > 0) push('aperture', t('Aperture'), `ƒ/${trimNum(round1(fnum))}`);
 
   const iso = asNum(sub[0x8827]);
-  if (iso && iso > 0) push(t('ISO'), String(Math.round(iso)));
+  if (iso && iso > 0) push('iso', t('ISO'), String(Math.round(iso)));
 
   const focal = asNum(sub[0x920a]);
-  if (focal && focal > 0) push(t('Focal length'), `${trimNum(round1(focal))} mm`);
+  if (focal && focal > 0) push('focalLength', t('Focal length'), `${trimNum(round1(focal))} mm`);
 
   const orient = asNum(ifd0[0x0112]);
-  if (orient && orient !== 1) { const o = orientationLabel(orient); if (o) push(t('Orientation'), o); }
+  if (orient && orient !== 1) { const o = orientationLabel(orient); if (o) push('orientation', t('Orientation'), o); }
 
   const loc = gpsCoords(gps);
-  if (loc) push(t('Location'), loc);
+  if (loc) push('location', t('Location'), loc);
 }
 
 function addTagFields(
   tags: { title?: string; artist?: string; album?: string; year?: string; genre?: string },
   push: Push,
 ): void {
-  if (tags.title) push(t('Title'), tags.title);
-  if (tags.artist) push(t('Artist'), tags.artist);
-  if (tags.album) push(t('Album'), tags.album);
-  if (tags.year) push(t('Year'), tags.year);
-  if (tags.genre) push(t('Genre'), tags.genre);
+  if (tags.title) push('title', t('Title'), tags.title);
+  if (tags.artist) push('artist', t('Artist'), tags.artist);
+  if (tags.album) push('album', t('Album'), tags.album);
+  if (tags.year) push('year', t('Year'), tags.year);
+  if (tags.genre) push('genre', t('Genre'), tags.genre);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
