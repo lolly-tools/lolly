@@ -187,14 +187,71 @@ test('boot applies the flag, and the pre-paint script mirrors it to avoid a flas
 // ── The automatic switch (lib/perf-ui-auto.ts): Settings shows when and why ──────
 
 test('Settings explains an automatic switch beside the toggle, as its description', () => {
-  assert.match(PROFILE, /const note = f\.id === PERFORMANCE_UI_FLAG\.id \? perfUiAutoNote\(pv\) : '';/,
+  assert.match(PROFILE, /const note = f\.id === PERFORMANCE_UI_FLAG\.id \? perfUiAutoNote\(pv\) : null;/,
     'only the Performance UI row carries the note');
   assert.match(PROFILE, /aria-describedby="\$\{ctlId\}-auto"/, 'the note describes the switch rather than renaming it');
-  assert.match(PROFILE, /<p class="feature-flag-note" id="\$\{ctlId\}-auto">/);
+  assert.match(PROFILE, /<p class="feature-flag-note"><span id="\$\{ctlId\}-auto">/,
+    'the sentence alone is the description, not the button after it');
   assert.match(PROFILE, /Turned on automatically on \{date\} because this device draws without graphics acceleration\./);
   assert.match(PROFILE, /Turned on automatically on \{date\} because this device was struggling to draw the interface\./);
-  assert.match(PROFILE, /featureFlags\?\.\[PERFORMANCE_UI_FLAG\.id\] !== undefined\) return '';/,
+  assert.match(PROFILE, /featureFlags\?\.\[PERFORMANCE_UI_FLAG\.id\] !== undefined\) return null;/,
     'a hand choice hides the note: the person chose, so "automatically" would mislead');
+});
+
+test('after an Undo, Settings says automatic switching is off here and offers "Allow again"', () => {
+  assert.match(PROFILE, /if \(rec\.state === 'undone'\) return \{ text: tRaw\('Automatic switching is off on this device because you chose Undo on \{date\}\.', \{ date \}\), allow: true \};/);
+  assert.match(PROFILE, /class="btn btn--sm feature-flag-note-action" data-perf-ui-allow>\$\{escapeText\(t\('Allow again'\)\)\}<\/button>/,
+    'the shared small button, rendered with the row');
+  assert.match(PROFILE, /allow\.className = 'btn btn--sm feature-flag-note-action';/, 'and when the row is brought up to date in place');
+  assert.match(PROFILE, /if \(\(e\.target as Element\)\.closest\('\[data-perf-ui-allow\]'\)\) pv\.rows\.allowPerfUiAgain\(\);/,
+    'delegated, so it survives the list being rebuilt');
+  const allow = PROFILE.slice(PROFILE.indexOf('export const allowPerfUiAgain'), PROFILE.indexOf('export const syncPerfUiRow'));
+  assert.match(allow, /allowPerfUiAutoAgain\(\);/, 'clears the Undo record');
+  assert.doesNotMatch(allow, /applyPerfUi|setFlagMirror|host\.profile\.set/, 'and never turns the look on, or records a hand choice');
+  assert.match(allow, /Automatic switching is allowed again from the next time you open Lolly\./);
+  assert.match(allow, /\?\.focus\(\);/, 'focus goes to the switch, not to the page, when the button goes');
+});
+
+// ── The flag switch's knob under the Performance UI ──────────────────────────────
+
+/** WCAG relative luminance of an sRGB colour given as 0-255 channels. */
+function luminance([r, g, b]: number[]): number {
+  const lin = (c: number) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * lin(r!) + 0.7152 * lin(g!) + 0.0722 * lin(b!);
+}
+const contrast = (a: number[], b: number[]): number => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi! + 0.05) / (lo! + 0.05);
+};
+
+test('the checked switch stays readable under perf-ui in dark: the knob keeps an edge the strip cannot remove', () => {
+  const PROFILE_CSS = read('styles/parts/profile.css');
+  // The regular look: a white knob that a shadow sets apart from its track. In a dark
+  // theme the checked track is often white too, so the shadow is all there is.
+  const knob = PROFILE_CSS.match(/\.profile-view \.feature-flag-switch::after \{([^}]*)\}/)?.[1] ?? '';
+  assert.match(knob, /background: #fff;/);
+  assert.match(knob, /box-shadow:/, 'the regular look relies on a shadow...');
+  assert.match(CSS, /box-shadow: none !important/, '...which the strip removes');
+  // Under perf-ui the knob gets a ring instead, drawn with outline (never stripped).
+  const rule = CSS_NO_COMMENTS.match(/html\[data-perf-ui\] \.profile-view \.feature-flag-switch::after \{([^}]*)\}/);
+  assert.ok(rule, 'a gated rule for the knob');
+  const ring = rule[1]!.match(/outline:\s*(\d+(?:\.\d+)?)px solid rgb\(0 0 0 \/ (\.\d+|0\.\d+)\) !important/);
+  assert.ok(ring, 'a solid outline ring, important so no later layer drops it');
+  assert.ok(Number(ring[1]) >= 1, 'at least a pixel wide');
+  assert.doesNotMatch(CSS_NO_COMMENTS.slice(0, CSS_NO_COMMENTS.indexOf('{')), /outline/, 'the strip itself leaves outlines alone');
+  // Worst case in dark: a white checked track under a white knob. The ring, black at this
+  // alpha over white, must stand 3:1 against the knob (WCAG 1.4.11, non-text contrast).
+  const alpha = Number(ring[2]);
+  const over = (bg: number) => Math.round(bg * (1 - alpha));
+  const ringOnWhite = [over(255), over(255), over(255)];
+  assert.ok(contrast(ringOnWhite, [255, 255, 255]) >= 3, `ring on a white track: ${contrast(ringOnWhite, [255, 255, 255]).toFixed(2)}:1`);
+  // High contrast's dark theme turns the checked track a light green (147.6 75% 67.1%, about #6ceaa6).
+  const green = [108, 234, 166];
+  const ringOnGreen = green.map(c => Math.round(c * (1 - alpha)));
+  assert.ok(contrast(ringOnGreen, [255, 255, 255]) >= 3, `ring on the high-contrast track: ${contrast(ringOnGreen, [255, 255, 255]).toFixed(2)}:1`);
+  // And it is scoped to the gate, so perf-ui off stays byte-identical (the gate test above
+  // checks every rule; this one checks the knob).
+  assert.doesNotMatch(PROFILE_CSS, /outline: 1px solid rgb\(0 0 0/, 'the regular sheet is untouched');
 });
 
 test('the Settings row follows a switch or an Undo made elsewhere, and lets go on teardown', () => {

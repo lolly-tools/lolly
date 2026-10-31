@@ -1800,5 +1800,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly a trecut la aspectul mai simplu și mai rapid, pentru că acest dispozitiv desenează fără accelerare grafică.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly a trecut la aspectul mai simplu și mai rapid, pentru că acest dispozitiv se chinuia.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Activat automat la {date}, pentru că acest dispozitiv desenează fără accelerare grafică.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Activat automat la {date}, pentru că acest dispozitiv se chinuia să deseneze interfața."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Activat automat la {date}, pentru că acest dispozitiv se chinuia să deseneze interfața.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Comutarea automată este oprită pe acest dispozitiv, pentru că ai ales Anulează la {date}.",
+  "Allow again": "Permite din nou",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Comutarea automată este permisă din nou de la următoarea deschidere a Lolly."
 }

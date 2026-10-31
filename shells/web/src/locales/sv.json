@@ -10439,5 +10439,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly bytte till det enklare, snabbare utseendet eftersom den här enheten ritar utan grafikacceleration.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly bytte till det enklare, snabbare utseendet eftersom den här enheten hade det tungt.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Aktiverades automatiskt den {date} eftersom den här enheten ritar utan grafikacceleration.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Aktiverades automatiskt den {date} eftersom den här enheten hade svårt att rita gränssnittet."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Aktiverades automatiskt den {date} eftersom den här enheten hade svårt att rita gränssnittet.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Automatiskt byte är avstängt på den här enheten eftersom du valde Ångra den {date}.",
+  "Allow again": "Tillåt igen",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Automatiskt byte är tillåtet igen från nästa gång du öppnar Lolly."
 }

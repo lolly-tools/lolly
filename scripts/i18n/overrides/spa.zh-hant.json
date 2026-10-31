@@ -1803,5 +1803,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "這部裝置沒有圖形加速就進行繪製，所以 Lolly 已切換為更簡單、更快的外觀。",
   "Lolly switched to the simpler, faster look because this device was struggling.": "這部裝置運作吃力，所以 Lolly 已切換為更簡單、更快的外觀。",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "已於 {date} 自動開啟，因為這部裝置沒有圖形加速就進行繪製。",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "已於 {date} 自動開啟，因為這部裝置繪製介面時運作吃力。"
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "已於 {date} 自動開啟，因為這部裝置繪製介面時運作吃力。",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "由於你在 {date} 選了「復原」，這部裝置已關閉自動切換。",
+  "Allow again": "再次允許",
+  "Automatic switching is allowed again from the next time you open Lolly.": "從下次開啟 Lolly 起，會再次允許自動切換。"
 }

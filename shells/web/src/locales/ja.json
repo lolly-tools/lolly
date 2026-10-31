@@ -10439,5 +10439,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "このデバイスはグラフィックスアクセラレーションなしで描画しているため、Lollyはよりシンプルで高速な表示に切り替えました。",
   "Lolly switched to the simpler, faster look because this device was struggling.": "このデバイスの動作が重くなっていたため、Lollyはよりシンプルで高速な表示に切り替えました。",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "このデバイスはグラフィックスアクセラレーションなしで描画しているため、{date}に自動でオンになりました。",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "このデバイスでインターフェースの描画が重くなっていたため、{date}に自動でオンになりました。"
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "このデバイスでインターフェースの描画が重くなっていたため、{date}に自動でオンになりました。",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "{date}に「元に戻す」を選んだため、このデバイスでは自動切り替えをオフにしています。",
+  "Allow again": "もう一度許可する",
+  "Automatic switching is allowed again from the next time you open Lolly.": "次回Lollyを開いたときから、自動切り替えが再び許可されます。"
 }

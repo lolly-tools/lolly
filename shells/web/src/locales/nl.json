@@ -10439,5 +10439,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly is overgestapt op de eenvoudigere, snellere look omdat dit apparaat tekent zonder grafische versnelling.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly is overgestapt op de eenvoudigere, snellere look omdat dit apparaat het moeilijk had.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Automatisch aangezet op {date} omdat dit apparaat tekent zonder grafische versnelling.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Automatisch aangezet op {date} omdat dit apparaat moeite had om de interface te tekenen."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Automatisch aangezet op {date} omdat dit apparaat moeite had om de interface te tekenen.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Automatisch overschakelen staat uit op dit apparaat, omdat je op {date} Ongedaan maken hebt gekozen.",
+  "Allow again": "Weer toestaan",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Automatisch overschakelen is weer toegestaan vanaf de volgende keer dat je Lolly opent."
 }

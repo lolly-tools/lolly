@@ -1796,5 +1796,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly přepnulo na jednodušší a rychlejší vzhled, protože toto zařízení kreslí bez grafické akcelerace.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly přepnulo na jednodušší a rychlejší vzhled, protože toto zařízení zápasilo s výkonem.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Zapnuto automaticky dne {date}, protože toto zařízení kreslí bez grafické akcelerace.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Zapnuto automaticky dne {date}, protože toto zařízení zápasilo s vykreslováním rozhraní."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Zapnuto automaticky dne {date}, protože toto zařízení zápasilo s vykreslováním rozhraní.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Automatické přepínání je na tomto zařízení vypnuté, protože jsi dne {date} zvolil Zpět.",
+  "Allow again": "Povolit znovu",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Automatické přepínání je znovu povoleno od příštího otevření Lolly."
 }

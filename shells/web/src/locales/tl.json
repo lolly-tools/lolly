@@ -10439,5 +10439,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lumipat ang Lolly sa mas simple at mas mabilis na look dahil walang graphics acceleration ang pagguhit ng device na ito.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lumipat ang Lolly sa mas simple at mas mabilis na look dahil nahihirapan ang device na ito.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Awtomatikong in-on noong {date} dahil walang graphics acceleration ang pagguhit ng device na ito.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Awtomatikong in-on noong {date} dahil nahirapan ang device na ito sa pagguhit ng interface."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Awtomatikong in-on noong {date} dahil nahirapan ang device na ito sa pagguhit ng interface.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Naka-off ang awtomatikong paglipat sa device na ito dahil pinili mo ang I-undo noong {date}.",
+  "Allow again": "Payagan ulit",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Papayagan na ulit ang awtomatikong paglipat sa susunod na pagbukas mo ng Lolly."
 }

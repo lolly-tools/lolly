@@ -40,6 +40,9 @@ export interface UndoToastOpts {
 export interface UndoToastHandle {
   /** Commit now and remove the toast (no-op if already settled). */
   settle(): void;
+  /** Take the toast down without running `undo` or `commit`, for a notice that steps
+   *  aside and is shown again later (no-op if already settled). */
+  withdraw(): void;
 }
 
 let wrap: HTMLElement | null = null;
@@ -107,7 +110,13 @@ export function showUndoToast(opts: UndoToastOpts): UndoToastHandle {
   });
   accept?.addEventListener('click', settle);
   pending.add(settle);
-  return { settle };
+  const withdraw = (): void => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    remove();
+  };
+  return { settle, withdraw };
 }
 
 /** Commit every pending toast NOW. Call from a view's unmount. */
