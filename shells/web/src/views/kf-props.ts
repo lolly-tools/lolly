@@ -93,7 +93,7 @@ export function kfTrackPutChannels(track: KfTrack, atMs: number, values: KfPose,
   const out: KfKey[] = [];
   let done = false;
   for (const k of track) {
-    if (k.t === t) { out.push({ t, ease: ease ?? k.ease, v: { ...k.v, ...values } }); done = true; } else out.push(k);
+    if (k.t === t) { out.push({ ...k, t, ease: ease ?? k.ease, v: { ...k.v, ...values } }); done = true; } else out.push(k);
   }
   if (!done) out.push({ t, ease: ease ?? inheritedEase(track, t), v: { ...values } });
   return out;
@@ -107,7 +107,9 @@ export function kfTrackDropChannels(track: KfTrack, atMs: number, chs: readonly 
     if (k.t !== t) { out.push(k); continue; }
     const v: KfPose = { ...k.v };
     for (const ch of chs) delete v[ch];
-    if (Object.keys(v).length) out.push({ t: k.t, ease: k.ease, v });
+    // Spread, so a keyframe that keeps its position keeps its path handles (plans/330);
+    // one that loses its position loses them when the track is serialised.
+    if (Object.keys(v).length) out.push({ ...k, v });
   }
   return out;
 }
@@ -129,7 +131,11 @@ export function kfTrackMoveChannels(
   if (!Object.keys(moved).length) return [...track];
   const left = copy ? [...track] : kfTrackDropChannels(track, from, chs);
   const landing = left.find((k) => k.t === to);
-  return kfTrackPutChannels(left, to, moved, landing ? undefined : src.ease);
+  const out = kfTrackPutChannels(left, to, moved, landing ? undefined : src.ease);
+  // A position carries its path handles with it (plans/330): they describe the travel
+  // into and out of that point, wherever in time it now sits.
+  if (typeof moved.x !== 'number' || typeof moved.y !== 'number' || !(src.hi || src.ho)) return out;
+  return out.map((k) => (k.t === to ? { ...k, hi: src.hi, ho: src.ho } : k));
 }
 
 /** Which fields hold a box's appearance (the tool's canvas declaration). */
