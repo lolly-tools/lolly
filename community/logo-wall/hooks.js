@@ -19,11 +19,15 @@
  * equal columns and rows inside the padding, the logo box size% of its cell and
  * centred, overflow visible. A wall saved before 1.5.0 lays out the same.
  *
- * An export at another shape (1080 x 1920, an A4 page) is laid out again for that
- * shape rather than letterboxed: beforeExport reads the export's width and height,
- * lays the same logos out in a frame of that shape (see exportFrame), rewrites the
- * <svg> in the node it is handed and afterExport puts the canvas back. The
- * canvas's own shape is never restaged, so a default export is the canvas as drawn.
+ * A canvas of another shape (1080 x 1920, an A4 page) is laid out for that shape
+ * rather than letterboxed. The engine tells every hook the canvas size
+ * (ctx.canvasSize, engine 1.293) and runs onInput again when it changes, because
+ * the manifest declares render.followsCanvasSize; the wall then lays the logos out
+ * in a frame of that shape (see frameFor), so the live preview, the SVG and every
+ * raster draw the same wall. An export at a shape other than the canvas's (a batch
+ * row, an older engine that sends no canvas size) is laid out again in
+ * beforeExport: it rewrites the <svg> in the node it is handed and afterExport
+ * puts the canvas back. An export at the canvas's own shape is the canvas as drawn.
  *
  * The per-logo list (buildItems) carries url, opacity, greyscale and an effective
  * size that folds in optical-weight balancing (heavier logos shrink, lighter grow)
@@ -69,8 +73,8 @@
 // canvas is that size in the web shell and the CLI exports at it.
 var WALL_W = 1280;
 var WALL_H = 720;
-// The frame a wall is laid out in. The canvas's own; an export at another shape
-// lays out in a frame of that shape (exportFrame).
+// The frame a wall is laid out in at the manifest's canvas size. A canvas or an
+// export of another shape lays out in a frame of that shape (frameFor).
 var CANVAS_FRAME = { W: WALL_W, H: WALL_H };
 
 // Upper bound on a single logo's sampling grid, so a big source can't blow up
@@ -121,8 +125,8 @@ var _cropCache = {};
 var _embedCache = {};
 // Remembered for beforeExport (which only sees format/opts).
 var _transparent = false, _bg = '#ffffff';
-// The last layout's decisions, for an export at another shape (restage), and what
-// that export changed, for afterExport to put back.
+// The last layout's decisions and the frame it filled, for an export at another
+// shape (restage), and what that export changed, for afterExport to put back.
 var _last = null, _staged = null;
 // Degradation warnings already written, so a shell that re-renders on every
 // keystroke does not repeat them.
@@ -1221,7 +1225,7 @@ async function buildItems(inputs, balance, trim, vectorizeAll) {
 // Each layout returns [{ it, cell: { x, y, w, h } }]. The logo's own box is then
 // size% of its cell on both axes, centred, and free to spill past the cell into
 // the gap (the old grid's overflow: visible). Every layout takes the frame F
-// ({ W, H }) it fills: the canvas's own, or an export's (exportFrame).
+// ({ W, H }) it fills: the canvas's (canvasFrame), or an export's (exportFrame).
 
 function logoBox(it, cell) {
   var w = cell.w * it.size / 100, h = cell.h * it.size / 100;
@@ -1351,7 +1355,7 @@ function layoutTiers(groups, o, F) {
 // turns them into 5. Tiers step down from the adapted count as they do from
 // Columns, which is rounded the way that fills more of the frame: a tier's cells
 // are never taller than wide, so a count that rounds up can leave the stack short
-// of the frame's height. The canvas's own frame takes the counts as set.
+// of the frame's height. The manifest's own frame takes the counts as set.
 function wallLayout(s, F) {
   var o = s.o, rowsN = s.rowsN, ideal = o.cols;
   if (F.W !== WALL_W || F.H !== WALL_H) {
@@ -1405,7 +1409,7 @@ function placeCell(p) {
 
 // ── lifecycle ────────────────────────────────────────────────────────────────
 
-async function compute(model) {
+async function compute(model, canvasSize) {
   var inputs = inputsFrom(model);
   _transparent = Boolean(inputs.transparentBg);
   _bg = color(inputs.background, '#ffffff');
@@ -1461,28 +1465,30 @@ async function compute(model) {
     rowsN: clamp(Math.round(num(inputs.repeatRows, 6)), 2, 16),
     groups: doRepeat ? null : tierGroups(visible),
   };
-  var lay = wallLayout(state, CANVAS_FRAME);
+  // The canvas's frame: the manifest's, or one of the canvas's shape.
+  var F = canvasFrame(canvasSize);
+  var lay = wallLayout(state, F);
   var headings = lay.headings;
 
   var cells = lay.placed.map(placeCell);
-  // What an export at another shape lays out again (restage): the decisions, and
-  // which logo each drawn cell is, in drawing order.
-  _last = { state: state, cellIndex: cells.map(function (c) { return c.index; }), headings: headings.length };
+  // What an export at another shape lays out again (restage): the decisions, the
+  // frame they filled, and which logo each drawn cell is, in drawing order.
+  _last = { state: state, frame: F, cellIndex: cells.map(function (c) { return c.index; }), headings: headings.length };
   var defs = '';
   if (cells.some(function (c) { return c.grey; })) {
     // CSS grayscale(1) as an SVG filter: the same luminance weights, in sRGB.
     defs += '<filter id="lw-grey" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/></filter>';
   }
   if (doRepeat) {
-    var clip = clipRect(o, CANVAS_FRAME);
+    var clip = clipRect(o, F);
     defs += '<clipPath id="lw-clip"><rect x="' + clip.x + '" y="' + clip.y + '" width="'
       + clip.w + '" height="' + clip.h + '"/></clipPath>';
   }
   // Every extra is set on every run: extras persist between runs, so one left
   // unset would strand a stale value after the input that produced it changes.
   return {
-    wallW: WALL_W,
-    wallH: WALL_H,
+    wallW: F.W,
+    wallH: F.H,
     wallBg: _transparent ? '' : (/^\s*(transparent|none)?\s*$/i.test(String(inputs.background || '')) ? '' : _bg),
     wallCells: cells,
     wallHeadings: headings,
@@ -1506,8 +1512,11 @@ async function brandFont() {
   return family ? family + ', sans-serif' : 'sans-serif';
 }
 
-function onInit(ctx) { return compute(ctx.model); }
-function onInput(ctx) { return compute(ctx.model); }
+// ctx.canvasSize is absent on an engine older than 1.293: the wall then fills the
+// manifest's canvas, as it always did. A change of size arrives as onInput with id
+// '__canvasSize' and lays the same logos out again.
+function onInit(ctx) { return compute(ctx.model, ctx.canvasSize); }
+function onInput(ctx) { return compute(ctx.model, ctx.canvasSize); }
 
 // ── export at another shape ──────────────────────────────────────────────────
 
@@ -1522,19 +1531,32 @@ function cssPx(v) {
   return n > 0 ? n : null;
 }
 
-// The frame an export lays out in, or null for the canvas's own. The frame keeps
-// the canvas's AREA and takes the export's shape, so a frame of the canvas's own
+// The frame for a canvas or an export of w x h CSS px. The frame keeps the
+// manifest canvas's AREA and takes that shape, so a frame of the manifest's own
 // shape is the canvas exactly and padding, gaps and headings keep their size
 // against the whole picture: 1080 x 1920 lays out in 720 x 1280, an A4 page in
-// about 807 x 1142. A size that gives only one side keeps the canvas's shape.
-function exportFrame(opts) {
+// about 807 x 1142.
+function frameFor(w, h) {
+  if (!(w > 0) || !(h > 0)) return CANVAS_FRAME;
+  var a = w / h;
+  if (Math.abs(a / (WALL_W / WALL_H) - 1) < 0.001) return CANVAS_FRAME;
+  var W = Math.sqrt(WALL_W * WALL_H * a);
+  return { W: f2(W), H: f2(W / a) };
+}
+
+// The frame for the canvas size the engine hands every hook (CSS px).
+function canvasFrame(size) {
+  return size ? frameFor(Number(size.width), Number(size.height)) : CANVAS_FRAME;
+}
+
+// The frame an export lays out in, or null when it is the frame the canvas was
+// drawn in (`current`). A size that gives only one side keeps the canvas's shape.
+function exportFrame(opts, current) {
   if (!opts || opts.thumbnail) return null;
   var w = cssPx(opts.width), h = cssPx(opts.height);
   if (!w || !h) return null;
-  var a = w / h;
-  if (Math.abs(a / (WALL_W / WALL_H) - 1) < 0.001) return null;
-  var W = Math.sqrt(WALL_W * WALL_H * a);
-  return { W: f2(W), H: f2(W / a) };
+  if (Math.abs((w / h) / (current.W / current.H) - 1) < 0.001) return null;
+  return frameFor(w, h);
 }
 
 function childElements(el, tag) {
@@ -1551,7 +1573,7 @@ function childElements(el, tag) {
 // bindings, filters, the vector ink) travels unchanged. Anything that does not
 // match the last layout (a wall drawn by another render) is left as it is.
 function restage(ctx) {
-  var F = exportFrame(ctx.opts);
+  var F = _last ? exportFrame(ctx.opts, _last.frame) : null;
   var node = ctx.node;
   if (!F || !_last || !node || !node.querySelector) return;
   var svg = node.matches && node.matches('svg.lw-svg') ? node : node.querySelector('svg.lw-svg');

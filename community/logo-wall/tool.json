@@ -2,8 +2,8 @@
   "id": "logo-wall",
   "name": "Logo Wall",
   "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-  "version": "1.6.0",
-  "engineVersion": "^1.0.0",
+  "version": "1.7.0",
+  "engineVersion": "^1.293.0",
   "status": "official",
   "category": "designer",
   "tags": ["logo", "lockup", "wall", "grid", "nascar", "logos", "brand", "partners", "customers", "sponsors", "clients", "montage", "cloud", "vector", "threshold", "tiers", "on-device"],
@@ -35,6 +35,7 @@
     "actions": ["copy", "download", "save"],
     "layout": "sidebar",
     "transparentBg": true,
+    "followsCanvasSize": true,
     "convertPaths": false
   },
   "hooks": {
@@ -91,7 +92,7 @@
       "max": 10,
       "step": 1,
       "default": 4,
-      "help": "How many logos sit in each row. An export at another shape, such as a tall 1080 x 1920 or an A4 page, puts fewer or more in each row to fill that shape."
+      "help": "How many logos sit in each row. At another canvas size, such as a tall 1080 x 1920 or an A4 page, the wall puts fewer or more in each row to fill that shape."
     },
     {
       "id": "gap",
@@ -284,7 +285,7 @@
       "default": 6,
       "section": "Step & repeat",
       "showIf": { "repeat": ["grid", "brick", "checker"] },
-      "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied. An export at another shape stacks fewer or more rows to fill that shape."
+      "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied. At another canvas size the wall stacks fewer or more rows to fill that shape."
     }
   ]
 }
