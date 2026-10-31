@@ -16,6 +16,8 @@ import type { Profile } from '@lolly-tools/core/host-v1';
 // a read that answers null on any deployment without one (see org/governance.ts).
 import { orgFlagGovernance } from './org/governance.ts';
 import { parseDesignExportRouteChoice, type DesignExportRouteChoice } from '../../../engine/src/design-export-route.ts';
+// A leaf that imports nothing: the automatic Performance UI decision this device stored.
+import { perfUiAutoOn } from './lib/perf-ui-auto-state.ts';
 
 export interface FeatureFlag {
   id: string;
@@ -167,6 +169,12 @@ export const PREFLIGHT_FLAG: FeatureFlag = {
 // reflects the flag onto <html> and notifies mounted effects. Saved effect preferences
 // remain independent. Deliberately CHROME-ONLY: it never reaches the tool canvas or the export stages, so a
 // render (and its export, whose geometry is shared with the CLI) is never altered.
+//
+// Lolly can also turn it on by itself, once, for a device that struggles to draw the
+// chrome (lib/perf-ui-auto.ts). That decision is a device-local record
+// (lib/perf-ui-auto-state.ts), never a profile value, so it does not follow the profile
+// to a faster device. A hand-set profile value always wins over it: isFlagOn and
+// hydrateFeatureFlags below read the record only when the profile has no value.
 export const PERFORMANCE_UI_FLAG: FeatureFlag = {
   id: 'perf-ui',
   label: 'Performance UI',
@@ -350,6 +358,7 @@ export function isFlagOn(profile: Profile | null | undefined, flag: FeatureFlag)
   const saved = profile?.featureFlags?.[flag.id];
   if (gov?.hidden) return gov.default ?? builtin;
   if (saved !== undefined) return saved;
+  if (flag.id === PERFORMANCE_UI_FLAG.id && perfUiAutoOn()) return true;
   return gov?.default ?? builtin;
 }
 
@@ -391,6 +400,9 @@ export function hydrateFeatureFlags(profile: Profile | null | undefined): void {
   // entry - which is what makes a fresh device read it as on (PRIVATE_COLLAB_FLAG
   // since 2026-08-10; it stays in this list because the list is "every standalone
   // flag", not "every opt-in one").
+  // An automatic Performance UI decision on this device counts only while the profile
+  // holds no hand choice; the bake below would otherwise write its OFF default.
+  if (eff[PERFORMANCE_UI_FLAG.id] === undefined && perfUiAutoOn()) eff[PERFORMANCE_UI_FLAG.id] = true;
   for (const f of [NEUROSPICY_FLAG, JELLY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, LEARNING_FLAG, PRIVATE_COLLAB_FLAG, NEARBY_DISCOVERY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG]) {
     if (eff[f.id] === undefined && f.default === false) eff[f.id] = false;
   }

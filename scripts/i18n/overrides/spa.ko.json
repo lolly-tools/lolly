@@ -1928,5 +1928,9 @@
   "Headlines - 36px, or 24px bold": "제목 - 36px 또는 굵은 24px",
   "Icons and borders only": "아이콘과 테두리만",
   "Not usable": "사용할 수 없음",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA는 sRGB 기준으로 정의되어 있어서, 넓은 색 영역의 색은 sRGB로 표현한 값으로 점수를 매겨요."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA는 sRGB 기준으로 정의되어 있어서, 넓은 색 영역의 색은 sRGB로 표현한 값으로 점수를 매겨요.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "이 기기는 그래픽 가속 없이 화면을 그리기 때문에 Lolly가 더 단순하고 빠른 화면으로 바꿨어요.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "이 기기가 버거워하고 있어서 Lolly가 더 단순하고 빠른 화면으로 바꿨어요.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "이 기기는 그래픽 가속 없이 화면을 그리기 때문에 {date}에 자동으로 켜졌어요.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "이 기기가 인터페이스를 그리는 데 어려움을 겪어서 {date}에 자동으로 켜졌어요."
 }

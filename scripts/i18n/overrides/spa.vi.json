@@ -1797,5 +1797,9 @@
   "Headlines - 36px, or 24px bold": "Tiêu đề - 36px, hoặc 24px in đậm",
   "Icons and borders only": "Chỉ biểu tượng và đường viền",
   "Not usable": "Không dùng được",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA được định nghĩa cho sRGB, nên màu gam rộng được chấm điểm theo bản hiển thị sRGB của nó."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA được định nghĩa cho sRGB, nên màu gam rộng được chấm điểm theo bản hiển thị sRGB của nó.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn vì thiết bị này vẽ mà không có tăng tốc đồ họa.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn vì thiết bị này đang chạy khá chật vật.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Tự động bật vào {date} vì thiết bị này vẽ mà không có tăng tốc đồ họa.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Tự động bật vào {date} vì thiết bị này chật vật khi vẽ giao diện."
 }

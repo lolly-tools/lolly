@@ -1926,5 +1926,9 @@
   "Headlines - 36px, or 24px bold": "Başlıklar - 36 px veya 24 px kalın",
   "Icons and borders only": "Yalnızca simgeler ve kenarlıklar",
   "Not usable": "Kullanılamaz",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA, sRGB için tanımlanmıştır; bu yüzden geniş gamutlu bir renk sRGB görünümüyle puanlanır."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA, sRGB için tanımlanmıştır; bu yüzden geniş gamutlu bir renk sRGB görünümüyle puanlanır.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly daha sade ve hızlı görünüme geçti, çünkü bu cihaz grafik hızlandırma olmadan çizim yapıyor.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly daha sade ve hızlı görünüme geçti, çünkü bu cihaz zorlanıyordu.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "{date} tarihinde otomatik olarak açıldı, çünkü bu cihaz grafik hızlandırma olmadan çizim yapıyor.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} tarihinde otomatik olarak açıldı, çünkü bu cihaz arayüzü çizmekte zorlanıyordu."
 }

@@ -183,3 +183,26 @@ test('boot applies the flag, and the pre-paint script mirrors it to avoid a flas
   assert.match(HTML, /ff\['perf-ui'\]/, 'checks the perf-ui flag');
   assert.match(HTML, /setAttribute\('data-perf-ui'/, 'and sets the attribute before paint');
 });
+
+// ── The automatic switch (lib/perf-ui-auto.ts): Settings shows when and why ──────
+
+test('Settings explains an automatic switch beside the toggle, as its description', () => {
+  assert.match(PROFILE, /const note = f\.id === PERFORMANCE_UI_FLAG\.id \? perfUiAutoNote\(pv\) : '';/,
+    'only the Performance UI row carries the note');
+  assert.match(PROFILE, /aria-describedby="\$\{ctlId\}-auto"/, 'the note describes the switch rather than renaming it');
+  assert.match(PROFILE, /<p class="feature-flag-note" id="\$\{ctlId\}-auto">/);
+  assert.match(PROFILE, /Turned on automatically on \{date\} because this device draws without graphics acceleration\./);
+  assert.match(PROFILE, /Turned on automatically on \{date\} because this device was struggling to draw the interface\./);
+  assert.match(PROFILE, /featureFlags\?\.\[PERFORMANCE_UI_FLAG\.id\] !== undefined\) return '';/,
+    'a hand choice hides the note: the person chose, so "automatically" would mislead');
+});
+
+test('the Settings row follows a switch or an Undo made elsewhere, and lets go on teardown', () => {
+  assert.match(PROFILE, /pv\.perfUiUnsub = subscribePerfUi\(\(\) => \{ syncPerfUiRow\(pv\); \}\);/);
+  assert.match(PROFILE, /pv\.perfUiUnsub\?\.\(\);\s*pv\.perfUiUnsub = null;/);
+});
+
+test('the pre-paint script needs no change: the flag mirror already carries the automatic value', () => {
+  assert.doesNotMatch(HTML, /perfUiAuto/, 'index.html reads lolly:featureFlags only');
+  assert.match(read('feature-flags.ts'), /if \(eff\[PERFORMANCE_UI_FLAG\.id\] === undefined && perfUiAutoOn\(\)\) eff\[PERFORMANCE_UI_FLAG\.id\] = true;/);
+});

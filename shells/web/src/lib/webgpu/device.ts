@@ -38,6 +38,33 @@ export interface WebGpuProvider {
   requestAdapter(options?: GPURequestAdapterOptions): Promise<GPUAdapter | null>;
 }
 
+/**
+ * What the startup check's adapter said about itself (`GPUAdapter.info`), kept in
+ * memory so the automatic Performance UI switch (lib/perf-ui-auto.ts) can tell a
+ * software renderer without creating a second context. Never stored or sent.
+ */
+export interface AdapterFacts {
+  vendor: string;
+  architecture: string;
+  device: string;
+  description: string;
+  isFallbackAdapter: boolean;
+}
+
+/** Read the facts from an adapter; an older browser without `info` gives empty strings. */
+function readAdapterFacts(adapter: GPUAdapter): AdapterFacts {
+  const info: Partial<GPUAdapterInfo> | undefined = adapter.info;
+  // Older Chromium reported the fallback flag on the adapter itself, not on `info`.
+  const legacy = (adapter as GPUAdapter & { isFallbackAdapter?: boolean }).isFallbackAdapter;
+  return {
+    vendor: info?.vendor ?? '',
+    architecture: info?.architecture ?? '',
+    device: info?.device ?? '',
+    description: info?.description ?? '',
+    isFallbackAdapter: info?.isFallbackAdapter === true || legacy === true,
+  };
+}
+
 export interface WebGpuEnvironment {
   /** False on a page served over plain HTTP. Defaults to the realm's `isSecureContext`. */
   secureContext?(): boolean;
@@ -75,11 +102,12 @@ export function createWebGpuDeviceService(readGpu: () => WebGpuProvider | undefi
   let lost: WebGpuError | null = null;
   let generation = 0;
   let checked: Promise<void> | null = null;
+  let startupFacts: AdapterFacts | null = null;
 
   /** One adapter and one device within the deadline, refused below the required
    *  limits. `stale` reports that the caller has moved on, and a device that answers
    *  after the deadline or after that is destroyed rather than leaked. */
-  function acquire(adapterOptions: GPURequestAdapterOptions, label: string, stale: () => boolean): Promise<GPUDevice> {
+  function acquire(adapterOptions: GPURequestAdapterOptions, label: string, stale: () => boolean, onAdapter?: (adapter: GPUAdapter) => void): Promise<GPUDevice> {
     let expired = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const acquisition = (async () => {
@@ -88,6 +116,7 @@ export function createWebGpuDeviceService(readGpu: () => WebGpuProvider | undefi
       if (!gpu) throw new WebGpuError('WEBGPU_REQUIRED', REQUIRED_MESSAGE);
       const adapter = await gpu.requestAdapter(adapterOptions);
       if (!adapter) throw new WebGpuError('WEBGPU_UNAVAILABLE', REQUIRED_MESSAGE);
+      onAdapter?.(adapter);
       const device = await adapter.requestDevice({ label });
       if (expired || stale()) {
         device.destroy();
@@ -154,11 +183,16 @@ export function createWebGpuDeviceService(readGpu: () => WebGpuProvider | undefi
    * operation acquires its own high-performance device through get() when it first runs.
    */
   function check(): Promise<void> {
-    checked ??= acquire({}, 'Lolly startup check', () => false).then(device => { device.destroy(); });
+    checked ??= acquire({}, 'Lolly startup check', () => false, adapter => { startupFacts = readAdapterFacts(adapter); }).then(device => { device.destroy(); });
     return checked;
   }
 
-  return { get, reset, check };
+  /** The startup check's adapter facts, or null before the check found an adapter. */
+  function adapterFacts(): AdapterFacts | null {
+    return startupFacts;
+  }
+
+  return { get, reset, check, adapterFacts };
 }
 
 const devices = createWebGpuDeviceService(() => globalThis.navigator?.gpu, globalThis.navigator?.webdriver ? AUTOMATION_BUDGET_MS : ACQUISITION_BUDGET_MS);
@@ -182,6 +216,10 @@ export function startWebGpuCheck(): Promise<void> {
 export function webGpuChecked(): Promise<void> {
   return startupCheck ?? Promise.resolve();
 }
+
+/** What the startup check's adapter said about itself, or null when the check has not
+ *  found one. Read after webGpuChecked() resolves. */
+export const startupAdapterFacts = devices.adapterFacts;
 
 export function webGpuLossSignal(device: GPUDevice): AbortSignal {
   const signal = lossSignals.get(device);

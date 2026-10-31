@@ -10435,5 +10435,9 @@
   "Headlines - 36px, or 24px bold": "Nagłówki - 36px lub 24px pogrubione",
   "Icons and borders only": "Tylko ikony i obramowania",
   "Not usable": "Nie nadaje się",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA jest zdefiniowane dla sRGB, więc kolor spoza sRGB jest oceniany według swojego odwzorowania w sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA jest zdefiniowane dla sRGB, więc kolor spoza sRGB jest oceniany według swojego odwzorowania w sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly przełączyło się na prostszy, szybszy wygląd, bo to urządzenie rysuje bez akceleracji grafiki.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly przełączyło się na prostszy, szybszy wygląd, bo to urządzenie miało kłopot z wydajnością.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Włączone automatycznie dnia {date}, bo to urządzenie rysuje bez akceleracji grafiki.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Włączone automatycznie dnia {date}, bo to urządzenie miało kłopot z rysowaniem interfejsu."
 }
