@@ -83,7 +83,7 @@ When an agent does the work, give the agent the lead brand's skills and the part
 
 ## Sponsor and event logo walls
 
-The [Logo Wall](/#/tool/logo-wall) tool arranges a pile of logos into an even grid, for a sponsor board, a partner slide or a press backdrop.
+The [Logo Wall](/#/tool/logo-wall) tool arranges a pile of logos into an even grid, for a sponsor board, a partner slide or a press backdrop. At an event the host is usually the lead brand: the wall is made in the host's design system, and each sponsor's logo sits on the wall as artwork.
 
 1. Open Logo Wall and drop the logos on **Logos**. Each logo gets its own set of controls.
 2. Give each logo a **Tier**, such as "Gold partners". Each tier gets its own rows, in the order the tiers first appear, under its own heading; **Tier headings** turns the headings off. With **Tier sizes** on **Step down**, each lower tier fits one more logo per row, so higher tiers read larger. **Presence** and **Size %** still nudge one logo within its tier.
