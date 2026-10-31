@@ -143,6 +143,14 @@ test('an export at another shape fills it, in the SVG and in the PNG drawn from 
   assert.ok(lower > 1000, `logos drawn in the lowest quarter (${lower} px)`);
 });
 
+test('a row can name a placeholder logo the tool ships, as the example look does', { skip: SKIP }, async () => {
+  const r = await cli(['run', 'logo-wall', '--logos=[{"logo":"/tools/logo-wall/assets/your-logo.svg","tier":"Gold partners"}]', '--output=shipped.svg', '--no-provenance']);
+  ok(r);
+  const text = await readFile(join(root, 'logos', 'shipped.svg'), 'utf8');
+  assert.deepEqual(images(text), ['svg+xml'], 'the shipped file is drawn, carried as its own bytes');
+  assert.doesNotMatch(r.stderr, /Failed to resolve|Tool asset not found/);
+});
+
 test('files the wall cannot take are refused before anything renders', { skip: SKIP }, async () => {
   const qr = await cli(['run', 'qr-code', 'a.svg', '--output=qr.svg']);
   assert.equal(qr.code, 2);

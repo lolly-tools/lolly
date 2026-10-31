@@ -27,7 +27,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -287,6 +287,36 @@ test('block values typed as text read as words', { skip: SKIP }, async () => {
   assert.ok(box, 'a "false" vectorize keeps the picture');
   near(box!.w, 272, 'an empty Size % is the default 100');
   assert.doesNotMatch(html, /opacity=/, 'an empty opacity is the default 1');
+});
+
+test('the example looks draw the tool\'s own placeholder files', { skip: SKIP }, async () => {
+  // The gallery tile and its looks render from manifest.examples. Every picture in
+  // them is one of community/logo-wall/assets/*.svg, named by its path (a tool
+  // asset id, packages/node-shell/src/tool-asset-id.ts), and every file there is
+  // used, so a renamed or orphaned file fails here.
+  const dir = join(COMMUNITY, 'logo-wall', 'assets');
+  const files = (await readdir(dir)).filter((n) => n.endsWith('.svg')).sort();
+  assert.ok(files.length >= 8, 'a wall needs a pile of placeholder logos');
+  const used = new Set<string>();
+  const looks = tool.manifest.examples as { values: { logos: { logo: { id: string } }[] } }[];
+  assert.ok(looks.length >= 1);
+  for (const look of looks) {
+    for (const row of look.values.logos) {
+      const m = /^\/tools\/logo-wall\/assets\/([a-z0-9-]+\.svg)$/.exec(row.logo.id);
+      assert.ok(m && files.includes(m[1]!), `${row.logo.id} is one of the tool's placeholder files`);
+      used.add(m![1]!);
+    }
+  }
+  assert.deepEqual([...used].sort(), files, 'every placeholder file is used');
+  for (const name of files) {
+    const svg = await readFile(join(dir, name), 'utf8');
+    assert.match(svg, /<title>Placeholder logo<\/title>/, name);
+    assert.doesNotMatch(svg, /<(text|image|use|style|script)\b|href=/, `${name} is outlines only`);
+  }
+  // The first look is a tiered wall: it renders with its headings, in this host too.
+  const html = await mount(looks[0]!.values as Record<string, unknown>);
+  assert.deepEqual(headings(html), ['Gold partners', 'Silver partners', 'Supporters']);
+  assert.equal(images(html).length, looks[0]!.values.logos.length);
 });
 
 test('a catalog or remote logo is carried as its own bytes', { skip: SKIP }, async () => {
