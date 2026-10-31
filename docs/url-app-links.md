@@ -142,7 +142,7 @@ Search, type, sorting, asset focus and sections keep one another in the address.
 
 | Param | Description |
 |---|---|
-| `area` | Which room: `overview` (labelled **Board**), `color`, `type`, `logos`, `tokens`, `catalogue` (labelled **Files**), `usage` (**Rules**) or `versions`. |
+| `area` | Which room, by its key: `overview` (**Board**), `color` (**Colours**), `type` (**Type**), `logos` (**Logos**), `tokens` (**Tokens**), `catalogue` (**Files**), `usage` (**Rules**), `skills` (**Skills**) or `versions` (**Versions**, which this link opens even before a first publish adds the room to the strip). |
 | `focus` | A wing of the colour room: `generate`, `curves`, `contrast`, `print` or `chart`. Three more open a first decision: `pick` (the Colours room's colour picker), `stage` (the Type room's face stage) and `looks` (**Find a look**, ready-made colours and type). |
 | `seed=<hex>` | Sets the Generate wing's primary colour before it opens. |
 | `wheel` | Presence flag: opens the OKLCH colour chart, the same as `focus=chart`. |

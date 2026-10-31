@@ -161,14 +161,14 @@ The map for the Lolly Demo brand skill:
 ```text
 Lolly Demo brand standards (r1.0)
 
-guidance-only  Voice: Not checked: the design system has no text-case rule. One could be drafted in Usage & rules.
+guidance-only  Voice: Not checked: the design system has no text-case rule. One could be drafted in the Rules room.
 agree          Colour: These values are colours in the design system. #09141a #ffffff #033633 #50c369 #fac044 #25c2c2 #7476e0 #da1889
 agree          Type: SUSE is a declared font family.
 agree          Type: Outfit is a declared font family.
 agree          Type: SUSE Mono is a declared font family.
-guidance-only  Type: Not checked: the design system has no text-weight rule. One could be drafted in Usage & rules.
+guidance-only  Type: Not checked: the design system has no text-weight rule. One could be drafted in the Rules room.
 guidance-only  Logo: Not checked: Lolly has no rule for logo clear space yet.
-guidance-only  Layout: Not checked: the design system has no text-align rule. One could be drafted in Usage & rules.
+guidance-only  Layout: Not checked: the design system has no text-align rule. One could be drafted in the Rules room.
 ```
 
 How to read the map:

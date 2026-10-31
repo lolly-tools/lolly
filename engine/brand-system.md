@@ -58,7 +58,7 @@ interpreted. Plain token JSON cannot supply missing resource bytes.
 
 ## Executable example rules
 
-Start's **Usage & rules** room preserves the brand's role names and maps each rule
+Start's **Rules** room preserves the brand's role names and maps each rule
 to a named example, mode and PNG output. Editable systems can save drafts, record
 local approval, revise rules and remove rules with a recovery checkpoint. Managed
 systems expose the readable guide and examples without authoring controls.

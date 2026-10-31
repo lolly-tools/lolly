@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.294.0
+
+- The brand-skill check's `guidance-only` detail for a statement with no house rule of its kind now points at the studio's **Rules** room, the room's label since plan 336: "Not checked: the design system has no text-case rule. One could be drafted in the Rules room." It used to give the room's former label, Usage & rules. Only the `detail` text changes; statuses, kinds and every other field read as before.
+
 ## 1.293.0
 
 - Every hook is told the canvas size: `ctx.canvasSize` is a frozen `{ width, height }` in CSS pixels (96 per inch) on `onInit`, `onInput`, `onFrame`, `onLevel`, `beforeExport`, `afterExport`, `exportFile` and `exportStill`. It is the size the shell is making the tool at, the requested export size when both sides are known, else the manifest's `render.width` x `render.height`. Templates read the same size as the Handlebars data variable `{{@canvasSize.width}}` / `{{@canvasSize.height}}`, which cannot collide with an input id or an extra. `hydrate` gains a `data` option that carries it.
