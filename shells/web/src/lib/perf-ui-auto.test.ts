@@ -2,9 +2,9 @@
 /**
  * The automatic Performance UI switch against a real jsdom document: the stored
  * record, how it meets a hand choice in the flag reads, the switch itself, the notice
- * with Undo and Keep, how the notice waits behind a first-run prompt, who never runs it,
- * and the start-up software-renderer path through the real WebGPU startup check (with
- * a fake adapter).
+ * with Undo and Keep, how the notice waits behind a first-run prompt, "Allow again"
+ * after an Undo, who never runs it, and the start-up software-renderer path through
+ * the real WebGPU startup check (with a fake adapter).
  *
  * The decision maths is covered with synthetic frames in perf-ui-auto-detect.test.ts.
  *
@@ -27,7 +27,7 @@ globalThis.HTMLElement = dom.window.HTMLElement;
 globalThis.MutationObserver = dom.window.MutationObserver;
 Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, configurable: true });
 
-const { PERF_UI_AUTO_KEY, readPerfUiAuto, writePerfUiAuto, perfUiAutoPending } = await import('./perf-ui-auto-state.ts');
+const { PERF_UI_AUTO_KEY, readPerfUiAuto, writePerfUiAuto, perfUiAutoPending, allowPerfUiAutoAgain } = await import('./perf-ui-auto-state.ts');
 const { holdFirstRunBanner, settleFirstRunBanner } = await import('./first-run-prompts.ts');
 const { PERFORMANCE_UI_FLAG, isFlagOn, isFlagOnSync, hydrateFeatureFlags, applyPerfUi } = await import('../feature-flags.ts');
 const auto = await import('./perf-ui-auto.ts');
@@ -236,6 +236,27 @@ test('a prompt that opens over the notice comes first: the notice steps aside un
   later.remove();
   await tick();
   assert.equal(toast(), null);
+});
+
+// ── Allow again ────────────────────────────────────────────────────────────────
+
+test('"Allow again" forgets an Undo without turning the look on', () => {
+  auto.switchPerfUiOn('slow');
+  buttons()[0]!.click(); // Undo
+  assert.equal(perfUiAutoPending(false), false);
+  allowPerfUiAutoAgain();
+  assert.equal(readPerfUiAuto(), null, 'the suppression is gone');
+  assert.equal(perfUiAutoPending(false), true, 'so the next start loads the detector again');
+  assert.equal(html().hasAttribute('data-perf-ui'), false, 'and the look stays off');
+  assert.equal(isFlagOnSync(PERFORMANCE_UI_FLAG), false);
+  hydrateFeatureFlags({});
+  assert.equal(isFlagOnSync(PERFORMANCE_UI_FLAG), false, 'also on the next start, before anything is measured');
+});
+
+test('"Allow again" never touches an automatic switch that is on', () => {
+  writePerfUiAuto({ v: 1, state: 'on', reason: 'software', at: 9 });
+  allowPerfUiAutoAgain();
+  assert.deepEqual(readPerfUiAuto(), { v: 1, state: 'on', reason: 'software', at: 9 });
 });
 
 // ── Who never runs it ──────────────────────────────────────────────────────────

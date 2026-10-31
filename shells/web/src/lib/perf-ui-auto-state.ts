@@ -8,7 +8,8 @@
  * always wins over this record.
  *
  *   { v: 1, state: 'on', reason, at, seen? }   switched on automatically
- *   { v: 1, state: 'undone', at }              the person pressed Undo: never again here
+ *   { v: 1, state: 'undone', at }              the person pressed Undo: never again here,
+ *                                              until "Allow again" in Settings clears it
  *
  * A leaf on purpose: feature-flags.ts reads it during first paint, so it imports
  * nothing (an import of feature-flags.ts would also close a cycle).
@@ -42,6 +43,14 @@ export function readPerfUiAuto(): PerfUiAutoRecord | null {
 /** Best-effort write: blocked storage leaves the decision for this tab only. */
 export function writePerfUiAuto(record: PerfUiAutoRecord): void {
   try { localStorage.setItem(PERF_UI_AUTO_KEY, JSON.stringify(record)); } catch { /* storage blocked */ }
+}
+
+/** "Allow again" in Settings: forget an Undo, so the automatic switch may run again from
+ *  the next start. It never turns the look on. Only an Undo is forgotten; an automatic
+ *  "on" stays, since clearing it would turn the look off behind the person's back. */
+export function allowPerfUiAutoAgain(): void {
+  if (readPerfUiAuto()?.state !== 'undone') return;
+  try { localStorage.removeItem(PERF_UI_AUTO_KEY); } catch { /* storage blocked */ }
 }
 
 /** Is the look on because of an automatic decision? The caller still checks for a hand

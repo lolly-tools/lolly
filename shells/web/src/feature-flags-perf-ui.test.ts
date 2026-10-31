@@ -187,14 +187,29 @@ test('boot applies the flag, and the pre-paint script mirrors it to avoid a flas
 // ── The automatic switch (lib/perf-ui-auto.ts): Settings shows when and why ──────
 
 test('Settings explains an automatic switch beside the toggle, as its description', () => {
-  assert.match(PROFILE, /const note = f\.id === PERFORMANCE_UI_FLAG\.id \? perfUiAutoNote\(pv\) : '';/,
+  assert.match(PROFILE, /const note = f\.id === PERFORMANCE_UI_FLAG\.id \? perfUiAutoNote\(pv\) : null;/,
     'only the Performance UI row carries the note');
   assert.match(PROFILE, /aria-describedby="\$\{ctlId\}-auto"/, 'the note describes the switch rather than renaming it');
-  assert.match(PROFILE, /<p class="feature-flag-note" id="\$\{ctlId\}-auto">/);
+  assert.match(PROFILE, /<p class="feature-flag-note"><span id="\$\{ctlId\}-auto">/,
+    'the sentence alone is the description, not the button after it');
   assert.match(PROFILE, /Turned on automatically on \{date\} because this device draws without graphics acceleration\./);
   assert.match(PROFILE, /Turned on automatically on \{date\} because this device was struggling to draw the interface\./);
-  assert.match(PROFILE, /featureFlags\?\.\[PERFORMANCE_UI_FLAG\.id\] !== undefined\) return '';/,
+  assert.match(PROFILE, /featureFlags\?\.\[PERFORMANCE_UI_FLAG\.id\] !== undefined\) return null;/,
     'a hand choice hides the note: the person chose, so "automatically" would mislead');
+});
+
+test('after an Undo, Settings says automatic switching is off here and offers "Allow again"', () => {
+  assert.match(PROFILE, /if \(rec\.state === 'undone'\) return \{ text: tRaw\('Automatic switching is off on this device because you chose Undo on \{date\}\.', \{ date \}\), allow: true \};/);
+  assert.match(PROFILE, /class="btn btn--sm feature-flag-note-action" data-perf-ui-allow>\$\{escapeText\(t\('Allow again'\)\)\}<\/button>/,
+    'the shared small button, rendered with the row');
+  assert.match(PROFILE, /allow\.className = 'btn btn--sm feature-flag-note-action';/, 'and when the row is brought up to date in place');
+  assert.match(PROFILE, /if \(\(e\.target as Element\)\.closest\('\[data-perf-ui-allow\]'\)\) pv\.rows\.allowPerfUiAgain\(\);/,
+    'delegated, so it survives the list being rebuilt');
+  const allow = PROFILE.slice(PROFILE.indexOf('export const allowPerfUiAgain'), PROFILE.indexOf('export const syncPerfUiRow'));
+  assert.match(allow, /allowPerfUiAutoAgain\(\);/, 'clears the Undo record');
+  assert.doesNotMatch(allow, /applyPerfUi|setFlagMirror|host\.profile\.set/, 'and never turns the look on, or records a hand choice');
+  assert.match(allow, /Automatic switching is allowed again from the next time you open Lolly\./);
+  assert.match(allow, /\?\.focus\(\);/, 'focus goes to the switch, not to the page, when the button goes');
 });
 
 // ── The flag switch's knob under the Performance UI ──────────────────────────────
