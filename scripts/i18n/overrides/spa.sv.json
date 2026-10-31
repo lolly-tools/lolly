@@ -1801,5 +1801,10 @@
   "Board": "Tavla",
   "Choose for {role}": "Välj för {role}",
   "Change {role}": "Ändra {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ditt varumärkes vägledning, skriven för människor och agenter. Agenter läser varumärkesfärdigheten först, sedan den för arbetet. Färdigheter vägleder arbetet; varumärkesreglerna i Regler är det Lolly kontrollerar."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ditt varumärkes vägledning, skriven för människor och agenter. Agenter läser varumärkesfärdigheten först, sedan den för arbetet. Färdigheter vägleder arbetet; varumärkesreglerna i Regler är det Lolly kontrollerar.",
+  "Use the automatic colour": "Använd den automatiska färgen",
+  "follows the design system ({colour})": "följer designsystemet ({colour})",
+  "follows the design system": "följer designsystemet",
+  "automatic ({colour})": "automatisk ({colour})",
+  "automatic": "automatisk"
 }

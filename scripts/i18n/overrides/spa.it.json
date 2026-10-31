@@ -1939,5 +1939,10 @@
   "Board": "Bacheca",
   "Choose for {role}": "Scegli per {role}",
   "Change {role}": "Cambia {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Le indicazioni del tuo brand, scritte per persone e agenti. Gli agenti leggono prima la skill del brand, poi quella per il lavoro in corso. Le skill guidano il lavoro; le regole interne in Regole sono ciò che Lolly controlla."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Le indicazioni del tuo brand, scritte per persone e agenti. Gli agenti leggono prima la skill del brand, poi quella per il lavoro in corso. Le skill guidano il lavoro; le regole interne in Regole sono ciò che Lolly controlla.",
+  "Use the automatic colour": "Usa il colore automatico",
+  "follows the design system ({colour})": "segue il design system ({colour})",
+  "follows the design system": "segue il design system",
+  "automatic ({colour})": "automatico ({colour})",
+  "automatic": "automatico"
 }

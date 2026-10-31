@@ -1937,5 +1937,10 @@
   "Board": "Дошка",
   "Choose for {role}": "Вибрати для: {role}",
   "Change {role}": "Змінити: {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Настанови вашого бренду, написані для людей і агентів. Агенти спершу читають навичку бренду, потім навичку для поточної роботи. Навички скеровують роботу; внутрішні правила в «Правилах» це те, що перевіряє Lolly."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Настанови вашого бренду, написані для людей і агентів. Агенти спершу читають навичку бренду, потім навичку для поточної роботи. Навички скеровують роботу; внутрішні правила в «Правилах» це те, що перевіряє Lolly.",
+  "Use the automatic colour": "Використати автоматичний колір",
+  "follows the design system ({colour})": "дотримується дизайн-системи ({colour})",
+  "follows the design system": "дотримується дизайн-системи",
+  "automatic ({colour})": "автоматично ({colour})",
+  "automatic": "автоматично"
 }

@@ -10446,5 +10446,10 @@
   "Board": "看板",
   "Choose for {role}": "为{role}选择",
   "Change {role}": "更改{role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "你品牌的指南，为人和代理而写。代理会先读品牌技能，再读针对当前工作的技能。技能指导工作；而“规则”中的内部规范，才是 Lolly 会检查的内容。"
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "你品牌的指南，为人和代理而写。代理会先读品牌技能，再读针对当前工作的技能。技能指导工作；而“规则”中的内部规范，才是 Lolly 会检查的内容。",
+  "Use the automatic colour": "使用自动颜色",
+  "follows the design system ({colour})": "跟随设计系统（{colour}）",
+  "follows the design system": "跟随设计系统",
+  "automatic ({colour})": "自动（{colour}）",
+  "automatic": "自动"
 }

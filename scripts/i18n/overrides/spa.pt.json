@@ -1808,5 +1808,10 @@
   "Board": "Mural",
   "Choose for {role}": "Escolher para {role}",
   "Change {role}": "Alterar {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "A orientação da sua marca, escrita para pessoas e agentes. Os agentes leem primeiro a skill da marca e depois a do trabalho em questão. As skills orientam o trabalho; as regras internas em Regras são o que o Lolly verifica."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "A orientação da sua marca, escrita para pessoas e agentes. Os agentes leem primeiro a skill da marca e depois a do trabalho em questão. As skills orientam o trabalho; as regras internas em Regras são o que o Lolly verifica.",
+  "Use the automatic colour": "Usar a cor automática",
+  "follows the design system ({colour})": "segue o sistema de design ({colour})",
+  "follows the design system": "segue o sistema de design",
+  "automatic ({colour})": "automática ({colour})",
+  "automatic": "automática"
 }

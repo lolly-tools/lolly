@@ -10446,5 +10446,10 @@
   "Board": "보드",
   "Choose for {role}": "{role} 선택",
   "Change {role}": "{role} 변경",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "브랜드의 안내서로, 사람과 에이전트를 위해 쓰였어요. 에이전트는 브랜드 스킬을 먼저 읽고, 그다음 작업에 맞는 스킬을 읽어요. 스킬은 작업을 안내하고, 규칙의 하우스 룰은 Lolly가 검사하는 대상이에요."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "브랜드의 안내서로, 사람과 에이전트를 위해 쓰였어요. 에이전트는 브랜드 스킬을 먼저 읽고, 그다음 작업에 맞는 스킬을 읽어요. 스킬은 작업을 안내하고, 규칙의 하우스 룰은 Lolly가 검사하는 대상이에요.",
+  "Use the automatic colour": "자동 색상 사용",
+  "follows the design system ({colour})": "디자인 시스템을 따름 ({colour})",
+  "follows the design system": "디자인 시스템을 따름",
+  "automatic ({colour})": "자동 ({colour})",
+  "automatic": "자동"
 }

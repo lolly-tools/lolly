@@ -1803,5 +1803,10 @@
   "Board": "Nástěnka",
   "Choose for {role}": "Vybrat pro: {role}",
   "Change {role}": "Změnit: {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Pokyny tvé značky, psané pro lidi i agenty. Agenti čtou nejdřív dovednost značky, pak tu pro danou práci. Dovednosti práci vedou; Lolly kontroluje interní pravidla v části Pravidla."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Pokyny tvé značky, psané pro lidi i agenty. Agenti čtou nejdřív dovednost značky, pak tu pro danou práci. Dovednosti práci vedou; Lolly kontroluje interní pravidla v části Pravidla.",
+  "Use the automatic colour": "Použij automatickou barvu",
+  "follows the design system ({colour})": "řídí se design systémem ({colour})",
+  "follows the design system": "řídí se design systémem",
+  "automatic ({colour})": "automatická ({colour})",
+  "automatic": "automatická"
 }

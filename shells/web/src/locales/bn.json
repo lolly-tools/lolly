@@ -10446,5 +10446,10 @@
   "Board": "বোর্ড",
   "Choose for {role}": "{role}-এর জন্য বেছে নিন",
   "Change {role}": "{role} পরিবর্তন করুন",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "আপনার ব্র্যান্ডের নির্দেশিকা, মানুষ ও এজেন্টের জন্য লেখা। এজেন্ট প্রথমে ব্র্যান্ড স্কিল পড়ে, তারপর হাতের কাজের স্কিল। স্কিল কাজে পথ দেখায়; নিয়মসমূহে থাকা হাউস রুলস Lolly যাচাই করে।"
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "আপনার ব্র্যান্ডের নির্দেশিকা, মানুষ ও এজেন্টের জন্য লেখা। এজেন্ট প্রথমে ব্র্যান্ড স্কিল পড়ে, তারপর হাতের কাজের স্কিল। স্কিল কাজে পথ দেখায়; নিয়মসমূহে থাকা হাউস রুলস Lolly যাচাই করে।",
+  "Use the automatic colour": "স্বয়ংক্রিয় রং ব্যবহার করুন",
+  "follows the design system ({colour})": "ডিজাইন সিস্টেম অনুসরণ করে ({colour})",
+  "follows the design system": "ডিজাইন সিস্টেম অনুসরণ করে",
+  "automatic ({colour})": "স্বয়ংক্রিয় ({colour})",
+  "automatic": "স্বয়ংক্রিয়"
 }

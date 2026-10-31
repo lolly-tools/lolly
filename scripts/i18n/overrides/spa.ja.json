@@ -1809,5 +1809,10 @@
   "Board": "ボード",
   "Choose for {role}": "{role}を選択",
   "Change {role}": "{role}を変更",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "ブランドのガイダンスを、人とエージェント向けに書いたもの。エージェントはまずブランドスキルを読み、次に作業に合ったスキルを読みます。スキルは作業を導くもので、Lolly がチェックするのは「ルール」のハウスルールです。"
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "ブランドのガイダンスを、人とエージェント向けに書いたもの。エージェントはまずブランドスキルを読み、次に作業に合ったスキルを読みます。スキルは作業を導くもので、Lolly がチェックするのは「ルール」のハウスルールです。",
+  "Use the automatic colour": "自動カラーを使う",
+  "follows the design system ({colour})": "デザインシステムに従っています ({colour})",
+  "follows the design system": "デザインシステムに従っています",
+  "automatic ({colour})": "自動 ({colour})",
+  "automatic": "自動"
 }

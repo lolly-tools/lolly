@@ -10446,5 +10446,10 @@
   "Board": "Board",
   "Choose for {role}": "Pumili para sa {role}",
   "Change {role}": "Baguhin ang {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ang gabay ng brand mo, isinulat para sa mga tao at agent. Binabasa muna ng agents ang brand skill, saka ang para sa gawain. Gumagabay ang skills sa trabaho; ang house rules sa Rules ang sinusuri ng Lolly."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ang gabay ng brand mo, isinulat para sa mga tao at agent. Binabasa muna ng agents ang brand skill, saka ang para sa gawain. Gumagabay ang skills sa trabaho; ang house rules sa Rules ang sinusuri ng Lolly.",
+  "Use the automatic colour": "Gamitin ang awtomatikong kulay",
+  "follows the design system ({colour})": "sumusunod sa design system ({colour})",
+  "follows the design system": "sumusunod sa design system",
+  "automatic ({colour})": "awtomatiko ({colour})",
+  "automatic": "awtomatiko"
 }

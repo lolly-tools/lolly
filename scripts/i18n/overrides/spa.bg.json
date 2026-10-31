@@ -1939,5 +1939,10 @@
   "Board": "Табло",
   "Choose for {role}": "Избери за {role}",
   "Change {role}": "Промени {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Насоките на твоята марка, написани за хора и агенти. Агентите четат първо умението на марката, после това за текущата работа. Уменията ръководят работата; вътрешните правила в Правила са онова, което Lolly проверява."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Насоките на твоята марка, написани за хора и агенти. Агентите четат първо умението на марката, после това за текущата работа. Уменията ръководят работата; вътрешните правила в Правила са онова, което Lolly проверява.",
+  "Use the automatic colour": "Използвай автоматичния цвят",
+  "follows the design system ({colour})": "следва дизайн системата ({colour})",
+  "follows the design system": "следва дизайн системата",
+  "automatic ({colour})": "автоматично ({colour})",
+  "automatic": "автоматично"
 }
