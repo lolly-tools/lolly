@@ -1803,5 +1803,9 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "這部裝置沒有圖形加速就進行繪製，所以 Lolly 已切換為更簡單、更快的外觀。",
   "Lolly switched to the simpler, faster look because this device was struggling.": "這部裝置運作吃力，所以 Lolly 已切換為更簡單、更快的外觀。",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "已於 {date} 自動開啟，因為這部裝置沒有圖形加速就進行繪製。",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "已於 {date} 自動開啟，因為這部裝置繪製介面時運作吃力。"
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "已於 {date} 自動開啟，因為這部裝置繪製介面時運作吃力。",
+  "Board": "看板",
+  "Choose for {role}": "為{role}選擇",
+  "Change {role}": "變更{role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "你品牌的指引，為人和代理而寫。代理先讀品牌技能，再讀手邊工作所用的技能。技能引導工作；Lolly 檢查的是「規則」中的內部規則。"
 }

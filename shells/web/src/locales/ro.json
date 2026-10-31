@@ -10439,5 +10439,9 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly a trecut la aspectul mai simplu și mai rapid, pentru că acest dispozitiv desenează fără accelerare grafică.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly a trecut la aspectul mai simplu și mai rapid, pentru că acest dispozitiv se chinuia.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Activat automat la {date}, pentru că acest dispozitiv desenează fără accelerare grafică.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Activat automat la {date}, pentru că acest dispozitiv se chinuia să deseneze interfața."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Activat automat la {date}, pentru că acest dispozitiv se chinuia să deseneze interfața.",
+  "Board": "Panou",
+  "Choose for {role}": "Alege pentru {role}",
+  "Change {role}": "Schimbă {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ghidajul brandului tău, scris pentru oameni și agenți. Agenții citesc mai întâi abilitatea brandului, apoi pe cea pentru lucrarea curentă. Abilitățile ghidează lucrarea; regulile interne din Reguli sunt ce verifică Lolly."
 }

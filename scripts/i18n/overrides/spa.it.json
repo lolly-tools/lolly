@@ -1932,5 +1932,9 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly è passato all'aspetto più semplice e veloce perché questo dispositivo disegna senza accelerazione grafica.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly è passato all'aspetto più semplice e veloce perché questo dispositivo faceva fatica.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Attivato automaticamente il {date} perché questo dispositivo disegna senza accelerazione grafica.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Attivato automaticamente il {date} perché questo dispositivo faceva fatica a disegnare l'interfaccia."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Attivato automaticamente il {date} perché questo dispositivo faceva fatica a disegnare l'interfaccia.",
+  "Board": "Bacheca",
+  "Choose for {role}": "Scegli per {role}",
+  "Change {role}": "Cambia {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Le indicazioni del tuo brand, scritte per persone e agenti. Gli agenti leggono prima la skill del brand, poi quella per il lavoro in corso. Le skill guidano il lavoro; le regole interne in Regole sono ciò che Lolly controlla."
 }

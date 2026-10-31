@@ -1802,5 +1802,9 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে, কারণ এই ডিভাইস গ্রাফিক্স অ্যাক্সিলারেশন ছাড়াই ছবি আঁকে।",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে, কারণ এই ডিভাইসটি ধীর চলছিল।",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "{date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে, কারণ এই ডিভাইস গ্রাফিক্স অ্যাক্সিলারেশন ছাড়াই ছবি আঁকে।",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে, কারণ এই ডিভাইসে ইন্টারফেস আঁকতে সমস্যা হচ্ছিল।"
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে, কারণ এই ডিভাইসে ইন্টারফেস আঁকতে সমস্যা হচ্ছিল।",
+  "Board": "বোর্ড",
+  "Choose for {role}": "{role}-এর জন্য বেছে নিন",
+  "Change {role}": "{role} পরিবর্তন করুন",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "আপনার ব্র্যান্ডের নির্দেশিকা, মানুষ ও এজেন্টের জন্য লেখা। এজেন্ট প্রথমে ব্র্যান্ড স্কিল পড়ে, তারপর হাতের কাজের স্কিল। স্কিল কাজে পথ দেখায়; নিয়মসমূহে থাকা হাউস রুলস Lolly যাচাই করে।"
 }

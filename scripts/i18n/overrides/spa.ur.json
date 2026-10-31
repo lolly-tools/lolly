@@ -1801,5 +1801,9 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly آسان اور تیز تر Look پر آ گیا ہے، کیونکہ یہ ڈیوائس گرافکس ایکسلریشن کے بغیر ڈرا کرتی ہے۔",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly آسان اور تیز تر Look پر آ گیا ہے، کیونکہ یہ ڈیوائس سست چل رہی تھی۔",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "{date} کو خودکار طور پر آن ہوا، کیونکہ یہ ڈیوائس گرافکس ایکسلریشن کے بغیر ڈرا کرتی ہے۔",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} کو خودکار طور پر آن ہوا، کیونکہ اس ڈیوائس کو انٹرفیس ڈرا کرنے میں دشواری ہو رہی تھی۔"
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} کو خودکار طور پر آن ہوا، کیونکہ اس ڈیوائس کو انٹرفیس ڈرا کرنے میں دشواری ہو رہی تھی۔",
+  "Board": "بورڈ",
+  "Choose for {role}": "{role} کے لیے منتخب کریں",
+  "Change {role}": "{role} تبدیل کریں",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "آپ کے برانڈ کی رہنمائی، لوگوں اور ایجنٹس کے لیے لکھی ہوئی۔ ایجنٹس پہلے برانڈ اسکل پڑھتے ہیں، پھر کام کے لیے متعلقہ اسکل۔ اسکلز کام کی رہنمائی کرتی ہیں؛ قواعد کے ہاؤس رولز وہ ہیں جو Lolly جانچتا ہے۔"
 }

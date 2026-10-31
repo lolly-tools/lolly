@@ -1932,5 +1932,9 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly byttet til det enklere, raskere utseendet fordi denne enheten tegner uten grafikkakselerasjon.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly byttet til det enklere, raskere utseendet fordi denne enheten hadde det tungt.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Slått på automatisk {date} fordi denne enheten tegner uten grafikkakselerasjon.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Slått på automatisk {date} fordi denne enheten hadde problemer med å tegne grensesnittet."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Slått på automatisk {date} fordi denne enheten hadde problemer med å tegne grensesnittet.",
+  "Board": "Tavle",
+  "Choose for {role}": "Velg for {role}",
+  "Change {role}": "Endre {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Merkevarens veiledning, skrevet for mennesker og agenter. Agenter leser merkevareferdigheten først, så den for oppgaven. Ferdigheter veileder arbeidet; husreglene i Regler er det Lolly sjekker."
 }

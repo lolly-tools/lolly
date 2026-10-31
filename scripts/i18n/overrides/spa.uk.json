@@ -1930,5 +1930,9 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly перейшов на простіший і швидший вигляд, бо цей пристрій малює без графічного прискорення.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly перейшов на простіший і швидший вигляд, бо цей пристрій працював із труднощами.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Автоматично ввімкнено {date}, бо цей пристрій малює без графічного прискорення.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Автоматично ввімкнено {date}, бо цьому пристрою було важко малювати інтерфейс."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Автоматично ввімкнено {date}, бо цьому пристрою було важко малювати інтерфейс.",
+  "Board": "Дошка",
+  "Choose for {role}": "Вибрати для: {role}",
+  "Change {role}": "Змінити: {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Настанови вашого бренду, написані для людей і агентів. Агенти спершу читають навичку бренду, потім навичку для поточної роботи. Навички скеровують роботу; внутрішні правила в «Правилах» це те, що перевіряє Lolly."
 }
