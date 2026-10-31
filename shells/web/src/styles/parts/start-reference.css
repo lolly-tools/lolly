@@ -33,7 +33,7 @@
   cursor: pointer;
   font-size: var(--fs-sm);
 }
-.ds-reference-choice:has(:checked) { border-color: hsl(var(--primary)); background: hsl(var(--accent)); }
+.ds-reference-choice:has(:checked) { background: var(--ui-color-selection-surface); font-weight: 650; }
 .ds-reference-choice:has(:focus-visible) { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .ds-reference-choice .start-color-swatch { width: 24px; height: 24px; flex: none; }
 .ds-reference-details summary { min-height: 44px; align-content: center; cursor: pointer; }
@@ -71,7 +71,7 @@
 .ds-look-option > .ds-row-preview,
 .ds-look-option > .ds-src-stage-note { grid-column: 1 / -1; }
 .ds-look-option > .ds-src-stage-note { padding-inline: var(--sp-5); }
-.ds-look-option.is-selected { border-color: hsl(var(--primary)); outline: 2px solid hsl(var(--primary)); }
+.ds-look-option.is-selected { background: var(--ui-color-selection-surface); }
 .ds-look-option:has(:focus-visible) { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
 .ds-looks-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--sp-6); }
 .ds-looks-comparison article { min-width: 0; border: 1px solid hsl(var(--border)); padding: var(--sp-6); border-radius: var(--radius-lg); overflow-wrap: anywhere; }
