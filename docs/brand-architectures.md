@@ -237,7 +237,7 @@ A sponsor's or partner's mark on your event poster, a reseller's offer under the
 
 1. Make the piece in the lead brand's design system.
 2. Put the partner's logo in **Assets**, then choose it in the tool's image field, or in Design with **Image** from the rail's add menu. For a partner you work with often, add the logo as a **custom mark**, so the logo travels with your design system.
-3. For a sponsor or partner wall, use the [Logo Wall](/#/tool/logo-wall) tool. Give each logo a tier, such as "Gold partners", and each tier gets its own rows under its own heading. The CLI builds the wall from a folder of pictures or a CSV ([A sponsor wall with tiers](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
+3. For a sponsor or partner wall, use the [Logo Wall](/#/tool/logo-wall) tool. Give each logo a tier, such as "Gold partners", and each tier gets its own rows under its own heading. An export at another shape, such as an A4 page, is laid out again to fill the page. The CLI builds the wall from a folder of pictures or a CSV ([A sponsor wall with tiers](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 4. When an agent does the work, give the agent each brand's [brand skills](/info/brand-skills.html) as they are, and say which brand leads. Each brand's skills keep their own names and ids. Lolly does not merge two brands' skills or decide which brand wins.
 
 [Working with partners](/info/partners.html) has the steps for both sides: sharing your brand with a partner, working in a brand you were given, placing a partner's mark and building a logo wall.

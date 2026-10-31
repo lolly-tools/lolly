@@ -10,10 +10,13 @@
  *    is what lets the CLI, the TUI and the MCP server export it with no browser;
  *  - an untiered wall places every logo where the pre-1.5.0 CSS grid did: equal
  *    columns and rows inside the padding, the logo box size% of its cell, centred;
- *  - step & repeat keeps the brick quirk of the old flex rows (offset rows are a
- *    share of the WIDER row), and clips at the padding edge;
+ *  - step & repeat offsets brick rows by half a cell with every row's logos the
+ *    same size, and clips at the padding edge;
  *  - tiers group logos in first-appearance order, each under its heading, with
  *    Step down sizing fitting one more logo across each lower tier;
+ *  - an export at another shape (1080 x 1920, an A4 page) lays the wall out again
+ *    in a frame of that shape and puts the canvas back afterwards, while an export
+ *    at the canvas's own shape is the canvas as drawn;
  *  - with no canvas the wall still renders and says which steps it skipped;
  *  - text-typed block values ("false", "") read as the words they are, so a
  *    compact share link or a CSV import does not vectorise or hide a logo.
@@ -24,10 +27,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
+import { JSDOM } from 'jsdom';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
@@ -120,17 +124,25 @@ test('greyscale and opacity travel as SVG, and a block without an image leaves n
   assert.deepEqual(images(html).map((b) => b.index), [0, 2]);
 });
 
-test('step & repeat keeps the brick offset rows and clips at the padding', { skip: SKIP }, async () => {
-  const html = await mount({ logos: [{ logo: svgLogo('a.svg') }, { logo: svgLogo('b.svg') }], repeat: 'brick', repeatRows: 2, balance: false });
+test('step & repeat offsets brick rows by half a cell and clips at the padding', { skip: SKIP }, async () => {
+  const html = await mount({ logos: [{ logo: svgLogo('a.svg') }, { logo: svgLogo('b.svg') }], repeat: 'brick', repeatRows: 3, balance: false });
   assert.match(html, /<clipPath id="lw-clip"><rect x="48" y="48" width="1184" height="624"\/><\/clipPath>/);
   assert.match(html, /<g clip-path="url\(#lw-clip\)">/);
   const boxes = images(html);
-  assert.equal(boxes.length, 4 + 5);
-  // Row 2 is shifted left by half a cell plus half a gap, (272 + 32) / 2 = 152, and its
-  // cells are a quarter of the widened row: (1184 + 152 - 96) / 4 = 310.
+  assert.equal(boxes.length, 4 + 5 + 4);
+  // Row 2 is shifted left by half a cell plus half a gap, (272 + 32) / 2 = 152, and
+  // carries one more cell so both cropped edges stay filled.
   near(boxes[4]!.x, 48 - 152, 'offset row x');
-  near(boxes[4]!.w, 310, 'offset row cell w');
-  near(boxes[0]!.w, 272, 'plain row cell w');
+  near(boxes[8]!.x + boxes[8]!.w, 48 + 1184 + 152, 'offset row reaches past the right edge');
+  // Every row draws its logos at the same size (an offset row used to be about 14%
+  // larger), so each offset cell sits centred under the gap between the two cells above.
+  for (const b of boxes) {
+    near(b.w, 272, 'cell width');
+    near(b.h, boxes[0]!.h, 'cell height');
+  }
+  for (let c = 0; c < 4; c++) {
+    near(boxes[4 + c + 1]!.x + 136, boxes[c]!.x + 272 + 16, `offset cell ${c + 1} centred under the gap`);
+  }
 });
 
 test('tiers group the wall in first-appearance order, under headings', { skip: SKIP }, async () => {
@@ -177,6 +189,86 @@ test('an untiered wall is unchanged by the tier inputs', { skip: SKIP }, async (
   assert.deepEqual(toggled, plain);
 });
 
+/**
+ * Export the wall from a real DOM node, the way a shell does: hydrate into a node,
+ * hand the node to runtime.export and keep the <svg> the shell would have written.
+ * `after` is the node once the export is done, and `kept` says whether the logo
+ * elements the canvas drew are the same elements afterwards.
+ */
+async function exportAt(values: Record<string, unknown>, opts: Record<string, unknown>) {
+  const dom = new JSDOM('<!DOCTYPE html><html><body><div id="c"></div></body></html>');
+  const node = dom.window.document.getElementById('c')!;
+  let written = '';
+  const host = baseHost({
+    export: { render: async (n: Element) => { written = n.querySelector('svg')!.outerHTML; return new Blob([written]); } },
+  });
+  const rt = await createRuntime(tool, host, values as Record<string, InputValue>);
+  node.innerHTML = rt.getHydrated() as string;
+  const before = node.innerHTML;
+  const drawn = [...node.querySelectorAll('image')];
+  await rt.export(node as unknown as Element, 'svg', { embedMeta: false, ...opts });
+  const now = [...node.querySelectorAll('image')];
+  return { written, before, after: node.innerHTML, kept: drawn.length === now.length && drawn.every((el, i) => el === now[i]) };
+}
+
+const viewBoxOf = (svg: string) => /viewBox="([^"]+)"/.exec(svg)![1]!.split(' ').map(Number);
+
+test('an export at another shape lays the wall out again to fill it', { skip: SKIP }, async () => {
+  const logos = ['a', 'b', 'c', 'd', 'e'].map((n) => ({ logo: svgLogo(n + '.svg') }));
+  const tall = await exportAt({ logos, balance: false }, { width: 1080, height: 1920 });
+  // The frame keeps the canvas's area and takes the export's shape: 1080 x 1920 is
+  // 720 x 1280, so padding, gaps and logos keep their size against the picture.
+  assert.deepEqual(viewBoxOf(tall.written), [0, 0, 720, 1280]);
+  const boxes = images(tall.written);
+  assert.equal(boxes.length, 5);
+  // Four columns on the wide canvas become two in the tall frame: 3 rows of 2.
+  const cw = (720 - 96 - 32) / 2, ch = (1280 - 96 - 2 * 32) / 3;
+  near(boxes[0]!.w, cw, 'cell w'); near(boxes[0]!.h, ch, 'cell h');
+  near(boxes[1]!.x, 48 + cw + 32, 'second column');
+  near(boxes[2]!.x, 48, 'third logo starts row 2'); near(boxes[2]!.y, 48 + ch + 32, 'row 2 y');
+  near(boxes[4]!.y + boxes[4]!.h, 1280 - 48, 'the last row reaches the bottom padding');
+  // The canvas is put back as it was drawn, the same elements and the same markup.
+  assert.equal(tall.after, tall.before);
+  assert.ok(tall.kept, 'the drawn logo elements are back in place');
+});
+
+test('an A4 export lays tiers and headings out on the page', { skip: SKIP }, async () => {
+  const logos = [
+    { logo: svgLogo('g1.svg'), tier: 'Gold' }, { logo: svgLogo('g2.svg'), tier: 'Gold' },
+    { logo: svgLogo('s1.svg'), tier: 'Silver' }, { logo: svgLogo('s2.svg'), tier: 'Silver' }, { logo: svgLogo('s3.svg'), tier: 'Silver' },
+  ];
+  const page = await exportAt({ logos, balance: false }, { width: '210mm', height: '297mm' });
+  const [, , w, h] = viewBoxOf(page.written);
+  near(w! / h!, 210 / 297, 'the page shape');
+  assert.ok(Math.abs(w! * h! / (1280 * 720) - 1) < 1e-4, 'the canvas area');
+  const heads = [...page.written.matchAll(/<text class="lw-heading"[^>]*\sx="([^"]+)"[^>]*\sy="([^"]+)"/g)].map((m) => [Number(m[1]), Number(m[2])]);
+  assert.equal(heads.length, 2);
+  for (const [x] of heads) near(x!, w! / 2, 'heading centred on the page');
+  const boxes = images(page.written);
+  assert.equal(boxes.length, 5);
+  for (const b of boxes) assert.ok(b.x >= 48 - 0.01 && b.x + b.w <= w! - 48 + 0.01, 'inside the side padding');
+  assert.ok(heads[1]![1]! > boxes[1]!.y + boxes[1]!.h, 'the Silver heading sits below the Gold row');
+  assert.equal(page.after, page.before);
+});
+
+test('an export at the canvas shape is the canvas as drawn', { skip: SKIP }, async () => {
+  const logos = ['a', 'b', 'c'].map((n) => ({ logo: svgLogo(n + '.svg') }));
+  for (const opts of [{}, { width: 1920, height: 1080 }, { width: 2560 }]) {
+    const r = await exportAt({ logos, balance: false }, opts);
+    assert.equal(r.written, /<svg[\s\S]*<\/svg>/.exec(r.before)![0], JSON.stringify(opts));
+  }
+});
+
+test('a backdrop exported at another shape adapts its rows and its clip', { skip: SKIP }, async () => {
+  const r = await exportAt({ logos: [{ logo: svgLogo('a.svg') }, { logo: svgLogo('b.svg') }], repeat: 'brick', repeatRows: 6, balance: false }, { width: 1080, height: 1920 });
+  assert.ok(r.written.includes('<clipPath id="lw-clip"><rect x="48" y="48" width="624" height="1184">'), 'the clip follows the frame');
+  const boxes = images(r.written);
+  // 2 columns and 11 rows: brick rows alternate 2 and 3 logos.
+  assert.equal(boxes.length, 6 * 2 + 5 * 3);
+  for (const b of boxes) near(b.w, boxes[0]!.w, 'every row the same size');
+  assert.equal(r.after, r.before);
+});
+
 test('with no canvas the wall renders and names the steps it skipped', { skip: SKIP }, async () => {
   const logs: string[] = [];
   const html = await mount({ logos: [{ logo: svgLogo('a.svg') }, { logo: pngLogo('b.png'), vectorize: true }] }, logs);
@@ -195,6 +287,36 @@ test('block values typed as text read as words', { skip: SKIP }, async () => {
   assert.ok(box, 'a "false" vectorize keeps the picture');
   near(box!.w, 272, 'an empty Size % is the default 100');
   assert.doesNotMatch(html, /opacity=/, 'an empty opacity is the default 1');
+});
+
+test('the example looks draw the tool\'s own placeholder files', { skip: SKIP }, async () => {
+  // The gallery tile and its looks render from manifest.examples. Every picture in
+  // them is one of community/logo-wall/assets/*.svg, named by its path (a tool
+  // asset id, packages/node-shell/src/tool-asset-id.ts), and every file there is
+  // used, so a renamed or orphaned file fails here.
+  const dir = join(COMMUNITY, 'logo-wall', 'assets');
+  const files = (await readdir(dir)).filter((n) => n.endsWith('.svg')).sort();
+  assert.ok(files.length >= 8, 'a wall needs a pile of placeholder logos');
+  const used = new Set<string>();
+  const looks = tool.manifest.examples as { values: { logos: { logo: { id: string } }[] } }[];
+  assert.ok(looks.length >= 1);
+  for (const look of looks) {
+    for (const row of look.values.logos) {
+      const m = /^\/tools\/logo-wall\/assets\/([a-z0-9-]+\.svg)$/.exec(row.logo.id);
+      assert.ok(m && files.includes(m[1]!), `${row.logo.id} is one of the tool's placeholder files`);
+      used.add(m![1]!);
+    }
+  }
+  assert.deepEqual([...used].sort(), files, 'every placeholder file is used');
+  for (const name of files) {
+    const svg = await readFile(join(dir, name), 'utf8');
+    assert.match(svg, /<title>Placeholder logo<\/title>/, name);
+    assert.doesNotMatch(svg, /<(text|image|use|style|script)\b|href=/, `${name} is outlines only`);
+  }
+  // The first look is a tiered wall: it renders with its headings, in this host too.
+  const html = await mount(looks[0]!.values as Record<string, unknown>);
+  assert.deepEqual(headings(html), ['Gold partners', 'Silver partners', 'Supporters']);
+  assert.equal(images(html).length, looks[0]!.values.logos.length);
 });
 
 test('a catalog or remote logo is carried as its own bytes', { skip: SKIP }, async () => {

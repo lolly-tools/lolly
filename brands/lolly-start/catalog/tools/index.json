@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-31T14:17:19.424Z",
+  "generatedAt": "2026-10-31T16:29:46.151Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -11723,7 +11723,7 @@
       "id": "logo-wall",
       "name": "Logo Wall",
       "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -11765,6 +11765,105 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"9.5\" y=\"4\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"16\" y=\"4\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"3\" y=\"14\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"9.5\" y=\"14\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"16\" y=\"14\" width=\"5\" height=\"6\" rx=\"1\"/></svg>",
       "preview": "/catalog/previews/logo-wall.svg",
+      "examples": [
+        {
+          "label": "Tiered sponsor wall of placeholder wordmarks, in the brand ink",
+          "theme": "light",
+          "values": {
+            "logos": [
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/your-logo.svg",
+                  "_unresolved": true
+                },
+                "tier": "Gold partners"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/logo-here.svg",
+                  "_unresolved": true
+                },
+                "tier": "Gold partners"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/company.svg",
+                  "_unresolved": true
+                },
+                "tier": "Silver partners"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/sponsor.svg",
+                  "_unresolved": true
+                },
+                "tier": "Silver partners"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/brand-name.svg",
+                  "_unresolved": true
+                },
+                "tier": "Silver partners"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/sample-co.svg",
+                  "_unresolved": true
+                },
+                "tier": "Silver partners"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/example.svg",
+                  "_unresolved": true
+                },
+                "tier": "Supporters"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/lorem-ipsum.svg",
+                  "_unresolved": true
+                },
+                "tier": "Supporters"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/placeholder.svg",
+                  "_unresolved": true
+                },
+                "tier": "Supporters"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/partner-name.svg",
+                  "_unresolved": true
+                },
+                "tier": "Supporters"
+              },
+              {
+                "logo": {
+                  "source": "remote",
+                  "id": "/tools/logo-wall/assets/wordmark.svg",
+                  "_unresolved": true
+                },
+                "tier": "Supporters"
+              }
+            ],
+            "vectorizeAll": true
+          }
+        }
+      ],
       "templates": [
         {
           "id": "brand-starter-dark",

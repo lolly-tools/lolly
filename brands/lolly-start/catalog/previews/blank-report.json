@@ -2792,25 +2792,44 @@
       "sparse": false
     },
     {
-      "file": "logo-wall.svg",
-      "bytes": 3424,
-      "sha": "33e07cfd5db0dfc1",
-      "stddev": 6.203,
-      "inkRatio": 0.01305,
-      "ground": "black",
+      "file": "logo-wall.look0.svg",
+      "bytes": 32192,
+      "sha": "c73e9b21362eb8f2",
+      "stddev": 27.315,
+      "inkRatio": 0.05062,
+      "ground": "white",
       "grounds": {
         "white": {
-          "stddev": 3.094,
-          "inkRatio": 0.0073
+          "stddev": 27.315,
+          "inkRatio": 0.05062
         },
         "black": {
-          "stddev": 6.203,
-          "inkRatio": 0.01305
+          "stddev": 3.46,
+          "inkRatio": 0.0169
         }
       },
       "blank": false,
-      "sparse": true,
-      "reason": "near-empty: only 1.31% of pixels differ from the background"
+      "sparse": false
+    },
+    {
+      "file": "logo-wall.svg",
+      "bytes": 32192,
+      "sha": "f2a2b0cfcc2022b2",
+      "stddev": 27.315,
+      "inkRatio": 0.05062,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 27.315,
+          "inkRatio": 0.05062
+        },
+        "black": {
+          "stddev": 3.46,
+          "inkRatio": 0.0169
+        }
+      },
+      "blank": false,
+      "sparse": false
     },
     {
       "file": "lottie-digi-ad.svg",

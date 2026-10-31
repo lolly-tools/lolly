@@ -30,6 +30,12 @@ export async function createTuiBridge(profile: Profile = {}): Promise<TuiBridge>
   g.window = dom.window;
   g.document = dom.window.document;
   g.Element = dom.window.Element;
+  // A real 2D canvas behind the jsdom, the CLI's own (shells/cli/src/run.ts): tool
+  // hooks that read pixels (Logo Wall's Balance sizes, Trim margins and tracing, the
+  // redact utility) run here instead of skipping those steps. A lean install with no
+  // @napi-rs/canvas keeps its honest "no canvas", as before.
+  const { installNodeCanvas } = await import('@lolly-tools/node-shell/canvas');
+  await installNodeCanvas(dom.window as unknown as { HTMLCanvasElement?: { prototype: Record<string, unknown> } });
 
   const logs: string[] = [];
   const keep = (line: string): void => {

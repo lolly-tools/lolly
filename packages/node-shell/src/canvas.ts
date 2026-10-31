@@ -331,13 +331,20 @@ async function blobBytes(v: unknown): Promise<Uint8Array | null> {
  * Nothing here overwrites a property that already works: each install is
  * conditional, so calling it twice, or in a realm that already has a canvas, is
  * a no-op.
+ *
+ * The module is loaded through `nodeCanvas()`, the one lazy `import()` in this
+ * file, and never through a require of its own. The hosted MCP function bundle
+ * aliases that import to a module that refuses to load
+ * (scripts/build-mcp-fn.ts, ABSENT_RUNTIMES), so there the install answers false
+ * and the realm keeps its honest "no canvas", even if the package were on disk.
+ * The CLI, the TUI and a local or self-hosted MCP server all install the canvas.
  */
-export function installNodeCanvas(
+export async function installNodeCanvas(
   win: { HTMLCanvasElement?: { prototype: Record<string, unknown> }; document?: unknown },
   target: Record<string, unknown> = globalThis as unknown as Record<string, unknown>,
-): boolean {
-  if (!isCanvasAvailable()) return false;
-  const mod = createRequire(import.meta.url)('@napi-rs/canvas') as NodeCanvasModule;
+): Promise<boolean> {
+  const mod = await nodeCanvas();
+  if (!mod) return false;
 
   // 1. <canvas>.getContext('2d') / toBlob / toDataURL on the jsdom element.
   const proto = win?.HTMLCanvasElement?.prototype;
