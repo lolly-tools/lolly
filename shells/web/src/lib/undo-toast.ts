@@ -29,6 +29,12 @@ export interface UndoToastOpts {
    *  ("Saved" · "Open Projects"), where `undo` is the action and there is no
    *  deferred commit. */
   actionLabel?: string;
+  /** A second button after the action, for a notice that offers a way back AND a way
+   *  to accept ("Undo" · "Keep"). Pressing it settles the toast at once: `commit`
+   *  runs, exactly as when the toast times out. */
+  acceptLabel?: string;
+  /** Let a sentence-long message wrap onto more lines instead of being cut short. */
+  wrap?: boolean;
 }
 
 export interface UndoToastHandle {
@@ -50,7 +56,7 @@ function ensureWrap(): HTMLElement {
 export function showUndoToast(opts: UndoToastOpts): UndoToastHandle {
   const duration = opts.duration ?? 10_000;
   const el = document.createElement('div');
-  el.className = 'undo-toast';
+  el.className = opts.wrap ? 'undo-toast undo-toast--wrap' : 'undo-toast';
   el.setAttribute('role', 'status');
   const msg = document.createElement('span');
   msg.className = 'undo-toast-msg';
@@ -63,7 +69,14 @@ export function showUndoToast(opts: UndoToastOpts): UndoToastHandle {
   bar.className = 'undo-toast-bar';
   bar.setAttribute('aria-hidden', 'true');
   bar.style.animationDuration = `${duration}ms`;
-  el.append(msg, btn, bar);
+  let accept: HTMLButtonElement | null = null;
+  if (opts.acceptLabel) {
+    accept = document.createElement('button');
+    accept.type = 'button';
+    accept.className = 'undo-toast-btn';
+    accept.textContent = opts.acceptLabel;
+  }
+  el.append(msg, btn, ...(accept ? [accept] : []), bar);
   ensureWrap().appendChild(el);
 
   let settled = false;
@@ -84,6 +97,7 @@ export function showUndoToast(opts: UndoToastOpts): UndoToastHandle {
     clearTimeout(timer);
     try { void opts.undo(); } finally { remove(); }
   });
+  accept?.addEventListener('click', settle);
   pending.add(settle);
   return { settle };
 }

@@ -332,6 +332,11 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
   padding: 2px 8px; border-radius: var(--radius);
 }
 .undo-toast-btn:hover { background: hsl(var(--muted)); }
+/* A sentence-long notice (showUndoToast's `wrap`): the message wraps instead of being
+   cut short, and on a narrow screen the buttons drop to their own line, kept right. */
+.undo-toast--wrap { flex-wrap: wrap; row-gap: 6px; border-radius: var(--radius-lg); }
+.undo-toast--wrap .undo-toast-msg { flex: 1 1 16rem; white-space: normal; line-height: 1.4; }
+.undo-toast--wrap .undo-toast-msg + .undo-toast-btn { margin-left: auto; }
 
 /* Touch hit-area: the only undo for a soft-delete, timed out at 10s, so a
    coarse-pointer thumb-miss loses the item for good. min-height wins over the
