@@ -11,7 +11,8 @@ import { t, tRaw } from '../../i18n.ts';
 import { helpTip } from '../../components/help-tip.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
-import { CATEGORY_FLAGS, CONNECTOR_FLAGS, JELLY_FLAG, LEARNING_FLAG, NEUROSPICY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, applyPerfUi, flagHidden, isFlagOn, setFlagMirror } from '../../feature-flags.ts';
+import { CATEGORY_FLAGS, CONNECTOR_FLAGS, JELLY_FLAG, LEARNING_FLAG, NEUROSPICY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, applyPerfUi, flagHidden, isFlagOn, setFlagMirror, subscribePerfUi } from '../../feature-flags.ts';
+import { readPerfUiAuto } from '../../lib/perf-ui-auto-state.ts';
 import type { FeatureFlag } from '../../feature-flags.ts';
 import { mountPerfHud, unmountPerfHud } from '../../lib/perf-hud.ts';
 import { ensureJelly } from '../../lib/jelly.ts';
@@ -54,9 +55,13 @@ export const flagRow = (pv: ProfileViewCtx, f: FeatureFlag) => {
   // explainer that's the help-tip <button>, not the switch, so row clicks
   // opened the tip instead of toggling (the "mouse-blocked toggle" bug).
   const ctlId = `ff-${f.id}`;
+  // The Performance UI row says when and why Lolly turned it on by itself; the note is
+  // the switch's description rather than part of its name.
+  const note = f.id === PERFORMANCE_UI_FLAG.id ? perfUiAutoNote(pv) : '';
+  const described = note ? ` aria-describedby="${ctlId}-auto"` : '';
   const control = pv.jellyOn
-    ? `<jelly-switch id="${escapeText(ctlId)}" class="feature-flag-jelly" data-flag="${escapeText(f.id)}" size="sm" label="${escapeText(t(f.label))}" ${isFlagOn(pv.liveProfile, f) ? 'checked' : ''}></jelly-switch>`
-    : `<input type="checkbox" id="${escapeText(ctlId)}" class="feature-flag-input" data-flag="${escapeText(f.id)}" ${isFlagOn(pv.liveProfile, f) ? 'checked' : ''}>
+    ? `<jelly-switch id="${escapeText(ctlId)}" class="feature-flag-jelly" data-flag="${escapeText(f.id)}" size="sm" label="${escapeText(t(f.label))}"${described} ${isFlagOn(pv.liveProfile, f) ? 'checked' : ''}></jelly-switch>`
+    : `<input type="checkbox" id="${escapeText(ctlId)}" class="feature-flag-input" data-flag="${escapeText(f.id)}"${described} ${isFlagOn(pv.liveProfile, f) ? 'checked' : ''}>
         <span class="feature-flag-switch" aria-hidden="true"></span>`;
   return `
     <li>
@@ -65,8 +70,49 @@ export const flagRow = (pv: ProfileViewCtx, f: FeatureFlag) => {
           info ? `<span class="feature-flag-info help-tip-host">${info.button}${infoPop}</span>` : ''
         }</span>
         ${control}
-      </label>
+      </label>${note ? `
+      <p class="feature-flag-note" id="${ctlId}-auto">${escapeText(note)}</p>` : ''}
     </li>`;
+};
+/** When and why Lolly turned the Performance UI on by itself, or '' when it did not or
+ *  the person has since chosen by hand (their choice wins, so the note would mislead). */
+export const perfUiAutoNote = (pv: ProfileViewCtx): string => {
+  const rec = readPerfUiAuto();
+  if (rec?.state !== 'on' || pv.liveProfile?.featureFlags?.[PERFORMANCE_UI_FLAG.id] !== undefined) return '';
+  let date = '';
+  try { date = new Date(rec.at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }); } catch { /* no date */ }
+  return rec.reason === 'software'
+    ? tRaw('Turned on automatically on {date} because this device draws without graphics acceleration.', { date })
+    : tRaw('Turned on automatically on {date} because this device was struggling to draw the interface.', { date });
+};
+/** Bring the Performance UI row up to date after a change made elsewhere (the automatic
+ *  switch, or Undo on its notice): the switch, its note and the card's summary. */
+export const syncPerfUiRow = (pv: ProfileViewCtx): void => {
+  // The native checkbox or a <jelly-switch>: both carry `.checked`, and the row's border
+  // follows the attribute for the jelly kind.
+  const ctl = pv.viewEl.querySelector<HTMLElement & { checked: boolean }>(`#feature-flags [data-flag="${PERFORMANCE_UI_FLAG.id}"]`);
+  const row = ctl?.closest('li');
+  if (!ctl || !row) return;
+  const on = isFlagOn(pv.liveProfile, PERFORMANCE_UI_FLAG);
+  ctl.checked = on;
+  if (ctl.tagName !== 'INPUT') ctl.toggleAttribute('checked', on);
+  const text = perfUiAutoNote(pv);
+  const id = `ff-${PERFORMANCE_UI_FLAG.id}-auto`;
+  let note = row.querySelector<HTMLElement>('.feature-flag-note');
+  if (!text) {
+    note?.remove();
+    ctl.removeAttribute('aria-describedby');
+  } else {
+    if (!note) {
+      note = document.createElement('p');
+      note.className = 'feature-flag-note';
+      note.id = id;
+      row.append(note);
+    }
+    note.textContent = text;
+    ctl.setAttribute('aria-describedby', id);
+  }
+  pv.summaries.setSummary('feature-flags-section', pv.summaries.flagsSummary());
 };
 // One identity-form control - <jelly-input> in jelly mode (form-associated:
 // its ElementInternals.setFormValue keeps it in the form's FormData under the
@@ -129,6 +175,9 @@ export const connectorsSummary = (pv: ProfileViewCtx): string => {
 /** Feature-flag toggles: auto-save each flip and apply the ones with live effects. */
 export function wireFlagRows(pv: ProfileViewCtx): void {
   const { fields, host, viewEl } = pv;
+  // The automatic switch and its notice's Undo change the flag outside this view; keep
+  // the row honest while the view is open (its _cleanup drops the subscription).
+  pv.perfUiUnsub = subscribePerfUi(() => { syncPerfUiRow(pv); });
   // Feature flags - auto-save each toggle (a preference, like the theme picker).
   // `[data-flag]` is either the native checkbox or a <jelly-switch> host; both
   // carry `.checked` and emit a bubbling `change`, so one handler covers both.
@@ -236,6 +285,8 @@ export function rowsOps(pv: ProfileViewCtx) {
     fieldControl: bindOp(pv, fieldControl),
     saveButtonHtml: bindOp(pv, saveButtonHtml),
     flagListHtml: bindOp(pv, flagListHtml),
+    perfUiAutoNote: bindOp(pv, perfUiAutoNote),
+    syncPerfUiRow: bindOp(pv, syncPerfUiRow),
     connectorsSummary: bindOp(pv, connectorsSummary),
     wireFlagRows: bindOp(pv, wireFlagRows),
     wireOpenState: bindOp(pv, wireOpenState),

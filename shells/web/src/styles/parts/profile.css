@@ -421,6 +421,12 @@
   font-size: var(--fs-md); color: var(--ui-color-text-muted);
   line-height: 1.45; max-width: 74ch;
 }
+/* One line under a flag's row: when and why Lolly turned the Performance UI on by itself. */
+.profile-view .feature-flag-note {
+  margin: .35rem 0 0; padding-inline: .9rem;
+  font-size: var(--fs-md); color: var(--ui-color-text-muted);
+  line-height: 1.45; max-width: 74ch;
+}
 /* Separates the category flags from the Pro (batch) mode flag. */
 .profile-view .feature-flag-divider {
   list-style: none;
