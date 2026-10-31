@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.293.0
+
+- Every hook is told the canvas size: `ctx.canvasSize` is a frozen `{ width, height }` in CSS pixels (96 per inch) on `onInit`, `onInput`, `onFrame`, `onLevel`, `beforeExport`, `afterExport`, `exportFile` and `exportStill`. It is the size the shell is making the tool at, the requested export size when both sides are known, else the manifest's `render.width` x `render.height`. Templates read the same size as the Handlebars data variable `{{@canvasSize.width}}` / `{{@canvasSize.height}}`, which cannot collide with an input id or an extra. `hydrate` gains a `data` option that carries it.
+- New manifest key `render.followsCanvasSize` (both schema copies, `RenderSpec`): a tool that declares it gets an `onInput` run with `id: '__canvasSize'` whenever the size changes, then a repaint. As with `'__view'` and `'__tokens'`, that run's patch updates computed values only. A tool without the key only has the size recorded: no hook runs and nothing repaints, so it renders exactly as before. Declaring the key needs `engineVersion` `^1.293.0`, since the schema's `render` block admits no unknown key.
+- `createRuntime` takes `canvasSize`, so `onInit` lays out once at the right shape; the runtime gains `canvasSize` and `setCanvasSize(size | null)` (`null` is the manifest size, the same size again is a no-op, a superseded run never lands, and the run takes part in `whenSettled`).
+- New barrel exports `canvasSizeOf(width, height, unit?)`, the one conversion every shell uses from a requested size (numbers in `unit`, or strings such as `"210mm"`) to CSS pixels, null unless both sides are positive lengths, and the type `CanvasSize` (from the SDK, beside `HookContext`).
+
 ## 1.291.0
 
 - Path handles (plans/330): two per-keyframe tokens, `hi(<dx>)(<dy>)` (the handle into this keyframe's position) and `ho(<dx>)(<dy>)` (the handle out of it), written after the channel tokens. They are px offsets from the keyframe's own `x`/`y`, held to the `x`/`y` clamp and quantum, kept only on a keyframe that mentions both and dropped when they quantise to (0, 0). `KfKey` and `KfKeyInput` gain optional `hi`/`ho` pairs beside `ease`; nothing interpolates them. A reader older than 1.291 skips both tokens as junk and keeps the rest of the keyframe.
