@@ -634,6 +634,23 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     madeWith,
   } = await prepareToolDesignSystemContext(tview.host, urlDesignSystem, slot); tview.dsRegistry = dsRegistry; tview.mountedSystemId = mountedSystemId; tview.madeWith = madeWith;
 
+  // New work starts in the colourway the person took as theirs in Settings >
+  // Appearance (plans/331). Only new work: a resumed or collaborative session, a link
+  // that carries input values, a framed or presented piece, a scripted export and a
+  // docs capture all keep what they name, and when they name nothing they draw the
+  // canonical colourway as before. The choice goes in as `__tokenSelection`, the key a
+  // saved session stores it under, so the runtime, the compose wrapper above, the
+  // session and the address (syncThemesRoute) all carry it like a choice made in the
+  // sidebar, and the piece keeps it whatever the person chooses later.
+  const newWork = !slot && !tview.carriedMount && pendingLiveCollab()?.toolId !== toolId
+    && !isIframeMode() && !tview.isFull && !tview.isPresent && !tview.autoExport && !tview.autoCopy
+    && !captureNeutralPinned() && Object.keys(values).length === 0;
+  if (newWork && !tview.openedSession.url.tokenSelection && !tview.initialValues.__tokenSelection) {
+    const { newWorkTokenSelection } = await import('../../lib/colourway-seed.ts');
+    const seed = await newWorkTokenSelection(tview.host, tview.tool.manifest.tokenAxes);
+    if (seed) tview.initialValues = { ...tview.initialValues, __tokenSelection: seed };
+  }
+
   // The document's emoji style (link, saved session or brand, preference) goes in at
   // creation, before onInit: the tool's first text composition then uses the right
   // glyphs, input pickers that open before the Emoji section see the right set, and
