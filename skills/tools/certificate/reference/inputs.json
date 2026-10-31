@@ -5,7 +5,7 @@
     "type": "select",
     "urlKey": "k",
     "default": "completion",
-    "help": "Sets the wording: the title and the line above what the certificate is for.",
+    "help": "Sets the wording: the title, the line above what the certificate is for, and the mark on the seal.",
     "options": [
       {
         "value": "completion",
@@ -24,46 +24,6 @@
         "label": "Appreciation"
       }
     ]
-  },
-  {
-    "id": "pageSize",
-    "label": "Sheet",
-    "type": "select",
-    "urlKey": "ps",
-    "default": "a4-landscape",
-    "help": "Sets the sheet proportion and the exported page size.",
-    "options": [
-      {
-        "value": "a4-landscape",
-        "label": "A4 landscape · 297 × 210 mm",
-        "width": 297,
-        "height": 210,
-        "unit": "mm"
-      },
-      {
-        "value": "letter-landscape",
-        "label": "US Letter landscape · 11 × 8.5 in",
-        "width": 11,
-        "height": 8.5,
-        "unit": "in"
-      },
-      {
-        "value": "screen",
-        "label": "Screen · 1600 × 1131 px",
-        "width": 1600,
-        "height": 1131,
-        "unit": "px"
-      }
-    ]
-  },
-  {
-    "id": "heading",
-    "label": "Title",
-    "type": "text",
-    "default": "",
-    "maxLength": 60,
-    "placeholder": "Certificate of Completion",
-    "help": "Leave empty to follow the Kind above."
   },
   {
     "id": "firstname",
@@ -94,7 +54,150 @@
     "label": "Date",
     "type": "date",
     "default": "2026-06-18",
-    "help": "Printed in full above the date line, e.g. 18 June 2026."
+    "help": "Printed in full in the certificate's language, for example 18 June 2026."
+  },
+  {
+    "id": "style",
+    "label": "Style",
+    "type": "select",
+    "urlKey": "st",
+    "default": "classic",
+    "help": "Every style takes its colours from the design system and the chosen colourway, and its type from the design system.",
+    "options": [
+      {
+        "value": "classic",
+        "label": "Classic · frame and seal"
+      },
+      {
+        "value": "modern",
+        "label": "Modern · colour panel"
+      },
+      {
+        "value": "minimal",
+        "label": "Minimal · type and space"
+      },
+      {
+        "value": "celebration",
+        "label": "Celebration · full colour"
+      }
+    ]
+  },
+  {
+    "id": "pageSize",
+    "label": "Size",
+    "type": "select",
+    "urlKey": "ps",
+    "default": "a4-landscape",
+    "help": "Sets the shape and the exported size. Print sizes export at their true page size; each shape gets its own layout.",
+    "options": [
+      {
+        "value": "a4-landscape",
+        "label": "A4 landscape · 297 × 210 mm",
+        "width": 297,
+        "height": 210,
+        "unit": "mm"
+      },
+      {
+        "value": "a4-portrait",
+        "label": "A4 portrait · 210 × 297 mm",
+        "width": 210,
+        "height": 297,
+        "unit": "mm"
+      },
+      {
+        "value": "letter-landscape",
+        "label": "US Letter landscape · 11 × 8.5 in",
+        "width": 11,
+        "height": 8.5,
+        "unit": "in"
+      },
+      {
+        "value": "letter-portrait",
+        "label": "US Letter portrait · 8.5 × 11 in",
+        "width": 8.5,
+        "height": 11,
+        "unit": "in"
+      },
+      {
+        "value": "screen",
+        "label": "Screen · 1600 × 1131 px",
+        "width": 1600,
+        "height": 1131,
+        "unit": "px"
+      },
+      {
+        "value": "slide",
+        "label": "Slide 16:9 · 1920 × 1080 px",
+        "width": 1920,
+        "height": 1080,
+        "unit": "px"
+      },
+      {
+        "value": "social-landscape",
+        "label": "Landscape post 1.91:1 · 1200 × 628 px",
+        "width": 1200,
+        "height": 628,
+        "unit": "px"
+      },
+      {
+        "value": "social-square",
+        "label": "Square post · 1080 × 1080 px",
+        "width": 1080,
+        "height": 1080,
+        "unit": "px"
+      },
+      {
+        "value": "social-portrait",
+        "label": "Portrait post 4:5 · 1080 × 1350 px",
+        "width": 1080,
+        "height": 1350,
+        "unit": "px"
+      },
+      {
+        "value": "story",
+        "label": "Story 9:16 · 1080 × 1920 px",
+        "width": 1080,
+        "height": 1920,
+        "unit": "px"
+      },
+      {
+        "value": "banner",
+        "label": "Email banner 3:1 · 1200 × 400 px",
+        "width": 1200,
+        "height": 400,
+        "unit": "px"
+      }
+    ]
+  },
+  {
+    "id": "motion",
+    "label": "Motion",
+    "type": "select",
+    "urlKey": "mo",
+    "default": "none",
+    "help": "For sharing as a video or an animated image (MP4, WebM, GIF, APNG or animated WebP). PDF, print and still images always show the finished certificate.",
+    "options": [
+      {
+        "value": "none",
+        "label": "None"
+      },
+      {
+        "value": "fade",
+        "label": "Fade in"
+      },
+      {
+        "value": "reveal",
+        "label": "Reveal"
+      },
+      {
+        "value": "shimmer",
+        "label": "Reveal and shimmer"
+      },
+      {
+        "value": "confetti",
+        "label": "Confetti"
+      }
+    ]
   },
   {
     "id": "presenter",
@@ -120,7 +223,7 @@
     "default": "Northwind Institute",
     "maxLength": 80,
     "section": "Issuer",
-    "help": "Printed at the top when the design system ships no logo, or under it when it does."
+    "help": "Printed under the logo, or on its own when the design system has no logo."
   },
   {
     "id": "brandLogo",
@@ -128,7 +231,42 @@
     "type": "boolean",
     "default": true,
     "section": "Issuer",
-    "help": "Place the active design system's logo at the top - the light or dark version to suit the paper colour. Falls back to the Issued by line when the design system ships no logo."
+    "help": "Place the active design system's logo. Falls back to the Issued by line when the design system has no logo."
+  },
+  {
+    "id": "logoStyle",
+    "label": "Logo version",
+    "type": "select",
+    "urlKey": "lv",
+    "default": "auto",
+    "section": "Issuer",
+    "showIf": {
+      "brandLogo": true
+    },
+    "help": "Automatic uses the full-colour logo on paper and the one-colour logo on a colour panel or a full-colour sheet. The light or dark version follows the background.",
+    "options": [
+      {
+        "value": "auto",
+        "label": "Automatic"
+      },
+      {
+        "value": "colour",
+        "label": "Full colour"
+      },
+      {
+        "value": "mono",
+        "label": "One colour"
+      }
+    ]
+  },
+  {
+    "id": "seal",
+    "label": "Seal",
+    "type": "boolean",
+    "urlKey": "se",
+    "default": true,
+    "section": "Issuer",
+    "help": "A seal in the design system's colours. Its mark follows the Kind: a tick, a star or a heart."
   },
   {
     "id": "serial",
@@ -141,25 +279,160 @@
     "help": "Optional small line at the foot of the sheet. Plain text, exactly as typed - the tool never makes one up."
   },
   {
+    "id": "accent",
+    "label": "Accent",
+    "type": "color",
+    "default": "",
+    "section": "Colour",
+    "help": "Leave empty to follow the design system and its colourway. Colours the name, the frame and the seal in Classic and Minimal, the panel in Modern, and the seal and confetti in Celebration."
+  },
+  {
     "id": "color",
     "label": "Ink",
     "type": "color",
-    "default": "{color.semantic.text}",
-    "section": "Colour"
+    "default": "",
+    "section": "Colour",
+    "help": "Leave empty to follow the design system. The colour of the wording."
   },
   {
     "id": "background",
     "label": "Paper",
     "type": "color",
-    "default": "{color.semantic.surface}",
-    "section": "Colour"
+    "default": "",
+    "section": "Colour",
+    "help": "Leave empty to follow the design system. Celebration prints on the colourway's lead colour."
   },
   {
-    "id": "accent",
-    "label": "Accent",
-    "type": "color",
-    "default": "{color.semantic.primary}",
-    "section": "Colour",
-    "help": "Colours the border rules and the recipient's name."
+    "id": "language",
+    "label": "Language",
+    "type": "select",
+    "urlKey": "ln",
+    "default": "",
+    "section": "Wording",
+    "help": "The language of the printed wording and the date. App language follows the language Lolly is shown in. In Bulk from rows, a language column sets it for each person.",
+    "options": [
+      {
+        "value": "",
+        "label": "App language"
+      },
+      {
+        "value": "en",
+        "label": "English"
+      },
+      {
+        "value": "zh",
+        "label": "简体中文"
+      },
+      {
+        "value": "es",
+        "label": "Español"
+      },
+      {
+        "value": "hi",
+        "label": "हिन्दी"
+      },
+      {
+        "value": "bn",
+        "label": "বাংলা"
+      },
+      {
+        "value": "ur",
+        "label": "اردو"
+      },
+      {
+        "value": "ar",
+        "label": "العربية"
+      },
+      {
+        "value": "fr",
+        "label": "Français"
+      },
+      {
+        "value": "pt",
+        "label": "Português (Brasil)"
+      },
+      {
+        "value": "de",
+        "label": "Deutsch"
+      },
+      {
+        "value": "ja",
+        "label": "日本語"
+      },
+      {
+        "value": "it",
+        "label": "Italiano"
+      },
+      {
+        "value": "vi",
+        "label": "Tiếng Việt"
+      },
+      {
+        "value": "tl",
+        "label": "Tagalog"
+      },
+      {
+        "value": "ko",
+        "label": "한국어"
+      },
+      {
+        "value": "id",
+        "label": "Bahasa Indonesia"
+      },
+      {
+        "value": "ms",
+        "label": "Bahasa Melayu"
+      },
+      {
+        "value": "nl",
+        "label": "Nederlands"
+      },
+      {
+        "value": "ro",
+        "label": "Română"
+      },
+      {
+        "value": "sv",
+        "label": "Svenska"
+      },
+      {
+        "value": "cs",
+        "label": "Čeština"
+      },
+      {
+        "value": "no",
+        "label": "Norsk"
+      },
+      {
+        "value": "zh-hant",
+        "label": "繁體中文"
+      },
+      {
+        "value": "bg",
+        "label": "Български"
+      },
+      {
+        "value": "tr",
+        "label": "Türkçe"
+      },
+      {
+        "value": "uk",
+        "label": "Українська"
+      },
+      {
+        "value": "pl",
+        "label": "Polski"
+      }
+    ]
+  },
+  {
+    "id": "heading",
+    "label": "Title",
+    "type": "text",
+    "default": "",
+    "maxLength": 60,
+    "placeholder": "Certificate of Completion",
+    "help": "Leave empty to follow the Kind and the language. A typed title is printed exactly as written.",
+    "section": "Wording"
   }
 ]

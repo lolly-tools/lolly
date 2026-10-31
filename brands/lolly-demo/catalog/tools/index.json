@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-31T14:17:18.050Z",
+  "generatedAt": "2026-10-31T16:40:12.284Z",
   "tools": [
     {
       "id": "3d",
@@ -2154,8 +2154,8 @@
     {
       "id": "certificate",
       "name": "Certificate",
-      "description": "Completion and award certificates from the active design system - one name at a time, or a whole roster from a CSV in Bulk from rows.",
-      "version": "1.0.5",
+      "description": "Completion and award certificates in the active design system and its colourway: four styles, print and social sizes, and motion for sharing - one name at a time, or a whole roster from a CSV in Bulk from rows.",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -2165,7 +2165,9 @@
         "course",
         "completion",
         "print",
-        "roster"
+        "roster",
+        "social",
+        "animation"
       ],
       "added": "2026-08-24",
       "formats": [
@@ -2177,7 +2179,12 @@
         "jpg",
         "webp",
         "tiff",
-        "cmyk-tiff"
+        "cmyk-tiff",
+        "mp4",
+        "webm",
+        "gif",
+        "apng",
+        "webp-anim"
       ],
       "width": 1123,
       "height": 794,
@@ -2187,9 +2194,10 @@
       "personalized": true,
       "examples": [
         {
-          "label": "Course completion",
+          "label": "Classic course completion",
           "values": {
             "certKind": "completion",
+            "style": "classic",
             "firstname": "Ana",
             "lastname": "Kovač",
             "awardtopic": "Container Fundamentals",
@@ -2200,9 +2208,10 @@
           }
         },
         {
-          "label": "Award",
+          "label": "Modern award",
           "values": {
             "certKind": "award",
+            "style": "modern",
             "firstname": "Tomás",
             "lastname": "Herrera",
             "awardtopic": "The 2026 Innovation Award",
@@ -2214,23 +2223,11 @@
           }
         },
         {
-          "label": "Appreciation",
-          "values": {
-            "certKind": "appreciation",
-            "firstname": "Priya",
-            "lastname": "Nair",
-            "awardtopic": "Two years of volunteering",
-            "awarddate": "2026-03-02",
-            "presenter": "Jonas Weber",
-            "presenterTitle": "Community Lead",
-            "company": "Riverside Library"
-          }
-        },
-        {
-          "label": "Achievement on screen",
+          "label": "Minimal achievement, square post",
           "values": {
             "certKind": "achievement",
-            "pageSize": "screen",
+            "style": "minimal",
+            "pageSize": "social-square",
             "firstname": "Lena",
             "lastname": "Fischer",
             "awardtopic": "Top of the 2026 cohort",
@@ -2238,6 +2235,21 @@
             "presenter": "Maya Lindqvist",
             "presenterTitle": "Programme Director",
             "company": "Northwind Institute"
+          }
+        },
+        {
+          "label": "Celebration thank you, portrait post",
+          "values": {
+            "certKind": "appreciation",
+            "style": "celebration",
+            "pageSize": "social-portrait",
+            "firstname": "Priya",
+            "lastname": "Nair",
+            "awardtopic": "Two years of volunteering",
+            "awarddate": "2026-03-02",
+            "presenter": "Jonas Weber",
+            "presenterTitle": "Community Lead",
+            "company": "Riverside Library"
           }
         }
       ],
@@ -2251,7 +2263,7 @@
             {
               "id": "appreciation",
               "name": "Thank you",
-              "description": "Appreciation for time given, rather than a prize won."
+              "description": "Appreciation for time given, rather than a prize won, in full colour."
             },
             {
               "id": "team-of-the-year",
@@ -2269,12 +2281,30 @@
             {
               "id": "workshop",
               "name": "Workshop attendance",
-              "description": "A one-day workshop, signed by the facilitator."
+              "description": "A one-day workshop, signed by the facilitator, in the Minimal style."
             },
             {
               "id": "certification",
               "name": "Certification pass",
-              "description": "An exam pass, with the reference line switched on."
+              "description": "An exam pass in the Modern style, with the reference line switched on."
+            }
+          ]
+        },
+        {
+          "id": "share",
+          "name": "Share a win",
+          "category": "Social",
+          "description": "A certificate sized for a social post, with motion for a video or an animated image.",
+          "presets": [
+            {
+              "id": "story",
+              "name": "Story",
+              "description": "A 9:16 story that draws itself in."
+            },
+            {
+              "id": "landscape-post",
+              "name": "Landscape post",
+              "description": "A 1.91:1 post with a colour panel and a shimmer."
             }
           ]
         }
