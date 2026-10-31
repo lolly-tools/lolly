@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Invertera",
   "inputs.logos.fields.invert.help": "För en vit eller ljus logotyp.",
   "inputs.logos.fields.detail.label": "Detalj",
-  "inputs.logos.fields.smoothing.label": "Utjämning"
+  "inputs.logos.fields.smoothing.label": "Utjämning",
+  "inputs.logos.fields.tier.label": "Nivå",
+  "inputs.logos.fields.tier.help": "Gruppera logotyper efter sponsornivå. Logotyper med samma nivå står tillsammans på egna rader, i den ordning varje nivå först förekommer, under en rubrik med nivåns namn. Lämna alla nivåer tomma för ett enda jämnt rutnät.",
+  "inputs.tierHeadings.label": "Nivårubriker",
+  "inputs.tierHeadings.section": "Nivåer",
+  "inputs.tierHeadings.help": "Visar varje nivås namn ovanför dess grupp av logotyper. Gäller bara när logotyper har en nivå.",
+  "inputs.tierSizing.label": "Nivåstorlekar",
+  "inputs.tierSizing.section": "Nivåer",
+  "inputs.tierSizing.help": "Trappsteg lägger till en logotyp till per rad för varje nivå efter den första, så högre nivåer ser större ut. Samma storlek ger varje nivå inställningen Kolumner. Betoning, Storlek % och Balansera storlekar gäller fortfarande för varje logotyp.",
+  "inputs.tierSizing.options.step": "Trappsteg",
+  "inputs.tierSizing.options.even": "Samma storlek",
+  "inputs.headingColor.label": "Rubrikfärg",
+  "inputs.headingColor.section": "Nivåer",
+  "inputs.headingColor.help": "Färgen på nivårubrikerna."
 }

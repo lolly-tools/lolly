@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "反转",
   "inputs.logos.fields.invert.help": "用于白色或浅色标志。",
   "inputs.logos.fields.detail.label": "细节",
-  "inputs.logos.fields.smoothing.label": "平滑"
+  "inputs.logos.fields.smoothing.label": "平滑",
+  "inputs.logos.fields.tier.label": "层级",
+  "inputs.logos.fields.tier.help": "按赞助级别为标志分组。层级相同的标志会一起排在各自的行中，按每个层级首次出现的顺序排列，并以层级名称作为标题。所有层级留空则得到一个均匀的网格。",
+  "inputs.tierHeadings.label": "层级标题",
+  "inputs.tierHeadings.section": "层级",
+  "inputs.tierHeadings.help": "在每个层级的标志组上方显示该层级的名称。仅在标志设有层级时生效。",
+  "inputs.tierSizing.label": "层级大小",
+  "inputs.tierSizing.section": "层级",
+  "inputs.tierSizing.help": "“逐级缩小”会让第一层级之后的每个层级每行多放一个标志，因此较高层级看起来更大。“相同大小”会让每个层级使用“列数”设置。“显著度”“大小 %”和“均衡大小”仍会作用于每个标志。",
+  "inputs.tierSizing.options.step": "逐级缩小",
+  "inputs.tierSizing.options.even": "相同大小",
+  "inputs.headingColor.label": "标题颜色",
+  "inputs.headingColor.section": "层级",
+  "inputs.headingColor.help": "层级标题的颜色。"
 }

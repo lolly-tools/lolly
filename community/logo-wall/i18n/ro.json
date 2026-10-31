@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Inversare",
   "inputs.logos.fields.invert.help": "Pentru un logo alb sau deschis la culoare.",
   "inputs.logos.fields.detail.label": "Detaliu",
-  "inputs.logos.fields.smoothing.label": "Netezire"
+  "inputs.logos.fields.smoothing.label": "Netezire",
+  "inputs.logos.fields.tier.label": "Nivel",
+  "inputs.logos.fields.tier.help": "Grupează logo-urile după nivelul de sponsorizare. Logo-urile cu același nivel stau împreună pe rânduri proprii, în ordinea în care apare prima dată fiecare nivel, sub un titlu cu numele nivelului. Lasă toate nivelurile goale pentru o singură grilă uniformă.",
+  "inputs.tierHeadings.label": "Titluri de nivel",
+  "inputs.tierHeadings.section": "Niveluri",
+  "inputs.tierHeadings.help": "Afișează numele fiecărui nivel deasupra grupului său de logo-uri. Se aplică doar când logo-urile au un nivel.",
+  "inputs.tierSizing.label": "Dimensiuni pe niveluri",
+  "inputs.tierSizing.section": "Niveluri",
+  "inputs.tierSizing.help": "În trepte pune încă un logo pe rând pentru fiecare nivel după primul, așa că nivelurile superioare par mai mari. Aceeași dimensiune dă fiecărui nivel setarea Coloane. Prezență, Dimensiune % și Echilibrează dimensiunile se aplică în continuare fiecărui logo.",
+  "inputs.tierSizing.options.step": "În trepte",
+  "inputs.tierSizing.options.even": "Aceeași dimensiune",
+  "inputs.headingColor.label": "Culoarea titlurilor",
+  "inputs.headingColor.section": "Niveluri",
+  "inputs.headingColor.help": "Culoarea titlurilor de nivel."
 }

@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Invertir",
   "inputs.logos.fields.invert.help": "Para un logo blanco o claro.",
   "inputs.logos.fields.detail.label": "Detalle",
-  "inputs.logos.fields.smoothing.label": "Suavizado"
+  "inputs.logos.fields.smoothing.label": "Suavizado",
+  "inputs.logos.fields.tier.label": "Nivel",
+  "inputs.logos.fields.tier.help": "Agrupa los logos por nivel de patrocinio. Los logos del mismo nivel van juntos en sus propias filas, en el orden en que aparece cada nivel por primera vez, bajo un encabezado con el nombre del nivel. Deja todos los niveles vacíos para obtener una sola cuadrícula uniforme.",
+  "inputs.tierHeadings.label": "Encabezados de nivel",
+  "inputs.tierHeadings.section": "Niveles",
+  "inputs.tierHeadings.help": "Muestra el nombre de cada nivel sobre su grupo de logos. Solo se aplica cuando los logos tienen un nivel.",
+  "inputs.tierSizing.label": "Tamaños de nivel",
+  "inputs.tierSizing.section": "Niveles",
+  "inputs.tierSizing.help": "Escalonado pone un logo más en la fila por cada nivel después del primero, así que los niveles superiores se ven más grandes. Mismo tamaño aplica a cada nivel el ajuste Columnas. Presencia, Tamaño % y Equilibrar tamaños se siguen aplicando a cada logo.",
+  "inputs.tierSizing.options.step": "Escalonado",
+  "inputs.tierSizing.options.even": "Mismo tamaño",
+  "inputs.headingColor.label": "Color del encabezado",
+  "inputs.headingColor.section": "Niveles",
+  "inputs.headingColor.help": "El color de los encabezados de nivel."
 }

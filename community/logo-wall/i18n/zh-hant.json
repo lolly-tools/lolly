@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "反轉",
   "inputs.logos.fields.invert.help": "適用於白色或淺色標誌。",
   "inputs.logos.fields.detail.label": "細節",
-  "inputs.logos.fields.smoothing.label": "平滑"
+  "inputs.logos.fields.smoothing.label": "平滑",
+  "inputs.logos.fields.tier.label": "層級",
+  "inputs.logos.fields.tier.help": "依贊助等級將標誌分組。層級相同的標誌會一起排在各自的列中，依每個層級首次出現的順序排列，並以層級名稱作為標題。所有層級留空則得到一個均勻的網格。",
+  "inputs.tierHeadings.label": "層級標題",
+  "inputs.tierHeadings.section": "層級",
+  "inputs.tierHeadings.help": "在每個層級的標誌群組上方顯示該層級的名稱。僅在標誌設有層級時生效。",
+  "inputs.tierSizing.label": "層級大小",
+  "inputs.tierSizing.section": "層級",
+  "inputs.tierSizing.help": "「逐級縮小」會讓第一層級之後的每個層級每列多放一個標誌，因此較高層級看起來更大。「相同大小」會讓每個層級使用「欄數」設定。「顯著度」、「大小 %」和「平衡大小」仍會套用到每個標誌。",
+  "inputs.tierSizing.options.step": "逐級縮小",
+  "inputs.tierSizing.options.even": "相同大小",
+  "inputs.headingColor.label": "標題顏色",
+  "inputs.headingColor.section": "層級",
+  "inputs.headingColor.help": "層級標題的顏色。"
 }

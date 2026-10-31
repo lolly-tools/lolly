@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Invertovat",
   "inputs.logos.fields.invert.help": "Pro bílé nebo světlé logo.",
   "inputs.logos.fields.detail.label": "Detail",
-  "inputs.logos.fields.smoothing.label": "Vyhlazení"
+  "inputs.logos.fields.smoothing.label": "Vyhlazení",
+  "inputs.logos.fields.tier.label": "Úroveň",
+  "inputs.logos.fields.tier.help": "Seskup loga podle úrovně sponzora. Loga se stejnou úrovní stojí pohromadě ve vlastních řadách, v pořadí, v jakém se jednotlivé úrovně poprvé objeví, pod nadpisem s názvem úrovně. Nech všechny úrovně prázdné a dostaneš jednu rovnoměrnou mřížku.",
+  "inputs.tierHeadings.label": "Nadpisy úrovní",
+  "inputs.tierHeadings.section": "Úrovně",
+  "inputs.tierHeadings.help": "Zobrazí název každé úrovně nad její skupinou log. Platí jen u log s vyplněnou úrovní.",
+  "inputs.tierSizing.label": "Velikosti úrovní",
+  "inputs.tierSizing.section": "Úrovně",
+  "inputs.tierSizing.help": "Možnost Postupně menší přidá do řady o jedno logo víc za každou úroveň pod první, takže vyšší úrovně působí větší. Možnost Stejná velikost dá každé úrovni nastavení Sloupce. Prominence, Velikost % a Vyvážit velikosti se dál použijí na každé logo.",
+  "inputs.tierSizing.options.step": "Postupně menší",
+  "inputs.tierSizing.options.even": "Stejná velikost",
+  "inputs.headingColor.label": "Barva nadpisů",
+  "inputs.headingColor.section": "Úrovně",
+  "inputs.headingColor.help": "Barva nadpisů úrovní."
 }

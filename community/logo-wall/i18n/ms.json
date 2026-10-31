@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Songsang",
   "inputs.logos.fields.invert.help": "Untuk logo putih atau pucat.",
   "inputs.logos.fields.detail.label": "Perincian",
-  "inputs.logos.fields.smoothing.label": "Kelicinan"
+  "inputs.logos.fields.smoothing.label": "Kelicinan",
+  "inputs.logos.fields.tier.label": "Peringkat",
+  "inputs.logos.fields.tier.help": "Kumpulkan logo mengikut peringkat penaja. Logo dengan peringkat yang sama berada bersama dalam baris tersendiri, mengikut susunan setiap peringkat mula-mula muncul, di bawah tajuk nama peringkat itu. Biarkan semua peringkat kosong untuk satu grid yang sekata.",
+  "inputs.tierHeadings.label": "Tajuk peringkat",
+  "inputs.tierHeadings.section": "Peringkat",
+  "inputs.tierHeadings.help": "Papar nama setiap peringkat di atas kumpulan logonya. Hanya terpakai apabila logo mempunyai peringkat.",
+  "inputs.tierSizing.label": "Saiz peringkat",
+  "inputs.tierSizing.section": "Peringkat",
+  "inputs.tierSizing.help": "Menurun berperingkat meletakkan satu logo lebih banyak dalam satu baris bagi setiap peringkat selepas yang pertama, jadi peringkat lebih tinggi kelihatan lebih besar. Saiz sama memberi setiap peringkat tetapan Lajur. Kehadiran, Saiz % dan Imbangkan saiz masih terpakai pada setiap logo.",
+  "inputs.tierSizing.options.step": "Menurun berperingkat",
+  "inputs.tierSizing.options.even": "Saiz sama",
+  "inputs.headingColor.label": "Warna tajuk",
+  "inputs.headingColor.section": "Peringkat",
+  "inputs.headingColor.help": "Warna tajuk peringkat."
 }

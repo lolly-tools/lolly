@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Inverter",
   "inputs.logos.fields.invert.help": "Para um logo branco ou claro.",
   "inputs.logos.fields.detail.label": "Detalhe",
-  "inputs.logos.fields.smoothing.label": "Suavização"
+  "inputs.logos.fields.smoothing.label": "Suavização",
+  "inputs.logos.fields.tier.label": "Nível",
+  "inputs.logos.fields.tier.help": "Agrupe os logos por nível de patrocínio. Logos do mesmo nível ficam juntos em linhas próprias, na ordem em que cada nível aparece pela primeira vez, sob um título com o nome do nível. Deixe todos os níveis vazios para ter uma única grade uniforme.",
+  "inputs.tierHeadings.label": "Títulos dos níveis",
+  "inputs.tierHeadings.section": "Níveis",
+  "inputs.tierHeadings.help": "Mostra o nome de cada nível acima do seu grupo de logos. Só vale quando os logos têm um nível.",
+  "inputs.tierSizing.label": "Tamanhos dos níveis",
+  "inputs.tierSizing.section": "Níveis",
+  "inputs.tierSizing.help": "Em degraus coloca um logo a mais na linha para cada nível depois do primeiro, então os níveis mais altos parecem maiores. Mesmo tamanho dá a cada nível a configuração Colunas. Presença, Tamanho % e Equilibrar tamanhos continuam valendo para cada logo.",
+  "inputs.tierSizing.options.step": "Em degraus",
+  "inputs.tierSizing.options.even": "Mesmo tamanho",
+  "inputs.headingColor.label": "Cor dos títulos",
+  "inputs.headingColor.section": "Níveis",
+  "inputs.headingColor.help": "A cor dos títulos dos níveis."
 }

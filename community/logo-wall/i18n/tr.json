@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Tersine çevir",
   "inputs.logos.fields.invert.help": "Beyaz veya soluk renkli bir logo için.",
   "inputs.logos.fields.detail.label": "Detay",
-  "inputs.logos.fields.smoothing.label": "Yumuşatma"
+  "inputs.logos.fields.smoothing.label": "Yumuşatma",
+  "inputs.logos.fields.tier.label": "Kademe",
+  "inputs.logos.fields.tier.help": "Logoları sponsor kademesine göre gruplayın. Aynı kademedeki logolar, her kademenin ilk göründüğü sırayla, kademe adını taşıyan bir başlığın altında kendi satırlarında birlikte durur. Tek bir eşit ızgara için tüm kademeleri boş bırakın.",
+  "inputs.tierHeadings.label": "Kademe başlıkları",
+  "inputs.tierHeadings.section": "Kademeler",
+  "inputs.tierHeadings.help": "Her kademenin adını logo grubunun üstünde gösterir. Yalnızca logoların bir kademesi olduğunda geçerlidir.",
+  "inputs.tierSizing.label": "Kademe boyutları",
+  "inputs.tierSizing.section": "Kademeler",
+  "inputs.tierSizing.help": "Basamaklı azalt, ilk kademeden sonraki her kademe için satıra bir logo daha koyar; böylece üst kademeler daha büyük görünür. Aynı boyut, her kademeye Sütunlar ayarını verir. Belirginlik, Boyut % ve Boyutları dengele yine her logoya uygulanır.",
+  "inputs.tierSizing.options.step": "Basamaklı azalt",
+  "inputs.tierSizing.options.even": "Aynı boyut",
+  "inputs.headingColor.label": "Başlık rengi",
+  "inputs.headingColor.section": "Kademeler",
+  "inputs.headingColor.help": "Kademe başlıklarının rengi."
 }
