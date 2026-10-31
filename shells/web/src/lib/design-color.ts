@@ -7,3 +7,8 @@ export function designColorValue(value: ColorFieldValue, editingRange: unknown, 
   if (typeof value === 'object') return `var(${tokenColorVar(value.ref)}, ${value.value})`;
   return editingRange === 'hdr' && detail ? detail.css : value;
 }
+
+/** A gradient stop holds a colour, never a token link, so a picked swatch arrives as its plain value. */
+export function designStopColorValue(value: ColorFieldValue, editingRange: unknown, detail?: ColorChangeDetail): string {
+  return designColorValue(typeof value === 'object' ? value.value : value, editingRange, detail);
+}

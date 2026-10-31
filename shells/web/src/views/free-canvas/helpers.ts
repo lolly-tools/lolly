@@ -9,7 +9,7 @@
  */
 import { brandFontFamilies } from '../../lib/register-user-fonts.ts';
 import { t } from '../../i18n.ts';
-import { designColorValue } from '../../lib/design-color.ts';
+import { designColorValue, designStopColorValue } from '../../lib/design-color.ts';
 import type { ColorFieldValue, ColorChangeDetail } from '../../components/color-field.ts';
 import { FONT_STACK, WEIGHT_CHOICES } from './shared.ts';
 import type { Canvas, ImportMode } from './shared.ts';
@@ -23,6 +23,9 @@ export const canvasWH = (fc: FcCtx): Canvas => { const { canvasEl, nativeH, nati
 }); };
 export const unwrapColor = (fc: FcCtx, v: ColorFieldValue, detail?: ColorChangeDetail): string => {
   return designColorValue(v, fc.runtime.getModel().find(input => input.id === 'editingRange')?.value, detail);
+};
+export const unwrapStopColor = (fc: FcCtx, v: ColorFieldValue, detail?: ColorChangeDetail): string => {
+  return designStopColorValue(v, fc.runtime.getModel().find(input => input.id === 'editingRange')?.value, detail);
 };
 // Mono detection mirrors hooks.js weightOf (/mono/i on the wire value; the label
 // covers manifests whose values don't self-describe). Mono cuts rarely ship a
@@ -80,6 +83,7 @@ export function helpersOps(fc: FcCtx) {
   return {
     canvasWH: bindOp(fc, canvasWH),
     unwrapColor: bindOp(fc, unwrapColor),
+    unwrapStopColor: bindOp(fc, unwrapStopColor),
     isMonoFont: bindOp(fc, isMonoFont),
     maxWeightFor: bindOp(fc, maxWeightFor),
     weightChoicesFor: bindOp(fc, weightChoicesFor),

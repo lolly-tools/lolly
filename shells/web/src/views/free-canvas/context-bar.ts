@@ -233,7 +233,8 @@ export function wirePaintCtx(fc: FcCtx, scope: HTMLElement): void {
       const gradStop = id === 'fc-fill' && fc.gradEdit != null;
       const field = id === 'fc-fill' ? cfg.fillField : id === 'fc-fg' ? cfg.textColorField : id === 'fc-stroke' ? cfg.strokeField : '';
       const apply = (): void => {
-        if (gradStop) fc.gradient.setGradStopColor(value);
+        // A swatch arrives token-linked, and a stop cannot hold the link, so it takes the plain colour.
+        if (gradStop) fc.gradient.setGradStopColor(fc.helpers.unwrapStopColor(val, detail));
         else if (field) fc.fieldPanels.setField(field, value);
       };
       const drag = paintDrags.get(scope);
