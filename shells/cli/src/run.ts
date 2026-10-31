@@ -2438,7 +2438,10 @@ export async function showToolInputsCli(toolId: string, opts: { lang?: Lang; jso
     ? ` --${RESERVED.has(exampleInput.id) ? `input.${exampleInput.id}` : exampleInput.id}=${/\s/.test(exampleValue) ? JSON.stringify(exampleValue) : exampleValue}`
     : '';
   const format = tool.manifest.render.formats.includes('svg') ? 'svg' : tool.manifest.render.formats[0];
-  process.stdout.write(`\nTry it:\n  lolly ${tool.manifest.id}${exampleFlag} --output=${tool.manifest.id}.${format}\n\n`);
+  // A tool that takes dropped pictures is tried with pictures (block-files.ts).
+  const dropInputs = allInputs.filter(i => i.type === 'blocks' && (i as { dropToAdd?: unknown }).dropToAdd);
+  const tryArgs = dropInputs.length === 1 ? ' pictures/*.png' : exampleFlag;
+  process.stdout.write(`\nTry it:\n  lolly ${tool.manifest.id}${tryArgs} --output=${tool.manifest.id}.${format}\n\n`);
 
   const essentials = allInputs.filter(i => i.required || !i.showIf).slice(0, 8);
   const shown = opts.full ? allInputs : essentials;
@@ -2452,7 +2455,7 @@ export async function showToolInputsCli(toolId: string, opts: { lang?: Lang; jso
     const def = i.default !== undefined ? ` (default: ${JSON.stringify(i.default)})` : '';
     process.stdout.write(`  --${i.id}=<${i.type}>${req}${def}\n`);
     if (i.help) process.stdout.write(`      ${i.help}\n`);
-    const hint = syntaxHint(i.id, i.type);
+    const hint = syntaxHint(i.id, i.type, (i as { dropToAdd?: unknown }).dropToAdd);
     if (hint) process.stdout.write(`      ↳ ${hint}\n`);
   }
   if (!opts.full && shown.length < allInputs.length) {
@@ -2492,7 +2495,7 @@ async function describeToolJson(manifest: DescribableManifest): Promise<void> {
   const unmet = unmetCapabilities(manifest);
   const inputs = (manifest.inputs ?? []).map(i => {
     const shadowed = RESERVED.has(i.id) || (i.urlKey ? RESERVED.has(i.urlKey) : false);
-    const syntax = syntaxHint(i.id, i.type);
+    const syntax = syntaxHint(i.id, i.type, (i as { dropToAdd?: unknown }).dropToAdd);
     return {
       ...i,
       flag: shadowed ? `--input.${i.id}=` : `--${i.id}=`,
@@ -2526,10 +2529,12 @@ async function describeToolJson(manifest: DescribableManifest): Promise<void> {
 
 /** URL-mode syntax hint for the non-scalar input types, so the CLI's `<tool>` help
  *  explains how to actually express them (the forms are otherwise undocumented). */
-function syntaxHint(id: string, type: string): string {
+function syntaxHint(id: string, type: string, dropToAdd?: unknown): string {
   switch (type) {
     case 'asset':   return 'a catalog id (see `lolly assets`), a local image file, or a lolly.tools tool URL';
-    case 'blocks':  return `a JSON array --${id}='[{…}]', tilde rows --${id}='label,val,#hex~…', or a data file --${id}-data=rows.csv`;
+    case 'blocks':  return `a JSON array --${id}='[{…}]', tilde rows --${id}='label,val,#hex~…', or a data file --${id}-data=rows.csv`
+      // A list that takes dropped pictures takes local files too (block-files.ts).
+      + (dropToAdd ? `; or pictures, one row each: files after the tool id, --${id}-file=<picture> (repeat it) or --${id}-files=<paths.txt|->` : '');
     case 'vector':  return `one flag per field, e.g. --${id}.<field>=<number>`;
     case 'file':    return 'a path to your file (read locally, never uploaded)';
     case 'color':   return '#RRGGBB (the # is optional) or a token path';
