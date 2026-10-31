@@ -79,7 +79,7 @@ Press a hollow diamond and the property's current value is written into the keyf
 
 Because each property interpolates only between the keyframes that hold it, a colour can change over the first second while a position moves over three, each with its own curve.
 
-In the Design inspector, a property with no keyframes is an ordinary field: change the fill and the box changes. Once the property is animated, the playhead decides. Parked on a keyframe, an edit writes that keyframe; anywhere else the field shows the value the keyframes give at that moment and refuses an edit, because no keyframe there would hold it.
+In the Design inspector, a property with no keyframes is an ordinary field: change the fill and the box changes. Once the property is animated, the playhead decides. Parked on a keyframe, an edit writes that keyframe; anywhere else the field shows the value the keyframes give at that moment and refuses an edit, because no keyframe there would hold the change.
 
 ### Which strokes can be animated
 
