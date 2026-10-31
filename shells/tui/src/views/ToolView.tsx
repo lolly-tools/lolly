@@ -30,14 +30,14 @@ import { Box, Text, useInput } from 'ink';
 import TextInput from 'ink-text-input';
 import { MultilineInput } from '../components/MultilineInput.tsx';
 import { join, basename, dirname, extname } from 'node:path';
-import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
-import { homedir } from 'node:os';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { isToolUrl, parseDataRows, parseTableText, c2paDefaultOn, imprintDefaultOn, isImprintFormat, isImprintContainerFormat, designRecordWords } from '@lolly/engine';
 import type { ProvenanceManifest } from '@lolly/engine';
 import { loadAssets } from '../catalog.ts';
 import type { AssetRow } from '../catalog.ts';
 import { filterAssets, assetEmoji, assetDetail } from '../lib/asset-list.ts';
 import { loadFavourites, loadHidden, sortFavouritesFirst } from '../lib/asset-favourites.ts';
+import { expandHome, NotAPictureError, resolveAssetRef as resolveAsset, resolveRowPictures } from '../lib/asset-ref.ts';
 import { mountTool, renderSvg, exportToFile, exportableFormats, currentQuery, modelValues, isTransform, isCaptureTool, setCanvasSizeFrom } from '../engine-render.ts';
 import { madeWithRowText } from '../made-with-row.ts';
 import { matchedExportFormat } from '@lolly-tools/node-shell/raster';
@@ -112,10 +112,6 @@ function mimeForFile(path: string): string {
     case '.json': return 'application/json';
     default: return 'application/octet-stream';
   }
-}
-/** Expand a leading ~ to the home directory. */
-function expandHome(p: string): string {
-  return p.startsWith('~') && (p.length === 1 || p[1] === '/') ? homedir() + p.slice(1) : p;
 }
 const UNITS = ['px', 'mm', 'cm', 'in', 'pt'];
 // Content Credentials (C2PA) validity choices; 0 = off. Stamped into the export as its
@@ -812,25 +808,16 @@ export function ToolView({ toolId, query, values, fromLink = false, bridge, onBa
         const { rows, truncated } = parseDataRows(text, { fields: (item.fields ?? []) as Array<{ id: string; label?: string; type?: string }> });
         // A picture column (a Logo Wall CSV's `logo`) holds paths, catalog ids or URLs:
         // resolve each now, as setInput never does. A relative path is tried from the
-        // working directory, then beside the CSV.
+        // working directory, then beside the CSV. A file there that is not a picture
+        // refuses the import, so nothing of it is set.
         const assetFields = (item.fields ?? []).filter(f => f.type === 'asset').map(f => f.id);
-        const csvDir = dirname(expandHome(p));
-        let unresolved = 0;
-        for (const row of rows as Record<string, unknown>[]) {
-          for (const fid of assetFields) {
-            const raw = String(row[fid] ?? '').trim();
-            if (!raw) { row[fid] = null; continue; }
-            try { row[fid] = await resolveAssetRef(raw); }
-            catch {
-              try { row[fid] = await resolveAssetRef(join(csvDir, raw)); }
-              catch { row[fid] = null; unresolved++; }
-            }
-          }
-        }
+        const unresolved = await resolveRowPictures(rows as Record<string, unknown>[], assetFields, dirname(expandHome(p)), bridge.host);
         await runtime.setInput(item.id, rows as never);
         refresh();
         setStatus(`✓ Imported ${rows.length} row${rows.length === 1 ? '' : 's'} → ${item.id}${truncated ? ' (row cap reached)' : ''}${unresolved ? `; ${unresolved} picture${unresolved === 1 ? '' : 's'} not found` : ''}`);
-      } catch (e) { setStatus('Import failed: ' + (e as Error).message); }
+      } catch (e) {
+        setStatus(e instanceof NotAPictureError ? `Import refused: ${e.message} Nothing was imported.` : 'Import failed: ' + (e as Error).message);
+      }
     })();
   }
   /** Write a whole table value back through the runtime (the engine rejects ragged grids,
@@ -839,38 +826,9 @@ export function ToolView({ toolId, query, values, fromLink = false, bridge, onBa
     if (!runtime) return;
     runtime.setInput(item.id, next as never).then(refresh).catch(() => {});
   }
-  // Resolve a raw asset id / lolly.tools URL to the AssetRef the template consumes.
-  // setInput/setField do NOT re-resolve refs (only createRuntime does), so we resolve
-  // here the same way createRuntime would: a tool URL → compose.renderUrl (renders the
-  // linked tool to an embeddable ref; Node handles svg children, raster throws); anything
-  // else → a catalog asset id via host.assets.get.
-  async function resolveAssetRef(raw: string): Promise<InputValue> {
-    if (isToolUrl(raw)) {
-      const ref = await bridge.host.compose?.renderUrl?.(raw);
-      if (!ref) throw new Error('tool render unavailable in this shell');
-      return ref as InputValue;
-    }
-    // Your OWN local image (~/pics/logo.png) → a self-contained baked ref, same as the CLI.
-    const abs = expandHome(raw);
-    try {
-      const st = await stat(abs);
-      if (st.isFile()) {
-        const mime = mimeForFile(abs);
-        const isVec = mime === 'image/svg+xml';
-        const bytes = new Uint8Array(await readFile(abs));
-        return {
-          source: 'user', id: basename(abs),
-          type: isVec ? 'vector' : 'raster',
-          format: isVec ? 'svg' : (mime.split('/')[1] || 'png'),
-          url: `data:${mime};base64,${Buffer.from(bytes).toString('base64')}`,
-          meta: { baked: true, name: basename(abs) },
-        } as InputValue;
-      }
-    } catch { /* not a local file → treat as a catalog id */ }
-    const ref = await bridge.host.assets.get(raw);
-    if (!ref) throw new Error(`asset “${raw}” not found`);
-    return ref as InputValue;
-  }
+  // A raw asset id, lolly.tools URL or local picture path as the AssetRef the template
+  // reads (lib/asset-ref.ts: a file is read only when its bytes are a picture).
+  const resolveAssetRef = (raw: string): Promise<InputValue> => resolveAsset(raw, bridge.host);
   // Set a top-level `asset` input by id / URL (empty clears it).
   async function setAssetInput(id: string, raw: string): Promise<void> {
     if (!runtime) return;

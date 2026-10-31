@@ -105,6 +105,16 @@ async function headBytes(path: string): Promise<Uint8Array> {
   }
 }
 
+/**
+ * A file's picture MIME type by `imageMime`, from at most its first
+ * `SVG_SNIFF_BYTES`, so a file is known to be a picture before all of it is read.
+ * `application/octet-stream` means the file is not a picture. The TUI's CSV
+ * import and typed picture paths use the same check.
+ */
+export async function pictureFileMime(path: string): Promise<string> {
+  return imageMime(basename(path), await headBytes(path));
+}
+
 /** Whether a MIME type passes a dropToAdd `accept` filter, the web shell's rule. */
 export function acceptsMime(accept: string | undefined, mime: string): boolean {
   const filter = (accept || 'image/*').trim().toLowerCase();
@@ -376,7 +386,7 @@ export async function bakeLocalBlockAssets(
         const abs = await existingFile([cwd, opts.dataDirs?.[input.id]], id);
         if (!abs) continue;
         if (opts.fromLink?.(input.id)) throw linkLocalFileRefusal(input.id, f.id, id);
-        const mime = imageMime(basename(abs), await headBytes(abs));
+        const mime = await pictureFileMime(abs);
         if (mime === 'application/octet-stream') {
           throw usageError(`${input.id}: "${id}" is a file on this computer but not a picture this shell recognises, so it was not read. Nothing was rendered.`, 'BAD_FLAG_VALUE');
         }
