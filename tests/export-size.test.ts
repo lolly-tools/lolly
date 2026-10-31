@@ -214,3 +214,22 @@ test('a reopened session keeps its saved size until the size select moves', () =
 test('with nothing to go on a link export writes the render box at screen pixels', () => {
   assert.deepEqual(linkExportSize(sources()), { width: 1123, height: 794, canvas: { width: 1123, height: 794 } });
 });
+
+// A size option with no unit is read as millimetres (exportSizeDriver), which is right
+// for the print badges written that way and wrong for pixel sizes: Battlecards' 1200 x 900
+// landscape showed in the export bar as 1200 x 900 mm and a link export wrote a 14,173 px
+// PNG. Every community size option says its unit, so the default never has to guess.
+test('every community size option declares its unit', async () => {
+  const { readdirSync } = await import('node:fs');
+  const missing: string[] = [];
+  for (const id of readdirSync(join(ROOT, 'community'))) {
+    const file = join(ROOT, 'community', id, 'tool.json');
+    if (!existsSync(file)) continue;
+    const manifest = JSON.parse(readFileSync(file, 'utf8'));
+    const driver = exportSizeDriver(manifest);
+    if (!driver) continue;
+    const input = manifest.inputs.find((i: { id: string }) => i.id === driver.id);
+    for (const o of input.options) if (o.width > 0 && o.height > 0 && !o.unit) missing.push(`${id}.${driver.id}=${o.value}`);
+  }
+  assert.deepEqual(missing, []);
+});
