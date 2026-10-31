@@ -31,6 +31,7 @@ const userAssets = [
   { source: 'user', id: 'user/naive-photo', type: 'raster', format: 'png', url: '', meta: { name: 'Naïve Photo' } },
   { source: 'user', id: 'user/headshot', type: 'raster', format: 'png', url: '', meta: { name: 'Headshot' } },
   { source: 'user', id: 'user/hum', type: 'audio', format: 'wav', url: '', meta: { name: 'Voice Hum' } }, // the user's OWN audio → listed
+  { source: 'user', id: 'user/plain-sketch', type: 'vector', format: 'svg', url: '', meta: { name: 'Plain Sketch' } }, // nothing files it → More
 ];
 let queryCalls = 0;
 const host = {
@@ -53,11 +54,14 @@ test('a catalog asset matches by name; hit shape carries the scoped-list deep li
   assert.ok(hits[0]!.icon.includes('<svg'));
 });
 
-test('diacritics fold; an uncategorised asset subtitles with its format', async () => {
+test('diacritics fold; an uploaded image subtitles as Photos, an uncategorised asset with its format', async () => {
   const hits = await provider.search(tokenize('naive'), 5);
   assert.equal(hits.length, 1);
   assert.equal(hits[0]!.title, 'Naïve Photo');
-  assert.equal(hits[0]!.subtitle, 'png');
+  assert.equal(hits[0]!.subtitle, 'Photos'); // lib/asset-category files an uploaded image with the photos
+  const sketch = await provider.search(tokenize('sketch'), 5);
+  assert.equal(sketch[0]!.title, 'Plain Sketch');
+  assert.equal(sketch[0]!.subtitle, 'svg');
 });
 
 test('visibility mirrors the catalogue view: no fonts, no plain catalog audio, no headshot', async () => {
