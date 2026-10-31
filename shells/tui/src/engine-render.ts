@@ -74,7 +74,7 @@ export async function mountTool(
  * Tell the tool the canvas size the Export panel's width, height and unit describe
  * (engine 1.293), the same CSS pixels the web shell hands it for that size. Both
  * sides blank or invalid is the tool's own size. A tool that follows the size lays
- * itself out again. True when the size changed, so the caller repaints its preview.
+ * itself out again. True when the size changed: the caller then repaints the preview.
  */
 export async function setCanvasSizeFrom(runtime: Runtime, dims: { width?: number; height?: number; unit?: string }): Promise<boolean> {
   const before = runtime.canvasSize;
@@ -187,7 +187,7 @@ export async function exportToFile(
   }
   const transform = isTransform(manifest);
   // The canvas size is the export's own (engine 1.293), so a tool that lays itself out
-  // for the canvas draws this file at this shape. A no-op when the view already set it.
+  // for the canvas draws this file at this shape. A no-op when the view already set that size.
   await setCanvasSizeFrom(runtime, dims);
   // The design-system record (plans/319): the export panel's Design system row sets it
   // per export, so the runtime's own exports and the Tier-B URL read one switch.
