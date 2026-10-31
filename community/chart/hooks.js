@@ -1914,8 +1914,16 @@ function compute(model, inputPatch) {
     _recommendationReason: data.recommendation ? recommendation.reason : '',
     _recommendationConfidence: data.recommendation ? recommendation.confidence : '',
     mdSource: d3Md(inp),
+    // What an empty Colour 1..6 means, for the web shell's chips: that slot of the
+    // design system's palette. No value: the template picks the colour per chart
+    // type and palette, so the chip shows the neutral automatic pattern.
+    autoColors: BRAND ? PALETTE_SLOT_AUTO : {},
   };
 }
+
+const PALETTE_SLOT_AUTO = Object.freeze(Object.fromEntries(
+  ['palette1', 'palette2', 'palette3', 'palette4', 'palette5', 'palette6'].map((id) => [id, { source: 'design-system' }])
+));
 
 // The `md` export: heading/subheading + the pasted data re-emitted as a GFM table
 // (reusing the same delimiter detection + grid parser the chart uses).

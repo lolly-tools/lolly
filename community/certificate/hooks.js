@@ -1105,6 +1105,28 @@ function build(args, theme, logoUrl, lang, canvas) {
     sealInner: p.sealInner,
     ribbonColor: p.ribbon,
     sheenColor: p.sheen,
+
+    // What Ink, Paper and Accent draw while they are left empty, for the web shell
+    // to show on those inputs' chips. Accent paints the panel in Modern.
+    autoColors: autoColorsFor(style, theme, args, shape.id),
+  };
+}
+
+// Each one as the sheet would draw it with that input emptied and the others kept,
+// so the chip on a set input's "Follow the design system" choice shows what it returns to.
+function autoColorsFor(style, theme, args, shape) {
+  var source = theme && (theme.lead || theme.text || theme.surface) ? 'design-system' : 'tool';
+  var without = function (id) {
+    var rest = {};
+    for (var k in args) if (Object.prototype.hasOwnProperty.call(args, k)) rest[k] = args[k];
+    rest[id] = '';
+    return paletteFor(style, theme, rest, shape);
+  };
+  var accent = without('accent');
+  return {
+    color: { value: without('color').ink, source: source },
+    background: { value: without('background').paper, source: source },
+    accent: { value: style === 'modern' ? accent.panel : accent.accent, source: source },
   };
 }
 

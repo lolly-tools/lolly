@@ -102,6 +102,22 @@ function onInput({ model, canvasSize }) { return layout(model, canvasSize); }
 
 Do not declare hidden `width` and `height` inputs to get the size. The web shell writes into inputs with those ids, but the size then travels in links and undo, and the CLI warns that `--width` and `--height` shadow them. The export hooks see `ctx.canvasSize` too, beside `ctx.opts.width` and `ctx.opts.height`, the export's own size, which can differ: a batch row or a caller can ask for a size the canvas was never set to. [Logo Wall](/#/tool/logo-wall) is the reference tool: it lays the wall out for the canvas's shape and lays it out again in `beforeExport` only when the export's shape differs.
 
+### Showing what an empty colour input draws
+
+A colour input whose `default` is empty can be left empty, and the tool then picks the colour itself: Certificate's Ink follows the design system's text colour, Timezone's Text override follows the theme. In the web app's sidebar an empty colour input shows as automatic, with a neutral pattern and the word **Automatic**, and its picker offers the way back to empty. A hook can say which colour the tool draws there by returning `autoColors`, keyed by input id:
+
+```js
+return {
+  inkColor: ink,            // what the template uses
+  autoColors: {
+    color: { value: inkWithoutOverride, source: 'design-system' },
+    background: { value: themeBackground },   // no source: the tool's own rule
+  },
+};
+```
+
+`value` is the colour the tool draws while that input is empty, worked out as if the input were empty even when the person has set a colour, so the picker's "Follow the design system" choice shows the colour the input returns to. `source: 'design-system'` makes the field read "Design system" and announce "Ink: follows the design system (Liquorice)"; without the key the field reads "Automatic". Leave `value` out when the template decides the colour later, as Chart's palette slots do, and the field keeps the neutral pattern. `autoColors` is an ordinary extra, so the template never needs to read it and other shells ignore it. [Certificate](/#/tool/certificate) is the reference tool.
+
 ## Live input
 
 ### Motion-reactive tools (`onFrame`)
