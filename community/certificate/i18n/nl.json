@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "Nr. 2026-0413",
   "inputs.serial.section": "Uitgever",
   "inputs.accent.label": "Accent",
-  "inputs.accent.help": "Laat leeg om het designsysteem en de kleurvariant te volgen. Kleurt de naam, de lijst en het zegel in Klassiek en Minimaal, het vlak in Modern en het zegel en de confetti in Feestelijk.",
+  "inputs.accent.help": "Laat leeg om het designsysteem en de kleurvariant te volgen. Klassiek: de naam, de lijst en het zegel. Minimaal: de titel, de balk boven de titel en de zegelring. Modern: het vlak en het zegel. Feestelijk: het zegel, de balk onder de naam en de confetti.",
   "inputs.accent.section": "Kleur",
   "inputs.color.label": "Inkt",
   "inputs.color.help": "Laat leeg om het designsysteem te volgen. De kleur van de tekst.",

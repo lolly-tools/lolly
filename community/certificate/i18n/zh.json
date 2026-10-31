@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "编号 2026-0413",
   "inputs.serial.section": "颁发单位",
   "inputs.accent.label": "强调色",
-  "inputs.accent.help": "留空则跟随设计系统及其配色方案。为经典和极简的姓名、边框和印章上色，为现代的面板上色，也为庆典的印章和彩带上色。",
+  "inputs.accent.help": "留空则跟随设计系统及其配色方案。经典：姓名、边框和印章。极简：标题、标题上方的色条和印章外圈。现代：面板和印章。庆典：印章、姓名下方的色条和彩带。",
   "inputs.accent.section": "颜色",
   "inputs.color.label": "油墨",
   "inputs.color.help": "留空则跟随设计系统。文字的颜色。",

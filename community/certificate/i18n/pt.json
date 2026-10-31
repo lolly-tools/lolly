@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "Nº 2026-0413",
   "inputs.serial.section": "Emissor",
   "inputs.accent.label": "Destaque",
-  "inputs.accent.help": "Deixe vazio para seguir o sistema de design e o esquema de cores. Colore o nome, a moldura e o selo em Clássico e Minimalista, o painel em Moderno, e o selo e os confetes em Celebração.",
+  "inputs.accent.help": "Deixe vazio para seguir o sistema de design e o esquema de cores. Clássico: o nome, a moldura e o selo. Minimalista: o título, a barra acima do título e o anel do selo. Moderno: o painel e o selo. Celebração: o selo, a barra abaixo do nome e os confetes.",
   "inputs.accent.section": "Cor",
   "inputs.color.label": "Tinta",
   "inputs.color.help": "Deixe vazio para seguir o sistema de design. A cor do texto.",

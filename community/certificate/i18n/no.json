@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "Nr. 2026-0413",
   "inputs.serial.section": "Utsteder",
   "inputs.accent.label": "Aksent",
-  "inputs.accent.help": "La stå tomt for å følge designsystemet og fargevarianten. Farger navnet, rammen og seglet i Klassisk og Minimal, panelet i Moderne, og seglet og konfettien i Feiring.",
+  "inputs.accent.help": "La stå tomt for å følge designsystemet og fargevarianten. Klassisk: navnet, rammen og seglet. Minimal: tittelen, streken over tittelen og seglringen. Moderne: panelet og seglet. Feiring: seglet, streken under navnet og konfettien.",
   "inputs.accent.section": "Farge",
   "inputs.color.label": "Blekk",
   "inputs.color.help": "La stå tomt for å følge designsystemet. Fargen på teksten.",

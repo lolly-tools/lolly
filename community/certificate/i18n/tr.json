@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "No. 2026-0413",
   "inputs.serial.section": "Veren kurum",
   "inputs.accent.label": "Vurgu",
-  "inputs.accent.help": "Tasarım sistemini ve renk varyantını izlemesi için boş bırakın. Klasik ve Minimal'de adı, çerçeveyi ve mührü, Modern'de paneli, Kutlama'da mührü ve konfetiyi renklendirir.",
+  "inputs.accent.help": "Tasarım sistemini ve renk varyantını izlemesi için boş bırakın. Klasik: ad, çerçeve ve mühür. Minimal: başlık, başlığın üstündeki çubuk ve mühür halkası. Modern: panel ve mühür. Kutlama: mühür, adın altındaki çubuk ve konfeti.",
   "inputs.accent.section": "Renk",
   "inputs.color.label": "Mürekkep",
   "inputs.color.help": "Tasarım sistemini izlemesi için boş bırakın. Metnin rengi.",

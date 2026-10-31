@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "No. 2026-0413",
   "inputs.serial.section": "Penerbit",
   "inputs.accent.label": "Aksen",
-  "inputs.accent.help": "Kosongkan agar mengikuti sistem desain dan colourway-nya. Mewarnai nama, bingkai, dan segel di Klasik dan Minimal, panel di Modern, serta segel dan konfeti di Perayaan.",
+  "inputs.accent.help": "Kosongkan agar mengikuti sistem desain dan colourway-nya. Klasik: nama, bingkai, dan segel. Minimal: judul, bilah di atas judul, dan cincin segel. Modern: panel dan segel. Perayaan: segel, bilah di bawah nama, dan konfeti.",
   "inputs.accent.section": "Warna",
   "inputs.color.label": "Tinta",
   "inputs.color.help": "Kosongkan agar mengikuti sistem desain. Warna teksnya.",

@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "No. 2026-0413",
   "inputs.serial.section": "발급처",
   "inputs.accent.label": "강조색",
-  "inputs.accent.help": "비워 두면 디자인 시스템과 그 컬러웨이를 따라요. 클래식과 미니멀에서는 이름, 테두리, 인장의 색이 되고, 모던에서는 패널, 셀러브레이션에서는 인장과 색종이의 색이 돼요.",
+  "inputs.accent.help": "비워 두면 디자인 시스템과 그 컬러웨이를 따라요. 클래식: 이름, 테두리, 인장. 미니멀: 제목, 제목 위 막대, 인장 링. 모던: 패널과 인장. 셀러브레이션: 인장, 이름 아래 막대, 색종이.",
   "inputs.accent.section": "색상",
   "inputs.color.label": "잉크",
   "inputs.color.help": "비워 두면 디자인 시스템을 따라요. 문구의 색이에요.",

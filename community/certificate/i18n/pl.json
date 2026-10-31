@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "Nr 2026-0413",
   "inputs.serial.section": "Wystawca",
   "inputs.accent.label": "Akcent",
-  "inputs.accent.help": "Zostaw puste, by podążać za systemem projektowym i jego wariantem kolorystycznym. Koloruje imię i nazwisko, ramkę i pieczęć w stylach Klasyczny i Minimalistyczny, panel w Nowoczesnym oraz pieczęć i konfetti w Uroczystym.",
+  "inputs.accent.help": "Zostaw puste, by podążać za systemem projektowym i jego wariantem kolorystycznym. Klasyczny: imię i nazwisko, ramka i pieczęć. Minimalistyczny: tytuł, pasek nad tytułem i pierścień pieczęci. Nowoczesny: panel i pieczęć. Uroczysty: pieczęć, pasek pod imieniem i nazwiskiem oraz konfetti.",
   "inputs.accent.section": "Kolor",
   "inputs.color.label": "Tusz",
   "inputs.color.help": "Zostaw puste, by podążać za systemem projektowym. Kolor tekstu.",

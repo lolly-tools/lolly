@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "N. 2026-0413",
   "inputs.serial.section": "Emittente",
   "inputs.accent.label": "Accento",
-  "inputs.accent.help": "Lascia vuoto per seguire il design system e il suo colourway. Colora il nome, la cornice e il sigillo in Classico e Minimale, il pannello in Moderno, e il sigillo e i coriandoli in Festa.",
+  "inputs.accent.help": "Lascia vuoto per seguire il design system e il suo colourway. Classico: il nome, la cornice e il sigillo. Minimale: il titolo, la barra sopra il titolo e l'anello del sigillo. Moderno: il pannello e il sigillo. Festa: il sigillo, la barra sotto il nome e i coriandoli.",
   "inputs.accent.section": "Colore",
   "inputs.color.label": "Inchiostro",
   "inputs.color.help": "Lascia vuoto per seguire il design system. Il colore del testo.",

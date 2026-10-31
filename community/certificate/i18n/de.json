@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "Nr. 2026-0413",
   "inputs.serial.section": "Aussteller",
   "inputs.accent.label": "Akzent",
-  "inputs.accent.help": "Leer lassen, um dem Designsystem und seiner Farbvariante zu folgen. Färbt in Klassisch und Minimal den Namen, den Rahmen und das Siegel, in Modern die Farbfläche und in Feier das Siegel und das Konfetti.",
+  "inputs.accent.help": "Leer lassen, um dem Designsystem und seiner Farbvariante zu folgen. Klassisch: der Name, der Rahmen und das Siegel. Minimal: der Titel, der Balken über dem Titel und der Siegelring. Modern: die Farbfläche und das Siegel. Feier: das Siegel, der Balken unter dem Namen und das Konfetti.",
   "inputs.accent.section": "Farbe",
   "inputs.color.label": "Tinte",
   "inputs.color.help": "Leer lassen, um dem Designsystem zu folgen. Die Farbe des Wortlauts.",

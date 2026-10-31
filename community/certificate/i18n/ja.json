@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "No. 2026-0413",
   "inputs.serial.section": "発行元",
   "inputs.accent.label": "アクセント",
-  "inputs.accent.help": "空にするとデザインシステムとそのカラーウェイに従います。クラシックとミニマルでは名前、枠、シール、モダンではパネル、セレブレーションではシールと紙吹雪の色になります。",
+  "inputs.accent.help": "空にするとデザインシステムとそのカラーウェイに従います。クラシック：名前、枠、シール。ミニマル：タイトル、タイトル上のバー、シールのリング。モダン：パネルとシール。セレブレーション：シール、名前下のバー、紙吹雪。",
   "inputs.accent.section": "カラー",
   "inputs.color.label": "インク",
   "inputs.color.help": "空にするとデザインシステムに従います。文字の色です。",

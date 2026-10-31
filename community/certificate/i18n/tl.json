@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "Blg. 2026-0413",
   "inputs.serial.section": "Nag-isyu",
   "inputs.accent.label": "Accent",
-  "inputs.accent.help": "Iwanang walang laman para sundin ang design system at ang colourway nito. Kinukulayan ang pangalan, ang frame at ang seal sa Classic at Minimal, ang panel sa Modern, at ang seal at confetti sa Celebration.",
+  "inputs.accent.help": "Iwanang walang laman para sundin ang design system at ang colourway nito. Classic: ang pangalan, ang frame at ang seal. Minimal: ang pamagat, ang bar sa itaas ng pamagat at ang singsing ng seal. Modern: ang panel at ang seal. Celebration: ang seal, ang bar sa ilalim ng pangalan at ang confetti.",
   "inputs.accent.section": "Kulay",
   "inputs.color.label": "Ink",
   "inputs.color.help": "Iwanang walang laman para sundin ang design system. Ang kulay ng pananalita.",

@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "Nr 2026-0413",
   "inputs.serial.section": "Utfärdare",
   "inputs.accent.label": "Accent",
-  "inputs.accent.help": "Lämna tomt för att följa designsystemet och dess färgvariant. Färgar namnet, ramen och sigillet i Klassisk och Minimal, panelen i Modern samt sigillet och konfettin i Firande.",
+  "inputs.accent.help": "Lämna tomt för att följa designsystemet och dess färgvariant. Klassisk: namnet, ramen och sigillet. Minimal: titeln, strecket ovanför titeln och sigillringen. Modern: panelen och sigillet. Firande: sigillet, strecket under namnet och konfettin.",
   "inputs.accent.section": "Färg",
   "inputs.color.label": "Bläck",
   "inputs.color.help": "Lämna tomt för att följa designsystemet. Färgen på texten.",

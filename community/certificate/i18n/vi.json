@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "Số 2026-0413",
   "inputs.serial.section": "Đơn vị cấp",
   "inputs.accent.label": "Màu nhấn",
-  "inputs.accent.help": "Để trống để theo hệ thống thiết kế và bảng phối màu của nó. Tô màu tên, khung và con dấu ở Cổ điển và Tối giản, bảng màu ở Hiện đại, con dấu và hoa giấy ở Lễ hội.",
+  "inputs.accent.help": "Để trống để theo hệ thống thiết kế và bảng phối màu của nó. Cổ điển: tên, khung và con dấu. Tối giản: tiêu đề, thanh phía trên tiêu đề và vòng con dấu. Hiện đại: bảng màu và con dấu. Lễ hội: con dấu, thanh dưới tên và hoa giấy.",
   "inputs.accent.section": "Màu sắc",
   "inputs.color.label": "Mực",
   "inputs.color.help": "Để trống để theo hệ thống thiết kế. Màu của phần chữ.",

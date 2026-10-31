@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "No. 2026-0413",
   "inputs.serial.section": "Pengeluar",
   "inputs.accent.label": "Aksen",
-  "inputs.accent.help": "Biarkan kosong untuk mengikut sistem reka bentuk dan skema warnanya. Mewarnakan nama, bingkai dan meterai dalam Klasik dan Minimal, panel dalam Moden, serta meterai dan konfeti dalam Perayaan.",
+  "inputs.accent.help": "Biarkan kosong untuk mengikut sistem reka bentuk dan skema warnanya. Klasik: nama, bingkai dan meterai. Minimal: tajuk, palang di atas tajuk dan gelang meterai. Moden: panel dan meterai. Perayaan: meterai, palang di bawah nama dan konfeti.",
   "inputs.accent.section": "Warna",
   "inputs.color.label": "Dakwat",
   "inputs.color.help": "Biarkan kosong untuk mengikut sistem reka bentuk. Warna perkataan.",

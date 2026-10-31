@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "Nr. 2026-0413",
   "inputs.serial.section": "Emitent",
   "inputs.accent.label": "Accent",
-  "inputs.accent.help": "Lasă gol pentru a urma sistemul de design și varianta lui de culoare. Colorează numele, rama și sigiliul în Clasic și Minimal, panoul în Modern, iar sigiliul și confetti în Sărbătoare.",
+  "inputs.accent.help": "Lasă gol pentru a urma sistemul de design și varianta lui de culoare. Clasic: numele, rama și sigiliul. Minimal: titlul, bara de deasupra titlului și inelul sigiliului. Modern: panoul și sigiliul. Sărbătoare: sigiliul, bara de sub nume și confetti.",
   "inputs.accent.section": "Culoare",
   "inputs.color.label": "Cerneală",
   "inputs.color.help": "Lasă gol pentru a urma sistemul de design. Culoarea textului.",

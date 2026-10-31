@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "č. 2026-0413",
   "inputs.serial.section": "Vydavatel",
   "inputs.accent.label": "Akcent",
-  "inputs.accent.help": "Nech prázdné, aby se držel design systému a jeho barevné varianty. Barví jméno, rámeček a pečeť v Klasickém a Minimalistickém stylu, panel v Moderním a pečeť a konfety v Oslavě.",
+  "inputs.accent.help": "Nech prázdné, aby se držel design systému a jeho barevné varianty. Klasický: jméno, rámeček a pečeť. Minimalistický: nadpis, proužek nad nadpisem a prstenec pečeti. Moderní: panel a pečeť. Oslava: pečeť, proužek pod jménem a konfety.",
   "inputs.accent.section": "Barva",
   "inputs.color.label": "Barvivo",
   "inputs.color.help": "Nech prázdné, aby se držel design systému. Barva textu.",

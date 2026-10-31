@@ -65,7 +65,7 @@
   "inputs.serial.placeholder": "N° 2026-0413",
   "inputs.serial.section": "Émetteur",
   "inputs.accent.label": "Accent",
-  "inputs.accent.help": "Laisse vide pour suivre le design system et sa variante de couleur. Colore le nom, le cadre et le sceau dans Classique et Minimal, le panneau dans Moderne, et le sceau et les confettis dans Célébration.",
+  "inputs.accent.help": "Laisse vide pour suivre le design system et sa variante de couleur. Classique : le nom, le cadre et le sceau. Minimal : le titre, la barre au-dessus du titre et l'anneau du sceau. Moderne : le panneau et le sceau. Célébration : le sceau, la barre sous le nom et les confettis.",
   "inputs.accent.section": "Couleur",
   "inputs.color.label": "Encre",
   "inputs.color.help": "Laisse vide pour suivre le design system. La couleur du texte.",
