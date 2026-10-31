@@ -222,7 +222,7 @@ const layer = (kf: string): LottieSequenceLayer => ({
 
 function position(kf: string, fps = 30): LottieObject {
   const anim = compileLottieSequence({ width: 400, height: 300, fps, durationMs: 2000, layers: [layer(kf)] });
-  return (anim.layers[0] as LottieObject).ks.p as LottieObject;
+  return ((anim.layers[0] as LottieObject).ks as LottieObject).p as LottieObject;
 }
 
 test('dotLottie: a curved track writes one position with native ti/to that a player reads back', () => {

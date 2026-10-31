@@ -1856,5 +1856,17 @@
   "Trim end": "Кінець малювання",
   "Trim start": "Початок малювання",
   "{name} keyframe added at {t}": "Ключовий кадр для {name} додано на {t}",
-  "{name} keyframe removed at {t}": "Ключовий кадр для {name} видалено на {t}"
+  "{name} keyframe removed at {t}": "Ключовий кадр для {name} видалено на {t}",
+  "Curve the path": "Вигнути траєкторію",
+  "Straighten": "Випрямити",
+  "Curve the path at {t}": "Вигнути траєкторію на {t}",
+  "Straighten the path at {t}": "Випрямити траєкторію на {t}",
+  "Keyframe X position at {t}": "Положення X ключового кадру на {t}",
+  "Keyframe Y position at {t}": "Положення Y ключового кадру на {t}",
+  "Path curved at {t}": "Траєкторію вигнуто на {t}",
+  "Path straightened at {t}": "Траєкторію випрямлено на {t}",
+  "Keyframe at {t} moved": "Ключовий кадр на {t} переміщено",
+  "Path handle at {t} moved": "Керівну точку траєкторії на {t} переміщено",
+  "Path handles retracted": "Керівні точки траєкторії прибрано",
+  "This keyframe has no path handles": "Цей ключовий кадр не має керівних точок траєкторії"
 }

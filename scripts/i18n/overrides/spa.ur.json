@@ -1727,5 +1727,17 @@
   "Trim end": "ڈرائنگ کا اختتام",
   "Trim start": "ڈرائنگ کی ابتدا",
   "{name} keyframe added at {t}": "{t} پر {name} کا کی فریم شامل ہو گیا",
-  "{name} keyframe removed at {t}": "{t} پر {name} کا کی فریم ہٹا دیا گیا"
+  "{name} keyframe removed at {t}": "{t} پر {name} کا کی فریم ہٹا دیا گیا",
+  "Curve the path": "راستہ موڑیں",
+  "Straighten": "سیدھا کریں",
+  "Curve the path at {t}": "{t} پر راستہ موڑیں",
+  "Straighten the path at {t}": "{t} پر راستہ سیدھا کریں",
+  "Keyframe X position at {t}": "{t} پر کی فریم کی X پوزیشن",
+  "Keyframe Y position at {t}": "{t} پر کی فریم کی Y پوزیشن",
+  "Path curved at {t}": "{t} پر راستہ موڑ دیا گیا",
+  "Path straightened at {t}": "{t} پر راستہ سیدھا کر دیا گیا",
+  "Keyframe at {t} moved": "{t} کا کی فریم منتقل ہو گیا",
+  "Path handle at {t} moved": "{t} کا راستے کا ہینڈل منتقل ہو گیا",
+  "Path handles retracted": "راستے کے ہینڈل واپس سمیٹ دیے گئے",
+  "This keyframe has no path handles": "اس کی فریم میں راستے کے کوئی ہینڈل نہیں ہیں"
 }

@@ -10365,5 +10365,17 @@
   "Trim end": "Край на скъсяването",
   "Trim start": "Начало на скъсяването",
   "{name} keyframe added at {t}": "Добавен е ключов кадър за {name} в {t}",
-  "{name} keyframe removed at {t}": "Премахнат е ключов кадър за {name} в {t}"
+  "{name} keyframe removed at {t}": "Премахнат е ключов кадър за {name} в {t}",
+  "Curve the path": "Изкриви траекторията",
+  "Straighten": "Изправи",
+  "Curve the path at {t}": "Изкриви траекторията в {t}",
+  "Straighten the path at {t}": "Изправи траекторията в {t}",
+  "Keyframe X position at {t}": "Позиция X на ключовия кадър в {t}",
+  "Keyframe Y position at {t}": "Позиция Y на ключовия кадър в {t}",
+  "Path curved at {t}": "Траекторията е изкривена в {t}",
+  "Path straightened at {t}": "Траекторията е изправена в {t}",
+  "Keyframe at {t} moved": "Ключовият кадър в {t} е преместен",
+  "Path handle at {t} moved": "Дръжката на траекторията в {t} е преместена",
+  "Path handles retracted": "Дръжките на траекторията са прибрани",
+  "This keyframe has no path handles": "Този ключов кадър няма дръжки на траекторията"
 }

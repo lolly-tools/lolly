@@ -1728,5 +1728,17 @@
   "Trim end": "Fin del dibujado",
   "Trim start": "Inicio del dibujado",
   "{name} keyframe added at {t}": "Fotograma clave de {name} añadido en {t}",
-  "{name} keyframe removed at {t}": "Fotograma clave de {name} quitado en {t}"
+  "{name} keyframe removed at {t}": "Fotograma clave de {name} quitado en {t}",
+  "Curve the path": "Curvar la trayectoria",
+  "Straighten": "Enderezar",
+  "Curve the path at {t}": "Curvar la trayectoria en {t}",
+  "Straighten the path at {t}": "Enderezar la trayectoria en {t}",
+  "Keyframe X position at {t}": "Posición X del fotograma clave en {t}",
+  "Keyframe Y position at {t}": "Posición Y del fotograma clave en {t}",
+  "Path curved at {t}": "Trayectoria curvada en {t}",
+  "Path straightened at {t}": "Trayectoria enderezada en {t}",
+  "Keyframe at {t} moved": "Fotograma clave en {t} movido",
+  "Path handle at {t} moved": "Manejador de trayectoria en {t} movido",
+  "Path handles retracted": "Manejadores de trayectoria recogidos",
+  "This keyframe has no path handles": "Este fotograma clave no tiene manejadores de trayectoria"
 }

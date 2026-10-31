@@ -10365,5 +10365,17 @@
   "Trim end": "繪製終點",
   "Trim start": "繪製起點",
   "{name} keyframe added at {t}": "已在 {t} 為{name}加入關鍵影格",
-  "{name} keyframe removed at {t}": "已移除 {t} 處{name}的關鍵影格"
+  "{name} keyframe removed at {t}": "已移除 {t} 處{name}的關鍵影格",
+  "Curve the path": "彎曲路徑",
+  "Straighten": "拉直",
+  "Curve the path at {t}": "在 {t} 彎曲路徑",
+  "Straighten the path at {t}": "在 {t} 拉直路徑",
+  "Keyframe X position at {t}": "{t} 處關鍵影格的 X 位置",
+  "Keyframe Y position at {t}": "{t} 處關鍵影格的 Y 位置",
+  "Path curved at {t}": "已在 {t} 彎曲路徑",
+  "Path straightened at {t}": "已在 {t} 拉直路徑",
+  "Keyframe at {t} moved": "已移動 {t} 處的關鍵影格",
+  "Path handle at {t} moved": "已移動 {t} 處的路徑控制桿",
+  "Path handles retracted": "已收回路徑控制桿",
+  "This keyframe has no path handles": "此關鍵影格沒有路徑控制桿"
 }

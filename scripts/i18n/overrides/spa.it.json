@@ -1858,5 +1858,17 @@
   "Trim end": "Fine del tracciato",
   "Trim start": "Inizio del tracciato",
   "{name} keyframe added at {t}": "Fotogramma chiave per {name} aggiunto a {t}",
-  "{name} keyframe removed at {t}": "Fotogramma chiave per {name} rimosso a {t}"
+  "{name} keyframe removed at {t}": "Fotogramma chiave per {name} rimosso a {t}",
+  "Curve the path": "Curva il percorso",
+  "Straighten": "Raddrizza",
+  "Curve the path at {t}": "Curva il percorso a {t}",
+  "Straighten the path at {t}": "Raddrizza il percorso a {t}",
+  "Keyframe X position at {t}": "Posizione X del fotogramma chiave a {t}",
+  "Keyframe Y position at {t}": "Posizione Y del fotogramma chiave a {t}",
+  "Path curved at {t}": "Percorso curvato a {t}",
+  "Path straightened at {t}": "Percorso raddrizzato a {t}",
+  "Keyframe at {t} moved": "Fotogramma chiave a {t} spostato",
+  "Path handle at {t} moved": "Maniglia del percorso a {t} spostata",
+  "Path handles retracted": "Maniglie del percorso ritratte",
+  "This keyframe has no path handles": "Questo fotogramma chiave non ha maniglie del percorso"
 }

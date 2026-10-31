@@ -1727,5 +1727,17 @@
   "Trim end": "Trim-Ende",
   "Trim start": "Trim-Anfang",
   "{name} keyframe added at {t}": "Keyframe für {name} bei {t} hinzugefügt",
-  "{name} keyframe removed at {t}": "Keyframe für {name} bei {t} entfernt"
+  "{name} keyframe removed at {t}": "Keyframe für {name} bei {t} entfernt",
+  "Curve the path": "Pfad krümmen",
+  "Straighten": "Begradigen",
+  "Curve the path at {t}": "Pfad bei {t} krümmen",
+  "Straighten the path at {t}": "Pfad bei {t} begradigen",
+  "Keyframe X position at {t}": "X-Position des Keyframes bei {t}",
+  "Keyframe Y position at {t}": "Y-Position des Keyframes bei {t}",
+  "Path curved at {t}": "Pfad bei {t} gekrümmt",
+  "Path straightened at {t}": "Pfad bei {t} begradigt",
+  "Keyframe at {t} moved": "Keyframe bei {t} verschoben",
+  "Path handle at {t} moved": "Pfad-Griff bei {t} verschoben",
+  "Path handles retracted": "Pfad-Griffe eingezogen",
+  "This keyframe has no path handles": "Dieser Keyframe hat keine Pfad-Griffe"
 }

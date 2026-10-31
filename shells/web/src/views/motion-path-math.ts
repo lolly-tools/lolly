@@ -193,7 +193,7 @@ export function kfTrackStraighten(track: KfTrack, t: number): KfKey[] {
 }
 
 /** True when two handles leave their point in one line (within half a degree). */
-export function handlesInLine(a: KfHandle | undefined, b: KfHandle | undefined): boolean {
+export function handlesInLine(a: KfHandle | null | undefined, b: KfHandle | null | undefined): boolean {
   if (!a || !b) return false;
   const la = Math.hypot(a[0], a[1]), lb = Math.hypot(b[0], b[1]);
   if (!(la > 0) || !(lb > 0)) return false;

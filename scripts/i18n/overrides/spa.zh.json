@@ -1729,5 +1729,17 @@
   "Trim end": "绘制终点",
   "Trim start": "绘制起点",
   "{name} keyframe added at {t}": "已在 {t} 为{name}添加关键帧",
-  "{name} keyframe removed at {t}": "已移除 {t} 处{name}的关键帧"
+  "{name} keyframe removed at {t}": "已移除 {t} 处{name}的关键帧",
+  "Curve the path": "弯曲路径",
+  "Straighten": "拉直",
+  "Curve the path at {t}": "在 {t} 弯曲路径",
+  "Straighten the path at {t}": "在 {t} 拉直路径",
+  "Keyframe X position at {t}": "{t} 处关键帧的 X 位置",
+  "Keyframe Y position at {t}": "{t} 处关键帧的 Y 位置",
+  "Path curved at {t}": "已在 {t} 弯曲路径",
+  "Path straightened at {t}": "已在 {t} 拉直路径",
+  "Keyframe at {t} moved": "已移动 {t} 处的关键帧",
+  "Path handle at {t} moved": "已移动 {t} 处的路径手柄",
+  "Path handles retracted": "已收回路径手柄",
+  "This keyframe has no path handles": "此关键帧没有路径手柄"
 }

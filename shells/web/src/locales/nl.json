@@ -10365,5 +10365,17 @@
   "Trim end": "Tekeneinde",
   "Trim start": "Tekenbegin",
   "{name} keyframe added at {t}": "Keyframe voor {name} toegevoegd op {t}",
-  "{name} keyframe removed at {t}": "Keyframe voor {name} verwijderd op {t}"
+  "{name} keyframe removed at {t}": "Keyframe voor {name} verwijderd op {t}",
+  "Curve the path": "Pad krommen",
+  "Straighten": "Rechttrekken",
+  "Curve the path at {t}": "Pad op {t} krommen",
+  "Straighten the path at {t}": "Pad op {t} rechttrekken",
+  "Keyframe X position at {t}": "X-positie van de keyframe op {t}",
+  "Keyframe Y position at {t}": "Y-positie van de keyframe op {t}",
+  "Path curved at {t}": "Pad op {t} gekromd",
+  "Path straightened at {t}": "Pad op {t} rechtgetrokken",
+  "Keyframe at {t} moved": "Keyframe op {t} verplaatst",
+  "Path handle at {t} moved": "Padhandvat op {t} verplaatst",
+  "Path handles retracted": "Padhandvatten ingetrokken",
+  "This keyframe has no path handles": "Deze keyframe heeft geen padhandvatten"
 }

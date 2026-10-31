@@ -1856,5 +1856,17 @@
   "Trim end": "Çizim sonu",
   "Trim start": "Çizim başlangıcı",
   "{name} keyframe added at {t}": "{t} konumuna {name} anahtar karesi eklendi",
-  "{name} keyframe removed at {t}": "{t} konumundaki {name} anahtar karesi kaldırıldı"
+  "{name} keyframe removed at {t}": "{t} konumundaki {name} anahtar karesi kaldırıldı",
+  "Curve the path": "Yolu kavisle",
+  "Straighten": "Düzleştir",
+  "Curve the path at {t}": "{t} konumunda yolu kavisle",
+  "Straighten the path at {t}": "{t} konumunda yolu düzleştir",
+  "Keyframe X position at {t}": "{t} konumundaki anahtar karenin X konumu",
+  "Keyframe Y position at {t}": "{t} konumundaki anahtar karenin Y konumu",
+  "Path curved at {t}": "{t} konumunda yol kavislendi",
+  "Path straightened at {t}": "{t} konumunda yol düzleştirildi",
+  "Keyframe at {t} moved": "{t} konumundaki anahtar kare taşındı",
+  "Path handle at {t} moved": "{t} konumundaki yol tutamacı taşındı",
+  "Path handles retracted": "Yol tutamaçları geri çekildi",
+  "This keyframe has no path handles": "Bu anahtar karenin yol tutamacı yok"
 }

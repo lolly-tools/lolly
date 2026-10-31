@@ -1722,5 +1722,17 @@
   "Trim end": "Konec vykreslení",
   "Trim start": "Začátek vykreslení",
   "{name} keyframe added at {t}": "Přidán klíčový snímek pro {name} v {t}",
-  "{name} keyframe removed at {t}": "Odebrán klíčový snímek pro {name} v {t}"
+  "{name} keyframe removed at {t}": "Odebrán klíčový snímek pro {name} v {t}",
+  "Curve the path": "Zakřivit dráhu",
+  "Straighten": "Narovnat",
+  "Curve the path at {t}": "Zakřivit dráhu v {t}",
+  "Straighten the path at {t}": "Narovnat dráhu v {t}",
+  "Keyframe X position at {t}": "Poloha X klíčového snímku v {t}",
+  "Keyframe Y position at {t}": "Poloha Y klíčového snímku v {t}",
+  "Path curved at {t}": "Dráha zakřivena v {t}",
+  "Path straightened at {t}": "Dráha narovnána v {t}",
+  "Keyframe at {t} moved": "Klíčový snímek v {t} přesunut",
+  "Path handle at {t} moved": "Úchop dráhy v {t} přesunut",
+  "Path handles retracted": "Úchopy dráhy zataženy",
+  "This keyframe has no path handles": "Tento klíčový snímek nemá úchopy dráhy"
 }

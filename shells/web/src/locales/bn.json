@@ -10365,5 +10365,17 @@
   "Trim end": "আংশিক আঁকার শেষ",
   "Trim start": "আংশিক আঁকার শুরু",
   "{name} keyframe added at {t}": "{t}-এ {name}-এর কীফ্রেম যোগ হয়েছে",
-  "{name} keyframe removed at {t}": "{t}-এ {name}-এর কীফ্রেম সরানো হয়েছে"
+  "{name} keyframe removed at {t}": "{t}-এ {name}-এর কীফ্রেম সরানো হয়েছে",
+  "Curve the path": "পথ বাঁকান",
+  "Straighten": "সোজা করুন",
+  "Curve the path at {t}": "{t}-এ পথ বাঁকান",
+  "Straighten the path at {t}": "{t}-এ পথ সোজা করুন",
+  "Keyframe X position at {t}": "{t}-এর কীফ্রেমের X অবস্থান",
+  "Keyframe Y position at {t}": "{t}-এর কীফ্রেমের Y অবস্থান",
+  "Path curved at {t}": "{t}-এ পথ বাঁকানো হয়েছে",
+  "Path straightened at {t}": "{t}-এ পথ সোজা করা হয়েছে",
+  "Keyframe at {t} moved": "{t}-এর কীফ্রেম সরানো হয়েছে",
+  "Path handle at {t} moved": "{t}-এর পথের হ্যান্ডেল সরানো হয়েছে",
+  "Path handles retracted": "পথের হ্যান্ডেলগুলো গুটিয়ে নেওয়া হয়েছে",
+  "This keyframe has no path handles": "এই কীফ্রেমে কোনো পথের হ্যান্ডেল নেই"
 }

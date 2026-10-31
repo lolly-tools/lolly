@@ -1858,5 +1858,17 @@
   "Trim end": "Tegning slutt",
   "Trim start": "Tegning start",
   "{name} keyframe added at {t}": "Nøkkelbilde for {name} lagt til ved {t}",
-  "{name} keyframe removed at {t}": "Nøkkelbilde for {name} fjernet ved {t}"
+  "{name} keyframe removed at {t}": "Nøkkelbilde for {name} fjernet ved {t}",
+  "Curve the path": "Bøy banen",
+  "Straighten": "Rett ut",
+  "Curve the path at {t}": "Bøy banen ved {t}",
+  "Straighten the path at {t}": "Rett ut banen ved {t}",
+  "Keyframe X position at {t}": "Nøkkelbildets X-posisjon ved {t}",
+  "Keyframe Y position at {t}": "Nøkkelbildets Y-posisjon ved {t}",
+  "Path curved at {t}": "Banen er bøyd ved {t}",
+  "Path straightened at {t}": "Banen er rettet ut ved {t}",
+  "Keyframe at {t} moved": "Nøkkelbildet ved {t} er flyttet",
+  "Path handle at {t} moved": "Banehåndtaket ved {t} er flyttet",
+  "Path handles retracted": "Banehåndtakene er trukket inn",
+  "This keyframe has no path handles": "Dette nøkkelbildet har ingen banehåndtak"
 }

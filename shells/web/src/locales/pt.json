@@ -10365,5 +10365,17 @@
   "Trim end": "Fim do desenho",
   "Trim start": "Início do desenho",
   "{name} keyframe added at {t}": "Quadro-chave de {name} adicionado em {t}",
-  "{name} keyframe removed at {t}": "Quadro-chave de {name} removido em {t}"
+  "{name} keyframe removed at {t}": "Quadro-chave de {name} removido em {t}",
+  "Curve the path": "Curvar a trajetória",
+  "Straighten": "Endireitar",
+  "Curve the path at {t}": "Curvar a trajetória em {t}",
+  "Straighten the path at {t}": "Endireitar a trajetória em {t}",
+  "Keyframe X position at {t}": "Posição X do quadro-chave em {t}",
+  "Keyframe Y position at {t}": "Posição Y do quadro-chave em {t}",
+  "Path curved at {t}": "Trajetória curvada em {t}",
+  "Path straightened at {t}": "Trajetória endireitada em {t}",
+  "Keyframe at {t} moved": "Quadro-chave em {t} movido",
+  "Path handle at {t} moved": "Alça da trajetória em {t} movida",
+  "Path handles retracted": "Alças da trajetória recolhidas",
+  "This keyframe has no path handles": "Este quadro-chave não tem alças de trajetória"
 }

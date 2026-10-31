@@ -10365,5 +10365,17 @@
   "Trim end": "ड्रॉ का अंत",
   "Trim start": "ड्रॉ की शुरुआत",
   "{name} keyframe added at {t}": "{t} पर {name} का कीफ़्रेम जोड़ा गया",
-  "{name} keyframe removed at {t}": "{t} पर {name} का कीफ़्रेम हटाया गया"
+  "{name} keyframe removed at {t}": "{t} पर {name} का कीफ़्रेम हटाया गया",
+  "Curve the path": "पथ मोड़ें",
+  "Straighten": "सीधा करें",
+  "Curve the path at {t}": "{t} पर पथ मोड़ें",
+  "Straighten the path at {t}": "{t} पर पथ सीधा करें",
+  "Keyframe X position at {t}": "{t} पर कीफ़्रेम की X स्थिति",
+  "Keyframe Y position at {t}": "{t} पर कीफ़्रेम की Y स्थिति",
+  "Path curved at {t}": "{t} पर पथ मोड़ा गया",
+  "Path straightened at {t}": "{t} पर पथ सीधा किया गया",
+  "Keyframe at {t} moved": "{t} का कीफ़्रेम खिसकाया गया",
+  "Path handle at {t} moved": "{t} का पथ हैंडल खिसकाया गया",
+  "Path handles retracted": "पथ हैंडल समेटे गए",
+  "This keyframe has no path handles": "इस कीफ़्रेम में कोई पथ हैंडल नहीं है"
 }

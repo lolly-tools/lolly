@@ -10365,5 +10365,17 @@
   "Trim end": "Koniec rysowania",
   "Trim start": "Początek rysowania",
   "{name} keyframe added at {t}": "Dodano klatkę kluczową dla {name} w {t}",
-  "{name} keyframe removed at {t}": "Usunięto klatkę kluczową dla {name} w {t}"
+  "{name} keyframe removed at {t}": "Usunięto klatkę kluczową dla {name} w {t}",
+  "Curve the path": "Zakrzyw ścieżkę",
+  "Straighten": "Wyprostuj",
+  "Curve the path at {t}": "Zakrzyw ścieżkę w {t}",
+  "Straighten the path at {t}": "Wyprostuj ścieżkę w {t}",
+  "Keyframe X position at {t}": "Położenie X klatki kluczowej w {t}",
+  "Keyframe Y position at {t}": "Położenie Y klatki kluczowej w {t}",
+  "Path curved at {t}": "Ścieżka zakrzywiona w {t}",
+  "Path straightened at {t}": "Ścieżka wyprostowana w {t}",
+  "Keyframe at {t} moved": "Klatka kluczowa w {t} przesunięta",
+  "Path handle at {t} moved": "Uchwyt ścieżki w {t} przesunięty",
+  "Path handles retracted": "Uchwyty ścieżki schowane",
+  "This keyframe has no path handles": "Ta klatka kluczowa nie ma uchwytów ścieżki"
 }

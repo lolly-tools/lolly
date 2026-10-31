@@ -19,6 +19,7 @@ import type { keyframesOps } from './keyframes.ts';
 import type { cameraOps } from './camera.ts';
 import type { kfDockOps } from './kf-dock.ts';
 import type { propKeysOps } from './prop-keys.ts';
+import type { kfPathOps } from './kf-path.ts';
 import type { KfFilter } from '../kf-props.ts';
 import type { TimeUnit } from '../timeline-units.ts';
 import type { inspectorPaneOps } from './inspector-pane.ts';
@@ -255,6 +256,8 @@ export interface TpCtx {
   kfDock: ReturnType<typeof kfDockOps>;
   /** Per-property keyframing (plans/328): the diamond on one field. */
   propKeys: ReturnType<typeof propKeysOps>;
+  /** A keyframe's place on the motion path (plans/330): the popup rows' X, Y and curve. */
+  kfPath: ReturnType<typeof kfPathOps>;
   inspectorPane: ReturnType<typeof inspectorPaneOps>;
   thumbs: ReturnType<typeof thumbsOps>;
   syncing: ReturnType<typeof syncingOps>;
