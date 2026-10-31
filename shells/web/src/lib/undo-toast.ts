@@ -76,7 +76,15 @@ export function showUndoToast(opts: UndoToastOpts): UndoToastHandle {
     accept.className = 'undo-toast-btn';
     accept.textContent = opts.acceptLabel;
   }
-  el.append(msg, btn, ...(accept ? [accept] : []), bar);
+  if (accept) {
+    // The pair wraps as one unit, so a narrow screen never strands one button.
+    const actions = document.createElement('span');
+    actions.className = 'undo-toast-actions';
+    actions.append(btn, accept);
+    el.append(msg, actions, bar);
+  } else {
+    el.append(msg, btn, bar);
+  }
   ensureWrap().appendChild(el);
 
   let settled = false;

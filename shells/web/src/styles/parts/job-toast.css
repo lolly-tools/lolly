@@ -333,10 +333,15 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
 }
 .undo-toast-btn:hover { background: hsl(var(--muted)); }
 /* A sentence-long notice (showUndoToast's `wrap`): the message wraps instead of being
-   cut short, and on a narrow screen the buttons drop to their own line, kept right. */
+   cut short, and on a narrow screen the button pair (.undo-toast-actions, present with
+   `acceptLabel`) drops to its own line, kept right. */
 .undo-toast--wrap { flex-wrap: wrap; row-gap: 6px; border-radius: var(--radius-lg); }
+/* The stack sits at left: 50%, so its shrink-to-fit width stops at half the viewport and a
+   long message would wrap into a narrow column on a phone. Size it to the content instead,
+   up to the stack's own max-width. Only when a wrapping notice is present. */
+.undo-toasts:has(> .undo-toast--wrap) { width: max-content; }
 .undo-toast--wrap .undo-toast-msg { flex: 1 1 16rem; white-space: normal; line-height: 1.4; }
-.undo-toast--wrap .undo-toast-msg + .undo-toast-btn { margin-left: auto; }
+.undo-toast-actions { display: flex; flex: none; gap: 4px; margin-left: auto; }
 
 /* Touch hit-area: the only undo for a soft-delete, timed out at 10s, so a
    coarse-pointer thumb-miss loses the item for good. min-height wins over the
