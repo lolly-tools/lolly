@@ -10435,5 +10435,9 @@
   "Headlines - 36px, or 24px bold": "Titluri - 36px sau 24px aldin",
   "Icons and borders only": "Doar pictograme și borduri",
   "Not usable": "Nu poate fi folosit",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA este definit pentru sRGB, deci o culoare cu gamă largă este evaluată după redarea ei în sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA este definit pentru sRGB, deci o culoare cu gamă largă este evaluată după redarea ei în sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly a trecut la aspectul mai simplu și mai rapid, pentru că acest dispozitiv desenează fără accelerare grafică.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly a trecut la aspectul mai simplu și mai rapid, pentru că acest dispozitiv se chinuia.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Activat automat la {date}, pentru că acest dispozitiv desenează fără accelerare grafică.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Activat automat la {date}, pentru că acest dispozitiv se chinuia să deseneze interfața."
 }

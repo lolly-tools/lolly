@@ -10435,5 +10435,9 @@
   "Headlines - 36px, or 24px bold": "標題 - 36px，或 24px 粗體",
   "Icons and borders only": "僅限圖示與邊框",
   "Not usable": "無法使用",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA 是針對 sRGB 定義的，因此廣色域色彩會以其 sRGB 呈現結果評分。"
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA 是針對 sRGB 定義的，因此廣色域色彩會以其 sRGB 呈現結果評分。",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "這部裝置沒有圖形加速就進行繪製，所以 Lolly 已切換為更簡單、更快的外觀。",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "這部裝置運作吃力，所以 Lolly 已切換為更簡單、更快的外觀。",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "已於 {date} 自動開啟，因為這部裝置沒有圖形加速就進行繪製。",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "已於 {date} 自動開啟，因為這部裝置繪製介面時運作吃力。"
 }

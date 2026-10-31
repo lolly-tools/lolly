@@ -10435,5 +10435,9 @@
   "Headlines - 36px, or 24px bold": "Rubriker - 36 px, eller 24 px fet",
   "Icons and borders only": "Endast ikoner och kantlinjer",
   "Not usable": "Inte användbar",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA är definierat för sRGB, så en färg med brett färgomfång poängsätts utifrån sin sRGB-återgivning."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA är definierat för sRGB, så en färg med brett färgomfång poängsätts utifrån sin sRGB-återgivning.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly bytte till det enklare, snabbare utseendet eftersom den här enheten ritar utan grafikacceleration.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly bytte till det enklare, snabbare utseendet eftersom den här enheten hade det tungt.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Aktiverades automatiskt den {date} eftersom den här enheten ritar utan grafikacceleration.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Aktiverades automatiskt den {date} eftersom den här enheten hade svårt att rita gränssnittet."
 }

@@ -10435,5 +10435,9 @@
   "Headlines - 36px, or 24px bold": "Заголовки - 36 px або 24 px жирним",
   "Icons and borders only": "Лише піктограми та межі",
   "Not usable": "Непридатно",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA визначено для sRGB, тому колір із широким охопленням оцінюється за його відтворенням у sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA визначено для sRGB, тому колір із широким охопленням оцінюється за його відтворенням у sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly перейшов на простіший і швидший вигляд, бо цей пристрій малює без графічного прискорення.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly перейшов на простіший і швидший вигляд, бо цей пристрій працював із труднощами.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Автоматично ввімкнено {date}, бо цей пристрій малює без графічного прискорення.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Автоматично ввімкнено {date}, бо цьому пристрою було важко малювати інтерфейс."
 }

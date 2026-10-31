@@ -1800,5 +1800,9 @@
   "Headlines - 36px, or 24px bold": "Mga headline - 36px, o 24px na bold",
   "Icons and borders only": "Mga icon at border lang",
   "Not usable": "Hindi magagamit",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "Ang APCA ay para sa sRGB, kaya ang wide-gamut na kulay ay sinusukat batay sa sRGB rendering nito."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "Ang APCA ay para sa sRGB, kaya ang wide-gamut na kulay ay sinusukat batay sa sRGB rendering nito.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lumipat ang Lolly sa mas simple at mas mabilis na look dahil walang graphics acceleration ang pagguhit ng device na ito.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lumipat ang Lolly sa mas simple at mas mabilis na look dahil nahihirapan ang device na ito.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Awtomatikong in-on noong {date} dahil walang graphics acceleration ang pagguhit ng device na ito.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Awtomatikong in-on noong {date} dahil nahirapan ang device na ito sa pagguhit ng interface."
 }

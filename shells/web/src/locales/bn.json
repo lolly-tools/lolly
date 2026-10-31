@@ -10435,5 +10435,9 @@
   "Headlines - 36px, or 24px bold": "শিরোনাম - 36px, অথবা 24px বোল্ড",
   "Icons and borders only": "শুধু আইকন ও বর্ডারের জন্য",
   "Not usable": "ব্যবহারযোগ্য নয়",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA sRGB-এর জন্য নির্ধারিত, তাই ওয়াইড-গ্যামুট রংকে তার sRGB রূপে স্কোর করা হয়।"
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA sRGB-এর জন্য নির্ধারিত, তাই ওয়াইড-গ্যামুট রংকে তার sRGB রূপে স্কোর করা হয়।",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে, কারণ এই ডিভাইস গ্রাফিক্স অ্যাক্সিলারেশন ছাড়াই ছবি আঁকে।",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে, কারণ এই ডিভাইসটি ধীর চলছিল।",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "{date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে, কারণ এই ডিভাইস গ্রাফিক্স অ্যাক্সিলারেশন ছাড়াই ছবি আঁকে।",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে, কারণ এই ডিভাইসে ইন্টারফেস আঁকতে সমস্যা হচ্ছিল।"
 }

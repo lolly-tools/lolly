@@ -1933,5 +1933,9 @@
   "Headlines - 36px, or 24px bold": "العناوين - 36px، أو 24px غامق",
   "Icons and borders only": "للأيقونات والحدود فقط",
   "Not usable": "غير صالح للاستخدام",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "يُعرَّف APCA لـ sRGB، لذا يُقيَّم اللون واسع النطاق بحسب عرضه في sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "يُعرَّف APCA لـ sRGB، لذا يُقيَّم اللون واسع النطاق بحسب عرضه في sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "حوّل Lolly إلى المظهر الأبسط والأسرع لأن هذا الجهاز يرسم دون تسريع الرسومات.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "حوّل Lolly إلى المظهر الأبسط والأسرع لأن هذا الجهاز كان يواجه صعوبة في الأداء.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "تم التشغيل تلقائيًا في {date} لأن هذا الجهاز يرسم دون تسريع الرسومات.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "تم التشغيل تلقائيًا في {date} لأن هذا الجهاز كان يواجه صعوبة في رسم الواجهة."
 }

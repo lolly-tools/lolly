@@ -1797,5 +1797,9 @@
   "Headlines - 36px, or 24px bold": "Judul - 36px, atau 24px tebal",
   "Icons and borders only": "Hanya untuk ikon dan bingkai",
   "Not usable": "Tidak dapat dipakai",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA didefinisikan untuk sRGB, jadi warna gamut luas dinilai dari tampilannya di sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA didefinisikan untuk sRGB, jadi warna gamut luas dinilai dari tampilannya di sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly beralih ke tampilan yang lebih sederhana dan cepat karena perangkat ini menggambar tanpa akselerasi grafis.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly beralih ke tampilan yang lebih sederhana dan cepat karena perangkat ini kesulitan.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Diaktifkan otomatis pada {date} karena perangkat ini menggambar tanpa akselerasi grafis.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Diaktifkan otomatis pada {date} karena perangkat ini kesulitan menggambar antarmuka."
 }

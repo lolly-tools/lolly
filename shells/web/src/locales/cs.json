@@ -10435,5 +10435,9 @@
   "Headlines - 36px, or 24px bold": "Nadpisy - 36px, nebo 24px tučně",
   "Icons and borders only": "Jen pro ikony a okraje",
   "Not usable": "Nepoužitelné",
-  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA je definována pro sRGB, takže barva se širokým gamutem se hodnotí podle svého zobrazení v sRGB."
+  "APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.": "APCA je definována pro sRGB, takže barva se širokým gamutem se hodnotí podle svého zobrazení v sRGB.",
+  "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly přepnulo na jednodušší a rychlejší vzhled, protože toto zařízení kreslí bez grafické akcelerace.",
+  "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly přepnulo na jednodušší a rychlejší vzhled, protože toto zařízení zápasilo s výkonem.",
+  "Turned on automatically on {date} because this device draws without graphics acceleration.": "Zapnuto automaticky dne {date}, protože toto zařízení kreslí bez grafické akcelerace.",
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Zapnuto automaticky dne {date}, protože toto zařízení zápasilo s vykreslováním rozhraní."
 }
