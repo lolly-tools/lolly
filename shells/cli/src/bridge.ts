@@ -98,6 +98,7 @@ import {
 // factories return null on a lean install so the capability stays honestly absent.
 import { createNodePdfRedact } from '@lolly-tools/node-shell/pdf-redact';
 import { createNodeRasterAPI } from '@lolly-tools/node-shell/canvas';
+import type { DecodeLimits } from '@lolly-tools/node-shell/canvas';
 // host.speech (Kokoro TTS + Whisper transcription). RELATIVE for the same MCP-bundle
 // reason; it resolves transformers.js lazily and returns null when the runtime is
 // absent, so importing it costs nothing and a lean install leaves host.speech undefined.
@@ -272,6 +273,13 @@ interface CliBridgeOpts {
   capturePublicOnly?: boolean;
   /** Hosted asset readers use bounded public HTTP connections and MIME checks. */
   publicOnlyAssets?: boolean;
+  /**
+   * What decoding a picture may allocate (`DecodeLimits`): `host.raster`, the HDR
+   * source decode and a photo look's bake all check the picture's stated size
+   * against it before allocating. The hosted MCP server passes one per render; a
+   * person's own CLI/TUI leaves it off.
+   */
+  decodeLimits?: DecodeLimits;
   /** Hosted renderers without a member AI lease omit model-backed APIs.
    * Standalone CLI/TUI behaviour remains enabled by default. */
   aiEnabled?: boolean;
@@ -361,7 +369,7 @@ export function followRuntimeSelection(
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, decodeLimits, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
@@ -427,7 +435,7 @@ export async function createCliBridge(
       return new Uint8Array(await response.arrayBuffer());
     },
     async sdr(bytes) {
-      const canvas = await (await import('@lolly-tools/node-shell/canvas')).decodeToCanvas(bytes);
+      const canvas = await (await import('@lolly-tools/node-shell/canvas')).decodeToCanvas(bytes, undefined, decodeLimits);
       if (!canvas) throw new Error('SDR decoding needs the optional Node canvas adapter.');
       return { width: canvas.width, height: canvas.height, data: canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data };
     },
@@ -507,7 +515,7 @@ export async function createCliBridge(
         const lut = look.kind === 'lut' ? await lutFor(resolvePhotoLook(look, themeKey).lut) : null;
         if (look.kind === 'lut' && !lut) throw new Error(`the LUT of photo look ${look.id} is unavailable`);
         const { bakePhotoLookBytes } = await import('../../../packages/node-shell/src/photo-look.ts');
-        const baked = await bakePhotoLookBytes(bytes, look, { mime, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}) });
+        const baked = await bakePhotoLookBytes(bytes, look, { mime, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}), ...(decodeLimits ? { limits: decodeLimits } : {}) });
         if (!baked) {
           if (!lookCanvasWarned) host.log('warn', `photo look ${look.id} was left out: this install has no canvas (@napi-rs/canvas) to bake it, so the plain picture is used.`);
           lookCanvasWarned = true;
@@ -1567,7 +1575,7 @@ function rootSvgOf(node: Element | null): Element | null {
   // canvas. `canRaster()` is the sync probe a tool branches on before deciding what
   // to render, and it now answers honestly here instead of being absent (which every
   // hook reads as "headless, refuse"). Conditional for the same reason as above.
-  const raster = createNodeRasterAPI(publicOnlyAssets ? { readUrl: readHostedSource } : {});
+  const raster = createNodeRasterAPI({ ...(publicOnlyAssets ? { readUrl: readHostedSource } : {}), ...(decodeLimits ? { limits: decodeLimits } : {}) });
   if (raster) host.raster = raster;
 
   // host.c2pa.sign (v1.85; widened v1.104) - freshly sign a manifest into finished

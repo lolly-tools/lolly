@@ -534,7 +534,7 @@ async function renderTierA(
   tokenSelection?: Record<string, string>,
   size: TierASize = {},
 ): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; drawn: DrawnHere; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null; svgSized: boolean }> {
-  return withHost(profile, async (dom, host) => {
+  return withHost(profile, async (dom, host, run) => {
     const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, size.canvas);
     // The PNG fast path's SVG takes the requested size only when the drawn root <svg>
     // has a viewBox, as the CLI's and the TUI's do: without one the export would make
@@ -575,6 +575,9 @@ async function renderTierA(
       if (e instanceof RenderIntegrityError) throw new RenderError(e.message);
       throw e;
     }
+    // A picture this server would not decode leaves its step out (a Logo Wall logo
+    // keeps its own margins and size); the caller is told which and why.
+    for (const refusal of new Set(run.decodeRefusals)) warnings.push(refusal);
     return {
       ...(productionInputs ? { productionInputs } : {}),
       bytes,

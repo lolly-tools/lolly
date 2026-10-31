@@ -10,6 +10,7 @@ import { applyPhotoLook } from '../../../engine/src/photo-look.ts';
 import type { GradeLut } from '../../../engine/src/grade.ts';
 import type { PhotoTreatment } from '../../../engine/src/photo-treatment.ts';
 import { decodeToCanvas, isCanvasAvailable, sniffImageMime } from './canvas.ts';
+import type { DecodeLimits } from './canvas.ts';
 
 /** Larger pictures are served without the look. */
 export const PHOTO_LOOK_MAX_PIXELS = 64 * 1024 * 1024;
@@ -25,11 +26,11 @@ export interface PhotoLookBytes {
 export async function bakePhotoLookBytes(
   bytes: Uint8Array,
   look: PhotoTreatment,
-  opts: { theme?: string; lut?: GradeLut; mime?: string } = {},
+  opts: { theme?: string; lut?: GradeLut; mime?: string; limits?: DecodeLimits } = {},
 ): Promise<PhotoLookBytes | null> {
   if (!isCanvasAvailable()) return null;
   const mime = opts.mime && opts.mime !== 'application/octet-stream' ? opts.mime : sniffImageMime(bytes);
-  const canvas = await decodeToCanvas(bytes, mime);
+  const canvas = await decodeToCanvas(bytes, mime, opts.limits);
   if (!canvas) throw new Error('photo look: these bytes are not a decodable picture');
   const { width, height } = canvas;
   if (width * height > PHOTO_LOOK_MAX_PIXELS) throw new Error(`photo look: ${width}x${height} is outside the bake limit`);
