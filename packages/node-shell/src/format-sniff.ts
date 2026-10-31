@@ -68,3 +68,73 @@ export function assertFormatBytes(requested: string, bytes: Uint8Array): void {
     'No file was written.',
   );
 }
+
+/** How far into a file `isSvgDocument` looks for the root element: a legacy
+ *  Illustrator export puts a DOCTYPE and a block of ENTITY declarations first. */
+export const SVG_SNIFF_BYTES = 64 * 1024;
+
+/** The leading text of a file for `isSvgDocument`, decoded by its byte-order
+ *  mark. A TextDecoder drops the mark of its own encoding by default, so the
+ *  text starts at the first character after the mark. */
+function leadingText(bytes: Uint8Array): string {
+  const head = bytes.subarray(0, SVG_SNIFF_BYTES);
+  const utf16 = head[0] === 0xff && head[1] === 0xfe ? 'utf-16le' : head[0] === 0xfe && head[1] === 0xff ? 'utf-16be' : null;
+  return new TextDecoder(utf16 ?? 'utf-8').decode(head);
+}
+
+/**
+ * Whether the bytes are an SVG document: the first element, after the XML
+ * declaration, processing instructions, comments and a DOCTYPE (internal subset
+ * included), is `<svg>` or a prefixed `<x:svg>`. Only the first `SVG_SNIFF_BYTES`
+ * are read. Anything else is not an SVG, including text or HTML that mentions
+ * `<svg` further on: a word inside a file never makes that file a picture.
+ */
+export function isSvgDocument(bytes: Uint8Array): boolean {
+  const s = leadingText(bytes);
+  let i = 0;
+  while (i < s.length) {
+    while (i < s.length && /\s/.test(s[i]!)) i++;
+    if (s.startsWith('<?', i)) {
+      const end = s.indexOf('?>', i + 2);
+      if (end < 0) return false;
+      i = end + 2;
+    } else if (s.startsWith('<!--', i)) {
+      const end = s.indexOf('-->', i + 4);
+      if (end < 0) return false;
+      i = end + 3;
+    } else if (/^<!DOCTYPE\s/i.test(s.slice(i, i + 10))) {
+      const end = doctypeEnd(s, i + 9);
+      if (end < 0) return false;
+      i = end + 1;
+    } else {
+      return /^<(?:[A-Za-z_][\w.-]*:)?svg[\s/>]/.test(s.slice(i, i + 64));
+    }
+  }
+  return false;
+}
+
+/** The index of the `>` that closes a DOCTYPE, past its quoted ids and its
+ *  `[...]` internal subset (whose ENTITY values are quoted), or -1. */
+function doctypeEnd(s: string, from: number): number {
+  let quote: string | null = null;
+  let subset = false;
+  for (let k = from; k < s.length; k++) {
+    const c = s[k]!;
+    if (quote) {
+      if (c === quote) quote = null;
+    } else if (subset && s.startsWith('<!--', k)) {
+      const end = s.indexOf('-->', k + 4);
+      if (end < 0) return -1;
+      k = end + 2;
+    } else if (c === '"' || c === '\'') {
+      quote = c;
+    } else if (c === '[') {
+      subset = true;
+    } else if (c === ']') {
+      subset = false;
+    } else if (c === '>' && !subset) {
+      return k;
+    }
+  }
+  return -1;
+}

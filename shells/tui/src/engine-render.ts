@@ -4,13 +4,13 @@
  * mountTool → createRuntime; renderSvg turns the current state into an SVG string
  * (for the terminal preview); exportToFile writes a real file via the Node bridge.
  */
-import { loadTool, createRuntime, canvasSizeOf, parseUrlState, serializeUrlState, expandQuery, normalizeLang, embedC2pa, C2PA_FORMATS, readFileDesignRecord } from '@lolly/engine';
+import { loadTool, createRuntime, canvasSizeOf, parseUrlState, serializeUrlState, expandQuery, normalizeLang, embedC2pa, C2PA_FORMATS, readFileDesignRecord, parseToolUrl } from '@lolly/engine';
 import type { UrlState } from '../../../engine/src/url-mode.ts';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 // The DOM-free/raster format split + the resvg fast path + the export C2PA payload,
 // shared with the CLI (one implementation, no drift).
-import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal } from '@lolly-tools/node-shell/raster';
+import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
@@ -26,6 +26,29 @@ import type { JSDOM } from 'jsdom';
 export type Runtime = Awaited<ReturnType<typeof createRuntime>>;
 export type Manifest = Awaited<ReturnType<typeof loadTool>>['manifest'];
 
+/**
+ * The tool a pasted lolly.tools link opens, with its settings, or why it opens
+ * none. The result always carries `fromLink`, so the mount refuses a link that
+ * points at files on this computer (`mountTool`).
+ */
+export function toolLinkRoute(url: string, known: (toolId: string) => boolean): { toolId: string; query: string; fromLink: true } | { error: string } {
+  const ref = parseToolUrl(url);
+  if (!ref) return { error: 'Not a recognised lolly.tools URL' };
+  if (!known(ref.toolId)) return { error: `This build has no tool “${ref.toolId}”` };
+  return { toolId: ref.toolId, query: ref.query, fromLink: true };
+}
+
+/** A pasted link that points at a file on this computer (see `mountTool`). */
+export class LinkLocalFileError extends Error {
+  override name = 'LinkLocalFileError';
+  readonly hit: { inputId: string; fieldId: string | null; value: string };
+  constructor(hit: { inputId: string; fieldId: string | null; value: string }) {
+    super(`The link sets ${hit.fieldId ? `a ${hit.fieldId} in ${hit.inputId}` : hit.inputId} to "${hit.value}", a file on this computer. ` +
+      'A link cannot choose files for Lolly to read, so the tool was not opened. Open the tool from the gallery and add the file yourself.');
+    this.hit = hit;
+  }
+}
+
 /** What a mount yields: the runtime, its manifest, and the FULL reserved URL state from
  *  the share link (so the caller can seed the export panel + know the requested language),
  *  not just the input values. */
@@ -40,9 +63,18 @@ export interface MountResult { runtime: Runtime; manifest: Manifest; reserved: U
  * app has only that (no URL-state), so it is what reopens it here. Values win over the
  * query where both name an input: they are the same state one step later, with nothing
  * dropped by an encoder. This is the web tool view's own rule (views/tool.ts).
+ *
+ * `fromLink` marks a query someone else wrote (a pasted lolly.tools link). Such a
+ * query says what to draw, never which files on this computer to read: a `file:`
+ * URL or a local path in a picture, or a path in a file input, is refused with a
+ * `LinkLocalFileError` and nothing is mounted. The CLI refuses the same
+ * (`bakeLocalBlockAssets`, LINK_LOCAL_PATH), because the bridge's
+ * `host.assets.bytes` reads `file:` URLs and a hook such as Logo Wall's inlines
+ * what it reads into the export.
  */
 export async function mountTool(
   toolId: string, host: HostV1, query = '', values?: Record<string, unknown>,
+  opts: { fromLink?: boolean } = {},
 ): Promise<MountResult> {
   // Expand a packed `z=` share link FIRST (mirrors shells/cli/src/run.ts) - a no-op on a
   // readable or empty query. Without this the TUI silently loads a packed link at defaults.
@@ -60,6 +92,11 @@ export async function mountTool(
   // dims, unit, dpi, c2pa, password, filename) seed the export panel instead of being
   // silently dropped and reset to manifest defaults.
   const reserved = parseUrlState(expanded, tool.manifest);
+  if (opts.fromLink) {
+    const { linkLocalFile } = await import('../../cli/src/block-files.ts');
+    const hit = await linkLocalFile(tool.manifest as Parameters<typeof linkLocalFile>[0], reserved.values as Record<string, unknown>);
+    if (hit) throw new LinkLocalFileError(hit);
+  }
   const initial = values ? { ...reserved.values, ...values } : reserved.values;
   // The link's size is the canvas size the hooks first lay out for (engine 1.293); the
   // Export panel's width and height move it from there (setCanvasSizeFrom).
@@ -147,17 +184,6 @@ export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims)
   } catch {
     return null;
   }
-}
-
-/** The width and height renderSvg hands the SVG export, qualified by the unit as the
- *  export path below qualifies them, or nothing (see renderSvg). */
-function svgExportSize(canvas: HTMLElement, dims?: ExportDims): { width?: string | number; height?: string | number } {
-  if (!dims || !canvas.querySelector('svg')?.hasAttribute('viewBox')) return {};
-  const u = dims.unit || 'px';
-  const qual = (v: number | undefined): string | number | undefined =>
-    (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
-  const width = qual(dims.width), height = qual(dims.height);
-  return width !== undefined && height !== undefined ? { width, height } : {};
 }
 
 /** Output size options for an export (mirrors the web/CLI: width/height are values in

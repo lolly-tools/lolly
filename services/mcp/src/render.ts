@@ -30,7 +30,7 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
 import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
-import { isDeepFormat, DeepSourceError, needsFloatScene } from '@lolly-tools/node-shell/raster';
+import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
@@ -534,13 +534,13 @@ async function renderTierA(
   tokenSelection?: Record<string, string>,
   size: TierASize = {},
 ): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; drawn: DrawnHere; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null; svgSized: boolean }> {
-  return withHost(profile, async (dom, host) => {
+  return withHost(profile, async (dom, host, run) => {
     const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, size.canvas);
     // The PNG fast path's SVG takes the requested size only when the drawn root <svg>
     // has a viewBox, as the CLI's and the TUI's do: without one the export would make
     // a viewBox of that size, where the PNG has always scaled the tool's own size.
-    const root = canvas.tagName.toLowerCase() === 'svg' ? canvas : canvas.querySelector('svg');
-    const svgSized = !!size.svg && !!root?.hasAttribute('viewBox');
+    // The root only: a Design shape's inline <svg viewBox> is not the drawing's root.
+    const svgSized = !!size.svg && !!drawnRootSvg(canvas)?.hasAttribute('viewBox');
     const sized: ExportOpts = svgSized ? { ...opts, width: size.svg!.width, height: size.svg!.height } : opts;
     let productionInputs: Record<string, string> | undefined;
     if (productionContract?.requirements.some(requirement => requirement.kind === 'input')) {
@@ -575,6 +575,9 @@ async function renderTierA(
       if (e instanceof RenderIntegrityError) throw new RenderError(e.message);
       throw e;
     }
+    // A picture this server would not decode leaves its step out (a Logo Wall logo
+    // keeps its own margins and size); the caller is told how many, which and why.
+    warnings.push(...run.decodeRefusals());
     return {
       ...(productionInputs ? { productionInputs } : {}),
       bytes,

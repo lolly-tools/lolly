@@ -57,6 +57,7 @@ import { createNetAPI, matchesNetworkUrl } from '@lolly-tools/node-shell/net';
 // throws (which is what the byte-pinned goldens in tests/cli-export-golden.test.ts
 // caught).
 import { svgDomToIr } from '@lolly-tools/node-shell/svg-ir';
+import { drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import type { SvgIrFont } from '@lolly-tools/node-shell/svg-ir';
 import type { FontStyleSlice } from '@lolly-tools/node-shell/text-svg';
 
@@ -98,6 +99,7 @@ import {
 // factories return null on a lean install so the capability stays honestly absent.
 import { createNodePdfRedact } from '@lolly-tools/node-shell/pdf-redact';
 import { createNodeRasterAPI } from '@lolly-tools/node-shell/canvas';
+import type { DecodeLimits } from '@lolly-tools/node-shell/canvas';
 // host.speech (Kokoro TTS + Whisper transcription). RELATIVE for the same MCP-bundle
 // reason; it resolves transformers.js lazily and returns null when the runtime is
 // absent, so importing it costs nothing and a lean install leaves host.speech undefined.
@@ -272,6 +274,13 @@ interface CliBridgeOpts {
   capturePublicOnly?: boolean;
   /** Hosted asset readers use bounded public HTTP connections and MIME checks. */
   publicOnlyAssets?: boolean;
+  /**
+   * What decoding a picture may allocate (`DecodeLimits`): `host.raster`, the HDR
+   * source decode and a photo look's bake all check the picture's stated size
+   * against it before allocating. The hosted MCP server passes one per render; a
+   * person's own CLI/TUI leaves it off.
+   */
+  decodeLimits?: DecodeLimits;
   /** Hosted renderers without a member AI lease omit model-backed APIs.
    * Standalone CLI/TUI behaviour remains enabled by default. */
   aiEnabled?: boolean;
@@ -361,7 +370,7 @@ export function followRuntimeSelection(
 }
 
 export async function createCliBridge(
-  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
+  { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, decodeLimits, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
   const w = dom.window;
   // Pre-load the asset catalog so query/get can be synchronous-ish. Merged, not the
@@ -427,7 +436,7 @@ export async function createCliBridge(
       return new Uint8Array(await response.arrayBuffer());
     },
     async sdr(bytes) {
-      const canvas = await (await import('@lolly-tools/node-shell/canvas')).decodeToCanvas(bytes);
+      const canvas = await (await import('@lolly-tools/node-shell/canvas')).decodeToCanvas(bytes, undefined, decodeLimits);
       if (!canvas) throw new Error('SDR decoding needs the optional Node canvas adapter.');
       return { width: canvas.width, height: canvas.height, data: canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data };
     },
@@ -507,7 +516,7 @@ export async function createCliBridge(
         const lut = look.kind === 'lut' ? await lutFor(resolvePhotoLook(look, themeKey).lut) : null;
         if (look.kind === 'lut' && !lut) throw new Error(`the LUT of photo look ${look.id} is unavailable`);
         const { bakePhotoLookBytes } = await import('../../../packages/node-shell/src/photo-look.ts');
-        const baked = await bakePhotoLookBytes(bytes, look, { mime, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}) });
+        const baked = await bakePhotoLookBytes(bytes, look, { mime, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}), ...(decodeLimits ? { limits: decodeLimits } : {}) });
         if (!baked) {
           if (!lookCanvasWarned) host.log('warn', `photo look ${look.id} was left out: this install has no canvas (@napi-rs/canvas) to bake it, so the plain picture is used.`);
           lookCanvasWarned = true;
@@ -1128,8 +1137,11 @@ export async function createCliBridge(
  * tool may sit an editor-only sibling next to its `<svg>` - e.g. qr-code's
  * scannability warnings (plans/162) - without forfeiting its browser-free vector
  * path. The hidden sibling is never in the exported bytes: only the `<svg>` is.
+ *
+ * One rule with node-shell's `drawnRootSvg`, which the browser-free PNG reads to
+ * decide whether this export takes the requested size.
  */
-const NON_DRAWABLE = new Set(['script', 'style', 'template', 'link', 'meta']);
+const rootSvgOf = drawnRootSvg;
 /**
  * What a Design page drawn from the operations hands back to run.ts, which stamps the
  * credential (plan 326): the route that drew it, through `onExportRoute`, and each
@@ -1143,19 +1155,6 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
   for (const ingredient of ingredients) {
     if (o.ingredientSink && !o.ingredientSink.some((p) => p.activeLabel === ingredient.activeLabel)) o.ingredientSink.push(ingredient);
   }
-}
-
-function rootSvgOf(node: Element | null): Element | null {
-  let cur: Element | null = node;
-  for (let depth = 0; cur && depth < 8; depth++) {
-    if (cur.tagName?.toLowerCase() === 'svg') return cur;
-    const kids = Array.from(cur.children).filter(
-      (el) => !NON_DRAWABLE.has(el.tagName.toLowerCase()) && !el.hasAttribute('data-export-hide'),
-    );
-    if (kids.length !== 1) return null;
-    cur = kids[0] ?? null;
-  }
-  return null;
 }
 
   host.export = {
@@ -1567,7 +1566,7 @@ function rootSvgOf(node: Element | null): Element | null {
   // canvas. `canRaster()` is the sync probe a tool branches on before deciding what
   // to render, and it now answers honestly here instead of being absent (which every
   // hook reads as "headless, refuse"). Conditional for the same reason as above.
-  const raster = createNodeRasterAPI(publicOnlyAssets ? { readUrl: readHostedSource } : {});
+  const raster = createNodeRasterAPI({ ...(publicOnlyAssets ? { readUrl: readHostedSource } : {}), ...(decodeLimits ? { limits: decodeLimits } : {}) });
   if (raster) host.raster = raster;
 
   // host.c2pa.sign (v1.85; widened v1.104) - freshly sign a manifest into finished

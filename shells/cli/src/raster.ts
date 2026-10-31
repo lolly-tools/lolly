@@ -15,7 +15,7 @@
  */
 import type { JSDOM } from 'jsdom';
 import { serializeUrlState, serializeHdr, HDR_DEFAULTS, isToolUrl } from '@lolly/engine';
-import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims } from '@lolly-tools/node-shell/raster';
+import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims, svgExportSize } from '@lolly-tools/node-shell/raster';
 import type { DeepHdrRequest } from '@lolly-tools/node-shell/raster';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
@@ -287,18 +287,6 @@ async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null,
   } catch {
     return null;
   }
-}
-
-/** The export size tryRenderSvg hands the SVG export: the requested width and height,
- *  qualified by the unit the way run.ts qualifies them for `--export=svg`, or nothing
- *  when no size was asked for or the drawn root <svg> has no viewBox (see above). */
-function svgExportSize(root: Element, dims?: RenderDims): { width?: string | number; height?: string | number } {
-  const svg = root.tagName.toLowerCase() === 'svg' ? root : root.querySelector('svg');
-  if (!dims || !svg?.hasAttribute('viewBox')) return {};
-  const unit = dims.unit || 'px';
-  const qual = (v: number | undefined): string | number | undefined => (typeof v === 'number' && v > 0 ? (unit !== 'px' ? `${v}${unit}` : v) : undefined);
-  const width = qual(dims.width), height = qual(dims.height);
-  return width !== undefined && height !== undefined ? { width, height } : {};
 }
 
 /**

@@ -5,8 +5,8 @@
 // just swaps them.
 import { useState } from 'react';
 import { useApp } from 'ink';
-import { parseToolUrl } from '@lolly/engine';
 import { importDesignFile } from './import-design.ts';
+import { toolLinkRoute } from './engine-render.ts';
 import { Gallery } from './views/Gallery.tsx';
 import { Projects } from './views/Projects.tsx';
 import { Profile } from './views/Profile.tsx';
@@ -32,7 +32,8 @@ type Route =
   | { name: 'system'; action?: SystemAction }
   // `values` is a saved record's own input values - what reopens a session the desktop
   // app saved, which carries no URL-state (plans/202 WP3.1).
-  | { name: 'tool'; toolId: string; query?: string; values?: Record<string, unknown> };
+  // `fromLink`: the query came from a pasted link, so it may not point at local files.
+  | { name: 'tool'; toolId: string; query?: string; values?: Record<string, unknown>; fromLink?: boolean };
 
 export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; bridge: TuiBridge; firstRun?: boolean }) {
   const { exit } = useApp();
@@ -51,11 +52,11 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
   // Open a tool from a pasted lolly.tools URL with its settings pre-filled - the same
   // parseToolUrl → mountTool(query) path the web share links use. Returns an error
   // string for the caller to surface, or null on success (navigated).
+  // The link's state was written by someone else, so the route carries `fromLink`.
   const openToolUrl = (url: string): string | null => {
-    const ref = parseToolUrl(url);
-    if (!ref) return 'Not a recognised lolly.tools URL';
-    if (!nameById.has(ref.toolId)) return `This build has no tool “${ref.toolId}”`;
-    setRoute({ name: 'tool', toolId: ref.toolId, query: ref.query });
+    const opened = toolLinkRoute(url, (id) => nameById.has(id));
+    if ('error' in opened) return opened.error;
+    setRoute({ name: 'tool', ...opened });
     return null;
   };
 
@@ -100,7 +101,7 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
     case 'system':
       return <System onNav={goNav} onQuit={quit} initialAction={route.action} />;
     case 'tool':
-      return <ToolView toolId={route.toolId} query={route.query} values={route.values} bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
+      return <ToolView toolId={route.toolId} query={route.query} values={route.values} fromLink={route.fromLink} bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
     default:
       return <Gallery onPrepare={() => setRoute({ name: 'prepare' })} onRebrand={() => setRoute({ name: 'rebrand' })} tools={tools} onOpen={id => setRoute({ name: 'tool', toolId: id })} onOpenUrl={openToolUrl} onImportFile={importFile} onNav={goNav} onQuit={quit} />;
   }

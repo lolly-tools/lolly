@@ -21,12 +21,18 @@
  *
  * `bakeLocalBlockAssets` also reads a path written INTO a row, such as a `logo`
  * column in a CSV or `--logos='[{"logo":"./a.png"}]'`, from disk, the way a
- * top-level `--logo=./brand.png` is.
+ * top-level `--logo=./brand.png` is. Two rules keep that read to what the person
+ * running the command asked for: a file is read only when its bytes are a picture
+ * (a CSV someone sent cannot pull `~/.aws/credentials` into the exported SVG), and a
+ * path inside a link (a pasted lolly.tools URL, a `z=` or `zx=` state) is refused,
+ * because a link cannot choose files on the computer that opens the link.
  */
 
-import { readFile, stat } from 'node:fs/promises';
-import { basename, extname, resolve } from 'node:path';
-import { usageError } from './exit-codes.ts';
+import { open, readFile, stat } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { basename, extname, join, resolve } from 'node:path';
+import { isSvgDocument, SVG_SNIFF_BYTES } from '@lolly-tools/node-shell/format-sniff';
+import { refused, usageError } from './exit-codes.ts';
 
 /** The parts of a blocks sub-field this module reads. */
 interface FieldLike {
@@ -64,18 +70,83 @@ const EXT_MIME: Record<string, string> = {
   '.bmp': 'image/bmp', '.tif': 'image/tiff', '.tiff': 'image/tiff', '.heic': 'image/heic',
 };
 
-/** A picture's MIME type: the leading bytes first, then the file name. */
+/**
+ * A picture's MIME type, read from its leading bytes. The file name only tells AVIF
+ * from HEIC, which share one container; a file whose bytes are not a picture is
+ * `application/octet-stream` whatever it is called, so `notes.png` holding text is
+ * not taken for a picture. An SVG is a file whose root element is `<svg>`, found
+ * past an XML declaration, comments and a DOCTYPE (`isSvgDocument`), so a legacy
+ * Illustrator export with a long ENTITY block is still a picture.
+ */
 export function imageMime(name: string, bytes: Uint8Array): string {
   const b = bytes;
-  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'image/png';
-  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
-  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return 'image/gif';
-  if (b[0] === 0x52 && b[1] === 0x49 && b[8] === 0x57 && b[9] === 0x45) return 'image/webp';
-  if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) return EXT_MIME[extname(name).toLowerCase()] === 'image/heic' ? 'image/heic' : 'image/avif';
-  if ((b[0] === 0xff && b[1] === 0x0a) || (b[0] === 0 && b[1] === 0 && b[2] === 0 && b[3] === 0x0c && b[4] === 0x4a && b[5] === 0x58)) return 'image/jxl';
-  const head = Buffer.from(b.subarray(0, 512)).toString('utf8');
-  if (/<svg[\s>]/i.test(head)) return 'image/svg+xml';
-  return EXT_MIME[extname(name).toLowerCase()] ?? 'application/octet-stream';
+  // Whole signatures, not short prefixes: a text file that starts "BM" or "GIF"
+  // (BMW_API_TOKEN=..., GIFT_CARD=...) must never pass for a picture.
+  if (startsWith(b, PNG_SIG)) return 'image/png';
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff && (b[3] ?? 0) >= 0xc0) return 'image/jpeg';
+  if (startsWith(b, ascii('GIF87a')) || startsWith(b, ascii('GIF89a'))) return 'image/gif';
+  if (startsWith(b, ascii('RIFF')) && startsWith(b.subarray(8), ascii('WEBP'))) return 'image/webp';
+  if (startsWith(b.subarray(4), ascii('ftyp')) && HEIF_BRANDS.has(String.fromCharCode(...b.subarray(8, 12)))) {
+    return EXT_MIME[extname(name).toLowerCase()] === 'image/heic' ? 'image/heic' : 'image/avif';
+  }
+  if ((b[0] === 0xff && b[1] === 0x0a) || startsWith(b, JXL_BOX)) return 'image/jxl';
+  if (isBmpHeader(b)) return 'image/bmp';
+  if (isTiffHeader(b)) return 'image/tiff';
+  if (isSvgDocument(b)) return 'image/svg+xml';
+  return 'application/octet-stream';
+}
+
+const ascii = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0));
+const PNG_SIG = Uint8Array.of(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
+const JXL_BOX = Uint8Array.of(0, 0, 0, 0x0c, 0x4a, 0x58, 0x4c, 0x20, 0x0d, 0x0a, 0x87, 0x0a);
+const HEIF_BRANDS = new Set(['avif', 'avis', 'heic', 'heix', 'hevc', 'hevx', 'mif1', 'msf1']);
+/** The BITMAPINFOHEADER family's sizes: core, info, the v2 to v5 headers and OS/2 v2. */
+const BMP_DIB_SIZES = new Set([12, 40, 52, 56, 64, 108, 124]);
+
+function startsWith(b: Uint8Array, sig: Uint8Array): boolean {
+  if (b.length < sig.length) return false;
+  for (let i = 0; i < sig.length; i++) if (b[i] !== sig[i]) return false;
+  return true;
+}
+const u32le = (b: Uint8Array, at: number): number => (b[at]! | (b[at + 1]! << 8) | (b[at + 2]! << 16) | (b[at + 3]! << 24)) >>> 0;
+const u32be = (b: Uint8Array, at: number): number => ((b[at]! << 24) | (b[at + 1]! << 16) | (b[at + 2]! << 8) | b[at + 3]!) >>> 0;
+
+/** "BM", four reserved bytes that are zero, and a known DIB header size. */
+function isBmpHeader(b: Uint8Array): boolean {
+  if (b.length < 26 || b[0] !== 0x42 || b[1] !== 0x4d) return false;
+  if (b[6] !== 0 || b[7] !== 0 || b[8] !== 0 || b[9] !== 0) return false;
+  return BMP_DIB_SIZES.has(u32le(b, 14));
+}
+
+/** "II*\0" or "MM\0*" with a first directory offset past the 8-byte header. */
+function isTiffHeader(b: Uint8Array): boolean {
+  if (b.length < 8) return false;
+  if (b[0] === 0x49 && b[1] === 0x49 && b[2] === 0x2a && b[3] === 0) return u32le(b, 4) >= 8;
+  if (b[0] === 0x4d && b[1] === 0x4d && b[2] === 0 && b[3] === 0x2a) return u32be(b, 4) >= 8;
+  return false;
+}
+
+/** The leading bytes of a file, enough for `imageMime` to sniff (an SVG's root
+ *  element can sit after a long prolog). */
+async function headBytes(path: string): Promise<Uint8Array> {
+  const fh = await open(path, 'r');
+  try {
+    const buf = new Uint8Array(SVG_SNIFF_BYTES);
+    const { bytesRead } = await fh.read(buf, 0, buf.length, 0);
+    return buf.subarray(0, bytesRead);
+  } finally {
+    await fh.close();
+  }
+}
+
+/**
+ * A file's picture MIME type by `imageMime`, from at most its first
+ * `SVG_SNIFF_BYTES`, so a file is known to be a picture before all of it is read.
+ * `application/octet-stream` means the file is not a picture. The TUI's CSV
+ * import and typed picture paths use the same check.
+ */
+export async function pictureFileMime(path: string): Promise<string> {
+  return imageMime(basename(path), await headBytes(path));
 }
 
 /** Whether a MIME type passes a dropToAdd `accept` filter, the web shell's rule. */
@@ -231,6 +302,80 @@ async function existingFile(dirs: ReadonlyArray<string | undefined>, rel: string
  *  Two letters at least, so a Windows drive (`C:`) still reads as a path. */
 const SCHEME = /^[a-z][a-z0-9+.-]+:/i;
 
+/** The `file:` URL an asset value points at (as a string, its id, its url or its
+ *  original's url), which the Node bridge reads straight from disk; null otherwise. */
+export function fileUrlIn(v: unknown): string | null {
+  const ref = v && typeof v === 'object' ? v as { id?: unknown; url?: unknown; original?: { url?: unknown } } : null;
+  for (const s of ref ? [ref.id, ref.url, ref.original?.url] : [v]) {
+    if (typeof s === 'string' && /^\s*file:/i.test(s)) return s.trim();
+  }
+  return null;
+}
+
+/** A local file that a set of input values points at. */
+export interface LinkLocalFile { inputId: string; fieldId: string | null; value: string }
+
+/**
+ * The first file on this computer that input values point at, for values that
+ * came inside a link: a `file:` URL in an asset input or a blocks row's asset
+ * field, an existing file such an asset gives by path (`~/` is the home folder,
+ * anything else relative to `cwd`), or a file input with a path. Null when the
+ * values point at no local file. The TUI refuses a pasted link that does this, as
+ * `bakeLocalBlockAssets` and the CLI's input reads refuse one.
+ */
+export async function linkLocalFile(
+  manifest: { inputs?: readonly DropInputLike[] },
+  values: Record<string, unknown>,
+  opts: { cwd?: string } = {},
+): Promise<LinkLocalFile | null> {
+  const cwd = opts.cwd ?? process.cwd();
+  const local = async (v: unknown): Promise<string | null> => {
+    const fileUrl = fileUrlIn(v);
+    if (fileUrl) return fileUrl;
+    let id: string | null = null;
+    if (typeof v === 'string') id = v.trim();
+    else if (v && typeof v === 'object') {
+      const ref = v as { id?: unknown; source?: unknown; meta?: { baked?: unknown } };
+      if (typeof ref.id === 'string' && ref.source !== 'remote' && !ref.meta?.baked) id = ref.id.trim();
+    }
+    if (!id || SCHEME.test(id)) return null;
+    const path = id === '~' || id.startsWith('~/') ? join(homedir(), id.slice(1)) : id;
+    return (await existingFile([cwd], path)) ? id : null;
+  };
+  for (const input of manifest.inputs ?? []) {
+    const v = values[input.id];
+    if (v == null) continue;
+    if (input.type === 'file') {
+      for (const ref of Array.isArray(v) ? v : [v]) {
+        const path = ref && typeof ref === 'object' ? (ref as { path?: unknown }).path : null;
+        if (typeof path === 'string' && path) return { inputId: input.id, fieldId: null, value: path };
+      }
+    } else if (input.type === 'asset') {
+      const hit = await local(v);
+      if (hit) return { inputId: input.id, fieldId: null, value: hit };
+    } else if (input.type === 'blocks' && Array.isArray(v)) {
+      const assetFields = (input.fields ?? []).filter((f) => f.type === 'asset');
+      for (const row of v) {
+        if (!row || typeof row !== 'object') continue;
+        for (const f of assetFields) {
+          const hit = await local((row as Record<string, unknown>)[f.id]);
+          if (hit) return { inputId: input.id, fieldId: f.id, value: hit };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/** The refusal for a file on this computer that a link chose. */
+export function linkLocalFileRefusal(inputId: string, fieldId: string | null, value: string): Error {
+  return refused(
+    `${inputId}: the link sets ${fieldId ? `a ${fieldId} of ` : ''}"${value}", a file on this computer. A link cannot choose files for the CLI to read, so nothing was rendered. ` +
+    `To use that picture, add it yourself: --${dropFlags(inputId).one}=<path>, or a path in --${inputId}= typed on the command line.`,
+    'LINK_LOCAL_PATH',
+  );
+}
+
 /**
  * Read a path written into a row's asset field from disk, for every blocks input.
  * A string or an unresolved `{ id }` ref whose id is an existing file becomes a
@@ -239,11 +384,16 @@ const SCHEME = /^[a-z][a-z0-9+.-]+:/i;
  * then from the folder of the data file the rows came from (`dataDirs`, keyed by
  * input id), so a CSV can name the pictures in its own folder. Returns how many
  * fields were read.
+ *
+ * Refuses, before reading the whole file, a file whose leading bytes are not a
+ * picture (exit 2), and any existing file in an input whose rows came inside a
+ * link (`fromLink`, exit 4): the rows of a pasted link were written by whoever
+ * made the link, not by the person running the command.
  */
 export async function bakeLocalBlockAssets(
   manifest: { inputs?: readonly DropInputLike[] },
   values: Record<string, unknown>,
-  opts: { cwd?: string; dataDirs?: Record<string, string> } = {},
+  opts: { cwd?: string; dataDirs?: Record<string, string>; fromLink?: (inputId: string) => boolean } = {},
 ): Promise<number> {
   const cwd = opts.cwd ?? process.cwd();
   let read = 0;
@@ -258,6 +408,8 @@ export async function bakeLocalBlockAssets(
       const r = row as Record<string, unknown>;
       for (const f of assetFields) {
         const v = r[f.id];
+        const fileUrl = fileUrlIn(v);
+        if (fileUrl && opts.fromLink?.(input.id)) throw linkLocalFileRefusal(input.id, f.id, fileUrl);
         let id: string | null = null;
         if (typeof v === 'string') id = v.trim();
         else if (v && typeof v === 'object') {
@@ -267,8 +419,13 @@ export async function bakeLocalBlockAssets(
         if (!id || SCHEME.test(id)) continue;
         const abs = await existingFile([cwd, opts.dataDirs?.[input.id]], id);
         if (!abs) continue;
+        if (opts.fromLink?.(input.id)) throw linkLocalFileRefusal(input.id, f.id, id);
+        const mime = await pictureFileMime(abs);
+        if (mime === 'application/octet-stream') {
+          throw usageError(`${input.id}: "${id}" is a file on this computer but not a picture this shell recognises, so it was not read. Nothing was rendered.`, 'BAD_FLAG_VALUE');
+        }
         const bytes = new Uint8Array(await readFile(abs));
-        r[f.id] = await bakedImageRef(basename(abs), bytes, imageMime(basename(abs), bytes));
+        r[f.id] = await bakedImageRef(basename(abs), bytes, mime);
         read++;
       }
     }
