@@ -10365,5 +10365,20 @@
   "Trim end": "Konec vykreslení",
   "Trim start": "Začátek vykreslení",
   "{name} keyframe added at {t}": "Přidán klíčový snímek pro {name} v {t}",
-  "{name} keyframe removed at {t}": "Odebrán klíčový snímek pro {name} v {t}"
+  "{name} keyframe removed at {t}": "Odebrán klíčový snímek pro {name} v {t}",
+  "{name} spring": "Pružina {name}",
+  "{name} (not in this design system)": "{name} (v tomto systému designu není)",
+  "Curves": "Křivky",
+  "Springs": "Pružiny",
+  "Gentle": "Jemná",
+  "Quick": "Rychlá",
+  "Bouncy": "Skákavá",
+  "Custom spring": "Vlastní pružina",
+  "Stiffness": "Tuhost",
+  "Damping": "Tlumení",
+  "Mass": "Hmotnost",
+  "Settles in {t} s": "Ustálí se za {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Další klíčový snímek přijde dřív, než se pružina ustálí. Zbytek pohybu se rozloží na celý úsek.",
+  "From the design system: {name}": "Ze systému designu: {name}",
+  "Editing the curve detaches it from the design system.": "Úpravou křivky ji odpojíte od systému designu."
 }

@@ -10365,5 +10365,20 @@
   "Trim end": "نهاية التقليم",
   "Trim start": "بداية التقليم",
   "{name} keyframe added at {t}": "أُضيف إطار مفتاحي لـ{name} عند {t}",
-  "{name} keyframe removed at {t}": "حُذف الإطار المفتاحي لـ{name} عند {t}"
+  "{name} keyframe removed at {t}": "حُذف الإطار المفتاحي لـ{name} عند {t}",
+  "{name} spring": "نابض {name}",
+  "{name} (not in this design system)": "{name} (غير موجود في نظام التصميم هذا)",
+  "Curves": "المنحنيات",
+  "Springs": "النوابض",
+  "Gentle": "لطيف",
+  "Quick": "سريع",
+  "Bouncy": "مرتد",
+  "Custom spring": "نابض مخصّص",
+  "Stiffness": "الصلابة",
+  "Damping": "التخميد",
+  "Mass": "الكتلة",
+  "Settles in {t} s": "يستقر خلال {t} ث",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "يأتي الإطار المفتاحي التالي قبل أن يستقر النابض. يُوزَّع باقي الحركة على المقطع.",
+  "From the design system: {name}": "من نظام التصميم: {name}",
+  "Editing the curve detaches it from the design system.": "تعديل المنحنى يفصله عن نظام التصميم."
 }

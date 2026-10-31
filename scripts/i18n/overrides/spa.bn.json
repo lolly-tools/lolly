@@ -1728,5 +1728,20 @@
   "Trim end": "আংশিক আঁকার শেষ",
   "Trim start": "আংশিক আঁকার শুরু",
   "{name} keyframe added at {t}": "{t}-এ {name}-এর কীফ্রেম যোগ হয়েছে",
-  "{name} keyframe removed at {t}": "{t}-এ {name}-এর কীফ্রেম সরানো হয়েছে"
+  "{name} keyframe removed at {t}": "{t}-এ {name}-এর কীফ্রেম সরানো হয়েছে",
+  "{name} spring": "{name} স্প্রিং",
+  "{name} (not in this design system)": "{name} (এই ডিজাইন সিস্টেমে নেই)",
+  "Curves": "কার্ভ",
+  "Springs": "স্প্রিং",
+  "Gentle": "কোমল",
+  "Quick": "দ্রুত",
+  "Bouncy": "বাউন্সি",
+  "Custom spring": "কাস্টম স্প্রিং",
+  "Stiffness": "দৃঢ়তা",
+  "Damping": "ড্যাম্পিং",
+  "Mass": "ভর",
+  "Settles in {t} s": "{t} সেকেন্ডে স্থির হয়",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "স্প্রিং স্থির হওয়ার আগেই পরের কীফ্রেম আসে। বাকি চলন অংশটি জুড়ে ছড়িয়ে দেওয়া হয়।",
+  "From the design system: {name}": "ডিজাইন সিস্টেম থেকে: {name}",
+  "Editing the curve detaches it from the design system.": "কার্ভ সম্পাদনা করলে এটি ডিজাইন সিস্টেম থেকে বিচ্ছিন্ন হয়।"
 }

@@ -185,6 +185,7 @@ import {
   projectLayer,
   resolveCamera,
   hdrBoostToPQ,
+  kfEaseTokensSnapshot,
 } from '@lolly/engine';
 import type { HdrBoostOptions } from '@lolly/engine';
 import { activitySpans, createTruePeakLimiter, createLoudnessMeter, normalizeGain, parseFxChain, processFxPcm } from '@lolly/engine';
@@ -2842,7 +2843,7 @@ export async function renderSequenceInWorker(
       (silence as unknown as { unref?: () => void }).unref?.();
     };
     seqPending.set(id, { resolve, reject, log: io.log, progress: io.progress, live: io.live, touch, clear });
-    const start: SeqWorkerIn = { type: 'start', id, job: wireJob, pick, bitrate, audio };
+    const start: SeqWorkerIn = { type: 'start', id, job: wireJob, pick, bitrate, audio, easeTokens: kfEaseTokensSnapshot() };
     try {
       w.postMessage(start, transfer);
       touch();

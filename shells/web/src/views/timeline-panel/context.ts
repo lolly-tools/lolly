@@ -202,6 +202,8 @@ export interface TpCtx {
   groupsById: Map<string, InspectorGroup>;
   openGroup: { gid: string; id: string } | null;
   groupPopHost: HTMLElement | null;
+  /** The open group popup's scroll position across a rebuild, so the curve dock keeps its place (plans/329). */
+  groupPopScroll: number | null;
   groupPoint: PointAnchor;
   groupPop: BodyPopoverHandle;
   snappedAt: number | null;

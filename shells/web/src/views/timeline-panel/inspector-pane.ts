@@ -28,6 +28,7 @@ import type { InspectorGroup, KfPoseField } from './shared.ts';
 import { msToUnit, unitSwitch, unitToMs, type TimeUnit } from '../timeline-units.ts';
 import { projectRate } from '../../../../../engine/src/timebase.ts';
 import { bindOp, type TpCtx } from './context.ts';
+import { offerMotionDurations } from '../motion-durations.ts';
 
 /** One group of the clip inspector. Shut by default, always. */
 export function inspectorGroup(tp: TpCtx, gid: string, labelText: string, glyph: IconName): InspectorGroup {
@@ -242,6 +243,9 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
   // re-read rather than assumed to still match. The DOCKED curve editor holds a rAF
   // loop and a document listener of its own, so it is torn down rather than dropped
   // (its own loop self-terminates when detached, but the listener does not).
+  // Read before the dock comes down: once its editor is gone the popup is shorter and
+  // its scroll position is already lost.
+  tp.groupPopScroll = tp.kfLatch?.dock?.editor ? (tp.groupPopHost?.parentElement?.scrollTop ?? null) : null;
   tp.kfLatch?.dock?.editor?.destroy();
   tp.kfLatch = null;
   tp.kfLatchKey = '\u0000';
@@ -723,18 +727,16 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
       enterRow.appendChild(play);
     }
     animG.body.appendChild(enterRow);
-    animG.body.appendChild(
-      row(
-        t('Enter (ms)'),
-        numField(finite(box[cfg.enterMsField], 400), 50, 100, (v) =>
-          tp.helpers.write(
-            tp.helpers.patchBox(getBoxes(), id, {
-              [cfg.enterMsField]: Math.round(clamp(v, MIN_TRANSITION_MS, MAX_TRANSITION_MS)),
-            })
-          )
-        )
+    const enterMs = numField(finite(box[cfg.enterMsField], 400), 50, 100, (v) =>
+      tp.helpers.write(
+        tp.helpers.patchBox(getBoxes(), id, {
+          [cfg.enterMsField]: Math.round(clamp(v, MIN_TRANSITION_MS, MAX_TRANSITION_MS)),
+        })
       )
     );
+    animG.body.appendChild(row(t('Enter (ms)'), enterMs));
+    // The design system's durations as suggestions (plans/329).
+    offerMotionDurations(enterMs, { min: MIN_TRANSITION_MS, max: MAX_TRANSITION_MS, unit: 'ms' });
     // The curve sits beside its duration, not beside its kind: "how long" and "how it
     // moves over that time" are the pair a user tunes together. Offered only where the
     // manifest declares a field for it - a tool that never asked for authored easing is
@@ -751,18 +753,15 @@ export function renderInspector(tp: TpCtx, boxes: Box[]): void {
         )
       )
     );
-    animG.body.appendChild(
-      row(
-        t('Exit (ms)'),
-        numField(finite(box[cfg.exitMsField], 400), 50, 100, (v) =>
-          tp.helpers.write(
-            tp.helpers.patchBox(getBoxes(), id, {
-              [cfg.exitMsField]: Math.round(clamp(v, MIN_TRANSITION_MS, MAX_TRANSITION_MS)),
-            })
-          )
-        )
+    const exitMs = numField(finite(box[cfg.exitMsField], 400), 50, 100, (v) =>
+      tp.helpers.write(
+        tp.helpers.patchBox(getBoxes(), id, {
+          [cfg.exitMsField]: Math.round(clamp(v, MIN_TRANSITION_MS, MAX_TRANSITION_MS)),
+        })
       )
     );
+    animG.body.appendChild(row(t('Exit (ms)'), exitMs));
+    offerMotionDurations(exitMs, { min: MIN_TRANSITION_MS, max: MAX_TRANSITION_MS, unit: 'ms' });
     if (cfg.exitEaseField)
       animG.body.appendChild(
         row(t('Exit curve'), easeSelect(cfg.exitEaseField, box[cfg.exitEaseField]))

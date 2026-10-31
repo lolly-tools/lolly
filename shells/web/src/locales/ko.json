@@ -10365,5 +10365,20 @@
   "Trim end": "그리기 끝",
   "Trim start": "그리기 시작",
   "{name} keyframe added at {t}": "{t}에 {name} 키프레임을 추가했습니다",
-  "{name} keyframe removed at {t}": "{t}의 {name} 키프레임을 제거했습니다"
+  "{name} keyframe removed at {t}": "{t}의 {name} 키프레임을 제거했습니다",
+  "{name} spring": "{name} 스프링",
+  "{name} (not in this design system)": "{name} (이 디자인 시스템에 없음)",
+  "Curves": "곡선",
+  "Springs": "스프링",
+  "Gentle": "부드럽게",
+  "Quick": "빠르게",
+  "Bouncy": "통통 튀게",
+  "Custom spring": "사용자 지정 스프링",
+  "Stiffness": "강성",
+  "Damping": "감쇠",
+  "Mass": "질량",
+  "Settles in {t} s": "{t}초 후 멈춤",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "스프링이 멈추기 전에 다음 키프레임이 옵니다. 나머지 움직임은 구간 전체에 나뉘어 적용됩니다.",
+  "From the design system: {name}": "디자인 시스템에서: {name}",
+  "Editing the curve detaches it from the design system.": "곡선을 편집하면 디자인 시스템과의 연결이 끊깁니다."
 }

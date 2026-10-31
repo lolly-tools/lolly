@@ -509,7 +509,9 @@ function seamEases(track: KfTrack, cutMs: number): { left: string | null; right:
     const a = track[before] as KfKey;
     const b = track[after] as KfKey;
     const span = b.t - a.t;
-    const { left, right } = subdivideKfEase(a.ease, span > 0 ? (cutMs - a.t) / span : 0);
+    // The span too: a spring runs in real time, so its halves are cut from the spring
+    // fitted to THIS segment (plans/329).
+    const { left, right } = subdivideKfEase(a.ease, span > 0 ? (cutMs - a.t) / span : 0, span);
     return { left, right };
   }
   // Nothing crosses: on one side of the cut the track is a clamp-hold, and a

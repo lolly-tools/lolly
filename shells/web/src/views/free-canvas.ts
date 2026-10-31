@@ -133,6 +133,7 @@ import { frameTitlesOps } from './free-canvas/frame-titles.ts';
 import { frameStepOps } from './free-canvas/frame-step.ts';
 import { zoomMarqueeOps } from './free-canvas/zoom-marquee.ts';
 import { preloadGeometryKernels } from '../bridge/geometry-host.ts';
+import { ensureMotionTokens } from '../lib/motion-tokens.ts';
 export { clampRailPos, stageBlockers, ctxTopBand, centreCtxBar, FC_TILT } from './free-canvas/shared.ts';
 export type { DeepLinkState, CtxTopBand } from './free-canvas/shared.ts';
 
@@ -602,6 +603,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
           radiusField: cfg.radiusField || '', shapeField: cfg.shapeField || '',
         }
       : null; fc.timeCfg = timeCfg;
+  // A tool that keys motion follows the design system's motion tokens (plans/329): a
+  // keyframe bound to one plays the token's value here and in every export.
+  if (timeCfg?.kfField) void ensureMotionTokens(host as HostV1);
   // Can this tool import a design AS timed scenes (frames → timeline clips) at all?
   // Time-capable + import-capable. Design qualifies (it declares the time model), so it
   // OFFERS the "as scenes vs replace the board" choice (plans/104 section 337) - on the drop

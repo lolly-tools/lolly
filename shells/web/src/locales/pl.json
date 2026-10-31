@@ -10365,5 +10365,20 @@
   "Trim end": "Koniec rysowania",
   "Trim start": "Początek rysowania",
   "{name} keyframe added at {t}": "Dodano klatkę kluczową dla {name} w {t}",
-  "{name} keyframe removed at {t}": "Usunięto klatkę kluczową dla {name} w {t}"
+  "{name} keyframe removed at {t}": "Usunięto klatkę kluczową dla {name} w {t}",
+  "{name} spring": "Sprężyna {name}",
+  "{name} (not in this design system)": "{name} (nie ma w tym systemie projektowym)",
+  "Curves": "Krzywe",
+  "Springs": "Sprężyny",
+  "Gentle": "Łagodna",
+  "Quick": "Szybka",
+  "Bouncy": "Sprężysta",
+  "Custom spring": "Własna sprężyna",
+  "Stiffness": "Sztywność",
+  "Damping": "Tłumienie",
+  "Mass": "Masa",
+  "Settles in {t} s": "Uspokaja się w {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Następna klatka kluczowa przychodzi, zanim sprężyna się uspokoi. Reszta ruchu rozkłada się na cały odcinek.",
+  "From the design system: {name}": "Z systemu projektowego: {name}",
+  "Editing the curve detaches it from the design system.": "Edycja krzywej odłącza ją od systemu projektowego."
 }

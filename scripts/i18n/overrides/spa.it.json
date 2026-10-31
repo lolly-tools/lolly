@@ -1858,5 +1858,20 @@
   "Trim end": "Fine del tracciato",
   "Trim start": "Inizio del tracciato",
   "{name} keyframe added at {t}": "Fotogramma chiave per {name} aggiunto a {t}",
-  "{name} keyframe removed at {t}": "Fotogramma chiave per {name} rimosso a {t}"
+  "{name} keyframe removed at {t}": "Fotogramma chiave per {name} rimosso a {t}",
+  "{name} spring": "Molla {name}",
+  "{name} (not in this design system)": "{name} (non presente in questo sistema di design)",
+  "Curves": "Curve",
+  "Springs": "Molle",
+  "Gentle": "Morbida",
+  "Quick": "Rapida",
+  "Bouncy": "Elastica",
+  "Custom spring": "Molla personalizzata",
+  "Stiffness": "Rigidità",
+  "Damping": "Smorzamento",
+  "Mass": "Massa",
+  "Settles in {t} s": "Si assesta in {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Il fotogramma chiave successivo arriva prima che la molla si assesti. Il resto del movimento viene distribuito sul segmento.",
+  "From the design system: {name}": "Dal sistema di design: {name}",
+  "Editing the curve detaches it from the design system.": "Modificare la curva la scollega dal sistema di design."
 }

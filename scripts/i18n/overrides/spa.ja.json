@@ -1728,5 +1728,20 @@
   "Trim end": "描画の終了",
   "Trim start": "描画の開始",
   "{name} keyframe added at {t}": "{t} に {name} のキーフレームを追加しました",
-  "{name} keyframe removed at {t}": "{t} の {name} のキーフレームを削除しました"
+  "{name} keyframe removed at {t}": "{t} の {name} のキーフレームを削除しました",
+  "{name} spring": "{name}スプリング",
+  "{name} (not in this design system)": "{name}（このデザインシステムにはありません）",
+  "Curves": "カーブ",
+  "Springs": "スプリング",
+  "Gentle": "ゆったり",
+  "Quick": "すばやい",
+  "Bouncy": "弾む",
+  "Custom spring": "カスタムスプリング",
+  "Stiffness": "剛性",
+  "Damping": "減衰",
+  "Mass": "質量",
+  "Settles in {t} s": "{t} 秒で静止",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "スプリングが静止する前に次のキーフレームが来ます。残りの動きは区間全体に振り分けられます。",
+  "From the design system: {name}": "デザインシステムから：{name}",
+  "Editing the curve detaches it from the design system.": "カーブを編集するとデザインシステムとのリンクが外れます。"
 }

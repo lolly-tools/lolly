@@ -10365,5 +10365,20 @@
   "Trim end": "繪製終點",
   "Trim start": "繪製起點",
   "{name} keyframe added at {t}": "已在 {t} 為{name}加入關鍵影格",
-  "{name} keyframe removed at {t}": "已移除 {t} 處{name}的關鍵影格"
+  "{name} keyframe removed at {t}": "已移除 {t} 處{name}的關鍵影格",
+  "{name} spring": "{name}彈簧",
+  "{name} (not in this design system)": "{name}（不在此設計系統中）",
+  "Curves": "曲線",
+  "Springs": "彈簧",
+  "Gentle": "柔和",
+  "Quick": "快速",
+  "Bouncy": "彈跳",
+  "Custom spring": "自訂彈簧",
+  "Stiffness": "剛度",
+  "Damping": "阻尼",
+  "Mass": "質量",
+  "Settles in {t} s": "{t} 秒後靜止",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "彈簧靜止之前就到了下一個關鍵影格。剩餘的動作會平均分配到整個片段。",
+  "From the design system: {name}": "來自設計系統：{name}",
+  "Editing the curve detaches it from the design system.": "編輯曲線會使其與設計系統中斷連結。"
 }

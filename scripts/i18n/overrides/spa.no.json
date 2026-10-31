@@ -1858,5 +1858,20 @@
   "Trim end": "Tegning slutt",
   "Trim start": "Tegning start",
   "{name} keyframe added at {t}": "Nøkkelbilde for {name} lagt til ved {t}",
-  "{name} keyframe removed at {t}": "Nøkkelbilde for {name} fjernet ved {t}"
+  "{name} keyframe removed at {t}": "Nøkkelbilde for {name} fjernet ved {t}",
+  "{name} spring": "Fjær {name}",
+  "{name} (not in this design system)": "{name} (finnes ikke i dette designsystemet)",
+  "Curves": "Kurver",
+  "Springs": "Fjærer",
+  "Gentle": "Myk",
+  "Quick": "Rask",
+  "Bouncy": "Sprettende",
+  "Custom spring": "Tilpasset fjær",
+  "Stiffness": "Stivhet",
+  "Damping": "Demping",
+  "Mass": "Masse",
+  "Settles in {t} s": "Faller til ro på {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Neste nøkkelbilde kommer før fjæren faller til ro. Resten av bevegelsen fordeles over segmentet.",
+  "From the design system: {name}": "Fra designsystemet: {name}",
+  "Editing the curve detaches it from the design system.": "Hvis du redigerer kurven, kobles den fra designsystemet."
 }

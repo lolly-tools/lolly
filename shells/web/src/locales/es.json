@@ -10365,5 +10365,20 @@
   "Trim end": "Fin del dibujado",
   "Trim start": "Inicio del dibujado",
   "{name} keyframe added at {t}": "Fotograma clave de {name} añadido en {t}",
-  "{name} keyframe removed at {t}": "Fotograma clave de {name} quitado en {t}"
+  "{name} keyframe removed at {t}": "Fotograma clave de {name} quitado en {t}",
+  "{name} spring": "Muelle {name}",
+  "{name} (not in this design system)": "{name} (no está en este sistema de diseño)",
+  "Curves": "Curvas",
+  "Springs": "Muelles",
+  "Gentle": "Suave",
+  "Quick": "Rápido",
+  "Bouncy": "Rebote",
+  "Custom spring": "Muelle personalizado",
+  "Stiffness": "Rigidez",
+  "Damping": "Amortiguación",
+  "Mass": "Masa",
+  "Settles in {t} s": "Se asienta en {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "El siguiente fotograma clave llega antes de que el muelle se asiente. El resto del movimiento se reparte a lo largo del tramo.",
+  "From the design system: {name}": "Del sistema de diseño: {name}",
+  "Editing the curve detaches it from the design system.": "Editar la curva la desvincula del sistema de diseño."
 }

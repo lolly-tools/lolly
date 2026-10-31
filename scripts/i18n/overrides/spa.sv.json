@@ -1720,5 +1720,20 @@
   "Trim end": "Ritning slut",
   "Trim start": "Ritning start",
   "{name} keyframe added at {t}": "Nyckelbild för {name} tillagd vid {t}",
-  "{name} keyframe removed at {t}": "Nyckelbild för {name} borttagen vid {t}"
+  "{name} keyframe removed at {t}": "Nyckelbild för {name} borttagen vid {t}",
+  "{name} spring": "Fjäder {name}",
+  "{name} (not in this design system)": "{name} (finns inte i det här designsystemet)",
+  "Curves": "Kurvor",
+  "Springs": "Fjädrar",
+  "Gentle": "Mjuk",
+  "Quick": "Snabb",
+  "Bouncy": "Studsig",
+  "Custom spring": "Anpassad fjäder",
+  "Stiffness": "Styvhet",
+  "Damping": "Dämpning",
+  "Mass": "Massa",
+  "Settles in {t} s": "Stannar på {t} s",
+  "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Nästa nyckelbildruta kommer innan fjädern har stannat. Resten av rörelsen fördelas över segmentet.",
+  "From the design system: {name}": "Från designsystemet: {name}",
+  "Editing the curve detaches it from the design system.": "Om du redigerar kurvan kopplas den bort från designsystemet."
 }
