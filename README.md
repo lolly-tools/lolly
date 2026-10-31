@@ -6,6 +6,8 @@
 
 Lolly is an open-source creative platform. Pick a tool, add your words, images or data, and download a finished file. Your design system supplies the colours, fonts and assets.
 
+Its purpose is **content sovereignty**: control over how your content is created, governed, stored and moved across the systems you choose. Keep making and editing your work, use your own infrastructure where needed, and connect an existing asset library. [What content sovereignty means](docs/content-sovereignty.md) explains the controls and their limits.
+
 Build a layout once, choose what other people can change, and share it as a tool. They fill in the fields; the tool handles the layout and design rules.
 
 [Open Lolly](https://lolly.tools) · [Make your first file](https://lolly.tools/info/start/make-something.html) · [Downloads](https://github.com/lolly-tools/lolly/releases) · [Documentation](https://lolly.tools/info/)
@@ -86,6 +88,8 @@ Use tool inputs in scripts, URLs and batch jobs, or let AI agents call tools thr
 Lolly began at SUSE, where people needed to make on-brand files without sending their work to outside services. It is maintained as open source and runs independently of SUSE.
 
 For organisation sign-in, shared assets and projects, approvals, work collaboration, audit records or server rendering, add [Lolly Work](https://github.com/lolly-tools/lolly-work), the organisation server of the same project. It is optional and maintained in its own repository, and hosting and operations have their own costs. [Why Lolly is free](docs/faq.md) tells the story of who builds it and why.
+
+An existing DAM can remain the source of record while Lolly helps people produce content from its approved assets. [Use Lolly with your DAM](docs/use-with-dam.md) covers that arrangement; [SUSE's Brandfolder experience](docs/suse-brandfolder.md) records successful integration and administrator change management before a planned migration.
 
 [Organisation guide](docs/organisation.md) · [Self-hosting and deployment](docs/deployment.md) · [Current status and adoption](docs/adoption-governance.md)
 

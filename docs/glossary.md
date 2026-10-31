@@ -4,6 +4,8 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 ## Words you will see in the app
 
+**Content sovereignty.** Control over how your content is created, governed, stored and moved across the systems you choose. In Lolly this includes local production, editable work, portable tools and optional organisation-controlled services. An existing DAM can remain the source of record. These controls do not override source licences or guarantee exact future renders; see [What is content sovereignty?](/info/content-sovereignty.html).
+
 **Design system.** Your colours, fonts, logos and a few rules, which every tool draws with. You set it up once in Design System Setup and switch between design systems in **Settings → Preferences → Design systems**. In the code the same thing is called a brand (see *Design system and brand* below).
 
 **Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Overview, Colours, Type, Logos, Tokens, Files, Usage & rules and Skills. "Make it yours" is its heading.

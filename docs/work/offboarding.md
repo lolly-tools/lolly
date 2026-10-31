@@ -1,5 +1,7 @@
 # Leave a DAM
 
+Leaving is an optional stage of a connected workflow. A DAM can remain the source of record for as long as the organisation chooses. Start with [Use Lolly with your existing DAM](/info/use-with-dam.html) if you are connecting a library; use [Plan a DAM transition](/info/dam-transition.html) to agree responsibilities, acceptance and recovery before running the commands below.
+
 This page is for the brand operations lead who plans to leave a DAM vendor without losing
 assets or breaking links. Lolly Work copies the files into a store you own, then moves each
 asset's identity over, and every old address keeps resolving. Start early: the copy is the

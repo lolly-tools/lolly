@@ -2,6 +2,8 @@
 
 Your organisation can run its own Lolly: the same app, with the tools and design systems it chose. This page shows how to reach it, sign in and what changes once you do.
 
+If you are planning the organisation's setup, [Use Lolly with your existing DAM](/info/use-with-dam.html) explains how an approved library can stay in place while people start producing content in Lolly. [Content sovereignty](/info/content-sovereignty.html) describes the wider control over creation, governance, storage and portability.
+
 ::: note What you need from your organisation
 The web address of its Lolly, or a `.lolly` setup file your organisation made. lolly.tools on its own does not connect to an organisation.
 :::

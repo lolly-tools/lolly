@@ -2,9 +2,13 @@
 
 Lolly is two parts of one open-source project. **Lolly** is the engine, apps and tools for making, editing, converting and exporting on your device, with no account. **Lolly Work** is the organisation server, run on your own infrastructure, for sign-in, shared projects, approvals and server rendering. Both are MPL-2.0. This page compares the pair with the other ways people design, govern and produce files.
 
+The organising idea is [content sovereignty](/info/content-sovereignty.html): control over how content is created, governed, stored and moved across chosen systems. Creative applications can supply designs, a DAM can stay the source of record, and Lolly can turn permitted inputs and approved assets into new files. [Use Lolly with your existing DAM](/info/use-with-dam.html) describes that combination.
+
 ## Today's tools
 
 Each ring scores how completely a product class delivers a capability, with every class scored on its best representative. The Lolly column covers Lolly and Lolly Work together, and each row says which part provides what. Open a row name for the reasoning behind its score. Columns are sorted by the Overall completeness row at the top: the mean of the scored rows, with the spend row excluded.
+
+The scores use Lolly's preference for control without an account or cloud requirement. They are a comparison under those criteria, not a neutral ranking of product completeness or an enterprise procurement score. Read the capability, deployment and evidence limits separately when evaluating a specific workflow.
 
 ::: figure positioning-comparison
 Capability comparison: competitor research and scores from August 2026; Lolly + Lolly Work coverage reviewed 28 September 2026. Scoring: 0 absent, 25 workaround-grade, 50 real but gated or partial, 75 strong with caveats, 100 core competency.
@@ -42,6 +46,8 @@ Lolly's live collaboration includes direct two-device private collabs and authen
 :::
 
 Imported designs and shared design tokens let a team combine Lolly with specialist applications, while Lolly Work governs shared assets, review and delivery.
+
+For teams with a curated DAM, start by keeping that library and its administrators in place. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records how integration supported adoption and approval change management. DAM vendors and implementation partners can evaluate the same arrangement through [the partner workflow](/info/dam-partners.html).
 
 A whole slide deck shows the ceiling: in **Markdown Slides** a deck is declared as data, laid out live and exported as a native, editable PowerPoint file.
 

@@ -82,7 +82,31 @@
       "icon": "layers",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "description": "What Lolly makes, where it runs and who it is for, in five minutes: the place to begin."
+      "description": "Make graphics, documents and video with Lolly, an open-source creative platform for content sovereignty, with local tools and optional organisation services."
+    },
+    {
+      "slug": "content-sovereignty",
+      "title": "What is content sovereignty?",
+      "src": "content-sovereignty.md",
+      "description": "Control how content is created, governed, stored and moved: local production, portable work and connected systems, with the limits of each control.",
+      "section": "start",
+      "path": "start/content-sovereignty",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Product, organisation and vocabulary"
+    },
+    {
+      "slug": "suse-brandfolder",
+      "title": "How SUSE connected Brandfolder to Lolly",
+      "src": "suse-brandfolder.md",
+      "description": "How successful Brandfolder integration at SUSE supported adoption and administrator change management before a planned migration, with the evidence scope recorded.",
+      "section": "start",
+      "path": "start/suse-brandfolder",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Product, organisation and vocabulary"
     },
     {
       "slug": "how-lolly-works",
@@ -250,6 +274,42 @@
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Administration, policy and approvals",
       "headingId": "lolly-for-operators"
+    },
+    {
+      "slug": "use-with-dam",
+      "title": "Use Lolly with your existing DAM",
+      "src": "use-with-dam.md",
+      "description": "Keep your DAM as the source of record while Lolly makes content from approved assets. Responsibilities, access, review, delivery and optional migration.",
+      "section": "manage",
+      "path": "manage/use-with-dam",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Shared assets and provider connections"
+    },
+    {
+      "slug": "dam-partners",
+      "title": "Lolly for DAM vendors and implementation partners",
+      "src": "dam-partners.md",
+      "description": "Extend an existing DAM into governed content production: customer workflows, integration responsibilities, evaluation and the freedom to keep or change systems.",
+      "section": "manage",
+      "path": "manage/dam-partners",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Shared assets and provider connections"
+    },
+    {
+      "slug": "dam-transition",
+      "title": "Plan a DAM transition without disrupting content teams",
+      "src": "dam-transition.md",
+      "description": "Plan library inventory, approval responsibilities, coexistence, original-file checks and administrator adoption before a supported DAM cutover.",
+      "section": "manage",
+      "path": "manage/dam-transition",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Shared assets and provider connections"
     },
     {
       "slug": "trust",
@@ -801,7 +861,8 @@
       "icon": "sliders",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Team playbooks and comparisons"
+      "group": "Team playbooks and comparisons",
+      "description": "Where Lolly fits alongside creative apps, DAMs and storage, with content sovereignty, capability comparisons and separate deployment and maturity limits."
     },
     {
       "slug": "compare",
@@ -891,10 +952,22 @@
       "slug": "compare-brand-portals",
       "title": "Lolly and brand portals",
       "src": "compare-brand-portals.md",
-      "description": "Locked templates without the portal: where Lolly overlaps with brand platforms like Bynder, Frontify and Marq, and what a portal still does better.",
+      "description": "Use Lolly alongside a brand portal or DAM: keep the approved library, make controlled outputs and understand where access, review and delivery responsibilities sit.",
       "section": "create",
       "path": "create/compare-brand-portals",
       "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Team playbooks and comparisons"
+    },
+    {
+      "slug": "dam-production",
+      "title": "Create on-brand content from approved DAM assets",
+      "src": "dam-production.md",
+      "description": "Make an event card from a connected asset library: expose approved sources, constrain edits, produce variants, review finished bytes and check delivery.",
+      "section": "create",
+      "path": "create/dam-production",
+      "icon": "layers",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Team playbooks and comparisons"
@@ -1696,7 +1769,7 @@
       "title": "Sovereign creative production",
       "src": "sovereign-production.md",
       "register": "stage",
-      "description": "Creative production with no server in the render path: air-gapped deployment, consent-gated networking, on-device signing and the tools as files you hold.",
+      "description": "Make, sign and verify files locally as one part of content sovereignty. Inspect the dependencies, optional network services and limits of the workflow.",
       "section": "operate",
       "path": "operate/sovereign-production",
       "icon": "server",

@@ -7,6 +7,21 @@ identity, provisioning, governance, the shared catalog, server renders and links
 and audit. Work serves the Lolly web shell, the governed catalog and the admin console from
 one origin.
 
+Work supports [content sovereignty](/info/content-sovereignty.html): the organisation chooses how content is produced, governed, stored and moved. An existing DAM can remain the source of record while Work connects its selected assets to Lolly tools. Read [Use Lolly with your existing DAM](/info/use-with-dam.html) for that arrangement.
+
+## Source, production and delivery responsibilities
+
+The connected path is **source DAM → governed Work catalog → Lolly production → chosen delivery destination**. Each step has its own authority:
+
+| Part | Controls |
+|---|---|
+| Source DAM | The upstream record, current files and supported source approval and availability facts |
+| Work catalog | The configured source slice, member exposure and local lifecycle constraints |
+| Lolly tool and Work policy | Declared editable inputs, design-system rules and policy on governed operations |
+| Review and delivery | The configured approval subject and destination authority; a supported delivery review binds staged final bytes |
+
+A read credential does not grant write authority. Source approval does not approve every use or output. Shared provider credentials do not reproduce each member's upstream identity. The [catalog](catalog.md), [approvals](approvals.md) and [delivery](delivery.md) guides describe the exact boundaries.
+
 ::: figure work-overview-two-halves
 What stays on a person's device, what Work holds and what crosses the network between them.
 :::

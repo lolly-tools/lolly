@@ -1,8 +1,16 @@
 # Lolly and brand portals
 
-_Last checked: 28 September 2026._
+_Positioning updated: 31 October 2026. Vendor capability example checked: 28 September 2026._
 
 If your organisation keeps its approved assets in Bynder, Frontify, Marq or Brandfolder, this page compares that with Lolly plus Lolly Work: how people find brand assets, and how they make new files from them.
+
+## Keeping your existing portal
+
+An existing DAM can stay the source of record. Lolly Work's catalog connectors make a selected part of its library available in Lolly, where people make new files under the organisation's rules. The DAM's supported source constraints and Work's exposure rules govern access; final output review is a separate decision.
+
+[Use Lolly with your existing DAM](/info/use-with-dam.html) explains the responsibilities and limits. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful integration that supported administrator change management before a planned migration. Keeping the source connected remains a supported choice.
+
+Lolly's purpose is [content sovereignty](/info/content-sovereignty.html), including control over production and the freedom to choose systems. Its own library and approvals support organisations that choose to operate those capabilities themselves. [Lolly for DAM vendors and implementation partners](/info/dam-partners.html) describes how the connected workflow can add value to an existing system of record.
 
 ## What an established portal does better
 
@@ -29,8 +37,8 @@ Both cover approved assets, locked templates, access control, review and distrib
 
 [Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) and [Policy and governance](/info/work-governance.html) describe these features and their configuration.
 
-## Keeping your existing portal
+## Evaluate the combined workflow
 
-An existing DAM can stay the source of truth. Lolly Work's catalogue connectors make its approved assets available in Lolly, where people make new files under the organisation's rules. That is an integration choice; Lolly's own library and approvals are there when the organisation wants to run those itself. [What runs where](/info/compare.html#what-runs-where) lists the limits every comparison shares.
+Use [the event-card production sequence](/info/dam-production.html) to test source access, permitted edits, output review and delivery with your own library. [What runs where](/info/compare.html#what-runs-where) lists the limits every comparison shares. A source connection does not itself establish a vendor partnership or qualification for every tenant.
 
 See [How Lolly compares](/info/positioning.html) for the capability comparison. Vendor names identify the products being compared; Lolly is not affiliated with them.

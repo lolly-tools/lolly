@@ -2,6 +2,8 @@
 
 Lolly makes finished files from a few answers. Pick a tool, such as a QR code, a chart or a social card. Add your words, pictures or data, and download a PNG, PDF, SVG, video or slide deck that is ready to send.
 
+Lolly is built around **content sovereignty**: control over how your content is created, governed, stored and moved across the systems you choose. Local production, editable work and portable tools support that control; optional organisation services connect the shared systems your team needs. [What is content sovereignty?](/info/content-sovereignty.html) explains the idea with its practical limits.
+
 ![A design system, a tool and your input go in; a finished file comes out](/info/diagrams/concepts/tool-to-file.svg)
 
 ## What you can make
@@ -37,6 +39,8 @@ Use it in a browser at [lolly.tools](/), or [install the app](/info/install.html
 ## When a team needs more
 
 An organisation can add **Lolly Work**, an open-source server it runs itself, for sign-in, shared projects, approvals and server jobs. [Use Lolly at your organisation](/info/organisation.html) explains what changes for you. Everyday use never needs Lolly Work.
+
+Your existing digital asset management system can stay the source of record for approved assets. Work connects a selected part of that library to Lolly tools, with access rules and supported source constraints. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains how the two fit together.
 
 ## Find your way
 

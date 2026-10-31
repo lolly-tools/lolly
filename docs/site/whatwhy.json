@@ -17,6 +17,6 @@
       { "label": "The privacy policy", "slug": "privacy" },
       { "label": "Verify it yourself", "slug": "verify-yourself" }
     ],
-    "more": { "label": "Why this differs", "slug": "status-quo" }
+    "more": { "label": "Your content, your choices", "slug": "what-is-lolly" }
   }
 }
