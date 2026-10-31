@@ -51,10 +51,43 @@
  * plans/104 section 8's a11y note is the reason there are two: canvas visuals are exempt from
  * the a11y prefs by contract (`a11y-prefs.ts:14–18`), so the lever for anything moving
  * over the canvas is playback policy - and an animated affordance is playback.
+ *
+ * ── EDITING (plans/330) ─────────────────────────────────────────────────────────────
+ * With an `edit` port the path can be changed by pointer. Each point that keys a
+ * position gets a hit target; the LINE never does, so a drag along the path between
+ * points does nothing and nothing here creates a keyframe. Dragging a point moves that
+ * keyframe's x/y; a click selects it, which shows its handles (the pen tool's own
+ * `.fc-pen-handle`/`.fc-pen-arm` marks) and a chip with its time and **Curve the path**
+ * or **Straighten**. While dragging, the chip shows the time of the keyframe in hand.
+ * Every edit is previewed on the path alone and written with ONE `commit` on release.
+ *
+ * The numbers are motion-path-math.ts's: a pointer is read in NATIVE px, as the camera
+ * shows the box at that keyframe's time, and `pathProjector` maps it back to the box's
+ * own surface offsets exactly (the camera's scale and translate undone, or its
+ * homography inverted when it is tilted). Snapping and Shift's 15 degree steps are the
+ * pen tool's, through the port; Alt bypasses snapping, and breaks two in-line handles
+ * apart while one is dragged, as it does on a pen node.
+ *
+ * The export contract above still holds: every node the editing adds is minted here,
+ * inside the same `[data-export-hide]` layer, and none of it is a `.lolly-box`. The
+ * layer stays `aria-hidden`: the keyboard and screen-reader route to the same edits is
+ * the Keyframes popup (timeline-panel/kf-path.ts), as it is for the timeline's diamonds.
  */
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { announce } from '../a11y.ts';
+import { t } from '../i18n.ts';
+import { iconNode } from '../lib/icon-node.ts';
+import { constrainAngle } from './free-canvas-pen-ops.ts';
 import { boxRect, rectCentre, type Box } from './free-canvas-math.ts';
-import { deriveDuration, kfCameraClips, kfMotionPath, type TimeCfg } from './timeline-math.ts';
+import {
+  deriveDuration, fmtTime, indexOfId, kfBoxTrack, kfCameraClips, kfMotionPath, kfTimelineSec, setKfTrack,
+  type MotionPathEnv, type TimeCfg,
+} from './timeline-math.ts';
+import {
+  handlesInLine, hasHandles, holdsPosition, keyPosition, kfTrackCurve, kfTrackSetHandles, kfTrackSetPosition,
+  kfTrackStraighten, mirrorHandle, pathKeyPoints, pathProjector, type PathKeyPoint, type Pt,
+} from './motion-path-math.ts';
+import type { KfHandle, KfKey } from '../../../../engine/src/keyframes.ts';
 import '../styles/parts/motion-path.css';
 
 /** What `nativeToStage` needs, and nothing more - so a test can pass plain objects. */
@@ -62,6 +95,30 @@ export interface MotionMetrics {
   cr: { left: number; top: number };
   sr: { left: number; top: number };
   scale: number;
+}
+
+/**
+ * What EDITING the path needs from the canvas (plans/330). Absent, the path is drawn
+ * read-only, exactly as before.
+ */
+export interface MotionPathEditPort {
+  /** Write a rebuilt boxes array: one commit, one undo step. */
+  commit(boxes: Box[]): void;
+  /** Can this box's path be edited now? False for a locked box, or one off the playhead. */
+  editable(id: string): boolean;
+  /**
+   * Snap a native point the way the pen tool snaps a node (grid, smart guides, and
+   * `nodes` as extra lines), drawing the guides that caught. `alt` bypasses the snap.
+   */
+  snap(at: Pt, alt: boolean, nodes: readonly Pt[], id: string): Pt;
+  /** Take the snap guides down. */
+  clearGuides(): void;
+  /**
+   * The selection chrome's bounds in stage px (the outline and its rotate handle), so
+   * the chip of a point that sits under the selected box goes below that chrome rather
+   * than over its handles. Optional; null when nothing is drawn.
+   */
+  clearOf?(): { left: number; top: number; right: number; bottom: number } | null;
 }
 
 /**
@@ -96,11 +153,19 @@ export interface MountMotionPathOpts {
   metricsOf: () => MotionMetrics;
   /** The artboard's CURRENT native size - the projection's principal point is its centre. */
   canvasSize: () => { w: number; h: number };
+  /** Editing by pointer (plans/330); omitted, the path is read-only. */
+  edit?: MotionPathEditPort;
 }
 
 export interface MotionPathHandle {
   /** Draw the paths of these box ids (free-canvas's selection). Empty hides the layer. */
   paint(ids: readonly string[] | null | undefined): void;
+  /**
+   * The canvas's key handler asks first (plans/330). Escape drops a selected point, or
+   * cancels a drag; Backspace or Delete retracts the selected point's handles. True when
+   * the key was used, so the canvas does nothing else with that key.
+   */
+  onKey(e: KeyboardEvent): boolean;
   destroy(): void;
 }
 
@@ -147,12 +212,45 @@ export function motionRuns(pts: readonly MotionPoint[] | null | undefined): Moti
 interface MotionPathItem {
   id: string;
   pts: readonly MotionPoint[];
-  keys: readonly MotionPoint[];
+  keys: readonly PathKeyPoint[];
+  /** The box's authored centre and the world it moves through, for the editing maths. */
+  centre: Pt;
+  env: MotionPathEnv;
+}
+
+/** Which part of a point is selected or in hand. */
+type PathPart = 'key' | 'hi' | 'ho';
+
+/** A pointer below this many STAGE px of travel is a click, not a drag. */
+const DRAG_SLOP = 3;
+
+/** The chip's offset from its point, STAGE px: below and right, clear of the handles' usual reach. */
+const CHIP_DX = 14;
+const CHIP_DY = 14;
+/** The gap between the selection's chrome and a chip placed below it, STAGE px. */
+const CHIP_GAP = 10;
+
+interface PathDrag {
+  pointerId: number;
+  id: string;
+  t: number;
+  part: PathPart;
+  /** Where the pointer went down, client px, and the native point it grabbed. */
+  downX: number;
+  downY: number;
+  grab: Pt;
+  moved: boolean;
+  /** The other handle at the start, and whether the two left the point in one line. */
+  other: KfHandle | undefined;
+  inLine: boolean;
+  /** The rows being previewed, or null before the first move. */
+  preview: Box[] | null;
 }
 
 export function mountMotionPath(opts: MountMotionPathOpts): MotionPathHandle {
-  const { overlayEl, geom, time, getBoxes, metricsOf, canvasSize } = opts;
+  const { overlayEl, geom, time, getBoxes, metricsOf, canvasSize, edit } = opts;
   const doc = overlayEl.ownerDocument;
+  const win = doc.defaultView;
 
   const layer = doc.createElement('div');
   layer.className = 'mp-layer';
@@ -171,10 +269,33 @@ export function mountMotionPath(opts: MountMotionPathOpts): MotionPathHandle {
   // CSS pixel and nothing scales twice.
   layer.appendChild(svg);
 
+  // The editing chrome (plans/330): plain divs in stage px, like the pen tool's own node
+  // chrome. The points' targets stay in this layer, UNDER the selection chrome, so a
+  // resize handle that happens to sit on a point keeps working. The selected point's
+  // handles and its chip go in a second layer at the TOP of the overlay, where nothing
+  // covers them; it carries the same export guarantees as the first.
+  const chrome = doc.createElement('div');
+  chrome.className = 'mp-chrome';
+  layer.appendChild(chrome);
+  const top = doc.createElement('div');
+  top.className = 'mp-chrome mp-top';
+  top.setAttribute('aria-hidden', 'true');
+  top.setAttribute('data-export-hide', '');
+  top.hidden = true;
+  overlayEl.appendChild(top);
+
   let destroyed = false;
   /** The last sampling, reused while the model array, the selection and the artboard
    *  size are all unchanged (see `samplePaths`). */
   let memo: { boxes: Box[]; key: string; items: MotionPathItem[] } | null = null;
+  /** The ids the canvas last asked for, so the path can repaint itself mid-gesture. */
+  let lastIds: readonly string[] = [];
+  /** The selected point, if any. */
+  let sel: { id: string; t: number; part: PathPart } | null = null;
+  let drag: PathDrag | null = null;
+
+  /** The rows a paint reads: a drag's preview while one is in flight, else the model. */
+  const rowsNow = (): Box[] => drag?.preview ?? getBoxes();
 
   /**
    * The MODEL half: turn a selection into projected paths, all of it through
@@ -184,12 +305,13 @@ export function mountMotionPath(opts: MountMotionPathOpts): MotionPathHandle {
    *
    * A CAMERA box is skipped outright: it has no canvas footprint at all (section 5.4), so the
    * only path it could draw would be of a rectangle nobody can see. Its move is already
-   * visible as the parallax on every OTHER box's path, which is the honest picture.
+   * visible as the parallax on every OTHER box's path, which is the honest picture. For
+   * the same reason a camera's own path is not editable on the canvas.
    */
   function samplePaths(ids: readonly string[]): MotionPathItem[] {
     const out: MotionPathItem[] = [];
     if (!time.kfField || !ids.length) return out;
-    const boxes = getBoxes();
+    const boxes = rowsNow();
     if (!Array.isArray(boxes) || !boxes.length) return out;
     const wh = canvasSize();
     // The samples are in NATIVE px, so a pan or a zoom does not change one of them - 
@@ -213,20 +335,37 @@ export function mountMotionPath(opts: MountMotionPathOpts): MotionPathHandle {
       if (!id || !wanted.has(id)) continue;
       if (String(b.kind ?? '') === 'camera') continue;
       const c = rectCentre(boxRect(b, geom));
-      const s = kfMotionPath(boxes, time, id, c, {
-        stageW: wh.w, stageH: wh.h, cameras, totalMs,
-      });
-      if (s.pts.length >= MIN_RUN) out.push({ id, pts: s.pts, keys: s.keys });
+      const env: MotionPathEnv = { stageW: wh.w, stageH: wh.h, cameras, totalMs };
+      const s = kfMotionPath(boxes, time, id, c, env);
+      if (s.pts.length >= MIN_RUN) out.push({ id, pts: s.pts, keys: pathKeyPoints(b, time, c, env), centre: c, env });
     }
     memo = { boxes, key, items: out };
     return out;
   }
 
+  /** The box, its track and the keyframe at `t`, read from the rows a paint reads. */
+  function keyOf(id: string, t: number): { box: Box; key: KfKey } | null {
+    const rows = getBoxes();
+    const i = indexOfId(rows, time, id);
+    if (i < 0) return null;
+    const key = kfBoxTrack(rows[i], time).find((k) => k.t === t);
+    return key ? { box: rows[i]!, key } : null;
+  }
+
+  /** A diamond around a stage point. */
+  const diamond = (x: number, y: number, r: number): string =>
+    `M${x} ${y - r}L${x + r} ${y}L${x} ${y + r}L${x - r} ${y}Z`;
+
   function paint(ids: readonly string[] | null | undefined): void {
     if (destroyed) return;
+    lastIds = Array.isArray(ids) ? ids : [];
     svg.textContent = '';
-    const list = samplePaths(Array.isArray(ids) ? ids : []);
-    if (!list.length) { layer.hidden = true; return; }
+    chrome.textContent = '';
+    top.textContent = '';
+    const list = samplePaths(lastIds);
+    if (sel && (!list.some((it) => it.id === sel!.id) || !keyOf(sel.id, sel.t))) sel = null;
+    top.hidden = !sel && !drag;
+    if (!list.length) { layer.hidden = true; top.hidden = true; return; }
 
     const m = metricsOf();
     // Asked ONCE per paint, not once per path. An attribute rather than a class so the
@@ -260,27 +399,315 @@ export function mountMotionPath(opts: MountMotionPathOpts): MotionPathHandle {
           g.appendChild(flow);
         }
       }
+      const editable = !!edit && edit.editable(item.id);
       for (const k of item.keys || []) {
         if (!k || !onScreen(k)) continue;
         const s = toStage(k, m);
+        const on = !!sel && sel.id === item.id && sel.t === k.t;
         const dot = doc.createElementNS(SVG_NS, 'path');
-        dot.setAttribute('class', 'mp-key');
         // A DIAMOND, not a circle: the same mark the timeline strip uses for a
-        // keyframe, so one thing looks like one thing across the two surfaces.
-        dot.setAttribute('d',
-          `M${s.x} ${s.y - KEY_R}L${s.x + KEY_R} ${s.y}L${s.x} ${s.y + KEY_R}L${s.x - KEY_R} ${s.y}Z`);
+        // keyframe, so one thing looks like one thing across the two surfaces. A
+        // keyframe that keys no position sits on the path as a smaller, hollow mark:
+        // it is a moment on the travel, not a point that sets the travel.
+        dot.setAttribute('class', `mp-key${k.pos ? '' : ' is-other'}${on ? ' is-on' : ''}`);
+        dot.setAttribute('d', diamond(s.x, s.y, k.pos ? KEY_R : KEY_R - 1.5));
         g.appendChild(dot);
+        if (editable && k.pos) paintPoint(item, k, s, on, m);
       }
       svg.appendChild(g);
     }
   }
 
+  /** A pointer target over one point or handle tip, carrying what it addresses as data. */
+  function hit(id: string, t: number, part: PathPart, at: Pt, host: HTMLElement = chrome): void {
+    const el = doc.createElement('div');
+    el.className = `mp-hit mp-hit-${part}`;
+    el.setAttribute('data-box-id', id);
+    el.setAttribute('data-t', String(t));
+    el.setAttribute('data-part', part);
+    el.style.left = `${at.x}px`;
+    el.style.top = `${at.y}px`;
+    host.appendChild(el);
+  }
+
+  /** The chrome of one editable point: its target, and when selected its handles and chip. */
+  function paintPoint(item: MotionPathItem, k: PathKeyPoint, s: Pt, on: boolean, m: MotionMetrics): void {
+    if (on) {
+      // The pen tool's own marks, so a handle reads the same wherever it is met. Arms
+      // first, then dots, so a dot is never under an arm (tree order is paint order).
+      const tips: [PathPart, Pt | undefined][] = [['hi', k.hi], ['ho', k.ho]];
+      for (const [, tip] of tips) {
+        if (!tip) continue;
+        const b = toStage(tip, m);
+        const arm = doc.createElement('div');
+        arm.className = 'fc-pen-arm';
+        arm.style.left = `${s.x}px`;
+        arm.style.top = `${s.y}px`;
+        arm.style.width = `${Math.hypot(b.x - s.x, b.y - s.y)}px`;
+        arm.style.transform = `rotate(${(Math.atan2(b.y - s.y, b.x - s.x) * 180) / Math.PI}deg)`;
+        top.appendChild(arm);
+      }
+      for (const [part, tip] of tips) {
+        if (!tip) continue;
+        const b = toStage(tip, m);
+        const dot = doc.createElement('div');
+        dot.className = sel?.part === part ? 'fc-pen-handle is-on' : 'fc-pen-handle';
+        dot.style.left = `${b.x}px`;
+        dot.style.top = `${b.y}px`;
+        top.appendChild(dot);
+        hit(item.id, k.t, part, b, top);
+      }
+      // The point itself over its arms, as a pen node sits over its own: the selected
+      // keyframe's diamond, drawn again in the top layer so no arm crosses the mark.
+      const mark = doc.createElement('div');
+      mark.className = 'mp-sel';
+      mark.style.left = `${s.x}px`;
+      mark.style.top = `${s.y}px`;
+      top.appendChild(mark);
+    }
+    hit(item.id, k.t, 'key', s);
+    if (on || (drag?.moved && drag.id === item.id && drag.t === k.t)) paintChip(item.id, k, s);
+  }
+
+  /** The selected point's chip: its time, and the one action that changes its shape. */
+  function paintChip(id: string, k: PathKeyPoint, s: Pt): void {
+    const found = keyOf(id, k.t);
+    if (!found) return;
+    const chip = doc.createElement('div');
+    // Beside the point, unless the point sits under the selected box: then below the
+    // box's own chrome, centred, so the chip never covers a resize or rotate handle.
+    const avoid = edit?.clearOf?.() ?? null;
+    const under = !!avoid && s.x >= avoid.left - CHIP_DX && s.x <= avoid.right + CHIP_DX
+      && s.y >= avoid.top - CHIP_DY && s.y <= avoid.bottom + CHIP_DY;
+    chip.className = under ? 'mp-chip is-under' : 'mp-chip';
+    chip.style.left = `${under && avoid ? (avoid.left + avoid.right) / 2 : s.x + CHIP_DX}px`;
+    chip.style.top = `${under && avoid ? avoid.bottom + CHIP_GAP : s.y + CHIP_DY}px`;
+    const when = doc.createElement('span');
+    when.className = 'mp-chip-time';
+    when.textContent = fmtTime(kfTimelineSec(found.box, time, k.t));
+    chip.appendChild(when);
+    // Mid-drag the chip is a readout only; the action waits for the hand to let go.
+    if (!drag?.moved && k.curve) {
+      const curved = hasHandles(found.key);
+      const act = doc.createElement('button');
+      act.type = 'button';
+      act.className = 'mp-chip-act';
+      // Pointer sugar inside an aria-hidden layer, like the diamonds: the Keyframes
+      // popup's row carries the same action as a labelled control.
+      act.tabIndex = -1;
+      act.setAttribute('data-act', curved ? 'straighten' : 'curve');
+      const glyph = iconNode(curved ? 'pathStraight' : 'pathCurve', doc);
+      if (glyph) act.appendChild(glyph);
+      const label = doc.createElement('span');
+      label.textContent = curved ? t('Straighten') : t('Curve the path');
+      act.appendChild(label);
+      chip.appendChild(act);
+    }
+    top.appendChild(chip);
+  }
+
+  /** Write one box's rebuilt track, as a preview or as the commit. */
+  function withTrack(id: string, keys: readonly KfKey[]): Box[] {
+    return setKfTrack(getBoxes(), time, id, keys);
+  }
+
+  /** Curve or straighten the selected point's travel: one commit. */
+  function curveAt(id: string, at: number, straighten: boolean): void {
+    const found = keyOf(id, at);
+    if (!found || !edit || !holdsPosition(found.key)) return;
+    const track = kfBoxTrack(found.box, time);
+    const keys = straighten ? kfTrackStraighten(track, at) : kfTrackCurve(track, at);
+    edit.commit(withTrack(id, keys));
+    const when = fmtTime(kfTimelineSec(found.box, time, at));
+    announce(straighten ? t('Path straightened at {t}', { t: when }) : t('Path curved at {t}', { t: when }));
+  }
+
+  /** Native px from a pointer, through the same metrics the paint uses. */
+  function nativeOf(e: PointerEvent): Pt {
+    const m = metricsOf();
+    const sc = Number(m.scale) || 1;
+    return { x: (e.clientX - m.cr.left) / sc, y: (e.clientY - m.cr.top) / sc };
+  }
+
+  /** The item and point a drag is addressing, read fresh from the memo. */
+  function itemOf(id: string): MotionPathItem | undefined {
+    return memo?.items.find((it) => it.id === id);
+  }
+
+  /**
+   * A press on the path takes the keyboard to the canvas. `preventDefault` below stops
+   * the browser moving focus as it does for any other press on the canvas, and focus
+   * left in the timeline would hand Backspace to the timeline, which deletes the clip
+   * rather than retracting a handle.
+   */
+  function takeKeys(): void {
+    const active = doc.activeElement as HTMLElement | null;
+    if (active && active !== doc.body && typeof active.blur === 'function') active.blur();
+  }
+
+  function onDown(e: PointerEvent): void {
+    const target = e.target as Element | null;
+    const act = target?.closest?.('.mp-chip-act');
+    if (act && sel) {
+      e.stopPropagation();
+      e.preventDefault();
+      takeKeys();
+      curveAt(sel.id, sel.t, act.getAttribute('data-act') === 'straighten');
+      return;
+    }
+    const el = target?.closest?.('.mp-hit');
+    if (!el || !edit || e.button > 0) return;
+    // Ours, and only ours: the backdrop would otherwise read this as a click on empty
+    // stage and drop the box selection the path belongs to.
+    e.stopPropagation();
+    e.preventDefault();
+    takeKeys();
+    const id = el.getAttribute('data-box-id') ?? '';
+    const at = Number(el.getAttribute('data-t'));
+    const part = (el.getAttribute('data-part') ?? 'key') as PathPart;
+    if (!id || !Number.isFinite(at) || !edit.editable(id)) return;
+    const found = keyOf(id, at);
+    const point = itemOf(id)?.keys.find((k) => k.t === at);
+    if (!found || !point) return;
+    sel = { id, t: at, part };
+    const other = part === 'hi' ? found.key.ho : part === 'ho' ? found.key.hi : undefined;
+    const grab = part === 'key' ? { x: point.x, y: point.y } : (part === 'hi' ? point.hi : point.ho) ?? { x: point.x, y: point.y };
+    drag = {
+      pointerId: e.pointerId, id, t: at, part,
+      downX: e.clientX, downY: e.clientY, grab,
+      moved: false, other, inLine: handlesInLine(found.key.hi, found.key.ho), preview: null,
+    };
+    win?.addEventListener('pointermove', onMove);
+    win?.addEventListener('pointerup', onUp);
+    win?.addEventListener('pointercancel', onCancel);
+    paint(lastIds);
+  }
+
+  function onMove(e: PointerEvent): void {
+    const d = drag;
+    if (!d || e.pointerId !== d.pointerId || !edit) return;
+    if (!d.moved && Math.hypot(e.clientX - d.downX, e.clientY - d.downY) < DRAG_SLOP) return;
+    d.moved = true;
+    const found = keyOf(d.id, d.t);
+    const item = itemOf(d.id);
+    if (!found || !item) return;
+    const m = metricsOf();
+    const sc = Number(m.scale) || 1;
+    const nat = nativeOf(e);
+    const want = { x: d.grab.x + nat.x - (d.downX - m.cr.left) / sc, y: d.grab.y + nat.y - (d.downY - m.cr.top) / sc };
+    const track = kfBoxTrack(found.box, time);
+    const proj = pathProjector(found.box, time, item.centre, item.env);
+    const pos = keyPosition(track, found.key);
+    let keys: KfKey[] | null = null;
+    if (d.part === 'key') {
+      // Shift steps the travel from the previous point (the next one for the first), the
+      // pen's 15 degrees; Alt is the raw pointer; otherwise the pen's snapping, with the
+      // path's other points as lines to line up on.
+      const others = item.keys.filter((k) => k.t !== d.t && k.pos);
+      const ref = [...others].reverse().find((k) => k.t < d.t) ?? others.find((k) => k.t > d.t);
+      let to: Pt;
+      if (e.shiftKey && ref) { edit.clearGuides(); to = constrainAngle(ref, want); }
+      else to = edit.snap(want, e.altKey, others, d.id);
+      const s = proj.unproject(d.t, to.x, to.y);
+      if (s) keys = kfTrackSetPosition(track, d.t, s.x, s.y);
+    } else {
+      // A handle steps round its own point under Shift and never snaps, as on a pen node.
+      const base = proj.project(d.t, pos.x, pos.y);
+      const to = e.shiftKey ? constrainAngle(base, want) : want;
+      const s = proj.unproject(d.t, to.x, to.y);
+      if (s) {
+        const h: KfHandle = [s.x - pos.x, s.y - pos.y];
+        const mirrored = d.inLine && !e.altKey && d.other ? mirrorHandle(h, d.other) : null;
+        keys = d.part === 'hi'
+          ? kfTrackSetHandles(track, d.t, h, mirrored ?? undefined)
+          : kfTrackSetHandles(track, d.t, mirrored ?? undefined, h);
+      }
+    }
+    // Past a tilted camera's horizon there is no surface point under the pointer: the
+    // preview holds its last good position rather than jumping.
+    if (keys) d.preview = withTrack(d.id, keys);
+    paint(lastIds);
+  }
+
+  function endDrag(): PathDrag | null {
+    const d = drag;
+    drag = null;
+    win?.removeEventListener('pointermove', onMove);
+    win?.removeEventListener('pointerup', onUp);
+    win?.removeEventListener('pointercancel', onCancel);
+    edit?.clearGuides();
+    return d;
+  }
+
+  function onUp(e: PointerEvent): void {
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    const d = endDrag();
+    if (d?.moved && d.preview && edit) {
+      edit.commit(d.preview);
+      const found = keyOf(d.id, d.t);
+      const when = found ? fmtTime(kfTimelineSec(found.box, time, d.t)) : '';
+      announce(d.part === 'key' ? t('Keyframe at {t} moved', { t: when }) : t('Path handle at {t} moved', { t: when }));
+    }
+    paint(lastIds);
+  }
+
+  function onCancel(e: PointerEvent): void {
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    endDrag();
+    paint(lastIds);
+  }
+
+  /** A press anywhere else drops the point selection, as a click off a pen node does. */
+  function onDocDown(e: PointerEvent): void {
+    if (!sel || drag) return;
+    const target = e.target as Node | null;
+    if (target && (layer.contains(target) || top.contains(target))) return;
+    sel = null;
+    paint(lastIds);
+  }
+
+  layer.addEventListener('pointerdown', onDown);
+  top.addEventListener('pointerdown', onDown);
+  doc.addEventListener('pointerdown', onDocDown, true);
+
+  function onKey(e: KeyboardEvent): boolean {
+    if (destroyed) return false;
+    if (e.key === 'Escape') {
+      if (drag) { endDrag(); paint(lastIds); return true; }
+      if (sel) { sel = null; paint(lastIds); return true; }
+      return false;
+    }
+    if ((e.key === 'Backspace' || e.key === 'Delete') && sel && edit && !drag) {
+      const found = keyOf(sel.id, sel.t);
+      if (!found) { sel = null; return false; }
+      // The pen's rule: with a handle selected, that handle goes back onto its point;
+      // with the point selected, both do. Neither ever deletes the box or the keyframe.
+      const { part, id, t: at } = sel;
+      if (!hasHandles(found.key)) { announce(t('This keyframe has no path handles')); return true; }
+      const track = kfBoxTrack(found.box, time);
+      const keys = part === 'hi' ? kfTrackSetHandles(track, at, null, undefined)
+        : part === 'ho' ? kfTrackSetHandles(track, at, undefined, null)
+          : kfTrackStraighten(track, at);
+      sel = { id, t: at, part: 'key' };
+      edit.commit(withTrack(id, keys));
+      announce(t('Path handles retracted'));
+      return true;
+    }
+    return false;
+  }
+
   return {
     paint,
+    onKey,
     destroy() {
       if (destroyed) return;
       destroyed = true;
+      endDrag();
+      layer.removeEventListener('pointerdown', onDown);
+      top.removeEventListener('pointerdown', onDown);
+      doc.removeEventListener('pointerdown', onDocDown, true);
       layer.remove();
+      top.remove();
     },
   };
 }

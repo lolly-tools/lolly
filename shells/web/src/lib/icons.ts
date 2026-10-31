@@ -315,6 +315,13 @@ const PATHS = {
    */
   keyframe: '<path d="M12 3 21 12 12 21 3 12Z"/>',
   /**
+   * The motion path's **Curve the path** and **Straighten** (plans/330): two points and
+   * the travel between them, bent (Lucide `spline`) or straight, so the button shows the
+   * shape it will make.
+   */
+  pathCurve: '<circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="M5 17A12 12 0 0 1 17 5"/>',
+  pathStraight: '<circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="M6.5 17.5 17.5 6.5"/>',
+  /**
    * Lucide `unlink` - break the A/V link between a picture and the sound detached
    * from it. The paired direction re-uses `link`, which the bar's link chip
    * already wears, so the two directions of one relationship look related.

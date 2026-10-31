@@ -889,6 +889,10 @@ export {
   // that keeps every screen-parallel document on the path it always took.
   cameraTilted, kfMatrix3dCss, projectSurfacePoint,
 } from './keyframes.ts';
+// 1.291 (plans/330) - path handles: the curved travel between two positions, the split
+// that keeps it whole and the inverse projection that lets the drawn path be edited.
+export { kfPathCurves, kfSubdividePath, kfUnprojectCentre } from './keyframes.ts';
+export type { KfHandle, KfPathSplit } from './keyframes.ts';
 // 1.290 (plans/328) - the appearance channels as paint: fill and stroke colour in OKLab,
 // stroke width, corner radius and trim, written as `--lolly-kf-*` custom properties.
 export { KF_LOOK_CHANNELS, KF_FILL_CHANNELS, KF_STROKE_CHANNELS, KF_LOOK_VARS, isKfLookChannel } from './kf-look.ts';

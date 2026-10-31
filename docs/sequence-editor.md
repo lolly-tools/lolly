@@ -160,6 +160,8 @@ Sources keep their original timing, including fractional frame rates; a new docu
 
 Position axes can use different curves in a dotLottie export; anchor and scale axes must use matching curves, or use a movie export.
 
+A curved motion path (see [Edit the motion path](/info/animating.html#edit-the-motion-path)) is written as one position with native path tangents. A curved stretch whose curve overshoots is written one key per frame, and a curved path whose keyframes set X without Y, or Y without X, is refused with the layer's name.
+
 Keyed stroke width and path trim keep their curves. A keyed colour is written as one value per frame, because a Lottie player blends colours differently from Lolly's OKLab blend; every frame of the file still carries Lolly's colour. A path trim reaches the stroke only, as on the canvas. dotLottie refuses colour keys on a shape with no fill or stroke, appearance keys on an image or a Lottie clip, and a trimmed box whose stroke width or corner radius is animated. A nested composition reused within one clip stays shared within that clip, and duplicated clips can diverge.
 
 Font-dependent text, expressions, 3D, masks, mattes, effects and themed appearance are not supported, nor are native text and video from the editor. An unsupported import or export lists the feature and is never silently replaced by a still; use a movie export instead.

@@ -10365,5 +10365,17 @@
   "Trim end": "Sfârșit desenare",
   "Trim start": "Început desenare",
   "{name} keyframe added at {t}": "Cadru cheie pentru {name} adăugat la {t}",
-  "{name} keyframe removed at {t}": "Cadru cheie pentru {name} eliminat la {t}"
+  "{name} keyframe removed at {t}": "Cadru cheie pentru {name} eliminat la {t}",
+  "Curve the path": "Curbează traiectoria",
+  "Straighten": "Îndreaptă",
+  "Curve the path at {t}": "Curbează traiectoria la {t}",
+  "Straighten the path at {t}": "Îndreaptă traiectoria la {t}",
+  "Keyframe X position at {t}": "Poziția X a cadrului cheie la {t}",
+  "Keyframe Y position at {t}": "Poziția Y a cadrului cheie la {t}",
+  "Path curved at {t}": "Traiectoria a fost curbată la {t}",
+  "Path straightened at {t}": "Traiectoria a fost îndreptată la {t}",
+  "Keyframe at {t} moved": "Cadrul cheie de la {t} a fost mutat",
+  "Path handle at {t} moved": "Mânerul traiectoriei de la {t} a fost mutat",
+  "Path handles retracted": "Mânerele traiectoriei au fost retrase",
+  "This keyframe has no path handles": "Acest cadru cheie nu are mânere de traiectorie"
 }

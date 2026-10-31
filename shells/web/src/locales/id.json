@@ -10365,5 +10365,17 @@
   "Trim end": "Akhir gambar",
   "Trim start": "Awal gambar",
   "{name} keyframe added at {t}": "Keyframe {name} ditambahkan di {t}",
-  "{name} keyframe removed at {t}": "Keyframe {name} dihapus di {t}"
+  "{name} keyframe removed at {t}": "Keyframe {name} dihapus di {t}",
+  "Curve the path": "Lengkungkan lintasan",
+  "Straighten": "Luruskan",
+  "Curve the path at {t}": "Lengkungkan lintasan di {t}",
+  "Straighten the path at {t}": "Luruskan lintasan di {t}",
+  "Keyframe X position at {t}": "Posisi X keyframe di {t}",
+  "Keyframe Y position at {t}": "Posisi Y keyframe di {t}",
+  "Path curved at {t}": "Lintasan dilengkungkan di {t}",
+  "Path straightened at {t}": "Lintasan diluruskan di {t}",
+  "Keyframe at {t} moved": "Keyframe di {t} dipindahkan",
+  "Path handle at {t} moved": "Gagang lintasan di {t} dipindahkan",
+  "Path handles retracted": "Gagang lintasan ditarik kembali",
+  "This keyframe has no path handles": "Keyframe ini tidak punya gagang lintasan"
 }

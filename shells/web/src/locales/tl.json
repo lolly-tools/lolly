@@ -10365,5 +10365,17 @@
   "Trim end": "Dulo ng draw",
   "Trim start": "Simula ng draw",
   "{name} keyframe added at {t}": "Naidagdag ang keyframe para sa {name} sa {t}",
-  "{name} keyframe removed at {t}": "Naalis ang keyframe para sa {name} sa {t}"
+  "{name} keyframe removed at {t}": "Naalis ang keyframe para sa {name} sa {t}",
+  "Curve the path": "Ibaluktot ang landas",
+  "Straighten": "Ituwid",
+  "Curve the path at {t}": "Ibaluktot ang landas sa {t}",
+  "Straighten the path at {t}": "Ituwid ang landas sa {t}",
+  "Keyframe X position at {t}": "X na posisyon ng keyframe sa {t}",
+  "Keyframe Y position at {t}": "Y na posisyon ng keyframe sa {t}",
+  "Path curved at {t}": "Binaluktot ang landas sa {t}",
+  "Path straightened at {t}": "Itinuwid ang landas sa {t}",
+  "Keyframe at {t} moved": "Inilipat ang keyframe sa {t}",
+  "Path handle at {t} moved": "Inilipat ang handle ng landas sa {t}",
+  "Path handles retracted": "Ibinalik ang mga handle ng landas",
+  "This keyframe has no path handles": "Walang handle ng landas ang keyframe na ito"
 }

@@ -633,6 +633,9 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
 .tl-group-pop .tl-kf-ease { max-width: none; width: 15ch; }
 .tl-group-pop .tl-kf-time { width: 7em; }
 .tl-group-pop .tl-kf-list { max-height: 168px; }
+/* Rows that carry a position line (plans/330) are two lines tall, so the list shows as
+   many keyframes as before. */
+.tl-group-pop .tl-kf-list:has(.has-pos) { max-height: 260px; }
 .tl-group-pop .tl-kf-row { gap: 6px; }
 /* The pose block: one row per channel, and the section 5.2 fact ("size is not keyframable")
    rides its `title` rather than standing on screen as grey text. */
@@ -705,6 +708,22 @@ html[data-a11y-contrast="high"] .tl-btn svg { opacity: 1; }
 }
 /* The row the playhead is parked on. A tinted BACKGROUND, not an edge stripe. */
 .tl-kf-row.is-current { background: var(--ui-color-selection-surface); }
+/* A keyframe that keys a position (plans/330) carries a second line under its time and
+   curve: where the box is at that keyframe, X and Y. */
+.tl-kf-row.has-pos { flex-wrap: wrap; row-gap: 3px; }
+.tl-kf-pos {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.tl-kf-pos-label {
+  font-size: var(--fs-2xs);
+  color: var(--ui-color-text-muted);
+}
+.tl-kf-pos-num,
+.tl-group-pop .tl-kf-pos-num { width: 6em; }
 .tl-kf-time { width: 5.5em; }
 .tl-kf-ease { max-width: 11ch; }
 

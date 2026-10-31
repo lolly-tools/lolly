@@ -55,7 +55,7 @@ The **Keyframes** panel holds everything one track can be edited with:
 - the pose fields: **Depth**, **Tilt X**, **Tilt Y**, **Scale**, **Opacity** and **Blur** (position, rotation and size are set on the canvas instead);
 - the appearance fields the box has: **Fill**, **Stroke**, **Stroke width**, **Corner radius**, **Trim start** and **Trim end**;
 - a diamond at the end of every field, which keys that one property (see below);
-- one row per keyframe: its time, its curve, **Duplicate** and **Delete**. A keyframe that holds only some of the box's properties lists them, such as **Fill · Corner radius**;
+- one row per keyframe: its time, its curve, **Duplicate** and **Delete**. A keyframe that holds only some of the box's properties lists them, such as **Fill · Corner radius**. A keyframe that sets a position also has **X** and **Y** fields and **Curve the path** (see [Edit the motion path](#edit-the-motion-path));
 - **Remove N keyframes**, which is how you un-animate a box: the track is the animation;
 - the curve editor, docked at the bottom of the same panel.
 
@@ -66,6 +66,27 @@ Clicking a diamond selects it and opens this panel on that keyframe in one gestu
 The keyframe rows are the keyboard and screen-reader route to the diamonds. Everything a diamond can do by pointer is a labelled button in that list.
 
 ![The Keyframes popup on a choreographed swatch: its diamonds listed with their times, the curve between two of them, and the pose fields for the one the playhead is parked on](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZjNj5pAFMD_Gi8mkjdvPjn0sKLuoWnT7qFJTwR1mpooNMAm6l_f-QBFdLMkLWQPiAwz7803v7w3j_XxUwETjNbZ0aQE4ZIic6nL2zvPXtOt3jqNFUUUMbK1wWrNf5OlZbJLTS7N8kOy99IJcjnfZPssDwp9SNJytwlKfSytfGH0TNmmOi11bjKH3Xa71ybDXa9FkhZ2iIBgNYsyf7XqX8m-0PUAke1iq_-Uv20l9-O8qu_WA80hbpuCm2561nlWlWjdymv09cHcnHx624vbm8azMXh934xYreK2-7te68qExzqLjzOCGHAen2aEsICq-GxeVFyQOIN4LaYlwVCYYgDITEExHh8hPkF89pVIvIY3RmnIGjpyV1tcF0ImclmQCzisOzgU5k9SjeAMAI704IBFBvGOF8orXmwhhP55wQsvsjsvyDhdrUZehjA0MnTAvGdomAAHDgmnJQKEvYNDWx7Kb8074KyWMqIjOEOAg_ziokJHQgsYTr2lIcICo_q3NKzlmToBs1zZawRmAGCosSq1a0J2x4sgofdMyvBChOqdF97yTJ14ISGCxJGXAXhhFCvP9NC-SEI9L9TwggJ750W0HJJQXRwSr3Zu5KVvXjhTtzHTGycZhQ1DQ2X_hka2HFMncJYcCV-O4AwAjmCsdkyPQqYQuefFnnyZZL3zolqOqRMvks6fkI-8DBFiGz6aIdNjO2OCJOK54VN7WIa-uQHyhayQ_fzx_WUBavXtmYoFRJ9fvj7b7U4OOk9an_uoj8XhgpTelFYpJh_pK1_1Ov4JpKvs42AEtdExTMxMdJ2bfH6CaUnNOq-wVOL_yMpf%26w%3D1100%26h%3D1040%26_sel%3Ds4%26_t%3D1.1&width=1440&height=1000&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A320px%21important%7D&drive=click%3A.tl-group%5Bdata-group%3D%22keyframes%22%5D%20.tl-group-head%3Bwait%3A600&cropSelector=.tl-group-pop-body&walker=1&format=svg&dark=1&filename=anim-keyframes-popup)
+
+## Edit the motion path
+
+With the timeline open, a selected box that moves draws its travel on the canvas: an amber line with a diamond at every keyframe. The export follows this same route, camera and all, so a camera move bends the drawn route the way the finished video will.
+
+- **Drag a diamond** to move that keyframe's position. One drag is one undo step. The line between the diamonds does not respond to the pointer, so nothing on the path creates a keyframe. While you drag, a label beside the diamond shows the keyframe's time.
+- A dragged diamond snaps to the grid, the smart guides and the path's other diamonds, as a pen node does. Hold **Shift** to step the travel in 15 degree steps from the previous keyframe, or **Alt** to put the diamond exactly under the pointer.
+- **Click a diamond** to select the keyframe. Its handles appear, with a small bar showing the time and **Curve the path**, or **Straighten** once the travel through the keyframe curves.
+- **Curve the path** gives the keyframe smooth handles from its neighbours, so the box sweeps through the point instead of turning a corner. On the first or the last keyframe, the one segment bows to one side.
+- **Drag a handle** to shape the curve. The opposite handle stays in line and keeps its own length; hold **Alt** to move one handle alone, or **Shift** to step its angle.
+- **Backspace** puts the selected handle back onto its point, or both handles when the point itself is selected, and **Escape** drops the selection. Neither one removes the keyframe or the box.
+
+A keyframe that sets no position, such as a fade, sits on the line as a smaller hollow diamond. It marks a moment on the travel and cannot be dragged.
+
+A curve changes the route, not the timing. The keyframe's curve (**Ease out**, **Overshoot** and the rest) still decides how fast the box travels, measured along the path, so a **Linear** segment moves at an even speed however much the route bends. An overshoot carries on past the keyframe in the direction the box was heading.
+
+Under a camera, a diamond and its handles sit where the camera shows them at that keyframe's time, and a drag writes the position that puts the box under the pointer, whether the camera pans, dollies or tilts. A camera's own move has no path on the canvas: its move shows as the parallax on every other path.
+
+Splitting, trimming or joining a clip, and adding a keyframe partway along a curve, keep the travel on the same curve.
+
+The Keyframes popup carries the same edits for the keyboard and screen readers. Each keyframe that sets a position has **X** and **Y** fields under its time, giving where the box's left and top edges are at that keyframe, and **Curve the path** or **Straighten** beside **Duplicate** and **Delete**.
 
 ## Key one property at a time
 
@@ -206,9 +227,9 @@ Design's template picker has a **Motion** collection of finished loops to adapt:
 
 The preview and the file are the same arithmetic, so what you see is what you get.
 
-- **Video**: MP4 or WebM, rendered frame by frame at exact times rather than recorded off the screen. See [Export a file](/info/exporting.html#video).
+- **Video**: MP4 or WebM, rendered frame by frame at exact times rather than recorded off the screen, so a curved motion path is followed exactly. See [Export a file](/info/exporting.html#video).
 - **Animated images**: GIF, APNG and animated WebP come from the same frame-by-frame render.
-- **dotLottie** keeps position, scale, rotation and opacity keys on shapes, paths and still images, and fill colour, stroke colour, stroke width, corner radius and path trim on shapes and paths, as native Lottie animation. It refuses depth, tilt, blur, a camera, text and Motion entrances, exits and While on screen, and says which layer; export video for those. See [Lottie animations](/info/sequence-editor.html#lottie-animations).
+- **dotLottie** keeps position, scale, rotation and opacity keys on shapes, paths and still images, and fill colour, stroke colour, stroke width, corner radius and path trim on shapes and paths, as native Lottie animation. A curved motion path becomes native Lottie path tangents, which players walk at the same speed Lolly does; a curved stretch whose curve overshoots is written as one key per frame, because players stop at the end of a curve. It refuses depth, tilt, blur, a camera, text and Motion entrances, exits and While on screen, and says which layer; export video for those. See [Lottie animations](/info/sequence-editor.html#lottie-animations).
 - **PowerPoint** places each object as it is drawn with no keyframes applied, and the export notes that an animation was left out.
 - **A still** is the frame at the playhead. Park the playhead where the shot looks best and export.
 - **A contact sheet** comes from the **Frames** field beside the output size: raise it and you get that many stills sampled across the sequence; see [stills from a timed composition](/info/exporting.html#stills-from-a-timed-composition).

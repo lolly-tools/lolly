@@ -10365,5 +10365,17 @@
   "Trim end": "描画の終了",
   "Trim start": "描画の開始",
   "{name} keyframe added at {t}": "{t} に {name} のキーフレームを追加しました",
-  "{name} keyframe removed at {t}": "{t} の {name} のキーフレームを削除しました"
+  "{name} keyframe removed at {t}": "{t} の {name} のキーフレームを削除しました",
+  "Curve the path": "パスを曲げる",
+  "Straighten": "まっすぐにする",
+  "Curve the path at {t}": "{t} でパスを曲げる",
+  "Straighten the path at {t}": "{t} でパスをまっすぐにする",
+  "Keyframe X position at {t}": "{t} のキーフレームの X 位置",
+  "Keyframe Y position at {t}": "{t} のキーフレームの Y 位置",
+  "Path curved at {t}": "{t} でパスを曲げました",
+  "Path straightened at {t}": "{t} でパスをまっすぐにしました",
+  "Keyframe at {t} moved": "{t} のキーフレームを移動しました",
+  "Path handle at {t} moved": "{t} のパスハンドルを移動しました",
+  "Path handles retracted": "パスハンドルを戻しました",
+  "This keyframe has no path handles": "このキーフレームにはパスハンドルがありません"
 }

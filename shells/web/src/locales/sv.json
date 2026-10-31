@@ -10365,5 +10365,17 @@
   "Trim end": "Ritning slut",
   "Trim start": "Ritning start",
   "{name} keyframe added at {t}": "Nyckelbild för {name} tillagd vid {t}",
-  "{name} keyframe removed at {t}": "Nyckelbild för {name} borttagen vid {t}"
+  "{name} keyframe removed at {t}": "Nyckelbild för {name} borttagen vid {t}",
+  "Curve the path": "Böj banan",
+  "Straighten": "Räta ut",
+  "Curve the path at {t}": "Böj banan vid {t}",
+  "Straighten the path at {t}": "Räta ut banan vid {t}",
+  "Keyframe X position at {t}": "Nyckelbildens X-position vid {t}",
+  "Keyframe Y position at {t}": "Nyckelbildens Y-position vid {t}",
+  "Path curved at {t}": "Banan böjd vid {t}",
+  "Path straightened at {t}": "Banan uträtad vid {t}",
+  "Keyframe at {t} moved": "Nyckelbilden vid {t} flyttad",
+  "Path handle at {t} moved": "Banhandtaget vid {t} flyttat",
+  "Path handles retracted": "Banhandtagen indragna",
+  "This keyframe has no path handles": "Den här nyckelbilden har inga banhandtag"
 }

@@ -1728,5 +1728,17 @@
   "Trim end": "Fin du tracé",
   "Trim start": "Début du tracé",
   "{name} keyframe added at {t}": "Image clé de {name} ajoutée à {t}",
-  "{name} keyframe removed at {t}": "Image clé de {name} supprimée à {t}"
+  "{name} keyframe removed at {t}": "Image clé de {name} supprimée à {t}",
+  "Curve the path": "Courber la trajectoire",
+  "Straighten": "Redresser",
+  "Curve the path at {t}": "Courber la trajectoire à {t}",
+  "Straighten the path at {t}": "Redresser la trajectoire à {t}",
+  "Keyframe X position at {t}": "Position X de l'image clé à {t}",
+  "Keyframe Y position at {t}": "Position Y de l'image clé à {t}",
+  "Path curved at {t}": "Trajectoire courbée à {t}",
+  "Path straightened at {t}": "Trajectoire redressée à {t}",
+  "Keyframe at {t} moved": "Image clé à {t} déplacée",
+  "Path handle at {t} moved": "Poignée de trajectoire à {t} déplacée",
+  "Path handles retracted": "Poignées de trajectoire rétractées",
+  "This keyframe has no path handles": "Cette image clé n'a pas de poignées de trajectoire"
 }

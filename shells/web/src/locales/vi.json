@@ -10365,5 +10365,17 @@
   "Trim end": "Kết thúc vẽ",
   "Trim start": "Bắt đầu vẽ",
   "{name} keyframe added at {t}": "Đã thêm khung hình khóa của {name} tại {t}",
-  "{name} keyframe removed at {t}": "Đã xóa khung hình khóa của {name} tại {t}"
+  "{name} keyframe removed at {t}": "Đã xóa khung hình khóa của {name} tại {t}",
+  "Curve the path": "Uốn cong đường đi",
+  "Straighten": "Làm thẳng",
+  "Curve the path at {t}": "Uốn cong đường đi tại {t}",
+  "Straighten the path at {t}": "Làm thẳng đường đi tại {t}",
+  "Keyframe X position at {t}": "Vị trí X của khung hình khóa tại {t}",
+  "Keyframe Y position at {t}": "Vị trí Y của khung hình khóa tại {t}",
+  "Path curved at {t}": "Đã uốn cong đường đi tại {t}",
+  "Path straightened at {t}": "Đã làm thẳng đường đi tại {t}",
+  "Keyframe at {t} moved": "Đã di chuyển khung hình khóa tại {t}",
+  "Path handle at {t} moved": "Đã di chuyển tay cầm đường đi tại {t}",
+  "Path handles retracted": "Đã thu lại tay cầm đường đi",
+  "This keyframe has no path handles": "Khung hình khóa này không có tay cầm đường đi"
 }

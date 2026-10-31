@@ -115,6 +115,7 @@ export async function ensureTimeline(fc: FcCtx, open: boolean): Promise<void> {
         // The box sub-field carrying rendered text, so the panel's generated
         // caption boxes write cue text where the tool's template reads it.
         textField: cv.textField,
+        posFields: { x: cfg.xField, y: cfg.yField },
         assetField: cfg.imageField,
         internalAnimationEdits: ['animationId', 'animationEdits'].every(id => fc.input.fields?.some(field => field.id === id)),
         ...(cfg.imageField && host.assets?.pick && addKinds.some(k => ['clip', 'video', 'image', 'audio', 'lottie'].includes(k.id))
@@ -430,6 +431,36 @@ export function motionIds(fc: FcCtx, boxes: Box[]): string[] {
   return out;
 }
 /**
+ * The selected box's outline and rotate handle, in stage px - what a motion-path chip
+ * must not cover (plans/330). Null when no selection chrome is drawn.
+ */
+function selectionChromeBounds(fc: FcCtx): { left: number; top: number; right: number; bottom: number } | null {
+  const sr = fc.stageEl.getBoundingClientRect();
+  let out: { left: number; top: number; right: number; bottom: number } | null = null;
+  for (const el of fc.chrome.querySelectorAll('.fc-outline, .fc-h-rotate')) {
+    const r = el.getBoundingClientRect();
+    if (!(r.width > 0 || r.height > 0)) continue;
+    const b = { left: r.left - sr.left, top: r.top - sr.top, right: r.right - sr.left, bottom: r.bottom - sr.top };
+    out = out ? {
+      left: Math.min(out.left, b.left), top: Math.min(out.top, b.top),
+      right: Math.max(out.right, b.right), bottom: Math.max(out.bottom, b.bottom),
+    } : b;
+  }
+  return out;
+}
+/**
+ * Can this box's motion path be edited by pointer right now (plans/330)? The same gates a
+ * drag on the box itself meets: the pointer tool, an editable document, an unlocked
+ * layer, and a selection that is on screen at the playhead.
+ */
+function motionEditable(fc: FcCtx, id: string): boolean {
+  if (fc.mode !== 'select' || fc.opts?.canEdit?.() === false) return false;
+  const boxes = fc.select.getBoxes();
+  const i = fc.select.indexOfId(boxes, id);
+  if (i < 0 || fc.gestures.selectionLocked(boxes, [i])) return false;
+  return fc.select.selectionLive(boxes);
+}
+/**
  * Re-draw the paths. Called from `paintChrome` beside `paintOnion`, so a pan, a zoom,
  * a selection change and every `tl-time` all keep the line under the box it describes.
  */
@@ -456,6 +487,15 @@ export function paintMotion(fc: FcCtx): void {
         getBoxes: fc.select.getBoxes,
         metricsOf: fc.stage.metrics,
         canvasSize: fc.helpers.canvasWH,
+        // Editing the path (plans/330) goes through the canvas's own commit, lock rule and
+        // pen snapping, so a keyframe point behaves like every other thing you drag here.
+        edit: {
+          commit: (boxes) => fc.select.commit(boxes),
+          editable: (id) => motionEditable(fc, id),
+          snap: fc.penAssist.snapPathPoint,
+          clearGuides: fc.gestures.clearGuides,
+          clearOf: () => selectionChromeBounds(fc),
+        },
       });
       fc.motionPath.paint(motionIds(fc, fc.select.getBoxes()));
     } catch (e) {

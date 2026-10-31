@@ -64,6 +64,7 @@ import { keyframesOps } from './timeline-panel/keyframes.ts';
 import { cameraOps } from './timeline-panel/camera.ts';
 import { kfDockOps } from './timeline-panel/kf-dock.ts';
 import { propKeysOps } from './timeline-panel/prop-keys.ts';
+import { kfPathOps } from './timeline-panel/kf-path.ts';
 import { readTimeUnit } from './timeline-units.ts';
 import type { InspectorKeysPort } from './design-ports.ts';
 import { inspectorPaneOps } from './timeline-panel/inspector-pane.ts';
@@ -340,6 +341,7 @@ export function initTimelinePanel(opts: TimelinePanelOpts): TimelinePanel {
   tp.camera = cameraOps(tp);
   tp.kfDock = kfDockOps(tp);
   tp.propKeys = propKeysOps(tp);
+  tp.kfPath = kfPathOps(tp);
   tp.inspectorPane = inspectorPaneOps(tp);
   tp.thumbs = thumbsOps(tp);
   tp.syncing = syncingOps(tp);

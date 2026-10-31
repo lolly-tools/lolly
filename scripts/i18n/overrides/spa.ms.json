@@ -1727,5 +1727,17 @@
   "Trim end": "Akhir lukisan",
   "Trim start": "Mula lukisan",
   "{name} keyframe added at {t}": "Bingkai kunci {name} ditambah pada {t}",
-  "{name} keyframe removed at {t}": "Bingkai kunci {name} dibuang pada {t}"
+  "{name} keyframe removed at {t}": "Bingkai kunci {name} dibuang pada {t}",
+  "Curve the path": "Lengkungkan laluan",
+  "Straighten": "Luruskan",
+  "Curve the path at {t}": "Lengkungkan laluan pada {t}",
+  "Straighten the path at {t}": "Luruskan laluan pada {t}",
+  "Keyframe X position at {t}": "Kedudukan X bingkai kunci pada {t}",
+  "Keyframe Y position at {t}": "Kedudukan Y bingkai kunci pada {t}",
+  "Path curved at {t}": "Laluan dilengkungkan pada {t}",
+  "Path straightened at {t}": "Laluan diluruskan pada {t}",
+  "Keyframe at {t} moved": "Bingkai kunci pada {t} dialihkan",
+  "Path handle at {t} moved": "Pemegang laluan pada {t} dialihkan",
+  "Path handles retracted": "Pemegang laluan ditarik balik",
+  "This keyframe has no path handles": "Bingkai kunci ini tiada pemegang laluan"
 }
