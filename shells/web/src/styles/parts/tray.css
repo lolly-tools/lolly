@@ -204,7 +204,7 @@
   .start { --ds-tray-h: 50dvh; } /* pre-first-snap default; per-state below */
   /* Peek = the measured head row + the home-indicator inset (the sheet hugs the
      viewport bottom, so the head itself must clear it). */
-  .start[data-ds-tray-sheet="peek"] { --ds-tray-h: calc(var(--ds-tray-peek-h, 56px) + var(--safe-bottom)); }
+  .start[data-ds-tray-sheet="peek"] { --ds-tray-h: calc(var(--ds-tray-peek-h, 56px) + var(--ds-sheet-inset, var(--safe-bottom))); }
   .start[data-ds-tray-sheet="half"] { --ds-tray-h: 50dvh; }
   .start[data-ds-tray-sheet="full"] { --ds-tray-h: 88dvh; }
 
@@ -217,7 +217,8 @@
   .start > aside.ds-tray {
     left: 0;
     right: 0;
-    bottom: 0;
+    /* Docked on the studio's room bar (start-bar.css), which then owns the inset. */
+    bottom: var(--ds-roombar-h, 0px);
     width: auto;
     height: var(--ds-tray-h);
     max-height: 92dvh;
@@ -228,7 +229,7 @@
     border: 0;
     border-radius: 18px 18px 0 0;
     box-shadow: 0 -10px 34px hsl(var(--foreground) / 0.18);
-    padding-bottom: var(--safe-bottom);
+    padding-bottom: var(--ds-sheet-inset, var(--safe-bottom));
     transition: height 0.34s var(--ease-out); /* the tool sheet's settle */
   }
   .start.is-ds-tray-dragging > aside.ds-tray { transition: none; } /* 1:1 finger tracking */
@@ -258,7 +259,7 @@
     position: fixed;
     left: 0;
     width: 100%;
-    bottom: var(--ds-tray-h); /* tracks the sheet's free edge */
+    bottom: calc(var(--ds-tray-h) + var(--ds-roombar-h, 0px)); /* tracks the sheet's free edge */
     transform: translateY(50%);
     height: 30px;             /* generous hit area straddling the edge */
     z-index: 80;              /* above the sheet */

@@ -22,7 +22,7 @@ O cabeçalho mostra qual sistema de design você está **Editing**, e o nome del
 
 O estúdio é um conjunto de salas em uma barra lateral, sem ordem fixa: nada é numerado e nada espera por outra coisa. No celular, a barra vira uma faixa de chips sob o cabeçalho.
 
-![A barra de salas do estúdio: Overview, Colours, Type, Logos, Tokens, Files e Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![A barra de salas do estúdio: Overview, Colours, Type, Logos, Tokens, Files e Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Sala | O que você faz lá | Chave do link |
 |---|---|---|

@@ -1804,5 +1804,9 @@
   "Turned on automatically on {date} because this device was struggling to draw the interface.": "Ativado automaticamente em {date} porque este dispositivo estava com dificuldade para desenhar a interface.",
   "Automatic switching is off on this device because you chose Undo on {date}.": "A troca automática está desativada neste dispositivo porque você escolheu Desfazer em {date}.",
   "Allow again": "Permitir de novo",
-  "Automatic switching is allowed again from the next time you open Lolly.": "A troca automática será permitida de novo a partir da próxima vez que você abrir o Lolly."
+  "Automatic switching is allowed again from the next time you open Lolly.": "A troca automática será permitida de novo a partir da próxima vez que você abrir o Lolly.",
+  "Board": "Mural",
+  "Choose for {role}": "Escolher para {role}",
+  "Change {role}": "Alterar {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "A orientação da sua marca, escrita para pessoas e agentes. Os agentes leem primeiro a skill da marca e depois a do trabalho em questão. As skills orientam o trabalho; as regras internas em Regras são o que o Lolly verifica."
 }

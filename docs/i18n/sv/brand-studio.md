@@ -22,7 +22,7 @@ Rubriken visar vilket designsystem du **Editing**, och dess namn är ett fält d
 
 Studion är en uppsättning rum i en rail längs sidan, i ingen fast ordning: inget är numrerat och inget väntar på något annat. På en telefon blir railen en rad chips under rubriken.
 
-![Studions rumsrail: Overview, Colours, Type, Logos, Tokens, Files och Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Studions rumsrail: Overview, Colours, Type, Logos, Tokens, Files och Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Rum | Vad du gör där | Länknyckel |
 |---|---|---|

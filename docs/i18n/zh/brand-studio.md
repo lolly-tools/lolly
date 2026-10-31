@@ -22,7 +22,7 @@
 
 工作室是侧边栏中的一组房间，没有固定顺序：没有编号，也没有什么要等其他东西。在手机上，侧栏变成页头下方的一排芯片。
 
-![工作室的房间栏：Overview、Colours、Type、Logos、Tokens、Files 和 Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![工作室的房间栏：Overview、Colours、Type、Logos、Tokens、Files 和 Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | 房间 | 你在那里做什么 | 链接键 |
 |---|---|---|

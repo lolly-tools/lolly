@@ -1797,5 +1797,9 @@
   "Turned on automatically on {date} because this device was struggling to draw the interface.": "Automatisch aangezet op {date} omdat dit apparaat moeite had om de interface te tekenen.",
   "Automatic switching is off on this device because you chose Undo on {date}.": "Automatisch overschakelen staat uit op dit apparaat, omdat je op {date} Ongedaan maken hebt gekozen.",
   "Allow again": "Weer toestaan",
-  "Automatic switching is allowed again from the next time you open Lolly.": "Automatisch overschakelen is weer toegestaan vanaf de volgende keer dat je Lolly opent."
+  "Automatic switching is allowed again from the next time you open Lolly.": "Automatisch overschakelen is weer toegestaan vanaf de volgende keer dat je Lolly opent.",
+  "Board": "Bord",
+  "Choose for {role}": "Kies voor {role}",
+  "Change {role}": "{role} wijzigen",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "De richtlijnen van je merk, geschreven voor mensen en agents. Agents lezen eerst de merkvaardigheid en daarna die voor het werk. Vaardigheden begeleiden het werk; wat Lolly controleert zijn de merkregels in Regels."
 }

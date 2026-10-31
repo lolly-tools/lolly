@@ -1805,5 +1805,9 @@
   "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে, কারণ এই ডিভাইসে ইন্টারফেস আঁকতে সমস্যা হচ্ছিল।",
   "Automatic switching is off on this device because you chose Undo on {date}.": "এই ডিভাইসে স্বয়ংক্রিয় পরিবর্তন বন্ধ আছে, কারণ আপনি {date} তারিখে আনডু বেছে নিয়েছিলেন।",
   "Allow again": "আবার অনুমতি দিন",
-  "Automatic switching is allowed again from the next time you open Lolly.": "পরের বার Lolly খোলার সময় থেকে স্বয়ংক্রিয় পরিবর্তন আবার চালু থাকবে।"
+  "Automatic switching is allowed again from the next time you open Lolly.": "পরের বার Lolly খোলার সময় থেকে স্বয়ংক্রিয় পরিবর্তন আবার চালু থাকবে।",
+  "Board": "বোর্ড",
+  "Choose for {role}": "{role}-এর জন্য বেছে নিন",
+  "Change {role}": "{role} পরিবর্তন করুন",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "আপনার ব্র্যান্ডের নির্দেশিকা, মানুষ ও এজেন্টের জন্য লেখা। এজেন্ট প্রথমে ব্র্যান্ড স্কিল পড়ে, তারপর হাতের কাজের স্কিল। স্কিল কাজে পথ দেখায়; নিয়মসমূহে থাকা হাউস রুলস Lolly যাচাই করে।"
 }

@@ -22,7 +22,7 @@
 
 স্টুডিও হলো পাশের একটি রেলে কয়েকটি রুম, কোনো নির্দিষ্ট ক্রম ছাড়া: কিছুতে নম্বর নেই এবং কিছুই অন্য কিছুর অপেক্ষায় নেই। ফোনে রেল হেডারের নিচে চিপের স্ট্রিপ হয়ে যায়।
 
-![স্টুডিওর রুম রেল: Overview, Colours, Type, Logos, Tokens, Files এবং Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![স্টুডিওর রুম রেল: Overview, Colours, Type, Logos, Tokens, Files এবং Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | রুম | সেখানে আপনি কী করেন | লিংক কী |
 |---|---|---|

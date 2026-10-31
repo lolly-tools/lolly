@@ -24,7 +24,7 @@ The first time you open the gallery, a short welcome offers the same choices: **
 
 ![The Colours room of Design System Setup on a fresh install: one live chip, one field and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-From there, seven rooms take it as far as you like, in any order: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** and **Usage & rules**. Every preview in the app updates as you type. [Design System Setup](/info/brand-studio.html) covers each room.
+From there, seven rooms take it as far as you like, in any order: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** and **Rules**. Every preview in the app updates as you type. [Design System Setup](/info/brand-studio.html) covers each room.
 
 Fonts are kept on your device. Pick a Google Font and Lolly stores the file as a brand asset, so your type travels offline and nothing is fetched when a tool draws.
 

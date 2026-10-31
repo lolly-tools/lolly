@@ -22,7 +22,7 @@ Die Kopfzeile zeigt, welches Designsystem Sie **Editing**, und sein Name ist ein
 
 Das Studio besteht aus Räumen in einer Leiste an der Seite, in keiner festen Reihenfolge: Nichts ist nummeriert, und nichts wartet auf etwas anderes. Auf einem Smartphone wird die Leiste zu einem Streifen aus Chips unter der Kopfzeile.
 
-![Die Raumleiste des Studios: Overview, Colours, Type, Logos, Tokens, Files und Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Die Raumleiste des Studios: Overview, Colours, Type, Logos, Tokens, Files und Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Raum | Was Sie dort tun | Link-Schlüssel |
 |---|---|---|

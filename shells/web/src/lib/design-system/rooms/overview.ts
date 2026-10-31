@@ -36,6 +36,8 @@ import { icon } from '../../icons.ts';
 import { escape } from '../../../utils.ts';
 import { t, tRaw } from '../../../i18n.ts';
 import { isTauriShell } from '../../instance-choice.ts';
+import { brandFontStack } from '../../../brand-vars.ts';
+import { listLeads } from '../leads.ts';
 
 /** The whole host; the slices this room reads are reached through the same
  *  narrow casts mountBrandEditor uses (they are web-shell extensions absent
@@ -105,6 +107,12 @@ export interface OverviewModel {
    *  {@link isWorthExporting}. Optional for the same reason `starterCount` is:
    *  absent and false mean the same thing. */
   worthExporting?: boolean;
+  /** The active system is the one this build ships (Lolly Demo on lolly.tools).
+   *  Its colours, faces and marks are the system's own even though nobody on
+   *  this device chose them, so the room shows them and says where they came from. */
+  supplied?: boolean;
+  /** The colourways, canonical first, as their light-mode lead and its ink. */
+  colourways?: Array<{ name: string; primary: string; onPrimary: string; canonical: boolean }>;
 }
 
 const STRIP_MAX = 12;
@@ -219,10 +227,12 @@ export async function readOverview(host: OverviewHost): Promise<OverviewModel> {
   // installed it. bridge/tokens.ts resolves an unlocked catalog's own tokens doc
   // when there is no user install, so host.tokens below would answer with that
   // pack's full palette - and an "Nothing here yet" empty state over a painted
-  // Colours room is simply false. The genuinely empty cases are the SHIPPED
-  // design system being the active one (plans/186 section 3.3) and, with no
-  // registry to ask, the starter placeholder - the shell's own unbranded signal.
-  if ((await activeDesignSystemSource(host)) === 'shipped') return EMPTY_MODEL;
+  // Colours room is simply false. A SHIPPED system that can be edited (Lolly
+  // Demo) is furnished too: it holds colours, faces, marks and colourways, and
+  // the room says it came with the app (plan 336, reversing plans/186 section
+  // 3.3). The genuinely empty case is the starter placeholder, the shell's own
+  // unbranded signal, which the id test below still catches.
+  const supplied = (await activeDesignSystemSource(host)) === 'shipped';
   let tokensId = '';
   try { tokensId = (await assets._findMetaByType?.('tokens'))?.id ?? ''; }
   catch { /* discovery unavailable - treat as not installed here */ }
@@ -299,7 +309,20 @@ export async function readOverview(host: OverviewHost): Promise<OverviewModel> {
     fileCount,
     ownership,
     worthExporting: isWorthExporting(swatches, starter, doc, ownership.counts.ownColors),
+    supplied,
+    colourways: colourwaysOf(doc),
   };
+}
+
+/** The colourways in light mode, canonical first. Empty on a document without any,
+ *  and on one the leads reader cannot parse: the card then simply does not draw. */
+function colourwaysOf(doc: unknown): NonNullable<OverviewModel['colourways']> {
+  try {
+    return listLeads(doc).map((lead) => {
+      const light = lead.colours.light ?? Object.values(lead.colours)[0];
+      return { name: lead.name, primary: light?.primary ?? '', onPrimary: light?.['on-primary'] ?? '', canonical: lead.canonical };
+    }).filter(way => !!way.primary);
+  } catch { return []; }
 }
 
 // ── Markup ───────────────────────────────────────────────────────────────────
@@ -308,11 +331,22 @@ const countLabels = {
   colors: (n: number): string => t(n === 1 ? '{n} colour' : '{n} colours', { n }),
   logos: (n: number): string => t(n === 1 ? '{n} logo' : '{n} logos', { n }),
   tokens: (n: number): string => t(n === 1 ? '{n} token' : '{n} tokens', { n }),
+  colourways: (n: number): string => t(n === 1 ? '{n} colourway' : '{n} colourways', { n }),
 };
 
 /** The muted half of a card's value line - the starter suffix, the role a face
  *  serves. Trusted markup out, escaped text in. */
 const suffix = (text: string): string => `<small class="ds-ov-sub-value">${escape(text)}</small>`;
+
+/** A family name set in its own face, so the card is a specimen as well as a
+ *  label. brandFontStack refuses anything that is not a plain family name, and a
+ *  refused one reads in the studio's own face. Trusted markup out, escaped text in. */
+function faceName(family: string): string {
+  const stack = brandFontStack(family, 'sans-serif');
+  return stack
+    ? `<span class="ds-ov-face" style="font-family:${escape(stack)}">${escape(family)}</span>`
+    : escape(family);
+}
 
 /**
  * The Colours card's value: the person's own count, with the starter's as a
@@ -360,11 +394,25 @@ function typeCard(model: OverviewModel): { value: string; sub: string } {
   // must not take the card down with it).
   const stateOf = (role: (typeof FONT_ROLES)[number]): string => faces[role]?.state ?? '';
   const familyOf = (role: (typeof FONT_ROLES)[number]): string => faces[role]?.family ?? '';
+  // A supplied system's faces are the system's own: nobody installed them on this
+  // device, but they are what it was made with, so they lead rather than trail.
+  // Headings lead, since they show a face best; a role set in a family another
+  // role already names (italic in the text face, most often) is not repeated.
+  if (model.supplied) {
+    const seen = new Set<string>();
+    const set = (['display', 'brand', 'mono', 'italic'] as const).filter((role) => {
+      const family = familyOf(role);
+      if (stateOf(role) === 'follows' || !family || seen.has(family)) return false;
+      seen.add(family);
+      return true;
+    });
+    if (set.length) return { value: set.map(role => `${faceName(familyOf(role))} ${suffix(faceRoleWord(role))}`).join(' · '), sub: '' };
+  }
   const own = FONT_ROLES.filter(role => stateOf(role) === 'own');
   const rest = FONT_ROLES.filter(role => stateOf(role) === 'inherited' || stateOf(role) === 'unset');
   const restFamilies = [...new Set(rest.map(familyOf).filter(Boolean))];
   const value = own.length
-    ? own.map(role => `${escape(familyOf(role))} ${suffix(faceRoleWord(role))}`).join(' · ')
+    ? own.map(role => `${faceName(familyOf(role))} ${suffix(faceRoleWord(role))}`).join(' · ')
     : escape(t('Not set'));
   const sub = restFamilies.length
     ? (own.length
@@ -378,7 +426,8 @@ function typeCard(model: OverviewModel): { value: string; sub: string } {
 function radiusLine(model: OverviewModel): string {
   const radius = model.radius;
   if (!radius) return '';
-  return radius.own
+  // A supplied system's radius is its own setting, never the starter's.
+  return radius.own || model.supplied
     ? tRaw('Corner radius · {value}', { value: radius.value })
     : tRaw('Corner radius · starter {value}', { value: radius.value });
 }
@@ -428,11 +477,12 @@ function hasOwnMaterial(model: OverviewModel): boolean {
 export function overviewHtml(model: OverviewModel | null): string {
   if (!model) return `<p class="ds-ov-loading">${t('Reading the design system…')}</p>`;
 
-  if (!model.furnished || !hasOwnMaterial(model)) {
+  // A supplied system has material even when none of it was chosen on this device.
+  if (!model.furnished || (!model.supplied && !hasOwnMaterial(model))) {
     // One door per thing somebody might already have. A complete .lolly pack is
     // as immediate as one colour; the in-between cases stay first-class and can
     // be mixed freely. Each opens with its deciding control already up.
-    // The page heading already says "Make it yours", so this one says what to
+    // The studio's bar carries the system's name, so this heading says what to
     // do. A logo is what most people have first, so it leads; the file door is
     // last because it is the one that needs the most explaining.
     return `
@@ -466,13 +516,24 @@ export function overviewHtml(model: OverviewModel | null): string {
     : '';
   const type = typeCard(model);
   const files = model.fileCount === 0 ? t('Nothing yet') : '';
+  const ways = model.colourways ?? [];
+  // Each colourway as a small tile in its lead colour, with "Aa" in the ink
+  // that reads on that colour. Values are hexes the engine resolved; escaped all the same.
+  const wayTiles = ways.length
+    ? `<span class="ds-ov-ways" aria-hidden="true">${ways.slice(0, 8).map(w =>
+      `<span class="ds-ov-way" style="--lead:${escape(w.primary)};--on:${escape(w.onPrimary || '#ffffff')}">Aa</span>`).join('')}</span>`
+    : '';
 
   return `
     <div class="ds-ov">
-      <h2 class="ds-ov-title">${t('The design system')}</h2>
+      <div class="ds-ov-head">
+        <h2 class="ds-ov-title">${t('The design system')}</h2>
+        ${model.supplied ? `<span class="ds-ov-supplied">${t('Came with this app')}</span>` : ''}
+      </div>
       <p class="ds-ov-sub">${t('Tools use these settings where they follow this design system. Saved designs can keep their own colours and fonts.')}</p>
       <div class="ds-ov-cards">
         ${cardHtml('color', t('Colours'), colorsValue(model), strip)}
+        ${ways.length ? cardHtml('color', t('Colourways'), escape(countLabels.colourways(ways.length)), wayTiles) : ''}
         ${cardHtml('type', t('Type'), type.value, cardSub(type.sub))}
         ${cardHtml('logos', t('Logos'),
           model.logoCount ? escape(countLabels.logos(model.logoCount)) : escape(t('Not set')),
@@ -482,7 +543,6 @@ export function overviewHtml(model: OverviewModel | null): string {
       </div>
       <div class="ds-ov-more">
         <button type="button" class="be-btn" data-ds-door="looks">${t('Find a look')}</button>
-        <button type="button" class="be-btn" data-ds-door="file">${t('Add from…')}</button>
         <button type="button" class="be-btn" data-ds-door="color-pick">${t('Pick a colour')}</button>
         <a class="ds-ov-exit" href="#/">${t('Explore the tools')}</a>
       </div>

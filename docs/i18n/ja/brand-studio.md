@@ -22,7 +22,7 @@
 
 スタジオは、側面のレールに並ぶルームの集まりで、順序は決まっていません。番号は付かず、他の何かを待つこともありません。スマートフォンでは、レールはヘッダーの下のチップの帯になります。
 
-![スタジオのルームレール: Overview、Colours、Type、Logos、Tokens、Files、Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![スタジオのルームレール: Overview、Colours、Type、Logos、Tokens、Files、Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | ルーム | そこですること | リンクキー |
 |---|---|---|

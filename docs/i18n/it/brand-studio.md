@@ -22,7 +22,7 @@ L'intestazione mostra quale design system stai **Editing**, e il suo nome è un 
 
 Lo studio è un insieme di stanze in una barra sul lato, in nessun ordine fisso: nulla è numerato e nulla aspetta altro. Su un telefono la barra diventa una striscia di chip sotto l'intestazione.
 
-![La barra delle stanze dello studio: Overview, Colours, Type, Logos, Tokens, Files e Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![La barra delle stanze dello studio: Overview, Colours, Type, Logos, Tokens, Files e Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Stanza | Cosa ci fai | Chiave del link |
 |---|---|---|

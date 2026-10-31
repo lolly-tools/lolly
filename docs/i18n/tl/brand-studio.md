@@ -22,7 +22,7 @@ Ipinapakita ng header kung aling design system ang **Editing** mo, at ang pangal
 
 Ang studio ay hanay ng mga room sa rail sa gilid, nang walang takdang pagkakasunod-sunod: walang binibilang at walang naghihintay sa anupaman. Sa phone, nagiging strip ng mga chip sa ilalim ng header ang rail.
 
-![Ang room rail ng studio: Overview, Colours, Type, Logos, Tokens, Files at Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Ang room rail ng studio: Overview, Colours, Type, Logos, Tokens, Files at Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Room | Ano ang ginagawa mo roon | Link key |
 |---|---|---|

@@ -22,7 +22,7 @@
 
 الاستوديو مجموعة غرف في شريط على الجانب، بلا ترتيب ثابت: لا شيء مرقّم ولا شيء ينتظر شيئاً آخر. وعلى الهاتف يصبح الشريط شريطاً من الشرائح تحت الترويسة.
 
-![شريط غرف الاستوديو: Overview وColours وType وLogos وTokens وFiles وUsage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![شريط غرف الاستوديو: Overview وColours وType وLogos وTokens وFiles وUsage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | الغرفة | ما تفعله هناك | مفتاح الرابط |
 |---|---|---|

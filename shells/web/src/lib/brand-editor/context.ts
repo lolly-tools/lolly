@@ -97,6 +97,8 @@ export interface BrandEditorCtx {
   paletteHooks: Array<() => void>;
   paletteObservers: Set<() => void>;
   starterSwatches: Set<string>;
+  /** The active system is the one the app ships (read once at mount). */
+  supplied: boolean;
   revealedStarterGroup: string | null;
   beat: Beat;
   beatPending: boolean;

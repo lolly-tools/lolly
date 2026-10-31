@@ -674,7 +674,7 @@
   "shells/web/src/lib/brand-editor/ramps.ts": 1,
   "shells/web/src/lib/brand-editor/replace.ts": 5,
   "shells/web/src/lib/brand-editor/roles.ts": 1,
-  "shells/web/src/lib/brand-editor/shared.ts": 7,
+  "shells/web/src/lib/brand-editor/shared.ts": 6,
   "shells/web/src/lib/brand-editor/state.ts": 1,
   "shells/web/src/lib/brand-editor/swatch-editor.ts": 3,
   "shells/web/src/lib/brand-editor/type.ts": 5,

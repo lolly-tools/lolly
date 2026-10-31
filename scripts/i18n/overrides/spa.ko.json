@@ -1935,5 +1935,9 @@
   "Turned on automatically on {date} because this device was struggling to draw the interface.": "이 기기가 인터페이스를 그리는 데 어려움을 겪어서 {date}에 자동으로 켜졌어요.",
   "Automatic switching is off on this device because you chose Undo on {date}.": "{date}에 실행 취소를 선택해서 이 기기에서는 자동 전환이 꺼져 있어요.",
   "Allow again": "다시 허용",
-  "Automatic switching is allowed again from the next time you open Lolly.": "다음에 Lolly를 열 때부터 자동 전환이 다시 허용돼요."
+  "Automatic switching is allowed again from the next time you open Lolly.": "다음에 Lolly를 열 때부터 자동 전환이 다시 허용돼요.",
+  "Board": "보드",
+  "Choose for {role}": "{role} 선택",
+  "Change {role}": "{role} 변경",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "브랜드의 안내서로, 사람과 에이전트를 위해 쓰였어요. 에이전트는 브랜드 스킬을 먼저 읽고, 그다음 작업에 맞는 스킬을 읽어요. 스킬은 작업을 안내하고, 규칙의 하우스 룰은 Lolly가 검사하는 대상이에요."
 }

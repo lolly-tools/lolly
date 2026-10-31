@@ -22,7 +22,7 @@ Nagłówek pokazuje, który system projektowy **Editing**, a jego nazwa jest pol
 
 Studio to zestaw pokoi na szynie z boku, w dowolnej kolejności: nic nie jest numerowane i nic nie czeka na nic innego. Na telefonie szyna staje się paskiem znaczników pod nagłówkiem.
 
-![Szyna pokoi studia: Overview, Colours, Type, Logos, Tokens, Files i Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Szyna pokoi studia: Overview, Colours, Type, Logos, Tokens, Files i Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Pokój | Co tam robisz | Klucz linku |
 |---|---|---|

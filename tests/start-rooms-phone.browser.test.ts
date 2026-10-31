@@ -45,7 +45,7 @@ test('each design-system room fits a 390px phone, the open face picker included'
     assert.ok(visited.length >= 5, `the studio rooms were found (${visited.join(', ') || 'none'})`);
     await page.goto(`${origin}/#/start`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.locator('[data-ds-room="type"]').first().click();
-    await page.getByRole('button', { name: /^Choose a face for/ }).first().click();
+    await page.getByRole('button', { name: /^Choose for / }).first().click();
     await page.locator('.be-typestage-pinrow').waitFor();
     const open = await width();
     assert.ok(open.scroll <= open.client, `the open face picker is ${open.scroll}px wide on a ${open.client}px phone`);

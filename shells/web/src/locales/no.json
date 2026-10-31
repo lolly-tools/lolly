@@ -10442,5 +10442,9 @@
   "Turned on automatically on {date} because this device was struggling to draw the interface.": "Slått på automatisk {date} fordi denne enheten hadde problemer med å tegne grensesnittet.",
   "Automatic switching is off on this device because you chose Undo on {date}.": "Automatisk bytte er slått av på denne enheten fordi du valgte Angre {date}.",
   "Allow again": "Tillat igjen",
-  "Automatic switching is allowed again from the next time you open Lolly.": "Automatisk bytte er tillatt igjen fra neste gang du åpner Lolly."
+  "Automatic switching is allowed again from the next time you open Lolly.": "Automatisk bytte er tillatt igjen fra neste gang du åpner Lolly.",
+  "Board": "Tavle",
+  "Choose for {role}": "Velg for {role}",
+  "Change {role}": "Endre {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Merkevarens veiledning, skrevet for mennesker og agenter. Agenter leser merkevareferdigheten først, så den for oppgaven. Ferdigheter veileder arbeidet; husreglene i Regler er det Lolly sjekker."
 }

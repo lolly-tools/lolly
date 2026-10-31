@@ -1807,5 +1807,9 @@
   "Turned on automatically on {date} because this device was struggling to draw the interface.": "Awtomatikong in-on noong {date} dahil nahirapan ang device na ito sa pagguhit ng interface.",
   "Automatic switching is off on this device because you chose Undo on {date}.": "Naka-off ang awtomatikong paglipat sa device na ito dahil pinili mo ang I-undo noong {date}.",
   "Allow again": "Payagan ulit",
-  "Automatic switching is allowed again from the next time you open Lolly.": "Papayagan na ulit ang awtomatikong paglipat sa susunod na pagbukas mo ng Lolly."
+  "Automatic switching is allowed again from the next time you open Lolly.": "Papayagan na ulit ang awtomatikong paglipat sa susunod na pagbukas mo ng Lolly.",
+  "Board": "Board",
+  "Choose for {role}": "Pumili para sa {role}",
+  "Change {role}": "Baguhin ang {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ang gabay ng brand mo, isinulat para sa mga tao at agent. Binabasa muna ng agents ang brand skill, saka ang para sa gawain. Gumagabay ang skills sa trabaho; ang house rules sa Rules ang sinusuri ng Lolly."
 }

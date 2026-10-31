@@ -2038,7 +2038,12 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 255 to 254: Design System Setup's Overview doors use the edge and control elevation.
     // 253 to 250: the Settings Design system tab's hero, primary chip and ink
     // ribbon went with the illustrations; the new read uses hairlines only.
-    pin: 250,
+    // 250 to 247 (plan 336): the palette download stopped floating, and the
+    // swatch tiles and the pressed Use as pill read through the edge and
+    // control elevation tokens.
+    // 247 to 243 (plan 336): the studio's glowing Add from button and its
+    // breathing keyframes went with the rail; the bar's button is a plain pill.
+    pin: 243,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

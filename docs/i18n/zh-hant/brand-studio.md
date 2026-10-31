@@ -22,7 +22,7 @@
 
 工作室是側邊列中的一組房間，沒有固定順序：沒有任何編號，也沒有任何東西需要等待其他東西。在手機上，這個列會變成標頭下方的一排晶片。
 
-![工作室的房間列：Overview、Colours、Type、Logos、Tokens、Files 與 Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![工作室的房間列：Overview、Colours、Type、Logos、Tokens、Files 與 Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | 房間 | 你在那裡做什麼 | 連結鍵 |
 |---|---|---|

@@ -10442,5 +10442,9 @@
   "Turned on automatically on {date} because this device was struggling to draw the interface.": "Dihidupkan secara automatik pada {date} kerana peranti ini sukar melukis antara muka.",
   "Automatic switching is off on this device because you chose Undo on {date}.": "Penukaran automatik dimatikan pada peranti ini kerana anda memilih Buat asal pada {date}.",
   "Allow again": "Benarkan semula",
-  "Automatic switching is allowed again from the next time you open Lolly.": "Penukaran automatik dibenarkan semula bermula kali seterusnya anda membuka Lolly."
+  "Automatic switching is allowed again from the next time you open Lolly.": "Penukaran automatik dibenarkan semula bermula kali seterusnya anda membuka Lolly.",
+  "Board": "Papan",
+  "Choose for {role}": "Pilih untuk {role}",
+  "Change {role}": "Tukar {role}",
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Panduan jenama anda, ditulis untuk manusia dan ejen. Ejen membaca kemahiran jenama dahulu, kemudian kemahiran untuk kerja yang sedang dibuat. Kemahiran memandu kerja; peraturan rumah dalam Peraturan ialah apa yang disemak oleh Lolly."
 }

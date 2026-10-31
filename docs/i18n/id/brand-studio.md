@@ -22,7 +22,7 @@ Header menunjukkan design system mana yang sedang Anda **Editing**, dan namanya 
 
 Studio adalah sekumpulan ruangan dalam rel di sisi, tanpa urutan tetap: tidak ada yang bernomor dan tidak ada yang menunggu yang lain. Di ponsel rel menjadi strip chip di bawah header.
 
-![Rel ruangan studio: Overview, Colours, Type, Logos, Tokens, Files, dan Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Rel ruangan studio: Overview, Colours, Type, Logos, Tokens, Files, dan Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Ruangan | Yang Anda lakukan di sana | Kunci tautan |
 |---|---|---|

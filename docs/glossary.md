@@ -8,7 +8,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Design system.** Your colours, fonts, logos and a few rules, which every tool draws with. You set it up once in Design System Setup and switch between design systems in **Settings → Preferences → Design systems**. In the code the same thing is called a brand (see *Design system and brand* below).
 
-**Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Overview, Colours, Type, Logos, Tokens, Files, Usage & rules and Skills. "Make it yours" is its heading.
+**Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills, with Versions once a version is published. A bar across the top carries the design system's name.
 
 **Lolly Demo.** Lolly's own sample design system, the one lolly.tools opens with; its lead colour is green. [Meet Lolly Demo](/info/lolly-demo.html) shows the whole design system.
 

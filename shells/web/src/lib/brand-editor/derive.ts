@@ -278,12 +278,23 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       <div class="be-tab be-tab--split" data-be-tab-panel="color">
       <aside class="be-split-side" data-be-split-side aria-label="${escapeText(t('Palette'))}">
       <!-- Inner scroller: the panels scroll in here (≥1100px, the pane's height
-           viewport-anchored by the host - see brand-studio.css) while the
-           download dock below stays OUTSIDE it, keeping its seat at the pane's
-           bottom edge however far the palette scrolls. -->
+           viewport-anchored by the host - see brand-studio.css). -->
       <div class="be-split-scroll" data-be-split-scroll>
       <div class="be-panel be-palette">
-        <div class="be-palette-heading"><h2>${t('Colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        <div class="be-palette-heading"><h2>${t('Colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span>
+        <!-- Download-all, in the palette's own head (plan 336): it used to float
+             over the tiles as a pill at the pane's bottom edge. -->
+        <div class="be-pal-dock" data-be-pal-dock>
+          <select class="field-select field-select--auto field-select--sm be-pal-fmt-sel" data-be-pal-fmt aria-label="${escapeText(t('Download the palette as'))}">
+            <option value="tokens-json">${t('Design tokens (JSON)')} &middot; Penpot / Tokens Studio</option>
+            <option value="css-vars">${t('CSS variables')}</option>
+            <option value="css-classes">${t('CSS classes')}</option>
+            <option value="scss">${t('SCSS variables')}</option>
+            <option value="gpl">${t('GIMP palette (.gpl)')}</option>
+            <option value="ase">${t('Adobe Swatch Exchange (.ase)')}</option>
+          </select>
+          <button type="button" class="be-btn be-btn--sm" data-be-pal-download data-sfx="whoosh">${t('Download')}</button>
+        </div></div>
         <div class="be-logo-colours" data-be-logo-colours="color" hidden></div>
         <div class="be-pal" data-be-pal></div>
         <button type="button" class="be-pal-restore" data-be-undo hidden>${t('Undo')}</button>
@@ -331,20 +342,6 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       <div class="be-panel be-gradients" data-be-grads-mount></div>
       </div>
 
-      <!-- Download-all - a floating pill (the catalog toolbar's clothes) at the
-           pane's anchored bottom edge, so exporting the palette never scrolls
-           away. Lives OUTSIDE .be-split-scroll - see above. -->
-      <div class="be-pal-dock" data-be-pal-dock>
-        <select class="field-select field-select--auto field-select--sm be-pal-fmt-sel" data-be-pal-fmt aria-label="${escapeText(t('Download the palette as'))}">
-          <option value="tokens-json">${t('Design tokens (JSON)')} &middot; Penpot / Tokens Studio</option>
-          <option value="css-vars">${t('CSS variables')}</option>
-          <option value="css-classes">${t('CSS classes')}</option>
-          <option value="scss">${t('SCSS variables')}</option>
-          <option value="gpl">${t('GIMP palette (.gpl)')}</option>
-          <option value="ase">${t('Adobe Swatch Exchange (.ase)')}</option>
-        </select>
-        <button type="button" class="be-btn be-btn--sm" data-be-pal-download data-sfx="whoosh">${t('Download')}</button>
-      </div>
       </aside>
       <div class="be-split-main">
       ${/* ── Level 0: the one control. Adding a colour writes exactly one token

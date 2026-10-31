@@ -85,7 +85,7 @@ test('reference onboarding previews locally, applies exact colours, and restores
     assert.deepEqual(after.dark.color, report.proposedTokens.dark.color);
     assert.deepEqual(after.base.color, report.proposedTokens.base.color);
     assert.match(page.url(), /area=overview/);
-    await page.getByRole('button', { name: 'Restore brand settings', exact: true }).click();
+    await page.locator('[data-ds-more]').click(); await page.getByRole('menuitem', { name: 'Restore brand settings', exact: true }).click();
     const restore = page.getByRole('dialog', { name: 'Restore brand settings', exact: true });
     // Applying a reference is an import, so recovery leads with undoing it and
     // keeps the checkpoint list folded away.
