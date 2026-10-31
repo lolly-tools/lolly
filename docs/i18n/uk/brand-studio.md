@@ -22,7 +22,7 @@
 
 Студія є набором кімнат на бічній панелі, у довільному порядку: нічого не пронумеровано, і ніщо не чекає на щось інше. На телефоні панель стає смугою фішок під заголовком.
 
-![Бічна панель кімнат студії: Огляд, Кольори, Тип, Логотипи, Tokens, Файли та Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Бічна панель кімнат студії: Огляд, Кольори, Тип, Логотипи, Tokens, Файли та Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Кімната | Що ви там робите | Ключ посилання |
 |---|---|---|

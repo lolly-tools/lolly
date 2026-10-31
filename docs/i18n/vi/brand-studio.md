@@ -22,7 +22,7 @@ Tiêu đề cho biết hệ thống thiết kế nào bạn đang **Editing**, v
 
 Studio là một tập các phòng trong thanh dọc bên cạnh, không theo thứ tự cố định: không gì được đánh số và không gì phải chờ gì khác. Trên điện thoại, thanh trở thành một dải chip dưới tiêu đề.
 
-![Thanh phòng của studio: Overview, Colours, Type, Logos, Tokens, Files và Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Thanh phòng của studio: Overview, Colours, Type, Logos, Tokens, Files và Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Phòng | Bạn làm gì ở đó | Khóa liên kết |
 |---|---|---|

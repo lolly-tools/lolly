@@ -22,7 +22,7 @@ Pengepala menunjukkan sistem reka bentuk mana yang sedang anda **Editing**, dan 
 
 Studio ialah set bilik dalam rel di sisi, tanpa susunan tetap: tiada apa-apa bernombor dan tiada apa-apa menunggu yang lain. Pada telefon rel menjadi jalur cip di bawah pengepala.
 
-![Rel bilik studio: Overview, Colours, Type, Logos, Tokens, Files dan Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![Rel bilik studio: Overview, Colours, Type, Logos, Tokens, Files dan Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Bilik | Apa yang anda lakukan di situ | Kunci pautan |
 |---|---|---|

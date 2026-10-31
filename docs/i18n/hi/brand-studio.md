@@ -22,7 +22,7 @@
 
 स्टूडियो रेल में किनारे के कमरों का सेट है, किसी तय क्रम में नहीं: कुछ क्रमांकित नहीं और कुछ किसी और पर प्रतीक्षा नहीं करता। फ़ोन पर रेल हेडर के नीचे चिप की पट्टी बन जाती है।
 
-![स्टूडियो की रूम रेल: Overview, Colours, Type, Logos, Tokens, Files और Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![स्टूडियो की रूम रेल: Overview, Colours, Type, Logos, Tokens, Files और Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | कमरा | वहाँ आप क्या करते हैं | लिंक कुंजी |
 |---|---|---|

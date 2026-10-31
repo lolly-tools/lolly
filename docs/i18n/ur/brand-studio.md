@@ -22,7 +22,7 @@
 
 اسٹوڈیو کمروں کا سیٹ ہے جو کنارے کی ریل میں ہیں، کسی مقررہ ترتیب کے بغیر: کچھ نمبر شدہ نہیں اور کچھ کسی اور چیز کا انتظار نہیں کرتا۔ فون پر ریل ہیڈر کے نیچے چپس کی پٹی بن جاتی ہے۔
 
-![اسٹوڈیو کی روم ریل: Overview، Colours، Type، Logos، Tokens، Files اور Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![اسٹوڈیو کی روم ریل: Overview، Colours، Type، Logos، Tokens، Files اور Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | روم | آپ وہاں کیا کرتے ہیں | لنک کی کلید |
 |---|---|---|

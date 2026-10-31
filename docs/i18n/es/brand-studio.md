@@ -22,7 +22,7 @@ La cabecera muestra qué design system estás **Editing**, y su nombre es un cam
 
 El estudio es un conjunto de salas en un carril a un lado, sin un orden fijo: nada está numerado y nada espera a otra cosa. En un teléfono el carril pasa a ser una tira de chips bajo la cabecera.
 
-![El carril de salas del estudio: Overview, Colours, Type, Logos, Tokens, Files y Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![El carril de salas del estudio: Overview, Colours, Type, Logos, Tokens, Files y Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Sala | Qué haces allí | Clave de enlace |
 |---|---|---|

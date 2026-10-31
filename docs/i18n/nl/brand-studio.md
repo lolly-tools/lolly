@@ -22,7 +22,7 @@ De kop toont welk design system je aan het **Editing** bent, en de naam is een v
 
 De studio is een set kamers in een balk langs de zijkant, in geen vaste volgorde: niets is genummerd en niets wacht op iets anders. Op een telefoon wordt de balk een strook chips onder de kop.
 
-![De kamerbalk van de studio: Overview, Colours, Type, Logos, Tokens, Files en Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![De kamerbalk van de studio: Overview, Colours, Type, Logos, Tokens, Files en Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Kamer | Wat je daar doet | Linksleutel |
 |---|---|---|

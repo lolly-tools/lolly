@@ -22,7 +22,7 @@
 
 스튜디오는 옆의 레일에 있는 룸의 모음이며 정해진 순서는 없어요. 번호도 없고 다른 것을 기다리는 것도 없어요. 휴대폰에서는 레일이 헤더 아래의 칩 띠가 돼요.
 
-![스튜디오의 룸 레일: Overview, Colours, Type, Logos, Tokens, Files, Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![스튜디오의 룸 레일: Overview, Colours, Type, Logos, Tokens, Files, Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | 룸 | 하는 일 | 링크 키 |
 |---|---|---|
