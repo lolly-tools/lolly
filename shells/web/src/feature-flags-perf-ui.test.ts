@@ -198,15 +198,25 @@ test('Settings explains an automatic switch beside the toggle, as its descriptio
     'a hand choice hides the note: the person chose, so "automatically" would mislead');
 });
 
-test('after an Undo, Settings says automatic switching is off here and offers "Allow again"', () => {
-  assert.match(PROFILE, /if \(rec\.state === 'undone'\) return \{ text: tRaw\('Automatic switching is off on this device because you chose Undo on \{date\}\.', \{ date \}\), allow: true \};/);
+test('Settings says whether an automatic switch is for good or for now', () => {
+  assert.match(PROFILE, /On for now because this device is busy\. It switches back when things calm down\./);
+  assert.match(PROFILE, /On for now because the battery is low\. It switches back when this device is charging\./);
+  assert.match(PROFILE, /Turned on automatically on \{date\} while this device was busy\. You chose Keep\./);
+  assert.match(PROFILE, /Turned on automatically on \{date\} while the battery was low\. You chose Keep\./);
+});
+
+test('after an Undo, Settings says which kind of automatic switching is off here and offers "Allow again"', () => {
+  assert.match(PROFILE, /Automatic switching is off on this device because you chose Undo on \{date\}\./, 'both kinds off');
+  assert.match(PROFILE, /Lolly will not switch for a slow device here, because you chose Undo on \{date\}\./, 'the weak-device kind');
+  assert.match(PROFILE, /Lolly will not switch while this device is busy or low on battery, because you chose Undo on \{date\}\./, 'the temporary kind');
+  assert.match(PROFILE, /return \{ text: parts\.join\(' '\), allow: rec\.undone !== undefined \};/, 'Allow again whenever any Undo stands');
   assert.match(PROFILE, /class="btn btn--sm feature-flag-note-action" data-perf-ui-allow>\$\{escapeText\(t\('Allow again'\)\)\}<\/button>/,
     'the shared small button, rendered with the row');
   assert.match(PROFILE, /allow\.className = 'btn btn--sm feature-flag-note-action';/, 'and when the row is brought up to date in place');
   assert.match(PROFILE, /if \(\(e\.target as Element\)\.closest\('\[data-perf-ui-allow\]'\)\) pv\.rows\.allowPerfUiAgain\(\);/,
     'delegated, so it survives the list being rebuilt');
   const allow = PROFILE.slice(PROFILE.indexOf('export const allowPerfUiAgain'), PROFILE.indexOf('export const syncPerfUiRow'));
-  assert.match(allow, /allowPerfUiAutoAgain\(\);/, 'clears the Undo record');
+  assert.match(allow, /allowPerfUiAutoAgain\(\);/, 'clears every Undo');
   assert.doesNotMatch(allow, /applyPerfUi|setFlagMirror|host\.profile\.set/, 'and never turns the look on, or records a hand choice');
   assert.match(allow, /Automatic switching is allowed again from the next time you open Lolly\./);
   assert.match(allow, /\?\.focus\(\);/, 'focus goes to the switch, not to the page, when the button goes');

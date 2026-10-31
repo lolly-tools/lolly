@@ -170,8 +170,9 @@ export const PREFLIGHT_FLAG: FeatureFlag = {
 // remain independent. Deliberately CHROME-ONLY: it never reaches the tool canvas or the export stages, so a
 // render (and its export, whose geometry is shared with the CLI) is never altered.
 //
-// Lolly can also turn it on by itself, once, for a device that struggles to draw the
-// chrome (lib/perf-ui-auto.ts). That decision is a device-local record
+// Lolly can also turn it on by itself (lib/perf-ui-auto.ts): for good, for a device that
+// struggles to draw the chrome, or for a while, for one that is constrained (busy, hot or
+// low on battery). That decision is a device-local record
 // (lib/perf-ui-auto-state.ts), never a profile value, so it does not follow the profile
 // to a faster device. A hand-set profile value always wins over it: isFlagOn and
 // hydrateFeatureFlags below read the record only when the profile has no value.
