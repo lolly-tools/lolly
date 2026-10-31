@@ -905,10 +905,10 @@
     {
       "id": "census.inlined-bitmaps",
       "kind": "census",
-      "title": "Credentialed bitmaps inlined by the SVG and PDF walker and Design image ops",
+      "title": "Credentialed bitmaps inlined by the SVG and PDF walker, Design image ops and the shared export route",
       "status": "not-assessed",
-      "code": ["shells/web/src/bridge/export-svg-walker.ts", "shells/web/src/bridge/export-design-ops.ts"],
-      "note": "An inlined bitmap's credential is collected as a componentOf ingredient. No test pins the walker's collection, so no claim is made."
+      "code": ["shells/web/src/bridge/export-svg-walker.ts", "shells/web/src/bridge/export-design-ops.ts", "shells/web/src/bridge/export-route.ts", "packages/node-shell/src/design-ops-host.ts"],
+      "note": "An inlined bitmap's credential is collected as a componentOf ingredient: by the web walker and Design image ops, by the web export route when a still takes the GPU path, and by the Node Design host that the CLI and TUI share. No test pins the collection, so no claim is made."
     },
     {
       "id": "census.sequence-clips",
