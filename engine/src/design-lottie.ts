@@ -10,6 +10,8 @@ import { admitDesignLottieRow as unsupported, designDrawLottie } from './design-
 import { imageDimensions } from './penpot-file.ts';
 import { lottieImageMime, readLottie, selectLottie, writeDotLottie } from './dotlottie.ts';
 import { compileLottieSequence, lottieStatic as fixed, type LottieSequenceLayer } from './lottie-sequence.ts';
+import { animateLottieLook } from './lottie-look.ts';
+import { parseKf } from './keyframes.ts';
 import { applyLottieEdits } from './lottie-edit.ts';
 import { attributionCompanion } from './rights-attribution.ts';
 import { checkCompanionReadback } from './rights-companion.ts';
@@ -54,6 +56,7 @@ export async function exportDesignLottie(opts: ExportOpts & { fps?: number }, ho
   const finite = timed.filter(box => authoredTime(box.dur));
   const durationMs = finite.length ? Math.max(...finite.map(box => start(box) + Math.round(clamp(num(box.dur), 0.1, 3600) * 1000))) : 5000;
   const layers: LottieSequenceLayer[] = [];
+  const fps = num(opts.fps, num(values.projectFps, 30));
   const background = opts.background === 'transparent' || yes(values.transparentBg) ? null : await paint(frame?.bg ?? values.background, host);
   if (background) layers.push({ name: 'Background', x: 0, y: 0, w: width, h: height, rotation: 0, opacity: 1, startMs: 0, durationMs,
     content: { kind: 'shape', shapes: [{ ty: 'rc', p: fixed([width / 2, height / 2]), s: fixed([width, height]), r: fixed(0) }, { ty: 'fl', c: fixed(background), o: fixed(background[3]! * 100), r: 1 }] } });
@@ -89,11 +92,16 @@ export async function exportDesignLottie(opts: ExportOpts & { fps?: number }, ho
       }) as DrawShapeOp;
       layer.x = op.box.x; layer.y = op.box.y; layer.w = op.box.w; layer.h = op.box.h;
       layer.rotation = op.pose?.rot ?? 0; layer.opacity = op.opacity / 100;
-      layer.content = { kind: 'shape', shapes: designDrawLottie(op) };
+      // Keyed fill, stroke, stroke width, corner radius and trim (plans/328), as native animated shape properties.
+      layer.content = { kind: 'shape', shapes: animateLottieLook(designDrawLottie(op), {
+        name: layer.name, track: parseKf(layer.kf), startMs: layer.startMs, durationMs: layer.durationMs, fps,
+        w: layer.w, h: layer.h, shape: box.kind === 'path' ? 'path' : String(box.shape ?? ''),
+        radius: String(box.shape ?? '') === 'rounded' ? Math.max(0, num(box.radius, 16)) : 0,
+        strokeWidth: op.stroke?.width ?? 0,
+      }) };
     }
     layers.push(layer);
   }
-  const fps = num(opts.fps, num(values.projectFps, 30));
   let animation = compileLottieSequence({ width, height, fps, durationMs, layers });
   const range = sequenceRange(parseSequenceMarks(values.sequenceMarks), durationMs);
   if (range.fromMs || range.toMs < durationMs) animation = compileLottieSequence({ width, height, fps, durationMs: range.toMs - range.fromMs, layers: [{ name: 'Sequence range', x: 0, y: 0, w: width, h: height, rotation: 0, opacity: 1, startMs: 0, durationMs: range.toMs - range.fromMs, content: { kind: 'animation', animation, clipInMs: range.fromMs, speed: 1, fit: 'contain' } }] });

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Compile a frozen, resolved linear sequence without a player or a DOM. */
 import { kfChannelsUsed, kfEasePoints, parseKf, type KfChannel, type KfTrack } from './keyframes.ts';
+import { isKfLookChannel } from './kf-look.ts';
+import { lookFeatureName } from './lottie-look.ts';
 import { admitLottieAnimation, lottieNumber, lottieObject, type LottieAnimation, type LottieObject, type LottieValue } from './lottie-model.ts';
 import { independentLottieAxes, separateLottiePosition } from './lottie-properties.ts';
 
@@ -76,7 +78,14 @@ function channel(track: KfTrack, key: KfChannel, fps: number, startMs: number, b
 }
 function pose(layer: LottieSequenceLayer, fps: number): LottieObject {
   const track = parseKf(layer.kf);
-  const unsupported = kfChannelsUsed(track).filter(key => !['x', 'y', 's', 'r', 'o'].includes(key));
+  // Appearance keys (plans/328) are written into a shape layer's own shapes by
+  // `animateLottieLook`; on a picture or a Lottie clip there is nothing to colour or trim.
+  const used = kfChannelsUsed(track);
+  const look = used.filter(key => isKfLookChannel(key));
+  if (look.length && layer.content.kind !== 'shape') {
+    throw new Error(`${layer.name}: dotLottie cannot animate the ${[...new Set(look.map(lookFeatureName))].join(', ')} of an image or animation clip. Use video export.`);
+  }
+  const unsupported = used.filter(key => !['x', 'y', 's', 'r', 'o'].includes(key) && !isKfLookChannel(key));
   if (unsupported.length) throw new Error(`${layer.name}: dotLottie does not support outer ${unsupported.join(', ')} keys. Use video export.`);
   const scale = channel(track, 's', fps, layer.startMs, 100, 100, true);
   if (scale.a === 1 && Array.isArray(scale.k)) for (const item of scale.k) {
