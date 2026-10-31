@@ -30,6 +30,7 @@
 import { PERFORMANCE_UI_FLAG, applyPerfUi, setFlagMirror, subscribePerfUi } from '../feature-flags.ts';
 import { t } from '../i18n.ts';
 import { captureNeutralPinned } from './capture-neutral.ts';
+import { firstRunPromptDue, firstRunPromptShowing, whenFirstRunPrompts } from './first-run-prompts.ts';
 import { isIframeMode } from './iframe-mode.ts';
 import { activeJobs } from './jobs.ts';
 import { previewIsActive } from './preview-activity.ts';
@@ -104,27 +105,35 @@ export function keepPerfUiAuto(): void {
   if (rec?.state === 'on') writePerfUiAuto({ ...rec, seen: true });
 }
 
-/** The notice, once the tab is visible: a toast that never appears unseen in the background. */
+/**
+ * The notice: a toast with Undo and Keep. It waits for a visible tab, so it never
+ * appears unseen in the background, and for any first-run prompt to be answered or
+ * dismissed (lib/first-run-prompts.ts), so a person is never asked two things at once. A
+ * prompt that opens while the notice is up comes first: the notice steps aside,
+ * recording nothing, and returns with its full time once the prompt has gone.
+ */
 export function showPerfUiNotice(reason: PerfUiAutoReason): void {
+  let stopWatching = (): void => {};
+  const clear = (): boolean => document.visibilityState === 'visible' && !firstRunPromptDue();
   const show = (): void => {
-    showUndoToast({
+    const toast = showUndoToast({
       message: reason === 'software'
         ? t('Lolly switched to the simpler, faster look because this device draws without graphics acceleration.')
         : t('Lolly switched to the simpler, faster look because this device was struggling.'),
-      undo: () => { undoPerfUiAuto(); },
+      undo: () => { stopWatching(); undoPerfUiAuto(); },
       acceptLabel: t('Keep'),
-      commit: keepPerfUiAuto,
+      commit: () => { stopWatching(); keepPerfUiAuto(); },
       duration: NOTICE_MS,
       wrap: true,
     });
+    stopWatching = whenFirstRunPrompts(firstRunPromptShowing, () => { toast.withdraw(); wait(); });
   };
-  if (document.visibilityState === 'visible') { show(); return; }
-  const onVisible = (): void => {
-    if (document.visibilityState !== 'visible') return;
-    document.removeEventListener('visibilitychange', onVisible);
-    show();
-  };
-  document.addEventListener('visibilitychange', onVisible);
+  // Checked here first, so `stopWatching` always holds the watcher that is live.
+  function wait(): void {
+    if (clear()) show();
+    else stopWatching = whenFirstRunPrompts(clear, show);
+  }
+  wait();
 }
 
 /** The fields of a Long Animation Frame entry, read without trusting the shape. */
