@@ -10439,5 +10439,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly सरल और तेज़ लुक पर आ गया, क्योंकि यह डिवाइस ग्राफ़िक्स एक्सेलेरेशन के बिना ड्रॉ करता है।",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly सरल और तेज़ लुक पर आ गया, क्योंकि यह डिवाइस धीमा चल रहा था।",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "{date} को अपने-आप चालू हुआ, क्योंकि यह डिवाइस ग्राफ़िक्स एक्सेलेरेशन के बिना ड्रॉ करता है।",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} को अपने-आप चालू हुआ, क्योंकि इस डिवाइस को इंटरफ़ेस ड्रॉ करने में दिक्कत हो रही थी।"
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} को अपने-आप चालू हुआ, क्योंकि इस डिवाइस को इंटरफ़ेस ड्रॉ करने में दिक्कत हो रही थी।",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "इस डिवाइस पर अपने-आप बदलना बंद है, क्योंकि आपने {date} को पूर्ववत करें चुना था।",
+  "Allow again": "फिर से अनुमति दें",
+  "Automatic switching is allowed again from the next time you open Lolly.": "अगली बार Lolly खोलने से अपने-आप बदलने की अनुमति फिर से मिल जाएगी।"
 }

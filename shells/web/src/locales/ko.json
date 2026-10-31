@@ -10439,5 +10439,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "이 기기는 그래픽 가속 없이 화면을 그리기 때문에 Lolly가 더 단순하고 빠른 화면으로 바꿨어요.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "이 기기가 버거워하고 있어서 Lolly가 더 단순하고 빠른 화면으로 바꿨어요.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "이 기기는 그래픽 가속 없이 화면을 그리기 때문에 {date}에 자동으로 켜졌어요.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "이 기기가 인터페이스를 그리는 데 어려움을 겪어서 {date}에 자동으로 켜졌어요."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "이 기기가 인터페이스를 그리는 데 어려움을 겪어서 {date}에 자동으로 켜졌어요.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "{date}에 실행 취소를 선택해서 이 기기에서는 자동 전환이 꺼져 있어요.",
+  "Allow again": "다시 허용",
+  "Automatic switching is allowed again from the next time you open Lolly.": "다음에 Lolly를 열 때부터 자동 전환이 다시 허용돼요."
 }

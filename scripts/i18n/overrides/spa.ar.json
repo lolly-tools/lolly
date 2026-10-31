@@ -1937,5 +1937,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "حوّل Lolly إلى المظهر الأبسط والأسرع لأن هذا الجهاز يرسم دون تسريع الرسومات.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "حوّل Lolly إلى المظهر الأبسط والأسرع لأن هذا الجهاز كان يواجه صعوبة في الأداء.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "تم التشغيل تلقائيًا في {date} لأن هذا الجهاز يرسم دون تسريع الرسومات.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "تم التشغيل تلقائيًا في {date} لأن هذا الجهاز كان يواجه صعوبة في رسم الواجهة."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "تم التشغيل تلقائيًا في {date} لأن هذا الجهاز كان يواجه صعوبة في رسم الواجهة.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "التبديل التلقائي متوقف على هذا الجهاز لأنك اخترت تراجع في {date}.",
+  "Allow again": "السماح مرة أخرى",
+  "Automatic switching is allowed again from the next time you open Lolly.": "سيُسمح بالتبديل التلقائي مرة أخرى عند فتح Lolly في المرة القادمة."
 }

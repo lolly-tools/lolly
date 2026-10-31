@@ -10439,5 +10439,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "这台设备在没有图形加速的情况下绘制，所以 Lolly 已切换为更简单、更快的外观。",
   "Lolly switched to the simpler, faster look because this device was struggling.": "这台设备运行吃力，所以 Lolly 已切换为更简单、更快的外观。",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "已于 {date} 自动开启，因为这台设备在没有图形加速的情况下绘制。",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "已于 {date} 自动开启，因为这台设备绘制界面时运行吃力。"
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "已于 {date} 自动开启，因为这台设备绘制界面时运行吃力。",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "由于你在 {date} 选了“撤销”，这台设备已关闭自动切换。",
+  "Allow again": "再次允许",
+  "Automatic switching is allowed again from the next time you open Lolly.": "从下次打开 Lolly 起，会再次允许自动切换。"
 }

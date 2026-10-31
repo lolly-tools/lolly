@@ -1802,5 +1802,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly cambió al aspecto más simple y rápido porque este dispositivo dibuja sin aceleración gráfica.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly cambió al aspecto más simple y rápido porque este dispositivo iba justo de rendimiento.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Activado automáticamente el {date} porque este dispositivo dibuja sin aceleración gráfica.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Activado automáticamente el {date} porque este dispositivo tenía dificultades para dibujar la interfaz."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Activado automáticamente el {date} porque este dispositivo tenía dificultades para dibujar la interfaz.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "El cambio automático está desactivado en este dispositivo porque elegiste Deshacer el {date}.",
+  "Allow again": "Permitir de nuevo",
+  "Automatic switching is allowed again from the next time you open Lolly.": "El cambio automático vuelve a estar permitido a partir de la próxima vez que abras Lolly."
 }

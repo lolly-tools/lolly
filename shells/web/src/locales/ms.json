@@ -10439,5 +10439,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly bertukar kepada rupa yang lebih ringkas dan pantas kerana peranti ini melukis tanpa pecutan grafik.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly bertukar kepada rupa yang lebih ringkas dan pantas kerana peranti ini sukar mengikut rentak.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Dihidupkan secara automatik pada {date} kerana peranti ini melukis tanpa pecutan grafik.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Dihidupkan secara automatik pada {date} kerana peranti ini sukar melukis antara muka."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Dihidupkan secara automatik pada {date} kerana peranti ini sukar melukis antara muka.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Penukaran automatik dimatikan pada peranti ini kerana anda memilih Buat asal pada {date}.",
+  "Allow again": "Benarkan semula",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Penukaran automatik dibenarkan semula bermula kali seterusnya anda membuka Lolly."
 }

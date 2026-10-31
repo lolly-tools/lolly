@@ -10439,5 +10439,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly премина към по-простия и по-бърз вид, защото това устройство рисува без графично ускорение.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly премина към по-простия и по-бърз вид, защото това устройство се затрудняваше.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Включено автоматично на {date}, защото това устройство рисува без графично ускорение.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Включено автоматично на {date}, защото това устройство се затрудняваше да изобразява интерфейса."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Включено автоматично на {date}, защото това устройство се затрудняваше да изобразява интерфейса.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Автоматичното превключване е изключено на това устройство, защото избра Отмени на {date}.",
+  "Allow again": "Разреши отново",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Автоматичното превключване отново е разрешено от следващото отваряне на Lolly."
 }

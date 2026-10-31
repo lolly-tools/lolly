@@ -1801,5 +1801,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn vì thiết bị này vẽ mà không có tăng tốc đồ họa.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly đã chuyển sang giao diện đơn giản, nhanh hơn vì thiết bị này đang chạy khá chật vật.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "Tự động bật vào {date} vì thiết bị này vẽ mà không có tăng tốc đồ họa.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Tự động bật vào {date} vì thiết bị này chật vật khi vẽ giao diện."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "Tự động bật vào {date} vì thiết bị này chật vật khi vẽ giao diện.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Tính năng tự động chuyển đã tắt trên thiết bị này vì bạn đã chọn Hoàn tác vào {date}.",
+  "Allow again": "Cho phép lại",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Tính năng tự động chuyển sẽ được cho phép lại từ lần mở Lolly tiếp theo."
 }

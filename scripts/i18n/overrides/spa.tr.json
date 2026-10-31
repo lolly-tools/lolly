@@ -1930,5 +1930,8 @@
   "Lolly switched to the simpler, faster look because this device draws without graphics acceleration.": "Lolly daha sade ve hızlı görünüme geçti, çünkü bu cihaz grafik hızlandırma olmadan çizim yapıyor.",
   "Lolly switched to the simpler, faster look because this device was struggling.": "Lolly daha sade ve hızlı görünüme geçti, çünkü bu cihaz zorlanıyordu.",
   "Turned on automatically on {date} because this device draws without graphics acceleration.": "{date} tarihinde otomatik olarak açıldı, çünkü bu cihaz grafik hızlandırma olmadan çizim yapıyor.",
-  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} tarihinde otomatik olarak açıldı, çünkü bu cihaz arayüzü çizmekte zorlanıyordu."
+  "Turned on automatically on {date} because this device was struggling to draw the interface.": "{date} tarihinde otomatik olarak açıldı, çünkü bu cihaz arayüzü çizmekte zorlanıyordu.",
+  "Automatic switching is off on this device because you chose Undo on {date}.": "Otomatik geçiş bu cihazda kapalı, çünkü {date} tarihinde Geri al'ı seçtin.",
+  "Allow again": "Yeniden izin ver",
+  "Automatic switching is allowed again from the next time you open Lolly.": "Otomatik geçişe, Lolly'yi bir sonraki açışından itibaren yeniden izin verilir."
 }
