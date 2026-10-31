@@ -10446,5 +10446,13 @@
   "Board": "বোর্ড",
   "Choose for {role}": "{role}-এর জন্য বেছে নিন",
   "Change {role}": "{role} পরিবর্তন করুন",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "আপনার ব্র্যান্ডের নির্দেশিকা, মানুষ ও এজেন্টের জন্য লেখা। এজেন্ট প্রথমে ব্র্যান্ড স্কিল পড়ে, তারপর হাতের কাজের স্কিল। স্কিল কাজে পথ দেখায়; নিয়মসমূহে থাকা হাউস রুলস Lolly যাচাই করে।"
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "আপনার ব্র্যান্ডের নির্দেশিকা, মানুষ ও এজেন্টের জন্য লেখা। এজেন্ট প্রথমে ব্র্যান্ড স্কিল পড়ে, তারপর হাতের কাজের স্কিল। স্কিল কাজে পথ দেখায়; নিয়মসমূহে থাকা হাউস রুলস Lolly যাচাই করে।",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "এই ডিভাইসটি ব্যস্ত থাকার সময় Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে। চাপ কমলে এটি আবার আগের অবস্থায় ফিরবে।",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "ব্যাটারি কম থাকার সময় Lolly সহজ ও দ্রুততর লুকে পাল্টে গেছে। এই ডিভাইস চার্জ হতে শুরু করলে এটি আবার আগের অবস্থায় ফিরবে।",
+  "On for now because this device is busy. It switches back when things calm down.": "আপাতত চালু আছে, কারণ এই ডিভাইসটি ব্যস্ত। চাপ কমলে এটি আবার আগের অবস্থায় ফিরবে।",
+  "On for now because the battery is low. It switches back when this device is charging.": "আপাতত চালু আছে, কারণ ব্যাটারি কম। এই ডিভাইস চার্জ হতে শুরু করলে এটি আবার আগের অবস্থায় ফিরবে।",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "এই ডিভাইসটি ব্যস্ত থাকার সময় {date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে। আপনি রাখুন বেছে নিয়েছেন।",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "ব্যাটারি কম থাকার সময় {date} তারিখে স্বয়ংক্রিয়ভাবে চালু হয়েছে। আপনি রাখুন বেছে নিয়েছেন।",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "ধীর ডিভাইসের জন্য Lolly এখানে নিজে থেকে পাল্টাবে না, কারণ আপনি {date} তারিখে আনডু বেছে নিয়েছিলেন।",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "এই ডিভাইস ব্যস্ত থাকলে বা ব্যাটারি কম থাকলে Lolly নিজে থেকে পাল্টাবে না, কারণ আপনি {date} তারিখে আনডু বেছে নিয়েছিলেন।"
 }

@@ -1803,5 +1803,13 @@
   "Board": "Nástěnka",
   "Choose for {role}": "Vybrat pro: {role}",
   "Change {role}": "Změnit: {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Pokyny tvé značky, psané pro lidi i agenty. Agenti čtou nejdřív dovednost značky, pak tu pro danou práci. Dovednosti práci vedou; Lolly kontroluje interní pravidla v části Pravidla."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Pokyny tvé značky, psané pro lidi i agenty. Agenti čtou nejdřív dovednost značky, pak tu pro danou práci. Dovednosti práci vedou; Lolly kontroluje interní pravidla v části Pravidla.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly přepnulo na jednodušší a rychlejší vzhled, dokud je toto zařízení vytížené. Až se situace uklidní, přepne zpět.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly přepnulo na jednodušší a rychlejší vzhled, dokud je baterie téměř vybitá. Přepne zpět, až se toto zařízení bude nabíjet.",
+  "On for now because this device is busy. It switches back when things calm down.": "Zapnuto prozatím, protože je toto zařízení vytížené. Až se situace uklidní, přepne zpět.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Zapnuto prozatím, protože je baterie téměř vybitá. Přepne zpět, až se toto zařízení bude nabíjet.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Zapnuto automaticky dne {date}, když bylo toto zařízení vytížené. Zvolil jsi Ponechat.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Zapnuto automaticky dne {date}, když byla baterie téměř vybitá. Zvolil jsi Ponechat.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly tady nebude přepínat kvůli pomalému zařízení, protože jsi dne {date} zvolil Zpět.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly nebude přepínat, dokud je toto zařízení vytížené nebo má málo baterie, protože jsi dne {date} zvolil Zpět."
 }

@@ -10446,5 +10446,13 @@
   "Board": "Panou",
   "Choose for {role}": "Alege pentru {role}",
   "Change {role}": "Schimbă {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ghidajul brandului tău, scris pentru oameni și agenți. Agenții citesc mai întâi abilitatea brandului, apoi pe cea pentru lucrarea curentă. Abilitățile ghidează lucrarea; regulile interne din Reguli sunt ce verifică Lolly."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "Ghidajul brandului tău, scris pentru oameni și agenți. Agenții citesc mai întâi abilitatea brandului, apoi pe cea pentru lucrarea curentă. Abilitățile ghidează lucrarea; regulile interne din Reguli sunt ce verifică Lolly.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "Lolly a trecut la aspectul mai simplu și mai rapid cât timp acest dispozitiv este ocupat. Revine când lucrurile se liniștesc.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "Lolly a trecut la aspectul mai simplu și mai rapid cât timp bateria este descărcată. Revine când acest dispozitiv se încarcă.",
+  "On for now because this device is busy. It switches back when things calm down.": "Activ pentru moment, pentru că acest dispozitiv este ocupat. Revine când lucrurile se liniștesc.",
+  "On for now because the battery is low. It switches back when this device is charging.": "Activ pentru moment, pentru că bateria este descărcată. Revine când acest dispozitiv se încarcă.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "Activat automat la {date}, când acest dispozitiv era ocupat. Ai ales Păstrează.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "Activat automat la {date}, când bateria era descărcată. Ai ales Păstrează.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "Lolly nu va comuta aici pentru un dispozitiv lent, pentru că ai ales Anulează la {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "Lolly nu va comuta cât timp acest dispozitiv este ocupat sau are bateria descărcată, pentru că ai ales Anulează la {date}."
 }

@@ -10446,5 +10446,13 @@
   "Board": "बोर्ड",
   "Choose for {role}": "{role} के लिए चुनें",
   "Change {role}": "{role} बदलें",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "आपके ब्रांड का मार्गदर्शन, लोगों और एजेंटों के लिए लिखा गया। एजेंट पहले ब्रांड स्किल पढ़ते हैं, फिर हाथ के काम वाली स्किल। स्किल काम का मार्गदर्शन करती हैं; नियम में दिए नियमों को Lolly जाँचता है।"
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "आपके ब्रांड का मार्गदर्शन, लोगों और एजेंटों के लिए लिखा गया। एजेंट पहले ब्रांड स्किल पढ़ते हैं, फिर हाथ के काम वाली स्किल। स्किल काम का मार्गदर्शन करती हैं; नियम में दिए नियमों को Lolly जाँचता है।",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "जब तक यह डिवाइस व्यस्त है, Lolly सरल और तेज़ लुक पर आ गया है। जब स्थिति शांत होगी, यह वापस बदल जाएगा।",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "जब तक बैटरी कम है, Lolly सरल और तेज़ लुक पर आ गया है। जब यह डिवाइस चार्ज होने लगेगा, यह वापस बदल जाएगा।",
+  "On for now because this device is busy. It switches back when things calm down.": "अभी के लिए चालू है, क्योंकि यह डिवाइस व्यस्त है। जब स्थिति शांत होगी, यह वापस बदल जाएगा।",
+  "On for now because the battery is low. It switches back when this device is charging.": "अभी के लिए चालू है, क्योंकि बैटरी कम है। जब यह डिवाइस चार्ज होने लगेगा, यह वापस बदल जाएगा।",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "{date} को अपने-आप चालू हुआ, जब यह डिवाइस व्यस्त था। आपने रखें चुना।",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "{date} को अपने-आप चालू हुआ, जब बैटरी कम थी। आपने रखें चुना।",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "धीमे डिवाइस के लिए Lolly यहाँ अपने-आप नहीं बदलेगा, क्योंकि आपने {date} को पूर्ववत करें चुना था।",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "जब तक यह डिवाइस व्यस्त है या बैटरी कम है, Lolly अपने-आप नहीं बदलेगा, क्योंकि आपने {date} को पूर्ववत करें चुना था।"
 }

@@ -1944,5 +1944,13 @@
   "Board": "اللوحة",
   "Choose for {role}": "اختر لـ{role}",
   "Change {role}": "تغيير {role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "إرشادات علامتك، مكتوبة للأشخاص والوكلاء. يقرأ الوكلاء مهارة العلامة أولًا ثم مهارة العمل المطروح. المهارات توجّه العمل؛ أما قواعد المؤسسة في «القواعد» فهي ما يفحصه Lolly."
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "إرشادات علامتك، مكتوبة للأشخاص والوكلاء. يقرأ الوكلاء مهارة العلامة أولًا ثم مهارة العمل المطروح. المهارات توجّه العمل؛ أما قواعد المؤسسة في «القواعد» فهي ما يفحصه Lolly.",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "حوّل Lolly إلى المظهر الأبسط والأسرع بينما هذا الجهاز مشغول. سيعود إلى المظهر السابق عندما يهدأ الضغط.",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "حوّل Lolly إلى المظهر الأبسط والأسرع بينما البطارية منخفضة. سيعود إلى المظهر السابق عندما يكون هذا الجهاز قيد الشحن.",
+  "On for now because this device is busy. It switches back when things calm down.": "قيد التشغيل مؤقتًا لأن هذا الجهاز مشغول. سيعود إلى وضعه السابق عندما يهدأ الضغط.",
+  "On for now because the battery is low. It switches back when this device is charging.": "قيد التشغيل مؤقتًا لأن البطارية منخفضة. سيعود إلى وضعه السابق عندما يكون هذا الجهاز قيد الشحن.",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "تم التشغيل تلقائيًا في {date} بينما كان هذا الجهاز مشغولًا. لقد اخترت احتفظ.",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "تم التشغيل تلقائيًا في {date} بينما كانت البطارية منخفضة. لقد اخترت احتفظ.",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "لن يبدّل Lolly المظهر هنا من أجل جهاز بطيء، لأنك اخترت تراجع في {date}.",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "لن يبدّل Lolly المظهر بينما هذا الجهاز مشغول أو بطاريته منخفضة، لأنك اخترت تراجع في {date}."
 }

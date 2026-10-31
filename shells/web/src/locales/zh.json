@@ -10446,5 +10446,13 @@
   "Board": "看板",
   "Choose for {role}": "为{role}选择",
   "Change {role}": "更改{role}",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "你品牌的指南，为人和代理而写。代理会先读品牌技能，再读针对当前工作的技能。技能指导工作；而“规则”中的内部规范，才是 Lolly 会检查的内容。"
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "你品牌的指南，为人和代理而写。代理会先读品牌技能，再读针对当前工作的技能。技能指导工作；而“规则”中的内部规范，才是 Lolly 会检查的内容。",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "这台设备忙碌期间，Lolly 已切换为更简单、更快的外观。等情况平稳后会自动切换回来。",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "电量偏低期间，Lolly 已切换为更简单、更快的外观。这台设备开始充电后会自动切换回来。",
+  "On for now because this device is busy. It switches back when things calm down.": "暂时开启，因为这台设备正忙碌。等情况平稳后会自动切换回来。",
+  "On for now because the battery is low. It switches back when this device is charging.": "暂时开启，因为电量偏低。这台设备开始充电后会自动切换回来。",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "已于 {date} 在这台设备忙碌时自动开启。你选了“保留”。",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "已于 {date} 在电量偏低时自动开启。你选了“保留”。",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "由于你在 {date} 选了“撤销”，Lolly 不会在这里因设备运行缓慢而自动切换。",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "由于你在 {date} 选了“撤销”，Lolly 不会在这台设备忙碌或电量偏低时自动切换。"
 }

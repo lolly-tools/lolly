@@ -10446,5 +10446,13 @@
   "Board": "ボード",
   "Choose for {role}": "{role}を選択",
   "Change {role}": "{role}を変更",
-  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "ブランドのガイダンスを、人とエージェント向けに書いたもの。エージェントはまずブランドスキルを読み、次に作業に合ったスキルを読みます。スキルは作業を導くもので、Lolly がチェックするのは「ルール」のハウスルールです。"
+  "Your brand’s guidance, written for people and agents. Agents read the brand skill first, then the one for the work at hand. Skills guide the work; the house rules in the Rules room are what Lolly checks.": "ブランドのガイダンスを、人とエージェント向けに書いたもの。エージェントはまずブランドスキルを読み、次に作業に合ったスキルを読みます。スキルは作業を導くもので、Lolly がチェックするのは「ルール」のハウスルールです。",
+  "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.": "このデバイスがビジー状態の間、Lollyはよりシンプルで高速な表示に切り替えました。落ち着いたら元に戻ります。",
+  "Lolly switched to the simpler, faster look while the battery is low. It switches back when this device is charging.": "バッテリー残量が少ない間、Lollyはよりシンプルで高速な表示に切り替えました。このデバイスを充電すると元に戻ります。",
+  "On for now because this device is busy. It switches back when things calm down.": "このデバイスがビジー状態のため、一時的にオンになっています。落ち着いたら元に戻ります。",
+  "On for now because the battery is low. It switches back when this device is charging.": "バッテリー残量が少ないため、一時的にオンになっています。このデバイスを充電すると元に戻ります。",
+  "Turned on automatically on {date} while this device was busy. You chose Keep.": "このデバイスがビジー状態だったため、{date}に自動でオンになりました。「保持」を選んだので、そのままオンです。",
+  "Turned on automatically on {date} while the battery was low. You chose Keep.": "バッテリー残量が少なかったため、{date}に自動でオンになりました。「保持」を選んだので、そのままオンです。",
+  "Lolly will not switch for a slow device here, because you chose Undo on {date}.": "{date}に「元に戻す」を選んだため、Lollyはここでは動作の遅いデバイス向けの自動切り替えを行いません。",
+  "Lolly will not switch while this device is busy or low on battery, because you chose Undo on {date}.": "{date}に「元に戻す」を選んだため、Lollyはこのデバイスがビジー状態の間やバッテリー残量が少ない間は自動切り替えを行いません。"
 }
