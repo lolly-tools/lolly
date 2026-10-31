@@ -12,7 +12,7 @@ The **top bar** starts with **Home**, the **File menu** and the document's name 
 
 The **tool rail** down the side holds the Lolly menu and the tools you draw with: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, then the Timeline, Artboards and Auto-arrange buttons.
 
-![The free-canvas tool rail: a drag grip, the Lolly menu, then Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards and Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![The free-canvas tool rail: a drag grip, the Lolly menu, then Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards and Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 The canvas works like a designer's pasteboard around the artboard:
 
