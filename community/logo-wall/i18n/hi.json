@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "इनवर्ट",
   "inputs.logos.fields.invert.help": "सफ़ेद या हल्के लोगो के लिए।",
   "inputs.logos.fields.detail.label": "डिटेल",
-  "inputs.logos.fields.smoothing.label": "स्मूदिंग"
+  "inputs.logos.fields.smoothing.label": "स्मूदिंग",
+  "inputs.logos.fields.tier.label": "स्तर",
+  "inputs.logos.fields.tier.help": "लोगो को स्पॉन्सर स्तर के अनुसार समूहित करें। एक ही स्तर वाले लोगो अपनी अलग पंक्तियों में साथ रहते हैं, उसी क्रम में जिसमें हर स्तर पहली बार दिखता है, स्तर के नाम वाले शीर्षक के नीचे। एक समान ग्रिड के लिए सभी स्तर खाली छोड़ें।",
+  "inputs.tierHeadings.label": "स्तर शीर्षक",
+  "inputs.tierHeadings.section": "स्तर",
+  "inputs.tierHeadings.help": "हर स्तर का नाम उसके लोगो समूह के ऊपर दिखाएँ। केवल तब लागू होता है जब लोगो में स्तर हो।",
+  "inputs.tierSizing.label": "स्तर के आकार",
+  "inputs.tierSizing.section": "स्तर",
+  "inputs.tierSizing.help": "“क्रमशः घटाएँ” पहले स्तर के बाद हर स्तर के लिए एक पंक्ति में एक और लोगो रखता है, इसलिए ऊँचे स्तर बड़े दिखते हैं। “समान आकार” हर स्तर को कॉलम सेटिंग देता है। प्रेज़ेंस, आकार % और आकार संतुलित करें फिर भी हर लोगो पर लागू होते हैं।",
+  "inputs.tierSizing.options.step": "क्रमशः घटाएँ",
+  "inputs.tierSizing.options.even": "समान आकार",
+  "inputs.headingColor.label": "शीर्षक का रंग",
+  "inputs.headingColor.section": "स्तर",
+  "inputs.headingColor.help": "स्तर शीर्षकों का रंग।"
 }

@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Inverter",
   "inputs.logos.fields.invert.help": "For en hvit eller lys logo.",
   "inputs.logos.fields.detail.label": "Detalj",
-  "inputs.logos.fields.smoothing.label": "Utjevning"
+  "inputs.logos.fields.smoothing.label": "Utjevning",
+  "inputs.logos.fields.tier.label": "Nivå",
+  "inputs.logos.fields.tier.help": "Grupper logoer etter sponsornivå. Logoer med samme nivå står sammen på egne rader, i den rekkefølgen hvert nivå først dukker opp, under en overskrift med nivåets navn. La alle nivåer stå tomme for ett jevnt rutenett.",
+  "inputs.tierHeadings.label": "Nivåoverskrifter",
+  "inputs.tierHeadings.section": "Nivåer",
+  "inputs.tierHeadings.help": "Viser navnet på hvert nivå over logogruppen. Gjelder bare når logoer har et nivå.",
+  "inputs.tierSizing.label": "Nivåstørrelser",
+  "inputs.tierSizing.section": "Nivåer",
+  "inputs.tierSizing.help": "Trappetrinn legger til én logo per rad for hvert nivå etter det første, så høyere nivåer virker større. Lik størrelse gir hvert nivå innstillingen Kolonner. Fremtredenhet, Størrelse % og Balanser størrelser gjelder fortsatt for hver logo.",
+  "inputs.tierSizing.options.step": "Trappetrinn",
+  "inputs.tierSizing.options.even": "Lik størrelse",
+  "inputs.headingColor.label": "Overskriftsfarge",
+  "inputs.headingColor.section": "Nivåer",
+  "inputs.headingColor.help": "Fargen på nivåoverskriftene."
 }

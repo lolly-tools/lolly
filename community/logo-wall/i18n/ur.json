@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "الٹا",
   "inputs.logos.fields.invert.help": "سفید یا ہلکے لوگو کے لیے۔",
   "inputs.logos.fields.detail.label": "تفصیل",
-  "inputs.logos.fields.smoothing.label": "اسموتھنگ"
+  "inputs.logos.fields.smoothing.label": "اسموتھنگ",
+  "inputs.logos.fields.tier.label": "درجہ",
+  "inputs.logos.fields.tier.help": "لوگوز کو اسپانسر کے درجے کے مطابق گروپ کریں۔ ایک ہی درجے والے لوگوز اپنی الگ قطاروں میں اکٹھے رہتے ہیں، اسی ترتیب میں جس میں ہر درجہ پہلی بار ظاہر ہوتا ہے، درجے کے نام والی سرخی کے نیچے۔ ایک ہموار گرڈ کے لیے تمام درجے خالی چھوڑ دیں۔",
+  "inputs.tierHeadings.label": "درجے کی سرخیاں",
+  "inputs.tierHeadings.section": "درجات",
+  "inputs.tierHeadings.help": "ہر درجے کا نام اس کے لوگوز کے گروپ کے اوپر دکھائیں۔ صرف اس وقت لاگو ہوتا ہے جب لوگوز کا درجہ ہو۔",
+  "inputs.tierSizing.label": "درجوں کے سائز",
+  "inputs.tierSizing.section": "درجات",
+  "inputs.tierSizing.help": "“مرحلہ وار کمی” پہلے درجے کے بعد ہر درجے کے لیے قطار میں ایک اور لوگو رکھتی ہے، اس لیے اونچے درجے بڑے نظر آتے ہیں۔ “یکساں سائز” ہر درجے کو کالمز کی سیٹنگ دیتا ہے۔ موجودگی، سائز % اور سائز بیلنس کریں پھر بھی ہر لوگو پر لاگو ہوتے ہیں۔",
+  "inputs.tierSizing.options.step": "مرحلہ وار کمی",
+  "inputs.tierSizing.options.even": "یکساں سائز",
+  "inputs.headingColor.label": "سرخی کا رنگ",
+  "inputs.headingColor.section": "درجات",
+  "inputs.headingColor.help": "درجے کی سرخیوں کا رنگ۔"
 }

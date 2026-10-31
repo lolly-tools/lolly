@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Inverti",
   "inputs.logos.fields.invert.help": "Per un logo bianco o chiaro.",
   "inputs.logos.fields.detail.label": "Dettaglio",
-  "inputs.logos.fields.smoothing.label": "Levigatura"
+  "inputs.logos.fields.smoothing.label": "Levigatura",
+  "inputs.logos.fields.tier.label": "Livello",
+  "inputs.logos.fields.tier.help": "Raggruppa i loghi per livello di sponsor. I loghi con lo stesso livello stanno insieme in righe proprie, nell'ordine in cui ogni livello compare per la prima volta, sotto un titolo con il nome del livello. Lascia vuoti tutti i livelli per ottenere un'unica griglia uniforme.",
+  "inputs.tierHeadings.label": "Titoli dei livelli",
+  "inputs.tierHeadings.section": "Livelli",
+  "inputs.tierHeadings.help": "Mostra il nome di ogni livello sopra il suo gruppo di loghi. Si applica solo quando i loghi hanno un livello.",
+  "inputs.tierSizing.label": "Dimensioni dei livelli",
+  "inputs.tierSizing.section": "Livelli",
+  "inputs.tierSizing.help": "A scalare mette un logo in più per riga a ogni livello dopo il primo, così i livelli più alti risultano più grandi. Stessa dimensione dà a ogni livello l'impostazione Colonne. Rilievo, Dimensione % e Bilancia le dimensioni valgono comunque per ogni logo.",
+  "inputs.tierSizing.options.step": "A scalare",
+  "inputs.tierSizing.options.even": "Stessa dimensione",
+  "inputs.headingColor.label": "Colore dei titoli",
+  "inputs.headingColor.section": "Livelli",
+  "inputs.headingColor.help": "Il colore dei titoli dei livelli."
 }

@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Balikkan",
   "inputs.logos.fields.invert.help": "Untuk logo putih atau pucat.",
   "inputs.logos.fields.detail.label": "Detail",
-  "inputs.logos.fields.smoothing.label": "Penghalusan"
+  "inputs.logos.fields.smoothing.label": "Penghalusan",
+  "inputs.logos.fields.tier.label": "Tingkat",
+  "inputs.logos.fields.tier.help": "Kelompokkan logo menurut tingkat sponsor. Logo dengan tingkat yang sama berada bersama di barisnya sendiri, dalam urutan kemunculan pertama tiap tingkat, di bawah judul nama tingkat itu. Kosongkan semua tingkat untuk satu grid yang merata.",
+  "inputs.tierHeadings.label": "Judul tingkat",
+  "inputs.tierHeadings.section": "Tingkat",
+  "inputs.tierHeadings.help": "Tampilkan nama setiap tingkat di atas kelompok logonya. Hanya berlaku jika logo memiliki tingkat.",
+  "inputs.tierSizing.label": "Ukuran tingkat",
+  "inputs.tierSizing.section": "Tingkat",
+  "inputs.tierSizing.help": "Bertahap mengecil menempatkan satu logo lebih banyak per baris untuk setiap tingkat setelah yang pertama, sehingga tingkat atas tampak lebih besar. Ukuran sama memberi setiap tingkat pengaturan Kolom. Kehadiran, Ukuran %, dan Seimbangkan ukuran tetap berlaku untuk setiap logo.",
+  "inputs.tierSizing.options.step": "Bertahap mengecil",
+  "inputs.tierSizing.options.even": "Ukuran sama",
+  "inputs.headingColor.label": "Warna judul",
+  "inputs.headingColor.section": "Tingkat",
+  "inputs.headingColor.help": "Warna judul tingkat."
 }

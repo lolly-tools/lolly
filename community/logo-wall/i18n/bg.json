@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Инвертиране",
   "inputs.logos.fields.invert.help": "За бяло или бледо лого.",
   "inputs.logos.fields.detail.label": "Детайлност",
-  "inputs.logos.fields.smoothing.label": "Изглаждане"
+  "inputs.logos.fields.smoothing.label": "Изглаждане",
+  "inputs.logos.fields.tier.label": "Ниво",
+  "inputs.logos.fields.tier.help": "Групирай лога по спонсорско ниво. Логата с едно и също ниво стоят заедно в свои редове, в реда, в който всяко ниво се появява за първи път, под заглавие с името на нивото. Остави всички нива празни за една равномерна мрежа.",
+  "inputs.tierHeadings.label": "Заглавия на нивата",
+  "inputs.tierHeadings.section": "Нива",
+  "inputs.tierHeadings.help": "Показва името на всяко ниво над групата му от лога. Важи само когато логата имат ниво.",
+  "inputs.tierSizing.label": "Размери на нивата",
+  "inputs.tierSizing.section": "Нива",
+  "inputs.tierSizing.help": "„Стъпаловидно“ слага по едно лого повече в реда за всяко ниво след първото, така че по-високите нива изглеждат по-големи. „Еднакъв размер“ прилага на всяко ниво настройката Колони. Присъствие, Размер % и Балансиране на размерите пак важат за всяко лого.",
+  "inputs.tierSizing.options.step": "Стъпаловидно",
+  "inputs.tierSizing.options.even": "Еднакъв размер",
+  "inputs.headingColor.label": "Цвят на заглавията",
+  "inputs.headingColor.section": "Нива",
+  "inputs.headingColor.help": "Цветът на заглавията на нивата."
 }

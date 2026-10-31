@@ -1,26 +1,37 @@
 /**
- * Logo Wall - vector hook.
+ * Logo Wall - hooks.
  *
- * Raster mode (the default) renders a grid of <img> tiles. The hook builds the
- * per-logo list (buildItems): url, opacity, grayscale and an effective size that
- * folds in optical-weight balancing (heavier logos shrink, lighter grow). Sizes
- * are inline styles + a baked grayscale filter, which the SVG/PDF export walker
- * reproduces faithfully. Pixels are only sampled when balancing is on (a small
- * weight measurement), not for the visual itself.
+ * The wall is ONE <svg> (template.html) drawn at the canvas's own size, WALL_W by
+ * WALL_H, which must match tool.json render.width/height. An <svg> root is what
+ * lets every shell export the wall the same way: the web shell clones it, and the
+ * CLI, the TUI and the MCP server write SVG with no browser and draw PNG from that
+ * SVG with resvg. This hook does all of the layout; the template only places what
+ * it is given:
+ *   - wallCells: one entry per placed logo, with its box in wall pixels (x, y, w,
+ *     h). An image logo becomes an <image> fitted into the box with
+ *     preserveAspectRatio "xMidYMid meet", the SVG twin of the CSS object-fit:
+ *     contain the HTML grid used. A logo rendered as vector carries cellSvg, a
+ *     nested one-ink <svg> placed in the same box, so toggling it never moves it.
+ *   - wallHeadings: tier headings ("Gold partners") when the logos carry tiers.
+ *   - wallDefs and wallClip: the greyscale filter, and the clip that crops a step
+ *     and repeat backdrop at the padding edge.
+ * The box maths reproduces the CSS grid the template used before 1.5.0 exactly:
+ * equal columns and rows inside the padding, the logo box size% of its cell and
+ * centred, overflow visible. A wall saved before 1.5.0 lays out the same.
+ *
+ * The per-logo list (buildItems) carries url, opacity, greyscale and an effective
+ * size that folds in optical-weight balancing (heavier logos shrink, lighter grow)
+ * and the Presence tier.
  *
  * "Render as vector" is opt-in - the wall-wide "Render all as vector" toggle, or
- * per logo in its block: each logo is independently an
- * <img> (raster) or flattened to one ink colour. The wall is always the same CSS
- * grid of cells; a vectorised cell holds a small inline <svg> instead of an <img>,
- * sized identically (the balanced size%) so toggling a logo never reflows the wall.
+ * per logo in its block: each logo is independently an image or flattened to one
+ * ink colour.
  *   - a raster logo is decoded on an offscreen <canvas>, thresholded to 1-bit (the
  *     background dropped first so a solid tile never traces as a square), and traced -
  *     marching-squares boundary → Douglas–Peucker simplify → corner-aware cubic
  *     Béziers (smooth real paths, holes via even-odd fill);
  *   - an SVG logo is inlined verbatim and recoloured (no trace), so it stays
  *     pixel-perfect; <style>/class paint is stripped so the single ink always wins.
- * Each cell's inline <svg> is solid-fill, so SVG export keeps it vector and the PDF
- * walker draws it as true vector (only gradient/filter SVGs would rasterise).
  *
  * Each logo is fitted to its own CONTENT box (margins trimmed, measured at a fixed
  * sample size) so huge and tiny copies normalise alike; optical-weight balancing
@@ -30,13 +41,27 @@
  * measured box (still fully vector, still full colour). "Trim margins" (default
  * on) is the escape hatch for logos whose clear-space padding is deliberate.
  *
+ * Tiers: a logo's `tier` text groups it. Each tier is laid out as its own group
+ * of rows, in the order the tiers first appear, under an optional heading. With
+ * "Step down" sizing each tier below the first takes one more logo per row, so
+ * higher tiers read larger; Presence, Size % and balancing still apply inside
+ * every cell. A wall with no tiers lays out exactly as before.
+ *
  * Efficiency: decoded images, traced paths, inlined SVGs and content boxes are each
  * cached per URL; each logo's traced grid is capped (MAX_CELLS_PER_LOGO); stale
  * caches are pruned to the logos currently on the wall.
  *
- * Pixel decoding needs a real browser <canvas>. In a headless shell (CLI/jsdom)
- * there's none, so a vectorised logo falls back to its raster <img>.
+ * Pixel work (balancing, trimming, white-box removal, tracing an image) needs a
+ * 2D canvas behind host.raster. A shell without one (the CLI on a lean install
+ * with no @napi-rs/canvas, a hosted MCP server) still renders the wall: each of
+ * those steps is skipped with one warning through host.log that says which, and
+ * an SVG logo can still be recoloured to the ink because that needs no pixels.
  */
+
+// The wall's drawing size in px. Must match tool.json render.width/height: the
+// canvas is that size in the web shell and the CLI exports at it.
+var WALL_W = 1280;
+var WALL_H = 720;
 
 // Upper bound on a single logo's sampling grid, so a big source can't blow up
 // tracing time/output (≈ an 800×800 grid; rings are Douglas–Peucker-simplified,
@@ -80,13 +105,37 @@ var _svgTrimCache = {};
 // cell exactly like the vector path does (whose viewBox is already the content box) -
 // toggling "Render as vector" no longer changes the apparent size. Cached per url.
 var _cropCache = {};
+// Self-contained href cache: url -> Promise<data: URL>. A catalog or remote url
+// would not survive the trip into a standalone .svg file, so each logo the wall
+// draws is carried as its own bytes.
+var _embedCache = {};
 // Remembered for beforeExport (which only sees format/opts).
 var _transparent = false, _bg = '#ffffff';
+// Degradation warnings already written, so a shell that re-renders on every
+// keystroke does not repeat them.
+var _warned = {};
 
 // ── small helpers ────────────────────────────────────────────────────────────
 
 function inputsFrom(model) { var o = {}; model.forEach(function (i) { o[i.id] = i.value; }); return o; }
-function num(v, d) { var x = Number(v); return isFinite(x) ? x : d; }
+// An empty cell (a CSV column left blank) means "the default", not zero.
+function num(v, d) { if (v === '' || v == null) return d; var x = Number(v); return isFinite(x) ? x : d; }
+// A block row's on/off field. The compact link form and a CSV import both carry
+// it as text, and the string "false" is truthy, so read the words.
+function flag(v) {
+  if (typeof v === 'string') return /^(true|1|yes|on)$/i.test(v.trim());
+  return v === true || v === 1;
+}
+// A tier name as typed, tidied: one line, single spaces, bounded.
+function tierName(v) {
+  return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 80);
+}
+// Write one degradation warning per session through host.log.
+function warnOnce(key, msg) {
+  if (_warned[key]) return;
+  _warned[key] = true;
+  if (host.log) host.log('warn', 'Logo Wall: ' + msg);
+}
 // === lolly:shared clamp - generated from community/_shared/math.js; edit there and run npm run sync:shared ===
 function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 // === /lolly:shared clamp ===
@@ -106,6 +155,23 @@ function canRaster() {
   return !!(host.raster && host.raster.canRaster());
 }
 // === /lolly:shared canRaster ===
+
+// Pixel work needs BOTH halves: host.raster to decode, and a 2D canvas in this realm
+// to read and write pixels. The CLI installs one behind jsdom; the TUI and the MCP
+// server can carry host.raster without one, and a canvas there answers getContext
+// with nothing. Probed once, so a realm without a canvas is asked a single time.
+var _canvasOk = null;
+function canPixels() {
+  if (!canRaster()) return false;
+  if (_canvasOk === null) {
+    try {
+      var c = typeof document !== 'undefined' && document.createElement ? document.createElement('canvas') : null;
+      if (c) { c.width = 1; c.height = 1; }
+      _canvasOk = !!(c && c.getContext && c.getContext('2d'));
+    } catch (e) { _canvasOk = false; }
+  }
+  return _canvasOk;
+}
 
 // === lolly:shared loadImage - generated from community/_shared/raster.js; edit there and run npm run sync:shared ===
 function loadImage(url) {
@@ -237,15 +303,15 @@ function measureContent(url, img) {
 
 // A full-colour raster logo, cropped to its content box (margins removed), as a
 // data URL. The vector path already fits each logo to its trimmed content box (the
-// inline <svg> viewBox), but a plain <img> with object-fit:contain fits the WHOLE
-// image - transparent / flat-colour margins included - so the same logo looked
-// smaller as an image than as vector, and toggling "Render as vector" jumped its
-// size. Cropping the bitmap to the same content box makes both paths letterbox the
-// SAME artwork into the SAME size% box. We keep it a real <img> src (not a wrapper
-// crop) because the SVG/PDF export walker reads only the element's own geometry -
-// an overflow-clipped wrapper would be ignored, but a pre-cropped bitmap embeds
-// faithfully in every format. Returns the original url unchanged when there's no
-// meaningful margin to trim, when pixels can't be read (headless), or on failure.
+// nested <svg> viewBox), but an <image> fitted with "meet" fits the WHOLE image -
+// transparent / flat-colour margins included - so the same logo looked smaller as
+// an image than as vector, and toggling "Render as vector" jumped its size.
+// Cropping the bitmap to the same content box makes both paths letterbox the SAME
+// artwork into the SAME size% box. A pre-cropped bitmap, rather than a clip, keeps
+// the <image> plain, so it embeds faithfully in every format and every lowering
+// (EMF, EPS, DXF and Penpot skip or flatten clips). Returns the original url
+// unchanged when there's no meaningful margin to trim, when pixels can't be read
+// (no canvas), or on failure.
 function getTrimmedRaster(url, img, box, knockout) {
   var cacheKey = url + '|k' + (knockout ? 1 : 0);
   if (_cropCache[cacheKey] !== undefined) return _cropCache[cacheKey];
@@ -480,10 +546,20 @@ function normalizeShapes(svg) {
   }
 }
 
+// The realm's XML parser: the global in a page, the jsdom window's on the CLI and
+// the MCP server (they install `window` but not `DOMParser` itself), none in a
+// Worker. Recolouring an SVG logo needs only this, never pixels.
+function xmlParser() {
+  if (typeof DOMParser !== 'undefined') return new DOMParser();
+  if (typeof window !== 'undefined' && window && window.DOMParser) return new window.DOMParser();
+  return null;
+}
+
 function parseSvg(text) {
   var out = { inner: '', vbx: 0, vby: 0, vbw: 0, vbh: 0 };
-  if (typeof DOMParser === 'undefined') return out;
-  var svg = new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('svg');
+  var parser = xmlParser();
+  if (!parser) return out;
+  var svg = parser.parseFromString(text, 'image/svg+xml').querySelector('svg');
   if (!svg) return out;
   var vb = svg.getAttribute('viewBox');
   if (vb) {
@@ -520,6 +596,55 @@ function getSvg(url) {
   var promise = getSvgText(url).then(parseSvg);
   _svgCache[url] = promise;
   promise.catch(function () { if (_svgCache[url] === promise) delete _svgCache[url]; });
+  return promise;
+}
+
+// ── self-contained hrefs ─────────────────────────────────────────────────────
+// Every <image> on the wall carries its own bytes as a data: URL. A blob: URL is
+// left alone (the web shell inlines those when it writes a file); a catalog path
+// or a remote url is read once through host.assets.bytes and inlined, so an
+// exported .svg opens anywhere and resvg can draw it with no network.
+
+function bytesToBase64(bytes) {
+  var bin = '', CH = 0x8000;
+  for (var i = 0; i < bytes.length; i += CH) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+  }
+  return btoa(bin);
+}
+
+// An SVG document as a base64 data: URL. Base64 rather than percent-encoding,
+// because every SVG renderer the wall reaches (browsers, resvg) reads it.
+function svgDataUrl(text) {
+  var bytes = typeof TextEncoder !== 'undefined'
+    ? new TextEncoder().encode(text)
+    : new Uint8Array(unescape(encodeURIComponent(text)).split('').map(function (c) { return c.charCodeAt(0); }));
+  return 'data:image/svg+xml;base64,' + bytesToBase64(bytes);
+}
+
+// MIME type from the leading bytes, never from a file name.
+function sniffMime(b, isSvg) {
+  if (isSvg) return 'image/svg+xml';
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'image/png';
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return 'image/gif';
+  if (b[0] === 0x52 && b[1] === 0x49 && b[8] === 0x57 && b[9] === 0x45) return 'image/webp';
+  if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) return 'image/avif';
+  var head = '';
+  for (var i = 0; i < Math.min(b.length, 256); i++) head += String.fromCharCode(b[i]);
+  return /<svg[\s>]/i.test(head) ? 'image/svg+xml' : 'application/octet-stream';
+}
+
+function embedHref(url, isSvg) {
+  if (!url || /^(data|blob):/i.test(url)) return Promise.resolve(url);
+  if (_embedCache[url]) return _embedCache[url];
+  var promise = (host.assets && host.assets.bytes)
+    ? host.assets.bytes(url).then(function (b) {
+      return 'data:' + sniffMime(b, isSvg) + ';base64,' + bytesToBase64(b);
+    })
+    : Promise.resolve(url);
+  promise = promise.catch(function () { return url; });   // keep the url; the shell may still read it
+  _embedCache[url] = promise;
   return promise;
 }
 
@@ -599,8 +724,7 @@ function getTrimmedSvg(url, img, box) {
       ? newTag.replace(/\bviewBox\s*=\s*"[^"]*"/i, 'viewBox="' + vbVal + '"')
               .replace(/\bviewBox\s*=\s*'[^']*'/i, 'viewBox="' + vbVal + '"')
       : newTag.replace(/<svg\b/i, '<svg viewBox="' + vbVal + '"');
-    var out = 'data:image/svg+xml;charset=utf-8,'
-      + encodeURIComponent(text.slice(0, m.index) + newTag + text.slice(m.index + tag.length));
+    var out = svgDataUrl(text.slice(0, m.index) + newTag + text.slice(m.index + tag.length));
     _svgTrimCache[url] = out;
     return out;
   }).catch(function () { _svgTrimCache[url] = url; return url; });
@@ -873,6 +997,7 @@ function pruneCaches(activeUrls) {
   Object.keys(_svgCache).forEach(function (u) { if (!keep[u]) delete _svgCache[u]; });
   Object.keys(_svgTextCache).forEach(function (u) { if (!keep[u]) delete _svgTextCache[u]; });
   Object.keys(_svgTrimCache).forEach(function (u) { if (!keep[u]) delete _svgTrimCache[u]; });
+  Object.keys(_embedCache).forEach(function (u) { if (!keep[u]) delete _embedCache[u]; });
   Object.keys(_cropCache).forEach(function (k) {
     var u = k.slice(0, k.lastIndexOf('|k'));      // keys are "<url>|k0" / "<url>|k1"
     if (!keep[u]) delete _cropCache[k];
@@ -901,32 +1026,29 @@ function traceParams(threshold, invert, detail, smoothing) {
   };
 }
 
-// Build the inline one-ink <svg> for ONE vectorised logo. It's sized by the balanced
-// size% and fitted (preserveAspectRatio) exactly like the raster <img>, so vector and
-// raster cells lay out identically through the same CSS grid. The viewBox is the
-// logo's own content box (margins trimmed), so huge, tiny, tightly- or loosely-cropped
-// logos all fill their cell consistently. A raster logo is thresholded + contour-
-// traced; an SVG logo is inlined verbatim and recoloured. Returns '' when it can't be
-// produced (the caller then keeps the raster <img>); pixel work needs a browser canvas.
+// Build the one-ink vector for ONE vectorised logo: { vb, inner }, the viewBox and
+// the markup a nested <svg> draws (placeCell positions it in the logo's box with
+// preserveAspectRatio "xMidYMid meet", exactly like the image it replaces). The
+// viewBox is the logo's own content box (margins trimmed), so huge, tiny, tightly-
+// or loosely-cropped logos all fill their cell consistently. A raster logo is
+// thresholded + contour-traced; an SVG logo is inlined verbatim and recoloured.
+// Returns null when it can't be produced (the caller then keeps the image):
+// tracing an image needs a canvas, recolouring an SVG needs only an XML parser.
 async function buildVectorLogo(it, ink, globalTP) {
-  var sizeStyle = 'width:' + f2(it.size) + '%;height:' + f2(it.size) + '%'
-    + (it.opacity < 1 ? ';opacity:' + f2(it.opacity) : '');
   function wrap(vbx, vby, vbw, vbh, inner) {
-    return '<svg class="lw-vec" xmlns="http://www.w3.org/2000/svg" style="' + sizeStyle + '" '
-      + 'viewBox="' + f2(vbx) + ' ' + f2(vby) + ' ' + f2(vbw) + ' ' + f2(vbh) + '" '
-      + 'preserveAspectRatio="xMidYMid meet">' + inner + '</svg>';
+    return { vb: { x: vbx, y: vby, w: vbw, h: vbh }, inner: inner };
   }
 
   if (it.isSvg) {
     var svg = await getSvg(it.url).catch(function () { return null; });
-    if (!svg || !svg.inner) return '';
-    // Match the bounds the full-colour <img> presents so toggling "Render as
+    if (!svg || !svg.inner) return null;
+    // Match the bounds the full-colour image presents so toggling "Render as
     // vector" only swaps the paint, never the size: with trimming on that's the
     // measured content box mapped into viewBox units (the same box the trimmed
-    // <img>'s rewritten viewBox frames), with it off the authored viewBox.
+    // image's rewritten viewBox frames), with it off the authored viewBox.
     // `color` carries the ink so stroke="currentColor" line art inks.
     var vb = { x: svg.vbx, y: svg.vby, w: svg.vbw, h: svg.vbh };
-    if (it.trim) {
+    if (it.trim && canPixels()) {
       var simg = await getImage(it.url).catch(function () { return null; });
       var sbox = simg ? measureContent(it.url, simg) : null;
       var siw = simg ? (simg.naturalWidth || simg.width) : 0;
@@ -938,8 +1060,9 @@ async function buildVectorLogo(it, ink, globalTP) {
       '<g fill="' + esc(ink) + '" color="' + esc(ink) + '">' + svg.inner + '</g>');
   }
 
+  if (!canPixels()) return null;
   var img = await getImage(it.url).catch(function () { return null; });
-  if (!img) return '';
+  if (!img) return null;
   var box = measureContent(it.url, img) || { fx: 0, fy: 0, fw: 1, fh: 1, contentLum: 0 };
   var tp = it.tune ? traceParams(it.oThreshold, it.oInvert, it.oDetail, it.oSmoothing) : globalTP;
   // Per-logo invert. A tuned logo obeys its own switch exactly. Everyone else is
@@ -957,9 +1080,9 @@ async function buildVectorLogo(it, ink, globalTP) {
     inv = confident ? auto : tp.invert;
   }
   var tr = traceLogo(it.url, img, tp.detail, tp.cutoff, inv, tp.eps, tp.cornerCos);
-  if (!tr || !tr.d) return '';
-  // Frame the content box when trimming (matching the cropped <img>), the whole
-  // grid when not (matching the untrimmed <img>).
+  if (!tr || !tr.d) return null;
+  // Frame the content box when trimming (matching the cropped image), the whole
+  // grid when not (matching the untrimmed image).
   var bx = it.trim ? box.fx * tr.cols : 0, by = it.trim ? box.fy * tr.rows : 0;
   var bw = Math.max(1e-3, (it.trim ? box.fw : 1) * tr.cols);
   var bh = Math.max(1e-3, (it.trim ? box.fh : 1) * tr.rows);
@@ -982,34 +1105,45 @@ async function buildItems(inputs, balance, trim, vectorizeAll) {
     return {
       index: i,
       url: url,
-      displayUrl: url,                          // full-colour <img> src; content-trimmed below
+      displayUrl: url,                          // full-colour <image> href; content-trimmed below
       name: ref && ref.meta && ref.meta.name ? ref.meta.name : '',
       isSvg: !!(ref && (ref.type === 'vector' || ref.format === 'svg')),
       // "Render as vector": the wall-wide toggle, or this logo's own.
-      vectorize: vectorizeAll || !!(b && b.vectorize),
+      vectorize: vectorizeAll || flag(b && b.vectorize),
       trim: trim,                               // margins trimmed (wall-wide toggle)
       opacity: clamp(num(b && b.opacity, 1), 0, 1),
       filter: (b && b.filter) || 'none',
       scale: s,
       pmul: presenceMul(b && b.presence),       // Presence tier → size multiplier
       size: s,
+      tier: tierName(b && b.tier),              // sponsor level: groups the wall
       // Per-logo vector overrides (only applied when `tune` is on; see buildVectorLogo).
-      tune: !!(b && b.tune),
+      tune: flag(b && b.tune),
       oThreshold: clamp(num(b && b.threshold, 55), 1, 99),
-      oInvert: !!(b && b.invert),
+      oInvert: flag(b && b.invert),
       oDetail: clamp(Math.round(num(b && b.detail, 200)), 24, 360),
       oSmoothing: clamp(num(b && b.smoothing, 60), 0, 100),
     };
   });
 
-  // Trim every logo to its content box (margins removed) so each <img> fills its
+  var withImage = items.filter(function (it) { return it.url; });
+  var knockout = inputs.knockout !== false;     // white-box removal, default on
+  // No canvas here: say which steps are skipped rather than failing the wall.
+  if (!canPixels() && withImage.length) {
+    if (trim) warnOnce('trim', 'Trim margins needs pixel access, which this shell does not have, so each logo keeps its own margins.');
+    if (trim && knockout && withImage.some(function (it) { return !it.isSvg; })) {
+      warnOnce('knockout', 'Remove white backgrounds needs pixel access, which this shell does not have, so image logos keep any white box.');
+    }
+    if (balance && withImage.length >= 2) warnOnce('balance', 'Balance sizes needs pixel access, which this shell does not have, so logos are sized by Size % and Presence only.');
+  }
+
+  // Trim every logo to its content box (margins removed) so each image fills its
   // cell by its ARTWORK, not by however generously the file was cropped - and so
   // toggling "Render as vector" never changes the apparent size. A raster is
   // canvas-cropped; an SVG gets its root viewBox rewritten to the same measured
   // box (no rasterising, no tracing - still vector, still full colour). Both need
-  // a browser canvas for the measurement; headless keeps the original src.
-  if (trim && canRaster()) {
-    var knockout = inputs.knockout !== false;   // white-box removal, default on
+  // a canvas for the measurement; without one the original src is kept.
+  if (trim && canPixels()) {
     await Promise.all(items.map(async function (it) {
       if (!it.url) return;
       var img = await getImage(it.url).catch(function () { return null; });
@@ -1025,7 +1159,7 @@ async function buildItems(inputs, balance, trim, vectorizeAll) {
   // reads evenly. Computed per logo, keyed by its index; logos without an image (or
   // when there are too few to balance, or headless) get a neutral factor of 1.
   var factors = {};
-  if (balance && canRaster()) {
+  if (balance && canPixels()) {
     var withUrl = items.filter(function (it) { return it.url; });
     if (withUrl.length >= 2) {
       var imgs = await Promise.all(withUrl.map(function (it) {
@@ -1069,30 +1203,152 @@ async function buildItems(inputs, balance, trim, vectorizeAll) {
   return items;
 }
 
-// ── step & repeat: tile the set into a backdrop ──────────────────────────────
-// The press-wall treatment: the whole logo set cycles to fill rows × columns.
-// 'grid' stacks rows squarely; 'brick' offsets alternate rows by half a cell
-// (offset rows carry one extra cell so both cropped edges stay filled); 'checker'
-// leaves alternating cells empty so the logos stagger diagonally with air between
-// them. Cells reference the SAME item objects buildItems produced, so balance,
-// presence, trims and any per-logo vector ink all apply to every copy for free.
-// The template renders rows with real flex layout and margin offsets - never CSS
-// transforms, which the SVG/PDF export walker doesn't honour - so a wall printed
-// on a bus or dropped behind a press photo exports exactly as previewed.
-function buildRepeatRows(items, cols, rows, mode) {
+// ── layout: every box in wall pixels ─────────────────────────────────────────
+// Each layout returns [{ it, cell: { x, y, w, h } }]. The logo's own box is then
+// size% of its cell on both axes, centred, and free to spill past the cell into
+// the gap (the old grid's overflow: visible).
+
+function logoBox(it, cell) {
+  var w = cell.w * it.size / 100, h = cell.h * it.size / 100;
+  return { x: cell.x + (cell.w - w) / 2, y: cell.y + (cell.h - h) / 2, w: w, h: h };
+}
+
+// The untiered wall: the CSS grid the template used before 1.5.0, reproduced.
+// `repeat(cols, minmax(0, 1fr))` columns, equal `1fr` rows stretched to fill the
+// height, gaps between, padding around, filled row by row from the left.
+function layoutGrid(items, o) {
+  var n = items.length, rows = Math.max(1, Math.ceil(n / o.cols));
+  var cw = Math.max(0, (WALL_W - 2 * o.padX - (o.cols - 1) * o.gapX) / o.cols);
+  var ch = Math.max(0, (WALL_H - 2 * o.padY - (rows - 1) * o.gapY) / rows);
+  return items.map(function (it, i) {
+    var c = i % o.cols, r = Math.floor(i / o.cols);
+    return { it: it, cell: { x: o.padX + c * (cw + o.gapX), y: o.padY + r * (ch + o.gapY), w: cw, h: ch } };
+  });
+}
+
+// Step & repeat: the press-wall treatment, where the whole logo set cycles to fill
+// rows × columns. 'grid' stacks rows squarely; 'brick' offsets alternate rows by
+// half a cell (offset rows carry one extra cell so both cropped edges stay
+// filled); 'checker' leaves alternating cells empty so the logos stagger
+// diagonally with air between them. Every copy is the SAME item buildItems
+// produced, so balance, presence, trims and vector ink apply to every copy. The
+// template clips the backdrop at the padding edge (wallClip).
+//
+// This reproduces the old flex rows, including one quirk kept on purpose so a saved
+// wall looks the same: an offset brick row was widened by its negative margin, and
+// its cells were a share of that WIDER row, so brick's offset rows draw their
+// logos slightly larger than the rows between them.
+function layoutRepeat(items, o, mode, rowsN) {
+  var innerW = Math.max(0, WALL_W - 2 * o.padX), innerH = Math.max(0, WALL_H - 2 * o.padY);
+  var cw = Math.max(0, (innerW - (o.cols - 1) * o.gapX) / o.cols);
+  var rh = Math.max(0, (innerH - (rowsN - 1) * o.gapY) / rowsN);
+  var shift = (cw + o.gapX) / 2;
   var out = [], k = 0;
-  for (var r = 0; r < rows; r++) {
+  for (var r = 0; r < rowsN; r++) {
     var offset = mode === 'brick' && (r % 2) === 1;
-    var count = cols + (offset ? 1 : 0);
-    var cells = [];
+    var count = o.cols + (offset ? 1 : 0);
+    var rowCw = offset ? Math.max(0, (innerW + shift - (o.cols - 1) * o.gapX) / o.cols) : cw;
+    var x0 = o.padX - (offset ? shift : 0), y = o.padY + r * (rh + o.gapY);
     for (var c = 0; c < count; c++) {
-      if (mode === 'checker' && ((r + c) % 2) === 1) { cells.push({ spacer: true }); continue; }
-      cells.push(items[k % items.length]);
+      if (mode === 'checker' && ((r + c) % 2) === 1) continue;
+      var it = items[k % items.length];
       k++;
+      out.push({ it: it, cell: { x: x0 + c * (rowCw + o.gapX), y: y, w: rowCw, h: rh } });
     }
-    out.push({ offset: offset, cells: cells });
   }
   return out;
+}
+
+// Tiers in the order each first appears; a blank tier is a group of its own
+// with no heading. Null when no logo carries a tier, so an untiered wall keeps
+// the plain grid. Grouping ignores case and spacing; the first spelling seen is
+// the heading.
+function tierGroups(items) {
+  if (!items.some(function (it) { return it.tier; })) return null;
+  var groups = [], byKey = {};
+  items.forEach(function (it) {
+    var key = it.tier.toLowerCase();
+    if (!byKey[key]) { byKey[key] = { name: it.tier, items: [] }; groups.push(byKey[key]); }
+    byKey[key].items.push(it);
+  });
+  return groups;
+}
+
+// The tiered wall. Each tier is its own block of rows: a heading (when tier
+// headings are on and the tier has a name), then its logos in rows, each row
+// centred. With "step" sizing, tier k takes Columns + k logos per row, so every
+// tier below the first draws smaller cells; "even" keeps Columns for all. Row
+// heights scale with each tier's cell width so a cell keeps its shape from tier
+// to tier, and the whole stack shares the height left after headings and gaps.
+// The first tier's cells are never taller than they are wide, and the stack is
+// centred, so a short wall does not push headings away from their logos.
+function layoutTiers(groups, o) {
+  var innerW = Math.max(0, WALL_W - 2 * o.padX), innerH = Math.max(0, WALL_H - 2 * o.padY);
+  var tierGap = o.headings ? o.gapY : Math.max(16, 2 * o.gapY);
+  var tiers = groups.map(function (g, k) {
+    var cols = clamp(o.sizing === 'even' ? o.cols : o.cols + k, 1, 12);
+    var cw = Math.max(0, (innerW - (cols - 1) * o.gapX) / cols);
+    return { g: g, cols: cols, cw: cw, rows: Math.ceil(g.items.length / cols), heading: !!(o.headings && g.name) };
+  });
+  // Headings never take more than about a third of the height, so a wall with many
+  // tiers keeps room for its logos: the type steps down from the usual size.
+  var nHeads = tiers.filter(function (t) { return t.heading; }).length;
+  var headSize = nHeads ? Math.max(11, Math.min(o.headingSize, Math.floor(innerH * 0.35 / (nHeads * 1.8)))) : o.headingSize;
+  var headBand = Math.round(headSize * 1.8);
+  var cw0 = tiers[0].cw || 1;
+  var fixed = 0, weight = 0;
+  tiers.forEach(function (t, k) {
+    t.ratio = t.cw / cw0;
+    fixed += (t.rows - 1) * o.gapY + (t.heading ? headBand : 0) + (k ? tierGap : 0);
+    weight += t.rows * t.ratio;
+  });
+  var unit = weight > 0 ? Math.max(0, (innerH - fixed) / weight) : 0;
+  unit = Math.min(unit, cw0);
+  var used = fixed + unit * weight;
+  var y = o.padY + Math.max(0, (innerH - used) / 2);
+  var cells = [], headings = [];
+  tiers.forEach(function (t, k) {
+    if (k) y += tierGap;
+    if (t.heading) {
+      headings.push({ text: t.g.name, x: f2(WALL_W / 2), y: f2(y + headSize), size: headSize });
+      y += headBand;
+    }
+    var ch = unit * t.ratio;
+    for (var r = 0; r < t.rows; r++) {
+      var row = t.g.items.slice(r * t.cols, (r + 1) * t.cols);
+      var rowW = row.length * t.cw + (row.length - 1) * o.gapX;
+      var x0 = o.padX + (innerW - rowW) / 2;
+      row.forEach(function (it, c) {
+        cells.push({ it: it, cell: { x: x0 + c * (t.cw + o.gapX), y: y, w: t.cw, h: ch } });
+      });
+      y += ch + (r < t.rows - 1 ? o.gapY : 0);
+    }
+  });
+  return { cells: cells, headings: headings };
+}
+
+// One placed logo for the template. An image: href + box, the template fits it
+// with "meet". A vector: the nested one-ink <svg>, built here because its box
+// differs per copy on a repeated wall.
+function placeCell(p) {
+  var it = p.it, box = logoBox(it, p.cell);
+  var cell = {
+    index: it.index,
+    name: it.name,
+    x: f2(box.x), y: f2(box.y), w: f2(Math.max(0, box.w)), h: f2(Math.max(0, box.h)),
+    opacity: f2(it.opacity),
+    dim: it.opacity < 1,
+    grey: it.filter === 'grayscale' && !it.vec,
+  };
+  if (it.vec) {
+    var vb = it.vec.vb;
+    cell.cellSvg = '<svg x="' + cell.x + '" y="' + cell.y + '" width="' + cell.w + '" height="' + cell.h + '" '
+      + 'viewBox="' + f2(vb.x) + ' ' + f2(vb.y) + ' ' + f2(vb.w) + ' ' + f2(vb.h) + '" '
+      + 'preserveAspectRatio="xMidYMid meet">' + it.vec.inner + '</svg>';
+  } else {
+    cell.href = it.href;
+  }
+  return cell;
 }
 
 // ── lifecycle ────────────────────────────────────────────────────────────────
@@ -1105,41 +1361,92 @@ async function compute(model) {
   var trim = inputs.trim !== false;               // content-box margin trim, default on
   var vectorizeAll = inputs.vectorizeAll === true; // wall-wide "Render all as vector"
 
-  // One render list for both modes - the template lays them out in a single CSS grid,
-  // each cell an <img> (raster) or a one-ink inline <svg> ("Render as vector",
-  // wall-wide or per logo).
+  // One render list for every layout: each logo an image or a one-ink vector
+  // ("Render as vector", wall-wide or per logo).
   var items = await buildItems(inputs, balance, trim, vectorizeAll);
 
-  // Build the inline SVG for each vectorised logo. Pixel tracing needs a real browser
-  // canvas; in a headless shell (or on failure) the logo keeps its <img>.
-  if (canRaster()) {
-    var ink = color(inputs.inkColor, '#0c322c');
-    var globalTP = traceParams(inputs.threshold, inputs.invert, inputs.detail, inputs.smoothing);
-    await Promise.all(items.map(async function (it) {
-      if (!it.vectorize || !it.url) return;
-      try { it.cellSvg = await buildVectorLogo(it, ink, globalTP); }
-      catch (e) { if (host.log) host.log('warn', 'logo-wall: vectorise failed', { error: String(e) }); }
-    }));
+  // Build the vector for each vectorised logo. Tracing an image needs a canvas;
+  // recolouring an SVG does not. Whatever cannot be built keeps its image.
+  var ink = color(inputs.inkColor, '#0c322c');
+  var globalTP = traceParams(inputs.threshold, inputs.invert, inputs.detail, inputs.smoothing);
+  var untraced = 0;
+  await Promise.all(items.map(async function (it) {
+    if (!it.vectorize || !it.url) return;
+    try { it.vec = await buildVectorLogo(it, ink, globalTP); }
+    catch (e) { if (host.log) host.log('warn', 'logo-wall: vectorise failed', { error: String(e) }); }
+    if (!it.vec && !it.isSvg && !canPixels()) untraced++;
+  }));
+  if (untraced) {
+    warnOnce('vectorize', 'Render as vector needs pixel access to trace an image logo, which this shell does not have, so '
+      + untraced + (untraced === 1 ? ' image logo stays a picture.' : ' image logos stay pictures.') + ' SVG logos are still recoloured.');
   }
+
+  // Each drawn logo carries its own bytes, so the exported .svg stands alone.
+  await Promise.all(items.map(async function (it) {
+    if (it.url && !it.vec) it.href = await embedHref(it.displayUrl || it.url, it.isSvg);
+  }));
 
   pruneCaches(items.map(function (it) { return it.url; }));
   // Only blocks with an image occupy a cell (each keeps its original index for
-  // canvas click-to-focus), so an imageless block never leaves a gap and both modes
-  // lay out the same.
+  // canvas click-to-focus), so an imageless block never leaves a gap.
   var visible = items.filter(function (it) { return it.url; });
 
-  // Step & repeat: with a mode selected and at least one logo, hand the template
-  // rows instead of the single grid. wallRows must be explicitly null when off -
-  // extras persist between runs, so leaving it undefined would strand a stale
-  // backdrop after the user switches Repeat back off.
+  var o = {
+    cols: clamp(Math.round(num(inputs.columns, 4)), 1, 10),
+    gapX: clamp(num(inputs.gap, 32), 0, 400),
+    gapY: clamp(num(inputs.gapY, 32), 0, 400),
+    padX: clamp(num(inputs.padding, 48), 0, 600),
+    padY: clamp(num(inputs.paddingY, 48), 0, 600),
+    headings: inputs.tierHeadings !== false,
+    sizing: inputs.tierSizing === 'even' ? 'even' : 'step',
+    headingSize: 22,
+  };
+  // Step & repeat ignores tiers: a backdrop cycles the whole set in its own order.
   var mode = typeof inputs.repeat === 'string' ? inputs.repeat : 'off';
   var doRepeat = (mode === 'grid' || mode === 'brick' || mode === 'checker') && visible.length > 0;
-  var cols = clamp(Math.round(num(inputs.columns, 4)), 1, 10);
-  var rows = clamp(Math.round(num(inputs.repeatRows, 6)), 2, 16);
+  var groups = doRepeat ? null : tierGroups(visible);
+  var placed, headings = [];
+  if (!visible.length) placed = [];
+  else if (doRepeat) placed = layoutRepeat(visible, o, mode, clamp(Math.round(num(inputs.repeatRows, 6)), 2, 16));
+  else if (groups) { var t = layoutTiers(groups, o); placed = t.cells; headings = t.headings; }
+  else placed = layoutGrid(visible, o);
+
+  var cells = placed.map(placeCell);
+  var defs = '';
+  if (cells.some(function (c) { return c.grey; })) {
+    // CSS grayscale(1) as an SVG filter: the same luminance weights, in sRGB.
+    defs += '<filter id="lw-grey" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/></filter>';
+  }
+  if (doRepeat) {
+    defs += '<clipPath id="lw-clip"><rect x="' + f2(o.padX) + '" y="' + f2(o.padY) + '" width="'
+      + f2(Math.max(0, WALL_W - 2 * o.padX)) + '" height="' + f2(Math.max(0, WALL_H - 2 * o.padY)) + '"/></clipPath>';
+  }
+  // Every extra is set on every run: extras persist between runs, so one left
+  // unset would strand a stale value after the input that produced it changes.
   return {
-    wallItems: visible,
-    wallRows: doRepeat ? buildRepeatRows(visible, cols, rows, mode) : null,
+    wallW: WALL_W,
+    wallH: WALL_H,
+    wallBg: _transparent ? '' : (/^\s*(transparent|none)?\s*$/i.test(String(inputs.background || '')) ? '' : _bg),
+    wallCells: cells,
+    wallHeadings: headings,
+    wallFont: headings.length ? await brandFont() : '',
+    wallDefs: defs ? '<defs>' + defs + '</defs>' : '',
+    wallClip: doRepeat,
   };
+}
+
+// The brand's own face for tier headings. Headless SVG has no CSS cascade, so the
+// family travels as an attribute, the way the palette tool carries it.
+async function brandFont() {
+  var family = '';
+  if (host.tokens && host.tokens.resolve) {
+    try {
+      var v = await host.tokens.resolve('{font.brand}');
+      if (Array.isArray(v)) v = v.join(', ');
+      if (typeof v === 'string' && v.trim() && v.charAt(0) !== '{') family = v;
+    } catch (e) { /* the generic stack below draws it */ }
+  }
+  return family ? family + ', sans-serif' : 'sans-serif';
 }
 
 function onInit(ctx) { return compute(ctx.model); }

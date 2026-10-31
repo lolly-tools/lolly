@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "ইনভার্ট",
   "inputs.logos.fields.invert.help": "সাদা বা ফ্যাকাশে লোগোর জন্য।",
   "inputs.logos.fields.detail.label": "ডিটেইল",
-  "inputs.logos.fields.smoothing.label": "স্মুদিং"
+  "inputs.logos.fields.smoothing.label": "স্মুদিং",
+  "inputs.logos.fields.tier.label": "স্তর",
+  "inputs.logos.fields.tier.help": "স্পনসর স্তর অনুযায়ী লোগো গ্রুপ করুন। একই স্তরের লোগো নিজস্ব সারিতে একসাথে থাকে, প্রতিটি স্তর যে ক্রমে প্রথম দেখা দেয় সেই ক্রমে, স্তরের নামের শিরোনামের নিচে। একটি সমান গ্রিডের জন্য সব স্তর খালি রাখুন।",
+  "inputs.tierHeadings.label": "স্তরের শিরোনাম",
+  "inputs.tierHeadings.section": "স্তর",
+  "inputs.tierHeadings.help": "প্রতিটি স্তরের নাম তার লোগোগুলোর গ্রুপের উপরে দেখান। শুধু তখনই প্রযোজ্য যখন লোগোর স্তর থাকে।",
+  "inputs.tierSizing.label": "স্তরের আকার",
+  "inputs.tierSizing.section": "স্তর",
+  "inputs.tierSizing.help": "“ধাপে কমানো” প্রথম স্তরের পরের প্রতিটি স্তরের জন্য সারিতে আরও একটি করে লোগো বসায়, ফলে উঁচু স্তর বড় দেখায়। “একই আকার” প্রতিটি স্তরকে কলাম সেটিং দেয়। উপস্থিতি, আকার % ও আকারের ভারসাম্য তবুও প্রতিটি লোগোর ক্ষেত্রে প্রযোজ্য।",
+  "inputs.tierSizing.options.step": "ধাপে কমানো",
+  "inputs.tierSizing.options.even": "একই আকার",
+  "inputs.headingColor.label": "শিরোনামের রং",
+  "inputs.headingColor.section": "স্তর",
+  "inputs.headingColor.help": "স্তরের শিরোনামের রং।"
 }

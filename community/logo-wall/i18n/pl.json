@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Odwróć",
   "inputs.logos.fields.invert.help": "Dla białego lub bladego logo.",
   "inputs.logos.fields.detail.label": "Szczegół",
-  "inputs.logos.fields.smoothing.label": "Wygładzanie"
+  "inputs.logos.fields.smoothing.label": "Wygładzanie",
+  "inputs.logos.fields.tier.label": "Poziom",
+  "inputs.logos.fields.tier.help": "Grupuj logo według poziomu sponsora. Logo z tym samym poziomem stoją razem we własnych rzędach, w kolejności, w jakiej każdy poziom pojawia się po raz pierwszy, pod nagłówkiem z nazwą poziomu. Zostaw wszystkie poziomy puste, aby uzyskać jedną równą siatkę.",
+  "inputs.tierHeadings.label": "Nagłówki poziomów",
+  "inputs.tierHeadings.section": "Poziomy",
+  "inputs.tierHeadings.help": "Pokazuje nazwę każdego poziomu nad grupą jego logo. Działa tylko wtedy, gdy logo mają poziom.",
+  "inputs.tierSizing.label": "Rozmiary poziomów",
+  "inputs.tierSizing.section": "Poziomy",
+  "inputs.tierSizing.help": "Schodkowo dodaje po jednym logo w rzędzie dla każdego poziomu poniżej pierwszego, więc wyższe poziomy wyglądają na większe. Ten sam rozmiar daje każdemu poziomowi ustawienie Kolumny. Obecność, Rozmiar % i Balansuj rozmiary nadal działają dla każdego logo.",
+  "inputs.tierSizing.options.step": "Schodkowo",
+  "inputs.tierSizing.options.even": "Ten sam rozmiar",
+  "inputs.headingColor.label": "Kolor nagłówków",
+  "inputs.headingColor.section": "Poziomy",
+  "inputs.headingColor.help": "Kolor nagłówków poziomów."
 }

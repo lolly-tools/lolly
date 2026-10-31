@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Інвертувати",
   "inputs.logos.fields.invert.help": "Для білого або бляклого логотипа.",
   "inputs.logos.fields.detail.label": "Деталі",
-  "inputs.logos.fields.smoothing.label": "Згладжування"
+  "inputs.logos.fields.smoothing.label": "Згладжування",
+  "inputs.logos.fields.tier.label": "Рівень",
+  "inputs.logos.fields.tier.help": "Згрупуйте логотипи за рівнем спонсора. Логотипи з однаковим рівнем стоять разом у власних рядах, у порядку, в якому кожен рівень з'являється вперше, під заголовком із назвою рівня. Залиште всі рівні порожніми, щоб отримати одну рівномірну сітку.",
+  "inputs.tierHeadings.label": "Заголовки рівнів",
+  "inputs.tierHeadings.section": "Рівні",
+  "inputs.tierHeadings.help": "Показує назву кожного рівня над групою його логотипів. Діє лише тоді, коли логотипи мають рівень.",
+  "inputs.tierSizing.label": "Розміри рівнів",
+  "inputs.tierSizing.section": "Рівні",
+  "inputs.tierSizing.help": "Сходинками додає ще один логотип у рядок за кожен рівень після першого, тож вищі рівні виглядають більшими. Однаковий розмір дає кожному рівню налаштування Колонки. Присутність, Розмір % і Балансувати розміри і далі діють для кожного логотипа.",
+  "inputs.tierSizing.options.step": "Сходинками",
+  "inputs.tierSizing.options.even": "Однаковий розмір",
+  "inputs.headingColor.label": "Колір заголовків",
+  "inputs.headingColor.section": "Рівні",
+  "inputs.headingColor.help": "Колір заголовків рівнів."
 }

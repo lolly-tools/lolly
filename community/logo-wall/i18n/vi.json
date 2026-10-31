@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Đảo ngược",
   "inputs.logos.fields.invert.help": "Dành cho logo màu trắng hoặc nhạt.",
   "inputs.logos.fields.detail.label": "Chi tiết",
-  "inputs.logos.fields.smoothing.label": "Làm mượt"
+  "inputs.logos.fields.smoothing.label": "Làm mượt",
+  "inputs.logos.fields.tier.label": "Hạng",
+  "inputs.logos.fields.tier.help": "Nhóm logo theo hạng nhà tài trợ. Các logo cùng hạng nằm cùng nhau trong những hàng riêng, theo thứ tự mỗi hạng xuất hiện lần đầu, dưới tiêu đề là tên hạng. Để trống mọi hạng để có một lưới đều.",
+  "inputs.tierHeadings.label": "Tiêu đề hạng",
+  "inputs.tierHeadings.section": "Hạng",
+  "inputs.tierHeadings.help": "Hiện tên từng hạng phía trên nhóm logo của hạng đó. Chỉ áp dụng khi logo có hạng.",
+  "inputs.tierSizing.label": "Kích thước theo hạng",
+  "inputs.tierSizing.section": "Hạng",
+  "inputs.tierSizing.help": "Giảm dần thêm một logo mỗi hàng cho mỗi hạng sau hạng đầu, nên các hạng cao trông lớn hơn. Cùng kích thước áp dụng thiết lập Số cột cho mọi hạng. Mức nổi bật, Kích thước % và Cân bằng kích thước vẫn áp dụng cho từng logo.",
+  "inputs.tierSizing.options.step": "Giảm dần",
+  "inputs.tierSizing.options.even": "Cùng kích thước",
+  "inputs.headingColor.label": "Màu tiêu đề",
+  "inputs.headingColor.section": "Hạng",
+  "inputs.headingColor.help": "Màu của các tiêu đề hạng."
 }

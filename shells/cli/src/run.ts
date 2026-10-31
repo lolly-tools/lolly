@@ -9,7 +9,7 @@
  */
 
 import { readFile, writeFile, stat } from 'node:fs/promises';
-import { resolve, basename, extname } from 'node:path';
+import { resolve, basename, dirname, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
@@ -19,6 +19,7 @@ import type { Lang } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
 import { prerenderSongInputs } from '@lolly-tools/node-shell/audio';
 import type { InputValue } from '../../../engine/src/inputs.ts';
+import { syntheticInputs } from '../../../engine/src/inputs.ts';
 import type { Runtime } from '../../../engine/src/runtime.ts';
 // NODE_FORMATS: the DOM-free/raster format split, shared with the TUI. Everything not
 // in it - raster, pdf, video - is produced by raster.ts (resvg fast path, else the
@@ -90,6 +91,9 @@ interface RunToolCliArgs {
    *  Office / Google Drawings, per-run outline fallback), with `--text=outline`
    *  forcing the old text-as-paths output. wmf/eps/dxf are always outlined. */
   text?: 'outline' | 'live';
+  /** Arguments after the tool id: local pictures for the tool's one `dropToAdd`
+   *  blocks input, one row each (block-files.ts). A tool with none refuses them. */
+  files?: readonly string[];
   /** The installed binary rejects unknown argv flags. Programmatic callers keep
    * the historical warning default; pasted links may name tolerated URL keys. */
   rejectUnknown?: boolean;
@@ -338,7 +342,7 @@ async function designSystemForRun(
   return { runDesignSystem: null, pageDesignSystem: doc };
 }
 
-async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, fetchFile: fetchFileOverride, browserTier = true }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
+async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, fetchFile: fetchFileOverride, browserTier = true, files = [] }: RunToolCliArgs, capture?: (value: { bytes: Uint8Array; contract: import('@lolly/engine').ProductionSpec; report: import('@lolly/engine').ProductionReport }) => void): Promise<void> {
   const productionPath = params.production, productionReference = params['production-reference'], productionReport = params['production-report'];
   if (productionPath && share) throw new Error('Production verification requires rendered bytes.');
   if (!productionPath && (productionReference || productionReport)) throw new Error('Production options require --production.');
@@ -666,6 +670,22 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     const text = await readImportText(dataPath, input.id);
     values[input.id] = text as (typeof values)[string];
     note(`✓ Filled --${input.id} from ${dataPath} (${text.length} chars)`);
+  }
+
+  // Local pictures into blocks rows (block-files.ts): a path written into a row's
+  // asset field is read from disk, then files given as arguments, `--<id>-file` or
+  // a `--<id>-files` list each become one row of a dropToAdd input, as a drop does.
+  {
+    const { appendDroppedFiles, bakeLocalBlockAssets } = await import('./block-files.ts');
+    const dataDirs: Record<string, string> = {};
+    for (const input of tool.manifest.inputs ?? []) {
+      const dataPath = params[`${input.id}-data`];
+      if (input.type === 'blocks' && dataPath) dataDirs[input.id] = dirname(resolve(process.cwd(), dataPath));
+    }
+    await bakeLocalBlockAssets(tool.manifest, values as Record<string, unknown>, { dataDirs });
+    for (const { inputId, added } of await appendDroppedFiles({ manifest: tool.manifest, params, repeated, positionals: files, values: values as Record<string, unknown>, readStdin })) {
+      note(`✓ Added ${added} picture${added === 1 ? '' : 's'} to --${inputId}`);
+    }
   }
 
   // `--document=<design.json|->` (plan 291 W5): a whole Design document, in any shape
@@ -1993,15 +2013,21 @@ export function explicitInputValues(
  */
 export function unknownFlags(
   params: Record<string, string>,
-  manifest: { inputs?: Array<{ id: string; urlKey?: string; type?: string }> },
+  manifest: { inputs?: Array<{ id: string; urlKey?: string; type?: string; dropToAdd?: unknown }>; render?: { transparentBg?: boolean; convertPaths?: boolean; formats?: string[] } },
 ): string[] {
   const inputs = manifest.inputs ?? [];
-  const known = new Set<string>();
+  // The render options the engine adds as inputs (`transparentBg`, `convertPaths`):
+  // parseUrlState reads them like declared ones, so they are flags here too.
+  const known = new Set<string>(syntheticInputs({ render: manifest.render }).map(i => i.id));
   for (const i of inputs) {
     known.add(i.id);
     if (i.urlKey) known.add(i.urlKey);
     known.add(`${i.id}-data`);          // --<blocks|table|text|longtext>-data=rows.csv|.xlsx
     known.add(`${i.id}-sheet`);         // --<input>-sheet=<name|index> (which .xlsx sheet)
+    if (i.type === 'blocks' && i.dropToAdd) {
+      known.add(`${i.id}-file`);        // --<blocks>-file=<picture>, repeatable (block-files.ts)
+      known.add(`${i.id}-files`);       // --<blocks>-files=<path list|->
+    }
   }
   const prefixes = inputs.map(i => `${i.id}.`);   // --<vector>.<field>=<number>
   return Object.keys(params).filter(
@@ -2014,7 +2040,7 @@ export function unknownFlags(
 
 function warnUnknownFlags(
   params: Record<string, string>,
-  manifest: { id: string; inputs?: Array<{ id: string; urlKey?: string }> },
+  manifest: { id: string; inputs?: Array<{ id: string; urlKey?: string }>; render?: { transparentBg?: boolean; convertPaths?: boolean; formats?: string[] } },
   opts: { reject?: boolean; tolerated?: ReadonlySet<string> } = {},
 ): void {
   const unknown = unknownFlags(params, manifest).filter(k => !opts.tolerated?.has(k));
@@ -2412,7 +2438,10 @@ export async function showToolInputsCli(toolId: string, opts: { lang?: Lang; jso
     ? ` --${RESERVED.has(exampleInput.id) ? `input.${exampleInput.id}` : exampleInput.id}=${/\s/.test(exampleValue) ? JSON.stringify(exampleValue) : exampleValue}`
     : '';
   const format = tool.manifest.render.formats.includes('svg') ? 'svg' : tool.manifest.render.formats[0];
-  process.stdout.write(`\nTry it:\n  lolly ${tool.manifest.id}${exampleFlag} --output=${tool.manifest.id}.${format}\n\n`);
+  // A tool that takes dropped pictures is tried with pictures (block-files.ts).
+  const dropInputs = allInputs.filter(i => i.type === 'blocks' && (i as { dropToAdd?: unknown }).dropToAdd);
+  const tryArgs = dropInputs.length === 1 ? ' pictures/*.png' : exampleFlag;
+  process.stdout.write(`\nTry it:\n  lolly ${tool.manifest.id}${tryArgs} --output=${tool.manifest.id}.${format}\n\n`);
 
   const essentials = allInputs.filter(i => i.required || !i.showIf).slice(0, 8);
   const shown = opts.full ? allInputs : essentials;
@@ -2426,7 +2455,7 @@ export async function showToolInputsCli(toolId: string, opts: { lang?: Lang; jso
     const def = i.default !== undefined ? ` (default: ${JSON.stringify(i.default)})` : '';
     process.stdout.write(`  --${i.id}=<${i.type}>${req}${def}\n`);
     if (i.help) process.stdout.write(`      ${i.help}\n`);
-    const hint = syntaxHint(i.id, i.type);
+    const hint = syntaxHint(i.id, i.type, (i as { dropToAdd?: unknown }).dropToAdd);
     if (hint) process.stdout.write(`      ↳ ${hint}\n`);
   }
   if (!opts.full && shown.length < allInputs.length) {
@@ -2466,7 +2495,7 @@ async function describeToolJson(manifest: DescribableManifest): Promise<void> {
   const unmet = unmetCapabilities(manifest);
   const inputs = (manifest.inputs ?? []).map(i => {
     const shadowed = RESERVED.has(i.id) || (i.urlKey ? RESERVED.has(i.urlKey) : false);
-    const syntax = syntaxHint(i.id, i.type);
+    const syntax = syntaxHint(i.id, i.type, (i as { dropToAdd?: unknown }).dropToAdd);
     return {
       ...i,
       flag: shadowed ? `--input.${i.id}=` : `--${i.id}=`,
@@ -2500,10 +2529,12 @@ async function describeToolJson(manifest: DescribableManifest): Promise<void> {
 
 /** URL-mode syntax hint for the non-scalar input types, so the CLI's `<tool>` help
  *  explains how to actually express them (the forms are otherwise undocumented). */
-function syntaxHint(id: string, type: string): string {
+function syntaxHint(id: string, type: string, dropToAdd?: unknown): string {
   switch (type) {
     case 'asset':   return 'a catalog id (see `lolly assets`), a local image file, or a lolly.tools tool URL';
-    case 'blocks':  return `a JSON array --${id}='[{…}]', tilde rows --${id}='label,val,#hex~…', or a data file --${id}-data=rows.csv`;
+    case 'blocks':  return `a JSON array --${id}='[{…}]', tilde rows --${id}='label,val,#hex~…', or a data file --${id}-data=rows.csv`
+      // A list that takes dropped pictures takes local files too (block-files.ts).
+      + (dropToAdd ? `; or pictures, one row each: files after the tool id, --${id}-file=<picture> (repeat it) or --${id}-files=<paths.txt|->` : '');
     case 'vector':  return `one flag per field, e.g. --${id}.<field>=<number>`;
     case 'file':    return 'a path to your file (read locally, never uploaded)';
     case 'color':   return '#RRGGBB (the # is optional) or a token path';

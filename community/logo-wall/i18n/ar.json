@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "عكس",
   "inputs.logos.fields.invert.help": "للشعارات البيضاء أو الفاتحة.",
   "inputs.logos.fields.detail.label": "التفاصيل",
-  "inputs.logos.fields.smoothing.label": "التنعيم"
+  "inputs.logos.fields.smoothing.label": "التنعيم",
+  "inputs.logos.fields.tier.label": "المستوى",
+  "inputs.logos.fields.tier.help": "جمّع الشعارات حسب مستوى الرعاية. تظهر الشعارات ذات المستوى نفسه معًا في صفوفها الخاصة، بترتيب ظهور كل مستوى لأول مرة، تحت عنوان باسم المستوى. اترك كل المستويات فارغة للحصول على شبكة واحدة متساوية.",
+  "inputs.tierHeadings.label": "عناوين المستويات",
+  "inputs.tierHeadings.section": "المستويات",
+  "inputs.tierHeadings.help": "اعرض اسم كل مستوى فوق مجموعة شعاراته. يُطبَّق فقط عندما يكون للشعارات مستوى.",
+  "inputs.tierSizing.label": "أحجام المستويات",
+  "inputs.tierSizing.section": "المستويات",
+  "inputs.tierSizing.help": "«تدرّج تنازلي» يضع شعارًا إضافيًا في الصف لكل مستوى بعد الأول، فتبدو المستويات الأعلى أكبر. «الحجم نفسه» يعطي كل مستوى إعداد الأعمدة. ويظل الحضور والحجم % وموازنة الأحجام مطبقًا على كل شعار.",
+  "inputs.tierSizing.options.step": "تدرّج تنازلي",
+  "inputs.tierSizing.options.even": "الحجم نفسه",
+  "inputs.headingColor.label": "لون العناوين",
+  "inputs.headingColor.section": "المستويات",
+  "inputs.headingColor.help": "لون عناوين المستويات."
 }

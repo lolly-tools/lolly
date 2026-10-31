@@ -148,6 +148,13 @@
           "vectorize": true,
           "tune": true
         }
+      },
+      {
+        "id": "tier",
+        "label": "Tier",
+        "type": "text",
+        "default": "",
+        "help": "Group logos by sponsor level. Logos with the same tier sit together in their own rows, in the order each tier first appears, under that tier as a heading. Leave every tier empty for one even grid."
       }
     ],
     "default": []
@@ -211,6 +218,41 @@
     "step": 1,
     "default": 48,
     "help": "Breathing room above and below the wall."
+  },
+  {
+    "id": "tierHeadings",
+    "section": "Tiers",
+    "label": "Tier headings",
+    "type": "boolean",
+    "default": true,
+    "help": "Show each tier's name above its group of logos. Only applies when logos have a tier."
+  },
+  {
+    "id": "tierSizing",
+    "section": "Tiers",
+    "label": "Tier sizes",
+    "type": "select",
+    "display": "segmented",
+    "default": "step",
+    "help": "Step down puts one more logo in a row for each tier below the first, so higher tiers read larger. Same size gives every tier the Columns setting. Presence, Size % and Balance sizes still apply to each logo.",
+    "options": [
+      {
+        "value": "step",
+        "label": "Step down"
+      },
+      {
+        "value": "even",
+        "label": "Same size"
+      }
+    ]
+  },
+  {
+    "id": "headingColor",
+    "section": "Tiers",
+    "label": "Heading colour",
+    "type": "color",
+    "default": "{color.semantic.text}",
+    "help": "The colour of the tier headings."
   },
   {
     "id": "background",

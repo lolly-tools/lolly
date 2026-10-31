@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "반전",
   "inputs.logos.fields.invert.help": "흰색이나 연한 색 로고에 사용해요.",
   "inputs.logos.fields.detail.label": "디테일",
-  "inputs.logos.fields.smoothing.label": "스무딩"
+  "inputs.logos.fields.smoothing.label": "스무딩",
+  "inputs.logos.fields.tier.label": "등급",
+  "inputs.logos.fields.tier.help": "스폰서 등급별로 로고를 묶어요. 같은 등급의 로고는 각자의 행에 함께 놓이며, 각 등급이 처음 나타나는 순서대로 등급 이름 제목 아래에 표시돼요. 모든 등급을 비워 두면 하나의 균일한 그리드가 돼요.",
+  "inputs.tierHeadings.label": "등급 제목",
+  "inputs.tierHeadings.section": "등급",
+  "inputs.tierHeadings.help": "각 등급의 이름을 로고 그룹 위에 표시해요. 로고에 등급이 있을 때만 적용돼요.",
+  "inputs.tierSizing.label": "등급 크기",
+  "inputs.tierSizing.section": "등급",
+  "inputs.tierSizing.help": "'단계적 축소'는 첫 번째 등급 아래 등급마다 한 행에 로고를 하나 더 넣어서 높은 등급이 더 크게 보이게 해요. '같은 크기'는 모든 등급에 '열' 설정을 적용해요. '존재감', '크기 %', '크기 균형'은 각 로고에 그대로 적용돼요.",
+  "inputs.tierSizing.options.step": "단계적 축소",
+  "inputs.tierSizing.options.even": "같은 크기",
+  "inputs.headingColor.label": "제목 색상",
+  "inputs.headingColor.section": "등급",
+  "inputs.headingColor.help": "등급 제목의 색상이에요."
 }

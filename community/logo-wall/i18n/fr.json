@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Inverser",
   "inputs.logos.fields.invert.help": "Pour un logo blanc ou pâle.",
   "inputs.logos.fields.detail.label": "Détail",
-  "inputs.logos.fields.smoothing.label": "Lissage"
+  "inputs.logos.fields.smoothing.label": "Lissage",
+  "inputs.logos.fields.tier.label": "Niveau",
+  "inputs.logos.fields.tier.help": "Regroupez les logos par niveau de sponsoring. Les logos d'un même niveau se placent ensemble sur leurs propres lignes, dans l'ordre où chaque niveau apparaît pour la première fois, sous un titre portant le nom du niveau. Laissez tous les niveaux vides pour une seule grille régulière.",
+  "inputs.tierHeadings.label": "Titres des niveaux",
+  "inputs.tierHeadings.section": "Niveaux",
+  "inputs.tierHeadings.help": "Affiche le nom de chaque niveau au-dessus de son groupe de logos. S'applique uniquement si les logos ont un niveau.",
+  "inputs.tierSizing.label": "Tailles des niveaux",
+  "inputs.tierSizing.section": "Niveaux",
+  "inputs.tierSizing.help": "« Dégressif » place un logo de plus par ligne pour chaque niveau après le premier, si bien que les niveaux élevés paraissent plus grands. « Même taille » donne à chaque niveau le réglage Colonnes. Présence, Taille % et Équilibrer les tailles s'appliquent toujours à chaque logo.",
+  "inputs.tierSizing.options.step": "Dégressif",
+  "inputs.tierSizing.options.even": "Même taille",
+  "inputs.headingColor.label": "Couleur des titres",
+  "inputs.headingColor.section": "Niveaux",
+  "inputs.headingColor.help": "La couleur des titres de niveau."
 }

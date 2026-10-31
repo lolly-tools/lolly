@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Umkehren",
   "inputs.logos.fields.invert.help": "Für ein weißes oder helles Logo.",
   "inputs.logos.fields.detail.label": "Detailgrad",
-  "inputs.logos.fields.smoothing.label": "Glättung"
+  "inputs.logos.fields.smoothing.label": "Glättung",
+  "inputs.logos.fields.tier.label": "Stufe",
+  "inputs.logos.fields.tier.help": "Gruppieren Sie Logos nach Sponsorenstufe. Logos mit derselben Stufe stehen zusammen in eigenen Zeilen, in der Reihenfolge, in der jede Stufe zum ersten Mal vorkommt, unter einer Überschrift mit dem Namen der Stufe. Lassen Sie alle Stufen leer, um ein einheitliches Raster zu erhalten.",
+  "inputs.tierHeadings.label": "Stufenüberschriften",
+  "inputs.tierHeadings.section": "Stufen",
+  "inputs.tierHeadings.help": "Zeigt den Namen jeder Stufe über ihrer Logogruppe an. Gilt nur, wenn Logos eine Stufe haben.",
+  "inputs.tierSizing.label": "Stufengrößen",
+  "inputs.tierSizing.section": "Stufen",
+  "inputs.tierSizing.help": "„Abgestuft“ setzt für jede Stufe nach der ersten ein Logo mehr in eine Zeile, sodass höhere Stufen größer wirken. „Gleiche Größe“ gibt jeder Stufe die Einstellung Spalten. Präsenz, Größe % und Größen ausgleichen gelten weiterhin für jedes Logo.",
+  "inputs.tierSizing.options.step": "Abgestuft",
+  "inputs.tierSizing.options.even": "Gleiche Größe",
+  "inputs.headingColor.label": "Überschriftenfarbe",
+  "inputs.headingColor.section": "Stufen",
+  "inputs.headingColor.help": "Die Farbe der Stufenüberschriften."
 }

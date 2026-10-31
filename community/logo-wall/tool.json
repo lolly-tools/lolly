@@ -2,17 +2,18 @@
   "id": "logo-wall",
   "name": "Logo Wall",
   "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-  "version": "1.4.3",
+  "version": "1.5.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
-  "tags": ["logo", "lockup", "wall", "grid", "nascar", "logos", "brand", "partners", "customers", "sponsors", "clients", "montage", "cloud", "vector", "threshold", "on-device"],
+  "tags": ["logo", "lockup", "wall", "grid", "nascar", "logos", "brand", "partners", "customers", "sponsors", "clients", "montage", "cloud", "vector", "threshold", "tiers", "on-device"],
   "a11yLabel": "A grid of {{logos.length}} logos",
   "render": {
     "sectionIcons": {
       "Layout": "grid",
       "Vector ink": "droplet",
-      "Step & repeat": "repeat"
+      "Step & repeat": "repeat",
+      "Tiers": "layers"
     },
     "width": 1280,
     "height": 720,
@@ -59,7 +60,9 @@
         { "id": "invert", "label": "Invert", "type": "boolean", "default": false, "showIf": { "vectorize": true, "tune": true },
           "help": "For a white or pale logo." },
         { "id": "detail", "label": "Detail", "type": "number", "display": "slider", "min": 80, "max": 320, "step": 10, "default": 200, "showIf": { "vectorize": true, "tune": true } },
-        { "id": "smoothing", "label": "Smoothing", "type": "number", "display": "slider", "min": 0, "max": 100, "step": 5, "default": 60, "showIf": { "vectorize": true, "tune": true } }
+        { "id": "smoothing", "label": "Smoothing", "type": "number", "display": "slider", "min": 0, "max": 100, "step": 5, "default": 60, "showIf": { "vectorize": true, "tune": true } },
+        { "id": "tier", "label": "Tier", "type": "text", "default": "",
+          "help": "Group logos by sponsor level. Logos with the same tier sit together in their own rows, in the order each tier first appears, under that tier as a heading. Leave every tier empty for one even grid." }
       ],
       "default": []
     },
@@ -122,6 +125,35 @@
       "step": 1,
       "default": 48,
       "help": "Breathing room above and below the wall."
+    },
+    {
+      "id": "tierHeadings",
+      "section": "Tiers",
+      "label": "Tier headings",
+      "type": "boolean",
+      "default": true,
+      "help": "Show each tier's name above its group of logos. Only applies when logos have a tier."
+    },
+    {
+      "id": "tierSizing",
+      "section": "Tiers",
+      "label": "Tier sizes",
+      "type": "select",
+      "display": "segmented",
+      "default": "step",
+      "help": "Step down puts one more logo in a row for each tier below the first, so higher tiers read larger. Same size gives every tier the Columns setting. Presence, Size % and Balance sizes still apply to each logo.",
+      "options": [
+        { "value": "step", "label": "Step down" },
+        { "value": "even", "label": "Same size" }
+      ]
+    },
+    {
+      "id": "headingColor",
+      "section": "Tiers",
+      "label": "Heading colour",
+      "type": "color",
+      "default": "{color.semantic.text}",
+      "help": "The colour of the tier headings."
     },
     {
       "id": "background",

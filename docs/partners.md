@@ -86,17 +86,19 @@ When an agent does the work, give the agent the lead brand's skills and the part
 The [Logo Wall](/#/tool/logo-wall) tool arranges a pile of logos into an even grid, for a sponsor board, a partner slide or a press backdrop.
 
 1. Open Logo Wall and drop the logos on **Logos**. Each logo gets its own set of controls.
-2. Set each logo's **Presence** to **Hero**, **Large**, **Normal** or **Small**, one per sponsor tier. **Size %** nudges one logo further.
-3. Leave **Balance sizes** on. Logo Wall sizes each logo by its optical weight, so a heavy logo shrinks and a light one grows and the wall reads evenly before Presence weights the tiers.
+2. Give each logo a **Tier**, such as "Gold partners". Each tier gets its own rows, in the order the tiers first appear, under its own heading; **Tier headings** turns the headings off. With **Tier sizes** on **Step down**, each lower tier fits one more logo per row, so higher tiers read larger. **Presence** and **Size %** still nudge one logo within its tier.
+3. Leave **Balance sizes** on. Logo Wall sizes each logo by its optical weight, so a heavy logo shrinks and a light one grows and each tier reads evenly.
 4. **Trim margins** crops each logo to its artwork. Turn the option off when a logo's file already includes the clear space its owner asks for.
 5. **Remove white backgrounds** clears the white box that a logo copied from a slide often arrives in.
 6. Set **Columns**, spacing and padding under **Layout**. The **Background** starts as your design system's surface colour.
 7. For a one-colour wall, turn on **Render all as vector** and choose the **Ink colour**, or set one logo's **Filter** to **Greyscale**. Use a one-colour version only where each sponsor's guidelines allow one.
 8. For a press backdrop, choose **Grid**, **Brick** or **Checker** under **Step & repeat**, and set the number of **Rows**.
 
-Export the wall as PNG, SVG, PDF or a CMYK PDF for print. To put the wall on a poster, choose **Image** from the rail's add menu in Design, draw a frame and pick Logo Wall on the picker's **Tools** tab ([Tools inside a design](/info/design.html#tools-inside-a-design)). For a wall with tier headings or captions between the logos, a **Dynamic layout** set to **grid** in Design holds one image box per logo ([Layout in Design](/info/design-layout.html#dynamic-layouts)).
+Export the wall as PNG, SVG, PDF or a CMYK PDF for print. To put the wall on a poster, choose **Image** from the rail's add menu in Design, draw a frame and pick Logo Wall on the picker's **Tools** tab ([Tools inside a design](/info/design.html#tools-inside-a-design)). For captions between the logos, a **Dynamic layout** set to **grid** in Design holds one image box per logo ([Layout in Design](/info/design-layout.html#dynamic-layouts)).
 
-Logo Wall does not know any sponsor's rules. Presence tiers are sizes relative to each other, not a sponsor's minimum size, and nothing checks the clear space between neighbours. Check the finished wall against each sponsor's guidelines at the size it will be printed or shown.
+In a terminal, `lolly run logo-wall logos/*.png --output=wall.svg` builds the wall from a folder of pictures, and a CSV with `logo` and `tier` columns builds a tiered wall. SVG and PNG need no browser ([A sponsor wall with tiers](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
+
+Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes relative to each other, not a sponsor's minimum size, and nothing checks the clear space between neighbours. Check the finished wall against each sponsor's guidelines at the size it will be printed or shown.
 
 ## What Lolly does not do yet
 

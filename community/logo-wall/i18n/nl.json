@@ -70,5 +70,18 @@
   "inputs.logos.fields.invert.label": "Omkeren",
   "inputs.logos.fields.invert.help": "Voor een wit of licht logo.",
   "inputs.logos.fields.detail.label": "Detail",
-  "inputs.logos.fields.smoothing.label": "Afvlakking"
+  "inputs.logos.fields.smoothing.label": "Afvlakking",
+  "inputs.logos.fields.tier.label": "Niveau",
+  "inputs.logos.fields.tier.help": "Groepeer logo's op sponsorniveau. Logo's met hetzelfde niveau staan samen in eigen rijen, in de volgorde waarin elk niveau voor het eerst voorkomt, onder een kop met de naam van het niveau. Laat alle niveaus leeg voor één gelijkmatig raster.",
+  "inputs.tierHeadings.label": "Niveaukoppen",
+  "inputs.tierHeadings.section": "Niveaus",
+  "inputs.tierHeadings.help": "Toont de naam van elk niveau boven zijn groep logo's. Werkt alleen als logo's een niveau hebben.",
+  "inputs.tierSizing.label": "Niveaugroottes",
+  "inputs.tierSizing.section": "Niveaus",
+  "inputs.tierSizing.help": "Aflopend zet per niveau na het eerste één logo extra in een rij, zodat hogere niveaus groter ogen. Zelfde grootte geeft elk niveau de instelling Kolommen. Aanwezigheid, Grootte % en Groottes balanceren gelden nog steeds voor elk logo.",
+  "inputs.tierSizing.options.step": "Aflopend",
+  "inputs.tierSizing.options.even": "Zelfde grootte",
+  "inputs.headingColor.label": "Kopkleur",
+  "inputs.headingColor.section": "Niveaus",
+  "inputs.headingColor.help": "De kleur van de niveaukoppen."
 }
