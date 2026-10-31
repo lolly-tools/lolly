@@ -42,6 +42,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Design System Setup | [brand-studio.md](brand-studio.md) |
 | Brand architectures | [brand-architectures.md](brand-architectures.md) |
 | Colourways | [colourways.md](colourways.md) |
+| Working with partners | [partners.md](partners.md) |
 | 3D Studio | [3d-studio.md](3d-studio.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
 | Sync your devices | [sync.md](sync.md) |

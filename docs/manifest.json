@@ -453,6 +453,18 @@
       "group": "Design and templates"
     },
     {
+      "slug": "partners",
+      "title": "Working with partners",
+      "src": "partners.md",
+      "section": "create",
+      "path": "create/partners",
+      "icon": "people",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates",
+      "description": "Share your brand with a partner, work in a brand you were given, place a partner's logo and build a sponsor wall in Lolly, with what it does not do yet."
+    },
+    {
       "slug": "3d-studio",
       "title": "3D Studio",
       "src": "3d-studio.md",
