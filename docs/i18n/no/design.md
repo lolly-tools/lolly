@@ -195,7 +195,7 @@ Der det finnes et konkret forslag til farge eller skrift, endrer knappen det ene
 
 ### Interne regler og skrivesignalet
 
-Kortet i eksportpanelet sjekker også de interne reglene designsystemet ditt har med seg, som tekstvekt og justering, godkjente fargepar eller en logo per flate, lag for lag. Hvert funn er en advarsel med lagets navn over regelen. En regel dette bygget ikke har noen kontroll for, listes som ikke sjekket, aldri som fulgt. [Usage & rules](/info/brand-studio.html#usage-rules) lister reglene, og `lolly check` bruker de samme på et lagret dokument.
+Kortet i eksportpanelet sjekker også de interne reglene designsystemet ditt har med seg, som tekstvekt og justering, godkjente fargepar eller en logo per flate, lag for lag. Hvert funn er en advarsel med lagets navn over regelen. En regel dette bygget ikke har noen kontroll for, listes som ikke sjekket, aldri som fulgt. [Rules](/info/brand-studio.html#rules) lister reglene, og `lolly check` bruker de samme på et lagret dokument.
 
 Det samme kortet viser skrivesignalet for teksten dokumentet tegner: båndet (none, weak, notable eller strong), deretter Verifys egen setning med poengsummen av 100 og opptil tre flaggede fraser, hver med laget som holder dem. **Open the text in Verify** tar den teksten til [Verify](/#/verify) for den fulle avlesningen; [AI evidence in Verify](/info/verify-ai-evidence.html) forklarer hva poengsummen veier. Poengsummen er et signal, ikke en dom: den teller mønstre som er vanlige i generert skriving og kan ikke si hvem som skrev ordene. Skjulte lag utelates fra begge sjekkene, og kortet sier hvor mange.
 

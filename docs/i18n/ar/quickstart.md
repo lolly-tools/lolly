@@ -17,14 +17,14 @@
 اختر المسار الذي يناسب ما لديك:
 
 - <!--i:palette--> **لون واحد.** افتح **Design System Setup** (`#/start`)، وسمِّ نظام تصميمك واختر لوناً أساسياً. يشتق Lolly منه لوحة ألوان كاملة يمكن الوصول إليها، بأسطح فاتحة وداكنة ونصوص وألوان مميزة. اختر خطاً ويصبح لديك علامة تعمل.
-- <!--i:upload--> **ملف رموز.** يقبل **Add from…**، أسفل شريط الغرف في Design System Setup، ملف رموز DTCG أو Tokens Studio أو Penpot، أو ملف SVG أو حزمة `LollyBrand`. أفلته فتمتلئ اللوحة. وما دام نظام التصميم فارغاً، يفتح **Start from a reference** في غرفة Overview المنتقي نفسه.
+- <!--i:upload--> **ملف رموز.** يقبل **Add from…**، في الشريط العلوي لـ Design System Setup، ملف رموز DTCG أو Tokens Studio أو Penpot، أو ملف SVG أو حزمة `LollyBrand`. أفلته فتمتلئ اللوحة. وما دام نظام التصميم فارغاً، يفتح **Start from a reference** في غرفة Board المنتقي نفسه.
 - <!--i:pentool--> **تصميم منجز.** في Design، اختر **Import a design** وأفلت ملف `.fig` أو `.penpot` أو `.ai` أو `.idml` أو SVG. راجع [أدخل ما لديك أصلاً](#bring-in-what-you-already-have) أدناه.
 
 في أول مرة تفتح فيها المعرض، يقدّم ترحيب قصير الخيارات نفسها: يفتح **Make it yours** الأداة Design System Setup، ويفتح **Bring your design** منتقي ملفات لتصميم، ويغلق **Explore the community tools** الترحيب.
 
 ![غرفة Colours في Design System Setup على تثبيت جديد: شريحة حية واحدة وحقل واحد والقرار الأول كاملاً](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-ومن هناك، تأخذه سبع غرف إلى أي مدى تريد، بأي ترتيب: **Overview** و**Colours** و**Type** و**Logos** و**Tokens** و**Files** و**Usage & rules**. تتحدث كل معاينة في التطبيق أثناء الكتابة. يغطي [Design System Setup](/info/brand-studio.html) كل غرفة.
+ومن هناك، تأخذه سبع غرف إلى أي مدى تريد، بأي ترتيب: **Board** و**Colours** و**Type** و**Logos** و**Tokens** و**Files** و**Rules**. تتحدث كل معاينة في التطبيق أثناء الكتابة. يغطي [Design System Setup](/info/brand-studio.html) كل غرفة.
 
 تُحفظ الخطوط على جهازك. اختر خطاً من Google Fonts فيخزّن Lolly الملف أصلاً من أصول العلامة، فيسافر خطك دون اتصال ولا يُجلب شيء عندما ترسم أداة.
 

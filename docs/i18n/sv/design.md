@@ -195,7 +195,7 @@ Där ett konkret färg- eller typsnittsförslag finns ändrar dess knapp just de
 
 ### Organisationens regler och skrivsignalen
 
-Exportpanelens kort kontrollerar också de organisationsregler som ditt designsystem medför, som textvikt och justering, godkända färgpar eller en logotyp per yta, lager för lager. Varje fynd är en varning med lagrets namn ovanför regeln. En regel som det här bygget saknar kontroll för listas som inte kontrollerad, aldrig som följd. [Usage & rules](/info/brand-studio.html#usage-rules) listar reglerna, och `lolly check` tillämpar samma regler på ett sparat dokument.
+Exportpanelens kort kontrollerar också de organisationsregler som ditt designsystem medför, som textvikt och justering, godkända färgpar eller en logotyp per yta, lager för lager. Varje fynd är en varning med lagrets namn ovanför regeln. En regel som det här bygget saknar kontroll för listas som inte kontrollerad, aldrig som följd. [Rules](/info/brand-studio.html#rules) listar reglerna, och `lolly check` tillämpar samma regler på ett sparat dokument.
 
 Samma kort visar skrivsignalen för texten dokumentet ritar: dess band (ingen, svag, märkbar eller stark), sedan Verifys egen mening med poängen av 100 och upp till tre flaggade fraser, var och en med lagret som håller dem. **Open the text in Verify** tar texten till [Verify](/#/verify) för hela läsningen; [AI evidence in Verify](/info/verify-ai-evidence.html) förklarar vad poängen väger in. Poängen är en signal, inte en dom: den räknar mönster som är vanliga i genererad text och kan inte avgöra vem som skrivit orden. Dolda lager lämnas utanför båda kontrollerna, och kortet anger hur många.
 

@@ -1,6 +1,6 @@
 # Design System Setup
 
-Ton logo, tes couleurs et tes polices vivent au même endroit, pour que chaque outil, page et export dessine avec eux. Cet endroit est **Design System Setup**, à `#/start`, et son slogan dit à quoi il sert : *Make it yours*.
+Ton logo, tes couleurs et tes polices vivent au même endroit, pour que chaque outil, page et export dessine avec eux. Cet endroit est **Design System Setup**, à `#/start`.
 
 Pars de ce que tu as. Dépose un logo et Lolly lit ses couleurs. Choisis une police, ou dépose le fichier de police dont ton entreprise détient la licence. Chaque changement se voit aussitôt dans toute l'application. Ton logo, tes polices et tes tokens restent sur cet appareil. Choisir une Google Font est la seule étape qui sort de l'appareil : Lolly demande d'abord, puis récupère la famille une fois.
 
@@ -16,34 +16,36 @@ Quand le résultat te convient, donne un nom au design system et appuie sur **Ex
 - <!--i:download--> **Export** écrit tout le système dans un seul fichier `LollyBrand-….lolly`.
 :::
 
-L'en-tête indique quel design system tu es en train de **Editing**, et son nom est un champ que tu peux changer à tout moment. Quand ta première modification demande **What is this design system called?**, les mots de ton logo sont préremplis si le logo les épelle. **Save name** garde le nom ; **Not now** garde un nom provisoire jusqu'à ce que tu en saisisses un dans l'en-tête. Le nom étiquette le système dans Settings et quand tu changes, et il devient le nom du fichier qu'**Export** écrit.
+La barre en haut du studio porte le nom du design system, et ce nom est un champ que tu peux changer à tout moment : **Enter** garde un nouveau nom et **Escape** remet l'ancien. Quand ta première modification demande **What is this design system called?**, les mots de ton logo sont préremplis si le logo les épelle. **Save name** garde le nom ; **Not now** garde un nom provisoire jusqu'à ce que tu en saisisses un dans la barre. Le nom étiquette le système dans Settings et quand tu changes, et il devient le nom du fichier qu'**Export** écrit.
 
 ## Les salles
 
-Le studio est un ensemble de pièces dans un rail sur le côté, sans ordre fixe : rien n'est numéroté et rien n'attend autre chose. Sur un téléphone, le rail devient une bande de pastilles sous l'en-tête.
+Le studio est un ensemble de pièces sans ordre fixe : rien n'est numéroté et rien n'attend autre chose. Sur un bureau, les pièces se rangent en une bande sous la barre. Sur un téléphone, elles passent dans une barre au bord inférieur, là où le pouce les atteint, avec la pièce ouverte amenée dans la vue ; la feuille de la palette et le plateau s'élèvent au-dessus de cette barre, et la barre s'efface pendant que tu saisis. Au clavier, Tab atteint la bande une seule fois, et les flèches, Début et Fin passent d'une pièce à l'autre.
 
-![Le rail des pièces du studio : Overview, Colours, Type, Logos, Tokens, Files et Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![La barre du studio et ses pièces : Board, Colours, Type, Logos, Tokens, Files, Rules et Skills]](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Pièce | Ce que tu y fais | Clé de lien |
 |---|---|---|
-| **Overview** | Voir ce que contient le système, avec une porte vers chaque pièce | `overview` |
+| **Board** | Voir ce que contient le système, avec une porte vers chaque pièce | `overview` |
 | **Colours** | Ajouter des couleurs, leur donner des rôles, créer des nuances et une palette | `color` |
 | **Type** | Choisir les quatre polices que lisent l'application, les outils et chaque export | `type` |
 | **Logos** | Placer tes marques dans chaque orientation et chaque traitement | `logos` |
 | **Tokens** | Angles, espacements, ombres et toute autre valeur nommée | `tokens` |
 | **Files** | Les images, fichiers audio et animations que ta marque conserve | `catalogue` |
-| **Usage & rules** | Les règles que ta marque applique, vérifiées sur des exemples réels | `usage` |
+| **Rules** | Les règles que ta marque applique, vérifiées sur des exemples réels | `usage` |
 | **Skills** | Les standards écrits de la marque, pour les personnes et les agents, à lire et à télécharger | `skills` |
 
-Renvoie vers une pièce avec `#/start?area=<key>`. La pièce Files garde la clé `catalogue`, car une clé de pièce est un contrat permanent, et `?tab=` fonctionne toujours comme ancien alias. Une clé inconnue ouvre Overview.
+Renvoie vers une pièce avec `#/start?area=<key>`. La pièce Files garde la clé `catalogue`, Board garde `overview` et Rules garde `usage`, car une clé de pièce est un contrat permanent, et `?tab=` fonctionne toujours comme ancien alias. Une clé inconnue ouvre Board.
 
-Le **pied du rail** contient les actions pour tout le système plutôt que pour une pièce. **Add from…** fait entrer une marque ([Bring a brand in](#bring-a-brand-in)), et le **Tray** contient ce qu'une analyse a trouvé et que tu n'as pas encore ajouté. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** et **Restore brand settings** conservent et déplacent le système ([Keep and move your design system](#keep-and-move-your-design-system)). Chacune n'apparaît que lorsqu'il y a quelque chose sur quoi elle peut agir.
+La **barre** contient les actions pour tout le système plutôt que pour une pièce. **Add from…** fait entrer une marque ([Bring a brand in](#bring-a-brand-in)), et le **Tray** contient ce qu'une analyse a trouvé et que tu n'as pas encore ajouté. **Export** écrit le système en un seul fichier, et **More** contient **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** et **Design systems**, qui ouvre la liste dans Settings où tu changes de système ([Keep and move your design system](#keep-and-move-your-design-system)). Chacune n'apparaît que lorsqu'il y a quelque chose sur quoi elle peut agir. Sur un téléphone, **Add from…** passe dans **More** et **Export** s'affiche comme son icône.
 
-## Overview
+## Board
 
-Tant que rien n'est choisi, Overview propose quatre façons de commencer. **Start from a reference** ouvre le sélecteur de source pour un logo, une capture d'écran, une page web ou un fichier de design, et **Pick a colour**, **Choose a face** et **Add a logo** ouvrent directement ces contrôles. En ouvrir un n'écrit rien, et **Explore the tools** est là dès le départ.
+Tant que rien n'est choisi, Board propose quatre façons de commencer. **Start from a reference** ouvre le sélecteur de source pour un logo, une capture d'écran, une page web ou un fichier de design, et **Pick a colour**, **Choose a face** et **Add a logo** ouvrent directement ces contrôles. En ouvrir un n'écrit rien, et **Explore the tools** est là dès le départ.
 
-Dès que quelque chose t'appartient, Overview montre ce que tu as, avec tes propres totaux en premier. Colours donne le nombre de couleurs, avec un `· N starter` atténué là où des couleurs héritées s'affichent ; sa bande place d'abord tes couleurs, puis un filet, puis les couleurs de départ estompées. Type se lit par rôle (*Inter for headings*, avec *Starter for the rest* sur la ligne en dessous). Logos indique combien d'emplacements sont remplis (ou **Not set**), Tokens montre le rayon des angles et Files dit **Nothing yet** tant que la bibliothèque est vide. Chaque bloc ouvre sa pièce.
+Dès que quelque chose t'appartient, Board montre ce que tu as, avec tes propres totaux en premier. Colours donne le nombre de couleurs, avec un `· N starter` atténué là où des couleurs héritées s'affichent ; sa bande place d'abord tes couleurs, puis un filet, puis les couleurs de départ estompées. Colourways montre chaque colourway comme une petite tuile dans sa couleur dominante. Type se lit par rôle et compose chaque famille dans sa propre police (*Inter for headings*, avec *Starter for the rest* sur la ligne en dessous). Logos indique combien d'emplacements sont remplis (ou **Not set**), Tokens montre le rayon des angles et Files dit **Nothing yet** tant que la bibliothèque est vide. Chaque bloc ouvre sa pièce.
+
+Un design system livré avec l'application et modifiable, comme Lolly Demo, a tout cela dès le départ : Board montre ses couleurs, colourways, polices et marques, avec une étiquette **Came with this app** à côté du titre.
 
 ### Starter et à toi
 
@@ -61,7 +63,7 @@ Dès que quelque chose t'appartient, Overview montre ce que tu as, avec tes prop
 
 - Choisi ou installé par toi.
 - À pleine intensité, et une carte teintée là où tu as installé une police.
-- Compté dans Overview et dans Tokens.
+- Compté dans Board et dans Tokens.
 - Un rôle qui en suit un autre affiche **↳ follows Primary** plutôt que de répéter le nom du primaire.
 :::
 
@@ -106,7 +108,7 @@ Ta première couleur devient le **primaire**, et une pastille le confirme, comme
 
 Tes couleurs se placent à côté d'un aperçu **In context** sur un grand écran, et au-dessus sur un plus petit. L'aperçu montre une affiche, un graphique ou une carte d'interface dans ta palette. Les couleurs de départ restent dans leur propre groupe repliable.
 
-![La pièce Colours sur Lolly Demo : la palette en groupes repliables, chaque couleur avec son nom et son hexadécimal, et la pastille de téléchargement en bas](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![La pièce Colours sur Lolly Demo : la palette en groupes repliables, chaque couleur avec son nom et son hexadécimal, et le téléchargement de la palette dans l'en-tête]](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![La salle Colours après l'ajout d'une couleur, avec sa palette et un aperçu de composition en direct](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -163,7 +165,7 @@ Quatre sections repliées se trouvent sous l'aperçu et les rôles. Chacune s'ou
 
 La palette liste tes couleurs en groupes repliables, chacun avec son propre **+ Add**. Crée et renomme les groupes comme tu veux. Un rôle ne crée jamais une seconde tuile : une tuile sur laquelle pointe un rôle porte plutôt une petite marque (**P**, **S**, **Su**, **T**). **Colour chart** sous les tuiles montre les mêmes couleurs sur la **Wheel** OKLCH (fais glisser un point pour recolorer, clique sur un espace vide pour ajouter un échantillon) et le graphique **Gamut**, qui montre où s'arrête la plage affichable. `#/start?area=color&focus=chart` ouvre directement le graphique.
 
-![Le panneau de palette, chaque groupe repliable, avec la pastille de téléchargement calée sur son bord inférieur](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Le panneau de palette, chaque groupe repliable, avec le téléchargement de la palette dans son en-tête]](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![La roue OKLCH - l'angle est la teinte, la distance vers l'extérieur est la chroma et les gris suivent un rail de luminosité sur le côté](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -179,7 +181,7 @@ Clique sur un échantillon pour ouvrir son éditeur :
 **Supprimer un échantillon** est sans risque. Les nuances dérivées et les rôles de thème sont masqués, donc rien de ce qui les lit ne casse, tandis que les couleurs que tu as ajoutées sont supprimées.
 
 ::: details Travailler avec beaucoup d'échantillons
-Chaque échantillon a une poignée de glissement. Fais glisser pour réordonner au sein d'un groupe, ou mets la poignée au focus, appuie sur Espace, utilise les flèches et appuie de nouveau sur Espace pour déposer ; Échap annule. Pour déplacer des couleurs entre groupes, utilise le contrôle **Group** de l'éditeur ou sélectionnes-en plusieurs et utilise **Move to**.
+Chaque échantillon a une poignée de glissement. Fais glisser pour réordonner au sein d'un groupe, ou mets la poignée au focus, appuie sur Espace, utilise les flèches et appuie de nouveau sur Espace pour déposer ; Échap annule. Sur un téléphone, la palette montre quatre couleurs par ligne et les poignées apparaissent en mode Select, plutôt qu'en une ligne sous chaque couleur. Pour déplacer des couleurs entre groupes, utilise le contrôle **Group** de l'éditeur ou sélectionnes-en plusieurs et utilise **Move to**.
 
 La sélection n'exige aucun mode. La barre apparaît avec la première tuile sélectionnée et disparaît avec la dernière.
 
@@ -196,13 +198,13 @@ La barre affiche **{n} selected**, puis **Move to**, **Give a role** (chaque cou
 
 Le panneau facultatif **Gradients** construit des tokens de dégradé à partir de la palette. Chaque dégradé a un aperçu, de 2 à 8 points nommés et un angle. Un point renvoie à un échantillon, donc recolore l'échantillon et le dégradé suit. Les dégradés se calculent en OKLCH.
 
-Les téléchargements de la palette (design tokens, CSS, SCSS, GIMP et Adobe Swatch Exchange) se trouvent dans une pastille au pied de la palette dès qu'il y a des nuances. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) décrit chaque format.
+Les téléchargements de la palette (design tokens, CSS, SCSS, GIMP et Adobe Swatch Exchange) se trouvent dans l'en-tête de la palette, à côté de son titre. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) décrit chaque format.
 
 ## Typographie
 
-Sans police propre, la pièce est une seule carte : **Primary**, composée à taille de lecture dans la police qui la sert aujourd'hui, avec une étiquette **Starter**, un bouton **Choose a face** et la ligne *"Nothing installs until you choose one."* Headings, code et italique suivent le primaire jusqu'à ce que tu les choisisses ; **Choose them separately** affiche leurs cartes.
+Sans police propre, la pièce est une seule carte : **Primary**, composée à taille de lecture dans la police qui la sert aujourd'hui, avec une étiquette **Starter**, un bouton **Choose for Primary** et la ligne *"Nothing installs until you choose one."* Headings, code et italique suivent le primaire jusqu'à ce que tu les choisisses ; **Choose them separately** affiche leurs cartes.
 
-![La salle Typographie sans graisse choisie pour l'instant - une carte à la taille de lecture, une étiquette Starter dessus, et un Choisir une graisse rempli](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![La pièce Type sans police choisie pour l'instant : une carte à taille de lecture, une étiquette Starter dessus et un seul **Choose for Primary** rempli]](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Choisis une police et la pièce s'ouvre sur quatre cartes de rôle, la liste Fonts et un spécimen en direct :
 
@@ -211,7 +213,7 @@ Choisis une police et la pièce s'ouvre sur quatre cartes de rôle, la liste Fon
 - **Code** : une police à chasse fixe pour le code et les données.
 - **Italic** : une vraie italique pour l'emphase, les citations et les apartés.
 
-Une carte n'est teintée que là où tu as installé cette police, et son bouton affiche **Change** sur une police à toi et **Choose a face** partout ailleurs. Rien sur une carte ne valide quoi que ce soit : le bouton ouvre la scène de comparaison pour ce rôle.
+Une carte n'est teintée que là où tu as installé cette police. Son bouton dit pour quel rôle il est : **Change Headings** sur une police à toi et **Choose for Headings** partout ailleurs. La ligne d'exemple passe à la ligne au lieu d'être coupée. Rien sur une carte ne valide quoi que ce soit : le bouton ouvre la scène de comparaison pour ce rôle.
 
 ![Les quatre cartes de rôle révélées - chacune composée dans la graisse qui la sert, avec une étiquette Starter là où personne n'en a choisi une, et l'italique qui suit la principale](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -219,7 +221,7 @@ Une carte n'est teintée que là où tu as installé cette police, et son bouton
 
 La scène s'ouvre dans la pièce, sous la carte sur laquelle tu as appuyé, et les cartes se replient en une bande d'une ligne pour que la scène s'affiche dès le premier écran d'un téléphone. Échap annule et rend le focus à la carte.
 
-1. Appuie sur **Choose a face** sur la carte.
+1. Appuie sur **Choose for** et le rôle sur la carte.
 2. Saisis un nom de famille et appuie sur **Preview**, ou appuie sur l'une des six familles **Pinned** sous le champ.
 3. Appuie sur **Use this face**.
 
@@ -240,7 +242,7 @@ Les tokens sont les valeurs nommées derrière le design system : couleurs, poli
 ![La pièce Tokens : l'en-tête avec un exemple tiré du système et les actions sur les fichiers, des tuiles comptant chaque type de token, puis les paires de couleurs avec leurs mesures de contraste](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **L'en-tête** donne un exemple tiré de ton propre système (*Primary is Spearmint, #033633*) et les actions sur les fichiers : **Download** (tout le système sous forme de design tokens, ou la palette dans cinq autres formats), **Copy CSS** et **Add from…** pour relire un fichier JSON.
-- **Les tuiles** comptent chaque type de token et renvoient à sa section : Colours, Type, Logos, Shape and spacing, More et All tokens. Elles comptent ce qui t'appartient, comme Overview. Sur un téléphone, les tuiles défilent latéralement.
+- **Les tuiles** comptent chaque type de token et renvoient à sa section : Colours, Type, Logos, Shape and spacing, More et All tokens. Elles comptent ce que contient chaque section ; une section qui ne contient que ce qui vient du modèle vierge porte une étiquette **Starter**, et un système livré avec l'application compte son propre contenu sans elle. Sur un téléphone, les tuiles passent sur deux rangées de trois.
 - **Colours** commence par les paires que les outils assemblent (texte sur surface, sur primaire, atténué sur surface) avec une mesure APCA en clair et en sombre, et signale **Weak contrast** là où une paire est insuffisante. Puis chaque groupe de couleurs : une rampe sous forme d'une rangée de pastilles, les autres couleurs avec leur valeur et la référence que les outils utilisent, comme `{color.brand.spearmint}`. Appuie sur une référence pour la copier. **Edit in Colours** ouvre un groupe dans la pièce Colours.
 - **Type** et **Logos** listent la police de chaque rôle et chaque emplacement de logo, avec **Edit in Type** et **Edit in Logos** dès que tu as les tiens.
 - **Shape and spacing** contient **Rounded corners** (`shape.radius`) et **Spacing rhythm** (`space.base`). Chacun affiche *Lolly default* jusqu'à ce que tu déplaces le curseur et *Yours* ensuite, s'enregistre aussitôt et peut être annulé.
@@ -253,11 +255,11 @@ Une section vide propose le moyen de combler le vide : **Pick a colour**, **Choo
 
 Dépose les fichiers que ta marque conserve, hors logos : fichiers **vector**, **image**, **audio** et **motion** (vidéo, Lottie et animations). Ils apparaissent dans [Assets](/info/using.html#assets-your-library), classés en sections et prêts dans le sélecteur de ressources de chaque outil, et ils restent sur cet appareil.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** met au travail les choix de ta marque : ce que les gens peuvent changer, ce qui reste fixe et ce que Lolly peut vérifier.
+**Rules** met au travail les choix de ta marque : ce que les gens peuvent changer, ce qui reste fixe et ce que Lolly peut vérifier.
 
-![Usage & rules sur Lolly Demo : une carte Brand rules vide avec Add your first rule, puis Try your brand in use avec ses exemples prêts à être rendus](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules sur Lolly Demo : une carte Brand rules vide avec Add your first rule, puis Try your brand in use avec ses exemples prêts à être rendus]](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** liste tes règles. **Add rule** (ou **Add your first rule**) ouvre un court formulaire :
 
@@ -282,7 +284,7 @@ Un build livré avec une marque figée montre les mêmes règles et exemples en 
 
 ## Faire entrer une marque
 
-**Add from…** au pied du rail ouvre un sélecteur qui demande ce que tu as, pas quel est le format :
+**Add from…** dans la barre ouvre un sélecteur qui demande ce que tu as, pas quel est le format :
 
 - **Design tokens or a design file** : du JSON DTCG ou Tokens Studio, un projet Penpot, un zip d'ensembles de tokens, un pack de design system Lolly ou un SVG.
 - **PDF** : un deck ou un fichier de directives, lu sur cet appareil pour ses couleurs, ses marques et ses polices incorporées.
@@ -310,7 +312,7 @@ Les imports de PDF et de fichiers de design gardent leurs propres contrôles de 
 
 ### Trouver et comparer une ambiance
 
-Ouvre **Find a look** depuis Overview ou depuis la liste des design systems dans Settings. Parcours les systèmes enregistrés sur cet appareil et quelques exemples Lolly réutilisables, et cherche par nom, étiquette de couleur ou police déclarée. **Closest to my current palette** trie selon la similarité de couleur mesurée, les polices correspondantes départageant les ex æquo ; ce n'est pas une note de qualité.
+Ouvre **Find a look** depuis Board ou depuis la liste des design systems dans Settings. Parcours les systèmes enregistrés sur cet appareil et quelques exemples Lolly réutilisables, et cherche par nom, étiquette de couleur ou police déclarée. **Closest to my current palette** trie selon la similarité de couleur mesurée, les polices correspondantes départageant les ex æquo ; ce n'est pas une note de qualité.
 
 Sélectionne une ambiance pour la relire, ou deux pour les comparer côte à côte. Sélectionner ne change rien. **Use this saved system** bascule dessus, et **Use these colours** applique les couleurs d'un exemple via le point de contrôle habituel, en gardant tes polices. **Restore brand settings** récupère l'ambiance précédente. Les systèmes enregistrés ont des **Search tags** modifiables sous **Details and design context**. Les exemples sont des recettes de couleurs originales de Lolly, sans collection aspirée et sans compte.
 
@@ -328,11 +330,11 @@ Pour en rapatrier un, utilise **Add from… → Design tokens or a design file**
 
 ### Restaurer des réglages antérieurs
 
-Choisis **Restore brand settings**, sélectionne un point de contrôle daté et appuie sur **Restore**. Il restaure les couleurs, les réglages de typographie et les autres tokens de la marque active ; les fichiers de polices et d'images restent comme ils sont. Lolly enregistre d'abord tes réglages actuels sous **Before restore**, pour que tu puisses annuler une restauration même après avoir fermé le navigateur. Les 20 derniers points de contrôle sont conservés sur cet appareil.
+Ouvre **More** dans la barre, choisis **Restore brand settings**, sélectionne un point de contrôle daté et appuie sur **Restore**. Il restaure les couleurs, les réglages de typographie et les autres tokens de la marque active ; les fichiers de polices et d'images restent comme ils sont. Lolly enregistre d'abord tes réglages actuels sous **Before restore**, pour que tu puisses annuler une restauration même après avoir fermé le navigateur. Les 20 derniers points de contrôle sont conservés sur cet appareil.
 
 ### Versions
 
-Une version publiée est une **copie nommée et permanente** conservée sur cet appareil. Elle ne change jamais, donc un outil ou un lien qui l'épingle (avec `designv`) continue de dessiner la même chose. Un système avec quelque chose de toi affiche un discret lien **Versions & publishing** au pied du rail ; après ta première publication, il devient l'entrée **Versions**. `#/start?area=versions` l'ouvre directement.
+Une version publiée est une **copie nommée et permanente** conservée sur cet appareil. Elle ne change jamais, donc un outil ou un lien qui l'épingle (avec `designv`) continue de dessiner la même chose. Un système avec quelque chose de toi propose **Versions & publishing** dans le menu **More** de la barre ; après ta première publication, **Versions** rejoint les pièces. `#/start?area=versions` l'ouvre directement.
 
 - **Une version est permanente.** Il n'y a pas encore de suppression, et le panneau le dit.
 - **Les suppressions ouvrent la carte de compatibilité**, car un token supprimé est ce qui casse un outil.

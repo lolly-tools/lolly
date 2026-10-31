@@ -1,6 +1,6 @@
 # Design System Setup
 
-Je logo, kleuren en lettertypen horen op één plek, zodat elke tool, pagina en export ermee tekent. Die plek is **Design System Setup**, op `#/start`, en de slogan zegt waar het voor dient: *Make it yours*.
+Je logo, kleuren en lettertypen horen op één plek, zodat elke tool, pagina en export ermee tekent. Die plek is **Design System Setup**, op `#/start`.
 
 Begin met wat je hebt. Zet een logo erin en Lolly leest de kleuren ervan. Kies een lettertype, of zet het fontbestand erin waarvoor je bedrijf een licentie heeft. Elke wijziging is meteen in de hele app te zien. Je logo, lettertypen en tokens blijven op dit apparaat. Een Google Font kiezen is de ene stap die naar buiten reikt: Lolly vraagt eerst en haalt de familie dan één keer op.
 
@@ -16,34 +16,36 @@ Wanneer het er goed uitziet, geef je het design system een naam en druk je op **
 - <!--i:download--> **Export** schrijft het hele systeem als één bestand `LollyBrand-….lolly`.
 :::
 
-De kop toont welk design system je aan het **Editing** bent, en de naam is een veld dat je op elk moment kunt wijzigen. Wanneer je eerste bewerking vraagt **What is this design system called?**, worden de woorden uit je logo ingevuld als het logo ze uitschrijft. **Save name** bewaart de naam; **Not now** houdt een tijdelijke naam totdat je er in de kop een typt. De naam labelt het systeem in Settings en wanneer je wisselt, en wordt de naam van het bestand dat **Export** schrijft.
+De balk bovenaan de studio toont de naam van het design system, en de naam is een veld dat je op elk moment kunt wijzigen: **Enter** bewaart een nieuwe naam en **Escape** zet de oude terug. Wanneer je eerste bewerking vraagt **What is this design system called?**, worden de woorden uit je logo ingevuld als het logo ze uitschrijft. **Save name** bewaart de naam; **Not now** houdt een tijdelijke naam totdat je er in de balk een typt. De naam labelt het systeem in Settings en wanneer je wisselt, en wordt de naam van het bestand dat **Export** schrijft.
 
 ## De kamers
 
-De studio is een set kamers in een balk langs de zijkant, in geen vaste volgorde: niets is genummerd en niets wacht op iets anders. Op een telefoon wordt de balk een strook chips onder de kop.
+De studio is een set kamers in geen vaste volgorde: niets is genummerd en niets wacht op iets anders. Op een desktop staan de kamers in één strook onder de balk. Op een telefoon verhuizen ze naar een balk langs de onderrand, waar een duim erbij kan, met de geopende kamer in beeld gescrold; het palettenblad en de tray komen boven die balk uit, en de balk gaat opzij terwijl je typt. Met een toetsenbord bereikt Tab de strook één keer, en de pijltjestoetsen, Home en End gaan van kamer naar kamer.
 
-![De kamerbalk van de studio: Overview, Colours, Type, Logos, Tokens, Files en Usage & rules](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![De balk van de studio en zijn kamers: Board, Colours, Type, Logos, Tokens, Files, Rules en Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Kamer | Wat je daar doet | Linksleutel |
 |---|---|---|
-| **Overview** | Zien wat het systeem bevat, met een deur naar elke kamer | `overview` |
+| **Board** | Zien wat het systeem bevat, met een deur naar elke kamer | `overview` |
 | **Colours** | Kleuren toevoegen, ze rollen geven, tinten en een palet bouwen | `color` |
 | **Type** | De vier lettertypen kiezen die de app, de tools en elke export lezen | `type` |
 | **Logos** | Je merktekens plaatsen in elke oriëntatie en behandeling | `logos` |
 | **Tokens** | Hoeken, tussenruimte, schaduwen en elke andere benoemde waarde | `tokens` |
 | **Files** | De afbeeldingen, audio- en bewegingsbestanden die je merk bewaart | `catalogue` |
-| **Usage & rules** | De regels die je merk toepast, gecontroleerd op echte voorbeelden | `usage` |
+| **Rules** | De regels die je merk toepast, gecontroleerd op echte voorbeelden | `usage` |
 | **Skills** | De geschreven standaarden van het merk voor mensen en agents, om te lezen en te downloaden | `skills` |
 
-Link naar een kamer met `#/start?area=<key>`. De kamer Files behoudt de sleutel `catalogue`, omdat een kamersleutel een blijvend contract is, en `?tab=` werkt nog als oudere alias. Een onbekende sleutel opent Overview.
+Link naar een kamer met `#/start?area=<key>`. De kamer Files behoudt de sleutel `catalogue`, Board behoudt `overview` en Rules behoudt `usage`, omdat een kamersleutel een blijvend contract is, en `?tab=` werkt nog als oudere alias. Een onbekende sleutel opent Board.
 
-De **voet van de balk** bevat de acties voor het hele systeem in plaats van voor één kamer. **Add from…** haalt een merk binnen ([Een merk binnenhalen](#bring-a-brand-in)), en de **Tray** bevat wat een scan vond dat je nog niet hebt toegevoegd. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** en **Restore brand settings** bewaren en verplaatsen het systeem ([Je design system bewaren en verplaatsen](#keep-and-move-your-design-system)). Elk verschijnt zodra er iets is waarop het kan werken.
+De **balk** bevat de acties voor het hele systeem in plaats van voor één kamer. **Add from…** haalt een merk binnen ([Een merk binnenhalen](#bring-a-brand-in)), en de **Tray** bevat wat een scan vond dat je nog niet hebt toegevoegd. **Export** schrijft het systeem als één bestand, en **More** bevat **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** en **Design systems**, dat de lijst in Settings opent waar je wisselt ([Je design system bewaren en verplaatsen](#keep-and-move-your-design-system)). Elk verschijnt zodra er iets is waarop het kan werken. Op een telefoon verhuist **Add from…** naar **More** en toont **Export** zich als icoon.
 
-## Overview
+## Board
 
-Zolang nog niets is gekozen, biedt Overview vier manieren om te beginnen. **Start from a reference** opent de bronkiezer voor een logo, screenshot, webpagina of ontwerpbestand, en **Pick a colour**, **Choose a face** en **Add a logo** openen die bediening rechtstreeks. Een ervan openen schrijft niets, en **Explore the tools** is er vanaf het begin.
+Zolang nog niets is gekozen, biedt Board vier manieren om te beginnen. **Start from a reference** opent de bronkiezer voor een logo, screenshot, webpagina of ontwerpbestand, en **Pick a colour**, **Choose a face** en **Add a logo** openen die bediening rechtstreeks. Een ervan openen schrijft niets, en **Explore the tools** is er vanaf het begin.
 
-Zodra iets van jou is, toont Overview wat je hebt, met je eigen aantallen voorop. Colours geeft het aantal kleuren, met een gedempte `· N starter` waar overgenomen kleuren zichtbaar zijn; de strook zet je kleuren eerst, dan een haarlijn, dan de verbleekte starterkleuren. Type leest per rol (*Inter for headings*, met *Starter for the rest* op de regel eronder). Logos zegt hoeveel slots zijn gevuld (of **Not set**), Tokens toont de hoekradius en Files zegt **Nothing yet** zolang de bibliotheek leeg is. Elk blok opent zijn kamer.
+Zodra iets van jou is, toont Board wat je hebt, met je eigen aantallen voorop. Colours geeft het aantal kleuren, met een gedempte `· N starter` waar overgenomen kleuren zichtbaar zijn; de strook zet je kleuren eerst, dan een haarlijn, dan de verbleekte starterkleuren. Colourways toont elke colourway als een klein tegeltje in de hoofdkleur. Type leest per rol en zet elke familie in zijn eigen lettertype (*Inter for headings*, met *Starter for the rest* op de regel eronder). Logos zegt hoeveel slots zijn gevuld (of **Not set**), Tokens toont de hoekradius en Files zegt **Nothing yet** zolang de bibliotheek leeg is. Elk blok opent zijn kamer.
+
+Een design system dat met de app is meegeleverd en kan worden bewerkt, zoals Lolly Demo, heeft dat alles vanaf het begin: Board toont de kleuren, colourways, lettertypen en merktekens, met een tag **Came with this app** naast de kop.
 
 ### Starter en van jou
 
@@ -61,7 +63,7 @@ Zodra iets van jou is, toont Overview wat je hebt, met je eigen aantallen voorop
 
 - Door jou gekozen of geïnstalleerd.
 - Op volle sterkte, en een getinte kaart waar je een lettertype installeerde.
-- Meegeteld op Overview en in Tokens.
+- Meegeteld op Board en in Tokens.
 - Een rol die een andere volgt leest **↳ follows Primary** in plaats van de naam van de primaire te herhalen.
 :::
 
@@ -106,7 +108,7 @@ Je eerste kleur wordt de **primary**, en een chip bevestigt het, zoals *"Primary
 
 Je kleuren staan naast een voorbeeld **In context** op een breed scherm, en erboven op een kleiner scherm. Het voorbeeld toont een poster, grafiek of interfacekaart in je palet. Starterkleuren blijven in hun eigen ingeklapte groep.
 
-![De kamer Colours op Lolly Demo: het palet in ingeklapte groepen, elke kleur met naam en hex, en de downloadpil onderaan](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![De kamer Colours op Lolly Demo: het palet in ingeklapte groepen, elke kleur met naam en hex, en de palet-download in de kop](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 ![De Colours-room na het toevoegen van één kleur, met zijn palet en een live compositievoorvertoning](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
 
@@ -163,7 +165,7 @@ Vier ingeklapte secties staan onder het voorbeeld en de rollen. Elk opent rechts
 
 Het palet somt je kleuren op in ingeklapte groepen, elk met een eigen **+ Add**. Maak groepen en hernoem ze zoals je wilt. Een rol maakt nooit een tweede tegel: een tegel waar een rol naar wijst draagt in plaats daarvan een klein merkteken (**P**, **S**, **Su**, **T**). **Colour chart** onder de tegels toont dezelfde kleuren op het OKLCH-**Wheel** (sleep een stip om te herkleuren, klik op lege ruimte om een swatch toe te voegen) en de **Gamut**-grafiek, die toont waar het weergeefbare bereik eindigt. `#/start?area=color&focus=chart` opent de grafiek rechtstreeks.
 
-![Het paletvlak, elke groep inklapbaar, met de downloadpil onderaan geparkeerd](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Het paletvlak, elke groep inklapbaar, met de palet-download in de kop](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
 ![Het OKLCH-wiel - hoek is tint, afstand naar buiten is verzadiging en de grijstinten lopen langs een helderheidsrail aan de zijkant](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
@@ -179,7 +181,7 @@ Klik op een swatch om zijn editor te openen:
 **Een swatch verwijderen** is veilig. Afgeleide tinten en themarollen worden verborgen, zodat niets dat ze leest breekt, terwijl kleuren die je toevoegde worden verwijderd.
 
 ::: details Werken met veel swatches
-Elke swatch heeft een sleepgreep. Sleep om te herordenen binnen een groep, of geef de greep focus, druk op Space, gebruik de pijltjestoetsen en druk nogmaals op Space om neer te zetten; Escape annuleert. Om kleuren tussen groepen te verplaatsen gebruik je de bediening **Group** van de editor of selecteer je er meerdere en gebruik je **Move to**.
+Elke swatch heeft een sleepgreep. Sleep om te herordenen binnen een groep, of geef de greep focus, druk op Space, gebruik de pijltjestoetsen en druk nogmaals op Space om neer te zetten; Escape annuleert. Op een telefoon toont het palet vier kleuren per rij en verschijnen de grepen in de modus Select, in plaats van als rij onder elke kleur. Om kleuren tussen groepen te verplaatsen gebruik je de bediening **Group** van de editor of selecteer je er meerdere en gebruik je **Move to**.
 
 Selecteren heeft geen modus nodig. De balk verschijnt met de eerste geselecteerde tegel en verdwijnt met de laatste.
 
@@ -196,13 +198,13 @@ De balk leest **{n} selected**, dan **Move to**, **Give a role** (elke kleur kri
 
 Het optionele paneel **Gradients** bouwt mengtokens uit het palet. Elk verloop heeft een voorbeeld, 2 tot 8 benoemde stops en een hoek. Een stop wijst naar een swatch, dus herkleur de swatch en het verloop volgt. Mengingen lopen in OKLCH.
 
-De palet-downloads (designtokens, CSS, SCSS, GIMP en Adobe Swatch Exchange) staan in een pil onderaan het palet zodra er tinten zijn. [Neem je palet en lettertypen overal mee](/info/using.html#take-your-palette-and-fonts-anywhere) beschrijft elk formaat.
+De palet-downloads (designtokens, CSS, SCSS, GIMP en Adobe Swatch Exchange) staan in de kop van het palet, naast de titel. [Neem je palet en lettertypen overal mee](/info/using.html#take-your-palette-and-fonts-anywhere) beschrijft elk formaat.
 
 ## Typografie
 
-Zonder eigen lettertype is de kamer één kaart: **Primary**, gezet op leesgrootte in het lettertype dat het vandaag levert, met een tag **Starter**, een knop **Choose a face** en de regel *"Nothing installs until you choose one."* Headings, code en cursief volgen de primary totdat je ze kiest; **Choose them separately** toont hun kaarten.
+Zonder eigen lettertype is de kamer één kaart: **Primary**, gezet op leesgrootte in het lettertype dat het vandaag levert, met een tag **Starter**, een knop **Choose for Primary** en de regel *"Nothing installs until you choose one."* Headings, code en cursief volgen de primary totdat je ze kiest; **Choose them separately** toont hun kaarten.
 
-![De Type-room zonder gekozen lettertype - één kaart op leesgrootte, een Starter-label erop, en één gevulde Choose a face](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+![De Type-room zonder gekozen lettertype - één kaart op leesgrootte, een Starter-label erop, en één gevulde Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
 Kies één lettertype en de kamer opent in vier rolkaarten, de lijst Fonts en een live specimen:
 
@@ -211,7 +213,7 @@ Kies één lettertype en de kamer opent in vier rolkaarten, de lijst Fonts en ee
 - **Code**: een monospace-lettertype voor code en gegevens.
 - **Italic**: een echte cursief voor nadruk, citaten en zijsprongen.
 
-Een kaart is alleen getint waar je dat lettertype installeerde, en zijn knop zegt **Change** bij een eigen lettertype en **Choose a face** overal elders. Niets op een kaart legt iets vast: de knop opent het vergelijkingspodium voor die rol.
+Een kaart is alleen getint waar je dat lettertype installeerde. Zijn knop zegt voor welke rol hij is: **Change Headings** bij een eigen lettertype en **Choose for Headings** overal elders. De voorbeeldregel breekt om in plaats van af te kappen. Niets op een kaart legt iets vast: de knop opent het vergelijkingspodium voor die rol.
 
 ![De vier rolkaarten onthuld - elk gezet in het lettertype dat het bedient, met een Starter-label waar niemand er een koos en Italic dat de primaire volgt](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
@@ -219,7 +221,7 @@ Een kaart is alleen getint waar je dat lettertype installeerde, en zijn knop zeg
 
 Het podium opent binnen de kamer, onder de kaart waarop je drukte, en de kaarten klappen in tot een strook van één regel zodat het podium op het eerste scherm van een telefoon past. Escape annuleert en geeft de focus terug aan de kaart.
 
-1. Druk op **Choose a face** op de kaart.
+1. Druk op **Choose for** en de rol op de kaart.
 2. Typ een familienaam en druk op **Preview**, of druk op een van de zes **Pinned**-families onder het veld.
 3. Druk op **Use this face**.
 
@@ -240,7 +242,7 @@ Tokens zijn de benoemde waarden achter het design system: kleuren, lettertypen, 
 ![De kamer Tokens: de kop met een voorbeeld uit het systeem en de bestandsacties, tegels die elke soort token tellen, dan de kleurparen met hun contrastuitlezingen](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
 - **De kop** geeft een voorbeeld uit je eigen systeem (*Primary is Spearmint, #033633*) en de bestandsacties: **Download** (het hele systeem als designtokens, of het palet in vijf andere formaten), **Copy CSS** en **Add from…** om een JSON-bestand terug in te lezen.
-- **Tegels** tellen elke soort token en springen naar de sectie: Colours, Type, Logos, Shape and spacing, More en All tokens. Ze tellen wat van jou is, zoals Overview doet. Op een telefoon scrollen de tegels zijwaarts.
+- **Tegels** tellen elke soort token en springen naar de sectie: Colours, Type, Logos, Shape and spacing, More en All tokens. Ze tellen wat elke sectie bevat; een sectie met alleen wat bij de lege starter hoorde draagt een tag **Starter**, en een systeem dat met de app is meegeleverd telt zijn eigen materiaal zonder tag. Op een telefoon lopen de tegels over twee rijen van drie.
 - **Colours** begint met de paren die tools samen zetten (tekst op vlak, op primary, gedempt op vlak) met een APCA-uitlezing in licht en donker, en markeert **Weak contrast** waar een paar tekortschiet. Dan elke kleurgroep: een verloop als één rij chips, andere kleuren met hun waarde en de verwijzing die tools gebruiken, zoals `{color.brand.spearmint}`. Druk op een verwijzing om de verwijzing te kopiëren. **Edit in Colours** opent een groep in de kamer Colours.
 - **Type** en **Logos** noemen het lettertype voor elke rol en elk logoslot, met **Edit in Type** en **Edit in Logos** zodra je een eigen hebt.
 - **Shape and spacing** bevat **Rounded corners** (`shape.radius`) en **Spacing rhythm** (`space.base`). Elk leest *Lolly default* totdat je de schuifregelaar verplaatst en *Yours* daarna, slaat meteen op en kan ongedaan worden gemaakt.
@@ -253,11 +255,11 @@ Een sectie waar niets in staat biedt de manier om de leemte te vullen: **Pick a 
 
 Zet de bestanden die je merk bewaart erin, behalve logo's: **vector**-, **image**-, **audio**- en **motion**-bestanden (video, Lottie en animaties). Ze verschijnen in [Assets](/info/using.html#assets-your-library), gesorteerd in secties en klaar in de assetkiezer van elke tool, en ze blijven op dit apparaat.
 
-## Usage & rules
+## Rules
 
-**Usage & rules** zet de keuzes van je merk aan het werk: wat mensen kunnen wijzigen, wat vast blijft en wat Lolly kan controleren.
+**Rules** zet de keuzes van je merk aan het werk: wat mensen kunnen wijzigen, wat vast blijft en wat Lolly kan controleren.
 
-![Usage & rules op Lolly Demo: een lege kaart Brand rules met Add your first rule, dan Try your brand in use met zijn voorbeelden klaar om te renderen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+![Rules op Lolly Demo: een lege kaart Brand rules met Add your first rule, dan Try your brand in use met zijn voorbeelden klaar om te renderen](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
 
 **Brand rules** somt je regels op. **Add rule** (of **Add your first rule**) opent een kort formulier:
 
@@ -282,7 +284,7 @@ Een build die met een vast merk wordt geleverd, toont dezelfde regels en voorbee
 
 ## Een merk binnenhalen
 
-**Add from…** onderaan de balk opent een kiezer die vraagt wat je hebt, niet welk formaat het is:
+**Add from…** in de balk opent een kiezer die vraagt wat je hebt, niet welk formaat het is:
 
 - **Design tokens or a design file**: DTCG- of Tokens Studio-JSON, een Penpot-project, een zip met tokensets, een Lolly-design-systeempakket of een SVG.
 - **PDF**: een deck of een richtlijnenbestand, gelezen op dit apparaat voor zijn kleuren, merktekens en ingesloten lettertypen.
@@ -310,7 +312,7 @@ Imports van PDF en ontwerpbestanden houden hun eigen reviewbediening. Items in d
 
 ### Een look vinden en vergelijken
 
-Open **Find a look** vanuit Overview of vanuit de lijst met design systems in Settings. Blader door systemen die op dit apparaat zijn opgeslagen en een paar herbruikbare Lolly-voorbeelden, en zoek op naam, kleurtag of gedeclareerd lettertype. **Closest to my current palette** sorteert op gemeten kleurgelijkenis, waarbij passende lettertypen gelijke standen beslissen; het is geen kwaliteitsscore.
+Open **Find a look** vanuit Board of vanuit de lijst met design systems in Settings. Blader door systemen die op dit apparaat zijn opgeslagen en een paar herbruikbare Lolly-voorbeelden, en zoek op naam, kleurtag of gedeclareerd lettertype. **Closest to my current palette** sorteert op gemeten kleurgelijkenis, waarbij passende lettertypen gelijke standen beslissen; het is geen kwaliteitsscore.
 
 Selecteer één look om hem te bekijken, of twee om naast elkaar te vergelijken. Selecteren verandert niets. **Use this saved system** schakelt ernaar, en **Use these colours** past de kleuren van een voorbeeld toe via het gebruikelijke checkpoint, waarbij je lettertypen behouden blijven. **Restore brand settings** herstelt de vorige look. Opgeslagen systemen hebben bewerkbare **Search tags** onder **Details and design context**. De voorbeelden zijn originele Lolly-kleurrecepten, zonder gescrapete collectie en zonder account.
 
@@ -328,11 +330,11 @@ Om er een terug te brengen gebruik je **Add from… → Design tokens or a desig
 
 ### Eerdere instellingen herstellen
 
-Kies **Restore brand settings**, selecteer een gedateerd checkpoint en druk op **Restore**. Het herstelt kleuren, lettertype-instellingen en andere tokens voor het actieve merk; lettertype- en afbeeldingsbestanden blijven zoals ze zijn. Lolly slaat je huidige instellingen eerst op als **Before restore**, zodat je een herstel kunt terugdraaien, zelfs na het sluiten van de browser. De laatste 20 checkpoints worden op dit apparaat bewaard.
+Open **More** in de balk, kies **Restore brand settings**, selecteer een gedateerd checkpoint en druk op **Restore**. Het herstelt kleuren, lettertype-instellingen en andere tokens voor het actieve merk; lettertype- en afbeeldingsbestanden blijven zoals ze zijn. Lolly slaat je huidige instellingen eerst op als **Before restore**, zodat je een herstel kunt terugdraaien, zelfs na het sluiten van de browser. De laatste 20 checkpoints worden op dit apparaat bewaard.
 
 ### Versies
 
-Een gepubliceerde versie is een **permanente, benoemde kopie** die op dit apparaat wordt bewaard. Ze verandert nooit, dus een tool of link die haar vastpint (met `designv`) blijft hetzelfde tekenen. Een systeem met iets van jezelf toont een rustige link **Versions & publishing** onderaan de balk; na je eerste publicatie wordt dat de ingang **Versions**. `#/start?area=versions` opent hem direct.
+Een gepubliceerde versie is een **permanente, benoemde kopie** die op dit apparaat wordt bewaard. Ze verandert nooit, dus een tool of link die haar vastpint (met `designv`) blijft hetzelfde tekenen. Een systeem met iets van jezelf vermeldt **Versions & publishing** in het menu **More** van de balk; na je eerste publicatie komt **Versions** erbij bij de kamers. `#/start?area=versions` opent hem direct.
 
 - **Een versie is permanent.** Verwijderen kan nog niet, en het paneel zegt dat.
 - **Verwijderingen staan voorop in de compatibiliteitskaart**, omdat een verwijderd token is wat een tool breekt.

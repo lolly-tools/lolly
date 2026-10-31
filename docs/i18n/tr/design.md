@@ -195,7 +195,7 @@ Somut bir renk veya yazı tipi önerisi bulunduğunda, düğmesi yalnızca o kat
 
 ### Kurumsal stil kuralları ve yazım sinyali
 
-Dışa aktarma panelindeki kart ayrıca tasarım sistemin ile gelen kurumsal stil kurallarını, yani metin ağırlığı ve hizalama, onaylı renk eşleşmeleri veya yüzey başına bir logo gibi kuralları katman katman denetler. Her bulgu, kuralın üstünde katmanın adıyla bir uyarıdır. Bu sürümün denetleyicisi olmayan bir kural, asla izlenmiş olarak değil denetlenmemiş olarak listelenir. [Usage & rules](/info/brand-studio.html#usage-rules) kuralları listeler ve `lolly check` aynı kuralları kayıtlı bir belgeye uygular.
+Dışa aktarma panelindeki kart ayrıca tasarım sistemin ile gelen kurumsal stil kurallarını, yani metin ağırlığı ve hizalama, onaylı renk eşleşmeleri veya yüzey başına bir logo gibi kuralları katman katman denetler. Her bulgu, kuralın üstünde katmanın adıyla bir uyarıdır. Bu sürümün denetleyicisi olmayan bir kural, asla izlenmiş olarak değil denetlenmemiş olarak listelenir. [Rules](/info/brand-studio.html#rules) kuralları listeler ve `lolly check` aynı kuralları kayıtlı bir belgeye uygular.
 
 Aynı kart, belgenin çizdiği metin için yazım sinyalini gösterir: bandı (none, weak, notable veya strong), sonra 100 üzerinden puanla Verify'ın kendi cümlesi ve her biri onları tutan katmanla birlikte en fazla üç işaretli ifade. **Open the text in Verify** o metni tam okuma için [Verify](/#/verify) sayfasına götürür; [AI evidence in Verify](/info/verify-ai-evidence.html) puanın neyi tarttığını açıklar. Puan bir sinyaldir, hüküm değil: üretilmiş yazıda yaygın örüntüleri sayar ve sözcükleri kimin yazdığını söyleyemez. Gizli katmanlar iki denetimin de dışında bırakılır ve kart kaç tane olduğunu söyler.
 

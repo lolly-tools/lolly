@@ -195,7 +195,7 @@ Kde existuje konkrétní návrh barvy nebo písma, jeho tlačítko změní tu je
 
 ### Interní pravidla a signál psaní
 
-Karta v panelu exportu také kontroluje interní pravidla, která tvůj designový systém přináší, například tloušťku a zarovnání textu, schválené dvojice barev nebo logo pro každou plochu, vrstvu po vrstvě. Každý nález je varování s názvem vrstvy nad pravidlem. Pravidlo, pro které toto sestavení nemá kontrolu, je uvedeno jako nezkontrolované, nikdy jako dodržené. [Usage & rules](/info/brand-studio.html#usage-rules) pravidla vypisuje a `lolly check` uplatňuje tatáž na uložený dokument.
+Karta v panelu exportu také kontroluje interní pravidla, která tvůj designový systém přináší, například tloušťku a zarovnání textu, schválené dvojice barev nebo logo pro každou plochu, vrstvu po vrstvě. Každý nález je varování s názvem vrstvy nad pravidlem. Pravidlo, pro které toto sestavení nemá kontrolu, je uvedeno jako nezkontrolované, nikdy jako dodržené. [Rules](/info/brand-studio.html#rules) pravidla vypisuje a `lolly check` uplatňuje tatáž na uložený dokument.
 
 Stejná karta ukazuje signál psaní pro text, který dokument kreslí: jeho pásmo (none, weak, notable nebo strong), pak větu samotného Verify se skóre ze 100 a až třemi označenými frázemi, každou s vrstvou, která je drží. **Open the text in Verify** odnese ten text do [Verify](/#/verify) pro úplné čtení; [Důkazy AI ve Verify](/info/verify-ai-evidence.html) vysvětlují, co skóre váží. Skóre je signál, ne verdikt: počítá vzorce běžné v generovaném psaní a nepozná, kdo slova napsal. Skryté vrstvy jsou z obou kontrol vynechány a karta říká kolik.
 

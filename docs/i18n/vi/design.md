@@ -195,7 +195,7 @@ Nơi có gợi ý màu hoặc phông chữ cụ thể, nút của nó đổi đ�
 
 ### Quy tắc nội bộ và tín hiệu văn phong
 
-Thẻ của bảng xuất cũng kiểm tra các quy tắc nội bộ (house rules) mà hệ thống thiết kế của bạn mang theo, như độ đậm và căn lề văn bản, cặp màu được duyệt hoặc logo cho từng bề mặt, theo từng lớp. Mỗi phát hiện là một cảnh báo với tên lớp phía trên quy tắc. Một quy tắc mà bản dựng này không có bộ kiểm tra được liệt kê là chưa kiểm tra, không bao giờ là đã tuân theo. [Usage & rules](/info/brand-studio.html#usage-rules) liệt kê các quy tắc, và `lolly check` áp dụng chính các quy tắc đó cho một tài liệu đã lưu.
+Thẻ của bảng xuất cũng kiểm tra các quy tắc nội bộ (house rules) mà hệ thống thiết kế của bạn mang theo, như độ đậm và căn lề văn bản, cặp màu được duyệt hoặc logo cho từng bề mặt, theo từng lớp. Mỗi phát hiện là một cảnh báo với tên lớp phía trên quy tắc. Một quy tắc mà bản dựng này không có bộ kiểm tra được liệt kê là chưa kiểm tra, không bao giờ là đã tuân theo. [Rules](/info/brand-studio.html#rules) liệt kê các quy tắc, và `lolly check` áp dụng chính các quy tắc đó cho một tài liệu đã lưu.
 
 Cùng thẻ hiện tín hiệu văn phong cho văn bản mà tài liệu vẽ: dải của nó (none, weak, notable hoặc strong), rồi câu riêng của Verify với điểm trên 100 và tối đa ba cụm từ bị đánh dấu, mỗi cụm kèm lớp chứa chúng. **Open the text in Verify** đưa văn bản đó tới [Verify](/#/verify) để đọc đầy đủ; [AI evidence in Verify](/info/verify-ai-evidence.html) giải thích điểm cân nhắc những gì. Điểm là một tín hiệu, không phải phán quyết: nó đếm các mẫu thường gặp trong văn bản do máy sinh và không thể biết ai viết các từ. Lớp ẩn bị loại khỏi cả hai kiểm tra, và thẻ cho biết có bao nhiêu.
 
