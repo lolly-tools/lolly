@@ -9,19 +9,19 @@ Roughly 828,000 lines of TypeScript, tests included, and 63,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 585 files, 218,789 lines | 306 files, 98,400 lines | 12 files, 1,686 lines |
-| `lib/` | 858 files, 177,327 lines | 512 files, 100,268 lines | 13 files, 1,820 lines |
+| `views/` | 585 files, 218,788 lines | 306 files, 98,402 lines | 12 files, 1,686 lines |
+| `lib/` | 859 files, 177,489 lines | 513 files, 100,399 lines | 13 files, 1,820 lines |
 | `bridge/` | 232 files, 56,294 lines | 141 files, 29,125 lines | none |
-| `components/` | 129 files, 29,465 lines | 61 files, 15,460 lines | 24 files, 1,616 lines |
+| `components/` | 129 files, 29,467 lines | 61 files, 15,460 lines | 24 files, 1,618 lines |
 | `org/` | 80 files, 20,349 lines | 56 files, 16,951 lines | none |
 | `collab/` | 20 files, 13,570 lines | 22 files, 14,247 lines | none |
 | `pro/` | 32 files, 9,421 lines | 16 files, 2,305 lines | 3 files, 1,256 lines |
 | `catalog/` | 12 files, 2,116 lines | 10 files, 1,256 lines | none |
 | `capture/` | 5 files, 781 lines | none | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 10 files, 1,977 lines | 135 files, 56,147 lines |
+| `styles/` | none | 10 files, 1,977 lines | 135 files, 56,155 lines |
 
-Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,292 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,345 of that.
+Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,293 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,345 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -67,7 +67,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,273 | `bridge/export-svg-walker.ts` | **none** |
 | 3,009 | `lib/rebrand/controller.ts` | yes |
 | 2,979 | `bridge/sequence-render.ts` | yes |
-| 2,915 | `views/projects.ts` | none |
+| 2,913 | `views/projects.ts` | none |
 | 2,843 | `views/gallery.ts` | none |
 | 2,656 | `views/deck-editor.ts` | yes |
 | 2,633 | `views/design-inspector.ts` | yes |
