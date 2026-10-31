@@ -594,6 +594,15 @@ test('keyframes: the emitted track is the ENGINE\'s canonical serialisation, byt
     // table entry reads as "hook emits less than the engine" only on a user's board.
     't0_w320_h180*t1000_eo_w640_h360_v0.5',
     't0_w99999_h-5*t5_v9',                             // size/volume clamps
+    // Path handles (plans/330): kept only beside a whole position, dropped at (0, 0),
+    // clamped and quantised like x/y, last one of each kind wins, written after channels.
+    't0_x0_y0_ho(80)(-60)*t1500_eo_x300_y0_hi(-80)(-60)',
+    't0_ho(1)(2)_x0_y0_hi(-3)(4)_hi(5)(6)',            // order on the wire, last wins
+    't0_x5_hi(3)(4)*t10_y5_ho(1)(1)',                  // no whole position: dropped
+    't0_x0_y0_hi(0)(0)_ho(0.004)(-0.004)',             // quantises to (0, 0): dropped
+    't0_x0_y0_ho(5)(5)_ho(0)(0)',                      // a later (0, 0) clears it
+    't0_x0_y0_ho(999999)(-1.23456)_hi(a)(1)',          // clamp, quantum, junk numbers
+    't0_x0_y0_ho(1)(2)(3)_hi()(1)_hx(1)(2)',           // malformed handle tokens are junk
     Array.from({ length: 400 }, (_v, i) => `t${i}_x${i}`).join('*'),  // the 256 cap
     't0_x1*'.repeat(3000),                             // the char cap
     // ~42.6 KB: BETWEEN the hook's old hand-derived cap (40 960) and the engine's

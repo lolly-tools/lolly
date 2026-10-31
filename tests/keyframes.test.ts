@@ -196,7 +196,11 @@ test('the char cap DOMINATES the key cap: a full-density track always fits', () 
     channelChars += widest;
   }
   const widestEase = 'eb(0.999)(-9.999)(0.999)(-9.999)'.length; // x∈[0,1], y∈±10, q=0.001
-  const widestKey = `t${KF_MAX_TIME_MS}`.length + 1 + widestEase + channelChars + KF_CHANNELS.length;
+  // The two path handles (plans/330), each on the x/y clamp and quantum, plus a separator each.
+  const xq = KF_QUANTA.x;
+  const widestNum = `${Number((KF_CLAMPS.x[0] + xq).toFixed(6))}`.length;
+  const handleChars = 2 * (`hi()()`.length + 2 * widestNum + 1);
+  const widestKey = `t${KF_MAX_TIME_MS}`.length + 1 + widestEase + channelChars + KF_CHANNELS.length + handleChars;
   const fullDensity = KF_MAX_KEYS * widestKey + (KF_MAX_KEYS - 1);
   assert.ok(
     fullDensity <= KF_MAX_CHARS,
@@ -206,14 +210,16 @@ test('the char cap DOMINATES the key cap: a full-density track always fits', () 
   // "derived, not picked" has to have a derivation that reproduces, so the prose is
   // pinned here rather than left to be read: change a clamp, a quantum or the channel
   // list and this fails beside the headroom assertion above, naming both figures.
-  assert.equal(widestKey, 283, 'the widest single keyframe, as the docblock states it');
-  assert.equal(fullDensity, 72_703, 'a full-density 256-key track, as the docblock states it');
+  assert.equal(widestKey, 333, 'the widest single keyframe, as the docblock states it');
+  assert.equal(fullDensity, 85_503, 'a full-density 256-key track, as the docblock states it');
 
   // …and empirically, on the worst track the grammar can express.
   const worst = Array.from({ length: KF_MAX_KEYS }, (_v, i) => ({
     t: KF_MAX_TIME_MS - (KF_MAX_KEYS - 1 - i),
     ease: 'eb(0.999)(-9.999)(0.999)(-9.999)',
     v: Object.fromEntries(KF_CHANNELS.map((ch) => [ch, KF_CLAMPS[ch][0] + KF_QUANTA[ch]])),
+    hi: [KF_CLAMPS.x[0] + xq, KF_CLAMPS.y[0] + xq],
+    ho: [KF_CLAMPS.x[0] + xq, KF_CLAMPS.y[0] + xq],
   }));
   const wire = serialiseKf(worst);
   assert.ok(wire.length <= KF_MAX_CHARS, `worst serialised track is ${wire.length} chars`);

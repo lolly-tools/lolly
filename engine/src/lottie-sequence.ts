@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Compile a frozen, resolved linear sequence without a player or a DOM. */
-import { kfChannelsUsed, kfEasePoints, parseKf, type KfChannel, type KfTrack } from './keyframes.ts';
+import { evaluateKf, kfChannelsUsed, kfEasePoints, kfPathCurves, parseKf, type KfChannel, type KfTrack } from './keyframes.ts';
 import { isKfLookChannel } from './kf-look.ts';
 import { lookFeatureName } from './lottie-look.ts';
 import { admitLottieAnimation, lottieNumber, lottieObject, type LottieAnimation, type LottieObject, type LottieValue } from './lottie-model.ts';
@@ -76,6 +76,52 @@ function channel(track: KfTrack, key: KfChannel, fps: number, startMs: number, b
     };
   }) };
 }
+/**
+ * Position as ONE property with native spatial tangents (plans/330), for a track whose
+ * travel curves. Lottie can only carry `to`/`ti` on a combined position, so the curve
+ * needs x and y keyed together; a track that keys them apart is refused with the layer's
+ * name. A straight segment carries no tangents, so it interpolates per axis exactly as the
+ * separate properties did. Players walk a curve by arc length and hold at its ends, so a
+ * curved segment whose ease leaves the 0 to 1 range is written one key per frame instead,
+ * the way a keyed colour is: the file then carries Lolly's own travel frame by frame.
+ */
+function pathPosition(layer: LottieSequenceLayer, track: KfTrack, fps: number): LottieObject {
+  const bx = layer.x + layer.w / 2, by = layer.y + layer.h / 2;
+  const keys = track.map((key, index) => ({ key, index })).filter(({ key }) => key.v.x !== undefined || key.v.y !== undefined);
+  if (keys.some(({ key }) => key.v.x === undefined || key.v.y === undefined)) {
+    throw new Error(`${layer.name}: a curved motion path in dotLottie needs x and y keyed together. Key both on each position keyframe, or use video export.`);
+  }
+  const curves = kfPathCurves(track);
+  const frame = (ms: number) => (layer.startMs + ms) * fps / 1000;
+  const at = (ms: number): number[] => {
+    const p = evaluateKf(track, ms, ['x', 'y']);
+    return [bx + (p.x ?? 0), by + (p.y ?? 0), 0];
+  };
+  const out: LottieObject[] = [];
+  keys.forEach(({ key, index }, n) => {
+    const s = [bx + key.v.x!, by + key.v.y!, 0];
+    const next = keys[n + 1];
+    if (!next) { out.push({ t: frame(key.t), s }); return; }
+    const e = [bx + next.key.v.x!, by + next.key.v.y!, 0];
+    if (key.ease === 'eh') { out.push({ t: frame(key.t), s, e, h: 1 }); return; }
+    const points = kfEasePoints(key.ease) ?? [0, 0, 1, 1];
+    const curved = curves.get(index) === next.index;
+    if (curved && [points[1]!, points[3]!].some(y => y < 0 || y > 1)) {
+      const times = [key.t];
+      for (let f = Math.floor(frame(key.t)) + 1; f < frame(next.key.t); f++) times.push(f * 1000 / fps - layer.startMs);
+      times.forEach((ms, j) => {
+        const to = times[j + 1];
+        out.push({ t: frame(ms), s: at(ms), e: to === undefined ? e : at(to), o: { x: 0, y: 0 }, i: { x: 1, y: 1 } });
+      });
+      return;
+    }
+    out.push({
+      t: frame(key.t), s, e, o: { x: points[0]!, y: points[1]! }, i: { x: points[2]!, y: points[3]! },
+      ...(curved ? { to: [key.ho?.[0] ?? 0, key.ho?.[1] ?? 0, 0], ti: [next.key.hi?.[0] ?? 0, next.key.hi?.[1] ?? 0, 0] } : {}),
+    });
+  });
+  return { a: 1, k: out };
+}
 function pose(layer: LottieSequenceLayer, fps: number): LottieObject {
   const track = parseKf(layer.kf);
   // Appearance keys (plans/328) are written into a shape layer's own shapes by
@@ -94,7 +140,9 @@ function pose(layer: LottieSequenceLayer, fps: number): LottieObject {
   } else scale.k = [100, 100, 100];
   return {
     a: lottieStatic([layer.w / 2, layer.h / 2, 0]),
-    p: { s: true, x: channel(track, 'x', fps, layer.startMs, layer.x + layer.w / 2), y: channel(track, 'y', fps, layer.startMs, layer.y + layer.h / 2), z: lottieStatic(0) },
+    p: kfPathCurves(track).size
+      ? pathPosition(layer, track, fps)
+      : { s: true, x: channel(track, 'x', fps, layer.startMs, layer.x + layer.w / 2), y: channel(track, 'y', fps, layer.startMs, layer.y + layer.h / 2), z: lottieStatic(0) },
     s: scale, r: channel(track, 'r', fps, layer.startMs, layer.rotation),
     o: channel(track, 'o', fps, layer.startMs, layer.opacity * 100, 100, true),
   };

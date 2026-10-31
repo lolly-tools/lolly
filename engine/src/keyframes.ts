@@ -93,6 +93,39 @@ import { clamp } from './clamp.ts';
  * digits, so a reader that predates them skips each one as junk and keeps the rest of
  * the keyframe. The DOM-free helpers that turn these numbers into paint live in
  * kf-look.ts.
+ *
+ * ## Path handles (1.292, plans/330)
+ *
+ * Two per-keyframe tokens let the TRAVEL between two positions curve, independently of
+ * the temporal ease:
+ *
+ * - `hi(<dx>)(<dy>)` - the handle INTO this keyframe's position;
+ * - `ho(<dx>)(<dy>)` - the handle OUT of that position.
+ *
+ * Both are px offsets from the keyframe's own `x`/`y`, in the box's surface space (the
+ * space the `x`/`y` channels live in, before any camera), clamped and quantised by the
+ * `x`/`y` rules (±100000, 0.01). They are written after the channel tokens, `hi` first.
+ * A handle belongs to a keyframe the way its ease does, so it is a field of `KfKey`
+ * rather than a channel: nothing interpolates a handle. It is kept only on a keyframe that
+ * mentions both `x` and `y`, and a handle that quantises to (0, 0) is dropped, so a
+ * retracted handle and an absent one are the same wire. Wire example:
+ * `t0_x0_y0_ho(80)(-60)*t1500_eo_x300_y0_hi(-80)(-60)`.
+ *
+ * A segment is CURVED when its two keyframes both mention `x` and `y`, no keyframe
+ * between them mentions either, and at least one of `a.ho`/`b.hi` is present. Its
+ * cubic is `a, a + a.ho, b + b.hi, b`, and the segment ease is applied to ARC LENGTH:
+ * eased progress is a fraction of the curve's length, found through a fixed chord
+ * table. A cubic's parameter bunches where its handles do, so stepping the parameter
+ * evenly would put a speed bump at every handle; arc length makes a linear ease a
+ * constant speed, and it is what lottie-web and ThorVG do with Lottie's `ti`/`to`, so
+ * a dotLottie export plays the same travel. Progress outside [0, 1] (overshoot,
+ * anticipate) continues along the end tangent by the excess length, which is exactly
+ * what a straight segment already does. Every other segment takes the per-channel code
+ * that shipped before, untouched, so a track without handles evaluates bit for bit as
+ * it always did. Only `+ - * /` and `Math.sqrt` are used, so every host agrees.
+ *
+ * Neither token is a time, an ease or a channel name followed by a number, so a reader
+ * that predates them skips each one as junk and keeps the rest of the keyframe.
  */
 
 // ─── channels ────────────────────────────────────────────────────────────────
@@ -257,13 +290,15 @@ export const KF_MAX_KEYS = 256;
  * channels worth 20 chars per key, i.e. 5 120 chars of full-density track, and
  * 40 960 stopped dominating. `v` (plans/165) later added 7 more per key, which the
  * headroom absorbed. The ten appearance channels (plans/328) added 102 chars per
- * key, 26 112 chars of full-density track, and the cap moved from 48 KiB to 72 KiB,
- * which leaves 1 025 chars of headroom.
+ * key, 26 112 chars of full-density track, and the cap moved from 48 KiB to 72 KiB.
+ * The two path handles (plans/330) add two 24-char tokens and their separators, 50
+ * chars per key, so the widest keyframe is now 333 chars and a full-density track
+ * 85 503; the cap moved to 88 KiB (90 112), which leaves 4 609 chars of headroom.
  *
  * (Plan section 5.1 said 8 KB, written before anyone measured a full-pose track: at
  * 8 KB a 256-key camera track loses ~148 of its keyframes on the way out.)
  */
-export const KF_MAX_CHARS = 73728;
+export const KF_MAX_CHARS = 90112;
 
 /** `t` is clamped to this (MAX_TIME_S · 1000). */
 export const KF_MAX_TIME_MS = 3_600_000;
@@ -333,6 +368,8 @@ export const KF_LINEAR_EASE = 'el';
 export const KF_HOLD_CSS = 'hold';
 
 const EB_RE = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
+/** A path handle token (plans/330): `hi(dx)(dy)` or `ho(dx)(dy)`. */
+const KF_HANDLE_RE = /^h([io])\(([^()]*)\)\(([^()]*)\)$/;
 const NUM_RE = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
 const T_RE = /^t(-?(?:\d+(?:\.\d+)?|\.\d+))$/;
 const CSS_BEZIER_RE = /^\s*cubic-bezier\(([^()]*)\)\s*$/i;
@@ -704,7 +741,17 @@ export interface KfKey {
   readonly ease: string;
   /** Only the channels this keyframe mentions - sparseness is a wire property (section 5.1). */
   readonly v: Readonly<KfPose>;
+  /**
+   * The path handle INTO this keyframe's position (plans/330), px from its own `x`/`y`
+   * in surface space. Present only on a keyframe that mentions both, never (0, 0).
+   */
+  readonly hi?: KfHandle;
+  /** The path handle OUT of this keyframe's position. Same rules as `hi`. */
+  readonly ho?: KfHandle;
 }
+
+/** A path handle: `[dx, dy]` in px from the keyframe's own position (plans/330). */
+export type KfHandle = readonly [number, number];
 
 /** A parsed track: keyframes ascending by `t`, deduped, frozen. */
 export type KfTrack = readonly KfKey[];
@@ -717,6 +764,9 @@ export interface KfKeyInput {
   t?: number;
   ease?: string;
   v?: Readonly<KfPose> | null;
+  /** A path handle, `[dx, dy]`; null or absent means none (plans/330). */
+  hi?: readonly number[] | null;
+  ho?: readonly number[] | null;
 }
 
 export interface KfParseOptions {
@@ -731,6 +781,19 @@ function channelValue(ch: KfChannel, raw: number): number | null {
   if (!Number.isFinite(raw)) return null;
   const [lo, hi] = KF_CLAMPS[ch];
   return quant(clamp(raw, lo, hi), KF_QUANTA[ch]);
+}
+
+/**
+ * A path handle held to the `x`/`y` clamp and quantum (plans/330), or undefined when it
+ * is not two usable numbers or quantises to (0, 0): a retracted handle and an absent one
+ * are the same wire.
+ */
+function handleValue(raw: unknown): KfHandle | undefined {
+  if (!Array.isArray(raw) || raw.length < 2) return undefined;
+  const dx = typeof raw[0] === 'number' ? channelValue('x', raw[0]) : null;
+  const dy = typeof raw[1] === 'number' ? channelValue('y', raw[1]) : null;
+  if (dx === null || dy === null || (dx === 0 && dy === 0)) return undefined;
+  return Object.freeze([dx, dy] as const);
 }
 
 /**
@@ -762,7 +825,19 @@ function normaliseTrack(keys: readonly KfKeyInput[], onWarn?: (m: string) => voi
       const val = channelValue(ch, raw);
       if (val !== null) v[ch] = val;
     }
-    out.push({ t, ease: normaliseKfEase(k.ease) ?? KF_DEFAULT_EASE, v: Object.freeze(v) });
+    const key: { t: number; ease: string; v: Readonly<KfPose>; hi?: KfHandle; ho?: KfHandle } = {
+      t, ease: normaliseKfEase(k.ease) ?? KF_DEFAULT_EASE, v: Object.freeze(v),
+    };
+    // A handle bends the travel between two POSITIONS, so it lives only on a keyframe
+    // that holds one (plans/330). Absent fields stay absent, so a track without handles
+    // builds exactly the keys it always built.
+    if (typeof v.x === 'number' && typeof v.y === 'number') {
+      const hi = handleValue(k.hi);
+      const ho = handleValue(k.ho);
+      if (hi) key.hi = hi;
+      if (ho) key.ho = ho;
+    }
+    out.push(key);
   }
   // Stable sort by time, then last-wins at equal times: a re-keyed pose replaces
   // the one it was written over instead of leaving an unreachable twin behind.
@@ -813,6 +888,8 @@ export function parseKf(s: unknown, opts?: KfParseOptions): KfTrack {
     if (tRaw === null) continue;
     const v: KfPose = {};
     let ease: string | undefined;
+    let hi: number[] | undefined;
+    let ho: number[] | undefined;
     for (let i = 1; i < toks.length; i++) {
       const tok = toks[i] as string;
       if (tok.charCodeAt(0) === 101 /* e */) {
@@ -820,6 +897,17 @@ export function parseKf(s: unknown, opts?: KfParseOptions): KfTrack {
         // Later tokens overwrite earlier ones within a keyframe - the wire is
         // read as a sequence of assignments.
         if (norm !== null) { ease = norm; continue; }
+      }
+      // A path handle (plans/330), `hi(dx)(dy)` / `ho(dx)(dy)`. Tried before the channel
+      // names because `h` is one: without this the token would be junk, which is exactly
+      // what a reader that predates the handles takes it for.
+      const hm = KF_HANDLE_RE.exec(tok);
+      if (hm) {
+        const dx = num(hm[2] ?? ''), dy = num(hm[3] ?? '');
+        if (dx !== null && dy !== null) {
+          if (hm[1] === 'i') hi = [dx, dy]; else ho = [dx, dy];
+          continue;
+        }
       }
       let matched = false;
       for (const ch of CHANNELS_BY_LENGTH) {
@@ -832,7 +920,7 @@ export function parseKf(s: unknown, opts?: KfParseOptions): KfTrack {
       }
       if (!matched) warn?.(`kf: junk token "${snip(tok)}" skipped`);
     }
-    keys.push({ t: tRaw, ease, v });
+    keys.push({ t: tRaw, ease, v, hi, ho });
   }
   return normaliseTrack(keys, warn);
 }
@@ -847,6 +935,10 @@ function keyToWire(k: KfKey): string {
     if (typeof val !== 'number') continue;
     parts.push(`${ch}${fmt(val)}`);
   }
+  // The path handles (plans/330) follow the channels, so every keyframe written before
+  // them keeps its spelling.
+  if (k.hi) parts.push(`hi(${fmt(k.hi[0])})(${fmt(k.hi[1])})`);
+  if (k.ho) parts.push(`ho(${fmt(k.ho[0])})(${fmt(k.ho[1])})`);
   return parts.join('_');
 }
 
@@ -913,7 +1005,13 @@ function sampleChannel(track: KfTrack, ks: readonly number[], ch: KfChannel, t: 
   const span = b.t - a.t;
   if (!(span > 0)) return bv;
   const u = (t - a.t) / span;
-  // The segment ease governs every channel EXCEPT `o`, which is always linear - 
+  // A CURVED position segment (plans/330) travels along its cubic instead; on every
+  // other segment, and on every track without handles, this is never true.
+  if ((ch === 'x' || ch === 'y') && a.ease !== KF_HOLD_EASE) {
+    const seg = curvedSegment(track, ks[lo] as number, ks[lo + 1] as number);
+    if (seg) return pathPoint(seg, kfEaseAt(a.ease, u))[ch === 'x' ? 0 : 1];
+  }
+  // The segment ease governs every channel EXCEPT `o`, which is always linear -
   // `eh` still holds it, like any channel (section 5.2).
   const ease = ch === 'o' ? (a.ease === KF_HOLD_EASE ? KF_HOLD_EASE : KF_LINEAR_EASE) : a.ease;
   return av + (bv - av) * kfEaseAt(ease, u);
@@ -951,6 +1049,230 @@ export function evaluateKf(
     out[ch] = sampleChannel(track, ks, ch, t);
   }
   return out;
+}
+
+// ─── the path: handles that curve the travel (plans/330) ────────────────────
+
+/**
+ * Chords in a curved segment's length table. Enough that a linear ease reads as a
+ * constant speed to well under a pixel on any curve a person draws on an artboard;
+ * the table is built once per segment per track, so the count costs nothing per frame.
+ */
+const PATH_CHORDS = 128;
+
+/** One curved segment: its two track indices, its cubic, and its cumulative chord lengths. */
+interface KfCurve {
+  readonly a: number;
+  readonly b: number;
+  /** `p0x p0y c1x c1y c2x c2y p3x p3y`, surface px offsets (the `x`/`y` channel space). */
+  readonly p: readonly number[];
+  /** `lens[k]` is the length of the first `k` chords; `lens[PATH_CHORDS]` the whole curve. */
+  readonly lens: Float64Array;
+}
+
+// Per-track, keyed on the frozen track exactly as the channel index is - built once,
+// collected with the track, never part of the cloned wire data.
+const PATH_INDEX = new WeakMap<object, ReadonlyMap<number, KfCurve> | null>();
+
+/** A handle as two finite numbers, or null. Defensive: a hand-built track is not normalised. */
+function handleOf(h: unknown): readonly [number, number] | null {
+  if (!Array.isArray(h) || h.length < 2) return null;
+  const dx = h[0], dy = h[1];
+  return typeof dx === 'number' && typeof dy === 'number' && Number.isFinite(dx) && Number.isFinite(dy)
+    && (dx !== 0 || dy !== 0) ? [dx, dy] : null;
+}
+
+/** The point at curve parameter `s`. Exact at both ends: `s = 0` is P0 and `s = 1` is P3. */
+function cubicAt(p: readonly number[], s: number): [number, number] {
+  const r = 1 - s;
+  const w0 = r * r * r, w1 = 3 * r * r * s, w2 = 3 * r * s * s, w3 = s * s * s;
+  return [
+    w0 * (p[0] as number) + w1 * (p[2] as number) + w2 * (p[4] as number) + w3 * (p[6] as number),
+    w0 * (p[1] as number) + w1 * (p[3] as number) + w2 * (p[5] as number) + w3 * (p[7] as number),
+  ];
+}
+
+function buildCurve(a: number, b: number, ka: KfKey, kb: KfKey, ho: readonly [number, number] | null,
+  hi: readonly [number, number] | null): KfCurve {
+  const ax = ka.v.x as number, ay = ka.v.y as number;
+  const bx = kb.v.x as number, by = kb.v.y as number;
+  const p = Object.freeze([
+    ax, ay, ax + (ho ? ho[0] : 0), ay + (ho ? ho[1] : 0),
+    bx + (hi ? hi[0] : 0), by + (hi ? hi[1] : 0), bx, by,
+  ]);
+  const lens = new Float64Array(PATH_CHORDS + 1);
+  let px = ax, py = ay;
+  for (let k = 1; k <= PATH_CHORDS; k++) {
+    const [x, y] = cubicAt(p, k / PATH_CHORDS);
+    const dx = x - px, dy = y - py;
+    lens[k] = (lens[k - 1] as number) + Math.sqrt(dx * dx + dy * dy);
+    px = x; py = y;
+  }
+  return { a, b, p, lens };
+}
+
+/**
+ * Every curved segment of a track, by the index of the keyframe it starts at - or null
+ * for a track that carries no handle at all, which is every track written before 1.292
+ * and the reason the evaluator's fast path is untouched.
+ */
+function pathIndex(track: KfTrack): ReadonlyMap<number, KfCurve> | null {
+  const key = track as unknown as object;
+  const hit = PATH_INDEX.get(key);
+  if (hit !== undefined) return hit;
+  let out: Map<number, KfCurve> | null = null;
+  if (track.some((k) => !!k && (handleOf(k.ho) || handleOf(k.hi)))) {
+    let prev = -1;
+    for (let i = 0; i < track.length; i++) {
+      const k = track[i];
+      if (!k) continue;
+      const hasX = typeof k.v.x === 'number', hasY = typeof k.v.y === 'number';
+      if (!hasX && !hasY) continue;
+      const a = prev >= 0 ? track[prev] : undefined;
+      // Both ends hold a whole position, and nothing between them mentions either axis
+      // (prev is the last keyframe that did), so x and y run one segment together.
+      if (a && hasX && hasY && typeof a.v.x === 'number' && typeof a.v.y === 'number') {
+        const ho = handleOf(a.ho), hi = handleOf(k.hi);
+        if (ho || hi) {
+          out ??= new Map();
+          out.set(prev, buildCurve(prev, i, a, k, ho, hi));
+        }
+      }
+      prev = i;
+    }
+  }
+  PATH_INDEX.set(key, out);
+  return out;
+}
+
+/** The curved segment from track index `a` to `b`, or null when that segment is straight. */
+function curvedSegment(track: KfTrack, a: number, b: number): KfCurve | null {
+  const c = pathIndex(track)?.get(a);
+  return c && c.b === b ? c : null;
+}
+
+/** The curve parameter at which the travelled length is the fraction `p` (0 < p < 1) of the whole. */
+function arcParam(c: KfCurve, p: number): number {
+  const lens = c.lens;
+  const target = p * (lens[PATH_CHORDS] as number);
+  let lo = 0, hi = PATH_CHORDS;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if ((lens[mid] as number) <= target) lo = mid; else hi = mid;
+  }
+  const l0 = lens[lo] as number, l1 = lens[lo + 1] as number;
+  const f = l1 > l0 ? (target - l0) / (l1 - l0) : 0;
+  return (lo + f) / PATH_CHORDS;
+}
+
+/** The unit direction from `(x0, y0)` to the first of `pts` that is not on it, or (0, 0). */
+function unitToward(x0: number, y0: number, pts: readonly (readonly [number, number])[]): [number, number] {
+  for (const [x, y] of pts) {
+    const dx = x - x0, dy = y - y0;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d > 0) return [dx / d, dy / d];
+  }
+  return [0, 0];
+}
+
+/**
+ * The position at eased progress `p` along a curved segment, by ARC LENGTH. Past either
+ * end (an overshooting ease) the travel continues along that end's tangent by the excess
+ * length - the straight segment's own behaviour, generalised.
+ */
+function pathPoint(c: KfCurve, p: number): [number, number] {
+  const q = c.p;
+  const p0x = q[0] as number, p0y = q[1] as number, p3x = q[6] as number, p3y = q[7] as number;
+  const total = c.lens[PATH_CHORDS] as number;
+  if (!Number.isFinite(p) || !(total > 0) || p === 0) return [p0x, p0y];
+  if (p === 1) return [p3x, p3y];
+  if (p < 0) {
+    const [ux, uy] = unitToward(p0x, p0y, [[q[2] as number, q[3] as number], [q[4] as number, q[5] as number], [p3x, p3y]]);
+    return [p0x + ux * p * total, p0y + uy * p * total];
+  }
+  if (p > 1) {
+    const [ux, uy] = unitToward(p3x, p3y, [[q[4] as number, q[5] as number], [q[2] as number, q[3] as number], [p0x, p0y]]);
+    // `unitToward` points from the end BACK along the curve, so the excess goes the other way.
+    return [p3x - ux * (p - 1) * total, p3y - uy * (p - 1) * total];
+  }
+  return cubicAt(q, arcParam(c, p));
+}
+
+/**
+ * The curved segments of a track (plans/330): start keyframe index → end keyframe index.
+ * Empty for a track without handles. A segment absent from this map interpolates its
+ * `x` and `y` channels straight, as every segment did before 1.292.
+ */
+export function kfPathCurves(track: KfTrack | null | undefined): ReadonlyMap<number, number> {
+  const out = new Map<number, number>();
+  if (!track || track.length < 2) return out;
+  for (const [a, c] of pathIndex(track) ?? []) out.set(a, c.b);
+  return out;
+}
+
+/** The point a cut inside a curved segment falls on, and the handles that keep the travel whole. */
+export interface KfPathSplit {
+  /** Track index of the keyframe the curved segment starts at. */
+  a: number;
+  /** Track index of the keyframe it ends at. */
+  b: number;
+  /** The position at the cut, `x`/`y` channel px (what `evaluateKf` returns there). */
+  x: number;
+  y: number;
+  /** The new OUT handle of keyframe `a`, shortened to the first half. */
+  aHo: KfHandle;
+  /** The new keyframe's IN and OUT handles. */
+  hi: KfHandle;
+  ho: KfHandle;
+  /** The new IN handle of keyframe `b`. */
+  bHi: KfHandle;
+}
+
+/**
+ * Split the curved segment that crosses `tMs` so that a keyframe written there keeps the
+ * travel on exactly the same curve (plans/330) - the spatial twin of
+ * {@link subdivideKfEase}, and used beside it: a split, a trim or a new keyframe inside a
+ * curved segment.
+ *
+ * The cut sits at eased progress `p = E(λ)` (λ the fraction of the segment's time), so
+ * by arc length it is at the parameter whose travelled fraction is `p`, and de Casteljau
+ * at that parameter gives the two halves' handles. The left half's own length is `p`
+ * of the whole, which is why `subdivideKfEase`'s left ease reproduces the original
+ * timing along the shorter curve. Exact to the length table, well under a pixel.
+ *
+ * Null when `tMs` is not strictly inside a curved segment, on a hold, or where the ease
+ * has carried the travel past either end of the curve (an overshoot): there the position
+ * is on the tangent beyond the curve, no split of the cubic passes through it, and the
+ * caller keeps the handles it has.
+ */
+export function kfSubdividePath(track: KfTrack | null | undefined, tMs: number): KfPathSplit | null {
+  if (!track || track.length < 2 || !Number.isFinite(tMs)) return null;
+  const idx = pathIndex(track);
+  if (!idx) return null;
+  for (const c of idx.values()) {
+    const ka = track[c.a] as KfKey, kb = track[c.b] as KfKey;
+    if (!(tMs > ka.t && tMs < kb.t) || ka.ease === KF_HOLD_EASE) continue;
+    const p = kfEaseAt(ka.ease, (tMs - ka.t) / (kb.t - ka.t));
+    if (!(p > 0 && p < 1) || !((c.lens[PATH_CHORDS] as number) > 0)) return null;
+    const s = arcParam(c, p);
+    const q = c.p;
+    const lerp = (i: number, j: number, k: number): number => (q[i] as number) + ((q[j] as number) - (q[i] as number)) * k;
+    // de Casteljau over P0 P1 P2 P3, both axes.
+    const ax = lerp(0, 2, s), ay = lerp(1, 3, s);
+    const bx = lerp(2, 4, s), by = lerp(3, 5, s);
+    const cx = lerp(4, 6, s), cy = lerp(5, 7, s);
+    const dx = ax + (bx - ax) * s, dy = ay + (by - ay) * s;
+    const ex = bx + (cx - bx) * s, ey = by + (cy - by) * s;
+    const [fx, fy] = cubicAt(q, s);
+    return {
+      a: c.a, b: c.b, x: fx, y: fy,
+      aHo: [ax - (q[0] as number), ay - (q[1] as number)],
+      hi: [dx - fx, dy - fy],
+      ho: [ex - fx, ey - fy],
+      bHi: [cx - (q[6] as number), cy - (q[7] as number)],
+    };
+  }
+  return null;
 }
 
 // ─── the camera ──────────────────────────────────────────────────────────────
@@ -1465,6 +1787,45 @@ export function projectSurfacePoint(
   const w = g * x + h * y + i;
   if (!(w > 0)) return null;
   return { x: (a * x + b * y + c) / w, y: (d * x + e * y + f) / w, d: w };
+}
+
+/**
+ * The section 4.1 centre fold run BACKWARDS (plans/330): the surface point at depth `z`
+ * that a camera shows at stage-native `(sx, sy)`. What lets a motion path drawn through
+ * the projection be edited in it - a dragged point, or a dragged handle tip, comes back
+ * to the box's own surface coordinates exactly.
+ *
+ * Untilted, the fold is a uniform scale and a translate, so this undoes them:
+ * `x = camX + W/2 + (sx − W/2)/eff`. Tilted, the surface → screen map is a homography and
+ * this is its inverse, checked against the forward map's own denominator: a point the
+ * camera can only see past the horizon has no surface point in front of it, and the
+ * answer is null.
+ */
+export function kfUnprojectCentre(
+  cam: KfCameraView, sx: number, sy: number, z = 0,
+): { x: number; y: number } | null {
+  if (!Number.isFinite(sx) || !Number.isFinite(sy)) return null;
+  const s = surfaceMatrix(cam, z);
+  if (!s) {
+    const { eff } = projectDepth(cam, z);
+    if (!(eff > 0)) return null;
+    const w = Number.isFinite(cam.w) ? cam.w : 0;
+    const h = Number.isFinite(cam.h) ? cam.h : 0;
+    const camX = Number.isFinite(cam.x) ? cam.x : 0;
+    const camY = Number.isFinite(cam.y) ? cam.y : 0;
+    return { x: camX + w / 2 + (sx - w / 2) / eff, y: camY + h / 2 + (sy - h / 2) / eff };
+  }
+  const [a, b, c, d, e, f, g, h, i] = s.m;
+  // The adjugate: a homography's inverse up to scale, which is all a projective map needs.
+  const A = e * i - f * h, B = c * h - b * i, C = b * f - c * e;
+  const D = f * g - d * i, E = a * i - c * g, F = c * d - a * f;
+  const G = d * h - e * g, H = b * g - a * h, I = a * e - b * d;
+  const W = G * sx + H * sy + I;
+  if (W === 0 || !Number.isFinite(W)) return null;
+  const x = (A * sx + B * sy + C) / W;
+  const y = (D * sx + E * sy + F) / W;
+  if (!(g * x + h * y + i > 0)) return null;
+  return { x, y };
 }
 
 /**

@@ -10,6 +10,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.292 path handles: curved travel between positions, its split and the inverse projection.
+  'KfHandle', 'KfPathSplit', 'kfPathCurves', 'kfSubdividePath', 'kfUnprojectCentre',
   // Additive 1.290 appearance keyframes: fill and stroke colour, stroke width, corner radius and trim.
   'KF_FILL_CHANNELS', 'KF_LOOK_CHANNELS', 'KF_LOOK_VARS', 'KF_STROKE_CHANNELS',
   'KfLookVarOpts', 'KfOklab', 'KfOutlineShape', 'KfTrimSpan',

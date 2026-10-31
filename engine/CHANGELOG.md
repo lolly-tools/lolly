@@ -6,6 +6,14 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.292.0
+
+- Path handles (plans/330): two per-keyframe tokens, `hi(<dx>)(<dy>)` (the handle into this keyframe's position) and `ho(<dx>)(<dy>)` (the handle out of it), written after the channel tokens. They are px offsets from the keyframe's own `x`/`y`, held to the `x`/`y` clamp and quantum, kept only on a keyframe that mentions both and dropped when they quantise to (0, 0). `KfKey` and `KfKeyInput` gain optional `hi`/`ho` pairs beside `ease`; nothing interpolates them. A reader older than 1.292 skips both tokens as junk and keeps the rest of the keyframe.
+- A segment whose two keyframes both hold a position, with nothing between them keying `x` or `y` and at least one handle, travels along the cubic those handles make. The segment's ease is applied to arc length (a 128-chord table, cached per track), so a linear ease is a constant speed with no speed bump at a handle, which is also how lottie-web and ThorVG read Lottie's `ti`/`to`. Eased progress past either end continues along that end's tangent. Every other segment, and every track without handles, evaluates bit for bit as before.
+- New barrel exports: `kfPathCurves` (a track's curved segments), `kfSubdividePath` (the handles that keep the travel on the same curve when a keyframe is written inside a curved segment, the spatial twin of `subdivideKfEase`), `kfUnprojectCentre` (the camera's centre fold run backwards, affine and tilted, so a path drawn through the projection can be edited in it), and the types `KfHandle` and `KfPathSplit`.
+- `KF_MAX_CHARS` moves from 73 728 to 90 112, re-derived from the widest keyframe (333 characters with both handles).
+- dotLottie writes a track with a curved segment as one combined position property with native `to`/`ti` tangents. A curved segment whose ease leaves the 0 to 1 range is written one key per frame, since players hold spatial travel at the ends of the curve. Such a track must key `x` and `y` together, or the export refuses with the layer's name. A track without handles writes the separate x and y properties it always wrote.
+
 ## 1.290.0
 
 - Ten keyframe channels for appearance (new module `kf-look.ts`), appended to the `kf` vocabulary after `v`: `cl ca cb` fill colour and `ll la lb` stroke colour as OKLab L, a and b; `lw` stroke width and `cr` corner radius in px; `ts te` trim start and end as a fraction of the stroke's length. Each replaces the box's own field for its segment, like `z`, `w` and `h`. A colour key writes all three of its channels, so interpolation is component-wise in OKLab; the colour quantum is 0.00001, which round-trips every 8-bit sRGB colour. A reader older than 1.290 skips the new tokens and keeps the rest of the keyframe. No existing token changes meaning.
