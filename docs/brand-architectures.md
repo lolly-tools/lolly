@@ -191,6 +191,7 @@ Not yet: an artefact does not own its design system, so two brands cannot be ope
 A sponsor's or partner's mark on your event poster.
 
 - Place the partner's logo as an image in Design.
+- For a wall of sponsors, put every partner's logo in Logo Wall and give each a tier, such as "Gold partners": each tier gets its own rows under its own heading, and the CLI builds the wall from a folder of pictures or a CSV ([A sponsor wall with tiers](/info/cli-rendering.html#a-sponsor-wall-with-tiers)).
 - Record where the logo came from and its licence with [creative rights](/info/creative-rights.html).
 - When an agent does the work, give the agent each brand's [brand skills](/info/brand-skills.html) as they are, and say which brand leads. Each brand's skills keep their own names and ids. Lolly does not merge two brands' skills or decide which brand wins.
 

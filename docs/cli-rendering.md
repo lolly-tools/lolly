@@ -160,6 +160,51 @@ The song's code runs in the `vm` execution class, QuickJS in WebAssembly with no
 
 A mix that holds a song is signed with Content Credentials that record each song as a source: its name, the SHA-256 of its `.rondo.json` and how it was rendered. When the whole file is one song, the credential and the WAV's comment tag also say the music was computed from the song's code with no trained model. The CLI reads the file back and lists the songs its credential records, and `--json` carries the same under `result.credentials`. `--c2pa=off` or `--no-provenance` leaves this out, and `--sign-key`/`--sign-cert` sign with your identity. A mix with no song carries no credential.
 
+## Pictures into a list
+
+Some tools take a pile of pictures, one row each. In the app you drop them on the list; Logo Wall's **Logos** is one such list. The CLI takes the same pictures in three ways, and each file becomes one row with the picture in it and every other field at its default, as a drop does. Each picture is read into memory on this machine and never uploaded.
+
+```bash
+# Files after the tool id, such as a shell glob
+lolly run logo-wall logos/*.png logos/*.svg --output=wall.svg
+
+# One flag per picture
+lolly run logo-wall --logos-file=acme.svg --logos-file=orbit.png --output=wall.png
+
+# A list of paths, one per line, on stdin or in a file
+ls logos/*.svg | lolly run logo-wall --logos-files=- --output=wall.svg
+lolly run logo-wall --logos-files=sponsors.txt --output=wall.svg
+```
+
+Files after the tool id work when the tool has exactly one such list. `--logos-file=-` reads one picture's bytes from stdin, as in `cat logo.png | lolly run logo-wall --logos-file=- --output=wall.svg`. A path list skips blank lines and lines that start with `#`. The new rows go after any the run already has from `--logos=` or `--logos-data=`: first the files after the tool id, then each `--logos-file`, then the `--logos-files` list. A file that cannot be read, or one that is not a picture, stops the run with exit `2` before anything is drawn, and so do files given to a tool with no such list.
+
+Logo Wall's template is one `<svg>`, so its SVG and PNG need no browser here, in the TUI or on the MCP server. An agent on the MCP server gives each logo as a `data:` URL or a public `https:` URL in the row's `logo` field.
+
+### A sponsor wall with tiers
+
+Give each logo a tier and Logo Wall lays each tier out as its own group of rows, in the order the tiers first appear, under a heading with the tier's name. A CSV with a `logo` column and a `tier` column builds the whole wall. A relative path in the CSV is looked up from the working folder, then from the CSV's own folder, so the CSV can sit beside its pictures:
+
+```csv
+logo,tier
+acme.svg,Gold partners
+orbit.svg,Gold partners
+bolt.png,Silver partners
+leaf.png,Silver partners
+tower.svg,Supporters
+```
+
+```bash
+lolly run logo-wall --logos-data=sponsors/sponsors.csv --output=sponsors.svg
+lolly run logo-wall --logos-data=sponsors/sponsors.csv --tierHeadings=0 --tierSizing=even --output=sponsors.png
+lolly run logo-wall --logos-data=sponsors/sponsors.csv --transparentBg=0 --background=ffffff --output=sponsors.png
+```
+
+With **Tier sizes** on Step down, the default, each tier below the first puts one more logo in a row than the tier above, so higher tiers read larger. Same size gives every tier the **Columns** setting. Presence, Size % and Balance sizes still apply to each logo inside its tier, and step and repeat ignores tiers. A wall whose logos carry no tier is one even grid, as before. In the app the same **Tier** field is in each logo's block, and a link carries it in the row: `--logos='[{"logo":"acme.svg","tier":"Gold partners"}]'`.
+
+### Steps that read pixels
+
+Four of Logo Wall's steps read pixels: Balance sizes, Trim margins, Remove white backgrounds and tracing an image logo for Render as vector. They run where the shell has a 2D canvas: the app, and this CLI when `@napi-rs/canvas` is installed. Without one, as in the TUI and on the MCP server today, the wall still renders and a warning lists each step that was skipped. Render as vector still recolours an SVG logo there, because that needs no pixels.
+
 ## Composed tools
 
 Some tools place another tool's render as an asset, declared in the manifest (`composes`), with no tool-to-tool imports. No tool in the public catalog declares `composes` today; a brand pack's tool can, for example a badge that places a `qr-code` render. The runtime resolves it on mount, so the outer tool renders with **no extra flags**.
@@ -269,7 +314,10 @@ Every reserved flag below works on `lolly run` and on the bare `lolly <tool-id>`
 | `--designv=<slug\|latest>` | The design-system version to render against ([URL parameters](/info/url-parameters.html)). |
 | `--emoji=<set@version>`, `--emojifx=<treatment>`, `--emojistyle=<json>` | The emoji set, its brand treatment and an exact style snapshot ([URL parameters](/info/url-parameters.html)). |
 | `--user-profile=<file.json>` | A user-profile JSON file that pre-fills `bindToProfile` inputs. A path that cannot be read or parsed exits `2`. |
-| `--<inputId>-data=<file>` | Fill an input from CSV, TSV, JSON, Markdown or `.xlsx`: rows into a `blocks` input, a `table` (first row as headings) or a `text`/`longtext` field. `--<inputId>-sheet=<name\|index>` picks a sheet; without it the first is read, and the CLI says so. |
+| `--<inputId>-data=<file>` | Fill an input from CSV, TSV, JSON, Markdown or `.xlsx`: rows into a `blocks` input, a `table` (first row as headings) or a `text`/`longtext` field. `--<inputId>-sheet=<name\|index>` picks a sheet; without it the first is read, and the CLI says so. A path in a picture column of the rows is read from disk. |
+| `--<inputId>-file=<picture>` | Add one row with this picture to a list that takes dropped pictures, such as Logo Wall's `--logos-file`. Repeat it for more; `-` reads the picture from stdin ([Pictures into a list](#pictures-into-a-list)). |
+| `--<inputId>-files=<paths\|->` | Add one row for each path in a file, one path per line; `-` reads the list from stdin. |
+| `<picture>…` after the tool id | The same rows, for a tool with exactly one such list. |
 | `--verify` | For an on-device utility, print one line per file once its export checks ran. A failed check writes nothing and exits `1`. |
 | `--tier-b-debug` | Keep the headless page's logs and write them beside the output on failure ([When the browser tier fails](#when-the-browser-tier-fails-ask-it-why-tier-b-debug)). |
 :::
