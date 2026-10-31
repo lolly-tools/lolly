@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-30T21:53:36.457Z",
+  "generatedAt": "2026-10-31T14:17:19.424Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -11723,7 +11723,7 @@
       "id": "logo-wall",
       "name": "Logo Wall",
       "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-      "version": "1.4.3",
+      "version": "1.5.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -11742,6 +11742,7 @@
         "cloud",
         "vector",
         "threshold",
+        "tiers",
         "on-device"
       ],
       "added": "2026-08-28",
