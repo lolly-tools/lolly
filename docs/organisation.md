@@ -75,6 +75,10 @@ Your organisation hosts [Lolly Work](https://github.com/lolly-tools/lolly-work) 
 If you are setting up the service, start with [Deployment](/info/deployment.html#organisation-services-with-lolly-work). The public demo at [lolly.work](https://lolly.work) is a sandbox; use your organisation's own address for work you need to keep.
 :::
 
+## Another organisation's brand
+
+A partner, client or sponsor may send you their brand as a design-system file (`.lolly`) rather than an address. Opening that kind of file connects the app to nothing: it adds their design system beside your own on this device. A setup file from your own organisation is different, because it connects the app to the organisation's Lolly, and the preview shows what opening a file will do before anything changes. [Working with partners](/info/partners.html) covers both sides of working in another organisation's brand.
+
 ## Leaving
 
 **Leave**, on the **Lolly instance** card in **Settings**, removes your organisation's design system, tools and catalogue. Your own work stays. Anything you made with its tools will not open again until you reconnect.

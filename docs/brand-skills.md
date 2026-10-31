@@ -197,7 +197,7 @@ The design brief (`lolly://design-context`, or `lolly system context --json`) ca
 
 An agent reads the index first, then the overall brand skill, then the skill for the discipline at hand. Skills speak for brand intent only. They never grant an agent permissions, tools or access to a document, and the Lolly skill tells agents the same.
 
-In the web app, the Brand Studio (`#/start`) lists the active design system's skills in a **Skills** room.
+In the web app, Design System Setup lists the active design system's skills in its **Skills** room (`#/start?area=skills`). **Download skill (.zip)** writes the folder described below, and **Copy as one file** puts the same text on the clipboard for a chat window.
 
 ### In a folder for a local agent tool
 
@@ -263,4 +263,5 @@ The check compares the copy's SHA-256, or its catalog version when either side l
 - **[Tool Skills](/info/tool-skills.html)**: guidance for one tool, and agent invitations.
 - **[MCP Server](/info/mcp.html)**: connecting an agent, and the other resources.
 - **[Brand architectures](/info/brand-architectures.html)**: how skills behave when brands share work.
+- **[Working with partners](/info/partners.html)**: handing your skills to a partner, and giving an agent two brands' skills.
 - **[Authoring Assets](/info/authoring-assets.html)**: the catalog workflow a skill follows.

@@ -4,7 +4,7 @@ One poster leads with green, the next with coral, and both are plainly the same 
 
 Inside one brand, a department or a product often has a colourway of its own. Each person can take one as theirs in **Settings → Appearance**, so the app around them and each new piece they start wear their team's lead ([Make a colourway your own](#make-a-colourway-your-own)).
 
-Lolly Demo, the design system lolly.tools opens with, ships six: Spearmint, Morning, Spring, Beach, Afternoon and Midnight. Each holds its colours for the light look and for the dark look, so any colourway can be drawn in either.
+Lolly Demo, the design system lolly.tools opens with, ships six: Spearmint, Morning, Spring, Beach, Afternoon and Midnight. Each holds its colours for the light look and for the dark look, so any colourway can be drawn in either. You make and edit colourways in the **Colours** room of Design System Setup ([Add colourways to a design system](#add-colourways-to-a-design-system)).
 
 ::: figure colourways-looks
 Lolly Demo's six colourways in the light look and the dark look: each has a lead, the colour on the lead and a partner.
@@ -76,7 +76,7 @@ When a link or `--_themes` asks such a tool for another option, `lolly run` prin
 
 ## Rules for a series
 
-A series of pieces, such as a week of social posts or the speakers at an event, can take its colourways from a rule. The engine's `pickColourway` function applies five rules. No series or batch flow in the app applies them yet, so for now they are for scripts and tools that call the engine.
+A series of pieces, such as a week of social posts or the speakers at an event, can take its colourways from a rule. The engine's `pickColourway` function applies five rules. No series or batch flow in the app applies them yet, so for now they are for scripts and tools that call the engine. Until a flow applies a rule, give each row its colourway in a batch CSV's `_themes` column ([Batch](/info/batch.html#colourways-and-themes-per-row)), or export one piece in several colourways from the command line with `--themes=Spearmint,Beach` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)).
 
 ::: figure colourways-series
 Eight pieces from Lolly Demo under each rule, picked by the engine itself.
@@ -94,7 +94,21 @@ A rule is applied when each piece is made, and the piece stores the colourway it
 
 ## Add colourways to a design system
 
-Design System Setup does not author colourways yet. For now a colourway file is written by hand, by a script or with the engine's colourway functions, and imported like any other token file.
+### In Design System Setup
+
+The **Colours** room makes and edits colourways. Open **Colour roles**: the **Colourways** row at its head shows one chip per colourway in its lead colour, with **Default** on the canonical one.
+
+1. Press **+ Add** and choose one of the palette's colours. The new colourway takes that colour as its lead, and Lolly works out the colour that sits on the lead and the partner, for light and for dark: the same values a whole design system derived from that colour would use. The surface, the text and the ramps stay the design system's own. On a design system with one lead colour, the first **+ Add** makes the current lead the canonical colourway, named after its colour, and nothing it draws changes.
+2. Choose a chip to edit that colourway. The roles strip, the palette and the previews below then read and write that colourway, and the **Light** and **Dark** switch beside the row chooses which look you edit.
+3. With a colourway chosen, type a new name in the name field, or press **Duplicate**, **Make default** or **Remove**. The canonical colourway cannot be removed.
+
+Each edit goes through the room's undo and saving, and Lolly refuses an edit that would change how any other colourway or look draws. A managed design system shows the row with no editing controls. When a token file encodes its colourways in a way the studio cannot edit, the row gives the reason, and choosing a colourway in a tool still works.
+
+Three things are not in the room yet and are written in the token file: the order of the colourways, a date window on a colourway and a rotation rule for the group.
+
+### In the token file
+
+A colourway can also be written by hand, by a script or with the engine's colourway functions, and imported like any other token file.
 
 A colourway is a theme group of kind `colourway` ([Design Tokens](/info/design-tokens.html#what-a-theme-group-means) covers kinds). It cannot simply override `color.semantic.primary`: token sets apply in set order, not group by group, so a colourway set placed after the light and dark sets would give the same primary to both looks. Instead each colourway holds its colours per look, and the light and dark sets link the role slots to them. This is how Lolly Demo does it, trimmed to two colourways:
 
@@ -136,7 +150,7 @@ Imported files often encode colourways their own way, for example by overriding 
 
 Five more functions edit the colourways a file already has. `renameColourway` changes a colourway's display name and never its id, because pieces store the id. `reorderColourways` puts them in a new order with the canonical one first. `setCanonicalColourway` makes another colourway canonical and moves it first. `duplicateColourway` copies one under a new id and name. `removeColourway` removes any colourway except the canonical one, and clears any stored choice of that colourway.
 
-Each function works on a copy, resolves every token under every choice of look and colourway before and after, and refuses the edit with reasons when a remaining choice would draw something different. Two changes are intended: after `setCanonicalColourway`, a piece that chose no colourway draws the new canonical one, and after `removeColourway`, a piece that stored the removed colourway draws the canonical one. `colourwaysEditable` says whether a file's colourways can be edited this way, and why not. Design System Setup's **Rebuild palette** keeps every colourway ([Design System Setup](/info/brand-studio.html#committing-a-generated-palette)).
+Each function works on a copy, resolves every token under every choice of look and colourway before and after, and refuses the edit with reasons when a remaining choice would draw something different. Two changes are intended: after `setCanonicalColourway`, a piece that chose no colourway draws the new canonical one, and after `removeColourway`, a piece that stored the removed colourway draws the canonical one. `colourwaysEditable` says whether a file's colourways can be edited this way, and why not. The Colours room's colourway controls call these functions, and Design System Setup's **Rebuild palette** keeps every colourway ([Design System Setup](/info/brand-studio.html#committing-a-generated-palette)).
 :::
 
 ## Colourways in Penpot

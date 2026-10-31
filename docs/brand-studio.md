@@ -33,6 +33,7 @@ The studio is a set of rooms in a rail down the side, in no fixed order: nothing
 | **Tokens** | Corners, spacing, shadows and every other named value | `tokens` |
 | **Files** | The images, audio and motion files your brand keeps | `catalogue` |
 | **Usage & rules** | The rules your brand applies, checked on real examples | `usage` |
+| **Skills** | The brand's written standards for people and agents, to read and download | `skills` |
 
 Link to a room with `#/start?area=<key>`. The Files room keeps the key `catalogue`, because a room key is a permanent contract, and `?tab=` still works as an older alias. An unknown key opens Overview.
 
@@ -117,7 +118,7 @@ Once the palette has shades, the strip shows all seven roles a tool can read: Pr
 
 The app's own accent follows the design system by default. That is the **Interface follows the design system** setting in **Settings → Appearance**; turning the setting off leaves the app's chrome neutral, while tools, canvases and exports follow the design system either way.
 
-**Colourways.** A design system can hold several lead colours, each chosen per piece. Lolly keeps every colourway, but this room cannot author one yet: a colourway is written in the token file. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work, and [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) has the format.
+**Colourways.** A design system can hold several lead colours, each chosen per piece. The **Colourways** row at the head of **Colour roles** shows one chip per colourway, with **Default** on the canonical one. **+ Add** starts a new colourway from one of the palette's colours. Choose a chip, and the roles strip, the palette and the previews edit that colourway, in the look the **Light** and **Dark** switch chooses; the chosen colourway can be renamed, duplicated, made the default or removed. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) has the steps and the token format, and [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
 
 ### Find more colours
 
@@ -275,6 +276,12 @@ Lolly Demo brings four approved house rules. Headlines are never set in capitals
 
 A build that ships with a fixed brand shows the same rules and examples read-only, under *This brand is set*.
 
+## Skills
+
+**Skills** lists the active design system's [brand skills](/info/brand-skills.html): the brand's written standards, one per discipline, for people and AI agents. Each row gives the discipline, the brand's own status (**Draft** or **Approved**), whether the skill is public or internal and its revision. Choose a row to read the skill beside its coverage, which sets the skill's lines against your tokens: what Lolly checks, what conflicts, what agrees and what is guidance only.
+
+**Download skill (.zip)** writes the skill as an Agent Skills folder for an agent tool, with catalog links pointing at this Lolly, and **Copy as one file** puts the same text on the clipboard for a chat window. A design system without skills of its own lists a baseline that Lolly writes from its tokens and house rules each time the baseline is read. The room reads skills and never edits them.
+
 ## Bring a brand in
 
 **Add from…** at the foot of the rail opens a picker that asks what you have, not what format it is:
@@ -317,7 +324,7 @@ Select one look to review it, or two to compare side by side. Selecting changes 
 
 **Export** writes one **`LollyBrand-….lolly`** file: your tokens, fonts, logos and theme preference, with an integrity manifest that is checked on the way back in. Web releases before 1.0.7 named the same file `.zip`, and that spelling is still accepted. **Tokens (.json)** writes the plain design-tokens document on its own, with no fonts or logos, for a repository, a build step or another tokens tool.
 
-To bring one back, use **Add from… → Design tokens or a design file**, or drop the file on the studio. That is how a colleague hands you a brand, or how you carry one to a second install, with no account and no cloud. To bring a brand in from the command line, see [`ingest:brand`](/info/configuration.html#brand-packs).
+To bring one back, use **Add from… → Design tokens or a design file**, or drop the file on the studio. That is how a colleague hands you a brand, or how you carry one to a second install, with no account and no cloud. [Working with partners](/info/partners.html) covers what else to send when the person receiving your brand works for another organisation. To bring a brand in from the command line, see [`ingest:brand`](/info/configuration.html#brand-packs).
 
 **Fonts for Linux (.rpm)** packages the fonts you added into an installable RPM. If you uploaded any of them yourself, Lolly asks you to confirm that you may redistribute them first.
 
@@ -361,5 +368,6 @@ Changing what a server supplies is an administrator's task: its operator changes
 
 - **[Using Lolly](/info/using.html)**: the tools, saving, sharing and Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: how divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities.
+- **[Working with partners](/info/partners.html)**: sharing your brand with a partner, and working in a brand you were given.
 - **[Design Tokens](/info/design-tokens.html)**: the token model your brand is written in.
 - **[Export a file](/info/exporting.html)**: print units, CMYK and the formats your brand renders into.
