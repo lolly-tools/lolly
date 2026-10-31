@@ -57,9 +57,16 @@ test('palette handles support keyboard, mouse and tablet dragging with persisten
     await page.screenshot({ path: '/tmp/lolly-brand-palette-tablet.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => { document.documentElement.dataset.a11yText = 'large'; });
-    await handles.first().scrollIntoViewIfNeeded();
+    await group.locator('[data-reorder-row]').first().scrollIntoViewIfNeeded();
     assert.equal(await group.evaluate(el => el.scrollWidth > el.clientWidth + 1), false);
     assert.ok((await group.locator('.be-pal-check').first().boundingBox())!.width >= 44);
+    // A phone shows four colours a row and no handle row under each at rest; Select
+    // mode brings the handles back, still a full touch target (plan 336).
+    assert.equal(await handles.first().isVisible(), false, 'no permanent handle row on a phone');
+    await group.locator('[data-be-pal-all]').click();
+    await handles.first().waitFor({ state: 'visible' });
+    const phoneHandle = (await handles.first().boundingBox())!;
+    assert.ok(phoneHandle.width >= 44 && phoneHandle.height >= 44, 'the Select-mode handle keeps its 44px target');
     await page.screenshot({ path: '/tmp/lolly-brand-palette-phone.png', fullPage: true });
     assert.deepEqual(errors, []);
   } finally { await context.close(); await browser.close(); }

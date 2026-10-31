@@ -45,7 +45,8 @@ test('SVG import keeps brand font snapping, fits both text layers and offers Typ
     await page.getByRole('button', { name: 'Add brand fonts', exact: true }).focus();
     await page.keyboard.press('Enter');
     await page.waitForURL(/area=type/);
-    await page.getByRole('heading', { name: 'Make it yours', exact: true }).waitFor();
+    // The studio opens on its Type room (the bar names the system, not a page title).
+    await page.getByRole('navigation', { name: 'Design system rooms' }).locator('[data-ds-room="type"][aria-current="page"]').waitFor();
     await page.goBack();
     await Promise.all([headline.waitFor(), supportingText.waitFor()]);
     await page.evaluate(() => document.fonts.ready);
