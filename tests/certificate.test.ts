@@ -71,7 +71,7 @@ function cssVar(html: string, name: string): string {
 
 /** The hook's own helpers, for the arithmetic tests. */
 function hookHelpers(source: string = tool.hooksSource): any {
-  return new Function('host', `${source}\nreturn { emWidth, fitName, fitCourse, boxes, shapeOf, paletteFor, contrast, ornaments, confettiPieces, fmtDate, textDir, ctPrintLang, CT_PRINTED, CT_TEXT, SHAPES, PAGES };`)(baseHost());
+  return new Function('host', `${source}\nreturn { emWidth, fitName, fitCourse, boxes, shapeOf, paletteFor, contrast, ornaments, confettiPieces, fmtDate, ctPrintLang, CT_PRINTED, CT_TEXT, SHAPES, PAGES };`)(baseHost());
 }
 
 // ── Wording follows the kind ────────────────────────────────────────────────
@@ -569,9 +569,9 @@ test('a clip shorter than the motion plays it faster and still ends finished', {
 });
 
 /** The hydrated sheet in jsdom with its own script running, as a browser runs the page. */
-async function liveSheet(values: Record<string, unknown>) {
+async function liveSheet(values: Record<string, unknown>, stage = 'stage') {
   const { html } = await mount(values);
-  const dom = new JSDOM(`<!doctype html><body><div id="stage">${html}</div></body>`, { runScripts: 'dangerously', pretendToBeVisual: true } as never);
+  const dom = new JSDOM(`<!doctype html><body><div id="${stage}">${html}</div></body>`, { runScripts: 'dangerously', pretendToBeVisual: true } as never);
   const doc = dom.window.document;
   const clock: any = doc.querySelector('.ct-clock');
   // Normalised, because clearing a property re-serialises the attribute.
@@ -611,6 +611,35 @@ test('the live preview never plays outside the tool view', { skip: SKIP }, async
   assert.equal(sheet.doc.querySelector('.ct-name')!.getAttribute('style'), null);
   assert.ok(sheet.doc.querySelector('.ct-play[data-export-hide]'), 'the play button never reaches a file');
   sheet.dom.window.close();
+});
+
+// Defect: only the raster exports called the clock. A PDF, SVG, print PDF or Penpot file
+// fired while the preview reveal played walked the live sheet with every part part-way in,
+// and the reveal kept rewriting inline styles under the walk. The web shell now holds every
+// still export on the clock (frame-clock.ts holdStillFrame), and this pins the Certificate's
+// side of that: held mid-reveal, the sheet is the finished one and stays still until released.
+test('a still export held mid-reveal gets the finished sheet, and the reveal waits for the release', { skip: SKIP }, async () => {
+  const { holdStillFrame } = await import('../shells/web/src/bridge/frame-clock.ts');
+  const frames = (win: any, n: number) => new Promise<void>((done) => {
+    const step = (k: number) => (k ? win.requestAnimationFrame(() => step(k - 1)) : done());
+    step(n);
+  });
+  for (const format of ['pdf', 'svg', 'pdf-cmyk', 'penpot']) {
+    const still = await liveSheet({ style: 'classic', motion: 'reveal' });
+    const finished = still.styles();
+    still.dom.window.close();
+    const live = await liveSheet({ style: 'classic', motion: 'reveal' }, 'tool-canvas');
+    await frames(live.dom.window, 3);
+    assert.notEqual(live.styles(), finished, `${format}: the preview is mid-reveal when the export starts`);
+    const root = live.doc.querySelector('.ct-root')!;
+    const release = holdStillFrame(root, format);
+    assert.equal(live.styles(), finished, `${format}: the held sheet is the finished certificate`);
+    await frames(live.dom.window, 6);
+    assert.equal(live.styles(), finished, `${format}: nothing moves while the file is written`);
+    release();
+    assert.equal(live.clock.__lollyFrameDriven, false, `${format}: the release hands the loop back`);
+    live.dom.window.close();
+  }
 });
 
 // ── Print language ──────────────────────────────────────────────────────────
@@ -696,6 +725,56 @@ test('a bulk CSV with mixed languages prints each row in its own language', { sk
   }
   assert.deepEqual(titles, ['Teilnahmebescheinigung', '修了証', 'شهادة إتمام', 'Certificate of Completion']);
   assert.deepEqual(dirs, ['ltr', 'ltr', 'rtl', 'ltr']);
+});
+
+// Defect: the sheet's direction came from the first strong character of a typed
+// title, so the award preset's 'Team of the Year' laid an Arabic certificate out left
+// to right, and an Arabic title mirrored an English one.
+test('the print language sets the sheet direction, and a typed title keeps its own', { skip: SKIP }, async () => {
+  const cases: Array<[string, string, string]> = [
+    ['ar', 'Team of the Year', 'rtl'],
+    ['ur', 'Team of the Year', 'rtl'],
+    ['en', 'فريق العام', 'ltr'],
+    ['de', 'فريق العام', 'ltr'],
+    ['ar', '', 'rtl'],
+  ];
+  for (const [language, heading, dir] of cases) {
+    const rt = await createRuntime(translated, baseHost(), { language: language === 'ur' ? 'ar' : language, heading, certKind: 'award' });
+    const html = rt.getHydrated() as string;
+    assert.equal(rt.getHydratedString('{{dir}}'), dir, `${language} with "${heading}"`);
+    assert.match(html, new RegExp(`class="ct-root[^"]*"[^>]*dir="${dir}"`), `${language}: the root carries it`);
+    if (heading) {
+      // The title follows its own characters, so it still shapes and reads in order.
+      assert.match(html, /<h1 class="ct-title"[^>]*dir="auto"/, 'the typed title keeps dir="auto"');
+      assert.ok(html.includes(heading), 'the typed title prints');
+    }
+  }
+  // Urdu has its own entry in the right-to-left table and the shipped wording.
+  const ur = await createRuntime(tool, baseHost(), { language: 'ur', heading: 'Team of the Year' });
+  assert.equal(ur.getHydratedString('{{dir}}'), 'rtl');
+});
+
+// Defect: the Accent help said Minimal colours its name and frame in the accent; Minimal
+// has no frame and prints the name in the ink.
+test('the Accent help says what Accent colours in each style', { skip: SKIP }, async () => {
+  const manifest = await readJson('tool.json');
+  const help: string = manifest.inputs.find((i: { id: string }) => i.id === 'accent').help;
+  const css = await fetchFile(join('certificate', 'styles.css'));
+  const claims: Record<string, string> = {};
+  for (const m of help.matchAll(/(Classic|Modern|Minimal|Celebration): ([^.]+)\./g)) claims[m[1]!.toLowerCase()] = m[2]!;
+  assert.deepEqual(Object.keys(claims).sort(), ['celebration', 'classic', 'minimal', 'modern'], 'one line per style');
+  const accent = '#123456';
+  for (const [style, said] of Object.entries(claims)) {
+    const parts = said.split(/, | and /).map((p) => p.trim());
+    const { html } = await mount({ style, accent });
+    const frameInAccent = html.includes('class="ct-frame"') && !new RegExp(`\\.ct-style-${style} \\.ct-bar \\{\\s*background: var\\(--ct-rule`).test(css);
+    assert.equal(parts.includes('the frame'), frameInAccent, `${style}: the frame`);
+    const nameInAccent = new RegExp(`\\.ct-style-${style} \\.ct-name \\{\\s*color: var\\(--ct-accent`).test(css);
+    assert.equal(parts.includes('the name'), nameInAccent, `${style}: the name`);
+    const panelInAccent = html.includes('class="ct-panel"') && cssVar(html, 'ct-panel') === accent;
+    assert.equal(parts.includes('the panel'), panelInAccent, `${style}: the panel`);
+    assert.ok(parts.some((p) => p.startsWith('the seal')), `${style}: every style's seal follows the accent`);
+  }
 });
 
 // ── Colours and logos, kept from 1.0 ────────────────────────────────────────

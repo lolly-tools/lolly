@@ -284,7 +284,7 @@
     "type": "color",
     "default": "",
     "section": "Colour",
-    "help": "Leave empty to follow the design system and its colourway. Colours the name, the frame and the seal in Classic and Minimal, the panel in Modern, and the seal and confetti in Celebration."
+    "help": "Leave empty to follow the design system and its colourway. Classic: the name, the frame and the seal. Minimal: the title, the bar above the title and the seal ring. Modern: the panel and the seal. Celebration: the seal, the bar under the name and the confetti."
   },
   {
     "id": "color",
