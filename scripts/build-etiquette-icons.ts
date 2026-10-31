@@ -32,6 +32,10 @@ interface EtiquetteIcon {
   tags?: string[];
   /** False for a drawing of Lolly's own (the lolly glyph), which carries no Lucide licence. */
   lucide?: boolean;
+  /** True draws the accent first, behind the base, for a glyph whose detail sits under its object. */
+  accentBehind?: boolean;
+  /** The catalog version; raise it whenever the drawing changes, because the shell caches by id and version. */
+  version?: string;
   base: string[];
   accent: string[];
 }
@@ -105,7 +109,7 @@ export function indexRow(icon: EtiquetteIcon): Record<string, unknown> {
     id: `lolly/icons/${icon.slug}`,
     name: icon.name,
     type: 'vector',
-    version: '1.0.0',
+    version: icon.version ?? '1.0.0',
     tier: 'on-demand',
     tags: ['icon', 'themable', 'two-color', 'etiquette', ...(icon.tags ?? [])],
     formats: [{ format: 'svg', url: `/catalog/assets/lolly/icons/${icon.slug}.svg` }],
@@ -140,7 +144,9 @@ export function iconSvg(icon: EtiquetteIcon, width: number, c1: string, c2: stri
   if (!base || !accent) throw new Error(`${icon.slug}: an icon needs both a base and an accent stroke`);
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">'
     + `<defs><style>.c1{fill:${c1}}.c2{fill:${c2}}</style></defs>`
-    + `<path class="c2" d="${base}"/><path class="c1" d="${accent}"/></svg>\n`;
+    + (icon.accentBehind
+      ? `<path class="c1" d="${accent}"/><path class="c2" d="${base}"/></svg>\n`
+      : `<path class="c2" d="${base}"/><path class="c1" d="${accent}"/></svg>\n`);
 }
 
 async function main(): Promise<void> {
