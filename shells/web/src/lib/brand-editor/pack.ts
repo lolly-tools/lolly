@@ -13,6 +13,7 @@ import type { SwatchExportFormat } from '../swatch-export.ts';
 import { applyChromeBrandVars } from '../../brand-vars.ts';
 import { brandFontFamilies } from '../register-user-fonts.ts';
 import { mountCataloguePanel, mountGradientsPanel, mountTokensPanel } from '../brand-studio-tabs.ts';
+import { activeDesignSystemSource } from '../design-system/active.ts';
 import { exportBrandPack, importBrandPack } from '../../brand-transfer.ts';
 import { saveBlob } from '../../pro/zip.ts';
 import { t, tRaw } from '../../i18n.ts';
@@ -128,6 +129,7 @@ export function wirePaletteDownload(bedit: BrandEditorCtx): void {
     // Faces installed on this device, so the Tokens room calls a face the person's
     // own on the same test the Type room and Overview use (ownership.ts faceState).
     userFontFamilies: (): readonly string[] => [...bedit.fontFamilies.map(f => f.family), ...brandFontFamilies()],
+    supplied: (): boolean => bedit.supplied,
     // The token workspace replaced the whole document in place: the Colours room
     // reseeds its controls and palette from the new document.
     onDocReplaced: () => { bedit.derive.reseedFromDoc(); bedit.ramps.repaintPalette(); },
@@ -136,6 +138,13 @@ export function wirePaletteDownload(bedit: BrandEditorCtx): void {
   // 6.4 leaves one file door, the compare stage's own drop zone.)
   const tokensMount = bedit.ramps.$('[data-be-tokens-mount]') as HTMLElement | null; bedit.tokensMount = tokensMount as BrandEditorCtx['tokensMount'];
   const tokensPanel = tokensMount ? mountTokensPanel(tokensMount, { ...studioCtx, notify: () => bedit.state.notify('tokens') }) : null; bedit.tokensPanel = tokensPanel;
+  // A supplied system's material is its own, so the Tokens tiles drop the Starter
+  // tag once the registry has answered (plan 336). Read once: switching remounts.
+  void activeDesignSystemSource(host).then((source) => {
+    if (source !== 'shipped') return;
+    bedit.supplied = true;
+    tokensPanel?.render();
+  }, () => { /* no registry: nothing is supplied */ });
   const gradsMount = bedit.ramps.$('[data-be-grads-mount]') as HTMLElement | null; bedit.gradsMount = gradsMount as BrandEditorCtx['gradsMount'];
 }
 

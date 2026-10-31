@@ -109,6 +109,36 @@ test('an unlocked catalog pack is furnished, even with nothing installed here', 
   assert.equal(model.tokenCount, 2);
 });
 
+// Plan 336: a system the app ships and that can be edited (Lolly Demo) holds
+// colours, faces, marks and colourways, so the Board shows them and says where
+// they came from instead of opening on the empty doors.
+test('a supplied, editable system is furnished and says it came with the app', async () => {
+  const host = stubHost({ tokensId: 'lolly/tokens/demo', colors: ['#033633', '#008657'], doc: DOC });
+  (host.tokens as unknown as { activeRecord: () => Promise<unknown> }).activeRecord = async () => ({
+    id: 'shipped', label: 'Lolly Demo', headId: 'lolly/tokens/demo', locked: false, source: { kind: 'shipped' },
+  });
+  const model = await readOverview(host);
+  assert.equal(model.furnished, true);
+  assert.equal(model.supplied, true);
+  assert.deepEqual(model.colors, ['#033633', '#008657']);
+  const html = overviewHtml(model);
+  assert.equal(/ds-ov--empty/.test(html), false, 'no empty doors over a system that holds material');
+  assert.match(html, /Came with this app/);
+});
+
+test('the Board draws each colourway as a tile in its lead colour', () => {
+  const html = overviewHtml({
+    furnished: true, colors: ['#033633'], colorCount: 1, fonts: [], logoCount: 0, tokenCount: 3,
+    colourways: [
+      { name: 'Spearmint', primary: '#033633', onPrimary: '#ffffff', canonical: true },
+      { name: 'Morning', primary: '#c55123', onPrimary: '#ffffff', canonical: false },
+    ],
+  });
+  assert.match(html, /2 colourways/);
+  assert.equal([...html.matchAll(/class="ds-ov-way"/g)].length, 2);
+  assert.match(html, /--lead:#c55123/);
+});
+
 test('no tokens asset anywhere reads as empty', async () => {
   const model = await readOverview(stubHost({ tokensId: '', colors: ['#ff6600'] }));
   assert.equal(model.furnished, false);
@@ -455,7 +485,7 @@ test('TYPE: one own role leads, and the starter takes the rest', () => {
     mono: { family: 'SUSE Mono', state: 'inherited' },
     italic: { family: 'Inter', state: 'follows', follows: 'brand' },
   }));
-  assert.match(html, /Inter <small[^>]*>for headings/);
+  assert.match(html, /Inter(?:<\/span>)? <small[^>]*>for headings/);
   assert.match(html, /Starter for the rest · SUSE, SUSE Mono/);
   // A following role repeats a decision rather than making one, so its family is
   // never listed as the starter's.
@@ -469,8 +499,8 @@ test('TYPE: every role chosen says so and nothing else', () => {
     mono: { family: 'Space Mono', state: 'own' },
     italic: { family: 'Inter', state: 'own' },
   }));
-  assert.match(html, /Inter <small[^>]*>for text/);
-  assert.match(html, /Space Mono <small[^>]*>for code/);
+  assert.match(html, /Inter(?:<\/span>)? <small[^>]*>for text/);
+  assert.match(html, /Space Mono(?:<\/span>)? <small[^>]*>for code/);
   assert.equal(/Starter/.test(html), false, 'nothing is standing in');
 });
 
@@ -508,7 +538,7 @@ test('a furnished system with nothing chosen still gets the doors', () => {
     },
   } as unknown as NonNullable<Parameters<typeof overviewHtml>[0]>);
   assert.match(html, /ds-ov--empty/);
-  // The page heading says "Make it yours"; the room's own heading says what to do.
+  // The room's own heading says what to do.
   assert.match(html, /Start with what you have/);
   assert.equal(/Make it yours/.test(html), false, 'the room does not repeat the page title');
 });

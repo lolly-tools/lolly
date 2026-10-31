@@ -391,6 +391,35 @@ html[dir="rtl"] .start-back-row {
    dashed edge - dashed means drop target in this app. */
 .ds-ov-chip.is-starter { width: 12px; height: 12px; border-radius: var(--radius-xs); opacity: 0.5; }
 .ds-ov-strip-rule { width: 1px; height: 14px; margin: 0 2px; background: hsl(var(--border)); }
+/* The room's heading and, on a system the app ships, where it came from: a
+   quiet filled tag, the same register as the Settings card's source line. */
+.ds-ov-head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3) var(--sp-6); }
+.ds-ov-supplied {
+  padding: var(--sp-1) var(--sp-5);
+  border-radius: var(--radius-pill);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+/* A face named in its own face: the Type card is a specimen as well as a count. */
+.ds-ov-face { font-weight: 650; }
+/* The colourways as small tiles: each lead colour with "Aa" in the ink that
+   reads on that colour. The hairline keeps a pale lead visible on a pale card. */
+.ds-ov-ways { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
+.ds-ov-way {
+  display: grid;
+  place-items: center;
+  min-width: calc(34px * var(--a11y-fs));
+  height: calc(26px * var(--a11y-fs));
+  padding-inline: var(--sp-2);
+  border-radius: var(--radius-xs);
+  background: var(--lead);
+  color: var(--on);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  box-shadow: var(--ui-edge-faint);
+}
 /* The empty state's one quiet line: two inline controls that read as text. */
 .ds-ov-bring { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
 .ds-ov-inline {

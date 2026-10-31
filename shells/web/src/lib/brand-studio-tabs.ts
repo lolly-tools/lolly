@@ -72,6 +72,8 @@ export interface StudioTabCtx {
    *  own; any other face came with the system (ownership.ts `faceState`, the test
    *  the Type room and Overview make). Absent attributes every face to the system. */
   userFontFamilies?: () => readonly string[];
+  /** The active system is the one the app ships, so what it holds is its own and never "Starter". */
+  supplied?: () => boolean;
 }
 
 export interface StudioPanelHandle { render: () => void; teardown: () => void }
@@ -666,8 +668,9 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
   };
 
   const tileHtml = (id: RoomSection, preview = ''): string => {
-    const label = sectionLabel(id), n = model.counts[id];
-    const starterOnlyTile = !n && (id === 'color' || id === 'type' || id === 'logos') && model.starter[id] > 0;
+    // What the section holds, never a zero over material that is there: the tag says it came with the starter, and a supplied system's own material needs none.
+    const label = sectionLabel(id), inherited = id === 'color' || id === 'type' || id === 'logos' ? model.starter[id] : 0, n = model.counts[id] || inherited;
+    const starterOnlyTile = !model.counts[id] && inherited > 0 && !ctx.supplied?.();
     const aria = starterOnlyTile ? `${tRaw('{label}: {n}', { label, n })}, ${t('Starter')}` : tRaw('{label}: {n}', { label, n });
     return `<button type="button" class="tk-tile" data-tk-jump="${id}" aria-label="${escape(aria)}"><span class="tk-tile-ic" aria-hidden="true">${icon(SECTION_ICON[id])}</span><span class="tk-tile-n">${n}</span><span class="tk-tile-label">${label}</span><span class="tk-tile-preview" aria-hidden="true">${preview}${starterOnlyTile ? starterTag() : ''}</span></button>`;
   };
