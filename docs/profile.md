@@ -13,7 +13,7 @@ Your profile also holds what you build up while you work: saved sessions, upload
 | **Location** | City and country. |
 | **Headshot** | An optional photo, cropped to a square and kept as a local image, for tools such as email signatures, quote cards and org charts. |
 | **Use my details to create** | One opt-in switch (it reads **Using my details** once on). It decides whether your details travel as the author credit in exported files and on Batch runs. It does not affect pre-fill; see [How tools use your profile](#how-tools-use-your-profile). |
-| **Preferences** | Your theme, your accessibility settings and which parts of the app you turned on in **Feature flags**. |
+| **Preferences** | Your theme, your colourway in each design system, your accessibility settings and which parts of the app you turned on in **Feature flags**. |
 | **Your work** | Saved sessions with their thumbnails, organised in [Projects](/info/find-your-work.html), your uploaded images and your local activity stats. |
 
 None of it is required. A blank profile works; fill in only what saves you typing.

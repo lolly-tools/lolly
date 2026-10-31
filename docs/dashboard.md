@@ -19,7 +19,7 @@ Preferences is one long page with a **settings rail** down the side and a **Sear
 - <!--i:usercheck--> **Your details** - your name, contact details and headshot, and the **Use my details to create** switch. [Profiles](/info/profile.html) explains how tools use them.
 - <!--i:seal--> **Content Credentials** - the optional verified identity that signs your exports. See [Content Credentials](/info/content-credentials-identity.html).
 - <!--i:palette--> **Design systems** - switch, add, hide or remove design systems. [Design System Setup](/info/brand-studio.html#manage-your-design-systems) covers each action.
-- <!--i:moon--> **Appearance** - the theme (Light, Dark or Brand, which paints the app in your palette) and **Interface follows the design system**.
+- <!--i:moon--> **Appearance** - the theme (Light, Dark or Brand, which paints the app in your palette), **Your colourway** when the design system offers more than one ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) and **Interface follows the design system**.
 - <!--i:sparkle--> **Emoji** - the set your emoji are drawn from when you start something new, with its artwork licence, and how strongly your palette recolours them (**Off**, **Subtle**, **Strong**, **Full**, **Mono** or **Duotone**). **Keep skin tones and flags** leaves those in their own colours. Work you already made keeps the set it was made with.
 - <!--i:eyeoff--> **Accessibility** - four comfort switches, plus Sound and Neurospicy Mode. See [Accessibility](#accessibility).
 - <!--i:link--> **Connected services** - storage you connect, such as Dropbox, Google Drive, OneDrive, Nextcloud or S3, and **Sync across devices**. See [Sync your devices](/info/sync.html).

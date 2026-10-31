@@ -2,6 +2,8 @@
 
 One poster leads with green, the next with coral, and both are plainly the same brand. A colourway is one of those leads: a lead colour, the colour that sits on it and a partner colour, kept in your design system beside the others. You choose a colourway for each piece you make, and the design system itself stays as it is.
 
+Inside one brand, a department or a product often has a colourway of its own. Each person can take one as theirs in **Settings → Appearance**, so the app around them and each new piece they start wear their team's lead ([Make a colourway your own](#make-a-colourway-your-own)).
+
 Lolly Demo, the design system lolly.tools opens with, ships six: Spearmint, Morning, Spring, Beach, Afternoon and Midnight. Each holds its colours for the light look and for the dark look, so any colourway can be drawn in either.
 
 ::: figure colourways-looks
@@ -25,9 +27,28 @@ The choice travels wherever the piece goes:
 - **In a batch,** per row, in the CSV's `_themes` column ([Batch](/info/batch.html#make-many-versions-of-one-design)).
 - **In the exported file,** as the [design-system record](/info/exporting.html#the-design-system-record), which gives the colourway beside the tool: *Chart (Beach colourway)*.
 
-## The app keeps the canonical colourway
+## Make a colourway your own
 
-The app's accent, favicon and logo tint follow the canonical colourway, whatever the open piece uses: the app belongs to the device, and the canvas belongs to the piece. A Beach poster shows Beach on the canvas and the canonical colour in the app around the poster. The same holds for every other theme group, whether or not it declares a kind, except light and dark, which follow the app's appearance setting.
+A team inside a brand, such as a department or a product, often has a colourway of its own. In **Settings → Appearance**, **Your colourway** shows the design system's colourways as dots, drawn in the app's current look, with the canonical one marked as the design system default. Pick a dot and two things change:
+
+- The app's accent, favicon and logo tint take your colourway on this device, in light and in dark.
+- Each new piece you start is drawn in your colourway and stores that choice, exactly as if you had picked the dot in the tool's sidebar. A tool opened fresh, a new Design document and a template all start this way. When you choose another colourway later, a piece you already started keeps its own.
+
+The row appears only when the active design system has more than one colourway. The choice is kept on your profile, once per design system, so someone who works in two design systems keeps one in each, and a backup or Sync carries the choices with the rest of your profile. Picking the canonical colourway stores nothing: you then follow the design system, whatever it makes canonical later. If the design system drops the colourway you chose, the app and new work go back to the canonical one.
+
+Your choice never changes a piece that already has its colours settled:
+
+- a saved session, and a link or a copy that carries a colourway;
+- a link with input values, which is a piece someone already made. Without a colourway in the link, that piece opens in the canonical colourway, as it always has;
+- a scripted export (`export=`), a framed tool (`iframe`), a `full` view, a presentation and a collaboration;
+- a tool whose manifest ignores colourways ([Tools that keep their own colours](#tools-that-keep-their-own-colours));
+- the command line, the TUI and the MCP server, which hold no personal choice and draw the canonical colourway unless a link or `--_themes` asks for another.
+
+An export started in your colourway records that colourway in its [design-system record](/info/exporting.html#the-design-system-record), the same way as a colourway picked in the sidebar.
+
+## The app follows your colourway
+
+The app's accent, favicon and logo tint follow your colourway, or the canonical colourway when you have not chosen one, whatever the open piece uses: the app belongs to the device, and the canvas belongs to the piece. A Beach poster shows Beach on the canvas and your colourway in the app around the poster. Every other theme group stays on its canonical option for the app, whether or not it declares a kind, except light and dark, which follow the app's appearance setting.
 
 The canonical colourway is the one marked `canonical`, or the first when none is marked. For Lolly Demo it is Spearmint. **Settings → Design system** lists the design system's colourways (`#/settings?dash-colourways`).
 

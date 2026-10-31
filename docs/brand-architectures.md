@@ -14,7 +14,7 @@ From a branded house, in which the parent is the brand, to a house of brands, in
 | --- | --- | --- |
 | **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [Design System Setup](/info/brand-studio.html), and **Settings → Preferences → Design systems** to switch or remove |
 | **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both. A tool's **Design system** section switches the look when the look changes that tool, and the open tool redraws with no reload |
-| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. Tools that draw several colours at once, such as Chart and Mesh Gradient, draw on every lead together. | Written in the token file; chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload. Rebuilding the palette in the studio keeps every colourway. See [Colourways](/info/colourways.html) |
+| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical. Each person can take a colourway as their own, which colours the app around them and starts their new work in that colourway; without a choice the app uses the canonical one. Tools that draw several colours at once, such as Chart and Mesh Gradient, draw on every lead together. | Written in the token file; chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload, and taken as your own in **Settings → Appearance**. Rebuilding the palette in the studio keeps every colourway. See [Colourways](/info/colourways.html) |
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup. | **Logos** room, **Custom marks** |
 | **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | Written in the token file and listed in the studio's **Usage & rules** room, where **Add rule** adds rules for the example pieces. `lolly check` checks house rules on a saved Design document; see [Usage & rules](/info/brand-studio.html#usage-rules) |
@@ -29,8 +29,8 @@ A common way to group arrangements is by how much of the parent brand the audien
 
 | Group | Arrangement | What the audience sees | Use in Lolly today | Not yet |
 | --- | --- | --- | --- | --- |
-| Unify | Monolithic | One masterbrand, a descriptor and a division colour | One design system, a colourway per division, picked per artefact in the tool | Authoring colourways in the studio |
-| Unify | Expanded | The masterbrand above each product, each with its own colour and mark | One design system, a colourway and a logo identity per product | A colourway choosing its logo identity; tools drawing a product's logo |
+| Unify | Monolithic | One masterbrand, a descriptor and a division colour | One design system, a colourway per division, picked per artefact in the tool; each person takes their division's colourway as their own in Settings | Authoring colourways in the studio |
+| Unify | Expanded | The masterbrand above each product, each with its own colour and mark | One design system, a colourway and a logo identity per product; each product team takes its colourway as its own in Settings | A colourway choosing its logo identity; tools drawing a product's logo |
 | Unify | Rotating lead colour | One brand whose lead colour changes from piece to piece, or shows every lead at once | One design system with colourways, chosen per row in a batch CSV; charts, gradients and covers draw on every lead | A series that picks colourways by a rule |
 | Subset | Driven | The parent's logo with each business's name, tailored by audience | One design system, or a copy per business | A business design system that stays linked to the parent |
 | Endorse | Appended | A brand's own mark with "by" the parent, for a limited time | A design system for the brand, the endorsed lockup as a custom mark | Generated endorsement lockups; an end date |
@@ -56,8 +56,9 @@ Monolithic brands in the wild: FedEx, GE, Intel and Apple.
 **In Lolly:** Northwind is one brand. Northwind Freight is teal and Northwind Air is coral, and both use the same logo, type and templates.
 
 - Make **one design system** for Northwind.
-- Give each division a **colourway**, so a Freight poster and an Air poster use the same templates with a different lead colour. The app around them stays on the canonical colourway.
-- Pick the division's colourway per piece in the tool's **Design system** section, which shows the colourway dots in every tool that draws the lead colour.
+- Give each division a **colourway**, so a Freight poster and an Air poster use the same templates with a different lead colour.
+- People in Freight take the Freight colourway as their own under **Settings → Appearance**. The app they work in takes on the Freight teal, and every piece they start begins in Freight. One design system still serves every division ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)).
+- Pick another division's colourway for one piece in the tool's **Design system** section, which shows the colourway dots in every tool that draws the lead colour.
 - Write each descriptor as text in the template, or add the finished descriptor lockup as a **custom mark** per division.
 - Use **house rules** to approve the division colours.
 - With the export panel's **Design system** card ticked, an export records the colourway that drew the file, and its description gives the colourway beside the tool, as in *Poster (Freight colourway)*. See [The design-system record](/info/exporting.html#the-design-system-record).
@@ -75,6 +76,7 @@ Expanded brands in the wild: Atlassian, Adobe and Google.
 **In Lolly:** Northwind Atlas, Northwind Pulse and Northwind Vault each have a colour and a mark, with Northwind above every product name.
 
 - Keep **one design system** and give each product a **colourway**.
+- Each product team takes its colourway as its own in **Settings → Appearance**, so the app and each new piece start in the product's colour.
 - Add a **logo identity** per product with **+ Add another logo**.
 - Use the shared templates for every product.
 
@@ -91,7 +93,7 @@ Lolly Demo, Lolly's own demonstration design system, has six colourways. Spearmi
 **In Lolly:**
 
 - Make **one design system** with a **colourway** for each lead colour. Each colourway carries its own lead, the colour that sits on it, and a partner, in both light and dark.
-- Mark one colourway canonical. An artefact that chooses none uses it, and so does the app.
+- Mark one colourway canonical. An artefact that chooses none uses the canonical colourway, and so does the app, until a person takes another colourway as their own in **Settings → Appearance**.
 - Pieces that show the whole family at once draw on every lead, canonical first: Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles)).
 - For a series, give each [batch](/info/batch.html#make-many-versions-of-one-design) row its colourway in the CSV's `_themes` column. Each row renders in its own colourway, and so does a tool placed inside it, such as a QR code. A saved session keeps its colourway in multi-edit, in a batch and in a Design document export.
 - [Verify](/verify) reads back which colourway drew each piece, from the record an export carries while its **Design system** card is ticked.
@@ -245,7 +247,7 @@ When a product line changes owner, the company part of its name usually changes.
 
 Choose the smallest block that holds the difference.
 
-1. **Only the colour differs:** a **colourway**. A colourway shares the design system's brand skills.
+1. **Only the colour differs:** a **colourway**. A colourway shares the design system's brand skills, and the team takes the colourway as its own in **Settings → Appearance**.
 2. **The colour differs and the part has its own logo:** a **colourway** and a **logo identity** in the same design system.
 3. **The part has its own assets, its own tools, its own rules or its own written standards:** a **design system of its own**, which carries its own brand skills.
 

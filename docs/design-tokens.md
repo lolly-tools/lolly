@@ -166,7 +166,7 @@ A design pack can set the app's room for each theme: the page, the cards and sid
 | `muted-ink` | `--muted-foreground` | secondary text | Lolly's muted ink for the theme |
 | `unsaved` | `--brand-warn` | the colour that marks unsaved work | see "Unsaved work" below |
 
-The app reads its colours in the canonical option of every theme group that declares a kind, apart from light and dark. A design system with [colourways](/info/colourways.html) therefore keeps the app on its canonical lead while a piece on the canvas uses another. Lolly's blank starter brand states a warm newsprint room this way in its light and dark sets, and a design system with no `color.chrome` group shows Lolly's own cool room.
+The app reads its colours in the canonical option of every theme group apart from light and dark, except the colourway group, where it reads the colourway the person chose in **Settings → Appearance**. A design system with [colourways](/info/colourways.html) therefore keeps the app on the person's colourway, or on its canonical lead, while a piece on the canvas uses another. Lolly's blank starter brand states a warm newsprint room this way in its light and dark sets, and a design system with no `color.chrome` group shows Lolly's own cool room.
 
 Lolly Demo's dark set shows the group in place:
 
