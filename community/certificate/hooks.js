@@ -764,18 +764,6 @@ function fmtDate(v, lang) {
   return day + ' ' + MONTHS[mo - 1] + ' ' + m[1];
 }
 
-// The direction of a typed line: its first strong character decides, as the
-// browser's dir="auto" does.
-function textDir(s) {
-  var text = str(s);
-  for (var i = 0; i < text.length; i++) {
-    var c = text.charCodeAt(i);
-    if ((c >= 0x0590 && c <= 0x08ff) || (c >= 0xfb1d && c <= 0xfdff) || (c >= 0xfe70 && c <= 0xfeff)) return 'rtl';
-    if ((c >= 0x41 && c <= 0x5a) || (c >= 0x61 && c <= 0x7a) || (c >= 0xc0 && c <= 0x24f) || (c >= 0x370 && c <= 0x58f) || c >= 0x900) return 'ltr';
-  }
-  return '';
-}
-
 // ── fit ─────────────────────────────────────────────────────────────────────
 
 // Advance widths in em, by character class: an approximation of a display sans,
@@ -1022,8 +1010,11 @@ function build(args, theme, logoUrl, lang, canvas) {
   var celebrate = style === 'celebration';
   var ornamentList = celebrate ? ornaments(p.confetti, shape.id) : [];
   var pieces = motion === 'confetti' ? confettiPieces(p.confetti) : [];
-  var langDir = own(CT_RTL, lang) ? 'rtl' : 'ltr';
-  var dir = typedTitle ? (textDir(typedTitle) || langDir) : langDir;
+  // The sheet reads in its print language: ar and ur lay it out right to left
+  // whatever the typed title says. Every typed line carries dir="auto" in the
+  // template, so a title in the other direction still shapes and reads in its
+  // own order while keeping the sheet's alignment.
+  var dir = own(CT_RTL, lang) ? 'rtl' : 'ltr';
 
   return {
     error: '',

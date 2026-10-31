@@ -325,8 +325,10 @@
 }
 
 /* A typed line takes its own direction (dir="auto"), so an Arabic name shapes
-   correctly, but keeps the sheet's alignment rather than its own start. */
+   correctly, but keeps the sheet's alignment rather than its own start. Blink
+   reads only the prefixed keyword and drops the standard one, so both stay. */
 .ct-body [dir='auto'] {
+  text-align: -webkit-match-parent;
   text-align: match-parent;
 }
 
@@ -520,6 +522,16 @@
   height: calc(5 * var(--ct-u));
   margin-bottom: calc(18 * var(--ct-u));
   background: var(--ct-accent, #8a6a2b);
+}
+
+/* The sheet's direction follows its print language and a typed title takes its
+   own, so the bar keeps to the sheet's start when the two disagree. */
+.ct-root[dir='ltr'].ct-style-minimal .ct-title::before {
+  margin-right: auto;
+}
+
+.ct-root[dir='rtl'].ct-style-minimal .ct-title::before {
+  margin-left: auto;
 }
 
 .ct-style-minimal .ct-main {

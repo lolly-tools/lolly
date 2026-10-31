@@ -55,10 +55,30 @@ A template may paint into a `<canvas>` instead of markup, as `3d`, `synth`, `gra
 | Contract | What to do | Without it |
 | --- | --- | --- |
 | **Readiness** | When the first frame arrives late (a model or library is loading), set `window.__toolHasReadySignal = true` at the top of the template script, then dispatch `tool:ready` on `document` once the first frame is painted. The shell waits for it before capturing. | A slow first frame exports blank. |
-| **The frame clock** | For animated output (GIF, APNG, animated WebP and frame-by-frame video), store `canvas.__lollyFrameRender = function (t) { … }` on the canvas element. It renders the exact frame at loop time `t` in `[0, 1)`; stills call it with `0`. While the shell drives frames it sets `canvas.__lollyFrameDriven = true`, so stop your own `requestAnimationFrame` loop from advancing while the flag is set. | The export cannot ask for an exact frame. A function stored on `window` instead of the canvas leaks across tool navigation. |
+| **The frame clock** | For animated output (GIF, APNG, animated WebP and frame-by-frame video), store `canvas.__lollyFrameRender = function (t) { … }` on the canvas element. It renders the exact frame at loop time `t` in `[0, 1)`; a still calls it with `0`, as set out below the table. While the shell drives frames it sets `canvas.__lollyFrameDriven = true`, so stop your own `requestAnimationFrame` loop from advancing while the flag is set. | The export cannot ask for an exact frame. A function stored on `window` instead of the canvas leaks across tool navigation. |
 | **Real-time video** | Mark the canvas `data-capture-stream`, and WebM or MP4 export records it live through `captureStream()` instead of frame by frame. | A self-looping animation is recorded frame by frame instead of as one continuous loop with no cut at the join. |
 
-The frame clock also receives two optional arguments: the clip length in seconds and the export's pixel size as `{ width, height }`. A function that declares only `t` ignores them. A still export (PNG, PDF, SVG and the other single images) calls the clock with no clip length, so a tool whose motion is an entrance can draw its finished pose there: Certificate does, so a print file never catches a moment of its reveal. A template drawn in markup rather than on a canvas can still carry a clock: give it a 0 by 0 `<canvas>` that paints nothing, as Growth and Certificate do. During a clip every call carries both, including the extra calls an export makes to find which parts of the frame stay still and the repaint that follows, so a tool that reads them sees the same length and size on every frame.
+The frame clock also receives two optional arguments: the clip length in seconds and the export's pixel size as `{ width, height }`. A function that declares only `t` ignores them. During a clip every call carries both, including the extra calls an export makes to find which parts of the frame stay still and the repaint that follows, so a tool that reads them sees the same length and size on every frame. A template drawn in markup rather than on a canvas can still carry a clock: give it a 0 by 0 `<canvas>` that paints nothing, as Growth and Certificate do.
+
+A raster still (PNG, JPEG, WebP, AVIF, JPEG XL, TIFF, BMP and CMYK TIFF, and each size of an icon) calls every clock once with `t` 0, no clip length and the file's pixel size, after your `beforeExport` hook has run, and sets `__lollyFrameDriven` only while it makes that picture.
+
+The other stills read the page as it stands, unless your clock declares a still pose. Set `stillPose` on the function when `t` 0 with no clip length draws the finished piece:
+
+```js
+canvas.__lollyFrameRender = function (t, clipSec) { /* … */ };
+canvas.__lollyFrameRender.stillPose = true;
+```
+
+Certificate declares one, so a print file never catches a moment of its reveal. For a clock with `stillPose`, an SVG, SVGZ, PDF, CMYK PDF, Penpot, EPS (RGB and CMYK), EMF, WMF, DXF, Word, OpenDocument, PowerPoint, HTML, Markdown or plain-text still does two more things:
+
+- **It poses your tool first.** The shell sets the flag and calls the clock once, with `t` 0 and no size, before anything else in the export runs, your `beforeExport` hook included, so the hook already sees the finished pose. A capture the shell makes outside a tool's export, such as the docs pipeline's page capture, has no hook to run and makes the same call before it reads the page.
+- **It keeps your tool still until the file is written.** The flag stays set while the export reads the page and is cleared afterwards, so your own loop cannot move a part under the export.
+
+Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those formats never call the clock or set the flag, and they read the page as your own loop left the page.
+
+**Not held, declared or not:** clips (GIF, APNG, animated WebP, animated SVG, WebM and MP4, which drive the clock frame by frame), sound, Lottie, IDML, Premiere XML and data files (JSON, CSV, calendar, contact, subtitle, stylesheet and palette files, and Markdown from a `template.md`). A ZIP or a Linux package holds each file inside under that file's own format. A sequence stage's still is the frame at its playhead, so the shell leaves the stage alone.
+
+CLI, TUI and MCP renders that go through the web shell get the same treatment.
 
 **GPU rendering (WebGL, WebGPU).** Never let the export path read a GPU canvas directly. A WebGPU canvas is cleared as soon as its frame is presented and has no `preserveDrawingBuffer`, so anything read later is blank, and a WebGL canvas only survives the read with `preserveDrawingBuffer: true`, which costs memory and a copy per frame. Render into a detached scratch canvas instead and, inside the same frame callback, draw it onto the visible 2D canvas:
 

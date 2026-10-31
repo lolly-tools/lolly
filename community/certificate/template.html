@@ -359,7 +359,10 @@
     }
 
     /* Export: t in [0, 1) of a clip `clipSec` long. A still (no clip length)
-       always gets the finished sheet, so a PDF or PNG never catches a moment. */
+       always gets the finished sheet, so a PDF or PNG never catches a moment.
+       stillPose declares that to the shell, which then poses and freezes the
+       sheet for the stills that read the page (PDF, SVG, Penpot) as well as
+       for the rasters. */
     var release = 0;
     function watchRelease() {
       clearTimeout(release);
@@ -377,6 +380,7 @@
       else render(ctScene(preset, ctClamp(t) * clipSec, clipSec));
       watchRelease();
     };
+    clock.__lollyFrameRender.stillPose = true;
 
     if (play) play.addEventListener('click', function () { if (stage) stage.__ctPlayed = key; start(); });
     var inView = !!ROOT.closest('#tool-canvas, #tool-content');
