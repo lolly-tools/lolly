@@ -29,7 +29,7 @@ import type { ReactNode } from 'react';
 import { Box, Text, useInput } from 'ink';
 import TextInput from 'ink-text-input';
 import { MultilineInput } from '../components/MultilineInput.tsx';
-import { join, basename, extname } from 'node:path';
+import { join, basename, dirname, extname } from 'node:path';
 import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { isToolUrl, parseDataRows, parseTableText, c2paDefaultOn, imprintDefaultOn, isImprintFormat, isImprintContainerFormat, designRecordWords } from '@lolly/engine';
@@ -797,9 +797,26 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
         }
         if (item.type !== 'blocks') return;
         const { rows, truncated } = parseDataRows(text, { fields: (item.fields ?? []) as Array<{ id: string; label?: string; type?: string }> });
+        // A picture column (a Logo Wall CSV's `logo`) holds paths, catalog ids or URLs:
+        // resolve each now, as setInput never does. A relative path is tried from the
+        // working directory, then beside the CSV.
+        const assetFields = (item.fields ?? []).filter(f => f.type === 'asset').map(f => f.id);
+        const csvDir = dirname(expandHome(p));
+        let unresolved = 0;
+        for (const row of rows as Record<string, unknown>[]) {
+          for (const fid of assetFields) {
+            const raw = String(row[fid] ?? '').trim();
+            if (!raw) { row[fid] = null; continue; }
+            try { row[fid] = await resolveAssetRef(raw); }
+            catch {
+              try { row[fid] = await resolveAssetRef(join(csvDir, raw)); }
+              catch { row[fid] = null; unresolved++; }
+            }
+          }
+        }
         await runtime.setInput(item.id, rows as never);
         refresh();
-        setStatus(`✓ Imported ${rows.length} row${rows.length === 1 ? '' : 's'} → ${item.id}${truncated ? ' (row cap reached)' : ''}`);
+        setStatus(`✓ Imported ${rows.length} row${rows.length === 1 ? '' : 's'} → ${item.id}${truncated ? ' (row cap reached)' : ''}${unresolved ? `; ${unresolved} picture${unresolved === 1 ? '' : 's'} not found` : ''}`);
       } catch (e) { setStatus('Import failed: ' + (e as Error).message); }
     })();
   }
