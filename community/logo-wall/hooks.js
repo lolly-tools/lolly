@@ -1234,10 +1234,9 @@ function layoutGrid(items, o) {
 // produced, so balance, presence, trims and vector ink apply to every copy. The
 // template clips the backdrop at the padding edge (wallClip).
 //
-// This reproduces the old flex rows, including one quirk kept on purpose so a saved
-// wall looks the same: an offset brick row was widened by its negative margin, and
-// its cells were a share of that WIDER row, so brick's offset rows draw their
-// logos slightly larger than the rows between them.
+// Every row's cells are the same size. Before 1.6.0 an offset brick row kept a
+// quirk of the old flex rows, cells shared out over a row widened by its offset,
+// so those rows drew their logos about 14% larger than the rows between them.
 function layoutRepeat(items, o, mode, rowsN) {
   var innerW = Math.max(0, WALL_W - 2 * o.padX), innerH = Math.max(0, WALL_H - 2 * o.padY);
   var cw = Math.max(0, (innerW - (o.cols - 1) * o.gapX) / o.cols);
@@ -1247,13 +1246,12 @@ function layoutRepeat(items, o, mode, rowsN) {
   for (var r = 0; r < rowsN; r++) {
     var offset = mode === 'brick' && (r % 2) === 1;
     var count = o.cols + (offset ? 1 : 0);
-    var rowCw = offset ? Math.max(0, (innerW + shift - (o.cols - 1) * o.gapX) / o.cols) : cw;
     var x0 = o.padX - (offset ? shift : 0), y = o.padY + r * (rh + o.gapY);
     for (var c = 0; c < count; c++) {
       if (mode === 'checker' && ((r + c) % 2) === 1) continue;
       var it = items[k % items.length];
       k++;
-      out.push({ it: it, cell: { x: x0 + c * (rowCw + o.gapX), y: y, w: rowCw, h: rh } });
+      out.push({ it: it, cell: { x: x0 + c * (cw + o.gapX), y: y, w: cw, h: rh } });
     }
   }
   return out;

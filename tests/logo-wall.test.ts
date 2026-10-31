@@ -10,8 +10,8 @@
  *    is what lets the CLI, the TUI and the MCP server export it with no browser;
  *  - an untiered wall places every logo where the pre-1.5.0 CSS grid did: equal
  *    columns and rows inside the padding, the logo box size% of its cell, centred;
- *  - step & repeat keeps the brick quirk of the old flex rows (offset rows are a
- *    share of the WIDER row), and clips at the padding edge;
+ *  - step & repeat offsets brick rows by half a cell with every row's logos the
+ *    same size, and clips at the padding edge;
  *  - tiers group logos in first-appearance order, each under its heading, with
  *    Step down sizing fitting one more logo across each lower tier;
  *  - with no canvas the wall still renders and says which steps it skipped;
@@ -120,17 +120,25 @@ test('greyscale and opacity travel as SVG, and a block without an image leaves n
   assert.deepEqual(images(html).map((b) => b.index), [0, 2]);
 });
 
-test('step & repeat keeps the brick offset rows and clips at the padding', { skip: SKIP }, async () => {
-  const html = await mount({ logos: [{ logo: svgLogo('a.svg') }, { logo: svgLogo('b.svg') }], repeat: 'brick', repeatRows: 2, balance: false });
+test('step & repeat offsets brick rows by half a cell and clips at the padding', { skip: SKIP }, async () => {
+  const html = await mount({ logos: [{ logo: svgLogo('a.svg') }, { logo: svgLogo('b.svg') }], repeat: 'brick', repeatRows: 3, balance: false });
   assert.match(html, /<clipPath id="lw-clip"><rect x="48" y="48" width="1184" height="624"\/><\/clipPath>/);
   assert.match(html, /<g clip-path="url\(#lw-clip\)">/);
   const boxes = images(html);
-  assert.equal(boxes.length, 4 + 5);
-  // Row 2 is shifted left by half a cell plus half a gap, (272 + 32) / 2 = 152, and its
-  // cells are a quarter of the widened row: (1184 + 152 - 96) / 4 = 310.
+  assert.equal(boxes.length, 4 + 5 + 4);
+  // Row 2 is shifted left by half a cell plus half a gap, (272 + 32) / 2 = 152, and
+  // carries one more cell so both cropped edges stay filled.
   near(boxes[4]!.x, 48 - 152, 'offset row x');
-  near(boxes[4]!.w, 310, 'offset row cell w');
-  near(boxes[0]!.w, 272, 'plain row cell w');
+  near(boxes[8]!.x + boxes[8]!.w, 48 + 1184 + 152, 'offset row reaches past the right edge');
+  // Every row draws its logos at the same size (an offset row used to be about 14%
+  // larger), so each offset cell sits centred under the gap between the two cells above.
+  for (const b of boxes) {
+    near(b.w, 272, 'cell width');
+    near(b.h, boxes[0]!.h, 'cell height');
+  }
+  for (let c = 0; c < 4; c++) {
+    near(boxes[4 + c + 1]!.x + 136, boxes[c]!.x + 272 + 16, `offset cell ${c + 1} centred under the gap`);
+  }
 });
 
 test('tiers group the wall in first-appearance order, under headings', { skip: SKIP }, async () => {
