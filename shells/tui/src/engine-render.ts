@@ -10,7 +10,7 @@ import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 // The DOM-free/raster format split + the resvg fast path + the export C2PA payload,
 // shared with the CLI (one implementation, no drift).
-import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal } from '@lolly-tools/node-shell/raster';
+import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
@@ -147,17 +147,6 @@ export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims)
   } catch {
     return null;
   }
-}
-
-/** The width and height renderSvg hands the SVG export, qualified by the unit as the
- *  export path below qualifies them, or nothing (see renderSvg). */
-function svgExportSize(canvas: HTMLElement, dims?: ExportDims): { width?: string | number; height?: string | number } {
-  if (!dims || !canvas.querySelector('svg')?.hasAttribute('viewBox')) return {};
-  const u = dims.unit || 'px';
-  const qual = (v: number | undefined): string | number | undefined =>
-    (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
-  const width = qual(dims.width), height = qual(dims.height);
-  return width !== undefined && height !== undefined ? { width, height } : {};
 }
 
 /** Output size options for an export (mirrors the web/CLI: width/height are values in

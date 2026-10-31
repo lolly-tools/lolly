@@ -189,6 +189,42 @@ export function eligibleForResvgPng(
   return fmt.toLowerCase() === 'png' && !dims.durable && !dims.bleed && !dims.marks;
 }
 
+/** Children that never count as a template's drawing (the CLI bridge's rule). */
+const NON_DRAWABLE = new Set(['script', 'style', 'template', 'link', 'meta']);
+
+/**
+ * The `<svg>` a node is drawn as: the node itself, or its one drawable child when
+ * that child is an `<svg>`, which is a template whose root is an `<svg>` hydrated
+ * into the canvas. An `<svg>` further down is part of an HTML layout, never its
+ * root: a Design frame draws each shape and connector as an inline
+ * `<svg viewBox>`, and that must not change how the frame's export is sized.
+ */
+export function drawnRootSvg(node: Element): Element | null {
+  if (node.tagName.toLowerCase() === 'svg') return node;
+  const kids = Array.from(node.children).filter(
+    (el) => !NON_DRAWABLE.has(el.tagName.toLowerCase()) && !el.hasAttribute('data-export-hide'),
+  );
+  return kids.length === 1 && kids[0]!.tagName.toLowerCase() === 'svg' ? kids[0]! : null;
+}
+
+/**
+ * The width and height the browser-free PNG's SVG export takes: the requested
+ * size, qualified by the unit the way an `--export=svg` of that size is, so a tool
+ * that lays itself out for the export's shape draws the same picture into the PNG
+ * as into the SVG. Nothing when a side is missing or the drawn root `<svg>` has no
+ * viewBox: without one the export would make a viewBox of the requested size,
+ * where the PNG has always scaled the tool's own width and height.
+ */
+export function svgExportSize(
+  root: Element, dims?: { width?: number; height?: number; unit?: string },
+): { width?: string | number; height?: string | number } {
+  if (!dims || !drawnRootSvg(root)?.hasAttribute('viewBox')) return {};
+  const unit = dims.unit || 'px';
+  const qual = (v: number | undefined): string | number | undefined => (typeof v === 'number' && v > 0 ? (unit !== 'px' ? `${v}${unit}` : v) : undefined);
+  const width = qual(dims.width), height = qual(dims.height);
+  return width !== undefined && height !== undefined ? { width, height } : {};
+}
+
 /**
  * The whole Tier-A PNG rasterisation, shared by CLI and TUI so the two terminal shells
  * emit byte-identical PNGs for the same input. Embeds the Imprint when asked (browser-free,
