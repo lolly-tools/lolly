@@ -137,7 +137,9 @@ test('the Licence and Using rows read the shared licence label, word for word as
   ];
   for (const [meta, licence, using] of rows) {
     const html = assetRightsRows(ref(meta), false);
-    assert.ok(html.includes(`<div><dt>Licence</dt><dd>${licence}</dd></div>`), `Licence row for ${JSON.stringify(meta)}`);
-    assert.ok(html.includes(`<div><dt>Using this work</dt><dd>${using}</dd></div>`), `Using row for ${JSON.stringify(meta)}`);
+    // Each row is keyed (lib/meta-rows.ts), and its glyph sits inside the label, before the text.
+    assert.match(html, /<div data-meta="licence"><dt><svg [^>]*aria-hidden="true">/, `Licence row key for ${JSON.stringify(meta)}`);
+    assert.ok(html.includes(`Licence</dt><dd>${licence}</dd></div>`), `Licence row for ${JSON.stringify(meta)}`);
+    assert.ok(html.includes(`Using this work</dt><dd>${using}</dd></div>`), `Using row for ${JSON.stringify(meta)}`);
   }
 });

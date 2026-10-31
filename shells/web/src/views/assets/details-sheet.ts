@@ -26,7 +26,8 @@ import { publishSiteInspection } from '../../lib/site-tools-context.ts';
 import { setSearchBarQuery } from '../../components/search-bar.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { destroyLottiePlayers, lottiePlayerFor, mountLottieMarker } from '../lottie-mount.ts';
-import { extractAssetMetadata, leavesOriginalUnread } from '../../lib/asset-metadata.ts';
+import { extractAssetMetadata, leavesOriginalUnread, recordedMetadata } from '../../lib/asset-metadata.ts';
+import { mergeMetaRows, metaRow } from '../../lib/meta-rows.ts';
 import { analyzeVerifyText } from '../valid-text.ts';
 import { categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId, saveFavouriteAssets } from '../../lib/asset-favourites.ts';
@@ -94,7 +95,7 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
 
   const credit = typeof meta.attribution === 'string' && meta.attribution.trim() ? meta.attribution.trim() : '';
   const creditRow = credit
-    ? `<div><dt>${t('Credit')}</dt><dd>${escapeText(credit)} <button type="button" class="cat-tag" data-act="copy-credit" data-credit="${escapeText(credit)}">${t('Copy credit')}</button></dd></div>`
+    ? metaRow('credit', t('Credit'), `${escapeText(credit)} <button type="button" class="cat-tag" data-act="copy-credit" data-credit="${escapeText(credit)}">${t('Copy credit')}</button>`)
     : '';
 
   // The profile's own reviewed rules, in one line. A licence with conditions is
@@ -119,10 +120,10 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
             ? t('No credit required. A courtesy credit is welcome.')
             : t('No credit required.');
 
-  return `<div><dt>${t('Source')}</dt><dd>${sourceParts}</dd></div>`
-    + `<div><dt>${t('Licence')}</dt><dd>${licenceCell}</dd></div>`
+  return metaRow('source', t('Source'), sourceParts)
+    + metaRow('licence', t('Licence'), licenceCell)
     + creditRow
-    + `<div><dt>${t('Using this work')}</dt><dd>${escapeText(using)}</dd></div>`;
+    + metaRow('using', t('Using this work'), escapeText(using));
 }
 
 /**
@@ -177,11 +178,11 @@ export function emojiPackRows(ref: AssetRef): string {
         ? `<p class="cat-emoji-gap-head">${t('Withheld on purpose:')}</p>${gapList(pack.withheld)}` : '')
       + `</details>`
     : '';
-  return `<div><dt>${t('Family')}</dt><dd>${escapeText(pack.family)}</dd></div>`
-    + `<div><dt>${t('Style')}</dt><dd>${escapeText(pack.style)}</dd></div>`
-    + `<div><dt>${t('Release')}</dt><dd>${escapeText(pack.version)}</dd></div>`
-    + `<div><dt>${t('Glyphs')}</dt><dd>${escapeText(count(pack.glyphs))}</dd></div>`
-    + `<div><dt>${t('Coverage')}</dt><dd>${escapeText(coverage + extras)}${gaps}</dd></div>`;
+  return metaRow('family', t('Family'), escapeText(pack.family))
+    + metaRow('style', t('Style'), escapeText(pack.style))
+    + metaRow('release', t('Release'), escapeText(pack.version))
+    + metaRow('glyphs', t('Glyphs'), escapeText(count(pack.glyphs)))
+    + metaRow('coverage', t('Coverage'), `${escapeText(coverage + extras)}${gaps}`);
 }
 
 /**
@@ -439,18 +440,17 @@ export function buildSheet(dt: DetailsCtx): void {
             <div class="cat-cred-panels" hidden></div>
           </div>` : ''}
           <dl class="cat-details-meta cat-provenance-meta">
-            <div><dt>${t('Origins')}</dt><dd class="cat-details-ai" data-origins></dd></div>
-            <div><dt>${t('Author')}</dt><dd class="cat-details-ai" data-authorship></dd></div>
+            ${metaRow('origins', t('Origins'), '', 'class="cat-details-ai" data-origins')}
+            ${metaRow('author', t('Author'), '', 'class="cat-details-ai" data-authorship')}
           </dl>
         </section>
         ${dt.controls.sidebarHtml()}
         ${ref.type === 'audio' ? `<div class="cat-details-art" data-audio-art aria-hidden="true">${audioCardArt(cat, ref)}</div>` : ''}
-        <dl class="cat-details-meta">
-          ${assetRightsRows(ref, isUser)}
+        <dl class="cat-details-meta" data-meta-list>
+          ${metaRow('category', t('Category'), escapeText(t(categoryLabel(libCategory(ref, cat.overrides)))))}
+          ${metaRow('format', t('Format'), escapeText(String(ref.format ?? ref.type).toUpperCase()))}
           ${emojiPackRows(ref)}
           ${skillDetailRows(ref)}
-          <div><dt>${t('Category')}</dt><dd>${escapeText(t(categoryLabel(libCategory(ref, cat.overrides))))}</dd></div>
-          <div><dt>${t('Format')}</dt><dd>${escapeText(String(ref.format ?? ref.type).toUpperCase())}</dd></div>
           ${(() => {
             // Added/Modified (plans/132 WP-A): uploads always have a date (the id
             // embeds mint time); a catalog asset shows the date its file was first
@@ -459,9 +459,11 @@ export function buildSheet(dt: DetailsCtx): void {
             const modified = assetModifiedAt(ref);
             const fmtDate = (ts: number): string => new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
             const addedText = added ? fmtDate(added) : catalogAddedText(ref);
-            return (addedText ? `<div><dt>${t('Added')}</dt><dd>${escapeText(addedText)}</dd></div>` : '')
-              + (modified && added && modified - added > 60_000 ? `<div><dt>${t('Modified')}</dt><dd>${escapeText(fmtDate(modified))}</dd></div>` : '');
+            return (addedText ? metaRow('added', t('Added'), escapeText(addedText)) : '')
+              + (modified && added && modified - added > 60_000 ? metaRow('modified', t('Modified'), escapeText(fmtDate(modified))) : '');
           })()}
+          ${assetRightsRows(ref, isUser)}
+          ${tags.length || isUser ? metaRow('tags', t('Tags'), `${tags.map(tag => `<button type="button" class="cat-tag" data-tag="${escapeText(String(tag))}" title="${escapeText(t('Show everything with this tag'))}">${escapeText(String(tag))}</button>`).join('')}${isUser ? `<button type="button" class="cat-tag cat-tag--edit" data-act="edit-tags">${tags.length ? t('Edit…') : t('Add tags…')}</button>` : ''}`, 'class="cat-details-tags"') : ''}
           ${(() => {
             // Which projects reference this asset (plans/132 WP-D) - read straight
             // off the profile's folder records, no extra fetch.
@@ -470,13 +472,11 @@ export function buildSheet(dt: DetailsCtx): void {
             if (!inFolders.length) return '';
             const names = inFolders.slice(0, 2).map(f => escapeText(f.name)).join(', ');
             const extra = inFolders.length > 2 ? ` +${inFolders.length - 2}` : '';
-            return `<div><dt>${t('Projects')}</dt><dd>${names}${extra}</dd></div>`;
+            return metaRow('projects', t('Projects'), `${names}${extra}`);
           })()}
-          <div><dt>${t('ID')}</dt><dd><code>${escapeText(ref.id)}</code></dd></div>
-          ${tags.length || isUser ? `<div><dt>${t('Tags')}</dt><dd class="cat-details-tags">${tags.map(tag => `<button type="button" class="cat-tag" data-tag="${escapeText(String(tag))}" title="${escapeText(t('Show everything with this tag'))}">${escapeText(String(tag))}</button>`).join('')}${isUser ? `<button type="button" class="cat-tag cat-tag--edit" data-act="edit-tags">${tags.length ? t('Edit…') : t('Add tags…')}</button>` : ''}</dd></div>` : ''}
+          ${metaRow('id', t('ID'), `<code>${escapeText(ref.id)}</code>`)}
         </dl>
         ${dt.rondo.rondoSectionHtml()}
-        <div class="cat-details-tech" data-tech hidden></div>
         <div class="cat-details-tech" data-usage hidden></div>
         ${(isTextAsset && !dt.isSkillAsset) || canOcr || canReadDoc || canReadVector ? `<div class="cat-details-tsig" data-tsig hidden></div>` : ''}
         ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(dt.dTheme)}</div>` : ''}
@@ -588,19 +588,16 @@ export function paintPassport(dt: DetailsCtx): void {
     dt.panels.renderPassport(skipAutomaticBytes ? 'unchecked' : cred);
   })();
 
-  // Technical metadata (resolution, DPI, EXIF, audio/video props, page count, viewBox…):
-  // extract off-thread and fill the initially-hidden panel. Cancel/stale-safe - ←/→ paging
-  // re-runs openDetails per asset, so a slow result must not overwrite a newer asset's panel.
-  if (!dt.formatViewer) void extractAssetMetadata(sourceRef).then(techFields => {
+  // Technical metadata (resolution, DPI, EXIF, audio/video props, page count, viewBox…)
+  // joins the Details list: what the record states at once, then what the file itself
+  // says, read off-thread, each row at its rank (lib/meta-rows.ts). Cancel/stale-safe:
+  // ←/→ paging re-runs openDetails per asset, so a slow result must not touch a newer
+  // asset's list.
+  const list = dlg.querySelector<HTMLElement>('[data-meta-list]');
+  if (list) mergeMetaRows(list, recordedMetadata(ref));
+  if (list && !dt.formatViewer) void extractAssetMetadata(sourceRef).then(techFields => {
     if (cat.detailsDialog !== dlg) return;          // modal closed or paged to another asset
-    if (!techFields.length) return;             // nothing readable - leave the panel hidden
-    const box = dlg.querySelector<HTMLElement>('[data-tech]');
-    if (!box) return;
-    box.innerHTML = `<div class="cat-tech-head">${t('Details')}</div>`
-      + `<dl class="cat-details-meta">${techFields
-            .map(f => `<div><dt>${escapeText(f.label)}</dt><dd>${escapeText(f.value)}</dd></div>`)
-            .join('')}</dl>`;
-    box.hidden = false;
+    for (const row of mergeMetaRows(list, techFields)) row.classList.add('is-arriving');
   }).catch(() => { /* never blocks the modal */ });
 
   // "Used in" (plans/132 WP-G): which saved sessions reference this asset -
@@ -612,10 +609,9 @@ export function paintPassport(dt: DetailsCtx): void {
     if (!box) return;
     const shown = uses.slice(0, 5);
     const extra = uses.length - shown.length;
-    box.innerHTML = `<div class="cat-tech-head">${t('Used in')}</div>`
-      + `<dl class="cat-details-meta">${shown
-            .map(u => `<div><dt>${escapeText(t('Session'))}</dt><dd>${escapeText(u.label)}</dd></div>`)
-            .join('')}${extra > 0 ? `<div><dt></dt><dd>${escapeText(tRaw('and {n} more', { n: extra }))}</dd></div>` : ''}</dl>`;
+    box.innerHTML = `<dl class="cat-details-meta">${shown
+            .map(u => metaRow('session', t('Session'), escapeText(u.label)))
+            .join('')}${extra > 0 ? metaRow(null, '', escapeText(tRaw('and {n} more', { n: extra }))) : ''}</dl>`;
     box.hidden = false;
   }).catch(() => { /* best-effort - the panel just stays hidden */ });
 

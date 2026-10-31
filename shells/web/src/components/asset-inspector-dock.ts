@@ -38,6 +38,8 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   body.before(grip, aside); aside.append(header, body, rail); dialog.classList.add('has-inspector-dock');
   body.classList.add('cat-inspector-scroll');
   const save = () => writeStoredWidths(PREF_KEY, { ...prefs, width, collapsed: collapsed ? 1 : undefined });
+  // Technical details joined Details on 2026-10-31, so the old section's stored fold has nothing to open.
+  if (prefs['section:technical']) { delete prefs['section:technical']; save(); }
   const enhance = (section: HTMLDetailsElement, id: string, open = false): HTMLDetailsElement => {
     if (section.dataset.inspectorSection) return section;
     section.dataset.inspectorSection = id; section.classList.add('section-card', 'cat-inspector-section');
@@ -69,9 +71,9 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   const passport = body.querySelector<HTMLElement>('[data-passport]');
   const provenance = body.querySelector<HTMLElement>('.cat-details-provenance'); provenance?.querySelector('.cat-inspector-heading')?.remove();
   const credentials = wrap(provenance, 'Origins & credentials', 'credentials');
-  const fileDetails = wrap(body.querySelector<HTMLElement>(':scope > .cat-details-meta'), 'File details', 'details', true);
+  // One Details section: the record's rows, and the file's own facts as they are read.
+  const fileDetails = wrap(body.querySelector<HTMLElement>(':scope > .cat-details-meta'), 'Details', 'details', true);
   const files = body.querySelector<HTMLElement>('[data-asset-files]'); const fileSection = wrap(files, 'Files', 'files', true);
-  const tech = body.querySelector<HTMLElement>('[data-tech]'), techSection = wrap(tech, 'Technical details', 'technical');
   const usage = body.querySelector<HTMLElement>('[data-usage]'), usageSection = wrap(usage, 'Used in', 'usage');
   const text = body.querySelector<HTMLElement>('[data-tsig]'), textSection = wrap(text, 'Text analysis', 'text');
   const rondo = wrap(body.querySelector<HTMLElement>('.cat-details-rondo'), 'Audio settings', 'audio');
@@ -84,8 +86,8 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   for (const section of body.querySelectorAll<HTMLDetailsElement>(':scope > details[data-inspector-id]')) enhance(section, section.dataset.inspectorId ?? 'section', section.open);
   const keptActions = actions?.childElementCount ? actions : null; if (!keptActions) actions?.remove();
   const shared = body.querySelector<HTMLElement>('[data-shared-metadata]');
-  for (const node of [fileSection, shared, fileDetails, appearanceSection, keptActions, credentials, techSection, usageSection, rondo, textSection, checks]) if (node) body.append(node);
-  const watched = [[fileSection, files], [techSection, tech], [usageSection, usage], [textSection, text], [checks, passport]] as const;
+  for (const node of [fileSection, shared, fileDetails, appearanceSection, keptActions, credentials, usageSection, rondo, textSection, checks]) if (node) body.append(node);
+  const watched = [[fileSection, files], [usageSection, usage], [textSection, text], [checks, passport]] as const;
   const refresh = () => {
     if (disposed) return;
     for (const section of body.querySelectorAll<HTMLDetailsElement>('[data-source-history]')) enhance(section, 'source-history');

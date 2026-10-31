@@ -590,8 +590,8 @@
 
 .cat-details-name { font-size: calc(1.25rem * var(--a11y-fs)); font-weight: 700; margin: 0 0 12px; }
 .cat-details-meta dd.cat-details-ai { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
-/* Technical-metadata panel (lib/asset-metadata.ts) - reuses .cat-details-meta's
-   dl grid, under a quiet subheading. Chrome-only; type rides the a11y multiplier. */
+/* The Used in box (details-sheet.ts paintPassport) reuses .cat-details-meta's dl
+   grid. Chrome-only; type rides the a11y multiplier. */
 .cat-details-tech { margin: 0 0 16px; }
 .cat-details-tech .cat-details-meta { margin: 0; }
 .cat-tech-head { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); margin: 0 0 8px; }
