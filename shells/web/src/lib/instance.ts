@@ -62,6 +62,11 @@
 import { ENGINE_VERSION } from '../../../../engine/src/version.ts';
 import { openDB } from '../bridge/db.ts';
 import { initPackStore, packActive, packAssetEntries, packFetch } from './pack-store.ts';
+// SPIKE, plan 324 section 8 (pairing with a pinned certificate). Every use below
+// is behind PAIRING_SPIKE_BUILD, which a normal build folds to false.
+import {
+  PAIRING_SPIKE_BUILD, initPairingSpike, isPairedScheme, pairedFetch, pairedOrigin, pairedSetSession, toPairedTransport,
+} from './pairing-spike.ts';
 
 /** Key of the persisted base inside the 'profile' KV store. */
 const INSTANCE_KEY = 'instance-base';
@@ -177,6 +182,16 @@ export function initInstanceBase(): Promise<void> {
     } catch {
       base = ''; // unreadable/invalid - fall back to bundled content
     }
+    if (PAIRING_SPIKE_BUILD) {
+      // A paired app's base is the paired origin. The Rust jar does not survive a
+      // restart in the spike, so hand it the stored session again.
+      const pairing = await initPairingSpike().catch(() => null);
+      if (pairing) {
+        const pairedBase = normalizeInstanceBase(pairing.origin);
+        if (base !== pairedBase) await setInstanceBase(pairedBase).catch(() => { base = pairedBase; });
+        if (instanceSession) await pairedSetSession(instanceSession.cookiePair).catch(() => undefined);
+      }
+    }
     await initPackStore();
   })();
   return initPromise;
@@ -231,6 +246,9 @@ export async function setInstanceSession(cookiePair: string | null, sourceBase =
   instanceSession = origin && cookiePair && /^lw_session=[^;\s]+$/.test(cookiePair)
     ? { origin, cookiePair } : null;
   const session = instanceSession;
+  if (PAIRING_SPIKE_BUILD && pairedOrigin() && (!session || session.origin === pairedOrigin())) {
+    await pairedSetSession(session?.cookiePair ?? null).catch(() => undefined);
+  }
   try {
     const db = await openDB();
     if (session) await db.put('profile', session, INSTANCE_SESSION_KEY);
@@ -251,6 +269,12 @@ export function hasInstanceSession(): boolean {
  */
 export function instancePath(p: string): string {
   if (!base) return p;
+  if (PAIRING_SPIKE_BUILD && pairedOrigin()) {
+    // Paired: every URL that can reach the DOM uses the pinned transport form.
+    if (isPairedScheme(p)) return p;
+    if (/^https?:/i.test(p)) return toPairedTransport(p);
+    return toPairedTransport(p.startsWith('/') ? base + p : `${base}/${p}`);
+  }
   if (/^https?:/i.test(p)) return p;
   return p.startsWith('/') ? base + p : `${base}/${p}`;
 }
@@ -335,6 +359,9 @@ export function instanceFetch(input: string | URL, init?: RequestInit, limits?: 
 }
 
 function transportFetch(url: string, init?: RequestInit, limits?: InstanceFetchLimits): Promise<Response> {
+  if (PAIRING_SPIKE_BUILD && pairedOrigin() && (isPairedScheme(url) || toPairedTransport(url) !== url)) {
+    return pairedFetch(url, withClientHeader(init));
+  }
   if (hasTauriInternals() && isCrossOrigin(url)) return tauriRemoteFetch(url, withClientHeader(init), undefined, limits);
   return (limits?.fallbackFetch ?? fetch)(url, isCrossOrigin(url) ? init : withClientHeader(init));
 }

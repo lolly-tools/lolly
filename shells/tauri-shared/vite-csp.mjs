@@ -36,16 +36,23 @@
 
 import { connectSources, parseConnectorOrigins } from '../../packages/core/src/connector-origins.ts';
 
+// SPIKE, plan 324 section 8: a build made with VITE_PAIRING_SPIKE=1 may load the
+// pinned-certificate proxy scheme (macOS/iOS/Linux form, then Windows/Android).
+// Unset, as in every release and ordinary build, this adds nothing.
+const PAIRING_SPIKE_SOURCES = process.env.VITE_PAIRING_SPIKE === '1'
+  ? ' lolly-instance: http://lolly-instance.localhost https://lolly-instance.localhost'
+  : '';
+
 export const TAURI_CSP = [
   "default-src 'self' customprotocol: asset:",
   // blob: is the Rondocode editor's AudioWorklet module, made from a blob: URL in
   // its opaque-origin frame; worklets follow script-src, not worker-src.
   "script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'",
   "style-src 'self' blob: 'unsafe-inline'",
-  `connect-src ${connectSources(parseConnectorOrigins(process.env.VITE_CONNECTOR_ORIGINS ?? ''), true)}`,
-  "img-src 'self' asset: http://asset.localhost https: data: blob:",
-  "media-src 'self' asset: http://asset.localhost https: data: blob:",
-  "font-src 'self' asset: http://asset.localhost https: data: blob:",
+  `connect-src ${connectSources(parseConnectorOrigins(process.env.VITE_CONNECTOR_ORIGINS ?? ''), true)}${PAIRING_SPIKE_SOURCES}`,
+  `img-src 'self' asset: http://asset.localhost https: data: blob:${PAIRING_SPIKE_SOURCES}`,
+  `media-src 'self' asset: http://asset.localhost https: data: blob:${PAIRING_SPIKE_SOURCES}`,
+  `font-src 'self' asset: http://asset.localhost https: data: blob:${PAIRING_SPIKE_SOURCES}`,
   "worker-src 'self' blob:",
   "child-src 'self' blob:",
   // Web page boxes in Design (plan 288): the desktop app may frame any https page and
