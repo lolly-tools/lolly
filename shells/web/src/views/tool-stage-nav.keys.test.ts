@@ -56,7 +56,7 @@ function mount() {
 }
 
 /** Dispatch a keydown on window - the channel setupStageNav listens on. */
-function press(key: string, mods: Record<string, boolean> = {}): KeyboardEvent {
+function press(key: string, mods: Record<string, boolean | string> = {}): KeyboardEvent {
   const e = new dom.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...mods });
   dom.window.dispatchEvent(e);
   return e;
@@ -122,4 +122,32 @@ test("typing '+' (or 0/1) in a text field types - the canvas does not zoom under
     }
     assert.equal(scaleOf(h.outer), 1, 'the canvas zoom never moved');
   } finally { input.remove(); h.teardown(); }
+});
+
+test('Shift+2 zooms to the selection while an artboard title on the stage has focus', () => {
+  const stage = document.createElement('div');
+  const outer = document.createElement('div');
+  const canvas = document.createElement('div');
+  outer.appendChild(canvas);
+  stage.appendChild(outer);
+  const title = document.createElement('button');
+  title.dataset.frameId = 'ab1';
+  stage.appendChild(title);
+  const elsewhere = document.createElement('button');
+  document.body.append(stage, elsewhere);
+  let asked = 0;
+  const nav = setupStageNav(stage, outer, canvas, 800, null, undefined, undefined, undefined, {
+    selectionRect: () => { asked++; return null; },
+  });
+  try {
+    title.focus();
+    assert.equal(document.activeElement, title, 'precondition: the title has focus');
+    const e = press('@', { shiftKey: true, code: 'Digit2' });
+    assert.equal(e.defaultPrevented, true, 'Shift+2 is the canvas view chord, not the title button');
+    assert.equal(asked, 1, 'zoom to selection ran');
+    elsewhere.focus();
+    const away = press('@', { shiftKey: true, code: 'Digit2' });
+    assert.equal(away.defaultPrevented, false, 'a button off the stage keeps its keys');
+    assert.equal(asked, 1, 'zoom to selection did not run for a control off the stage');
+  } finally { nav.destroy(); stage.remove(); elsewhere.remove(); }
 });
