@@ -163304,9 +163304,9 @@ async function blobBytes(v) {
   if (v && typeof v.arrayBuffer === "function") return new Uint8Array(await v.arrayBuffer());
   return null;
 }
-function installNodeCanvas(win, target2 = globalThis) {
-  if (!isCanvasAvailable()) return false;
-  const mod = createRequire3(import.meta.url)("@napi-rs/canvas");
+async function installNodeCanvas(win, target2 = globalThis) {
+  const mod = await nodeCanvas();
+  if (!mod) return false;
   const proto = win?.HTMLCanvasElement?.prototype;
   if (proto && !proto["_lollyNodeCanvas"]) {
     proto["_lollyNodeCanvas"] = true;
@@ -178488,6 +178488,8 @@ function withHost(profile2, fn, opts = {}) {
     g2["document"] = dom.window.document;
     g2["Element"] = dom.window.Element;
     try {
+      const { installNodeCanvas: installNodeCanvas2 } = await Promise.resolve().then(() => (init_canvas(), canvas_exports));
+      await installNodeCanvas2(dom.window);
       const audio = currentAudioScope();
       const host = await createCliBridge({
         dom,

@@ -369,7 +369,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // rewrite them. It installs nothing that already works, and returns false
   // (changing nothing) on a lean install, which keeps the honest refusal.
   const { installNodeCanvas } = await import('@lolly-tools/node-shell/canvas');
-  installNodeCanvas(dom.window as unknown as { HTMLCanvasElement?: { prototype: Record<string, unknown> } });
+  await installNodeCanvas(dom.window as unknown as { HTMLCanvasElement?: { prototype: Record<string, unknown> } });
 
   const fetchFile = fetchFileOverride ?? readToolFile;
 

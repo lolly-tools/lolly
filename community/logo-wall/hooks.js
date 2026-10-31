@@ -52,10 +52,11 @@
  * caches are pruned to the logos currently on the wall.
  *
  * Pixel work (balancing, trimming, white-box removal, tracing an image) needs a
- * 2D canvas behind host.raster. A shell without one (the CLI on a lean install
- * with no @napi-rs/canvas, a hosted MCP server) still renders the wall: each of
- * those steps is skipped with one warning through host.log that says which, and
- * an SVG logo can still be recoloured to the ink because that needs no pixels.
+ * 2D canvas behind host.raster. The CLI, the TUI and a local or self-hosted MCP
+ * server install one when @napi-rs/canvas is present. A shell without one (a
+ * lean install, the hosted MCP function) still renders the wall: each of those
+ * steps is skipped with one warning through host.log that says which, and an SVG
+ * logo can still be recoloured to the ink because that needs no pixels.
  */
 
 // The wall's drawing size in px. Must match tool.json render.width/height: the
@@ -157,9 +158,10 @@ function canRaster() {
 // === /lolly:shared canRaster ===
 
 // Pixel work needs BOTH halves: host.raster to decode, and a 2D canvas in this realm
-// to read and write pixels. The CLI installs one behind jsdom; the TUI and the MCP
-// server can carry host.raster without one, and a canvas there answers getContext
-// with nothing. Probed once, so a realm without a canvas is asked a single time.
+// to read and write pixels. The Node shells install one behind their jsdom when
+// @napi-rs/canvas is present; where it is not, host.raster can still be there while
+// a canvas answers getContext with nothing. Probed once, so a realm without a canvas
+// is asked a single time.
 var _canvasOk = null;
 function canPixels() {
   if (!canRaster()) return false;

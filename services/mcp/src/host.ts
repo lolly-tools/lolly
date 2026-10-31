@@ -10,6 +10,8 @@
  *   2. jsdom globals are set per render and restored, and renders are serialized
  *      through a mutex (jsdom mutates shared globalThis). This is safe, but not
  *      maximally concurrent. Worker-thread pooling is a later optimization (roadmap).
+ * Like the CLI, each render's jsdom gets the real 2D canvas when @napi-rs/canvas is
+ * installed (never in the Vercel function, whose bundle leaves the package out).
  *
  * NOTE (roadmap): depending on shells/cli couples a service to a shell. Before
  * splitting this package out, extract createCliBridge into a shared node-host
@@ -56,6 +58,14 @@ export function withHost<T>(
     g['document'] = dom.window.document;
     g['Element'] = (dom.window as unknown as { Element: unknown }).Element;
     try {
+      // A real 2D canvas behind this jsdom, the CLI's own (shells/cli/src/run.ts), so a
+      // hook that reads pixels (Logo Wall's Balance sizes, Trim margins and tracing)
+      // runs on a local or self-hosted server instead of skipping those steps. The
+      // Vercel function's bundle aliases the canvas import to a module that refuses
+      // to load (scripts/build-mcp-fn.ts), so there this installs nothing and the
+      // hooks degrade as they always have. Per render: each one has a fresh window.
+      const { installNodeCanvas } = await import('@lolly-tools/node-shell/canvas');
+      await installNodeCanvas(dom.window as unknown as { HTMLCanvasElement?: { prototype: Record<string, unknown> } });
       // A hosted process: a hook's host.capture.page may only reach public http(s)
       // pages, never the worker's own network (cloud metadata, localhost, RFC 1918).
       // A rondocode song renders under the request's caps and shared time budget,

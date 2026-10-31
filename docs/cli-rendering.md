@@ -203,7 +203,7 @@ With **Tier sizes** on Step down, the default, each tier below the first puts on
 
 ### Steps that read pixels
 
-Four of Logo Wall's steps read pixels: Balance sizes, Trim margins, Remove white backgrounds and tracing an image logo for Render as vector. They run where the shell has a 2D canvas: the app, and this CLI when `@napi-rs/canvas` is installed. Without one, as in the TUI and on the MCP server today, the wall still renders and a warning lists each step that was skipped. Render as vector still recolours an SVG logo there, because that needs no pixels.
+Four of Logo Wall's steps read pixels: Balance sizes, Trim margins, Remove white backgrounds and tracing an image logo for Render as vector. They run where the shell has a 2D canvas: the app, and this CLI, the TUI and an MCP server you run yourself when `@napi-rs/canvas` is installed. Without one, as on a serverless deployment of the MCP server, the wall still renders and a warning lists each step that was skipped. Render as vector still recolours an SVG logo there, because that needs no pixels.
 
 ## Composed tools
 
