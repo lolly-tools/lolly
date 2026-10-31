@@ -17,14 +17,14 @@ lolly.toolsは、Lolly自身のサンプルデザインシステムである**Lo
 お手元にあるものに合うルートを選んでください。
 
 - <!--i:palette--> **1色から。** **Design System Setup**(`#/start`)を開き、デザインシステムに名前を付けて、プライマリカラーを選びます。Lollyはそこから、ライトとダークの背景、テキスト、アクセントを含む、アクセシブルな完全なパレットを導き出します。フォントを選べば、使えるブランドの完成です。
-- <!--i:upload--> **トークンファイルから。** Design System Setupのルームレール下部にある**Add from…**は、DTCG、Tokens Studio、Penpotのトークンファイル、SVG、`LollyBrand`パックを受け付けます。ドロップするとパレットが埋まります。デザインシステムがまだ空のあいだは、Overviewルームの**Start from a reference**から同じピッカーを開けます。
+- <!--i:upload--> **トークンファイルから。** Design System Setupの上部のバーにある**Add from…**は、DTCG、Tokens Studio、Penpotのトークンファイル、SVG、`LollyBrand`パックを受け付けます。ドロップするとパレットが埋まります。デザインシステムがまだ空のあいだは、Boardルームの**Start from a reference**から同じピッカーを開けます。
 - <!--i:pentool--> **完成したデザインから。** Designで**Import a design**を選び、`.fig`、`.penpot`、`.ai`、`.idml`、またはSVGファイルをドロップします。下の[すでにお持ちのものを取り込む](#bring-in-what-you-already-have)をご覧ください。
 
 初めてギャラリーを開くと、短いウェルカムが同じ選択肢を示します。**Make it yours**はDesign System Setupを開き、**Bring your design**はデザインを選ぶファイルピッカーを開き、**Explore the community tools**はウェルカムを閉じます。
 
 ![新規インストール時のDesign System SetupのColoursルーム: ライブチップが1つ、入力欄が1つ、最初の決定のすべて](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-そこから先は、7つのルームで、好きな順序で好きなところまで進められます。**Overview**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Usage & rules**です。アプリ内のすべてのプレビューは、入力に合わせて更新されます。各ルームについては[Design System Setup](/info/brand-studio.html)で説明しています。
+そこから先は、7つのルームで、好きな順序で好きなところまで進められます。**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules**です。アプリ内のすべてのプレビューは、入力に合わせて更新されます。各ルームについては[Design System Setup](/info/brand-studio.html)で説明しています。
 
 フォントはお使いのデバイスに保存されます。Googleフォントを選ぶと、Lollyはそのファイルをブランドのアセットとして保存するため、書体はオフラインでも持ち運べ、ツールが描画するときに何かを取得することはありません。
 

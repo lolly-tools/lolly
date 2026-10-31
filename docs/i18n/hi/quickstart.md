@@ -17,14 +17,14 @@ lolly.tools **Lolly Demo** में खुलता है, जो Lolly का
 वह रास्ता चुनें जो आपके पास मौजूद चीज़ से मेल खाता हो:
 
 - <!--i:palette--> **एक रंग।** **Design System Setup** (`#/start`) खोलें, अपने design system को नाम दें और प्राथमिक रंग चुनें। Lolly उससे एक पूरा, सुलभ पैलेट बनाता है, हल्की और गहरी सतहों, टेक्स्ट और एक्सेंट के साथ। एक फ़ॉन्ट चुनें और आपके पास काम करता ब्रांड है।
-- <!--i:upload--> **एक टोकन फ़ाइल।** Design System Setup में रूम रेल के नीचे **Add from…** DTCG, Tokens Studio या Penpot टोकन फ़ाइल, SVG या `LollyBrand` पैक लेता है। उसे डालें और पैलेट भर जाता है। जब तक design system खाली है, Overview रूम में **Start from a reference** वही पिकर खोलता है।
+- <!--i:upload--> **एक टोकन फ़ाइल।** Design System Setup की ऊपरी बार में **Add from…** DTCG, Tokens Studio या Penpot टोकन फ़ाइल, SVG या `LollyBrand` पैक लेता है। उसे डालें और पैलेट भर जाता है। जब तक design system खाली है, Board रूम में **Start from a reference** वही पिकर खोलता है।
 - <!--i:pentool--> **एक तैयार डिज़ाइन।** Design में **Import a design** चुनें और `.fig`, `.penpot`, `.ai`, `.idml` या SVG फ़ाइल डालें। नीचे [Bring in what you already have](#bring-in-what-you-already-have) देखें।
 
 गैलरी पहली बार खोलने पर एक छोटा स्वागत यही विकल्प देता है: **Make it yours** Design System Setup खोलता है, **Bring your design** डिज़ाइन के लिए फ़ाइल पिकर खोलता है और **Explore the community tools** स्वागत बंद करता है।
 
 ![नई इंस्टॉल पर Design System Setup का Colours रूम: एक लाइव चिप, एक फ़ील्ड और पहले निर्णय का पूरा हिस्सा](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-वहाँ से सात रूम इसे जितना चाहें आगे ले जाते हैं, किसी भी क्रम में: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** और **Usage & rules**। आपके टाइप करते ही ऐप का हर प्रीव्यू अपडेट होता है। [Design System Setup](/info/brand-studio.html) हर रूम को कवर करता है।
+वहाँ से सात रूम इसे जितना चाहें आगे ले जाते हैं, किसी भी क्रम में: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** और **Rules**। आपके टाइप करते ही ऐप का हर प्रीव्यू अपडेट होता है। [Design System Setup](/info/brand-studio.html) हर रूम को कवर करता है।
 
 फ़ॉन्ट आपके डिवाइस पर रखे जाते हैं। Google Font चुनें और Lolly फ़ाइल को ब्रांड एसेट के रूप में सहेजता है, इसलिए आपका टाइप ऑफ़लाइन साथ चलता है और टूल के बनाते समय कुछ नहीं लाया जाता।
 

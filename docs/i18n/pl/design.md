@@ -195,7 +195,7 @@ Tam, gdzie istnieje konkretna sugestia koloru lub czcionki, jej przycisk zmienia
 
 ### Reguły organizacji i sygnał pisania
 
-Karta w panelu eksportu sprawdza też reguły organizacji, które niesie Twój system projektowy, takie jak grubość i wyrównanie tekstu, zatwierdzone zestawienia kolorów lub logo na powierzchnię, warstwa po warstwie. Każde ustalenie jest ostrzeżeniem z nazwą warstwy nad regułą. Reguła, dla której ta kompilacja nie ma sprawdzacza, jest wymieniana jako niesprawdzona, nigdy jako spełniona. [Usage & rules](/info/brand-studio.html#usage-rules) wymienia reguły, a `lolly check` stosuje te same do zapisanego dokumentu.
+Karta w panelu eksportu sprawdza też reguły organizacji, które niesie Twój system projektowy, takie jak grubość i wyrównanie tekstu, zatwierdzone zestawienia kolorów lub logo na powierzchnię, warstwa po warstwie. Każde ustalenie jest ostrzeżeniem z nazwą warstwy nad regułą. Reguła, dla której ta kompilacja nie ma sprawdzacza, jest wymieniana jako niesprawdzona, nigdy jako spełniona. [Rules](/info/brand-studio.html#rules) wymienia reguły, a `lolly check` stosuje te same do zapisanego dokumentu.
 
 Ta sama karta pokazuje sygnał pisania dla tekstu rysowanego przez dokument: jego pasmo (none, weak, notable lub strong), potem własne zdanie Verify z wynikiem w skali do 100 i do trzema oznaczonymi frazami, każda z warstwą, która ją zawiera. **Open the text in Verify** zabiera ten tekst do [Verify](/#/verify) na pełny odczyt; [AI evidence in Verify](/info/verify-ai-evidence.html) wyjaśnia, co waży wynik. Wynik jest sygnałem, a nie wyrokiem: liczy wzorce częste w tekstach generowanych i nie potrafi powiedzieć, kto napisał słowa. Ukryte warstwy są pomijane w obu kontrolach, a karta podaje ile.
 

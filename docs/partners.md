@@ -16,10 +16,10 @@ Two words mean the same thing everywhere on this page. The **lead brand** is the
 
 | Send | How | The partner gets | Suits |
 | --- | --- | --- | --- |
-| A design-system file | **Export** at the foot of the rail in [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Your tokens, fonts, logos and theme preference, as a design system they can switch to | A partner who makes many pieces in your brand |
+| A design-system file | **Export** in the bar at the top of [Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) | Your tokens, fonts, logos and theme preference, as a design system they can switch to | A partner who makes many pieces in your brand |
 | A reusable tool | In Design, **Share with rules** ([Share a design with rules](/info/create-a-tool.html)) | One finished layout with the inputs you allow, such as their name and their logo. The file carries the resolved colours, fonts and images, so their own design system cannot restyle the fixed artwork | A co-branded flyer, badge or banner that each partner fills in |
 | Brand skills | The **Skills** room: **Download skill (.zip)** or **Copy as one file** | Your written standards, for their people and their agents | Either of the above, when an agent does some of the work |
-| Tokens | **Tokens (.json)** at the foot of the rail | The plain design-tokens document, with no fonts or logos | A partner's own design tools or build |
+| Tokens | **Tokens (.json)** in the studio's **More** menu | The plain design-tokens document, with no fonts or logos | A partner's own design tools or build |
 
 Fonts you added travel inside a design-system file, so check that their licences let you pass the files on. A reusable tool asks you to confirm before it includes an image whose licence holds it back ([Preview and share](/info/create-a-tool.html#preview-and-share)).
 

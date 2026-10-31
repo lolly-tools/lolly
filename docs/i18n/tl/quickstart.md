@@ -17,14 +17,14 @@ Nagbubukas ang lolly.tools sa **Lolly Demo**, ang sariling sample na design syst
 Piliin ang rutang tugma sa meron ka:
 
 - <!--i:palette--> **Isang kulay.** Buksan ang **Design System Setup** (`#/start`), pangalanan ang design system mo at pumili ng primary na kulay. Gumagawa ang Lolly mula rito ng kumpleto at accessible na palette, na may light at dark na surface, text at accent. Pumili ng font at may gumagana ka nang brand.
-- <!--i:upload--> **Isang tokens file.** Ang **Add from…**, sa paanan ng room rail sa Design System Setup, ay tumatanggap ng DTCG, Tokens Studio o Penpot tokens file, SVG o `LollyBrand` pack. I-drop ito at mapupuno ang palette. Habang walang laman pa ang design system, binubuksan ng **Start from a reference** sa Overview room ang parehong picker.
+- <!--i:upload--> **Isang tokens file.** Ang **Add from…**, sa bar ng Design System Setup, ay tumatanggap ng DTCG, Tokens Studio o Penpot tokens file, SVG o `LollyBrand` pack. I-drop ito at mapupuno ang palette. Habang walang laman pa ang design system, binubuksan ng **Start from a reference** sa Board room ang parehong picker.
 - <!--i:pentool--> **Isang tapos nang design.** Sa Design, piliin ang **Import a design** at i-drop ang `.fig`, `.penpot`, `.ai`, `.idml` o SVG file. Tingnan ang [Dalhin ang meron ka na](#bring-in-what-you-already-have) sa ibaba.
 
 Sa unang beses mong buksan ang gallery, nag-aalok ang maikling welcome ng parehong mga pagpipilian: binubuksan ng **Make it yours** ang Design System Setup, binubuksan ng **Bring your design** ang file picker para sa design at isinasara ng **Explore the community tools** ang welcome.
 
 ![Ang Colours room ng Design System Setup sa bagong install: isang live na chip, isang field at ang kabuuan ng unang desisyon](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Mula roon, pitong room ang magdadala nito hanggang saan mo gusto, sa anumang pagkakasunod-sunod: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** at **Usage & rules**. Nag-a-update ang bawat preview sa app habang nagta-type ka. Sinasaklaw ng [Design System Setup](/info/brand-studio.html) ang bawat room.
+Mula roon, pitong room ang magdadala nito hanggang saan mo gusto, sa anumang pagkakasunod-sunod: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** at **Rules**. Nag-a-update ang bawat preview sa app habang nagta-type ka. Sinasaklaw ng [Design System Setup](/info/brand-studio.html) ang bawat room.
 
 Iniingatan sa device mo ang mga font. Pumili ng Google Font at ise-save ng Lolly ang file bilang brand asset, kaya sumasama offline ang type mo at walang kinukuha kapag gumuguhit ang tool.
 

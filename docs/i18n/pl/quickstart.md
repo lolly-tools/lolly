@@ -17,14 +17,14 @@ lolly.tools otwiera się w **Lolly Demo**, własnym przykładowym systemie proje
 Wybierz drogę odpowiednią do tego, co masz:
 
 - <!--i:palette--> **Jeden kolor.** Otwórz **Design System Setup** (`#/start`), nazwij swój system projektowy i wybierz kolor podstawowy. Lolly wyprowadza z niego pełną, dostępną paletę, z jasnymi i ciemnymi powierzchniami, tekstem i akcentami. Wybierz czcionkę i masz działającą markę.
-- <!--i:upload--> **Plik tokenów.** **Add from…** na dole szyny pokoi w Design System Setup przyjmuje plik tokenów DTCG, Tokens Studio lub Penpot, plik SVG albo paczkę `LollyBrand`. Upuść go i paleta się wypełni. Dopóki system projektowy jest pusty, **Start from a reference** w pokoju Overview otwiera ten sam selektor.
+- <!--i:upload--> **Plik tokenów.** **Add from…** na pasku u góry Design System Setup przyjmuje plik tokenów DTCG, Tokens Studio lub Penpot, plik SVG albo paczkę `LollyBrand`. Upuść go i paleta się wypełni. Dopóki system projektowy jest pusty, **Start from a reference** w pokoju Board otwiera ten sam selektor.
 - <!--i:pentool--> **Gotowy projekt.** W Design wybierz **Import a design** i upuść plik `.fig`, `.penpot`, `.ai`, `.idml` lub SVG. Zobacz [Bring in what you already have](#bring-in-what-you-already-have) poniżej.
 
 Przy pierwszym otwarciu galerii krótkie powitanie oferuje te same wybory: **Make it yours** otwiera Design System Setup, **Bring your design** otwiera selektor plików dla projektu, a **Explore the community tools** zamyka powitanie.
 
 ![Pokój Colours w Design System Setup na świeżej instalacji: jeden żywy znacznik, jedno pole i cała pierwsza decyzja](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Stamtąd siedem pokoi zaprowadzi Cię tak daleko, jak chcesz, w dowolnej kolejności: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** i **Usage & rules**. Każdy podgląd w aplikacji aktualizuje się w trakcie pisania. [Design System Setup](/info/brand-studio.html) opisuje każdy pokój.
+Stamtąd siedem pokoi zaprowadzi Cię tak daleko, jak chcesz, w dowolnej kolejności: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** i **Rules**. Każdy podgląd w aplikacji aktualizuje się w trakcie pisania. [Design System Setup](/info/brand-studio.html) opisuje każdy pokój.
 
 Czcionki są przechowywane na Twoim urządzeniu. Wybierz czcionkę Google, a Lolly zapisze plik jako zasób marki, więc Twoja typografia podróżuje offline i nic nie jest pobierane, gdy narzędzie rysuje.
 

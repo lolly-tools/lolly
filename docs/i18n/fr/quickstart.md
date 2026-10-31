@@ -17,14 +17,14 @@ lolly.tools s'ouvre sur **Lolly Demo**, le design system d'exemple de Lolly ; [M
 Choisis la voie qui correspond à ce que tu as :
 
 - <!--i:palette--> **Une couleur.** Ouvre **Design System Setup** (`#/start`), donne un nom à ton design system et choisis une couleur primaire. Lolly en dérive une palette complète et accessible, avec des surfaces claires et sombres, du texte et des accents. Choisis une police et tu as une marque fonctionnelle.
-- <!--i:upload--> **Un fichier de tokens.** **Add from…**, au pied du rail des pièces de Design System Setup, accepte un fichier de tokens DTCG, Tokens Studio ou Penpot, un SVG ou un pack `LollyBrand`. Dépose-le et la palette se remplit. Tant que le design system est vide, **Start from a reference** dans la pièce Overview ouvre le même sélecteur.
+- <!--i:upload--> **Un fichier de tokens.** **Add from…**, dans la barre de Design System Setup, accepte un fichier de tokens DTCG, Tokens Studio ou Penpot, un SVG ou un pack `LollyBrand`. Dépose-le et la palette se remplit. Tant que le design system est vide, **Start from a reference** dans la pièce Board ouvre le même sélecteur.
 - <!--i:pentool--> **Un design terminé.** Dans Design, choisis **Import a design** et dépose un fichier `.fig`, `.penpot`, `.ai`, `.idml` ou SVG. Voir [Reprends ce que tu as déjà](#bring-in-what-you-already-have) ci-dessous.
 
 La première fois que tu ouvres la galerie, un court message d'accueil propose les mêmes choix : **Make it yours** ouvre Design System Setup, **Bring your design** ouvre un sélecteur de fichier pour un design et **Explore the community tools** ferme l'accueil.
 
 ![La pièce Colours de Design System Setup sur une installation neuve : une pastille en direct, un champ et toute la première décision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-À partir de là, sept pièces te mènent aussi loin que tu veux, dans l'ordre que tu veux : **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** et **Usage & rules**. Chaque aperçu de l'application se met à jour pendant que tu saisis. [Design System Setup](/info/brand-studio.html) couvre chaque pièce.
+À partir de là, sept pièces te mènent aussi loin que tu veux, dans l'ordre que tu veux : **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** et **Rules**. Chaque aperçu de l'application se met à jour pendant que tu saisis. [Design System Setup](/info/brand-studio.html) couvre chaque pièce.
 
 Les polices sont conservées sur ton appareil. Choisis une Google Font et Lolly stocke le fichier comme ressource de marque, de sorte que ta typographie voyage hors ligne et que rien n'est récupéré quand un outil dessine.
 

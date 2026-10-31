@@ -17,14 +17,14 @@ lolly.tools se otevře v **Lolly Demo**, vlastním ukázkovém designovém syst�
 Vyber cestu, která odpovídá tomu, co máš:
 
 - <!--i:palette--> **Jedna barva.** Otevři **Design System Setup** (`#/start`), pojmenuj svůj designový systém a vyber primární barvu. Lolly z ní odvodí kompletní, přístupnou paletu se světlými a tmavými povrchy, textem a akcenty. Vyber písmo a máš fungující značku.
-- <!--i:upload--> **Soubor s tokeny.** **Add from…** dole na liště místností v Design System Setup přijme soubor tokenů DTCG, Tokens Studio nebo Penpot, SVG nebo balíček `LollyBrand`. Přetáhni ho a paleta se vyplní. Dokud je designový systém prázdný, stejný výběr otevře **Start from a reference** v místnosti Overview.
+- <!--i:upload--> **Soubor s tokeny.** **Add from…** v horní liště Design System Setup přijme soubor tokenů DTCG, Tokens Studio nebo Penpot, SVG nebo balíček `LollyBrand`. Přetáhni ho a paleta se vyplní. Dokud je designový systém prázdný, stejný výběr otevře **Start from a reference** v místnosti Board.
 - <!--i:pentool--> **Hotový návrh.** V Design zvol **Import a design** a přetáhni soubor `.fig`, `.penpot`, `.ai`, `.idml` nebo SVG. Viz [Přines, co už máš](#bring-in-what-you-already-have) níže.
 
 Při prvním otevření galerie krátké uvítání nabídne stejné volby: **Make it yours** otevře Design System Setup, **Bring your design** otevře výběr souboru pro návrh a **Explore the community tools** uvítání zavře.
 
 ![Místnost Colours v Design System Setup na čerstvé instalaci: jeden živý čip, jedno pole a celé první rozhodnutí](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-Odtud tě sedm místností dovede tak daleko, jak chceš, v libovolném pořadí: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** a **Usage & rules**. Každý náhled v aplikaci se aktualizuje při psaní. Každou místnost popisuje [Design System Setup](/info/brand-studio.html).
+Odtud tě sedm místností dovede tak daleko, jak chceš, v libovolném pořadí: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** a **Rules**. Každý náhled v aplikaci se aktualizuje při psaní. Každou místnost popisuje [Design System Setup](/info/brand-studio.html).
 
 Písma se uchovávají na tvém zařízení. Vyber Google Font a Lolly uloží soubor jako asset značky, takže tvé písmo cestuje offline a při kreslení nástroje se nic nestahuje.
 
