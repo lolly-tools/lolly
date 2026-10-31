@@ -150,6 +150,13 @@ Turning a connector off withdraws that destination everywhere it is offered. Nea
 
 **Print preflight** puts the *Before you export* prepress card (bleed, resolution, ink coverage, plate counts) above the Download button. It stays off by default so someone exporting a PNG for a chat message never meets prepress findings, and the card never blocks an export. It also honours the older `export.preflight` instance capability, which reads as governance defaulting the switch on, so members of an instance that granted it keep the card until they choose.
 
+**Performance UI** gives the app a simpler look that is cheaper to draw: no background blur, shadows or blend modes in the chrome, no decorative motion, and previews that play only when asked. Tool canvases and exports are identical either way. Lolly can also switch it on by itself, once, for a device that struggles to draw the interface:
+
+- **At start-up**, when the graphics check finds no hardware acceleration (a software renderer such as SwiftShader, llvmpipe or Microsoft Basic Render Driver). The renderer's name is read on the device and never stored.
+- **During use**, when drawing the chrome stays slow for most of the time someone browses the gallery, Assets, Projects, Settings or the docs, spread over at least half a minute. In Chromium-based browsers only frames spent mostly in style, layout and paint count, never frames spent in script; other browsers use a stricter frame-rate test. Tools, editors, exports, playback, the first seconds after loading and a hidden tab never count.
+
+A notice says what happened, with **Undo** and **Keep**. Undo turns the look off and stops automatic switching on that device. Lolly never switches the look back on its own, and never switches it at all once someone has set it by hand. **Settings → Feature flags** shows the date and the reason under the switch. The decision is a preference on that device only (`lolly:perfUiAuto` in local storage), so it does not travel with the profile to another device.
+
 An optional organisation control plane, [Lolly Work](/info/work-governance.html), can govern the switches marked Yes. It sets the default used when a person has not chosen, and it can hide the switch entirely; a hidden switch's governed default wins over a stored personal value.
 
 ![Every feature flag as its own switch, with the gallery categories on and Strip metadata off](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
