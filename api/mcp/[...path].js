@@ -4083,7 +4083,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.290.0";
+    ENGINE_VERSION = "1.292.0";
   }
 });
 
@@ -69180,6 +69180,13 @@ function channelValue(ch, raw) {
   const [lo, hi] = KF_CLAMPS[ch];
   return quant(clamp(raw, lo, hi), KF_QUANTA[ch]);
 }
+function handleValue(raw) {
+  if (!Array.isArray(raw) || raw.length < 2) return void 0;
+  const dx = typeof raw[0] === "number" ? channelValue("x", raw[0]) : null;
+  const dy = typeof raw[1] === "number" ? channelValue("y", raw[1]) : null;
+  if (dx === null || dy === null || dx === 0 && dy === 0) return void 0;
+  return Object.freeze([dx, dy]);
+}
 function normaliseTrack(keys2, onWarn) {
   let src = keys2;
   if (src.length > KF_MAX_KEYS) {
@@ -69200,7 +69207,18 @@ function normaliseTrack(keys2, onWarn) {
       const val = channelValue(ch, raw);
       if (val !== null) v[ch] = val;
     }
-    out.push({ t, ease: normaliseKfEase(k.ease) ?? KF_DEFAULT_EASE, v: Object.freeze(v) });
+    const key2 = {
+      t,
+      ease: normaliseKfEase(k.ease) ?? KF_DEFAULT_EASE,
+      v: Object.freeze(v)
+    };
+    if (typeof v.x === "number" && typeof v.y === "number") {
+      const hi = handleValue(k.hi);
+      const ho = handleValue(k.ho);
+      if (hi) key2.hi = hi;
+      if (ho) key2.ho = ho;
+    }
+    out.push(key2);
   }
   out.sort((a, b) => a.t - b.t);
   const deduped = [];
@@ -69239,12 +69257,23 @@ function parseKf(s, opts) {
     if (tRaw === null) continue;
     const v = {};
     let ease;
+    let hi;
+    let ho;
     for (let i = 1; i < toks.length; i++) {
       const tok = toks[i];
       if (tok.charCodeAt(0) === 101) {
         const norm2 = normaliseKfEase(tok);
         if (norm2 !== null) {
           ease = norm2;
+          continue;
+        }
+      }
+      const hm = KF_HANDLE_RE.exec(tok);
+      if (hm) {
+        const dx = num5(hm[2] ?? ""), dy = num5(hm[3] ?? "");
+        if (dx !== null && dy !== null) {
+          if (hm[1] === "i") hi = [dx, dy];
+          else ho = [dx, dy];
           continue;
         }
       }
@@ -69259,7 +69288,7 @@ function parseKf(s, opts) {
       }
       if (!matched) warn2?.(`kf: junk token "${snip(tok)}" skipped`);
     }
-    keys2.push({ t: tRaw, ease, v });
+    keys2.push({ t: tRaw, ease, v, hi, ho });
   }
   return normaliseTrack(keys2, warn2);
 }
@@ -69272,6 +69301,8 @@ function keyToWire(k) {
     if (typeof val !== "number") continue;
     parts.push(`${ch}${fmt(val)}`);
   }
+  if (k.hi) parts.push(`hi(${fmt(k.hi[0])})(${fmt(k.hi[1])})`);
+  if (k.ho) parts.push(`ho(${fmt(k.ho[0])})(${fmt(k.ho[1])})`);
   return parts.join("_");
 }
 function serialiseKf(track, opts) {
@@ -69318,6 +69349,10 @@ function sampleChannel(track, ks, ch, t) {
   const span = b.t - a.t;
   if (!(span > 0)) return bv;
   const u = (t - a.t) / span;
+  if ((ch === "x" || ch === "y") && a.ease !== KF_HOLD_EASE) {
+    const seg4 = curvedSegment(track, ks[lo], ks[lo + 1]);
+    if (seg4) return pathPoint(seg4, kfEaseAt(a.ease, u))[ch === "x" ? 0 : 1];
+  }
   const ease = ch === "o" ? a.ease === KF_HOLD_EASE ? KF_HOLD_EASE : KF_LINEAR_EASE : a.ease;
   return av + (bv - av) * kfEaseAt(ease, u);
 }
@@ -69333,6 +69368,147 @@ function evaluateKf(track, tMs, channels) {
     out[ch] = sampleChannel(track, ks, ch, t);
   }
   return out;
+}
+function handleOf(h) {
+  if (!Array.isArray(h) || h.length < 2) return null;
+  const dx = h[0], dy = h[1];
+  return typeof dx === "number" && typeof dy === "number" && Number.isFinite(dx) && Number.isFinite(dy) && (dx !== 0 || dy !== 0) ? [dx, dy] : null;
+}
+function cubicAt(p, s) {
+  const r5 = 1 - s;
+  const w0 = r5 * r5 * r5, w1 = 3 * r5 * r5 * s, w2 = 3 * r5 * s * s, w3 = s * s * s;
+  return [
+    w0 * p[0] + w1 * p[2] + w2 * p[4] + w3 * p[6],
+    w0 * p[1] + w1 * p[3] + w2 * p[5] + w3 * p[7]
+  ];
+}
+function buildCurve(a, b, ka, kb, ho, hi) {
+  const ax = ka.v.x, ay = ka.v.y;
+  const bx = kb.v.x, by = kb.v.y;
+  const p = Object.freeze([
+    ax,
+    ay,
+    ax + (ho ? ho[0] : 0),
+    ay + (ho ? ho[1] : 0),
+    bx + (hi ? hi[0] : 0),
+    by + (hi ? hi[1] : 0),
+    bx,
+    by
+  ]);
+  const lens = new Float64Array(PATH_CHORDS + 1);
+  let px3 = ax, py = ay;
+  for (let k = 1; k <= PATH_CHORDS; k++) {
+    const [x, y] = cubicAt(p, k / PATH_CHORDS);
+    const dx = x - px3, dy = y - py;
+    lens[k] = lens[k - 1] + Math.sqrt(dx * dx + dy * dy);
+    px3 = x;
+    py = y;
+  }
+  return { a, b, p, lens };
+}
+function pathIndex(track) {
+  const key2 = track;
+  const hit = PATH_INDEX.get(key2);
+  if (hit !== void 0) return hit;
+  let out = null;
+  if (track.some((k) => !!k && (handleOf(k.ho) || handleOf(k.hi)))) {
+    let prev = -1;
+    for (let i = 0; i < track.length; i++) {
+      const k = track[i];
+      if (!k) continue;
+      const hasX = typeof k.v.x === "number", hasY = typeof k.v.y === "number";
+      if (!hasX && !hasY) continue;
+      const a = prev >= 0 ? track[prev] : void 0;
+      if (a && hasX && hasY && typeof a.v.x === "number" && typeof a.v.y === "number") {
+        const ho = handleOf(a.ho), hi = handleOf(k.hi);
+        if (ho || hi) {
+          out ??= /* @__PURE__ */ new Map();
+          out.set(prev, buildCurve(prev, i, a, k, ho, hi));
+        }
+      }
+      prev = i;
+    }
+  }
+  PATH_INDEX.set(key2, out);
+  return out;
+}
+function curvedSegment(track, a, b) {
+  const c = pathIndex(track)?.get(a);
+  return c && c.b === b ? c : null;
+}
+function arcParam(c, p) {
+  const lens = c.lens;
+  const target2 = p * lens[PATH_CHORDS];
+  let lo = 0, hi = PATH_CHORDS;
+  while (hi - lo > 1) {
+    const mid3 = lo + hi >> 1;
+    if (lens[mid3] <= target2) lo = mid3;
+    else hi = mid3;
+  }
+  const l0 = lens[lo], l1 = lens[lo + 1];
+  const f = l1 > l0 ? (target2 - l0) / (l1 - l0) : 0;
+  return (lo + f) / PATH_CHORDS;
+}
+function unitToward(x0, y0, pts) {
+  for (const [x, y] of pts) {
+    const dx = x - x0, dy = y - y0;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d > 0) return [dx / d, dy / d];
+  }
+  return [0, 0];
+}
+function pathPoint(c, p) {
+  const q = c.p;
+  const p0x = q[0], p0y = q[1], p3x = q[6], p3y = q[7];
+  const total = c.lens[PATH_CHORDS];
+  if (!Number.isFinite(p) || !(total > 0) || p === 0) return [p0x, p0y];
+  if (p === 1) return [p3x, p3y];
+  if (p < 0) {
+    const [ux, uy] = unitToward(p0x, p0y, [[q[2], q[3]], [q[4], q[5]], [p3x, p3y]]);
+    return [p0x + ux * p * total, p0y + uy * p * total];
+  }
+  if (p > 1) {
+    const [ux, uy] = unitToward(p3x, p3y, [[q[4], q[5]], [q[2], q[3]], [p0x, p0y]]);
+    return [p3x - ux * (p - 1) * total, p3y - uy * (p - 1) * total];
+  }
+  return cubicAt(q, arcParam(c, p));
+}
+function kfPathCurves(track) {
+  const out = /* @__PURE__ */ new Map();
+  if (!track || track.length < 2) return out;
+  for (const [a, c] of pathIndex(track) ?? []) out.set(a, c.b);
+  return out;
+}
+function kfSubdividePath(track, tMs) {
+  if (!track || track.length < 2 || !Number.isFinite(tMs)) return null;
+  const idx = pathIndex(track);
+  if (!idx) return null;
+  for (const c of idx.values()) {
+    const ka = track[c.a], kb = track[c.b];
+    if (!(tMs > ka.t && tMs < kb.t) || ka.ease === KF_HOLD_EASE) continue;
+    const p = kfEaseAt(ka.ease, (tMs - ka.t) / (kb.t - ka.t));
+    if (!(p > 0 && p < 1) || !(c.lens[PATH_CHORDS] > 0)) return null;
+    const s = arcParam(c, p);
+    const q = c.p;
+    const lerp = (i, j, k) => q[i] + (q[j] - q[i]) * k;
+    const ax = lerp(0, 2, s), ay = lerp(1, 3, s);
+    const bx = lerp(2, 4, s), by = lerp(3, 5, s);
+    const cx2 = lerp(4, 6, s), cy3 = lerp(5, 7, s);
+    const dx = ax + (bx - ax) * s, dy = ay + (by - ay) * s;
+    const ex = bx + (cx2 - bx) * s, ey = by + (cy3 - by) * s;
+    const [fx, fy] = cubicAt(q, s);
+    return {
+      a: c.a,
+      b: c.b,
+      x: fx,
+      y: fy,
+      aHo: [ax - q[0], ay - q[1]],
+      hi: [dx - fx, dy - fy],
+      ho: [ex - fx, ey - fy],
+      bHi: [cx2 - q[6], cy3 - q[7]]
+    };
+  }
+  return null;
 }
 function sanePerspective(p) {
   const [lo, hi] = KF_CLAMPS.p;
@@ -69470,6 +69646,29 @@ function projectSurfacePoint(cam, x, y, z = 0) {
   if (!(w > 0)) return null;
   return { x: (a * x + b * y + c) / w, y: (d * x + e * y + f) / w, d: w };
 }
+function kfUnprojectCentre(cam, sx, sy, z = 0) {
+  if (!Number.isFinite(sx) || !Number.isFinite(sy)) return null;
+  const s = surfaceMatrix(cam, z);
+  if (!s) {
+    const { eff } = projectDepth(cam, z);
+    if (!(eff > 0)) return null;
+    const w = Number.isFinite(cam.w) ? cam.w : 0;
+    const h2 = Number.isFinite(cam.h) ? cam.h : 0;
+    const camX = Number.isFinite(cam.x) ? cam.x : 0;
+    const camY = Number.isFinite(cam.y) ? cam.y : 0;
+    return { x: camX + w / 2 + (sx - w / 2) / eff, y: camY + h2 / 2 + (sy - h2 / 2) / eff };
+  }
+  const [a, b, c, d, e, f, g2, h, i] = s.m;
+  const A = e * i - f * h, B = c * h - b * i, C = b * f - c * e;
+  const D = f * g2 - d * i, E = a * i - c * g2, F = c * d - a * f;
+  const G = d * h - e * g2, H = b * g2 - a * h, I = a * e - b * d;
+  const W = G * sx + H * sy + I;
+  if (W === 0 || !Number.isFinite(W)) return null;
+  const x = (A * sx + B * sy + C) / W;
+  const y = (D * sx + E * sy + F) / W;
+  if (!(g2 * x + h * y + i > 0)) return null;
+  return { x, y };
+}
 function projectLayer(cam, layer) {
   const bx = Number.isFinite(layer.bx) ? layer.bx : 0;
   const by = Number.isFinite(layer.by) ? layer.by : 0;
@@ -69584,7 +69783,7 @@ function resolveCamera(cameras, tMs) {
   pose3.p = sanePerspective(pose3.p);
   return pose3;
 }
-var KF_CHANNELS, KF_CAMERA_CHANNELS, CHANNEL_SET, CHANNELS_BY_LENGTH, KF_CLAMPS, KF_Z_FIELD_CLAMP, KF_QUANTA, KF_BEZIER_QUANTUM, KF_BEZIER_Y_MAX, KF_MAX_KEYS, KF_MAX_CHARS, KF_MAX_TIME_MS, KF_MAX_BLUR, KF_CHARSET_RE, KF_EASE_TOKENS, KF_EASE_PRESETS, KF_HOLD_EASE, KF_DEFAULT_EASE, KF_LINEAR_EASE, KF_HOLD_CSS, EB_RE, NUM_RE2, T_RE, CSS_BEZIER_RE, EASE_PTS_CACHE, NAME_TO_TOKEN, SUBDIVIDE_EPS, EMPTY_TRACK, CHANNEL_INDEX, DEFAULT_CAMERA, DEFAULT_PERSPECTIVE, KF_GUARD_U, KF_GUARD_BAND, KF_EFF_MAX, DEG, DOF_K;
+var KF_CHANNELS, KF_CAMERA_CHANNELS, CHANNEL_SET, CHANNELS_BY_LENGTH, KF_CLAMPS, KF_Z_FIELD_CLAMP, KF_QUANTA, KF_BEZIER_QUANTUM, KF_BEZIER_Y_MAX, KF_MAX_KEYS, KF_MAX_CHARS, KF_MAX_TIME_MS, KF_MAX_BLUR, KF_CHARSET_RE, KF_EASE_TOKENS, KF_EASE_PRESETS, KF_HOLD_EASE, KF_DEFAULT_EASE, KF_LINEAR_EASE, KF_HOLD_CSS, EB_RE, KF_HANDLE_RE, NUM_RE2, T_RE, CSS_BEZIER_RE, EASE_PTS_CACHE, NAME_TO_TOKEN, SUBDIVIDE_EPS, EMPTY_TRACK, CHANNEL_INDEX, PATH_CHORDS, PATH_INDEX, DEFAULT_CAMERA, DEFAULT_PERSPECTIVE, KF_GUARD_U, KF_GUARD_BAND, KF_EFF_MAX, DEG, DOF_K;
 var init_keyframes2 = __esm({
   "engine/src/keyframes.ts"() {
     "use strict";
@@ -69697,7 +69896,7 @@ var init_keyframes2 = __esm({
     KF_BEZIER_QUANTUM = 1e-3;
     KF_BEZIER_Y_MAX = 10;
     KF_MAX_KEYS = 256;
-    KF_MAX_CHARS = 73728;
+    KF_MAX_CHARS = 90112;
     KF_MAX_TIME_MS = 36e5;
     KF_MAX_BLUR = 300;
     KF_CHARSET_RE = /^[A-Za-z0-9._*()-]*$/;
@@ -69717,6 +69916,7 @@ var init_keyframes2 = __esm({
     KF_LINEAR_EASE = "el";
     KF_HOLD_CSS = "hold";
     EB_RE = /^eb\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)\(([^()]*)\)$/;
+    KF_HANDLE_RE = /^h([io])\(([^()]*)\)\(([^()]*)\)$/;
     NUM_RE2 = /^-?(?:\d+(?:\.\d+)?|\.\d+)$/;
     T_RE = /^t(-?(?:\d+(?:\.\d+)?|\.\d+))$/;
     CSS_BEZIER_RE = /^\s*cubic-bezier\(([^()]*)\)\s*$/i;
@@ -69727,6 +69927,8 @@ var init_keyframes2 = __esm({
     SUBDIVIDE_EPS = 1e-4;
     EMPTY_TRACK = Object.freeze([]);
     CHANNEL_INDEX = /* @__PURE__ */ new WeakMap();
+    PATH_CHORDS = 128;
+    PATH_INDEX = /* @__PURE__ */ new WeakMap();
     DEFAULT_CAMERA = Object.freeze({ x: 0, y: 0, z: 0, p: 1200, f: 0, a: 0 });
     DEFAULT_PERSPECTIVE = 1200;
     KF_GUARD_U = 0.9;
@@ -117539,6 +117741,53 @@ function channel3(track, key2, fps, startMs, base, multiplier = 1, replace = fal
     };
   }) };
 }
+function pathPosition(layer, track, fps) {
+  const bx = layer.x + layer.w / 2, by = layer.y + layer.h / 2;
+  const keys2 = track.map((key2, index2) => ({ key: key2, index: index2 })).filter(({ key: key2 }) => key2.v.x !== void 0 || key2.v.y !== void 0);
+  if (keys2.some(({ key: key2 }) => key2.v.x === void 0 || key2.v.y === void 0)) {
+    throw new Error(`${layer.name}: a curved motion path in dotLottie needs x and y keyed together. Key both on each position keyframe, or use video export.`);
+  }
+  const curves2 = kfPathCurves(track);
+  const frame = (ms) => (layer.startMs + ms) * fps / 1e3;
+  const at = (ms) => {
+    const p = evaluateKf(track, ms, ["x", "y"]);
+    return [bx + (p.x ?? 0), by + (p.y ?? 0), 0];
+  };
+  const out = [];
+  keys2.forEach(({ key: key2, index: index2 }, n8) => {
+    const s = [bx + key2.v.x, by + key2.v.y, 0];
+    const next2 = keys2[n8 + 1];
+    if (!next2) {
+      out.push({ t: frame(key2.t), s });
+      return;
+    }
+    const e = [bx + next2.key.v.x, by + next2.key.v.y, 0];
+    if (key2.ease === "eh") {
+      out.push({ t: frame(key2.t), s, e, h: 1 });
+      return;
+    }
+    const points = kfEasePoints(key2.ease) ?? [0, 0, 1, 1];
+    const curved = curves2.get(index2) === next2.index;
+    if (curved && [points[1], points[3]].some((y) => y < 0 || y > 1)) {
+      const times = [key2.t];
+      for (let f = Math.floor(frame(key2.t)) + 1; f < frame(next2.key.t); f++) times.push(f * 1e3 / fps - layer.startMs);
+      times.forEach((ms, j) => {
+        const to = times[j + 1];
+        out.push({ t: frame(ms), s: at(ms), e: to === void 0 ? e : at(to), o: { x: 0, y: 0 }, i: { x: 1, y: 1 } });
+      });
+      return;
+    }
+    out.push({
+      t: frame(key2.t),
+      s,
+      e,
+      o: { x: points[0], y: points[1] },
+      i: { x: points[2], y: points[3] },
+      ...curved ? { to: [key2.ho?.[0] ?? 0, key2.ho?.[1] ?? 0, 0], ti: [next2.key.hi?.[0] ?? 0, next2.key.hi?.[1] ?? 0, 0] } : {}
+    });
+  });
+  return { a: 1, k: out };
+}
 function pose(layer, fps) {
   const track = parseKf(layer.kf);
   const used = kfChannelsUsed(track);
@@ -117556,7 +117805,7 @@ function pose(layer, fps) {
   else scale.k = [100, 100, 100];
   return {
     a: lottieStatic([layer.w / 2, layer.h / 2, 0]),
-    p: { s: true, x: channel3(track, "x", fps, layer.startMs, layer.x + layer.w / 2), y: channel3(track, "y", fps, layer.startMs, layer.y + layer.h / 2), z: lottieStatic(0) },
+    p: kfPathCurves(track).size ? pathPosition(layer, track, fps) : { s: true, x: channel3(track, "x", fps, layer.startMs, layer.x + layer.w / 2), y: channel3(track, "y", fps, layer.startMs, layer.y + layer.h / 2), z: lottieStatic(0) },
     s: scale,
     r: channel3(track, "r", fps, layer.startMs, layer.rotation),
     o: channel3(track, "o", fps, layer.startMs, layer.opacity * 100, 100, true)
@@ -146132,7 +146381,10 @@ __export(src_exports, {
   kfMatrix3dCss: () => kfMatrix3dCss,
   kfOklabOf: () => kfOklabOf,
   kfOutlinePath: () => kfOutlinePath,
+  kfPathCurves: () => kfPathCurves,
+  kfSubdividePath: () => kfSubdividePath,
   kfTrimSpan: () => kfTrimSpan,
+  kfUnprojectCentre: () => kfUnprojectCentre,
   labSolidUnit: () => labSolidUnit,
   layoutDesignText: () => layoutDesignText,
   layoutFindings: () => layoutFindings,
@@ -147085,6 +147337,7 @@ var init_src2 = __esm({
     init_brand_treatments();
     init_pdf_crypto_r6();
     init_zip_crypto();
+    init_keyframes2();
     init_keyframes2();
     init_kf_look();
     init_kf_look();
