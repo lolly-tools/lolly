@@ -1,0 +1,47 @@
+{
+  "id": "share",
+  "name": "Share a win",
+  "category": "Social",
+  "description": "A certificate sized for a social post, with motion for a video or an animated image.",
+  "values": {
+    "certKind": "achievement",
+    "heading": "",
+    "firstname": "Lena",
+    "lastname": "Fischer",
+    "awardtopic": "Top of the 2026 cohort",
+    "awarddate": "2026-07-24",
+    "presenter": "Maya Lindqvist",
+    "presenterTitle": "Programme Director",
+    "company": "Northwind Institute",
+    "brandLogo": true,
+    "serial": "",
+    "style": "celebration",
+    "pageSize": "social-square",
+    "motion": "confetti",
+    "color": "",
+    "background": "",
+    "accent": ""
+  },
+  "presets": [
+    {
+      "id": "story",
+      "name": "Story",
+      "description": "A 9:16 story that draws itself in.",
+      "values": {
+        "style": "classic",
+        "pageSize": "story",
+        "motion": "reveal"
+      }
+    },
+    {
+      "id": "landscape-post",
+      "name": "Landscape post",
+      "description": "A 1.91:1 post with a colour panel and a shimmer.",
+      "values": {
+        "style": "modern",
+        "pageSize": "social-landscape",
+        "motion": "shimmer"
+      }
+    }
+  ]
+}

@@ -1,192 +1,1015 @@
 /* Certificate.
-   Every length is a multiple of --ct-u (a thousandth of the sheet's own width,
-   in container units), so one layout holds at A4 landscape, US Letter landscape
-   and the screen size. The whole stack is budgeted against the shortest of the three:
-   A4 landscape leaves 595 units of height inside the padding, and the copy
-   below adds up to about 534 with a logo, an issuer line and a reference - the
-   rest is slack the signature row's auto margin absorbs, which is what lets a
-   long course title wrap without pushing anything off the sheet.
+   Four styles share one markup. Each style places the parts with grid areas
+   (issuer, title, main, sign, seal, serial), and the container queries at the
+   end of each block re-lay them out for the sheet's proportion: a banner, a
+   landscape page or slide, a square, a portrait page and a story. Nothing is
+   letterboxed: the paper, the frame and the panel always reach the edges, and
+   only the type follows the layout unit.
 
-   Every colour comes in as a custom property the template sets from the hook's
-   resolved palette; the fallbacks below are the same literals the hook falls
-   back to, so the sheet still paints with no stylesheet variables at all.
-   Brand-agnostic throughout: type follows the ACTIVE brand through
-   --font-brand / --font-mono, never a hardcoded family. */
+   The layout unit --ct-u is a thousandth of the sheet's width, or of its design
+   box when the sheet is wider than that box (H units tall: 333 banner, 707
+   landscape, 1000 square, 1250 portrait, 1778 story; hooks.js SHAPES). It is
+   declared on the layers inside the sheet, never on .ct-root itself, because
+   container units on the container would measure its parent.
+
+   Every colour is a custom property the hook resolved from the design system's
+   colourway; the fallbacks are the hook's own literals. Type follows the active
+   design system through --font-display, --font-brand and --font-mono. */
 
 .ct-root {
-  /* One layout unit = a thousandth of the sheet's OWN width, read off this box
-     rather than the page size the hook computed. The canvas previews at
-     whatever pixel size fits the tool view (a 1600 px screen sheet is shown at
-     1123), and the export stage paints at the true page size, so an absolute px
-     unit would agree with only one of them and the copy would overflow at the
-     other. Container units scale with the box exactly as the border layer's
-     viewBox already does, so the two never drift apart. */
   container-type: size;
-  --ct-u: 0.1cqw;
   position: relative;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
+  overflow: hidden;
   background: var(--ct-paper, #faf8f4);
   color: var(--ct-ink, #1f2933);
   font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
 }
 
-/* The border rules. Its viewBox matches the sheet's own proportion, so the
-   uniform fit leaves no letterboxing and a stroke is the same weight on both
-   axes. */
+.ct-frame,
+.ct-ornaments,
+.ct-body,
+.ct-confetti {
+  --ct-u: min(0.1cqw, calc(100cqh / 707));
+}
+
+@container (max-aspect-ratio: 1199/1000) {
+  .ct-frame, .ct-ornaments, .ct-body, .ct-confetti { --ct-u: min(0.1cqw, calc(100cqh / 1000)); }
+}
+
+@container (max-aspect-ratio: 899/1000) {
+  .ct-frame, .ct-ornaments, .ct-body, .ct-confetti { --ct-u: min(0.1cqw, calc(100cqh / 1250)); }
+}
+
+@container (max-aspect-ratio: 659/1000) {
+  .ct-frame, .ct-ornaments, .ct-body, .ct-confetti { --ct-u: min(0.1cqw, calc(100cqh / 1778)); }
+}
+
+@container (min-aspect-ratio: 23/10) {
+  .ct-frame, .ct-ornaments, .ct-body, .ct-confetti { --ct-u: min(0.1cqw, calc(100cqh / 333)); }
+}
+
+/* ── Frame: plain boxes, so it follows any proportion and exports as rects ──
+   A printed rotation is written as `transform`, which the vector export reads;
+   the individual translate, scale and rotate properties are left to the motion
+   script, so a posed frame never disturbs the printed geometry. */
+
 .ct-frame {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
+  pointer-events: none;
 }
 
+.ct-rules {
+  position: absolute;
+  inset: calc(24 * var(--ct-u));
+  --w: 4;
+}
+
+.ct-rules--inner {
+  inset: calc(37 * var(--ct-u));
+  --w: 1.2;
+}
+
+.ct-bar {
+  position: absolute;
+  background: var(--ct-accent, #8a6a2b);
+}
+
+.ct-rules--inner .ct-bar {
+  background: var(--ct-rule, #cdbfa4);
+}
+
+/* Each side grows from the corner it starts at, so the reveal draws the frame
+   clockwise. */
+.ct-bar--t { left: 0; right: 0; top: 0; height: calc(var(--w) * var(--ct-u)); transform-origin: left center; }
+.ct-bar--r { top: 0; bottom: 0; right: 0; width: calc(var(--w) * var(--ct-u)); transform-origin: center top; }
+.ct-bar--b { left: 0; right: 0; bottom: 0; height: calc(var(--w) * var(--ct-u)); transform-origin: right center; }
+.ct-bar--l { top: 0; bottom: 0; left: 0; width: calc(var(--w) * var(--ct-u)); transform-origin: center bottom; }
+
+.ct-corner {
+  position: absolute;
+  width: calc(11 * var(--ct-u));
+  height: calc(11 * var(--ct-u));
+  background: var(--ct-accent, #8a6a2b);
+  transform: rotate(45deg);
+}
+
+.ct-corner--tl { left: calc(-4.9 * var(--ct-u)); top: calc(-4.9 * var(--ct-u)); }
+.ct-corner--tr { right: calc(-4.9 * var(--ct-u)); top: calc(-4.9 * var(--ct-u)); }
+.ct-corner--br { right: calc(-4.9 * var(--ct-u)); bottom: calc(-4.9 * var(--ct-u)); }
+.ct-corner--bl { left: calc(-4.9 * var(--ct-u)); bottom: calc(-4.9 * var(--ct-u)); }
+
+.ct-style-celebration .ct-rules {
+  inset: calc(22 * var(--ct-u));
+  --w: 1.4;
+}
+
+.ct-style-celebration .ct-bar {
+  background: var(--ct-rule, #cdbfa4);
+}
+
+/* ── Celebration's printed confetti, kept to the margins ─────────────────── */
+
+.ct-ornaments {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ct-orn {
+  position: absolute;
+  width: calc(var(--s) * var(--ct-u));
+  height: calc(var(--s) * var(--ct-u));
+  margin: calc(var(--s) * -0.5 * var(--ct-u)) 0 0 calc(var(--s) * -0.5 * var(--ct-u));
+  border-radius: 50%;
+  background: var(--c);
+  transform: rotate(var(--r));
+}
+
+.ct-orn--pill {
+  height: calc(var(--s) * 3.4 * var(--ct-u));
+  border-radius: calc(var(--s) * var(--ct-u));
+}
+
+.ct-orn--ring {
+  box-sizing: border-box;
+  background: transparent;
+  border: calc(var(--s) * 0.24 * var(--ct-u)) solid var(--c);
+}
+
+.ct-orn--spark {
+  border-radius: calc(1.5 * var(--ct-u));
+}
+
+/* ── The body and its parts ──────────────────────────────────────────────── */
+
 .ct-body {
+  --t-title: 46;
+  --t-lead: 18;
+  --t-sign: 20;
+  --t-label: 12.5;
+  --t-company: 14;
+  --t-serial: 12;
+  --logo-h: 46;
+  --seal-w: 108;
+  --pad-y: 66;
+  --pad-x: 112;
   position: absolute;
   inset: 0;
   box-sizing: border-box;
-  padding: calc(56 * var(--ct-u)) calc(100 * var(--ct-u));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  padding: calc(var(--pad-y) * var(--ct-u)) calc(var(--pad-x) * var(--ct-u));
+  justify-items: center;
   text-align: center;
 }
 
-/* ── Issuer lockup ───────────────────────────────────────────────────────── */
+.ct-body > * {
+  min-width: 0;
+}
 
 .ct-issuer {
+  grid-area: issuer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(10 * var(--ct-u));
+  gap: calc(8 * var(--ct-u));
 }
 
-/* A definite box (width AND height) with contain: an <img> pointing at an SVG
-   otherwise sizes itself from that file's own width/height attributes, which
-   vary per asset, and a wide lockup would run past the rules. */
+/* A definite box with contain: an <img> of an SVG otherwise sizes itself from
+   the file's own width and height, which vary per asset. */
 .ct-logo {
-  width: calc(280 * var(--ct-u));
-  height: calc(44 * var(--ct-u));
+  display: block;
+  width: calc(300 * var(--ct-u));
+  max-width: 100%;
+  height: calc(var(--logo-h) * var(--ct-u));
   object-fit: contain;
   object-position: center;
-  display: block;
 }
 
 .ct-company {
   margin: 0;
-  font-size: calc(18 * var(--ct-u));
+  font-size: calc(var(--t-company) * var(--ct-u));
   font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: 0.22em;
+  line-height: 1.25;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ct-muted, #7e8890);
 }
 
-/* ── The citation stack ──────────────────────────────────────────────────── */
-
 .ct-title {
-  margin: calc(30 * var(--ct-u)) 0 0;
-  font-size: calc(50 * var(--ct-u));
+  grid-area: title;
+  margin: 0;
+  max-width: 100%;
+  font-family: var(--font-display, var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif));
+  font-size: calc(var(--t-title) * var(--ct-u));
   font-weight: 600;
-  line-height: 1.06;
+  line-height: 1.08;
   letter-spacing: 0.005em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
-.ct-lead {
-  margin: calc(22 * var(--ct-u)) 0 0;
-  font-size: calc(19 * var(--ct-u));
+.ct-main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: calc(900 * var(--ct-u));
+  margin-top: calc(18 * var(--ct-u));
+}
+
+.ct-lead,
+.ct-cite {
+  margin: 0;
+  font-size: calc(var(--t-lead) * var(--ct-u));
   line-height: 1.3;
   color: var(--ct-muted, #7e8890);
 }
 
-/* --ct-name-size and --ct-course-size are unitless step values the hook picks
-   from the text length: a long name shrinks rather than wrapping twice. */
+/* --ct-name-size and --ct-course-size are unitless sizes the hook fitted to the
+   text; the template's script only ever shrinks them further. */
 .ct-name {
-  margin: calc(12 * var(--ct-u)) 0 0;
-  max-width: 100%;
+  margin: calc(10 * var(--ct-u)) 0 0;
+  width: 100%;
+  font-family: var(--font-display, var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif));
   font-size: calc(var(--ct-name-size, 68) * var(--ct-u));
   font-weight: 600;
-  line-height: 1.08;
+  line-height: 1.1;
   letter-spacing: -0.005em;
-  color: var(--ct-accent, #8a6a2b);
+  color: var(--ct-ink, #1f2933);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .ct-name-rule {
   margin: calc(14 * var(--ct-u)) 0 0;
-  width: calc(520 * var(--ct-u));
+  width: calc(440 * var(--ct-u));
   max-width: 100%;
   height: calc(1.6 * var(--ct-u));
-  background: var(--ct-rule-soft, #cdbfa4);
+  background: var(--ct-rule, #cdbfa4);
 }
 
 .ct-cite {
-  margin: calc(18 * var(--ct-u)) 0 0;
-  font-size: calc(19 * var(--ct-u));
-  line-height: 1.3;
-  color: var(--ct-muted, #7e8890);
+  margin-top: calc(16 * var(--ct-u));
 }
 
 .ct-course {
-  margin: calc(12 * var(--ct-u)) 0 0;
-  max-width: calc(720 * var(--ct-u));
-  font-size: calc(var(--ct-course-size, 32) * var(--ct-u));
+  margin: calc(8 * var(--ct-u)) 0 0;
+  width: 100%;
+  font-size: calc(var(--ct-course-size, 30) * var(--ct-u));
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.22;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
-/* ── Signature row ───────────────────────────────────────────────────────── */
-
-/* margin-top:auto pins the row to the foot whatever the copy above it does. */
 .ct-sign {
-  margin-top: auto;
-  padding-top: calc(40 * var(--ct-u));
-  width: 100%;
+  grid-area: sign;
   display: flex;
   justify-content: center;
-  gap: calc(120 * var(--ct-u));
+  align-items: flex-end;
+  gap: calc(150 * var(--ct-u));
+  width: 100%;
 }
 
 .ct-sign-col {
-  width: calc(280 * var(--ct-u));
+  width: calc(250 * var(--ct-u));
+  max-width: 42%;
 }
 
 .ct-sign-rule {
-  width: 100%;
-  height: calc(1.4 * var(--ct-u));
+  height: calc(1.3 * var(--ct-u));
   background: var(--ct-muted, #7e8890);
 }
 
 .ct-sign-value {
   margin: calc(10 * var(--ct-u)) 0 0;
-  font-size: calc(22 * var(--ct-u));
+  font-size: calc(var(--t-sign) * var(--ct-u));
   line-height: 1.2;
 }
 
 .ct-sign-label {
   margin: calc(5 * var(--ct-u)) 0 0;
-  font-size: calc(15 * var(--ct-u));
+  font-size: calc(var(--t-label) * var(--ct-u));
   line-height: 1.25;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ct-muted, #7e8890);
 }
 
+.ct-seal {
+  grid-area: seal;
+  width: calc(var(--seal-w) * var(--ct-u));
+}
+
+.ct-seal-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .ct-serial {
-  margin: calc(16 * var(--ct-u)) 0 0;
+  grid-area: serial;
+  margin: calc(14 * var(--ct-u)) 0 0;
   font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace);
-  font-size: calc(14 * var(--ct-u));
+  font-size: calc(var(--t-serial) * var(--ct-u));
   line-height: 1.2;
   letter-spacing: 0.06em;
   color: var(--ct-muted, #7e8890);
 }
 
+/* A typed line takes its own direction (dir="auto"), so an Arabic name shapes
+   correctly, but keeps the sheet's alignment rather than its own start. */
+.ct-body [dir='auto'] {
+  text-align: match-parent;
+}
+
+/* Spaced capitals pull a joined script apart, so letter-spacing stops at a
+   right-to-left run. */
+.ct-company:dir(rtl),
+.ct-sign-label:dir(rtl),
+.ct-title:dir(rtl) {
+  letter-spacing: 0;
+}
+
 .ct-error {
-  margin: auto;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  align-self: center;
+  margin: 0;
   max-width: calc(600 * var(--ct-u));
   font-size: calc(24 * var(--ct-u));
   line-height: 1.4;
   color: var(--ct-muted, #7e8890);
+}
+
+/* ── Classic: framed, centred, the seal between the signatures ───────────── */
+
+.ct-style-classic .ct-body {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 0.5fr) auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "issuer issuer issuer"
+    ". . ."
+    "title title title"
+    "main main main"
+    ". . ."
+    "sign sign sign"
+    "serial serial serial";
+}
+
+.ct-style-classic .ct-name {
+  color: var(--ct-accent, #8a6a2b);
+}
+
+.ct-style-classic .ct-seal {
+  grid-area: 6 / 2 / 7 / 3;
+  align-self: end;
+}
+
+.ct-style-classic.ct-has-seal .ct-sign {
+  gap: calc((var(--seal-w) + 80) * var(--ct-u));
+}
+
+/* ── Modern: the lead as a panel, the wording set flush beside it ────────── */
+
+.ct-style-modern .ct-body {
+  padding: calc(var(--pad-y) * var(--ct-u)) 0;
+  justify-items: start;
+  text-align: start;
+  grid-template-columns: calc(340 * var(--ct-u)) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "issuer ."
+    "title main"
+    "seal sign"
+    "seal serial";
+}
+
+.ct-style-modern .ct-panel {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: stretch;
+  justify-self: stretch;
+  margin: calc(var(--pad-y) * -1 * var(--ct-u)) 0;
+  background: var(--ct-panel, #8a6a2b);
+}
+
+.ct-style-modern .ct-issuer,
+.ct-style-modern .ct-title,
+.ct-style-modern .ct-seal {
+  margin-inline: calc(46 * var(--ct-u));
+}
+
+.ct-style-modern .ct-issuer {
+  align-items: flex-start;
+}
+
+.ct-style-modern .ct-logo {
+  width: calc(240 * var(--ct-u));
+  object-position: left center;
+}
+
+.ct-style-modern .ct-logo:dir(rtl) {
+  object-position: right center;
+}
+
+.ct-style-modern .ct-company {
+  color: var(--ct-panel-ink, #ffffff);
+  opacity: 0.8;
+}
+
+.ct-style-modern .ct-title {
+  align-self: end;
+  width: calc(248 * var(--ct-u));
+  font-size: calc(var(--t-title) * 0.74 * var(--ct-u));
+  margin-bottom: calc(30 * var(--ct-u));
+  color: var(--ct-panel-ink, #ffffff);
+}
+
+.ct-style-modern .ct-seal {
+  align-self: end;
+  justify-self: start;
+}
+
+.ct-style-modern .ct-main,
+.ct-style-modern .ct-sign,
+.ct-style-modern .ct-serial {
+  box-sizing: border-box;
+  max-width: none;
+  padding-inline: calc(72 * var(--ct-u));
+}
+
+.ct-style-modern .ct-main {
+  align-self: center;
+  align-items: flex-start;
+  margin: 0;
+}
+
+.ct-style-modern .ct-name-rule {
+  width: calc(76 * var(--ct-u));
+  height: calc(7 * var(--ct-u));
+  margin-top: calc(18 * var(--ct-u));
+  border-radius: calc(3.5 * var(--ct-u));
+  background: var(--ct-accent, #8a6a2b);
+  transform-origin: left center;
+}
+
+.ct-style-modern .ct-name-rule:dir(rtl),
+.ct-style-minimal .ct-name-rule:dir(rtl) {
+  transform-origin: right center;
+}
+
+.ct-style-modern .ct-sign {
+  justify-content: flex-start;
+  gap: calc(64 * var(--ct-u));
+}
+
+/* ── Minimal: type and space, one accent ─────────────────────────────────── */
+
+.ct-style-minimal .ct-body {
+  justify-items: start;
+  text-align: start;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "issuer ."
+    ". ."
+    "title title"
+    "main main"
+    ". ."
+    "sign seal"
+    "serial serial";
+}
+
+.ct-style-minimal .ct-issuer {
+  align-items: flex-start;
+}
+
+.ct-style-minimal .ct-logo {
+  width: calc(220 * var(--ct-u));
+  height: calc(var(--logo-h) * 0.82 * var(--ct-u));
+  object-position: left center;
+}
+
+.ct-style-minimal .ct-logo:dir(rtl) {
+  object-position: right center;
+}
+
+/* The title becomes a kicker: small spaced capitals in the accent, under a
+   short bar of the same colour. */
+.ct-style-minimal .ct-title {
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  font-size: calc(var(--t-title) * 0.33 * var(--ct-u));
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ct-accent, #8a6a2b);
+}
+
+.ct-style-minimal .ct-title::before {
+  content: '';
+  display: block;
+  width: calc(48 * var(--ct-u));
+  height: calc(5 * var(--ct-u));
+  margin-bottom: calc(18 * var(--ct-u));
+  background: var(--ct-accent, #8a6a2b);
+}
+
+.ct-style-minimal .ct-main {
+  align-items: flex-start;
+  max-width: none;
+  margin-top: calc(22 * var(--ct-u));
+}
+
+.ct-style-minimal .ct-name-rule {
+  display: none;
+}
+
+.ct-style-minimal .ct-cite {
+  margin-top: calc(22 * var(--ct-u));
+}
+
+.ct-style-minimal .ct-sign {
+  justify-content: flex-start;
+  gap: calc(80 * var(--ct-u));
+  padding-top: calc(22 * var(--ct-u));
+  border-top: calc(1.2 * var(--ct-u)) solid var(--ct-edge, #d5d9dc);
+}
+
+.ct-style-minimal .ct-sign-rule {
+  display: none;
+}
+
+.ct-style-minimal .ct-sign-value {
+  margin-top: 0;
+}
+
+.ct-style-minimal .ct-seal {
+  align-self: end;
+  width: calc(var(--seal-w) * 0.82 * var(--ct-u));
+  margin-inline-start: calc(48 * var(--ct-u));
+}
+
+/* ── Celebration: the whole sheet in the lead, a rosette on top ──────────── */
+
+.ct-style-celebration .ct-body {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "seal seal seal"
+    "title title title"
+    "main main main"
+    ". . ."
+    "sign sign sign"
+    "serial serial serial";
+}
+
+.ct-style-celebration .ct-seal {
+  width: calc(var(--seal-w) * 0.86 * var(--ct-u));
+  margin-bottom: calc(14 * var(--ct-u));
+}
+
+.ct-style-celebration .ct-title {
+  font-size: calc(var(--t-title) * 1.08 * var(--ct-u));
+}
+
+.ct-style-celebration .ct-issuer {
+  grid-area: 5 / 2 / 6 / 3;
+  align-self: end;
+}
+
+.ct-style-celebration .ct-sign {
+  gap: calc(360 * var(--ct-u));
+}
+
+.ct-style-celebration .ct-name-rule {
+  width: calc(96 * var(--ct-u));
+  height: calc(4 * var(--ct-u));
+  border-radius: calc(2 * var(--ct-u));
+  background: var(--ct-accent, #8a6a2b);
+}
+
+.ct-style-celebration .ct-sign-rule {
+  background: var(--ct-rule, #cdbfa4);
+}
+
+/* ── Square, portrait and story: one column, the seal over the signatures ── */
+
+@container (max-aspect-ratio: 1199/1000) {
+  .ct-body {
+    --t-title: 56;
+    --t-lead: 22;
+    --t-sign: 23;
+    --t-label: 13.5;
+    --t-company: 16;
+    --logo-h: 60;
+    --seal-w: 130;
+    --pad-y: 90;
+    --pad-x: 92;
+  }
+
+  .ct-style-classic .ct-body,
+  .ct-style-celebration .ct-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas:
+      "issuer"
+      "."
+      "title"
+      "main"
+      "."
+      "seal"
+      "sign"
+      "serial";
+  }
+
+  .ct-style-classic .ct-seal,
+  .ct-style-celebration .ct-seal {
+    grid-area: seal;
+    align-self: end;
+    margin: 0 0 calc(30 * var(--ct-u));
+  }
+
+  .ct-style-classic.ct-has-seal .ct-sign {
+    gap: calc(110 * var(--ct-u));
+  }
+
+  .ct-style-celebration .ct-body {
+    grid-template-areas:
+      "seal"
+      "."
+      "title"
+      "main"
+      "."
+      "issuer"
+      "sign"
+      "serial";
+  }
+
+  .ct-style-celebration .ct-seal {
+    align-self: start;
+  }
+
+  .ct-style-celebration .ct-issuer {
+    grid-area: issuer;
+    margin-bottom: calc(30 * var(--ct-u));
+  }
+
+  .ct-style-celebration .ct-sign {
+    gap: calc(110 * var(--ct-u));
+  }
+
+  .ct-style-modern .ct-body {
+    padding: calc(var(--pad-y) * var(--ct-u)) calc(var(--pad-x) * var(--ct-u));
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto minmax(0, 0.8fr) auto minmax(0, 1.2fr) auto auto;
+    grid-template-areas:
+      "issuer seal"
+      "title seal"
+      ". ."
+      "main main"
+      ". ."
+      "sign sign"
+      "serial serial";
+  }
+
+  .ct-style-modern .ct-panel {
+    grid-column: 1 / -1;
+    grid-row: 1 / 3;
+    margin: calc(var(--pad-y) * -1 * var(--ct-u)) calc(var(--pad-x) * -1 * var(--ct-u)) 0;
+  }
+
+  .ct-style-modern .ct-issuer,
+  .ct-style-modern .ct-title,
+  .ct-style-modern .ct-seal {
+    margin-inline: 0;
+  }
+
+  .ct-style-modern .ct-title {
+    align-self: start;
+    width: auto;
+    font-size: calc(var(--t-title) * 0.88 * var(--ct-u));
+    margin: calc(34 * var(--ct-u)) 0 calc(48 * var(--ct-u));
+  }
+
+  .ct-style-modern .ct-seal {
+    align-self: center;
+    justify-self: end;
+    margin-inline-start: calc(32 * var(--ct-u));
+  }
+
+  .ct-style-modern .ct-main,
+  .ct-style-modern .ct-sign,
+  .ct-style-modern .ct-serial {
+    padding-inline: 0;
+  }
+
+  .ct-style-minimal .ct-body {
+    grid-template-areas:
+      "issuer seal"
+      ". ."
+      "title title"
+      "main main"
+      ". ."
+      "sign sign"
+      "serial serial";
+  }
+
+  .ct-style-minimal .ct-seal {
+    align-self: start;
+  }
+}
+
+@container (max-aspect-ratio: 899/1000) {
+  .ct-body {
+    --t-title: 70;
+    --t-lead: 26;
+    --t-sign: 27;
+    --t-label: 15;
+    --t-company: 18;
+    --logo-h: 76;
+    --seal-w: 180;
+    --pad-y: 110;
+    --pad-x: 96;
+  }
+
+}
+
+@container (max-aspect-ratio: 659/1000) {
+  .ct-body {
+    --t-title: 84;
+    --t-lead: 32;
+    --t-sign: 32;
+    --t-label: 18;
+    --t-company: 21;
+    --logo-h: 92;
+    --seal-w: 220;
+    --pad-y: 170;
+    --pad-x: 90;
+  }
+
+
+  .ct-sign {
+    flex-direction: column;
+    align-items: center;
+    gap: calc(40 * var(--ct-u));
+  }
+
+  .ct-style-modern .ct-sign,
+  .ct-style-minimal .ct-sign {
+    align-items: flex-start;
+  }
+
+  .ct-sign-col {
+    width: calc(420 * var(--ct-u));
+    max-width: 100%;
+  }
+
+  .ct-style-classic.ct-has-seal .ct-sign,
+  .ct-style-celebration .ct-sign,
+  .ct-style-minimal .ct-sign,
+  .ct-style-modern .ct-sign {
+    gap: calc(40 * var(--ct-u));
+  }
+}
+
+/* ── Banner: one row, the seal at one end and the issuer at the other ────── */
+
+@container (min-aspect-ratio: 23/10) {
+  .ct-body {
+    --t-title: 17;
+    --t-sign: 16;
+    --t-company: 12;
+    --logo-h: 44;
+    --seal-w: 112;
+    --pad-y: 34;
+    --pad-x: 60;
+    justify-items: start;
+    text-align: start;
+    column-gap: calc(44 * var(--ct-u));
+  }
+
+  .ct-style-classic .ct-body,
+  .ct-style-celebration .ct-body,
+  .ct-style-minimal .ct-body {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto auto auto minmax(0, 1fr);
+    grid-template-areas:
+      "seal . issuer"
+      "seal title issuer"
+      "seal main issuer"
+      "seal sign issuer"
+      "seal . issuer";
+  }
+
+  .ct-style-classic .ct-seal,
+  .ct-style-celebration .ct-seal,
+  .ct-style-minimal .ct-seal {
+    grid-area: seal;
+    align-self: center;
+    margin: 0;
+  }
+
+  .ct-style-celebration .ct-issuer,
+  .ct-issuer {
+    grid-area: issuer;
+    align-self: center;
+    align-items: flex-end;
+  }
+
+  .ct-style-modern .ct-body {
+    padding: calc(var(--pad-y) * var(--ct-u)) calc(var(--pad-x) * var(--ct-u)) calc(var(--pad-y) * var(--ct-u)) 0;
+    grid-template-columns: calc(260 * var(--ct-u)) minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto auto auto minmax(0, 1fr);
+    grid-template-areas:
+      "issuer . seal"
+      "issuer title seal"
+      "issuer main seal"
+      "issuer sign seal"
+      "issuer . seal";
+  }
+
+  .ct-style-modern .ct-panel {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    margin: calc(var(--pad-y) * -1 * var(--ct-u)) 0;
+  }
+
+  .ct-style-modern .ct-issuer {
+    align-self: center;
+    align-items: flex-start;
+    margin-inline: calc(36 * var(--ct-u));
+  }
+
+  .ct-style-modern .ct-logo {
+    width: calc(188 * var(--ct-u));
+  }
+
+  .ct-style-modern .ct-title {
+    align-self: auto;
+    width: auto;
+    margin: 0;
+    color: var(--ct-accent, #8a6a2b);
+  }
+
+  .ct-style-modern .ct-seal {
+    align-self: center;
+    margin: 0;
+  }
+
+  .ct-style-modern .ct-main,
+  .ct-style-modern .ct-sign {
+    padding-inline: 0;
+  }
+
+  .ct-style-classic .ct-title,
+  .ct-style-modern .ct-title,
+  .ct-style-minimal .ct-title,
+  .ct-style-celebration .ct-title {
+    font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+    font-size: calc(var(--t-title) * var(--ct-u));
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ct-accent, #8a6a2b);
+  }
+
+  .ct-style-celebration .ct-title {
+    color: var(--ct-ink, #1f2933);
+  }
+
+  .ct-style-minimal .ct-title::before {
+    display: none;
+  }
+
+  .ct-main {
+    align-items: flex-start;
+    max-width: none;
+    margin-top: calc(6 * var(--ct-u));
+  }
+
+  .ct-sign,
+  .ct-style-minimal .ct-sign,
+  .ct-style-modern .ct-sign,
+  .ct-style-celebration .ct-sign {
+    justify-content: flex-start;
+    margin-top: calc(10 * var(--ct-u));
+    padding: 0;
+    border: 0;
+  }
+
+  .ct-lead,
+  .ct-cite,
+  .ct-name-rule,
+  .ct-serial,
+  .ct-sign-rule,
+  .ct-sign-label,
+  .ct-sign-col--presenter {
+    display: none;
+  }
+
+  .ct-sign-value {
+    margin: 0;
+    color: var(--ct-muted, #7e8890);
+  }
+
+  .ct-rules {
+    inset: calc(14 * var(--ct-u));
+    --w: 3;
+  }
+
+  .ct-rules--inner {
+    inset: calc(22 * var(--ct-u));
+    --w: 1;
+  }
+}
+
+/* ── Motion layers: hidden unless the motion is playing ──────────────────── */
+
+.ct-confetti {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ct-confetto {
+  position: absolute;
+  top: 0;
+  display: none;
+  width: calc(var(--s) * 0.45 * var(--ct-u));
+  height: calc(var(--s) * var(--ct-u));
+  margin-left: calc(var(--s) * -0.22 * var(--ct-u));
+  border-radius: calc(1 * var(--ct-u));
+  background: var(--c);
+}
+
+.ct-confetto--dot {
+  width: calc(var(--s) * 0.7 * var(--ct-u));
+  height: calc(var(--s) * 0.7 * var(--ct-u));
+  border-radius: 50%;
+}
+
+.ct-sheen {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 30cqw;
+  display: none;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 0%, var(--ct-sheen, #ffffff4d) 50%, transparent 100%);
+}
+
+.ct-clock {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* The replay button belongs to the preview, never the file (data-export-hide). */
+.ct-play {
+  position: absolute;
+  right: 1.6cqmin;
+  bottom: 1.6cqmin;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9cqmin;
+  padding: 1cqmin 1.8cqmin;
+  border: 1px solid rgb(0 0 0 / 0.14);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.94);
+  color: #14181f;
+  font: 600 max(12px, 1.7cqmin) / 1 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.16);
+  cursor: pointer;
+}
+
+.ct-play::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0.6em 0 0.6em 0.95em;
+  border-color: transparent transparent transparent currentColor;
+}
+
+.ct-play:hover {
+  background: #ffffff;
+}
+
+.ct-play:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
