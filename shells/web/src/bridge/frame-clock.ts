@@ -26,6 +26,10 @@
  * tool that can resample (the 3D studio) re-renders at this size so a larger export carries
  * real detail rather than an upscaled preview.
  *
+ * The rasters call every clock at t 0 for a still. The stills that read the page (SVG, PDF,
+ * Penpot and the rest) call only a clock that declares `stillPose: true` on its function,
+ * through a still hold (holdStillFrame); any other clock is left alone for those formats.
+ *
  * Between begin and end the clock remembers the latest clip length and size it was given,
  * and a call that leaves them out reuses them. The static-chrome probe and the repaint
  * after it name only a time, so without this memory they would render a clip's second
@@ -36,8 +40,13 @@ import type { ExportOpts } from './export-shared.ts';
 import { presentationOf } from './presentation.ts';
 
 export type FrameClockSize = { width: number; height: number };
+/**
+ * A tool's frame clock. `stillPose: true` on the function declares that t 0 with no clip
+ * length draws the finished piece, which lets a still hold pose it (see holdStillFrame).
+ */
+export type FrameClockRender = ((t: number, clipSec?: number, size?: FrameClockSize) => void) & { stillPose?: boolean };
 export type FrameClockCanvas = HTMLCanvasElement & {
-  __lollyFrameRender?: (t: number, clipSec?: number, size?: FrameClockSize) => void;
+  __lollyFrameRender?: FrameClockRender;
   __lollyFrameDriven?: boolean;
 };
 
@@ -46,12 +55,6 @@ const remembered = new WeakMap<FrameClockCanvas, { clipSec?: number; size?: Fram
 
 /** Canvases a still export is holding, with how many holds are open on each (see holdStillFrame). */
 const stillHolds = new WeakMap<FrameClockCanvas, number>();
-
-/**
- * Nodes a tool runtime is exporting for a tool that prepares its own exports, with how
- * many such exports are running (see holdStillExports).
- */
-const toolPrepared = new WeakMap<Element, number>();
 
 export function frameClockCanvas(node: Element): FrameClockCanvas | null {
   const self = node as FrameClockCanvas;
@@ -127,37 +130,41 @@ function holds(node: Element, selector: string): boolean {
   return typeof node.matches === 'function' && (node.matches(selector) || !!node.querySelector(selector));
 }
 
+/** True when the canvas's clock declares that t 0 with no clip length is its finished still. */
+export function declaresStillPose(c: FrameClockCanvas): boolean {
+  return typeof c.__lollyFrameRender === 'function' && c.__lollyFrameRender.stillPose === true;
+}
+
 /**
- * Freeze a frame-clock tool for a still before the page is read, pose it when nothing
- * else will, and keep it there until the file is written. Returns the release.
+ * Pose a frame-clock tool that declares a still pose, freeze it before the page is read
+ * and keep it there until the file is written. Returns the release.
  *
- * The raster paths always asked for the still frame (t 0, no clip length), but the vector,
- * print and document writers (SVG, PDF, the CMYK PDF, Penpot, EPS, Office, HTML) walked the
- * live node as it stood. A tool that plays an entrance in its preview (Certificate's reveal)
- * then exported whatever moment the walk met, and its rAF loop kept rewriting inline styles
- * while the walk was still reading them. The hold raises the driven flag for the whole
- * render, so nothing moves underneath the walk, and calls the clock with no clip length,
- * so a tool can draw its finished pose. Releasing lowers the flag and the tool's own loop
+ * The raster paths always asked every clock for the still frame (t 0, no clip length), but
+ * the vector, print and document writers (SVG, PDF, the CMYK PDF, Penpot, EPS, Office,
+ * HTML) walked the live node as it stood. A tool that plays an entrance in its preview
+ * (Certificate's reveal) then exported whatever moment the walk met, and its rAF loop kept
+ * rewriting inline styles while the walk was still reading them. Such a tool sets
+ * `stillPose = true` on its clock. The hold then calls the clock with no clip length, so
+ * the tool draws its finished pose, and raises the driven flag for the whole render, so
+ * nothing moves underneath the walk. Releasing lowers the flag and the tool's own loop
  * carries on.
  *
- * The call is left out when the tool prepares the export itself, because it would draw
- * over what that preparation built: a tool with a beforeExport hook (Chart poses its
- * complete poster there, or builds a SMIL flipbook for an animated SVG, and the call would
- * redraw the entrance's first frame over either), and a declared presentation, whose
- * prepare() lays out every export and puts its programme back afterwards. The flag is
- * still raised. A sequence stage's still is the frame at its playhead, posed
- * already, and is never held.
+ * A clock with no declaration is never held here. Its t 0 is not a finished piece: Growth's
+ * is the bare seed, and Chart's is the entrance's first frame, drawn over the poster or the
+ * SMIL flipbook its beforeExport hook builds. Those formats read such a tool's page as it
+ * stands, as they always did. A sequence stage's still is the frame at its playhead,
+ * posed already, and is never held.
  */
 export function holdStillFrame(node: Element, format: string): () => void {
   if (!holdsStill(format) || holds(node, '[data-sequence]')) return NO_HOLD;
   const c = frameClockCanvas(node);
-  if (!c) return NO_HOLD;
+  if (!c || !declaresStillPose(c)) return NO_HOLD;
   const open = stillHolds.get(c) ?? 0;
   stillHolds.set(c, open + 1);
   if (!open) {
     remembered.delete(c);
     c.__lollyFrameDriven = true;
-    if (!toolPrepared.has(node) && !(holds(node, '[data-presentation]') && presentationOf(node))) renderFrameAt(c, 0);
+    renderFrameAt(c, 0);
   }
   let released = false;
   return () => {
@@ -189,35 +196,25 @@ export async function withStillHold<T>(node: Element, format: string, opts: Expo
 type Exporting = { export(node: unknown, format: string, opts?: never): Promise<Blob> };
 
 /** What holdStillExports reads off the loaded tool. */
-type HeldTool = { manifest: { hooks?: { beforeExport?: boolean } }; textTemplates?: Record<string, string | null> };
+type HeldTool = { textTemplates?: Record<string, string | null> };
 
 /**
- * Wrap a runtime's export so the still hold (holdStillFrame) knows whose export it is.
- *
- * A tool whose manifest declares a beforeExport hook prepares its own exports. Its node is
- * marked for the length of the export, and the hold the shell's export entry takes after
- * the hook has run only freezes the loop: the pose is the hook's, and the hook ran with the
- * tool's loop as it was. For every other tool the hold is taken here, before the engine
- * starts, so nothing moves from the first step of the export to the last; the entry's own
- * hold inside it only adds a count. A Markdown file from the tool's own template.md is
+ * Wrap a runtime's export so a tool whose clock declares a still pose (holdStillFrame) is
+ * posed and frozen before the engine starts: before its beforeExport hook, its emoji pass
+ * and every other step, so nothing moves from the first step of the export to the last.
+ * The hold the shell's export entry takes inside it only adds a count. An export the shell
+ * makes outside a runtime (a docs capture) has no such steps, and the entry's hold poses
+ * the tool before the page is read. A Markdown file from the tool's own template.md is
  * built from the inputs like the other data files, so it is not held.
  */
 export function holdStillExports<R extends Exporting>(runtime: R, tool: HeldTool): R {
-  const prepares = tool.manifest.hooks?.beforeExport === true;
   const exportFrom = runtime.export.bind(runtime);
   const held: Exporting['export'] = async (node, format, opts) => {
     const el = node && typeof (node as Element).querySelectorAll === 'function' ? node as Element : null;
-    if (el && prepares) toolPrepared.set(el, (toolPrepared.get(el) ?? 0) + 1);
     const fromInputs = format === 'md' && tool.textTemplates?.md != null;
-    const release = el && !prepares && !fromInputs ? holdStillFrame(el, format) : NO_HOLD;
+    const release = el && !fromInputs ? holdStillFrame(el, format) : NO_HOLD;
     try { return await exportFrom(node, format, opts); }
-    finally {
-      release();
-      if (el && prepares) {
-        const left = (toolPrepared.get(el) ?? 1) - 1;
-        if (left > 0) toolPrepared.set(el, left); else toolPrepared.delete(el);
-      }
-    }
+    finally { release(); }
   };
   runtime.export = held as R['export'];
   return runtime;

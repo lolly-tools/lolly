@@ -615,9 +615,10 @@ test('the live preview never plays outside the tool view', { skip: SKIP }, async
 
 // Defect: only the raster exports called the clock. A PDF, SVG, print PDF or Penpot file
 // fired while the preview reveal played walked the live sheet with every part part-way in,
-// and the reveal kept rewriting inline styles under the walk. The web shell now holds every
-// still export on the clock (frame-clock.ts holdStillFrame), and this pins the Certificate's
-// side of that: held mid-reveal, the sheet is the finished one and stays still until released.
+// and the reveal kept rewriting inline styles under the walk. The web shell now holds a
+// still export on a clock that declares its still pose (frame-clock.ts holdStillFrame),
+// Certificate's clock declares it, and this pins the Certificate's side of that: held
+// mid-reveal, the sheet is the finished one and stays still until released.
 test('a still export held mid-reveal gets the finished sheet, and the reveal waits for the release', { skip: SKIP }, async () => {
   const { holdStillFrame } = await import('../shells/web/src/bridge/frame-clock.ts');
   const frames = (win: any, n: number) => new Promise<void>((done) => {
@@ -631,6 +632,7 @@ test('a still export held mid-reveal gets the finished sheet, and the reveal wai
     const live = await liveSheet({ style: 'classic', motion: 'reveal' }, 'tool-canvas');
     await frames(live.dom.window, 3);
     assert.notEqual(live.styles(), finished, `${format}: the preview is mid-reveal when the export starts`);
+    assert.equal(live.clock.__lollyFrameRender.stillPose, true, `${format}: the clock declares that its t 0 is the finished sheet`);
     const root = live.doc.querySelector('.ct-root')!;
     const release = holdStillFrame(root, format);
     assert.equal(live.styles(), finished, `${format}: the held sheet is the finished certificate`);
@@ -642,14 +644,14 @@ test('a still export held mid-reveal gets the finished sheet, and the reveal wai
   }
 });
 
-// The shell decides per tool whether to call the clock for a still: a tool with a
-// beforeExport hook poses its own (Chart's poster, its SMIL flipbook), and a call would
-// draw over what the hook built. Certificate has no such hook, so its still comes from the
-// clock, before the engine starts the export. This pins both halves through the runtime
-// the web shell wraps.
-test('an export through the runtime gets the finished sheet, because Certificate leaves its still pose to the clock', { skip: SKIP }, async () => {
+// The shell calls the clock for a still that reads the page only when the clock declares
+// its still pose, because another tool's t 0 is not a finished piece (Growth's bare seed,
+// Chart's first frame over the poster its beforeExport builds). Certificate declares it,
+// so its still comes from the clock, before the engine starts the export. This pins that
+// through the runtime the web shell wraps, and that taking the declaration away would
+// export the sheet mid-reveal.
+test('an export through the runtime gets the finished sheet, because Certificate declares its still pose', { skip: SKIP }, async () => {
   const { holdStillExports } = await import('../shells/web/src/bridge/frame-clock.ts');
-  assert.notEqual(tool.manifest.hooks?.beforeExport, true, 'a beforeExport hook would make the shell leave the pose to it');
   const frames = (win: any, n: number) => new Promise<void>((done) => {
     const step = (k: number) => (k ? win.requestAnimationFrame(() => step(k - 1)) : done());
     step(n);
@@ -669,6 +671,17 @@ test('an export through the runtime gets the finished sheet, because Certificate
     assert.equal(live.clock.__lollyFrameDriven, false, `${format}: the reveal gets its loop back`);
     live.dom.window.close();
   }
+  // Without the declaration the shell leaves the reveal alone, and the PDF catches it mid-way.
+  const bare = await liveSheet({ style: 'modern', motion: 'reveal' }, 'tool-canvas');
+  await frames(bare.dom.window, 3);
+  delete bare.clock.__lollyFrameRender.stillPose;
+  const read: string[] = [];
+  const host = baseHost({ export: { render: async () => { read.push(bare.styles()); return new Blob([]); } } });
+  const runtime = holdStillExports(await createRuntime(tool, host, { style: 'modern', motion: 'reveal' }), tool);
+  await runtime.export(bare.doc.querySelector('.ct-root'), 'pdf', { embedMeta: false, watermark: false });
+  assert.equal(read.length, 1);
+  assert.notEqual(read[0], finished, 'the declaration is what settles the sheet');
+  bare.dom.window.close();
 });
 
 // ── Print language ──────────────────────────────────────────────────────────

@@ -13,13 +13,16 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { setExportHost } from './export-shared.ts';
 import type { WebHost } from './export-shared.ts';
-import { beginFrameClock, endFrameClock, frameClockCanvas, holdStillExports, holdStillFrame, holdsStill, renderFrameAt } from './frame-clock.ts';
+import { beginFrameClock, declaresStillPose, endFrameClock, frameClockCanvas, holdStillExports, holdStillFrame, holdsStill, renderFrameAt } from './frame-clock.ts';
 import type { FrameClockCanvas, FrameClockSize } from './frame-clock.ts';
 
 type Call = [number, number | undefined, FrameClockSize | undefined];
 
-/** A stand-in canvas whose clock records every call; `throws` makes the hook fail. */
-function clockCanvas(throws = false) {
+/**
+ * A stand-in canvas whose clock records every call; `throws` makes the hook fail, and
+ * `stillPose` declares that t 0 with no clip length is the finished piece.
+ */
+function clockCanvas(throws = false, stillPose = false) {
   const calls: Call[] = [];
   const canvas = {
     __lollyFrameDriven: false,
@@ -29,8 +32,12 @@ function clockCanvas(throws = false) {
     },
     querySelectorAll: () => [],
   };
+  if (stillPose) Object.assign(canvas.__lollyFrameRender, { stillPose: true });
   return { canvas: canvas as unknown as FrameClockCanvas, calls };
 }
+
+/** A clock that declares a still pose, as Certificate's does. */
+const posedClock = () => clockCanvas(false, true);
 
 test('a call that names only a time reuses the clip length and size given since begin', () => {
   const { canvas, calls } = clockCanvas();
@@ -123,17 +130,45 @@ test('a clock canvas inside the exported node is found', () => {
   assert.equal(frameClockCanvas(node), canvas);
 });
 
+/** The stills that read the page rather than posing the clock at the file's pixel size. */
+const PAGE_STILLS = ['svg', 'svgz', 'pdf', 'pdf-cmyk', 'penpot', 'eps', 'emf', 'wmf', 'dxf', 'docx', 'odt', 'pptx', 'html', 'md', 'txt'];
+
 // A still export walked the live page with no clock call at all for every format but the
-// rasters, so a tool playing an entrance exported whatever moment the walk met.
-test('a still hold asks for the still frame and keeps the flag up until it is released', () => {
-  for (const format of ['svg', 'svgz', 'pdf', 'pdf-cmyk', 'penpot', 'eps', 'emf', 'wmf', 'dxf', 'docx', 'odt', 'pptx', 'html', 'md', 'txt']) {
-    const { canvas, calls } = clockCanvas();
+// rasters, so a tool playing an entrance (Certificate's reveal) exported whatever moment
+// the walk met. A clock that declares its still pose now gets it for these formats too.
+test('a still hold asks a declared clock for its still pose and keeps the flag up until it is released', () => {
+  for (const format of PAGE_STILLS) {
+    const { canvas, calls } = posedClock();
+    assert.equal(declaresStillPose(canvas), true);
     const release = holdStillFrame(canvas, format);
     assert.deepEqual(calls, [[0, undefined, undefined]], `${format}: one call, t 0, no clip length`);
     assert.equal(canvas.__lollyFrameDriven, true, `${format}: the tool's own loop is frozen for the render`);
     release();
     assert.equal(canvas.__lollyFrameDriven, false, `${format}: the release hands the loop back`);
   }
+});
+
+// Round 1 held every clock. Growth's t 0 is the bare seed, so an SVG or PDF of a piece that
+// had finished growing came out as a seed (about 103 KB of SVG on main, a few dots with the
+// hold). A clock that does not declare a still pose is left exactly as it was on main.
+test('a clock with no still pose is never called or frozen by a still that reads the page', async () => {
+  for (const format of PAGE_STILLS) {
+    const { canvas, calls } = clockCanvas();
+    assert.equal(declaresStillPose(canvas), false);
+    const release = holdStillFrame(canvas, format);
+    assert.deepEqual(calls, [], `${format}: no clock call`);
+    assert.equal(canvas.__lollyFrameDriven, false, `${format}: the flag is untouched`);
+    release();
+    const seen: Array<boolean | undefined> = [];
+    const held = holdStillExports(stubRuntime(() => { seen.push(canvas.__lollyFrameDriven); return new Blob([]); }), {});
+    await held.export(canvas, format);
+    assert.deepEqual([calls, seen], [[], [false]], `${format}: through a runtime too, the page is read as it stands`);
+  }
+  // A property other than a literal true is not a declaration.
+  const loose = clockCanvas();
+  Object.assign(loose.canvas.__lollyFrameRender!, { stillPose: 'yes' });
+  holdStillFrame(loose.canvas, 'svg')();
+  assert.deepEqual(loose.calls, []);
 });
 
 test('a clip, sound, a data file, a container, the structural writers and the self-posing rasters are never held', () => {
@@ -143,7 +178,7 @@ test('a clip, sound, a data file, a container, the structural writers and the se
   for (const format of ['mp4', 'webm', 'gif', 'apng', 'webp-anim', 'svg-anim', 'wav', 'opus', 'zip', 'rpm', 'tar.gz', 'lottie', 'idml', 'premiere-xml',
     'json', 'csv', 'ics', 'vcf', 'srt', 'vtt', 'css', 'scss', 'gpl',
     'png', 'jpg', 'jpeg', 'webp', 'avif', 'jxl', 'tiff', 'bmp', 'cmyk-tiff', 'ico']) {
-    const { canvas, calls } = clockCanvas();
+    const { canvas, calls } = posedClock();
     assert.equal(holdsStill(format), false, format);
     const release = holdStillFrame(canvas, format);
     assert.deepEqual(calls, [], `${format}: no clock call`);
@@ -153,7 +188,7 @@ test('a clip, sound, a data file, a container, the structural writers and the se
 });
 
 test('a raster capture inside a still hold does not lower the flag before the hold ends', () => {
-  const { canvas, calls } = clockCanvas();
+  const { canvas, calls } = posedClock();
   const release = holdStillFrame(canvas, 'pdf');
   const inner = beginFrameClock(canvas);
   renderFrameAt(inner, 0, undefined, { width: 40, height: 30 });
@@ -165,7 +200,7 @@ test('a raster capture inside a still hold does not lower the flag before the ho
 });
 
 test('a second hold on a held canvas only adds a count, and a node with no clock is never held', () => {
-  const { canvas, calls } = clockCanvas();
+  const { canvas, calls } = posedClock();
   const outer = holdStillFrame(canvas, 'svg');
   const nested = holdStillFrame(canvas, 'svg');
   nested();
@@ -181,7 +216,7 @@ test('a second hold on a held canvas only adds a count, and a node with no clock
 // per canvas, the first to finish lowered it under the other, and a second release from the
 // same hold would have lowered it under a third.
 test('overlapping holds keep the flag up until the last one ends, and a release counts once', () => {
-  const { canvas, calls } = clockCanvas();
+  const { canvas, calls } = posedClock();
   const first = holdStillFrame(canvas, 'pdf');
   const second = holdStillFrame(canvas, 'svg');
   first();
@@ -210,27 +245,27 @@ function engineOrder(canvas: FrameClockCanvas, calls: Call[], beforeExport: () =
 }
 
 // Chart poses its complete poster in beforeExport, and builds a SMIL flipbook there for an
-// animated SVG. A still hold that called the clock after the hook drew the entrance's first
-// frame over both: an empty plot, and a single static frame instead of the flipbook.
-test('a tool with a beforeExport hook keeps its own pose: the hold freezes the loop and never calls the clock', async () => {
+// animated SVG. Round 1's hold called the clock after the hook and drew the entrance's first
+// frame over both. Chart declares no still pose, so its hook runs with the preview as it
+// stood and nothing is called or frozen, as on main.
+test('a tool with a beforeExport hook and no still pose keeps its own pose and its own loop', async () => {
   for (const format of ['svg', 'svgz', 'pdf', 'pdf-cmyk', 'penpot', 'emf', 'pptx']) {
     const { canvas, calls } = clockCanvas();
     let posed = 0;
     const { runtime, seen } = engineOrder(canvas, calls, () => { posed++; });
-    const held = holdStillExports(runtime, { manifest: { hooks: { beforeExport: true } } });
+    const held = holdStillExports(runtime, {});
     await held.export(canvas, format);
     assert.equal(posed, 1, `${format}: the hook ran`);
     assert.deepEqual(calls, [], `${format}: nothing redraws what the hook posed`);
-    assert.deepEqual(seen, [{ driven: true, calls: 0 }], `${format}: the loop is frozen while the page is read`);
-    assert.equal(canvas.__lollyFrameDriven, false, `${format}: and handed back after`);
+    assert.deepEqual(seen, [{ driven: false, calls: 0 }], `${format}: the page is read as it stands`);
   }
 });
 
-test('a tool with no export preparation is posed before the engine starts, once', async () => {
-  const { canvas, calls } = clockCanvas();
+test('a declared clock is posed before the engine starts, once, ahead of a beforeExport hook', async () => {
+  const { canvas, calls } = posedClock();
   let atHook: { driven: boolean | undefined; calls: number } | null = null;
   const { runtime, seen } = engineOrder(canvas, calls, () => { atHook = { driven: canvas.__lollyFrameDriven, calls: calls.length }; });
-  const held = holdStillExports(runtime, { manifest: { hooks: {} } });
+  const held = holdStillExports(runtime, {});
   await held.export(canvas, 'pdf');
   assert.deepEqual(atHook, { driven: true, calls: 1 }, 'posed and frozen before anything else in the export runs');
   assert.deepEqual(seen, [{ driven: true, calls: 1 }], 'the entry hold adds a count, not a second call');
@@ -244,22 +279,22 @@ function stubRuntime(body: () => Blob = () => new Blob([])) {
 }
 
 test('a wrapped runtime releases its hold when the export fails, and leaves clips and rasters to their renderers', async () => {
-  const { canvas, calls } = clockCanvas();
-  const failing = holdStillExports(stubRuntime(() => { throw new Error('render failed'); }), { manifest: {} });
+  const { canvas, calls } = posedClock();
+  const failing = holdStillExports(stubRuntime(() => { throw new Error('render failed'); }), {});
   await assert.rejects(failing.export(canvas, 'svg'), /render failed/);
   assert.equal(canvas.__lollyFrameDriven, false, 'a failed export does not leave the loop frozen');
   calls.length = 0;
-  const passing = holdStillExports(stubRuntime(), { manifest: {} });
+  const passing = holdStillExports(stubRuntime(), {});
   for (const format of ['png', 'mp4', 'gif', 'zip', 'json']) await passing.export(canvas, format);
   assert.deepEqual(calls, []);
 });
 
 test('Markdown from a template.md is built from the inputs, so only Markdown read off the page is posed', async () => {
-  const { canvas, calls } = clockCanvas();
-  const templated = holdStillExports(stubRuntime(), { manifest: {}, textTemplates: { md: '# {{title}}' } });
+  const { canvas, calls } = posedClock();
+  const templated = holdStillExports(stubRuntime(), { textTemplates: { md: '# {{title}}' } });
   await templated.export(canvas, 'md');
   assert.deepEqual(calls, []);
-  const walked = holdStillExports(stubRuntime(), { manifest: {}, textTemplates: {} });
+  const walked = holdStillExports(stubRuntime(), { textTemplates: {} });
   await walked.export(canvas, 'md');
   assert.deepEqual(calls, [[0, undefined, undefined]]);
 });

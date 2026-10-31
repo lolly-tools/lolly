@@ -5,15 +5,15 @@
  * Run with:
  *   node --import ./tests/css-stub.mjs --test tests/chart-export-hold.test.ts
  *
- * The web shell holds a frame-clock tool still for every export that reads the page
- * (shells/web/src/bridge/frame-clock.ts). Chart prepares its own vector exports in
- * beforeExport: a Statistical chart with Reveal or Build poses its complete poster for SVG,
- * SVGZ and PDF, and a chart animated by a frame column builds a self-contained SMIL
- * flipbook. A hold that called the clock after that hook redrew the entrance's first
- * frame over both: the reveal clip came out 0 wide, every Build mark at opacity 0, and
- * the animated SVG a single static frame. These mount the real template, Observable Plot,
- * d3 and hooks in jsdom, export through the engine runtime the way the web shell wraps
- * it, and read the result.
+ * The web shell holds a tool still for every export that reads the page when its frame
+ * clock declares a still pose (shells/web/src/bridge/frame-clock.ts). Chart's clock does
+ * not: it prepares its own vector exports in beforeExport. A Statistical chart with Reveal
+ * or Build poses its complete poster for SVG, SVGZ and PDF, and a chart animated by a frame
+ * column builds a self-contained SMIL flipbook. Round 1's hold called every clock after
+ * that hook and redrew the entrance's first frame over both: the reveal clip came out 0
+ * wide, every Build mark at opacity 0, and the animated SVG a single static frame. These
+ * mount the real template, Observable Plot, d3 and hooks in jsdom, export through the
+ * engine runtime the way the web shell wraps it, and read the result.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -78,17 +78,20 @@ function pose(stage: Element) {
  * is read (export.ts renderFormat). jsdom's serializer cannot write Plot's markup as XML, so
  * this reads the pose the walker would read instead of writing the file.
  */
-function entry(seen: Array<ReturnType<typeof pose>>, stage: () => Element): Render {
+type Read = ReturnType<typeof pose> & { driven?: boolean };
+
+function entry(seen: Read[], stage: () => Element): Render {
   return async (node, format) => {
     const release = holdStillFrame(node, format);
-    try { seen.push(pose(stage())); return new Blob([]); }
+    const clock = stage().querySelector('[data-chart-plot-clock]') as (HTMLCanvasElement & { __lollyFrameDriven?: boolean }) | null;
+    try { seen.push({ ...pose(stage()), driven: clock?.__lollyFrameDriven }); return new Blob([]); }
     finally { release(); }
   };
 }
 
 test('a Statistical Reveal or Build chart exports SVG, SVGZ and PDF with every mark drawn', async () => {
   for (const preset of ['reveal', 'stagger']) {
-    const seen: Array<ReturnType<typeof pose>> = [];
+    const seen: Read[] = [];
     let stage: Element | null = null;
     const chart = await mount({ renderMode: 'statistical', plotType: 'dot-strip', plotMotionPreset: preset }, entry(seen, () => stage!));
     stage = chart.stage;
@@ -105,8 +108,8 @@ test('a Statistical Reveal or Build chart exports SVG, SVGZ and PDF with every m
   }
 });
 
-test('a format the hook leaves alone is frozen where the preview stood, never redrawn from its first frame', async () => {
-  const seen: Array<ReturnType<typeof pose>> = [];
+test('a format the hook leaves alone is read where the preview stood, never redrawn from its first frame', async () => {
+  const seen: Read[] = [];
   let stage: Element | null = null;
   const chart = await mount({ renderMode: 'statistical', plotType: 'dot-strip', plotMotionPreset: 'reveal' }, entry(seen, () => stage!));
   stage = chart.stage;
@@ -116,7 +119,8 @@ test('a format the hook leaves alone is frozen where the preview stood, never re
     const live = pose(stage);
     await chart.runtime.export(stage, format, OPTS);
     assert.equal(seen[0]!.clip, live.clip, `${format}: the reveal stays where it was, not at width 0`);
-    assert.equal(clock.__lollyFrameDriven, false, `${format}: the preview plays on after the export`);
+    assert.notEqual(seen[0]!.driven, true, `${format}: the preview's loop is not frozen, as on main`);
+    assert.notEqual(clock.__lollyFrameDriven, true, `${format}: the preview plays on after the export`);
   }
 });
 

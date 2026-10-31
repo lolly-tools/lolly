@@ -338,10 +338,11 @@ import { packZip } from './export-zip.ts';
 const C2PA_STAMPABLE = new Set<string>(C2PA_FORMATS);
 
 async function renderFormat(node: Element, format: string, opts: ExportOpts = {}): Promise<Blob> {
-  // A still that reads the page holds a frame-clock tool for the whole render, before a
-  // declared presentation lays it out (frame-clock.ts withStillHold), so a PDF, SVG or
-  // Penpot file never catches a moment of a preview animation or draws over what a tool's
-  // own preparation built. A payload the engine already built reads no page.
+  // A still that reads the page holds a tool whose frame clock declares a still pose for
+  // the whole render, before a declared presentation lays it out (frame-clock.ts
+  // withStillHold), so its PDF, SVG or Penpot file never catches a moment of its preview
+  // animation. Any other tool's page is read as it stands. A payload the engine already
+  // built reads no page.
   return withStillHold(node, format, opts, opts.dataText == null, () => renderPreparedFormat(node, format, opts));
 }
 

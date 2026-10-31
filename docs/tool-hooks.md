@@ -37,7 +37,7 @@ Async results are time-boxed. The budget in each step below is how long the runt
 ::: timeline
 - <!--i:star--> **The tool opens: `onInit`, 5 seconds.** Runs once and seeds computed values.
 - <!--i:sliders--> **Each edit: `onInput`, 2 seconds.** Runs after every input change, with the changed input's `id` and `value`.
-- <!--i:download--> **An export starts: `beforeExport`, 5 seconds.** Adjust the node or call host APIs before the file is drawn. Receives `{ node, format, opts, host }`.
+- <!--i:download--> **An export starts: `beforeExport`, 5 seconds.** Adjust the node or call host APIs before the file is drawn. Receives `{ node, format, opts, host }`. If your template's frame clock declares `stillPose`, an SVG, PDF or other still that reads the page has already posed the tool at `t` 0 and frozen its loop when this hook runs; a raster calls the clock after this hook ([the frame clock](/info/tool-rendering.html#canvas-tools-readiness-the-frame-clock-and-gpu-rendering)).
 - <!--i:document--> **The tool makes the file itself: `exportStill` or `exportFile`, 10 seconds.** `exportStill` owns a raster still the 8-bit page render cannot make, such as a 16-bit or HDR PNG, OpenEXR or Radiance; it receives `opts` with depth, HDR, size and DPI, and returns `{ bytes, mime }`, or `null` to let the normal path draw that format. `exportFile` is the transform path for on-device utilities ([Assets and file utilities](/info/tool-files.html#producing-output-the-exportfile-hook-privacy-on-device)).
 - <!--i:check--> **The export ends: `afterExport`, 5 seconds.** Runs after the file is made, for cleanup and chaining. Receives `{ node, format, blob, host }`.
 :::

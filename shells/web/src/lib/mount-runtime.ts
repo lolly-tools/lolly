@@ -30,10 +30,10 @@
  * tool before the WebGPU check has passed. mount-runtime.test.ts greps the source
  * tree to hold the line.
  *
- * It is also where a still export learns whose export it is (bridge/frame-clock.ts
- * holdStillExports): a tool that prepares its own exports in a beforeExport hook keeps
- * the pose that hook makes, and every other frame-clock tool is posed for its still
- * before the engine starts the export.
+ * It is also where a still export is held for the whole export (bridge/frame-clock.ts
+ * holdStillExports): a tool whose frame clock declares a still pose is posed and frozen
+ * before the engine starts, ahead of its beforeExport hook. Every other tool's export
+ * runs untouched, in the engine's own order.
  */
 import { createRuntime, inRealmHookExecutor } from '@lolly/engine';
 import type { HookExecutor } from '@lolly/engine';
