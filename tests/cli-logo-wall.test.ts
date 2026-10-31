@@ -16,7 +16,13 @@
  *  - `--width`/`--height` at another shape (an A4 page, 1080 x 1920) lay the wall
  *    out for that shape, in the SVG and in the PNG resvg draws from it;
  *  - files given to a tool with no such input, a file that is not a picture and a
- *    missing file are refused with exit 2 before anything is rendered.
+ *    missing file are refused with exit 2 before anything is rendered;
+ *  - a path written into a row (a CSV column, `--logos=` JSON) is read only when the
+ *    file's bytes are a picture, whatever it is called, so a CSV someone sent cannot
+ *    copy a credentials file into the exported SVG (exit 2, nothing written);
+ *  - a local path inside a link (a pasted lolly.tools URL or a `z=` state), and a
+ *    link that sets a flag pointing at a file, are refused with exit 4: the link's
+ *    author does not choose files on the computer that runs the command.
  *
  * Run with: node --test tests/cli-logo-wall.test.ts
  */
@@ -29,7 +35,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { acceptsMime, imageMime, parsePathList } from '../shells/cli/src/block-files.ts';
-import { unknownFlags } from '../shells/cli/src/run.ts';
+import { isLocalPathFlag, linkBorneKeys, unknownFlags } from '../shells/cli/src/run.ts';
+import { packQuery } from '../engine/src/url-pack.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BIN = join(ROOT, 'shells', 'cli', 'bin', 'lolly.ts');
@@ -46,6 +53,10 @@ await writeFile(join(root, 'logos', 'c.svg'), svg('#2e7d32'));
 await writeFile(join(root, 'logos', 'd.png'), PNG);
 await writeFile(join(root, 'logos', 'e.png'), PNG);
 await writeFile(join(root, 'logos', 'notes.txt'), 'not a picture');
+// A secret that must never reach an exported file, under a picture's name too.
+const CANARY = 'SECRET-CANARY-1234567890';
+await writeFile(join(root, 'credentials'), `[default]\naws_secret_access_key = ${CANARY}\n`);
+await writeFile(join(root, 'logos', 'disguised.png'), CANARY);
 await writeFile(join(root, 'logos', 'sponsors.csv'), 'logo,tier\na.svg,Gold partners\nd.png,Gold partners\nb.svg,Silver partners\nc.svg,Silver partners\ne.png,Silver partners\n');
 
 function cli(args: string[], stdin?: Buffer | string): Promise<{ stdout: Buffer; stderr: string; code: number }> {
@@ -167,10 +178,93 @@ test('files the wall cannot take are refused before anything renders', { skip: S
   assert.equal(existsSync(join(root, 'logos', 'x.svg')), false);
 });
 
+const canaryIn = (bytes: Buffer): boolean =>
+  bytes.includes(CANARY) || bytes.includes(Buffer.from(CANARY).toString('base64').slice(0, 20));
+
+test('a CSV or a --logos path that is not a picture is refused, and nothing is written', { skip: SKIP }, async () => {
+  await writeFile(join(root, 'logos', 'leak.csv'), `logo,tier\na.svg,Gold\n${join(root, 'credentials')},Gold\n`);
+  const csv = await cli(['run', 'logo-wall', '--logos-data=leak.csv', '--output=leak.svg', '--no-provenance']);
+  assert.equal(csv.code, 2, csv.stderr);
+  assert.match(csv.stderr, /is a file on this computer but not a picture this shell recognises, so it was not read/);
+  assert.equal(existsSync(join(root, 'logos', 'leak.svg')), false, 'no file was written');
+
+  // A picture's name is not a picture: the bytes decide.
+  const named = await cli(['run', 'logo-wall', '--logos=[{"logo":"disguised.png"}]', '--output=named.svg', '--no-provenance']);
+  assert.equal(named.code, 2, named.stderr);
+  assert.equal(existsSync(join(root, 'logos', 'named.svg')), false);
+  const dropped = await cli(['run', 'logo-wall', 'disguised.png', '--output=dropped.svg']);
+  assert.equal(dropped.code, 2, dropped.stderr);
+  assert.match(dropped.stderr, /"disguised.png" is not a picture this shell recognises/);
+  for (const r of [csv, named, dropped]) assert.equal(canaryIn(Buffer.from(r.stderr)), false);
+});
+
+test('a path typed into --logos still reads the picture', { skip: SKIP }, async () => {
+  const r = await cli(['run', 'logo-wall', '--logos=[{"logo":"./a.svg"},{"logo":{"id":"d.png"}}]', '--output=typed.svg', '--no-provenance']);
+  ok(r);
+  assert.deepEqual(images(await readFile(join(root, 'logos', 'typed.svg'), 'utf8')), ['svg+xml', 'png']);
+});
+
+test('a local path inside a pasted link or a z= state is refused', { skip: SKIP }, async () => {
+  const rows = JSON.stringify([{ logo: join(root, 'logos', 'd.png') }]);
+  const link = `https://lolly.tools/#/tool/logo-wall?logos=${encodeURIComponent(rows)}`;
+  const pasted = await cli([link, '--output=pasted.svg', '--no-provenance']);
+  assert.equal(pasted.code, 4, pasted.stderr);
+  assert.match(pasted.stderr, /the link sets a logo of ".*d\.png", a file on this computer\. A link cannot choose files for the CLI to read/);
+  assert.equal(existsSync(join(root, 'logos', 'pasted.svg')), false);
+
+  const token = await packQuery(`logos=${encodeURIComponent(rows)}`);
+  assert.ok(token, 'the packer is available');
+  const packed = await cli(['run', 'logo-wall', `--z=${token}`, '--output=packed.svg', '--no-provenance']);
+  assert.equal(packed.code, 4, packed.stderr);
+  assert.match(packed.stderr, /A link cannot choose files for the CLI to read/);
+  assert.equal(existsSync(join(root, 'logos', 'packed.svg')), false);
+
+  // A file: URL in the row is the same thing spelled as a URL.
+  const fileRows = JSON.stringify([{ logo: { url: `file://${join(root, 'credentials')}`, type: 'raster' } }]);
+  const fileLink = await cli([`https://lolly.tools/#/tool/logo-wall?logos=${encodeURIComponent(fileRows)}`, '--output=file-url.svg', '--no-provenance']);
+  assert.equal(fileLink.code, 4, fileLink.stderr);
+  assert.match(fileLink.stderr, /the link sets a logo of "file:\/\/.*credentials", a file on this computer/);
+  assert.equal(existsSync(join(root, 'logos', 'file-url.svg')), false);
+
+  // The same picture typed after the link is the person's own choice.
+  const typed = await cli([link, `--logos=${rows}`, '--output=typed-after.svg', '--no-provenance']);
+  ok(typed);
+  assert.deepEqual(images(await readFile(join(root, 'logos', 'typed-after.svg'), 'utf8')), ['png']);
+});
+
+test('a link that sets a flag pointing at a file is refused', { skip: SKIP }, async () => {
+  for (const [query, flag] of [
+    [`logos-data=${encodeURIComponent(join(root, 'credentials'))}`, 'logos-data='],
+    [`logos-file=${encodeURIComponent(join(root, 'credentials'))}`, 'logos-file='],
+    [`output=${encodeURIComponent(join(root, 'overwritten.svg'))}`, 'output='],
+  ] as const) {
+    const r = await cli([`https://lolly.tools/#/tool/logo-wall?${query}`, '--no-provenance']);
+    assert.equal(r.code, 4, r.stderr);
+    assert.ok(r.stderr.includes(`The link sets ${flag}`), r.stderr);
+  }
+  const named = await cli([`https://lolly.tools/#/tool/logo-wall?filename=${encodeURIComponent('../escaped.svg')}`, '--no-provenance']);
+  assert.equal(named.code, 4, named.stderr);
+  assert.match(named.stderr, /The link sets filename=\.\.\/escaped\.svg, a path rather than a file name/);
+  assert.equal(existsSync(join(root, 'overwritten.svg')), false);
+  assert.equal(existsSync(join(root, 'escaped.svg')), false);
+});
+
+test('link-borne keys: a pasted link\'s, and what a packed state adds beyond the typed flags', () => {
+  const typed = new URLSearchParams('z=tok&w=10');
+  assert.deepEqual([...linkBorneKeys(typed, 'logos=a&w=10')], ['logos']);
+  assert.deepEqual([...linkBorneKeys(typed, 'logos=a&w=5&w=10')].sort(), ['logos', 'w'], 'a key the state also set counts');
+  assert.deepEqual([...linkBorneKeys(new URLSearchParams('logos=a&w=1'), 'logos=a&w=1', new Set(['logos']))], ['logos']);
+  assert.deepEqual([...linkBorneKeys(new URLSearchParams('logos=a'), 'logos=a')], [], 'all typed');
+  for (const flag of ['output', 'logos-data', 'logos-file', 'logos-files', 'user-profile', 'document', 'sign-key']) assert.ok(isLocalPathFlag(flag), flag);
+  for (const flag of ['logos', 'filename', 'width', 'format']) assert.equal(isLocalPathFlag(flag), false, flag);
+});
+
 test('the helpers read pictures by their bytes and keep the web drop filter', () => {
   assert.equal(imageMime('logo.bin', PNG), 'image/png');
   assert.equal(imageMime('logo.png', new TextEncoder().encode(svg('#000'))), 'image/svg+xml');
   assert.equal(imageMime('notes.txt', new TextEncoder().encode('hello')), 'application/octet-stream');
+  assert.equal(imageMime('notes.png', new TextEncoder().encode('hello')), 'application/octet-stream', 'the name alone is not a picture');
+  assert.equal(imageMime('scan.tif', new Uint8Array([0x49, 0x49, 0x2a, 0, 8, 0, 0, 0])), 'image/tiff');
   assert.equal(acceptsMime('image/*', 'image/svg+xml'), true);
   assert.equal(acceptsMime(undefined, 'application/pdf'), false);
   assert.equal(acceptsMime('image/png, image/svg+xml', 'image/jpeg'), false);

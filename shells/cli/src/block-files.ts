@@ -21,12 +21,16 @@
  *
  * `bakeLocalBlockAssets` also reads a path written INTO a row, such as a `logo`
  * column in a CSV or `--logos='[{"logo":"./a.png"}]'`, from disk, the way a
- * top-level `--logo=./brand.png` is.
+ * top-level `--logo=./brand.png` is. Two rules keep that read to what the person
+ * running the command asked for: a file is read only when its bytes are a picture
+ * (a CSV someone sent cannot pull `~/.aws/credentials` into the exported SVG), and a
+ * path inside a link (a pasted lolly.tools URL, a `z=` or `zx=` state) is refused,
+ * because a link cannot choose files on the computer that opens the link.
  */
 
-import { readFile, stat } from 'node:fs/promises';
+import { open, readFile, stat } from 'node:fs/promises';
 import { basename, extname, resolve } from 'node:path';
-import { usageError } from './exit-codes.ts';
+import { refused, usageError } from './exit-codes.ts';
 
 /** The parts of a blocks sub-field this module reads. */
 interface FieldLike {
@@ -64,7 +68,12 @@ const EXT_MIME: Record<string, string> = {
   '.bmp': 'image/bmp', '.tif': 'image/tiff', '.tiff': 'image/tiff', '.heic': 'image/heic',
 };
 
-/** A picture's MIME type: the leading bytes first, then the file name. */
+/**
+ * A picture's MIME type, read from its leading bytes. The file name only tells AVIF
+ * from HEIC, which share one container; a file whose bytes are not a picture is
+ * `application/octet-stream` whatever it is called, so `notes.png` holding text is
+ * not taken for a picture.
+ */
 export function imageMime(name: string, bytes: Uint8Array): string {
   const b = bytes;
   if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'image/png';
@@ -73,9 +82,23 @@ export function imageMime(name: string, bytes: Uint8Array): string {
   if (b[0] === 0x52 && b[1] === 0x49 && b[8] === 0x57 && b[9] === 0x45) return 'image/webp';
   if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) return EXT_MIME[extname(name).toLowerCase()] === 'image/heic' ? 'image/heic' : 'image/avif';
   if ((b[0] === 0xff && b[1] === 0x0a) || (b[0] === 0 && b[1] === 0 && b[2] === 0 && b[3] === 0x0c && b[4] === 0x4a && b[5] === 0x58)) return 'image/jxl';
+  if (b[0] === 0x42 && b[1] === 0x4d && b.length >= 26) return 'image/bmp';
+  if ((b[0] === 0x49 && b[1] === 0x49 && b[2] === 0x2a && b[3] === 0) || (b[0] === 0x4d && b[1] === 0x4d && b[2] === 0 && b[3] === 0x2a)) return 'image/tiff';
   const head = Buffer.from(b.subarray(0, 512)).toString('utf8');
   if (/<svg[\s>]/i.test(head)) return 'image/svg+xml';
-  return EXT_MIME[extname(name).toLowerCase()] ?? 'application/octet-stream';
+  return 'application/octet-stream';
+}
+
+/** The leading bytes of a file, enough for `imageMime` to sniff. */
+async function headBytes(path: string): Promise<Uint8Array> {
+  const fh = await open(path, 'r');
+  try {
+    const buf = new Uint8Array(512);
+    const { bytesRead } = await fh.read(buf, 0, buf.length, 0);
+    return buf.subarray(0, bytesRead);
+  } finally {
+    await fh.close();
+  }
 }
 
 /** Whether a MIME type passes a dropToAdd `accept` filter, the web shell's rule. */
@@ -231,6 +254,25 @@ async function existingFile(dirs: ReadonlyArray<string | undefined>, rel: string
  *  Two letters at least, so a Windows drive (`C:`) still reads as a path. */
 const SCHEME = /^[a-z][a-z0-9+.-]+:/i;
 
+/** The `file:` URL an asset value points at (as a string, its id, its url or its
+ *  original's url), which the Node bridge reads straight from disk; null otherwise. */
+export function fileUrlIn(v: unknown): string | null {
+  const ref = v && typeof v === 'object' ? v as { id?: unknown; url?: unknown; original?: { url?: unknown } } : null;
+  for (const s of ref ? [ref.id, ref.url, ref.original?.url] : [v]) {
+    if (typeof s === 'string' && /^\s*file:/i.test(s)) return s.trim();
+  }
+  return null;
+}
+
+/** The refusal for a file on this computer that a link chose. */
+export function linkLocalFileRefusal(inputId: string, fieldId: string | null, value: string): Error {
+  return refused(
+    `${inputId}: the link sets ${fieldId ? `a ${fieldId} of ` : ''}"${value}", a file on this computer. A link cannot choose files for the CLI to read, so nothing was rendered. ` +
+    `To use that picture, add it yourself: --${dropFlags(inputId).one}=<path>, or a path in --${inputId}= typed on the command line.`,
+    'LINK_LOCAL_PATH',
+  );
+}
+
 /**
  * Read a path written into a row's asset field from disk, for every blocks input.
  * A string or an unresolved `{ id }` ref whose id is an existing file becomes a
@@ -239,11 +281,16 @@ const SCHEME = /^[a-z][a-z0-9+.-]+:/i;
  * then from the folder of the data file the rows came from (`dataDirs`, keyed by
  * input id), so a CSV can name the pictures in its own folder. Returns how many
  * fields were read.
+ *
+ * Refuses, before reading the whole file, a file whose leading bytes are not a
+ * picture (exit 2), and any existing file in an input whose rows came inside a
+ * link (`fromLink`, exit 4): the rows of a pasted link were written by whoever
+ * made the link, not by the person running the command.
  */
 export async function bakeLocalBlockAssets(
   manifest: { inputs?: readonly DropInputLike[] },
   values: Record<string, unknown>,
-  opts: { cwd?: string; dataDirs?: Record<string, string> } = {},
+  opts: { cwd?: string; dataDirs?: Record<string, string>; fromLink?: (inputId: string) => boolean } = {},
 ): Promise<number> {
   const cwd = opts.cwd ?? process.cwd();
   let read = 0;
@@ -258,6 +305,8 @@ export async function bakeLocalBlockAssets(
       const r = row as Record<string, unknown>;
       for (const f of assetFields) {
         const v = r[f.id];
+        const fileUrl = fileUrlIn(v);
+        if (fileUrl && opts.fromLink?.(input.id)) throw linkLocalFileRefusal(input.id, f.id, fileUrl);
         let id: string | null = null;
         if (typeof v === 'string') id = v.trim();
         else if (v && typeof v === 'object') {
@@ -267,8 +316,13 @@ export async function bakeLocalBlockAssets(
         if (!id || SCHEME.test(id)) continue;
         const abs = await existingFile([cwd, opts.dataDirs?.[input.id]], id);
         if (!abs) continue;
+        if (opts.fromLink?.(input.id)) throw linkLocalFileRefusal(input.id, f.id, id);
+        const mime = imageMime(basename(abs), await headBytes(abs));
+        if (mime === 'application/octet-stream') {
+          throw usageError(`${input.id}: "${id}" is a file on this computer but not a picture this shell recognises, so it was not read. Nothing was rendered.`, 'BAD_FLAG_VALUE');
+        }
         const bytes = new Uint8Array(await readFile(abs));
-        r[f.id] = await bakedImageRef(basename(abs), bytes, imageMime(basename(abs), bytes));
+        r[f.id] = await bakedImageRef(basename(abs), bytes, mime);
         read++;
       }
     }

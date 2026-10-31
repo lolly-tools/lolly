@@ -911,7 +911,8 @@ async function main(): Promise<void> {
     // own `format=` param (kept in the params, read by runToolCli) or the path-segment
     // format wins. An explicit CLI `--export=svg` is non-empty and still overrides.
     const toleratedUrlKeys = new Set(Object.keys(urlParams).filter(key => !(key in flags)));
-    await render(ref.toolId, merged, ref.format ?? undefined, repeated, toleratedUrlKeys, positionals.slice(1));
+    // The same keys are the link's own choices, which never pick a file on this computer.
+    await render(ref.toolId, merged, ref.format ?? undefined, repeated, toleratedUrlKeys, positionals.slice(1), toleratedUrlKeys);
     return;
   }
 
@@ -945,6 +946,7 @@ async function render(
   repeated: Record<string, string[]> = {},
   toleratedUnknown: ReadonlySet<string> = new Set(),
   files: readonly string[] = [],
+  linkParams?: ReadonlySet<string>,
 ): Promise<void> {
   if (isOn(flags.json)) {
     // `--json` on a render is deliberately absent at GA (contract section 3): run's stdout IS
@@ -981,6 +983,7 @@ async function render(
     rejectUnknown: true,
     toleratedUnknown,
     files,
+    ...(linkParams ? { linkParams } : {}),
   });
 }
 

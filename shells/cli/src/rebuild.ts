@@ -181,6 +181,9 @@ export async function rebuildSession(artifactPath: string, lollyPath: string): P
       // no-provenance is the whole reason this comparison can exist: a credential and the
       // imprint both embed a fresh timestamp.
       params: { ...params, 'no-provenance': '1' },
+      // The session came inside a file someone else made: it says what to draw,
+      // never which files on this computer to read.
+      linkParams: new Set(Object.keys(params)),
       outputPath: out,
       format,
       ...(fetchFile ? { fetchFile } : {}),
