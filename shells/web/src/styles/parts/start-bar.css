@@ -218,9 +218,10 @@ html[data-a11y-motion="reduce"] .ds-bar-more { transition: none; }
     background: hsl(var(--background) / .82);
     backdrop-filter: blur(12px) saturate(1.2);
     -webkit-backdrop-filter: blur(12px) saturate(1.2);
-    padding-bottom: var(--sp-3);
-    margin-bottom: var(--sp-6);
+    padding-bottom: var(--sp-2);
+    margin-bottom: var(--sp-4);
   }
+  .ds-rooms { padding-block: var(--sp-1); }
 }
 
 /* ── Phone: a 48px bar at the top, the rooms at the bottom edge ─────────────── */
