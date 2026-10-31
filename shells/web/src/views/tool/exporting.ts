@@ -7,14 +7,21 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
-import { hasVideoParams } from '@lolly/engine';
+import { C2PA_FORMATS, DEFAULT_CMYK_CONDITION, VIDEO_CODEC_STRINGS, hasVideoParams } from '@lolly/engine';
 import { mergeExportPrefs } from '../../lib/export-prefs.ts';
 import { flushAddressWrites } from '../../lib/url-state.ts';
 import { holdStageView } from '../../lib/stage-lod.ts';
 import { withStudioExport } from '../../lib/studio-export-guard.ts';
+import { settleForExport } from '../../lib/export-settle.ts';
+import { livePalette } from '../../lib/live-palette.ts';
+import { waitForQuiescence } from '../../lib/render-lifecycle.ts';
+import { addressedFramePage } from '../../lib/export-target.ts';
 import { waitForInitialViewport } from '../tool-initial-viewport.ts';
+import { c2paDefaultOn, exportTargetNode, extFor, isCmykFmt, isPrintFmt } from '../tool-actions.ts';
+import { exportPixelSize } from '../export-dimension-fields.ts';
+import { linkExportSize, type LinkExportSize } from '../export-size.ts';
 import { marksFromCsv } from './shared.ts';
-import type { ExportDefaults, ExportReport, PrintMarks } from './shared.ts';
+import type { ExportDefaults, ExportReport, PrintMarks, RunExportOpts } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
 
 /** What an editor capture can ask of the wrapper. `size` is the pixel size this export
@@ -228,8 +235,194 @@ export async function mountDocumentExport(tview: ToolViewCtx) {
   return renderer.mountDocumentExport(tview.tool, tview.host, tview.runtime, { width: tview.nativeW, height: tview.nativeH });
 }
 
+/**
+ * The size a link export writes, read the way the export bar reads it: the link's own
+ * width, height, unit and DPI first; then a reopened session's export size; then the
+ * option the tool's size select holds now (Certificate's Size, Stationery's Piece),
+ * which a hook may have set; then the tool's render box. A device's remembered export
+ * size is never used here, so the same link writes the same file on every device and
+ * from the command line.
+ */
+export function linkExportSizeFor(tview: ToolViewCtx): LinkExportSize {
+  const { initialValues: saved, sizeDriver, tool } = tview;
+  // A tool with no export size of its own (a fixed design, `render.dims: false`) keeps
+  // the render box the view already holds, as the export bar does for such a tool.
+  const fixed = tool.manifest.render.dims === false || !!tool.manifest.designTool;
+  const value = sizeDriver && !fixed ? tview.runtime.getModel().find((i) => i.id === sizeDriver.id)?.value : undefined;
+  const option = sizeDriver && !fixed ? sizeDriver.dims[String(value)] ?? null : null;
+  return linkExportSize({
+    link: { width: tview.urlWidth, height: tview.urlHeight, unit: tview.urlUnit, dpi: tview.urlDpi },
+    session: fixed ? {} : {
+      width: Number(saved.__export_width) || null, height: Number(saved.__export_height) || null,
+      unit: (saved.__export_unit as string | undefined) || null, dpi: Number(saved.__export_dpi) || null,
+    },
+    option,
+    // The bar opened on the option the view mounted with (tview.sizeDims) and moves
+    // with the select after that, so a different option now is the size in force.
+    optionMoved: !fixed && (option ?? null) !== (tview.sizeDims ?? null),
+    render: { width: tview.nativeW, height: tview.nativeH },
+  });
+}
+
+/** Hold a link export until the document is the one the export panel would photograph
+ *  (lib/export-settle.ts): the tool knows the size it is written at and the canvas shows
+ *  every hook run the mount started. */
+export function settleLinkExport(tview: ToolViewCtx, canvas: LinkExportSize['canvas']): Promise<void> {
+  return settleForExport({
+    runtime: tview.runtime,
+    flush: () => tview.render.flushRender(),
+    shown: () => tview.lastPainted,
+    pending: () => tview.rafId !== 0,
+    quiet: () => waitForQuiescence(tview.contentEl),
+    warn: (message, error) => console.warn(message, error),
+  }, canvas);
+}
+
+/**
+ * The export a link asks for (`?format=png&export`): the same file the export panel
+ * writes for the same document, at the same size and with the same artwork.
+ */
+export async function linkExport(tview: ToolViewCtx): Promise<void> {
+  const fmt = tview.urlFormat || tview.tool.manifest.render.formats[0]!;
+  // Brand vars land async (tokens fetch), so they are awaited with quiescence: a link
+  // export captures the branded canvas, not the fallbacks. The live palette (for CMYK
+  // ink substitution) comes from the same tokens fetch and waits with them.
+  // waitForQuiescence rejects when a tool reports `tool:failed` (plan 265 milestone 2,
+  // E4): a tool that could not draw is a logged reason the link export did not run.
+  const [, , palette] = await Promise.all([waitForQuiescence(tview.contentEl), tview.brandVarsReady, livePalette(tview.host)]);
+  const size = linkExportSizeFor(tview);
+  await settleLinkExport(tview, size.canvas);
+  const { urlBleed, urlC2pa, urlDepth, urlDurable, urlFilename, urlHdr, urlHeight, urlImprint, urlMarks, urlNostage, urlPassword, urlProfile, urlVideo, urlWidth } = tview;
+  const name = urlFilename || tview.tool.manifest.id;
+  const expOpts: RunExportOpts = {
+    width: size.width,
+    height: size.height,
+    cuts: tview.openedSession.url.cuts,
+    sampleTimes: tview.openedSession.url.sampleTimes,
+    motionBlur: tview.openedSession.url.motionBlur, sequenceRange: tview.openedSession.url.sequenceRange,
+  };
+  if (size.dpi) expOpts.dpi = size.dpi;
+  // CMYK print formats: carry the chosen press condition (recorded in the
+  // PDF's output intent / the TIFF's metadata). The Print PDF also carries the
+  // brand palette for exact ink matches; the TIFF does a flat per-pixel pass.
+  if (isCmykFmt(fmt)) {
+    expOpts.colorProfile = urlProfile || DEFAULT_CMYK_CONDITION;
+    if (fmt === 'pdf-cmyk') expOpts.palette = palette;
+  }
+  // HTML: honour ?nostage so a deep link auto-exports the full-page document
+  // (no fixed-size canvas frame) - mirrors the panel's "Full page" toggle.
+  if (fmt === 'html' && urlNostage) expOpts.fullPage = true;
+  // Standard lock: honour ?password= so a deep link can auto-export a locked
+  // PDF or ZIP bundle (basic lock; clear-text in the URL by design - see pdfPassRow).
+  if ((fmt === 'pdf' || fmt === 'zip') && urlPassword) expOpts.password = urlPassword;
+  // Content Credentials: ?c2pa= wins (on/off + ephemeral-cert lifetime,
+  // e.g. c2pa=90 or c2pa=off - see url-mode.js); absent it falls back to
+  // a render.c2pa tool's popup default. Never stamped alongside a
+  // password (the same exclusion the popup enforces; the bridge would
+  // skip it anyway).
+  const wantC2pa = urlC2pa ? urlC2pa.on : c2paDefaultOn(tview.tool.manifest);
+  if (wantC2pa && C2PA_FORMATS.includes(fmt) && !expOpts.password) {
+    expOpts.c2pa = true;
+    if (urlC2pa?.days) expOpts.c2paDays = urlC2pa.days;
+  }
+  // Pixel watermark (?imprint=): on by default for imprint-capable formats,
+  // like C2PA - independent of the C2PA credential itself. Covers still rasters
+  // AND the container formats (pdf/pdf-cmyk/pptx), whose Lolly-rendered rasters
+  // are imprinted as they're composited in (a pure-vector page marks nothing).
+  // Only an explicit `imprint=0`/`off` link suppresses it (see url-mode.ts
+  // parseImprint; list mirrors tool-actions.ts's isImprintFmt).
+  if (
+    urlImprint !== false &&
+    [
+      'png',
+      'jpg',
+      'jpeg',
+      'webp',
+      'avif',
+      'tiff',
+      'bmp',
+      'pdf',
+      'pdf-cmyk',
+      'pptx',
+    ].includes(fmt)
+  )
+    expOpts.imprint = true;
+  // Opt-in durable Content Credential (?durable=1): a neural TrustMark mark
+  // carrying Lolly's id. Raster-only (no container rasters yet) and a no-op
+  // until the encoder model is on-device. See plans/28-durable-content-credentials.md.
+  if (urlDurable && ['png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff'].includes(fmt))
+    expOpts.durable = true;
+  // Opt-in HDR (?hdr=1): Rec.2100 PQ export with brand-colour glow. Raster
+  // (PNG/JPEG/AVIF/TIFF - WebP excluded, no working HDR decode) plus the 10-bit
+  // video containers (mp4/webm, plan 154 WP-2). urlHdr is null for ?hdr=0, so
+  // ?hdr=0 forces SDR and ?hdr=1 forces HDR (tri-state via parseHdr). See engine/src/hdr.ts.
+  if (urlHdr && ['png', 'jpg', 'jpeg', 'avif', 'tiff', 'mp4', 'webm'].includes(fmt)) {
+    expOpts.hdr = true;
+    expOpts.hdrPeakNits = urlHdr.peakNits;
+    expOpts.hdrReach = urlHdr.reach;
+    expOpts.hdrLift = urlHdr.lift;
+    expOpts.hdrRichness = urlHdr.richness;
+  }
+  // Requested bit depth (?depth=): passed through as-is for every format -
+  // 'auto' is the default and carries nothing. NO consumer logic here: the
+  // export bridge decides what the provenance chain can honestly carry.
+  if (urlDepth !== 'auto') expOpts.depth = urlDepth;
+  // Video controls (?fps= ?seconds= ?wait= ?codec= ?vq=): the URL form of the export
+  // panel's fields, so `?export=mp4&fps=60&seconds=6` renders the clip the panel
+  // would - and the CLI, which is this path under another transport, gets the same
+  // knobs. `seconds` is a deliberate length (durationUserSet), so a tool hook that
+  // lengthens a clip to its material (the audiogram's analysed bed) stands down.
+  if (expOpts.sampleTimes && urlVideo.fps != null) expOpts.fps = urlVideo.fps;
+  if (
+    ['mp4', 'webm', 'gif', 'apng', 'webp-anim'].includes(fmt) &&
+    hasVideoParams(urlVideo)
+  ) {
+    if (urlVideo.fps != null) expOpts.fps = urlVideo.fps;
+    if (urlVideo.seconds != null) {
+      expOpts.duration = urlVideo.seconds;
+      expOpts.durationUserSet = true;
+    }
+    if (urlVideo.wait != null) expOpts.wait = urlVideo.wait;
+    if (urlVideo.codec) expOpts.videoCodec = VIDEO_CODEC_STRINGS[urlVideo.codec];
+    if (urlVideo.quality) expOpts.videoQuality = urlVideo.quality;
+  }
+  // Print prep: honour ?bleed= / ?marks= so a deep link auto-exports a
+  // print-ready file. Applied only when the link asks for it (never default).
+  if (isPrintFmt(fmt) && (urlBleed || urlMarks)) {
+    if (urlBleed) expOpts.bleed = urlBleed;
+    if (urlMarks) {
+      expOpts.cropMarks = urlMarks.crop;
+      expOpts.registrationMarks = urlMarks.registration;
+      expOpts.bleedMarks = urlMarks.bleed;
+      expOpts.colorBars = urlMarks.colorBars;
+      expOpts.provenance = urlMarks.provenance;
+    }
+  }
+  await exportUnscaled(
+    tview,
+    async () => {
+      const documentExport = await mountDocumentExport(tview);
+      try {
+        const exportSourceNode = documentExport?.canvas ?? tview.exportSourceNode;
+        const runtime = documentExport?.runtime ?? tview.runtime;
+        const page = addressedFramePage(exportSourceNode, fmt, tview.presentAddress);
+        if (page) {
+          if (!((urlWidth ?? 0) > 0)) expOpts.width = page.offsetWidth;
+          if (!((urlHeight ?? 0) > 0)) expOpts.height = page.offsetHeight;
+        }
+        const blob = await runtime.export(page ?? exportTargetNode(exportSourceNode), fmt, expOpts);
+        await tview.host.export.download(blob, `${name}.${extFor(fmt, blob)}`);
+      } finally { documentExport?.destroy(); }
+    },
+    // The export knows the size it renders at, so a tool whose detail follows the
+    // output is built for the size the link asked for, not for the preview.
+    { size: exportPixelSize(expOpts) }
+  );
+}
+
 export function exportingOps(tview: ToolViewCtx) {
   return {
+    linkExport: bindOp(tview, linkExport),
     mountDocumentExport: bindOp(tview, mountDocumentExport),
     exportUnscaled: <T>(fn: (report?: ExportReport) => Promise<T>, opts: ExportUnscaledOpts = {}): Promise<T> => exportUnscaled<T>(tview, fn, opts),
     exportUnscaledRaw: bindOp(tview, exportUnscaledRaw),
