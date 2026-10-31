@@ -3,6 +3,7 @@
 import { inspectCatalogAsset, inspectedFile, saveCatalogFields, saveReviewedText, sharedAssetId, type AssetInspection, type CatalogField } from '../../catalog/curation.ts';
 import { getInstanceBase } from '../../lib/instance.ts';
 import { t } from '../../i18n.ts';
+import { metaRowElement, type MetaKey } from '../../lib/meta-rows.ts';
 import type { BrowseSource } from '../../catalog/browse.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 
@@ -34,20 +35,20 @@ export async function mountSharedMetadata(root: HTMLElement, ref: AssetRef, refr
     const meta = value.meta ?? {}, lifecycle = value.lifecycle, file = inspectedFile(value, ref), role = file?.role ?? ref.meta?.fileRole;
     const facts = element('section'); facts.className = 'cat-shared-facts';
     const list = element('dl'); list.className = 'cat-details-meta';
-    const factsRows: Array<[string, unknown]> = [
-      ['Library', meta.providerLabel ?? (value.id.startsWith('inst/') ? t('Organisation catalog') : value.provider)],
-      ['Source ID', value.provider ?? 'instance'], ['Indexed version', value.version],
-      ['Source modified', date(value.updatedAt)], ['Last successful sync', date(source?.lastSyncedAt)],
-      ['Listing status', source ? t(({ current: 'Current listing', stale: 'Cached listing', pending: 'Syncing', unavailable: 'Unavailable' })[source.status]) : t('Not recorded')],
-      ['Catalog availability', ({ live: t('Available'), scheduled: t('Scheduled'), expired: t('Expired'), revoked: t('Revoked') } as Record<string, string>)[value.state ?? ''] ?? t('Unknown')],
-      ['Source available from', date(value.availableFrom ?? lifecycle?.upstream?.availableFrom)],
-      ['Source available until', date(value.availableUntil ?? lifecycle?.upstream?.availableUntil)],
-      ['Organisation valid from', date(lifecycle?.validFrom)], ['Organisation valid until', date(lifecycle?.validUntil)],
-      ['Source approval', meta.providerApproved === true ? t('Approved in source') : meta.providerApproved === false ? t('Not approved in source') : t('Unknown')],
-      ['Selected file', file?.name ?? ref.meta?.name], ['File role', role === 'original' ? t('Original') : role === 'rendition' ? t('Rendition') : t('Unknown')],
+    const factsRows: Array<[MetaKey, string, unknown]> = [
+      ['library', 'Library', meta.providerLabel ?? (value.id.startsWith('inst/') ? t('Organisation catalog') : value.provider)],
+      ['sourceId', 'Source ID', value.provider ?? 'instance'], ['indexedVersion', 'Indexed version', value.version],
+      ['sourceModified', 'Source modified', date(value.updatedAt)], ['lastSync', 'Last successful sync', date(source?.lastSyncedAt)],
+      ['listingStatus', 'Listing status', source ? t(({ current: 'Current listing', stale: 'Cached listing', pending: 'Syncing', unavailable: 'Unavailable' })[source.status]) : t('Not recorded')],
+      ['availability', 'Catalog availability', ({ live: t('Available'), scheduled: t('Scheduled'), expired: t('Expired'), revoked: t('Revoked') } as Record<string, string>)[value.state ?? ''] ?? t('Unknown')],
+      ['availableFrom', 'Source available from', date(value.availableFrom ?? lifecycle?.upstream?.availableFrom)],
+      ['availableUntil', 'Source available until', date(value.availableUntil ?? lifecycle?.upstream?.availableUntil)],
+      ['validFrom', 'Organisation valid from', date(lifecycle?.validFrom)], ['validUntil', 'Organisation valid until', date(lifecycle?.validUntil)],
+      ['approval', 'Source approval', meta.providerApproved === true ? t('Approved in source') : meta.providerApproved === false ? t('Not approved in source') : t('Unknown')],
+      ['selectedFile', 'Selected file', file?.name ?? ref.meta?.name], ['fileRole', 'File role', role === 'original' ? t('Original') : role === 'rendition' ? t('Rendition') : t('Unknown')],
     ];
-    if (meta.providerOriginalsAvailable === false) factsRows.push(['Original availability', t('Unavailable through this connection')]);
-    for (const [label, text] of factsRows) { const row = element('div'); row.append(element('dt', t(label)), element('dd', String(text ?? t('Not recorded')))); list.append(row); }
+    if (meta.providerOriginalsAvailable === false) factsRows.push(['originalAvailability', 'Original availability', t('Unavailable through this connection')]);
+    for (const [key, label, text] of factsRows) list.append(metaRowElement(root.ownerDocument, key, t(label), String(text ?? t('Not recorded'))));
     facts.append(element('h3', t('Source facts')), list, element('p', t('These are indexed source facts. File access is checked when opened. Source approval does not establish permission for every use.')));
     const details = element('details');
     details.append(element('summary', t('Organisation metadata')), element('p', t('These fields belong to this organisation. Source metadata stays with the connected library.')));
