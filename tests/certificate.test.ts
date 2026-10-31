@@ -597,13 +597,22 @@ const FIXTURE_TEXT = {
   ja: { 'Certificate of Completion': '修了証', 'This is to certify that': '以下の者が', 'has successfully completed': 'を修了したことを証します', Date: '日付' },
   ar: { 'Certificate of Completion': 'شهادة إتمام', 'This is to certify that': 'نشهد بأن', 'has successfully completed': 'قد أتمّ بنجاح', Date: 'التاريخ' },
 };
-const translated: any = SKIP ? null : { ...tool, hooksSource: tool.hooksSource.replace('var CT_TEXT = {};', `var CT_TEXT = ${JSON.stringify(FIXTURE_TEXT)};`) };
+// Swap the shipped table for a given one, so the mechanism is tested apart from the wording.
+function withTable(table: object): any {
+  const hooksSource = tool.hooksSource.replace(/var CT_TEXT = [\s\S]*?;\nvar CT_PRINTED/, `var CT_TEXT = ${JSON.stringify(table)};\nvar CT_PRINTED`);
+  assert.notEqual(hooksSource, tool.hooksSource, 'the printed-text table was found and replaced');
+  return { ...tool, hooksSource };
+}
+const translated: any = SKIP ? null : withTable(FIXTURE_TEXT);
+const untranslated: any = SKIP ? null : withTable({});
 
-test('the shipped table falls back to English cleanly and lists every printed string', { skip: SKIP }, async () => {
+test('the shipped table covers every language and printed string, and a missing language falls back to English', { skip: SKIP }, async () => {
   const H = hookHelpers();
-  assert.deepEqual(H.CT_TEXT, {}, 'translations come from a reviewed pass, never shipped untranslated stubs');
+  const langs = Object.keys(H.CT_TEXT);
+  assert.equal(langs.length, 26, 'all 26 app languages are translated');
+  for (const lang of langs) for (const en of H.CT_PRINTED) assert.ok(H.CT_TEXT[lang][en], `${lang}: "${en}"`);
   for (const lang of ['de', 'ja', 'ar']) {
-    const rt = await createRuntime(tool, baseHost(), { language: lang, awarddate: '2026-06-18' });
+    const rt = await createRuntime(untranslated, baseHost(), { language: lang, awarddate: '2026-06-18' });
     assert.equal(rt.getHydratedString('{{titleText}}'), 'Certificate of Completion', `${lang}: English wording`);
     assert.equal(rt.getHydratedString('{{dateText}}'), '18 June 2026', `${lang}: and an English date to match`);
     assert.equal(rt.getHydratedString('{{dir}}'), 'ltr');
