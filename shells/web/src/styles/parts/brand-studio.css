@@ -420,6 +420,9 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   margin-inline-start: auto;
   max-width: 100%;
 }
+/* Nothing of the system's own to download yet (only the starter group, or no
+   group at all): the head keeps to the room's first decision. */
+.be-palette:not(:has(.be-pal-group:not(.be-pal-group--starter) [data-be-tile])) .be-pal-dock { display: none; }
 /* The box/chevron/focus recipe comes from `.field-select .field-select--sm`
    (parts/fields.css, layer primitives - the markup carries both). Only the
    dock's own geometry stays here: it shrinks inside the head row and never runs
