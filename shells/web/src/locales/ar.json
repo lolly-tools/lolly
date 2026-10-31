@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "نُقل الإطار المفتاحي عند {t}",
   "Path handle at {t} moved": "نُقل مقبض المسار عند {t}",
   "Path handles retracted": "أُعيدت مقابض المسار",
-  "This keyframe has no path handles": "لا توجد مقابض مسار لهذا الإطار المفتاحي"
+  "This keyframe has no path handles": "لا توجد مقابض مسار لهذا الإطار المفتاحي",
+  "Your colourway": "تشكيلة ألوانك",
+  "{colourway} (design system default)": "{colourway} (افتراضي نظام التصميم)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "تحدد تشكيلة الألوان هذه لون التمييز في التطبيق، وبها يبدأ العمل الجديد. العمل الذي أنجزته بالفعل يحتفظ بتشكيلته."
 }

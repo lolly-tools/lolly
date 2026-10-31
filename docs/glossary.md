@@ -14,7 +14,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Managed design system.** A design system your build or your organisation supplies. It shows a lock and stays read-only; you can make an editable copy.
 
-**Colourway.** One of several lead colours a design system offers, with the colour that sits on it and a partner colour, chosen per piece of work. Organisations that rotate their primary colour across pieces use colourways. A colourway combines with light and dark rather than replacing them. One colourway is canonical: work that chooses none is drawn in it, and the app's own colours (its accent, favicon and logo tint) always follow it, never the colourway of the piece on screen. See [Colourways](/info/colourways.html).
+**Colourway.** One of several lead colours a design system offers, with the colour that sits on it and a partner colour, chosen per piece of work. Organisations that rotate their primary colour across pieces use colourways. A colourway combines with light and dark rather than replacing them. One colourway is canonical: work that chooses none is drawn in the canonical colourway. The app's own colours (its accent, favicon and logo tint) follow the colourway a person chose in **Settings → Appearance**, else the canonical one, and never the colourway of the piece on screen; new work starts in the person's colourway. See [Colourways](/info/colourways.html).
 
 **Brand architecture.** How an organisation relates its brands to one another, from one masterbrand with coloured divisions to brands with no visible relationship. Lolly maps each arrangement onto design systems, colourways and logo identities; see [Brand architectures](/info/brand-architectures.html).
 

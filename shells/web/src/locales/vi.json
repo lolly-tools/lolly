@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Đã di chuyển khung hình khóa tại {t}",
   "Path handle at {t} moved": "Đã di chuyển tay cầm đường đi tại {t}",
   "Path handles retracted": "Đã thu lại tay cầm đường đi",
-  "This keyframe has no path handles": "Khung hình khóa này không có tay cầm đường đi"
+  "This keyframe has no path handles": "Khung hình khóa này không có tay cầm đường đi",
+  "Your colourway": "Bảng phối màu của bạn",
+  "{colourway} (design system default)": "{colourway} (mặc định của hệ thống thiết kế)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Bảng phối màu này đặt màu nhấn của ứng dụng và là nơi công việc mới bắt đầu. Công việc đã làm giữ bảng phối màu riêng của nó."
 }

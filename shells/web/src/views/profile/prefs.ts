@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * profile: the accessibility, chrome-follow and render-save preference rows, and the theme picker.
+ * profile: the accessibility, chrome-follow and render-save preference rows, the theme picker and your colourway.
  *
  * Every function takes the shared `pv: ProfileViewCtx` first (see context.ts). Sibling
  * calls in this file are direct; a call into another module, and every use of a
@@ -164,8 +164,36 @@ export function wireThemePick(pv: ProfileViewCtx): void {
       b.setAttribute('aria-pressed', String(on));
     });
     await setTheme(host, next);
-    pv.summaries.setSummary('appearance-section', pv.summaries.themeLabel(currentTheme()));
+    pv.summaries.setSummary('appearance-section', pv.summaries.appearanceSummary(currentTheme()));
   });
+}
+
+/**
+ * Your colourway (plans/331): the design system's colourway the person takes as
+ * theirs. The app's accent follows the choice and new work starts in that colourway. Mounted lazily, like
+ * the Emoji card, and shown only when the design system offers more than one.
+ */
+export async function wireColourwayPref(pv: ProfileViewCtx): Promise<void> {
+  const { host, viewEl } = pv;
+  const el = viewEl.querySelector<HTMLElement>('#colourway-pref');
+  if (!el) return;
+  const [{ mountColourwayPref }, { applyChromeBrandVars }] = await Promise.all([
+    import('../../components/colourway-pref.ts'),
+    import('../../brand-vars.ts'),
+  ]);
+  if (!viewEl.isConnected) return;
+  const control = mountColourwayPref(el, {
+    host,
+    // Light draws the light look; Dark and Brand draw the dark one, as the chrome does.
+    look: () => (currentTheme() === 'light' ? 'light' : 'dark'),
+    repaint: () => applyChromeBrandVars(host),
+    onVisible: (visible) => { el.hidden = !visible; },
+    onChange: (name) => {
+      pv.colourwayName = name;
+      pv.summaries.setSummary('appearance-section', pv.summaries.appearanceSummary(currentTheme()));
+    },
+  });
+  pv.colourwayPrefUnsub = () => control.destroy();
 }
 
 /**
@@ -382,6 +410,7 @@ export function prefsOps(pv: ProfileViewCtx) {
     wireAppearanceRows: bindOp(pv, wireAppearanceRows),
     wireRenderSaveRows: bindOp(pv, wireRenderSaveRows),
     wireThemePick: bindOp(pv, wireThemePick),
+    wireColourwayPref: bindOp(pv, wireColourwayPref),
     wireEmojiPref: bindOp(pv, wireEmojiPref),
     wireTrustedSites: bindOp(pv, wireTrustedSites),
   };

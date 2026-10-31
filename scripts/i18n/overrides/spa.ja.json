@@ -1740,5 +1740,8 @@
   "Keyframe at {t} moved": "{t} のキーフレームを移動しました",
   "Path handle at {t} moved": "{t} のパスハンドルを移動しました",
   "Path handles retracted": "パスハンドルを戻しました",
-  "This keyframe has no path handles": "このキーフレームにはパスハンドルがありません"
+  "This keyframe has no path handles": "このキーフレームにはパスハンドルがありません",
+  "Your colourway": "あなたのカラーウェイ",
+  "{colourway} (design system default)": "{colourway}（デザインシステムの既定）",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "このカラーウェイがアプリのアクセントカラーになり、新しい作品はこのカラーウェイで始まります。すでに作成した作品は、そのカラーウェイを保ちます。"
 }

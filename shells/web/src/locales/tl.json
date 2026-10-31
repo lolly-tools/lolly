@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Inilipat ang keyframe sa {t}",
   "Path handle at {t} moved": "Inilipat ang handle ng landas sa {t}",
   "Path handles retracted": "Ibinalik ang mga handle ng landas",
-  "This keyframe has no path handles": "Walang handle ng landas ang keyframe na ito"
+  "This keyframe has no path handles": "Walang handle ng landas ang keyframe na ito",
+  "Your colourway": "Ang colourway mo",
+  "{colourway} (design system default)": "{colourway} (default ng design system)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Itinatakda ng colourway na ito ang accent na kulay ng app, at dito nagsisimula ang bagong gawa. Pinananatili ng gawang nagawa mo na ang sarili nitong colourway."
 }

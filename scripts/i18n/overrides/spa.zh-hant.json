@@ -1741,5 +1741,8 @@
   "Keyframe at {t} moved": "已移動 {t} 處的關鍵影格",
   "Path handle at {t} moved": "已移動 {t} 處的路徑控制桿",
   "Path handles retracted": "已收回路徑控制桿",
-  "This keyframe has no path handles": "此關鍵影格沒有路徑控制桿"
+  "This keyframe has no path handles": "此關鍵影格沒有路徑控制桿",
+  "Your colourway": "你的配色方案",
+  "{colourway} (design system default)": "{colourway}（設計系統預設）",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "這個配色方案決定應用程式的強調色，新作品也從它開始。你已製作的作品會保留自己的配色方案。"
 }

@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Ключовий кадр на {t} переміщено",
   "Path handle at {t} moved": "Керівну точку траєкторії на {t} переміщено",
   "Path handles retracted": "Керівні точки траєкторії прибрано",
-  "This keyframe has no path handles": "Цей ключовий кадр не має керівних точок траєкторії"
+  "This keyframe has no path handles": "Цей ключовий кадр не має керівних точок траєкторії",
+  "Your colourway": "Ваш колірний варіант",
+  "{colourway} (design system default)": "{colourway} (за умовчанням у дизайн-системі)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Цей колірний варіант задає акцентний колір застосунку, і з нього починається нова робота. Робота, яку ви вже зробили, зберігає свій."
 }

@@ -1870,5 +1870,8 @@
   "Keyframe at {t} moved": "{t}의 키프레임을 옮겼습니다",
   "Path handle at {t} moved": "{t}의 경로 핸들을 옮겼습니다",
   "Path handles retracted": "경로 핸들을 거두었습니다",
-  "This keyframe has no path handles": "이 키프레임에는 경로 핸들이 없습니다"
+  "This keyframe has no path handles": "이 키프레임에는 경로 핸들이 없습니다",
+  "Your colourway": "내 컬러웨이",
+  "{colourway} (design system default)": "{colourway} (디자인 시스템 기본값)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "이 컬러웨이가 앱의 강조색이 되고, 새 작업은 이 컬러웨이로 시작해요. 이미 만든 작업은 자기 컬러웨이를 유지해요."
 }

@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Fotograma clave en {t} movido",
   "Path handle at {t} moved": "Manejador de trayectoria en {t} movido",
   "Path handles retracted": "Manejadores de trayectoria recogidos",
-  "This keyframe has no path handles": "Este fotograma clave no tiene manejadores de trayectoria"
+  "This keyframe has no path handles": "Este fotograma clave no tiene manejadores de trayectoria",
+  "Your colourway": "Tu combinación de color",
+  "{colourway} (design system default)": "{colourway} (predeterminada del sistema de diseño)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Esta combinación de color define el color de acento de la app y es donde empieza el trabajo nuevo. El trabajo que ya hiciste conserva la suya."
 }

@@ -1740,5 +1740,8 @@
   "Keyframe at {t} moved": "{t}-এর কীফ্রেম সরানো হয়েছে",
   "Path handle at {t} moved": "{t}-এর পথের হ্যান্ডেল সরানো হয়েছে",
   "Path handles retracted": "পথের হ্যান্ডেলগুলো গুটিয়ে নেওয়া হয়েছে",
-  "This keyframe has no path handles": "এই কীফ্রেমে কোনো পথের হ্যান্ডেল নেই"
+  "This keyframe has no path handles": "এই কীফ্রেমে কোনো পথের হ্যান্ডেল নেই",
+  "Your colourway": "আপনার কালারওয়ে",
+  "{colourway} (design system default)": "{colourway} (ডিজাইন সিস্টেমের ডিফল্ট)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "এই কালারওয়ে অ্যাপের অ্যাকসেন্ট রং ঠিক করে, আর নতুন কাজ এতেই শুরু হয়। আপনার আগে তৈরি কাজ নিজের কালারওয়ে রাখে।"
 }

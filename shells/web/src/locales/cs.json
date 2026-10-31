@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "Klíčový snímek v {t} přesunut",
   "Path handle at {t} moved": "Úchop dráhy v {t} přesunut",
   "Path handles retracted": "Úchopy dráhy zataženy",
-  "This keyframe has no path handles": "Tento klíčový snímek nemá úchopy dráhy"
+  "This keyframe has no path handles": "Tento klíčový snímek nemá úchopy dráhy",
+  "Your colourway": "Tvoje barevná varianta",
+  "{colourway} (design system default)": "{colourway} (výchozí v design systému)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Tato barevná varianta určuje zvýrazňující barvu aplikace a začíná v ní nová práce. Práce, kterou jsi už vytvořil, si ponechá svou."
 }

@@ -10377,5 +10377,8 @@
   "Keyframe at {t} moved": "已移动 {t} 处的关键帧",
   "Path handle at {t} moved": "已移动 {t} 处的路径手柄",
   "Path handles retracted": "已收回路径手柄",
-  "This keyframe has no path handles": "此关键帧没有路径手柄"
+  "This keyframe has no path handles": "此关键帧没有路径手柄",
+  "Your colourway": "你的配色方案",
+  "{colourway} (design system default)": "{colourway}（设计系统默认）",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "这个配色方案决定应用的强调色，新作品也从它开始。已经做好的作品保留自己的配色方案。"
 }

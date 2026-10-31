@@ -1868,5 +1868,8 @@
   "Keyframe at {t} moved": "{t} konumundaki anahtar kare taşındı",
   "Path handle at {t} moved": "{t} konumundaki yol tutamacı taşındı",
   "Path handles retracted": "Yol tutamaçları geri çekildi",
-  "This keyframe has no path handles": "Bu anahtar karenin yol tutamacı yok"
+  "This keyframe has no path handles": "Bu anahtar karenin yol tutamacı yok",
+  "Your colourway": "Renk varyantın",
+  "{colourway} (design system default)": "{colourway} (tasarım sisteminin varsayılanı)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Bu renk varyantı uygulamanın vurgu rengini belirler ve yeni çalışmalar onunla başlar. Zaten yaptığın çalışmalar kendi varyantını korur."
 }

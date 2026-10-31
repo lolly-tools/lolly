@@ -1870,5 +1870,8 @@
   "Keyframe at {t} moved": "Fotogramma chiave a {t} spostato",
   "Path handle at {t} moved": "Maniglia del percorso a {t} spostata",
   "Path handles retracted": "Maniglie del percorso ritratte",
-  "This keyframe has no path handles": "Questo fotogramma chiave non ha maniglie del percorso"
+  "This keyframe has no path handles": "Questo fotogramma chiave non ha maniglie del percorso",
+  "Your colourway": "La tua colourway",
+  "{colourway} (design system default)": "{colourway} (predefinita del design system)",
+  "This colourway sets the app's accent and is where new work starts. Work you have already made keeps its own.": "Questa colourway imposta il colore d'accento dell'app ed è quella con cui inizia il nuovo lavoro. Il lavoro che hai già fatto mantiene la propria."
 }
