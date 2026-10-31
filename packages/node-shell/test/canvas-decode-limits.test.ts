@@ -193,3 +193,31 @@ test('a picture is named by its asset name, its id or the end of its URL, never 
   assert.equal(pictureName('blob:lolly-node/1'), undefined);
   assert.equal(pictureName(new Uint8Array(4)), undefined);
 });
+
+// A presigned S3 link: its credential and signature are in the query.
+const SIGNATURE = '9f2c4e1ab07d3c58e6f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7';
+const SIGNED = 'https://user:hunter2@sponsors.s3.amazonaws.com/logos/acme.svg'
+  + '?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAEXAMPLE%2F20261031%2Fus-east-1%2Fs3%2Faws4_request'
+  + `&X-Amz-Date=20261031T000000Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Signature=${SIGNATURE}#page=2`;
+const LEAKS = /X-Amz|AKIAEXAMPLE|hunter2|user:|9f2c4e1a|page=2|[?#@]/;
+
+test('an asset id that is a URL is named without its query, fragment or user name', () => {
+  assert.equal(pictureName({ id: SIGNED, url: SIGNED }), 'https://sponsors.s3.amazonaws.com/logos/acme.svg');
+  assert.equal(pictureName({ id: 'http://cdn.example.com/a.png?token=abc#x' }), 'http://cdn.example.com/a.png');
+  assert.equal(pictureName({ id: 'https://user:pw@cdn.example.com' }), 'https://cdn.example.com/');
+  assert.equal(pictureName({ id: 'x', name: SIGNED }), 'https://sponsors.s3.amazonaws.com/logos/acme.svg', 'a name that is a URL too');
+  assert.equal(pictureName(SIGNED), 'acme.svg');
+  assert.equal(pictureName('https://user:pw@cdn.example.com?sig=1'), 'cdn.example.com', 'a bare origin is named by its host alone');
+  assert.equal(pictureName({ id: 'lolly/logo/primary' }), 'lolly/logo/primary', 'a catalog id is unchanged');
+});
+
+test('a refused picture with a signed URL id never puts the signature in the warning', { skip: SKIP }, async () => {
+  const limits: DecodeLimits = { maxPixels: 200 * 200, used: 0, refusals: [], refused: [] };
+  const api = createNodeRasterAPI({ limits, readUrl: async () => svg(300, 150) })!;
+  await assert.rejects(api.decode({ id: SIGNED, url: SIGNED, type: 'vector', format: 'svg' } as never), ImagePixelLimitError);
+  const warnings = decodeRefusalWarnings(limits);
+  assert.deepEqual(warnings, [
+    'A 300 x 150 picture (https://sponsors.s3.amazonaws.com/logos/acme.svg) was not decoded: this server decodes pictures of up to 40,000 pixels.',
+  ]);
+  for (const text of [...warnings, ...limits.refusals!, JSON.stringify(limits.refused)]) assert.doesNotMatch(text, LEAKS);
+});

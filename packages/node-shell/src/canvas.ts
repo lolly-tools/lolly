@@ -397,26 +397,46 @@ async function sourceBytes(src: RasterSource, opts: NodeRasterOptions = {}): Pro
   throw new Error('host.raster: unreadable source.');
 }
 
+/** A web address with an authority part (`https://host/...`). */
+const WEB_URL = /^[a-z][a-z0-9+.-]*:\/\//i;
+
+/**
+ * A URL as a refusal may show it: no query, no fragment and no user name or
+ * password. A signed link (an S3 `X-Amz-Signature`, a CDN token) carries its
+ * secret in the query, and a refusal is written into what the render answers.
+ */
+function shownUrl(url: string): string {
+  const s = url.trim();
+  if (!WEB_URL.test(s)) return s;
+  try {
+    const u = new URL(s);
+    if (u.host) return `${u.protocol}//${u.host}${u.pathname}`;
+  } catch { /* not parseable: cut the same parts by hand */ }
+  return s.replace(/[?#].*$/s, '').replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/]*@/i, '$1');
+}
+
+const shortName = (name: string): string => (name.length > 80 ? `${name.slice(0, 77)}...` : name);
+
 /**
  * What a raster source is called, for a refusal: an asset's name or id, a file's
  * name, or the last part of a URL's path. Inline bytes (`data:`, `blob:`, a byte
- * array) have no name.
+ * array) have no name. A name or id that is itself a URL is shown without its
+ * query, fragment or user name (`shownUrl`).
  */
 export function pictureName(src: unknown): string | undefined {
   const fromUrl = (url: string): string | undefined => {
     if (/^\s*(data|blob):/i.test(url)) return undefined;
-    const path = url.replace(/[?#].*$/s, '');
-    const last = path.split('/').filter(Boolean).pop();
+    const last = shownUrl(url).replace(/[?#].*$/s, '').split('/').filter(Boolean).pop();
     let name = last ?? '';
     try { name = decodeURIComponent(name); } catch { /* keep it as written */ }
     if (!name || /^[a-z][a-z0-9+.-]*:$/i.test(name)) return undefined;
-    return name.length > 80 ? `${name.slice(0, 77)}...` : name;
+    return shortName(name);
   };
   if (typeof src === 'string') return fromUrl(src);
   if (!src || typeof src !== 'object' || src instanceof Uint8Array) return undefined;
   const ref = src as { name?: unknown; id?: unknown; url?: unknown; meta?: { name?: unknown } };
-  for (const v of [ref.meta?.name, ref.name]) if (typeof v === 'string' && v.trim()) return v.trim().slice(0, 80);
-  if (typeof ref.id === 'string' && !/^\s*(data|blob):/i.test(ref.id)) return ref.id.slice(0, 80);
+  for (const v of [ref.meta?.name, ref.name]) if (typeof v === 'string' && v.trim()) return shortName(shownUrl(v));
+  if (typeof ref.id === 'string' && ref.id.trim() && !/^\s*(data|blob):/i.test(ref.id)) return shortName(shownUrl(ref.id));
   return typeof ref.url === 'string' ? fromUrl(ref.url) : undefined;
 }
 

@@ -163458,24 +163458,33 @@ async function sourceBytes(src, opts = {}) {
   if (ref2 && typeof ref2.url === "string") return sourceBytes(ref2.url, opts);
   throw new Error("host.raster: unreadable source.");
 }
+function shownUrl(url) {
+  const s = url.trim();
+  if (!WEB_URL.test(s)) return s;
+  try {
+    const u = new URL(s);
+    if (u.host) return `${u.protocol}//${u.host}${u.pathname}`;
+  } catch {
+  }
+  return s.replace(/[?#].*$/s, "").replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/]*@/i, "$1");
+}
 function pictureName(src) {
   const fromUrl = (url) => {
     if (/^\s*(data|blob):/i.test(url)) return void 0;
-    const path = url.replace(/[?#].*$/s, "");
-    const last = path.split("/").filter(Boolean).pop();
+    const last = shownUrl(url).replace(/[?#].*$/s, "").split("/").filter(Boolean).pop();
     let name = last ?? "";
     try {
       name = decodeURIComponent(name);
     } catch {
     }
     if (!name || /^[a-z][a-z0-9+.-]*:$/i.test(name)) return void 0;
-    return name.length > 80 ? `${name.slice(0, 77)}...` : name;
+    return shortName(name);
   };
   if (typeof src === "string") return fromUrl(src);
   if (!src || typeof src !== "object" || src instanceof Uint8Array) return void 0;
   const ref2 = src;
-  for (const v of [ref2.meta?.name, ref2.name]) if (typeof v === "string" && v.trim()) return v.trim().slice(0, 80);
-  if (typeof ref2.id === "string" && !/^\s*(data|blob):/i.test(ref2.id)) return ref2.id.slice(0, 80);
+  for (const v of [ref2.meta?.name, ref2.name]) if (typeof v === "string" && v.trim()) return shortName(shownUrl(v));
+  if (typeof ref2.id === "string" && ref2.id.trim() && !/^\s*(data|blob):/i.test(ref2.id)) return shortName(shownUrl(ref2.id));
   return typeof ref2.url === "string" ? fromUrl(ref2.url) : void 0;
 }
 async function encodeCanvas(canvas, format, quality) {
@@ -163694,7 +163703,7 @@ async function installNodeCanvas(win, target2 = globalThis, opts = {}) {
   if (typeof target2["ImageData"] !== "function") target2["ImageData"] = mod.ImageData;
   return true;
 }
-var fontsRegistered, canvasModule, ImagePixelLimitError, HOSTED_DECODE_MAX_PIXELS, HOSTED_DECODE_BUDGET_PIXELS, pixels, limited, sharpModule3, MIME_BY_MAGIC, BACKING, blobUrls, LIMITS3;
+var fontsRegistered, canvasModule, ImagePixelLimitError, HOSTED_DECODE_MAX_PIXELS, HOSTED_DECODE_BUDGET_PIXELS, pixels, limited, sharpModule3, MIME_BY_MAGIC, WEB_URL, shortName, BACKING, blobUrls, LIMITS3;
 var init_canvas = __esm({
   "packages/node-shell/src/canvas.ts"() {
     "use strict";
@@ -163718,6 +163727,8 @@ var init_canvas = __esm({
       ["image/webp", (b) => b[0] === 82 && b[1] === 73 && b[8] === 87 && b[9] === 69],
       ["image/avif", (b) => b[4] === 102 && b[5] === 116 && b[6] === 121 && b[7] === 112]
     ];
+    WEB_URL = /^[a-z][a-z0-9+.-]*:\/\//i;
+    shortName = (name) => name.length > 80 ? `${name.slice(0, 77)}...` : name;
     BACKING = /* @__PURE__ */ Symbol.for("lolly.nodeCanvas.backing");
     blobUrls = /* @__PURE__ */ new Map();
     LIMITS3 = /* @__PURE__ */ Symbol.for("lolly.nodeCanvas.limits");
