@@ -303,15 +303,15 @@ function measureContent(url, img) {
 
 // A full-colour raster logo, cropped to its content box (margins removed), as a
 // data URL. The vector path already fits each logo to its trimmed content box (the
-// inline <svg> viewBox), but a plain <img> with object-fit:contain fits the WHOLE
-// image - transparent / flat-colour margins included - so the same logo looked
-// smaller as an image than as vector, and toggling "Render as vector" jumped its
-// size. Cropping the bitmap to the same content box makes both paths letterbox the
-// SAME artwork into the SAME size% box. We keep it a real <img> src (not a wrapper
-// crop) because the SVG/PDF export walker reads only the element's own geometry -
-// an overflow-clipped wrapper would be ignored, but a pre-cropped bitmap embeds
-// faithfully in every format. Returns the original url unchanged when there's no
-// meaningful margin to trim, when pixels can't be read (headless), or on failure.
+// nested <svg> viewBox), but an <image> fitted with "meet" fits the WHOLE image -
+// transparent / flat-colour margins included - so the same logo looked smaller as
+// an image than as vector, and toggling "Render as vector" jumped its size.
+// Cropping the bitmap to the same content box makes both paths letterbox the SAME
+// artwork into the SAME size% box. A pre-cropped bitmap, rather than a clip, keeps
+// the <image> plain, so it embeds faithfully in every format and every lowering
+// (EMF, EPS, DXF and Penpot skip or flatten clips). Returns the original url
+// unchanged when there's no meaningful margin to trim, when pixels can't be read
+// (no canvas), or on failure.
 function getTrimmedRaster(url, img, box, knockout) {
   var cacheKey = url + '|k' + (knockout ? 1 : 0);
   if (_cropCache[cacheKey] !== undefined) return _cropCache[cacheKey];
@@ -1105,7 +1105,7 @@ async function buildItems(inputs, balance, trim, vectorizeAll) {
     return {
       index: i,
       url: url,
-      displayUrl: url,                          // full-colour <img> src; content-trimmed below
+      displayUrl: url,                          // full-colour <image> href; content-trimmed below
       name: ref && ref.meta && ref.meta.name ? ref.meta.name : '',
       isSvg: !!(ref && (ref.type === 'vector' || ref.format === 'svg')),
       // "Render as vector": the wall-wide toggle, or this logo's own.
@@ -1284,14 +1284,17 @@ function tierGroups(items) {
 // centred, so a short wall does not push headings away from their logos.
 function layoutTiers(groups, o) {
   var innerW = Math.max(0, WALL_W - 2 * o.padX), innerH = Math.max(0, WALL_H - 2 * o.padY);
-  var headSize = o.headingSize;
-  var headBand = Math.round(headSize * 1.8);
   var tierGap = o.headings ? o.gapY : Math.max(16, 2 * o.gapY);
   var tiers = groups.map(function (g, k) {
     var cols = clamp(o.sizing === 'even' ? o.cols : o.cols + k, 1, 12);
     var cw = Math.max(0, (innerW - (cols - 1) * o.gapX) / cols);
     return { g: g, cols: cols, cw: cw, rows: Math.ceil(g.items.length / cols), heading: !!(o.headings && g.name) };
   });
+  // Headings never take more than about a third of the height, so a wall with many
+  // tiers keeps room for its logos: the type steps down from the usual size.
+  var nHeads = tiers.filter(function (t) { return t.heading; }).length;
+  var headSize = nHeads ? Math.max(11, Math.min(o.headingSize, Math.floor(innerH * 0.35 / (nHeads * 1.8)))) : o.headingSize;
+  var headBand = Math.round(headSize * 1.8);
   var cw0 = tiers[0].cw || 1;
   var fixed = 0, weight = 0;
   tiers.forEach(function (t, k) {
