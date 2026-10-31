@@ -31,9 +31,11 @@
  * because the browser applies it too and a bar drawn against the oriented image
  * would otherwise land on different pixels here.
  */
+import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { imageDimensions } from '@lolly/engine';
 import { catalogFile } from './content-roots.ts';
+import { isSvgDocument } from './format-sniff.ts';
 import type {
   ImageEncodeOpts, ImageInfo, ImageResult, RasterAPI, RasterFrame, RasterSource,
 } from '@lolly-tools/core/host-v1';
@@ -136,6 +138,10 @@ export async function nodeCanvas(): Promise<NodeCanvasModule | null> {
  * One object is shared by every decode it should bound together (one render), so
  * `budgetPixels` holds across them. No limits at all is the default: the CLI and
  * the TUI decode the user's own files.
+ *
+ * A known limit of the budget: it counts the pictures decoded, not the canvases a
+ * hook then draws them into. Such a canvas is checked against `maxPixels` only, so
+ * a render's peak memory can be a few times what its decodes alone would take.
  */
 export interface DecodeLimits {
   /** The largest picture one decode accepts, in pixels (width x height). */
@@ -144,8 +150,23 @@ export interface DecodeLimits {
   budgetPixels?: number;
   /** Pixels admitted so far against `budgetPixels`. */
   used?: number;
-  /** Each refusal's message, in order, so the caller can report what was left out. */
+  /** Each refusal's message, in order, as thrown by the refused decode. */
   refusals?: string[];
+  /** Each picture refused, once per picture, for `decodeRefusalWarnings`. */
+  refused?: DecodeRefusal[];
+}
+
+/** One picture a `DecodeLimits` refused. */
+export interface DecodeRefusal {
+  /** The limit it was over: one picture's cap, the render's budget, or a size
+   *  that could not be read before decoding. */
+  limit: 'picture' | 'budget' | 'unknown-size';
+  width?: number;
+  height?: number;
+  /** The picture's name, when the decode was given one. */
+  source?: string;
+  /** A digest of the picture's bytes, so a picture refused twice counts once. */
+  key: string;
 }
 
 /** A decode refused by a `DecodeLimits` before it allocated anything. */
@@ -162,28 +183,82 @@ export const HOSTED_DECODE_BUDGET_PIXELS = 4 * HOSTED_DECODE_MAX_PIXELS;
 
 /** A fresh set of the hosted limits, for one render. */
 export function hostedDecodeLimits(): DecodeLimits {
-  return { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [] };
+  return { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [], refused: [] };
 }
 
 const pixels = (n: number): string => n.toLocaleString('en');
 
-function refuse(limits: DecodeLimits, message: string): never {
+/** The picture a decode is working on: its bytes, and its name when it has one. */
+interface Picture { bytes: Uint8Array; source?: string | undefined }
+
+function refuse(limits: DecodeLimits, pic: Picture, record: Omit<DecodeRefusal, 'key' | 'source'>, message: string): never {
   limits.refusals?.push(message);
+  if (limits.refused) {
+    const key = createHash('sha256').update(pic.bytes).digest('hex');
+    const seen = limits.refused.find((r) => r.key === key && r.limit === record.limit);
+    if (!seen) limits.refused.push({ ...record, key, ...(pic.source ? { source: pic.source } : {}) });
+    else if (!seen.source && pic.source) seen.source = pic.source;
+  }
   throw new ImagePixelLimitError(message);
 }
 
 /** Admit one picture of `w` x `h` against `limits`, or refuse the picture. */
-function admit(limits: DecodeLimits | undefined, w: number, h: number): void {
+function admit(limits: DecodeLimits | undefined, pic: Picture, w: number, h: number): void {
   if (!limits) return;
   const area = w * h;
   if (limits.maxPixels && area > limits.maxPixels) {
-    refuse(limits, `A ${w} x ${h} picture was not decoded: this server decodes pictures of up to ${pixels(limits.maxPixels)} pixels.`);
+    refuse(limits, pic, { limit: 'picture', width: w, height: h }, `A ${w} x ${h} picture was not decoded: this server decodes pictures of up to ${pixels(limits.maxPixels)} pixels.`);
   }
   const used = limits.used ?? 0;
   if (limits.budgetPixels && used + area > limits.budgetPixels) {
-    refuse(limits, `A ${w} x ${h} picture was not decoded: this render has used ${pixels(used)} of the ${pixels(limits.budgetPixels)} pixels it may decode.`);
+    refuse(limits, pic, { limit: 'budget', width: w, height: h }, `A ${w} x ${h} picture was not decoded: this render has used ${pixels(used)} of the ${pixels(limits.budgetPixels)} pixels it may decode.`);
   }
   limits.used = used + area;
+}
+
+/**
+ * Which pictures of a group were left out, as a bracketed list for a warning: each
+ * one `label` gives a name, at most eight, then how many more (named or not).
+ * Empty when none of them has a name.
+ */
+function whichPictures(group: DecodeRefusal[], label: (r: DecodeRefusal) => string | undefined): string {
+  const named = group.map(label).filter((x): x is string => !!x);
+  if (!named.length) return '';
+  const shown = named.slice(0, 8);
+  const rest = group.length - shown.length;
+  const list = rest > 0
+    ? `${shown.join(', ')} and ${rest} more`
+    : shown.length > 1 ? `${shown.slice(0, -1).join(', ')} and ${shown[shown.length - 1]}` : shown[0];
+  return ` (${list})`;
+}
+
+/**
+ * What a render's refusals come to, for the person who asked for the render: one
+ * sentence per limit, giving how many pictures were left out and which, by name
+ * where the decode had one. A picture refused more than once (a hook that retries)
+ * counts once.
+ */
+export function decodeRefusalWarnings(limits: DecodeLimits | undefined): string[] {
+  const refused = limits?.refused ?? [];
+  const out: string[] = [];
+  const size = (r: DecodeRefusal): string => `${r.width} x ${r.height}`;
+  const count = (n: number): string => (n === 1 ? 'A picture was' : `${n} pictures were`);
+  const over = refused.filter((r) => r.limit === 'picture');
+  if (over.length === 1) {
+    const r = over[0]!;
+    out.push(`A ${size(r)} picture${r.source ? ` (${r.source})` : ''} was not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels.`);
+  } else if (over.length > 1) {
+    out.push(`${over.length} pictures were not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels, and these are larger${whichPictures(over, (r) => (r.source ? `${r.source} at ${size(r)}` : size(r)))}.`);
+  }
+  const budget = refused.filter((r) => r.limit === 'budget');
+  if (budget.length) {
+    out.push(`${count(budget.length)} not decoded: ${budget.length === 1 ? 'it' : 'each'} would have taken this render past the ${pixels(limits?.budgetPixels ?? 0)} pixels it may decode${whichPictures(budget, (r) => r.source)}.`);
+  }
+  const unknown = refused.filter((r) => r.limit === 'unknown-size');
+  if (unknown.length) {
+    out.push(`${count(unknown.length)} not decoded: this server decodes only pictures whose size it can read first${whichPictures(unknown, (r) => r.source)}.`);
+  }
+  return out;
 }
 
 const limited = (limits?: DecodeLimits): limits is DecodeLimits => !!(limits && (limits.maxPixels || limits.budgetPixels));
@@ -214,13 +289,13 @@ const MIME_BY_MAGIC: [string, (b: Uint8Array) => boolean][] = [
   ['image/avif', (b) => b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70],
 ];
 
-/** MIME sniffed from the BYTES, never a filename - the contract's own rule. */
+/** MIME sniffed from the BYTES, never a filename - the contract's own rule. An SVG
+ *  is a document whose root element is `<svg>` (`isSvgDocument`). */
 export function sniffImageMime(bytes: Uint8Array): string {
   for (const [mime, test] of MIME_BY_MAGIC) {
     try { if (test(bytes)) return mime; } catch { /* short buffer */ }
   }
-  const head = Buffer.from(bytes.subarray(0, 256)).toString('utf8');
-  if (/<svg[\s>]/i.test(head) || /^\s*<\?xml/.test(head)) return 'image/svg+xml';
+  if (isSvgDocument(bytes)) return 'image/svg+xml';
   return 'application/octet-stream';
 }
 
@@ -232,10 +307,18 @@ export function sniffImageMime(bytes: Uint8Array): string {
  * orientation, which is what keeps bar geometry identical to the browser's. SVG
  * goes to Skia's own loader (sharp would need a rasterisation size decided here,
  * and the SVG's intrinsic size is exactly what a caller wants).
+ *
+ * Whether the bytes are an SVG is read from the bytes, never from `mime`: Skia
+ * decodes a raster eagerly, so raster bytes labelled `image/svg+xml` would
+ * otherwise be decoded before the header check below could refuse them. `mime`
+ * only helps size a raster whose signature the sniff does not know. `source` is
+ * the picture's name, for a refusal (`decodeRefusalWarnings`).
  */
-export async function decodeToCanvas(bytes: Uint8Array, mime?: string, limits?: DecodeLimits): Promise<NodeCanvas | null> {
-  const kind = mime && mime !== 'application/octet-stream' ? mime : sniffImageMime(bytes);
-  const svg = kind === 'image/svg+xml';
+export async function decodeToCanvas(bytes: Uint8Array, mime?: string, limits?: DecodeLimits, source?: string): Promise<NodeCanvas | null> {
+  const sniffed = sniffImageMime(bytes);
+  const svg = sniffed === 'image/svg+xml';
+  const kind = sniffed !== 'application/octet-stream' ? sniffed : (mime && mime !== 'image/svg+xml' ? mime : sniffed);
+  const pic: Picture = { bytes, source };
   // Only an SVG can draw text while it decodes, so only an SVG pays for the faces.
   const mod = svg ? await nodeCanvas() : await bareCanvas();
   if (!mod) return null;
@@ -247,8 +330,8 @@ export async function decodeToCanvas(bytes: Uint8Array, mime?: string, limits?: 
   // An SVG's size is checked once Skia has parsed it, before its canvas exists.
   if (!svg && limited(limits)) {
     const size = await headerSize(buf, kind, sharp);
-    if (!size) refuse(limits, 'A picture was not decoded: its size could not be read before decoding, and this server decodes only pictures whose size it knows.');
-    admit(limits, size.w, size.h);
+    if (!size) refuse(limits, pic, { limit: 'unknown-size' }, 'A picture was not decoded: its size could not be read before decoding, and this server decodes only pictures whose size it knows.');
+    admit(limits, pic, size.w, size.h);
   }
   if (sharp) {
     try {
@@ -263,7 +346,7 @@ export async function decodeToCanvas(bytes: Uint8Array, mime?: string, limits?: 
   try {
     const img = await mod.loadImage(buf);
     const w = Math.max(1, img.width), h = Math.max(1, img.height);
-    if (svg) admit(limits, w, h);
+    if (svg) admit(limits, pic, w, h);
     const canvas = mod.createCanvas(w, h);
     canvas.getContext('2d').drawImage(img, 0, 0);
     return canvas;
@@ -314,6 +397,29 @@ async function sourceBytes(src: RasterSource, opts: NodeRasterOptions = {}): Pro
   throw new Error('host.raster: unreadable source.');
 }
 
+/**
+ * What a raster source is called, for a refusal: an asset's name or id, a file's
+ * name, or the last part of a URL's path. Inline bytes (`data:`, `blob:`, a byte
+ * array) have no name.
+ */
+export function pictureName(src: unknown): string | undefined {
+  const fromUrl = (url: string): string | undefined => {
+    if (/^\s*(data|blob):/i.test(url)) return undefined;
+    const path = url.replace(/[?#].*$/s, '');
+    const last = path.split('/').filter(Boolean).pop();
+    let name = last ?? '';
+    try { name = decodeURIComponent(name); } catch { /* keep it as written */ }
+    if (!name || /^[a-z][a-z0-9+.-]*:$/i.test(name)) return undefined;
+    return name.length > 80 ? `${name.slice(0, 77)}...` : name;
+  };
+  if (typeof src === 'string') return fromUrl(src);
+  if (!src || typeof src !== 'object' || src instanceof Uint8Array) return undefined;
+  const ref = src as { name?: unknown; id?: unknown; url?: unknown; meta?: { name?: unknown } };
+  for (const v of [ref.meta?.name, ref.name]) if (typeof v === 'string' && v.trim()) return v.trim().slice(0, 80);
+  if (typeof ref.id === 'string' && !/^\s*(data|blob):/i.test(ref.id)) return ref.id.slice(0, 80);
+  return typeof ref.url === 'string' ? fromUrl(ref.url) : undefined;
+}
+
 /** Encode finished pixels. sharp writes the bytes when it is present (it drops
  *  every metadata block on re-encode, which is what a redacted derivative needs);
  *  Skia's own encoder is the fallback. */
@@ -357,13 +463,13 @@ export function createNodeRasterAPI(opts: NodeRasterOptions = {}): RasterAPI | n
           };
         }
       }
-      const canvas = await decodeToCanvas(bytes, mime, opts.limits);
+      const canvas = await decodeToCanvas(bytes, mime, opts.limits, pictureName(src));
       if (!canvas) throw new Error('host.raster: these bytes are not a decodable image here.');
       return { width: canvas.width, height: canvas.height, mime };
     },
     async decode(src: RasterSource): Promise<ImageBitmap> {
       const bytes = await sourceBytes(src, opts);
-      const canvas = await decodeToCanvas(bytes, undefined, opts.limits);
+      const canvas = await decodeToCanvas(bytes, undefined, opts.limits, pictureName(src));
       if (!canvas) throw new Error('host.raster: these bytes are not a decodable image here.');
       return canvas as unknown as ImageBitmap;
     },

@@ -149711,10 +149711,63 @@ var init_design_pptx = __esm({
 });
 
 // packages/node-shell/src/format-sniff.ts
+function leadingText(bytes2) {
+  const head2 = bytes2.subarray(0, SVG_SNIFF_BYTES);
+  const utf16 = head2[0] === 255 && head2[1] === 254 ? "utf-16le" : head2[0] === 254 && head2[1] === 255 ? "utf-16be" : null;
+  return new TextDecoder(utf16 ?? "utf-8").decode(head2).replace(/^﻿/, "");
+}
+function isSvgDocument(bytes2) {
+  const s = leadingText(bytes2);
+  let i = 0;
+  while (i < s.length) {
+    while (i < s.length && /\s/.test(s[i])) i++;
+    if (s.startsWith("<?", i)) {
+      const end = s.indexOf("?>", i + 2);
+      if (end < 0) return false;
+      i = end + 2;
+    } else if (s.startsWith("<!--", i)) {
+      const end = s.indexOf("-->", i + 4);
+      if (end < 0) return false;
+      i = end + 3;
+    } else if (/^<!DOCTYPE\s/i.test(s.slice(i, i + 10))) {
+      const end = doctypeEnd(s, i + 9);
+      if (end < 0) return false;
+      i = end + 1;
+    } else {
+      return /^<(?:[A-Za-z_][\w.-]*:)?svg[\s/>]/.test(s.slice(i, i + 64));
+    }
+  }
+  return false;
+}
+function doctypeEnd(s, from) {
+  let quote2 = null;
+  let subset = false;
+  for (let k = from; k < s.length; k++) {
+    const c = s[k];
+    if (quote2) {
+      if (c === quote2) quote2 = null;
+    } else if (subset && s.startsWith("<!--", k)) {
+      const end = s.indexOf("-->", k + 4);
+      if (end < 0) return -1;
+      k = end + 2;
+    } else if (c === '"' || c === "'") {
+      quote2 = c;
+    } else if (c === "[") {
+      subset = true;
+    } else if (c === "]") {
+      subset = false;
+    } else if (c === ">" && !subset) {
+      return k;
+    }
+  }
+  return -1;
+}
+var SVG_SNIFF_BYTES;
 var init_format_sniff2 = __esm({
   "packages/node-shell/src/format-sniff.ts"() {
     "use strict";
     init_format_sniff();
+    SVG_SNIFF_BYTES = 64 * 1024;
   }
 });
 
@@ -163224,13 +163277,16 @@ __export(canvas_exports, {
   HOSTED_DECODE_MAX_PIXELS: () => HOSTED_DECODE_MAX_PIXELS,
   ImagePixelLimitError: () => ImagePixelLimitError,
   createNodeRasterAPI: () => createNodeRasterAPI,
+  decodeRefusalWarnings: () => decodeRefusalWarnings,
   decodeToCanvas: () => decodeToCanvas,
   hostedDecodeLimits: () => hostedDecodeLimits,
   installNodeCanvas: () => installNodeCanvas,
   isCanvasAvailable: () => isCanvasAvailable,
   nodeCanvas: () => nodeCanvas,
+  pictureName: () => pictureName,
   sniffImageMime: () => sniffImageMime
 });
+import { createHash as createHash9 } from "node:crypto";
 import { createRequire as createRequire3 } from "node:module";
 function registerCatalogFonts(mod) {
   if (fontsRegistered) return;
@@ -163266,23 +163322,59 @@ async function nodeCanvas() {
   return mod;
 }
 function hostedDecodeLimits() {
-  return { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [] };
+  return { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [], refused: [] };
 }
-function refuse2(limits, message) {
+function refuse2(limits, pic, record46, message) {
   limits.refusals?.push(message);
+  if (limits.refused) {
+    const key2 = createHash9("sha256").update(pic.bytes).digest("hex");
+    const seen = limits.refused.find((r5) => r5.key === key2 && r5.limit === record46.limit);
+    if (!seen) limits.refused.push({ ...record46, key: key2, ...pic.source ? { source: pic.source } : {} });
+    else if (!seen.source && pic.source) seen.source = pic.source;
+  }
   throw new ImagePixelLimitError(message);
 }
-function admit(limits, w, h) {
+function admit(limits, pic, w, h) {
   if (!limits) return;
   const area2 = w * h;
   if (limits.maxPixels && area2 > limits.maxPixels) {
-    refuse2(limits, `A ${w} x ${h} picture was not decoded: this server decodes pictures of up to ${pixels(limits.maxPixels)} pixels.`);
+    refuse2(limits, pic, { limit: "picture", width: w, height: h }, `A ${w} x ${h} picture was not decoded: this server decodes pictures of up to ${pixels(limits.maxPixels)} pixels.`);
   }
   const used = limits.used ?? 0;
   if (limits.budgetPixels && used + area2 > limits.budgetPixels) {
-    refuse2(limits, `A ${w} x ${h} picture was not decoded: this render has used ${pixels(used)} of the ${pixels(limits.budgetPixels)} pixels it may decode.`);
+    refuse2(limits, pic, { limit: "budget", width: w, height: h }, `A ${w} x ${h} picture was not decoded: this render has used ${pixels(used)} of the ${pixels(limits.budgetPixels)} pixels it may decode.`);
   }
   limits.used = used + area2;
+}
+function whichPictures(group, label4) {
+  const named = group.map(label4).filter((x) => !!x);
+  if (!named.length) return "";
+  const shown = named.slice(0, 8);
+  const rest2 = group.length - shown.length;
+  const list4 = rest2 > 0 ? `${shown.join(", ")} and ${rest2} more` : shown.length > 1 ? `${shown.slice(0, -1).join(", ")} and ${shown[shown.length - 1]}` : shown[0];
+  return ` (${list4})`;
+}
+function decodeRefusalWarnings(limits) {
+  const refused = limits?.refused ?? [];
+  const out = [];
+  const size = (r5) => `${r5.width} x ${r5.height}`;
+  const count4 = (n8) => n8 === 1 ? "A picture was" : `${n8} pictures were`;
+  const over = refused.filter((r5) => r5.limit === "picture");
+  if (over.length === 1) {
+    const r5 = over[0];
+    out.push(`A ${size(r5)} picture${r5.source ? ` (${r5.source})` : ""} was not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels.`);
+  } else if (over.length > 1) {
+    out.push(`${over.length} pictures were not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels, and these are larger${whichPictures(over, (r5) => r5.source ? `${r5.source} at ${size(r5)}` : size(r5))}.`);
+  }
+  const budget3 = refused.filter((r5) => r5.limit === "budget");
+  if (budget3.length) {
+    out.push(`${count4(budget3.length)} not decoded: ${budget3.length === 1 ? "it" : "each"} would have taken this render past the ${pixels(limits?.budgetPixels ?? 0)} pixels it may decode${whichPictures(budget3, (r5) => r5.source)}.`);
+  }
+  const unknown2 = refused.filter((r5) => r5.limit === "unknown-size");
+  if (unknown2.length) {
+    out.push(`${count4(unknown2.length)} not decoded: this server decodes only pictures whose size it can read first${whichPictures(unknown2, (r5) => r5.source)}.`);
+  }
+  return out;
 }
 function loadSharp3() {
   sharpModule3 ??= import("sharp").then((m2) => m2.default ?? m2).catch(() => null);
@@ -163295,21 +163387,22 @@ function sniffImageMime(bytes2) {
     } catch {
     }
   }
-  const head2 = Buffer.from(bytes2.subarray(0, 256)).toString("utf8");
-  if (/<svg[\s>]/i.test(head2) || /^\s*<\?xml/.test(head2)) return "image/svg+xml";
+  if (isSvgDocument(bytes2)) return "image/svg+xml";
   return "application/octet-stream";
 }
-async function decodeToCanvas(bytes2, mime2, limits) {
-  const kind = mime2 && mime2 !== "application/octet-stream" ? mime2 : sniffImageMime(bytes2);
-  const svg = kind === "image/svg+xml";
+async function decodeToCanvas(bytes2, mime2, limits, source) {
+  const sniffed = sniffImageMime(bytes2);
+  const svg = sniffed === "image/svg+xml";
+  const kind = sniffed !== "application/octet-stream" ? sniffed : mime2 && mime2 !== "image/svg+xml" ? mime2 : sniffed;
+  const pic = { bytes: bytes2, source };
   const mod = svg ? await nodeCanvas() : await bareCanvas();
   if (!mod) return null;
   const buf = Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength);
   const sharp = svg ? null : await loadSharp3();
   if (!svg && limited(limits)) {
     const size = await headerSize(buf, kind, sharp);
-    if (!size) refuse2(limits, "A picture was not decoded: its size could not be read before decoding, and this server decodes only pictures whose size it knows.");
-    admit(limits, size.w, size.h);
+    if (!size) refuse2(limits, pic, { limit: "unknown-size" }, "A picture was not decoded: its size could not be read before decoding, and this server decodes only pictures whose size it knows.");
+    admit(limits, pic, size.w, size.h);
   }
   if (sharp) {
     try {
@@ -163325,7 +163418,7 @@ async function decodeToCanvas(bytes2, mime2, limits) {
   try {
     const img = await mod.loadImage(buf);
     const w = Math.max(1, img.width), h = Math.max(1, img.height);
-    if (svg) admit(limits, w, h);
+    if (svg) admit(limits, pic, w, h);
     const canvas = mod.createCanvas(w, h);
     canvas.getContext("2d").drawImage(img, 0, 0);
     return canvas;
@@ -163365,6 +163458,26 @@ async function sourceBytes(src, opts = {}) {
   if (ref2 && typeof ref2.url === "string") return sourceBytes(ref2.url, opts);
   throw new Error("host.raster: unreadable source.");
 }
+function pictureName(src) {
+  const fromUrl = (url) => {
+    if (/^\s*(data|blob):/i.test(url)) return void 0;
+    const path = url.replace(/[?#].*$/s, "");
+    const last = path.split("/").filter(Boolean).pop();
+    let name = last ?? "";
+    try {
+      name = decodeURIComponent(name);
+    } catch {
+    }
+    if (!name || /^[a-z][a-z0-9+.-]*:$/i.test(name)) return void 0;
+    return name.length > 80 ? `${name.slice(0, 77)}...` : name;
+  };
+  if (typeof src === "string") return fromUrl(src);
+  if (!src || typeof src !== "object" || src instanceof Uint8Array) return void 0;
+  const ref2 = src;
+  for (const v of [ref2.meta?.name, ref2.name]) if (typeof v === "string" && v.trim()) return v.trim().slice(0, 80);
+  if (typeof ref2.id === "string" && !/^\s*(data|blob):/i.test(ref2.id)) return ref2.id.slice(0, 80);
+  return typeof ref2.url === "string" ? fromUrl(ref2.url) : void 0;
+}
 async function encodeCanvas(canvas, format, quality) {
   const fmt4 = format === "jpg" ? "jpeg" : format;
   const mime2 = `image/${fmt4}`;
@@ -163393,13 +163506,13 @@ function createNodeRasterAPI(opts = {}) {
           };
         }
       }
-      const canvas = await decodeToCanvas(bytes2, mime2, opts.limits);
+      const canvas = await decodeToCanvas(bytes2, mime2, opts.limits, pictureName(src));
       if (!canvas) throw new Error("host.raster: these bytes are not a decodable image here.");
       return { width: canvas.width, height: canvas.height, mime: mime2 };
     },
     async decode(src) {
       const bytes2 = await sourceBytes(src, opts);
-      const canvas = await decodeToCanvas(bytes2, void 0, opts.limits);
+      const canvas = await decodeToCanvas(bytes2, void 0, opts.limits, pictureName(src));
       if (!canvas) throw new Error("host.raster: these bytes are not a decodable image here.");
       return canvas;
     },
@@ -163587,6 +163700,7 @@ var init_canvas = __esm({
     "use strict";
     init_src2();
     init_content_roots();
+    init_format_sniff2();
     fontsRegistered = false;
     canvasModule = null;
     ImagePixelLimitError = class extends Error {
@@ -170299,7 +170413,7 @@ var init_forensic2 = __esm({
 });
 
 // packages/node-shell/src/check.ts
-import { createHash as createHash9 } from "node:crypto";
+import { createHash as createHash10 } from "node:crypto";
 function fidelityNote(compared) {
   const excepted = compared.fidelity.excepted?.length ?? 0;
   return (excepted ? ` ${excepted === 1 ? "1 string is recorded as a deliberate edit" : `${excepted} strings are recorded as deliberate edits`} (excepted, not passed).` : "") + (compared.complete ? "" : " The comparison stopped at one of its limits, so the family is partial (see fidelity.coverage.partial).");
@@ -171315,7 +171429,7 @@ var init_check = __esm({
       const n8 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n8 === "number" && Number.isFinite(n8) ? n8 : fallback;
     };
-    sha2562 = (bytes2) => createHash9("sha256").update(bytes2).digest("hex");
+    sha2562 = (bytes2) => createHash10("sha256").update(bytes2).digest("hex");
     zero = () => ({ error: 0, warn: 0, info: 0 });
     familyState = (state, reason2) => ({
       state,
@@ -178751,7 +178865,7 @@ function withHost(profile2, fn, opts = {}) {
     g2["document"] = dom.window.document;
     g2["Element"] = dom.window.Element;
     try {
-      const { installNodeCanvas: installNodeCanvas2, hostedDecodeLimits: hostedDecodeLimits2 } = await Promise.resolve().then(() => (init_canvas(), canvas_exports));
+      const { installNodeCanvas: installNodeCanvas2, hostedDecodeLimits: hostedDecodeLimits2, decodeRefusalWarnings: decodeRefusalWarnings2 } = await Promise.resolve().then(() => (init_canvas(), canvas_exports));
       const decodeLimits = isHostedServer() ? hostedDecodeLimits2() : void 0;
       await installNodeCanvas2(dom.window, void 0, decodeLimits ? { limits: decodeLimits } : {});
       const audio = currentAudioScope();
@@ -178776,7 +178890,7 @@ function withHost(profile2, fn, opts = {}) {
         process.stderr.write(`[mcp:${level2}] ${msg3}${ctx ? " " + safeJson(ctx) : ""}
 `);
       };
-      return await fn(dom, host, { decodeRefusals: decodeLimits?.refusals ?? [] });
+      return await fn(dom, host, { decodeRefusals: () => decodeRefusalWarnings2(decodeLimits) });
     } finally {
       g2["window"] = prev.window;
       g2["document"] = prev.document;
@@ -179308,7 +179422,7 @@ async function renderTierA(toolId, values, fmt4, opts, profile2, emoji, producti
       if (e instanceof RenderIntegrityError) throw new RenderError(e.message);
       throw e;
     }
-    for (const refusal3 of new Set(run3.decodeRefusals)) warnings2.push(refusal3);
+    warnings2.push(...run3.decodeRefusals());
     return {
       ...productionInputs ? { productionInputs } : {},
       bytes: bytes2,
@@ -185170,7 +185284,7 @@ init_design_brief2();
 
 // packages/node-shell/src/token-report.ts
 init_src2();
-import { createHash as createHash10 } from "node:crypto";
+import { createHash as createHash11 } from "node:crypto";
 var TOKEN_REPORT_LIMITS = Object.freeze({
   /** Rows a token list returns when the caller gives no limit. */
   listDefault: 50,
@@ -185195,7 +185309,7 @@ var TokenReportError = class extends Error {
 };
 var clampWhole = (value2, fallback, min, max) => typeof value2 === "number" && Number.isFinite(value2) ? Math.min(max, Math.max(min, Math.trunc(value2))) : fallback;
 function tokenRevision(doc) {
-  return `sha256:${createHash10("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
+  return `sha256:${createHash11("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
 }
 function storedTokenChoices(doc) {
   return resolveTokenSelection(doc, {}).choices;
@@ -186374,7 +186488,7 @@ init_src2();
 init_src();
 init_file_v1();
 init_design_lolly();
-import { createHash as createHash11 } from "node:crypto";
+import { createHash as createHash12 } from "node:crypto";
 
 // schemas/design-package-v1.schema.json
 var design_package_v1_schema_default = {
@@ -186879,7 +186993,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = stru
       } catch (err) {
         throw new ToolCodeError("input.unsupported", `The compiled document could not be packaged: ${err instanceof Error ? err.message : String(err)}`);
       }
-      const sha2563 = createHash11("sha256").update(packed2.bytes).digest("hex");
+      const sha2563 = createHash12("sha256").update(packed2.bytes).digest("hex");
       const name2 = "document.lolly";
       const structured = { legacy: true, manifest: packed2.manifest, bytes: packed2.bytes.byteLength, sha256: sha2563 };
       const block2 = { type: "resource", resource: { uri: resourceUri2("package", sha2563, name2), mimeType: LOLLY_MIME2, blob: Buffer.from(packed2.bytes).toString("base64") } };
@@ -186944,7 +187058,7 @@ function isFileTransform(manifest) {
 // services/mcp/src/result-files.ts
 init_file_v1();
 init_delivery_v1();
-import { createHash as createHash12, createHmac, randomUUID as randomUUID2 } from "node:crypto";
+import { createHash as createHash13, createHmac, randomUUID as randomUUID2 } from "node:crypto";
 import { mkdtemp as mkdtemp4, readFile as readFile29, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
 import { join as join30 } from "node:path";
@@ -186956,7 +187070,7 @@ var ENTRY_LIMIT = 200;
 var PATH_PATTERN = /^\/api\/mcp\/files\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function bearerPrincipal(header) {
   const bearer = /^Bearer\s+(.+)$/i.exec(header ?? "")?.[1]?.trim();
-  return bearer ? createHash12("sha256").update(bearer).digest("hex") : null;
+  return bearer ? createHash13("sha256").update(bearer).digest("hex") : null;
 }
 function privateFileScopeEnabled(env) {
   return env.LOLLY_MCP_PRIVATE_FILES === "1" && !!env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && (env.LOLLY_MCP_REPLICAS === void 0 || env.LOLLY_MCP_REPLICAS === "1");
@@ -187018,7 +187132,7 @@ var ResultFiles = class {
       this.directory ??= mkdtemp4(join30(tmpdir5(), "lolly-mcp-results-"));
       file = join30(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
-      const digest2 = createHash12("sha256").update(bytes2).digest("hex");
+      const digest2 = createHash13("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
       const filename = safeFileName(name);
       this.entries.set(id3, { owner: owner3, path, file, expires, size: bytes2.byteLength, sha256: digest2, mime: /^[\w.+-]+\/[\w.+-]+(?:;[\x20-\x7e]*)?$/.test(mime2) ? mime2 : "application/octet-stream", name: filename });
@@ -187047,7 +187161,7 @@ var ResultFiles = class {
     const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner3, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
     if (status !== "ok") return null;
     const bytes2 = await readFile29(entry2.file);
-    if (bytes2.byteLength !== entry2.size || createHash12("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
+    if (bytes2.byteLength !== entry2.size || createHash13("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
     if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
     return { bytes: bytes2, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
   }
@@ -188329,7 +188443,7 @@ init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash13 } from "node:crypto";
+import { createHash as createHash14 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -188473,7 +188587,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes2) ? (await runJxl({ operation: "probe", bytes: bytes2 }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes2, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash13("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash14("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request2, signal, execution = "device") {
   return executeFileOperationV1(file, request2, {
@@ -189079,10 +189193,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash15 } from "node:crypto";
+import { createHash as createHash16 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash14 } from "node:crypto";
+import { createHash as createHash15 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -189215,7 +189329,7 @@ function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   return new MemoryRateLimiter();
 }
 function digestKey(namespace3, scope2, subject) {
-  return createHash14("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+  return createHash15("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -189684,10 +189798,10 @@ async function renderGet(path, query2, opts) {
   for (const key2 of dropped) params2.delete(key2);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash15("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash16("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     ...deliveryHeaders("public-bounded", { tokenBearing: true }),
-    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash15("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
+    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash16("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
     vary: "Accept-Encoding",
     etag,
     "x-robots-tag": "noindex"
@@ -189776,7 +189890,7 @@ function renderFailure(e) {
 }
 
 // services/mcp/src/image-proxy.ts
-import { createHash as createHash16 } from "node:crypto";
+import { createHash as createHash17 } from "node:crypto";
 init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
 function matchImageProxyPath(path) {
@@ -189884,13 +189998,13 @@ async function proxyImage(reqUrl, opts) {
     if (name === "TimeoutError" || name === "AbortError") return errorResponse2(504, "That address took too long to answer.");
     return errorResponse2(502, `Couldn't fetch that URL: ${e.message}`);
   }
-  const etag = `"${createHash16("sha256").update(bytes2).digest("hex")}"`;
+  const etag = `"${createHash17("sha256").update(bytes2).digest("hex")}"`;
   const headers = {
     "content-type": rawType,
     ...deliveryHeaders(privateResponse ? "person-private" : "public-bounded", { boundedAgeSec: cacheAge, tokenBearing: true }),
     etag,
     vary: "Accept-Encoding",
-    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash16("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
+    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash17("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
     "content-security-policy": "sandbox",
     "x-content-type-options": "nosniff",
     "content-disposition": "inline",
@@ -190171,7 +190285,7 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash17 } from "node:crypto";
+import { createHash as createHash18 } from "node:crypto";
 
 // services/mcp/src/admission-namespace.ts
 function admissionNamespace(env) {
@@ -190539,7 +190653,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash17("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash18("sha256").update(auth).digest("hex");
       const refusal3 = await limited2(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal3) return send(res, refusal3);
       const spent = await overBudget(budget3);

@@ -20,6 +20,8 @@
  *  - a path written into a row (a CSV column, `--logos=` JSON) is read only when the
  *    file's bytes are a picture, whatever it is called, so a CSV someone sent cannot
  *    copy a credentials file into the exported SVG (exit 2, nothing written);
+ *  - an SVG is a file whose root element is `<svg>`, found past a long DOCTYPE, so
+ *    a legacy Illustrator logo is a picture as a file, an argument or a CSV row;
  *  - a local path inside a link (a pasted lolly.tools URL or a `z=` state), and a
  *    link that sets a flag pointing at a file, are refused with exit 4: the link's
  *    author does not choose files on the computer that runs the command.
@@ -53,6 +55,10 @@ await writeFile(join(root, 'logos', 'c.svg'), svg('#2e7d32'));
 await writeFile(join(root, 'logos', 'd.png'), PNG);
 await writeFile(join(root, 'logos', 'e.png'), PNG);
 await writeFile(join(root, 'logos', 'notes.txt'), 'not a picture');
+// A legacy Illustrator export: a DOCTYPE and ENTITY block put its <svg> at byte 722.
+const ILLUSTRATOR = await readFile(join(ROOT, 'tests', 'fixtures', 'adobe', 'illustrator-legacy-logo.svg'));
+await writeFile(join(root, 'logos', 'illustrator.svg'), ILLUSTRATOR);
+await writeFile(join(root, 'logos', 'page.html'), '<!DOCTYPE html><html><body><svg viewBox="0 0 10 10"></svg></body></html>');
 // A secret that must never reach an exported file, under a picture's name too.
 const CANARY = 'SECRET-CANARY-1234567890';
 await writeFile(join(root, 'credentials'), `[default]\naws_secret_access_key = ${CANARY}\n`);
@@ -198,6 +204,28 @@ test('a CSV or a --logos path that is not a picture is refused, and nothing is w
   for (const r of [csv, named, dropped]) assert.equal(canaryIn(Buffer.from(r.stderr)), false);
 });
 
+test('a legacy Illustrator SVG, its <svg> after a long DOCTYPE, is a picture everywhere a file is read', { skip: SKIP }, async () => {
+  assert.ok(ILLUSTRATOR.indexOf('<svg') > 512, 'the root element sits past the first 512 bytes');
+  const file = await cli(['run', 'logo-wall', '--logos-file=illustrator.svg', '--output=ai-file.svg', '--no-provenance']);
+  ok(file);
+  assert.deepEqual(images(await readFile(join(root, 'logos', 'ai-file.svg'), 'utf8')), ['svg+xml']);
+
+  const positional = await cli(['run', 'logo-wall', 'illustrator.svg', 'a.svg', '--output=ai-args.png', '--no-provenance']);
+  ok(positional);
+  assert.match(positional.stderr, /Added 2 pictures to --logos/);
+
+  await writeFile(join(root, 'logos', 'ai.csv'), 'logo,tier\nillustrator.svg,Gold\n');
+  const csv = await cli(['run', 'logo-wall', '--logos-data=ai.csv', '--output=ai-csv.svg', '--no-provenance']);
+  ok(csv);
+  assert.deepEqual(images(await readFile(join(root, 'logos', 'ai-csv.svg'), 'utf8')), ['svg+xml']);
+
+  // An HTML page that holds a drawing is still not a picture.
+  const page = await cli(['run', 'logo-wall', '--logos=[{"logo":"page.html"}]', '--output=page.svg', '--no-provenance']);
+  assert.equal(page.code, 2, page.stderr);
+  assert.match(page.stderr, /"page.html" is a file on this computer but not a picture this shell recognises/);
+  assert.equal(existsSync(join(root, 'logos', 'page.svg')), false);
+});
+
 test('a path typed into --logos still reads the picture', { skip: SKIP }, async () => {
   const r = await cli(['run', 'logo-wall', '--logos=[{"logo":"./a.svg"},{"logo":{"id":"d.png"}}]', '--output=typed.svg', '--no-provenance']);
   ok(r);
@@ -265,6 +293,9 @@ test('the helpers read pictures by their bytes and keep the web drop filter', ()
   assert.equal(imageMime('notes.txt', new TextEncoder().encode('hello')), 'application/octet-stream');
   assert.equal(imageMime('notes.png', new TextEncoder().encode('hello')), 'application/octet-stream', 'the name alone is not a picture');
   assert.equal(imageMime('scan.tif', new Uint8Array([0x49, 0x49, 0x2a, 0, 8, 0, 0, 0])), 'image/tiff');
+  assert.equal(imageMime('logo.svg', ILLUSTRATOR), 'image/svg+xml', 'past a DOCTYPE and ENTITY block');
+  assert.equal(imageMime('page.svg', new TextEncoder().encode('<html><body><svg></svg></body></html>')), 'application/octet-stream', 'a page that holds a drawing');
+  assert.equal(imageMime('notes.svg', new TextEncoder().encode('draw <svg> here')), 'application/octet-stream', 'text that mentions <svg');
   assert.equal(acceptsMime('image/*', 'image/svg+xml'), true);
   assert.equal(acceptsMime(undefined, 'application/pdf'), false);
   assert.equal(acceptsMime('image/png, image/svg+xml', 'image/jpeg'), false);

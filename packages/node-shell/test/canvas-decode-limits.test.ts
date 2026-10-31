@@ -15,8 +15,8 @@ import assert from 'node:assert/strict';
 import { deflateSync } from 'node:zlib';
 import { JSDOM } from 'jsdom';
 import {
-  createNodeRasterAPI, decodeToCanvas, hostedDecodeLimits, installNodeCanvas, isCanvasAvailable, nodeCanvas,
-  ImagePixelLimitError, HOSTED_DECODE_MAX_PIXELS, HOSTED_DECODE_BUDGET_PIXELS,
+  createNodeRasterAPI, decodeRefusalWarnings, decodeToCanvas, hostedDecodeLimits, installNodeCanvas, isCanvasAvailable, nodeCanvas,
+  pictureName, ImagePixelLimitError, HOSTED_DECODE_MAX_PIXELS, HOSTED_DECODE_BUDGET_PIXELS,
 } from '../src/canvas.ts';
 import type { DecodeLimits } from '../src/canvas.ts';
 
@@ -61,7 +61,7 @@ test('the hosted limits are one 4096 x 4096 picture and four of them per render'
   assert.equal(HOSTED_DECODE_BUDGET_PIXELS, 4 * 4096 * 4096);
   const a = hostedDecodeLimits(), b = hostedDecodeLimits();
   assert.notEqual(a, b, 'a fresh set for each render');
-  assert.deepEqual(a, { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [] });
+  assert.deepEqual(a, { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [], refused: [] });
 });
 
 test('an SVG declaring 20000 x 20000 is refused before its canvas is made', { skip: SKIP }, async () => {
@@ -130,4 +130,66 @@ test('the realm\'s Image, createImageBitmap and <canvas> follow the limits insta
   // Installing again replaces the limits: a later render reads its own.
   await installNodeCanvas(dom.window as never, target as never, {});
   await bitmap(new Blob([svg(1000, 1000) as BlobPart]));
+});
+
+test('raster bytes labelled image/svg+xml meet the header check, never an eager decode', { skip: SKIP }, async () => {
+  // Skia decodes a raster as soon as it loads one, so the label must not route
+  // raster bytes past the header check: the bytes decide what they are.
+  const mod = (await nodeCanvas()) as unknown as { loadImage: (...a: unknown[]) => Promise<unknown> };
+  const original = mod.loadImage;
+  let loads = 0;
+  mod.loadImage = (...a: unknown[]) => { loads++; return original.apply(mod, a); };
+  try {
+    const limits = hostedDecodeLimits();
+    await assert.rejects(decodeToCanvas(claimedPng(6000, 6000), 'image/svg+xml', limits), (err: unknown) =>
+      err instanceof ImagePixelLimitError && /A 6000 x 6000 picture was not decoded/.test(err.message));
+    assert.equal(loads, 0, 'refused from its header, before Skia loaded anything');
+    assert.equal(limits.refused?.[0]?.limit, 'picture');
+    // An SVG is still an SVG whatever it is labelled.
+    await assert.rejects(decodeToCanvas(svg(20000, 20000), 'image/png', hostedDecodeLimits()), /A 20000 x 20000 picture was not decoded/);
+  } finally {
+    mod.loadImage = original;
+  }
+});
+
+test('the warnings give how many pictures were left out, and which by name', { skip: SKIP }, async () => {
+  const files = new Map<string, Uint8Array>([
+    ['https://example.com/logos/acme.svg?sig=secret', svg(300, 150)],
+    ['https://example.com/logos/globex.svg', svg(400, 120)],
+    ['/catalog/assets/initech.svg', svg(100, 100)],
+  ]);
+  const limits: DecodeLimits = { maxPixels: 200 * 200, budgetPixels: 300 * 210, used: 0, refusals: [], refused: [] };
+  const api = createNodeRasterAPI({ limits, readUrl: async (url) => files.get(url) ?? svg(10, 10) })!;
+  // Two over the per-picture cap, each asked for twice (a hook that retries).
+  for (const url of ['https://example.com/logos/acme.svg?sig=secret', 'https://example.com/logos/globex.svg']) {
+    await assert.rejects(api.decode(url), ImagePixelLimitError);
+    await assert.rejects(api.decode(url), ImagePixelLimitError);
+  }
+  // Four pictures fill the budget, then three more are left out: one named, two inline.
+  for (let i = 0; i < 4; i++) await api.decode(svg(150, 100 + i));
+  await assert.rejects(api.decode('/catalog/assets/initech.svg'), ImagePixelLimitError);
+  await assert.rejects(api.decode(svg(120, 120)), ImagePixelLimitError);
+  await assert.rejects(api.decode(new Blob([svg(130, 130) as BlobPart])), ImagePixelLimitError);
+
+  assert.equal(limits.refusals!.length, 7, 'every refusal is still recorded as it was thrown');
+  assert.deepEqual(decodeRefusalWarnings(limits), [
+    '2 pictures were not decoded: this server decodes pictures of up to 40,000 pixels, and these are larger (acme.svg at 300 x 150 and globex.svg at 400 x 120).',
+    '3 pictures were not decoded: each would have taken this render past the 63,000 pixels it may decode (initech.svg and 2 more).',
+  ]);
+
+  const one: DecodeLimits = { maxPixels: 100, refused: [] };
+  await assert.rejects(decodeToCanvas(svg(20, 20), undefined, one));
+  assert.deepEqual(decodeRefusalWarnings(one), ['A 20 x 20 picture was not decoded: this server decodes pictures of up to 100 pixels.']);
+  assert.deepEqual(decodeRefusalWarnings(undefined), []);
+  assert.deepEqual(decodeRefusalWarnings(hostedDecodeLimits()), []);
+});
+
+test('a picture is named by its asset name, its id or the end of its URL, never by inline bytes', () => {
+  assert.equal(pictureName('https://cdn.example.com/a/b/Acme%20Logo.png?token=1#x'), 'Acme Logo.png');
+  assert.equal(pictureName('/catalog/assets/lolly/logo/primary.svg'), 'primary.svg');
+  assert.equal(pictureName({ id: 'lolly/logo/primary', url: 'data:image/svg+xml;base64,AA' }), 'lolly/logo/primary');
+  assert.equal(pictureName({ id: 'data:image/png;base64,AA', url: 'data:image/png;base64,AA', meta: { name: 'sponsor.png' } }), 'sponsor.png');
+  assert.equal(pictureName('data:image/png;base64,AAAA'), undefined);
+  assert.equal(pictureName('blob:lolly-node/1'), undefined);
+  assert.equal(pictureName(new Uint8Array(4)), undefined);
 });

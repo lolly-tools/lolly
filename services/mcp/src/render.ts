@@ -576,8 +576,8 @@ async function renderTierA(
       throw e;
     }
     // A picture this server would not decode leaves its step out (a Logo Wall logo
-    // keeps its own margins and size); the caller is told which and why.
-    for (const refusal of new Set(run.decodeRefusals)) warnings.push(refusal);
+    // keeps its own margins and size); the caller is told how many, which and why.
+    warnings.push(...run.decodeRefusals());
     return {
       ...(productionInputs ? { productionInputs } : {}),
       bytes,

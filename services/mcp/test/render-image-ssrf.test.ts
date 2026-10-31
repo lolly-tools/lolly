@@ -12,7 +12,9 @@
  *    metadata address and must hear nothing, for each of those the server draws.
  *  - A ~150-byte SVG logo that declares 20000 x 20000 pixels is refused before a
  *    canvas is made (it was a 1.6 GB allocation), the render still succeeds, and
- *    the answer says which picture was left out and why.
+ *    the answer gives which picture was left out and why.
+ *  - Several refused logos are counted in the answer, each once however often the
+ *    tool asked for it, rather than folded into one sentence that hides how many.
  */
 import assert from 'node:assert/strict';
 import test, { after } from 'node:test';
@@ -64,6 +66,25 @@ test('a logo that declares a huge canvas is refused before it is decoded', { ski
     assert.match(said, /A 20000 x 20000 picture was not decoded: this server decodes pictures of up to 16,777,216 pixels\./);
     assert.ok(grew < 20000 * 20000 * 4 / 2, `no 20000 x 20000 canvas was allocated (rss grew ${Math.round(grew / 1e6)} MB)`);
     assert.equal(HOSTED_DECODE_MAX_PIXELS, 4096 * 4096);
+  } finally {
+    if (prev === undefined) delete process.env.LOLLY_MCP_HOSTED; else process.env.LOLLY_MCP_HOSTED = prev;
+  }
+});
+
+test('the answer counts every logo the limits left out, each once', { skip: NO_CANVAS || NO_WALL }, async () => {
+  const prev = process.env.LOLLY_MCP_HOSTED;
+  process.env.LOLLY_MCP_HOSTED = '1';
+  try {
+    const declared = (w: number, h: number): string => 'data:image/svg+xml;base64,' + Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="#222"/></svg>`,
+    ).toString('base64');
+    const sizes: Array<[number, number]> = [[20000, 20000], [30000, 10000], [9000, 9000]];
+    const out = await render('logo-wall', query(sizes.map(([w, h]) => ({ logo: declared(w, h) }))), { format: 'svg', noBrowser: true });
+    assert.ok(out.bytes.length > 0, 'the wall still renders');
+    const said = out.warnings.filter((w) => /not decoded/.test(w));
+    assert.equal(said.length, 1, `one sentence for the one limit: ${said.join(' | ')}`);
+    assert.match(said[0]!, /^3 pictures were not decoded: this server decodes pictures of up to 16,777,216 pixels, and these are larger \(/);
+    for (const [w, h] of sizes) assert.ok(said[0]!.includes(`${w} x ${h}`), `${w} x ${h} is listed`);
   } finally {
     if (prev === undefined) delete process.env.LOLLY_MCP_HOSTED; else process.env.LOLLY_MCP_HOSTED = prev;
   }

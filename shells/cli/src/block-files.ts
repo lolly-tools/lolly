@@ -31,6 +31,7 @@
 import { open, readFile, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, extname, join, resolve } from 'node:path';
+import { isSvgDocument, SVG_SNIFF_BYTES } from '@lolly-tools/node-shell/format-sniff';
 import { refused, usageError } from './exit-codes.ts';
 
 /** The parts of a blocks sub-field this module reads. */
@@ -73,7 +74,9 @@ const EXT_MIME: Record<string, string> = {
  * A picture's MIME type, read from its leading bytes. The file name only tells AVIF
  * from HEIC, which share one container; a file whose bytes are not a picture is
  * `application/octet-stream` whatever it is called, so `notes.png` holding text is
- * not taken for a picture.
+ * not taken for a picture. An SVG is a file whose root element is `<svg>`, found
+ * past an XML declaration, comments and a DOCTYPE (`isSvgDocument`), so a legacy
+ * Illustrator export with a long ENTITY block is still a picture.
  */
 export function imageMime(name: string, bytes: Uint8Array): string {
   const b = bytes;
@@ -85,16 +88,16 @@ export function imageMime(name: string, bytes: Uint8Array): string {
   if ((b[0] === 0xff && b[1] === 0x0a) || (b[0] === 0 && b[1] === 0 && b[2] === 0 && b[3] === 0x0c && b[4] === 0x4a && b[5] === 0x58)) return 'image/jxl';
   if (b[0] === 0x42 && b[1] === 0x4d && b.length >= 26) return 'image/bmp';
   if ((b[0] === 0x49 && b[1] === 0x49 && b[2] === 0x2a && b[3] === 0) || (b[0] === 0x4d && b[1] === 0x4d && b[2] === 0 && b[3] === 0x2a)) return 'image/tiff';
-  const head = Buffer.from(b.subarray(0, 512)).toString('utf8');
-  if (/<svg[\s>]/i.test(head)) return 'image/svg+xml';
+  if (isSvgDocument(b)) return 'image/svg+xml';
   return 'application/octet-stream';
 }
 
-/** The leading bytes of a file, enough for `imageMime` to sniff. */
+/** The leading bytes of a file, enough for `imageMime` to sniff (an SVG's root
+ *  element can sit after a long prolog). */
 async function headBytes(path: string): Promise<Uint8Array> {
   const fh = await open(path, 'r');
   try {
-    const buf = new Uint8Array(512);
+    const buf = new Uint8Array(SVG_SNIFF_BYTES);
     const { bytesRead } = await fh.read(buf, 0, buf.length, 0);
     return buf.subarray(0, bytesRead);
   } finally {

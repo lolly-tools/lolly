@@ -43,8 +43,9 @@ function safeJson(v: unknown): string {
 
 /** What one `withHost` render learned besides its result. */
 export interface HostRun {
-  /** Each picture the render's decode limits refused, as a sentence (hosted only). */
-  decodeRefusals: readonly string[];
+  /** What the render's decode limits refused, one sentence per limit giving how
+   *  many pictures were left out and which (hosted only; read after the render). */
+  decodeRefusals: () => string[];
 }
 
 /**
@@ -75,7 +76,7 @@ export function withHost<T>(
       // size, before anything is allocated (canvas.ts DecodeLimits): a few hundred
       // bytes of SVG can declare a canvas of gigabytes. One set per render, shared
       // by host.raster and the realm's Image and createImageBitmap.
-      const { installNodeCanvas, hostedDecodeLimits } = await import('@lolly-tools/node-shell/canvas');
+      const { installNodeCanvas, hostedDecodeLimits, decodeRefusalWarnings } = await import('@lolly-tools/node-shell/canvas');
       const decodeLimits = isHostedServer() ? hostedDecodeLimits() : undefined;
       await installNodeCanvas(dom.window as unknown as { HTMLCanvasElement?: { prototype: Record<string, unknown> } }, undefined, decodeLimits ? { limits: decodeLimits } : {});
       // A hosted process: a hook's host.capture.page may only reach public http(s)
@@ -97,7 +98,7 @@ export function withHost<T>(
       (host as { log: HostV1['log'] }).log = (level, msg, ctx) => {
         process.stderr.write(`[mcp:${level}] ${msg}${ctx ? ' ' + safeJson(ctx) : ''}\n`);
       };
-      return await fn(dom, host, { decodeRefusals: decodeLimits?.refusals ?? [] });
+      return await fn(dom, host, { decodeRefusals: () => decodeRefusalWarnings(decodeLimits) });
     } finally {
       g['window'] = prev.window;
       g['document'] = prev.document;
