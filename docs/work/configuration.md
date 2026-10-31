@@ -370,6 +370,7 @@ want to bound blob growth - see
 | `activity.mode` | `delegated` | `off` disables the activity timeline and agent activity dashboard; `owner-only` restricts them to owners; `delegated` also admits principals holding `audit.export`. Audit reads of those feeds record the reader and filter names, without query values. Security audit endpoints retain their own permissions |
 | `activity.auditSessionUpdates` | `true` | record routine API document saves as `session.update`. Set `false` to omit those new events; other security events and shared document history remain |
 | `retention.telemetryDays` | `0` | delete telemetry events older than this; `0` keeps everything |
+| `retention.deletedDocumentsDays` | `0` | permanently delete documents deleted more than this many days ago, with their revisions, comments, notices and collaboration state; `0` keeps them. See [data lifecycle](data-lifecycle.md#deleted-documents) |
 | `retention.auditDays` | `0` | trim audit rows older than this. The chain stays verifiable (the boundary's seq + hash are anchored before anything is deleted, and the head row is never trimmed), and a trim never passes the SIEM delivery cursor - an unreachable receiver pauses audit retention rather than losing events. See [operations](operations.md#retention-and-erasure) |
 | `fleet.minEngine` | *unset* | advisory engine version floor (dotted, e.g. `"1.140.0"`): below-floor engines are highlighted in the Fleet view with an upgrade nudge; nothing is blocked or force-upgraded |
 
