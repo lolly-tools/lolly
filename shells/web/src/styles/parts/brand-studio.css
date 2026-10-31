@@ -619,6 +619,14 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    an inline host would anchor the pop to one line fragment of the sentence. */
 .be-logos-lead { display: block; }
 .be-logo-row { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+/* A phone shows the slots two-up (plan 336): one 315px square per row made
+   eight slots more than five screens of thumb. */
+@media (max-width: 640px) {
+  .be-logo-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+  /* Two lines kept for every slot's name, so a name that wraps ("Horizontal ·
+     primary reverse") does not push its tile below its neighbour's. */
+  .be-logo-slot > .be-logo-slot-head { align-items: flex-start; min-height: calc(var(--fs-xs) * 2.8); }
+}
 .be-logo-slot { display: grid; gap: .4rem;}
 .be-logo-slot-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.2rem; }
 .be-logo-slot-name { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
@@ -1771,13 +1779,9 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
 .tk-adv > .token-workspace { width: auto; }
 
 @media (max-width: 899px) {
-  /* One scrolling row of tiles that bleeds to the screen edge inside the gutter. */
-  .tk-overview {
-    display: flex; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; scrollbar-width: none;
-    padding: 2px 16px; margin-inline: -16px;
-  }
-  .tk-overview::-webkit-scrollbar { display: none; }
-  .tk-tile { flex: 0 0 7.5rem; scroll-snap-align: start; }
+  /* The six tiles wrap to two rows of three (plan 336): a row that scrolled
+     off the edge cut the third tile in half and hid the rest. */
+  .tk-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tk-actions .tk-fmt { flex: 1 1 100%; }
   .tk-pair-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tk-adv > :not(summary) { margin-inline: var(--sp-4); }
@@ -2654,6 +2658,19 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
 .be-pal-reorder:hover, .be-pal-reorder[aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
 .be-pal-reorder[aria-pressed="true"] { cursor: grabbing; }
 .be-pal-reorder:focus-visible, .be-pal-card.is-reorder-target { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; border-radius: var(--ui-radius-control); }
+/* Phones (plan 336; Andy's decision 6, applied to the phone first): four tiles a
+   row. The drag handle shows in Select mode and to keyboard focus instead of
+   adding a 44px row under every colour, so 41 colours are about four screens of
+   thumb rather than eight. The keyboard path (Space, arrows, Space) is unchanged. */
+@media (max-width: 640px) {
+  .be-pal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .7rem .5rem; }
+  .be-pal-card .be-swatch { aspect-ratio: 1; }
+  .be-pal-name { font-size: var(--fs-2xs); }
+  .be-pal-hex { grid-column: 1 / -1; font-size: var(--fs-2xs); overflow: hidden; text-overflow: ellipsis; }
+  .be-pal-reorder { display: none; }
+  [data-pal-selecting] .be-pal-reorder,
+  .be-pal-card:has(:focus-visible) .be-pal-reorder { display: grid; grid-column: 1 / -1; grid-row: 4; justify-self: stretch; }
+}
 
 .be-pal-group-head { position: relative; min-height: 44px; }
 .be-pal-group-all, .be-pal .be-add--sm { min-width: 44px; min-height: 44px; }
