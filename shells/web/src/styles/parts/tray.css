@@ -35,7 +35,7 @@
   display: flex;
   flex-direction: column;
   position: fixed;
-  z-index: 40; /* over the sticky rail (15) and the swatch popover (30) */
+  z-index: 40; /* over the pinned bar (20) and the swatch popover (30) */
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) * 1.2);

@@ -14,9 +14,11 @@
  *    buttons' own behaviour.
  *  - the ink: the current room's tinted fill, drawn once and slid between
  *    rooms. The stylesheet stops the slide under either Reduce motion switch.
- *  - the current room kept in view when the strip scrolls (always on a phone).
+ *  - the current room kept in view when the strip scrolls (always on a phone),
+ *    and a fade on each end that has rooms past it, so the strip shows it
+ *    scrolls on a desk too.
  *
- * Every function takes the shared `start: StartCtx` first (see context.ts).
+ * Every exported function takes the shared `start: StartCtx` first (see context.ts).
  */
 import { mountBodyPopover } from '../../components/body-popover.ts';
 import { t } from '../../i18n.ts';
@@ -116,6 +118,27 @@ export function syncStrip(start: StartCtx, instant = false): void {
       list.scrollBy({ left: box.left + box.width / 2 - (view.left + view.width / 2), behavior: instant ? 'auto' : 'smooth' });
     }
   }
+  if (list) syncStripEnds(list);
+}
+
+/**
+ * Mark the ends of the strip that hold rooms out of view (`data-more`, "left",
+ * "right" or both), which is where start-bar.css draws the fade. Read from the
+ * laid-out rooms rather than scrollLeft, so it reads the same in either
+ * direction of text.
+ */
+function syncStripEnds(list: HTMLElement): void {
+  const view = list.getBoundingClientRect();
+  let left = Number.POSITIVE_INFINITY;
+  let right = Number.NEGATIVE_INFINITY;
+  for (const room of list.querySelectorAll<HTMLElement>('.ds-room:not([hidden])')) {
+    const box = room.getBoundingClientRect();
+    left = Math.min(left, box.left);
+    right = Math.max(right, box.right);
+  }
+  const more = [left < view.left - 1 ? 'left' : '', right > view.right + 1 ? 'right' : ''].filter(Boolean).join(' ');
+  if (more) list.dataset.more = more;
+  else delete list.dataset.more;
 }
 
 /** Arrows, Home and End walk the strip; the room opens on Enter or Space. */
@@ -149,8 +172,11 @@ export function wireBar(start: StartCtx): void {
     : null;
   if (resize && list) resize.observe(list);
   void document.fonts?.ready.then(() => { if (start.railEl.isConnected) syncStrip(start, true); });
+  // A swipe, a drag of the scrollbar or a keyed room moves the fade along.
+  const onScroll = (): void => { if (list) syncStripEnds(list); };
+  list?.addEventListener('scroll', onScroll, { passive: true });
   const prev = start.unsubBar;
-  start.unsubBar = () => { prev?.(); start.railEl.removeEventListener('keydown', onKey); resize?.disconnect(); };
+  start.unsubBar = () => { prev?.(); start.railEl.removeEventListener('keydown', onKey); list?.removeEventListener('scroll', onScroll); resize?.disconnect(); };
 }
 
 export function barOps(start: StartCtx) {

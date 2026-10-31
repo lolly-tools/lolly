@@ -2,7 +2,7 @@
 /**
  * start: candidates.
  *
- * Every function takes the shared `start: StartCtx` first (see context.ts). Sibling
+ * Every function but handFocusBack takes the shared `start: StartCtx` first (see context.ts). Sibling
  * calls in this file are direct; a call into another module, and every use of a
  * function as a value (an event listener), goes through `start.<module>.<fn>`. Extracted verbatim
  * from mountStart() by scripts/split-closure.ts.
@@ -103,6 +103,21 @@ export const keepInTray = async (start: StartCtx,
   say(msg);
   return n;
 };
+/**
+ * Focus the first target that actually takes focus. A target that is hidden,
+ * or not drawn (display: none in a narrow layout), ignores focus(), and that
+ * is only known by asking: focus() is called and the active element read back.
+ * Returns the element that took focus, or null when none did.
+ */
+export function handFocusBack(targets: ReadonlyArray<HTMLElement | null | undefined>): HTMLElement | null {
+  for (const el of targets) {
+    if (!el || el.hidden) continue;
+    el.focus();
+    if (el.ownerDocument.activeElement === el) return el;
+  }
+  return null;
+}
+
 export function wireTray(start: StartCtx): void {
   const { host, importBtn, railEl, shell, tray, trayToggle } = start;
   // A locked build never reaches here (the route returned above) and a failed
@@ -134,13 +149,17 @@ export function wireTray(start: StartCtx): void {
         // only when focus was actually dropped, so this can never be a steal.
         // Queried here, not captured: this fires long after mount either way.
         if (!open && trayToggle?.hidden && document.activeElement === document.body) {
-          // The hero is itself hidden on an empty studio (plans/163 F2), and
-          // focus() on a hidden element does nothing - so fall back to the rail.
-          const back =
-            importBtn?.hidden === false
-              ? importBtn
-              : railEl.querySelector<HTMLElement>('[data-ds-room]');
-          back?.focus();
+          // "Add from…" is hidden on an empty studio (plans/163 F2) and not
+          // drawn on a phone, where the More menu holds it; focus() on either
+          // does nothing. So each target is tried in turn until one takes
+          // focus: "Add from…", then More (its home on a phone), then the room
+          // strip's own stop.
+          handFocusBack([
+            importBtn,
+            shell.querySelector<HTMLElement>('[data-ds-more]'),
+            railEl.querySelector<HTMLElement>('[data-ds-room][tabindex="0"]'),
+            railEl.querySelector<HTMLElement>('[data-ds-room]'),
+          ]);
         }
       },
     });

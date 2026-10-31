@@ -27,10 +27,16 @@
 .start.start--studio > .ds-top {
   position: sticky;
   top: 0;
-  z-index: 20; /* over the rooms' own panels; the sheets (50+) and the tray (40+) stay above */
+  z-index: 20; /* over the rooms' own panels; their popovers (30), the tray (40+) and the sheets (50+) stay above */
   margin-inline: calc(-1 * var(--ds-gutter));
   padding-inline: var(--ds-gutter);
 }
+/* The open room takes no stacking context of its own (start.css gives every
+   child of .start z-index 1), so its layers rank against the bar directly: the
+   room's panels scroll under the bar, and a popover the room raises (the swatch
+   picker and gradient stop at 30, a help tip at 50) is drawn over the bar, name
+   row and all, even when it opens in the bar's band. */
+.start.start--studio > .ds-shell { z-index: auto; }
 
 .ds-bar {
   display: flex;
@@ -62,12 +68,15 @@
 }
 .ds-bar-kicker {
   flex: none;
+  margin: 0;
   font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: var(--ui-type-tracking-label);
   text-transform: uppercase;
   color: var(--ui-color-text-muted);
 }
+/* The name the heading carries for a screen reader, read as typed. */
+.ds-bar-heading-name { text-transform: none; }
 .ds-bar-name { min-width: 0; display: flex; align-items: center; gap: var(--sp-3); }
 .ds-bar-name[hidden] { display: none; }
 .ds-bar-name .start-ds-name {
@@ -157,6 +166,20 @@
   overscroll-behavior-x: contain;
 }
 .ds-rooms::-webkit-scrollbar { display: none; }
+/* Rooms past an end of the strip: a soft fade on that end shows the row
+   scrolls, on a desk as on a phone. bar.ts marks the ends that hold rooms
+   (data-more="left right"), so a strip that fits is drawn plain. */
+.ds-rooms[data-more] {
+  --ds-fade: calc(2 * var(--sp-7));
+  mask-image: linear-gradient(to right, transparent, #000 var(--ds-fade-l, 0px), #000 calc(100% - var(--ds-fade-r, 0px)), transparent);
+}
+.ds-rooms[data-more~="left"] { --ds-fade-l: var(--ds-fade); }
+.ds-rooms[data-more~="right"] { --ds-fade-r: var(--ds-fade); }
+/* With a mouse there is no swipe, so a strip that scrolls also shows its thin
+   scrollbar to drag. */
+@media (pointer: fine) {
+  .ds-rooms[data-more] { scrollbar-width: thin; }
+}
 .ds-rooms > li { flex: none; position: relative; }
 .ds-rooms > li:has(> .ds-room[hidden]) { display: none; }
 .ds-room {
@@ -249,15 +272,16 @@ html[data-a11y-motion="reduce"] .ds-bar-more { transition: none; }
     padding-left: var(--ds-gutter);
     padding-right: calc(var(--ds-gutter) + var(--chrome-h) + var(--sp-4));
   }
-  .ds-bar-kicker,
   .ds-bar-id .help-tip-btn,
   .ds-bar-add { display: none; }
   .ds-bar-name .start-ds-name { font-size: var(--fs-lg); padding-inline: var(--sp-3); }
   .ds-bar-name-text { font-size: var(--fs-lg); }
   /* The back pill and Export become squares: the label stays the accessible
-     name, it is only clipped from view. */
+     name, it is only clipped from view. The kicker goes the same way, so the
+     page keeps its heading. */
   .ds-bar .back-pill-label,
-  .ds-bar-btn-label {
+  .ds-bar-btn-label,
+  .ds-bar-kicker {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -285,11 +309,7 @@ html[data-a11y-motion="reduce"] .ds-bar-more { transition: none; }
     -webkit-backdrop-filter: blur(12px) saturate(1.2);
     box-shadow: var(--ui-edge-faint);
   }
-  .ds-rooms {
-    padding: 0 var(--sp-2);
-    /* A soft fade at each end says the row scrolls. */
-    mask-image: linear-gradient(to right, transparent, #000 var(--sp-4), #000 calc(100% - var(--sp-7)), transparent);
-  }
+  .ds-rooms { padding: 0 var(--sp-2); }
   .ds-room { min-height: var(--ds-room-h); padding: 0 var(--sp-6); }
   .ds-bar-note { top: calc(100% + var(--sp-2)); }
 }

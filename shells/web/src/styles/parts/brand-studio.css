@@ -1086,7 +1086,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
       to the viewport - the page itself never scrolls on this tab.
       GUARD: the side pane must NEVER get a z-index, transform or contain - the
       swatch popover (.be-editor, z-index 30) positions against `.be` and has
-      to keep beating the sticky action row (z-index 20); any of those would
+      to keep beating the studio's pinned bar (z-index 20); any of those would
       trap it in a new stacking/containing context. Below 1100px the divider is
       display:none and the side content simply follows the main column in flow.
       (This block sits AFTER the .be-tab rules above - the column-gap override
@@ -1982,7 +1982,7 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
     bottom: var(--ds-roombar-h, 0px);
     height: var(--stu-sheet-h);
     max-height: 92dvh;
-    z-index: 50; /* over the sticky action row (20) and the swatch popover (30) - taps land at peek, where the popover sits above the strip */
+    z-index: 50; /* over the pinned bar (20) and the swatch popover (30) - taps land at peek, where the popover sits above the strip */
     background: hsl(var(--card));
     border-radius: 18px 18px 0 0;
     box-shadow: 0 -10px 34px hsl(var(--foreground) / .18);
@@ -2497,14 +2497,12 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
       "Select" collects tiles into a set; one floating bar deletes the lot.
       The bar is FIXED bottom-centre like .cat-bulkbar.
 
-      Z-INDEX 40 IS ITS PLACE IN ONE CONTEXT, AND CANNOT BE RAISED OUT OF IT.
-      The bar lives inside the editor mount, and start.css's
-      `.start > *:not(.gallery-topright)` gives every direct child of .start
-      `position: relative; z-index: 1` - a stacking context. So 40 is only a
-      ranking against its neighbours INSIDE that context (sticky action row 20,
-      swatch popover 30), and the whole context paints at level 1 against the
-      mobile palette sheet, a direct child of .start at 50. No value here beats
-      the sheet; 400 would paint under it exactly as 40 does.
+      Z-INDEX 40 RANKS IT OVER THE STUDIO'S PINNED BAR (20) AND THE SWATCH
+      POPOVER (30), AND UNDER THE MOBILE PALETTE SHEET (50). In the studio the
+      room shell keeps no stacking context of its own (start-bar.css), so the
+      bar, the sheet and this bar rank in one context. Raising this past 50 is
+      not the answer to the sheet: two fixed things at the bottom edge would
+      then fight for the same taps.
 
       Which matters, because the bar WAS painted under the sheet at half (50dvh)
       and full (88dvh) - the two states the sheet exists for - leaving Delete and

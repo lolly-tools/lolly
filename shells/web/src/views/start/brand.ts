@@ -116,6 +116,9 @@ function paintNameLine(start: StartCtx, rec: ActiveRecord): void {
     ? `<span class="ds-bar-name-text">${escapeText(rec.label)}</span> <span class="start-ds-lock">${t('read-only')}</span>`
     : `<input class="start-ds-name" data-start-ds-name value="${escapeText(rec.label)}" maxlength="80" autocomplete="off" spellcheck="false" aria-label="${escapeText(t('Design system name'))}" title="${escapeText(t('Design system name'))}">`;
   line.hidden = false;
+  // The page heading carries the name too (navigation.ts): a field is no heading.
+  const heading = viewEl.querySelector<HTMLElement>('[data-start-ds-heading]');
+  if (heading) heading.textContent = ` ${rec.label}`;
   const nameInput = line.querySelector<HTMLInputElement>('[data-start-ds-name]');
   // Enter keeps the name and Escape puts the old one back; both leave the field.
   nameInput?.addEventListener('keydown', (e) => {

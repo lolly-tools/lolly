@@ -146,9 +146,11 @@ html[dir="rtl"] .start-back-row {
       The bar and the rooms live in start-bar.css. The rooms are PEERS: there is
       no order to walk, so nothing here counts, numbers or nudges.
 
-      Stacking: this takes `.start > *`'s z-index 1, so the swatch popover
-      (.be-editor, 30) lives in THIS context, under the pinned bar (20), and the
-      palette sheet (a direct child of .start at 50) paints over everything. */
+      Stacking: start-bar.css takes `.start > *`'s z-index 1 back off this
+      shell, so the room's layers rank against the pinned bar (20) directly:
+      the panels scroll under the bar, the swatch popover (.be-editor, 30) is
+      drawn over the bar, and the palette sheet (a direct child of .start at
+      50) paints over both. */
 .ds-shell { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
 
 .ds-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
@@ -412,7 +414,7 @@ html[dir="rtl"] .start-back-row {
 /* ── The studio mount ────────────────────────────────────────────────────── */
 /* z-index auto: the wrap must not become a stacking context of its own, so the
    swatch popover inside it (.be-editor, z-index 30) shares a context with the
-   sticky rail (15) and paints above it, while the rooms' normal-flow panels
+   pinned bar (20) and paints above it, while the rooms' normal-flow panels
    still scroll beneath. */
 .start-editor-wrap { display: flex; flex-direction: column; gap: 22px; z-index: auto; }
 .start-editor-mount { display: block; }

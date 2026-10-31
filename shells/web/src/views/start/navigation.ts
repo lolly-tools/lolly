@@ -48,7 +48,10 @@ export function renderShell(start: StartCtx): void {
         <header class="ds-bar">
           <div class="ds-bar-exit">${backPill}${homeFab}</div>
           <div class="ds-bar-id help-tip-host">
-            <span class="ds-bar-kicker">${t('Design system')}</span>
+            <!-- The page's one heading. On screen it is the small label before
+                 the name; the name itself is a field, so brand.ts copies it
+                 into the heading for a screen reader as well. -->
+            <h1 class="ds-bar-kicker">${t('Design system')}<span class="ds-bar-heading-name visually-hidden" data-start-ds-heading></span></h1>
             <!-- Which design system the studio is editing (plans/186 section 5),
                  filled async from the registry as an inline editable name. -->
             <span class="ds-bar-name" data-start-ds hidden></span>
