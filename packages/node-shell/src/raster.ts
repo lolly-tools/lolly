@@ -193,18 +193,26 @@ export function eligibleForResvgPng(
 const NON_DRAWABLE = new Set(['script', 'style', 'template', 'link', 'meta']);
 
 /**
- * The `<svg>` a node is drawn as: the node itself, or its one drawable child when
- * that child is an `<svg>`, which is a template whose root is an `<svg>` hydrated
- * into the canvas. An `<svg>` further down is part of an HTML layout, never its
- * root: a Design frame draws each shape and connector as an inline
- * `<svg viewBox>`, and that must not change how the frame's export is sized.
+ * The `<svg>` a node is drawn as, which is the element the SVG export writes: the
+ * node itself, or the `<svg>` at the end of a chain of single drawable children
+ * (at most eight deep), so a template that wraps its root `<svg>` in a `<div>`
+ * (Colour Palette, Contrast Check, Print Sheet, Signature) has one. The CLI
+ * bridge's SVG export reads the same root. An `<svg>` beside other drawable
+ * content is part of an HTML layout, never its root: a Design frame draws each
+ * shape and connector as an inline `<svg viewBox>`, and that must not change how
+ * the frame's export is sized.
  */
-export function drawnRootSvg(node: Element): Element | null {
-  if (node.tagName.toLowerCase() === 'svg') return node;
-  const kids = Array.from(node.children).filter(
-    (el) => !NON_DRAWABLE.has(el.tagName.toLowerCase()) && !el.hasAttribute('data-export-hide'),
-  );
-  return kids.length === 1 && kids[0]!.tagName.toLowerCase() === 'svg' ? kids[0]! : null;
+export function drawnRootSvg(node: Element | null): Element | null {
+  let cur: Element | null = node;
+  for (let depth = 0; cur && depth < 8; depth++) {
+    if (cur.tagName?.toLowerCase() === 'svg') return cur;
+    const kids = Array.from(cur.children).filter(
+      (el) => !NON_DRAWABLE.has(el.tagName.toLowerCase()) && !el.hasAttribute('data-export-hide'),
+    );
+    if (kids.length !== 1) return null;
+    cur = kids[0] ?? null;
+  }
+  return null;
 }
 
 /**

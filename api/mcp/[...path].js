@@ -158465,11 +158465,16 @@ function eligibleForResvgPng(fmt4, dims) {
   return fmt4.toLowerCase() === "png" && !dims.durable && !dims.bleed && !dims.marks;
 }
 function drawnRootSvg(node) {
-  if (node.tagName.toLowerCase() === "svg") return node;
-  const kids2 = Array.from(node.children).filter(
-    (el) => !NON_DRAWABLE.has(el.tagName.toLowerCase()) && !el.hasAttribute("data-export-hide")
-  );
-  return kids2.length === 1 && kids2[0].tagName.toLowerCase() === "svg" ? kids2[0] : null;
+  let cur = node;
+  for (let depth = 0; cur && depth < 8; depth++) {
+    if (cur.tagName?.toLowerCase() === "svg") return cur;
+    const kids2 = Array.from(cur.children).filter(
+      (el) => !NON_DRAWABLE.has(el.tagName.toLowerCase()) && !el.hasAttribute("data-export-hide")
+    );
+    if (kids2.length !== 1) return null;
+    cur = kids2[0] ?? null;
+  }
+  return null;
 }
 function svgExportSize(root2, dims) {
   if (!dims || !drawnRootSvg(root2)?.hasAttribute("viewBox")) return {};
@@ -173662,6 +173667,7 @@ function gdiFaceName(stack) {
 }
 
 // shells/cli/src/bridge.ts
+init_raster3();
 init_repo_root();
 init_content_roots();
 
@@ -178057,7 +178063,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       return noClipboard();
     }
   };
-  const NON_DRAWABLE2 = /* @__PURE__ */ new Set(["script", "style", "template", "link", "meta"]);
+  const rootSvgOf = drawnRootSvg;
   async function noteDesignOps(opts, ingredients) {
     const o = opts;
     const { nodeOperationsRoute: nodeOperationsRoute2 } = await Promise.resolve().then(() => (init_export_route(), export_route_exports));
@@ -178065,18 +178071,6 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
     for (const ingredient of ingredients) {
       if (o.ingredientSink && !o.ingredientSink.some((p) => p.activeLabel === ingredient.activeLabel)) o.ingredientSink.push(ingredient);
     }
-  }
-  function rootSvgOf(node) {
-    let cur = node;
-    for (let depth = 0; cur && depth < 8; depth++) {
-      if (cur.tagName?.toLowerCase() === "svg") return cur;
-      const kids2 = Array.from(cur.children).filter(
-        (el) => !NON_DRAWABLE2.has(el.tagName.toLowerCase()) && !el.hasAttribute("data-export-hide")
-      );
-      if (kids2.length !== 1) return null;
-      cur = kids2[0] ?? null;
-    }
-    return null;
   }
   host.export = {
     async render(node, format, opts = {}) {

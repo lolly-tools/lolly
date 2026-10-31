@@ -57,6 +57,7 @@ import { createNetAPI, matchesNetworkUrl } from '@lolly-tools/node-shell/net';
 // throws (which is what the byte-pinned goldens in tests/cli-export-golden.test.ts
 // caught).
 import { svgDomToIr } from '@lolly-tools/node-shell/svg-ir';
+import { drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import type { SvgIrFont } from '@lolly-tools/node-shell/svg-ir';
 import type { FontStyleSlice } from '@lolly-tools/node-shell/text-svg';
 
@@ -1136,8 +1137,11 @@ export async function createCliBridge(
  * tool may sit an editor-only sibling next to its `<svg>` - e.g. qr-code's
  * scannability warnings (plans/162) - without forfeiting its browser-free vector
  * path. The hidden sibling is never in the exported bytes: only the `<svg>` is.
+ *
+ * One rule with node-shell's `drawnRootSvg`, which the browser-free PNG reads to
+ * decide whether this export takes the requested size.
  */
-const NON_DRAWABLE = new Set(['script', 'style', 'template', 'link', 'meta']);
+const rootSvgOf = drawnRootSvg;
 /**
  * What a Design page drawn from the operations hands back to run.ts, which stamps the
  * credential (plan 326): the route that drew it, through `onExportRoute`, and each
@@ -1151,19 +1155,6 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
   for (const ingredient of ingredients) {
     if (o.ingredientSink && !o.ingredientSink.some((p) => p.activeLabel === ingredient.activeLabel)) o.ingredientSink.push(ingredient);
   }
-}
-
-function rootSvgOf(node: Element | null): Element | null {
-  let cur: Element | null = node;
-  for (let depth = 0; cur && depth < 8; depth++) {
-    if (cur.tagName?.toLowerCase() === 'svg') return cur;
-    const kids = Array.from(cur.children).filter(
-      (el) => !NON_DRAWABLE.has(el.tagName.toLowerCase()) && !el.hasAttribute('data-export-hide'),
-    );
-    if (kids.length !== 1) return null;
-    cur = kids[0] ?? null;
-  }
-  return null;
 }
 
   host.export = {
