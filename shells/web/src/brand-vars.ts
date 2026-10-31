@@ -34,6 +34,7 @@ import { parseColor, colorToSrgb8 } from '../../../engine/src/css-color.ts';
 import { chromeFollowsDesignSystem } from './lib/chrome-follow.ts';
 import { CHROME_SLOTS, CHROME_THEMES, declaresUnsaved, resolvePackChrome, type ChromeTheme, type ChromeThemeName, type PackChrome } from './lib/brand-chrome.ts';
 import { syncThemeColorMeta } from './lib/theme-color.ts';
+import { personalColourway, type ColourwayPrefHost } from './lib/colourway-pref.ts';
 
 /** The seven semantic slots (token leaf under `color.semantic`) → CSS var. */
 const SLOTS = [
@@ -55,18 +56,28 @@ interface BrandTokens {
   themes?(): Promise<Array<{ name: string; group?: string | null; id?: string; kind?: string; canonical?: true }>>;
   /** Every colourway's colour for a role (plans/319), painted on the canvas as `--brand-lead-*`. */
   family?(role?: string, opts?: { theme?: string; selection?: Record<string, string> }): Promise<Array<{ value: string }>>;
+  /** The active design system, whose id keys the person's colourway (lib/colourway-pref.ts). */
+  active?(): Promise<{ id: string } | null>;
 }
 
 /**
  * The tokens surface the app chrome reads: the same one the canvas reads, with
- * every theme group except the light/dark one pinned to its canonical theme
- * (plans/319 decision 2). The chrome belongs to the device, the canvas to the
+ * every theme group except the light/dark one pinned (plans/319 decision 2, as
+ * amended by plans/331). The chrome belongs to the device, the canvas to the
  * artefact. The render surface carries the open artefact's choices (a route's
  * `_themes` becomes the document's stored selection), and since engine 1.265 a
  * `{ theme }` read keeps those choices, so without the pin a Persimmon poster
  * would turn the app's accent, favicon and logo tint Persimmon. The pin covers
  * groups with no kind too: an imported Tokens Studio file with a plain second
  * group would otherwise leak that group's route choice the same way.
+ *
+ * Each group is pinned to its canonical theme, except the colourway group, which
+ * takes `opts.colourway` when the group offers it: the colourway the person chose
+ * in Settings > Appearance (lib/colourway-pref.ts). The device's choice leads the
+ * device's chrome. A choice the group no longer offers falls back to canonical.
+ * The colourway group is the first of kind `colourway`, the group the engine's
+ * `colourwayAxis` reads. `opts.colourway` may be a read, which runs only when the
+ * design system has a colourway group, so a system without one costs no read.
  *
  * The light/dark group is the one of kind `mode`, else the ungrouped `''` group
  * with no kind (the same rule as `modeAxis` in engine/src/token-axes.ts). It stays the
@@ -76,16 +87,20 @@ interface BrandTokens {
  * `selection` is left alone, and a design system with a single theme group
  * (every pack Lolly ships) gets no pin and is read exactly as before.
  */
-export function chromeTokens(tk: BrandTokens | undefined): BrandTokens | undefined {
+export function chromeTokens(
+  tk: BrandTokens | undefined,
+  opts: { colourway?: string | null | (() => Promise<string | null>) } = {},
+): BrandTokens | undefined {
   if (!tk?.themes) return tk;
   const themes = tk.themes.bind(tk);
   let pins: Promise<Record<string, string> | null> | null = null;
-  const pinned = (): Promise<Record<string, string> | null> => pins ??= themes().then((list) => {
-    const groups = new Map<string, { kind?: string; canonical?: string; first: string }>();
+  const pinned = (): Promise<Record<string, string> | null> => pins ??= themes().then(async (list) => {
+    const groups = new Map<string, { kind?: string; canonical?: string; first: string; ids: Set<string> }>();
     for (const t of list) {
       const group = t.group ?? '';
       const id = t.id ?? t.name;
-      const entry = groups.get(group) ?? { first: id };
+      const entry = groups.get(group) ?? { first: id, ids: new Set<string>() };
+      entry.ids.add(id);
       if (t.kind) entry.kind = t.kind;
       if (t.canonical) entry.canonical = id;
       groups.set(group, entry);
@@ -93,6 +108,9 @@ export function chromeTokens(tk: BrandTokens | undefined): BrandTokens | undefin
     const mode = [...groups].find(([, g]) => g.kind === 'mode')?.[0] ?? (groups.has('') && !groups.get('')!.kind ? '' : undefined);
     const out: Record<string, string> = {};
     for (const [group, g] of groups) if (group !== mode) out[group] = g.canonical ?? g.first;
+    const lead = [...groups].find(([group, g]) => group !== mode && g.kind === 'colourway');
+    const chosen = lead ? (typeof opts.colourway === 'function' ? await opts.colourway().catch(() => null) : opts.colourway) : null;
+    if (lead && chosen && lead[1].ids.has(chosen)) out[lead[0]] = chosen;
     return Object.keys(out).length ? out : null;
   }).catch(() => null);
   const scoped = async <O extends { selection?: Record<string, string> }>(opts: O | undefined): Promise<O | undefined> => {
@@ -117,6 +135,9 @@ export function chromeTokens(tk: BrandTokens | undefined): BrandTokens | undefin
  * versioning is on the head, which is what an unversioned system resolves to. */
 interface BrandVarsHost {
   tokens?: BrandTokens;
+  /** The profile, for the colourway the person chose (plans/331). A host without one
+   *  paints the canonical colourway. */
+  profile?: ColourwayPrefHost['profile'];
 }
 
 // ── Lolly UI token overrides ────────────────────────────────────────────────
@@ -1555,8 +1576,10 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
   // paint from one answer and cannot disagree. Nothing to resolve here, and
   // nothing published means the head, exactly as before section 6a. The chrome
   // reads it through chromeTokens, which keeps every theme group except light and
-  // dark (every colourway included) on its canonical option.
-  const tk: BrandTokens | undefined = chromeTokens(host.tokens);
+  // dark on its canonical option, apart from the colourway the person chose in
+  // Settings > Appearance (plans/331). Every read below waits on that choice before
+  // the one synchronous paint, so no frame shows the canonical colourway in between.
+  const tk: BrandTokens | undefined = chromeTokens(host.tokens, { colourway: () => personalColourway(host) });
 
   const resolveHex = async (slot: string, theme: string): Promise<string | null> => {
     try {

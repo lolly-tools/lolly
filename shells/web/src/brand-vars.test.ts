@@ -1084,6 +1084,90 @@ test('chrome reads pin every colourway to its canonical option, whatever the art
   assert.equal(hexOf(await chrome.resolve('{color.semantic.primary}', { theme: 'light', selection: { colourway: 'persimmon' } })), '#c2410c');
 });
 
+// ─── Chrome follows the person's colourway (plans/331) ──────────────────────
+
+test("the person's colourway leads the chrome, and the artefact's colourway still stays on the canvas", async () => {
+  const { createTokenSet } = await import('../../../engine/src/tokens.ts');
+  const { addColourway } = await import('../../../engine/src/colourway.ts');
+  const start = JSON.parse(readFileSync(new URL('../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url), 'utf8'));
+  const persimmon = addColourway(start, { id: 'persimmon', name: 'Persimmon', values: {
+    light: { primary: '#c2410c', 'on-primary': '#ffffff', secondary: '#7c2d12' },
+    dark: { primary: '#fb923c', 'on-primary': '#111111', secondary: '#fed7aa' },
+  } });
+  assert.ok(persimmon.ok);
+  const both = addColourway(persimmon.doc, { id: 'waterhole', name: 'Waterhole', values: {
+    light: { primary: '#0e7490', 'on-primary': '#ffffff', secondary: '#164e63' },
+    dark: { primary: '#67e8f9', 'on-primary': '#111111', secondary: '#cffafe' },
+  } });
+  assert.ok(both.ok);
+  // The route carries _themes={"colourway":"persimmon"}; the person chose Waterhole in Settings.
+  const doc = { ...both.doc, $metadata: { ...(both.doc.$metadata as object), activeThemeSelection: { colourway: 'persimmon' } } };
+  const surface = {
+    resolve: async (ref: string, opts?: { theme?: string; selection?: Record<string, string> }) => createTokenSet(doc, opts).resolve(ref),
+    colors: async (opts?: { theme?: string; selection?: Record<string, string> }) => createTokenSet(doc, opts).colors(),
+    themes: async () => createTokenSet(doc).themes(),
+  };
+  const hexOf = (v: unknown) => tokenValueToHex(v);
+  assert.equal(hexOf(await surface.resolve('{color.semantic.primary}', { theme: 'light' })), '#c2410c', 'the canvas follows the artefact');
+  const chrome = chromeTokens(surface, { colourway: 'waterhole' })!;
+  assert.equal(hexOf(await chrome.resolve('{color.semantic.primary}', { theme: 'light' })), '#0e7490');
+  assert.equal(hexOf(await chrome.resolve('{color.semantic.primary}', { theme: 'dark' })), '#67e8f9');
+  assert.equal(hexOf(await chrome.resolve('{color.semantic.on-primary}', { theme: 'light' })), '#ffffff');
+  const scanned = (await chrome.colors!()).map(s => s.value);
+  assert.ok(scanned.includes('#0e7490') && !scanned.includes('#c2410c'), 'the warm-accent scan reads Waterhole, never Persimmon');
+  // A colourway the design system no longer offers, or none at all, falls back to canonical.
+  const canonicalLight = hexOf(createTokenSet(start, { theme: 'light' }).resolve('color.semantic.primary'));
+  for (const colourway of ['midnight', null, undefined, '']) {
+    assert.equal(hexOf(await chromeTokens(surface, { colourway })!.resolve('{color.semantic.primary}', { theme: 'light' })), canonicalLight, `choice ${String(colourway)}`);
+  }
+});
+
+test("the person's colourway is read only when the design system has colourways", async () => {
+  const { createTokenSet } = await import('../../../engine/src/tokens.ts');
+  const demo = JSON.parse(readFileSync(new URL('../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', import.meta.url), 'utf8'));
+  const start = JSON.parse(readFileSync(new URL('../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url), 'utf8'));
+  const surfaceOf = (doc: unknown) => ({
+    resolve: async (ref: string, opts?: { theme?: string; selection?: Record<string, string> }) => createTokenSet(doc, opts).resolve(ref),
+    themes: async () => createTokenSet(doc).themes(),
+  });
+  let reads = 0;
+  const read = async (): Promise<string | null> => { reads += 1; return 'midnight'; };
+  await chromeTokens(surfaceOf(start), { colourway: read })!.resolve('{color.semantic.primary}', { theme: 'light' });
+  assert.equal(reads, 0, 'a design system without colourways costs no read');
+  const midnight = createTokenSet(demo, { theme: 'dark', selection: { colourway: 'midnight' } }).resolve('color.semantic.primary');
+  const chrome = chromeTokens(surfaceOf(demo), { colourway: read })!;
+  assert.equal(await chrome.resolve('{color.semantic.primary}', { theme: 'dark' }), midnight);
+  await chrome.resolve('{color.semantic.on-primary}', { theme: 'light' });
+  assert.equal(reads, 1, 'one read per chrome surface, however many tokens it resolves');
+  const failing = async (): Promise<string | null> => { throw new Error('offline'); };
+  const canonical = createTokenSet(demo, { theme: 'dark' }).resolve('color.semantic.primary');
+  assert.equal(await chromeTokens(surfaceOf(demo), { colourway: failing })!.resolve('{color.semantic.primary}', { theme: 'dark' }), canonical, 'a failed read paints the canonical colourway');
+});
+
+test("the person's colourway never re-points a theme group of another kind", async () => {
+  const { createTokenSet } = await import('../../../engine/src/tokens.ts');
+  // An imported file whose second group declares no kind: a personal choice that happens
+  // to name one of its options is not a colourway, so the group stays canonical.
+  const doc = {
+    base: { color: { $type: 'color', semantic: { primary: { $value: '#000000' } } } },
+    light: {}, dark: {},
+    acme: { color: { $type: 'color', semantic: { primary: { $value: '#0055ff' } } } },
+    globex: { color: { $type: 'color', semantic: { primary: { $value: '#ff0000' } } } },
+    $themes: [
+      { name: 'light', group: 'mode', selectedTokenSets: { base: 'enabled', light: 'enabled' } },
+      { name: 'dark', group: 'mode', selectedTokenSets: { base: 'enabled', dark: 'enabled' } },
+      { name: 'acme', group: 'brand', selectedTokenSets: { acme: 'enabled' } },
+      { name: 'globex', group: 'brand', selectedTokenSets: { globex: 'enabled' } },
+    ],
+    $metadata: { tokenSetOrder: ['base', 'light', 'dark', 'acme', 'globex'] },
+  };
+  const surface = {
+    resolve: async (ref: string, opts?: { theme?: string; selection?: Record<string, string> }) => createTokenSet(doc, opts).resolve(ref),
+    themes: async () => createTokenSet(doc).themes(),
+  };
+  assert.equal(await chromeTokens(surface, { colourway: 'globex' })!.resolve('{color.semantic.primary}', { theme: 'light' }), '#0055ff');
+});
+
 test('chromeTokens also pins a plain second theme group, so a route choice never reaches the chrome', async () => {
   const { createTokenSet } = await import('../../../engine/src/tokens.ts');
   // An imported Tokens Studio file: two groups, no Lolly kinds, the route chose globex.
