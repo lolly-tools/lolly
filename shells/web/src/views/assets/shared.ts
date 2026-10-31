@@ -4,7 +4,8 @@
  * constants and pure helpers that used to sit above mountCatalog(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The asset catalog view.
  */
-import { catalogAddedAt, type TypeFilter } from '../assets-filter.ts';
+import type { TypeFilter } from '../assets-filter.ts';
+import { formatWrittenDate } from '../../lib/meta-dates.ts';
 import { t } from '../../i18n.ts';
 import { mountZoomHud } from '../../components/zoom-hud.ts';
 import type { TextSignalPanel } from '../valid-text.ts';
@@ -352,16 +353,13 @@ export const stripC2paManifest = (svg: string): string =>
     .replace(/<c2pa:manifest>[\s\S]*?<\/c2pa:manifest>/g, '');
 export const isVector = (ref: AssetRef): boolean => ref.type === 'vector';
 // The date a CATALOG asset's file was first added to its brand pack, as the index
-// carries it (`added`, YYYY-MM-DD, stamped by pnpm run build:catalog), read through
-// catalogAddedAt (noon UTC) so this text and the Date added sort agree. Empty
-// string when the asset has no date, which is every upload - those carry a
-// millisecond stamp instead and go through assetAddedAt.
-export const catalogAddedText = (ref: AssetRef): string => {
-  const iso = typeof ref.meta?.added === 'string' ? ref.meta.added : '';
-  if (!iso) return '';
-  const at = catalogAddedAt(ref);
-  return at === null ? iso : new Date(at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-};
+// carries it (`added`, YYYY-MM-DD, stamped by pnpm run build:catalog), in the one
+// date style of every details list (lib/meta-dates.ts). The day is shown as written,
+// never moved through the reader's zone. Empty string when the asset has no date,
+// which is every upload - those carry a millisecond stamp instead and go through
+// assetAddedAt.
+export const catalogAddedText = (ref: AssetRef): string =>
+  typeof ref.meta?.added === 'string' ? formatWrittenDate(ref.meta.added) : '';
 // A safe, readable download filename from an asset's name (or id), + extension.
 export function downloadName(ref: AssetRef, ext: string): string {
   const base = String(ref.meta?.name ?? ref.id.split('/').pop() ?? 'asset')

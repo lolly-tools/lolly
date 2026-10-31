@@ -26,8 +26,9 @@ import { publishSiteInspection } from '../../lib/site-tools-context.ts';
 import { setSearchBarQuery } from '../../components/search-bar.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { destroyLottiePlayers, lottiePlayerFor, mountLottieMarker } from '../lottie-mount.ts';
-import { extractAssetMetadata, leavesOriginalUnread, recordedMetadata } from '../../lib/asset-metadata.ts';
+import { extractAssetMetadata, leavesOriginalUnread, metadataFromBytes, recordedMetadata } from '../../lib/asset-metadata.ts';
 import { mergeMetaRows, metaRow } from '../../lib/meta-rows.ts';
+import { formatMetaInstant } from '../../lib/meta-dates.ts';
 import { analyzeVerifyText } from '../valid-text.ts';
 import { categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId, saveFavouriteAssets } from '../../lib/asset-favourites.ts';
@@ -84,7 +85,7 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   // it is still data, and a link is the one place a string becomes an action.
   const sourceUrl = typeof record?.sourceUrl === 'string' && /^https?:\/\//i.test(record.sourceUrl) ? record.sourceUrl : '';
   const sourceParts = [
-    isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? t(ref.source === 'remote' ? 'Shared asset' : 'Catalog')),
+    isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? (ref.source === 'remote' ? t('Shared asset') : t('Catalog'))),
     credited ? escapeText(tRaw('credited to {who}', { who: credited })) : '',
     sourceUrl ? `<a href="${escapeText(sourceUrl)}" target="_blank" rel="noopener noreferrer">${t('Original work')}</a>` : '',
   ].filter(Boolean).join(' · ');
@@ -457,10 +458,9 @@ export function buildSheet(dt: DetailsCtx): void {
             // committed to its brand pack, which the index carries as `added`.
             const added = assetAddedAt(ref);
             const modified = assetModifiedAt(ref);
-            const fmtDate = (ts: number): string => new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-            const addedText = added ? fmtDate(added) : catalogAddedText(ref);
+            const addedText = added ? formatMetaInstant(added) : catalogAddedText(ref);
             return (addedText ? metaRow('added', t('Added'), escapeText(addedText)) : '')
-              + (modified && added && modified - added > 60_000 ? metaRow('modified', t('Modified'), escapeText(fmtDate(modified))) : '');
+              + (modified && added && modified - added > 60_000 ? metaRow('modified', t('Modified'), escapeText(formatMetaInstant(modified))) : '');
           })()}
           ${assetRightsRows(ref, isUser)}
           ${tags.length || isUser ? metaRow('tags', t('Tags'), `${tags.map(tag => `<button type="button" class="cat-tag" data-tag="${escapeText(String(tag))}" title="${escapeText(t('Show everything with this tag'))}">${escapeText(String(tag))}</button>`).join('')}${isUser ? `<button type="button" class="cat-tag cat-tag--edit" data-act="edit-tags">${tags.length ? t('Edit…') : t('Add tags…')}</button>` : ''}`, 'class="cat-details-tags"') : ''}
@@ -559,7 +559,12 @@ export function buildSheet(dt: DetailsCtx): void {
   if (ownsPreview && !ref.meta?._placeholder) {
     dlg.classList.add('has-format-viewer');
     mountAssetViewerDetails(dlg);
-    dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-preview-content')!, ref, cat.host);
+    // The viewer reads the file itself, so the Details list takes the file's own size,
+    // pages and page size from that read rather than fetching the file a second time.
+    const list = dlg.querySelector<HTMLElement>('[data-meta-list]');
+    dt.formatViewer = mountAssetFormatViewer(dlg.querySelector<HTMLElement>('.cat-preview-content')!, ref, cat.host, bytes => {
+      if (list && cat.detailsDialog === dlg) for (const row of mergeMetaRows(list, metadataFromBytes(bytes))) row.classList.add('is-arriving');
+    });
   }
   // The address bar mirrors the Share button (`#/a?asset=<id>`) while an
   // asset is open, so copy/pasting the URL shares this exact view. Paging

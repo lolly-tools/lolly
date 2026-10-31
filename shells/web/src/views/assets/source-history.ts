@@ -59,9 +59,9 @@ export function mountSourceHistory(root: HTMLElement, ref: AssetRef, assets: { _
               if (!alive()) return;
               const form = document.createElement('form');
               const purpose = document.createElement('input'), target = document.createElement('input'), chain = document.createElement('select'), file = document.createElement('select');
-              const label = (name: string, control: HTMLElement) => { const wrapper = document.createElement('label'); wrapper.textContent = t(name); control.className = 'field-input'; wrapper.append(control); form.append(wrapper); };
+              const label = (name: string, control: HTMLElement) => { const wrapper = document.createElement('label'); wrapper.textContent = name; control.className = 'field-input'; wrapper.append(control); form.append(wrapper); };
               purpose.required = target.required = true; purpose.maxLength = 200; target.maxLength = 300;
-              label('Review purpose', purpose); label('Activation target', target); label('Approval chain', chain); label('File version', file);
+              label(t('Review purpose'), purpose); label(t('Activation target'), target); label(t('Approval chain'), chain); label(t('File version'), file);
               for (const value of chains.chains ?? []) { const option = document.createElement('option'); option.value = value.id; option.textContent = value.name; chain.append(option); }
               const choices: Array<{ assetId: string; version: number; format: string; sha256: string; representation: 'original' }> = [];
               for (const version of remote.versions ?? []) for (const format of version.formats) if (/^[a-f0-9]{64}$/.test(format.checksum) && format.size <= remote.sourceReviewCapability!.maxFileBytes) {

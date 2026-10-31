@@ -22,6 +22,7 @@
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { t } from '../i18n.ts';
 import type { MetaKey } from './meta-rows.ts';
+import { formatMetaInstant, formatWrittenDate } from './meta-dates.ts';
 
 /** One row of the asset's Details list: a stable key (lib/meta-rows.ts), the
  *  translated label and the value. The key, never the label, picks the row's glyph
@@ -121,16 +122,11 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
     } | undefined;
     if (prov) {
       push('importedFrom', t('Imported from'), prov.originalFilename);
-      if (prov.importedAt) {
-        const d = new Date(prov.importedAt);
-        if (!Number.isNaN(d.getTime())) {
-          push('imported', t('Imported'), d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }));
-        }
-      }
+      if (prov.importedAt) push('imported', t('Imported'), formatMetaInstant(prov.importedAt));
       const md = prov.metaDigest ?? {};
       push('author', t('Artist / author'), md.author);
       push('copyright', t('Copyright'), md.copyright);
-      push('taken', t('Captured'), md.captureDate);
+      if (md.captureDate) push('taken', t('Captured'), formatWrittenDate(md.captureDate));
       push('camera', t('Camera'), md.camera);
       push('software', t('Software'), md.software);
       push('keywords', t('Keywords'), md.keywords);
@@ -144,18 +140,41 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
 }
 
 /**
- * What the asset's own record states before its file is read: dimensions, length and
- * size. The Details list shows these at once; the read that follows refines the same
- * rows in place rather than adding rows above the ones a person is reading.
+ * What the asset's own record states before its file is read: dimensions, pages,
+ * length, frame rate and size. A catalog record carries its primary file's size and
+ * dimensions (formats[].size, width and height); an entry's own meta block may add a
+ * page count. The Details list shows these at once, for every kind of asset, and so
+ * for the PDFs and fonts whose own viewer reads the file instead of this module; a
+ * read that follows refines the same rows in place rather than adding rows above the
+ * ones a person is reading.
  */
 export function recordedMetadata(ref: AssetRef): MetaField[] {
   const fields: MetaField[] = [];
   const width = ref.width ?? ref.meta?.width, height = ref.height ?? ref.meta?.height;
   if (width && height) fields.push({ key: 'dimensions', label: t('Dimensions'), value: `${width} × ${height}` });
+  const pages = positive(ref.meta?.pages ?? ref.meta?.pageCount);
+  if (pages && Number.isInteger(pages)) fields.push({ key: 'pages', label: t('Pages'), value: String(pages) });
   const duration = metaDurationSec(ref);
   if (duration) fields.push({ key: 'duration', label: t('Duration'), value: formatDuration(duration) });
+  const fps = positive(ref.meta?.fps);
+  if (fps) fields.push({ key: 'frameRate', label: t('Frame rate'), value: `${trimNum(fps)} fps` });
   const size = metaBytes(ref);
   if (size) fields.push({ key: 'fileSize', label: t('File size'), value: formatBytes(size) });
+  return fields;
+}
+
+/**
+ * The facts a file viewer's own read gives for free, for the kinds whose preview
+ * reads the file itself (PDF, font) and so never runs {@link extractAssetMetadata}:
+ * the file's true size, and for a PDF its page count and first page size. A PDF is
+ * known by its own header, not by the format it was declared as. Pure and bounded,
+ * like the readers below.
+ */
+export function metadataFromBytes(bytes: Uint8Array): MetaField[] {
+  const fields: MetaField[] = [];
+  const push: Push = (key, label, value) => { if (value != null && String(value)) fields.push({ key, label, value: String(value) }); };
+  if (latin1(bytes.subarray(0, 1024)).includes('%PDF-')) addPdfText(bytes, push);
+  if (bytes.byteLength > 0) push('fileSize', t('File size'), formatBytes(bytes.byteLength));
   return fields;
 }
 
@@ -217,7 +236,11 @@ async function addLottieFields(ref: AssetRef, push: Push): Promise<void> {
 }
 
 async function addPdfFields(blob: Blob, push: Push): Promise<void> {
-  const bytes = new Uint8Array(await blob.arrayBuffer());
+  addPdfText(new Uint8Array(await blob.arrayBuffer()), push);
+}
+
+function addPdfText(bytes: Uint8Array, push: Push): void {
+  if (bytes.byteLength > PDF_CAP) return;
   const text = latin1(bytes);
   const pages = countPdfPages(text);
   if (pages) push('pages', t('Pages'), String(pages));
@@ -341,7 +364,7 @@ function addExifFields(exif: Uint8Array, push: Push): void {
   if (lens) push('lens', t('Lens'), lens);
 
   const taken = asStr(sub[0x9003]) || asStr(ifd0[0x0132]);
-  if (taken) push('taken', t('Taken'), formatExifDate(taken));
+  if (taken) push('taken', t('Taken'), formatWrittenDate(taken));
 
   const exp = asNum(sub[0x829a]);
   if (exp && exp > 0) push('exposure', t('Exposure'), formatExposure(exp));
@@ -748,9 +771,14 @@ async function decodeDims(blob: Blob): Promise<{ w: number; h: number } | null> 
   return null;
 }
 
-function metaBytes(ref: AssetRef): number | null {
-  const n = Number(ref.meta?.bytes);
+function positive(value: unknown): number | null {
+  const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** The recorded byte length: an upload's `bytes`, or a catalog file's `size` (formats[].size). */
+function metaBytes(ref: AssetRef): number | null {
+  return positive(ref.meta?.bytes) ?? positive(ref.meta?.size);
 }
 
 function metaDurationSec(ref: AssetRef): number | null {
@@ -854,13 +882,6 @@ function orientationLabel(o: number): string {
     8: 'Rotate 90° CCW',
   };
   return map[o] ?? '';
-}
-
-function formatExifDate(s: string): string {
-  // EXIF form "YYYY:MM:DD HH:MM:SS" -> "YYYY-MM-DD HH:MM".
-  const m = s.match(/^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2})/);
-  if (m) return `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}`;
-  return s.trim();
 }
 
 function formatExposure(sec: number): string {
