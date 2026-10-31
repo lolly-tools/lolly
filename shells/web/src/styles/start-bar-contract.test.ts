@@ -12,6 +12,12 @@
  *   2. The room strip's scroll fade applies at every width. It used to sit in
  *      the phone block only, so a desk strip that did not fit cut its last rooms
  *      off with nothing to show more were there.
+ *   3. The kicker is an h1, and base.css gives every h1 the display face; the
+ *      kicker takes the bar's own face back, so a design system with a display
+ *      face does not restyle a chrome label.
+ *   4. The page pads its scroll by the pinned bars, so keyboard focus is never
+ *      left under them (WCAG 2.4.11); the padding steps aside while focus is in
+ *      the bar, and no room adds a scroll margin of its own on top.
  *
  * Run directly: node --import ./tests/css-stub.mjs --test shells/web/src/styles/start-bar-contract.test.ts
  */
@@ -19,7 +25,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const css = readFileSync(new URL('./parts/start-bar.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+const sheet = (name: string): string => readFileSync(new URL(`./parts/${name}`, import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+const css = sheet('start-bar.css');
 
 /** Depth of braces open at `index`: 1 is the top of the sheet's `@layer views` block. */
 function depthAt(index: number): number {
@@ -52,5 +59,26 @@ test('the room strip fades where rooms continue, on a desk as on a phone', () =>
   assert.ok(fade.some(r => r.depth === 1 && /mask-image:/.test(r.body)), 'the fade is a top-level rule, not a phone-only one');
   for (const r of rules('.ds-rooms')) {
     assert.doesNotMatch(r.body, /mask-image:/, 'a strip that fits is drawn without a fade');
+  }
+});
+
+test('the kicker keeps the bar\'s face while it is the page\'s h1', () => {
+  const kicker = rules('.ds-bar-kicker');
+  assert.ok(kicker.some(r => r.depth === 1 && /font-family:\s*inherit/.test(r.body)), 'base.css would hand the h1 the display face');
+});
+
+test('the page pads its scroll by the pinned bars, except while focus is in the bar', () => {
+  const pad = rules('html:has(.start.start--studio > .ds-top)');
+  assert.ok(pad.some(r => r.depth === 1 && /scroll-padding-top:\s*var\(--ds-sticky-top/.test(r.body)), 'the top bar pads the page at every width');
+  assert.ok(pad.some(r => r.depth === 1 && /scroll-padding-bottom:\s*var\(--ds-sticky-bottom/.test(r.body)), 'the phone room bar pads the foot of the page');
+  const inBar = rules('html:has(.start.start--studio > .ds-top:focus-within)');
+  assert.ok(inBar.some(r => r.depth === 1 && /scroll-padding-block:\s*0/.test(r.body)), 'focus moving within the bar never scrolls the page');
+});
+
+test('no room adds a top scroll margin on top of the page padding', () => {
+  // The page's padding already clears the bar; a margin here would count the
+  // bar twice. A modal with its own scroller (start-reference.css) is not a room.
+  for (const name of ['start.css', 'start-bar.css', 'start-skills.css', 'start-usage.css', 'brand-studio.css']) {
+    assert.doesNotMatch(sheet(name), /scroll-margin(?:-top|-block-start|-block)?\s*:/, `${name} sets no scroll margin`);
   }
 });

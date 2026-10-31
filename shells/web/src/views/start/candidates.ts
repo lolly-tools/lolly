@@ -2,7 +2,7 @@
 /**
  * start: candidates.
  *
- * Every function but handFocusBack takes the shared `start: StartCtx` first (see context.ts). Sibling
+ * Every function takes the shared `start: StartCtx` first (see context.ts). Sibling
  * calls in this file are direct; a call into another module, and every use of a
  * function as a value (an event listener), goes through `start.<module>.<fn>`. Extracted verbatim
  * from mountStart() by scripts/split-closure.ts.
@@ -18,6 +18,7 @@ import { playSfx } from '../../lib/sfx.ts';
 import { installGoogleFont } from '../../user-fonts.ts';
 import type { UserFontsHost } from '../../user-fonts.ts';
 import { bindOp, type StartCtx } from './context.ts';
+import { handFocusBack } from './shared.ts';
 
 /**
  * One token per colour, through the Colours room's own write (plan 97 section 2b).
@@ -103,21 +104,6 @@ export const keepInTray = async (start: StartCtx,
   say(msg);
   return n;
 };
-/**
- * Focus the first target that actually takes focus. A target that is hidden,
- * or not drawn (display: none in a narrow layout), ignores focus(), and that
- * is only known by asking: focus() is called and the active element read back.
- * Returns the element that took focus, or null when none did.
- */
-export function handFocusBack(targets: ReadonlyArray<HTMLElement | null | undefined>): HTMLElement | null {
-  for (const el of targets) {
-    if (!el || el.hidden) continue;
-    el.focus();
-    if (el.ownerDocument.activeElement === el) return el;
-  }
-  return null;
-}
-
 export function wireTray(start: StartCtx): void {
   const { host, importBtn, railEl, shell, tray, trayToggle } = start;
   // A locked build never reaches here (the route returned above) and a failed

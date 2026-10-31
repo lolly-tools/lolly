@@ -12,6 +12,11 @@
  *    system's name.
  *  - On a phone, a tray that closes by emptying hands focus to a control that is
  *    drawn, not to "Add from…", which the phone bar keeps in the More menu.
+ *  - The heading keeps the bar's own face, not the display face base.css gives
+ *    every h1.
+ *  - Keyboard focus is never left under the pinned bar, or on a phone under the
+ *    room bar at the bottom edge (WCAG 2.4.11), focus moving within the bar never
+ *    scrolls the page, and a jump inside a room clears the bar once, not twice.
  *
  *   LOLLY_IMPORT_TEST_URL=http://127.0.0.1:5193 LOLLY_WEBGPU_TEST_ADAPTER=swiftshader node --import ./tests/browser-gpu.ts --test tests/start-bar.browser.test.ts
  */
@@ -47,6 +52,37 @@ async function open(page: Page, hash: string): Promise<void> {
   await page.goto(`${origin}/${hash}`, { waitUntil: 'networkidle' });
   await shellSettled(page);
   await page.locator('.ds-top').waitFor();
+}
+
+/** Install a small design system of the test's own, so a room has tokens to show on any profile. */
+async function furnish(page: Page): Promise<void> {
+  await open(page, '#/start?source=file');
+  const file = page.locator('.start-import-modal .start-import-file');
+  await file.waitFor({ state: 'attached' });
+  await file.setInputFiles({ name: 'tokens.json', mimeType: 'application/json', buffer: Buffer.from(TOKENS) });
+  await page.locator('[data-install-plain]').click();
+  await page.locator('[data-install-plain]').waitFor({ state: 'hidden' });
+}
+
+/**
+ * A column of controls at the end of the open room, tall enough to scroll the
+ * page on any profile: what the room itself holds differs from one design
+ * system to the next, and the bars pad the page whatever the room shows.
+ */
+function roomColumn(page: Page): Promise<void> {
+  return page.evaluate(() => {
+    const column = document.createElement('div');
+    column.dataset.testColumn = '';
+    column.style.cssText = 'display:flex;flex-direction:column;gap:56px;padding-block:56px';
+    for (let i = 0; i < 24; i++) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = `Test stop ${i + 1}`;
+      button.style.cssText = 'height:32px;align-self:flex-start';
+      column.append(button);
+    }
+    document.querySelector('.ds-main')!.append(column);
+  });
 }
 
 /** What is drawn near the top of `selector`, and whether that point lies in the bar's band. */
@@ -163,13 +199,9 @@ test('the studio has one level-one heading that carries the design system name',
 test('on a phone, an emptied tray hands focus to a control that is drawn', { skip, timeout: 180_000 }, async () => {
   await withPage(PHONE, async (page) => {
     // A furnished system first, so "Add from…" is offered (and kept in the More menu).
-    await open(page, '#/start?source=file');
-    const file = page.locator('.start-import-modal .start-import-file');
-    await file.waitFor({ state: 'attached' });
-    await file.setInputFiles({ name: 'tokens.json', mimeType: 'application/json', buffer: Buffer.from(TOKENS) });
-    await page.locator('[data-install-plain]').click();
-    await page.locator('[data-install-plain]').waitFor({ state: 'hidden' });
+    await furnish(page);
     await open(page, '#/start?area=overview&source=file');
+    const file = page.locator('.start-import-modal .start-import-file');
     await file.waitFor({ state: 'attached' });
     // The studio reads whether the system is furnished after it mounts.
     await page.waitForFunction(() => (document.querySelector('[data-start-import]') as HTMLElement | null)?.hidden === false);
@@ -186,5 +218,153 @@ test('on a phone, an emptied tray hands focus to a control that is drawn', { ski
     }, undefined, { timeout: 5000 }).then(h => h.jsonValue()).catch(() => 'BODY');
     assert.notEqual(focus, 'BODY', 'focus is not dropped on the page');
     assert.ok(!String(focus).endsWith('|0'), `focus is on a control that is drawn (${focus})`);
+  });
+});
+
+test('the heading keeps the bar\'s own face when the design system has a display face', { skip, timeout: 120_000 }, async () => {
+  await withPage(DESK, async (page) => {
+    await open(page, '#/start');
+    const faces = await page.evaluate(() => {
+      // A display face of the design system's own, whatever the profile ships.
+      document.documentElement.style.setProperty('--font-display', '"Lolly Test Display", serif');
+      const kicker = document.querySelector('.ds-bar-kicker')!;
+      return { tag: kicker.tagName, kicker: getComputedStyle(kicker).fontFamily, bar: getComputedStyle(kicker.parentElement!).fontFamily };
+    });
+    assert.equal(faces.tag, 'H1');
+    assert.doesNotMatch(faces.bar, /Lolly Test Display/, 'the bar itself is chrome, set in the chrome face');
+    assert.equal(faces.kicker, faces.bar, 'the label reads in the bar\'s face, not the display face');
+  });
+});
+
+type Edge = 'top' | 'bottom';
+
+/**
+ * Pick two neighbours in the test column's Tab order and scroll so that one of
+ * them sits entirely under a pinned bar while the other is in clear view, then
+ * focus the clear one without scrolling. `top`: the earlier one is under the top bar, for
+ * Shift+Tab to reach. `bottom`: the later one is under the phone's room bar, for
+ * Tab to reach. Returns a selector for the hidden one, or null.
+ */
+function arrange(page: Page, edge: Edge): Promise<string | null> {
+  return page.evaluate((edge) => {
+    const bar = document.querySelector('.ds-top')!.getBoundingClientRect().bottom;
+    const nav = document.querySelector('.ds-room-nav')!;
+    const foot = getComputedStyle(nav).position === 'fixed' ? nav.getBoundingClientRect().top : innerHeight;
+    const stops = [...document.querySelectorAll<HTMLElement>('[data-test-column] button')];
+    for (let i = 0; i + 1 < stops.length; i++) {
+      const [hidden, clear] = edge === 'top' ? [stops[i]!, stops[i + 1]!] : [stops[i + 1]!, stops[i]!];
+      const h = hidden.getBoundingClientRect();
+      const c = clear.getBoundingClientRect();
+      if (h.height < 16 || h.height > bar - 8) continue;
+      if ((edge === 'top' ? c.top - h.bottom : h.top - c.bottom) < 24) continue;
+      const from = scrollY;
+      window.scrollTo(0, from + (edge === 'top' ? h.top - (bar - h.height - 4) : h.bottom - (innerHeight - 4)));
+      const h2 = hidden.getBoundingClientRect();
+      const c2 = clear.getBoundingClientRect();
+      const under = edge === 'top' ? h2.top >= 0 && h2.bottom <= bar : h2.top >= foot && h2.bottom <= innerHeight;
+      if (under && c2.top >= bar && c2.bottom <= foot) {
+        hidden.dataset.testHidden = edge;
+        clear.focus({ preventScroll: true });
+        return `[data-test-hidden="${edge}"]`;
+      }
+      window.scrollTo(0, from);
+    }
+    return null;
+  }, edge);
+}
+
+/** The focused control's box against the bars, and whether that control is the one drawn there. */
+function focusPlace(page: Page): Promise<{ id: string; clear: boolean; drawn: boolean; at: string }> {
+  return page.evaluate(() => {
+    const el = document.activeElement as HTMLElement;
+    const bar = document.querySelector('.ds-top')!.getBoundingClientRect().bottom;
+    const nav = document.querySelector('.ds-room-nav')!;
+    const foot = getComputedStyle(nav).position === 'fixed' ? nav.getBoundingClientRect().top : innerHeight;
+    const r = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.left + Math.min(10, r.width / 2), r.top + r.height / 2);
+    return { id: el.dataset.testHidden ?? `${el.tagName}.${el.className}`, clear: r.top >= bar - 1 && r.bottom <= foot + 1, drawn: el.contains(hit), at: `${Math.round(r.top)} to ${Math.round(r.bottom)}, bar ends ${Math.round(bar)}, room bar starts ${Math.round(foot)}` };
+  });
+}
+
+test('keyboard focus is never left under the pinned bar', { skip, timeout: 240_000 }, async () => {
+  for (const [viewport, edges] of [[DESK, ['top']], [PHONE, ['top', 'bottom']]] as const) {
+    await withPage(viewport, async (page) => {
+      await open(page, '#/start');
+      await roomColumn(page);
+      for (const edge of edges) {
+        const target = await arrange(page, edge);
+        assert.ok(target, `a control can be placed under the ${edge} bar at ${viewport.width}px, or this proves nothing`);
+        await page.keyboard.press(edge === 'top' ? 'Shift+Tab' : 'Tab');
+        const place = await focusPlace(page);
+        assert.equal(place.id, edge, `the keyboard reached the control under the ${edge} bar at ${viewport.width}px`);
+        assert.ok(place.clear && place.drawn, `the focused control is in view, not under the ${edge} bar at ${viewport.width}px (${place.at})`);
+      }
+    });
+  }
+});
+
+test('focus moving within the bar never scrolls the page', { skip, timeout: 240_000 }, async () => {
+  for (const viewport of [DESK, PHONE]) {
+    await withPage(viewport, async (page) => {
+      await open(page, '#/start');
+      await page.locator('[data-start-ds]:not([hidden])').waitFor();
+      await roomColumn(page);
+      const scrolledFocus = (selector: string): Promise<number> => page.evaluate((sel) => {
+        window.scrollTo(0, 400);
+        (document.activeElement as HTMLElement | null)?.blur?.();
+        document.querySelector<HTMLElement>(sel)!.focus();
+        return scrollY;
+      }, selector);
+      // The name is a field only on a system the person may edit.
+      const editable = await page.locator('.start-ds-name').count() > 0;
+      for (const selector of ['.start-back', ...(editable ? ['.start-ds-name'] : []), '[data-ds-more]', '.ds-room[tabindex="0"]']) {
+        assert.equal(await scrolledFocus(selector), 400, `focusing ${selector} leaves the page where it was at ${viewport.width}px`);
+      }
+      await page.keyboard.press('ArrowRight');
+      await page.keyboard.press('ArrowRight');
+      assert.equal(await page.evaluate(() => scrollY), 400, `walking the room strip leaves the page where it was at ${viewport.width}px`);
+      await scrolledFocus('[data-ds-more]');
+      await page.keyboard.press('Enter');
+      await page.locator('.ds-bar-menu [role="menuitem"]').first().waitFor();
+      assert.equal(await page.evaluate(() => scrollY), 400, `opening the More menu leaves the page where it was at ${viewport.width}px`);
+    });
+  }
+});
+
+test('a jump inside a room clears the bar once, not twice', { skip, timeout: 240_000 }, async () => {
+  await withPage({ width: 1280, height: 600 }, async (page) => {
+    await furnish(page);
+    await open(page, '#/start?area=tokens');
+    const tile = page.locator('.tk-tile').first();
+    await tile.waitFor();
+    // Room past the last section, so the jump can bring a section to the top.
+    await roomColumn(page);
+    await tile.click();
+    const landing = await page.waitForFunction(() => {
+      const sec = (document.activeElement as HTMLElement | null)?.closest('.tk-sec, .tk-adv');
+      return sec ? { top: sec.getBoundingClientRect().top, bar: document.querySelector('.ds-top')!.getBoundingClientRect().bottom } : null;
+    }).then(h => h.jsonValue());
+    assert.ok(landing, 'the tile focuses its section');
+    assert.ok(landing.top >= landing.bar && landing.top <= landing.bar + 9, `a Tokens section lands just below the bar (${Math.round(landing.top)}, bar ends ${Math.round(landing.bar)})`);
+  });
+  await withPage(PHONE, async (page) => {
+    await open(page, '#/start?area=skills');
+    const skill = page.locator('[data-skill-open]').first();
+    await skill.waitFor();
+    await skill.click();
+    await page.waitForFunction(() => (document.querySelector('#skills-reader')?.getBoundingClientRect().top ?? 9999) < innerHeight / 2);
+    const landing = await page.evaluate(() => ({ top: document.querySelector('#skills-reader')!.getBoundingClientRect().top, bar: document.querySelector('.ds-top')!.getBoundingClientRect().bottom }));
+    assert.ok(landing.top >= landing.bar && landing.top <= landing.bar + 9, `the skill reader lands just below the bar (${Math.round(landing.top)}, bar ends ${Math.round(landing.bar)})`);
+  });
+});
+
+test('leaving the studio takes the page padding with it', { skip, timeout: 120_000 }, async () => {
+  await withPage(PHONE, async (page) => {
+    await open(page, '#/start?area=tokens');
+    assert.notEqual(await page.evaluate(() => getComputedStyle(document.documentElement).scrollPaddingTop), 'auto', 'the studio pads the page');
+    await page.evaluate(() => { location.hash = '#/'; });
+    await page.waitForFunction(() => !document.querySelector('.ds-top'));
+    const after = await page.evaluate(() => ({ pad: getComputedStyle(document.documentElement).scrollPaddingTop, top: document.documentElement.style.getPropertyValue('--ds-sticky-top'), foot: document.documentElement.style.getPropertyValue('--ds-sticky-bottom') }));
+    assert.deepEqual(after, { pad: 'auto', top: '', foot: '' });
   });
 });

@@ -38,6 +38,19 @@
    row and all, even when it opens in the bar's band. */
 .start.start--studio > .ds-shell { z-index: auto; }
 
+/* Keyboard focus, and a jump inside a room, land clear of the pinned bar, and
+   on a phone clear of the room bar at the bottom edge too (WCAG 2.4.11).
+   views/start/rooms.ts measures both onto the root, the page's scroller. The
+   rooms keep no scroll margin of their own, so the clearance counts once. */
+html:has(.start.start--studio > .ds-top) {
+  scroll-padding-top: var(--ds-sticky-top, 0px);
+  scroll-padding-bottom: var(--ds-sticky-bottom, 0px);
+}
+/* While focus is in the bar the padding steps aside. The bar is pinned, so its
+   controls are always in view, yet they sit inside the padded band, and a
+   padded page would scroll to bring each one out from under the bar. */
+html:has(.start.start--studio > .ds-top:focus-within) { scroll-padding-block: 0; }
+
 .ds-bar {
   display: flex;
   align-items: center;
@@ -66,9 +79,13 @@
   align-items: center;
   gap: var(--sp-4);
 }
+/* The kicker is the page's h1 for a screen reader, and stays a chrome label on
+   screen: base.css hands every h1 the design system's display face, so the
+   label takes the bar's own face back. */
 .ds-bar-kicker {
   flex: none;
   margin: 0;
+  font-family: inherit;
   font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: var(--ui-type-tracking-label);

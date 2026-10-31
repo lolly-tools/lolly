@@ -1110,7 +1110,6 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-bulk-preview { display: none; }
 @media (max-width: 1099px) {
   .be-bulk-preview { display: inline-flex; }
-  .be-context { scroll-margin-block-start: calc(var(--chrome-h) * 2 + var(--sp-4)); }
 }
 .be-preview-empty { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: var(--radius); margin: 0; padding: 1rem; background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center; }
 .be-context .be-context-head { margin-bottom: 0; }

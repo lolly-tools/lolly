@@ -99,7 +99,7 @@ export interface StartCtx {
   recovery: ReturnType<typeof mountCheckpointRecovery> | null;
   unsubTray: (() => void) | null;
   unsubBeat: (() => void) | null;
-  /** Removes the resize listener that keeps --ds-sticky-top in step with the room chips. */
+  /** Stops measuring the pinned bars into the page's scroll padding and clears --ds-sticky-top and --ds-sticky-bottom off the root. */
   unsubStickyTop: (() => void) | null;
   trayToggle: HTMLButtonElement | null;
   trayCountEl: HTMLElement | null;

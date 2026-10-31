@@ -20,7 +20,7 @@ after(() => {
   dom.window.close();
 });
 
-const { handFocusBack } = await import('./candidates.ts');
+const { handFocusBack } = await import('./shared.ts');
 
 function bar() {
   const shell = document.createElement('div');

@@ -154,9 +154,8 @@ html[dir="rtl"] .start-back-row {
 .ds-shell { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
 
 .ds-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
-/* A jump inside a room lands below the pinned bar, not under it.
-   --ds-sticky-top is set by views/start/rooms.ts. */
-.ds-main .tk-sec, .ds-main .tk-adv, .ds-main .tw-detail { scroll-margin-top: var(--ds-sticky-top, 0px); }
+/* A jump inside a room lands below the pinned bar through the page's own scroll
+   padding (start-bar.css), so no room target adds a scroll margin of its own. */
 .ds-panel[hidden] { display: none; }
 
 /* ── The Overview room - counts and doors, no progress ─────────────────────── */
