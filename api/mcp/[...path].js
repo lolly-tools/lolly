@@ -173464,6 +173464,25 @@ function gdiFaceName(stack) {
 // shells/cli/src/bridge.ts
 init_repo_root();
 init_content_roots();
+
+// packages/node-shell/src/tool-asset-id.ts
+var TOOL_ASSET_RE = /^\/tools\/([a-z0-9][a-z0-9-]*)\/assets\/([a-z0-9][a-z0-9_.-]*\.(svg|png|jpe?g|webp))$/i;
+var FORMATS = {
+  svg: { format: "svg", mime: "image/svg+xml" },
+  png: { format: "png", mime: "image/png" },
+  jpg: { format: "jpg", mime: "image/jpeg" },
+  jpeg: { format: "jpg", mime: "image/jpeg" },
+  webp: { format: "webp", mime: "image/webp" }
+};
+function parseToolAssetId(id3) {
+  if (typeof id3 !== "string") return null;
+  const m2 = TOOL_ASSET_RE.exec(id3);
+  if (!m2) return null;
+  const kind = FORMATS[m2[3].toLowerCase()];
+  return { toolId: m2[1], file: m2[2], type: kind.format === "svg" ? "vector" : "raster", format: kind.format, mime: kind.mime };
+}
+
+// shells/cli/src/bridge.ts
 init_text3();
 
 // packages/node-shell/src/audio.ts
@@ -177645,6 +177664,13 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
         const bytes2 = new Uint8Array(await (await fetch(lookedInline.baseId)).arrayBuffer());
         const baked = await bakeCliLook(photoLookCacheKey(inlineKey(lookedInline.baseId), "x", def, themeKey2), bytes2, mime3, def, themeKey2);
         return baked ? { ...plain, id: id3, url: baked.url, format: baked.format, original: void 0, meta: { ...plain.meta, treatment: lookedInline.treatment, ...themeKey2 !== "base" ? { lookTheme: themeKey2 } : {} } } : { ...plain, id: id3 };
+      }
+      const shipped = parseToolAssetId(id3);
+      if (shipped) {
+        const file = contentUrlFile(id3);
+        if (!file) throw new Error(`Tool asset not found: ${id3}`);
+        const bytes2 = await readFile21(file);
+        return { source: "remote", id: id3, type: shipped.type, format: shipped.format, url: `data:${shipped.mime};base64,${bytes2.toString("base64")}`, meta: { name: shipped.file } };
       }
       if (/^data:/i.test(id3)) {
         const mime3 = /^data:([^;,]+)/i.exec(id3)?.[1] ?? "";

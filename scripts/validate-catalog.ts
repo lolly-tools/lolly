@@ -56,6 +56,7 @@ import {
   catalogFile, contentRoots, contentUrlFile, toolDirs as resolveToolDirs, toolFile,
   readToolManifest, listToolFiles,
 } from '@lolly-tools/node-shell/content-roots';
+import { parseToolAssetId } from '@lolly-tools/node-shell/tool-asset-id';
 // The emoji bundle audit, imported rather than shelled out to: the module runs its
 // own audits only when it IS the command (see its main guard).
 import { auditBundle, checkEmojiPackSpecimen, readPackFacts } from './check-emoji-packs.ts';
@@ -2086,6 +2087,18 @@ for (const [toolId, manifest] of toolManifests) {
     }
     const id = (value as { id?: unknown })?.id;
     if (typeof id !== 'string' || /^(https?|data|blob):/.test(id)) return; // non-ref / runtime-fetched
+    // A picture the tool ships in its own assets folder (node-shell/tool-asset-id):
+    // it must be this tool's, and the file must be there.
+    const shipped = parseToolAssetId(id);
+    if (shipped) {
+      if (shipped.toolId !== toolId) errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") names another tool's file - a look may name only its own tool's assets`);
+      else if (!contentUrlFile(id)) errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") is not in ${toolId}/assets`);
+      return;
+    }
+    if (id.startsWith('/tools/')) {
+      errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") is not a tool asset id - use /tools/${toolId}/assets/<file>.svg|png|jpg|webp`);
+      return;
+    }
     const { baseId, theme } = parseThemedAssetId(id);
     if (baseId.includes('?')) {
       errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);

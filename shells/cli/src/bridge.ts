@@ -71,6 +71,7 @@ import { repoRoot } from '@lolly-tools/node-shell/repo-root';
 import {
   contentUrlFile, readAssetIndex, readToolText,
 } from '@lolly-tools/node-shell/content-roots';
+import { parseToolAssetId } from '@lolly-tools/node-shell/tool-asset-id';
 // host.text (HarfBuzz text-to-path). RELATIVE for the same reason as repo-root above - 
 // this file is inlined into the Vercel MCP function, where a bare @lolly-tools/node-shell
 // specifier would dangle. Lazily loads its WASM on first shape, so attaching it is free.
@@ -881,6 +882,16 @@ export async function createCliBridge(
         return baked
           ? { ...plain, id, url: baked.url, format: baked.format, original: undefined, meta: { ...plain.meta, treatment: lookedInline.treatment, ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) } }
           : { ...plain, id };
+      }
+      // A picture a tool ships beside its manifest, `/tools/<tool-id>/assets/<file>`
+      // (node-shell/tool-asset-id), as a tool's example looks name their pictures:
+      // read from that tool's folder in the active profile, nowhere else.
+      const shipped = parseToolAssetId(id);
+      if (shipped) {
+        const file = contentUrlFile(id);
+        if (!file) throw new Error(`Tool asset not found: ${id}`);
+        const bytes = await readFile(file);
+        return { source: 'remote', id, type: shipped.type, format: shipped.format, url: `data:${shipped.mime};base64,${bytes.toString('base64')}`, meta: { name: shipped.file } };
       }
       if (/^data:/i.test(id)) {
         const mime = /^data:([^;,]+)/i.exec(id)?.[1] ?? '';
