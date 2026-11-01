@@ -306,7 +306,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'formats', id: 'cap-formats', title: 'Export formats', icon: ICONS.image,
-    desc: '63 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
+    desc: '65 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
     cards: [
       { icon: ICONS.vector, title: 'Vector', shot: 'vt-wordmark-vector', keywords: 'svg svgz eps emf wmf dxf illustrator postscript outlines paths cut file laser cnc plotter penpot boards indesign idml', features: [
         { name: 'SVG · SVGZ', desc: 'Infinitely scalable and self-contained - text is outlined to paths (HarfBuzz-shaped) so it renders identically without the font installed. SVGZ is the same file gzip-compressed, 60 to 70% smaller.' },
@@ -336,13 +336,14 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'MP3 · M4A · WAV · Opus', desc: 'Recording and audio tools (the Voice Recorder, Audiogram and a Design sequence) export their soundtrack on its own - compact MP3, M4A or Opus, or full-quality lossless WAV - encoded on your device.' },
         { name: 'AAC · Ogg · FLAC', desc: 'A Design sequence, and Download as on an audio file in your library, also write a bare AAC stream, Opus in an Ogg file, or lossless FLAC at the clip’s own sample rate. Ogg and FLAC carry Content Credentials; a bare AAC stream has no place for one, so choose M4A when the file should carry one.' },
       ] },
-      { icon: ICONS.doc, title: 'Documents & data', keywords: 'pptx powerpoint keynote html markdown md txt json csv ics calendar vcf contact vcard docx word odt libreoffice scorm lms course srt vtt webvtt captions subtitles', features: [
+      { icon: ICONS.doc, title: 'Documents & data', keywords: 'pptx powerpoint keynote html markdown md txt json csv ics calendar vcf contact vcard docx word odt libreoffice scorm lms course srt vtt webvtt captions subtitles ttml imsc scc cea-608 broadcast', features: [
         { name: 'PowerPoint (PPTX)', desc: 'Multi-page and layout tools export an editable deck - each page decomposed into native text boxes, real shapes, and extractable images and vectors (logos embedded as real SVG). Built to hand a colleague content they can edit and reuse, not a flat screenshot.' },
         { name: 'HTML · MD · TXT', desc: 'HTML pastes formatted into mail clients; Markdown and plain text for content.' },
         { name: 'Word (DOCX) · OpenDocument (ODT)', desc: 'Writing leaves as real editable text: a .docx for Word and Google Docs, or an .odt for LibreOffice.' },
         { featureFlag: LEARNING_FLAG, name: 'SCORM course package', desc: 'A Design deck becomes a zip every learning management system imports (SCORM 1.2): a launch page that steps through the slides and reports completion, the slides themselves, and a narrated film of the speaker notes, read by an on-device voice, with captions.' },
         { name: 'JSON · CSV · ICS · VCF', desc: 'Structured data straight from the input model - calendar invites, contacts, tabular and machine-readable payloads.' },
         { name: 'SRT · WebVTT captions', desc: 'The Captions, Audiogram and Record tools write their timed cues as <code>.srt</code> and <code>.vtt</code> caption files, ready for a video player or an upload page.' },
+        { name: 'TTML · SCC broadcast captions', desc: 'The Captions tool also writes IMSC1.1 <code>.ttml</code> and pop-on <code>.scc</code> files (CEA-608, 29.97 drop-frame) for broadcast and streaming delivery. Characters the broadcast set cannot carry are refused, never dropped. SCC output has not yet been checked against a broadcast tool.' },
       ] },
       { icon: ICONS.font, title: 'Fonts', keywords: 'font ttf otf woff webfont convert wrap unwrap truetype opentype cff', features: [
         { name: 'TTF · OTF · WOFF', desc: 'Convert Font turns a web font back into a plain TTF or OTF, or wraps one up as WOFF, losslessly and on your device; the outlines pass through untouched.' },

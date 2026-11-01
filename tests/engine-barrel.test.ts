@@ -10,6 +10,10 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.299 broadcast captions: TTML/IMSC1.1 and SCC (CEA-608 pop-on) readers and writers, and their timecode and parity helpers.
+  'CaptionFormatError', 'CaptionIssue', 'IMSC11_TEXT_PROFILE', 'SCC_LIMITS', 'SccReadOptions', 'SccReadResult', 'SccWriteOptions',
+  'SccWriteResult', 'TTML_LIMITS', 'TtmlReadOptions', 'TtmlReadResult', 'TtmlTiming', 'TtmlWriteOptions',
+  'cuesToScc', 'cuesToTtml', 'frameToTimecode', 'hasOddParity', 'parseTtmlTime', 'sccToCues', 'timecodeToFrame', 'ttmlToCues', 'withOddParity',
   // Additive 1.298 DXF import: a shell-supplied reader's entity list, flattened into Design paths and text.
   'DXF_LIMITS', 'DXF_MAX_BOXES', 'DxfDesignResult', 'DxfImport', 'DxfImportOptions', 'DxfRaw', 'DxfReader',
   'DxfReport', 'DxfStroke', 'DxfText', 'DxfUnits',
