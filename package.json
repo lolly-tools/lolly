@@ -186,6 +186,7 @@
     "update:npm-licenses": "node scripts/update-npm-licenses.ts pnpm-lock.yaml shells/tauri-desktop/pnpm-lock.yaml shells/tauri-mobile/pnpm-lock.yaml",
     "build:adobe-psd": "node scripts/build-adobe-psd.ts",
     "build:xlsx-numfmt": "node scripts/build-xlsx-numfmt.ts",
+    "build:pdf-a11y": "node scripts/build-pdf-a11y.ts",
     "build:indd": "node scripts/build-indd.ts",
     "fetch:adobe-corpus": "node scripts/adobe-corpus.ts --fetch",
     "verify:adobe-corpus": "node scripts/adobe-corpus.ts",
