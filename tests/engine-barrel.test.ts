@@ -81,6 +81,9 @@ const EXPECTED: readonly string[] = [
   'CameraRawPreset', 'InterchangeClip', 'InterchangeRate', 'InterchangeSequence',
   'framesToSeconds', 'premiereSequenceValues', 'readCameraRawPreset', 'readIdmlSpreads',
   'readPremiereXml', 'secondsToFrames', 'writePremiereXml',
+  // Additive timeline interchange readers (EDL, OpenTimelineIO, FCPXML).
+  'EdlOptions', 'TimelineFormat', 'TimelineReadOptions', 'detectTimelineFormat', 'framesToTimecode',
+  'readEdl', 'readFcpxml', 'readOtio', 'readTimeline', 'timecodeToFrames',
   // Additive 1.244 image repair and matte refinement APIs.
   'HealFrame', 'HealMode', 'HealOptions', 'MatteRefineOptions', 'boxMean', 'guidedFilter',
   'healCoverageBounds', 'healFrame', 'refineMatte', 'resizeMask', 'spotHealPremultiplied',

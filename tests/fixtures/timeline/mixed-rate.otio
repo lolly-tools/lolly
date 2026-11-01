@@ -1,0 +1,33 @@
+{
+  "OTIO_SCHEMA": "Timeline.1",
+  "name": "Mixed rates",
+  "global_start_time": { "OTIO_SCHEMA": "RationalTime.1", "value": 86400, "rate": 24 },
+  "tracks": {
+    "OTIO_SCHEMA": "Stack.1",
+    "children": [
+      {
+        "OTIO_SCHEMA": "Track.1", "kind": "Video", "name": "V1",
+        "children": [
+          { "OTIO_SCHEMA": "Clip.1", "name": "Slow motion", "effects": [{ "OTIO_SCHEMA": "LinearTimeWarp.1", "time_scalar": 0.5 }],
+            "source_range": { "OTIO_SCHEMA": "TimeRange.1", "start_time": { "OTIO_SCHEMA": "RationalTime.1", "value": 48, "rate": 24 }, "duration": { "OTIO_SCHEMA": "RationalTime.1", "value": 48, "rate": 24 } },
+            "media_reference": { "OTIO_SCHEMA": "ExternalReference.1", "target_url": "file:///Media/slow.mov",
+              "available_range": { "OTIO_SCHEMA": "TimeRange.1", "start_time": { "OTIO_SCHEMA": "RationalTime.1", "value": 0, "rate": 24 }, "duration": { "OTIO_SCHEMA": "RationalTime.1", "value": 480, "rate": 24 } } } },
+          { "OTIO_SCHEMA": "Gap.1", "source_range": { "OTIO_SCHEMA": "TimeRange.1", "start_time": { "OTIO_SCHEMA": "RationalTime.1", "value": 0, "rate": 24 }, "duration": { "OTIO_SCHEMA": "RationalTime.1", "value": 12, "rate": 24 } } },
+          { "OTIO_SCHEMA": "Transition.1", "transition_type": "SMPTE_Dissolve", "in_offset": { "OTIO_SCHEMA": "RationalTime.1", "value": 6, "rate": 24 }, "out_offset": { "OTIO_SCHEMA": "RationalTime.1", "value": 6, "rate": 24 } },
+          { "OTIO_SCHEMA": "Clip.1", "name": "NTSC clip",
+            "source_range": { "OTIO_SCHEMA": "TimeRange.1", "start_time": { "OTIO_SCHEMA": "RationalTime.1", "value": 30, "rate": 23.976 }, "duration": { "OTIO_SCHEMA": "RationalTime.1", "value": 48, "rate": 23.976 } },
+            "media_reference": { "OTIO_SCHEMA": "ExternalReference.1", "target_url": "file:///Media/ntsc.mov" } },
+          { "OTIO_SCHEMA": "Stack.1", "name": "Nested", "children": [], "source_range": { "OTIO_SCHEMA": "TimeRange.1", "start_time": { "OTIO_SCHEMA": "RationalTime.1", "value": 0, "rate": 24 }, "duration": { "OTIO_SCHEMA": "RationalTime.1", "value": 24, "rate": 24 } } }
+        ]
+      },
+      {
+        "OTIO_SCHEMA": "Track.1", "kind": "Audio", "name": "A1",
+        "children": [
+          { "OTIO_SCHEMA": "Clip.1", "name": "Music",
+            "source_range": { "OTIO_SCHEMA": "TimeRange.1", "start_time": { "OTIO_SCHEMA": "RationalTime.1", "value": 48000, "rate": 48000 }, "duration": { "OTIO_SCHEMA": "RationalTime.1", "value": 96000, "rate": 48000 } },
+            "media_reference": { "OTIO_SCHEMA": "ExternalReference.1", "target_url": "file:///Media/music.wav" } }
+        ]
+      }
+    ]
+  }
+}

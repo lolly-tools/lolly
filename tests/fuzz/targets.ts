@@ -1991,6 +1991,40 @@ export const adobeXmlTarget: FuzzTarget = {
     else readCameraRawPreset(source, parseXml);
   },
 };
+export const timelineEdlTarget: FuzzTarget = {
+  name: 'timeline-edl',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/timeline/df-2997.edl', import.meta.url))), new Uint8Array(await readFile(new URL('../fixtures/timeline/df-5994.edl', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const { readEdl } = await import('../../engine/src/timeline-edl.ts');
+    const source = new TextDecoder().decode(bytes);
+    readEdl(source);
+  },
+};
+export const timelineOtioTarget: FuzzTarget = {
+  name: 'timeline-otio',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/timeline/mixed-rate.otio', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const { readOtio } = await import('../../engine/src/timeline-otio.ts');
+    readOtio(new TextDecoder().decode(bytes));
+  },
+};
+export const timelineFcpxmlTarget: FuzzTarget = {
+  name: 'timeline-fcpxml',
+  async seeds() {
+    const { readFile } = await import('node:fs/promises');
+    return [new Uint8Array(await readFile(new URL('../fixtures/timeline/df-2997.fcpxml', import.meta.url)))];
+  },
+  async invoke(bytes) {
+    const { readFcpxml } = await import('../../engine/src/timeline-fcpxml.ts');
+    readFcpxml(new TextDecoder().decode(bytes), parseXml);
+  },
+};
 export const adobePsdTarget: FuzzTarget = {
   name: 'adobe-psd',
   async seeds() {
@@ -2155,7 +2189,7 @@ export const fontInspectTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, adobePsdTarget, xlsxNumfmtTarget, inddTarget, idmlReadTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, inddTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,

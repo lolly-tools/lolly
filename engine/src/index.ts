@@ -1276,6 +1276,13 @@ export { readCameraRawPreset } from './camera-raw-preset.ts';
 export type { CameraRawPreset } from './camera-raw-preset.ts';
 export { readPremiereXml, writePremiereXml, premiereSequenceValues, framesToSeconds, secondsToFrames } from './premiere-xml.ts';
 export type { InterchangeRate, InterchangeClip, InterchangeSequence } from './premiere-xml.ts';
+export { readEdl } from './timeline-edl.ts';
+export type { EdlOptions } from './timeline-edl.ts';
+export { readOtio } from './timeline-otio.ts';
+export { readFcpxml } from './timeline-fcpxml.ts';
+export { readTimeline, detectTimelineFormat } from './timeline-import.ts';
+export type { TimelineFormat, TimelineReadOptions } from './timeline-import.ts';
+export { timecodeToFrames, framesToTimecode } from './timeline-common.ts';
 export { readIdmlSpreads } from './idml-read.ts';
 
 export { createDesignLayoutEvaluator, hasDesignLayout, validateDesignLayout, designLayoutSourceEdit, parseLayoutTrack } from './design-layout.ts';
