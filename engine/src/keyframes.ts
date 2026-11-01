@@ -131,10 +131,10 @@ import {
  * Neither token is a time, an ease or a channel name followed by a number, so a reader
  * that predates them skips each one as junk and keeps the rest of the keyframe.
  *
- * ## Springs and design-system eases (1.295, plans/329)
+ * ## Springs and design-system eases (1.296, plans/329)
  *
  * Two ease forms joined the vocabulary. Both start with `e`, and neither matches a
- * channel, so a reader older than 1.295 skips them as junk and plays the default curve.
+ * channel, so a reader older than 1.296 skips them as junk and plays the default curve.
  *
  * - **A spring**, `esp(<stiffness>)(<damping>)(<mass>)`, e.g. `esp(600)(15)(1)`. It runs in
  *   real time from the keyframe and ARRIVES exactly on the next one: whatever distance it has not
@@ -155,7 +155,7 @@ import {
  *
  * A spring may overshoot. A channel eased by a spring is held to its own wire clamp
  * (`KF_CLAMPS`), so trim, colour, aperture and volume never leave their range; `o` is
- * linear as it always was. A bezier overshoot is evaluated exactly as before 1.295.
+ * linear as it always was. A bezier overshoot is evaluated exactly as before 1.296.
  */
 
 // ─── channels ────────────────────────────────────────────────────────────────

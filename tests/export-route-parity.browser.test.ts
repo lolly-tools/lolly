@@ -54,13 +54,7 @@ const THRESHOLD = 24, FILL_THRESHOLD = 72, REGION_SHARE = 0.005, INK_SHARE = 0.2
  * Measured divergences the release bands do not hold, each with its cause. Nothing else
  * may fail; an entry that stops failing is reported, so it can be removed.
  */
-const KNOWN_DIVERGENCES: Record<string, { region: string; reason: string }> = {
-  // The drawing operations shape a bullet ("•  ") and its line as two runs, so the kern
-  // between the bullet's space and a following "T" is lost: the line's first letter sits
-  // about 1.5 px right of Chromium's, and that letter's edge falls inside the bullet run's
-  // region. The text run itself stays within the word band.
-  'template/slide-deck#slide2 x1': { region: 's2body:2.0', reason: 'bullet and text shaped as separate runs (space-T kern lost)' },
-};
+const KNOWN_DIVERGENCES: Record<string, { region: string; reason: string }> = {};
 type Row = Record<string, unknown> & { id: string };
 type Logs = Array<[string, string]>;
 interface Exported { b64: string; logs: Logs; ms: number }

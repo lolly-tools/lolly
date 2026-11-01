@@ -17,8 +17,12 @@ export interface LottieLayerEditorHandle {
   tick(): void;
   destroy(): void;
 }
-export function mountLottieLayerEditor(root: HTMLElement, opts: LottieLayerEditorOptions): LottieLayerEditorHandle {
-  let source: LottieAnimation, selected = '', selectedTrack = '', editor: LottieTrackEditorHandle | null = null;
+export function mountLottieLayerEditor(root: HTMLElement, options: LottieLayerEditorOptions): LottieLayerEditorHandle {
+  let source: LottieAnimation, selected = '', selectedTrack = '', editor: LottieTrackEditorHandle | null = null, destroyed = false;
+  let typed: HTMLInputElement | null = null, waiting: { animation: LottieAnimation; hasEdits: boolean } | null = null;
+  // An edit made from these fields supersedes a redraw that was waiting on them: that
+  // redraw predates it, and the host sends a newer one once the edit is written.
+  const opts: LottieLayerEditorOptions = { ...options, edit(change) { waiting = null; options.edit(change); } };
   const header = document.createElement('div'); header.className = 'tl-animation-header';
   const scope = document.createElement('span'); scope.textContent = t('Internal edits affect this clip only. The original stays unchanged.');
   const reset = animationButton(t('Reset internal edits'), opts.reset), close = animationButton(t('Close'), opts.close);
@@ -81,9 +85,37 @@ export function mountLottieLayerEditor(root: HTMLElement, opts: LottieLayerEdito
     if (view) renderLayer(view);
     else { editor?.destroy(); editor = null; details.textContent = t('This animation has no layers.'); }
   }
+  // A redraw replaces every field. One that has been typed into and not yet committed
+  // keeps the person's text and focus: the redraw waits for that field's change (its
+  // commit) or for focus to leave it, then runs with the newest animation.
+  const typing = (): boolean => !!typed && typed.isConnected && typed === document.activeElement;
+  function show(animation: LottieAnimation, hasEdits: boolean): void {
+    const active = document.activeElement as HTMLElement | null;
+    const label = active && details.contains(active) ? active.getAttribute('aria-label') : null;
+    const layer = active && layers.contains(active) ? active.dataset.layer : undefined;
+    source = animation; reset.disabled = !hasEdits; render();
+    // The redraw removed the focused control, so focus moves to its replacement.
+    const next = label ? [...details.querySelectorAll<HTMLElement>('[aria-label]')].find(el => el.getAttribute('aria-label') === label)
+      : layer !== undefined ? [...layers.querySelectorAll<HTMLElement>('[data-layer]')].find(el => el.dataset.layer === layer) : undefined;
+    next?.focus({ preventScroll: true });
+  }
+  function release(): void {
+    if (destroyed || !waiting || typing()) return;
+    const { animation, hasEdits } = waiting; waiting = null; show(animation, hasEdits);
+  }
+  root.addEventListener('input', event => {
+    const target = event.target as HTMLInputElement;
+    if (target.tagName === 'INPUT' && target.type !== 'checkbox' && target.type !== 'color') typed = target;
+  });
+  // After the field's own change handler has queued its edit, and after focus has moved.
+  root.addEventListener('change', () => { typed = null; setTimeout(release, 0); });
+  root.addEventListener('focusout', () => { setTimeout(release, 0); });
   return {
-    update(animation, hasEdits) { source = animation; reset.disabled = !hasEdits; render(); },
+    update(animation, hasEdits) {
+      waiting = { animation, hasEdits };
+      release();
+    },
     tick() { editor?.tick(); },
-    destroy() { editor?.destroy(); root.replaceChildren(); },
+    destroy() { destroyed = true; waiting = null; editor?.destroy(); root.replaceChildren(); },
   };
 }

@@ -14,7 +14,7 @@ const EXPECTED: readonly string[] = [
   'CanvasSize', 'canvasSizeOf',
   // Additive 1.291 path handles: curved travel between positions, its split and the inverse projection.
   'KfHandle', 'KfPathSplit', 'kfPathCurves', 'kfSubdividePath', 'kfUnprojectCentre',
-  // Additive 1.295 spring eases and design-system motion tokens for keyframes.
+  // Additive 1.296 spring eases and design-system motion tokens for keyframes.
   'KF_EASE_REF_MAX', 'KF_SPRING_PRESETS', 'KfEaseKind', 'KfEaseTokenOptions', 'KfSpring', 'KfSpringPresetName',
   'MotionCurveToken', 'MotionDurationToken', 'MotionTokens',
   'kfBindEase', 'kfEaseKind', 'kfEaseResolved', 'kfEaseSpring', 'kfEaseSpringName', 'kfEaseTokenPath',

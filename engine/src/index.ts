@@ -898,7 +898,7 @@ export type { KfHandle, KfPathSplit } from './keyframes.ts';
 // stroke width, corner radius and trim, written as `--lolly-kf-*` custom properties.
 export { KF_LOOK_CHANNELS, KF_FILL_CHANNELS, KF_STROKE_CHANNELS, KF_LOOK_VARS, isKfLookChannel } from './kf-look.ts';
 export { kfLookUsed, kfLookPose, kfLookVars, kfColourKey, kfColourCss, kfOklabOf, kfTrimSpan, kfOutlinePath } from './kf-look.ts';
-// 1.295 (plans/329) - spring eases and design-system motion tokens on the `kf` wire:
+// 1.296 (plans/329) - spring eases and design-system motion tokens on the `kf` wire:
 // `esp(k)(c)(m)` springs, `et(<path>)` bindings and the table the shell installs.
 export { KF_EASE_REF_MAX, setKfEaseTokens, kfEaseTokensSnapshot, kfBindEase } from './keyframes.ts';
 export { kfEaseKind, kfEaseTokenPath, kfEaseResolved, kfEaseSpring, kfEaseSpringName } from './keyframes.ts';

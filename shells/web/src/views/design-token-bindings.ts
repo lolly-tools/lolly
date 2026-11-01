@@ -63,6 +63,15 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
   const picker = root.querySelector<HTMLSelectElement>('[data-design-token-property]')!;
   const fieldRoot = root.querySelector<HTMLElement>('[data-design-token-field]')!;
   const disclosure = root.querySelector<HTMLDetailsElement>('details')!;
+  // "Link a token" opened the list and focused it, and nothing is picked yet. A rebuild
+  // of the inspector mounts a fresh field with the list shut, so the list the person is
+  // choosing from would close under them. The inspector waits while this holds, as it
+  // waits for a caret, and rebuilds once focus leaves or a token is picked.
+  const choosing = (): boolean => {
+    const active = fieldRoot.ownerDocument.activeElement as HTMLSelectElement | null;
+    const list = fieldRoot.querySelector<HTMLElement>('[data-token-options]');
+    return !!list && !list.hidden && active?.tagName === 'SELECT' && list.contains(active) && active.value === '';
+  };
   if (options.state?.field && fields.some(field => field.id === options.state!.field)) picker.value = options.state.field;
   disclosure.open = options.state?.open ?? false;
   const remember = (): void => { if (options.state) { options.state.open = disclosure.open; options.state.field = picker.value; } };
@@ -123,5 +132,5 @@ export function mountDesignTokenBindings(root: HTMLElement, options: DesignToken
     }
   }
   picker.addEventListener('change', render); render();
-  return Object.assign(() => { disposed = true; remember(); disposeField?.(); disclosure.removeEventListener('toggle', remember); picker.removeEventListener('change', render); root.replaceChildren(); }, { busy: () => pending > 0 });
+  return Object.assign(() => { disposed = true; remember(); disposeField?.(); disclosure.removeEventListener('toggle', remember); picker.removeEventListener('change', render); root.replaceChildren(); }, { busy: () => pending > 0 || choosing() });
 }

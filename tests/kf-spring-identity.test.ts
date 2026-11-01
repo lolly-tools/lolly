@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Springs and design-system eases (plans/329) are additive: a document that uses neither
- * must evaluate, serialise and export exactly as it did before 1.295.
+ * must evaluate, serialise and export exactly as it did before 1.296.
  *
  * The corpus below holds every shipped curve, custom beziers, holds, overshoot on the
  * appearance channels and a camera track. Its evaluation over time, its canonical wire,

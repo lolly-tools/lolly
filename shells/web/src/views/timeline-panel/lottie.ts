@@ -11,9 +11,11 @@ import { bindOp, type TpCtx } from './context.ts';
 import { RESERVE_PAD } from '../timeline-config.ts';
 
 export interface TimelineLottieState {
-  id: string; signature: string; request: number; busy: boolean; originalHeight: number;
+  id: string; signature: string; request: number; originalHeight: number;
   root: HTMLElement; status: HTMLElement; body: HTMLElement;
   source?: LottieAnimation; editor?: LottieLayerEditorHandle;
+  /** Edits run one at a time, in the order they were made (see `edit`). */
+  queue: Promise<void>; queued: number;
 }
 function box(tp: TpCtx): Box | undefined { return tp.getBoxes()[indexOfId(tp.getBoxes(), tp.cfg, tp.lottieState?.id ?? '')]; }
 function showError(tp: TpCtx, error: unknown): void {
@@ -35,20 +37,39 @@ function seek(tp: TpCtx, frame: number): void {
   if (at < start || at >= start + (timing.dur ?? tp.rows.durationSec())) return;
   tp.clock.pause(); tp.clock.seek(tp.rows.toClockMs(at * 1000));
 }
-async function edit(tp: TpCtx, change: LottieEdit): Promise<void> {
-  const state = tp.lottieState, row = box(tp);
-  if (!state?.source || !row || state.busy) return;
-  const before = String(row.animationEdits ?? ''), id = state.id, source = state.source, request = state.request;
-  const assetField = tp.recording.assetFieldName(), identity = JSON.stringify([row[assetField], row.animationId]);
-  state.busy = true; state.body.inert = true;
+/**
+ * Queue one edit. Writing an edit is asynchronous, and a person can tab to the next
+ * field and change it before the last write finishes. An edit made then used to be dropped
+ * (and the panel went inert, so the keys typed meanwhile went nowhere). Now each edit
+ * waits for the one before it and appends to the edits that one wrote.
+ */
+function edit(tp: TpCtx, change: LottieEdit): void {
+  const state = tp.lottieState;
+  if (!state?.source) return;
+  state.queued++;
+  // Each step settles whatever happens, so one failure never leaves the queue rejected,
+  // the count stuck above zero and the panel inert for every later edit.
+  const report = (error: unknown): void => { if (tp.lottieState === state) showError(tp, error); };
+  state.queue = state.queue.then(() => writeEdit(tp, state, change)).catch(report).then(() => {
+    // The last one written: redraw from the document as it now stands (see `sync`).
+    if (--state.queued || tp.disposed || tp.lottieState !== state) return;
+    state.signature = '';
+    sync(tp);
+  }).catch(report);
+}
+async function writeEdit(tp: TpCtx, state: TimelineLottieState, change: LottieEdit): Promise<void> {
+  const row = box(tp), source = state.source;
+  if (tp.disposed || tp.lottieState !== state || !source || !row) return;
   try {
+    const before = String(row.animationEdits ?? ''), id = state.id;
+    const assetField = tp.recording.assetFieldName(), identity = JSON.stringify([row[assetField], row.animationId]);
     const next = await appendLottieEdit(source, before, change);
     const current = box(tp);
-    if (tp.disposed || tp.lottieState !== state || state.request !== request || String(current?.animationEdits ?? '') !== before || JSON.stringify([current?.[assetField], current?.animationId]) !== identity) return;
+    // Another write (an undo, another panel) or another clip since this edit began: it no longer applies.
+    if (tp.disposed || tp.lottieState !== state || String(current?.animationEdits ?? '') !== before || JSON.stringify([current?.[assetField], current?.animationId]) !== identity) return;
     tp.helpers.write(tp.helpers.patchBox(tp.getBoxes(), id, { animationEdits: next }));
     state.status.textContent = '';
   } catch (error) { if (tp.lottieState === state) showError(tp, error); }
-  finally { state.busy = false; state.body.inert = false; }
 }
 export function close(tp: TpCtx): void {
   const state = tp.lottieState;
@@ -72,7 +93,7 @@ export function open(tp: TpCtx, id: string): void {
     else if (!(event.metaKey || event.ctrlKey)) event.stopPropagation();
   });
   tp.root.insertBefore(root, tp.ruler);
-  tp.lottieState = { id, root, status, body, signature: '', request: 0, busy: false, originalHeight: tp.panelH };
+  tp.lottieState = { id, root, status, body, signature: '', request: 0, originalHeight: tp.panelH, queue: Promise.resolve(), queued: 0 };
   tp.panelH = Math.min(Math.max(tp.panelH, 440), Math.max(240, tp.stageEl.clientHeight * 0.7));
   tp.root.style.height = `${tp.panelH}px`; tp.reserve(tp.panelH + RESERVE_PAD);
   tp.inspector.querySelector('.tl-animation-open')?.setAttribute('aria-expanded', 'true');
@@ -106,14 +127,21 @@ export function sync(tp: TpCtx): void {
   const animationId = String(row.animationId || marker?.getAttribute('data-lottie-animation') || '');
   const encoded = String(row.animationEdits ?? ''), signature = `${media.url}\n${animationId}\n${encoded}`;
   if (signature === state.signature) return;
+  // Queued edits read the fields as they stand, so the panel is not redrawn under them.
+  // The last one to be written asks again (see `edit`).
+  if (state.queued) return;
   state.signature = signature; const request = ++state.request;
-  state.status.textContent = t('Loading animation layers…'); state.body.inert = true;
+  state.status.textContent = t('Loading animation layers…');
+  // Only the first load waits behind an inert panel. A reload after an edit leaves the
+  // fields live, so focus and typing carry on while it runs.
+  if (!state.editor) state.body.inert = true;
   void fetchLottieJson(media.url, animationId || undefined).then(async source => {
     const animation = await applyLottieEdits(source, encoded);
-    if (tp.disposed || tp.lottieState !== state || request !== state.request) return;
+    // An edit queued while this loaded: the drain loads again (see `edit`).
+    if (tp.disposed || tp.lottieState !== state || request !== state.request || state.queued) return;
     state.source = source;
     state.editor ??= mountLottieLayerEditor(state.body, {
-      frame: () => sourceFrame(tp), seek: frame => seek(tp, frame), edit: change => { void edit(tp, change); },
+      frame: () => sourceFrame(tp), seek: frame => seek(tp, frame), edit: change => { edit(tp, change); },
       reset: () => tp.helpers.write(tp.helpers.patchBox(tp.getBoxes(), state.id, { animationEdits: '' })), close: () => close(tp),
     });
     state.editor.update(animation, !!encoded); state.status.textContent = ''; state.body.inert = false;

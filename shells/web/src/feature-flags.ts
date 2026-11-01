@@ -15,7 +15,10 @@ import type { Profile } from '@lolly-tools/core/host-v1';
 // one edge dragged the whole control plane onto the preload set of every visit for
 // a read that answers null on any deployment without one (see org/governance.ts).
 import { orgFlagGovernance } from './org/governance.ts';
-import { parseDesignExportRouteChoice, type DesignExportRouteChoice } from '../../../engine/src/design-export-route.ts';
+// Type only: engine/src/runtime.ts imports design-export-route.ts, so the build seats it
+// in the engine-render chunk, and a value import here put that chunk (with Handlebars
+// and Ajv) on first paint. exportRouteChoice() loads it when an export asks.
+import type { DesignExportRouteChoice } from '../../../engine/src/design-export-route.ts';
 // A leaf that imports nothing: the automatic Performance UI decision this device stored.
 import { perfUiAutoOn } from './lib/perf-ui-auto-state.ts';
 
@@ -200,8 +203,13 @@ export const EXPORT_GPU_FLAG: FeatureFlag = {
 /** Storage key for the internal export route override (`auto`, `ops` or `legacy`). */
 export const EXPORT_ROUTE_KEY = 'lolly.exportRoute';
 
-/** The export route this device asks for: the stored override first, then the flag. */
-export function exportRouteChoice(): DesignExportRouteChoice {
+/**
+ * The export route this device asks for: the stored override first, then the flag.
+ * Async because the parser loads on first use, off the boot path; its callers are the
+ * export routes, which have already loaded the same module.
+ */
+export async function exportRouteChoice(): Promise<DesignExportRouteChoice> {
+  const { parseDesignExportRouteChoice } = await import('../../../engine/src/design-export-route.ts');
   try {
     const stored = parseDesignExportRouteChoice(localStorage.getItem(EXPORT_ROUTE_KEY));
     if (stored) return stored;

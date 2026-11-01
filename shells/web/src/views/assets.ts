@@ -326,7 +326,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // reference material (swatches/fonts) folded. Once the user touches any fold
   // the stored set is the whole truth, exactly as before.
   const COLLAPSE_KEY = 'lolly-catalog-collapsed'; cat.COLLAPSE_KEY = COLLAPSE_KEY;
-  const ALL_SECTION_KEYS = ['your-uploads', ...LIB_GROUPS.map(g => g.key), 'hidden', 'swatches', 'fonts']; // LIB_GROUPS ends with 'emoji-sets' cat.ALL_SECTION_KEYS = ALL_SECTION_KEYS;
+  // LIB_GROUPS ends with 'emoji-sets'.
+  const ALL_SECTION_KEYS = ['your-uploads', ...LIB_GROUPS.map(g => g.key), 'hidden', 'swatches', 'fonts']; cat.ALL_SECTION_KEYS = ALL_SECTION_KEYS;
   const FIRST_VISIT_COLLAPSED = ['swatches', 'fonts']; cat.FIRST_VISIT_COLLAPSED = FIRST_VISIT_COLLAPSED;
   try {
     const stored = localStorage.getItem(COLLAPSE_KEY);

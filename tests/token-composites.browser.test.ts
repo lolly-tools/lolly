@@ -28,6 +28,10 @@ test('whole typography links undo together, preserve local edits and reopen', { 
     await slot.locator('summary').click();
     await slot.locator('[data-design-token-property]').selectOption('__typography');
     await slot.locator('[data-token-choose]').click();
+    // A late repaint (a mounted audit, a timeline key change, the emoji row) must not
+    // shut the list while it is open: force one, as a slow runner meets one by chance.
+    await slot.locator('[data-token-options] select').waitFor();
+    await page.evaluate(async () => { const port = '/src/views/tool/emoji-doc.ts'; (await import(port) as { notifyEmojiDocument(): void }).notifyEmojiDocument(); });
     await slot.locator('[data-token-options] select').selectOption('verification.heading');
     const read = () => page.evaluate(() => ((document.getElementById('tool-canvas') as CanvasCommitEl).__lollyModel!().find(input => input.id === 'boxes')!.value as Array<Record<string, unknown>>).find(row => row.id === 'hook')!);
     await page.waitForFunction(() => {

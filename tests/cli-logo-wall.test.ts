@@ -293,8 +293,10 @@ test('the helpers read pictures by their bytes and keep the web drop filter', ()
   assert.equal(imageMime('notes.txt', new TextEncoder().encode('hello')), 'application/octet-stream');
   assert.equal(imageMime('notes.png', new TextEncoder().encode('hello')), 'application/octet-stream', 'the name alone is not a picture');
   assert.equal(imageMime('scan.tif', new Uint8Array([0x49, 0x49, 0x2a, 0, 8, 0, 0, 0])), 'image/tiff');
-  // Text that merely starts like a picture is not one: a secrets file must never be baked into an export.
-  for (const text of ['BMW_API_TOKEN=canary-secret-0123456789abcdef', 'GIFT_CARD_TOKEN=canary-secret-0123456789', 'RIFF raff and WEBP notes', 'II*x is not a header']) {
+  // Text that merely starts like a picture is not one, so a notes or secrets file is never
+  // baked into an export. Plain prose stands in for the secrets file, so the history scan
+  // has nothing to flag.
+  for (const text of ['BMW owners meet on Thursday at the depot', 'GIFT ideas for the team, none of them pictures', 'RIFF raff and WEBP notes', 'II*x is not a header']) {
     assert.equal(imageMime('logo.bmp', new TextEncoder().encode(text)), 'application/octet-stream', text);
   }
   const bmp = new Uint8Array(54); bmp.set([0x42, 0x4d]); bmp[14] = 40;
