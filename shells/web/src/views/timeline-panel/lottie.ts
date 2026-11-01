@@ -47,12 +47,15 @@ function edit(tp: TpCtx, change: LottieEdit): void {
   const state = tp.lottieState;
   if (!state?.source) return;
   state.queued++;
-  state.queue = state.queue.then(() => writeEdit(tp, state, change)).then(() => {
+  // Each step settles whatever happens, so one failure never leaves the queue rejected,
+  // the count stuck above zero and the panel inert for every later edit.
+  const report = (error: unknown): void => { if (tp.lottieState === state) showError(tp, error); };
+  state.queue = state.queue.then(() => writeEdit(tp, state, change)).catch(report).then(() => {
     // The last one written: redraw from the document as it now stands (see `sync`).
     if (--state.queued || tp.disposed || tp.lottieState !== state) return;
     state.signature = '';
     sync(tp);
-  });
+  }).catch(report);
 }
 async function writeEdit(tp: TpCtx, state: TimelineLottieState, change: LottieEdit): Promise<void> {
   const row = box(tp), source = state.source;
