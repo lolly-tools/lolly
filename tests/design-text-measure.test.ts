@@ -18,10 +18,11 @@ import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { chromiumBreakOffsets, measureDesignText, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS } from '../engine/src/design-text-measure.ts';
+import { chromiumBreakOffsets, drawDesignText, measureDesignText, TextMeasureError, TEXT_MEASURE_DEFAULT_FONTS } from '../engine/src/design-text-measure.ts';
 import type { TextShapeRunV1, TextShaperV1 } from '../engine/src/design-text-measure.ts';
 import {
   countMeasurableTextLayers,
+  createNodeTextShaper,
   measureDesignRows,
   measureDesignRowsReport,
   measureFontsFromBrief,
@@ -245,6 +246,19 @@ test('lists, bold, mono and italic runs measure in their own faces', async () =>
     ['mono', 'SUSE Mono', 400, false, '/fonts/SUSEMono[wght].ttf'],
     ['italic', 'SUSE', 400, true, '/fonts/SUSE-Italic[wght].ttf'],
   ]);
+});
+
+test('a ligature across a span is shaped whole: the run it starts in takes its advance, and the slots meet with no gap or overlap', async () => {
+  // Chromium, SUSE 400 at 48 px: "off" 70.69 px, the span 47.44 px from 70.69, the line 238.09 px,
+  // the same as "office more" with no span. Shaped alone, "off" is 59.42 and "ice" 60.33.
+  const shaper = createNodeTextShaper({ repoRoot: ROOT });
+  for (const text of ['off{#cc0000|ice} more', 'off{u|ice} more']) {
+    const drawn = await drawDesignText({ text, size: 48, weight: 400, width: 600, pad: 0 }, shaper, { align: 'left' });
+    const runs = drawn.lines[0]!.runs;
+    assert.deepEqual(runs.map((r) => [r.text, r.x, r.width]), [['off', 0, 70.71], ['ice', 70.71, 47.42], [' more', 118.13, 119.94]], text);
+    assert.equal(drawn.lines[0]!.width, (await measureTextNode({ text: 'office more', size: 48, weight: 400, width: 600, pad: 0 })).lines[0]!.width, 'the span moves nothing on the line');
+    assert.equal(runs[1]!.underline ?? false, text.includes('{u|'));
+  }
 });
 
 test('vertical metrics come from the font file', () => {
