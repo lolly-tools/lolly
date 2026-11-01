@@ -476,7 +476,7 @@ html[data-a11y-motion="reduce"] .btn-primary:hover,html[data-a11y-motion="reduce
   .dl-fold-cb{display:block;position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
   .dl-fold{display:inline-flex;align-items:center;gap:.45em;min-height:2.75rem;margin:.1rem 0 .2rem;padding:.5rem 1rem;border:1px solid hsl(var(--on-band-dark) / .3);border-radius:999px;color:hsl(var(--on-band-dark));font-size:.875rem;font-weight:700;cursor:pointer}
   .dl-fold:hover{border-color:hsl(var(--band-accent))}
-  .dl-fold svg{width:1em;height:1em;flex:none;transition:transform .2s ease}
+  .dl-fold svg{width:1em;height:1em;flex:none}
   .dl-fold-cb:checked + .dl-fold svg{transform:rotate(90deg)}
   .dl-fold-cb:checked + .dl-fold .dl-fold-show,
   .dl-fold-cb:not(:checked) + .dl-fold .dl-fold-hide{display:none}
@@ -503,9 +503,7 @@ html[data-a11y-motion="reduce"] .btn-primary:hover,html[data-a11y-motion="reduce
   .dl-tile:hover .dl-mark,.dl-tile:focus-visible .dl-mark{transform:none}
   .dl-tile:hover .dl-go,.dl-tile:focus-visible .dl-go{transform:none}
   .dl-more:hover,.dl-more:focus-visible{gap:.35rem}
-  .dl-fold svg{transition:none}
 }
-html[data-a11y-motion="reduce"] .dl-fold svg{transition:none}
 html[data-a11y-motion="reduce"] .dl-tile{transition:border-color .22s ease,background-color .22s ease}
 html[data-a11y-motion="reduce"] .dl-tile:hover,html[data-a11y-motion="reduce"] .dl-tile:focus-visible,
 html[data-a11y-motion="reduce"] .dl-tile:active{transform:none}
@@ -1518,7 +1516,8 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
   /* Lane tabs wrap to a second row rather than scrolling off the edge (the old row
      clipped at "Ques…" with no sign that more followed). */
   .lane-tabs{flex-direction:row;flex-wrap:wrap;gap:6px;padding-bottom:4px}
-  .lane-tab{border-inline-start:0;border:1px solid var(--border);border-radius:999px;padding:.45rem .8rem;font-size:.85rem}
+  /* A pill with a full border on phones; the side rail above is the wide-screen form. */
+  .lane-tabs>.lane-tab{border:1px solid var(--border);border-radius:999px;padding:.45rem .8rem;font-size:.85rem}
   .lane-radio:nth-of-type(1):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(1),
   .lane-radio:nth-of-type(2):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(2),
   .lane-radio:nth-of-type(3):checked ~ .lane-cols .lane-tabs .lane-tab:nth-child(3),

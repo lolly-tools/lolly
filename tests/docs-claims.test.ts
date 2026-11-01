@@ -213,7 +213,7 @@ const CYCLE_H1 = 'is yours';
 test('say offline once: the hero stays clear of the claim and the Why column states it', () => {
   // plans/177: the hero is "Lolly is <cycling word>" + a tagline and a one-liner
   // from site.md. Above the fold the privacy receipt in the cycle stands in for the
-  // offline claim; neither the cycle words nor the subtitle lines may state it.
+  // offline claim; neither the cycle words nor the subtitle lines may state the claim.
   const heroLines = heroSection.split('\n').filter(l => l.trim() && !l.startsWith('#'));
   assert.ok(heroLines.length >= 2, 'the hero subtitle should still be at least two lines (tagline + one-liner)');
   for (const line of heroLines) {
@@ -327,7 +327,7 @@ test('design-app names appear only where a file is being brought IN', () => {
   }
   // The interop sentence moved to the design-import page's own band with the
   // import teaser (plans/177); the reader with a drawer full of .fig files still
-  // meets it there, and the landing's Designers lane names only the extensions.
+  // meets it there, and the landing's Bring work in lane lists only the extensions.
   const importJson = jsonStrings(JSON.parse(read('docs/site/import.json'))).join('\n');
   assert.match(importJson, /Figma, Penpot, Illustrator, InDesign or any SVG/);
 });
@@ -456,7 +456,7 @@ test('the persona device jumps into the app where the plan says it can', () => {
 });
 
 test('a number typed into the landing copy matches the live count it states', () => {
-  // The counters are live (whatwhy.json names a counter, never a number), but two
+  // The counters are live (whatwhy.json gives a counter, never a number), but two
   // lines carry a number in words: the covers caption and the languages lane. Each
   // is held to the count it describes, so adding a cover or a language fails here
   // instead of shipping a stale sentence.
