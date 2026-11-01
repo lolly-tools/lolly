@@ -253,6 +253,8 @@ export type {
 export { analysePcm, fftInPlace } from './audio-analyse.ts';
 export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analyse.ts';
 export { cleanAudioPcm, resamplePcm, cleanAudioPreview } from './audio-clean.ts';
+export { planRepair, repairRequested } from './audio-repair.ts';
+export type { AudioRepairOpts, RepairStage, RepairStageId, RepairStrength } from './audio-repair.ts';
 // Captions (host.speech, v1.96) - spoken-word timings in, subtitle cues out. The
 // grouping and VTT/SRT timestamp maths live here so the browser and a headless
 // export break caption lines at the same words.
@@ -930,6 +932,7 @@ export { ENGINE_VERSION } from './version.ts';
 export { base64ToBytes } from './bytes.ts';
 export { createTruePeakLimiter, activitySpans } from './audio-dynamics.ts';
 export { createLoudnessMeter, integratedLoudness, normalizeGain, LOUDNESS_RATE } from './audio-loudness.ts';
+export type { R128Report } from './audio-loudness.ts';
 export { parseFxChain, serializeFxChain, processFxPcm, FX_PRESETS, FX_CHAIN_MAX_CHARS } from './audio-fx.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';

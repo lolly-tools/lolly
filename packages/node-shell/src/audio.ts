@@ -30,7 +30,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { isAbsolute, join } from 'node:path';
 import {
-  analysePcm, parseWav, packWav, cleanAudioPcm, resamplePcm, cleanAudioPreview,
+  analysePcm, parseWav, packWav, cleanAudioPcm, resamplePcm, cleanAudioPreview, planRepair, repairRequested,
   renderZzfxm, isZzfxmRef, parseZzfxmRef, composeSong, generatedSongSpec,
   RONDO_ASSET_FORMAT, RONDO_MAX_SOURCE_BYTES, RondoSourceError, isRondoFileName, isRondoShareLink,
   rondoFromBytes, rondoFromFile, rondoFromShareLink, rondoSourceBytes,
@@ -38,10 +38,11 @@ import {
 import type { RondoSourceV1, ZzfxSong } from '@lolly/engine';
 import type {
   AudioAPI, AudioSource, AudioAnalyseOpts, AudioAnalysis, AssetRef, AudioCleanOpts,
-  AudioDecodeOpts, AudioDecoded, AssetsAPI,
+  AudioDecodeOpts, AudioDecoded, AssetsAPI, AudioLoudness, AudioLoudnessOpts, AudioAlignOpts, AudioAlignment,
 } from '@lolly-tools/core/host-v1';
 
 import { contentRoots, contentUrlFile, type ContentRoots } from './content-roots.ts';
+import { loadAudioDspKernel } from './audio-dsp-node.ts';
 import {
   RondoAudioError, renderRondoSong, type ComputedAudioFailure, type ComputedAudioRun, type RondoBudget, type RondoCaps,
 } from './rondo.ts';
@@ -319,6 +320,33 @@ export function createNodeAudioAPI(opts: NodeAudioOptions): AudioAPI {
       return decodeAudioSource(src, scoped, decodeOpts);
     },
 
+    async loudness(src: AudioSource, loudOpts: AudioLoudnessOpts = {}): Promise<AudioLoudness> {
+      const kernel = await loadAudioDspKernel().catch(() => undefined);
+      if (!kernel) throw new Error('audio loudness: the audio module is not installed in this shell');
+      const { channels, sampleRate } = await decodeAudioSource(src, scoped);
+      const stereo = channels.slice(0, 2);
+      const m = kernel.measureLoudness(stereo, sampleRate, { series: Boolean(loudOpts.series), monoAsStereo: true });
+      return { ...m.report, sampleRate, seconds: (stereo[0]?.length ?? 0) / sampleRate, ...(m.series ? { series: m.series } : {}) };
+    },
+
+    async align(a: AudioSource, b: AudioSource, alignOpts: AudioAlignOpts = {}): Promise<AudioAlignment | null> {
+      const kernel = await loadAudioDspKernel().catch(() => undefined);
+      if (!kernel) throw new Error('audio align: the audio module is not installed in this shell');
+      const da = await decodeAudioSource(a, scoped);
+      const db = await decodeAudioSource(b, scoped);
+      const rate = da.sampleRate;
+      const bChannels = db.sampleRate === rate ? db.channels : resamplePcm(db.channels, db.sampleRate, rate);
+      const limit = Math.round(240 * rate);
+      const cut = (da.channels[0]?.length ?? 0) > limit || (bChannels[0]?.length ?? 0) > limit;
+      const r = kernel.alignClips(da.channels.map(c => c.subarray(0, limit)), bChannels.map(c => c.subarray(0, limit)), rate,
+        alignOpts.maxLagSeconds === undefined ? {} : { maxLagSeconds: alignOpts.maxLagSeconds });
+      if (!r) return null;
+      return {
+        offsetSeconds: r.offsetSeconds, offsetSamples: r.lag, sampleRate: rate, confidence: r.confidence, distinct: r.distinct,
+        inverted: r.inverted, reliable: r.reliable, truncated: r.truncated || cut,
+      };
+    },
+
     async clean(src: AudioSource, cleanOpts: AudioCleanOpts = {}) {
       const format = cleanOpts.output ?? 'wav';
       if (format !== 'wav') {
@@ -329,7 +357,29 @@ export function createNodeAudioAPI(opts: NodeAudioOptions): AudioAPI {
       }
       const decoded = await decodeAudioSource(src, cleanOpts.sourceName ? { ...scoped, sourceName: cleanOpts.sourceName } : scoped);
       const channels = resamplePcm(decoded.channels, decoded.sampleRate);
-      const result = cleanAudioPcm(channels, 48_000, cleanOpts);
+      // The audio module is optional in a packaged install; without it the clean still runs
+      // and reports integrated loudness only. A requested repair has no fallback, so it fails by name.
+      const kernel = await loadAudioDspKernel().catch(() => undefined);
+      let repaired: Float32Array[] | undefined;
+      let repairOperations: string[] = [];
+      let clicksRepaired: number | undefined;
+      if (repairRequested(cleanOpts.repair)) {
+        if (!kernel) throw new Error('audio clean: the audio repair module is not installed in this shell');
+        const stages = planRepair(cleanOpts.repair);
+        const r = kernel.repair(channels.slice(0, 2), 48_000, stages);
+        repaired = r.channels;
+        repairOperations = stages.map(s => s.label);
+        if (stages.some(s => s.id === 'declick')) clicksRepaired = r.clicksRepaired;
+      }
+      const cleaned = cleanAudioPcm(channels, 48_000, { ...cleanOpts, ...(repaired ? { repaired, repairOperations } : {}) });
+      const report = kernel
+        ? { before: kernel.measureLoudness(channels.slice(0, 2), 48_000, { monoAsStereo: true }).report, after: kernel.measureLoudness(cleaned.channels, 48_000, { monoAsStereo: true }).report }
+        : undefined;
+      const result = {
+        ...cleaned,
+        ...(report ? { report, truePeakDb: report.after.truePeakDb ?? -Infinity } : {}),
+        ...(clicksRepaired !== undefined ? { clicksRepaired } : {}),
+      };
       return {
         ...result,
         bytes: packWav({ channels: result.channels, sampleRate: result.sampleRate }, { format: 'int16' }),
