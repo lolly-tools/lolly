@@ -8,6 +8,22 @@
     <label>Voice cleanup<select class="field-select field-select--sm" data-input-id="denoise">
      <option value="off" {{#if (eq denoise "off")}}selected{{/if}}>Off</option><option value="light" {{#if (eq denoise "light")}}selected{{/if}}>Light</option><option value="strong" {{#if (eq denoise "strong")}}selected{{/if}}>Strong</option>
     </select></label>
+    <fieldset class="repair"><legend>Repair without a model</legend>
+     <label>Background noise<select class="field-select field-select--sm" data-input-id="repairNoise">
+      <option value="off" {{#if (eq repairNoise "off")}}selected{{/if}}>Off</option><option value="light" {{#if (eq repairNoise "light")}}selected{{/if}}>Light</option><option value="strong" {{#if (eq repairNoise "strong")}}selected{{/if}}>Strong</option>
+     </select></label>
+     <label>Mains hum<select class="field-select field-select--sm" data-input-id="repairHum">
+      <option value="off" {{#if (eq repairHum "off")}}selected{{/if}}>Off</option><option value="50" {{#if (eq repairHum "50")}}selected{{/if}}>50 Hz</option><option value="60" {{#if (eq repairHum "60")}}selected{{/if}}>60 Hz</option>
+     </select></label>
+     <label>Harsh s sounds<select class="field-select field-select--sm" data-input-id="repairDeEss">
+      <option value="off" {{#if (eq repairDeEss "off")}}selected{{/if}}>Off</option><option value="light" {{#if (eq repairDeEss "light")}}selected{{/if}}>Light</option><option value="strong" {{#if (eq repairDeEss "strong")}}selected{{/if}}>Strong</option>
+     </select></label>
+     <label>Room echo<select class="field-select field-select--sm" data-input-id="repairDereverb">
+      <option value="off" {{#if (eq repairDereverb "off")}}selected{{/if}}>Off</option><option value="light" {{#if (eq repairDereverb "light")}}selected{{/if}}>Light</option><option value="strong" {{#if (eq repairDereverb "strong")}}selected{{/if}}>Strong</option>
+     </select></label>
+     <label class="check"><input class="field-check" type="checkbox" data-input-id="repairDeclick" {{#if repairDeclick}}checked{{/if}}>Repair clicks and pops</label>
+     <small>Plain signal processing that works offline and in the command line. It runs before voice cleanup, which needs the on-device model.</small>
+    </fieldset>
     <label>Loudness<select class="field-select field-select--sm" data-input-id="normalize">
      <option value="off" {{#if (eq normalize "off")}}selected{{/if}}>Leave unchanged</option><option value="-16" {{#if (eq normalize "-16")}}selected{{/if}}>Podcast · -16 LUFS</option><option value="-14" {{#if (eq normalize "-14")}}selected{{/if}}>Streaming · -14 LUFS</option><option value="-23" {{#if (eq normalize "-23")}}selected{{/if}}>Broadcast · -23 LUFS</option>
     </select></label>
@@ -18,7 +34,7 @@
     <small id="clean-video-format">Audio output applies to audio-only files. Video keeps its picture, timing and container.</small>
    </section>
    {{#if pending}}<div class="notice"><strong>Ready to clean</strong><span>The finished measurements will be calculated during download.</span></div>{{/if}}
-   {{#if done}}<div class="metrics"><div><small>Before</small><strong>{{before}}</strong></div><b>→</b><div><small>After</small><strong>{{after}}</strong></div><div><small>True peak</small><strong>{{peak}}</strong></div><div><small>Trimmed</small><strong>{{trimmed}}</strong></div></div><div class="notice"><strong>{{outputText}}</strong><span>{{operations}}</span></div>{{/if}}
+   {{#if done}}<div class="metrics"><div><small>Before</small><strong>{{before}}</strong></div><b>→</b><div><small>After</small><strong>{{after}}</strong></div>{{#if range}}<div><small>Range</small><strong>{{range}}</strong></div>{{/if}}<div><small>True peak</small><strong>{{peak}}</strong></div><div><small>Trimmed</small><strong>{{trimmed}}</strong></div></div><div class="notice"><strong>{{outputText}}</strong><span>{{operations}}</span></div>{{/if}}
    <button type="button" class="btn btn--primary download" data-export-file data-busy-label="Cleaning…">Download cleaned file</button><p class="muted">No watermark or credential is added. Video inputs keep their picture and receive the cleaned audio track.</p>
   {{/if}}
  </section>{{/if}}
