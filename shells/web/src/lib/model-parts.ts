@@ -32,6 +32,7 @@
  * groups; model-parts.test.ts runs both over the committed listing and fails on
  * a difference.
  */
+import { modelLicenceLine } from './model-licences.ts';
 import modelsListing from '../../models-manifest.json' with { type: 'json' };
 import { t } from '../i18n.ts';
 import { aiOfflinePartAllowed } from './ai-policy.ts';
@@ -87,6 +88,21 @@ const PART_GROUPS: Record<ModelPartId, {
   // The fp32 fallbacks sit in the group but not in the part: they download on
   // demand only, so they are not in its size either.
   sing: { model: 'sing', select: (f) => isSingPartFile(f.url.slice('/models/sing/'.length)) },
+};
+
+/** The model families (directories under /models/) each part downloads, for the
+ *  licence record. */
+const PART_FAMILIES: Record<ModelPartId, readonly string[]> = {
+  speech: ['kokoro', 'whisper'],
+  upscale: ['upscale'],
+  matte: ['matte'],
+  ocr: ['ocr'],
+  reword: ['reword'],
+  ask: ['embed'],
+  'ai-detect': ['ai-detect'],
+  verify: ['trustmark'],
+  durable: ['trustmark'],
+  sing: ['sing'],
 };
 
 /** Split a file listing into the model groups, by the build's prefix rules. Pure. */
@@ -158,11 +174,12 @@ export function modelPartLabel(id: ModelPartId): string {
 }
 
 /** A fact the person should have before downloading a part, shown on its
- *  Profile row and in the in-place offer. Only the singing models carry one: the
- *  licence position of their files. */
+ *  Profile row and in the in-place offer. It is the offerLine of the licence
+ *  record for the part's model family (model-licences.json); only the singing
+ *  models have one today. */
 export function modelPartNote(id: ModelPartId): string | undefined {
-  if (id === 'sing') return t('Supertonic-3 is under OpenRAIL-M; the voices’ source states no licence.');
-  return undefined;
+  const lines = PART_FAMILIES[id].map(modelLicenceLine).filter((line): line is string => !!line);
+  return lines.length ? lines.join(' ') : undefined;
 }
 
 export interface ModelPartInfo {
