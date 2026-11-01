@@ -250,13 +250,20 @@ test('CPU pressure switches the look on for a while, and calm switches it back',
     assert.equal(await perfUi(page), false, 'a spike never switches');
     assert.equal((await record(page))?.on, undefined);
 
-    // Sustained 'serious' switches on, for a while, and the notice says so.
+    // Sustained 'serious' switches on, for a while, and the notice says so. Every time in
+    // the state is read from the product's own record: `on.at` when it switched on and
+    // `backAt` when it switched back. The test sees each change only when its next poll
+    // runs, and a busy runner can hold that poll back for seconds after the switch.
     const before = Date.now();
     await set('serious');
     await page.waitForFunction(() => document.documentElement.hasAttribute('data-perf-ui'), undefined, { timeout: 20_000 });
-    const tookMs = Date.now() - before;
+    const seenOn = Date.now();
+    const switched = await record(page);
+    assert.deepEqual({ kind: on(switched).kind, reason: on(switched).reason }, { kind: 'temporary', reason: 'pressure' });
+    const onAt = on(switched).at;
+    assert.equal(typeof onAt, 'number', 'the time it switched on');
+    const tookMs = (onAt as number) - before;
     assert.ok(tookMs >= 2000 * 0.9, `not before the constraint has lasted (${tookMs} ms)`);
-    assert.deepEqual(await record(page).then(r => ({ kind: on(r).kind, reason: on(r).reason })), { kind: 'temporary', reason: 'pressure' });
     const toast = page.locator('.undo-toast--wrap');
     await toast.waitFor({ timeout: 10_000 });
     assert.equal(await toast.locator('.undo-toast-msg').innerText(), 'Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down.');
@@ -272,16 +279,19 @@ test('CPU pressure switches the look on for a while, and calm switches it back',
     assert.match(await note.innerText(), /^On for now because this device is busy\. It switches back when things calm down\. Lolly will not switch for a slow device here, because you chose Undo on .+\.$/);
     assert.equal(await page.locator('#feature-flags [data-flag="perf-ui"]').isChecked(), true);
 
-    // Calm switches it back: after ten seconds of calm here, once twenty have passed since it went on.
-    await set('nominal');
+    // Calm switches it back: after ten seconds of calm here, once twenty have passed since it
+    // went on. Calm cannot start before the 'nominal' reading is sent, so it counts from then.
     const calmFrom = Date.now();
+    await set('nominal');
     await page.waitForFunction(() => !document.documentElement.hasAttribute('data-perf-ui'), undefined, { timeout: 60_000 });
-    const sinceOn = Date.now() - before - tookMs;
-    assert.ok(Date.now() - calmFrom >= 10_000 * 0.9, 'not before calm has lasted');
-    assert.ok(sinceOn >= 20_000 * 0.9, `not before the minimum time in the state (${sinceOn} ms)`);
+    const seenMs = Date.now() - seenOn;
     const back = await record(page);
     assert.equal(back?.on, undefined);
     assert.equal(typeof back?.backAt, 'number', 'the time it switched back, for the next dwell');
+    const backAt = back?.backAt as number;
+    assert.ok(backAt - calmFrom >= 10_000 * 0.9, `not before calm has lasted (${backAt - calmFrom} ms)`);
+    const sinceOn = backAt - (onAt as number);
+    assert.ok(sinceOn >= 20_000 * 0.9, `not before the minimum time in the state (${sinceOn} ms by the record, ${seenMs} ms as the test saw it)`);
     assert.equal(await page.locator('#feature-flags [data-flag="perf-ui"]').isChecked(), false, 'Settings follows');
     assert.match(await note.innerText(), /^Lolly will not switch for a slow device here, because you chose Undo on .+\.$/);
     // And it stays back while calm holds.
