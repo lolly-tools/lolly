@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Selectează fișierele media la care face referire această cronologie sau continuă cu substituenți etichetați.",
   "Text file (.txt)": "Fișier text (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Acel fișier InDesign nu a putut fi convertit pe acest dispozitiv. Exportă-l din InDesign ca IDML și încearcă din nou.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Acel fișier InDesign nu a putut fi deschis. Exportă-l din InDesign ca IDML și încearcă din nou."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Acel fișier InDesign nu a putut fi deschis. Exportă-l din InDesign ca IDML și încearcă din nou.",
+  "Adding shapes": "Se adaugă formele",
+  "Clean edge colour": "Curăță culoarea marginii",
+  "No shapes were found. Try another preset.": "Nu s-a găsit nicio formă. Încearcă alt preset.",
+  "Reading the image": "Se citește imaginea",
+  "Starting the tracer": "Se pornește trasatorul",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Înlocuiește în margine culoarea vechiului fundal cu cea a subiectului. Încearc-o dacă vezi un halou.",
+  "The image could not be traced.": "Imaginea nu a putut fi trasată.",
+  "This image could not be read.": "Această imagine nu a putut fi citită.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Această trasare creează prea multe puncte pentru pânză. Încearcă presetul Logo sau Desen liniar ori o imagine mai simplă.",
+  "Trace": "Trasează",
+  "Trace image": "Trasează imaginea",
+  "Trace image…": "Trasează imaginea…",
+  "Traced into one shape, above the image.": "Trasată într-o singură formă, deasupra imaginii.",
+  "Traced into {n} shapes, above the image.": "Trasată în {n} forme, deasupra imaginii.",
+  "Tracing": "Se trasează",
+  "Tracing image": "Se trasează imaginea",
+  "Turn this picture into shapes you can edit.": "Transformă această imagine în forme pe care le poți edita."
 }

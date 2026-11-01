@@ -122,6 +122,25 @@ Tre til virker på én enkelt form. **Outline stroke…** gjør en strek om til 
 
 Resultatet er en ny bane du kan fortsette å redigere med pennen, lagret som vanlige Bezier-kurver, så den opprinnelige splinetypen følger ikke med. Hull er ekte hull: kontrollen **Fill rule** i strekpanelet avgjør om overlappende konturer fylles (*non-zero*) eller stanses ut (*even-odd*). Operasjonene nekter heller enn å ødelegge: be om å skjære to former som ikke overlapper, og ingenting endres. Tekst- og bildebokser har ingen kontur, så de lades i fred.
 
+## Vektoriser et bilde
+
+Velg ett bilde, høyreklikk på det og velg **Vektoriser bilde…** for å gjøre bildet om til redigerbare former. Velg en forhåndsinnstilling og trykk **Vektoriser**:
+
+- **Logo** finner noen få flate farger og beholder skarpe kanter og ekte sirkler og linjer. Den avviser et bilde med fargeoverganger eller fototoner og sier fra om det.
+- **Illustrasjon** vektoriserer flere farger som fylte former, for flat grafikk eller et posterisert bilde.
+- **Strektegning** vektoriserer mørke linjer på en lys side som svarte former.
+- **Midtlinje** vektoriserer mørke linjer som enkeltstreker, slik at du kan endre tykkelsen etterpå.
+
+Formene legges til som en gruppe rett over bildet, som blir værende der det er. Skjul eller slett bildet for å se bare banene. Vektoriseringen kjører på enheten din som en bakgrunnsjobb med en Avbryt-knapp, og ingenting lastes opp. Et bilde på 1500 piksler tar vanligvis fra ett til flere sekunder, og et detaljrikt fotografi tar lenger tid.
+
+Vektoriseringen følger det boksen viser, så et beskåret (Cover) bilde vektoriseres bare der det er synlig. Disse grensene gjelder:
+
+- Bilder skaleres ned til høyst 1500 piksler på den lange siden før vektorisering, så kantene plasseres med en brøkdel av den størrelsen, ikke av originalen.
+- Én vektorisering lager høyst 1500 former og 60 000 punkter. Et fotografi går vanligvis over dette, og Design sier fra uten å endre noe. Prøv Logo eller Strektegning, eller et enklere bilde.
+- Fargeoverganger blir bånd av flat farge, og myke skygger blir former med harde kanter.
+- Hjørneradius, formmaske og effekter på bildeboksen brukes ikke på banene.
+- Samme bilde og samme forhåndsinnstilling gir alltid de samme formene.
+
 ## Streker
 
 En boks, et bilde, et tegnebrett og en penn-bane kan hver ha en strek: en farge, en bredde og en stil (hel, stiplet eller prikket). Strekradene ligger under **Fill** i Inspector, og knappen **Stroke** på objektlinjen åpner dem.

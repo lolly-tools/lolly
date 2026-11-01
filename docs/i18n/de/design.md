@@ -122,6 +122,25 @@ Drei weitere wirken auf eine einzelne Form. **Outline stroke…** verwandelt ein
 
 Das Ergebnis ist ein neuer Pfad, den Sie mit dem Pen weiterbearbeiten können, gespeichert als einfache Bezier-Kurven, sodass der ursprüngliche Spline-Typ nicht erhalten bleibt. Löcher sind echte Löcher: Das Steuerelement **Fill rule** im Strich-Panel entscheidet, ob sich überlappende Konturen füllen (*non-zero*) oder durchstanzen (*even-odd*). Die Operationen lehnen lieber ab, als etwas zu zerstören: Verlangen Sie den Schnitt zweier Formen, die sich nicht überlappen, ändert sich nichts. Text- und Bildboxen haben keine Kontur und bleiben unberührt.
 
+## Ein Bild nachzeichnen
+
+Wählen Sie ein Bild aus, klicken Sie mit der rechten Maustaste darauf und wählen Sie **Bild nachzeichnen…**, um das Bild in bearbeitbare Formen zu verwandeln. Wählen Sie ein Preset und klicken Sie auf **Nachzeichnen**:
+
+- **Logo** findet wenige flache Farben und behält scharfe Kanten sowie echte Kreise und Linien. Ein Bild mit Verläufen oder Fototönen lehnt es ab und sagt das auch.
+- **Illustration** zeichnet mehrere Farben als gefüllte Formen nach, flache Grafik oder ein posterisiertes Bild.
+- **Strichzeichnung** zeichnet dunkle Linien auf hellem Grund als schwarze Formen nach.
+- **Mittellinie** zeichnet dunkle Linien als einzelne Konturen nach, sodass Sie deren Stärke danach ändern können.
+
+Die Formen werden als Gruppe direkt über dem Bild eingefügt, das an seinem Platz bleibt. Blenden Sie das Bild aus oder löschen Sie es, um nur die Pfade zu sehen. Das Nachzeichnen läuft auf Ihrem Gerät als Hintergrundauftrag mit einer Schaltfläche „Abbrechen“, und nichts wird hochgeladen. Ein Bild mit 1500 Pixeln braucht meist zwischen einer und mehreren Sekunden, ein detailreiches Foto länger.
+
+Das Nachzeichnen folgt dem, was die Box zeigt, daher wird bei einem zugeschnittenen Bild (Cover) nur der sichtbare Teil nachgezeichnet. Es gelten diese Grenzen:
+
+- Bilder werden vor dem Nachzeichnen auf höchstens 1500 Pixel an der langen Seite verkleinert, die Kanten sitzen also auf einen Bruchteil dieser Größe genau, nicht des Originals.
+- Eine Nachzeichnung erzeugt höchstens 1.500 Formen und 60.000 Punkte. Ein Foto überschreitet das meist, und Design sagt es, ohne etwas zu verändern. Probieren Sie Logo oder Strichzeichnung oder ein einfacheres Bild.
+- Verläufe werden zu Bändern aus flacher Farbe, weiche Schatten zu hartkantigen Formen.
+- Eckenradius, eine Formmaske und ein Effekt auf der Bild-Box werden nicht auf die Pfade angewendet.
+- Dasselbe Bild und dasselbe Preset ergeben immer dieselben Formen.
+
 ## Konturen
 
 Eine Box, ein Bild, ein Board und ein Pen-Pfad können jeweils eine Kontur tragen: eine Farbe, eine Breite und einen Stil (durchgezogen, gestrichelt oder gepunktet). Die Konturzeilen stehen im Inspector unter **Fill**, und die Schaltfläche **Stroke** der Objektleiste öffnet sie.

@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Elige los archivos multimedia a los que hace referencia esta línea de tiempo, o continúa con marcadores de posición etiquetados.",
   "Text file (.txt)": "Archivo de texto (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Ese archivo de InDesign no se pudo convertir en este dispositivo. Expórtalo desde InDesign como IDML e inténtalo de nuevo.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Ese archivo de InDesign no se pudo abrir. Expórtalo desde InDesign como IDML e inténtalo de nuevo."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Ese archivo de InDesign no se pudo abrir. Expórtalo desde InDesign como IDML e inténtalo de nuevo.",
+  "Adding shapes": "Añadiendo formas",
+  "Clean edge colour": "Limpiar el color del borde",
+  "No shapes were found. Try another preset.": "No se encontró ninguna forma. Prueba con otro preset.",
+  "Reading the image": "Leyendo la imagen",
+  "Starting the tracer": "Iniciando el calcado",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Sustituye el color del fondo antiguo en el borde por el propio del sujeto. Pruébalo si ves un halo.",
+  "The image could not be traced.": "No se pudo calcar la imagen.",
+  "This image could not be read.": "No se pudo leer esta imagen.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Este calcado genera demasiados puntos para el lienzo. Prueba con el preset de logotipo o de arte lineal, o con una imagen más sencilla.",
+  "Trace": "Calcar",
+  "Trace image": "Calcar imagen",
+  "Trace image…": "Calcar imagen…",
+  "Traced into one shape, above the image.": "Calcada en una forma, encima de la imagen.",
+  "Traced into {n} shapes, above the image.": "Calcada en {n} formas, encima de la imagen.",
+  "Tracing": "Calcando",
+  "Tracing image": "Calcando la imagen",
+  "Turn this picture into shapes you can edit.": "Convierte esta imagen en formas que puedas editar."
 }

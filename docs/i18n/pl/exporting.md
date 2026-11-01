@@ -82,6 +82,7 @@ Wordmark złożony krojem Twojego systemu projektowego eksportuje się jako SVG 
 | Przekazanie do Premiere | **Premiere XML + media** | Klipy z czasem i oryginalne media dla Premiere (Design) |
 | Wideo do mediów społecznościowych i udostępniania | **MP4** lub **WebM** | Najlepsza jakość przy rozmiarze pliku (zobacz [Video](#video)) |
 | Napisy | **SRT** lub **VTT** | Tekst z czasem dla odtwarzacza wideo (Captions, Audiogram i Record) |
+| Napisy telewizyjne | **TTML** lub **SCC** | Tekst z czasem IMSC1.1 lub napisy pop-on CEA-608 (Captions; zobacz [Napisy telewizyjne](#broadcast-captions)) |
 | Kurs szkoleniowy | **SCORM (LMS)** | Wersjonowana witryna, pakiet SCORM lub xAPI (zobacz [SCORM](#scorm-course-packages)) |
 | Tekst sformatowany lub podpis e-mail | **HTML** | Wkleja się sformatowany do klientów poczty |
 | Zwykła treść | **MD** lub **TXT** | Tylko tekst |
@@ -199,6 +200,16 @@ Potem wybierz **Export course** z obsługiwanego narzędzia, folderu projektu lu
 ![Panel eksportu na pokazie Design z wybranym SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Pakiet zawiera gotową treść i nie wymaga konta Lolly. Umieść ZIP Website na hoście HTTP(S); zaimportuj ZIP LMS bez zmian. Przetestuj miejsce docelowe, zanim udostępnisz kurs. Dla kursu zbudowanego z kilku zapisanych prac zobacz [Create a training course](/info/training-creators.html).
+
+### Napisy telewizyjne
+
+Narzędzie Captions może też eksportować **TTML** i **SCC**. Oba są zapisywane z tej samej listy wierszy co pliki SRT i VTT, więc słowa i czasy się zgadzają.
+
+- **TTML** to IMSC1.1 Text Profile, z czasami zegarowymi w czasie multimediów i jednym regionem na dole pośrodku. Nie zawiera koloru, kroju pisma ani położenia dla pojedynczych napisów, ponieważ napisy w Lolly mają tylko początek, koniec i tekst.
+- **SCC** zawiera napisy pop-on CEA-608 na kanale 1 przy 29,97 klatki na sekundę z kodem czasowym drop-frame. Obsługuje podstawowe znaki północnoamerykańskie oraz znaki specjalne i rozszerzone. Jeśli napis zawiera znak, którego zestaw nie może przenieść, eksport zatrzymuje się i mówi, który to znak, więc nic nie ginie bez ostrzeżenia. Każdy napis jest zawijany po 32 kolumnach i w co najwyżej 15 wierszach. Napis, którego nie da się załadować przed czasem rozpoczęcia, jest opóźniany o kilka klatek.
+- Napisy roll-up i paint-on nie są zapisywane.
+
+Wynik SCC nie został sprawdzony w prawdziwym narzędziu telewizyjnym ani dekoderze sprzętowym. Przetestuj plik we własnym potoku przed dostarczeniem.
 
 ### DXF (pliki do cięcia)
 
@@ -410,7 +421,7 @@ To wartości parametru URL `format=` i flagi CLI `--export=` (zobacz [URL parame
 | Strona i dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (plik projektu Penpot) · `scorm` (pakiet kursu, ZIP) |
 | Ruch | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Tekst i dane | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (paleta GIMP) |
+| Tekst i dane | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paleta GIMP) |
 | Paczki i pakiety | `zip` · `rpm` i `tar.gz` (render zapieczętowany w pakiecie Linux) |
 
 Kilka identyfikatorów pochodzi z własnego kodu eksportu narzędzia: `ase` (Adobe Swatch Exchange, z Palette Lab) oraz `exr` i `hdr` (rastry o wysokim zakresie dynamicznym, z Darkroom). **Convert Font** zapisuje `ttf`, `otf` i `woff` z dostarczonego pliku czcionki, więc goły link nie ma czego dla niego renderować.

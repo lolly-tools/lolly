@@ -82,6 +82,7 @@ Een woordmerk gezet in het lettertype van je design system exporteert als SVG me
 | Een overdracht naar Premiere | **Premiere XML + media** | Getimede clips en originele media voor Premiere (Design) |
 | Video voor social media en delen | **MP4** of **WebM** | Beste kwaliteit voor de bestandsgrootte (zie [Video](#video)) |
 | Ondertitels | **SRT** of **VTT** | Getimede tekst voor een videospeler (Captions, Audiogram en Record) |
+| Broadcast-ondertitels | **TTML** of **SCC** | IMSC1.1-getimede tekst, of CEA-608 pop-on-ondertitels (Captions; zie [Broadcast-ondertitels](#broadcast-captions)) |
 | Een trainingscursus | **SCORM (LMS)** | Een versiebeheerde website, SCORM- of xAPI-pakket (zie [SCORM](#scorm-course-packages)) |
 | Opgemaakte tekst of een e-mailhandtekening | **HTML** | Plakt opgemaakt in mailclients |
 | Gewone inhoud | **MD** of **TXT** | Alleen tekst |
@@ -199,6 +200,16 @@ Kies dan **Export course** in een ondersteunde tool, een projectmap of een selec
 ![Het exportpaneel op een Design-deck met SCORM (LMS) gekozen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Het pakket bevat zijn afgeronde inhoud en heeft geen Lolly-account nodig. Zet een Website-ZIP op een HTTP(S)-host; importeer een LMS-ZIP ongewijzigd. Test de bestemming voordat je de cursus deelt. Voor een cursus uit meerdere opgeslagen creaties, zie [Create a training course](/info/training-creators.html).
+
+### Broadcast-ondertitels
+
+De tool Captions kan ook **TTML** en **SCC** exporteren. Beide worden geschreven uit dezelfde lijst met ondertitels als de SRT- en VTT-bestanden, dus woorden en tijden komen overeen.
+
+- **TTML** is het IMSC1.1 Text Profile, met klokttijden in mediatijd en één regio onderaan in het midden. Het bevat geen kleur, lettertype of positie per ondertitel, omdat de ondertitels van Lolly alleen een begin, een einde en tekst hebben.
+- **SCC** bevat CEA-608 pop-on-ondertitels op kanaal 1 met 29,97 beelden per seconde en drop-frame-timecode. Het ondersteunt de basistekens voor Noord-Amerika plus de speciale en uitgebreide tekens. Als een ondertitel een teken bevat dat de set niet kan bevatten, stopt de export en vertelt je welk teken, zodat niets ongemerkt wegvalt. Elke ondertitel wordt afgebroken op 32 kolommen en maximaal 15 regels. Een ondertitel die niet vóór zijn begintijd kan worden geladen, wordt een paar beelden vertraagd.
+- Roll-up- en paint-on-ondertitels worden niet geschreven.
+
+SCC-uitvoer is niet getest met een echte broadcast-tool of hardwaredecoder. Test een bestand in je eigen pipeline voordat je het aflevert.
 
 ### DXF (snijbestanden)
 
@@ -410,7 +421,7 @@ Dit zijn de waarden voor de URL-parameter `format=` en de CLI-vlag `--export=` (
 | Pagina en document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot-ontwerpbestand) · `scorm` (cursuspakket, een ZIP) |
 | Beweging | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Tekst en gegevens | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP-palet) |
+| Tekst en gegevens | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP-palet) |
 | Bundels en pakketten | `zip` · `rpm` en `tar.gz` (de render verzegeld in een Linux-pakket) |
 
 Een paar id's komen uit de eigen exportcode van een tool: `ase` (Adobe Swatch Exchange, uit Palette Lab) en `exr` en `hdr` (rasters met hoog dynamisch bereik, uit Darkroom). **Convert Font** schrijft `ttf`, `otf` en `woff` uit een fontbestand dat je aanlevert, dus een kale link heeft er niets voor te renderen.

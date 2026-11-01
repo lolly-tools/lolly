@@ -82,6 +82,7 @@ Lolly Workは、承認ステップ、配信の受領記録、監査記録とと�
 | Premiereへの受け渡し | **Premiere XML + media** | Premiere向けの、時間指定されたクリップと元のメディア (Design) |
 | SNSや共有向けの動画 | **MP4**または**WebM** | ファイルサイズに対して最良の品質([動画](#video)をご覧ください) |
 | キャプション | **SRT**または**VTT** | 動画プレーヤー向けの時間指定テキスト (Captions、Audiogram、Record) |
+| 放送用字幕 | **TTML**または**SCC** | IMSC1.1 の時間指定テキスト、または CEA-608 ポップオン字幕 (Captions、[放送用字幕](#broadcast-captions)を参照) |
 | 研修コース | **SCORM (LMS)** | バージョン付きのウェブサイト、SCORM、またはxAPIパッケージ([SCORM](#scorm-course-packages)をご覧ください) |
 | リッチテキストまたはメール署名 | **HTML** | 書式付きでメールクライアントに貼り付けられる |
 | プレーンな内容 | **MD**または**TXT** | テキストのみ |
@@ -199,6 +200,16 @@ Designのタイムラインから、**dotLottie**は、Lottieツールで編集�
 ![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 パッケージには完成した内容が含まれ、Lollyのアカウントは不要です。Website ZIPはHTTP(S)ホストに置き、LMS ZIPはそのままインポートします。コースを共有する前に、行き先をテストしてください。複数の保存済みの作品から作るコースについては、[研修コースを作る](/info/training-creators.html)をご覧ください。
+
+### 放送用字幕
+
+Captions ツールは、**TTML** と **SCC** も書き出せます。どちらも SRT ファイルや VTT ファイルと同じキューのリストから作られるため、言葉とタイミングが一致します。
+
+- **TTML** は IMSC1.1 Text Profile で、メディア時間のクロックタイムと、下部中央に配置された 1 つのリージョンを使います。Lolly の字幕は開始、終了、テキストだけを持つため、字幕ごとの色、フォント、位置は含まれません。
+- **SCC** は、チャンネル 1 の CEA-608 ポップオン字幕を、毎秒 29.97 フレームのドロップフレームタイムコードで格納します。基本的な北米の文字に加え、特殊文字と拡張文字に対応しています。このセットで表せない文字が字幕に含まれていると、書き出しは停止してその文字を知らせるため、気付かないうちに欠落することはありません。各字幕は 32 桁、最大 15 行で折り返されます。開始時刻までに読み込めない字幕は、数フレーム遅れます。
+- ロールアップとペイントオンの字幕は書き出されません。
+
+SCC の出力は、実際の放送用ツールやハードウェアデコーダーでは確認されていません。納品の前に、お使いのパイプラインでファイルをテストしてください。
 
 ### DXF(カット用ファイル)
 
@@ -410,7 +421,7 @@ LollyにはCMYKプロファイルが1つ付属しています。FograのFOGRA39�
 | ページとドキュメント | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpotのデザインファイル) · `scorm` (コースパッケージ。ZIP) |
 | モーション | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | 音声 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| テキストとデータ | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMPパレット) |
+| テキストとデータ | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMPパレット) |
 | バンドルとパッケージ | `zip` · `rpm`と`tar.gz` (レンダリング結果をLinuxパッケージに封じたもの) |
 
 一部のIDは、ツール自身の書き出しコードに由来します。`ase`(Palette LabのAdobe Swatch Exchange)と、`exr`および`hdr`(Darkroomの高ダイナミックレンジのラスター)です。**Convert Font**は、ご自身が提供するフォントファイルから`ttf`、`otf`、`woff`を書き出すため、単なるリンクではレンダリングするものがありません。

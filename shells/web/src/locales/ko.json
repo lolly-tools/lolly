@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "이 타임라인이 참조하는 미디어 파일을 선택하거나, 이름표가 붙은 자리 표시자로 계속하세요.",
   "Text file (.txt)": "텍스트 파일(.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "그 InDesign 파일은 이 기기에서 변환할 수 없었어요. InDesign에서 IDML로 내보낸 다음 다시 시도하세요.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "그 InDesign 파일을 열 수 없었어요. InDesign에서 IDML로 내보낸 다음 다시 시도하세요."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "그 InDesign 파일을 열 수 없었어요. InDesign에서 IDML로 내보낸 다음 다시 시도하세요.",
+  "Adding shapes": "도형을 추가하는 중",
+  "Clean edge colour": "가장자리 색 정리",
+  "No shapes were found. Try another preset.": "도형을 찾지 못했어요. 다른 프리셋을 써 보세요.",
+  "Reading the image": "이미지를 읽는 중",
+  "Starting the tracer": "트레이서를 시작하는 중",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "가장자리에 남은 예전 배경색을 피사체 자체의 색으로 바꿔요. 테두리에 후광이 보이면 써 보세요.",
+  "The image could not be traced.": "이미지를 트레이스하지 못했어요.",
+  "This image could not be read.": "이 이미지를 읽을 수 없어요.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "이 트레이스는 캔버스에 비해 점이 너무 많아요. 로고 또는 선화 프리셋이나 더 단순한 이미지를 써 보세요.",
+  "Trace": "트레이스",
+  "Trace image": "이미지 트레이스",
+  "Trace image…": "이미지 트레이스…",
+  "Traced into one shape, above the image.": "도형 하나로 트레이스해서 이미지 위에 놓았어요.",
+  "Traced into {n} shapes, above the image.": "도형 {n}개로 트레이스해서 이미지 위에 놓았어요.",
+  "Tracing": "트레이스 중",
+  "Tracing image": "이미지 트레이스 중",
+  "Turn this picture into shapes you can edit.": "이 그림을 편집할 수 있는 도형으로 바꿔요."
 }

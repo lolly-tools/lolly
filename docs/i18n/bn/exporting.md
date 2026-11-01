@@ -82,6 +82,7 @@ Lolly Work অনুমোদনের ধাপ, ডেলিভারি র�
 | Premiere-এ হস্তান্তর | **Premiere XML + media** | Premiere-এর জন্য সময়-নির্ধারিত ক্লিপ ও আসল মিডিয়া (Design) |
 | সোশ্যাল ও শেয়ারের জন্য ভিডিও | **MP4** বা **WebM** | ফাইলের মাপের তুলনায় সেরা মান ([Video](#video) দেখুন) |
 | ক্যাপশন | **SRT** বা **VTT** | ভিডিও প্লেয়ারের জন্য সময়-নির্ধারিত টেক্সট (Captions, Audiogram ও Record) |
+| ব্রডকাস্ট ক্যাপশন | **TTML** বা **SCC** | IMSC1.1 টাইমড টেক্সট, অথবা CEA-608 pop-on ক্যাপশন (Captions; দেখুন [ব্রডকাস্ট ক্যাপশন](#broadcast-captions)) |
 | প্রশিক্ষণ কোর্স | **SCORM (LMS)** | সংস্করণযুক্ত ওয়েবসাইট, SCORM বা xAPI প্যাকেজ ([SCORM](#scorm-course-packages) দেখুন) |
 | রিচ টেক্সট বা ইমেল সিগনেচার | **HTML** | ফরম্যাটসহ মেইল ক্লায়েন্টে পেস্ট হয় |
 | সাধারণ কনটেন্ট | **MD** বা **TXT** | শুধু টেক্সট |
@@ -199,6 +200,16 @@ Settings → Preferences → Feature flags-এ **Training and courses** চা�
 ![SCORM (LMS) নির্বাচিত একটি Design ডেকের এক্সপোর্ট প্যানেল](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 প্যাকেজে তার সম্পন্ন কনটেন্ট থাকে এবং এতে Lolly অ্যাকাউন্ট লাগে না। Website ZIP একটি HTTP(S) হোস্টে রাখুন; LMS ZIP অপরিবর্তিত ইম্পোর্ট করুন। কোর্স শেয়ার করার আগে গন্তব্যটি পরীক্ষা করুন। একাধিক সংরক্ষিত সৃষ্টি থেকে কোর্স বানাতে দেখুন [প্রশিক্ষণ কোর্স তৈরি করুন](/info/training-creators.html)।
+
+### ব্রডকাস্ট ক্যাপশন
+
+Captions টুল **TTML** ও **SCC**-ও এক্সপোর্ট করতে পারে। দুটোই SRT ও VTT ফাইলের একই কিউ তালিকা থেকে লেখা হয়, তাই শব্দ ও সময় মিলে যায়।
+
+- **TTML** হলো IMSC1.1 Text Profile, মিডিয়া-টাইমের ক্লক টাইম আর নিচের মাঝখানে একটি রিজিয়ন নিয়ে। এতে প্রতিটি ক্যাপশনের আলাদা রং, ফন্ট বা অবস্থান থাকে না, কারণ Lolly-র ক্যাপশনে শুধু শুরু, শেষ ও টেক্সট থাকে।
+- **SCC** চ্যানেল 1-এ প্রতি সেকেন্ডে 29.97 ফ্রেমে ড্রপ-ফ্রেম টাইমকোডসহ CEA-608 pop-on ক্যাপশন বহন করে। এটি মৌলিক উত্তর আমেরিকান অক্ষরের পাশাপাশি বিশেষ ও সম্প্রসারিত অক্ষরও সমর্থন করে। কোনো ক্যাপশনে এমন অক্ষর থাকলে যা এই সেট বহন করতে পারে না, এক্সপোর্ট থেমে যায় এবং কোন অক্ষরটি তা জানিয়ে দেয়, ফলে কিছুই না জানিয়ে বাদ পড়ে না। প্রতিটি ক্যাপশন 32 কলামে এবং সর্বোচ্চ 15 সারিতে ভাঁজ হয়। যে ক্যাপশন শুরুর সময়ের আগে লোড করা যায় না, তা কয়েক ফ্রেম দেরিতে দেখানো হয়।
+- Roll-up ও paint-on ক্যাপশন লেখা হয় না।
+
+SCC আউটপুট কোনো আসল ব্রডকাস্ট টুল বা হার্ডওয়্যার ডিকোডারের বিরুদ্ধে যাচাই করা হয়নি। ডেলিভারির আগে নিজের পাইপলাইনে একটি ফাইল পরীক্ষা করে নিন।
 
 ### DXF (কাটার ফাইল)
 
@@ -410,7 +421,7 @@ Lolly একটি CMYK প্রোফাইল পাঠায়, যা Fogr
 | পৃষ্ঠা ও নথি | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot ডিজাইন ফাইল) · `scorm` (কোর্স প্যাকেজ, একটি ZIP) |
 | মোশন | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | অডিও | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| টেক্সট ও ডেটা | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP palette) |
+| টেক্সট ও ডেটা | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | বান্ডল ও প্যাকেজ | `zip` · `rpm` ও `tar.gz` (Linux প্যাকেজে সিল করা রেন্ডার) |
 
 কয়েকটি id আসে টুলের নিজস্ব এক্সপোর্ট কোড থেকে: `ase` (Adobe Swatch Exchange, Palette Lab থেকে) এবং `exr` ও `hdr` (হাই-ডাইনামিক-রেঞ্জ রাস্টার, Darkroom থেকে)। **Convert Font** আপনার দেওয়া ফন্ট ফাইল থেকে `ttf`, `otf` ও `woff` লেখে, তাই খালি লিংকে রেন্ডার করার মতো কিছু থাকে না।

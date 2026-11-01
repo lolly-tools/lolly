@@ -122,6 +122,25 @@ Trzy kolejne działają na pojedynczym kształcie. **Outline stroke…** zamieni
 
 Wynik to nowa ścieżka, którą możesz dalej edytować piórem, zapisana jako zwykłe krzywe Beziera, więc pierwotny typ splajnu się nie przenosi. Otwory są prawdziwymi otworami: kontrolka **Fill rule** w panelu obrysu decyduje, czy nakładające się kontury wypełniają (*non-zero*), czy przebijają (*even-odd*). Operacje odmawiają zamiast niszczyć: poproś o przecięcie dwóch kształtów, które się nie nakładają, a nic się nie zmieni. Boksy tekstu i obrazu nie mają konturu, więc są pomijane.
 
+## Wektoryzacja obrazu
+
+Zaznacz jeden obraz, kliknij go prawym przyciskiem myszy i wybierz **Wektoryzuj obraz…**, aby zamienić go w edytowalne kształty. Wybierz preset i naciśnij **Wektoryzuj**:
+
+- **Logo** znajduje kilka płaskich kolorów i zachowuje ostre krawędzie oraz prawdziwe koła i linie. Odrzuca obraz z gradientami lub tonami fotografii i mówi o tym.
+- **Ilustracja** wektoryzuje kilka kolorów jako wypełnione kształty, dla płaskiej grafiki lub posteryzowanego obrazu.
+- **Rysunek liniowy** wektoryzuje ciemne linie na jasnym tle jako czarne kształty.
+- **Linia środkowa** wektoryzuje ciemne linie jako pojedyncze obrysy, więc możesz potem zmienić ich grubość.
+
+Kształty są dodawane jako grupa tuż nad obrazem, który zostaje na swoim miejscu. Ukryj lub usuń obraz, aby zobaczyć tylko ścieżki. Wektoryzacja działa na twoim urządzeniu jako zadanie w tle z przyciskiem Anuluj i nic nie jest przesyłane. Obraz o szerokości 1500 pikseli zwykle zajmuje od jednej do kilku sekund, a złożone zdjęcie trwa dłużej.
+
+Wektoryzacja podąża za tym, co pokazuje ramka, więc przycięty (Cover) obraz jest wektoryzowany tylko w widocznej części. Obowiązują te ograniczenia:
+
+- Przed wektoryzacją obrazy są zmniejszane do co najwyżej 1500 pikseli dłuższego boku, więc krawędzie są ustawiane z dokładnością do ułamka tego rozmiaru, a nie oryginału.
+- Jedna wektoryzacja tworzy co najwyżej 1500 kształtów i 60 000 punktów. Zdjęcie zwykle to przekracza, a Design mówi o tym, niczego nie zmieniając. Spróbuj Logo lub Rysunku liniowego albo prostszego obrazu.
+- Gradienty zamieniają się w pasy płaskiego koloru, a miękkie cienie w kształty o ostrych krawędziach.
+- Promień zaokrąglenia rogów, maska kształtu i efekt na ramce obrazu nie są stosowane do ścieżek.
+- Ten sam obraz i ten sam preset zawsze dają te same kształty.
+
 ## Obrysy
 
 Box, obraz, tablica i ścieżka z Pen mogą mieć obrys: kolor, grubość i styl (ciągły, kreskowany lub kropkowany). Wiersze obrysu są pod **Fill** w Inspektorze, a przycisk **Obrys** na pasku obiektu je otwiera.

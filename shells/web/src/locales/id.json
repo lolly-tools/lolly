@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Pilih file media yang dirujuk oleh lini masa ini, atau lanjutkan dengan placeholder berlabel.",
   "Text file (.txt)": "File teks (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "File InDesign itu tidak dapat dikonversi di perangkat ini. Ekspor dari InDesign sebagai IDML lalu coba lagi.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "File InDesign itu tidak dapat dibuka. Ekspor dari InDesign sebagai IDML lalu coba lagi."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "File InDesign itu tidak dapat dibuka. Ekspor dari InDesign sebagai IDML lalu coba lagi.",
+  "Adding shapes": "Menambahkan bentuk",
+  "Clean edge colour": "Bersihkan warna tepi",
+  "No shapes were found. Try another preset.": "Tidak ada bentuk yang ditemukan. Coba preset lain.",
+  "Reading the image": "Membaca gambar",
+  "Starting the tracer": "Memulai penelusur",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Mengganti warna latar lama di tepi dengan warna asli subjek. Coba jika Anda melihat halo.",
+  "The image could not be traced.": "Gambar tidak dapat ditelusuri.",
+  "This image could not be read.": "Gambar ini tidak dapat dibaca.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Penelusuran ini menghasilkan terlalu banyak titik untuk kanvas. Coba preset logo atau line art, atau gambar yang lebih sederhana.",
+  "Trace": "Telusuri",
+  "Trace image": "Telusuri gambar",
+  "Trace image…": "Telusuri gambar…",
+  "Traced into one shape, above the image.": "Ditelusuri menjadi satu bentuk, di atas gambar.",
+  "Traced into {n} shapes, above the image.": "Ditelusuri menjadi {n} bentuk, di atas gambar.",
+  "Tracing": "Menelusuri",
+  "Tracing image": "Menelusuri gambar",
+  "Turn this picture into shapes you can edit.": "Ubah gambar ini menjadi bentuk yang bisa Anda edit."
 }

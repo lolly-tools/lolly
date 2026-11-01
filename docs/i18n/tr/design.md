@@ -122,6 +122,25 @@ Her nokta ayrıca şekliyle gösterilen bir süreklilik kuralı taşır: **Corne
 
 Sonuç, kalemle düzenlemeye devam edebileceğin, düz Bezier eğrileri olarak saklanan yeni bir yoldur; bu yüzden özgün spline türü taşınmaz. Delikler gerçek deliklerdir: çizgi panelindeki **Fill rule** denetimi, örtüşen konturların doldurulup doldurulmayacağına (*non-zero*) ya da delinip delinmeyeceğine (*even-odd*) karar verir. İşlemler yok etmek yerine reddeder: örtüşmeyen iki şekli kesiştirmeyi istersen hiçbir şey değişmez. Metin ve görsel kutularının çerçevesi yoktur, bu yüzden dokunulmaz.
 
+## Bir görseli izleme
+
+Bir görsel seç, sağ tıkla ve resmi düzenlenebilir şekillere dönüştürmek için **Görseli izle…** seçeneğini seç. Bir ön ayar seç ve **İzle** düğmesine bas:
+
+- **Logo** birkaç düz renk bulur; keskin kenarları ve gerçek daireleri ile çizgileri korur. Degrade ya da fotoğraf tonları olan bir resmi reddeder ve bunu söyler.
+- **İllüstrasyon** birkaç rengi dolu şekiller olarak izler; düz çizimleri ya da posterize edilmiş bir resmi.
+- **Çizgi sanatı** açık bir sayfadaki koyu çizgileri siyah şekiller olarak izler.
+- **Orta çizgi** koyu çizgileri tek tek vuruşlar olarak izler, böylece kalınlıklarını sonradan değiştirebilirsin.
+
+Şekiller, görselin hemen üstüne bir grup olarak eklenir; görsel olduğu yerde kalır. Yalnızca yolları görmek için görseli gizle veya sil. İzleme cihazında, İptal düğmeli bir arka plan işinde çalışır ve hiçbir şey yüklenmez. 1500 piksellik bir görsel genellikle bir ile birkaç saniye arasında sürer; karmaşık bir fotoğraf daha uzun sürer.
+
+İzleme kutunun gösterdiğini izler; bu yüzden kırpılmış (Cover) bir görselde yalnızca görünen kısım izlenir. Şu sınırlar geçerlidir:
+
+- Görseller izlemeden önce uzun kenarda en fazla 1500 piksele küçültülür; bu yüzden kenarlar özgün boyutun değil, bu boyutun bir kesri hassasiyetinde yerleştirilir.
+- Bir izleme en fazla 1.500 şekil ve 60.000 nokta üretir. Bir fotoğraf genellikle bunu aşar ve Design hiçbir şeyi değiştirmeden bunu söyler. Logo veya Çizgi sanatını ya da daha basit bir resmi dene.
+- Degradeler düz renk bantlarına, yumuşak gölgeler sert kenarlı şekillere dönüşür.
+- Köşe yarıçapı, şekil maskesi ve görsel kutusundaki efekt yollara uygulanmaz.
+- Aynı resim ve aynı ön ayar her zaman aynı şekilleri verir.
+
 ## Konturlar
 
 Bir kutu, bir resim, bir çalışma alanı ve bir pen yolu her biri bir kontur taşıyabilir: bir renk, bir genişlik ve bir stil (düz, kesik çizgili veya noktalı). Kontur satırları Inspector'da **Fill** altında durur ve nesne çubuğundaki **Kontur** düğmesi onları açar.

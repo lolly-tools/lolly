@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "इस टाइमलाइन में संदर्भित मीडिया फ़ाइलें चुनें, या लेबल वाले प्लेसहोल्डर के साथ जारी रखें।",
   "Text file (.txt)": "टेक्स्ट फ़ाइल (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "वह InDesign फ़ाइल इस डिवाइस पर बदली नहीं जा सकी। उसे InDesign से IDML के रूप में एक्सपोर्ट करें और फिर कोशिश करें।",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "वह InDesign फ़ाइल खोली नहीं जा सकी। उसे InDesign से IDML के रूप में एक्सपोर्ट करें और फिर कोशिश करें।"
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "वह InDesign फ़ाइल खोली नहीं जा सकी। उसे InDesign से IDML के रूप में एक्सपोर्ट करें और फिर कोशिश करें।",
+  "Adding shapes": "आकृतियाँ जोड़ी जा रही हैं",
+  "Clean edge colour": "किनारे का रंग साफ़ करें",
+  "No shapes were found. Try another preset.": "कोई आकृति नहीं मिली। कोई दूसरा प्रीसेट आज़माएँ।",
+  "Reading the image": "इमेज पढ़ी जा रही है",
+  "Starting the tracer": "ट्रेसर शुरू हो रहा है",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "किनारे में पुराने बैकग्राउंड का रंग हटाकर विषय का अपना रंग लगाता है। हैलो दिखे तो इसे आज़माएँ।",
+  "The image could not be traced.": "इमेज ट्रेस नहीं हो सकी।",
+  "This image could not be read.": "यह इमेज पढ़ी नहीं जा सकी।",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "इस ट्रेस से कैनवास के लिए बहुत ज़्यादा पॉइंट बनते हैं। लोगो या लाइन आर्ट प्रीसेट, या कोई सरल इमेज आज़माएँ।",
+  "Trace": "ट्रेस करें",
+  "Trace image": "इमेज ट्रेस करें",
+  "Trace image…": "इमेज ट्रेस करें…",
+  "Traced into one shape, above the image.": "इमेज के ऊपर एक आकृति में ट्रेस किया गया।",
+  "Traced into {n} shapes, above the image.": "इमेज के ऊपर {n} आकृतियों में ट्रेस किया गया।",
+  "Tracing": "ट्रेस हो रहा है",
+  "Tracing image": "इमेज ट्रेस हो रही है",
+  "Turn this picture into shapes you can edit.": "इस तस्वीर को ऐसी आकृतियों में बदलें जिन्हें आप एडिट कर सकें।"
 }

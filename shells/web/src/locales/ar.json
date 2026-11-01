@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "اختر ملفات الوسائط التي يشير إليها هذا الخط الزمني، أو تابع بعناصر نائبة معنونة.",
   "Text file (.txt)": "ملف نصي (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "تعذّر تحويل ملف InDesign هذا على هذا الجهاز. صدّره من InDesign بصيغة IDML وحاول مرة أخرى.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "تعذّر فتح ملف InDesign هذا. صدّره من InDesign بصيغة IDML وحاول مرة أخرى."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "تعذّر فتح ملف InDesign هذا. صدّره من InDesign بصيغة IDML وحاول مرة أخرى.",
+  "Adding shapes": "إضافة الأشكال",
+  "Clean edge colour": "تنظيف لون الحافة",
+  "No shapes were found. Try another preset.": "لم يُعثر على أشكال. جرّب إعدادًا مسبقًا آخر.",
+  "Reading the image": "قراءة الصورة",
+  "Starting the tracer": "بدء أداة التتبع",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "يستبدل لون الخلفية القديمة في الحافة بلون الموضوع نفسه. جرّبه إذا رأيت هالة.",
+  "The image could not be traced.": "تعذّر تتبع الصورة.",
+  "This image could not be read.": "تعذّرت قراءة هذه الصورة.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "ينتج هذا التتبع نقاطًا أكثر من اللازم للوحة. جرّب إعداد الشعار أو الرسم الخطي، أو صورة أبسط.",
+  "Trace": "تتبع",
+  "Trace image": "تتبع الصورة",
+  "Trace image…": "تتبع الصورة…",
+  "Traced into one shape, above the image.": "تم التتبع إلى شكل واحد فوق الصورة.",
+  "Traced into {n} shapes, above the image.": "تم التتبع إلى {n} أشكال فوق الصورة.",
+  "Tracing": "جارٍ التتبع",
+  "Tracing image": "جارٍ تتبع الصورة",
+  "Turn this picture into shapes you can edit.": "حوّل هذه الصورة إلى أشكال يمكنك تحريرها."
 }

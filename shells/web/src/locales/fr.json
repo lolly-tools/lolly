@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Sélectionne les fichiers multimédias référencés par cette timeline, ou continue avec des espaces réservés étiquetés.",
   "Text file (.txt)": "Fichier texte (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Ce fichier InDesign n'a pas pu être converti sur cet appareil. Exporte-le depuis InDesign au format IDML et réessaie.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Ce fichier InDesign n'a pas pu être ouvert. Exporte-le depuis InDesign au format IDML et réessaie."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Ce fichier InDesign n'a pas pu être ouvert. Exporte-le depuis InDesign au format IDML et réessaie.",
+  "Adding shapes": "Ajout des formes",
+  "Clean edge colour": "Nettoyer la couleur des bords",
+  "No shapes were found. Try another preset.": "Aucune forme trouvée. Essaie un autre préréglage.",
+  "Reading the image": "Lecture de l'image",
+  "Starting the tracer": "Démarrage de la vectorisation",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Remplace la couleur de l'ancien arrière-plan sur le bord par celle du sujet. Essaie si tu vois un halo.",
+  "The image could not be traced.": "L'image n'a pas pu être vectorisée.",
+  "This image could not be read.": "Cette image n'a pas pu être lue.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Cette vectorisation produit trop de points pour le canevas. Essaie le préréglage Logo ou Dessin au trait, ou une image plus simple.",
+  "Trace": "Vectoriser",
+  "Trace image": "Vectoriser l'image",
+  "Trace image…": "Vectoriser l'image…",
+  "Traced into one shape, above the image.": "Vectorisée en une forme, au-dessus de l'image.",
+  "Traced into {n} shapes, above the image.": "Vectorisée en {n} formes, au-dessus de l'image.",
+  "Tracing": "Vectorisation",
+  "Tracing image": "Vectorisation de l'image",
+  "Turn this picture into shapes you can edit.": "Transforme cette image en formes modifiables."
 }

@@ -82,6 +82,7 @@ Ang wordmark na nakatakda sa face ng design system mo ay nag-e-export bilang SVG
 | Hand-off sa Premiere | **Premiere XML + media** | Mga timed na clip at orihinal na media para sa Premiere (Design) |
 | Video para sa social at pagbabahagi | **MP4** o **WebM** | Pinakamagandang kalidad para sa laki ng file (tingnan ang [Video](#video)) |
 | Mga caption | **SRT** o **VTT** | Timed na text para sa video player (Captions, Audiogram at Record) |
+| Mga broadcast caption | **TTML** o **SCC** | IMSC1.1 timed text, o CEA-608 pop-on na caption (Captions; tingnan ang [Mga broadcast caption](#broadcast-captions)) |
 | Kurso sa pagsasanay | **SCORM (LMS)** | Versioned na website, SCORM o xAPI package (tingnan ang [SCORM](#scorm-course-packages)) |
 | Rich text o email signature | **HTML** | Nape-paste na may format sa mga mail client |
 | Payak na nilalaman | **MD** o **TXT** | Text lang |
@@ -199,6 +200,16 @@ Pagkatapos, piliin ang **Export course** mula sa sinusuportahang tool, project f
 ![Ang export panel sa isang Design deck na napili ang SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Hawak ng package ang tapos nitong nilalaman at hindi nangangailangan ng Lolly account. Ilagay ang Website ZIP sa HTTP(S) host; i-import ang LMS ZIP nang hindi binabago. Subukan ang destinasyon bago ibahagi ang kurso. Para sa kursong binuo mula sa ilang naka-save na likha, tingnan ang [Gumawa ng training course](/info/training-creators.html).
+
+### Mga broadcast caption
+
+Maaari ring mag-export ang Captions tool ng **TTML** at **SCC**. Parehong isinusulat mula sa iisang listahan ng cue gaya ng mga SRT at VTT file, kaya magkatugma ang mga salita at oras.
+
+- Ang **TTML** ay ang IMSC1.1 Text Profile, na may media-time na clock time at isang bottom-centre na region. Wala itong kulay, font o posisyon sa bawat caption, dahil simula, wakas at text lang ang hawak ng mga caption ng Lolly.
+- Ang **SCC** ay may dalang CEA-608 pop-on na caption sa channel 1 sa 29.97 frame bawat segundo na may drop-frame timecode. Sinusuportahan nito ang mga pangunahing karakter ng North America pati ang special at extended. Kung may karakter ang caption na hindi kayang dalhin ng set, titigil ang export at sasabihin kung aling karakter, kaya walang maaalis nang walang abiso. Bawat caption ay nagwi-wrap sa 32 column at hanggang 15 row. Ang caption na hindi makakapag-load bago ang simula nito ay maaantala ng ilang frame.
+- Hindi isinusulat ang roll-up at paint-on na caption.
+
+Hindi pa nasusuri ang SCC output laban sa totoong broadcast tool o hardware decoder. Subukan ang file sa sarili mong pipeline bago i-deliver.
 
 ### DXF (mga cut file)
 
@@ -410,7 +421,7 @@ Ito ang mga value para sa URL `format=` parameter at CLI `--export=` flag (tingn
 | Page at dokumento | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot design file) · `scorm` (course package, isang ZIP) |
 | Motion | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Text at data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP palette) |
+| Text at data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | Mga bundle at package | `zip` · `rpm` at `tar.gz` (ang render na selyado sa Linux package) |
 
 Ang ilang id ay galing sa sariling export code ng tool: `ase` (Adobe Swatch Exchange, mula sa Palette Lab) at `exr` at `hdr` (high-dynamic-range raster, mula sa Darkroom). Ang **Convert Font** ay nagsusulat ng `ttf`, `otf` at `woff` mula sa font file na ibibigay mo, kaya ang hubad na link ay walang maire-render dito.

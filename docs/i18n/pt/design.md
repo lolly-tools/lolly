@@ -122,6 +122,25 @@ Mais três funcionam em uma única forma. **Outline stroke…** transforma um tr
 
 O resultado é um novo caminho que você pode continuar editando com a caneta, armazenado como curvas Bezier simples, então o tipo de spline original não se mantém. Os furos são furos de verdade: o controle **Fill rule** no painel de traço decide se contornos sobrepostos preenchem (*non-zero*) ou perfuram (*even-odd*). As operações recusam em vez de destruir: peça a interseção de duas formas que não se sobrepõem e nada muda. Caixas de texto e de imagem não têm contorno, então são deixadas de lado.
 
+## Vetorizar uma imagem
+
+Selecione uma imagem, clique nela com o botão direito e escolha **Vetorizar imagem…** para transformá-la em formas editáveis. Escolha uma predefinição e pressione **Vetorizar**:
+
+- **Logotipo** encontra algumas cores chapadas e mantém bordas nítidas e círculos e linhas exatos. Recusa uma imagem com gradientes ou tons de foto e avisa você.
+- **Ilustração** vetoriza várias cores como formas preenchidas, para arte chapada ou uma imagem posterizada.
+- **Arte de linha** vetoriza linhas escuras em uma página clara como formas pretas.
+- **Linha central** vetoriza linhas escuras como traços únicos, para você mudar a espessura depois.
+
+As formas são adicionadas como um grupo logo acima da imagem, que continua onde está. Oculte ou exclua a imagem para ver só os caminhos. A vetorização roda no seu dispositivo em uma tarefa em segundo plano com um botão Cancelar, e nada é enviado. Uma imagem de 1500 pixels costuma levar de um a vários segundos, e uma foto cheia de detalhes leva mais.
+
+A vetorização segue o que a caixa mostra, então uma imagem cortada (Cover) vetoriza só a parte visível. Estes limites se aplicam:
+
+- As imagens são reduzidas a no máximo 1500 pixels no lado maior antes da vetorização, então as bordas são posicionadas com uma fração desse tamanho, não do original.
+- Uma vetorização cria no máximo 1.500 formas e 60.000 pontos. Uma foto geralmente passa disso, e o Design avisa sem alterar nada. Experimente Logotipo ou Arte de linha, ou uma imagem mais simples.
+- Gradientes viram faixas de cor chapada, e sombras suaves viram formas de borda dura.
+- Raio dos cantos, máscara de forma e efeito na caixa da imagem não são aplicados aos caminhos.
+- A mesma imagem e a mesma predefinição sempre dão as mesmas formas.
+
 ## Traçados
 
 Uma caixa, uma imagem, uma prancheta e um caminho da caneta podem ter um traçado: uma cor, uma espessura e um estilo (sólido, tracejado ou pontilhado). As linhas de traçado ficam sob **Fill** no Inspetor, e o botão **Stroke** da barra do objeto as abre.

@@ -82,6 +82,7 @@
 | تسليم إلى Premiere | **Premiere XML + media** | مقاطع موقوتة ووسائط أصلية لـ Premiere (Design) |
 | فيديو للتواصل الاجتماعي والمشاركة | **MP4** أو **WebM** | أفضل جودة لحجم الملف (راجع [الفيديو](#video)) |
 | ترجمات | **SRT** أو **VTT** | نص موقوت لمشغّل فيديو (Captions وAudiogram وRecord) |
+| ترجمات البث | **TTML** أو **SCC** | نص موقوت IMSC1.1، أو ترجمات CEA-608 بنمط pop-on (Captions؛ راجع [ترجمات البث](#broadcast-captions)) |
 | دورة تدريبية | **SCORM (LMS)** | موقع بإصدارات، أو حزمة SCORM أو xAPI (راجع [SCORM](#scorm-course-packages)) |
 | نص منسق أو توقيع بريد إلكتروني | **HTML** | يُلصق منسقاً في عملاء البريد |
 | محتوى عادي | **MD** أو **TXT** | نص فقط |
@@ -199,6 +200,16 @@ PowerPoint أيضاً طريق دخول: ينقل [إعادة تعليم عرض]
 ![لوحة التصدير في عرض Design مع اختيار SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 تحتوي الحزمة محتواها المنجز ولا تحتاج إلى حساب Lolly. ضع ZIP الموقع على مضيف HTTP(S)؛ واستورد ZIP نظام إدارة التعلم (LMS) دون تغيير. اختبر الوجهة قبل أن تشارك الدورة. ولدورة مبنية من عدة أعمال محفوظة، راجع [أنشئ دورة تدريبية](/info/training-creators.html).
+
+### ترجمات البث
+
+يمكن لأداة Captions أيضًا تصدير **TTML** و**SCC**. يُكتب كلاهما من قائمة الإشارات نفسها التي تُكتب منها ملفات SRT وVTT، فتتطابق الكلمات والأوقات.
+
+- **TTML** هو IMSC1.1 Text Profile، بأوقات ساعة وفق زمن الوسائط ومنطقة واحدة أسفل المنتصف. ولا يحمل لونًا أو خطًا أو موضعًا لكل ترجمة، لأن ترجمات Lolly تحمل بداية ونهاية ونصًا فقط.
+- **SCC** يحمل ترجمات CEA-608 بنمط pop-on على القناة 1 بمعدل 29.97 إطارًا في الثانية مع رمز زمني drop-frame. ويدعم الأحرف الأساسية لأمريكا الشمالية إضافةً إلى الأحرف الخاصة والموسّعة. وإذا احتوت ترجمة على حرف لا تستطيع المجموعة حمله، يتوقف التصدير ويخبرك بالحرف، فلا يُحذف شيء دون إشعار. وتُلَفّ كل ترجمة على 32 عمودًا و15 صفًا على الأكثر. والترجمة التي لا يمكن تحميلها قبل وقت بدايتها تتأخر بضعة إطارات.
+- لا تُكتب ترجمات roll-up وpaint-on.
+
+لم يُفحص إخراج SCC مقابل أداة بث حقيقية أو مفكك ترميز عتادي. اختبر الملف في مسار عملك قبل التسليم.
 
 ### DXF (ملفات القص)
 
@@ -410,7 +421,7 @@ Street Map أوضح الحالات. التصميم كله خطوط أصلاً، 
 | صفحة ومستند | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (ملف تصميم Penpot) · `scorm` (حزمة دورة، ZIP) |
 | حركة | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | صوت | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| نص وبيانات | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (لوحة GIMP) |
+| نص وبيانات | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (لوحة GIMP) |
 | حزم وأرشيفات | `zip` · `rpm` و`tar.gz` (العرض مختوماً في حزمة Linux) |
 
 تأتي بعض المعرّفات من شيفرة التصدير الخاصة بأداة: `ase` (Adobe Swatch Exchange، من Palette Lab) و`exr` و`hdr` (نقطيات عالية المدى الديناميكي، من Darkroom). يكتب **Convert Font** صيغ `ttf` و`otf` و`woff` من ملف خط تقدمه، فلا شيء لديه ليعرضه من رابط مجرد.

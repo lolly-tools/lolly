@@ -122,6 +122,25 @@ Selectează două sau mai multe forme, fă clic dreapta pe canvas (atingere cu d
 
 Rezultatul este o cale nouă pe care o poți edita în continuare cu pen-ul, stocată ca simple curbe Bezier, deci tipul original de spline nu se păstrează. Găurile sunt găuri reale: controlul **Fill rule** din panoul de contur decide dacă contururile suprapuse umplu (*non-zero*) sau perforează (*even-odd*). Operațiile refuză, nu distrug: dacă ceri intersecția a două forme care nu se suprapun, nu se schimbă nimic. Casetele de text și imagine nu au contur, deci sunt lăsate neatinse.
 
+## Trasează o imagine
+
+Selectează o imagine, dă clic dreapta pe ea și alege **Trasează imaginea…** ca să transformi poza în forme editabile. Alege un preset și apasă **Trasează**:
+
+- **Logo** găsește câteva culori plate și păstrează margini clare, cercuri și linii exacte. Refuză o imagine cu gradienți sau tonuri de fotografie și îți spune asta.
+- **Ilustrație** trasează mai multe culori ca forme pline, pentru grafică plată sau o imagine posterizată.
+- **Desen liniar** trasează liniile închise de pe o pagină deschisă ca forme negre.
+- **Linie centrală** trasează liniile închise ca trasee simple, ca să le poți schimba grosimea după aceea.
+
+Formele sunt adăugate ca grup chiar deasupra imaginii, care rămâne unde este. Ascunde sau șterge imaginea ca să vezi doar traseele. Trasarea rulează pe dispozitivul tău ca o sarcină în fundal, cu un buton Anulează, și nu se încarcă nimic. O imagine de 1500 de pixeli durează de obicei între o secundă și câteva secunde, iar o fotografie încărcată durează mai mult.
+
+Trasarea urmează ce arată caseta, deci o imagine tăiată (Cover) trasează doar partea vizibilă. Se aplică aceste limite:
+
+- Imaginile sunt micșorate la cel mult 1500 de pixeli pe latura lungă înainte de trasare, deci marginile sunt plasate la o fracțiune din acea dimensiune, nu din cea a originalului.
+- O trasare creează cel mult 1.500 de forme și 60.000 de puncte. O fotografie depășește de obicei limita, iar Design spune asta fără să schimbe nimic. Încearcă Logo sau Desen liniar ori o imagine mai simplă.
+- Gradienții devin benzi de culoare plată, iar umbrele fine devin forme cu margini dure.
+- Raza colțurilor, o mască de formă și un efect de pe caseta imaginii nu se aplică traseelor.
+- Aceeași imagine și același preset dau întotdeauna aceleași forme.
+
 ## Contururi
 
 O casetă, o imagine, o planșă și o cale cu Pen pot purta fiecare un contur: o culoare, o grosime și un stil (continuu, întrerupt sau punctat). Rândurile conturului stau sub **Fill** în Inspector, iar butonul **Contur** de pe bara de obiect le deschide.

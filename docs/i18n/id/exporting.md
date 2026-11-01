@@ -82,6 +82,7 @@ Wordmark yang diset dengan huruf design system Anda diekspor sebagai SVG dengan 
 | Serah terima Premiere | **Premiere XML + media** | Klip bertempo dan media asli untuk Premiere (Design) |
 | Video untuk sosial dan berbagi | **MP4** atau **WebM** | Kualitas terbaik untuk ukuran file (lihat [Video](#video)) |
 | Teks keterangan | **SRT** atau **VTT** | Teks bertempo untuk pemutar video (Captions, Audiogram, dan Record) |
+| Teks keterangan siaran | **TTML** atau **SCC** | Teks bertempo IMSC1.1, atau teks keterangan pop-on CEA-608 (Captions; lihat [Teks keterangan siaran](#broadcast-captions)) |
 | Kursus pelatihan | **SCORM (LMS)** | Situs web berversi, paket SCORM atau xAPI (lihat [SCORM](#scorm-course-packages)) |
 | Teks kaya atau tanda tangan email | **HTML** | Ditempel berformat ke klien email |
 | Konten polos | **MD** atau **TXT** | Hanya teks |
@@ -199,6 +200,16 @@ Lalu pilih **Export course** dari alat yang didukung, folder proyek, atau piliha
 ![Panel ekspor pada sebuah deck Design dengan SCORM (LMS) dipilih](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Paket menyimpan konten jadinya dan tidak memerlukan akun Lolly. Taruh ZIP Website di host HTTP(S); impor ZIP LMS tanpa diubah. Uji tujuan sebelum membagikan kursus. Untuk kursus yang dibangun dari beberapa karya tersimpan, lihat [Create a training course](/info/training-creators.html).
+
+### Teks keterangan siaran
+
+Alat Captions juga bisa mengekspor **TTML** dan **SCC**. Keduanya ditulis dari daftar cue yang sama dengan file SRT dan VTT, sehingga kata dan waktunya cocok.
+
+- **TTML** adalah IMSC1.1 Text Profile, dengan waktu jam berbasis waktu media dan satu wilayah di tengah bawah. Tidak membawa warna, font, atau posisi per teks keterangan, karena teks keterangan Lolly hanya berisi awal, akhir, dan teks.
+- **SCC** membawa teks keterangan pop-on CEA-608 pada kanal 1 pada 29,97 frame per detik dengan timecode drop-frame. Mendukung karakter dasar Amerika Utara plus karakter khusus dan yang diperluas. Jika sebuah teks keterangan berisi karakter yang tidak bisa dibawa set tersebut, ekspor berhenti dan memberi tahu karakter mana, sehingga tidak ada yang dihilangkan tanpa pemberitahuan. Setiap teks keterangan dibungkus pada 32 kolom dan paling banyak 15 baris. Teks keterangan yang tidak bisa dimuat sebelum waktu mulainya ditunda beberapa frame.
+- Teks keterangan roll-up dan paint-on tidak ditulis.
+
+Keluaran SCC belum diperiksa dengan alat siaran sungguhan atau dekoder perangkat keras. Uji sebuah file di pipeline Anda sendiri sebelum pengiriman.
 
 ### DXF (file potong)
 
@@ -410,7 +421,7 @@ Ini adalah nilai untuk parameter URL `format=` dan flag CLI `--export=` (lihat [
 | Halaman dan dokumen | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (file desain Penpot) · `scorm` (paket kursus, sebuah ZIP) |
 | Gerak | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Teks dan data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (palet GIMP) |
+| Teks dan data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (palet GIMP) |
 | Bundel dan paket | `zip` · `rpm` dan `tar.gz` (render disegel ke paket Linux) |
 
 Beberapa id berasal dari kode ekspor alat sendiri: `ase` (Adobe Swatch Exchange, dari Palette Lab) serta `exr` dan `hdr` (raster rentang dinamis tinggi, dari Darkroom). **Convert Font** menulis `ttf`, `otf`, dan `woff` dari file font yang Anda berikan, jadi tautan kosong tidak memiliki apa pun untuk dirender.

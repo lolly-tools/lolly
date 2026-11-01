@@ -82,6 +82,7 @@ Un wordmark setat în fontul sistemului tău de design se exportă ca SVG cu fie
 | Un transfer către Premiere | **Premiere XML + media** | Clipuri cronometrate și media originale pentru Premiere (Design) |
 | Video pentru social și partajare | **MP4** sau **WebM** | Cea mai bună calitate pentru dimensiunea fișierului (vezi [Video](#video)) |
 | Subtitrări | **SRT** sau **VTT** | Text cronometrat pentru un player video (Captions, Audiogram și Record) |
+| Subtitrări pentru difuzare | **TTML** sau **SCC** | Text cronometrat IMSC1.1 sau subtitrări pop-on CEA-608 (Captions; vezi [Subtitrări pentru difuzare](#broadcast-captions)) |
 | Un curs de instruire | **SCORM (LMS)** | Un site versionat, pachet SCORM sau xAPI (vezi [SCORM](#scorm-course-packages)) |
 | Text îmbogățit sau o semnătură de email | **HTML** | Se lipește formatat în clienți de email |
 | Conținut simplu | **MD** sau **TXT** | Doar text |
@@ -199,6 +200,16 @@ Apoi alege **Export course** dintr-un instrument acceptat, un dosar de proiect s
 ![Panoul de export pe un set de diapozitive Design cu SCORM (LMS) selectat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Pachetul conține conținutul lui terminat și nu are nevoie de cont Lolly. Pune un ZIP Website pe o gazdă HTTP(S); importă un ZIP LMS neschimbat. Testează destinația înainte să partajezi cursul. Pentru un curs construit din mai multe creații salvate, vezi [Creează un curs de instruire](/info/training-creators.html).
+
+### Subtitrări pentru difuzare
+
+Instrumentul Captions poate exporta și **TTML** și **SCC**. Ambele sunt scrise din aceeași listă de replici ca fișierele SRT și VTT, deci cuvintele și timpii se potrivesc.
+
+- **TTML** este IMSC1.1 Text Profile, cu ore de ceas în timp media și o singură regiune jos, la centru. Nu conține culoare, font sau poziție pentru fiecare subtitrare, pentru că subtitrările din Lolly au doar un început, un sfârșit și text.
+- **SCC** conține subtitrări pop-on CEA-608 pe canalul 1, la 29,97 de cadre pe secundă, cu timecode drop-frame. Acceptă caracterele de bază nord-americane, plus cele speciale și extinse. Dacă o subtitrare conține un caracter pe care setul nu îl poate purta, exportul se oprește și îți spune care este caracterul, deci nimic nu se pierde fără știre. Fiecare subtitrare se împarte pe 32 de coloane și cel mult 15 rânduri. O subtitrare care nu poate fi încărcată înainte de ora de început este întârziată cu câteva cadre.
+- Subtitrările roll-up și paint-on nu sunt scrise.
+
+Ieșirea SCC nu a fost verificată cu un instrument real de difuzare sau cu un decodor hardware. Testează un fișier în propriul tău pipeline înainte de livrare.
 
 ### DXF (fișiere de tăiere)
 
@@ -410,7 +421,7 @@ Acestea sunt valorile pentru parametrul URL `format=` și indicatorul CLI `--exp
 | Pagină și document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (fișier de design Penpot) · `scorm` (pachet de curs, un ZIP) |
 | Mișcare | `gif` · `apng` (PNG animat) · `webp-anim` (WebP animat) · `svg-anim` (SVG animat) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Text și date | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (paletă GIMP) |
+| Text și date | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paletă GIMP) |
 | Bundle-uri și pachete | `zip` · `rpm` și `tar.gz` (randarea sigilată într-un pachet Linux) |
 
 Câteva id-uri vin din codul de export propriu al unui instrument: `ase` (Adobe Swatch Exchange, din Palette Lab) și `exr` și `hdr` (rastere cu gamă dinamică înaltă, din Darkroom). **Convert Font** scrie `ttf`, `otf` și `woff` dintr-un fișier de font pe care îl furnizezi, deci un link simplu nu are ce să randeze pentru el.

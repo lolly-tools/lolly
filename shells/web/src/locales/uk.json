@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Виберіть медіафайли, на які посилається ця часова шкала, або продовжте з позначеними заповнювачами.",
   "Text file (.txt)": "Текстовий файл (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Цей файл InDesign не вдалося перетворити на цьому пристрої. Експортуйте його з InDesign як IDML і спробуйте ще раз.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Цей файл InDesign не вдалося відкрити. Експортуйте його з InDesign як IDML і спробуйте ще раз."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Цей файл InDesign не вдалося відкрити. Експортуйте його з InDesign як IDML і спробуйте ще раз.",
+  "Adding shapes": "Додавання фігур",
+  "Clean edge colour": "Чистий колір краю",
+  "No shapes were found. Try another preset.": "Фігур не знайдено. Спробуйте інший пресет.",
+  "Reading the image": "Читання зображення",
+  "Starting the tracer": "Запуск трасування",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Замінює колір старого тла на краю власним кольором об’єкта. Спробуйте, якщо бачите ореол.",
+  "The image could not be traced.": "Не вдалося трасувати зображення.",
+  "This image could not be read.": "Не вдалося прочитати це зображення.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Це трасування дає забагато точок для полотна. Спробуйте пресет «Логотип» або «Лінійна графіка» чи простіше зображення.",
+  "Trace": "Трасувати",
+  "Trace image": "Трасувати зображення",
+  "Trace image…": "Трасувати зображення…",
+  "Traced into one shape, above the image.": "Трасовано в одну фігуру над зображенням.",
+  "Traced into {n} shapes, above the image.": "Трасовано в {n} фігур над зображенням.",
+  "Tracing": "Трасування",
+  "Tracing image": "Трасування зображення",
+  "Turn this picture into shapes you can edit.": "Перетворіть цю картинку на фігури, які можна редагувати."
 }

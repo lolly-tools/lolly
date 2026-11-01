@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "এই টাইমলাইনে উল্লেখ করা মিডিয়া ফাইলগুলো বেছে নিন, অথবা লেবেলযুক্ত প্লেসহোল্ডার নিয়ে এগিয়ে যান।",
   "Text file (.txt)": "টেক্সট ফাইল (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "এই ডিভাইসে ওই InDesign ফাইলটি রূপান্তর করা যায়নি। InDesign থেকে IDML হিসেবে এক্সপোর্ট করে আবার চেষ্টা করুন।",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "ওই InDesign ফাইলটি খোলা যায়নি। InDesign থেকে IDML হিসেবে এক্সপোর্ট করে আবার চেষ্টা করুন।"
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "ওই InDesign ফাইলটি খোলা যায়নি। InDesign থেকে IDML হিসেবে এক্সপোর্ট করে আবার চেষ্টা করুন।",
+  "Adding shapes": "শেপ যোগ করা হচ্ছে",
+  "Clean edge colour": "প্রান্তের রং পরিষ্কার করুন",
+  "No shapes were found. Try another preset.": "কোনো শেপ পাওয়া যায়নি। অন্য একটি প্রিসেট চেষ্টা করুন।",
+  "Reading the image": "ছবি পড়া হচ্ছে",
+  "Starting the tracer": "ট্রেসার চালু হচ্ছে",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "প্রান্তে থাকা পুরনো ব্যাকগ্রাউন্ডের রং বদলে বিষয়ের নিজের রং বসায়। হ্যালো দেখলে এটি চেষ্টা করুন।",
+  "The image could not be traced.": "ছবিটি ট্রেস করা যায়নি।",
+  "This image could not be read.": "এই ছবিটি পড়া যায়নি।",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "এই ট্রেসে ক্যানভাসের জন্য অনেক বেশি পয়েন্ট তৈরি হচ্ছে। লোগো বা লাইন আর্ট প্রিসেট, অথবা আরও সাধারণ ছবি চেষ্টা করুন।",
+  "Trace": "ট্রেস করুন",
+  "Trace image": "ছবি ট্রেস করুন",
+  "Trace image…": "ছবি ট্রেস করুন…",
+  "Traced into one shape, above the image.": "ছবির ওপরে একটি শেপে ট্রেস করা হয়েছে।",
+  "Traced into {n} shapes, above the image.": "ছবির ওপরে {n}টি শেপে ট্রেস করা হয়েছে।",
+  "Tracing": "ট্রেস হচ্ছে",
+  "Tracing image": "ছবি ট্রেস হচ্ছে",
+  "Turn this picture into shapes you can edit.": "এই ছবিটিকে এডিট করা যায় এমন শেপে বদলে নিন।"
 }

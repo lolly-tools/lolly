@@ -82,6 +82,7 @@ Un logotype composé dans la police de ton design system s'exporte en SVG avec c
 | Une remise à Premiere | **Premiere XML + media** | Clips minutés et médias d'origine pour Premiere (Design) |
 | Vidéo pour les réseaux sociaux et le partage | **MP4** ou **WebM** | Meilleure qualité pour la taille du fichier (voir [Video](#video)) |
 | Sous-titres | **SRT** ou **VTT** | Texte minuté pour un lecteur vidéo (Captions, Audiogram et Record) |
+| Sous-titres de diffusion | **TTML** ou **SCC** | Texte minuté IMSC1.1, ou sous-titres pop-on CEA-608 (Captions ; voir [Sous-titres de diffusion](#broadcast-captions)) |
 | Un cours de formation | **SCORM (LMS)** | Un site web versionné, un paquet SCORM ou xAPI (voir [SCORM](#scorm-course-packages)) |
 | Du texte enrichi ou une signature d'e-mail | **HTML** | Se colle avec sa mise en forme dans les clients de messagerie |
 | Du contenu simple | **MD** ou **TXT** | Texte seulement |
@@ -199,6 +200,16 @@ Choisis ensuite **Export course** depuis un outil pris en charge, un dossier de 
 ![Le panneau d'export sur une présentation Design avec SCORM (LMS) sélectionné](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Le paquet contient son contenu terminé et n'exige aucun compte Lolly. Place un ZIP Website sur un hôte HTTP(S) ; importe un ZIP LMS tel quel. Teste la destination avant de partager le cours. Pour un cours construit à partir de plusieurs créations enregistrées, voir [Create a training course](/info/training-creators.html).
+
+### Sous-titres de diffusion
+
+L'outil Captions peut aussi exporter du **TTML** et du **SCC**. Les deux sont écrits à partir de la même liste de repères que les fichiers SRT et VTT, donc les mots et les temps correspondent.
+
+- **TTML** est l'IMSC1.1 Text Profile, avec des horaires en temps média et une seule région en bas au centre. Il ne porte ni couleur, ni police, ni position par sous-titre, car les sous-titres de Lolly ne contiennent qu'un début, une fin et du texte.
+- **SCC** porte des sous-titres pop-on CEA-608 sur le canal 1 à 29,97 images par seconde avec un timecode drop-frame. Il prend en charge les caractères nord-américains de base ainsi que les caractères spéciaux et étendus. Si un sous-titre contient un caractère que le jeu ne peut pas porter, l'export s'arrête et t'indique lequel, donc rien n'est perdu sans prévenir. Chaque sous-titre est renvoyé à la ligne à 32 colonnes et 15 lignes au plus. Un sous-titre qui ne peut pas se charger avant son début est retardé de quelques images.
+- Les sous-titres roll-up et paint-on ne sont pas écrits.
+
+La sortie SCC n'a pas été vérifiée avec un vrai outil de diffusion ni un décodeur matériel. Teste un fichier dans ton propre pipeline avant de le livrer.
 
 ### DXF (fichiers de découpe)
 
@@ -410,7 +421,7 @@ Ce sont les valeurs du paramètre d'URL `format=` et de l'option CLI `--export=`
 | Page et document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (fichier de design Penpot) · `scorm` (paquet de cours, un ZIP) |
 | Animation | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Texte et données | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (palette GIMP) |
+| Texte et données | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (palette GIMP) |
 | Bundles et paquets | `zip` · `rpm` et `tar.gz` (le rendu scellé dans un paquet Linux) |
 
 Quelques identifiants viennent du code d'export propre d'un outil : `ase` (Adobe Swatch Exchange, de Palette Lab) et `exr` et `hdr` (rasters à grande plage dynamique, de Darkroom). **Convert Font** écrit `ttf`, `otf` et `woff` à partir d'un fichier de police que tu fournis, donc un lien nu n'a rien à lui faire rendre.

@@ -82,6 +82,7 @@ Tasarım sisteminin yazı tipinde dizilmiş bir logotype, her harfi dış çizgi
 | Bir Premiere devri | **Premiere XML + media** | Premiere için zamanlanmış klipler ve özgün medya (Design) |
 | Sosyal medya ve paylaşım için video | **MP4** veya **WebM** | Dosya boyutuna göre en iyi kalite (bkz. [Video](#video)) |
 | Altyazılar | **SRT** veya **VTT** | Bir video oynatıcı için zamanlanmış metin (Captions, Audiogram ve Record) |
+| Yayın altyazıları | **TTML** veya **SCC** | IMSC1.1 zamanlanmış metin ya da CEA-608 pop-on altyazılar (Captions; bkz. [Yayın altyazıları](#broadcast-captions)) |
 | Bir eğitim kursu | **SCORM (LMS)** | Sürümlü bir web sitesi, SCORM veya xAPI paketi (bkz. [SCORM](#scorm-course-packages)) |
 | Zengin metin veya bir e-posta imzası | **HTML** | Posta istemcilerine biçimlendirilmiş olarak yapışır |
 | Düz içerik | **MD** veya **TXT** | Yalnızca metin |
@@ -199,6 +200,16 @@ Sonra desteklenen bir araçtan, bir proje klasöründen veya bir seçimden **Exp
 ![SCORM (LMS) seçiliyken bir Design destesindeki dışa aktarma paneli](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Paket bitmiş içeriğini tutar ve Lolly hesabı gerektirmez. Bir Website ZIP'ini bir HTTP(S) sunucusuna koy; bir LMS ZIP'ini değiştirmeden içe aktar. Kursu paylaşmadan önce hedefi test et. Birkaç kayıtlı yaratımdan kurulan bir kurs için bkz. [Create a training course](/info/training-creators.html).
+
+### Yayın altyazıları
+
+Captions aracı **TTML** ve **SCC** olarak da dışa aktarabilir. İkisi de SRT ve VTT dosyalarıyla aynı satır listesinden yazılır; bu yüzden sözcükler ve zamanlar eşleşir.
+
+- **TTML**, ortam zamanı saat değerleri ve alt ortada tek bir bölge içeren IMSC1.1 Text Profile'dır. Altyazı başına renk, yazı tipi ya da konum taşımaz, çünkü Lolly'nin altyazıları yalnızca bir başlangıç, bir bitiş ve metin tutar.
+- **SCC**, 1. kanalda saniyede 29,97 kare hızında ve drop-frame zaman koduyla CEA-608 pop-on altyazıları taşır. Temel Kuzey Amerika karakterlerini, özel ve genişletilmiş karakterlerle birlikte destekler. Bir altyazı, karakter takımının taşıyamadığı bir karakter içeriyorsa dışa aktarma durur ve hangi karakter olduğunu söyler; böylece hiçbir şey haber verilmeden atlanmaz. Her altyazı 32 sütunda ve en fazla 15 satırda kaydırılır. Başlangıç zamanından önce yüklenemeyen bir altyazı birkaç kare geciktirilir.
+- Roll-up ve paint-on altyazılar yazılmaz.
+
+SCC çıktısı gerçek bir yayın aracına ya da donanım kod çözücüsüne karşı denenmedi. Teslimattan önce bir dosyayı kendi iş akışında sına.
 
 ### DXF (kesim dosyaları)
 
@@ -410,7 +421,7 @@ Bunlar URL `format=` parametresi ve CLI `--export=` bayrağı için değerlerdir
 | Sayfa ve belge | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot tasarım dosyası) · `scorm` (kurs paketi, bir ZIP) |
 | Hareket | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Ses | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Metin ve veri | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP palette) |
+| Metin ve veri | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | Paketler ve bundle'lar | `zip` · `rpm` ve `tar.gz` (render, bir Linux paketine mühürlenmiş) |
 
 Birkaç kimlik bir aracın kendi dışa aktarma kodundan gelir: `ase` (Palette Lab'den Adobe Swatch Exchange) ve `exr` ile `hdr` (Darkroom'dan yüksek dinamik aralıklı rasterler). **Convert Font** sağladığın bir yazı tipi dosyasından `ttf`, `otf` ve `woff` yazar; bu yüzden çıplak bir bağlantının render edecek bir şeyi yoktur.

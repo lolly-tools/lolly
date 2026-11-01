@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "选择此时间线引用的媒体文件，或使用带标签的占位符继续。",
   "Text file (.txt)": "文本文件 (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "无法在此设备上转换该 InDesign 文件。请从 InDesign 导出为 IDML 后重试。",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "无法打开该 InDesign 文件。请从 InDesign 导出为 IDML 后重试。"
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "无法打开该 InDesign 文件。请从 InDesign 导出为 IDML 后重试。",
+  "Adding shapes": "正在添加形状",
+  "Clean edge colour": "清理边缘颜色",
+  "No shapes were found. Try another preset.": "未找到形状。请试试其他预设。",
+  "Reading the image": "正在读取图像",
+  "Starting the tracer": "正在启动描摹器",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "把边缘中旧背景的颜色换成主体自身的颜色。如果看到光晕，可以试试。",
+  "The image could not be traced.": "无法描摹该图像。",
+  "This image could not be read.": "无法读取该图像。",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "此次描摹为画布生成的点过多。请试试徽标或线稿预设，或换一张更简单的图像。",
+  "Trace": "描摹",
+  "Trace image": "描摹图像",
+  "Trace image…": "描摹图像…",
+  "Traced into one shape, above the image.": "已在图像上方描摹为一个形状。",
+  "Traced into {n} shapes, above the image.": "已在图像上方描摹为 {n} 个形状。",
+  "Tracing": "正在描摹",
+  "Tracing image": "正在描摹图像",
+  "Turn this picture into shapes you can edit.": "把这张图片变成可编辑的形状。"
 }

@@ -82,6 +82,7 @@ Một wordmark đặt bằng kiểu chữ của hệ thống thiết kế xuất
 | Bàn giao cho Premiere | **Premiere XML + media** | Clip có thời gian và media gốc cho Premiere (Design) |
 | Video cho mạng xã hội và chia sẻ | **MP4** hoặc **WebM** | Chất lượng tốt nhất theo dung lượng tệp (xem [Video](#video)) |
 | Phụ đề | **SRT** hoặc **VTT** | Văn bản có thời gian cho trình phát video (Captions, Audiogram và Record) |
+| Phụ đề phát sóng | **TTML** hoặc **SCC** | Văn bản có thời gian IMSC1.1, hoặc phụ đề CEA-608 pop-on (Captions; xem [Phụ đề phát sóng](#broadcast-captions)) |
 | Khóa đào tạo | **SCORM (LMS)** | Một trang web có phiên bản, gói SCORM hoặc xAPI (xem [SCORM](#scorm-course-packages)) |
 | Văn bản có định dạng hoặc chữ ký email | **HTML** | Dán có định dạng vào ứng dụng thư |
 | Nội dung thuần | **MD** hoặc **TXT** | Chỉ văn bản |
@@ -199,6 +200,16 @@ Rồi chọn **Export course** từ một công cụ được hỗ trợ, một 
 ![Bảng xuất trên một bản trình chiếu Design với SCORM (LMS) được chọn](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Gói chứa nội dung hoàn chỉnh và không cần tài khoản Lolly. Đặt ZIP Website lên máy chủ HTTP(S); nhập ZIP LMS nguyên trạng. Hãy kiểm thử đích đến trước khi chia sẻ khóa học. Với khóa học dựng từ nhiều sản phẩm đã lưu, xem [Create a training course](/info/training-creators.html).
+
+### Phụ đề phát sóng
+
+Công cụ Captions cũng có thể xuất **TTML** và **SCC**. Cả hai được ghi từ cùng danh sách cue với tệp SRT và VTT, nên lời và thời gian khớp nhau.
+
+- **TTML** là IMSC1.1 Text Profile, với thời gian đồng hồ theo thời gian phương tiện và một vùng ở giữa phía dưới. Nó không mang màu, phông chữ hay vị trí cho từng phụ đề, vì phụ đề của Lolly chỉ có thời điểm bắt đầu, thời điểm kết thúc và văn bản.
+- **SCC** mang phụ đề CEA-608 pop-on trên kênh 1 ở 29,97 khung hình mỗi giây với timecode drop-frame. Nó hỗ trợ các ký tự Bắc Mỹ cơ bản cùng các ký tự đặc biệt và mở rộng. Nếu một phụ đề chứa ký tự mà bộ ký tự không mang được, việc xuất sẽ dừng và cho bạn biết ký tự nào, nên không có gì bị bỏ đi mà không báo. Mỗi phụ đề xuống dòng ở 32 cột và tối đa 15 hàng. Phụ đề không kịp nạp trước thời điểm bắt đầu sẽ bị trễ vài khung hình.
+- Phụ đề roll-up và paint-on không được ghi.
+
+Đầu ra SCC chưa được kiểm tra với công cụ phát sóng thật hay bộ giải mã phần cứng. Hãy thử một tệp trong quy trình của riêng bạn trước khi giao.
 
 ### DXF (tệp cắt)
 
@@ -410,7 +421,7 @@ Các điều khiển xuất nằm sau nút **Export** nổi, mở tấm **Export
 | Trang và tài liệu | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (tệp thiết kế Penpot) · `scorm` (gói khóa học, một ZIP) |
 | Chuyển động | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Âm thanh | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Văn bản và dữ liệu | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (bảng màu GIMP) |
+| Văn bản và dữ liệu | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (bảng màu GIMP) |
 | Gói và bộ đóng gói | `zip` · `rpm` và `tar.gz` (bản kết xuất được niêm phong vào gói Linux) |
 
 Một vài id đến từ mã xuất riêng của công cụ: `ase` (Adobe Swatch Exchange, từ Palette Lab) và `exr` cùng `hdr` (ảnh điểm dải động cao, từ Darkroom). **Convert Font** ghi `ttf`, `otf` và `woff` từ tệp phông chữ bạn cung cấp, nên một liên kết trần không có gì để nó kết xuất.
