@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:5674c7a3-cf4f-42b8-8099-988cdae49a13",
+  "serialNumber": "urn:uuid:d5a69526-11e1-44dd-8acc-a8e5bb5ce880",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-29T12:13:59.336Z",
+    "timestamp": "2026-11-01T13:08:34.423Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -9610,10 +9610,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/photocraft-psd@0.2.0",
+      "bom-ref": "pkg:cargo/photocraft-psd@0.18.0",
       "name": "photocraft-psd",
-      "version": "0.2.0",
-      "purl": "pkg:cargo/photocraft-psd@0.2.0",
+      "version": "0.18.0",
+      "purl": "pkg:cargo/photocraft-psd@0.18.0",
       "scope": "required",
       "licenses": [
         {
