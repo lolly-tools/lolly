@@ -160602,13 +160602,13 @@ async function settleEditor(page3, timeoutMs, opts = {}) {
   await page3.evaluate(() => {
     window.__lollyOpenSettled = 0;
   });
-  await page3.waitForFunction((fresh) => {
+  await page3.waitForFunction(([fresh, mountingAttr]) => {
     const w = window;
     const surface = w.lolly?.document;
-    const ready = !!surface && (!fresh || surface !== w.__lollyPrevSurface) && !document.querySelector("dialog.view-loading[open], .open-progress");
+    const ready = !!surface && (!fresh || surface !== w.__lollyPrevSurface) && !document.getElementById("view")?.hasAttribute(mountingAttr) && !document.querySelector("dialog.view-loading[open], .open-progress");
     w.__lollyOpenSettled = ready ? (w.__lollyOpenSettled ?? 0) + 1 : 0;
     return w.__lollyOpenSettled >= 5;
-  }, !!opts.fresh, { timeout: timeoutMs, polling: 200 });
+  }, [!!opts.fresh, ROUTE_MOUNTING_ATTR], { timeout: timeoutMs, polling: 200 });
 }
 async function markEditor(page3) {
   await page3.evaluate(() => {
@@ -160758,7 +160758,7 @@ async function checksInOpenedPage(page3, base, bytes2, name, tokenSelection, tim
 function shortenUrls(message, max = 2e3) {
   return message.replace(/(?:https?|data):[^\s"'<>]+/g, (url) => url.length > max ? `${url.slice(0, 200)}... (${url.length.toLocaleString("en")} characters)` : url);
 }
-var OPEN_ROUTE_PREFIX, OPEN_ROUTE_MAX_BYTES, OpenSessionError, OPEN_ROUTE_ASK_MS;
+var OPEN_ROUTE_PREFIX, OPEN_ROUTE_MAX_BYTES, OpenSessionError, OPEN_ROUTE_ASK_MS, ROUTE_MOUNTING_ATTR;
 var init_open_session = __esm({
   "packages/node-shell/src/open-session.ts"() {
     "use strict";
@@ -160776,6 +160776,7 @@ var init_open_session = __esm({
       }
     };
     OPEN_ROUTE_ASK_MS = 45e3;
+    ROUTE_MOUNTING_ATTR = "data-route-mounting";
   }
 });
 

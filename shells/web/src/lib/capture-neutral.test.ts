@@ -290,6 +290,12 @@ test('every capture waits for the route to mount, on the attribute main.ts keeps
   const testHelper = readFileSync(join(ROOT, 'tests', 'helpers', 'shell-settled.ts'), 'utf-8');
   assert.match(testHelper, new RegExp(`const ROUTE_MOUNTING_ATTR\\s*=\\s*'${ROUTE_MOUNTING_ATTR}'`),
     'the browser tests\' copy of the attribute must match this module');
+  // settleEditor (the browser tests, the CLI and MCP open path) waits on it too. A renamed
+  // attribute would leave that wait passing at once, before the Design chrome has mounted.
+  const openSession = readFileSync(join(ROOT, 'packages', 'node-shell', 'src', 'open-session.ts'), 'utf-8');
+  assert.match(openSession, new RegExp(`const ROUTE_MOUNTING_ATTR\\s*=\\s*'${ROUTE_MOUNTING_ATTR}'`),
+    'settleEditor\'s copy of the attribute must match this module');
+  assert.match(openSession, /hasAttribute\(mountingAttr\)/, 'settleEditor must wait for the attribute to clear');
   // main.ts route(): set before the mount, cleared in its finally, and only by the
   // navigation that is still current, or a superseded mount would mark the newer one done.
   const set = MAIN_TS.indexOf('view.setAttribute(ROUTE_MOUNTING_ATTR');
