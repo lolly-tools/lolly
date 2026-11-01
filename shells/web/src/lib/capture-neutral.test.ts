@@ -286,6 +286,10 @@ test('every capture waits for the route to mount, on the attribute main.ts keeps
   // the attribute name (a build script cannot import a web-shell module).
   assert.match(SHOTS_SCRIPT, new RegExp(`const ROUTE_MOUNTING_ATTR\\s*=\\s*'${ROUTE_MOUNTING_ATTR}'`),
     'the script\'s copy of the attribute must match this module');
+  // The browser tests wait on the same span after a hash navigation (gotoSettled), from a copy of their own.
+  const testHelper = readFileSync(join(ROOT, 'tests', 'helpers', 'shell-settled.ts'), 'utf-8');
+  assert.match(testHelper, new RegExp(`const ROUTE_MOUNTING_ATTR\\s*=\\s*'${ROUTE_MOUNTING_ATTR}'`),
+    'the browser tests\' copy of the attribute must match this module');
   // main.ts route(): set before the mount, cleared in its finally, and only by the
   // navigation that is still current, or a superseded mount would mark the newer one done.
   const set = MAIN_TS.indexOf('view.setAttribute(ROUTE_MOUNTING_ATTR');

@@ -23,7 +23,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chromium, type Browser, type Page } from 'playwright';
-import { shellSettled } from './helpers/shell-settled.ts';
+import { gotoSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 const skip = origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell';
@@ -48,9 +48,9 @@ async function withPage(viewport: { width: number; height: number }, run: (page:
   }
 }
 
+/** Open a studio address. A later call only changes the hash, so it waits for the studio to mount again. */
 async function open(page: Page, hash: string): Promise<void> {
-  await page.goto(`${origin}/${hash}`, { waitUntil: 'networkidle' });
-  await shellSettled(page);
+  await gotoSettled(page, `${origin}/${hash}`);
   await page.locator('.ds-top').waitFor();
 }
 
