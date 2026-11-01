@@ -95,7 +95,7 @@ export function cuesToTtml(cues: readonly CaptionCue[], opts: TtmlWriteOptions =
 // --- reader ---------------------------------------------------------------------------
 
 export interface TtmlReadOptions {
-  /** Throw on skipped or approximated content instead of listing it. */
+  /** Throw on skipped or approximated content instead of listing that content. */
   strict?: boolean;
 }
 export interface TtmlReadResult {
@@ -182,7 +182,7 @@ interface Span {
 
 /**
  * Read a TTML or IMSC1 document into cues (seconds, sorted by start). `parse` turns XML text
- * into a DOM Document, as the other XML readers take it. Throws `CaptionFormatError` for
+ * into a DOM Document, as the other XML readers take their input. Throws `CaptionFormatError` for
  * input that is not well-formed TTML: size above the limit, a doctype or entity declaration,
  * malformed XML, a root other than `tt`, bad timing parameters, an unsupported time base, or
  * more cues than `TTML_LIMITS.maxCues`. Paragraphs with bad times, or with no end, are skipped

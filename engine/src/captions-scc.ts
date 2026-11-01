@@ -67,7 +67,7 @@ export function frameToTimecode(frame: number, dropFrame: boolean): string {
 /**
  * `HH:MM:SS:FF` or `HH:MM:SS;FF` to a frame number, or null when the text is not a valid
  * timecode. A semicolon (or comma or dot) before the frames means drop-frame. A drop-frame
- * label that names a dropped frame (`00:01:00;00` and `;01`) is invalid.
+ * label that points at a dropped frame (`00:01:00;00` and `;01`) is invalid.
  */
 export function timecodeToFrame(tc: string): number | null {
   const m = /^(\d{2}):(\d{2}):(\d{2})([:;.,])(\d{2})$/.exec(tc);
@@ -356,7 +356,7 @@ export function sccToCues(text: string, opts: SccReadOptions = {}): SccReadResul
 export interface SccWriteOptions {
   /** Drop-frame timecode labels (semicolon before frames). Default true. Both count real 29.97 fps frames. */
   dropFrame?: boolean;
-  /** What to do with a character the caption set cannot carry. `'refuse'` (default) throws; `'replace'` writes `?` and lists it. */
+  /** What to do with a character the caption set cannot carry. `'refuse'` (default) throws; `'replace'` writes `?` and lists the character. */
   onUnsupported?: 'refuse' | 'replace';
 }
 export interface SccWriteResult {

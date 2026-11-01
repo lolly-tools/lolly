@@ -636,7 +636,9 @@ async function renderFormatDispatch(node: Element, format: string, opts: ExportO
     case 'ics':
     case 'vcf':
     case 'srt':
-    case 'vtt': case 'ttml': case 'scc':
+    case 'vtt':
+    case 'ttml':
+    case 'scc':
     case 'css':
     case 'scss':
     case 'gpl':

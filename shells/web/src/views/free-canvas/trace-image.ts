@@ -117,7 +117,7 @@ export async function traceImageOnSelection(fc: FcCtx, preset: ImageTracePreset)
     if (!url) throw new ImageTraceError('failed', t('This image could not be read.'));
     const frame = { x: num(sel.box[cfg.xField], 0), y: num(sel.box[cfg.yField], 0), w: num(sel.box[cfg.wField], 0), h: num(sel.box[cfg.hField], 0) };
     const img = await decodeImage(url);
-    let pixels: Uint8Array, width: number, height: number, placed;
+    let pixels: Uint8Array, width: number, height: number, placed: ReturnType<typeof imageTraceView>['placed'];
     try {
       const view = imageTraceView(frame, img.width, img.height, String(sel.box[cfg.fitField] ?? 'contain'), cfg.imgPosField ? String(sel.box[cfg.imgPosField] ?? 'center') : 'center');
       ({ width, height } = imageTraceWorkSize(view.crop.w, view.crop.h));
