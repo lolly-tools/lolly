@@ -254,8 +254,6 @@ pub fn run() {
             mobile_take_open_file
         ]))
         .setup(move |app| {
-            // Leftovers of an interrupted save, before the page reads state.
-            atomic_write::sweep_stale_temps(app.handle());
             #[cfg(feature = "webgpu-probe")]
             webgpu_qualification::setup(app)?;
             for config in windows.iter().filter(|window| window.create) {
@@ -263,6 +261,9 @@ pub fn run() {
                     .on_web_resource_request(embedded_assets::correct)
                     .build()?;
             }
+            // Leftovers of an interrupted save. setup() returns before the page can
+            // invoke a command, so this still runs before its first state read.
+            atomic_write::sweep_stale_temps(app.handle());
             Ok(())
         })
         .build(context)
