@@ -70,6 +70,7 @@ test('every authoritative npm/Cargo lock has an audit owner', () => {
     'packages/node-shell/wasm/portable-math/Cargo.lock',
     'packages/node-shell/wasm/skera/Cargo.lock',
     'packages/node-shell/wasm/xlsx-numfmt/Cargo.lock',
+    'packages/node-shell/wasm/image-trace/Cargo.lock',
     'pnpm-lock.yaml',
     'shells/tauri-desktop/pnpm-lock.yaml',
     'shells/tauri-desktop/src-tauri/Cargo.lock',
