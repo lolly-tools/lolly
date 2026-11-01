@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "Estabiliza em {t} s",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "O próximo quadro-chave chega antes de a mola estabilizar. O resto do movimento é distribuído pelo trecho.",
   "From the design system: {name}": "Do sistema de design: {name}",
-  "Editing the curve detaches it from the design system.": "Editar a curva desvincula-a do sistema de design."
+  "Editing the curve detaches it from the design system.": "Editar a curva desvincula-a do sistema de design.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Caneta (P) - clique para posicionar pontos, arraste para curvar, Alt para um canto. Segure para o Lápis (Shift C) e o tipo de spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Caneta (P) - clique para posicionar pontos, arraste para curvar, Alt para um canto"
 }

@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "Успокоява се за {t} с",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Следващият ключов кадър идва, преди пружината да се успокои. Останалата част от движението се разпределя по сегмента.",
   "From the design system: {name}": "От дизайн системата: {name}",
-  "Editing the curve detaches it from the design system.": "Редактирането на кривата я откача от дизайн системата."
+  "Editing the curve detaches it from the design system.": "Редактирането на кривата я откача от дизайн системата.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл. Задръж за Молив (Shift C) и типа сплайн",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Писалка (P) - кликни, за да поставиш точки, влачи за крива, Alt за ъгъл"
 }

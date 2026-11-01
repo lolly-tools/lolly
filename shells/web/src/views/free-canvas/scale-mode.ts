@@ -19,6 +19,7 @@ import { SCALE_ANCHORS, SCALE_K_MAX, rectsAABB, type ScaleAnchor } from '../free
 import { announce } from '../../a11y.ts';
 import { t } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
+import { showSlotTool } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /**
@@ -52,7 +53,7 @@ export function toggleScale(fc: FcCtx): void {
   setScale(fc, !fc.scaleContent);
 }
 /** The pointer slot's labels: the tool a click on the slot picks, named with its key. The
- *  pointer's says that a hold offers Scale, as the pen's says that a hold offers its types. */
+ *  pointer's says that a hold offers Scale, as the pen's says that a hold offers the Pencil. */
 const SLOT_POINTER_LABEL = (): string => t('Pointer - select and move (V). Hold for Scale (K)');
 const POINTER_LABEL = (): string => t('Pointer - select and move (V)');
 const SCALE_LABEL = (): string => t('Scale (K) - text, strokes and effects resize with the object');
@@ -70,10 +71,7 @@ export function syncScaleUI(fc: FcCtx): void {
   const scale = fc.scaleContent;
   const variant = scale ? 'scale' : 'pointer';
   if (slot.dataset.variant === variant) return;
-  slot.dataset.variant = variant;
-  const label = scale ? SCALE_LABEL() : SLOT_POINTER_LABEL();
-  slot.setAttribute('aria-label', label);
-  slot.setAttribute('data-tip', label);
+  showSlotTool(slot, variant, scale ? SCALE_LABEL() : SLOT_POINTER_LABEL());
 }
 /** The pointer slot's click: the tool the slot shows. */
 export function pickSlot(fc: FcCtx): void {
@@ -82,7 +80,8 @@ export function pickSlot(fc: FcCtx): void {
 }
 /**
  * The pointer slot's two tools, offered on a hold or a right-click of the slot as the
- * pen offers its spline types: the pointer (V) and Scale (K), the one in use checked.
+ * pen slot offers the Pen and the Pencil: the pointer (V) and Scale (K), the one in use
+ * checked.
  */
 export function openScaleMenu(fc: FcCtx, anchor: HTMLElement): void {
   fc.menus.spawnPopover(anchor, [

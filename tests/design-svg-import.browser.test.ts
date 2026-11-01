@@ -71,3 +71,57 @@ test('SVG import keeps brand font snapping, fits both text layers and offers Typ
     throw error;
   } finally { await context.close(); await closeBrowser(); }
 });
+
+test('Open imports a file on a cold start while the WebGPU check is still running, and the chooser waits for the shell', {
+  skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 120_000,
+}, async (ctx) => {
+  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
+  const browser = await getBrowser();
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  // Every adapter request waits until the test releases it, then goes to the real
+  // adapter. Until then the startup check is running, so the Projects view cannot
+  // mount and boot has not reached its route listeners: the window a slow software
+  // adapter opens on a cold start, held open instead of timed.
+  await context.addInitScript(() => {
+    for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
+    const w = window as unknown as { __releaseAdapter?: () => void };
+    const gpu = (globalThis as unknown as { GPU?: { prototype: { requestAdapter: (options?: unknown) => Promise<unknown> } } }).GPU;
+    if (!gpu) return;
+    const request = gpu.prototype.requestAdapter;
+    let released = false;
+    const waiting: Array<() => void> = [];
+    w.__releaseAdapter = () => { released = true; for (const go of waiting.splice(0)) go(); };
+    gpu.prototype.requestAdapter = function (this: unknown, options?: unknown) {
+      if (released) return request.call(this, options);
+      return new Promise(resolve => { waiting.push(() => resolve(request.call(this, options))); });
+    };
+  });
+  try {
+    await page.goto(`${origin}/#/p`, { waitUntil: 'domcontentloaded' });
+    const open = page.getByRole('button', { name: 'Open a file - import a .lolly, design or image' });
+    await open.waitFor();
+    assert.deepEqual(await page.evaluate(() => ({
+      webgpu: document.documentElement.dataset.webgpu ?? 'pending',
+      mounting: document.getElementById('view')?.hasAttribute('data-route-mounting') ?? false,
+    })), { webgpu: 'pending', mounting: true }, 'Open is on screen while the check runs and the view waits for it');
+    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), open.click()]);
+    await chooser.setFiles(fileURLToPath(new URL('./fixtures/public-journeys/welcome.svg', import.meta.url)));
+    // The picker removes its input once it has read the files.
+    await page.waitForFunction(() => !document.querySelector('body > input[type="file"]'));
+    const editInDesign = page.getByRole('button', { name: 'Edit in Design', exact: true });
+    const offeredEarly = await editInDesign.waitFor({ timeout: 1500 }).then(() => true, () => false);
+    assert.equal(offeredEarly, false, 'the chooser waits until the shell can follow a choice');
+    await page.evaluate(() => (window as unknown as { __releaseAdapter: () => void }).__releaseAdapter());
+    await editInDesign.waitFor();
+    assert.equal(await page.evaluate(() => document.getElementById('view')?.hasAttribute('data-route-mounting')), false,
+      'the chooser opens once the Projects view has mounted');
+    await editInDesign.focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('heading', { name: 'This design uses your brand fonts' }).waitFor();
+    await page.locator('#tool-canvas .lolly-box-text').filter({ hasText: 'Welcome to Northstar' }).waitFor();
+  } catch (error) {
+    ctx.diagnostic(JSON.stringify({ url: page.url(), dialogs: await page.locator('dialog').allTextContents() }));
+    throw error;
+  } finally { await context.close(); await closeBrowser(); }
+});

@@ -10,9 +10,9 @@ Den här sidan går igenom ytan från den första rutan till en färdig presenta
 
 **Översta listen** börjar med **Home**, **File menu** och dokumentets namn (klicka på namnet för att döpa om dokumentet). Mitten håller **Undo**, **Redo**, **History**, zoomkontrollerna (med **Fit all** och **Fit artboard**) och växlarna för **Timeline**, **Navigator** och **Inspector**. Till höger sitter **Share**, **Present** och **Export**. På en telefon flyttas de mindre använda knapparna in i **More actions**.
 
-**Verktygsfältet** längs sidan håller Lolly-menyn och verktygen du ritar med: **Pointer**, **Add a box**, **Pen**, **Blyertspenna**, **Edit points**, **Line**, sedan knapparna Timeline, Artboards och Auto-arrange.
+**Verktygsfältet** längs sidan håller Lolly-menyn och verktygen du ritar med: **Pointer**, **Add a box**, **Pen** (**Blyertspenna** delar knapp med den), **Edit points**, **Line**, sedan knapparna Timeline, Artboards och Auto-arrange.
 
-![Den fria arbetsytans verktygslist: ett draghandtag, Lolly-menyn, sedan Pekare, Lägg till en ruta, Penna, Blyertspenna, Redigera punkter, Linje, Tidslinje, Ritytor och Ordna automatiskt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Den fria arbetsytans verktygslist: ett draghandtag, Lolly-menyn, sedan Pekare, Lägg till en ruta, Penna, Redigera punkter, Linje, Tidslinje, Ritytor och Ordna automatiskt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Ytan fungerar som en designers arbetsbord runt ritytan:
 
@@ -79,7 +79,7 @@ Rutor, cirklar och rundade ramar täcker de flesta layouter. För varje annan fo
 
 **Fortsätt på en öppen bana.** Med Pen på trycker du på någon av ändarna av en öppen bana, och då ritar du den banan igen: varje klick lägger till en punkt efter den änden, eller framför den första punkten när du började från början. Enter behåller resultatet och Escape lämnar banan exakt som den var. Banan förblir samma ruta, med sin fyllning, kontur och pilspetsar, och ett enda ångra sätter tillbaka den. Delete tar bara tillbaka de punkter du lade till. En sluten form, en linje fäst vid en ruta och en bana med flera delar har ingen fri ände att fortsätta på.
 
-**Rita frihand med blyertspennan.** Knappen **Blyertspenna** i verktygsfältet (eller `Shift C`) registrerar ditt drag medan du drar. När du släpper jämnar Lolly ut dragningen till några få punkter med Bezier-handtag, behåller de skarpa vändningarna som hörn och håller kurvan inom ett par skärmpixlar från där din hand gick. Ett drag som slutar nära sin början sluts. Resultatet är en vanlig bana, med samma färg som en penna-bana, och du kan redigera dess punkter efteråt.
+**Rita frihand med blyertspennan.** Tryck `Shift C`, eller tryck och håll knappen **Pen** i verktygsfältet (eller högerklicka på knappen) och välj **Blyertspenna**; knappen visar sedan Blyertspennan tills du väljer Pen igen. Blyertspennan registrerar ditt drag medan du drar. När du släpper jämnar Lolly ut dragningen till några få punkter med Bezier-handtag, behåller de skarpa vändningarna som hörn och håller kurvan inom ett par skärmpixlar från där din hand gick. Ett drag som slutar nära sin början sluts. Resultatet är en vanlig bana, med samma färg som en penna-bana, och du kan redigera dess punkter efteråt.
 
 Resultatet är en vanlig ruta. Flytta, ändra storlek på, rotera, gruppera, justera, ändra ordning på, fyll, skugga eller tona banan som vilken annan ruta som helst. Den första banan får den fyllning och linje som ditt varumärke ger en bana, och varje ny bana därefter får det du senast använde. I ett verktyg där varumärket inte anger något för banor ritas en ny bana med linje i färgen du ritade med, så formen aldrig är osynlig.
 

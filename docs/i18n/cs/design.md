@@ -10,9 +10,9 @@ Tato stránka provádí plátnem od prvního pole po hotovou sadu snímků: okno
 
 **Horní lišta** začíná tlačítky **Home**, **File menu** a názvem dokumentu (kliknutím na název dokument přejmenuješ). Uprostřed jsou **Undo**, **Redo**, **History**, ovládání zvětšení (s **Fit all** a **Fit artboard**) a přepínače **Timeline**, **Navigator** a **Inspector**. Vpravo jsou **Share**, **Present** a **Export**. Na telefonu se méně používaná tlačítka přesunou do **More actions**.
 
-**Lišta nástrojů** po straně drží nabídku Lolly a nástroje, kterými kreslíš: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, pak tlačítka Timeline, Artboards a Auto-arrange.
+**Lišta nástrojů** po straně drží nabídku Lolly a nástroje, kterými kreslíš: **Pointer**, **Add a box**, **Pen** (jeho tlačítko sdílí **Pencil**), **Edit points**, **Line**, pak tlačítka Timeline, Artboards a Auto-arrange.
 
-![Lišta nástrojů volného plátna: úchyt pro tažení, nabídka Lolly, pak Ukazatel, Přidat rámeček, Pero, Tužka, Upravit body, Čára, Časová osa, Kresebné plochy a Automaticky uspořádat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Lišta nástrojů volného plátna: úchyt pro tažení, nabídka Lolly, pak Ukazatel, Přidat rámeček, Pero, Upravit body, Čára, Časová osa, Kresebné plochy a Automaticky uspořádat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Plátno funguje jako návrhářův stůl kolem kreslicí plochy:
 
@@ -79,7 +79,7 @@ Pole, kruhy a zaoblené rámy pokrývají většinu rozvržení. Pro jakýkoli j
 
 **Pokračuj v otevřené cestě.** S zapnutým Pen stiskni kterýkoli konec otevřené cesty a kreslíš tu cestu znovu: každé kliknutí přidá bod za ten konec, nebo před první bod, když jsi začal od začátku. Enter výsledek zachová a Escape nechá cestu přesně tak, jak byla. Cesta zůstane tímž polem, s výplní, čárou a hroty šipek, a jedno Zpět ji vrátí. Delete vezme zpět jen body, které jsi přidal. Uzavřený tvar, čára připojená k poli a cesta s více částmi nemají volný konec, na kterém by šlo pokračovat.
 
-**Kresli od ruky tužkou.** Tlačítko **Pencil** na liště (nebo `Shift C`) zaznamenává tvůj tah, dokud táhneš. Když pustíš, Lolly tah vyhladí na několik bodů s Bézierovými úchyty, ostré zlomy ponechá jako rohy a křivku drží do několika obrazovkových pixelů od místa, kudy šla tvá ruka. Tah, který skončí poblíž svého začátku, se uzavře. Výsledkem je běžná cesta, se stejnou barvou jako cesta z pera, a její body můžeš poté upravovat.
+**Kresli od ruky tužkou.** Stiskni `Shift C`, nebo stiskni a podrž tlačítko **Pen** na liště (nebo na něj klikni pravým tlačítkem) a zvol **Pencil**; tlačítko pak ukazuje Pencil, dokud znovu nezvolíš Pen. Pencil zaznamenává tvůj tah, dokud táhneš. Když pustíš, Lolly tah vyhladí na několik bodů s Bézierovými úchyty, ostré zlomy ponechá jako rohy a křivku drží do několika obrazovkových pixelů od místa, kudy šla tvá ruka. Tah, který skončí poblíž svého začátku, se uzavře. Výsledkem je běžná cesta, se stejnou barvou jako cesta z pera, a její body můžeš poté upravovat.
 
 Výsledkem je běžné pole. Cestu přesouvej, měň jí velikost, otáčej, seskupuj, zarovnávej, přeskládávej, vyplňuj, stínuj nebo vyblednuj jako jakékoli jiné pole. První cesta převezme výplň a čáru, které tvá značka cestě dává, a každá další převezme to, co jsi naposledy použil. V nástroji, jehož značka pro cesty nic nenastavuje, je nová cesta vykreslena barvou, kterou jsi kreslil, takže tvar nikdy není neviditelný.
 

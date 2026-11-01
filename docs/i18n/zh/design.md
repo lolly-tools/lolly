@@ -10,9 +10,9 @@ Design 是用于没有模板可套用的版面的工具：从零开始的海报�
 
 **顶部栏**从 **Home**、**File menu** 和文档名称开始（点击名称可重命名文档）。中间有 **Undo**、**Redo**、**History**、缩放控制项（带 **Fit all** 和 **Fit artboard**），以及 **Timeline**、**Navigator** 和 **Inspector** 的开关。右侧是 **Share**、**Present** 和 **Export**。在手机上，较少使用的按钮会移入 **More actions**。
 
-沿侧边排列的**工具栏**包含 Lolly 菜单和你绘制所用的工具：**Pointer**、**Add a box**、**Pen**、**Pencil**、**Edit points**、**Line**，然后是 Timeline、Artboards 和 Auto-arrange 按钮。
+沿侧边排列的**工具栏**包含 Lolly 菜单和你绘制所用的工具：**Pointer**、**Add a box**、**Pen**（与 **Pencil** 共用一个按钮）、**Edit points**、**Line**，然后是 Timeline、Artboards 和 Auto-arrange 按钮。
 
-![自由画布的工具栏：拖动把手、Lolly 菜单，然后是指针、添加方框、钢笔、铅笔、编辑节点、线型、时间轴、画板和自动排列](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![自由画布的工具栏：拖动把手、Lolly 菜单，然后是指针、添加方框、钢笔、编辑节点、线型、时间轴、画板和自动排列](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 画布就像设计师围绕画板的暂存区：
 
@@ -79,7 +79,7 @@ Design 是用于没有模板可套用的版面的工具：从零开始的海报�
 
 **接着画开放路径。** 开着 Pen，在开放路径的任一端点上按下，你就是在继续画那条路径：每次点击会在那一端之后添加一个点，如果你从起点开始，则添加在第一个点之前。Enter 保留结果，Escape 则让路径保持原样。路径仍是同一个方框，保留它的填充、描边和箭头，一次撤销即可还原。Delete 只收回你新加的点。闭合的形状、连接到方框的线和由多个部分组成的路径没有可继续的自由端点。
 
-**用 Pencil 手绘。** 工具栏的 **Pencil** 按钮（或 `Shift C`）会在你拖动时记录笔画。松手后，Lolly 会把笔画平滑成带贝塞尔手柄的少数几个点，把急转弯保留为尖角，并让曲线与你手的轨迹相差不超过几个屏幕像素。结束点靠近起点的笔画会闭合。结果是一条普通路径，涂色方式与钢笔路径相同，之后你可以编辑它的点。
+**用 Pencil 手绘。** 按 `Shift C`，或按住工具栏上的 **Pen** 按钮（或右键点击该按钮）并选择 **Pencil**；此后按钮会一直显示 Pencil，直到你再次选择 Pen。Pencil 会在你拖动时记录笔画。松手后，Lolly 会把笔画平滑成带贝塞尔手柄的少数几个点，把急转弯保留为尖角，并让曲线与你手的轨迹相差不超过几个屏幕像素。结束点靠近起点的笔画会闭合。结果是一条普通路径，涂色方式与钢笔路径相同，之后你可以编辑它的点。
 
 结果是一个普通的方框。你可以像移动其他方框一样移动、缩放、旋转、编组、对齐、重新叠放、填充、加阴影或淡化这条路径。第一条路径采用你的品牌为路径设定的填充和描边，之后每条新路径采用你最近一次使用的样式。在品牌没有为路径设定任何样式的工具中，新路径会以你绘制时所用的颜色描边，所以形状永远不会不可见。
 

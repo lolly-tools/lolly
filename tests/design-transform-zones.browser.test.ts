@@ -807,7 +807,7 @@ test('the shortcut sheet lists the Transform group at desktop and phone widths, 
   } finally { await browser.close(); }
 });
 
-test('Scale shares the pointer\'s rail slot: the rail keeps its ten buttons and whole rows, the slot\'s menu and the Lolly menu turn Scale on, at 1280 px, the 680 px docs-shot width and a phone', opts, async () => {
+test('Scale shares the pointer\'s rail slot and the Pencil the Pen\'s: the rail keeps its ten buttons and whole rows, each slot\'s menu picks its tools and the Lolly menu turns Scale on, at 1280 px, the 680 px docs-shot width and a phone', opts, async () => {
   const browser = await launch();
   try {
     for (const [width, height, navOpen] of [[1280, 800, false], [680, 425, true], [680, 850, false], [844, 390, false]] as const) {
@@ -841,10 +841,11 @@ test('Scale shares the pointer\'s rail slot: the rail keeps its ten buttons and 
           const whole = r.top >= barFoot - 1 && r.bottom <= innerHeight + 1;
           return { name: b.getAttribute('aria-label') ?? b.className, ok: whole && !!hit && (hit === b || b.contains(hit)) };
         });
-        return { count: btns.length, own: !!document.querySelector('.fc-btn-scale'), rows: [...rows.values()], reach, stageScrolled: stage.scrollTop + stage.scrollLeft };
+        return { count: btns.length, own: !!document.querySelector('.fc-btn-scale'), pencil: !!document.querySelector('.fc-btn-pencil'), rows: [...rows.values()], reach, stageScrolled: stage.scrollTop + stage.scrollLeft };
       });
       assert.equal(rail.own, false, `${tag}: no Scale button of its own`);
-      assert.equal(rail.count, 10, `${tag}: the rail has the ten buttons it had before Scale`);
+      assert.equal(rail.pencil, false, `${tag}: no Pencil button of its own`);
+      assert.equal(rail.count, 10, `${tag}: the rail has the ten buttons it had before Scale and the Pencil`);
       if (navOpen) assert.deepEqual(rail.rows, [5, 5], `${tag}: the navigator's tool grid fills two whole rows`);
       // A short window used to lose the Lolly menu under the top bar and the swatch off the foot.
       assert.deepEqual(rail.reach.filter((b) => !b.ok).map((b) => b.name), [], `${tag}: every rail button is reachable, whole and below the top bar, and takes a press`);
@@ -869,12 +870,38 @@ test('Scale shares the pointer\'s rail slot: the rail keeps its ten buttons and 
       await page.keyboard.press('v');
       assert.equal(await slot.getAttribute('data-variant'), 'pointer', `${tag}: V returns the slot to the pointer`);
       assert.deepEqual(await glyphs(), ['inline', 'none'], `${tag}: and its glyph`);
+      // The Pencil shares the Pen's slot the same way: a right-click offers both tools, and
+      // the slot shows the Pencil while it is out and after, until the Pen is picked again.
+      const pen = page.locator('.fc-btn-pen');
+      await pen.click({ button: 'right' });
+      const tools = page.locator('.fc-popover [data-pop="pen"], .fc-popover [data-pop="pencil"]');
+      assert.deepEqual(await tools.allTextContents(), [
+        'Pen (P) - click to place points, drag to curve, Alt for a corner',
+        'Pencil (Shift C) - drag to draw a freehand path you can edit afterwards',
+      ], `${tag}: the pen slot offers both tools`);
+      assert.deepEqual(await tools.evaluateAll((els) => els.map((e) => e.getAttribute('aria-checked'))), ['true', 'false']);
+      await page.screenshot({ path: shotPath(`rail-${width}x${height}-pen-menu`) });
+      await page.locator('.fc-popover [data-pop="pencil"]').click();
+      assert.equal(await pen.getAttribute('data-variant'), 'pencil', `${tag}: the pen slot shows the Pencil`);
+      assert.equal(await pen.getAttribute('aria-pressed'), 'true', `${tag}: and is pressed`);
+      assert.match(await pen.getAttribute('aria-label') ?? '', /^Pencil \(Shift C\)/);
+      const penGlyphs = (): Promise<string[]> => pen.evaluate((b) => ['.fc-slot-pen', '.fc-slot-pencil'].map((c) => getComputedStyle(b.querySelector(c)!).display));
+      assert.deepEqual(await penGlyphs(), ['none', 'inline'], `${tag}: the slot draws the Pencil glyph`);
+      await page.screenshot({ path: shotPath(`rail-${width}x${height}-pencil-on`) });
+      await page.keyboard.press('v');
+      assert.equal(await pen.getAttribute('aria-pressed'), 'false', `${tag}: V puts the Pencil down`);
+      assert.equal(await pen.getAttribute('data-variant'), 'pencil', `${tag}: and the slot keeps the Pencil, the tool used last`);
+      await page.keyboard.press('p');
+      assert.equal(await pen.getAttribute('data-variant'), 'pen', `${tag}: P returns the slot to the Pen`);
+      assert.deepEqual(await penGlyphs(), ['inline', 'none'], `${tag}: and its glyph`);
+      await page.keyboard.press('v');
       assert.deepEqual(errors, []);
       await ctx.close();
     }
     // A phone shows no rail and no object bar: the Lolly menu, behind More, has the Scale mode row.
     const { ctx, page, errors } = await open(browser, [{ id: 'big', kind: 'box', x: 100, y: 100, w: 200, h: 120, bg: '#88c4a0' }], { width: 390, height: 844, hasTouch: true });
     assert.equal(await page.locator('.fc-toolbar .fc-btn').filter({ visible: true }).count(), 0, 'a phone has no rail');
+    assert.equal(await page.locator('.fc-btn-pencil').count(), 0, 'and no Pencil button hidden in it');
     const r = await rect(page, 'big');
     await page.touchscreen.tap(r.x + r.w / 2, r.y + r.h / 2);
     await page.getByRole('button', { name: 'More', exact: true }).tap();

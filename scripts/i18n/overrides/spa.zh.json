@@ -1838,5 +1838,7 @@
   "Settles in {t} s": "{t} 秒后静止",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "弹簧静止之前就到了下一个关键帧。剩余的运动会平均分配到整个片段。",
   "From the design system: {name}": "来自设计系统：{name}",
-  "Editing the curve detaches it from the design system.": "编辑曲线会使其与设计系统断开。"
+  "Editing the curve detaches it from the design system.": "编辑曲线会使其与设计系统断开。",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "钢笔 (P) - 点击放置节点，拖动生成曲线，按 Alt 切换尖角。长按可选铅笔 (Shift C) 和样条类型",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "钢笔 (P) - 点击放置节点，拖动生成曲线，按 Alt 切换尖角"
 }

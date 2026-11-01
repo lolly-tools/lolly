@@ -1837,5 +1837,7 @@
   "Settles in {t} s": "{t} 秒で静止",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "スプリングが静止する前に次のキーフレームが来ます。残りの動きは区間全体に振り分けられます。",
   "From the design system: {name}": "デザインシステムから：{name}",
-  "Editing the curve detaches it from the design system.": "カーブを編集するとデザインシステムとのリンクが外れます。"
+  "Editing the curve detaches it from the design system.": "カーブを編集するとデザインシステムとのリンクが外れます。",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "ペン (P) - クリックで点を配置、ドラッグで曲線、Alt で角。長押しで鉛筆 (Shift C) とスプラインの種類",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "ペン (P) - クリックで点を配置、ドラッグで曲線、Alt で角"
 }

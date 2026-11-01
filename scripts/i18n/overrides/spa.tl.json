@@ -1839,5 +1839,7 @@
   "Settles in {t} s": "Tumitigil sa loob ng {t} s",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Dumarating ang susunod na keyframe bago tumigil ang spring. Ikinakalat ang natitirang galaw sa buong segment.",
   "From the design system: {name}": "Mula sa design system: {name}",
-  "Editing the curve detaches it from the design system.": "Kapag inedit ang curve, hihiwalay ito sa design system."
+  "Editing the curve detaches it from the design system.": "Kapag inedit ang curve, hihiwalay ito sa design system.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner. I-hold para sa Lapis (Shift C) at sa spline type",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - i-click para maglagay ng point, i-drag para i-curve, Alt para sa corner"
 }

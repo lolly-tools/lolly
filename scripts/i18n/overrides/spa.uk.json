@@ -1965,5 +1965,7 @@
   "Settles in {t} s": "Заспокоюється за {t} с",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Наступний ключовий кадр настає раніше, ніж пружина заспокоїться. Решту руху розподілено на весь відрізок.",
   "From the design system: {name}": "Із системи дизайну: {name}",
-  "Editing the curve detaches it from the design system.": "Редагування кривої від’єднує її від системи дизайну."
+  "Editing the curve detaches it from the design system.": "Редагування кривої від’єднує її від системи дизайну.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Перо (P) - клацніть, щоб розмістити точки, перетягніть, щоб вигнути, Alt для кута. Утримуйте для олівця (Shift C) і типу сплайна",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Перо (P) - клацніть, щоб розмістити точки, перетягніть, щоб вигнути, Alt для кута"
 }

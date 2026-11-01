@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "Ổn định sau {t} giây",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Khung hình chính tiếp theo đến trước khi lò xo ổn định. Phần chuyển động còn lại được rải đều trên đoạn.",
   "From the design system: {name}": "Từ hệ thống thiết kế: {name}",
-  "Editing the curve detaches it from the design system.": "Chỉnh sửa đường cong sẽ tách nó khỏi hệ thống thiết kế."
+  "Editing the curve detaches it from the design system.": "Chỉnh sửa đường cong sẽ tách nó khỏi hệ thống thiết kế.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc. Giữ để chọn Bút chì (Shift C) và kiểu spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Bút (P) - nhấp để đặt điểm, kéo để tạo đường cong, Alt để tạo góc"
 }

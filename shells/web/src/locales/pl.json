@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "Uspokaja się w {t} s",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Następna klatka kluczowa przychodzi, zanim sprężyna się uspokoi. Reszta ruchu rozkłada się na cały odcinek.",
   "From the design system: {name}": "Z systemu projektowego: {name}",
-  "Editing the curve detaches it from the design system.": "Edycja krzywej odłącza ją od systemu projektowego."
+  "Editing the curve detaches it from the design system.": "Edycja krzywej odłącza ją od systemu projektowego.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pióro (P) - kliknij, aby umieścić punkty, przeciągnij, aby zakrzywić, Alt dla narożnika. Przytrzymaj, aby wybrać Ołówek (Shift C) lub typ splajnu",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pióro (P) - kliknij, aby umieścić punkty, przeciągnij, aby zakrzywić, Alt dla narożnika"
 }

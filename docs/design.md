@@ -10,9 +10,9 @@ This page walks the canvas from the first box to a finished deck: the window, sh
 
 The **top bar** starts with **Home**, the **File menu** and the document's name (click the name to rename the document). The middle holds **Undo**, **Redo**, **History**, the zoom controls (with **Fit all** and **Fit artboard**) and toggles for the **Timeline**, the **Navigator** and the **Inspector**. On the right sit **Share**, **Present** and **Export**. On a phone, the less-used buttons move into **More actions**.
 
-The **tool rail** down the side holds the Lolly menu and the tools you draw with: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, then the Timeline, Artboards and Auto-arrange buttons.
+The **tool rail** down the side holds the Lolly menu and the tools you draw with: **Pointer**, **Add a box**, **Pen** (the **Pencil** shares its button), **Edit points**, **Line**, then the Timeline, Artboards and Auto-arrange buttons.
 
-![The free-canvas tool rail: a drag grip, the Lolly menu, then Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards and Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![The free-canvas tool rail: a drag grip, the Lolly menu, then Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards and Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 The canvas works like a designer's pasteboard around the artboard:
 
@@ -79,7 +79,7 @@ Boxes, circles and rounded frames cover most layouts. For any other shape, draw 
 
 **Carry on an open path.** With the Pen on, press on either end of an open path and you are drawing that path again: each click adds a point after that end, or in front of the first point when you started from the beginning. Enter keeps the result and Escape leaves the path exactly as it was. The path stays the same box, with its fill, stroke and arrowheads, and one undo puts it back. Delete takes back only the points you added. A closed shape, a line attached to a box and a path with several parts have no free end to carry on.
 
-**Draw freehand with the Pencil.** The rail's **Pencil** button (or `Shift C`) records your stroke while you drag. When you let go, Lolly smooths the stroke into a few points with Bezier handles, keeps the sharp turns as corners, and keeps the curve within a couple of screen pixels of where your hand went. A stroke that ends near its start closes. The result is an ordinary path, with the same paint as a pen path, and you can edit its points afterwards.
+**Draw freehand with the Pencil.** Press `Shift C`, or press and hold the **Pen** button on the rail (or right-click the button) and choose **Pencil**; the button then shows the Pencil until you pick the Pen again. The Pencil records your stroke while you drag. When you let go, Lolly smooths the stroke into a few points with Bezier handles, keeps the sharp turns as corners, and keeps the curve within a couple of screen pixels of where your hand went. A stroke that ends near its start closes. The result is an ordinary path, with the same paint as a pen path, and you can edit its points afterwards.
 
 The result is an ordinary box. Move, resize, rotate, group, align, restack, fill, shade or fade the path like any other box. The first path takes the fill and stroke your brand gives a path, and each new path after that takes whatever you last used. In a tool whose brand sets nothing for paths, a new path is stroked in the colour you drew with, so the shape is never invisible.
 

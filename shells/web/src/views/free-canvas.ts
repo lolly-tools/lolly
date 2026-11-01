@@ -739,6 +739,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.penPullBroken = false;
   fc.penContinuing = null; // the open path a draft carries on, if it began on one's end
   fc.pencilStroke = null; // the Pencil's live freehand stroke, native px
+  fc.penSlotTool = 'pen'; // the pen slot's tool: the Pen until the Pencil is picked
   fc.pencilRaf = 0;
   // The paint the user last put on a path, so the NEXT path they draw matches it - the
   // drawing-app convention, and the reason a session of pen work doesn't mean recolouring
@@ -1438,13 +1439,13 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.popover = null;
   fc.arrangeBtn = null; // popover anchor (captured, not by index)
   /** The mode buttons, captured by buildToolbar - see syncModeUI. Absent ones stay null:
-   *  pen and connect are opt-in, so not every tool has all four. */
-  const modeBtns: Record<'select' | 'create' | 'pen' | 'line' | 'pencil', HTMLButtonElement | null> = {
+   *  pen and connect are opt-in, so not every tool has all four. The Pencil has none of
+   *  its own: it shares the pen's slot (pencil.ts). */
+  const modeBtns: Record<'select' | 'create' | 'pen' | 'line', HTMLButtonElement | null> = {
     select: null,
     create: null,
     pen: null,
     line: null,
-    pencil: null,
   }; fc.modeBtns = modeBtns;
   fc.nodeToolBtn = null; // the Node tool (opt-in, cv.pathField)
   /** The control the open popover belongs to: it owns the trigger's `aria-expanded`,

@@ -1837,5 +1837,7 @@
   "Settles in {t} s": "Se stabilise en {t} s",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "L’image clé suivante arrive avant que le ressort se stabilise. Le reste du mouvement est réparti sur le segment.",
   "From the design system: {name}": "Du design system : {name}",
-  "Editing the curve detaches it from the design system.": "Modifier la courbe la détache du design system."
+  "Editing the curve detaches it from the design system.": "Modifier la courbe la détache du design system.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Plume (P) - clique pour placer des points, fais glisser pour courber, Alt pour un angle. Maintiens pour le Crayon (Shift C) et le type de spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Plume (P) - clique pour placer des points, fais glisser pour courber, Alt pour un angle"
 }

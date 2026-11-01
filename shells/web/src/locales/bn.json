@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "{t} সেকেন্ডে স্থির হয়",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "স্প্রিং স্থির হওয়ার আগেই পরের কীফ্রেম আসে। বাকি চলন অংশটি জুড়ে ছড়িয়ে দেওয়া হয়।",
   "From the design system: {name}": "ডিজাইন সিস্টেম থেকে: {name}",
-  "Editing the curve detaches it from the design system.": "কার্ভ সম্পাদনা করলে এটি ডিজাইন সিস্টেম থেকে বিচ্ছিন্ন হয়।"
+  "Editing the curve detaches it from the design system.": "কার্ভ সম্পাদনা করলে এটি ডিজাইন সিস্টেম থেকে বিচ্ছিন্ন হয়।",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "পেন (P) - পয়েন্ট বসাতে ক্লিক করুন, বাঁকাতে টানুন, কোণের জন্য Alt। পেন্সিল (Shift C) ও স্প্লাইন টাইপের জন্য চেপে ধরুন",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "পেন (P) - পয়েন্ট বসাতে ক্লিক করুন, বাঁকাতে টানুন, কোণের জন্য Alt"
 }

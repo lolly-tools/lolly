@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "Se stabilizează în {t} s",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Următorul cadru-cheie vine înainte ca arcul să se stabilizeze. Restul mișcării este împărțit pe tot segmentul.",
   "From the design system: {name}": "Din sistemul de design: {name}",
-  "Editing the curve detaches it from the design system.": "Editarea curbei o deconectează de la sistemul de design."
+  "Editing the curve detaches it from the design system.": "Editarea curbei o deconectează de la sistemul de design.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț. Ține apăsat pentru Creion (Shift C) și tipul de spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pix (P) - clic pentru a plasa puncte, trage pentru a curba, Alt pentru un colț"
 }

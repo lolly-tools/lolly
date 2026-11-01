@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "{t} सेकंड में स्थिर होता है",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "स्प्रिंग के स्थिर होने से पहले अगला कीफ़्रेम आ जाता है। बाकी गति पूरे खंड में बाँट दी जाती है।",
   "From the design system: {name}": "डिज़ाइन सिस्टम से: {name}",
-  "Editing the curve detaches it from the design system.": "कर्व संपादित करने से यह डिज़ाइन सिस्टम से अलग हो जाता है।"
+  "Editing the curve detaches it from the design system.": "कर्व संपादित करने से यह डिज़ाइन सिस्टम से अलग हो जाता है।",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "पेन (P) - पॉइंट रखने के लिए क्लिक करें, कर्व के लिए खींचें, कोने के लिए Alt। पेंसिल (Shift C) और स्प्लाइन टाइप के लिए दबाए रखें",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "पेन (P) - पॉइंट रखने के लिए क्लिक करें, कर्व के लिए खींचें, कोने के लिए Alt"
 }

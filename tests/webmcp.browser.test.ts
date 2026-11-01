@@ -104,7 +104,17 @@ test('Lolly site tools discover tools and edit the mounted document through visi
     const previewRect = await inspector.locator('.cat-details-preview').boundingBox();
     assert.ok(headerRect && previewRect && headerRect.y + headerRect.height <= previewRect.y + 1, 'editing controls reserve space above the asset');
     assert.equal(await inspector.locator('.cat-edit-tool').first().isVisible(), false, 'editing actions start collapsed');
-    await inspector.locator('[data-inspector-section="credentials"] > summary').click();
+    const credentials = inspector.locator('[data-inspector-section="credentials"]');
+    await credentials.locator(':scope > summary').click();
+    // The section folds open over --fold-size-duration (parts/disclosure.css): its content
+    // box grows from nothing while the body inside keeps its full height, clipped, and the
+    // sections below move down as it grows. Until then the provenance box starts below the
+    // top of Checks. The transition can hold its first value for more than one frame, so a
+    // still box is no sign that the fold is done; the body fitting inside the section is.
+    await page.waitForFunction(section => {
+      const body = section.querySelector(':scope > .cat-inspector-section-body');
+      return !!body && body.getBoundingClientRect().bottom <= section.getBoundingClientRect().bottom + 0.5;
+    }, await credentials.elementHandle());
     assert.equal(await inspector.locator('.cat-inspector-scroll > details').last().getAttribute('data-inspector-section'), 'checks');
     const provenance = await inspector.locator('.cat-details-provenance').boundingBox(), sharing = await inspector.locator('.cat-details-actions').boundingBox();
     const checks = await inspector.locator('[data-inspector-section="checks"]').boundingBox();

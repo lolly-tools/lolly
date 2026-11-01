@@ -10,9 +10,9 @@ Halaman ini menelusuri kanvas dari kotak pertama hingga deck selesai: jendela, m
 
 **Bilah atas** dimulai dengan **Home**, **File menu**, dan nama dokumen (klik nama untuk mengganti nama dokumen). Bagian tengah memuat **Undo**, **Redo**, **History**, kontrol zoom (dengan **Fit all** dan **Fit artboard**), dan sakelar untuk **Timeline**, **Navigator**, dan **Inspector**. Di kanan ada **Share**, **Present**, dan **Export**. Di ponsel, tombol yang lebih jarang dipakai pindah ke **More actions**.
 
-**Rel alat** di sisi memuat menu Lolly dan alat untuk menggambar: **Pointer**, **Add a box**, **Pen**, **Pencil**, **Edit points**, **Line**, lalu tombol Timeline, Artboards, dan Auto-arrange.
+**Rel alat** di sisi memuat menu Lolly dan alat untuk menggambar: **Pointer**, **Add a box**, **Pen** (tombolnya dipakai bersama **Pencil**), **Edit points**, **Line**, lalu tombol Timeline, Artboards, dan Auto-arrange.
 
-![Rel tool kanvas bebas: pegangan seret, menu Lolly, lalu Pointer, Add a box, Pen, Pencil, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Rel tool kanvas bebas: pegangan seret, menu Lolly, lalu Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards dan Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Kanvas bekerja seperti pasteboard desainer di sekitar artboard:
 
@@ -79,7 +79,7 @@ Kotak, lingkaran, dan bingkai bulat mencakup sebagian besar tata letak. Untuk be
 
 **Lanjutkan path terbuka.** Dengan Pen aktif, tekan salah satu ujung path terbuka dan Anda menggambar path itu lagi: setiap klik menambah titik setelah ujung itu, atau di depan titik pertama bila Anda mulai dari awal. Enter mempertahankan hasilnya dan Escape membiarkan path persis seperti semula. Path tetap kotak yang sama, dengan isian, garis, dan kepala panahnya, dan satu undo mengembalikannya. Delete hanya menarik kembali titik yang Anda tambahkan. Bentuk tertutup, garis yang terpasang pada kotak, dan path dengan beberapa bagian tidak memiliki ujung bebas untuk dilanjutkan.
 
-**Gambar bebas dengan Pencil.** Tombol **Pencil** di rel (atau `Shift C`) merekam goresan Anda selama menyeret. Saat dilepas, Lolly menghaluskan goresan menjadi beberapa titik dengan handle Bezier, mempertahankan belokan tajam sebagai sudut, dan menjaga kurva dalam jarak beberapa piksel layar dari jalur tangan Anda. Goresan yang berakhir dekat awalnya akan menutup. Hasilnya adalah path biasa, dengan cat yang sama seperti path pen, dan Anda dapat menyunting titiknya sesudahnya.
+**Gambar bebas dengan Pencil.** Tekan `Shift C`, atau tekan dan tahan tombol **Pen** di rel (atau klik kanan tombol itu) dan pilih **Pencil**; setelah itu tombol menampilkan Pencil sampai Anda memilih Pen lagi. Pencil merekam goresan Anda selama menyeret. Saat dilepas, Lolly menghaluskan goresan menjadi beberapa titik dengan handle Bezier, mempertahankan belokan tajam sebagai sudut, dan menjaga kurva dalam jarak beberapa piksel layar dari jalur tangan Anda. Goresan yang berakhir dekat awalnya akan menutup. Hasilnya adalah path biasa, dengan cat yang sama seperti path pen, dan Anda dapat menyunting titiknya sesudahnya.
 
 Hasilnya adalah kotak biasa. Pindahkan, ubah ukuran, putar, kelompokkan, ratakan, susun ulang, isi, beri bayangan, atau pudarkan path seperti kotak lain. Path pertama mengambil isian dan garis yang diberikan brand Anda untuk path, dan setiap path baru sesudahnya mengambil apa pun yang terakhir Anda pakai. Pada alat yang brand-nya tidak menetapkan apa pun untuk path, path baru digaris dengan warna yang Anda pakai untuk menggambar, sehingga bentuk tidak pernah tak terlihat.
 

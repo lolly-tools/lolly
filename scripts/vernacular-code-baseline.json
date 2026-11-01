@@ -1219,7 +1219,7 @@
   "shells/web/src/views/free-canvas/modes.ts": 2,
   "shells/web/src/views/free-canvas/objects.ts": 4,
   "shells/web/src/views/free-canvas/ops.ts": 3,
-  "shells/web/src/views/free-canvas/pen-tool.ts": 4,
+  "shells/web/src/views/free-canvas/pen-tool.ts": 3,
   "shells/web/src/views/free-canvas/rail.ts": 1,
   "shells/web/src/views/free-canvas/select.ts": 2,
   "shells/web/src/views/free-canvas/shared.ts": 3,

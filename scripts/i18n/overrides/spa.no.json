@@ -1967,5 +1967,7 @@
   "Settles in {t} s": "Faller til ro på {t} s",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Neste nøkkelbilde kommer før fjæren faller til ro. Resten av bevegelsen fordeles over segmentet.",
   "From the design system: {name}": "Fra designsystemet: {name}",
-  "Editing the curve detaches it from the design system.": "Hvis du redigerer kurven, kobles den fra designsystemet."
+  "Editing the curve detaches it from the design system.": "Hvis du redigerer kurven, kobles den fra designsystemet.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penn (P) - klikk for å plassere punkter, dra for å kurve, Alt for et hjørne. Hold inne for Blyant (Shift C) og splinetype",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penn (P) - klikk for å plassere punkter, dra for å kurve, Alt for et hjørne"
 }

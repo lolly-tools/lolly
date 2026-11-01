@@ -1836,5 +1836,7 @@
   "Settles in {t} s": "{t} سیکنڈ میں ٹھہر جاتا ہے",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "اسپرنگ کے ٹھہرنے سے پہلے اگلا کی فریم آ جاتا ہے۔ باقی حرکت پورے حصے پر پھیلا دی جاتی ہے۔",
   "From the design system: {name}": "ڈیزائن سسٹم سے: {name}",
-  "Editing the curve detaches it from the design system.": "وکر میں ترمیم کرنے سے یہ ڈیزائن سسٹم سے الگ ہو جاتا ہے۔"
+  "Editing the curve detaches it from the design system.": "وکر میں ترمیم کرنے سے یہ ڈیزائن سسٹم سے الگ ہو جاتا ہے۔",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt۔ پنسل (Shift C) اور اسپلائن کی قسم کے لیے دبائے رکھیں",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "پین (P) - پوائنٹس رکھنے کے لیے کلک کریں، خم دینے کے لیے گھسیٹیں، کونے کے لیے Alt"
 }

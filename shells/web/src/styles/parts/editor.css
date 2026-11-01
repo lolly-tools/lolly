@@ -420,10 +420,15 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 /* Undo/redo dim out at the ends of history (same treatment as .history-btn). */
 .fc-btn:disabled { opacity: 0.3; cursor: default; }
 .fc-btn.is-armed { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
-/* The pointer slot holds two tools, the pointer and Scale (K, plan 311), and a glyph for
-   each: the slot's data-variant (scale-mode.ts) shows the one in use. */
-.fc-btn-pointer .fc-slot-scale, .fc-btn-pointer[data-variant="scale"] .fc-slot-pointer { display: none; }
-.fc-btn-pointer[data-variant="scale"] .fc-slot-scale { display: inline; }
+/* A rail slot holds two tools and a glyph for each (slotGlyphs, free-canvas/shared.ts):
+   the slot's data-variant shows the one in use. The pointer slot holds the pointer and
+   Scale (K, plan 311, scale-mode.ts); the pen slot holds the Pen and the Pencil (Shift C,
+   pencil.ts). */
+.fc-btn .fc-slot-glyph { display: none; }
+.fc-btn[data-variant="pointer"] .fc-slot-pointer,
+.fc-btn[data-variant="scale"] .fc-slot-scale,
+.fc-btn[data-variant="pen"] .fc-slot-pen,
+.fc-btn[data-variant="pencil"] .fc-slot-pencil { display: inline; }
 /* Primary actions (Export/Save/Copy/Share) - a touch more prominent than the plain
    tools: brand-accent icons, with Export filled as the lead call-to-action. */
 .fc-btn.fc-action { color: var(--ui-color-action-primary); }

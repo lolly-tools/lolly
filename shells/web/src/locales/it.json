@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "Si assesta in {t} s",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Il fotogramma chiave successivo arriva prima che la molla si assesti. Il resto del movimento viene distribuito sul segmento.",
   "From the design system: {name}": "Dal sistema di design: {name}",
-  "Editing the curve detaches it from the design system.": "Modificare la curva la scollega dal sistema di design."
+  "Editing the curve detaches it from the design system.": "Modificare la curva la scollega dal sistema di design.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penna (P) - clicca per posizionare i punti, trascina per curvare, Alt per un angolo. Tieni premuto per la Matita (Shift C) e il tipo di spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - clicca per posizionare i punti, trascina per curvare, Alt per un angolo"
 }

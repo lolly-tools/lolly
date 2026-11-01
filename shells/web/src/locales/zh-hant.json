@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "{t} 秒後靜止",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "彈簧靜止之前就到了下一個關鍵影格。剩餘的動作會平均分配到整個片段。",
   "From the design system: {name}": "來自設計系統：{name}",
-  "Editing the curve detaches it from the design system.": "編輯曲線會使其與設計系統中斷連結。"
+  "Editing the curve detaches it from the design system.": "編輯曲線會使其與設計系統中斷連結。",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "鋼筆 (P) - 點按放置節點，拖曳成曲線，Alt 設為角點。長按可選鉛筆 (Shift C) 和曲線類型",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "鋼筆 (P) - 點按放置節點，拖曳成曲線，Alt 設為角點"
 }

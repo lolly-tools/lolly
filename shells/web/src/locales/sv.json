@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "Stannar på {t} s",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Nästa nyckelbildruta kommer innan fjädern har stannat. Resten av rörelsen fördelas över segmentet.",
   "From the design system: {name}": "Från designsystemet: {name}",
-  "Editing the curve detaches it from the design system.": "Om du redigerar kurvan kopplas den bort från designsystemet."
+  "Editing the curve detaches it from the design system.": "Om du redigerar kurvan kopplas den bort från designsystemet.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn. Håll för Blyertspennan (Shift C) och splinetypen",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Penna (P) - klicka för att placera punkter, dra för att kurva, Alt för ett hörn"
 }

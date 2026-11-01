@@ -1836,5 +1836,7 @@
   "Settles in {t} s": "Stabil dalam {t} s",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Bingkai utama seterusnya tiba sebelum spring stabil. Baki gerakan diagihkan sepanjang segmen.",
   "From the design system: {name}": "Daripada sistem reka bentuk: {name}",
-  "Editing the curve detaches it from the design system.": "Mengedit lengkung akan memutuskannya daripada sistem reka bentuk."
+  "Editing the curve detaches it from the design system.": "Mengedit lengkung akan memutuskannya daripada sistem reka bentuk.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut. Tahan untuk Pensel (Shift C) dan jenis spline",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Pen (P) - klik untuk meletakkan titik, seret untuk melengkung, Alt untuk sudut"
 }

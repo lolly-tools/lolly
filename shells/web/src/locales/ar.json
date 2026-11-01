@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "يستقر خلال {t} ث",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "يأتي الإطار المفتاحي التالي قبل أن يستقر النابض. يُوزَّع باقي الحركة على المقطع.",
   "From the design system: {name}": "من نظام التصميم: {name}",
-  "Editing the curve detaches it from the design system.": "تعديل المنحنى يفصله عن نظام التصميم."
+  "Editing the curve detaches it from the design system.": "تعديل المنحنى يفصله عن نظام التصميم.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "القلم (P) - انقر لوضع النقاط، اسحب للانحناء، Alt لزاوية حادة. اضغط مطولًا لقلم الرصاص (Shift C) ونوع المنحنى",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "القلم (P) - انقر لوضع النقاط، اسحب للانحناء، Alt لزاوية حادة"
 }

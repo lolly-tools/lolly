@@ -10,9 +10,9 @@ Această pagină parcurge canvasul de la prima casetă până la un deck termina
 
 **Bara de sus** începe cu **Home**, **File menu** și numele documentului (fă clic pe nume ca să redenumești documentul). La mijloc sunt **Undo**, **Redo**, **History**, controalele de zoom (cu **Fit all** și **Fit artboard**) și comutatoare pentru **Timeline**, **Navigator** și **Inspector**. În dreapta stau **Share**, **Present** și **Export**. Pe telefon, butoanele mai rar folosite trec în **More actions**.
 
-**Bara de unelte** de pe margine conține meniul Lolly și uneltele cu care desenezi: **Pointer**, **Add a box**, **Pen**, **Instrumentul creion**, **Edit points**, **Line**, apoi butoanele Timeline, Artboards și Auto-arrange.
+**Bara de unelte** de pe margine conține meniul Lolly și uneltele cu care desenezi: **Pointer**, **Add a box**, **Pen** (butonul lui îl împarte cu **Instrumentul creion**), **Edit points**, **Line**, apoi butoanele Timeline, Artboards și Auto-arrange.
 
-![Bara de instrumente a canvasului liber: un mâner de tragere, meniul Lolly, apoi Pointer, Add a box, Pen, Instrumentul creion, Edit points, Line, Timeline, Artboards și Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Bara de instrumente a canvasului liber: un mâner de tragere, meniul Lolly, apoi Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards și Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Canvasul funcționează ca o masă de lucru a designerului în jurul planșei:
 
@@ -79,7 +79,7 @@ Casetele, cercurile și cadrele rotunjite acoperă cele mai multe layouturi. Pen
 
 **Continuă o cale deschisă.** Cu Pen pornit, apasă pe oricare capăt al unei căi deschise și desenezi din nou acea cale: fiecare clic adaugă un punct după acel capăt sau în fața primului punct când ai pornit de la început. Enter păstrează rezultatul, iar Escape lasă calea exact cum era. Calea rămâne aceeași casetă, cu umplerea, conturul și vârfurile de săgeată, iar un singur undo o aduce înapoi. Delete anulează doar punctele pe care le-ai adăugat. O formă închisă, o linie atașată unei casete și o cale cu mai multe părți nu au capăt liber din care să continui.
 
-**Desenează liber cu Instrumentul creion.** Butonul **Instrumentul creion** de pe bară (sau `Shift C`) înregistrează trasul cât tragi. Când dai drumul, Lolly netezește trasul în câteva puncte cu mânere Bezier, păstrează cotiturile ascuțite ca colțuri și ține curba la câțiva pixeli de ecran de locul pe unde a mers mâna ta. Un traseu care se termină aproape de început se închide. Rezultatul este o cale obișnuită, cu aceeași vopsea ca o cale cu Pen, iar punctele ei se pot edita după aceea.
+**Desenează liber cu Instrumentul creion.** Apasă `Shift C` sau ține apăsat butonul **Pen** de pe bară (sau fă clic dreapta pe buton) și alege **Instrumentul creion**; butonul arată apoi Instrumentul creion până când alegi din nou Pen. Instrumentul creion înregistrează trasul cât tragi. Când dai drumul, Lolly netezește trasul în câteva puncte cu mânere Bezier, păstrează cotiturile ascuțite ca colțuri și ține curba la câțiva pixeli de ecran de locul pe unde a mers mâna ta. Un traseu care se termină aproape de început se închide. Rezultatul este o cale obișnuită, cu aceeași vopsea ca o cale cu Pen, iar punctele ei se pot edita după aceea.
 
 Rezultatul este o casetă obișnuită. Mută, redimensionează, rotește, grupează, aliniază, reordonează, umple, umbrește sau estompează calea ca orice altă casetă. Prima cale primește umplerea și conturul pe care brandul tău le dă unei căi, iar fiecare cale nouă de după primește ce ai folosit ultima dată. Într-un instrument al cărui brand nu setează nimic pentru căi, o cale nouă are contur în culoarea cu care ai desenat, deci forma nu este niciodată invizibilă.
 

@@ -598,6 +598,27 @@ export interface PopAction {
 }
 export type PopItem = PopSep | PopGrid | PopAction;
 
+// ── rail slots ────────────────────────────────────────────────────────────────
+// A rail slot is one button that holds two tools, as Figma's Move and Scale share one
+// toolbar slot: the pointer and Scale (scale-mode.ts), the Pen and the Pencil (pencil.ts).
+// The slot carries a glyph for each tool and editor.css draws the one its `data-variant`
+// names. A click picks the tool the slot shows, and a hold or a right-click (toolBtn's
+// `hold`) opens the slot's menu, which offers both. One button per slot is what keeps the
+// rail at ten buttons, so the navigator's tool grid fills whole rows.
+/** A slot's glyphs: one `<g class="fc-slot-glyph fc-slot-<variant>">` per tool, in order. */
+export function slotGlyphs(glyphs: Record<string, string>): string {
+  return Object.entries(glyphs)
+    .map(([variant, svg]) => `<g class="fc-slot-glyph fc-slot-${variant}">${svg}</g>`)
+    .join('');
+}
+/** Show one of a slot's tools, written in place (the rail is built once): its glyph,
+ *  through `data-variant`, and its name as the slot's label and tooltip. */
+export function showSlotTool(slot: HTMLElement, variant: string, label: string): void {
+  slot.dataset.variant = variant;
+  slot.setAttribute('aria-label', label);
+  slot.setAttribute('data-tip', label);
+}
+
 /** The fields of a pointer event a gesture frame reads. A modifier key pressed or
  *  released mid-drag re-runs the last frame with the new modifier state, so this is
  *  also what that replay builds. */

@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "{t}초 후 멈춤",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "스프링이 멈추기 전에 다음 키프레임이 옵니다. 나머지 움직임은 구간 전체에 나뉘어 적용됩니다.",
   "From the design system: {name}": "디자인 시스템에서: {name}",
-  "Editing the curve detaches it from the design system.": "곡선을 편집하면 디자인 시스템과의 연결이 끊깁니다."
+  "Editing the curve detaches it from the design system.": "곡선을 편집하면 디자인 시스템과의 연결이 끊깁니다.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요. 길게 누르면 연필 (Shift C)과 스플라인 종류",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "펜 (P) - 클릭해서 점을 놓고, 끌어서 곡선을 만들고, Alt로 모서리를 만들어요"
 }

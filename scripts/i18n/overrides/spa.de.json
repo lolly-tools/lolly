@@ -1836,5 +1836,7 @@
   "Settles in {t} s": "Kommt nach {t} s zur Ruhe",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Das nächste Schlüsselbild kommt, bevor die Feder zur Ruhe kommt. Der Rest der Bewegung wird über den Abschnitt verteilt.",
   "From the design system: {name}": "Aus dem Design-System: {name}",
-  "Editing the curve detaches it from the design system.": "Wenn Sie die Kurve bearbeiten, wird sie vom Design-System gelöst."
+  "Editing the curve detaches it from the design system.": "Wenn Sie die Kurve bearbeiten, wird sie vom Design-System gelöst.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke. Halten für den Bleistift (Shift C) und den Spline-Typ",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Zeichenstift (P) - klicken, um Punkte zu setzen, ziehen für eine Kurve, Alt für eine Ecke"
 }

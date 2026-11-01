@@ -10,9 +10,9 @@ Ta strona prowadzi przez kanwę od pierwszego boksu do gotowej prezentacji: okno
 
 **Górny pasek** zaczyna się od **Home**, **File menu** i nazwy dokumentu (kliknij nazwę, aby zmienić nazwę dokumentu). Środek zawiera **Undo**, **Redo**, **History**, kontrolki powiększenia (z **Fit all** i **Fit artboard**) oraz przełączniki **Timeline**, **Navigator** i **Inspector**. Po prawej są **Share**, **Present** i **Export**. Na telefonie rzadziej używane przyciski przechodzą do **More actions**.
 
-**Szyna narzędzi** z boku zawiera menu Lolly i narzędzia do rysowania: **Pointer**, **Add a box**, **Pen**, **Ołówek**, **Edit points**, **Line**, a potem przyciski Timeline, Artboards i Auto-arrange.
+**Szyna narzędzi** z boku zawiera menu Lolly i narzędzia do rysowania: **Pointer**, **Add a box**, **Pen** (jego przycisk dzieli **Ołówek**), **Edit points**, **Line**, a potem przyciski Timeline, Artboards i Auto-arrange.
 
-![Listwa narzędzi wolnej kanwy: uchwyt do przeciągania, menu Lolly, dalej Pointer, Add a box, Pen, Ołówek, Edit points, Line, Timeline, Artboards i Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![Listwa narzędzi wolnej kanwy: uchwyt do przeciągania, menu Lolly, dalej Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards i Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 Kanwa działa jak stół projektanta wokół obszaru roboczego:
 
@@ -79,7 +79,7 @@ Boksy, koła i zaokrąglone ramki pokrywają większość układów. Dla każdeg
 
 **Kontynuuj otwartą ścieżkę.** Przy włączonym Pen naciśnij jeden z końców otwartej ścieżki, a znów rysujesz tę ścieżkę: każde kliknięcie dodaje punkt za tym końcem lub przed pierwszym punktem, jeśli zacząłeś od początku. Enter zachowuje wynik, a Escape zostawia ścieżkę dokładnie taką, jaka była. Ścieżka pozostaje tym samym boksem, z wypełnieniem, obrysem i grotami, a jedno cofnięcie przywraca ją. Delete cofa tylko dodane przez Ciebie punkty. Zamknięty kształt, linia przypięta do boksu i ścieżka z kilkoma częściami nie mają wolnego końca do kontynuowania.
 
-**Rysuj odręcznie Ołówkiem.** Przycisk **Ołówek** na szynie (lub `Shift C`) zapisuje Twoją kreskę podczas przeciągania. Gdy puścisz, Lolly wygładza kreskę do kilku punktów z uchwytami Beziera, zachowuje ostre zakręty jako rogi i trzyma krzywą w granicach kilku pikseli ekranu od miejsca, którędy poszła Twoja ręka. Kreska kończąca się blisko początku zamyka się. Wynikiem jest zwykła ścieżka, z takim samym wypełnieniem jak ścieżka z Pen, i możesz potem edytować jej punkty.
+**Rysuj odręcznie Ołówkiem.** Naciśnij `Shift C` albo naciśnij i przytrzymaj przycisk **Pen** na szynie (lub kliknij go prawym przyciskiem) i wybierz **Ołówek**; przycisk pokazuje potem Ołówek, dopóki znowu nie wybierzesz Pen. Ołówek zapisuje Twoją kreskę podczas przeciągania. Gdy puścisz, Lolly wygładza kreskę do kilku punktów z uchwytami Beziera, zachowuje ostre zakręty jako rogi i trzyma krzywą w granicach kilku pikseli ekranu od miejsca, którędy poszła Twoja ręka. Kreska kończąca się blisko początku zamyka się. Wynikiem jest zwykła ścieżka, z takim samym wypełnieniem jak ścieżka z Pen, i możesz potem edytować jej punkty.
 
 Wynik jest zwykłym boksem. Przesuwaj, zmieniaj rozmiar, obracaj, grupuj, wyrównuj, zmieniaj kolejność, wypełniaj, cieniuj lub wyblaszczaj ścieżkę jak każdy inny box. Pierwsza ścieżka dostaje wypełnienie i obrys, które Twoja marka nadaje ścieżce, a każda następna dostaje to, czego ostatnio użyłeś. W narzędziu, w którym marka nie ustawia niczego dla ścieżek, nowa ścieżka jest obrysowana kolorem, którym rysowałeś, więc kształt nigdy nie jest niewidoczny.
 

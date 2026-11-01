@@ -10,9 +10,9 @@ Designは、どのテンプレートにも当てはまらないレイアウト�
 
 **トップバー**は**Home**、**File menu**、ドキュメント名で始まります(名前をクリックするとドキュメントの名前を変更できます)。中央には**Undo**、**Redo**、**History**、ズームコントロール(**Fit all**と**Fit artboard**付き)、**Timeline**、**Navigator**、**Inspector**の切り替えがあります。右側には**Share**、**Present**、**Export**があります。スマートフォンでは、あまり使われないボタンは**More actions**にまとまります。
 
-側面に沿った**ツールレール**には、Lollyメニューと、描画に使うツール(**Pointer**、**Add a box**、**Pen**、**Pencil**、**Edit points**、**Line**)、そしてTimeline、Artboards、Auto-arrangeのボタンがあります。
+側面に沿った**ツールレール**には、Lollyメニューと、描画に使うツール(**Pointer**、**Add a box**、**Pen**とそのボタンを共有する**Pencil**、**Edit points**、**Line**)、そしてTimeline、Artboards、Auto-arrangeのボタンがあります。
 
-![フリーキャンバスのツールレール。ドラッググリップ、Lolly メニュー、続いて Pointer、Add a box、Pen、Pencil、Edit points、Line、Timeline、Artboards、Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![フリーキャンバスのツールレール。ドラッググリップ、Lolly メニュー、続いて Pointer、Add a box、Pen、Edit points、Line、Timeline、Artboards、Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
 キャンバスは、アートボードの周りにあるデザイナーのペーストボードのように動作します。
 
@@ -79,7 +79,7 @@ Designは、どのテンプレートにも当てはまらないレイアウト�
 
 **開いたパスの続きを描く。** Penがオンのとき、開いたパスのどちらかの端を押すと、そのパスをもう一度描くことになります。クリックするたびに、その端の後ろに点が加わり、最初の点から始めた場合は最初の点の前に加わります。Enterで結果を確定し、Escapeでパスを元のままにして抜けます。パスは同じボックスのままで、塗り、線、矢じりも保たれ、Undoを1回行うと元に戻ります。Deleteは、加えた点だけを取り消します。閉じた図形、ボックスに接続された線、複数の部分を持つパスには、続きを描ける自由な端がありません。
 
-**Pencilでフリーハンドに描く。** レールの**Pencil**ボタン(または`Shift C`)は、ドラッグしている間のストロークを記録します。指を離すと、Lollyはそのストロークをベジェのハンドルを持つ少数の点へ滑らかにし、鋭い曲がりは角として残し、曲線を手の動きから画面上で数ピクセル以内に収めます。始点の近くで終わるストロークは閉じます。結果は、ペンのパスと同じペイントを持つ通常のパスで、あとから点を編集できます。
+**Pencilでフリーハンドに描く。** `Shift C`を押すか、レールの**Pen**ボタンを長押しして(またはボタンを右クリックして)**Pencil**を選びます。その後、もう一度Penを選ぶまで、ボタンにはPencilが表示されます。Pencilは、ドラッグしている間のストロークを記録します。指を離すと、Lollyはそのストロークをベジェのハンドルを持つ少数の点へ滑らかにし、鋭い曲がりは角として残し、曲線を手の動きから画面上で数ピクセル以内に収めます。始点の近くで終わるストロークは閉じます。結果は、ペンのパスと同じペイントを持つ通常のパスで、あとから点を編集できます。
 
 結果は通常のボックスです。パスは他のボックスと同じように、移動、リサイズ、回転、グループ化、整列、重ね順の変更、塗り、シェーディング、フェードができます。最初のパスには、ブランドがパスに与える塗りと線が適用され、その後の新しいパスには、直前に使ったものが適用されます。ブランドがパスに何も設定していないツールでは、新しいパスは描画に使った色で線が引かれるため、図形が見えなくなることはありません。
 

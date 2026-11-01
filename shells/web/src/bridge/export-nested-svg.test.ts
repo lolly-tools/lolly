@@ -138,3 +138,17 @@ test('url(#…) paints survive verbatim - a gradient fill is referenced, never c
   const stop = bakedStyle(out, /<stop[^>]*class="s0"[^>]*>/);
   assert.match(stop, /stop-color:\s*rgb\(42,\s*120,\s*214\)/, 'class-driven stop-color baked on the stop');
 });
+
+test('a descendant the cascade hides stays hidden - a two-glyph icon draws only its shown glyph', { skip: SKIP }, async () => {
+  // A rail slot's icon (free-canvas/shared.ts slotGlyphs): two glyph groups, one hidden by
+  // a class rule keyed on the button's variant. The rule does not travel, so the hidden
+  // group has to carry its own display:none, or both glyphs draw on top of each other.
+  const out = await render(root(`
+    <button class="slot" data-variant="pen"><svg viewBox="0 0 24 24" width="24" height="24">
+      <g class="fc-slot-glyph fc-slot-pen"><path d="M2 2h20v20z"></path></g>
+      <g class="fc-slot-glyph fc-slot-pencil"><path d="M3 20c2.5-1 3.5-4 6-4"></path></g>
+    </svg></button>`),
+    `<style>.slot .fc-slot-glyph{display:none}.slot[data-variant="pen"] .fc-slot-pen{display:inline}</style>`);
+  assert.match(bakedStyle(out, /<g[^>]*class="fc-slot-glyph fc-slot-pencil"[^>]*>/), /display:\s*none/, 'the hidden glyph is hidden in the file');
+  assert.doesNotMatch(bakedStyle(out, /<g[^>]*class="fc-slot-glyph fc-slot-pen"[^>]*>/), /display:\s*none/, 'the shown glyph is not');
+});

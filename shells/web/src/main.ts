@@ -1713,6 +1713,26 @@ async function boot(): Promise<void> {
     void import('./lib/design-system/brand-refresh.ts').then(module => module.mountBrandRefresh(host, catalogHostOf(host), org.config!.branding!.revision, () => parseRoute().name)).catch(console.error);
   }
 
+  // The footer's "Open" button (components/footer-nav.ts) is an action, not a route: it
+  // opens the OS file picker that feeds the SAME chooser a dropped file gets, so a
+  // .lolly / design / image can be imported without a drag. Delegated at the document so
+  // it survives the footer's between-view re-renders. CAPTURE phase, so a jelly-button's
+  // own click handling can't preempt it; and the picker is opened SYNCHRONOUSLY (the
+  // lightweight picker is already loaded) because it needs live user activation.
+  // Wired HERE, before the first navigate, because navigate() shows the footer before it
+  // waits for the WebGPU check and the incoming view. On a cold open the button is on
+  // screen for as long as that check takes, which is seconds on a software adapter, and
+  // when this was wired after the first navigate a press in that time did nothing.
+  // The chooser the picked files open navigates through the route listeners at the end
+  // of boot, so it waits for `routesListening`: a choice made before those exist would
+  // change the address and leave the old view on screen.
+  let markRoutesListening = (): void => {};
+  const routesListening = new Promise<void>((resolve) => { markRoutesListening = resolve; });
+  document.addEventListener('click', (e) => {
+    if (!(e.target instanceof Element) || !e.target.closest('[data-open-file]')) return;
+    openDropFilePicker(host as unknown as Parameters<typeof openDropFilePicker>[0], { ready: routesListening });
+  }, true);
+
   const routeName = parseRoute().name;
   // A cold gallery visit gets ONE extra chance before it falls back to waiting on the
   // whole catalog sync: whichever of the slim index and the full sync resolves first
@@ -1857,17 +1877,6 @@ async function boot(): Promise<void> {
     return m;
   });
 
-  // The footer's "Open" button (components/footer-nav.ts) is an action, not a route: it
-  // opens the OS file picker that feeds the SAME chooser a dropped file gets, so a
-  // .lolly / design / image can be imported without a drag. Delegated at the document so
-  // it survives the footer's between-view re-renders. CAPTURE phase, so a jelly-button's
-  // own click handling can't preempt it; and the picker is opened SYNCHRONOUSLY (the
-  // lightweight picker is already loaded) because it needs live user activation.
-  document.addEventListener('click', (e) => {
-    if (!(e.target instanceof Element) || !e.target.closest('[data-open-file]')) return;
-    openDropFilePicker(host as unknown as Parameters<typeof openDropFilePicker>[0]);
-  }, true);
-
   // Warm the likely-next view chunks so the first tap doesn't pay a cold dynamic-import.
   // import() promises are cached, so the later route reuses these.
   const warmTool = (): void => {
@@ -1958,6 +1967,8 @@ async function boot(): Promise<void> {
   // route the user is already on (its one-shot stashes are consumed at mount),
   // which the same-route dedup inside navigate() would otherwise swallow.
   window.addEventListener('lolly:remount', () => { navigate(host, { force: true }).catch(console.error); });
+  // The footer's Open button was wired before the first navigate; its chooser can route now.
+  markRoutesListening();
 
   document.querySelectorAll<HTMLElement>('[data-route]').forEach(btn => {
     btn.addEventListener('click', () => {

@@ -10474,5 +10474,7 @@
   "Settles in {t} s": "{t} sn içinde durulur",
   "The next keyframe comes before the spring settles. The rest of the move is spread across the segment.": "Yay durulmadan önce sonraki anahtar kare gelir. Hareketin geri kalanı bölüm boyunca dağıtılır.",
   "From the design system: {name}": "Tasarım sisteminden: {name}",
-  "Editing the curve detaches it from the design system.": "Eğriyi düzenlemek onu tasarım sisteminden ayırır."
+  "Editing the curve detaches it from the design system.": "Eğriyi düzenlemek onu tasarım sisteminden ayırır.",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner. Hold for the Pencil (Shift C) and the spline type": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt. Kurşun kalem (Shift C) ve spline türü için basılı tut",
+  "Pen (P) - click to place points, drag to curve, Alt for a corner": "Kalem (P) - nokta yerleştirmek için tıkla, eğri için sürükle, köşe için Alt"
 }
