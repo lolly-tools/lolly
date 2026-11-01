@@ -830,7 +830,42 @@
     "PdfAPI": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "d7f3bbd797bd38b7fe1cebeb734ce84f2be58cf1cb5b7a31aa1fadd0e5a7e091"
+      "sha256": "2afe8b66727e4316d1eab5b29943c588d180e3b86134f923de1b58fe3139a11c"
+    },
+    "PdfAccessibilityStatus": {
+      "module": "pdf.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "a53142db906997ae3bafd8b6c1590085735cba47bf21cac9e01e230ccbd1de25"
+    },
+    "PdfAccessibilityFinding": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d8535d33bc4b7ad8badf031c757c4fd47ee3bafd8c9f09535c251678549bea99"
+    },
+    "PdfAccessibilityRuleResult": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "83093f6cbb79da6ff09766f9339eb483a957d6625cbac7bf81ededece58bb8fb"
+    },
+    "PdfAccessibilityReport": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "e6d693590624c03576d890ff36aef0aebf2e004bd43a298c8dbab29579bdf819"
+    },
+    "PdfAccessibilityOutcome": {
+      "module": "pdf.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "856a82fb07c8521f2aa1a22a10c92dbf6ebafbd641b0da77f14d6b9043e2aa19"
+    },
+    "PdfAccessibilityRow": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "4f02cc9140184bd386d13f6e64c301e399c1f5fdd87c5092eb7f96a2353246f2"
+    },
+    "PdfAccessibilitySummary": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b41871c66f71f40653c52e8ceb7d3d671ef021941c6977fd68b41a609cc3f09e"
     },
     "PdfPageOperation": {
       "module": "pdf.ts",
