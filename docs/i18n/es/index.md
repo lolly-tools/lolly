@@ -1,4 +1,4 @@
 # Lolly - Texto de la página de inicio
 
-Herramientas creativas gratuitas, con tus reglas.
-Crea archivos multimedia de calidad de estudio: sin cuenta, sin tarjeta, privado y de código abierto.
+Crea archivos terminados. Conserva el control de tu contenido.
+Gráficos, documentos, vídeo e impresión con tus propios colores y tipografía: sin cuenta, sin tarjeta, privado y de código abierto.

@@ -1,4 +1,4 @@
 # Lolly - Naskah halaman landing
 
-Alat kreatif gratis, dengan aturan Anda.
-Buat file media berkualitas studio: tanpa akun, tanpa kartu, privat, dan sumber terbuka.
+Buat file jadi. Tetap pegang kendali atas konten Anda.
+Grafik, dokumen, video dan cetak dengan warna dan font Anda sendiri: tanpa akun, tanpa kartu, privat dan open source.

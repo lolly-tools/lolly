@@ -1,4 +1,4 @@
 # Lolly - Testi della landing page
 
-Strumenti creativi gratuiti, con le tue regole.
-Crea file multimediali di qualità professionale: nessun account, nessuna carta, privati e open source.
+Crea file finiti. Mantieni il controllo dei tuoi contenuti.
+Grafica, documenti, video e stampa nei tuoi colori e font: senza account, senza carta, privato e open source.

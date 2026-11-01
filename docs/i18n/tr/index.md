@@ -1,4 +1,4 @@
 # Lolly - Açılış sayfası metni
 
-Kendi kurallarınla ücretsiz yaratıcı araçlar.
-Stüdyo kalitesinde medya dosyaları oluştur: hesap yok, kart yok, gizli ve açık kaynak.
+Bitmiş dosyalar üret. İçeriğinin denetimi sende kalsın.
+Kendi renklerin ve yazı tipinle grafik, belge, video ve baskı: hesap yok, kart yok, gizli ve açık kaynak.

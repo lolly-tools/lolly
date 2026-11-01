@@ -1,4 +1,4 @@
 # Lolly - text úvodní stránky
 
-Svobodné kreativní nástroje podle tvých pravidel.
-Vytvářej mediální soubory ve studiové kvalitě: bez účtu, bez karty, soukromě a open source.
+Vytvářej hotové soubory. Měj svůj obsah pod kontrolou.
+Grafika, dokumenty, video a tisk ve tvých barvách a písmu: bez účtu, bez karty, soukromě a open source.
