@@ -1087,6 +1087,19 @@
         "notes": "Pinned GridCraft number-format engine. The clock is an injected value, so output depends only on the request. Numbers are parsed with exact float round-tripping."
       }
     },
+    "packages/node-shell/src/indd.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "indd"
+      ],
+      "details": {
+        "inputSource": "User-supplied native InDesign files (.indd, .indt). Platform file access is supplied by the shell; the converter itself imports no host functions.",
+        "bounds": "128 MiB input, 128 MiB IDML output through a capped sink, 500 warnings of 400 characters in 128 KiB, 256-byte document name; 1 GiB WASM memory cap with a 1 MiB stack; a trap retires the instance",
+        "directTests": "`tests/indd.test.ts`, the vendored crate's own `cargo test` (166 unit and hostile-document tests, 11 fixture tests), `scripts/indd-corpus.ts`",
+        "fuzzCoverage": "`indd` mutates a signature-only page set and, when fetched, the smallest open fixture, through the Node loader.",
+        "notes": "Pinned storytold indd-utils 136f973a (MIT OR Apache-2.0), clean-room caveats recorded in its UPSTREAM.md. Output is IDML that the bounded IDML reader then parses; the import is labelled a preview. The converter denies panics and unsafe code."
+      }
+    },
     "engine/src/idml-read.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [

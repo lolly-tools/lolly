@@ -2031,6 +2031,35 @@ export const xlsxNumfmtTarget: FuzzTarget = {
     readXlsx(bytes, { formatCell: kernel.formatCell });
   },
 };
+// INDD to IDML converter (packages/node-shell/wasm/indd): the most untrusted binary the Design
+// import touches. Contract: a typed InddError refusal or a conversion with warnings; never a
+// trap, hang or output over the declared 128 MiB limit. Seeds are a signature-only page set and,
+// when `node scripts/indd-corpus.ts fetch-fixtures` has run, the smallest open fixture.
+export const inddTarget: FuzzTarget = {
+  name: 'indd',
+  async seeds() {
+    const page = new Uint8Array(8 * 4096);
+    page.set([0x06, 0x06, 0xed, 0xf5, 0xd8, 0x1d, 0x46, 0xe5, 0xbd, 0x31, 0xef, 0xe7, 0xfe, 0x74, 0xb7, 0x1d]);
+    page.set(new TextEncoder().encode('DOCUMENT'), 16); page[24] = 1;
+    new DataView(page.buffer).setUint32(0x118, 8, true);
+    const seeds = [page];
+    try {
+      const { readFileSync } = await import('node:fs');
+      seeds.push(new Uint8Array(readFileSync(new URL('../../plans/corpora/indd-fixtures/xmp-toolkit-bluesquare/BlueSquare.indd', import.meta.url))));
+    } catch { /* The fixture is optional. */ }
+    return seeds;
+  },
+  async invoke(bytes) {
+    const { loadInddKernel } = await import('../../packages/node-shell/src/indd-node.ts');
+    const { InddError } = await import('../../packages/node-shell/src/indd.ts');
+    try { (await loadInddKernel()).convert(bytes, 'fuzz.indd'); }
+    catch (error) {
+      if (!(error instanceof InddError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+    }
+  },
+};
 export const idmlReadTarget: FuzzTarget = {
   name: 'idml-read',
   async seeds() {
@@ -2126,7 +2155,7 @@ export const fontInspectTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, adobePsdTarget, xlsxNumfmtTarget, idmlReadTarget,
+  adobeXmlTarget, adobePsdTarget, xlsxNumfmtTarget, inddTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,

@@ -135,7 +135,7 @@ test('foreign formats are alternate openers with a real universal-import route',
       if (shell === MOBILE) assert.ok(assoc.androidIntentActionFilters?.includes('view'));
     }
     assert.ok(!list.some((a) => a.ext?.includes('indd')),
-      'raw .indd is not importable; only its exported .idml form may be registered');
+      '.indd is converted to IDML inside the app; the operating system association stays unregistered until the converter leaves preview');
   }
 
   const router = ['drop-router.ts', 'drop-file-picker.ts']

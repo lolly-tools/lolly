@@ -260,6 +260,7 @@ const runtimeOnly = (source: string): boolean => {
 };
 cpSync(join(REPO, 'packages/node-shell/wasm/adobe-psd'), join(PKG, 'wasm/adobe-psd'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/xlsx-numfmt'), join(PKG, 'wasm/xlsx-numfmt'), { recursive: true, filter: runtimeOnly });
+cpSync(join(REPO, 'packages/node-shell/wasm/indd'), join(PKG, 'wasm/indd'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(PKG, 'wasm/layout-kernel'), { recursive: true, filter: runtimeOnly });
 // The geometry kernels (geometry-host-node.ts, loaded for every render's host.geom) and
 // Skera (fonts.ts, host.fonts subsetting) are read from ../wasm/<module>/ beside the

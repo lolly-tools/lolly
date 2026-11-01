@@ -118,9 +118,19 @@ export async function openDesignFile(file: File | Blob): Promise<UnpackHandle> {
     }
   }
 
-  // Raw InDesign .indd has no open parser - guide the user to IDML instead.
+  // A native InDesign .indd is converted to IDML on this device, then taken apart like an .idml.
   if (isIndd(buf, name)) {
-    throw new Error(t('A raw .indd file cannot be read directly. In InDesign choose File then Export then InDesign Markup (.idml) and open the .idml.'));
+    const { inddToIdmlParts } = await importOr(() => import('./design-import.ts'));
+    let files: Record<string, Uint8Array>;
+    try { files = await inddToIdmlParts(buf, file, () => {}); }
+    catch (err) {
+      throw Object.assign(new Error(t('That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.')), { cause: err });
+    }
+    const { openIdmlFile } = await importOr(() => import('./idml-import.ts'));
+    try { return await openIdmlFile(files); }
+    catch (err) {
+      throw Object.assign(new Error(t('That InDesign file could not be opened. Export it from InDesign as IDML and try again.')), { cause: err });
+    }
   }
 
   // Layered bitmaps (Photoshop PSD/PSB, GIMP XCF): every layer + the composite.

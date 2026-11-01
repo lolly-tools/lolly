@@ -22,13 +22,22 @@ Every frame becomes a scene on the timeline, ready for timing, music and a voice
 | **`.fig`** | Figma: *File → Save local copy* | Decoded in the browser, with no Figma account, plugin or API key. |
 | **`.penpot`** or **`.zip`** | Penpot's export | Boards, layers, pages and groups; a native `.penpot` file also keeps its layouts (see [Penpot layouts](#penpot-layouts-kept-or-fixed)). |
 | **`.ai`** or **`.pdf`** | Illustrator, saved with the default *PDF-compatible* option, or any PDF | Vector paint, text and images read straight from the page. |
-| **`.idml`** | InDesign: *File → Export → InDesign Markup* | Every spread and its margins, as artboards or scenes; **Replace the board** opens the first spread. A raw `.indd` cannot be read, so export IDML first. |
+| **`.idml`** | InDesign: *File → Export → InDesign Markup* | Every spread and its margins, as artboards or scenes; **Replace the board** opens the first spread. |
+| **`.indd`** or **`.indt`** | InDesign, saved as a document or a template (a preview) | Converted to IDML on your device, then read like an `.idml` (see [InDesign files](#indesign-files)). |
 | **`.psd`** or **`.psb`** | Photoshop | Text, shapes and paths stay editable; other layers come in as pictures in place (see [Photoshop files](#photoshop-files)). |
 | **`.pptx`** | PowerPoint | One slide on the board (a longer deck asks which), or every slide as an artboard or a timed scene. |
 | **`.xml`** | Premiere (Final Cut Pro 7 XML), or a Lolly XML + media ZIP | Choose **Replace the board**; the clips open in Sequence (see [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange)). |
 | **`.svg`** | Any app, including Figma and Penpot SVG exports | For editable text from a Figma SVG, untick *Outline text* in Figma's export dialog. |
 
 SVG is the widest door: almost any design app can export SVG, so almost any design can reach Lolly that way. A PowerPoint deck has other doors too: [Rebrand a deck](/info/rebrand.html) moves one onto your design system, and [Formats](/info/formats.html#bringing-files-in) lists the rest.
+
+## InDesign files
+
+A native `.indd` or `.indt` is converted to IDML on your device with a bundled WebAssembly module, and the result goes down the same path as an exported `.idml`. Nothing is uploaded and InDesign is not needed. The converter reads files saved by InDesign 2.0 and later.
+
+This is a preview. The converter does not yet write every attribute InDesign writes, so spacing, styles and effects can differ from InDesign, and the import report says so and lists the converter's own warnings. When the result matters, export an `.idml` from InDesign and import that instead. The converter was written from observation of sample files and not from Adobe's documentation, and its [source and caveats](https://github.com/lolly-tools/lolly/tree/main/packages/node-shell/wasm/indd/vendor/indd-utils) are published beside the module.
+
+Limits: the file can be up to 128 MB, the converted package up to 128 MB and the converter's memory 1 GB. A file over a limit, an InDesign 1.x file, a file cut short and a file that is not an InDesign document each stop with a plain message. A very large file converts on the same thread as the page, so the window can pause for a moment. In the command line, `lolly adobe indd document.indd --output=document.idml` writes the package and prints the converter's warnings, and `lolly adobe idml document.indd` reports what Design would import.
 
 ## What happens to the layers
 
