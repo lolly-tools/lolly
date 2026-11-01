@@ -41,6 +41,10 @@ export function bakeNestedSvgPaint(el: Element, clone: Element): void {
     const c = cloneEls[i]!;
     if (s.namespaceURI !== SVGNS || !(c instanceof SVGElement)) continue;
     const cs = getComputedStyle(s);
+    // A descendant the cascade hides stays hidden. On screen a class rule hides a rail
+    // slot's second glyph (free-canvas/shared.ts slotGlyphs); standalone that rule is
+    // gone, and both glyphs drew on top of each other in the walked file.
+    if (cs.display === 'none') { c.style.setProperty('display', 'none'); continue; }
     const bake = (props: readonly (readonly [string, string])[]): void => {
       for (const [p, initial] of props) {
         const v = cs.getPropertyValue(p);
