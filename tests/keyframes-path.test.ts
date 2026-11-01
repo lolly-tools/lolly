@@ -259,3 +259,68 @@ test('dotLottie: a curved track must key x and y together, and says which layer'
   // A key between that splits one axis leaves no curve at all, so the axes export apart.
   assert.equal(position('t0_x0_y0_ho(50)(0)*t500_o0.5_x40*t1000_x100_y0_hi(0)(50)').s, true);
 });
+
+// ── springs on a curved segment (plans/329 beside plans/330) ─────────────────
+
+const SPRUNG = 't0_esp(600)(15)(1)_x0_y0_ho(100)(0)*t1000_x200_y0_hi(0)(-100)';
+
+test('a spring on a curved segment runs over the segment, not over its own settle time', () => {
+  const sprung = parseKf(SPRUNG);
+  const linear = parseKf(CURVED);
+  let differs = false;
+  for (let t = 0; t <= 1000; t += 10) {
+    const p = kfEaseAt('esp(600)(15)(1)', t / 1000, 1000);
+    if (Math.abs(p - kfEaseAt('esp(600)(15)(1)', t / 1000)) > 0.01) differs = true;
+    if (p < 0 || p > 1) continue;
+    // A linear ease is a constant speed along the curve, so it reaches arc fraction p at p × 1000 ms.
+    const a = evaluateKf(sprung, t), b = evaluateKf(linear, p * 1000);
+    assert.ok(Math.hypot(a.x! - b.x!, a.y! - b.y!) < 0.01, `on the curve at arc fraction ${p} (t = ${t})`);
+  }
+  assert.ok(differs, 'the segment length changes the motion, so the sampling above can tell');
+  assert.deepEqual(evaluateKf(sprung, 1000), { x: 200, y: 0 }, 'and it arrives on the next keyframe');
+});
+
+test('a spring that overshoots the end of a curve is held to the x/y clamp', () => {
+  // The end tangent points along +x, so the overshoot carries x past the wire clamp.
+  const tr = parseKf('t0_esp(600)(15)(1)_x99800_y0_ho(100)(0)*t1000_x100000_y0_hi(-100)(0)');
+  let held = false;
+  for (let t = 0; t <= 1000; t += 5) {
+    const x = evaluateKf(tr, t).x!;
+    assert.ok(x <= 100000, `x = ${x} at ${t}`);
+    if (x === 100000 && t < 1000) held = true;
+  }
+  assert.ok(held, 'the overshoot reaches the clamp before the segment ends');
+});
+
+test('kfSubdividePath: a cut through a curved spring keeps the travel, read over the segment', () => {
+  const tr = parseKf('t0_esp(100)(15)(1)_x0_y0_ho(120)(-40)*t1200_x300_y100_hi(-20)(-150)');
+  const cut = 300;
+  const split = kfSubdividePath(tr, cut)!;
+  assert.ok(split, 'a cut inside a curved spring segment splits');
+  const at = evaluateKf(tr, cut);
+  assert.equal(split.x, at.x);
+  assert.equal(split.y, at.y);
+  const { left, right } = subdivideKfEase(tr[0]!.ease, cut / 1200, 1200);
+  const rebuilt = [
+    { t: 0, ease: left, v: tr[0]!.v, ho: split.aHo },
+    { t: cut, ease: right, v: { x: split.x, y: split.y }, hi: split.hi, ho: split.ho },
+    { t: 1200, ease: 'eio', v: tr[1]!.v, hi: split.bHi },
+  ];
+  for (let t = 0; t <= 1200; t += 25) {
+    const a = evaluateKf(tr, t), b = evaluateKf(rebuilt, t);
+    assert.ok(Math.hypot(a.x! - b.x!, a.y! - b.y!) < 0.5, `within half a pixel at ${t}`);
+  }
+});
+
+test('dotLottie: a spring segment of a combined position is written one key per frame, curved or straight', () => {
+  const kf = `${SPRUNG}*t2000_esp(300)(20)(1)_x200_y150`.replace('t1000_x200_y0_hi', 't1000_esp(300)(20)(1)_x200_y0_hi');
+  const keys = position(kf).k as LottieObject[];
+  assert.ok(keys.length >= 58, `baked across both segments (${keys.length} keys)`);
+  assert.ok(keys.every((k) => k.to === undefined), 'no bezier carries a spring, so no tangents');
+  const tr = parseKf(kf);
+  for (const f of [7, 20, 41, 52]) {
+    const at = keys.find((k) => k.t === f)!;
+    const want = evaluateKf(tr, (f * 1000) / 30);
+    assert.deepEqual(at.s, [50 + want.x!, 25 + want.y!, 0], `frame ${f} carries the editor travel`);
+  }
+});
