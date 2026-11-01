@@ -2,7 +2,7 @@
 /** Shared WASM transport for Trace image, used by the browser worker and the Node shell. */
 import {
   IMAGE_TRACE_MAX_PIXELS, IMAGE_TRACE_OPS, IMAGE_TRACE_PRESETS, ImageTraceError, readImageTraceWire,
-  type ImageTraceFn, type ImageTracePreset, type ImageTraceResult,
+  type ImageTracePreset, type ImageTraceResult,
 } from '../../../engine/src/image-trace.ts';
 
 const MAX_REQUEST = 8 + IMAGE_TRACE_MAX_PIXELS * 4;
@@ -23,7 +23,7 @@ function isApi(e: WebAssembly.Exports): e is TraceExports {
 
 export interface ImageTraceKernel {
   /** Trace straight-alpha RGBA. Throws `ImageTraceError` for a refusal. */
-  trace: ImageTraceFn & ((rgba: Uint8Array | Uint8ClampedArray, width: number, height: number, preset: ImageTracePreset) => ImageTraceResult);
+  trace(rgba: Uint8Array | Uint8ClampedArray, width: number, height: number, preset: ImageTracePreset): ImageTraceResult;
   /** The raw JSON the module returned, for tests that compare bytes. */
   traceBytes(rgba: Uint8Array | Uint8ClampedArray, width: number, height: number, preset: ImageTracePreset): Uint8Array;
 }
