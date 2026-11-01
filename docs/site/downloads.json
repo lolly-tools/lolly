@@ -146,7 +146,7 @@
           "os": "Terminal",
           "name": "Command line",
           "ext": "CLI",
-          "note": "in the desktop app",
+          "note": "with the app",
           "slug": "cli",
           "hash": "install"
         },
@@ -174,9 +174,9 @@
           "id": "extension",
           "icon": "puzzle",
           "os": "Chromium",
-          "name": "Browser extension",
+          "name": "Extension",
           "ext": "EXT",
-          "note": "load unpacked",
+          "note": "unpacked",
           "slug": "extension",
           "hash": "install"
         },
