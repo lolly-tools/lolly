@@ -103,7 +103,7 @@ export function dxfToDesign(imp: DxfImport, map?: DesignMapOptions): DxfDesignRe
     for (const st of imp.strokes.filter((s) => s.layer === li)) {
       for (const part of chunk(st.subpaths)) {
         if (boxes.length + members.length + 1 >= DXF_MAX_BOXES) { droppedPaths++; continue; }
-        let placed;
+        let placed: ReturnType<typeof designPathPlacement>;
         try { placed = designPathPlacement({ d: subPathsToD(part) }, { stroke: st.color, strokeW: 1 }); } catch { continue; }
         const node: DesignNode = { kind: 'box', x: placed.x, y: placed.y, w: placed.w, h: placed.h, fill: '', stroke: st.color, strokeW: 1 };
         const box = nodeToBox(node, { id: `dxf${nid++}`, ...opts }) as unknown as DxfDesignBox;

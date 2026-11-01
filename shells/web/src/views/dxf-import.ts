@@ -23,7 +23,7 @@ export async function parseDxfAsDesign(
   { warn, map, layers }: { warn: (msg: string) => void; map?: DesignMapOptions; layers?: readonly string[] },
 ): Promise<DxfDesignImport> {
   const { loadDxfKernel } = await import('../bridge/dxf.ts');
-  let imported;
+  let imported: ReturnType<typeof importDxf>;
   try {
     imported = importDxf(buf, { read: (await loadDxfKernel()).read, ...(layers ? { layers } : {}) });
   } catch (error) {

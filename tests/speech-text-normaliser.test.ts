@@ -42,7 +42,8 @@ for (const c of doc.cases) {
 test('baseline summary by category', t => {
   const rows: Record<string, { handled: number; gap: number; misread: number }> = {};
   for (const c of doc.cases) {
-    const r = (rows[c.category] ??= { handled: 0, gap: 0, misread: 0 });
+    rows[c.category] ??= { handled: 0, gap: 0, misread: 0 };
+    const r = rows[c.category]!;
     r[c.lolly]++; if (c.misread) r.misread++;
   }
   t.diagnostic(JSON.stringify(rows));

@@ -51,7 +51,7 @@ export async function createDxfKernel(wasm: Uint8Array) {
         const text = new TextDecoder().decode(out);
         if (status !== 0) throw new DxfError(/larger than|more than|too large/.test(text) ? 'limit' : 'failed', text);
         const parsed = JSON.parse(text) as DxfRaw;
-        if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.e) || !Array.isArray(parsed.layers)) throw new DxfError('failed', 'The DXF reader returned an unreadable response.');
+        if (parsed?.v !== 1 || !Array.isArray(parsed.e) || !Array.isArray(parsed.layers)) throw new DxfError('failed', 'The DXF reader returned an unreadable response.');
         return parsed;
       } catch (error) {
         if (error instanceof DxfError) throw error;

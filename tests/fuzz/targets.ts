@@ -2154,7 +2154,7 @@ export const dxfTarget: FuzzTarget = {
     const { DxfError } = await import('../../packages/node-shell/src/dxf.ts');
     const { flattenDxf } = await import('../../engine/src/dxf-import.ts');
     const { dxfToDesign } = await import('../../engine/src/dxf-design.ts');
-    let raw;
+    let raw: Parameters<typeof flattenDxf>[0];
     try { raw = (await loadDxfKernel()).read(bytes); }
     catch (error) {
       if (!(error instanceof DxfError)) throw error;

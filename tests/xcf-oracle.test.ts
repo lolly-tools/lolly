@@ -45,7 +45,7 @@ test('xcf oracle: GIMP merged PNGs against readXcf composites', { skip: requeste
     await t.test(name, () => {
       const xcf = new Uint8Array(readFileSync(new URL(`${name}.xcf`, dir))), png = decodePng(new Uint8Array(readFileSync(new URL(`${name}.png`, dir))));
       const warnings: string[] = [];
-      let doc;
+      let doc: ReturnType<typeof readXcf>;
       try { doc = readXcf(xcf, { inflate: (b, max) => new Uint8Array(inflateSync(b, { maxOutputLength: max })), onWarn: (code, detail) => warnings.push(detail ? `${code}: ${detail}` : code) }); }
       catch (error) {
         if (!(error instanceof XcfUnsupportedError) || !KNOWN_GAPS[name]) throw error;

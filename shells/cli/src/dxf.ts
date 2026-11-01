@@ -36,7 +36,7 @@ export async function dxfCli(args: string[], flags: Record<string, string>, asJs
     ...(unitless ? { unitless } : {}),
     ...(pxPerUnit ? { pxPerUnit } : {}),
   };
-  let imported;
+  let imported: ReturnType<typeof importDxf>;
   try { imported = importDxf(bytes, { read: (await loadDxfKernel()).read, ...opts }); }
   catch (error) { throw new Error(describeDxfError(error)); }
 
