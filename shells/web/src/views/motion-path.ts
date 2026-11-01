@@ -119,6 +119,12 @@ export interface MotionPathEditPort {
    * than over its handles. Optional; null when nothing is drawn.
    */
   clearOf?(): { left: number; top: number; right: number; bottom: number } | null;
+  /**
+   * Open the canvas's own context menu at a client point. A point's target takes only
+   * the primary button, and the resting point sits on the box's centre, so a right-click
+   * there has to reach the box's menu rather than the browser's. Optional.
+   */
+  menu?(clientX: number, clientY: number, soloBox: boolean): void;
 }
 
 /**
@@ -666,8 +672,19 @@ export function mountMotionPath(opts: MountMotionPathOpts): MotionPathHandle {
     paint(lastIds);
   }
 
+  /** A right-click on a point is a right-click on the canvas under it (see `menu`). */
+  function onMenu(e: MouseEvent): void {
+    const target = e.target as Element | null;
+    if (!edit?.menu || !target?.closest?.('.mp-hit')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    edit.menu(e.clientX, e.clientY, e.altKey);
+  }
+
   layer.addEventListener('pointerdown', onDown);
   top.addEventListener('pointerdown', onDown);
+  layer.addEventListener('contextmenu', onMenu);
+  top.addEventListener('contextmenu', onMenu);
   doc.addEventListener('pointerdown', onDocDown, true);
 
   function onKey(e: KeyboardEvent): boolean {
@@ -705,6 +722,8 @@ export function mountMotionPath(opts: MountMotionPathOpts): MotionPathHandle {
       endDrag();
       layer.removeEventListener('pointerdown', onDown);
       top.removeEventListener('pointerdown', onDown);
+      layer.removeEventListener('contextmenu', onMenu);
+      top.removeEventListener('contextmenu', onMenu);
       doc.removeEventListener('pointerdown', onDocDown, true);
       layer.remove();
       top.remove();

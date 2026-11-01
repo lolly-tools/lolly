@@ -38,7 +38,19 @@ test('Motion collection, photo composition and non-writing choreography preview 
     const ids = source.values.boxes.filter((row: { locked?: boolean }) => !row.locked).map((row: { id: string }) => row.id);
     await page.goto(`${origin}/t/design?template=motion-feature-loop&preset=long&_sel=${encodeURIComponent(ids.join(','))}`, { waitUntil: 'networkidle' }); await shellSettled(page);
     const headline = page.locator('.lolly-box[data-box-id="headline"][role="button"]');
-    await headline.click({ button: 'right' });
+    // With the timeline open, a selected box's motion path puts a draggable diamond on
+    // each keyframe's position, and the resting one sits on the box's centre. Right-click
+    // the headline where the headline itself takes the press.
+    const spot = await headline.evaluate((box) => {
+      const r = box.getBoundingClientRect();
+      for (const fy of [0.5, 0.25, 0.75]) for (const fx of [0.1, 0.25, 0.75, 0.9]) {
+        const hit = document.elementFromPoint(r.left + r.width * fx, r.top + r.height * fy);
+        if (hit && box.contains(hit)) return { x: r.width * fx, y: r.height * fy };
+      }
+      return null;
+    });
+    assert.ok(spot, 'part of the headline takes a press beside its motion path');
+    await headline.click({ button: 'right', position: spot });
     await page.getByRole('menuitem', { name: 'Choreograph…', exact: true }).click();
     await page.locator('[data-choreo="drift-loop"]').click();
     await page.locator('[data-choreo-sec]').fill('4');
