@@ -21,6 +21,8 @@ import { fetchPublicBytes, MAX_PUBLIC_ASSET_BYTES, PUBLIC_IMAGE_TYPES } from '@l
 // exactly the split the web shell's lib/zip.ts sits on.
 import { zipSync } from 'fflate';
 import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, canvasSizeOf, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId, readDesignSystemIdentity, SHIPPED_DESIGN_SYSTEM_ID, injectSvgMeta } from '@lolly/engine';
+import type { SeparateRgb } from '@lolly/engine';
+import { pressSeparationFor } from '@lolly-tools/node-shell/press-separation-node';
 import { isRasterPhotoLook, parseLutText, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook, type GradeLut, type PhotoTreatment } from '@lolly/engine';
 import type {
   HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts,
@@ -1352,7 +1354,10 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // EPS is vector PostScript built from the same SVG IR as EMF - text is
         // outlined upstream (svgDomToIr shapes live <text> via host.text; an
         // unresolvable family throws), so the emitter writes no fonts. eps-cmyk
-        // is naive DeviceCMYK: no embedded output intent (same as the web shell).
+        // is DeviceCMYK separated through the press condition's profile (the
+        // bundled FOGRA39 one by default, the device formula for a condition with
+        // none; packages/node-shell/src/press-separation-node.ts). It carries no
+        // embedded output intent, same as the web shell.
         //
         // The brand cmykPalette IS threaded now, through the SAME shared builder
         // the web shell's three CMYK sinks use (engine/src/cmyk-palette.ts). It
@@ -1364,10 +1369,11 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
         const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, label: 'EPS' });
+        const separate = format === 'eps-cmyk' ? (await pressSeparationFor(opts.colorProfile)).separate : undefined;
         const text = emitEps(ir, {
           width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi,
           cmyk: format === 'eps-cmyk',
-          ...(format === 'eps-cmyk' ? { cmykPalette: await brandCmykPalette(host) } : {}),
+          ...(separate ? { cmykPalette: await brandCmykPalette(host, separate), separate } : {}),
           meta: opts.meta as { title?: string } | undefined,
         });
         return new Blob([text], { type: 'application/postscript' });
@@ -1856,7 +1862,7 @@ function mimeFor(format: string): string {
  * `host.tokens.colors()` yields an empty map, which is byte-identical to the
  * previous behaviour (every colour falls through to the generic conversion).
  */
-async function brandCmykPalette(host: HostV1): Promise<Map<string, { cmyk: [number, number, number, number] }>> {
+async function brandCmykPalette(host: HostV1, separate?: SeparateRgb): Promise<Map<string, { cmyk: [number, number, number, number] }>> {
   try {
     const colors = await host.tokens?.colors?.();
     if (!Array.isArray(colors) || colors.length === 0) return new Map();
@@ -1865,7 +1871,7 @@ async function brandCmykPalette(host: HostV1): Promise<Map<string, { cmyk: [numb
       ...(Array.isArray(c.cmyk) ? { cmyk: c.cmyk } : {}),
       label: c.name,
       spot: c.spot ?? null,
-    })));
+    })), separate);
   } catch {
     return new Map();
   }

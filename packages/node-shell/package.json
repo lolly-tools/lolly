@@ -132,6 +132,9 @@
     "./adobe-psd": "./src/adobe-psd.ts",
     "./adobe-psd-node": "./src/adobe-psd-node.ts",
     "./adobe-psd.wasm": "./wasm/adobe-psd/adobe-psd.wasm",
+    "./press-separation": "./src/press-separation.ts",
+    "./press-separation-node": "./src/press-separation-node.ts",
+    "./craft-coated-fogra39.icc": "./icc/craft-coated-fogra39.icc",
     "./pdfx": "./src/pdfx.ts",
     "./pdf-finishing": "./src/pdf-finishing.ts",
     "./design-ops-pdf": "./src/design-ops-pdf.ts",
@@ -143,6 +146,7 @@
   },
   "files": [
     "src",
+    "icc",
     "wasm/adobe-psd",
     "wasm/layout-kernel",
     "wasm/skera/skera.wasm",
