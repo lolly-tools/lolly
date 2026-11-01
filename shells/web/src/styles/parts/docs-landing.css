@@ -1395,6 +1395,10 @@ html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
 .persona-tab:hover{border-color:var(--muted);transform:translateY(-2px)}
 .persona-name{font-weight:700;font-size:1rem;line-height:1.2;text-wrap:balance}
 .persona-sub{font-size:.8125rem;line-height:1.3;color:var(--muted)}
+/* Japanese has no spaces between words, so a balanced door name could break inside a
+   word ("小さなチー / ムやクラブ"). auto-phrase moves each break to a phrase boundary; a
+   browser without auto-phrase keeps the old break, and no other language matches. */
+:lang(ja) :is(.persona-name,.persona-sub,.lane-pane h3,.lane-tab){word-break:auto-phrase}
 #door-you:checked ~ .persona-tabs label[for="door-you"],
 #door-team:checked ~ .persona-tabs label[for="door-team"],
 #door-clients:checked ~ .persona-tabs label[for="door-clients"],
@@ -1508,7 +1512,10 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
   .persona-tabs{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;padding:2px 2.5rem 6px 2px;margin-inline:-2px;-webkit-mask-image:linear-gradient(to right,#000 82%,transparent);mask-image:linear-gradient(to right,#000 82%,transparent)}
   [dir="rtl"] .persona-tabs{-webkit-mask-image:linear-gradient(to left,#000 82%,transparent);mask-image:linear-gradient(to left,#000 82%,transparent)}
   .persona-tabs::-webkit-scrollbar{display:none}
-  .persona-tab{flex:0 0 auto;width:11.25rem;display:grid;grid-template-columns:2.6rem minmax(0,1fr);grid-template-rows:auto auto;column-gap:.55rem;row-gap:1px;align-content:center;align-items:center;padding:.5rem .7rem .5rem .45rem;border-radius:14px;scroll-snap-align:start;min-height:3.9rem}
+  /* The text column never goes narrower than its longest word, and the pill widens
+     to hold it: a one-word name such as "Un'organizzazione" no longer runs into the
+     padding. When every word fits the 11.25rem pill, nothing moves. */
+  .persona-tab{flex:0 0 auto;width:11.25rem;min-width:min-content;display:grid;grid-template-columns:2.6rem minmax(min-content,1fr);grid-template-rows:auto auto;column-gap:.55rem;row-gap:1px;align-content:center;align-items:center;padding:.5rem .7rem .5rem .45rem;border-radius:14px;scroll-snap-align:start;min-height:3.9rem}
   .persona-mascot,.persona-mascot[src$="platypus.webp"]{grid-row:1 / span 2;grid-column:1;width:2.6rem;height:2.6rem;margin:0;object-position:center}
   .persona-name{grid-column:2;font-size:.875rem;text-wrap:pretty}
   .persona-sub{grid-column:2;font-size:.75rem}
