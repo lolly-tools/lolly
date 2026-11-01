@@ -143,6 +143,8 @@ export {
   FINISH_MASK_CMYK, buildCmykPaletteMap, cmykKey, paletteHasFinish,
 } from './cmyk-palette.ts';
 export type { BrandPaletteEntry, PaletteHit, PaletteSpotHit } from './cmyk-palette.ts';
+export { iccSeparation, separationLattice, DEVICE_SEPARATION, NEUTRAL_EPSILON } from './cmyk-separation.ts';
+export type { CmykSeparation, SeparateRgb } from './cmyk-separation.ts';
 export {
   parseColor, parseColorToSrgb8, convertColor, gamutMapSrgb,
   colorToSrgb, colorToSrgb8, colorToHexString, formatColor,
