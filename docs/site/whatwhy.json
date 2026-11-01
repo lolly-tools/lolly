@@ -1,7 +1,8 @@
 {
   "what": {
-    "heading": "A template-driven creative engine.",
-    "body": "A tool remembers layout, type and colours. Add your words, media, or data. You get a finished file in the format you need.",
+    "heading": "Tools that remember the rules.",
+    "body": "A tool remembers layout, type and colours. Add your words, media or data. You get a finished file in the format you need.",
+    "library": "Your files, fonts and colours stay together in Assets, ready to open and change later.",
     "more": { "label": "How Lolly works", "slug": "how-lolly-works" }
   },
   "stats": [

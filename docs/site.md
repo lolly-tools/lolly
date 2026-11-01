@@ -1,4 +1,4 @@
 # Lolly - Landing page copy
 
-Make media files. Keep control of your content.
-Create graphics, documents and video: no account, no card, private and open source.
+Make finished files. Keep control of your content.
+Graphics, documents, video and print in your own colours and type: no account, no card, private and open source.

@@ -1,7 +1,7 @@
 {
   "eyebrow": "Lolly Work",
   "heading": "Lolly for the whole organisation",
-  "body": "Connect the asset library you already use, and give people tools with your rules. Your own sign-in, shared projects, roles and approvals, permitted edits, links that expire and an audit trail. Keep the systems that work for your team and choose where the shared services run. Open source (MPL-2.0), hosted by you.",
+  "body": "The same tools, with what an organisation needs around them: sign-in with your own identity provider, roles and approvals, shared projects and libraries, inputs locked where the brand must not move, links that expire and an audit trail. If you already have an asset library, you can keep it as the source of record. Choose where the shared services run. Open source (MPL-2.0), hosted by you.",
   "links": [
     {
       "label": "Try the sandbox at lolly.work ↗",

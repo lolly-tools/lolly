@@ -180,6 +180,22 @@ Two limits the table cannot show. Format-level reproducibility is not tool-level
 
 So check the hash of an SVG rendered with `--no-provenance` into a lockfile if you like. Do **not** build a CI gate on the hash of a PDF, an ICS, a JPEG, a paint-tier PNG or anything signed: compare those by rendering and inspecting. [Determinism](/info/determinism.html) explains why the same inputs give the same render.
 
+## The GitHub Action
+
+The repository carries a GitHub Action, in the `action/` folder of the source, that runs this CLI inside a GitHub job: one render, or one file for each row of a CSV or TSV. The flags it passes are the same `--key=value` flags you type at a desk. Until the action has a release of its own, pin it to a commit:
+
+```yaml
+- uses: lolly-tools/lolly/action@<commit>
+  id: render
+  with:
+    tool: qr-code
+    args-json: '["--url=https://example.com"]'
+    format: svg
+- run: ls "${{ steps.render.outputs.out-dir }}"
+```
+
+`rows` takes the path of a batch sheet instead of `tool`, and `browser: 'true'` installs the scoped browser for raster, PDF and video from tools that lay out in HTML. [The action's README](https://github.com/lolly-tools/lolly/tree/main/action) lists every input and output, with a pinned commit and worked examples.
+
 ## Organisation jobs with Lolly Work
 
 The `lolly` CLI renders on the machine that runs the command. When an organisation needs jobs it can keep, inspect, retry or deliver centrally, the optional Lolly Work control plane offers a separate `lw` client and authenticated APIs at `/api/v1/renders` and `/api/v1/render-batches`.

@@ -135,10 +135,76 @@
           "file": "lolly-latest.AppImage"
         }
       ]
+    },
+    {
+      "id": "terminal",
+      "label": "Terminal and automation",
+      "items": [
+        {
+          "id": "cli",
+          "icon": "terminal",
+          "os": "Terminal",
+          "name": "Command line",
+          "ext": "CLI",
+          "note": "in the desktop app",
+          "slug": "cli",
+          "hash": "install"
+        },
+        {
+          "id": "tui",
+          "icon": "keyboard",
+          "os": "Terminal",
+          "name": "Terminal app",
+          "ext": "TUI",
+          "note": "full screen",
+          "slug": "tui",
+          "hash": "a-first-session"
+        },
+        {
+          "id": "mcp",
+          "icon": "sparkle",
+          "os": "Agents",
+          "name": "MCP server",
+          "ext": "MCP",
+          "note": "open, no token",
+          "slug": "mcp",
+          "hash": "the-open-endpoint-no-token"
+        },
+        {
+          "id": "extension",
+          "icon": "puzzle",
+          "os": "Chromium",
+          "name": "Browser extension",
+          "ext": "EXT",
+          "note": "load unpacked",
+          "slug": "extension",
+          "hash": "install"
+        },
+        {
+          "id": "action",
+          "logo": "github",
+          "os": "GitHub",
+          "name": "Render action",
+          "ext": "CI",
+          "note": "one file or a CSV",
+          "slug": "cli-automation",
+          "hash": "the-github-action"
+        },
+        {
+          "id": "sdk",
+          "icon": "box",
+          "os": "npm",
+          "name": "Tool SDK",
+          "ext": "NPM",
+          "note": "@lolly-tools/core",
+          "slug": "tool-publishing",
+          "hash": "try-it-without-the-monorepo"
+        }
+      ]
     }
   ],
   "more": {
-    "label": "ARM64 Linux, the terminal and the rest",
+    "label": "ARM64 Linux, the container image and the rest",
     "slug": "install"
   }
 }

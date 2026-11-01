@@ -4,6 +4,7 @@
   "prev": "Previous",
   "next": "Next",
   "pick": "Pick a cover",
+  "caption": "Sixteen design systems, one app. Every cover is Lolly wearing someone else's colours.",
   "covers": [
     {
       "img": "covers/darkroom.webp",
@@ -22,13 +23,12 @@
       "alt": "The Lolly logo as a halftone dot screen in the brand orange, exported as SVG"
     },
     {
-      "img": "covers/gradient-poster.webp",
-      "video": "covers/gradient.mp4",
+      "img": "covers/certificate.webp",
       "hue": 45,
-      "name": "Gradient",
-      "href": "#/tool/gradient",
-      "promise": "Five ways to build a gradient from the swatches you set",
-      "alt": "A flowing mesh gradient in amber brand swatches, moving"
+      "name": "Certificate",
+      "href": "#/tool/certificate",
+      "promise": "For a course, an award or a thank-you, signed, dated and sealed",
+      "alt": "A certificate of completion in an amber brand, with a signature line and a seal"
     },
     {
       "img": "covers/chart.webp",
@@ -47,13 +47,12 @@
       "alt": "A QR code for lolly.tools drawn in the brand green"
     },
     {
-      "img": "covers/backdrop-poster.webp",
-      "video": "covers/backdrop.mp4",
+      "img": "covers/logo-wall.svg",
       "hue": 112.5,
-      "name": "Backdrop",
-      "href": "#/tool/backdrop",
-      "promise": "Living backgrounds in the colours you set",
-      "alt": "Metaballs drifting through a muted green backdrop with one warm accent"
+      "name": "Logo Wall",
+      "href": "#/tool/logo-wall",
+      "promise": "Sponsors and partners in tiers, each logo sized to sit evenly with the rest",
+      "alt": "A sponsor wall of placeholder wordmarks in three tiers, drawn in a green brand ink"
     },
     {
       "img": "covers/lab.webp",
@@ -134,7 +133,7 @@
       "hue": 337.5,
       "name": "Utilities",
       "href": "#/utilities",
-      "promise": "Use offline, files never leave your device",
+      "promise": "Scan, Verify, Redact, Unpack and the everyday file jobs, in the app",
       "alt": "The Utilities shelf in a rose brand: Scan, Verify, Unpack and Spreadsheet among the tiles, captured as vector"
     }
   ]
