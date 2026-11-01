@@ -254,6 +254,8 @@ pub fn run() {
             mobile_take_open_file
         ]))
         .setup(move |app| {
+            // Leftovers of an interrupted save, before the page reads state.
+            atomic_write::sweep_stale_temps(app.handle());
             #[cfg(feature = "webgpu-probe")]
             webgpu_qualification::setup(app)?;
             for config in windows.iter().filter(|window| window.create) {

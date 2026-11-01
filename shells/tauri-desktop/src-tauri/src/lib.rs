@@ -214,6 +214,8 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
         // the clipboard-lens tray, and - on Linux - the D-Bus search/automation
         // surfaces. All additive; failures degrade to a plain window, logged.
         .setup(move |app| {
+            // Leftovers of an interrupted save, before the page reads state.
+            atomic_write::sweep_stale_temps(app.handle());
             #[cfg(feature = "webgpu-probe")]
             webgpu_qualification::setup(app)?;
             presentation_windows::build(app, &windows)?;

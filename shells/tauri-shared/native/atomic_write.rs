@@ -154,6 +154,52 @@ pub(crate) fn write_atomic(path: &Path, bytes: &[u8]) -> io::Result<()> {
     write_atomic_with(path, bytes, &NoFaults)
 }
 
+/// A save in flight from another window is younger than this, so the startup
+/// sweep never touches it.
+const STALE_TEMP_AGE: Duration = Duration::from_secs(60);
+
+/// True only for the exact names `temp_path_for` makes: a `.json` or `.marker`
+/// file name, then `.<pid>-<counter>.tmp`.
+fn is_writer_temp_name(name: &str) -> bool {
+    let Some(stem) = name.strip_suffix(".tmp") else { return false };
+    let Some((target, tag)) = stem.rsplit_once('.') else { return false };
+    let Some((pid, count)) = tag.split_once('-') else { return false };
+    let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+    digits(pid) && digits(count) && (target.ends_with(".json") || target.ends_with(".marker"))
+}
+
+/// Remove temp files a hard kill left in `dir`, if older than `grace`.
+/// Returns how many were removed. Every other file is left alone.
+pub(crate) fn sweep_stale_temps_in(dir: &Path, grace: Duration) -> usize {
+    let Ok(entries) = fs::read_dir(dir) else { return 0 };
+    let mut removed = 0;
+    for entry in entries.flatten() {
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else { continue };
+        if !is_writer_temp_name(name) {
+            continue;
+        }
+        let Ok(metadata) = fs::symlink_metadata(entry.path()) else { continue };
+        let old_enough = metadata
+            .modified()
+            .ok()
+            .and_then(|m| m.elapsed().ok())
+            .is_some_and(|age| age >= grace);
+        if metadata.is_file() && old_enough && fs::remove_file(entry.path()).is_ok() {
+            removed += 1;
+        }
+    }
+    removed
+}
+
+/// Startup sweep of `<app data>/saved-state`, run before the page's first read.
+pub(crate) fn sweep_stale_temps<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
+    use tauri::Manager;
+    if let Ok(base) = app.path().app_data_dir() {
+        sweep_stale_temps_in(&base.join(DOCUMENT_DIR), STALE_TEMP_AGE);
+    }
+}
+
 /// Resolve a path the page sent (relative to the app data folder) to a file
 /// inside `saved-state/`, refusing anything that could land elsewhere.
 pub(crate) fn resolve_document_path(base: &Path, relative: &str) -> Result<PathBuf, String> {
@@ -357,6 +403,33 @@ mod tests {
         );
         assert!(stuck.is_err());
         assert_eq!(calls.get(), RENAME_ATTEMPTS);
+    }
+
+    #[test]
+    fn sweep_removes_only_stale_writer_temps() {
+        let dir = TestDir::new();
+        let keep = [
+            "a.json",
+            "slotname-v1.marker",
+            "a.json.tmp",
+            "a.json.12-x.tmp",
+            "a.txt.12-3.tmp",
+            "a.json.12-3.tmp.bak",
+        ];
+        for name in keep {
+            fs::write(dir.path().join(name), b"x").unwrap();
+        }
+        fs::write(dir.path().join("a.json.12-3.tmp"), b"x").unwrap();
+        fs::write(dir.path().join("slotname-v1.marker.4-5.tmp"), b"x").unwrap();
+        // Fresh temps are kept: a save may be in flight.
+        assert_eq!(sweep_stale_temps_in(dir.path(), Duration::from_secs(3600)), 0);
+        assert!(dir.path().join("a.json.12-3.tmp").exists());
+        // With no grace period the matching temps go and nothing else does.
+        assert_eq!(sweep_stale_temps_in(dir.path(), Duration::ZERO), 2);
+        assert_eq!(names(dir.path()).len(), keep.len());
+        for name in keep {
+            assert!(dir.path().join(name).exists(), "{name}");
+        }
     }
 
     #[test]
