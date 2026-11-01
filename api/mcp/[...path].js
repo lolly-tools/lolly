@@ -73487,7 +73487,7 @@ function lightnessToY(L) {
 }
 function iccSeparation(profile2) {
   try {
-    if (!profile2 || profile2.dataColourSpace !== "CMYK" || profile2.nChannels !== 4) return null;
+    if (profile2?.dataColourSpace !== "CMYK" || profile2.nChannels !== 4) return null;
     const into = iccResolvedIntent(profile2, "fromPcs", "relative");
     const back = iccResolvedIntent(profile2, "toPcs", "relative");
     if (!into || !back) return null;
@@ -73534,7 +73534,7 @@ function iccSeparation(profile2) {
       const mapped = xyz50(x * s + yRich * WHITE_D50[0], y * s + yRich * WHITE_D50[1], z * s + yRich * WHITE_D50[2]);
       const [L, A, B] = convertColor(mapped, "lab").components;
       const ink = profile2.fromLab(into, [L, A, B]);
-      if (!ink || ink.length !== 4 || !ink.every(Number.isFinite)) return rgbToCmyk(r5, g2, b);
+      if (ink?.length !== 4 || !ink.every(Number.isFinite)) return rgbToCmyk(r5, g2, b);
       return [clamp018(ink[0]), clamp018(ink[1]), clamp018(ink[2]), clamp018(ink[3])];
     };
     const memo2 = /* @__PURE__ */ new Map();
@@ -145591,7 +145591,7 @@ function readAdobeXml(source, parse2, maxBytes = 1024 * 1024) {
   let count4 = 0;
   while (stack.length) {
     const { el, depth } = stack.pop();
-    if (++count4 > 5e4 || depth > 64 || el.attributes.length > 128) throw new Error("Adobe XML exceeds the structure limits.");
+    if (++count4 > 5e4 || depth > 64 || el.attributes.length > 512) throw new Error("Adobe XML exceeds the structure limits.");
     for (const child2 of Array.from(el.children)) stack.push({ el: child2, depth: depth + 1 });
   }
   return doc;
