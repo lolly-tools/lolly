@@ -22,9 +22,10 @@
  * WebP poster from the same run. Output goes to docs/shots/covers/ - `covers.json`
  * is hand-edited to point at it; this script never touches the copy.
  *
- * Needs a running web shell (dev:web at :5173 by default) on the lolly-start
- * profile - poses install a user brand over the starter tokens, which a locked
- * brand pack would refuse. ffmpeg on PATH for the loops.
+ * Needs a running web shell (dev:web at :5173 by default) on the lolly-demo
+ * profile, the one lolly.tools ships (lolly-start works too) - poses install a
+ * user brand over the profile's tokens, which a locked brand pack would refuse,
+ * so not the SUSE profile. ffmpeg on PATH for the loops.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -117,28 +118,31 @@ const POSES: CoverPose[] = [
       // A solid ground (Andy, 2026-09-03: not transparent before export) in the pose's light tint.
       + '&ht_transparentBg=false&ht_bgColor={primaryLight}',
     settleMs: 5000, exportStill: 'svg' },
-  // Any input in the URL counts as a link and skips the template chooser (views/tool.ts),
-  // so a default-valued param opens the brand-swatch default the chooser would hide.
-  // Flow mesh in the pose's ramp (Andy, 2026-09-03: mode=flow, five colours on a
-  // 4×4 mesh) - the complement was tried as the fifth colour and took over the
-  // tile, so it stays in one hue; the PNG export is the still, and the same scene
-  // exports a 60 fps loop the card plays.
-  { slug: 'gradient', hue: 45, light: 0.7,
-    route: '#/tool/gradient?mode=flow&count=5&rows=4&cols=4&color1={primaryDark}&color2={primary}&color3={primaryLight}&color4=%7Bcolor.semantic.surface%7D&color5=%7Bcolor.ramp.primary.9%7D',
-    // Grain at 60 fps is costly to encode (Best 4.5 MB, Balanced 3.3 MB for 6 s); Smaller keeps the tile light.
-    settleMs: 3000, exportStill: 'png', exportVideo: { fps: 60, seconds: LOOP_SECONDS, quality: 'smaller' } },
+  // Certificate (plan 341, Andy 2026-11-01): one of the everyday jobs people arrive
+  // with, in place of Gradient, which read alike beside Backdrop as "moving colour".
+  // The app photographed with the Course completion layout in the Classic style; the
+  // certificate takes its colours from the posed design system. The posed system has
+  // no logos, so the certificate's logo is off (with it on, the canvas shows the "no
+  // logo for this background" notice). Any input in the URL counts as a link and skips
+  // the template chooser (views/tool.ts).
+  { slug: 'certificate', hue: 45, light: 0.7, route: '#/tool/certificate?certKind=completion&style=classic&brandLogo=false', settleMs: 4000 },
   { slug: 'chart', hue: 67.5, light: 0.78, route: '#/tool/chart?chartType=bar', settleMs: 3500 },
   // The QR's own ground is the tile's primary and its modules the dark step, so the
   // frame washes with the brand hue instead of a white card (Andy, 2026-09-03).
   { slug: 'qr-code', hue: 90, light: 0.72, route: '#/tool/qr-code?url=https://lolly.tools&background={primary}&color={primaryDark}&color2={primaryDark}', settleMs: 3000 },
-  // The render alone, exported by the tool at 60 fps (Andy, 2026-09-03): metaballs on
-  // a ground of the tile's own primary (Andy, later: "the same as the colour the
-  // carousel item is meant to be"), the first blob in that same colour so the shapes
-  // dissolve into their background, the second in primary-3, plus one warm accent
-  // shifted to the pose; scale stays at 300, the zoomed-in look.
-  { slug: 'backdrop', hue: 112.5, light: 0.66,
-    route: '#/tool/backdrop?color1={primary}&color2=%7Bcolor.ramp.primary.3%7D&color3={shift:f3a761}&background={primary}&scale=300',
-    settleMs: 3000, exportVideo: { fps: 60, seconds: LOOP_SECONDS } },
+  // Logo Wall (plan 341): the sponsor wall, in place of Backdrop. The app photographed
+  // with the tool's eleven placeholder wordmarks in three tiers, each traced to the
+  // brand ink, on the pose's light tint. A photograph rather than the tool's SVG export
+  // (Filter's route), because the export writes the tier headings as <text> in the
+  // generic sans-serif, where the canvas sets them in the design system's face.
+  { slug: 'logo-wall', hue: 112.5, light: 0.66,
+    route: '#/tool/logo-wall?logos=' + encodeURIComponent(JSON.stringify([
+      ['your-logo', 'Gold partners'], ['logo-here', 'Gold partners'],
+      ['company', 'Silver partners'], ['sponsor', 'Silver partners'], ['brand-name', 'Silver partners'], ['sample-co', 'Silver partners'],
+      ['example', 'Supporters'], ['lorem-ipsum', 'Supporters'], ['placeholder', 'Supporters'], ['partner-name', 'Supporters'], ['wordmark', 'Supporters'],
+    ].map(([name, tier]) => ({ logo: `/tools/logo-wall/assets/${name}.svg`, tier }))))
+      + '&vectorizeAll=true&transparentBg=false&background={primaryLight}&inkColor={primaryDark}&headingColor={primaryDark}',
+    settleMs: 4000 },
   // The Colour Lab (#/lab): one colour reported in full, seeded with the posed primary.
   { slug: 'lab', hue: 135, route: '#/lab?c={primary}', settleMs: 5000 },
   // The design poster from the docs shot recipe (docs/make-something.md): the
