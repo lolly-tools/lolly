@@ -258,7 +258,7 @@ test('golden: eps text via emitEps (RGB)', async () => {
   assert.match(eps, /setrgbcolor/, 'RGB EPS must paint with setrgbcolor');
 });
 
-test('golden: eps-cmyk text via emitEps (naive DeviceCMYK, no palette on CLI)', async () => {
+test('golden: eps-cmyk text via emitEps (DeviceCMYK separated through the bundled FOGRA39 profile)', async () => {
   const eps = (await goldenCase('vector-mark.eps-cmyk', 'vector-mark', 'eps-cmyk')).toString('utf8');
   assert.match(eps, /^%!PS-Adobe/);
   assert.match(eps, /setcmykcolor/, 'CMYK EPS must paint with setcmykcolor');
