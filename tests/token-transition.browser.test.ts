@@ -111,11 +111,23 @@ async function releaseTokenRead(page: Page): Promise<void> {
   await settleEditor(page, 30_000);
 }
 
+/** A late inspector repaint, the one the emoji section asks for when it mounts. The
+ * mounted audit and a timeline key change force the same rebuild at a time of their own. */
+async function repaintInspector(page: Page): Promise<void> {
+  await page.evaluate(async () => { const port = '/src/views/tool/emoji-doc.ts'; (await import(port) as { notifyEmojiDocument(): void }).notifyEmojiDocument(); });
+}
+
 async function link(page: Page, path = 'verification.enter'): Promise<Locator> {
   const slot = await motion(page);
   await slot.locator('[data-design-token-property]').selectOption('__transition');
   await slot.locator('[data-token-choose]').click();
+  // A slow runner meets a late repaint by chance while the list is open, before or
+  // after the pick. Force one at each point: neither may shut the list or take
+  // "Link token" away before it is pressed.
+  await slot.locator('[data-token-options] select').waitFor();
+  await repaintInspector(page);
   await slot.locator('[data-token-options] select').selectOption(path);
+  await repaintInspector(page);
   await slot.locator('[data-token-link]').click();
   await values(page, 750);
   return slot;

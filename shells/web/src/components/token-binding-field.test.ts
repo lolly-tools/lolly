@@ -97,6 +97,38 @@ test('transition candidates explain incompatibility and require an explicit enab
   } finally { dispose(); dom.window.close(); }
 });
 
+test('a transition list stays a choice in progress through the pick and the Link press, until the link is made or focus leaves', async () => {
+  const dom = new JSDOM('<main></main>');
+  Object.assign(globalThis, { window: dom.window, document: dom.window.document, AbortController: dom.window.AbortController });
+  const root = dom.window.document.querySelector<HTMLElement>('main')!;
+  const set = createTokenSet({ ready: { $type: 'transition', $value: { duration: { value: 800, unit: 'ms' }, delay: { value: 0, unit: 'ms' }, timingFunction: [0.2, 0.8, 0.4, 1] } } });
+  const commits: InputValue[] = [];
+  const field = mountTokenBindingField(root, { id: 'enter', type: 'text', value: '' } as InputModelItem, { tokens: { get: async () => set } } as HostV1, value => { commits.push(value); }, { consumer: { type: 'text', adapter: 'transition', min: 100, max: 3000 }, candidateType: 'transition' });
+  try {
+    assert.equal(field.choosing(), false, 'a shut list is no choice');
+    root.querySelector<HTMLButtonElement>('[data-token-choose]')!.click(); await new Promise(resolve => setTimeout(resolve, 0));
+    const picker = root.querySelector<HTMLSelectElement>('select')!, button = root.querySelector<HTMLButtonElement>('[data-token-link]')!;
+    assert.equal(dom.window.document.activeElement, picker, 'Link a token focuses the list');
+    assert.equal(field.choosing(), true, 'nothing picked yet');
+    picker.value = 'ready'; picker.dispatchEvent(new dom.window.Event('change'));
+    assert.equal(commits.length, 0, 'picking does not link');
+    assert.equal(field.choosing(), true, 'a pick still needs Link token, so a rebuild now would take the button away');
+    button.focus();
+    assert.equal(field.choosing(), true, 'Chromium focuses the pressed Link button');
+    button.blur();
+    assert.equal(field.choosing(), false, 'focus leaving the list and the button ends the choice');
+    button.dispatchEvent(new dom.window.Event('pointerdown', { bubbles: true }));
+    assert.equal(field.choosing(), true, 'WebKit leaves a pressed button unfocused, so the press itself holds');
+    dom.window.document.dispatchEvent(new dom.window.Event('pointerup'));
+    assert.equal(field.choosing(), false, 'the release ends the press');
+    picker.focus();
+    assert.equal(field.choosing(), true);
+    button.click(); await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(commits.length, 1);
+    assert.equal(field.choosing(), false, 'a linked token lets the panel show the link');
+  } finally { field(); dom.window.close(); }
+});
+
 test('an explicit transition action rechecks current compatibility and does not commit after disposal', async () => {
   for (const disposePending of [false, true]) {
     const dom = new JSDOM('<main></main>');
