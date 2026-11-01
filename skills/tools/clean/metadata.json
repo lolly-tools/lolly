@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "clean",
-  "toolVersion": "1.0.1",
-  "toolVersionRange": "1.0.1",
+  "toolVersion": "1.1.0",
+  "toolVersionRange": "1.1.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,12 +10,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "602d354f6f3f96959795372503be4b879cc98f293247b567f03ba14d1759f6a2",
-      "bytes": 1662
+      "sha256": "a79568f114577289f314ca07a23292b218852957af12a055e856bf97ec06a7e2",
+      "bytes": 1806
     },
     "reference/inputs.json": {
-      "sha256": "01bb8d17559cbc40f97a9bf03a6cf56b595966ed434553a99935aec8cb2c2122",
-      "bytes": 1784
+      "sha256": "018169e50dac7dae1766963cc124cfdaef11bd9a0322f8b737333d7863abf2ac",
+      "bytes": 3350
     }
   }
 }

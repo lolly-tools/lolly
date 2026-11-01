@@ -10,6 +10,10 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.298 DXF import: a shell-supplied reader's entity list, flattened into Design paths and text.
+  'DXF_LIMITS', 'DXF_MAX_BOXES', 'DxfDesignResult', 'DxfImport', 'DxfImportOptions', 'DxfRaw', 'DxfReader',
+  'DxfReport', 'DxfStroke', 'DxfText', 'DxfUnits',
+  'aciToHex', 'dxfReportLines', 'dxfToDesign', 'dxfUnits', 'flattenDxf', 'importDxf', 'looksLikeDxf',
   // Additive 1.297 press separation: RGB to CMYK through a press profile, and its raster lattice.
   'CmykSeparation', 'DEVICE_SEPARATION', 'NEUTRAL_EPSILON', 'SeparateRgb', 'iccSeparation', 'separationLattice',
   // Additive 1.293 canvas size: the one conversion every shell hands a tool's hooks and template.

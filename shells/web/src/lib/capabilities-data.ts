@@ -358,7 +358,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'import', id: 'cap-import', title: 'Import formats', icon: ICONS.install,
-    desc: '56 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
+    desc: '60 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
     cards: [
       { icon: ICONS.image, title: 'Images', shot: 'auth-assets-uploads', keywords: 'png jpg jpeg webp avif heic heif jxl jpeg xl bmp ico favicon iphone photo exif gps strip gif apng animated svg svgz sanitise', features: [
         { name: 'PNG · JPG · WebP · AVIF · HEIC/HEIF', desc: 'Drop a photo or graphic into any image picker or your <strong>My images</strong> library. Stills are downscaled and stripped of EXIF/GPS on ingest; iPhone HEIC/HEIF decodes even where the browser can’t, via a bundled fallback. AVIF reads wherever the browser decodes it.' },
@@ -366,10 +366,12 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'JPEG XL · BMP · ICO', desc: 'A JPEG XL original is kept and shown as an sRGB view for editing; a BMP, or the largest image in an ICO, decodes directly.' },
         { name: 'SVG · SVGZ', desc: 'Vector artwork is sanitised - scripts, <code>on*</code> handlers and <code>javascript:</code> URLs are stripped - and normalised to a clean viewBox before it’s stored. A compressed <code>.svgz</code> unzips first.' },
       ] },
-      { icon: ICONS.vector, title: 'Design files', shot: 'design', keywords: 'figma fig penpot illustrator ai indesign idml pdf sketch import layout editable pptx powerpoint deck slides premiere xml xmeml sequence timeline', features: [
+      { icon: ICONS.vector, title: 'Design files', shot: 'design', keywords: 'figma fig penpot illustrator ai indesign idml pdf sketch import layout editable pptx powerpoint deck slides premiere xml xmeml sequence timeline edl cmx otio opentimelineio fcpxml final cut dxf autocad cad floor plan drawing', features: [
         { name: 'Figma · Penpot · Illustrator · InDesign · PDF', desc: 'Design imports a native Figma <code>.fig</code>, a Penpot export, an Illustrator <code>.ai</code> or any <code>.pdf</code>, and an InDesign <code>.idml</code> - each parsed in the browser into editable boxes. Text stays text, shapes stay shapes, complex art flattens faithfully.' },
         { name: 'Photoshop (PSD · PSB) · GIMP (XCF)', desc: 'Layered Photoshop and GIMP files open with their layers intact - each layer becomes an editable box - read on-device by the engine’s own PSD/XCF parsers, big PSB documents included.' },
         { name: 'Premiere XML', desc: 'A Premiere Pro <code>sequence.xml</code>, alone or zipped with its Media folder, opens in Design as a timed sequence. Pick the media it refers to, or keep labelled placeholders.' },
+        { name: 'EDL · OpenTimelineIO · FCPXML', desc: 'A CMX 3600 edit decision list, an OpenTimelineIO <code>.otio</code> file or a Final Cut Pro <code>.fcpxml</code> opens in Design as a timed sequence, the same way. Transitions, speed changes and effects are listed in the import report rather than guessed.' },
+        { name: 'DXF', desc: 'An AutoCAD <code>.dxf</code> drawing or floor plan opens with one group per layer, in the drawing’s own units. Hatches, external references and SHX fonts are listed in the import report rather than guessed.' },
         { name: 'Any SVG is the wide door', desc: 'Almost every design app can export SVG, so an SVG export becomes an editable, brand-conformed layout - the universal way in.' },
       ] },
       { icon: ICONS.present, title: 'Decks', keywords: 'pptx powerpoint deck slides presentation import keynote rebrand', features: [

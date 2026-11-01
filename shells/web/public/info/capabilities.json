@@ -1020,7 +1020,7 @@
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a",
+        "preserves": "none",
         "note": "A 999 comment names Lolly on export. An import reads layers, units and text and drops other record data."
       }
     },
