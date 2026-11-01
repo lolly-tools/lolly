@@ -60,7 +60,7 @@ if (process.argv.includes('--fetch')) {
       else failures.push({ path: file.path, error: 'Source bytes changed.' });
     } catch (error) { failures.push({ path: file.path, error: String(error) }); }
   }
-  const report = { repository: recipe.repository, commit: recipe.commit, adapter: 'photocraft-psd/0.2.0 + lolly-adobe-psd/0.1.0', wasmSha256: digest(await readFile(join(root, 'packages/node-shell/wasm/adobe-psd/adobe-psd.wasm'))), decodeBudget: 64 * 1024 * 1024, total: recipe.files.length, baseline, admitted, preserved, visualFidelity: 'Not measured by this admission check.', failures };
+  const report = { repository: recipe.repository, commit: recipe.commit, adapter: 'photocraft-psd/0.18.0 + lolly-adobe-psd/0.1.0', wasmSha256: digest(await readFile(join(root, 'packages/node-shell/wasm/adobe-psd/adobe-psd.wasm'))), decodeBudget: 64 * 1024 * 1024, total: recipe.files.length, baseline, admitted, preserved, visualFidelity: 'Not measured by this admission check.', failures };
   await mkdir(join(root, 'plans/artifacts/297'), { recursive: true });
   await writeFile(join(root, 'plans/artifacts/297/psd-corpus.json'), `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report, null, 2));
