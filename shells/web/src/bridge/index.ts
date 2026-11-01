@@ -324,6 +324,7 @@ export async function createBridge(): Promise<WebHost> {
     fromImages: async (images, opts) => (await loadPdf()).fromImages!(images, opts),
     stamp: async (bytes, opts) => (await loadPdf()).stamp!(bytes, opts),
     lock: async (bytes, password) => (await loadPdf()).lock!(bytes, password),
+    accessibility: async (bytes) => (await import('./pdf-a11y.ts')).summarisedPdfAccessibility(bytes),
     redact: async (bytes, opts) => (await import('./pdf-redact.ts')).redactPdf(bytes, opts, host),
     pages: async (bytes, opts) => (await import('./pdf-redact.ts')).pdfPages(bytes, opts, host),
   } as WebHost['pdf'];

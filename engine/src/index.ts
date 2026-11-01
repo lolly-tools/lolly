@@ -197,6 +197,9 @@ export type {
 // property is compared with a value read from the output bytes, and the report is
 // bound to those bytes by SHA-256 (plan 203 rank 12).
 export { verifyExport, compareExport, exportRequestFromJob } from './preflight-output.ts';
+export { PDF_ACCESSIBILITY_RULES, PDF_ACCESSIBILITY_RULE_IDS, PDF_ACCESSIBILITY_STATEMENTS, pdfAccessibilityOutcome, pdfAccessibilityRows, pdfAccessibilityCounts, pdfAccessibilityHeadline, summarisePdfAccessibility, pdfAccessibilityOutcomeLabel, pdfAccessibilityText } from './pdf-accessibility.ts';
+export type { PdfAccessibilityReader, PdfAccessibilitySummary, PdfAccessibilityRow, PdfAccessibilityOutcome } from './pdf-accessibility.ts';
+export type { VerifyExportReaders } from './preflight-output.ts';
 export type { ExportRequest, ExportCheck, ExportReport, ExportValue } from './preflight-output.ts';
 export { inspectOutput } from './output-facts.ts';
 export type { OutputFacts } from './output-facts.ts';

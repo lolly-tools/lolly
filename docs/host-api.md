@@ -449,6 +449,7 @@ Inspect a PDF, remove its metadata and make it smaller. The metadata and structu
 | `fromImages(images, opts?)` *(optional, v1.262)* | `Promise<PdfImagesResult>` | A new PDF with one PNG or JPEG per page. JPEG data is embedded without re-encoding and its metadata is left out |
 | `stamp(bytes, opts)` *(optional)* | `Promise<PdfStampResult>` | Place PNG or JPEG stamps at top-left PDF-point coordinates |
 | `lock(bytes, password)` *(optional)* | `Promise<{ bytes }>` | Apply an AES-256 open password as the last step |
+| `accessibility(bytes)` *(optional)* | `Promise<PdfAccessibilitySummary>` | Run 32 PDF accessibility checks and list which passed, failed, did not apply or need a person, in Lolly's words. Read-only: nothing is tagged or fixed. It is a list of checks, not a PDF/UA verdict. Rejects with a `code` of `not-pdf`, `encrypted`, `damaged` or `too-large` when the file cannot be read |
 :::
 
 ### `host.pptx`
