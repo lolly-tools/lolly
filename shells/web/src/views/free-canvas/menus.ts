@@ -1206,6 +1206,17 @@ export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): vo
       disabled: !(img?.id || img?.url),
     });
   }
+  // ── trace image ──────────────────────────────────────────────────────────────
+  // Needs a vector-capable tool (somewhere to put the paths) and an image field.
+  // Disables rather than hides, like Remove background above.
+  if (cfg.imageField && fc.vectorCfg) {
+    items.push({
+      label: t('Trace image…'),
+      icon: icon(SVG.simplify),
+      run: () => fc.traceImage.askTraceImage(),
+      disabled: !fc.traceImage.canTraceImage(),
+    });
+  }
   // ── lift layers (plans/104 section 7) ─────────────────────────────────────────────
   // Present for any tool with an image field (somewhere to put the derived
   // documents) - absent entirely otherwise, like the timeline/vector/matte

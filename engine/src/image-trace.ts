@@ -89,7 +89,7 @@ export interface Rect { x: number; y: number; w: number; h: number }
 
 /**
  * The part of an image box a person sees. `crop` is that part in image pixels (what
- * to trace), `placed` is where it lands in canvas pixels (the box itself for `cover`
+ * to trace), `placed` is where it goes in canvas pixels (the box itself for `cover`
  * and `fill`, the letterboxed picture for `contain`).
  */
 export interface ImageTraceView { crop: Rect; placed: Rect }
@@ -144,8 +144,8 @@ const hex = (c: readonly [number, number, number]): string =>
   '#' + c.map(n => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0')).join('');
 
 /**
- * The traced shapes as Design paths in canvas pixels. Image pixel (0, 0) lands at the
- * top left of `placed`; the traced size `result.width` by `result.height` maps onto it.
+ * The traced shapes as Design paths in canvas pixels. Image pixel (0, 0) goes to the
+ * top left of `placed`, and the traced size `result.width` by `result.height` fills that rectangle.
  * Refuses a result with more shapes or anchors than `IMAGE_TRACE_MAX_*`.
  */
 export function imageTraceToPaths(result: ImageTraceResult, placed: Rect): TracedDesignPath[] {
