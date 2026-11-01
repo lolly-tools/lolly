@@ -2066,6 +2066,38 @@ export const xlsxNumfmtTarget: FuzzTarget = {
     readXlsx(bytes, { formatCell: kernel.formatCell });
   },
 };
+// Image trace (packages/node-shell/wasm/image-trace): pixels from the shell's own decoder, plus an
+// 8-byte header (width, height) the module checks. Contract: a result the wire reader accepts or an
+// ImageTraceError refusal; never a trap or a hang. Seeds are a tiny logo and a tiny line drawing;
+// mutations reach the header (sizes that disagree with the length) and the pixel values.
+export const imageTraceTarget: FuzzTarget = {
+  name: 'image-trace',
+  async seeds() {
+    const { logoFixture, lineArtFixture } = await import('../helpers/image-trace-fixtures.ts');
+    const pack = (f: { width: number; height: number; rgba: Uint8Array }) => {
+      const out = new Uint8Array(8 + f.rgba.length);
+      new DataView(out.buffer).setUint32(0, f.width, true); new DataView(out.buffer).setUint32(4, f.height, true);
+      out.set(f.rgba, 8); return out;
+    };
+    return [pack(logoFixture(24)), pack(lineArtFixture(24))];
+  },
+  async invoke(bytes) {
+    const { loadImageTraceKernel } = await import('../../packages/node-shell/src/image-trace-node.ts');
+    const { ImageTraceError } = await import('../../engine/src/image-trace.ts');
+    const kernel = await loadImageTraceKernel();
+    if (bytes.length < 8) return;
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    // Small sizes only, so a mutated header does not ask the module for megapixels on every case.
+    const w = (dv.getUint32(0, true) % 48) + 1, h = (dv.getUint32(4, true) % 48) + 1;
+    const pixels = new Uint8Array(w * h * 4);
+    pixels.set(bytes.subarray(8, 8 + pixels.length));
+    for (const preset of ['logo', 'illustration', 'line-art', 'centreline'] as const) {
+      try { kernel.trace(pixels, w, h, preset); } catch (error) { if (!(error instanceof ImageTraceError)) throw error; }
+    }
+    // The raw header path: the declared size and the length need not agree.
+    try { kernel.trace(bytes.subarray(8), dv.getUint32(0, true), dv.getUint32(4, true), 'illustration'); } catch (error) { if (!(error instanceof ImageTraceError)) throw error; }
+  },
+};
 // PDF accessibility check (packages/node-shell/wasm/pdf-a11y): reads an arbitrary user PDF.
 // Contract: a report or a typed PdfAccessibilityError refusal; never a trap, a hang or an
 // answer the transport cannot parse. Seeds are a small untagged PDF and a tagged one with a
@@ -2319,9 +2351,38 @@ export const audioDspTarget: FuzzTarget = {
   },
 };
 
+export const captionsSccTarget: FuzzTarget = {
+  name: 'captions-scc',
+  async seeds() {
+    const { cuesToScc } = await import('../../engine/src/captions-scc.ts');
+    const cues = [{ start: 3, end: 5, text: 'Hello, world' }, { start: 5, end: 8.5, text: 'Ñandú ♪ {x}\nsecond line' }, { start: 70, end: 72, text: 'After the minute' }];
+    return [new TextEncoder().encode(cuesToScc(cues).text), new TextEncoder().encode(cuesToScc(cues, { dropFrame: false }).text),
+      new TextEncoder().encode('Scenarist_SCC V1.0\n\n00:00:00:00\t9425 9425 94ad 94ad c1c2 94ad 94ad 4344\n\n00:00:02:00\t942c 942c\n')];
+  },
+  async invoke(bytes) {
+    const { sccToCues, cuesToScc } = await import('../../engine/src/captions-scc.ts');
+    const { cues } = sccToCues(new TextDecoder().decode(bytes));
+    cuesToScc(cues, { onUnsupported: 'replace' });
+  },
+};
+export const captionsTtmlTarget: FuzzTarget = {
+  name: 'captions-ttml',
+  async seeds() {
+    const { cuesToTtml } = await import('../../engine/src/captions-ttml.ts');
+    const cues = [{ start: 1, end: 2.5, text: 'Hello & goodbye' }, { start: 3, end: 4, text: 'Two\nlines' }];
+    const timed = '<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" ttp:frameRate="30" ttp:frameRateMultiplier="1000 1001"><body begin="5s"><div begin="00:00:01:15"><p begin="30t" end="60t">x<br/><span begin="1s" end="2s">y</span></p></div></body></tt>';
+    return [new TextEncoder().encode(cuesToTtml(cues)), new TextEncoder().encode(timed)];
+  },
+  async invoke(bytes) {
+    const { ttmlToCues, cuesToTtml } = await import('../../engine/src/captions-ttml.ts');
+    const { cues } = ttmlToCues(new TextDecoder().decode(bytes), parseXml);
+    cuesToTtml(cues);
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, dxfTarget, idmlReadTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, dxfTarget, idmlReadTarget, captionsSccTarget, captionsTtmlTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,
@@ -2337,6 +2398,6 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget, imageTraceTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

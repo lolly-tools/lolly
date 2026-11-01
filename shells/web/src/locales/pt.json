@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Selecione os arquivos de mídia a que esta linha do tempo se refere, ou continue com marcadores identificados.",
   "Text file (.txt)": "Arquivo de texto (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Não foi possível converter esse arquivo do InDesign neste dispositivo. Exporte-o do InDesign como IDML e tente de novo.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Não foi possível abrir esse arquivo do InDesign. Exporte-o do InDesign como IDML e tente de novo."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Não foi possível abrir esse arquivo do InDesign. Exporte-o do InDesign como IDML e tente de novo.",
+  "Adding shapes": "Adicionando formas",
+  "Clean edge colour": "Limpar cor da borda",
+  "No shapes were found. Try another preset.": "Nenhuma forma foi encontrada. Tente outra predefinição.",
+  "Reading the image": "Lendo a imagem",
+  "Starting the tracer": "Iniciando o vetorizador",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Troca a cor do fundo antigo na borda pela cor do próprio assunto. Experimente se você vir um halo.",
+  "The image could not be traced.": "Não foi possível vetorizar a imagem.",
+  "This image could not be read.": "Não foi possível ler esta imagem.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Esta vetorização cria pontos demais para a tela. Experimente a predefinição Logotipo ou Arte de linha, ou uma imagem mais simples.",
+  "Trace": "Vetorizar",
+  "Trace image": "Vetorizar imagem",
+  "Trace image…": "Vetorizar imagem…",
+  "Traced into one shape, above the image.": "Vetorizada em uma forma, acima da imagem.",
+  "Traced into {n} shapes, above the image.": "Vetorizada em {n} formas, acima da imagem.",
+  "Tracing": "Vetorizando",
+  "Tracing image": "Vetorizando a imagem",
+  "Turn this picture into shapes you can edit.": "Transforme esta imagem em formas que você pode editar."
 }

@@ -1323,6 +1323,42 @@
       }
     },
     {
+      "token": "TTML",
+      "name": "TTML",
+      "category": "Data",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "A TTML file from Lolly is cues and text only, with no metadata block."
+      }
+    },
+    {
+      "token": "SCC",
+      "name": "SCC",
+      "category": "Data",
+      "dir": "out",
+      "reads": false,
+      "writes": true,
+      "roundTrips": false,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "An SCC file is caption control codes and text only, with no metadata block."
+      }
+    },
+    {
       "token": "DTCG",
       "name": "DTCG",
       "category": "Tokens",

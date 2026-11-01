@@ -122,6 +122,25 @@ Altre tre operazioni agiscono su una singola forma. **Outline stroke…** trasfo
 
 Il risultato è un nuovo tracciato che puoi continuare a modificare con la penna, memorizzato come semplici curve di Bezier, quindi il tipo di spline originale non viene mantenuto. I fori sono veri fori: il controllo **Fill rule** nel pannello del tratto decide se i contorni sovrapposti si riempiono (*non-zero*) o si bucano (*even-odd*). Le operazioni rifiutano piuttosto che distruggere: se chiedi di intersecare due forme che non si sovrappongono, non cambia nulla. I box di testo e di immagine non hanno un contorno, quindi vengono lasciati stare.
 
+## Traccia un’immagine
+
+Seleziona un’immagine, fai clic con il pulsante destro e scegli **Traccia immagine…** per trasformarla in forme modificabili. Scegli un preset e premi **Traccia**:
+
+- **Logo** trova pochi colori piatti e mantiene bordi nitidi, cerchi e linee precisi. Rifiuta un’immagine con sfumature o toni fotografici e te lo dice.
+- **Illustrazione** traccia più colori come forme piene, per grafiche piatte o immagini posterizzate.
+- **Disegno al tratto** traccia le linee scure su una pagina chiara come forme nere.
+- **Linea centrale** traccia le linee scure come singoli contorni, così puoi cambiarne lo spessore in seguito.
+
+Le forme vengono aggiunte come gruppo subito sopra l’immagine, che resta dov’è. Nascondi o elimina l’immagine per vedere solo i tracciati. Il tracciamento viene eseguito sul tuo dispositivo in un processo in background con un pulsante Annulla, e non viene caricato nulla. Un’immagine di 1500 pixel richiede di solito da uno a qualche secondo, mentre una fotografia complessa richiede di più.
+
+Il tracciamento segue ciò che mostra il riquadro, quindi un’immagine ritagliata (Cover) traccia solo la parte visibile. Valgono questi limiti:
+
+- Le immagini vengono ridotte a un massimo di 1500 pixel sul lato lungo prima del tracciamento, quindi i bordi sono posizionati con la precisione di quella dimensione, non dell’originale.
+- Un tracciamento crea al massimo 1.500 forme e 60.000 punti. Una fotografia di solito supera questi limiti e Design te lo dice senza modificare nulla. Prova Logo o Disegno al tratto, oppure un’immagine più semplice.
+- Le sfumature diventano bande di colore piatto e le ombre morbide diventano forme dai bordi netti.
+- Raggio degli angoli, maschera di forma ed effetti sul riquadro dell’immagine non vengono applicati ai tracciati.
+- La stessa immagine e lo stesso preset danno sempre le stesse forme.
+
 ## Tratti
 
 Un box, un'immagine, una tavola e un tracciato a penna possono avere ciascuno un tratto: un colore, uno spessore e uno stile (continuo, tratteggiato o puntinato). Le righe del tratto stanno sotto **Fill** nell'Inspector, e il pulsante **Stroke** della barra dell'oggetto le apre.

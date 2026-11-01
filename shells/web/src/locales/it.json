@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Seleziona i file multimediali a cui rimanda questa timeline, oppure continua con segnaposto etichettati.",
   "Text file (.txt)": "File di testo (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Non è stato possibile convertire quel file InDesign su questo dispositivo. Esportalo da InDesign come IDML e riprova.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Non è stato possibile aprire quel file InDesign. Esportalo da InDesign come IDML e riprova."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Non è stato possibile aprire quel file InDesign. Esportalo da InDesign come IDML e riprova.",
+  "Adding shapes": "Aggiunta delle forme",
+  "Clean edge colour": "Colore del bordo pulito",
+  "No shapes were found. Try another preset.": "Non è stata trovata nessuna forma. Prova un altro preset.",
+  "Reading the image": "Lettura dell’immagine",
+  "Starting the tracer": "Avvio del tracciatore",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Sostituisce nel bordo il colore del vecchio sfondo con quello del soggetto. Provalo se vedi un alone.",
+  "The image could not be traced.": "Non è stato possibile tracciare l’immagine.",
+  "This image could not be read.": "Non è stato possibile leggere questa immagine.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Questo tracciamento crea troppi punti per la tela. Prova il preset Logo o Disegno al tratto, oppure un’immagine più semplice.",
+  "Trace": "Traccia",
+  "Trace image": "Traccia immagine",
+  "Trace image…": "Traccia immagine…",
+  "Traced into one shape, above the image.": "Tracciata in una forma, sopra l’immagine.",
+  "Traced into {n} shapes, above the image.": "Tracciata in {n} forme, sopra l’immagine.",
+  "Tracing": "Tracciamento",
+  "Tracing image": "Tracciamento dell’immagine",
+  "Turn this picture into shapes you can edit.": "Trasforma questa immagine in forme che puoi modificare."
 }

@@ -725,7 +725,7 @@
     "MatteOpts": {
       "module": "matte.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "be0918c58cb60f45f70b11817ba23ac0ccf7317e7965f223085386749f7fc1d9"
+      "sha256": "f9f3141f4ec9309fcc22e3df550d3752126ec69e124f1e59e84ceb662335fe7c"
     },
     "MatteFeasibility": {
       "module": "matte.ts",

@@ -60,7 +60,7 @@ export const CATALOG_SIG_PATH = 'tools/index.sig.json';
  * refused to load at all.
  */
 export const TEXT_TEMPLATE_EXTS = [
-  'ics', 'vcf', 'csv', 'srt', 'vtt', 'md', 'css', 'scss', 'gpl', 'json',
+  'ics', 'vcf', 'csv', 'srt', 'vtt', 'ttml', 'scc', 'md', 'css', 'scss', 'gpl', 'json',
 ] as const;
 
 /** Fixed tool-directory filenames covered by the signature. Together with the

@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Wählen Sie die Mediendateien aus, auf die diese Zeitleiste verweist, oder fahren Sie mit beschrifteten Platzhaltern fort.",
   "Text file (.txt)": "Textdatei (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Diese InDesign-Datei konnte auf diesem Gerät nicht konvertiert werden. Exportieren Sie sie aus InDesign als IDML und versuchen Sie es erneut.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Diese InDesign-Datei konnte nicht geöffnet werden. Exportieren Sie sie aus InDesign als IDML und versuchen Sie es erneut."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Diese InDesign-Datei konnte nicht geöffnet werden. Exportieren Sie sie aus InDesign als IDML und versuchen Sie es erneut.",
+  "Adding shapes": "Formen werden hinzugefügt",
+  "Clean edge colour": "Kantenfarbe bereinigen",
+  "No shapes were found. Try another preset.": "Es wurden keine Formen gefunden. Probieren Sie ein anderes Preset.",
+  "Reading the image": "Bild wird gelesen",
+  "Starting the tracer": "Nachzeichner wird gestartet",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Ersetzt die Farbe des alten Hintergrunds an der Kante durch die eigene Farbe des Motivs. Probieren Sie es, wenn Sie einen Lichthof sehen.",
+  "The image could not be traced.": "Das Bild konnte nicht nachgezeichnet werden.",
+  "This image could not be read.": "Dieses Bild konnte nicht gelesen werden.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Diese Nachzeichnung erzeugt zu viele Punkte für die Arbeitsfläche. Probieren Sie das Preset „Logo“ oder „Strichzeichnung“ oder ein einfacheres Bild.",
+  "Trace": "Nachzeichnen",
+  "Trace image": "Bild nachzeichnen",
+  "Trace image…": "Bild nachzeichnen…",
+  "Traced into one shape, above the image.": "In eine Form nachgezeichnet, über dem Bild.",
+  "Traced into {n} shapes, above the image.": "In {n} Formen nachgezeichnet, über dem Bild.",
+  "Tracing": "Wird nachgezeichnet",
+  "Tracing image": "Bild wird nachgezeichnet",
+  "Turn this picture into shapes you can edit.": "Verwandeln Sie dieses Bild in Formen, die Sie bearbeiten können."
 }

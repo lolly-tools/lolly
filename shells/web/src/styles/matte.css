@@ -96,6 +96,12 @@
   font-weight: 600;
   color: hsl(var(--muted-foreground));
 }
+.matte-field-check {
+  flex: 1 1 100%;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
 .matte-field-label {
   display: inline-flex;
   align-items: center;

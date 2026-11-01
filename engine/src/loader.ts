@@ -412,7 +412,7 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   }
   const declared = manifest.render?.formats ?? [];
   // Sibling text templates for data formats (template.ics / .vcf / .csv / .srt /
-  // .vtt / .md / .css / .scss / .gpl / .json). Only fetched when the manifest
+  // .vtt / .ttml / .scc / .md / .css / .scss / .gpl / .json). Only fetched when the manifest
   // actually declares that format, so most tools incur no extra requests. The
   // runtime hydrates these from the input model on export. `md` and `json` are
   // opt-in per tool: with a template.md/.json the export is model-derived; without

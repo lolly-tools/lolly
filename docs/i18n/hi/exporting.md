@@ -82,6 +82,7 @@ Lolly Work फ़ाइल को कॉन्फ़िगर किए S3, WebD
 | Premiere को सौंपना | **Premiere XML + media** | Premiere के लिए समयबद्ध क्लिप और मूल मीडिया (Design) |
 | सोशल और शेयरिंग के लिए वीडियो | **MP4** या **WebM** | फ़ाइल आकार के लिए सर्वोत्तम गुणवत्ता (देखें [Video](#video)) |
 | कैप्शन | **SRT** या **VTT** | वीडियो प्लेयर के लिए समयबद्ध टेक्स्ट (Captions, Audiogram और Record) |
+| ब्रॉडकास्ट कैप्शन | **TTML** या **SCC** | IMSC1.1 समयबद्ध टेक्स्ट, या CEA-608 pop-on कैप्शन (Captions; देखें [ब्रॉडकास्ट कैप्शन](#broadcast-captions)) |
 | प्रशिक्षण कोर्स | **SCORM (LMS)** | संस्करणित वेबसाइट, SCORM या xAPI पैकेज (देखें [SCORM](#scorm-course-packages)) |
 | रिच टेक्स्ट या ईमेल सिग्नेचर | **HTML** | मेल क्लाइंट में फ़ॉर्मैट के साथ पेस्ट होता है |
 | सादी सामग्री | **MD** या **TXT** | केवल टेक्स्ट |
@@ -199,6 +200,16 @@ Design की टाइमलाइन से **dotLottie** ऐसा एनि�
 ![एक Design डेक पर एक्सपोर्ट पैनल जिसमें SCORM (LMS) चुना गया है](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 पैकेज अपनी तैयार सामग्री रखता है और उसे Lolly खाता नहीं चाहिए। Website ZIP को HTTP(S) होस्ट पर रखें; LMS ZIP बिना बदले इम्पोर्ट करें। कोर्स साझा करने से पहले गंतव्य का परीक्षण करें। कई सहेजी रचनाओं से बने कोर्स के लिए देखें [Create a training course](/info/training-creators.html)।
+
+### ब्रॉडकास्ट कैप्शन
+
+Captions टूल **TTML** और **SCC** भी एक्सपोर्ट कर सकता है। दोनों उसी क्यू सूची से लिखे जाते हैं जिससे SRT और VTT फ़ाइलें, इसलिए शब्द और समय मेल खाते हैं।
+
+- **TTML** IMSC1.1 Text Profile है, जिसमें मीडिया-टाइम क्लॉक समय और नीचे बीच में एक रीजन होता है। इसमें हर कैप्शन का रंग, फ़ॉन्ट या स्थिति नहीं होती, क्योंकि Lolly के कैप्शन में सिर्फ़ शुरुआत, अंत और टेक्स्ट होता है।
+- **SCC** चैनल 1 पर 29.97 फ़्रेम प्रति सेकंड पर ड्रॉप-फ़्रेम टाइमकोड के साथ CEA-608 pop-on कैप्शन रखता है। यह बुनियादी उत्तर अमेरिकी वर्णों के साथ विशेष और विस्तारित वर्णों को भी सपोर्ट करता है। अगर किसी कैप्शन में ऐसा वर्ण हो जिसे यह सेट नहीं रख सकता, तो एक्सपोर्ट रुक जाता है और बताता है कि कौन-सा वर्ण है, इसलिए कुछ भी बिना सूचना के नहीं छूटता। हर कैप्शन 32 कॉलम और ज़्यादा से ज़्यादा 15 पंक्तियों में रैप होता है। जो कैप्शन अपने शुरू होने के समय से पहले लोड नहीं हो सकता, वह कुछ फ़्रेम देर से दिखता है।
+- Roll-up और paint-on कैप्शन नहीं लिखे जाते।
+
+SCC आउटपुट को किसी असली ब्रॉडकास्ट टूल या हार्डवेयर डिकोडर पर जाँचा नहीं गया है। डिलीवरी से पहले किसी फ़ाइल को अपनी पाइपलाइन में परखें।
 
 ### DXF (कट फ़ाइलें)
 
@@ -410,7 +421,7 @@ Lolly एक CMYK प्रोफ़ाइल के साथ आता है,
 | पन्ना और दस्तावेज़ | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot design file) · `scorm` (कोर्स पैकेज, एक ZIP) |
 | मोशन | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | ऑडियो | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| टेक्स्ट और डेटा | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP palette) |
+| टेक्स्ट और डेटा | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | बंडल और पैकेज | `zip` · `rpm` और `tar.gz` (Linux पैकेज में सील किया रेंडर) |
 
 कुछ id टूल के अपने एक्सपोर्ट कोड से आते हैं: `ase` (Adobe Swatch Exchange, Palette Lab से) और `exr` तथा `hdr` (हाई-डायनामिक-रेंज रैस्टर, Darkroom से)। **Convert Font** आपकी दी फ़ॉन्ट फ़ाइल से `ttf`, `otf` और `woff` लिखता है, इसलिए सादे लिंक के पास रेंडर करने को कुछ नहीं होता।

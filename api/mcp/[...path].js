@@ -322,6 +322,8 @@ var init_tool_schema = __esm({
                   "vcf",
                   "srt",
                   "vtt",
+                  "ttml",
+                  "scc",
                   "ico",
                   "zip",
                   "webp",
@@ -4060,6 +4062,8 @@ var init_catalog_integrity = __esm({
       "csv",
       "srt",
       "vtt",
+      "ttml",
+      "scc",
       "md",
       "css",
       "scss",
@@ -4088,7 +4092,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.298.0";
+    ENGINE_VERSION = "1.299.0";
   }
 });
 
@@ -35861,9 +35865,9 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
     const attributes2 = {};
     const hidden4 = { value: false };
     let style = "";
-    for (const attr6 of Array.from(element.attributes)) {
-      const value2 = attr6.value;
-      let name = attr6.name;
+    for (const attr7 of Array.from(element.attributes)) {
+      const value2 = attr7.value;
+      let name = attr7.name;
       if (/[^\x20-\x7e\t\r\n]/.test(value2)) throw new Error("Unsupported SVG attribute characters.");
       totalArguments += value2.length;
       if (totalArguments > 1e6) throw new Error("SVG exceeds the supported geometry budget.");
@@ -35883,10 +35887,10 @@ function normalize(source, viewBox, parseXml, authoredPaint = false) {
         changes.add(`Omitted inert root ${name}.`);
         continue;
       }
-      if (tag3 === "use" && name === "xlink:href" && attr6.namespaceURI === xlinkNamespace) {
+      if (tag3 === "use" && name === "xlink:href" && attr7.namespaceURI === xlinkNamespace) {
         name = "href";
         changes.add("Canonicalized xlink:href to href.");
-      } else if (attr6.namespaceURI || attr6.prefix) throw new Error("Unsupported SVG attribute namespace.");
+      } else if (attr7.namespaceURI || attr7.prefix) throw new Error("Unsupported SVG attribute namespace.");
       if (name === "style") {
         style = value2;
         continue;
@@ -39277,6 +39281,8 @@ var init_metadata = __esm({
       "vcf",
       "srt",
       "vtt",
+      "ttml",
+      "scc",
       "css",
       "scss",
       "gpl",
@@ -41508,6 +41514,848 @@ var init_bake = __esm({
   }
 });
 
+// engine/src/captions.ts
+function groupWordsToCues(words4, opts = {}) {
+  const maxChars = opts.maxChars ?? 42;
+  const maxDurationS = opts.maxDurationS ?? 5;
+  const gapS = opts.gapS ?? 0.6;
+  const cues = [];
+  let open3 = null;
+  for (const w of words4) {
+    const text12 = w.text.trim();
+    if (!text12) continue;
+    if (open3) {
+      const joined = `${open3.text} ${text12}`;
+      const overflow = joined.length > maxChars || w.end - open3.start > maxDurationS;
+      const paused = w.start - open3.end >= gapS;
+      if (overflow || paused) {
+        cues.push(open3);
+        open3 = null;
+      } else {
+        open3.text = joined;
+        open3.end = w.end;
+      }
+    }
+    if (!open3) open3 = { start: w.start, end: w.end, text: text12 };
+    if (SENTENCE_END.test(text12)) {
+      cues.push(open3);
+      open3 = null;
+    }
+  }
+  if (open3) cues.push(open3);
+  return cues;
+}
+function cuesForSlide(words4, slideStartMs, slideEndMs, opts = {}) {
+  const startS = Number.isFinite(slideStartMs) ? Math.max(0, slideStartMs) / 1e3 : 0;
+  const endS = Number.isFinite(slideEndMs) ? slideEndMs / 1e3 : 0;
+  if (!(endS > startS)) return [];
+  const offsetS = Number.isFinite(opts.offsetMs) ? Math.max(0, opts.offsetMs) / 1e3 : 0;
+  const minKeepS = Number.isFinite(opts.minKeepS) && opts.minKeepS > 0 ? opts.minKeepS : 0.05;
+  const base = startS + offsetS;
+  const out = [];
+  for (const c of groupWordsToCues(words4, opts)) {
+    const s = Math.max(startS, base + c.start);
+    const e = Math.min(endS, base + c.end);
+    if (!(e > s) || e - s < minKeepS) continue;
+    out.push({ start: round3(s), end: round3(e), text: c.text });
+  }
+  return out;
+}
+function stamp(seconds3, sep3) {
+  const ms = Math.max(0, Math.round(seconds3 * 1e3));
+  const h = Math.floor(ms / 36e5);
+  const m2 = Math.floor(ms % 36e5 / 6e4);
+  const s = Math.floor(ms % 6e4 / 1e3);
+  const frac = ms % 1e3;
+  const pad = (n7, w = 2) => String(n7).padStart(w, "0");
+  return `${pad(h)}:${pad(m2)}:${pad(s)}${sep3}${pad(frac, 3)}`;
+}
+function cuesToVtt(cues) {
+  const blocks = cues.map((c) => `${stamp(c.start, ".")} --> ${stamp(c.end, ".")}
+${c.text}`);
+  return `WEBVTT
+
+${blocks.join("\n\n")}
+`;
+}
+function cuesToSrt(cues) {
+  const blocks = cues.map(
+    (c, i) => `${i + 1}
+${stamp(c.start, ",")} --> ${stamp(c.end, ",")}
+${c.text}`
+  );
+  return `${blocks.join("\n\n")}
+`;
+}
+function cueAt(cues, t) {
+  let lo = 0;
+  let hi = cues.length - 1;
+  while (lo <= hi) {
+    const mid3 = lo + hi >> 1;
+    const c = cues[mid3];
+    if (t < c.start) hi = mid3 - 1;
+    else if (t >= c.end) lo = mid3 + 1;
+    else return c;
+  }
+  return null;
+}
+var SENTENCE_END, CaptionFormatError, round3;
+var init_captions = __esm({
+  "engine/src/captions.ts"() {
+    "use strict";
+    SENTENCE_END = /[.!?…][)\]"'”’]*$/;
+    CaptionFormatError = class extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "CaptionFormatError";
+      }
+    };
+    round3 = (v) => Math.round(v * 1e3) / 1e3;
+  }
+});
+
+// engine/src/adobe-xml.ts
+function escapeAdobeXml(source) {
+  for (const character of source) {
+    const code = character.codePointAt(0);
+    if (code < 32 && ![9, 10, 13].includes(code) || code >= 55296 && code <= 57343 || code === 65534 || code === 65535) throw new Error("Adobe XML text contains an unsupported character.");
+  }
+  return escapeXml(source);
+}
+function readAdobeXml(source, parse2, maxBytes = 1024 * 1024) {
+  if (source.length > maxBytes || new TextEncoder().encode(source).length > maxBytes) throw new Error("Adobe XML exceeds the input byte limit.");
+  if (/<!DOCTYPE|<!ENTITY/i.test(source)) throw new Error("Adobe XML cannot contain a document type or entity declaration.");
+  const doc = parse2(source);
+  if (!doc.documentElement || doc.getElementsByTagName("parsererror").length) throw new Error("Adobe XML is malformed.");
+  const stack = [{ el: doc.documentElement, depth: 1 }];
+  let count4 = 0;
+  while (stack.length) {
+    const { el, depth } = stack.pop();
+    if (++count4 > 5e4 || depth > 64 || el.attributes.length > 512) throw new Error("Adobe XML exceeds the structure limits.");
+    for (const child2 of Array.from(el.children)) stack.push({ el: child2, depth: depth + 1 });
+  }
+  return doc;
+}
+function adobeChildren(el, name) {
+  return Array.from(el.children).filter((c) => c.localName === name);
+}
+function adobeChild(el, name) {
+  return adobeChildren(el, name)[0];
+}
+function adobeText(el, name) {
+  return adobeChild(el, name)?.textContent?.trim() ?? "";
+}
+var init_adobe_xml = __esm({
+  "engine/src/adobe-xml.ts"() {
+    "use strict";
+    init_xml_escape();
+  }
+});
+
+// engine/src/captions-ttml.ts
+function clockTime(seconds3) {
+  const ms = Math.round(seconds3 * 1e3);
+  const h = Math.floor(ms / 36e5);
+  const m2 = Math.floor(ms % 36e5 / 6e4);
+  const s = Math.floor(ms % 6e4 / 1e3);
+  const pad = (n7, w = 2) => String(n7).padStart(w, "0");
+  return `${pad(h)}:${pad(m2)}:${pad(s)}.${pad(ms % 1e3, 3)}`;
+}
+function xmlSafe(text12, what) {
+  for (const ch of text12) {
+    const c = ch.codePointAt(0);
+    if (c < 32 && c !== 9 && c !== 10 && c !== 13 || c >= 55296 && c <= 57343 || c === 65534 || c === 65535) {
+      throw new CaptionFormatError(`${what} holds a character that XML cannot carry (U+${c.toString(16).toUpperCase().padStart(4, "0")}).`);
+    }
+  }
+  return escapeXml(text12);
+}
+function cuesToTtml(cues, opts = {}) {
+  const lang = opts.lang ?? "en";
+  if (lang !== "" && !/^[A-Za-z]{1,8}(-[A-Za-z0-9]{1,8})*$/.test(lang)) throw new CaptionFormatError("The language tag is not valid.");
+  if (cues.length > TTML_LIMITS.maxCues) throw new CaptionFormatError("Too many captions for one TTML file.");
+  const body = [];
+  cues.forEach((c, i) => {
+    if (!Number.isFinite(c.start) || !Number.isFinite(c.end) || c.start < 0 || c.end < c.start || c.end > TTML_LIMITS.maxSeconds) {
+      throw new CaptionFormatError(`Caption ${i + 1} has a time that is out of range.`);
+    }
+    if (c.text.length > TTML_LIMITS.maxCueChars) throw new CaptionFormatError(`Caption ${i + 1} is too long.`);
+    const lines = c.text.split(/\r\n|\r|\n/).map((l) => xmlSafe(l, `Caption ${i + 1}`));
+    body.push(`      <p xml:id="c${i + 1}" begin="${clockTime(c.start)}" end="${clockTime(c.end)}">${lines.join("<br/>")}</p>`);
+  });
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    `<tt xmlns="${TTML_NS}" xmlns:tts="${TTML_NS}#styling" xmlns:ttp="${TTML_NS}#parameter" xml:lang="${lang}" ttp:timeBase="media" ttp:contentProfiles="${IMSC11_TEXT_PROFILE}">`,
+    "  <head>",
+    "    <layout>",
+    '      <region xml:id="bottom" tts:origin="10% 70%" tts:extent="80% 20%" tts:displayAlign="after" tts:textAlign="center"/>',
+    "    </layout>",
+    "  </head>",
+    '  <body region="bottom">',
+    "    <div>",
+    ...body,
+    "    </div>",
+    "  </body>",
+    "</tt>",
+    ""
+  ].join("\n");
+}
+function posInt(raw, name) {
+  if (raw === null) return null;
+  if (!/^\d+$/.test(raw.trim()) || !Number.isSafeInteger(Number(raw)) || Number(raw) <= 0) throw new CaptionFormatError(`The ${name} value "${raw.slice(0, 20)}" is not a positive whole number.`);
+  return Number(raw);
+}
+function readTiming(root2) {
+  const timeBase = attr(root2, "timeBase");
+  if (timeBase !== null && timeBase !== "media") throw new CaptionFormatError(`The time base "${timeBase.slice(0, 20)}" is not supported. Only media time is read.`);
+  const frameRate = posInt(attr(root2, "frameRate"), "frame rate");
+  const subFrames = posInt(attr(root2, "subFrameRate"), "sub-frame rate") ?? 1;
+  let mult = 1;
+  const rawMult = attr(root2, "frameRateMultiplier");
+  if (rawMult !== null) {
+    const m2 = /^\s*(\d+)\s+(\d+)\s*$/.exec(rawMult);
+    if (!m2 || Number(m2[1]) <= 0 || Number(m2[2]) <= 0) throw new CaptionFormatError("The frame rate multiplier must be two positive whole numbers.");
+    mult = Number(m2[1]) / Number(m2[2]);
+  }
+  const nominal = frameRate ?? 30;
+  const fps = nominal * mult;
+  const explicit = posInt(attr(root2, "tickRate"), "tick rate");
+  const tickRate = explicit ?? (frameRate !== null ? fps * subFrames : 1);
+  return { fps, nominal, subFrames, tickRate };
+}
+function parseTtmlTime(expr, t = { fps: 30, nominal: 30, subFrames: 1, tickRate: 1 }) {
+  const s = expr.trim();
+  let out = null;
+  const m2 = /^(\d{2,}):(\d{2}):(\d{2})(?:\.(\d{1,12})|:(\d{2,})(?:\.(\d+))?)?$/.exec(s);
+  const off = m2 ? null : /^(\d+(?:\.\d{1,12})?)(ms|h|m|s|f|t)$/.exec(s);
+  if (m2) {
+    const [hh, mm, ss] = [Number(m2[1]), Number(m2[2]), Number(m2[3])];
+    if (mm > 59 || ss > 59) return null;
+    out = hh * 3600 + mm * 60 + ss;
+    if (m2[4]) out += Number(`0.${m2[4]}`);
+    if (m2[5]) {
+      const ff = Number(m2[5]);
+      if (ff >= t.nominal) return null;
+      out += ff / t.fps;
+      if (m2[6]) {
+        const sub = Number(m2[6]);
+        if (!/^\d+$/.test(m2[6]) || sub >= t.subFrames) return null;
+        out += sub / (t.fps * t.subFrames);
+      }
+    }
+  } else if (off) {
+    const n7 = Number(off[1]);
+    const unit2 = off[2];
+    out = unit2 === "h" ? n7 * 3600 : unit2 === "m" ? n7 * 60 : unit2 === "s" ? n7 : unit2 === "ms" ? n7 / 1e3 : unit2 === "f" ? n7 / t.fps : n7 / t.tickRate;
+  }
+  if (out === null || !Number.isFinite(out) || out < 0 || out > TTML_LIMITS.maxSeconds) return null;
+  return out;
+}
+function ttmlToCues(source, parse2, opts = {}) {
+  if (typeof source !== "string") throw new CaptionFormatError("TTML input must be text.");
+  let doc;
+  try {
+    doc = readAdobeXml(source.replace(/^﻿/, ""), parse2, TTML_LIMITS.maxBytes);
+  } catch (err) {
+    throw new CaptionFormatError(`This is not a readable TTML file: ${err.message}`);
+  }
+  const root2 = doc.documentElement;
+  if (root2.localName !== "tt") throw new CaptionFormatError('This is not a TTML file: the root element must be "tt".');
+  const timing = readTiming(root2);
+  const issues = [];
+  const seen = /* @__PURE__ */ new Set();
+  const note2 = (code, message, once = false) => {
+    if (opts.strict) throw new CaptionFormatError(message);
+    if (once && seen.has(code)) return;
+    seen.add(code);
+    issues.push({ code, message });
+  };
+  const cues = [];
+  const noteStyle = (el) => {
+    for (const a of Array.from(el.attributes)) {
+      if (a.namespaceURI?.endsWith("#styling")) note2("styling", "Colour, font and position settings in the TTML file are not carried.", true);
+    }
+  };
+  const clock = (el, name) => {
+    const raw = attr(el, name);
+    if (raw === null) return void 0;
+    return parseTtmlTime(raw, timing);
+  };
+  const interval = (el, parent, label5) => {
+    const b = clock(el, "begin");
+    const e = clock(el, "end");
+    const d = clock(el, "dur");
+    if (b === null || e === null || d === null) {
+      note2("bad-time", `A ${label5} with an unreadable time was skipped.`);
+      return null;
+    }
+    const begin = parent.begin + (b ?? 0);
+    let end = parent.end;
+    if (e !== void 0) end = Math.min(end, parent.begin + e);
+    if (d !== void 0) end = Math.min(end, begin + d);
+    if (begin >= parent.end || !(end > begin)) return null;
+    return { begin, end };
+  };
+  const collapse = (s) => s.replace(/[ \t\r\n]+/g, " ");
+  const textOf11 = (el, preserve, timed) => {
+    let out = "";
+    for (const n7 of Array.from(el.childNodes)) {
+      if (n7.nodeType === 3 || n7.nodeType === 4) out += preserve ? (n7.nodeValue ?? "").replace(/\r\n?/g, "\n") : collapse(n7.nodeValue ?? "");
+      else if (n7.nodeType === 1) {
+        const c = n7;
+        if (c.localName === "br") out += "\n";
+        else if (c.localName === "metadata" || c.localName === "set" || c.localName === "animate") continue;
+        else if (c.localName === "span" && (attr(c, "begin") !== null || attr(c, "end") !== null || attr(c, "dur") !== null)) timed.push(c);
+        else {
+          noteStyle(c);
+          out += textOf11(c, c.getAttribute("xml:space") === "preserve" ? true : c.getAttribute("xml:space") === "default" ? false : preserve, timed);
+        }
+      }
+    }
+    return out;
+  };
+  const tidy3 = (s, preserve) => preserve ? s.replace(/^\n+|\n+$/g, "") : s.split("\n").map((l) => l.replace(/^ +| +$/g, "")).join("\n").replace(/^\n+|\n+$/g, "");
+  const emit = (span, raw, preserve) => {
+    const text12 = tidy3(raw, preserve);
+    if (!text12) return;
+    if (!Number.isFinite(span.end)) {
+      note2("no-end", "A paragraph with no end time was skipped.");
+      return;
+    }
+    if (text12.length > TTML_LIMITS.maxCueChars) throw new CaptionFormatError("A caption in the TTML file is too long.");
+    if (cues.length >= TTML_LIMITS.maxCues) throw new CaptionFormatError("The TTML file holds too many captions.");
+    cues.push({ start: span.begin, end: span.end, text: text12 });
+  };
+  const walk3 = (el, parent, preserve) => {
+    const isP = el.localName === "p";
+    if (el.localName === "head" || el.localName === "metadata") return;
+    noteStyle(el);
+    const tc = attr(el, "timeContainer");
+    if (tc === "seq") note2("seq", "A sequential time container was read as a parallel one.", true);
+    if (el.localName !== "tt" && el.localName !== "body" && el.localName !== "div" && !isP) return;
+    const span = el.localName === "tt" ? parent : interval(el, parent, isP ? "paragraph" : "section");
+    if (!span) return;
+    const keep2 = el.getAttribute("xml:space") === "preserve" ? true : el.getAttribute("xml:space") === "default" ? false : preserve;
+    if (isP) {
+      const timed = [];
+      const own4 = textOf11(el, keep2, timed);
+      if (timed.length) note2("timed-spans", "Timed spans inside a paragraph were read as separate captions.", true);
+      if (!timed.length || own4.trim()) emit(span, own4, keep2);
+      for (const sp of timed) {
+        const s = interval(sp, span, "span");
+        if (!s) continue;
+        const inner = [];
+        emit(s, textOf11(sp, keep2, inner), keep2);
+      }
+      return;
+    }
+    for (const child2 of Array.from(el.children)) walk3(child2, span, keep2);
+  };
+  walk3(root2, { begin: 0, end: Infinity }, false);
+  return { cues: cues.sort((a, b) => a.start - b.start), issues };
+}
+var TTML_LIMITS, TTML_NS, IMSC11_TEXT_PROFILE, attr;
+var init_captions_ttml = __esm({
+  "engine/src/captions-ttml.ts"() {
+    "use strict";
+    init_captions();
+    init_adobe_xml();
+    init_xml_escape();
+    TTML_LIMITS = {
+      /** Largest document read, in bytes. */
+      maxBytes: 8 * 1024 * 1024,
+      /** Most cues read or written. */
+      maxCues: 2e4,
+      /** Longest cue text, in characters. */
+      maxCueChars: 1e4,
+      /** Latest time accepted, in seconds (100 hours). */
+      maxSeconds: 36e4
+    };
+    TTML_NS = "http://www.w3.org/ns/ttml";
+    IMSC11_TEXT_PROFILE = "http://www.w3.org/ns/ttml/profile/imsc1.1/text";
+    attr = (el, name) => {
+      for (const a of Array.from(el.attributes)) {
+        if (a.localName === name && (!a.namespaceURI || a.namespaceURI.endsWith("#parameter") || a.namespaceURI.endsWith("#metadata"))) return a.value;
+      }
+      return null;
+    };
+  }
+});
+
+// engine/src/captions-scc.ts
+function frameToTimecode(frame, dropFrame) {
+  let f = Math.max(0, Math.floor(frame));
+  if (dropFrame) {
+    const tens = Math.floor(f / FRAMES_PER_10_MIN);
+    const rest2 = f % FRAMES_PER_10_MIN;
+    f += 18 * tens + (rest2 < 2 ? 0 : 2 * Math.floor((rest2 - 2) / FRAMES_PER_DROP_MIN));
+  }
+  const pad = (n7) => String(n7).padStart(2, "0");
+  const ff = f % 30;
+  const ss = Math.floor(f / 30) % 60;
+  const mm = Math.floor(f / 1800) % 60;
+  const hh = Math.floor(f / 108e3);
+  return `${pad(hh)}:${pad(mm)}:${pad(ss)}${dropFrame ? ";" : ":"}${pad(ff)}`;
+}
+function timecodeToFrame(tc) {
+  const m2 = /^(\d{2}):(\d{2}):(\d{2})([:;.,])(\d{2})$/.exec(tc);
+  if (!m2) return null;
+  const hh = Number(m2[1]);
+  const mm = Number(m2[2]);
+  const ss = Number(m2[3]);
+  const ff = Number(m2[5]);
+  if (mm > 59 || ss > 59 || ff > 29) return null;
+  const nominal = 108e3 * hh + 1800 * mm + 30 * ss + ff;
+  if (m2[4] === ":") return nominal;
+  if (ss === 0 && ff < 2 && mm % 10 !== 0) return null;
+  const minutes = 60 * hh + mm;
+  return nominal - 2 * (minutes - Math.floor(minutes / 10));
+}
+function withOddParity(byte) {
+  const b = byte & 127;
+  let ones = 0;
+  for (let v = b; v; v >>= 1) ones += v & 1;
+  return ones % 2 === 0 ? b | 128 : b;
+}
+function hasOddParity(byte) {
+  let ones = 0;
+  for (let v = byte & 255; v; v >>= 1) ones += v & 1;
+  return ones % 2 === 1;
+}
+function fallbackByte(ch) {
+  const mapped = FALLBACKS[ch];
+  if (mapped) return mapped.charCodeAt(0);
+  const base = ch.normalize("NFD")[0] ?? "?";
+  return /^[A-Za-z]$/.test(base) ? base.charCodeAt(0) : 63;
+}
+function pacFor(row, indent) {
+  let b1 = 16;
+  let high = 0;
+  for (const [first, [a, b]] of PAC_ROWS) {
+    if (row === a || b && row === b) {
+      b1 = first;
+      high = row === b ? 32 : 0;
+    }
+  }
+  return [b1, 64 | high | 16 | indent / 4 << 1];
+}
+function sccToCues(text12, opts = {}) {
+  if (typeof text12 !== "string") throw new CaptionFormatError("SCC input must be text.");
+  if (text12.length > SCC_LIMITS.maxChars) throw new CaptionFormatError("The SCC file is larger than 4 MB.");
+  const lines = text12.replace(/^﻿/, "").split(/\r\n|\r|\n/);
+  if (lines.length > SCC_LIMITS.maxLines) throw new CaptionFormatError("The SCC file has too many lines.");
+  let at = 0;
+  while (at < lines.length && lines[at].trim() === "") at++;
+  if (!/^Scenarist_SCC V1\.0\s*$/.test(lines[at] ?? "")) {
+    throw new CaptionFormatError('This is not an SCC file: the first line must be "Scenarist_SCC V1.0".');
+  }
+  const issues = [];
+  const seen = /* @__PURE__ */ new Set();
+  const note2 = (code, message, once = false) => {
+    if (opts.strict && code !== "parity" && code !== "style") throw new CaptionFormatError(message);
+    if (once) {
+      if (seen.has(code)) return;
+      seen.add(code);
+    }
+    issues.push({ code, message });
+  };
+  const cues = [];
+  let displayed = newGrid();
+  let hidden4 = newGrid();
+  let open3 = null;
+  let mode3 = "none";
+  let channel5 = 1;
+  let row = ROWS - 1;
+  let col = 0;
+  let prev = null;
+  let lastFrame = -1;
+  let pairs2 = 0;
+  let badParity = 0;
+  const seconds3 = (frame) => frame * 1001 / 3e4;
+  const closeCue = (frame) => {
+    if (!open3) return;
+    const text13 = gridText(displayed);
+    if (text13 && frame > open3.start) cues.push({ start: seconds3(open3.start), end: seconds3(frame), text: text13 });
+    open3 = null;
+    if (cues.length > SCC_LIMITS.maxCues) throw new CaptionFormatError("The SCC file holds too many captions.");
+  };
+  const put = (ch) => {
+    if (mode3 !== "popon" || channel5 !== 1) return;
+    if (col >= COLS) col = COLS - 1;
+    hidden4[row][col] = ch;
+    col++;
+  };
+  const clock = (frame) => frameToTimecode(frame, true);
+  for (let li = at + 1; li < lines.length; li++) {
+    const line = lines[li].trim();
+    if (line === "") continue;
+    const m2 = /^(\d{2}:\d{2}:\d{2}[:;.,]\d{2})(?:[\t ]+(.*))?$/.exec(line);
+    if (!m2) throw new CaptionFormatError(`SCC line ${li + 1} is not a timecode followed by caption words.`);
+    const start = timecodeToFrame(m2[1]);
+    if (start === null) throw new CaptionFormatError(`SCC line ${li + 1} has an invalid timecode "${m2[1]}".`);
+    const words4 = (m2[2] ?? "").split(/[\t ]+/).filter(Boolean);
+    if (start <= lastFrame) throw new CaptionFormatError(`SCC line ${li + 1} starts at or before the end of the previous line.`);
+    pairs2 += words4.length;
+    if (pairs2 > SCC_LIMITS.maxPairs) throw new CaptionFormatError("The SCC file holds too much caption data.");
+    for (let wi = 0; wi < words4.length; wi++) {
+      const w = words4[wi];
+      if (!/^[0-9a-fA-F]{4}$/.test(w)) throw new CaptionFormatError(`SCC line ${li + 1} holds "${w.slice(0, 12)}", which is not a four digit hex word.`);
+      const frame = start + wi;
+      lastFrame = frame;
+      const r12 = parseInt(w.slice(0, 2), 16);
+      const r26 = parseInt(w.slice(2, 4), 16);
+      if (!hasOddParity(r12) || !hasOddParity(r26)) badParity++;
+      let b1 = r12 & 127;
+      const b2 = r26 & 127;
+      if (b1 >= 16 && b1 <= 31 && b2 >= 32) {
+        const repeat = prev && prev.frame === frame - 1 && prev.b1 === b1 && prev.b2 === b2;
+        const dupable = !(b1 === 17 && b2 >= 48) && !((b1 === 18 || b1 === 19 || b1 === 26 || b1 === 27) && b2 < 64);
+        if (repeat && dupable) {
+          prev = null;
+          continue;
+        }
+        prev = { frame, b1, b2 };
+        channel5 = b1 & 8 ? 2 : 1;
+        b1 &= ~8;
+        if (b2 >= 64) {
+          const rows2 = PAC_ROWS.get(b1);
+          const rowNo = rows2 ? b2 & 32 ? rows2[1] : rows2[0] : 0;
+          if (rowNo) {
+            row = rowNo - 1;
+            const low = b2 & 31;
+            col = low & 16 ? ((low & 14) >> 1) * 4 : 0;
+            if (low === 14 || low === 15) note2("style", "Italics, colour and underline in the SCC file are not carried.", true);
+          }
+        } else if (b1 === 17 && b2 < 48) {
+          put(" ");
+          note2("style", "Italics, colour and underline in the SCC file are not carried.", true);
+        } else if (b1 === 17) {
+          put(SPECIAL[b2 - 48]);
+        } else if ((b1 === 18 || b1 === 19) && b2 < 64) {
+          const ch = (b1 === 18 ? EXTENDED_12 : EXTENDED_13)[b2 - 32];
+          if (ch && mode3 === "popon" && channel5 === 1) {
+            if (col > 0) col--;
+            put(ch);
+          }
+        } else if (b1 === 23 && b2 >= 33 && b2 <= 35) {
+          col = Math.min(COLS - 1, col + (b2 - 32));
+        } else if ((b1 === 20 || b1 === 21) && b2 <= 47) {
+          if (channel5 !== 1) {
+            note2("channel", `A caption on channel ${channel5} at ${clock(frame)} was skipped. Only channel 1 is read.`, true);
+          } else if (b2 === MISC.RCL) mode3 = "popon";
+          else if (b2 === MISC.RU2 || b2 === MISC.RU3 || b2 === MISC.RU4) {
+            mode3 = "other";
+            note2("roll-up", `Roll-up captions at ${clock(frame)} were skipped. Only pop-on captions are read.`, true);
+          } else if (b2 === MISC.RDC) {
+            mode3 = "other";
+            note2("paint-on", `Paint-on captions at ${clock(frame)} were skipped. Only pop-on captions are read.`, true);
+          } else if (b2 === MISC.TR || b2 === MISC.RTD) {
+            mode3 = "other";
+            note2("text-mode", `Text mode data at ${clock(frame)} was skipped.`, true);
+          } else if (b2 === MISC.ENM) hidden4 = newGrid();
+          else if (b2 === MISC.EDM) closeCue(frame);
+          else if (b2 === MISC.EOC) {
+            if (mode3 === "popon") {
+              closeCue(frame);
+              [displayed, hidden4] = [hidden4, displayed];
+              if (gridText(displayed)) open3 = { start: frame };
+            } else {
+              mode3 = "popon";
+            }
+          } else if (b2 === MISC.BS && mode3 === "popon" && col > 0) {
+            col--;
+            hidden4[row][col] = null;
+          } else if (b2 === MISC.DER && mode3 === "popon") {
+            for (let c = col; c < COLS; c++) hidden4[row][c] = null;
+          }
+        }
+        continue;
+      }
+      prev = null;
+      if (b1 >= 32) {
+        for (const b of [b1, b2]) {
+          if (b < 32) continue;
+          put(BASIC_SUBSTITUTES.get(b) ?? String.fromCharCode(b));
+        }
+        if (mode3 === "none" && channel5 === 1) {
+          note2("no-mode", `Caption text at ${clock(frame)} came before any pop-on command and was skipped.`, true);
+        }
+      }
+    }
+  }
+  if (open3) {
+    note2("unterminated", "The last caption was never cleared. It ends one frame after the data stops.");
+    closeCue(lastFrame + 1);
+  }
+  if (badParity) note2("parity", `${badParity} byte(s) failed the CEA-608 odd-parity check and were read without it.`);
+  return { cues, issues };
+}
+function wrapLine(line) {
+  const rows2 = [];
+  let cur = "";
+  for (const word of line.split(" ").filter(Boolean)) {
+    let w = word;
+    while (Array.from(w).length > COLS) {
+      if (cur) {
+        rows2.push(cur);
+        cur = "";
+      }
+      const chars = Array.from(w);
+      rows2.push(chars.slice(0, COLS).join(""));
+      w = chars.slice(COLS).join("");
+    }
+    const next2 = cur ? `${cur} ${w}` : w;
+    if (Array.from(next2).length > COLS) {
+      rows2.push(cur);
+      cur = w;
+    } else cur = next2;
+  }
+  if (cur) rows2.push(cur);
+  return rows2;
+}
+function encodeRows(text12, cueNo, opts, issues) {
+  let src = text12.normalize("NFC").replace(/ /g, " ");
+  if (/<\/?[ibu]>/i.test(src)) {
+    src = src.replace(/<\/?[ibu]>/gi, "");
+    issues.push({ code: "style", message: `Caption ${cueNo}: italic, bold and underline tags were removed. SCC pop-on output here carries plain text.` });
+  }
+  const rows2 = src.split(/\r\n|\r|\n/).flatMap((l) => wrapLine(l.replace(/[ \t]+/g, " ").trim()));
+  if (rows2.length === 0) return [];
+  if (rows2.length > ROWS) throw new CaptionFormatError(`Caption ${cueNo} needs ${rows2.length} rows. A CEA-608 screen holds ${ROWS}.`);
+  const out = [[20, MISC.RCL], [20, MISC.RCL], [20, MISC.ENM], [20, MISC.ENM]];
+  const bad = /* @__PURE__ */ new Set();
+  const firstRow = ROWS + 1 - rows2.length;
+  rows2.forEach((rowText3, i) => {
+    const units2 = [];
+    for (const ch of Array.from(rowText3)) {
+      let u = UNITS2.get(ch);
+      if (!u) {
+        bad.add(ch);
+        if (opts.onUnsupported !== "replace") continue;
+        u = UNITS2.get("?");
+      }
+      units2.push(u);
+    }
+    const col = Math.floor((COLS - units2.length) / 2);
+    const pac = pacFor(firstRow + i, Math.floor(col / 4) * 4);
+    out.push(pac, pac);
+    if (col % 4) out.push([23, 32 + col % 4], [23, 32 + col % 4]);
+    let pending5 = null;
+    const flush = () => {
+      if (pending5 !== null) out.push([pending5, 0]);
+      pending5 = null;
+    };
+    const basic = (b) => {
+      if (pending5 === null) pending5 = b;
+      else {
+        out.push([pending5, b]);
+        pending5 = null;
+      }
+    };
+    for (const u of units2) {
+      if (u.kind === "basic") basic(u.byte);
+      else {
+        if (u.kind === "extended") basic(u.fallback);
+        flush();
+        out.push(u.kind === "special" ? [17, u.b2] : [u.b1, u.b2]);
+      }
+    }
+    flush();
+  });
+  if (bad.size) {
+    const list4 = Array.from(bad).map((c) => `"${c}" (U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")})`).join(", ");
+    if (opts.onUnsupported !== "replace") {
+      throw new CaptionFormatError(`Caption ${cueNo} has characters that CEA-608 cannot carry: ${list4}. Change them, or write with replacement.`);
+    }
+    issues.push({ code: "unsupported-character", message: `Caption ${cueNo}: replaced ${list4} with "?".` });
+  }
+  return out;
+}
+function cuesToScc(cues, opts = {}) {
+  const dropFrame = opts.dropFrame !== false;
+  if (cues.length > SCC_LIMITS.maxCues) throw new CaptionFormatError("Too many captions for one SCC file.");
+  const issues = [];
+  const timeline = /* @__PURE__ */ new Map();
+  const free = (from, n7) => {
+    for (let f = from; f < from + n7; f++) if (timeline.has(f)) return false;
+    return true;
+  };
+  const put = (from, pairs2) => pairs2.forEach((p, i) => {
+    timeline.set(from + i, p);
+  });
+  const order = cues.map((c, i) => ({ c, i })).sort((a, b) => a.c.start - b.c.start || a.i - b.i);
+  const todo = [];
+  for (const { c, i } of order) {
+    if (!Number.isFinite(c.start) || !Number.isFinite(c.end) || c.start < 0 || c.end < 0) {
+      throw new CaptionFormatError(`Caption ${i + 1} has a time that is not a finite, non-negative number of seconds.`);
+    }
+    if (c.text.length > SCC_LIMITS.maxCueChars) throw new CaptionFormatError(`Caption ${i + 1} is longer than ${SCC_LIMITS.maxCueChars} characters.`);
+    const load3 = encodeRows(c.text, i + 1, opts, issues);
+    if (load3.length === 0) {
+      issues.push({ code: "empty-caption", message: `Caption ${i + 1} has no text and was skipped.` });
+      continue;
+    }
+    const s = Math.round(c.start * FPS);
+    todo.push({ no: i + 1, s, e: Math.max(s + 1, Math.round(c.end * FPS)), load: load3 });
+  }
+  let cursor = 0;
+  let pendingEnd = null;
+  const edm = [20, MISC.EDM];
+  const eoc = [20, MISC.EOC];
+  const clearAt = (e) => {
+    put(e, [edm, edm]);
+  };
+  for (const t of todo) {
+    if (pendingEnd) {
+      if (t.s > pendingEnd.e + 1) clearAt(pendingEnd.e);
+      else if (t.s < pendingEnd.e) issues.push({ code: "overlap", message: `Caption ${t.no} starts before the previous caption ends. The previous caption ends at ${frameToTimecode(t.s, dropFrame)}.` });
+      pendingEnd = null;
+    }
+    const n7 = t.load.length;
+    let b = -1;
+    for (let cand = t.s - n7; cand >= cursor; cand--) {
+      if (free(cand, n7)) {
+        b = cand;
+        break;
+      }
+    }
+    if (b < 0) {
+      b = cursor;
+      while (!free(b, n7)) b++;
+    }
+    put(b, t.load);
+    let d = Math.max(t.s, b + n7);
+    while (!free(d, 2)) d++;
+    put(d, [eoc, eoc]);
+    if (d !== t.s) {
+      issues.push({ code: "delayed", message: `Caption ${t.no} could not load in time and starts ${d - t.s} frame(s) late, at ${frameToTimecode(d, dropFrame)}.` });
+    }
+    cursor = d + 2;
+    pendingEnd = { e: Math.max(t.e, d + 2) };
+  }
+  if (pendingEnd) clearAt(pendingEnd.e);
+  const hex3 = (p) => (withOddParity(p[0]) * 256 + withOddParity(p[1])).toString(16).padStart(4, "0");
+  const frames = Array.from(timeline.keys()).sort((a, b) => a - b);
+  const out = ["Scenarist_SCC V1.0", ""];
+  let runStart = -1;
+  let words4 = [];
+  const flushRun = () => {
+    if (words4.length) out.push(`${frameToTimecode(runStart, dropFrame)}	${words4.join(" ")}`, "");
+    words4 = [];
+  };
+  let last = -2;
+  for (const f of frames) {
+    if (f !== last + 1) {
+      flushRun();
+      runStart = f;
+    }
+    words4.push(hex3(timeline.get(f)));
+    last = f;
+  }
+  flushRun();
+  return { text: out.join("\n"), issues };
+}
+var SCC_LIMITS, FPS, COLS, ROWS, FRAMES_PER_10_MIN, FRAMES_PER_DROP_MIN, MISC, BASIC_SUBSTITUTES, SPECIAL, EXTENDED_12, EXTENDED_13, FALLBACKS, UNITS2, PAC_ROWS, newGrid, gridText;
+var init_captions_scc = __esm({
+  "engine/src/captions-scc.ts"() {
+    "use strict";
+    init_captions();
+    SCC_LIMITS = {
+      /** Longest SCC text read, in UTF-16 units. */
+      maxChars: 4 * 1024 * 1024,
+      /** Most lines of caption data. */
+      maxLines: 2e5,
+      /** Most byte pairs (frames) of caption data. */
+      maxPairs: 2e6,
+      /** Most cues read or written. */
+      maxCues: 2e4,
+      /** Most characters in one cue written. */
+      maxCueChars: 2e3
+    };
+    FPS = 3e4 / 1001;
+    COLS = 32;
+    ROWS = 15;
+    FRAMES_PER_10_MIN = 17982;
+    FRAMES_PER_DROP_MIN = 1798;
+    MISC = { RCL: 32, BS: 33, DER: 36, RU2: 37, RU3: 38, RU4: 39, FON: 40, RDC: 41, TR: 42, RTD: 43, EDM: 44, CR: 45, ENM: 46, EOC: 47 };
+    BASIC_SUBSTITUTES = /* @__PURE__ */ new Map([
+      [42, "\xE1"],
+      [92, "\xE9"],
+      [94, "\xED"],
+      [95, "\xF3"],
+      [96, "\xFA"],
+      [123, "\xE7"],
+      [124, "\xF7"],
+      [125, "\xD1"],
+      [126, "\xF1"],
+      [127, "\u25A0"]
+    ]);
+    SPECIAL = [..."\xAE\xB0\xBD\xBF\u2122\xA2\xA3\u266A\xE0 \xE8\xE2\xEA\xEE\xF4\xFB"];
+    EXTENDED_12 = [..."\xC1\xC9\xD3\xDA\xDC\xFC\u2018\xA1*\u2019\u2014\xA9\u2120\u2022\u201C\u201D\xC0\xC2\xC7\xC8\xCA\xCB\xEB\xCE\xCF\xEF\xD4\xD9\xF9\xDB\xAB\xBB"];
+    EXTENDED_13 = [..."\xC3\xE3\xCD\xCC\xEC\xD2\xF2\xD5\xF5{}\\^_|~\xC4\xE4\xD6\xF6\xDF\xA5\xA4\u2502\xC5\xE5\xD8\xF8\u250C\u2510\u2514\u2518"];
+    FALLBACKS = {
+      "\u2018": "'",
+      "\u2019": "'",
+      "\u201C": '"',
+      "\u201D": '"',
+      "\xAB": '"',
+      "\xBB": '"',
+      "\u2014": "-",
+      "\u2022": "*",
+      "\xA9": "c",
+      "\u2120": "S",
+      "\xA1": "!",
+      "\xA5": "Y",
+      "\xA4": "$",
+      "\u2502": "|",
+      "\u250C": "+",
+      "\u2510": "+",
+      "\u2514": "+",
+      "\u2518": "+",
+      "{": "(",
+      "}": ")",
+      "\\": "/",
+      "^": '"',
+      "_": "-",
+      "|": "!",
+      "~": "-",
+      "*": "+",
+      "\xDF": "s",
+      "\xD8": "O",
+      "\xF8": "o"
+    };
+    UNITS2 = /* @__PURE__ */ new Map();
+    (() => {
+      for (let code = 32; code <= 127; code++) {
+        const ch = BASIC_SUBSTITUTES.get(code) ?? String.fromCharCode(code);
+        UNITS2.set(ch, { kind: "basic", byte: code });
+      }
+      const put = (table, b1, from) => {
+        table.forEach((ch, i) => {
+          if (!UNITS2.has(ch)) UNITS2.set(ch, { kind: "extended", b1, b2: from + i, fallback: fallbackByte(ch) });
+        });
+      };
+      put(EXTENDED_12, 18, 32);
+      put(EXTENDED_13, 19, 32);
+      SPECIAL.forEach((ch, i) => {
+        if (ch !== " ") UNITS2.set(ch, { kind: "special", b2: 48 + i });
+      });
+    })();
+    PAC_ROWS = /* @__PURE__ */ new Map([
+      [16, [11, 0]],
+      [17, [1, 2]],
+      [18, [3, 4]],
+      [19, [12, 13]],
+      [20, [14, 15]],
+      [21, [5, 6]],
+      [22, [7, 8]],
+      [23, [9, 10]]
+    ]);
+    newGrid = () => Array.from({ length: ROWS }, () => new Array(COLS).fill(null));
+    gridText = (g2) => g2.map((row) => row.map((c) => c ?? " ").join("").replace(/^ +| +$/g, "")).filter((r5) => r5 !== "").join("\n");
+  }
+});
+
 // engine/src/emoji-resolve.ts
 function resolveEmoji(request2, style, packs) {
   let meaning;
@@ -42590,8 +43438,8 @@ function property2(node, name, fallback = "") {
   for (let at = node; at; at = at.parentElement) {
     const computed = at.ownerDocument.defaultView?.getComputedStyle(at).getPropertyValue(name);
     if (computed && !/^(inherit|initial|unset)$/.test(computed)) return computed;
-    const attr6 = at.getAttribute(name);
-    if (attr6) return attr6;
+    const attr7 = at.getAttribute(name);
+    if (attr7) return attr7;
   }
   return fallback;
 }
@@ -42650,7 +43498,7 @@ async function applyEmojiToSvgText(root2, style, packs, io, text12, options2 = {
     group.setAttribute("data-lolly-emoji-svg", "1");
     group.setAttribute("role", "img");
     group.setAttribute("aria-label", raw);
-    for (const attr6 of Array.from(source.attributes)) if (!layout.has(attr6.name) && attr6.name !== "id") group.setAttribute(attr6.name, attr6.value);
+    for (const attr7 of Array.from(source.attributes)) if (!layout.has(attr7.name) && attr7.name !== "id") group.setAttribute(attr7.name, attr7.value);
     const sourceId = source.getAttribute("id");
     if (sourceId) group.setAttribute("id", sourceId);
     let markup = "";
@@ -42770,7 +43618,7 @@ async function applyEmojiToSvgText(root2, style, packs, io, text12, options2 = {
       result.census.push(...pending5.census);
     } catch (error2) {
       const fallback = source.ownerDocument.createElementNS(NS, "text");
-      for (const attr6 of Array.from(source.attributes)) if (!["id", "transform"].includes(attr6.name)) fallback.setAttribute(attr6.name, attr6.value);
+      for (const attr7 of Array.from(source.attributes)) if (!["id", "transform"].includes(attr7.name)) fallback.setAttribute(attr7.name, attr7.value);
       fallback.textContent = spans.map((span) => span.kind === "text" ? span.text : "\u25A1").join("");
       markup = "";
       group.appendChild(fallback);
@@ -54235,7 +55083,25 @@ function buildDataPayload(tool, format, model2, getHydratedText) {
     err.code = loadError != null ? "TEXT_TEMPLATE_LOAD_FAILED" : "TEXT_TEMPLATE_MISSING";
     throw err;
   }
-  return { dataText: getHydratedText(tpl), dataMime };
+  const hydrated = getHydratedText(tpl);
+  if (format === "ttml" || format === "scc") return { dataText: broadcastCaptionText(format, hydrated), dataMime };
+  return { dataText: hydrated, dataMime };
+}
+function broadcastCaptionText(format, json) {
+  let raw;
+  try {
+    raw = JSON.parse(json);
+  } catch {
+    throw new CaptionFormatError("The caption list could not be read.");
+  }
+  const list4 = Array.isArray(raw) ? raw : raw?.cues;
+  if (!Array.isArray(list4)) throw new CaptionFormatError("The caption list could not be read.");
+  const cues = list4.map((c) => ({
+    start: Number(c?.start),
+    end: Number(c?.end),
+    text: String(c?.text ?? "")
+  }));
+  return format === "ttml" ? cuesToTtml(cues) : cuesToScc(cues).text;
 }
 function assetRefId(v) {
   if (typeof v === "string") return v || null;
@@ -54620,6 +55486,9 @@ var init_runtime = __esm({
     init_tool_url();
     init_bake();
     init_asset_provider();
+    init_captions();
+    init_captions_ttml();
+    init_captions_scc();
     init_asset_version();
     ExportHookError = class extends Error {
       constructor(cause) {
@@ -54645,6 +55514,8 @@ var init_runtime = __esm({
       vcf: "text/vcard",
       srt: "text/plain",
       vtt: "text/vtt",
+      ttml: "application/ttml+xml",
+      scc: "text/plain",
       css: "text/css",
       scss: "text/x-scss",
       gpl: "text/plain"
@@ -74311,7 +75182,7 @@ function boxOf2(dict, key2, objects) {
   const nums = viaRef?.trim().split(/\s+/).map(Number);
   return nums && nums.length === 4 && nums.every(Number.isFinite) ? nums : null;
 }
-var OUTPUT_INSPECT_MAX_BYTES, OUTPUT_TEXT_SCAN_MAX_BYTES, OUTPUT_PDF_INFLATE_BUDGET, OUTPUT_MAX_STRUCTURES, known, unknown, CREDENTIAL_CONTAINERS, u16be2, u32be2, u16le, u24le, u32le2, tag4, round2, readPng2, readJpeg2, readWebp2, readGif2, readTiff, child, readHeif2, readMp4, uintAt, floatAt, readWebm, POINTS_PER, attr, SVG_ROOT_TAG_MAX, readSvg2, readEps, readZip2, readBmp, STANDARD_14, PDF_DICT_MAX, PDF_STREAM_INFLATE_MAX, INFLATE_INPUT_CHUNK, DEFLATE_MAX_RATIO, PDF_OBJ_HEADER, PDF_REF, ref, isPdfSpace, readPdf, READERS;
+var OUTPUT_INSPECT_MAX_BYTES, OUTPUT_TEXT_SCAN_MAX_BYTES, OUTPUT_PDF_INFLATE_BUDGET, OUTPUT_MAX_STRUCTURES, known, unknown, CREDENTIAL_CONTAINERS, u16be2, u32be2, u16le, u24le, u32le2, tag4, round2, readPng2, readJpeg2, readWebp2, readGif2, readTiff, child, readHeif2, readMp4, uintAt, floatAt, readWebm, POINTS_PER, attr2, SVG_ROOT_TAG_MAX, readSvg2, readEps, readZip2, readBmp, STANDARD_14, PDF_DICT_MAX, PDF_STREAM_INFLATE_MAX, INFLATE_INPUT_CHUNK, DEFLATE_MAX_RATIO, PDF_OBJ_HEADER, PDF_REF, ref, isPdfSpace, readPdf, READERS;
 var init_output_facts = __esm({
   "engine/src/output-facts.ts"() {
     "use strict";
@@ -74791,7 +75662,7 @@ var init_output_facts = __esm({
       f.basis.metadata = "webm.Tags";
     };
     POINTS_PER = { pt: 1, pc: 12, in: 72, mm: 72 / 25.4, cm: 72 / 2.54, q: 72 / 101.6 };
-    attr = (tag3, name) => new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag3)?.slice(1).find((v) => v !== void 0);
+    attr2 = (tag3, name) => new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag3)?.slice(1).find((v) => v !== void 0);
     SVG_ROOT_TAG_MAX = 256 * 1024;
     readSvg2 = (b, f) => {
       if (b.length > OUTPUT_TEXT_SCAN_MAX_BYTES) {
@@ -74801,9 +75672,9 @@ var init_output_facts = __esm({
       const text12 = new TextDecoder("utf-8").decode(b);
       const root2 = svgRootTag(text12, f);
       if (!root2) return;
-      const w = svgLength(attr(root2, "width")), h = svgLength(attr(root2, "height"));
-      const trim2 = svgBox(attr(root2, "data-trim-box"));
-      const sheet = !!svgBox(attr(root2, "data-media-box"));
+      const w = svgLength(attr2(root2, "width")), h = svgLength(attr2(root2, "height"));
+      const trim2 = svgBox(attr2(root2, "data-trim-box"));
+      const sheet = !!svgBox(attr2(root2, "data-media-box"));
       if (trim2) {
         f.page = known({ width: round2(trim2.w), height: round2(trim2.h), box: "TrimBox", uniform: true });
         f.basis.page = "svg.data-trim-box";
@@ -78184,100 +79055,6 @@ var init_audio_repair = __esm({
       light: { amount: 35, rt60: 0.8 },
       strong: { amount: 70, rt60: 1 }
     };
-  }
-});
-
-// engine/src/captions.ts
-function groupWordsToCues(words4, opts = {}) {
-  const maxChars = opts.maxChars ?? 42;
-  const maxDurationS = opts.maxDurationS ?? 5;
-  const gapS = opts.gapS ?? 0.6;
-  const cues = [];
-  let open3 = null;
-  for (const w of words4) {
-    const text12 = w.text.trim();
-    if (!text12) continue;
-    if (open3) {
-      const joined = `${open3.text} ${text12}`;
-      const overflow = joined.length > maxChars || w.end - open3.start > maxDurationS;
-      const paused = w.start - open3.end >= gapS;
-      if (overflow || paused) {
-        cues.push(open3);
-        open3 = null;
-      } else {
-        open3.text = joined;
-        open3.end = w.end;
-      }
-    }
-    if (!open3) open3 = { start: w.start, end: w.end, text: text12 };
-    if (SENTENCE_END.test(text12)) {
-      cues.push(open3);
-      open3 = null;
-    }
-  }
-  if (open3) cues.push(open3);
-  return cues;
-}
-function cuesForSlide(words4, slideStartMs, slideEndMs, opts = {}) {
-  const startS = Number.isFinite(slideStartMs) ? Math.max(0, slideStartMs) / 1e3 : 0;
-  const endS = Number.isFinite(slideEndMs) ? slideEndMs / 1e3 : 0;
-  if (!(endS > startS)) return [];
-  const offsetS = Number.isFinite(opts.offsetMs) ? Math.max(0, opts.offsetMs) / 1e3 : 0;
-  const minKeepS = Number.isFinite(opts.minKeepS) && opts.minKeepS > 0 ? opts.minKeepS : 0.05;
-  const base = startS + offsetS;
-  const out = [];
-  for (const c of groupWordsToCues(words4, opts)) {
-    const s = Math.max(startS, base + c.start);
-    const e = Math.min(endS, base + c.end);
-    if (!(e > s) || e - s < minKeepS) continue;
-    out.push({ start: round3(s), end: round3(e), text: c.text });
-  }
-  return out;
-}
-function stamp(seconds3, sep3) {
-  const ms = Math.max(0, Math.round(seconds3 * 1e3));
-  const h = Math.floor(ms / 36e5);
-  const m2 = Math.floor(ms % 36e5 / 6e4);
-  const s = Math.floor(ms % 6e4 / 1e3);
-  const frac = ms % 1e3;
-  const pad = (n7, w = 2) => String(n7).padStart(w, "0");
-  return `${pad(h)}:${pad(m2)}:${pad(s)}${sep3}${pad(frac, 3)}`;
-}
-function cuesToVtt(cues) {
-  const blocks = cues.map((c) => `${stamp(c.start, ".")} --> ${stamp(c.end, ".")}
-${c.text}`);
-  return `WEBVTT
-
-${blocks.join("\n\n")}
-`;
-}
-function cuesToSrt(cues) {
-  const blocks = cues.map(
-    (c, i) => `${i + 1}
-${stamp(c.start, ",")} --> ${stamp(c.end, ",")}
-${c.text}`
-  );
-  return `${blocks.join("\n\n")}
-`;
-}
-function cueAt(cues, t) {
-  let lo = 0;
-  let hi = cues.length - 1;
-  while (lo <= hi) {
-    const mid3 = lo + hi >> 1;
-    const c = cues[mid3];
-    if (t < c.start) hi = mid3 - 1;
-    else if (t >= c.end) lo = mid3 + 1;
-    else return c;
-  }
-  return null;
-}
-var SENTENCE_END, round3;
-var init_captions = __esm({
-  "engine/src/captions.ts"() {
-    "use strict";
-    SENTENCE_END = /[.!?…][)\]"'”’]*$/;
-    round3 = (v) => Math.round(v * 1e3) / 1e3;
   }
 });
 
@@ -87918,8 +88695,8 @@ function tcPrXml(cell2) {
 }
 function tcXml(slot) {
   if (slot.kind !== "origin") {
-    const attr6 = slot.kind === "hmerge" ? ' hMerge="1"' : slot.kind === "vmerge" ? ' vMerge="1"' : ' hMerge="1" vMerge="1"';
-    return `<a:tc${attr6}>${EMPTY_TXBODY}<a:tcPr/></a:tc>`;
+    const attr7 = slot.kind === "hmerge" ? ' hMerge="1"' : slot.kind === "vmerge" ? ' vMerge="1"' : ' hMerge="1" vMerge="1"';
+    return `<a:tc${attr7}>${EMPTY_TXBODY}<a:tcPr/></a:tc>`;
   }
   const span = slot.gridSpan > 1 ? ` gridSpan="${slot.gridSpan}"` : "";
   const rspan = slot.rowSpan > 1 ? ` rowSpan="${slot.rowSpan}"` : "";
@@ -87967,12 +88744,12 @@ function fadeFxXml(id3, spid, dur, entering, fx) {
   return `<p:animEffect transition="${entering ? "in" : "out"}" filter="fade"><p:cBhvr>${bhvrCTn(id3, dur, fx)}${tgt(spid)}</p:cBhvr></p:animEffect>`;
 }
 function flyAnimXml(id3, spid, dur, dir, entering, fx) {
-  const attr6 = dir === "l" || dir === "r" ? "ppt_x" : "ppt_y";
-  const rest2 = `#${attr6}`;
+  const attr7 = dir === "l" || dir === "r" ? "ppt_x" : "ppt_y";
+  const rest2 = `#${attr7}`;
   const off = dir === "r" ? "1+#ppt_w/2" : dir === "l" ? "0-#ppt_w/2" : dir === "b" ? "1+#ppt_h/2" : "0-#ppt_h/2";
   const from = entering ? off : rest2;
   const to = entering ? rest2 : off;
-  return `<p:anim calcmode="lin" valueType="num"><p:cBhvr additive="base">${bhvrCTn(id3, dur, fx)}${tgt(spid)}<p:attrNameLst><p:attrName>${attr6}</p:attrName></p:attrNameLst></p:cBhvr><p:tavLst><p:tav tm="0"><p:val><p:strVal val="${from}"/></p:val></p:tav><p:tav tm="100000"><p:val><p:strVal val="${to}"/></p:val></p:tav></p:tavLst></p:anim>`;
+  return `<p:anim calcmode="lin" valueType="num"><p:cBhvr additive="base">${bhvrCTn(id3, dur, fx)}${tgt(spid)}<p:attrNameLst><p:attrName>${attr7}</p:attrName></p:attrNameLst></p:cBhvr><p:tavLst><p:tav tm="0"><p:val><p:strVal val="${from}"/></p:val></p:tav><p:tav tm="100000"><p:val><p:strVal val="${to}"/></p:val></p:tav></p:tavLst></p:anim>`;
 }
 function scaleFxXml(id3, spid, dur, fromPct, toPct, fx) {
   return `<p:animScale><p:cBhvr>${bhvrCTn(id3, dur, fx)}${tgt(spid)}</p:cBhvr><p:from x="${fromPct}" y="${fromPct}"/><p:to x="${toPct}" y="${toPct}"/></p:animScale>`;
@@ -89049,10 +89826,10 @@ function hexNorm2(v) {
   const h = v.replace("#", "").replace(/[^0-9A-Fa-f]/g, "").slice(0, 6).toUpperCase();
   return h.length === 6 ? h : h.padStart(6, "0");
 }
-function rewriteTagAttr(xml3, qname, attr6, map) {
+function rewriteTagAttr(xml3, qname, attr7, map) {
   let count4 = 0;
   const tagRe = new RegExp(`<${reEsc(qname)}(?=[\\s/>])[^>]*>`, "g");
-  const attrRe = new RegExp(`(\\s${reEsc(attr6)}=")([^"]*)(")`);
+  const attrRe = new RegExp(`(\\s${reEsc(attr7)}=")([^"]*)(")`);
   const text12 = xml3.replace(tagRe, (tag3) => {
     let changed = false;
     const out = tag3.replace(attrRe, (whole, pre, val, post) => {
@@ -90238,8 +91015,8 @@ function readCustGeom(custGeom, extent2, ctx) {
         x = nx;
         y = ny;
       } else if (name === "arcTo") {
-        const read = (attr6) => {
-          const raw = attrByLocal(cmd, attr6);
+        const read = (attr7) => {
+          const raw = attrByLocal(cmd, attr7);
           if (raw == null || !/^-?\d+(\.\d+)?$/.test(raw.trim())) return null;
           const n7 = Number(raw);
           return Number.isFinite(n7) ? n7 : null;
@@ -96812,11 +97589,11 @@ function allSheets(store) {
   let m2;
   while ((m2 = re.exec(wb)) !== null) {
     const tag3 = m2[0];
-    const rid = attr2(tag3, "r:id") || attr2(tag3, "id");
+    const rid = attr3(tag3, "r:id") || attr3(tag3, "id");
     if (!rid) continue;
     const target2 = relTarget(store, rid);
     if (!target2) continue;
-    out.push({ name: attr2(tag3, "name") || "", path: resolveTarget3("xl", target2) });
+    out.push({ name: attr3(tag3, "name") || "", path: resolveTarget3("xl", target2) });
   }
   return out;
 }
@@ -96845,7 +97622,7 @@ function relTarget(store, rid) {
   let m2;
   while ((m2 = re.exec(rels)) !== null) {
     const tag3 = m2[0];
-    if (attr2(tag3, "Id") === rid) return attr2(tag3, "Target");
+    if (attr3(tag3, "Id") === rid) return attr3(tag3, "Target");
   }
   return null;
 }
@@ -96899,7 +97676,7 @@ function readSheet(xml3, shared, limit3, formulas, formats) {
   let tok;
   outer: while ((tok = tokenRe.exec(xml3)) !== null) {
     if (tok[0].startsWith("<row")) {
-      const r5 = attr2(tok[0], "r");
+      const r5 = attr3(tok[0], "r");
       const n7 = r5 ? Number.parseInt(r5, 10) : NaN;
       cursorRow = Number.isFinite(n7) && n7 > 0 ? n7 - 1 : cursorRow + (grid.size ? 1 : 0);
       cursorCol = 0;
@@ -96907,7 +97684,7 @@ function readSheet(xml3, shared, limit3, formulas, formats) {
     }
     const attrs = tok[1] !== void 0 ? tok[1] : tok[2];
     const inner = tok[1] !== void 0 ? "" : tok[3];
-    const ref2 = attr2(attrs, "r");
+    const ref2 = attr3(attrs, "r");
     let rowIdx;
     let colIdx;
     const rc = ref2 ? parseRef(ref2) : null;
@@ -96967,7 +97744,7 @@ function readSheet(xml3, shared, limit3, formulas, formats) {
   return { rows: rows2, truncated };
 }
 function cellValue(attrs, inner, shared) {
-  const t = attr2(attrs, "t") || "n";
+  const t = attr3(attrs, "t") || "n";
   if (t === "s") {
     const raw = firstElemText(inner, "v");
     const idx = Number.parseInt(raw, 10);
@@ -96989,7 +97766,7 @@ function cellValue(attrs, inner, shared) {
 function readStyles2(store) {
   const wb = store.text("xl/workbook.xml");
   const pr = wb ? /<workbookPr\b[^>]*>/i.exec(wb) : null;
-  const flag = pr ? (attr2(pr[0], "date1904") ?? "").trim().toLowerCase() : "";
+  const flag = pr ? (attr3(pr[0], "date1904") ?? "").trim().toLowerCase() : "";
   const system = flag === "1" || flag === "true" ? 1904 : 1900;
   const xml3 = store.text("xl/styles.xml");
   if (!xml3) return { xfs: [], system };
@@ -96997,8 +97774,8 @@ function readStyles2(store) {
   const fmts = /<numFmts\b[^>]*>([\s\S]*?)<\/numFmts>/i.exec(xml3);
   if (fmts) {
     for (const m2 of fmts[1].matchAll(/<numFmt\b[^>]*>/gi)) {
-      const id3 = Number.parseInt(attr2(m2[0], "numFmtId") ?? "", 10);
-      const code = attr2(m2[0], "formatCode");
+      const id3 = Number.parseInt(attr3(m2[0], "numFmtId") ?? "", 10);
+      const code = attr3(m2[0], "formatCode");
       if (Number.isInteger(id3) && id3 >= 0 && code && code.length <= MAX_FORMAT_CODE) custom.set(id3, code);
       if (custom.size >= MAX_NUM_FMTS) break;
     }
@@ -97007,7 +97784,7 @@ function readStyles2(store) {
   const section = /<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/i.exec(xml3);
   if (section) {
     for (const m2 of section[1].matchAll(/<xf\b[^>]*>/gi)) {
-      const id3 = Number.parseInt(attr2(m2[0], "numFmtId") ?? "0", 10);
+      const id3 = Number.parseInt(attr3(m2[0], "numFmtId") ?? "0", 10);
       const code = Number.isInteger(id3) ? custom.get(id3) ?? BUILTIN_FORMATS[id3] ?? null : null;
       xfs.push(code === null || /^\s*general\s*$/i.test(code) ? null : code);
       if (xfs.length >= MAX_XFS) break;
@@ -97016,11 +97793,11 @@ function readStyles2(store) {
   return { xfs, system };
 }
 function queueFormat(f, attrs, value2, row, col) {
-  const style = attr2(attrs, "s");
+  const style = attr3(attrs, "s");
   if (style === null) return;
   const code = f.xfs[Number.parseInt(style, 10)];
   if (!code) return;
-  const t = attr2(attrs, "t") || "n";
+  const t = attr3(attrs, "t") || "n";
   let v;
   if (t === "n") {
     v = Number(value2);
@@ -97061,8 +97838,8 @@ function formulaText(inner, row, col, state) {
   const fAttrs = m2[1] ?? "";
   const own4 = m2[2] ? decodeXml(m2[2]) : "";
   let text12 = own4;
-  if (attr2(fAttrs, "t") === "shared") {
-    const si = attr2(fAttrs, "si") ?? "";
+  if (attr3(fAttrs, "t") === "shared") {
+    const si = attr3(fAttrs, "si") ?? "";
     if (own4) state.shared.set(si, { text: own4, row, col });
     else {
       const master = state.shared.get(si);
@@ -97201,7 +97978,7 @@ function firstElemText(xml3, name) {
   const inner = firstElem(xml3, name);
   return inner ? inner : "";
 }
-function attr2(tag3, name) {
+function attr3(tag3, name) {
   const re = new RegExp(`\\b${name.replace(/[:]/g, "\\$&")}\\s*=\\s*("([^"]*)"|'([^']*)')`, "i");
   const m2 = re.exec(tag3);
   if (!m2) return null;
@@ -98150,7 +98927,7 @@ function readEpub(bytes2) {
   if (containerXml === void 0) {
     throw new Error("readEpub: META-INF/container.xml not found (not an EPUB)");
   }
-  const opfPath = attr3(firstStartTag(containerXml, "rootfile") ?? "", "full-path");
+  const opfPath = attr4(firstStartTag(containerXml, "rootfile") ?? "", "full-path");
   if (!opfPath) throw new Error("readEpub: no rootfile in container.xml");
   const opf = textOf3(parts, opfPath);
   if (opf === void 0) throw new Error(`readEpub: OPF package "${opfPath}" not found`);
@@ -98159,13 +98936,13 @@ function readEpub(bytes2) {
   const manifest = /* @__PURE__ */ new Map();
   let navPath = "";
   for (const tag3 of matchTags(opf, "item", EPUB_READ_MAX_MANIFEST_ITEMS, "manifest items")) {
-    const id3 = attr3(tag3, "id");
-    const href = attr3(tag3, "href");
+    const id3 = attr4(tag3, "id");
+    const href = attr4(tag3, "href");
     if (!id3 || !href) continue;
     const resolved2 = resolvePath(opfDir, href);
-    const properties2 = attr3(tag3, "properties");
+    const properties2 = attr4(tag3, "properties");
     if (manifest.has(id3)) throw new Error(`readEpub: duplicate manifest id "${id3}"`);
-    manifest.set(id3, { href: resolved2, mediaType: attr3(tag3, "media-type"), properties: properties2 });
+    manifest.set(id3, { href: resolved2, mediaType: attr4(tag3, "media-type"), properties: properties2 });
     if (/\bnav\b/.test(properties2)) navPath = resolved2;
   }
   const navLabels = /* @__PURE__ */ new Map();
@@ -98176,7 +98953,7 @@ function readEpub(bytes2) {
   const chapters = [];
   let outputChars = bookTitle.length;
   for (const itemref of matchTags(opf, "itemref", EPUB_READ_MAX_SPINE_ITEMS, "spine items")) {
-    const idref = attr3(itemref, "idref");
+    const idref = attr4(itemref, "idref");
     if (!idref) continue;
     const item2 = manifest.get(idref);
     if (!item2) continue;
@@ -98252,7 +99029,7 @@ function collectNavLabels(navHtml, navDir, out) {
         if (anchors > EPUB_READ_MAX_NAV_LABELS) {
           throw new Error(`readEpub: navigation has more than ${EPUB_READ_MAX_NAV_LABELS} labels`);
         }
-        active = { href: attr3(navHtml.slice(tag3.start, tag3.end), "href"), labelStart: tag3.end };
+        active = { href: attr4(navHtml.slice(tag3.start, tag3.end), "href"), labelStart: tag3.end };
       } else if (active) {
         const label5 = plainText(navHtml.slice(active.labelStart, tag3.start));
         const resolved2 = resolvePath(navDir, active.href);
@@ -98356,7 +99133,7 @@ function boundedTitle(title, label5) {
   }
   return title;
 }
-function attr3(tag3, name) {
+function attr4(tag3, name) {
   const esc7 = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const m2 = tag3.match(new RegExp(`\\b${esc7}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"));
   return m2 ? m2[1] ?? m2[2] ?? "" : "";
@@ -103667,12 +104444,57 @@ function refineMatte(alpha, rgba2, width, height, opts = {}) {
   }
   return out;
 }
-var TEXTURE_FLOOR, clamp0111;
+function decontaminateEdgeColour(rgba2, alpha, width, height, opts = {}) {
+  const n7 = width * height;
+  const out = new Uint8ClampedArray(n7 * 4);
+  let soft = false;
+  for (let i = 0; i < n7; i++) {
+    out[i * 4] = rgba2[i * 4];
+    out[i * 4 + 1] = rgba2[i * 4 + 1];
+    out[i * 4 + 2] = rgba2[i * 4 + 2];
+    out[i * 4 + 3] = alpha[i];
+    const a = alpha[i] / 255;
+    if (a > SOFT_FLOOR && a < SOLID_ALPHA) soft = true;
+  }
+  const amount = clamp0111(opts.amount ?? 1);
+  if (!soft || amount === 0) return out;
+  const r0 = Math.max(1, Math.min(16, Math.round(opts.radius ?? 3)));
+  const radii2 = [r0, r0 * 4, r0 * 16];
+  const weight = new Float32Array(n7);
+  for (let i = 0; i < n7; i++) weight[i] = alpha[i] / 255 >= SOLID_ALPHA ? 1 : 0;
+  const dens = radii2.map((r5) => boxMean(weight, width, height, r5));
+  const nums = [[], [], []];
+  const scratch = new Float32Array(n7);
+  for (let c = 0; c < 3; c++) {
+    for (let i = 0; i < n7; i++) scratch[i] = weight[i] * (rgba2[i * 4 + c] / 255);
+    for (let s = 0; s < radii2.length; s++) nums[s][c] = boxMean(scratch, width, height, radii2[s]);
+  }
+  for (let i = 0; i < n7; i++) {
+    const a = alpha[i] / 255;
+    if (!(a > SOFT_FLOOR && a < SOLID_ALPHA)) continue;
+    const k = amount * clamp0111((1 - a) * 4);
+    for (let s = 0; s < radii2.length; s++) {
+      const d = dens[s][i];
+      if (d <= MIN_SUPPORT) continue;
+      for (let c = 0; c < 3; c++) {
+        const v = rgba2[i * 4 + c] / 255;
+        const f = nums[s][c][i] / d;
+        out[i * 4 + c] = Math.round(clamp0111(v + (f - v) * k) * 255);
+      }
+      break;
+    }
+  }
+  return out;
+}
+var TEXTURE_FLOOR, clamp0111, SOLID_ALPHA, SOFT_FLOOR, MIN_SUPPORT;
 var init_guided_matte = __esm({
   "engine/src/guided-matte.ts"() {
     "use strict";
     TEXTURE_FLOOR = 4e-4;
     clamp0111 = (v) => v < 0 ? 0 : v > 1 ? 1 : v;
+    SOLID_ALPHA = 0.98;
+    SOFT_FLOOR = 0.02;
+    MIN_SUPPORT = 1e-4;
   }
 });
 
@@ -104939,13 +105761,13 @@ function scanPenpotUsage(entries) {
   }).sort((a, b) => b.row.count - a.row.count || (a.sig < b.sig ? -1 : a.sig > b.sig ? 1 : 0)).map((e) => e.row);
   return { colors: colorRows, gradients: gradientRows, fonts: [...fonts.values()] };
 }
-function appliedClassOf(attr6, isText2) {
-  if (attr6 === "fill") return isText2 ? "text" : "fills";
-  if (attr6 === "strokeColor" || attr6 === "shadow") return "strokes";
-  if (TYPE_ATTRS.has(attr6)) return "type";
-  if (GEOMETRY_ATTRS.has(attr6)) return "geometry";
-  if (/^[rpm][1-4]$/.test(attr6)) return "geometry";
-  if (attr6.startsWith("padding") || attr6.startsWith("margin")) return "geometry";
+function appliedClassOf(attr7, isText2) {
+  if (attr7 === "fill") return isText2 ? "text" : "fills";
+  if (attr7 === "strokeColor" || attr7 === "shadow") return "strokes";
+  if (TYPE_ATTRS.has(attr7)) return "type";
+  if (GEOMETRY_ATTRS.has(attr7)) return "geometry";
+  if (/^[rpm][1-4]$/.test(attr7)) return "geometry";
+  if (attr7.startsWith("padding") || attr7.startsWith("margin")) return "geometry";
   return null;
 }
 function camelOf(k) {
@@ -112979,8 +113801,8 @@ function parentOf(el) {
 function prop(el, style, name) {
   const fromStyle = style.get(name);
   if (fromStyle !== void 0) return fromStyle;
-  const attr6 = el.getAttribute(name);
-  return attr6 == null ? void 0 : attr6.trim();
+  const attr7 = el.getAttribute(name);
+  return attr7 == null ? void 0 : attr7.trim();
 }
 function lengthOf(value2, fontSize) {
   if (value2 === void 0) return void 0;
@@ -113773,8 +114595,8 @@ function svgLabelHintsOf(svgText, parseXml) {
   for (let i = 0; i < all.length && out.names.length < MAX_HINT_NAMES; i++) {
     const el = all[i];
     if (!el) continue;
-    for (const attr6 of ["data-recolor", "data-series", "data-name"]) {
-      const raw = el.getAttribute(attr6);
+    for (const attr7 of ["data-recolor", "data-series", "data-name"]) {
+      const raw = el.getAttribute(attr7);
       const name = raw?.replace(/\s+/g, " ").trim().slice(0, MAX_HINT_NAME);
       if (name && !seen.has(name)) {
         seen.add(name);
@@ -136590,7 +137412,7 @@ function importVectorPaint(svg, parseXml) {
   const view = (root2.getAttribute("viewBox") ?? "").split(/[\s,]+/).map(Number), width = view[2], height = view[3];
   const paths = [], idMap = new Map(Array.from(doc.getElementsByTagName("*")).filter((el) => el.hasAttribute("id")).map((el) => [el.getAttribute("id"), el]));
   function walk3(element, definition = false, instance = false) {
-    const tag3 = element.localName, attributes2 = Object.fromEntries(Array.from(element.attributes).map((attr6) => [attr6.name, attr6.value]));
+    const tag3 = element.localName, attributes2 = Object.fromEntries(Array.from(element.attributes).map((attr7) => [attr7.name, attr7.value]));
     if (instance) delete attributes2.id;
     if (tag3 === "use") {
       const target2 = idMap.get(attributes2.href.slice(1));
@@ -145418,7 +146240,7 @@ function rootTag(svg) {
   const selfClosing = svg[i - 1] === "/";
   return { start: m2.index, end: i + 1, attrs: svg.slice(m2.index + 4, selfClosing ? i - 1 : i) };
 }
-function attr4(attrs, name) {
+function attr5(attrs, name) {
   const m2 = new RegExp(`(?:^|\\s)${name}\\s*=\\s*("([^"]*)"|'([^']*)')`, "i").exec(attrs);
   return m2 ? m2[2] ?? m2[3] ?? "" : null;
 }
@@ -145432,12 +146254,12 @@ function length(v) {
 function svgDocumentFrame(svg) {
   const tag3 = rootTag(svg);
   if (!tag3) return null;
-  const vb = attr4(tag3.attrs, "viewBox");
+  const vb = attr5(tag3.attrs, "viewBox");
   if (vb != null) {
     const n7 = vb.trim().split(/[\s,]+/).map(Number);
     if (n7.length === 4 && n7.every(Number.isFinite) && n7[2] > 0 && n7[3] > 0) return { x: n7[0], y: n7[1], w: n7[2], h: n7[3] };
   }
-  const w = length(attr4(tag3.attrs, "width")), h = length(attr4(tag3.attrs, "height"));
+  const w = length(attr5(tag3.attrs, "width")), h = length(attr5(tag3.attrs, "height"));
   return w && h ? { x: 0, y: 0, w, h } : null;
 }
 function clampRegion(frame, region) {
@@ -146741,44 +147563,6 @@ var init_read_extract_quality = __esm({
   }
 });
 
-// engine/src/adobe-xml.ts
-function escapeAdobeXml(source) {
-  for (const character of source) {
-    const code = character.codePointAt(0);
-    if (code < 32 && ![9, 10, 13].includes(code) || code >= 55296 && code <= 57343 || code === 65534 || code === 65535) throw new Error("Adobe XML text contains an unsupported character.");
-  }
-  return escapeXml(source);
-}
-function readAdobeXml(source, parse2, maxBytes = 1024 * 1024) {
-  if (source.length > maxBytes || new TextEncoder().encode(source).length > maxBytes) throw new Error("Adobe XML exceeds the input byte limit.");
-  if (/<!DOCTYPE|<!ENTITY/i.test(source)) throw new Error("Adobe XML cannot contain a document type or entity declaration.");
-  const doc = parse2(source);
-  if (!doc.documentElement || doc.getElementsByTagName("parsererror").length) throw new Error("Adobe XML is malformed.");
-  const stack = [{ el: doc.documentElement, depth: 1 }];
-  let count4 = 0;
-  while (stack.length) {
-    const { el, depth } = stack.pop();
-    if (++count4 > 5e4 || depth > 64 || el.attributes.length > 512) throw new Error("Adobe XML exceeds the structure limits.");
-    for (const child2 of Array.from(el.children)) stack.push({ el: child2, depth: depth + 1 });
-  }
-  return doc;
-}
-function adobeChildren(el, name) {
-  return Array.from(el.children).filter((c) => c.localName === name);
-}
-function adobeChild(el, name) {
-  return adobeChildren(el, name)[0];
-}
-function adobeText(el, name) {
-  return adobeChild(el, name)?.textContent?.trim() ?? "";
-}
-var init_adobe_xml = __esm({
-  "engine/src/adobe-xml.ts"() {
-    "use strict";
-    init_xml_escape();
-  }
-});
-
 // engine/src/camera-raw-preset.ts
 function number9(key2, raw) {
   if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw) || !Number.isFinite(Number(raw))) throw new Error(`Invalid Camera Raw number: ${key2}`);
@@ -146788,9 +147572,9 @@ function readCameraRawPreset(source, parse2) {
   if (!source.trimStart().startsWith("<")) throw new Error("Legacy .lrtemplate presets are unsupported. Export the preset as XMP; Lua is never executed.");
   const doc = readAdobeXml(source, parse2), settings = /* @__PURE__ */ new Map();
   for (const el of [doc.documentElement, ...Array.from(doc.documentElement.getElementsByTagName("*"))]) {
-    for (const attr6 of Array.from(el.attributes)) if (attr6.namespaceURI === CRS) {
-      if (settings.has(attr6.localName)) throw new Error(`Repeated Camera Raw setting: ${attr6.localName}`);
-      settings.set(attr6.localName, attr6.value.trim());
+    for (const attr7 of Array.from(el.attributes)) if (attr7.namespaceURI === CRS) {
+      if (settings.has(attr7.localName)) throw new Error(`Repeated Camera Raw setting: ${attr7.localName}`);
+      settings.set(attr7.localName, attr7.value.trim());
     }
     if (el.namespaceURI === CRS) {
       if (settings.has(el.localName)) throw new Error(`Repeated Camera Raw setting: ${el.localName}`);
@@ -147891,9 +148675,9 @@ function parseStories(doc, swatches, out, styles = /* @__PURE__ */ new Map(), wa
       const para = { runs: [], align: paragraphAlign };
       for (const csr of Array.from(psr.getElementsByTagName("CharacterStyleRange"))) {
         const cs = styles.get(csr.getAttribute("AppliedCharacterStyle") || "");
-        const attr6 = (key2) => csr.getAttribute(key2) || cs?.getAttribute(key2) || psr.getAttribute(key2) || ps?.getAttribute(key2) || "";
-        const size = parseFloat(attr6("PointSize")) || 0, color6 = safeColor(resolveColor3(attr6("FillColor"), swatches), "");
-        const family2 = fontFamilyOf(csr) || (cs ? fontFamilyOf(cs) : "") || (ps ? fontFamilyOf(ps) : ""), style = attr6("FontStyle");
+        const attr7 = (key2) => csr.getAttribute(key2) || cs?.getAttribute(key2) || psr.getAttribute(key2) || ps?.getAttribute(key2) || "";
+        const size = parseFloat(attr7("PointSize")) || 0, color6 = safeColor(resolveColor3(attr7("FillColor"), swatches), "");
+        const family2 = fontFamilyOf(csr) || (cs ? fontFamilyOf(cs) : "") || (ps ? fontFamilyOf(ps) : ""), style = attr7("FontStyle");
         if (!fontSize) fontSize = size;
         if (!fg) fg = color6;
         if (!font) font = family2;
@@ -147903,7 +148687,7 @@ function parseStories(doc, swatches, out, styles = /* @__PURE__ */ new Map(), wa
           if (child2.nodeType === 1 && child2.localName === "Content") text12 += child2.textContent || "";
           else if (child2.nodeType === 1 && child2.localName === "Br") text12 += "\n";
         }
-        if (text12) para.runs.push({ text: text12, bold: /Bold|Black|Heavy/i.test(style), italic: /Italic|Oblique/i.test(style), underline: attr6("Underline") === "true", strike: attr6("StrikeThru") === "true", ...size ? { sizePt: size } : {}, ...family2 ? { font: family2 } : {}, ...color6 ? { color: { hex: color6 } } : {} });
+        if (text12) para.runs.push({ text: text12, bold: /Bold|Black|Heavy/i.test(style), italic: /Italic|Oblique/i.test(style), underline: attr7("Underline") === "true", strike: attr7("StrikeThru") === "true", ...size ? { sizePt: size } : {}, ...family2 ? { font: family2 } : {}, ...color6 ? { color: { hex: color6 } } : {} });
       }
       const last = para.runs.at(-1);
       if (last?.text.endsWith("\n")) last.text = last.text.slice(0, -1);
@@ -148090,6 +148874,7 @@ __export(src_exports, {
   CUBE_MAX_N: () => CUBE_MAX_N,
   CULL_PAD_PT: () => CULL_PAD_PT,
   CUTS_FORMATS: () => CUTS_FORMATS,
+  CaptionFormatError: () => CaptionFormatError,
   ComposeGuardError: () => ComposeGuardError,
   DATA_CELL_MODES: () => DATA_CELL_MODES,
   DATA_DELIMITERS: () => DATA_DELIMITERS,
@@ -148189,6 +148974,7 @@ __export(src_exports, {
   IDENTITY_2D: () => IDENTITY_2D,
   IMPRINT_CONTAINER_FORMATS: () => IMPRINT_CONTAINER_FORMATS,
   IMPRINT_FORMATS: () => IMPRINT_FORMATS,
+  IMSC11_TEXT_PROFILE: () => IMSC11_TEXT_PROFILE,
   IN_REALM_ONLY_HOOK_NAMES: () => IN_REALM_ONLY_HOOK_NAMES,
   IcoDecodeError: () => IcoDecodeError,
   JOIN_EPS: () => JOIN_EPS,
@@ -148371,6 +149157,7 @@ __export(src_exports, {
   ReadExtractError: () => ReadExtractError,
   RondoSourceError: () => RondoSourceError,
   SCALES: () => SCALES,
+  SCC_LIMITS: () => SCC_LIMITS,
   SCHEME_KINDS: () => SCHEME_KINDS,
   SCREEN_SOURCE_TYPE: () => SCREEN_SOURCE_TYPE,
   SEAL_MAX_ASSEMBLED_BYTES: () => SEAL_MAX_ASSEMBLED_BYTES,
@@ -148463,6 +149250,7 @@ __export(src_exports, {
   TRUSTMARK_MODEL_RESOLUTION: () => TRUSTMARK_MODEL_RESOLUTION,
   TRUSTMARK_PAYLOAD_BITS: () => TRUSTMARK_PAYLOAD_BITS,
   TRUSTMARK_Q_WM_STRENGTH: () => TRUSTMARK_Q_WM_STRENGTH,
+  TTML_LIMITS: () => TTML_LIMITS,
   TextMeasureError: () => TextMeasureError,
   TextSourceError: () => TextSourceError,
   ToolLoadError: () => ToolLoadError,
@@ -148772,7 +149560,9 @@ __export(src_exports, {
   cubicRoots01: () => cubicRoots01,
   cueAt: () => cueAt,
   cuesForSlide: () => cuesForSlide,
+  cuesToScc: () => cuesToScc,
   cuesToSrt: () => cuesToSrt,
+  cuesToTtml: () => cuesToTtml,
   cuesToVtt: () => cuesToVtt,
   cullPdfNodes: () => cullPdfNodes,
   curveFromRamp: () => curveFromRamp,
@@ -148797,6 +149587,7 @@ __export(src_exports, {
   decodeTableCompact: () => decodeTableCompact,
   decodeTrustmarkPayload: () => decodeTrustmarkPayload,
   decomposeMatrix: () => decomposeMatrix,
+  decontaminateEdgeColour: () => decontaminateEdgeColour,
   defaultColorCurve: () => defaultColorCurve,
   defaultTextFrameSettings: () => defaultTextFrameSettings,
   defaultTrustAnchors: () => defaultTrustAnchors,
@@ -149006,6 +149797,7 @@ __export(src_exports, {
   framePosition: () => framePosition,
   framePreviewSvg: () => framePreviewSvg,
   frameRect: () => frameRect,
+  frameToTimecode: () => frameToTimecode,
   framesToSeconds: () => framesToSeconds,
   framesToTimecode: () => framesToTimecode,
   framingQuad: () => framingQuad,
@@ -149052,6 +149844,7 @@ __export(src_exports, {
   hasDesignLayout: () => hasDesignLayout,
   hasDesignMarkup: () => hasDesignMarkup,
   hasEncryptedState: () => hasEncryptedState,
+  hasOddParity: () => hasOddParity,
   hasPackedState: () => hasPackedState,
   hasResidualMetadata: () => hasResidualMetadata,
   hasVideoParams: () => hasVideoParams,
@@ -149423,6 +150216,7 @@ __export(src_exports, {
   parseTokenSelection: () => parseTokenSelection,
   parseToolUrl: () => parseToolUrl,
   parseTreatedAssetId: () => parseTreatedAssetId,
+  parseTtmlTime: () => parseTtmlTime,
   parseUrlState: () => parseUrlState,
   parseVectorPaint: () => parseVectorPaint,
   parseVersion: () => parseVersion,
@@ -149678,6 +150472,7 @@ __export(src_exports, {
   scanJpegSegments: () => scanJpegSegments,
   scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
   scanPenpotUsage: () => scanPenpotUsage,
+  sccToCues: () => sccToCues,
   scoreArchetypes: () => scoreArchetypes,
   scoreExtract: () => scoreExtract,
   scoreTokenWatermark: () => scoreTokenWatermark,
@@ -149867,6 +150662,7 @@ __export(src_exports, {
   themeSwatches: () => themeSwatches,
   themedColors: () => themedColors,
   themesSelection: () => themesSelection,
+  timecodeToFrame: () => timecodeToFrame,
   timecodeToFrames: () => timecodeToFrames,
   tintGradientSpec: () => tintGradientSpec,
   toCSV: () => toCSV,
@@ -149894,6 +150690,7 @@ __export(src_exports, {
   transformTextPath: () => transformTextPath,
   transformVectorPaintPaths: () => transformVectorPaintPaths,
   treatmentFilterSvg: () => treatmentFilterSvg,
+  ttmlToCues: () => ttmlToCues,
   typesetOcrLines: () => typesetOcrLines,
   typographyFamilies: () => typographyFamilies,
   unfilterPng: () => unfilterPng,
@@ -149954,6 +150751,7 @@ __export(src_exports, {
   withColourway: () => withColourway,
   withDesignSystemIdentity: () => withDesignSystemIdentity,
   withGifComment: () => withGifComment,
+  withOddParity: () => withOddParity,
   withSlideLayoutComponents: () => withSlideLayoutComponents,
   withTokenSelection: () => withTokenSelection,
   withTokenSourceValue: () => withTokenSourceValue,
@@ -150052,6 +150850,9 @@ var init_src2 = __esm({
     init_audio_clean();
     init_audio_repair();
     init_captions();
+    init_captions();
+    init_captions_scc();
+    init_captions_ttml();
     init_text_signals();
     init_text_facts();
     init_humanize();
@@ -151324,7 +152125,7 @@ function deckSvgIntrinsicSize(bytes2) {
   const head2 = new TextDecoder().decode(bytes2.subarray(0, Math.min(bytes2.length, 8192)));
   const tag3 = /<svg\b([^>]*)>/i.exec(head2);
   if (!tag3) return null;
-  const attr6 = (name) => {
+  const attr7 = (name) => {
     const m2 = new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag3[1]);
     return m2 ? m2[1] ?? m2[2] : void 0;
   };
@@ -151334,11 +152135,11 @@ function deckSvgIntrinsicSize(bytes2) {
     const n7 = parseFloat(m2[1]) * (SVG_UNIT_PX[(m2[2] ?? "").toLowerCase()] ?? 0);
     return Number.isFinite(n7) && n7 > 0 ? n7 : 0;
   };
-  const vb = (attr6("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
+  const vb = (attr7("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
   const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2] > 0 ? vb[2] : 0;
   const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3] > 0 ? vb[3] : 0;
-  const w = length2(attr6("width"));
-  const h = length2(attr6("height"));
+  const w = length2(attr7("width"));
+  const h = length2(attr7("height"));
   if (w && h) return { w, h, natural: true };
   if (w && vbW && vbH) return { w, h: w * vbH / vbW, natural: true };
   if (h && vbW && vbH) return { w: h * vbW / vbH, h, natural: true };
@@ -158058,9 +158859,9 @@ function childrenByLocal3(el, local2) {
   return out;
 }
 function relIdOf(el) {
-  for (const attr6 of Array.from(el.attributes)) {
-    const full = attr6.name || "";
-    if (full === "r:id" || full.endsWith(":id") && full !== "id") return attr6.value;
+  for (const attr7 of Array.from(el.attributes)) {
+    const full = attr7.name || "";
+    if (full === "r:id" || full.endsWith(":id") && full !== "id") return attr7.value;
   }
   return null;
 }
@@ -160661,7 +161462,7 @@ function packExr(frame, opts = {}) {
   const h = new Sink(512);
   h.i32(EXR_MAGIC);
   h.i32(EXR_VERSION | (longNames ? FLAG_LONG_NAMES : 0));
-  attr5(h, "channels", "chlist", (s) => {
+  attr6(h, "channels", "chlist", (s) => {
     for (const c of channels) {
       s.name(c.name);
       s.i32(PIXEL_TYPE_CODE[pixelType]);
@@ -160675,28 +161476,28 @@ function packExr(frame, opts = {}) {
     s.u8(0);
   });
   if (chroma) {
-    attr5(h, "chromaticities", "chromaticities", (s) => {
+    attr6(h, "chromaticities", "chromaticities", (s) => {
       for (const v of chroma) s.f32(v);
     });
   }
-  attr5(h, "compression", "compression", (s) => s.u8(COMPRESSION_CODE[compression]));
+  attr6(h, "compression", "compression", (s) => s.u8(COMPRESSION_CODE[compression]));
   const box4 = (s) => {
     s.i32(0);
     s.i32(0);
     s.i32(width - 1);
     s.i32(height - 1);
   };
-  attr5(h, "dataWindow", "box2i", box4);
-  attr5(h, "displayWindow", "box2i", box4);
-  attr5(h, "lineOrder", "lineOrder", (s) => s.u8(0));
-  attr5(h, "pixelAspectRatio", "float", (s) => s.f32(par));
-  attr5(h, "screenWindowCenter", "v2f", (s) => {
+  attr6(h, "dataWindow", "box2i", box4);
+  attr6(h, "displayWindow", "box2i", box4);
+  attr6(h, "lineOrder", "lineOrder", (s) => s.u8(0));
+  attr6(h, "pixelAspectRatio", "float", (s) => s.f32(par));
+  attr6(h, "screenWindowCenter", "v2f", (s) => {
     s.f32(0);
     s.f32(0);
   });
-  attr5(h, "screenWindowWidth", "float", (s) => s.f32(1));
+  attr6(h, "screenWindowWidth", "float", (s) => s.f32(1));
   for (const [k, v] of extras) {
-    attr5(h, k, "string", (s) => s.bytes(utf84(v)));
+    attr6(h, k, "string", (s) => s.bytes(utf84(v)));
   }
   h.u8(0);
   const linesPerBlock = LINES_PER_BLOCK[compression];
@@ -160765,7 +161566,7 @@ function packExr(frame, opts = {}) {
   }
   return out;
 }
-function attr5(h, name, type, write) {
+function attr6(h, name, type, write) {
   const body = new Sink(64);
   write(body);
   const bytes2 = body.take();
@@ -172932,8 +173733,8 @@ function passiveForensicSvg(source, parse2 = (source2) => new DOMParser().parseF
       partial = true;
       continue;
     }
-    for (const attr6 of [...el.attributes]) {
-      const name = attr6.name.toLowerCase(), value2 = attr6.value;
+    for (const attr7 of [...el.attributes]) {
+      const name = attr7.name.toLowerCase(), value2 = attr7.value;
       if (name === "href" || name === "xlink:href") {
         if (el.localName === "image" && /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(value2) && value2.length < 8e6) {
           const data = base64ToBytes(value2.slice(value2.indexOf(",") + 1));
@@ -172941,12 +173742,12 @@ function passiveForensicSvg(source, parse2 = (source2) => new DOMParser().parseF
           if (dimensions && dimensions.w > 0 && dimensions.h > 0 && dimensions.w * dimensions.h <= 4e7)
             continue;
         }
-        el.removeAttribute(attr6.name);
+        el.removeAttribute(attr7.name);
         partial = true;
         continue;
       }
       if (!ATTRS.has(name) || /url\(/i.test(value2) && !/^url\(#[\w.-]+\)$/.test(value2)) {
-        el.removeAttribute(attr6.name);
+        el.removeAttribute(attr7.name);
         partial = true;
       }
     }
@@ -176366,8 +177167,8 @@ function parseSvgDropShadow(filt) {
     "fecomponenttransfer"
   ];
   if (kids2.some((k) => UNEXPECTED.includes(k))) return null;
-  const num22 = (el, attr6, dflt) => {
-    const v = Number.parseFloat(el?.getAttribute(attr6) ?? "");
+  const num22 = (el, attr7, dflt) => {
+    const v = Number.parseFloat(el?.getAttribute(attr7) ?? "");
     return Number.isFinite(v) ? v : dflt;
   };
   const find = (name) => Array.from(filt.children).find((c) => c.tagName.toLowerCase().replace(/^svg:/, "") === name);
@@ -178993,6 +179794,18 @@ function finishMatteAlpha(maskEdge, plan, workRgba, workW, workH, refine, refine
   if (refine === false || refine === void 0 && !refineByDefault) return scaled2;
   return refineMatte(scaled2, workRgba, workW, workH, refine ?? {});
 }
+function composeCutout(workRgba, alpha, workW, workH, cleanEdgeColour) {
+  if (cleanEdgeColour) return decontaminateEdgeColour(workRgba, alpha, workW, workH);
+  const out = new Uint8ClampedArray(workW * workH * 4);
+  for (let i = 0; i < workW * workH; i++) {
+    const o = i * 4;
+    out[o] = workRgba[o];
+    out[o + 1] = workRgba[o + 1];
+    out[o + 2] = workRgba[o + 2];
+    out[o + 3] = alpha[i];
+  }
+  return out;
+}
 
 // packages/node-shell/src/ml/matte.ts
 init_session();
@@ -179072,14 +179885,7 @@ function createNodeMatteAPI() {
       opts.onProgress?.({ phase: "inference", fraction: 0.85 });
       const maskEdge = activateMask(raw, edge * edge, spec.activation);
       const alpha = finishMatteAlpha(maskEdge, plan, work.data, workW, workH, opts.refine, spec.refineByDefault);
-      const out = new Uint8ClampedArray(workW * workH * 4);
-      for (let i = 0; i < workW * workH; i++) {
-        const o = i * 4;
-        out[o] = work.data[o];
-        out[o + 1] = work.data[o + 1];
-        out[o + 2] = work.data[o + 2];
-        out[o + 3] = alpha[i];
-      }
+      const out = composeCutout(work.data, alpha, workW, workH, opts.cleanEdgeColour);
       opts.onProgress?.({ phase: "inference", fraction: 1 });
       return { width: workW, height: workH, data: out };
     }
@@ -180547,8 +181353,8 @@ var DROP_ON_PATH = /* @__PURE__ */ new Set([
 ]);
 function prop3(el, name, getComputed) {
   for (let cur = el; cur; cur = cur.parentElement) {
-    const attr6 = cur.getAttribute(name);
-    if (attr6) return attr6;
+    const attr7 = cur.getAttribute(name);
+    if (attr7) return attr7;
     const inline = cur.getAttribute("style");
     if (inline) {
       const m2 = new RegExp(`(?:^|;)\\s*${name}\\s*:\\s*([^;]+)`, "i").exec(inline);
@@ -180653,8 +181459,8 @@ async function outlineSvgText(svg, host, opts = {}) {
     const tx = anchor === "middle" ? x - adv / 2 : anchor === "end" ? x - adv : x;
     const path = doc.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", shaped.d);
-    for (const attr6 of Array.from(el.attributes)) {
-      if (!DROP_ON_PATH.has(attr6.name)) path.setAttribute(attr6.name, attr6.value);
+    for (const attr7 of Array.from(el.attributes)) {
+      if (!DROP_ON_PATH.has(attr7.name)) path.setAttribute(attr7.name, attr7.value);
     }
     const own4 = el.getAttribute("transform");
     path.setAttribute("transform", `${own4 ? own4 + " " : ""}translate(${round10(tx)} ${round10(y)})`);
@@ -181406,10 +182212,10 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       if (format === "idml") return (await Promise.resolve().then(() => (init_design_idml(), design_idml_exports))).exportDesignIdml(opts, host);
       if (format === "premiere-xml") return (await Promise.resolve().then(() => (init_design_premiere(), design_premiere_exports))).exportDesignPremiere(opts, host);
       if (typeof node?.querySelectorAll === "function") {
-        const strip = (attr6) => {
-          if (node.hasAttribute?.(attr6)) node.removeAttribute(attr6);
-          node.querySelectorAll(`[${attr6}]`).forEach((el) => {
-            el.removeAttribute(attr6);
+        const strip = (attr7) => {
+          if (node.hasAttribute?.(attr7)) node.removeAttribute(attr7);
+          node.querySelectorAll(`[${attr7}]`).forEach((el) => {
+            el.removeAttribute(attr7);
           });
         };
         for (const el of [node, ...node.querySelectorAll("[data-canvas-settings]")]) {

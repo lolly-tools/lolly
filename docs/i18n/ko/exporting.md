@@ -82,6 +82,7 @@ QR Code 링크를 담은 Design 이미지 박스처럼 디자인이 다른 도�
 | Premiere 인계 | **Premiere XML + media** | Premiere용 타이밍이 있는 클립과 원본 미디어(Design) |
 | 소셜과 공유용 동영상 | **MP4** 또는 **WebM** | 파일 크기 대비 최고 품질([동영상](#video) 참고) |
 | 자막 | **SRT** 또는 **VTT** | 동영상 플레이어용 타이밍이 있는 텍스트(Captions, Audiogram, Record) |
+| 방송용 자막 | **TTML** 또는 **SCC** | IMSC1.1 타이밍 텍스트 또는 CEA-608 팝온 자막(Captions, [방송용 자막](#broadcast-captions) 참고) |
 | 교육 과정 | **SCORM (LMS)** | 버전이 있는 웹사이트, SCORM 또는 xAPI 패키지([SCORM](#scorm-course-packages) 참고) |
 | 서식 있는 텍스트 또는 이메일 서명 | **HTML** | 서식이 유지된 채 메일 클라이언트에 붙여넣어져요 |
 | 일반 콘텐츠 | **MD** 또는 **TXT** | 텍스트만 |
@@ -199,6 +200,16 @@ Settings → Preferences → Feature flags에서 **Training and courses**를 켜
 ![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 패키지는 완성된 콘텐츠를 담고 있으며 Lolly 계정이 필요 없어요. Website ZIP은 HTTP(S) 호스트에 올리고, LMS ZIP은 그대로 가져오세요. 과정을 공유하기 전에 대상을 테스트하세요. 저장된 여러 작품으로 만든 과정은 [교육 과정 만들기](/info/training-creators.html)를 참고하세요.
+
+### 방송용 자막
+
+Captions 도구는 **TTML**과 **SCC**로도 내보낼 수 있어요. 둘 다 SRT, VTT 파일과 같은 큐 목록에서 만들어지므로 단어와 시간이 일치해요.
+
+- **TTML**은 IMSC1.1 Text Profile이에요. 미디어 시간 클록 타임을 쓰고, 아래 가운데에 영역 하나만 있어요. Lolly의 자막은 시작, 끝, 텍스트만 가지고 있어서 자막별 색, 글꼴, 위치는 담지 않아요.
+- **SCC**는 1번 채널의 CEA-608 팝온 자막을 초당 29.97프레임, 드롭 프레임 타임코드로 담아요. 기본 북미 문자와 특수 문자, 확장 문자를 지원해요. 자막에 이 문자 세트로 담을 수 없는 문자가 있으면 내보내기가 멈추고 어떤 문자인지 알려 줘서, 모르는 사이에 빠지는 일이 없어요. 각 자막은 32열, 최대 15행으로 줄바꿈돼요. 시작 시간 전에 불러올 수 없는 자막은 몇 프레임 늦춰져요.
+- 롤업과 페인트온 자막은 쓰지 않아요.
+
+SCC 출력은 실제 방송 도구나 하드웨어 디코더로 확인하지 않았어요. 납품하기 전에 내 파이프라인에서 파일을 테스트하세요.
 
 ### DXF (절단 파일)
 
@@ -410,7 +421,7 @@ URL `format=` 매개변수와 CLI `--export=` 플래그의 값이에요([URL 매
 | 페이지와 문서 | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot 디자인 파일) · `scorm` (과정 패키지, ZIP) |
 | 모션 | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | 오디오 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| 텍스트와 데이터 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP 팔레트) |
+| 텍스트와 데이터 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP 팔레트) |
 | 번들과 패키지 | `zip` · `rpm`과 `tar.gz` (Linux 패키지로 봉인된 렌더링) |
 
 일부 ID는 도구 자체의 내보내기 코드에서 와요. `ase`(Palette Lab의 Adobe Swatch Exchange), `exr`과 `hdr`(Darkroom의 하이 다이내믹 레인지 래스터)예요. **Convert Font**는 제공한 글꼴 파일로 `ttf`, `otf`, `woff`를 쓰므로 단순 링크로는 렌더링할 것이 없어요.

@@ -82,6 +82,7 @@ Logotaip yang ditetapkan dalam muka sistem reka bentuk anda dieksport sebagai SV
 | Penyerahan Premiere | **Premiere XML + media** | Klip bermasa dan media asal untuk Premiere (Design) |
 | Video untuk sosial dan perkongsian | **MP4** atau **WebM** | Kualiti terbaik untuk saiz fail (lihat [Video](#video)) |
 | Kapsyen | **SRT** atau **VTT** | Teks bermasa untuk pemain video (Captions, Audiogram dan Record) |
+| Sari kata penyiaran | **TTML** atau **SCC** | Teks bermasa IMSC1.1, atau sari kata pop-on CEA-608 (Captions; lihat [Sari kata penyiaran](#broadcast-captions)) |
 | Kursus latihan | **SCORM (LMS)** | Laman web berversi, pakej SCORM atau xAPI (lihat [SCORM](#scorm-course-packages)) |
 | Teks kaya atau tandatangan e-mel | **HTML** | Ditampal berformat ke dalam klien mel |
 | Kandungan biasa | **MD** atau **TXT** | Teks sahaja |
@@ -199,6 +200,16 @@ Kemudian pilih **Export course** daripada alat yang disokong, folder projek atau
 ![Panel eksport pada satu dek Design dengan SCORM (LMS) dipilih](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Pakej memegang kandungan siapnya dan tidak memerlukan akaun Lolly. Letakkan ZIP Website pada hos HTTP(S); import ZIP LMS tanpa perubahan. Uji destinasi sebelum anda berkongsi kursus. Untuk kursus yang dibina daripada beberapa ciptaan tersimpan, lihat [Create a training course](/info/training-creators.html).
+
+### Sari kata penyiaran
+
+Alat Captions juga boleh mengeksport **TTML** dan **SCC**. Kedua-duanya ditulis daripada senarai isyarat yang sama dengan fail SRT dan VTT, jadi perkataan dan masanya sepadan.
+
+- **TTML** ialah IMSC1.1 Text Profile, dengan masa jam media dan satu rantau di tengah bawah. Ia tidak membawa warna, fon atau kedudukan bagi setiap sari kata, kerana sari kata Lolly hanya menyimpan permulaan, penamat dan teks.
+- **SCC** membawa sari kata pop-on CEA-608 pada saluran 1 pada 29.97 bingkai sesaat dengan kod masa drop-frame. Ia menyokong aksara asas Amerika Utara serta aksara khas dan lanjutan. Jika sesuatu sari kata mengandungi aksara yang tidak dapat dibawa oleh set itu, eksport berhenti dan memberitahu anda aksara yang mana, jadi tiada apa-apa digugurkan tanpa pemberitahuan. Setiap sari kata dibungkus pada 32 lajur dan paling banyak 15 baris. Sari kata yang tidak sempat dimuatkan sebelum masa permulaannya ditangguhkan beberapa bingkai.
+- Sari kata roll-up dan paint-on tidak ditulis.
+
+Output SCC belum disemak dengan alat penyiaran sebenar atau penyahkod perkakasan. Uji fail dalam saluran paip anda sendiri sebelum penghantaran.
 
 ### DXF (fail potong)
 
@@ -410,7 +421,7 @@ Ini ialah nilai untuk parameter URL `format=` dan bendera CLI `--export=` (lihat
 | Halaman dan dokumen | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (fail reka bentuk Penpot) · `scorm` (pakej kursus, ZIP) |
 | Gerakan | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Teks dan data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (palet GIMP) |
+| Teks dan data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (palet GIMP) |
 | Bundle dan pakej | `zip` · `rpm` dan `tar.gz` (render dimeteraikan ke dalam pakej Linux) |
 
 Beberapa id datang daripada kod eksport alat sendiri: `ase` (Adobe Swatch Exchange, daripada Palette Lab) dan `exr` serta `hdr` (raster julat dinamik tinggi, daripada Darkroom). **Convert Font** menulis `ttf`, `otf` dan `woff` daripada fail fon yang anda bekalkan, jadi pautan kosong tiada apa-apa untuk dirender.

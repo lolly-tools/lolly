@@ -579,6 +579,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'VectorCraft image tracer and Rust dependencies',
+      version: '0.19.0 (05d5f99; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT AND Apache-2.0',
+      copyright: 'ArtCraft Team and the VectorCraft contributors, and individual crate authors, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/image-trace/image-trace.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/image-trace/LICENSES.txt'), 'utf8'),
+      note: 'VectorCraft vectorcraft-trace and vectorcraft-geom compiled through a bounded Lolly byte adapter that takes decoded pixels. The image decoding feature, the parallel layer map and the upstream test suite are left out. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/image-trace/.',
+      where: 'web',
+    },
+    {
       name: 'PdfCraft PDF accessibility check and Rust dependencies',
       version: '0.16.1 (47f42ba07b61553da50ca2df91b070519bd3386e; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',

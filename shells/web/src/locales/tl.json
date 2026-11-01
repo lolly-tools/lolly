@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Piliin ang media files na tinutukoy ng timeline na ito, o magpatuloy gamit ang may label na placeholders.",
   "Text file (.txt)": "Text file (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Hindi ma-convert sa device na ito ang InDesign file na iyon. I-export ito mula sa InDesign bilang IDML at subukan ulit.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Hindi mabuksan ang InDesign file na iyon. I-export ito mula sa InDesign bilang IDML at subukan ulit."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Hindi mabuksan ang InDesign file na iyon. I-export ito mula sa InDesign bilang IDML at subukan ulit.",
+  "Adding shapes": "Nagdaragdag ng mga hugis",
+  "Clean edge colour": "Malinis na kulay ng gilid",
+  "No shapes were found. Try another preset.": "Walang nakitang hugis. Subukan ang ibang preset.",
+  "Reading the image": "Binabasa ang larawan",
+  "Starting the tracer": "Sinisimulan ang tracer",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Pinapalitan nito ang kulay ng lumang background sa gilid ng sariling kulay ng subject. Subukan ito kung may nakikita kang halo.",
+  "The image could not be traced.": "Hindi ma-trace ang larawan.",
+  "This image could not be read.": "Hindi mabasa ang larawang ito.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Masyadong maraming point ang nagagawa ng trace na ito para sa canvas. Subukan ang preset na Logo o Line art, o mas simpleng larawan.",
+  "Trace": "I-trace",
+  "Trace image": "I-trace ang larawan",
+  "Trace image…": "I-trace ang larawan…",
+  "Traced into one shape, above the image.": "Na-trace sa isang hugis, sa itaas ng larawan.",
+  "Traced into {n} shapes, above the image.": "Na-trace sa {n} hugis, sa itaas ng larawan.",
+  "Tracing": "Tinatrace",
+  "Tracing image": "Tinatrace ang larawan",
+  "Turn this picture into shapes you can edit.": "Gawing mga hugis na maeedit mo ang larawang ito."
 }

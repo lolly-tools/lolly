@@ -309,6 +309,7 @@ addCargoCrates('shells/tauri-mobile/src-tauri/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/skera/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/adobe-psd/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/xlsx-numfmt/Cargo.lock');
+addCargoCrates('packages/node-shell/wasm/image-trace/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/pdf-a11y/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/dxf/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/audio-dsp/Cargo.lock');

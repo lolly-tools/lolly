@@ -99,6 +99,7 @@ import { documentOps } from './free-canvas/document.ts';
 import { dialogsOps } from './free-canvas/dialogs.ts';
 import { fieldPanelsOps } from './free-canvas/field-panels.ts';
 import { objectsOps } from './free-canvas/objects.ts';
+import { traceImageOps } from './free-canvas/trace-image.ts';
 import { opsOps } from './free-canvas/ops.ts';
 import { penToolOps } from './free-canvas/pen-tool.ts';
 import { penAssistOps } from './free-canvas/pen-assist.ts';
@@ -240,6 +241,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.dialogs = dialogsOps(fc);
   fc.fieldPanels = fieldPanelsOps(fc);
   fc.objects = objectsOps(fc);
+  fc.traceImage = traceImageOps(fc);
   fc.ops = opsOps(fc);
   fc.layout = layoutOps(fc);
   fc.penTool = penToolOps(fc);

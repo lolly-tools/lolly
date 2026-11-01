@@ -122,6 +122,25 @@ Tiga lagi bekerja pada satu bentuk. **Outline stroke…** mengubah garis menjadi
 
 Hasilnya adalah path baru yang dapat terus Anda sunting dengan pen, disimpan sebagai kurva Bezier biasa, sehingga tipe spline aslinya tidak terbawa. Lubang adalah lubang sungguhan: kontrol **Fill rule** pada panel garis menentukan apakah kontur yang tumpang tindih terisi (*non-zero*) atau berlubang (*even-odd*). Operasi menolak daripada merusak: minta memotong irisan dua bentuk yang tidak tumpang tindih dan tidak ada yang berubah. Kotak teks dan gambar tidak memiliki kontur, jadi dibiarkan.
 
+## Menelusuri gambar
+
+Pilih satu gambar, klik kanan, lalu pilih **Telusuri gambar…** untuk mengubah gambar menjadi bentuk yang bisa diedit. Pilih preset dan tekan **Telusuri**:
+
+- **Logo** menemukan beberapa warna solid dan mempertahankan tepi tajam, lingkaran dan garis yang sejati. Gambar dengan gradien atau nada foto akan ditolak, dan Anda diberi tahu.
+- **Ilustrasi** menelusuri beberapa warna sebagai bentuk terisi, seni datar atau gambar yang diposterisasi.
+- **Line art** menelusuri garis gelap pada halaman terang sebagai bentuk hitam.
+- **Garis tengah** menelusuri garis gelap sebagai stroke tunggal, sehingga Anda bisa mengubah ketebalannya setelahnya.
+
+Bentuk ditambahkan sebagai grup tepat di atas gambar, yang tetap di tempatnya. Sembunyikan atau hapus gambar untuk melihat path saja. Penelusuran berjalan di perangkat Anda sebagai tugas latar dengan tombol Batalkan, dan tidak ada yang diunggah. Gambar 1500 piksel biasanya butuh satu hingga beberapa detik, dan foto yang ramai butuh lebih lama.
+
+Penelusuran mengikuti apa yang ditampilkan kotak, jadi gambar yang dipotong (Cover) hanya menelusuri bagian yang terlihat. Batasan berikut berlaku:
+
+- Gambar diperkecil hingga maksimal 1500 piksel di sisi terpanjang sebelum ditelusuri, sehingga tepi ditempatkan dengan ketelitian sebagian dari ukuran itu, bukan ukuran aslinya.
+- Satu penelusuran menghasilkan maksimal 1.500 bentuk dan 60.000 titik. Foto biasanya melampaui batas itu, dan Design memberi tahu tanpa mengubah apa pun. Coba Logo atau Line art, atau gambar yang lebih sederhana.
+- Gradien menjadi pita warna solid, dan bayangan lembut menjadi bentuk bertepi keras.
+- Radius sudut, mask bentuk, dan efek pada kotak gambar tidak diterapkan ke path.
+- Gambar dan preset yang sama selalu menghasilkan bentuk yang sama.
+
 ## Strokes
 
 Kotak, gambar, board, dan path pen masing-masing dapat membawa stroke: warna, lebar, dan gaya (solid, putus-putus, atau titik-titik). Baris stroke berada di bawah **Fill** di Inspector, dan tombol **Stroke** di bilah objek membukanya.

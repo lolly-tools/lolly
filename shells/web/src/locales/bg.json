@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Избери медийните файлове, към които препраща тази времева линия, или продължи с обозначени заместители.",
   "Text file (.txt)": "Текстов файл (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Този InDesign файл не можа да бъде преобразуван на това устройство. Експортирай го от InDesign като IDML и опитай отново.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Този InDesign файл не можа да бъде отворен. Експортирай го от InDesign като IDML и опитай отново."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Този InDesign файл не можа да бъде отворен. Експортирай го от InDesign като IDML и опитай отново.",
+  "Adding shapes": "Добавяне на форми",
+  "Clean edge colour": "Изчисти цвета на ръба",
+  "No shapes were found. Try another preset.": "Не са намерени форми. Опитай друга предварителна настройка.",
+  "Reading the image": "Четене на изображението",
+  "Starting the tracer": "Стартиране на трасирането",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Заменя цвета на стария фон в ръба с собствения цвят на обекта. Опитай, ако виждаш ореол.",
+  "The image could not be traced.": "Изображението не можа да бъде трасирано.",
+  "This image could not be read.": "Това изображение не можа да бъде прочетено.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Това трасиране създава твърде много точки за платното. Опитай с настройката „Лого“ или „Линеарна графика“, или с по-просто изображение.",
+  "Trace": "Трасирай",
+  "Trace image": "Трасирай изображение",
+  "Trace image…": "Трасирай изображение…",
+  "Traced into one shape, above the image.": "Трасирано в една форма над изображението.",
+  "Traced into {n} shapes, above the image.": "Трасирано в {n} форми над изображението.",
+  "Tracing": "Трасиране",
+  "Tracing image": "Трасиране на изображението",
+  "Turn this picture into shapes you can edit.": "Превърни това изображение във форми, които можеш да редактираш."
 }

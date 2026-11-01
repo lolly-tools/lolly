@@ -18,7 +18,7 @@
 
 import type { MatteModelSpec } from './matte-models.ts';
 import type { MatteOpts } from '@lolly-tools/core/host-v1';
-import { refineMatte, resizeMask } from '../../../../engine/src/guided-matte.ts';
+import { decontaminateEdgeColour, refineMatte, resizeMask } from '../../../../engine/src/guided-matte.ts';
 
 export interface LetterboxPlan {
   /** Model input square edge (spec.inputSize is [H,W], H===W for this roster). */
@@ -114,4 +114,23 @@ export function finishMatteAlpha(
   const scaled = resizeMask(unpadMask(maskEdge, plan), plan.contentW, plan.contentH, workW, workH);
   if (refine === false || (refine === undefined && !refineByDefault)) return scaled;
   return refineMatte(scaled, workRgba, workW, workH, refine ?? {});
+}
+
+/**
+ * The finished straight-alpha cutout pixels: the work RGB with `alpha`. With
+ * `cleanEdgeColour` the RGB of the soft edge is first cleaned of the old
+ * background's colour (engine decontaminateEdgeColour); without it every RGB
+ * byte is the input's. Shared by the web and Node mattes.
+ */
+export function composeCutout(workRgba: ArrayLike<number>, alpha: ArrayLike<number>, workW: number, workH: number, cleanEdgeColour?: boolean): Uint8ClampedArray {
+  if (cleanEdgeColour) return decontaminateEdgeColour(workRgba, alpha, workW, workH);
+  const out = new Uint8ClampedArray(workW * workH * 4);
+  for (let i = 0; i < workW * workH; i++) {
+    const o = i * 4;
+    out[o] = workRgba[o]!;
+    out[o + 1] = workRgba[o + 1]!;
+    out[o + 2] = workRgba[o + 2]!;
+    out[o + 3] = alpha[i]!;
+  }
+  return out;
 }

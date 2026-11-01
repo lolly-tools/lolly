@@ -122,6 +122,25 @@ Další tři fungují na jediném tvaru. **Outline stroke…** změní čáru na
 
 Výsledkem je nová cesta, kterou můžeš dál upravovat perem, uložená jako prosté Bézierovy křivky, takže původní typ splinu se nepřenáší. Díry jsou skutečné díry: ovládací prvek **Fill rule** na panelu čáry rozhoduje, zda se překrývající kontury vyplní (*non-zero*), nebo prorazí (*even-odd*). Operace raději odmítnou, než by něco zničily: požádáš-li o průnik dvou tvarů, které se nepřekrývají, nic se nezmění. Textová a obrázková pole nemají obrys, takže zůstanou nedotčena.
 
+## Trasování obrázku
+
+Vyber jeden obrázek, klikni na něj pravým tlačítkem a zvol **Trasovat obrázek…**, aby se z něj staly upravitelné tvary. Vyber předvolbu a stiskni **Trasovat**:
+
+- **Logo** najde pár plochých barev a zachová ostré hrany, skutečné kruhy a čáry. Obrázek s přechody nebo fotografickými tóny odmítne a řekne ti to.
+- **Ilustrace** trasuje několik barev jako vyplněné tvary, plochou grafiku nebo posterizovaný obrázek.
+- **Perokresba** trasuje tmavé čáry na světlé stránce jako černé tvary.
+- **Středová čára** trasuje tmavé čáry jako jednotlivé obrysy, takže jejich sílu můžeš potom změnit.
+
+Tvary se přidají jako skupina těsně nad obrázek, který zůstane na místě. Skryj nebo smaž obrázek, aby zůstaly vidět jen cesty. Trasování běží na tvém zařízení jako úloha na pozadí s tlačítkem Zrušit a nic se nenahrává. Obrázek o 1500 pixelech obvykle trvá od jedné do několika sekund, rušná fotografie trvá déle.
+
+Trasování sleduje to, co ukazuje rámeček, takže oříznutý obrázek (Cover) trasuje jen viditelnou část. Platí tato omezení:
+
+- Obrázky se před trasováním zmenší na nejvýše 1500 pixelů na delší straně, takže hrany jsou umístěny s přesností na zlomek této velikosti, ne originálu.
+- Jedno trasování vytvoří nejvýše 1500 tvarů a 60 000 bodů. Fotografie to obvykle přesáhne a Design to řekne, aniž by cokoli změnil. Zkus Logo nebo Perokresbu, nebo jednodušší obrázek.
+- Přechody se změní na pásy ploché barvy a měkké stíny na tvary s tvrdými hranami.
+- Poloměr rohů, maska tvaru a efekt na rámečku obrázku se na cesty nepoužijí.
+- Stejný obrázek a stejná předvolba vždy dají stejné tvary.
+
 ## Strokes
 
 Pole, obrázek, plocha i cesta z pera mohou nést obrys: barvu, šířku a styl (plný, čárkovaný nebo tečkovaný). Řádky obrysu jsou v Inspector pod **Fill** a tlačítko **Stroke** na liště objektu je otevře.

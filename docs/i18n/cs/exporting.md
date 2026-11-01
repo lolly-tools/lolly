@@ -82,6 +82,7 @@ Wordmark sázený v písmu tvého designového systému se exportuje jako SVG s 
 | Předání do Premiere | **Premiere XML + media** | Časované klipy a původní média pro Premiere (Design) |
 | Video pro sociální sítě a sdílení | **MP4** nebo **WebM** | Nejlepší kvalita na velikost souboru (viz [Video](#video)) |
 | Titulky | **SRT** nebo **VTT** | Časovaný text pro přehrávač videa (Captions, Audiogram a Record) |
+| Vysílací titulky | **TTML** nebo **SCC** | Časovaný text IMSC1.1 nebo titulky pop-on CEA-608 (Captions; viz [Vysílací titulky](#broadcast-captions)) |
 | Školicí kurz | **SCORM (LMS)** | Verzovaný web, balíček SCORM nebo xAPI (viz [SCORM](#scorm-course-packages)) |
 | Formátovaný text nebo e-mailový podpis | **HTML** | Vloží se formátovaně do e-mailových klientů |
 | Prostý obsah | **MD** nebo **TXT** | Jen text |
@@ -199,6 +200,16 @@ Pak zvol **Export course** z podporovaného nástroje, složky projektu nebo vý
 ![Exportní panel na sadě Design se zvoleným SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Balíček drží svůj hotový obsah a nepotřebuje účet Lolly. Website ZIP umísti na hostitele HTTP(S); ZIP pro LMS importuj beze změny. Cíl otestuj, než kurz sdílíš. Pro kurz vytvořený z několika uložených tvorb viz [Vytvoř školicí kurz](/info/training-creators.html).
+
+### Vysílací titulky
+
+Nástroj Captions umí exportovat také **TTML** a **SCC**. Oba se zapisují ze stejného seznamu titulků jako soubory SRT a VTT, takže slova a časy se shodují.
+
+- **TTML** je IMSC1.1 Text Profile s časy hodin podle času média a jednou oblastí dole uprostřed. Nenese barvu, písmo ani pozici jednotlivých titulků, protože titulky v Lolly mají jen začátek, konec a text.
+- **SCC** nese titulky pop-on podle CEA-608 na kanálu 1 při 29,97 snímcích za sekundu s časovým kódem drop-frame. Podporuje základní severoamerické znaky plus speciální a rozšířené. Pokud titulek obsahuje znak, který sada nepodporuje, export se zastaví a řekne ti který, takže se nic neztratí bez upozornění. Každý titulek se zalamuje na 32 sloupců a nejvýše 15 řádků. Titulek, který se nestihne načíst před svým začátkem, se o pár snímků zpozdí.
+- Titulky roll-up a paint-on se nezapisují.
+
+Výstup SCC nebyl ověřen se skutečným vysílacím nástrojem ani hardwarovým dekodérem. Soubor si před dodáním vyzkoušej ve vlastním pipeline.
 
 ### DXF (soubory pro řezání)
 
@@ -410,7 +421,7 @@ Toto jsou hodnoty pro parametr URL `format=` a příznak CLI `--export=` (viz [P
 | Stránka a dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (návrhový soubor Penpot) · `scorm` (balíček kurzu, ZIP) |
 | Pohyb | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Zvuk | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Text a data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (paleta GIMP) |
+| Text a data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (paleta GIMP) |
 | Balíky a balíčky | `zip` · `rpm` a `tar.gz` (vykreslení zapečetěné do balíčku Linuxu) |
 
 Několik id pochází z vlastního exportního kódu nástroje: `ase` (Adobe Swatch Exchange, z Palette Lab) a `exr` a `hdr` (rastry s vysokým dynamickým rozsahem, z Darkroom). **Convert Font** zapisuje `ttf`, `otf` a `woff` ze souboru písma, který dodáš, takže holý odkaz nemá co vykreslit.

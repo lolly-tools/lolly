@@ -122,6 +122,25 @@ Three more work on a single shape. **Outline stroke…** turns a stroke into a f
 
 The result is a new path you can keep editing with the pen, stored as plain Bezier curves, so the original spline type does not carry over. Holes are real holes: the **Fill rule** control on the stroke panel decides whether overlapping contours fill (*non-zero*) or punch through (*even-odd*). The operations refuse rather than destroy: ask to intersect two shapes that don't overlap and nothing changes. Text and image boxes have no outline, so they are left alone.
 
+## Trace an image
+
+Select one image, right-click it and choose **Trace image…** to turn the picture into editable shapes. Pick a preset and press **Trace**:
+
+- **Logo** finds a few flat colours and keeps crisp edges and true circles and lines. It refuses a picture with gradients or photo tones and says so.
+- **Illustration** traces several colours as filled shapes, flat art or a posterised picture.
+- **Line art** traces dark lines on a light page as black shapes.
+- **Centreline** traces dark lines as single strokes, so you can change their weight afterwards.
+
+The shapes are added as a group just above the image, which stays where it is. Hide or delete the image to see only the paths. The trace runs on your device in a background job with a Cancel button, and nothing is uploaded. A 1500 pixel image usually takes between one and several seconds, and a busy photograph takes longer.
+
+The trace follows what the box shows, so a cropped (Cover) image traces only the visible part. These limits apply:
+
+- Images are scaled down to at most 1500 pixels on the long side before tracing, so edges are placed to a fraction of that size, not of the original.
+- One trace makes at most 1,500 shapes and 60,000 points. A photograph usually goes past that, and Design says so without changing anything. Try Logo or Line art, or a simpler picture.
+- Gradients become bands of flat colour, and soft shadows become hard-edged shapes.
+- Corner radius, a shape mask and an effect on the image box are not applied to the paths.
+- The same picture and preset always give the same shapes.
+
 ## Strokes
 
 A box, a picture, a board and a pen path can each carry a stroke: a colour, a width and a style (solid, dashed or dotted). The stroke rows sit under **Fill** in the Inspector, and the **Stroke** button on the object bar opens them.

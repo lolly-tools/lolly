@@ -122,6 +122,25 @@ Trois autres fonctions agissent sur une seule forme. **Outline stroke…** trans
 
 Le résultat est un nouveau tracé que tu peux continuer de modifier au stylo, stocké sous forme de courbes de Bézier simples, donc le type de spline d'origine n'est pas conservé. Les trous sont de vrais trous : le contrôle **Fill rule** du panneau de trait décide si les contours qui se chevauchent se remplissent (*non-zero*) ou se percent (*even-odd*). Les opérations refusent plutôt que de détruire : demande d'intersecter deux formes qui ne se chevauchent pas et rien ne change. Les blocs de texte et d'image n'ont pas de contour, ils sont donc laissés tels quels.
 
+## Vectoriser une image
+
+Sélectionne une image, fais un clic droit dessus et choisis **Vectoriser l'image…** pour la transformer en formes modifiables. Choisis un préréglage et appuie sur **Vectoriser** :
+
+- **Logo** trouve quelques aplats de couleur et garde des bords nets, de vrais cercles et de vraies lignes. Il refuse une image avec des dégradés ou des tons photographiques et te le dit.
+- **Illustration** vectorise plusieurs couleurs en formes remplies, un dessin en aplats ou une image postérisée.
+- **Dessin au trait** vectorise des lignes sombres sur une page claire en formes noires.
+- **Ligne centrale** vectorise des lignes sombres en contours simples, pour que tu puisses en changer l'épaisseur ensuite.
+
+Les formes sont ajoutées sous forme de groupe juste au-dessus de l'image, qui reste en place. Masque ou supprime l'image pour ne voir que les tracés. La vectorisation s'exécute sur ton appareil dans une tâche d'arrière-plan avec un bouton Annuler, et rien n'est envoyé. Une image de 1 500 pixels prend en général entre une et plusieurs secondes, et une photographie chargée prend plus de temps.
+
+La vectorisation suit ce que montre le bloc, donc une image recadrée (Cover) ne vectorise que la partie visible. Ces limites s'appliquent :
+
+- Les images sont réduites à 1 500 pixels au plus sur le grand côté avant la vectorisation, donc les bords sont placés à une fraction de cette taille, pas de l'original.
+- Une vectorisation produit au plus 1 500 formes et 60 000 points. Une photographie dépasse en général cette limite, et Design le dit sans rien modifier. Essaie Logo ou Dessin au trait, ou une image plus simple.
+- Les dégradés deviennent des bandes de couleur unie et les ombres douces des formes à bords nets.
+- Le rayon des angles, un masque de forme et un effet sur le bloc d'image ne sont pas appliqués aux tracés.
+- La même image et le même préréglage donnent toujours les mêmes formes.
+
 ## Strokes
 
 Un bloc, une image, un plan de travail et un tracé au stylo peuvent chacun porter un trait : une couleur, une largeur et un style (plein, tirets ou pointillés). Les lignes du trait se trouvent sous **Fill** dans l'Inspector, et le bouton **Stroke** de la barre d'objet les ouvre.

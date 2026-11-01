@@ -122,6 +122,25 @@ Drie andere werken op één vorm. **Outline stroke…** zet een lijn om in een g
 
 Het resultaat is een nieuw pad dat je met de pen kunt blijven bewerken, opgeslagen als gewone Bezier-krommen, dus het oorspronkelijke splinetype gaat niet mee. Gaten zijn echte gaten: de bediening **Fill rule** in het lijnpaneel bepaalt of overlappende contouren vullen (*non-zero*) of doorboren (*even-odd*). De bewerkingen weigeren liever dan te vernietigen: vraag twee vormen die niet overlappen te doorsnijden en er verandert niets. Tekst- en afbeeldingsvakken hebben geen omtrek, dus die blijven met rust.
 
+## Een afbeelding tracen
+
+Selecteer één afbeelding, klik met de rechtermuisknop en kies **Afbeelding tracen…** om de afbeelding om te zetten in bewerkbare vormen. Kies een preset en druk op **Tracen**:
+
+- **Logo** vindt een paar egale kleuren en behoudt scherpe randen en echte cirkels en lijnen. Een afbeelding met verlopen of fototonen wordt geweigerd en dat krijg je te horen.
+- **Illustratie** tract meerdere kleuren als gevulde vormen, voor vlakke kunst of een geposteriseerde afbeelding.
+- **Lijntekening** tract donkere lijnen op een lichte pagina als zwarte vormen.
+- **Middenlijn** tract donkere lijnen als enkele lijnen, zodat je de dikte daarna kunt aanpassen.
+
+De vormen worden als groep direct boven de afbeelding toegevoegd; de afbeelding blijft waar ze is. Verberg of verwijder de afbeelding om alleen de paden te zien. De trace draait op je apparaat in een achtergrondtaak met een knop Annuleer, en er wordt niets geüpload. Een afbeelding van 1500 pixels duurt meestal een tot enkele seconden, en een drukke foto duurt langer.
+
+De trace volgt wat het kader toont, dus een bijgesneden (Cover) afbeelding tract alleen het zichtbare deel. Deze limieten gelden:
+
+- Afbeeldingen worden vóór het tracen verkleind tot maximaal 1500 pixels aan de lange kant, dus randen worden geplaatst op een fractie van die grootte, niet van het origineel.
+- Eén trace maakt maximaal 1.500 vormen en 60.000 punten. Een foto komt daar meestal overheen, en Design meldt dat zonder iets te wijzigen. Probeer Logo of Lijntekening, of een eenvoudigere afbeelding.
+- Verlopen worden banden van egale kleur en zachte schaduwen worden vormen met harde randen.
+- Hoekradius, een vormmasker en een effect op het afbeeldingskader worden niet op de paden toegepast.
+- Dezelfde afbeelding en preset geven altijd dezelfde vormen.
+
 ## Lijnen
 
 Een vak, een afbeelding, een tekenbord en een penpad kunnen elk een lijn dragen: een kleur, een breedte en een stijl (effen, gestreept of gestippeld). De lijnrijen staan onder **Vulling** in de Inspecteur, en de knop **Lijn** op de objectbalk opent ze.

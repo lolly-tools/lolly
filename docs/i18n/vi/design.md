@@ -122,6 +122,25 @@ Ba thao tác khác dùng cho một hình đơn. **Outline stroke…** biến né
 
 Kết quả là một đường dẫn mới bạn có thể tiếp tục chỉnh bằng bút, lưu dưới dạng đường cong Bezier thường, nên kiểu spline ban đầu không được giữ lại. Lỗ là lỗ thật: điều khiển **Fill rule** trên bảng nét quyết định các đường viền chồng nhau sẽ tô (*non-zero*) hay đục thủng (*even-odd*). Các thao tác từ chối thay vì phá hủy: yêu cầu giao hai hình không chồng nhau và không có gì thay đổi. Hộp văn bản và hộp ảnh không có đường viền, nên được bỏ qua.
 
+## Vector hóa một ảnh
+
+Chọn một ảnh, nhấp chuột phải và chọn **Vector hóa ảnh…** để biến bức ảnh thành các hình có thể chỉnh sửa. Chọn một preset và nhấn **Vector hóa**:
+
+- **Logo** tìm vài màu phẳng và giữ viền sắc nét, hình tròn và đường thẳng chuẩn. Nó từ chối ảnh có chuyển sắc hoặc tông ảnh chụp và cho bạn biết.
+- **Minh hoạ** vector hóa nhiều màu thành các hình tô đầy, tranh phẳng hoặc ảnh đã posterize.
+- **Nét vẽ** vector hóa các đường tối trên nền sáng thành hình màu đen.
+- **Đường tâm** vector hóa các đường tối thành nét đơn, để bạn đổi độ dày của chúng sau đó.
+
+Các hình được thêm vào dưới dạng một nhóm ngay trên ảnh, còn ảnh vẫn ở nguyên chỗ. Hãy ẩn hoặc xóa ảnh để chỉ thấy các đường dẫn. Quá trình vector hóa chạy trên thiết bị của bạn trong một tác vụ nền có nút Hủy bỏ, và không có gì được tải lên. Một ảnh 1500 pixel thường mất từ một đến vài giây, còn ảnh chụp phức tạp mất lâu hơn.
+
+Bản vector hóa bám theo những gì khung hiển thị, nên ảnh bị cắt (Cover) chỉ được vector hóa phần nhìn thấy. Áp dụng các giới hạn sau:
+
+- Ảnh được thu nhỏ còn tối đa 1500 pixel ở cạnh dài trước khi vector hóa, nên viền được đặt chính xác đến một phần nhỏ của kích thước đó, không phải của ảnh gốc.
+- Một lần vector hóa tạo tối đa 1.500 hình và 60.000 điểm. Ảnh chụp thường vượt mức này, và Design cho bạn biết mà không thay đổi gì. Hãy thử Logo hoặc Nét vẽ, hoặc một ảnh đơn giản hơn.
+- Chuyển sắc trở thành các dải màu phẳng, và bóng đổ mềm trở thành các hình có viền cứng.
+- Bán kính góc, mặt nạ hình dạng và hiệu ứng trên khung ảnh không được áp dụng cho các đường dẫn.
+- Cùng một ảnh và cùng một preset luôn cho ra cùng các hình.
+
 ## Strokes
 
 Một hộp, một ảnh, một board và một đường dẫn của Pen đều có thể mang một nét: màu, độ dày và kiểu (liền, gạch hoặc chấm). Các hàng nét nằm dưới **Fill** trong Inspector, và nút **Stroke** trên thanh đối tượng mở chúng.

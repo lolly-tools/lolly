@@ -24,7 +24,7 @@ import type {
 import {
   MATTE_MODEL_BYTES, MATTE_MODEL_FILES, MATTE_MODEL_SPEC, matteModel, matteModelsFor, resolveMatteModel,
 } from './matte-models.ts';
-import { activateMask, finishMatteAlpha, packNchwNormalized, planLetterbox } from './matte-math.ts';
+import { activateMask, composeCutout, finishMatteAlpha, packNchwNormalized, planLetterbox } from './matte-math.ts';
 import {
   blackFrame, checkSignal, createSession, deviceMemoryGb, firstOutput, loadOrt, modelFileExists,
   modelPath, pasteFrame, pixelMlAvailable, refuseMissing, resizeRgba, tensorFloats,
@@ -121,14 +121,7 @@ export function createNodeMatteAPI(): MatteAPI | null {
       const maskEdge = activateMask(raw, edge * edge, spec.activation);
       const alpha = finishMatteAlpha(maskEdge, plan, work.data, workW, workH, opts.refine, spec.refineByDefault);
 
-      const out = new Uint8ClampedArray(workW * workH * 4);
-      for (let i = 0; i < workW * workH; i++) {
-        const o = i * 4;
-        out[o] = work.data[o] as number;
-        out[o + 1] = work.data[o + 1] as number;
-        out[o + 2] = work.data[o + 2] as number;
-        out[o + 3] = alpha[i] as number;
-      }
+      const out = composeCutout(work.data, alpha, workW, workH, opts.cleanEdgeColour);
       opts.onProgress?.({ phase: 'inference', fraction: 1 });
       return { width: workW, height: workH, data: out };
     },

@@ -82,6 +82,7 @@ Et ordmerke satt i designsystemets skrift eksporteres som SVG med hver bokstav s
 | En Premiere-overlevering | **Premiere XML + media** | Tidsbestemte klipp og originalmedier for Premiere (Design) |
 | Video for sosiale medier og deling | **MP4** eller **WebM** | Best kvalitet for filstørrelsen (se [Video](#video)) |
 | Undertekster | **SRT** eller **VTT** | Tidsbestemt tekst for en videospiller (Captions, Audiogram og Record) |
+| Kringkastingsundertekster | **TTML** eller **SCC** | IMSC1.1 tidsbestemt tekst, eller CEA-608 pop-on-undertekster (Captions; se [Kringkastingsundertekster](#broadcast-captions)) |
 | Et opplæringskurs | **SCORM (LMS)** | En versjonert nettside, SCORM- eller xAPI-pakke (se [SCORM](#scorm-course-packages)) |
 | Rik tekst eller en e-postsignatur | **HTML** | Limes inn formatert i e-postklienter |
 | Ren tekst | **MD** eller **TXT** | Bare tekst |
@@ -199,6 +200,16 @@ Velg deretter **Export course** fra et støttet verktøy, en prosjektmappe eller
 ![Eksportpanelet på et Design-sett med SCORM (LMS) valgt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Pakken holder det ferdige innholdet og trenger ingen Lolly-konto. Legg en Website-ZIP på en HTTP(S)-vert; importer en LMS-ZIP uendret. Test destinasjonen før du deler kurset. For et kurs bygget fra flere lagrede skapelser, se [Create a training course](/info/training-creators.html).
+
+### Kringkastingsundertekster
+
+Verktøyet Captions kan også eksportere **TTML** og **SCC**. Begge skrives fra den samme replikklisten som SRT- og VTT-filene, så ord og tider stemmer overens.
+
+- **TTML** er IMSC1.1 Text Profile, med klokketider i medietid og én region nederst i midten. Den har ingen farge, skrift eller posisjon per undertekst, fordi Lollys undertekster bare har en start, en slutt og tekst.
+- **SCC** inneholder CEA-608 pop-on-undertekster på kanal 1 med 29,97 bilder per sekund og drop-frame-tidskode. Den støtter de grunnleggende nordamerikanske tegnene pluss spesial- og utvidede tegn. Hvis en undertekst inneholder et tegn som settet ikke kan bære, stopper eksporten og forteller deg hvilket tegn, så ingenting forsvinner uten varsel. Hver undertekst brytes ved 32 kolonner og høyst 15 rader. En undertekst som ikke kan lastes før starttiden, forsinkes noen få bilder.
+- Roll-up- og paint-on-undertekster skrives ikke.
+
+SCC-utdata er ikke kontrollert mot et ekte kringkastingsverktøy eller en maskinvaredekoder. Test en fil i din egen pipeline før levering.
 
 ### DXF (skjærefiler)
 
@@ -410,7 +421,7 @@ Dette er verdiene for URL-parameteren `format=` og CLI-flagget `--export=` (se [
 | Side og dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot-designfil) · `scorm` (kurspakke, en ZIP) |
 | Bevegelse | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Lyd | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Tekst og data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP-palett) |
+| Tekst og data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP-palett) |
 | Bundler og pakker | `zip` · `rpm` og `tar.gz` (gjengivelsen forseglet i en Linux-pakke) |
 
 Noen få ID-er kommer fra et verktøys egen eksportkode: `ase` (Adobe Swatch Exchange, fra Palette Lab) og `exr` og `hdr` (rastere med høyt dynamisk område, fra Darkroom). **Convert Font** skriver `ttf`, `otf` og `woff` fra en skriftfil du oppgir, så en bar lenke har ingenting å gjengi for den.

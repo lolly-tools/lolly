@@ -82,6 +82,7 @@ Lolly Work може също да доставя файл до конфигур�
 | Предаване към Premiere | **Premiere XML + media** | Времеви клипове и оригинални медии за Premiere (Design) |
 | Видео за социални мрежи и споделяне | **MP4** или **WebM** | Най-добро качество за размера на файла (вж. [Video](#video)) |
 | Надписи | **SRT** или **VTT** | Времеви текст за видео плейър (Captions, Audiogram и Record) |
+| Надписи за излъчване | **TTML** или **SCC** | Времеви текст IMSC1.1 или надписи pop-on CEA-608 (Captions; виж [Надписи за излъчване](#broadcast-captions)) |
 | Обучителен курс | **SCORM (LMS)** | Версиониран уебсайт, SCORM или xAPI пакет (вж. [SCORM](#scorm-course-packages)) |
 | Богат текст или имейл подпис | **HTML** | Поставя се форматиран в имейл клиенти |
 | Обикновено съдържание | **MD** или **TXT** | Само текст |
@@ -199,6 +200,16 @@ PowerPoint е и път навътре: [Rebrand a deck](/info/rebrand.html) п�
 ![Панелът за експорт на презентация от Design с избран SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Пакетът съдържа готовото си съдържание и не изисква акаунт в Lolly. Постави Website ZIP на HTTP(S) хост; импортирай LMS ZIP непроменен. Тествай дестинацията, преди да споделиш курса. За курс, изграден от няколко запазени творения, вж. [Create a training course](/info/training-creators.html).
+
+### Надписи за излъчване
+
+Инструментът Captions може да експортира също **TTML** и **SCC**. И двата се записват от същия списък с реплики като файловете SRT и VTT, така че думите и времената съвпадат.
+
+- **TTML** е IMSC1.1 Text Profile, с часови стойности по медийно време и един регион долу в средата. Не носи цвят, шрифт или позиция за отделен надпис, защото надписите в Lolly съдържат само начало, край и текст.
+- **SCC** носи надписи pop-on по CEA-608 на канал 1 при 29,97 кадъра в секунда с таймкод drop-frame. Поддържа основните северноамерикански знаци плюс специалните и разширените. Ако надпис съдържа знак, който наборът не може да носи, експортът спира и ти казва кой е знакът, така че нищо не се губи без предупреждение. Всеки надпис се пренася на 32 колони и най-много 15 реда. Надпис, който не може да се зареди преди началото си, се забавя с няколко кадъра.
+- Надписи roll-up и paint-on не се записват.
+
+Изходът SCC не е проверен с истински инструмент за излъчване или хардуерен декодер. Тествай файла в собствения си процес преди доставка.
 
 ### DXF (файлове за рязане)
 
@@ -410,7 +421,7 @@ Lolly доставя един CMYK профил, напасван по данн�
 | Страница и документ | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (дизайн файл на Penpot) · `scorm` (пакет за курс, ZIP) |
 | Движение | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Аудио | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Текст и данни | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (палитра на GIMP) |
+| Текст и данни | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (палитра на GIMP) |
 | Пакети и комплекти | `zip` · `rpm` и `tar.gz` (рендерът, запечатан в пакет за Linux) |
 
 Няколко идентификатора идват от собствения код за експорт на инструмент: `ase` (Adobe Swatch Exchange, от Palette Lab) и `exr` и `hdr` (растери с висок динамичен обхват, от Darkroom). **Convert Font** записва `ttf`, `otf` и `woff` от файл с шрифт, който подадеш, така че гола връзка няма какво да рендерира за него.

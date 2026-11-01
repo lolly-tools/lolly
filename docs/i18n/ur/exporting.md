@@ -82,6 +82,7 @@ Lolly Work فائل کو ترتیب دیے گئے S3، WebDAV اور HTTP مقا
 | Premiere ہینڈ آف | **Premiere XML + media** | Premiere کے لیے وقت والی کلپس اور اصل میڈیا (Design) |
 | سوشل اور شیئرنگ کے لیے ویڈیو | **MP4** یا **WebM** | فائل کے سائز کے لیے بہترین معیار ([Video](#video) دیکھیں) |
 | کیپشنز | **SRT** یا **VTT** | ویڈیو پلیئر کے لیے وقت والا متن (Captions، Audiogram اور Record) |
+| براڈکاسٹ کیپشنز | **TTML** یا **SCC** | IMSC1.1 وقت والا متن، یا CEA-608 pop-on کیپشنز (Captions؛ دیکھیں [براڈکاسٹ کیپشنز](#broadcast-captions)) |
 | تربیتی کورس | **SCORM (LMS)** | ورژن والی ویب سائٹ، SCORM یا xAPI پیکج ([SCORM](#scorm-course-packages) دیکھیں) |
 | رچ ٹیکسٹ یا ای میل دستخط | **HTML** | ای میل کلائنٹس میں فارمیٹ کے ساتھ پیسٹ ہوتا ہے |
 | سادہ مواد | **MD** یا **TXT** | صرف متن |
@@ -199,6 +200,16 @@ Design کی ٹائم لائن سے **dotLottie** ایسی اینیمیشن لک�
 ![SCORM (LMS) منتخب کردہ Design ڈیک پر ایکسپورٹ پینل](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 پیکج اپنا تیار مواد رکھتا ہے اور اسے Lolly اکاؤنٹ نہیں چاہیے۔ Website ZIP کو HTTP(S) ہوسٹ پر رکھیں؛ LMS ZIP کو جیسا ہے ویسا امپورٹ کریں۔ کورس شیئر کرنے سے پہلے منزل آزمائیں۔ کئی محفوظ تخلیقات سے بنے کورس کے لیے دیکھیں [Create a training course](/info/training-creators.html)۔
+
+### براڈکاسٹ کیپشنز
+
+Captions ٹول **TTML** اور **SCC** بھی ایکسپورٹ کر سکتا ہے۔ دونوں SRT اور VTT فائلوں والی کیو کی اسی فہرست سے لکھی جاتی ہیں، اس لیے الفاظ اور اوقات ایک جیسے رہتے ہیں۔
+
+- **TTML** IMSC1.1 Text Profile ہے، جس میں میڈیا ٹائم کی گھڑی کے اوقات اور نچلے وسط میں ایک ریجن ہوتا ہے۔ اس میں ہر کیپشن کا رنگ، فونٹ یا پوزیشن نہیں ہوتی، کیونکہ Lolly کے کیپشنز میں صرف آغاز، اختتام اور متن ہوتا ہے۔
+- **SCC** چینل 1 پر 29.97 فریم فی سیکنڈ پر drop-frame ٹائم کوڈ کے ساتھ CEA-608 pop-on کیپشنز رکھتا ہے۔ یہ بنیادی شمالی امریکی حروف کے ساتھ خاص اور توسیعی حروف بھی سپورٹ کرتا ہے۔ اگر کسی کیپشن میں ایسا حرف ہو جسے سیٹ نہ اٹھا سکے تو ایکسپورٹ رک جاتا ہے اور بتاتا ہے کہ کون سا حرف ہے، اس لیے کچھ بھی بغیر اطلاع کے نہیں چھوڑا جاتا۔ ہر کیپشن 32 کالم اور زیادہ سے زیادہ 15 قطاروں میں لپٹتا ہے۔ جو کیپشن اپنے آغاز سے پہلے لوڈ نہ ہو سکے اسے چند فریم کی تاخیر دی جاتی ہے۔
+- Roll-up اور paint-on کیپشنز نہیں لکھے جاتے۔
+
+SCC آؤٹ پٹ کو کسی حقیقی براڈکاسٹ ٹول یا ہارڈ ویئر ڈیکوڈر کے خلاف جانچا نہیں گیا۔ ڈیلیوری سے پہلے فائل کو اپنی پائپ لائن میں آزمائیں۔
 
 ### DXF (کٹ فائلیں)
 
@@ -410,7 +421,7 @@ Lolly ایک CMYK پروفائل کے ساتھ آتا ہے، جو Fogra کے FOG
 | صفحہ اور دستاویز | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot design file) · `scorm` (course package, a ZIP) |
 | Motion | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | آڈیو | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| متن اور ڈیٹا | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP palette) |
+| متن اور ڈیٹا | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
 | بنڈلز اور پیکجز | `zip` · `rpm` اور `tar.gz` (the render sealed into a Linux package) |
 
 چند آئی ڈیز ٹول کے اپنے ایکسپورٹ کوڈ سے آتی ہیں: `ase` (Adobe Swatch Exchange، Palette Lab سے) اور `exr` اور `hdr` (ہائی ڈائنامک رینج راسٹرز، Darkroom سے)۔ **Convert Font** آپ کی دی ہوئی فونٹ فائل سے `ttf`، `otf` اور `woff` لکھتا ہے، اس لیے سادہ لنک کے پاس رینڈر کرنے کو کچھ نہیں۔

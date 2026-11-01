@@ -122,6 +122,25 @@ Tre till fungerar på en enda form. **Outline stroke…** gör en linje till en 
 
 Resultatet är en ny bana som du kan fortsätta redigera med pennan, lagrad som vanliga Bézierkurvor, så den ursprungliga splinetypen följer inte med. Hål är riktiga hål: kontrollen **Fill rule** på linjepanelen avgör om överlappande konturer fylls (*non-zero*) eller stansas igenom (*even-odd*). Operationerna vägrar hellre än förstör: be om att skära två former som inte överlappar och ingenting ändras. Text- och bildrutor har ingen kontur, så de lämnas ifred.
 
+## Spåra en bild
+
+Markera en bild, högerklicka på den och välj **Spåra bild…** för att göra om bilden till redigerbara former. Välj en förinställning och tryck på **Spåra**:
+
+- **Logotyp** hittar några enfärgade ytor och behåller skarpa kanter samt äkta cirklar och linjer. Den avvisar en bild med toningar eller fototoner och säger det.
+- **Illustration** spårar flera färger som fyllda former, platt grafik eller en posteriserad bild.
+- **Linjeteckning** spårar mörka linjer på en ljus sida som svarta former.
+- **Mittlinje** spårar mörka linjer som enkla streck, så att du kan ändra deras tjocklek efteråt.
+
+Formerna läggs till som en grupp precis ovanför bilden, som ligger kvar. Dölj eller radera bilden för att bara se banorna. Spårningen körs på din enhet i ett bakgrundsjobb med en Avbryt-knapp, och inget laddas upp. En bild på 1500 pixlar tar vanligtvis mellan en och flera sekunder, och ett upptaget fotografi tar längre tid.
+
+Spårningen följer det rutan visar, så en beskuren bild (Cover) spåras bara i den synliga delen. Följande gränser gäller:
+
+- Bilder skalas ned till högst 1500 pixlar på långsidan före spårning, så kanterna placeras med en bråkdel av den storleken, inte av originalets.
+- En spårning ger högst 1 500 former och 60 000 punkter. Ett fotografi går oftast över det, och Design säger det utan att ändra något. Prova Logotyp eller Linjeteckning, eller en enklare bild.
+- Toningar blir band av enfärgad yta, och mjuka skuggor blir former med hårda kanter.
+- Hörnradie, en formmask och en effekt på bildrutan tillämpas inte på banorna.
+- Samma bild och samma förinställning ger alltid samma former.
+
 ## Konturer
 
 En ruta, en bild, en tavla och en penna-bana kan var och en ha en kontur: en färg, en bredd och en stil (heldragen, streckad eller prickad). Konturraderna sitter under **Fill** i Inspector, och knappen **Kontur** i objektfältet öppnar dem.

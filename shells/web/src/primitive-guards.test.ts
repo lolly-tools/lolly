@@ -1269,6 +1269,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/free-canvas/field-panels.ts': 10,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/free-canvas/edges.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/free-canvas/document.ts': 5,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/free-canvas/trace-image.ts': 1,   // Trace image panel: every interpolated value is escape()d or a fixed preset id
   'views/free-canvas/dialogs.ts': 8,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/free-canvas/context-bar.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/free-canvas/connectors.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts

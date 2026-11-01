@@ -122,6 +122,25 @@ Tatlo pa ang gumagana sa isang hugis. Ang **Outline stroke…** ay ginagawang pu
 
 Ang resulta ay bagong path na puwede mong ituloy na i-edit gamit ang pen, naka-store bilang simpleng Bezier curve, kaya hindi nadadala ang orihinal na spline type. Tunay na butas ang mga butas: ang **Fill rule** control sa stroke panel ang nagpapasya kung pinupunan ng magkapatong na contour (*non-zero*) o tumatagos (*even-odd*). Tumatanggi ang mga operasyon sa halip na manira: kung hihilingin mong i-intersect ang dalawang hugis na hindi magkapatong, walang magbabago. Ang mga text at image box ay walang outline, kaya hindi sila ginagalaw.
 
+## Mag-trace ng larawan
+
+Pumili ng isang larawan, i-right-click ito at piliin ang **I-trace ang larawan…** para gawing mga hugis na maeedit ang larawan. Pumili ng preset at pindutin ang **I-trace**:
+
+- Ang **Logo** ay nakakakita ng ilang flat na kulay at pinananatili ang malinis na gilid at tunay na bilog at linya. Tinatanggihan nito ang larawang may gradient o photo tone at sinasabi ito.
+- Ang **Ilustrasyon** ay nagta-trace ng ilang kulay bilang mga punong hugis, flat na art o posterised na larawan.
+- Ang **Line art** ay nagta-trace ng madilim na linya sa maliwanag na pahina bilang mga itim na hugis.
+- Ang **Centreline** ay nagta-trace ng madilim na linya bilang mga solong stroke, kaya mapapalitan mo ang bigat nila pagkatapos.
+
+Idinaragdag ang mga hugis bilang group sa ibabaw lang ng larawan, na nananatili sa kinalalagyan nito. Itago o i-delete ang larawan para makita lang ang mga path. Tumatakbo ang trace sa device mo bilang background job na may Cancel button, at walang ina-upload. Karaniwang tumatagal ng isa hanggang ilang segundo ang 1500 pixel na larawan, at mas matagal ang abalang litrato.
+
+Sinusunod ng trace ang ipinapakita ng kahon, kaya ang naka-crop na (Cover) na larawan ay tina-trace lang ang nakikitang bahagi. Ito ang mga limitasyon:
+
+- Ini-scale pababa ang mga larawan sa hanggang 1500 pixel sa mahabang gilid bago i-trace, kaya ang mga gilid ay nilalagay sa bahagi ng laking iyon, hindi ng orihinal.
+- Ang isang trace ay gumagawa ng hanggang 1,500 hugis at 60,000 point. Karaniwang lumalampas dito ang litrato, at sinasabi ito ng Design nang walang binabago. Subukan ang Logo o Line art, o mas simpleng larawan.
+- Nagiging mga banda ng flat na kulay ang mga gradient, at nagiging matigas ang gilid na mga hugis ang malalambot na anino.
+- Hindi ina-apply sa mga path ang corner radius, shape mask at effect sa kahon ng larawan.
+- Ang parehong larawan at preset ay laging nagbibigay ng parehong mga hugis.
+
 ## Mga stroke
 
 Ang kahon, larawan, board at pen path ay may kanya-kanyang stroke: kulay, lapad at estilo (solid, dashed o dotted). Ang mga stroke row ay nasa ilalim ng **Fill** sa Inspector, at binubuksan ang mga ito ng **Stroke** button sa object bar.

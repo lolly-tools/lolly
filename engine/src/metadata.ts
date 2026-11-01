@@ -371,7 +371,7 @@ export function designRecordKeywords(meta: DesignRecordFields | null | undefined
  * record only in a Content Credential, on the formats that can hold one.
  */
 const METADATA_FREE_FORMATS: ReadonlySet<string> = new Set([
-  'html', 'html-fragment', 'md', 'txt', 'js', 'json', 'csv', 'ics', 'vcf', 'srt', 'vtt', 'css', 'scss', 'gpl',
+  'html', 'html-fragment', 'md', 'txt', 'js', 'json', 'csv', 'ics', 'vcf', 'srt', 'vtt', 'ttml', 'scc', 'css', 'scss', 'gpl',
   'eps', 'eps-cmyk', 'emf', 'wmf', 'dxf', 'bmp', 'ico',
 ]);
 

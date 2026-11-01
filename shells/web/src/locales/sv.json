@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Välj de mediafiler som den här tidslinjen hänvisar till, eller fortsätt med märkta platshållare.",
   "Text file (.txt)": "Textfil (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Den InDesign-filen kunde inte konverteras på den här enheten. Exportera den från InDesign som IDML och försök igen.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Den InDesign-filen kunde inte öppnas. Exportera den från InDesign som IDML och försök igen."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Den InDesign-filen kunde inte öppnas. Exportera den från InDesign som IDML och försök igen.",
+  "Adding shapes": "Lägger till former",
+  "Clean edge colour": "Ren kantfärg",
+  "No shapes were found. Try another preset.": "Inga former hittades. Prova en annan förinställning.",
+  "Reading the image": "Läser bilden",
+  "Starting the tracer": "Startar spårningen",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Byter den gamla bakgrundens färg i kanten mot motivets egen. Prova om du ser en ljusring.",
+  "The image could not be traced.": "Bilden kunde inte spåras.",
+  "This image could not be read.": "Den här bilden kunde inte läsas.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Spårningen ger för många punkter för arbetsytan. Prova förinställningen Logotyp eller Linjeteckning, eller en enklare bild.",
+  "Trace": "Spåra",
+  "Trace image": "Spåra bild",
+  "Trace image…": "Spåra bild…",
+  "Traced into one shape, above the image.": "Spårad till en form ovanför bilden.",
+  "Traced into {n} shapes, above the image.": "Spårad till {n} former ovanför bilden.",
+  "Tracing": "Spårar",
+  "Tracing image": "Spårar bild",
+  "Turn this picture into shapes you can edit.": "Gör om bilden till former som du kan redigera."
 }

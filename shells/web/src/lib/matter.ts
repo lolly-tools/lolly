@@ -28,7 +28,7 @@ import {
   MATTE_MODEL_SPEC, MATTE_MODEL_STORE, resolveMatteModel, type MatteModelSpec,
 } from './matte-models.ts';
 import {
-  activateMask, finishMatteAlpha, packNchwNormalized, planLetterbox, type LetterboxPlan,
+  activateMask, composeCutout, finishMatteAlpha, packNchwNormalized, planLetterbox, type LetterboxPlan,
 } from '@lolly-tools/node-shell/ml/matte-math';
 
 type OrtModule = typeof import('onnxruntime-web');
@@ -196,6 +196,8 @@ export interface MattePre {
   spec: MatteModelSpec;
   /** Edge refinement after the model (`MatteOpts.refine`); absent means the default. */
   refine?: MatteOpts['refine'];
+  /** Clean the colour of the soft edge (`MatteOpts.cleanEdgeColour`); absent means off. */
+  cleanEdgeColour?: boolean;
 }
 
 /** Source frame → the model's normalized NCHW input, keeping the work-size RGB and
@@ -234,7 +236,7 @@ export function preprocessMatte(frame: MatteFrame, spec: MatteModelSpec, opts: M
   const inRgba = inCtx.getImageData(0, 0, edge, edge).data;
 
   const input = packNchwNormalized(inRgba, edge, spec);
-  return { workRgba, workW, workH, plan, input, edge, spec, ...(opts.refine !== undefined ? { refine: opts.refine } : {}) };
+  return { workRgba, workW, workH, plan, input, edge, spec, ...(opts.refine !== undefined ? { refine: opts.refine } : {}), ...(opts.cleanEdgeColour ? { cleanEdgeColour: true } : {}) };
 }
 
 /** The model's single-channel output → the finished straight-alpha cutout:
@@ -245,14 +247,7 @@ export function postprocessMatte(rawMask: ArrayLike<number>, pre: MattePre): Mat
   const { workRgba, workW, workH, plan, edge, spec } = pre;
   const maskEdge = activateMask(rawMask, edge * edge, spec.activation);
   const alpha = finishMatteAlpha(maskEdge, plan, workRgba, workW, workH, pre.refine, spec.refineByDefault);
-  const outData = new Uint8ClampedArray(workW * workH * 4);
-  for (let i = 0; i < workW * workH; i++) {
-    const o = i * 4;
-    outData[o] = workRgba[o]!;
-    outData[o + 1] = workRgba[o + 1]!;
-    outData[o + 2] = workRgba[o + 2]!;
-    outData[o + 3] = alpha[i]!;
-  }
+  const outData = composeCutout(workRgba, alpha, workW, workH, pre.cleanEdgeColour);
   return { width: workW, height: workH, data: outData };
 }
 

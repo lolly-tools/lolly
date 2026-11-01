@@ -37,7 +37,7 @@ import { RASTER_DEFAULT_SCALE } from './export-scale.ts';
  */
 const NO_POSTER_FORMATS: ReadonlySet<string> = new Set([
   'webm', 'mp4', 'gif', 'apng', 'webp-anim', 'svg-anim',
-  'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'srt', 'vtt', 'css', 'scss', 'gpl',
+  'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'srt', 'vtt', 'ttml', 'scc', 'css', 'scss', 'gpl',
 ]);
 
 /**

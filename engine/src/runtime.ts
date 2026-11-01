@@ -67,6 +67,9 @@ import type {
   RightsDecisionV1, RightsEvaluationV1, UseContextV1,
 } from '@lolly-tools/core/rights-v1';
 import { parseProviderRef } from './asset-provider.ts';
+import { CaptionFormatError, type CaptionCue } from './captions.ts';
+import { cuesToTtml } from './captions-ttml.ts';
+import { cuesToScc } from './captions-scc.ts';
 import { assetVersionPin, assetDependency, decodeAssetVersion, unavailablePinnedAsset, type AssetVersionPin } from './asset-version.ts';
 
 /** One state emission: the current model plus the hydrated template. */
@@ -2495,7 +2498,7 @@ export async function createRuntime(
 // text/plain - the type every player and editor accepts for a .srt sidecar.
 export const DATA_FORMATS: Record<string, string> =
   { json: 'application/json', csv: 'text/csv', ics: 'text/calendar', vcf: 'text/vcard',
-    srt: 'text/plain', vtt: 'text/vtt',
+    srt: 'text/plain', vtt: 'text/vtt', ttml: 'application/ttml+xml', scc: 'text/plain',
     css: 'text/css', scss: 'text/x-scss', gpl: 'text/plain' };
 
 // Returns { dataText, dataMime } for a data/text format, or {} for render
@@ -2544,7 +2547,22 @@ function buildDataPayload(
     err.code = loadError != null ? 'TEXT_TEMPLATE_LOAD_FAILED' : 'TEXT_TEMPLATE_MISSING';
     throw err;
   }
-  return { dataText: getHydratedText(tpl), dataMime };
+  const hydrated = getHydratedText(tpl);
+  // Broadcast caption formats: the template hands over the cue list as JSON and the
+  // engine's own writers produce the file, so the bytes match the library functions.
+  if (format === 'ttml' || format === 'scc') return { dataText: broadcastCaptionText(format, hydrated), dataMime };
+  return { dataText: hydrated, dataMime };
+}
+
+function broadcastCaptionText(format: 'ttml' | 'scc', json: string): string {
+  let raw: unknown;
+  try { raw = JSON.parse(json); } catch { throw new CaptionFormatError('The caption list could not be read.'); }
+  const list = Array.isArray(raw) ? raw : (raw as { cues?: unknown } | null)?.cues;
+  if (!Array.isArray(list)) throw new CaptionFormatError('The caption list could not be read.');
+  const cues: CaptionCue[] = list.map((c: { start?: unknown; end?: unknown; text?: unknown }) => ({
+    start: Number(c?.start), end: Number(c?.end), text: String(c?.text ?? ''),
+  }));
+  return format === 'ttml' ? cuesToTtml(cues) : cuesToScc(cues).text;
 }
 
 // The id carried by an asset ref still needing resolution - any truthy object

@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "このタイムラインが参照するメディアファイルを選択するか、名前付きのプレースホルダーのまま続けてください。",
   "Text file (.txt)": "テキストファイル(.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "そのInDesignファイルはこのデバイスでは変換できませんでした。InDesignからIDMLとして書き出して、もう一度お試しください。",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "そのInDesignファイルを開けませんでした。InDesignからIDMLとして書き出して、もう一度お試しください。"
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "そのInDesignファイルを開けませんでした。InDesignからIDMLとして書き出して、もう一度お試しください。",
+  "Adding shapes": "シェイプを追加しています",
+  "Clean edge colour": "エッジの色をクリーンにする",
+  "No shapes were found. Try another preset.": "シェイプが見つかりませんでした。別のプリセットをお試しください。",
+  "Reading the image": "画像を読み込んでいます",
+  "Starting the tracer": "トレーサーを起動しています",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "エッジに残った元の背景色を、被写体自身の色に置き換えます。ハロー（縁の白っぽい輪郭）が見えるときに試してください。",
+  "The image could not be traced.": "画像をトレースできませんでした。",
+  "This image could not be read.": "この画像を読み込めませんでした。",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "このトレースはキャンバスに対してポイント数が多すぎます。ロゴまたは線画のプリセット、もしくはもっとシンプルな画像をお試しください。",
+  "Trace": "トレース",
+  "Trace image": "画像をトレース",
+  "Trace image…": "画像をトレース…",
+  "Traced into one shape, above the image.": "1 つのシェイプにトレースし、画像の上に配置しました。",
+  "Traced into {n} shapes, above the image.": "{n} 個のシェイプにトレースし、画像の上に配置しました。",
+  "Tracing": "トレース中",
+  "Tracing image": "画像をトレース中",
+  "Turn this picture into shapes you can edit.": "この画像を編集できるシェイプに変換します。"
 }

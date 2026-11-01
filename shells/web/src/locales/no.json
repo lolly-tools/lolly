@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Velg mediefilene denne tidslinjen refererer til, eller fortsett med merkede plassholdere.",
   "Text file (.txt)": "Tekstfil (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Den InDesign-filen kunne ikke konverteres på denne enheten. Eksporter den fra InDesign som IDML og prøv igjen.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Den InDesign-filen kunne ikke åpnes. Eksporter den fra InDesign som IDML og prøv igjen."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Den InDesign-filen kunne ikke åpnes. Eksporter den fra InDesign som IDML og prøv igjen.",
+  "Adding shapes": "Legger til former",
+  "Clean edge colour": "Rens kantfarge",
+  "No shapes were found. Try another preset.": "Fant ingen former. Prøv en annen forhåndsinnstilling.",
+  "Reading the image": "Leser bildet",
+  "Starting the tracer": "Starter vektoriseringen",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Bytter fargen fra den gamle bakgrunnen i kanten ut med motivets egen farge. Prøv det hvis du ser en glorie.",
+  "The image could not be traced.": "Bildet kunne ikke vektoriseres.",
+  "This image could not be read.": "Dette bildet kunne ikke leses.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Denne vektoriseringen lager for mange punkter for lerretet. Prøv forhåndsinnstillingen Logo eller Strektegning, eller et enklere bilde.",
+  "Trace": "Vektoriser",
+  "Trace image": "Vektoriser bilde",
+  "Trace image…": "Vektoriser bilde…",
+  "Traced into one shape, above the image.": "Vektorisert til én form, over bildet.",
+  "Traced into {n} shapes, above the image.": "Vektorisert til {n} former, over bildet.",
+  "Tracing": "Vektoriserer",
+  "Tracing image": "Vektoriserer bildet",
+  "Turn this picture into shapes you can edit.": "Gjør dette bildet om til former du kan redigere."
 }

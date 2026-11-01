@@ -10486,5 +10486,22 @@
   "Select the media files referenced by this timeline, or continue with labelled placeholders.": "Wybierz pliki multimedialne, do których odwołuje się ta oś czasu, albo kontynuuj z opisanymi symbolami zastępczymi.",
   "Text file (.txt)": "Plik tekstowy (.txt)",
   "That InDesign file could not be converted on this device. Export it from InDesign as IDML and try again.": "Nie udało się przekonwertować tego pliku InDesign na tym urządzeniu. Wyeksportuj go z InDesign jako IDML i spróbuj ponownie.",
-  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Nie udało się otworzyć tego pliku InDesign. Wyeksportuj go z InDesign jako IDML i spróbuj ponownie."
+  "That InDesign file could not be opened. Export it from InDesign as IDML and try again.": "Nie udało się otworzyć tego pliku InDesign. Wyeksportuj go z InDesign jako IDML i spróbuj ponownie.",
+  "Adding shapes": "Dodawanie kształtów",
+  "Clean edge colour": "Czyść kolor krawędzi",
+  "No shapes were found. Try another preset.": "Nie znaleziono kształtów. Spróbuj innego presetu.",
+  "Reading the image": "Odczytywanie obrazu",
+  "Starting the tracer": "Uruchamianie wektoryzacji",
+  "Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.": "Zamienia w krawędzi kolor dawnego tła na kolor samego obiektu. Spróbuj, jeśli widzisz poświatę.",
+  "The image could not be traced.": "Nie udało się zwektoryzować obrazu.",
+  "This image could not be read.": "Nie udało się odczytać tego obrazu.",
+  "This trace makes too many points for the canvas. Try the logo or line art preset, or a simpler image.": "Ta wektoryzacja tworzy zbyt wiele punktów jak na kanwę. Spróbuj presetu Logo lub Rysunek liniowy albo prostszego obrazu.",
+  "Trace": "Wektoryzuj",
+  "Trace image": "Wektoryzuj obraz",
+  "Trace image…": "Wektoryzuj obraz…",
+  "Traced into one shape, above the image.": "Zwektoryzowano do jednego kształtu nad obrazem.",
+  "Traced into {n} shapes, above the image.": "Zwektoryzowano do {n} kształtów nad obrazem.",
+  "Tracing": "Wektoryzacja",
+  "Tracing image": "Wektoryzacja obrazu",
+  "Turn this picture into shapes you can edit.": "Zamień ten obraz w kształty, które możesz edytować."
 }

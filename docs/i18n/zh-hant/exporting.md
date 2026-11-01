@@ -82,6 +82,7 @@ Lolly Work 也可以把檔案交付到已設定的 S3、WebDAV 與 HTTP 目的�
 | 交給 Premiere 的交接檔 | **Premiere XML + media** | 供 Premiere 使用的定時片段與原始媒體（Design） |
 | 供社群與分享的影片 | **MP4** 或 **WebM** | 以檔案大小而言品質最佳（請見[影片](#video)） |
 | 字幕 | **SRT** 或 **VTT** | 供影片播放器使用的定時文字（Captions、Audiogram 與 Record） |
+| 廣播字幕 | **TTML** 或 **SCC** | IMSC1.1 定時文字，或 CEA-608 pop-on 字幕（Captions；請見[廣播字幕](#broadcast-captions)） |
 | 訓練課程 | **SCORM (LMS)** | 有版本的網站、SCORM 或 xAPI 套件（請見 [SCORM](#scorm-course-packages)） |
 | 富文字或電子郵件簽名檔 | **HTML** | 以格式化的方式貼入郵件用戶端 |
 | 純內容 | **MD** 或 **TXT** | 僅文字 |
@@ -199,6 +200,16 @@ PowerPoint 也是一條進入的路：[重塑簡報品牌](/info/rebrand.html)�
 ![Design 簡報上已選擇 SCORM (LMS) 的匯出面板](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 套件包含它完成的內容，不需要 Lolly 帳號。將 Website ZIP 放到 HTTP(S) 主機上；LMS ZIP 則原封不動匯入。在分享課程之前先測試目的地。至於由數個已儲存創作組成的課程，請見[建立訓練課程](/info/training-creators.html)。
+
+### 廣播字幕
+
+Captions 工具還可以匯出 **TTML** 和 **SCC**。兩者都由與 SRT 和 VTT 檔案相同的字幕片段清單產生，所以文字和時間一致。
+
+- **TTML** 是 IMSC1.1 Text Profile，使用媒體時間的時鐘時間和一個底部置中的區域。它不帶每則字幕的顏色、字型或位置，因為 Lolly 的字幕只包含開始、結束和文字。
+- **SCC** 在頻道 1 上承載 CEA-608 pop-on 字幕，影格率為每秒 29.97 格，使用 drop-frame 時間碼。它支援基本的北美字元以及特殊和擴充字元。如果某則字幕包含該字元集無法承載的字元，匯出會停止並告訴你是哪個字元，因此不會有內容被悄悄丟棄。每則字幕依 32 欄、最多 15 列換行。無法在開始時間之前載入的字幕會延遲幾格。
+- 不寫入 roll-up 和 paint-on 字幕。
+
+SCC 輸出尚未用真實的廣播工具或硬體解碼器檢驗過。交付前請在你自己的流程中測試檔案。
 
 ### DXF（切割檔案）
 
@@ -410,7 +421,7 @@ Lolly 附帶一個 CMYK 描述檔，它依 Fogra 的 FOGRA39 特性化資料擬�
 | 頁面與文件 | `pdf` · `pdf-cmyk`（Print PDF） · `pptx`（PowerPoint） · `docx`（Word） · `odt`（OpenDocument Text） · `idml`（InDesign） · `penpot`（Penpot 設計檔案） · `scorm`（課程套件，一個 ZIP） |
 | 動態 | `gif` · `apng`（Animated PNG） · `webp-anim`（Animated WebP） · `svg-anim`（Animated SVG） · `webm` · `mp4` · `lottie`（dotLottie） · `premiere-xml`（Premiere XML + media） |
 | 音訊 | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| 文字與資料 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl`（GIMP 調色盤） |
+| 文字與資料 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl`（GIMP 調色盤） |
 | 套件與封裝 | `zip` · `rpm` 與 `tar.gz`（封入 Linux 套件的渲染結果） |
 
 有幾個 id 來自工具自己的匯出程式碼：`ase`（Adobe Swatch Exchange，來自 Palette Lab）以及 `exr` 與 `hdr`（高動態範圍點陣圖，來自 Darkroom）。**Convert Font** 從你提供的字型檔案寫出 `ttf`、`otf` 與 `woff`，所以單純的連結沒有東西可供它渲染。

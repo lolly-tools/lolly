@@ -122,6 +122,25 @@ Otras tres funcionan sobre una sola forma. **Outline stroke…** convierte un tr
 
 El resultado es un trazado nuevo que puedes seguir editando con el pen, guardado como curvas Bézier simples, por lo que el tipo de spline original no se conserva. Los agujeros son agujeros reales: el control **Fill rule** del panel de trazo decide si los contornos superpuestos se rellenan (*non-zero*) o se perforan (*even-odd*). Las operaciones se niegan antes que destruir: si pides intersecar dos formas que no se superponen, no cambia nada. Los cuadros de texto e imagen no tienen contorno, así que se dejan como están.
 
+## Calcar una imagen
+
+Selecciona una imagen, haz clic derecho sobre ella y elige **Calcar imagen…** para convertirla en formas editables. Elige un preset y pulsa **Calcar**:
+
+- **Logotipo** encuentra unos pocos colores planos y mantiene bordes nítidos, círculos y líneas exactos. Rechaza una imagen con degradados o tonos fotográficos y te lo dice.
+- **Ilustración** calca varios colores como formas rellenas, arte plano o una imagen posterizada.
+- **Arte lineal** calca líneas oscuras sobre una página clara como formas negras.
+- **Línea central** calca líneas oscuras como trazos sueltos, para que puedas cambiar su grosor después.
+
+Las formas se añaden como un grupo justo encima de la imagen, que se queda donde está. Oculta o elimina la imagen para ver solo los trazados. El calcado se ejecuta en tu dispositivo, en una tarea en segundo plano con un botón Cancelar, y no se sube nada. Una imagen de 1500 píxeles suele tardar entre uno y varios segundos, y una fotografía muy cargada tarda más.
+
+El calcado sigue lo que muestra el cuadro, así que una imagen recortada (Cover) calca solo la parte visible. Se aplican estos límites:
+
+- Las imágenes se reducen a 1500 píxeles como máximo en el lado largo antes de calcar, así que los bordes se colocan con una precisión de una fracción de ese tamaño, no del original.
+- Un calcado genera como máximo 1500 formas y 60 000 puntos. Una fotografía suele pasarse de ese límite, y Design lo indica sin cambiar nada. Prueba con Logotipo o Arte lineal, o con una imagen más sencilla.
+- Los degradados se convierten en bandas de color plano y las sombras suaves en formas de borde duro.
+- El radio de esquina, una máscara de forma y un efecto en el cuadro de imagen no se aplican a los trazados.
+- La misma imagen y el mismo preset dan siempre las mismas formas.
+
 ## Trazos
 
 Un cuadro, una imagen, un tablero y un trazado de pluma pueden llevar cada uno un trazo: un color, un grosor y un estilo (sólido, discontinuo o punteado). Las filas del trazo están bajo **Fill** en el Inspector, y el botón **Stroke** de la barra de objeto las abre.

@@ -41,6 +41,7 @@ import type { documentOps } from './document.ts';
 import type { dialogsOps } from './dialogs.ts';
 import type { fieldPanelsOps } from './field-panels.ts';
 import type { objectsOps } from './objects.ts';
+import type { traceImageOps } from './trace-image.ts';
 import type { opsOps } from './ops.ts';
 import type { penToolOps } from './pen-tool.ts';
 import type { penAssistOps } from './pen-assist.ts';
@@ -409,6 +410,7 @@ export interface FcCtx {
   dialogs: ReturnType<typeof dialogsOps>;
   fieldPanels: ReturnType<typeof fieldPanelsOps>;
   objects: ReturnType<typeof objectsOps>;
+  traceImage: ReturnType<typeof traceImageOps>;
   ops: ReturnType<typeof opsOps>;
   penTool: ReturnType<typeof penToolOps>;
   penAssist: ReturnType<typeof penAssistOps>;

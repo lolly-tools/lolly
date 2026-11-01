@@ -176,6 +176,10 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
                 <option value="as-drawn">${t('As drawn')}</option>
               </select>
             </label>
+            <label class="matte-field matte-field-check" title="${t('Swaps the old background’s colour in the edge for the subject’s own. Try it if you see a halo.')}">
+              <input type="checkbox" data-clean-edge>
+              <span class="matte-field-label">${t('Clean edge colour')}</span>
+            </label>
             <label class="matte-field">
               <span class="matte-field-label">${t('Save as')}</span>
               <select class="field-select" data-format>
@@ -213,6 +217,7 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
     const keyInput   = overlay.querySelector<HTMLInputElement>('[data-key]')!;
     const modelSel   = overlay.querySelector<HTMLSelectElement>('[data-model]')!;
     const formatSel  = overlay.querySelector<HTMLSelectElement>('[data-format]')!;
+    const cleanEdge  = overlay.querySelector<HTMLInputElement>('[data-clean-edge]')!;
     const edgesSel   = overlay.querySelector<HTMLSelectElement>('[data-edges]')!;
     // Edges follow each method's own default: the photo for U²-Net lite, whose coarse
     // mask gains most; as drawn for MODNet, whose soft matte only gains a halo; and as
@@ -420,6 +425,7 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
         method: currentMethod(),
         ...(currentMethod() === 'chroma' ? { keyColor } : {}),
         edges: edgesSel.value === 'as-drawn' ? 'as-drawn' : 'refined',
+        ...(cleanEdge.checked ? { cleanEdgeColour: true } : {}),
       };
       startMatteJob(host, req, {
         onComplete: (ref) => opts.onComplete?.(ref),

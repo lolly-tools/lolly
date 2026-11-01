@@ -82,6 +82,7 @@ Lolly Work також може доставити файл до налаштов
 | Передача в Premiere | **Premiere XML + media** | Кліпи з таймінгом та оригінальні медіа для Premiere (Design) |
 | Відео для соцмереж і обміну | **MP4** або **WebM** | Найкраща якість за розміром файлу (див. [Відео](#video)) |
 | Субтитри | **SRT** або **VTT** | Текст з таймінгом для відеоплеєра (Captions, Audiogram і Record) |
+| Субтитри для мовлення | **TTML** або **SCC** | Текст з таймінгом IMSC1.1 або субтитри CEA-608 pop-on (Captions; див. [Субтитри для мовлення](#broadcast-captions)) |
 | Навчальний курс | **SCORM (LMS)** | Версіонований вебсайт, пакет SCORM або xAPI (див. [SCORM](#scorm-course-packages)) |
 | Форматований текст або підпис листа | **HTML** | Вставляється з форматуванням у поштові клієнти |
 | Простий вміст | **MD** або **TXT** | Лише текст |
@@ -199,6 +200,16 @@ PowerPoint також є шляхом усередину: [Ребрендинг 
 ![Панель експорту на презентації Design із вибраним SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Пакет містить свій готовий вміст і не потребує облікового запису Lolly. Розмістіть ZIP Website на хості HTTP(S); імпортуйте ZIP для LMS без змін. Перевірте призначення, перш ніж ділитися курсом. Для курсу, зібраного з кількох збережених творінь, див. [Create a training course](/info/training-creators.html).
+
+### Субтитри для мовлення
+
+Інструмент Captions також може експортувати **TTML** і **SCC**. Обидва записуються з того самого списку реплік, що й файли SRT і VTT, тож слова й час збігаються.
+
+- **TTML** — це IMSC1.1 Text Profile із часом за годинником медіа й одним регіоном унизу по центру. Він не містить кольору, шрифту чи позиції окремих субтитрів, бо субтитри Lolly мають лише початок, кінець і текст.
+- **SCC** містить субтитри CEA-608 pop-on на каналі 1 із частотою 29,97 кадру на секунду й таймкодом drop-frame. Підтримуються основні північноамериканські символи, а також спеціальні й розширені. Якщо субтитр містить символ, якого набір не підтримує, експорт зупиняється й повідомляє, який це символ, тож нічого не втрачається непомітно. Кожен субтитр переноситься на 32 стовпці й щонайбільше 15 рядків. Субтитр, який не встигає завантажитися до свого початку, затримується на кілька кадрів.
+- Субтитри roll-up і paint-on не записуються.
+
+Вихідні дані SCC не перевірено на справжньому інструменті мовлення чи апаратному декодері. Перевірте файл у власному конвеєрі перед передачею.
 
 ### DXF (файли різання)
 
@@ -410,7 +421,7 @@ Lolly постачається з одним профілем CMYK, підігн
 | Сторінка та документ | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (файл дизайну Penpot) · `scorm` (пакет курсу, ZIP) |
 | Рух | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
 | Аудіо | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
-| Текст і дані | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (палітра GIMP) |
+| Текст і дані | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (палітра GIMP) |
 | Пакунки та пакети | `zip` · `rpm` і `tar.gz` (рендер, запечатаний у пакет Linux) |
 
 Кілька ідентифікаторів походять із власного коду експорту інструмента: `ase` (Adobe Swatch Exchange, з Palette Lab) та `exr` і `hdr` (растри високого динамічного діапазону, з Darkroom). **Convert Font** записує `ttf`, `otf` і `woff` із наданого вами файлу шрифту, тож для нього просте посилання не має що рендерити.

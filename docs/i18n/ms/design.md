@@ -122,6 +122,25 @@ Tiga lagi berfungsi pada satu bentuk. **Outline stroke…** menukar lejang menja
 
 Hasilnya ialah laluan baharu yang boleh anda terus sunting dengan pen, disimpan sebagai lengkung Bezier biasa, jadi jenis spline asal tidak dibawa. Lubang ialah lubang sebenar: kawalan **Fill rule** pada panel lejang menentukan sama ada kontur bertindih mengisi (*non-zero*) atau menebuk (*even-odd*). Operasi menolak dan bukan memusnahkan: minta persilangan dua bentuk yang tidak bertindih dan tiada apa-apa berubah. Kotak teks dan imej tidak mempunyai garis luar, jadi ia dibiarkan.
 
+## Surih imej
+
+Pilih satu imej, klik kanan padanya dan pilih **Surih imej…** untuk menukar gambar itu kepada bentuk yang boleh diedit. Pilih pratetap dan tekan **Surih**:
+
+- **Logo** mencari beberapa warna rata dan mengekalkan tepi yang tajam serta bulatan dan garisan yang tepat. Ia menolak gambar yang mempunyai gradien atau ton foto dan memberitahu anda.
+- **Ilustrasi** menyurih beberapa warna sebagai bentuk berisi, untuk seni rata atau gambar yang diposterkan.
+- **Lukisan garisan** menyurih garisan gelap pada halaman cerah sebagai bentuk hitam.
+- **Garis tengah** menyurih garisan gelap sebagai satu lejang, supaya anda boleh mengubah ketebalannya kemudian.
+
+Bentuk ditambah sebagai kumpulan tepat di atas imej, yang kekal di tempatnya. Sembunyikan atau padam imej untuk melihat laluan sahaja. Penyurihan berjalan pada peranti anda sebagai tugas latar belakang dengan butang Batal, dan tiada apa-apa dimuat naik. Imej 1500 piksel biasanya mengambil masa antara satu hingga beberapa saat, dan foto yang padat mengambil masa lebih lama.
+
+Penyurihan mengikut apa yang dipaparkan oleh kotak, jadi imej yang dipangkas (Cover) hanya menyurih bahagian yang kelihatan. Had berikut dikenakan:
+
+- Imej dikecilkan kepada paling banyak 1500 piksel pada sisi panjang sebelum disurih, jadi tepi diletakkan mengikut sebahagian kecil saiz itu, bukan saiz asal.
+- Satu surihan menghasilkan paling banyak 1,500 bentuk dan 60,000 titik. Foto biasanya melebihi had itu, dan Design memberitahu anda tanpa mengubah apa-apa. Cuba Logo atau Lukisan garisan, atau gambar yang lebih ringkas.
+- Gradien menjadi jalur warna rata, dan bayang lembut menjadi bentuk bertepi keras.
+- Jejari sudut, topeng bentuk dan kesan pada kotak imej tidak dikenakan pada laluan.
+- Gambar dan pratetap yang sama sentiasa menghasilkan bentuk yang sama.
+
 ## Strok
 
 Kotak, gambar, papan dan laluan pen masing-masing boleh membawa strok: warna, lebar dan gaya (padu, sengkang atau titik). Baris strok terletak di bawah **Fill** dalam Inspector, dan butang **Strok** pada bar objek membukanya.
