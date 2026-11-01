@@ -5,7 +5,7 @@ description: "Operate the Lolly Logo Wall tool (logo-wall) using its declared in
 
 # Logo Wall
 
-Tool ID: `logo-wall`. Tool version: `1.7.0`. Engine range: `^1.293.0`.
+Tool ID: `logo-wall`. Tool version: `1.8.0`. Engine range: `^1.293.0`.
 
 Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.
 

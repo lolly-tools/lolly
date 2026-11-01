@@ -132,9 +132,10 @@ const POSES: CoverPose[] = [
   { slug: 'qr-code', hue: 90, light: 0.72, route: '#/tool/qr-code?url=https://lolly.tools&background={primary}&color={primaryDark}&color2={primaryDark}', settleMs: 3000 },
   // Logo Wall (plan 341): the sponsor wall, in place of Backdrop. The app photographed
   // with the tool's eleven placeholder wordmarks in three tiers, each traced to the
-  // brand ink, on the pose's light tint. A photograph rather than the tool's SVG export
-  // (Filter's route), because the export writes the tier headings as <text> in the
-  // generic sans-serif, where the canvas sets them in the design system's face.
+  // brand ink, on the pose's light tint. A photograph of the app, like the other
+  // app covers. Since Logo Wall 1.8.0 the SVG export sets the headings in the design
+  // system's heading face too, so an SVG cover would also work, with convertPaths=1
+  // for outlined headings.
   { slug: 'logo-wall', hue: 112.5, light: 0.66,
     route: '#/tool/logo-wall?logos=' + encodeURIComponent(JSON.stringify([
       ['your-logo', 'Gold partners'], ['logo-here', 'Gold partners'],

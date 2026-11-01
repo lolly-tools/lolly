@@ -25,6 +25,9 @@
  *  - a local path inside a link (a pasted lolly.tools URL or a `z=` state), and a
  *    link that sets a flag pointing at a file, are refused with exit 4: the link's
  *    author does not choose files on the computer that runs the command.
+ *  - tier headings are set in the design system's heading face: `--text=live` lists
+ *    that face in the font-family attribute and the default SVG outlines the headings
+ *    from that face, never from a bare generic family.
  *
  * Run with: node --test tests/cli-logo-wall.test.ts
  */
@@ -39,6 +42,7 @@ import { fileURLToPath } from 'node:url';
 import { acceptsMime, imageMime, parsePathList } from '../shells/cli/src/block-files.ts';
 import { isLocalPathFlag, linkBorneKeys, unknownFlags } from '../shells/cli/src/run.ts';
 import { packQuery } from '../engine/src/url-pack.ts';
+import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BIN = join(ROOT, 'shells', 'cli', 'bin', 'lolly.ts');
@@ -65,11 +69,11 @@ await writeFile(join(root, 'credentials'), `[default]\naws_secret_access_key = $
 await writeFile(join(root, 'logos', 'disguised.png'), CANARY);
 await writeFile(join(root, 'logos', 'sponsors.csv'), 'logo,tier\na.svg,Gold partners\nd.png,Gold partners\nb.svg,Silver partners\nc.svg,Silver partners\ne.png,Silver partners\n');
 
-function cli(args: string[], stdin?: Buffer | string): Promise<{ stdout: Buffer; stderr: string; code: number }> {
+function cli(args: string[], stdin?: Buffer | string, env: Record<string, string> = {}): Promise<{ stdout: Buffer; stderr: string; code: number }> {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [BIN, ...args], {
       cwd: join(root, 'logos'),
-      env: { ...process.env, NO_COLOR: '1', LOLLY_WEB_DIST: join(root, 'no-web-shell') },
+      env: { ...process.env, NO_COLOR: '1', LOLLY_WEB_DIST: join(root, 'no-web-shell'), ...env },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
     const out: Buffer[] = [];
@@ -158,6 +162,42 @@ test('an export at another shape fills it, in the SVG and in the PNG drawn from 
     for (let x = 0; x < info.width; x++) if (data[(y * info.width + x) * 4 + 3]! > 0) lower++;
   }
   assert.ok(lower > 1000, `logos drawn in the lowest quarter (${lower} px)`);
+});
+
+// Lolly Demo is the public demo design system (parent-owned, so on every clone): its
+// heading face (font.display) differs from its text face (font.brand), which is what
+// shows the headings follow the heading face rather than the text face.
+const DEMO_TOKENS = join(ROOT, 'brands', 'lolly-demo', 'catalog', 'assets', 'lolly', 'tokens', 'demo.json');
+const DEMO_SKIP = SKIP || (!existsSync(DEMO_TOKENS) && 'lolly-demo design system not on disk');
+
+test('tier headings are set in the design system\'s heading face, live and outlined', { skip: DEMO_SKIP }, async () => {
+  const font = JSON.parse(await readFile(DEMO_TOKENS, 'utf8')).base.font as Record<string, { $value: string }>;
+  const display = font.display!.$value, brand = font.brand!.$value;
+  assert.notEqual(display, brand, 'the demo design system has a heading face of its own');
+  const demo = { LOLLY_PROFILE: 'lolly-demo' };
+
+  // Live text lists the heading face first, then the text face, never a bare generic.
+  const live = await cli(['run', 'logo-wall', '--logos-data=sponsors.csv', '--text=live', '--output=faces-live.svg', '--no-provenance'], undefined, demo);
+  ok(live);
+  const faces = [...(await readFile(join(root, 'logos', 'faces-live.svg'), 'utf8')).matchAll(/<text class="lw-heading"[^>]*\sfont-family="([^"]*)"/g)].map((m) => m[1]);
+  assert.deepEqual(faces, [`${display}, ${brand}, sans-serif`, `${display}, ${brand}, sans-serif`]);
+
+  // The default SVG outlines each heading, and the glyphs are the heading face's own:
+  // the same outline host.text shapes for that face at the heading's 22 px, weight 600.
+  const outlined = await cli(['run', 'logo-wall', '--logos-data=sponsors.csv', '--output=faces-outlined.svg', '--no-provenance'], undefined, demo);
+  ok(outlined);
+  const svgText = await readFile(join(root, 'logos', 'faces-outlined.svg'), 'utf8');
+  assert.doesNotMatch(svgText, /<text\b/, 'no heading is left as live text');
+  const heads = [...svgText.matchAll(/<path\b[^>]*\sd="([^"]+)"[^>]*class="lw-heading"/g)].map((m) => m[1]);
+  assert.equal(heads.length, 2, 'both headings are outlines');
+  const text = createNodeTextAPI({ repoRoot: ROOT });
+  const shape = async (family: string) => {
+    const face = await text.fontUrl!(family, { weight: 600, italic: false });
+    assert.ok(face, `${family} resolves on this shell`);
+    return (await text.toPath({ text: 'Gold partners', fontUrl: face!.url, fontSize: 22, variations: face!.variations })).d;
+  };
+  assert.equal(heads[0], await shape(display), `outlined from ${display}`);
+  assert.notEqual(heads[0], await shape(brand), `not from the text face, ${brand}`);
 });
 
 test('a row can name a placeholder logo the tool ships, as the example look does', { skip: SKIP }, async () => {

@@ -1797,11 +1797,15 @@ function englishAudienceH2s(): string[] {
  * accessible name and `data-version` read it here, and install.md reads the
  * same field through `%download{<id>}` (docs/version-tokens.ts). It joins the
  * name ("Apple silicon 1.1.1") so the translated label strings stay as they are.
+ *
+ * `rail: false` keeps a download off the landing rail while install.md still lists
+ * it and reads its version: the Intel Mac build, the last one, stays downloadable
+ * from the install guide without a tile on the landing.
  */
 type DownloadTile = {
   id: string; logo?: string; icon?: string;
   os: string; name: string; ext: string; note: string;
-  file?: string; slug?: string; hash?: string; version?: string;
+  file?: string; slug?: string; hash?: string; version?: string; rail?: boolean;
 };
 type DownloadsContent = {
   label: string; lead: string;
@@ -1845,7 +1849,7 @@ function downloadsRail(lang: Lang): string {
   const rows = d.rows.map((row) => `<div class="dl-row" role="group" aria-labelledby="dl-row-${esc(row.id)}">
         <span class="dl-row-label" id="dl-row-${esc(row.id)}">${esc(row.label)}</span>
         <div class="dl-grid">
-        ${row.items.map(tile).join('\n        ')}
+        ${row.items.filter((it) => (links.get(it.id) ?? it).rail !== false).map(tile).join('\n        ')}
         </div>
       </div>`).join('\n      ');
   // On a phone the rows fold behind one switch (plan 341: the dark block was most of a

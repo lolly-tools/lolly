@@ -1,13 +1,24 @@
 /* Logo Wall - the wall is one <svg> (template.html) that the hook lays out in
    wall pixels, so screen, the web export and the browser-free CLI export draw the
-   same boxes. Only two things live here: the <svg> filling the canvas, and the
-   empty-state invite, an HTML layer over it marked data-export-hide so it never
-   reaches a file. */
+   same boxes. Three things live here: the <svg> filling the canvas, the tier
+   headings' face, and the empty-state invite, an HTML layer over it marked
+   data-export-hide so it never reaches a file. */
 
 .lw-svg {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* Tier headings are set in the ACTIVE design system's heading face: the shell
+   derives --font-display and --font-brand from its font.display and font.brand
+   tokens (brand-vars.ts), and with neither set the stack ends at SUSE, the face
+   the shell sets everything else in. The web export reads this computed face to
+   outline or label the headings. The hook writes the same faces, in the same
+   order, as the font-family attribute, which is what a file with no stylesheet
+   (the CLI, the TUI, the MCP server) is outlined from. */
+.lw-svg text.lw-heading {
+  font-family: var(--font-display, var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif));
 }
 
 .lw-empty-layer {
