@@ -3576,7 +3576,7 @@
       "file": "tests/xcf-oracle.test.ts",
       "fullName": "xcf oracle: GIMP merged PNGs against readXcf composites",
       "reason": "declared skip: set LOLLY_XCF_ORACLE=1 after pnpm run fetch:gimp-corpus",
-      "capability": "fixture",
+      "capability": "environment",
       "owner": "tests"
     }
   ]
