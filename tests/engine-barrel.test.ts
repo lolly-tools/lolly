@@ -36,6 +36,8 @@ const EXPECTED: readonly string[] = [
   'DesignTextSegment', 'DesignVisibleText', 'DesignVisibleTextOpts',
   'WRITING_SCORE_CODE', 'checkFindingFromWritingScore',
   'creationFeedback', 'creationFeedbackDelta', 'designVisibleText', 'designWritingScore',
+  // Additive PDF accessibility report types.
+  'PdfAccessibilityOutcome', 'PdfAccessibilityReader', 'PdfAccessibilityRow', 'PdfAccessibilitySummary', 'VerifyExportReaders',
   // Additive 1.262 static-copy findings for layouts declared in legacy Penpot SVG.
   'LayoutFinding', 'PenpotSvgLayout', 'penpotSvgLayoutFindings',
   // Additive 1.262 data conversion choices and the all-worksheets manifest.
@@ -46,6 +48,8 @@ const EXPECTED: readonly string[] = [
   // Additive 1.262 export report: requested settings beside facts read from the output bytes.
   'ExportCheck', 'ExportReport', 'ExportRequest', 'ExportValue', 'OutputFacts',
   'compareExport', 'exportRequestFromJob', 'inspectOutput', 'verifyExport',
+  'PDF_ACCESSIBILITY_RULES', 'PDF_ACCESSIBILITY_RULE_IDS', 'PDF_ACCESSIBILITY_STATEMENTS', 'pdfAccessibilityCounts', 'pdfAccessibilityHeadline',
+  'pdfAccessibilityOutcome', 'pdfAccessibilityOutcomeLabel', 'pdfAccessibilityRows', 'pdfAccessibilityText', 'summarisePdfAccessibility',
   'ActiveContentV1', 'ExtractScoreV1', 'InventoryRecognizerV1', 'LabelledBlockV1', 'MATCH_CER', 'ReadExtractErrorCode', 'ReadExtractOptsV1',
   'characterErrorRate', 'editDistance', 'normaliseForScore', 'scoreExtract', 'wordErrorRate',
   // Additive 1.262 bounded JPEG marker walker for placing JPEGs on PDF pages.

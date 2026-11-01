@@ -81,6 +81,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "pdf-a11y-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/pdf-a11y",
+      "lockfile": "packages/node-shell/wasm/pdf-a11y/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "indd-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/indd",

@@ -2065,6 +2065,38 @@ export const xlsxNumfmtTarget: FuzzTarget = {
     readXlsx(bytes, { formatCell: kernel.formatCell });
   },
 };
+// PDF accessibility check (packages/node-shell/wasm/pdf-a11y): reads an arbitrary user PDF.
+// Contract: a report or a typed PdfAccessibilityError refusal; never a trap, a hang or an
+// answer the transport cannot parse. Seeds are a small untagged PDF and a tagged one with a
+// table and a figure, so mutations reach the xref reader, the content scan and the structure walk.
+export const pdfA11yTarget: FuzzTarget = {
+  name: 'pdf-a11y',
+  async seeds() {
+    const enc = (t: string) => new TextEncoder().encode(t);
+    const build = (bodies: string[], root: string) => {
+      let out = '%PDF-1.7\n'; const offsets: number[] = [];
+      bodies.forEach((b, i) => { offsets.push(out.length); out += `${i + 1} 0 obj\n${b}\nendobj\n`; });
+      const xref = out.length;
+      out += `xref\n0 ${bodies.length + 1}\n0000000000 65535 f \n${offsets.map(o => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`;
+      return enc(`${out}trailer << /Size ${bodies.length + 1} /Root 1 0 R ${root} >>\nstartxref\n${xref}\n%%EOF\n`);
+    };
+    const stream = (d: string) => `<< /Length ${d.length} >>\nstream\n${d}\nendstream`;
+    const page = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R /Annots [9 0 R] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> >>';
+    const content = '/Figure << /MCID 0 >> BDC 0 0 10 10 re f EMC /P << /MCID 1 >> BDC BT /F1 12 Tf 20 100 Td (Hi) Tj ET EMC';
+    return [
+      build(['<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R >>', stream('0 0 10 10 re f')], ''),
+      build(['<< /Type /Catalog /Pages 2 0 R /StructTreeRoot 5 0 R /MarkInfo << /Marked true >> /Lang (en) >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', page, stream(content),
+        '<< /Type /StructTreeRoot /K [6 0 R 7 0 R 8 0 R] >>', '<< /S /Figure /Pg 3 0 R /K 0 >>', '<< /S /P /Pg 3 0 R /K 1 >>', '<< /S /Table /Pg 3 0 R /K [] >>',
+        '<< /Type /Annot /Subtype /Link /Rect [0 0 10 10] >>'], ''),
+    ];
+  },
+  async invoke(bytes) {
+    const { checkPdfAccessibility } = await import('../../packages/node-shell/src/pdf-a11y-node.ts');
+    const { PdfAccessibilityError } = await import('../../packages/node-shell/src/pdf-a11y.ts');
+    const { summarisePdfAccessibility } = await import('../../engine/src/pdf-accessibility.ts');
+    try { summarisePdfAccessibility(await checkPdfAccessibility(bytes)); } catch (error) { if (!(error instanceof PdfAccessibilityError)) throw error; }
+  },
+};
 // INDD to IDML converter (packages/node-shell/wasm/indd): the most untrusted binary the Design
 // import touches. Contract: a typed InddError refusal or a conversion with warnings; never a
 // trap, hang or output over the declared 128 MiB limit. Seeds are a signature-only page set and,
@@ -2189,7 +2221,7 @@ export const fontInspectTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, inddTarget, idmlReadTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,

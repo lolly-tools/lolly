@@ -1139,6 +1139,19 @@
         "notes": "Pinned GridCraft number-format engine. The clock is an injected value, so output depends only on the request. Numbers are parsed with exact float round-tripping."
       }
     },
+    "packages/node-shell/src/pdf-a11y.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "pdf-a11y"
+      ],
+      "details": {
+        "inputSource": "User-picked PDFs and the PDFs Lolly exports. The shell reads the file and the module reads it again for the accessibility checks; nothing is written back.",
+        "bounds": "256 MiB input, 16 MiB of report, 512 MiB WASM memory cap, 200 findings per check; stream decoding uses the vendored reader's per-page budgets; the module imports nothing from the host",
+        "directTests": "`tests/pdf-a11y.test.ts`, the checker's own `cargo test` (34 rule tests plus the adapter's)",
+        "fuzzCoverage": "`pdf-a11y` mutates an untagged PDF and a tagged one with a figure, a table and a link, so the cross-reference reader, the content scan, the structure walk and the transport parser are all reached.",
+        "notes": "Pinned PdfCraft 47f42ba0 (MIT OR Apache-2.0) with its tagging and auto-fix code removed and one inline-image patch recorded in the vendored UPSTREAM.md. It reads only: no PDF is written. Encrypted files are refused by name, not opened. The result lists checks and is not a conformance verdict."
+      }
+    },
     "packages/node-shell/src/indd.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [
