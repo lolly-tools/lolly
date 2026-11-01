@@ -46,6 +46,7 @@ const LOCKFILES = [
   'packages/node-shell/wasm/skera/Cargo.lock',
   'packages/node-shell/wasm/adobe-psd/Cargo.lock',
   'packages/node-shell/wasm/xlsx-numfmt/Cargo.lock',
+  'packages/node-shell/wasm/indd/Cargo.lock',
 ];
 
 // Parse a Cargo.lock for its [[package]] name/version pairs. Cargo.lock is TOML,

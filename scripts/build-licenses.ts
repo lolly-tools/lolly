@@ -579,6 +579,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'storytold indd-utils INDD converter',
+      version: '0.1.0 (136f973a9d5f1b3ef34e46e27f4a08af196efde7; pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT',
+      copyright: 'Storytold, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/indd/indd.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/indd/LICENSES.txt'), 'utf8'),
+      note: 'Standalone indd-utils crate (MIT is elected from MIT OR Apache-2.0) compiled through a bounded Lolly byte adapter. It was written by observing sample files and reads no Adobe source except the BSD-3-Clause XMP Toolkit container handler; the caveats are in packages/node-shell/wasm/indd/vendor/indd-utils/UPSTREAM.md. Source, build instructions and licences are in packages/node-shell/wasm/indd/.',
+      where: 'web',
+    },
+    {
       name: 'Penpot layout kernel (compiled WASM)',
       version: PENPOT_LAYOUT_UPSTREAM.revision,
       spdx: 'MPL-2.0',
