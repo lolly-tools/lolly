@@ -289,9 +289,35 @@ test('XREFs, paper space, hidden layers and unsupported entities are reported, n
   assert.equal(r.report.skipped.HATCH, 2);
   const lines = dxfReportLines(r.report).join('\n');
   assert.match(lines, /External reference "SITE" \(site-plan\.dwg\) is not loaded/);
-  assert.match(lines, /1 items sit in paper space/);
+  assert.match(lines, /1 item sits in paper space/);
   assert.match(lines, /Not imported: 2 HATCH, 1 SOLID/);
   assert.match(lines, /FROZEN/);
+});
+
+test('the real CLI reads a DXF and writes an SVG preview and Design JSON', async () => {
+  const { mkdtemp, writeFile, readFile, rm } = await import('node:fs/promises');
+  const { execFile } = await import('node:child_process');
+  const { promisify } = await import('node:util');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const run = promisify(execFile);
+  const bin = new URL('../shells/cli/bin/lolly.ts', import.meta.url).pathname;
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-cli-dxf-'));
+  try {
+    const src = join(dir, 'plan.dxf');
+    await writeFile(src, dxfText({
+      layers: [{ name: 'WALLS', aci: 1 }], blocks: [{ name: 'SITE', xref: 'site.dwg' }],
+      entities: [...lwpolyline([[0, 0], [5000, 0], [5000, 4000], [0, 4000]], true, 'WALLS'), ...text(2500, 2000, 200, 'Hall', 'STANDARD', 'WALLS'), ...insert('SITE', 0, 0)],
+    }));
+    const report = await run(process.execPath, [bin, 'dxf', src], { env: { ...process.env, LOLLY_PROFILE: 'lolly-start' } });
+    assert.match(report.stdout, /External reference "SITE"/);
+    assert.match(report.stdout, /WALLS: 1 paths, 1 text items/);
+    await run(process.execPath, [bin, 'dxf', src, `--output=${join(dir, 'plan.svg')}`], { env: { ...process.env, LOLLY_PROFILE: 'lolly-start' } });
+    assert.match(await readFile(join(dir, 'plan.svg'), 'utf8'), /<path d="M40 /);
+    await run(process.execPath, [bin, 'dxf', src, `--output=${join(dir, 'plan.json')}`], { env: { ...process.env, LOLLY_PROFILE: 'lolly-start' } });
+    const design = JSON.parse(await readFile(join(dir, 'plan.json'), 'utf8')) as { boxes: Array<{ kind: string }> };
+    assert.deepEqual(design.boxes.map((b) => b.kind), ['path', 'text', 'group']);
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
 test('the layer filter and includeHidden', () => {

@@ -138,3 +138,31 @@ export function dxfToDesign(imp: DxfImport, map?: DesignMapOptions): DxfDesignRe
   if (named.size) notes.push(`Text keeps the font names the drawing states (${[...named].slice(0, 6).join(', ')}${named.size > 6 ? ' and more' : ''}). A font that is not installed falls back to the browser's default for that name.`);
   return { boxes, width: imp.width, height: imp.height, background: '#ffffff', notes, fontsNamed: [...named] };
 }
+
+const xmlEsc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/**
+ * A plain SVG preview of a flattened drawing: one group per layer, strokes as paths, text as
+ * `<text>` elements that carry the font name the file states (and no font-family when it states
+ * none). For the CLI and for looking at a drawing without opening Design.
+ */
+export function dxfToSvg(imp: DxfImport): string {
+  const out: string[] = [`<svg xmlns="http://www.w3.org/2000/svg" width="${imp.width}" height="${imp.height}" viewBox="0 0 ${imp.width} ${imp.height}">`, `<rect width="${imp.width}" height="${imp.height}" fill="#ffffff"/>`];
+  imp.layers.forEach((layer, li) => {
+    const strokes = imp.strokes.filter((s) => s.layer === li), texts = imp.texts.filter((t) => t.layer === li);
+    if (!strokes.length && !texts.length) return;
+    out.push(`<g id="layer-${li}" data-layer="${xmlEsc(layer.name)}">`);
+    for (const st of strokes) out.push(`<path d="${subPathsToD(st.subpaths)}" fill="none" stroke="${st.color}" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>`);
+    for (const t of texts) {
+      const fs = Math.max(1, t.height * EM_PER_CAP);
+      const anchor = t.hAnchor === 0 ? 'start' : t.hAnchor === 1 ? 'middle' : 'end';
+      const baseline = t.vAnchor === 3 ? 'text-before-edge' : t.vAnchor === 2 ? 'central' : t.vAnchor === 1 ? 'text-after-edge' : 'alphabetic';
+      const lines = t.text.split('\n');
+      const spans = lines.map((l, i) => `<tspan x="${fmt(t.x)}" dy="${i === 0 ? 0 : fmt(fs * LINE_HEIGHT)}">${xmlEsc(l)}</tspan>`).join('');
+      out.push(`<text x="${fmt(t.x)}" y="${fmt(t.y)}" font-size="${fmt(fs)}" fill="${t.color}" text-anchor="${anchor}" dominant-baseline="${baseline}"${t.font ? ` font-family="${xmlEsc(t.font)}"` : ''}${t.rotation ? ` transform="rotate(${fmt(t.rotation)} ${fmt(t.x)} ${fmt(t.y)})"` : ''}>${spans}</text>`);
+    }
+    out.push('</g>');
+  });
+  out.push('</svg>');
+  return out.join('\n') + '\n';
+}

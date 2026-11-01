@@ -55,6 +55,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - layout-abi    : raw WASM layout_alloc/layout_solve bytes through Rust serde_json and modern flex/grid routines
  *   - penpot-layout : importPenpotLayouts + penpotChildrenPaintOrder, then Design request placement/evaluation
  *   - design-guides : v1/v2 guide text/JSON, canonical reparse and finite snap targets without DOM
+ *   - dxf           : the DXF reader (WASM tag reader, entity list), then the flattener and Design boxes over what it returns
  *   - font-inspect  : inspectFont + glyphsForText over a real variable TTF, its WOFF wrapper and crafted overlapping cmap 4/12 tables (sfnt directory, name, fvar, cmap 4/12)
  */
 
@@ -2126,6 +2127,44 @@ export const inddTarget: FuzzTarget = {
     }
   },
 };
+// DXF reader (packages/node-shell/wasm/dxf): untrusted CAD files. Contract: a typed DxfError refusal or
+// a flat entity list that the flattener and the Design mapper then handle; never a trap, hang or
+// output over the declared limits. Seeds are synthetic ASCII, binary R13+ and binary R12 drawings.
+export const dxfTarget: FuzzTarget = {
+  name: 'dxf',
+  async seeds() {
+    const f = await import('../fixtures/dxf/synthetic.ts');
+    const ascii = f.dxfText({
+      layers: [{ name: 'WALLS', aci: 1 }, { name: 'TEXT', aci: 3, flags: 1 }],
+      styles: [{ name: 'PLAN', font: 'arial.ttf', typeface: 'Arial' }, { name: 'OLD', font: 'simplex.shx' }],
+      blocks: [{ name: 'DOOR', base: [1, 0], entities: f.line(1, 0, 3, 0) }, { name: 'SITE', xref: 'site.dwg' }],
+      entities: [
+        ...f.line(0, 0, 10, 0, 'WALLS'), ...f.circle(5, 5, 2), ...f.arc(0, 0, 4, 10, 80), ...f.ellipse(2, 2, 3, 0, 0.5),
+        ...f.lwpolyline([[0, 0, 0.5], [4, 0], [4, 3]], true), ...f.polyline([[0, 0], [2, 1, 0.3], [4, 0]]),
+        ...f.spline(3, [0, 0, 0, 0, 1, 1, 1, 1], [[0, 0], [1, 2], [2, -2], [3, 0]]), ...f.fitSpline([[0, 0], [1, 1], [2, 0]]),
+        ...f.text(1, 1, 0.5, 'Hall', 'PLAN'), ...f.mtext(2, 2, 0.5, '{\\fCalibri|b0;Living\\PRoom}', 'PLAN'),
+        ...f.insert('DOOR', 3, 3, '0', [[41, 2], [50, 90], [70, 2], [44, 3]]), ...f.insert('SITE', 0, 0),
+        [0, 'HATCH'], [8, 'WALLS'],
+      ],
+    });
+    return [new TextEncoder().encode(ascii), f.dxfBinary(ascii), f.dxfBinary(ascii, true)];
+  },
+  async invoke(bytes) {
+    const { loadDxfKernel } = await import('../../packages/node-shell/src/dxf-node.ts');
+    const { DxfError } = await import('../../packages/node-shell/src/dxf.ts');
+    const { flattenDxf } = await import('../../engine/src/dxf-import.ts');
+    const { dxfToDesign } = await import('../../engine/src/dxf-design.ts');
+    let raw;
+    try { raw = (await loadDxfKernel()).read(bytes); }
+    catch (error) {
+      if (!(error instanceof DxfError)) throw error;
+      // A trap retires the instance; report it as the crash the runner classifies.
+      if (error.code === 'crashed') throw new WebAssembly.RuntimeError(error.message);
+      return;
+    }
+    dxfToDesign(flattenDxf(raw));
+  },
+};
 export const idmlReadTarget: FuzzTarget = {
   name: 'idml-read',
   async seeds() {
@@ -2221,7 +2260,7 @@ export const fontInspectTarget: FuzzTarget = {
 
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
-  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, idmlReadTarget,
+  adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, dxfTarget, idmlReadTarget,
   motionCuesTarget, motionParamsTarget, mcpNegotiationTarget,
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,

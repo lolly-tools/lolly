@@ -500,6 +500,10 @@ export type { DashSegment, DashFitOpts } from './dash-fit.ts';
 export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';
+export { importDxf, flattenDxf, looksLikeDxf, dxfReportLines, dxfUnits, aciToHex, DXF_LIMITS } from './dxf-import.ts';
+export type { DxfRaw, DxfReader, DxfImport, DxfImportOptions, DxfReport, DxfStroke, DxfText, DxfUnits } from './dxf-import.ts';
+export { dxfToDesign, DXF_MAX_BOXES } from './dxf-design.ts';
+export type { DxfDesignResult } from './dxf-design.ts';
 export { emitWmf } from './wmf.ts';
 export { buildPptxParts, EMU_PER_PX } from './pptx.ts';
 export type {

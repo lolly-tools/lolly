@@ -672,10 +672,10 @@ export function dxfReportLines(r: DxfReport): string[] {
   out.push(`Read ${r.format === 'binary' ? 'a binary' : 'an ASCII'} DXF${r.version ? ` (${r.version})` : ''}: ${r.entitiesDrawn} entities drawn, ${r.textItems} text items. Units: ${r.units.name}${r.units.declared ? '' : ' (assumed)'}; one pixel is ${scale}.`);
   if (r.layersHidden.length) out.push(`${r.layersHidden.length} layers that the file turns off or freezes were not imported: ${listNames(r.layersHidden)}.`);
   if (r.layersFiltered.length) out.push(`${r.layersFiltered.length} layers were left out by the layer filter.`);
-  for (const x of r.xrefs) out.push(`External reference "${x.name}" (${x.path || 'no path stated'}) is not loaded${x.inserted ? `, so its ${x.inserted} placements are empty` : ''}. Open that drawing separately to import it.`);
-  if (r.paperSpace.count) out.push(`${r.paperSpace.count} items sit in paper space (layouts and viewports: ${typeList(r.paperSpace.types)}). Only model space is imported.`);
-  for (const f of r.shxFonts) out.push(`Text style${f.styles.length === 1 ? '' : 's'} ${f.styles.map((s) => `"${s}"`).join(', ') || '(unnamed)'} use the SHX font ${f.file}, which Lolly cannot draw. ${f.textItems} text items keep their wording and use the default font.`);
-  if (r.unnamedFontTexts) out.push(`${r.unnamedFontTexts} text items come from styles that name no font. They use the default font.`);
+  for (const x of r.xrefs) out.push(`External reference "${x.name}" (${x.path || 'no path stated'}) is not loaded${x.inserted ? `, so ${plural(x.inserted, 'placement')} of it ${x.inserted === 1 ? 'is' : 'are'} empty` : ''}. Open that drawing separately to import it.`);
+  if (r.paperSpace.count) out.push(`${plural(r.paperSpace.count, 'item')} ${r.paperSpace.count === 1 ? 'sits' : 'sit'} in paper space (layouts and viewports: ${typeList(r.paperSpace.types)}). Only model space is imported.`);
+  for (const f of r.shxFonts) out.push(`Text style${f.styles.length === 1 ? '' : 's'} ${f.styles.map((s) => `"${s}"`).join(', ') || '(unnamed)'} ${f.styles.length === 1 ? 'uses' : 'use'} the SHX font ${f.file}, which Lolly cannot draw. ${plural(f.textItems, 'text item')} keep${f.textItems === 1 ? 's' : ''} their wording and use${f.textItems === 1 ? 's' : ''} the default font.`);
+  if (r.unnamedFontTexts) out.push(`${plural(r.unnamedFontTexts, 'text item')} ${r.unnamedFontTexts === 1 ? 'comes' : 'come'} from styles that name no font and ${r.unnamedFontTexts === 1 ? 'uses' : 'use'} the default font.`);
   const skipped = Object.entries(r.skipped);
   if (skipped.length) out.push(`Not imported: ${skipped.map(([k, n]) => `${n} ${k}`).join(', ')}.`);
   if (r.missingBlocks.length) out.push(`Blocks used but not defined: ${listNames(r.missingBlocks)}.`);
@@ -685,6 +685,7 @@ export function dxfReportLines(r: DxfReport): string[] {
   return out;
 }
 
+function plural(n: number, noun: string): string { return `${n} ${noun}${n === 1 ? '' : 's'}`; }
 function listNames(names: readonly string[]): string {
   const shown = names.slice(0, 6).map((n) => `"${n}"`).join(', ');
   return names.length > 6 ? `${shown} and ${names.length - 6} more` : shown;

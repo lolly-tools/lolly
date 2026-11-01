@@ -67,6 +67,7 @@ import type { PdfPageSvg, EmbeddedFont, EmbeddedImage, EmbeddedImageScan, Extrac
 import { strFromU8 } from 'fflate';
 import { unzipAsync } from '../lib/zip.ts';
 import { isInddSignature, describeInddError } from '@lolly-tools/node-shell/indd';
+import { isDxf, parseDxfAsDesign } from './dxf-import.ts';
 // Figma .fig decode: a canvas.fig is a Kiwi binary (self-describing schema + data).
 // The schema chunk is raw-DEFLATE (native DecompressionStream); the data chunk is zstd
 // (fzstd - pure JS, by the fflate author). kiwi-schema is Evan Wallace's official decoder.
@@ -196,6 +197,10 @@ export async function parseDesignFile(
     return parseIdmlZip(files, { host, warn, map, interactive });
   }
 
+  // AutoCAD DXF (ASCII or binary): layers become groups of native paths and text boxes, and the
+  // import report names what was not drawn (XREFs, paper space, SHX fonts, hatches).
+  if (isDxf(buf, file && (file as File).name)) return parseDxfAsDesign(buf, { warn, map });
+
   // Sniff: Penpot exports, Figma .fig and InDesign .idml are all ZIPs (magic "PK\x03\x04").
   // Unzip once and route by contents.
   const isZip = buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04;
@@ -310,6 +315,8 @@ export async function parseDesignArtboards(
     const { parseIdmlSpreads } = await import('./idml-import.ts');
     return { frames: await parseIdmlSpreads(files, { host, warn, map, interactive }), background: '#ffffff' };
   }
+
+  if (isDxf(buf, file && (file as File).name)) return one(await parseDxfAsDesign(buf, { warn, map }) as DesignImportResult, baseName((file as File).name, 'drawing'));
 
   const isZip = buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04;
   if (isZip) {
@@ -1720,6 +1727,13 @@ export async function parseDesignScenes(
       if (asset) scenes.push({ name: res.name, asset });
     }
     return { scenes };
+  }
+
+  if (isDxf(buf, file && (file as File).name)) {
+    const res = await parseDxfAsDesign(buf, { warn, map });
+    const name = baseName((file as File).name, 'drawing');
+    const asset = await bakeSceneAsset(host, warn, name, res.boxes, res.width, res.height);
+    return { scenes: asset ? [{ name, asset }] : [] };
   }
 
   const isZip = buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04;
