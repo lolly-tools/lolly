@@ -37,7 +37,7 @@
         "cta": { "label": "Open the app ↗", "href": "#/" },
         "doc": { "label": "Export a file", "slug": "exporting" } }
     ] },
-    { "id": "clients", "name": "Clients and partners", "sub": "several brands, kept apart", "mascot": "lorikeet", "lanes": [
+    { "id": "clients", "name": "Clients and partners", "sub": "several brands, one app", "mascot": "lorikeet", "lanes": [
       { "tab": "Each client", "mascot": "koala",
         "pitch": "An agency, a studio or a freelancer keeps a design system per client, with that client's logos and fonts inside, and switches as the work changes. Each piece is drawn in the system you chose for the piece.",
         "cta": { "label": "Set up a design system ↗", "href": "#/start" },
