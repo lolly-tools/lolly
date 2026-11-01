@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:27317863-008d-4232-842b-8a727fee612d",
+  "serialNumber": "urn:uuid:ad719dd5-5440-441b-8dac-13f0a3aa33f0",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-01T17:26:55.608Z",
+    "timestamp": "2026-11-01T18:18:26.873Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -1427,6 +1427,25 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/cadcraft-dxf@0.15.1",
+      "name": "cadcraft-dxf",
+      "version": "0.15.1",
+      "purl": "pkg:cargo/cadcraft-dxf@0.15.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/dxf/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/cairo-rs@0.18.5",
       "name": "cairo-rs",
       "version": "0.18.5",
@@ -2367,6 +2386,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/core_detect@1.0.0",
+      "name": "core_detect",
+      "version": "1.0.0",
+      "purl": "pkg:cargo/core_detect@1.0.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7f8f80099a98041a3d1622845c271458a2d73e688351bf3cb999266764b81d48"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/dxf/Cargo.lock"
         }
       ]
     },
@@ -3935,6 +3979,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/encoding_rs@0.8.44",
+      "name": "encoding_rs",
+      "version": "0.8.44",
+      "purl": "pkg:cargo/encoding_rs@0.8.44",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "(Apache-2.0 OR MIT) AND BSD-3-Clause"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89253175e704ab869b04f9db224d38630e0211a53841a79181deae0889e169f5"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/dxf/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/endi@1.1.1",
       "name": "endi",
       "version": "1.1.1",
@@ -4365,6 +4434,25 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/filmcraft-audio-dsp@0.15.0",
+      "name": "filmcraft-audio-dsp",
+      "version": "0.15.0",
+      "purl": "pkg:cargo/filmcraft-audio-dsp@0.15.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/audio-dsp/Cargo.lock"
         }
       ]
     },
@@ -7764,6 +7852,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/log@0.4.35",
+      "name": "log",
+      "version": "0.4.35",
+      "purl": "pkg:cargo/log@0.4.35",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5d15f86d12da44cd8d4ec3c73984537eb7f4cadcb9776a575a0a8a05ca11005c"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/dxf/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/lolly-adobe-psd@0.1.0",
       "name": "lolly-adobe-psd",
       "version": "0.1.0",
@@ -7785,6 +7898,27 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/lolly-audio-dsp@0.1.0",
+      "name": "lolly-audio-dsp",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/lolly-audio-dsp@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/audio-dsp/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/lolly-desktop@1.1.3",
       "name": "lolly-desktop",
       "version": "1.1.3",
@@ -7801,6 +7935,27 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/lolly-dxf@0.1.0",
+      "name": "lolly-dxf",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/lolly-dxf@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/dxf/Cargo.lock"
         }
       ]
     },
@@ -8489,6 +8644,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/multiversion_no_op@1.0.0",
+      "name": "multiversion_no_op",
+      "version": "1.0.0",
+      "purl": "pkg:cargo/multiversion_no_op@1.0.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "743fb55ba31b18fb1ecef6bdc9aa2743314978ac084044301a7eee33fb99a20d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/dxf/Cargo.lock"
         }
       ]
     },
@@ -12101,6 +12281,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/rustversion@1.0.23",
+      "name": "rustversion",
+      "version": "1.0.23",
+      "purl": "pkg:cargo/rustversion@1.0.23",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/dxf/Cargo.lock"
         }
       ]
     },
