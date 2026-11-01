@@ -669,6 +669,63 @@
       }
     },
     {
+      "token": "EDL",
+      "name": "EDL",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The list names reels and timecode only. Media is relinked by the file you select or left as labelled placeholders."
+      }
+    },
+    {
+      "token": "OpenTimelineIO",
+      "name": "OpenTimelineIO",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Reads the JSON schema as plain data and never runs a plugin or adapter. Media paths come from the ExternalReference target."
+      }
+    },
+    {
+      "token": "FCPXML",
+      "name": "FCPXML",
+      "category": "Motion",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "animation",
+        "audio"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "Reads one sequence from a plain .fcpxml file; the .fcpxmld bundle is not read. Media comes from the asset sources."
+      }
+    },
+    {
       "token": "WAV",
       "name": "WAV",
       "category": "Audio",
@@ -951,10 +1008,10 @@
       "token": "DXF",
       "name": "DXF",
       "category": "Vector",
-      "dir": "out",
-      "reads": false,
+      "dir": "both",
+      "reads": true,
       "writes": true,
-      "roundTrips": false,
+      "roundTrips": true,
       "features": [
         "vector",
         "text-as-paths",
@@ -964,7 +1021,7 @@
         "reads": [],
         "writes": [],
         "preserves": "n/a",
-        "note": "A 999 comment names Lolly."
+        "note": "A 999 comment names Lolly on export. An import reads layers, units and text and drops other record data."
       }
     },
     {
