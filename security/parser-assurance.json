@@ -1178,6 +1178,19 @@
         "notes": "XREFs, paper space, SHX fonts, hidden layers and every entity type that is not drawn are counted in the report instead of guessed at. A text style's TrueType name is used as written; no font is chosen for the file."
       }
     },
+    "packages/node-shell/src/audio-dsp.ts": {
+      "family": "Audio, video and animation",
+      "fuzzTargets": [
+        "audio-dsp"
+      ],
+      "details": {
+        "inputSource": "PCM decoded from a user-picked recording by the shell, plus the repair settings a tool passes. The shell loads the WASM module.",
+        "bounds": "160 MiB per request and reply; at most 8 open sessions, 8 channels, 8 chain stages; sample rate 8 to 192 kHz; clip alignment reads at most 12M samples per clip; non-finite samples are replaced by silence; 512 MiB WASM memory cap; the module imports nothing from the host",
+        "directTests": "`tests/audio-dsp.test.ts`, the vendored crate's `cargo test --release` and the adapter's `cargo test`",
+        "fuzzCoverage": "`audio-dsp` mutates every operation's request (open, push, read, process, flush, align, close) against a live meter and repair chain.",
+        "notes": "Pinned FilmCraft audio DSP crate with no dependencies and no unsafe code. Long recordings stream through sessions in chunks, and the result does not depend on where the chunks are cut. There is no clock or random input, so output depends only on the request."
+      }
+    },
     "packages/node-shell/src/indd.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [

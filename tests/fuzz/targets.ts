@@ -2258,6 +2258,67 @@ export const fontInspectTarget: FuzzTarget = {
   async invoke(bytes) { inspectFont(bytes); glyphsForText(bytes, 'Hello, Wörld'); },
 };
 
+// Audio DSP module (packages/node-shell/wasm/audio-dsp): the raw byte ABI that the decoded PCM
+// of an untrusted recording reaches through the shell. Contract: a status 0 or 1 reply with a
+// bounded result; never a trap, hang or unbounded allocation. Each call gets a fresh instance
+// that already holds a meter (handle 1) and a repair chain (handle 2), so mutated process,
+// read and flush requests reach real state. The first input byte picks the operation.
+export const audioDspTarget: FuzzTarget = {
+  name: 'audio-dsp',
+  async seeds() {
+    const enc = new TextEncoder();
+    const req = (op: number, json: string, floats: number[] = []): Uint8Array => {
+      const head = enc.encode(json);
+      const out = new Uint8Array(1 + 4 + head.length + floats.length * 4);
+      out[0] = op;
+      new DataView(out.buffer).setUint32(1, head.length, true);
+      out.set(head, 5);
+      floats.forEach((f, i) => new DataView(out.buffer).setFloat32(5 + head.length + i * 4, f, true));
+      return out;
+    };
+    const wave = Array.from({ length: 480 }, (_, i) => 0.2 * Math.sin(i / 7));
+    return [
+      req(1, '{"sampleRate":48000,"channels":2,"series":true}'),
+      req(2, '{"handle":1}', wave),
+      req(3, '{"handle":1}'),
+      req(4, '{"sampleRate":44100,"channels":1,"chain":[{"id":"dehum","params":{"frequency":1}},{"id":"denoise"},{"id":"deesser"},{"id":"dereverb"},{"id":"declick"}]}'),
+      req(5, '{"handle":2}', wave),
+      req(6, '{"handle":2}'),
+      req(7, '{"sampleRate":8000,"framesA":240,"maxLag":100}', wave),
+      req(8, '{"handle":1}'),
+    ];
+  },
+  async invoke(bytes) {
+    const { readFileSync } = await import('node:fs');
+    const wasm = new WebAssembly.Module(readFileSync(new URL('../../packages/node-shell/wasm/audio-dsp/audio-dsp.wasm', import.meta.url)));
+    const api = new WebAssembly.Instance(wasm, {}).exports as unknown as {
+      memory: WebAssembly.Memory; audio_dsp_alloc(n: number): number; audio_dsp_free(p: number): void;
+      audio_dsp_run(p: number, n: number, op: number): number; audio_dsp_result_len(): number;
+    };
+    const send = (op: number, body: Uint8Array): number => {
+      if (!body.length) return -1;
+      const p = api.audio_dsp_alloc(body.length);
+      if (!p) return -1;
+      new Uint8Array(api.memory.buffer, p, body.length).set(body);
+      const status = api.audio_dsp_run(p, body.length, op);
+      api.audio_dsp_free(p);
+      return status;
+    };
+    const json = (text: string): Uint8Array => {
+      const head = new TextEncoder().encode(text);
+      const out = new Uint8Array(4 + head.length);
+      new DataView(out.buffer).setUint32(0, head.length, true);
+      out.set(head, 4);
+      return out;
+    };
+    send(1, json('{"sampleRate":48000,"channels":2,"series":true}'));
+    send(4, json('{"sampleRate":48000,"channels":1,"chain":[{"id":"denoise"},{"id":"dehum"},{"id":"declick"}]}'));
+    const status = send(bytes[0]! % 9, bytes.subarray(1));
+    if (status !== -1 && status !== 0 && status !== 1) throw new Error(`audio-dsp: unexpected status ${status}`);
+    if (api.audio_dsp_result_len() > 160 * 1024 * 1024) throw new Error('audio-dsp: oversized result');
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
   adobeXmlTarget, timelineEdlTarget, timelineOtioTarget, timelineFcpxmlTarget, adobePsdTarget, xlsxNumfmtTarget, pdfA11yTarget, inddTarget, dxfTarget, idmlReadTarget,
@@ -2276,6 +2337,6 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget, fontInspectTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));
