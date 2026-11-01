@@ -189,6 +189,7 @@
     "build:indd": "node scripts/build-indd.ts",
     "fetch:adobe-corpus": "node scripts/adobe-corpus.ts --fetch",
     "verify:adobe-corpus": "node scripts/adobe-corpus.ts",
+    "test:oracles": "node --test scripts/pdf-oracle.test.ts",
     "fetch:gimp-corpus": "node scripts/gimp-corpus.ts --fetch",
     "verify:gimp-corpus": "node scripts/gimp-corpus.ts",
     "build:motion-starters": "node scripts/build-motion-starters.ts",
