@@ -140,7 +140,7 @@ export async function matteCli(positionals: string[], flags: Record<string, stri
   if (!api) throw notHere('Background removal needs onnxruntime-node and sharp, and neither resolves in this install.', 'CAPABILITY_UNAVAILABLE');
   if (flags.models !== undefined) return listModels(api.models(), (m) => `${m.id}  ${m.name}  ${m.tier}  ${formatBytes(m.approxBytes)}  ${m.license}`);
   const input = positionals[0];
-  if (!input) throw usageError('usage: lolly matte <image> [--model=u2netp|modnet] [--max-edge=N] [--edges=refined|as-drawn] [--edge-radius=12] [--edge-shift=0] [--edge-contrast=1] [--out=<file.png>] [--models]', 'MISSING_ARGUMENT');
+  if (!input) throw usageError('usage: lolly matte <image> [--model=u2netp|modnet] [--max-edge=N] [--edges=refined|as-drawn] [--edge-radius=12] [--edge-shift=0] [--edge-contrast=1] [--clean-edge-colour] [--out=<file.png>] [--models]', 'MISSING_ARGUMENT');
 
   const model = flags.model as Parameters<typeof api.modelBytes>[0] | undefined;
   const refine = matteRefineFlags(flags);
@@ -151,6 +151,7 @@ export async function matteCli(positionals: string[], flags: Record<string, stri
       ...(model ? { model } : {}),
       ...(positiveInt(flags['max-edge'], 'max-edge') ? { maxEdge: positiveInt(flags['max-edge'], 'max-edge')! } : {}),
       ...(refine !== undefined ? { refine } : {}),
+      ...(flags['clean-edge-colour'] !== undefined ? { cleanEdgeColour: true } : {}),
     });
     await writePng(out, flags.out);
     return EXIT.OK;

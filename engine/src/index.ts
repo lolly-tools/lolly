@@ -795,8 +795,8 @@ export { inpaintTelea } from './inpaint.ts';
 export { healFrame, spotHealPremultiplied, healCoverageBounds } from './heal.ts';
 export type { HealFrame, HealMode, HealOptions } from './heal.ts';
 // Matte edges pulled onto the photo (plans/289 M4): the guided filter both mattes run after the model.
-export { boxMean, guidedFilter, refineMatte, resizeMask } from './guided-matte.ts';
-export type { MatteRefineOptions } from './guided-matte.ts';
+export { boxMean, decontaminateEdgeColour, guidedFilter, refineMatte, resizeMask } from './guided-matte.ts';
+export type { DecontaminateOptions, MatteRefineOptions } from './guided-matte.ts';
 export type { InpaintFrame } from './inpaint.ts';
 // Colour grading - the .cube/.3dl readers, the tetrahedral sampler, the RGBA
 // frame apply and the film grain + vignette pass, promoted out of the darkroom

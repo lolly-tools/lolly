@@ -125,3 +125,87 @@ test('lolly matte edge flags: as-drawn turns refinement off; numbers are checked
   assert.throws(() => matteRefineFlags({ edges: 'soft' }), /--edges takes refined or as-drawn/);
   assert.throws(() => matteRefineFlags({ 'edge-contrast': '20' }), /--edge-contrast takes a number from 1 to 10/);
 });
+
+// ── Edge colour decontamination (plans/342 W5) ──────────────────────────────
+
+import { decontaminateEdgeColour } from '../engine/src/guided-matte.ts';
+
+const FG: [number, number, number] = [200, 40, 40];
+const BG: [number, number, number] = [0, 255, 0];
+
+/** A red disc shot against green: alpha falls from 1 to 0 across a 6 px ramp, and every pixel's colour is the true mix of subject and green. */
+function greenFringeScene(w: number, h: number) {
+  const cx = w / 2, cy = h / 2, rIn = 18, ramp = 6;
+  const rgba = new Uint8ClampedArray(w * h * 4);
+  const alpha = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const d = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+      const a = Math.min(1, Math.max(0, (rIn + ramp - d) / ramp));
+      const i = y * w + x;
+      alpha[i] = Math.round(a * 255);
+      for (let c = 0; c < 3; c++) rgba[i * 4 + c] = Math.round(FG[c]! * a + BG[c]! * (1 - a));
+      rgba[i * 4 + 3] = 255;
+    }
+  }
+  return { rgba, alpha };
+}
+
+/** Largest green excess (green above the larger of red and blue) among pixels that are visibly there (alpha over 10%). */
+function worstGreenFringe(rgba: ArrayLike<number>, alpha: ArrayLike<number>) {
+  let worst = 0, worstOff = 0;
+  for (let i = 0; i < alpha.length; i++) {
+    if (alpha[i]! <= 26) continue;
+    const r = rgba[i * 4]!, g = rgba[i * 4 + 1]!, b = rgba[i * 4 + 2]!;
+    worst = Math.max(worst, g - Math.max(r, b));
+    // Distance from the true subject colour, which the photo never held at the fringe.
+    worstOff = Math.max(worstOff, Math.abs(r - FG[0]), Math.abs(g - FG[1]), Math.abs(b - FG[2]));
+  }
+  return { worst, worstOff };
+}
+
+test('decontamination takes the green fringe off a cut-out, within a stated bound', () => {
+  const w = 64, h = 64;
+  const { rgba, alpha } = greenFringeScene(w, h);
+  const before = worstGreenFringe(rgba, alpha);
+  // The fixture has a real fringe to remove: a pixel at 25% alpha is mostly green.
+  assert.ok(before.worst > 150, `fixture fringe is strong (${before.worst})`);
+  const out = decontaminateEdgeColour(rgba, alpha, w, h);
+  const after = worstGreenFringe(out, alpha);
+  // Bounds: no visible pixel is green-heavy any more (before: over 150 levels), and none is
+  // more than 16 levels from the subject colour (before: over 150). The remainder is the
+  // faint edge pixels (alpha 75% to 98%) that move only part way by design.
+  assert.ok(before.worstOff > 150, `fixture is far from the subject colour (${before.worstOff})`);
+  assert.ok(after.worst <= 0, `green excess after ${after.worst}`);
+  assert.ok(after.worstOff <= 16, `distance from the subject colour after ${after.worstOff}`);
+});
+
+test('decontamination changes colour only on soft edge pixels, never alpha', () => {
+  const w = 64, h = 64;
+  const { rgba, alpha } = greenFringeScene(w, h);
+  const out = decontaminateEdgeColour(rgba, alpha, w, h);
+  for (let i = 0; i < w * h; i++) {
+    assert.equal(out[i * 4 + 3], alpha[i], 'alpha is the matte given');
+    const a = alpha[i]! / 255;
+    if (a <= 0.02 || a >= 0.98) for (let c = 0; c < 3; c++) assert.equal(out[i * 4 + c], rgba[i * 4 + c], `solid or empty pixel ${i} keeps its colour`);
+  }
+});
+
+test('decontamination is off unless asked: refineMatte and the inputs are untouched, and a hard matte comes back as it went in', () => {
+  const w = 16, h = 16;
+  const rgba = new Uint8ClampedArray(w * h * 4).map((_, i) => (i * 37) % 256);
+  const copy = rgba.slice();
+  const hard = new Uint8Array(w * h).map((_, i) => (i % w < 8 ? 255 : 0));
+  const out = decontaminateEdgeColour(rgba, hard, w, h);
+  assert.deepEqual(rgba, copy, 'input is not changed');
+  for (let i = 0; i < w * h; i++) for (let c = 0; c < 3; c++) assert.equal(out[i * 4 + c], rgba[i * 4 + c]);
+});
+
+test('decontamination is deterministic, and a fringe with no solid subject near keeps its colour', () => {
+  const w = 64, h = 64;
+  const { rgba, alpha } = greenFringeScene(w, h);
+  assert.deepEqual(decontaminateEdgeColour(rgba, alpha, w, h), decontaminateEdgeColour(rgba, alpha, w, h));
+  const faint = new Uint8Array(w * h).fill(100);
+  const out = decontaminateEdgeColour(rgba, faint, w, h);
+  for (let i = 0; i < w * h * 4; i += 4) for (let c = 0; c < 3; c++) assert.equal(out[i + c], rgba[i + c]);
+});
