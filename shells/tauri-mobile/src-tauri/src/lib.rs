@@ -1,4 +1,6 @@
 mod public_network;
+#[path = "../../../tauri-shared/native/atomic_write.rs"]
+mod atomic_write;
 #[path = "../../../tauri-shared/tauri-embedded-assets.rs"]
 mod embedded_assets;
 mod remote_fetch;
@@ -245,6 +247,7 @@ pub fn run() {
         // queue is the second. Remote HTTP is a bounded command rather than a
         // webview-visible plugin; everything else is fs or the shared bridge.
         .invoke_handler(mobile_commands(tauri::generate_handler![
+            atomic_write::write_document_atomic,
             site_fetch::site_fetch,
             remote_fetch::remote_fetch,
             mobile_poll_events,

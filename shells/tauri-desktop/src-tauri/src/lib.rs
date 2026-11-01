@@ -1,4 +1,6 @@
 mod file_custody;
+#[path = "../../../tauri-shared/native/atomic_write.rs"]
+mod atomic_write;
 mod capture;
 mod capture_isolated;
 mod public_network;
@@ -130,6 +132,8 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
         .menu(|handle| menu::build_menu(handle, &menu::MenuData::default()))
         .on_menu_event(|app, event| menu::handle_event(app, &event))
         .invoke_handler(presentation_windows::main_commands(tauri::generate_handler![
+            // Crash-safe saves for documents and slots (state-fs.ts writes through it).
+            atomic_write::write_document_atomic,
             desktop_integration::desktop_poll_events,
             desktop_integration::desktop_read_file,
             desktop_integration::desktop_pick_color,
