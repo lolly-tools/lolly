@@ -13,8 +13,12 @@ import type { TokenAdapter } from '../../../../engine/src/token-consumer-adapter
 /** Which field action produced a commit, so a caller writing many targets can review a link or keep each target's own custom value. */
 export type TokenFieldAction = 'link' | 'custom' | 'restore';
 
-/** Adds link actions around the caller's existing typed editor; never edits source tokens. */
-export function mountTokenBindingField(root: HTMLElement, input: InputModelItem, host: Pick<HostV1, 'tokens'>, commit: (value: InputValue, action: TokenFieldAction) => void | Promise<void>, options: { consumer?: TokenConsumer; fallbackAdapter?: TokenAdapter; candidatePreflight?: (entry: TokenEntry | undefined) => TokenBindingResult | undefined; readOnly?: boolean; mixed?: boolean; restoreRef?: string; compact?: boolean; colorTarget?: 'srgb' | 'rec2020'; candidateType?: 'transition'; onPendingChange?: (pending: boolean) => void } = {}): () => void {
+/**
+ * Adds link actions around the caller's existing typed editor; never edits source tokens.
+ * The returned disposer also answers `choosing()`: true while the person is choosing from
+ * the open token list, so a caller that rebuilds its panel can wait instead of shutting the list.
+ */
+export function mountTokenBindingField(root: HTMLElement, input: InputModelItem, host: Pick<HostV1, 'tokens'>, commit: (value: InputValue, action: TokenFieldAction) => void | Promise<void>, options: { consumer?: TokenConsumer; fallbackAdapter?: TokenAdapter; candidatePreflight?: (entry: TokenEntry | undefined) => TokenBindingResult | undefined; readOnly?: boolean; mixed?: boolean; restoreRef?: string; compact?: boolean; colorTarget?: 'srgb' | 'rec2020'; candidateType?: 'transition'; onPendingChange?: (pending: boolean) => void } = {}): (() => void) & { choosing(): boolean } {
   const resolve = (entry: TokenEntry | undefined) => {
     const consumer = { ...input, ...options.consumer, colorTarget: options.colorTarget };
     const primary = resolveTokenBinding(entry, consumer);
@@ -48,6 +52,21 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
   }
   const chooser = root.querySelector<HTMLSelectElement>('select')!;
   const linkButton = root.querySelector<HTMLButtonElement>('[data-token-link]');
+  // A plain list links on the pick, so its choice ends once something is picked. A
+  // transition list links on "Link token", so its choice lasts through the pick and the
+  // press on that button until the link is made or focus leaves the list and the button.
+  // The press counts as well as focus, because WebKit does not focus a pressed button,
+  // and a rebuild between press and release would take the button away before the click.
+  let applied = false, pressing = false;
+  const choosing = (): boolean => {
+    const list = root.querySelector<HTMLElement>('[data-token-options]');
+    if (disposed || !list || list.hidden) return false;
+    const active = root.ownerDocument.activeElement;
+    if (!explicit) return active === chooser && chooser.value === '';
+    return !applied && (pressing || active === chooser || (!!linkButton && active === linkButton));
+  };
+  linkButton?.addEventListener('pointerdown', () => { pressing = true; }, { signal: abort.signal });
+  for (const type of ['pointerup', 'pointercancel']) root.ownerDocument.addEventListener(type, () => { pressing = false; }, { capture: true, signal: abort.signal });
   function showCompatibility(): void {
     if (!linkButton) return;
     const entry = candidates.find(candidate => candidate.path === chooser.value);
@@ -56,7 +75,7 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
     message.textContent = result && result.status !== 'linked' ? t(result.reason ?? 'This token cannot be linked here.') : '';
   }
   async function apply(value: InputValue, action: TokenFieldAction): Promise<void> {
-    try { await commit(value, action); }
+    try { await commit(value, action); applied = true; }
     catch (error) { if (!disposed) message.textContent = error instanceof Error ? error.message : t('The value could not be changed.'); }
   }
   async function link(ref: string, action: TokenFieldAction = 'link'): Promise<void> {
@@ -100,6 +119,7 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
           candidates = entries.slice(0, 2000);
           chooser.innerHTML = `<option value="">${t('Choose a token')}</option>${candidates.map(e => `<option value="${esc(e.path)}">${esc(e.path)}${explicit && resolve(e).status !== 'linked' ? ` · ${t('Incompatible')}` : ''}</option>`).join('')}`;
           root.querySelector<HTMLElement>('[data-token-options]')!.hidden = false;
+          applied = false;
           if (linkButton) { linkButton.hidden = false; linkButton.disabled = true; }
           message.textContent = entries.length > 2000 ? explicit ? t('Showing the first 2000 transition tokens. Inspect the system to search all tokens.') : t('Showing the first 2000 compatible tokens. Inspect the system to search all tokens.') : entries.length ? '' : explicit ? t('No transition tokens in this context.') : t('No compatible tokens in this context.');
           chooser.focus();
@@ -113,5 +133,5 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
     if (!path) return;
     await duringAction(() => link(path));
   }, { signal: abort.signal });
-  return () => { disposed = true; abort.abort(); root.replaceChildren(); };
+  return Object.assign(() => { disposed = true; abort.abort(); root.replaceChildren(); }, { choosing });
 }
